@@ -7,7 +7,7 @@ import { SectionChipRow } from '../../components/form';
 
 export type MediaTypeSelectorProps<T extends string> = {
   labelKeys: Record<T, string>;
-  /** Controls that scroll ahead of the type chips (sort, Categories). */
+  /** Sort and Categories, only when the current type can use them. */
   leading?: ReactNode;
   onChange: (mediaType: T) => void;
   /** `null` when no type chip is selected (the Categories list is showing). */

@@ -69,9 +69,8 @@ name: Detail Sort Prefs
     visible:
       id: podcast-detail-about
     timeout: ${TIMEOUT_FASTER}
-# About is prose, so the title filter does not apply. Sort stays mounted (disabled) so the chip
-# row does not jump when leaving Episodes / Clips.
-- assertVisible:
+# About is prose, so the title filter and sort chip do not apply.
+- assertNotVisible:
     id: podcast-detail-sort-button
 - assertNotVisible:
     id: podcast-detail-filter-input

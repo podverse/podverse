@@ -11,7 +11,7 @@ import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import type { BrowseStackParamList } from '../../navigation';
-import { BROWSE_STACK_ROUTES } from '../../navigation';
+import { BROWSE_STACK_ROUTES, buildPodcastDetailParams } from '../../navigation';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE } from '../../prefs/homeListPrefs';
 import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
@@ -52,7 +52,10 @@ import {
   DEFAULT_BROWSE_RANGE,
   isBrowseMediaType,
   MEDIA_TYPE_LABEL_KEYS,
+  shouldShowBrowseCategoryChip,
+  shouldShowBrowseSortChip,
 } from './browseTypes';
+
 type CategoryListRow = {
   expanded: boolean;
   hasChildren: boolean;
@@ -366,7 +369,14 @@ export function BrowseScreen() {
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
       if (selectedMediaType === 'podcasts' || selectedMediaType === 'videos') {
-        navigation.navigate(BROWSE_STACK_ROUTES.PodcastDetail, { podcastId: row.id });
+        navigation.navigate(
+          BROWSE_STACK_ROUTES.PodcastDetail,
+          buildPodcastDetailParams({
+            podcastId: row.id,
+            previewImageUrl: row.imageUrl,
+            previewTitle: row.title,
+          })
+        );
         return;
       }
       if (selectedMediaType === 'episodes') {
@@ -512,28 +522,34 @@ export function BrowseScreen() {
   return (
     <View style={styles.container} testID="browse-screen">
       <View style={styles.selectorSection}>
-        <MediaTypeSelector
-          labelKeys={MEDIA_TYPE_LABEL_KEYS}
-          leading={
-            <>
-              <BrowseSortChip
-                onRangeChange={handleRangeChange}
-                range={activePrefs?.range ?? DEFAULT_BROWSE_RANGE}
-              />
-              <SectionChip
-                label={categoriesChipLabel}
-                onPress={handleCategoriesPress}
-                selected={selectedCategory !== null}
-                testID="browse-category-button"
-                variant="filter"
-              />
-            </>
-          }
-          onChange={handleMediaTypeChange}
-          selectedMediaType={isCategoryView ? null : selectedMediaType}
-          testIDPrefix="browse"
-          types={BROWSE_MEDIA_TYPE_ORDER}
-        />
+        {isHydrated ? (
+          <MediaTypeSelector
+            labelKeys={MEDIA_TYPE_LABEL_KEYS}
+            leading={
+              <>
+                {shouldShowBrowseSortChip(selectedMediaType, isCategoryView) ? (
+                  <BrowseSortChip
+                    onRangeChange={handleRangeChange}
+                    range={activePrefs?.range ?? DEFAULT_BROWSE_RANGE}
+                  />
+                ) : null}
+                {shouldShowBrowseCategoryChip(selectedMediaType) ? (
+                  <SectionChip
+                    label={categoriesChipLabel}
+                    onPress={handleCategoriesPress}
+                    selected={isCategoryView || selectedCategory !== null}
+                    testID="browse-category-button"
+                    variant="filter"
+                  />
+                ) : null}
+              </>
+            }
+            onChange={handleMediaTypeChange}
+            selectedMediaType={selectedMediaType}
+            testIDPrefix="browse"
+            types={BROWSE_MEDIA_TYPE_ORDER}
+          />
+        ) : null}
       </View>
       <FillList
         ListEmptyComponent={listEmpty}

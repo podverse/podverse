@@ -8,7 +8,6 @@ import type { LinkingOptions, NavigatorScreenParams } from '@react-navigation/na
 import {
   createNavigationContainerRef,
   getPathFromState as getDefaultPathFromState,
-  getStateFromPath as getDefaultStateFromPath,
   NavigationContainer,
 } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,7 +18,11 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints } from '@podverse/design-tokens';
-import { shouldSuppressExpiryReminder } from '@podverse/helpers';
+import {
+  APP_ROUTES,
+  MOBILE_HOME_TAB_SEGMENT,
+  shouldSuppressExpiryReminder,
+} from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
 import { GlobalActivityBar } from '../components/feedback/GlobalActivityBar';
@@ -77,8 +80,10 @@ import { V4vInfoScreen } from '../screens/v4v/V4vInfoScreen';
 import { useNavigationTheme } from '../theme/useNavigationTheme';
 import { useTheme } from '../theme/useTheme';
 import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
-import { mapIncomingPathToScopedPath, mapScopedPathToFlatPath } from './deepLinking';
+import { mapScopedPathToFlatPath } from './deepLinking';
+import { resolveMobileDeepLinkState } from './notificationStack';
 import { OrderedTabBar } from './OrderedTabBar';
+import type { PodcastDetailRouteParams } from './podcastDetailParams';
 import { tabBarIcon } from './tabBarIcon';
 import { useTabLayout } from './TabLayoutProvider';
 
@@ -228,34 +233,34 @@ const mobileNavigationScreens = {
         // it, `getStateFromPath('/home/podcast/:id')` returns undefined and deep links fall back
         // to Home. HomeRoot stays the bare `home` segment.
         screens: {
-          AddByRssPodcastDetail: 'home/add-by-rss/:feedIdText',
-          AlbumDetail: 'home/album/:albumId',
-          ArtistDetail: 'home/artist/:artistId',
-          ClipDetail: 'home/clip/:clipId',
-          EpisodeDetail: 'home/episode/:episodeId',
-          HomeRoot: 'home',
-          PodcastDetail: 'home/podcast/:podcastId',
-          PodcastSettings: 'home/podcast/:podcastId/settings',
-          TrackDetail: 'home/track/:trackId',
+          AddByRssPodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}/add-by-rss/:feedIdText`,
+          AlbumDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.ALBUM}/:albumId`,
+          ArtistDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.ARTIST}/:artistId`,
+          ClipDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.CLIP}/:clipId`,
+          EpisodeDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.EPISODE}/:episodeId`,
+          HomeRoot: MOBILE_HOME_TAB_SEGMENT,
+          PodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PODCAST}/:podcastId`,
+          PodcastSettings: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PODCAST}/:podcastId/settings`,
+          TrackDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.TRACK}/:trackId`,
         },
       },
       More: {
         screens: {
           MoreAbout: 'more/about',
-          MoreMembership: 'more/membership',
+          MoreMembership: `more${APP_ROUTES.MEMBERSHIP}`,
           MoreOpml: 'more/opml',
-          MorePublicProfile: 'more/profile/:accountIdText',
-          MoreProfile: 'more/profile',
+          MorePublicProfile: `more${APP_ROUTES.PROFILE}/:accountIdText`,
+          MoreProfile: `more${APP_ROUTES.PROFILE}`,
           MoreRoot: 'more',
-          MoreSettings: 'more/settings',
-          MoreSettingsAppearance: 'more/settings/appearance',
-          MoreSettingsDownloadLimit: 'more/settings/downloads/limit',
-          MoreSettingsDownloads: 'more/settings/downloads',
-          MoreSettingsLocale: 'more/settings/locale',
-          MoreSettingsNotifications: 'more/settings/notifications',
-          MoreSettingsPlayback: 'more/settings/playback',
-          MoreSettingsTabBar: 'more/settings/tab-bar',
-          MoreSettingsTheme: 'more/settings/theme',
+          MoreSettings: `more${APP_ROUTES.SETTINGS}`,
+          MoreSettingsAppearance: `more${APP_ROUTES.SETTINGS}/appearance`,
+          MoreSettingsDownloadLimit: `more${APP_ROUTES.SETTINGS}/downloads/limit`,
+          MoreSettingsDownloads: `more${APP_ROUTES.SETTINGS}/downloads`,
+          MoreSettingsLocale: `more${APP_ROUTES.SETTINGS}/locale`,
+          MoreSettingsNotifications: `more${APP_ROUTES.SETTINGS}/notifications`,
+          MoreSettingsPlayback: `more${APP_ROUTES.SETTINGS}/playback`,
+          MoreSettingsTabBar: `more${APP_ROUTES.SETTINGS}/tab-bar`,
+          MoreSettingsTheme: `more${APP_ROUTES.SETTINGS}/theme`,
           MoreSmoke: 'more/smoke',
           MoreSyncLog: 'more/sync-log',
         },
@@ -264,33 +269,33 @@ const mobileNavigationScreens = {
         screens: {
           AddByRssFeedList: 'my-library/add-by-rss/feeds',
           AddByRssRoot: 'my-library/add-by-rss',
-          EpisodeDetail: 'my-library/episode/:episodeId',
-          LibraryClipDetail: 'my-library/clip/:clipId',
+          EpisodeDetail: `my-library${APP_ROUTES.EPISODE}/:episodeId`,
+          LibraryClipDetail: `my-library${APP_ROUTES.CLIP}/:clipId`,
           LibraryDownloads: 'my-library/downloads',
           LibraryHistory: 'my-library/history',
           LibraryHub: 'my-library',
           LibraryMyClips: 'my-library/my-clips',
-          PlaylistCreate: 'my-library/playlist/create',
-          PlaylistDetail: 'my-library/playlist/:playlistId',
-          PlaylistEdit: 'my-library/playlist/:playlistId/edit',
+          PlaylistCreate: `my-library${APP_ROUTES.PLAYLIST}/create`,
+          PlaylistDetail: `my-library${APP_ROUTES.PLAYLIST}/:playlistId`,
+          PlaylistEdit: `my-library${APP_ROUTES.PLAYLIST}/:playlistId/edit`,
           LibraryPlaylists: 'my-library/playlists',
           LibraryQueue: 'my-library/queue',
-          PodcastDetail: 'my-library/podcast/:podcastId',
-          PodcastSettings: 'my-library/podcast/:podcastId/settings',
+          PodcastDetail: `my-library${APP_ROUTES.PODCAST}/:podcastId`,
+          PodcastSettings: `my-library${APP_ROUTES.PODCAST}/:podcastId/settings`,
         },
       },
       Browse: {
         screens: {
-          AlbumDetail: 'browse/album/:albumId',
-          ArtistDetail: 'browse/artist/:artistId',
+          AlbumDetail: `browse${APP_ROUTES.ALBUM}/:albumId`,
+          ArtistDetail: `browse${APP_ROUTES.ARTIST}/:artistId`,
           BrowseRoot: 'browse',
-          ClipDetail: 'browse/clip/:clipId',
-          EpisodeDetail: 'browse/episode/:episodeId',
-          PlaylistDetail: 'browse/playlist/:playlistId',
-          PodcastDetail: 'browse/podcast/:podcastId',
-          PodcastSettings: 'browse/podcast/:podcastId/settings',
-          Profile: 'browse/profile/:accountIdText',
-          TrackDetail: 'browse/track/:trackId',
+          ClipDetail: `browse${APP_ROUTES.CLIP}/:clipId`,
+          EpisodeDetail: `browse${APP_ROUTES.EPISODE}/:episodeId`,
+          PlaylistDetail: `browse${APP_ROUTES.PLAYLIST}/:playlistId`,
+          PodcastDetail: `browse${APP_ROUTES.PODCAST}/:podcastId`,
+          PodcastSettings: `browse${APP_ROUTES.PODCAST}/:podcastId/settings`,
+          Profile: `browse${APP_ROUTES.PROFILE}/:accountIdText`,
+          TrackDetail: `browse${APP_ROUTES.TRACK}/:trackId`,
         },
       },
       Notifications: {
@@ -300,15 +305,15 @@ const mobileNavigationScreens = {
       },
       Search: {
         screens: {
-          AlbumDetail: 'search/album/:albumId',
-          ArtistDetail: 'search/artist/:artistId',
-          ClipDetail: 'search/clip/:clipId',
-          EpisodeDetail: 'search/episode/:episodeId',
-          PodcastDetail: 'search/podcast/:podcastId',
-          PodcastSettings: 'search/podcast/:podcastId/settings',
+          AlbumDetail: `search${APP_ROUTES.ALBUM}/:albumId`,
+          ArtistDetail: `search${APP_ROUTES.ARTIST}/:artistId`,
+          ClipDetail: `search${APP_ROUTES.CLIP}/:clipId`,
+          EpisodeDetail: `search${APP_ROUTES.EPISODE}/:episodeId`,
+          PodcastDetail: `search${APP_ROUTES.PODCAST}/:podcastId`,
+          PodcastSettings: `search${APP_ROUTES.PODCAST}/:podcastId/settings`,
           SearchResultDetail: 'search/result/:resultId',
           SearchRoot: 'search',
-          TrackDetail: 'search/track/:trackId',
+          TrackDetail: `search${APP_ROUTES.TRACK}/:trackId`,
         },
       },
     },
@@ -337,15 +342,13 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
     return mapScopedPathToFlatPath(scopedPath);
   },
   getStateFromPath: (path, options) => {
-    const scopedPath = mapIncomingPathToScopedPath(path);
-    return (
-      getDefaultStateFromPath(scopedPath, options) ??
-      getDefaultStateFromPath('/home', options) ??
-      undefined
-    );
+    return resolveMobileDeepLinkState(path, options);
   },
   prefixes: MOBILE_LINK_PREFIXES,
 };
+
+export type { PodcastDetailRouteParams } from './podcastDetailParams';
+export { buildPodcastDetailParams } from './podcastDetailParams';
 
 /** Channel/item detail params shared by Home and Search stacks (tab isolation). */
 export type ChannelBrowseStackParamList = {
@@ -353,7 +356,7 @@ export type ChannelBrowseStackParamList = {
   ArtistDetail: { artistId: string };
   ClipDetail: { clipId: string };
   EpisodeDetail: { episodeId: string };
-  PodcastDetail: { podcastId: string };
+  PodcastDetail: PodcastDetailRouteParams;
   PodcastSettings: { podcastId: string };
   TrackDetail: { trackId: string };
 };
@@ -396,7 +399,7 @@ export type LibraryStackParamList = {
   PlaylistEdit: { playlistId: string };
   LibraryPlaylists: undefined;
   LibraryQueue: undefined;
-  PodcastDetail: { podcastId: string };
+  PodcastDetail: PodcastDetailRouteParams;
   PodcastSettings: { podcastId: string };
 };
 
@@ -1268,8 +1271,10 @@ export function MobileTabNavigator({
       return;
     }
 
-    const scopedPath = mapIncomingPathToScopedPath(pendingDeepLinkUrl);
-    const nextState = getDefaultStateFromPath(scopedPath, mobileNavigationLinking.config);
+    const nextState = resolveMobileDeepLinkState(
+      pendingDeepLinkUrl,
+      mobileNavigationLinking.config
+    );
     if (nextState !== undefined) {
       rootNavigationRef.resetRoot(nextState);
     } else {

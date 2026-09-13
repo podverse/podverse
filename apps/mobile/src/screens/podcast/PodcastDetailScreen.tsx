@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ComponentType } from 'react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
@@ -14,11 +14,15 @@ import type { MenuSelectChipOption, SectionChipItem } from '../../components/for
 import { ListFilterField, MenuSelectChip, SectionChipRow } from '../../components/form';
 import { Button } from '../../components/primitives/Button';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { channelSeenRepository } from '../../data/repositories/channelSeenRepository';
+import { downloadsRepository } from '../../data/repositories/downloadsRepository';
+import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
@@ -39,9 +43,14 @@ import {
   writePodcastDetailSort,
   writePodcastDetailTab,
 } from '../../prefs/detailListPrefs';
-import { listFilterFieldBottomMargin, listHeaderStackGap } from '../../theme/screenLayout';
+import {
+  listFilterFieldBottomMargin,
+  listHeaderStackGap,
+  screenBodyInsets,
+} from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import {
+  channelHasPodroll,
   isFilterableSection,
   isSortableSection,
   PODCAST_SECTION_LABEL_KEYS,
@@ -93,9 +102,10 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
  * A podcast, as one column at every width.
  *
  * The screen owns identity and controls — the channel, the subscribe state, which section is
- * showing and how it is ordered — and hands them to the active section as a header. The section
- * owns its own list, because the sections answer to different endpoints and different row shapes,
- * and a single list that tried to serve all of them would branch on section in every callback.
+ * showing and how it is ordered. Artwork and chips stay pinned; the title filter is handed to the
+ * active section as its list header. The section owns its own list, because the sections answer to
+ * different endpoints and different row shapes, and a single list that tried to serve all of them
+ * would branch on section in every callback.
  *
  * Actions on the channel as a whole (share, notifications, settings) belong in the stack header
  * rather than in the body, so they stay reachable while the list is scrolled.
@@ -104,13 +114,24 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { podcastId, previewImageUrl, previewTitle } = route.params;
+  const cachedChrome = getCachedChannelSectionFlags(podcastId);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
-  const [hasSoundbites, setHasSoundbites] = useState<boolean>(false);
-  const [hasCheckedSoundbites, setHasCheckedSoundbites] = useState<boolean>(false);
+  const [hasSoundbites, setHasSoundbites] = useState<boolean>(
+    cachedChrome?.hasOfficialClips === true
+  );
+  const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
+    cachedChrome?.hasPodroll === true
+  );
+  const [hasCheckedSoundbites, setHasCheckedSoundbites] = useState<boolean>(
+    cachedChrome !== null
+  );
+  const chromeConfirmedRef = useRef(false);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const [section, setSection] = useState<PodcastTab>(DEFAULT_PODCAST_TAB);
+  const [isSectionHydrated, setIsSectionHydrated] = useState<boolean>(false);
   const [sort, setSort] = useState<PodcastDetailSort>(DEFAULT_PODCAST_DETAIL_SORT);
   const [range, setRange] = useState<PodcastDetailRange>(DEFAULT_PODCAST_DETAIL_RANGE);
   /**
@@ -119,7 +140,34 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
    * one is deliberately not carried anywhere.
    */
   const [filterTerm, setFilterTerm] = useState<string>('');
-  const { podcastId } = route.params;
+  /**
+   * List chrome known before the channel DTO arrives — route preview from the painted source row,
+   * then SQLite for deep links into a subscribed show. Replaced when `channel` loads.
+   */
+  const [previewArtworkUri, setPreviewArtworkUri] = useState<string | null>(
+    previewImageUrl !== undefined && previewImageUrl !== null && previewImageUrl.length > 0
+      ? previewImageUrl
+      : null
+  );
+  const [previewHeaderTitle, setPreviewHeaderTitle] = useState<string | null>(
+    previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null
+  );
+
+  useEffect(() => {
+    setPreviewArtworkUri(
+      previewImageUrl !== undefined && previewImageUrl !== null && previewImageUrl.length > 0
+        ? previewImageUrl
+        : null
+    );
+    setPreviewHeaderTitle(
+      previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null
+    );
+    const nextChrome = getCachedChannelSectionFlags(podcastId);
+    chromeConfirmedRef.current = false;
+    setHasSoundbites(nextChrome?.hasOfficialClips === true);
+    setPreviewHasPodroll(nextChrome?.hasPodroll === true);
+    setHasCheckedSoundbites(nextChrome !== null);
+  }, [podcastId, previewImageUrl, previewTitle]);
 
   const styles = useMemo(
     () =>
@@ -137,6 +185,12 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         headerActions: {
           alignItems: 'center',
           flexDirection: 'row',
+        },
+        pinnedChrome: {
+          ...screenBodyInsets(tokens.spacing),
+        },
+        sectionBody: {
+          flex: 1,
         },
       }),
     [themeStyles, tokens]
@@ -167,14 +221,51 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         api.reqChannelGetByIdOrIdText(podcastId)
       );
       setChannel(response);
+      const hasPodroll = channelHasPodroll(response);
+      setPreviewHasPodroll(hasPodroll);
+      void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+        hasOfficialClips: soundbites,
+        hasPodroll,
+      });
+      // This screen is where the show's name is known for a channel the user does not follow, so it
+      // is where any download of theirs that has only an id gets one.
+      void downloadsRepository.attachChannelToDownloads({
+        channelIdText: response.id_text ?? podcastId,
+        channelTitle: response.title ?? null,
+      });
+      chromeConfirmedRef.current = true;
     } catch {
-      // The sections still have the stored window to show, and they report their own failures.
+      void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+        hasOfficialClips: soundbites,
+      });
+      chromeConfirmedRef.current = true;
     }
   }, [authContext, podcastId]);
 
   useEffect(() => {
     void loadChannel();
   }, [loadChannel]);
+
+  useEffect(() => {
+    if (getCachedChannelSectionFlags(podcastId) !== null) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void sectionChromeFlagsRepository.getChannel(podcastId).then((flags) => {
+      if (!isMounted || flags === null || chromeConfirmedRef.current) {
+        return;
+      }
+      setHasSoundbites(flags.hasOfficialClips);
+      setPreviewHasPodroll(flags.hasPodroll);
+      setHasCheckedSoundbites(true);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [podcastId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -192,11 +283,41 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   }, [podcastId]);
 
   /**
+   * Deep links (and any navigate that omitted preview) still get list chrome from SQLite when this
+   * device already follows the channel. Route preview wins on first paint; this only fills gaps.
+   */
+  useEffect(() => {
+    if (previewHeaderTitle !== null && previewArtworkUri !== null) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void (async () => {
+      const local = await subscriptionsRepository.getByIdText(podcastId);
+      if (!isMounted || local === null) {
+        return;
+      }
+      if (previewHeaderTitle === null && local.title.length > 0) {
+        setPreviewHeaderTitle(local.title);
+      }
+      if (previewArtworkUri === null && local.imageUrl !== null && local.imageUrl.length > 0) {
+        setPreviewArtworkUri(local.imageUrl);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [podcastId, previewArtworkUri, previewHeaderTitle]);
+
+  /**
    * Keyed on the channel, so arriving at a second podcast opens on that podcast's section and order
    * rather than on whatever the previous one was left showing.
    */
   useEffect(() => {
     let isMounted = true;
+    setIsSectionHydrated(false);
 
     void (async () => {
       const prefs = await readPodcastDetailPrefs(podcastId);
@@ -204,6 +325,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         setSection(prefs.tab);
         setSort(prefs.sort);
         setRange(prefs.range);
+        setIsSectionHydrated(true);
       }
     })();
 
@@ -372,8 +494,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   ]);
 
   const availableSections = useMemo(
-    () => resolvePodcastSections({ channel, hasSoundbites }),
-    [channel, hasSoundbites]
+    () => resolvePodcastSections({ channel, hasSoundbites, previewHasPodroll }),
+    [channel, hasSoundbites, previewHasPodroll]
   );
 
   /**
@@ -381,9 +503,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
    * podroll cannot open on it. The stored preference is left alone, so the section comes back if
    * the feed declares one again.
    *
-   * Held until the channel and the stored episodes have both been read, because until then the
-   * conditional sections look absent and a restored choice would be discarded before the screen
-   * could honour it.
+   * Held until the channel and the stored episodes have both been read, because a cache miss must
+   * not be treated as absence or a restored Official Clips / Podroll pane would be thrown away.
    */
   useEffect(() => {
     if (channel === null || !hasCheckedSoundbites) {
@@ -446,87 +567,105 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     [t]
   );
 
-  const artworkUri = primaryChannelListArtworkUrl(channel?.channel_images);
+  const channelArtworkUri = primaryChannelListArtworkUrl(channel?.channel_images);
+  const artworkUri = channelArtworkUri ?? previewArtworkUri;
+  const headerTitle = channel?.title ?? previewHeaderTitle ?? t('media.podcast.podcast');
   const sortEnabled = isSortableSection(section);
+  const channelHeader = (
+    <ChannelHeader
+      actions={
+        <Button
+          label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
+          loading={isSavingSubscription}
+          onPress={() => {
+            void handleSubscriptionToggle();
+          }}
+          size="sm"
+          testID="podcast-detail-subscribe-toggle"
+          variant="outline"
+        />
+      }
+      artworkUri={artworkUri}
+      notice={subscriptionNoticeKey === null ? null : t(subscriptionNoticeKey)}
+      testID="podcast-detail-header"
+      title={headerTitle}
+      viewerUri={primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? artworkUri}
+    />
+  );
 
-  const listHeader = (
-    <>
-      <ChannelHeader
-        actions={
-          <Button
-            label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
-            loading={isSavingSubscription}
-            onPress={() => {
-              void handleSubscriptionToggle();
-            }}
-            size="sm"
-            testID="podcast-detail-subscribe-toggle"
-            variant="outline"
-          />
-        }
-        artworkUri={artworkUri}
-        notice={subscriptionNoticeKey === null ? null : t(subscriptionNoticeKey)}
-        testID="podcast-detail-header"
-        title={channel?.title ?? t('media.podcast.podcast')}
-        viewerUri={primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? artworkUri}
-      />
+  const pinnedChrome = (
+    <View style={styles.pinnedChrome}>
+      {channelHeader}
       <View style={styles.chipRow}>
         <SectionChipRow
           items={sectionChips}
           leading={
-            <>
-              <MenuSelectChip
-                disabled={!sortEnabled}
-                heading={t('filters.screen.sort_heading')}
-                onSelect={handleSortSelect}
-                options={sortOptions}
-                testID="podcast-detail-sort"
-                value={sort}
-              />
-              {sort === 'top' ? (
+            sortEnabled ? (
+              <>
                 <MenuSelectChip
-                  disabled={!sortEnabled}
-                  heading={t('filters.screen.range_heading')}
-                  onSelect={handleRangeSelect}
-                  options={rangeOptions}
-                  testID="podcast-detail-range"
-                  value={range}
+                  heading={t('filters.screen.sort_heading')}
+                  onSelect={handleSortSelect}
+                  options={sortOptions}
+                  testID="podcast-detail-sort"
+                  value={sort}
                 />
-              ) : null}
-            </>
+                {sort === 'top' ? (
+                  <MenuSelectChip
+                    heading={t('filters.screen.range_heading')}
+                    onSelect={handleRangeSelect}
+                    options={rangeOptions}
+                    testID="podcast-detail-range"
+                    value={range}
+                  />
+                ) : null}
+              </>
+            ) : undefined
           }
           onSelect={handleSectionSelect}
           selectedKey={section}
           testID="podcast-detail-sections"
         />
       </View>
-      {isFilterableSection(section) ? (
-        <ListFilterField
-          clearLabel={t('filters.list.clear')}
-          label={t('filters.list.title_label')}
-          onChangeTerm={setFilterTerm}
-          placeholder={t('filters.list.placeholder')}
-          style={styles.filterRow}
-          term={filterTerm}
-          testID="podcast-detail-filter"
-        />
-      ) : null}
-    </>
+    </View>
   );
+
+  const listHeader = isFilterableSection(section) ? (
+    <ListFilterField
+      clearLabel={t('filters.list.clear')}
+      label={t('filters.list.title_label')}
+      onChangeTerm={setFilterTerm}
+      placeholder={t('filters.list.placeholder')}
+      style={styles.filterRow}
+      term={filterTerm}
+      testID="podcast-detail-filter"
+    />
+  ) : null;
 
   const SectionPane = SECTION_COMPONENTS[section];
 
   return (
     <View style={styles.container} testID="podcast-detail-screen">
-      <SectionPane
-        channel={channel}
-        channelIdText={podcastId}
-        filterTerm={filterTerm}
-        listHeader={listHeader}
-        onRefreshChannel={loadChannel}
-        range={range}
-        sort={sort}
-      />
+      {isSectionHydrated ? (
+        <>
+          {pinnedChrome}
+          <View style={styles.sectionBody}>
+            <SectionPane
+              channel={channel}
+              channelIdText={podcastId}
+              filterTerm={filterTerm}
+              listHeader={listHeader}
+              onRefreshChannel={loadChannel}
+              range={range}
+              sort={sort}
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={styles.pinnedChrome}>{channelHeader}</View>
+          <LoadingSection testID="podcast-detail-section-loading" />
+        </>
+      )}
     </View>
   );
 }

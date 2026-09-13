@@ -197,6 +197,17 @@ export const MIGRATIONS: Migration[] = [
       `CREATE INDEX IF NOT EXISTS idx_subscribed_channel_kind ON subscribed_channel (kind);`,
     ],
   },
+  {
+    version: 15,
+    statements: [
+      // Evidence-chip visibility for a channel or item, keyed as channel:<id> / item:<id>.
+      `CREATE TABLE section_chrome_flags (
+        cache_key TEXT PRIMARY KEY NOT NULL,
+        flags_json TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

@@ -29,7 +29,7 @@ export const recordBytes = (record: DownloadRecord): number => {
 };
 
 /** Total on-disk bytes of `complete` downloads (in-progress rows are ignored — no final file yet). */
-export const sumCompletedBytes = (records: DownloadRecord[]): number =>
+export const sumCompletedBytes = (records: readonly DownloadRecord[]): number =>
   records.reduce((total, record) => {
     if (record.status !== 'complete') {
       return total;
@@ -37,7 +37,7 @@ export const sumCompletedBytes = (records: DownloadRecord[]): number =>
     return total + recordBytes(record);
   }, 0);
 
-export const isOverQuota = (records: DownloadRecord[], capBytes: number): boolean => {
+export const isOverQuota = (records: readonly DownloadRecord[], capBytes: number): boolean => {
   if (capBytes <= 0) {
     return false;
   }
@@ -53,7 +53,7 @@ export const isOverQuota = (records: DownloadRecord[], capBytes: number): boolea
  * When `capBytes` is `<= 0` (Unlimited), returns nothing.
  */
 export const selectAutoDeleteVictims = (
-  records: DownloadRecord[],
+  records: readonly DownloadRecord[],
   capBytes: number,
   protectedItemIdText: string | null = null
 ): string[] => {
@@ -87,7 +87,7 @@ export const selectAutoDeleteVictims = (
  * policy). Never selects in-progress or the protected item.
  */
 export const selectVictimsToFreeBytes = (
-  records: DownloadRecord[],
+  records: readonly DownloadRecord[],
   bytesToFree: number,
   protectedItemIdText: string | null = null
 ): string[] => {

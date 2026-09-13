@@ -16,12 +16,17 @@ type DownloadControlProps = {
  * HLS/m3u8, or no enclosure) — mirroring web, where livestream UI never offers Download. Otherwise
  * shows Download → queued/downloading progress (with Cancel) → Downloaded (with Remove), and
  * surfaces failures with a retry. All state comes from `useDownloadAction`.
+ *
+ * This is a single-item surface, so it opts into byte progress and shows a percentage. List rows
+ * deliberately do not — see `DownloadRowControl`.
  */
 export function DownloadControl({ item }: DownloadControlProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const { isDownloadable, noticeKey, percentComplete, remove, start, status } =
-    useDownloadAction(item);
+  const { isDownloadable, noticeKey, percentComplete, remove, start, status } = useDownloadAction(
+    item,
+    true
+  );
 
   const styles = useMemo(
     () =>

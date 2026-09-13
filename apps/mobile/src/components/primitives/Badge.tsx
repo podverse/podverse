@@ -4,11 +4,15 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 
-export type BadgeTone = 'accent' | 'neutral';
+export type BadgeTone = 'accent' | 'neutral' | 'muted';
 
 export type BadgeProps = {
   label: string;
-  /** `accent` fills to draw the eye; `neutral` outlines to sit quietly beside content. */
+  /**
+   * `accent` fills to draw the eye; `neutral` outlines to sit quietly beside content; `muted` is a
+   * solid gray fill with contrasting label — for counts overlaid on artwork (e.g. Home grid
+   * downloads).
+   */
   tone?: BadgeTone;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -46,6 +50,14 @@ export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
           fontSize: 11,
           fontWeight: '600',
         },
+        muted: {
+          // Gray chip for counts overlaid on artwork (primary theme: #444 + white label).
+          backgroundColor: tokens.border.tertiary,
+          borderColor: tokens.border.tertiary,
+        },
+        mutedLabel: {
+          color: tokens.text.primary,
+        },
         neutral: {
           backgroundColor: themeStyles.buttonSecondary.backgroundColor,
           borderColor: themeStyles.border.borderColor,
@@ -57,16 +69,18 @@ export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
     [themeStyles, tokens]
   );
 
+  const toneStyle = tone === 'accent' ? styles.accent : tone === 'muted' ? styles.muted : styles.neutral;
+  const toneLabelStyle =
+    tone === 'accent' ? styles.accentLabel : tone === 'muted' ? styles.mutedLabel : styles.neutralLabel;
+
   return (
     <View
       accessibilityElementsHidden
       importantForAccessibility="no"
-      style={[styles.badge, tone === 'accent' ? styles.accent : styles.neutral, style]}
+      style={[styles.badge, toneStyle, style]}
       testID={testID}
     >
-      <Text style={[styles.label, tone === 'accent' ? styles.accentLabel : styles.neutralLabel]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, toneLabelStyle]}>{label}</Text>
     </View>
   );
 }

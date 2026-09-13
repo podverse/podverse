@@ -15,6 +15,7 @@ import {
   isLastChannelItemPage,
   nextChannelItemPage,
   reconcileChannelItems,
+  selectChannelsToDropFromItemStore,
   selectStaleChannelWindows,
   toChannelItemRecord,
 } from './channelItemWindow';
@@ -183,6 +184,35 @@ describe('selectStaleChannelWindows', () => {
       ],
     });
     expect(selected.map((window) => window.channelIdText)).toEqual(['recent', 'stale']);
+  });
+});
+
+describe('selectChannelsToDropFromItemStore', () => {
+  it('drops a channel that was only browsed', () => {
+    const drop = selectChannelsToDropFromItemStore({
+      downloaded: [],
+      followed: ['followed'],
+      stored: ['followed', 'browsed'],
+    });
+    expect(drop).toEqual(['browsed']);
+  });
+
+  it('keeps an unfollowed channel holding a download, so the file keeps its show', () => {
+    const drop = selectChannelsToDropFromItemStore({
+      downloaded: ['downloaded-only'],
+      followed: ['followed'],
+      stored: ['followed', 'downloaded-only', 'browsed'],
+    });
+    expect(drop).toEqual(['browsed']);
+  });
+
+  it('keeps downloaded channels when nothing is followed', () => {
+    const drop = selectChannelsToDropFromItemStore({
+      downloaded: ['downloaded-only'],
+      followed: [],
+      stored: ['downloaded-only', 'browsed'],
+    });
+    expect(drop).toEqual(['browsed']);
   });
 });
 

@@ -33,7 +33,6 @@ export {
   statsRepository,
 } from './repositories';
 export type {
-  DownloadPatch,
   ExampleSnapshot,
   MobileAuthRequestContext,
   MoveNowPlayingToHistoryTarget,

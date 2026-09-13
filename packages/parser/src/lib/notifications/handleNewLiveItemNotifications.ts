@@ -141,6 +141,7 @@ async function sendLiveItemNotificationsForStatus(
       payload: {
         channelIdText: itemNotification.channelIdText,
         itemIdText: itemNotification.itemIdText,
+        mediumId: itemNotification.mediumId,
         type: itemNotification.messageType,
       },
       title: getInAppNotificationTitle(itemNotification.messageType, itemNotification.itemTitle),

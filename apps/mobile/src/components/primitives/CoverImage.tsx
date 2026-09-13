@@ -1,7 +1,8 @@
+import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ImageStyle, StyleProp } from 'react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 import { ImageViewerModal } from './ImageViewerModal';
@@ -25,9 +26,23 @@ export type CoverImageProps = {
 };
 
 /**
+ * Warm the memory+disk cache for a list-size artwork URL. Fire-and-forget — never await before
+ * navigate. Safe to call with null/empty.
+ */
+export const prefetchCoverImage = (uri: string | null | undefined): void => {
+  if (uri === null || uri === undefined || uri.length === 0) {
+    return;
+  }
+  void Image.prefetch(uri);
+};
+
+/**
  * Square cover / artwork. Podcast, episode, and album art stay square — do not pass a
  * `borderRadius` unless a specific surface (for example a circular avatar) needs one.
  * Standalone art opens the image viewer; pass `opensViewer={false}` when the parent is the control.
+ *
+ * Uses expo-image with memory+disk cache so a list decode can be reused on a compact header
+ * without a second network round-trip.
  */
 export function CoverImage({
   accessibilityLabel,
@@ -58,9 +73,6 @@ export function CoverImage({
           fontWeight: '600',
           textAlign: 'center',
         },
-        image: {
-          backgroundColor: tokens.background.secondary,
-        },
       }),
     [themeStyles, tokens]
   );
@@ -86,14 +98,20 @@ export function CoverImage({
 
   // Artwork inside a parent Pressable (row / grid cell) is decorative: the parent owns the
   // accessible name. Standalone covers hide the Image too — the outer Pressable speaks for it.
+  // No secondary fill behind a known URI — that reads as an empty placeholder while the bitmap
+  // paints (worse on slow Android decode).
   const image = (
     <Image
       accessibilityElementsHidden
       accessibilityIgnoresInvertColors
+      cachePolicy="memory-disk"
+      contentFit="cover"
       importantForAccessibility="no"
+      recyclingKey={uri}
       source={{ uri }}
-      style={[styles.image, style]}
+      style={style}
       testID={opensViewer ? undefined : testID}
+      transition={0}
     />
   );
 

@@ -23,7 +23,7 @@ export type PodcastSectionListProps<TRow> = {
   isLoadingMore?: boolean;
   isRefreshing?: boolean;
   keyExtractor: (row: TRow) => string;
-  /** The identity block and controls, which belong inside the list so they scroll with the rows. */
+  /** Title filter (and any other scrolling chrome). Pull-to-refresh sits above this. */
   listHeader: ReactNode;
   /** A passing remark under the list, already keyed for translation. */
   noticeKey?: string | null;
@@ -42,9 +42,10 @@ export type PodcastSectionListProps<TRow> = {
  * The list every podcast section is drawn as.
  *
  * The sections answer to different endpoints and different row shapes, but they share their chrome:
- * one virtualized list, the identity block as its header, and the same four things to say when there
- * are no rows to show. Holding that in one place is what keeps a section switch feeling like the same
- * screen changing its contents rather than five screens taking turns.
+ * one virtualized list, the title filter as its header, and the same four things to say when there
+ * are no rows to show. The artwork and chips stay pinned above this list. Holding that in one place
+ * is what keeps a section switch feeling like the same screen changing its contents rather than five
+ * screens taking turns.
  *
  * A failure while reaching further does not discard what is already on screen: the message goes below
  * the rows, because the rows are still true and the reader was looking at them.
@@ -76,11 +77,12 @@ export function PodcastSectionList<TRow>({
     () =>
       StyleSheet.create({
         content: {
-          ...screenBodyInsets(tokens.spacing),
           paddingBottom: tokens.spacing['2xl'],
+          paddingHorizontal: screenBodyInsets(tokens.spacing).paddingHorizontal,
         },
         list: {
           backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
         },
         loadMore: {
           marginTop: tokens.spacing.md,

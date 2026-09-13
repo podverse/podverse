@@ -58,11 +58,16 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
  * Hit target matches {@link LIST_ROW_ACTION_SIZE} (same as Play / More) so icon controls share one
  * finger target. The glyph itself is borderless and uses {@link LIST_ROW_ACTION_ICON_SIZE} — the
  * same optical size as More — so trash and download do not look smaller than the ellipsis.
+ *
+ * The busy state is a spinner with no percentage, and the row does not subscribe to byte progress.
+ * A screen can show forty of these at once, and per-chunk work multiplied by forty rows is what
+ * makes a list stutter while something downloads. Episode detail and My Library → Downloads are
+ * where a user goes for the number; both report it and announce it.
  */
 export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
-  const { isDownloadable, percentComplete, remove, start, status } = useDownloadAction(item);
+  const { isDownloadable, remove, start, status } = useDownloadAction(item);
 
   const styles = useMemo(
     () =>
@@ -94,11 +99,6 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
       accessibilityLabel={t(actionLabelKey(status))}
       accessibilityRole="button"
       accessibilityState={{ busy: isInProgress }}
-      accessibilityValue={
-        isInProgress && percentComplete !== null
-          ? { max: 100, min: 0, now: percentComplete }
-          : undefined
-      }
       onPress={(event) => {
         stopPropagation(event);
         if (status === 'complete' || isInProgress) {

@@ -247,3 +247,19 @@ export const channelLiveStatus = sqliteTable('channel_live_status', {
 
 export type ChannelLiveStatusRow = typeof channelLiveStatus.$inferSelect;
 export type ChannelLiveStatusInsert = typeof channelLiveStatus.$inferInsert;
+
+/**
+ * Last-known evidence chips for a channel or item (Official Clips, Podroll, chapters, …).
+ *
+ * Always-on chips are not stored here. These flags exist so a later open can paint the
+ * evidence chips on the first frame instead of waiting on the detail DTO. `cache_key` is
+ * `channel:<id_text>` or `item:<id_text>`.
+ */
+export const sectionChromeFlags = sqliteTable('section_chrome_flags', {
+  cacheKey: text('cache_key').primaryKey(),
+  flagsJson: text('flags_json').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type SectionChromeFlagsRow = typeof sectionChromeFlags.$inferSelect;
+export type SectionChromeFlagsInsert = typeof sectionChromeFlags.$inferInsert;

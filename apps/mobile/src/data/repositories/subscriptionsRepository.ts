@@ -187,6 +187,21 @@ export const subscriptionsRepository = {
   },
 
   /**
+   * Local directory subscription chrome (title + list image) for a single channel, or null when
+   * this device does not follow it. Used to paint Podcast Detail before the network DTO arrives.
+   */
+  getByIdText: async (idText: string): Promise<SubscribedChannel | null> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select()
+      .from(schema.subscribedChannel)
+      .where(eq(schema.subscribedChannel.idText, idText))
+      .limit(1);
+    const row = rows[0];
+    return row === undefined ? null : rowToSubscribed(row);
+  },
+
+  /**
    * Record a directory subscription locally. Safe to call repeatedly — the row is upserted, so a
    * re-subscribe refreshes the display fields rather than failing on the primary key.
    *

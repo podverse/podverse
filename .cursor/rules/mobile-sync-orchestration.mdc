@@ -18,6 +18,11 @@ an interactive UI — not to resolve auth, not to refresh the account, not to hy
 - Render the cached account, the cached subscriptions, and the cached queue immediately.
 - Anything that needs the network is enqueued as a sync job and runs after the app is usable.
 - A slow or absent network changes only how *stale* the first screen is, never how *fast* it appears.
+- A **pushed** screen follows the same habit for already-known chrome: if the source painted list
+  art or a title, the destination paints that preview on the first frame rather than waiting on
+  the network (**mobile-image-loading**). Section chips that depend on a detail DTO seed from the
+  device chrome cache the same way (**mobile-section-chrome-cache**); do not add server schema
+  to learn them.
 
 ## Background sync is serial, foreground actions are not
 

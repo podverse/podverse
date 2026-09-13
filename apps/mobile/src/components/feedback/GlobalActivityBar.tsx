@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import {
   countActiveDownloading,
@@ -23,8 +23,8 @@ export type GlobalActivityBarProps = {
  * Bottom chrome for serial sync progress and parallel download transfers.
  *
  * Downloads stay off the sync queue (that queue exists to keep background work serial). This bar
- * can show both lines at once: sync job label + count, and "Downloading X of Y" while transfers
- * run. Presence is derived from live state — no dismiss control.
+ * can show both lines at once: sync job label + count, and "Downloading X of Y" with a spinner
+ * while transfers run. Presence is derived from live state — no dismiss control.
  */
 export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
   const { t } = useTranslation();
@@ -85,6 +85,8 @@ export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
           flexDirection: 'row',
           gap: tokens.spacing.md,
           justifyContent: 'space-between',
+        },
+        rowAfterTrack: {
           marginTop: tokens.spacing.sm,
         },
         section: {
@@ -123,7 +125,7 @@ export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
             fillTestID="sync-progress-fill"
             ratio={totalCount > 0 ? completedCount / totalCount : 0}
           />
-          <View style={styles.row}>
+          <View style={[styles.row, styles.rowAfterTrack]}>
             <Text numberOfLines={1} style={styles.label} testID="sync-progress-label">
               {syncLabel}
             </Text>
@@ -137,24 +139,22 @@ export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
         <View
           accessible
           accessibilityLabel={downloadLabel}
-          accessibilityRole="progressbar"
-          accessibilityValue={{
-            max: inProgressCount,
-            min: 0,
-            now: activeCount,
-            text: downloadLabel,
-          }}
+          accessibilityRole="text"
+          accessibilityState={{ busy: true }}
           style={syncVisible ? styles.section : styles.sectionFirst}
           testID="download-activity-bar"
         >
-          <ProgressTrack
-            fillTestID="download-activity-fill"
-            ratio={inProgressCount > 0 ? activeCount / inProgressCount : 0}
-          />
           <View style={styles.row}>
             <Text numberOfLines={1} style={styles.label} testID="download-activity-label">
               {downloadLabel}
             </Text>
+            <ActivityIndicator
+              accessibilityElementsHidden
+              color={themeStyles.textSecondary.color}
+              importantForAccessibility="no"
+              size="small"
+              testID="download-activity-spinner"
+            />
           </View>
         </View>
       ) : null}

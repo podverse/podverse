@@ -54,6 +54,7 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   const targetUrl = event.notification.data?.url || '/';
+  const absoluteUrl = new URL(targetUrl, self.location.origin).href;
 
   event.waitUntil(
     clients
@@ -62,19 +63,17 @@ self.addEventListener('notificationclick', (event) => {
         includeUncontrolled: true,
       })
       .then((clientList) => {
-        // Check if there's already a window open on the target URL
-        for (const client of clientList) {
-          // If the target matches or it's the root, focus the existing window
-          if ((client.url.includes(targetUrl) || targetUrl === '/') && 'focus' in client) {
-            // Navigate to the specific URL if needed
-            if (!client.url.includes(targetUrl) && targetUrl !== '/') {
-              client.navigate(targetUrl);
-            }
-            return client.focus();
-          }
+        const existing = clientList.find((client) => 'focus' in client);
+        if (existing !== undefined && typeof existing.navigate === 'function') {
+          return existing.navigate(absoluteUrl).then((navigated) => {
+            const focused = navigated ?? existing;
+            return 'focus' in focused ? focused.focus() : existing.focus();
+          });
         }
-        // Otherwise open a new window
-        return clients.openWindow(targetUrl);
+        if (existing !== undefined) {
+          return existing.focus();
+        }
+        return clients.openWindow(absoluteUrl);
       })
   );
 });

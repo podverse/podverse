@@ -15,11 +15,20 @@ import { CallToActionSection } from '../../components/state/CallToActionSection'
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
-import { channelSeenRepository, subscriptionsRepository } from '../../data/repositories';
-import { downloadManager } from '../../downloads/downloadManager';
+import {
+  channelSeenRepository,
+  downloadsRepository,
+  subscriptionsRepository,
+} from '../../data/repositories';
+import { downloadStore } from '../../downloads/downloadStore';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
-import { BROWSE_STACK_ROUTES, HOME_STACK_ROUTES, SEARCH_STACK_ROUTES } from '../../navigation';
+import {
+  BROWSE_STACK_ROUTES,
+  buildPodcastDetailParams,
+  HOME_STACK_ROUTES,
+  SEARCH_STACK_ROUTES,
+} from '../../navigation';
 import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
 import type { HomeRangeOption, HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
 import {
@@ -27,6 +36,7 @@ import {
   DEFAULT_HOME_SORT,
   DEFAULT_HOME_VIEW_MODE,
   isHomeFilterMediaType,
+  isHomeSortableMediaType,
   isHomeViewModeMediaType,
   readHomeListPrefs,
   subscribeHomeListPrefs,
@@ -59,9 +69,12 @@ import { HomeFeedGridCell } from './HomeFeedGridCell';
 import { HomeFeedRow } from './HomeFeedRow';
 import { readHomeFilterTerm, writeHomeFilterTerm } from './homeFilterSession';
 import { HomeOverflowMenu } from './HomeOverflowMenu';
+import { mergeDownloadedCountsIntoHomeRows } from './homeRowMetadata';
 import { HomeSortChip } from './HomeSortChip';
 import { MediaTypeSelector } from './MediaTypeSelector';
-import { useHomeRowPlayback } from './useHomeRowPlayback';/**
+import { useHomeRowPlayback } from './useHomeRowPlayback';
+
+/**
  * The remembered choices, tagged with the list they were read for.
  *
  * Tagged because each media type keeps its own, and a switch between them leaves the previous
@@ -349,20 +362,48 @@ export function HomeScreen() {
     });
   }, [loadFeed]);
 
+  // Downloaded counts change only when a transfer finishes or a file is deleted, so this reads the
+  // status channel and never wakes for byte progress. The debounce coalesces a burst of completions
+  // into one pass over local SQLite — no spinner, no feed rebuild, just badges on rows already shown.
   useEffect(() => {
-    return downloadManager.subscribe(() => {
-      if (selectedMediaType !== 'podcasts') {
-        return;
+    if (selectedMediaType !== 'podcasts') {
+      return;
+    }
+
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const refreshDownloadDerived = (): void => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
       }
-      void (async () => {
-        try {
-          const unsubscribed = await fetchUnsubscribedDownloadHomeRows();
-          setUnsubscribedDownloadRows(unsubscribed);
-        } catch {
-          // Keep the footer already on screen; a failed refresh is quieter than clearing it.
-        }
-      })();
-    });
+      timeoutId = setTimeout(() => {
+        void (async () => {
+          try {
+            const [counts, unsubscribed] = await Promise.all([
+              downloadsRepository.countCompletedByChannel(),
+              fetchUnsubscribedDownloadHomeRows(),
+            ]);
+            if (cancelled) {
+              return;
+            }
+            setFeedRows((prev) => mergeDownloadedCountsIntoHomeRows(prev, counts));
+            setUnsubscribedDownloadRows(unsubscribed);
+          } catch {
+            // Keep what is already on screen; a failed refresh is quieter than clearing it.
+          }
+        })();
+      }, 200);
+    };
+
+    const unsubscribe = downloadStore.subscribe(refreshDownloadDerived);
+    return () => {
+      cancelled = true;
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      unsubscribe();
+    };
   }, [selectedMediaType]);
 
   // Reconciliation lands in local storage, which this list has already read, so re-read once the
@@ -438,9 +479,14 @@ export function HomeScreen() {
           });
           return;
         }
-        navigation.navigate(HOME_STACK_ROUTES.PodcastDetail, {
-          podcastId: row.id,
-        });
+        navigation.navigate(
+          HOME_STACK_ROUTES.PodcastDetail,
+          buildPodcastDetailParams({
+            podcastId: row.id,
+            previewImageUrl: row.imageUrl,
+            previewTitle: row.title,
+          })
+        );
         return;
       }
 
@@ -541,8 +587,22 @@ export function HomeScreen() {
       filterRow: {
         marginBottom: filterBottomMargin,
       },
+      unsubscribedGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: tokens.spacing.md,
+      },
+      unsubscribedDivider: {
+        backgroundColor: themeStyles.border.borderColor,
+        height: StyleSheet.hairlineWidth,
+        marginBottom: tokens.spacing.lg,
+        marginTop: tokens.spacing.lg,
+      },
       unsubscribedSection: {
         marginTop: tokens.spacing.xl,
+      },
+      unsubscribedSectionAfterList: {
+        marginTop: 0,
       },
       unsubscribedSectionTitle: {
         ...typography.heading,
@@ -656,30 +716,56 @@ export function HomeScreen() {
       {showFeedRows &&
       selectedMediaType === 'podcasts' &&
       unsubscribedDownloadRows.length > 0 ? (
-        <View style={styles.unsubscribedSection} testID="home-unsubscribed-downloads">
+        <View
+          style={[
+            styles.unsubscribedSection,
+            feedRows.length > 0 ? styles.unsubscribedSectionAfterList : null,
+          ]}
+          testID="home-unsubscribed-downloads"
+        >
+          {feedRows.length > 0 ? (
+            <View
+              style={styles.unsubscribedDivider}
+              testID="home-unsubscribed-downloads-divider"
+            />
+          ) : null}
           <Text
             accessibilityRole="header"
             style={styles.unsubscribedSectionTitle}
             testID="home-unsubscribed-downloads-title"
           >
-            {t('subscriptions.downloaded_not_subscribed')}
+            {t('subscriptions.downloaded_only')}
           </Text>
-          {unsubscribedDownloadRows.map((row, index) => (
-            <HomeFeedRow
-              isLast={index === unsubscribedDownloadRows.length - 1}
-              key={row.id}
-              mediaType="podcasts"
-              onPlayPress={(nextRow) => {
-                runPlayAction(nextRow, 'podcasts');
-              }}
-              onPress={handleRowPress}
-              onQueuePress={(nextRow, position) => {
-                runQueueAction(nextRow, 'podcasts', position);
-              }}
-              row={row}
-              testID={`home-unsubscribed-download-row-${row.id}`}
-            />
-          ))}
+          {isGridView ? (
+            <View style={styles.unsubscribedGrid}>
+              {unsubscribedDownloadRows.map((row) => (
+                <View key={row.id} style={styles.columnCell}>
+                  <HomeFeedGridCell
+                    onPress={handleRowPress}
+                    row={row}
+                    testID={`home-unsubscribed-download-cell-${row.id}`}
+                  />
+                </View>
+              ))}
+            </View>
+          ) : (
+            unsubscribedDownloadRows.map((row, index) => (
+              <HomeFeedRow
+                isLast={index === unsubscribedDownloadRows.length - 1}
+                key={row.id}
+                mediaType="podcasts"
+                onPlayPress={(nextRow) => {
+                  runPlayAction(nextRow, 'podcasts');
+                }}
+                onPress={handleRowPress}
+                onQueuePress={(nextRow, position) => {
+                  runQueueAction(nextRow, 'podcasts', position);
+                }}
+                row={row}
+                testID={`home-unsubscribed-download-row-${row.id}`}
+              />
+            ))
+          )}
         </View>
       ) : null}
       {playbackNoticeKey !== null ? (
@@ -691,21 +777,25 @@ export function HomeScreen() {
   return (
     <View style={styles.container} testID="home-screen">
       <View style={styles.selectorSection}>
-        <MediaTypeSelector
-          labelKeys={MEDIA_TYPE_LABEL_KEYS}
-          leading={
-            <HomeSortChip
-              onRangeChange={handleRangeChange}
-              onSortChange={handleSortChange}
-              range={activePrefs?.range ?? DEFAULT_HOME_RANGE}
-              sort={activePrefs?.sort ?? DEFAULT_HOME_SORT}
-            />
-          }
-          onChange={handleMediaTypeChange}
-          selectedMediaType={selectedMediaType}
-          testIDPrefix="home"
-          types={HOME_MEDIA_TYPE_ORDER}
-        />
+        {isMediaTypeHydrated ? (
+          <MediaTypeSelector
+            labelKeys={MEDIA_TYPE_LABEL_KEYS}
+            leading={
+              isHomeSortableMediaType(selectedMediaType) ? (
+                <HomeSortChip
+                  onRangeChange={handleRangeChange}
+                  onSortChange={handleSortChange}
+                  range={activePrefs?.range ?? DEFAULT_HOME_RANGE}
+                  sort={activePrefs?.sort ?? DEFAULT_HOME_SORT}
+                />
+              ) : undefined
+            }
+            onChange={handleMediaTypeChange}
+            selectedMediaType={selectedMediaType}
+            testIDPrefix="home"
+            types={HOME_MEDIA_TYPE_ORDER}
+          />
+        ) : null}
       </View>
       {/* Keep controls and summary in ListHeaderComponent while rows render as FlatList items, so */}
       {/* tablet grid columns can virtualize with numColumns. */}

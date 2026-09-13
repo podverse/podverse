@@ -35,8 +35,9 @@ export type ChannelHeaderProps = {
  * Description is optional. Podcast detail leaves it off because About already holds the full text;
  * other mediums may still pass a short clip when they have no About section yet.
  *
- * Unboxed on purpose: the gutter comes from the list hosting it, so the block reads as the top of
- * the page rather than as a card sitting on it, and the stack title above it is the only chrome.
+ * Unboxed on purpose: the gutter comes from the host (pinned chrome or a list), so the block reads
+ * as the top of the page rather than as a card sitting on it, and the stack title above it is the
+ * only chrome.
  */
 export function ChannelHeader({
   actions,

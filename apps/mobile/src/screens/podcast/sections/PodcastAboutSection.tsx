@@ -22,8 +22,8 @@ type AboutCell =
  * Everything here came down with the channel the screen already loaded, so this section needs no
  * request of its own and reads the same with no connection at all.
  *
- * The cells are a single list rather than a scroll view of blocks: the identity block above still owns
- * the scroll, and prose and person rows take their turn in it like any other section's rows.
+ * The cells are a single list rather than a scroll view of blocks: the identity block and chips stay
+ * pinned, and prose and person rows take their turn in this list like any other section's rows.
  */
 export function PodcastAboutSection({ channel, listHeader }: PodcastSectionPaneProps) {
   const { t } = useTranslation();
@@ -33,8 +33,8 @@ export function PodcastAboutSection({ channel, listHeader }: PodcastSectionPaneP
     () =>
       StyleSheet.create({
         content: {
-          ...screenBodyInsets(tokens.spacing),
           paddingBottom: tokens.spacing['2xl'],
+          paddingHorizontal: screenBodyInsets(tokens.spacing).paddingHorizontal,
         },
         heading: {
           ...typography.heading,
@@ -43,6 +43,7 @@ export function PodcastAboutSection({ channel, listHeader }: PodcastSectionPaneP
         },
         list: {
           backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
         },
         personImage: {
           height: 48,

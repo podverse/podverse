@@ -119,7 +119,7 @@
     }
   },
   "subscriptions": {
-    "downloaded_not_subscribed": "Ληφθέντα, χωρίς συνδρομή"
+    "downloaded_only": "Μόνο ληφθέντα"
   },
   "sync": {
     "job": {

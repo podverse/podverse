@@ -2,7 +2,8 @@ appId: com.podverse.app.next
 name: Browse Tab And Tab Bar Pref
 ---
 # Default bar is Home / Browse / Search / My Library / More. Notifications lives in More.
-# Browse is one chip row: popularity range, Categories, then directory types.
+# Browse is one chip row: popularity range and Categories (filter chrome) only when the
+# current type can use them, then directory types with the selected type first.
 # Settings can swap Notifications onto the bar (replaces the last visible content tab).
 
 - runFlow: shared/launch-and-connect.yaml
@@ -58,6 +59,8 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-category-all
     timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: browse-sort-button
 - assertVisible:
     id: browse-category-arts
 - assertNotVisible:
@@ -78,6 +81,8 @@ name: Browse Tab And Tab Bar Pref
     notVisible:
       id: browse-category-all
     timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: browse-sort-button
 
 - tapOn:
     id: browse-media-type-artists
@@ -85,6 +90,8 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: browse-category-button
 - assertNotVisible:
     id: browse-category-all
 - takeScreenshot: browse-screen-artists

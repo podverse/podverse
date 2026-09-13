@@ -3,9 +3,18 @@ import { describe, expect, it } from 'vitest';
 import {
   APP_ROUTES,
   buildEpisodePath,
+  buildMobileHomeAlbumTrackPath,
+  buildMobileHomePodcastEpisodePath,
+  buildMobileHomeScopedPath,
   buildNotificationLinkPath,
   buildPodcastLivestreamPath,
+  getAppRouteFirstSegment,
+  getAppRouteSegments,
   getNotificationLinkPathPrefix,
+  isFlatContentAppRouteSegment,
+  matchesAppRouteSegments,
+  MOBILE_HOME_TAB_PATH,
+  MOBILE_HOME_TAB_SEGMENT,
 } from './appRoutes.js';
 import { MediumEnum } from './medium.js';
 
@@ -45,6 +54,30 @@ describe('appRoutes', () => {
         mediumId: MediumEnum.Music,
         messageType: 'livestream-started',
       })
-    ).toBe(`${APP_ROUTES.MUSIC_LIVESTREAM}/ch-music`);
+    ).toBe(`${APP_ROUTES.MUSIC_LIVESTREAM}/live-1`);
+  });
+
+  it('derives path segments from APP_ROUTES so deep-link matching stays aligned', () => {
+    expect(getAppRouteSegments(APP_ROUTES.EPISODE)).toEqual(['episode']);
+    expect(getAppRouteSegments(APP_ROUTES.PODCAST_LIVESTREAM)).toEqual(['podcast', 'livestream']);
+    expect(getAppRouteFirstSegment(APP_ROUTES.PODCAST)).toBe('podcast');
+    expect(matchesAppRouteSegments(['podcast', 'livestream', 'live-1'], APP_ROUTES.PODCAST_LIVESTREAM)).toBe(
+      true
+    );
+    expect(isFlatContentAppRouteSegment('episode')).toBe(true);
+    expect(isFlatContentAppRouteSegment('video')).toBe(false);
+  });
+
+  it('scopes mobile Home stack paths from APP_ROUTES', () => {
+    expect(buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'ch-1')).toBe(
+      `${MOBILE_HOME_TAB_PATH}${APP_ROUTES.PODCAST}/ch-1`
+    );
+    expect(buildMobileHomePodcastEpisodePath('ch-1', 'ep-1')).toBe(
+      `${MOBILE_HOME_TAB_PATH}${APP_ROUTES.PODCAST}/ch-1${APP_ROUTES.EPISODE}/ep-1`
+    );
+    expect(buildMobileHomeAlbumTrackPath('alb-1', 'trk-1')).toBe(
+      `${MOBILE_HOME_TAB_PATH}${APP_ROUTES.ALBUM}/alb-1${APP_ROUTES.TRACK}/trk-1`
+    );
+    expect(`${MOBILE_HOME_TAB_PATH}`).toBe(`/${MOBILE_HOME_TAB_SEGMENT}`);
   });
 });

@@ -17,7 +17,7 @@ import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import type { SearchStackParamList } from '../../navigation';
-import { SEARCH_STACK_ROUTES } from '../../navigation';
+import { buildPodcastDetailParams, SEARCH_STACK_ROUTES } from '../../navigation';
 import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
@@ -272,9 +272,15 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           albumId: channel.id_text,
         });
       } else {
-        navigation.navigate(SEARCH_STACK_ROUTES.PodcastDetail, {
-          podcastId: channel.id_text,
-        });
+        navigation.navigate(
+          SEARCH_STACK_ROUTES.PodcastDetail,
+          buildPodcastDetailParams({
+            podcastId: channel.id_text,
+            previewImageUrl:
+              toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
+            previewTitle: channel.title.length > 0 ? channel.title : feed.title,
+          })
+        );
       }
     } catch {
       setErrorKey('errors.generic');

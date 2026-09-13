@@ -5,7 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
-import { getRelativeTimeParts, NotificationCategoryEnum } from '@podverse/helpers';
+import {
+  getRelativeTimeParts,
+  NotificationCategoryEnum,
+  resolveNotificationDestinationFromPayload,
+} from '@podverse/helpers';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
@@ -20,6 +24,7 @@ import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
 import { emitNotificationsReadEvent } from '../../hooks/useNotificationsUnreadCount';
 import type { NotificationsStackParamList } from '../../navigation';
+import { HOME_FALLBACK_PATH } from '../../push/notificationTarget';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
@@ -209,29 +214,27 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   );
 
   const handleNotificationPress = useCallback(async (notification: DTOAccountNotification) => {
-    const linkPath = notification.link_path;
-
-    if (linkPath === null || linkPath === '') {
-      return;
-    }
-
-    const normalized = linkPath.trim();
-    if (normalized.length === 0) {
-      return;
-    }
+    const destination = resolveNotificationDestinationFromPayload({
+      ...(notification.payload ?? {}),
+      link_path: notification.link_path,
+    });
+    const targetPath =
+      destination.mobileStackPath ??
+      (destination.kind === 'home' ? HOME_FALLBACK_PATH : destination.webPath);
 
     try {
-      const prefixedLink = normalized.startsWith('http://') || normalized.startsWith('https://');
-      if (prefixedLink || normalized.includes('://')) {
-        await Linking.openURL(normalized);
+      const prefixedLink =
+        targetPath.startsWith('http://') || targetPath.startsWith('https://');
+      if (prefixedLink || targetPath.includes('://')) {
+        await Linking.openURL(targetPath);
         return;
       }
 
       const scheme = getMobileConfig().deepLinkSchemes[0] ?? 'podverse-next';
-      const inAppPath = normalized.startsWith('/') ? normalized.slice(1) : normalized;
+      const inAppPath = targetPath.startsWith('/') ? targetPath.slice(1) : targetPath;
       await Linking.openURL(`${scheme}://${inAppPath}`);
     } catch (error) {
-      console.warn('Could not navigate from notification link', normalized, error);
+      console.warn('Could not navigate from notification link', targetPath, error);
     }
   }, []);
 
@@ -336,6 +339,8 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
               <View style={styles.rowCard}>
                 <Card>
                   <Pressable
+                    accessibilityLabel={item.title}
+                    accessibilityRole="button"
                     onPress={() => {
                       void handleNotificationPress(item);
                     }}

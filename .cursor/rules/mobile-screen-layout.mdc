@@ -77,12 +77,14 @@ touch: the visible shape is what the finger can press.
 Two or three filters under a field use **`OptionChipGroup`**. Selected chip = `buttonPrimary` fill.
 Settings density (2–3 chips vs option-list screen) is **mobile-settings-option-density**.
 
-Standalone cover art uses **`CoverImage`**, which opens **`ImageViewerModal`** on tap. Pass
-**`viewerUri`** from **`primaryLightboxArtworkUrl`** (or the channel variant) so the modal loads the
-largest original, not the list thumb. Do not add a nested image tap when the parent row, cell, or
-header is already the pressable control (`opensViewer={false}`). Resolve display `uri` with
-**`primaryListArtworkUrl`** — see **header-hero-image-sources**. The app stays portrait; the viewer
-does not unlock landscape.
+Standalone cover art uses **`CoverImage`** (`expo-image`, memory+disk cache), which opens
+**`ImageViewerModal`** on tap. Pass **`viewerUri`** from **`primaryLightboxArtworkUrl`** (or the
+channel variant) so the modal loads the largest original, not the list thumb. Do not add a nested
+image tap when the parent row, cell, or header is already the pressable control
+(`opensViewer={false}`). Resolve display `uri` with **`primaryListArtworkUrl`** — see
+**header-hero-image-sources**. When navigating from a painted row into a detail header, pass
+preview params so the same list URL paints on the first frame — see **mobile-image-loading**. The
+app stays portrait; the viewer does not unlock landscape.
 
 ## Hub menus
 
@@ -163,6 +165,13 @@ When a list's only body is a fill info state (`VerticalCenter` / `LoadingSection
 Podcast section lists use **`PodcastSectionList`**, which already composes **`FillList`** +
 **`ListEmpty`**.
 
+## Podcast detail pinned chrome
+
+**`ChannelHeader`** and the section chip row stay **outside** the section list so they remain
+visible while the rows scroll. **`ListFilterField`** stays in that list's `ListHeaderComponent` —
+it is not pinned. Pull-to-refresh belongs on **`PodcastSectionList`** (the list below the chips),
+so the spinner appears above the filter.
+
 ## Podcast detail filter visibility
 
 Show **`ListFilterField`** only when **`isFilterableSection(section)`** is true
@@ -170,13 +179,22 @@ Show **`ListFilterField`** only when **`isFilterableSection(section)`** is true
 podroll is a short publisher list without title filtering. Episodes, official soundbites, and
 **Downloaded** are filterable.
 
-**Downloaded** is always offered (last chip): it lists finished offline episodes for this channel
-from `downloadsRepository.listCompleteByChannel`. An empty list is a real answer.
+**Downloaded** is always offered (with Episodes, About, and Clips): it lists finished offline
+episodes for this channel from `downloadsRepository.listCompleteByChannel`. An empty list is a
+real answer. Evidence chips (Official Clips, Podroll, …) sit **after** that always-on set so a
+first-visit insert is at the end of the row — **mobile-section-chrome-cache**.
 
-Sort **`MenuSelectChip`** stays mounted on every section. On non-sortable tabs (About, Podroll,
-soundbites) pass **`disabled`** so the face grays out and does not open — do not unmount it, or the
-section pills jump. When `sort === 'top'`, keep the range chip mounted the same way (also
-`disabled` when the section is not sortable).
+Sort and category controls sit in the chip-row **leading** slot and use **filter** chrome (square
+radius, accent outline) so they read as list narrows, not as sibling section pills. Mount them
+**only when the current chip can use them** — `isSortableSection` / `isHomeSortableMediaType` /
+`shouldShowBrowseSortChip` for sort, `shouldShowBrowseCategoryChip` for Categories. Unmount when
+the filter cannot sort or pick a category (About, Podroll, Official Clips, music Browse types,
+the category picker). Do not leave a disabled sort chip in the row to hold layout.
+
+The **selected section / media-type chip is first** after that leading slot. `SectionChipRow`
+reorders with `placeSelectedFirst` and scrolls to `x = 0` on select. Evidence chips still resolve
+last in `PODCAST_TABS` so a first-visit insert is at the end of the available set; once a chip is
+selected it moves to the front.
 
 ## Action-gated account / membership
 

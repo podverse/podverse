@@ -18,9 +18,12 @@ import {
   isLastChannelItemPage,
   nextChannelItemPage,
   reconcileChannelItems,
+  selectChannelsToDropFromItemStore,
   selectStaleChannelWindows,
   toChannelItemRecord,
 } from './channelItemWindow';
+import { downloadsRepository } from './downloadsRepository';
+import { sectionChromeFlagsRepository } from './sectionChromeFlagsRepository';
 import type { MobileAuthRequestContext } from './types';
 
 /**
@@ -207,7 +210,8 @@ const fetchChannelItemWindow = async (
 const commitChannelWindow = async (
   channelIdText: string,
   items: readonly DTOItem[],
-  depth: number
+  depth: number,
+  channelTitle: string | null = null
 ): Promise<number> => {
   const records: ChannelItemRecord[] = [];
   for (const item of items) {
@@ -259,6 +263,15 @@ const commitChannelWindow = async (
   }
 
   await writeWindow(channelIdText, depth, updatedAt);
+
+  const hasOfficialClips = keep.some(
+    (record) => (record.payload.item_soundbites?.length ?? 0) > 0
+  );
+  await sectionChromeFlagsRepository.mergeChannel(channelIdText, { hasOfficialClips });
+
+  // These rows are the only local answer to which show a downloaded episode came from, and this
+  // store keeps only followed channels. Stamp the downloads while the answer is here.
+  await downloadsRepository.attachChannelToDownloads({ channelIdText, channelTitle });
 
   return keep.length;
 };
@@ -411,6 +424,17 @@ export const channelItemsRepository = {
     appliedPopularityRange = range;
   },
 
+  /** The channel a stored item belongs to, when the item payload itself omitted `channel`. */
+  getChannelIdForItem: async (itemIdText: string): Promise<string | null> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({ channelIdText: schema.channelItem.channelIdText })
+      .from(schema.channelItem)
+      .where(eq(schema.channelItem.itemIdText, itemIdText))
+      .limit(1);
+    return rows[0]?.channelIdText ?? null;
+  },
+
   /** One stored item, for opening or playing an episode with no connection. */
   getByIdText: async (itemIdText: string): Promise<DTOItem | null> => {
     await initializeDatabase();
@@ -497,12 +521,18 @@ export const channelItemsRepository = {
    */
   syncChannel: async (
     context: MobileAuthRequestContext,
-    channelIdText: string
+    channelIdText: string,
+    options: { channelTitle?: string | null } = {}
   ): Promise<ChannelWindowSyncResult> => {
     await initializeDatabase();
     const { depth } = await readWindow(channelIdText);
     const { isFeedExhausted, items } = await fetchChannelItemWindow(context, channelIdText, depth);
-    const storedCount = await commitChannelWindow(channelIdText, items, depth);
+    const storedCount = await commitChannelWindow(
+      channelIdText,
+      items,
+      depth,
+      options.channelTitle ?? null
+    );
 
     return toSyncResult(depth, isFeedExhausted, storedCount);
   },
@@ -513,13 +543,19 @@ export const channelItemsRepository = {
    */
   extendWindow: async (
     context: MobileAuthRequestContext,
-    channelIdText: string
+    channelIdText: string,
+    options: { channelTitle?: string | null } = {}
   ): Promise<ChannelWindowSyncResult> => {
     await initializeDatabase();
     const current = await readWindow(channelIdText);
     const depth = extendChannelItemWindowDepth(current.depth);
     const { isFeedExhausted, items } = await fetchChannelItemWindow(context, channelIdText, depth);
-    const storedCount = await commitChannelWindow(channelIdText, items, depth);
+    const storedCount = await commitChannelWindow(
+      channelIdText,
+      items,
+      depth,
+      options.channelTitle ?? null
+    );
 
     return toSyncResult(depth, isFeedExhausted, storedCount);
   },
@@ -527,6 +563,9 @@ export const channelItemsRepository = {
   /** Forget a channel entirely, on unsubscribe. */
   removeChannel: async (channelIdText: string): Promise<void> => {
     await initializeDatabase();
+    // Unfollowing does not delete files, so the downloads left behind keep their own record of
+    // which show they came from.
+    await downloadsRepository.attachChannelToDownloads({ channelIdText });
     await getDb()
       .delete(schema.channelItem)
       .where(eq(schema.channelItem.channelIdText, channelIdText));
@@ -536,27 +575,42 @@ export const channelItemsRepository = {
   },
 
   /**
-   * Keep only the channels still followed, so unsubscribing on another device — or browsing a
-   * channel and never subscribing to it — cannot leave items behind forever.
+   * Keep the channels still followed and the channels holding a finished download, so unsubscribing
+   * on another device — or browsing a channel and never subscribing to it — cannot leave items
+   * behind forever, while a downloaded episode keeps the stored feed data it needs offline.
    */
   retainChannels: async (channelIdTexts: readonly string[]): Promise<void> => {
     await initializeDatabase();
 
-    if (channelIdTexts.length === 0) {
+    // Diff in memory and delete what is left over, rather than asking SQLite to exclude the whole
+    // followed list: a long subscription list would exceed its bind-parameter limit.
+    const rows = await getDb()
+      .selectDistinct({ channelIdText: schema.channelItemWindow.channelIdText })
+      .from(schema.channelItemWindow);
+    const stored = rows.map((row) => row.channelIdText);
+
+    // A download has to be able to name its show without this store. Stamp before anything is
+    // deleted, so a channel that was only ever browsed still leaves its downloads attributable —
+    // and so the check below can see them.
+    const followed = new Set(channelIdTexts);
+    for (const channelIdText of stored) {
+      if (!followed.has(channelIdText)) {
+        await downloadsRepository.attachChannelToDownloads({ channelIdText });
+      }
+    }
+
+    const downloaded = await downloadsRepository.channelIdTextsWithCompleteDownloads();
+    if (channelIdTexts.length === 0 && downloaded.length === 0) {
       await getDb().delete(schema.channelItem);
       await getDb().delete(schema.channelItemWindow);
       return;
     }
 
-    // Diff in memory and delete what is left over, rather than asking SQLite to exclude the whole
-    // followed list: a long subscription list would exceed its bind-parameter limit.
-    const keep = new Set(channelIdTexts);
-    const rows = await getDb()
-      .selectDistinct({ channelIdText: schema.channelItemWindow.channelIdText })
-      .from(schema.channelItemWindow);
-    const drop = rows
-      .map((row) => row.channelIdText)
-      .filter((channelIdText) => !keep.has(channelIdText));
+    const drop = selectChannelsToDropFromItemStore({
+      downloaded,
+      followed: channelIdTexts,
+      stored,
+    });
 
     for (const chunk of chunked(drop, DELETE_CHUNK_SIZE)) {
       await getDb()

@@ -5,6 +5,8 @@ import {
   isBrowseCategoryMediaType,
   isBrowseRangeOption,
   isPlayableDirectoryMediaType,
+  shouldShowBrowseCategoryChip,
+  shouldShowBrowseSortChip,
 } from './browseTypes';
 
 describe('browseTypes', () => {
@@ -27,6 +29,19 @@ describe('browseTypes', () => {
     expect(isBrowseRangeOption('all-time')).toBe(true);
     expect(isBrowseRangeOption('year')).toBe(false);
     expect(isBrowseRangeOption('recent')).toBe(false);
+  });
+
+  it('hides Categories on media types that have no directory categories', () => {
+    expect(shouldShowBrowseCategoryChip('podcasts')).toBe(true);
+    expect(shouldShowBrowseCategoryChip('videos')).toBe(true);
+    expect(shouldShowBrowseCategoryChip('artists')).toBe(false);
+    expect(shouldShowBrowseCategoryChip('playlists')).toBe(false);
+  });
+
+  it('hides the range chip while the category picker is open', () => {
+    expect(shouldShowBrowseSortChip('podcasts', false)).toBe(true);
+    expect(shouldShowBrowseSortChip('artists', false)).toBe(true);
+    expect(shouldShowBrowseSortChip('podcasts', true)).toBe(false);
   });
 
   it('treats only item-like rows as playable', () => {

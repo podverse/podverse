@@ -14,7 +14,7 @@ import { ListLoading } from '../../components/state/ListLoading';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import type { SearchStackParamList } from '../../navigation';
-import { SEARCH_STACK_ROUTES } from '../../navigation';
+import { buildPodcastDetailParams, SEARCH_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import {
   getChannelDetailRouteKind,
@@ -42,7 +42,8 @@ type AddErrorKey = 'features.search.add_failed' | 'features.search.add_timed_out
 const replaceWithSearchChannelDetail = (
   navigation: PodcastIndexFeedPreviewScreenProps['navigation'],
   mediumId: number,
-  idText: string
+  idText: string,
+  preview: { imageUrl: string | null; title: string }
 ) => {
   const kind = getChannelDetailRouteKind(mediumId);
   if (kind === 'artist') {
@@ -53,7 +54,14 @@ const replaceWithSearchChannelDetail = (
     navigation.replace(SEARCH_STACK_ROUTES.AlbumDetail, { albumId: idText });
     return;
   }
-  navigation.replace(SEARCH_STACK_ROUTES.PodcastDetail, { podcastId: idText });
+  navigation.replace(
+    SEARCH_STACK_ROUTES.PodcastDetail,
+    buildPodcastDetailParams({
+      podcastId: idText,
+      previewImageUrl: preview.imageUrl,
+      previewTitle: preview.title,
+    })
+  );
 };
 
 export function PodcastIndexFeedPreviewScreen({
@@ -168,9 +176,12 @@ export function PodcastIndexFeedPreviewScreen({
 
   const navigateToChannelDetail = useCallback(
     (mediumId: number, idText: string) => {
-      replaceWithSearchChannelDetail(navigation, mediumId, idText);
+      replaceWithSearchChannelDetail(navigation, mediumId, idText, {
+        imageUrl: feed?.imageUrl ?? null,
+        title: feed?.title ?? '',
+      });
     },
-    [navigation]
+    [feed?.imageUrl, feed?.title, navigation]
   );
 
   const handleAddPress = useCallback(async () => {

@@ -82,3 +82,40 @@ export const buildHomeRowMetadata = (
 
   return metadata;
 };
+
+type HomeRowWithDownloadMetadata = {
+  id: string;
+  metadata?: HomeRowMetadata;
+};
+
+/**
+ * Patch finished-download counts onto rows already on screen.
+ *
+ * Home keeps `feedRows` in memory while the tab is mounted; download delete/complete only changes
+ * counts, so re-reading the whole feed would flash and discard scroll for no reason. Returns the
+ * same array reference when every count already matches, so React can skip the paint.
+ */
+export const mergeDownloadedCountsIntoHomeRows = <T extends HomeRowWithDownloadMetadata>(
+  rows: T[],
+  downloadedCountByChannel: ReadonlyMap<string, number>
+): T[] => {
+  let changed = false;
+  const next = rows.map((row) => {
+    const downloadedCount = downloadedCountByChannel.get(row.id) ?? 0;
+    const current = row.metadata?.downloadedCount ?? 0;
+    if (current === downloadedCount) {
+      return row;
+    }
+    changed = true;
+    return {
+      ...row,
+      metadata: {
+        downloadedCount,
+        isLive: row.metadata?.isLive ?? false,
+        latestItemPubDateMs: row.metadata?.latestItemPubDateMs ?? null,
+        unseenBadge: row.metadata?.unseenBadge ?? null,
+      },
+    };
+  });
+  return changed ? next : rows;
+};

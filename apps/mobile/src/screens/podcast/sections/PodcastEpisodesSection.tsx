@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { DTOItem } from '@podverse/helpers';
@@ -63,6 +63,7 @@ const toLiveRows = (items: DTOItem[]): PodcastLiveRow[] => {
  * first. The badge is what separates it from the rows below.
  */
 export function PodcastEpisodesSection({
+  channel,
   channelIdText,
   filterTerm,
   listHeader,
@@ -89,6 +90,12 @@ export function PodcastEpisodesSection({
     () => ({ accessToken, clearSession, refreshToken, setTokens }),
     [accessToken, clearSession, refreshToken, setTokens]
   );
+
+  // Held in a ref rather than read as a dependency: the show's name arrives after the first load,
+  // and treating it as an input would sync the feed a second time for a value only written
+  // alongside episodes that are already being fetched.
+  const channelTitleRef = useRef<string | null>(channel?.title ?? null);
+  channelTitleRef.current = channel?.title ?? channelTitleRef.current;
 
   /**
    * Read the stored window in the order the caller settled on.
@@ -148,7 +155,9 @@ export function PodcastEpisodesSection({
         }
 
         try {
-          const result = await channelItemsRepository.syncChannel(authContext, channelIdText);
+          const result = await channelItemsRepository.syncChannel(authContext, channelIdText, {
+            channelTitle: channelTitleRef.current,
+          });
           setHasMorePages(result.hasMore);
           await readStoredEpisodes();
 
@@ -182,7 +191,9 @@ export function PodcastEpisodesSection({
   const loadMoreEpisodes = useCallback(async () => {
     setIsLoadingMore(true);
     try {
-      const result = await channelItemsRepository.extendWindow(authContext, channelIdText);
+      const result = await channelItemsRepository.extendWindow(authContext, channelIdText, {
+        channelTitle: channelTitleRef.current,
+      });
       setHasMorePages(result.hasMore);
       await readStoredEpisodes();
     } catch {
@@ -307,7 +318,13 @@ export function PodcastEpisodesSection({
               download={
                 item === undefined
                   ? undefined
-                  : { item, testID: `podcast-episode-download-${index}` }
+                  : {
+                      item:
+                        item.channel !== undefined || channel === null
+                          ? item
+                          : { ...item, channel },
+                      testID: `podcast-episode-download-${index}`,
+                    }
               }
               isLast={isLast}
               mediaType="episodes"

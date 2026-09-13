@@ -36,6 +36,12 @@ CDN rows with **`is_resized === true`** are the bandwidth-friendly pick. Use the
 - Do not pass hero/largest helpers into **list, grid, mini, or compact header** display slots.
 - Do not invent a per-app first-URL picker. If the consumer needs one string (React Native `Image`, SQLite `image_url`), use **`primaryListArtworkUrl`** / **`primaryLightboxArtworkUrl`** (or the channel variants).
 
+## Mobile loading / cache
+
+On mobile, which URL to paint is this skill; **when** it paints and how it is cached is
+**mobile-image-loading** (`CoverImage` + route preview / local hydration so list→detail does not
+flash an empty cover).
+
 ## Reference
 
 Implementation: `packages/helpers/src/lib/image.ts` and `packages/helpers/src/lib/image-candidates/`.

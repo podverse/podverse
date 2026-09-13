@@ -26,16 +26,18 @@ import { readSortPref, writeSortPref } from './sortPrefs';
  * Remembered because it decides what the screen loads. Restoring it after the screen had already
  * loaded Episodes would mean fetching twice and showing the wrong pane in between.
  *
- * A remembered pane is still subject to what the channel actually carries — one with no podroll
- * cannot open on it — and the caller reconciles that, since only it knows what this channel has.
+ * Always-on panes come first in the available set; evidence panes (Official Clips, Podroll) stay
+ * last so a first-visit insert is at the end. The painted row then puts the selected pane first.
+ * A remembered evidence pane is still subject to what this channel actually carries — the caller
+ * reconciles that.
  */
 export const PODCAST_TABS = [
   'episodes',
-  'soundbites',
-  'clips',
-  'about',
-  'podroll',
   'downloaded',
+  'about',
+  'clips',
+  'soundbites',
+  'podroll',
 ] as const;
 
 export type PodcastTab = (typeof PODCAST_TABS)[number];

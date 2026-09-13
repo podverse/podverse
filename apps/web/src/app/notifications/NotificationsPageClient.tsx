@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { DTOAccountNotification, NotificationCategoryValues } from '@podverse/helpers';
-import { getRelativeTimeParts } from '@podverse/helpers';
+import { getRelativeTimeParts, resolveNotificationDestinationFromPayload } from '@podverse/helpers';
 import { MainHeader } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
@@ -149,7 +149,12 @@ export function NotificationsPageClient() {
 
   function NotificationRow({ row }: { row: DTOAccountNotification }) {
     const categoryKey = CATEGORY_LABEL_KEYS[row.category];
-    const linkPath = row.link_path ?? ROUTES.NOTIFICATIONS;
+    const destination = resolveNotificationDestinationFromPayload({
+      ...(row.payload ?? {}),
+      link_path: row.link_path,
+    });
+    const linkPath =
+      destination.kind === 'home' ? ROUTES.NOTIFICATIONS : destination.webPath;
 
     return (
       <article className={styles.row}>

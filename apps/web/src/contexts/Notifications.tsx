@@ -1,6 +1,9 @@
+'use client';
+
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useEffect, useState } from 'react';
-import { useContext } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { getApiRequestService } from '../factories/apiRequestService';
 import { useAccount } from './Account';
@@ -32,42 +35,61 @@ type NotificationsProviderProps = {
   children: ReactNode;
 };
 
+const toSameOriginPath = (link: string): string | null => {
+  try {
+    const parsed = new URL(link, window.location.origin);
+    if (parsed.origin !== window.location.origin) {
+      return null;
+    }
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
+};
+
 export const NotificationsProvider = ({ children }: NotificationsProviderProps) => {
   const config = useConfig();
+  const router = useRouter();
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [registered, setRegistered] = useState<boolean>(false);
   const [upRegistered, setUPRegistered] = useState<boolean>(false);
   const [upEndpoint, setUPEndpoint] = useState<string | null>(null);
   const { loggedInAccount } = useAccount();
 
-  // Handle foreground push notifications
-  const handleForegroundPush = useCallback((event: MessageEvent) => {
-    if (event.data?.type === 'PUSH_NOTIFICATION') {
-      const data = event.data.payload;
-      const title = data.title || 'Notification';
-      const body = data.body || '';
-      const icon = data.icon;
-      const link = data.link || '/';
+  const handleForegroundPush = useCallback(
+    (event: MessageEvent) => {
+      if (event.data?.type === 'PUSH_NOTIFICATION') {
+        const data = event.data.payload;
+        const title = data.title || 'Notification';
+        const body = data.body || '';
+        const icon = data.icon;
+        const link = data.link || '/';
 
-      if (Notification.permission === 'granted' && title) {
-        const notification = new Notification(title, {
-          body,
-          icon,
-          data: { url: link },
-        });
+        if (Notification.permission === 'granted' && title) {
+          const notification = new Notification(title, {
+            body,
+            icon,
+            data: { url: link },
+          });
 
-        notification.onclick = (e) => {
-          e.preventDefault();
-          notification.close();
-          if (link && link !== '/') {
-            window.open(link, '_blank');
-          } else {
+          notification.onclick = (e) => {
+            e.preventDefault();
+            notification.close();
             window.focus();
-          }
-        };
+            const sameOriginPath = toSameOriginPath(link);
+            if (sameOriginPath !== null && sameOriginPath !== '/') {
+              router.push(sameOriginPath);
+              return;
+            }
+            if (sameOriginPath === null && typeof link === 'string' && link !== '/') {
+              window.location.assign(link);
+            }
+          };
+        }
       }
-    }
-  }, []);
+    },
+    [router]
+  );
 
   useEffect(() => {
     if (!loggedInAccount) {

@@ -7,7 +7,7 @@ import { matchesTitleFilter } from '@podverse/helpers';
 
 import { channelItemsRepository } from '../../../data/repositories/channelItemsRepository';
 import { downloadsRepository } from '../../../data/repositories/downloadsRepository';
-import { downloadManager } from '../../../downloads/downloadManager';
+import { downloadStore } from '../../../downloads/downloadStore';
 import type { DownloadRecord } from '../../../downloads/downloadTypes';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../../lib/share/shareNowPlaying';
 import type { ChannelBrowseStackParamList } from '../../../navigation';
@@ -102,7 +102,7 @@ export function PodcastDownloadedSection({
 
   useEffect(() => {
     void loadDownloads('initial');
-    const unsubscribe = downloadManager.subscribe(() => {
+    const unsubscribe = downloadStore.subscribe(() => {
       void loadDownloads('refresh');
     });
     return unsubscribe;

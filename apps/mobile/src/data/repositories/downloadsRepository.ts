@@ -1,12 +1,19 @@
-import { and, count, desc, eq, isNotNull, ne, sql } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
+
+import type { DTOItem } from '@podverse/helpers/dto';
 
 import type {
   DownloadMediaType,
+  DownloadPatch,
   DownloadRecord,
   DownloadStatus,
 } from '../../downloads/downloadTypes';
 import { isDownloadMediaType, isDownloadStatus } from '../../downloads/downloadTypes';
-import { getDb, initializeDatabase, schema } from '../db';
+import {
+  groupUnsubscribedDownloadChannels,
+  type UnsubscribedDownloadChannel,
+} from '../../downloads/unsubscribedDownloadChannels';
+import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { DownloadRow } from '../db/schema';
 import { projectDownloadsIndexToNativeCache } from '../nativeCache';
 
@@ -56,6 +63,16 @@ const recordToRow = (record: DownloadRecord): DownloadRow => ({
   updatedAt: record.updatedAt,
 });
 
+const UPDATE_CHUNK_SIZE = 200;
+
+const chunked = <T>(values: readonly T[], size: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let index = 0; index < values.length; index += size) {
+    chunks.push(values.slice(index, index + size));
+  }
+  return chunks;
+};
+
 /**
  * Project the current set of completed downloads (files that exist on disk) to the native cache so
  * CarPlay / Android Auto / watch can list offline episodes without SQLite. Called after every
@@ -84,32 +101,7 @@ const refreshNativeCacheProjection = async (): Promise<void> => {
   });
 };
 
-/** Fields callers may patch as a download progresses (id + immutable columns excluded). */
-export type DownloadPatch = Partial<
-  Pick<
-    DownloadRecord,
-    | 'status'
-    | 'filePath'
-    | 'byteSize'
-    | 'bytesDownloaded'
-    | 'errorReason'
-    | 'title'
-    | 'artworkUrl'
-    | 'enclosureUri'
-    | 'enclosureMime'
-    | 'fileExtension'
-    | 'channelIdText'
-    | 'channelTitle'
-    | 'dismissedFromList'
-  >
->;
-
-export type UnsubscribedDownloadChannel = {
-  channelIdText: string;
-  title: string;
-  imageUrl: string | null;
-  downloadedCount: number;
-};
+export type { UnsubscribedDownloadChannel };
 
 /**
  * Downloads index repository — the source of truth for the phone Downloads library and
@@ -237,7 +229,11 @@ export const downloadsRepository = {
 
   /**
    * Channels that have at least one complete download and are not in the provided subscribed id
-   * set. Used for Home's "Downloaded, not subscribed" footer.
+   * set. Used for Home's "Downloaded only" footer.
+   *
+   * Prefers the persisted `channel_id_text` on the download row. Rows that never stored one
+   * (episode payloads often omit the nested channel) fall back to `channel_item`, the same join
+   * `countCompletedByChannel` uses.
    */
   listUnsubscribedDownloadChannels: async (
     subscribedIdTexts: ReadonlySet<string>
@@ -248,42 +244,140 @@ export const downloadsRepository = {
       .from(schema.download)
       .where(eq(schema.download.status, 'complete'));
 
-    const byChannel = new Map<
-      string,
-      { title: string; imageUrl: string | null; count: number }
-    >();
+    const missingItemIds = completed
+      .filter((row) => row.channelIdText === null || row.channelIdText === '')
+      .map((row) => row.itemIdText);
 
-    for (const row of completed) {
-      const channelId = row.channelIdText;
-      if (channelId === null || channelId === '') {
-        continue;
-      }
-      if (subscribedIdTexts.has(channelId)) {
-        continue;
-      }
-      const existing = byChannel.get(channelId);
-      if (existing === undefined) {
-        byChannel.set(channelId, {
-          count: 1,
-          imageUrl: row.artworkUrl,
-          title: row.channelTitle ?? channelId,
+    const itemChannelByItemId = new Map<
+      string,
+      { channelIdText: string; imageUrl: string | null }
+    >();
+    if (missingItemIds.length > 0) {
+      const hints = await getDb()
+        .select({
+          channelIdText: schema.channelItem.channelIdText,
+          imageUrl: schema.channelItem.imageUrl,
+          itemIdText: schema.channelItem.itemIdText,
+        })
+        .from(schema.channelItem)
+        .where(inArray(schema.channelItem.itemIdText, missingItemIds));
+      for (const hint of hints) {
+        itemChannelByItemId.set(hint.itemIdText, {
+          channelIdText: hint.channelIdText,
+          imageUrl: hint.imageUrl,
         });
-      } else {
-        existing.count += 1;
-        if (existing.imageUrl === null && row.artworkUrl !== null) {
-          existing.imageUrl = row.artworkUrl;
-        }
       }
     }
 
-    return [...byChannel.entries()]
-      .map(([channelIdText, value]) => ({
-        channelIdText,
-        downloadedCount: value.count,
-        imageUrl: value.imageUrl,
-        title: value.title,
-      }))
-      .sort((a, b) => a.title.localeCompare(b.title));
+    const grouped = groupUnsubscribedDownloadChannels(
+      completed.map((row) => ({
+        artworkUrl: row.artworkUrl,
+        channelIdText: row.channelIdText,
+        channelTitle: row.channelTitle,
+        itemIdText: row.itemIdText,
+      })),
+      subscribedIdTexts,
+      itemChannelByItemId
+    );
+
+    // Rows that only found their channel via `channel_item` have no stored show title. One
+    // stored payload per channel is enough when the feed embedded `channel.title`.
+    for (const channel of grouped) {
+      if (channel.title !== channel.channelIdText) {
+        continue;
+      }
+      const payloadRows = await getDb()
+        .select({ payloadJson: schema.channelItem.payloadJson })
+        .from(schema.channelItem)
+        .where(eq(schema.channelItem.channelIdText, channel.channelIdText))
+        .limit(1);
+      const payload = payloadRows[0]?.payloadJson;
+      if (payload === undefined) {
+        continue;
+      }
+      const item = safeJsonParse<DTOItem>(payload);
+      const title = item?.channel?.title;
+      if (title !== undefined && title !== null && title.length > 0) {
+        channel.title = title;
+      }
+    }
+
+    return grouped.sort((a, b) => a.title.localeCompare(b.title));
+  },
+
+  /**
+   * Channels with at least one finished download, as recorded on the download rows themselves.
+   * Item retention reads this so a show that only exists on this device keeps the stored episodes
+   * that make it browsable and playable offline.
+   */
+  channelIdTextsWithCompleteDownloads: async (): Promise<string[]> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .selectDistinct({ channelIdText: schema.download.channelIdText })
+      .from(schema.download)
+      .where(
+        and(eq(schema.download.status, 'complete'), isNotNull(schema.download.channelIdText))
+      );
+
+    return rows.flatMap((row) =>
+      row.channelIdText === null || row.channelIdText.length === 0 ? [] : [row.channelIdText]
+    );
+  },
+
+  /**
+   * Record on the download row itself which show it belongs to.
+   *
+   * A downloaded file outlives every cache, so it has to carry that answer independently. The item
+   * store holds only channels this device follows, so a download taken from a channel the user
+   * never followed loses its one other link to the show as soon as that store is pruned — leaving
+   * an episode on disk with nothing left to say where it came from.
+   *
+   * The title is written when the caller knows it. A caller that only knows the id still stamps the
+   * id, and a later call carrying the title fills in what it left blank.
+   */
+  attachChannelToDownloads: async ({
+    channelIdText,
+    channelTitle = null,
+  }: {
+    channelIdText: string;
+    channelTitle?: string | null;
+  }): Promise<void> => {
+    await initializeDatabase();
+
+    const unlinked = await getDb()
+      .select({ itemIdText: schema.download.itemIdText })
+      .from(schema.download)
+      .innerJoin(schema.channelItem, eq(schema.channelItem.itemIdText, schema.download.itemIdText))
+      .where(
+        and(
+          eq(schema.channelItem.channelIdText, channelIdText),
+          sql`${schema.download.channelIdText} IS NULL`
+        )
+      );
+
+    for (const chunk of chunked(
+      unlinked.map((row) => row.itemIdText),
+      UPDATE_CHUNK_SIZE
+    )) {
+      await getDb()
+        .update(schema.download)
+        .set({ channelIdText, channelTitle })
+        .where(inArray(schema.download.itemIdText, chunk));
+    }
+
+    if (channelTitle === null || channelTitle.length === 0) {
+      return;
+    }
+
+    await getDb()
+      .update(schema.download)
+      .set({ channelTitle })
+      .where(
+        and(
+          eq(schema.download.channelIdText, channelIdText),
+          sql`${schema.download.channelTitle} IS NULL`
+        )
+      );
   },
 
   getByItemIdText: async (itemIdText: string): Promise<DownloadRecord | null> => {
@@ -309,8 +403,10 @@ export const downloadsRepository = {
   },
 
   /**
-   * Patch a subset of columns for an existing download (progress, status transition, error). Bumps
-   * `updated_at` and re-projects. No-op if the row is missing.
+   * Patch a subset of columns for an existing download (status transition, resolved path, error).
+   * Bumps `updated_at` and re-projects. No-op if the row is missing.
+   *
+   * Byte progress goes through `patchProgress` instead — see the note there.
    */
   patch: async (itemIdText: string, patch: DownloadPatch): Promise<void> => {
     await initializeDatabase();
@@ -327,6 +423,25 @@ export const downloadsRepository = {
       .set(setValues)
       .where(eq(schema.download.itemIdText, itemIdText));
     await refreshNativeCacheProjection();
+  },
+
+  /**
+   * Persist transfer byte counts so an interrupted download can resume near where it stopped.
+   *
+   * Deliberately narrower than `patch`: byte movement cannot change which downloads are complete,
+   * so it must not rebuild the native-cache index, and it leaves `updated_at` alone so a list of
+   * in-flight rows holds its order instead of reshuffling on every chunk. The caller throttles
+   * these writes; the live value the UI renders lives in `downloadStore`.
+   */
+  patchProgress: async (
+    itemIdText: string,
+    progress: { bytesDownloaded: number; byteSize: number | null }
+  ): Promise<void> => {
+    await initializeDatabase();
+    await getDb()
+      .update(schema.download)
+      .set({ byteSize: progress.byteSize, bytesDownloaded: progress.bytesDownloaded })
+      .where(eq(schema.download.itemIdText, itemIdText));
   },
 
   /** Mark every complete row as dismissed from the Downloads monitor list. */

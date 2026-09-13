@@ -12,6 +12,7 @@ import { ProgressTrack } from '../../components/primitives/ProgressTrack';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { downloadManager } from '../../downloads/downloadManager';
 import { formatDownloadBytes } from '../../downloads/downloadQuota';
+import { downloadStore } from '../../downloads/downloadStore';
 import {
   measureDownloadStorageBreakdown,
   type DownloadStorageBreakdown,
@@ -92,12 +93,27 @@ export function MoreSettingsDownloadsScreen() {
     setBreakdown(next);
   }, []);
 
+  // Measuring the buckets walks the filesystem, so it reads the status channel only, and a burst of
+  // completions or deletions coalesces into one walk.
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     void reloadBreakdown();
-    const unsubscribe = downloadManager.subscribe(() => {
-      void reloadBreakdown();
+
+    const unsubscribe = downloadStore.subscribe(() => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        void reloadBreakdown();
+      }, 400);
     });
-    return unsubscribe;
+
+    return () => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      unsubscribe();
+    };
   }, [reloadBreakdown]);
 
   const styles = useMemo(

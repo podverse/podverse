@@ -75,6 +75,26 @@ export interface DownloadRecord {
   updatedAt: number;
 }
 
+/** Fields callers may patch as a download progresses (id + immutable columns excluded). */
+export type DownloadPatch = Partial<
+  Pick<
+    DownloadRecord,
+    | 'status'
+    | 'filePath'
+    | 'byteSize'
+    | 'bytesDownloaded'
+    | 'errorReason'
+    | 'title'
+    | 'artworkUrl'
+    | 'enclosureUri'
+    | 'enclosureMime'
+    | 'fileExtension'
+    | 'channelIdText'
+    | 'channelTitle'
+    | 'dismissedFromList'
+  >
+>;
+
 /** Progress event emitted by the download runner and consumed by screens. */
 export interface DownloadProgressEvent {
   itemIdText: string;

@@ -20,7 +20,7 @@ export type MenuSelectChipOption<T extends string> = {
 };
 
 export type MenuSelectChipProps<T extends string> = {
-  /** When true, the chip stays visible but does not open — use to hold layout while a section is unsortable. */
+  /** When true, the chip stays visible but does not open. Prefer unmounting when the filter cannot use it. */
   disabled?: boolean;
   /** Names the control, e.g. "Sort". Paired with the current value as the accessible name. */
   heading: string;
@@ -40,7 +40,8 @@ export type MenuSelectChipProps<T extends string> = {
  * one narrows the list the pills choose, rather than choosing a list. The sheet is what makes it
  * usable for four or more choices without leaving the screen the list is on.
  *
- * Keep the chip mounted when a section cannot use it (`disabled`) so neighboring pills do not jump.
+ * Unmount this chip when the current filter cannot sort or pick a range. A disabled face is only
+ * for a control that must stay in the row while it has nothing to do.
  */
 export function MenuSelectChip<T extends string>({
   disabled = false,

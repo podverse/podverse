@@ -29,12 +29,39 @@ extension** — never a `.m3u8` as the media file.
 `DownloadStatus`: `queued → downloading → complete`; `downloading → paused` / `paused → downloading`;
 `downloading → failed`; `queued|downloading|paused → cancelled` (via remove); `failed → queued`
 (retry). **Concurrency is 5** (`DOWNLOAD_MAX_CONCURRENCY`) — up to five Expo `DownloadResumable`
-transfers at once. Pause all parks in-flight jobs and marks remaining queued jobs `paused`. Progress
-is reported via `DownloadProgressEvent` (`bytesDownloaded`, `byteSize`, `fraction`).
+transfers at once. Pause all parks in-flight jobs and marks remaining queued jobs `paused`. The
+queue is FIFO by `createdAt`, so taps are honored in the order they were made.
 
-Screens and hooks talk to `downloadsRepository` (source of truth) and the download manager only —
-never Expo FileSystem directly. Downloads do **not** enter the serial sync queue; the global activity
-bar shows a download line separately from sync.
+Screens and hooks read `downloadStore` and act through `downloadManager` — never Expo FileSystem
+directly, and never `downloadsRepository` for state a transfer is changing. Downloads do **not** enter
+the serial sync queue; the global activity bar shows a download line separately from sync.
+
+## State: memory renders, SQLite persists
+
+`downloadStore.ts` is an in-memory mirror of the index and the only thing download UI renders from.
+Every mutation lands there synchronously — a tapped control changes in the same frame — and the
+SQLite write follows as the durable record. Records are immutable, so a mutation replaces one and
+leaves the rest identical; a row's `setState` then receives the same reference and skips its
+re-render, which is what keeps a forty-row list still while five things download.
+
+Two notification channels, because a transfer reports bytes many times a second and RN handles
+touches on that same thread:
+
+| Channel | Fires for | Cadence | Who subscribes |
+| --- | --- | --- | --- |
+| `subscribe` | set + status changes | leading edge, then one trailing pass (100 ms) | everything |
+| `subscribeToProgress` | byte movement | trailing only (500 ms) | episode detail, My Library → Downloads |
+
+`batch(fn)` collapses a bulk operation (pause all, resume all, clear finished) into one notification.
+
+**Never on a byte tick:** a SQLite write, a native-cache projection, a filesystem walk, or a
+full-table read. Byte counts reach SQLite through `downloadsRepository.patchProgress` at most once
+every few seconds per transfer, plus a forced flush on pause and on failure — they exist only so an
+interrupted download resumes near where it stopped. Rules: **mobile-progress-ux-and-notification-channels**.
+
+**Progress detail goes where the user asked for it.** A list row shows a busy spinner and no number
+(`DownloadRowControl`); the episode detail control and the Downloads screen show percentages and
+bars; badges and the activity bar are derived from statuses alone.
 
 ## Storage
 
@@ -67,7 +94,8 @@ Remove. No storage chrome and no Play on that screen.
 
 Every `downloadsRepository` mutation that can change the completed set rebuilds the completed-downloads
 index and calls `projectDownloadsIndexToNativeCache` so CarPlay / Android Auto offline browse can list
-downloads without SQLite.
+downloads without SQLite. Byte progress cannot change that set, which is why it goes through
+`patchProgress` and skips the projection entirely.
 
 ## E2E
 
@@ -82,7 +110,8 @@ Run: `npm run mobile:e2e:test -- library-downloads,settings-downloads` (see
 ## Files
 
 - `downloadEligibility.ts` — `isItemDownloadable`, `isHlsSource` (pure, unit-tested).
-- `downloadTypes.ts` — `DownloadStatus`, `DownloadRecord`, `DownloadProgressEvent` + guards.
+- `downloadTypes.ts` — `DownloadStatus`, `DownloadRecord`, `DownloadPatch` + guards.
+- `downloadStore.ts` — in-memory mirror, split status / progress channels (pure, unit-tested).
 - `downloadStorage.ts` — on-disk naming/paths + URI hash (pure, unit-tested).
 - `downloadStorageStats.ts` — device / downloads / app data / cache byte breakdown for Settings.
 - `downloadManager.ts` — Expo FileSystem transfer runner (concurrency 5, pause/resume, auto-free);

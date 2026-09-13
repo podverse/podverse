@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Badge, CoverImage } from '../../components/primitives';
+import { CountBadge, CoverImage } from '../../components/primitives';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from './homeFeedData';
 
@@ -15,13 +15,10 @@ type HomeFeedGridCellProps = {
 /**
  * One artwork tile in the Home grid.
  *
- * Carries the unseen badge and nothing else, because a tile is small enough that a title and a
- * metadata line would crowd the artwork the grid exists to show. The list view remains the one that
- * states everything about a subscription; the grid trades that detail for seeing more at once.
- *
- * The title is still the tile's accessible name. Without it a screen reader reaches a wall of
- * unlabelled squares, and artwork alone identifies nothing to a user who cannot see it — so the
- * grid must cost that user no information even though it shows less.
+ * Unseen stays top-right (accent); downloaded count sits bottom-right (muted gray) so both can
+ * show without stacking. Each is a `CountBadge` — a circle at one digit, a horizontal capsule
+ * at two. Titles stay off the tile — the list view is where full metadata lives — but both
+ * counts fold into the accessible name so a screen reader is not left with blank squares.
  */
 export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps) {
   const { t } = useTranslation();
@@ -38,7 +35,15 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
           { count: unseenBadge.count }
         );
 
-  const accessibilityLabel = [row.title, unseenLabel].filter((part) => part !== null).join(', ');
+  const downloadedCount = row.metadata?.downloadedCount ?? 0;
+  const downloadedLabel =
+    downloadedCount > 0
+      ? t('subscriptions.row.downloaded_count', { count: downloadedCount })
+      : null;
+
+  const accessibilityLabel = [row.title, unseenLabel, downloadedLabel]
+    .filter((part) => part !== null)
+    .join(', ');
 
   const styles = useMemo(
     () =>
@@ -48,13 +53,22 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
           aspectRatio: 1,
           width: '100%',
         },
-        badge: {
+        cell: {
+          marginBottom: tokens.spacing.md,
+        },
+        downloadedBadge: {
+          bottom: tokens.spacing.xs,
+          position: 'absolute',
+          right: tokens.spacing.xs,
+        },
+        tile: {
+          position: 'relative',
+          width: '100%',
+        },
+        unseenBadge: {
           position: 'absolute',
           right: tokens.spacing.xs,
           top: tokens.spacing.xs,
-        },
-        cell: {
-          marginBottom: tokens.spacing.md,
         },
       }),
     [tokens]
@@ -71,21 +85,32 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
       style={styles.cell}
       testID={testID ?? `home-feed-cell-${row.id}`}
     >
-      {/* Artwork is decorative here: the Pressable owns the accessible name (title + badge). */}
-      <CoverImage
-        fallbackLabel={row.title}
-        opensViewer={false}
-        style={styles.artwork}
-        uri={row.imageUrl}
-      />
-      {unseenLabel !== null ? (
-        <Badge
-          label={unseenLabel}
-          style={styles.badge}
-          testID={`home-feed-cell-unseen-${row.id}`}
-          tone="accent"
+      <View style={styles.tile}>
+        {/* Artwork is decorative here: the Pressable owns the accessible name (title + badges). */}
+        <CoverImage
+          fallbackLabel={row.title}
+          opensViewer={false}
+          style={styles.artwork}
+          uri={row.imageUrl}
         />
-      ) : null}
+        {unseenBadge !== null ? (
+          <CountBadge
+            count={unseenBadge.count}
+            isCapped={unseenBadge.isCapped}
+            style={styles.unseenBadge}
+            testID={`home-feed-cell-unseen-${row.id}`}
+            tone="accent"
+          />
+        ) : null}
+        {downloadedCount > 0 ? (
+          <CountBadge
+            count={downloadedCount}
+            style={styles.downloadedBadge}
+            testID={`home-feed-cell-downloaded-${row.id}`}
+            tone="muted"
+          />
+        ) : null}
+      </View>
     </Pressable>
   );
 }

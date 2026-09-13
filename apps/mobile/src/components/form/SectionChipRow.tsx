@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
+import { placeSelectedFirst } from '../../lib/sectionChipOrder';
 import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
@@ -32,7 +33,7 @@ export type SectionChipItem<T extends string> = {
 
 export type SectionChipRowProps<T extends string> = {
   items: readonly SectionChipItem<T>[];
-  /** Controls that scroll ahead of the chips — sort, range, Categories. */
+  /** Sort, range, and Categories — only when the current chip can use them. */
   leading?: ReactNode;
   onSelect: (key: T) => void;
   /** `null` when none of the chips is the current selection. */
@@ -115,8 +116,10 @@ export function SectionChip({
  *
  * The leading slot is what lets one row carry both "which list" and "how it is ordered": Home and
  * Browse scroll their sort and Categories controls ahead of the media types, and a channel screen
- * scrolls its sort and popularity window ahead of its sections. The chips themselves are handed in
- * already localized, so the row has no opinion about which medium it is describing.
+ * scrolls its sort and popularity window ahead of its sections. Those leading controls mount only
+ * when the current filter can use them. The selected section chip is placed first after that slot
+ * so a tap can scroll the row back to the start. The chips themselves are handed in already
+ * localized, so the row has no opinion about which medium it is describing.
  *
  * Bottom padding is **`listChipRowBottomGap`** — the seam before filter / list / about content —
  * so every screen that mounts this row gets the same space without a local margin.
@@ -129,6 +132,8 @@ export function SectionChipRow<T extends string>({
   testID,
 }: SectionChipRowProps<T>) {
   const { tokens } = useTheme();
+  const scrollRef = useRef<ScrollView>(null);
+  const orderedItems = useMemo(() => placeSelectedFirst(items, selectedKey), [items, selectedKey]);
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -142,16 +147,21 @@ export function SectionChipRow<T extends string>({
     [tokens]
   );
 
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ animated: false, x: 0 });
+  }, [selectedKey]);
+
   return (
     <ScrollView
       contentContainerStyle={styles.scrollContent}
       horizontal
+      ref={scrollRef}
       showsHorizontalScrollIndicator={false}
       style={styles.scroll}
       testID={testID}
     >
       {leading}
-      {items.map((item) => (
+      {orderedItems.map((item) => (
         <SectionChip
           key={item.key}
           label={item.label}

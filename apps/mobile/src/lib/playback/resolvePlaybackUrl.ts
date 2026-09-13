@@ -2,8 +2,9 @@ import * as FileSystem from 'expo-file-system';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 
-import { downloadsRepository } from '../../data/repositories';
 import type { DownloadRecord } from '../../downloads';
+import { downloadManager } from '../../downloads/downloadManager';
+import { downloadStore } from '../../downloads/downloadStore';
 import { resolveItemAudioEnclosureUrl } from './resolveEnclosureUrl';
 
 /**
@@ -31,7 +32,8 @@ export async function resolvePlaybackUrl(item: DTOItem): Promise<string | null> 
 const resolveLocalDownloadUrl = async (itemIdText: string): Promise<string | null> => {
   let record: DownloadRecord | null;
   try {
-    record = await downloadsRepository.getByItemIdText(itemIdText);
+    await downloadManager.hydrate();
+    record = downloadStore.get(itemIdText);
   } catch {
     return null;
   }
@@ -51,11 +53,7 @@ const resolveLocalDownloadUrl = async (itemIdText: string): Promise<string | nul
   // Row says complete but the file is gone — treat as failed so the episode screen offers a
   // re-download, and fall back to remote for this play. Best-effort; never block playback on it.
   try {
-    await downloadsRepository.patch(itemIdText, {
-      errorReason: 'file_missing',
-      filePath: null,
-      status: 'failed',
-    });
+    await downloadManager.markFileMissing(itemIdText);
   } catch {
     // ignore bookkeeping failure
   }

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 
-import { downloadsRepository } from '../data/repositories';
 import {
   isDownloadQuotaUnlimited,
   readDownloadAutoDeleteOnDeviceLowEnabled,
@@ -13,51 +12,87 @@ import {
 import { isItemDownloadable } from './downloadEligibility';
 import { downloadManager } from './downloadManager';
 import { sumCompletedBytes } from './downloadQuota';
+import { downloadStore } from './downloadStore';
 import type { DownloadRecord, DownloadStatus } from './downloadTypes';
 import { countInProgressDownloads } from './inProgressDownloadCount';
 
 /**
- * Subscribe to the full downloads list (source of truth: `downloadsRepository`). Re-reads on every
- * `downloadManager` change so progress/status updates render live. Used by the Library Downloads
- * screen.
+ * Reads for the downloads UI. All of them come out of `downloadStore` in memory, so nothing here
+ * touches SQLite while a transfer runs.
+ *
+ * **Progress is opt-in.** A transfer reports bytes many times a second; a screen that only needs
+ * statuses (a badge, a count, a row's busy spinner) passes `includeProgress: false` and never
+ * re-renders for a chunk. Ask for progress only where the user went to look at it — the episode
+ * detail control and the Downloads screen.
  */
-export const useDownloadsList = (): {
-  downloads: DownloadRecord[];
+
+/**
+ * Subscribe to the full downloads list. Set and status changes always apply; byte progress only
+ * when `includeProgress` is true.
+ */
+export const useDownloadsList = (
+  includeProgress = false
+): {
+  downloads: readonly DownloadRecord[];
   isLoading: boolean;
   errorKey: string | null;
   reload: () => void;
   pauseAllActive: boolean;
 } => {
-  const [downloads, setDownloads] = useState<DownloadRecord[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [downloads, setDownloads] = useState<readonly DownloadRecord[]>(() =>
+    downloadStore.getAll()
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(!downloadStore.isHydrated());
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [pauseAllActive, setPauseAllActive] = useState(downloadManager.isPauseAllActive());
 
-  const load = useCallback(async () => {
-    try {
-      const rows = await downloadsRepository.list();
-      setDownloads(rows);
-      setPauseAllActive(downloadManager.isPauseAllActive());
-      setErrorKey(null);
-    } catch {
-      setErrorKey('errors.generic');
-    } finally {
-      setIsLoading(false);
-    }
+  const sync = useCallback(() => {
+    // `getAll` returns the same array while nothing has changed, so an unrelated notification
+    // does not re-render this list.
+    setDownloads(downloadStore.getAll());
+    setPauseAllActive(downloadManager.isPauseAllActive());
   }, []);
+
+  const [reloadToken, setReloadToken] = useState(0);
 
   const reload = useCallback(() => {
     setIsLoading(true);
-    void load();
-  }, [load]);
+    setReloadToken((token) => token + 1);
+  }, []);
 
   useEffect(() => {
-    void load();
-    const unsubscribe = downloadManager.subscribe(() => {
-      void load();
-    });
-    return unsubscribe;
-  }, [load]);
+    let isActive = true;
+
+    const hydration = reloadToken === 0 ? downloadManager.hydrate() : downloadManager.reload();
+    hydration
+      .then(() => {
+        if (isActive) {
+          setErrorKey(null);
+          sync();
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setErrorKey('errors.generic');
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      });
+
+    const unsubscribe = downloadStore.subscribe(sync);
+    const unsubscribeProgress = includeProgress
+      ? downloadStore.subscribeToProgress(sync)
+      : null;
+
+    return () => {
+      isActive = false;
+      unsubscribe();
+      unsubscribeProgress?.();
+    };
+  }, [includeProgress, reloadToken, sync]);
 
   return { downloads, errorKey, isLoading, pauseAllActive, reload };
 };
@@ -69,30 +104,37 @@ export const useInProgressDownloadCount = (): number => {
 };
 
 /**
- * Subscribe to a single item's download record (or `null` when not downloaded). Drives the episode
- * detail Download control.
+ * Subscribe to a single item's download record (or `null` when not downloaded).
+ *
+ * Because records are immutable, the state setter receives the same reference when this item did
+ * not change — so a row on a long list ignores every other row's transitions.
  */
-export const useItemDownload = (itemIdText: string): DownloadRecord | null => {
-  const [record, setRecord] = useState<DownloadRecord | null>(null);
+export const useItemDownload = (
+  itemIdText: string,
+  includeProgress = false
+): DownloadRecord | null => {
+  const [record, setRecord] = useState<DownloadRecord | null>(() =>
+    downloadStore.get(itemIdText)
+  );
 
   useEffect(() => {
-    let isActive = true;
-    const load = async (): Promise<void> => {
-      const next = await downloadsRepository.getByItemIdText(itemIdText);
-      if (isActive) {
-        setRecord(next);
-      }
+    const sync = (): void => {
+      setRecord(downloadStore.get(itemIdText));
     };
 
-    void load();
-    const unsubscribe = downloadManager.subscribe(() => {
-      void load();
-    });
+    void downloadManager.hydrate().then(sync).catch(sync);
+    sync();
+
+    const unsubscribe = downloadStore.subscribe(sync);
+    const unsubscribeProgress = includeProgress
+      ? downloadStore.subscribeToProgress(sync)
+      : null;
+
     return () => {
-      isActive = false;
       unsubscribe();
+      unsubscribeProgress?.();
     };
-  }, [itemIdText]);
+  }, [includeProgress, itemIdText]);
 
   return record;
 };
@@ -102,7 +144,7 @@ export type DownloadAction = {
   isDownloadable: boolean;
   /** `null` before anything has been asked for this item. */
   status: DownloadStatus | null;
-  /** Whole percent of the transfer, or `null` while the total size is unknown. */
+  /** Whole percent of the transfer; `null` while the size is unknown or progress was not requested. */
   percentComplete: number | null;
   /** Catalog key for a refused enqueue. */
   noticeKey: string | null;
@@ -114,27 +156,42 @@ export type DownloadAction = {
  * One item's download state and the two things a user can do about it, so every download affordance
  * — the labeled control on episode detail and the icon on a list row — answers to the same state
  * machine and the same eligibility rule.
+ *
+ * Pass `includeProgress` only for a single-item surface. A list row shows a busy spinner and does
+ * not need a percentage, and subscribing every visible row to byte progress is what makes a list
+ * stutter mid-download.
  */
-export const useDownloadAction = (item: DTOItem): DownloadAction => {
-  const record = useItemDownload(item.id_text);
+export const useDownloadAction = (item: DTOItem, includeProgress = false): DownloadAction => {
+  const record = useItemDownload(item.id_text, includeProgress);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
 
   const start = useCallback(() => {
     setNoticeKey(null);
     void (async () => {
-      const result = await downloadManager.enqueue(item);
-      if (!result.ok) {
-        setNoticeKey('features.download.not_downloadable');
+      try {
+        const result = await downloadManager.enqueue(item);
+        if (!result.ok) {
+          setNoticeKey('features.download.not_downloadable');
+        }
+      } catch {
+        setNoticeKey('errors.generic');
       }
     })();
   }, [item]);
 
   const remove = useCallback(() => {
-    void downloadManager.remove(item.id_text);
+    setNoticeKey(null);
+    void (async () => {
+      try {
+        await downloadManager.remove(item.id_text);
+      } catch {
+        setNoticeKey('errors.generic');
+      }
+    })();
   }, [item.id_text]);
 
   const percentComplete =
-    record !== null && record.byteSize !== null && record.byteSize > 0
+    includeProgress && record !== null && record.byteSize !== null && record.byteSize > 0
       ? Math.min(100, Math.round((record.bytesDownloaded / record.byteSize) * 100))
       : null;
 
@@ -167,6 +224,9 @@ export type DownloadStorage = {
 /**
  * Manage-storage state for Settings → Downloads: usage total, the user quota, auto-free toggles,
  * and a one-shot "removed N to free space" notice.
+ *
+ * Usage counts only completed downloads, so this reads the status channel and stays still while a
+ * transfer runs.
  */
 export const useDownloadStorage = (): DownloadStorage => {
   const [usedBytes, setUsedBytes] = useState<number>(0);
@@ -177,13 +237,12 @@ export const useDownloadStorage = (): DownloadStorage => {
   const lastNoticeAtRef = useRef<number>(0);
 
   const load = useCallback(async () => {
-    const [completed, onLimit, onDeviceLow, quota] = await Promise.all([
-      downloadsRepository.listByStatus('complete'),
+    const [onLimit, onDeviceLow, quota] = await Promise.all([
       readDownloadAutoDeleteOnLimitEnabled(),
       readDownloadAutoDeleteOnDeviceLowEnabled(),
       readDownloadQuotaBytes(),
     ]);
-    setUsedBytes(sumCompletedBytes(completed));
+    setUsedBytes(sumCompletedBytes(downloadStore.getAll()));
     setAutoDeleteOnLimitEnabled(onLimit);
     setAutoDeleteOnDeviceLowEnabled(onDeviceLow);
     setQuotaBytes(quota);
@@ -195,8 +254,10 @@ export const useDownloadStorage = (): DownloadStorage => {
   }, []);
 
   useEffect(() => {
-    void load();
-    const unsubscribe = downloadManager.subscribe(() => {
+    void downloadManager.hydrate().finally(() => {
+      void load();
+    });
+    const unsubscribe = downloadStore.subscribe(() => {
       void load();
     });
     return unsubscribe;

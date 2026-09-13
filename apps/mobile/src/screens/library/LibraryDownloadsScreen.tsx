@@ -60,7 +60,9 @@ export function LibraryDownloadsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<LibraryStackParamList>>();
   const { styles: themeStyles, tokens } = useTheme();
-  const { downloads, isLoading, errorKey, reload, pauseAllActive } = useDownloadsList();
+  // The one screen a user opens to watch transfers, so it is the one that subscribes to byte
+  // progress. Everywhere else reads statuses only.
+  const { downloads, isLoading, errorKey, reload, pauseAllActive } = useDownloadsList(true);
 
   const styles = useMemo(
     () =>

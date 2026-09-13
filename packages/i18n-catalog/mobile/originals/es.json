@@ -119,7 +119,7 @@
     }
   },
   "subscriptions": {
-    "downloaded_not_subscribed": "Descargados, no suscritos"
+    "downloaded_only": "Solo descargados"
   },
   "sync": {
     "job": {

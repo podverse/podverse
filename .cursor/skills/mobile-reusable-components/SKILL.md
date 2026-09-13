@@ -59,10 +59,11 @@ Appearance, Tab bar, Playback, and Notifications. 2–3 choices → `OptionChipG
 option-list screen (not bottom sheet). Selected chip uses `buttonPrimary` fill. Option rows
 stack label / description / current value (not trailing). See **mobile-settings-option-density**.
 
-**Cover images:** `CoverImage` opens **`ImageViewerModal`** on tap (full width, contained, portrait).
-The viewer more control uses **`HeaderBarAction`** + **`MoreMenu`**; Download goes through
-`shareRemoteFile` (OS share sheet), not the episode download manager. Pass `opensViewer={false}`
-when the parent row, cell, or mini-player is the pressable control. See **mobile-screen-layout**.
+**Cover images:** `CoverImage` (`expo-image`, memory+disk cache) opens **`ImageViewerModal`** on tap
+(full width, contained, portrait). The viewer more control uses **`HeaderBarAction`** +
+**`MoreMenu`**; Download goes through `shareRemoteFile` (OS share sheet), not the episode download
+manager. Pass `opensViewer={false}` when the parent row, cell, or mini-player is the pressable
+control. First-paint preview and cache habit: **mobile-image-loading**. Layout: **mobile-screen-layout**.
 
 **More / overflow:** a More control opens **`MoreMenu`** — a bottom sheet that appears instantly
 (no slide, no fade). The action group uses `background.tertiary` with centered bold command rows; Cancel is
@@ -81,12 +82,14 @@ Login / Sign up or Log out), Features (overflow tabs, Settings, OPML), Other (Ab
 Smoke). Header-to-card gap is `spacing.lg`; space between groups is `spacing.xl`.
 
 **Browse vs Home:** Browse is a global directory that reuses `MediaTypeSelector`, `HomeFeedRow`,
-and `FillList`. It does **not** reuse `HomeScreen`. One chip row: popularity range (caret opens
-`MoreMenu` of stats ranges), Categories, then media types. Tapping Categories replaces the list
-with categories; tapping a category filters the last type (podcasts, episodes, clips, videos)
-and relabels the chip. Tapping a type leaves the category list. No filter field and no item
-count — Search covers directory lookup. Home keeps its filter (finite subscriptions) and has no
-item count either. Search stays Podcast Index full-text; do not send Browse rows there.
+and `FillList`. It does **not** reuse `HomeScreen`. One chip row: sort and Categories (filter
+chrome) only when the current type can use them, then media types with the selected type first.
+Tapping Categories replaces the list with categories (range chip hides); tapping a category
+filters the last type (podcasts, episodes, clips, videos) and relabels the chip. Music,
+playlists, and users have no Categories chip. Tapping a type leaves the category list. No filter
+field and no item count — Search covers directory lookup. Home keeps its filter (finite
+subscriptions) and has no item count either. Search stays Podcast Index full-text; do not send
+Browse rows there.
 
 **List rows:** `HomeFeedRow` for media/results (`isLast` drops the bottom hairline; vertical
 padding is `spacing.base`; artwork is 60×60). Title / subtitle / metadata use a column `gap`
