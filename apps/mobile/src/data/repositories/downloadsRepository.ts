@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 
@@ -442,26 +442,6 @@ export const downloadsRepository = {
       .update(schema.download)
       .set({ byteSize: progress.byteSize, bytesDownloaded: progress.bytesDownloaded })
       .where(eq(schema.download.itemIdText, itemIdText));
-  },
-
-  /** Mark every complete row as dismissed from the Downloads monitor list. */
-  dismissAllFinished: async (): Promise<number> => {
-    await initializeDatabase();
-    const completed = await getDb()
-      .select({ itemIdText: schema.download.itemIdText })
-      .from(schema.download)
-      .where(
-        and(eq(schema.download.status, 'complete'), ne(schema.download.dismissedFromList, 1))
-      );
-    if (completed.length === 0) {
-      return 0;
-    }
-    await getDb()
-      .update(schema.download)
-      .set({ dismissedFromList: 1, updatedAt: Date.now() })
-      .where(eq(schema.download.status, 'complete'));
-    await refreshNativeCacheProjection();
-    return completed.length;
   },
 
   /** Remove a download row (delete-from-library). The file removal is handled by the runner. */

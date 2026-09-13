@@ -2,8 +2,8 @@ import type { ChannelUnseenBadge } from '@podverse/helpers';
 import { describeUnseenBadge } from '@podverse/helpers';
 
 /**
- * What a Home subscription row says about itself beneath its title, assembled from the four local
- * stores that each hold one piece of it.
+ * What a Home subscription row says about itself in the shared context / title / date stack,
+ * assembled from the four local stores that each hold one piece of it.
  *
  * Pure and free of `expo-sqlite`, so the joining rules are unit-testable in node. The repositories
  * read; this decides what the reads add up to.
@@ -15,8 +15,8 @@ import { describeUnseenBadge } from '@podverse/helpers';
 
 export type HomeRowMetadata = {
   /**
-   * Finished downloads for this subscription. Zero means the row shows nothing, so the line only
-   * appears when there is something to open with no connection.
+   * Finished downloads for this subscription. Zero means the overline is omitted, so the count
+   * only appears when there is something to open with no connection.
    */
   downloadedCount: number;
   isLive: boolean;

@@ -2,6 +2,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { Image, Linking, Modal, Platform, StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import splashBanner from './assets/splash/banner.png';
@@ -103,21 +104,23 @@ export default function App() {
   // SplashController covers both native hide + a JS overlay (needed for Dev Client, which often
   // dismisses the launch storyboard before the JS bundle runs).
   return (
-    <ThemeProvider>
-      <TabLayoutProvider>
-        <AuthProvider>
-          {isI18nReady ? (
-            <AppReadyGate
-              onConsumePendingDeepLink={() => {
-                setPendingDeepLinkUrl(null);
-              }}
-              pendingDeepLinkUrl={pendingDeepLinkUrl}
-            />
-          ) : null}
-          <SplashController isI18nReady={isI18nReady} />
-        </AuthProvider>
-      </TabLayoutProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={styles.appRoot}>
+      <ThemeProvider>
+        <TabLayoutProvider>
+          <AuthProvider>
+            {isI18nReady ? (
+              <AppReadyGate
+                onConsumePendingDeepLink={() => {
+                  setPendingDeepLinkUrl(null);
+                }}
+                pendingDeepLinkUrl={pendingDeepLinkUrl}
+              />
+            ) : null}
+            <SplashController isI18nReady={isI18nReady} />
+          </AuthProvider>
+        </TabLayoutProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 

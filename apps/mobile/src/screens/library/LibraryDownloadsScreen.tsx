@@ -28,10 +28,10 @@ type DownloadSection = {
   data: DownloadRecord[];
 };
 
-const statusLabelKey = (record: DownloadRecord): string => {
+const statusLabelKey = (record: DownloadRecord): string | null => {
   switch (record.status) {
     case 'complete':
-      return 'features.download.episode_downloaded';
+      return null;
     case 'failed':
       return 'features.download.episode_download_error';
     case 'queued':
@@ -133,9 +133,7 @@ export function LibraryDownloadsScreen() {
         row.status === 'queued' || row.status === 'downloading' || row.status === 'paused'
     );
     const failed = downloads.filter((row) => row.status === 'failed');
-    const completed = downloads.filter(
-      (row) => row.status === 'complete' && !row.dismissedFromList
-    );
+    const completed = downloads.filter((row) => row.status === 'complete');
 
     const next: DownloadSection[] = [];
     if (inProgress.length > 0) {
@@ -161,11 +159,6 @@ export function LibraryDownloadsScreen() {
     }
     return next;
   }, [downloads, t]);
-
-  const hasFinishedVisible = useMemo(
-    () => downloads.some((row) => row.status === 'complete' && !row.dismissedFromList),
-    [downloads]
-  );
 
   const hasControllableJobs = useMemo(
     () =>
@@ -202,7 +195,10 @@ export function LibraryDownloadsScreen() {
   const renderRow = useCallback(
     ({ item }: { item: DownloadRecord }) => {
       const ratio = progressRatio(item);
-      const statusText = t(statusLabelKey(item));
+      const statusKey = statusLabelKey(item);
+      const statusText = statusKey !== null ? t(statusKey) : null;
+      const accessibilityStatus =
+        statusText ?? t('features.download.section_completed');
 
       return (
         <SwipeActionRow
@@ -213,7 +209,11 @@ export function LibraryDownloadsScreen() {
           testID={`download-row-${item.itemIdText}`}
         >
           <Pressable
-            accessibilityLabel={[item.channelTitle, item.title ?? item.itemIdText, statusText]
+            accessibilityLabel={[
+              item.channelTitle,
+              item.title ?? item.itemIdText,
+              accessibilityStatus,
+            ]
               .filter((part) => part !== null && part !== undefined && part.length > 0)
               .join(', ')}
             accessibilityRole="button"
@@ -238,12 +238,14 @@ export function LibraryDownloadsScreen() {
                 <Text numberOfLines={2} style={styles.rowTitle}>
                   {item.title ?? item.itemIdText}
                 </Text>
-                <Text
-                  style={styles.rowStatus}
-                  testID={`download-row-status-${item.itemIdText}`}
-                >
-                  {statusText}
-                </Text>
+                {statusText !== null ? (
+                  <Text
+                    style={styles.rowStatus}
+                    testID={`download-row-status-${item.itemIdText}`}
+                  >
+                    {statusText}
+                  </Text>
+                ) : null}
                 {ratio !== null ? (
                   <ProgressTrack
                     fillTestID={`download-row-progress-${item.itemIdText}`}
@@ -262,44 +264,31 @@ export function LibraryDownloadsScreen() {
   );
 
   const listHeader = useMemo(() => {
-    if (!hasControllableJobs && !hasFinishedVisible) {
+    if (!hasControllableJobs) {
       return null;
     }
     return (
       <View style={styles.masterRow}>
-        {hasControllableJobs ? (
-          <Button
-            label={
-              pauseAllActive
-                ? t('features.download.resume_all')
-                : t('features.download.pause_all')
+        <Button
+          label={
+            pauseAllActive
+              ? t('features.download.resume_all')
+              : t('features.download.pause_all')
+          }
+          onPress={() => {
+            if (pauseAllActive) {
+              void downloadManager.resumeAll();
+            } else {
+              void downloadManager.pauseAll();
             }
-            onPress={() => {
-              if (pauseAllActive) {
-                void downloadManager.resumeAll();
-              } else {
-                void downloadManager.pauseAll();
-              }
-            }}
-            size="sm"
-            testID="library-downloads-pause-resume-all"
-            variant="secondary"
-          />
-        ) : null}
-        {hasFinishedVisible ? (
-          <Button
-            label={t('features.download.clear_finished')}
-            onPress={() => {
-              void downloadManager.dismissAllFinished();
-            }}
-            size="sm"
-            testID="library-downloads-clear-finished"
-            variant="outline"
-          />
-        ) : null}
+          }}
+          size="sm"
+          testID="library-downloads-pause-resume-all"
+          variant="secondary"
+        />
       </View>
     );
-  }, [hasControllableJobs, hasFinishedVisible, pauseAllActive, styles.masterRow, t]);
+  }, [hasControllableJobs, pauseAllActive, styles.masterRow, t]);
 
   if (isLoading) {
     return (

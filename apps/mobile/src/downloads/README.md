@@ -81,14 +81,15 @@ files ever have a download row. If a `complete` row's file is missing on disk, t
 `downloadQuota.ts` holds the policy: default **10 GiB** cap (`DEFAULT_DOWNLOAD_QUOTA_BYTES`),
 optional unlimited, `sumCompletedBytes` (only `complete` rows), and oldest-complete-first eviction.
 
-**More → Settings → Downloads** is the manage-storage surface: device / downloaded media / app data /
-cache meters, a configurable limit (1–50 GB or Unlimited), two independent auto-free toggles (limit
-reached; device free space under **1 GB**), and danger **Delete all** with confirm (deletes local
-media files and index rows). Prefs live in `prefs/downloadPrefs.ts` (AsyncStorage, mobile-only).
+**More → Settings → Downloads** is the manage-storage surface: device and downloaded-media meters
+(bars only when a cap exists), app-data and cache sizes without bars, a configurable limit
+(1–50 GB or Unlimited), two independent auto-free toggles (limit reached; device free space under
+**1 GB**), and danger **Delete all** with confirm (deletes local media files and index rows). Prefs
+live in `prefs/downloadPrefs.ts` (AsyncStorage, mobile-only).
 
-**My Library → Downloads** is a monitor: Pause all / Resume all, Clear all finished
-(`dismissedFromList` — files stay playable and still count toward storage), sectioned list, swipe
-Remove. No storage chrome and no Play on that screen.
+**My Library → Downloads** is a monitor: Pause all / Resume all, sectioned list, swipe Remove.
+Completed rows stay until the file is deleted (Settings → Delete all, or swipe Remove). No storage
+chrome and no Play on that screen.
 
 ## Native cache projection
 
@@ -99,8 +100,8 @@ downloads without SQLite. Byte progress cannot change that set, which is why it 
 
 ## E2E
 
-- `apps/mobile/e2e/library-downloads.yaml` — download → complete → play → list (Completed /
-  Clear finished). Needs E2E API + test-assets.
+- `apps/mobile/e2e/library-downloads.yaml` — download → complete → play → list (Completed). Needs
+  E2E API + test-assets.
 - `apps/mobile/e2e/settings-downloads.yaml` — Settings → Downloads meters, delete-all confirm, limit
   picker. Needs E2E API.
 

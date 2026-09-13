@@ -67,7 +67,7 @@ type MetadataSegment = {
  *
  * Built once and used for both the visible pills and the row's `accessibilityLabel`, so a screen
  * reader hears the same facts in the same order a sighted user reads them — rather than four
- * unattached fragments ("Live", "3 new", "2 downloaded") announced with no idea what they belong to.
+ * unattached fragments ("Live", "3 new") announced with no idea what they belong to.
  */
 const useMetadataSegments = (metadata: HomeRowMetadata | undefined): MetadataSegment[] => {
   const { t } = useTranslation();
@@ -94,14 +94,6 @@ const useMetadataSegments = (metadata: HomeRowMetadata | undefined): MetadataSeg
         ),
       });
     }
-    if (metadata.downloadedCount > 0) {
-      segments.push({
-        emphasis: false,
-        name: 'downloaded',
-        text: t('subscriptions.row.downloaded_count', { count: metadata.downloadedCount }),
-      });
-    }
-
     return segments;
   }, [metadata, t]);
 };
@@ -181,6 +173,13 @@ export function HomeFeedRow({
       : null;
   const channelLabel =
     showChannelContext && row.subtitle !== null && row.subtitle.length > 0 ? row.subtitle : null;
+  const downloadedLabel =
+    row.metadata !== undefined && row.metadata.downloadedCount > 0
+      ? t('subscriptions.row.downloaded_count', { count: row.metadata.downloadedCount })
+      : null;
+  // First of the three identity lines (context / title / date). Item rows use the show name;
+  // channel rows use the download count when there is one.
+  const overlineLabel = channelLabel ?? downloadedLabel;
   const showArtwork = showChannelContext;
 
   const styles = useMemo(
@@ -281,7 +280,7 @@ export function HomeFeedRow({
       // Composed rather than left to the default child walk, so the badges are heard as part of a
       // sentence about this show instead of as loose fragments after its title.
       accessibilityLabel={[
-        channelLabel,
+        overlineLabel,
         row.title,
         updatedLabel,
         description,
@@ -307,13 +306,17 @@ export function HomeFeedRow({
           />
         ) : null}
         <View style={styles.identityText}>
-          {channelLabel !== null ? (
+          {overlineLabel !== null ? (
             <Text
               numberOfLines={1}
               style={styles.channelTitle}
-              testID={`home-feed-row-subtitle-${row.id}`}
+              testID={
+                channelLabel !== null
+                  ? `home-feed-row-subtitle-${row.id}`
+                  : `home-feed-row-downloaded-${row.id}`
+              }
             >
-              {channelLabel}
+              {overlineLabel}
             </Text>
           ) : null}
           <Text numberOfLines={2} style={styles.title} testID={`home-feed-row-title-${row.id}`}>

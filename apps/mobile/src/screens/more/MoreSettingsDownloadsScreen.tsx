@@ -10,6 +10,7 @@ import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
 import { ProgressTrack } from '../../components/primitives/ProgressTrack';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
+import { ListLoading } from '../../components/state/ListLoading';
 import { downloadManager } from '../../downloads/downloadManager';
 import { formatDownloadBytes } from '../../downloads/downloadQuota';
 import { downloadStore } from '../../downloads/downloadStore';
@@ -28,18 +29,11 @@ import {
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
-const emptyBreakdown = (): DownloadStorageBreakdown => ({
-  appDataBytes: 0,
-  cacheBytes: 0,
-  deviceTotalBytes: 0,
-  deviceUsedBytes: 0,
-  downloadsBytes: 0,
-});
-
 type StorageMeterProps = {
   label: string;
   usedLabel: string;
-  ratio: number;
+  /** 0–1 fill when this bucket has a real cap. Omit the track when there is no upper bound. */
+  ratio?: number;
   testID: string;
 };
 
@@ -71,11 +65,9 @@ function StorageMeter({ label, usedLabel, ratio, testID }: StorageMeterProps) {
       <Text style={styles.value} testID={`${testID}-value`}>
         {usedLabel}
       </Text>
-      <ProgressTrack
-        fillTestID={`${testID}-fill`}
-        height={6}
-        ratio={ratio}
-      />
+      {ratio !== undefined ? (
+        <ProgressTrack fillTestID={`${testID}-fill`} height={6} ratio={ratio} />
+      ) : null}
     </View>
   );
 }
@@ -85,7 +77,7 @@ export function MoreSettingsDownloadsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { styles: themeStyles, tokens } = useTheme();
   const storage = useDownloadStorage();
-  const [breakdown, setBreakdown] = useState<DownloadStorageBreakdown>(emptyBreakdown);
+  const [breakdown, setBreakdown] = useState<DownloadStorageBreakdown | null>(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   const reloadBreakdown = useCallback(async () => {
@@ -153,19 +145,15 @@ export function MoreSettingsDownloadsScreen() {
     ? t('settings.downloads.unlimited')
     : formatDownloadBytes(storage.quotaBytes);
 
-  const limitRatio =
-    isDownloadQuotaUnlimited(storage.quotaBytes) || storage.quotaBytes <= 0
-      ? 0
-      : Math.min(1, breakdown.downloadsBytes / storage.quotaBytes);
+  const mediaHasCap = !isDownloadQuotaUnlimited(storage.quotaBytes) && storage.quotaBytes > 0;
+  const limitRatio = mediaHasCap
+    ? Math.min(1, (breakdown?.downloadsBytes ?? 0) / storage.quotaBytes)
+    : undefined;
 
   const deviceRatio =
-    breakdown.deviceTotalBytes > 0
+    breakdown !== null && breakdown.deviceTotalBytes > 0
       ? Math.min(1, breakdown.deviceUsedBytes / breakdown.deviceTotalBytes)
-      : 0;
-
-  // App data / cache have no fixed cap — show a full bar only as presence (0 when empty).
-  const appDataRatio = breakdown.appDataBytes > 0 ? 1 : 0;
-  const cacheRatio = breakdown.cacheBytes > 0 ? 1 : 0;
+      : undefined;
 
   return (
     <MobileScreenContainer testID="more-settings-downloads-screen">
@@ -173,30 +161,34 @@ export function MoreSettingsDownloadsScreen() {
         <Card padded={false} testID="more-settings-downloads-storage-card">
           <View style={styles.sectionInner}>
             <Text style={styles.sectionHeading}>{t('settings.downloads.storage_heading')}</Text>
-            <StorageMeter
-              label={t('settings.downloads.device_storage')}
-              ratio={deviceRatio}
-              testID="settings-downloads-device"
-              usedLabel={`${formatDownloadBytes(breakdown.deviceUsedBytes)} / ${formatDownloadBytes(breakdown.deviceTotalBytes)}`}
-            />
-            <StorageMeter
-              label={t('settings.downloads.downloaded_media')}
-              ratio={limitRatio}
-              testID="settings-downloads-media"
-              usedLabel={`${formatDownloadBytes(breakdown.downloadsBytes)} / ${quotaLabel}`}
-            />
-            <StorageMeter
-              label={t('settings.downloads.app_data')}
-              ratio={appDataRatio}
-              testID="settings-downloads-app-data"
-              usedLabel={formatDownloadBytes(breakdown.appDataBytes)}
-            />
-            <StorageMeter
-              label={t('settings.downloads.cache')}
-              ratio={cacheRatio}
-              testID="settings-downloads-cache"
-              usedLabel={formatDownloadBytes(breakdown.cacheBytes)}
-            />
+            {breakdown === null ? (
+              <ListLoading testID="settings-downloads-storage-loading" />
+            ) : (
+              <>
+                <StorageMeter
+                  label={t('settings.downloads.device_storage')}
+                  ratio={deviceRatio}
+                  testID="settings-downloads-device"
+                  usedLabel={`${formatDownloadBytes(breakdown.deviceUsedBytes)} / ${formatDownloadBytes(breakdown.deviceTotalBytes)}`}
+                />
+                <StorageMeter
+                  label={t('settings.downloads.downloaded_media')}
+                  ratio={limitRatio}
+                  testID="settings-downloads-media"
+                  usedLabel={`${formatDownloadBytes(breakdown.downloadsBytes)} / ${quotaLabel}`}
+                />
+                <StorageMeter
+                  label={t('settings.downloads.app_data')}
+                  testID="settings-downloads-app-data"
+                  usedLabel={formatDownloadBytes(breakdown.appDataBytes)}
+                />
+                <StorageMeter
+                  label={t('settings.downloads.cache')}
+                  testID="settings-downloads-cache"
+                  usedLabel={formatDownloadBytes(breakdown.cacheBytes)}
+                />
+              </>
+            )}
             <ListRow
               onPress={() => {
                 navigation.navigate(MORE_STACK_ROUTES.MoreSettingsDownloadLimit);

@@ -64,10 +64,6 @@ export interface DownloadRecord {
   /** Channel identity persisted at enqueue so unsubscribed items still name their show. */
   channelIdText: string | null;
   channelTitle: string | null;
-  /**
-   * When true, a completed download is hidden from the Downloads monitor list but the file and
-   * index row remain so offline play and storage accounting stay correct.
-   */
   dismissedFromList: boolean;
   /** Short machine reason for the last failure (surfaced for retry UX). */
   errorReason: string | null;

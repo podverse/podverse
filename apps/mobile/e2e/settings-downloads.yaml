@@ -1,8 +1,9 @@
 appId: com.podverse.app.next
 name: Settings Downloads Storage
 ---
-# More → Settings → Downloads: storage meters, limit row, auto-free toggles, and danger Delete all
-# with confirm. Storage management lives here rather than on the Downloads list.
+# More → Settings → Downloads: storage sizes (bars only when a cap exists), limit row, auto-free
+# toggles, and danger Delete all with confirm. Storage management lives here rather than on the
+# Downloads list.
 #
 # Needs flow_needs_e2e_api (login + Settings hub).
 
@@ -24,11 +25,19 @@ name: Settings Downloads Storage
 - assertVisible:
     id: settings-downloads-device
 - assertVisible:
+    id: settings-downloads-device-fill
+- assertVisible:
     id: settings-downloads-media
 - assertVisible:
+    id: settings-downloads-media-fill
+- assertVisible:
     id: settings-downloads-app-data
+- assertNotVisible:
+    id: settings-downloads-app-data-fill
 - assertVisible:
     id: settings-downloads-cache
+- assertNotVisible:
+    id: settings-downloads-cache-fill
 - assertVisible:
     id: more-settings-downloads-limit
 - assertVisible:

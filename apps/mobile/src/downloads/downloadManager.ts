@@ -521,26 +521,6 @@ export const downloadManager = {
     pumpQueue();
   },
 
-  /** Hide completed rows from the Downloads list without deleting files. */
-  dismissAllFinished: async (): Promise<number> => {
-    await ensureHydrated();
-    const dismissable = downloadStore
-      .getAll()
-      .filter((record) => record.status === 'complete' && !record.dismissedFromList);
-    if (dismissable.length === 0) {
-      return 0;
-    }
-
-    downloadStore.batch(() => {
-      for (const record of dismissable) {
-        downloadStore.applyChange(record.itemIdText, { dismissedFromList: true });
-      }
-    });
-
-    await downloadsRepository.dismissAllFinished();
-    return dismissable.length;
-  },
-
   /** Re-queue a failed download. */
   retry: async (itemIdText: string): Promise<void> => {
     await ensureHydrated();
