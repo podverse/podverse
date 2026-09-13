@@ -15,10 +15,7 @@ import type { DownloadMediaType } from './downloadTypes';
  *                    by `isItemDownloadable`).
  */
 export type DownloadIneligibleReason =
-  | 'livestream'
-  | 'hls_playlist'
-  | 'no_enclosure'
-  | 'offline_mode';
+  'livestream' | 'hls_playlist' | 'no_enclosure' | 'offline_mode';
 
 /** The selected progressive source to fetch when an item is downloadable. */
 export interface DownloadSourceSelection {

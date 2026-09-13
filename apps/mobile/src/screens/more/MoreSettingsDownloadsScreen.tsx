@@ -13,11 +13,11 @@ import { MobileScreenContainer } from '../../components/screen/MobileScreenConta
 import { ListLoading } from '../../components/state/ListLoading';
 import { downloadManager } from '../../downloads/downloadManager';
 import { formatDownloadBytes } from '../../downloads/downloadQuota';
-import { downloadStore } from '../../downloads/downloadStore';
 import {
-  measureDownloadStorageBreakdown,
   type DownloadStorageBreakdown,
+  measureDownloadStorageBreakdown,
 } from '../../downloads/downloadStorageStats';
+import { downloadStore } from '../../downloads/downloadStore';
 import { useDownloadStorage } from '../../downloads/useDownloads';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
@@ -210,9 +210,7 @@ export function MoreSettingsDownloadsScreen() {
                 trailing={
                   <Switch
                     onValueChange={(next) => {
-                      void writeDownloadAutoDeleteOnLimitEnabled(next).then(() =>
-                        storage.reload()
-                      );
+                      void writeDownloadAutoDeleteOnLimitEnabled(next).then(() => storage.reload());
                     }}
                     value={storage.autoDeleteOnLimitEnabled}
                   />

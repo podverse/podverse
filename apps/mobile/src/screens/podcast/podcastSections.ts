@@ -59,8 +59,7 @@ export const resolvePodcastSections = ({
   hasSoundbites: boolean;
   previewHasPodroll?: boolean;
 }): PodcastTab[] => {
-  const hasPodroll =
-    channel !== null ? channelHasPodroll(channel) : previewHasPodroll === true;
+  const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll === true;
 
   return PODCAST_TABS.filter((section) => {
     if (ALWAYS_ON_PODCAST_SECTIONS.has(section)) {

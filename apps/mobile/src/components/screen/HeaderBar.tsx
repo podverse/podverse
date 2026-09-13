@@ -28,11 +28,7 @@ export type HeaderBarProps = {
  * title row. No divider under the title — `headerShadowVisible: false` on the stack keeps iOS
  * from painting one either.
  */
-export function HeaderBar({
-  children,
-  includeStatusInset = true,
-  testID,
-}: HeaderBarProps) {
+export function HeaderBar({ children, includeStatusInset = true, testID }: HeaderBarProps) {
   const { styles: themeStyles } = useTheme();
   const insets = useSafeAreaInsets();
 

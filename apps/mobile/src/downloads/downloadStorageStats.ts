@@ -67,8 +67,7 @@ export const measureDownloadStorageBreakdown = async (): Promise<DownloadStorage
   }
 
   const appDataBytes = Math.max(0, documentBytes - downloadsBytes);
-  const cacheBytes =
-    cacheDirectory !== null ? await directorySize(cacheDirectory) : 0;
+  const cacheBytes = cacheDirectory !== null ? await directorySize(cacheDirectory) : 0;
 
   return {
     appDataBytes,

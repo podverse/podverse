@@ -35,10 +35,8 @@ export const isOfflineModeEnabled = (): boolean => cachedEnabled;
  * Sync queue is usable only when the platform reports reachability **and** Offline Mode is off.
  * Turning Offline Mode on parks the queue the same way as a real outage.
  */
-export const isSyncNetworkUsable = (
-  netReachable: boolean,
-  offlineModeEnabled: boolean
-): boolean => netReachable && !offlineModeEnabled;
+export const isSyncNetworkUsable = (netReachable: boolean, offlineModeEnabled: boolean): boolean =>
+  netReachable && !offlineModeEnabled;
 
 /**
  * Read Offline Mode from disk into the in-memory mirror. Prefer `hydrateOfflineMode` from app

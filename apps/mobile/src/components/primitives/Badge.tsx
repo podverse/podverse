@@ -69,9 +69,14 @@ export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
     [themeStyles, tokens]
   );
 
-  const toneStyle = tone === 'accent' ? styles.accent : tone === 'muted' ? styles.muted : styles.neutral;
+  const toneStyle =
+    tone === 'accent' ? styles.accent : tone === 'muted' ? styles.muted : styles.neutral;
   const toneLabelStyle =
-    tone === 'accent' ? styles.accentLabel : tone === 'muted' ? styles.mutedLabel : styles.neutralLabel;
+    tone === 'accent'
+      ? styles.accentLabel
+      : tone === 'muted'
+        ? styles.mutedLabel
+        : styles.neutralLabel;
 
   return (
     <View

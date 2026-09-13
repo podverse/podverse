@@ -30,12 +30,7 @@ describe('offlineModeViews', () => {
 
   it('defaults podcast detail to Downloaded, overriding remembered About or Episodes', () => {
     expect(
-      resolvePodcastSectionForOfflineMode('episodes', [
-        'episodes',
-        'downloaded',
-        'about',
-        'clips',
-      ])
+      resolvePodcastSectionForOfflineMode('episodes', ['episodes', 'downloaded', 'about', 'clips'])
     ).toBe('downloaded');
     expect(
       resolvePodcastSectionForOfflineMode('about', ['episodes', 'downloaded', 'about', 'clips'])

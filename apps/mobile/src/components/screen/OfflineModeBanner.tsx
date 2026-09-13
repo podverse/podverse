@@ -43,12 +43,7 @@ export function OfflineModeBanner() {
   }
 
   return (
-    <View
-      accessibilityRole="text"
-      accessible
-      style={styles.container}
-      testID="offline-mode-banner"
-    >
+    <View accessibilityRole="text" accessible style={styles.container} testID="offline-mode-banner">
       <Text style={styles.label}>{t('settings.offline_mode.banner')}</Text>
     </View>
   );

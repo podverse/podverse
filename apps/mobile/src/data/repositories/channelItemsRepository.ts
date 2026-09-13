@@ -264,9 +264,7 @@ const commitChannelWindow = async (
 
   await writeWindow(channelIdText, depth, updatedAt);
 
-  const hasOfficialClips = keep.some(
-    (record) => (record.payload.item_soundbites?.length ?? 0) > 0
-  );
+  const hasOfficialClips = keep.some((record) => (record.payload.item_soundbites?.length ?? 0) > 0);
   await sectionChromeFlagsRepository.mergeChannel(channelIdText, { hasOfficialClips });
 
   // These rows are the only local answer to which show a downloaded episode came from, and this

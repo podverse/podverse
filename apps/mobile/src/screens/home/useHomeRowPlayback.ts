@@ -84,8 +84,7 @@ export function useHomeRowPlayback() {
       }
 
       void (async () => {
-        const activeMediaId =
-          activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
+        const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
         if (activeMediaId !== null && activeMediaId === target.idText) {
           if (isPlaying) {
             pause();

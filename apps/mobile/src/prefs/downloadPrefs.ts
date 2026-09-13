@@ -16,9 +16,7 @@ export const DOWNLOAD_QUOTA_UNLIMITED = 0;
 
 export const DEFAULT_DOWNLOAD_AUTO_DELETE_DEVICE_LOW = false;
 
-export type DownloadQuotaOptionBytes =
-  | typeof DOWNLOAD_QUOTA_UNLIMITED
-  | number;
+export type DownloadQuotaOptionBytes = typeof DOWNLOAD_QUOTA_UNLIMITED | number;
 
 const QUOTA_PRESETS_BYTES = [
   1 * 1024 * 1024 * 1024,

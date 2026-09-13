@@ -1,5 +1,5 @@
-import type { HomeMediaType } from '../prefs/preferredMediaType';
 import type { PodcastTab } from '../prefs/detailListPrefs';
+import type { HomeMediaType } from '../prefs/preferredMediaType';
 
 /**
  * Pure helpers that decide how each surface behaves while Offline Mode is on. Screens call these

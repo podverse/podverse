@@ -153,8 +153,7 @@ export function NotificationsPageClient() {
       ...(row.payload ?? {}),
       link_path: row.link_path,
     });
-    const linkPath =
-      destination.kind === 'home' ? ROUTES.NOTIFICATIONS : destination.webPath;
+    const linkPath = destination.kind === 'home' ? ROUTES.NOTIFICATIONS : destination.webPath;
 
     return (
       <article className={styles.row}>

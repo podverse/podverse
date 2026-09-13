@@ -38,11 +38,8 @@ describe('hydrateOfflineMode / writeOfflineModeEnabled', () => {
         })
     );
 
-    const {
-      hydrateOfflineMode,
-      isOfflineModeEnabled,
-      writeOfflineModeEnabled,
-    } = await import('./offlineMode');
+    const { hydrateOfflineMode, isOfflineModeEnabled, writeOfflineModeEnabled } =
+      await import('./offlineMode');
 
     const hydrate = hydrateOfflineMode();
     await vi.waitFor(() => {
@@ -60,11 +57,8 @@ describe('hydrateOfflineMode / writeOfflineModeEnabled', () => {
   it('returns the live written value on a later hydrate, not the first disk boolean', async () => {
     getPref.mockResolvedValue(true);
 
-    const {
-      hydrateOfflineMode,
-      isOfflineModeEnabled,
-      writeOfflineModeEnabled,
-    } = await import('./offlineMode');
+    const { hydrateOfflineMode, isOfflineModeEnabled, writeOfflineModeEnabled } =
+      await import('./offlineMode');
 
     await expect(hydrateOfflineMode()).resolves.toBe(true);
     await writeOfflineModeEnabled(false);

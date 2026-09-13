@@ -20,10 +20,9 @@ describe('parseHomeContentStackPath', () => {
   });
 
   it('builds Home > podcast for a channel-only path', () => {
-    expect(parseHomeContentStackPath(buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'ch-1'))).toEqual([
-      { name: 'HomeRoot' },
-      { name: 'PodcastDetail', params: { podcastId: 'ch-1' } },
-    ]);
+    expect(
+      parseHomeContentStackPath(buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'ch-1'))
+    ).toEqual([{ name: 'HomeRoot' }, { name: 'PodcastDetail', params: { podcastId: 'ch-1' } }]);
   });
 
   it('builds Home > album > track', () => {

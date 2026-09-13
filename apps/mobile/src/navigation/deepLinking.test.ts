@@ -67,9 +67,9 @@ describe('mapIncomingPathToScopedPath', () => {
   });
 
   it('maps stacked and livestream web paths onto the Home stack', () => {
-    expect(mapIncomingPathToScopedPath(`${APP_ROUTES.PODCAST}/ch-1${APP_ROUTES.EPISODE}/ep-1`)).toBe(
-      buildMobileHomePodcastEpisodePath('ch-1', 'ep-1')
-    );
+    expect(
+      mapIncomingPathToScopedPath(`${APP_ROUTES.PODCAST}/ch-1${APP_ROUTES.EPISODE}/ep-1`)
+    ).toBe(buildMobileHomePodcastEpisodePath('ch-1', 'ep-1'));
     expect(mapIncomingPathToScopedPath(buildPodcastLivestreamPath('live-1'))).toBe(
       buildMobileHomeScopedPath(APP_ROUTES.EPISODE, 'live-1')
     );
@@ -92,9 +92,9 @@ describe('mapIncomingPathToScopedPath', () => {
   });
 
   it('handles full web URLs and strips query/hash', () => {
-    expect(mapIncomingPathToScopedPath(`https://podverse.fm${buildPodcastPath('pod123')}?foo=1#bar`)).toBe(
-      buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'pod123')
-    );
+    expect(
+      mapIncomingPathToScopedPath(`https://podverse.fm${buildPodcastPath('pod123')}?foo=1#bar`)
+    ).toBe(buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'pod123'));
   });
 
   it('handles full custom-scheme deep links (host is a route segment, not a domain)', () => {
@@ -106,9 +106,9 @@ describe('mapIncomingPathToScopedPath', () => {
     expect(mapIncomingPathToScopedPath(`podverse:/${buildPodcastPath('pod123')}`)).toBe(
       buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'pod123')
     );
-    expect(mapIncomingPathToScopedPath(`podverse-next:/${buildPodcastPath('pod123')}?foo=1#bar`)).toBe(
-      buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'pod123')
-    );
+    expect(
+      mapIncomingPathToScopedPath(`podverse-next:/${buildPodcastPath('pod123')}?foo=1#bar`)
+    ).toBe(buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'pod123'));
     expect(mapIncomingPathToScopedPath(`podverse-next:/${MOBILE_HOME_TAB_PATH}`)).toBe(
       MOBILE_HOME_TAB_PATH
     );
@@ -164,7 +164,9 @@ describe('mapScopedPathToFlatPath', () => {
   });
 
   it('returns normalized path for non-mapped routes and strips query/hash', () => {
-    expect(mapScopedPathToFlatPath(`/more${APP_ROUTES.SETTINGS}`)).toBe(`/more${APP_ROUTES.SETTINGS}`);
+    expect(mapScopedPathToFlatPath(`/more${APP_ROUTES.SETTINGS}`)).toBe(
+      `/more${APP_ROUTES.SETTINGS}`
+    );
     expect(mapScopedPathToFlatPath(`/more${APP_ROUTES.SETTINGS}?foo=1#bar`)).toBe(
       `/more${APP_ROUTES.SETTINGS}`
     );

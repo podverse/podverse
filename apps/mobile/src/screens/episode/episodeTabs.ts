@@ -41,7 +41,8 @@ export const resolveEpisodeTabs = ({
   episode: EpisodeTabItem | null;
   previewFlags: ItemSectionChromeFlags | null;
 }): EpisodeTab[] => {
-  const hasChapters = episode !== null ? itemHasChapters(episode) : previewFlags?.hasChapters === true;
+  const hasChapters =
+    episode !== null ? itemHasChapters(episode) : previewFlags?.hasChapters === true;
   const hasSoundbites =
     episode !== null ? itemHasSoundbites(episode) : previewFlags?.hasSoundbites === true;
   const hasTranscript =

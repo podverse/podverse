@@ -89,10 +89,8 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
     return null;
   }
 
-  const isInProgress =
-    status === 'queued' || status === 'downloading' || status === 'paused';
-  const iconColor =
-    status === 'failed' ? tokens.text.danger : tokens.button.secondaryColor;
+  const isInProgress = status === 'queued' || status === 'downloading' || status === 'paused';
+  const iconColor = status === 'failed' ? tokens.text.danger : tokens.button.secondaryColor;
 
   return (
     <Pressable
@@ -113,7 +111,11 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
       {isInProgress ? (
         <ActivityIndicator color={tokens.text.secondary} size="small" />
       ) : (
-        <Ionicons color={iconColor} name={statusIconName(status)} size={LIST_ROW_ACTION_ICON_SIZE} />
+        <Ionicons
+          color={iconColor}
+          name={statusIconName(status)}
+          size={LIST_ROW_ACTION_ICON_SIZE}
+        />
       )}
     </Pressable>
   );

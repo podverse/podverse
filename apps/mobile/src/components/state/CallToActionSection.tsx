@@ -55,9 +55,7 @@ export function CallToActionSection({
     [themeStyles, tokens]
   );
 
-  const hasSecondary =
-    secondaryActionLabelKey !== undefined &&
-    onSecondaryAction !== undefined;
+  const hasSecondary = secondaryActionLabelKey !== undefined && onSecondaryAction !== undefined;
 
   return (
     <VerticalCenter testID={testID}>

@@ -170,10 +170,7 @@ const forgetDownload = (itemIdText: string): DownloadRecord | null => {
 };
 
 /** Delete the file (best-effort) and the durable row for a download already dropped from memory. */
-const eraseDownload = async (
-  record: DownloadRecord | null,
-  itemIdText: string
-): Promise<void> => {
+const eraseDownload = async (record: DownloadRecord | null, itemIdText: string): Promise<void> => {
   if (record !== null && record.filePath !== null) {
     try {
       await FileSystem.deleteAsync(record.filePath, { idempotent: true });

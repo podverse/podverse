@@ -190,9 +190,7 @@ export const downloadsRepository = {
         downloadedCount: count(schema.download.itemIdText),
       })
       .from(schema.download)
-      .where(
-        and(eq(schema.download.status, 'complete'), isNotNull(schema.download.channelIdText))
-      )
+      .where(and(eq(schema.download.status, 'complete'), isNotNull(schema.download.channelIdText)))
       .groupBy(schema.download.channelIdText);
 
     const result = new Map<string, number>();
@@ -210,18 +208,12 @@ export const downloadsRepository = {
       .from(schema.download)
       .innerJoin(schema.channelItem, eq(schema.channelItem.itemIdText, schema.download.itemIdText))
       .where(
-        and(
-          eq(schema.download.status, 'complete'),
-          sql`${schema.download.channelIdText} IS NULL`
-        )
+        and(eq(schema.download.status, 'complete'), sql`${schema.download.channelIdText} IS NULL`)
       )
       .groupBy(schema.channelItem.channelIdText);
 
     for (const row of fromJoin) {
-      result.set(
-        row.channelIdText,
-        (result.get(row.channelIdText) ?? 0) + row.downloadedCount
-      );
+      result.set(row.channelIdText, (result.get(row.channelIdText) ?? 0) + row.downloadedCount);
     }
 
     return result;
@@ -315,9 +307,7 @@ export const downloadsRepository = {
     const rows = await getDb()
       .selectDistinct({ channelIdText: schema.download.channelIdText })
       .from(schema.download)
-      .where(
-        and(eq(schema.download.status, 'complete'), isNotNull(schema.download.channelIdText))
-      );
+      .where(and(eq(schema.download.status, 'complete'), isNotNull(schema.download.channelIdText)));
 
     return rows.flatMap((row) =>
       row.channelIdText === null || row.channelIdText.length === 0 ? [] : [row.channelIdText]

@@ -66,9 +66,7 @@ export const visibleBrowseCategories = (
   options: readonly BrowseCategoryOption[],
   expandedRoots: ReadonlySet<string>
 ): BrowseCategoryOption[] => {
-  return options.filter(
-    (option) => option.depth === 0 || expandedRoots.has(option.rootMappingKey)
-  );
+  return options.filter((option) => option.depth === 0 || expandedRoots.has(option.rootMappingKey));
 };
 
 export const ALL_BROWSE_CATEGORIES = 'all' as const;

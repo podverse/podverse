@@ -12,9 +12,7 @@ const channelWithPodroll = {
 
 describe('resolvePodcastSections', () => {
   it('offers the always-on chips in row order before any evidence chips', () => {
-    expect(resolvePodcastSections({ channel: null, hasSoundbites: false })).toEqual([
-      ...ALWAYS_ON,
-    ]);
+    expect(resolvePodcastSections({ channel: null, hasSoundbites: false })).toEqual([...ALWAYS_ON]);
   });
 
   it('keeps Official Clips and Podroll at the end when evidence exists', () => {

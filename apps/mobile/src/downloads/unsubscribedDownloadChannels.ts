@@ -34,10 +34,7 @@ export const groupUnsubscribedDownloadChannels = (
   subscribedIdTexts: ReadonlySet<string>,
   itemChannelByItemId: ReadonlyMap<string, ItemChannelHint>
 ): UnsubscribedDownloadChannel[] => {
-  const byChannel = new Map<
-    string,
-    { title: string; imageUrl: string | null; count: number }
-  >();
+  const byChannel = new Map<string, { title: string; imageUrl: string | null; count: number }>();
 
   for (const row of rows) {
     const hint = itemChannelByItemId.get(row.itemIdText);

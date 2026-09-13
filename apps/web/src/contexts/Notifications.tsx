@@ -1,9 +1,8 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-
-import { useRouter } from 'next/navigation';
 
 import { getApiRequestService } from '../factories/apiRequestService';
 import { useAccount } from './Account';

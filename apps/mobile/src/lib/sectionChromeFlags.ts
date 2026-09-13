@@ -24,10 +24,7 @@ export const EMPTY_ITEM_SECTION_CHROME_FLAGS: ItemSectionChromeFlags = {
   hasTranscript: false,
 };
 
-export const sectionChromeCacheKey = (
-  kind: SectionChromeEntityKind,
-  idText: string
-): string => {
+export const sectionChromeCacheKey = (kind: SectionChromeEntityKind, idText: string): string => {
   return `${kind}:${idText}`;
 };
 
@@ -104,9 +101,7 @@ const safeParseJson = (flagsJson: string): unknown => {
   }
 };
 
-export const getCachedChannelSectionFlags = (
-  idText: string
-): ChannelSectionChromeFlags | null => {
+export const getCachedChannelSectionFlags = (idText: string): ChannelSectionChromeFlags | null => {
   const stored = memory.get(sectionChromeCacheKey('channel', idText));
   if (stored === undefined) {
     return null;

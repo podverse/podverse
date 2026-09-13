@@ -75,8 +75,7 @@ export function Button({
                 };
   const isDisabled = disabled || loading;
   const isOutline = variant === 'outline' || variant === 'play';
-  const iconOnlySize =
-    size === 'sm' ? LIST_ROW_ACTION_SIZE : size === 'lg' ? 48 : 40;
+  const iconOnlySize = size === 'sm' ? LIST_ROW_ACTION_SIZE : size === 'lg' ? 48 : 40;
 
   const styles = useMemo(
     () =>

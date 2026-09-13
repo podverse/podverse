@@ -330,7 +330,10 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   if (offlineModeEnabled) {
     return (
       <View style={styles.container} testID="search-screen">
-        <ListEmpty messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY} testID="search-offline-unavailable" />
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="search-offline-unavailable"
+        />
       </View>
     );
   }

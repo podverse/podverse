@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { groupUnsubscribedDownloadChannels } from './unsubscribedDownloadChannels';
 import type { UnsubscribedDownloadSourceRow } from './unsubscribedDownloadChannels';
+import { groupUnsubscribedDownloadChannels } from './unsubscribedDownloadChannels';
 
 const row = (
   itemIdText: string,

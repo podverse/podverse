@@ -27,13 +27,13 @@ import { MediaTypeSelector } from '../home/MediaTypeSelector';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
-import { BrowseCategoryRow } from './BrowseCategoryRow';
 import type { BrowseCategoryOption } from './browseCategories';
 import {
   ALL_BROWSE_CATEGORIES,
   fetchBrowseCategories,
   visibleBrowseCategories,
 } from './browseCategories';
+import { BrowseCategoryRow } from './BrowseCategoryRow';
 import { fetchBrowseFeedRows } from './browseFeedData';
 import type { BrowseListPrefs } from './browseListPrefs';
 import {
@@ -486,14 +486,15 @@ export function BrowseScreen() {
   const showCategoryLoading = isCategoryView && isCategoryLoading && categoryOptions.length === 0;
 
   const categoriesChipLabel =
-    selectedCategory !== null
-      ? t(`categories.${selectedCategory}`)
-      : t('categories.categories');
+    selectedCategory !== null ? t(`categories.${selectedCategory}`) : t('categories.categories');
 
   if (offlineModeEnabled) {
     return (
       <View style={styles.container} testID="browse-screen">
-        <ListEmpty messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY} testID="browse-offline-unavailable" />
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="browse-offline-unavailable"
+        />
       </View>
     );
   }

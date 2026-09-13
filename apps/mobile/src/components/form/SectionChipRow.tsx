@@ -93,10 +93,7 @@ export function SectionChip({
       accessibilityRole={isFilter ? 'button' : 'tab'}
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[
-        styles.chip,
-        isFilter ? filterChrome.chip : selected ? styles.chipActive : null,
-      ]}
+      style={[styles.chip, isFilter ? filterChrome.chip : selected ? styles.chipActive : null]}
       testID={testID}
     >
       <Text

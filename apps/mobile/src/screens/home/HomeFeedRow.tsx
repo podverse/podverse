@@ -10,7 +10,11 @@ import { formatSecondsToReadableDuration } from '@podverse/helpers/timeFormatter
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import { Badge, CoverImage } from '../../components/primitives';
-import { LIST_ROW_ARTWORK_SIZE, listRowArtworkGap, listRowVerticalPadding } from '../../theme/screenLayout';
+import {
+  LIST_ROW_ARTWORK_SIZE,
+  listRowArtworkGap,
+  listRowVerticalPadding,
+} from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import type { DirectoryMediaType } from '../browse/browseTypes';
@@ -121,10 +125,7 @@ const useUpdatedLabel = (
   }, [fallbackMs, i18n.language, updatedAt]);
 };
 
-const useDurationLabel = (
-  duration: string | null | undefined,
-  isLive: boolean
-): string | null => {
+const useDurationLabel = (duration: string | null | undefined, isLive: boolean): string | null => {
   const { i18n } = useTranslation();
 
   return useMemo(() => {
@@ -356,7 +357,11 @@ export function HomeFeedRow({
       </View>
 
       {description !== null ? (
-        <Text numberOfLines={2} style={styles.description} testID={`home-feed-row-description-${row.id}`}>
+        <Text
+          numberOfLines={2}
+          style={styles.description}
+          testID={`home-feed-row-description-${row.id}`}
+        >
           {description}
         </Text>
       ) : null}

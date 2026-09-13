@@ -16,9 +16,7 @@ export const countInProgressDownloads = (
 };
 
 /** Actively transferring (not merely queued or paused). */
-export const countActiveDownloading = (
-  records: readonly { status: DownloadStatus }[]
-): number => {
+export const countActiveDownloading = (records: readonly { status: DownloadStatus }[]): number => {
   return records.filter((record) => record.status === 'downloading').length;
 };
 

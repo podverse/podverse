@@ -56,9 +56,12 @@ describe('parseItemSectionChromeFlags', () => {
 describe('mergeChannelSectionChromeFlags', () => {
   it('keeps unspecified flags and applies the patch', () => {
     expect(
-      mergeChannelSectionChromeFlags({ hasBoosts: false, hasOfficialClips: true, hasPodroll: false }, {
-        hasPodroll: true,
-      })
+      mergeChannelSectionChromeFlags(
+        { hasBoosts: false, hasOfficialClips: true, hasPodroll: false },
+        {
+          hasPodroll: true,
+        }
+      )
     ).toEqual({
       hasBoosts: false,
       hasOfficialClips: true,

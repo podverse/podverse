@@ -16,7 +16,12 @@ import type { DownloadRecord } from '../../downloads/downloadTypes';
 import { useDownloadsList } from '../../downloads/useDownloads';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
-import { LIST_ROW_ARTWORK_SIZE, listRowArtworkGap, listRowVerticalPadding, screenBodyInsets } from '../../theme/screenLayout';
+import {
+  LIST_ROW_ARTWORK_SIZE,
+  listRowArtworkGap,
+  listRowVerticalPadding,
+  screenBodyInsets,
+} from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
@@ -45,9 +50,7 @@ const statusLabelKey = (record: DownloadRecord): string | null => {
 
 const progressRatio = (record: DownloadRecord): number | null => {
   if (
-    (record.status !== 'downloading' &&
-      record.status !== 'queued' &&
-      record.status !== 'paused') ||
+    (record.status !== 'downloading' && record.status !== 'queued' && record.status !== 'paused') ||
     record.byteSize === null ||
     record.byteSize <= 0
   ) {
@@ -129,8 +132,7 @@ export function LibraryDownloadsScreen() {
 
   const sections = useMemo((): DownloadSection[] => {
     const inProgress = downloads.filter(
-      (row) =>
-        row.status === 'queued' || row.status === 'downloading' || row.status === 'paused'
+      (row) => row.status === 'queued' || row.status === 'downloading' || row.status === 'paused'
     );
     const failed = downloads.filter((row) => row.status === 'failed');
     const completed = downloads.filter((row) => row.status === 'complete');
@@ -163,8 +165,7 @@ export function LibraryDownloadsScreen() {
   const hasControllableJobs = useMemo(
     () =>
       downloads.some(
-        (row) =>
-          row.status === 'queued' || row.status === 'downloading' || row.status === 'paused'
+        (row) => row.status === 'queued' || row.status === 'downloading' || row.status === 'paused'
       ),
     [downloads]
   );
@@ -197,8 +198,7 @@ export function LibraryDownloadsScreen() {
       const ratio = progressRatio(item);
       const statusKey = statusLabelKey(item);
       const statusText = statusKey !== null ? t(statusKey) : null;
-      const accessibilityStatus =
-        statusText ?? t('features.download.section_completed');
+      const accessibilityStatus = statusText ?? t('features.download.section_completed');
 
       return (
         <SwipeActionRow
@@ -239,10 +239,7 @@ export function LibraryDownloadsScreen() {
                   {item.title ?? item.itemIdText}
                 </Text>
                 {statusText !== null ? (
-                  <Text
-                    style={styles.rowStatus}
-                    testID={`download-row-status-${item.itemIdText}`}
-                  >
+                  <Text style={styles.rowStatus} testID={`download-row-status-${item.itemIdText}`}>
                     {statusText}
                   </Text>
                 ) : null}
@@ -271,9 +268,7 @@ export function LibraryDownloadsScreen() {
       <View style={styles.masterRow}>
         <Button
           label={
-            pauseAllActive
-              ? t('features.download.resume_all')
-              : t('features.download.pause_all')
+            pauseAllActive ? t('features.download.resume_all') : t('features.download.pause_all')
           }
           onPress={() => {
             if (pauseAllActive) {

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { OptionListScreen } from '../../components/form';
+import { formatDownloadBytes } from '../../downloads/downloadQuota';
 import type { MoreStackParamList } from '../../navigation';
 import {
   DOWNLOAD_QUOTA_PRESET_BYTES,
@@ -10,18 +11,10 @@ import {
   readDownloadQuotaBytes,
   writeDownloadQuotaBytes,
 } from '../../prefs/downloadPrefs';
-import { formatDownloadBytes } from '../../downloads/downloadQuota';
 
 type Props = NativeStackScreenProps<MoreStackParamList, 'MoreSettingsDownloadLimit'>;
 
-type QuotaOptionId =
-  | '1gb'
-  | '2gb'
-  | '5gb'
-  | '10gb'
-  | '20gb'
-  | '50gb'
-  | 'unlimited';
+type QuotaOptionId = '1gb' | '2gb' | '5gb' | '10gb' | '20gb' | '50gb' | 'unlimited';
 
 const PRESET_IDS: readonly QuotaOptionId[] = [
   '1gb',

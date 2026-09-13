@@ -282,8 +282,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
       (destination.kind === 'home' ? HOME_FALLBACK_PATH : destination.webPath);
 
     try {
-      const prefixedLink =
-        targetPath.startsWith('http://') || targetPath.startsWith('https://');
+      const prefixedLink = targetPath.startsWith('http://') || targetPath.startsWith('https://');
       if (prefixedLink || targetPath.includes('://')) {
         await Linking.openURL(targetPath);
         return;

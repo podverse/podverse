@@ -12,10 +12,7 @@ import {
   playbackTargetRowMediaId,
 } from '../../lib/playback/buildPlaybackTarget';
 import { usePlaybackProgress, usePlaybackSession } from '../../playback/PlaybackProvider';
-import {
-  LIST_ROW_ACTION_ICON_SIZE,
-  LIST_ROW_PLAY_ICON_SIZE,
-} from '../../theme/screenLayout';
+import { LIST_ROW_ACTION_ICON_SIZE, LIST_ROW_PLAY_ICON_SIZE } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import type { ButtonSize, ButtonVariant } from '../primitives';
 import { Button, MoreMenu, ProgressTrack } from '../primitives';
@@ -131,8 +128,7 @@ export const buildMediaRowMoreActions = (
  */
 function MediaRowActiveProgress({ testID }: { testID?: string }) {
   const { durationSeconds, positionSeconds } = usePlaybackProgress();
-  const ratio =
-    durationSeconds > 0 ? clampRatio(positionSeconds / durationSeconds) : 0;
+  const ratio = durationSeconds > 0 ? clampRatio(positionSeconds / durationSeconds) : 0;
 
   return (
     <ProgressTrack
@@ -402,8 +398,7 @@ function MediaRowIconsLeading({
   const { activeTarget, isPlaying } = usePlaybackSession();
   const resolvedPlaybackMediaId = normalizeHomeFeedPlaybackMediaId(playbackMediaId);
   const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
-  const isActiveRow =
-    activeMediaId !== null && activeMediaId === resolvedPlaybackMediaId;
+  const isActiveRow = activeMediaId !== null && activeMediaId === resolvedPlaybackMediaId;
   const showPauseIcon = isActiveRow && isPlaying;
 
   return (

@@ -127,9 +127,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
     cachedChrome?.hasPodroll === true
   );
-  const [hasCheckedSoundbites, setHasCheckedSoundbites] = useState<boolean>(
-    cachedChrome !== null
-  );
+  const [hasCheckedSoundbites, setHasCheckedSoundbites] = useState<boolean>(cachedChrome !== null);
   const chromeConfirmedRef = useRef(false);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);

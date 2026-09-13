@@ -36,10 +36,9 @@ export const LIST_ROW_OPTICAL_BOTTOM_EXTRA = 2;
 /**
  * Vertical padding for a text-bearing list row: equal token top, bottom = top + optical extra.
  */
-export function listRowVerticalPadding(paddingTop: number): Pick<
-  ViewStyle,
-  'paddingTop' | 'paddingBottom'
-> {
+export function listRowVerticalPadding(
+  paddingTop: number
+): Pick<ViewStyle, 'paddingTop' | 'paddingBottom'> {
   return {
     paddingBottom: paddingTop + LIST_ROW_OPTICAL_BOTTOM_EXTRA,
     paddingTop,

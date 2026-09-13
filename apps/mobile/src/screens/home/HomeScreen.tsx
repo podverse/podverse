@@ -7,8 +7,8 @@ import { AccessibilityInfo, RefreshControl, StyleSheet, Text, View } from 'react
 
 import { matchesTitleFilter } from '@podverse/helpers';
 
-import { useAuth } from '../../auth/AuthProvider';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
+import { useAuth } from '../../auth/AuthProvider';
 import { ListFilterField, ListFilterHeader } from '../../components/form';
 import { FillList, SwipeActionRow } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
@@ -110,9 +110,7 @@ export function HomeScreen() {
   const [isMediaTypeHydrated, setIsMediaTypeHydrated] = useState<boolean>(false);
   const [listPrefs, setListPrefs] = useState<HomeListPrefsState | null>(null);
   const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
-  const [unsubscribedDownloadRows, setUnsubscribedDownloadRows] = useState<HomeFeedRowData[]>(
-    []
-  );
+  const [unsubscribedDownloadRows, setUnsubscribedDownloadRows] = useState<HomeFeedRowData[]>([]);
   const [hasPodcastSubscriptions, setHasPodcastSubscriptions] = useState<boolean>(false);
   const [filterTerm, setFilterTerm] = useState<string>(readHomeFilterTerm);
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
@@ -475,15 +473,7 @@ export function HomeScreen() {
         throw new Error('Unsubscribe failed');
       }
     },
-    [
-      accessToken,
-      clearSession,
-      feedRows.length,
-      refreshToken,
-      selectedMediaType,
-      setTokens,
-      status,
-    ]
+    [accessToken, clearSession, feedRows.length, refreshToken, selectedMediaType, setTokens, status]
   );
 
   const handleDeleteUnsubscribedDownloads = useCallback(async (row: HomeFeedRowData) => {
@@ -751,8 +741,7 @@ export function HomeScreen() {
     selectedMediaType === 'artists' ||
     selectedMediaType === 'albums' ||
     selectedMediaType === 'tracks';
-  const searchMediumOnEmpty =
-    selectedMediaType === 'podcasts' ? 'all' : ('music' as const);
+  const searchMediumOnEmpty = selectedMediaType === 'podcasts' ? 'all' : ('music' as const);
 
   const listEmpty = isFeedLoading ? (
     <LoadingSection testID="home-list-loading" />
@@ -798,9 +787,7 @@ export function HomeScreen() {
 
   const listFooter = (
     <>
-      {showFeedRows &&
-      selectedMediaType === 'podcasts' &&
-      unsubscribedDownloadRows.length > 0 ? (
+      {showFeedRows && selectedMediaType === 'podcasts' && unsubscribedDownloadRows.length > 0 ? (
         <View
           style={[
             styles.unsubscribedSection,
@@ -809,10 +796,7 @@ export function HomeScreen() {
           testID="home-unsubscribed-downloads"
         >
           {feedRows.length > 0 ? (
-            <View
-              style={styles.unsubscribedDivider}
-              testID="home-unsubscribed-downloads-divider"
-            />
+            <View style={styles.unsubscribedDivider} testID="home-unsubscribed-downloads-divider" />
           ) : null}
           <Text
             accessibilityRole="header"

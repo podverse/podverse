@@ -1,7 +1,4 @@
-import {
-  MOBILE_HOME_TAB_PATH,
-  resolveNotificationDestinationFromPayload,
-} from '@podverse/helpers';
+import { MOBILE_HOME_TAB_PATH, resolveNotificationDestinationFromPayload } from '@podverse/helpers';
 
 export const HOME_FALLBACK_PATH = MOBILE_HOME_TAB_PATH;
 

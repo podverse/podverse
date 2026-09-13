@@ -83,9 +83,7 @@ export const useDownloadsList = (
       });
 
     const unsubscribe = downloadStore.subscribe(sync);
-    const unsubscribeProgress = includeProgress
-      ? downloadStore.subscribeToProgress(sync)
-      : null;
+    const unsubscribeProgress = includeProgress ? downloadStore.subscribeToProgress(sync) : null;
 
     return () => {
       isActive = false;
@@ -113,9 +111,7 @@ export const useItemDownload = (
   itemIdText: string,
   includeProgress = false
 ): DownloadRecord | null => {
-  const [record, setRecord] = useState<DownloadRecord | null>(() =>
-    downloadStore.get(itemIdText)
-  );
+  const [record, setRecord] = useState<DownloadRecord | null>(() => downloadStore.get(itemIdText));
 
   useEffect(() => {
     const sync = (): void => {
@@ -126,9 +122,7 @@ export const useItemDownload = (
     sync();
 
     const unsubscribe = downloadStore.subscribe(sync);
-    const unsubscribeProgress = includeProgress
-      ? downloadStore.subscribeToProgress(sync)
-      : null;
+    const unsubscribeProgress = includeProgress ? downloadStore.subscribeToProgress(sync) : null;
 
     return () => {
       unsubscribe();
