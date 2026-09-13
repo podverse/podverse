@@ -57,7 +57,6 @@ export function PodcastAboutSection({ channel, listHeader }: PodcastSectionPaneP
           borderColor: themeStyles.border.borderColor,
           borderRadius: tokens.radii.md,
           borderWidth: 1,
-          marginTop: tokens.spacing.sm,
           padding: tokens.spacing.lg,
         },
       }),

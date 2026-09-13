@@ -57,8 +57,9 @@ export function listRowArtworkGap(spacing: ThemeTokens['spacing']): number {
 }
 
 /**
- * Vertical gap between stacked blocks under a channel header (header → chips → filter). One value
- * so those seams do not drift independently.
+ * Vertical gap between stacked blocks under a channel header (header → chips → next). One value
+ * so those seams do not drift independently. Prefer **`listChipRowBottomGap`** for space *below*
+ * a chip row — that gap lives on `SectionChipRow` itself.
  */
 export function listHeaderStackGap(spacing: ThemeTokens['spacing']): number {
   return spacing.lg;
@@ -71,6 +72,15 @@ export function listHeaderStackGap(spacing: ThemeTokens['spacing']): number {
  */
 export function listFilterContentGap(spacing: ThemeTokens['spacing']): number {
   return spacing.base;
+}
+
+/**
+ * Space below a `SectionChipRow` / `MediaTypeSelector` before the next block (filter, list, about
+ * prose). Applied as the row's own `paddingBottom` so every chip surface shares one seam and
+ * screens cannot omit it. Same token as `listFilterContentGap`.
+ */
+export function listChipRowBottomGap(spacing: ThemeTokens['spacing']): number {
+  return listFilterContentGap(spacing);
 }
 
 /**

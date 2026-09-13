@@ -29,7 +29,14 @@ import { readSortPref, writeSortPref } from './sortPrefs';
  * A remembered pane is still subject to what the channel actually carries — one with no podroll
  * cannot open on it — and the caller reconciles that, since only it knows what this channel has.
  */
-export const PODCAST_TABS = ['episodes', 'soundbites', 'clips', 'about', 'podroll'] as const;
+export const PODCAST_TABS = [
+  'episodes',
+  'soundbites',
+  'clips',
+  'about',
+  'podroll',
+  'downloaded',
+] as const;
 
 export type PodcastTab = (typeof PODCAST_TABS)[number];
 

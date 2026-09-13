@@ -532,7 +532,6 @@ export function HomeScreen() {
       },
       selectorSection: {
         ...insets,
-        paddingBottom: tokens.spacing.md,
       },
       feedNotice: {
         color: themeStyles.textSecondary.color,
@@ -541,7 +540,6 @@ export function HomeScreen() {
       },
       filterRow: {
         marginBottom: filterBottomMargin,
-        marginTop: tokens.spacing.sm,
       },
       unsubscribedSection: {
         marginTop: tokens.spacing.xl,

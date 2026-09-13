@@ -460,7 +460,6 @@ export function BrowseScreen() {
       },
       selectorSection: {
         ...bodyInsets,
-        paddingBottom: tokens.spacing.md,
       },
     });
   }, [gridCellWidth, themeStyles, tokens]);

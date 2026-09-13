@@ -52,6 +52,7 @@ import type { PodcastSectionPaneProps } from './sections';
 import {
   PodcastAboutSection,
   PodcastClipsSection,
+  PodcastDownloadedSection,
   PodcastEpisodesSection,
   PodcastOfficialClipsSection,
   PodcastPodrollSection,
@@ -82,6 +83,7 @@ const RANGE_LABEL_KEYS: Record<PodcastDetailRange, string> = {
 const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPaneProps>> = {
   about: PodcastAboutSection,
   clips: PodcastClipsSection,
+  downloaded: PodcastDownloadedSection,
   episodes: PodcastEpisodesSection,
   podroll: PodcastPodrollSection,
   soundbites: PodcastOfficialClipsSection,
@@ -131,7 +133,6 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         },
         filterRow: {
           marginBottom: listFilterFieldBottomMargin(tokens.spacing, tokens.spacing.base),
-          marginTop: listHeaderStackGap(tokens.spacing),
         },
         headerActions: {
           alignItems: 'center',

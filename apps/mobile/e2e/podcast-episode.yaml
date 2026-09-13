@@ -71,6 +71,17 @@ name: Podcast Episode Flow
     timeout: ${TIMEOUT_FASTER}
 - takeScreenshot: podcast-episode-section-about
 
+# Downloaded is always offered: offline files for this show, or an empty list when there are none.
+- tapOn:
+    id: podcast-detail-section-downloaded
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-downloaded-list
+    timeout: ${TIMEOUT_FASTER}
+- assertVisible:
+    id: podcast-detail-filter-input
+- takeScreenshot: podcast-episode-section-downloaded
+
 - tapOn:
     id: podcast-detail-section-episodes
 - extendedWaitUntil:

@@ -1,5 +1,6 @@
 export { PodcastAboutSection } from './PodcastAboutSection';
 export { PodcastClipsSection } from './PodcastClipsSection';
+export { PodcastDownloadedSection } from './PodcastDownloadedSection';
 export { PodcastEpisodesSection } from './PodcastEpisodesSection';
 export { PodcastOfficialClipsSection } from './PodcastOfficialClipsSection';
 export { PodcastPodrollSection } from './PodcastPodrollSection';

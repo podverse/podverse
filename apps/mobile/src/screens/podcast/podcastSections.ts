@@ -8,6 +8,7 @@ import { PODCAST_TABS } from '../../prefs/detailListPrefs';
 export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
   about: 'info.about',
   clips: 'features.clip.clips',
+  downloaded: 'features.download.downloaded',
   episodes: 'media.podcast.episodes',
   podroll: 'info.podroll',
   soundbites: 'info.soundbite.official_clips',
@@ -17,7 +18,7 @@ export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
 const SORTABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'clips'];
 
 /** Sections whose rows carry titles the client can filter locally by title. */
-const FILTERABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'soundbites'];
+const FILTERABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'soundbites', 'downloaded'];
 
 export const isSortableSection = (section: PodcastTab): boolean =>
   SORTABLE_SECTIONS.includes(section);
@@ -30,8 +31,8 @@ export const isFilterableSection = (section: PodcastTab): boolean =>
  *
  * A chip for something the channel does not have is a dead end, so the two conditional sections are
  * gated on evidence: a podroll the feed declared, and clips the publisher marked in their own
- * episodes. Episodes, Clips, and About are always answerable — Clips because listeners make
- * those, so an empty list is a real answer rather than a missing feature.
+ * episodes. Episodes, Clips, About, and Downloaded are always answerable — Clips because listeners
+ * make those, Downloaded because offline files are a device fact (an empty list is a real answer).
  */
 export const resolvePodcastSections = ({
   channel,

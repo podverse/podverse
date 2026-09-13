@@ -40,6 +40,7 @@
       "queued": "En file d'attente",
       "remove": "Supprimer",
       "empty": "Aucun téléchargement pour le moment",
+      "downloaded": "Téléchargés",
       "not_downloadable": "Cet épisode ne peut pas être téléchargé pour une écoute hors ligne",
       "storage_used": "Espace de stockage utilisé",
       "auto_delete_label": "Suppression automatique des plus anciens lorsque le stockage est plein",

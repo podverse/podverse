@@ -8,6 +8,7 @@ globs:
   - apps/mobile/src/components/primitives/ListRow.tsx
   - apps/mobile/src/components/primitives/VerticalCenter.tsx
   - apps/mobile/src/components/form/SearchField.tsx
+  - apps/mobile/src/components/form/SectionChipRow.tsx
   - apps/mobile/src/components/section/ListSection.tsx
   - apps/mobile/src/components/state/ListEmpty.tsx
   - apps/mobile/src/screens/podcast/podcastSections.ts
@@ -110,9 +111,20 @@ Icon-only controls share **`LIST_ROW_ACTION_SIZE`** (44) and bare glyphs use
 inside the glowing `play` Button. Prefer Button `variant="play"` for the media-row Play circle and
 `variant="ghost"` for bare More; Download/trash stay borderless at the same hit target.
 
-Under a channel header, stacked blocks (header → chips → filter) use
-**`listHeaderStackGap(tokens.spacing)`** (`spacing.lg`) on each seam — do not mix `md` on one and
-`lg` on another.
+Under a channel header, **`listHeaderStackGap(tokens.spacing)`** (`spacing.lg`) is the gap
+**above** the chip row (header → chips). Do not mix `md` on one seam and `lg` on another for that
+header stack.
+
+## Chip row → next block
+
+Space **below** a **`SectionChipRow`** (Home / Browse media types, podcast sections) is
+**`listChipRowBottomGap(tokens.spacing)`** (`spacing.base`). It is applied as the row's own
+`paddingBottom` inside `SectionChipRow` — do **not** add a second `paddingBottom` /
+`marginTop` on the screen wrapper (Home/Browse `selectorSection`, podcast filter `marginTop`,
+About surface `marginTop`) or the seam doubles or disappears when the next sibling changes.
+
+Whatever follows the chips (filter field, episode list, about prose, podroll) inherits that same
+gap. Filter fields then use **`listFilterFieldBottomMargin`** for the filter→row seam only.
 
 ## Filter field → content seam
 
@@ -155,8 +167,11 @@ Podcast section lists use **`PodcastSectionList`**, which already composes **`Fi
 
 Show **`ListFilterField`** only when **`isFilterableSection(section)`** is true
 (`podcastSections.ts`). Clips and podroll are **not** filterable — clips are server-paginated, and
-podroll is a short publisher list without title filtering. Episodes and official soundbites are
-filterable.
+podroll is a short publisher list without title filtering. Episodes, official soundbites, and
+**Downloaded** are filterable.
+
+**Downloaded** is always offered (last chip): it lists finished offline episodes for this channel
+from `downloadsRepository.listCompleteByChannel`. An empty list is a real answer.
 
 Sort **`MenuSelectChip`** stays mounted on every section. On non-sortable tabs (About, Podroll,
 soundbites) pass **`disabled`** so the face grays out and does not open — do not unmount it, or the
@@ -209,6 +224,7 @@ link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`)
 ## Related
 
 - Page gutter: `apps/mobile/src/theme/screenLayout.ts`
+- Chip→next seam: `listChipRowBottomGap` (on `SectionChipRow`)
 - Filter→content seam: `listFilterContentGap` / `listFilterFieldBottomMargin` in the same file
 - Top chrome: `apps/mobile/src/components/screen/HeaderBar.tsx`
 - Fill lists: `apps/mobile/src/components/primitives/FillList.tsx`

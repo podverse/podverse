@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
+import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { filterChipChrome } from './chipChrome';
@@ -116,6 +117,9 @@ export function SectionChip({
  * Browse scroll their sort and Categories controls ahead of the media types, and a channel screen
  * scrolls its sort and popularity window ahead of its sections. The chips themselves are handed in
  * already localized, so the row has no opinion about which medium it is describing.
+ *
+ * Bottom padding is **`listChipRowBottomGap`** — the seam before filter / list / about content —
+ * so every screen that mounts this row gets the same space without a local margin.
  */
 export function SectionChipRow<T extends string>({
   items,
@@ -129,7 +133,7 @@ export function SectionChipRow<T extends string>({
     () =>
       StyleSheet.create({
         scroll: {
-          paddingBottom: tokens.spacing.sm,
+          paddingBottom: listChipRowBottomGap(tokens.spacing),
         },
         scrollContent: {
           alignItems: 'center',

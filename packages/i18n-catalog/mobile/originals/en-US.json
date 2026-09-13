@@ -46,6 +46,7 @@
       "cancel_download": "Cancel download",
       "remove_download": "Remove download",
       "empty": "No downloads yet",
+      "downloaded": "Downloaded",
       "not_downloadable": "This episode can't be downloaded for offline play",
       "storage_used": "Storage used",
       "auto_delete_label": "Auto-delete oldest when storage is full",

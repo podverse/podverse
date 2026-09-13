@@ -140,6 +140,51 @@ export const downloadsRepository = {
   },
 
   /**
+   * Finished downloads for one channel, most-recently-updated first.
+   *
+   * Prefers the persisted `channel_id_text` on the download row. Also includes rows that predate
+   * that column when `channel_item` still ties the item to this channel.
+   */
+  listCompleteByChannel: async (channelIdText: string): Promise<DownloadRecord[]> => {
+    await initializeDatabase();
+    const fromColumn = await getDb()
+      .select()
+      .from(schema.download)
+      .where(
+        and(
+          eq(schema.download.status, 'complete'),
+          eq(schema.download.channelIdText, channelIdText)
+        )
+      )
+      .orderBy(desc(schema.download.updatedAt));
+
+    const fromJoin = await getDb()
+      .select({ download: schema.download })
+      .from(schema.download)
+      .innerJoin(schema.channelItem, eq(schema.channelItem.itemIdText, schema.download.itemIdText))
+      .where(
+        and(
+          eq(schema.download.status, 'complete'),
+          eq(schema.channelItem.channelIdText, channelIdText),
+          sql`${schema.download.channelIdText} IS NULL`
+        )
+      )
+      .orderBy(desc(schema.download.updatedAt));
+
+    const byId = new Map<string, DownloadRecord>();
+    for (const row of fromColumn) {
+      byId.set(row.itemIdText, rowToRecord(row));
+    }
+    for (const row of fromJoin) {
+      if (!byId.has(row.download.itemIdText)) {
+        byId.set(row.download.itemIdText, rowToRecord(row.download));
+      }
+    }
+
+    return [...byId.values()].sort((a, b) => b.updatedAt - a.updatedAt);
+  },
+
+  /**
    * How many finished downloads each channel has, keyed by channel `id_text`.
    *
    * Prefers the persisted `channel_id_text` on the download row (survives unsubscribe). Falls back
