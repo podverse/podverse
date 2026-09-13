@@ -9,20 +9,24 @@ export type ChipChrome = {
 
 /**
  * Chrome for controls that narrow a list (range, category) rather than choose which list to show.
- * Idle matches the unselected media-type pill; active matches the sort chip (accent outline,
- * square radius).
+ * Shape stays square-radiused in both states so the control does not morph. Idle uses the quiet
+ * fill of an unselected pill; active matches the sort chip (accent outline and label).
  */
 export const filterChipChrome = (
   tokens: ThemeTokens,
   idle: { borderColor: string; textColor: string },
   active: boolean
 ): ChipChrome => {
+  const chip: ViewStyle = {
+    borderRadius: tokens.radii.md,
+  };
+
   if (active) {
     return {
       chip: {
+        ...chip,
         backgroundColor: tokens.background.tertiary,
         borderColor: tokens.text.accent,
-        borderRadius: tokens.radii.md,
       },
       label: {
         color: tokens.text.accent,
@@ -32,9 +36,9 @@ export const filterChipChrome = (
 
   return {
     chip: {
+      ...chip,
       backgroundColor: tokens.background.secondary,
       borderColor: idle.borderColor,
-      borderRadius: tokens.radii.round,
     },
     label: {
       color: idle.textColor,

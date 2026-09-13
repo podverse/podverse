@@ -16,7 +16,8 @@ export type SectionChipProps = {
   testID: string;
   /**
    * `pill` is a media-type tab (round, primary fill when selected). `filter` is a list
-   * narrow (square radius; accent outline when selected), same family as the sort chip.
+   * narrow (square radius in both states; accent outline when selected), same family as
+   * the sort chip.
    */
   variant?: SectionChipVariant;
 };
