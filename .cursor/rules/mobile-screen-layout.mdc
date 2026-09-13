@@ -154,8 +154,14 @@ Podcast section lists use **`PodcastSectionList`**, which already composes **`Fi
 ## Podcast detail filter visibility
 
 Show **`ListFilterField`** only when **`isFilterableSection(section)`** is true
-(`podcastSections.ts`). Clips are **not** filterable — the server paginates them and the client does
-not title-filter that tab. Episodes, official soundbites, and podroll are filterable.
+(`podcastSections.ts`). Clips and podroll are **not** filterable — clips are server-paginated, and
+podroll is a short publisher list without title filtering. Episodes and official soundbites are
+filterable.
+
+Sort **`MenuSelectChip`** stays mounted on every section. On non-sortable tabs (About, Podroll,
+soundbites) pass **`disabled`** so the face grays out and does not open — do not unmount it, or the
+section pills jump. When `sort === 'top'`, keep the range chip mounted the same way (also
+`disabled` when the section is not sortable).
 
 ## Action-gated account / membership
 

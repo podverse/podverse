@@ -1,11 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 
 import type { RemoteItemsResponse } from '@podverse/helpers';
-import { matchesTitleFilter } from '@podverse/helpers';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
 import { CoverImage, ListRow } from '../../../components/primitives';
@@ -82,7 +81,6 @@ const toPodrollEntries = (response: RemoteItemsResponse): PodrollEntry[] => {
  */
 export function PodcastPodrollSection({
   channelIdText,
-  filterTerm,
   listHeader,
   onRefreshChannel,
 }: PodcastSectionPaneProps) {
@@ -100,11 +98,6 @@ export function PodcastPodrollSection({
 
   const { errorKey, isInitialLoading, isRefreshing, refresh, retry, rows } =
     usePodcastSectionRows(fetchPage);
-
-  const visibleRows = useMemo(
-    () => rows.filter((entry) => matchesTitleFilter(entry.title, filterTerm)),
-    [filterTerm, rows]
-  );
 
   const openEntry = useCallback(
     (entry: PodrollEntry) => {
@@ -127,7 +120,6 @@ export function PodcastPodrollSection({
       accessibilityLabel={t('info.podroll')}
       emptyMessageKey="info.no_podroll_found"
       errorKey={errorKey}
-      hasFilterHiddenEverything={rows.length > 0 && visibleRows.length === 0}
       isInitialLoading={isInitialLoading}
       isRefreshing={isRefreshing}
       keyExtractor={(entry) => entry.key}
@@ -155,7 +147,7 @@ export function PodcastPodrollSection({
           title={entry.title}
         />
       )}
-      rows={visibleRows}
+      rows={rows}
       testID="podcast-detail-podroll-list"
     />
   );

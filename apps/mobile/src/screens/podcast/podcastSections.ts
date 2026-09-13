@@ -17,7 +17,7 @@ export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
 const SORTABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'clips'];
 
 /** Sections whose rows carry titles the client can filter locally by title. */
-const FILTERABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'soundbites', 'podroll'];
+const FILTERABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'soundbites'];
 
 export const isSortableSection = (section: PodcastTab): boolean =>
   SORTABLE_SECTIONS.includes(section);

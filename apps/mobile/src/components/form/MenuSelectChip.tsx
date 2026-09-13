@@ -20,6 +20,8 @@ export type MenuSelectChipOption<T extends string> = {
 };
 
 export type MenuSelectChipProps<T extends string> = {
+  /** When true, the chip stays visible but does not open — use to hold layout while a section is unsortable. */
+  disabled?: boolean;
   /** Names the control, e.g. "Sort". Paired with the current value as the accessible name. */
   heading: string;
   /** Sheet section title. Defaults to `heading`. */
@@ -37,8 +39,11 @@ export type MenuSelectChipProps<T extends string> = {
  * Outline and square radius keep it distinct from the selection pills beside it in a chip row: this
  * one narrows the list the pills choose, rather than choosing a list. The sheet is what makes it
  * usable for four or more choices without leaving the screen the list is on.
+ *
+ * Keep the chip mounted when a section cannot use it (`disabled`) so neighboring pills do not jump.
  */
 export function MenuSelectChip<T extends string>({
+  disabled = false,
   heading,
   menuTitle,
   onSelect,
@@ -57,8 +62,9 @@ export function MenuSelectChip<T extends string>({
     const chrome = filterChipChrome(
       tokens,
       { borderColor: themeStyles.border.borderColor, textColor: themeStyles.textPrimary.color },
-      true
+      !disabled
     );
+    const labelColor = disabled ? themeStyles.textSecondary.color : chrome.label.color;
 
     return StyleSheet.create({
       caret: {
@@ -69,16 +75,23 @@ export function MenuSelectChip<T extends string>({
         borderWidth: 1,
         flexDirection: 'row',
         marginRight: tokens.spacing.sm,
+        opacity: disabled ? 0.5 : 1,
         paddingHorizontal: tokens.spacing.md,
         paddingVertical: tokens.spacing.sm,
         ...chrome.chip,
+        ...(disabled
+          ? {
+              backgroundColor: tokens.background.secondary,
+              borderColor: themeStyles.border.borderColor,
+            }
+          : null),
       },
       label: {
         ...typography.label,
-        ...chrome.label,
+        color: labelColor,
       },
     });
-  }, [themeStyles, tokens]);
+  }, [disabled, themeStyles, tokens]);
 
   const sections = useMemo<MoreMenuSection[]>(() => {
     const items: MoreMenuItem[] = options.map((option) => ({
@@ -99,7 +112,8 @@ export function MenuSelectChip<T extends string>({
       <Pressable
         accessibilityLabel={`${heading}: ${faceLabel}`}
         accessibilityRole="button"
-        accessibilityState={{ expanded: isOpen }}
+        accessibilityState={{ disabled, expanded: isOpen }}
+        disabled={disabled}
         onPress={() => {
           setIsOpen(true);
         }}
@@ -109,22 +123,24 @@ export function MenuSelectChip<T extends string>({
         <Text style={styles.label}>{faceLabel}</Text>
         <Ionicons
           accessibilityElementsHidden
-          color={tokens.text.accent}
+          color={disabled ? themeStyles.textSecondary.color : tokens.text.accent}
           importantForAccessibility="no"
           name="chevron-down"
           size={14}
           style={styles.caret}
         />
       </Pressable>
-      <MoreMenu
-        cancelLabel={t('misc.cancel')}
-        onCancel={() => {
-          setIsOpen(false);
-        }}
-        sections={sections}
-        testID={`${testID}-menu`}
-        visible={isOpen}
-      />
+      {disabled ? null : (
+        <MoreMenu
+          cancelLabel={t('misc.cancel')}
+          onCancel={() => {
+            setIsOpen(false);
+          }}
+          sections={sections}
+          testID={`${testID}-menu`}
+          visible={isOpen}
+        />
+      )}
     </>
   );
 }

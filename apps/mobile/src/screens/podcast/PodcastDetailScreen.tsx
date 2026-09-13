@@ -446,7 +446,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   );
 
   const artworkUri = primaryChannelListArtworkUrl(channel?.channel_images);
-  const showSortControls = isSortableSection(section);
+  const sortEnabled = isSortableSection(section);
 
   const listHeader = (
     <>
@@ -473,26 +473,26 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         <SectionChipRow
           items={sectionChips}
           leading={
-            showSortControls ? (
-              <>
+            <>
+              <MenuSelectChip
+                disabled={!sortEnabled}
+                heading={t('filters.screen.sort_heading')}
+                onSelect={handleSortSelect}
+                options={sortOptions}
+                testID="podcast-detail-sort"
+                value={sort}
+              />
+              {sort === 'top' ? (
                 <MenuSelectChip
-                  heading={t('filters.screen.sort_heading')}
-                  onSelect={handleSortSelect}
-                  options={sortOptions}
-                  testID="podcast-detail-sort"
-                  value={sort}
+                  disabled={!sortEnabled}
+                  heading={t('filters.screen.range_heading')}
+                  onSelect={handleRangeSelect}
+                  options={rangeOptions}
+                  testID="podcast-detail-range"
+                  value={range}
                 />
-                {sort === 'top' ? (
-                  <MenuSelectChip
-                    heading={t('filters.screen.range_heading')}
-                    onSelect={handleRangeSelect}
-                    options={rangeOptions}
-                    testID="podcast-detail-range"
-                    value={range}
-                  />
-                ) : null}
-              </>
-            ) : null
+              ) : null}
+            </>
           }
           onSelect={handleSectionSelect}
           selectedKey={section}
