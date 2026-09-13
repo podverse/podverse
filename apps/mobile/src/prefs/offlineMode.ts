@@ -14,7 +14,13 @@ const listeners = new Set<Listener>();
 
 /** In-memory mirror so request/download/playback gates can refuse without an AsyncStorage round-trip. */
 let cachedEnabled = DEFAULT_OFFLINE_MODE;
+/**
+ * Bumped on every write so an in-flight disk hydrate cannot overwrite a newer in-memory value.
+ * Disk is a seed; writes always win.
+ */
+let writeGeneration = 0;
 let hydratePromise: Promise<boolean> | null = null;
+let hasSeededFromDisk = false;
 
 const notify = (enabled: boolean): void => {
   for (const listener of listeners) {
@@ -34,6 +40,11 @@ export const isSyncNetworkUsable = (
   offlineModeEnabled: boolean
 ): boolean => netReachable && !offlineModeEnabled;
 
+/**
+ * Read Offline Mode from disk into the in-memory mirror. Prefer `hydrateOfflineMode` from app
+ * boot and React subscribers — that path is write-aware. This helper is for callers that need a
+ * fresh disk read and accept overwriting the cache (e.g. tests).
+ */
 export const readOfflineModeEnabled = async (): Promise<boolean> => {
   const value = await getPref('offline.mode');
   cachedEnabled = value ?? DEFAULT_OFFLINE_MODE;
@@ -42,20 +53,38 @@ export const readOfflineModeEnabled = async (): Promise<boolean> => {
 
 /**
  * Load the durable pref into the in-memory mirror. Idempotent; safe to call from app boot and from
- * the first subscriber before any write.
+ * the first subscriber before any write. Always resolves to the live cache — never a boolean
+ * captured when the first disk read started — so a write during hydrate wins.
  */
 export const hydrateOfflineMode = async (): Promise<boolean> => {
+  if (hasSeededFromDisk) {
+    return cachedEnabled;
+  }
+
   if (hydratePromise === null) {
-    hydratePromise = readOfflineModeEnabled().catch((error: unknown) => {
+    const generationAtStart = writeGeneration;
+    hydratePromise = (async () => {
+      const value = await getPref('offline.mode');
+      // A write during the await owns the cache; disk must not stomp it.
+      if (writeGeneration === generationAtStart) {
+        cachedEnabled = value ?? DEFAULT_OFFLINE_MODE;
+      }
+      hasSeededFromDisk = true;
+      return cachedEnabled;
+    })().catch((error: unknown) => {
       hydratePromise = null;
       throw error;
     });
   }
-  return hydratePromise;
+
+  // Await the shared seed, then return whatever is live now (may have been written after seed).
+  await hydratePromise;
+  return cachedEnabled;
 };
 
 export const writeOfflineModeEnabled = async (enabled: boolean): Promise<void> => {
   await setPref('offline.mode', enabled);
+  writeGeneration += 1;
   cachedEnabled = enabled;
   notify(enabled);
 };
@@ -96,9 +125,13 @@ export const useOfflineMode = (): OfflineModeControls => {
         setEnabledState(value);
       }
     });
-    return subscribeOfflineMode((next) => {
+    const unsubscribe = subscribeOfflineMode((next) => {
       setEnabledState(next);
     });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   const setEnabled = useCallback(async (next: boolean) => {

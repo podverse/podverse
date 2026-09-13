@@ -346,7 +346,7 @@ export function BrowseScreen() {
       return;
     }
     void loadCategoriesRef.current('initial');
-  }, [isCategoryView]);
+  }, [isCategoryView, loadCategories]);
 
   useEffect(() => {
     if (!isCategoryView || selectedCategory === null) {
