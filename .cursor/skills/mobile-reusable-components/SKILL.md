@@ -141,10 +141,12 @@ with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch unde
 ## Checklist before finishing a screen
 
 - [ ] Loading / empty / error / auth-empty use `components/state/*` (not ad-hoc `ActivityIndicator` +
-      hardcoded English). Login-gated fill states use **`CallToActionSection`** (via
-      `AuthAwareLoadState` `showAuthRequired`, or as a `FillList` empty) with
-      `authentication.login_required` and `authentication.login` — not `ListEmpty`. See
-      **mobile-screen-layout** and **generic-login-required-copy**.
+      hardcoded English). Pending data shows `LoadingSection` / `ListLoading` /
+      `isInitialLoading` — never `ListEmpty` while the request is still out
+      (**mobile-pending-content-spinner**). Login-gated fill states use
+      **`CallToActionSection`** (via `AuthAwareLoadState` `showAuthRequired`, or as a `FillList`
+      empty) with `authentication.login_required` and `authentication.login` — not `ListEmpty`.
+      See **mobile-screen-layout** and **generic-login-required-copy**.
 - [ ] Hub menus (More, Library) use `MenuListScreen` `sections`. Named headers sit
       above the card. Chevron only on rows that push a screen — not on Log out.
 - [ ] List/media rows use `ListRow` / `HomeFeedRow` / `MediaRowActions` (or a shared row wrapper)
@@ -178,6 +180,7 @@ with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch unde
 
 - Rule: **reuse-beyond-components** — the same habit for hooks and pure functions, including logic
   mobile shares with web through `@podverse/helpers`
+- Rule: **mobile-pending-content-spinner** — spinner until load settles; never an empty flash
 - Rule: **mobile-react-native** (boundaries + DRY bullet)
 - Theme: **mobile-theme-parity**
 - Web counterpart (not for mobile imports): **reusable-components**

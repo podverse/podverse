@@ -121,6 +121,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const { podcastId, previewImageUrl, previewTitle } = route.params;
   const cachedChrome = getCachedChannelSectionFlags(podcastId);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
+  const [isChannelLoading, setIsChannelLoading] = useState<boolean>(true);
   const [hasSoundbites, setHasSoundbites] = useState<boolean>(
     cachedChrome?.hasOfficialClips === true
   );
@@ -164,12 +165,17 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setPreviewHeaderTitle(
       previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null
     );
+  }, [podcastId, previewImageUrl, previewTitle]);
+
+  useEffect(() => {
     const nextChrome = getCachedChannelSectionFlags(podcastId);
     chromeConfirmedRef.current = false;
+    setChannel(null);
+    setIsChannelLoading(true);
     setHasSoundbites(nextChrome?.hasOfficialClips === true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
     setHasCheckedSoundbites(nextChrome !== null);
-  }, [podcastId, previewImageUrl, previewTitle]);
+  }, [podcastId]);
 
   const styles = useMemo(
     () =>
@@ -211,42 +217,46 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
    * with an error.
    */
   const loadChannel = useCallback(async () => {
-    const soundbites = await readHasStoredSoundbites(podcastId);
-    setHasSoundbites(soundbites);
-    setHasCheckedSoundbites(true);
-
-    if (offlineModeEnabled) {
-      const local = await subscriptionsRepository.getByIdText(podcastId);
-      if (local !== null) {
-        setPreviewHasPodroll(false);
-      }
-      chromeConfirmedRef.current = true;
-      return;
-    }
-
     try {
-      const response = await requestWithMobileAuthRefresh(authContext, async (api) =>
-        api.reqChannelGetByIdOrIdText(podcastId)
-      );
-      setChannel(response);
-      const hasPodroll = channelHasPodroll(response);
-      setPreviewHasPodroll(hasPodroll);
-      void sectionChromeFlagsRepository.mergeChannel(podcastId, {
-        hasOfficialClips: soundbites,
-        hasPodroll,
-      });
-      // This screen is where the show's name is known for a channel the user does not follow, so it
-      // is where any download of theirs that has only an id gets one.
-      void downloadsRepository.attachChannelToDownloads({
-        channelIdText: response.id_text ?? podcastId,
-        channelTitle: response.title ?? null,
-      });
-      chromeConfirmedRef.current = true;
-    } catch {
-      void sectionChromeFlagsRepository.mergeChannel(podcastId, {
-        hasOfficialClips: soundbites,
-      });
-      chromeConfirmedRef.current = true;
+      const soundbites = await readHasStoredSoundbites(podcastId);
+      setHasSoundbites(soundbites);
+      setHasCheckedSoundbites(true);
+
+      if (offlineModeEnabled) {
+        const local = await subscriptionsRepository.getByIdText(podcastId);
+        if (local !== null) {
+          setPreviewHasPodroll(false);
+        }
+        chromeConfirmedRef.current = true;
+        return;
+      }
+
+      try {
+        const response = await requestWithMobileAuthRefresh(authContext, async (api) =>
+          api.reqChannelGetByIdOrIdText(podcastId)
+        );
+        setChannel(response);
+        const hasPodroll = channelHasPodroll(response);
+        setPreviewHasPodroll(hasPodroll);
+        void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+          hasOfficialClips: soundbites,
+          hasPodroll,
+        });
+        // This screen is where the show's name is known for a channel the user does not follow, so it
+        // is where any download of theirs that has only an id gets one.
+        void downloadsRepository.attachChannelToDownloads({
+          channelIdText: response.id_text ?? podcastId,
+          channelTitle: response.title ?? null,
+        });
+        chromeConfirmedRef.current = true;
+      } catch {
+        void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+          hasOfficialClips: soundbites,
+        });
+        chromeConfirmedRef.current = true;
+      }
+    } finally {
+      setIsChannelLoading(false);
     }
   }, [authContext, offlineModeEnabled, podcastId]);
 
@@ -694,6 +704,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
                 channel={channel}
                 channelIdText={podcastId}
                 filterTerm={filterTerm}
+                isChannelLoading={isChannelLoading}
                 listHeader={listHeader}
                 onRefreshChannel={loadChannel}
                 range={range}

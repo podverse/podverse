@@ -6,6 +6,7 @@ import type { DTOChannelPerson } from '@podverse/helpers';
 
 import { CoverImage, FillList, ListRow } from '../../../components/primitives';
 import { ListEmpty } from '../../../components/state/ListEmpty';
+import { LoadingSection } from '../../../components/state/LoadingSection';
 import { screenBodyInsets } from '../../../theme/screenLayout';
 import { typography } from '../../../theme/typography';
 import { useTheme } from '../../../theme/useTheme';
@@ -19,13 +20,17 @@ type AboutCell =
 /**
  * The channel's own description in full, plus the people credited in its feed.
  *
- * Everything here came down with the channel the screen already loaded, so this section needs no
- * request of its own and reads the same with no connection at all.
+ * This section reads the channel the screen owns. Until that load settles, the body is a spinner —
+ * an empty description is only shown after the channel is known.
  *
  * The cells are a single list rather than a scroll view of blocks: the identity block and chips stay
  * pinned, and prose and person rows take their turn in this list like any other section's rows.
  */
-export function PodcastAboutSection({ channel, listHeader }: PodcastSectionPaneProps) {
+export function PodcastAboutSection({
+  channel,
+  isChannelLoading,
+  listHeader,
+}: PodcastSectionPaneProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
 
@@ -129,14 +134,18 @@ export function PodcastAboutSection({ channel, listHeader }: PodcastSectionPaneP
   return (
     <FillList
       ListEmptyComponent={
-        <ListEmpty messageKey="info.summary.no_summary" testID="podcast-detail-about-empty" />
+        isChannelLoading ? (
+          <LoadingSection testID="podcast-detail-about-loading" />
+        ) : (
+          <ListEmpty messageKey="info.summary.no_summary" testID="podcast-detail-about-empty" />
+        )
       }
       ListHeaderComponent={
         listHeader !== null && listHeader !== undefined ? <>{listHeader}</> : null
       }
       accessibilityLabel={t('info.about')}
       contentContainerStyle={styles.content}
-      data={cells}
+      data={isChannelLoading ? [] : cells}
       keyExtractor={(cell) => cell.key}
       renderItem={({ item: cell }) => {
         if (cell.kind === 'description') {

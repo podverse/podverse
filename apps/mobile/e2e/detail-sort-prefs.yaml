@@ -69,6 +69,10 @@ name: Detail Sort Prefs
     visible:
       id: podcast-detail-about
     timeout: ${TIMEOUT_FASTER}
+- extendedWaitUntil:
+    notVisible:
+      id: podcast-detail-about-loading
+    timeout: ${TIMEOUT_SLOWER}
 # About is prose, so the title filter and sort chip do not apply.
 - assertNotVisible:
     id: podcast-detail-sort-button
@@ -102,6 +106,10 @@ name: Detail Sort Prefs
     visible:
       id: podcast-detail-about
     timeout: ${TIMEOUT_FAST}
+- extendedWaitUntil:
+    notVisible:
+      id: podcast-detail-about-loading
+    timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: detail-sort-podcast-a-section-restored
 
 # Back to Episodes brings the remembered order and window with it.

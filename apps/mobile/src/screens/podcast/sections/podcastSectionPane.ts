@@ -20,6 +20,11 @@ export type PodcastSectionPaneProps = {
   /** `null` until the channel has been read, which the identity block already accounts for. */
   channel: DTOChannel | null;
   channelIdText: string;
+  /**
+   * True until the screen's first channel load settles (success, failure, or offline skip).
+   * About treats this as pending — not as an empty description.
+   */
+  isChannelLoading: boolean;
   /** Free text the user is narrowing by. Empty string when they are not. */
   filterTerm: string;
   /** Title filter, when this section has one. Render as the list's `ListHeaderComponent`. */

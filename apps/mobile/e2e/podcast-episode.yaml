@@ -64,14 +64,18 @@ name: Podcast Episode Flow
     id: podcast-detail-filter-input
 - takeScreenshot: podcast-episode-section-clips
 
-# About makes no request of its own — it reads what came down with the channel. Sort and the
-# title filter stay off; the About chip moves to the front of the section row.
+# About reads the channel the screen loaded. Sort and the title filter stay off; the About chip
+# moves to the front of the section row. Wait out the spinner so the shot is settled content.
 - tapOn:
     id: podcast-detail-section-about
 - extendedWaitUntil:
     visible:
       id: podcast-detail-about
     timeout: ${TIMEOUT_FASTER}
+- extendedWaitUntil:
+    notVisible:
+      id: podcast-detail-about-loading
+    timeout: ${TIMEOUT_SLOWER}
 - assertNotVisible:
     id: podcast-detail-sort-button
 - takeScreenshot: podcast-episode-section-about
