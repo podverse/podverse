@@ -157,6 +157,19 @@ const forceRefreshUpcoming = async (
   return fetched;
 };
 
+/** Force-refresh paginated history from the server and rewrite the page cache key. */
+const forceRefreshHistoryPage = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string,
+  page: number
+): Promise<DTOQueueResource[]> => {
+  const response = await requestWithMobileAuthRefresh(context, async (api) =>
+    api.reqQueueResourcesGetHistoryByQueueIdTextPaginated(queueIdText, page)
+  );
+  await writeQueueCache(historyCacheKey(queueIdText, page), response.data);
+  return response.data;
+};
+
 /**
  * A now-playing resource targeted by a move-to-history mutation. Mirrors the web
  * `useQueueResourcesMoveNowPlayingToHistory` clip / soundbite / item branches.
@@ -428,5 +441,36 @@ export const queueRepository = {
       idText: target.idText,
       kind: target.kind,
     });
+  },
+
+  /**
+   * Refresh queue cache rows from authoritative server state after playback reconcile and re-project
+   * the native cache snapshot for car/watch surfaces.
+   */
+  refreshAfterPlaybackReconcile: async (
+    context: MobileAuthRequestContext,
+    queueIdTexts: readonly string[]
+  ): Promise<void> => {
+    const uniqueQueueIdTexts = [...new Set(queueIdTexts)].filter(
+      (queueIdText) => queueIdText.length > 0
+    );
+    if (uniqueQueueIdTexts.length === 0) {
+      return;
+    }
+
+    const abridged = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourcesGetAllByAccountAbridged()
+    );
+    await writeQueueCache(CACHE_KEY_ABRIDGED_INDEX, abridged);
+
+    for (const queueIdText of uniqueQueueIdTexts) {
+      await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
+      await Promise.all([
+        forceRefreshNowPlaying(context, queueIdText),
+        forceRefreshUpcoming(context, queueIdText),
+        forceRefreshHistoryPage(context, queueIdText, 1),
+      ]);
+      await projectQueueForQueue(queueIdText);
+    }
   },
 };

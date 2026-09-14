@@ -373,6 +373,13 @@
     "skip_to_previous": "",
     "jump_back": "",
     "jump_forward": "",
+    "handoff": {
+      "title": "",
+      "body": "",
+      "continue_action": "",
+      "switch_action": "",
+      "unknown_episode": ""
+    },
     "step_back": "",
     "step_forward": "",
     "mute": "",

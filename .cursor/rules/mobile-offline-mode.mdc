@@ -38,15 +38,15 @@ UI** to downloaded / already-stored views.
   never a spinner, empty list, or silent failure.
 - Do not auto-switch bottom tabs; the user sees the message on the tab they opened.
 
-## Playback is not recorded while parked
+## Playback is recorded while parked
 
-Do not assume listening done in Offline Mode reaches the server later. History writes go straight to
-the API and are dropped when they fail, mobile does not post now-playing position during playback,
-and listen stats are fire-and-forget. There is no playback outbox and no replay job, so offline
-listening currently does not appear in history once the device is back online. Treat that as a known
-gap rather than something the sync queue already covers; a change here belongs in a designed
-reconciliation pass (client listen timestamps, idempotent replay, forward-only position merge), not
-a retry bolted onto a single call site.
+Offline listening is persisted device-locally and reconciled when connectivity returns.
+
+- Playback mutations are written to a durable local outbox with meaningful-event timestamps.
+- Replay is bounded at 500 events with oldest-first eviction when the cap is reached.
+- Position updates collapse to the latest position per item before replay.
+- Completion stays sticky across replay so a completed item is not reopened by stale position writes.
+- Replay runs once Offline Mode is off and the network is reachable.
 
 ## Related
 

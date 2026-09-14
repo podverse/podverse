@@ -18,15 +18,7 @@ import {
 import { MediumEnum } from './medium.js';
 
 export type NotificationDestinationKind =
-  | 'album'
-  | 'channel'
-  | 'episode'
-  | 'home'
-  | 'livestream'
-  | 'path'
-  | 'podcast'
-  | 'track'
-  | 'video';
+  'album' | 'channel' | 'episode' | 'home' | 'livestream' | 'path' | 'podcast' | 'track' | 'video';
 
 export type NotificationDestination = {
   kind: NotificationDestinationKind;
@@ -303,7 +295,9 @@ export const resolveNotificationDestinationFromPayload = (
 
   const messageType = asNonEmptyString(data.type) ?? asNonEmptyString(data.messageType);
   const itemIdText =
-    asNonEmptyString(data.itemIdText) ?? asNonEmptyString(data.id_text) ?? asNonEmptyString(data.item_id_text);
+    asNonEmptyString(data.itemIdText) ??
+    asNonEmptyString(data.id_text) ??
+    asNonEmptyString(data.item_id_text);
   const channelIdText =
     asNonEmptyString(data.channelIdText) ??
     asNonEmptyString(data.channel_id_text) ??

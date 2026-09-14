@@ -33,11 +33,11 @@ Efficient layout consistent with episode rows, without Play:
 
 ### Tap behavior
 
-| Status | Tap |
-| ------ | --- |
-| queued / downloading / paused | Pause or resume that job |
-| failed | Retry (re-queue) |
-| complete | Open episode detail (track later) |
+| Status                        | Tap                               |
+| ----------------------------- | --------------------------------- |
+| queued / downloading / paused | Pause or resume that job          |
+| failed                        | Retry (re-queue)                  |
+| complete                      | Open episode detail (track later) |
 
 ### Channel identity
 

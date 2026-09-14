@@ -66,11 +66,10 @@ not exist yet, so that check is deferred — build the surfaces so it drops in w
 | **Unsubscribe** — always                    | Anonymous  | Never blocked, in any tier or membership state  |
 | Local subscription list, filter, sort       | Anonymous  | Reads local storage                            |
 | Download episodes, offline playback         | Anonymous  | Device-local                                   |
-| Local queue and history                     | Anonymous  | Device-local                                   |
 | Per-channel seen state (local)              | Anonymous  | A local last-seen timestamp per channel        |
 | **Subscribe — server-side follow**          | Membership | `POST /account/follow/channel` is gated today  |
 | Cross-device sync of seen state             | Account    | Server write, but not a paid capability        |
-| Cross-device sync of queue and history      | Membership | Paid capability                                |
+| **Queue and history**                       | Membership | Signed-in only; see the offline note below     |
 | **Add by RSS**                              | Membership | Requires server-side feed parsing              |
 | **Notifications** (inbox and push)          | Membership | Requires server-side storage and push delivery |
 
@@ -98,6 +97,25 @@ cleared.
 Queue, history, and per-channel seen state reconcile on sign-in rather than following the sign-up-only
 rule above, because they are per-device activity rather than a library the account owns. Seen state
 reconciles by taking the **later** timestamp per channel, so it only ever moves forward.
+
+### Queue and history are signed-in only, and still work offline
+
+"Signed in" and "has a network connection" are different conditions, and the queue makes the
+difference visible. A signed-in user with no connection is **still a signed-in user** — they keep a
+working queue and history on the device, and that local state syncs to the account when the network
+returns. Offline Mode is the same situation entered deliberately.
+
+So the device-local queue and history are not an anonymous-tier capability being extended upward;
+they are the **offline half of a signed-in feature**. A user with no account has no queue and no
+history at all — anonymous playback keeps only a single-item resume snapshot in AsyncStorage.
+
+When designing here, the question is never "is there a network?" but "is there an account?":
+
+| Signed in | Network | Queue and history                                     |
+| --------- | ------- | ----------------------------------------------------- |
+| No        | Either  | **None.** Single-item resume snapshot only            |
+| Yes       | Yes     | Local, writing through to the account                 |
+| Yes       | No      | Local, buffering meaningful events to sync on return  |
 
 ## Do
 

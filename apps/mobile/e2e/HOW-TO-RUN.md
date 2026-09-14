@@ -1,9 +1,22 @@
 # How to run mobile E2E
 
 From the **monorepo root**. Use the VS Code / Cursor tabs from
-[`.vscode/terminals.json`](../../../.vscode/terminals.json) — exact names below. Do not paste
+[`.vscode/terminals.json`](/.vscode/terminals.json) — exact names below. Do not paste
 leave-running processes into the same shell as one-shot commands — Metro and the mobile E2E API
 block forever until stopped.
+
+This file is **mobile E2E** (Maestro on device) plus
+[mobile unit tests](#unit-tests-pure-modules--no-device). It does not run package unit tests,
+API integration tests, or web / management-web Playwright.
+
+To run **every** repo test (unit → lint/build → web/API E2E → this mobile stack), follow
+[FULL-REPO-VERIFICATION-COMMANDS.md](/docs/testing/FULL-REPO-VERIFICATION-COMMANDS.md) in order.
+Steps 5–6 there send you back here for the leave-running tabs.
+
+First-time native install (once per machine, or after Expo upgrades):
+[APPS-MOBILE.md](../APPS-MOBILE.md) — `npm run mobile:install`, `npm run build:packages`, then
+`npm run mobile:prebuild` or `npm run mobile:reset`. After that, start at
+[Run all E2E](#run-all-e2e-primary) or [One flow at a time](#one-flow-at-a-time).
 
 ## Run all E2E (primary)
 
@@ -65,9 +78,16 @@ runner fails fast when a playback flow needs `:2111` and it is not listening. St
 npm run mobile:e2e:test:all
 ```
 
-Equivalent: `npm run mobile:e2e:test -- all`.
+Equivalent: `npm run mobile:e2e:test -- all`. One platform at a time (review the report before
+the next run replaces `latest`):
 
-Then open reports (see [Reports](#reports) below).
+```bash
+npm run mobile:e2e:test:all -- --platform ios
+npm run mobile:e2e:test:all -- --platform android
+```
+
+Then open reports (see [Reports](#reports) below). To run each area yourself instead of `:all`,
+use [One flow at a time](#one-flow-at-a-time).
 
 ### Seed vs static assets (web alignment)
 
@@ -186,37 +206,20 @@ Use this for `api-health`, auth, home/search/library-style flows, etc. **Mobile 
 E2E API hosts via `mobile:dev:e2e` (iOS `http://localhost:4230/api/v2`, Android
 `http://10.0.2.2:4230/api/v2`).
 
-Prep + leave-running Metro / API / installs: same as [Run all E2E](#run-all-e2e-primary), then:
-
-```bash
-npm run mobile:e2e:test -- api-health
-# or: npm run mobile:e2e:test -- auth-login
-# or: npm run mobile:e2e:test -- auth-logout
-# or: npm run mobile:e2e:test -- deep-link
-# or: npm run mobile:e2e:test -- push
-# or: npm run mobile:e2e:test -- tab-switch-playback
-# or: npm run mobile:e2e:test -- queue-add
-# or: npm run mobile:e2e:test -- membership-gate
-```
+Prep + leave-running Metro / API / installs: same as [Run all E2E](#run-all-e2e-primary). Every
+area command is listed under [One flow at a time](#one-flow-at-a-time).
 
 The **`membership-gate`** flow needs the API only (no `:2111`). It logs in as the seeded **Trial**
 `e2e-user`, taps Podcast Index directory **Add** (`unparsedfixture`), and asserts the real
 `membership.feature_not_available_for_account_type` **403** surfaces the premium gate modal →
 **Renew** → Membership screen (and the logged-out Membership screen shows the **Sign Up** CTA).
 
-Playback flows (`play-mini-player`, `auto-queue-advance`, `v4v`) additionally need **Mobile E2E
-test-assets** (`npm run mobile:e2e:test-assets` on `:2111`) leave-running for real media:
-
-```bash
-npm run mobile:e2e:test -- play-mini-player
-# or: npm run mobile:e2e:test -- auto-queue-advance
-# or: npm run mobile:e2e:test -- v4v
-```
-
-The **`v4v`** flow plays a seeded episode to reach the full player, then taps the Value-for-Value
-button and asserts the placeholder screen. The V4V button is **hidden by default** (store policy,
-detail 359); `mobile:dev:e2e` sets `EXPO_PUBLIC_MOBILE_V4V_ENABLED=1` so the button renders for E2E.
-After changing that flag you must **reload/reinstall** the app so Metro rebundles the new value.
+Playback flows additionally need **Mobile E2E test-assets** (`npm run mobile:e2e:test-assets` on
+`:2111`) leave-running for real media. The **`v4v`** flow plays a seeded episode to reach the full
+player, then taps the Value-for-Value button and asserts the placeholder screen. The V4V button is
+hidden by default (store policy); `mobile:dev:e2e` sets `EXPO_PUBLIC_MOBILE_V4V_ENABLED=1` so the
+button renders for E2E. After changing that flag you must **reload/reinstall** the app so Metro
+rebundles the new value.
 
 Optional convenience: instead of leave-running **Mobile E2E API**, start the API in the background
 from **Mobile**, then health-check:

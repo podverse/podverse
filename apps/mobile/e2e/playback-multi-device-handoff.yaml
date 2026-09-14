@@ -1,0 +1,100 @@
+appId: com.podverse.app.next
+name: Playback Multi-device Handoff
+---
+# Validates prompt behavior for different-item conflicts, dismissal memory, and the same-item
+# no-prompt path. Maestro drives one device, so the "other device" now-playing state is seeded
+# through the API-backed E2E stack.
+#
+# Needs flow_needs_e2e_api.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+# Load episode A and pause so it is the local item while playback is not active.
+- openLink: podverse-next://episode/e2ePodResume01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- assertVisible:
+    id: episode-detail-screen
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player-play-pause
+- assertVisible:
+    id: mini-player-play-pause
+    text: Play
+
+# Seed a newer now-playing row for episode B to represent another device.
+- runScript:
+    file: scripts/seed-playback-now-playing.js
+    env:
+      E2E_ITEM_ID_TEXT: e2ePodResume02
+      E2E_PLAYBACK_EVENT_KIND: play
+      E2E_PLAYBACK_POSITION: "57"
+      E2E_LAST_PLAYED_AT: "2026-09-13T10:30:00.000Z"
+
+# Foreground trigger: replay + reconcile runs on app foreground/connectivity paths.
+- launchApp:
+    clearState: false
+- runFlow: shared/connect-dev-client.yaml
+- assertVisible:
+    id: playback-handoff-dialog
+- assertVisible:
+    text: "E2E Podcast Resume P > 0"
+- assertVisible:
+    text: "E2E Podcast Resume Near End"
+- takeScreenshot: playback-handoff-prompt
+
+# Continue keeps A loaded and demotes B to history.
+- tapOn:
+    id: playback-handoff-continue
+- assertNotVisible:
+    id: playback-handoff-dialog
+- assertVisible:
+    id: playback-now-playing-title-e2e
+    text: "E2E Podcast Resume P > 0"
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-history
+- assertVisible:
+    id: library-history-screen
+- assertVisible:
+    text: "E2E Podcast Resume Near End"
+- takeScreenshot: playback-handoff-continue-history
+
+# Dismissal is keyed to declined remote state; same state must not re-prompt.
+- launchApp:
+    clearState: false
+- runFlow: shared/connect-dev-client.yaml
+- assertNotVisible:
+    id: playback-handoff-dialog
+
+# Same item, newer server position: adopt silently with no prompt.
+- runScript:
+    file: scripts/seed-playback-now-playing.js
+    env:
+      E2E_ITEM_ID_TEXT: e2ePodResume01
+      E2E_PLAYBACK_EVENT_KIND: seek
+      E2E_PLAYBACK_POSITION: "47"
+      E2E_LAST_PLAYED_AT: "2026-09-13T10:35:00.000Z"
+- launchApp:
+    clearState: false
+- runFlow: shared/connect-dev-client.yaml
+- assertNotVisible:
+    id: playback-handoff-dialog
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+# The seeded server position is 47s, so adoption is visible as a 0:4x clock rather than 0:00.
+- assertVisible:
+    id: full-player-position
+    text: "0:4[0-9]"
+- takeScreenshot: playback-handoff-same-item-no-prompt

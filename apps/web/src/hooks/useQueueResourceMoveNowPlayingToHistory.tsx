@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import type { DTOClip, DTOItem, DTOItemSoundbite, PlaybackEventKind } from '@podverse/helpers';
 
 import { useAccount } from '../contexts/Account';
 import { useQueues } from '../contexts/Queue';
@@ -33,6 +33,8 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
     const apiRequestService = getApiRequestService();
     const { completed, mpClip, mpItem, mpItemSoundbite } = params;
     const isLiveItem = !!mpItem?.live_item;
+    const eventKind: PlaybackEventKind = completed ? 'complete' : 'skip';
+    const lastPlayedAtIso = new Date().toISOString();
 
     if (!loggedInAccountRef.current || !activeQueueRef.current || isLiveItem) {
       return;
@@ -46,6 +48,8 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
         mpClip.id_text,
         {
           playback_position: mpClip.start_time,
+          last_played_at: lastPlayedAtIso,
+          playback_event_kind: eventKind,
           ...(completed !== undefined ? { completed } : {}),
         }
       );
@@ -55,6 +59,8 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
         mpItemSoundbite.id_text,
         {
           playback_position: mpItemSoundbite.start_time,
+          last_played_at: lastPlayedAtIso,
+          playback_event_kind: eventKind,
           ...(completed !== undefined ? { completed } : {}),
         }
       );
@@ -63,6 +69,8 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
         activeQueueRef.current.id_text,
         mpItem.id_text,
         {
+          last_played_at: lastPlayedAtIso,
+          playback_event_kind: eventKind,
           ...(completed ? { playback_position: '0' } : {}),
           ...(completed !== undefined ? { completed } : {}),
         }

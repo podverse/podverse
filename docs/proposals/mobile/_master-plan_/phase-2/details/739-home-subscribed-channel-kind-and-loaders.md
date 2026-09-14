@@ -20,14 +20,14 @@ split the same subscription store.
 
 ### Home loaders
 
-| Chip     | Source                                                                 |
-| -------- | ---------------------------------------------------------------------- |
-| Podcasts | `subscriptionsRepository.list` filtered to `kind: podcasts`            |
-| Artists  | local follows with `kind: artists`                                     |
-| Albums   | local follows with `kind: albums`                                      |
+| Chip     | Source                                                                                                                                                     |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Podcasts | `subscriptionsRepository.list` filtered to `kind: podcasts`                                                                                                |
+| Artists  | local follows with `kind: artists`                                                                                                                         |
+| Albums   | local follows with `kind: albums`                                                                                                                          |
 | Tracks   | local `channel_item` rows whose channel is artists/albums; signed-in empty store may use account `reqItemGetMany` with `medium: music`, `type: subscribed` |
-| Clips    | `reqClipGetManyPublic({ type: 'subscribed' })` only when authenticated; otherwise `[]` |
-| Episodes | unchanged (local subscribed items; account fill never global)          |
+| Clips    | `reqClipGetManyPublic({ type: 'subscribed' })` only when authenticated; otherwise `[]`                                                                     |
+| Episodes | unchanged (local subscribed items; account fill never global)                                                                                              |
 
 **Never** `type: 'global'` on Home for any chip.
 

@@ -17,6 +17,28 @@ export { downloadsRepository } from './downloadsRepository';
 export type { UnsubscribedDownloadChannel } from './downloadsRepository';
 export { notificationsRepository } from './notificationsRepository';
 export { playbackContentRepository } from './playbackContentRepository';
+export {
+  eventKindEmitsRemovalTombstone,
+  isPositionOnlyPlaybackEvent,
+  PLAYBACK_OUTBOX_RESOURCE_KINDS,
+  PLAYBACK_POSITION_ONLY_EVENT_KINDS,
+  selectPlaybackOutboxEvictions,
+  shouldCollapsePlaybackEvent,
+  shouldCollapseQueueReorderEvent,
+  shouldEnqueuePlaybackEvent,
+  toReplayOccurredAtIso,
+} from './playbackOutbox';
+export type {
+  PlaybackOutboxEnqueueEvent,
+  PlaybackOutboxEvictionCandidate,
+  PlaybackOutboxResourceKind,
+} from './playbackOutbox';
+export { playbackOutboxRepository } from './playbackOutboxRepository';
+export type {
+  PlaybackLocalStateRecord,
+  PlaybackOutboxDrainResult,
+  PlaybackOutboxReconcileResult,
+} from './playbackOutboxRepository';
 export { exampleRepository } from './exampleRepository';
 export type { ExampleSnapshot } from './exampleRepository';
 export { queueRepository, selectPrimaryQueue } from './queueRepository';

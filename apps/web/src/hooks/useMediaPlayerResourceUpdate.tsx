@@ -306,6 +306,7 @@ export function useMediaPlayerResourceUpdate() {
         ...np,
         mpDuration: finalDuration,
         mpCurrentTime: decision.initialSeekSeconds,
+        eventKind: 'play',
       });
     }
 

@@ -79,11 +79,23 @@ describe('prefsStore', () => {
       'library.subscriptionFilter': null,
       locale: 'es',
       'membership.expiry_dismissed_for': null,
+      'playback.handoff_dismissed_state': null,
       'offline.mode': null,
       pmt: null,
       preferred_media_type: null,
       uit: null,
     });
+  });
+
+  it('reads and writes playback handoff dismissal state as a raw string', async () => {
+    inMemoryStore.set('playback.handoff_dismissed_state', 'episode-1::123');
+    await expect(getPref('playback.handoff_dismissed_state')).resolves.toBe('episode-1::123');
+
+    await setPref('playback.handoff_dismissed_state', 'episode-2::456');
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'playback.handoff_dismissed_state',
+      'episode-2::456'
+    );
   });
 
   it('parses offline.mode as a boolean pref', async () => {

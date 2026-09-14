@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import type { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
-import { getQueueMediumIdFromMediumId, updateQueueResourceAbridgedIndex } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemSoundbite,
+  PlaybackEventKind,
+} from '@podverse/helpers';
+import {
+  getQueueMediumIdFromMediumId,
+  isMeaningfulPlaybackEvent,
+  updateQueueResourceAbridgedIndex,
+} from '@podverse/helpers';
 
 import { useAccount } from '../contexts/Account';
 import { useConfig } from '../contexts/Config';
@@ -13,9 +23,13 @@ import { cookieConsentAllowsAnonymousFeatureStorage } from '../lib/cookieConsent
 import { clampPlaybackPositionForStorage } from '../lib/playback';
 import { writeAnonymousPlaybackSnapshotFromPlayerState } from '../utils/anonymousPlaybackStorage';
 import { buildQueueResourceAbridgedUpdatesFromNowPlayingLike } from '../utils/nowPlayingParamsToAbridgedUpdates';
+import {
+  clearPlaybackHandoffLocalState,
+  writePlaybackHandoffLocalState,
+} from './playbackHandoffState';
 import { useQueueResourcesAbridgedIndexUpdate } from './useQueueResourcesAbridgedIndexUpdate';
 
-export type UpdateNowPlayingParams = {
+type UpdateNowPlayingCoreParams = {
   mpChannel: DTOChannel | null;
   mpClip: DTOClip | null;
   mpItem: DTOItem | null;
@@ -23,6 +37,16 @@ export type UpdateNowPlayingParams = {
   mpDuration?: number;
   mpCurrentTime?: number;
 };
+
+export type UpdateNowPlayingParams =
+  | (UpdateNowPlayingCoreParams & {
+      eventKind: 'progress_tick';
+      isPlaying: boolean;
+    })
+  | (UpdateNowPlayingCoreParams & {
+      eventKind: Exclude<PlaybackEventKind, 'progress_tick'>;
+      isPlaying?: boolean;
+    });
 
 export function useQueueResourcesUpdateNowPlaying() {
   const config = useConfig();
@@ -50,6 +74,11 @@ export function useQueueResourcesUpdateNowPlaying() {
     loggedInAccountRef.current = loggedInAccount;
   }, [loggedInAccount]);
   useEffect(() => {
+    if (loggedInAccount === null) {
+      clearPlaybackHandoffLocalState();
+    }
+  }, [loggedInAccount]);
+  useEffect(() => {
     queueResourcesAbridgedIndexRef.current = queueResourcesAbridgedIndex;
   }, [queueResourcesAbridgedIndex]);
   useEffect(() => {
@@ -62,7 +91,15 @@ export function useQueueResourcesUpdateNowPlaying() {
   return useCallback(async (params: UpdateNowPlayingParams) => {
     const apiRequestService = getApiRequestService();
 
-    const { mpChannel, mpClip, mpItem, mpItemSoundbite, mpDuration, mpCurrentTime } = params;
+    const { mpChannel, mpClip, mpItem, mpItemSoundbite, mpDuration, mpCurrentTime, eventKind } =
+      params;
+    const isPlaying = params.eventKind === 'progress_tick' ? params.isPlaying : undefined;
+
+    if (!isMeaningfulPlaybackEvent(eventKind, { isPlaying })) {
+      return;
+    }
+
+    const lastPlayedAtIso = new Date().toISOString();
 
     const storedPlaybackPosition =
       mpCurrentTime !== undefined
@@ -80,6 +117,11 @@ export function useQueueResourcesUpdateNowPlaying() {
 
     if (loggedInAccountRef.current && activeQueue) {
       updateAbridgedIndex();
+      writePlaybackHandoffLocalState({
+        itemIdText: mpItem?.id_text,
+        itemTitle: mpItem?.title,
+        lastPlayedAt: lastPlayedAtIso,
+      });
 
       apiRequestService.reqQueueUpdateIsActiveQueue(activeQueue.id_text, true);
       setActiveQueue({
@@ -94,6 +136,8 @@ export function useQueueResourcesUpdateNowPlaying() {
           {
             playback_position: storedPlaybackPosition?.toString(),
             media_file_duration: mpDuration?.toString(),
+            last_played_at: lastPlayedAtIso,
+            playback_event_kind: eventKind,
           }
         );
       } else if (mpItemSoundbite) {
@@ -103,6 +147,8 @@ export function useQueueResourcesUpdateNowPlaying() {
           {
             playback_position: storedPlaybackPosition?.toString(),
             media_file_duration: mpDuration?.toString(),
+            last_played_at: lastPlayedAtIso,
+            playback_event_kind: eventKind,
           }
         );
       } else if (mpItem) {
@@ -112,6 +158,8 @@ export function useQueueResourcesUpdateNowPlaying() {
           {
             playback_position: storedPlaybackPosition?.toString(),
             media_file_duration: mpDuration?.toString(),
+            last_played_at: lastPlayedAtIso,
+            playback_event_kind: eventKind,
           }
         );
       }

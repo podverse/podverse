@@ -61,9 +61,9 @@ describe('appRoutes', () => {
     expect(getAppRouteSegments(APP_ROUTES.EPISODE)).toEqual(['episode']);
     expect(getAppRouteSegments(APP_ROUTES.PODCAST_LIVESTREAM)).toEqual(['podcast', 'livestream']);
     expect(getAppRouteFirstSegment(APP_ROUTES.PODCAST)).toBe('podcast');
-    expect(matchesAppRouteSegments(['podcast', 'livestream', 'live-1'], APP_ROUTES.PODCAST_LIVESTREAM)).toBe(
-      true
-    );
+    expect(
+      matchesAppRouteSegments(['podcast', 'livestream', 'live-1'], APP_ROUTES.PODCAST_LIVESTREAM)
+    ).toBe(true);
     expect(isFlatContentAppRouteSegment('episode')).toBe(true);
     expect(isFlatContentAppRouteSegment('video')).toBe(false);
   });

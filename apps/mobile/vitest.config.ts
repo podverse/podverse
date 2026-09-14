@@ -42,7 +42,15 @@ import { defineConfig } from 'vitest/config';
  * and the RN triggers (`src/sync/SyncProvider.tsx`) are excluded), the sync failure taxonomy that
  * produces the quotable error code (`src/sync/syncErrorClassification.ts`), and the sync event log's
  * cap / eviction rule and export format (`src/data/repositories/syncEventLog.ts` — pure; the
- * SQLite half stays in `syncEventLogRepository.ts`). Scope
+ * SQLite half stays in `syncEventLogRepository.ts`). Playback reconciliation is here on the same
+ * split: the bounded offline outbox ordering and drain batching
+ * (`src/data/repositories/playbackOutbox.ts`), the later-wins merge that decides adopt / ignore /
+ * report-a-conflict (`src/data/repositories/playbackReconcile.ts`), the meaningful-event gate that
+ * feeds it (`src/playback/playbackEventSource.ts`), and the handoff prompt and dismissal memory
+ * (`src/playback/playbackHandoff.ts`) are all pure, while their SQLite halves stay in
+ * `playbackOutboxRepository.ts` and the RN provider stays in `PlaybackProvider.tsx`. The migration
+ * ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
+ * connection. Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
@@ -57,10 +65,13 @@ export default defineConfig({
       'src/auth/localDevLoginPrefill.test.ts',
       'src/auth/mobileClientHeaders.test.ts',
       'src/config/deepLinkSchemes.test.ts',
+      'src/data/db/migrations.test.ts',
       'src/data/repositories/channelItemWindow.test.ts',
       'src/data/repositories/channelLiveStatus.test.ts',
       'src/data/repositories/channelSeenSync.test.ts',
       'src/data/repositories/libraryBrowseProjection.test.ts',
+      'src/data/repositories/playbackOutbox.test.ts',
+      'src/data/repositories/playbackReconcile.test.ts',
       'src/data/repositories/subscriptionsMerge.test.ts',
       'src/data/repositories/subscriptionsSignupPlan.test.ts',
       'src/data/repositories/syncEventLog.test.ts',
@@ -70,6 +81,8 @@ export default defineConfig({
       'src/membership/checkoutUrl.test.ts',
       'src/membership/membershipDenial.test.ts',
       'src/navigation/deepLinking.test.ts',
+      'src/playback/playbackEventSource.test.ts',
+      'src/playback/playbackHandoff.test.ts',
       'src/prefs/homeListPrefs.test.ts',
       'src/prefs/prefsStore.test.ts',
       'src/push/notificationTarget.test.ts',

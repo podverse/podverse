@@ -20,27 +20,32 @@ const fireAndForget = (promise: Promise<unknown>): void => {
   });
 };
 
+const trackPlaybackStatsStrict = async (
+  context: MobileAuthRequestContext,
+  targets: PlaybackStatsTargets
+): Promise<void> => {
+  if (targets.channelIdText !== null) {
+    const channelIdText = targets.channelIdText;
+    await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqStatsTrackChannel(channelIdText)
+    );
+  }
+  if (targets.clipIdText !== null) {
+    const clipIdText = targets.clipIdText;
+    await requestWithMobileAuthRefresh(context, async (api) => api.reqStatsTrackClip(clipIdText));
+  }
+  if (targets.itemIdText !== null) {
+    const itemIdText = targets.itemIdText;
+    await requestWithMobileAuthRefresh(context, async (api) => api.reqStatsTrackItem(itemIdText));
+  }
+};
+
 export const statsRepository = {
   trackPlaybackStats: (context: MobileAuthRequestContext, targets: PlaybackStatsTargets): void => {
-    if (targets.channelIdText !== null) {
-      const channelIdText = targets.channelIdText;
-      fireAndForget(
-        requestWithMobileAuthRefresh(context, async (api) =>
-          api.reqStatsTrackChannel(channelIdText)
-        )
-      );
-    }
-    if (targets.clipIdText !== null) {
-      const clipIdText = targets.clipIdText;
-      fireAndForget(
-        requestWithMobileAuthRefresh(context, async (api) => api.reqStatsTrackClip(clipIdText))
-      );
-    }
-    if (targets.itemIdText !== null) {
-      const itemIdText = targets.itemIdText;
-      fireAndForget(
-        requestWithMobileAuthRefresh(context, async (api) => api.reqStatsTrackItem(itemIdText))
-      );
-    }
+    fireAndForget(trackPlaybackStatsStrict(context, targets));
   },
+  replayPlaybackStats: (
+    context: MobileAuthRequestContext,
+    targets: PlaybackStatsTargets
+  ): Promise<void> => trackPlaybackStatsStrict(context, targets),
 };

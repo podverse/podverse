@@ -373,6 +373,13 @@
     "skip_to_previous": "Ir al anterior",
     "jump_back": "Retroceder {seconds} segundos",
     "jump_forward": "Avanzar {seconds} segundos",
+    "handoff": {
+      "title": "¿Continuar desde otro dispositivo?",
+      "body": "Estabas escuchando \"{localTitle}\" aquí, pero otro dispositivo está en \"{serverTitle}\". ¿Quieres cambiar a ese episodio?",
+      "continue_action": "Continuar aquí",
+      "switch_action": "Cambiar episodio",
+      "unknown_episode": "un episodio desconocido"
+    },
     "step_back": "Paso atrás",
     "step_forward": "Paso adelante",
     "mute": "Silenciar",

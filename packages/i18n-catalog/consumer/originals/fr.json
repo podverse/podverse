@@ -373,6 +373,13 @@
     "skip_to_previous": "Passer au précédent",
     "jump_back": "Reculer de {seconds} secondes",
     "jump_forward": "Avancer de {seconds} secondes",
+    "handoff": {
+      "title": "Reprendre depuis un autre appareil ?",
+      "body": "Vous écoutiez \"{localTitle}\" ici, mais un autre appareil est sur \"{serverTitle}\". Voulez-vous passer à cet épisode ?",
+      "continue_action": "Continuer ici",
+      "switch_action": "Changer d'épisode",
+      "unknown_episode": "un épisode inconnu"
+    },
     "step_back": "Reculer d'un pas",
     "step_forward": "Avancer d'un pas",
     "mute": "Couper le son",

@@ -68,7 +68,7 @@ is detailed only when its screenshots arrive. `Status`: `not started` → `quest
 | P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                               |
 | P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | in progress (popularity-tracking consent) |
 | P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started                               |
-| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (consent)                      |
+| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (consent)                     |
 | P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started                               |
 | P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | not started                               |
 
@@ -94,13 +94,13 @@ that web also reads and writes.
 | P2.1.1 | [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)                       | Codex 5.3 | done   |
 | P2.1.1 | [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                                   | Codex 5.3 | done   |
 | P2.1.1 | [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md)                 | Codex 5.3 | done   |
-| P2.1.1 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | Auto      | done    |
-| P2.1.1 | [738-browse-podcast-host-names](/docs/proposals/mobile/_master-plan_/phase-2/details/738-browse-podcast-host-names.md)                                   | Codex 5.3 | done    |
-| P2.1.1 | [739-home-subscribed-channel-kind-and-loaders](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)     | Codex 5.3 | done    |
-| P2.1.1 | [740-home-empty-discovery-ctas](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md)                                   | Codex 5.3 | done    |
-| P2.1.1 | [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | Codex 5.3 | done    |
-| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done    |
-| P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | Codex 5.3 | done    |
+| P2.1.1 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | Auto      | done   |
+| P2.1.1 | [738-browse-podcast-host-names](/docs/proposals/mobile/_master-plan_/phase-2/details/738-browse-podcast-host-names.md)                                   | Codex 5.3 | done   |
+| P2.1.1 | [739-home-subscribed-channel-kind-and-loaders](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)     | Codex 5.3 | done   |
+| P2.1.1 | [740-home-empty-discovery-ctas](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md)                                   | Codex 5.3 | done   |
+| P2.1.1 | [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | Codex 5.3 | done   |
+| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done   |
+| P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | Codex 5.3 | done   |
 
 The original steps above are implemented and their plans are archived. The focused P2.1.1 follow-ups
 in details 721, 738, and 739–741 are implemented and complete.
@@ -146,16 +146,16 @@ Detail IDs start at **723** because `722` is already
 Nextgen product feedback on the Downloads screen (not a legacy port). Plan set:
 `.llm/plans/completed/mobile-p2-library-downloads/`.
 
-| Step    | Detail                                                                                                                                         | Model     | Status   |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
-| P2.1.5  | [731-redundant-screen-titles-sweep](/docs/proposals/mobile/_master-plan_/phase-2/details/731-redundant-screen-titles-sweep.md)                 | Auto      | done     |
-| P2.1.10 | [732-downloads-settings-storage](/docs/proposals/mobile/_master-plan_/phase-2/details/732-downloads-settings-storage.md)                       | Codex 5.3 | done     |
-| P2.1.10 | [742-offline-mode](/docs/proposals/mobile/_master-plan_/phase-2/details/742-offline-mode.md)                                                   | Auto      | done     |
-| P2.1.5  | [733-download-list-sections-and-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/733-download-list-sections-and-rows.md)             | Codex 5.3 | done     |
-| P2.1.5  | [734-download-pause-resume-concurrency](/docs/proposals/mobile/_master-plan_/phase-2/details/734-download-pause-resume-concurrency.md)         | Opus 5    | done     |
-| P2.1.5  | [735-swipe-action-row](/docs/proposals/mobile/_master-plan_/phase-2/details/735-swipe-action-row.md)                                           | Codex 5.3 | done     |
-| P2.1.5  | [736-home-unsubscribed-downloads-section](/docs/proposals/mobile/_master-plan_/phase-2/details/736-home-unsubscribed-downloads-section.md)     | Codex 5.3 | done     |
-| P2.3.16 | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md)                 | Auto      | deferred |
+| Step    | Detail                                                                                                                                     | Model     | Status   |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------- | -------- |
+| P2.1.5  | [731-redundant-screen-titles-sweep](/docs/proposals/mobile/_master-plan_/phase-2/details/731-redundant-screen-titles-sweep.md)             | Auto      | done     |
+| P2.1.10 | [732-downloads-settings-storage](/docs/proposals/mobile/_master-plan_/phase-2/details/732-downloads-settings-storage.md)                   | Codex 5.3 | done     |
+| P2.1.10 | [742-offline-mode](/docs/proposals/mobile/_master-plan_/phase-2/details/742-offline-mode.md)                                               | Auto      | done     |
+| P2.1.5  | [733-download-list-sections-and-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/733-download-list-sections-and-rows.md)         | Codex 5.3 | done     |
+| P2.1.5  | [734-download-pause-resume-concurrency](/docs/proposals/mobile/_master-plan_/phase-2/details/734-download-pause-resume-concurrency.md)     | Opus 5    | done     |
+| P2.1.5  | [735-swipe-action-row](/docs/proposals/mobile/_master-plan_/phase-2/details/735-swipe-action-row.md)                                       | Codex 5.3 | done     |
+| P2.1.5  | [736-home-unsubscribed-downloads-section](/docs/proposals/mobile/_master-plan_/phase-2/details/736-home-unsubscribed-downloads-section.md) | Codex 5.3 | done     |
+| P2.3.16 | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md)             | Auto      | deferred |
 
 Locked decisions: `.llm/plans/completed/mobile-p2-library-downloads/00-SUMMARY.md`.
 
@@ -180,24 +180,26 @@ Track 4 (CI/store safety) and Track 22 (release process).
 Low priority. Pulled in only when the operator asks. These carried over from Phase 1 with no detail
 doc written except where noted.
 
-| Step    | Carried from | What                                                                                                                                                                                     | Model     |
-| ------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| P2.3.1  | 22.4         | Minimum-supported-client-version API signal for forced upgrade prompts                                                                                                                   | Opus 5    |
-| P2.3.2  | 20.7         | Submit to metaboost-registry or F-Droid request issue (operator step)                                                                                                                    | Auto      |
-| P2.3.3  | 18.16        | CI tablet emulator matrix job (optional nightly, not a PR gate)                                                                                                                          | Codex 5.3 |
-| P2.3.4  | 18.17        | Store listings: separate screenshots per form factor                                                                                                                                     | Auto      |
-| P2.3.5  | 21.11        | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md) — player transcript chrome deferred                     | Auto      |
-| P2.3.6  | 21.12        | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) — pixel drag-and-drop polish deferred                                   | Auto      |
-| P2.3.7  | new          | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md) — group UI themes by mode                                         | Codex 5.3 |
-| P2.3.8  | new          | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                                                           | Codex 5.3 |
-| P2.3.9  | new          | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                                                     | Codex 5.3 |
-| P2.3.10 | new          | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md) — full screen reader audit across all four surfaces               | Opus 5    |
-| P2.3.11 | new          | [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) — evaluate after Phase 2 closes  | Auto      |
-| P2.3.12 | new          | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md) — tablet left rail and missing mini player                      | Opus 5    |
-| P2.3.13 | new          | [894-schedule-cross-app-comments](/docs/proposals/mobile/_master-plan_/phase-2/details/894-schedule-cross-app-comments.md) — Podcasting 2.0 cross-app comments                           | Opus 5    |
-| P2.3.14 | new          | [728-defer-channel-auto-download](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md) — per-channel auto-download (placeholder on podcast settings) | Auto      |
-| P2.3.15 | new          | [729-defer-video-music-channel-visuals](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md) — video/music channel visuals from website        | Auto      |
-| P2.3.16 | new          | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md) — Clear cache / expo-image / concurrency pref             | Auto      |
+| Step    | Carried from | What                                                                                                                                                                                             | Model     |
+| ------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| P2.3.1  | 22.4         | Minimum-supported-client-version API signal for forced upgrade prompts                                                                                                                           | Opus 5    |
+| P2.3.2  | 20.7         | Submit to metaboost-registry or F-Droid request issue (operator step)                                                                                                                            | Auto      |
+| P2.3.3  | 18.16        | CI tablet emulator matrix job (optional nightly, not a PR gate)                                                                                                                                  | Codex 5.3 |
+| P2.3.4  | 18.17        | Store listings: separate screenshots per form factor                                                                                                                                             | Auto      |
+| P2.3.5  | 21.11        | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md) — player transcript chrome deferred                             | Auto      |
+| P2.3.6  | 21.12        | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) — pixel drag-and-drop polish deferred                                           | Auto      |
+| P2.3.7  | new          | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md) — group UI themes by mode                                                 | Codex 5.3 |
+| P2.3.8  | new          | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                                                                   | Codex 5.3 |
+| P2.3.9  | new          | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                                                             | Codex 5.3 |
+| P2.3.10 | new          | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md) — full screen reader audit across all four surfaces                       | Opus 5    |
+| P2.3.11 | new          | [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) — evaluate after Phase 2 closes          | Auto      |
+| P2.3.12 | new          | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md) — tablet left rail and missing mini player                              | Opus 5    |
+| P2.3.13 | new          | [894-schedule-cross-app-comments](/docs/proposals/mobile/_master-plan_/phase-2/details/894-schedule-cross-app-comments.md) — Podcasting 2.0 cross-app comments                                   | Opus 5    |
+| P2.3.14 | new          | [728-defer-channel-auto-download](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md) — per-channel auto-download (placeholder on podcast settings)         | Auto      |
+| P2.3.15 | new          | [729-defer-video-music-channel-visuals](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md) — video/music channel visuals from website                | Auto      |
+| P2.3.16 | new          | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md) — Clear cache / expo-image / concurrency pref                     | Auto      |
+| P2.3.17 | new          | [745-defer-mobile-add-by-rss-playback-recording](/docs/proposals/mobile/_master-plan_/phase-2/details/745-defer-mobile-add-by-rss-playback-recording.md) — mobile records no add-by-RSS playback | Opus 5    |
+| P2.3.18 | new          | [746-defer-handoff-dismissal-memory](/docs/proposals/mobile/_master-plan_/phase-2/details/746-defer-handoff-dismissal-memory.md) — one dismissal slot, re-prompts when the other device plays on | Opus 5    |
 
 **P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components must
 be screen reader accessible when they land, per
@@ -237,18 +239,34 @@ screen work depends on, and they change contracts beyond `apps/mobile` (API, ORM
 | P2.4.8  | [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)               | Opus 5 | done   |
 | P2.4.9  | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                       | Opus 5 | done   |
 | P2.4.10 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                         | Opus 5 | done   |
-| P2.4.11 | [743-offline-playback-reconciliation](/docs/proposals/mobile/_master-plan_/phase-2/details/743-offline-playback-reconciliation.md)       | TBD    | planned |
-| P2.4.12 | [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)           | TBD    | planned |
+| P2.4.11 | [743-offline-playback-reconciliation](/docs/proposals/mobile/_master-plan_/phase-2/details/743-offline-playback-reconciliation.md)       | Opus 5 | done   |
+| P2.4.12 | [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)           | Opus 5 | done   |
 
-**P2.4.11 and P2.4.12 are the open items in this track, and they are correctness work rather than
-polish.** Playback history and position are server-authoritative with a pull-only mobile cache:
-mobile never posts position during playback, and a history write that fails offline is dropped
-rather than queued. Offline Mode (P2.1.10) makes that state reachable on purpose, so a user can now
-deliberately enter the one mode where listening is not recorded. P2.4.11 gives playback the outbox
-and client listen timestamps that subscriptions and channel seen state already have, so offline
-listening replays into the timeline in the order it happened. P2.4.12 decides what the user sees
-when two signed-in devices are both playing — today the last write silently wins. Sequence P2.4.11
-before P2.4.12; the handoff UX cannot compare positions until they carry a trustworthy time.
+**P2.4.11 and P2.4.12 are complete, and they are foundational correctness work.** Playback
+reconciliation now records meaningful-event timestamps across writes, persists offline playback in a
+bounded outbox, and replays that listening history in chronological order after reconnect. Mobile and
+web both use the same handoff comparison logic: same-item disagreements adopt the newer position
+silently, different-item disagreements prompt the user, and active local playback never gets
+interrupted by loading a different item. Two gaps are recorded rather than closed:
+[745](/docs/proposals/mobile/_master-plan_/phase-2/details/745-defer-mobile-add-by-rss-playback-recording.md)
+(mobile records no add-by-RSS playback, so those listens never sync) and
+[746](/docs/proposals/mobile/_master-plan_/phase-2/details/746-defer-handoff-dismissal-memory.md)
+(one dismissal slot, which re-prompts while another device keeps playing).
+
+**Three facts shape that work, and each was long assumed otherwise.** There is no pending-mutation
+outbox anywhere in the app — subscriptions and channel seen state are local-first domain tables
+reconciled by later-wins on the next sync run, and the `writeBehind` helper is exported but
+uncalled. History, now playing, and upcoming are zones of `list_position` on one `queue_resource`
+table where `UNIQUE (queue_id, item_id)` puts an item in exactly one zone, so reconciliation is one
+rule over items rather than three rules over zones. And listen stats are already idempotent —
+`UNIQUE (account_guid, <entity>_id)` with an `ON CONFLICT DO NOTHING` insert makes them unique
+listeners in a rolling window, not play counts, so buffered stats replay safely with no dedupe
+work at all.
+
+Completed plan set: `.llm/plans/completed/mobile-p2-playback-reconciliation/`, which builds **both**
+steps — P2.4.11 in prompts 01–07 and P2.4.12 in prompt 08. The handoff model is recorded in detail
+744: a resume prompt for a **different** item, where the declined one moves to history, while the
+same item at a different position simply adopts the newer position with no prompt.
 
 **Step numbers are identifiers, not the run order.** Within P2.4 the run order is the plan set's —
 see [00-EXECUTION-ORDER.md](/.llm/plans/completed/mobile-p2-home-podcasts/00-EXECUTION-ORDER.md).
@@ -343,8 +361,8 @@ above whenever status changes, per
 | [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)                               | P2.4.8  | Opus 5    | done          |
 | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                                       | P2.4.9  | Opus 5    | done          |
 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                                         | P2.4.10 | Opus 5    | done          |
-| [743-offline-playback-reconciliation](/docs/proposals/mobile/_master-plan_/phase-2/details/743-offline-playback-reconciliation.md)                       | P2.4.11 | TBD       | planned       |
-| [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)                           | P2.4.12 | TBD       | planned       |
+| [743-offline-playback-reconciliation](/docs/proposals/mobile/_master-plan_/phase-2/details/743-offline-playback-reconciliation.md)                       | P2.4.11 | Opus 5    | done          |
+| [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)                           | P2.4.12 | Opus 5    | done          |
 | [720-defer-home-media-type-sort-coverage](/docs/proposals/mobile/_master-plan_/phase-2/details/720-defer-home-media-type-sort-coverage.md)               | P2.1.3  | Codex 5.3 | deferred      |
 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | P2.1.1  | Auto      | done          |
 | [723-podcast-channel-header-and-section-chips](/docs/proposals/mobile/_master-plan_/phase-2/details/723-podcast-channel-header-and-section-chips.md)     | P2.1.2  | Codex 5.3 | done          |

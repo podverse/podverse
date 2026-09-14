@@ -20,6 +20,7 @@ export type PrefKey =
   | 'library.subscriptionFilter'
   | 'locale'
   | 'membership.expiry_dismissed_for'
+  | 'playback.handoff_dismissed_state'
   | 'offline.mode'
   | 'pmt'
   | 'preferred_media_type'
@@ -43,6 +44,8 @@ export type PrefValueMap = {
    * rather than a boolean means a later expiry re-shows the banner instead of silencing it forever.
    */
   'membership.expiry_dismissed_for': string;
+  /** Declined remote handoff state (`<item-id>::<timestamp-ms>`) for playback prompt suppression. */
+  'playback.handoff_dismissed_state': string;
   /**
    * User-forced Offline Mode. Device-local only — parks network work and steers UI to downloaded
    * views. Distinct from NetInfo reachability.
@@ -67,6 +70,7 @@ const PREF_KEYS: readonly PrefKey[] = [
   'locale',
   'downloads.auto_delete',
   'membership.expiry_dismissed_for',
+  'playback.handoff_dismissed_state',
   'offline.mode',
 ];
 
@@ -101,6 +105,7 @@ const createEmptySnapshot = (): PrefSnapshot => ({
   'library.subscriptionFilter': null,
   locale: null,
   'membership.expiry_dismissed_for': null,
+  'playback.handoff_dismissed_state': null,
   'offline.mode': null,
   pmt: null,
   preferred_media_type: null,
@@ -125,6 +130,7 @@ export function getPref(key: 'home.subscriptionFilter'): Promise<SubscriptionLis
 export function getPref(key: 'library.subscriptionFilter'): Promise<SubscriptionListFilter | null>;
 export function getPref(key: 'locale'): Promise<string | null>;
 export function getPref(key: 'membership.expiry_dismissed_for'): Promise<string | null>;
+export function getPref(key: 'playback.handoff_dismissed_state'): Promise<string | null>;
 export function getPref(key: 'offline.mode'): Promise<boolean | null>;
 export function getPref(key: 'pmt'): Promise<MediaTypePreference | null>;
 export function getPref(key: 'preferred_media_type'): Promise<HomeMediaType | null>;
@@ -149,7 +155,8 @@ export async function getPref(key: PrefKey): Promise<PrefValueMap[PrefKey] | nul
   if (
     key === 'auth.forced_logout_at' ||
     key === 'locale' ||
-    key === 'membership.expiry_dismissed_for'
+    key === 'membership.expiry_dismissed_for' ||
+    key === 'playback.handoff_dismissed_state'
   ) {
     return stored;
   }
@@ -185,6 +192,7 @@ export function setPref(
 ): Promise<void>;
 export function setPref(key: 'locale', value: string): Promise<void>;
 export function setPref(key: 'membership.expiry_dismissed_for', value: string): Promise<void>;
+export function setPref(key: 'playback.handoff_dismissed_state', value: string): Promise<void>;
 export function setPref(key: 'offline.mode', value: boolean): Promise<void>;
 export function setPref(key: 'pmt', value: MediaTypePreference): Promise<void>;
 export function setPref(key: 'preferred_media_type', value: HomeMediaType): Promise<void>;
@@ -249,6 +257,12 @@ export const hydratePrefs = async (): Promise<PrefSnapshot> => {
       if (key === 'membership.expiry_dismissed_for') {
         snapshot['membership.expiry_dismissed_for'] = await getPref(
           'membership.expiry_dismissed_for'
+        );
+        return;
+      }
+      if (key === 'playback.handoff_dismissed_state') {
+        snapshot['playback.handoff_dismissed_state'] = await getPref(
+          'playback.handoff_dismissed_state'
         );
         return;
       }

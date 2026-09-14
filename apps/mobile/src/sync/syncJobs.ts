@@ -14,11 +14,14 @@ import { channelItemsRepository } from '../data/repositories/channelItemsReposit
 import type { ChannelItemWindow } from '../data/repositories/channelItemWindow';
 import { channelLiveStatusRepository } from '../data/repositories/channelLiveStatusRepository';
 import { channelSeenRepository } from '../data/repositories/channelSeenRepository';
+import { playbackOutboxRepository } from '../data/repositories/playbackOutboxRepository';
 import { queueRepository } from '../data/repositories/queueRepository';
 import type { SubscribedChannel } from '../data/repositories/subscriptionsRepository';
 import { subscriptionsRepository } from '../data/repositories/subscriptionsRepository';
 import type { MobileAuthRequestContext } from '../data/repositories/types';
+import { readIsPlayingLocallyForSync } from '../playback/playbackSyncState';
 import { DEFAULT_HOME_RANGE, homeSortToApiRange, readHomeListPrefs } from '../prefs/homeListPrefs';
+import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import type { SyncJobKind } from './syncJobKinds';
 import { SYNC_JOB_LABEL_KEYS } from './syncJobKinds';
 import type { PlannedSyncJob } from './syncJobPlan';
@@ -351,6 +354,23 @@ const createQueueHydrateJob = (deps: SyncJobDeps, priority: SyncJobPriority): Sy
   });
 };
 
+const createPlaybackReplayJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
+  return buildJob('playback-replay', priority, 'playback-replay', async () => {
+    const account = await accountRepository.getSnapshot();
+    if (account === null) {
+      publishPlaybackReconcileConflicts([]);
+      return;
+    }
+
+    const result = await playbackOutboxRepository.drainAndReconcile(
+      deps.getAuthContext(),
+      account.id_text,
+      { isPlayingLocally: readIsPlayingLocallyForSync() }
+    );
+    publishPlaybackReconcileConflicts(result.resolveConflicts);
+  });
+};
+
 const createPushRegistrationJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('push-device-registration', priority, 'push-device-registration', async () => {
     const account = await accountRepository.getSnapshot();
@@ -370,6 +390,8 @@ export const buildSyncJobs = (planned: PlannedSyncJob[], deps: SyncJobDeps): Syn
     switch (kind) {
       case 'account-refresh':
         return createAccountRefreshJob(deps, priority);
+      case 'playback-replay':
+        return createPlaybackReplayJob(deps, priority);
       case 'queue-hydrate':
         return createQueueHydrateJob(deps, priority);
       case 'push-device-registration':

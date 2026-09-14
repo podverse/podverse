@@ -38,6 +38,9 @@ the app feel slow. Do **not** put interactive work in the queue — a user who t
 wait behind a full library sync. When in doubt: if a human is watching a spinner they triggered, it
 is interactive.
 
+When both playback replay and queue hydration are pending, replay runs first: `playback-replay`
+must precede `queue-hydrate` so merged playback state reaches the server before the next queue pull.
+
 Auth token refresh (`refreshAccessTokenSingleFlight`) stays orthogonal to the queue. It is a
 prerequisite of individual requests in both lanes, not a sync job.
 

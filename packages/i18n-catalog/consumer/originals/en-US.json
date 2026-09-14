@@ -373,6 +373,13 @@
     "skip_to_previous": "Skip to previous",
     "jump_back": "Jump back {seconds} seconds",
     "jump_forward": "Jump forward {seconds} seconds",
+    "handoff": {
+      "title": "Resume from another device?",
+      "body": "You were listening to \"{localTitle}\" here, but another device is at \"{serverTitle}\". Switch to that device's episode?",
+      "continue_action": "Continue here",
+      "switch_action": "Switch episode",
+      "unknown_episode": "an unknown episode"
+    },
     "step_back": "Step backward",
     "step_forward": "Step forward",
     "mute": "Mute",

@@ -22,10 +22,10 @@ Follow-up density pass on the podcast screen and shared item rows after
 Shared [`HomeFeedRow`](apps/mobile/src/screens/home/HomeFeedRow.tsx) gains `showChannelContext`
 and a three-band layout matching legacy Home Episodes / in-channel podcast lists:
 
-| Context | Top band | Middle | Bottom |
-| ------- | -------- | ------ | ------ |
-| Channel context (`true`) | Art + channel name → title → date; download top-right | 2-line description | Play + duration left; More right |
-| In-channel (`false`) | Title → date only (no art / channel name); download top-right | Same | Same |
+| Context                  | Top band                                                      | Middle             | Bottom                           |
+| ------------------------ | ------------------------------------------------------------- | ------------------ | -------------------------------- |
+| Channel context (`true`) | Art + channel name → title → date; download top-right         | 2-line description | Play + duration left; More right |
+| In-channel (`false`)     | Title → date only (no art / channel name); download top-right | Same               | Same                             |
 
 Artwork uses existing item-then-channel helpers (`getItemPrimaryImageUrl` /
 `primaryListArtworkUrl`). Play / More are nextgen icon-only controls (not labeled pills; not the

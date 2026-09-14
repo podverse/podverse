@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 /**
  * Generic key/value metadata for the sync layer (per-domain watermarks, last-synced-at, and small
@@ -43,6 +43,54 @@ export const queueCache = sqliteTable('queue_cache', {
 
 export type QueueCacheRow = typeof queueCache.$inferSelect;
 export type QueueCacheInsert = typeof queueCache.$inferInsert;
+
+/**
+ * Pending playback mutations for signed-in users. Rows are replayed to the API in occurred-at
+ * order when the network is usable again.
+ */
+export const playbackOutbox = sqliteTable('playback_outbox', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: text('event_id').notNull(),
+  accountIdText: text('account_id_text').notNull(),
+  queueIdText: text('queue_id_text').notNull(),
+  resourceKind: text('resource_kind').notNull(),
+  resourceIdText: text('resource_id_text').notNull(),
+  eventKind: text('event_kind').notNull(),
+  occurredAt: integer('occurred_at').notNull(),
+  playbackPosition: real('playback_position'),
+  mediaFileDuration: real('media_file_duration'),
+  completed: integer('completed'),
+  payloadJson: text('payload_json'),
+});
+
+export type PlaybackOutboxRow = typeof playbackOutbox.$inferSelect;
+export type PlaybackOutboxInsert = typeof playbackOutbox.$inferInsert;
+
+/**
+ * Last-known playback state per resource for signed-in users, independent from pending outbox rows.
+ */
+export const playbackLocalState = sqliteTable(
+  'playback_local_state',
+  {
+    accountIdText: text('account_id_text').notNull(),
+    queueIdText: text('queue_id_text').notNull(),
+    resourceKind: text('resource_kind').notNull(),
+    resourceIdText: text('resource_id_text').notNull(),
+    playbackPosition: real('playback_position').notNull(),
+    mediaFileDuration: real('media_file_duration'),
+    completed: integer('completed').notNull().default(0),
+    zone: text('zone').notNull(),
+    lastMeaningfulAt: integer('last_meaningful_at').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({
+      columns: [table.accountIdText, table.queueIdText, table.resourceKind, table.resourceIdText],
+    }),
+  })
+);
+
+export type PlaybackLocalStateRow = typeof playbackLocalState.$inferSelect;
+export type PlaybackLocalStateInsert = typeof playbackLocalState.$inferInsert;
 
 /**
  * Add-by-RSS feeds the account follows, keyed by `feed_url`. This is the source of truth for the

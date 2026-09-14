@@ -208,6 +208,45 @@ export const MIGRATIONS: Migration[] = [
       );`,
     ],
   },
+  {
+    version: 16,
+    statements: [
+      // Durable playback mutations that can be replayed in occurred-at order after reconnect.
+      `CREATE TABLE IF NOT EXISTS playback_outbox (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id TEXT NOT NULL,
+        account_id_text TEXT NOT NULL,
+        queue_id_text TEXT NOT NULL,
+        resource_kind TEXT NOT NULL,
+        resource_id_text TEXT NOT NULL,
+        event_kind TEXT NOT NULL,
+        occurred_at INTEGER NOT NULL,
+        playback_position REAL,
+        media_file_duration REAL,
+        completed INTEGER,
+        payload_json TEXT
+      );`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_playback_outbox_event_id
+        ON playback_outbox (event_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_playback_outbox_account_id
+        ON playback_outbox (account_id_text, id);`,
+      // Signed-in local playback state, independent from pending outbox rows.
+      `CREATE TABLE IF NOT EXISTS playback_local_state (
+        account_id_text TEXT NOT NULL,
+        queue_id_text TEXT NOT NULL,
+        resource_kind TEXT NOT NULL,
+        resource_id_text TEXT NOT NULL,
+        playback_position REAL NOT NULL,
+        media_file_duration REAL,
+        completed INTEGER NOT NULL DEFAULT 0,
+        zone TEXT NOT NULL,
+        last_meaningful_at INTEGER NOT NULL,
+        PRIMARY KEY (account_id_text, queue_id_text, resource_kind, resource_id_text)
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_playback_local_state_account_queue
+        ON playback_local_state (account_id_text, queue_id_text);`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

@@ -1988,7 +1988,7 @@ components:
         - $ref: "#/components/schemas/PublisherFeedRemoteItemsResponse"
     ApiPostQueueQueueIdTextClipClipIdTextBetweenRequest:
       allOf:
-        - $ref: "#/components/schemas/PositionBetweenRequest"
+        - $ref: "#/components/schemas/QueueResourceBetweenRequest"
     ApiPostQueueQueueIdTextClipClipIdTextBetweenResponse200:
       allOf:
         - $ref: "#/components/schemas/QueueResourceActionResponse"
@@ -1998,12 +1998,24 @@ components:
     ApiPostQueueQueueIdTextClipClipIdTextHistoryResponse200:
       allOf:
         - $ref: "#/components/schemas/QueueResourceActionResponse"
+    ApiPostQueueQueueIdTextClipClipIdTextLastRequest:
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceQueueWriteRequest"
     ApiPostQueueQueueIdTextClipClipIdTextLastResponse200:
       allOf:
         - $ref: "#/components/schemas/QueueResourceActionResponse"
+    ApiPostQueueQueueIdTextClipClipIdTextNextRequest:
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceQueueWriteRequest"
     ApiPostQueueQueueIdTextClipClipIdTextNextResponse200:
       allOf:
         - $ref: "#/components/schemas/QueueResourceActionResponse"
+    ApiPostQueueQueueIdTextPlaybackEventsReplayRequest:
+      allOf:
+        - $ref: "#/components/schemas/QueuePlaybackReplayRequest"
+    ApiPostQueueQueueIdTextPlaybackEventsReplayResponse200:
+      allOf:
+        - $ref: "#/components/schemas/QueuePlaybackReplayResponse"
     ApiPostQueueQueueIdTextClipClipIdTextNowPlayingRequest:
       allOf:
         - $ref: "#/components/schemas/QueueResourceNowPlayingRequest"
@@ -2015,41 +2027,36 @@ components:
       description: Operation-specific response payload for DELETE /queue/{queue_id_text}/item-add-by-rss/{add_by_rss_hash_id} (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemAddByRssBetweenRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-add-by-rss/between.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceAddByRssBetweenRequest"
     ApiPostQueueQueueIdTextItemAddByRssBetweenResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-add-by-rss/between (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemAddByRssHistoryRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-add-by-rss/history.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceAddByRssNowPlayingRequest"
     ApiPostQueueQueueIdTextItemAddByRssHistoryResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-add-by-rss/history (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemAddByRssLastRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-add-by-rss/last.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceAddByRssQueueWriteRequest"
     ApiPostQueueQueueIdTextItemAddByRssLastResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-add-by-rss/last (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemAddByRssNextRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-add-by-rss/next.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceAddByRssQueueWriteRequest"
     ApiPostQueueQueueIdTextItemAddByRssNextResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-add-by-rss/next (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemAddByRssNowPlayingRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-add-by-rss/now-playing.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceAddByRssNowPlayingRequest"
     ApiPostQueueQueueIdTextItemAddByRssNowPlayingResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-add-by-rss/now-playing (200).
@@ -2059,41 +2066,36 @@ components:
       description: Operation-specific response payload for DELETE /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text} (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextBetweenRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/between.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceBetweenRequest"
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextBetweenResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/between (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextHistoryRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/history.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceNowPlayingRequest"
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextHistoryResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/history (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextLastRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/last.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceQueueWriteRequest"
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextLastResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/last (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextNextRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/next.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceQueueWriteRequest"
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextNextResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/next (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextNowPlayingRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/now-playing.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceNowPlayingRequest"
     ApiPostQueueQueueIdTextItemSoundbiteItemSoundbiteIdTextNowPlayingResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item-soundbite/{item_soundbite_id_text}/now-playing (200).
@@ -2103,41 +2105,36 @@ components:
       description: Operation-specific response payload for DELETE /queue/{queue_id_text}/item/{item_id_text} (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemItemIdTextBetweenRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item/{item_id_text}/between.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceBetweenRequest"
     ApiPostQueueQueueIdTextItemItemIdTextBetweenResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item/{item_id_text}/between (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemItemIdTextHistoryRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item/{item_id_text}/history.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceNowPlayingRequest"
     ApiPostQueueQueueIdTextItemItemIdTextHistoryResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item/{item_id_text}/history (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemItemIdTextLastRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item/{item_id_text}/last.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceQueueWriteRequest"
     ApiPostQueueQueueIdTextItemItemIdTextLastResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item/{item_id_text}/last (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemItemIdTextNextRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item/{item_id_text}/next.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceQueueWriteRequest"
     ApiPostQueueQueueIdTextItemItemIdTextNextResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item/{item_id_text}/next (200).
       additionalProperties: true
     ApiPostQueueQueueIdTextItemItemIdTextNowPlayingRequest:
-      type: object
-      description: Operation-specific request payload for POST /queue/{queue_id_text}/item/{item_id_text}/now-playing.
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceNowPlayingRequest"
     ApiPostQueueQueueIdTextItemItemIdTextNowPlayingResponse200:
       type: object
       description: Operation-specific response payload for POST /queue/{queue_id_text}/item/{item_id_text}/now-playing (200).
@@ -2561,6 +2558,35 @@ components:
         position2:
           type: number
           minimum: 0
+    QueueResourceQueueWriteRequest:
+      type: object
+      properties:
+        last_played_at:
+          type: string
+          format: date-time
+        playback_event_kind:
+          type: string
+          enum:
+            - play
+            - pause
+            - seek
+            - progress_tick
+            - complete
+            - skip
+            - sleep_timer_stop
+            - queue_add
+            - queue_remove
+            - queue_reorder
+    QueueResourceRemovalTombstoneRequest:
+      type: object
+      properties:
+        last_played_at:
+          type: string
+          format: date-time
+    QueueResourceBetweenRequest:
+      allOf:
+        - $ref: "#/components/schemas/PositionBetweenRequest"
+        - $ref: "#/components/schemas/QueueResourceQueueWriteRequest"
     QueueResourceNowPlayingRequest:
       type: object
       properties:
@@ -2572,6 +2598,132 @@ components:
           minimum: 0
         completed:
           type: boolean
+        last_played_at:
+          type: string
+          format: date-time
+        playback_event_kind:
+          type: string
+          enum:
+            - play
+            - pause
+            - seek
+            - progress_tick
+            - complete
+            - skip
+            - sleep_timer_stop
+            - queue_add
+            - queue_remove
+            - queue_reorder
+    QueueResourceAddByRssQueueWriteRequest:
+      type: object
+      required:
+        - add_by_rss_resource_data
+      properties:
+        add_by_rss_resource_data:
+          type: object
+          additionalProperties: true
+        last_played_at:
+          type: string
+          format: date-time
+        playback_event_kind:
+          type: string
+          enum:
+            - play
+            - pause
+            - seek
+            - progress_tick
+            - complete
+            - skip
+            - sleep_timer_stop
+            - queue_add
+            - queue_remove
+            - queue_reorder
+    QueueResourceAddByRssBetweenRequest:
+      allOf:
+        - $ref: "#/components/schemas/PositionBetweenRequest"
+        - $ref: "#/components/schemas/QueueResourceAddByRssQueueWriteRequest"
+    QueueResourceAddByRssNowPlayingRequest:
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceAddByRssQueueWriteRequest"
+        - type: object
+          properties:
+            playback_position:
+              type: number
+              minimum: 0
+            media_file_duration:
+              type: number
+              minimum: 0
+            completed:
+              type: boolean
+    QueuePlaybackReplayEventRequest:
+      type: object
+      required:
+        - playback_event_kind
+      properties:
+        item_id_text:
+          type: string
+        clip_id_text:
+          type: string
+        item_soundbite_id_text:
+          type: string
+        add_by_rss_hash_id:
+          type: string
+        add_by_rss_resource_data:
+          type: object
+          additionalProperties: true
+        playback_event_kind:
+          type: string
+          enum:
+            - play
+            - pause
+            - seek
+            - progress_tick
+            - complete
+            - skip
+            - sleep_timer_stop
+            - queue_add
+            - queue_remove
+            - queue_reorder
+        last_played_at:
+          type: string
+          format: date-time
+        playback_position:
+          type: number
+          minimum: 0
+        media_file_duration:
+          type: number
+          minimum: 0
+        completed:
+          type: boolean
+      oneOf:
+        - required:
+            - item_id_text
+        - required:
+            - clip_id_text
+        - required:
+            - item_soundbite_id_text
+        - required:
+            - add_by_rss_hash_id
+        - required:
+            - add_by_rss_resource_data
+    QueuePlaybackReplayRequest:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          minItems: 1
+          maxItems: 60
+          items:
+            $ref: "#/components/schemas/QueuePlaybackReplayEventRequest"
+    QueuePlaybackReplayResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/QueueResource"
     PlaylistResourceActionResponse:
       type: object
       additionalProperties: true
@@ -13429,6 +13581,12 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueueResourceRemovalTombstoneRequest"
       responses:
         "204":
           description: Removed from queue
@@ -13611,6 +13769,12 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostQueueQueueIdTextClipClipIdTextLastRequest"
       responses:
         "201":
           description: Added to queue
@@ -13669,6 +13833,12 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostQueueQueueIdTextClipClipIdTextNextRequest"
       responses:
         "201":
           description: Added to queue
@@ -13791,6 +13961,12 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueueResourceRemovalTombstoneRequest"
       responses:
         "200":
           description: Successful response
@@ -14144,6 +14320,12 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueueResourceRemovalTombstoneRequest"
       responses:
         "200":
           description: Successful response
@@ -14331,7 +14513,7 @@ paths:
           schema:
             type: string
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -14395,7 +14577,7 @@ paths:
           schema:
             type: string
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -14522,6 +14704,12 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueueResourceRemovalTombstoneRequest"
       responses:
         "200":
           description: Successful response
@@ -14709,7 +14897,7 @@ paths:
           schema:
             type: string
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -14773,7 +14961,7 @@ paths:
           schema:
             type: string
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -14849,6 +15037,65 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiPostQueueQueueIdTextItemItemIdTextNowPlayingResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /queue/{queue_id_text}/playback-events/replay:
+    post:
+      operationId: apiPostQueueQueueIdTextPlaybackEventsReplay
+      tags:
+        - queue
+      summary: POST /queue/{queue_id_text}/playback-events/replay
+      description: Replays queued playback mutations in one transactional batch.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: queue_id_text
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostQueueQueueIdTextPlaybackEventsReplayRequest"
+      responses:
+        "200":
+          description: Playback events applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostQueueQueueIdTextPlaybackEventsReplayResponse200"
         "400":
           description: Bad request
           content:

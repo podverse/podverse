@@ -1,6 +1,11 @@
 export { SyncProvider, useSync } from './SyncProvider';
 export { classifySyncError, SyncJobTimeoutError } from './syncErrorClassification';
 export type { SyncErrorClassification } from './syncErrorClassification';
+export {
+  publishPlaybackReconcileConflicts,
+  readPlaybackReconcileConflicts,
+  subscribePlaybackReconcileConflicts,
+} from './playbackReconcileConflict';
 export { attachSyncEventLogSink, toSyncEventLogAppend } from './syncEventLogSink';
 export { SYNC_JOB_KINDS, SYNC_JOB_LABEL_KEYS } from './syncJobKinds';
 export type { SyncJobKind } from './syncJobKinds';

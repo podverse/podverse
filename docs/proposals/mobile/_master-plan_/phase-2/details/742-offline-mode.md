@@ -30,22 +30,22 @@ unavailable message if they cannot work offline.
 
 ### Screen behavior (Offline Mode on)
 
-| Surface | Behavior |
-| ------- | -------- |
-| More, Settings, About, Sync log | Work (local) |
-| Every main-tab screen | Slim warning “Offline mode is on” strip in bottom chrome (sync → Offline Mode → mini player) |
-| Home Podcasts / Artists / Albums | Subscribed list (local); skip popularity refresh |
-| Home Episodes / Tracks | Downloaded items only |
-| Home Clips | Unavailable fill |
-| Browse / Search / PI preview | Unavailable fill |
-| Podcast detail | **Downloaded** chip on navigate (overrides remembered tab; does not overwrite stored pref); skip channel refresh; network panes show unavailable |
-| Episode detail | Stored DTO / download metadata; skip network refresh |
-| Library Downloads / Queue / History | Work (local) |
-| Playlists / other profiles | Unavailable fill |
-| Notifications inbox | Last cached rows only; no refresh |
-| Add-by-RSS | List works; Add blocked |
-| OPML | Import blocked; export of local follows ok |
-| Artist / Album detail | Skip refresh; local tracks when available |
+| Surface                             | Behavior                                                                                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| More, Settings, About, Sync log     | Work (local)                                                                                                                                     |
+| Every main-tab screen               | Slim warning “Offline mode is on” strip in bottom chrome (sync → Offline Mode → mini player)                                                     |
+| Home Podcasts / Artists / Albums    | Subscribed list (local); skip popularity refresh                                                                                                 |
+| Home Episodes / Tracks              | Downloaded items only                                                                                                                            |
+| Home Clips                          | Unavailable fill                                                                                                                                 |
+| Browse / Search / PI preview        | Unavailable fill                                                                                                                                 |
+| Podcast detail                      | **Downloaded** chip on navigate (overrides remembered tab; does not overwrite stored pref); skip channel refresh; network panes show unavailable |
+| Episode detail                      | Stored DTO / download metadata; skip network refresh                                                                                             |
+| Library Downloads / Queue / History | Work (local)                                                                                                                                     |
+| Playlists / other profiles          | Unavailable fill                                                                                                                                 |
+| Notifications inbox                 | Last cached rows only; no refresh                                                                                                                |
+| Add-by-RSS                          | List works; Add blocked                                                                                                                          |
+| OPML                                | Import blocked; export of local follows ok                                                                                                       |
+| Artist / Album detail               | Skip refresh; local tracks when available                                                                                                        |
 
 Do not auto-switch bottom tabs.
 

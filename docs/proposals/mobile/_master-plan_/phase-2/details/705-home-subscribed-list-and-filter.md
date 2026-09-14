@@ -50,10 +50,10 @@ local result.
 
 ### Empty states
 
-| Situation               | Presentation                                                                 |
-| ----------------------- | ---------------------------------------------------------------------------- |
-| Chip has no rows        | Generic empty copy plus Browse and/or Search per [740](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md) |
-| Filter matches nothing  | A plain "no matches" message — **no** discovery button                       |
+| Situation              | Presentation                                                                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chip has no rows       | Generic empty copy plus Browse and/or Search per [740](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md) |
+| Filter matches nothing | A plain "no matches" message — **no** discovery button                                                                                        |
 
 Filter visibility is limited to channel lists (Podcasts / Artists / Albums) when rows exist —
 see [741](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md).

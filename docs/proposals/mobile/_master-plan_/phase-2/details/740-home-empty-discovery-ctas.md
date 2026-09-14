@@ -11,14 +11,14 @@ Search only where Podcast Index feed lookup applies.
 
 ### Empty button matrix
 
-| Chip                    | Buttons                                      |
-| ----------------------- | -------------------------------------------- |
-| Podcasts                | Search (`all`) + Browse (`podcasts`)         |
-| Artists / Albums / Tracks | Search (`music`) + Browse (matching chip)  |
-| Episodes                | Browse only (`episodes`)                     |
-| Clips — no podcast follows | Browse only (`clips`)                     |
+| Chip                                | Buttons                                      |
+| ----------------------------------- | -------------------------------------------- |
+| Podcasts                            | Search (`all`) + Browse (`podcasts`)         |
+| Artists / Albums / Tracks           | Search (`music`) + Browse (matching chip)    |
+| Episodes                            | Browse only (`episodes`)                     |
+| Clips — no podcast follows          | Browse only (`clips`)                        |
 | Clips — podcast follows, signed out | Login only (`authentication.login_required`) |
-| Clips — signed in, zero clips | Browse only (`clips`)                     |
+| Clips — signed in, zero clips       | Browse only (`clips`)                        |
 
 Copy stays the generic `subscriptions.empty_message` except the Clips login fill, which uses
 `authentication.login_required`.
