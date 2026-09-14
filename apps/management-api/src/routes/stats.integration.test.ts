@@ -132,7 +132,16 @@ function authHeaders(userId: number) {
 
 describe('Stats Routes', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    getWithRoleAndPermissionsMock.mockClear();
+    queryMock.mockReset();
+    readWriteQueryMock.mockReset();
+    readWriteTransactionMock.mockReset();
+    queryMock.mockResolvedValue([]);
+    readWriteQueryMock.mockResolvedValue([]);
+    readWriteTransactionMock.mockImplementation(
+      async (fn: (manager: { query: typeof queryMock }) => Promise<unknown>) =>
+        fn({ query: readWriteQueryMock })
+    );
   });
 
   describe('GET /stats/:entityType/top', () => {
