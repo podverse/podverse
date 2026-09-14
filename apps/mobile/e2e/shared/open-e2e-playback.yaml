@@ -5,6 +5,11 @@ appId: com.podverse.app.next
     id: tab-more
 - assertVisible:
     id: more-screen
+- scrollUntilVisible:
+    element:
+      id: more-nav-e2e-playback
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
 - tapOn:
     id: more-nav-e2e-playback
 - assertVisible:

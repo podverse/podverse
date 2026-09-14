@@ -8,10 +8,7 @@ name: Locale Switch Home Smoke
 # Cold start via shared/launch-and-connect.yaml (retries Dev Client connect).
 
 - runFlow: shared/launch-and-connect.yaml
-- tapOn:
-    id: tab-more
-- tapOn:
-    id: more-nav-smoke
+- runFlow: shared/open-more-smoke.yaml
 - assertVisible:
     id: hello-world-screen
 - assertVisible: Hello World Testing 123

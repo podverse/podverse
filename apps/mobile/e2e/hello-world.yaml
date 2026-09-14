@@ -8,10 +8,7 @@ name: Hello World Smoke
 - runFlow: shared/launch-and-connect.yaml
 - assertVisible:
     id: home-screen
-- tapOn:
-    id: tab-more
-- tapOn:
-    id: more-nav-smoke
+- runFlow: shared/open-more-smoke.yaml
 - assertVisible:
     id: hello-world-screen
 - assertVisible:

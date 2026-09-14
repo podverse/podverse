@@ -200,7 +200,15 @@ assertion. Check them before blaming locators or timeouts:
    sub-screen — asserting the hub `testID` there fails against correct behavior. Assert the
    remembered screen, and do not add a reset to make a root assertion pass.
 
-6. **A black screen after submit is a wedged native modal, not a dead app.** When the device goes
+6. **More rows below the first page are missing from the iOS hierarchy, not from the app.** Phone
+   More is two pages (Offline Mode, overflow tabs, Settings, OPML, About, Sync log, then E2E).
+   XCUITest omits those off-screen `testID`s, so `tapOn: more-nav-smoke` fails with "Element not
+   found" while the screenshot still shows More. Scroll first
+   (`shared/open-more-smoke.yaml` / `scrollUntilVisible`). A live `maestro --device <udid>
+   hierarchy` that names "Smoke" in the scroll view's aggregated text but has no `more-nav-smoke`
+   resource-id is this case.
+
+7. **A black screen after submit is a wedged native modal, not a dead app.** When the device goes
    blank and every later assertion reports "not visible", dump the hierarchy before suspecting
    Metro, the Dev Client launcher, or the device. The wedged state survives the run, so this works
    after the fact:
