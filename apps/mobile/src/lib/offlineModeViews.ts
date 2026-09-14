@@ -34,8 +34,7 @@ export const isHomeChannelListOfflineCompatible = (mediaType: HomeMediaType): bo
 
 export const isHomeDownloadedItemsOnly = (
   mediaType: HomeMediaType
-): mediaType is HomeDownloadedItemMediaType =>
-  mediaType === 'episodes' || mediaType === 'tracks';
+): mediaType is HomeDownloadedItemMediaType => mediaType === 'episodes' || mediaType === 'tracks';
 
 export const isHomeClipsUnavailableOffline = (mediaType: HomeMediaType): boolean =>
   mediaType === 'clips';
