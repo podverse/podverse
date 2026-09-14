@@ -1,6 +1,11 @@
 # Full Local Infrastructure Test
 
-Run these commands from the monorepo root, in order.
+Run these commands from the monorepo root, **in order**. Do not start at step 6
+(mobile Maestro). Unit tests, static checks, and web / API E2E come first.
+
+The mobile slice (steps 5–6) matches
+[HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) sections 2–6. Use that file when you
+already finished the earlier tiers and only need the mobile runbook.
 
 ## 0. Optional cold dependency install
 
@@ -41,6 +46,7 @@ npm run test:unit
 
 ```bash
 npm --prefix apps/mobile run test
+npm run type-check:mobile
 ```
 
 ## 3. Static checks and builds
@@ -81,7 +87,7 @@ npm run mobile:reset
 
 ## 6. Mobile E2E
 
-Prepare the test dependencies once:
+Only after steps 1–5. Prepare the test dependencies once:
 
 **Mobile**
 

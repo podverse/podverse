@@ -38,9 +38,10 @@ Do **not** collapse platforms into a single screenshot page. Open the slot / flo
 ## Full suite vs focused verify
 
 - **Full suite (operator regression):** `npm run mobile:e2e:test:all` — discovers every top-level
-  `apps/mobile/e2e/<area>.yaml` (not `shared/`). Documented first in
-  [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md). Requires API-backed stack
-  (`mobile:dev:e2e` + `mobile:e2e:api` + deps/seed + E2E installs).
+  `apps/mobile/e2e/<area>.yaml` (not `shared/`). Documented as **section 6** in
+  [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md), after unit / API / web, native
+  install, deps, leave-running services, health checks, and E2E binaries. Requires the
+  API-backed stack (`mobile:dev:e2e` + `mobile:e2e:api` + test-assets + deps/seed).
 - **Feature / PR verify:** keep using the **narrowest** `npm run mobile:e2e:test -- <area>` (bare
   `mobile:e2e:test` = `hello-world` only). Do **not** default agent verify endings to `:all`.
 - **UI-only Metro symptom:** API-backed / `:all` runs with `mobile:dev` (not `mobile:dev:e2e`) show
@@ -69,8 +70,9 @@ contaminating the result; it is not the default for focused or full-suite verifi
    [`scripts/mobile/e2e-test.sh`](/scripts/mobile/e2e-test.sh).
 3. If the flow needs real media (`tools/test-assets` on `:2111`), add `<area>` to
    `flow_needs_test_assets` in the same script.
-4. Keep [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) § Run all as the operator entry for the
-   full process (prep + leave-running + `:all`). Update that section if prep/stack steps change.
+4. Keep [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) numbered sections 1–6 as the
+   operator entry. `:all` stays in section 6, after prep. Update those sections if
+   prep/stack steps change.
 5. Keep [FULL-REPO-VERIFICATION-COMMANDS.md](/docs/testing/FULL-REPO-VERIFICATION-COMMANDS.md)
    synchronized whenever a top-level mobile flow is added or removed. Update its full-suite option,
    focused-flow command list, and tablet opt-in section when applicable.

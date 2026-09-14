@@ -132,6 +132,14 @@
       "reorder_hint": "Moves this screen on the tab bar or into More"
     }
   },
+  "e2e": {
+    "section": "E2E",
+    "smoke": "Smoke",
+    "playback": "Playback",
+    "playback_intro": "These controls exist only in E2E test builds. They start seeded media the product screens do not expose yet.",
+    "play_video": "Play E2E video",
+    "skip_next": "Skip to next"
+  },
   "subscriptions": {
     "downloaded_only": "Downloaded only"
   },

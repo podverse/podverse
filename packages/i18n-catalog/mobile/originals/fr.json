@@ -132,6 +132,14 @@
       "reorder_hint": "Déplace cet écran dans la barre d'onglets ou vers Plus"
     }
   },
+  "e2e": {
+    "section": "E2E",
+    "smoke": "Test",
+    "playback": "Lecture",
+    "playback_intro": "Ces commandes n'existent que dans les builds de test E2E. Elles lancent le média de seed que les écrans produit n'exposent pas encore.",
+    "play_video": "Lire la vidéo E2E",
+    "skip_next": "Passer au suivant"
+  },
   "subscriptions": {
     "downloaded_only": "Téléchargés uniquement"
   },

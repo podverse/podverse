@@ -132,6 +132,14 @@
       "reorder_hint": ""
     }
   },
+  "e2e": {
+    "section": "",
+    "smoke": "",
+    "playback": "",
+    "playback_intro": "",
+    "play_video": "",
+    "skip_next": ""
+  },
   "subscriptions": {
     "downloaded_only": ""
   },

@@ -35,7 +35,6 @@ import {
   HOME_STACK_ROUTES,
   SEARCH_STACK_ROUTES,
 } from '../../navigation';
-import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
 import type { HomeRangeOption, HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
 import {
   DEFAULT_HOME_RANGE,
@@ -700,7 +699,6 @@ export function HomeScreen() {
 
   const listHeader = (
     <>
-      <E2ePlayVideoButton />
       {showFilterField ? (
         <ListFilterHeader hasItemsBelow={visibleRows.length > 0} style={styles.filterRow}>
           <ListFilterField

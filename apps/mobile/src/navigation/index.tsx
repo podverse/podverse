@@ -33,9 +33,11 @@ import { OfflineModeBanner } from '../components/screen/OfflineModeBanner';
 import { OfflineModeFeaturesHeader } from '../components/screen/OfflineModeFeaturesHeader';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
+import { isMobileE2eFromEnv } from '../config/env';
 import { sumBadgeCounts } from '../downloads/inProgressDownloadCount';
 import { useInProgressDownloadCount } from '../downloads/useDownloads';
 import { useNotificationsUnreadCount } from '../hooks/useNotificationsUnreadCount';
+import { isMobileE2eHarnessEnabled } from '../lib/e2e/e2eHarness';
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import { isContentTabId, TAB_TEST_ID_SLUG, tabLabelKey } from '../prefs/tabLayout';
@@ -55,6 +57,7 @@ import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScree
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
+import { MoreE2ePlaybackScreen } from '../screens/more/MoreE2ePlaybackScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsAppearanceScreen } from '../screens/more/MoreSettingsAppearanceScreen';
@@ -196,6 +199,7 @@ export const NOTIFICATIONS_STACK_ROUTES = {
 
 export const MORE_STACK_ROUTES = {
   MoreAbout: 'MoreAbout',
+  MoreE2ePlayback: 'MoreE2ePlayback',
   MoreMembership: 'MoreMembership',
   MoreOpml: 'MoreOpml',
   MorePublicProfile: 'MorePublicProfile',
@@ -249,6 +253,7 @@ const mobileNavigationScreens = {
       More: {
         screens: {
           MoreAbout: 'more/about',
+          MoreE2ePlayback: 'more/e2e/playback',
           MoreMembership: `more${APP_ROUTES.MEMBERSHIP}`,
           MoreOpml: 'more/opml',
           MorePublicProfile: `more${APP_ROUTES.PROFILE}/:accountIdText`,
@@ -263,7 +268,7 @@ const mobileNavigationScreens = {
           MoreSettingsPlayback: `more${APP_ROUTES.SETTINGS}/playback`,
           MoreSettingsTabBar: `more${APP_ROUTES.SETTINGS}/tab-bar`,
           MoreSettingsTheme: `more${APP_ROUTES.SETTINGS}/theme`,
-          MoreSmoke: 'more/smoke',
+          MoreSmoke: 'more/e2e/smoke',
           MoreSyncLog: 'more/sync-log',
         },
       },
@@ -422,6 +427,7 @@ export type NotificationsStackParamList = {
 
 export type MoreStackParamList = {
   MoreAbout: undefined;
+  MoreE2ePlayback: undefined;
   MoreMembership: undefined;
   MoreOpml: undefined;
   MorePublicProfile: { accountIdText: string };
@@ -859,15 +865,24 @@ function MoreStackNavigator({
         name={MORE_STACK_ROUTES.MoreSyncLog}
         options={{ title: t('sync.log.title') }}
       />
-      <MoreStack.Screen name={MORE_STACK_ROUTES.MoreSmoke} options={{ title: 'Smoke' }}>
-        {() => (
-          <HelloWorldScreen
-            authMode="anonymous"
-            onRequestLogin={onRequestLogin}
-            onRequestSignUp={onRequestSignUp}
-          />
-        )}
-      </MoreStack.Screen>
+      {isMobileE2eHarnessEnabled() ? (
+        <MoreStack.Screen name={MORE_STACK_ROUTES.MoreSmoke} options={{ title: t('e2e.smoke') }}>
+          {() => (
+            <HelloWorldScreen
+              authMode="anonymous"
+              onRequestLogin={onRequestLogin}
+              onRequestSignUp={onRequestSignUp}
+            />
+          )}
+        </MoreStack.Screen>
+      ) : null}
+      {isMobileE2eFromEnv() ? (
+        <MoreStack.Screen
+          component={MoreE2ePlaybackScreen}
+          name={MORE_STACK_ROUTES.MoreE2ePlayback}
+          options={{ title: t('e2e.playback') }}
+        />
+      ) : null}
     </MoreStack.Navigator>
   );
 }
@@ -1073,18 +1088,37 @@ function MoreRootScreen({
           testID: 'more-nav-sync-log',
           title: t('sync.log.title'),
         },
-        {
-          onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreSmoke);
-          },
-          testID: 'more-nav-smoke',
-          title: 'Smoke',
-        },
       ],
       key: 'other',
       title: t('nav.menu.section_other'),
     },
   ];
+
+  if (isMobileE2eHarnessEnabled()) {
+    const e2eItems: MenuListItem[] = [
+      {
+        onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreSmoke);
+        },
+        testID: 'more-nav-smoke',
+        title: t('e2e.smoke'),
+      },
+    ];
+    if (isMobileE2eFromEnv()) {
+      e2eItems.push({
+        onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreE2ePlayback);
+        },
+        testID: 'more-nav-e2e-playback',
+        title: t('e2e.playback'),
+      });
+    }
+    sections.push({
+      items: e2eItems,
+      key: 'e2e',
+      title: t('e2e.section'),
+    });
+  }
 
   return <MenuListScreen sections={sections} testID="more-screen" />;
 }

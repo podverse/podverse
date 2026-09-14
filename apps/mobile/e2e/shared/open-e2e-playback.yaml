@@ -1,0 +1,9 @@
+# More → E2E → Playback. The tab shell must already be visible.
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-nav-e2e-playback
+- assertVisible:
+    id: more-e2e-playback-screen

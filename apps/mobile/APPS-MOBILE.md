@@ -687,11 +687,11 @@ Import style in app source is **Tier D** (extensionless relatives). See
 
 ## Testing
 
-| Tier          | Where                    | How                                                                 |
-| ------------- | ------------------------ | ------------------------------------------------------------------- |
-| Shared policy | `packages/playback-core` | Vitest (included in root `test:unit`)                               |
-| Mobile app    | `apps/mobile`            | Vitest when configured (excluded from root `test:unit` until ready) |
-| Mobile E2E    | `apps/mobile/e2e/`       | Maestro (`e2e/<area>.yaml`) — **not** `make e2e_*`                  |
+| Tier          | Where                    | How                                                                             |
+| ------------- | ------------------------ | ------------------------------------------------------------------------------- |
+| Shared policy | `packages/playback-core` | Vitest (included in root `test:unit`)                                           |
+| Mobile app    | `apps/mobile`            | Vitest via `npm --prefix apps/mobile run test` (excluded from root `test:unit`) |
+| Mobile E2E    | `apps/mobile/e2e/`       | Maestro (`e2e/<area>.yaml`) — **not** `make e2e_*`                              |
 
 Track 5 locks mobile E2E on Maestro. Naming convention:
 
@@ -703,7 +703,9 @@ Canonical mobile E2E report root: `.artifacts/mobile-e2e-reports/latest/` (separ
 slot summaries at `latest/ios-phone/index.html` / `latest/android-phone/index.html` with per-flow
 pages under `…/flows/<slug>/` (tablet slots reserved).
 
-**Operator how-to (shortest path):** [e2e/HOW-TO-RUN.md](./e2e/HOW-TO-RUN.md)
+**Operator how-to:** [e2e/HOW-TO-RUN.md](./e2e/HOW-TO-RUN.md) (unit / API / web first,
+then native and stack prep, then Maestro). Full-repo ladder:
+[FULL-REPO-VERIFICATION-COMMANDS.md](/docs/testing/FULL-REPO-VERIFICATION-COMMANDS.md).
 
 Operator commands from monorepo root — **separate terminals** for leave-running processes. Full
 matrix: [e2e/HOW-TO-RUN.md](./e2e/HOW-TO-RUN.md).
@@ -764,8 +766,9 @@ For API base URL, seed expectations, and the API-backed smoke flow (`api-health`
 
 Root `npm run lint` / `npm run lint:fix` include `apps/mobile` via a dedicated ESLint step (mobile is
 outside npm workspaces). Use `npm run mobile:lint` / `mobile:lint:fix` to lint only mobile. Tier D /
-RN overrides live in root `eslint.config.mjs`. Type-check and `test:unit` still skip mobile until RN
-tsc/Vitest enrollment.
+RN overrides live in root `eslint.config.mjs`. Root `npm run test:unit` and `npm run type-check`
+do not include `apps/mobile`. Use `npm --prefix apps/mobile run test` and
+`npm run type-check:mobile`.
 
 ## i18n runtime
 

@@ -132,6 +132,14 @@
       "reorder_hint": "Mueve esta pantalla en la barra de pestañas o a Más"
     }
   },
+  "e2e": {
+    "section": "E2E",
+    "smoke": "Prueba",
+    "playback": "Reproducción",
+    "playback_intro": "Estos controles existen solo en compilaciones de prueba E2E. Inician el audio o vídeo de prueba que las pantallas del producto aún no exponen.",
+    "play_video": "Reproducir vídeo E2E",
+    "skip_next": "Saltar al siguiente"
+  },
   "subscriptions": {
     "downloaded_only": "Solo descargados"
   },

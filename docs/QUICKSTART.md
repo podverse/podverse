@@ -4,8 +4,13 @@ One local process: tear the stack down, regenerate env, recreate infra and the
 dev database, then run the full watch stack (web, API, **admin**, test-assets),
 parser workers, and the mobile app.
 
-This is **not** the Maestro E2E stack (API on `:4230`, `mobile:dev:e2e`). For that,
-see [apps/mobile/e2e/HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md).
+This is **not** the test verification ladder and **not** the Maestro E2E stack
+(API on `:4230`, `mobile:dev:e2e`).
+
+- Full local verification (unit → lint/build → API/web E2E → mobile):
+  [FULL-REPO-VERIFICATION-COMMANDS.md](/docs/testing/FULL-REPO-VERIFICATION-COMMANDS.md)
+- Mobile E2E after those earlier tiers:
+  [apps/mobile/e2e/HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md)
 
 All commands are from the **monorepo root**. Use the named tabs in
 [`.vscode/terminals.json`](/.vscode/terminals.json).
