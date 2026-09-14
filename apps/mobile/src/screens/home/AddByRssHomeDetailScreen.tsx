@@ -15,6 +15,7 @@ import { Button, CoverImage } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { isMobileE2eFromEnv } from '../../config/env';
 import { addByRssRepository, channelSeenRepository } from '../../data/repositories';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
@@ -51,7 +52,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   const [isRemoving, setIsRemoving] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
-  const { playItem } = useAddByRssPlayback({ onNotice: setNoticeKey });
+  const { playItem, isPlaybackActive } = useAddByRssPlayback({ onNotice: setNoticeKey });
 
   const styles = useMemo(
     () =>
@@ -251,7 +252,9 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         ) : null
       }
       ListFooterComponent={
-        noticeKey !== null || errorKey !== null ? (
+        noticeKey !== null ||
+        errorKey !== null ||
+        (isMobileE2eFromEnv() && isPlaybackActive) ? (
           <View>
             {noticeKey !== null ? (
               <Text style={styles.notice} testID="add-by-rss-home-notice">
@@ -266,6 +269,15 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
                 }}
                 testID="add-by-rss-home-error"
               />
+            ) : null}
+            {isMobileE2eFromEnv() && isPlaybackActive ? (
+              <Text
+                accessibilityLabel="add-by-rss-home-playback-active"
+                style={styles.notice}
+                testID="add-by-rss-home-playback-active"
+              >
+                {t('media_player.play')}
+              </Text>
             ) : null}
           </View>
         ) : null
@@ -307,7 +319,9 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
                 handlePlay(row);
               }}
               playLabel={t('media_player.play')}
-              playTestID={`add-by-rss-home-play-${row.id}`}
+              playTestID={
+                index === 0 ? 'add-by-rss-home-play-first' : `add-by-rss-home-play-${row.id}`
+              }
             />
           }
           isLast={index === sortedEpisodes.length - 1}

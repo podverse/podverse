@@ -77,7 +77,6 @@ import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { PodcastSettingsScreen } from '../screens/podcast/PodcastSettingsScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
-import { AddByRssFeedListScreen } from '../screens/rss/AddByRssFeedListScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
@@ -169,7 +168,6 @@ export const SEARCH_STACK_ROUTES = {
 } as const;
 
 export const LIBRARY_STACK_ROUTES = {
-  AddByRssFeedList: 'AddByRssFeedList',
   AddByRssRoot: 'AddByRssRoot',
   EpisodeDetail: 'EpisodeDetail',
   LibraryClipDetail: 'LibraryClipDetail',
@@ -274,7 +272,6 @@ const mobileNavigationScreens = {
       },
       'My Library': {
         screens: {
-          AddByRssFeedList: 'my-library/add-by-rss/feeds',
           AddByRssRoot: 'my-library/add-by-rss',
           EpisodeDetail: `my-library${APP_ROUTES.EPISODE}/:episodeId`,
           LibraryClipDetail: `my-library${APP_ROUTES.CLIP}/:clipId`,
@@ -393,7 +390,6 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
 };
 
 export type LibraryStackParamList = {
-  AddByRssFeedList: undefined;
   AddByRssRoot: undefined;
   EpisodeDetail: { episodeId: string };
   LibraryClipDetail: { clipId: string };
@@ -614,11 +610,6 @@ function LibraryStackNavigator() {
         component={AddByRssRootScreen}
         name={LIBRARY_STACK_ROUTES.AddByRssRoot}
         options={{ title: t('features.add_by_rss.label') }}
-      />
-      <LibraryStack.Screen
-        component={AddByRssFeedListScreen}
-        name={LIBRARY_STACK_ROUTES.AddByRssFeedList}
-        options={{ title: t('nav.stack.rss_feeds') }}
       />
       <LibraryStack.Screen
         component={PodcastDetailScreen}

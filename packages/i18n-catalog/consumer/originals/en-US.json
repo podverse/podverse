@@ -746,6 +746,7 @@
       "unseen_count_capped": "{count}+ new",
       "unseen_count_aria": "{count} new episodes",
       "unseen_count_capped_aria": "More than {count} new episodes",
+      "unseen_indicator_aria": "New episodes",
       "downloaded_count": "{count} downloaded"
     },
     "mark_all_seen": "Mark All As Seen",

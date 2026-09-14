@@ -63,8 +63,8 @@ export type ListFilterFieldProps = {
 };
 
 /**
- * Free-text filter over a list already on screen. Uses `TextField` so the pill matches
- * `SearchField`.
+ * Free-text filter over a list already on screen. Uses compact `TextField` (no eyebrow) so the
+ * pill matches `SearchField`.
  *
  * Narrows what is rendered rather than requesting anything, so it stays responsive with no debounce
  * and belongs above the list it filters. The clear control appears only once there is a term to

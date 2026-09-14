@@ -746,6 +746,7 @@
       "unseen_count_capped": "{count}+ νέα",
       "unseen_count_aria": "{count} νέα επεισόδια",
       "unseen_count_capped_aria": "Περισσότερα από {count} νέα επεισόδια",
+      "unseen_indicator_aria": "Νέα επεισόδια",
       "downloaded_count": "{count} ληφθέντα"
     },
     "mark_all_seen": "Σήμανση Όλων Ως Αναγνωσμένων",

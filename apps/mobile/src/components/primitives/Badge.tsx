@@ -4,12 +4,13 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 
-export type BadgeTone = 'accent' | 'neutral' | 'muted';
+export type BadgeTone = 'accent' | 'danger' | 'neutral' | 'muted';
 
 export type BadgeProps = {
   label: string;
   /**
-   * `accent` fills to draw the eye; `neutral` outlines to sit quietly beside content; `muted` is a
+   * `accent` fills to draw the eye; `danger` is the live-status glow (translucent danger fill,
+   * danger border, bold label); `neutral` outlines to sit quietly beside content; `muted` is a
    * solid gray fill with contrasting label — for counts overlaid on artwork (e.g. Home grid
    * downloads).
    */
@@ -46,6 +47,16 @@ export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
           paddingHorizontal: tokens.spacing.sm,
           paddingVertical: 2,
         },
+        danger: {
+          backgroundColor: tokens.button.opaqueDangerBg,
+          borderColor: tokens.button.opaqueDangerBorder,
+          borderWidth: 1.5,
+          paddingHorizontal: tokens.spacing.base,
+        },
+        dangerLabel: {
+          color: tokens.button.dangerColor,
+          fontWeight: '700',
+        },
         label: {
           fontSize: 11,
           fontWeight: '600',
@@ -69,23 +80,22 @@ export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
     [themeStyles, tokens]
   );
 
-  const toneStyle =
-    tone === 'accent' ? styles.accent : tone === 'muted' ? styles.muted : styles.neutral;
-  const toneLabelStyle =
-    tone === 'accent'
-      ? styles.accentLabel
-      : tone === 'muted'
-        ? styles.mutedLabel
-        : styles.neutralLabel;
+  const toneFaces = {
+    accent: { badge: styles.accent, label: styles.accentLabel },
+    danger: { badge: styles.danger, label: styles.dangerLabel },
+    muted: { badge: styles.muted, label: styles.mutedLabel },
+    neutral: { badge: styles.neutral, label: styles.neutralLabel },
+  } as const;
+  const toneFace = toneFaces[tone];
 
   return (
     <View
       accessibilityElementsHidden
       importantForAccessibility="no"
-      style={[styles.badge, toneStyle, style]}
+      style={[styles.badge, toneFace.badge, style]}
       testID={testID}
     >
-      <Text style={[styles.label, toneLabelStyle]}>{label}</Text>
+      <Text style={[styles.label, toneFace.label]}>{label}</Text>
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, isNotNull } from 'drizzle-orm';
 
 import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
@@ -109,6 +109,17 @@ export const addByRssRepository = {
 
     const raw = rows[0]?.mappedFeedJson ?? null;
     return raw === null ? null : safeJsonParse<AddByRSSMappedFeed>(raw);
+  },
+
+  /** Feed URLs that already have a parsed bundle stored, for parse-status display. */
+  listParsedFeedUrls: async (): Promise<string[]> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({ feedUrl: schema.addByRssFeed.feedUrl })
+      .from(schema.addByRssFeed)
+      .where(isNotNull(schema.addByRssFeed.mappedFeedJson));
+
+    return rows.map((row) => row.feedUrl);
   },
 
   /**

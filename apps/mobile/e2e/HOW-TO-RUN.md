@@ -5,9 +5,10 @@ From the **monorepo root**. Use the VS Code / Cursor tabs from
 leave-running processes into the same shell as one-shot commands. Metro, the mobile E2E API,
 and test-assets block until you stop them.
 
-This file is a **numbered runbook**. Do **not** run `npm run mobile:e2e:test:all` until
-[section 6](#6-run-the-phone-suite). That command needs the earlier tiers, a native tree,
-leave-running services, health checks, and installed E2E binaries.
+This file is a **numbered runbook**. Do **not** run Maestro until
+[section 6](#6-run-maestro). One-flow commands, the
+[complete area list](#complete-area-list), and `:all` live there. They need the earlier
+tiers, a native tree, leave-running services, health checks, and installed E2E binaries.
 
 A cold wipe (`clean:all`, `mobile:reset`) lives in
 [FULL-REPO-VERIFICATION-COMMANDS.md](/docs/testing/FULL-REPO-VERIFICATION-COMMANDS.md).
@@ -163,10 +164,111 @@ npm run mobile:e2e:ios
 npm run mobile:e2e:android
 ```
 
-## 6. Run the phone suite
+## 6. Run Maestro
 
 **Mobile Maestro** (exit when done). Prefer one platform at a time so you can read the
-report before the next run replaces `latest`:
+report before the next run replaces `latest`.
+
+### One flow
+
+`<area>` is the basename of `apps/mobile/e2e/<area>.yaml` (not `shared/`).
+
+```bash
+npm run mobile:e2e:test -- --platform ios <area>
+npm run mobile:e2e:test -- --platform android <area>
+```
+
+Omit `--platform` to run both phones. Bare `npm run mobile:e2e:test` is UI-only
+`hello-world` only. Which stack each area needs is in
+[One flow at a time](#one-flow-at-a-time).
+
+### Complete area list
+
+Every phone `<area>` you can pass. Each line is one top-level file under
+`apps/mobile/e2e/`. Prefer iOS first; fix it, then run the same area on Android.
+
+**iOS**
+
+```bash
+npm run mobile:e2e:test -- --platform ios add-by-rss
+npm run mobile:e2e:test -- --platform ios api-health
+npm run mobile:e2e:test -- --platform ios auth-login
+npm run mobile:e2e:test -- --platform ios auth-logout
+npm run mobile:e2e:test -- --platform ios auto-queue-advance
+npm run mobile:e2e:test -- --platform ios browse
+npm run mobile:e2e:test -- --platform ios deep-link
+npm run mobile:e2e:test -- --platform ios detail-sort-prefs
+npm run mobile:e2e:test -- --platform ios engine-audio-spike
+npm run mobile:e2e:test -- --platform ios hello-world
+npm run mobile:e2e:test -- --platform ios home
+npm run mobile:e2e:test -- --platform ios library-downloads
+npm run mobile:e2e:test -- --platform ios library-playlists
+npm run mobile:e2e:test -- --platform ios locale-switch-home-smoke
+npm run mobile:e2e:test -- --platform ios membership-gate
+npm run mobile:e2e:test -- --platform ios notifications-inbox
+npm run mobile:e2e:test -- --platform ios offline-mode
+npm run mobile:e2e:test -- --platform ios opml
+npm run mobile:e2e:test -- --platform ios play-mini-player
+npm run mobile:e2e:test -- --platform ios playback-multi-device-handoff
+npm run mobile:e2e:test -- --platform ios playback-offline-reconciliation
+npm run mobile:e2e:test -- --platform ios podcast-episode
+npm run mobile:e2e:test -- --platform ios popularity-tracking
+npm run mobile:e2e:test -- --platform ios push
+npm run mobile:e2e:test -- --platform ios queue-add
+npm run mobile:e2e:test -- --platform ios search
+npm run mobile:e2e:test -- --platform ios search-unparsed
+npm run mobile:e2e:test -- --platform ios settings-downloads
+npm run mobile:e2e:test -- --platform ios settings-select
+npm run mobile:e2e:test -- --platform ios subscriptions-anonymous
+npm run mobile:e2e:test -- --platform ios sync-log
+npm run mobile:e2e:test -- --platform ios tab-switch-playback
+npm run mobile:e2e:test -- --platform ios v4v
+npm run mobile:e2e:test -- --platform ios video-transition
+```
+
+**Android**
+
+```bash
+npm run mobile:e2e:test -- --platform android add-by-rss
+npm run mobile:e2e:test -- --platform android api-health
+npm run mobile:e2e:test -- --platform android auth-login
+npm run mobile:e2e:test -- --platform android auth-logout
+npm run mobile:e2e:test -- --platform android auto-queue-advance
+npm run mobile:e2e:test -- --platform android browse
+npm run mobile:e2e:test -- --platform android deep-link
+npm run mobile:e2e:test -- --platform android detail-sort-prefs
+npm run mobile:e2e:test -- --platform android engine-audio-spike
+npm run mobile:e2e:test -- --platform android hello-world
+npm run mobile:e2e:test -- --platform android home
+npm run mobile:e2e:test -- --platform android library-downloads
+npm run mobile:e2e:test -- --platform android library-playlists
+npm run mobile:e2e:test -- --platform android locale-switch-home-smoke
+npm run mobile:e2e:test -- --platform android membership-gate
+npm run mobile:e2e:test -- --platform android notifications-inbox
+npm run mobile:e2e:test -- --platform android offline-mode
+npm run mobile:e2e:test -- --platform android opml
+npm run mobile:e2e:test -- --platform android play-mini-player
+npm run mobile:e2e:test -- --platform android playback-multi-device-handoff
+npm run mobile:e2e:test -- --platform android playback-offline-reconciliation
+npm run mobile:e2e:test -- --platform android podcast-episode
+npm run mobile:e2e:test -- --platform android popularity-tracking
+npm run mobile:e2e:test -- --platform android push
+npm run mobile:e2e:test -- --platform android queue-add
+npm run mobile:e2e:test -- --platform android search
+npm run mobile:e2e:test -- --platform android search-unparsed
+npm run mobile:e2e:test -- --platform android settings-downloads
+npm run mobile:e2e:test -- --platform android settings-select
+npm run mobile:e2e:test -- --platform android subscriptions-anonymous
+npm run mobile:e2e:test -- --platform android sync-log
+npm run mobile:e2e:test -- --platform android tab-switch-playback
+npm run mobile:e2e:test -- --platform android v4v
+npm run mobile:e2e:test -- --platform android video-transition
+```
+
+`tablet` is opt-in and is not part of `:all`. See
+[Tablet screenshots](#tablet-screenshots-opt-in).
+
+### Full phone suite
 
 ```bash
 npm run mobile:e2e:test:all -- --platform ios
@@ -203,9 +305,11 @@ The runbook ends here. Everything below is reference (scoped flows, tablet, fail
 
 ## One flow at a time
 
-After [sections 3–5](#3-prepare-test-databases) are up, run **one** area in
-**Mobile Maestro**. Prefer iOS first; fix it, then run the same area on Android so a shared
-launch failure does not burn a full Android pass. `shared/` YAML is not a selector.
+The command pattern and the [complete area list](#complete-area-list) are in
+[section 6](#6-run-maestro). After [sections 3–5](#3-prepare-test-databases) are up, run
+**one** area in **Mobile Maestro**. Prefer iOS first; fix it, then run the same area on
+Android so a shared launch failure does not burn a full Android pass. `shared/` YAML is
+not a selector. The groups below are the same areas, split by required stack.
 
 ```bash
 npm run mobile:e2e:test -- --platform ios <area>
@@ -375,8 +479,8 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | API-backed flow cannot reach API (`:4230`)                                                 | **Mobile E2E API**: `npm run mobile:e2e:api:bg`; then in **Mobile** `npm run mobile:e2e:api:health`                                                                                                                                                      |
 | Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api:bg` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                       |
 | Runner exits: playback flows need tools/test-assets on :2111                               | **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets`; health: `npm run mobile:e2e:test-assets:health`                                                                                                                                            |
-| Empty search / no `search-result-row-0` / no `rss-feed-play-first`                         | Same stale-API issue, or seed missing — runner auto-seeds; restart API if fixtures flag is false                                                                                                                                                         |
-| `rss-playback-active` never appears after Play                                             | Restart **Mobile E2E test-assets** (`npm run mobile:e2e:test-assets` — binds `0.0.0.0` so IPv4/`10.0.2.2` works). Reload app after JS rewrite changes.                                                                                                   |
+| Empty search / no `search-result-row-0` / no `rss-feed-row-first`                          | Same stale-API issue, or seed missing — runner auto-seeds; restart API if fixtures flag is false                                                                                                                                                         |
+| `add-by-rss-home-playback-active` never appears after Play                                  | Restart **Mobile E2E test-assets** (`npm run mobile:e2e:test-assets` — binds `0.0.0.0` so IPv4/`10.0.2.2` works). Reload app after JS rewrite changes.                                                                                                   |
 | Network Error / “Could not sign in” / `tab-home` not visible in API-backed or `:all` runs  | Metro is UI-only (`mobile:dev`). **Mobile Metro**: stop it, run `npm run mobile:dev:e2e`, reload/reinstall the app so it targets `:4230`                                                                                                                 |
 | Runner exits: “Metro on :8081 is UI-only”                                                  | Same as above — API-backed / full-suite flows require `mobile:dev:e2e` (guard in `e2e-test.sh`)                                                                                                                                                          |
 | API start says port 4230 already in use                                                    | Free the port or stop managed process: `npm run mobile:e2e:api:stop`                                                                                                                                                                                     |

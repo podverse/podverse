@@ -20,7 +20,8 @@ type CallToActionSectionProps = {
 
 /**
  * Localized message plus its primary action, centered in the parent via VerticalCenter.
- * An optional secondary action sits under the primary for discovery fills that offer two paths.
+ * Actions stretch to the fill column width. An optional secondary action sits under the primary
+ * for discovery fills that offer two paths.
  */
 export function CallToActionSection({
   actionLabelKey,
@@ -38,13 +39,15 @@ export function CallToActionSection({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        action: {
-          marginTop: tokens.spacing.lg,
-        },
         actions: {
-          alignItems: 'center',
+          alignItems: 'stretch',
           gap: tokens.spacing.base,
           marginTop: tokens.spacing.lg,
+          width: '100%',
+        },
+        content: {
+          alignSelf: 'stretch',
+          width: '100%',
         },
         message: {
           ...typography.subheading,
@@ -59,33 +62,28 @@ export function CallToActionSection({
 
   return (
     <VerticalCenter testID={testID}>
-      <Text style={styles.message}>{t(messageKey)}</Text>
-      {hasSecondary ? (
+      <View style={styles.content}>
+        <Text style={styles.message}>{t(messageKey)}</Text>
         <View style={styles.actions}>
           <Button
+            fullWidth
             label={t(actionLabelKey)}
             onPress={onAction}
             size="lg"
             testID={actionTestID ?? `${testID}-action`}
           />
-          <Button
-            label={t(secondaryActionLabelKey)}
-            onPress={onSecondaryAction}
-            size="lg"
-            testID={secondaryActionTestID ?? `${testID}-secondary-action`}
-            variant="outline"
-          />
+          {hasSecondary ? (
+            <Button
+              fullWidth
+              label={t(secondaryActionLabelKey)}
+              onPress={onSecondaryAction}
+              size="lg"
+              testID={secondaryActionTestID ?? `${testID}-secondary-action`}
+              variant="outline"
+            />
+          ) : null}
         </View>
-      ) : (
-        <View style={styles.action}>
-          <Button
-            label={t(actionLabelKey)}
-            onPress={onAction}
-            size="lg"
-            testID={actionTestID ?? `${testID}-action`}
-          />
-        </View>
-      )}
+      </View>
     </VerticalCenter>
   );
 }

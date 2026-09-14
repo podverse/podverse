@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { Keyboard } from 'react-native';
 
 import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
 
@@ -10,6 +11,7 @@ import {
   isValidAddByRssFeedUrl,
   pollAddByRssParseStatus,
 } from '../lib/addByRss/domain';
+import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import { useMembershipGate } from '../membership/MembershipGateProvider';
 import { useAccessTier } from '../membership/useAccessTier';
 
@@ -48,6 +50,8 @@ export function useAddByRssAddFlow({
       return;
     }
 
+    // The keyboard covers the tab bar. Dismiss now so the list and tabs are reachable while parse runs.
+    Keyboard.dismiss();
     setIsAdding(true);
     setAddErrorKey(null);
     onNotice(null);
@@ -114,6 +118,8 @@ export function useAddByRssAddFlow({
       setInputValue('');
       onNotice('features.add_by_rss.status_parsed');
       await onAfterAdd();
+      // Home stays mounted under the tab, so it will not reload on its own.
+      homeFeedRefresh.notify();
     } catch (error) {
       if (handleGateError(error)) {
         return;

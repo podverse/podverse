@@ -21,6 +21,20 @@ export type AddByRssHomeDetailData = {
   mappedFeed: AddByRSSMappedFeed | null;
 };
 
+/**
+ * Publication instant from a mapped-item `pub_date`.
+ *
+ * SQLite round-trips store Dates as ISO strings, so callers must not call `.getTime()` on the
+ * field directly.
+ */
+const pubDateMs = (value: Date | string | null | undefined): number | null => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const parsed = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
 export const buildAddByRssHomeDetailData = (
   feed: MobileAddByRSSFeedRecord,
   mappedFeed: AddByRSSMappedFeed
@@ -51,7 +65,7 @@ export const buildAddByRssHomeDetailData = (
       itemIndex,
       subtitle: channelTitle,
       title,
-      updatedAt: itemBundle.item.pub_date?.getTime() ?? null,
+      updatedAt: pubDateMs(itemBundle.item.pub_date),
     };
   });
 
@@ -67,8 +81,8 @@ export const sortAddByRssHomeEpisodes = (
       return articleStrippedTitle(a.title).localeCompare(articleStrippedTitle(b.title));
     }
 
-    const aDateMs = a.itemBundle.item.pub_date?.getTime() ?? null;
-    const bDateMs = b.itemBundle.item.pub_date?.getTime() ?? null;
+    const aDateMs = pubDateMs(a.itemBundle.item.pub_date);
+    const bDateMs = pubDateMs(b.itemBundle.item.pub_date);
     if (aDateMs === null && bDateMs === null) {
       return articleStrippedTitle(a.title).localeCompare(articleStrippedTitle(b.title));
     }

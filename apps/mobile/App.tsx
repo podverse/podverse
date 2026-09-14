@@ -268,32 +268,34 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
           </MembershipGateProvider>
         </AuthPromptProvider>
       )}
-      {status === 'anonymous' ? (
-        <Modal
-          animationType="slide"
-          onRequestClose={dismissAuthSheet}
-          presentationStyle="fullScreen"
-          visible={showAuthSheet}
-        >
-          <SafeAreaProvider>
-            {authMode === 'signup' ? (
-              <SignUpScreen
-                onDismiss={dismissAuthSheet}
-                onSwitchToLogin={() => {
-                  setAuthMode('login');
-                }}
-              />
-            ) : (
-              <LoginScreen
-                onDismiss={dismissAuthSheet}
-                onSwitchToSignUp={() => {
-                  setAuthMode('signup');
-                }}
-              />
-            )}
-          </SafeAreaProvider>
-        </Modal>
-      ) : null}
+      {/*
+        Stays mounted so a successful login closes it through `visible`. Unmounting a presented
+        full-screen modal skips the iOS dismissal and leaves an empty window over the tab shell.
+      */}
+      <Modal
+        animationType="slide"
+        onRequestClose={dismissAuthSheet}
+        presentationStyle="fullScreen"
+        visible={showAuthSheet}
+      >
+        <SafeAreaProvider>
+          {authMode === 'signup' ? (
+            <SignUpScreen
+              onDismiss={dismissAuthSheet}
+              onSwitchToLogin={() => {
+                setAuthMode('login');
+              }}
+            />
+          ) : (
+            <LoginScreen
+              onDismiss={dismissAuthSheet}
+              onSwitchToSignUp={() => {
+                setAuthMode('signup');
+              }}
+            />
+          )}
+        </SafeAreaProvider>
+      </Modal>
       <StatusBar style={statusBarStyle} />
     </>
   );

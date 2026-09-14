@@ -746,6 +746,7 @@
       "unseen_count_capped": "",
       "unseen_count_aria": "",
       "unseen_count_capped_aria": "",
+      "unseen_indicator_aria": "",
       "downloaded_count": ""
     },
     "mark_all_seen": "",

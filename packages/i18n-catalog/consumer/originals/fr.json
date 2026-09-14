@@ -746,6 +746,7 @@
       "unseen_count_capped": "{count}+ nouveaux",
       "unseen_count_aria": "{count} nouveaux épisodes",
       "unseen_count_capped_aria": "Plus de {count} nouveaux épisodes",
+      "unseen_indicator_aria": "Nouveaux épisodes",
       "downloaded_count": "{count} téléchargés"
     },
     "mark_all_seen": "Tout Marquer Comme Vu",

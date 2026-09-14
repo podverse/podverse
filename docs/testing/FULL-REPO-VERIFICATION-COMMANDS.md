@@ -161,9 +161,10 @@ npm run mobile:e2e:test -- --platform ios subscriptions-anonymous
 npm run mobile:e2e:test -- --platform android add-by-rss
 ```
 
-Every flow-specific selector is listed below, grouped by stack in
-[HOW-TO-RUN.md § One flow at a time](/apps/mobile/e2e/HOW-TO-RUN.md#one-flow-at-a-time). These
-commands run the selected phone flow on both phone platforms:
+Every flow-specific selector is listed below and in
+[HOW-TO-RUN.md § Complete area list](/apps/mobile/e2e/HOW-TO-RUN.md#complete-area-list)
+(stack groups: [One flow at a time](/apps/mobile/e2e/HOW-TO-RUN.md#one-flow-at-a-time)).
+These commands run the selected phone flow on both phone platforms:
 
 ```bash
 npm run mobile:e2e:test -- add-by-rss

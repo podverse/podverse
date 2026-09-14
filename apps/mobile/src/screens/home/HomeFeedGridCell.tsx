@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { CountBadge, CoverImage } from '../../components/primitives';
+import { Badge, CountBadge, CoverImage, UnseenIndicator } from '../../components/primitives';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from './homeFeedData';
 
@@ -15,25 +15,19 @@ type HomeFeedGridCellProps = {
 /**
  * One artwork tile in the Home grid.
  *
- * Unseen stays top-right (accent); downloaded count sits bottom-right (muted gray) so both can
- * show without stacking. Each is a `CountBadge` — a circle at one digit, a horizontal capsule
- * at two. Titles stay off the tile — the list view is where full metadata lives — but both
- * counts fold into the accessible name so a screen reader is not left with blank squares.
+ * Live sits top-right, unseen is a presence dot bottom-right, and the downloaded count sits
+ * bottom-left so the three can show together without stacking. Titles stay off the tile — the
+ * list view is where full metadata lives — but each marker folds into the accessible name so a
+ * screen reader is not left with blank squares.
  */
 export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
 
+  const liveLabel = row.metadata?.isLive === true ? t('media.livestream.live') : null;
   const unseenBadge = row.metadata?.unseenBadge ?? null;
   const unseenLabel =
-    unseenBadge === null
-      ? null
-      : t(
-          unseenBadge.isCapped
-            ? 'subscriptions.row.unseen_count_capped'
-            : 'subscriptions.row.unseen_count',
-          { count: unseenBadge.count }
-        );
+    unseenBadge === null ? null : t('subscriptions.row.unseen_indicator_aria');
 
   const downloadedCount = row.metadata?.downloadedCount ?? 0;
   const downloadedLabel =
@@ -41,7 +35,7 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
       ? t('subscriptions.row.downloaded_count', { count: downloadedCount })
       : null;
 
-  const accessibilityLabel = [row.title, unseenLabel, downloadedLabel]
+  const accessibilityLabel = [row.title, liveLabel, unseenLabel, downloadedLabel]
     .filter((part) => part !== null)
     .join(', ');
 
@@ -58,17 +52,22 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
         },
         downloadedBadge: {
           bottom: tokens.spacing.xs,
+          left: tokens.spacing.xs,
+          position: 'absolute',
+        },
+        liveBadge: {
           position: 'absolute',
           right: tokens.spacing.xs,
+          top: tokens.spacing.xs,
         },
         tile: {
           position: 'relative',
           width: '100%',
         },
-        unseenBadge: {
+        unseenIndicator: {
+          bottom: tokens.spacing.xs,
           position: 'absolute',
           right: tokens.spacing.xs,
-          top: tokens.spacing.xs,
         },
       }),
     [tokens]
@@ -93,13 +92,12 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
           style={styles.artwork}
           uri={row.imageUrl}
         />
-        {unseenBadge !== null ? (
-          <CountBadge
-            count={unseenBadge.count}
-            isCapped={unseenBadge.isCapped}
-            style={styles.unseenBadge}
-            testID={`home-feed-cell-unseen-${row.id}`}
-            tone="accent"
+        {liveLabel !== null ? (
+          <Badge
+            label={liveLabel}
+            style={styles.liveBadge}
+            testID={`home-feed-cell-live-${row.id}`}
+            tone="danger"
           />
         ) : null}
         {downloadedCount > 0 ? (
@@ -108,6 +106,12 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
             style={styles.downloadedBadge}
             testID={`home-feed-cell-downloaded-${row.id}`}
             tone="muted"
+          />
+        ) : null}
+        {unseenBadge !== null ? (
+          <UnseenIndicator
+            style={styles.unseenIndicator}
+            testID={`home-feed-cell-unseen-${row.id}`}
           />
         ) : null}
       </View>

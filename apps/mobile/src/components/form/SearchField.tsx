@@ -15,8 +15,9 @@ export type SearchFieldProps = {
 };
 
 /**
- * Directory search on top of `TextField`: same filled pill, plus a leading magnifying-glass and a
- * search return key, matching web `SearchInput`. The whole pill focuses, including the glass.
+ * Directory search on top of `TextField`: compact pill (no eyebrow), plus a leading
+ * magnifying-glass and a search return key, matching web `SearchInput`. The whole pill focuses,
+ * including the glass.
  */
 export function SearchField({
   accessibilityLabel,

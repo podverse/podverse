@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DEFAULT_LOCALE } from '@podverse/helpers/locales';
 import {
@@ -10,6 +10,7 @@ import {
 } from '@podverse/helpers-validation/client';
 
 import { createMobileApiRequestService } from '../../auth';
+import { TextField } from '../../components/form';
 import { Button } from '../../components/primitives';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
@@ -50,18 +51,8 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
       color: themeStyles.textSecondary.color,
       marginTop: tokens.spacing.md,
     },
-    input: {
-      borderColor: themeStyles.border.borderColor,
-      borderRadius: tokens.radii.sm,
-      borderWidth: 1,
-      color: themeStyles.textPrimary.color,
-      marginTop: tokens.spacing.sm,
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.sm,
-    },
-    label: {
-      color: themeStyles.textPrimary.color,
-      marginTop: tokens.spacing.md,
+    fields: {
+      gap: tokens.spacing.md,
     },
     link: {
       color: tokens.text.link,
@@ -155,36 +146,41 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
         title={t('authentication.sign_up')}
       />
       <MobileScreenContainer testID="signup-form">
-        <Text style={styles.label}>{t('authentication.email')}</Text>
-        <TextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          onChangeText={setEmail}
-          style={styles.input}
-          testID="signup-email"
-          value={email}
-        />
-        <Text style={styles.label}>{t('authentication.password')}</Text>
-        <TextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={setPassword}
-          secureTextEntry={!isE2e}
-          style={styles.input}
-          testID="signup-password"
-          value={password}
-        />
-        <Text style={styles.label}>{t('authentication.confirm_password')}</Text>
-        <TextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={setPasswordConfirm}
-          secureTextEntry={!isE2e}
-          style={styles.input}
-          testID="signup-password-confirm"
-          value={passwordConfirm}
-        />
+        <View style={styles.fields}>
+          <TextField
+            accessibilityLabel={t('authentication.email')}
+            autoCapitalize="none"
+            autoCorrect={false}
+            eyebrow={t('authentication.email')}
+            keyboardType="email-address"
+            onChangeText={setEmail}
+            placeholder={t('authentication.email')}
+            testID="signup-email"
+            value={email}
+          />
+          <TextField
+            accessibilityLabel={t('authentication.password')}
+            autoCapitalize="none"
+            autoCorrect={false}
+            eyebrow={t('authentication.password')}
+            onChangeText={setPassword}
+            placeholder={t('authentication.password')}
+            secureTextEntry={!isE2e}
+            testID="signup-password"
+            value={password}
+          />
+          <TextField
+            accessibilityLabel={t('authentication.confirm_password')}
+            autoCapitalize="none"
+            autoCorrect={false}
+            eyebrow={t('authentication.confirm_password')}
+            onChangeText={setPasswordConfirm}
+            placeholder={t('authentication.password')}
+            secureTextEntry={!isE2e}
+            testID="signup-password-confirm"
+            value={passwordConfirm}
+          />
+        </View>
         <View style={styles.submit}>
           <Button
             disabled={isLoading}

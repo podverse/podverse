@@ -1,3 +1,5 @@
+appId: com.podverse.app.next
+---
 # More → E2E → Playback. The tab shell must already be visible.
 - tapOn:
     id: tab-more

@@ -21,13 +21,18 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
   const [agreement, setAgreement] = useState<DTOPopularityTrackingAgreement | null>(null);
 
   const currentVersion = agreement?.version ?? '';
+  const accountSettings = account?.account_settings ?? null;
   const neverDecided =
-    account?.account_settings?.listen_stats_accepted === null ||
-    account?.account_settings?.listen_stats_accepted === undefined;
+    accountSettings?.listen_stats_accepted === null ||
+    accountSettings?.listen_stats_accepted === undefined;
+  // The account snapshot carries the decision, so the prompt waits for it. `status` turns
+  // authenticated the moment tokens are stored, well before the snapshot arrives, and an
+  // account that has not loaded is not an account that has declined to decide.
   const promptRequired =
     status === 'authenticated' &&
+    account !== null &&
     (currentVersion !== ''
-      ? isPopularityTrackingPromptRequired(account?.account_settings, currentVersion)
+      ? isPopularityTrackingPromptRequired(accountSettings, currentVersion)
       : neverDecided);
 
   useEffect(() => {

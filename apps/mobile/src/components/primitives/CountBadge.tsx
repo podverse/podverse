@@ -12,13 +12,8 @@ export type CountBadgeTone = 'accent' | 'muted';
 export type CountBadgeProps = {
   count: number;
   /**
-   * When the stored count is a ceiling (Home unseen cap), the face shows `{count}+` and the
-   * badge widens the same way a two-digit number does.
-   */
-  isCapped?: boolean;
-  /**
    * `accent` is the default list-row / tab count. `muted` is the gray overlay on artwork
-   * (downloaded count) so it does not compete with an accent unseen badge on the same tile.
+   * (downloaded count) so it does not compete with the unseen indicator on the same tile.
    */
   tone?: CountBadgeTone;
   style?: StyleProp<ViewStyle>;
@@ -28,18 +23,17 @@ export type CountBadgeProps = {
 /**
  * Circular numeric badge that widens horizontally when the count needs more than one digit.
  * Hidden at zero. Decorative on its own — the parent row or tile folds the count into its
- * accessibility label.
+ * accessibility label. Unseen presence uses `UnseenIndicator`, not this chip.
  */
 export function CountBadge({
   count,
-  isCapped = false,
   style,
   testID,
   tone = 'accent',
 }: CountBadgeProps) {
   const { tokens } = useTheme();
-  const face = isCapped ? `${count}+` : String(count);
-  const stretches = isCapped || count >= 10;
+  const face = String(count);
+  const stretches = count >= 10;
 
   const styles = useMemo(
     () =>

@@ -9,7 +9,12 @@ import { formatSecondsToReadableDuration } from '@podverse/helpers/timeFormatter
 
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
-import { Badge, CoverImage } from '../../components/primitives';
+import {
+  Badge,
+  CoverImage,
+  UNSEEN_INDICATOR_SIZE,
+  UnseenIndicator,
+} from '../../components/primitives';
 import {
   LIST_ROW_ARTWORK_SIZE,
   listRowArtworkGap,
@@ -55,50 +60,27 @@ type HomeFeedRowProps = {
 };
 
 /**
- * One piece of the metadata line: the text, how it draws, and the name its `testID` ends in.
+ * Spoken names for the live chip and unseen indicator, already localized.
  *
- * `emphasis` is what a badge is for — something to notice — versus a fact to read. The badges say
- * "there is something here for you now"; the date and the download count describe the row.
+ * Built once and folded into the row's `accessibilityLabel`, so a screen reader hears the same
+ * facts a sighted user reads — rather than unattached fragments announced with no idea what they
+ * belong to. The unseen face is a presence dot; the spoken form names that there is new content.
  */
-type MetadataSegment = {
-  emphasis: boolean;
-  name: string;
-  text: string;
-};
-
-/**
- * What the metadata line says, in reading order, already localized.
- *
- * Built once and used for both the visible pills and the row's `accessibilityLabel`, so a screen
- * reader hears the same facts in the same order a sighted user reads them — rather than four
- * unattached fragments ("Live", "3 new") announced with no idea what they belong to.
- */
-const useMetadataSegments = (metadata: HomeRowMetadata | undefined): MetadataSegment[] => {
+const useMetadataAnnouncements = (
+  metadata: HomeRowMetadata | undefined
+): { liveLabel: string | null; unseenSpoken: string | null } => {
   const { t } = useTranslation();
 
   return useMemo(() => {
     if (metadata === undefined) {
-      return [];
+      return { liveLabel: null, unseenSpoken: null };
     }
 
-    const segments: MetadataSegment[] = [];
-
-    if (metadata.isLive) {
-      segments.push({ emphasis: true, name: 'live', text: t('media.livestream.live') });
-    }
-    if (metadata.unseenBadge !== null) {
-      segments.push({
-        emphasis: true,
-        name: 'unseen',
-        text: t(
-          metadata.unseenBadge.isCapped
-            ? 'subscriptions.row.unseen_count_capped'
-            : 'subscriptions.row.unseen_count',
-          { count: metadata.unseenBadge.count }
-        ),
-      });
-    }
-    return segments;
+    return {
+      liveLabel: metadata.isLive ? t('media.livestream.live') : null,
+      unseenSpoken:
+        metadata.unseenBadge === null ? null : t('subscriptions.row.unseen_indicator_aria'),
+    };
   }, [metadata, t]);
 };
 
@@ -164,7 +146,8 @@ export function HomeFeedRow({
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const isPlayable = isPlayableDirectoryMediaType(mediaType);
-  const metadataSegments = useMetadataSegments(row.metadata);
+  const { liveLabel, unseenSpoken } = useMetadataAnnouncements(row.metadata);
+  const unseenBadge = row.metadata?.unseenBadge ?? null;
   const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
   const isLive = row.metadata?.isLive === true;
   const durationLabel = useDurationLabel(row.duration, isLive);
@@ -186,6 +169,10 @@ export function HomeFeedRow({
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        artworkWrap: {
+          height: LIST_ROW_ARTWORK_SIZE,
+          width: LIST_ROW_ARTWORK_SIZE,
+        },
         channelTitle: {
           ...typography.caption,
           color: themeStyles.textPrimary.color,
@@ -193,6 +180,11 @@ export function HomeFeedRow({
         date: {
           ...typography.caption,
           color: tokens.text.accent,
+        },
+        dateRow: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: tokens.spacing.sm,
         },
         description: {
           ...typography.caption,
@@ -213,25 +205,35 @@ export function HomeFeedRow({
           justifyContent: 'center',
           minWidth: 0,
         },
-        metadataRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: tokens.spacing.sm,
+        liveBadge: {
+          alignSelf: 'center',
         },
-        metadataText: {
-          ...typography.caption,
-          color: themeStyles.textSecondary.color,
+        liveOnArtwork: {
+          ...StyleSheet.absoluteFillObject,
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         row: {
+          alignItems: 'stretch',
           backgroundColor: themeStyles.screen.backgroundColor,
           borderBottomColor: themeStyles.border.borderColor,
           borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-          gap: tokens.spacing.md,
-          ...listRowVerticalPadding(tokens.spacing.base),
+          flexDirection: 'row',
+          gap: tokens.spacing.sm,
         },
         rowActions: {
           marginTop: tokens.spacing.sm,
+        },
+        rowBody: {
+          flex: 1,
+          gap: tokens.spacing.md,
+          minWidth: 0,
+          ...listRowVerticalPadding(tokens.spacing.base),
+        },
+        unseenRail: {
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: UNSEEN_INDICATOR_SIZE,
         },
         title: {
           ...typography.subheading,
@@ -286,7 +288,8 @@ export function HomeFeedRow({
         updatedLabel,
         description,
         durationLabel,
-        ...metadataSegments.map((s) => s.text),
+        liveLabel,
+        unseenSpoken,
       ]
         .filter((part) => part !== null && part.length > 0)
         .join(', ')}
@@ -297,93 +300,105 @@ export function HomeFeedRow({
       style={styles.row}
       testID={testID ?? `home-feed-row-${row.id}`}
     >
-      <View style={styles.identityRow}>
-        {showArtwork ? (
-          <CoverImage
-            fallbackLabel={t('media.image')}
-            opensViewer={false}
-            style={styles.image}
-            uri={row.imageUrl}
-          />
-        ) : null}
-        <View style={styles.identityText}>
-          {overlineLabel !== null ? (
-            <Text
-              numberOfLines={1}
-              style={styles.channelTitle}
-              testID={
-                channelLabel !== null
-                  ? `home-feed-row-subtitle-${row.id}`
-                  : `home-feed-row-downloaded-${row.id}`
-              }
-            >
-              {overlineLabel}
-            </Text>
-          ) : null}
-          <Text numberOfLines={2} style={styles.title} testID={`home-feed-row-title-${row.id}`}>
-            {row.title}
-          </Text>
-          {updatedLabel !== null ? (
-            <Text numberOfLines={1} style={styles.date} testID={`home-feed-row-updated-${row.id}`}>
-              {updatedLabel}
-            </Text>
-          ) : null}
-          {metadataSegments.length > 0 ? (
-            <View style={styles.metadataRow}>
-              {metadataSegments.map((segment) =>
-                segment.emphasis ? (
+      <View style={styles.rowBody}>
+        <View style={styles.identityRow}>
+          {showArtwork ? (
+            <View style={styles.artworkWrap}>
+              <CoverImage
+                fallbackLabel={t('media.image')}
+                opensViewer={false}
+                style={styles.image}
+                uri={row.imageUrl}
+              />
+              {liveLabel !== null ? (
+                <View pointerEvents="none" style={styles.liveOnArtwork}>
                   <Badge
-                    key={segment.name}
-                    label={segment.text}
-                    testID={`home-feed-row-${segment.name}-${row.id}`}
-                    tone="accent"
+                    label={liveLabel}
+                    style={styles.liveBadge}
+                    testID={`home-feed-row-live-${row.id}`}
+                    tone="danger"
                   />
-                ) : (
-                  <Text
-                    key={segment.name}
-                    style={styles.metadataText}
-                    testID={`home-feed-row-${segment.name}-${row.id}`}
-                  >
-                    {segment.text}
-                  </Text>
-                )
-              )}
+                </View>
+              ) : null}
             </View>
           ) : null}
+          <View style={styles.identityText}>
+            {overlineLabel !== null ? (
+              <Text
+                numberOfLines={1}
+                style={styles.channelTitle}
+                testID={
+                  channelLabel !== null
+                    ? `home-feed-row-subtitle-${row.id}`
+                    : `home-feed-row-downloaded-${row.id}`
+                }
+              >
+                {overlineLabel}
+              </Text>
+            ) : null}
+            <Text numberOfLines={2} style={styles.title} testID={`home-feed-row-title-${row.id}`}>
+              {row.title}
+            </Text>
+            {updatedLabel !== null || (!showArtwork && liveLabel !== null) ? (
+              <View style={styles.dateRow}>
+                {!showArtwork && liveLabel !== null ? (
+                  <Badge
+                    label={liveLabel}
+                    testID={`home-feed-row-live-${row.id}`}
+                    tone="danger"
+                  />
+                ) : null}
+                {updatedLabel !== null ? (
+                  <Text
+                    numberOfLines={1}
+                    style={styles.date}
+                    testID={`home-feed-row-updated-${row.id}`}
+                  >
+                    {updatedLabel}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+          {download !== undefined ? (
+            <DownloadRowControl item={download.item} testID={download.testID} />
+          ) : null}
         </View>
-        {download !== undefined ? (
-          <DownloadRowControl item={download.item} testID={download.testID} />
+
+        {description !== null ? (
+          <Text
+            numberOfLines={2}
+            style={styles.description}
+            testID={`home-feed-row-description-${row.id}`}
+          >
+            {description}
+          </Text>
+        ) : null}
+
+        {customActions !== undefined ? (
+          customActions
+        ) : isPlayable ? (
+          <View style={styles.rowActions}>
+            <MediaRowActions
+              appearance="icons"
+              durationLabel={durationLabel}
+              durationTestID={`home-feed-row-duration-${row.id}`}
+              idSuffix={`-${row.id}`}
+              moreActions={moreActions}
+              moreTestID={`home-row-more-${row.id}`}
+              onPlayPress={() => {
+                onPlayPress(row);
+              }}
+              playbackMediaId={row.id}
+              playLabel={t('media_player.play')}
+              playTestID={`home-row-play-${row.id}`}
+            />
+          </View>
         ) : null}
       </View>
-
-      {description !== null ? (
-        <Text
-          numberOfLines={2}
-          style={styles.description}
-          testID={`home-feed-row-description-${row.id}`}
-        >
-          {description}
-        </Text>
-      ) : null}
-
-      {customActions !== undefined ? (
-        customActions
-      ) : isPlayable ? (
-        <View style={styles.rowActions}>
-          <MediaRowActions
-            appearance="icons"
-            durationLabel={durationLabel}
-            durationTestID={`home-feed-row-duration-${row.id}`}
-            idSuffix={`-${row.id}`}
-            moreActions={moreActions}
-            moreTestID={`home-row-more-${row.id}`}
-            onPlayPress={() => {
-              onPlayPress(row);
-            }}
-            playbackMediaId={row.id}
-            playLabel={t('media_player.play')}
-            playTestID={`home-row-play-${row.id}`}
-          />
+      {unseenBadge !== null ? (
+        <View pointerEvents="none" style={styles.unseenRail}>
+          <UnseenIndicator testID={`home-feed-row-unseen-${row.id}`} />
         </View>
       ) : null}
     </Pressable>

@@ -39,6 +39,11 @@ export function ListEmpty({
       StyleSheet.create({
         action: {
           marginTop: tokens.spacing.lg,
+          width: '100%',
+        },
+        content: {
+          alignSelf: 'stretch',
+          width: '100%',
         },
         message: {
           ...typography.subheading,
@@ -53,18 +58,21 @@ export function ListEmpty({
 
   return (
     <VerticalCenter testID={testID}>
-      <Text style={styles.message}>{t(messageKey)}</Text>
-      {showAction ? (
-        <View style={styles.action}>
-          <Button
-            label={t(actionLabelKey)}
-            onPress={onAction}
-            size="md"
-            testID={actionTestID ?? `${testID}-action`}
-            variant="primary"
-          />
-        </View>
-      ) : null}
+      <View style={styles.content}>
+        <Text style={styles.message}>{t(messageKey)}</Text>
+        {showAction ? (
+          <View style={styles.action}>
+            <Button
+              fullWidth
+              label={t(actionLabelKey)}
+              onPress={onAction}
+              size="lg"
+              testID={actionTestID ?? `${testID}-action`}
+              variant="primary"
+            />
+          </View>
+        ) : null}
+      </View>
     </VerticalCenter>
   );
 }

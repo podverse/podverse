@@ -26,5 +26,7 @@ export { ScreenHeader } from './ScreenHeader';
 export type { ScreenHeaderProps } from './ScreenHeader';
 export { SwipeActionRow } from './SwipeActionRow';
 export type { SwipeActionRowProps } from './SwipeActionRow';
+export { UNSEEN_INDICATOR_SIZE, UnseenIndicator } from './UnseenIndicator';
+export type { UnseenIndicatorProps } from './UnseenIndicator';
 export { VerticalCenter } from './VerticalCenter';
 export type { VerticalCenterProps } from './VerticalCenter';

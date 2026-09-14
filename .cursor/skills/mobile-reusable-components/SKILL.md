@@ -31,7 +31,7 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 
 | Kind                                        | Path                                                                                                                                                                              |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`) |
+| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `UnseenIndicator`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`) |
 | Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                                                                  |
 | Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `OfflineModeBanner`, `MobileScreenContainer`, `ThemedStackHeader`)                                       |
 | Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                                                                                              |
@@ -46,10 +46,13 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 Do **not** import `@podverse/ui` (web components / SCSS). Tokens come from `@podverse/design-tokens`
 via **mobile-theme-parity**.
 
-**Search / filter fields:** use `SearchField` or `ListFilterField`. Both are `TextField` (tertiary
-fill, focus ring). Search adds the leading glass; filter adds a clear `Button`. Do not clone a
-stroked `TextInput`. A boxed field that needs chrome or a leading icon uses **`TextField`** —
-it owns the hit-target contract and blurs when the host screen loses focus. Do not wrap a thin
+**Text fields:** `TextField` is the only painted input (tertiary fill, focus ring — never a
+stroked `TextInput`). Pass **`eyebrow` + `placeholder`** for forms (login, sign-up, playlist,
+add-by-RSS), matching web `TextInput` inset eyebrow. The caption lives *inside* the pill; do
+not add a second `<Text>` label above it. Eyebrow fields are taller than the compact pill.
+**Omit `eyebrow` only** for directory search and on-screen list filters (`SearchField`,
+`ListFilterField`). Search adds the leading glass; filter adds a clear `Button`. `TextField`
+owns the hit-target contract and blurs when the host screen loses focus. Do not wrap a thin
 input in a padded `View`, and do not grow `TextInput` padding to fake a larger target. Field,
 chips, and the list rule share one column `gap` (`spacing.base`) so the space above and below
 the chips is equal. Prefer that symmetry whenever two sides of a control are the same
@@ -101,15 +104,27 @@ passes `(item, index, isLast)`. `ListRow` is the title/subtitle primitive with t
 padding. A numeric `badgeCount` renders `CountBadge` left of `trailing` (chevron) and hides at 0;
 do not invent a second count chip. See **mobile-screen-layout**.
 
+**Home subscription markers:** live, unseen, and downloaded each have one home. Do not reuse the
+count chip for unseen presence.
+
+- **List (`HomeFeedRow`):** live `Badge` is centered on the artwork; downloaded count is the
+  overline (top text line); unseen is `UnseenIndicator` (accent circle, no number) in a slim
+  full-height rail at the far right of the row, with the dot vertically centered on the whole
+  row.
+- **Grid (`HomeFeedGridCell`):** live top-right, unseen indicator bottom-right, downloaded
+  `CountBadge` bottom-left.
+
 **Count badges:** `CountBadge` is the circular (oval when the digits need it) count chip. Hub
 rows pass `badgeCount` on `MenuListItem` / `ListRow`. Bottom tabs use React Navigation
 `tabBarBadge` with the shared `tabBarBadgeStyle` (same accent circle). Hide at 0. A tab badge
 is the **sum** of the in-progress row counts on that tab (`sumBadgeCounts`). Do not reuse
-`Badge` (text pill) for numeric counts.
+`Badge` (text pill) for numeric counts. Do not put a number on unseen — that is
+`UnseenIndicator`.
 
 **Action gates:** keep the gated control; on press `openGate(reason)` (`ConfirmDialog`). Do not
 inline `GatedFeatureNotice` next to an untapped button. Full-screen empties still use
-`CallToActionSection`. In-page explainers that are not the content use **`HelperNote`**. Gate
+`CallToActionSection`. Buttons in that centered fill are full width of the column. In-page
+explainers that are not the content use **`HelperNote`**. Gate
 title/body/confirm keys come from **`membershipGateMessageKeys`** / confirm helpers — exhaustive
 on `AccessDenialReason`, no fallback `t(...)`. See **mobile-screen-layout** and
 **i18n-user-facing-strings**.
@@ -147,8 +162,9 @@ with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch unde
 - [ ] User-facing strings go through i18n (`t()`), including `accessibilityLabel` (**i18n-user-facing-strings**).
 - [ ] New shared UI gets a stable `testID` where E2E will assert it.
 - [ ] Boxed fields use `TextField` / `SearchField` / `ListFilterField` so the painted chrome
-      is the hit target. Do not wrap a `TextInput` in a padded `View`, and do not grow
-      `TextInput` padding to enlarge the target.
+      is the hit target. Forms pass `eyebrow` + `placeholder`; search and list filters omit
+      `eyebrow`. Do not wrap a `TextInput` in a padded `View`, and do not grow `TextInput`
+      padding to enlarge the target.
 - [ ] If you duplicated JSX that already exists on another screen, stop and extract.
 
 ## Avoid

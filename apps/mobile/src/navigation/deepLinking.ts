@@ -95,10 +95,6 @@ export const mapIncomingPathToScopedPath = (input: string): string => {
     return `${MOBILE_LIBRARY_TAB_PATH}/add-by-rss`;
   }
 
-  if (basePath === '/add-by-rss/feeds') {
-    return `${MOBILE_LIBRARY_TAB_PATH}/add-by-rss/feeds`;
-  }
-
   if (segments.length >= 1 && segments[0] === 'notifications') {
     return MOBILE_NOTIFICATIONS_TAB_PATH;
   }

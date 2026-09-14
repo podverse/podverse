@@ -339,10 +339,10 @@ const mapSubscribedChannelToRow = (
  * The three reads run together and are indexed once rather than queried per row, so a long
  * subscription list costs the same three queries a short one does.
  *
- * Every source is local. A row states its latest episode, unseen count, downloads, and whether it
- * is on the air with no connection at all — the live status being the one piece that had to be
- * synced ahead of time, because live items are filtered out of every regular item query and nothing
- * already stored implies one.
+ * Every source is local. A row states its latest episode, whether it has unseen episodes,
+ * downloads, and whether it is on the air with no connection at all — the live status being the
+ * one piece that had to be synced ahead of time, because live items are filtered out of every
+ * regular item query and nothing already stored implies one.
  */
 const attachSubscriptionMetadata = async (
   subscribed: readonly SubscribedChannel[]
