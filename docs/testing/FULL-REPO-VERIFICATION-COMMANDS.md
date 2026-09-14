@@ -155,8 +155,9 @@ npm run mobile:e2e:test -- --platform ios subscriptions-anonymous
 npm run mobile:e2e:test -- --platform android add-by-rss
 ```
 
-Every flow-specific selector is listed below. These commands run the selected phone flow on both
-phone platforms:
+Every flow-specific selector is listed below, grouped by stack in
+[HOW-TO-RUN.md § One flow at a time](/apps/mobile/e2e/HOW-TO-RUN.md#one-flow-at-a-time). These
+commands run the selected phone flow on both phone platforms:
 
 ```bash
 npm run mobile:e2e:test -- add-by-rss
@@ -175,9 +176,13 @@ npm run mobile:e2e:test -- library-playlists
 npm run mobile:e2e:test -- locale-switch-home-smoke
 npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- notifications-inbox
+npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml
 npm run mobile:e2e:test -- play-mini-player
+npm run mobile:e2e:test -- playback-multi-device-handoff
+npm run mobile:e2e:test -- playback-offline-reconciliation
 npm run mobile:e2e:test -- podcast-episode
+npm run mobile:e2e:test -- popularity-tracking
 npm run mobile:e2e:test -- push
 npm run mobile:e2e:test -- queue-add
 npm run mobile:e2e:test -- search-unparsed

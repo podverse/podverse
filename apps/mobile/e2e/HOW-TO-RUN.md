@@ -126,19 +126,16 @@ the E2E API when run alone, add its basename to `flow_needs_e2e_api` in
 
 ## Unit tests (pure modules — no device)
 
-Separate from Maestro E2E: the `podverse-media-engine` pure-TS suites (bridge command serialization
-
-- playback error taxonomy) run under Vitest with no React Native / Expo imports. `apps/mobile` is a
-  standalone install (own lockfile, not a root workspace), so it is **excluded** from root
-  `npm run test:unit` — run it with `--prefix`:
+Separate from Maestro E2E: Node-only Vitest for mobile pure modules (no React Native / Expo
+imports). `apps/mobile` is a standalone install (own lockfile, not a root workspace), so it is
+**excluded** from root `npm run test:unit` — run it with `--prefix`:
 
 ```bash
 npm --prefix apps/mobile run test
 ```
 
-Config: [`apps/mobile/vitest.config.ts`](../vitest.config.ts) (Node env; `include` scoped to
-`modules/podverse-media-engine/src/**/*.test.ts`). Also runs non-blocking in CI on `develop` pushes
-that touch `apps/mobile/**` (`.github/workflows/mobile-internal.yml`).
+Config: [`apps/mobile/vitest.config.ts`](../vitest.config.ts). Also runs non-blocking in CI on
+`develop` pushes that touch `apps/mobile/**` (`.github/workflows/mobile-internal.yml`).
 
 ## Scoped / UI-only runs
 
@@ -240,6 +237,79 @@ background command above because the runner owns the API lifecycle during its da
 
 Maestro waits use `apps/mobile/e2e/shared/timeouts.env` (`TIMEOUT_FASTEST` … `TIMEOUT_SLOWEST`).
 Prefer the fastest tier that can work; see **mobile-maestro-timeouts**.
+
+## One flow at a time
+
+After the [Run all E2E](#run-all-e2e-primary) stack is up, run **one** area in **Mobile Maestro**.
+Prefer iOS first; fix it, then run the same area on Android so a shared launch failure does not
+burn a full Android pass. `shared/` YAML is not a selector.
+
+```bash
+npm run mobile:e2e:test -- --platform ios <area>
+npm run mobile:e2e:test -- --platform android <area>
+```
+
+Omit `--platform` to run both phones. Use `--reset-data` only when prior local SQLite state
+contaminates the flow (see [Clean local state](#clean-local-state-between-flows)).
+
+### UI-only areas
+
+Metro `mobile:dev` is enough. API and test-assets are optional.
+
+```bash
+npm run mobile:e2e:test -- hello-world
+npm run mobile:e2e:test -- locale-switch-home-smoke
+npm run mobile:e2e:test -- settings-select
+npm run mobile:e2e:test -- sync-log
+```
+
+### API-backed areas
+
+Same leave-running stack as [Run all E2E](#run-all-e2e-primary). Test-assets on `:2111` are
+optional for this group.
+
+```bash
+npm run mobile:e2e:test -- api-health
+npm run mobile:e2e:test -- auth-login
+npm run mobile:e2e:test -- auth-logout
+npm run mobile:e2e:test -- browse
+npm run mobile:e2e:test -- deep-link
+npm run mobile:e2e:test -- detail-sort-prefs
+npm run mobile:e2e:test -- home
+npm run mobile:e2e:test -- library-playlists
+npm run mobile:e2e:test -- membership-gate
+npm run mobile:e2e:test -- notifications-inbox
+npm run mobile:e2e:test -- offline-mode
+npm run mobile:e2e:test -- opml
+npm run mobile:e2e:test -- playback-multi-device-handoff
+npm run mobile:e2e:test -- podcast-episode
+npm run mobile:e2e:test -- popularity-tracking
+npm run mobile:e2e:test -- push
+npm run mobile:e2e:test -- queue-add
+npm run mobile:e2e:test -- search
+npm run mobile:e2e:test -- search-unparsed
+npm run mobile:e2e:test -- settings-downloads
+npm run mobile:e2e:test -- subscriptions-anonymous
+```
+
+### API + test-assets areas
+
+`:2111` must be listening (`npm run mobile:e2e:test-assets`).
+
+```bash
+npm run mobile:e2e:test -- add-by-rss
+npm run mobile:e2e:test -- auto-queue-advance
+npm run mobile:e2e:test -- engine-audio-spike
+npm run mobile:e2e:test -- library-downloads
+npm run mobile:e2e:test -- play-mini-player
+npm run mobile:e2e:test -- playback-offline-reconciliation
+npm run mobile:e2e:test -- tab-switch-playback
+npm run mobile:e2e:test -- v4v
+npm run mobile:e2e:test -- video-transition
+```
+
+Tablet is opt-in and is **not** part of `mobile:e2e:test:all` — see
+[Tablet screenshots](#tablet-screenshots-opt-in).
 
 ## Reports
 
