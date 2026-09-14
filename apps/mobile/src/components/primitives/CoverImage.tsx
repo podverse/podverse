@@ -1,11 +1,17 @@
 import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ImageStyle, StyleProp } from 'react-native';
+import type { ImageStyle, StyleProp, ViewStyle } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 import { ImageViewerModal } from './ImageViewerModal';
+
+/**
+ * Sizing lands on the artwork itself or, when there is no URI, on the fallback box that stands in
+ * for it, so it has to satisfy both an `Image` and a `View`.
+ */
+type CoverImageStyle = ImageStyle & ViewStyle;
 
 export type CoverImageProps = {
   uri: string | null | undefined;
@@ -21,7 +27,7 @@ export type CoverImageProps = {
    * Set false when this image sits inside a pressable row, cell, or header.
    */
   opensViewer?: boolean;
-  style?: StyleProp<ImageStyle>;
+  style?: StyleProp<CoverImageStyle>;
   testID?: string;
 };
 

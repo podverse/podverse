@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const isOfflineModeEnabled = vi.fn(() => false);
 const getInfoAsync = vi.fn();
-const resolveItemAudioEnclosureUrl = vi.fn(async () => 'https://cdn.example.com/ep.mp3');
+const resolveItemAudioEnclosureUrl = vi.fn(
+  async (..._args: unknown[]) => 'https://cdn.example.com/ep.mp3'
+);
 const downloadStoreGet = vi.fn();
-const hydrate = vi.fn(async () => undefined);
-const markFileMissing = vi.fn(async () => undefined);
+const hydrate = vi.fn(async (..._args: unknown[]) => undefined);
+const markFileMissing = vi.fn(async (..._args: unknown[]) => undefined);
 
 vi.mock('expo-file-system', () => ({
   getInfoAsync: (...args: unknown[]) => getInfoAsync(...args),

@@ -51,7 +51,7 @@ export const buildAddByRssHomeDetailData = (
       itemIndex,
       subtitle: channelTitle,
       title,
-      updatedAt: itemBundle.item.pub_date ?? null,
+      updatedAt: itemBundle.item.pub_date?.getTime() ?? null,
     };
   });
 

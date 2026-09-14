@@ -27,16 +27,15 @@ const HOME_CHANNEL_MEDIA_TYPES: ReadonlySet<HomeMediaType> = new Set([
 ]);
 
 /** Home media types that narrow to completed downloads only. */
-const HOME_DOWNLOADED_ITEM_MEDIA_TYPES: ReadonlySet<HomeMediaType> = new Set([
-  'episodes',
-  'tracks',
-]);
+type HomeDownloadedItemMediaType = Extract<HomeMediaType, 'episodes' | 'tracks'>;
 
 export const isHomeChannelListOfflineCompatible = (mediaType: HomeMediaType): boolean =>
   HOME_CHANNEL_MEDIA_TYPES.has(mediaType);
 
-export const isHomeDownloadedItemsOnly = (mediaType: HomeMediaType): boolean =>
-  HOME_DOWNLOADED_ITEM_MEDIA_TYPES.has(mediaType);
+export const isHomeDownloadedItemsOnly = (
+  mediaType: HomeMediaType
+): mediaType is HomeDownloadedItemMediaType =>
+  mediaType === 'episodes' || mediaType === 'tracks';
 
 export const isHomeClipsUnavailableOffline = (mediaType: HomeMediaType): boolean =>
   mediaType === 'clips';

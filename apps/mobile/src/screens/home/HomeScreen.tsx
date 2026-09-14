@@ -878,7 +878,7 @@ export function HomeScreen() {
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}
         accessibilityLabel={isGridView ? t('layouts.grid_view') : undefined}
-        accessibilityRole={isGridView ? 'grid' : 'list'}
+        accessibilityRole="list"
         columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
         data={showFeedRows ? visibleRows : []}

@@ -290,7 +290,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
             podcastId: channel.id_text,
             previewImageUrl:
               toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
-            previewTitle: channel.title.length > 0 ? channel.title : feed.title,
+            previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
           })
         );
       }

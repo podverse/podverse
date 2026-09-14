@@ -1,16 +1,23 @@
 import { useFocusEffect } from '@react-navigation/native';
-import type { ReactNode, Ref } from 'react';
+import type { MutableRefObject, ReactNode, RefCallback } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { StyleProp, TextInputProps, ViewStyle } from 'react-native';
 import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 
+/**
+ * Ref shapes a caller can hand a painted field. Narrower than React's `Ref`, which admits
+ * `RefObject` — that one declares `current` read-only, so this component could not fill it in.
+ * Declare a holder as `useRef<TextInput | null>(null)`.
+ */
+export type TextFieldRef = RefCallback<TextInput> | MutableRefObject<TextInput | null> | null;
+
 export type TextFieldProps = {
   accessibilityLabel: string;
   autoCapitalize?: TextInputProps['autoCapitalize'];
   autoCorrect?: boolean;
-  inputRef?: Ref<TextInput>;
+  inputRef?: TextFieldRef;
   /** Decorative. Taps land on the field and focus the input. */
   leading?: ReactNode;
   onBlur?: () => void;
@@ -25,7 +32,7 @@ export type TextFieldProps = {
   value: string;
 };
 
-function bindInputRef(ref: Ref<TextInput> | undefined, node: TextInput | null): void {
+function bindInputRef(ref: TextFieldRef | undefined, node: TextInput | null): void {
   if (typeof ref === 'function') {
     ref(node);
     return;

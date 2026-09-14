@@ -43,6 +43,7 @@ import {
   accountRepository,
   playbackContentRepository,
   playbackOutboxRepository,
+  queueRepository,
   statsRepository,
 } from '../data';
 import type { PlaybackReconcileDifferentNowPlayingConflict } from '../data/repositories/playbackReconcile';
@@ -423,7 +424,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
 
         const target = activeTargetRef.current;
-        if (target === null) {
+        // Add-by-RSS plays from a device-local feed with no channel and no queue behind it, so
+        // there is no queue-scoped playback event to write.
+        if (target === null || target.kind === 'add-by-rss') {
           return false;
         }
 

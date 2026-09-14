@@ -1,5 +1,6 @@
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp, RouteProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
@@ -572,7 +573,7 @@ export function BrowseScreen() {
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}
         accessibilityLabel={isGridView ? t('layouts.grid_view') : undefined}
-        accessibilityRole={isGridView ? 'grid' : 'list'}
+        accessibilityRole="list"
         columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
         data={isCategoryView ? (showCategoryLoading ? [] : listRows) : showFeedRows ? listRows : []}

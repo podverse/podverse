@@ -129,7 +129,7 @@ const extractAddByRssResourceDataFromPayloadValue = (payload: unknown): object |
 };
 
 const normalizePositiveNumber = (value: number | null | undefined): number => {
-  if (!Number.isFinite(value)) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
     return 0;
   }
   return Math.max(0, value);
@@ -727,7 +727,9 @@ const fetchRemoteHistoryForQueue = async (
     );
     history.push(...response.data);
 
-    if (response.data.length === 0 || history.length >= response.total) {
+    // A null count means the endpoint did not total the set; the empty-page check ends the walk.
+    const total = response.meta.count;
+    if (response.data.length === 0 || (total !== null && history.length >= total)) {
       break;
     }
     page += 1;

@@ -131,7 +131,9 @@ export function PodcastAboutSection({ channel, listHeader }: PodcastSectionPaneP
       ListEmptyComponent={
         <ListEmpty messageKey="info.summary.no_summary" testID="podcast-detail-about-empty" />
       }
-      ListHeaderComponent={listHeader}
+      ListHeaderComponent={
+        listHeader !== null && listHeader !== undefined ? <>{listHeader}</> : null
+      }
       accessibilityLabel={t('info.about')}
       contentContainerStyle={styles.content}
       data={cells}

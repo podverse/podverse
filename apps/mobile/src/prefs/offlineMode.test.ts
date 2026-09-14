@@ -30,11 +30,11 @@ describe('hydrateOfflineMode / writeOfflineModeEnabled', () => {
   });
 
   it('lets a write during an in-flight hydrate win over the disk seed', async () => {
-    let releaseDisk: ((value: boolean) => void) | null = null;
+    const pendingDiskReads: ((value: boolean) => void)[] = [];
     getPref.mockImplementation(
       () =>
         new Promise<boolean>((resolve) => {
-          releaseDisk = resolve;
+          pendingDiskReads.push(resolve);
         })
     );
 
@@ -43,13 +43,13 @@ describe('hydrateOfflineMode / writeOfflineModeEnabled', () => {
 
     const hydrate = hydrateOfflineMode();
     await vi.waitFor(() => {
-      expect(releaseDisk).not.toBeNull();
+      expect(pendingDiskReads).toHaveLength(1);
     });
 
     await writeOfflineModeEnabled(false);
     expect(isOfflineModeEnabled()).toBe(false);
 
-    releaseDisk?.(true);
+    pendingDiskReads[0]?.(true);
     await expect(hydrate).resolves.toBe(false);
     expect(isOfflineModeEnabled()).toBe(false);
   });

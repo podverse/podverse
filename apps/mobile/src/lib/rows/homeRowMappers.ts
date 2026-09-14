@@ -37,7 +37,7 @@ type ItemHomeRowSource = {
 };
 
 const itemDescriptionPlain = (item: ItemHomeRowSource): string | null => {
-  const plain = htmlToPlainText(item.item_description?.value);
+  const plain = htmlToPlainText(item.item_description?.value ?? undefined);
   return plain.length > 0 ? plain : null;
 };
 

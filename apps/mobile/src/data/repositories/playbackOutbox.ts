@@ -39,7 +39,7 @@ export type PlaybackOutboxEvictionCandidate = {
 };
 
 const normalizePlaybackNumber = (value: number | null | undefined): number => {
-  if (!Number.isFinite(value)) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
     return 0;
   }
   return Math.max(0, value);

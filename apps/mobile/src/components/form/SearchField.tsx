@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import type { Ref } from 'react';
-import type { TextInput } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
+import type { TextFieldRef } from './TextField';
 import { TextField } from './TextField';
 
 export type SearchFieldProps = {
@@ -12,7 +11,7 @@ export type SearchFieldProps = {
   placeholder: string;
   testID?: string;
   value: string;
-  inputRef?: Ref<TextInput>;
+  inputRef?: TextFieldRef;
 };
 
 /**

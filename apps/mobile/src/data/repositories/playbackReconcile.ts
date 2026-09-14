@@ -247,14 +247,9 @@ const isMoreRecentState = (
 const pickNewestState = (
   states: readonly PlaybackReconcileResourceState[]
 ): PlaybackReconcileResourceState | null => {
-  if (states.length === 0) {
-    return null;
-  }
-
-  let newest = states[0];
-  for (let index = 1; index < states.length; index += 1) {
-    const candidate = states[index];
-    if (candidate !== undefined && isMoreRecentState(candidate, newest)) {
+  let newest: PlaybackReconcileResourceState | null = null;
+  for (const candidate of states) {
+    if (newest === null || isMoreRecentState(candidate, newest)) {
       newest = candidate;
     }
   }
