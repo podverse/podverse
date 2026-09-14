@@ -118,6 +118,8 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     // in from the same localhost IP, so the production default (5/min) 429s the whole login-heavy
     // cluster. Login-429 behavior is covered by auth.test.ts under the apiVitest profile.
     AUTH_LOGIN_MAX_PER_MINUTE: '100000',
+    // Same sentinel search / unparsed-feed fixtures as mobile E2E (no live Podcast Index).
+    PODVERSE_E2E_FIXTURES: '1',
   },
   apiMobileE2e: {
     SERVER_ENV: 'local',

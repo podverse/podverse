@@ -35,16 +35,24 @@ test.describe('Popularity Tracking consent', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'Learn more reveals the detailed agreement on this page, then Yes records accept and leaves the gate.',
+      'Learn more reveals the detailed agreement on this page.',
       async () => {
         await expect(page.getByText('includes you in unique-listener rankings')).toBeVisible();
         await page.getByRole('button', { name: 'Learn more' }).click();
         await expect(page).toHaveURL(/\/popularity-tracking/);
         await expect(page.getByRole('heading', { name: 'What we do not do' })).toBeVisible();
+      },
+      page.getByRole('heading', { name: 'What we do not do' })
+    );
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'Yes records accept and leaves the Popularity Tracking gate.',
+      async () => {
         await page.getByRole('button', { name: 'Yes, track me' }).click();
         await expect(page).not.toHaveURL(/popularity-tracking/);
-      },
-      page.getByRole('heading', { name: 'Popularity Tracking' })
+      }
     );
   });
 
@@ -52,7 +60,7 @@ test.describe('Popularity Tracking consent', () => {
     page,
   }, testInfo) => {
     await loginViaApi(page, DECIDED_EMAIL);
-    await page.goto('/settings');
+    await page.goto('/settings?tab=account');
 
     await expect(page.getByRole('heading', { name: 'Popularity Tracking' })).toBeVisible();
     await expect(page.getByText('You already agreed to this version.')).toBeVisible();
