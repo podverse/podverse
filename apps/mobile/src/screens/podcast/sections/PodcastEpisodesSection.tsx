@@ -219,8 +219,9 @@ export function PodcastEpisodesSection({
   }, []);
 
   /**
-   * Playlists and play history live on the account, so signed out these explain themselves through
-   * the gate instead of failing quietly. Queue and download are offered to everyone and stay local.
+   * Playlists live on the account, so signed out this explains itself through the gate instead of
+   * failing quietly. Queue and play history are gated inside `useHomeRowPlayback` against
+   * `queue_history_sync`; download stays local and is offered to everyone.
    */
   const handleAddToPlaylist = useCallback(
     (row: HomeFeedRowData) => {
@@ -235,13 +236,9 @@ export function PodcastEpisodesSection({
 
   const handleMarkAsPlayed = useCallback(
     (row: HomeFeedRowData) => {
-      if (status !== 'authenticated') {
-        openGate('needs_account');
-        return;
-      }
       runMarkAsPlayedAction(row, 'episodes');
     },
-    [openGate, runMarkAsPlayedAction, status]
+    [runMarkAsPlayedAction]
   );
 
   /**

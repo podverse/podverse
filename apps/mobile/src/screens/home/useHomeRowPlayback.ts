@@ -4,6 +4,7 @@ import type { QueueMutationKind, QueueMutationMediaType } from '../../hooks/useQ
 import { useQueueMutations } from '../../hooks/useQueueMutations';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import type { HomeFeedRowData } from './homeFeedData';
@@ -54,11 +55,16 @@ export type QueueActionPosition = 'next' | 'last';
  *
  * Every action reports through one notice channel, so a row shows the outcome of the last thing
  * asked of it rather than competing messages.
+ *
+ * Queue and history live on the account, so both are checked against `queue_history_sync` before the
+ * request rather than only reacting to a server 403 — signed out there is no request to get a 403
+ * from, and a lapsed member needs the renewal prompt rather than a failure notice.
  */
 export function useHomeRowPlayback() {
   const [actionNoticeKey, setActionNoticeKey] = useState<RowActionNoticeKey | null>(null);
   const { addToQueueLast, addToQueueNext, markAsPlayed } = useQueueMutations();
-  const { handleGateError } = useMembershipGate();
+  const { handleGateError, openGate } = useMembershipGate();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
   const {
     activeTarget,
     isPlaying,
@@ -68,6 +74,22 @@ export function useHomeRowPlayback() {
     playItemById,
     resume,
   } = usePlayback();
+
+  /**
+   * Open the gate when the account-backed queue and history are out of reach, and report whether the
+   * caller should stop. While the tier is unknown the request runs and the server decides.
+   */
+  const didOpenQueueHistoryGate = useCallback((): boolean => {
+    if (!isTierKnown) {
+      return false;
+    }
+    const access = evaluateFeature('queue_history_sync');
+    if (access.allowed) {
+      return false;
+    }
+    openGate(access.reason);
+    return true;
+  }, [evaluateFeature, isTierKnown, openGate]);
 
   const runPlayAction = useCallback(
     (row: HomeFeedRowData, mediaType: HomeMediaType) => {
@@ -115,6 +137,10 @@ export function useHomeRowPlayback() {
         return;
       }
 
+      if (didOpenQueueHistoryGate()) {
+        return;
+      }
+
       void (async () => {
         try {
           const added = await (position === 'next'
@@ -129,7 +155,7 @@ export function useHomeRowPlayback() {
         }
       })();
     },
-    [addToQueueLast, addToQueueNext, handleGateError]
+    [addToQueueLast, addToQueueNext, didOpenQueueHistoryGate, handleGateError]
   );
 
   const runMarkAsPlayedAction = useCallback(
@@ -140,6 +166,10 @@ export function useHomeRowPlayback() {
 
       const target = resolveRowTarget(row, mediaType);
       if (target === null) {
+        return;
+      }
+
+      if (didOpenQueueHistoryGate()) {
         return;
       }
 
@@ -157,7 +187,7 @@ export function useHomeRowPlayback() {
         }
       })();
     },
-    [handleGateError, markAsPlayed]
+    [didOpenQueueHistoryGate, handleGateError, markAsPlayed]
   );
 
   return {
