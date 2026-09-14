@@ -894,20 +894,6 @@ function LibraryHubScreen({
         {
           items: [
             {
-              onPress: () => {
-                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryQueue);
-              },
-              testID: 'library-nav-queue',
-              title: t('features.queue.queue'),
-            },
-            {
-              onPress: () => {
-                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
-              },
-              testID: 'library-nav-history',
-              title: t('features.history.history'),
-            },
-            {
               accessibilityLabel:
                 inProgressDownloadCount > 0
                   ? `${t('nav.tab.downloads')}, ${t('features.download.in_progress_count', {
@@ -920,6 +906,20 @@ function LibraryHubScreen({
               },
               testID: 'library-nav-downloads',
               title: t('nav.tab.downloads'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryQueue);
+              },
+              testID: 'library-nav-queue',
+              title: t('features.queue.queue'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
+              },
+              testID: 'library-nav-history',
+              title: t('features.history.history'),
             },
             {
               onPress: () => {
