@@ -201,7 +201,11 @@ describe('queue playback writes and replay (real QueueResourceService)', () => {
       .get(`${queueBase}/${account.queueIdText}/resources/now-playing`)
       .set(authHeaders(account.accountId, account.accountIdText));
     expect(res.status).toBe(200);
-    return res.body[0]?.item?.title ?? null;
+    const body: { item?: { title?: string | null } | null } | null = res.body;
+    if (body === null) {
+      return null;
+    }
+    return body.item?.title ?? null;
   };
 
   beforeAll(async () => {
