@@ -144,12 +144,18 @@ const config: ExpoConfig = {
     [
       'expo-build-properties',
       {
+        ios: {
+          // App platform floor (Expo SDK 52 / RN 0.76). Podspecs below 15.0 are clamped
+          // by withPodverseIosPodBuildSettings — Xcode's simulator range starts at 15.0.
+          deploymentTarget: '15.1',
+        },
         // ExoPlayer needs cleartext for E2E test-assets at http://10.0.2.2:2111 (and local API).
         android: {
           usesCleartextTraffic: true,
         },
       },
     ],
+    './plugins/withPodverseIosPodBuildSettings',
     './plugins/withPodverseCarPlay',
     ['./plugins/withPodverseAssociatedDomains', { host: universalLinkHost }],
   ],

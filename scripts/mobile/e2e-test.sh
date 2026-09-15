@@ -550,7 +550,7 @@ print_blocked_guidance() {
     echo "       Maestro never started its XCTest runner, so the screenshot will look normal."
     echo "    2. Reset the simulator and clear any orphaned driver:"
     echo "         bash scripts/mobile/ensure-devices.sh recover-e2e-ios"
-    echo "    3. If that fails to boot, CoreSimulator itself is wedged. Quit Simulator.app, then:"
+    echo "    3. If that fails to boot, CoreSimulator itself is wedged. Quit Device Hub (or Simulator.app), then:"
     echo "         killall -9 com.apple.CoreSimulator.CoreSimulatorService"
     echo "       That restarts every simulator on the host, including manual ones."
     echo "    4. Reinstall the app if the simulator was erased: npm run mobile:e2e:ios"

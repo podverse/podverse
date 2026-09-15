@@ -62,7 +62,7 @@ is detailed only when its screenshots arrive. `Status`: `not started` → `quest
 | P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips)                   |
 | P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast screen; episode later)      |
 | P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                      |
-| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | not started                               |
+| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | questions asked (inventory; Make Clip split) |
 | P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | done (Downloads)                          |
 | P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started                               |
 | P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                               |
@@ -158,6 +158,13 @@ Nextgen product feedback on the Downloads screen (not a legacy port). Plan set:
 | P2.3.16 | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md)             | Auto      | deferred |
 
 Locked decisions: `.llm/plans/completed/mobile-p2-library-downloads/00-SUMMARY.md`.
+
+### Planned steps — P2.1.4 Player & now playing
+
+Operator-dictated area. Inventory and locked scope live in
+`.llm/plans/active/mobile-p2-player/`
+([FEATURE-INVENTORY.md](/.llm/plans/active/mobile-p2-player/FEATURE-INVENTORY.md)).
+Make Clip is split out; player transcript chrome stays deferred (598). No detail docs yet.
 
 ## Track P2.2 — Visual polish (absorbs Phase 1 Track 23)
 

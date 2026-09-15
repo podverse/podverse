@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Run CocoaPods with a macOS-native toolchain PATH and without Nix env pollution.
-# CocoaPods compiles glog with the iOS SDK; direnv/Nix sets DEVELOPER_DIR/SDKROOT to a Nix apple-sdk
-# and puts Nix tools on PATH. Unset NIX_* + DEVELOPER_DIR + SDKROOT first, re-derive Xcode, then pod install.
+# CocoaPods compiles glog with the iOS SDK; direnv/Nix sets DEVELOPER_DIR/SDKROOT to a Nix apple-sdk,
+# puts Nix tools on PATH, and exports the stdenv toolchain vars (CC=clang, CXX=clang++, LD, AR, …) that
+# Apple toolchains honor. Unset those plus NIX_* + DEVELOPER_DIR + SDKROOT first, re-derive Xcode, then
+# pod install.
 # Usage: bash scripts/mobile/pod-install-macos.sh [pod install args...]
 # Run from repo root (or any cwd — script resolves repo root).
 
@@ -36,6 +38,8 @@ fi
 
 # Strip Nix/direnv Apple-SDK pollution before xcode-select/xcrun (they honor DEVELOPER_DIR/SDKROOT).
 unset DEVELOPER_DIR SDKROOT
+unset CC CXX CPP LD LDPLUSPLUS AR AS NM RANLIB STRIP SIZE STRINGS OBJCOPY OBJDUMP READELF
+unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS MACOSX_DEPLOYMENT_TARGET SOURCE_DATE_EPOCH
 while IFS='=' read -r var _; do
   case "$var" in
     NIX_* | __NIX_* | DETERMINISTIC_BUILD) unset "$var" ;;
@@ -92,6 +96,10 @@ fi
 
 export SDKROOT="$IPHONEOS_SDK"
 
+bash "$SCRIPT_DIR/ensure-ios-pod-build-settings.sh" "$IOS_DIR"
+
 cd "$IOS_DIR"
 "$POD_BIN" install --repo-update "$@"
 bash "$SCRIPT_DIR/patch-fmt-xcode26.sh" "$IOS_DIR"
+bash "$SCRIPT_DIR/ensure-ios-pod-build-settings.sh" "$IOS_DIR"
+bash "$SCRIPT_DIR/ensure-expo-sqlite-vendored-sources.sh" "$REPO_ROOT/apps/mobile"

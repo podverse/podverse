@@ -12,6 +12,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 MANUAL_IOS_NAME='iPhone 17 Pro'
 MANUAL_ANDROID_AVD='Pixel_6_Pro_API_33'
 E2E_IOS_NAME='iPhone 17 Pro E2E'
@@ -193,7 +195,7 @@ boot_ios_sim() {
   if [[ "$state" != "Booted" ]]; then
     echo "Booting iOS simulator: ${name}" >&2
     xcrun simctl boot "$udid" 2>/dev/null || true
-    open -a Simulator >/dev/null 2>&1 || true
+    bash "$SCRIPT_DIR/open-simulator-ui.sh"
     xcrun simctl bootstatus "$udid" -b >/dev/null
   else
     echo "iOS simulator already booted: ${name}" >&2
@@ -235,10 +237,10 @@ recover_ios_device() {
   done
 
   xcrun simctl boot "$udid" >/dev/null 2>&1 || true
-  open -a Simulator >/dev/null 2>&1 || true
+  bash "$SCRIPT_DIR/open-simulator-ui.sh"
   if ! xcrun simctl bootstatus "$udid" -b >/dev/null 2>&1; then
     echo "Error: ${name} did not finish booting after recovery." >&2
-    echo "CoreSimulator itself may be wedged. Quit Simulator.app, then:" >&2
+    echo "CoreSimulator itself may be wedged. Quit Device Hub (or Simulator.app), then:" >&2
     echo "  killall -9 com.apple.CoreSimulator.CoreSimulatorService" >&2
     echo "That restarts every simulator on the host, including manual ones." >&2
     exit 1
