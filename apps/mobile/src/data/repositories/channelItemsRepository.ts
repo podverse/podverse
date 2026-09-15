@@ -447,6 +447,46 @@ export const channelItemsRepository = {
   },
 
   /**
+   * Replace the payload of an item this device already stores.
+   *
+   * Browse and search items are not inserted here — this store is for followed channels. A
+   * cache-first episode screen calls this after a server copy arrives so the next open is current.
+   */
+  updateStoredItem: async (item: DTOItem): Promise<void> => {
+    const itemIdText = item.id_text.trim();
+    if (itemIdText.length === 0) {
+      return;
+    }
+
+    await initializeDatabase();
+    const existing = await getDb()
+      .select({ channelIdText: schema.channelItem.channelIdText })
+      .from(schema.channelItem)
+      .where(eq(schema.channelItem.itemIdText, itemIdText))
+      .limit(1);
+    const current = existing[0];
+    if (current === undefined) {
+      return;
+    }
+
+    const record = toChannelItemRecord(current.channelIdText, item);
+    if (record === null) {
+      return;
+    }
+
+    await getDb()
+      .update(schema.channelItem)
+      .set({
+        title: record.title,
+        imageUrl: record.imageUrl,
+        pubDateMs: record.pubDateMs,
+        payloadJson: JSON.stringify(record.payload),
+        updatedAt: Date.now(),
+      })
+      .where(eq(schema.channelItem.itemIdText, itemIdText));
+  },
+
+  /**
    * When each stored channel last published, keyed by channel `id_text`.
    *
    * One grouped query rather than a lookup per channel, because the caller is ordering a whole

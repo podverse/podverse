@@ -28,6 +28,8 @@ export type MediaRowMoreAction = {
   onPress: () => void;
   testID?: string;
   disabled?: boolean;
+  /** Danger rows (Delete) use the danger text token. */
+  tone?: 'danger';
 };
 
 export type MediaRowActionsProps = {
@@ -57,6 +59,12 @@ export type MediaRowActionsProps = {
    * pause + an in-row progress track. Prefer a content `id_text` (or a home-feed prefixed id).
    */
   playbackMediaId?: string | null;
+  /**
+   * When false, an active row still switches Play to Pause but does not mount the in-row track.
+   * The track is also omitted when there is no duration to display; More still sits on the trailing
+   * edge.
+   */
+  showActiveProgress?: boolean;
 };
 
 /** Minimal translate signature so the pure builder is unit-testable without i18next. */
@@ -65,16 +73,15 @@ export type MediaRowTranslate = (key: string) => string;
 /**
  * Handlers for the standard web-parity intents. Only intents with a handler are emitted, so a call
  * site advertises exactly what mobile supports. Order mirrors the web `ItemRowMoreActions` menu,
- * with Share last.
- *
- * Play stays inline, and download is a control on the row rather than a menu entry, so both are one
- * tap from the list.
+ * then Download or Delete last. Download sits in this list even when the row also has a one-tap
+ * download icon.
  */
 export type MediaRowMoreActionHandlers = {
   onQueueNext?: () => void;
   onQueueLast?: () => void;
   onAddToPlaylist?: () => void;
   onMarkAsPlayed?: () => void;
+  onDownload?: () => void;
   onShare?: () => void;
 };
 
@@ -92,6 +99,7 @@ const MORE_ACTION_SPECS: {
   },
   { i18nKey: 'features.history.mark_as_played', intent: 'onMarkAsPlayed', key: 'mark-as-played' },
   { i18nKey: 'features.share', intent: 'onShare', key: 'share' },
+  { i18nKey: 'features.download.download_episode', intent: 'onDownload', key: 'download' },
 ];
 
 /**
@@ -103,7 +111,7 @@ const MORE_ACTION_SPECS: {
 export const buildMediaRowMoreActions = (
   translate: MediaRowTranslate,
   handlers: MediaRowMoreActionHandlers,
-  options?: { idSuffix?: string }
+  options?: { downloadLabelKey?: string; downloadTone?: 'danger'; idSuffix?: string }
 ): MediaRowMoreAction[] => {
   const suffix = options?.idSuffix ?? '';
   return MORE_ACTION_SPECS.flatMap((spec) => {
@@ -111,12 +119,17 @@ export const buildMediaRowMoreActions = (
     if (onPress === undefined) {
       return [];
     }
+    const i18nKey =
+      spec.intent === 'onDownload' && options?.downloadLabelKey !== undefined
+        ? options.downloadLabelKey
+        : spec.i18nKey;
     return [
       {
         key: spec.key,
-        label: translate(spec.i18nKey),
+        label: translate(i18nKey),
         onPress,
         testID: `media-row-action-${spec.key}${suffix}`,
+        tone: spec.intent === 'onDownload' ? options?.downloadTone : undefined,
       },
     ];
   });
@@ -167,6 +180,7 @@ export function MediaRowActions({
   durationLabel = null,
   durationTestID,
   playbackMediaId = null,
+  showActiveProgress = true,
 }: MediaRowActionsProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
@@ -251,6 +265,7 @@ export function MediaRowActions({
             playTestID={playTestID}
             playVariant={playButtonVariant}
             playbackMediaId={playbackMediaId}
+            showActiveProgress={showActiveProgress}
             size={size}
           />
         ) : (
@@ -298,6 +313,7 @@ export function MediaRowActions({
                 label: action.label,
                 onPress: action.onPress,
                 testID: action.testID ?? `media-row-action-${action.key}${idSuffix}`,
+                tone: action.tone,
               })),
               key: 'actions',
               title: sheetTitle,
@@ -375,6 +391,7 @@ type MediaRowIconsLeadingProps = {
   durationTestID?: string;
   leadingStyle: StyleProp<ViewStyle>;
   durationStyle: StyleProp<TextStyle>;
+  showActiveProgress: boolean;
 };
 
 /**
@@ -394,6 +411,7 @@ function MediaRowIconsLeading({
   durationTestID,
   leadingStyle,
   durationStyle,
+  showActiveProgress,
 }: MediaRowIconsLeadingProps) {
   const { activeTarget, isPlaying } = usePlaybackSession();
   const resolvedPlaybackMediaId = normalizeHomeFeedPlaybackMediaId(playbackMediaId);
@@ -413,7 +431,7 @@ function MediaRowIconsLeading({
         size={size}
         useIcons
       />
-      {isActiveRow ? (
+      {isActiveRow && showActiveProgress && hasDuration ? (
         <MediaRowActiveProgress
           testID={durationTestID !== undefined ? `${durationTestID}-progress` : undefined}
         />

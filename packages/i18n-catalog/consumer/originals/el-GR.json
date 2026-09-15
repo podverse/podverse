@@ -331,6 +331,7 @@
     "podroll": "Podroll",
     "no_podroll_found": "Δεν βρέθηκαν προτεινόμενα podcast",
     "show_more": "Περισσότερα",
+    "show_less": "Λιγότερα",
     "transcript": {
       "transcript": "Μεταγραφή",
       "search_transcript": "Αναζήτηση μεταγραφής...",
@@ -355,6 +356,8 @@
     "time": {
       "left": "{timeRemaining} απομένοντα",
       "last": "{timePosition} τελευταίο",
+      "hr": "{count} ώ",
+      "min": "{count} λεπ",
       "start": "{timeStart} αρχική ώρα",
       "start_end": "{timeStart} έως {timeEnd}"
     }

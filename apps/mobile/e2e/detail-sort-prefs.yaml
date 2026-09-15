@@ -167,17 +167,19 @@ name: Detail Sort Prefs
     id: episode-detail-tab-clips
 - extendedWaitUntil:
     visible:
-      id: episode-detail-clip-sort-pill
+      id: episode-detail-clip-sort-button
     timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: episode-detail-tab-error-clips
 - takeScreenshot: detail-sort-episode-clips-default
 
 - tapOn:
-    id: episode-detail-clip-sort-pill
+    id: episode-detail-clip-sort-button
 - tapOn:
     id: episode-detail-clip-sort-oldest
 - extendedWaitUntil:
     visible:
-      id: episode-detail-clip-sort-pill
+      id: episode-detail-clip-sort-button
     timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: detail-sort-episode-clips-oldest
 
@@ -186,6 +188,6 @@ name: Detail Sort Prefs
 - runFlow: shared/confirm-ios-open-dialog.yaml
 - extendedWaitUntil:
     visible:
-      id: episode-detail-clip-sort-pill
+      id: episode-detail-clip-sort-button
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-episode-clips-restored

@@ -12,10 +12,7 @@ import {
   readDownloadQuotaBytes,
 } from '../prefs/downloadPrefs';
 import { isOfflineModeEnabled, subscribeOfflineMode } from '../prefs/offlineMode';
-import {
-  mergeDownloadChannelIdentity,
-  usableDownloadChannelText,
-} from './downloadChannelIdentity';
+import { mergeDownloadChannelIdentity, usableDownloadChannelText } from './downloadChannelIdentity';
 import type { DownloadIneligibleReason } from './downloadEligibility';
 import { isItemDownloadable } from './downloadEligibility';
 import {
@@ -167,8 +164,7 @@ const resolveChannelForEnqueue = async (
     }
   }
 
-  const siblingTitle =
-    storedChannelId !== null ? titleFromSiblingDownloads(storedChannelId) : null;
+  const siblingTitle = storedChannelId !== null ? titleFromSiblingDownloads(storedChannelId) : null;
   const merged = mergeDownloadChannelIdentity([
     fromItem,
     { channelIdText: storedChannelId, channelTitle: siblingTitle },

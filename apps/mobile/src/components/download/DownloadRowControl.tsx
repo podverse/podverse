@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 
+import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import type { DownloadStatus } from '../../downloads/downloadTypes';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
@@ -15,23 +16,6 @@ import { useTheme } from '../../theme/useTheme';
 type DownloadRowControlProps = {
   item: DTOItem;
   testID: string;
-};
-
-/** What a tap does next, which is not always "download" — exhaustive so a new status must answer. */
-const actionLabelKey = (status: DownloadStatus | null): string => {
-  switch (status) {
-    case 'complete':
-      return 'features.download.remove_download';
-    case 'queued':
-    case 'downloading':
-    case 'paused':
-      return 'features.download.cancel_download';
-    case 'failed':
-      return 'features.download.episode_download_error';
-    case 'cancelled':
-    case null:
-      return 'features.download.download_episode';
-  }
 };
 
 const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Ionicons>['name'] => {
@@ -50,10 +34,9 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
 };
 
 /**
- * The download affordance as a list row carries it: one icon, one tap, no detour through the
- * episode screen. **Renders nothing** when the item cannot be downloaded — a livestream, an
- * HLS-only source, or no enclosure — which is the same rule the labeled control on episode detail
- * applies, read from the same eligibility check.
+ * The download affordance as a list row carries it: one icon, one tap. **Renders nothing** when the
+ * item cannot be downloaded — a livestream, an HLS-only source, or no enclosure — the same
+ * eligibility the More menu uses.
  *
  * Hit target matches {@link LIST_ROW_ACTION_SIZE} (same as Play / More) so icon controls share one
  * finger target. The glyph itself is borderless and uses {@link LIST_ROW_ACTION_ICON_SIZE} — the
@@ -94,16 +77,12 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
 
   return (
     <Pressable
-      accessibilityLabel={t(actionLabelKey(status))}
+      accessibilityLabel={t(downloadActionLabelKey(status))}
       accessibilityRole="button"
       accessibilityState={{ busy: isInProgress }}
       onPress={(event) => {
         stopPropagation(event);
-        if (status === 'complete' || isInProgress) {
-          remove();
-          return;
-        }
-        start();
+        runDownloadAction({ remove, start, status });
       }}
       style={({ pressed }) => [styles.control, pressed ? styles.pressed : null]}
       testID={testID}

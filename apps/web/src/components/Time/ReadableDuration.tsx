@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import type React from 'react';
 
 import type { DTOItem, QueueResourcesAbridgedIndex } from '@podverse/helpers';
-import { formatSecondsToReadableDuration } from '@podverse/helpers';
+import { formatCompactPlaybackDurationFromSeconds } from '@podverse/helpers';
 
 type ReadableDurationProps = {
   durationStr: string | null;
@@ -35,18 +35,20 @@ export const ReadableDuration: React.FC<ReadableDurationProps> = ({ durationStr,
   const tInfo = useTranslations('info');
   const position = positionStr ? Number(positionStr) : null;
   const duration = durationStr ? Number(durationStr) : null;
+  const formatSeconds = (seconds: number): string | null =>
+    formatCompactPlaybackDurationFromSeconds(seconds, (unit, count) =>
+      tInfo(unit === 'hour' ? 'time.hr' : 'time.min', { count })
+    );
 
   if (position && duration) {
-    const timeLeft = duration - position;
-    const readableTime = formatSecondsToReadableDuration(timeLeft.toString());
+    const readableTime = formatSeconds(duration - position);
+    if (readableTime === null) {
+      return '';
+    }
     return tInfo('time.left', { timeRemaining: readableTime });
-  } else if (position && !duration) {
-    const readableTime = formatSecondsToReadableDuration(position.toString());
-    return tInfo('time.last', { timePosition: readableTime });
-  } else if (duration) {
-    const readableTime = formatSecondsToReadableDuration(duration.toString());
-    return readableTime;
-  } else {
-    return '';
   }
+  if (duration) {
+    return formatSeconds(duration) ?? '';
+  }
+  return '';
 };

@@ -1,41 +1,67 @@
-import { formatDuration } from 'date-fns/formatDuration';
-import { intervalToDuration } from 'date-fns/intervalToDuration';
+export type CompactPlaybackDuration = {
+  hours: number;
+  minutes: number;
+};
 
-import { getDateFnsLocale } from '../date.js';
+export type CompactPlaybackDurationUnit = 'hour' | 'minute';
 
-export function formatSecondsToReadableDuration(input: string, lang: string = 'en-US'): string {
+/**
+ * Hours and minutes for a play-row time label. Seconds are never a display unit: any leftover
+ * greater than 0 rounds up to the next minute. `null` means there is no duration to show.
+ */
+export function toCompactPlaybackDuration(seconds: number): CompactPlaybackDuration | null {
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return null;
+  }
+
+  const totalMinutes = Math.ceil(seconds / 60);
+  return {
+    hours: Math.floor(totalMinutes / 60),
+    minutes: totalMinutes % 60,
+  };
+}
+
+export function formatCompactPlaybackDuration(
+  parts: CompactPlaybackDuration,
+  formatUnit: (unit: CompactPlaybackDurationUnit, count: number) => string
+): string {
+  const minutesLabel = formatUnit('minute', parts.minutes);
+  if (parts.hours > 0) {
+    return `${formatUnit('hour', parts.hours)} ${minutesLabel}`;
+  }
+  return minutesLabel;
+}
+
+export function formatCompactPlaybackDurationFromSeconds(
+  seconds: number,
+  formatUnit: (unit: CompactPlaybackDurationUnit, count: number) => string
+): string | null {
+  const parts = toCompactPlaybackDuration(seconds);
+  if (parts === null) {
+    return null;
+  }
+  return formatCompactPlaybackDuration(parts, formatUnit);
+}
+
+const ENGLISH_SHORT_UNITS: Record<CompactPlaybackDurationUnit, (count: number) => string> = {
+  hour: (count) => `${count} hr`,
+  minute: (count) => `${count} min`,
+};
+
+/**
+ * Play-row duration in English short units (`1 hr 33 min`, `1 min`). Prefer
+ * `formatCompactPlaybackDurationFromSeconds` with catalog `info.time.hr` / `info.time.min` at app
+ * call sites so locales do not inherit English abbreviations.
+ */
+export function formatSecondsToReadableDuration(input: string, _lang: string = 'en-US'): string {
   let seconds = Math.floor(parseFloat(input));
   if (isNaN(seconds) || seconds < 0) {
     seconds = 0;
   }
-  let duration = intervalToDuration({ start: 0, end: seconds * 1000 });
 
-  if (
-    !duration.years &&
-    !duration.months &&
-    !duration.days &&
-    !duration.hours &&
-    !duration.minutes &&
-    !duration.seconds
-  ) {
-    duration = { ...duration, seconds: 0 };
-  }
-
-  const locale = getDateFnsLocale(lang);
-
-  // If under 60 seconds, only show seconds
-  if (seconds < 60) {
-    return formatDuration(duration, {
-      format: ['seconds'],
-      locale,
-      zero: true,
-    });
-  }
-
-  // Otherwise, show hours and minutes
-  return formatDuration(duration, {
-    format: ['hours', 'minutes'],
-    locale,
-    zero: true,
-  });
+  return (
+    formatCompactPlaybackDurationFromSeconds(seconds, (unit, count) =>
+      ENGLISH_SHORT_UNITS[unit](count)
+    ) ?? ''
+  );
 }

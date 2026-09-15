@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
@@ -19,6 +19,8 @@ export type ChannelHeaderProps = {
   notice?: string | null;
   /** Already-localized. Shown under the title, e.g. an author or track count. */
   subtitle?: string | null;
+  /** Opens the linked channel when the title is pressed. */
+  onTitlePress?: () => void;
   testID?: string;
   title: string;
   /** Largest original for the full-screen viewer. Defaults to `artworkUri`. */
@@ -45,6 +47,7 @@ export function ChannelHeader({
   description,
   descriptionLines = 4,
   notice,
+  onTitlePress,
   subtitle,
   testID,
   title,
@@ -111,9 +114,22 @@ export function ChannelHeader({
           viewerUri={viewerUri}
         />
         <View style={styles.textColumn}>
-          <Text accessibilityRole="header" numberOfLines={2} style={styles.title}>
-            {title}
-          </Text>
+          {onTitlePress !== undefined ? (
+            <Pressable accessibilityLabel={title} accessibilityRole="link" onPress={onTitlePress}>
+              <Text
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+                numberOfLines={2}
+                style={styles.title}
+              >
+                {title}
+              </Text>
+            </Pressable>
+          ) : (
+            <Text accessibilityRole="header" numberOfLines={2} style={styles.title}>
+              {title}
+            </Text>
+          )}
           {hasSubtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
           {actions !== undefined && actions !== null ? (
             <View style={styles.actions}>{actions}</View>

@@ -211,11 +211,7 @@ export function LibraryDownloadsScreen() {
           testID={`download-row-${item.itemIdText}`}
         >
           <Pressable
-            accessibilityLabel={[
-              channelTitle,
-              item.title ?? item.itemIdText,
-              accessibilityStatus,
-            ]
+            accessibilityLabel={[channelTitle, item.title ?? item.itemIdText, accessibilityStatus]
               .filter((part) => part !== null && part !== undefined && part.length > 0)
               .join(', ')}
             accessibilityRole="button"

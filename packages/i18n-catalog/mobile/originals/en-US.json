@@ -45,6 +45,7 @@
       "remove": "Remove",
       "cancel_download": "Cancel download",
       "remove_download": "Remove download",
+      "delete": "Delete",
       "empty": "No downloads yet",
       "downloaded": "Downloaded",
       "not_downloadable": "This episode can't be downloaded for offline play",

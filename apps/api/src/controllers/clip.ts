@@ -94,6 +94,13 @@ const statsAggregationChannelRelations: FindOptionsRelations<StatsAggregatedClip
     'clip.sharable_status',
   ]);
 
+const emptyClipPage = (page: number, limit: number): ApiListResponse<Clip> => {
+  return {
+    data: [],
+    meta: { page, count: 0, limit },
+  };
+};
+
 const statsAggregationItemRelations: FindOptionsRelations<StatsAggregatedClip> =
   findOptionsRelationsFromPaths<StatsAggregatedClip>([
     'clip',
@@ -470,7 +477,7 @@ class ClipController {
 
           const channel = await ClipController.channelService.getByIdText(channel_id_text);
           if (!channel) {
-            res.status(404).json({ message: 'Channel not found' });
+            res.json(emptyClipPage(page, limit));
             return;
           }
 
@@ -505,7 +512,7 @@ class ClipController {
 
           const channel = await ClipController.channelService.getByIdText(channel_id_text);
           if (!channel) {
-            res.status(404).json({ message: 'Channel not found' });
+            res.json(emptyClipPage(page, limit));
             return;
           }
 
@@ -545,7 +552,7 @@ class ClipController {
 
           const channel = await ClipController.channelService.getByIdText(channel_id_text);
           if (!channel) {
-            res.status(404).json({ message: 'Channel not found' });
+            res.json(emptyClipPage(page, limit));
             return;
           }
 
@@ -582,14 +589,14 @@ class ClipController {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);
 
-          const item = await ClipController.itemService.getByIdText(item_id_text);
+          const item = await ClipController.itemService.getByIdOrIdText(item_id_text);
           if (!item) {
-            res.status(404).json({ message: 'Item not found' });
+            res.json(emptyClipPage(page, limit));
             return;
           }
 
           const [clips, count] = await ClipController.clipService.getManyByItemAndCountPublic(
-            item_id_text,
+            item.id_text ?? item_id_text,
             {
               order: { created_at: 'DESC' },
               skip: offset,
@@ -617,14 +624,14 @@ class ClipController {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);
 
-          const item = await ClipController.itemService.getByIdText(item_id_text);
+          const item = await ClipController.itemService.getByIdOrIdText(item_id_text);
           if (!item) {
-            res.status(404).json({ message: 'Item not found' });
+            res.json(emptyClipPage(page, limit));
             return;
           }
 
           const [clips, count] = await ClipController.clipService.getManyByItemAndCountPublic(
-            item_id_text,
+            item.id_text ?? item_id_text,
             {
               order: { created_at: 'ASC' },
               skip: offset,
@@ -657,9 +664,9 @@ class ClipController {
 
           const order = getStatsOrder(range);
 
-          const item = await ClipController.itemService.getByIdText(item_id_text);
+          const item = await ClipController.itemService.getByIdOrIdText(item_id_text);
           if (!item) {
-            res.status(404).json({ message: 'Item not found' });
+            res.json(emptyClipPage(page, limit));
             return;
           }
 

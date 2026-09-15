@@ -55,7 +55,9 @@ their episodes from `channelItemsRepository`, and add-by-RSS feeds from `addByRs
 - The one-time fallback for a screen with nothing stored yet is acceptable; a fallback that runs
   whenever the network happens to be available is not, because it hides the offline path breaking.
 - Refreshing a screen the user just opened runs directly rather than through the queue. Queued work
-  is for passes nobody asked for.
+  is for passes nobody asked for. If that screen painted from cache, the refresh still runs: apply
+  the server copy only when it differs, and keep the cached UI if the request fails. See
+  **mobile-data-layer** § Cache first, then lazy-correct from the server.
 
 ## Every queued job is visible
 

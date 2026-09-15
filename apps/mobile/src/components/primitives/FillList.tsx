@@ -1,3 +1,5 @@
+import type { ForwardedRef, ReactElement, Ref } from 'react';
+import { forwardRef } from 'react';
 import type { FlatListProps } from 'react-native';
 import { FlatList, StyleSheet } from 'react-native';
 
@@ -27,18 +29,16 @@ const fillContent = StyleSheet.create({
   },
 });
 
-/**
- * FlatList that locks scroll when `data` is empty and `ListEmptyComponent` is a fill state.
- * Pass `ListEmptyComponent={null}` when the empty UI lives in the header and the list should
- * still scroll (filter-no-matches).
- */
-export function FillList<ItemT>({
-  ListEmptyComponent,
-  contentContainerStyle,
-  data,
-  refreshControl,
-  ...rest
-}: FillListProps<ItemT>) {
+function FillListInner<ItemT>(
+  {
+    ListEmptyComponent,
+    contentContainerStyle,
+    data,
+    refreshControl,
+    ...rest
+  }: FillListProps<ItemT>,
+  ref: ForwardedRef<FlatList<ItemT>>
+): ReactElement {
   const lockScroll = isFillListScrollLocked(data, ListEmptyComponent);
 
   return (
@@ -50,8 +50,20 @@ export function FillList<ItemT>({
       contentContainerStyle={[fillContent.grow, contentContainerStyle]}
       data={data}
       overScrollMode={lockScroll ? 'never' : 'auto'}
+      ref={ref}
       refreshControl={lockScroll ? undefined : refreshControl}
       scrollEnabled={!lockScroll}
     />
   );
 }
+
+/**
+ * FlatList that locks scroll when `data` is empty and `ListEmptyComponent` is a fill state.
+ * Pass `ListEmptyComponent={null}` when the empty UI lives in the header or footer and the list
+ * should still scroll (filter-no-matches, detail screens whose chrome is the header).
+ *
+ * The alias keeps the generic `ItemT` on the public type — `forwardRef` otherwise widens it away.
+ */
+export const FillList = forwardRef(FillListInner) as <ItemT>(
+  props: FillListProps<ItemT> & { ref?: Ref<FlatList<ItemT>> }
+) => ReactElement;

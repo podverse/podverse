@@ -331,6 +331,7 @@
     "podroll": "",
     "no_podroll_found": "",
     "show_more": "",
+    "show_less": "",
     "transcript": {
       "transcript": "",
       "search_transcript": "",
@@ -355,6 +356,8 @@
     "time": {
       "left": "",
       "last": "",
+      "hr": "",
+      "min": "",
       "start": "",
       "start_end": ""
     }

@@ -331,6 +331,7 @@
     "podroll": "Podroll",
     "no_podroll_found": "No recommended podcasts found",
     "show_more": "Show more",
+    "show_less": "Show less",
     "transcript": {
       "transcript": "Transcript",
       "search_transcript": "Search transcript...",
@@ -355,6 +356,8 @@
     "time": {
       "left": "{timeRemaining} left",
       "last": "{timePosition} last",
+      "hr": "{count} hr",
+      "min": "{count} min",
       "start": "{timeStart} start time",
       "start_end": "{timeStart} to {timeEnd}"
     }
