@@ -1,9 +1,9 @@
 appId: com.podverse.app.next
 name: Settings Downloads Storage
 ---
-# More → Settings → Downloads: storage sizes (bars only when a cap exists), limit row, auto-free
-# toggles, and danger Delete all with confirm. Storage management lives here rather than on the
-# Downloads list.
+# More → Settings → Downloads: storage sizes (track only when a cap exists; fill is the used
+# portion and can be zero-width), limit row, auto-free toggles, and danger Delete all with confirm.
+# Storage management lives here rather than on the Downloads list.
 #
 # Needs flow_needs_e2e_api (login + Settings hub).
 
@@ -25,19 +25,23 @@ name: Settings Downloads Storage
 - assertVisible:
     id: settings-downloads-device
 - assertVisible:
+    id: settings-downloads-device-track
+- assertVisible:
     id: settings-downloads-device-fill
 - assertVisible:
     id: settings-downloads-media
 - assertVisible:
+    id: settings-downloads-media-track
+- assertNotVisible:
     id: settings-downloads-media-fill
 - assertVisible:
     id: settings-downloads-app-data
 - assertNotVisible:
-    id: settings-downloads-app-data-fill
+    id: settings-downloads-app-data-track
 - assertVisible:
     id: settings-downloads-cache
 - assertNotVisible:
-    id: settings-downloads-cache-fill
+    id: settings-downloads-cache-track
 - assertVisible:
     id: more-settings-downloads-limit
 - assertVisible:
@@ -46,6 +50,11 @@ name: Settings Downloads Storage
     id: more-settings-downloads-auto-device-low
 - takeScreenshot: settings-downloads-storage
 
+- scrollUntilVisible:
+    element:
+      id: more-settings-downloads-delete-all
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
 - tapOn:
     id: more-settings-downloads-delete-all
 - assertVisible:
@@ -56,6 +65,11 @@ name: Settings Downloads Storage
     id: more-settings-downloads-delete-all-dialog
 - takeScreenshot: settings-downloads-delete-cancelled
 
+- scrollUntilVisible:
+    element:
+      id: more-settings-downloads-limit
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
 - tapOn:
     id: more-settings-downloads-limit
 - assertVisible:

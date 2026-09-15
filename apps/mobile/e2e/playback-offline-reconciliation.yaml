@@ -59,12 +59,20 @@ name: Playback Offline Reconciliation
     id: "home-row-play-.*"
 - extendedWaitUntil:
     visible:
-      id: playback-active-e2e
+      id: playback-now-playing-title-e2e
+      text: "E2E Podcast Resume Near End"
     timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: playback-active-e2e
+    text: playing
+# 60s fixtures exceed TIMEOUT_SLOWEST; trigger the same advance('complete') path as native ended.
+- runFlow: shared/open-e2e-playback.yaml
+- tapOn:
+    id: playback-complete-e2e
 - extendedWaitUntil:
     notVisible:
       id: playback-active-e2e
-    timeout: ${TIMEOUT_SLOWEST}
+    timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: playback-offline-episode-b-complete
 
 # Return online and wait for replay + hydrate work to settle.
@@ -90,8 +98,10 @@ name: Playback Offline Reconciliation
     id: library-nav-history
 - assertVisible:
     id: library-history-screen
-- assertVisible:
-    text: "E2E Podcast Resume P > 0"
+- extendedWaitUntil:
+    visible:
+      text: "E2E Podcast Resume P > 0"
+    timeout: ${TIMEOUT_SLOWEST}
 - assertVisible:
     text: "E2E Podcast Resume Near End"
 - tapOn:

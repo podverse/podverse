@@ -210,17 +210,20 @@ export function PodcastSettingsScreen({ route }: PodcastSettingsScreenProps) {
         <View style={styles.sectionInner}>
           <Text style={styles.sectionHeading}>{t('settings.notifications.notifications')}</Text>
           <ListRow
-            testID="podcast-settings-notifications-toggle"
+            testID="podcast-settings-notifications-row"
             title={t('features.notifications.enable_notifications_for_this_podcast')}
             trailing={
               <Switch
                 accessibilityLabel={t(
                   'features.notifications.enable_notifications_for_this_podcast'
                 )}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: notifications.isEnabled }}
                 disabled={notifications.isSaving}
                 onValueChange={(nextValue) => {
                   void notifications.setEnabled(nextValue);
                 }}
+                testID="podcast-settings-notifications-toggle"
                 value={notifications.isEnabled}
               />
             }

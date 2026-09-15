@@ -252,9 +252,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         ) : null
       }
       ListFooterComponent={
-        noticeKey !== null ||
-        errorKey !== null ||
-        (isMobileE2eFromEnv() && isPlaybackActive) ? (
+        noticeKey !== null || errorKey !== null || (isMobileE2eFromEnv() && isPlaybackActive) ? (
           <View>
             {noticeKey !== null ? (
               <Text style={styles.notice} testID="add-by-rss-home-notice">

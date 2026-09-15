@@ -29,10 +29,36 @@ name: Browse Tab And Tab Bar Pref
     id: browse-media-type-podcasts
 - assertVisible:
     id: browse-media-type-videos
+# Phone chip row does not fit Playlists / Users. Swipe the selector itself —
+# a %-of-screen start Y can miss the pills, and iOS omits off-screen testIDs.
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
 - assertVisible:
     id: browse-media-type-playlists
 - assertVisible:
     id: browse-media-type-users
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
 - assertNotVisible:
     id: browse-filter-input
 - assertNotVisible:
@@ -84,6 +110,10 @@ name: Browse Tab And Tab Bar Pref
 - assertVisible:
     id: browse-sort-button
 
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
 - tapOn:
     id: browse-media-type-artists
 - extendedWaitUntil:
@@ -121,10 +151,11 @@ name: Browse Tab And Tab Bar Pref
     id: stack-header-back
 - tapOn:
     id: stack-header-back
+# addVisibleTab appends Notifications and drops the last other slot (Browse).
 - assertVisible:
     id: tab-notifications
 - assertVisible:
-    id: tab-browse
-- assertNotVisible:
     id: tab-my-library
+- assertNotVisible:
+    id: tab-browse
 - takeScreenshot: browse-tab-bar-notifications-visible

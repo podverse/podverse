@@ -66,7 +66,12 @@ function StorageMeter({ label, usedLabel, ratio, testID }: StorageMeterProps) {
         {usedLabel}
       </Text>
       {ratio !== undefined ? (
-        <ProgressTrack fillTestID={`${testID}-fill`} height={6} ratio={ratio} />
+        <ProgressTrack
+          fillTestID={`${testID}-fill`}
+          height={6}
+          ratio={ratio}
+          testID={`${testID}-track`}
+        />
       ) : null}
     </View>
   );

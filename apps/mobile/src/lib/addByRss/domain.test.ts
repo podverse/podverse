@@ -9,7 +9,9 @@ import {
   mergeLocalAndRemoteAddByRssFeeds,
 } from './domain';
 
-const localFeed = (overrides: Partial<MobileAddByRSSFeedRecord> = {}): MobileAddByRSSFeedRecord => ({
+const localFeed = (
+  overrides: Partial<MobileAddByRSSFeedRecord> = {}
+): MobileAddByRSSFeedRecord => ({
   enclosureUrl: null,
   feedUrl: 'https://e2e-seed-addbyrss.example/podcast.xml',
   id: 1,

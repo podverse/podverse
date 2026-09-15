@@ -26,8 +26,7 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
 
   const liveLabel = row.metadata?.isLive === true ? t('media.livestream.live') : null;
   const unseenBadge = row.metadata?.unseenBadge ?? null;
-  const unseenLabel =
-    unseenBadge === null ? null : t('subscriptions.row.unseen_indicator_aria');
+  const unseenLabel = unseenBadge === null ? null : t('subscriptions.row.unseen_indicator_aria');
 
   const downloadedCount = row.metadata?.downloadedCount ?? 0;
   const downloadedLabel =

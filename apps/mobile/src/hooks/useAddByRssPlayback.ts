@@ -6,10 +6,7 @@ import { resolvePlaybackLoadDecision } from '@podverse/playback-core/resolvePlay
 
 import { useNativePlaybackBridge } from '../bridge';
 import { isMobileE2eFromEnv } from '../config/env';
-import {
-  EMPTY_ABRIDGED_INDEX,
-  toAddByRssItemPlaybackResourceData,
-} from '../lib/addByRss/domain';
+import { EMPTY_ABRIDGED_INDEX, toAddByRssItemPlaybackResourceData } from '../lib/addByRss/domain';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
 import type { MobileAddByRSSFeedRecord } from '../prefs/addByRSSFeeds';
 

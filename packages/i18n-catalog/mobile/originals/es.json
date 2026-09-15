@@ -138,7 +138,8 @@
     "playback": "Reproducción",
     "playback_intro": "Estos controles existen solo en compilaciones de prueba E2E. Inician el audio o vídeo de prueba que las pantallas del producto aún no exponen.",
     "play_video": "Reproducir vídeo E2E",
-    "skip_next": "Saltar al siguiente"
+    "skip_next": "Saltar al siguiente",
+    "complete_now_playing": "Marcar en reproducción como completado"
   },
   "subscriptions": {
     "downloaded_only": "Solo descargados"

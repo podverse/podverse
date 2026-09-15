@@ -278,23 +278,25 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
         presentationStyle="fullScreen"
         visible={showAuthSheet}
       >
-        <SafeAreaProvider>
-          {authMode === 'signup' ? (
-            <SignUpScreen
-              onDismiss={dismissAuthSheet}
-              onSwitchToLogin={() => {
-                setAuthMode('login');
-              }}
-            />
-          ) : (
-            <LoginScreen
-              onDismiss={dismissAuthSheet}
-              onSwitchToSignUp={() => {
-                setAuthMode('signup');
-              }}
-            />
-          )}
-        </SafeAreaProvider>
+        <View accessibilityViewIsModal style={styles.authSheet}>
+          <SafeAreaProvider>
+            {authMode === 'signup' ? (
+              <SignUpScreen
+                onDismiss={dismissAuthSheet}
+                onSwitchToLogin={() => {
+                  setAuthMode('login');
+                }}
+              />
+            ) : (
+              <LoginScreen
+                onDismiss={dismissAuthSheet}
+                onSwitchToSignUp={() => {
+                  setAuthMode('signup');
+                }}
+              />
+            )}
+          </SafeAreaProvider>
+        </View>
       </Modal>
       <StatusBar style={statusBarStyle} />
     </>
@@ -303,6 +305,9 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
 
 const styles = StyleSheet.create({
   appRoot: {
+    flex: 1,
+  },
+  authSheet: {
     flex: 1,
   },
   splashBanner: {

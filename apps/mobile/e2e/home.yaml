@@ -4,11 +4,11 @@ name: Home Media Types
 # Home media-type selector:
 # - screenshot each Home media-type selector state
 # - verify selector swipe/scroll interaction changes feed content
-# - Filter on channel lists (Podcasts / Artists / Albums) when rows exist; empty discovery CTAs
+# - Filter on Podcasts when the media-player seed follow is present; empty discovery CTAs
+#   on music types that account does not follow
 #
 # Filtering down to a matching row and the "no matches" state are covered in
-# subscriptions-anonymous.yaml, which is the flow that actually creates a subscription — the seeded
-# account deliberately follows nothing, which is what makes it the right place for the empty state.
+# subscriptions-anonymous.yaml, which is the flow that actually creates a subscription.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -32,7 +32,8 @@ name: Home Media Types
 # the chip then shows that window. A-Z is the default. There is no Categories chip here.
 - assertVisible:
     id: home-sort-button
-- assertVisible: A-Z
+# The chip face is "A-Z"; iOS exposes the paired accessible name, not the raw text node.
+- assertVisible: "Sort: A-Z"
 - assertNotVisible:
     id: home-category-button
 - tapOn:
@@ -54,7 +55,7 @@ name: Home Media Types
     id: home-screen
 - assertVisible:
     id: home-sort-button
-- assertVisible: Recent
+- assertVisible: "Sort: Recent"
 - takeScreenshot: home-sort-recent
 
 # Reopening shows the choice still selected: the chip reads the stored preference rather than
@@ -68,7 +69,7 @@ name: Home Media Types
     id: home-sort-alphabetical
 - assertVisible:
     id: home-sort-button
-- assertVisible: A-Z
+- assertVisible: "Sort: A-Z"
 
 # Popularity is a two-step choice: the sort sheet, then the listen-count window. The chip face
 # is that window, not the word Popularity.
@@ -93,7 +94,7 @@ name: Home Media Types
     id: home-sort-range-week
 - assertVisible:
     id: home-sort-button
-- assertVisible: Week
+- assertVisible: "Sort: Week"
 - assertNotVisible: Popularity
 - takeScreenshot: home-sort-week
 
@@ -114,7 +115,7 @@ name: Home Media Types
     id: home-sort-alphabetical
 - assertVisible:
     id: home-sort-button
-- assertVisible: A-Z
+- assertVisible: "Sort: A-Z"
 
 # The title-bar overflow menu holds the view toggle and Mark All As Seen. The view is two checkable
 # rows rather than one label that flips, so the menu states which mode is in effect.
@@ -191,7 +192,7 @@ name: Home Media Types
     id: home-subscription-filter
 - assertVisible:
     id: home-sort-button
-- assertVisible: A-Z
+- assertVisible: "Sort: A-Z"
 - tapOn:
     id: home-sort-button
 - assertVisible:
@@ -230,6 +231,8 @@ name: Home Media Types
     id: home-sort-button
 
 # Swipe the selector row itself — a %-of-screen start Y can miss the pills.
+# The selected type moves first, so each pick can push later types off the trailing
+# edge. iOS omits those testIDs until the row is swiped again.
 - swipe:
     from:
       id: home-media-type-selector
@@ -246,6 +249,10 @@ name: Home Media Types
 - takeScreenshot: home-media-type-albums
 
 # Tracks
+- swipe:
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 - tapOn:
     id: home-media-type-tracks
 - assertVisible: Tracks
@@ -255,7 +262,24 @@ name: Home Media Types
     id: home-list-empty-browse
 - takeScreenshot: home-media-type-tracks
 
-# Clips — never global directory rows (no Dummy clip). Seeded user is signed in, so Browse only.
+# Empty Tracks Browse CTA opens Browse with Tracks selected.
+- tapOn:
+    id: home-list-empty-browse
+- assertVisible:
+    id: browse-screen
+- assertVisible:
+    id: browse-media-type-tracks
+- takeScreenshot: home-tracks-empty-to-browse
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+
+# Clips lists subscribed clips from the media-player seed — never the global Dummy directory row.
+- swipe:
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 - tapOn:
     id: home-media-type-clips
 - assertVisible: Clips
@@ -263,16 +287,11 @@ name: Home Media Types
     id: home-filter-input
 - assertNotVisible: "Dummy clip"
 - assertVisible:
+    id: home-feed-row-e2eClip00000001
+- assertVisible:
+    id: home-feed-row-e2eClipNav0001
+- assertNotVisible:
     id: home-list-empty-browse
 - assertNotVisible:
     id: home-list-empty-search
 - takeScreenshot: home-media-type-clips
-
-# Browse from the empty Clips CTA opens Browse with Clips selected.
-- tapOn:
-    id: home-list-empty-browse
-- assertVisible:
-    id: browse-screen
-- assertVisible:
-    id: browse-media-type-clips
-- takeScreenshot: home-clips-empty-to-browse

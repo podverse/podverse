@@ -234,10 +234,7 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
       <FlatList
         ListEmptyComponent={
           !isLoading && errorKey === null ? (
-            <ListEmpty
-              messageKey="features.add_by_rss.no_feeds_podcast"
-              testID="rss-feeds-empty"
-            />
+            <ListEmpty messageKey="features.add_by_rss.no_feeds_podcast" testID="rss-feeds-empty" />
           ) : null
         }
         ListHeaderComponent={listHeader}

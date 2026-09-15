@@ -342,11 +342,7 @@ export function HomeFeedRow({
             {updatedLabel !== null || (!showArtwork && liveLabel !== null) ? (
               <View style={styles.dateRow}>
                 {!showArtwork && liveLabel !== null ? (
-                  <Badge
-                    label={liveLabel}
-                    testID={`home-feed-row-live-${row.id}`}
-                    tone="danger"
-                  />
+                  <Badge label={liveLabel} testID={`home-feed-row-live-${row.id}`} tone="danger" />
                 ) : null}
                 {updatedLabel !== null ? (
                   <Text

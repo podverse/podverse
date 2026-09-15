@@ -18,14 +18,15 @@ name: Library Downloads Offline Play
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
-# Navigate to a seeded podcast episode.
+# Navigate to a seeded podcast the account does not follow, so the completed file
+# lands on Home under Downloaded only (not on a subscribed row).
 - tapOn:
     id: tab-search
 - assertVisible:
     id: search-screen
 - tapOn:
     id: search-input
-- inputText: podcast
+- inputText: "Cosmos Classroom"
 - assertVisible:
     id: search-result-row-0
 - tapOn:
@@ -82,7 +83,7 @@ name: Library Downloads Offline Play
     id: library-downloads-usage
 - takeScreenshot: library-downloads-list
 
-# The seeded account follows nothing, so a completed download lands on Home under Downloaded only.
+# Cosmos Classroom is not a follow, so the completed file is only on Home under Downloaded only.
 # Swipe-left Delete all removes that show's files and the footer row.
 - tapOn:
     id: tab-home

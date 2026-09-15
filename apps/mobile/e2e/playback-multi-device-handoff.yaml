@@ -28,20 +28,24 @@ name: Playback Multi-device Handoff
     text: Play
 
 # Seed a newer now-playing row for episode B to represent another device.
+# Omit last_played_at so the host script stamps four minutes after now;
+# resolveHandoffDecision only prompts when the remote timestamp is newer than the local pause.
 - runScript:
     file: scripts/seed-playback-now-playing.js
     env:
       E2E_ITEM_ID_TEXT: e2ePodResume02
       E2E_PLAYBACK_EVENT_KIND: play
       E2E_PLAYBACK_POSITION: "57"
-      E2E_LAST_PLAYED_AT: "2026-09-13T10:30:00.000Z"
 
 # Foreground trigger: replay + reconcile runs on app foreground/connectivity paths.
 - launchApp:
     clearState: false
 - runFlow: shared/connect-dev-client.yaml
-- assertVisible:
-    id: playback-handoff-dialog
+# Home paints before playback-replay finishes; wait for the prompt that job publishes.
+- extendedWaitUntil:
+    visible:
+      id: playback-handoff-dialog
+    timeout: ${TIMEOUT_SLOWEST}
 - assertVisible:
     text: "E2E Podcast Resume P > 0"
 - assertVisible:
@@ -83,7 +87,6 @@ name: Playback Multi-device Handoff
       E2E_ITEM_ID_TEXT: e2ePodResume01
       E2E_PLAYBACK_EVENT_KIND: seek
       E2E_PLAYBACK_POSITION: "47"
-      E2E_LAST_PLAYED_AT: "2026-09-13T10:35:00.000Z"
 - launchApp:
     clearState: false
 - runFlow: shared/connect-dev-client.yaml

@@ -138,7 +138,8 @@
     "playback": "",
     "playback_intro": "",
     "play_video": "",
-    "skip_next": ""
+    "skip_next": "",
+    "complete_now_playing": ""
   },
   "subscriptions": {
     "downloaded_only": ""

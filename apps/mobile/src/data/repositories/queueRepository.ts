@@ -278,7 +278,8 @@ export const queueRepository = {
 
   getNowPlaying: async (
     context: MobileAuthRequestContext,
-    queueIdText: string
+    queueIdText: string,
+    options?: { skipCache?: boolean }
   ): Promise<DTOQueueResource | null> => {
     const cacheKey = nowPlayingCacheKey(queueIdText);
     const hit = await readQueueCache<DTOQueueResource>(cacheKey);
@@ -293,6 +294,17 @@ export const queueRepository = {
       await projectQueueForQueue(queueIdText);
       return fetched;
     };
+
+    if (options?.skipCache === true) {
+      try {
+        return await fetchRemote();
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('[queue] now-playing skip-cache fetch failed', error);
+        }
+        return hit?.value ?? null;
+      }
+    }
 
     // now-playing can legitimately be null, so this can't use readThroughOrFetch (null = miss).
     if (hit === null) {

@@ -11,12 +11,12 @@ import { useTheme } from '../../theme/useTheme';
 
 /**
  * E2E-only playback harness. Product screens do not grow fixture buttons; Maestro reaches seeded
- * video play and skip-next from this More page instead.
+ * video play, skip-next, and complete from this More page instead.
  */
 export function MoreE2ePlaybackScreen() {
   const { t } = useTranslation();
   const { tokens } = useTheme();
-  const { activeTarget, skipToNext } = usePlayback();
+  const { activeTarget, completeNowPlaying, skipToNext } = usePlayback();
 
   const styles = useMemo(
     () =>
@@ -41,6 +41,15 @@ export function MoreE2ePlaybackScreen() {
             void skipToNext();
           }}
           testID="playback-skip-next-e2e"
+        />
+        <Button
+          disabled={activeTarget === null}
+          fullWidth
+          label={t('e2e.complete_now_playing')}
+          onPress={() => {
+            void completeNowPlaying();
+          }}
+          testID="playback-complete-e2e"
         />
       </View>
     </MobileScreenContainer>

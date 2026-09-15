@@ -198,6 +198,8 @@ export type PlaybackContextValue = {
   seekTo: (seconds: number) => void;
   setRate: (rate: number) => void;
   skipToNext: () => Promise<void>;
+  /** Same path as the native `ended` handler (`advance('complete')`). */
+  completeNowPlaying: () => Promise<void>;
 };
 
 /**
@@ -440,7 +442,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           activeQueueRef.current === null
             ? null
             : getQueueForMedium([activeQueueRef.current], target.channel.medium_id);
-        const queue = queueFromList ?? queueFromActive;
+        let queue = queueFromList ?? queueFromActive;
+        if (queue === null) {
+          const loaded = await loadActive(target.channel.medium_id);
+          queue = loaded.activeQueue;
+        }
         if (queue === null) {
           return false;
         }
@@ -517,7 +523,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         return false;
       }
     },
-    [buildContext, resolveAuthenticatedAccountIdText, setActiveQueue]
+    [buildContext, loadActive, resolveAuthenticatedAccountIdText, setActiveQueue]
   );
 
   const ensureChannel = useCallback(
@@ -528,7 +534,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       try {
         return await playbackContentRepository.getChannelById(buildContext(), item.channel_id);
       } catch {
-        return null;
+        return playbackContentRepository.getLocalChannelForItem(item.id_text);
       }
     },
     [buildContext]
@@ -989,7 +995,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           continue;
         }
 
-        const remoteResource = await queueRepository.getNowPlaying(context, conflict.queueIdText);
+        const remoteResource = await queueRepository.getNowPlaying(context, conflict.queueIdText, {
+          skipCache: true,
+        });
         if (cancelled || remoteResource === null) {
           continue;
         }
@@ -1171,19 +1179,47 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         const historyTarget =
           target !== null ? playbackTargetToHistoryTarget(target, positionRef.current) : null;
         if (historyTarget !== null) {
-          await moveNowPlayingToHistory({ ...historyTarget, completed });
+          try {
+            await moveNowPlayingToHistory({ ...historyTarget, completed });
+          } catch (error) {
+            if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+              throw error;
+            }
+          }
         }
 
-        const result = await loadActive(activeQueueRef.current?.medium_id);
-        const upcomingManualCount =
-          result.activeResource !== null ? result.upcomingResources.length : 0;
+        let activeResource: DTOQueueResource | null = null;
+        let upcomingManualCount = 0;
+        try {
+          const result = await loadActive(activeQueueRef.current?.medium_id);
+          activeResource = result.activeResource;
+          upcomingManualCount = result.activeResource !== null ? result.upcomingResources.length : 0;
+        } catch (error) {
+          if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+            throw error;
+          }
+        }
         const hasAutoQueueNext = computeHasAutoQueueNext();
         const decision = resolveQueueAdvance({ hasAutoQueueNext, upcomingManualCount });
 
-        if (decision.kind === 'play-next-manual' && result.activeResource !== null) {
-          await playQueueResource(result.activeResource, 'fresh_transition');
+        if (decision.kind === 'play-next-manual' && activeResource !== null) {
+          try {
+            await playQueueResource(activeResource, 'fresh_transition');
+          } catch (error) {
+            if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+              throw error;
+            }
+            clearNowPlaying();
+          }
         } else if (decision.kind === 'advance-auto-queue') {
-          await advanceAutoQueue();
+          try {
+            await advanceAutoQueue();
+          } catch (error) {
+            if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+              throw error;
+            }
+            clearNowPlaying();
+          }
         } else {
           clearNowPlaying();
         }
@@ -1441,6 +1477,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   }, []);
 
   const skipToNext = useCallback(() => advance('skip'), [advance]);
+  const completeNowPlaying = useCallback(() => advance('complete'), [advance]);
 
   const sessionValue = useMemo<PlaybackSessionContextValue>(
     () => ({
@@ -1458,12 +1495,14 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playSoundbite,
       playbackRate,
       resume,
+      completeNowPlaying,
       seekTo,
       setRate,
       skipToNext,
     }),
     [
       activeTarget,
+      completeNowPlaying,
       isPlaying,
       noticeKey,
       nowPlaying,

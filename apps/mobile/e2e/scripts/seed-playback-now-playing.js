@@ -9,7 +9,9 @@
 //   E2E_ITEM_ID_TEXT        required, item id_text to make now-playing
 //   E2E_PLAYBACK_POSITION   seconds, default 0
 //   E2E_PLAYBACK_EVENT_KIND one of the shared playback event kinds, default "play"
-//   E2E_LAST_PLAYED_AT      ISO-8601 timestamp, default now
+//   E2E_LAST_PLAYED_AT      ISO-8601 timestamp. When omitted, four minutes after now so a
+//                           just-paused local item is older than this other-device row. The
+//                           server accepts client timestamps up to five minutes in the future.
 
 const optional = (value, fallback) =>
   typeof value === 'string' && value.length > 0 ? value : fallback;
@@ -42,9 +44,10 @@ const PLAYBACK_EVENT_KIND = optional(
   typeof E2E_PLAYBACK_EVENT_KIND !== 'undefined' ? E2E_PLAYBACK_EVENT_KIND : null,
   'play'
 );
+const NEWER_THAN_LOCAL_MS = 4 * 60 * 1000;
 const LAST_PLAYED_AT = optional(
   typeof E2E_LAST_PLAYED_AT !== 'undefined' ? E2E_LAST_PLAYED_AT : null,
-  new Date().toISOString()
+  new Date(Date.now() + NEWER_THAN_LOCAL_MS).toISOString()
 );
 
 if (ITEM_ID_TEXT.length === 0) {
@@ -80,13 +83,42 @@ if (typeof accessToken !== 'string' || accessToken.length === 0) {
   throw new Error('seed-playback-now-playing: mobile token response had no access_token');
 }
 
-const seedResponse = postJson(
-  `${API_BASE_URL}/queue/${QUEUE_ID_TEXT}/item/${ITEM_ID_TEXT}/now-playing`,
-  {
-    last_played_at: LAST_PLAYED_AT,
-    playback_event_kind: PLAYBACK_EVENT_KIND,
-    playback_position: Number(PLAYBACK_POSITION),
-  },
-  { Authorization: `Bearer ${accessToken}` }
-);
-failOn(`now-playing seed for ${ITEM_ID_TEXT}`, seedResponse);
+const authHeaders = { Authorization: `Bearer ${accessToken}` };
+const seedBody = {
+  last_played_at: LAST_PLAYED_AT,
+  playback_event_kind: PLAYBACK_EVENT_KIND,
+  playback_position: Number(PLAYBACK_POSITION),
+};
+const nowPlayingUrl = `${API_BASE_URL}/queue/${QUEUE_ID_TEXT}/resources/now-playing`;
+
+const readNowPlayingItemIdText = (body) => {
+  const parsed = json(body);
+  const resource = Array.isArray(parsed) ? parsed[0] : parsed;
+  const idText = resource && resource.item && resource.item.id_text;
+  return typeof idText === 'string' ? idText : '';
+};
+
+// A just-paused device may still be posting episode A. Write B and reread until the
+// server row matches, so remount reconcile sees the other-device item.
+let confirmed = false;
+for (let attempt = 0; attempt < 8; attempt += 1) {
+  const seedResponse = postJson(
+    `${API_BASE_URL}/queue/${QUEUE_ID_TEXT}/item/${ITEM_ID_TEXT}/now-playing`,
+    seedBody,
+    authHeaders
+  );
+  failOn(`now-playing seed for ${ITEM_ID_TEXT}`, seedResponse);
+
+  const current = http.get(nowPlayingUrl, { headers: authHeaders });
+  failOn(`now-playing read for ${ITEM_ID_TEXT}`, current);
+  if (readNowPlayingItemIdText(current.body) === ITEM_ID_TEXT) {
+    confirmed = true;
+    break;
+  }
+}
+
+if (!confirmed) {
+  throw new Error(
+    `seed-playback-now-playing: server now-playing was not ${ITEM_ID_TEXT} after retries`
+  );
+}

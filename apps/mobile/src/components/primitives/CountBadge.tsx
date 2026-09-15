@@ -25,12 +25,7 @@ export type CountBadgeProps = {
  * Hidden at zero. Decorative on its own — the parent row or tile folds the count into its
  * accessibility label. Unseen presence uses `UnseenIndicator`, not this chip.
  */
-export function CountBadge({
-  count,
-  style,
-  testID,
-  tone = 'accent',
-}: CountBadgeProps) {
+export function CountBadge({ count, style, testID, tone = 'accent' }: CountBadgeProps) {
   const { tokens } = useTheme();
   const face = String(count);
   const stretches = count >= 10;

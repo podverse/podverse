@@ -25,6 +25,7 @@ import { ListLoading } from '../../components/state/ListLoading';
 import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import { downloadsRepository } from '../../data/repositories/downloadsRepository';
+import { playbackContentRepository } from '../../data/repositories/playbackContentRepository';
 import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
 import {
   isEpisodeTabNetworkBody,
@@ -119,7 +120,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   });
   const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
-  const { playItem, playSoundbite } = usePlayback();
+  const { playSoundbite } = usePlayback();
 
   const styles = useMemo(
     () =>
@@ -244,9 +245,9 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         setChannel(response.channel);
         setChannelTitle(response.channel.title);
       } else if (offlineModeEnabled) {
-        const download = await downloadsRepository.getByItemIdText(episodeId);
-        setChannel(null);
-        setChannelTitle(download?.channelTitle ?? null);
+        const localChannel = await playbackContentRepository.getLocalChannelForItem(episodeId);
+        setChannel(localChannel);
+        setChannelTitle(localChannel?.title ?? null);
       } else {
         const channelResponse = await requestWithMobileAuthRefresh(
           {
@@ -686,14 +687,10 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
                   isLast
                   mediaType="episodes"
                   onPlayPress={() => {
-                    if (episode !== null && channel !== null) {
-                      void playItem(episode, channel);
-                    }
+                    runPlayAction(episodeRow, 'episodes');
                   }}
                   onPress={() => {
-                    if (episode !== null && channel !== null) {
-                      void playItem(episode, channel);
-                    }
+                    runPlayAction(episodeRow, 'episodes');
                   }}
                   onQueuePress={(row, position) => {
                     runQueueAction(row, 'episodes', position);

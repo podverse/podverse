@@ -205,7 +205,7 @@ assertion. Check them before blaming locators or timeouts:
    XCUITest omits those off-screen `testID`s, so `tapOn: more-nav-smoke` fails with "Element not
    found" while the screenshot still shows More. Scroll first
    (`shared/open-more-smoke.yaml` / `scrollUntilVisible`). A live `maestro --device <udid>
-   hierarchy` that names "Smoke" in the scroll view's aggregated text but has no `more-nav-smoke`
+hierarchy` that names "Smoke" in the scroll view's aggregated text but has no `more-nav-smoke`
    resource-id is this case.
 
 7. **A black screen after submit is a wedged native modal, not a dead app.** When the device goes

@@ -1,5 +1,4 @@
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
 
 import { toEpochMsOrNull } from '@podverse/helpers';
 import type { DTOQueue, DTOQueueResource, QueueExtraParams } from '@podverse/helpers/dto';
@@ -9,6 +8,7 @@ import { PLAYBACK_REPLAY_BATCH_LIMIT } from '@podverse/helpers/playbackOutboxLim
 import { computeClockOffsetMs } from '@podverse/helpers/playbackTimestamps';
 
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import { createUuid } from '../../lib/createUuid';
 import { isOfflineModeEnabled } from '../../prefs/offlineMode';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import { readPlaybackClockOffsetMs, writePlaybackClockOffsetMs } from '../sync';
@@ -862,7 +862,7 @@ export const playbackOutboxRepository = {
         event.completed === null || event.completed === undefined ? null : event.completed ? 1 : 0;
 
       const eventValues = {
-        eventId: uuidv4(),
+        eventId: createUuid(),
         accountIdText: event.accountIdText,
         queueIdText: event.queueIdText,
         resourceKind: event.resourceKind,
