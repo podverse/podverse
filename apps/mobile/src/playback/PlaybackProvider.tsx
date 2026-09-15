@@ -1193,7 +1193,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         try {
           const result = await loadActive(activeQueueRef.current?.medium_id);
           activeResource = result.activeResource;
-          upcomingManualCount = result.activeResource !== null ? result.upcomingResources.length : 0;
+          upcomingManualCount =
+            result.activeResource !== null ? result.upcomingResources.length : 0;
         } catch (error) {
           if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
             throw error;
