@@ -10,6 +10,7 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
+import { PlayerTransportButton } from '../../components/player/PlayerTransportButton';
 import { Button } from '../../components/primitives/Button';
 import { CoverImage } from '../../components/primitives/CoverImage';
 import { ProgressTrack } from '../../components/primitives/ProgressTrack';
@@ -72,13 +73,14 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
   const {
     activeTarget,
     durationSeconds,
-    isPlaying,
     nowPlaying,
     pause,
     positionSeconds,
     resume,
+    retryPlayback,
     seekTo,
     skipToNext,
+    transportState,
   } = usePlayback();
 
   const [scrubberWidth, setScrubberWidth] = useState(0);
@@ -223,12 +225,16 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     seekTo(ratio * durationSeconds);
   };
 
-  const handleTogglePlay = () => {
-    if (isPlaying) {
-      pause();
-    } else {
-      void resume();
-    }
+  const handlePlay = () => {
+    void resume();
+  };
+
+  const handlePause = () => {
+    pause();
+  };
+
+  const handleRetry = () => {
+    void retryPlayback();
   };
 
   return (
@@ -310,11 +316,13 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
               </View>
 
               <View style={styles.controlsRow}>
-                <Button
-                  label={isPlaying ? t('media_player.pause') : t('media_player.play')}
-                  onPress={handleTogglePlay}
+                <PlayerTransportButton
+                  onPause={handlePause}
+                  onPlay={handlePlay}
+                  onRetry={handleRetry}
+                  size="lg"
+                  state={transportState}
                   testID="full-player-play-pause"
-                  variant="primary"
                 />
                 <Button
                   label={t('media_player.skip_to_next')}

@@ -25,7 +25,6 @@ name: Playback Multi-device Handoff
     id: mini-player-play-pause
 - assertVisible:
     id: mini-player-play-pause
-    text: Play
 
 # Seed a newer now-playing row for episode B to represent another device.
 # Omit last_played_at so the host script stamps four minutes after now;

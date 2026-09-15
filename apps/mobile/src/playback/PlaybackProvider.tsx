@@ -27,7 +27,11 @@ import {
   PLAYBACK_POSITION_NETWORK_INTERVAL_MS,
 } from '@podverse/helpers/playbackOutboxLimits';
 import { getQueueForMedium } from '@podverse/helpers/queue';
-import type { MusicItemPlaybackIntent, PlaybackTarget } from '@podverse/playback-core';
+import type {
+  MusicItemPlaybackIntent,
+  PlaybackLoadDecision,
+  PlaybackTarget,
+} from '@podverse/playback-core';
 import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNearEndSeconds';
 import { resolveQueueAdvance } from '@podverse/playback-core/resolveQueueAdvance';
 
@@ -87,6 +91,8 @@ import {
   buildPlaybackHandoffDismissedStateKey,
   shouldPromptForPlaybackHandoffConflict,
 } from './playbackHandoff';
+import type { PlaybackTransportState } from './playbackTransport';
+import { playbackTransportFromEngineState } from './playbackTransport';
 import { writeIsPlayingLocallyForSync } from './playbackSyncState';
 import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
 
@@ -172,6 +178,10 @@ export type PlaybackContextValue = {
   activeTarget: PlaybackTarget | null;
   nowPlaying: PlaybackNowPlaying | null;
   isPlaying: boolean;
+  /**
+   * Mini / full player transport glyph. List rows stay play/pause via `isPlaying` only.
+   */
+  transportState: PlaybackTransportState;
   positionSeconds: number;
   durationSeconds: number;
   playbackRate: number;
@@ -195,6 +205,8 @@ export type PlaybackContextValue = {
   ) => Promise<void>;
   pause: () => void;
   resume: () => Promise<void>;
+  /** Reload the current source after an engine error. */
+  retryPlayback: () => Promise<void>;
   seekTo: (seconds: number) => void;
   setRate: (rate: number) => void;
   skipToNext: () => Promise<void>;
@@ -257,6 +269,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const [activeTarget, setActiveTarget] = useState<PlaybackTarget | null>(null);
   const [nowPlaying, setNowPlaying] = useState<PlaybackNowPlaying | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [transportState, setTransportState] = useState<PlaybackTransportState>('paused');
   const [positionSeconds, setPositionSeconds] = useState<number>(0);
   const [durationSeconds, setDurationSeconds] = useState<number>(0);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
@@ -275,6 +288,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const playbackRateRef = useRef<number>(1);
   const advancingRef = useRef<boolean>(false);
   const isPlayingRef = useRef<boolean>(false);
+  const lastSourceUrlRef = useRef<string | null>(null);
   const lastAnonymousSnapshotWriteRef = useRef<number>(0);
   const lastPlaybackLocalWriteRef = useRef<number>(0);
   const lastPlaybackNetworkWriteRef = useRef<number>(0);
@@ -581,9 +595,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     nativePlaybackBridge.pause();
     pauseAtRef.current = null;
     activeTargetRef.current = null;
+    lastSourceUrlRef.current = null;
     setActiveTarget(null);
     setNowPlaying(null);
     setPlaybackPlaying(false);
+    setTransportState('paused');
   }, [setPlaybackPlaying]);
 
   const playTarget = useCallback(
@@ -599,16 +615,28 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       }
     ): Promise<void> => {
       setNoticeKey(null);
-      const decision = await applyLoad(
-        {
-          explicitPlaybackSeconds: params.explicitPlaybackSeconds,
-          mediaFileDurationHintSeconds: params.mediaFileDurationHintSeconds,
-          target,
-        },
-        params.url,
-        playbackRateRef.current,
-        params.autoPlayOverride
-      );
+      lastSourceUrlRef.current = params.url;
+      setTransportState('loading');
+      let decision: PlaybackLoadDecision;
+      try {
+        decision = await applyLoad(
+          {
+            explicitPlaybackSeconds: params.explicitPlaybackSeconds,
+            mediaFileDurationHintSeconds: params.mediaFileDurationHintSeconds,
+            target,
+          },
+          params.url,
+          playbackRateRef.current,
+          params.autoPlayOverride
+        );
+      } catch {
+        setTransportState('error');
+        activeTargetRef.current = target;
+        setActiveTarget(target);
+        setNowPlaying(params.summary);
+        setPlaybackPlaying(false);
+        return;
+      }
       applyAutoQueueDirective(params.autoQueue);
       pauseAtRef.current = decision.pauseAtSeconds ?? null;
       activeTargetRef.current = target;
@@ -1326,13 +1354,18 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     },
     error: () => {
       setPlaybackPlaying(false);
+      setTransportState('error');
     },
     playbackState: (event) => {
+      setTransportState(playbackTransportFromEngineState(event.state));
       if (event.state === 'playing') {
         setPlaybackPlaying(true);
       } else if (event.state === 'paused' || event.state === 'ended' || event.state === 'error') {
         setPlaybackPlaying(false);
       }
+    },
+    stalled: () => {
+      setTransportState('loading');
     },
     progress: (event) => {
       positionRef.current = event.positionSeconds;
@@ -1430,6 +1463,23 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     });
   }, [setPlaybackPlaying, writePlaybackEvent]);
 
+  const retryPlayback = useCallback(async () => {
+    const url = lastSourceUrlRef.current;
+    if (url === null) {
+      return;
+    }
+    setTransportState('loading');
+    try {
+      await nativePlaybackBridge.loadAndStart({
+        initialSeekSeconds: positionRef.current,
+        url,
+      });
+      nativePlaybackBridge.setRate(playbackRateRef.current);
+    } catch {
+      setTransportState('error');
+    }
+  }, []);
+
   const resume = useCallback(async () => {
     await nativePlaybackBridge.play();
     setPlaybackPlaying(true);
@@ -1496,10 +1546,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playSoundbite,
       playbackRate,
       resume,
+      retryPlayback,
       completeNowPlaying,
       seekTo,
       setRate,
       skipToNext,
+      transportState,
     }),
     [
       activeTarget,
@@ -1517,9 +1569,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playSoundbite,
       playbackRate,
       resume,
+      retryPlayback,
       seekTo,
       setRate,
       skipToNext,
+      transportState,
     ]
   );
 

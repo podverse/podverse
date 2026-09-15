@@ -72,7 +72,6 @@ name: Play Mini Player
     id: full-player-play-pause
 - assertVisible:
     id: full-player-play-pause
-    text: Play
 
 # Up-next sheet and speed control toggles open inline (no reload).
 - tapOn:

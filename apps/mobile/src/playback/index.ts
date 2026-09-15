@@ -10,4 +10,5 @@ export type {
   PlaybackProgressContextValue,
   PlaybackSessionContextValue,
 } from './PlaybackProvider';
+export type { PlaybackTransportState } from './playbackTransport';
 export { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';

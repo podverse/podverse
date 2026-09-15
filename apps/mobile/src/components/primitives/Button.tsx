@@ -125,7 +125,7 @@ export function Button({
           marginRight: tokens.spacing.sm,
         },
         spinner: {
-          marginRight: tokens.spacing.sm,
+          marginRight: iconOnly ? 0 : tokens.spacing.sm,
         },
       }),
     [

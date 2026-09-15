@@ -12,21 +12,23 @@ import { usePlayback } from '../../playback/PlaybackProvider';
 import { listRowArtworkGap } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
-import { Button } from '../primitives/Button';
 import { CoverImage } from '../primitives/CoverImage';
 import { ProgressTrack } from '../primitives/ProgressTrack';
+import { PlayerTransportButton } from './PlayerTransportButton';
 
 type MiniPlayerProps = {
   onExpand: () => void;
 };
 
+const PROGRESS_EDGE_HEIGHT = 2;
+
 /**
  * Mini player fixed above the tab bar. Binds to the playback orchestrator via
  * `usePlayback()`: shows the current now-playing audio artwork/title, toggles the native bridge
- * (play/pause), reflects position as a thin progress bar, and expands to the full player route.
- * Hidden entirely when nothing is now-playing (no `activeTarget`). It renders inside the phone tab
- * bar column above `BottomTabBar`, so the tab bar below still owns the safe-area bottom inset and
- * tab labels stay uncovered.
+ * (play/pause / loading / retry), reflects position as the top edge of this bar, and expands to
+ * the full player route. Hidden entirely when nothing is now-playing (no `activeTarget`). It
+ * renders inside the phone tab bar column above `BottomTabBar`, so the tab bar below still owns
+ * the safe-area bottom inset and tab labels stay uncovered.
  *
  * The mini and full player share one engine and one native `VideoSurfaceHost` — never mount a
  * second `Video`/engine on expand. See media-engine README § "Player UI single-surface ownership".
@@ -35,8 +37,16 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
   const { t } = useTranslation();
   const { isTablet } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
-  const { activeTarget, durationSeconds, isPlaying, nowPlaying, pause, positionSeconds, resume } =
-    usePlayback();
+  const {
+    activeTarget,
+    durationSeconds,
+    nowPlaying,
+    pause,
+    positionSeconds,
+    resume,
+    retryPlayback,
+    transportState,
+  } = usePlayback();
 
   const styles = useMemo(
     () =>
@@ -47,8 +57,7 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
         },
         container: {
           backgroundColor: tokens.background.secondary,
-          borderTopColor: themeStyles.border.borderColor,
-          borderTopWidth: 1,
+          overflow: 'hidden',
           paddingHorizontal: tokens.spacing.lg,
           paddingVertical: tokens.spacing.sm,
         },
@@ -58,8 +67,11 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
           maxWidth: breakpoints.lg,
           width: '100%',
         },
-        progressTrack: {
-          marginBottom: tokens.spacing.sm,
+        progressEdge: {
+          left: 0,
+          position: 'absolute',
+          right: 0,
+          top: 0,
         },
         row: {
           alignItems: 'center',
@@ -93,13 +105,19 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
 
   const progressRatio = durationSeconds > 0 ? clampRatio(positionSeconds / durationSeconds) : 0;
 
-  const handleToggle = (event: GestureResponderEvent) => {
+  const handlePlay = (event: GestureResponderEvent) => {
     stopPropagation(event);
-    if (isPlaying) {
-      pause();
-    } else {
-      void resume();
-    }
+    void resume();
+  };
+
+  const handlePause = (event: GestureResponderEvent) => {
+    stopPropagation(event);
+    pause();
+  };
+
+  const handleRetry = (event: GestureResponderEvent) => {
+    stopPropagation(event);
+    void retryPlayback();
   };
 
   return (
@@ -112,8 +130,10 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
     >
       <ProgressTrack
         fillTestID="mini-player-progress"
+        flush
+        height={PROGRESS_EDGE_HEIGHT}
         ratio={progressRatio}
-        style={styles.progressTrack}
+        style={styles.progressEdge}
       />
       <View style={styles.row}>
         <View style={styles.videoSurface} testID="mini-player-video-surface">
@@ -136,12 +156,12 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
             </Text>
           ) : null}
         </View>
-        <Button
-          label={isPlaying ? t('media_player.pause') : t('media_player.play')}
-          onPress={handleToggle}
-          size="sm"
+        <PlayerTransportButton
+          onPause={handlePause}
+          onPlay={handlePlay}
+          onRetry={handleRetry}
+          state={transportState}
           testID="mini-player-play-pause"
-          variant="primary"
         />
       </View>
     </Pressable>

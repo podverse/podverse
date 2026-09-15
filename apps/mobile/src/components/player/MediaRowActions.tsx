@@ -338,6 +338,10 @@ type MediaRowPlayButtonProps = {
   showPauseIcon: boolean;
 };
 
+/**
+ * Play / pause for list rows and detail chrome. Loading and error stay on the mini player and
+ * full player (`PlayerTransportButton`) so these rows do not spin or flash retry on every item.
+ */
 function MediaRowPlayButton({
   playLabel,
   onPlayPress,

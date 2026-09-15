@@ -85,6 +85,26 @@ seamless video architecture).
 Whenever queue, auto-queue, or downloads metadata changes, JS must update the native cache so car
 surfaces work app-closed. Schema: Track **12.1**; implementation steps **10.22**, **12.4**, **2.35**.
 
+## Player transport button (mini + full only)
+
+The mini player and full player share one transport control (`PlayerTransportButton` +
+`transportState` from `usePlayback()`):
+
+| Engine / load | Glyph | Press |
+| ------------- | ----- | ----- |
+| Playing | Pause icon | Pause |
+| Paused / ready / idle / ended | Play icon | Resume |
+| Loading or stalled (file not ready) | Spinner | None |
+| Error | Error icon | Retry (`retryPlayback` reloads the current source) |
+
+The mini player's elapsed/remaining glance is the **top edge** of the bar — a flush 2px
+`ProgressTrack`, not a separate bar and not a second `borderTop`. The full player's scrubber stays
+a dedicated seek control.
+
+**Do not** put loading spinners or error/retry glyphs on list-row or detail-screen play buttons
+(`MediaRowActions`, episode play chrome). Those surfaces stay play/pause. The mini player and full
+player already own buffering and failure, and repeating that on every row is redundant rendering.
+
 ## Do / don't
 
 - **Do** call `@podverse/playback-core` for seek/resume/auto-play/`pauseAt` decisions.
@@ -93,6 +113,7 @@ surfaces work app-closed. Schema: Track **12.1**; implementation steps **10.22**
 - **Don't** edit `useMediaElementBridge` for mobile behavior.
 - **Don't** duplicate policy logic in RN or native Swift/Kotlin.
 - **Don't** use Playwright or `make e2e_*` for mobile playback verification — Maestro/Detox (**mobile-e2e-screenshots**).
+- **Don't** show loading or error on list/detail play controls — only mini player and full player.
 
 ## Related
 
