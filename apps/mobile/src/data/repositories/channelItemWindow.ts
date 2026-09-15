@@ -130,6 +130,26 @@ export const selectStaleChannelWindows = ({
   });
 };
 
+/**
+ * Which channels the item store stops holding episodes for.
+ *
+ * Followed channels are kept because the user asked for them. Channels with a finished download are
+ * kept too, whether or not they are followed: the stored episodes are what make an offline file
+ * browsable, attributable, and playable, so dropping them would leave the file stranded on disk.
+ */
+export const selectChannelsToDropFromItemStore = ({
+  downloaded,
+  followed,
+  stored,
+}: {
+  downloaded: readonly string[];
+  followed: readonly string[];
+  stored: readonly string[];
+}): string[] => {
+  const keep = new Set([...followed, ...downloaded]);
+  return stored.filter((channelIdText) => !keep.has(channelIdText));
+};
+
 export type StoredChannelItemKey = {
   itemIdText: string;
 };

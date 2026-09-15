@@ -98,24 +98,28 @@ API-backed pre-run uses **separate terminals**. Do not chain Metro/API/test-asse
 pasteable shell with Maestro — see [HOW-TO-RUN.md](./HOW-TO-RUN.md).
 
 ```bash
-# One-shot prep (exits)
+# One-shot prep (exits) — Mobile
 make mobile_e2e_deps
 make mobile_e2e_seed
 
-# Terminal — leave running (Mobile Metro)
+# Leave running — Mobile Metro
 npm run mobile:dev:e2e
 
-# Terminal — leave running (Mobile E2E API)
-npm run mobile:e2e:api
+# Leave running — Mobile E2E API
+npm run mobile:e2e:api:bg
 
-# Terminal — leave running (Mobile E2E test-assets) for playback flows
+# Leave running — Mobile E2E test-assets (playback flows / full suite)
 npm run mobile:e2e:test-assets
 
-# Other shell after API / assets are up
+# One-shot — Mobile (do this before installing or running Maestro)
 npm run mobile:e2e:api:health
 npm run mobile:e2e:test-assets:health
 
-# Terminal — after Metro + installs + API (+ assets for play) are up
+# One-shot installs — Mobile iOS / Mobile Android
+npm run mobile:e2e:ios
+npm run mobile:e2e:android
+
+# Mobile Maestro — after health + installs
 npm run mobile:e2e:test -- add-by-rss
 ```
 

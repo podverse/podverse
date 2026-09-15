@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 /**
  * Generic key/value metadata for the sync layer (per-domain watermarks, last-synced-at, and small
@@ -43,6 +43,54 @@ export const queueCache = sqliteTable('queue_cache', {
 
 export type QueueCacheRow = typeof queueCache.$inferSelect;
 export type QueueCacheInsert = typeof queueCache.$inferInsert;
+
+/**
+ * Pending playback mutations for signed-in users. Rows are replayed to the API in occurred-at
+ * order when the network is usable again.
+ */
+export const playbackOutbox = sqliteTable('playback_outbox', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: text('event_id').notNull(),
+  accountIdText: text('account_id_text').notNull(),
+  queueIdText: text('queue_id_text').notNull(),
+  resourceKind: text('resource_kind').notNull(),
+  resourceIdText: text('resource_id_text').notNull(),
+  eventKind: text('event_kind').notNull(),
+  occurredAt: integer('occurred_at').notNull(),
+  playbackPosition: real('playback_position'),
+  mediaFileDuration: real('media_file_duration'),
+  completed: integer('completed'),
+  payloadJson: text('payload_json'),
+});
+
+export type PlaybackOutboxRow = typeof playbackOutbox.$inferSelect;
+export type PlaybackOutboxInsert = typeof playbackOutbox.$inferInsert;
+
+/**
+ * Last-known playback state per resource for signed-in users, independent from pending outbox rows.
+ */
+export const playbackLocalState = sqliteTable(
+  'playback_local_state',
+  {
+    accountIdText: text('account_id_text').notNull(),
+    queueIdText: text('queue_id_text').notNull(),
+    resourceKind: text('resource_kind').notNull(),
+    resourceIdText: text('resource_id_text').notNull(),
+    playbackPosition: real('playback_position').notNull(),
+    mediaFileDuration: real('media_file_duration'),
+    completed: integer('completed').notNull().default(0),
+    zone: text('zone').notNull(),
+    lastMeaningfulAt: integer('last_meaningful_at').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({
+      columns: [table.accountIdText, table.queueIdText, table.resourceKind, table.resourceIdText],
+    }),
+  })
+);
+
+export type PlaybackLocalStateRow = typeof playbackLocalState.$inferSelect;
+export type PlaybackLocalStateInsert = typeof playbackLocalState.$inferInsert;
 
 /**
  * Add-by-RSS feeds the account follows, keyed by `feed_url`. This is the source of truth for the
@@ -93,6 +141,10 @@ export const download = sqliteTable('download', {
   status: text('status').notNull(),
   title: text('title'),
   artworkUrl: text('artwork_url'),
+  channelIdText: text('channel_id_text'),
+  channelTitle: text('channel_title'),
+  /** 0/1 — complete rows hidden from the Downloads monitor without deleting the file. */
+  dismissedFromList: integer('dismissed_from_list').notNull().default(0),
   errorReason: text('error_reason'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
@@ -120,6 +172,9 @@ export const subscribedChannel = sqliteTable('subscribed_channel', {
   imageUrl: text('image_url'),
   source: text('source').notNull(),
   medium: text('medium').notNull(),
+  /** Home chip bucket: podcasts | artists | albums. */
+  kind: text('kind').notNull().default('podcasts'),
+  popularityRank: integer('popularity_rank'),
   updatedAt: integer('updated_at').notNull(),
 });
 
@@ -144,6 +199,7 @@ export const channelItem = sqliteTable('channel_item', {
   title: text('title'),
   imageUrl: text('image_url'),
   pubDateMs: integer('pub_date_ms'),
+  popularityRank: integer('popularity_rank'),
   payloadJson: text('payload_json').notNull(),
   updatedAt: integer('updated_at').notNull(),
 });
@@ -239,3 +295,19 @@ export const channelLiveStatus = sqliteTable('channel_live_status', {
 
 export type ChannelLiveStatusRow = typeof channelLiveStatus.$inferSelect;
 export type ChannelLiveStatusInsert = typeof channelLiveStatus.$inferInsert;
+
+/**
+ * Last-known evidence chips for a channel or item (Official Clips, Podroll, chapters, …).
+ *
+ * Always-on chips are not stored here. These flags exist so a later open can paint the
+ * evidence chips on the first frame instead of waiting on the detail DTO. `cache_key` is
+ * `channel:<id_text>` or `item:<id_text>`.
+ */
+export const sectionChromeFlags = sqliteTable('section_chrome_flags', {
+  cacheKey: text('cache_key').primaryKey(),
+  flagsJson: text('flags_json').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type SectionChromeFlagsRow = typeof sectionChromeFlags.$inferSelect;
+export type SectionChromeFlagsInsert = typeof sectionChromeFlags.$inferInsert;

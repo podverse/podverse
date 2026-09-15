@@ -11,6 +11,7 @@ Canonical web/mobile deep-link path prefixes live in `@podverse/helpers` as **`A
 
 - Import `APP_ROUTES`, `buildAppRoutePath`, or a specific builder (`buildEpisodePath`, `buildPodcastPath`, …) when constructing `link_path`, push links, share URLs, SEO `pathname`, or navigation hrefs.
 - Use `buildNotificationLinkPath` / `getNotificationLinkPathPrefix` for parser and push notification deep links.
+- Mobile Home-stack deep links use `MOBILE_HOME_TAB_PATH`, `buildMobileHomeScopedPath`, `buildMobileHomePodcastEpisodePath`, and `buildMobileHomeAlbumTrackPath`. Incoming-path parsers match with `getAppRouteSegments` / `matchesAppRouteSegments` / `isFlatContentAppRouteSegment` — do not re-list `podcast`, `episode`, `livestream`, etc. as string literals.
 - In `apps/web`, spread `APP_ROUTES` into `ROUTES` (`apps/web/src/constants/routes.ts`) and add web-only list/settings paths there.
 
 ## Do not

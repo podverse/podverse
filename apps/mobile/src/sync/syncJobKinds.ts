@@ -14,6 +14,7 @@ export const SYNC_JOB_KINDS = [
   'subscriptions-commit',
   'followed-playlists',
   'library-browse-projection',
+  'playback-replay',
   'queue-hydrate',
   'push-device-registration',
   'channel-items-scan',
@@ -22,6 +23,7 @@ export const SYNC_JOB_KINDS = [
   'add-by-rss-parse',
   'channel-seen',
   'channel-live-status',
+  'popularity-ranks',
 ] as const;
 
 export type SyncJobKind = (typeof SYNC_JOB_KINDS)[number];
@@ -39,6 +41,7 @@ export const SYNC_JOB_LABEL_KEYS: Record<SyncJobKind, string> = {
   'subscriptions-commit': 'sync.job.subscriptions',
   'followed-playlists': 'sync.job.playlists',
   'library-browse-projection': 'sync.job.library',
+  'playback-replay': 'sync.job.playback',
   'queue-hydrate': 'sync.job.queue',
   'push-device-registration': 'sync.job.notifications',
   'channel-items-scan': 'sync.job.episodes',
@@ -47,4 +50,5 @@ export const SYNC_JOB_LABEL_KEYS: Record<SyncJobKind, string> = {
   'add-by-rss-parse': 'sync.job.rss_feeds',
   'channel-seen': 'sync.job.seen_state',
   'channel-live-status': 'sync.job.live_status',
+  'popularity-ranks': 'sync.job.subscriptions',
 };

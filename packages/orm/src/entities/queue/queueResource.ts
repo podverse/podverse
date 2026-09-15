@@ -21,6 +21,12 @@ export class QueueResource {
   @Column({ type: 'numeric', default: 0 })
   playback_position!: string;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  last_played_at!: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  last_played_received_at!: Date | null;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   media_file_duration!: string;
 

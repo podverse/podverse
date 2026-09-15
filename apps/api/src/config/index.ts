@@ -89,6 +89,11 @@ type Config = {
   terms: {
     version: string;
   };
+  popularityTracking: {
+    version: string;
+    agreementDate: string;
+    contentDir: string;
+  };
   mailer: {
     disabled: boolean;
     host: string;
@@ -294,6 +299,11 @@ export const config: Config = {
   },
   terms: {
     version: process.env.TERMS_OF_SERVICE_VERSION ?? '',
+  },
+  popularityTracking: {
+    version: process.env.POPULARITY_TRACKING_AGREEMENT_VERSION!,
+    agreementDate: process.env.POPULARITY_TRACKING_AGREEMENT_DATE!,
+    contentDir: process.env.POPULARITY_TRACKING_CONTENT_DIR ?? '',
   },
   mailer: {
     disabled:

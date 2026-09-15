@@ -51,6 +51,7 @@ export function useTrackNextButtonActions(): {
       return;
     }
     await moveNowPlayingToHistory({
+      completed: false,
       mpClip: mpClip,
       mpItem: mpItem,
       mpItemSoundbite: mpItemSoundbite,

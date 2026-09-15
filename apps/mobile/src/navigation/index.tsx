@@ -8,7 +8,6 @@ import type { LinkingOptions, NavigatorScreenParams } from '@react-navigation/na
 import {
   createNavigationContainerRef,
   getPathFromState as getDefaultPathFromState,
-  getStateFromPath as getDefaultStateFromPath,
   NavigationContainer,
 } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,30 +18,37 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints } from '@podverse/design-tokens';
-import { shouldSuppressExpiryReminder } from '@podverse/helpers';
+import {
+  APP_ROUTES,
+  MOBILE_HOME_TAB_SEGMENT,
+  shouldSuppressExpiryReminder,
+} from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
-import { SyncProgressBar } from '../components/feedback/SyncProgressBar';
+import { GlobalActivityBar } from '../components/feedback/GlobalActivityBar';
 import { MiniPlayer } from '../components/player/MiniPlayer';
 import type { MenuListItem, MenuListSection } from '../components/screen/MenuListScreen';
 import { MenuListScreen } from '../components/screen/MenuListScreen';
+import { OfflineModeBanner } from '../components/screen/OfflineModeBanner';
+import { OfflineModeFeaturesHeader } from '../components/screen/OfflineModeFeaturesHeader';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
+import { isMobileE2eFromEnv } from '../config/env';
 import { sumBadgeCounts } from '../downloads/inProgressDownloadCount';
 import { useInProgressDownloadCount } from '../downloads/useDownloads';
 import { useNotificationsUnreadCount } from '../hooks/useNotificationsUnreadCount';
+import { isMobileE2eHarnessEnabled } from '../lib/e2e/e2eHarness';
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
-import type { HomeMediaType } from '../prefs/preferredMediaType';
 import { isContentTabId, TAB_TEST_ID_SLUG, tabLabelKey } from '../prefs/tabLayout';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
 import { BrowseScreen } from '../screens/browse/BrowseScreen';
+import type { BrowseMediaType } from '../screens/browse/browseTypes';
 import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
 import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
 import { HelloWorldScreen } from '../screens/HelloWorldScreen';
 import { AddByRssHomeDetailScreen } from '../screens/home/AddByRssHomeDetailScreen';
-import { HomeFilterSortScreen } from '../screens/home/HomeFilterSortScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { LibraryDownloadsScreen } from '../screens/library/LibraryDownloadsScreen';
 import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
@@ -51,12 +57,16 @@ import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScree
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
+import { MoreE2ePlaybackScreen } from '../screens/more/MoreE2ePlaybackScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsAppearanceScreen } from '../screens/more/MoreSettingsAppearanceScreen';
+import { MoreSettingsDownloadLimitScreen } from '../screens/more/MoreSettingsDownloadLimitScreen';
+import { MoreSettingsDownloadsScreen } from '../screens/more/MoreSettingsDownloadsScreen';
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
 import { MoreSettingsNotificationsScreen } from '../screens/more/MoreSettingsNotificationsScreen';
 import { MoreSettingsPlaybackScreen } from '../screens/more/MoreSettingsPlaybackScreen';
+import { MoreSettingsPopularityTrackingScreen } from '../screens/more/MoreSettingsPopularityTrackingScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { MoreSettingsTabBarScreen } from '../screens/more/MoreSettingsTabBarScreen';
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
@@ -64,9 +74,9 @@ import { MoreSyncLogScreen } from '../screens/more/MoreSyncLogScreen';
 import { NotificationsInboxScreen } from '../screens/notifications/NotificationsInboxScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
+import { PodcastSettingsScreen } from '../screens/podcast/PodcastSettingsScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
-import { AddByRssFeedListScreen } from '../screens/rss/AddByRssFeedListScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
@@ -74,8 +84,10 @@ import { V4vInfoScreen } from '../screens/v4v/V4vInfoScreen';
 import { useNavigationTheme } from '../theme/useNavigationTheme';
 import { useTheme } from '../theme/useTheme';
 import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
-import { mapIncomingPathToScopedPath, mapScopedPathToFlatPath } from './deepLinking';
+import { mapScopedPathToFlatPath } from './deepLinking';
+import { resolveMobileDeepLinkState } from './notificationStack';
 import { OrderedTabBar } from './OrderedTabBar';
+import type { PodcastDetailRouteParams } from './podcastDetailParams';
 import { tabBarIcon } from './tabBarIcon';
 import { useTabLayout } from './TabLayoutProvider';
 
@@ -132,9 +144,9 @@ export const HOME_STACK_ROUTES = {
   ArtistDetail: 'ArtistDetail',
   ClipDetail: 'ClipDetail',
   EpisodeDetail: 'EpisodeDetail',
-  HomeFilterSort: 'HomeFilterSort',
   HomeRoot: 'HomeRoot',
   PodcastDetail: 'PodcastDetail',
+  PodcastSettings: 'PodcastSettings',
   TrackDetail: 'TrackDetail',
 } as const;
 
@@ -145,6 +157,7 @@ export const CHANNEL_BROWSE_STACK_ROUTES = {
   ClipDetail: 'ClipDetail',
   EpisodeDetail: 'EpisodeDetail',
   PodcastDetail: 'PodcastDetail',
+  PodcastSettings: 'PodcastSettings',
   TrackDetail: 'TrackDetail',
 } as const;
 
@@ -155,8 +168,8 @@ export const SEARCH_STACK_ROUTES = {
 } as const;
 
 export const LIBRARY_STACK_ROUTES = {
-  AddByRssFeedList: 'AddByRssFeedList',
   AddByRssRoot: 'AddByRssRoot',
+  EpisodeDetail: 'EpisodeDetail',
   LibraryClipDetail: 'LibraryClipDetail',
   LibraryDownloads: 'LibraryDownloads',
   LibraryHistory: 'LibraryHistory',
@@ -168,6 +181,7 @@ export const LIBRARY_STACK_ROUTES = {
   LibraryPlaylists: 'LibraryPlaylists',
   LibraryQueue: 'LibraryQueue',
   PodcastDetail: 'PodcastDetail',
+  PodcastSettings: 'PodcastSettings',
 } as const;
 
 export const BROWSE_STACK_ROUTES = {
@@ -183,6 +197,7 @@ export const NOTIFICATIONS_STACK_ROUTES = {
 
 export const MORE_STACK_ROUTES = {
   MoreAbout: 'MoreAbout',
+  MoreE2ePlayback: 'MoreE2ePlayback',
   MoreMembership: 'MoreMembership',
   MoreOpml: 'MoreOpml',
   MorePublicProfile: 'MorePublicProfile',
@@ -190,9 +205,12 @@ export const MORE_STACK_ROUTES = {
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
   MoreSettingsAppearance: 'MoreSettingsAppearance',
+  MoreSettingsDownloadLimit: 'MoreSettingsDownloadLimit',
+  MoreSettingsDownloads: 'MoreSettingsDownloads',
   MoreSettingsLocale: 'MoreSettingsLocale',
   MoreSettingsNotifications: 'MoreSettingsNotifications',
   MoreSettingsPlayback: 'MoreSettingsPlayback',
+  MoreSettingsPopularityTracking: 'MoreSettingsPopularityTracking',
   MoreSettingsTabBar: 'MoreSettingsTabBar',
   MoreSettingsTheme: 'MoreSettingsTheme',
   MoreSmoke: 'MoreSmoke',
@@ -219,63 +237,69 @@ const mobileNavigationScreens = {
         // it, `getStateFromPath('/home/podcast/:id')` returns undefined and deep links fall back
         // to Home. HomeRoot stays the bare `home` segment.
         screens: {
-          AddByRssPodcastDetail: 'home/add-by-rss/:feedIdText',
-          AlbumDetail: 'home/album/:albumId',
-          ArtistDetail: 'home/artist/:artistId',
-          ClipDetail: 'home/clip/:clipId',
-          EpisodeDetail: 'home/episode/:episodeId',
-          HomeRoot: 'home',
-          PodcastDetail: 'home/podcast/:podcastId',
-          TrackDetail: 'home/track/:trackId',
+          AddByRssPodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}/add-by-rss/:feedIdText`,
+          AlbumDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.ALBUM}/:albumId`,
+          ArtistDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.ARTIST}/:artistId`,
+          ClipDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.CLIP}/:clipId`,
+          EpisodeDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.EPISODE}/:episodeId`,
+          HomeRoot: MOBILE_HOME_TAB_SEGMENT,
+          PodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PODCAST}/:podcastId`,
+          PodcastSettings: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PODCAST}/:podcastId/settings`,
+          TrackDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.TRACK}/:trackId`,
         },
       },
       More: {
         screens: {
           MoreAbout: 'more/about',
-          MoreMembership: 'more/membership',
+          MoreE2ePlayback: 'more/e2e/playback',
+          MoreMembership: `more${APP_ROUTES.MEMBERSHIP}`,
           MoreOpml: 'more/opml',
-          MorePublicProfile: 'more/profile/:accountIdText',
-          MoreProfile: 'more/profile',
+          MorePublicProfile: `more${APP_ROUTES.PROFILE}/:accountIdText`,
+          MoreProfile: `more${APP_ROUTES.PROFILE}`,
           MoreRoot: 'more',
-          MoreSettings: 'more/settings',
-          MoreSettingsAppearance: 'more/settings/appearance',
-          MoreSettingsLocale: 'more/settings/locale',
-          MoreSettingsNotifications: 'more/settings/notifications',
-          MoreSettingsPlayback: 'more/settings/playback',
-          MoreSettingsTabBar: 'more/settings/tab-bar',
-          MoreSettingsTheme: 'more/settings/theme',
-          MoreSmoke: 'more/smoke',
+          MoreSettings: `more${APP_ROUTES.SETTINGS}`,
+          MoreSettingsAppearance: `more${APP_ROUTES.SETTINGS}/appearance`,
+          MoreSettingsDownloadLimit: `more${APP_ROUTES.SETTINGS}/downloads/limit`,
+          MoreSettingsDownloads: `more${APP_ROUTES.SETTINGS}/downloads`,
+          MoreSettingsLocale: `more${APP_ROUTES.SETTINGS}/locale`,
+          MoreSettingsNotifications: `more${APP_ROUTES.SETTINGS}/notifications`,
+          MoreSettingsPlayback: `more${APP_ROUTES.SETTINGS}/playback`,
+          MoreSettingsTabBar: `more${APP_ROUTES.SETTINGS}/tab-bar`,
+          MoreSettingsTheme: `more${APP_ROUTES.SETTINGS}/theme`,
+          MoreSmoke: 'more/e2e/smoke',
           MoreSyncLog: 'more/sync-log',
         },
       },
       'My Library': {
         screens: {
-          AddByRssFeedList: 'my-library/add-by-rss/feeds',
           AddByRssRoot: 'my-library/add-by-rss',
-          LibraryClipDetail: 'my-library/clip/:clipId',
+          EpisodeDetail: `my-library${APP_ROUTES.EPISODE}/:episodeId`,
+          LibraryClipDetail: `my-library${APP_ROUTES.CLIP}/:clipId`,
           LibraryDownloads: 'my-library/downloads',
           LibraryHistory: 'my-library/history',
           LibraryHub: 'my-library',
           LibraryMyClips: 'my-library/my-clips',
-          PlaylistCreate: 'my-library/playlist/create',
-          PlaylistDetail: 'my-library/playlist/:playlistId',
-          PlaylistEdit: 'my-library/playlist/:playlistId/edit',
+          PlaylistCreate: `my-library${APP_ROUTES.PLAYLIST}/create`,
+          PlaylistDetail: `my-library${APP_ROUTES.PLAYLIST}/:playlistId`,
+          PlaylistEdit: `my-library${APP_ROUTES.PLAYLIST}/:playlistId/edit`,
           LibraryPlaylists: 'my-library/playlists',
           LibraryQueue: 'my-library/queue',
-          PodcastDetail: 'my-library/podcast/:podcastId',
+          PodcastDetail: `my-library${APP_ROUTES.PODCAST}/:podcastId`,
+          PodcastSettings: `my-library${APP_ROUTES.PODCAST}/:podcastId/settings`,
         },
       },
       Browse: {
         screens: {
-          AlbumDetail: 'browse/album/:albumId',
-          ArtistDetail: 'browse/artist/:artistId',
+          AlbumDetail: `browse${APP_ROUTES.ALBUM}/:albumId`,
+          ArtistDetail: `browse${APP_ROUTES.ARTIST}/:artistId`,
           BrowseRoot: 'browse',
-          ClipDetail: 'browse/clip/:clipId',
-          EpisodeDetail: 'browse/episode/:episodeId',
-          PlaylistDetail: 'browse/playlist/:playlistId',
-          PodcastDetail: 'browse/podcast/:podcastId',
-          Profile: 'browse/profile/:accountIdText',
-          TrackDetail: 'browse/track/:trackId',
+          ClipDetail: `browse${APP_ROUTES.CLIP}/:clipId`,
+          EpisodeDetail: `browse${APP_ROUTES.EPISODE}/:episodeId`,
+          PlaylistDetail: `browse${APP_ROUTES.PLAYLIST}/:playlistId`,
+          PodcastDetail: `browse${APP_ROUTES.PODCAST}/:podcastId`,
+          PodcastSettings: `browse${APP_ROUTES.PODCAST}/:podcastId/settings`,
+          Profile: `browse${APP_ROUTES.PROFILE}/:accountIdText`,
+          TrackDetail: `browse${APP_ROUTES.TRACK}/:trackId`,
         },
       },
       Notifications: {
@@ -285,14 +309,15 @@ const mobileNavigationScreens = {
       },
       Search: {
         screens: {
-          AlbumDetail: 'search/album/:albumId',
-          ArtistDetail: 'search/artist/:artistId',
-          ClipDetail: 'search/clip/:clipId',
-          EpisodeDetail: 'search/episode/:episodeId',
-          PodcastDetail: 'search/podcast/:podcastId',
+          AlbumDetail: `search${APP_ROUTES.ALBUM}/:albumId`,
+          ArtistDetail: `search${APP_ROUTES.ARTIST}/:artistId`,
+          ClipDetail: `search${APP_ROUTES.CLIP}/:clipId`,
+          EpisodeDetail: `search${APP_ROUTES.EPISODE}/:episodeId`,
+          PodcastDetail: `search${APP_ROUTES.PODCAST}/:podcastId`,
+          PodcastSettings: `search${APP_ROUTES.PODCAST}/:podcastId/settings`,
           SearchResultDetail: 'search/result/:resultId',
           SearchRoot: 'search',
-          TrackDetail: 'search/track/:trackId',
+          TrackDetail: `search${APP_ROUTES.TRACK}/:trackId`,
         },
       },
     },
@@ -321,15 +346,13 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
     return mapScopedPathToFlatPath(scopedPath);
   },
   getStateFromPath: (path, options) => {
-    const scopedPath = mapIncomingPathToScopedPath(path);
-    return (
-      getDefaultStateFromPath(scopedPath, options) ??
-      getDefaultStateFromPath('/home', options) ??
-      undefined
-    );
+    return resolveMobileDeepLinkState(path, options);
   },
   prefixes: MOBILE_LINK_PREFIXES,
 };
+
+export type { PodcastDetailRouteParams } from './podcastDetailParams';
+export { buildPodcastDetailParams } from './podcastDetailParams';
 
 /** Channel/item detail params shared by Home and Search stacks (tab isolation). */
 export type ChannelBrowseStackParamList = {
@@ -337,14 +360,13 @@ export type ChannelBrowseStackParamList = {
   ArtistDetail: { artistId: string };
   ClipDetail: { clipId: string };
   EpisodeDetail: { episodeId: string };
-  PodcastDetail: { podcastId: string };
+  PodcastDetail: PodcastDetailRouteParams;
+  PodcastSettings: { podcastId: string };
   TrackDetail: { trackId: string };
 };
 
 export type HomeStackParamList = ChannelBrowseStackParamList & {
   AddByRssPodcastDetail: { feedIdText: string };
-  /** Which Home list the choices apply to, so each media type keeps its own. */
-  HomeFilterSort: { mediaType: HomeMediaType };
   HomeRoot: undefined;
 };
 
@@ -362,13 +384,14 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
    * `autoFocus` is a request from another tab (Home's empty state) to start a fresh search: the
    * field is cleared and focused so the user can type straight away. Tapping the Search tab
    * directly omits it and keeps whatever was already there.
+   * `medium` optionally selects the All / Music chip (and persists it) before the field focuses.
    */
-  SearchRoot: { autoFocus?: boolean } | undefined;
+  SearchRoot: { autoFocus?: boolean; medium?: 'all' | 'music' } | undefined;
 };
 
 export type LibraryStackParamList = {
-  AddByRssFeedList: undefined;
   AddByRssRoot: undefined;
+  EpisodeDetail: { episodeId: string };
   LibraryClipDetail: { clipId: string };
   LibraryDownloads: undefined;
   LibraryHistory: undefined;
@@ -379,11 +402,17 @@ export type LibraryStackParamList = {
   PlaylistEdit: { playlistId: string };
   LibraryPlaylists: undefined;
   LibraryQueue: undefined;
-  PodcastDetail: { podcastId: string };
+  PodcastDetail: PodcastDetailRouteParams;
+  PodcastSettings: { podcastId: string };
 };
 
 export type BrowseStackParamList = ChannelBrowseStackParamList & {
-  BrowseRoot: undefined;
+  /**
+   * `mediaType` is a request from another tab (Home's empty state) to open Browse on a specific
+   * chip. Applied once on focus, persisted, then cleared so a later tab return keeps the user's
+   * last Browse choice.
+   */
+  BrowseRoot: { mediaType?: BrowseMediaType } | undefined;
   PlaylistDetail: { playlistId: string };
   Profile: { accountIdText: string };
 };
@@ -394,6 +423,7 @@ export type NotificationsStackParamList = {
 
 export type MoreStackParamList = {
   MoreAbout: undefined;
+  MoreE2ePlayback: undefined;
   MoreMembership: undefined;
   MoreOpml: undefined;
   MorePublicProfile: { accountIdText: string };
@@ -401,9 +431,12 @@ export type MoreStackParamList = {
   MoreRoot: undefined;
   MoreSettings: undefined;
   MoreSettingsAppearance: undefined;
+  MoreSettingsDownloadLimit: undefined;
+  MoreSettingsDownloads: undefined;
   MoreSettingsLocale: undefined;
   MoreSettingsNotifications: undefined;
   MoreSettingsPlayback: undefined;
+  MoreSettingsPopularityTracking: undefined;
   MoreSettingsTabBar: undefined;
   MoreSettingsTheme: undefined;
   MoreSmoke: undefined;
@@ -469,14 +502,14 @@ function HomeStackNavigator() {
         options={{ title: t('media.podcast.podcast') }}
       />
       <HomeStack.Screen
-        component={HomeFilterSortScreen}
-        name={HOME_STACK_ROUTES.HomeFilterSort}
-        options={{ title: t('filters.screen.title') }}
-      />
-      <HomeStack.Screen
         component={PodcastDetailScreen}
         name={HOME_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
+      />
+      <HomeStack.Screen
+        component={PodcastSettingsScreen}
+        name={HOME_STACK_ROUTES.PodcastSettings}
+        options={{ title: t('nav.stack.podcast_settings') }}
       />
       <HomeStack.Screen
         component={EpisodeDetailScreen}
@@ -529,6 +562,11 @@ function SearchStackNavigator() {
         options={{ title: t('media.podcast.podcast') }}
       />
       <SearchStack.Screen
+        component={PodcastSettingsScreen}
+        name={SEARCH_STACK_ROUTES.PodcastSettings}
+        options={{ title: t('nav.stack.podcast_settings') }}
+      />
+      <SearchStack.Screen
         component={EpisodeDetailScreen}
         name={SEARCH_STACK_ROUTES.EpisodeDetail}
         options={{ title: t('media.podcast.episode') }}
@@ -574,14 +612,14 @@ function LibraryStackNavigator() {
         options={{ title: t('features.add_by_rss.label') }}
       />
       <LibraryStack.Screen
-        component={AddByRssFeedListScreen}
-        name={LIBRARY_STACK_ROUTES.AddByRssFeedList}
-        options={{ title: t('nav.stack.rss_feeds') }}
-      />
-      <LibraryStack.Screen
         component={PodcastDetailScreen}
         name={LIBRARY_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
+      />
+      <LibraryStack.Screen
+        component={PodcastSettingsScreen}
+        name={LIBRARY_STACK_ROUTES.PodcastSettings}
+        options={{ title: t('nav.stack.podcast_settings') }}
       />
       <LibraryStack.Screen
         component={LibraryPlaylistsScreen}
@@ -628,6 +666,11 @@ function LibraryStackNavigator() {
         name={LIBRARY_STACK_ROUTES.LibraryDownloads}
         options={{ title: t('nav.tab.downloads') }}
       />
+      <LibraryStack.Screen
+        component={EpisodeDetailScreen}
+        name={LIBRARY_STACK_ROUTES.EpisodeDetail}
+        options={{ title: t('media.podcast.episode') }}
+      />
     </LibraryStack.Navigator>
   );
 }
@@ -647,6 +690,11 @@ function BrowseStackNavigator() {
         component={PodcastDetailScreen}
         name={BROWSE_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
+      />
+      <BrowseStack.Screen
+        component={PodcastSettingsScreen}
+        name={BROWSE_STACK_ROUTES.PodcastSettings}
+        options={{ title: t('nav.stack.podcast_settings') }}
       />
       <BrowseStack.Screen
         component={EpisodeDetailScreen}
@@ -739,9 +787,24 @@ function MoreStackNavigator({
         options={{ title: t('settings.groups.appearance') }}
       />
       <MoreStack.Screen
+        component={MoreSettingsDownloadsScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsDownloads}
+        options={{ title: t('nav.tab.downloads') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsDownloadLimitScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsDownloadLimit}
+        options={{ title: t('settings.downloads.limit_label') }}
+      />
+      <MoreStack.Screen
         component={MoreSettingsPlaybackScreen}
         name={MORE_STACK_ROUTES.MoreSettingsPlayback}
         options={{ title: t('settings.groups.playback') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsPopularityTrackingScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsPopularityTracking}
+        options={{ title: t('popularity_tracking.title') }}
       />
       <MoreStack.Screen
         component={MoreSettingsNotificationsScreen}
@@ -793,15 +856,24 @@ function MoreStackNavigator({
         name={MORE_STACK_ROUTES.MoreSyncLog}
         options={{ title: t('sync.log.title') }}
       />
-      <MoreStack.Screen name={MORE_STACK_ROUTES.MoreSmoke} options={{ title: 'Smoke' }}>
-        {() => (
-          <HelloWorldScreen
-            authMode="anonymous"
-            onRequestLogin={onRequestLogin}
-            onRequestSignUp={onRequestSignUp}
-          />
-        )}
-      </MoreStack.Screen>
+      {isMobileE2eHarnessEnabled() ? (
+        <MoreStack.Screen name={MORE_STACK_ROUTES.MoreSmoke} options={{ title: t('e2e.smoke') }}>
+          {() => (
+            <HelloWorldScreen
+              authMode="anonymous"
+              onRequestLogin={onRequestLogin}
+              onRequestSignUp={onRequestSignUp}
+            />
+          )}
+        </MoreStack.Screen>
+      ) : null}
+      {isMobileE2eFromEnv() ? (
+        <MoreStack.Screen
+          component={MoreE2ePlaybackScreen}
+          name={MORE_STACK_ROUTES.MoreE2ePlayback}
+          options={{ title: t('e2e.playback') }}
+        />
+      ) : null}
     </MoreStack.Navigator>
   );
 }
@@ -822,20 +894,6 @@ function LibraryHubScreen({
         {
           items: [
             {
-              onPress: () => {
-                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryQueue);
-              },
-              testID: 'library-nav-queue',
-              title: t('features.queue.queue'),
-            },
-            {
-              onPress: () => {
-                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
-              },
-              testID: 'library-nav-history',
-              title: t('features.history.history'),
-            },
-            {
               accessibilityLabel:
                 inProgressDownloadCount > 0
                   ? `${t('nav.tab.downloads')}, ${t('features.download.in_progress_count', {
@@ -848,6 +906,20 @@ function LibraryHubScreen({
               },
               testID: 'library-nav-downloads',
               title: t('nav.tab.downloads'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryQueue);
+              },
+              testID: 'library-nav-queue',
+              title: t('features.queue.queue'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
+              },
+              testID: 'library-nav-history',
+              title: t('features.history.history'),
             },
             {
               onPress: () => {
@@ -970,6 +1042,7 @@ function MoreRootScreen({
       title: t('nav.menu.section_account'),
     },
     {
+      header: <OfflineModeFeaturesHeader />,
       items: [
         ...overflowItems,
         {
@@ -1006,18 +1079,37 @@ function MoreRootScreen({
           testID: 'more-nav-sync-log',
           title: t('sync.log.title'),
         },
-        {
-          onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreSmoke);
-          },
-          testID: 'more-nav-smoke',
-          title: 'Smoke',
-        },
       ],
       key: 'other',
       title: t('nav.menu.section_other'),
     },
   ];
+
+  if (isMobileE2eHarnessEnabled()) {
+    const e2eItems: MenuListItem[] = [
+      {
+        onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreSmoke);
+        },
+        testID: 'more-nav-smoke',
+        title: t('e2e.smoke'),
+      },
+    ];
+    if (isMobileE2eFromEnv()) {
+      e2eItems.push({
+        onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreE2ePlayback);
+        },
+        testID: 'more-nav-e2e-playback',
+        title: t('e2e.playback'),
+      });
+    }
+    sections.push({
+      items: e2eItems,
+      key: 'e2e',
+      title: t('e2e.section'),
+    });
+  }
 
   return <MenuListScreen sections={sections} testID="more-screen" />;
 }
@@ -1091,9 +1183,9 @@ function TabScaffold({
         ) : (
           <View>
             <PlaybackE2eStatus />
-            {/* Above the mini player, which renders nothing when idle — so the bar lands on the tab
-                bar by itself, with no conditional placement. */}
-            <SyncProgressBar />
+            {/* Persistent bottom chrome above tabs: sync → Offline Mode → mini player. */}
+            <GlobalActivityBar />
+            <OfflineModeBanner />
             <MiniPlayer onExpand={onOpenFullPlayer} />
             <OrderedTabBar {...props} />
           </View>
@@ -1178,16 +1270,32 @@ function TabScaffold({
 
   // The tablet tab bar is a left rail, so there is no bottom column for the bar to sit above. A
   // full-width strip under the whole navigator is the equivalent position, and it carries the
-  // home-indicator inset itself because nothing sits beneath it here.
+  // home-indicator inset itself because nothing sits beneath it here. Order matches phone:
+  // sync → Offline Mode → mini player.
   return (
     <View style={tabScaffoldStyles.tabletRoot}>
       {navigator}
-      <SyncProgressBar bottomInset={insets.bottom} />
+      <View
+        style={[
+          tabScaffoldStyles.tabletBottomChrome,
+          {
+            backgroundColor: themeStyles.screen.backgroundColor,
+            paddingBottom: insets.bottom,
+          },
+        ]}
+      >
+        <GlobalActivityBar />
+        <OfflineModeBanner />
+        <MiniPlayer onExpand={onOpenFullPlayer} />
+      </View>
     </View>
   );
 }
 
 const tabScaffoldStyles = StyleSheet.create({
+  tabletBottomChrome: {
+    width: '100%',
+  },
   tabletRoot: {
     flex: 1,
   },
@@ -1207,8 +1315,10 @@ export function MobileTabNavigator({
       return;
     }
 
-    const scopedPath = mapIncomingPathToScopedPath(pendingDeepLinkUrl);
-    const nextState = getDefaultStateFromPath(scopedPath, mobileNavigationLinking.config);
+    const nextState = resolveMobileDeepLinkState(
+      pendingDeepLinkUrl,
+      mobileNavigationLinking.config
+    );
     if (nextState !== undefined) {
       rootNavigationRef.resetRoot(nextState);
     } else {

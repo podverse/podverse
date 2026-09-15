@@ -11,6 +11,13 @@ export class AccountSettingsNotification {
   @Column({ name: 'account_settings_id' })
   account_settings_id!: number;
 
+  /**
+   * When true, a successful follow also creates the per-channel notification row using the
+   * account's notification type defaults. False means following never turns notifications on.
+   */
+  @Column({ name: 'auto_enable_on_subscribe', default: false })
+  auto_enable_on_subscribe!: boolean;
+
   @OneToOne(
     'AccountSettings',
     (accountSettings: AccountSettings) => accountSettings.account_settings_notification,

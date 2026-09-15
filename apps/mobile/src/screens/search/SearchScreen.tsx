@@ -16,8 +16,10 @@ import { FillList, VerticalCenter } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { SearchStackParamList } from '../../navigation';
-import { SEARCH_STACK_ROUTES } from '../../navigation';
+import { buildPodcastDetailParams, SEARCH_STACK_ROUTES } from '../../navigation';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
@@ -36,6 +38,7 @@ const feedToRow = (feed: SearchPodcastsFeed) => ({
   imageUrl: toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
   subtitle: toNonEmptyTrimmedString(feed.author),
   title: feed.title,
+  updatedAt: feed.newestItemPubdate > 0 ? feed.newestItemPubdate : null,
 });
 
 /**
@@ -45,6 +48,7 @@ const feedToRow = (feed: SearchPodcastsFeed) => ({
 export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const { t } = useTranslation();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const { styles: themeStyles, tokens } = useTheme();
   const [query, setQuery] = useState<string>('');
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
@@ -57,6 +61,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const inputRef = useRef<TextInput | null>(null);
 
   const wantsAutoFocus = route.params?.autoFocus === true;
+  const requestedMedium = route.params?.medium;
 
   useEffect(() => {
     let isMounted = true;
@@ -76,10 +81,16 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   }, []);
 
   // Home's "nothing subscribed yet" button sends the user here to type something, so the field
-  // starts empty and focused. The request is consumed immediately, otherwise coming back from a
-  // result would wipe the query the user just ran.
+  // starts empty and focused. An optional medium selects All / Music first. The request is consumed
+  // immediately, otherwise coming back from a result would wipe the query the user just ran.
   useFocusEffect(
     useCallback(() => {
+      if (requestedMedium === 'all' || requestedMedium === 'music') {
+        setMedium(requestedMedium);
+        void writeSearchListMedium(requestedMedium);
+        navigation.setParams({ medium: undefined });
+      }
+
       if (!wantsAutoFocus) {
         return;
       }
@@ -88,7 +99,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
       setQuery('');
       setDebouncedQuery('');
       inputRef.current?.focus();
-    }, [navigation, wantsAutoFocus])
+    }, [navigation, requestedMedium, wantsAutoFocus])
   );
 
   useEffect(() => {
@@ -102,7 +113,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   }, [query]);
 
   useEffect(() => {
-    if (!isMediumReady) {
+    if (!isMediumReady || offlineModeEnabled) {
       return;
     }
 
@@ -154,7 +165,16 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     return () => {
       isMounted = false;
     };
-  }, [accessToken, clearSession, debouncedQuery, isMediumReady, medium, refreshToken, setTokens]);
+  }, [
+    accessToken,
+    clearSession,
+    debouncedQuery,
+    isMediumReady,
+    medium,
+    offlineModeEnabled,
+    refreshToken,
+    setTokens,
+  ]);
 
   // A list that silently swaps its contents tells a screen reader user nothing. The first settled
   // result set is recorded without speaking, so arriving on Search does not talk over the screen
@@ -264,9 +284,15 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           albumId: channel.id_text,
         });
       } else {
-        navigation.navigate(SEARCH_STACK_ROUTES.PodcastDetail, {
-          podcastId: channel.id_text,
-        });
+        navigation.navigate(
+          SEARCH_STACK_ROUTES.PodcastDetail,
+          buildPodcastDetailParams({
+            podcastId: channel.id_text,
+            previewImageUrl:
+              toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
+            previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
+          })
+        );
       }
     } catch {
       setErrorKey('errors.generic');
@@ -300,6 +326,17 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     { label: t('filters.type.all'), testID: 'search-medium-all', value: 'all' },
     { label: t('media.music.music'), testID: 'search-medium-music', value: 'music' },
   ] as const;
+
+  if (offlineModeEnabled) {
+    return (
+      <View style={styles.container} testID="search-screen">
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="search-offline-unavailable"
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container} testID="search-screen">

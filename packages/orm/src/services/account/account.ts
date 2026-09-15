@@ -200,7 +200,7 @@ export class AccountService {
     await this.ensureAccountSettings(account, {
       alwaysCreate: true,
       locale: dto.locale,
-      allow_listen_stats: dto.allow_listen_stats,
+      allow_listen_stats: false,
     });
 
     // Create account_profile row with null display_name and bio
@@ -359,7 +359,10 @@ export class AccountService {
       // First, create and save AccountSettings
       const accountSettings = new AccountSettings();
       accountSettings.account_id = account.id;
-      accountSettings.allow_listen_stats = params.allow_listen_stats ?? true;
+      accountSettings.allow_listen_stats = params.allow_listen_stats ?? false;
+      accountSettings.listen_stats_accepted = null;
+      accountSettings.listen_stats_agreement_version = null;
+      accountSettings.listen_stats_decided_at = null;
       const savedAccountSettings = await accountSettingsRepo.save(accountSettings);
 
       // Then create and save the locale with the proper foreign key
@@ -371,6 +374,7 @@ export class AccountService {
       // Then create and save the notification with the proper foreign key
       const notification = new AccountSettingsNotification();
       notification.account_settings_id = savedAccountSettings.id;
+      notification.auto_enable_on_subscribe = false;
       await notificationRepo.save(notification);
 
       // Then create and save the playback settings with the default preferred media type
@@ -407,7 +411,7 @@ export class AccountService {
         .into(AccountSettings)
         .values({
           account_id: account.id,
-          allow_listen_stats: params.allow_listen_stats ?? true,
+          allow_listen_stats: params.allow_listen_stats ?? false,
         })
         .orIgnore()
         .execute();
@@ -456,7 +460,7 @@ export class AccountService {
         .createQueryBuilder()
         .insert()
         .into(AccountSettingsNotification)
-        .values({ account_settings_id: existingSettings.id })
+        .values({ account_settings_id: existingSettings.id, auto_enable_on_subscribe: false })
         .orIgnore()
         .execute();
     }

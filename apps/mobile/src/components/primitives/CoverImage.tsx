@@ -1,10 +1,17 @@
+import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ImageStyle, StyleProp } from 'react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { ImageStyle, StyleProp, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 import { ImageViewerModal } from './ImageViewerModal';
+
+/**
+ * Sizing lands on the artwork itself or, when there is no URI, on the fallback box that stands in
+ * for it, so it has to satisfy both an `Image` and a `View`.
+ */
+type CoverImageStyle = ImageStyle & ViewStyle;
 
 export type CoverImageProps = {
   uri: string | null | undefined;
@@ -20,14 +27,28 @@ export type CoverImageProps = {
    * Set false when this image sits inside a pressable row, cell, or header.
    */
   opensViewer?: boolean;
-  style?: StyleProp<ImageStyle>;
+  style?: StyleProp<CoverImageStyle>;
   testID?: string;
+};
+
+/**
+ * Warm the memory+disk cache for a list-size artwork URL. Fire-and-forget — never await before
+ * navigate. Safe to call with null/empty.
+ */
+export const prefetchCoverImage = (uri: string | null | undefined): void => {
+  if (uri === null || uri === undefined || uri.length === 0) {
+    return;
+  }
+  void Image.prefetch(uri);
 };
 
 /**
  * Square cover / artwork. Podcast, episode, and album art stay square — do not pass a
  * `borderRadius` unless a specific surface (for example a circular avatar) needs one.
  * Standalone art opens the image viewer; pass `opensViewer={false}` when the parent is the control.
+ *
+ * Uses expo-image with memory+disk cache so a list decode can be reused on a compact header
+ * without a second network round-trip.
  */
 export function CoverImage({
   accessibilityLabel,
@@ -58,9 +79,6 @@ export function CoverImage({
           fontWeight: '600',
           textAlign: 'center',
         },
-        image: {
-          backgroundColor: tokens.background.secondary,
-        },
       }),
     [themeStyles, tokens]
   );
@@ -69,7 +87,12 @@ export function CoverImage({
 
   if (uri === null || uri === undefined || uri.length === 0) {
     return (
-      <View style={[styles.fallback, style]} testID={testID}>
+      <View
+        accessibilityElementsHidden={!opensViewer}
+        importantForAccessibility={opensViewer ? 'yes' : 'no'}
+        style={[styles.fallback, style]}
+        testID={testID}
+      >
         {fallbackLabel !== undefined ? (
           <Text numberOfLines={3} style={styles.fallbackText}>
             {fallbackLabel}
@@ -79,15 +102,22 @@ export function CoverImage({
     );
   }
 
+  // Artwork inside a parent Pressable (row / grid cell) is decorative: the parent owns the
+  // accessible name. Standalone covers hide the Image too — the outer Pressable speaks for it.
+  // No secondary fill behind a known URI — that reads as an empty placeholder while the bitmap
+  // paints (worse on slow Android decode).
   const image = (
     <Image
-      accessibilityElementsHidden={opensViewer}
+      accessibilityElementsHidden
       accessibilityIgnoresInvertColors
-      accessibilityLabel={opensViewer ? undefined : accessibilityLabel}
-      importantForAccessibility={opensViewer ? 'no' : undefined}
+      cachePolicy="memory-disk"
+      contentFit="cover"
+      importantForAccessibility="no"
+      recyclingKey={uri}
       source={{ uri }}
-      style={[styles.image, style]}
+      style={style}
       testID={opensViewer ? undefined : testID}
+      transition={0}
     />
   );
 

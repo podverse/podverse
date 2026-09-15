@@ -75,6 +75,12 @@ Signed-out users get this too; see
 3. Mutations: optimistic local write when safe → API → reconcile → **project native cache**.
 4. Offline: queue mutations; flush when online.
 
+### Playback reconciliation storage
+
+- `playback_outbox` stores durable playback events for reconnect replay.
+- `playback_local_state` stores per-item merged playback state used by reconciliation and handoff.
+- Replay is bounded (500 events), collapses positions forward per item, and preserves completion.
+
 ## Related
 
 - [`dto-changes-are-device-data-migrations`](/.cursor/rules/dto-changes-are-device-data-migrations.mdc)

@@ -21,6 +21,11 @@ export type AddByRssParsePreview = {
   /** Newest publish date in the feed, kept as a scalar so recency ordering never re-parses. */
   latestItemPubDateMs: number | null;
   playbackPosition: string | null;
+  /**
+   * The **channel** title. This becomes `MobileAddByRSSFeedRecord.title`, which Home and My Library
+   * render as the name of the feed, so an episode title here would label the channel row with one
+   * of its episodes.
+   */
   title: string | null;
 };
 
@@ -65,7 +70,9 @@ export function extractPreviewFromParsePayload(payload: unknown): AddByRssParseP
     return { ...EMPTY_PREVIEW };
   }
 
-  const title = toNonEmptyTrimmedString(firstItem.title);
+  // Channel title first: the record's title names the feed. The first item is only a fallback for
+  // a feed that carries no channel title at all.
+  const title = toNonEmptyTrimmedString(payload.title) ?? toNonEmptyTrimmedString(firstItem.title);
   const playbackPosition = toNonEmptyTrimmedString(firstItem.playback_position);
 
   let enclosureUrl: string | null = null;
@@ -124,7 +131,9 @@ export function mapParsedFeedToPreview(mappedFeed: AddByRSSMappedFeed): AddByRss
   const firstItem = mappedFeed.items[0];
   const enclosureUrl = firstItem?.enclosures[0]?.item_enclosure_sources[0]?.uri ?? null;
   const imageUrl = primaryListArtworkUrl(firstItem?.images, mappedFeed.channel.images);
-  const title = firstItem?.item.title ?? mappedFeed.channel.channel.title ?? null;
+  // Channel title first: the record's title names the feed. The first item is only a fallback for
+  // a feed that carries no channel title at all.
+  const title = mappedFeed.channel.channel.title ?? firstItem?.item.title ?? null;
 
   return {
     enclosureUrl,
@@ -193,38 +202,11 @@ export function isValidAddByRssFeedUrl(value: string): boolean {
   }
 }
 
-export function toAddByRssResourceData(record: MobileAddByRSSFeedRecord): AddByRSSResourceData {
-  return {
-    enclosure_url: record.enclosureUrl,
-    feed_url: record.feedUrl,
-    playback_position: record.playbackPosition ?? '0',
-    title: record.title ?? record.feedUrl,
-  };
-}
-
-/**
- * Build the full add-by-RSS `AddByRSSResourceData` for playback from the persisted
- * `@podverse/parser-mapping` bundle (same shape web uses via `buildAddByRSSResourceData`), merging
- * the per-account `playback_position` from the SQLite record (the compat bundle carries none). Falls
- * back to the slim record payload when no mapped bundle is available (offline / pre-mapping feeds).
- */
-export function toAddByRssPlaybackResourceData(
-  record: MobileAddByRSSFeedRecord,
-  mappedFeed: AddByRSSMappedFeed | null
-): AddByRSSResourceData {
-  const firstItemBundle = mappedFeed?.items[0];
-  if (mappedFeed === null || firstItemBundle === undefined) {
-    return toAddByRssResourceData(record);
-  }
-
-  return toAddByRssItemPlaybackResourceData(record, mappedFeed, firstItemBundle, 0);
-}
-
 /**
  * Build playback data for one item in a persisted add-by-RSS bundle.
  *
- * The index item shape is shared with the add-by-RSS queue and playlist mapping, so detail screens
- * and feed-level playback use the same enclosure and metadata conversion.
+ * The index item shape is shared with the add-by-RSS queue and playlist mapping, so Home detail
+ * episode playback uses the same enclosure and metadata conversion.
  */
 export function toAddByRssItemPlaybackResourceData(
   record: MobileAddByRSSFeedRecord,
@@ -270,7 +252,9 @@ export function mergeLocalAndRemoteAddByRssFeeds(
       latestItemPubDateMs: localFeed?.latestItemPubDateMs ?? null,
       playbackPosition: localFeed?.playbackPosition ?? null,
       resourceType: 'podcasts' as const,
-      title: remoteFeed.title ?? localFeed?.title ?? remoteFeed.feed_url,
+      // Follow metadata is written at add time, often as the URL, before parse fills the title.
+      // A later list fetch must not replace a parsed local title with that placeholder.
+      title: localFeed?.title ?? remoteFeed.title ?? remoteFeed.feed_url,
       updatedAt: new Date().toISOString(),
     };
   });

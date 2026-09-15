@@ -213,6 +213,7 @@ export * from './services/account/accountSetPassword.js';
 export * from './services/account/scheduledJob.js';
 export * from './services/account/accountSettings/accountSettingsListenStats.js';
 export * from './services/account/accountSettings/accountSettingsLocale.js';
+export * from './services/account/accountSettings/accountSettingsNotification.js';
 export * from './services/account/accountSettings/accountSettingsNotificationType.js';
 export * from './services/account/accountSettings/accountSettingsPlayback.js';
 export * from './services/account/accountUPDevice.js';

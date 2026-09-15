@@ -12,6 +12,7 @@ export type AddByRSSResourceDataImageEntry = {
  * when the feed has not been parsed on the current device's IndexedDB.
  */
 export interface AddByRSSResourceData {
+  id_text?: string;
   title?: string;
   channel_images?: AddByRSSResourceDataImageEntry[];
   item_images?: AddByRSSResourceDataImageEntry[];

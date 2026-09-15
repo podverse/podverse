@@ -1,187 +1,201 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ComponentType } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { breakpoints } from '@podverse/design-tokens';
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { LiveItemStatusEnum } from '@podverse/helpers/dto';
+import type { DTOChannel } from '@podverse/helpers';
+import { primaryChannelLightboxArtworkUrl, primaryChannelListArtworkUrl } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import type { OptionListItem } from '../../components/form/OptionListGroup';
-import { SortSelectRow } from '../../components/form/SortSelectRow';
+import { ChannelHeader } from '../../components/channel';
+import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
+import { ListFilterField, MenuSelectChip, SectionChipRow } from '../../components/form';
 import { Button } from '../../components/primitives/Button';
+import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { ListEmpty } from '../../components/state/ListEmpty';
-import { ListError } from '../../components/state/ListError';
-import { ListLoading } from '../../components/state/ListLoading';
-import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { channelSeenRepository } from '../../data/repositories/channelSeenRepository';
+import { downloadsRepository } from '../../data/repositories/downloadsRepository';
+import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
+import { useChannelNotifications } from '../../hooks/useChannelNotifications';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import {
+  isPodcastSectionUnavailableOffline,
+  OFFLINE_UNAVAILABLE_MESSAGE_KEY,
+  resolvePodcastSectionForOfflineMode,
+} from '../../lib/offlineModeViews';
+import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import type { ChannelBrowseStackParamList } from '../../navigation';
-import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
-import type { PodcastEpisodeSort } from '../../prefs/detailListPrefs';
-import {
-  DEFAULT_PODCAST_EPISODE_SORT,
-  PODCAST_EPISODE_SORT_OPTIONS,
-  readPodcastDetailPrefs,
-  writePodcastDetailSort,
+import type {
+  PodcastDetailRange,
+  PodcastDetailSort,
+  PodcastTab,
 } from '../../prefs/detailListPrefs';
-import { useResponsive } from '../../theme/useResponsive';
+import {
+  DEFAULT_PODCAST_DETAIL_RANGE,
+  DEFAULT_PODCAST_DETAIL_SORT,
+  DEFAULT_PODCAST_TAB,
+  PODCAST_DETAIL_RANGE_OPTIONS,
+  PODCAST_DETAIL_SORT_OPTIONS,
+  readPodcastDetailPrefs,
+  writePodcastDetailRange,
+  writePodcastDetailSort,
+  writePodcastDetailTab,
+} from '../../prefs/detailListPrefs';
+import { isOfflineModeEnabled, useOfflineMode } from '../../prefs/offlineMode';
+import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
-import type { HomeFeedRowData } from '../home/homeFeedData';
-import { mapItemsToHomeFeedRows, mapItemToHomeFeedRow } from '../home/homeFeedData';
-import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
+import {
+  channelHasPodroll,
+  isFilterableSection,
+  isSortableSection,
+  PODCAST_SECTION_LABEL_KEYS,
+  readHasStoredSoundbites,
+  resolvePodcastSections,
+} from './podcastSections';
+import type { PodcastSectionPaneProps } from './sections';
+import {
+  PodcastAboutSection,
+  PodcastClipsSection,
+  PodcastDownloadedSection,
+  PodcastEpisodesSection,
+  PodcastOfficialClipsSection,
+  PodcastPodrollSection,
+} from './sections';
 
 type PodcastDetailScreenProps = NativeStackScreenProps<
   ChannelBrowseStackParamList,
   'PodcastDetail'
 >;
 
-type PodcastLiveRow = HomeFeedRowData & {
-  liveStatusId: LiveItemStatusEnum | null;
-};
-
-const toLiveRows = (items: DTOItem[]): PodcastLiveRow[] => {
-  return items
-    .map((item) => ({
-      ...mapItemToHomeFeedRow(item),
-      liveStatusId: item.live_item?.live_item_status_id ?? null,
-    }))
-    .filter((row) => row.id.length > 0);
-};
-
-const LIVE_STATUS_KEYS: Record<LiveItemStatusEnum, string> = {
-  [LiveItemStatusEnum.Ended]: 'media.livestream.ended',
-  [LiveItemStatusEnum.Live]: 'media.livestream.live',
-  [LiveItemStatusEnum.Pending]: 'media.livestream.pending',
-};
-
-const EPISODE_SORT_LABEL_KEYS: Record<PodcastEpisodeSort, string> = {
-  alphabetical: 'filters.sort.a_z',
+const SORT_LABEL_KEYS: Record<PodcastDetailSort, string> = {
+  oldest: 'filters.sort.oldest',
   recent: 'filters.sort.recent',
+  top: 'filters.sort.top',
 };
 
+const RANGE_LABEL_KEYS: Record<PodcastDetailRange, string> = {
+  'all-time': 'filters.range.all_time',
+  day: 'filters.range.day',
+  month: 'filters.range.month',
+  week: 'filters.range.week',
+};
+
+/**
+ * One component per section, so adding a section is a label, an availability rule, and an entry
+ * here — never a branch inside the screen body.
+ */
+const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPaneProps>> = {
+  about: PodcastAboutSection,
+  clips: PodcastClipsSection,
+  downloaded: PodcastDownloadedSection,
+  episodes: PodcastEpisodesSection,
+  podroll: PodcastPodrollSection,
+  soundbites: PodcastOfficialClipsSection,
+};
+
+/**
+ * A podcast, as one column at every width.
+ *
+ * The screen owns identity and controls — the channel, the subscribe state, which section is
+ * showing and how it is ordered. Artwork and chips stay pinned; the title filter is handed to the
+ * active section as its list header. The section owns its own list, because the sections answer to
+ * different endpoints and different row shapes, and a single list that tried to serve all of them
+ * would branch on section in every callback.
+ *
+ * Actions on the channel as a whole (share, notifications, settings) belong in the stack header
+ * rather than in the body, so they stay reachable while the list is scrolled.
+ */
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
-  const { isLandscape, isTablet, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
+  const { podcastId, previewImageUrl, previewTitle } = route.params;
+  const cachedChrome = getCachedChannelSectionFlags(podcastId);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
-  const [episodeRows, setEpisodeRows] = useState<HomeFeedRowData[]>([]);
-  const [liveRows, setLiveRows] = useState<PodcastLiveRow[]>([]);
-  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-  const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [hasMorePages, setHasMorePages] = useState<boolean>(false);
+  const [isChannelLoading, setIsChannelLoading] = useState<boolean>(true);
+  const [hasSoundbites, setHasSoundbites] = useState<boolean>(
+    cachedChrome?.hasOfficialClips === true
+  );
+  const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
+    cachedChrome?.hasPodroll === true
+  );
+  const [hasCheckedSoundbites, setHasCheckedSoundbites] = useState<boolean>(cachedChrome !== null);
+  const chromeConfirmedRef = useRef(false);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
+  const [section, setSection] = useState<PodcastTab>(DEFAULT_PODCAST_TAB);
+  const [isSectionHydrated, setIsSectionHydrated] = useState<boolean>(false);
+  const [sort, setSort] = useState<PodcastDetailSort>(DEFAULT_PODCAST_DETAIL_SORT);
+  const [range, setRange] = useState<PodcastDetailRange>(DEFAULT_PODCAST_DETAIL_RANGE);
   /**
-   * What the pill shows. The list itself does not read this — it re-reads the stored preference —
-   * so the two cannot drift into disagreeing about which order is selected.
+   * Free text lives only as long as the screen does. A remembered filter would reopen a podcast
+   * showing a fraction of its episodes with no hint why, so unlike the section and the order this
+   * one is deliberately not carried anywhere.
    */
-  const [episodeSort, setEpisodeSort] = useState<PodcastEpisodeSort>(DEFAULT_PODCAST_EPISODE_SORT);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
-  const { podcastId } = route.params;
+  const [filterTerm, setFilterTerm] = useState<string>('');
+  /**
+   * List chrome known before the channel DTO arrives — route preview from the painted source row,
+   * then SQLite for deep links into a subscribed show. Replaced when `channel` loads.
+   */
+  const [previewArtworkUri, setPreviewArtworkUri] = useState<string | null>(
+    previewImageUrl !== undefined && previewImageUrl !== null && previewImageUrl.length > 0
+      ? previewImageUrl
+      : null
+  );
+  const [previewHeaderTitle, setPreviewHeaderTitle] = useState<string | null>(
+    previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null
+  );
 
-  // Split when tablet and either landscape or wide enough for two panes (≥ lg).
-  const showSplitLayout = isTablet && (isLandscape || width >= breakpoints.lg);
+  useEffect(() => {
+    setPreviewArtworkUri(
+      previewImageUrl !== undefined && previewImageUrl !== null && previewImageUrl.length > 0
+        ? previewImageUrl
+        : null
+    );
+    setPreviewHeaderTitle(
+      previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null
+    );
+  }, [podcastId, previewImageUrl, previewTitle]);
+
+  useEffect(() => {
+    const nextChrome = getCachedChannelSectionFlags(podcastId);
+    chromeConfirmedRef.current = false;
+    setChannel(null);
+    setIsChannelLoading(true);
+    setHasSoundbites(nextChrome?.hasOfficialClips === true);
+    setPreviewHasPodroll(nextChrome?.hasPodroll === true);
+    setHasCheckedSoundbites(nextChrome !== null);
+  }, [podcastId]);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        content: {
-          padding: tokens.spacing.lg,
-          paddingBottom: tokens.spacing['2xl'],
+        chipRow: {
+          marginTop: listHeaderStackGap(tokens.spacing),
         },
-        feedHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 20,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.sm,
-          marginTop: tokens.spacing.lg,
-        },
-        headerCard: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          padding: tokens.spacing.lg,
-        },
-        headerDescription: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 14,
-          marginTop: tokens.spacing.sm,
-        },
-        headerTitle: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 24,
-          fontWeight: '700',
-        },
-        heading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.md,
-        },
-        rowSurface: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-        },
-        sortRow: {
-          marginTop: tokens.spacing.sm,
-        },
-        splitContainer: {
+        container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
+        },
+        headerActions: {
+          alignItems: 'center',
           flexDirection: 'row',
         },
-        splitLeftPane: {
-          borderRightColor: themeStyles.border.borderColor,
-          borderRightWidth: 1,
-          maxWidth: breakpoints.lg,
-          width: '40%',
+        pinnedChrome: {
+          ...screenBodyInsets(tokens.spacing),
         },
-        splitRightPane: {
+        sectionBody: {
           flex: 1,
-        },
-        statusNotice: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
-        },
-        subscribeButton: {
-          marginTop: tokens.spacing.md,
-        },
-        subscribeButtonLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 14,
-          fontWeight: '600',
-        },
-        subscribeActions: {
-          flexDirection: 'row',
-          gap: tokens.spacing.sm,
-          marginTop: tokens.spacing.md,
         },
       }),
     [themeStyles, tokens]
@@ -193,114 +207,91 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   );
 
   /**
-   * The stored preference is read here rather than passed in, so the very first read of this
-   * channel already carries the remembered order. Fetching in the default order and re-sorting
-   * afterwards would show a list the user did not ask for, however briefly.
+   * The channel's own identity, and which of the conditional sections it can offer.
    *
-   * It also means the order has one source. The pill mirrors the preference for display; nothing
-   * hands a sort to this function, so nothing can hand it a stale one.
+   * Both are read again on every refresh, because a feed can gain a podroll or start marking clips
+   * between visits and the chip row has to follow the feed rather than the first thing it saw.
+   *
+   * Failure is deliberately quiet: the sections below carry their own error states, and a channel
+   * that will not load leaves a header with a generic title rather than replacing a working list
+   * with an error.
    */
-  const readStoredEpisodes = useCallback(async () => {
-    const { sort } = await readPodcastDetailPrefs(podcastId);
-    const stored = await channelItemsRepository.listByChannel(podcastId, { sort });
-    setEpisodeRows(mapItemsToHomeFeedRows(stored));
-    return stored.length;
-  }, [podcastId]);
+  const loadChannel = useCallback(async () => {
+    try {
+      const soundbites = await readHasStoredSoundbites(podcastId);
+      setHasSoundbites(soundbites);
+      setHasCheckedSoundbites(true);
 
-  /**
-   * Paint from the device, then reconcile.
-   *
-   * The stored window renders immediately and is the whole answer offline. The refresh that follows
-   * runs directly rather than through the sync queue: somebody opened this screen and is waiting on
-   * it, and queued work is for passes nobody asked for (`mobile-sync-orchestration`).
-   *
-   * A refresh that fails is only surfaced when the user asked for one. On open it is silent,
-   * because what is stored is still worth reading and an error over the top of a working list would
-   * say nothing useful.
-   */
-  const loadPodcastData = useCallback(
-    async ({ source }: { source: 'initial' | 'refresh' | 'retry' }) => {
-      if (source === 'refresh') {
-        setIsRefreshing(true);
-      } else {
-        setIsInitialLoading(true);
+      if (offlineModeEnabled) {
+        const local = await subscriptionsRepository.getByIdText(podcastId);
+        if (local !== null) {
+          setPreviewHasPodroll(false);
+        }
+        chromeConfirmedRef.current = true;
+        return;
       }
-      setErrorKey(null);
 
       try {
-        const [subscribed, storedCount] = await Promise.all([
-          subscriptionsRepository.isSubscribed(podcastId),
-          readStoredEpisodes(),
-        ]);
-        setIsSubscribed(subscribed);
-
-        if (storedCount > 0) {
-          setIsInitialLoading(false);
-        }
-
-        try {
-          const channelResponse = await requestWithMobileAuthRefresh(authContext, async (api) =>
-            api.reqChannelGetByIdOrIdText(podcastId)
-          );
-          setChannel(channelResponse);
-
-          const result = await channelItemsRepository.syncChannel(authContext, podcastId);
-          setHasMorePages(result.hasMore);
-          await readStoredEpisodes();
-
-          // Live items are a real-time surface with nothing to store, so they simply stay empty
-          // when there is no connection.
-          const liveResponse = await requestWithMobileAuthRefresh(authContext, async (api) =>
-            api.reqLiveItemGetManyByChannel(podcastId)
-          );
-          setLiveRows(toLiveRows(liveResponse));
-        } catch (error) {
-          if (storedCount === 0 || source !== 'initial') {
-            throw error;
-          }
-        }
+        const response = await requestWithMobileAuthRefresh(authContext, async (api) =>
+          api.reqChannelGetByIdOrIdText(podcastId)
+        );
+        setChannel(response);
+        const hasPodroll = channelHasPodroll(response);
+        setPreviewHasPodroll(hasPodroll);
+        void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+          hasOfficialClips: soundbites,
+          hasPodroll,
+        });
+        // This screen is where the show's name is known for a channel the user does not follow, so it
+        // is where any download of theirs that has only an id gets one.
+        void downloadsRepository.attachChannelToDownloads({
+          channelIdText: response.id_text ?? podcastId,
+          channelTitle: response.title ?? null,
+        });
+        chromeConfirmedRef.current = true;
       } catch {
-        setErrorKey('errors.generic');
-      } finally {
-        setIsRefreshing(false);
-        setIsInitialLoading(false);
+        void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+          hasOfficialClips: soundbites,
+        });
+        chromeConfirmedRef.current = true;
       }
-    },
-    [authContext, podcastId, readStoredEpisodes]
-  );
-
-  /**
-   * Reach further back into the feed and keep it there, so the next visit opens at the same depth.
-   *
-   * Needs a connection by definition: offline the window stays where it is and the list keeps
-   * showing what is stored.
-   */
-  const loadMoreEpisodes = useCallback(async () => {
-    setIsLoadingMore(true);
-    try {
-      const result = await channelItemsRepository.extendWindow(authContext, podcastId);
-      setHasMorePages(result.hasMore);
-      await readStoredEpisodes();
-    } catch {
-      setErrorKey('errors.generic');
     } finally {
-      setIsLoadingMore(false);
+      setIsChannelLoading(false);
     }
-  }, [authContext, podcastId, readStoredEpisodes]);
+  }, [authContext, offlineModeEnabled, podcastId]);
 
   useEffect(() => {
-    void loadPodcastData({ source: 'initial' });
-  }, [loadPodcastData]);
+    void loadChannel();
+  }, [loadChannel]);
 
-  // Keyed on the channel, so arriving at a second podcast shows that podcast's order rather than
-  // whatever the previous one was left on.
+  useEffect(() => {
+    if (getCachedChannelSectionFlags(podcastId) !== null) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void sectionChromeFlagsRepository.getChannel(podcastId).then((flags) => {
+      if (!isMounted || flags === null || chromeConfirmedRef.current) {
+        return;
+      }
+      setHasSoundbites(flags.hasOfficialClips);
+      setPreviewHasPodroll(flags.hasPodroll);
+      setHasCheckedSoundbites(true);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [podcastId]);
+
   useEffect(() => {
     let isMounted = true;
 
     void (async () => {
-      const { sort } = await readPodcastDetailPrefs(podcastId);
+      const subscribed = await subscriptionsRepository.isSubscribed(podcastId);
       if (isMounted) {
-        setEpisodeSort(sort);
+        setIsSubscribed(subscribed);
       }
     })();
 
@@ -309,25 +300,68 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     };
   }, [podcastId]);
 
-  const handleSortSelect = useCallback(
-    (sort: PodcastEpisodeSort) => {
-      setEpisodeSort(sort);
-      void (async () => {
-        await writePodcastDetailSort(podcastId, sort);
-        // Re-orders what is already stored; no request, so it works offline and costs nothing.
-        await readStoredEpisodes();
-      })();
-    },
-    [podcastId, readStoredEpisodes]
-  );
+  /**
+   * Deep links (and any navigate that omitted preview) still get list chrome from SQLite when this
+   * device already follows the channel. Route preview wins on first paint; this only fills gaps.
+   */
+  useEffect(() => {
+    if (previewHeaderTitle !== null && previewArtworkUri !== null) {
+      return;
+    }
 
-  const episodeSortOptions = useMemo<OptionListItem<PodcastEpisodeSort>[]>(() => {
-    return PODCAST_EPISODE_SORT_OPTIONS.map((option) => ({
-      label: t(EPISODE_SORT_LABEL_KEYS[option]),
-      testID: `podcast-detail-sort-${option}`,
-      value: option,
-    }));
-  }, [t]);
+    let isMounted = true;
+
+    void (async () => {
+      const local = await subscriptionsRepository.getByIdText(podcastId);
+      if (!isMounted || local === null) {
+        return;
+      }
+      if (previewHeaderTitle === null && local.title.length > 0) {
+        setPreviewHeaderTitle(local.title);
+      }
+      if (previewArtworkUri === null && local.imageUrl !== null && local.imageUrl.length > 0) {
+        setPreviewArtworkUri(local.imageUrl);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [podcastId, previewArtworkUri, previewHeaderTitle]);
+
+  /**
+   * Keyed on the channel, so arriving at a second podcast opens on that podcast's section and order
+   * rather than on whatever the previous one was left showing.
+   */
+  useEffect(() => {
+    let isMounted = true;
+    setIsSectionHydrated(false);
+
+    void (async () => {
+      const prefs = await readPodcastDetailPrefs(podcastId);
+      if (!isMounted) {
+        return;
+      }
+      // Offline Mode wins over the remembered tab on arrival; the stored pref is left alone.
+      setSection(
+        isOfflineModeEnabled()
+          ? resolvePodcastSectionForOfflineMode(prefs.tab, [
+              'about',
+              'clips',
+              'downloaded',
+              'episodes',
+            ])
+          : prefs.tab
+      );
+      setSort(prefs.sort);
+      setRange(prefs.range);
+      setIsSectionHydrated(true);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [podcastId]);
 
   /**
    * Opening the channel is what marks it seen — there is no per-episode seen state.
@@ -342,17 +376,70 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     void channelSeenRepository.markSeen(podcastId, 'channel');
   }, [podcastId]);
 
-  const handleEpisodePress = useCallback(
-    (row: HomeFeedRowData) => {
-      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
-        episodeId: row.id,
-      });
-    },
-    [navigation]
-  );
-
   const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
+  const notifications = useChannelNotifications({
+    channelId: channel?.id ?? null,
+    channelIdText: podcastId,
+  });
+
+  const isSignedIn = status === 'authenticated';
+  /**
+   * Settings are only offered once there is something to settle: an account to hold the choices and
+   * a subscription that makes them worth holding. The bell and share stay unconditional, so a
+   * signed-out visitor still has both a way to pass the podcast on and a way to find out what
+   * following it would give them.
+   */
+  const canOpenSettings = isSignedIn && isSubscribed;
+  const notificationsEnabled = notifications.isEnabled;
+  const toggleNotifications = notifications.toggleEnabled;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          <HeaderBarAction
+            accessibilityLabel={t('features.share')}
+            icon="share-outline"
+            onPress={() => {
+              shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
+            }}
+            testID="podcast-detail-share"
+          />
+          <HeaderBarAction
+            accessibilityLabel={t(
+              notificationsEnabled
+                ? 'features.notifications.disable_notifications_for_this_podcast'
+                : 'features.notifications.enable_notifications_for_this_podcast'
+            )}
+            icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
+            onPress={() => {
+              void toggleNotifications();
+            }}
+            testID="podcast-detail-notifications-toggle"
+          />
+          {canOpenSettings ? (
+            <HeaderBarAction
+              accessibilityLabel={t('nav.stack.podcast_settings')}
+              icon="settings-outline"
+              onPress={() => {
+                navigation.navigate('PodcastSettings', { podcastId });
+              }}
+              testID="podcast-detail-settings"
+            />
+          ) : null}
+        </View>
+      ),
+    });
+  }, [
+    canOpenSettings,
+    navigation,
+    notificationsEnabled,
+    podcastId,
+    styles.headerActions,
+    t,
+    toggleNotifications,
+  ]);
 
   /**
    * Subscribing has three behaviors and unsubscribing has one.
@@ -370,26 +457,19 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       return;
     }
 
-    const isSignedIn = status === 'authenticated';
-    const authContext = { accessToken, clearSession, refreshToken, setTokens };
-
     setIsSavingSubscription(true);
     setSubscriptionNoticeKey(null);
     try {
       if (isSubscribed) {
-        await subscriptionsRepository.unsubscribeLocal(podcastId);
+        const result = await subscriptionsRepository.unsubscribe({
+          accountSync: isSignedIn ? authContext : undefined,
+          idText: podcastId,
+          source: 'directory',
+        });
         setIsSubscribed(false);
         homeFeedRefresh.notify();
-
-        if (isSignedIn) {
-          try {
-            await requestWithMobileAuthRefresh(authContext, async (api) =>
-              api.reqAccountUnfollowChannel({ channel_id_text: podcastId })
-            );
-          } catch {
-            // The local removal stands; the account catches up on the next successful unsubscribe.
-            setSubscriptionNoticeKey('errors.generic');
-          }
+        if (result.serverError) {
+          setSubscriptionNoticeKey('errors.generic');
         }
         return;
       }
@@ -427,245 +507,218 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       setIsSavingSubscription(false);
     }
   }, [
-    accessToken,
+    authContext,
     channel,
-    clearSession,
     evaluateFeature,
     handleGateError,
     isSavingSubscription,
+    isSignedIn,
     isSubscribed,
     openGate,
     podcastId,
-    refreshToken,
-    setTokens,
-    status,
   ]);
 
-  const handleShare = useCallback(() => {
-    shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
-  }, [podcastId]);
+  const availableSections = useMemo(
+    () => resolvePodcastSections({ channel, hasSoundbites, previewHasPodroll }),
+    [channel, hasSoundbites, previewHasPodroll]
+  );
 
-  const refreshControl = (
-    <RefreshControl
-      onRefresh={() => {
-        void loadPodcastData({ source: 'refresh' });
-      }}
-      refreshing={isRefreshing}
-      tintColor={themeStyles.buttonPrimary.backgroundColor}
+  /**
+   * A remembered section still has to exist on this podcast — one whose feed has dropped its
+   * podroll cannot open on it. The stored preference is left alone, so the section comes back if
+   * the feed declares one again.
+   *
+   * Held until the channel and the stored episodes have both been read, because a cache miss must
+   * not be treated as absence or a restored Official Clips / Podroll pane would be thrown away.
+   */
+  useEffect(() => {
+    if (channel === null || !hasCheckedSoundbites) {
+      return;
+    }
+    if (!availableSections.includes(section)) {
+      setSection(
+        offlineModeEnabled
+          ? resolvePodcastSectionForOfflineMode(section, availableSections)
+          : DEFAULT_PODCAST_TAB
+      );
+    }
+  }, [availableSections, channel, hasCheckedSoundbites, offlineModeEnabled, section]);
+
+  /**
+   * Turning Offline Mode on while already on this screen (or finishing hydrate after the mode
+   * flag arrives) switches the chip to Downloaded. Display-only — the stored tab pref is not
+   * overwritten. Manual chip taps while Offline Mode is on still update `section` without write.
+   * Keyed on podcast identity so a later chrome update does not yank the chip back after a tap.
+   */
+  useEffect(() => {
+    if (!offlineModeEnabled || !isSectionHydrated) {
+      return;
+    }
+    setSection('downloaded');
+  }, [isSectionHydrated, offlineModeEnabled, podcastId]);
+
+  const handleSectionSelect = useCallback(
+    (next: PodcastTab) => {
+      setSection(next);
+      if (!offlineModeEnabled) {
+        void writePodcastDetailTab(podcastId, next);
+      }
+    },
+    [offlineModeEnabled, podcastId]
+  );
+
+  const handleSortSelect = useCallback(
+    (next: PodcastDetailSort) => {
+      setSort(next);
+      void writePodcastDetailSort(podcastId, next);
+    },
+    [podcastId]
+  );
+
+  const handleRangeSelect = useCallback(
+    (next: PodcastDetailRange) => {
+      setRange(next);
+      void writePodcastDetailRange(podcastId, next);
+    },
+    [podcastId]
+  );
+
+  const sectionChips = useMemo<SectionChipItem<PodcastTab>[]>(
+    () =>
+      availableSections.map((available) => ({
+        key: available,
+        label: t(PODCAST_SECTION_LABEL_KEYS[available]),
+        testID: `podcast-detail-section-${available}`,
+      })),
+    [availableSections, t]
+  );
+
+  const sortOptions = useMemo<MenuSelectChipOption<PodcastDetailSort>[]>(
+    () =>
+      PODCAST_DETAIL_SORT_OPTIONS.map((option) => ({
+        label: t(SORT_LABEL_KEYS[option]),
+        value: option,
+      })),
+    [t]
+  );
+
+  const rangeOptions = useMemo<MenuSelectChipOption<PodcastDetailRange>[]>(
+    () =>
+      PODCAST_DETAIL_RANGE_OPTIONS.map((option) => ({
+        label: t(RANGE_LABEL_KEYS[option]),
+        value: option,
+      })),
+    [t]
+  );
+
+  const channelArtworkUri = primaryChannelListArtworkUrl(channel?.channel_images);
+  const artworkUri = channelArtworkUri ?? previewArtworkUri;
+  const headerTitle = channel?.title ?? previewHeaderTitle ?? t('media.podcast.podcast');
+  const sortEnabled = isSortableSection(section);
+  const channelHeader = (
+    <ChannelHeader
+      actions={
+        <Button
+          label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
+          loading={isSavingSubscription}
+          onPress={() => {
+            void handleSubscriptionToggle();
+          }}
+          size="sm"
+          testID="podcast-detail-subscribe-toggle"
+          variant="outline"
+        />
+      }
+      artworkUri={artworkUri}
+      notice={subscriptionNoticeKey === null ? null : t(subscriptionNoticeKey)}
+      testID="podcast-detail-header"
+      title={headerTitle}
+      viewerUri={primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? artworkUri}
     />
   );
 
-  const headerPane = (
-    <>
-      <Text style={styles.heading}>{channel?.title ?? t('media.podcast.podcast')}</Text>
-      <View style={styles.headerCard}>
-        <Text style={styles.headerTitle}>{channel?.title ?? t('media.podcast.podcast')}</Text>
-        {channel?.channel_description?.value ? (
-          <Text style={styles.headerDescription} numberOfLines={4}>
-            {channel.channel_description.value}
-          </Text>
-        ) : null}
-        <View>
-          <Text style={styles.statusNotice}>
-            {t('misc.items')}: {episodeRows.length}
-          </Text>
-        </View>
-        <View style={styles.subscribeActions}>
-          <Button
-            label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
-            loading={isSavingSubscription}
-            onPress={() => {
-              void handleSubscriptionToggle();
-            }}
-            testID="podcast-detail-subscribe-toggle"
-            variant="primary"
-          />
-          <Button
-            label={t('features.share')}
-            onPress={handleShare}
-            testID="podcast-detail-share"
-            variant="secondary"
-          />
-        </View>
-        {subscriptionNoticeKey !== null ? (
-          <Text style={styles.statusNotice}>{t(subscriptionNoticeKey)}</Text>
-        ) : null}
-      </View>
-    </>
-  );
-
-  const listStatus = (
-    <>
-      {isInitialLoading ? <ListLoading testID="podcast-detail-loading" /> : null}
-      {!isInitialLoading && errorKey !== null ? (
-        <ListError
-          messageKey={errorKey}
-          onRetry={() => {
-            void loadPodcastData({ source: 'retry' });
-          }}
-          testID="podcast-detail-error"
-        />
-      ) : null}
-      {!isInitialLoading && errorKey === null && episodeRows.length === 0 ? (
-        <ListEmpty messageKey="misc.info" testID="podcast-detail-empty" />
-      ) : null}
-    </>
-  );
-
-  const listHeader = (
-    <>
-      {listStatus}
-      {liveRows.length > 0 ? (
-        <View style={styles.rowSurface}>
-          <Text style={styles.feedHeading}>{t('media.livestream.livestreams')}</Text>
-          {liveRows.map((liveRow, index) => {
-            const liveStatusLabel =
-              liveRow.liveStatusId !== null ? t(LIVE_STATUS_KEYS[liveRow.liveStatusId]) : null;
-            const subtitle =
-              liveStatusLabel === null
-                ? liveRow.subtitle
-                : liveRow.subtitle === null
-                  ? liveStatusLabel
-                  : `${liveStatusLabel} • ${liveRow.subtitle}`;
-            return (
-              <HomeFeedRow
-                isLast={index === liveRows.length - 1}
-                key={`live-${liveRow.id}`}
-                mediaType="episodes"
-                onPlayPress={(row) => {
-                  runPlayAction(row, 'episodes');
-                }}
-                onPress={handleEpisodePress}
-                onQueuePress={(row, position) => {
-                  runQueueAction(row, 'episodes', position);
-                }}
-                row={{
-                  id: liveRow.id,
-                  imageUrl: liveRow.imageUrl,
-                  subtitle,
-                  title: liveRow.title,
-                }}
-              />
-            );
-          })}
-        </View>
-      ) : null}
-      {!isInitialLoading && errorKey === null ? (
-        <>
-          <View style={styles.rowSurface}>
-            <Text style={styles.feedHeading}>{t('media.podcast.episodes')}</Text>
-          </View>
-          <View style={styles.sortRow}>
-            <SortSelectRow
-              heading={t('filters.screen.sort_heading')}
-              onSelect={handleSortSelect}
-              options={episodeSortOptions}
-              testID="podcast-detail-sort"
-              value={episodeSort}
-            />
-          </View>
-        </>
-      ) : null}
-    </>
-  );
-
-  const listFooter = (
-    <>
-      {!isInitialLoading && errorKey === null && hasMorePages ? (
-        <Pressable
-          onPress={() => {
-            if (isLoadingMore) {
-              return;
-            }
-            void loadMoreEpisodes();
-          }}
-          style={styles.subscribeButton}
-          testID="podcast-detail-load-more"
-        >
-          <Text style={styles.subscribeButtonLabel}>
-            {isLoadingMore ? t('misc.loading') : t('info.show_more')}
-          </Text>
-        </Pressable>
-      ) : null}
-      {!isInitialLoading && errorKey === null && playbackNoticeKey !== null ? (
-        <Text style={styles.statusNotice}>{t(playbackNoticeKey)}</Text>
-      ) : null}
-    </>
-  );
-
-  const episodeListData = !isInitialLoading && errorKey === null ? episodeRows : [];
-
-  if (showSplitLayout) {
-    return (
-      <View style={styles.splitContainer} testID="podcast-detail-split">
-        <ScrollView
-          contentContainerStyle={styles.content}
-          refreshControl={refreshControl}
-          style={styles.splitLeftPane}
-          testID="podcast-detail-screen"
-        >
-          {headerPane}
-        </ScrollView>
-        <FlatList
-          ListEmptyComponent={listStatus}
-          ListFooterComponent={listFooter}
-          ListHeaderComponent={listHeader}
-          contentContainerStyle={styles.content}
-          data={episodeListData}
-          keyExtractor={(row) => row.id}
-          refreshControl={refreshControl}
-          renderItem={({ item: row, index }) => (
-            <HomeFeedRow
-              isLast={index === episodeListData.length - 1}
-              mediaType="episodes"
-              onPlayPress={(episodeRow) => {
-                runPlayAction(episodeRow, 'episodes');
-              }}
-              onPress={handleEpisodePress}
-              onQueuePress={(episodeRow, position) => {
-                runQueueAction(episodeRow, 'episodes', position);
-              }}
-              row={row}
-              testID={`podcast-episode-row-${index}`}
-            />
-          )}
-          style={styles.splitRightPane}
+  const pinnedChrome = (
+    <View style={styles.pinnedChrome}>
+      {channelHeader}
+      <View style={styles.chipRow}>
+        <SectionChipRow
+          items={sectionChips}
+          leading={
+            sortEnabled ? (
+              <>
+                <MenuSelectChip
+                  heading={t('filters.screen.sort_heading')}
+                  onSelect={handleSortSelect}
+                  options={sortOptions}
+                  testID="podcast-detail-sort"
+                  value={sort}
+                />
+                {sort === 'top' ? (
+                  <MenuSelectChip
+                    heading={t('filters.screen.range_heading')}
+                    onSelect={handleRangeSelect}
+                    options={rangeOptions}
+                    testID="podcast-detail-range"
+                    value={range}
+                  />
+                ) : null}
+              </>
+            ) : undefined
+          }
+          onSelect={handleSectionSelect}
+          selectedKey={section}
+          testID="podcast-detail-sections"
         />
       </View>
-    );
-  }
+    </View>
+  );
+
+  const listHeader = isFilterableSection(section) ? (
+    <ListFilterField
+      clearLabel={t('filters.list.clear')}
+      label={t('filters.list.title_label')}
+      onChangeTerm={setFilterTerm}
+      placeholder={t('filters.list.placeholder')}
+      term={filterTerm}
+      testID="podcast-detail-filter"
+    />
+  ) : null;
+
+  const SectionPane = SECTION_COMPONENTS[section];
+  const sectionUnavailableOffline =
+    offlineModeEnabled && isPodcastSectionUnavailableOffline(section);
 
   return (
-    <FlatList
-      ListEmptyComponent={listStatus}
-      ListFooterComponent={listFooter}
-      ListHeaderComponent={
+    <View style={styles.container} testID="podcast-detail-screen">
+      {isSectionHydrated ? (
         <>
-          {headerPane}
-          {listHeader}
+          {pinnedChrome}
+          <View style={styles.sectionBody}>
+            {sectionUnavailableOffline ? (
+              <ListEmpty
+                messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+                testID="podcast-detail-offline-unavailable"
+              />
+            ) : (
+              <SectionPane
+                channel={channel}
+                channelIdText={podcastId}
+                filterTerm={filterTerm}
+                isChannelLoading={isChannelLoading}
+                listHeader={listHeader}
+                onRefreshChannel={loadChannel}
+                range={range}
+                sort={sort}
+              />
+            )}
+          </View>
         </>
-      }
-      contentContainerStyle={styles.content}
-      data={episodeListData}
-      keyExtractor={(row) => row.id}
-      refreshControl={refreshControl}
-      renderItem={({ item: row, index }) => (
-        <HomeFeedRow
-          isLast={index === episodeListData.length - 1}
-          mediaType="episodes"
-          onPlayPress={(episodeRow) => {
-            runPlayAction(episodeRow, 'episodes');
-          }}
-          onPress={handleEpisodePress}
-          onQueuePress={(episodeRow, position) => {
-            runQueueAction(episodeRow, 'episodes', position);
-          }}
-          row={row}
-          testID={`podcast-episode-row-${index}`}
-        />
+      ) : (
+        <>
+          <View style={styles.pinnedChrome}>{channelHeader}</View>
+          <LoadingSection testID="podcast-detail-section-loading" />
+        </>
       )}
-      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
-      testID="podcast-detail-screen"
-    />
+    </View>
   );
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
 
+import { safeJsonParse } from '../../data/db/serialization';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { buildAddByRssHomeDetailData, sortAddByRssHomeEpisodes } from './addByRssHomeDetailData';
 
@@ -51,14 +52,24 @@ describe('add-by-RSS Home detail data', () => {
     expect(detail.episodeRows[0]?.subtitle).toBe('Example Feed');
   });
 
-  it('sorts episodes by title or newest publication date', () => {
+  it('sorts episodes by title or newest publication date after a SQLite date round-trip', () => {
     const rows = buildAddByRssHomeDetailData(feed, mappedFeed).episodeRows;
+    const reloaded = safeJsonParse<typeof mappedFeed>(JSON.stringify(mappedFeed));
+    expect(reloaded).not.toBeNull();
+    if (reloaded === null) {
+      return;
+    }
+    const reloadedRows = buildAddByRssHomeDetailData(feed, reloaded).episodeRows;
 
     expect(sortAddByRssHomeEpisodes(rows, 'alphabetical').map((row) => row.title)).toEqual([
       'Apple',
       'Zebra',
     ]);
     expect(sortAddByRssHomeEpisodes(rows, 'recent').map((row) => row.title)).toEqual([
+      'Apple',
+      'Zebra',
+    ]);
+    expect(sortAddByRssHomeEpisodes(reloadedRows, 'recent').map((row) => row.title)).toEqual([
       'Apple',
       'Zebra',
     ]);

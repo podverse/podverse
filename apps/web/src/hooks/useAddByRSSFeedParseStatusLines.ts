@@ -2,10 +2,9 @@
 
 import { useMemo } from 'react';
 
-import {
-  buildLocalizedFeedParseStatusLines,
-  type FeedParseStatusTranslateSettings,
-} from '../lib/feed/buildLocalizedFeedParseStatusLines';
+import type { FeedParseStatusTranslateSettings } from '@podverse/helpers';
+import { buildLocalizedFeedParseStatusLines } from '@podverse/helpers';
+
 import type { AddByRSSFeedRecord } from '../utils/addByRSS/types';
 
 type TranslateFeatures = (

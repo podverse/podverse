@@ -4,11 +4,16 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 
-export type BadgeTone = 'accent' | 'neutral';
+export type BadgeTone = 'accent' | 'danger' | 'neutral' | 'muted';
 
 export type BadgeProps = {
   label: string;
-  /** `accent` fills to draw the eye; `neutral` outlines to sit quietly beside content. */
+  /**
+   * `accent` fills to draw the eye; `danger` is the live-status glow (translucent danger fill,
+   * danger border, bold label); `neutral` outlines to sit quietly beside content; `muted` is a
+   * solid gray fill with contrasting label — for counts overlaid on artwork (e.g. Home grid
+   * downloads).
+   */
   tone?: BadgeTone;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -42,9 +47,27 @@ export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
           paddingHorizontal: tokens.spacing.sm,
           paddingVertical: 2,
         },
+        danger: {
+          backgroundColor: tokens.button.opaqueDangerBg,
+          borderColor: tokens.button.opaqueDangerBorder,
+          borderWidth: 1.5,
+          paddingHorizontal: tokens.spacing.base,
+        },
+        dangerLabel: {
+          color: tokens.button.dangerColor,
+          fontWeight: '700',
+        },
         label: {
           fontSize: 11,
           fontWeight: '600',
+        },
+        muted: {
+          // Gray chip for counts overlaid on artwork (primary theme: #444 + white label).
+          backgroundColor: tokens.border.tertiary,
+          borderColor: tokens.border.tertiary,
+        },
+        mutedLabel: {
+          color: tokens.text.primary,
         },
         neutral: {
           backgroundColor: themeStyles.buttonSecondary.backgroundColor,
@@ -57,14 +80,22 @@ export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
     [themeStyles, tokens]
   );
 
+  const toneFaces = {
+    accent: { badge: styles.accent, label: styles.accentLabel },
+    danger: { badge: styles.danger, label: styles.dangerLabel },
+    muted: { badge: styles.muted, label: styles.mutedLabel },
+    neutral: { badge: styles.neutral, label: styles.neutralLabel },
+  } as const;
+  const toneFace = toneFaces[tone];
+
   return (
     <View
-      style={[styles.badge, tone === 'accent' ? styles.accent : styles.neutral, style]}
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+      style={[styles.badge, toneFace.badge, style]}
       testID={testID}
     >
-      <Text style={[styles.label, tone === 'accent' ? styles.accentLabel : styles.neutralLabel]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, toneFace.label]}>{label}</Text>
     </View>
   );
 }

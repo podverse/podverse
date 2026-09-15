@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { DTOQueueResource } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosures,
+  resolveHandoffDecision,
   resolvePreferredMediaTypeEnclosureSelectedParams,
 } from '@podverse/helpers';
 
@@ -12,39 +13,131 @@ import type { AutoQueueResourcesMapRow } from '../contexts/AutoQueue';
 import { checkIsActiveRowHighestKey, useAutoQueue } from '../contexts/AutoQueue';
 import { useLocalSettings } from '../contexts/LocalSettings';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
 import type { MusicItemPlaybackIntent } from '../lib/playback';
 import { parsePlaybackSeconds, playbackTargetFromStandardLoad } from '../lib/playback';
 import { loadAddByRSSIndexItemFromResourceData } from '../utils/addByRSS/playFromQueueResource';
+import {
+  buildPlaybackHandoffDismissedStateKey,
+  readPlaybackHandoffDismissedStateKey,
+  writePlaybackHandoffDismissedStateKey,
+} from '../utils/playbackHandoffDismissal';
+import {
+  readPlaybackHandoffLocalState,
+  writePlaybackHandoffLocalState,
+} from './playbackHandoffState';
 import { useAutoQueueLoadResources } from './useAutoQueueLoadResources';
 import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from './usePlayAddByRSS';
+import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 
 /**
  * Queue head + auto-queue row reactions: fetch item metadata, resolve upcoming
  * queue resources into `mediaPlayerResourceUpdate` / `playAddByRSS` loads.
  * Kept out of `MediaPlayerController` so that file stays a thin coordinator.
  */
-export function useMediaPlayerControllerQueueHeadLoading(): void {
+type PlaybackHandoffPromptState = {
+  dismissedStateKey: string | null;
+  localTitle: string | null;
+  nextResource: DTOQueueResource;
+  serverTitle: string | null;
+};
+
+/**
+ * Titles are null when neither a title nor an id_text is known. Callers localize that fallback;
+ * this hook never produces user-facing copy.
+ */
+export type QueueHeadPlaybackHandoffPrompt = {
+  localTitle: string | null;
+  serverTitle: string | null;
+};
+
+export type QueueHeadLoadingState = {
+  handoffPrompt: QueueHeadPlaybackHandoffPrompt | null;
+  continueLocalPlayback: () => void;
+  switchToServerPlayback: () => void;
+};
+
+const queueResourceIdentity = (
+  resource: DTOQueueResource
+): { itemIdText: string; itemTitle: string | null } | null => {
+  if (resource.item?.id_text) {
+    return {
+      itemIdText: resource.item.id_text,
+      itemTitle: resource.item.title ?? null,
+    };
+  }
+  if (resource.clip?.item?.id_text) {
+    return {
+      itemIdText: resource.clip.item.id_text,
+      itemTitle: resource.clip.item.title ?? null,
+    };
+  }
+  if (resource.item_soundbite?.item?.id_text) {
+    return {
+      itemIdText: resource.item_soundbite.item.id_text,
+      itemTitle: resource.item_soundbite.item.title ?? null,
+    };
+  }
+  const addByRssIdText = resource.add_by_rss_resource_data?.id_text;
+  if (typeof addByRssIdText === 'string' && addByRssIdText.length > 0) {
+    const addByRssTitle = resource.add_by_rss_resource_data?.title;
+    return {
+      itemIdText: addByRssIdText,
+      itemTitle: typeof addByRssTitle === 'string' ? addByRssTitle : null,
+    };
+  }
+  return null;
+};
+
+const resolveDisplayTitle = (
+  title: string | null | undefined,
+  idText: string | null | undefined
+): string | null => {
+  if (typeof title === 'string') {
+    const trimmedTitle = title.trim();
+    if (trimmedTitle.length > 0) {
+      return trimmedTitle;
+    }
+  }
+  if (typeof idText === 'string') {
+    const trimmedIdText = idText.trim();
+    if (trimmedIdText.length > 0) {
+      return trimmedIdText;
+    }
+  }
+  return null;
+};
+
+export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingState {
   const apiRequestService = getApiRequestService();
   const {
+    mpChannel,
     mpItem,
     mpClip,
     mpItemSoundbite,
     mpAddByRSS,
+    mpDuration,
+    mpIsPlaying,
     pendingMusicQueueLoadIntentRef,
     mpEnclosureSelectedParams,
     setMPEnclosureSelectedParams,
     setMPItemChapters,
     setMPItemLabeledItemEnclosures,
   } = useMediaPlayer();
+  const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const { preferredMediaType } = useLocalSettings();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const playAddByRSS = usePlayAddByRSS();
+  const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
   const { activeQueueUpcomingResources } = useQueues();
   const { autoQueueResources, autoQueueActiveRow, autoQueueConfig } = useAutoQueue();
   const autoQueueLoadResources = useAutoQueueLoadResources();
+  const [playbackHandoffPrompt, setPlaybackHandoffPrompt] =
+    useState<PlaybackHandoffPromptState | null>(null);
+  const playbackHandoffDismissedStateKeyRef = useRef<string | null>(null);
 
   const autoQueueResourcesRef = useRef(autoQueueResources);
   useEffect(() => {
@@ -60,6 +153,10 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
   useEffect(() => {
     autoQueueConfigRef.current = autoQueueConfig;
   }, [autoQueueConfig]);
+
+  useEffect(() => {
+    playbackHandoffDismissedStateKeyRef.current = readPlaybackHandoffDismissedStateKey();
+  }, []);
 
   const mpClipRef = useRef(mpClip);
   useEffect(() => {
@@ -173,11 +270,81 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
     return 'session_restore';
   }
 
-  async function handleLoadQueueItem(nextResource: DTOQueueResource) {
+  type QueueResourceLoadOptions = {
+    forcePlay: boolean;
+  };
+
+  const rememberQueueResourceAsLocalState = (nextResource: DTOQueueResource): void => {
+    const resourceIdentity = queueResourceIdentity(nextResource);
+    if (resourceIdentity === null) {
+      return;
+    }
+    writePlaybackHandoffLocalState({
+      itemIdText: resourceIdentity.itemIdText,
+      itemTitle: resourceIdentity.itemTitle,
+      lastPlayedAt: nextResource.last_played_at,
+    });
+  };
+
+  const shouldLoadQueueResource = (nextResource: DTOQueueResource): boolean => {
+    const serverIdentity = queueResourceIdentity(nextResource);
+    const localState = readPlaybackHandoffLocalState();
+    const hasLoadedLocalTarget =
+      mpItem !== null || mpAddByRSS !== null || mpClip !== null || mpItemSoundbite !== null;
+    if (!hasLoadedLocalTarget) {
+      return true;
+    }
+    const localItemIdText = localState?.itemIdText ?? mpItem?.id_text ?? null;
+
+    if (serverIdentity === null || localItemIdText === null) {
+      return true;
+    }
+    if (localItemIdText === serverIdentity.itemIdText) {
+      return true;
+    }
+
+    const handoffDecision = resolveHandoffDecision({
+      localItemIdText,
+      localLastPlayedAt: localState?.lastPlayedAt ?? null,
+      serverItemIdText: serverIdentity.itemIdText,
+      serverLastPlayedAt: nextResource.last_played_at,
+      isPlayingLocally: mpIsPlaying,
+    });
+
+    if (handoffDecision.kind !== 'prompt') {
+      return false;
+    }
+
+    const dismissedStateKey = buildPlaybackHandoffDismissedStateKey({
+      serverItemIdText: serverIdentity.itemIdText,
+      serverLastPlayedAt: nextResource.last_played_at,
+    });
+    if (
+      dismissedStateKey !== null &&
+      dismissedStateKey === playbackHandoffDismissedStateKeyRef.current
+    ) {
+      return false;
+    }
+
+    setPlaybackHandoffPrompt({
+      dismissedStateKey,
+      localTitle: resolveDisplayTitle(localState?.itemTitle, localItemIdText),
+      nextResource,
+      serverTitle: resolveDisplayTitle(serverIdentity.itemTitle, serverIdentity.itemIdText),
+    });
+
+    return false;
+  };
+
+  async function handleLoadQueueItem(
+    nextResource: DTOQueueResource,
+    options?: QueueResourceLoadOptions
+  ) {
     const fullItem = await apiRequestService.reqItemGetByIdOrIdText(nextResource.item.id_text);
     if (fullItem) {
       const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
       if (fullChannel) {
+        rememberQueueResourceAsLocalState(nextResource);
         mediaPlayerResourceUpdate({
           target: playbackTargetFromStandardLoad({
             channel: fullChannel,
@@ -200,12 +367,17 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
             shuffleHash: autoQueueConfigRef.current.shuffleHash,
           },
           autoQueueShouldClear: true,
+          isPlaying: options?.forcePlay === true ? true : undefined,
+          shouldPlay: options?.forcePlay === true ? true : undefined,
         });
       }
     }
   }
 
-  async function handleLoadQueueClip(nextResource: DTOQueueResource) {
+  async function handleLoadQueueClip(
+    nextResource: DTOQueueResource,
+    options?: QueueResourceLoadOptions
+  ) {
     if (nextResource?.clip && nextResource?.clip?.id_text !== mpClipRef.current?.id_text) {
       const fullClip = await apiRequestService.reqClipGet(nextResource.clip.id_text);
       if (fullClip) {
@@ -215,6 +387,7 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
             fullItem.channel_id
           );
           if (fullChannel) {
+            rememberQueueResourceAsLocalState(nextResource);
             mediaPlayerResourceUpdate({
               target: playbackTargetFromStandardLoad({
                 channel: fullChannel,
@@ -237,6 +410,8 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
                 shuffleHash: autoQueueConfigRef.current.shuffleHash,
               },
               autoQueueShouldClear: true,
+              isPlaying: options?.forcePlay === true ? true : undefined,
+              shouldPlay: options?.forcePlay === true ? true : undefined,
             });
           }
         }
@@ -244,7 +419,10 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
     }
   }
 
-  async function handleLoadQueueItemSoundbite(nextResource: DTOQueueResource) {
+  async function handleLoadQueueItemSoundbite(
+    nextResource: DTOQueueResource,
+    options?: QueueResourceLoadOptions
+  ) {
     if (
       nextResource?.item_soundbite &&
       nextResource?.item_soundbite?.id_text !== mpItemSoundbiteRef.current?.id_text
@@ -261,6 +439,7 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
             fullItem.channel_id
           );
           if (fullChannel) {
+            rememberQueueResourceAsLocalState(nextResource);
             mediaPlayerResourceUpdate({
               target: playbackTargetFromStandardLoad({
                 channel: fullChannel,
@@ -283,6 +462,8 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
                 shuffleHash: autoQueueConfigRef.current.shuffleHash,
               },
               autoQueueShouldClear: true,
+              isPlaying: options?.forcePlay === true ? true : undefined,
+              shouldPlay: options?.forcePlay === true ? true : undefined,
             });
           }
         }
@@ -303,13 +484,77 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
           ? playbackPosition
           : undefined
       );
+      rememberQueueResourceAsLocalState(nextResource);
     }
   }
+
+  const continueLocalPlayback = () => {
+    if (playbackHandoffPrompt === null) {
+      return;
+    }
+
+    if (playbackHandoffPrompt.dismissedStateKey !== null) {
+      playbackHandoffDismissedStateKeyRef.current = playbackHandoffPrompt.dismissedStateKey;
+      writePlaybackHandoffDismissedStateKey(playbackHandoffPrompt.dismissedStateKey);
+    }
+
+    setPlaybackHandoffPrompt(null);
+
+    if (mpChannel && mpItem) {
+      void updateNowPlaying({
+        mpChannel,
+        mpCurrentTime,
+        mpDuration,
+        mpClip,
+        mpItem,
+        mpItemSoundbite,
+        eventKind: 'play',
+      });
+      writePlaybackHandoffLocalState({
+        itemIdText: mpItem.id_text,
+        itemTitle: mpItem.title,
+        lastPlayedAt: new Date().toISOString(),
+      });
+    }
+  };
+
+  // An explicit choice from this prompt is allowed to replace the loaded item even if playback has
+  // since started. The guard against swapping items under active playback belongs to the automatic
+  // path, which is why the prompt itself is only ever raised while playback is idle.
+  const switchToServerPlayback = () => {
+    if (playbackHandoffPrompt === null) {
+      return;
+    }
+
+    const { nextResource } = playbackHandoffPrompt;
+    setPlaybackHandoffPrompt(null);
+
+    if (nextResource.add_by_rss_resource_data && !nextResource.is_add_by_rss_redacted) {
+      void handleLoadQueueItemAddByRSS(nextResource);
+      return;
+    }
+    if (nextResource.item) {
+      void handleLoadQueueItem(nextResource, { forcePlay: true });
+      return;
+    }
+    if (nextResource.clip) {
+      void handleLoadQueueClip(nextResource, { forcePlay: true });
+      return;
+    }
+    if (nextResource.item_soundbite) {
+      void handleLoadQueueItemSoundbite(nextResource, { forcePlay: true });
+    }
+  };
 
   useEffect(() => {
     if (activeQueueUpcomingResources && activeQueueUpcomingResources.length > 0) {
       const nextResource = activeQueueUpcomingResources[0];
       if (!nextResource) return;
+
+      if (!shouldLoadQueueResource(nextResource)) {
+        return;
+      }
+
       const nextIdText =
         typeof nextResource.add_by_rss_resource_data?.id_text === 'string'
           ? nextResource.add_by_rss_resource_data.id_text
@@ -329,7 +574,15 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
         void handleLoadQueueItemSoundbite(nextResource);
       }
     }
-  }, [activeQueueUpcomingResources, mpAddByRSS?.idText]);
+  }, [
+    activeQueueUpcomingResources,
+    mpAddByRSS?.idText,
+    mpClip?.id_text,
+    mpIsPlaying,
+    mpItem?.id_text,
+    mpItemSoundbite?.id_text,
+    mpItem?.title,
+  ]);
 
   useEffect(() => {
     if (autoQueueActiveRow || autoQueueActiveRow === 0) {
@@ -339,4 +592,16 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
       }
     }
   }, [autoQueueActiveRow]);
+
+  return {
+    handoffPrompt:
+      playbackHandoffPrompt === null
+        ? null
+        : {
+            localTitle: playbackHandoffPrompt.localTitle,
+            serverTitle: playbackHandoffPrompt.serverTitle,
+          },
+    continueLocalPlayback,
+    switchToServerPlayback,
+  };
 }

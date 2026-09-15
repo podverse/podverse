@@ -7,9 +7,12 @@ import { useAuth } from '../../auth/AuthProvider';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
+import { ListEmpty } from '../../components/state/ListEmpty';
 import { useMyProfileContentLoad } from '../../hooks/useProfileContentLoad';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import { ProfileContentSections } from './ProfileContentSections';
 
@@ -19,6 +22,7 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { account, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const { content, errorKey, isLoading, reload } = useMyProfileContentLoad();
 
   const styles = useMemo(
@@ -48,6 +52,17 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
   useLayoutEffect(() => {
     navigation.setOptions({ title: profileTitle });
   }, [navigation, profileTitle]);
+
+  if (offlineModeEnabled) {
+    return (
+      <MobileScreenContainer testID="my-profile-screen">
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="my-profile-offline-unavailable"
+        />
+      </MobileScreenContainer>
+    );
+  }
 
   return (
     <MobileScreenContainer testID="my-profile-screen">

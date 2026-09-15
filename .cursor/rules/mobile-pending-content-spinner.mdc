@@ -1,0 +1,40 @@
+---
+description: Show a loading spinner until async content is settled — never an empty-state flash
+globs:
+  - "apps/mobile/**"
+alwaysApply: false
+---
+
+# Mobile — pending content shows a spinner, not an empty state
+
+When a component can render before its data has arrived, **show a loading spinner** until the
+load settles. Only then show the real content or a true empty state.
+
+## Why
+
+An empty message ("No description", "No episodes") while a request is still in flight is a lie.
+The user sees a flash of "nothing here" and then the real data.
+
+## Do
+
+- Treat "not loaded yet" as a third state, distinct from empty and error.
+- Gate empty copy on the load having **settled** (`isInitialLoading === false`, channel DTO
+  arrived or the first fetch failed, etc.).
+- Use the shared chrome: `LoadingSection`, `ListLoading`, `AuthAwareLoadState`, or
+  `PodcastSectionList` `isInitialLoading`.
+- Keep the spinner up through the first paint of a remembered chip or tab whose body depends on
+  a DTO that has not arrived yet (podcast About while the channel request is still out).
+
+## Don't
+
+- Don't render `ListEmpty` / "no summary" / "no items" while the request that would fill the
+  body is still outstanding.
+- Don't infer emptiness from `null` or `[]` when those also mean "not fetched yet".
+- Don't skip the spinner because the data "usually arrives fast" or "comes with a parent
+  payload" — the parent payload can still be pending.
+
+## Related
+
+- **mobile-reusable-components** — shared loading / empty / error chrome
+- **mobile-screen-layout** — `FillList` + `LoadingSection`
+- **mobile-anonymous-vs-account-features** — a null account is "not known yet", not decided empty

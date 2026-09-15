@@ -4,11 +4,11 @@ name: Home Media Types
 # Home media-type selector:
 # - screenshot each Home media-type selector state
 # - verify selector swipe/scroll interaction changes feed content
-# - the always-visible local Filter input, and the no-subscriptions empty state
+# - Filter on Podcasts when the media-player seed follow is present; empty discovery CTAs
+#   on music types that account does not follow
 #
 # Filtering down to a matching row and the "no matches" state are covered in
-# subscriptions-anonymous.yaml, which is the flow that actually creates a subscription — the seeded
-# account deliberately follows nothing, which is what makes it the right place for the empty state.
+# subscriptions-anonymous.yaml, which is the flow that actually creates a subscription.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -26,28 +26,31 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# Podcasts place More Options and sort in one row. The sort control shows the current order on its
-# face rather than the word "Sort", and opens the full Filter/Sort screen. A-Z is the default.
+# Home's sort chip leads the media-type row when the type can sort. The selected type sits first
+# after it. The face shows the current order; the caret opens
+# A-Z, Recent, and Popularity. Popularity opens a second sheet for the listen-count window, and
+# the chip then shows that window. A-Z is the default. There is no Categories chip here.
 - assertVisible:
     id: home-sort-button
+# The chip face is "A-Z"; iOS exposes the paired accessible name, not the raw text node.
 - assertVisible: "Sort: A-Z"
+- assertNotVisible:
+    id: home-category-button
 - tapOn:
     id: home-sort-button
 - assertVisible:
-    id: home-filter-sort-screen
-# Podcasts exposes its sort choices without a source-filter section because Home always combines
-# directory subscriptions and add-by-RSS feeds.
+    id: home-sort-menu
 - assertVisible:
-    id: home-filter-sort-sort-group
-- assertNotVisible:
-    id: home-filter-sort-filter-group
-- takeScreenshot: home-filter-sort-screen
+    id: home-sort-alphabetical
+- assertVisible:
+    id: home-sort-recent
+- assertVisible:
+    id: home-sort-popularity
+- takeScreenshot: home-sort-menu
 
-# Selections apply as they are made, so Done only dismisses.
+# Selections apply as they are made, so the sheet closes onto the same list in the new order.
 - tapOn:
-    id: home-filter-sort-sort-recent
-- tapOn:
-    id: home-filter-sort-done
+    id: home-sort-recent
 - assertVisible:
     id: home-screen
 - assertVisible:
@@ -55,22 +58,66 @@ name: Home Media Types
 - assertVisible: "Sort: Recent"
 - takeScreenshot: home-sort-recent
 
-# Reopening shows the choice still selected: the screen reads the stored preference rather than
+# Reopening shows the choice still selected: the chip reads the stored preference rather than
 # whatever it was last handed.
 - tapOn:
     id: home-sort-button
 - assertVisible:
-    id: home-filter-sort-screen
-- takeScreenshot: home-filter-sort-recent-selected
+    id: home-sort-menu
+- takeScreenshot: home-sort-recent-selected
 - tapOn:
-    id: home-filter-sort-sort-alphabetical
-- tapOn:
-    id: home-filter-sort-done
+    id: home-sort-alphabetical
 - assertVisible:
     id: home-sort-button
 - assertVisible: "Sort: A-Z"
 
-# The header overflow menu holds the view toggle and Mark All As Seen. The view is two checkable
+# Popularity is a two-step choice: the sort sheet, then the listen-count window. The chip face
+# is that window, not the word Popularity.
+- tapOn:
+    id: home-sort-button
+- tapOn:
+    id: home-sort-popularity
+- extendedWaitUntil:
+    visible:
+      id: home-sort-range-menu
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: home-sort-range-day
+- assertVisible:
+    id: home-sort-range-week
+- assertVisible:
+    id: home-sort-range-month
+- assertVisible:
+    id: home-sort-range-all-time
+- takeScreenshot: home-sort-range-menu
+- tapOn:
+    id: home-sort-range-week
+- assertVisible:
+    id: home-sort-button
+- assertVisible: "Sort: Week"
+- assertNotVisible: Popularity
+- takeScreenshot: home-sort-week
+
+# Reopening Popularity keeps the stored window selected, then A-Z returns the chip to an order
+# label so the rest of the flow can keep asserting the default face.
+- tapOn:
+    id: home-sort-button
+- tapOn:
+    id: home-sort-popularity
+- assertVisible:
+    id: home-sort-range-menu
+- takeScreenshot: home-sort-range-week-selected
+- tapOn:
+    id: home-sort-range-menu-cancel
+- tapOn:
+    id: home-sort-button
+- tapOn:
+    id: home-sort-alphabetical
+- assertVisible:
+    id: home-sort-button
+- assertVisible: "Sort: A-Z"
+
+# The title-bar overflow menu holds the view toggle and Mark All As Seen. The view is two checkable
 # rows rather than one label that flips, so the menu states which mode is in effect.
 - assertVisible:
     id: home-overflow-trigger
@@ -134,15 +181,13 @@ name: Home Media Types
 - tapOn:
     id: home-media-type-episodes
 - assertVisible: Episodes
+- assertNotVisible:
+    id: home-filter-input
 - takeScreenshot: home-media-type-episodes
 
-# Both menu entries describe the subscribed channel list — how to draw it, and catching up on it —
-# so the menu is absent here rather than opening onto nothing that applies.
-- assertNotVisible:
-    id: home-overflow-trigger
-
 # Episodes sorts too, and keeps its own choice — ordering podcasts by title says nothing about how
-# episodes should be ordered. The scope chip is a channel-list control, so it is absent here.
+# episodes should be ordered. Filter stays off: the episode list is a recency window, not a complete
+# title list Home can honestly narrow.
 - assertNotVisible:
     id: home-subscription-filter
 - assertVisible:
@@ -151,44 +196,102 @@ name: Home Media Types
 - tapOn:
     id: home-sort-button
 - assertVisible:
-    id: home-filter-sort-screen
-- assertNotVisible:
-    id: home-filter-sort-filter-group
-- takeScreenshot: home-filter-sort-episodes
+    id: home-sort-menu
+- takeScreenshot: home-sort-episodes
 - tapOn:
-    id: home-filter-sort-done
+    id: home-sort-menu-cancel
 
-# Clips
+# Artists — subscribed-only; empty for the seeded account, so Browse (and Search for music) appear.
 - tapOn:
-    id: home-media-type-clips
-- assertVisible: Clips
-- takeScreenshot: home-media-type-clips
-
-# Clips, artists, albums, and tracks are server-ranked and have no sort control yet, so the row is
-# hidden rather than offering a choice that would change nothing.
+    id: home-media-type-artists
+- assertVisible: Artists
 - assertNotVisible:
+    id: home-filter-input
+- assertVisible:
+    id: home-list-empty-search
+- assertVisible:
+    id: home-list-empty-browse
+- takeScreenshot: home-media-type-artists
+
+# Search from Artists opens the Search tab on the music medium.
+- tapOn:
+    id: home-list-empty-search
+- assertVisible:
+    id: search-screen
+- assertVisible:
+    id: search-medium-music
+- takeScreenshot: home-artists-empty-to-search-music
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+
+# Artists, albums, tracks, and clips share the same leading sort chip.
+- assertVisible:
     id: home-sort-button
 
 # Swipe the selector row itself — a %-of-screen start Y can miss the pills.
+# The selected type moves first, so each pick can push later types off the trailing
+# edge. iOS omits those testIDs until the row is swiped again.
 - swipe:
     from:
       id: home-media-type-selector
     direction: LEFT
 
-# Artists
-- tapOn:
-    id: home-media-type-artists
-- assertVisible: Artists
-- takeScreenshot: home-media-type-artists
-
 # Albums
 - tapOn:
     id: home-media-type-albums
 - assertVisible: Albums
+- assertNotVisible:
+    id: home-filter-input
+- assertVisible:
+    id: home-list-empty-browse
 - takeScreenshot: home-media-type-albums
 
 # Tracks
+- swipe:
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 - tapOn:
     id: home-media-type-tracks
 - assertVisible: Tracks
+- assertNotVisible:
+    id: home-filter-input
+- assertVisible:
+    id: home-list-empty-browse
 - takeScreenshot: home-media-type-tracks
+
+# Empty Tracks Browse CTA opens Browse with Tracks selected.
+- tapOn:
+    id: home-list-empty-browse
+- assertVisible:
+    id: browse-screen
+- assertVisible:
+    id: browse-media-type-tracks
+- takeScreenshot: home-tracks-empty-to-browse
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+
+# Clips lists subscribed clips from the media-player seed — never the global Dummy directory row.
+- swipe:
+    from:
+      id: home-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: home-media-type-clips
+- assertVisible: Clips
+- assertNotVisible:
+    id: home-filter-input
+- assertNotVisible: "Dummy clip"
+- assertVisible:
+    id: home-feed-row-e2eClip00000001
+- assertVisible:
+    id: home-feed-row-e2eClipNav0001
+- assertNotVisible:
+    id: home-list-empty-browse
+- assertNotVisible:
+    id: home-list-empty-search
+- takeScreenshot: home-media-type-clips

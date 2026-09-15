@@ -111,3 +111,45 @@ export function playbackTargetToStatsTargets(target: PlaybackTarget): PlaybackSt
       return { channelIdText: null, clipIdText: null, itemIdText: null };
   }
 }
+
+/**
+ * Stable id for matching a list row to the active playback target (episode/item, clip, soundbite,
+ * chapter). Prefixed home-feed ids (`item-` / `clip-` / `soundbite-`) should be normalized with
+ * `normalizeHomeFeedPlaybackMediaId` before comparison.
+ */
+export function playbackTargetRowMediaId(target: PlaybackTarget): string | null {
+  switch (target.kind) {
+    case 'clip':
+      return target.clip.id_text;
+    case 'soundbite':
+      return target.soundbite.id_text;
+    case 'chapter':
+      return target.chapter.id_text;
+    case 'item-podcast':
+    case 'item-video':
+    case 'item-music':
+      return target.item.id_text;
+    case 'add-by-rss': {
+      const idText = target.resourceData.id_text;
+      return typeof idText === 'string' && idText.length > 0 ? idText : null;
+    }
+    case 'livestream':
+      return target.item?.id_text ?? target.channel.id_text;
+  }
+}
+
+/**
+ * Strip home-feed / playlist row prefixes so a row id can be compared to `playbackTargetRowMediaId`.
+ */
+export function normalizeHomeFeedPlaybackMediaId(rowId: string): string {
+  if (rowId.startsWith('clip-')) {
+    return rowId.slice('clip-'.length);
+  }
+  if (rowId.startsWith('item-')) {
+    return rowId.slice('item-'.length);
+  }
+  if (rowId.startsWith('soundbite-')) {
+    return rowId.slice('soundbite-'.length);
+  }
+  return rowId;
+}

@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { getMobileConfig } from '../../config';
 import type { HoverTarget, SectionBounds, SlotLayout } from '../../lib/reorder/resolveHover';
 import {
   computeItemShift,
@@ -94,6 +95,7 @@ function ReorderableRow<T>({
   translationY,
 }: ReorderableRowProps<T>) {
   const { styles: themeStyles, tokens } = useTheme();
+  const { isE2e } = getMobileConfig();
   const shift = useSharedValue(0);
 
   useEffect(() => {
@@ -176,7 +178,9 @@ function ReorderableRow<T>({
       accessibilityHint={rowAccessibility?.hint}
       accessibilityLabel={rowAccessibility?.label}
       accessibilityRole={rowAccessibility === undefined ? undefined : 'adjustable'}
-      accessible={rowAccessibility !== undefined}
+      // E2E taps child add/remove/move testIDs. A single accessible row hides those
+      // descendants from XCUITest, so the row is not one a11y node during E2E.
+      accessible={rowAccessibility !== undefined && !isE2e}
       collapsable={false}
       onAccessibilityAction={rowAccessibility === undefined ? undefined : handleAccessibilityAction}
       style={[styles.row, animatedStyle]}

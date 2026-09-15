@@ -1,0 +1,78 @@
+appId: com.podverse.app.next
+name: Offline Mode
+---
+# More → Features Offline Mode: park network surfaces, default podcast detail to Downloaded,
+# then restore Browse when the toggle is turned off.
+#
+# Needs flow_needs_e2e_api (login + seeded podcast deep link).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- assertVisible:
+    id: more-offline-mode-switch
+- assertVisible:
+    id: more-settings
+- tapOn:
+    id: more-offline-mode-switch
+- assertVisible:
+    id: more-offline-mode-description
+- assertVisible:
+    id: offline-mode-banner
+- takeScreenshot: offline-mode-more-on
+
+- tapOn:
+    id: tab-browse
+- assertVisible:
+    id: browse-screen
+- assertVisible:
+    id: offline-mode-banner
+- assertVisible:
+    id: browse-offline-unavailable
+- takeScreenshot: offline-mode-browse-unavailable
+
+- openLink: podverse-next://podcast/e2ePodChnl001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: offline-mode-banner
+- assertVisible:
+    id: podcast-detail-section-downloaded
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-downloaded-list
+    timeout: ${TIMEOUT_FASTER}
+- assertNotVisible:
+    id: podcast-detail-episode-list
+- takeScreenshot: offline-mode-podcast-downloaded
+
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-offline-mode-description
+- tapOn:
+    id: more-offline-mode-switch
+- assertNotVisible:
+    id: more-offline-mode-description
+- assertNotVisible:
+    id: offline-mode-banner
+- takeScreenshot: offline-mode-more-off
+
+- tapOn:
+    id: tab-browse
+- assertVisible:
+    id: browse-screen
+- assertNotVisible:
+    id: browse-offline-unavailable
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: offline-mode-browse-restored

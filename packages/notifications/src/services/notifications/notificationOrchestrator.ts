@@ -2,7 +2,7 @@ import {
   type FirebaseContext,
   firebaseNotificationBatchOrchestrator,
 } from '@podverse/external-services-firebase';
-import { buildAppRoutePath, getNotificationLinkPathPrefix } from '@podverse/helpers';
+import { buildNotificationLinkPath, isNotificationLinkMessageType } from '@podverse/helpers';
 
 import type { NotificationsContext } from '../../factory.js';
 import type { UPSubscription } from '../unifiedpush/index.js';
@@ -23,6 +23,7 @@ type BaseNotificationOrchestratorParams = {
   body?: string; // Secondary text (e.g., channel title)
   image?: string; // Item/channel artwork for large preview
   linkIdText?: string;
+  channelIdText?: string;
   mediumId: number; // For constructing medium-specific links (e.g., /podcast/livestream vs /music/livestream)
   data?: Record<string, unknown>;
 };
@@ -69,16 +70,36 @@ export async function notificationOrchestrator(
   ctx: NotificationsContext,
   params: NotificationOrchestratorParams
 ) {
-  const { service, messageText, messageType, locale, body, linkIdText, mediumId, image, data } =
-    params;
+  const {
+    service,
+    messageText,
+    messageType,
+    locale,
+    body,
+    linkIdText,
+    channelIdText,
+    mediumId,
+    image,
+    data,
+  } = params;
   const finalText = getFinalText(messageText, messageType, locale);
 
-  // Construct the link from messageType, mediumId, and linkIdText
-  let link: string | undefined;
-  if (linkIdText) {
-    const pathPrefix = getNotificationLinkPathPrefix(messageType, mediumId);
-    link = pathPrefix !== null ? buildAppRoutePath(pathPrefix, linkIdText) : undefined;
-  }
+  const link = isNotificationLinkMessageType(messageType)
+    ? (buildNotificationLinkPath({
+        channelIdText: channelIdText ?? '',
+        itemIdText: linkIdText ?? '',
+        mediumId,
+        messageType,
+      }) ?? undefined)
+    : undefined;
+
+  const payloadData: Record<string, unknown> = {
+    ...(data ?? {}),
+    ...(channelIdText !== undefined ? { channelIdText } : {}),
+    ...(linkIdText !== undefined ? { itemIdText: linkIdText } : {}),
+    type: messageType,
+    ...(link !== undefined ? { link_path: link } : {}),
+  };
 
   switch (service) {
     case 'firebase': {
@@ -93,7 +114,7 @@ export async function notificationOrchestrator(
         ...(firebaseParams.channelId !== undefined ? { channelId: firebaseParams.channelId } : {}),
         ...(firebaseParams.badge !== undefined ? { badge: firebaseParams.badge } : {}),
         ...(firebaseParams.sound !== undefined ? { sound: firebaseParams.sound } : {}),
-        ...(data !== undefined ? { data } : {}),
+        data: payloadData,
       });
     }
 
@@ -105,7 +126,7 @@ export async function notificationOrchestrator(
         ...(body !== undefined ? { body } : {}),
         ...(link !== undefined ? { link } : {}),
         ...(image !== undefined ? { image } : {}),
-        ...(data !== undefined ? { data } : {}),
+        data: payloadData,
       });
     }
 
@@ -117,7 +138,7 @@ export async function notificationOrchestrator(
         ...(body !== undefined ? { body } : {}),
         ...(link !== undefined ? { link } : {}),
         ...(image !== undefined ? { image } : {}),
-        ...(data !== undefined ? { data } : {}),
+        data: payloadData,
       });
     }
 

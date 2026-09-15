@@ -10,7 +10,7 @@ import {
   getPasswordErrorKey,
   getPasswordRequirementsInfoKey,
 } from '@podverse/helpers-validation/client';
-import { Button, FormInfoMessageText, StackForm, TextCheckboxes, TextInput } from '@podverse/ui';
+import { Button, FormInfoMessageText, StackForm, TextInput } from '@podverse/ui';
 
 import { ROUTES } from '../../constants/routes';
 import { useConfig } from '../../contexts/Config';
@@ -46,7 +46,6 @@ export const AuthSignUpForm = () => {
   const [password1Touched, setPassword1Touched] = useState(false);
   const [password2Touched, setPassword2Touched] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(false);
-  const [listenStatsSelected, setListenStatsSelected] = useState<string[]>(['opt-in']);
   const [termsVersionError, setTermsVersionError] = useState<string | undefined>();
   const [isAccountCreated, setIsAccountCreated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +69,6 @@ export const AuthSignUpForm = () => {
         password: password1,
         locale,
         terms_version: config.public.legal.terms.version,
-        allow_listen_stats: listenStatsSelected.includes('opt-in'),
       });
       setIsAccountCreated(true);
     } catch (err) {
@@ -171,8 +169,6 @@ export const AuthSignUpForm = () => {
     !!password2 &&
     termsAgreed;
 
-  const listenStatsOptions = [{ label: tAuthentication('listen_stats_opt_in'), value: 'opt-in' }];
-
   return (
     <div className={styles.authSignUpForm}>
       {!isAccountCreated && (
@@ -223,17 +219,6 @@ export const AuthSignUpForm = () => {
                 {tMisc('i_have_read_and_agree')} <Link href={ROUTES.TERMS}>{tMisc('terms')}</Link>
               </span>
             </label>
-            <TextCheckboxes
-              name="listen-stats-opt-in"
-              options={listenStatsOptions}
-              selectedValues={listenStatsSelected}
-              onChange={setListenStatsSelected}
-            />
-            <p className={styles.consentHelp}>
-              {tAuthentication('listen_stats_opt_in_help', {
-                retention_days: config.public.stats.trackEventRetentionDays,
-              })}
-            </p>
             {termsVersionError !== undefined && (
               <p className={styles.termsVersionError}>{termsVersionError}</p>
             )}

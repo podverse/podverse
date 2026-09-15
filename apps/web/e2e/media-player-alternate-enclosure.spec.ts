@@ -11,9 +11,10 @@ async function seekMainPlayerToSeconds(page: import('@playwright/test').Page, se
   const slider = mediaPlayer.locator('[class*="customProgressBar"]').first();
   await expect(slider).toBeVisible();
 
+  await expect
+    .poll(async () => Number(await slider.getAttribute('aria-valuemax')))
+    .toBeGreaterThan(0);
   const durationSeconds = Number(await slider.getAttribute('aria-valuemax'));
-  expect(Number.isFinite(durationSeconds)).toBe(true);
-  expect(durationSeconds).toBeGreaterThan(0);
 
   const box = await slider.boundingBox();
   expect(box).not.toBeNull();

@@ -1,7 +1,8 @@
-import { desc, eq, inArray, max, sql } from 'drizzle-orm';
+import { desc, eq, inArray, isNotNull, max, sql } from 'drizzle-orm';
 
 import { articleStrippedTitle } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // subscriptionsRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
@@ -17,9 +18,12 @@ import {
   isLastChannelItemPage,
   nextChannelItemPage,
   reconcileChannelItems,
+  selectChannelsToDropFromItemStore,
   selectStaleChannelWindows,
   toChannelItemRecord,
 } from './channelItemWindow';
+import { downloadsRepository } from './downloadsRepository';
+import { sectionChromeFlagsRepository } from './sectionChromeFlagsRepository';
 import type { MobileAuthRequestContext } from './types';
 
 /**
@@ -46,17 +50,52 @@ const DELETE_CHUNK_SIZE = 200;
 /** One screenful of the cross-channel episode list, matching what the API returns per page. */
 const RECENT_ITEM_LIMIT = 60;
 
+/** Window the stored listen-count ranks were stamped for. Null until a walk in this process. */
+let appliedPopularityRange: QueryParamsStatsRange | null = null;
+
 /** How a stored episode list is ordered. Matches the sorts Home and podcast detail offer. */
-export type ChannelItemSort = 'alphabetical' | 'recent';
+export type ChannelItemSort = 'alphabetical' | 'oldest' | 'popularity' | 'recent';
+
+type ItemWithPopularity = {
+  item: DTOItem;
+  popularityRank: number | null;
+};
 
 /**
  * Order a stored page.
  *
- * Alphabetical is applied here rather than in SQL because the comparison ignores a leading article,
- * which SQLite cannot express without storing a second copy of every title.
+ * Rows arrive newest first, so the oldest-first order is the same window read backwards rather than
+ * a second query. Alphabetical is applied here rather than in SQL because the comparison ignores a
+ * leading article, which SQLite cannot express without storing a second copy of every title.
+ * Popularity uses the stored listen-count rank the same way, with unknown ranks after known ones.
  */
-const sortItems = (items: DTOItem[], sort: ChannelItemSort): DTOItem[] => {
-  return sort === 'alphabetical' ? [...items].sort(compareItemsByTitle) : items;
+const sortItems = (items: readonly ItemWithPopularity[], sort: ChannelItemSort): DTOItem[] => {
+  if (sort === 'alphabetical') {
+    return [...items].sort((a, b) => compareItemsByTitle(a.item, b.item)).map((row) => row.item);
+  }
+  if (sort === 'popularity') {
+    return [...items].sort(compareItemsByPopularity).map((row) => row.item);
+  }
+  const payloads = items.map((row) => row.item);
+  return sort === 'oldest' ? payloads.reverse() : payloads;
+};
+
+const compareItemsByPopularity = (a: ItemWithPopularity, b: ItemWithPopularity): number => {
+  const aRank = a.popularityRank;
+  const bRank = b.popularityRank;
+  if (aRank === null && bRank === null) {
+    return compareItemsByTitle(a.item, b.item);
+  }
+  if (aRank === null) {
+    return 1;
+  }
+  if (bRank === null) {
+    return -1;
+  }
+  if (aRank === bRank) {
+    return compareItemsByTitle(a.item, b.item);
+  }
+  return aRank - bRank;
 };
 
 const compareItemsByTitle = (a: DTOItem, b: DTOItem): number => {
@@ -77,12 +116,14 @@ const rowToItem = (row: Pick<ChannelItemRow, 'payloadJson'>): DTOItem | null => 
   return safeJsonParse<DTOItem>(row.payloadJson);
 };
 
-const rowsToItems = (rows: readonly Pick<ChannelItemRow, 'payloadJson'>[]): DTOItem[] => {
-  const items: DTOItem[] = [];
+const rowsToRankedItems = (
+  rows: readonly Pick<ChannelItemRow, 'payloadJson' | 'popularityRank'>[]
+): ItemWithPopularity[] => {
+  const items: ItemWithPopularity[] = [];
   for (const row of rows) {
     const item = rowToItem(row);
     if (item !== null) {
-      items.push(item);
+      items.push({ item, popularityRank: row.popularityRank });
     }
   }
   return items;
@@ -169,7 +210,8 @@ const fetchChannelItemWindow = async (
 const commitChannelWindow = async (
   channelIdText: string,
   items: readonly DTOItem[],
-  depth: number
+  depth: number,
+  channelTitle: string | null = null
 ): Promise<number> => {
   const records: ChannelItemRecord[] = [];
   for (const item of items) {
@@ -222,6 +264,13 @@ const commitChannelWindow = async (
 
   await writeWindow(channelIdText, depth, updatedAt);
 
+  const hasOfficialClips = keep.some((record) => (record.payload.item_soundbites?.length ?? 0) > 0);
+  await sectionChromeFlagsRepository.mergeChannel(channelIdText, { hasOfficialClips });
+
+  // These rows are the only local answer to which show a downloaded episode came from, and this
+  // store keeps only followed channels. Stamp the downloads while the answer is here.
+  await downloadsRepository.attachChannelToDownloads({ channelIdText, channelTitle });
+
   return keep.length;
 };
 
@@ -262,12 +311,15 @@ export const channelItemsRepository = {
   ): Promise<DTOItem[]> => {
     await initializeDatabase();
     const rows = await getDb()
-      .select({ payloadJson: schema.channelItem.payloadJson })
+      .select({
+        payloadJson: schema.channelItem.payloadJson,
+        popularityRank: schema.channelItem.popularityRank,
+      })
       .from(schema.channelItem)
       .where(eq(schema.channelItem.channelIdText, channelIdText))
       .orderBy(desc(schema.channelItem.pubDateMs));
 
-    return sortItems(rowsToItems(rows), options.sort ?? 'recent');
+    return sortItems(rowsToRankedItems(rows), options.sort ?? 'recent');
   },
 
   /**
@@ -277,20 +329,108 @@ export const channelItemsRepository = {
    * Which episodes are in the list is always the recency window; `sort` only decides the order they
    * appear in. Ordering the whole stored corpus by title instead would answer "sort this list" by
    * replacing it with episodes from years ago.
+   *
+   * Pass `channelIdTexts` to restrict to a subset of followed channels (Home Tracks uses artist
+   * and album follows only).
    */
   listSubscribed: async (
-    options: { limit?: number; sort?: ChannelItemSort } = {}
+    options: {
+      channelIdTexts?: readonly string[];
+      limit?: number;
+      sort?: ChannelItemSort;
+    } = {}
   ): Promise<DTOItem[]> => {
     await initializeDatabase();
-    const { limit = RECENT_ITEM_LIMIT, sort = 'recent' } = options;
+    const { channelIdTexts, limit = RECENT_ITEM_LIMIT, sort = 'recent' } = options;
 
+    if (channelIdTexts !== undefined && channelIdTexts.length === 0) {
+      return [];
+    }
+
+    const baseQuery = getDb()
+      .select({
+        payloadJson: schema.channelItem.payloadJson,
+        popularityRank: schema.channelItem.popularityRank,
+      })
+      .from(schema.channelItem);
+
+    const rows =
+      channelIdTexts === undefined
+        ? await baseQuery.orderBy(desc(schema.channelItem.pubDateMs)).limit(limit)
+        : await baseQuery
+            .where(inArray(schema.channelItem.channelIdText, [...channelIdTexts]))
+            .orderBy(desc(schema.channelItem.pubDateMs))
+            .limit(limit);
+
+    return sortItems(rowsToRankedItems(rows), sort);
+  },
+
+  /**
+   * Whether any stored episode already has a listen-count rank for this window.
+   *
+   * A range that differs from the last walk is treated as missing so Home can stamp the new
+   * window instead of reordering from ranks that belong to another one.
+   */
+  hasPopularityRanks: async (range?: QueryParamsStatsRange): Promise<boolean> => {
+    if (range !== undefined && appliedPopularityRange !== range) {
+      return false;
+    }
+    await initializeDatabase();
     const rows = await getDb()
-      .select({ payloadJson: schema.channelItem.payloadJson })
+      .select({ itemIdText: schema.channelItem.itemIdText })
       .from(schema.channelItem)
-      .orderBy(desc(schema.channelItem.pubDateMs))
-      .limit(limit);
+      .where(isNotNull(schema.channelItem.popularityRank))
+      .limit(1);
+    return rows.length > 0;
+  },
 
-    return sortItems(rowsToItems(rows), sort);
+  /**
+   * Stamp listen-count ranks from one page of the account's subscribed popularity list.
+   *
+   * Home's episode list is a recency window reordered by these ranks, so a single popular page is
+   * enough: episodes outside that page stay unranked and sort after the ones that have a rank.
+   */
+  refreshPopularityRanks: async (
+    context: MobileAuthRequestContext,
+    range: QueryParamsStatsRange = 'week'
+  ): Promise<void> => {
+    const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+      apiRequestService.reqItemGetMany({
+        category: null,
+        medium: 'podcasts',
+        page: 1,
+        range,
+        sort: 'top',
+        type: 'subscribed',
+      })
+    );
+
+    await initializeDatabase();
+    await getDb().transaction(async (transaction) => {
+      await transaction.update(schema.channelItem).set({ popularityRank: null });
+      for (const [index, item] of response.data.entries()) {
+        const itemIdText = item.id_text.trim();
+        if (itemIdText.length === 0) {
+          continue;
+        }
+        await transaction
+          .update(schema.channelItem)
+          .set({ popularityRank: index })
+          .where(eq(schema.channelItem.itemIdText, itemIdText));
+      }
+    });
+    appliedPopularityRange = range;
+  },
+
+  /** The channel a stored item belongs to, when the item payload itself omitted `channel`. */
+  getChannelIdForItem: async (itemIdText: string): Promise<string | null> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({ channelIdText: schema.channelItem.channelIdText })
+      .from(schema.channelItem)
+      .where(eq(schema.channelItem.itemIdText, itemIdText))
+      .limit(1);
+    return rows[0]?.channelIdText ?? null;
   },
 
   /** One stored item, for opening or playing an episode with no connection. */
@@ -379,12 +519,18 @@ export const channelItemsRepository = {
    */
   syncChannel: async (
     context: MobileAuthRequestContext,
-    channelIdText: string
+    channelIdText: string,
+    options: { channelTitle?: string | null } = {}
   ): Promise<ChannelWindowSyncResult> => {
     await initializeDatabase();
     const { depth } = await readWindow(channelIdText);
     const { isFeedExhausted, items } = await fetchChannelItemWindow(context, channelIdText, depth);
-    const storedCount = await commitChannelWindow(channelIdText, items, depth);
+    const storedCount = await commitChannelWindow(
+      channelIdText,
+      items,
+      depth,
+      options.channelTitle ?? null
+    );
 
     return toSyncResult(depth, isFeedExhausted, storedCount);
   },
@@ -395,13 +541,19 @@ export const channelItemsRepository = {
    */
   extendWindow: async (
     context: MobileAuthRequestContext,
-    channelIdText: string
+    channelIdText: string,
+    options: { channelTitle?: string | null } = {}
   ): Promise<ChannelWindowSyncResult> => {
     await initializeDatabase();
     const current = await readWindow(channelIdText);
     const depth = extendChannelItemWindowDepth(current.depth);
     const { isFeedExhausted, items } = await fetchChannelItemWindow(context, channelIdText, depth);
-    const storedCount = await commitChannelWindow(channelIdText, items, depth);
+    const storedCount = await commitChannelWindow(
+      channelIdText,
+      items,
+      depth,
+      options.channelTitle ?? null
+    );
 
     return toSyncResult(depth, isFeedExhausted, storedCount);
   },
@@ -409,6 +561,9 @@ export const channelItemsRepository = {
   /** Forget a channel entirely, on unsubscribe. */
   removeChannel: async (channelIdText: string): Promise<void> => {
     await initializeDatabase();
+    // Unfollowing does not delete files, so the downloads left behind keep their own record of
+    // which show they came from.
+    await downloadsRepository.attachChannelToDownloads({ channelIdText });
     await getDb()
       .delete(schema.channelItem)
       .where(eq(schema.channelItem.channelIdText, channelIdText));
@@ -418,27 +573,42 @@ export const channelItemsRepository = {
   },
 
   /**
-   * Keep only the channels still followed, so unsubscribing on another device — or browsing a
-   * channel and never subscribing to it — cannot leave items behind forever.
+   * Keep the channels still followed and the channels holding a finished download, so unsubscribing
+   * on another device — or browsing a channel and never subscribing to it — cannot leave items
+   * behind forever, while a downloaded episode keeps the stored feed data it needs offline.
    */
   retainChannels: async (channelIdTexts: readonly string[]): Promise<void> => {
     await initializeDatabase();
 
-    if (channelIdTexts.length === 0) {
+    // Diff in memory and delete what is left over, rather than asking SQLite to exclude the whole
+    // followed list: a long subscription list would exceed its bind-parameter limit.
+    const rows = await getDb()
+      .selectDistinct({ channelIdText: schema.channelItemWindow.channelIdText })
+      .from(schema.channelItemWindow);
+    const stored = rows.map((row) => row.channelIdText);
+
+    // A download has to be able to name its show without this store. Stamp before anything is
+    // deleted, so a channel that was only ever browsed still leaves its downloads attributable —
+    // and so the check below can see them.
+    const followed = new Set(channelIdTexts);
+    for (const channelIdText of stored) {
+      if (!followed.has(channelIdText)) {
+        await downloadsRepository.attachChannelToDownloads({ channelIdText });
+      }
+    }
+
+    const downloaded = await downloadsRepository.channelIdTextsWithCompleteDownloads();
+    if (channelIdTexts.length === 0 && downloaded.length === 0) {
       await getDb().delete(schema.channelItem);
       await getDb().delete(schema.channelItemWindow);
       return;
     }
 
-    // Diff in memory and delete what is left over, rather than asking SQLite to exclude the whole
-    // followed list: a long subscription list would exceed its bind-parameter limit.
-    const keep = new Set(channelIdTexts);
-    const rows = await getDb()
-      .selectDistinct({ channelIdText: schema.channelItemWindow.channelIdText })
-      .from(schema.channelItemWindow);
-    const drop = rows
-      .map((row) => row.channelIdText)
-      .filter((channelIdText) => !keep.has(channelIdText));
+    const drop = selectChannelsToDropFromItemStore({
+      downloaded,
+      followed: channelIdTexts,
+      stored,
+    });
 
     for (const chunk of chunked(drop, DELETE_CHUNK_SIZE)) {
       await getDb()

@@ -11,10 +11,36 @@ alwaysApply: false
 When creating or editing a `COPY-PASTA.md` (or `*-COPY-PASTA.md`) file, **every prompt** must tell
 the operator which Cursor model **and reasoning level** to use before pasting.
 
+## Placement (critical)
+
+**`Cursor model:` and `Reasoning:` belong outside the fenced paste block** — in the heading /
+checklist prose the operator reads, never inside the ``` fence they copy into the agent chat.
+
+The model and reasoning depth are selected in the **Cursor UI** (chat model picker / thinking
+level), not by text the LLM reads. Putting those lines inside the paste wastes tokens and does
+nothing useful for the agent.
+
+```markdown
+- [ ] **01 — Example step**
+
+**Cursor model:** Codex 5.3
+**Reasoning:** high
+
+\`\`\`
+Read and execute .llm/plans/active/feature/01-example.md
+
+Follow the detail doc … and locked decisions in 00-SUMMARY.md.
+
+Do not run tests during agent work; leave operator verification commands at the end.
+\`\`\`
+```
+
+A phase-level summary table with Model + Reasoning columns is fine in addition to per-prompt lines.
+
 ## Required
 
 - Include **`Cursor model:`** and **`Reasoning:`** on **each** prompt (or a phase-level table with
-  Model + Reasoning columns).
+  Model + Reasoning columns) **above** the paste fence.
 - Prefer models: **Auto** (cheapest), **Codex 5.3** (medium), **Opus 5** (premium).
 - When a newer, higher comparable model is available, prefer it over the older model tier for
   new recommendations, even when the cost is modestly higher. Do not switch to an unrelated
@@ -26,7 +52,8 @@ the operator which Cursor model **and reasoning level** to use before pasting.
   high when concurrency or safety-critical).
 
 Numbered plan files (`01-*.md`, …) in the same plan set should repeat the same **Cursor model** and
-**Reasoning** lines at the top so operators see them when opening the plan directly.
+**Reasoning** lines at the top so operators see them when opening the plan directly (those files
+are not pasted into chat as a whole).
 
 ## When none of the preferred models fit
 

@@ -16,10 +16,10 @@ import type {
   UpdateAccountUPDeviceParams,
   UpdateAccountWebPushDeviceParams,
 } from '@podverse/helpers';
-import type { AuthContext } from '@podverse/http-request-core';
+import type { AuthContext, AxiosResponse } from '@podverse/http-request-core';
 import { toAuthHeaders } from '@podverse/http-request-core';
 
-import { request } from '../_request.js';
+import { request, requestWithHeaders } from '../_request.js';
 import type { QueryParamsGetManyProfiles } from './account/account.js';
 import {
   reqAccountAcceptTerms,
@@ -105,6 +105,7 @@ import {
   reqAccountSettingsLocaleUpdate,
   reqAccountSettingsNotificationTypeCreate,
   reqAccountSettingsNotificationTypeDelete,
+  reqAccountSettingsNotificationUpdate,
   reqAccountSettingsPlaybackUpdate,
 } from './accountSettings/accountSettings.js';
 import {
@@ -155,6 +156,7 @@ import {
   reqItemSoundbiteGetManyByItemIdText,
 } from './itemSoundbite/itemSoundbite.js';
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
+import { reqLegalPopularityTracking } from './legal/popularityTracking.js';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
 import { reqMembershipGetPricing } from './membership/membership.js';
 import {
@@ -431,6 +433,109 @@ export class ApiRequestService {
     }
   }
 
+  async apiRequestWithHeaders<T>({
+    path,
+    method = 'GET',
+    data,
+    config = {},
+    abort,
+    userAgent,
+  }: ApiRequestParams): Promise<{ status: number; data: T; headers: AxiosResponse<T>['headers'] }> {
+    // Store responseType for error handling
+    const responseType = (config as { responseType?: string })?.responseType;
+
+    try {
+      const mergedConfig = {
+        ...config,
+        ...(userAgent ? { userAgent } : {}),
+        headers: {
+          ...(this.defaultHeaders ?? {}),
+          ...((config.headers as Record<string, string> | undefined) ?? {}),
+          ...toAuthHeaders(this.authContext),
+        },
+      };
+
+      const options =
+        method === 'GET' ? { method, ...mergedConfig } : { method, data, ...mergedConfig };
+
+      return requestWithHeaders<T>(`${this.apiBase}${path}`, options, abort);
+    } catch (error: unknown) {
+      // Extract useful debugging information from the error
+      const errorInfo: {
+        message?: string;
+        status?: number;
+        url?: string;
+        method?: string;
+        responseData?: unknown;
+      } = {};
+
+      // Type guard for error with response property (AxiosError)
+      const isAxiosError = (
+        err: unknown
+      ): err is {
+        response?: { status: number; data?: unknown };
+        config?: { url?: string; method?: string; responseType?: string };
+        request?: unknown;
+        message?: string;
+      } => {
+        return typeof err === 'object' && err !== null;
+      };
+
+      if (isAxiosError(error)) {
+        if (error.response) {
+          // Axios response error
+          errorInfo.status = error.response.status;
+          errorInfo.url = error.config?.url ?? `${this.apiBase}${path}`;
+          if (error.config?.method) {
+            errorInfo.method = error.config.method.toUpperCase();
+          }
+
+          // If responseType is 'blob' and we have an error response, convert blob to JSON
+          if (responseType === 'blob' && error.response.data instanceof Blob) {
+            try {
+              const blobText = await (error.response.data as Blob).text();
+              const parsedData = JSON.parse(blobText);
+              // Replace the blob with parsed JSON in the error object
+              error.response.data = parsedData;
+              errorInfo.responseData = parsedData;
+            } catch {
+              // If parsing fails, keep the blob but log the error
+              errorInfo.responseData = error.response.data;
+            }
+          } else {
+            errorInfo.responseData = error.response.data;
+          }
+
+          const responseData = error.response.data as { message?: string } | undefined;
+          errorInfo.message = responseData?.message || error.message || 'Request failed';
+        } else if (error.request) {
+          // Request was made but no response received
+          errorInfo.message = error.message ?? 'No response received from server';
+          errorInfo.url = error.config?.url ?? `${this.apiBase}${path}`;
+          if (error.config?.method) {
+            errorInfo.method = error.config.method.toUpperCase();
+          }
+        } else {
+          // Error setting up the request
+          errorInfo.message = error.message || 'Error setting up request';
+        }
+      } else if (error instanceof Error) {
+        errorInfo.message = error.message;
+      } else {
+        errorInfo.message = 'Unknown error occurred';
+      }
+
+      if (!shouldSkipApiRequestErrorLog(errorInfo, path)) {
+        console.error('API request error:', {
+          ...errorInfo,
+          path: `${method} ${path}`,
+        });
+      }
+
+      throw error;
+    }
+  }
+
   /* ACCOUNT */
 
   reqAccountGetMany(params: QueryParamsGetManyProfiles) {
@@ -446,7 +551,6 @@ export class ApiRequestService {
     password: string;
     locale: string;
     terms_version: string;
-    allow_listen_stats?: boolean;
   }) {
     return reqAccountCreate(this, params);
   }
@@ -705,8 +809,12 @@ export class ApiRequestService {
     return reqAccountSettingsLocaleUpdate(this, params);
   }
 
-  reqAccountSettingsListenStatsUpdate(params: { allow_listen_stats: boolean }) {
+  reqAccountSettingsListenStatsUpdate(params: { accepted: boolean }) {
     return reqAccountSettingsListenStatsUpdate(this, params);
+  }
+
+  reqLegalPopularityTracking() {
+    return reqLegalPopularityTracking(this);
   }
 
   reqAccountSettingsPlaybackUpdate(params: { preferred_media_type: MediaTypePreference }) {
@@ -714,6 +822,10 @@ export class ApiRequestService {
   }
 
   /* ACCOUNT > SETTINGS > NOTIFICATIONS */
+
+  reqAccountSettingsNotificationUpdate(params: { auto_enable_on_subscribe: boolean }) {
+    return reqAccountSettingsNotificationUpdate(this, params);
+  }
 
   reqAccountSettingsNotificationTypeCreate(params: { type: string }) {
     return reqAccountSettingsNotificationTypeCreate(this, params);

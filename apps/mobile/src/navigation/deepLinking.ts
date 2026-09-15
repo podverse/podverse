@@ -1,6 +1,40 @@
-const FLAT_CONTENT_PATHS = new Set(['album', 'artist', 'clip', 'episode', 'podcast', 'track']);
-const NAV_SCOPED_PREFIXES = ['/home', '/more', '/my-library', '/notifications', '/search'];
-const AUTH_GATED_PATHS = new Set(['/history', '/my-profile', '/queues', '/settings']);
+import {
+  APP_ROUTES,
+  buildAppRoutePath,
+  buildEpisodePath,
+  buildMobileHomeAlbumTrackPath,
+  buildMobileHomePodcastEpisodePath,
+  buildMobileHomeScopedPath,
+  buildPlaylistPath,
+  buildProfilePath,
+  buildTrackPath,
+  FLAT_CONTENT_APP_ROUTES,
+  getAppRouteFirstSegment,
+  getAppRouteSegments,
+  isFlatContentAppRouteSegment,
+  matchesAppRouteSegments,
+  MOBILE_HOME_TAB_PATH,
+  MOBILE_HOME_TAB_SEGMENT,
+} from '@podverse/helpers';
+
+const MOBILE_MORE_TAB_PATH = '/more';
+const MOBILE_LIBRARY_TAB_PATH = '/my-library';
+const MOBILE_NOTIFICATIONS_TAB_PATH = '/notifications';
+const MOBILE_SEARCH_TAB_PATH = '/search';
+const MOBILE_MORE_TAB_SEGMENT = MOBILE_MORE_TAB_PATH.slice(1);
+const MOBILE_LIBRARY_TAB_SEGMENT = MOBILE_LIBRARY_TAB_PATH.slice(1);
+
+const NAV_SCOPED_PREFIXES = [
+  MOBILE_HOME_TAB_PATH,
+  MOBILE_MORE_TAB_PATH,
+  MOBILE_LIBRARY_TAB_PATH,
+  MOBILE_NOTIFICATIONS_TAB_PATH,
+  MOBILE_SEARCH_TAB_PATH,
+];
+
+const AUTH_GATED_PATHS = new Set(['/history', '/my-profile', '/queues', APP_ROUTES.SETTINGS]);
+
+const LIVESTREAM_SEGMENT = getAppRouteSegments(APP_ROUTES.PODCAST_LIVESTREAM)[1];
 
 const normalizePath = (path: string): string => {
   if (path.length === 0) {
@@ -38,12 +72,15 @@ const getPathSegments = (input: string): string[] => {
   return path.split('/').filter((segment) => segment.length > 0);
 };
 
-const isFlatContentPath = (segments: string[]): boolean => {
-  return segments.length === 2 && FLAT_CONTENT_PATHS.has(segments[0] ?? '');
-};
-
 const hasNavScopedPrefix = (path: string): boolean => {
   return NAV_SCOPED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+};
+
+const findFlatContentRoute = (segment: string | undefined) => {
+  if (segment === undefined || !isFlatContentAppRouteSegment(segment)) {
+    return undefined;
+  }
+  return FLAT_CONTENT_APP_ROUTES.find((route) => getAppRouteFirstSegment(route) === segment);
 };
 
 export const mapIncomingPathToScopedPath = (input: string): string => {
@@ -51,47 +88,107 @@ export const mapIncomingPathToScopedPath = (input: string): string => {
   const basePath = stripQueryAndHash(normalizedPath);
   const segments = getPathSegments(basePath);
   if (segments.length === 0) {
-    return '/home';
+    return MOBILE_HOME_TAB_PATH;
   }
 
   if (basePath === '/add-by-rss') {
-    return '/my-library/add-by-rss';
-  }
-
-  if (basePath === '/add-by-rss/feeds') {
-    return '/my-library/add-by-rss/feeds';
+    return `${MOBILE_LIBRARY_TAB_PATH}/add-by-rss`;
   }
 
   if (segments.length >= 1 && segments[0] === 'notifications') {
-    return '/notifications';
+    return MOBILE_NOTIFICATIONS_TAB_PATH;
   }
 
-  if (segments.length === 2 && segments[0] === 'membership' && segments[1] === 'renew') {
-    return '/more/membership';
+  if (
+    matchesAppRouteSegments(segments, APP_ROUTES.MEMBERSHIP_RENEW) &&
+    segments.length === getAppRouteSegments(APP_ROUTES.MEMBERSHIP_RENEW).length
+  ) {
+    return `${MOBILE_MORE_TAB_PATH}${APP_ROUTES.MEMBERSHIP}`;
   }
 
   if (hasNavScopedPrefix(basePath)) {
     return basePath;
   }
 
-  if (isFlatContentPath(segments)) {
-    const [resource, idText] = segments;
-    return `/home/${resource}/${idText}`;
+  if (
+    segments.length === 4 &&
+    matchesAppRouteSegments(segments, APP_ROUTES.PODCAST) &&
+    (segments[2] === getAppRouteFirstSegment(APP_ROUTES.EPISODE) ||
+      segments[2] === LIVESTREAM_SEGMENT) &&
+    segments[1] !== undefined &&
+    segments[3] !== undefined
+  ) {
+    return buildMobileHomePodcastEpisodePath(segments[1], segments[3]);
   }
 
-  if (segments.length === 2 && segments[0] === 'playlist') {
-    return `/my-library/playlist/${segments[1]}`;
+  if (
+    segments.length === 4 &&
+    matchesAppRouteSegments(segments, APP_ROUTES.ALBUM) &&
+    segments[2] === getAppRouteFirstSegment(APP_ROUTES.TRACK) &&
+    segments[1] !== undefined &&
+    segments[3] !== undefined
+  ) {
+    return buildMobileHomeAlbumTrackPath(segments[1], segments[3]);
   }
 
-  if (segments.length === 2 && segments[0] === 'profile') {
-    return `/more/profile/${segments[1]}`;
+  if (
+    segments.length === 3 &&
+    matchesAppRouteSegments(segments, APP_ROUTES.PODCAST_LIVESTREAM) &&
+    segments[2] !== undefined
+  ) {
+    return buildMobileHomeScopedPath(APP_ROUTES.EPISODE, segments[2]);
   }
 
-  if (segments.length === 1 && segments[0] === 'settings') {
-    return '/more/settings';
+  if (
+    segments.length === 3 &&
+    matchesAppRouteSegments(segments, APP_ROUTES.MUSIC_LIVESTREAM) &&
+    segments[2] !== undefined
+  ) {
+    return buildMobileHomeScopedPath(APP_ROUTES.EPISODE, segments[2]);
   }
 
-  return '/home';
+  if (
+    segments.length === 2 &&
+    matchesAppRouteSegments(segments, APP_ROUTES.VIDEO) &&
+    segments[1] !== undefined
+  ) {
+    return buildMobileHomeScopedPath(APP_ROUTES.EPISODE, segments[1]);
+  }
+
+  if (
+    segments.length === 2 &&
+    matchesAppRouteSegments(segments, APP_ROUTES.CHANNEL) &&
+    segments[1] !== undefined
+  ) {
+    return buildMobileHomeScopedPath(APP_ROUTES.PODCAST, segments[1]);
+  }
+
+  const flatContentRoute = findFlatContentRoute(segments[0]);
+  if (segments.length === 2 && flatContentRoute !== undefined && segments[1] !== undefined) {
+    return buildMobileHomeScopedPath(flatContentRoute, segments[1]);
+  }
+
+  if (
+    segments.length === 2 &&
+    matchesAppRouteSegments(segments, APP_ROUTES.PLAYLIST) &&
+    segments[1] !== undefined
+  ) {
+    return `${MOBILE_LIBRARY_TAB_PATH}${APP_ROUTES.PLAYLIST}/${segments[1]}`;
+  }
+
+  if (
+    segments.length === 2 &&
+    matchesAppRouteSegments(segments, APP_ROUTES.PROFILE) &&
+    segments[1] !== undefined
+  ) {
+    return `${MOBILE_MORE_TAB_PATH}${APP_ROUTES.PROFILE}/${segments[1]}`;
+  }
+
+  if (segments.length === 1 && matchesAppRouteSegments(segments, APP_ROUTES.SETTINGS)) {
+    return `${MOBILE_MORE_TAB_PATH}${APP_ROUTES.SETTINGS}`;
+  }
+
+  return MOBILE_HOME_TAB_PATH;
 };
 
 export const mapScopedPathToFlatPath = (path: string): string => {
@@ -99,19 +196,51 @@ export const mapScopedPathToFlatPath = (path: string): string => {
   const segments = getPathSegments(normalizedPath);
 
   if (
-    segments.length === 3 &&
-    segments[0] === 'home' &&
-    FLAT_CONTENT_PATHS.has(segments[1] ?? '')
+    segments.length === 5 &&
+    segments[0] === MOBILE_HOME_TAB_SEGMENT &&
+    matchesAppRouteSegments(segments, APP_ROUTES.PODCAST, 1) &&
+    segments[3] === getAppRouteFirstSegment(APP_ROUTES.EPISODE) &&
+    segments[4] !== undefined
   ) {
-    return `/${segments[1]}/${segments[2]}`;
+    return buildEpisodePath(segments[4]);
   }
 
-  if (segments.length === 3 && segments[0] === 'my-library' && segments[1] === 'playlist') {
-    return `/playlist/${segments[2]}`;
+  if (
+    segments.length === 5 &&
+    segments[0] === MOBILE_HOME_TAB_SEGMENT &&
+    matchesAppRouteSegments(segments, APP_ROUTES.ALBUM, 1) &&
+    segments[3] === getAppRouteFirstSegment(APP_ROUTES.TRACK) &&
+    segments[4] !== undefined
+  ) {
+    return buildTrackPath(segments[4]);
   }
 
-  if (segments.length === 3 && segments[0] === 'more' && segments[1] === 'profile') {
-    return `/profile/${segments[2]}`;
+  const scopedFlatRoute = findFlatContentRoute(segments[1]);
+  if (
+    segments.length === 3 &&
+    segments[0] === MOBILE_HOME_TAB_SEGMENT &&
+    scopedFlatRoute !== undefined &&
+    segments[2] !== undefined
+  ) {
+    return buildAppRoutePath(scopedFlatRoute, segments[2]);
+  }
+
+  if (
+    segments.length === 3 &&
+    segments[0] === MOBILE_LIBRARY_TAB_SEGMENT &&
+    matchesAppRouteSegments(segments, APP_ROUTES.PLAYLIST, 1) &&
+    segments[2] !== undefined
+  ) {
+    return buildPlaylistPath(segments[2]);
+  }
+
+  if (
+    segments.length === 3 &&
+    segments[0] === MOBILE_MORE_TAB_SEGMENT &&
+    matchesAppRouteSegments(segments, APP_ROUTES.PROFILE, 1) &&
+    segments[2] !== undefined
+  ) {
+    return buildProfilePath(segments[2]);
   }
 
   return normalizedPath;

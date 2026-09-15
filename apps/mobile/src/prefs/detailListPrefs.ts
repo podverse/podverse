@@ -1,5 +1,10 @@
 import type { SortPrefScope } from '@podverse/helpers';
 import { pickSortPrefToken } from '@podverse/helpers';
+import type { QueryParamsChannelSort, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import {
+  QUERY_PARAMS_CHANNEL_SORT_VALUES,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+} from '@podverse/helpers-requests';
 
 import { readSortPref, writeSortPref } from './sortPrefs';
 
@@ -15,17 +20,63 @@ import { readSortPref, writeSortPref } from './sortPrefs';
  * request or a SQLite ordering with no translation table in between.
  */
 
-/** How a podcast's stored episodes are ordered. Matches what the stored-item query accepts. */
-export const PODCAST_EPISODE_SORT_OPTIONS = ['recent', 'alphabetical'] as const;
+/**
+ * Which pane of a podcast is showing.
+ *
+ * Remembered because it decides what the screen loads. Restoring it after the screen had already
+ * loaded Episodes would mean fetching twice and showing the wrong pane in between.
+ *
+ * Always-on panes come first in the available set; evidence panes (Official Clips, Podroll) stay
+ * last so a first-visit insert is at the end. The painted row then puts the selected pane first.
+ * A remembered evidence pane is still subject to what this channel actually carries — the caller
+ * reconciles that.
+ */
+export const PODCAST_TABS = [
+  'episodes',
+  'downloaded',
+  'about',
+  'clips',
+  'soundbites',
+  'podroll',
+] as const;
 
-export type PodcastEpisodeSort = (typeof PODCAST_EPISODE_SORT_OPTIONS)[number];
+export type PodcastTab = (typeof PODCAST_TABS)[number];
+
+export const DEFAULT_PODCAST_TAB: PodcastTab = 'episodes';
 
 /**
- * Newest first, which is what a podcast screen is usually opened to check. Alphabetical is the
- * useful order for a back catalogue somebody is working through, so it is offered rather than
- * assumed.
+ * How a podcast's lists are ordered. The tokens are the ones the channel endpoints take, so a
+ * remembered selection reaches a request with no translation table in between.
  */
-export const DEFAULT_PODCAST_EPISODE_SORT: PodcastEpisodeSort = 'recent';
+export const PODCAST_DETAIL_SORT_OPTIONS = QUERY_PARAMS_CHANNEL_SORT_VALUES;
+
+export type PodcastDetailSort = QueryParamsChannelSort;
+
+/** Newest first, which is what a podcast screen is usually opened to check. */
+export const DEFAULT_PODCAST_DETAIL_SORT: PodcastDetailSort = 'recent';
+
+/**
+ * The popularity window `top` ranks within. Carried for every podcast, not only while `top` is
+ * selected, so returning to `top` opens on the window the user last chose rather than the default.
+ */
+export const PODCAST_DETAIL_RANGE_OPTIONS = QUERY_PARAMS_STATS_RANGE_VALUES;
+
+export type PodcastDetailRange = QueryParamsStatsRange;
+
+export const DEFAULT_PODCAST_DETAIL_RANGE: PodcastDetailRange = 'week';
+
+/**
+ * An add-by-RSS feed's episode order.
+ *
+ * Its own union rather than the directory podcast one: those lists are ordered by the channel
+ * endpoints, while this one is sorted on the device from a stored feed, so popularity is not
+ * something it can answer and title order is something it can.
+ */
+export const ADD_BY_RSS_EPISODE_SORT_OPTIONS = ['recent', 'alphabetical'] as const;
+
+export type AddByRssEpisodeSort = (typeof ADD_BY_RSS_EPISODE_SORT_OPTIONS)[number];
+
+export const DEFAULT_ADD_BY_RSS_EPISODE_SORT: AddByRssEpisodeSort = 'recent';
 
 /** An album's track order: as the artist sequenced it, or reversed. */
 export const ALBUM_TRACK_SORT_OPTIONS = ['forward', 'backward'] as const;
@@ -64,34 +115,75 @@ const itemScope = (itemIdText: string): SortPrefScope => {
 };
 
 export type PodcastDetailPrefs = {
-  sort: PodcastEpisodeSort;
+  range: PodcastDetailRange;
+  sort: PodcastDetailSort;
+  tab: PodcastTab;
 };
 
 /**
- * How this podcast's episode list should open.
+ * How this podcast should open: which pane, in which order, over which popularity window.
  *
- * Read before the first query rather than after it, so the list arrives in the order the user left
- * it in. A screen that renders the default and then re-sorts has shown the user a list they did not
- * ask for, however briefly.
+ * Read before the first query rather than after it, so the list arrives the way the user left it. A
+ * screen that renders the default and then re-sorts has shown the user a list they did not ask for,
+ * however briefly.
  */
 export const readPodcastDetailPrefs = async (
   channelIdText: string
 ): Promise<PodcastDetailPrefs> => {
   const stored = await readSortPref(channelScope(channelIdText));
   return {
-    sort: pickSortPrefToken(
-      stored?.sort,
-      PODCAST_EPISODE_SORT_OPTIONS,
-      DEFAULT_PODCAST_EPISODE_SORT
+    range: pickSortPrefToken(
+      stored?.range,
+      PODCAST_DETAIL_RANGE_OPTIONS,
+      DEFAULT_PODCAST_DETAIL_RANGE
     ),
+    sort: pickSortPrefToken(stored?.sort, PODCAST_DETAIL_SORT_OPTIONS, DEFAULT_PODCAST_DETAIL_SORT),
+    tab: pickSortPrefToken(stored?.tab, PODCAST_TABS, DEFAULT_PODCAST_TAB),
   };
+};
+
+export const writePodcastDetailTab = async (
+  channelIdText: string,
+  tab: PodcastTab
+): Promise<void> => {
+  await writeSortPref(channelScope(channelIdText), { tab });
 };
 
 export const writePodcastDetailSort = async (
   channelIdText: string,
-  sort: PodcastEpisodeSort
+  sort: PodcastDetailSort
 ): Promise<void> => {
   await writeSortPref(channelScope(channelIdText), { sort });
+};
+
+export const writePodcastDetailRange = async (
+  channelIdText: string,
+  range: PodcastDetailRange
+): Promise<void> => {
+  await writeSortPref(channelScope(channelIdText), { range });
+};
+
+export type AddByRssDetailPrefs = {
+  sort: AddByRssEpisodeSort;
+};
+
+/** How this add-by-RSS feed's episode list should open. */
+export const readAddByRssDetailPrefs = async (feedIdText: string): Promise<AddByRssDetailPrefs> => {
+  const stored = await readSortPref(channelScope(feedIdText));
+  return {
+    sort: pickSortPrefToken(
+      stored?.sort,
+      ADD_BY_RSS_EPISODE_SORT_OPTIONS,
+      DEFAULT_ADD_BY_RSS_EPISODE_SORT
+    ),
+  };
+};
+
+export const writeAddByRssDetailSort = async (
+  feedIdText: string,
+  sort: AddByRssEpisodeSort
+): Promise<void> => {
+  await writeSortPref(channelScope(feedIdText), { sort });
 };
 
 export type AlbumDetailPrefs = {

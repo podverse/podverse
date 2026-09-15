@@ -61,11 +61,8 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 For substantial requests, ask first:
 
 - "What's the goal?"
-- "GitHub issue?"
 
-### Issue Linking
-
-Ask once at start: "Related GitHub issue?"
+Do **not** ask for a GitHub issue as part of the LLM process.
 
 ### Scope Management
 

@@ -1,7 +1,13 @@
 import { verifyQueueOwnership } from '@api/controllers/queue/queue.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { getParamRequired } from '@api/lib/params.js';
-import { queueIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
+import type { QueuePlaybackReplayBodyEvent } from '@api/lib/validation/index.js';
+import {
+  queueIdTextParamSchema,
+  queuePlaybackReplayBodySchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
@@ -123,6 +129,48 @@ class QueueResourceController {
         },
         { skipMembershipStatus: true }
       );
+    });
+  }
+
+  static async replayPlaybackEvents(req: Request, res: Response): Promise<void> {
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
+      validateBodyObject(queuePlaybackReplayBodySchema, req, res, async () => {
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const events: QueuePlaybackReplayBodyEvent[] = req.body.events;
+
+              // Replay is idempotent from merge semantics; no dedupe id is required.
+              const replayRows = events.map((event) => ({
+                ...event,
+                media_file_duration:
+                  event.media_file_duration === undefined
+                    ? undefined
+                    : String(event.media_file_duration),
+                playback_position:
+                  event.playback_position === undefined
+                    ? undefined
+                    : String(event.playback_position),
+              }));
+
+              try {
+                const queueResources =
+                  await QueueResourceController.queueResourceService.replayPlaybackEvents(
+                    queue_id_text,
+                    replayRows
+                  );
+                res.status(200).json({ data: queueResources });
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: false }
+        );
+      });
     });
   }
 }

@@ -211,6 +211,8 @@ export function usePlayAddByRSS() {
           .reqQueueResourceItemAddByRSSAddNowPlaying(queue.id_text, {
             add_by_rss_resource_data: resourceData,
             playback_position: String(resolvedPosition),
+            last_played_at: new Date().toISOString(),
+            playback_event_kind: 'play',
           })
           .catch(() => {
             // Fire-and-forget; queue sync is best-effort

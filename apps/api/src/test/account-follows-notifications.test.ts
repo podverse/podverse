@@ -44,6 +44,7 @@ const {
   notificationChannelDeleteMock,
   notificationChannelTypeCreateMock,
   notificationChannelTypeDeleteMock,
+  settingsNotificationGetByAccountIdMock,
   statsAggregatedGetManyMock,
   statsAggregatedGetManyByAccountsAndCountMock,
   followingAccountGetAllWithCountMock,
@@ -111,6 +112,11 @@ const {
     type: 'new-item',
   })),
   notificationChannelTypeDeleteMock: vi.fn(async () => {}),
+  settingsNotificationGetByAccountIdMock: vi.fn(async () => ({
+    id: 1,
+    account_settings_id: 1,
+    auto_enable_on_subscribe: false,
+  })),
   statsAggregatedGetManyMock: vi.fn(async () => []),
   statsAggregatedGetManyByAccountsAndCountMock: vi.fn(async () => []),
   followingAccountGetAllWithCountMock: vi.fn(async () => ({ results: [], count: 0 })),
@@ -176,6 +182,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     delete = notificationChannelTypeDeleteMock;
   }
 
+  class MockAccountSettingsNotificationService {
+    getByAccountId = settingsNotificationGetByAccountIdMock;
+  }
+
   class MockStatsAggregatedAccountService {
     getMany = statsAggregatedGetManyMock;
     getManyByAccountsAndCount = statsAggregatedGetManyByAccountsAndCountMock;
@@ -191,6 +201,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     AccountFollowingAddByRSSChannelService: MockAccountFollowingAddByRSSChannelService,
     AccountNotificationChannelService: MockAccountNotificationChannelService,
     AccountNotificationChannelTypeService: MockAccountNotificationChannelTypeService,
+    AccountSettingsNotificationService: MockAccountSettingsNotificationService,
     StatsAggregatedAccountService: MockStatsAggregatedAccountService,
   };
 });
@@ -403,6 +414,135 @@ describe('account follows and notification routes', () => {
       expect(res.status).toBe(403);
       expect(res.body.code).toBe('membership_expired');
       expect(followChannelsBulkMock).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── Auto-enable notifications on follow ────────────────────────────
+
+  describe('auto_enable_on_subscribe', () => {
+    beforeEach(() => {
+      bulkFollowedChannelIdTexts.clear();
+      followChannelsBulkMock.mockClear();
+      notificationChannelCreateMock.mockClear();
+      notificationChannelGetByAccountAndChannelMock.mockClear();
+      notificationChannelGetByAccountAndChannelMock.mockResolvedValue({
+        id: 1,
+        channel_id_text: 'test-channel',
+      });
+      settingsNotificationGetByAccountIdMock.mockResolvedValue({
+        id: 1,
+        account_settings_id: 1,
+        auto_enable_on_subscribe: false,
+      });
+    });
+
+    const enableAutoEnableOnSubscribe = () => {
+      settingsNotificationGetByAccountIdMock.mockResolvedValue({
+        id: 1,
+        account_settings_id: 1,
+        auto_enable_on_subscribe: true,
+      });
+    };
+
+    it('creates no notification channel when the flag is off', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_text: 'some-channel' });
+
+      expect(res.status).toBe(201);
+      expect(notificationChannelCreateMock).not.toHaveBeenCalled();
+    });
+
+    it('creates the notification channel when the flag is on and none exists', async () => {
+      enableAutoEnableOnSubscribe();
+      notificationChannelGetByAccountAndChannelMock.mockResolvedValueOnce(null);
+
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_text: 'some-channel' });
+
+      expect(res.status).toBe(201);
+      expect(notificationChannelCreateMock).toHaveBeenCalledWith(TEST_USER_ID, 'some-channel');
+    });
+
+    it('leaves an existing notification channel alone when the flag is on', async () => {
+      enableAutoEnableOnSubscribe();
+      notificationChannelGetByAccountAndChannelMock.mockResolvedValueOnce({
+        id: 1,
+        channel_id_text: 'some-channel',
+      });
+
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_text: 'some-channel' });
+
+      expect(res.status).toBe(201);
+      expect(notificationChannelCreateMock).not.toHaveBeenCalled();
+    });
+
+    it('still reports a successful follow when the notification channel cannot be created', async () => {
+      enableAutoEnableOnSubscribe();
+      notificationChannelGetByAccountAndChannelMock.mockResolvedValueOnce(null);
+      notificationChannelCreateMock.mockRejectedValueOnce(new Error('notification write failed'));
+
+      const res = await withMutedExpectedErrorLogs(async () =>
+        request(app)
+          .post(`${accountBase}/follow/channel`)
+          .set(authHeaders(TEST_USER_ID))
+          .send({ channel_id_text: 'some-channel' })
+      );
+
+      expect(res.status).toBe(201);
+      expect(res.body.message).toBe('Successfully followed channel');
+      expect(followChannelMock).toHaveBeenCalledWith(TEST_USER_ID, 'some-channel');
+    });
+
+    it('creates no notification channels in a bulk follow when the flag is off', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: ['channel-a', 'channel-b'] });
+
+      expect(res.status).toBe(200);
+      expect(notificationChannelCreateMock).not.toHaveBeenCalled();
+    });
+
+    it('creates a notification channel for each newly followed channel in a bulk follow', async () => {
+      enableAutoEnableOnSubscribe();
+      notificationChannelGetByAccountAndChannelMock.mockResolvedValue(null);
+
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: ['channel-a', 'channel-b', MISSING_CHANNEL_ID_TEXT] });
+
+      expect(res.status).toBe(200);
+      expect(notificationChannelCreateMock.mock.calls).toEqual([
+        [TEST_USER_ID, 'channel-a'],
+        [TEST_USER_ID, 'channel-b'],
+      ]);
+    });
+
+    it('skips already-followed channels on a bulk resubmission', async () => {
+      enableAutoEnableOnSubscribe();
+      notificationChannelGetByAccountAndChannelMock.mockResolvedValue(null);
+
+      await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: ['channel-a'] });
+      notificationChannelCreateMock.mockClear();
+
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: ['channel-a', 'channel-b'] });
+
+      expect(res.status).toBe(200);
+      expect(notificationChannelCreateMock.mock.calls).toEqual([[TEST_USER_ID, 'channel-b']]);
     });
   });
 

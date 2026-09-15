@@ -29,6 +29,10 @@ router.get(
   asyncHandler(QueueResourceController.getHistoryResourcesByQueueIdText)
 );
 router.post('/:queue_id_text/update-is-active', asyncHandler(QueueController.updateIsActiveQueue));
+router.post(
+  '/:queue_id_text/playback-events/replay',
+  asyncHandler(QueueResourceController.replayPlaybackEvents)
+);
 
 router.post(
   '/:queue_id_text/clip/:clip_id_text/now-playing',

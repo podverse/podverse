@@ -1,6 +1,9 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useRef } from 'react';
+
+import { Button, Modal } from '@podverse/ui';
 
 import { useEmbedPlaybackGuardrails } from '../../../contexts/EmbedPlaybackMode';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -14,13 +17,16 @@ import { MediaPlayerLiveStreamVideoWrapper } from './LiveStream/MediaPlayerLiveS
 import { handleMediaPlayerWindowKeyDown } from './mediaPlayerWindowKeyDown';
 
 export const MediaPlayerController: React.FC = () => {
+  const tMediaPlayer = useTranslations('media_player');
+  const tMisc = useTranslations('misc');
   const { skipMainAppLayoutMutations } = useEmbedPlaybackGuardrails();
   const { mpAddByRSS, mpChannel, mpDuration, mpIsPlaying, mpItem, setMPIsPlaying } =
     useMediaPlayer();
   const { seek: bridgeSeek } = useMediaPlayerControls();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
 
-  useMediaPlayerControllerQueueHeadLoading();
+  const { handoffPrompt, continueLocalPlayback, switchToServerPlayback } =
+    useMediaPlayerControllerQueueHeadLoading();
 
   const seekWithUiSync = useCallback(
     (time: number) => {
@@ -92,6 +98,30 @@ export const MediaPlayerController: React.FC = () => {
       <NonLiveMediaMount />
       <MediaPlayerControllerLiveStreamAudio />
       <MediaPlayerLiveStreamVideoWrapper />
+      <Modal
+        ariaLabel={tMediaPlayer('handoff.title')}
+        closeButtonAriaLabel={tMisc('close_modal')}
+        header={tMediaPlayer('handoff.title')}
+        isOpen={handoffPrompt !== null}
+        onClose={continueLocalPlayback}
+      >
+        <Modal.Body>
+          <p>
+            {tMediaPlayer('handoff.body', {
+              localTitle: handoffPrompt?.localTitle ?? tMediaPlayer('handoff.unknown_episode'),
+              serverTitle: handoffPrompt?.serverTitle ?? tMediaPlayer('handoff.unknown_episode'),
+            })}
+          </p>
+        </Modal.Body>
+        <Modal.Actions>
+          <Button onClick={continueLocalPlayback} type="button" variant="secondary">
+            {tMediaPlayer('handoff.continue_action')}
+          </Button>
+          <Button onClick={switchToServerPlayback} type="button" variant="primary">
+            {tMediaPlayer('handoff.switch_action')}
+          </Button>
+        </Modal.Actions>
+      </Modal>
     </>
   );
 };

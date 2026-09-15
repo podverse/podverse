@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import {
+  APP_ROUTES,
+  buildMobileHomePodcastEpisodePath,
+  buildMobileHomeScopedPath,
+  buildPlaylistPath,
+  buildProfilePath,
+} from '@podverse/helpers';
+
 import { extractNotificationTargetPath } from './notificationTarget';
 
 describe('extractNotificationTargetPath', () => {
@@ -13,25 +21,45 @@ describe('extractNotificationTargetPath', () => {
     ).toBe('podverse-next://podcast/override123');
   });
 
-  it('maps valid {type, id_text} payloads', () => {
+  it('maps valid {type, id_text} payloads onto the Home stack', () => {
     expect(extractNotificationTargetPath({ id_text: 'pod123', type: 'podcast' })).toBe(
-      '/podcast/pod123'
+      buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'pod123')
     );
     expect(extractNotificationTargetPath({ id_text: 'ep123', type: 'episode' })).toBe(
-      '/episode/ep123'
+      buildMobileHomeScopedPath(APP_ROUTES.EPISODE, 'ep123')
     );
     expect(extractNotificationTargetPath({ id_text: 'clip123', type: 'clip' })).toBe(
-      '/clip/clip123'
+      buildMobileHomeScopedPath(APP_ROUTES.CLIP, 'clip123')
     );
     expect(extractNotificationTargetPath({ id_text: 'pl123', type: 'playlist' })).toBe(
-      '/playlist/pl123'
+      buildPlaylistPath('pl123')
     );
     expect(extractNotificationTargetPath({ id_text: 'user123', type: 'profile' })).toBe(
-      '/profile/user123'
+      buildProfilePath('user123')
     );
   });
 
-  it('uses explicit link_path payload targets', () => {
+  it('builds Home > podcast > episode from item-notification payloads', () => {
+    expect(
+      extractNotificationTargetPath({
+        channelIdText: 'ch-1',
+        itemIdText: 'ep-1',
+        type: 'new-episode',
+      })
+    ).toBe(buildMobileHomePodcastEpisodePath('ch-1', 'ep-1'));
+  });
+
+  it('builds Home > podcast > episode from livestream payloads', () => {
+    expect(
+      extractNotificationTargetPath({
+        channelIdText: 'ch-live',
+        itemIdText: 'live-1',
+        type: 'livestream-started',
+      })
+    ).toBe(buildMobileHomePodcastEpisodePath('ch-live', 'live-1'));
+  });
+
+  it('uses explicit link_path payload targets when no content ids apply', () => {
     expect(
       extractNotificationTargetPath({
         category: 'general',

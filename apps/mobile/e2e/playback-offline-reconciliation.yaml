@@ -1,0 +1,122 @@
+appId: com.podverse.app.next
+name: Playback Offline Reconciliation
+---
+# Proves listening in Offline Mode is captured locally and reconciled once network is restored.
+# The flow uses API-backed E2E fixtures and real media assets.
+#
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+# Open episode B and download it so Offline Mode can play the local file.
+- openLink: podverse-next://episode/e2ePodResume02
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- assertVisible:
+    id: episode-detail-screen
+- assertVisible:
+    id: episode-download-button
+- tapOn:
+    id: episode-download-button
+- extendedWaitUntil:
+    visible:
+      id: episode-download-complete
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: playback-offline-downloaded-episode-b
+
+# Play episode A online and pause after progress advances.
+- openLink: podverse-next://episode/e2ePodResume01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- assertVisible:
+    id: episode-detail-screen
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player-play-pause
+- assertVisible:
+    id: mini-player-play-pause
+    text: Play
+
+# Enable Offline Mode and play episode B from local media.
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-offline-mode-switch
+- assertVisible:
+    id: offline-mode-banner
+
+- openLink: podverse-next://episode/e2ePodResume02
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- assertVisible:
+    id: episode-detail-screen
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-now-playing-title-e2e
+      text: "E2E Podcast Resume Near End"
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: playback-active-e2e
+    text: playing
+# 60s fixtures exceed TIMEOUT_SLOWEST; trigger the same advance('complete') path as native ended.
+- runFlow: shared/open-e2e-playback.yaml
+- tapOn:
+    id: playback-complete-e2e
+- extendedWaitUntil:
+    notVisible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: playback-offline-episode-b-complete
+
+# Return online and wait for replay + hydrate work to settle.
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-offline-mode-switch
+- assertNotVisible:
+    id: offline-mode-banner
+- extendedWaitUntil:
+    notVisible:
+      id: sync-progress-bar
+    timeout: ${TIMEOUT_SLOWEST}
+
+# Both listens must reach history: the online one and the one recorded while offline.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-history
+- assertVisible:
+    id: library-history-screen
+- extendedWaitUntil:
+    visible:
+      text: "E2E Podcast Resume P > 0"
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    text: "E2E Podcast Resume Near End"
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+# The newest history row is the offline listen, so resuming it loads that item and not the
+# online one that was paused earlier.
+- assertVisible:
+    id: playback-now-playing-title-e2e
+    text: "E2E Podcast Resume Near End"
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+- takeScreenshot: playback-offline-history-resume

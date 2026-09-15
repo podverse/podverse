@@ -1,6 +1,7 @@
 # Mobile E2E flows
 
-**Run the tests:** [HOW-TO-RUN.md](./HOW-TO-RUN.md) (start there).
+**Run the tests:** [HOW-TO-RUN.md](./HOW-TO-RUN.md) (start there). That runbook
+begins with unit, API, and web tests. Do not jump to `mobile:e2e:test:all`.
 
 Track 5 locks mobile E2E on **Maestro**.
 
@@ -78,13 +79,16 @@ Top-level `apps/mobile/e2e/<area>.yaml` files (examples): `hello-world`, `locale
 `home`, `search`, `search-unparsed`, `podcast-episode`, `add-by-rss`. New top-level YAML is
 auto-included in the full suite.
 
-**Start here for how to run:** [HOW-TO-RUN.md](./HOW-TO-RUN.md) (§ Run all → `npm run mobile:e2e:test:all`).
+**How to run:** [HOW-TO-RUN.md](./HOW-TO-RUN.md) — numbered sections 1–5 (unit / API /
+web, native, databases, leave-running services, health + installs) before section 6
+(`npm run mobile:e2e:test:all`).
 
 ```bash
-# Full suite (after API-backed prep in HOW-TO-RUN)
-npm run mobile:e2e:test:all
+# After HOW-TO-RUN sections 1–5
+npm run mobile:e2e:test:all -- --platform ios
+npm run mobile:e2e:test:all -- --platform android
 
-# Focused
+# Focused (same stack already up)
 npm run mobile:e2e:test -- hello-world
 ```
 

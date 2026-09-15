@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { listRowArtworkGap, listRowVerticalPadding } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { CountBadge } from './CountBadge';
@@ -15,6 +16,10 @@ export type ListRowProps = {
   badgeCount?: number;
   onPress?: () => void;
   accessibilityLabel?: string;
+  /**
+   * Top padding for the row. Bottom is this value plus {@link listRowVerticalPadding}'s optical
+   * extra so title ink does not read top-heavy. Defaults to `tokens.spacing.base`.
+   */
   paddingVertical?: number;
   testID?: string;
 };
@@ -36,6 +41,7 @@ export function ListRow({
   testID,
 }: ListRowProps) {
   const { styles: themeStyles, tokens } = useTheme();
+  const paddingTop = paddingVertical ?? tokens.spacing.base;
 
   const styles = useMemo(
     () =>
@@ -43,8 +49,8 @@ export function ListRow({
         container: {
           alignItems: 'center',
           flexDirection: 'row',
-          gap: tokens.spacing.md,
-          paddingVertical: paddingVertical ?? tokens.spacing.base,
+          gap: listRowArtworkGap(tokens.spacing),
+          ...listRowVerticalPadding(paddingTop),
         },
         content: {
           flex: 1,
@@ -65,7 +71,7 @@ export function ListRow({
           gap: tokens.spacing.sm,
         },
       }),
-    [paddingVertical, themeStyles, tokens]
+    [paddingTop, themeStyles, tokens]
   );
 
   const badge =

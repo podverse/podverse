@@ -48,6 +48,10 @@ alwaysApply: false
   See [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
   and **mobile-data-layer** skill. Storage: SecureStore = tokens; AsyncStorage = tiny prefs;
   SQLite = entities; filesystem = downloaded media.
+- **Progress and other high-frequency state:** a tap mutates an in-memory store before any await, and
+  fine-grained ticks (bytes, position) get their own opt-in notification channel at ~2 Hz — never a
+  SQLite write, native-cache projection, or filesystem walk per tick. See
+  **mobile-progress-ux-and-notification-channels**; `src/downloads/downloadStore.ts` is the example.
 - **Add-by-RSS:** server parse + poll only; map with `@podverse/parser-mapping`; never import
   `@podverse/parser`.
 - **Visual:** prefer shared RN primitives (`components/primitives/`) + tokens. In **Phase 2**, polish
@@ -56,9 +60,10 @@ alwaysApply: false
   **mobile-legacy-screenshot-planning**;
   [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
   describes the superseded Phase 1 policy. Full DRY rubric: **mobile-reusable-components** skill.
-  **Cover art is square** — use `CoverImage` (no `borderRadius`) for podcast, episode, album, and
-  player artwork. Do **not** put a media-type pill (`Podcasts` / `Episodes` / …) on list rows; the
-  screen or selector already names the type. Status badges (live, unseen) stay.
+  **Cover art is square** — use `CoverImage` (`expo-image`, no `borderRadius`) for podcast, episode,
+  album, and player artwork. First-paint preview and cache: **mobile-image-loading**. Do **not** put
+  a media-type pill (`Podcasts` / `Episodes` / …) on list rows; the screen or selector already names
+  the type. Status badges (live, unseen) stay.
 - **ApiRequestService contract:** base URL is composed as `${prefix.replace(/\/$/, '')}${version}`.
   Keep `prefix` with no trailing slash and `version` with a leading slash (`/api` + `/v2`).
   Those fields come from `getMobileConfig().api` (parsed from the base URL env).

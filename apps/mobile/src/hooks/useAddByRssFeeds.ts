@@ -4,6 +4,7 @@ import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
 import { addByRssRepository } from '../data';
 import { mergeLocalAndRemoteAddByRssFeeds } from '../lib/addByRss/domain';
+import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import type { MobileAddByRSSFeedRecord } from '../prefs/addByRSSFeeds';
 
 type UseAddByRssFeedsOptions = {
@@ -91,6 +92,8 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
       await addByRssRepository.removeFeed(feedUrl);
       const nextFeeds = await addByRssRepository.listFeeds();
       setFeeds(nextFeeds);
+      // Home stays mounted under its tab, so it will not reload on its own.
+      homeFeedRefresh.notify();
     },
     [accessToken, clearSession, onNotice, refreshToken, setTokens]
   );

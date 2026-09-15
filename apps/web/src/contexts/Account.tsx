@@ -3,7 +3,11 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 import type { DTOAccount } from '@podverse/helpers';
 
-import { syncListenStatsGateFromAccount } from '../utils/statsTracking/statsTracking';
+import {
+  syncListenStatsGateFromAccount,
+  syncPopularityTrackingVersion,
+} from '../utils/statsTracking/statsTracking';
+import { useConfig } from './Config';
 import { useLocalSettings } from './LocalSettings';
 
 type AccountContextType = {
@@ -24,10 +28,12 @@ type AccountProviderProps = {
 export const AccountProvider = ({ children, ssrLoggedInAccount = null }: AccountProviderProps) => {
   const [loggedInAccount, setLoggedInAccount] = useState<DTOAccount | null>(ssrLoggedInAccount);
   const { preferredMediaType, setPreferredMediaType } = useLocalSettings();
+  const config = useConfig();
 
   useEffect(() => {
     syncListenStatsGateFromAccount(loggedInAccount);
-  }, [loggedInAccount]);
+    syncPopularityTrackingVersion(config.public.legal.popularityTracking.version);
+  }, [config.public.legal.popularityTracking.version, loggedInAccount]);
 
   // DB wins for logged-in users: reconcile the account's saved preferred media
   // type into the device-level local-settings cookie (mirrors NEXT_LOCALE sync).

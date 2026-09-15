@@ -93,8 +93,6 @@ export function MembershipExpiredBanner({ onRenew }: MembershipExpiredBannerProp
 
   let message: string;
   switch (notice.status) {
-    case 'none':
-      return null;
     case 'expired':
       message = t('membership.gate.banner_message');
       break;

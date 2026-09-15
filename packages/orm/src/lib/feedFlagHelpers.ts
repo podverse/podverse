@@ -1,7 +1,9 @@
-import { Equal, In, IsNull, Not } from 'typeorm';
+import { In, IsNull, Not } from 'typeorm';
 
 import type { QueryParamsMedium } from '@podverse/helpers';
 import { getMediumIdArrayFromType } from '@podverse/helpers';
+
+import { getChannelCategoryWhere } from './categoryFilterWhere.js';
 
 type ActiveFeedWhere = {
   channel_ids: number[] | null;
@@ -15,7 +17,7 @@ export function getActiveFeedWhere({ channel_ids, mediumType, category_id }: Act
     channel: {
       ...(channel_ids?.length ? { id: In(channel_ids) } : {}),
       ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
-      ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
+      ...getChannelCategoryWhere(category_id),
       channel_about: {
         id: Not(IsNull()),
       },

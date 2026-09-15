@@ -1,21 +1,13 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
-import { typography } from '../../theme/typography';
-import { useTheme } from '../../theme/useTheme';
-
-export type MediaTypeChipProps = {
-  label: string;
-  onPress: () => void;
-  selected: boolean;
-  testID: string;
-};
+import type { SectionChipItem } from '../../components/form';
+import { SectionChipRow } from '../../components/form';
 
 export type MediaTypeSelectorProps<T extends string> = {
   labelKeys: Record<T, string>;
-  /** Controls that scroll ahead of the type chips (sort, Categories). */
+  /** Sort and Categories, only when the current type can use them. */
   leading?: ReactNode;
   onChange: (mediaType: T) => void;
   /** `null` when no type chip is selected (the Categories list is showing). */
@@ -23,50 +15,6 @@ export type MediaTypeSelectorProps<T extends string> = {
   testIDPrefix: string;
   types: readonly T[];
 };
-
-export function MediaTypeChip({ label, onPress, selected, testID }: MediaTypeChipProps) {
-  const { styles: themeStyles, tokens } = useTheme();
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        chip: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          marginRight: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        chipActive: {
-          backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderColor: themeStyles.buttonPrimary.backgroundColor,
-        },
-        chipLabel: {
-          ...typography.label,
-          color: themeStyles.textPrimary.color,
-        },
-        chipLabelActive: {
-          color: themeStyles.buttonPrimary.color,
-        },
-      }),
-    [themeStyles, tokens]
-  );
-
-  return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="tab"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={[styles.chip, selected ? styles.chipActive : null]}
-      testID={testID}
-    >
-      <Text style={[styles.chipLabel, selected ? styles.chipLabelActive : null]}>{label}</Text>
-    </Pressable>
-  );
-}
 
 /**
  * Horizontal media-type pills. Home and Browse render this under the stack title.
@@ -81,40 +29,23 @@ export function MediaTypeSelector<T extends string>({
 }: MediaTypeSelectorProps<T>) {
   const { t } = useTranslation();
 
-  const styles = useMemo(
+  const items = useMemo<SectionChipItem<T>[]>(
     () =>
-      StyleSheet.create({
-        scrollContent: {
-          alignItems: 'center',
-        },
-      }),
-    []
+      types.map((mediaType) => ({
+        key: mediaType,
+        label: t(labelKeys[mediaType]),
+        testID: `${testIDPrefix}-media-type-${mediaType}`,
+      })),
+    [labelKeys, t, testIDPrefix, types]
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContent}
-      horizontal
-      showsHorizontalScrollIndicator={false}
+    <SectionChipRow
+      items={items}
+      leading={leading}
+      onSelect={onChange}
+      selectedKey={selectedMediaType}
       testID={`${testIDPrefix}-media-type-selector`}
-    >
-      {leading}
-      {types.map((mediaType) => {
-        const isSelected = mediaType === selectedMediaType;
-        const label = t(labelKeys[mediaType]);
-
-        return (
-          <MediaTypeChip
-            key={mediaType}
-            label={label}
-            onPress={() => {
-              onChange(mediaType);
-            }}
-            selected={isSelected}
-            testID={`${testIDPrefix}-media-type-${mediaType}`}
-          />
-        );
-      })}
-    </ScrollView>
+    />
   );
 }

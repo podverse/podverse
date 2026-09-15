@@ -42,7 +42,18 @@ export const planSyncRun = ({ isAuthenticated, trigger }: SyncPlanInput): Planne
     return planned;
   }
 
-  planned.push({ kind: 'account-refresh', priority }, { kind: 'queue-hydrate', priority });
+  planned.push({ kind: 'account-refresh', priority });
+
+  const shouldReplayPlayback =
+    trigger === 'app-start' ||
+    trigger === 'sign-in' ||
+    trigger === 'app-foreground' ||
+    trigger === 'connectivity-restored';
+  if (shouldReplayPlayback) {
+    planned.push({ kind: 'playback-replay', priority: 'user' });
+  }
+
+  planned.push({ kind: 'queue-hydrate', priority });
 
   // Membership-tier and checked when the job runs, so a lapsed member keeps their feeds without
   // the device asking for work the server would refuse.

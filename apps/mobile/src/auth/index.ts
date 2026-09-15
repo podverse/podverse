@@ -8,6 +8,9 @@ export { createMobileApiRequestService } from './mobileApi';
 export {
   reconcileAccountPrefsFromAccount,
   syncAllowListenStatsToAccountSettings,
+  syncAutoEnableOnSubscribeToAccountSettings,
+  syncChannelNotificationEnabled,
+  syncChannelNotificationType,
   syncLocaleToAccountSettings,
   syncNotificationTypeToAccountSettings,
   syncPlaybackPreferenceToAccount,

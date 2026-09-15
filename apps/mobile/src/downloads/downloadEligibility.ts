@@ -11,8 +11,11 @@ import type { DownloadMediaType } from './downloadTypes';
  * - `hls_playlist` — the only usable enclosure(s) point at an HLS/m3u8 playlist, which is a
  *                    manifest of segments, not a single progressive file we can store and replay.
  * - `no_enclosure` — no enclosure with a usable source URI.
+ * - `offline_mode` — Offline Mode is on; the download manager rejects new transfers (not decided
+ *                    by `isItemDownloadable`).
  */
-export type DownloadIneligibleReason = 'livestream' | 'hls_playlist' | 'no_enclosure';
+export type DownloadIneligibleReason =
+  'livestream' | 'hls_playlist' | 'no_enclosure' | 'offline_mode';
 
 /** The selected progressive source to fetch when an item is downloadable. */
 export interface DownloadSourceSelection {
