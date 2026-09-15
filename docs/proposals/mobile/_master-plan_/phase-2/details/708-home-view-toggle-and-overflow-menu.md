@@ -33,11 +33,18 @@ Grid cells show artwork with the unseen badge overlaid, no title or metadata lin
 the tile's accessible name, so the grid costs a screen reader user no information even though it
 shows less.
 
-Column count is responsive, from `resolveGridColumns` beside the existing `resolveColumns`. The two
-are separate because they count different things: `resolveColumns` counts how many **rows** fit side
-by side, and a row carries artwork, a title, a metadata line, and its action buttons, so a phone fits
-exactly one. Reusing it for tiles would put a single tile per line on every phone — a list with the
-titles removed rather than a grid. Both scale on the same design-token breakpoints.
+Column count is responsive, from `resolveGridColumns` beside the existing `resolveColumns`. Phone
+grids use **3** columns; tablet (`md` and up) uses **5**. Cell width is measured
+(`resolveGridCellWidth`) rather than `flex: 1`, so a short last row — or a single subscription —
+keeps one column slot instead of stretching full width. The two column helpers are separate because
+they count different things: `resolveColumns` counts how many **rows** fit side by side, and a row
+carries artwork, a title, a metadata line, and its action buttons, so a phone fits exactly one.
+Reusing it for tiles would put a single tile per line on every phone — a list with the titles removed
+rather than a grid. Both scale on the same design-token breakpoints.
+
+Grid cells are one accessible control each (`accessibilityRole="imagebutton"`, title + unseen badge
+in the label). The FlatList announces as `accessibilityRole="grid"` with the Grid View label. Nested
+artwork and badges stay decorative so VoiceOver / TalkBack do not double-speak fragments.
 
 ### Mark All As Seen
 
@@ -60,7 +67,9 @@ than by asking storage again.
 - The Home header shows an overflow control opening a menu with the view rows and Mark All As Seen.
 - Choosing a view switches between list and grid, persists across restarts, and defaults to list on
   first launch.
-- Grid cells render artwork plus the unseen badge, using responsive columns and staying virtualized.
+- Grid cells render artwork plus the unseen badge, using **3** phone columns / **5** tablet
+  columns (measured cell width, virtualized), and each tile is one labeled `imagebutton`.
+- The grid list exposes `accessibilityRole="grid"` with the Grid View label.
 - "Mark All As Seen" clears every unseen badge in one action and survives an app restart.
 - The action works signed out and, when signed in, syncs without moving any timestamp backward.
 - The menu entry is disabled when nothing is unseen.

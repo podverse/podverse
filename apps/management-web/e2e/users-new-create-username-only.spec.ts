@@ -191,7 +191,7 @@ test.describe('Management-web create user (username-only)', () => {
     await expect(page.locator('#allow-directory-add-value')).toHaveText('Default (Block)');
     await expect(page.locator('#track-stats-value')).toHaveText('Default (Do not track stats)');
     await expect(page.locator('#allow-notifications-value')).toHaveText(
-      'Default (Block notifications)'
+      'Default (Allow notifications)'
     );
     await expect(page.locator('#max-add-by-rss-feeds')).toHaveAttribute(
       'placeholder',

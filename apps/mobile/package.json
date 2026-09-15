@@ -45,6 +45,7 @@
     "expo-dev-menu-interface": "1.9.3",
     "expo-document-picker": "~13.0.3",
     "expo-file-system": "~18.0.12",
+    "expo-image": "~2.0.7",
     "expo-localization": "~16.0.1",
     "expo-manifests": "~0.15.8",
     "expo-notifications": "~0.29.14",

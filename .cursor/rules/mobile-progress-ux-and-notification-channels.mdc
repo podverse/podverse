@@ -1,0 +1,94 @@
+---
+description: Mobile progress UI paints from memory on a coarse cadence; high-frequency events never touch SQLite, the filesystem, or the native cache, and per-tick subscriptions are opt-in
+globs:
+  - "apps/mobile/**"
+alwaysApply: false
+---
+
+# Mobile — showing progress without blocking the UI
+
+React Native runs touch handling, layout, and every JS callback on one thread. So any work a
+high-frequency event does — a download's byte callback, a playback position tick, an upload, a sync
+counter — is work a tap has to wait behind. The device that reveals this is a five-year-old Android
+phone, and the symptom is not a slow spinner: it is the **second** button press appearing to do
+nothing.
+
+Two rules cover it. Both are about where state lives and who is told about it.
+
+## A tap changes state in memory, before any await
+
+The control the user pressed must change on that press. Not after SQLite, not after a native-cache
+projection, not after the network.
+
+```typescript
+// BAD — three awaits before the icon changes, so a second tap lands on a stale control
+const existing = await repository.getByItemIdText(item.id_text);
+await repository.upsert(record); // also rebuilds and writes the native cache
+notify();
+
+// GOOD — memory first, durable write after
+const existing = store.get(item.id_text); // already hydrated
+store.put(record); // subscribers paint this frame
+void repository.upsert(record).catch(logInDev);
+```
+
+Keep the in-memory mirror hydrated once per session (every hook that renders the affordance can
+ask), hold records **immutable**, and replace only the one that changed. That last part is what lets
+a row's `setState` receive the same reference and skip its re-render, so one item's transition does
+not repaint the other thirty-nine.
+
+SQLite stays the durable store. It is not the thing the UI reads while something is happening.
+
+## Split the notification channel by frequency
+
+A single "something changed" callback forces every subscriber to pay the cost of the noisiest
+producer. Give coarse and fine events separate channels, and make the fine one **opt-in**.
+
+- **Coarse** (status, set membership, completion): notify on the leading edge so a tap paints
+  immediately, then collapse a burst into one trailing pass (~100 ms).
+- **Fine** (bytes, position, counters): trailing edge only, at a rate a person can actually read —
+  **2 Hz is plenty**. Nobody perceives a percentage moving faster, and it is roughly two orders of
+  magnitude less work than repainting per event.
+
+`downloads/downloadStore.ts` is the worked example: `subscribe` for status, `subscribeToProgress`
+for bytes, `batch` for a bulk operation that would otherwise fire once per row.
+
+## Never do these on a high-frequency tick
+
+Each one was a real cause of a frozen download button:
+
+- A **SQLite write or read**. Persist the fine value on a slow heartbeat (a few seconds) plus the
+  moments it is actually read — pause, failure, completion.
+- A **native-cache projection** (CarPlay / Android Auto). Rebuild it when the set it describes
+  changes, never when a counter moves. See **mobile-carplay-android-auto**.
+- A **filesystem walk** or storage measurement.
+- A **full-table read** to recompute a badge or a count.
+- **Waking every subscriber**, which multiplies all of the above by the number of mounted screens.
+
+## Put progress detail where the user asked for it
+
+This is the UX half, and it removes most of the cost rather than optimizing it.
+
+| Surface | What it shows | Subscribes to progress? |
+| --- | --- | --- |
+| List row (can be 40 on screen) | Busy spinner, no number | **No** — status only |
+| Detail screen for one item | Percentage or bar | Yes |
+| The screen dedicated to the activity (My Library → Downloads) | Per-item bar | Yes |
+| Global activity bar, tab badges | Message + spinner (downloads), a count (tabs) | **No** — derived from statuses |
+
+A row that says *something is happening here* has already told the user what a row can usefully
+tell them; the number belongs on the screen they open to see the number. Determinate bars also lie
+more often than they inform — a transfer with an unknown content length has no honest ratio, so
+prefer indeterminate until a total is known.
+
+**Accessibility:** a busy row still needs `accessibilityState={{ busy: true }}` and a label that
+says what pressing it does. `accessibilityValue` with a live percentage is fine on the single-item
+surfaces above, and is exactly what to leave off a list row — a screen reader announcing a changing
+number on forty rows is as unusable as it is expensive. See **screen-reader-accessibility**.
+
+## Related
+
+- **mobile-sync-orchestration** — nothing network-bound blocks first paint; background sync is serial
+- **mobile-list-virtualization** — lists own their scroll and render lazily
+- **mobile-carplay-android-auto** — what the native cache is for and when to project it
+- **dto-changes-are-device-data-migrations** — the persisted shape is on installed phones

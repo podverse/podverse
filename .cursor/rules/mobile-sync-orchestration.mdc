@@ -18,6 +18,11 @@ an interactive UI — not to resolve auth, not to refresh the account, not to hy
 - Render the cached account, the cached subscriptions, and the cached queue immediately.
 - Anything that needs the network is enqueued as a sync job and runs after the app is usable.
 - A slow or absent network changes only how *stale* the first screen is, never how *fast* it appears.
+- A **pushed** screen follows the same habit for already-known chrome: if the source painted list
+  art or a title, the destination paints that preview on the first frame rather than waiting on
+  the network (**mobile-image-loading**). Section chips that depend on a detail DTO seed from the
+  device chrome cache the same way (**mobile-section-chrome-cache**); do not add server schema
+  to learn them.
 
 ## Background sync is serial, foreground actions are not
 
@@ -32,6 +37,9 @@ Serialize the sync queue so background work cannot saturate the network or the J
 the app feel slow. Do **not** put interactive work in the queue — a user who taps Subscribe must not
 wait behind a full library sync. When in doubt: if a human is watching a spinner they triggered, it
 is interactive.
+
+When both playback replay and queue hydration are pending, replay runs first: `playback-replay`
+must precede `queue-hydrate` so merged playback state reaches the server before the next queue pull.
 
 Auth token refresh (`refreshAccessTokenSingleFlight`) stays orthogonal to the queue. It is a
 prerequisite of individual requests in both lanes, not a sync job.
@@ -83,3 +91,5 @@ translated sentence and no code is not diagnosable.
 - [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)
 - [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)
 - Skill: **mobile-data-layer** — offline-first storage and native cache projection
+- Rule: **mobile-offline-mode** — user-forced Offline Mode parks this queue the same way as a real
+  outage; do not auto-toggle from NetInfo

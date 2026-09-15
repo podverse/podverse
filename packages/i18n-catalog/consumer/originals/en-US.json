@@ -11,7 +11,8 @@
       "podcast_image": "Podcast Image",
       "episode": "Episode",
       "episodes": "Episodes",
-      "episode_image": "Episode Image"
+      "episode_image": "Episode Image",
+      "no_episodes_found": "No episodes found"
     },
     "music": {
       "music": "Music",
@@ -144,6 +145,7 @@
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
+      "no_clips_found": "No clips found",
       "create_clip": "Create Clip",
       "edit_clip": "Edit Clip",
       "delete_clip": "Delete Clip",
@@ -327,6 +329,7 @@
       "no_summary": "No summary available"
     },
     "podroll": "Podroll",
+    "no_podroll_found": "No recommended podcasts found",
     "show_more": "Show more",
     "transcript": {
       "transcript": "Transcript",
@@ -346,7 +349,8 @@
     },
     "soundbite": {
       "official_clip": "Official Clip",
-      "official_clips": "Official Clips"
+      "official_clips": "Official Clips",
+      "no_official_clips_found": "No official clips found"
     },
     "time": {
       "left": "{timeRemaining} left",
@@ -369,6 +373,13 @@
     "skip_to_previous": "Skip to previous",
     "jump_back": "Jump back {seconds} seconds",
     "jump_forward": "Jump forward {seconds} seconds",
+    "handoff": {
+      "title": "Resume from another device?",
+      "body": "You were listening to \"{localTitle}\" here, but another device is at \"{serverTitle}\". Switch to that device's episode?",
+      "continue_action": "Continue here",
+      "switch_action": "Switch episode",
+      "unknown_episode": "an unknown episode"
+    },
     "step_back": "Step backward",
     "step_forward": "Step forward",
     "mute": "Mute",
@@ -567,10 +578,17 @@
       "month": "Month",
       "all_time": "All Time"
     },
+    "list": {
+      "title_label": "Filter by title",
+      "placeholder": "Filter...",
+      "clear": "Clear",
+      "no_matches": "No results match your filter."
+    },
     "screen": {
       "title": "Filter & Sort",
       "filter_heading": "Filter",
-      "sort_heading": "Sort"
+      "sort_heading": "Sort",
+      "range_heading": "Range"
     }
   },
   "legal": {
@@ -581,6 +599,16 @@
     "archive_policy_explanation": "This content is in the process of being archived and removed. This often happens with content that changes its RSS feed URL. If you think this is an error and would like this content to be added, please contact support.",
     "takedown_policy": "Takedown Policy",
     "takedown_policy_explanation": "This content has been removed in response to a takedown request by the copyright holder."
+  },
+  "popularity_tracking": {
+    "title": "Popularity Tracking",
+    "yes": "Yes, track me",
+    "no": "No thanks",
+    "learn_more": "Learn more",
+    "already_agreed": "You already agreed to this version.",
+    "agreement_date": "Agreement date: {agreement_date}",
+    "error": "Could not save your Popularity Tracking choice. Please try again.",
+    "back_to_choice": "Back"
   },
   "misc": {
     "more_info": "More info",
@@ -718,6 +746,7 @@
       "unseen_count_capped": "{count}+ new",
       "unseen_count_aria": "{count} new episodes",
       "unseen_count_capped_aria": "More than {count} new episodes",
+      "unseen_indicator_aria": "New episodes",
       "downloaded_count": "{count} downloaded"
     },
     "mark_all_seen": "Mark All As Seen",
@@ -955,8 +984,8 @@
       "download_my_data_loading": "Preparing your data...",
       "download_my_data_success": "Data downloaded successfully",
       "download_my_data_error": "Failed to download data",
-      "listen_stats_toggle": "Listen statistics",
-      "listen_stats_toggle_help": "Allow pseudonymous listen events for trending content. Events are kept for {retention_days} days.",
+      "listen_stats_toggle": "Popularity Tracking",
+      "listen_stats_toggle_help": "Allow unique-listener rankings that help people find popular shows. You can change this anytime.",
       "listen_stats_toggle_error": "Could not update listen statistics preference. Please try again.",
       "listen_stats_terms_link": "Learn more in our <termsLink>Terms of Service</termsLink>."
     },
@@ -1010,7 +1039,11 @@
       "category_general_description": "Important account-level notifications.",
       "new_item": "New item",
       "livestream_scheduled": "Livestream scheduled",
-      "livestream_started": "Livestream started"
+      "livestream_started": "Livestream started",
+      "auto_enable_on_subscribe": "Enable notifications when I subscribe",
+      "auto_enable_on_subscribe_help": "When on, subscribing to a podcast also turns on notifications for it, using the notification types selected below.",
+      "type_defaults_section": "Notification Types",
+      "type_defaults_section_help": "Choose which notification types apply when notifications are turned on for a podcast."
     },
     "opml": {
       "opml": "OPML",

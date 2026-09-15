@@ -2,7 +2,8 @@
 
 import { useCallback } from 'react';
 
-import { getQueueForMedium } from '@podverse/helpers';
+import type { PlaybackEventKind } from '@podverse/helpers';
+import { getQueueForMedium, isMeaningfulPlaybackEvent } from '@podverse/helpers';
 
 import { useAccount } from '../contexts/Account';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
@@ -18,17 +19,27 @@ export function useAddByRSSPositionSave() {
   const { loggedInAccount } = useAccount();
 
   const savePosition = useCallback(
-    (positionSeconds: number) => {
+    (
+      positionSeconds: number,
+      eventKind: 'play' | 'pause' | 'progress_tick' | 'seek',
+      isPlaying?: boolean
+    ) => {
       const apiRequestService = getApiRequestService();
       if (!loggedInAccount || !mpAddByRSS?.resourceData) return;
+      if (!isMeaningfulPlaybackEvent(eventKind, { isPlaying })) {
+        return;
+      }
       const mediumId = mpAddByRSS.resourceData.medium_id;
       if (typeof mediumId !== 'number') return;
       const queue = getQueueForMedium(queues, mediumId);
       if (!queue?.id_text) return;
+      const lastPlayedAtIso = new Date().toISOString();
       apiRequestService
         .reqQueueResourceItemAddByRSSAddNowPlaying(queue.id_text, {
           add_by_rss_resource_data: mpAddByRSS.resourceData,
           playback_position: String(positionSeconds),
+          last_played_at: lastPlayedAtIso,
+          playback_event_kind: eventKind,
         })
         .catch(() => {
           // Best-effort
@@ -45,11 +56,15 @@ export function useAddByRSSPositionSave() {
       if (typeof mediumId !== 'number') return;
       const queue = getQueueForMedium(queues, mediumId);
       if (!queue?.id_text) return;
+      const lastPlayedAtIso = new Date().toISOString();
+      const eventKind: PlaybackEventKind = 'complete';
       await apiRequestService
         .reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
           add_by_rss_resource_data: mpAddByRSS.resourceData,
           playback_position: '0',
           completed: true,
+          last_played_at: lastPlayedAtIso,
+          playback_event_kind: eventKind,
         })
         .catch(() => {
           // Best-effort
@@ -67,11 +82,15 @@ export function useAddByRSSPositionSave() {
       const queue = getQueueForMedium(queues, mediumId);
       if (!queue?.id_text) return;
       const playbackPosition = Number.isFinite(positionSeconds) ? String(positionSeconds) : '0';
+      const lastPlayedAtIso = new Date().toISOString();
+      const eventKind: PlaybackEventKind = 'skip';
       await apiRequestService
         .reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
           add_by_rss_resource_data: mpAddByRSS.resourceData,
           playback_position: playbackPosition,
           completed: false,
+          last_played_at: lastPlayedAtIso,
+          playback_event_kind: eventKind,
         })
         .catch(() => {
           // Best-effort

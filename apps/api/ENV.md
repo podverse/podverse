@@ -148,8 +148,11 @@ The mailer is automatically disabled when `ACCOUNT_SIGNUP_MODE` is not `'user_si
 
 - **`LEGAL_NAME`** (Required when signup mode is 'user_signup_email') - Legal or display business name (e.g. Podverse LLC). `config.legal.name` (e.g. HTML email footer, other call sites).
 - **`LEGAL_ADDRESS`** (Required when signup mode is 'user_signup_email') - Legal or mailing address. `config.legal.address`.
+- **`POPULARITY_TRACKING_AGREEMENT_VERSION`** (Required) - Current popularity-tracking agreement version. Accepting users are re-prompted when this changes. Tracking is allowed only when the stored accept matches this value.
+- **`POPULARITY_TRACKING_AGREEMENT_DATE`** (Required) - Legal document date shown as small print on the agreement.
+- **`POPULARITY_TRACKING_CONTENT_DIR`** (Optional) - Directory of localized `<locale>.md` agreement files. Empty uses the Markdown bundled at `apps/api/legal/popularity-tracking`.
 
-For local development, set both in [`legal.env`](/dev/env-overrides/local/legal.env.example). Run `make local_env_setup` to apply.
+For local development, set these in [`legal.env`](/dev/env-overrides/local/legal.env.example). Run `make local_env_setup` to apply.
 
 ### Email Configuration
 

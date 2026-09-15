@@ -1,0 +1,163 @@
+import { useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { AccessibilityInfo, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+
+import {
+  countActiveDownloading,
+  countInProgressDownloads,
+} from '../../downloads/inProgressDownloadCount';
+import { useDownloadsList } from '../../downloads/useDownloads';
+import { useSync } from '../../sync';
+import { useTheme } from '../../theme/useTheme';
+import { ProgressTrack } from '../primitives/ProgressTrack';
+
+export type GlobalActivityBarProps = {
+  /**
+   * Extra bottom padding, in dp. Zero where the bar sits above a tab bar that already owns the
+   * home-indicator inset; the device inset where it is the bottom-most thing on screen.
+   */
+  bottomInset?: number;
+};
+
+/**
+ * Bottom chrome for serial sync progress and parallel download transfers.
+ *
+ * Downloads stay off the sync queue (that queue exists to keep background work serial). This bar
+ * can show both lines at once: sync job label + count, and "Downloading X of Y" with a spinner
+ * while transfers run. Presence is derived from live state — no dismiss control.
+ */
+export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
+  const { t } = useTranslation();
+  const { state } = useSync();
+  const { downloads } = useDownloadsList();
+  const { styles: themeStyles, tokens } = useTheme();
+
+  const { activeLabelKey, completedCount, status, totalCount } = state;
+  const syncLabel = activeLabelKey === null ? null : t(activeLabelKey);
+  const syncVisible = status === 'running' && syncLabel !== null;
+
+  const inProgressCount = countInProgressDownloads(downloads);
+  const activeCount = countActiveDownloading(downloads);
+  const downloadsVisible = inProgressCount > 0;
+  const downloadLabel = downloadsVisible
+    ? t('features.download.activity_progress', {
+        active: activeCount,
+        total: inProgressCount,
+      })
+    : null;
+
+  const announcedLabelRef = useRef<string | null>(null);
+  useEffect(() => {
+    const combined = [syncLabel, downloadLabel].filter((part) => part !== null).join('. ');
+    if (combined.length === 0) {
+      announcedLabelRef.current = null;
+      return;
+    }
+    if (announcedLabelRef.current === combined) {
+      return;
+    }
+    announcedLabelRef.current = combined;
+    AccessibilityInfo.announceForAccessibility(combined);
+  }, [downloadLabel, syncLabel]);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          backgroundColor: tokens.background.secondary,
+          borderTopColor: themeStyles.border.borderColor,
+          borderTopWidth: 1,
+          paddingBottom: tokens.spacing.sm + bottomInset,
+          paddingHorizontal: tokens.spacing.lg,
+          paddingTop: tokens.spacing.sm,
+        },
+        count: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 12,
+        },
+        label: {
+          color: themeStyles.textSecondary.color,
+          flexShrink: 1,
+          fontSize: 12,
+        },
+        row: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: tokens.spacing.md,
+          justifyContent: 'space-between',
+        },
+        rowAfterTrack: {
+          marginTop: tokens.spacing.sm,
+        },
+        section: {
+          marginTop: tokens.spacing.sm,
+        },
+        sectionFirst: {
+          marginTop: 0,
+        },
+      }),
+    [bottomInset, themeStyles, tokens]
+  );
+
+  if (!syncVisible && !downloadsVisible) {
+    return null;
+  }
+
+  const syncCountText = t('sync.progress', { completed: completedCount, total: totalCount });
+
+  return (
+    <View style={styles.container} testID="global-activity-bar">
+      {syncVisible ? (
+        <View
+          accessible
+          accessibilityLabel={syncLabel ?? undefined}
+          accessibilityRole="progressbar"
+          accessibilityValue={{
+            max: totalCount,
+            min: 0,
+            now: completedCount,
+            text: syncCountText,
+          }}
+          style={styles.sectionFirst}
+          testID="sync-progress-bar"
+        >
+          <ProgressTrack
+            fillTestID="sync-progress-fill"
+            ratio={totalCount > 0 ? completedCount / totalCount : 0}
+          />
+          <View style={[styles.row, styles.rowAfterTrack]}>
+            <Text numberOfLines={1} style={styles.label} testID="sync-progress-label">
+              {syncLabel}
+            </Text>
+            <Text style={styles.count} testID="sync-progress-count">
+              {syncCountText}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+      {downloadsVisible && downloadLabel !== null ? (
+        <View
+          accessible
+          accessibilityLabel={downloadLabel}
+          accessibilityRole="text"
+          accessibilityState={{ busy: true }}
+          style={syncVisible ? styles.section : styles.sectionFirst}
+          testID="download-activity-bar"
+        >
+          <View style={styles.row}>
+            <Text numberOfLines={1} style={styles.label} testID="download-activity-label">
+              {downloadLabel}
+            </Text>
+            <ActivityIndicator
+              accessibilityElementsHidden
+              color={themeStyles.textSecondary.color}
+              importantForAccessibility="no"
+              size="small"
+              testID="download-activity-spinner"
+            />
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+}

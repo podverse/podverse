@@ -254,6 +254,7 @@ describe('planSyncRun', () => {
 
     expect(kinds).toContain('channel-items-scan');
     expect(kinds).toContain('account-refresh');
+    expect(kinds).toContain('playback-replay');
     expect(kinds).toContain('queue-hydrate');
     expect(kinds).toContain('add-by-rss-refresh');
   });
@@ -272,7 +273,37 @@ describe('planSyncRun', () => {
     const foregrounded = planSyncRun({ isAuthenticated: true, trigger: 'app-foreground' });
 
     expect(pulled.every((planned) => planned.priority === 'user')).toBe(true);
-    expect(foregrounded.every((planned) => planned.priority === 'background')).toBe(true);
+    expect(
+      foregrounded
+        .filter((planned) => planned.kind !== 'playback-replay')
+        .every((planned) => planned.priority === 'background')
+    ).toBe(true);
+    expect(foregrounded.find((planned) => planned.kind === 'playback-replay')?.priority).toBe(
+      'user'
+    );
+  });
+
+  it('plans playback replay ahead of queue hydrate on the right authenticated triggers', () => {
+    const triggersWithReplay = [
+      'app-start',
+      'sign-in',
+      'app-foreground',
+      'connectivity-restored',
+    ] as const;
+
+    for (const trigger of triggersWithReplay) {
+      const planned = planSyncRun({ isAuthenticated: true, trigger });
+      const replayIndex = planned.findIndex((job) => job.kind === 'playback-replay');
+      const hydrateIndex = planned.findIndex((job) => job.kind === 'queue-hydrate');
+
+      expect(replayIndex).toBeGreaterThan(-1);
+      expect(hydrateIndex).toBeGreaterThan(-1);
+      expect(replayIndex).toBeLessThan(hydrateIndex);
+      expect(planned[replayIndex]?.priority).toBe('user');
+    }
+
+    const pullPlanned = planSyncRun({ isAuthenticated: true, trigger: 'pull-to-refresh' });
+    expect(pullPlanned.some((job) => job.kind === 'playback-replay')).toBe(false);
   });
 
   it('plans only roots, leaving discovered work to the job that finds it', () => {

@@ -162,11 +162,13 @@ File: `migration-COPY-PASTA.md` (or `COPY-PASTA.md` in a plan set)
 - Phases are SEQUENTIAL (must wait for each to complete)
 - Agents WITHIN phases run in PARALLEL
 
-**Required: Recommended Cursor model and reasoning on every prompt.** Each COPY-PASTA block must state
-which model the operator should select in Cursor before pasting, plus a **Reasoning:** line (`low` |
-`medium` | `high` | `extra high`). Reasoning is thinking depth for that model (not the model name);
-defaults like Codex 5.3 + medium or Opus 5 + high are fine — use lower when work is mechanical,
-higher when schema/workers/cross-package risk warrants it.
+**Required: Recommended Cursor model and reasoning on every prompt.** Put **`Cursor model:`** and
+**`Reasoning:`** (`low` | `medium` | `high` | `extra high`) **outside** the fenced paste block —
+in the heading / checklist prose the operator reads before copying. The model and thinking depth
+are selected in the **Cursor UI**, not by text the agent reads; lines inside the paste fence do
+nothing useful. Reasoning is thinking depth for that model (not the model name); defaults like
+Codex 5.3 + medium or Opus 5 + high are fine — use lower when work is mechanical, higher when
+schema/workers/cross-package risk warrants it.
 
 Prefer these model tiers (cheapest → premium):
 
@@ -186,13 +188,21 @@ Prefer these model tiers (cheapest → premium):
 Use **one row per prompt** (or a summary table at phase top + per-prompt lines). If none of the
 three models fit, name the alternative model and one sentence why (e.g. a specialized subagent).
 
-Example per prompt:
+Example per prompt (model/reasoning **outside** the fence):
 
 ```markdown
+- [ ] **Prompt 3** complete
+
 **Cursor model:** Codex 5.3
 **Reasoning:** high
 
-- [ ] **Prompt 3** complete
+\`\`\`
+Read and execute .llm/plans/active/feature/migration-03.md
+
+[2-3 line summary]
+
+Do not run tests during agent work.
+\`\`\`
 ```
 
 Structure:
@@ -208,58 +218,55 @@ Structure:
 **DO** run agents within each phase simultaneously
 
 ## How to Use
-1. Phase 1: Copy prompt → paste → execute (1 agent) → **WAIT FOR COMPLETION**
-2. Phase 2: Copy 4 prompts → paste into 4 agents → execute all → **WAIT FOR ALL TO COMPLETE**
-3. Phase 3: Copy 2 prompts → paste into 2 agents → execute both → **WAIT FOR BOTH TO COMPLETE**
+1. Select the recommended **Cursor model** and **Reasoning** in the Cursor UI
+2. Phase 1: Copy the fenced prompt → paste → execute (1 agent) → **WAIT FOR COMPLETION**
+3. Phase 2: Copy 4 fenced prompts → paste into 4 agents → execute all → **WAIT FOR ALL TO COMPLETE**
+4. Phase 3: Copy 2 fenced prompts → paste into 2 agents → execute both → **WAIT FOR BOTH TO COMPLETE**
 
 ---
 
 ## PHASE 1: CRITICAL (Sequential)
 
 ### Agent 1: Critical Fix
-````
 
+**Cursor model:** Opus 5
+**Reasoning:** high
+
+\`\`\`
 Read and execute .llm/plans/active/feature/migration-06-critical.md
 
 [2-3 line summary of what this fixes]
 
 Verify: [quick verification command]
-
-**Cursor model:** Opus 5
-**Reasoning:** high
-
-```
+\`\`\`
 
 ---
 
 ## PHASE 2: PARALLEL EXECUTION (4 Agents)
 
 ### Agent 2A: Group A
-```
-
-Read and execute .llm/plans/active/feature/migration-08-group-a.md
-
-[1 line core rule reminder]
 
 **Cursor model:** Auto
 **Reasoning:** low
 
-```
-
-### Agent 2B: Group B
-```
-
-Read and execute .llm/plans/active/feature/migration-09-group-b.md
+\`\`\`
+Read and execute .llm/plans/active/feature/migration-08-group-a.md
 
 [1 line core rule reminder]
+\`\`\`
+
+### Agent 2B: Group B
 
 **Cursor model:** Codex 5.3
 **Reasoning:** medium
 
-```
+\`\`\`
+Read and execute .llm/plans/active/feature/migration-09-group-b.md
+
+[1 line core rule reminder]
+\`\`\`
 [... etc for all parallel groups ...]
 ```
-
 ## Naming Conventions
 
 ### Plan Files
@@ -273,7 +280,8 @@ Read and execute .llm/plans/active/feature/migration-09-group-b.md
 - Clear phase markers: "PHASE 1", "PHASE 2", etc.
 - Agent labels: "Agent 2A", "Agent 2B" for easy reference
 - Parallel indicators: "(Execute in Parallel - 4 Agents)"
-- **Recommended Cursor model** and **Reasoning** on every prompt (Auto, Codex 5.3, or Opus 5 preferred)
+- **Recommended Cursor model** and **Reasoning** on every prompt, **outside** the paste fence
+  (Auto, Codex 5.3, or Opus 5 preferred; selected in the Cursor UI)
 
 ## Efficiency Metrics
 
@@ -324,16 +332,48 @@ Savings: ~70% time reduction
 - Phase 2: Multiple frontend components (parallel)
 - Phase 3: Tests and documentation (parallel)
 
+## Shared files two agents will both reach for
+
+"Independent work" is decided by **files touched**, not by feature area. Some files in this repo are
+touched by nearly every prompt in a set regardless of how cleanly the features divide, so two agents
+running at once will both edit them:
+
+| File                                        | Why every prompt reaches it                       |
+| ------------------------------------------- | ------------------------------------------------- |
+| `packages/i18n-catalog/*/originals/*.json`  | Any user-facing string on any surface             |
+| `apps/mobile/e2e/<area>.yaml`               | Each prompt extends coverage for the same screen  |
+| `apps/api/openapi.yml`                      | Any API surface change                            |
+| The set's own `COPY-PASTA.md`               | Each agent checks its own prompt off              |
+| The screen or navigator a feature lives on  | Later prompts mount into what earlier ones built  |
+
+Two mitigations, in order of preference:
+
+1. **Serialize the prompts that share a file.** An execution order that says "03 and 04 may run in
+   parallel *if two agents split files*" is telling you to check first — when they don't split, run
+   them in sequence. Correctness is worth more than the wall-clock saving.
+2. **When you do parallelize, constrain the edits.** Tell each agent to make **targeted insertions**
+   into shared files and **never rewrite a whole file**, and name which keys or sections it owns.
+   A whole-file write loses the sibling agent's work; two `StrReplace` edits at different offsets
+   generally survive each other.
+
+Give every parallel agent an explicit **ownership boundary** in its prompt: the files it owns, the
+files it must not touch, and the contract (component name, props, file path) another agent left for
+it to build on. Agents cannot see each other's prompts, so an unstated boundary is an unenforced one.
+
 ## Anti-Patterns to Avoid
 
 ❌ **Don't**: Skip model or reasoning recommendation on COPY-PASTA prompts
-✅ **Do**: Label each prompt with **Cursor model:** and **Reasoning:** (low | medium | high | extra high)
+❌ **Don't**: Put **Cursor model:** / **Reasoning:** inside the fenced paste block (UI selection, not agent text)
+✅ **Do**: Label each prompt **above** the fence with **Cursor model:** and **Reasoning:** (low | medium | high | extra high)
 
 ❌ **Don't**: Copy all details into copy-pasta prompts
 ✅ **Do**: Reference detailed plan files from copy-pasta prompts
 
 ❌ **Don't**: Create artificial parallelization (files that could conflict)
 ✅ **Do**: Only parallelize truly independent work
+
+❌ **Don't**: Let a parallel agent rewrite a shared catalog / spec file wholesale
+✅ **Do**: Scope it to targeted insertions and name the keys or sections it owns
 
 ❌ **Don't**: Make phases too granular (1 file per plan)
 ✅ **Do**: Group related files (3-7 files per plan is ideal)
@@ -384,7 +424,7 @@ Before finalizing plans:
 - [ ] Parallel groups don't have conflicts
 - [ ] Each plan has verification steps
 - [ ] Copy-pasta references plans (doesn't duplicate)
-- [ ] Every COPY-PASTA prompt includes **Cursor model:** and **Reasoning:**
+- [ ] Every COPY-PASTA prompt has **Cursor model:** and **Reasoning:** outside the paste fence
 - [ ] Execution order is clear
 - [ ] Time estimates provided
 
@@ -475,3 +515,4 @@ When the pasted prompt is the **last** step in the plan set (`COPY-PASTA.md` / `
 
 - `create-plan`: For creating individual plan files
 - `Task` tool with `subagent_type: "explore"`: For initial scope analysis
+````

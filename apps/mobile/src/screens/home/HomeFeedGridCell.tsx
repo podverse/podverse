@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Badge, CoverImage } from '../../components/primitives';
+import { Badge, CountBadge, CoverImage, UnseenIndicator } from '../../components/primitives';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from './homeFeedData';
 
@@ -15,28 +15,28 @@ type HomeFeedGridCellProps = {
 /**
  * One artwork tile in the Home grid.
  *
- * Carries the unseen badge and nothing else, because a tile is small enough that a title and a
- * metadata line would crowd the artwork the grid exists to show. The list view remains the one that
- * states everything about a subscription; the grid trades that detail for seeing more at once.
- *
- * The title is still the tile's accessible name. Without it a screen reader reaches a wall of
- * unlabelled squares, and artwork alone identifies nothing to a user who cannot see it — so the
- * grid must cost that user no information even though it shows less.
+ * Live sits top-right, unseen is a presence dot bottom-right, and the downloaded count sits
+ * bottom-left so the three can show together without stacking. Titles stay off the tile — the
+ * list view is where full metadata lives — but each marker folds into the accessible name so a
+ * screen reader is not left with blank squares.
  */
 export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
 
+  const liveLabel = row.metadata?.isLive === true ? t('media.livestream.live') : null;
   const unseenBadge = row.metadata?.unseenBadge ?? null;
-  const unseenLabel =
-    unseenBadge === null
-      ? null
-      : t(
-          unseenBadge.isCapped
-            ? 'subscriptions.row.unseen_count_capped'
-            : 'subscriptions.row.unseen_count',
-          { count: unseenBadge.count }
-        );
+  const unseenLabel = unseenBadge === null ? null : t('subscriptions.row.unseen_indicator_aria');
+
+  const downloadedCount = row.metadata?.downloadedCount ?? 0;
+  const downloadedLabel =
+    downloadedCount > 0
+      ? t('subscriptions.row.downloaded_count', { count: downloadedCount })
+      : null;
+
+  const accessibilityLabel = [row.title, liveLabel, unseenLabel, downloadedLabel]
+    .filter((part) => part !== null)
+    .join(', ');
 
   const styles = useMemo(
     () =>
@@ -46,13 +46,27 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
           aspectRatio: 1,
           width: '100%',
         },
-        badge: {
+        cell: {
+          marginBottom: tokens.spacing.md,
+        },
+        downloadedBadge: {
+          bottom: tokens.spacing.xs,
+          left: tokens.spacing.xs,
+          position: 'absolute',
+        },
+        liveBadge: {
           position: 'absolute',
           right: tokens.spacing.xs,
           top: tokens.spacing.xs,
         },
-        cell: {
-          marginBottom: tokens.spacing.md,
+        tile: {
+          position: 'relative',
+          width: '100%',
+        },
+        unseenIndicator: {
+          bottom: tokens.spacing.xs,
+          position: 'absolute',
+          right: tokens.spacing.xs,
         },
       }),
     [tokens]
@@ -60,30 +74,46 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
 
   return (
     <Pressable
-      accessibilityLabel={[row.title, unseenLabel].filter((part) => part !== null).join(', ')}
-      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="imagebutton"
+      accessible
       onPress={() => {
         onPress(row);
       }}
       style={styles.cell}
       testID={testID ?? `home-feed-cell-${row.id}`}
     >
-      {/* The title, not a generic "Image" placeholder: several untitled grey squares would be
-          indistinguishable, and this is the one view with no title beneath the artwork. */}
-      <CoverImage
-        fallbackLabel={row.title}
-        opensViewer={false}
-        style={styles.artwork}
-        uri={row.imageUrl}
-      />
-      {unseenLabel !== null ? (
-        <Badge
-          label={unseenLabel}
-          style={styles.badge}
-          testID={`home-feed-cell-unseen-${row.id}`}
-          tone="accent"
+      <View style={styles.tile}>
+        {/* Artwork is decorative here: the Pressable owns the accessible name (title + badges). */}
+        <CoverImage
+          fallbackLabel={row.title}
+          opensViewer={false}
+          style={styles.artwork}
+          uri={row.imageUrl}
         />
-      ) : null}
+        {liveLabel !== null ? (
+          <Badge
+            label={liveLabel}
+            style={styles.liveBadge}
+            testID={`home-feed-cell-live-${row.id}`}
+            tone="danger"
+          />
+        ) : null}
+        {downloadedCount > 0 ? (
+          <CountBadge
+            count={downloadedCount}
+            style={styles.downloadedBadge}
+            testID={`home-feed-cell-downloaded-${row.id}`}
+            tone="muted"
+          />
+        ) : null}
+        {unseenBadge !== null ? (
+          <UnseenIndicator
+            style={styles.unseenIndicator}
+            testID={`home-feed-cell-unseen-${row.id}`}
+          />
+        ) : null}
+      </View>
     </Pressable>
   );
 }

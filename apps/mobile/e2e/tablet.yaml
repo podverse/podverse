@@ -1,16 +1,16 @@
 appId: com.podverse.app.next
 name: Tablet Home And Podcast Detail
 ---
-# Opt-in tablet viewport screenshots (Home multi-column + podcast split).
+# Opt-in tablet viewport screenshots (Home multi-column, podcast detail, two-column full player).
 # Runs only on ios-tablet / android-tablet slots (`npm run mobile:e2e:test -- tablet`).
 # Excluded from `mobile:e2e:test:all` (phone matrix).
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
-# The split needs tablet layout AND (landscape OR width ≥ lg=900). The iPad Pro 13" is ~1032dp wide
-# in portrait (already ≥ lg → left rail + split render without rotating), but the Pixel Tablet E2E
-# AVD is ~800dp in portrait (< lg), so only Android must rotate to cross lg. Rotating the iPad dev
+# The wide layouts need tablet metrics AND (landscape OR width ≥ lg=900). The iPad Pro 13" is
+# ~1032dp wide in portrait (already ≥ lg → left rail and wide panes render without rotating), but
+# the Pixel Tablet E2E AVD is ~800dp in portrait (< lg), so only Android must rotate. Rotating the iPad dev
 # client mid-flow destabilizes it (the Expo launcher reappears and `tab-home` disappears), so gate
 # the rotation to Android; iOS stays portrait and still exercises the tablet layout.
 - runFlow:
@@ -44,12 +44,14 @@ name: Tablet Home And Podcast Detail
     id: search-result-row-0
 - extendedWaitUntil:
     visible:
-      id: podcast-detail-split
+      id: podcast-detail-screen
     timeout: ${TIMEOUT_FAST}
+# A podcast reads as one column at every width: the identity block scrolls with the episodes rather
+# than holding a pane of its own, so the tablet screenshot is the same shell as the phone.
 - assertVisible:
-    id: podcast-detail-split
+    id: podcast-detail-header
 - assertVisible:
-    id: podcast-detail-screen
+    id: podcast-detail-sections
 - takeScreenshot: tablet-podcast-detail
 
 - assertVisible:

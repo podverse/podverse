@@ -1,3 +1,4 @@
+import { loggerService } from '@api/factories/loggerService.js';
 import {
   ensureAuthenticated,
   getAuthenticatedUser,
@@ -21,13 +22,76 @@ import {
   SharableStatusEnum,
   summarizeBulkFollowResults,
 } from '@podverse/helpers';
-import { AccountFollowingChannelService, AccountService } from '@podverse/orm';
+import {
+  AccountFollowingChannelService,
+  AccountNotificationChannelService,
+  AccountService,
+  AccountSettingsNotificationService,
+} from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
 
 class AccountFollowingChannelController {
   private static accountFollowingChannelService = new AccountFollowingChannelService();
+  private static accountNotificationChannelService = new AccountNotificationChannelService();
   private static accountService = new AccountService();
+  private static accountSettingsNotificationService = new AccountSettingsNotificationService();
+
+  /**
+   * Whether this account asked for notifications to follow along with its subscriptions.
+   *
+   * Read as off when the settings row cannot be loaded: a follow must never turn notifications on
+   * by accident.
+   */
+  private static async isAutoEnableOnSubscribeEnabled(account_id: number): Promise<boolean> {
+    try {
+      const settings =
+        await AccountFollowingChannelController.accountSettingsNotificationService.getByAccountId(
+          account_id
+        );
+      return settings?.auto_enable_on_subscribe === true;
+    } catch (err) {
+      loggerService.error('Could not read auto_enable_on_subscribe for follow', {
+        account_id,
+        error: err,
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Create the per-channel notification row for a channel the account just followed.
+   *
+   * The follow has already succeeded and been recorded by the time this runs, so a failure here is
+   * logged and swallowed — losing notifications is recoverable from Settings, losing the follow is
+   * not.
+   */
+  private static async createNotificationChannelForFollow(
+    account_id: number,
+    channel_id_text: string
+  ): Promise<void> {
+    try {
+      const existing =
+        await AccountFollowingChannelController.accountNotificationChannelService.getByAccountIdAndChannelIdText(
+          account_id,
+          channel_id_text
+        );
+      if (existing !== null) {
+        return;
+      }
+
+      await AccountFollowingChannelController.accountNotificationChannelService.create(
+        account_id,
+        channel_id_text
+      );
+    } catch (err) {
+      loggerService.error('Could not auto-enable notifications for a followed channel', {
+        account_id,
+        channel_id_text,
+        error: err,
+      });
+    }
+  }
 
   static async getFollowedChannels(req: Request, res: Response): Promise<void> {
     const querySchema = Joi.object({
@@ -95,6 +159,16 @@ class AccountFollowingChannelController {
               account.id,
               channel_id_text
             );
+
+            if (
+              await AccountFollowingChannelController.isAutoEnableOnSubscribeEnabled(account.id)
+            ) {
+              await AccountFollowingChannelController.createNotificationChannelForFollow(
+                account.id,
+                channel_id_text
+              );
+            }
+
             res.status(201).json({ message: 'Successfully followed channel' });
           } catch (err) {
             handleGenericErrorResponse(res, err);
@@ -137,6 +211,23 @@ class AccountFollowingChannelController {
                 account.id,
                 channel_id_texts
               );
+
+            if (
+              await AccountFollowingChannelController.isAutoEnableOnSubscribeEnabled(account.id)
+            ) {
+              // Only the channels this request actually followed: an already-followed channel was
+              // handled when it was first followed, and its notification row is the user's to keep
+              // or remove.
+              for (const result of results) {
+                if (result.outcome === 'followed') {
+                  await AccountFollowingChannelController.createNotificationChannelForFollow(
+                    account.id,
+                    result.channel_id_text
+                  );
+                }
+              }
+            }
+
             const response: BulkFollowChannelsResponse = {
               totals: summarizeBulkFollowResults(results),
               results,

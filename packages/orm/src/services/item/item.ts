@@ -7,6 +7,7 @@ import type { LiveItem } from '@orm/entities/liveItem/liveItem.js';
 import { getLiveItemStatusEnumValue } from '@orm/entities/liveItem/liveItemStatus.js';
 import type { StatsAggregatedItem } from '@orm/entities/stats/statsAggregatedItem.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
+import { getChannelCategoryWhere } from '@orm/lib/categoryFilterWhere.js';
 import {
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,
@@ -327,7 +328,7 @@ export class ItemService {
         },
       },
       ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
-      ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
+      ...getChannelCategoryWhere(category_id),
     };
 
     const liveItemWhere: FindOptionsWhere<LiveItem> = {

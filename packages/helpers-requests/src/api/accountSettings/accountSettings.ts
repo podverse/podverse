@@ -13,13 +13,13 @@ type ReqNotificationTypeParams = {
 
 export async function reqAccountSettingsListenStatsUpdate(
   api: ApiRequestService,
-  params: { allow_listen_stats: boolean }
+  params: { accepted: boolean }
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account-settings/listen-stats',
     method: 'PATCH',
     data: {
-      allow_listen_stats: params.allow_listen_stats,
+      accepted: params.accepted,
     },
     config: {
       withCredentials: true,
@@ -56,6 +56,24 @@ export async function reqAccountSettingsLocaleUpdate(
     method: 'PATCH',
     data: {
       locale: params.locale,
+    },
+    config: {
+      withCredentials: true,
+    },
+  });
+
+  return reqAuthMe(api);
+}
+
+export async function reqAccountSettingsNotificationUpdate(
+  api: ApiRequestService,
+  params: { auto_enable_on_subscribe: boolean }
+): Promise<DTOAccount> {
+  await api.apiRequest({
+    path: '/account-settings/notification',
+    method: 'PATCH',
+    data: {
+      auto_enable_on_subscribe: params.auto_enable_on_subscribe,
     },
     config: {
       withCredentials: true,

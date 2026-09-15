@@ -25,6 +25,9 @@ name: Search Flow
 - takeScreenshot: search-screen-music-chip
 
 - tapOn:
+    id: search-medium-all
+
+- tapOn:
     id: search-input
 - inputText: podcast
 - assertVisible:

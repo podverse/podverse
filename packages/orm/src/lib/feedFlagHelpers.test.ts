@@ -1,4 +1,7 @@
+import { In } from 'typeorm';
 import { describe, expect, it } from 'vitest';
+
+import { CategoryEnum, expandCategoryFilterIds } from '@podverse/helpers';
 
 import { getActiveFeedWhere } from './feedFlagHelpers.js';
 
@@ -30,13 +33,15 @@ describe('getActiveFeedWhere', () => {
     const where = getActiveFeedWhere({
       channel_ids: [1, 2, 3],
       mediumType: 'podcasts',
-      category_id: 9,
+      category_id: CategoryEnum.KidsAndFamily,
     });
 
     expect(where.channel).toBeDefined();
     expect(where.channel.id).toBeDefined();
     expect(where.channel.medium_id).toBeDefined();
-    expect(where.channel.channel_categories).toEqual({ category_id: expect.any(Object) });
+    expect(where.channel.channel_categories).toEqual({
+      category_id: In(expandCategoryFilterIds(CategoryEnum.KidsAndFamily)),
+    });
     expect(where.channel.channel_about).toBeDefined();
     expect(where.channel.channel_about.id).toBeDefined();
   });

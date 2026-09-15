@@ -2,6 +2,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { Image, Linking, Modal, Platform, StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import splashBanner from './assets/splash/banner.png';
@@ -18,6 +19,7 @@ import { MobileTabNavigator, navigateToMembershipScreen } from './src/navigation
 import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
 import { TabLayoutProvider, useTabLayout } from './src/navigation/TabLayoutProvider';
 import { PlaybackProvider } from './src/playback';
+import { PopularityTrackingProvider } from './src/popularityTracking/PopularityTrackingProvider';
 import {
   getInitialNotificationDeepLinkUrl,
   subscribeToNotificationOpen,
@@ -102,21 +104,23 @@ export default function App() {
   // SplashController covers both native hide + a JS overlay (needed for Dev Client, which often
   // dismisses the launch storyboard before the JS bundle runs).
   return (
-    <ThemeProvider>
-      <TabLayoutProvider>
-        <AuthProvider>
-          {isI18nReady ? (
-            <AppReadyGate
-              onConsumePendingDeepLink={() => {
-                setPendingDeepLinkUrl(null);
-              }}
-              pendingDeepLinkUrl={pendingDeepLinkUrl}
-            />
-          ) : null}
-          <SplashController isI18nReady={isI18nReady} />
-        </AuthProvider>
-      </TabLayoutProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={styles.appRoot}>
+      <ThemeProvider>
+        <TabLayoutProvider>
+          <AuthProvider>
+            {isI18nReady ? (
+              <AppReadyGate
+                onConsumePendingDeepLink={() => {
+                  setPendingDeepLinkUrl(null);
+                }}
+                pendingDeepLinkUrl={pendingDeepLinkUrl}
+              />
+            ) : null}
+            <SplashController isI18nReady={isI18nReady} />
+          </AuthProvider>
+        </TabLayoutProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -241,34 +245,40 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
           }}
         >
           <MembershipGateProvider onNavigateToMembership={navigateToMembershipScreen}>
-            <ForcedLogoutNotice />
-            <View style={styles.appRoot}>
-              <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
-              <MobileTabNavigator
-                onConsumePendingDeepLink={onConsumePendingDeepLink}
-                pendingDeepLinkUrl={pendingDeepLinkUrl}
-                onRequestLogin={() => {
-                  setAuthMode('login');
-                }}
-                onRequestLogout={async () => {
-                  await logout();
-                  setAuthMode('anonymous');
-                }}
-                onRequestSignUp={() => {
-                  setAuthMode('signup');
-                }}
-              />
-            </View>
+            <PopularityTrackingProvider>
+              <ForcedLogoutNotice />
+              <View style={styles.appRoot}>
+                <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
+                <MobileTabNavigator
+                  onConsumePendingDeepLink={onConsumePendingDeepLink}
+                  pendingDeepLinkUrl={pendingDeepLinkUrl}
+                  onRequestLogin={() => {
+                    setAuthMode('login');
+                  }}
+                  onRequestLogout={async () => {
+                    await logout();
+                    setAuthMode('anonymous');
+                  }}
+                  onRequestSignUp={() => {
+                    setAuthMode('signup');
+                  }}
+                />
+              </View>
+            </PopularityTrackingProvider>
           </MembershipGateProvider>
         </AuthPromptProvider>
       )}
-      {status === 'anonymous' ? (
-        <Modal
-          animationType="slide"
-          onRequestClose={dismissAuthSheet}
-          presentationStyle="fullScreen"
-          visible={showAuthSheet}
-        >
+      {/*
+        Stays mounted so a successful login closes it through `visible`. Unmounting a presented
+        full-screen modal skips the iOS dismissal and leaves an empty window over the tab shell.
+      */}
+      <Modal
+        animationType="slide"
+        onRequestClose={dismissAuthSheet}
+        presentationStyle="fullScreen"
+        visible={showAuthSheet}
+      >
+        <View accessibilityViewIsModal style={styles.authSheet}>
           <SafeAreaProvider>
             {authMode === 'signup' ? (
               <SignUpScreen
@@ -286,8 +296,8 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
               />
             )}
           </SafeAreaProvider>
-        </Modal>
-      ) : null}
+        </View>
+      </Modal>
       <StatusBar style={statusBarStyle} />
     </>
   );
@@ -295,6 +305,9 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
 
 const styles = StyleSheet.create({
   appRoot: {
+    flex: 1,
+  },
+  authSheet: {
     flex: 1,
   },
   splashBanner: {

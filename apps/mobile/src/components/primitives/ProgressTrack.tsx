@@ -10,8 +10,11 @@ export type ProgressTrackProps = {
   /** Fraction filled, 0–1. Out-of-range values are clamped. */
   ratio: number;
   height?: number;
+  /** Colored used portion. Zero-width when `ratio` is 0, so it is not Maestro-visible. */
   fillTestID?: string;
   style?: StyleProp<ViewStyle>;
+  /** The track itself — present whenever this bar is mounted, including at 0 fill. */
+  testID?: string;
 };
 
 /**
@@ -21,7 +24,13 @@ export type ProgressTrackProps = {
  * whatever contains it. The same visual is a seek control in the full player, decoration inside the
  * mini player's button, and a progressbar in the sync bar. The caller owns role, name, and value.
  */
-export function ProgressTrack({ fillTestID, height = 2, ratio, style }: ProgressTrackProps) {
+export function ProgressTrack({
+  fillTestID,
+  height = 2,
+  ratio,
+  style,
+  testID,
+}: ProgressTrackProps) {
   const { styles: themeStyles, tokens } = useTheme();
   const fillRatio = clampRatio(ratio);
 
@@ -43,7 +52,7 @@ export function ProgressTrack({ fillTestID, height = 2, ratio, style }: Progress
   );
 
   return (
-    <View style={[styles.track, style]}>
+    <View style={[styles.track, style]} testID={testID}>
       <View style={[styles.fill, { flex: fillRatio }]} testID={fillTestID} />
       <View style={{ flex: 1 - fillRatio }} />
     </View>

@@ -12,7 +12,8 @@
       "home": "Home",
       "opml": "OPML",
       "search_result": "Search Result",
-      "rss_feeds": "RSS Feeds"
+      "rss_feeds": "RSS Feeds",
+      "podcast_settings": "Podcast Settings"
     },
     "menu": {
       "opml": "OPML",
@@ -27,9 +28,13 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "channel": {
+      "section_requires_connection": "This section needs a connection. Try again once you are back online."
+    },
     "browse": {
-      "categories_selected": "Categories – {name}",
       "category_all": "All categories",
+      "collapse_category": "Hide {name} subcategories",
+      "expand_category": "Show {name} subcategories",
       "empty": "Nothing to show yet",
       "range_all_time": "All-time",
       "sort_popularity": "Popularity",
@@ -38,7 +43,10 @@
     "download": {
       "queued": "Queued",
       "remove": "Remove",
+      "cancel_download": "Cancel download",
+      "remove_download": "Remove download",
       "empty": "No downloads yet",
+      "downloaded": "Downloaded",
       "not_downloadable": "This episode can't be downloaded for offline play",
       "storage_used": "Storage used",
       "auto_delete_label": "Auto-delete oldest when storage is full",
@@ -46,7 +54,17 @@
       "delete_all": "Delete all",
       "auto_removed_notice": "Removed the oldest downloads to free up space",
       "dismiss": "Dismiss",
-      "in_progress_count": "{count} in progress"
+      "in_progress_count": "{count} in progress",
+      "auto_download": "Auto-download new episodes",
+      "auto_download_unavailable": "Auto-download is not available yet.",
+      "paused": "Paused",
+      "pause_all": "Pause all",
+      "resume_all": "Resume all",
+      "clear_finished": "Clear all finished",
+      "section_in_progress": "In progress",
+      "section_failed": "Failed",
+      "section_completed": "Completed",
+      "activity_progress": "Downloading {active} of {total}"
     },
     "search": {
       "add_podcast": "Add podcast",
@@ -68,7 +86,33 @@
       "appearance_description": "Theme and language",
       "playback": "Playback",
       "playback_description": "Default media type and auto queue",
+      "downloads_description": "Storage limit, auto-free, and delete all downloads",
       "notifications_description": "In-app and push alerts"
+    },
+    "offline_mode": {
+      "title": "Offline mode",
+      "description": "Offline mode uses only downloads and other content already stored on this device. Search, Browse, sync, and anything that needs the internet stay unavailable until you turn it off.",
+      "unavailable": "This screen isn't available in Offline Mode.",
+      "banner": "Offline mode is on"
+    },
+    "downloads": {
+      "storage_heading": "Storage",
+      "device_storage": "Device",
+      "downloaded_media": "Downloaded media",
+      "app_data": "App data",
+      "cache": "Cache",
+      "limit_label": "Download limit",
+      "unlimited": "Unlimited",
+      "auto_free_heading": "Automatically free space",
+      "auto_delete_on_limit": "When my download limit is reached",
+      "auto_delete_on_limit_description": "Deletes the oldest finished downloads first until you are back under the limit.",
+      "auto_delete_on_device_low": "When the phone is low on free space",
+      "auto_delete_on_device_low_description": "Deletes the oldest finished downloads when free space drops below 1 GB, even if you are still under your download limit.",
+      "delete_all_heading": "Delete all downloads",
+      "delete_all_description": "Permanently deletes the local media files and download index entries on this device. This cannot be undone.",
+      "delete_all": "Delete all",
+      "delete_all_confirm_title": "Delete all downloads?",
+      "delete_all_confirm_body": "This deletes every local download file and removes them from the Downloads list. Episodes will need to be downloaded again for offline play."
     },
     "notifications": {
       "login_required_title": "Login required",
@@ -88,12 +132,25 @@
       "reorder_hint": "Moves this screen on the tab bar or into More"
     }
   },
+  "e2e": {
+    "section": "E2E",
+    "smoke": "Smoke",
+    "playback": "Playback",
+    "playback_intro": "These controls exist only in E2E test builds. They start seeded media the product screens do not expose yet.",
+    "play_video": "Play E2E video",
+    "skip_next": "Skip to next",
+    "complete_now_playing": "Mark now-playing complete"
+  },
+  "subscriptions": {
+    "downloaded_only": "Downloaded only"
+  },
   "sync": {
     "job": {
       "account": "Updating your account",
       "subscriptions": "Updating your podcasts",
       "playlists": "Updating your playlists",
       "queue": "Updating your queue",
+      "playback": "Saving your playback progress",
       "library": "Updating your offline library",
       "notifications": "Setting up notifications",
       "episodes": "Updating your episodes",

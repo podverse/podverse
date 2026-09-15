@@ -10,11 +10,14 @@ import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { HelperNote } from '../../components/feedback/HelperNote';
 import { Button, CoverImage } from '../../components/primitives';
+import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListLoading } from '../../components/state/ListLoading';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import type { SearchStackParamList } from '../../navigation';
-import { SEARCH_STACK_ROUTES } from '../../navigation';
+import { buildPodcastDetailParams, SEARCH_STACK_ROUTES } from '../../navigation';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import {
   getChannelDetailRouteKind,
@@ -42,7 +45,8 @@ type AddErrorKey = 'features.search.add_failed' | 'features.search.add_timed_out
 const replaceWithSearchChannelDetail = (
   navigation: PodcastIndexFeedPreviewScreenProps['navigation'],
   mediumId: number,
-  idText: string
+  idText: string,
+  preview: { imageUrl: string | null; title: string }
 ) => {
   const kind = getChannelDetailRouteKind(mediumId);
   if (kind === 'artist') {
@@ -53,7 +57,14 @@ const replaceWithSearchChannelDetail = (
     navigation.replace(SEARCH_STACK_ROUTES.AlbumDetail, { albumId: idText });
     return;
   }
-  navigation.replace(SEARCH_STACK_ROUTES.PodcastDetail, { podcastId: idText });
+  navigation.replace(
+    SEARCH_STACK_ROUTES.PodcastDetail,
+    buildPodcastDetailParams({
+      podcastId: idText,
+      previewImageUrl: preview.imageUrl,
+      previewTitle: preview.title,
+    })
+  );
 };
 
 export function PodcastIndexFeedPreviewScreen({
@@ -64,6 +75,7 @@ export function PodcastIndexFeedPreviewScreen({
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
   const { styles: themeStyles, tokens } = useTheme();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
   const isMountedRef = useRef(true);
@@ -109,7 +121,7 @@ export function PodcastIndexFeedPreviewScreen({
   }, []);
 
   useEffect(() => {
-    if (feed !== null) {
+    if (feed !== null || offlineModeEnabled) {
       return;
     }
 
@@ -164,13 +176,24 @@ export function PodcastIndexFeedPreviewScreen({
     return () => {
       isActive = false;
     };
-  }, [accessToken, clearSession, feed, refreshToken, route.params.resultId, setTokens]);
+  }, [
+    accessToken,
+    clearSession,
+    feed,
+    offlineModeEnabled,
+    refreshToken,
+    route.params.resultId,
+    setTokens,
+  ]);
 
   const navigateToChannelDetail = useCallback(
     (mediumId: number, idText: string) => {
-      replaceWithSearchChannelDetail(navigation, mediumId, idText);
+      replaceWithSearchChannelDetail(navigation, mediumId, idText, {
+        imageUrl: feed?.imageUrl ?? null,
+        title: feed?.title ?? '',
+      });
     },
-    [navigation]
+    [feed?.imageUrl, feed?.title, navigation]
   );
 
   const handleAddPress = useCallback(async () => {
@@ -310,6 +333,17 @@ export function PodcastIndexFeedPreviewScreen({
       }),
     [themeStyles, tokens]
   );
+
+  if (offlineModeEnabled) {
+    return (
+      <View style={styles.container} testID="pi-feed-preview-screen">
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="pi-feed-preview-offline-unavailable"
+        />
+      </View>
+    );
+  }
 
   if (isHydrating) {
     return (

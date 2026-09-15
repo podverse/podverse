@@ -34,11 +34,13 @@ Never write auth tokens to SQLite or AsyncStorage.
 
 - `client.ts` — lazily opens `expo-sqlite` and exposes the Drizzle client (`getDb()`).
 - `schema.ts` — Drizzle table definitions (`kv_meta`, `account_snapshot`, `queue_cache`,
-  `add_by_rss_feed`, `download`, `subscribed_channel`, `channel_item`, `channel_item_window`,
-  `channel_seen`, `channel_live_status`, `sync_event_log`). Domain tables arrive as forward-only
-  migrations.
+  `playback_outbox`, `playback_local_state`, `add_by_rss_feed`, `download`,
+  `subscribed_channel`, `channel_item`, `channel_item_window`, `channel_seen`,
+  `channel_live_status`, `sync_event_log`). Domain tables arrive as forward-only migrations.
 - `migrations.ts` — forward-only migration list (append-only; strictly increasing integer
   `version`).
+- Migration `16` adds `playback_outbox` and `playback_local_state` for offline playback replay and
+  reconnect reconciliation.
 - `runMigrations.ts` — applies pending migrations in a transaction, tracked via
   `PRAGMA user_version`.
 - `index.ts` — `initializeDatabase()` (idempotent; called from `App.tsx` bootstrap, awaited by
@@ -83,9 +85,13 @@ Screen / hook  →  repository  →  SQLite (source of truth for phone UI)
   the trust window and status-ranking rules in `channelLiveStatus.ts`). `syncEventLogRepository`
   (capped diagnostic record of background sync
   failures in `sync_event_log`, surfaced at More ▸ Sync log; local-only, with the cap and eviction
-  rule in the pure sibling `syncEventLog.ts`). `exampleRepository` is a scaffold proving the pattern.
+  rule in the pure sibling `syncEventLog.ts`). `playbackOutboxRepository` (durable replay rows in
+  `playback_outbox` plus signed-in local playback state in `playback_local_state`, with meaningful
+  event filtering, collapse rules, and bounded retention). `exampleRepository` is a scaffold proving
+  the pattern.
 - `sync/` — generic `readThrough` / `writeBehind` primitives + `kv_meta` watermark helpers
-  (`readSyncWatermark`, `writeSyncWatermark`, `isWatermarkStale`).
+  (`readSyncWatermark`, `writeSyncWatermark`, `isWatermarkStale`) and playback clock-offset
+  metadata (`readPlaybackClockOffsetMs`, `writePlaybackClockOffsetMs`).
 - `nativeCache/` — `projectQueueSnapshotToNativeCache`, `projectDownloadsIndexToNativeCache`,
   `projectLibraryBrowseIndexToNativeCache`. Each stamps the versioned envelope (schema 12.1 /
   `380`) and forwards to the media-engine bridge, which persists durably on device (iOS/Android

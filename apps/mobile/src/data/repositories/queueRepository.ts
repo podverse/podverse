@@ -157,6 +157,19 @@ const forceRefreshUpcoming = async (
   return fetched;
 };
 
+/** Force-refresh paginated history from the server and rewrite the page cache key. */
+const forceRefreshHistoryPage = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string,
+  page: number
+): Promise<DTOQueueResource[]> => {
+  const response = await requestWithMobileAuthRefresh(context, async (api) =>
+    api.reqQueueResourcesGetHistoryByQueueIdTextPaginated(queueIdText, page)
+  );
+  await writeQueueCache(historyCacheKey(queueIdText, page), response.data);
+  return response.data;
+};
+
 /**
  * A now-playing resource targeted by a move-to-history mutation. Mirrors the web
  * `useQueueResourcesMoveNowPlayingToHistory` clip / soundbite / item branches.
@@ -166,6 +179,42 @@ export type MoveNowPlayingToHistoryTarget = {
   idText: string;
   playbackPosition?: string;
   completed?: boolean;
+};
+
+/**
+ * Write a resource into the queue's history, then bring every cache that describes the queue back
+ * in line: history pages, now-playing, upcoming, and the native-cache projection. Adding to history
+ * also takes the resource out of upcoming, so a partial refresh would leave the list lying.
+ */
+const addResourceToHistory = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string,
+  target: MoveNowPlayingToHistoryTarget
+): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
+  const params: QueueExtraParams = {
+    ...(target.playbackPosition !== undefined
+      ? { playback_position: target.playbackPosition }
+      : {}),
+    ...(target.completed !== undefined ? { completed: target.completed } : {}),
+  };
+
+  await requestWithMobileAuthRefresh(context, async (api) => {
+    if (target.kind === 'clip') {
+      return api.reqQueueResourceClipAddHistory(queueIdText, target.idText, params);
+    }
+    if (target.kind === 'soundbite') {
+      return api.reqQueueResourceItemSoundbiteAddHistory(queueIdText, target.idText, params);
+    }
+    return api.reqQueueResourceItemAddHistory(queueIdText, target.idText, params);
+  });
+
+  await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
+  const [nowPlaying, upcoming] = await Promise.all([
+    forceRefreshNowPlaying(context, queueIdText),
+    forceRefreshUpcoming(context, queueIdText),
+  ]);
+  await projectQueueForQueue(queueIdText);
+  return { nowPlaying, upcoming };
 };
 
 /**
@@ -229,7 +278,8 @@ export const queueRepository = {
 
   getNowPlaying: async (
     context: MobileAuthRequestContext,
-    queueIdText: string
+    queueIdText: string,
+    options?: { skipCache?: boolean }
   ): Promise<DTOQueueResource | null> => {
     const cacheKey = nowPlayingCacheKey(queueIdText);
     const hit = await readQueueCache<DTOQueueResource>(cacheKey);
@@ -244,6 +294,17 @@ export const queueRepository = {
       await projectQueueForQueue(queueIdText);
       return fetched;
     };
+
+    if (options?.skipCache === true) {
+      try {
+        return await fetchRemote();
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('[queue] now-playing skip-cache fetch failed', error);
+        }
+        return hit?.value ?? null;
+      }
+    }
 
     // now-playing can legitimately be null, so this can't use readThroughOrFetch (null = miss).
     if (hit === null) {
@@ -375,30 +436,53 @@ export const queueRepository = {
     context: MobileAuthRequestContext,
     queueIdText: string,
     target: MoveNowPlayingToHistoryTarget
-  ): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
-    const params: QueueExtraParams = {
-      ...(target.playbackPosition !== undefined
-        ? { playback_position: target.playbackPosition }
-        : {}),
-      ...(target.completed !== undefined ? { completed: target.completed } : {}),
-    };
+  ): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> =>
+    addResourceToHistory(context, queueIdText, target),
 
-    await requestWithMobileAuthRefresh(context, async (api) => {
-      if (target.kind === 'clip') {
-        return api.reqQueueResourceClipAddHistory(queueIdText, target.idText, params);
-      }
-      if (target.kind === 'soundbite') {
-        return api.reqQueueResourceItemSoundbiteAddHistory(queueIdText, target.idText, params);
-      }
-      return api.reqQueueResourceItemAddHistory(queueIdText, target.idText, params);
+  /**
+   * Mark a resource played from a list, without it ever having been now-playing. Same history write
+   * the queue lifecycle performs on a finished resource, so the two agree about what "played" means.
+   */
+  markAsPlayed: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    target: { kind: 'item' | 'clip' | 'soundbite'; idText: string }
+  ): Promise<void> => {
+    await addResourceToHistory(context, queueIdText, {
+      completed: true,
+      idText: target.idText,
+      kind: target.kind,
     });
+  },
 
-    await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
-    const [nowPlaying, upcoming] = await Promise.all([
-      forceRefreshNowPlaying(context, queueIdText),
-      forceRefreshUpcoming(context, queueIdText),
-    ]);
-    await projectQueueForQueue(queueIdText);
-    return { nowPlaying, upcoming };
+  /**
+   * Refresh queue cache rows from authoritative server state after playback reconcile and re-project
+   * the native cache snapshot for car/watch surfaces.
+   */
+  refreshAfterPlaybackReconcile: async (
+    context: MobileAuthRequestContext,
+    queueIdTexts: readonly string[]
+  ): Promise<void> => {
+    const uniqueQueueIdTexts = [...new Set(queueIdTexts)].filter(
+      (queueIdText) => queueIdText.length > 0
+    );
+    if (uniqueQueueIdTexts.length === 0) {
+      return;
+    }
+
+    const abridged = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourcesGetAllByAccountAbridged()
+    );
+    await writeQueueCache(CACHE_KEY_ABRIDGED_INDEX, abridged);
+
+    for (const queueIdText of uniqueQueueIdTexts) {
+      await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
+      await Promise.all([
+        forceRefreshNowPlaying(context, queueIdText),
+        forceRefreshUpcoming(context, queueIdText),
+        forceRefreshHistoryPage(context, queueIdText, 1),
+      ]);
+      await projectQueueForQueue(queueIdText);
+    }
   },
 };

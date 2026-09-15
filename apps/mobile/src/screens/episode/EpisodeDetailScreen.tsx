@@ -24,6 +24,15 @@ import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
+import { downloadsRepository } from '../../data/repositories/downloadsRepository';
+import { playbackContentRepository } from '../../data/repositories/playbackContentRepository';
+import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
+import {
+  isEpisodeTabNetworkBody,
+  OFFLINE_UNAVAILABLE_MESSAGE_KEY,
+} from '../../lib/offlineModeViews';
+import type { ItemSectionChromeFlags } from '../../lib/sectionChromeFlags';
+import { getCachedItemSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
@@ -37,10 +46,12 @@ import {
   writeEpisodeDetailClipSort,
   writeEpisodeDetailTab,
 } from '../../prefs/detailListPrefs';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
+import { itemSectionFlagsFromDto, resolveEpisodeTabs } from './episodeTabs';
 
 type EpisodeDetailScreenProps = NativeStackScreenProps<
   ChannelBrowseStackParamList,
@@ -82,7 +93,11 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const { t, i18n } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const { episodeId } = route.params;
+  const [previewFlags, setPreviewFlags] = useState<ItemSectionChromeFlags | null>(() =>
+    getCachedItemSectionFlags(episodeId)
+  );
   const [episode, setEpisode] = useState<DTOItem | null>(null);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [channelTitle, setChannelTitle] = useState<string | null>(null);
@@ -105,7 +120,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   });
   const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
-  const { playItem, playSoundbite } = usePlayback();
+  const { playSoundbite } = usePlayback();
 
   const styles = useMemo(
     () =>
@@ -184,28 +199,55 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   /**
    * The stored copy is the whole item as the feed delivered it, so an episode from a subscribed
    * channel opens and plays with no connection. Episodes reached from search or a channel the
-   * device does not follow have nothing stored and are fetched.
+   * device does not follow have nothing stored and are fetched — unless Offline Mode is on, in
+   * which case only the stored DTO (and download chrome for the channel title) is used.
    */
   const loadEpisode = useCallback(async () => {
     setIsLoading(true);
     setErrorKey(null);
     try {
+      const stored = await channelItemsRepository.getByIdText(episodeId);
       const response =
-        (await channelItemsRepository.getByIdText(episodeId)) ??
-        (await requestWithMobileAuthRefresh(
-          {
-            accessToken,
-            clearSession,
-            refreshToken,
-            setTokens,
-          },
-          async (api) => api.reqItemGetByIdOrIdText(episodeId)
-        ));
+        stored ??
+        (offlineModeEnabled
+          ? null
+          : await requestWithMobileAuthRefresh(
+              {
+                accessToken,
+                clearSession,
+                refreshToken,
+                setTokens,
+              },
+              async (api) => api.reqItemGetByIdOrIdText(episodeId)
+            ));
+
+      if (response === null) {
+        const download = offlineModeEnabled
+          ? await downloadsRepository.getByItemIdText(episodeId)
+          : null;
+        setEpisode(null);
+        setChannel(null);
+        setChannelTitle(download?.channelTitle ?? null);
+        if (offlineModeEnabled) {
+          setErrorKey(null);
+        } else {
+          setErrorKey('errors.generic');
+        }
+        return;
+      }
+
       setEpisode(response);
+      const nextFlags = itemSectionFlagsFromDto(response);
+      setPreviewFlags(nextFlags);
+      void sectionChromeFlagsRepository.mergeItem(episodeId, nextFlags);
 
       if (response.channel) {
         setChannel(response.channel);
         setChannelTitle(response.channel.title);
+      } else if (offlineModeEnabled) {
+        const localChannel = await playbackContentRepository.getLocalChannelForItem(episodeId);
+        setChannel(localChannel);
+        setChannelTitle(localChannel?.title ?? null);
       } else {
         const channelResponse = await requestWithMobileAuthRefresh(
           {
@@ -227,30 +269,20 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, clearSession, episodeId, refreshToken, setTokens]);
+  }, [accessToken, clearSession, episodeId, offlineModeEnabled, refreshToken, setTokens]);
 
   useEffect(() => {
     void loadEpisode();
   }, [loadEpisode]);
 
-  const supportedTabs = useMemo(() => {
-    if (episode === null) {
-      return ['summary'] as EpisodeTab[];
-    }
+  useEffect(() => {
+    setPreviewFlags(getCachedItemSectionFlags(episodeId));
+  }, [episodeId]);
 
-    const tabs: EpisodeTab[] = ['summary', 'clips'];
-    if (episode.item_chapters_feed !== null && episode.item_chapters_feed !== undefined) {
-      tabs.push('chapters');
-    }
-    if ((episode.item_soundbites ?? []).length > 0) {
-      tabs.push('soundbites');
-    }
-    if ((episode.item_transcripts ?? []).length > 0) {
-      tabs.push('transcript');
-    }
-
-    return tabs;
-  }, [episode]);
+  const supportedTabs = useMemo(
+    () => resolveEpisodeTabs({ episode, previewFlags }),
+    [episode, previewFlags]
+  );
 
   /**
    * A remembered tab still has to exist on this episode — one with no transcript cannot open on
@@ -293,6 +325,18 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const loadTab = useCallback(
     async (tab: EpisodeTab) => {
       if (tab === 'summary' || loadedTabs[tab]) {
+        return;
+      }
+
+      if (offlineModeEnabled) {
+        // Official clips may already sit on the stored item; other network panes stay unavailable.
+        if (tab === 'soundbites' && episode !== null && episode.item_soundbites.length > 0) {
+          setSoundbiteRows(episode.item_soundbites);
+          setLoadedTabs((previous) => ({
+            ...previous,
+            soundbites: true,
+          }));
+        }
         return;
       }
 
@@ -368,7 +412,16 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         setIsTabLoading(false);
       }
     },
-    [accessToken, clearSession, episodeId, loadedTabs, refreshToken, setTokens]
+    [
+      accessToken,
+      clearSession,
+      episode,
+      episodeId,
+      loadedTabs,
+      offlineModeEnabled,
+      refreshToken,
+      setTokens,
+    ]
   );
 
   useEffect(() => {
@@ -462,6 +515,22 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
 
     if (activeTab === 'summary') {
       return null;
+    }
+
+    if (offlineModeEnabled && isEpisodeTabNetworkBody(activeTab)) {
+      const hasCachedBody =
+        (activeTab === 'chapters' && chapterRows.length > 0) ||
+        (activeTab === 'soundbites' && soundbiteRows.length > 0) ||
+        (activeTab === 'clips' && clipRows.length > 0) ||
+        (activeTab === 'transcript' && transcriptText.length > 0);
+      if (!hasCachedBody) {
+        return (
+          <ListEmpty
+            messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+            testID="episode-detail-offline-unavailable"
+          />
+        );
+      }
     }
 
     if (activeTab === 'chapters') {
@@ -570,6 +639,12 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       testID="episode-detail-screen"
     >
       {isLoading ? <ListLoading testID="episode-detail-loading" /> : null}
+      {!isLoading && offlineModeEnabled && episode === null ? (
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="episode-detail-offline-unavailable"
+        />
+      ) : null}
       {!isLoading && errorKey !== null ? (
         <ListError
           messageKey={errorKey}
@@ -612,14 +687,10 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
                   isLast
                   mediaType="episodes"
                   onPlayPress={() => {
-                    if (episode !== null && channel !== null) {
-                      void playItem(episode, channel);
-                    }
+                    runPlayAction(episodeRow, 'episodes');
                   }}
                   onPress={() => {
-                    if (episode !== null && channel !== null) {
-                      void playItem(episode, channel);
-                    }
+                    runPlayAction(episodeRow, 'episodes');
                   }}
                   onQueuePress={(row, position) => {
                     runQueueAction(row, 'episodes', position);
@@ -629,7 +700,13 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
                 {playbackNoticeKey !== null ? (
                   <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
                 ) : null}
-                <DownloadControl item={episode} />
+                <DownloadControl
+                  item={
+                    episode.channel !== undefined || channel === null
+                      ? episode
+                      : { ...episode, channel }
+                  }
+                />
               </>
             ) : null}
           </View>

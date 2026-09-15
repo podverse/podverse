@@ -12,6 +12,9 @@ For files under `apps/mobile/src/**/*.tsx`:
 
 - The virtualized list owns scroll.
 - Put headings, filters, and header cards into `ListHeaderComponent`/`ListFooterComponent`.
+- Screen-level chrome that must stay visible (Home media-type chips, podcast identity + section
+  chips) sits **above** the list, not in `ListHeaderComponent`. Title filters stay in the list
+  header so pull-to-refresh appears above them.
 - Do not nest `FlatList`/`SectionList` inside `ScrollView` (including `MobileScreenContainer`).
 
 ## Grid rules

@@ -1,6 +1,11 @@
 # Full Local Infrastructure Test
 
-Run these commands from the monorepo root, in order.
+Run these commands from the monorepo root, **in order**. Do not start at step 6
+(mobile Maestro). Unit tests, static checks, and web / API E2E come first.
+
+The mobile slice (steps 5–6) matches
+[HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) sections 2–6. Use that file when you
+already finished the earlier tiers and only need the mobile runbook.
 
 ## 0. Optional cold dependency install
 
@@ -41,6 +46,7 @@ npm run test:unit
 
 ```bash
 npm --prefix apps/mobile run test
+npm run type-check:mobile
 ```
 
 ## 3. Static checks and builds
@@ -81,7 +87,7 @@ npm run mobile:reset
 
 ## 6. Mobile E2E
 
-Prepare the test dependencies once:
+Only after steps 1–5. Prepare the test dependencies once:
 
 **Mobile**
 
@@ -155,8 +161,10 @@ npm run mobile:e2e:test -- --platform ios subscriptions-anonymous
 npm run mobile:e2e:test -- --platform android add-by-rss
 ```
 
-Every flow-specific selector is listed below. These commands run the selected phone flow on both
-phone platforms:
+Every flow-specific selector is listed below and in
+[HOW-TO-RUN.md § Complete area list](/apps/mobile/e2e/HOW-TO-RUN.md#complete-area-list)
+(stack groups: [One flow at a time](/apps/mobile/e2e/HOW-TO-RUN.md#one-flow-at-a-time)).
+These commands run the selected phone flow on both phone platforms:
 
 ```bash
 npm run mobile:e2e:test -- add-by-rss
@@ -175,13 +183,18 @@ npm run mobile:e2e:test -- library-playlists
 npm run mobile:e2e:test -- locale-switch-home-smoke
 npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- notifications-inbox
+npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml
 npm run mobile:e2e:test -- play-mini-player
+npm run mobile:e2e:test -- playback-multi-device-handoff
+npm run mobile:e2e:test -- playback-offline-reconciliation
 npm run mobile:e2e:test -- podcast-episode
+npm run mobile:e2e:test -- popularity-tracking
 npm run mobile:e2e:test -- push
 npm run mobile:e2e:test -- queue-add
 npm run mobile:e2e:test -- search-unparsed
 npm run mobile:e2e:test -- search
+npm run mobile:e2e:test -- settings-downloads
 npm run mobile:e2e:test -- settings-select
 npm run mobile:e2e:test -- subscriptions-anonymous
 npm run mobile:e2e:test -- sync-log

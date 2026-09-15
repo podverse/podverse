@@ -1,0 +1,38 @@
+---
+description: Mobile artwork must paint known list URLs on first frame; CoverImage owns memory-disk cache; never block navigate on prefetch
+globs:
+  - "apps/mobile/**"
+alwaysApply: false
+---
+
+# Mobile image loading
+
+When navigating from a painted list/grid/row into a detail header that shows the same artwork:
+
+## Do
+
+- Pass **preview** params (`previewImageUrl`, `previewTitle`) from the source when the row already
+  has them — use `podcastDetailParams` (or the matching helper for other entity types).
+- Seed the detail header from those params **synchronously** on first paint; refresh from the DTO
+  when it arrives. Hydrate from SQLite when preview is missing and a local row exists.
+- Render all product artwork through **`CoverImage`** (`expo-image`, memory+disk cache).
+- Use the **same list-size URL** on list and compact header so the cache hits
+  (**header-hero-image-sources**).
+
+## Don't
+
+- Don't navigate with only an id when the source already painted a title and image — that produces
+  a gray empty cover until the network returns.
+- Don't `await` prefetch (or any image warm-up) before `navigation.navigate`.
+- Don't show the gray `CoverImage` fallback when a URI is already known from preview or local store.
+- Don't prefetch lightbox / largest-original URLs on list tap.
+
+Section chips that appear only after a detail DTO (Official Clips, Podroll, episode chapters,
+and the like) follow the same first-paint habit via the **device chrome cache**, not extra
+list-API fields — **mobile-section-chrome-cache**.
+
+## Related
+
+- Skill: **mobile-image-loading**
+- URL helpers: **header-hero-image-sources**
+- Section chips: **mobile-section-chrome-cache**

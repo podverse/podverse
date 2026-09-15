@@ -66,11 +66,10 @@ not exist yet, so that check is deferred — build the surfaces so it drops in w
 | **Unsubscribe** — always                    | Anonymous  | Never blocked, in any tier or membership state  |
 | Local subscription list, filter, sort       | Anonymous  | Reads local storage                            |
 | Download episodes, offline playback         | Anonymous  | Device-local                                   |
-| Local queue and history                     | Anonymous  | Device-local                                   |
 | Per-channel seen state (local)              | Anonymous  | A local last-seen timestamp per channel        |
 | **Subscribe — server-side follow**          | Membership | `POST /account/follow/channel` is gated today  |
 | Cross-device sync of seen state             | Account    | Server write, but not a paid capability        |
-| Cross-device sync of queue and history      | Membership | Paid capability                                |
+| **Queue and history**                       | Membership | Signed-in only; see the offline note below     |
 | **Add by RSS**                              | Membership | Requires server-side feed parsing              |
 | **Notifications** (inbox and push)          | Membership | Requires server-side storage and push delivery |
 
@@ -99,6 +98,53 @@ Queue, history, and per-channel seen state reconcile on sign-in rather than foll
 rule above, because they are per-device activity rather than a library the account owns. Seen state
 reconciles by taking the **later** timestamp per channel, so it only ever moves forward.
 
+### Queue and history are signed-in only, and still work offline
+
+"Signed in" and "has a network connection" are different conditions, and the queue makes the
+difference visible. A signed-in user with no connection is **still a signed-in user** — they keep a
+working queue and history on the device, and that local state syncs to the account when the network
+returns. Offline Mode is the same situation entered deliberately.
+
+So the device-local queue and history are not an anonymous-tier capability being extended upward;
+they are the **offline half of a signed-in feature**. A user with no account has no queue and no
+history at all — anonymous playback keeps only a single-item resume snapshot in AsyncStorage.
+
+When designing here, the question is never "is there a network?" but "is there an account?":
+
+| Signed in | Network | Queue and history                                     |
+| --------- | ------- | ----------------------------------------------------- |
+| No        | Either  | **None.** Single-item resume snapshot only            |
+| Yes       | Yes     | Local, writing through to the account                 |
+| Yes       | No      | Local, buffering meaningful events to sync on return  |
+
+## `authenticated` arrives before the account does
+
+`status` turns `authenticated` the moment tokens reach secure storage. The `DTOAccount` snapshot is
+a separate fetch that lands afterwards, so there is a window on the sign-in path — two awaits and a
+network round-trip — where `status === 'authenticated'` and `account === null`.
+
+Anything gated on account *data* must read that window as "not known yet". A null account means the
+answer has not arrived; it does not mean the user declined, holds no membership, or has nothing
+stored.
+
+While the account is null, default to the **inert** branch — the one that shows nothing and
+interrupts no one. `deriveMembershipState` is the model: a null account yields `isLoggedIn: false`,
+so the expiry banner stays quiet until there is something real to report. The failure mode is the
+opposite default, where "no value" reads as "needs asking" and a consent prompt or gate fires on
+**every** sign-in, including for users who answered long ago.
+
+```tsx
+// BAD — an unloaded account is indistinguishable from an undecided one
+const promptRequired = status === 'authenticated' && settings?.accepted === undefined;
+
+// GOOD — wait for the snapshot before deciding anything from it
+const promptRequired = status === 'authenticated' && account !== null && /* … */;
+```
+
+On mobile the cost is more than a flash of wrong UI. A prompt that opens in that window collides
+with the login modal still dismissing and wedges both, leaving a black screen over the app — see
+[mobile-modal-presentation-lifecycle](/.cursor/rules/mobile-modal-presentation-lifecycle.mdc).
+
 ## Do
 
 - Build the local-only path first, then layer account sync on top of it.
@@ -112,6 +158,7 @@ reconciles by taking the **later** timestamp per channel, so it only ever moves 
 
 - Do not require sign-in to browse, subscribe to, download, or play content.
 - Do not assume a repository read has an account behind it.
+- Do not treat a null account snapshot as a decided value.
 - Do not copy web's account-only assumptions into mobile screens.
 
 ## Applies retroactively

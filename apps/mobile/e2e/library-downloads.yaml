@@ -2,8 +2,8 @@ appId: com.podverse.app.next
 name: Library Downloads Offline Play
 ---
 # Download a seeded progressive episode, wait for complete, then play it — playback resolves the
-# completed local `file://` via resolvePlaybackUrl — and confirm it appears in the My Library ->
-# Downloads list with the storage usage summary.
+# completed local `file://` via resolvePlaybackUrl — and confirm it appears in My Library ->
+# Downloads under the Completed section. Storage usage lives under More → Settings → Downloads.
 #
 # Fixture: a seeded podcast episode with a progressive mp3 enclosure on the test-assets server
 # (:2111), non-live and non-HLS (livestream / m3u8 items never render the Download control). The
@@ -18,14 +18,15 @@ name: Library Downloads Offline Play
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
-# Navigate to a seeded podcast episode.
+# Navigate to a seeded podcast the account does not follow, so the completed file
+# lands on Home under Downloaded only (not on a subscribed row).
 - tapOn:
     id: tab-search
 - assertVisible:
     id: search-screen
 - tapOn:
     id: search-input
-- inputText: podcast
+- inputText: "Cosmos Classroom"
 - assertVisible:
     id: search-result-row-0
 - tapOn:
@@ -62,8 +63,8 @@ name: Library Downloads Offline Play
     id: mini-player
 - takeScreenshot: library-downloads-offline-now-playing
 
-# The completed download appears in My Library -> Downloads with the storage usage summary.
-# Finished jobs are not in-progress, so the Downloads row and My Library tab badges stay hidden.
+# The completed download appears in My Library -> Downloads. Finished jobs are not in-progress,
+# so the Downloads row and My Library tab badges stay hidden. Storage chrome is not on this screen.
 - tapOn:
     id: tab-my-library
 - assertVisible:
@@ -75,5 +76,34 @@ name: Library Downloads Offline Play
 - assertVisible:
     id: library-downloads-screen
 - assertVisible:
+    id: "download-row-.*"
+- assertNotVisible:
+    id: library-downloads-clear-finished
+- assertNotVisible:
     id: library-downloads-usage
 - takeScreenshot: library-downloads-list
+
+# Cosmos Classroom is not a follow, so the completed file is only on Home under Downloaded only.
+# Swipe-left Delete all removes that show's files and the footer row.
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+- assertVisible:
+    id: home-unsubscribed-downloads
+- swipe:
+    from:
+      id: "home-unsubscribed-download-row-.*-swipe"
+    direction: LEFT
+- extendedWaitUntil:
+    visible:
+      id: "home-unsubscribed-download-row-.*-delete-all"
+    timeout: ${TIMEOUT_FASTEST}
+- takeScreenshot: home-unsubscribed-swipe-delete-all
+- tapOn:
+    id: "home-unsubscribed-download-row-.*-delete-all"
+- extendedWaitUntil:
+    notVisible:
+      id: home-unsubscribed-downloads
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: home-unsubscribed-deleted

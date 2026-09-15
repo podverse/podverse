@@ -6,12 +6,18 @@ import type { DTOAccountNotificationPreference } from '@podverse/helpers';
 import { NotificationCategoryEnum } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
+import type { SyncedNotificationType } from '../../auth/syncAccountPrefs';
+import {
+  syncAutoEnableOnSubscribeToAccountSettings,
+  syncNotificationTypeToAccountSettings,
+} from '../../auth/syncAccountPrefs';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
 import { resolveSupportedLocale } from '../../i18n/locale';
+import { NOTIFICATION_TYPE_ROWS } from '../../lib/notifications/notificationTypeRows';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { registerFcmDeviceForAccount } from '../../push/fcmDeviceSync';
 import {
@@ -69,7 +75,8 @@ const NOTIFICATION_PREFERENCE_ROWS: readonly NotificationPreferenceRow[] = [
 
 export function MoreSettingsNotificationsScreen() {
   const { t, i18n } = useTranslation();
-  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { accessToken, account, clearSession, refreshToken, setAccount, setTokens, status } =
+    useAuth();
   const isAuthenticated = status === 'authenticated';
   const { handleGateError } = useMembershipGate();
   const { styles: themeStyles, tokens } = useTheme();
@@ -129,6 +136,63 @@ export function MoreSettingsNotificationsScreen() {
       [{ text: t('misc.ok') }]
     );
   }, [t]);
+
+  const settingsNotification = account?.account_settings?.account_settings_notification;
+  const autoEnableOnSubscribe = settingsNotification?.auto_enable_on_subscribe ?? false;
+  const enabledDefaultTypes = new Set<string>(
+    (settingsNotification?.account_settings_notification_types ?? []).map((row) => row.type)
+  );
+
+  const handleAutoEnableOnSubscribeToggle = useCallback(
+    async (nextValue: boolean) => {
+      setErrorMessageKey(null);
+
+      if (!isAuthenticated) {
+        showNotificationLoginAlert();
+        return;
+      }
+
+      try {
+        await syncAutoEnableOnSubscribeToAccountSettings({
+          accessToken,
+          enabled: nextValue,
+          setAccount,
+        });
+      } catch (error) {
+        if (handleGateError(error)) {
+          return;
+        }
+        setErrorMessageKey('errors.generic');
+      }
+    },
+    [accessToken, handleGateError, isAuthenticated, setAccount, showNotificationLoginAlert]
+  );
+
+  const handleNotificationTypeDefaultToggle = useCallback(
+    async (type: SyncedNotificationType, nextValue: boolean) => {
+      setErrorMessageKey(null);
+
+      if (!isAuthenticated) {
+        showNotificationLoginAlert();
+        return;
+      }
+
+      try {
+        await syncNotificationTypeToAccountSettings({
+          accessToken,
+          enabled: nextValue,
+          setAccount,
+          type,
+        });
+      } catch (error) {
+        if (handleGateError(error)) {
+          return;
+        }
+        setErrorMessageKey('errors.generic');
+      }
+    },
+    [accessToken, handleGateError, isAuthenticated, setAccount, showNotificationLoginAlert]
+  );
 
   const handleNotificationPreferenceToggle = useCallback(
     async (params: {
@@ -229,6 +293,9 @@ export function MoreSettingsNotificationsScreen() {
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        cardSpacing: {
+          marginBottom: tokens.spacing.xl,
+        },
         preferenceDescription: {
           color: themeStyles.textSecondary.color,
           fontSize: 12,
@@ -283,6 +350,56 @@ export function MoreSettingsNotificationsScreen() {
 
   return (
     <MobileScreenContainer testID="more-settings-notifications-screen">
+      <Card
+        padded={false}
+        style={styles.cardSpacing}
+        testID="more-settings-notification-defaults-card"
+      >
+        <View style={styles.sectionInner}>
+          <ListRow
+            testID="more-settings-notification-auto-enable-on-subscribe"
+            title={t('settings.notifications.auto_enable_on_subscribe')}
+            trailing={
+              <Switch
+                accessibilityLabel={t('settings.notifications.auto_enable_on_subscribe')}
+                onValueChange={(nextValue) => {
+                  void handleAutoEnableOnSubscribeToggle(nextValue);
+                }}
+                value={autoEnableOnSubscribe}
+              />
+            }
+          />
+          <Text style={styles.sectionDescription}>
+            {t('settings.notifications.auto_enable_on_subscribe_help')}
+          </Text>
+          <View style={styles.sectionStack}>
+            <Text style={styles.sectionHeading}>
+              {t('settings.notifications.type_defaults_section')}
+            </Text>
+            <Text style={styles.sectionDescription}>
+              {t('settings.notifications.type_defaults_section_help')}
+            </Text>
+          </View>
+          <View style={styles.sectionStack}>
+            {NOTIFICATION_TYPE_ROWS.map((row) => (
+              <ListRow
+                key={row.type}
+                testID={`more-settings-notification-type-default-${row.type}`}
+                title={t(row.labelKey)}
+                trailing={
+                  <Switch
+                    accessibilityLabel={t(row.labelKey)}
+                    onValueChange={(nextValue) => {
+                      void handleNotificationTypeDefaultToggle(row.type, nextValue);
+                    }}
+                    value={enabledDefaultTypes.has(row.type)}
+                  />
+                }
+              />
+            ))}
+          </View>
+        </View>
+      </Card>
       <Card padded={false} testID="more-settings-notifications-card">
         <View style={styles.sectionInner}>
           <Text style={styles.sectionHeading}>{t('settings.notifications.notifications')}</Text>

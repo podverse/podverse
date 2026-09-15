@@ -26,3 +26,26 @@ name: Notifications Inbox
 - assertVisible:
     id: notifications-inbox-screen
 - takeScreenshot: notifications-inbox-initial
+
+# Account-level subscribe defaults live under Settings, not the inbox. They are the types copied
+# onto a channel when notifications are turned on, and the switch that can auto-create that row
+# on subscribe — both default off / seeded types, and both need an account.
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-settings
+- assertVisible:
+    id: more-settings-screen
+- tapOn:
+    id: more-settings-notifications
+- assertVisible:
+    id: more-settings-notifications-screen
+- assertVisible:
+    id: more-settings-notification-auto-enable-on-subscribe
+- assertVisible:
+    id: more-settings-notification-type-default-new-item
+- assertVisible:
+    id: more-settings-notification-type-default-livestream-scheduled
+- assertVisible:
+    id: more-settings-notification-type-default-livestream-started
+- takeScreenshot: more-settings-notification-subscribe-defaults

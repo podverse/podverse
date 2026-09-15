@@ -334,11 +334,12 @@ COPY-PASTA prompts are 3–8 lines; full instructions live in numbered plan file
 
 Each COPY-PASTA prompt must include:
 
-- `Read and execute .llm/plans/active/mobile-<phase-slug>/<NN-plan>.md`
-- **Cursor model:** Auto | Codex 5.3 | Opus 5 (match highest-risk step in that prompt; see
-  **copy-pasta-recommend-model** rule)
-- **Reasoning:** low | medium | high | extra high (thinking depth for that model; see **copy-pasta-recommend-model** rule)
-- Reminder: do not run tests during agent work; operator verifies at end
+- Outside the paste fence (operator reads these; selects them in the Cursor UI):
+  **Cursor model:** Auto | Codex 5.3 | Opus 5 and **Reasoning:** low | medium | high | extra high
+  (see **copy-pasta-recommend-model** — never put these lines inside the fence)
+- Inside the paste fence: `Read and execute .llm/plans/active/mobile-<phase-slug>/<NN-plan>.md`
+  plus a short reminder to follow the detail doc / locked decisions and not run tests during
+  agent work (operator verifies at end)
 
 Keep each numbered plan file **under 300 lines**; split if larger.
 

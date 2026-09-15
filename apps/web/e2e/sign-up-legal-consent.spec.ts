@@ -33,7 +33,7 @@ test.describe('Sign-up legal consent', () => {
     );
   });
 
-  test('When terms and listen-stats are accepted, the account is created with the expected legal payload.', async ({
+  test('When terms are accepted, the account is created with the expected legal payload.', async ({
     page,
   }, testInfo) => {
     const signupEmail = uniqueSignupEmail();
@@ -49,15 +49,10 @@ test.describe('Sign-up legal consent', () => {
     const termsCheckbox = page.getByRole('checkbox', {
       name: /I have read and agree to the terms/i,
     });
-    const listenStatsCheckbox = page.getByRole('checkbox', {
-      name: /Help improve trending content with listen statistics/i,
-    });
-
     await page.locator('input[name="email"]').fill(signupEmail);
     await page.locator('input[name="password1"]').fill(E2E_SIGNUP_TEST_PASSWORD);
     await page.locator('input[name="password2"]').fill(E2E_SIGNUP_TEST_PASSWORD);
     await termsCheckbox.check();
-    await expect(listenStatsCheckbox).toBeChecked();
 
     await actionAndCapture(
       page,
@@ -71,7 +66,7 @@ test.describe('Sign-up legal consent', () => {
           allow_listen_stats?: boolean;
         };
         expect(payload.terms_version).toBe(E2E_CONFIGURED_TERMS_VERSION);
-        expect(payload.allow_listen_stats).toBe(true);
+        expect(payload.allow_listen_stats).toBeUndefined();
         await expect(
           page.getByText(
             'Account created successfully. Please check your email for a verification link.'

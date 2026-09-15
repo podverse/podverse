@@ -34,7 +34,7 @@ When changing Add-by-RSS data, trace this complete path:
    `add_by_rss_feed.mapped_feed_json`.
 3. **Mobile record:** `MobileAddByRSSFeedRecord`, `AddByRssFeedRow`, `schema.ts`, and
    `migrations.ts` define scalar offline list fields and their SQLite representation.
-4. **Playback:** `getMappedFeedByUrl`, `safeJsonParse`, and `toAddByRssPlaybackResourceData`
+4. **Playback:** `getMappedFeedByUrl`, `safeJsonParse`, and `toAddByRssItemPlaybackResourceData`
    reconstruct playback data from the bundle and per-account playback position.
 
 Check identifiers, URLs, titles, images/enclosures, resource types, date units, nullability, and

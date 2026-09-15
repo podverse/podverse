@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
-import { v4 as uuidv4 } from 'uuid';
 
 import { createMobileApiRequestService } from '../auth/mobileApi';
+import { createUuid } from '../lib/createUuid';
 import {
   getFcmDeviceToken,
   getFcmPermissionStatus,
@@ -32,7 +32,7 @@ const getOrCreateInstallationId = async (): Promise<string> => {
     return existingId;
   }
 
-  const generatedId = uuidv4();
+  const generatedId = createUuid();
   await writeSecureValue(INSTALLATION_ID_KEY, generatedId);
   return generatedId;
 };

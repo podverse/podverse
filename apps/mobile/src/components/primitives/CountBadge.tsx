@@ -1,57 +1,84 @@
 import { useMemo } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 
+/** Edge length of a one-digit badge, so `minWidth === height` and `borderRadius` make a circle. */
 const BADGE_SIZE = 20;
+
+export type CountBadgeTone = 'accent' | 'muted';
 
 export type CountBadgeProps = {
   count: number;
+  /**
+   * `accent` is the default list-row / tab count. `muted` is the gray overlay on artwork
+   * (downloaded count) so it does not compete with the unseen indicator on the same tile.
+   */
+  tone?: CountBadgeTone;
+  style?: StyleProp<ViewStyle>;
   testID?: string;
 };
 
 /**
- * Circular numeric badge that widens into an oval when the count needs more than one digit.
- * Hidden at zero. Decorative on its own — the parent row or tab folds the count into its
- * accessibility label.
+ * Circular numeric badge that widens horizontally when the count needs more than one digit.
+ * Hidden at zero. Decorative on its own — the parent row or tile folds the count into its
+ * accessibility label. Unseen presence uses `UnseenIndicator`, not this chip.
  */
-export function CountBadge({ count, testID }: CountBadgeProps) {
+export function CountBadge({ count, style, testID, tone = 'accent' }: CountBadgeProps) {
   const { tokens } = useTheme();
+  const face = String(count);
+  const stretches = count >= 10;
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        accent: {
+          backgroundColor: tokens.text.accent,
+        },
+        accentLabel: {
+          color: tokens.background.primary,
+        },
         badge: {
           alignItems: 'center',
-          backgroundColor: tokens.text.accent,
           borderRadius: BADGE_SIZE / 2,
           height: BADGE_SIZE,
           justifyContent: 'center',
           minWidth: BADGE_SIZE,
-          paddingHorizontal: count >= 10 ? tokens.spacing.sm : 0,
+          paddingHorizontal: stretches ? tokens.spacing.xs : 0,
         },
         label: {
-          color: tokens.background.primary,
           fontSize: 11,
           fontWeight: '700',
+          includeFontPadding: false,
           lineHeight: 14,
+          textAlign: 'center',
+        },
+        muted: {
+          backgroundColor: tokens.border.tertiary,
+        },
+        mutedLabel: {
+          color: tokens.text.primary,
         },
       }),
-    [count, tokens]
+    [stretches, tokens]
   );
 
   if (count <= 0) {
     return null;
   }
 
+  const toneStyle = tone === 'muted' ? styles.muted : styles.accent;
+  const toneLabelStyle = tone === 'muted' ? styles.mutedLabel : styles.accentLabel;
+
   return (
     <View
       accessibilityElementsHidden
       importantForAccessibility="no"
-      style={styles.badge}
+      style={[styles.badge, toneStyle, style]}
       testID={testID}
     >
-      <Text style={styles.label}>{String(count)}</Text>
+      <Text style={[styles.label, toneLabelStyle]}>{face}</Text>
     </View>
   );
 }

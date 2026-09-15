@@ -12,7 +12,8 @@
       "home": "Inicio",
       "opml": "OPML",
       "search_result": "Resultado de búsqueda",
-      "rss_feeds": "Feeds RSS"
+      "rss_feeds": "Feeds RSS",
+      "podcast_settings": "Configuración del podcast"
     },
     "menu": {
       "opml": "OPML",
@@ -27,9 +28,13 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "channel": {
+      "section_requires_connection": "Esta sección necesita conexión. Inténtalo de nuevo cuando vuelvas a estar en línea."
+    },
     "browse": {
-      "categories_selected": "Categorías – {name}",
       "category_all": "Todas las categorías",
+      "collapse_category": "Ocultar las subcategorías de {name}",
+      "expand_category": "Mostrar las subcategorías de {name}",
       "empty": "Nada que mostrar todavía",
       "range_all_time": "Todo el tiempo",
       "sort_popularity": "Popularidad",
@@ -38,7 +43,10 @@
     "download": {
       "queued": "En cola",
       "remove": "Eliminar",
+      "cancel_download": "Cancelar descarga",
+      "remove_download": "Eliminar descarga",
       "empty": "Aún no hay descargas",
+      "downloaded": "Descargados",
       "not_downloadable": "Este episodio no se puede descargar para reproducir sin conexión",
       "storage_used": "Almacenamiento utilizado",
       "auto_delete_label": "Eliminar automáticamente los más antiguos cuando el almacenamiento esté lleno",
@@ -46,7 +54,17 @@
       "delete_all": "Eliminar todo",
       "auto_removed_notice": "Se eliminaron las descargas más antiguas para liberar espacio",
       "dismiss": "Descartar",
-      "in_progress_count": "{count} en curso"
+      "in_progress_count": "{count} en curso",
+      "auto_download": "Descargar automáticamente los episodios nuevos",
+      "auto_download_unavailable": "La descarga automática aún no está disponible.",
+      "paused": "En pausa",
+      "pause_all": "Pausar todo",
+      "resume_all": "Reanudar todo",
+      "clear_finished": "Borrar todas las finalizadas",
+      "section_in_progress": "En curso",
+      "section_failed": "Fallidas",
+      "section_completed": "Completadas",
+      "activity_progress": "Descargando {active} de {total}"
     },
     "search": {
       "add_podcast": "Añadir podcast",
@@ -68,7 +86,33 @@
       "appearance_description": "Tema e idioma",
       "playback": "Reproducción",
       "playback_description": "Tipo de medio predeterminado y cola automática",
+      "downloads_description": "Límite de almacenamiento, liberar espacio y eliminar todas las descargas",
       "notifications_description": "Alertas en la app y push"
+    },
+    "offline_mode": {
+      "title": "Modo sin conexión",
+      "description": "El modo sin conexión usa solo las descargas y el resto del contenido ya guardado en este dispositivo. Buscar, Explorar, la sincronización y todo lo que necesita internet permanecen no disponibles hasta que lo desactives.",
+      "unavailable": "Esta pantalla no está disponible en el modo sin conexión.",
+      "banner": "El modo sin conexión está activado"
+    },
+    "downloads": {
+      "storage_heading": "Almacenamiento",
+      "device_storage": "Dispositivo",
+      "downloaded_media": "Medios descargados",
+      "app_data": "Datos de la app",
+      "cache": "Caché",
+      "limit_label": "Límite de descargas",
+      "unlimited": "Ilimitado",
+      "auto_free_heading": "Liberar espacio automáticamente",
+      "auto_delete_on_limit": "Cuando se alcanza mi límite de descargas",
+      "auto_delete_on_limit_description": "Elimina primero las descargas finalizadas más antiguas hasta volver a estar por debajo del límite.",
+      "auto_delete_on_device_low": "Cuando el teléfono tiene poco espacio libre",
+      "auto_delete_on_device_low_description": "Elimina las descargas finalizadas más antiguas cuando el espacio libre baja de 1 GB, aunque aún estés por debajo de tu límite.",
+      "delete_all_heading": "Eliminar todas las descargas",
+      "delete_all_description": "Elimina de forma permanente los archivos multimedia locales y las entradas del índice de descargas en este dispositivo. No se puede deshacer.",
+      "delete_all": "Eliminar todo",
+      "delete_all_confirm_title": "¿Eliminar todas las descargas?",
+      "delete_all_confirm_body": "Esto elimina todos los archivos de descarga locales y los quita de la lista Descargas. Habrá que volver a descargar los episodios para reproducirlos sin conexión."
     },
     "notifications": {
       "login_required_title": "Inicio de sesión necesario",
@@ -88,12 +132,25 @@
       "reorder_hint": "Mueve esta pantalla en la barra de pestañas o a Más"
     }
   },
+  "e2e": {
+    "section": "E2E",
+    "smoke": "Prueba",
+    "playback": "Reproducción",
+    "playback_intro": "Estos controles existen solo en compilaciones de prueba E2E. Inician el audio o vídeo de prueba que las pantallas del producto aún no exponen.",
+    "play_video": "Reproducir vídeo E2E",
+    "skip_next": "Saltar al siguiente",
+    "complete_now_playing": "Marcar en reproducción como completado"
+  },
+  "subscriptions": {
+    "downloaded_only": "Solo descargados"
+  },
   "sync": {
     "job": {
       "account": "Actualizando tu cuenta",
       "subscriptions": "Actualizando tus podcasts",
       "playlists": "Actualizando tus listas de reproducción",
       "queue": "Actualizando tu cola",
+      "playback": "Guardando tu progreso de reproducción",
       "library": "Actualizando tu biblioteca sin conexión",
       "notifications": "Configurando las notificaciones",
       "episodes": "Actualizando tus episodios",

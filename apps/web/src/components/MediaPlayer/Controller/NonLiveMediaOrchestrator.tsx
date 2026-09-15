@@ -86,7 +86,11 @@ export interface NonLiveMediaOrchestratorProps {
   pendingPlaybackDecision?: PlaybackLoadDecision | null;
   setPendingPlaybackDecision?: (decision: PlaybackLoadDecision | null) => void;
   /** When add-by-RSS is now playing, called to save position (e.g. every 15s and on pause). */
-  onAddByRSSPositionSave?: (positionSeconds: number) => void;
+  onAddByRSSPositionSave?: (
+    positionSeconds: number,
+    eventKind: 'play' | 'pause' | 'progress_tick' | 'seek',
+    isPlaying?: boolean
+  ) => void;
   /** When add-by-RSS playback ends, called to add to history; then controller clears add-by-RSS state. */
   onAddByRSSEnded?: (positionSeconds: number) => Promise<void>;
   /** When add-by-RSS playback ends and queue is empty, try to play next from list context. Returns true if playback started. */
@@ -228,6 +232,8 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
 
   const playbackElapsedRef = useRef(0);
   const lastPlaybackTimeRef = useRef<number | null>(null);
+  const suppressNextSeekEventRef = useRef(false);
+  const internalSeekResetTimerRef = useRef<number | null>(null);
 
   const bridgeRef = useRef<MediaElementBridge | null>(null);
 
@@ -235,6 +241,33 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
   useEffect(() => {
     onVideoAspectRatioChangeRef.current = onVideoAspectRatioChange;
   }, [onVideoAspectRatioChange]);
+
+  useEffect(() => {
+    return () => {
+      if (internalSeekResetTimerRef.current !== null) {
+        window.clearTimeout(internalSeekResetTimerRef.current);
+      }
+    };
+  }, []);
+
+  const markInternalSeek = useCallback(() => {
+    suppressNextSeekEventRef.current = true;
+    if (internalSeekResetTimerRef.current !== null) {
+      window.clearTimeout(internalSeekResetTimerRef.current);
+    }
+    internalSeekResetTimerRef.current = window.setTimeout(() => {
+      suppressNextSeekEventRef.current = false;
+      internalSeekResetTimerRef.current = null;
+    }, 500);
+  }, []);
+
+  const seekInternally = useCallback(
+    (seconds: number) => {
+      markInternalSeek();
+      bridgeRef.current?.seek(seconds);
+    },
+    [markInternalSeek]
+  );
 
   const finishEmbedPlayback = useCallback(() => {
     const boundaryParams = {
@@ -245,7 +278,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     const resetSeconds = resolveEmbedPlaybackResetSeconds(boundaryParams);
     setMPIsPlaying(false);
     setMPShouldPlay(false);
-    bridgeRef.current?.seek(resetSeconds);
+    seekInternally(resetSeconds);
     setMPCurrentTime(resetSeconds);
     lastPlaybackTimeRef.current = resetSeconds;
     playbackElapsedRef.current = 0;
@@ -255,7 +288,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     } else {
       bridgeRef.current?.pauseAndDisarmBoundary();
     }
-  }, [setMPIsPlaying, setMPShouldPlay, setMPCurrentTime]);
+  }, [seekInternally, setMPIsPlaying, setMPShouldPlay, setMPCurrentTime]);
 
   const bridge = useMediaElementBridge(mediaRef, {
     onLoadedMetadata(newDuration) {
@@ -276,7 +309,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
               })
             : stagedDecision.initialSeekSeconds;
 
-        bridgeRef.current?.seek(initialSeekSeconds);
+        seekInternally(initialSeekSeconds);
         if (typeof stagedDecision.pauseAtSeconds === 'number') {
           bridgeRef.current?.pauseAt(stagedDecision.pauseAtSeconds);
         } else {
@@ -292,6 +325,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
           mpItemSoundbite: mpItemSoundbiteRef.current,
           mpDuration: newDuration,
           mpCurrentTime: initialSeekSeconds,
+          eventKind: 'play',
         });
 
         setPendingPlaybackDecision?.(null);
@@ -349,7 +383,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         (mpClipRef.current || mpItemSoundbiteRef.current || mpItemRef.current) &&
         newCurrentTime !== null
       ) {
-        bridgeRef.current?.seek(newCurrentTime);
+        seekInternally(newCurrentTime);
       }
 
       setMPDuration(newDuration);
@@ -360,6 +394,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         mpItemSoundbite: mpItemSoundbiteRef.current,
         mpDuration: newDuration,
         mpCurrentTime: newCurrentTime !== null ? newCurrentTime : 0,
+        eventKind: 'play',
       });
 
       if (!loggedInAccountRef.current || mpAddByRSSRef.current) {
@@ -384,7 +419,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       const newCurrentTime = mediaRef.current.currentTime;
       if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
         try {
-          onAddByRSSPositionSaveRef.current(newCurrentTime);
+          onAddByRSSPositionSaveRef.current(newCurrentTime, 'play');
         } catch {
           // Best-effort; do not block play state
         }
@@ -396,11 +431,43 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
           mpItem: mpItemRef.current,
           mpItemSoundbite: mpItemSoundbiteRef.current,
           mpCurrentTime: newCurrentTime,
+          eventKind: 'play',
         });
         playbackElapsedRef.current = 0;
         lastPlaybackTimeRef.current = newCurrentTime;
       }
       setMPIsPlaying(true);
+    },
+    onSeeked() {
+      if (!mediaRef.current) {
+        return;
+      }
+      if (suppressNextSeekEventRef.current) {
+        suppressNextSeekEventRef.current = false;
+        return;
+      }
+
+      const newCurrentTime = mediaRef.current.currentTime;
+      if (!Number.isFinite(newCurrentTime)) {
+        return;
+      }
+
+      if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
+        try {
+          onAddByRSSPositionSaveRef.current(newCurrentTime, 'seek');
+        } catch {
+          // Best-effort; do not block seek handling
+        }
+      }
+
+      updateNowPlaying({
+        mpChannel: mpChannelRef.current,
+        mpClip: mpClipRef.current,
+        mpItem: mpItemRef.current,
+        mpItemSoundbite: mpItemSoundbiteRef.current,
+        mpCurrentTime: newCurrentTime,
+        eventKind: 'seek',
+      });
     },
     onPause() {
       if (!mediaRef.current) {
@@ -409,7 +476,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       const newCurrentTime = mediaRef.current.currentTime;
       if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
         try {
-          onAddByRSSPositionSaveRef.current(newCurrentTime);
+          onAddByRSSPositionSaveRef.current(newCurrentTime, 'pause');
         } catch {
           // Best-effort; do not block pause state
         }
@@ -421,6 +488,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
           mpItem: mpItemRef.current,
           mpItemSoundbite: mpItemSoundbiteRef.current,
           mpCurrentTime: newCurrentTime,
+          eventKind: 'pause',
         });
         playbackElapsedRef.current = 0;
         lastPlaybackTimeRef.current = null;
@@ -448,7 +516,11 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       if (playbackElapsedRef.current >= 15) {
         if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
           try {
-            onAddByRSSPositionSaveRef.current(newCurrentTime);
+            onAddByRSSPositionSaveRef.current(
+              newCurrentTime,
+              'progress_tick',
+              mpIsPlayingRef.current
+            );
           } catch {
             // Best-effort; do not block timeupdate
           }
@@ -459,6 +531,8 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
           mpItem: mpItemRef.current,
           mpItemSoundbite: mpItemSoundbiteRef.current,
           mpCurrentTime: newCurrentTime,
+          eventKind: 'progress_tick',
+          isPlaying: mpIsPlayingRef.current,
         });
         playbackElapsedRef.current = 0;
       }
@@ -635,6 +709,10 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
           ? enclosureSwitchDecision.initialSeekSeconds
           : null;
 
+    if (persistedSeekToApply !== null) {
+      markInternalSeek();
+    }
+
     bridge.syncHttpFileUrlRestoreSeekAndPlay({
       url,
       persistedSeekToApply,
@@ -658,6 +736,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     mpItemLabeledEnclosures,
     mpEnclosureSelectedParams,
     addByRSSSelectedMediaType,
+    markInternalSeek,
   ]);
 
   useEffect(() => {
@@ -712,6 +791,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
   useEffect(() => {
     const playWhenReady = async () => {
       if (mpClip && mediaRef.current) {
+        markInternalSeek();
         bridge.seek(Number(mpClip.start_time));
         if (mpShouldPlayRef.current) {
           const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
@@ -726,6 +806,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       if (mpItemChapter && mediaRef.current) {
         if (mpItemChapterShouldSeek) {
           setMPItemChapterShouldSeek(false);
+          markInternalSeek();
           bridge.seek(Number(mpItemChapter.start_time));
           if (mpShouldPlayRef.current) {
             const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
@@ -739,6 +820,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         }
       }
       if (mpItemSoundbite && mediaRef.current) {
+        markInternalSeek();
         bridge.seek(Number(mpItemSoundbite.start_time));
         if (mpShouldPlayRef.current) {
           const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
@@ -758,6 +840,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     mpItemChapter,
     mpItemSoundbite,
     bridge,
+    markInternalSeek,
     mpItemChapterShouldSeek,
     setMPItemChapterShouldSeek,
   ]);

@@ -2,7 +2,8 @@ appId: com.podverse.app.next
 name: Browse Tab And Tab Bar Pref
 ---
 # Default bar is Home / Browse / Search / My Library / More. Notifications lives in More.
-# Browse is one chip row: popularity range, Categories, then directory types.
+# Browse is one chip row: popularity range and Categories (filter chrome) only when the
+# current type can use them, then directory types with the selected type first.
 # Settings can swap Notifications onto the bar (replaces the last visible content tab).
 
 - runFlow: shared/launch-and-connect.yaml
@@ -28,14 +29,45 @@ name: Browse Tab And Tab Bar Pref
     id: browse-media-type-podcasts
 - assertVisible:
     id: browse-media-type-videos
+# Phone chip row does not fit Playlists / Users. Swipe the selector itself —
+# a %-of-screen start Y can miss the pills, and iOS omits off-screen testIDs.
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
 - assertVisible:
     id: browse-media-type-playlists
 - assertVisible:
     id: browse-media-type-users
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
 - assertNotVisible:
     id: browse-filter-input
 - assertNotVisible:
     id: browse-feed-summary
+# Wait for the directory list so the Podcasts screenshot includes host → title → date rows.
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: browse-screen-podcasts
 
 - tapOn:
@@ -53,6 +85,20 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-category-all
     timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: browse-sort-button
+- assertVisible:
+    id: browse-category-arts
+- assertNotVisible:
+    id: browse-category-books
+- tapOn:
+    id: browse-category-arts-expand
+- assertVisible:
+    id: browse-category-books
+- tapOn:
+    id: browse-category-arts-expand
+- assertNotVisible:
+    id: browse-category-books
 - takeScreenshot: browse-screen-categories
 
 - tapOn:
@@ -61,13 +107,21 @@ name: Browse Tab And Tab Bar Pref
     notVisible:
       id: browse-category-all
     timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: browse-sort-button
 
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
 - tapOn:
     id: browse-media-type-artists
 - extendedWaitUntil:
     visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: browse-category-button
 - assertNotVisible:
     id: browse-category-all
 - takeScreenshot: browse-screen-artists
@@ -97,10 +151,11 @@ name: Browse Tab And Tab Bar Pref
     id: stack-header-back
 - tapOn:
     id: stack-header-back
+# addVisibleTab appends Notifications and drops the last other slot (Browse).
 - assertVisible:
     id: tab-notifications
 - assertVisible:
-    id: tab-browse
-- assertNotVisible:
     id: tab-my-library
+- assertNotVisible:
+    id: tab-browse
 - takeScreenshot: browse-tab-bar-notifications-visible

@@ -2,9 +2,13 @@ import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings.js';
 import type { Repository } from 'typeorm';
 
+import type { PopularityTrackingDecision } from '@podverse/helpers';
+import { isPopularityTrackingAllowed } from '@podverse/helpers';
+
 type UpdateDto = {
   account_id: number;
-  allow_listen_stats: boolean;
+  accepted: boolean;
+  agreement_version: string;
 };
 
 export class AccountSettingsListenStatsService {
@@ -16,16 +20,24 @@ export class AccountSettingsListenStatsService {
     this.repositoryReadWrite = AppDataSourceReadWrite.getRepository(AccountSettings);
   }
 
-  async getAllowListenStats(accountId: number): Promise<boolean> {
+  async getDecision(accountId: number): Promise<PopularityTrackingDecision | null> {
     const accountSettings = await this.repositoryRead.findOne({
       where: { account_id: accountId },
     });
 
     if (accountSettings === null) {
-      return true;
+      return null;
     }
 
-    return accountSettings.allow_listen_stats;
+    return {
+      listen_stats_accepted: accountSettings.listen_stats_accepted,
+      listen_stats_agreement_version: accountSettings.listen_stats_agreement_version,
+    };
+  }
+
+  async isListenStatsAllowed(accountId: number, currentVersion: string): Promise<boolean> {
+    const decision = await this.getDecision(accountId);
+    return isPopularityTrackingAllowed(decision, currentVersion);
   }
 
   async update(dto: UpdateDto): Promise<AccountSettings> {
@@ -37,7 +49,11 @@ export class AccountSettingsListenStatsService {
       throw new Error('AccountSettings not found for account');
     }
 
-    accountSettings.allow_listen_stats = dto.allow_listen_stats;
+    const decidedAt = new Date();
+    accountSettings.listen_stats_accepted = dto.accepted;
+    accountSettings.listen_stats_agreement_version = dto.agreement_version;
+    accountSettings.listen_stats_decided_at = decidedAt;
+    accountSettings.allow_listen_stats = dto.accepted;
     return this.repositoryReadWrite.save(accountSettings);
   }
 }

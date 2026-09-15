@@ -29,26 +29,30 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 
 ## Where things live
 
-| Kind                                        | Path                                                                                                                                                                              |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`) |
-| Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                                                                  |
-| Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `MobileScreenContainer`, `ThemedStackHeader`)                                                            |
-| Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                                                                                              |
-| Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                    |
-| Playback row actions / mini player          | `components/player/`                                                                                                                                                              |
-| Membership / gate feedback                  | `components/feedback/` (`ConfirmDialog` via `openGate`, `HelperNote`, `GatedFeatureNotice` only when there is no action to attach)                                                |
-| Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                                    |
-| Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                                                               |
-| Shared stateful logic                       | `hooks/`                                                                                                                                                                          |
-| Pure helpers                                | `lib/`                                                                                                                                                                            |
+| Kind                                        | Path                                                                                                                                                                                                 |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `UnseenIndicator`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`) |
+| Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                                                                                     |
+| Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `OfflineModeBanner`, `MobileScreenContainer`, `ThemedStackHeader`)                                                          |
+| Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                                                                                                                 |
+| Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                                       |
+| Playback row actions / mini player          | `components/player/`                                                                                                                                                                                 |
+| Membership / gate feedback                  | `components/feedback/` (`ConfirmDialog` via `openGate`, `HelperNote`, `GatedFeatureNotice` only when there is no action to attach)                                                                   |
+| Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                                    |
+| Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                                                                                  |
+| Shared stateful logic                       | `hooks/`                                                                                                                                                                                             |
+| Pure helpers                                | `lib/`                                                                                                                                                                                               |
 
 Do **not** import `@podverse/ui` (web components / SCSS). Tokens come from `@podverse/design-tokens`
 via **mobile-theme-parity**.
 
-**Search field:** use `SearchField` (tertiary fill, leading glass, focus ring). Do not clone a
-stroked `TextInput`. A boxed field that needs chrome or a leading icon uses **`TextField`** —
-it owns the hit-target contract and blurs when the host screen loses focus. Do not wrap a thin
+**Text fields:** `TextField` is the only painted input (tertiary fill, focus ring — never a
+stroked `TextInput`). Pass **`eyebrow` + `placeholder`** for forms (login, sign-up, playlist,
+add-by-RSS), matching web `TextInput` inset eyebrow. The caption lives _inside_ the pill; do
+not add a second `<Text>` label above it. Eyebrow fields are taller than the compact pill.
+**Omit `eyebrow` only** for directory search and on-screen list filters (`SearchField`,
+`ListFilterField`). Search adds the leading glass; filter adds a clear `Button`. `TextField`
+owns the hit-target contract and blurs when the host screen loses focus. Do not wrap a thin
 input in a padded `View`, and do not grow `TextInput` padding to fake a larger target. Field,
 chips, and the list rule share one column `gap` (`spacing.base`) so the space above and below
 the chips is equal. Prefer that symmetry whenever two sides of a control are the same
@@ -59,10 +63,11 @@ Appearance, Tab bar, Playback, and Notifications. 2–3 choices → `OptionChipG
 option-list screen (not bottom sheet). Selected chip uses `buttonPrimary` fill. Option rows
 stack label / description / current value (not trailing). See **mobile-settings-option-density**.
 
-**Cover images:** `CoverImage` opens **`ImageViewerModal`** on tap (full width, contained, portrait).
-The viewer more control uses **`HeaderBarAction`** + **`MoreMenu`**; Download goes through
-`shareRemoteFile` (OS share sheet), not the episode download manager. Pass `opensViewer={false}`
-when the parent row, cell, or mini-player is the pressable control. See **mobile-screen-layout**.
+**Cover images:** `CoverImage` (`expo-image`, memory+disk cache) opens **`ImageViewerModal`** on tap
+(full width, contained, portrait). The viewer more control uses **`HeaderBarAction`** +
+**`MoreMenu`**; Download goes through `shareRemoteFile` (OS share sheet), not the episode download
+manager. Pass `opensViewer={false}` when the parent row, cell, or mini-player is the pressable
+control. First-paint preview and cache habit: **mobile-image-loading**. Layout: **mobile-screen-layout**.
 
 **More / overflow:** a More control opens **`MoreMenu`** — a bottom sheet that appears instantly
 (no slide, no fade). The action group uses `background.tertiary` with centered bold command rows; Cancel is
@@ -77,16 +82,20 @@ title + body + one confirm.
 **Hub menus:** `MenuListScreen` takes `sections` — a title above each `Card` (`text.accent`,
 heading weight), hairlines between rows. Chevron (`›`) only on rows that push a screen. Log out
 is an in-place action: `showsChevron: false`. More groups Account (Profile, Membership, renewal,
-Login / Sign up or Log out), Features (overflow tabs, Settings, OPML), Other (About, Sync log,
-Smoke). Header-to-card gap is `spacing.lg`; space between groups is `spacing.xl`.
+Login / Sign up or Log out), Features (overflow tabs, Settings, OPML), Other (About, Sync log).
+An **E2E** section appears in local Metro and E2E builds (never in release): Smoke always in
+that section; Playback (`Play E2E video`, skip-next) only when `EXPO_PUBLIC_MOBILE_E2E=1`.
+Header-to-card gap is `spacing.lg`; space between groups is `spacing.xl`.
 
 **Browse vs Home:** Browse is a global directory that reuses `MediaTypeSelector`, `HomeFeedRow`,
-and `FillList`. It does **not** reuse `HomeScreen`. One chip row: popularity range (caret opens
-`MoreMenu` of stats ranges), Categories, then media types. Tapping Categories replaces the list
-with categories; tapping a category filters the last type (podcasts, episodes, clips, videos)
-and relabels the chip. Tapping a type leaves the category list. No filter field and no item
-count — Search covers directory lookup. Home keeps its filter (finite subscriptions) and has no
-item count either. Search stays Podcast Index full-text; do not send Browse rows there.
+and `FillList`. It does **not** reuse `HomeScreen`. One chip row: sort and Categories (filter
+chrome) only when the current type can use them, then media types with the selected type first.
+Tapping Categories replaces the list with categories (range chip hides); tapping a category
+filters the last type (podcasts, episodes, clips, videos) and relabels the chip. Music,
+playlists, and users have no Categories chip. Tapping a type leaves the category list. No filter
+field and no item count — Search covers directory lookup. Home keeps its filter (finite
+subscriptions) and has no item count either. Search stays Podcast Index full-text; do not send
+Browse rows there.
 
 **List rows:** `HomeFeedRow` for media/results (`isLast` drops the bottom hairline; vertical
 padding is `spacing.base`; artwork is 60×60). Title / subtitle / metadata use a column `gap`
@@ -95,15 +104,27 @@ passes `(item, index, isLast)`. `ListRow` is the title/subtitle primitive with t
 padding. A numeric `badgeCount` renders `CountBadge` left of `trailing` (chevron) and hides at 0;
 do not invent a second count chip. See **mobile-screen-layout**.
 
+**Home subscription markers:** live, unseen, and downloaded each have one home. Do not reuse the
+count chip for unseen presence.
+
+- **List (`HomeFeedRow`):** live `Badge` is centered on the artwork; downloaded count is the
+  overline (top text line); unseen is `UnseenIndicator` (accent circle, no number) in a slim
+  full-height rail at the far right of the row, with the dot vertically centered on the whole
+  row.
+- **Grid (`HomeFeedGridCell`):** live top-right, unseen indicator bottom-right, downloaded
+  `CountBadge` bottom-left.
+
 **Count badges:** `CountBadge` is the circular (oval when the digits need it) count chip. Hub
 rows pass `badgeCount` on `MenuListItem` / `ListRow`. Bottom tabs use React Navigation
 `tabBarBadge` with the shared `tabBarBadgeStyle` (same accent circle). Hide at 0. A tab badge
 is the **sum** of the in-progress row counts on that tab (`sumBadgeCounts`). Do not reuse
-`Badge` (text pill) for numeric counts.
+`Badge` (text pill) for numeric counts. Do not put a number on unseen — that is
+`UnseenIndicator`.
 
 **Action gates:** keep the gated control; on press `openGate(reason)` (`ConfirmDialog`). Do not
 inline `GatedFeatureNotice` next to an untapped button. Full-screen empties still use
-`CallToActionSection`. In-page explainers that are not the content use **`HelperNote`**. Gate
+`CallToActionSection`. Buttons in that centered fill are full width of the column. In-page
+explainers that are not the content use **`HelperNote`**. Gate
 title/body/confirm keys come from **`membershipGateMessageKeys`** / confirm helpers — exhaustive
 on `AccessDenialReason`, no fallback `t(...)`. See **mobile-screen-layout** and
 **i18n-user-facing-strings**.
@@ -120,10 +141,12 @@ with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch unde
 ## Checklist before finishing a screen
 
 - [ ] Loading / empty / error / auth-empty use `components/state/*` (not ad-hoc `ActivityIndicator` +
-      hardcoded English). Login-gated fill states use **`CallToActionSection`** (via
-      `AuthAwareLoadState` `showAuthRequired`, or as a `FillList` empty) with
-      `authentication.login_required` and `authentication.login` — not `ListEmpty`. See
-      **mobile-screen-layout** and **generic-login-required-copy**.
+      hardcoded English). Pending data shows `LoadingSection` / `ListLoading` /
+      `isInitialLoading` — never `ListEmpty` while the request is still out
+      (**mobile-pending-content-spinner**). Login-gated fill states use
+      **`CallToActionSection`** (via `AuthAwareLoadState` `showAuthRequired`, or as a `FillList`
+      empty) with `authentication.login_required` and `authentication.login` — not `ListEmpty`.
+      See **mobile-screen-layout** and **generic-login-required-copy**.
 - [ ] Hub menus (More, Library) use `MenuListScreen` `sections`. Named headers sit
       above the card. Chevron only on rows that push a screen — not on Log out.
 - [ ] List/media rows use `ListRow` / `HomeFeedRow` / `MediaRowActions` (or a shared row wrapper)
@@ -140,9 +163,10 @@ with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch unde
       use `FillList`, not a raw `FlatList` with hand-toggled `scrollEnabled`.
 - [ ] User-facing strings go through i18n (`t()`), including `accessibilityLabel` (**i18n-user-facing-strings**).
 - [ ] New shared UI gets a stable `testID` where E2E will assert it.
-- [ ] Boxed fields use `TextField` / `SearchField` so the painted chrome is the hit target.
-      Do not wrap a `TextInput` in a padded `View`, and do not grow `TextInput` padding to
-      enlarge the target.
+- [ ] Boxed fields use `TextField` / `SearchField` / `ListFilterField` so the painted chrome
+      is the hit target. Forms pass `eyebrow` + `placeholder`; search and list filters omit
+      `eyebrow`. Do not wrap a `TextInput` in a padded `View`, and do not grow `TextInput`
+      padding to enlarge the target.
 - [ ] If you duplicated JSX that already exists on another screen, stop and extract.
 
 ## Avoid
@@ -156,6 +180,7 @@ with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch unde
 
 - Rule: **reuse-beyond-components** — the same habit for hooks and pure functions, including logic
   mobile shares with web through `@podverse/helpers`
+- Rule: **mobile-pending-content-spinner** — spinner until load settles; never an empty flash
 - Rule: **mobile-react-native** (boundaries + DRY bullet)
 - Theme: **mobile-theme-parity**
 - Web counterpart (not for mobile imports): **reusable-components**

@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { flattenBrowseCategories } from './browseCategories';
+import { flattenBrowseCategories, visibleBrowseCategories } from './browseCategories';
 import {
   isBrowseCategoryMediaType,
   isBrowseRangeOption,
   isPlayableDirectoryMediaType,
+  shouldShowBrowseCategoryChip,
+  shouldShowBrowseSortChip,
 } from './browseTypes';
 
 describe('browseTypes', () => {
@@ -27,6 +29,19 @@ describe('browseTypes', () => {
     expect(isBrowseRangeOption('all-time')).toBe(true);
     expect(isBrowseRangeOption('year')).toBe(false);
     expect(isBrowseRangeOption('recent')).toBe(false);
+  });
+
+  it('hides Categories on media types that have no directory categories', () => {
+    expect(shouldShowBrowseCategoryChip('podcasts')).toBe(true);
+    expect(shouldShowBrowseCategoryChip('videos')).toBe(true);
+    expect(shouldShowBrowseCategoryChip('artists')).toBe(false);
+    expect(shouldShowBrowseCategoryChip('playlists')).toBe(false);
+  });
+
+  it('hides the range chip while the category picker is open', () => {
+    expect(shouldShowBrowseSortChip('podcasts', false)).toBe(true);
+    expect(shouldShowBrowseSortChip('artists', false)).toBe(true);
+    expect(shouldShowBrowseSortChip('podcasts', true)).toBe(false);
   });
 
   it('treats only item-like rows as playable', () => {
@@ -62,8 +77,61 @@ describe('flattenBrowseCategories', () => {
     ]);
 
     expect(rows).toEqual([
-      { depth: 0, mappingKey: 'arts' },
-      { depth: 1, mappingKey: 'books' },
+      {
+        depth: 0,
+        hasChildren: true,
+        mappingKey: 'arts',
+        rootMappingKey: 'arts',
+      },
+      {
+        depth: 1,
+        hasChildren: false,
+        mappingKey: 'books',
+        rootMappingKey: 'arts',
+      },
+    ]);
+  });
+});
+
+describe('visibleBrowseCategories', () => {
+  const rows = flattenBrowseCategories([
+    {
+      children: [
+        {
+          display_name: 'Books',
+          id: 20,
+          mapping_key: 'books',
+          parent_id: 1,
+          slug: 'books',
+        },
+      ],
+      display_name: 'Arts',
+      id: 1,
+      mapping_key: 'arts',
+      parent_id: null,
+      slug: 'arts',
+    },
+    {
+      display_name: 'Comedy',
+      id: 2,
+      mapping_key: 'comedy',
+      parent_id: null,
+      slug: 'comedy',
+    },
+  ]);
+
+  it('hides nested children until their top-level parent is expanded', () => {
+    expect(visibleBrowseCategories(rows, new Set()).map((row) => row.mappingKey)).toEqual([
+      'arts',
+      'comedy',
+    ]);
+  });
+
+  it('shows a parent branch when that root is expanded', () => {
+    expect(visibleBrowseCategories(rows, new Set(['arts'])).map((row) => row.mappingKey)).toEqual([
+      'arts',
+      'books',
+      'comedy',
     ]);
   });
 });

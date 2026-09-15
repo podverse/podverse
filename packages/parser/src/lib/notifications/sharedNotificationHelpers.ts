@@ -425,11 +425,13 @@ export async function sendItemNotifications(
             platform,
             body: itemNotification.channelTitle,
             ...(itemNotification.imageUrl ? { image: itemNotification.imageUrl } : {}),
+            channelIdText: itemNotification.channelIdText,
             linkIdText: itemNotification.itemIdText,
             mediumId: itemNotification.mediumId,
             data: {
               itemIdText: itemNotification.itemIdText,
               channelIdText: itemNotification.channelIdText,
+              mediumId: itemNotification.mediumId,
               type: itemNotification.messageType,
             },
           });
@@ -458,11 +460,13 @@ export async function sendItemNotifications(
             locale,
             body: itemNotification.channelTitle,
             ...(itemNotification.imageUrl ? { image: itemNotification.imageUrl } : {}),
+            channelIdText: itemNotification.channelIdText,
             linkIdText: itemNotification.itemIdText,
             mediumId: itemNotification.mediumId,
             data: {
               itemIdText: itemNotification.itemIdText,
               channelIdText: itemNotification.channelIdText,
+              mediumId: itemNotification.mediumId,
               type: itemNotification.messageType,
             },
           });
@@ -491,11 +495,13 @@ export async function sendItemNotifications(
             locale,
             body: itemNotification.channelTitle,
             ...(itemNotification.imageUrl ? { image: itemNotification.imageUrl } : {}),
+            channelIdText: itemNotification.channelIdText,
             linkIdText: itemNotification.itemIdText,
             mediumId: itemNotification.mediumId,
             data: {
               itemIdText: itemNotification.itemIdText,
               channelIdText: itemNotification.channelIdText,
+              mediumId: itemNotification.mediumId,
               type: itemNotification.messageType,
             },
           });

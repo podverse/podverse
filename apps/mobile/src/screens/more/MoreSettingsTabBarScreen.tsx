@@ -45,7 +45,6 @@ export function MoreSettingsTabBarScreen() {
           width: 8,
         },
         hiddenActions: {
-          opacity: 0.01,
           position: 'absolute',
         },
         section: {

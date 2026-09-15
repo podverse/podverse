@@ -1,20 +1,43 @@
-import { EventEmitter } from 'node:events';
-
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const { FakeWebSocket, feedGetByUrlMock } = vi.hoisted(() => {
-  class FakeWebSocket extends EventEmitter {
+  type Listener = (...args: unknown[]) => void;
+
+  // vi.hoisted runs before file-level imports, so this fake cannot extend
+  // node:events EventEmitter. stop() calls on / emit / removeAllListeners / close.
+  class FakeWebSocket {
     static instances: FakeWebSocket[] = [];
+    private readonly listeners = new Map<string, Listener[]>();
+
     close = vi.fn(() => {
       this.emit('close', 1000);
     });
 
     constructor() {
-      super();
       FakeWebSocket.instances.push(this);
       queueMicrotask(() => {
         this.emit('open');
       });
+    }
+
+    on(event: string, listener: Listener): this {
+      const existing = this.listeners.get(event) ?? [];
+      existing.push(listener);
+      this.listeners.set(event, existing);
+      return this;
+    }
+
+    emit(event: string, ...args: unknown[]): boolean {
+      const handlers = this.listeners.get(event) ?? [];
+      for (const listener of handlers) {
+        listener(...args);
+      }
+      return handlers.length > 0;
+    }
+
+    removeAllListeners(): this {
+      this.listeners.clear();
+      return this;
     }
   }
 

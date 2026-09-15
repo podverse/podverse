@@ -6,6 +6,8 @@ import {
   itemIdTextParamSchema,
   positionBetweenBodySchema,
   queueIdTextParamSchema,
+  queuePlaybackWriteFieldsSchema,
+  queueRemovalTombstoneBodySchema,
   validateBodyObject,
   validateParamsObject,
 } from '@api/lib/validation/index.js';
@@ -18,6 +20,16 @@ export const queueResourceNowPlayingSchema = Joi.object({
   playback_position: Joi.number().min(0).optional(),
   media_file_duration: Joi.number().min(0).optional(),
   completed: Joi.boolean().optional(),
+  ...queuePlaybackWriteFieldsSchema,
+}).required();
+
+export const queueResourceQueueWriteSchema = Joi.object({
+  ...queuePlaybackWriteFieldsSchema,
+}).default({});
+
+export const queueResourceBetweenSchema = Joi.object({
+  ...positionBetweenBodySchema,
+  ...queuePlaybackWriteFieldsSchema,
 }).required();
 
 class QueueResourceItemController {
@@ -39,14 +51,22 @@ class QueueResourceItemController {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const item_id_text = getParamRequired(req, 'item_id_text');
 
-              const { playback_position, media_file_duration, completed } = req.body;
+              const {
+                playback_position,
+                media_file_duration,
+                completed,
+                last_played_at,
+                playback_event_kind,
+              } = req.body;
 
               const dto = {
                 ...(playback_position || playback_position === 0 ? { playback_position } : {}),
                 ...(media_file_duration || media_file_duration === 0
                   ? { media_file_duration }
                   : {}),
-                ...(completed ? { completed } : {}),
+                ...(completed !== undefined ? { completed } : {}),
+                ...(last_played_at ? { last_played_at } : {}),
+                ...(playback_event_kind ? { playback_event_kind } : {}),
               };
 
               try {
@@ -75,28 +95,30 @@ class QueueResourceItemController {
     });
 
     validateParamsObject(paramsSchema, req, res, async () => {
-      ensureAuthenticated(
-        req,
-        res,
-        async () => {
-          verifyQueueOwnership()(req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const item_id_text = getParamRequired(req, 'item_id_text');
+      validateBodyObject(queueResourceQueueWriteSchema, req, res, async () => {
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const item_id_text = getParamRequired(req, 'item_id_text');
 
-            try {
-              const queueResource =
-                await QueueResourceItemController.queueResourceService.addItemToQueueNext(
-                  queue_id_text,
-                  item_id_text
-                );
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
-          });
-        },
-        { skipMembershipStatus: false }
-      );
+              try {
+                const queueResource =
+                  await QueueResourceItemController.queueResourceService.addItemToQueueNext(
+                    queue_id_text,
+                    item_id_text
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: false }
+        );
+      });
     });
   }
 
@@ -107,28 +129,30 @@ class QueueResourceItemController {
     });
 
     validateParamsObject(paramsSchema, req, res, async () => {
-      ensureAuthenticated(
-        req,
-        res,
-        async () => {
-          verifyQueueOwnership()(req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const item_id_text = getParamRequired(req, 'item_id_text');
+      validateBodyObject(queueResourceQueueWriteSchema, req, res, async () => {
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const item_id_text = getParamRequired(req, 'item_id_text');
 
-            try {
-              const queueResource =
-                await QueueResourceItemController.queueResourceService.addItemToQueueLast(
-                  queue_id_text,
-                  item_id_text
-                );
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
-          });
-        },
-        { skipMembershipStatus: false }
-      );
+              try {
+                const queueResource =
+                  await QueueResourceItemController.queueResourceService.addItemToQueueLast(
+                    queue_id_text,
+                    item_id_text
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: false }
+        );
+      });
     });
   }
 
@@ -143,7 +167,7 @@ class QueueResourceItemController {
         req,
         res,
         async () => {
-          validateBodyObject(Joi.object(positionBetweenBodySchema), req, res, async () => {
+          validateBodyObject(queueResourceBetweenSchema, req, res, async () => {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const item_id_text = getParamRequired(req, 'item_id_text');
@@ -184,14 +208,22 @@ class QueueResourceItemController {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const item_id_text = getParamRequired(req, 'item_id_text');
-              const { playback_position, media_file_duration, completed } = req.body;
+              const {
+                playback_position,
+                media_file_duration,
+                completed,
+                last_played_at,
+                playback_event_kind,
+              } = req.body;
 
               const dto = {
                 ...(playback_position || playback_position === 0 ? { playback_position } : {}),
                 ...(media_file_duration || media_file_duration === 0
                   ? { media_file_duration }
                   : {}),
-                ...(completed ? { completed } : {}),
+                ...(completed !== undefined ? { completed } : {}),
+                ...(last_played_at ? { last_played_at } : {}),
+                ...(playback_event_kind ? { playback_event_kind } : {}),
               };
 
               try {
@@ -220,27 +252,31 @@ class QueueResourceItemController {
     });
 
     validateParamsObject(paramsSchema, req, res, async () => {
-      ensureAuthenticated(
-        req,
-        res,
-        async () => {
-          verifyQueueOwnership()(req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const item_id_text = getParamRequired(req, 'item_id_text');
+      validateBodyObject(queueRemovalTombstoneBodySchema, req, res, async () => {
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const item_id_text = getParamRequired(req, 'item_id_text');
+              const { last_played_at } = req.body;
 
-            try {
-              await QueueResourceItemController.queueResourceService.removeItemFromQueue(
-                queue_id_text,
-                item_id_text
-              );
-              res.status(204).end();
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
-          });
-        },
-        { skipMembershipStatus: true }
-      );
+              try {
+                await QueueResourceItemController.queueResourceService.removeItemFromQueue(
+                  queue_id_text,
+                  item_id_text,
+                  { last_played_at }
+                );
+                res.status(204).end();
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: true }
+        );
+      });
     });
   }
 }

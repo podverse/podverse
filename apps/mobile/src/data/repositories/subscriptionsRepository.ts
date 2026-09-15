@@ -1,4 +1,6 @@
-import { eq } from 'drizzle-orm';
+import { eq, isNotNull } from 'drizzle-orm';
+
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
@@ -11,13 +13,16 @@ import { channelLiveStatusRepository } from './channelLiveStatusRepository';
 import { channelSeenRepository } from './channelSeenRepository';
 import type {
   SubscribedChannel,
+  SubscriptionChannelKind,
   SubscriptionFilter,
   SubscriptionMedium,
   SubscriptionSort,
   SubscriptionSource,
 } from './subscriptionsMerge';
 import {
+  applySubscriptionChannelKind,
   applySubscriptionFilter,
+  isSubscriptionChannelKind,
   mapAddByRssToSubscribed,
   mapDirectoryChannelToSubscribed,
   mergeSubscriptions,
@@ -29,10 +34,18 @@ import type { MobileAuthRequestContext } from './types';
 
 export type {
   SubscribedChannel,
+  SubscriptionChannelKind,
   SubscriptionFilter,
   SubscriptionMedium,
   SubscriptionSort,
   SubscriptionSource,
+} from './subscriptionsMerge';
+export {
+  isSubscriptionChannelKind,
+  mediumFromSubscriptionChannelKind,
+  subscriptionChannelKindFromMediumId,
+  subscriptionChannelKindFromResourceType,
+  SUBSCRIPTION_CHANNEL_KINDS,
 } from './subscriptionsMerge';
 
 const isSubscriptionSource = (value: string): value is SubscriptionSource => {
@@ -43,7 +56,11 @@ const isSubscriptionMedium = (value: string): value is SubscriptionMedium => {
   return value === 'podcasts' || value === 'music';
 };
 
+/** Window the stored listen-count ranks were stamped for. Null until a walk in this process. */
+let appliedPopularityRange: QueryParamsStatsRange | null = null;
+
 const rowToSubscribed = (row: SubscribedChannelRow): SubscribedChannel => {
+  const kind = isSubscriptionChannelKind(row.kind) ? row.kind : 'podcasts';
   return {
     idText: row.idText,
     sourceIdText: row.idText,
@@ -51,7 +68,9 @@ const rowToSubscribed = (row: SubscribedChannelRow): SubscribedChannel => {
     imageUrl: row.imageUrl,
     source: isSubscriptionSource(row.source) ? row.source : 'directory',
     medium: isSubscriptionMedium(row.medium) ? row.medium : 'podcasts',
+    kind,
     latestItemPubDateMs: null,
+    popularityRank: row.popularityRank,
   };
 };
 
@@ -75,6 +94,8 @@ const replaceDirectoryCache = async (entries: SubscribedChannel[]): Promise<void
         imageUrl: entry.imageUrl,
         source: entry.source,
         medium: entry.medium,
+        kind: entry.kind,
+        popularityRank: entry.popularityRank,
         updatedAt,
       }))
     );
@@ -114,10 +135,14 @@ export type DirectoryPageResult = {
 export const subscriptionsRepository = {
   /** Merged directory + add-by-RSS follows (default: all, alphabetical). Offline-capable. */
   list: async (
-    params: { filter?: SubscriptionFilter; sort?: SubscriptionSort } = {}
+    params: {
+      filter?: SubscriptionFilter;
+      kind?: SubscriptionChannelKind | null;
+      sort?: SubscriptionSort;
+    } = {}
   ): Promise<SubscribedChannel[]> => {
     await initializeDatabase();
-    const { filter = 'all', sort = 'alphabetical' } = params;
+    const { filter = 'all', kind = null, sort = 'alphabetical' } = params;
 
     // The publish dates come from the item store for directory channels and from a column on the
     // feed row for add-by-RSS, so both are read here and attached before the two sets are merged.
@@ -140,10 +165,14 @@ export const subscriptionsRepository = {
     const directoryWithRecency = directory.map((entry) => ({
       ...entry,
       latestItemPubDateMs: latestPubDateByChannel.get(entry.idText) ?? null,
+      popularityRank: entry.popularityRank,
     }));
 
     const merged = mergeSubscriptions(directoryWithRecency, addByRss);
-    return sortSubscriptions(applySubscriptionFilter(merged, filter), sort);
+    return sortSubscriptions(
+      applySubscriptionChannelKind(applySubscriptionFilter(merged, filter), kind),
+      sort
+    );
   },
 
   /** Whether this channel is shown as subscribed on this device. */
@@ -155,6 +184,21 @@ export const subscriptionsRepository = {
       .where(eq(schema.subscribedChannel.idText, idText))
       .limit(1);
     return rows.length > 0;
+  },
+
+  /**
+   * Local directory subscription chrome (title + list image) for a single channel, or null when
+   * this device does not follow it. Used to paint Podcast Detail before the network DTO arrives.
+   */
+  getByIdText: async (idText: string): Promise<SubscribedChannel | null> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select()
+      .from(schema.subscribedChannel)
+      .where(eq(schema.subscribedChannel.idText, idText))
+      .limit(1);
+    const row = rows[0];
+    return row === undefined ? null : rowToSubscribed(row);
   },
 
   /**
@@ -174,6 +218,8 @@ export const subscriptionsRepository = {
         imageUrl: entry.imageUrl,
         source: entry.source,
         medium: entry.medium,
+        kind: entry.kind,
+        popularityRank: entry.popularityRank,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
@@ -182,6 +228,7 @@ export const subscriptionsRepository = {
           title: entry.title,
           imageUrl: entry.imageUrl,
           medium: entry.medium,
+          kind: entry.kind,
           updatedAt: Date.now(),
         },
       });
@@ -200,6 +247,42 @@ export const subscriptionsRepository = {
     // badge answering a question about a subscription the user already ended.
     await channelSeenRepository.remove(idText);
     await channelLiveStatusRepository.remove(idText);
+  },
+
+  /**
+   * End a follow. The local write always happens first and stands even if the account call fails.
+   *
+   * `accountSync` is the signed-in path: directory unfollows `channel_id_text`, add-by-RSS unfollows
+   * the feed URL. Omit it when signed out — local removal is the whole operation.
+   */
+  unsubscribe: async (params: {
+    accountSync?: MobileAuthRequestContext;
+    idText: string;
+    source: SubscriptionSource;
+  }): Promise<{ serverError: boolean }> => {
+    if (params.source === 'addByRss') {
+      await addByRssRepository.removeFeed(params.idText);
+    } else {
+      await subscriptionsRepository.unsubscribeLocal(params.idText);
+    }
+
+    if (params.accountSync === undefined) {
+      return { serverError: false };
+    }
+
+    try {
+      await requestWithMobileAuthRefresh(params.accountSync, async (api) => {
+        if (params.source === 'addByRss') {
+          return api.reqAccountUnfollowAddByRSSChannel({
+            feed_url: params.idText,
+          });
+        }
+        return api.reqAccountUnfollowChannel({ channel_id_text: params.idText });
+      });
+      return { serverError: false };
+    } catch {
+      return { serverError: true };
+    }
   },
 
   /**
@@ -230,7 +313,9 @@ export const subscriptionsRepository = {
     const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
       apiRequestService.reqChannelGetMany({
         category: null,
-        medium: 'podcasts',
+        // Every followed channel kind (podcasts, artists, albums) so Home music chips can list
+        // account follows the same way Podcasts lists podcast follows.
+        medium: 'all',
         page,
         range: null,
         sort: 'a_z',
@@ -278,7 +363,93 @@ export const subscriptionsRepository = {
       return;
     }
 
-    await replaceDirectoryCache(entries);
+    const previousRanks = new Map(
+      (await readDirectoryCache()).map((entry) => [entry.idText, entry.popularityRank])
+    );
+    const entriesWithRanks = entries.map((entry) => ({
+      ...entry,
+      popularityRank: entry.popularityRank ?? previousRanks.get(entry.idText) ?? null,
+    }));
+
+    await replaceDirectoryCache(entriesWithRanks);
+  },
+
+  /**
+   * Whether any directory follow already has a listen-count rank stored for this window.
+   *
+   * A range that differs from the last walk is treated as missing so Home can stamp the new
+   * window instead of reordering from ranks that belong to another one.
+   */
+  hasPopularityRanks: async (range?: QueryParamsStatsRange): Promise<boolean> => {
+    if (range !== undefined && appliedPopularityRange !== range) {
+      return false;
+    }
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({ idText: schema.subscribedChannel.idText })
+      .from(schema.subscribedChannel)
+      .where(isNotNull(schema.subscribedChannel.popularityRank))
+      .limit(1);
+    return rows.length > 0;
+  },
+
+  /**
+   * Replace stored listen-count ranks from the account's subscribed popularity list.
+   *
+   * The walk is the rank: position 0 is the most listened follow in the requested window. Channels
+   * the endpoint does not return keep a null rank and sort after those that have one.
+   */
+  refreshPopularityRanks: async (
+    context: MobileAuthRequestContext,
+    range: QueryParamsStatsRange = 'week'
+  ): Promise<void> => {
+    const rankedIdTexts: string[] = [];
+    let page = 1;
+
+    for (;;) {
+      const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+        apiRequestService.reqChannelGetMany({
+          category: null,
+          medium: 'podcasts',
+          page,
+          range,
+          sort: 'top',
+          type: 'subscribed',
+        })
+      );
+
+      for (const channel of response.data) {
+        const idText = channel.id_text.trim();
+        if (idText.length > 0) {
+          rankedIdTexts.push(idText);
+        }
+      }
+
+      const responsePage = response.meta.page === null ? page : response.meta.page;
+      const nextPage = getNextDirectoryPage({
+        itemCount: response.data.length,
+        limit: response.meta.limit,
+        requestedPage: page,
+        responsePage,
+        totalCount: response.meta.count,
+      });
+      if (nextPage === null) {
+        break;
+      }
+      page = nextPage;
+    }
+
+    await initializeDatabase();
+    await getDb().transaction(async (transaction) => {
+      await transaction.update(schema.subscribedChannel).set({ popularityRank: null });
+      for (const [index, idText] of rankedIdTexts.entries()) {
+        await transaction
+          .update(schema.subscribedChannel)
+          .set({ popularityRank: index })
+          .where(eq(schema.subscribedChannel.idText, idText));
+      }
+    });
+    appliedPopularityRange = range;
   },
 
   /**

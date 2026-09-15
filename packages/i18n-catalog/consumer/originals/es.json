@@ -11,7 +11,8 @@
       "podcast_image": "Imagen del Podcast",
       "episode": "Episodio",
       "episodes": "Episodios",
-      "episode_image": "Imagen del Episodio"
+      "episode_image": "Imagen del Episodio",
+      "no_episodes_found": "No se encontraron episodios"
     },
     "music": {
       "music": "Música",
@@ -144,6 +145,7 @@
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
+      "no_clips_found": "No se encontraron clips",
       "create_clip": "Crear Clip",
       "edit_clip": "Editar Clip",
       "delete_clip": "Eliminar Clip",
@@ -327,6 +329,7 @@
       "no_summary": "No hay resumen disponible"
     },
     "podroll": "Podroll",
+    "no_podroll_found": "No se encontraron podcasts recomendados",
     "show_more": "Mostrar más",
     "transcript": {
       "transcript": "Transcripción",
@@ -346,7 +349,8 @@
     },
     "soundbite": {
       "official_clip": "Clip Oficial",
-      "official_clips": "Clips Oficiales"
+      "official_clips": "Clips Oficiales",
+      "no_official_clips_found": "No se encontraron clips oficiales"
     },
     "time": {
       "left": "{timeRemaining} restante",
@@ -369,6 +373,13 @@
     "skip_to_previous": "Ir al anterior",
     "jump_back": "Retroceder {seconds} segundos",
     "jump_forward": "Avanzar {seconds} segundos",
+    "handoff": {
+      "title": "¿Continuar desde otro dispositivo?",
+      "body": "Estabas escuchando \"{localTitle}\" aquí, pero otro dispositivo está en \"{serverTitle}\". ¿Quieres cambiar a ese episodio?",
+      "continue_action": "Continuar aquí",
+      "switch_action": "Cambiar episodio",
+      "unknown_episode": "un episodio desconocido"
+    },
     "step_back": "Paso atrás",
     "step_forward": "Paso adelante",
     "mute": "Silenciar",
@@ -567,10 +578,17 @@
       "month": "Mes",
       "all_time": "Todo el Tiempo"
     },
+    "list": {
+      "title_label": "Filtrar por título",
+      "placeholder": "Filtrar...",
+      "clear": "Borrar",
+      "no_matches": "Ningún resultado coincide con tu filtro."
+    },
     "screen": {
       "title": "Filtrar y Ordenar",
       "filter_heading": "Filtrar",
-      "sort_heading": "Ordenar"
+      "sort_heading": "Ordenar",
+      "range_heading": "Rango"
     }
   },
   "legal": {
@@ -581,6 +599,16 @@
     "archive_policy_explanation": "Este contenido está en proceso de ser archivado y eliminado. Esto sucede a menudo con contenido que cambia su URL de feed RSS. Si crees que esto es un error y te gustaría que este contenido fuera añadido, por favor contacta con soporte.",
     "takedown_policy": "Política de Retirada",
     "takedown_policy_explanation": "Este contenido ha sido eliminado en respuesta a una solicitud de retirada por parte del titular de los derechos de autor."
+  },
+  "popularity_tracking": {
+    "title": "Seguimiento de popularidad",
+    "yes": "Sí, incluirme",
+    "no": "No, gracias",
+    "learn_more": "Más información",
+    "already_agreed": "Ya aceptaste esta versión.",
+    "agreement_date": "Fecha del acuerdo: {agreement_date}",
+    "error": "No se pudo guardar tu elección de seguimiento de popularidad. Inténtalo de nuevo.",
+    "back_to_choice": "Volver"
   },
   "misc": {
     "more_info": "Más Información",
@@ -718,6 +746,7 @@
       "unseen_count_capped": "{count}+ nuevos",
       "unseen_count_aria": "{count} episodios nuevos",
       "unseen_count_capped_aria": "Más de {count} episodios nuevos",
+      "unseen_indicator_aria": "Episodios nuevos",
       "downloaded_count": "{count} descargados"
     },
     "mark_all_seen": "Marcar Todo Como Visto",
@@ -1010,7 +1039,11 @@
       "category_general_description": "Notificaciones importantes relacionadas con tu cuenta.",
       "new_item": "Nuevo elemento",
       "livestream_scheduled": "Transmisión en vivo programada",
-      "livestream_started": "Transmisión en vivo iniciada"
+      "livestream_started": "Transmisión en vivo iniciada",
+      "auto_enable_on_subscribe": "Activar notificaciones al suscribirme",
+      "auto_enable_on_subscribe_help": "Si está activado, al suscribirte a un podcast también se activan sus notificaciones, usando los tipos seleccionados abajo.",
+      "type_defaults_section": "Tipos de notificación",
+      "type_defaults_section_help": "Elige qué tipos de notificación se aplican cuando las notificaciones están activadas para un podcast."
     },
     "opml": {
       "opml": "OPML",
