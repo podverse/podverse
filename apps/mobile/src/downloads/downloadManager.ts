@@ -12,6 +12,10 @@ import {
   readDownloadQuotaBytes,
 } from '../prefs/downloadPrefs';
 import { isOfflineModeEnabled, subscribeOfflineMode } from '../prefs/offlineMode';
+import {
+  mergeDownloadChannelIdentity,
+  usableDownloadChannelText,
+} from './downloadChannelIdentity';
 import type { DownloadIneligibleReason } from './downloadEligibility';
 import { isItemDownloadable } from './downloadEligibility';
 import {
@@ -71,8 +75,9 @@ const ensureHydrated = (): Promise<void> => {
   if (hydratePromise === null) {
     hydratePromise = downloadsRepository
       .list()
-      .then((rows) => {
-        downloadStore.hydrate(rows);
+      .then(async (rows) => {
+        const filled = await downloadsRepository.backfillMissingChannelTitles();
+        downloadStore.hydrate(filled > 0 ? await downloadsRepository.list() : rows);
       })
       .catch((error: unknown) => {
         hydratePromise = null;
@@ -128,27 +133,55 @@ const channelFromItem = (
     return { channelIdText: null, channelTitle: null };
   }
   return {
-    channelIdText: channel.id_text ?? null,
-    channelTitle: channel.title ?? null,
+    channelIdText: usableDownloadChannelText(channel.id_text),
+    channelTitle: usableDownloadChannelText(channel.title),
   };
 };
 
+const titleFromSiblingDownloads = (channelIdText: string): string | null => {
+  for (const row of downloadStore.getAll()) {
+    if (row.channelIdText === channelIdText) {
+      const title = usableDownloadChannelText(row.channelTitle);
+      if (title !== null) {
+        return title;
+      }
+    }
+  }
+  return null;
+};
+
 /**
- * Episode list payloads often omit the nested channel. The stored window still knows which
- * show the item belongs to, which is what Home's unsubscribed-downloads footer needs.
+ * Episode list payloads often omit the nested channel, or send an id with no title. The stored
+ * window, a sibling download, and the local subscription row still know the show's name.
  */
 const resolveChannelForEnqueue = async (
   item: DTOItem
 ): Promise<{ channelIdText: string | null; channelTitle: string | null }> => {
   const fromItem = channelFromItem(item);
-  if (fromItem.channelIdText !== null) {
-    return fromItem;
+  let storedChannelId: string | null = fromItem.channelIdText;
+  if (storedChannelId === null) {
+    try {
+      storedChannelId = await channelItemsRepository.getChannelIdForItem(item.id_text);
+    } catch {
+      storedChannelId = null;
+    }
   }
+
+  const siblingTitle =
+    storedChannelId !== null ? titleFromSiblingDownloads(storedChannelId) : null;
+  const merged = mergeDownloadChannelIdentity([
+    fromItem,
+    { channelIdText: storedChannelId, channelTitle: siblingTitle },
+  ]);
+  if (merged.channelIdText === null || merged.channelTitle !== null) {
+    return merged;
+  }
+
   try {
-    const channelIdText = await channelItemsRepository.getChannelIdForItem(item.id_text);
-    return { channelIdText, channelTitle: fromItem.channelTitle };
+    const storedTitle = await downloadsRepository.findStoredChannelTitle(merged.channelIdText);
+    return { channelIdText: merged.channelIdText, channelTitle: storedTitle };
   } catch {
-    return fromItem;
+    return merged;
   }
 };
 
@@ -408,6 +441,16 @@ export const downloadManager = {
     // The control has to change on this tap. Waiting for SQLite and the native-cache projection
     // first is what makes a second and third tap feel like the app stopped responding.
     downloadStore.put(record);
+    if (channel.channelIdText !== null && channel.channelTitle !== null) {
+      void downloadsRepository
+        .attachChannelToDownloads({
+          channelIdText: channel.channelIdText,
+          channelTitle: channel.channelTitle,
+        })
+        .catch(() => {
+          // The new row already carries the title; sibling backfill is best-effort.
+        });
+    }
     void downloadsRepository.upsert(record).catch((error: unknown) => {
       if (__DEV__) {
         console.warn('[downloads] could not persist enqueued download', error);

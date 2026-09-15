@@ -11,6 +11,7 @@ import { SwipeActionRow } from '../../components/primitives/SwipeActionRow';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { usableDownloadChannelText } from '../../downloads/downloadChannelIdentity';
 import { downloadManager } from '../../downloads/downloadManager';
 import type { DownloadRecord } from '../../downloads/downloadTypes';
 import { useDownloadsList } from '../../downloads/useDownloads';
@@ -199,6 +200,7 @@ export function LibraryDownloadsScreen() {
       const statusKey = statusLabelKey(item);
       const statusText = statusKey !== null ? t(statusKey) : null;
       const accessibilityStatus = statusText ?? t('features.download.section_completed');
+      const channelTitle = usableDownloadChannelText(item.channelTitle);
 
       return (
         <SwipeActionRow
@@ -210,7 +212,7 @@ export function LibraryDownloadsScreen() {
         >
           <Pressable
             accessibilityLabel={[
-              item.channelTitle,
+              channelTitle,
               item.title ?? item.itemIdText,
               accessibilityStatus,
             ]
@@ -230,9 +232,13 @@ export function LibraryDownloadsScreen() {
                 uri={item.artworkUrl}
               />
               <View style={styles.identityText}>
-                {item.channelTitle !== null && item.channelTitle.length > 0 ? (
-                  <Text numberOfLines={1} style={styles.channelTitle}>
-                    {item.channelTitle}
+                {channelTitle !== null ? (
+                  <Text
+                    numberOfLines={1}
+                    style={styles.channelTitle}
+                    testID={`download-row-channel-${item.itemIdText}`}
+                  >
+                    {channelTitle}
                   </Text>
                 ) : null}
                 <Text numberOfLines={2} style={styles.rowTitle}>
