@@ -576,3 +576,23 @@ Read the **failed slot** HTML (error banner + ❌ screenshot) before changing ap
 
 More context (device names, flow naming): [README.md](./README.md). Environment and seed
 contract: [TEST-ENV.md](./TEST-ENV.md).
+
+---
+
+### Sample test prompt
+
+run the following and if you encounter errors, try to fix them. if you are unsure what an appropriate fix is then write the questions in a document to defer the fixes to later when you can ask the operator for help. you may need to run
+
+npm run mobile:dev:e2e
+npm run mobile:e2e:api:bg
+npm run mobile:e2e:api:bg:stop
+npm run mobile:e2e:test-assets
+
+although at the time i am writing this i have already run:
+npm run mobile:dev:e2e
+npm run mobile:e2e:api:bg
+npm run mobile:e2e:test-assets
+
+This is the test command i want you to run and fix any errors in until it passes, else explain questions you have and defer the work to later.
+
+npm run mobile:e2e:test -- --platform ios (test name)
