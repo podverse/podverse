@@ -1,3 +1,7 @@
+import { MOBILE_HOME_TAB_PATH, resolveNotificationDestinationFromPayload } from '@podverse/helpers';
+
+export const HOME_FALLBACK_PATH = MOBILE_HOME_TAB_PATH;
+
 const asNonEmptyString = (value: unknown): string | null => {
   if (typeof value !== 'string') {
     return null;
@@ -6,23 +10,9 @@ const asNonEmptyString = (value: unknown): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
-export const HOME_FALLBACK_PATH = '/home';
-
-/** Resource types with a flat content path the 452 map understands (`/<type>/<id_text>`). */
-export const ROUTABLE_TARGET_TYPES = new Set([
-  'album',
-  'artist',
-  'clip',
-  'episode',
-  'playlist',
-  'podcast',
-  'profile',
-  'track',
-]);
-
 /**
- * Extract a routable path/URL from a notification data payload. Returns `null` when there is no
- * usable target so callers can decide whether to fall back to Home.
+ * Extract a routable path from a notification data payload. Prefers a Home-stack path
+ * (`/home/podcast/:channel/episode/:item`) when the payload names a channel and item.
  */
 export const extractNotificationTargetPath = (
   data: Record<string, unknown> | null | undefined
@@ -31,21 +21,14 @@ export const extractNotificationTargetPath = (
     return null;
   }
 
-  const url = asNonEmptyString(data.url);
-  if (url !== null) {
-    return url;
+  const explicitUrl = asNonEmptyString(data.url);
+  if (explicitUrl !== null) {
+    return explicitUrl;
   }
 
-  const linkPath = asNonEmptyString(data.link_path);
-  if (linkPath !== null) {
-    return linkPath;
+  const destination = resolveNotificationDestinationFromPayload(data);
+  if (destination.kind === 'home') {
+    return null;
   }
-
-  const type = asNonEmptyString(data.type);
-  const idText = asNonEmptyString(data.id_text);
-  if (type !== null && idText !== null && ROUTABLE_TARGET_TYPES.has(type)) {
-    return `/${type}/${idText}`;
-  }
-
-  return null;
+  return destination.mobileStackPath ?? destination.webPath;
 };

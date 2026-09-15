@@ -44,7 +44,7 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-rate-limit": "^8.6.2",
-    "fast-xml-parser": "5.11.1",
+    "fast-xml-parser": "^5.11.1",
     "ioredis": "^6.0.0",
     "joi": "^18.2.5",
     "jsonwebtoken": "^9.0.2",
@@ -72,6 +72,6 @@
     "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   }
 }

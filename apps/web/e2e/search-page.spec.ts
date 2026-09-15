@@ -39,6 +39,18 @@ test.describe('Search page', () => {
       musicChip
     );
 
+    await actionAndCapture(
+      page,
+      testInfo,
+      'Selecting All marks that chip as pressed again before the podcast fixture search.',
+      async () => {
+        await allChip.click();
+        await expect(allChip).toHaveAttribute('aria-pressed', 'true');
+        await expect(musicChip).toHaveAttribute('aria-pressed', 'false');
+      },
+      allChip
+    );
+
     const fixtureRow = page.getByText('E2E Unparsed Podcast Index Feed');
     await actionAndCapture(
       page,

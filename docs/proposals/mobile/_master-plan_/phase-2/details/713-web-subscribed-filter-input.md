@@ -41,7 +41,7 @@ implementation.
 is typed, cached until sort, range, or account changes, and bounded at `PAGINATION.MAX_COUNT`.
 Filtering and pagination then happen over that list, so a match on page 3 is found from page 1 and no
 keystroke costs a request. Reasoning and the ceiling's consequence are recorded in
-`.llm/plans/active/mobile-p2-home-podcasts/00-DIVERGENCES.md`.
+`.llm/plans/completed/mobile-p2-home-podcasts/00-DIVERGENCES.md`.
 
 ### URL state
 

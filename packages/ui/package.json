@@ -55,7 +55,7 @@
     "react-virtuoso": "^4.18.12",
     "sass": "^1.103.1",
     "typescript": "^5.9.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   },
   "dependencies": {
     "@podverse/helpers": "*",

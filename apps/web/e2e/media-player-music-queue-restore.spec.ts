@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import {
+  clearSeededPodcastQueueResources,
   expectMediaPlayerTitleVisible,
   waitForAudioReadyAtLeast,
 } from './helpers/mediaPlayerAssertions';
@@ -55,8 +56,10 @@ async function promoteMusicTrackToNowPlaying(
     `${API_BASE_URL}/queue/${E2E_MUSIC_QUEUE_ID_TEXT}/item/${E2E_MUSIC_TRACK_ONE_ID_TEXT}/now-playing`,
     {
       data: {
-        playback_position: playbackPositionSeconds,
+        last_played_at: new Date().toISOString(),
         media_file_duration: E2E_MUSIC_TRACK_DURATION_SECONDS,
+        playback_event_kind: 'play',
+        playback_position: playbackPositionSeconds,
       },
     }
   );
@@ -76,6 +79,7 @@ test.describe('Media player logged-in music queue restore', () => {
   test.beforeEach(async ({ page }) => {
     test.setTimeout(20_000);
     await loginSeedUser(page);
+    await clearSeededPodcastQueueResources(page);
   });
 
   test('Full page load resumes a logged-in music now-playing row at the stored playback_position', async ({

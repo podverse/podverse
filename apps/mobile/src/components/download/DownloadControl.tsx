@@ -1,12 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 
-import { isItemDownloadable } from '../../downloads/downloadEligibility';
-import { downloadManager } from '../../downloads/downloadManager';
-import { useItemDownload } from '../../downloads/useDownloads';
+import { useDownloadAction } from '../../downloads/useDownloads';
 import { useTheme } from '../../theme/useTheme';
 
 type DownloadControlProps = {
@@ -17,13 +15,18 @@ type DownloadControlProps = {
  * Episode download affordance. **Renders nothing** when the item is not downloadable (livestream,
  * HLS/m3u8, or no enclosure) — mirroring web, where livestream UI never offers Download. Otherwise
  * shows Download → queued/downloading progress (with Cancel) → Downloaded (with Remove), and
- * surfaces failures with a retry. All state comes from `downloadManager` / `downloadsRepository`.
+ * surfaces failures with a retry. All state comes from `useDownloadAction`.
+ *
+ * This is a single-item surface, so it opts into byte progress and shows a percentage. List rows
+ * deliberately do not — see `DownloadRowControl`.
  */
 export function DownloadControl({ item }: DownloadControlProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const record = useItemDownload(item.id_text);
-  const [noticeKey, setNoticeKey] = useState<string | null>(null);
+  const { isDownloadable, noticeKey, percentComplete, remove, start, status } = useDownloadAction(
+    item,
+    true
+  );
 
   const styles = useMemo(
     () =>
@@ -73,36 +76,19 @@ export function DownloadControl({ item }: DownloadControlProps) {
     [themeStyles, tokens]
   );
 
-  const eligibility = isItemDownloadable(item);
-  if (!eligibility.ok) {
+  if (!isDownloadable) {
     return null;
   }
 
-  const startDownload = async (): Promise<void> => {
-    setNoticeKey(null);
-    const result = await downloadManager.enqueue(item);
-    if (!result.ok) {
-      setNoticeKey('features.download.not_downloadable');
-    }
-  };
-
-  const removeDownload = async (): Promise<void> => {
-    await downloadManager.remove(item.id_text);
-  };
-
-  const status = record?.status ?? null;
-
-  if (status === 'queued' || status === 'downloading') {
-    const percent =
-      record !== null && record.byteSize !== null && record.byteSize > 0
-        ? Math.min(100, Math.round((record.bytesDownloaded / record.byteSize) * 100))
-        : null;
+  if (status === 'queued' || status === 'downloading' || status === 'paused') {
     const statusLabel =
       status === 'queued'
         ? t('features.download.queued')
-        : percent === null
-          ? t('features.download.downloading_episode')
-          : `${t('features.download.downloading_episode')} · ${percent}%`;
+        : status === 'paused'
+          ? t('features.download.paused')
+          : percentComplete === null
+            ? t('features.download.downloading_episode')
+            : `${t('features.download.downloading_episode')} · ${percentComplete}%`;
 
     return (
       <View>
@@ -110,9 +96,7 @@ export function DownloadControl({ item }: DownloadControlProps) {
           <Text style={styles.statusLabel}>{statusLabel}</Text>
           <Pressable
             accessibilityRole="button"
-            onPress={() => {
-              void removeDownload();
-            }}
+            onPress={remove}
             style={styles.secondaryButton}
             testID="episode-download-cancel"
           >
@@ -129,9 +113,7 @@ export function DownloadControl({ item }: DownloadControlProps) {
         <Text style={styles.statusLabel}>{t('features.download.episode_downloaded')}</Text>
         <Pressable
           accessibilityRole="button"
-          onPress={() => {
-            void removeDownload();
-          }}
+          onPress={remove}
           style={styles.secondaryButton}
           testID="episode-download-remove"
         >
@@ -145,9 +127,7 @@ export function DownloadControl({ item }: DownloadControlProps) {
     <View>
       <Pressable
         accessibilityRole="button"
-        onPress={() => {
-          void startDownload();
-        }}
+        onPress={start}
         style={styles.button}
         testID="episode-download-button"
       >

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { HomeRowMetadataSources } from './homeRowMetadata';
-import { buildHomeRowMetadata } from './homeRowMetadata';
+import { buildHomeRowMetadata, mergeDownloadedCountsIntoHomeRows } from './homeRowMetadata';
 
 const emptySources = (overrides: Partial<HomeRowMetadataSources> = {}): HomeRowMetadataSources => ({
   broadcastingKeys: new Set<string>(),
@@ -84,5 +84,61 @@ describe('buildHomeRowMetadata', () => {
     );
 
     expect([...metadata.keys()]).toEqual(['kept']);
+  });
+});
+
+describe('mergeDownloadedCountsIntoHomeRows', () => {
+  it('updates only rows whose finished-download count changed', () => {
+    const rows = [
+      {
+        id: 'channel-a',
+        metadata: {
+          downloadedCount: 3,
+          isLive: false,
+          latestItemPubDateMs: null,
+          unseenBadge: null,
+        },
+      },
+      {
+        id: 'channel-b',
+        metadata: {
+          downloadedCount: 1,
+          isLive: true,
+          latestItemPubDateMs: 100,
+          unseenBadge: { count: 2, isCapped: false },
+        },
+      },
+    ];
+
+    const next = mergeDownloadedCountsIntoHomeRows(
+      rows,
+      new Map([
+        ['channel-a', 2],
+        ['channel-b', 1],
+      ])
+    );
+
+    expect(next).not.toBe(rows);
+    expect(next[0]?.metadata?.downloadedCount).toBe(2);
+    expect(next[1]).toBe(rows[1]);
+    expect(next[1]?.metadata?.isLive).toBe(true);
+    expect(next[1]?.metadata?.unseenBadge).toEqual({ count: 2, isCapped: false });
+  });
+
+  it('returns the same array when every count already matches', () => {
+    const rows = [
+      {
+        id: 'channel-a',
+        metadata: {
+          downloadedCount: 2,
+          isLive: false,
+          latestItemPubDateMs: null,
+          unseenBadge: null,
+        },
+      },
+    ];
+
+    const next = mergeDownloadedCountsIntoHomeRows(rows, new Map([['channel-a', 2]]));
+    expect(next).toBe(rows);
   });
 });

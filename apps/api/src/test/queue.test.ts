@@ -2,6 +2,7 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { PLAYBACK_REPLAY_BATCH_LIMIT } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -52,6 +53,7 @@ const {
   qrGetNowPlayingMock,
   qrGetAllUpcomingMock,
   qrGetHistoryPaginatedMock,
+  qrReplayPlaybackEventsMock,
   qrAddClipNowPlayingMock,
   qrAddClipNextMock,
   qrAddClipLastMock,
@@ -95,6 +97,7 @@ const {
   qrGetNowPlayingMock: vi.fn(async () => ({ id: 1, resource: 'now' })),
   qrGetAllUpcomingMock: vi.fn(async () => [{ id: 2 }]),
   qrGetHistoryPaginatedMock: vi.fn(async () => [[{ id: 3 }], 1]),
+  qrReplayPlaybackEventsMock: vi.fn(async () => [{ id: 10 }]),
   qrAddClipNowPlayingMock: vi.fn(async () => ({ id: 1 })),
   qrAddClipNextMock: vi.fn(async () => ({ id: 1 })),
   qrAddClipLastMock: vi.fn(async () => ({ id: 1 })),
@@ -152,6 +155,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     getNowPlayingByQueueIdText = qrGetNowPlayingMock;
     getAllUpcomingByQueueIdText = qrGetAllUpcomingMock;
     getHistoryResourcesByQueueIdText = qrGetHistoryPaginatedMock;
+    replayPlaybackEvents = qrReplayPlaybackEventsMock;
     addClipToNowPlaying = qrAddClipNowPlayingMock;
     addClipToQueueNext = qrAddClipNextMock;
     addClipToQueueLast = qrAddClipLastMock;
@@ -189,6 +193,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
 
 const nowPlayingBody = {};
 const betweenBody = { position1: 0, position2: 1 };
+const nowPlayingBodyWithTimestamp = {
+  last_played_at: '2026-09-13T10:00:00.000Z',
+  playback_event_kind: 'play',
+};
 
 let queueBase: string;
 
@@ -393,6 +401,92 @@ describe('queue routes', () => {
     });
   });
 
+  describe('POST /:queue_id_text/playback-events/replay', () => {
+    beforeEach(() => {
+      queueGetByIdTextMock.mockReset();
+      queueGetByIdTextMock.mockResolvedValue(queueOwnedBy(TEST_USER_ID));
+    });
+
+    const replayUrl = () => `${queueBase}/${QUEUE_ID_TEXT}/playback-events/replay`;
+
+    it('returns 200 and forwards normalized replay payload', async () => {
+      const res = await request(app)
+        .post(replayUrl())
+        .set(auth())
+        .send({
+          events: [
+            {
+              item_id_text: ITEM_ID_TEXT,
+              playback_event_kind: 'play',
+              playback_position: 12.5,
+              media_file_duration: 300,
+              last_played_at: '2026-09-13T10:00:00.000Z',
+            },
+          ],
+        });
+
+      expect(res.status).toBe(200);
+      expect(qrReplayPlaybackEventsMock).toHaveBeenCalledWith(QUEUE_ID_TEXT, [
+        {
+          item_id_text: ITEM_ID_TEXT,
+          last_played_at: '2026-09-13T10:00:00.000Z',
+          media_file_duration: '300',
+          playback_event_kind: 'play',
+          playback_position: '12.5',
+        },
+      ]);
+    });
+
+    it('returns 400 for empty events, oversized events, and mixed resource refs', async () => {
+      let res = await request(app).post(replayUrl()).set(auth()).send({ events: [] });
+      expect(res.status).toBe(400);
+
+      res = await request(app)
+        .post(replayUrl())
+        .set(auth())
+        .send({
+          events: Array.from({ length: PLAYBACK_REPLAY_BATCH_LIMIT + 1 }, () => ({
+            item_id_text: ITEM_ID_TEXT,
+            playback_event_kind: 'play',
+          })),
+        });
+      expect(res.status).toBe(400);
+
+      res = await request(app)
+        .post(replayUrl())
+        .set(auth())
+        .send({
+          events: [
+            {
+              item_id_text: ITEM_ID_TEXT,
+              clip_id_text: CLIP_ID_TEXT,
+              playback_event_kind: 'play',
+            },
+          ],
+        });
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 401 without auth and 403 for non-owner', async () => {
+      let res = await request(app)
+        .post(replayUrl())
+        .send({
+          events: [{ item_id_text: ITEM_ID_TEXT, playback_event_kind: 'play' }],
+        });
+      expect(res.status).toBe(401);
+
+      queueGetByIdTextMock.mockReset();
+      queueGetByIdTextMock.mockResolvedValueOnce(queueOwnedBy(OTHER_USER_ID));
+      res = await request(app)
+        .post(replayUrl())
+        .set(auth())
+        .send({
+          events: [{ item_id_text: ITEM_ID_TEXT, playback_event_kind: 'play' }],
+        });
+      expect(res.status).toBe(403);
+    });
+  });
+
   describe('clip operations', () => {
     beforeEach(() => {
       queueGetByIdTextMock.mockReset();
@@ -446,7 +540,10 @@ describe('queue routes', () => {
     const url = (suffix: string) => `${queueBase}/${QUEUE_ID_TEXT}/item/${ITEM_ID_TEXT}${suffix}`;
 
     it('POST now-playing, next, last, between, history and DELETE return expected statuses', async () => {
-      let res = await request(app).post(url('/now-playing')).set(auth()).send(nowPlayingBody);
+      let res = await request(app)
+        .post(url('/now-playing'))
+        .set(auth())
+        .send(nowPlayingBodyWithTimestamp);
       expect(res.status).toBe(201);
       res = await request(app).post(url('/next')).set(auth());
       expect(res.status).toBe(201);
@@ -478,6 +575,32 @@ describe('queue routes', () => {
     it('returns 401 without auth (next)', async () => {
       const res = await request(app).post(url('/next'));
       expect(res.status).toBe(401);
+    });
+
+    it('accepts valid ISO timestamp on now-playing and rejects malformed values', async () => {
+      let res = await request(app).post(url('/now-playing')).set(auth()).send({
+        last_played_at: '2026-09-13T10:00:00.000Z',
+        playback_event_kind: 'play',
+      });
+      expect(res.status).toBe(201);
+
+      res = await request(app).post(url('/now-playing')).set(auth()).send({
+        last_played_at: 'not-an-iso-date',
+        playback_event_kind: 'play',
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('passes deletion tombstones so older removals are treated as no-ops server-side', async () => {
+      const tombstone = '2026-09-13T09:55:00.000Z';
+      const res = await request(app)
+        .delete(url(''))
+        .set(auth())
+        .send({ last_played_at: tombstone });
+      expect(res.status).toBe(204);
+      expect(qrRemoveItemMock).toHaveBeenCalledWith(QUEUE_ID_TEXT, ITEM_ID_TEXT, {
+        last_played_at: tombstone,
+      });
     });
   });
 

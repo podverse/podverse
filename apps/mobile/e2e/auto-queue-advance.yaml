@@ -49,6 +49,7 @@ name: Auto Queue Advance
 # Trigger advance() (same code path as the native `ended` handler). After advancing, the
 # orchestrator loads the next resource (auto-queue seed or manual queue-next) and keeps a target
 # active; if nothing were queued it would clear now-playing and this assertion would fail.
+- runFlow: shared/open-e2e-playback.yaml
 - tapOn:
     id: playback-skip-next-e2e
 - extendedWaitUntil:

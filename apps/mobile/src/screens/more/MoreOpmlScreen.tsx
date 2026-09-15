@@ -9,9 +9,12 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
+import { ListEmpty } from '../../components/state/ListEmpty';
 import { isMobileE2eFromEnv } from '../../config/env';
 import { useOpmlImport } from '../../hooks/useOpmlImport';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 
 type OpmlImportOutcome = OpmlImportStatusResponse['results'][number]['outcome'];
@@ -39,6 +42,7 @@ export function MoreOpmlScreen() {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
@@ -227,75 +231,84 @@ export function MoreOpmlScreen() {
       <View style={styles.cardSpacing}>
         <Card>
           <Text style={styles.sectionTitle}>{t('settings.opml.import_title')}</Text>
-          <Text style={styles.description}>{t('settings.opml.import_description')}</Text>
-          <Button
-            disabled={status !== 'authenticated' || isImporting}
-            label={t('settings.opml.import_button')}
-            loading={isImporting}
-            onPress={() => {
-              void startImport();
-            }}
-            testID="opml-import-button"
-            variant="secondary"
-          />
-          {isImporting && totalCount > 0 ? (
-            <Text style={styles.statusText} testID="opml-import-progress">
-              {t('settings.opml.import_in_progress', {
-                processed: processedCount,
-                total: totalCount,
-              })}
-            </Text>
-          ) : null}
-          {importNoticeKey !== null ? (
-            <Text style={styles.statusText} testID="opml-import-notice">
-              {t(importNoticeKey)}
-            </Text>
-          ) : null}
-          {importErrorKey !== null ? (
-            <Text style={styles.statusText} testID="opml-import-error">
-              {t(importErrorKey)}
-            </Text>
-          ) : importErrorMessage !== null ? (
-            <Text style={styles.statusText} testID="opml-import-error">
-              {importErrorMessage}
-            </Text>
-          ) : null}
-          {showResults && importReport !== null ? (
-            <View style={styles.resultsList} testID="opml-import-results">
-              <Text style={styles.summary}>
-                {t('settings.opml.import_result_summary', {
-                  total: importReport.totals.total,
-                  subscribed: importReport.totals.subscribed,
-                  enqueued: importReport.totals.enqueuedIndexed,
-                  addedByRss: importReport.totals.addedByRss,
-                  alreadySubscribed: importReport.totals.skippedExisting,
-                  failed: importReport.totals.failed,
-                  rateLimited: importReport.totals.rateLimited,
-                })}
-              </Text>
-              {importReport.results.map((result) => {
-                const title =
-                  result.title !== undefined && result.title.trim() !== ''
-                    ? result.title
-                    : result.feedUrl;
-                const showUrl = result.title !== undefined && result.title.trim() !== '';
-                return (
-                  <View
-                    key={`${result.feedUrl}-${result.outcome}`}
-                    style={styles.resultRow}
-                    testID={`opml-import-result-${result.outcome}`}
-                  >
-                    <Text style={styles.outcome}>{t(outcomeI18nKey(result.outcome))}</Text>
-                    <Text style={styles.feedTitle}>{title}</Text>
-                    {showUrl ? <Text style={styles.feedUrl}>{result.feedUrl}</Text> : null}
-                    {result.error !== undefined && result.error !== '' ? (
-                      <Text style={styles.resultError}>{result.error}</Text>
-                    ) : null}
-                  </View>
-                );
-              })}
-            </View>
-          ) : null}
+          {offlineModeEnabled ? (
+            <ListEmpty
+              messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+              testID="opml-import-offline-unavailable"
+            />
+          ) : (
+            <>
+              <Text style={styles.description}>{t('settings.opml.import_description')}</Text>
+              <Button
+                disabled={status !== 'authenticated' || isImporting}
+                label={t('settings.opml.import_button')}
+                loading={isImporting}
+                onPress={() => {
+                  void startImport();
+                }}
+                testID="opml-import-button"
+                variant="secondary"
+              />
+              {isImporting && totalCount > 0 ? (
+                <Text style={styles.statusText} testID="opml-import-progress">
+                  {t('settings.opml.import_in_progress', {
+                    processed: processedCount,
+                    total: totalCount,
+                  })}
+                </Text>
+              ) : null}
+              {importNoticeKey !== null ? (
+                <Text style={styles.statusText} testID="opml-import-notice">
+                  {t(importNoticeKey)}
+                </Text>
+              ) : null}
+              {importErrorKey !== null ? (
+                <Text style={styles.statusText} testID="opml-import-error">
+                  {t(importErrorKey)}
+                </Text>
+              ) : importErrorMessage !== null ? (
+                <Text style={styles.statusText} testID="opml-import-error">
+                  {importErrorMessage}
+                </Text>
+              ) : null}
+              {showResults && importReport !== null ? (
+                <View style={styles.resultsList} testID="opml-import-results">
+                  <Text style={styles.summary}>
+                    {t('settings.opml.import_result_summary', {
+                      total: importReport.totals.total,
+                      subscribed: importReport.totals.subscribed,
+                      enqueued: importReport.totals.enqueuedIndexed,
+                      addedByRss: importReport.totals.addedByRss,
+                      alreadySubscribed: importReport.totals.skippedExisting,
+                      failed: importReport.totals.failed,
+                      rateLimited: importReport.totals.rateLimited,
+                    })}
+                  </Text>
+                  {importReport.results.map((result) => {
+                    const title =
+                      result.title !== undefined && result.title.trim() !== ''
+                        ? result.title
+                        : result.feedUrl;
+                    const showUrl = result.title !== undefined && result.title.trim() !== '';
+                    return (
+                      <View
+                        key={`${result.feedUrl}-${result.outcome}`}
+                        style={styles.resultRow}
+                        testID={`opml-import-result-${result.outcome}`}
+                      >
+                        <Text style={styles.outcome}>{t(outcomeI18nKey(result.outcome))}</Text>
+                        <Text style={styles.feedTitle}>{title}</Text>
+                        {showUrl ? <Text style={styles.feedUrl}>{result.feedUrl}</Text> : null}
+                        {result.error !== undefined && result.error !== '' ? (
+                          <Text style={styles.resultError}>{result.error}</Text>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : null}
+            </>
+          )}
         </Card>
       </View>
 

@@ -10,16 +10,14 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_Active (mobile):_ The mobile master plan is split into **phases** — see
-[PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md). **Phase 1** (agent-led framework
-build-out) is **closed**: 376 steps done, with durable outcomes retained in the Phase 1 master plan.
-**Phase 2** is **active** and
-**operator-guided** — the operator pastes legacy-app screenshots per screen area and the agent asks
-questions before planning (**mobile-legacy-screenshot-planning** skill). Phase 2 plan sets live at
-`.llm/plans/active/mobile-p2-<area>/` and absorb the old Track 23 visual polish. Carried forward:
-**Phase 3** V4V (19.6), **Phase 4** watch + TV (18.6–18.14), **Phase 5** native store IAP
-(19.2/19.3/19.5). Operational leftovers and three open operator-decision items (CarPlay Simulator
-proof, Android Auto DHU + Play Console declaration, `deep-link`/`push` E2E harness) are tracked in
+_Active (mobile):_ none. Phase 2 **P2.1.2 podcast screen** is implemented (details 723–727); episode
+detail waits on its own screenshot batch. The mobile master plan is split into **phases** — see
+[PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md). **Phase 1** is **closed**. **Phase 2**
+is **active** (operator-guided, screenshot loop). Home (podcasts) + Search + foundations are
+archived at `.llm/plans/completed/mobile-p2-home-podcasts/`. Carried forward: **Phase 3** V4V,
+**Phase 4** watch + TV, **Phase 5** native store IAP. Operational leftovers and three open
+operator-decision items (CarPlay Simulator proof, Android Auto DHU + Play Console declaration,
+`deep-link`/`push` E2E harness) are tracked in
 [Phase 2 § Track P2.3](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md).
 **Publish hold:** no alpha/internal test-track publish until the operator signs off on visual polish.
 

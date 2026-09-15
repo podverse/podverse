@@ -18,7 +18,7 @@ export function isFillListScrollLocked(
     return false;
   }
 
-  return listEmpty !== null && listEmpty !== undefined && listEmpty !== false;
+  return listEmpty !== null && listEmpty !== undefined;
 }
 
 const fillContent = StyleSheet.create({

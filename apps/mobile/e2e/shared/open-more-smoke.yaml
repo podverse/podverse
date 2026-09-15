@@ -1,0 +1,15 @@
+appId: com.podverse.app.next
+---
+# More → E2E → Smoke. The tab shell must already be visible.
+# More is two pages on phone; iOS XCUITest omits off-screen testIDs until this row is scrolled in.
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- scrollUntilVisible:
+    element:
+      id: more-nav-smoke
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: more-nav-smoke

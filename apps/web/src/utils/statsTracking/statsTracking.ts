@@ -1,4 +1,5 @@
 import type { DTOAccount } from '@podverse/helpers';
+import { isPopularityTrackingAllowed } from '@podverse/helpers';
 import {
   reqStatsTrackAccount,
   reqStatsTrackChannel,
@@ -10,16 +11,24 @@ import {
 import { getApiRequestService } from '../../factories/apiRequestService';
 
 let accountForListenStatsGate: DTOAccount | null = null;
+let currentPopularityTrackingVersion = '';
 
 export function syncListenStatsGateFromAccount(account: DTOAccount | null): void {
   accountForListenStatsGate = account;
+}
+
+export function syncPopularityTrackingVersion(version: string): void {
+  currentPopularityTrackingVersion = version;
 }
 
 function shouldSkipListenStatsForLoggedInAccount(): boolean {
   if (accountForListenStatsGate === null) {
     return false;
   }
-  return accountForListenStatsGate.account_settings?.allow_listen_stats === false;
+  return !isPopularityTrackingAllowed(
+    accountForListenStatsGate.account_settings,
+    currentPopularityTrackingVersion
+  );
 }
 
 function fireStatsRequest(promise: Promise<unknown>): void {

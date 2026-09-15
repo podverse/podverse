@@ -1,0 +1,73 @@
+---
+description: Full-screen RN Modals close through `visible` and never overlap; unmounting or stacking one wedges the app behind a black window
+globs:
+  - apps/mobile/**/*.tsx
+alwaysApply: false
+---
+
+# Mobile modal presentation lifecycle
+
+A React Native `Modal` with `presentationStyle="fullScreen"` is a real presented iOS view
+controller, not a styled `View`. UIKit owns its presentation and dismissal and tolerates only one
+transition at a time. Two habits that read as harmless JSX break it, and both fail the same way: an
+empty black window sits over the app, with no redbox and no crash, and every `testID` beneath it is
+unreachable for the rest of the session.
+
+The symptom is deceptive. A full-screen modal hides everything behind it from accessibility, so a
+wedged one that renders nothing leaves screen readers and Maestro seeing an empty screen. The app is
+running fine underneath.
+
+## Close through `visible`, never by unmounting
+
+Keep the `Modal` mounted and let `visible` drive it. A condition wrapped *around* the element
+removes it mid-presentation, so UIKit never runs the dismissal and the window it created stays up.
+
+```tsx
+// BAD — the element disappears while iOS still has it presented
+{status === 'anonymous' ? (
+  <Modal presentationStyle="fullScreen" visible={showAuthSheet}>…</Modal>
+) : null}
+
+// GOOD — one prop drives the transition, and `visible` already encodes the condition
+<Modal presentationStyle="fullScreen" visible={showAuthSheet}>…</Modal>
+```
+
+This bites hardest when a single state change does both jobs, because then the condition that hides
+the modal is the same one that unmounts it — the dismissal is skipped exactly when it was needed.
+
+Children normally stay mounted; an unpresented modal's subtree is cheap. If a subtree is genuinely
+expensive, gate the children rather than the `Modal`, and keep them rendered through the dismissal
+animation or the content blanks mid-slide.
+
+## Never dismiss one full-screen modal and present another in the same commit
+
+UIKit cannot dismiss and present at once. The second presentation wedges, and neither modal paints.
+
+This is rarely two deliberate modals. It is usually one modal closing while an unrelated provider,
+reacting to the same state change, decides it now has something to show. Sequence them: let the
+first finish dismissing, and present the second on a later state change that genuinely warrants it.
+
+Sign-in is the recurring trigger, because `status` turns `authenticated` before the account snapshot
+lands and providers reading account data can fire during that window — see
+[mobile-anonymous-vs-account-features](/.cursor/rules/mobile-anonymous-vs-account-features.mdc)
+§ `authenticated` arrives before the account does.
+
+## Do
+
+- Drive every full-screen modal from a single `visible` expression.
+- Give one owner responsibility for what is presented, so two providers cannot both open a modal on
+  the same state change.
+- When adding a provider-level modal, ask what else reacts to the state that opens it.
+
+## Don't
+
+- Do not wrap a `Modal` in a conditional that can remove it while it is presented.
+- Do not open a modal from a state that another modal is closing on.
+- Do not treat a black screen with "element not visible" as a launch, Metro, or device failure until
+  the hierarchy has been checked (**mobile-e2e-screenshots** § Maestro flow authoring gotchas).
+
+## Related
+
+- **mobile-anonymous-vs-account-features** — the sign-in window that most often triggers the overlap
+- **mobile-e2e-screenshots** — reading the black-screen symptom from a Maestro run
+- **screen-reader-accessibility** — a presented modal hides the rest of the tree from assistive tech

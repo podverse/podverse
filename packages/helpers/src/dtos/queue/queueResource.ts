@@ -8,6 +8,8 @@ export interface DTOQueueResource {
   playlist_id: number;
   list_position: string;
   playback_position: string;
+  last_played_at?: string | null;
+  last_played_received_at?: string | null;
   media_file_duration: string;
   completed: boolean;
   clip?: DTOClip;

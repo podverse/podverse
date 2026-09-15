@@ -24,10 +24,10 @@ const mediumIdForMutation = (
 };
 
 /**
- * Queue mutation hook (add next/last, move now-playing to history). Resolves the target queue by
- * medium via `getQueueForMedium` from the store, delegates the write to `queueRepository` (which
- * force-refreshes SQLite + projects the native cache), then refreshes the store through the
- * load-active hook. Screens call this — never `req*` directly. Anonymous callers are no-ops because
+ * Queue mutation hook (add next/last, mark played, move now-playing to history). Resolves the
+ * target queue by medium via `getQueueForMedium` from the store, delegates the write to
+ * `queueRepository` (which force-refreshes SQLite + projects the native cache), then refreshes the
+ * store through the load-active hook. Screens call this — never `req*` directly. Anonymous callers are no-ops because
  * server-backed queues require authentication.
  */
 export function useQueueMutations() {
@@ -86,6 +86,29 @@ export function useQueueMutations() {
     [addToQueue]
   );
 
+  const markAsPlayed = useCallback(
+    async (
+      idText: string,
+      kind: QueueMutationKind,
+      mediaType: QueueMutationMediaType
+    ): Promise<boolean> => {
+      if (status !== 'authenticated') {
+        return false;
+      }
+
+      const mediumId = mediumIdForMutation(kind, mediaType);
+      const queue = getQueueForMedium(queues, mediumId);
+      if (queue === null) {
+        return false;
+      }
+
+      await queueRepository.markAsPlayed(buildContext(), queue.id_text, { idText, kind });
+      await loadActive(mediumId);
+      return true;
+    },
+    [buildContext, loadActive, queues, status]
+  );
+
   const moveNowPlayingToHistory = useCallback(
     async (target: MoveNowPlayingToHistoryTarget): Promise<boolean> => {
       if (status !== 'authenticated' || activeQueue === null) {
@@ -102,6 +125,7 @@ export function useQueueMutations() {
   return {
     addToQueueLast,
     addToQueueNext,
+    markAsPlayed,
     moveNowPlayingToHistory,
   };
 }

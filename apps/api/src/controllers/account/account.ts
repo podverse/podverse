@@ -542,17 +542,15 @@ export class AccountController {
       password: Joi.string().min(8).required(),
       locale: Joi.string().required(),
       terms_version: Joi.string().max(TERMS_VERSION_MAX_LENGTH).required(),
-      allow_listen_stats: Joi.boolean().default(true),
     });
 
     validateBodyObject(bodySchema, req, res, async () => {
       try {
-        const { email, password, locale, terms_version, allow_listen_stats } = req.body as {
+        const { email, password, locale, terms_version } = req.body as {
           email: string;
           password: string;
           locale: string;
           terms_version: string;
-          allow_listen_stats?: boolean;
         };
 
         if (!isConfiguredTermsVersion(terms_version)) {
@@ -565,7 +563,6 @@ export class AccountController {
           password,
           locale,
           terms_version,
-          allow_listen_stats,
         });
         await AccountController.sendVerificationEmailHelper(email);
         res.json({

@@ -1,17 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  DEFAULT_ADD_BY_RSS_EPISODE_SORT,
   DEFAULT_ALBUM_TRACK_SORT,
   DEFAULT_EPISODE_CLIP_SORT,
   DEFAULT_EPISODE_TAB,
-  DEFAULT_PODCAST_EPISODE_SORT,
+  DEFAULT_PODCAST_DETAIL_RANGE,
+  DEFAULT_PODCAST_DETAIL_SORT,
+  DEFAULT_PODCAST_TAB,
+  readAddByRssDetailPrefs,
   readAlbumDetailPrefs,
   readEpisodeDetailPrefs,
   readPodcastDetailPrefs,
+  writeAddByRssDetailSort,
   writeAlbumDetailSort,
   writeEpisodeDetailClipSort,
   writeEpisodeDetailTab,
+  writePodcastDetailRange,
   writePodcastDetailSort,
+  writePodcastDetailTab,
 } from './detailListPrefs';
 
 const inMemoryStore = new Map<string, string>();
@@ -32,15 +39,19 @@ vi.mock('@react-native-async-storage/async-storage', () => {
   };
 });
 
+const defaultPodcastPrefs = {
+  range: DEFAULT_PODCAST_DETAIL_RANGE,
+  sort: DEFAULT_PODCAST_DETAIL_SORT,
+  tab: DEFAULT_PODCAST_TAB,
+};
+
 describe('detailListPrefs', () => {
   beforeEach(() => {
     inMemoryStore.clear();
   });
 
   it('opens on the documented defaults when nothing has been chosen', async () => {
-    await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual({
-      sort: DEFAULT_PODCAST_EPISODE_SORT,
-    });
+    await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual(defaultPodcastPrefs);
     await expect(readAlbumDetailPrefs('album-a')).resolves.toEqual({
       sort: DEFAULT_ALBUM_TRACK_SORT,
     });
@@ -48,14 +59,41 @@ describe('detailListPrefs', () => {
       clipSort: DEFAULT_EPISODE_CLIP_SORT,
       tab: DEFAULT_EPISODE_TAB,
     });
+    await expect(readAddByRssDetailPrefs('feed-a')).resolves.toEqual({
+      sort: DEFAULT_ADD_BY_RSS_EPISODE_SORT,
+    });
   });
 
   it('keeps one podcast sort from speaking for another', async () => {
-    await writePodcastDetailSort('podcast-a', 'alphabetical');
+    await writePodcastDetailSort('podcast-a', 'oldest');
 
-    await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual({ sort: 'alphabetical' });
-    await expect(readPodcastDetailPrefs('podcast-b')).resolves.toEqual({
-      sort: DEFAULT_PODCAST_EPISODE_SORT,
+    await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual({
+      ...defaultPodcastPrefs,
+      sort: 'oldest',
+    });
+    await expect(readPodcastDetailPrefs('podcast-b')).resolves.toEqual(defaultPodcastPrefs);
+  });
+
+  it('holds a podcast pane, order, and window together without one clearing the rest', async () => {
+    await writePodcastDetailTab('podcast-a', 'clips');
+    await writePodcastDetailSort('podcast-a', 'top');
+    await writePodcastDetailRange('podcast-a', 'all-time');
+
+    await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual({
+      range: 'all-time',
+      sort: 'top',
+      tab: 'clips',
+    });
+  });
+
+  it('keeps the window while the order moves off top, so returning reopens it', async () => {
+    await writePodcastDetailSort('podcast-a', 'top');
+    await writePodcastDetailRange('podcast-a', 'month');
+    await writePodcastDetailSort('podcast-a', 'recent');
+
+    await expect(readPodcastDetailPrefs('podcast-a')).resolves.toMatchObject({
+      range: 'month',
+      sort: 'recent',
     });
   });
 
@@ -68,7 +106,7 @@ describe('detailListPrefs', () => {
     });
   });
 
-  it('holds a tab and a clip sort against the same episode without either clearing the other', async () => {
+  it('holds a tab and a clip sort on one episode without either clearing the other', async () => {
     await writeEpisodeDetailTab('episode-a', 'clips');
     await writeEpisodeDetailClipSort('episode-a', 'oldest');
 
@@ -79,24 +117,34 @@ describe('detailListPrefs', () => {
   });
 
   it('files a channel and an item separately even when they share an id_text', async () => {
-    await writePodcastDetailSort('shared-id', 'alphabetical');
+    await writePodcastDetailSort('shared-id', 'oldest');
     await writeEpisodeDetailClipSort('shared-id', 'oldest');
 
-    await expect(readPodcastDetailPrefs('shared-id')).resolves.toEqual({ sort: 'alphabetical' });
+    await expect(readPodcastDetailPrefs('shared-id')).resolves.toMatchObject({ sort: 'oldest' });
     await expect(readEpisodeDetailPrefs('shared-id')).resolves.toMatchObject({
       clipSort: 'oldest',
     });
   });
 
   it('falls back to the default rather than passing an unrecognised token to a query', async () => {
-    inMemoryStore.set('sort.channel:podcast-a', JSON.stringify({ sort: 'shuffle' }));
+    inMemoryStore.set(
+      'sort.channel:podcast-a',
+      JSON.stringify({ range: 'fortnight', sort: 'shuffle', tab: 'boosts' })
+    );
     inMemoryStore.set('sort.item:episode-a', JSON.stringify({ tab: 'lyrics' }));
 
-    await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual({
-      sort: DEFAULT_PODCAST_EPISODE_SORT,
-    });
+    await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual(defaultPodcastPrefs);
     await expect(readEpisodeDetailPrefs('episode-a')).resolves.toMatchObject({
       tab: DEFAULT_EPISODE_TAB,
+    });
+  });
+
+  it('reads a title order for an add-by-RSS feed, which the podcast union omits', async () => {
+    await writeAddByRssDetailSort('feed-a', 'alphabetical');
+
+    await expect(readAddByRssDetailPrefs('feed-a')).resolves.toEqual({ sort: 'alphabetical' });
+    await expect(readPodcastDetailPrefs('feed-a')).resolves.toMatchObject({
+      sort: DEFAULT_PODCAST_DETAIL_SORT,
     });
   });
 
@@ -106,12 +154,10 @@ describe('detailListPrefs', () => {
     await expect(readAlbumDetailPrefs('album-a')).resolves.toEqual({ sort: 'backward' });
   });
 
-  it('remembers nothing for a channel with no id_text rather than pooling them together', async () => {
-    await writePodcastDetailSort('', 'alphabetical');
+  it('remembers nothing for a channel with no id_text rather than pooling them', async () => {
+    await writePodcastDetailSort('', 'oldest');
 
     expect(inMemoryStore.size).toBe(0);
-    await expect(readPodcastDetailPrefs('')).resolves.toEqual({
-      sort: DEFAULT_PODCAST_EPISODE_SORT,
-    });
+    await expect(readPodcastDetailPrefs('')).resolves.toEqual(defaultPodcastPrefs);
   });
 });

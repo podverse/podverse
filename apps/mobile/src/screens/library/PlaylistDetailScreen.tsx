@@ -11,10 +11,12 @@ import { Button } from '../../components/primitives';
 import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { playlistResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { usePlayback } from '../../playback/PlaybackProvider';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -87,6 +89,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { account, accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const [playlist, setPlaylist] = useState<DTOPlaylist | null>(null);
   const [resourceRows, setResourceRows] = useState<PlaylistResourceRow[]>([]);
   const [resources, setResources] = useState<DTOPlaylistResource[]>([]);
@@ -168,6 +171,15 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
       return;
     }
 
+    if (offlineModeEnabled) {
+      setPlaylist(null);
+      setResourceRows([]);
+      setResources([]);
+      setErrorKey(null);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setErrorKey(null);
     try {
@@ -193,7 +205,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     } finally {
       setIsLoading(false);
     }
-  }, [authArgs, playlistId, status]);
+  }, [authArgs, offlineModeEnabled, playlistId, status]);
 
   useEffect(() => {
     void loadPlaylist();
@@ -405,6 +417,17 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     !isReordering && playbackNoticeKey !== null ? (
       <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
     ) : null;
+
+  if (offlineModeEnabled) {
+    return (
+      <View style={styles.container} testID="library-playlist-detail-screen">
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="library-playlist-detail-offline-unavailable"
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container} testID="library-playlist-detail-screen">

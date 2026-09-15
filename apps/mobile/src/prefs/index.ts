@@ -1,6 +1,7 @@
 export {
   DEFAULT_DOWNLOAD_AUTO_DELETE,
   DEFAULT_HOME_MEDIA_TYPE,
+  DEFAULT_OFFLINE_MODE,
   DEFAULT_PLAYBACK_MEDIA_TYPE,
   DEFAULT_SUBSCRIPTION_FILTER,
   getPref,
@@ -15,5 +16,16 @@ export type {
   PrefValueMap,
   SubscriptionListFilter,
 } from './prefsStore';
+export {
+  hydrateOfflineMode,
+  isOfflineModeEnabled,
+  isSyncNetworkUsable,
+  OfflineModeEnabledError,
+  readOfflineModeEnabled,
+  subscribeOfflineMode,
+  useOfflineMode,
+  writeOfflineModeEnabled,
+} from './offlineMode';
+export type { OfflineModeControls } from './offlineMode';
 export { DEFAULT_VISIBLE_TABS, readVisibleTabs, writeVisibleTabs } from './tabLayout';
 export type { ContentTabId } from './tabLayout';

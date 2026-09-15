@@ -77,6 +77,9 @@ export class AccountDataExportService {
     queues: Array<unknown>;
     account_terms_acceptance: { terms_version: string; accepted_at: string } | null;
     allow_listen_stats: boolean;
+    listen_stats_accepted: boolean | null;
+    listen_stats_agreement_version: string | null;
+    listen_stats_decided_at: string | null;
   }> {
     const account = await this.accountService.get(account_id, {
       relations: { account_profile: true, account_settings: true },
@@ -113,7 +116,15 @@ export class AccountDataExportService {
             accepted_at: termsAcceptance.accepted_at.toISOString(),
           }
         : null;
-    const allowListenStats = account.account_settings?.allow_listen_stats ?? true;
+    const allowListenStats = account.account_settings?.allow_listen_stats ?? false;
+    const listenStatsAccepted = account.account_settings?.listen_stats_accepted ?? null;
+    const listenStatsAgreementVersion =
+      account.account_settings?.listen_stats_agreement_version ?? null;
+    const listenStatsDecidedAt =
+      account.account_settings?.listen_stats_decided_at !== null &&
+      account.account_settings?.listen_stats_decided_at !== undefined
+        ? account.account_settings.listen_stats_decided_at.toISOString()
+        : null;
 
     // Get following relationships
     const accountFollowingAccountService = new AccountFollowingAccountService();
@@ -405,6 +416,9 @@ export class AccountDataExportService {
       account_metaboost: accountMetaboost,
       account_terms_acceptance: accountTermsAcceptance,
       allow_listen_stats: allowListenStats,
+      listen_stats_accepted: listenStatsAccepted,
+      listen_stats_agreement_version: listenStatsAgreementVersion,
+      listen_stats_decided_at: listenStatsDecidedAt,
       following: {
         accounts: followingAccounts.map((fa) => ({
           id_text: fa.following_account.id_text,

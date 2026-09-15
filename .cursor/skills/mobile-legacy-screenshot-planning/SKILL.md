@@ -135,7 +135,7 @@ Verification.
 Plan set: `.llm/plans/active/mobile-p2-<area>/` with `00-SUMMARY.md`, `00-EXECUTION-ORDER.md`,
 numbered plan files, and `COPY-PASTA.md`. Follow
 [`parallel-plan-execution`](/.cursor/skills/parallel-plan-execution/SKILL.md) — every COPY-PASTA
-prompt needs **Cursor model** and **Reasoning** lines
+prompt needs **Cursor model** and **Reasoning** lines **outside** the paste fence
 ([`copy-pasta-recommend-model`](/.cursor/rules/copy-pasta-recommend-model.mdc)). Keep each plan file
 under 300 lines. Remove the completed Phase 2 plan set after its implementation work is complete;
 do not retain a completed-plan archive

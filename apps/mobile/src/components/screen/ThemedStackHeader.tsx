@@ -26,8 +26,7 @@ export function ThemedStackHeader({ back, navigation, options }: NativeStackHead
         options.headerRight === undefined
           ? undefined
           : options.headerRight({
-              pressColor: options.headerPressColor,
-              pressOpacity: options.headerPressOpacity,
+              canGoBack: back !== undefined,
               tintColor: options.headerTintColor,
             })
       }

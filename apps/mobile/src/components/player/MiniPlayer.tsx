@@ -9,6 +9,7 @@ import { clampRatio } from '@podverse/helpers/math';
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { usePlayback } from '../../playback/PlaybackProvider';
+import { listRowArtworkGap } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives/Button';
@@ -63,7 +64,7 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
         row: {
           alignItems: 'center',
           flexDirection: 'row',
-          gap: tokens.spacing.md,
+          gap: listRowArtworkGap(tokens.spacing),
         },
         subtitle: {
           color: themeStyles.textSecondary.color,

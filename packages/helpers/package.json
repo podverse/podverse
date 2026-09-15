@@ -67,6 +67,18 @@
       "types": "./dist/lib/queue/queueResourceAbridged.d.ts",
       "default": "./dist/lib/queue/queueResourceAbridged.js"
     },
+    "./playbackEvents": {
+      "types": "./dist/lib/playbackEvents.d.ts",
+      "default": "./dist/lib/playbackEvents.js"
+    },
+    "./playbackOutboxLimits": {
+      "types": "./dist/lib/playbackOutboxLimits.d.ts",
+      "default": "./dist/lib/playbackOutboxLimits.js"
+    },
+    "./playbackTimestamps": {
+      "types": "./dist/lib/playbackTimestamps.d.ts",
+      "default": "./dist/lib/playbackTimestamps.js"
+    },
     "./addByRSS/ids": {
       "types": "./dist/lib/addByRSS/ids.d.ts",
       "default": "./dist/lib/addByRSS/ids.js"
@@ -101,6 +113,6 @@
   "devDependencies": {
     "@types/he": "^1.2.3",
     "@types/node": "^24.12.0",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   }
 }

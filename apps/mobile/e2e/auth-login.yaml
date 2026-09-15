@@ -6,6 +6,10 @@ name: Auth Login
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
+# Login opens from More and dismisses onto authenticated More. The tab bar is
+# visible there, but Home is not mounted until we switch.
+- tapOn:
+    id: tab-home
 - assertVisible:
     id: home-screen
 - assertVisible:

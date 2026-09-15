@@ -5,12 +5,12 @@ import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
 import type { MediaTypePreference } from '@podverse/helpers';
 import { DEFAULT_MEDIA_TYPE_PREFERENCE } from '@podverse/helpers';
 
-const HOME_MEDIA_TYPES = ['podcasts', 'episodes', 'clips', 'artists', 'albums', 'tracks'] as const;
+const HOME_MEDIA_TYPES = ['podcasts', 'episodes', 'artists', 'albums', 'tracks', 'clips'] as const;
 const SUBSCRIPTION_FILTERS = ['all', 'addByRss'] as const;
 
 export type HomeMediaType = (typeof HOME_MEDIA_TYPES)[number];
 export type SubscriptionListFilter = (typeof SUBSCRIPTION_FILTERS)[number];
-export type PrefBooleanKey = 'aqc.rd' | 'aqc.rp' | 'downloads.auto_delete';
+export type PrefBooleanKey = 'aqc.rd' | 'aqc.rp' | 'downloads.auto_delete' | 'offline.mode';
 export type PrefKey =
   | 'aqc.rd'
   | 'aqc.rp'
@@ -20,6 +20,8 @@ export type PrefKey =
   | 'library.subscriptionFilter'
   | 'locale'
   | 'membership.expiry_dismissed_for'
+  | 'playback.handoff_dismissed_state'
+  | 'offline.mode'
   | 'pmt'
   | 'preferred_media_type'
   | 'uit';
@@ -42,6 +44,13 @@ export type PrefValueMap = {
    * rather than a boolean means a later expiry re-shows the banner instead of silencing it forever.
    */
   'membership.expiry_dismissed_for': string;
+  /** Declined remote handoff state (`<item-id>::<timestamp-ms>`) for playback prompt suppression. */
+  'playback.handoff_dismissed_state': string;
+  /**
+   * User-forced Offline Mode. Device-local only — parks network work and steers UI to downloaded
+   * views. Distinct from NetInfo reachability.
+   */
+  'offline.mode': boolean;
   pmt: MediaTypePreference;
   preferred_media_type: HomeMediaType;
   uit: UITheme;
@@ -61,12 +70,15 @@ const PREF_KEYS: readonly PrefKey[] = [
   'locale',
   'downloads.auto_delete',
   'membership.expiry_dismissed_for',
+  'playback.handoff_dismissed_state',
+  'offline.mode',
 ];
 
 export const DEFAULT_PLAYBACK_MEDIA_TYPE: MediaTypePreference = DEFAULT_MEDIA_TYPE_PREFERENCE;
 export const DEFAULT_HOME_MEDIA_TYPE: HomeMediaType = 'podcasts';
 export const DEFAULT_SUBSCRIPTION_FILTER: SubscriptionListFilter = 'all';
 export const DEFAULT_DOWNLOAD_AUTO_DELETE = false;
+export const DEFAULT_OFFLINE_MODE = false;
 
 const isHomeMediaType = (value: string): value is HomeMediaType => {
   return HOME_MEDIA_TYPES.some((mediaType) => mediaType === value);
@@ -93,6 +105,8 @@ const createEmptySnapshot = (): PrefSnapshot => ({
   'library.subscriptionFilter': null,
   locale: null,
   'membership.expiry_dismissed_for': null,
+  'playback.handoff_dismissed_state': null,
+  'offline.mode': null,
   pmt: null,
   preferred_media_type: null,
   uit: null,
@@ -116,13 +130,20 @@ export function getPref(key: 'home.subscriptionFilter'): Promise<SubscriptionLis
 export function getPref(key: 'library.subscriptionFilter'): Promise<SubscriptionListFilter | null>;
 export function getPref(key: 'locale'): Promise<string | null>;
 export function getPref(key: 'membership.expiry_dismissed_for'): Promise<string | null>;
+export function getPref(key: 'playback.handoff_dismissed_state'): Promise<string | null>;
+export function getPref(key: 'offline.mode'): Promise<boolean | null>;
 export function getPref(key: 'pmt'): Promise<MediaTypePreference | null>;
 export function getPref(key: 'preferred_media_type'): Promise<HomeMediaType | null>;
 export function getPref(key: 'uit'): Promise<UITheme | null>;
 export async function getPref(key: PrefKey): Promise<PrefValueMap[PrefKey] | null> {
   const stored = await AsyncStorage.getItem(key);
 
-  if (key === 'aqc.rd' || key === 'aqc.rp' || key === 'downloads.auto_delete') {
+  if (
+    key === 'aqc.rd' ||
+    key === 'aqc.rp' ||
+    key === 'downloads.auto_delete' ||
+    key === 'offline.mode'
+  ) {
     return parseBoolean(stored);
   }
   if (key === 'home.subscriptionFilter' || key === 'library.subscriptionFilter') {
@@ -134,7 +155,8 @@ export async function getPref(key: PrefKey): Promise<PrefValueMap[PrefKey] | nul
   if (
     key === 'auth.forced_logout_at' ||
     key === 'locale' ||
-    key === 'membership.expiry_dismissed_for'
+    key === 'membership.expiry_dismissed_for' ||
+    key === 'playback.handoff_dismissed_state'
   ) {
     return stored;
   }
@@ -170,11 +192,18 @@ export function setPref(
 ): Promise<void>;
 export function setPref(key: 'locale', value: string): Promise<void>;
 export function setPref(key: 'membership.expiry_dismissed_for', value: string): Promise<void>;
+export function setPref(key: 'playback.handoff_dismissed_state', value: string): Promise<void>;
+export function setPref(key: 'offline.mode', value: boolean): Promise<void>;
 export function setPref(key: 'pmt', value: MediaTypePreference): Promise<void>;
 export function setPref(key: 'preferred_media_type', value: HomeMediaType): Promise<void>;
 export function setPref(key: 'uit', value: UITheme): Promise<void>;
 export async function setPref(key: PrefKey, value: PrefValueMap[PrefKey]): Promise<void> {
-  if (key === 'aqc.rd' || key === 'aqc.rp' || key === 'downloads.auto_delete') {
+  if (
+    key === 'aqc.rd' ||
+    key === 'aqc.rp' ||
+    key === 'downloads.auto_delete' ||
+    key === 'offline.mode'
+  ) {
     await AsyncStorage.setItem(key, value ? 'true' : 'false');
     return;
   }
@@ -209,6 +238,10 @@ export const hydratePrefs = async (): Promise<PrefSnapshot> => {
         snapshot['downloads.auto_delete'] = await getPref('downloads.auto_delete');
         return;
       }
+      if (key === 'offline.mode') {
+        snapshot['offline.mode'] = await getPref('offline.mode');
+        return;
+      }
       if (key === 'home.subscriptionFilter') {
         snapshot['home.subscriptionFilter'] = await getPref('home.subscriptionFilter');
         return;
@@ -224,6 +257,12 @@ export const hydratePrefs = async (): Promise<PrefSnapshot> => {
       if (key === 'membership.expiry_dismissed_for') {
         snapshot['membership.expiry_dismissed_for'] = await getPref(
           'membership.expiry_dismissed_for'
+        );
+        return;
+      }
+      if (key === 'playback.handoff_dismissed_state') {
+        snapshot['playback.handoff_dismissed_state'] = await getPref(
+          'playback.handoff_dismissed_state'
         );
         return;
       }

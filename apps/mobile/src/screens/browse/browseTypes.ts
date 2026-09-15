@@ -6,20 +6,20 @@ import type { HomeMediaType } from '../../prefs/preferredMediaType';
 export const HOME_MEDIA_TYPE_ORDER: HomeMediaType[] = [
   'podcasts',
   'episodes',
-  'clips',
   'artists',
   'albums',
   'tracks',
+  'clips',
 ];
 
 export const BROWSE_MEDIA_TYPE_ORDER = [
   'podcasts',
   'episodes',
-  'clips',
   'videos',
   'artists',
   'albums',
   'tracks',
+  'clips',
   'playlists',
   'users',
 ] as const;
@@ -50,6 +50,23 @@ export const BROWSE_CATEGORY_MEDIA_TYPES: readonly BrowseMediaType[] = [
 
 export const isBrowseCategoryMediaType = (mediaType: BrowseMediaType): boolean => {
   return BROWSE_CATEGORY_MEDIA_TYPES.includes(mediaType);
+};
+
+/** Every Browse directory list is popularity-ranked, so the range chip applies. */
+export const isBrowseSortableMediaType = (_mediaType: BrowseMediaType): boolean => {
+  return true;
+};
+
+/** The category picker is not a ranked list, so the range chip stays off while it is open. */
+export const shouldShowBrowseSortChip = (
+  mediaType: BrowseMediaType,
+  isCategoryView: boolean
+): boolean => {
+  return !isCategoryView && isBrowseSortableMediaType(mediaType);
+};
+
+export const shouldShowBrowseCategoryChip = (mediaType: BrowseMediaType): boolean => {
+  return isBrowseCategoryMediaType(mediaType);
 };
 
 export const BROWSE_RANGE_OPTIONS = QUERY_PARAMS_STATS_RANGE_VALUES;

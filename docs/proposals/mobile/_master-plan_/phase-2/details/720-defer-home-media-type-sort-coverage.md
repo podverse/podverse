@@ -15,19 +15,17 @@ The sort row appears on Podcasts and Episodes, offering `A-Z` and `recent`. On C
 Albums, and Tracks the row is **absent** rather than present and inert, because a control that
 changes nothing is worse than no control.
 
-Those four media types also still read the global directory unconditionally, which is the wider
-contradiction recorded in
-[705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md).
-Sorting them is downstream of deciding what they show: a sort over directory rows is a server
-ranking question, not a local ordering one, so it cannot be settled ahead of that.
+Those four media types are **subscribed-only** now
+([739](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)).
+What remains deferred is sort (and an **All** chip), not the data source.
 
 ### What is deferred
 
 **Sort for the remaining media types.** Clips, Artists, Albums, and Tracks. Each needs its own answer
 to what `recent` means — a clip has a creation date and a source episode date, an artist has no date
 of its own — and each needs a decision about whether the ordering is local or requested from the
-server. Whatever they adopt goes through the same scope-keyed store, one scope per media type, so a
-user's choice for one never leaks into another.
+account subscribed feed. Whatever they adopt goes through the same scope-keyed store, one scope per
+media type, so a user's choice for one never leaks into another.
 
 **An `All` media type covering the channel kinds.** Podcasts, artists, and albums are all channels,
 and the operator wants a single view of them. That is a list-composition change before it is a sort

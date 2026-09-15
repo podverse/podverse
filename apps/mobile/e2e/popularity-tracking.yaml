@@ -1,0 +1,57 @@
+appId: com.podverse.app.next
+name: Popularity Tracking Gate
+---
+# Undecided seeded account must choose before the tab shell is usable.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: anonymous-login-cta
+- assertVisible:
+    id: login-screen
+
+- tapOn:
+    id: login-email
+- inputText: e2e-popularity-undecided@example.com
+
+- tapOn:
+    id: login-password
+- inputText: "Test!1Aa"
+
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+
+- tapOn:
+    id: login-submit
+
+- extendedWaitUntil:
+    visible:
+      id: popularity-tracking-yes
+    timeout: ${TIMEOUT_SLOW}
+
+- tapOn:
+    id: popularity-tracking-learn-more
+- tapOn:
+    id: popularity-tracking-yes
+
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: ${TIMEOUT_SLOW}
+
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-settings
+- tapOn:
+    id: more-settings-popularity-tracking
+- assertVisible:
+    id: more-settings-popularity-tracking-screen
+- takeScreenshot: popularity-tracking-settings

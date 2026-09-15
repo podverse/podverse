@@ -59,6 +59,7 @@ export type MediaElementBridge = {
 
 export type UseMediaElementBridgeOptions = {
   onTimeUpdate?: (seconds: number) => void;
+  onSeeked?: () => void;
   onPlay?: () => void;
   onPause?: () => void;
   onEnded?: () => void;
@@ -97,6 +98,9 @@ export function useMediaElementBridge(
     const onPlay = () => {
       optionsRef.current.onPlay?.();
     };
+    const onSeeked = () => {
+      optionsRef.current.onSeeked?.();
+    };
     const onPause = () => {
       optionsRef.current.onPause?.();
     };
@@ -113,6 +117,7 @@ export function useMediaElementBridge(
 
     media.addEventListener('timeupdate', onTimeUpdate);
     media.addEventListener('play', onPlay);
+    media.addEventListener('seeked', onSeeked);
     media.addEventListener('pause', onPause);
     media.addEventListener('ended', onEnded);
     media.addEventListener('error', onError);
@@ -120,6 +125,7 @@ export function useMediaElementBridge(
     return () => {
       media.removeEventListener('timeupdate', onTimeUpdate);
       media.removeEventListener('play', onPlay);
+      media.removeEventListener('seeked', onSeeked);
       media.removeEventListener('pause', onPause);
       media.removeEventListener('ended', onEnded);
       media.removeEventListener('error', onError);

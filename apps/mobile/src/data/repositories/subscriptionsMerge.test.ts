@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { DTOChannel } from '@podverse/helpers';
 import { matchesTitleFilter } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers/medium';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import type { SubscribedChannel } from './subscriptionsMerge';
@@ -119,8 +120,27 @@ describe('mapDirectoryChannelToSubscribed', () => {
       imageUrl: 'https://img/p.jpg',
       source: 'directory',
       medium: 'podcasts',
+      kind: 'podcasts',
       latestItemPubDateMs: null,
+      popularityRank: null,
     });
+  });
+
+  it('maps artist and album medium_ids to the matching Home chip kind', () => {
+    expect(
+      requireMapped(
+        mapDirectoryChannelToSubscribed(
+          channel({ id_text: 'artist1', title: 'Artist', medium_id: MediumEnum.PublisherMusic })
+        )
+      ).kind
+    ).toBe('artists');
+    expect(
+      requireMapped(
+        mapDirectoryChannelToSubscribed(
+          channel({ id_text: 'album1', title: 'Album', medium_id: MediumEnum.Music })
+        )
+      ).kind
+    ).toBe('albums');
   });
 
   it('drops channels without a usable title', () => {
@@ -139,7 +159,9 @@ describe('mapAddByRssToSubscribed', () => {
       imageUrl: null,
       source: 'addByRss',
       medium: 'podcasts',
+      kind: 'podcasts',
       latestItemPubDateMs: null,
+      popularityRank: null,
     });
   });
 
@@ -149,10 +171,14 @@ describe('mapAddByRssToSubscribed', () => {
     );
   });
 
-  it('marks music resource types as music medium', () => {
+  it('marks music resource types as music medium and the matching Home chip kind', () => {
     expect(rssEntry({ resourceType: 'albums' }).medium).toBe('music');
+    expect(rssEntry({ resourceType: 'albums' }).kind).toBe('albums');
     expect(rssEntry({ resourceType: 'artists' }).medium).toBe('music');
+    expect(rssEntry({ resourceType: 'artists' }).kind).toBe('artists');
+    expect(rssEntry({ resourceType: 'tracks' }).kind).toBe('albums');
     expect(rssEntry({ resourceType: 'episodes' }).medium).toBe('podcasts');
+    expect(rssEntry({ resourceType: 'episodes' }).kind).toBe('podcasts');
   });
 });
 
@@ -254,6 +280,22 @@ describe('sortSubscriptions', () => {
 
     sortSubscriptions(list, 'recent');
     expect(list.map((entry) => entry.title)).toEqual(['Zebra', 'Apple']);
+  });
+
+  it('sorts by stored popularity rank, unknown ranks last, title as the tiebreaker', () => {
+    const list = [
+      { ...directoryEntry({ id_text: '1', title: 'Unranked Zebra' }), popularityRank: null },
+      { ...directoryEntry({ id_text: '2', title: 'Second' }), popularityRank: 1 },
+      { ...directoryEntry({ id_text: '3', title: 'First' }), popularityRank: 0 },
+      { ...directoryEntry({ id_text: '4', title: 'Unranked Apple' }), popularityRank: null },
+    ];
+
+    expect(sortSubscriptions(list, 'popularity').map((entry) => entry.title)).toEqual([
+      'First',
+      'Second',
+      'Unranked Apple',
+      'Unranked Zebra',
+    ]);
   });
 });
 

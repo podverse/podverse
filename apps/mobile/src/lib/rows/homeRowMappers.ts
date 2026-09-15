@@ -7,6 +7,7 @@ import type {
   DTOQueueResource,
 } from '@podverse/helpers';
 import { primaryChannelListArtworkUrl } from '@podverse/helpers';
+import { htmlToPlainText } from '@podverse/helpers/html';
 
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import type { HomeFeedRowData } from '../../screens/home/homeFeedData';
@@ -28,8 +29,21 @@ export type QueueResourceHomeRow = HomeFeedRowData & {
 type ItemHomeRowSource = {
   channel?: DTOChannel;
   id_text: string;
+  item_about?: { duration?: string | null };
+  item_description?: { value?: string | null };
   item_images: DTOItemImage[];
+  pub_date?: string | null;
   title?: string | null;
+};
+
+const itemDescriptionPlain = (item: ItemHomeRowSource): string | null => {
+  const plain = htmlToPlainText(item.item_description?.value ?? undefined);
+  return plain.length > 0 ? plain : null;
+};
+
+const itemDuration = (item: ItemHomeRowSource): string | null => {
+  const duration = item.item_about?.duration?.trim() ?? '';
+  return duration.length > 0 ? duration : null;
 };
 
 export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
@@ -38,26 +52,33 @@ export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
     imageUrl: primaryChannelListArtworkUrl(channel.channel_images),
     subtitle: null,
     title: channel.title ?? channel.id_text,
+    updatedAt: channel.channel_about?.last_pub_date ?? null,
   };
 }
 
 export function clipToHomeRow(clip: DTOClip): HomeFeedRowData {
   return {
+    description: itemDescriptionPlain(clip.item),
+    duration: itemDuration(clip.item),
     id: clip.id_text,
     imageUrl: getItemPrimaryImageUrl(clip.item),
     subtitle: clip.item.channel?.title ?? null,
     title: clip.title ?? clip.item.title ?? clip.id_text,
+    updatedAt: clip.item.pub_date ?? null,
   };
 }
 
 export function itemToHomeRow(item: ItemHomeRowSource): ItemHomeRow {
   const mediumId = item.channel?.medium_id ?? null;
   return {
+    description: itemDescriptionPlain(item),
+    duration: itemDuration(item),
     id: item.id_text,
     imageUrl: getItemPrimaryImageUrl(item),
     mediaType: mediumId === 4 ? 'tracks' : 'episodes',
     subtitle: item.channel?.title ?? null,
     title: item.title ?? item.id_text,
+    updatedAt: item.pub_date ?? null,
   };
 }
 
@@ -68,11 +89,14 @@ function itemSoundbiteToHomeRow(itemSoundbite: DTOItemSoundbite): PlaylistResour
   }
 
   return {
+    description: itemDescriptionPlain(item),
+    duration: itemSoundbite.duration?.trim() || itemDuration(item),
     id: `soundbite-${itemSoundbite.id_text}`,
     imageUrl: getItemPrimaryImageUrl(item),
     mediaType: 'clips',
     subtitle: item.channel?.title ?? null,
     title: itemSoundbite.title ?? itemSoundbite.id_text,
+    updatedAt: item.pub_date ?? null,
   };
 }
 
@@ -81,11 +105,14 @@ export function playlistResourceToHomeRow(
 ): PlaylistResourceHomeRow | null {
   if (resource.clip) {
     return {
+      description: itemDescriptionPlain(resource.clip.item),
+      duration: itemDuration(resource.clip.item),
       id: `clip-${resource.clip.id_text}`,
       imageUrl: getItemPrimaryImageUrl(resource.clip.item),
       mediaType: 'clips',
       subtitle: resource.clip.item.channel?.title ?? null,
       title: resource.clip.title ?? resource.clip.item.title ?? resource.clip.id_text,
+      updatedAt: resource.clip.item.pub_date ?? null,
     };
   }
 
@@ -116,11 +143,14 @@ export function queueResourceToHomeRow(
 
   const itemRow = itemToHomeRow(resource.item);
   return {
+    description: itemRow.description,
+    duration: itemRow.duration,
     id: `${idPrefix}-${resource.id}`,
     imageUrl: itemRow.imageUrl,
     mediaType: itemRow.mediaType,
     queueResourceId: resource.id,
     subtitle: itemRow.subtitle,
     title: itemRow.title,
+    updatedAt: itemRow.updatedAt,
   };
 }

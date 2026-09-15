@@ -2,6 +2,8 @@ import Joi from 'joi';
 
 import {
   CATEGORY_MAPPING_KEYS,
+  PLAYBACK_EVENT_KINDS,
+  PLAYBACK_REPLAY_BATCH_LIMIT,
   QUERY_PARAMS_MEDIUMS,
   QUERY_PARAMS_PODCAST_INDEX_SEARCH_MEDIUMS,
 } from '@podverse/helpers';
@@ -18,6 +20,61 @@ export const playlistIdTextParamSchema = {
 export const queueIdTextParamSchema = {
   queue_id_text: Joi.string().required(),
 };
+
+export const queuePlaybackWriteFieldsSchema = {
+  last_played_at: Joi.string().isoDate().optional(),
+  playback_event_kind: Joi.string()
+    .valid(...PLAYBACK_EVENT_KINDS)
+    .optional(),
+};
+
+const queuePlaybackReplayEventSchema = Joi.object({
+  item_id_text: Joi.string().optional(),
+  clip_id_text: Joi.string().optional(),
+  item_soundbite_id_text: Joi.string().optional(),
+  add_by_rss_hash_id: Joi.string().optional(),
+  add_by_rss_resource_data: Joi.object().optional(),
+  playback_event_kind: Joi.string()
+    .valid(...PLAYBACK_EVENT_KINDS)
+    .required(),
+  last_played_at: Joi.string().isoDate().optional(),
+  playback_position: Joi.number().min(0).optional(),
+  media_file_duration: Joi.number().min(0).optional(),
+  completed: Joi.boolean().optional(),
+})
+  .xor(
+    'item_id_text',
+    'clip_id_text',
+    'item_soundbite_id_text',
+    'add_by_rss_hash_id',
+    'add_by_rss_resource_data'
+  )
+  .required();
+
+export type QueuePlaybackReplayBodyEvent = {
+  add_by_rss_hash_id?: string;
+  add_by_rss_resource_data?: object;
+  clip_id_text?: string;
+  completed?: boolean;
+  item_id_text?: string;
+  item_soundbite_id_text?: string;
+  last_played_at?: string;
+  media_file_duration?: number;
+  playback_event_kind: (typeof PLAYBACK_EVENT_KINDS)[number];
+  playback_position?: number;
+};
+
+export const queuePlaybackReplayBodySchema = Joi.object({
+  events: Joi.array()
+    .items(queuePlaybackReplayEventSchema)
+    .min(1)
+    .max(PLAYBACK_REPLAY_BATCH_LIMIT)
+    .required(),
+}).required();
+
+export const queueRemovalTombstoneBodySchema = Joi.object({
+  last_played_at: Joi.string().isoDate().optional(),
+}).default({});
 
 export const channelIdTextParamSchema = {
   channel_id_text: Joi.string().required(),

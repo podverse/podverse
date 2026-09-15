@@ -5,7 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
-import { getRelativeTimeParts, NotificationCategoryEnum } from '@podverse/helpers';
+import {
+  getRelativeTimeParts,
+  NotificationCategoryEnum,
+  resolveNotificationDestinationFromPayload,
+} from '@podverse/helpers';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
@@ -19,11 +23,22 @@ import { RetryableError } from '../../components/state/RetryableError';
 import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
 import { emitNotificationsReadEvent } from '../../hooks/useNotificationsUnreadCount';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { NotificationsStackParamList } from '../../navigation';
+import { useOfflineMode } from '../../prefs/offlineMode';
+import { HOME_FALLBACK_PATH } from '../../push/notificationTarget';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 const FIRST_PAGE = 1;
+
+/** Last successful inbox page for Offline Mode — session-scoped, not durable across process death. */
+let lastCachedInbox: {
+  items: DTOAccountNotification[];
+  page: number;
+  totalPages: number;
+  unreadCount: number;
+} | null = null;
 const CATEGORY_LABEL_KEYS: Record<NotificationCategoryEnum, string> = {
   [NotificationCategoryEnum.General]: 'settings.notifications.category_general',
   [NotificationCategoryEnum.Livestream]: 'settings.notifications.category_livestream',
@@ -42,14 +57,17 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   const { t } = useTranslation();
   const { onRequestLogin } = useAuthPrompt();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const { styles: themeStyles, tokens } = useTheme();
-  const [notifications, setNotifications] = useState<DTOAccountNotification[]>([]);
+  const [notifications, setNotifications] = useState<DTOAccountNotification[]>(
+    () => lastCachedInbox?.items ?? []
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [page, setPage] = useState(FIRST_PAGE);
-  const [totalPages, setTotalPages] = useState(FIRST_PAGE);
+  const [unreadCount, setUnreadCount] = useState(lastCachedInbox?.unreadCount ?? 0);
+  const [page, setPage] = useState(lastCachedInbox?.page ?? FIRST_PAGE);
+  const [totalPages, setTotalPages] = useState(lastCachedInbox?.totalPages ?? FIRST_PAGE);
 
   const requestContext = useMemo(() => {
     return {
@@ -140,6 +158,19 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
         return;
       }
 
+      if (offlineModeEnabled) {
+        if (lastCachedInbox !== null) {
+          setNotifications(lastCachedInbox.items);
+          setUnreadCount(lastCachedInbox.unreadCount);
+          setPage(lastCachedInbox.page);
+          setTotalPages(lastCachedInbox.totalPages);
+        }
+        setErrorKey(null);
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        return;
+      }
+
       if (mode === 'replace') {
         setIsLoading(true);
       } else {
@@ -155,6 +186,21 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
         setUnreadCount(nextData.unreadCount);
         setPage(nextData.page);
         setTotalPages(nextData.totalPages);
+        if (mode === 'replace') {
+          lastCachedInbox = {
+            items: nextData.items,
+            page: nextData.page,
+            totalPages: nextData.totalPages,
+            unreadCount: nextData.unreadCount,
+          };
+        } else {
+          lastCachedInbox = {
+            items: [...(lastCachedInbox?.items ?? []), ...nextData.items],
+            page: nextData.page,
+            totalPages: nextData.totalPages,
+            unreadCount: nextData.unreadCount,
+          };
+        }
       } catch (error) {
         console.warn('Could not load notifications page', error);
         if (mode === 'replace') {
@@ -169,7 +215,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
         }
       }
     },
-    [requestContext, status]
+    [offlineModeEnabled, requestContext, status]
   );
 
   const loadFirstPageAndMarkRead = useCallback(async () => {
@@ -178,6 +224,18 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
       setUnreadCount(0);
       setPage(FIRST_PAGE);
       setTotalPages(FIRST_PAGE);
+      setErrorKey(null);
+      setIsLoading(false);
+      return;
+    }
+
+    if (offlineModeEnabled) {
+      if (lastCachedInbox !== null) {
+        setNotifications(lastCachedInbox.items);
+        setUnreadCount(lastCachedInbox.unreadCount);
+        setPage(lastCachedInbox.page);
+        setTotalPages(lastCachedInbox.totalPages);
+      }
       setErrorKey(null);
       setIsLoading(false);
       return;
@@ -193,6 +251,12 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
       setUnreadCount(nextData.unreadCount);
       setPage(nextData.page);
       setTotalPages(nextData.totalPages);
+      lastCachedInbox = {
+        items: nextData.items,
+        page: nextData.page,
+        totalPages: nextData.totalPages,
+        unreadCount: nextData.unreadCount,
+      };
     } catch (error) {
       console.warn('Could not refresh notifications inbox', error);
       setNotifications([]);
@@ -200,7 +264,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     } finally {
       setIsLoading(false);
     }
-  }, [requestContext, status]);
+  }, [offlineModeEnabled, requestContext, status]);
 
   useFocusEffect(
     useCallback(() => {
@@ -209,29 +273,26 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   );
 
   const handleNotificationPress = useCallback(async (notification: DTOAccountNotification) => {
-    const linkPath = notification.link_path;
-
-    if (linkPath === null || linkPath === '') {
-      return;
-    }
-
-    const normalized = linkPath.trim();
-    if (normalized.length === 0) {
-      return;
-    }
+    const destination = resolveNotificationDestinationFromPayload({
+      ...(notification.payload ?? {}),
+      link_path: notification.link_path,
+    });
+    const targetPath =
+      destination.mobileStackPath ??
+      (destination.kind === 'home' ? HOME_FALLBACK_PATH : destination.webPath);
 
     try {
-      const prefixedLink = normalized.startsWith('http://') || normalized.startsWith('https://');
-      if (prefixedLink || normalized.includes('://')) {
-        await Linking.openURL(normalized);
+      const prefixedLink = targetPath.startsWith('http://') || targetPath.startsWith('https://');
+      if (prefixedLink || targetPath.includes('://')) {
+        await Linking.openURL(targetPath);
         return;
       }
 
       const scheme = getMobileConfig().deepLinkSchemes[0] ?? 'podverse-next';
-      const inAppPath = normalized.startsWith('/') ? normalized.slice(1) : normalized;
+      const inAppPath = targetPath.startsWith('/') ? targetPath.slice(1) : targetPath;
       await Linking.openURL(`${scheme}://${inAppPath}`);
     } catch (error) {
-      console.warn('Could not navigate from notification link', normalized, error);
+      console.warn('Could not navigate from notification link', targetPath, error);
     }
   }, []);
 
@@ -279,6 +340,11 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
       onAction={onRequestLogin}
       testID="notifications-inbox-auth-required"
     />
+  ) : offlineModeEnabled && lastCachedInbox === null ? (
+    <ListEmpty
+      messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+      testID="notifications-inbox-offline-unavailable"
+    />
   ) : errorKey !== null ? (
     <VerticalCenter>
       <RetryableError
@@ -300,7 +366,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
       <FillList
         ListEmptyComponent={listEmpty}
         ListFooterComponent={
-          canLoadMore && errorKey === null ? (
+          canLoadMore && errorKey === null && !offlineModeEnabled ? (
             <View style={styles.listFooter}>
               <Pressable
                 onPress={() => {
@@ -336,6 +402,8 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
               <View style={styles.rowCard}>
                 <Card>
                   <Pressable
+                    accessibilityLabel={item.title}
+                    accessibilityRole="button"
                     onPress={() => {
                       void handleNotificationPress(item);
                     }}

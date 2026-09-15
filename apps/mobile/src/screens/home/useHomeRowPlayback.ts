@@ -2,12 +2,18 @@ import { useCallback, useState } from 'react';
 
 import type { QueueMutationKind, QueueMutationMediaType } from '../../hooks/useQueueMutations';
 import { useQueueMutations } from '../../hooks/useQueueMutations';
+import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import type { HomeFeedRowData } from './homeFeedData';
 
-type QueueNoticeKey = 'features.queue.added_to_queue' | 'features.queue.add_error';
+type RowActionNoticeKey =
+  | 'features.queue.added_to_queue'
+  | 'features.queue.add_error'
+  | 'features.history.marked_as_played'
+  | 'features.history.mark_as_played_error';
 
 const PLAYABLE_MEDIA_TYPES: HomeMediaType[] = ['episodes', 'clips', 'tracks'];
 
@@ -44,14 +50,46 @@ export type QueueActionPosition = 'next' | 'last';
  * Home/detail row actions. `runPlayAction` starts real audio playback through the playback
  * orchestrator (episodes/tracks → item, clips → bounded clip); `runQueueAction` performs a real
  * add-to-queue via `useQueueMutations`, honoring the requested `position` (`next` inserts after
- * now-playing, `last` appends) — exposes both as distinct, correctly-keyed actions. Rows whose id is
- * not a direct content target (`queue-` / `history-` / `soundbite-`) are skipped.
+ * now-playing, `last` appends), and `runMarkAsPlayedAction` records the row as played. Rows whose id
+ * is not a direct content target (`queue-` / `history-` / `soundbite-`) are skipped.
+ *
+ * Every action reports through one notice channel, so a row shows the outcome of the last thing
+ * asked of it rather than competing messages.
+ *
+ * Queue and history live on the account, so both are checked against `queue_history_sync` before the
+ * request rather than only reacting to a server 403 — signed out there is no request to get a 403
+ * from, and a lapsed member needs the renewal prompt rather than a failure notice.
  */
 export function useHomeRowPlayback() {
-  const [queueNoticeKey, setQueueNoticeKey] = useState<QueueNoticeKey | null>(null);
-  const { addToQueueLast, addToQueueNext } = useQueueMutations();
-  const { handleGateError } = useMembershipGate();
-  const { noticeKey: playbackNoticeKeyFromEngine, playClipById, playItemById } = usePlayback();
+  const [actionNoticeKey, setActionNoticeKey] = useState<RowActionNoticeKey | null>(null);
+  const { addToQueueLast, addToQueueNext, markAsPlayed } = useQueueMutations();
+  const { handleGateError, openGate } = useMembershipGate();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
+  const {
+    activeTarget,
+    isPlaying,
+    noticeKey: playbackNoticeKeyFromEngine,
+    pause,
+    playClipById,
+    playItemById,
+    resume,
+  } = usePlayback();
+
+  /**
+   * Open the gate when the account-backed queue and history are out of reach, and report whether the
+   * caller should stop. While the tier is unknown the request runs and the server decides.
+   */
+  const didOpenQueueHistoryGate = useCallback((): boolean => {
+    if (!isTierKnown) {
+      return false;
+    }
+    const access = evaluateFeature('queue_history_sync');
+    if (access.allowed) {
+      return false;
+    }
+    openGate(access.reason);
+    return true;
+  }, [evaluateFeature, isTierKnown, openGate]);
 
   const runPlayAction = useCallback(
     (row: HomeFeedRowData, mediaType: HomeMediaType) => {
@@ -68,6 +106,16 @@ export function useHomeRowPlayback() {
       }
 
       void (async () => {
+        const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
+        if (activeMediaId !== null && activeMediaId === target.idText) {
+          if (isPlaying) {
+            pause();
+          } else {
+            await resume();
+          }
+          return;
+        }
+
         if (target.kind === 'clip') {
           await playClipById(target.idText);
         } else {
@@ -75,7 +123,7 @@ export function useHomeRowPlayback() {
         }
       })();
     },
-    [playClipById, playItemById]
+    [activeTarget, isPlaying, pause, playClipById, playItemById, resume]
   );
 
   const runQueueAction = useCallback(
@@ -89,25 +137,62 @@ export function useHomeRowPlayback() {
         return;
       }
 
+      if (didOpenQueueHistoryGate()) {
+        return;
+      }
+
       void (async () => {
         try {
           const added = await (position === 'next'
             ? addToQueueNext(target.idText, target.kind, mediaType)
             : addToQueueLast(target.idText, target.kind, mediaType));
-          setQueueNoticeKey(added ? 'features.queue.added_to_queue' : 'features.queue.add_error');
+          setActionNoticeKey(added ? 'features.queue.added_to_queue' : 'features.queue.add_error');
         } catch (error) {
           if (handleGateError(error)) {
             return;
           }
-          setQueueNoticeKey('features.queue.add_error');
+          setActionNoticeKey('features.queue.add_error');
         }
       })();
     },
-    [addToQueueLast, addToQueueNext, handleGateError]
+    [addToQueueLast, addToQueueNext, didOpenQueueHistoryGate, handleGateError]
+  );
+
+  const runMarkAsPlayedAction = useCallback(
+    (row: HomeFeedRowData, mediaType: HomeMediaType) => {
+      if (mediaType !== 'episodes' && mediaType !== 'tracks' && mediaType !== 'clips') {
+        return;
+      }
+
+      const target = resolveRowTarget(row, mediaType);
+      if (target === null) {
+        return;
+      }
+
+      if (didOpenQueueHistoryGate()) {
+        return;
+      }
+
+      void (async () => {
+        try {
+          const marked = await markAsPlayed(target.idText, target.kind, mediaType);
+          setActionNoticeKey(
+            marked ? 'features.history.marked_as_played' : 'features.history.mark_as_played_error'
+          );
+        } catch (error) {
+          if (handleGateError(error)) {
+            return;
+          }
+          setActionNoticeKey('features.history.mark_as_played_error');
+        }
+      })();
+    },
+    [didOpenQueueHistoryGate, handleGateError, markAsPlayed]
   );
 
   return {
-    playbackNoticeKey: queueNoticeKey ?? playbackNoticeKeyFromEngine,
+    playbackNoticeKey: actionNoticeKey ?? playbackNoticeKeyFromEngine,
+    runMarkAsPlayedAction,
     runPlayAction,
     runQueueAction,
   };

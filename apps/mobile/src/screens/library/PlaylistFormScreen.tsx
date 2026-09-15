@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOPlaylist } from '@podverse/helpers';
 import { SharableStatusEnum } from '@podverse/helpers';
@@ -9,6 +9,7 @@ import { SharableStatusEnum } from '@podverse/helpers';
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
+import { TextField } from '../../components/form';
 import { Button } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
@@ -108,20 +109,8 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
           fontSize: 13,
           marginTop: tokens.spacing.md,
         },
-        input: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          color: themeStyles.textPrimary.color,
-          fontSize: 14,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        inputMultiline: {
-          minHeight: 88,
-          textAlignVertical: 'top',
+        field: {
+          marginTop: tokens.spacing.md,
         },
         label: {
           color: themeStyles.textPrimary.color,
@@ -275,21 +264,22 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
 
   return (
     <MobileScreenContainer heading={heading} testID="playlist-form-screen">
-      <Text style={styles.label}>{t('misc.title')}</Text>
-      <TextInput
+      <TextField
+        accessibilityLabel={t('misc.title')}
+        eyebrow={t('misc.title')}
         onChangeText={setTitle}
-        placeholder={t('misc.title')}
-        style={styles.input}
+        placeholder={t('misc.required')}
         testID="playlist-form-title"
         value={title}
       />
 
-      <Text style={styles.label}>{`${t('misc.description')} (${t('misc.optional')})`}</Text>
-      <TextInput
+      <TextField
+        accessibilityLabel={t('misc.description')}
+        eyebrow={t('misc.description')}
         multiline
         onChangeText={setDescription}
-        placeholder={t('misc.description')}
-        style={[styles.input, styles.inputMultiline]}
+        placeholder={t('misc.optional')}
+        style={styles.field}
         testID="playlist-form-description"
         value={description}
       />

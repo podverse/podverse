@@ -1,6 +1,6 @@
 type ItemImagePartial = {
   /** Stored payloads may omit width; treat like null in sizing helpers. */
-  image_width_size: number | null | undefined;
+  image_width_size?: number | null;
   url: string;
   is_resized?: boolean;
 };
