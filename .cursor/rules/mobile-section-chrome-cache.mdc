@@ -1,0 +1,48 @@
+---
+description: Detail-section chips that can FOUC are cached on device, never via server schema; always-on chips first, evidence chips last
+globs:
+  - "apps/mobile/**"
+alwaysApply: false
+---
+
+# Mobile — section chrome cache (chips / tabs)
+
+Do **not** add server columns, list-DTO booleans, or extra list joins to decide which
+podcast/channel/item chips exist. Visibility that the list payload does not already carry is
+learned on the **detail** query and stored **on the device**.
+
+## Always-on vs evidence chips
+
+Some chips are always offered; an empty list is a real answer. Evidence chips appear only when
+this entity has been seen to carry that content.
+
+**Podcast** always-on (in this order): Episodes, Downloaded, About, Clips.
+
+**Podcast** evidence chips (after the always-on set): Official Clips, Podroll, and later Boosts
+or anything else that would pop in after the detail DTO. Put every evidence chip at the **end**
+of the horizontal row so a first-visit insert is more likely off-screen on a phone.
+
+**Episode** always-on: Summary, Clips. Evidence chips last: Chapters, Official Clips, Transcript.
+
+## First paint
+
+1. Read the in-memory / SQLite chrome cache for this channel or item (`sectionChromeFlags`).
+2. Paint always-on chips plus any evidence chips the cache already recorded.
+3. After the detail query (and the local soundbites scan), confirm visibility and write the
+   cache. The list body may spin; the chip row must not wait on the network when the cache
+   already knows.
+
+A first-ever open of an entity with no cache row still adds evidence chips when the DTO
+arrives. That flash stays at the end of the row. Do not hide the whole chip row to avoid it.
+Do not prefetch `GET /channel/:id` or `GET /item/:id` on list press to populate the cache.
+
+## Storage
+
+Device-local only (`section_chrome_flags` + the in-memory map). Do not sync these flags to the
+account. Do not denormalize them onto Postgres `channel` / `item`.
+
+## Related
+
+- First-paint art: **mobile-image-loading**
+- Chip row layout: **mobile-screen-layout**
+- Startup from cache: **mobile-sync-orchestration**

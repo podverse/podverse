@@ -19,16 +19,20 @@ Ensure readiness startup gates check the latest required migration marker and ne
 
 When a new latest migration is added:
 
-1. Update migration marker env defaults:
+1. Regenerate the committed init snapshots in the same change (agents run these, not the operator):
+   - `make db_regen_linear_baseline`
+   - `make db_verify_linear_baseline`
+   - Leave updated `infra/k8s/base/db/source/bootstrap/0004_app_linear_baseline.sql.gz` and `0005_management_linear_baseline.sql.gz` in the working tree. See [linear-baseline-0004](/.cursor/rules/linear-baseline-0004.mdc).
+2. Update migration marker env defaults:
    - `infra/k8s/base/api/source/api.env`:
      - `API_EXPECTED_MIGRATION_FILENAME`
    - `infra/k8s/base/management-api/source/management-api.env`:
      - `MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME`
-2. Verify initContainer SQL checks in:
+3. Verify initContainer SQL checks in:
    - `infra/k8s/base/api/deployment.yaml`
    - `infra/k8s/base/management-api/deployment.yaml`
      They must reference the marker env vars, not hardcoded stale filenames.
-3. Keep overlays/Kustomize wiring intact so updated env values reach Deployments.
+4. Keep overlays/Kustomize wiring intact so updated env values reach Deployments.
 
 ## Related skills
 

@@ -4,8 +4,8 @@ import { ensureAuthenticated } from '@api/lib/auth/index.js';
 import { getParamRequired } from '@api/lib/params.js';
 import {
   clipIdTextParamSchema,
-  positionBetweenBodySchema,
   queueIdTextParamSchema,
+  queueRemovalTombstoneBodySchema,
   validateBodyObject,
   validateParamsObject,
 } from '@api/lib/validation/index.js';
@@ -14,7 +14,11 @@ import Joi from 'joi';
 
 import { QueueResourceService } from '@podverse/orm';
 
-import { queueResourceNowPlayingSchema } from './queueResourceItem.js';
+import {
+  queueResourceBetweenSchema,
+  queueResourceNowPlayingSchema,
+  queueResourceQueueWriteSchema,
+} from './queueResourceItem.js';
 
 class QueueResourceClipController {
   private static queueResourceService = new QueueResourceService();
@@ -26,28 +30,30 @@ class QueueResourceClipController {
     });
 
     validateParamsObject(paramsSchema, req, res, async () => {
-      ensureAuthenticated(
-        req,
-        res,
-        async () => {
-          verifyQueueOwnership()(req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const clip_id_text = getParamRequired(req, 'clip_id_text');
+      validateBodyObject(queueResourceQueueWriteSchema, req, res, async () => {
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const clip_id_text = getParamRequired(req, 'clip_id_text');
 
-            try {
-              const queueResource =
-                await QueueResourceClipController.queueResourceService.addClipToQueueNext(
-                  queue_id_text,
-                  clip_id_text
-                );
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
-          });
-        },
-        { skipMembershipStatus: false }
-      );
+              try {
+                const queueResource =
+                  await QueueResourceClipController.queueResourceService.addClipToQueueNext(
+                    queue_id_text,
+                    clip_id_text
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: false }
+        );
+      });
     });
   }
 
@@ -58,28 +64,30 @@ class QueueResourceClipController {
     });
 
     validateParamsObject(paramsSchema, req, res, async () => {
-      ensureAuthenticated(
-        req,
-        res,
-        async () => {
-          verifyQueueOwnership()(req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const clip_id_text = getParamRequired(req, 'clip_id_text');
+      validateBodyObject(queueResourceQueueWriteSchema, req, res, async () => {
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const clip_id_text = getParamRequired(req, 'clip_id_text');
 
-            try {
-              const queueResource =
-                await QueueResourceClipController.queueResourceService.addClipToQueueLast(
-                  queue_id_text,
-                  clip_id_text
-                );
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
-          });
-        },
-        { skipMembershipStatus: false }
-      );
+              try {
+                const queueResource =
+                  await QueueResourceClipController.queueResourceService.addClipToQueueLast(
+                    queue_id_text,
+                    clip_id_text
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: false }
+        );
+      });
     });
   }
 
@@ -95,7 +103,7 @@ class QueueResourceClipController {
         res,
         async () => {
           verifyQueueOwnership()(req, res, async () => {
-            validateBodyObject(Joi.object(positionBetweenBodySchema), req, res, async () => {
+            validateBodyObject(queueResourceBetweenSchema, req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const clip_id_text = getParamRequired(req, 'clip_id_text');
               const { position1, position2 } = req.body;
@@ -135,14 +143,22 @@ class QueueResourceClipController {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const clip_id_text = getParamRequired(req, 'clip_id_text');
-              const { playback_position, media_file_duration, completed } = req.body;
+              const {
+                playback_position,
+                media_file_duration,
+                completed,
+                last_played_at,
+                playback_event_kind,
+              } = req.body;
 
               const dto = {
                 ...(playback_position || playback_position === 0 ? { playback_position } : {}),
                 ...(media_file_duration || media_file_duration === 0
                   ? { media_file_duration }
                   : {}),
-                ...(completed ? { completed } : {}),
+                ...(completed !== undefined ? { completed } : {}),
+                ...(last_played_at ? { last_played_at } : {}),
+                ...(playback_event_kind ? { playback_event_kind } : {}),
               };
 
               try {
@@ -179,14 +195,22 @@ class QueueResourceClipController {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const clip_id_text = getParamRequired(req, 'clip_id_text');
-              const { playback_position, media_file_duration, completed } = req.body;
+              const {
+                playback_position,
+                media_file_duration,
+                completed,
+                last_played_at,
+                playback_event_kind,
+              } = req.body;
 
               const dto = {
                 ...(playback_position || playback_position === 0 ? { playback_position } : {}),
                 ...(media_file_duration || media_file_duration === 0
                   ? { media_file_duration }
                   : {}),
-                ...(completed ? { completed } : {}),
+                ...(completed !== undefined ? { completed } : {}),
+                ...(last_played_at ? { last_played_at } : {}),
+                ...(playback_event_kind ? { playback_event_kind } : {}),
               };
 
               try {
@@ -215,27 +239,31 @@ class QueueResourceClipController {
     });
 
     validateParamsObject(paramsSchema, req, res, async () => {
-      ensureAuthenticated(
-        req,
-        res,
-        async () => {
-          verifyQueueOwnership()(req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const clip_id_text = getParamRequired(req, 'clip_id_text');
+      validateBodyObject(queueRemovalTombstoneBodySchema, req, res, async () => {
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const clip_id_text = getParamRequired(req, 'clip_id_text');
+              const { last_played_at } = req.body;
 
-            try {
-              await QueueResourceClipController.queueResourceService.removeClipFromQueue(
-                queue_id_text,
-                clip_id_text
-              );
-              res.status(204).end();
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
-          });
-        },
-        { skipMembershipStatus: true }
-      );
+              try {
+                await QueueResourceClipController.queueResourceService.removeClipFromQueue(
+                  queue_id_text,
+                  clip_id_text,
+                  { last_played_at }
+                );
+                res.status(204).end();
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: true }
+        );
+      });
     });
   }
 }

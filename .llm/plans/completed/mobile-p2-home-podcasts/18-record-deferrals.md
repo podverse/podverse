@@ -32,9 +32,8 @@ Documentation only — no production code.
 3. Mark every prompt `[x]` in [COPY-PASTA.md](COPY-PASTA.md).
 4. Note any decision the implementation had to change, and why, in
    [00-DIVERGENCES.md](00-DIVERGENCES.md). Do not silently diverge from a locked decision.
-5. Remove `.llm/plans/active/mobile-p2-home-podcasts/` after the operator confirms the area is
-   closed, per [`plan-completion`](/.cursor/skills/plan-completion/SKILL.md). Durable outcomes stay
-   in the detail docs and the phase plan.
+5. The set lives at `.llm/plans/completed/mobile-p2-home-podcasts/`. Durable outcomes stay in the
+   detail docs and the phase plan.
 
 ## Final response requirement
 

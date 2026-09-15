@@ -3,7 +3,8 @@ name: Push Notification Tap Routing
 ---
 # Validate notification tap routing without a live push server.
 # Maestro cannot deliver a real push, so we drive the notification-open code path via a
-# scheme URL that mimics the notification payload target ({ type: podcast, id_text }).
+# scheme URL that matches the destination extractNotificationTargetPath would emit
+# (Home > podcast, then Home > podcast > episode).
 # App.tsx feeds notification-open targets and deep links into the SAME pending-URL buffer
 # + getStateFromPath mapping, so this exercises the identical routing path a tap uses.
 # E2E-safe id_text seeded by tools/web/seed-e2e.mjs.
@@ -23,3 +24,36 @@ name: Push Notification Tap Routing
     timeout: ${TIMEOUT_SLOWEST}
 
 - takeScreenshot: push-tap-podcast-detail
+
+- tapOn:
+    id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      id: home-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: push-tap-podcast-back-home
+
+# New-episode payloads resolve to Home > podcast > episode so Back returns through the podcast.
+- openLink: podverse-next://podcast/e2ePodChnl001/episode/e2ePodResume03
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: push-tap-episode-detail
+
+- tapOn:
+    id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: push-tap-episode-back-podcast
+
+- tapOn:
+    id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      id: home-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: push-tap-episode-back-home

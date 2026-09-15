@@ -3,8 +3,15 @@
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { DTOAccountNotificationPreference, NotificationCategoryEnum } from '@podverse/helpers';
-import { NotificationCategoryEnum as NotificationCategoryEnumValues } from '@podverse/helpers';
+import type {
+  AccountNotificationTypeValues,
+  DTOAccountNotificationPreference,
+  NotificationCategoryEnum,
+} from '@podverse/helpers';
+import {
+  AccountNotificationTypeEnum,
+  NotificationCategoryEnum as NotificationCategoryEnumValues,
+} from '@podverse/helpers';
 import { validateHttpsUrl } from '@podverse/helpers-validation/client';
 import {
   Button,
@@ -41,7 +48,7 @@ export function SettingsNotifications() {
     setUPEndpoint,
   } = useNotifications();
   const { loadingMap, withLoading, setLoadingFor } = useLoadingMap();
-  const { loggedInAccount } = useAccount();
+  const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
   const { tryHandleMembershipGateError } = useMembershipGate();
   const tInstructions = useTranslations('instructions');
@@ -105,6 +112,83 @@ export function SettingsNotifications() {
     ],
     []
   );
+
+  type NotificationTypeMetaRow = {
+    labelKey: string;
+    type: AccountNotificationTypeValues;
+  };
+
+  const notificationTypeRows = useMemo<NotificationTypeMetaRow[]>(
+    () => [
+      { labelKey: 'new_item', type: AccountNotificationTypeEnum.NewItem },
+      { labelKey: 'livestream_scheduled', type: AccountNotificationTypeEnum.LivestreamScheduled },
+      { labelKey: 'livestream_started', type: AccountNotificationTypeEnum.LivestreamStarting },
+    ],
+    []
+  );
+
+  const settingsNotification = loggedInAccount?.account_settings?.account_settings_notification;
+  const autoEnableOnSubscribe = settingsNotification?.auto_enable_on_subscribe ?? false;
+  const defaultNotificationTypes = settingsNotification?.account_settings_notification_types ?? [];
+
+  const isNotificationTypeEnabled = (type: AccountNotificationTypeValues) =>
+    defaultNotificationTypes.some((row) => row.type === type);
+
+  const requireLoginForNotificationSettings = (enabling: boolean): boolean => {
+    if (loggedInAccount) {
+      return false;
+    }
+    setModalLoginRequired({
+      title: null,
+      message: tInstructions(
+        enabling ? 'login_to_enable_notifications' : 'login_to_disable_notifications'
+      ),
+    });
+    return true;
+  };
+
+  const updateAutoEnableOnSubscribe = async (next: boolean) => {
+    const loadingKey = 'notification-auto-enable-on-subscribe';
+    if (requireLoginForNotificationSettings(next)) {
+      return;
+    }
+
+    await withLoading(loadingKey, async () => {
+      try {
+        const updated = await getApiRequestService().reqAccountSettingsNotificationUpdate({
+          auto_enable_on_subscribe: next,
+        });
+        setLoggedInAccount(updated);
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          console.warn('Could not update auto-enable-on-subscribe setting', error);
+        }
+      }
+    });
+  };
+
+  const toggleNotificationTypeDefault = async (
+    type: AccountNotificationTypeValues,
+    next: boolean
+  ) => {
+    const loadingKey = `notification-type-default.${type}`;
+    if (requireLoginForNotificationSettings(next)) {
+      return;
+    }
+
+    await withLoading(loadingKey, async () => {
+      try {
+        const updated = next
+          ? await getApiRequestService().reqAccountSettingsNotificationTypeCreate({ type })
+          : await getApiRequestService().reqAccountSettingsNotificationTypeDelete({ type });
+        setLoggedInAccount(updated);
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          console.warn('Could not update notification type default', type, error);
+        }
+      }
+    });
+  };
 
   const loadPreferences = useCallback(async () => {
     if (!loggedInAccount) {
@@ -448,6 +532,45 @@ export function SettingsNotifications() {
             <span className={styles.upEndpointValue}>{upEndpoint}</span>
           </div>
         )}
+      </SettingsSection>
+
+      <Divider withSpacing />
+
+      <SettingsSection>
+        <SwitchButton
+          id="notification-auto-enable-on-subscribe"
+          label={tSettings('notifications.auto_enable_on_subscribe')}
+          checked={autoEnableOnSubscribe}
+          onChange={async (next) => await updateAutoEnableOnSubscribe(next)}
+          loading={!!loadingMap['notification-auto-enable-on-subscribe']}
+          helpAriaLabel={tMisc('more_info')}
+          helpText={tSettings('notifications.auto_enable_on_subscribe_help')}
+          stateOffLabel={tMisc('off')}
+          stateOnLabel={tMisc('on')}
+        />
+      </SettingsSection>
+
+      <Divider withSpacing />
+
+      <SettingsSection>
+        <h3 className={styles.preferencesHeading}>
+          {tSettings('notifications.type_defaults_section')}
+        </h3>
+        <p className={styles.preferencesSubheading}>
+          {tSettings('notifications.type_defaults_section_help')}
+        </p>
+        {notificationTypeRows.map((row) => (
+          <SwitchButton
+            key={row.type}
+            id={`notification-type-default-${row.type}`}
+            label={tSettings(`notifications.${row.labelKey}`)}
+            checked={isNotificationTypeEnabled(row.type)}
+            onChange={async (next) => await toggleNotificationTypeDefault(row.type, next)}
+            loading={!!loadingMap[`notification-type-default.${row.type}`]}
+            stateOffLabel={tMisc('off')}
+            stateOnLabel={tMisc('on')}
+          />
+        ))}
       </SettingsSection>
 
       <Divider withSpacing />

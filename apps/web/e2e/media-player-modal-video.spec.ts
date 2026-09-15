@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
+import { clearSeededPodcastQueueResources } from './helpers/mediaPlayerAssertions';
 import {
   E2E_EMBED_VIDEO_ITEM_ID_TEXT,
   E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
@@ -43,21 +44,27 @@ async function openFullscreenMediaPlayerModal(page: Page): Promise<Locator> {
 async function startEpisodePlayback(
   page: Page,
   itemIdText: string,
-  heading: string
+  heading: string,
+  playback: 'audio' | 'video'
 ): Promise<void> {
   await page.goto(`/episode/${itemIdText}`);
   await expect(page.getByRole('heading', { name: heading })).toBeVisible();
-  // The seeded user has a restored "now playing" item that loads asynchronously into the player
-  // bar. Wait for that restore to settle before starting playback so it does not clobber the item
-  // we are about to play (a cold-start race that otherwise only bites the first test).
-  await expect(page.locator('#media-player').getByRole('button').first()).toBeVisible();
-  await page.getByRole('button', { name: 'Play' }).first().click();
+  // The player bar is empty until this click: `clearSeededPodcastQueueResources` removes the
+  // now-playing rows, so nothing restores into it. Play from `main` to load this episode.
+  await page.locator('main').getByRole('button', { name: 'Play' }).first().click();
+  if (playback === 'video') {
+    await expect(floatingVideoPortalLocator(page)).toBeVisible();
+    return;
+  }
+  await expect(floatingVideoPortalLocator(page)).toHaveCount(0);
+  await expect(page.locator('#media-player').getByRole('button', { name: heading })).toBeVisible();
 }
 
 test.describe('Modal video desktop', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
     await loginSeedUser(page);
+    await clearSeededPodcastQueueResources(page);
   });
 
   test('shows video in the modal center and returns to the floating portal on close', async ({
@@ -66,7 +73,8 @@ test.describe('Modal video desktop', () => {
     await startEpisodePlayback(
       page,
       E2E_EMBED_VIDEO_ITEM_ID_TEXT,
-      EMBED_SAMPLE_EPISODE_VIDEO_TITLE
+      EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
+      'video'
     );
     await expect(floatingVideoPortalLocator(page)).toBeVisible();
 
@@ -121,7 +129,8 @@ test.describe('Modal video desktop', () => {
     await startEpisodePlayback(
       page,
       E2E_EMBED_VIDEO_ITEM_ID_TEXT,
-      EMBED_SAMPLE_EPISODE_VIDEO_TITLE
+      EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
+      'video'
     );
     const floatingVideo = floatingVideoPortalLocator(page).locator('video');
     await expect(floatingVideo).toBeVisible();
@@ -184,7 +193,8 @@ test.describe('Modal video desktop', () => {
     await startEpisodePlayback(
       page,
       E2E_EMBED_VIDEO_ITEM_ID_TEXT,
-      EMBED_SAMPLE_EPISODE_VIDEO_TITLE
+      EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
+      'video'
     );
 
     const modal = await openFullscreenMediaPlayerModal(page);
@@ -245,7 +255,8 @@ test.describe('Modal video desktop', () => {
     await startEpisodePlayback(
       page,
       E2E_EMBED_VIDEO_ITEM_ID_TEXT,
-      EMBED_SAMPLE_EPISODE_VIDEO_TITLE
+      EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
+      'video'
     );
 
     const modal = await openFullscreenMediaPlayerModal(page);
@@ -295,13 +306,15 @@ test.describe('Modal video audio regression', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
     await loginSeedUser(page);
+    await clearSeededPodcastQueueResources(page);
   });
 
   test('keeps artwork in the modal for audio playback', async ({ page }, testInfo) => {
     await startEpisodePlayback(
       page,
       E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
-      PODCAST_AUDIO_EPISODE_TITLE
+      PODCAST_AUDIO_EPISODE_TITLE,
+      'audio'
     );
 
     const modal = await openFullscreenMediaPlayerModal(page);
@@ -366,7 +379,8 @@ test.describe('Modal video audio regression', () => {
     await startEpisodePlayback(
       page,
       E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
-      PODCAST_AUDIO_EPISODE_TITLE
+      PODCAST_AUDIO_EPISODE_TITLE,
+      'audio'
     );
 
     const modal = await openFullscreenMediaPlayerModal(page);

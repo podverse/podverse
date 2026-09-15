@@ -40,10 +40,10 @@ flow_needs_e2e_api() {
   case "$1" in
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | browse | deep-link | \
   detail-sort-prefs | engine-audio-spike | home | library-downloads | library-playlists | \
-  membership-gate | notifications-inbox | opml | play-mini-player | podcast-episode | push | \
-  queue-add | search | \
-  search-unparsed | subscriptions-anonymous | tab-switch-playback | tablet | v4v | \
-  video-transition)
+  membership-gate | notifications-inbox | offline-mode | opml | play-mini-player | \
+  playback-multi-device-handoff | playback-offline-reconciliation | podcast-episode | \
+  popularity-tracking | push | queue-add | search | search-unparsed | settings-downloads | \
+  subscriptions-anonymous | tab-switch-playback | tablet | v4v | video-transition)
     return 0
     ;;
   *)
@@ -68,7 +68,7 @@ flow_needs_tablet() {
 flow_needs_test_assets() {
   case "$1" in
   add-by-rss | auto-queue-advance | engine-audio-spike | library-downloads | play-mini-player | \
-  tab-switch-playback | tablet | v4v | video-transition)
+  playback-offline-reconciliation | tab-switch-playback | tablet | v4v | video-transition)
     return 0
     ;;
   *)

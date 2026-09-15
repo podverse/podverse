@@ -20,15 +20,28 @@ const {
   localeUpdateMock,
   notificationTypeCreateMock,
   notificationTypeDeleteMock,
+  notificationUpdateMock,
   playbackUpdateMock,
+  listenStatsUpdateMock,
 } = vi.hoisted(() => ({
   localeUpdateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, locale: 'en-US' })),
   notificationTypeCreateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, type: 'new-item' })),
   notificationTypeDeleteMock: vi.fn(async () => {}),
+  notificationUpdateMock: vi.fn(async () => ({
+    id: 1,
+    account_settings_id: 1,
+    auto_enable_on_subscribe: true,
+  })),
   playbackUpdateMock: vi.fn(async () => ({
     id: 1,
     account_settings_id: 1,
     preferred_media_type: 'video',
+  })),
+  listenStatsUpdateMock: vi.fn(async () => ({
+    allow_listen_stats: true,
+    listen_stats_accepted: true,
+    listen_stats_agreement_version: '2026-09-11',
+    listen_stats_decided_at: new Date('2026-09-11T00:00:00.000Z'),
   })),
 }));
 
@@ -68,6 +81,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     update = localeUpdateMock;
   }
 
+  class MockAccountSettingsNotificationService {
+    update = notificationUpdateMock;
+  }
+
   class MockAccountSettingsNotificationTypeService {
     create = notificationTypeCreateMock;
     delete = notificationTypeDeleteMock;
@@ -77,13 +94,19 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     update = playbackUpdateMock;
   }
 
+  class MockAccountSettingsListenStatsService {
+    update = listenStatsUpdateMock;
+  }
+
   return {
     ...actual,
     CategoryService: MockCategoryService,
     AccountService: MockAccountService,
     AccountSettingsLocaleService: MockAccountSettingsLocaleService,
+    AccountSettingsNotificationService: MockAccountSettingsNotificationService,
     AccountSettingsNotificationTypeService: MockAccountSettingsNotificationTypeService,
     AccountSettingsPlaybackService: MockAccountSettingsPlaybackService,
+    AccountSettingsListenStatsService: MockAccountSettingsListenStatsService,
   };
 });
 
@@ -185,6 +208,45 @@ describe('account settings routes', () => {
     });
   });
 
+  describe('PATCH /account-settings/notification', () => {
+    it('returns 200 and persists the auto-enable-on-subscribe flag when authenticated', async () => {
+      notificationUpdateMock.mockResolvedValueOnce({
+        id: 1,
+        account_settings_id: 1,
+        auto_enable_on_subscribe: true,
+      });
+
+      const res = await request(app)
+        .patch(`${settingsBase}/notification`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ auto_enable_on_subscribe: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.auto_enable_on_subscribe).toBe(true);
+      expect(notificationUpdateMock).toHaveBeenCalledWith({
+        account_id: TEST_USER_ID,
+        auto_enable_on_subscribe: true,
+      });
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app)
+        .patch(`${settingsBase}/notification`)
+        .send({ auto_enable_on_subscribe: true });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 400 with a missing auto_enable_on_subscribe', async () => {
+      const res = await request(app)
+        .patch(`${settingsBase}/notification`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+  });
+
   describe('POST /account-settings/notification-type', () => {
     it('returns 200 with valid data when authenticated with active membership', async () => {
       notificationTypeCreateMock.mockResolvedValueOnce({
@@ -255,6 +317,59 @@ describe('account settings routes', () => {
         .send({ type: 'not-a-real-type' });
 
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('PATCH /account-settings/listen-stats', () => {
+    it('records accept of the current agreement version', async () => {
+      listenStatsUpdateMock.mockResolvedValueOnce({
+        allow_listen_stats: true,
+        listen_stats_accepted: true,
+        listen_stats_agreement_version: '2026-09-11',
+        listen_stats_decided_at: new Date('2026-09-11T00:00:00.000Z'),
+      });
+
+      const res = await request(app)
+        .patch(`${settingsBase}/listen-stats`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ accepted: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.listen_stats_accepted).toBe(true);
+      expect(res.body.data.listen_stats_agreement_version).toBe('2026-09-11');
+      expect(listenStatsUpdateMock).toHaveBeenCalledWith({
+        account_id: TEST_USER_ID,
+        accepted: true,
+        agreement_version: '2026-09-11',
+      });
+    });
+
+    it('records a decline', async () => {
+      listenStatsUpdateMock.mockResolvedValueOnce({
+        allow_listen_stats: false,
+        listen_stats_accepted: false,
+        listen_stats_agreement_version: '2026-09-11',
+        listen_stats_decided_at: new Date('2026-09-11T00:00:00.000Z'),
+      });
+
+      const res = await request(app)
+        .patch(`${settingsBase}/listen-stats`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ accepted: false });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.listen_stats_accepted).toBe(false);
+      expect(listenStatsUpdateMock).toHaveBeenCalledWith({
+        account_id: TEST_USER_ID,
+        accepted: false,
+        agreement_version: '2026-09-11',
+      });
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app).patch(`${settingsBase}/listen-stats`).send({ accepted: true });
+
+      expect(res.status).toBe(401);
     });
   });
 });

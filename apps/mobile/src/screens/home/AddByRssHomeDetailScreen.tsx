@@ -15,14 +15,17 @@ import { Button, CoverImage } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { isMobileE2eFromEnv } from '../../config/env';
 import { addByRssRepository, channelSeenRepository } from '../../data/repositories';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList } from '../../navigation';
+import type { AddByRssEpisodeSort } from '../../prefs/detailListPrefs';
 import {
-  DEFAULT_PODCAST_EPISODE_SORT,
-  readPodcastDetailPrefs,
-  writePodcastDetailSort,
+  ADD_BY_RSS_EPISODE_SORT_OPTIONS,
+  DEFAULT_ADD_BY_RSS_EPISODE_SORT,
+  readAddByRssDetailPrefs,
+  writeAddByRssDetailSort,
 } from '../../prefs/detailListPrefs';
 import { useTheme } from '../../theme/useTheme';
 import type { AddByRssHomeDetailData } from './addByRssHomeDetailData';
@@ -35,23 +38,21 @@ type AddByRssHomeDetailScreenProps = NativeStackScreenProps<
   'AddByRssPodcastDetail'
 >;
 
-type EpisodeSort = 'alphabetical' | 'recent';
-
-const SORT_OPTIONS: { labelKey: string; value: EpisodeSort }[] = [
-  { labelKey: 'filters.sort.a_z', value: 'alphabetical' },
-  { labelKey: 'filters.sort.recent', value: 'recent' },
-];
+const SORT_LABEL_KEYS: Record<AddByRssEpisodeSort, string> = {
+  alphabetical: 'filters.sort.a_z',
+  recent: 'filters.sort.recent',
+};
 
 export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDetailScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const [detail, setDetail] = useState<AddByRssHomeDetailData | null>(null);
-  const [sort, setSort] = useState<EpisodeSort>(DEFAULT_PODCAST_EPISODE_SORT);
+  const [sort, setSort] = useState<AddByRssEpisodeSort>(DEFAULT_ADD_BY_RSS_EPISODE_SORT);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRemoving, setIsRemoving] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
-  const { playItem } = useAddByRssPlayback({ onNotice: setNoticeKey });
+  const { playItem, isPlaybackActive } = useAddByRssPlayback({ onNotice: setNoticeKey });
 
   const styles = useMemo(
     () =>
@@ -112,7 +113,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       }
 
       const mappedFeed = await addByRssRepository.getMappedFeedByUrl(feed.feedUrl);
-      const { sort: storedSort } = await readPodcastDetailPrefs(feed.idText);
+      const { sort: storedSort } = await readAddByRssDetailPrefs(feed.idText);
       setSort(storedSort);
       setDetail(
         mappedFeed === null
@@ -176,10 +177,10 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
 
   const sortOptions = useMemo(
     () =>
-      SORT_OPTIONS.map((option) => ({
-        label: t(option.labelKey),
-        testID: `add-by-rss-home-sort-${option.value}`,
-        value: option.value,
+      ADD_BY_RSS_EPISODE_SORT_OPTIONS.map((option) => ({
+        label: t(SORT_LABEL_KEYS[option]),
+        testID: `add-by-rss-home-sort-${option}`,
+        value: option,
       })),
     [t]
   );
@@ -251,7 +252,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         ) : null
       }
       ListFooterComponent={
-        noticeKey !== null || errorKey !== null ? (
+        noticeKey !== null || errorKey !== null || (isMobileE2eFromEnv() && isPlaybackActive) ? (
           <View>
             {noticeKey !== null ? (
               <Text style={styles.notice} testID="add-by-rss-home-notice">
@@ -266,6 +267,15 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
                 }}
                 testID="add-by-rss-home-error"
               />
+            ) : null}
+            {isMobileE2eFromEnv() && isPlaybackActive ? (
+              <Text
+                accessibilityLabel="add-by-rss-home-playback-active"
+                style={styles.notice}
+                testID="add-by-rss-home-playback-active"
+              >
+                {t('media_player.play')}
+              </Text>
             ) : null}
           </View>
         ) : null
@@ -282,7 +292,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
                 onSelect={(nextSort) => {
                   setSort(nextSort);
                   if (detail !== null) {
-                    void writePodcastDetailSort(detail.feed.idText, nextSort);
+                    void writeAddByRssDetailSort(detail.feed.idText, nextSort);
                   }
                 }}
                 options={sortOptions}
@@ -300,12 +310,16 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         <HomeFeedRow
           customActions={
             <MediaRowActions
+              appearance="icons"
+              durationLabel={null}
               idSuffix={`-${row.id}`}
               onPlayPress={() => {
                 handlePlay(row);
               }}
               playLabel={t('media_player.play')}
-              playTestID={`add-by-rss-home-play-${row.id}`}
+              playTestID={
+                index === 0 ? 'add-by-rss-home-play-first' : `add-by-rss-home-play-${row.id}`
+              }
             />
           }
           isLast={index === sortedEpisodes.length - 1}
@@ -316,6 +330,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
           onPress={handlePlay}
           onQueuePress={() => undefined}
           row={row}
+          showChannelContext={false}
           testID={`add-by-rss-home-episode-${row.id}`}
         />
       )}

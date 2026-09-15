@@ -22,8 +22,11 @@ const record = (overrides: Partial<DownloadRecord>): DownloadRecord => ({
   status: 'complete',
   title: 'Ep 1',
   artworkUrl: null,
-  errorReason: null,
+  channelIdText: null,
+  channelTitle: null,
   createdAt: 1,
+  dismissedFromList: false,
+  errorReason: null,
   updatedAt: 1,
   ...overrides,
 });

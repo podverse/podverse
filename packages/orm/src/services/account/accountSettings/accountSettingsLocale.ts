@@ -23,6 +23,18 @@ export class AccountSettingsLocaleService {
     this.repositoryRead = AppDataSourceRead.getRepository(AccountSettingsLocale);
   }
 
+  async getByAccountId(accountId: number): Promise<AccountSettingsLocale | null> {
+    const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
+    const accountSettings = await accountSettingsRepo.findOne({
+      where: { account_id: accountId },
+      relations: {
+        account_settings_locale: true,
+      },
+    });
+
+    return accountSettings?.account_settings_locale ?? null;
+  }
+
   async create(dto: CreateDto): Promise<AccountSettingsLocale> {
     const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
     const accountSettings = await accountSettingsRepo.findOne({

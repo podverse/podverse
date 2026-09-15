@@ -37,3 +37,15 @@ lands on Search root instead of the channel they just opened).
 
 - Contributor note: [apps/mobile/APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md) (navigation / search)
 - App entry: [apps/mobile/AGENTS.md](/apps/mobile/AGENTS.md)
+
+## Add-by-RSS surface ownership
+
+My Library's Add by RSS screen **adds, lists, and unsubscribes** feeds. Browsing episodes and
+playing a followed feed happen on the **Home** stack (unified Podcasts list →
+`AddByRssPodcastDetail`).
+
+- Do **not** add a Library affordance that opens feed contents (episode lists, Play, or a detail
+  push on the Library stack).
+- Do **not** cross-tab jump to Home's detail to provide that browsing surface from Library.
+- Home already merges directory follows with add-by-RSS feeds; keep that as the seamless browse
+  path.

@@ -1,5 +1,5 @@
 /**
- * Lightweight home-feed invalidation (same idea as `downloadManager.subscribe`).
+ * Lightweight home-feed invalidation (same idea as `downloadStore.subscribe`).
  *
  * Authenticated Home uses `type: 'subscribed'`. Follow/unfollow can happen from any stack
  * (Search podcast detail, Home detail, future surfaces). Call `notify()` after a successful

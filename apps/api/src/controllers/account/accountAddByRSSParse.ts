@@ -34,23 +34,37 @@ type FeedHashMap = Record<string, string>;
 
 /** Sync with apps/web/e2e/helpers/seedConstants.ts / tools/web/seed-e2e.mjs (mobile E2E fixtures). */
 const E2E_ADD_BY_RSS_CHANNEL_TITLE = 'E2E Add-by-RSS Channel';
+const E2E_ADD_BY_RSS_CHANNEL_IMAGE_URL = 'https://e2e-seed-addbyrss.example/channel-art.png';
 const E2E_ADD_BY_RSS_ITEM_IMAGE_URL = 'https://e2e-seed-addbyrss.example/item-art.png';
+const E2E_ADD_BY_RSS_ITEM_GUID = 'https://e2e-seed-addbyrss.example/item-guid/fresh';
+const E2E_ADD_BY_RSS_ITEM_TITLE = 'E2E Add-by-RSS Episode';
 const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL =
   'http://localhost:2111/e2e/audio/e2e-addbyrss-fresh-60s-440hz.mp3';
 
 /**
- * Minimal payload for mobile `extractPreviewFromParsePayload`. Cache entry is typed as
- * partytime FeedObject; E2E only needs items[0] title / enclosure.url / image.url.
- * Cast via unknown: fixture is intentionally not a full FeedObject.
+ * Minimal partytime-shaped payload so mobile `convertParsedRSSFeedToCompat` yields a mapped bundle
+ * with one playable item. Cast via unknown: fixture is intentionally not a full FeedObject.
  */
 const buildE2eParsedFeedPayload = (): NonNullable<AddByRSSParseCacheEntry['payload']> => {
   const fixture = {
+    title: E2E_ADD_BY_RSS_CHANNEL_TITLE,
+    link: 'https://e2e-seed-addbyrss.example/',
+    description: 'E2E add-by-RSS fixture',
+    explicit: false,
+    image: { url: E2E_ADD_BY_RSS_CHANNEL_IMAGE_URL },
     items: [
       {
-        title: E2E_ADD_BY_RSS_CHANNEL_TITLE,
-        enclosure: { url: E2E_ADDBYRSS_FRESH_ENCLOSURE_URL },
-        image: { url: E2E_ADD_BY_RSS_ITEM_IMAGE_URL },
-        playback_position: '0',
+        title: E2E_ADD_BY_RSS_ITEM_TITLE,
+        guid: E2E_ADD_BY_RSS_ITEM_GUID,
+        duration: 60,
+        explicit: false,
+        enclosure: {
+          url: E2E_ADDBYRSS_FRESH_ENCLOSURE_URL,
+          type: 'audio/mpeg',
+          length: 0,
+        },
+        image: E2E_ADD_BY_RSS_ITEM_IMAGE_URL,
+        pubDate: '2025-01-01T00:00:00.000Z',
       },
     ],
   };

@@ -1,0 +1,51 @@
+---
+description: A visible placeholder for deferred work must be inert and say it is unavailable — never a control that looks like it saves
+globs:
+  - "apps/mobile/src/**/*.tsx"
+  - "apps/web/src/**/*.tsx"
+  - "apps/management-web/src/**/*.tsx"
+  - "packages/ui/src/**/*.tsx"
+alwaysApply: false
+---
+
+# Placeholders for deferred features are inert and say so
+
+Sometimes a plan keeps a product affordance **visible** while its implementation is deferred, so the
+idea is not silently lost. That placeholder has one job: show that the feature is coming without ever
+appearing to work.
+
+## Required
+
+- **Non-interactive.** Disable the control so a tap or click changes nothing. There must be no state
+  to flip, because a control that flips and forgets reads as a bug or, worse, as a saved preference.
+- **Fixed at the inactive value.** A placeholder switch is hard-coded off. Do not read or write a
+  preference, and do not add storage "ready for later" — the next agent will find the wiring and
+  assume the feature half-exists.
+- **Says it in words.** Put a short line next to the control stating the feature is not available
+  yet, through i18n like any other user-facing copy. Disabled styling alone asks the user to discover
+  the limitation by tapping.
+
+## Don't
+
+- Don't ship an enabled control whose handler is a no-op, a `TODO`, or a toast.
+- Don't persist a value the product cannot honor. A remembered setting that has no effect is a
+  promise the app breaks on every launch.
+- Don't hide the real state behind optimistic UI — nothing is pending, so nothing should spin.
+- Don't cite the deferral's plan, detail, or step number in a code comment
+  ([`comments-future-forward`](/.cursor/rules/comments-future-forward.mdc)). The durable home for the
+  decision is the detail doc under `docs/proposals/`; the file only needs to be honest about today.
+
+## Where the reasoning lives
+
+The placeholder answers "what does the user see". The **open questions** — tier, defaults, storage,
+which surfaces get it — belong in the deferral's detail doc, which is what a later agent picks up.
+If the deferral also constrains future work, give it a rule so the constraint is enforced rather than
+remembered.
+
+## Related
+
+- [`generic-login-required-copy`](/.cursor/rules/generic-login-required-copy.mdc) — the same instinct
+  for gated controls: explain uniformly, never per-screen improvisation
+- **entitlement-gating-rollout** — for features that exist but are gated, which is a different case
+- [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc) — a disabled control
+  still needs an accessible name and its disabled state exposed

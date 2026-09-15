@@ -12,7 +12,8 @@
       "home": "Accueil",
       "opml": "OPML",
       "search_result": "Résultat de recherche",
-      "rss_feeds": "Flux RSS"
+      "rss_feeds": "Flux RSS",
+      "podcast_settings": "Paramètres du podcast"
     },
     "menu": {
       "opml": "OPML",
@@ -27,9 +28,13 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "channel": {
+      "section_requires_connection": "Cette section nécessite une connexion. Réessayez une fois de retour en ligne."
+    },
     "browse": {
-      "categories_selected": "Catégories – {name}",
       "category_all": "Toutes les catégories",
+      "collapse_category": "Masquer les sous-catégories de {name}",
+      "expand_category": "Afficher les sous-catégories de {name}",
       "empty": "Rien à afficher pour le moment",
       "range_all_time": "Tout le temps",
       "sort_popularity": "Popularité",
@@ -38,7 +43,10 @@
     "download": {
       "queued": "En file d'attente",
       "remove": "Supprimer",
+      "cancel_download": "Annuler le téléchargement",
+      "remove_download": "Retirer le téléchargement",
       "empty": "Aucun téléchargement pour le moment",
+      "downloaded": "Téléchargés",
       "not_downloadable": "Cet épisode ne peut pas être téléchargé pour une écoute hors ligne",
       "storage_used": "Espace de stockage utilisé",
       "auto_delete_label": "Suppression automatique des plus anciens lorsque le stockage est plein",
@@ -46,7 +54,17 @@
       "delete_all": "Tout supprimer",
       "auto_removed_notice": "Les téléchargements les plus anciens ont été supprimés pour libérer de l'espace",
       "dismiss": "Fermer",
-      "in_progress_count": "{count} en cours"
+      "in_progress_count": "{count} en cours",
+      "auto_download": "Télécharger automatiquement les nouveaux épisodes",
+      "auto_download_unavailable": "Le téléchargement automatique n'est pas encore disponible.",
+      "paused": "En pause",
+      "pause_all": "Tout mettre en pause",
+      "resume_all": "Tout reprendre",
+      "clear_finished": "Effacer tous les terminés",
+      "section_in_progress": "En cours",
+      "section_failed": "Échoués",
+      "section_completed": "Terminés",
+      "activity_progress": "Téléchargement de {active} sur {total}"
     },
     "search": {
       "add_podcast": "Ajouter le podcast",
@@ -68,7 +86,33 @@
       "appearance_description": "Thème et langue",
       "playback": "Lecture",
       "playback_description": "Type de média par défaut et file automatique",
+      "downloads_description": "Limite de stockage, libération automatique et suppression de tous les téléchargements",
       "notifications_description": "Alertes dans l'app et push"
+    },
+    "offline_mode": {
+      "title": "Mode hors ligne",
+      "description": "Le mode hors ligne n'utilise que les téléchargements et le reste du contenu déjà stocké sur cet appareil. Recherche, Parcourir, la synchro et tout ce qui a besoin d'Internet restent indisponibles jusqu'à ce que vous le désactiviez.",
+      "unavailable": "Cet écran n'est pas disponible en mode hors ligne.",
+      "banner": "Le mode hors ligne est activé"
+    },
+    "downloads": {
+      "storage_heading": "Stockage",
+      "device_storage": "Appareil",
+      "downloaded_media": "Médias téléchargés",
+      "app_data": "Données de l'app",
+      "cache": "Cache",
+      "limit_label": "Limite de téléchargement",
+      "unlimited": "Illimité",
+      "auto_free_heading": "Libérer de l'espace automatiquement",
+      "auto_delete_on_limit": "Lorsque ma limite de téléchargement est atteinte",
+      "auto_delete_on_limit_description": "Supprime d'abord les téléchargements terminés les plus anciens jusqu'à revenir sous la limite.",
+      "auto_delete_on_device_low": "Lorsque le téléphone manque d'espace libre",
+      "auto_delete_on_device_low_description": "Supprime les téléchargements terminés les plus anciens lorsque l'espace libre passe sous 1 Go, même si vous êtes encore sous votre limite.",
+      "delete_all_heading": "Supprimer tous les téléchargements",
+      "delete_all_description": "Supprime définitivement les fichiers multimédias locaux et les entrées d'index de téléchargement sur cet appareil. Cette action est irréversible.",
+      "delete_all": "Tout supprimer",
+      "delete_all_confirm_title": "Supprimer tous les téléchargements ?",
+      "delete_all_confirm_body": "Cela supprime tous les fichiers de téléchargement locaux et les retire de la liste Téléchargements. Les épisodes devront être téléchargés à nouveau pour une écoute hors ligne."
     },
     "notifications": {
       "login_required_title": "Connexion requise",
@@ -88,12 +132,25 @@
       "reorder_hint": "Déplace cet écran dans la barre d'onglets ou vers Plus"
     }
   },
+  "e2e": {
+    "section": "E2E",
+    "smoke": "Test",
+    "playback": "Lecture",
+    "playback_intro": "Ces commandes n'existent que dans les builds de test E2E. Elles lancent le média de seed que les écrans produit n'exposent pas encore.",
+    "play_video": "Lire la vidéo E2E",
+    "skip_next": "Passer au suivant",
+    "complete_now_playing": "Marquer la lecture en cours comme terminée"
+  },
+  "subscriptions": {
+    "downloaded_only": "Téléchargés uniquement"
+  },
   "sync": {
     "job": {
       "account": "Mise à jour de votre compte",
       "subscriptions": "Mise à jour de vos podcasts",
       "playlists": "Mise à jour de vos playlists",
       "queue": "Mise à jour de votre file d'attente",
+      "playback": "Enregistrement de votre progression de lecture",
       "library": "Mise à jour de votre bibliothèque hors ligne",
       "notifications": "Configuration des notifications",
       "episodes": "Mise à jour de vos épisodes",

@@ -14,6 +14,11 @@ import { AppState } from 'react-native';
 import { useAuth } from '../auth/AuthProvider';
 import { useQueues } from '../contexts/QueuesProvider';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
+import {
+  hydrateOfflineMode,
+  isSyncNetworkUsable,
+  subscribeOfflineMode,
+} from '../prefs/offlineMode';
 import { attachSyncEventLogSink } from './syncEventLogSink';
 import type { SyncTrigger } from './syncJobPlan';
 import { planSyncRun } from './syncJobPlan';
@@ -144,16 +149,52 @@ export function SyncProvider({ children }: PropsWithChildren) {
   }, [requestSync]);
 
   useEffect(() => {
-    return NetInfo.addEventListener((netState) => {
-      // `isInternetReachable` is null until the first probe resolves; treat that as connected so a
-      // slow probe cannot hold the queue back on a working network.
-      const isReachable = netState.isConnected === true && netState.isInternetReachable !== false;
-      syncQueue.setNetworkReachable(isReachable);
+    let netReachable = true;
+    let offlineModeEnabled = false;
+    let hasNetInfo = false;
 
-      if (isReachable) {
+    const applyReachability = (allowRestore: boolean): void => {
+      const usable = isSyncNetworkUsable(netReachable, offlineModeEnabled);
+      syncQueue.setNetworkReachable(usable);
+      if (usable && allowRestore) {
         requestSync('connectivity-restored');
       }
+    };
+
+    void hydrateOfflineMode().then((enabled) => {
+      offlineModeEnabled = enabled;
+      // Park immediately if Offline Mode was left on from a previous session. Do not restore
+      // until NetInfo confirms the platform is reachable.
+      if (enabled) {
+        syncQueue.setNetworkReachable(false);
+      }
     });
+
+    const unsubscribeOffline = subscribeOfflineMode((enabled) => {
+      const wasEnabled = offlineModeEnabled;
+      offlineModeEnabled = enabled;
+      if (enabled) {
+        syncQueue.setNetworkReachable(false);
+        return;
+      }
+      // Turning Offline Mode off resumes only when the platform is also reachable.
+      if (wasEnabled && hasNetInfo) {
+        applyReachability(true);
+      }
+    });
+
+    const unsubscribeNet = NetInfo.addEventListener((netState) => {
+      hasNetInfo = true;
+      // `isInternetReachable` is null until the first probe resolves; treat that as connected so a
+      // slow probe cannot hold the queue back on a working network.
+      netReachable = netState.isConnected === true && netState.isInternetReachable !== false;
+      applyReachability(true);
+    });
+
+    return () => {
+      unsubscribeOffline();
+      unsubscribeNet();
+    };
   }, [requestSync]);
 
   const value = useMemo<SyncContextValue>(() => {

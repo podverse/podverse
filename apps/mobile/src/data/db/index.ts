@@ -1,5 +1,7 @@
-import { getSqlite } from './client';
+import { hydrateSectionChromeFlagsMemory } from '../../lib/sectionChromeFlags';
+import { getDb, getSqlite } from './client';
 import { runMigrations } from './runMigrations';
+import * as schema from './schema';
 
 let initializePromise: Promise<void> | null = null;
 
@@ -8,6 +10,13 @@ const initialize = async (): Promise<void> => {
   // WAL improves concurrent read/write behavior for the background sync layer.
   await sqlite.execAsync('PRAGMA journal_mode = WAL;');
   await runMigrations(sqlite);
+  const chromeRows = await getDb()
+    .select({
+      cacheKey: schema.sectionChromeFlags.cacheKey,
+      flagsJson: schema.sectionChromeFlags.flagsJson,
+    })
+    .from(schema.sectionChromeFlags);
+  hydrateSectionChromeFlagsMemory(chromeRows);
 };
 
 /**

@@ -1,36 +1,39 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
 
 import type { MoreMenuSection } from '../../components/primitives';
-import { Button, MoreMenu } from '../../components/primitives';
+import { MoreMenu } from '../../components/primitives';
+import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
-import { useTheme } from '../../theme/useTheme';
 
 type HomeOverflowMenuProps = {
   /** Disabled when no subscription has anything unseen, so the menu never offers a no-op. */
   canMarkAllSeen: boolean;
   onMarkAllSeen: () => void;
   onViewModeChange: (viewMode: HomeViewMode) => void;
+  /**
+   * Mark All As Seen only applies to the Podcasts subscription list. Keep the trigger visible on
+   * every Home chip; omit this section when the current chip is not Podcasts.
+   */
+  showMarkAllSeen: boolean;
   viewMode: HomeViewMode;
 };
 
 /**
- * The Home list menu: which way the subscribed list is drawn, and catching up on all of it.
+ * Home title-bar overflow: list/grid (Home-wide) and optional Mark All As Seen.
  *
- * The view is offered as two rows with the active one checked, rather than as a single row whose
- * label flips between "Grid View" and "List View". A flipping label cannot say whether it names the
- * mode you are in or the one you would move to, and there is no way to hear the difference — the
- * checked row states it outright, to everyone.
+ * Lives in `headerRight` via {@link HeaderBarAction}. The view is two checked rows rather than a
+ * flipping label so the menu states which mode is in effect for every eligible media chip.
  */
 export function HomeOverflowMenu({
   canMarkAllSeen,
   onMarkAllSeen,
   onViewModeChange,
+  showMarkAllSeen,
   viewMode,
 }: HomeOverflowMenuProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
   const sections: MoreMenuSection[] = [
@@ -58,7 +61,10 @@ export function HomeOverflowMenu({
       key: 'view',
       title: t('layouts.change_layout_view'),
     },
-    {
+  ];
+
+  if (showMarkAllSeen) {
+    sections.push({
       items: [
         {
           disabled: !canMarkAllSeen,
@@ -69,27 +75,18 @@ export function HomeOverflowMenu({
         },
       ],
       key: 'actions',
-    },
-  ];
+    });
+  }
 
   return (
-    <>
-      <Button
-        icon={
-          <Ionicons
-            color={themeStyles.buttonSecondary.color}
-            name="ellipsis-horizontal"
-            size={20}
-          />
-        }
-        iconOnly
-        label={t('media.more_options')}
+    <View>
+      <HeaderBarAction
+        accessibilityLabel={t('media.more_options')}
+        icon="ellipsis-horizontal"
         onPress={() => {
           setIsOpen(true);
         }}
-        size="sm"
         testID="home-overflow-trigger"
-        variant="secondary"
       />
       <MoreMenu
         cancelLabel={t('misc.cancel')}
@@ -100,6 +97,6 @@ export function HomeOverflowMenu({
         testID="home-overflow-menu"
         visible={isOpen}
       />
-    </>
+    </View>
   );
 }

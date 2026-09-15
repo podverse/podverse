@@ -14,23 +14,54 @@ export { channelLiveStatusRepository } from './channelLiveStatusRepository';
 export { channelSeenRepository } from './channelSeenRepository';
 export type { ChannelSeenUnseen } from './channelSeenRepository';
 export { downloadsRepository } from './downloadsRepository';
-export type { DownloadPatch } from './downloadsRepository';
+export type { UnsubscribedDownloadChannel } from './downloadsRepository';
 export { notificationsRepository } from './notificationsRepository';
 export { playbackContentRepository } from './playbackContentRepository';
+export {
+  eventKindEmitsRemovalTombstone,
+  isPositionOnlyPlaybackEvent,
+  PLAYBACK_OUTBOX_RESOURCE_KINDS,
+  PLAYBACK_POSITION_ONLY_EVENT_KINDS,
+  selectPlaybackOutboxEvictions,
+  shouldCollapsePlaybackEvent,
+  shouldCollapseQueueReorderEvent,
+  shouldEnqueuePlaybackEvent,
+  toReplayOccurredAtIso,
+} from './playbackOutbox';
+export type {
+  PlaybackOutboxEnqueueEvent,
+  PlaybackOutboxEvictionCandidate,
+  PlaybackOutboxResourceKind,
+} from './playbackOutbox';
+export { playbackOutboxRepository } from './playbackOutboxRepository';
+export type {
+  PlaybackLocalStateRecord,
+  PlaybackOutboxDrainResult,
+  PlaybackOutboxReconcileResult,
+} from './playbackOutboxRepository';
 export { exampleRepository } from './exampleRepository';
 export type { ExampleSnapshot } from './exampleRepository';
 export { queueRepository, selectPrimaryQueue } from './queueRepository';
 export type { MoveNowPlayingToHistoryTarget } from './queueRepository';
+export { sectionChromeFlagsRepository } from './sectionChromeFlagsRepository';
 export { segmentsRepository } from './segmentsRepository';
 export { statsRepository } from './statsRepository';
 export type { PlaybackStatsTargets } from './statsRepository';
 export { subscriptionsRepository } from './subscriptionsRepository';
 export type {
   SubscribedChannel,
+  SubscriptionChannelKind,
   SubscriptionFilter,
   SubscriptionMedium,
   SubscriptionSort,
   SubscriptionSource,
+} from './subscriptionsRepository';
+export {
+  isSubscriptionChannelKind,
+  mediumFromSubscriptionChannelKind,
+  subscriptionChannelKindFromMediumId,
+  subscriptionChannelKindFromResourceType,
+  SUBSCRIPTION_CHANNEL_KINDS,
 } from './subscriptionsRepository';
 export { writeSignupMergeEmail } from './subscriptionsSignupMarker';
 export { runSignupSubscriptionMerge } from './subscriptionsSignupMerge';

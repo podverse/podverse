@@ -38,9 +38,11 @@ Do **not** collapse platforms into a single screenshot page. Open the slot / flo
 ## Full suite vs focused verify
 
 - **Full suite (operator regression):** `npm run mobile:e2e:test:all` — discovers every top-level
-  `apps/mobile/e2e/<area>.yaml` (not `shared/`). Documented first in
-  [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md). Requires API-backed stack
-  (`mobile:dev:e2e` + `mobile:e2e:api` + deps/seed + E2E installs).
+  `apps/mobile/e2e/<area>.yaml` (not `shared/`). Documented as **section 6** in
+  [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md). Section 6 has the
+  [complete area list](/apps/mobile/e2e/HOW-TO-RUN.md#complete-area-list), then `:all`.
+  Requires the API-backed stack (`mobile:dev:e2e` + `mobile:e2e:api` + test-assets +
+  deps/seed).
 - **Feature / PR verify:** keep using the **narrowest** `npm run mobile:e2e:test -- <area>` (bare
   `mobile:e2e:test` = `hello-world` only). Do **not** default agent verify endings to `:all`.
 - **UI-only Metro symptom:** API-backed / `:all` runs with `mobile:dev` (not `mobile:dev:e2e`) show
@@ -69,8 +71,9 @@ contaminating the result; it is not the default for focused or full-suite verifi
    [`scripts/mobile/e2e-test.sh`](/scripts/mobile/e2e-test.sh).
 3. If the flow needs real media (`tools/test-assets` on `:2111`), add `<area>` to
    `flow_needs_test_assets` in the same script.
-4. Keep [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) § Run all as the operator entry for the
-   full process (prep + leave-running + `:all`). Update that section if prep/stack steps change.
+4. Keep [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) numbered sections 1–6 as the
+   operator entry. Section 6 lists one-flow commands first, then `:all`. Update those
+   sections if prep/stack steps change.
 5. Keep [FULL-REPO-VERIFICATION-COMMANDS.md](/docs/testing/FULL-REPO-VERIFICATION-COMMANDS.md)
    synchronized whenever a top-level mobile flow is added or removed. Update its full-suite option,
    focused-flow command list, and tablet opt-in section when applicable.
@@ -169,6 +172,12 @@ assertion. Check them before blaming locators or timeouts:
    On Android the soft keyboard often occludes the submit button after `inputText`, so Android _does_
    need the dismiss. Prefer this platform-guarded form over an unconditional `hideKeyboard`.
 
+   The tab bar sits under the keyboard on both platforms. Maestro can still find `tab-home` (and
+   report `tapOn` as passed) while the tap hits the keyboard, so the next `assertVisible` fails on
+   the screen you never left. Do not treat that as a navigation bug. Dismiss from the app on submit
+   (`Keyboard.dismiss`) so iOS is covered; keep the Android-only `hideKeyboard` before a tab tap
+   when the flow just typed into a field.
+
 2. **`secureTextEntry` blocks Maestro `inputText`** — iOS Strong-Password autofill over a secure
    field leaves the value empty. The app renders password fields as plaintext when
    `EXPO_PUBLIC_MOBILE_E2E=1` (set by `scripts/mobile/dev-e2e.sh`); confirm the failure screenshot
@@ -185,6 +194,40 @@ assertion. Check them before blaming locators or timeouts:
    `api-health` flow (it hits the same base URL with a GET): health `error` on one platform points at
    reachability/cleartext, not the form.
 
+5. **Returning to a tab lands on the screen it was left on, not that tab's root.** Every bottom
+   tab owns its stack and keeps it (**mobile-tab-stack-isolation**). A flow that navigated My
+   Library into a sub-screen, moved to Home, then tapped `tab-my-library` is back on that
+   sub-screen — asserting the hub `testID` there fails against correct behavior. Assert the
+   remembered screen, and do not add a reset to make a root assertion pass.
+
+6. **More rows below the first page are missing from the iOS hierarchy, not from the app.** Phone
+   More is two pages (Offline Mode, overflow tabs, Settings, OPML, About, Sync log, then E2E).
+   XCUITest omits those off-screen `testID`s, so `tapOn: more-nav-smoke` fails with "Element not
+   found" while the screenshot still shows More. Scroll first
+   (`shared/open-more-smoke.yaml` / `scrollUntilVisible`). A live `maestro --device <udid>
+hierarchy` that names "Smoke" in the scroll view's aggregated text but has no `more-nav-smoke`
+   resource-id is this case.
+
+7. **A black screen after submit is a wedged native modal, not a dead app.** When the device goes
+   blank and every later assertion reports "not visible", dump the hierarchy before suspecting
+   Metro, the Dev Client launcher, or the device. The wedged state survives the run, so this works
+   after the fact:
+
+   ```bash
+   maestro --device <udid> hierarchy
+   ```
+
+   A tree that still names the app but holds **no text and no `resource-id`s** means the UI is
+   occluded, not missing: a full-screen modal hides everything behind it from accessibility, so
+   Maestro sees only the modal, and a wedged modal draws nothing. Look at what mounted or unmounted
+   on the state change the flow just triggered — see **mobile-modal-presentation-lifecycle**. A real
+   bundle or connection failure looks different: Metro logs the error, or a redbox or the launcher
+   is on screen.
+
+   Because most flows run `shared/login-seeded-user.yaml`, one wedge on the sign-in path fails a
+   large share of the suite with unrelated-looking locator errors. Confirm the shared path before
+   triaging areas separately.
+
 ## Response format
 
 **Mandatory** for mobile UI / feature implementation responses (parity with web
@@ -194,6 +237,14 @@ assertion. Check them before blaming locators or timeouts:
    surface — prefer `npm run mobile:e2e:test -- <area>` mapped to the flow you added/updated.
    Use bare `npm run mobile:e2e:test` only when the default `hello-world` smoke is truly the right
    scope.
+
+   **`<area>` is a file basename, not a feature name.** It must match an existing top-level
+   `apps/mobile/e2e/<area>.yaml`. Check the directory before writing the command — the flow covering
+   a screen is often named for more than that screen (podcast detail lives in `podcast-episode`,
+   not `podcast`), so a plausible-sounding area silently matches nothing and the operator's paste
+   verifies nothing. This applies to verification blocks in **plan and detail docs** as much as to
+   chat responses; a wrong area copied into a detail doc gets pasted once per prompt in the set.
+
 2. Include where to open results (failures.json + hub + affected slots):
    - `.artifacts/mobile-e2e-reports/latest/failures.json`
    - `.artifacts/mobile-e2e-reports/latest/index.html`

@@ -10,8 +10,11 @@ import { useAuth } from '../../auth/AuthProvider';
 import { Button, Card, ListRow } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
+import { ListEmpty } from '../../components/state/ListEmpty';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 
 type LibraryPlaylistsScreenProps = NativeStackScreenProps<
@@ -25,6 +28,7 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
   const { t } = useTranslation();
   const { tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const [playlists, setPlaylists] = useState<DTOPlaylist[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -44,6 +48,13 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
 
   const loadPlaylists = useCallback(async () => {
     if (status !== 'authenticated') {
+      setPlaylists([]);
+      setErrorKey(null);
+      setIsLoading(false);
+      return;
+    }
+
+    if (offlineModeEnabled) {
       setPlaylists([]);
       setErrorKey(null);
       setIsLoading(false);
@@ -76,11 +87,25 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, clearSession, refreshToken, setTokens, status]);
+  }, [accessToken, clearSession, offlineModeEnabled, refreshToken, setTokens, status]);
 
   useEffect(() => {
     void loadPlaylists();
   }, [loadPlaylists]);
+
+  if (offlineModeEnabled) {
+    return (
+      <MobileScreenContainer
+        heading={t('features.playlist.playlists')}
+        testID="library-playlists-screen"
+      >
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="library-playlists-offline-unavailable"
+        />
+      </MobileScreenContainer>
+    );
+  }
 
   return (
     <MobileScreenContainer

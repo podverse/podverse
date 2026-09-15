@@ -37,6 +37,8 @@ const TEST_PASSWORD = 'Test!1Aa';
 
 /** Sync with apps/web/e2e/helpers/legalConsent.ts */
 const E2E_CONFIGURED_TERMS_VERSION = '2026-01-01';
+const E2E_POPULARITY_TRACKING_VERSION = '2026-09-11';
+const E2E_POPULARITY_UNDECIDED_EMAIL = 'e2e-popularity-undecided@example.com';
 const E2E_OUTDATED_TERMS_VERSION = '2025-01-01';
 const E2E_STALE_TERMS_EMAIL = 'e2e-stale-terms@example.com';
 
@@ -293,6 +295,18 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
     [accountId, E2E_CONFIGURED_TERMS_VERSION]
   );
 
+  await client.query(
+    `INSERT INTO "account_settings" (
+       account_id,
+       allow_listen_stats,
+       listen_stats_accepted,
+       listen_stats_agreement_version,
+       listen_stats_decided_at
+     )
+     VALUES ($1, true, true, $2, NOW())`,
+    [accountId, E2E_POPULARITY_TRACKING_VERSION]
+  );
+
   const staleTermsIdText = crypto.randomBytes(8).toString('hex').slice(0, 15);
   const staleTermsAccountResult = await client.query(
     `INSERT INTO "account" (id_text, verified, sharable_status_id)
@@ -318,6 +332,18 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
     `INSERT INTO "account_terms_acceptance" (account_id, terms_version, accepted_at)
      VALUES ($1, $2, NOW())`,
     [staleTermsAccountId, E2E_OUTDATED_TERMS_VERSION]
+  );
+
+  await client.query(
+    `INSERT INTO "account_settings" (
+       account_id,
+       allow_listen_stats,
+       listen_stats_accepted,
+       listen_stats_agreement_version,
+       listen_stats_decided_at
+     )
+     VALUES ($1, true, true, $2, NOW())`,
+    [staleTermsAccountId, E2E_POPULARITY_TRACKING_VERSION]
   );
 
   const inviteIdText = crypto.randomBytes(8).toString('hex').slice(0, 15);
@@ -353,7 +379,59 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
     [inviteAccountId, E2E_SET_PASSWORD_INVITE_TOKEN, setPasswordExpiresAt.toISOString()]
   );
 
+  await client.query(
+    `INSERT INTO "account_settings" (
+       account_id,
+       allow_listen_stats,
+       listen_stats_accepted,
+       listen_stats_agreement_version,
+       listen_stats_decided_at
+     )
+     VALUES ($1, true, true, $2, NOW())`,
+    [inviteAccountId, E2E_POPULARITY_TRACKING_VERSION]
+  );
+
+  const undecidedIdText = crypto.randomBytes(8).toString('hex').slice(0, 15);
+  const undecidedAccountResult = await client.query(
+    `INSERT INTO "account" (id_text, verified, sharable_status_id)
+     VALUES ($1, true, 1)
+     RETURNING id`,
+    [undecidedIdText]
+  );
+  const undecidedAccountId = undecidedAccountResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO "account_credentials" (account_id, email, password)
+     VALUES ($1, $2, $3)`,
+    [undecidedAccountId, E2E_POPULARITY_UNDECIDED_EMAIL, passwordHash]
+  );
+
+  await client.query(
+    `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
+     VALUES ($1, 1, $2)`,
+    [undecidedAccountId, membershipExpiresAt.toISOString()]
+  );
+
+  await client.query(
+    `INSERT INTO "account_terms_acceptance" (account_id, terms_version, accepted_at)
+     VALUES ($1, $2, NOW())`,
+    [undecidedAccountId, E2E_CONFIGURED_TERMS_VERSION]
+  );
+
+  await client.query(
+    `INSERT INTO "account_settings" (
+       account_id,
+       allow_listen_stats,
+       listen_stats_accepted,
+       listen_stats_agreement_version,
+       listen_stats_decided_at
+     )
+     VALUES ($1, false, NULL, NULL, NULL)`,
+    [undecidedAccountId]
+  );
+
   console.log(`Seeded 1 test user: e2e-user@example.com`);
+  console.log(`Seeded popularity-undecided user: ${E2E_POPULARITY_UNDECIDED_EMAIL}`);
   console.log(`Seeded stale-terms user: ${E2E_STALE_TERMS_EMAIL}`);
   console.log(
     `Seeded invite set-password token for account id ${inviteAccountId} (username e2e_invite_user)`

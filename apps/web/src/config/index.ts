@@ -110,6 +110,10 @@ const buildConfig = () => {
         terms: {
           version: env.NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION!,
         },
+        popularityTracking: {
+          version: env.NEXT_PUBLIC_POPULARITY_TRACKING_AGREEMENT_VERSION!,
+          agreementDate: env.NEXT_PUBLIC_POPULARITY_TRACKING_AGREEMENT_DATE!,
+        },
       },
       stats: {
         trackEventRetentionDays: parsePositiveIntWithDefault(

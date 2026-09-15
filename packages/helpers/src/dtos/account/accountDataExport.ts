@@ -143,6 +143,9 @@ export interface DTOAccountDataExport {
   account_metaboost: DTOAccountDataExportAccountMetaboost | null;
   account_terms_acceptance: DTOAccountDataExportTermsAcceptance | null;
   allow_listen_stats: boolean;
+  listen_stats_accepted: boolean | null;
+  listen_stats_agreement_version: string | null;
+  listen_stats_decided_at: string | null;
   following: DTOAccountDataExportFollowing;
   playlists: DTOAccountDataExportPlaylist[];
   clips: DTOAccountDataExportClip[];

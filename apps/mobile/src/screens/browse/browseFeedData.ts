@@ -185,5 +185,7 @@ export const fetchBrowseFeedRows = async (
       type,
     })
   );
-  return normalizeChannelRows(response.data);
+  return normalizeChannelRows(response.data, {
+    includeAuthor: mediaType === 'podcasts',
+  });
 };

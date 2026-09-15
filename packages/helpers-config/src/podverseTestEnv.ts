@@ -67,6 +67,9 @@ const apiTestEnvBase = (): Record<string, string> => ({
   LEGAL_NAME: 'Test Legal',
   LEGAL_ADDRESS: 'Test Address',
   TERMS_OF_SERVICE_VERSION: '2026-01-01',
+  POPULARITY_TRACKING_AGREEMENT_VERSION: '2026-09-11',
+  POPULARITY_TRACKING_AGREEMENT_DATE: '2026-09-11',
+  POPULARITY_TRACKING_CONTENT_DIR: '',
   PAYPAL_CLIENT_ID: 'test',
   PAYPAL_CLIENT_SECRET: 'test',
   PODCAST_INDEX_AUTH_KEY: 'test',
@@ -115,6 +118,8 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     // in from the same localhost IP, so the production default (5/min) 429s the whole login-heavy
     // cluster. Login-429 behavior is covered by auth.test.ts under the apiVitest profile.
     AUTH_LOGIN_MAX_PER_MINUTE: '100000',
+    // Same sentinel search / unparsed-feed fixtures as mobile E2E (no live Podcast Index).
+    PODVERSE_E2E_FIXTURES: '1',
   },
   apiMobileE2e: {
     SERVER_ENV: 'local',

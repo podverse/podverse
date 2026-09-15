@@ -1,0 +1,59 @@
+---
+description: Meaningful playback events define timestamp ordering and reconciliation outcomes across mobile, web, api, orm, and helpers
+globs:
+  - "apps/mobile/**/*"
+  - "apps/web/**/*"
+  - "apps/api/**/*"
+  - "packages/orm/**/*"
+  - "packages/helpers/**/*"
+alwaysApply: false
+---
+
+# Playback meaningful events
+
+Use one rule everywhere: **the audio advanced, or the user acted on it.**
+
+## Meaningful vs non-meaningful
+
+| Meaningful                            | Not meaningful                                |
+| ------------------------------------- | --------------------------------------------- |
+| Play pressed                          | App opened                                    |
+| Pause pressed                         | Item hydrated from the server                 |
+| Seek, scrub, skip-back-15             | Screen rendered or navigated to               |
+| Timer tick while actively playing     | Background refresh or sync pull               |
+| Track completed or auto-advanced      | Position write while paused (nothing changed) |
+| Skip to next or previous              | Queue list merely displayed                   |
+| Sleep timer stopping playback         |                                               |
+| Queue item added, removed, reordered  |                                               |
+
+## Why exclusions are load-bearing
+
+App open, hydration, and passive refresh must not bump playback recency. If they did, a stale
+offline device could overwrite newer listening from another device without any real playback action.
+
+## Why inclusions are load-bearing
+
+Long listening sessions need timer ticks while playing to keep recency accurate. Without them, a
+session can hold an old timestamp and lose merges to unrelated touches from another device.
+
+## Shared check only
+
+Use `isMeaningfulPlaybackEvent` from `@podverse/helpers` everywhere. Do not duplicate this check in
+app-local helper logic.
+
+## Zone move vs removal tombstone
+
+| User action                     | Event kind     | Emits a tombstone? |
+| ------------------------------- | -------------- | ------------------ |
+| Plays a queued item             | `play`         | No                 |
+| Queued item finishes            | `complete`     | No                 |
+| Skips past a queued item        | `skip`         | No                 |
+| Deliberate queue delete action  | `queue_remove` | Yes                |
+
+## Handoff behavior guardrails
+
+Same-item now-playing disagreements adopt the newer position silently. Do not add a prompt,
+threshold, or position-delta rule for that case.
+
+Only different-item disagreements ask the user to choose, and reconciliation must never load a
+different item while playback is active locally.

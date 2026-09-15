@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import { Button } from '../primitives';
 
 type ListErrorProps = {
   messageKey?: string;
@@ -21,25 +23,18 @@ export function ListError({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        button: {
-          backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderRadius: tokens.radii.round,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        buttonLabel: {
-          color: themeStyles.buttonPrimary.color,
-          fontSize: 13,
-          fontWeight: '600',
+        action: {
+          marginTop: tokens.spacing.lg,
+          width: '100%',
         },
         container: {
-          alignItems: 'center',
+          alignSelf: 'stretch',
           paddingVertical: tokens.spacing.lg,
+          width: '100%',
         },
         label: {
+          ...typography.subheading,
           color: themeStyles.textSecondary.color,
-          fontSize: 13,
           textAlign: 'center',
         },
       }),
@@ -49,14 +44,15 @@ export function ListError({
   return (
     <View style={styles.container} testID={testID}>
       <Text style={styles.label}>{t(messageKey)}</Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onRetry}
-        style={styles.button}
-        testID="list-error-retry"
-      >
-        <Text style={styles.buttonLabel}>{t('misc.try_again')}</Text>
-      </Pressable>
+      <View style={styles.action}>
+        <Button
+          fullWidth
+          label={t('misc.try_again')}
+          onPress={onRetry}
+          size="lg"
+          testID="list-error-retry"
+        />
+      </View>
     </View>
   );
 }

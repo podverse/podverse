@@ -13,8 +13,8 @@ name: Video Transition
 # (Android media host rewrite). Requires flow_needs_test_assets + flow_needs_e2e_api.
 #
 # Mobile search + home use medium 'podcasts' = [Podcast],
-# so the flow starts playback via the EXPO_PUBLIC_MOBILE_E2E-gated `e2e-play-video-item` affordance
-# on Home, which calls playItemById on the seeded video item. That yields an `item-video` active
+# so the flow starts playback via the E2E-only `e2e-play-video-item` control on More → E2E →
+# Playback, which calls playItemById on the seeded video item. That yields an `item-video` active
 # target, so PlaybackProvider drives setVideoSurfaceVisible(true) and the native surface renders.
 #
 # If the video fixture is missing the enclosure 404s and playback never goes active: this flow then
@@ -22,9 +22,8 @@ name: Video Transition
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
+- runFlow: shared/open-e2e-playback.yaml
 
-- assertVisible:
-    id: home-screen
 - tapOn:
     id: e2e-play-video-item
 

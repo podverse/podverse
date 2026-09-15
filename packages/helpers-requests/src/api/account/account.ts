@@ -67,7 +67,6 @@ export async function reqAccountCreate(
     password: string;
     locale: string;
     terms_version: string;
-    allow_listen_stats?: boolean;
   }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({

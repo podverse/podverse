@@ -33,14 +33,24 @@ name: Membership Gate
     text: "CarPlay"
 - assertVisible:
     text: "Android Auto"
-- assertVisible:
-    id: more-membership-trial-limitations
-- tapOn:
-    id: more-membership-trial-limitations-toggle
-- assertVisible:
-    text: "Some features are unavailable during Trial to help reduce spam and abuse."
-- assertVisible:
-    text: "Listen stats are not available on Trial. Contributing to trending requires Premium."
+# The feature table is taller than a phone viewport. iOS omits off-screen
+# identifiers; the accordion's accessible name is the title.
+- scrollUntilVisible:
+    element:
+      text: "Trial Limitations"
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- tapOn: "Trial Limitations"
+- scrollUntilVisible:
+    element:
+      text: "Some features are unavailable during Trial to help reduce spam and abuse."
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- scrollUntilVisible:
+    element:
+      text: "• Listen stats are not available on Trial. Contributing to trending requires Premium."
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
 - takeScreenshot: membership-gate-signup-cta
 
 - tapOn:
@@ -66,6 +76,10 @@ name: Membership Gate
 - takeScreenshot: membership-gate-anonymous-add-by-rss
 - tapOn:
     id: premium-gate-cancel
+- extendedWaitUntil:
+    notVisible:
+      id: premium-gate-modal
+    timeout: ${TIMEOUT_FAST}
 
 # Log in as the seeded Trial user.
 - runFlow: shared/login-seeded-user.yaml

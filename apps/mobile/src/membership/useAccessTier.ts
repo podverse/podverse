@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import type { AccessTier, FeatureAccess, GatedFeature } from '@podverse/helpers';
 import { accessTierFromMembership, evaluateFeatureAccess } from '@podverse/helpers';
 
+import { useAuth } from '../auth/AuthProvider';
 import { useMembership } from './useMembership';
 
 export type AccessTierState = {
@@ -12,6 +13,13 @@ export type AccessTierState = {
   evaluateFeature: (feature: GatedFeature) => FeatureAccess;
   /** Shorthand for guard clauses that do not need the reason. */
   canUse: (feature: GatedFeature) => boolean;
+  /**
+   * False while the account snapshot an authenticated tier depends on is still in flight, so `tier`
+   * reads `anonymous` for a user who is signed in. A gate opened from that answer would tell someone
+   * who just signed in to sign in. Callers acting on a user's tap should let the request run and take
+   * the server's answer through `handleGateError` instead.
+   */
+  isTierKnown: boolean;
 };
 
 /**
@@ -23,9 +31,12 @@ export type AccessTierState = {
  * *after* one, and both report the same `AccessDenialReason`.
  */
 export const useAccessTier = (): AccessTierState => {
+  const { account, status } = useAuth();
   const membership = useMembership();
 
   const tier = useMemo(() => accessTierFromMembership(membership), [membership]);
+
+  const isTierKnown = status !== 'authenticated' || account !== null;
 
   const evaluateFeature = useCallback(
     (feature: GatedFeature): FeatureAccess => evaluateFeatureAccess(feature, membership),
@@ -37,5 +48,5 @@ export const useAccessTier = (): AccessTierState => {
     [membership]
   );
 
-  return { canUse, evaluateFeature, tier };
+  return { canUse, evaluateFeature, isTierKnown, tier };
 };

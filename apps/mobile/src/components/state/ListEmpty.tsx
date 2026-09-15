@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
-import { Button } from '../primitives';
+import { Button, VerticalCenter } from '../primitives';
 
 type ListEmptyProps = {
   messageKey?: string;
@@ -19,6 +20,10 @@ type ListEmptyProps = {
   actionTestID?: string;
 };
 
+/**
+ * Localized empty-list copy centered in the available space via VerticalCenter.
+ * Pair with FillList when the empty state is the list body; typography matches CallToActionSection.
+ */
 export function ListEmpty({
   actionLabelKey,
   actionTestID,
@@ -32,14 +37,17 @@ export function ListEmpty({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        container: {
-          alignItems: 'center',
-          alignSelf: 'stretch',
-          paddingVertical: tokens.spacing.lg,
+        action: {
+          marginTop: tokens.spacing.lg,
+          width: '100%',
         },
-        label: {
+        content: {
+          alignSelf: 'stretch',
+          width: '100%',
+        },
+        message: {
+          ...typography.subheading,
           color: themeStyles.textSecondary.color,
-          fontSize: 13,
           textAlign: 'center',
         },
       }),
@@ -49,17 +57,22 @@ export function ListEmpty({
   const showAction = actionLabelKey !== undefined && onAction !== undefined;
 
   return (
-    <View style={styles.container} testID={testID}>
-      <Text style={styles.label}>{t(messageKey)}</Text>
-      {showAction ? (
-        <Button
-          label={t(actionLabelKey)}
-          onPress={onAction}
-          size="md"
-          testID={actionTestID ?? `${testID}-action`}
-          variant="primary"
-        />
-      ) : null}
-    </View>
+    <VerticalCenter testID={testID}>
+      <View style={styles.content}>
+        <Text style={styles.message}>{t(messageKey)}</Text>
+        {showAction ? (
+          <View style={styles.action}>
+            <Button
+              fullWidth
+              label={t(actionLabelKey)}
+              onPress={onAction}
+              size="lg"
+              testID={actionTestID ?? `${testID}-action`}
+              variant="primary"
+            />
+          </View>
+        ) : null}
+      </View>
+    </VerticalCenter>
   );
 }

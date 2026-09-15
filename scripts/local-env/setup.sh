@@ -641,7 +641,7 @@ apply_override "BRAND_COLOR_PRIMARY" "${API_ENV_FILES[@]}"
 apply_override "BRAND_BANNER_IMAGE_3X1_URL" "${API_ENV_FILES[@]}"
 
 # From legal.env: registered legal name and address (API)
-for v in LEGAL_NAME LEGAL_ADDRESS TERMS_OF_SERVICE_VERSION; do
+for v in LEGAL_NAME LEGAL_ADDRESS TERMS_OF_SERVICE_VERSION POPULARITY_TRACKING_AGREEMENT_VERSION POPULARITY_TRACKING_AGREEMENT_DATE POPULARITY_TRACKING_CONTENT_DIR; do
 	apply_override "$v" "${API_ENV_FILES[@]}"
 done
 
@@ -654,6 +654,18 @@ fi
 if [ -n "${TERMS_OF_SERVICE_VERSION:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION" "$TERMS_OF_SERVICE_VERSION"
+	done
+fi
+
+if [ -n "${POPULARITY_TRACKING_AGREEMENT_VERSION:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_POPULARITY_TRACKING_AGREEMENT_VERSION" "$POPULARITY_TRACKING_AGREEMENT_VERSION"
+	done
+fi
+
+if [ -n "${POPULARITY_TRACKING_AGREEMENT_DATE:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_POPULARITY_TRACKING_AGREEMENT_DATE" "$POPULARITY_TRACKING_AGREEMENT_DATE"
 	done
 fi
 

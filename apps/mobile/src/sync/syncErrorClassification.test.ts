@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { OfflineModeEnabledError } from '../prefs/offlineMode';
 import { classifySyncError, SyncJobTimeoutError } from './syncErrorClassification';
 
 /** Shaped like what axios throws, which is the only failure shape the sync jobs produce. */
@@ -49,6 +50,13 @@ describe('classifySyncError', () => {
     expect(classifySyncError(new SyncJobTimeoutError('subscriptions-page', 20000))).toEqual({
       code: 'sync_job_timeout',
       isOffline: false,
+    });
+  });
+
+  it('treats Offline Mode as an offline state, not a server fault', () => {
+    expect(classifySyncError(new OfflineModeEnabledError())).toEqual({
+      code: 'offline_mode',
+      isOffline: true,
     });
   });
 

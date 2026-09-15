@@ -130,12 +130,12 @@ export const syncLocaleToAccountSettings = async ({
 };
 
 export const syncAllowListenStatsToAccountSettings = async ({
+  accepted,
   accessToken,
-  allowListenStats,
   setAccount,
 }: {
+  accepted: boolean;
   accessToken: string | null;
-  allowListenStats: boolean;
   setAccount: SetAccount;
 }): Promise<void> => {
   if (accessToken === null) {
@@ -149,12 +149,116 @@ export const syncAllowListenStatsToAccountSettings = async ({
 
   try {
     const account = await api.reqAccountSettingsListenStatsUpdate({
-      allow_listen_stats: allowListenStats,
+      accepted,
     });
     await updateAccountWithServerResponse(account, setAccount);
   } catch (error) {
     console.warn('Failed to sync listen-stats setting to account settings', error);
   }
+};
+
+export const syncAutoEnableOnSubscribeToAccountSettings = async ({
+  accessToken,
+  enabled,
+  setAccount,
+}: {
+  accessToken: string | null;
+  enabled: boolean;
+  setAccount: SetAccount;
+}): Promise<void> => {
+  if (accessToken === null) {
+    return;
+  }
+
+  const api = createMobileApiRequestService(accessToken);
+  if (api === null) {
+    return;
+  }
+
+  try {
+    const account = await api.reqAccountSettingsNotificationUpdate({
+      auto_enable_on_subscribe: enabled,
+    });
+    await updateAccountWithServerResponse(account, setAccount);
+  } catch (error) {
+    console.warn('Failed to sync auto-enable-on-subscribe to account settings', error);
+    throw error;
+  }
+};
+
+/**
+ * Turn the account's notification row for one channel on or off.
+ *
+ * Creating the row is what applies the account's type defaults — the server copies them, so the
+ * client never has to replay the user's Settings choices per channel. Deleting it removes the
+ * channel's types with it, which is why "off" needs no per-type calls.
+ *
+ * Errors propagate so the caller can tell a membership denial from a failure and show the gate
+ * instead of a generic message.
+ */
+export const syncChannelNotificationEnabled = async ({
+  accessToken,
+  channelIdText,
+  enabled,
+  setAccount,
+}: {
+  accessToken: string | null;
+  channelIdText: string;
+  enabled: boolean;
+  setAccount: SetAccount;
+}): Promise<void> => {
+  if (accessToken === null) {
+    return;
+  }
+
+  const api = createMobileApiRequestService(accessToken);
+  if (api === null) {
+    return;
+  }
+
+  const account = enabled
+    ? await api.reqAccountNotificationChannelCreate({ channel_id_text: channelIdText })
+    : await api.reqAccountNotificationChannelDelete({ channel_id_text: channelIdText });
+  await updateAccountWithServerResponse(account, setAccount);
+};
+
+/**
+ * Add or remove one notification type on a channel that already has a notification row.
+ *
+ * Errors propagate for the same reason as the channel toggle above.
+ */
+export const syncChannelNotificationType = async ({
+  accessToken,
+  channelIdText,
+  enabled,
+  setAccount,
+  type,
+}: {
+  accessToken: string | null;
+  channelIdText: string;
+  enabled: boolean;
+  setAccount: SetAccount;
+  type: SyncedNotificationType;
+}): Promise<void> => {
+  if (accessToken === null) {
+    return;
+  }
+
+  const api = createMobileApiRequestService(accessToken);
+  if (api === null) {
+    return;
+  }
+
+  const account = enabled
+    ? await api.reqAccountNotificationChannelTypeCreate({
+        channel_id_text: channelIdText,
+        type,
+      })
+    : await api.reqAccountNotificationChannelTypeDelete({
+        channel_id_text: channelIdText,
+        type,
+      });
+  await updateAccountWithServerResponse(account, setAccount);
 };
 
 export const syncNotificationTypeToAccountSettings = async ({
@@ -184,5 +288,6 @@ export const syncNotificationTypeToAccountSettings = async ({
     await updateAccountWithServerResponse(account, setAccount);
   } catch (error) {
     console.warn('Failed to sync notification type to account settings', error);
+    throw error;
   }
 };

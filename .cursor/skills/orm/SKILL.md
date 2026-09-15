@@ -126,7 +126,7 @@ Use **entity classes** in `findOne` / `update` / `delete` — not string table n
 
 1. Add a new forward-only `.sql` file under `linear-migrations/` (app or management tree per table).
 2. Update readiness markers / docs if required.
-3. Regenerate committed baseline gz when the plan or PR workflow calls for it (`make db_regen_linear_baseline`).
+3. Always regenerate committed baseline gz in the same change (`make db_regen_linear_baseline`, then `make db_verify_linear_baseline`).
 
 Do **not** use `npm run typeorm migration:*`, `infra/database/main/migrations/`, or TypeORM `MigrationInterface` classes in this repo.
 

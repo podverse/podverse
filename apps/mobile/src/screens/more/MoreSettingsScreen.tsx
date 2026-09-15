@@ -40,11 +40,27 @@ export function MoreSettingsScreen() {
       },
       {
         onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreSettingsDownloads);
+        },
+        subtitle: t('settings.groups.downloads_description'),
+        testID: 'more-settings-downloads',
+        title: t('nav.tab.downloads'),
+      },
+      {
+        onPress: () => {
           navigation.navigate(MORE_STACK_ROUTES.MoreSettingsNotifications);
         },
         subtitle: t('settings.groups.notifications_description'),
         testID: 'more-settings-notifications',
         title: t('settings.notifications.notifications'),
+      },
+      {
+        onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreSettingsPopularityTracking);
+        },
+        subtitle: t('popularity_tracking.learn_more'),
+        testID: 'more-settings-popularity-tracking',
+        title: t('popularity_tracking.title'),
       },
     ],
     [navigation, t]
