@@ -81,6 +81,29 @@ name: Player screen flow
     id: full-player-chapter-marker
 - takeScreenshot: player-screen-region-restored
 
+- tapOn:
+    id: full-player-section-chapters
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-pane-loading-chapters
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: full-player-transport-row
+- scrollUntilVisible:
+    element:
+      id: full-player-chapter-row
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-chapter-row
+- takeScreenshot: player-screen-chapters-pane
+
+- scrollUntilVisible:
+    element:
+      id: full-player-region
+    direction: UP
+    timeout: ${TIMEOUT_SLOW}
+
 - longPressOn:
     id: full-player-scrubber
 - extendedWaitUntil:
@@ -138,21 +161,6 @@ name: Player screen flow
 - takeScreenshot: player-screen-sleep-sheet
 - tapOn:
     id: full-player-sleep-sheet-cancel
-
-# A chip tap is navigation: the list scrolls until the chips stick under the condensed bar.
-- tapOn:
-    id: full-player-section-chapters
-- extendedWaitUntil:
-    visible:
-      id: full-player-condensed-bar
-    timeout: ${TIMEOUT_SLOW}
-- extendedWaitUntil:
-    notVisible:
-      id: full-player-pane-loading-chapters
-    timeout: ${TIMEOUT_SLOWER}
-- assertVisible:
-    id: full-player-chapter-row
-- takeScreenshot: player-screen-chapters-pane
 
 - runFlow:
     when:
