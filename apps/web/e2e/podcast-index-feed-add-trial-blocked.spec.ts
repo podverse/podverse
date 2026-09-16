@@ -36,22 +36,22 @@ test.describe('Podcast Index add feed when directory add is blocked for Trial', 
     await page.goto('/podcast-index/feed/2147483640');
     await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });
 
-    await test.step('The Add Feed button is available after login', async () => {
+    await test.step('The Add feed button is available after login', async () => {
       await expect(page.getByRole('button', { name: /add feed/i })).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
-        'The Add Feed button is visible on the Podcast Index feed preview page.',
+        'The Add feed button is visible on the Podcast Index feed preview page.',
         page.getByRole('button', { name: /add feed/i })
       );
     });
 
-    await test.step('Clicking Add Feed opens the Premium Required modal with descriptive copy', async () => {
+    await test.step('Clicking Add feed opens the Premium required modal with descriptive copy', async () => {
       await page.getByRole('button', { name: /add feed/i }).click();
-      const dialog = page.getByRole('dialog', { name: 'Premium Required' });
+      const dialog = page.getByRole('dialog', { name: 'Premium required' });
       await expect(dialog).toBeVisible();
-      await expect(page.getByRole('dialog', { name: 'Login Required' })).toHaveCount(0);
+      await expect(page.getByRole('dialog', { name: 'Login required' })).toHaveCount(0);
       await expect(dialog.getByText(/Trial accounts.*add feeds.*public directory/i)).toBeVisible();
       const mailLink = dialog.locator('a[href^="mailto:"]');
       await expect(mailLink.first()).toBeVisible();
@@ -59,14 +59,14 @@ test.describe('Podcast Index add feed when directory add is blocked for Trial', 
       await capturePageLoad(
         page,
         testInfo,
-        'The Premium Required modal explains Trial directory limits with a mailto link.',
+        'The Premium required modal explains Trial directory limits with a mailto link.',
         dialog
       );
     });
 
     await test.step('Get Premium navigates to the membership page', async () => {
       await page
-        .getByRole('dialog', { name: 'Premium Required' })
+        .getByRole('dialog', { name: 'Premium required' })
         .getByRole('button', { name: 'Get Premium' })
         .click();
       await expect(page).toHaveURL(/\/membership/);

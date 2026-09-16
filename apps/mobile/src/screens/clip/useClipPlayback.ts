@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { usePlayback } from '../../playback/PlaybackProvider';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 
 type ClipPlaybackBounds = {
   clipId: string;
@@ -16,7 +16,7 @@ type ClipPlaybackBounds = {
  * DTO resolved server-side.
  */
 export function useClipPlayback() {
-  const { noticeKey, playClipById } = usePlayback();
+  const { noticeKey, playClipById } = usePlaybackSession();
 
   const runBoundedClipPlay = useCallback(
     (bounds: ClipPlaybackBounds) => {

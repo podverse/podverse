@@ -12,7 +12,7 @@ export default function VideosPage() {
     <>
       <MainHeader title="Videos" />
       <MainWrapper>
-        <p>Coming Soon</p>
+        <p>Coming soon</p>
       </MainWrapper>
     </>
   );

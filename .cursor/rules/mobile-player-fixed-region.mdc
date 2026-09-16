@@ -1,0 +1,47 @@
+---
+description: Full player keeps a fixed chrome region where only the viewer band flexes
+globs:
+  - "apps/mobile/src/screens/player/**/*.tsx"
+  - "apps/mobile/src/screens/player/**/*.ts"
+  - "apps/mobile/src/components/player/**/*.tsx"
+alwaysApply: false
+---
+
+# Mobile full player fixed-region contract
+
+The full player is a fixed-height region above scrollable panes. The region keeps its geometry while
+chips and pane content below it change.
+
+## Required
+
+- Only the viewer band flexes. Every other band keeps its fixed height.
+- Region sizing comes from `fullPlayerLayout.ts`; do not introduce ad-hoc magic heights in screen
+  styles. Band styles read the same constants the math reads, including `FULL_PLAYER_REGION_GAP` for
+  every seam, so reserved and rendered space cannot drift.
+- Episode title and channel title share one title block (`FULL_PLAYER_TITLE_BLOCK_HEIGHT`) with a
+  tight internal gap. Do not split them into two bands separated by `FULL_PLAYER_REGION_GAP`.
+- Band order matches web's player modal: title block, artwork, segment band, progress, transport,
+  utility. Five seams (`FULL_PLAYER_REGION_GAP_COUNT`), plus `FULL_PLAYER_REGION_TOP_PADDING` above
+  the title, which the math counts as chrome so the bands sum to the region height rather than
+  pushing the utility row past its bottom edge.
+- The segment band (`FULL_PLAYER_SEGMENT_BAND_HEIGHT`) sits **below** the artwork and is reserved
+  unconditionally, exactly as web reserves `--media-modal-subtitle-reserve`. A chapter or clip name
+  arriving mid-playback fades into a row that is already there — it never resizes the artwork or
+  moves the transport.
+- New player controls open sheets. Do not expand controls inline inside the fixed region.
+- If a new control needs persistent space, reserve a fixed-height band for it in layout math.
+- Sticky chips and the condensed bar belong to the scroll shell, not inside pane content.
+- Video renders inside the measured artwork square and letterboxes when aspect ratios differ.
+- Playhead UI lives in leaf components that read `playbackProgressStore`; the fixed-region shell
+  uses `usePlaybackSession()` only.
+- Pull-to-dismiss is the native-stack top-edge gesture only (`fullScreenGestureEnabled: false`).
+- The pane `SectionList` does not bounce or over-scroll — this screen has no pull-to-refresh.
+
+## Do not
+
+- Do not conditionally insert or remove fixed-region rows. Content that comes and goes gets a
+  permanently reserved band; anything else jumps the layout while a listener is watching it.
+- Do not let pane loading, empty states, or chip switching push transport or utility rows.
+- Do not bind region size to transcript/chapter/clip body height.
+- Do not subscribe the shell to progress ticks (`usePlayback()` / `usePlaybackProgress()`).
+- Do not enable a full-screen vertical dismiss gesture or list bounce on the full player.

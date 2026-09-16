@@ -2,7 +2,7 @@
   "language": {
     "language": "Idioma",
     "description": "Elige el idioma utilizado en toda la aplicación.",
-    "select_language": "Seleccionar Idioma",
+    "select_language": "Seleccionar idioma",
     "languages": {
       "en-US": "Inglés",
       "es": "Español",
@@ -25,7 +25,7 @@
   "errors": {
     "boundary_title": "Algo salió mal",
     "boundary_message": "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
-    "global_title": "Error de Aplicación",
+    "global_title": "Error de aplicación",
     "global_message": "Ocurrió un error crítico. Por favor, actualiza la página.",
     "details_development_only": "Detalles del error (solo para desarrollo)"
   },
@@ -33,6 +33,6 @@
     "loading": "Cargando…",
     "try_again": "Intenta de nuevo",
     "reload_page": "Recargar página",
-    "return_to_home_page": "Ir a Inicio"
+    "return_to_home_page": "Ir a inicio"
   }
 }

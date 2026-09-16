@@ -118,6 +118,8 @@
       "delete_history": "",
       "mark_as_played": "",
       "marked_as_played": "",
+      "mark_as_unplayed": "",
+      "marked_as_unplayed": "",
       "mark_as_played_error": "",
       "login_prompt": ""
     },
@@ -365,6 +367,9 @@
   "media_player": {
     "play": "",
     "pause": "",
+    "now_playing_clip": "",
+    "now_playing_chapter": "",
+    "now_playing_official_clip": "",
     "no_media": "",
     "livestream_unavailable": "",
     "show_fullscreen_media_player": "",
@@ -374,6 +379,8 @@
     "position_of_duration": "",
     "skip_to_next": "",
     "skip_to_previous": "",
+    "skip_to_next_hold_hint": "",
+    "skip_to_previous_hold_hint": "",
     "jump_back": "",
     "jump_forward": "",
     "handoff": {
@@ -634,6 +641,7 @@
     "on": "",
     "off": "",
     "available": "",
+    "not_available_yet": "",
     "title": "",
     "description": "",
     "required": "",

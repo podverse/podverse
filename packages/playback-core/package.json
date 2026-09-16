@@ -22,6 +22,14 @@
     "./clampNearEndSeconds": {
       "types": "./dist/clampNearEndSeconds.d.ts",
       "default": "./dist/clampNearEndSeconds.js"
+    },
+    "./selectItemChapterForTime": {
+      "types": "./dist/selectItemChapterForTime.d.ts",
+      "default": "./dist/selectItemChapterForTime.js"
+    },
+    "./chapterProgressMarkers": {
+      "types": "./dist/chapterProgressMarkers.d.ts",
+      "default": "./dist/chapterProgressMarkers.js"
     }
   },
   "files": [

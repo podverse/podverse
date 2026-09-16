@@ -118,7 +118,7 @@ name: Podcast Episode Flow
     id: podcast-detail-sort-button
 - takeScreenshot: podcast-episode-section-about
 
-# Downloaded is always offered (with Episodes, About, and Clips). Official Clips and Podroll sit
+# Downloaded is always offered (with Episodes, About, and Clips). Official clips and Podroll sit
 # after those when this channel has been seen to have them.
 - tapOn:
     id: podcast-detail-section-downloaded

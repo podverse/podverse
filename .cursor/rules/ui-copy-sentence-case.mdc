@@ -1,0 +1,89 @@
+---
+description: All user-facing copy across Podverse apps is sentence case, never Title Case
+alwaysApply: true
+---
+
+# UI copy is sentence case
+
+Every string a person reads in a Podverse app — web, management-web, mobile, and the transactional
+emails the API sends — is **sentence case**: capitalize the first character and nothing else except
+words that are capitalized in running prose anyway.
+
+```text
+GOOD  Add feed · Create playlist · Mark as played · Sleep timer · Save changes · Sign up
+BAD   Add Feed · Create Playlist · Mark as Played · Sleep Timer · Save Changes · Sign Up
+```
+
+This holds for **every** kind of copy, at every size: buttons, screen and section titles, table
+headers, form labels and placeholders, menu items, modal titles, toasts, empty states, error and
+success messages, accessibility labels (`aria-label` / `accessibilityLabel`), page titles and SEO
+metadata, and email subjects and button text — **except** the standing exceptions listed below
+(today: English mobile bottom tab labels).
+
+One standard, all surfaces. iOS convention is Title Case for buttons and Android/Material is
+sentence case, and Podverse ships one catalog to both — so the platform argument cannot settle it,
+and following each platform would mean the same key reading two ways. Sentence case is also what the
+large majority of the catalog already used before it was normalized, and it is what Spanish, French,
+and Greek do natively, so translations do not have to fight the source.
+
+## What stays capitalized
+
+Proper nouns keep their own capitalization wherever they appear, mid-string included:
+
+- **Brands and products:** Podverse, Podcast Index, Metaboost, Lightning, Bitcoin, Alby, Nostr,
+  PayPal, Stripe, Apple, Google, F-Droid, CarPlay, Android Auto, Discord, Mastodon, Matrix, Next.js,
+  Buy Me a Coffee, Unified Push, Web Push.
+- **Acronyms and initialisms:** RSS, OPML, URL, ID, API, HTML, V4V, LNURL, FOSS, GB, USD.
+- **Membership tier names:** Premium, Trial (`Buy Premium membership`, `Your Trial status has …`).
+- **Taxonomy category names** (`categories.*`): Arts, Health & Fitness, Kids & Family, Science
+  Fiction — these mirror the directory taxonomy, not our copy.
+- **Keyboard key names** (`settings.keyboard.*`): Space, Arrow Left, Enter, Escape.
+- **A UI element quoted by name inside a sentence**, when lowercasing it would hide which control is
+  meant: `press the "Add feed" button`, `choose None to omit it`, `Screens you hide stay in More`.
+  The quoted label itself still follows sentence case — only its status as a name survives.
+
+Legal documents under `apps/api/legal/**` are authored prose, not UI copy; their own headings and
+capitalization are out of scope.
+
+## Where this applies
+
+- `packages/i18n-catalog/*/originals/en-US.json` — the authoring source. Get it right here and every
+  surface inherits it.
+- `packages/i18n-catalog/*/originals/{es,fr,el-GR}.json` and `overrides/*` — each language's own
+  sentence-case convention (all three capitalize only the first word and proper nouns). LLM-generated
+  translations tend to mirror English Title Case; fix that when you touch them.
+- Hardcoded copy that has not moved into the catalog yet (placeholder pages, API email
+  `buttonText`, `packages/ui` fallback strings). Casing applies even while the string is a literal —
+  see **i18n-user-facing-strings** for getting it into the catalog.
+- E2E text assertions (`getByRole({ name })`, `getByText`, Maestro `text:`) must match the shipped
+  copy exactly. Playwright's default name matching is case-insensitive, so a stale assertion can
+  pass while lying about the product — update it anyway.
+
+Route and tab **identifiers** (`'My Library'` in `tabLayout.ts` / navigation param lists) are code,
+not copy. Leave them; the visible label comes from the catalog.
+
+## Standing exceptions (grow this list)
+
+Sentence case remains the default. When the operator confirms a durable Title Case (or other)
+exception, add it here and keep the catalog string matching that exception. Do not invent new
+exceptions; only list ones the operator has confirmed.
+
+| Surface | Exception | Example |
+| ------- | --------- | ------- |
+| Mobile bottom tab bar labels (`nav.tab.*` / `tabBarLabel`) | **Title Case** in English | `My Library` (not `My library`) |
+
+Stack titles, More hub rows, web sidebar, buttons, and every other surface stay sentence case unless
+listed above. Prefer a **mobile-only** catalog key under `nav.tab.*` when the same concept must stay
+sentence case on web (`features.my_library` → `My library` on web; `nav.tab.my_library` →
+`My Library` on the mobile tab).
+
+## When the operator asks for Title Case
+
+If a request would introduce Title Case — a new string, a rename, a "match the old app" ask, or a
+direct instruction to capitalize a label — **stop and ask the operator to confirm** before writing
+it. Name the rule and what the sentence-case version would be, and let them decide. Do not silently
+comply, and do not silently refuse and file it as sentence case: a one-off exception is theirs to
+make, not yours to assume either way.
+
+If they confirm it as a **standing** exception (not a one-off), add it to the table above and use the
+confirmed casing going forward for that surface. Confirmation of a one-off covers that request only.

@@ -133,7 +133,7 @@ test.describe('Management-web products hub', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.locator('a[href="/products"]').click();
@@ -162,21 +162,21 @@ test.describe('Management-web products hub', () => {
     await page.getByRole('button', { name: 'Edit Free trial duration (seconds)' }).click();
     await expect(page.getByRole('dialog', { name: 'Edit membership setting' })).toBeVisible();
     await page.getByRole('dialog').getByLabel('Free trial duration (seconds)').fill('172800');
-    await page.getByRole('dialog').getByRole('button', { name: 'Save Changes' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Save changes' }).click();
     await expect(page.getByText('Settings updated successfully.')).toBeVisible();
     await expect(page.getByText('172800')).toBeVisible();
     expect(patchRequested).toBe(true);
 
     await page.getByRole('button', { name: 'Edit Premium monthly cost' }).click();
     await page.getByRole('dialog').getByLabel('Premium monthly cost').fill('7.50');
-    await page.getByRole('dialog').getByRole('button', { name: 'Save Changes' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Save changes' }).click();
     await expect(page.getByText('7.5')).toBeVisible();
     expect(scheduleRequested).toBe(true);
 
     patchRequested = false;
     await page.getByRole('button', { name: 'Edit Trial max Add-by-RSS feeds' }).click();
     await page.getByRole('dialog').getByLabel('Trial max Add-by-RSS feeds').fill('9');
-    await page.getByRole('dialog').getByRole('button', { name: 'Save Changes' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Save changes' }).click();
     await expect(page.getByText('9')).toBeVisible();
     expect(patchRequested).toBe(true);
 

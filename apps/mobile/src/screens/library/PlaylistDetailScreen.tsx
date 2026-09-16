@@ -15,7 +15,7 @@ import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { playlistResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
-import { usePlayback } from '../../playback/PlaybackProvider';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
@@ -99,7 +99,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
   const [isSavingOrder, setIsSavingOrder] = useState<boolean>(false);
   const [reorderErrorKey, setReorderErrorKey] = useState<string | null>(null);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
-  const { playPlaylistRowById } = usePlayback();
+  const { playPlaylistRowById } = usePlaybackSession();
   const { playlistId } = route.params;
 
   const authArgs = useMemo(

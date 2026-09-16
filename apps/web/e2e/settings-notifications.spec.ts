@@ -55,7 +55,7 @@ test.describe('Settings: notification subscribe defaults', () => {
     await test.step('Open the notifications settings tab and verify subscribe-default controls.', async () => {
       await page.goto('/settings?tab=notifications');
       await expect(page).toHaveURL(/\/settings\?tab=notifications/);
-      await expect(page.getByRole('heading', { name: 'Notification Types' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Notification types' })).toBeVisible();
       await expect(autoEnable).toBeVisible();
       await expect(newItem).toBeVisible();
       await expect(livestreamScheduled).toBeVisible();

@@ -27,8 +27,31 @@ object PodverseAudioEngine {
    * Sink that forwards events to JS. Set by the Expo module while it is alive; `null` when the JS
    * runtime is not running (e.g. an Auto-only launch). The engine still plays and updates the
    * media notification without JS.
+   *
+   * Ownership is keyed so a Fast Refresh / reload cannot let a dying module's `OnDestroy` clear
+   * the sink that a newer module instance already installed.
    */
-  var eventSink: ((String, Map<String, Any?>) -> Unit)? = null
+  private var eventSink: ((String, Map<String, Any?>) -> Unit)? = null
+  private var eventSinkOwner: Any? = null
+
+  /** Install [sink] for [owner]. A later [clearEventSink] from a different owner is a no-op. */
+  fun setEventSink(sink: (String, Map<String, Any?>) -> Unit, owner: Any) {
+    onMain {
+      eventSinkOwner = owner
+      eventSink = sink
+    }
+  }
+
+  /** Clear the sink only when [owner] is still the current owner. */
+  fun clearEventSink(owner: Any) {
+    onMain {
+      if (eventSinkOwner !== owner) {
+        return@onMain
+      }
+      eventSinkOwner = null
+      eventSink = null
+    }
+  }
 
   /**
    * Notified on the main thread whenever the current item's video capability changes (video frames

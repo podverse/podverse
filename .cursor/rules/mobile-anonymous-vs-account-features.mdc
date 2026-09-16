@@ -107,13 +107,20 @@ returns. Offline Mode is the same situation entered deliberately.
 
 So the device-local queue and history are not an anonymous-tier capability being extended upward;
 they are the **offline half of a signed-in feature**. A user with no account has no queue and no
-history at all — anonymous playback keeps only a single-item resume snapshot in AsyncStorage.
+history at all.
+
+**Now-playing restore is separate from queue/history.** Every user — signed in or not — keeps a
+single device-local last-playback snapshot (`pv_mobile_last_playback`) outside the account queue.
+Cold start restores that item paused into the mini player. The snapshot is cleared when the item
+finishes and when someone signs in (the signing-in account's server queue then becomes
+authoritative). Sign-out leaves it alone so local playback can keep rewriting it. Web restores
+signed-in users from the server queue instead; do not copy that path onto mobile.
 
 When designing here, the question is never "is there a network?" but "is there an account?":
 
 | Signed in | Network | Queue and history                                     |
 | --------- | ------- | ----------------------------------------------------- |
-| No        | Either  | **None.** Single-item resume snapshot only            |
+| No        | Either  | **None.** Last-playback snapshot only (not a queue)   |
 | Yes       | Yes     | Local, writing through to the account                 |
 | Yes       | No      | Local, buffering meaningful events to sync on return  |
 

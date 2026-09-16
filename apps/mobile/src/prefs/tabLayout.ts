@@ -51,7 +51,7 @@ export const tabLabelKey = (tabId: ContentTabId | 'More'): string => {
     return 'features.search.search';
   }
   if (tabId === 'My Library') {
-    return 'features.my_library';
+    return 'nav.tab.my_library';
   }
   if (tabId === 'Browse') {
     return 'nav.tab.browse';

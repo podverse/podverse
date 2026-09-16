@@ -46,6 +46,12 @@ name: Play Mini Player
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     id: mini-player
+# Title (marquee) and transport both render on the bar itself, so a layout regression in either
+# fails here rather than only in the screenshot.
+- assertVisible:
+    id: mini-player-title
+- assertVisible:
+    id: mini-player-play-pause
 - takeScreenshot: play-mini-player-now-playing
 
 # Expand to full player without reload, then collapse back to the mini player.
@@ -73,24 +79,30 @@ name: Play Mini Player
 - assertVisible:
     id: full-player-play-pause
 
-# Up-next sheet and speed control toggles open inline (no reload).
+# Up-next, speed, and sleep timer open as sheets (no inline expansion).
 - tapOn:
     id: full-player-up-next
 - assertVisible:
     id: full-player-up-next-sheet
 - takeScreenshot: play-mini-player-up-next
 - tapOn:
+    id: full-player-up-next-sheet-cancel
+- tapOn:
     id: full-player-speed
 - assertVisible:
-    id: full-player-speed-control
+    id: full-player-speed-sheet
 - takeScreenshot: play-mini-player-speed
+- tapOn:
+    id: full-player-speed-sheet-cancel
 
-# Sleep timer panel toggles (session-only; does not auto-pause here).
+# Sleep timer stays session-only; choosing a duration would pause later.
 - tapOn:
     id: full-player-sleep-timer
 - assertVisible:
-    id: full-player-sleep-timer-control
+    id: full-player-sleep-sheet
 - takeScreenshot: play-mini-player-sleep-timer
+- tapOn:
+    id: full-player-sleep-sheet-cancel
 
 - runFlow:
     when:

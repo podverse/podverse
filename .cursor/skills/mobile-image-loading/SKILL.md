@@ -32,7 +32,8 @@ the user just tapped that already had art.
 
 All product artwork goes through **`CoverImage`** (`apps/mobile/src/components/primitives/CoverImage.tsx`).
 It uses **`expo-image`** with **`cachePolicy="memory-disk"`** so a list decode can be reused on a
-compact header without a second network round-trip.
+compact header without a second network round-trip. Standalone covers open the lightbox only on a
+**stationary tap** (`coverImageTap.ts`); a press that moves is a scroll/drag and must not open it.
 
 - List and compact header must use the **same list-size URL**
   (`primaryChannelListArtworkUrl` / `primaryListArtworkUrl`) so the disk cache hits.

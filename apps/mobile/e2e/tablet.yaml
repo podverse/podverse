@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Tablet Home And Podcast Detail
 ---
-# Opt-in tablet viewport screenshots (Home multi-column, podcast detail, two-column full player).
+# Opt-in tablet viewport screenshots (Home multi-column, podcast detail, one-column full player).
 # Runs only on ios-tablet / android-tablet slots (`npm run mobile:e2e:test -- tablet`).
 # Excluded from `mobile:e2e:test:all` (phone matrix).
 
@@ -74,8 +74,6 @@ name: Tablet Home And Podcast Detail
     id: mini-player
 - assertVisible:
     id: full-player-screen
-- assertVisible:
-    id: full-player-two-column
 - assertVisible:
     id: full-player-title
 - takeScreenshot: tablet-full-player

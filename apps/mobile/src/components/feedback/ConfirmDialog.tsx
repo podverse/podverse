@@ -6,22 +6,20 @@ import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives';
 
 /**
- * Presentational two-action dialog: a title, a body, and a dismiss/confirm pair. All copy arrives
- * **already localized** — the component holds no strings — so each host owns its own wording and
- * its own test IDs. Centered RN `Modal` (parity with the app's other sheets, but centered rather
- * than bottom-anchored).
+ * Presentational dialog: title + body with a required dismiss action and an optional confirm action.
+ * All copy arrives already localized so each host owns wording and test IDs.
  */
 export type ConfirmDialogProps = {
   visible: boolean;
   title: string;
   body: string;
   cancelLabel: string;
-  confirmLabel: string;
+  confirmLabel?: string;
   onCancel: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
   testID: string;
   cancelTestID: string;
-  confirmTestID: string;
+  confirmTestID?: string;
 };
 
 export function ConfirmDialog({
@@ -78,6 +76,9 @@ export function ConfirmDialog({
     [themeStyles, tokens]
   );
 
+  const showConfirmAction =
+    confirmLabel !== undefined && confirmTestID !== undefined && onConfirm !== undefined;
+
   return (
     <Modal animationType="fade" onRequestClose={onCancel} transparent visible={visible}>
       {/* The scrim is a sighted-only shortcut for the cancel button, so it stays out of the
@@ -100,12 +101,14 @@ export function ConfirmDialog({
               testID={cancelTestID}
               variant="secondary"
             />
-            <Button
-              label={confirmLabel}
-              onPress={onConfirm}
-              testID={confirmTestID}
-              variant="primary"
-            />
+            {showConfirmAction ? (
+              <Button
+                label={confirmLabel}
+                onPress={onConfirm}
+                testID={confirmTestID}
+                variant="primary"
+              />
+            ) : null}
           </View>
         </Pressable>
       </Pressable>

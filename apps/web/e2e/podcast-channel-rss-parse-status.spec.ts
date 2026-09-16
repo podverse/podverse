@@ -29,7 +29,7 @@ test.describe('Podcast channel RSS parse status', () => {
       await expect(page).toHaveURL(
         new RegExp(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}.*type=settings`)
       );
-      await expect(page.getByRole('heading', { name: 'RSS Feed' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'RSS feed' })).toBeVisible();
       await expect(page.getByText(/Last Parsed:/)).toBeVisible();
       await expect(page.getByText(/Last failed parse:/)).toBeVisible();
 
@@ -37,7 +37,7 @@ test.describe('Podcast channel RSS parse status', () => {
         page,
         testInfo,
         'The podcast settings tab shows RSS parse success and failure status lines.',
-        page.getByRole('heading', { name: 'RSS Feed' })
+        page.getByRole('heading', { name: 'RSS feed' })
       );
     });
   });

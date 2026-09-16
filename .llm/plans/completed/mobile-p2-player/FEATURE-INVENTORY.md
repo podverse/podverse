@@ -3,6 +3,9 @@
 Check-later list for the full player and mini player. Status key is in
 [00-SUMMARY.md](00-SUMMARY.md). `expected` is the agent's guess, not a locked decision.
 
+Where a row also appears in § Decided in this pass, that table wins — it carries the operator's
+answer and the detail doc that owns the work.
+
 ## Already in nextgen (`have`)
 
 | Item                                                              | Notes                                                                 |
@@ -110,6 +113,40 @@ Not the player screen itself. Flag so we do not forget them if chrome depends on
 | Shared primitives (`Button`, `HeaderBar`, `MoreMenu`, rows)       | Do not rebuild chrome on the player                                   |
 | Idle / nothing-playing / offline / live empty paths               | Do not only build the happy audio-podcast path                        |
 | E2E: expand mini → full, play/pause, seek, skip, speed, sleep     | Extend `play-mini-player` / add a focused player flow                 |
+
+## Decided in this pass
+
+From the player-screen screenshot batch. Detail docs own the work; decisions are numbered in
+[00-SUMMARY.md](00-SUMMARY.md).
+
+| Item                                              | Status | Owner                                            |
+| ------------------------------------------------- | ------ | ------------------------------------------------ |
+| Scrollable player screen with peeking chips        | `add`  | [747](/docs/proposals/mobile/_master-plan_/phase-2/details/747-player-screen-layout-and-scroll.md) |
+| Fixed-height rows + flexible viewer               | `add`  | 747                                              |
+| Measured, capped square artwork                    | `add`  | 747                                              |
+| Sticky chips + condensed now-playing bar          | `add`  | 747                                              |
+| Chapter artwork swapping the hero image           | `add`  | 747                                              |
+| Current chapter / clip title on the player        | `add`  | 747                                              |
+| Tablet two-column layout                          | `out`  | 747 — retired in favor of one column             |
+| Jump back / forward                               | `add`  | [748](/docs/proposals/mobile/_master-plan_/phase-2/details/748-player-transport-parity.md) |
+| Skip to previous (chapter-aware)                  | `add`  | 748                                              |
+| Live chrome hides seek / jumps / previous         | `add`  | 748                                              |
+| Configurable jump interval                        | `decide` | Later — no pref, no storage, in this area      |
+| Top action row (dismiss / playlist / share / queue / V4V) | `add` | [749](/docs/proposals/mobile/_master-plan_/phase-2/details/749-player-action-rows-and-more-sheet.md) |
+| Create-clip placeholder (answers on press)        | `add`  | 749 — amends the Make Clip lock-out              |
+| Utility row (sleep / speed / More)                | `add`  | 749                                              |
+| Sleep timer, speed, Up next become sheets         | `add`  | 749                                              |
+| Subscribe / unsubscribe from the player           | `add`  | 749                                              |
+| Mark as played / unplayed from the player         | `add`  | 749                                              |
+| More / overflow sheet                             | `add`  | 749                                              |
+| Device volume slider                              | `out`  | [751](/docs/proposals/mobile/_master-plan_/phase-2/details/751-defer-player-volume-slider.md) |
+| Navigate to episode / podcast from the player     | `out`  | 749 — parity only; reachable elsewhere           |
+| Download from the player                          | `out`  | 749 — same                                       |
+| Section chips (summary / clips / chapters / official clips / transcript) | `add` | [750](/docs/proposals/mobile/_master-plan_/phase-2/details/750-player-section-chips-and-panes.md) |
+| Episode summary on the player                     | `add`  | 750                                              |
+| Plain transcript pane on the player               | `add`  | 750 — 598 keeps the coupling deferred            |
+| Chip selection shared with episode detail         | `add`  | 750                                              |
+| Legacy swipe carousel + page dots                 | `out`  | 750 — vertical scroll + chips instead            |
 
 ## Operator additions
 

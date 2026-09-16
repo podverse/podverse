@@ -1,6 +1,6 @@
 import type { ItemSectionChromeFlags } from '../../lib/sectionChromeFlags';
 import type { EpisodeTab } from '../../prefs/detailListPrefs';
-import { EPISODE_TABS } from '../../prefs/detailListPrefs';
+import { DEFAULT_EPISODE_TAB, EPISODE_TABS } from '../../prefs/detailListPrefs';
 
 export const EPISODE_TAB_LABEL_KEYS: Record<EpisodeTab, string> = {
   chapters: 'info.chapter.chapters',
@@ -71,4 +71,14 @@ export const resolveEpisodeTabs = ({
     }
     return true;
   });
+};
+
+export const resolveEpisodeTabForItem = ({
+  rememberedTab,
+  supportedTabs,
+}: {
+  rememberedTab: EpisodeTab;
+  supportedTabs: readonly EpisodeTab[];
+}): EpisodeTab => {
+  return supportedTabs.includes(rememberedTab) ? rememberedTab : DEFAULT_EPISODE_TAB;
 };

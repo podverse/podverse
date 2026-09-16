@@ -10,9 +10,9 @@ export async function generateMetadata() {
 export default function MyClipsPage() {
   return (
     <>
-      <MainHeader title="My Clips" />
+      <MainHeader title="My clips" />
       <MainWrapper>
-        <p>Coming Soon</p>
+        <p>Coming soon</p>
       </MainWrapper>
     </>
   );

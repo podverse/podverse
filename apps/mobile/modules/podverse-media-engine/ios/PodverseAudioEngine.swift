@@ -40,7 +40,7 @@ struct PodverseNowPlayingInfo {
 ///
 /// This singleton is intentionally independent of the Expo module lifecycle: CarPlay can reference
 /// `PodverseAudioEngine.shared` to render now-playing and issue transport commands even when the JS
-/// runtime has not started. The Expo module registers an `eventSink` to
+/// runtime has not started. The Expo module registers an event sink (owner-scoped) to
 /// forward events to JS while it is alive; when JS is absent, the engine still plays and updates the
 /// lock screen / car now-playing.
 public final class PodverseAudioEngine: NSObject {
@@ -52,7 +52,32 @@ public final class PodverseAudioEngine: NSObject {
 
   /// Sink that forwards events to JS. Set by the Expo module while it is alive; `nil` when the JS
   /// runtime is not running (e.g. a CarPlay-only launch). Reads/writes are hopped to main.
-  var eventSink: ((PodverseMediaEngineEvent, [String: Any]) -> Void)?
+  ///
+  /// Ownership is keyed so a Fast Refresh / reload cannot let a dying module's `OnDestroy` clear
+  /// the sink that a newer module instance already installed.
+  private var eventSink: ((PodverseMediaEngineEvent, [String: Any]) -> Void)?
+  private weak var eventSinkOwner: AnyObject?
+
+  /// Install `sink` for `owner`. A later `clearEventSink(owner:)` from a different owner is a no-op.
+  func setEventSink(
+    _ sink: @escaping (PodverseMediaEngineEvent, [String: Any]) -> Void, owner: AnyObject
+  ) {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      self.eventSinkOwner = owner
+      self.eventSink = sink
+    }
+  }
+
+  /// Clear the sink only when `owner` is still the current owner.
+  func clearEventSink(owner: AnyObject) {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      guard self.eventSinkOwner === owner else { return }
+      self.eventSinkOwner = nil
+      self.eventSink = nil
+    }
+  }
 
   /// Notified on main whenever the current item's video capability changes (ready with video vs
   /// audio-only or torn down). Set by `PodverseVideoSurfaceHost` so it can hide the surface for

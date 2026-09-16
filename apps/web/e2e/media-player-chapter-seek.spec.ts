@@ -80,7 +80,7 @@ async function openChaptersTab(page: Page): Promise<void> {
  *     `NonLiveMediaOrchestrator.timeUpdate.test.tsx`).
  *
  * The pure-function coverage for the selection helper lives at
- * `selectItemChapterForTime.test.ts`; the existing foundation harness
+ * `packages/playback-core/src/selectItemChapterForTime.test.ts`; the existing foundation harness
  * covers overlay resolution, but not the real episode-page chapter click.
  */
 test.describe('Media player chapter seek', () => {

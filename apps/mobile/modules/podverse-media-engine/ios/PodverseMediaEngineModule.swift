@@ -16,14 +16,16 @@ public class PodverseMediaEngineModule: Module {
 
     // Forward engine events to JS while this module (and the JS runtime) is alive. When JS is not
     // running, the engine still plays and updates the lock screen / car now-playing on its own.
+    // Owner-scoped so a Fast Refresh teardown cannot clear a newer module's sink.
     OnCreate {
-      PodverseAudioEngine.shared.eventSink = { [weak self] event, payload in
-        self?.sendEvent(event.rawValue, payload)
-      }
+      PodverseAudioEngine.shared.setEventSink(
+        { [weak self] event, payload in
+          self?.sendEvent(event.rawValue, payload)
+        }, owner: self)
     }
 
     OnDestroy {
-      PodverseAudioEngine.shared.eventSink = nil
+      PodverseAudioEngine.shared.clearEventSink(owner: self)
     }
 
     // --- Playback transport ---

@@ -427,7 +427,7 @@ export class AccountFollowingChannelService extends BaseManyService<
   /**
    * Mark every followed channel seen, and report how many rows moved.
    *
-   * Done in one statement rather than by sending every channel id, so "Mark All As Seen" costs the
+   * Done in one statement rather than by sending every channel id, so "Mark all as seen" costs the
    * same whether the account follows five shows or five hundred.
    */
   async markAllChannelsSeen(account_id: number, seenAt: Date): Promise<number> {

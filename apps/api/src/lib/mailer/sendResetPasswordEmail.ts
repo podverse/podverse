@@ -26,7 +26,7 @@ export const sendResetPasswordEmail = async (
 
   const emailFields = {
     buttonLink: `${config.web.protocol}://${config.web.domain}${resetPasswordPagePath}${token}`,
-    buttonText: 'Reset Password',
+    buttonText: 'Reset password',
     closing: '',
     headerText: `Reset your ${config.brandName} password`,
     paragraphText: `Please click the button below to reset your ${config.brandName} password. This link will expire in ${daysToExpire}.`,

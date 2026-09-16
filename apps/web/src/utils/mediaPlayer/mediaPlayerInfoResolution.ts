@@ -14,11 +14,8 @@ import {
 } from '@podverse/helpers';
 
 import type { MediaPlayerAddByRSSState } from '../../contexts/MediaPlayer';
+import { selectItemChapterForTime, shouldSuppressChapterSelectionAtTime } from '../../lib/playback';
 import { getAddByRSSItemPath, getAddByRSSLivestreamPath } from '../addByRSS/itemPath';
-import {
-  selectItemChapterForTime,
-  shouldSuppressChapterSelectionAtTime,
-} from './selectItemChapterForTime';
 import { getResolvedVtsLikeTargetItem } from './vtsOverrideLikeItem';
 
 type ResolutionParams = {

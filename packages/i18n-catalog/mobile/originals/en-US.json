@@ -4,6 +4,7 @@
       "browse": "Browse",
       "home": "Home",
       "more": "More",
+      "my_library": "My Library",
       "notifications": "Notifications",
       "rss": "RSS",
       "downloads": "Downloads"
@@ -11,9 +12,9 @@
     "stack": {
       "home": "Home",
       "opml": "OPML",
-      "search_result": "Search Result",
-      "rss_feeds": "RSS Feeds",
-      "podcast_settings": "Podcast Settings"
+      "search_result": "Search result",
+      "rss_feeds": "RSS feeds",
+      "podcast_settings": "Podcast settings"
     },
     "menu": {
       "opml": "OPML",
@@ -93,7 +94,7 @@
     "offline_mode": {
       "title": "Offline mode",
       "description": "Offline mode uses only downloads and other content already stored on this device. Search, Browse, sync, and anything that needs the internet stay unavailable until you turn it off.",
-      "unavailable": "This screen isn't available in Offline Mode.",
+      "unavailable": "This screen isn't available in offline mode.",
       "banner": "Offline mode is on"
     },
     "downloads": {
@@ -172,5 +173,8 @@
       "outcome_skipped": "Skipped — offline",
       "outcome_success": "Succeeded"
     }
+  },
+  "media_player": {
+    "chapter_tooltip": "Chapter: {title}"
   }
 }

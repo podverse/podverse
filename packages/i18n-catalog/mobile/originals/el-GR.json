@@ -4,6 +4,7 @@
       "browse": "Περιήγηση",
       "home": "Αρχική",
       "more": "Περισσότερα",
+      "my_library": "Η βιβλιοθήκη μου",
       "notifications": "Ειδοποιήσεις",
       "rss": "RSS",
       "downloads": "Λήψεις"
@@ -172,5 +173,8 @@
       "outcome_skipped": "Παραλείφθηκε — εκτός σύνδεσης",
       "outcome_success": "Επιτυχία"
     }
+  },
+  "media_player": {
+    "chapter_tooltip": "Κεφάλαιο: {title}"
   }
 }

@@ -51,7 +51,7 @@ test.describe('Membership gate on member-only actions', () => {
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible();
       // The membership modal is distinguished from the plain login modal by its Renew action.
-      const renewButton = dialog.getByRole('button', { name: 'Renew Membership' });
+      const renewButton = dialog.getByRole('button', { name: 'Renew membership' });
       await expect(renewButton).toBeVisible();
       await expect(dialog.getByText(/membership has expired/i)).toBeVisible();
 
@@ -63,14 +63,14 @@ test.describe('Membership gate on member-only actions', () => {
       );
     });
 
-    await test.step('Renew Membership navigates to the membership renew page', async () => {
-      await page.getByRole('dialog').getByRole('button', { name: 'Renew Membership' }).click();
+    await test.step('Renew membership navigates to the membership renew page', async () => {
+      await page.getByRole('dialog').getByRole('button', { name: 'Renew membership' }).click();
       await expect(page).toHaveURL(/\/membership\/renew/);
 
       await capturePageLoad(
         page,
         testInfo,
-        'Renew Membership navigates to the membership renew page.',
+        'Renew membership navigates to the membership renew page.',
         page.getByRole('heading', { level: 1 })
       );
     });
@@ -129,7 +129,7 @@ test.describe('Membership gate on member-only actions', () => {
     await test.step('The queue-add 403 opens the membership modal (not the generic add-error toast)', async () => {
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible();
-      const renewButton = dialog.getByRole('button', { name: 'Renew Membership' });
+      const renewButton = dialog.getByRole('button', { name: 'Renew membership' });
       await expect(renewButton).toBeVisible();
       await expect(dialog.getByText(/membership has expired/i)).toBeVisible();
 
@@ -141,14 +141,14 @@ test.describe('Membership gate on member-only actions', () => {
       );
     });
 
-    await test.step('Renew Membership navigates to the membership renew page', async () => {
-      await page.getByRole('dialog').getByRole('button', { name: 'Renew Membership' }).click();
+    await test.step('Renew membership navigates to the membership renew page', async () => {
+      await page.getByRole('dialog').getByRole('button', { name: 'Renew membership' }).click();
       await expect(page).toHaveURL(/\/membership\/renew/);
 
       await capturePageLoad(
         page,
         testInfo,
-        'Renew Membership navigates to the membership renew page.',
+        'Renew membership navigates to the membership renew page.',
         page.getByRole('heading', { level: 1 })
       );
     });

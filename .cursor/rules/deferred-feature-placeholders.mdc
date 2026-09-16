@@ -1,5 +1,5 @@
 ---
-description: A visible placeholder for deferred work must be inert and say it is unavailable — never a control that looks like it saves
+description: A visible placeholder for deferred work explains itself when interacted with, and never persists or fakes state
 globs:
   - "apps/mobile/src/**/*.tsx"
   - "apps/web/src/**/*.tsx"
@@ -8,29 +8,47 @@ globs:
 alwaysApply: false
 ---
 
-# Placeholders for deferred features are inert and say so
+# Placeholders for deferred features answer when you touch them
 
 Sometimes a plan keeps a product affordance **visible** while its implementation is deferred, so the
-idea is not silently lost. That placeholder has one job: show that the feature is coming without ever
-appearing to work.
+idea is not silently lost. That placeholder has one job: tell the user the feature is not available
+yet **at the moment they reach for it**, and change nothing.
 
 ## Required
 
-- **Non-interactive.** Disable the control so a tap or click changes nothing. There must be no state
-  to flip, because a control that flips and forgets reads as a bug or, worse, as a saved preference.
-- **Fixed at the inactive value.** A placeholder switch is hard-coded off. Do not read or write a
-  preference, and do not add storage "ready for later" — the next agent will find the wiring and
-  assume the feature half-exists.
-- **Says it in words.** Put a short line next to the control stating the feature is not available
-  yet, through i18n like any other user-facing copy. Disabled styling alone asks the user to discover
-  the limitation by tapping.
+- **Interaction is how the user learns.** The control looks and behaves like a control; pressing it
+  shows a short message saying the feature is not available yet. People discover availability by
+  trying things, and standing "coming soon" text next to every deferred control turns the UI into a
+  changelog of what we have not built.
+- **The message is a response, not a label.** It appears because of the interaction and goes away —
+  a dialog, sheet, or notice. It is not permanent copy sitting under the control, and it is not a
+  caption crowding an icon row.
+- **i18n like any other copy**, in sentence case
+  ([`ui-copy-sentence-case`](/.cursor/rules/ui-copy-sentence-case.mdc)). Prefer one shared "not
+  available yet" string per surface over a bespoke sentence per control.
+- **Nothing changes.** No state flips, nothing is written to storage, no request is sent, no spinner
+  runs. A control that flips and forgets reads as a bug; a remembered setting the product cannot
+  honor is a promise broken on every launch.
+- **Accessible.** The control keeps a real accessible name, and because it is interactive it must not
+  claim to be disabled. The message must be announced when it appears, not left for a sighted user to
+  read.
+
+## Mechanism per surface
+
+Reach for what exists rather than adding a notification system for a message nobody wants twice:
+
+- **web / management-web** — the existing modal or toast.
+- **mobile** — a single-acknowledge dialog. If `ConfirmDialog` cannot yet express one action, extend
+  it; do not introduce a second modal component or a toast framework for this.
 
 ## Don't
 
-- Don't ship an enabled control whose handler is a no-op, a `TODO`, or a toast.
-- Don't persist a value the product cannot honor. A remembered setting that has no effect is a
-  promise the app breaks on every launch.
+- Don't ship a **disabled** control with a caption explaining the absence. That was the earlier
+  house style and it is no longer how we do this.
+- Don't persist a value the product cannot honor, and don't add storage "ready for later" — the next
+  agent will find the wiring and assume the feature half-exists.
 - Don't hide the real state behind optimistic UI — nothing is pending, so nothing should spin.
+- Don't let the message imply a date or a plan ("coming in the next release").
 - Don't cite the deferral's plan, detail, or step number in a code comment
   ([`comments-future-forward`](/.cursor/rules/comments-future-forward.mdc)). The durable home for the
   decision is the detail doc under `docs/proposals/`; the file only needs to be honest about today.
@@ -47,5 +65,5 @@ remembered.
 - [`generic-login-required-copy`](/.cursor/rules/generic-login-required-copy.mdc) — the same instinct
   for gated controls: explain uniformly, never per-screen improvisation
 - **entitlement-gating-rollout** — for features that exist but are gated, which is a different case
-- [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc) — a disabled control
-  still needs an accessible name and its disabled state exposed
+- [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc) — the message needs
+  to reach a screen reader user, not only the pixels

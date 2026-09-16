@@ -8,21 +8,38 @@ import type { PlaybackStateValue } from '../../modules/podverse-media-engine';
  */
 export type PlaybackTransportState = 'error' | 'loading' | 'paused' | 'playing';
 
-export const playbackTransportFromEngineState = (
-  state: PlaybackStateValue
-): PlaybackTransportState => {
-  switch (state) {
-    case 'loading':
-    case 'stalled':
-      return 'loading';
-    case 'error':
-      return 'error';
-    case 'playing':
-      return 'playing';
-    case 'ended':
-    case 'idle':
-    case 'paused':
-    case 'ready':
-      return 'paused';
+/** Engine states that mean "waiting on bytes" rather than a settled transport position. */
+export const isEngineBufferingState = (state: PlaybackStateValue): boolean => {
+  return state === 'loading' || state === 'stalled';
+};
+
+/** Engine states that prove the current source has enough media to start playing. */
+export const isEnginePlayableState = (state: PlaybackStateValue): boolean => {
+  return state === 'ended' || state === 'paused' || state === 'playing' || state === 'ready';
+};
+
+/**
+ * Transport glyph for an engine state, or `null` when the state must not change the glyph.
+ *
+ * The spinner means "this source cannot start yet". Once the engine has reported the source
+ * playable, later buffering keeps the play/pause mark: there is already enough media to play, and a
+ * spinner appearing on every re-buffer would flicker over the control the listener is aiming at.
+ */
+export const playbackTransportForEngineState = (
+  state: PlaybackStateValue,
+  sourcePlayable: boolean
+): PlaybackTransportState | null => {
+  if (state === 'error') {
+    return 'error';
   }
+  if (isEngineBufferingState(state)) {
+    return sourcePlayable ? null : 'loading';
+  }
+  if (state === 'playing') {
+    return 'playing';
+  }
+  if (state === 'idle') {
+    return null;
+  }
+  return 'paused';
 };

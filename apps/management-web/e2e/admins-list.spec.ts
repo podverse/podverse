@@ -47,7 +47,7 @@ test.describe('Management-web admins list', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(ROUTES.ADMINS);

@@ -30,6 +30,9 @@ component/source files.
 
 - Localize labels, titles, placeholders, empty states, loading text, toast/error/success copy,
   navigation titles/tab labels, `aria-label` / `accessibilityLabel`, and button text via `t()`.
+- Write every value in **sentence case** — see **ui-copy-sentence-case** for the standard, the
+  proper nouns that keep their capitals, standing exceptions (e.g. English mobile bottom tab
+  labels), and what to do when a request asks for Title Case.
 - Prefer **existing** keys in `packages/i18n-catalog/{shared,consumer}/originals/en-US.json` so
   web and mobile stay consistent. Add **new shared** strings to `shared` or `consumer`; add
   **mobile-only** chrome (tabs, permissions, store copy) to `mobile/originals/en-US.json`.

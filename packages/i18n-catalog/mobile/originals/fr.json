@@ -4,6 +4,7 @@
       "browse": "Parcourir",
       "home": "Accueil",
       "more": "Plus",
+      "my_library": "Ma bibliothèque",
       "notifications": "Notifications",
       "rss": "RSS",
       "downloads": "Téléchargements"
@@ -172,5 +173,8 @@
       "outcome_skipped": "Ignoré — hors ligne",
       "outcome_success": "Réussi"
     }
+  },
+  "media_player": {
+    "chapter_tooltip": "Chapitre : {title}"
   }
 }

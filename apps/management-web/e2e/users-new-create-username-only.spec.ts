@@ -7,7 +7,7 @@ import { capturePageLoad } from './helpers/stepScreenshots';
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * (see tools/management-web/seed-e2e.mjs, make e2e_seed_management_web)
  *
- * Validates that the Create User form accepts a username-only submission
+ * Validates that the Create user form accepts a username-only submission
  * (no email, no password) and renders the generated invite link panel.
  */
 
@@ -63,15 +63,15 @@ test.describe('Management-web create user (username-only)', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(ROUTES.USERS_NEW);
 
-    await expect(page.getByRole('heading', { name: 'Create User', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create user', level: 1 })).toBeVisible();
 
     await page.locator('#username').fill('e2e_username_only');
-    await page.getByRole('button', { name: 'Create User' }).first().click();
+    await page.getByRole('button', { name: 'Create user' }).first().click();
 
     const inviteLinkInput = page.locator('#invite-link');
     await expect(inviteLinkInput).toBeVisible();
@@ -136,15 +136,15 @@ test.describe('Management-web create user (username-only)', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(ROUTES.USERS_NEW);
 
-    await expect(page.getByRole('heading', { name: 'Create User', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create user', level: 1 })).toBeVisible();
 
     await page.locator('#username').fill('e2e_no_invite_redirect');
-    await page.getByRole('button', { name: 'Create User' }).first().click();
+    await page.getByRole('button', { name: 'Create user' }).first().click();
 
     await expect(page).toHaveURL(/\/users$/);
 
@@ -156,7 +156,7 @@ test.describe('Management-web create user (username-only)', () => {
     );
   });
 
-  test('the Create User form shows membership status and advanced overrides toggle', async ({
+  test('the Create user form shows membership status and advanced overrides toggle', async ({
     page,
   }, testInfo) => {
     test.setTimeout(45_000);
@@ -176,14 +176,14 @@ test.describe('Management-web create user (username-only)', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(ROUTES.USERS_NEW);
 
-    await expect(page.getByRole('heading', { name: 'Create User', level: 1 })).toBeVisible();
-    await expect(page.getByText('Membership Status', { exact: true })).toBeVisible();
-    await expect(page.getByLabel('Membership Status')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create user', level: 1 })).toBeVisible();
+    await expect(page.getByText('Membership status', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Membership status')).toBeVisible();
     await expect(
       page.getByRole('checkbox', { name: 'Configure advanced feature overrides' })
     ).toBeVisible();
@@ -234,7 +234,7 @@ test.describe('Management-web create user (username-only)', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.evaluate((key) => {
@@ -243,7 +243,7 @@ test.describe('Management-web create user (username-only)', () => {
 
     await page.goto(ROUTES.USERS_NEW);
 
-    await expect(page.getByRole('heading', { name: 'Create User', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create user', level: 1 })).toBeVisible();
 
     const expiryInput = page.locator('#membership-expires-at');
     await expect(expiryInput).toBeVisible();

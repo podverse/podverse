@@ -27,6 +27,24 @@ export const LIST_ROW_ACTION_ICON_SIZE = 26;
 export const LIST_ROW_PLAY_ICON_SIZE = 16;
 
 /**
+ * Diameter of the player's play / pause circle (`Button` size `xl`). Larger than any list-row
+ * control because it is the one target a listener reaches for without looking.
+ */
+export const PLAYER_TRANSPORT_CIRCLE_SIZE = 64;
+
+/**
+ * Mini-player artwork edge, which is also the height of the bar's content row: the image is flush
+ * left and spans the full row, so the bar's height and its artwork are one number.
+ */
+export const MINI_PLAYER_ARTWORK_SIZE = 56;
+
+/**
+ * The mini player's playhead doubles as its top border, so it is the only thing between the bar and
+ * whatever stacks above it.
+ */
+export const MINI_PLAYER_PROGRESS_EDGE_HEIGHT = 2;
+
+/**
  * Extra bottom padding on text-bearing list rows (dp). System fonts leave more empty air above ink
  * inside the line box than below, so equal `paddingVertical` reads top-heavy. Add this to the bottom
  * only — do not put it on every `Text`, grid tiles, or icon-only rows.

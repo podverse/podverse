@@ -1,6 +1,6 @@
 /**
  * Marketing comparison rows for Membership / About. Free vs Premium only — Trial caps belong
- * in the Trial Limitations accordion, not in this table.
+ * in the Trial limitations accordion, not in this table.
  */
 export type MembershipComparisonNameKey =
   | 'subscribe'

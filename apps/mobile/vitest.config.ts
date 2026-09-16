@@ -48,8 +48,15 @@ import { defineConfig } from 'vitest/config';
  * report-a-conflict (`src/data/repositories/playbackReconcile.ts`), the meaningful-event gate that
  * feeds it (`src/playback/playbackEventSource.ts`), and the handoff prompt and dismissal memory
  * (`src/playback/playbackHandoff.ts`) are all pure, while their SQLite halves stay in
- * `playbackOutboxRepository.ts` and the RN provider stays in `PlaybackProvider.tsx`. The migration
- * ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
+ * `playbackOutboxRepository.ts` and the RN provider stays in `PlaybackProvider.tsx`. The player
+ * chrome's rules sit on the same split: the transport glyph mapping that keeps the spinner to a
+ * source that cannot start yet (`src/playback/playbackTransport.ts`), which clip or chapter the
+ * now-playing bar names (`src/playback/nowPlayingSegment.ts`), the marquee overflow and travel math
+ * (`src/lib/text/marqueeScroll.ts`), reading a 404 as an empty list (`src/lib/apiErrorStatus.ts`),
+ * and whether a server refresh should replace what a cache-first screen already painted
+ * (`src/lib/cachedValue.ts`), and the universal last-playback snapshot that restores the mini
+ * player on cold start for every auth status (`src/lib/playback/lastPlaybackStorage.ts`). The
+ * migration ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
  * connection. Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
@@ -64,6 +71,7 @@ export default defineConfig({
       'src/auth/forcedLogoutNotice.test.ts',
       'src/auth/localDevLoginPrefill.test.ts',
       'src/auth/mobileClientHeaders.test.ts',
+      'src/components/player/fullPlayerRows.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/db/migrations.test.ts',
       'src/data/repositories/channelItemWindow.test.ts',
@@ -77,18 +85,28 @@ export default defineConfig({
       'src/data/repositories/syncEventLog.test.ts',
       'src/downloads/**/*.test.ts',
       'src/lib/addByRss/domain.test.ts',
+      'src/lib/apiErrorStatus.test.ts',
+      'src/lib/cachedValue.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
+      'src/lib/playback/lastPlaybackStorage.test.ts',
       'src/lib/share/shareUrl.test.ts',
+      'src/lib/text/marqueeScroll.test.ts',
       'src/membership/checkoutUrl.test.ts',
       'src/membership/membershipDenial.test.ts',
       'src/navigation/deepLinking.test.ts',
+      'src/playback/nowPlayingSegment.test.ts',
       'src/playback/playbackEventSource.test.ts',
       'src/playback/playbackHandoff.test.ts',
+      'src/playback/previousAction.test.ts',
+      'src/playback/playbackTransport.test.ts',
       'src/prefs/homeListPrefs.test.ts',
       'src/prefs/prefsStore.test.ts',
       'src/push/notificationTarget.test.ts',
       'src/screens/home/homeRowMetadata.test.ts',
       'src/screens/home/addByRssHomeDetailData.test.ts',
+      'src/screens/episode/episodeSectionPaneLoaders.test.ts',
+      'src/screens/episode/episodeTabs.test.ts',
+      'src/screens/player/fullPlayerLayout.test.ts',
       'src/screens/search/podcastIndexFeedPreview.test.ts',
       'src/sync/syncErrorClassification.test.ts',
       'src/sync/syncQueue.test.ts',

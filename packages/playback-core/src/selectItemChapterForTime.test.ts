@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { DTOItemChapter } from '@podverse/helpers';
 
-import { selectItemChapterForTime } from './selectItemChapterForTime';
+import { selectItemChapterForTime } from './selectItemChapterForTime.js';
 
 const ch = (
   over: Partial<DTOItemChapter> & Pick<DTOItemChapter, 'id' | 'table_of_contents'>

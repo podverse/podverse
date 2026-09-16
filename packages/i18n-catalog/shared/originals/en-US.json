@@ -2,7 +2,7 @@
   "language": {
     "language": "Language",
     "description": "Choose the language used throughout the app.",
-    "select_language": "Select Language",
+    "select_language": "Select language",
     "languages": {
       "en-US": "English",
       "es": "Spanish",
@@ -25,7 +25,7 @@
   "errors": {
     "boundary_title": "Something went wrong",
     "boundary_message": "An unexpected error occurred. Please try again.",
-    "global_title": "Application Error",
+    "global_title": "Application error",
     "global_message": "A critical error occurred. Please refresh the page.",
     "details_development_only": "Error details (development only)"
   },

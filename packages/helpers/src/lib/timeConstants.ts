@@ -94,7 +94,7 @@ export const TOAST_DURATION_MS = 4000;
 export const MEDIA_JUMP_FORWARD_SECONDS = 30;
 
 /** Media player seek back amount in seconds. */
-export const MEDIA_JUMP_BACK_SECONDS = 15;
+export const MEDIA_JUMP_BACK_SECONDS = 10;
 
 /** Media player small increment/decrement in seconds. */
 export const MEDIA_JUMP_INCREMENT_SECONDS = 1;

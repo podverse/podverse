@@ -21,12 +21,16 @@ class PodverseMediaEngineModule : Module() {
 
     // Forward engine events to JS while this module (and the JS runtime) is alive. When JS is not
     // running, the engine still plays and updates the media notification on its own.
+    // Owner-scoped so a Fast Refresh teardown cannot clear a newer module's sink.
     OnCreate {
-      PodverseAudioEngine.eventSink = { name, body -> this@PodverseMediaEngineModule.sendEvent(name, body) }
+      PodverseAudioEngine.setEventSink(
+        { name, body -> this@PodverseMediaEngineModule.sendEvent(name, body) },
+        this@PodverseMediaEngineModule,
+      )
     }
 
     OnDestroy {
-      PodverseAudioEngine.eventSink = null
+      PodverseAudioEngine.clearEventSink(this@PodverseMediaEngineModule)
     }
 
     // --- Playback transport ---

@@ -15,7 +15,7 @@ async function loginViaApi(page: Page, email: string): Promise<void> {
   expect(loginResponse.ok(), await loginResponse.text()).toBeTruthy();
 }
 
-test.describe('Popularity Tracking consent', () => {
+test.describe('Popularity tracking consent', () => {
   test('When a logged-in account has never decided, the gate blocks the rest of the app.', async ({
     page,
   }, testInfo) => {
@@ -23,13 +23,13 @@ test.describe('Popularity Tracking consent', () => {
     await page.goto('/');
 
     await expect(page).toHaveURL(/\/popularity-tracking/);
-    await expect(page.getByRole('heading', { name: 'Popularity Tracking' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Popularity tracking' })).toBeVisible();
 
     await capturePageLoad(
       page,
       testInfo,
-      'After login, an undecided account lands on the Popularity Tracking gate.',
-      page.getByRole('heading', { name: 'Popularity Tracking' })
+      'After login, an undecided account lands on the Popularity tracking gate.',
+      page.getByRole('heading', { name: 'Popularity tracking' })
     );
 
     await actionAndCapture(
@@ -48,7 +48,7 @@ test.describe('Popularity Tracking consent', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'Yes records accept and leaves the Popularity Tracking gate.',
+      'Yes records accept and leaves the Popularity tracking gate.',
       async () => {
         await page.getByRole('button', { name: 'Yes, track me' }).click();
         await expect(page).not.toHaveURL(/popularity-tracking/);
@@ -62,13 +62,13 @@ test.describe('Popularity Tracking consent', () => {
     await loginViaApi(page, DECIDED_EMAIL);
     await page.goto('/settings?tab=account');
 
-    await expect(page.getByRole('heading', { name: 'Popularity Tracking' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Popularity tracking' })).toBeVisible();
     await expect(page.getByText('You already agreed to this version.')).toBeVisible();
 
     await capturePageLoad(
       page,
       testInfo,
-      'Account settings show the Popularity Tracking agreement and that the current version is already accepted.',
+      'Account settings show the Popularity tracking agreement and that the current version is already accepted.',
       page.getByText('You already agreed to this version.')
     );
   });

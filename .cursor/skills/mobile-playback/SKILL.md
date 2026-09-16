@@ -66,6 +66,24 @@ Reference: [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md §5–10](/docs/proposa
 Web reference hooks: `useQueueResourceMoveNowPlayingToHistory`, `useMediaPlayerControllerQueueHeadLoading`,
 `combineQueueNowPlayingAndUpcoming` (moving to playback-core).
 
+## Last-playback snapshot (cold-start restore)
+
+Mobile keeps a **universal** device-local now-playing snapshot in AsyncStorage
+(`pv_mobile_last_playback` via `apps/mobile/src/lib/playback/lastPlaybackStorage.ts`). It sits
+**outside** the account queue / history system:
+
+| Event                                                        | Snapshot behavior                                                            |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Play / progress (throttled) / pause / background             | Write for every auth status; near-end positions clear instead of storing `0` |
+| Item completes (`advance('complete')`) or now-playing clears | Clear                                                                        |
+| Sign-in (`anonymous` → `authenticated`)                      | Clear — the account's server queue is authoritative                          |
+| Sign-out                                                     | Leave alone — local playback keeps rewriting it                              |
+| Cold start (`status !== 'unknown'`)                          | Restore once per process, **paused**, mini player visible                    |
+
+Restore is cache-first (`getLocalChannelForItem` before network) and logs failures in `__DEV__`.
+Web deliberately differs: signed-in users hydrate from the server queue; only anonymous users use
+`pv_web_anonymous_last_playback`. Do not merge those models.
+
 ## Seamless video (mini ↔ full player)
 
 One **persistent native video surface** for the playback session. Mini and full player screens register
@@ -90,12 +108,25 @@ surfaces work app-closed. Schema: Track **12.1**; implementation steps **10.22**
 The mini player and full player share one transport control (`PlayerTransportButton` +
 `transportState` from `usePlayback()`):
 
-| Engine / load | Glyph | Press |
-| ------------- | ----- | ----- |
-| Playing | Pause icon | Pause |
-| Paused / ready / idle / ended | Play icon | Resume |
-| Loading or stalled (file not ready) | Spinner | None |
-| Error | Error icon | Retry (`retryPlayback` reloads the current source) |
+| Engine / load                 | Glyph      | Press                                              |
+| ----------------------------- | ---------- | -------------------------------------------------- |
+| Playing                       | Pause icon | Pause                                              |
+| Paused / ready / idle / ended | Play icon  | Resume                                             |
+| Source not playable yet       | Spinner    | None                                               |
+| Error                         | Error icon | Retry (`retryPlayback` reloads the current source) |
+
+The glyph and its accent color match list rows and detail chrome; `appearance` decides the frame.
+The full player uses `ring` — the same bordered play circle as those rows. The mini player uses
+`bare`, because the bar is already its own surface and a ring inside a 56px strip crowds the artwork
+and titles it sits beside; a bare glyph there takes the larger icon size bare row controls use.
+Neither ever wears a filled/primary face that would read as a different kind of button.
+
+**The spinner means "this source cannot start yet", never "buffering".** It shows between a load
+starting and the engine reporting the source playable, and `playbackTransport.ts` gates it on that:
+once the source is playable, later `loading` / `stalled` events keep the play/pause mark, because
+there is already enough media to play and a spinner flickering over the control the listener is
+aiming at is worse than silence about the network. A load resolving also clears the spinner on its
+own, so a missing engine state event cannot leave it spinning forever.
 
 The mini player's elapsed/remaining glance is the **top edge** of the bar — a flush 2px
 `ProgressTrack`, not a separate bar and not a second `borderTop`. The full player's scrubber stays
@@ -104,6 +135,121 @@ a dedicated seek control.
 **Do not** put loading spinners or error/retry glyphs on list-row or detail-screen play buttons
 (`MediaRowActions`, episode play chrome). Those surfaces stay play/pause. The mini player and full
 player already own buffering and failure, and repeating that on every row is redundant rendering.
+
+## Full player fixed region + panes
+
+`FullPlayerScreen` is a `SectionList` scroll shell with a fixed-height player region, sticky chips,
+and a condensed now-playing bar that appears once the region scrolls away.
+
+- Use `resolveFullPlayerLayout` / `resolveCondensedState` in
+  `apps/mobile/src/screens/player/fullPlayerLayout.ts` for all region math.
+- Keep transport controls on shared constants from `@podverse/helpers`
+  (`MEDIA_JUMP_BACK_SECONDS` = 10, `MEDIA_JUMP_FORWARD_SECONDS` = 30).
+- Previous/next match web: tap is chapter-aware for whole-item playback (`skipToPrevious` /
+  `skipToNext`); when chapters exist, a 500ms hold skips the episode (`skipToPreviousTrack` /
+  `skipToNextTrack`). Clip and soundbite targets never use chapter prev/next.
+- Jump back/forward use circular rotate glyphs (`FontAwesome6` `rotate-left` /
+  `rotate-right`), matching web's `FaRotateLeft` / `FaRotateRight`.
+- Pane loading and chip visibility come from `useEpisodeSectionPanes` so episode detail and full
+  player stay in lockstep on Summary, Clips, Chapters, Official clips, and Transcript.
+- Sleep timer, playback speed, up next, and More actions open sheets (`MoreMenu` surfaces), not
+  inline expansion.
+
+The contract for this area is enforced by
+[`mobile-player-fixed-region`](/.cursor/rules/mobile-player-fixed-region.mdc): only the viewer band
+flexes; everything else keeps a fixed reserved height.
+
+### Playhead progress store
+
+Native `progress` events write into `playbackProgressStore` (~2 Hz). Leaf chrome reads the store via
+`usePlaybackProgress` / `usePlaybackPositionClock` / `usePlaybackProgressRatio`
+(`useSyncExternalStore`). **Do not** put position/duration in `PlaybackProvider` React state, and
+**do not** call `usePlayback()` from the full-player shell, mini-player shell, or other screens that
+only need session actions — use `usePlaybackSession()` so a ticking playhead cannot re-render a
+`SectionList` twice a second.
+
+The native event sink is **owner-scoped** (`setEventSink` / `clearEventSink(owner)`). Fast Refresh
+must not let an old module's `OnDestroy` clear a newer module's sink. On mount and foreground,
+`PlaybackProvider` reconciles from `getPosition` / `getDuration`.
+
+### Chapter-aware scrubber
+
+`FullPlayerScrubber` is the only full-player progress leaf: drag seek (thumb + release commit),
+chapter boundary ticks (`getChapterBoundaryRatios` from `@podverse/playback-core/chapterProgressMarkers`),
+active chapter/clip/soundbite highlight, long-press chapter tooltip (~500ms / 2s dismiss), and
+hour-aware clocks (`formatPlaybackTime`). Chapter artwork uses `shouldUseChapterArtwork` on
+`FullPlayerArtwork` / `MiniPlayerArtwork`. Chapters for chrome come from `useNowPlayingChapters`
+(process-wide cache) plus `useActiveNowPlayingChapter` in leaves only.
+
+### Full player chrome conventions
+
+The player region reads as one centered column, and the transport it presents is the app's largest
+touch target because it is the one a listener reaches for without looking.
+
+- **Centered text.** Segment, episode title, and channel title are centered. Episode + channel share
+  one title block (`FULL_PLAYER_TITLE_BLOCK_HEIGHT`) with a tight internal gap — not two bands
+  separated by `FULL_PLAYER_REGION_GAP`. The title is a `MarqueeText align="center"`, so it centers
+  when it fits and scrolls from the leading edge only when it overflows.
+- **Band order follows web.** Title block, artwork, segment band, progress, transport, utility — the
+  same order as web's player modal (`titleSection`, art, `subtitleSection`). The segment band names
+  the chapter, clip, or official clip **below** the artwork and always holds
+  `FULL_PLAYER_SEGMENT_BAND_HEIGHT`, the way web always renders `subtitleSection` with
+  `--media-modal-subtitle-reserve`. A chapter starting mid-episode must fade its name into space that
+  already exists; never mount or unmount the row.
+- **Equal-width slots.** The transport row's five controls and the utility row's three each sit in
+  `flex: 1` slots with `flexDirection: 'row'` + `justifyContent: 'center'`. Main-axis centering is
+  required because `Button` sets `alignSelf: 'flex-start'`, which would otherwise pin every control
+  to the leading edge of its slot. Do not use `justifyContent: 'space-between'` here — unequal
+  control widths shift the center control off-axis.
+- **One seam value.** Every band gap is `FULL_PLAYER_REGION_GAP`, read from the same module the math
+  reads, so reserved space and rendered space cannot drift. `FULL_PLAYER_REGION_GAP_COUNT` is **5**
+  for the six bands, and it does not vary with what is playing.
+- **Control sizes come from constants.** `FULL_PLAYER_TRANSPORT_ICON_SIZE`,
+  `FULL_PLAYER_UTILITY_ICON_SIZE`, and `Button` size `xl`
+  (`PLAYER_TRANSPORT_CIRCLE_SIZE`) — not per-callsite numbers.
+- **Jump controls are circular rotate glyphs.** Jump back and forward use
+  `FontAwesome6` `rotate-left` / `rotate-right` (same shapes as web `FaRotateLeft` /
+  `FaRotateRight`), with the interval in the accessibility label; they do not print `-10` /
+  `+30` as their face.
+- **Previous/next are chapter-aware.** Tap steps chapters when the episode has them; a hold (500ms)
+  skips the episode. Without chapters, previous restarts past 3s or else skips to the prior queue
+  item, and next skips the queue.
+- **Rate is plain text.** Playback speed is a `ghost` label with no fill or border, so it does not
+  read as a second primary action beside the play circle.
+- **Chips share the screen background.** The sticky header is opaque in the screen's own background
+  color, never a tinted band, and a selected chip is the label for the pane below it — panes do not
+  repeat it as a heading.
+- **Flush slide-up.** Root slide-up screens (`FullPlayer`, `V4vInfo`) import
+  `ROOT_SLIDE_UP_SCREEN_OPTIONS` from `apps/mobile/src/navigation/slideUpScreen.ts` (`card` +
+  `slide_from_bottom` + vertical **edge** gesture). Duration is `ROOT_SLIDE_UP_ANIMATION_MS` —
+  the same number the mini↔full video surface reparent uses. Do not use `presentation: 'modal'`
+  (iOS page sheet) and do not invent a second duration. Set `fullScreenGestureEnabled: false` so
+  pull-to-dismiss starts only from the top edge — a full-screen swipe fights the player's scroll.
+- **No list bounce.** The full player's `SectionList` keeps `bounces` / `alwaysBounceVertical` off
+  and `overScrollMode="never"`. There is no pull-to-refresh on that screen, so rubber-banding at
+  the top must not steal the dismiss gesture or pull pane content away from the chips.
+
+## Bottom chrome stack (phone and tablet)
+
+The persistent bars below the app and above the tab bar are siblings in one column, outermost first:
+
+1. `GlobalActivityBar` (sync progress, downloads)
+2. `OfflineModeBanner`
+3. `NowPlayingSegmentBar` (current clip / official clip / chapter)
+4. `MiniPlayer`
+
+Sync stays at the **top** of that stack on purpose: it appears and disappears on its own schedule, so
+from there its arrival pushes only itself, and the mini player controls a listener is reaching for do
+not move under their thumb. Keep the same order in the tablet bottom strip.
+
+`NowPlayingSegmentBar` names itself from `activeTarget` for clip / official-clip / chapter playback,
+and for whole-episode playback follows the chapter list against the playhead with
+**`selectItemChapterForTime`** from `@podverse/playback-core` — the same selection web's player and
+embed use, so the chapter named on mobile matches every other surface. Do not re-implement chapter
+selection per surface.
+
+The mini player's episode title is a `MarqueeText`: it scrolls itself only when the title does not
+fit, and truncates instead under Reduce Motion.
 
 ## Do / don't
 

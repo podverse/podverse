@@ -30,7 +30,7 @@ export const sendEmailChangeVerificationEmail = async (
 
   const emailFields = {
     buttonLink: `${config.web.protocol}://${config.web.domain}${emailChangeVerificationPagePath}${token}`,
-    buttonText: 'Verify Email Change',
+    buttonText: 'Verify email change',
     closing: '',
     headerText: 'Verify your change of email',
     paragraphText: `Are you sure you want to change your email address to ${pending_email_address}? Please click the button below to complete your email change.`,

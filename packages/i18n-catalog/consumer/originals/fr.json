@@ -74,7 +74,7 @@
     "add_by_rss": {
       "label": "Ajouter par RSS",
       "private_item_placeholder": "Élément privé ajouté par RSS",
-      "add_feed_instructions": "Ajoutez une URL de flux RSS pour suivre des podcasts ou de la musique non répertoriés dans notre annuaire. Nous allons le parser et l'enregistrer dans votre bibliothèque Ajouter par RSS.",
+      "add_feed_instructions": "Ajoutez une URL de flux RSS pour suivre des podcasts ou de la musique non répertoriés dans notre annuaire. Nous allons le parser et l'enregistrer dans votre bibliothèque ajouter par RSS.",
       "check_updates": "Vérifier les mises à jour",
       "feed_url": "URL du flux RSS",
       "invalid_url": "Entrez une URL de flux RSS valide.",
@@ -100,7 +100,7 @@
       "basic_auth_required_both": "Basic Auth requires both username and password.",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
-    "my_library": "Ma Bibliothèque",
+    "my_library": "Ma bibliothèque",
     "queue": {
       "queue": "File d'attente",
       "queues": "Files d'attente",
@@ -118,26 +118,28 @@
       "delete_history": "Supprimer l'historique",
       "mark_as_played": "Marquer comme joué",
       "marked_as_played": "Marqué comme joué",
+      "mark_as_unplayed": "Marquer comme non joué",
+      "marked_as_unplayed": "Marqué comme non joué",
       "mark_as_played_error": "Erreur lors du marquage comme joué",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "playlist": {
       "playlist": "Playlist",
       "playlists": "Playlists",
-      "my_playlists": "Mes Playlists",
-      "create_playlist": "Créer une Playlist",
-      "edit_playlist": "Modifier la Playlist",
+      "my_playlists": "Mes playlists",
+      "create_playlist": "Créer une playlist",
+      "edit_playlist": "Modifier la playlist",
       "reorder": "Réorganiser",
-      "delete_playlist": "Supprimer la Playlist",
+      "delete_playlist": "Supprimer la playlist",
       "delete_playlist_confirm": "Êtes-vous sûr de vouloir supprimer cette playlist ?",
-      "add_to_playlist": "Ajouter à la Playlist",
-      "added_to_playlist": "Ajouté à la Playlist",
-      "add_error": "Erreur lors de l'ajout à la Playlist",
-      "remove_from_playlist": "Retirer de la Playlist",
-      "removed_from_playlist": "Retiré de la Playlist",
-      "remove_error": "Erreur lors du retrait de la Playlist",
+      "add_to_playlist": "Ajouter à la playlist",
+      "added_to_playlist": "Ajouté à la playlist",
+      "add_error": "Erreur lors de l'ajout à la playlist",
+      "remove_from_playlist": "Retirer de la playlist",
+      "removed_from_playlist": "Retiré de la playlist",
+      "remove_error": "Erreur lors du retrait de la playlist",
       "item_count": "Éléments : {count}",
-      "playlist_type": "Type de Playlist",
+      "playlist_type": "Type de playlist",
       "add_to_liked": "Ajouter aux j'aime",
       "remove_from_liked": "Retirer des j'aime",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
@@ -146,25 +148,25 @@
       "clip": "Clip",
       "clips": "Clips",
       "no_clips_found": "Aucun clip trouvé",
-      "create_clip": "Créer un Clip",
-      "edit_clip": "Modifier le Clip",
-      "delete_clip": "Supprimer le Clip",
+      "create_clip": "Créer un clip",
+      "edit_clip": "Modifier le clip",
+      "delete_clip": "Supprimer le clip",
       "delete_clip_confirm": "Êtes-vous sûr de vouloir supprimer ce clip ?",
-      "my_clips": "Mes Clips",
-      "clip_created": "Clip Créé",
-      "clip_updated": "Clip Mis à Jour",
-      "link_to_clip": "Lien vers le Clip",
-      "start_time": "Heure de Début",
+      "my_clips": "Mes clips",
+      "clip_created": "Clip créé",
+      "clip_updated": "Clip mis à jour",
+      "link_to_clip": "Lien vers le clip",
+      "start_time": "Heure de début",
       "start_time_aria": "Heure de début en heures, minutes et secondes (hh:mm:ss)",
       "start_time_play_aria": "Jouer depuis l'heure de début du clip",
-      "end_time": "Heure de Fin",
+      "end_time": "Heure de fin",
       "end_time_aria": "Heure de fin en heures, minutes et secondes (hh:mm:ss)",
       "end_time_play_aria": "Jouer depuis l'heure de fin du clip",
       "clip_time_range": "{hhmmssStart} à {hhmmssEnd}",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
-    "my_clips": "Mes Clips",
-    "my_profile": "Mon Profil",
+    "my_clips": "Mes clips",
+    "my_profile": "Mon profil",
     "profile_login_prompt": "Connectez-vous pour utiliser cette fonctionnalité.",
     "profile": "Profil",
     "profiles": "Profils",
@@ -303,10 +305,10 @@
     "download": {
       "download_episode": "Télécharger l'Épisode",
       "downloading_episode": "Téléchargement de l'Épisode",
-      "episode_downloaded": "Épisode Téléchargé",
+      "episode_downloaded": "Épisode téléchargé",
       "episode_download_error": "Erreur lors du téléchargement de l'Épisode",
-      "download_track": "Télécharger le Piste",
-      "downloading_track": "Téléchargement de la Piste",
+      "download_track": "Télécharger le piste",
+      "downloading_track": "Téléchargement de la piste",
       "track_downloaded": "Piste téléchargée",
       "track_download_error": "Erreur de téléchargement de la piste"
     },
@@ -365,6 +367,9 @@
   "media_player": {
     "play": "Jouer",
     "pause": "Pause",
+    "now_playing_clip": "Lecture de l’extrait",
+    "now_playing_chapter": "Lecture du chapitre",
+    "now_playing_official_clip": "Lecture de l’extrait officiel",
     "no_media": "Aucun média lisible trouvé",
     "livestream_unavailable": "La lecture du flux en direct n'est pas encore disponible",
     "show_fullscreen_media_player": "Afficher le lecteur multimédia en plein écran",
@@ -374,6 +379,8 @@
     "position_of_duration": "{position} sur {duration}",
     "skip_to_next": "Passer au suivant",
     "skip_to_previous": "Passer au précédent",
+    "skip_to_next_hold_hint": "Passer au suivant. Appui long pour passer l'épisode.",
+    "skip_to_previous_hold_hint": "Passer au précédent. Appui long pour passer l'épisode.",
     "jump_back": "Reculer de {seconds} secondes",
     "jump_forward": "Avancer de {seconds} secondes",
     "handoff": {
@@ -467,8 +474,8 @@
       "license_label": "Licence :",
       "node_label": "Nœud :",
       "message_receive": "Le créateur de contenu recevra son message à <link>{domain}</link>.",
-      "terms_message": "<link>Cliquez ici</link> pour consulter leurs Conditions d'utilisation.",
-      "no_terms": "Le créateur de contenu n'a pas fourni de document de Conditions d'utilisation."
+      "terms_message": "<link>Cliquez ici</link> pour consulter leurs conditions d'utilisation.",
+      "no_terms": "Le créateur de contenu n'a pas fourni de document de conditions d'utilisation."
     },
     "boost_messages": {
       "not_enabled": "Les messages boost ne sont pas activés pour ce podcast.",
@@ -634,6 +641,7 @@
     "on": "Activé",
     "off": "Désactivé",
     "available": "Disponible",
+    "not_available_yet": "Pas encore disponible.",
     "title": "Titre",
     "description": "Description",
     "required": "Requis",
@@ -752,7 +760,7 @@
       "unseen_indicator_aria": "Nouveaux épisodes",
       "downloaded_count": "{count} téléchargés"
     },
-    "mark_all_seen": "Tout Marquer Comme Vu",
+    "mark_all_seen": "Tout marquer comme vu",
     "mark_all_seen_done": "Tous les abonnements marqués comme vus"
   },
   "authentication": {
@@ -814,8 +822,8 @@
   },
   "terms_acceptance": {
     "header": "Conditions d'utilisation mises à jour",
-    "message": "Nos Conditions d'utilisation ont changé. Veuillez lire et accepter les conditions mises à jour pour continuer à utiliser votre compte.",
-    "checkbox_label": "J'ai lu et j'accepte les Conditions d'utilisation mises à jour"
+    "message": "Nos conditions d'utilisation ont changé. Veuillez lire et accepter les conditions mises à jour pour continuer à utiliser votre compte.",
+    "checkbox_label": "J'ai lu et j'accepte les conditions d'utilisation mises à jour"
   },
   "membership": {
     "membership": "Abonnement",
@@ -945,9 +953,9 @@
   },
   "layouts": {
     "change_layout_view": "Changer l'affichage",
-    "grid_view": "Vue Grille",
-    "grid_mini_view": "Vue Mini Grille",
-    "list_view": "Vue Liste"
+    "grid_view": "Vue grille",
+    "grid_mini_view": "Vue mini grille",
+    "list_view": "Vue liste"
   },
   "settings": {
     "settings": "Paramètres",
@@ -1010,16 +1018,16 @@
       "web_push": "Notifications du navigateur",
       "web_push_help": "Recevez des notifications du navigateur pour les nouveaux épisodes et pistes des créateurs auxquels vous êtes abonné. Fonctionne dans les navigateurs pris en charge.",
       "unread_count_aria": "{count} notifications non lues",
-      "unified_push": "Push Unifié",
-      "unified_push_help": "Utilisez Push Unifié pour recevoir des notifications via un service de notification compatible (comme ntfy). Nécessite une URL de point de terminaison Push Unifié.",
+      "unified_push": "Push unifié",
+      "unified_push_help": "Utilisez push unifié pour recevoir des notifications via un service de notification compatible (comme ntfy). Nécessite une URL de point de terminaison push unifié.",
       "up_endpoint_label": "URL de point de terminaison",
       "up_endpoint_placeholder": "https://ntfy.sh/votre-sujet",
-      "up_endpoint_info": "Entrez votre URL de point de terminaison Push Unifié. Compatible avec ntfy et d'autres services UP.",
+      "up_endpoint_info": "Entrez votre URL de point de terminaison push unifié. Compatible avec ntfy et d'autres services UP.",
       "up_auth_key_label": "Jeton d'accès (facultatif)",
       "up_auth_key_placeholder": "tk_...",
       "up_auth_key_info": "Requis pour les sujets privés/protégés. Laisser vide pour les sujets publics.",
       "up_current_endpoint": "Point de terminaison actuel :",
-      "up_enable_error": "Échec de l'activation du Push Unifié. Veuillez vérifier votre URL de point de terminaison.",
+      "up_enable_error": "Échec de l'activation du push unifié. Veuillez vérifier votre URL de point de terminaison.",
       "cancel": "Annuler",
       "enable": "Activer",
       "preference_section": "Préférences de notification",
@@ -1150,7 +1158,7 @@
   "disclaimers": {
     "environment_warning": {
       "alpha": {
-        "header": "Avertissement Alpha ⚠️",
+        "header": "Avertissement alpha ⚠️",
         "message": "Ceci est la version alpha du site web. Elle est inachevée, peut contenir des bugs, et vos données alpha peuvent être réinitialisées ou supprimées périodiquement."
       }
     }
@@ -1325,11 +1333,11 @@
         "description": "Découvrez des pistes musicales sur {brand_name}."
       },
       "podcastsLivestreams": {
-        "title": "Livestreams de Podcasts",
+        "title": "Livestreams de podcasts",
         "description": "Regardez des streams de podcasts en direct sur {brand_name}."
       },
       "musicLivestreams": {
-        "title": "Livestreams de Musique",
+        "title": "Livestreams de musique",
         "description": "Regardez des streams de musique en direct sur {brand_name}."
       },
       "playlists": {
@@ -1349,7 +1357,7 @@
         "description": "Parcourez les profils de créateurs publics sur {brand_name}."
       },
       "about": {
-        "title": "À Propos",
+        "title": "À propos",
         "description": "En savoir plus sur {brand_name} et ce que nous construisons."
       },
       "contact": {
@@ -1361,11 +1369,11 @@
         "description": "Lisez les conditions de service de {brand_name}."
       },
       "donate": {
-        "title": "Faire un Don",
+        "title": "Faire un don",
         "description": "Soutenez {brand_name} avec un don direct."
       },
       "mobileApp": {
-        "title": "Application Mobile",
+        "title": "Application mobile",
         "description": "Obtenez l'application mobile {brand_name} sur les plateformes prises en charge."
       },
       "metaboost": {

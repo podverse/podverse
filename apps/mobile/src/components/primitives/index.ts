@@ -16,6 +16,8 @@ export { FillList, isFillListScrollLocked } from './FillList';
 export type { FillListProps } from './FillList';
 export { ListRow } from './ListRow';
 export type { ListRowProps } from './ListRow';
+export { MarqueeText } from './MarqueeText';
+export type { MarqueeTextProps } from './MarqueeText';
 export { MoreMenu } from './MoreMenu';
 export type { MoreMenuItem, MoreMenuProps, MoreMenuSection } from './MoreMenu';
 export { ProgressTrack } from './ProgressTrack';

@@ -27,6 +27,7 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 
 - No `any` types
 - **Shared UI:** Prefer `@podverse/ui` for reusable primitives in web and management-web. When both apps overlap, implement once in `packages/ui` and **prefer the web app’s existing visual baseline** when merging styles unless a11y/product docs say otherwise (see `.cursor/rules/prefer-shared-ui-web-management.mdc`, **`reusable-components`**, and **`ui-component-promotion`** when extracting between apps).
+- **UI copy casing:** All user-facing copy on web, management-web, mobile, and API emails is **sentence case** (`Add feed`, not `Add Feed`); brands, acronyms, and tier names keep their capitals. Standing exceptions (e.g. English mobile bottom tab labels → `My Library`) and Title Case confirmation policy live in `.cursor/rules/ui-copy-sentence-case.mdc`.
 - **Shared logic:** The same habit applies past components. While building a mobile or web feature, look for reuse in **hooks** and **plain functions** too — search for an existing implementation before writing one, and when the logic already exists on the other surface, collapse the two instead of adding a third copy. See **`reuse-beyond-components`**.
 - DTOs from `@podverse/helpers`
 - Follow `tsconfig.base.json`

@@ -6,7 +6,7 @@ import { HelperNote } from '../../components/feedback/HelperNote';
 import { Button } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
-import { usePlayback } from '../../playback/PlaybackProvider';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 
 /**
@@ -16,7 +16,7 @@ import { useTheme } from '../../theme/useTheme';
 export function MoreE2ePlaybackScreen() {
   const { t } = useTranslation();
   const { tokens } = useTheme();
-  const { activeTarget, completeNowPlaying, skipToNext } = usePlayback();
+  const { activeTarget, completeNowPlaying, skipToNext } = usePlaybackSession();
 
   const styles = useMemo(
     () =>

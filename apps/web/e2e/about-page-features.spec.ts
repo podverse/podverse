@@ -19,7 +19,7 @@ test.describe('Web about page membership features', () => {
     await expect(page.getByText('Streaming (Value for Value)', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Coming soon')).toHaveCount(0);
 
-    const trialLimitations = page.getByText('Trial Limitations', { exact: true });
+    const trialLimitations = page.getByText('Trial limitations', { exact: true });
     await expect(trialLimitations).toBeVisible();
 
     const trialSummary = page.getByText(
@@ -47,7 +47,7 @@ test.describe('Web about page membership features', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'Trial Limitations on About expands the same trial limitation list as Membership.',
+      'Trial limitations on About expands the same trial limitation list as Membership.',
       statsBullet
     );
   });

@@ -61,11 +61,11 @@ test.describe('Create admin page for the authenticated superuser', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(ROUTES.ADMINS_NEW);
-    await expect(page.getByRole('heading', { name: 'Create Admin', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create admin', level: 1 })).toBeVisible();
 
     await expect(page.getByText('Permission template')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Select all permissions' })).toBeVisible();
@@ -76,7 +76,7 @@ test.describe('Create admin page for the authenticated superuser', () => {
       page,
       testInfo,
       'The create admin page loads permission templates and bulk shortcut buttons.',
-      page.getByRole('heading', { name: 'Create Admin', level: 1 })
+      page.getByRole('heading', { name: 'Create admin', level: 1 })
     );
   });
 });

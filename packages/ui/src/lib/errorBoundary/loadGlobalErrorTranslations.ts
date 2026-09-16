@@ -11,7 +11,7 @@ export type LoadGlobalErrorTranslationsArgs = {
 
 /** Ultimate fallback when locale JSON imports fail (e.g. offline). Apps may reuse for `useState` initial value. */
 export const DEFAULT_GLOBAL_ERROR_FALLBACK_ERRORS: Record<string, string> = {
-  global_title: 'Application Error',
+  global_title: 'Application error',
   global_message: 'A critical error occurred. Please refresh the page.',
   details_development_only: 'Error details (development only)',
 };

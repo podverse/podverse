@@ -16,13 +16,14 @@ export type HeaderBarChromeProps = {
   onBack?: () => void;
   right?: ReactNode;
   testID?: string;
-  title: string;
+  title?: string;
 };
 
 /**
- * Shared title row: optional back, centered title, optional trailing action. Stack headers and
- * full-screen overlays (image viewer, login/signup) use this instead of each inventing a
- * right-slot Pressable. Pass `backIcon` when the leading control is not a back chevron.
+ * Shared title row: optional back, optional centered title, optional trailing action. Stack
+ * headers and full-screen overlays (image viewer, login/signup, full player) use this instead of
+ * each inventing a right-slot Pressable. Omit `title` when the leading/trailing actions are the
+ * whole bar. Pass `backIcon` when the leading control is not a back chevron.
  */
 export function HeaderBarChrome({
   backAccessibilityLabel,
@@ -73,7 +74,7 @@ export function HeaderBarChrome({
         {onBack !== undefined ? (
           <View style={styles.left}>
             <HeaderBarAction
-              accessibilityLabel={backAccessibilityLabel ?? title}
+              accessibilityLabel={backAccessibilityLabel ?? title ?? ''}
               icon={backIcon}
               iconSize={28}
               onPress={onBack}
@@ -81,9 +82,11 @@ export function HeaderBarChrome({
             />
           </View>
         ) : null}
-        <Text numberOfLines={1} style={styles.title}>
-          {title}
-        </Text>
+        {title !== undefined && title.length > 0 ? (
+          <Text numberOfLines={1} style={styles.title}>
+            {title}
+          </Text>
+        ) : null}
         {right !== undefined ? <View style={styles.right}>{right}</View> : null}
       </View>
     </HeaderBar>

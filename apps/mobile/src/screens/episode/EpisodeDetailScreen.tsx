@@ -29,7 +29,6 @@ import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindo
 import { downloadsRepository } from '../../data/repositories/downloadsRepository';
 import { playbackContentRepository } from '../../data/repositories/playbackContentRepository';
 import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
-import { emptyIfNotFound } from '../../lib/apiErrorStatus';
 import { shouldReplaceCachedValue } from '../../lib/cachedValue';
 import {
   isEpisodeTabNetworkBody,
@@ -42,16 +41,9 @@ import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowP
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { buildPodcastDetailParams, CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
-import { usePlayback } from '../../playback/PlaybackProvider';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import type { EpisodeClipSort, EpisodeTab } from '../../prefs/detailListPrefs';
-import {
-  DEFAULT_EPISODE_CLIP_SORT,
-  DEFAULT_EPISODE_TAB,
-  EPISODE_CLIP_SORT_OPTIONS,
-  readEpisodeDetailPrefs,
-  writeEpisodeDetailClipSort,
-  writeEpisodeDetailTab,
-} from '../../prefs/detailListPrefs';
+import { EPISODE_CLIP_SORT_OPTIONS } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
@@ -61,9 +53,9 @@ import { mapItemToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
-import { sectionResponseHasMore } from '../podcast/sections/usePodcastSectionRows';
 import { EpisodePlayChrome } from './EpisodePlayChrome';
-import { EPISODE_TAB_LABEL_KEYS, itemSectionFlagsFromDto, resolveEpisodeTabs } from './episodeTabs';
+import { EPISODE_TAB_LABEL_KEYS, itemSectionFlagsFromDto } from './episodeTabs';
+import { useEpisodeSectionPanes } from './useEpisodeSectionPanes';
 
 type EpisodeDetailScreenProps = NativeStackScreenProps<
   ChannelBrowseStackParamList,
@@ -79,16 +71,6 @@ const CLIP_SORT_LABEL_KEYS: Record<EpisodeClipSort, string> = {
   oldest: 'filters.sort.oldest',
   recent: 'filters.sort.recent',
 };
-
-const EMPTY_CLIPS: DTOClip[] = [];
-const EMPTY_SOUNDBITES: DTOItemSoundbite[] = [];
-const EMPTY_CHAPTERS: DTOItemChapter[] = [];
-const EMPTY_CLIP_PAGE = {
-  data: EMPTY_CLIPS,
-  meta: { count: 0, limit: 0, page: 1 },
-};
-const EMPTY_SOUNDBITE_PAGE = { data: EMPTY_SOUNDBITES };
-const EMPTY_CHAPTER_PAGE = { data: EMPTY_CHAPTERS };
 
 const toSoundbiteRow = (
   soundbite: DTOItemSoundbite,
@@ -122,7 +104,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
   const { episodeId } = route.params;
   const listRef = useRef<FlatList<EpisodePaneRow>>(null);
-  const clipPageRef = useRef(0);
   const [previewFlags, setPreviewFlags] = useState<ItemSectionChromeFlags | null>(() =>
     getCachedItemSectionFlags(episodeId)
   );
@@ -131,27 +112,10 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const [channelTitle, setChannelTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<EpisodeTab>(DEFAULT_EPISODE_TAB);
-  const [clipSort, setClipSort] = useState<EpisodeClipSort>(DEFAULT_EPISODE_CLIP_SORT);
-  const [isTabLoading, setIsTabLoading] = useState<boolean>(false);
-  const [isLoadingMoreClips, setIsLoadingMoreClips] = useState<boolean>(false);
-  const [clipHasMore, setClipHasMore] = useState<boolean>(false);
-  const [tabErrorKey, setTabErrorKey] = useState<string | null>(null);
-  const [chapterRows, setChapterRows] = useState<DTOItemChapter[]>([]);
-  const [soundbiteRows, setSoundbiteRows] = useState<DTOItemSoundbite[]>([]);
-  const [clipRows, setClipRows] = useState<DTOClip[]>([]);
-  const [transcriptText, setTranscriptText] = useState<string>('');
-  const [loadedTabs, setLoadedTabs] = useState<Record<EpisodeTab, boolean>>({
-    chapters: false,
-    clips: false,
-    soundbites: false,
-    summary: true,
-    transcript: false,
-  });
   const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
   const { playbackNoticeKey, runMarkAsPlayedAction, runPlayAction, runQueueAction } =
     useHomeRowPlayback();
-  const { playSoundbite } = usePlayback();
+  const { playSoundbite } = usePlaybackSession();
 
   const styles = useMemo(
     () =>
@@ -356,246 +320,33 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     });
   }, [handleShare, navigation, styles.headerActions, t]);
 
-  const supportedTabs = useMemo(
-    () => resolveEpisodeTabs({ episode, previewFlags }),
-    [episode, previewFlags]
-  );
-
-  /**
-   * A remembered tab still has to exist on this episode — one with no transcript cannot open on
-   * one. The stored preference is left alone, so the tab comes back if the episode later gains it.
-   *
-   * Held until the episode has loaded, because until then every tab looks unsupported and a
-   * restored choice would be thrown away before the screen could honour it.
-   */
-  useEffect(() => {
-    if (episode === null) {
-      return;
-    }
-    if (!supportedTabs.some((tabId) => tabId === activeTab)) {
-      setActiveTab(DEFAULT_EPISODE_TAB);
-    }
-  }, [activeTab, episode, supportedTabs]);
-
-  /**
-   * Restored before any tab request goes out: the tab decides which one the screen makes, so
-   * applying it afterwards would mean fetching Summary's pane and then immediately fetching
-   * another.
-   */
-  useEffect(() => {
-    let isMounted = true;
-
-    void (async () => {
-      const stored = await readEpisodeDetailPrefs(episodeId);
-      if (!isMounted) {
-        return;
-      }
-      setActiveTab(stored.tab);
-      setClipSort(stored.clipSort);
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [episodeId]);
-
-  const loadTab = useCallback(
-    async (tab: EpisodeTab) => {
-      if (tab === 'summary' || loadedTabs[tab]) {
-        return;
-      }
-
-      if (offlineModeEnabled) {
-        if (tab === 'soundbites' && episode !== null && episode.item_soundbites.length > 0) {
-          setSoundbiteRows(episode.item_soundbites);
-          setLoadedTabs((previous) => ({
-            ...previous,
-            soundbites: true,
-          }));
-        }
-        return;
-      }
-
-      setIsTabLoading(true);
-      setTabErrorKey(null);
-      try {
-        if (tab === 'chapters') {
-          const response = await emptyIfNotFound(
-            async () =>
-              requestWithMobileAuthRefresh(
-                {
-                  accessToken,
-                  clearSession,
-                  refreshToken,
-                  setTokens,
-                },
-                async (api) => api.reqItemParseAndGetChapters(episodeId)
-              ),
-            EMPTY_CHAPTER_PAGE
-          );
-          const chapters = Array.isArray(response.data) ? response.data : EMPTY_CHAPTERS;
-          setChapterRows(chapters.filter((chapter) => chapter.table_of_contents !== false));
-        } else if (tab === 'soundbites') {
-          const response = await emptyIfNotFound(
-            async () =>
-              requestWithMobileAuthRefresh(
-                {
-                  accessToken,
-                  clearSession,
-                  refreshToken,
-                  setTokens,
-                },
-                async (api) =>
-                  api.reqItemSoundbiteGetManyByItemIdText(episodeId, {
-                    page: 1,
-                    sort: 'recent',
-                  })
-              ),
-            EMPTY_SOUNDBITE_PAGE
-          );
-          setSoundbiteRows(response.data);
-        } else if (tab === 'clips') {
-          const { clipSort: storedClipSort } = await readEpisodeDetailPrefs(episodeId);
-          const response = await emptyIfNotFound(
-            async () =>
-              requestWithMobileAuthRefresh(
-                {
-                  accessToken,
-                  clearSession,
-                  refreshToken,
-                  setTokens,
-                },
-                async (api) =>
-                  api.reqClipGetManyByItemPublic({
-                    idOrIdText: episodeId,
-                    page: 1,
-                    range: null,
-                    sort: storedClipSort,
-                  })
-              ),
-            EMPTY_CLIP_PAGE
-          );
-          clipPageRef.current = 1;
-          setClipRows(response.data);
-          setClipHasMore(sectionResponseHasMore(response.meta, response.data.length));
-        } else if (tab === 'transcript') {
-          const response = await emptyIfNotFound(
-            async () =>
-              requestWithMobileAuthRefresh(
-                {
-                  accessToken,
-                  clearSession,
-                  refreshToken,
-                  setTokens,
-                },
-                async (api) => api.reqItemTranscriptGet(episodeId)
-              ),
-            { data: '' }
-          );
-          setTranscriptText(response.data ?? '');
-        }
-
-        setLoadedTabs((previous) => ({
-          ...previous,
-          [tab]: true,
-        }));
-      } catch {
-        setTabErrorKey('errors.generic');
-      } finally {
-        setIsTabLoading(false);
-      }
-    },
-    [
-      accessToken,
-      clearSession,
-      episode,
-      episodeId,
-      loadedTabs,
-      offlineModeEnabled,
-      refreshToken,
-      setTokens,
-    ]
-  );
-
-  useEffect(() => {
-    if (activeTab === 'summary') {
-      return;
-    }
-
-    void loadTab(activeTab);
-  }, [activeTab, loadTab]);
-
-  const handleTabPress = useCallback(
-    (tab: EpisodeTab) => {
-      setActiveTab(tab);
-      void writeEpisodeDetailTab(episodeId, tab);
-    },
-    [episodeId]
-  );
+  const {
+    activeTab,
+    chapterRows,
+    clipHasMore,
+    clipRows,
+    clipSort,
+    isLoadingMoreClips,
+    isPrefsHydrated,
+    isTabLoading,
+    loadMoreClips: handleLoadMoreClips,
+    loadTab,
+    selectClipSort: handleClipSortSelect,
+    selectTab: handleTabPress,
+    soundbiteRows,
+    supportedTabs,
+    tabErrorKey,
+    transcriptText,
+  } = useEpisodeSectionPanes({
+    episode,
+    itemIdText: episodeId,
+    offlineModeEnabled,
+    previewFlags,
+  });
 
   useEffect(() => {
     listRef.current?.scrollToOffset({ animated: false, offset: 0 });
   }, [activeTab]);
-
-  const handleClipSortSelect = useCallback(
-    (sort: EpisodeClipSort) => {
-      setClipSort(sort);
-      void (async () => {
-        await writeEpisodeDetailClipSort(episodeId, sort);
-        setClipRows([]);
-        setClipHasMore(false);
-        setLoadedTabs((previous) => ({ ...previous, clips: false }));
-      })();
-    },
-    [episodeId]
-  );
-
-  const handleLoadMoreClips = useCallback(async () => {
-    if (isLoadingMoreClips || !clipHasMore || offlineModeEnabled) {
-      return;
-    }
-
-    setIsLoadingMoreClips(true);
-    try {
-      const nextPage = clipPageRef.current + 1;
-      const { clipSort: storedClipSort } = await readEpisodeDetailPrefs(episodeId);
-      const response = await emptyIfNotFound(
-        async () =>
-          requestWithMobileAuthRefresh(
-            {
-              accessToken,
-              clearSession,
-              refreshToken,
-              setTokens,
-            },
-            async (api) =>
-              api.reqClipGetManyByItemPublic({
-                idOrIdText: episodeId,
-                page: nextPage,
-                range: null,
-                sort: storedClipSort,
-              })
-          ),
-        { ...EMPTY_CLIP_PAGE, meta: { ...EMPTY_CLIP_PAGE.meta, page: nextPage } }
-      );
-      clipPageRef.current = nextPage;
-      setClipRows((current) => [...current, ...response.data]);
-      setClipHasMore(sectionResponseHasMore(response.meta, response.data.length));
-    } catch {
-      setTabErrorKey('errors.generic');
-    } finally {
-      setIsLoadingMoreClips(false);
-    }
-  }, [
-    accessToken,
-    clearSession,
-    clipHasMore,
-    episodeId,
-    isLoadingMoreClips,
-    offlineModeEnabled,
-    refreshToken,
-    setTokens,
-  ]);
 
   const clipSortOptions = useMemo<MenuSelectChipOption<EpisodeClipSort>[]>(() => {
     return EPISODE_CLIP_SORT_OPTIONS.map((option) => ({
@@ -887,7 +638,10 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
           testID="episode-detail-error"
         />
       ) : null}
-      {!isLoading && errorKey === null && episode !== null ? (
+      {!isLoading && errorKey === null && episode !== null && !isPrefsHydrated ? (
+        <LoadingSection testID="episode-detail-tab-prefs-loading" />
+      ) : null}
+      {!isLoading && errorKey === null && episode !== null && isPrefsHydrated ? (
         <FillList
           ListEmptyComponent={null}
           ListFooterComponent={paneFooter}

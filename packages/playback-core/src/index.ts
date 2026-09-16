@@ -26,6 +26,12 @@ export {
   type StageEnclosureSwitchFromSelectionParams,
 } from './stageEnclosureSwitchFromSelection.js';
 export { resolveResumeAtSecondsForEnclosureSwitch } from './resolveResumeAtSecondsForEnclosureSwitch.js';
+export {
+  hasChapterStartAtOrBeforeZero,
+  selectItemChapterForTime,
+  shouldSuppressChapterSelectionAtTime,
+} from './selectItemChapterForTime.js';
+export { getChapterAtPercent, getChapterBoundaryRatios } from './chapterProgressMarkers.js';
 export type { PlaybackLoadRequest } from './playbackLoadRequest.js';
 export {
   playbackTargetFromStandardLoad,

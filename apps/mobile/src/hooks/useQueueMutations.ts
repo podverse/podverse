@@ -24,11 +24,11 @@ const mediumIdForMutation = (
 };
 
 /**
- * Queue mutation hook (add next/last, mark played, move now-playing to history). Resolves the
+ * Queue mutation hook (add next/last, mark played state, move now-playing to history). Resolves the
  * target queue by medium via `getQueueForMedium` from the store, delegates the write to
  * `queueRepository` (which force-refreshes SQLite + projects the native cache), then refreshes the
- * store through the load-active hook. Screens call this — never `req*` directly. Anonymous callers are no-ops because
- * server-backed queues require authentication.
+ * store through the load-active hook. Screens call this — never `req*` directly. Anonymous callers
+ * are no-ops because server-backed queues require authentication.
  */
 export function useQueueMutations() {
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
@@ -90,7 +90,8 @@ export function useQueueMutations() {
     async (
       idText: string,
       kind: QueueMutationKind,
-      mediaType: QueueMutationMediaType
+      mediaType: QueueMutationMediaType,
+      completed = true
     ): Promise<boolean> => {
       if (status !== 'authenticated') {
         return false;
@@ -102,7 +103,11 @@ export function useQueueMutations() {
         return false;
       }
 
-      await queueRepository.markAsPlayed(buildContext(), queue.id_text, { idText, kind });
+      await queueRepository.markAsPlayed(buildContext(), queue.id_text, {
+        completed,
+        idText,
+        kind,
+      });
       await loadActive(mediumId);
       return true;
     },

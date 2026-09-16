@@ -211,6 +211,8 @@ npm run mobile:e2e:test -- --platform ios opml
 npm run mobile:e2e:test -- --platform ios play-mini-player
 npm run mobile:e2e:test -- --platform ios playback-multi-device-handoff
 npm run mobile:e2e:test -- --platform ios playback-offline-reconciliation
+npm run mobile:e2e:test -- --platform ios playback-resume-on-relaunch
+npm run mobile:e2e:test -- --platform ios player-screen
 npm run mobile:e2e:test -- --platform ios podcast-episode
 npm run mobile:e2e:test -- --platform ios popularity-tracking
 npm run mobile:e2e:test -- --platform ios push
@@ -250,6 +252,8 @@ npm run mobile:e2e:test -- --platform android opml
 npm run mobile:e2e:test -- --platform android play-mini-player
 npm run mobile:e2e:test -- --platform android playback-multi-device-handoff
 npm run mobile:e2e:test -- --platform android playback-offline-reconciliation
+npm run mobile:e2e:test -- --platform android playback-resume-on-relaunch
+npm run mobile:e2e:test -- --platform android player-screen
 npm run mobile:e2e:test -- --platform android podcast-episode
 npm run mobile:e2e:test -- --platform android popularity-tracking
 npm run mobile:e2e:test -- --platform android push
@@ -362,6 +366,7 @@ npm run mobile:e2e:test -- notifications-inbox
 npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml
 npm run mobile:e2e:test -- playback-multi-device-handoff
+npm run mobile:e2e:test -- player-screen
 npm run mobile:e2e:test -- podcast-episode
 npm run mobile:e2e:test -- popularity-tracking
 npm run mobile:e2e:test -- push
@@ -395,6 +400,8 @@ npm run mobile:e2e:test -- engine-audio-spike
 npm run mobile:e2e:test -- library-downloads
 npm run mobile:e2e:test -- play-mini-player
 npm run mobile:e2e:test -- playback-offline-reconciliation
+npm run mobile:e2e:test -- playback-resume-on-relaunch
+npm run mobile:e2e:test -- player-screen
 npm run mobile:e2e:test -- tab-switch-playback
 npm run mobile:e2e:test -- v4v
 npm run mobile:e2e:test -- video-transition
@@ -475,7 +482,7 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | App not installed on E2E iOS                                                               | **Mobile iOS**: `npm run mobile:e2e:ios`                                                                                                                                                                                                                 |
 | App not installed on E2E Android                                                           | **Mobile Android**: `npm run mobile:e2e:android`                                                                                                                                                                                                         |
 | App not installed on E2E iOS / Android tablet                                              | **Mobile iOS** / **Mobile Android**: `npm run mobile:e2e:ios:tablet` / `npm run mobile:e2e:android:tablet`                                                                                                                                               |
-| `full-player-two-column` missing on tablet flow                                            | Flow sets landscape; ensure tablet device is wide enough (`iPad Pro 13-inch (M4) E2E` / `Pixel_Tablet_API_33_e2e`). Re-run `ensure-devices.sh e2e-tablet`                                                                                                |
+| `full-player-title` missing on tablet flow                                                 | Flow sets landscape; ensure tablet device is wide enough (`iPad Pro 13-inch (M4) E2E` / `Pixel_Tablet_API_33_e2e`). Re-run `ensure-devices.sh e2e-tablet`                                                                                                |
 | API-backed flow cannot reach API (`:4230`)                                                 | **Mobile E2E API**: `npm run mobile:e2e:api:bg`; then in **Mobile** `npm run mobile:e2e:api:health`                                                                                                                                                      |
 | Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api:bg` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                       |
 | Runner exits: playback flows need tools/test-assets on :2111                               | **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets`; health: `npm run mobile:e2e:test-assets:health`                                                                                                                                            |

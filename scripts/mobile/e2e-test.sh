@@ -41,7 +41,8 @@ flow_needs_e2e_api() {
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | browse | deep-link | \
   detail-sort-prefs | engine-audio-spike | home | library-downloads | library-playlists | \
   membership-gate | notifications-inbox | offline-mode | opml | play-mini-player | \
-  playback-multi-device-handoff | playback-offline-reconciliation | podcast-episode | \
+  playback-multi-device-handoff | playback-offline-reconciliation | playback-resume-on-relaunch | \
+  player-screen | podcast-episode | \
   popularity-tracking | push | queue-add | search | search-unparsed | settings-downloads | \
   subscriptions-anonymous | tab-switch-playback | tablet | v4v | video-transition)
     return 0
@@ -68,7 +69,8 @@ flow_needs_tablet() {
 flow_needs_test_assets() {
   case "$1" in
   add-by-rss | auto-queue-advance | engine-audio-spike | library-downloads | play-mini-player | \
-  playback-offline-reconciliation | tab-switch-playback | tablet | v4v | video-transition)
+  playback-offline-reconciliation | playback-resume-on-relaunch | player-screen | \
+  tab-switch-playback | tablet | v4v | video-transition)
     return 0
     ;;
   *)

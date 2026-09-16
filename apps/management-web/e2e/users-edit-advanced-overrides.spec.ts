@@ -74,12 +74,12 @@ test.describe('Management-web user edit advanced overrides', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(buildUserEditPath('9001', 'profile'));
 
-    await expect(page.getByRole('heading', { name: 'Edit User', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Edit user', level: 1 })).toBeVisible();
     await page.getByRole('checkbox', { name: 'Configure advanced feature overrides' }).check();
 
     await expect(page.locator('#edit-user-add-by-rss-value')).toHaveText('Default (Block)');
