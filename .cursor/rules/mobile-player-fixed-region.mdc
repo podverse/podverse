@@ -51,7 +51,9 @@ chips and pane content below it change.
   `0`.
 - New player controls open sheets. Do not expand controls inline inside the fixed region.
 - If a new control needs persistent space, reserve a fixed-height band for it in layout math.
-- Sticky chips and the condensed bar belong to the scroll shell, not inside pane content.
+- Sticky chips and the condensed bar belong to the scroll shell, not inside pane content. A chip
+  tap selects the pane and scrolls the list to the player-region height so the chips stick under
+  the condensed bar. The strip is navigation, not a teaser.
 - Video renders inside the measured artwork square and letterboxes when aspect ratios differ.
 - Playhead UI lives in leaf components that read `playbackProgressStore`; the fixed-region shell
   uses `usePlaybackSession()` only.

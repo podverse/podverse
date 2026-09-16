@@ -158,7 +158,9 @@ short viewports and large OS text sizes shrink the square instead of moving the 
 - Jump back/forward use circular rotate glyphs (`FontAwesome6` `rotate-left` /
   `rotate-right`), matching web's `FaRotateLeft` / `FaRotateRight`.
 - Pane loading and chip visibility come from `useEpisodeSectionPanes` so episode detail and full
-  player stay in lockstep on Summary, Clips, Chapters, Official clips, and Transcript.
+  player stay in lockstep on Summary, Clips, Chapters, Official clips, and Transcript. A chip tap
+  on the full player also scrolls to the section header (`handleSelectTab`) so the chosen pane
+  comes on screen and the chips stick under the condensed bar.
 - Sleep timer, playback speed, up next, and More actions open sheets (`MoreMenu` surfaces), not
   inline expansion.
 

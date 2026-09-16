@@ -135,6 +135,16 @@ const scrollSectionListToTop = (list: ScrollableSectionList | null): void => {
   list?.getScrollResponder()?.scrollTo({ animated: false, y: 0 });
 };
 
+const scrollSectionListToChips = (
+  list: ScrollableSectionList | null,
+  playerRegionHeight: number
+): void => {
+  if (playerRegionHeight <= 0) {
+    return;
+  }
+  list?.getScrollResponder()?.scrollTo({ animated: true, y: playerRegionHeight });
+};
+
 const toSoundbiteRow = (
   soundbite: DTOItemSoundbite,
   index: number,
@@ -657,6 +667,14 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     setChipStripHeight((current) => (Math.abs(current - height) < 1 ? current : height));
   }, []);
 
+  const handleSelectTab = useCallback(
+    (tab: EpisodeTab) => {
+      selectTab(tab);
+      scrollSectionListToChips(sectionListRef.current, layout.playerRegionHeight);
+    },
+    [layout.playerRegionHeight, selectTab]
+  );
+
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!hasSections) {
       return;
@@ -1041,7 +1059,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
                   />
                 ) : undefined
               }
-              onSelect={selectTab}
+              onSelect={handleSelectTab}
               selectedKey={activeTab}
               testID="full-player-sections"
             />
@@ -1054,6 +1072,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     clipSort,
     clipSortOptions,
     handleChipStripLayout,
+    handleSelectTab,
     handlePause,
     handlePlay,
     handleRetry,
@@ -1063,7 +1082,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     nowPlaying,
     sectionChips,
     selectClipSort,
-    selectTab,
     styles.chipHeader,
     styles.chipRowSlot,
     styles.column,
