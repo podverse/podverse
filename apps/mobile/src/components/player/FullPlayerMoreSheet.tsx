@@ -33,7 +33,7 @@ export function FullPlayerMoreSheet({
             ? [
                 {
                   key: 'subscription',
-                  label: isSubscribed ? t('episode.unsubscribe') : t('episode.subscribe'),
+                  label: isSubscribed ? t('features.unsubscribe') : t('features.subscribe'),
                   onPress: onToggleSubscription,
                   testID: 'full-player-more-subscription',
                 },
