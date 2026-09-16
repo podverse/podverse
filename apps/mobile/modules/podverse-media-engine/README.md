@@ -169,7 +169,7 @@ player instance.
 | `play()`               | —                                              | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.                                         |
 | `pause()`              | —                                              | `void`            | Keeps current item and position.                                                                                         |
 | `seek(seconds)`        | `number` (seconds)                             | `void`            | Absolute seek. Clamping owned by native.                                                                                 |
-| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                   | `void`            | Sets playback rate.                                                                                                      |
+| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                   | `void`            | Sets playback rate. Must not start playback while paused (iOS `AVPlayer.rate` would otherwise auto-play).                |
 | `getPosition()`        | —                                              | `Promise<number>` | Current playhead in seconds.                                                                                             |
 | `getDuration()`        | —                                              | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                                                              |
 | `destroy()`            | —                                              | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native.                                  |

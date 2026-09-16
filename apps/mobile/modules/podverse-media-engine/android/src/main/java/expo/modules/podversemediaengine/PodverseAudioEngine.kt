@@ -233,7 +233,16 @@ object PodverseAudioEngine {
             publish(PlaybackState.LOADING)
           }
         }
-        Player.STATE_READY -> publish(PlaybackState.READY)
+        Player.STATE_READY -> {
+          publish(PlaybackState.READY)
+          // One progress sample when the item is prepared so JS gets duration before play starts.
+          emit(
+            "progress",
+            mapOf(
+              "positionSeconds" to getPositionUnsafe(),
+              "durationSeconds" to getDurationUnsafe(),
+            ))
+        }
         Player.STATE_ENDED -> {
           publish(PlaybackState.ENDED)
           emit("ended", mapOf("positionSeconds" to getPositionUnsafe()))

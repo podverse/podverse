@@ -3,10 +3,13 @@ import { describe, expect, it } from 'vitest';
 import {
   FULL_PLAYER_ARTWORK_MAX_PHONE,
   FULL_PLAYER_ARTWORK_MAX_TABLET,
-  FULL_PLAYER_ARTWORK_MIN_SIZE,
+  FULL_PLAYER_CHIP_HEADER_HEIGHT,
   FULL_PLAYER_CONDENSE_ENTER_RATIO,
   FULL_PLAYER_CONDENSE_EXIT_RATIO,
+  FULL_PLAYER_CONTROL_STACK_GAP,
+  FULL_PLAYER_CONTROL_STACK_GAP_COUNT,
   FULL_PLAYER_PROGRESS_BLOCK_HEIGHT,
+  FULL_PLAYER_REGION_BOTTOM_PADDING,
   FULL_PLAYER_REGION_GAP,
   FULL_PLAYER_REGION_GAP_COUNT,
   FULL_PLAYER_REGION_TOP_PADDING,
@@ -29,9 +32,11 @@ const phoneInput = {
 };
 
 describe('full player band constants', () => {
-  it('merges title and channel into one band with five region gaps', () => {
+  it('merges title and channel into one band with default and control-stack seams', () => {
     expect(FULL_PLAYER_TITLE_BLOCK_HEIGHT).toBe(48);
-    expect(FULL_PLAYER_REGION_GAP_COUNT).toBe(5);
+    expect(FULL_PLAYER_REGION_GAP_COUNT).toBe(3);
+    expect(FULL_PLAYER_CONTROL_STACK_GAP_COUNT).toBe(2);
+    expect(FULL_PLAYER_CONTROL_STACK_GAP).toBe(8);
     expect(FULL_PLAYER_PROGRESS_BLOCK_HEIGHT).toBe(52);
   });
 });
@@ -45,16 +50,18 @@ describe('resolveFullPlayerLayout', () => {
     expect(layout.artworkSize).toBeLessThanOrEqual(FULL_PLAYER_ARTWORK_MAX_PHONE);
   });
 
-  it('reserves the segment band whether or not a chapter or clip is playing', () => {
+  it('reserves the segment band and control-stack gaps whether or not a chapter is playing', () => {
     const layout = resolveFullPlayerLayout(phoneInput);
     const reservedChrome =
       FULL_PLAYER_REGION_TOP_PADDING +
+      FULL_PLAYER_REGION_BOTTOM_PADDING +
       FULL_PLAYER_SEGMENT_BAND_HEIGHT +
       FULL_PLAYER_TITLE_BLOCK_HEIGHT +
       FULL_PLAYER_PROGRESS_BLOCK_HEIGHT +
       FULL_PLAYER_TRANSPORT_ROW_HEIGHT +
       FULL_PLAYER_UTILITY_ROW_HEIGHT +
-      FULL_PLAYER_REGION_GAP * FULL_PLAYER_REGION_GAP_COUNT;
+      FULL_PLAYER_REGION_GAP * FULL_PLAYER_REGION_GAP_COUNT +
+      FULL_PLAYER_CONTROL_STACK_GAP * FULL_PLAYER_CONTROL_STACK_GAP_COUNT;
     expect(layout.playerRegionHeight - layout.viewerHeight).toBe(reservedChrome);
   });
 
@@ -71,7 +78,7 @@ describe('resolveFullPlayerLayout', () => {
     expect(layout.artworkSize).toBe(FULL_PLAYER_ARTWORK_MAX_TABLET);
   });
 
-  it('keeps fixed bands and floors artwork on short viewports', () => {
+  it('gives up artwork rather than the chip strip on short viewports', () => {
     const layout = resolveFullPlayerLayout({
       ...phoneInput,
       maxContentWidth: 480,
@@ -80,9 +87,26 @@ describe('resolveFullPlayerLayout', () => {
       viewportHeight: 280,
       viewportWidth: 480,
     });
-    expect(layout.playerRegionHeight).toBeGreaterThan(0);
-    expect(layout.viewerHeight).toBeGreaterThanOrEqual(FULL_PLAYER_ARTWORK_MIN_SIZE);
-    expect(layout.artworkSize).toBe(FULL_PLAYER_ARTWORK_MIN_SIZE);
+    expect(layout.peekHeight).toBe(FULL_PLAYER_CHIP_HEADER_HEIGHT);
+    expect(layout.playerRegionHeight).toBe(280 - FULL_PLAYER_CHIP_HEADER_HEIGHT);
+    expect(layout.artworkSize).toBeLessThan(resolveFullPlayerLayout(phoneInput).artworkSize);
+  });
+
+  it('peeks the chip strip plus the bottom safe area so pane content stays off-screen', () => {
+    const layout = resolveFullPlayerLayout(phoneInput);
+    expect(layout.peekHeight).toBe(FULL_PLAYER_CHIP_HEADER_HEIGHT + phoneInput.safeAreaBottom);
+  });
+
+  it('reserves a measured chip strip taller than the default-text-size constant', () => {
+    const chipStripHeight = FULL_PLAYER_CHIP_HEADER_HEIGHT + 30;
+    const layout = resolveFullPlayerLayout({ ...phoneInput, chipStripHeight });
+    expect(layout.peekHeight).toBe(chipStripHeight + phoneInput.safeAreaBottom);
+    expect(layout.artworkSize).toBeLessThan(resolveFullPlayerLayout(phoneInput).artworkSize);
+  });
+
+  it('ignores a measured chip strip shorter than the constant', () => {
+    const layout = resolveFullPlayerLayout({ ...phoneInput, chipStripHeight: 10 });
+    expect(layout.peekHeight).toBe(FULL_PLAYER_CHIP_HEADER_HEIGHT + phoneInput.safeAreaBottom);
   });
 
   it('collapses peek height when there are no sections', () => {

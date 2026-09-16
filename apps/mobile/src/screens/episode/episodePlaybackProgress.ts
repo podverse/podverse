@@ -1,5 +1,7 @@
 import { clampRatio } from '@podverse/helpers/math';
 
+import { parsePlaybackSeconds } from '../../lib/playback/mediaFileDurationHint';
+
 export type EpisodePlaybackProgress = {
   durationSeconds: number;
   positionSeconds: number;
@@ -7,18 +9,7 @@ export type EpisodePlaybackProgress = {
 
 export type EpisodeProgressTimeKind = 'remaining' | 'last' | 'duration' | 'none';
 
-export const parsePlaybackSeconds = (value: string | number | null | undefined): number => {
-  if (value === null || value === undefined || value === '') {
-    return 0;
-  }
-
-  const parsed = typeof value === 'number' ? value : Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return 0;
-  }
-
-  return parsed;
-};
+export { parsePlaybackSeconds };
 
 /**
  * Prefer live engine ticks while this episode is now-playing. Otherwise use the last stored

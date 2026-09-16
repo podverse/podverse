@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   getPlaybackPositionClockSeconds,
@@ -6,6 +6,7 @@ import {
   getPlaybackProgressSnapshot,
   resetPlaybackProgress,
   setPlaybackProgress,
+  setPlaybackProgressPlaying,
   subscribePlaybackPositionClock,
 } from './playbackProgressStore';
 
@@ -33,5 +34,21 @@ describe('playbackProgressStore', () => {
     setPlaybackProgress({ durationSeconds: 60, positionSeconds: 2.0 });
     expect(clockTicks).toBe(2);
     unsubscribe();
+  });
+
+  it('advances the playhead once per second while playing even without native samples', () => {
+    resetPlaybackProgress();
+    vi.useFakeTimers();
+    setPlaybackProgress({ durationSeconds: 120, positionSeconds: 10 });
+    setPlaybackProgressPlaying(true);
+    vi.advanceTimersByTime(1000);
+    expect(getPlaybackPositionClockSeconds()).toBe(11);
+    expect(getPlaybackProgressSnapshot().positionSeconds).toBeGreaterThan(10);
+    setPlaybackProgressPlaying(false);
+    const paused = getPlaybackProgressSnapshot().positionSeconds;
+    vi.advanceTimersByTime(2000);
+    expect(getPlaybackProgressSnapshot().positionSeconds).toBe(paused);
+    vi.useRealTimers();
+    resetPlaybackProgress();
   });
 });

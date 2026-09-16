@@ -61,6 +61,8 @@ export function useMediaPlayerResourceUpdate() {
         await nativePlaybackBridge.loadAndStart(source);
       } else {
         await nativePlaybackBridge.load(source);
+        // Restore / prepare-without-play: keep the item loaded and the rate armed, but never start.
+        nativePlaybackBridge.pause();
       }
       nativePlaybackBridge.setRate(playbackRate);
       return decision;

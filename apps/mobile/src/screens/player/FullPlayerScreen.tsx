@@ -73,6 +73,7 @@ import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
 import type { EpisodeClipSort, EpisodeTab } from '../../prefs/detailListPrefs';
 import { EPISODE_CLIP_SORT_OPTIONS } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
+import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { EPISODE_TAB_LABEL_KEYS, itemSectionFlagsFromDto } from '../episode/episodeTabs';
@@ -82,6 +83,11 @@ import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import {
+  FULL_PLAYER_ARTWORK_MAX_PHONE,
+  FULL_PLAYER_ARTWORK_MAX_TABLET,
+  FULL_PLAYER_CHIP_HEADER_HEIGHT,
+  FULL_PLAYER_CONTROL_STACK_GAP,
+  FULL_PLAYER_REGION_BOTTOM_PADDING,
   FULL_PLAYER_REGION_GAP,
   FULL_PLAYER_REGION_TOP_PADDING,
   FULL_PLAYER_TITLE_BLOCK_HEIGHT,
@@ -231,6 +237,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
 
   const [viewportHeight, setViewportHeight] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
+  const [chipStripHeight, setChipStripHeight] = useState(FULL_PLAYER_CHIP_HEADER_HEIGHT);
   const [openSheet, setOpenSheet] = useState<FullPlayerSheet>(null);
   const [showCreateClipNotice, setShowCreateClipNotice] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -356,6 +363,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
   const layout = useMemo(
     () =>
       resolveFullPlayerLayout({
+        chipStripHeight,
         hasSections,
         isTablet,
         maxContentWidth: Math.max(
@@ -368,6 +376,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
         viewportWidth,
       }),
     [
+      chipStripHeight,
       contentMaxWidth,
       hasSections,
       insets.bottom,
@@ -377,6 +386,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
       viewportWidth,
     ]
   );
+  const artworkSizeCap = isTablet ? FULL_PLAYER_ARTWORK_MAX_TABLET : FULL_PLAYER_ARTWORK_MAX_PHONE;
 
   const styles = useMemo(
     () =>
@@ -402,12 +412,22 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
           fontSize: 16,
           fontWeight: '600',
         },
+        bottomSafeFill: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          bottom: 0,
+          left: 0,
+          position: 'absolute',
+          right: 0,
+        },
         chipHeader: {
           backgroundColor: themeStyles.screen.backgroundColor,
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
+          justifyContent: 'center',
+          minHeight: FULL_PLAYER_CHIP_HEADER_HEIGHT,
           paddingHorizontal: tokens.spacing.lg,
-          paddingTop: tokens.spacing.sm,
+        },
+        chipRowSlot: {
+          justifyContent: 'center',
+          paddingTop: listChipRowBottomGap(tokens.spacing),
         },
         column: {
           alignSelf: 'center',
@@ -451,8 +471,9 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
           fontWeight: '600',
         },
         pane: {
+          paddingBottom: tokens.spacing.lg,
           paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.lg,
+          paddingTop: tokens.spacing.md,
         },
         paneEmpty: {
           color: themeStyles.textSecondary.color,
@@ -464,13 +485,29 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
           lineHeight: 24,
         },
         playerRegion: {
+          // A viewport too short for the fixed bands clips them here rather than letting them paint
+          // over the chip strip below.
+          overflow: 'hidden',
+          paddingBottom: FULL_PLAYER_REGION_BOTTOM_PADDING,
           paddingHorizontal: tokens.spacing.lg,
           paddingTop: FULL_PLAYER_REGION_TOP_PADDING,
         },
         playerRegionContent: {
           alignItems: 'stretch',
+          flex: 1,
+          width: '100%',
+        },
+        playerRegionControlStack: {
+          gap: FULL_PLAYER_CONTROL_STACK_GAP,
+          marginTop: FULL_PLAYER_CONTROL_STACK_GAP,
+          width: '100%',
+        },
+        playerRegionUpperBands: {
+          alignItems: 'stretch',
+          flexGrow: 1,
+          flexShrink: 1,
           gap: FULL_PLAYER_REGION_GAP,
-          height: '100%',
+          minHeight: 0,
           width: '100%',
         },
         showMore: {
@@ -612,6 +649,13 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     setViewportHeight(event.nativeEvent.layout.height);
     setViewportWidth(event.nativeEvent.layout.width);
   };
+
+  // The strip grows with the OS font setting, so the peek reserve follows the measured chips rather
+  // than the default-size constant — otherwise pane copy reappears under them at large text sizes.
+  const handleChipStripLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    setChipStripHeight((current) => (Math.abs(current - height) < 1 ? current : height));
+  }, []);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!hasSections) {
@@ -983,23 +1027,25 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
               />
             </View>
           ) : null}
-          <SectionChipRow
-            items={sectionChips}
-            leading={
-              activeTab === 'clips' ? (
-                <MenuSelectChip
-                  heading={t('filters.screen.sort_heading')}
-                  onSelect={selectClipSort}
-                  options={clipSortOptions}
-                  testID="full-player-clip-sort"
-                  value={clipSort}
-                />
-              ) : undefined
-            }
-            onSelect={selectTab}
-            selectedKey={activeTab}
-            testID="full-player-sections"
-          />
+          <View onLayout={handleChipStripLayout} style={styles.chipRowSlot}>
+            <SectionChipRow
+              items={sectionChips}
+              leading={
+                activeTab === 'clips' ? (
+                  <MenuSelectChip
+                    heading={t('filters.screen.sort_heading')}
+                    onSelect={selectClipSort}
+                    options={clipSortOptions}
+                    testID="full-player-clip-sort"
+                    value={clipSort}
+                  />
+                ) : undefined
+              }
+              onSelect={selectTab}
+              selectedKey={activeTab}
+              testID="full-player-sections"
+            />
+          </View>
         </View>
       </View>
     );
@@ -1007,6 +1053,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     activeTab,
     clipSort,
     clipSortOptions,
+    handleChipStripLayout,
     handlePause,
     handlePlay,
     handleRetry,
@@ -1018,6 +1065,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     selectClipSort,
     selectTab,
     styles.chipHeader,
+    styles.chipRowSlot,
     styles.column,
     styles.condensedArtwork,
     styles.condensedBar,
@@ -1032,67 +1080,71 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
       testID="full-player-region"
     >
       <View style={[styles.column, styles.playerRegionContent]}>
-        <View style={styles.titleBlock}>
-          <MarqueeText align="center" style={styles.title} testID="full-player-title">
-            {nowPlaying?.title ?? t('media_player.fullscreen_media_player')}
-          </MarqueeText>
-          {nowPlaying?.channelTitle !== null && nowPlaying?.channelTitle !== undefined ? (
-            <Text numberOfLines={1} style={styles.subtitle}>
-              {nowPlaying.channelTitle}
-            </Text>
-          ) : null}
+        <View style={styles.playerRegionUpperBands}>
+          <View style={styles.titleBlock}>
+            <MarqueeText align="center" style={styles.title} testID="full-player-title">
+              {nowPlaying?.title ?? t('media_player.fullscreen_media_player')}
+            </MarqueeText>
+            {nowPlaying?.channelTitle !== null && nowPlaying?.channelTitle !== undefined ? (
+              <Text numberOfLines={1} style={styles.subtitle}>
+                {nowPlaying.channelTitle}
+              </Text>
+            ) : null}
+          </View>
+
+          <FullPlayerArtwork
+            accessibilityLabel={t('media_player.media_player_image')}
+            artworkSize={layout.artworkSize}
+            artworkSizeCap={artworkSizeCap}
+            chapters={chapters}
+          />
+
+          <FullPlayerSegmentBand chapters={chapters} />
+
+          <FullPlayerScrubber chapters={chapters} />
         </View>
 
-        <FullPlayerArtwork
-          accessibilityLabel={t('media_player.media_player_image')}
-          artworkSize={layout.artworkSize}
-          chapters={chapters}
-          viewerHeight={layout.viewerHeight}
-        />
+        <View style={styles.playerRegionControlStack}>
+          <FullPlayerTransportRow
+            hasEpisodeChaptersForTrackButtons={episodeHasChaptersForTrackButtons}
+            hasNextQueueItem={canSkipToNext}
+            onJumpBack={() => {
+              jumpBy(-MEDIA_JUMP_BACK_SECONDS);
+            }}
+            onJumpForward={() => {
+              jumpBy(MEDIA_JUMP_FORWARD_SECONDS);
+            }}
+            onPause={handlePause}
+            onPlay={handlePlay}
+            onRetry={handleRetry}
+            onSkipToNext={() => {
+              void skipToNext();
+            }}
+            onSkipToNextTrack={() => {
+              void skipToNextTrack();
+            }}
+            onSkipToPrevious={() => {
+              void skipToPrevious();
+            }}
+            onSkipToPreviousTrack={() => {
+              void skipToPreviousTrack();
+            }}
+            state={transportState}
+          />
 
-        <FullPlayerSegmentBand chapters={chapters} />
-
-        <FullPlayerScrubber chapters={chapters} />
-
-        <FullPlayerTransportRow
-          hasEpisodeChaptersForTrackButtons={episodeHasChaptersForTrackButtons}
-          hasNextQueueItem={canSkipToNext}
-          onJumpBack={() => {
-            jumpBy(-MEDIA_JUMP_BACK_SECONDS);
-          }}
-          onJumpForward={() => {
-            jumpBy(MEDIA_JUMP_FORWARD_SECONDS);
-          }}
-          onPause={handlePause}
-          onPlay={handlePlay}
-          onRetry={handleRetry}
-          onSkipToNext={() => {
-            void skipToNext();
-          }}
-          onSkipToNextTrack={() => {
-            void skipToNextTrack();
-          }}
-          onSkipToPrevious={() => {
-            void skipToPrevious();
-          }}
-          onSkipToPreviousTrack={() => {
-            void skipToPreviousTrack();
-          }}
-          state={transportState}
-        />
-
-        <FullPlayerUtilityRow
-          onOpenMore={() => {
-            handleOpenSheet('more');
-          }}
-          onOpenSleepTimer={() => {
-            handleOpenSheet('sleep');
-          }}
-          onOpenSpeed={() => {
-            handleOpenSheet('speed');
-          }}
-          playbackRate={playbackRate}
-        />
+          <FullPlayerUtilityRow
+            onOpenMore={() => {
+              handleOpenSheet('more');
+            }}
+            onOpenSleepTimer={() => {
+              handleOpenSheet('sleep');
+            }}
+            onOpenSpeed={() => {
+              handleOpenSheet('speed');
+            }}
+            playbackRate={playbackRate}
+          />
+        </View>
       </View>
     </View>
   );
@@ -1214,6 +1266,9 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
           style={styles.list}
           testID="full-player-section-list"
         />
+        {hasSections ? (
+          <View pointerEvents="none" style={[styles.bottomSafeFill, { height: insets.bottom }]} />
+        ) : null}
       </View>
 
       <FullPlayerSleepTimer onCancel={handleCloseSheet} visible={openSheet === 'sleep'} />

@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { shouldUseChapterArtwork } from '@podverse/helpers';
@@ -11,20 +12,26 @@ import { CoverImage } from '../primitives/CoverImage';
 
 type FullPlayerArtworkProps = {
   accessibilityLabel: string;
+  /** Square edge from layout math, used until the band reports its measured size. */
   artworkSize: number;
+  /** Phone or tablet cap, so a tall viewport does not grow the square without limit. */
+  artworkSizeCap: number;
   chapters: DTOItemChapter[];
-  viewerHeight: number;
 };
 
 /**
  * Full-player artwork square. Swaps in chapter art when the active chapter has an image and the
  * target is not a clip or official clip — same gate web uses via `shouldUseChapterArtwork`.
+ *
+ * The band is the one part of the fixed region that flexes, and it sizes the square from its own
+ * measured box. Bands whose text can grow with the OS font setting therefore take their space from
+ * the artwork instead of pushing the transport rows past the bottom of the region.
  */
 export function FullPlayerArtwork({
   accessibilityLabel,
   artworkSize,
+  artworkSizeCap,
   chapters,
-  viewerHeight,
 }: FullPlayerArtworkProps) {
   const { activeTarget, nowPlaying } = usePlaybackSession();
   const activeChapter = useActiveNowPlayingChapter(chapters);
@@ -40,6 +47,27 @@ export function FullPlayerArtwork({
       : null;
   const imageUri = chapterImg ?? nowPlaying?.viewerImageUrl ?? nowPlaying?.imageUrl ?? null;
 
+  const [measuredBand, setMeasuredBand] = useState<{ height: number; width: number } | null>(null);
+
+  const handleBandLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height, width } = event.nativeEvent.layout;
+    setMeasuredBand((current) => {
+      if (
+        current !== null &&
+        Math.abs(current.height - height) < 1 &&
+        Math.abs(current.width - width) < 1
+      ) {
+        return current;
+      }
+      return { height, width };
+    });
+  }, []);
+
+  const squareSize =
+    measuredBand === null
+      ? artworkSize
+      : Math.max(0, Math.min(measuredBand.height, measuredBand.width, artworkSizeCap));
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -49,26 +77,28 @@ export function FullPlayerArtwork({
         },
         viewerBand: {
           alignItems: 'center',
-          height: viewerHeight,
+          flexGrow: 1,
+          flexShrink: 1,
           justifyContent: 'center',
           minHeight: 0,
+          width: '100%',
         },
         viewerSquare: {
           alignSelf: 'center',
-          height: artworkSize,
+          height: squareSize,
           overflow: 'hidden',
-          width: artworkSize,
+          width: squareSize,
         },
       }),
-    [artworkSize, viewerHeight]
+    [squareSize]
   );
 
   if (nowPlaying === null) {
-    return <View style={styles.viewerBand} />;
+    return <View onLayout={handleBandLayout} style={styles.viewerBand} />;
   }
 
   return (
-    <View style={styles.viewerBand}>
+    <View onLayout={handleBandLayout} style={styles.viewerBand}>
       <View style={styles.viewerSquare} testID="full-player-video-surface">
         <CoverImage
           accessibilityLabel={accessibilityLabel}

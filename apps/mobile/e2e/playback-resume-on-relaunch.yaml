@@ -67,6 +67,8 @@ name: Playback Resume On Relaunch
     id: mini-player-title
 - assertVisible:
     id: mini-player-play-pause
+# Snapshot restore loads the last item paused. Playing here means setRate/loadAndStart raced.
 - assertVisible:
     id: playback-active-e2e
+    text: paused
 - takeScreenshot: playback-resume-after-relaunch

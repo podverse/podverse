@@ -73,6 +73,7 @@ import {
   readLastPlaybackSnapshot,
   writeLastPlaybackSnapshot,
 } from '../lib/playback/lastPlaybackStorage';
+import { resolveMediaFileDurationHintSeconds } from '../lib/playback/mediaFileDurationHint';
 import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
 import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
 import { getPref, setPref } from '../prefs/prefsStore';
@@ -100,6 +101,8 @@ import {
   setPlaybackDurationSeconds,
   setPlaybackPositionSeconds,
   setPlaybackProgress,
+  setPlaybackProgressPlaying,
+  setPlaybackProgressRate,
   subscribePlaybackPositionClock,
   subscribePlaybackProgress,
 } from './playbackProgressStore';
@@ -475,6 +478,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const setPlaybackPlaying = useCallback((playing: boolean): void => {
     isPlayingRef.current = playing;
     writeIsPlayingLocallyForSync(playing);
+    setPlaybackProgressPlaying(playing);
     setIsPlaying(playing);
   }, []);
 
@@ -842,7 +846,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride: options.autoPlayOverride,
         autoQueue: options.autoQueue,
         explicitPlaybackSeconds: options.explicitPlaybackSeconds,
-        mediaFileDurationHintSeconds: options.mediaFileDurationHintSeconds,
+        mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
+          options.mediaFileDurationHintSeconds,
+          item.item_about.duration
+        ),
         summary: summaryFromItem(item, channel),
         url,
       });
@@ -872,7 +879,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride: options.autoPlayOverride,
         autoQueue: options.autoQueue,
         explicitPlaybackSeconds: options.explicitPlaybackSeconds,
-        mediaFileDurationHintSeconds: options.mediaFileDurationHintSeconds,
+        mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
+          options.mediaFileDurationHintSeconds,
+          item.item_about.duration
+        ),
         summary: summaryFromItem(item, channel),
         url,
       });
@@ -902,7 +912,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride: options.autoPlayOverride,
         autoQueue: options.autoQueue,
         explicitPlaybackSeconds: options.explicitPlaybackSeconds,
-        mediaFileDurationHintSeconds: options.mediaFileDurationHintSeconds,
+        mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
+          options.mediaFileDurationHintSeconds,
+          item.item_about.duration
+        ),
         summary: summaryFromItem(item, channel),
         url,
       });
@@ -948,6 +961,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       const target = buildChapterPlaybackTarget(chapter, item, channel);
       await playTarget(target, {
         autoQueue: { mode: 'clear' },
+        mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
+          undefined,
+          item.item_about.duration
+        ),
         summary: summaryFromItem(item, channel),
         url,
       });
@@ -1502,6 +1519,27 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     })();
   }, [restoreFromSnapshot, status]);
 
+  const reconcileFromNative = useCallback((): void => {
+    void (async () => {
+      try {
+        const [position, duration] = await Promise.all([
+          nativePlaybackBridge.getPosition(),
+          nativePlaybackBridge.getDuration(),
+        ]);
+        if (Number.isFinite(position) && position >= 0) {
+          positionRef.current = position;
+          setPlaybackPositionSeconds(position);
+        }
+        if (Number.isFinite(duration) && duration > 0) {
+          durationRef.current = duration;
+          setPlaybackDurationSeconds(duration);
+        }
+      } catch {
+        // Best-effort heal after a missed native event window (e.g. Fast Refresh).
+      }
+    })();
+  }, []);
+
   useNativePlaybackBridge({
     ended: () => {
       void advance('complete');
@@ -1522,6 +1560,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         setPlaybackPlaying(true);
       } else if (event.state === 'paused' || event.state === 'ended' || event.state === 'error') {
         setPlaybackPlaying(false);
+      }
+      if (event.state === 'ready' || event.state === 'playing') {
+        reconcileFromNative();
       }
     },
     progress: (event) => {
@@ -1571,27 +1612,6 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   });
 
   useEffect(() => {
-    const reconcileFromNative = (): void => {
-      void (async () => {
-        try {
-          const [position, duration] = await Promise.all([
-            nativePlaybackBridge.getPosition(),
-            nativePlaybackBridge.getDuration(),
-          ]);
-          if (Number.isFinite(position) && position >= 0) {
-            positionRef.current = position;
-            setPlaybackPositionSeconds(position);
-          }
-          if (Number.isFinite(duration) && duration > 0) {
-            durationRef.current = duration;
-            setPlaybackDurationSeconds(duration);
-          }
-        } catch {
-          // Best-effort heal after a missed native event window (e.g. Fast Refresh).
-        }
-      })();
-    };
-
     reconcileFromNative();
 
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -1628,7 +1648,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     return () => {
       subscription.remove();
     };
-  }, [writeLastPlaybackSnapshotForTarget, writePlaybackEvent]);
+  }, [reconcileFromNative, writeLastPlaybackSnapshotForTarget, writePlaybackEvent]);
 
   // Drive the video surface's JS-desired visibility from the playback target kind: only
   // full video items request the surface; clips/soundbites/chapters and audio podcasts keep it
@@ -1824,6 +1844,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const setRate = useCallback((rate: number) => {
     playbackRateRef.current = rate;
+    setPlaybackProgressRate(rate);
     setPlaybackRate(rate);
     nativePlaybackBridge.setRate(rate);
   }, []);

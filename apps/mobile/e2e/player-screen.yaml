@@ -29,6 +29,9 @@ name: Player screen flow
     id: full-player-screen
 - assertVisible:
     id: full-player-sections
+# Pane copy sits below the chip strip; first paint shows chips only.
+- assertNotVisible:
+    id: full-player-summary-text
 - takeScreenshot: player-screen-initial-peek
 
 - scrollUntilVisible:
@@ -79,10 +82,16 @@ name: Player screen flow
     id: full-player-scrubber
 - assertVisible:
     id: full-player-position
+# Duration comes from item_about.duration or native metadata so seek is enabled after play.
 - assertVisible:
     id: full-player-duration
 - assertVisible:
     id: full-player-chapter-marker
+- scrollUntilVisible:
+    element:
+      id: full-player-chapter-row
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     id: full-player-chapter-row
 - takeScreenshot: player-screen-chapters-pane

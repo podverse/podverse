@@ -7,7 +7,7 @@ import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-nativ
 
 import type { DTOClip, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers/dto';
 import { clampRatio } from '@podverse/helpers/math';
-import { formatPlaybackTime } from '@podverse/helpers/time';
+import { formatHHMMSS } from '@podverse/helpers/time';
 import {
   getChapterAtPercent,
   getChapterBoundaryRatios,
@@ -24,8 +24,8 @@ import { useTheme } from '../../theme/useTheme';
 
 const LONG_PRESS_MS = 500;
 const TOOLTIP_AUTO_DISMISS_MS = 2000;
-const THUMB_SIZE = 14;
 const TRACK_HEIGHT = 6;
+const TRACK_HIT_HEIGHT = 44;
 const MARKER_WIDTH = 2;
 
 type HighlightBounds = {
@@ -46,10 +46,6 @@ const parseSeconds = (value: string | number | null | undefined): number | null 
   }
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : null;
-};
-
-const formatPlayerClock = (seconds: number): string => {
-  return formatPlaybackTime(String(Math.max(0, Math.floor(seconds))));
 };
 
 const resolveHighlightBounds = ({
@@ -95,9 +91,10 @@ const resolveHighlightBounds = ({
 };
 
 /**
- * Full-player scrubber: drag seek with thumb, chapter markers, active-segment highlight, and a
- * long-press chapter tooltip. Clocks and fill subscribe to the progress store so the parent screen
- * does not re-render on every tick.
+ * Full-player scrubber: drag/tap seek on the line (no thumb), chapter markers, active-segment
+ * highlight, and a long-press chapter tooltip. The visible track is thin; the hit target is 44pt.
+ * Clocks and fill subscribe to the progress store so the parent screen does not re-render on every
+ * tick.
  */
 export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   const { t } = useTranslation();
@@ -124,9 +121,10 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   }, [trackWidth, trackWidthShared]);
 
   useEffect(() => {
-    if (!isScrubbing.value) {
-      liveRatioShared.value = liveRatio;
+    if (isScrubbing.value) {
+      return;
     }
+    liveRatioShared.value = liveRatio;
   }, [isScrubbing, liveRatio, liveRatioShared]);
 
   const clip = activeTarget?.kind === 'clip' ? activeTarget.clip : null;
@@ -280,14 +278,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   const fillStyle = useAnimatedStyle(() => {
     const ratio = isScrubbing.value ? scrubRatio.value : liveRatioShared.value;
     return {
-      width: `${ratio * 100}%`,
-    };
-  });
-
-  const thumbStyle = useAnimatedStyle(() => {
-    const ratio = isScrubbing.value ? scrubRatio.value : liveRatioShared.value;
-    return {
-      transform: [{ translateX: ratio * trackWidthShared.value - THUMB_SIZE / 2 }],
+      width: trackWidthShared.value * ratio,
     };
   });
 
@@ -313,14 +304,6 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
           position: 'absolute',
           top: 0,
           width: MARKER_WIDTH,
-        },
-        thumb: {
-          backgroundColor: tokens.text.accent,
-          borderRadius: THUMB_SIZE / 2,
-          height: THUMB_SIZE,
-          position: 'absolute',
-          top: (TRACK_HEIGHT - THUMB_SIZE) / 2,
-          width: THUMB_SIZE,
         },
         timeRow: {
           flexDirection: 'row',
@@ -359,16 +342,15 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
         },
         trackHit: {
           justifyContent: 'center',
-          minHeight: 28,
+          minHeight: TRACK_HIT_HEIGHT,
           width: '100%',
         },
       }),
     [themeStyles, tokens]
   );
 
-  const displayPosition =
-    durationSeconds > 0 ? formatPlayerClock(clockSeconds) : formatPlayerClock(0);
-  const displayDuration = formatPlayerClock(durationSeconds);
+  const displayPosition = formatHHMMSS(Math.max(0, clockSeconds));
+  const displayDuration = formatHHMMSS(Math.max(0, durationSeconds));
 
   return (
     <View style={styles.block} testID="full-player-progress-block">
@@ -442,9 +424,6 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
               />
             ))}
           </View>
-          {trackWidth > 0 ? (
-            <Animated.View pointerEvents="none" style={[styles.thumb, thumbStyle]} />
-          ) : null}
         </View>
       </GestureDetector>
       <View style={styles.timeRow}>

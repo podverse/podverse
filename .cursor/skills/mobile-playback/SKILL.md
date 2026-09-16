@@ -78,9 +78,11 @@ Mobile keeps a **universal** device-local now-playing snapshot in AsyncStorage
 | Item completes (`advance('complete')`) or now-playing clears | Clear                                                                        |
 | Sign-in (`anonymous` → `authenticated`)                      | Clear — the account's server queue is authoritative                          |
 | Sign-out                                                     | Leave alone — local playback keeps rewriting it                              |
-| Cold start (`status !== 'unknown'`)                          | Restore once per process, **paused**, mini player visible                    |
+| Cold start (`status !== 'unknown'`)                          | Restore once per process, **paused**, mini player visible — load, never play |
 
 Restore is cache-first (`getLocalChannelForItem` before network) and logs failures in `__DEV__`.
+`autoPlayOverride: false` uses native `load` (not `loadAndStart`). iOS `setRate` must **not** assign
+`AVPlayer.rate` while paused — a non-zero rate starts audio. Store the rate and apply it on `play`.
 Web deliberately differs: signed-in users hydrate from the server queue; only anonymous users use
 `pv_web_anonymous_last_playback`. Do not merge those models.
 
@@ -138,8 +140,13 @@ player already own buffering and failure, and repeating that on every row is red
 
 ## Full player fixed region + panes
 
-`FullPlayerScreen` is a `SectionList` scroll shell with a fixed-height player region, sticky chips,
+`FullPlayerScreen` is a `SectionList` scroll shell with a fixed-height player region, sticky chips
+(no hairlines, chips vertically centered in that band),
 and a condensed now-playing bar that appears once the region scrolls away.
+`FULL_PLAYER_REGION_BOTTOM_PADDING` separates the utility row from those chips. First paint peeks
+the measured chip strip plus the bottom safe-area inset (covered by a bottom fill, not header
+padding) — Summary copy and list rows require a scroll. The artwork is the band that gives way, so
+short viewports and large OS text sizes shrink the square instead of moving the chips.
 
 - Use `resolveFullPlayerLayout` / `resolveCondensedState` in
   `apps/mobile/src/screens/player/fullPlayerLayout.ts` for all region math.
@@ -161,23 +168,29 @@ flexes; everything else keeps a fixed reserved height.
 
 ### Playhead progress store
 
-Native `progress` events write into `playbackProgressStore` (~2 Hz). Leaf chrome reads the store via
-`usePlaybackProgress` / `usePlaybackPositionClock` / `usePlaybackProgressRatio`
-(`useSyncExternalStore`). **Do not** put position/duration in `PlaybackProvider` React state, and
-**do not** call `usePlayback()` from the full-player shell, mini-player shell, or other screens that
-only need session actions — use `usePlaybackSession()` so a ticking playhead cannot re-render a
-`SectionList` twice a second.
+Native `progress` events write samples into `playbackProgressStore`. While playing, the store
+interpolates those samples at **1 Hz** so clocks and fill keep moving when the engine is quiet
+(typical after a seek). Leaf chrome reads via `usePlaybackProgress` / `usePlaybackPositionClock` /
+`usePlaybackProgressRatio` (`useSyncExternalStore`). **Do not** put position/duration in
+`PlaybackProvider` React state, and **do not** call `usePlayback()` from the full-player shell,
+mini-player shell, or other screens that only need session actions — use `usePlaybackSession()` so a
+ticking playhead cannot re-render a `SectionList` once a second.
 
 The native event sink is **owner-scoped** (`setEventSink` / `clearEventSink(owner)`). Fast Refresh
-must not let an old module's `OnDestroy` clear a newer module's sink. On mount and foreground,
-`PlaybackProvider` reconciles from `getPosition` / `getDuration`.
+must not let an old module's `OnDestroy` clear a newer module's sink. On mount, foreground, and when
+the engine publishes `ready` / `playing`, `PlaybackProvider` reconciles from `getPosition` /
+`getDuration`. iOS and Android also emit one `progress` sample when the item becomes ready so
+duration lands before the periodic tick. Play paths seed duration from `item.item_about.duration`
+(`resolveMediaFileDurationHintSeconds`) when the caller did not supply a hint; native
+`durationSeconds > 0` still wins.
 
 ### Chapter-aware scrubber
 
-`FullPlayerScrubber` is the only full-player progress leaf: drag seek (thumb + release commit),
-chapter boundary ticks (`getChapterBoundaryRatios` from `@podverse/playback-core/chapterProgressMarkers`),
-active chapter/clip/soundbite highlight, long-press chapter tooltip (~500ms / 2s dismiss), and
-hour-aware clocks (`formatPlaybackTime`). Chapter artwork uses `shouldUseChapterArtwork` on
+`FullPlayerScrubber` is the only full-player progress leaf: drag/tap seek on the **line** (no thumb;
+the hit target is 44pt around a 6pt track), chapter boundary ticks (`getChapterBoundaryRatios` from
+`@podverse/playback-core/chapterProgressMarkers`), active chapter/clip/soundbite highlight, long-press
+chapter tooltip (~500ms / 2s dismiss), and hour-aware clocks (`formatHHMMSS`, same helper as web).
+Chapter artwork uses `shouldUseChapterArtwork` on
 `FullPlayerArtwork` / `MiniPlayerArtwork`. Chapters for chrome come from `useNowPlayingChapters`
 (process-wide cache) plus `useActiveNowPlayingChapter` in leaves only.
 
@@ -201,9 +214,15 @@ touch target because it is the one a listener reaches for without looking.
   required because `Button` sets `alignSelf: 'flex-start'`, which would otherwise pin every control
   to the leading edge of its slot. Do not use `justifyContent: 'space-between'` here — unequal
   control widths shift the center control off-axis.
-- **One seam value.** Every band gap is `FULL_PLAYER_REGION_GAP`, read from the same module the math
-  reads, so reserved space and rendered space cannot drift. `FULL_PLAYER_REGION_GAP_COUNT` is **5**
-  for the six bands, and it does not vary with what is playing.
+- **Split seam values.** Upper bands (title → artwork → segment → progress) use
+  `FULL_PLAYER_REGION_GAP` (`FULL_PLAYER_REGION_GAP_COUNT` = 3). Progress → transport and
+  transport → utility use the tighter `FULL_PLAYER_CONTROL_STACK_GAP` (8pt,
+  `FULL_PLAYER_CONTROL_STACK_GAP_COUNT` = 2), matching web's modal progress-to-controls spacing.
+  Math and styles share those constants so reserved and rendered space cannot drift.
+- **Duration seed before native metadata.** `resolveMediaFileDurationHintSeconds` seeds the progress
+  store from `item.item_about.duration` on every play path so clocks and seek work before AVPlayer /
+  ExoPlayer report a finite duration. Native `durationSeconds > 0` overwrites the hint. The left
+  clock always shows the playhead (`usePlaybackPositionClock`); seek stays gated on duration `> 0`.
 - **Control sizes come from constants.** `FULL_PLAYER_TRANSPORT_ICON_SIZE`,
   `FULL_PLAYER_UTILITY_ICON_SIZE`, and `Button` size `xl`
   (`PLAYER_TRANSPORT_CIRCLE_SIZE`) — not per-callsite numbers.
