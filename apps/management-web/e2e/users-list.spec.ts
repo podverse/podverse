@@ -67,7 +67,7 @@ test.describe('Management-web users list', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(ROUTES.USERS);
@@ -102,7 +102,7 @@ test.describe('Management-web users list', () => {
     );
   });
 
-  test('when the users API reports zero users, in-table tools stay hidden but Create New stays visible with the system empty message', async ({
+  test('when the users API reports zero users, in-table tools stay hidden but Create new stays visible with the system empty message', async ({
     page,
   }, testInfo) => {
     test.setTimeout(45_000);
@@ -130,14 +130,14 @@ test.describe('Management-web users list', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(ROUTES.USERS);
     await expect(page.getByRole('heading', { name: 'Users', level: 1 })).toBeVisible();
 
     await expect(page.getByPlaceholder('Search')).not.toBeVisible();
-    await expect(page.getByRole('link', { name: 'Create New' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Create new' })).toBeVisible();
     await expect(
       page.getByText('No data found yet. This page will be enabled when there is data to display.')
     ).toBeVisible();
@@ -145,8 +145,8 @@ test.describe('Management-web users list', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'The empty users list hides in-table tools but keeps Create New visible.',
-      page.getByRole('link', { name: 'Create New' })
+      'The empty users list hides in-table tools but keeps Create new visible.',
+      page.getByRole('link', { name: 'Create new' })
     );
   });
 
@@ -186,7 +186,7 @@ test.describe('Management-web users list', () => {
     await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
     await page.goto(ROUTES.USERS);

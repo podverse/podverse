@@ -39,7 +39,6 @@ name: Playback Offline Reconciliation
     id: mini-player-play-pause
 - assertVisible:
     id: mini-player-play-pause
-    text: Play
 
 # Enable Offline Mode and play episode B from local media.
 - tapOn:

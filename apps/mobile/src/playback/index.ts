@@ -1,7 +1,9 @@
 export {
   PlaybackProvider,
   usePlayback,
+  usePlaybackPositionClock,
   usePlaybackProgress,
+  usePlaybackProgressRatio,
   usePlaybackSession,
 } from './PlaybackProvider';
 export type {
@@ -10,4 +12,10 @@ export type {
   PlaybackProgressContextValue,
   PlaybackSessionContextValue,
 } from './PlaybackProvider';
+export type { PlaybackTransportState } from './playbackTransport';
 export { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
+export {
+  resolveNowPlayingChapters,
+  useActiveNowPlayingChapter,
+  useNowPlayingChapters,
+} from './useNowPlayingChapters';

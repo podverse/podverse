@@ -117,7 +117,7 @@ name: Home Media Types
     id: home-sort-button
 - assertVisible: "Sort: A-Z"
 
-# The title-bar overflow menu holds the view toggle and Mark All As Seen. The view is two checkable
+# The title-bar overflow menu holds the view toggle and Mark all as seen. The view is two checkable
 # rows rather than one label that flips, so the menu states which mode is in effect.
 - assertVisible:
     id: home-overflow-trigger
@@ -129,7 +129,7 @@ name: Home Media Types
     timeout: ${TIMEOUT_FAST}
 - takeScreenshot: home-overflow-menu
 
-# The seeded account has one subscription with unseen items, so Mark All As Seen is enabled and
+# The seeded account has one subscription with unseen items, so Mark all as seen is enabled and
 # closes the sheet after applying the local seen-state update.
 - tapOn:
     id: home-overflow-mark-all-seen
@@ -155,7 +155,7 @@ name: Home Media Types
     id: home-screen
 
 # Home is subscribed-only, so the seeded account shows its local subscriptions. Row metadata,
-# the grid tile, and Mark All As Seen clearing badges are asserted in subscriptions-anonymous.yaml,
+# the grid tile, and Mark all as seen clearing badges are asserted in subscriptions-anonymous.yaml,
 # which is the flow that creates a subscription.
 - assertVisible:
     id: "home-feed-row-.*"

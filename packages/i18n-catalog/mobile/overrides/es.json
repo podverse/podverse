@@ -4,6 +4,7 @@
       "browse": "",
       "home": "",
       "more": "",
+      "my_library": "",
       "notifications": "",
       "rss": "",
       "downloads": ""
@@ -45,6 +46,7 @@
       "remove": "",
       "cancel_download": "",
       "remove_download": "",
+      "delete": "",
       "empty": "",
       "downloaded": "",
       "not_downloadable": "",
@@ -171,5 +173,8 @@
       "outcome_skipped": "",
       "outcome_success": ""
     }
+  },
+  "media_player": {
+    "chapter_tooltip": ""
   }
 }

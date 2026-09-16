@@ -1,6 +1,6 @@
 import type { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
 
-import { selectItemChapterForTime } from '../../utils/mediaPlayer/selectItemChapterForTime';
+import { selectItemChapterForTime } from '../playback';
 
 export type ResolveEmbedPrimaryTitleInput = {
   mpItem: DTOItem | null;

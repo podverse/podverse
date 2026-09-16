@@ -4,10 +4,10 @@ import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
  * Membership page shows a Free vs Premium feature table (short rows, mobile-only * on labels)
- * and a Trial Limitations accordion. Renew page is linked when membership expires.
+ * and a Trial limitations accordion. Renew page is linked when membership expires.
  */
 test.describe('Web membership page trial limitations and renew route', () => {
-  test('When a visitor opens Membership, they see the Free versus Premium table and can expand Trial Limitations.', async ({
+  test('When a visitor opens Membership, they see the Free versus Premium table and can expand Trial limitations.', async ({
     page,
   }, testInfo) => {
     await page.goto('/membership');
@@ -27,7 +27,7 @@ test.describe('Web membership page trial limitations and renew route', () => {
       page.getByText('* Feature is only available in the mobile app', { exact: true })
     ).toBeVisible();
 
-    const trialLimitations = page.getByText('Trial Limitations', { exact: true });
+    const trialLimitations = page.getByText('Trial limitations', { exact: true });
     await expect(trialLimitations).toBeVisible();
 
     const trialSummary = page.getByText(
@@ -49,7 +49,7 @@ test.describe('Web membership page trial limitations and renew route', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'The membership page shows the Free versus Premium feature table before expanding Trial Limitations.',
+      'The membership page shows the Free versus Premium feature table before expanding Trial limitations.',
       videoPlayback
     );
 
@@ -62,7 +62,7 @@ test.describe('Web membership page trial limitations and renew route', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'Trial Limitations expands the trial limitations list on the membership page.',
+      'Trial limitations expands the trial limitations list on the membership page.',
       directoryBullet
     );
   });
@@ -73,14 +73,14 @@ test.describe('Web membership page trial limitations and renew route', () => {
     await page.goto('/membership/renew');
     await expect(page).toHaveURL(/\/membership\/renew\/?$/);
 
-    await expect(page.getByRole('heading', { name: 'Renew Membership', level: 1 })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Go to Membership Page' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Renew membership', level: 1 })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Go to membership page' })).toBeVisible();
 
     await capturePageLoad(
       page,
       testInfo,
       'The membership renew page shows renew copy and a link back to membership.',
-      page.getByRole('heading', { name: 'Renew Membership', level: 1 })
+      page.getByRole('heading', { name: 'Renew membership', level: 1 })
     );
   });
 });

@@ -377,14 +377,16 @@ bash scripts/mobile/ensure-devices.sh e2e        # create/boot E2E twins
 ```
 
 Do **not** copy-paste **`iPhone 15` / `iPhone 15 Pro`** from old guides — those are legacy templates on
-iOS 17 runtimes, not iOS 15 OS, and are often absent on Xcode 26 machines. If a name is ambiguous (same
-model on multiple runtimes), pass the UDID from `simctl list`.
+iOS 17 runtimes, not iOS 15 OS, and are often absent on Xcode 26+ machines. Xcode 27's destination
+picker defaults to **iPhone 18 Pro** — still pass `"iPhone 17 Pro"` for this repo. If a name is
+ambiguous (same model on multiple runtimes), pass the UDID from `simctl list`.
 
-Boot a **manual** sim before `xcrun simctl launch booted …`:
+Boot a **manual** sim before `xcrun simctl launch booted …`. Xcode 27+ opens **Device Hub** (not
+Simulator.app):
 
 ```bash
 xcrun simctl boot "iPhone 17 Pro"
-open -a Simulator
+bash scripts/mobile/open-simulator-ui.sh
 ```
 
 Physical device: `npm run mobile:ios -- --device` with USB connected (interactive list).
@@ -597,7 +599,7 @@ Fix: [`scripts/mobile/pod-install-macos.sh`](/scripts/mobile/pod-install-macos.s
 
 ```bash
 npm run mobile:pod-install
-npm run mobile:ios -- --device "iPhone 16 Pro"
+npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
 
 Workaround until an Expo/RN upgrade ships fmt ≥ 12.1.0 (see
@@ -618,6 +620,149 @@ npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
 
 Upstream fix is in Expo SDK 53+; do not bump Expo solely for this while mobile stays on SDK 52.
+
+### `Can't determine id of Simulator app` (Xcode 27+ / Device Hub)
+
+Xcode 27+ hosts the simulator UI in **Device Hub**
+(`/Applications/Xcode.app/Contents/Applications/DeviceHub.app`, bundle id `com.apple.dt.Devices`).
+Expo SDK 52's CLI still looks up an app named Simulator. The repo patches `@expo/cli` via
+[`patch-expo-cli-xcode27.sh`](/scripts/mobile/patch-expo-cli-xcode27.sh) after
+`mobile:install` and before `mobile:ios`. After a fresh App Store Xcode install, finish first
+launch (`sudo xcodebuild -runFirstLaunch`) and download the iOS platform in
+**Xcode → Settings → Platforms** if `simctl` cannot list devices.
+
+Cancel Xcode's **Update to recommended settings** on the generated `apps/mobile/ios` project —
+User Script Sandboxing and a raised deployment target break Expo/RN prebuild output, and the next
+`mobile:prebuild` rewrites that tree anyway.
+
+```bash
+npm run mobile:install
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
+
+Do not bump Expo solely for Device Hub while mobile stays on SDK 52.
+
+### `Connecting to: iPhone 17 Pro` fails with `Error: null` after a successful build
+
+Xcode 27's `xcrun devicectl list devices` reports **simulators** alongside physical hardware. Expo
+SDK 52 treats everything from that source as hardware (`deviceType: "device"`), and its entry wins
+the merge against the `simctl` list, so `expo run:ios --device "iPhone 17 Pro"` installs the
+simulator build over devicectl and dies in `devicectl.ts` with `Error: null`.
+
+The same patch script filters those entries out (`visibilityClass: "simulators"` /
+`reality: "simulated"`) so simulators install through `simctl`, and accepts devicectl's current JSON
+version so the `Unexpected devicectl JSON version output` warning stops firing. Confirm which
+simulators devicectl claims:
+
+```bash
+xcrun devicectl list devices
+bash scripts/mobile/patch-expo-cli-xcode27.sh
+```
+
+### `IPHONEOS_DEPLOYMENT_TARGET` is set to 9.0 / 13.4 (Xcode 15.0–27.0 range)
+
+Xcode's supported simulator deployment-target range is **15.0–27.0**. CocoaPods podspecs
+(RNCAsyncStorage resource bundles, SDWebImage, and others) may declare a lower value, and
+`xcodebuild` fails those targets (exit 65).
+
+The app platform is **15.1** (`expo-build-properties` `ios.deploymentTarget`). Every pod target
+is clamped to at least **15.0** by
+[`withPodverseIosPodBuildSettings.js`](/apps/mobile/plugins/withPodverseIosPodBuildSettings.js)
+on prebuild and
+[`ensure-ios-pod-build-settings.sh`](/scripts/mobile/ensure-ios-pod-build-settings.sh)
+around `pod install` and every `mobile:ios`. From **repo root**:
+
+```bash
+npm run mobile:pod-install
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
+
+After a clean native regen (`mobile:prebuild` / `mobile:reset`) the Podfile hook is enough; the
+ensure script still clamps an already-generated `Pods` tree so a full prebuild is not required
+just to raise those targets.
+
+### `Build input file cannot be found: .../expo-sqlite/ios/sqlite3.c`
+
+`ExpoSQLite.podspec` copies `expo-sqlite/vendor/sqlite3/sqlite3.{c,h}` into `expo-sqlite/ios/`
+while CocoaPods evaluates the podspec, because CocoaPods cannot reference `source_files` outside
+the pod directory. Those copies live in `node_modules`, so a mobile npm install removes them while
+the generated `Pods` project still lists `ios/sqlite3.c` as a build input.
+
+[`ensure-expo-sqlite-vendored-sources.sh`](/scripts/mobile/ensure-expo-sqlite-vendored-sources.sh)
+restores them from `vendor/` and runs on `mobile:install`, `mobile:reset`, `deps:init`,
+`mobile:pod-install`, and every `mobile:ios`. To recover by hand from **repo root**:
+
+```bash
+bash scripts/mobile/ensure-expo-sqlite-vendored-sources.sh
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
+
+The related Fabric input `react-native/React/Fabric/RCTThirdPartyFabricComponentsProvider.mm` is
+also wiped by a mobile npm install, but React Native's `[RN]Check rncore` script phase regenerates
+it, so that one clears on the next build attempt without a helper.
+
+### `cannot find 'exsqlite3_open' in scope` (Swift target cannot see its own C headers)
+
+A Swift pod that reaches its C headers through `-import-underlying-module` (ExpoSQLite is the one
+that fails first) loses every C symbol when Xcode gives up on explicit module builds. The log says
+so a few hundred lines above the Swift errors, once per target:
+
+```text
+note: Explicit modules is enabled but could not resolve libclang.dylib, continuing with explicit modules disabled.
+note: Candidate '/Applications/Xcode.app/.../usr/lib/libclang.dylib' skipped because it did not match the configured compiler
+```
+
+The configured compiler is wrong because the Nix dev shell exports the stdenv toolchain vars —
+`CC=clang`, `CXX=clang++`, `LD`, `AR`, `RANLIB`, and friends. `xcodebuild` honors them, resolves the
+bare name off `PATH` (the `/usr/bin/clang` shim rather than the toolchain binary), and can no longer
+pair `libclang.dylib` with it. Xcode 26 and earlier tolerated that because explicit module builds
+were off by default; Xcode 27 turns them on, so the same env leak becomes a hard build failure.
+Confirm it in a failing log — a healthy build shows the full
+`.../XcodeDefault.xctoolchain/usr/bin/clang` path on `CompileC` lines, never a bare `clang`:
+
+```bash
+rg -c '^    clang -x' apps/mobile/.expo/xcodebuild.log
+```
+
+[`run-expo-macos.sh`](/scripts/mobile/run-expo-macos.sh) and
+[`pod-install-macos.sh`](/scripts/mobile/pod-install-macos.sh) unset those vars alongside `NIX_*`,
+`DEVELOPER_DIR`, and `SDKROOT`, so `npm run mobile:ios` and `npm run mobile:pod-install` are clean.
+Drive iOS builds through those scripts; a bare `xcodebuild` or `expo run:ios` from a direnv shell
+inherits the leak. If a build already cached modules from the wrong compiler, clear DerivedData:
+
+```bash
+rm -rf ~/Library/Developer/Xcode/DerivedData/PodverseNext-* ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
+
+`ModuleCache.noindex` is shared by every Xcode project on the machine, so precompiled modules built
+by the wrong compiler outlive a per-project DerivedData wipe.
+
+### `module '_Builtin_stdarg' is needed but has not been provided` (ExpoSQLite pcm)
+
+The Swift errors point at `stdarg.h` inside the toolchain and end with a failed pcm:
+
+```text
+error: failed to emit precompiled module '.../SwiftExplicitPrecompiledModules/ExpoSQLite-*.pcm'
+for module map '.../Pods/Headers/Public/ExpoSQLite/ExpoSQLite.modulemap'
+```
+
+expo-sqlite publishes a header named **`sqlite3.h`**, shadowing the iOS SDK header of the same name.
+Xcode 27 builds Swift modules explicitly: a dependency scan decides which precompiled modules the
+build gets, and it binds `#import "sqlite3.h"` to the SDK's `SQLite3` module. The real compile
+resolves the pod's own header instead, whose `#include <stdarg.h>` needs a builtin module the scan
+never listed, and explicit mode may not pull one in on demand.
+
+Pod targets therefore build Swift modules implicitly — `SWIFT_ENABLE_EXPLICIT_MODULES = NO`, applied
+by [`withPodverseIosPodBuildSettings.js`](/apps/mobile/plugins/withPodverseIosPodBuildSettings.js)
+and [`ensure-ios-pod-build-settings.sh`](/scripts/mobile/ensure-ios-pod-build-settings.sh). The app
+target keeps explicit modules; no app-target header shadows the SDK. To apply it to an existing
+`ios/` tree without a prebuild, from **repo root**:
+
+```bash
+bash scripts/mobile/ensure-ios-pod-build-settings.sh
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
 
 ### `No development build (com.podverse.app.next) is installed` (Metro **`i`** / **`a`**)
 

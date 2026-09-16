@@ -2,33 +2,35 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { isPlainObject } from '@podverse/helpers/guards';
 import type { PlaybackTarget } from '@podverse/playback-core';
-import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNearEndSeconds';
 
-// Mirror of web `apps/web/src/utils/anonymousPlaybackStorage.ts`. Anonymous users have no server
-// queue, so the last now-playing resource + position is snapshotted to device storage and restored
-// on the next cold start (see `useAnonymousPlaybackRestore`). Logged-in users never write this
-// snapshot; it is cleared when a session begins.
-export const ANONYMOUS_PLAYBACK_SNAPSHOT_VERSION = 1 as const;
+/**
+ * Device-local now-playing snapshot for every user, signed in or not. Lives outside the
+ * account queue / history system: cold start restores the last item paused so the mini player
+ * returns without a network round-trip. Cleared when the item finishes and when a user signs in
+ * (the signing-in account's server queue is then authoritative).
+ */
+export const LAST_PLAYBACK_SNAPSHOT_VERSION = 1 as const;
 
-// Mobile-only key (device storage is not shared with web). Kept stable so restores survive updates.
-const ANONYMOUS_LAST_PLAYBACK_KEY = 'pv_mobile_anonymous_last_playback';
+/** Near-end window matching `clampNearEndSeconds` in `@podverse/playback-core`. */
+const NEAR_END_SECONDS = 5;
 
-export type AnonymousPlaybackKind = 'item' | 'clip' | 'item_soundbite';
+// Mobile-only key (device storage is not shared with web).
+const LAST_PLAYBACK_KEY = 'pv_mobile_last_playback';
 
-export type AnonymousPlaybackSnapshotV1 = {
-  v: typeof ANONYMOUS_PLAYBACK_SNAPSHOT_VERSION;
-  kind: AnonymousPlaybackKind;
+export type LastPlaybackKind = 'item' | 'clip' | 'item_soundbite';
+
+export type LastPlaybackSnapshotV1 = {
+  v: typeof LAST_PLAYBACK_SNAPSHOT_VERSION;
+  kind: LastPlaybackKind;
   id_text: string;
   playback_position_seconds: number;
   media_file_duration_seconds?: number;
   updated_at: string;
 };
 
-export type AnonymousPlaybackSnapshot = AnonymousPlaybackSnapshotV1;
+export type LastPlaybackSnapshot = LastPlaybackSnapshotV1;
 
-export function parseAnonymousPlaybackSnapshot(
-  raw: string | null
-): AnonymousPlaybackSnapshot | null {
+export function parseLastPlaybackSnapshot(raw: string | null): LastPlaybackSnapshot | null {
   if (raw === null || raw === '') {
     return null;
   }
@@ -69,7 +71,7 @@ export function parseAnonymousPlaybackSnapshot(
       kind: parsed.kind,
       playback_position_seconds: parsed.playback_position_seconds,
       updated_at: parsed.updated_at,
-      v: ANONYMOUS_PLAYBACK_SNAPSHOT_VERSION,
+      v: LAST_PLAYBACK_SNAPSHOT_VERSION,
       ...(parsed.media_file_duration_seconds !== undefined
         ? { media_file_duration_seconds: parsed.media_file_duration_seconds }
         : {}),
@@ -79,28 +81,26 @@ export function parseAnonymousPlaybackSnapshot(
   }
 }
 
-export async function readAnonymousPlaybackSnapshot(): Promise<AnonymousPlaybackSnapshot | null> {
+export async function readLastPlaybackSnapshot(): Promise<LastPlaybackSnapshot | null> {
   try {
-    const raw = await AsyncStorage.getItem(ANONYMOUS_LAST_PLAYBACK_KEY);
-    return parseAnonymousPlaybackSnapshot(raw);
+    const raw = await AsyncStorage.getItem(LAST_PLAYBACK_KEY);
+    return parseLastPlaybackSnapshot(raw);
   } catch {
     return null;
   }
 }
 
-export async function writeAnonymousPlaybackSnapshot(
-  snapshot: AnonymousPlaybackSnapshotV1
-): Promise<void> {
+export async function writeLastPlaybackSnapshot(snapshot: LastPlaybackSnapshotV1): Promise<void> {
   try {
-    await AsyncStorage.setItem(ANONYMOUS_LAST_PLAYBACK_KEY, JSON.stringify(snapshot));
+    await AsyncStorage.setItem(LAST_PLAYBACK_KEY, JSON.stringify(snapshot));
   } catch {
     // Best-effort; a failed write only loses the restore convenience.
   }
 }
 
-export async function clearAnonymousPlaybackSnapshot(): Promise<void> {
+export async function clearLastPlaybackSnapshot(): Promise<void> {
   try {
-    await AsyncStorage.removeItem(ANONYMOUS_LAST_PLAYBACK_KEY);
+    await AsyncStorage.removeItem(LAST_PLAYBACK_KEY);
   } catch {
     // Best-effort.
   }
@@ -111,9 +111,9 @@ export async function clearAnonymousPlaybackSnapshot(): Promise<void> {
  * their own id (so the restore reloads the bounded segment); item/chapter targets snapshot the item.
  * Add-by-RSS and livestream targets are not snapshotted (returns null).
  */
-export function anonymousSnapshotIdentityFromTarget(
+export function lastPlaybackIdentityFromTarget(
   target: PlaybackTarget
-): { kind: AnonymousPlaybackKind; id_text: string } | null {
+): { kind: LastPlaybackKind; id_text: string } | null {
   switch (target.kind) {
     case 'clip':
       return { id_text: target.clip.id_text, kind: 'clip' };
@@ -130,13 +130,17 @@ export function anonymousSnapshotIdentityFromTarget(
   }
 }
 
-/** Build a snapshot from the active target + position; clamps near-end positions to 0 like web. */
-export function anonymousSnapshotFromTarget(
+/**
+ * Build a snapshot from the active target + position. A position inside the near-end window means
+ * the item is finished, so there is nothing to resume — callers must clear storage instead of
+ * writing a clamped `0` that would reload the finished item on the next cold start.
+ */
+export function lastPlaybackSnapshotFromTarget(
   target: PlaybackTarget,
   positionSeconds: number,
   durationSeconds: number | undefined
-): AnonymousPlaybackSnapshotV1 | null {
-  const identity = anonymousSnapshotIdentityFromTarget(target);
+): LastPlaybackSnapshotV1 | 'finished' | null {
+  const identity = lastPlaybackIdentityFromTarget(target);
   if (identity === null) {
     return null;
   }
@@ -147,14 +151,17 @@ export function anonymousSnapshotFromTarget(
     durationSeconds !== undefined && Number.isFinite(durationSeconds) && durationSeconds > 0
       ? durationSeconds
       : undefined;
-  const storedPositionSeconds = clampPlaybackPositionForStorage(safePosition, safeDuration);
+
+  if (safeDuration !== undefined && safePosition >= safeDuration - NEAR_END_SECONDS) {
+    return 'finished';
+  }
 
   return {
     id_text: identity.id_text,
     kind: identity.kind,
-    playback_position_seconds: storedPositionSeconds,
+    playback_position_seconds: safePosition,
     updated_at: new Date().toISOString(),
-    v: ANONYMOUS_PLAYBACK_SNAPSHOT_VERSION,
+    v: LAST_PLAYBACK_SNAPSHOT_VERSION,
     ...(safeDuration !== undefined ? { media_file_duration_seconds: safeDuration } : {}),
   };
 }

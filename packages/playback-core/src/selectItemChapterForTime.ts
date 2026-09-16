@@ -24,9 +24,11 @@ export const shouldSuppressChapterSelectionAtTime = (
 ): boolean => currentTimeSeconds <= 0 && hasChapterStartAtOrBeforeZero(chapters);
 
 /**
- * Picks the active chapter for a playback time (seconds), matching NonLiveMediaOrchestrator
- * timeupdate and chapter list UI behavior: overlap must include end, chapters without
- * numeric end are skipped.
+ * Picks the active chapter for a playback time (seconds). Every surface that names the current
+ * chapter — web's player info and embed, mobile's now-playing chrome — resolves it here, so the
+ * chapter a listener sees does not depend on which app they opened.
+ *
+ * Overlap must include end; chapters without a numeric end are skipped.
  */
 export const selectItemChapterForTime = (
   chapters: DTOItemChapter[],

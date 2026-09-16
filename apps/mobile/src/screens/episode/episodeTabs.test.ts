@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveEpisodeTabs } from './episodeTabs';
+import { resolveEpisodeTabForItem, resolveEpisodeTabs } from './episodeTabs';
 
 const ALWAYS_ON = ['summary', 'clips'] as const;
 
@@ -36,5 +36,25 @@ describe('resolveEpisodeTabs', () => {
         },
       })
     ).toEqual(['summary', 'clips', 'transcript']);
+  });
+});
+
+describe('resolveEpisodeTabForItem', () => {
+  it('keeps the remembered tab when this item supports it', () => {
+    expect(
+      resolveEpisodeTabForItem({
+        rememberedTab: 'chapters',
+        supportedTabs: ['summary', 'clips', 'chapters'],
+      })
+    ).toBe('chapters');
+  });
+
+  it('falls back to Summary when the remembered tab is not available', () => {
+    expect(
+      resolveEpisodeTabForItem({
+        rememberedTab: 'transcript',
+        supportedTabs: ['summary', 'clips'],
+      })
+    ).toBe('summary');
   });
 });

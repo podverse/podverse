@@ -138,7 +138,7 @@
     "mobile:e2e:test": "bash scripts/mobile/e2e-test.sh",
     "mobile:e2e:test:all": "bash scripts/mobile/e2e-test.sh all",
     "mobile:e2e:test:all:parallel": "bash scripts/mobile/e2e-test.sh --parallel all",
-    "mobile:install": "npm install --prefix apps/mobile && bash scripts/mobile/patch-expo-localization-xcode26.sh",
+    "mobile:install": "npm install --prefix apps/mobile && bash scripts/mobile/patch-expo-localization-xcode26.sh && bash scripts/mobile/patch-expo-cli-xcode27.sh && bash scripts/mobile/ensure-expo-sqlite-vendored-sources.sh",
     "mobile:lint": "eslint apps/mobile --max-warnings 0",
     "mobile:lint:fix": "eslint apps/mobile --fix",
     "dev:workers": "npm run dev -w apps/workers",

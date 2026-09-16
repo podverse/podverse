@@ -11,6 +11,9 @@ export {
   resolveResumeAtSecondsForEnclosureSwitch,
   playbackTargetFromStandardLoad,
   playbackTargetLivestream,
+  hasChapterStartAtOrBeforeZero,
+  selectItemChapterForTime,
+  shouldSuppressChapterSelectionAtTime,
 } from '@podverse/playback-core';
 export type {
   AbridgedSeekInput,

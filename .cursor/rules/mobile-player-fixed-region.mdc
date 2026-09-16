@@ -1,0 +1,73 @@
+---
+description: Full player keeps a fixed chrome region where only the viewer band flexes
+globs:
+  - "apps/mobile/src/screens/player/**/*.tsx"
+  - "apps/mobile/src/screens/player/**/*.ts"
+  - "apps/mobile/src/components/player/**/*.tsx"
+alwaysApply: false
+---
+
+# Mobile full player fixed-region contract
+
+The full player is a fixed-height region above scrollable panes. The region keeps its geometry while
+chips and pane content below it change.
+
+## Required
+
+- Only the viewer band flexes. Every other band keeps its fixed height. The viewer band flexes for
+  real (`flexGrow` / `flexShrink` with `minHeight: 0`) and sizes its square from its own measured
+  box, so a band whose text grows with the OS font setting takes that space from the artwork
+  instead of pushing the transport rows out of the region.
+- The artwork is what gives way. It has caps (`FULL_PLAYER_ARTWORK_MAX_PHONE` /
+  `_MAX_TABLET`) but no floor: a viewport too short for the fixed bands shrinks the square rather
+  than pushing the chip strip off the bottom edge. The region is never taller than the space the
+  viewport can give it, and clips (`overflow: 'hidden'`) in the worst case.
+- Region sizing comes from `fullPlayerLayout.ts`; do not introduce ad-hoc magic heights in screen
+  styles. Band styles read the same constants the math reads (`FULL_PLAYER_REGION_GAP`,
+  `FULL_PLAYER_CONTROL_STACK_GAP`, `FULL_PLAYER_REGION_TOP_PADDING`,
+  `FULL_PLAYER_REGION_BOTTOM_PADDING`, `FULL_PLAYER_CHIP_HEADER_HEIGHT`) so reserved and rendered
+  space cannot drift.
+- Episode title and channel title share one title block (`FULL_PLAYER_TITLE_BLOCK_HEIGHT`) with a
+  tight internal gap. Do not split them into two bands separated by `FULL_PLAYER_REGION_GAP`.
+- Band order matches web's player modal: title block, artwork, segment band, progress, transport,
+  utility. Upper seams use `FULL_PLAYER_REGION_GAP` (three of them). Progress → transport and
+  transport → utility use the tighter `FULL_PLAYER_CONTROL_STACK_GAP` (two of them). Plus
+  `FULL_PLAYER_REGION_TOP_PADDING` above the title and `FULL_PLAYER_REGION_BOTTOM_PADDING` below the
+  utility row (the seam before the section chips). Both paddings are chrome so the bands sum to the
+  region height rather than overflowing. The chip header has no hairlines.
+- Peek reserves the chip strip plus the bottom safe-area inset, and a bottom fill covers the inset
+  so pane copy cannot show there. The header does not include that inset, so chips stay close to
+  pane content after scroll. `FULL_PLAYER_CHIP_HEADER_HEIGHT` is the default-text-size floor —
+  the strip reports its measured height (`chipStripHeight`) and peek follows the larger of the two,
+  so accessibility text sizes cannot leak Summary copy under the chips. Measure the chip row slot,
+  never the header, or the condensed bar would change the reserve mid-scroll.
+- The segment band (`FULL_PLAYER_SEGMENT_BAND_HEIGHT`) sits **below** the artwork and is reserved
+  unconditionally, exactly as web reserves `--media-modal-subtitle-reserve`. A chapter or clip name
+  arriving mid-playback fades into a row that is already there — it never resizes the artwork or
+  moves the transport.
+- Duration for the scrubber is seeded from `item.item_about.duration` via
+  `resolveMediaFileDurationHintSeconds` when playback starts; native `durationSeconds > 0` still
+  wins. The left clock always shows the playhead; seek stays disabled only while duration is still
+  `0`.
+- New player controls open sheets. Do not expand controls inline inside the fixed region.
+- If a new control needs persistent space, reserve a fixed-height band for it in layout math.
+- Sticky chips and the condensed bar belong to the scroll shell, not inside pane content. A chip
+  tap selects the pane and scrolls the list to the player-region height so the chips stick under
+  the condensed bar. The strip is navigation, not a teaser.
+- Video renders inside the measured artwork square and letterboxes when aspect ratios differ.
+- Playhead UI lives in leaf components that read `playbackProgressStore`; the fixed-region shell
+  uses `usePlaybackSession()` only.
+- Pull-to-dismiss is the native-stack top-edge gesture only (`fullScreenGestureEnabled: false`).
+- The pane `SectionList` does not bounce or over-scroll — this screen has no pull-to-refresh.
+
+## Do not
+
+- Do not conditionally insert or remove fixed-region rows. Content that comes and goes gets a
+  permanently reserved band; anything else jumps the layout while a listener is watching it.
+- Do not let pane loading, empty states, or chip switching push transport or utility rows.
+- Do not bind region size to transcript/chapter/clip body height.
+- Do not give the region a minimum height that can exceed the viewport, and do not reserve peek from
+  a hardcoded chip height alone — both push the chip strip off-screen on short viewports or at large
+  text sizes.
+- Do not subscribe the shell to progress ticks (`usePlayback()` / `usePlaybackProgress()`).
+- Do not enable a full-screen vertical dismiss gesture or list bounce on the full player.

@@ -148,18 +148,24 @@ export type DownloadAction = {
 
 /**
  * One item's download state and the two things a user can do about it, so every download affordance
- * — the labeled control on episode detail and the icon on a list row — answers to the same state
+ * — the list-row icon and the More menu on podcast and episode screens — answers to the same state
  * machine and the same eligibility rule.
  *
  * Pass `includeProgress` only for a single-item surface. A list row shows a busy spinner and does
  * not need a percentage, and subscribing every visible row to byte progress is what makes a list
  * stutter mid-download.
  */
-export const useDownloadAction = (item: DTOItem, includeProgress = false): DownloadAction => {
-  const record = useItemDownload(item.id_text, includeProgress);
+export const useDownloadAction = (
+  item: DTOItem | undefined,
+  includeProgress = false
+): DownloadAction => {
+  const record = useItemDownload(item?.id_text ?? '', includeProgress);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
 
   const start = useCallback(() => {
+    if (item === undefined) {
+      return;
+    }
     setNoticeKey(null);
     void (async () => {
       try {
@@ -178,6 +184,9 @@ export const useDownloadAction = (item: DTOItem, includeProgress = false): Downl
   }, [item]);
 
   const remove = useCallback(() => {
+    if (item === undefined) {
+      return;
+    }
     setNoticeKey(null);
     void (async () => {
       try {
@@ -186,7 +195,7 @@ export const useDownloadAction = (item: DTOItem, includeProgress = false): Downl
         setNoticeKey('errors.generic');
       }
     })();
-  }, [item.id_text]);
+  }, [item]);
 
   const percentComplete =
     includeProgress && record !== null && record.byteSize !== null && record.byteSize > 0
@@ -194,7 +203,7 @@ export const useDownloadAction = (item: DTOItem, includeProgress = false): Downl
       : null;
 
   return {
-    isDownloadable: isItemDownloadable(item).ok,
+    isDownloadable: item !== undefined && isItemDownloadable(item).ok,
     noticeKey,
     percentComplete,
     remove,

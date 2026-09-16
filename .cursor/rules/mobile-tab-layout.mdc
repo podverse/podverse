@@ -16,6 +16,10 @@ Hidden content tabs stay registered in the navigator and appear as rows on More.
 Factory visible order is **Home, Search, My Library, Browse** (`DEFAULT_VISIBLE_TABS`).
 Notifications overflows to More until the user adds it.
 
+English bottom-tab labels are **Title Case** (`nav.tab.my_library` → `My Library`). That is a
+standing exception to **ui-copy-sentence-case**; keep other surfaces (web sidebar
+`features.my_library`, buttons, stack body copy) on sentence case.
+
 ## Do
 
 - Read `tabs.visible` under the splash (`TabLayoutProvider`) before mounting `TabScaffold`.

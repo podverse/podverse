@@ -4,6 +4,7 @@
       "browse": "Περιήγηση",
       "home": "Αρχική",
       "more": "Περισσότερα",
+      "my_library": "Η βιβλιοθήκη μου",
       "notifications": "Ειδοποιήσεις",
       "rss": "RSS",
       "downloads": "Λήψεις"
@@ -45,6 +46,7 @@
       "remove": "Αφαίρεση",
       "cancel_download": "Ακύρωση λήψης",
       "remove_download": "Αφαίρεση λήψης",
+      "delete": "Διαγραφή",
       "empty": "Δεν υπάρχουν λήψεις ακόμα",
       "downloaded": "Ληφθέντα",
       "not_downloadable": "Αυτό το επεισόδιο δεν μπορεί να ληφθεί για αναπαραγωγή εκτός σύνδεσης",
@@ -171,5 +173,8 @@
       "outcome_skipped": "Παραλείφθηκε — εκτός σύνδεσης",
       "outcome_success": "Επιτυχία"
     }
+  },
+  "media_player": {
+    "chapter_tooltip": "Κεφάλαιο: {title}"
   }
 }

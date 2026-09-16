@@ -45,7 +45,7 @@ export const channelHasPodroll = (channel: PodcastSectionChannel | null): boolea
 /**
  * Which sections this podcast can offer.
  *
- * Episodes, Downloaded, About, and Clips are always answerable. Official Clips and Podroll sit
+ * Episodes, Downloaded, About, and Clips are always answerable. Official clips and Podroll sit
  * after those and appear from cached evidence, then from the channel DTO / stored episodes once
  * those have been read. A chip for something this podcast has never been seen to carry stays off
  * so the first-visit insert, when it happens, is at the end of the row.

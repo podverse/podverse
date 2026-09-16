@@ -10,6 +10,11 @@ export type ProgressTrackProps = {
   /** Fraction filled, 0–1. Out-of-range values are clamped. */
   ratio: number;
   height?: number;
+  /**
+   * Square ends so the track can sit as an edge (mini-player top border). Rounded is the
+   * default for standalone bars and scrubbers.
+   */
+  flush?: boolean;
   /** Colored used portion. Zero-width when `ratio` is 0, so it is not Maestro-visible. */
   fillTestID?: string;
   style?: StyleProp<ViewStyle>;
@@ -26,6 +31,7 @@ export type ProgressTrackProps = {
  */
 export function ProgressTrack({
   fillTestID,
+  flush = false,
   height = 2,
   ratio,
   style,
@@ -42,13 +48,13 @@ export function ProgressTrack({
         },
         track: {
           backgroundColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
+          borderRadius: flush ? 0 : tokens.radii.round,
           flexDirection: 'row',
           height,
           overflow: 'hidden',
         },
       }),
-    [height, themeStyles, tokens]
+    [flush, height, themeStyles, tokens]
   );
 
   return (

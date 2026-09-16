@@ -1,37 +1,54 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
 
+import type { DTOQueueResource } from '@podverse/helpers';
+
+import type { MoreMenuItem, MoreMenuSection } from '../../components/primitives/MoreMenu';
+import { MoreMenu } from '../../components/primitives/MoreMenu';
 import { useAutoQueue } from '../../contexts/AutoQueueProvider';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueResources } from '../../hooks/useQueueResources';
-import { clipToHomeRow, itemToHomeRow } from '../../lib/rows/homeRowMappers';
-import type { HomeMediaType } from '../../prefs/preferredMediaType';
-import { useTheme } from '../../theme/useTheme';
-import type { HomeFeedRowData } from '../home/homeFeedData';
-import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 
-type UpNextRow = {
+type UpNextAction = {
   key: string;
-  mediaType: HomeMediaType;
-  row: HomeFeedRowData;
+  label: string;
+  onPress: () => void;
 };
 
 /**
- * Full player up-next sheet. Lists manual upcoming rows from the server queue first, then the
- * seeded auto-queue rows. Rows carry playable id prefixes so tapping play routes through the shared
- * orchestrator (`useHomeRowPlayback`). Shows an i18n empty state when nothing is upcoming.
+ * Full player up-next sheet. Lists manual upcoming rows from the server queue first, then seeded
+ * auto-queue rows. Closing/selection behavior comes from `MoreMenu`.
  */
-export function FullPlayerUpNext() {
+type FullPlayerUpNextProps = {
+  onCancel: () => void;
+  visible: boolean;
+};
+
+const queueResourceLabel = (resource: DTOQueueResource): string | null => {
+  const clipTitle = resource.clip?.title;
+  if (clipTitle !== undefined && clipTitle !== null && clipTitle.length > 0) {
+    return clipTitle;
+  }
+  const itemTitle = resource.item?.title;
+  if (itemTitle !== undefined && itemTitle !== null && itemTitle.length > 0) {
+    return itemTitle;
+  }
+  const soundbiteTitle = resource.item_soundbite?.title;
+  if (soundbiteTitle !== undefined && soundbiteTitle !== null && soundbiteTitle.length > 0) {
+    return soundbiteTitle;
+  }
+  return resource.item?.id_text ?? resource.clip?.id_text ?? null;
+};
+
+export function FullPlayerUpNext({ onCancel, visible }: FullPlayerUpNextProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
   const { fetchPrimaryQueue } = usePrimaryQueue();
   const { fetchUpcoming } = useQueueResources();
   const { autoQueueResources } = useAutoQueue();
-  const { runPlayAction, runQueueAction } = useHomeRowPlayback();
+  const { playClipById, playItemById } = usePlaybackSession();
 
-  const [manualRows, setManualRows] = useState<UpNextRow[]>([]);
+  const [manualActions, setManualActions] = useState<UpNextAction[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +57,7 @@ export function FullPlayerUpNext() {
         const queue = await fetchPrimaryQueue();
         if (queue === null) {
           if (!cancelled) {
-            setManualRows([]);
+            setManualActions([]);
           }
           return;
         }
@@ -48,122 +65,137 @@ export function FullPlayerUpNext() {
         if (cancelled) {
           return;
         }
-        setManualRows(
-          upcoming.map((resource) => {
-            const itemRow = itemToHomeRow(resource.item);
-            return {
-              key: `manual-${resource.id}`,
-              mediaType: itemRow.mediaType,
-              row: { ...itemRow, id: `item-${itemRow.id}` },
-            };
-          })
-        );
+        const nextActions = upcoming.flatMap((resource): UpNextAction[] => {
+          const label = queueResourceLabel(resource);
+          if (label === null) {
+            return [];
+          }
+          if (resource.clip?.id_text !== undefined && resource.clip.id_text.length > 0) {
+            const clipIdText = resource.clip.id_text;
+            return [
+              {
+                key: `manual-clip-${clipIdText}`,
+                label,
+                onPress: () => {
+                  void playClipById(clipIdText);
+                },
+              },
+            ];
+          }
+          const itemIdText = resource.item?.id_text;
+          if (itemIdText === undefined || itemIdText.length === 0) {
+            return [];
+          }
+          return [
+            {
+              key: `manual-item-${itemIdText}`,
+              label,
+              onPress: () => {
+                void playItemById(itemIdText);
+              },
+            },
+          ];
+        });
+        setManualActions(nextActions);
       } catch {
         if (!cancelled) {
-          setManualRows([]);
+          setManualActions([]);
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [fetchPrimaryQueue, fetchUpcoming]);
+  }, [fetchPrimaryQueue, fetchUpcoming, playClipById, playItemById]);
 
-  const autoRows = useMemo<UpNextRow[]>(() => {
+  const autoActions = useMemo<UpNextAction[]>(() => {
     return Object.keys(autoQueueResources)
       .map(Number)
       .sort((a, b) => a - b)
-      .flatMap((index) => {
+      .flatMap((index): UpNextAction[] => {
         const resource = autoQueueResources[index];
         if (resource === undefined) {
           return [];
         }
         if (resource.clip !== null) {
-          const clipRow = clipToHomeRow(resource.clip);
+          const clipIdText = resource.clip.id_text;
+          const label = resource.clip.title ?? clipIdText;
           return [
             {
-              key: `auto-${index}-clip-${resource.clip.id_text}`,
-              mediaType: 'clips' as HomeMediaType,
-              row: { ...clipRow, id: `clip-${resource.clip.id_text}` },
+              key: `auto-clip-${clipIdText}`,
+              label,
+              onPress: () => {
+                void playClipById(clipIdText);
+              },
             },
           ];
         }
         if (resource.item === null || resource.item === undefined) {
           return [];
         }
-        const itemRow = itemToHomeRow(resource.item);
+        const label = resource.item.title ?? resource.item.id_text;
         return [
           {
-            key: `auto-${index}-item-${resource.item.id_text}`,
-            mediaType: itemRow.mediaType,
-            row: { ...itemRow, id: `item-${itemRow.id}` },
+            key: `auto-item-${resource.item.id_text}`,
+            label,
+            onPress: () => {
+              void playItemById(resource.item.id_text);
+            },
           },
         ];
       });
-  }, [autoQueueResources]);
+  }, [autoQueueResources, playClipById, playItemById]);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        empty: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 14,
-          paddingVertical: tokens.spacing.md,
-        },
-        heading: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          fontWeight: '600',
-          marginBottom: tokens.spacing.sm,
-          marginTop: tokens.spacing.md,
-        },
-      }),
-    [themeStyles, tokens]
-  );
-
-  const renderRow = ({ mediaType, row }: UpNextRow, isLast: boolean) => (
-    <HomeFeedRow
-      isLast={isLast}
-      mediaType={mediaType}
-      onPlayPress={(nextRow) => {
-        runPlayAction(nextRow, mediaType);
-      }}
-      onPress={() => {}}
-      onQueuePress={(nextRow, position) => {
-        runQueueAction(nextRow, mediaType, position);
-      }}
-      row={row}
-    />
-  );
-
-  const isEmpty = manualRows.length === 0 && autoRows.length === 0;
+  const sections = useMemo<MoreMenuSection[]>(() => {
+    const allSections: MoreMenuSection[] = [];
+    if (manualActions.length > 0) {
+      allSections.push({
+        items: manualActions.map((action): MoreMenuItem => ({
+          key: action.key,
+          label: action.label,
+          onPress: action.onPress,
+          testID: `full-player-up-next-${action.key}`,
+        })),
+        key: 'manual',
+        title: t('media_player.up_next'),
+      });
+    }
+    if (autoActions.length > 0) {
+      allSections.push({
+        items: autoActions.map((action): MoreMenuItem => ({
+          key: action.key,
+          label: action.label,
+          onPress: action.onPress,
+          testID: `full-player-up-next-${action.key}`,
+        })),
+        key: 'auto',
+        title: t('media_player.auto_queue'),
+      });
+    }
+    if (allSections.length === 0) {
+      allSections.push({
+        items: [
+          {
+            disabled: true,
+            key: 'empty',
+            label: t('media_player.up_next_empty'),
+            onPress: () => {},
+            testID: 'full-player-up-next-empty',
+          },
+        ],
+        key: 'empty',
+      });
+    }
+    return allSections;
+  }, [autoActions, manualActions, t]);
 
   return (
-    <View testID="full-player-up-next-sheet">
-      {isEmpty ? (
-        <Text style={styles.empty} testID="full-player-up-next-empty">
-          {t('media_player.up_next_empty')}
-        </Text>
-      ) : (
-        <>
-          {manualRows.length > 0 ? (
-            <View testID="full-player-up-next-manual">
-              <Text style={styles.heading}>{t('media_player.up_next')}</Text>
-              {manualRows.map((entry, index) => (
-                <View key={entry.key}>{renderRow(entry, index === manualRows.length - 1)}</View>
-              ))}
-            </View>
-          ) : null}
-          {autoRows.length > 0 ? (
-            <View testID="full-player-up-next-auto">
-              <Text style={styles.heading}>{t('media_player.auto_queue')}</Text>
-              {autoRows.map((entry, index) => (
-                <View key={entry.key}>{renderRow(entry, index === autoRows.length - 1)}</View>
-              ))}
-            </View>
-          ) : null}
-        </>
-      )}
-    </View>
+    <MoreMenu
+      cancelLabel={t('misc.cancel')}
+      onCancel={onCancel}
+      sections={sections}
+      testID="full-player-up-next-sheet"
+      visible={visible}
+    />
   );
 }

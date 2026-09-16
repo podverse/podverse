@@ -365,9 +365,116 @@ export const downloadsRepository = {
       .where(
         and(
           eq(schema.download.channelIdText, channelIdText),
-          sql`${schema.download.channelTitle} IS NULL`
+          sql`(${schema.download.channelTitle} IS NULL OR ${schema.download.channelTitle} = '')`
         )
       );
+  },
+
+  /**
+   * A display title already stored for this show: a sibling download, a cached episode payload
+   * that embedded `channel.title`, or the local subscription row.
+   */
+  findStoredChannelTitle: async (channelIdText: string): Promise<string | null> => {
+    await initializeDatabase();
+
+    const fromDownload = await getDb()
+      .select({ channelTitle: schema.download.channelTitle })
+      .from(schema.download)
+      .where(
+        and(
+          eq(schema.download.channelIdText, channelIdText),
+          sql`(${schema.download.channelTitle} IS NOT NULL AND ${schema.download.channelTitle} != '')`
+        )
+      )
+      .limit(1);
+    const downloadTitle = fromDownload[0]?.channelTitle;
+    if (downloadTitle !== undefined && downloadTitle !== null && downloadTitle.length > 0) {
+      return downloadTitle;
+    }
+
+    const payloadRows = await getDb()
+      .select({ payloadJson: schema.channelItem.payloadJson })
+      .from(schema.channelItem)
+      .where(eq(schema.channelItem.channelIdText, channelIdText))
+      .limit(1);
+    const payload = payloadRows[0]?.payloadJson;
+    if (payload !== undefined) {
+      const item = safeJsonParse<DTOItem>(payload);
+      const title = item?.channel?.title;
+      if (title !== undefined && title !== null && title.trim().length > 0) {
+        return title.trim();
+      }
+    }
+
+    const subscribed = await getDb()
+      .select({ title: schema.subscribedChannel.title })
+      .from(schema.subscribedChannel)
+      .where(eq(schema.subscribedChannel.idText, channelIdText))
+      .limit(1);
+    const subscribedTitle = subscribed[0]?.title;
+    if (subscribedTitle !== undefined && subscribedTitle.trim().length > 0) {
+      return subscribedTitle.trim();
+    }
+
+    return null;
+  },
+
+  /**
+   * Fill download rows that have a channel id (or can recover one from `channel_item`) but no
+   * title. Returns how many channels received a title so the caller can re-read the list.
+   */
+  backfillMissingChannelTitles: async (): Promise<number> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({
+        channelIdText: schema.download.channelIdText,
+        channelTitle: schema.download.channelTitle,
+        itemIdText: schema.download.itemIdText,
+      })
+      .from(schema.download);
+
+    const missing = rows.filter(
+      (row) => row.channelTitle === null || row.channelTitle.length === 0
+    );
+    if (missing.length === 0) {
+      return 0;
+    }
+
+    const unlinkedIds = missing
+      .filter((row) => row.channelIdText === null || row.channelIdText.length === 0)
+      .map((row) => row.itemIdText);
+
+    const discoveredIds = new Set<string>();
+    for (const row of missing) {
+      if (row.channelIdText !== null && row.channelIdText.length > 0) {
+        discoveredIds.add(row.channelIdText);
+      }
+    }
+
+    if (unlinkedIds.length > 0) {
+      const hints = await getDb()
+        .select({
+          channelIdText: schema.channelItem.channelIdText,
+          itemIdText: schema.channelItem.itemIdText,
+        })
+        .from(schema.channelItem)
+        .where(inArray(schema.channelItem.itemIdText, unlinkedIds));
+      for (const hint of hints) {
+        discoveredIds.add(hint.channelIdText);
+      }
+    }
+
+    let filled = 0;
+    for (const channelIdText of discoveredIds) {
+      const channelTitle = await downloadsRepository.findStoredChannelTitle(channelIdText);
+      if (channelTitle === null) {
+        continue;
+      }
+      await downloadsRepository.attachChannelToDownloads({ channelIdText, channelTitle });
+      filled += 1;
+    }
+
+    return filled;
   },
 
   getByItemIdText: async (itemIdText: string): Promise<DownloadRecord | null> => {

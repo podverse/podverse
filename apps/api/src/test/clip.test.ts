@@ -100,6 +100,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   }
 
   class MockItemService {
+    getByIdOrIdText = itemGetByIdTextMock;
     getByIdText = itemGetByIdTextMock;
   }
 
@@ -452,17 +453,43 @@ describe('clip routes', () => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
     });
+
+    it('returns 200 with an empty page when the channel is missing', async () => {
+      channelGetByIdTextMock.mockResolvedValueOnce(null);
+      clipGetManyByChannelAndCountPublicMock.mockClear();
+
+      const res = await request(app).get(
+        `${clipBase}/public/channel/recent/${CHANNEL_ID_TEXT}?page=1`
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+      expect(res.body.meta).toMatchObject({ count: 0, page: 1 });
+      expect(clipGetManyByChannelAndCountPublicMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('GET /public/item/recent/:item_id_text', () => {
     it('returns 200 with paginated clips for an item', async () => {
-      itemGetByIdTextMock.mockResolvedValueOnce({ id: 1 });
+      itemGetByIdTextMock.mockResolvedValueOnce({ id: 1, id_text: ITEM_ID_TEXT });
       clipGetManyByItemAndCountPublicMock.mockResolvedValueOnce([[], 0]);
 
       const res = await request(app).get(`${clipBase}/public/item/recent/${ITEM_ID_TEXT}?page=1`);
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
+    });
+
+    it('returns 200 with an empty page when the item is missing', async () => {
+      itemGetByIdTextMock.mockResolvedValueOnce(null);
+      clipGetManyByItemAndCountPublicMock.mockClear();
+
+      const res = await request(app).get(`${clipBase}/public/item/recent/${ITEM_ID_TEXT}?page=1`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+      expect(res.body.meta).toMatchObject({ count: 0, page: 1 });
+      expect(clipGetManyByItemAndCountPublicMock).not.toHaveBeenCalled();
     });
   });
 

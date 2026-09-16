@@ -71,7 +71,7 @@ test.describe('Media player alternate enclosure control', () => {
     await test.step('Clicking the alternate enclosure button opens the source selector modal with multiple formats', async () => {
       const mediaPlayer = page.locator('aside#media-player');
       await mediaPlayer.getByTestId('media-player-alternate-enclosure-button').first().click();
-      const modal = page.getByRole('dialog', { name: 'Select Media Source' });
+      const modal = page.getByRole('dialog', { name: 'Select media source' });
       await expect(modal).toBeVisible();
       const sourceButtons = modal.getByRole('button').filter({ hasText: 'localhost' });
       await expect(sourceButtons).toHaveCount(4);
@@ -100,7 +100,7 @@ test.describe('Media player alternate enclosure control', () => {
     expect(positionBeforeSwitch).toBeGreaterThanOrEqual(13);
 
     await mediaPlayer.getByTestId('media-player-alternate-enclosure-button').first().click();
-    const modal = page.getByRole('dialog', { name: 'Select Media Source' });
+    const modal = page.getByRole('dialog', { name: 'Select media source' });
     await expect(modal).toBeVisible();
     await modal.getByRole('button', { name: /OGG Opus/i }).click();
 

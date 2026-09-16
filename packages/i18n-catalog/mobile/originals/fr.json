@@ -4,6 +4,7 @@
       "browse": "Parcourir",
       "home": "Accueil",
       "more": "Plus",
+      "my_library": "Ma bibliothèque",
       "notifications": "Notifications",
       "rss": "RSS",
       "downloads": "Téléchargements"
@@ -45,6 +46,7 @@
       "remove": "Supprimer",
       "cancel_download": "Annuler le téléchargement",
       "remove_download": "Retirer le téléchargement",
+      "delete": "Supprimer",
       "empty": "Aucun téléchargement pour le moment",
       "downloaded": "Téléchargés",
       "not_downloadable": "Cet épisode ne peut pas être téléchargé pour une écoute hors ligne",
@@ -171,5 +173,8 @@
       "outcome_skipped": "Ignoré — hors ligne",
       "outcome_success": "Réussi"
     }
+  },
+  "media_player": {
+    "chapter_tooltip": "Chapitre : {title}"
   }
 }

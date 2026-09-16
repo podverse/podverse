@@ -40,7 +40,7 @@ struct PodverseNowPlayingInfo {
 ///
 /// This singleton is intentionally independent of the Expo module lifecycle: CarPlay can reference
 /// `PodverseAudioEngine.shared` to render now-playing and issue transport commands even when the JS
-/// runtime has not started. The Expo module registers an `eventSink` to
+/// runtime has not started. The Expo module registers an event sink (owner-scoped) to
 /// forward events to JS while it is alive; when JS is absent, the engine still plays and updates the
 /// lock screen / car now-playing.
 public final class PodverseAudioEngine: NSObject {
@@ -52,7 +52,32 @@ public final class PodverseAudioEngine: NSObject {
 
   /// Sink that forwards events to JS. Set by the Expo module while it is alive; `nil` when the JS
   /// runtime is not running (e.g. a CarPlay-only launch). Reads/writes are hopped to main.
-  var eventSink: ((PodverseMediaEngineEvent, [String: Any]) -> Void)?
+  ///
+  /// Ownership is keyed so a Fast Refresh / reload cannot let a dying module's `OnDestroy` clear
+  /// the sink that a newer module instance already installed.
+  private var eventSink: ((PodverseMediaEngineEvent, [String: Any]) -> Void)?
+  private weak var eventSinkOwner: AnyObject?
+
+  /// Install `sink` for `owner`. A later `clearEventSink(owner:)` from a different owner is a no-op.
+  func setEventSink(
+    _ sink: @escaping (PodverseMediaEngineEvent, [String: Any]) -> Void, owner: AnyObject
+  ) {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      self.eventSinkOwner = owner
+      self.eventSink = sink
+    }
+  }
+
+  /// Clear the sink only when `owner` is still the current owner.
+  func clearEventSink(owner: AnyObject) {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      guard self.eventSinkOwner === owner else { return }
+      self.eventSinkOwner = nil
+      self.eventSink = nil
+    }
+  }
 
   /// Notified on main whenever the current item's video capability changes (ready with video vs
   /// audio-only or torn down). Set by `PodverseVideoSurfaceHost` so it can hide the surface for
@@ -68,6 +93,9 @@ public final class PodverseAudioEngine: NSObject {
 
   private var remoteCommandsRegistered = false
   private var lastPublishedState: PodversePlaybackState = .idle
+  /// Rate to apply on the next `play()`. Assigning `AVPlayer.rate` while paused starts playback, so
+  /// `setRate` stores here until the user (or `loadAndStart`) actually plays.
+  private var pendingRate: Float = 1.0
 
   private override init() {
     super.init()
@@ -176,6 +204,9 @@ public final class PodverseAudioEngine: NSObject {
       guard let self = self else { return }
       self.activateAudioSession()
       self.player.play()
+      if self.pendingRate > 0, self.pendingRate != 1 {
+        self.player.rate = self.pendingRate
+      }
       self.updateNowPlayingElapsed()
     }
   }
@@ -204,9 +235,11 @@ public final class PodverseAudioEngine: NSObject {
     onMain { [weak self] in
       guard let self = self else { return }
       let value = Float(rate)
-      self.player.rate = value
-      if value > 0 {
-        // Assigning a non-zero rate starts playback; keep now-playing in sync.
+      self.pendingRate = value > 0 ? value : 1.0
+      // Assigning a non-zero `rate` while paused starts playback. Cold-start restore loads then
+      // applies the last rate; only write `player.rate` when already playing.
+      if self.player.timeControlStatus == .playing, value > 0 {
+        self.player.rate = value
         self.updateNowPlayingElapsed()
       }
     }
@@ -455,6 +488,14 @@ public final class PodverseAudioEngine: NSObject {
         self.publish(state: .ready)
         self.updateNowPlayingInfo()
         self.emitVideoCapability()
+        // One progress sample as soon as the item is prepared so JS gets duration before the
+        // periodic observer's next tick (and while paused with no autoplay).
+        self.emit(
+          .progress,
+          [
+            "positionSeconds": self.getPosition(),
+            "durationSeconds": self.getDuration(),
+          ])
       case .failed:
         let message = item.error?.localizedDescription ?? "Playback item failed"
         self.publish(state: .error)

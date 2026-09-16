@@ -63,8 +63,9 @@ Appearance, Tab bar, Playback, and Notifications. 2–3 choices → `OptionChipG
 option-list screen (not bottom sheet). Selected chip uses `buttonPrimary` fill. Option rows
 stack label / description / current value (not trailing). See **mobile-settings-option-density**.
 
-**Cover images:** `CoverImage` (`expo-image`, memory+disk cache) opens **`ImageViewerModal`** on tap
-(full width, contained, portrait). The viewer more control uses **`HeaderBarAction`** +
+**Cover images:** `CoverImage` (`expo-image`, memory+disk cache) opens **`ImageViewerModal`** on a
+stationary tap (full width, contained, portrait). A tap that drags stays a scroll — do not open
+the viewer from movement inside the artwork. The viewer more control uses **`HeaderBarAction`** +
 **`MoreMenu`**; Download goes through `shareRemoteFile` (OS share sheet), not the episode download
 manager. Pass `opensViewer={false}` when the parent row, cell, or mini-player is the pressable
 control. First-paint preview and cache habit: **mobile-image-loading**. Layout: **mobile-screen-layout**.
@@ -131,12 +132,13 @@ on `AccessDenialReason`, no fallback `t(...)`. See **mobile-screen-layout** and
 
 **Screen layout:** tab roots and stack screens share `HeaderBar` (44pt row, no divider under the
 title) and the same page-body gutter — `screenBodyInsets` from `theme/screenLayout.ts`
-(`spacing.lg` below the bar and on both sides). Do not add a second inner `Card` inset on top of
-that gutter. Do not wrap a scrolling result list in a perimeter `Card`. Screen lists that show a
-`VerticalCenter` fill empty use **`FillList`** (scroll locked when `data` is empty and
-`ListEmptyComponent` is set). Login and Sign up overlay the tabs in a full-screen slide `Modal`
-with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch under Submit. See
-**mobile-screen-layout**.
+(`spacing.lg` below the bar and on both sides). Header icons and header action labels use
+`tokens.text.primary` via `HeaderBarAction` (same as the title — not accent/link blue). Do not
+add a second inner `Card` inset on top of that gutter. Do not wrap a scrolling result list in a
+perimeter `Card`. Screen lists that show a `VerticalCenter` fill empty use **`FillList`** (scroll
+locked when `data` is empty and `ListEmptyComponent` is set). Login and Sign up overlay the tabs
+in a full-screen slide `Modal` with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text +
+link switch under Submit. See **mobile-screen-layout**.
 
 ## Checklist before finishing a screen
 

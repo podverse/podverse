@@ -5,7 +5,7 @@ import { useQueueMutations } from '../../hooks/useQueueMutations';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
-import { usePlayback } from '../../playback/PlaybackProvider';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import type { HomeFeedRowData } from './homeFeedData';
 
@@ -73,7 +73,7 @@ export function useHomeRowPlayback() {
     playClipById,
     playItemById,
     resume,
-  } = usePlayback();
+  } = usePlaybackSession();
 
   /**
    * Open the gate when the account-backed queue and history are out of reach, and report whether the

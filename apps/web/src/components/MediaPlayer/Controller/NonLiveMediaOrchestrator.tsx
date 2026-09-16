@@ -31,7 +31,7 @@ import {
   resolveEmbedPlaybackResetSeconds,
 } from '../../../lib/embed/resolveEmbedPlaybackResetSeconds';
 import type { MusicItemPlaybackIntent, PlaybackLoadDecision } from '../../../lib/playback';
-import { clampNearEndSeconds } from '../../../lib/playback';
+import { clampNearEndSeconds, selectItemChapterForTime } from '../../../lib/playback';
 import {
   checkIfIsAudioFile,
   checkIfIsVideoFile,
@@ -39,7 +39,6 @@ import {
 } from '../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import { waitForSourceUri } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
 import { resolveModalVideoAspectRatio } from '../../../utils/mediaPlayer/modalVideoAspectRatio';
-import { selectItemChapterForTime } from '../../../utils/mediaPlayer/selectItemChapterForTime';
 import {
   trackStatsChannel,
   trackStatsClip,

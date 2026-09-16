@@ -61,7 +61,7 @@ function fullscreenModalLocator(page: Page): Locator {
 }
 
 function sourceSelectorModalLocator(page: Page): Locator {
-  return page.getByRole('dialog', { name: 'Select Media Source' });
+  return page.getByRole('dialog', { name: 'Select media source' });
 }
 
 /** The episode row (CommonEpisodeRow) that contains the given title heading and its row actions. */

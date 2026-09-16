@@ -13,12 +13,12 @@ test.describe('Management-web settings page', () => {
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
 
     await page.waitForURL('**/dashboard');
 
     await page.getByRole('button', { name: 'Account menu' }).click();
-    await page.getByRole('menuitem', { name: 'My Settings' }).click();
+    await page.getByRole('menuitem', { name: 'My settings' }).click();
     await page.waitForURL('**/settings');
 
     const title = page.getByRole('heading', { name: 'Settings', level: 1 });

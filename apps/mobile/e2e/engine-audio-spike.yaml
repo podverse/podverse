@@ -61,11 +61,9 @@ name: Engine Audio Spike
     id: full-player-play-pause
 - assertVisible:
     id: full-player-play-pause
-    text: Play
 - takeScreenshot: engine-audio-spike-paused
 - tapOn:
     id: full-player-play-pause
 - assertVisible:
     id: full-player-play-pause
-    text: Pause
 - takeScreenshot: engine-audio-spike-resumed

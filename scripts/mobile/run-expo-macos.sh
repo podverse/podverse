@@ -2,8 +2,12 @@
 # Run `expo run:ios` / `expo run:android` with a macOS-native toolchain and without Nix env pollution.
 # xcodebuild (and Gradle's native steps) must use Xcode's clang, not the Nix clang wrapper. direnv/Nix
 # sets NIX_CC/NIX_CFLAGS_COMPILE/DEVELOPER_DIR/SDKROOT and puts Nix tools on PATH, so xcodebuild feeds
-# Apple-only flags (e.g. -index-store-path) to the wrong clang and fails. Unset NIX_* + DEVELOPER_DIR +
-# SDKROOT first, re-derive Xcode, trim PATH to macOS tools (keeping node from the caller), then run expo.
+# Apple-only flags (e.g. -index-store-path) to the wrong clang and fails. The Nix shell also exports the
+# stdenv toolchain vars (CC=clang, CXX=clang++, LD, AR, …); xcodebuild honors those, resolves the bare
+# name off PATH, and then cannot pair libclang.dylib with the configured compiler, which silently
+# disables explicit module builds and breaks Swift targets that import their own C headers via
+# -import-underlying-module. Unset those plus NIX_* + DEVELOPER_DIR + SDKROOT first, re-derive Xcode,
+# trim PATH to macOS tools (keeping node from the caller), then run expo.
 # Usage: bash scripts/mobile/run-expo-macos.sh <ios|android> [expo run args...]
 # Run from repo root (or any cwd — script resolves repo root).
 
@@ -27,6 +31,8 @@ fi
 
 # Strip Nix/direnv pollution before xcode-select/xcrun (they honor DEVELOPER_DIR/SDKROOT).
 unset DEVELOPER_DIR SDKROOT
+unset CC CXX CPP LD LDPLUSPLUS AR AS NM RANLIB STRIP SIZE STRINGS OBJCOPY OBJDUMP READELF
+unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS MACOSX_DEPLOYMENT_TARGET SOURCE_DATE_EPOCH
 while IFS='=' read -r var _; do
   case "$var" in
     NIX_* | __NIX_* | DETERMINISTIC_BUILD) unset "$var" ;;
@@ -119,6 +125,9 @@ fi
 cd "$REPO_ROOT"
 if [[ "$PLATFORM" == "ios" ]]; then
   bash "$SCRIPT_DIR/patch-expo-localization-xcode26.sh" "$REPO_ROOT/apps/mobile"
+  bash "$SCRIPT_DIR/patch-expo-cli-xcode27.sh" "$REPO_ROOT/apps/mobile"
+  bash "$SCRIPT_DIR/ensure-expo-sqlite-vendored-sources.sh" "$REPO_ROOT/apps/mobile"
+  bash "$SCRIPT_DIR/ensure-ios-pod-build-settings.sh" "$REPO_ROOT/apps/mobile/ios"
 fi
 
 # Default to manual device slots when the caller did not pass --device / -d.

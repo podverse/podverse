@@ -17,7 +17,7 @@ test.describe('Management-web object storage for an admin without bucket read', 
 
     await page.locator('#email').fill('e2e-nobucket@example.com');
     await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign in' }).click();
 
     await page.waitForURL('**/dashboard');
 

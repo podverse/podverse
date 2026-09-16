@@ -62,7 +62,7 @@ is detailed only when its screenshots arrive. `Status`: `not started` → `quest
 | P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips)                   |
 | P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast screen; episode later)      |
 | P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                      |
-| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | not started                               |
+| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | done (player screen; Make Clip split)     |
 | P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | done (Downloads)                          |
 | P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started                               |
 | P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                               |
@@ -159,6 +159,25 @@ Nextgen product feedback on the Downloads screen (not a legacy port). Plan set:
 
 Locked decisions: `.llm/plans/completed/mobile-p2-library-downloads/00-SUMMARY.md`.
 
+### Implemented steps — P2.1.4 Player & now playing
+
+Operator-dictated area. Inventory and locked decisions live in
+`.llm/plans/completed/mobile-p2-player/`
+([FEATURE-INVENTORY.md](/.llm/plans/completed/mobile-p2-player/FEATURE-INVENTORY.md),
+[00-SUMMARY.md](/.llm/plans/completed/mobile-p2-player/00-SUMMARY.md)).
+
+| Step    | Detail                                                                                                                                 | Model     | Status   |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
+| P2.1.4  | [747-player-screen-layout-and-scroll](/docs/proposals/mobile/_master-plan_/phase-2/details/747-player-screen-layout-and-scroll.md)     | Opus 5    | done     |
+| P2.1.4  | [748-player-transport-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/748-player-transport-parity.md)                     | Opus 5    | done     |
+| P2.1.4  | [749-player-action-rows-and-more-sheet](/docs/proposals/mobile/_master-plan_/phase-2/details/749-player-action-rows-and-more-sheet.md) | Codex 5.3 | done     |
+| P2.1.4  | [750-player-section-chips-and-panes](/docs/proposals/mobile/_master-plan_/phase-2/details/750-player-section-chips-and-panes.md)       | Codex 5.3 | done     |
+| P2.3.19 | [751-defer-player-volume-slider](/docs/proposals/mobile/_master-plan_/phase-2/details/751-defer-player-volume-slider.md)               | Auto      | deferred |
+
+Clip authoring stays split out as its own later area — the player carries a scissors control that says
+it is not available yet when pressed, and does nothing else. Transcript **coupling** stays deferred
+(598); the Transcript chip itself is in 750.
+
 ## Track P2.2 — Visual polish (absorbs Phase 1 Track 23)
 
 Phase 1's Track 23 was **declined as a standalone agent phase** because the operator planned to
@@ -200,6 +219,7 @@ doc written except where noted.
 | P2.3.16 | new          | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md) — Clear cache / expo-image / concurrency pref                     | Auto      |
 | P2.3.17 | new          | [745-defer-mobile-add-by-rss-playback-recording](/docs/proposals/mobile/_master-plan_/phase-2/details/745-defer-mobile-add-by-rss-playback-recording.md) — mobile records no add-by-RSS playback | Opus 5    |
 | P2.3.18 | new          | [746-defer-handoff-dismissal-memory](/docs/proposals/mobile/_master-plan_/phase-2/details/746-defer-handoff-dismissal-memory.md) — one dismissal slot, re-prompts when the other device plays on | Opus 5    |
+| P2.3.19 | new          | [751-defer-player-volume-slider](/docs/proposals/mobile/_master-plan_/phase-2/details/751-defer-player-volume-slider.md) — device volume in the player More sheet needs a native module          | Auto      |
 
 **P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components must
 be screen reader accessible when they land, per
@@ -363,6 +383,11 @@ above whenever status changes, per
 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                                         | P2.4.10 | Opus 5    | done          |
 | [743-offline-playback-reconciliation](/docs/proposals/mobile/_master-plan_/phase-2/details/743-offline-playback-reconciliation.md)                       | P2.4.11 | Opus 5    | done          |
 | [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)                           | P2.4.12 | Opus 5    | done          |
+| [747-player-screen-layout-and-scroll](/docs/proposals/mobile/_master-plan_/phase-2/details/747-player-screen-layout-and-scroll.md)                       | P2.1.4  | Opus 5    | done          |
+| [748-player-transport-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/748-player-transport-parity.md)                                       | P2.1.4  | Opus 5    | done          |
+| [749-player-action-rows-and-more-sheet](/docs/proposals/mobile/_master-plan_/phase-2/details/749-player-action-rows-and-more-sheet.md)                   | P2.1.4  | Codex 5.3 | done          |
+| [750-player-section-chips-and-panes](/docs/proposals/mobile/_master-plan_/phase-2/details/750-player-section-chips-and-panes.md)                         | P2.1.4  | Codex 5.3 | done          |
+| [751-defer-player-volume-slider](/docs/proposals/mobile/_master-plan_/phase-2/details/751-defer-player-volume-slider.md)                                 | P2.3.19 | Auto      | deferred      |
 | [720-defer-home-media-type-sort-coverage](/docs/proposals/mobile/_master-plan_/phase-2/details/720-defer-home-media-type-sort-coverage.md)               | P2.1.3  | Codex 5.3 | deferred      |
 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | P2.1.1  | Auto      | done          |
 | [723-podcast-channel-header-and-section-chips](/docs/proposals/mobile/_master-plan_/phase-2/details/723-podcast-channel-header-and-section-chips.md)     | P2.1.2  | Codex 5.3 | done          |

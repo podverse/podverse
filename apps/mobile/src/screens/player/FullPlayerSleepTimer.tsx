@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
 
-import { Button } from '../../components/primitives/Button';
-import { usePlayback } from '../../playback/PlaybackProvider';
-import { useTheme } from '../../theme/useTheme';
+import type { MoreMenuSection } from '../../components/primitives/MoreMenu';
+import { MoreMenu } from '../../components/primitives/MoreMenu';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 
 /**
  * Optional sleep timer. It is session-only: choosing a duration schedules a single `pause()` after
@@ -17,10 +16,14 @@ const SLEEP_OPTIONS: { minutes: number; labelKey: string }[] = [
   { labelKey: 'media_player.sleep_timer.minutes_60', minutes: 60 },
 ];
 
-export function FullPlayerSleepTimer() {
+type FullPlayerSleepTimerProps = {
+  onCancel: () => void;
+  visible: boolean;
+};
+
+export function FullPlayerSleepTimer({ onCancel, visible }: FullPlayerSleepTimerProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
-  const { pause } = usePlayback();
+  const { pause } = usePlaybackSession();
 
   const [selectedMinutes, setSelectedMinutes] = useState<number | null>(null);
 
@@ -40,50 +43,42 @@ export function FullPlayerSleepTimer() {
     };
   }, [pause, selectedMinutes]);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        heading: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          fontWeight: '600',
-          marginBottom: tokens.spacing.sm,
-        },
-        options: {
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: tokens.spacing.sm,
-        },
-      }),
-    [themeStyles, tokens]
+  const sections = useMemo<MoreMenuSection[]>(
+    () => [
+      {
+        items: [
+          {
+            key: 'off',
+            label: t('media_player.sleep_timer.off'),
+            onPress: () => {
+              setSelectedMinutes(null);
+            },
+            selected: selectedMinutes === null,
+            testID: 'full-player-sleep-option-off',
+          },
+          ...SLEEP_OPTIONS.map((option) => ({
+            key: `${option.minutes}`,
+            label: t(option.labelKey),
+            onPress: () => {
+              setSelectedMinutes(option.minutes);
+            },
+            selected: selectedMinutes === option.minutes,
+            testID: `full-player-sleep-option-${option.minutes}`,
+          })),
+        ],
+        key: 'sleep-options',
+      },
+    ],
+    [selectedMinutes, t]
   );
 
   return (
-    <View testID="full-player-sleep-timer-control">
-      <Text style={styles.heading}>{t('media_player.sleep_timer.sleep_timer')}</Text>
-      <View style={styles.options}>
-        <Button
-          label={t('media_player.sleep_timer.off')}
-          onPress={() => {
-            setSelectedMinutes(null);
-          }}
-          size="sm"
-          testID="full-player-sleep-option-off"
-          variant={selectedMinutes === null ? 'primary' : 'secondary'}
-        />
-        {SLEEP_OPTIONS.map((option) => (
-          <Button
-            key={option.labelKey}
-            label={t(option.labelKey)}
-            onPress={() => {
-              setSelectedMinutes(option.minutes);
-            }}
-            size="sm"
-            testID={`full-player-sleep-option-${option.minutes}`}
-            variant={selectedMinutes === option.minutes ? 'primary' : 'secondary'}
-          />
-        ))}
-      </View>
-    </View>
+    <MoreMenu
+      cancelLabel={t('misc.cancel')}
+      onCancel={onCancel}
+      sections={sections}
+      testID="full-player-sleep-sheet"
+      visible={visible}
+    />
   );
 }

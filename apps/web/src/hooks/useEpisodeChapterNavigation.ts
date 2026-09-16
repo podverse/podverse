@@ -6,9 +6,9 @@ import type { DTOItemChapter } from '@podverse/helpers';
 
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
+import { selectItemChapterForTime } from '../lib/playback';
 import { getAdjacentChapter } from '../utils/itemChapter';
 import { hasEpisodeChaptersForTrackNavigation } from '../utils/mediaPlayer/hasEpisodeChaptersForTrackNavigation';
-import { selectItemChapterForTime } from '../utils/mediaPlayer/selectItemChapterForTime';
 
 export function useEpisodeChapterNavigation(): {
   hasEpisodeChaptersForTrackButtons: boolean;

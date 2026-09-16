@@ -1,3 +1,6 @@
+export { mergeDownloadChannelIdentity, usableDownloadChannelText } from './downloadChannelIdentity';
+export type { DownloadChannelIdentity } from './downloadChannelIdentity';
+
 export { isItemDownloadable, isHlsSource } from './downloadEligibility';
 export type {
   DownloadEligibility,

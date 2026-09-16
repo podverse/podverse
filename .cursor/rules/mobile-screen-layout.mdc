@@ -30,7 +30,10 @@ per-screen inset under the title bar.
   divider, hairline, or shadow under the title.
 - Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar` via
   **`HeaderBarChrome`**). Trailing header actions use **`HeaderBarAction`** in `headerRight` —
-  do not invent a one-off top-right `Pressable`. A header More opens **`MoreMenu`** — a bottom
+  do not invent a one-off top-right `Pressable`. **Header icons and header action labels use
+  `tokens.text.primary`** (same as the title) — never `tokens.text.accent` / link blue. That
+  color lives in **`HeaderBarAction`**; do not reintroduce accent tint on back, overflow, or
+  trailing header controls. A header More opens **`MoreMenu`** — a bottom
   sheet that appears instantly: tertiary action group with centered bold rows, then a
   separate opaque quaternary Cancel block (same bold weight). Do not slide or fade, do
   not use a translucent Cancel fill, do not use a centered card, and do not style Cancel

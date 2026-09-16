@@ -60,6 +60,8 @@ Signed-out users get this too; see
   rows pointing at filesystem paths in the same DB.
 - Do **not** assume CarPlay, Android Auto, or watch complications can read Drizzle/SQLite when JS is
   dead — always project to the native cache.
+- Do **not** treat a cache hit as “skip the server” (`stored ?? fetch`) on a detail screen. Paint
+  the cache, then lazy-correct when online (see below).
 
 ## Dual-store (phone vs car/watch)
 
@@ -74,6 +76,40 @@ Signed-out users get this too; see
 2. Repository marks stale / missing → background fetch → upsert → UI updates.
 3. Mutations: optimistic local write when safe → API → reconcile → **project native cache**.
 4. Offline: queue mutations; flush when online.
+
+## Cache first, then lazy-correct from the server
+
+A cache hit is first paint, not a reason to skip the network. Opening a screen that already has a
+stored DTO must:
+
+1. **Paint the cache immediately** — no spinner that waits on the server when a stored copy exists.
+2. **Fetch the same resource** on the interactive path (not the serial sync queue) when online.
+3. **Apply the server copy only when it differs** — compare the payloads and keep the current React
+   state when they match, so an identical refresh does not re-render.
+4. **Write the fresher copy back** into the repository when a row already exists. Do not insert
+   browse/search items into the subscribed-item store just because a detail screen fetched them.
+5. **Keep the cached UI if the refresh fails** — a stale episode is better than wiping a working
+   screen. Only show an error when there was nothing stored to begin with.
+
+Offline Mode is the exception: stop after the stored copy (and download chrome). A missing stored
+row in Offline Mode is empty, not a retryable network error.
+
+Do **not** write `stored ?? fetch` for a detail screen. That leaves the user on a snapshot that
+never converges while they stay on the page.
+
+`shouldReplaceCachedValue` in `apps/mobile/src/lib/cachedValue.ts` is the comparison helper.
+
+## Nested lists are empty, not 404 errors
+
+Clips, official clips, chapters, and transcripts are optional bodies on a parent the user already
+opened. A missing parent row or a missing nested resource is an empty list (`No clips found`, and
+the matching empty keys for the other panes) — never `errors.generic` plus an API-error toast.
+
+- API list-by-parent endpoints for clips return **200 and `[]`** when the item or channel is
+  missing (same as official clips / soundbites).
+- Mobile treats HTTP 404 on those fetches as the empty page (`emptyIfNotFound` in
+  `apps/mobile/src/lib/apiErrorStatus.ts`) so a cache-only episode whose catalog row is missing
+  still shows the empty message.
 
 ### Playback reconciliation storage
 

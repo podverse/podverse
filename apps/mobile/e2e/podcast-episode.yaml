@@ -37,7 +37,45 @@ name: Podcast Episode Flow
     id: podcast-episode-row-0
 - assertVisible:
     id: episode-detail-screen
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-play-chrome
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: episode-detail-header
+- assertVisible:
+    id: episode-detail-artwork
+- assertVisible:
+    id: episode-detail-podcast-title
+- assertVisible:
+    id: episode-detail-title
+- assertVisible:
+    id: episode-detail-tab-summary
+- assertVisible:
+    id: episode-detail-description
+- tapOn:
+    id: "home-row-more-.*"
+- extendedWaitUntil:
+    visible:
+      id: "media-row-menu-.*"
+    timeout: ${TIMEOUT_FASTER}
+- assertVisible:
+    id: "media-row-action-download-.*"
+- takeScreenshot: podcast-episode-episode-more-menu
+- tapOn:
+    id: "media-row-menu-.*-cancel"
 - takeScreenshot: podcast-episode-episode-detail
+
+# Clips are always offered. Zero clips is an empty pane, not a failed request.
+- tapOn:
+    id: episode-detail-tab-clips
+- extendedWaitUntil:
+    notVisible:
+      id: episode-detail-tab-loading-clips
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: episode-detail-tab-error-clips
+- takeScreenshot: podcast-episode-episode-clips
 
 # --- Sections: a chip swaps what the list holds without leaving the screen ---
 # Reached by deep link because these assertions are about one known channel's sections rather than
@@ -80,7 +118,7 @@ name: Podcast Episode Flow
     id: podcast-detail-sort-button
 - takeScreenshot: podcast-episode-section-about
 
-# Downloaded is always offered (with Episodes, About, and Clips). Official Clips and Podroll sit
+# Downloaded is always offered (with Episodes, About, and Clips). Official clips and Podroll sit
 # after those when this channel has been seen to have them.
 - tapOn:
     id: podcast-detail-section-downloaded
@@ -112,7 +150,7 @@ name: Podcast Episode Flow
 - takeScreenshot: podcast-episode-row-download-control
 
 # Row actions are the shared MediaRowActions menu, keyed by the item's dynamic id_text; match by
-# regex as the other flows do. Play stays inline and download stays on the row, so neither is here.
+# regex as the other flows do. Play stays inline. Download is on the row and also in this list.
 - tapOn:
     id: "home-row-more-.*"
 - extendedWaitUntil:
@@ -127,6 +165,8 @@ name: Podcast Episode Flow
     id: "media-row-action-add-to-playlist-.*"
 - assertVisible:
     id: "media-row-action-mark-as-played-.*"
+- assertVisible:
+    id: "media-row-action-download-.*"
 - assertVisible:
     id: "media-row-action-share-.*"
 - takeScreenshot: podcast-episode-row-more-menu

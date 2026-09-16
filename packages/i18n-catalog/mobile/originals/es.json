@@ -4,6 +4,7 @@
       "browse": "Explorar",
       "home": "Inicio",
       "more": "Más",
+      "my_library": "Mi biblioteca",
       "notifications": "Notificaciones",
       "rss": "RSS",
       "downloads": "Descargas"
@@ -45,6 +46,7 @@
       "remove": "Eliminar",
       "cancel_download": "Cancelar descarga",
       "remove_download": "Eliminar descarga",
+      "delete": "Eliminar",
       "empty": "Aún no hay descargas",
       "downloaded": "Descargados",
       "not_downloadable": "Este episodio no se puede descargar para reproducir sin conexión",
@@ -171,5 +173,8 @@
       "outcome_skipped": "Omitido: sin conexión",
       "outcome_success": "Correcto"
     }
+  },
+  "media_player": {
+    "chapter_tooltip": "Capítulo: {title}"
   }
 }

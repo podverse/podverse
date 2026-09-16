@@ -29,7 +29,7 @@ export const sendVerificationEmail = async (
 
   const emailFields = {
     buttonLink: `${config.web.protocol}://${config.web.domain}${verifyEmailPagePath}${token}`,
-    buttonText: 'Verify Email',
+    buttonText: 'Verify email',
     closing: '',
     headerText: 'Verify your email',
     paragraphText: 'Please click the button below to finish verification.',

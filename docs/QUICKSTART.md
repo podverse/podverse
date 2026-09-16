@@ -44,7 +44,7 @@ running `dev:workers:parsers`.
   [nvm](https://github.com/nvm-sh/nvm) (see root `.nvmrc`).
   [CURSOR-NIX-WITH-ENV.md](development/tooling/CURSOR-NIX-WITH-ENV.md)
 - **Git**
-- **Xcode** + iOS Simulator (for mobile iOS)
+- **Xcode 27+** + Device Hub (the iOS simulator UI; finish first launch after an App Store install)
 - **Android Studio** + AVD `Pixel_6_Pro_API_33` (for mobile Android)
 - Podcast Index API keys in home overrides if you want directory search or
   trending seed (`~/.config/podverse/local-env-overrides/podcast-index.env`)

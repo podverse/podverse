@@ -206,7 +206,7 @@ test.describe('Embed share builder handoff', () => {
       await capturePageLoad(
         page,
         testInfo,
-        'The embed builder page opens after Embed Builder is clicked from Share on an episode page.',
+        'The embed builder page opens after Embed builder is clicked from Share on an episode page.',
         page.getByTestId('embed-builder-page')
       );
     });

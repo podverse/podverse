@@ -27,6 +27,7 @@ import {
 import { useAuth } from '../auth/AuthProvider';
 import { GlobalActivityBar } from '../components/feedback/GlobalActivityBar';
 import { MiniPlayer } from '../components/player/MiniPlayer';
+import { NowPlayingSegmentBar } from '../components/player/NowPlayingSegmentBar';
 import type { MenuListItem, MenuListSection } from '../components/screen/MenuListScreen';
 import { MenuListScreen } from '../components/screen/MenuListScreen';
 import { OfflineModeBanner } from '../components/screen/OfflineModeBanner';
@@ -88,6 +89,7 @@ import { mapScopedPathToFlatPath } from './deepLinking';
 import { resolveMobileDeepLinkState } from './notificationStack';
 import { OrderedTabBar } from './OrderedTabBar';
 import type { PodcastDetailRouteParams } from './podcastDetailParams';
+import { ROOT_SLIDE_UP_SCREEN_OPTIONS } from './slideUpScreen';
 import { tabBarIcon } from './tabBarIcon';
 import { useTabLayout } from './TabLayoutProvider';
 
@@ -604,7 +606,7 @@ function LibraryStackNavigator() {
       <LibraryStack.Screen
         component={LibraryHubScreen}
         name={LIBRARY_STACK_ROUTES.LibraryHub}
-        options={{ title: t('features.my_library') }}
+        options={{ title: t('nav.tab.my_library') }}
       />
       <LibraryStack.Screen
         component={AddByRssRootScreen}
@@ -1183,9 +1185,15 @@ function TabScaffold({
         ) : (
           <View>
             <PlaybackE2eStatus />
-            {/* Persistent bottom chrome above tabs: sync → Offline Mode → mini player. */}
+            {/*
+              Persistent bottom chrome above tabs, outermost first: sync → Offline Mode → current
+              clip/chapter → mini player. Sync sits at the top of the stack because it comes and
+              goes on its own schedule, so its arrival pushes only itself instead of shifting the
+              bars a listener is aiming at.
+            */}
             <GlobalActivityBar />
             <OfflineModeBanner />
+            <NowPlayingSegmentBar />
             <MiniPlayer onExpand={onOpenFullPlayer} />
             <OrderedTabBar {...props} />
           </View>
@@ -1220,7 +1228,7 @@ function TabScaffold({
           tabBarButton: tabBarButtonFor('My Library'),
           tabBarButtonTestID: visibleTabSet.has('My Library') ? 'tab-my-library' : undefined,
           tabBarIcon: tabBarIcon('library'),
-          tabBarLabel: t('features.my_library'),
+          tabBarLabel: t('nav.tab.my_library'),
         }}
       />
       <Tab.Screen
@@ -1271,7 +1279,7 @@ function TabScaffold({
   // The tablet tab bar is a left rail, so there is no bottom column for the bar to sit above. A
   // full-width strip under the whole navigator is the equivalent position, and it carries the
   // home-indicator inset itself because nothing sits beneath it here. Order matches phone:
-  // sync → Offline Mode → mini player.
+  // sync → Offline Mode → current clip/chapter → mini player.
   return (
     <View style={tabScaffoldStyles.tabletRoot}>
       {navigator}
@@ -1286,6 +1294,7 @@ function TabScaffold({
       >
         <GlobalActivityBar />
         <OfflineModeBanner />
+        <NowPlayingSegmentBar />
         <MiniPlayer onExpand={onOpenFullPlayer} />
       </View>
     </View>
@@ -1346,7 +1355,10 @@ export function MobileTabNavigator({
             />
           )}
         </RootStack.Screen>
-        <RootStack.Screen name={ROOT_STACK_ROUTES.FullPlayer} options={{ presentation: 'modal' }}>
+        <RootStack.Screen
+          name={ROOT_STACK_ROUTES.FullPlayer}
+          options={ROOT_SLIDE_UP_SCREEN_OPTIONS}
+        >
           {(props) => (
             <FullPlayerScreen
               onClose={() => {
@@ -1365,7 +1377,7 @@ export function MobileTabNavigator({
         <RootStack.Screen
           component={V4vInfoScreen}
           name={ROOT_STACK_ROUTES.V4vInfo}
-          options={{ presentation: 'modal' }}
+          options={ROOT_SLIDE_UP_SCREEN_OPTIONS}
         />
       </RootStack.Navigator>
     </NavigationContainer>

@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers/dto';
+import type { DTOChannel, DTOItem } from '@podverse/helpers/dto';
 import { formatClock } from '@podverse/helpers/time';
 
-import { useAuth } from '../../auth/AuthProvider';
-import { segmentsRepository } from '../../data';
-import { usePlayback } from '../../playback/PlaybackProvider';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
 import { useTheme } from '../../theme/useTheme';
 
 type FullPlayerSegmentsProps = {
@@ -16,47 +15,17 @@ type FullPlayerSegmentsProps = {
 };
 
 /**
- * Full player chapter/soundbite segments. Soundbites come embedded on the item DTO; chapters are
- * fetched once via `segmentsRepository` when the item advertises a chapters feed. Tap a segment to
- * start bounded playback through `playChapter` / `playSoundbite`. Renders nothing when the item has
- * neither chapters nor soundbites.
+ * Full player chapter/soundbite segments. Soundbites come embedded on the item DTO; chapters come
+ * from `useNowPlayingChapters`. Tap a segment to start bounded playback through `playChapter` /
+ * `playSoundbite`. Renders nothing when the item has neither chapters nor soundbites.
  */
 export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
-  const { playChapter, playSoundbite } = usePlayback();
+  const { playChapter, playSoundbite } = usePlaybackSession();
+  const { chapters } = useNowPlayingChapters();
 
-  const [chapters, setChapters] = useState<DTOItemChapter[]>([]);
-
-  const hasChaptersFeed = item.item_chapters_feed !== null && item.item_chapters_feed !== undefined;
   const soundbites = item.item_soundbites ?? [];
-
-  useEffect(() => {
-    if (!hasChaptersFeed) {
-      setChapters([]);
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      try {
-        const rows = await segmentsRepository.getChaptersByItemIdText(
-          { accessToken, clearSession, refreshToken, setTokens },
-          item.id_text
-        );
-        if (!cancelled) {
-          setChapters(rows);
-        }
-      } catch {
-        if (!cancelled) {
-          setChapters([]);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [accessToken, clearSession, hasChaptersFeed, item.id_text, refreshToken, setTokens]);
 
   const styles = useMemo(
     () =>

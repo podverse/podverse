@@ -440,16 +440,15 @@ export const queueRepository = {
     addResourceToHistory(context, queueIdText, target),
 
   /**
-   * Mark a resource played from a list, without it ever having been now-playing. Same history write
-   * the queue lifecycle performs on a finished resource, so the two agree about what "played" means.
+   * Mark a resource played or unplayed from a list, without it ever having been now-playing.
    */
   markAsPlayed: async (
     context: MobileAuthRequestContext,
     queueIdText: string,
-    target: { kind: 'item' | 'clip' | 'soundbite'; idText: string }
+    target: { completed?: boolean; kind: 'item' | 'clip' | 'soundbite'; idText: string }
   ): Promise<void> => {
     await addResourceToHistory(context, queueIdText, {
-      completed: true,
+      completed: target.completed ?? true,
       idText: target.idText,
       kind: target.kind,
     });

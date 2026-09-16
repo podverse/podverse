@@ -6,7 +6,7 @@ import { matchesTitleFilter } from '@podverse/helpers';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
 import { getItemPrimaryImageUrl } from '../../../data/repositories/channelItemWindow';
-import { usePlayback } from '../../../playback/PlaybackProvider';
+import { usePlaybackSession } from '../../../playback/PlaybackProvider';
 import type { HomeFeedRowData } from '../../home/homeFeedData';
 import { HomeFeedRow } from '../../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../../home/useHomeRowPlayback';
@@ -57,7 +57,7 @@ export function PodcastOfficialClipsSection({
 }: PodcastSectionPaneProps) {
   const { t } = useTranslation();
   const { playbackNoticeKey, runQueueAction } = useHomeRowPlayback();
-  const { playSoundbite } = usePlayback();
+  const { playSoundbite } = usePlaybackSession();
 
   const fetchPage = useCallback(
     async (api: ApiRequestService, page: number): Promise<PodcastSectionPage<DTOItemSoundbite>> => {

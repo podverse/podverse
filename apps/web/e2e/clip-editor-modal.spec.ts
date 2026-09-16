@@ -39,7 +39,7 @@ test.describe('Clip editor progress bar', () => {
     await clearSeededPodcastQueueResources(page);
   });
 
-  test('When the Create Clip modal is open on a video episode, the clip editor progress bar does not show chapter markers', async ({
+  test('When the Create clip modal is open on a video episode, the clip editor progress bar does not show chapter markers', async ({
     page,
   }, testInfo) => {
     await page.goto(`/episode/${E2E_EMBED_VIDEO_ITEM_ID_TEXT}`);
@@ -51,7 +51,7 @@ test.describe('Clip editor progress bar', () => {
 
     await page.getByTestId('media-player-clip-button').click();
 
-    const createClipDialog = page.getByRole('dialog', { name: 'Create Clip' });
+    const createClipDialog = page.getByRole('dialog', { name: 'Create clip' });
     await expect(createClipDialog).toBeVisible();
 
     const clipEditorSection = clipEditorSectionLocator(createClipDialog);
@@ -62,7 +62,7 @@ test.describe('Clip editor progress bar', () => {
       page,
       testInfo,
       clipEditorSection,
-      'The Create Clip modal clip editor hides chapter markers on the progress bar.'
+      'The Create clip modal clip editor hides chapter markers on the progress bar.'
     );
   });
 
@@ -70,7 +70,7 @@ test.describe('Clip editor progress bar', () => {
     page,
   }, testInfo) => {
     await page.goto(`/clip/edit/${E2E_CLIP_ID_TEXT}`);
-    await expect(page.getByRole('heading', { name: 'Edit Clip' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Edit clip' })).toBeVisible();
 
     const clipEditorSection = clipEditorSectionLocator(page);
     await expect(clipEditorSection).toBeVisible();
@@ -83,7 +83,7 @@ test.describe('Clip editor progress bar', () => {
       page,
       testInfo,
       clipEditorSection,
-      'The Edit Clip form clip editor hides chapter markers while chapters remain on the main player bar.'
+      'The Edit clip form clip editor hides chapter markers while chapters remain on the main player bar.'
     );
   });
 });

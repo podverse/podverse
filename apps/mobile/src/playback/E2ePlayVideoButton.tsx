@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../components/primitives';
 import { isMobileE2eFromEnv } from '../config/env';
 import { E2E_VIDEO_ITEM_ID_TEXT } from '../lib/e2e/e2eSeedConstants';
-import { usePlayback } from './PlaybackProvider';
+import { usePlaybackSession } from './PlaybackProvider';
 
 /**
  * Starts the seeded video-medium item through the real orchestrator so the mini player shows an
@@ -11,7 +11,7 @@ import { usePlayback } from './PlaybackProvider';
  */
 export function E2ePlayVideoButton() {
   const { t } = useTranslation();
-  const { playItemById } = usePlayback();
+  const { playItemById } = usePlaybackSession();
 
   if (!isMobileE2eFromEnv()) {
     return null;

@@ -94,7 +94,7 @@ test.describe('Embed routes (anonymous)', () => {
       await expect(page.getByTestId('embed-player-more-button')).toBeVisible();
       await expect(page.getByTestId('embed-player-playback-speed-button')).toHaveCount(0);
       await page.getByTestId('embed-player-more-button').click();
-      await expect(page.getByRole('menuitem', { name: 'Playback Speed: 1x' })).toBeVisible();
+      await expect(page.getByRole('menuitem', { name: 'Playback speed: 1x' })).toBeVisible();
       await page.getByTestId('embed-player-alternate-enclosure-button').click();
       const modal = page.getByTestId('embed-alternate-enclosure-modal');
       await expect(modal).toBeVisible();

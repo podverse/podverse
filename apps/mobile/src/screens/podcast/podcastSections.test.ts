@@ -15,7 +15,7 @@ describe('resolvePodcastSections', () => {
     expect(resolvePodcastSections({ channel: null, hasSoundbites: false })).toEqual([...ALWAYS_ON]);
   });
 
-  it('keeps Official Clips and Podroll at the end when evidence exists', () => {
+  it('keeps Official clips and Podroll at the end when evidence exists', () => {
     expect(
       resolvePodcastSections({
         channel: channelWithPodroll,

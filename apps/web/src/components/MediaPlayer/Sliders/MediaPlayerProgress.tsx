@@ -5,14 +5,14 @@ import React, { useCallback, useRef, useState } from 'react';
 
 import type { DTOClip, DTOItemChapter } from '@podverse/helpers';
 import { formatHHMMSS } from '@podverse/helpers';
+import {
+  getChapterAtPercent,
+  getChapterBoundaryRatios,
+} from '@podverse/playback-core/chapterProgressMarkers';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
-import {
-  getChapterAtPercent,
-  getChapterBoundaryRatios,
-} from '../../../utils/mediaPlayer/chapterProgressMarkers';
 import { ChapterProgressTooltip } from './ChapterProgressTooltip';
 
 import styles from '../../../styles/components/MediaPlayer/Sliders/MediaPlayerProgress.module.scss';

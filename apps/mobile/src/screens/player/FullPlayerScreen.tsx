@@ -1,24 +1,99 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
-import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import {
+  BackHandler,
+  Platform,
+  Pressable,
+  SectionList,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { DTOChannel, DTOItem } from '@podverse/helpers/dto';
-import { clampRatio } from '@podverse/helpers/math';
-import { formatClock } from '@podverse/helpers/time';
+import { breakpoints } from '@podverse/design-tokens';
+import { MEDIA_JUMP_BACK_SECONDS, MEDIA_JUMP_FORWARD_SECONDS } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+} from '@podverse/helpers/dto';
+import { htmlToPlainText } from '@podverse/helpers/html';
+import { formatPlaybackTime } from '@podverse/helpers/time';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
-import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
+import { requestWithMobileAuthRefresh, useAuth } from '../../auth';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
-import { Button } from '../../components/primitives/Button';
+import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
+import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
+import { MenuSelectChip, SectionChipRow } from '../../components/form';
+import { FullPlayerActionRow } from '../../components/player/FullPlayerActionRow';
+import { FullPlayerArtwork } from '../../components/player/FullPlayerArtwork';
+import { FullPlayerMoreSheet } from '../../components/player/FullPlayerMoreSheet';
+import {
+  hasNextQueueItem,
+  resolveAddToPlaylistTarget,
+  resolveQueueMutationTarget,
+  shouldShowV4vAction,
+} from '../../components/player/fullPlayerRows';
+import { FullPlayerScrubber } from '../../components/player/FullPlayerScrubber';
+import { FullPlayerSegmentBand } from '../../components/player/FullPlayerSegmentBand';
+import { FullPlayerTransportRow } from '../../components/player/FullPlayerTransportRow';
+import { FullPlayerUtilityRow } from '../../components/player/FullPlayerUtilityRow';
+import { PlayerTransportButton } from '../../components/player/PlayerTransportButton';
 import { CoverImage } from '../../components/primitives/CoverImage';
-import { ProgressTrack } from '../../components/primitives/ProgressTrack';
+import { MarqueeText } from '../../components/primitives/MarqueeText';
+import { ListEmpty } from '../../components/state/ListEmpty';
+import { ListError } from '../../components/state/ListError';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { getMobileConfig } from '../../config';
+import { useAutoQueue } from '../../contexts/AutoQueueProvider';
+import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
+import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
+import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
+import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
+import { useQueueMutations } from '../../hooks/useQueueMutations';
+import { useQueueResources } from '../../hooks/useQueueResources';
+import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import {
+  isEpisodeTabNetworkBody,
+  OFFLINE_UNAVAILABLE_MESSAGE_KEY,
+} from '../../lib/offlineModeViews';
+import { clipToHomeRow } from '../../lib/rows/homeRowMappers';
 import { buildNowPlayingShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
-import { usePlayback } from '../../playback/PlaybackProvider';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
+import { ROOT_SLIDE_UP_ANIMATION_MS } from '../../navigation/slideUpScreen';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { hasEpisodeChaptersForTrackButtons } from '../../playback/previousAction';
+import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
+import type { EpisodeClipSort, EpisodeTab } from '../../prefs/detailListPrefs';
+import { EPISODE_CLIP_SORT_OPTIONS } from '../../prefs/detailListPrefs';
+import { useOfflineMode } from '../../prefs/offlineMode';
+import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
-import { FullPlayerSegments } from './FullPlayerSegments';
+import { EPISODE_TAB_LABEL_KEYS, itemSectionFlagsFromDto } from '../episode/episodeTabs';
+import { useEpisodeSectionPanes } from '../episode/useEpisodeSectionPanes';
+import type { HomeFeedRowData } from '../home/homeFeedData';
+import { HomeFeedRow } from '../home/HomeFeedRow';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
+import { useAddToPlaylist } from '../library/useAddToPlaylist';
+import {
+  FULL_PLAYER_ARTWORK_MAX_PHONE,
+  FULL_PLAYER_ARTWORK_MAX_TABLET,
+  FULL_PLAYER_CHIP_HEADER_HEIGHT,
+  FULL_PLAYER_CONTROL_STACK_GAP,
+  FULL_PLAYER_REGION_BOTTOM_PADDING,
+  FULL_PLAYER_REGION_GAP,
+  FULL_PLAYER_REGION_TOP_PADDING,
+  FULL_PLAYER_TITLE_BLOCK_HEIGHT,
+  resolveCondensedState,
+  resolveFullPlayerLayout,
+} from './fullPlayerLayout';
 import { FullPlayerSleepTimer } from './FullPlayerSleepTimer';
 import { FullPlayerSpeedControl } from './FullPlayerSpeedControl';
 import { FullPlayerUpNext } from './FullPlayerUpNext';
@@ -29,15 +104,67 @@ type FullPlayerScreenProps = {
   onOpenV4v: () => void;
 };
 
-type FullPlayerPanel = 'sleep' | 'speed' | 'up-next' | null;
+type FullPlayerSheet = 'more' | 'sleep' | 'speed' | 'up-next' | null;
 
-/** Mini↔full surface reparent animation (ms). Geometry only — never reloads the engine. */
-const VIDEO_SURFACE_ANIMATE_MS = 250;
+type FullPlayerPaneRow =
+  | { type: 'chapter'; id: string; chapter: DTOItemChapter }
+  | { type: 'clip'; id: string; clip: DTOClip }
+  | { type: 'soundbite'; id: string; index: number; soundbite: DTOItemSoundbite };
 
-/** Extract the now-playing item/channel for the segments list (add-by-RSS has none). */
-const segmentContentFromTarget = (
-  target: PlaybackTarget
-): { item: DTOItem; channel: DTOChannel } | null => {
+type FullPlayerSection = {
+  data: FullPlayerPaneRow[];
+  key: EpisodeTab;
+};
+
+const CLIP_SORT_LABEL_KEYS: Record<EpisodeClipSort, string> = {
+  oldest: 'filters.sort.oldest',
+  recent: 'filters.sort.recent',
+};
+
+const EMPTY_SECTIONS: FullPlayerSection[] = [];
+
+type SectionListScrollResponder = {
+  scrollTo: (options: { animated: boolean; y: number }) => void;
+};
+
+type ScrollableSectionList = {
+  getScrollResponder: () => SectionListScrollResponder | null;
+};
+
+const scrollSectionListToTop = (list: ScrollableSectionList | null): void => {
+  list?.getScrollResponder()?.scrollTo({ animated: false, y: 0 });
+};
+
+const scrollSectionListToChips = (
+  list: ScrollableSectionList | null,
+  playerRegionHeight: number
+): void => {
+  if (playerRegionHeight <= 0) {
+    return;
+  }
+  list?.getScrollResponder()?.scrollTo({ animated: true, y: playerRegionHeight });
+};
+
+const toSoundbiteRow = (
+  soundbite: DTOItemSoundbite,
+  index: number,
+  fallbackTitle: string
+): HomeFeedRowData => {
+  return {
+    id: soundbite.id_text,
+    imageUrl:
+      soundbite.item !== undefined && soundbite.item !== null
+        ? getItemPrimaryImageUrl(soundbite.item)
+        : null,
+    subtitle: formatPlaybackTime(soundbite.start_time),
+    title: soundbite.title ?? `${fallbackTitle} ${index + 1}`,
+  };
+};
+
+const itemFromTarget = (target: PlaybackTarget | null): DTOItem | null => {
+  if (target === null) {
+    return null;
+  }
   switch (target.kind) {
     case 'clip':
     case 'soundbite':
@@ -45,55 +172,391 @@ const segmentContentFromTarget = (
     case 'item-podcast':
     case 'item-video':
     case 'item-music':
-      return { channel: target.channel, item: target.item };
+      return target.item;
     case 'livestream':
-      return target.item !== null ? { channel: target.channel, item: target.item } : null;
+      return target.item;
     case 'add-by-rss':
       return null;
   }
 };
 
-/**
- * Full player screen (audio-first). Renders the shared now-playing state from
- * `usePlayback()` — the same provider the mini player uses — so expanding never remounts a second
- * engine. Provides large artwork, a tap-to-seek scrubber that seeks through the native bridge
- * (`seekTo`), play/pause, skip-to-next, toggleable up-next, playback speed and sleep-timer panels,
- * an OS share action, a config-gated V4V entry, and an inline chapters/soundbites segment list that
- * self-hides when the item has none.
- *
- * Never mount a second `Video`/engine when opening the full player. The single native
- * `VideoSurfaceHost` is re-parented (bridge attach) from the `mini` to the `full` target — see
- * media-engine README § "Player UI single-surface ownership".
- */
+const channelFromTarget = (target: PlaybackTarget | null): DTOChannel | null => {
+  if (target === null) {
+    return null;
+  }
+  switch (target.kind) {
+    case 'clip':
+    case 'soundbite':
+    case 'chapter':
+    case 'item-podcast':
+    case 'item-video':
+    case 'item-music':
+    case 'livestream':
+      return target.channel;
+    case 'add-by-rss':
+      return null;
+  }
+};
+
+const hasSectionsForTarget = (target: PlaybackTarget | null): boolean => {
+  if (target === null) {
+    return false;
+  }
+  if (target.kind === 'add-by-rss') {
+    return false;
+  }
+  if (target.kind === 'livestream' && target.item === null) {
+    return false;
+  }
+  return itemFromTarget(target) !== null;
+};
+
 export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) {
   const { t } = useTranslation();
   const { isTablet } = useResponsive();
+  const insets = useSafeAreaInsets();
   const { styles: themeStyles, tokens } = useTheme();
+  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
+  const { autoQueueActiveRow, autoQueueResources } = useAutoQueue();
+  const { fetchPrimaryQueue } = usePrimaryQueue();
+  const { fetchUpcoming } = useQueueResources();
+  const { markAsPlayed } = useQueueMutations();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
+  const { handleGateError, openGate } = useMembershipGate();
+  const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
   const {
     activeTarget,
-    durationSeconds,
-    isPlaying,
+    jumpBy,
     nowPlaying,
     pause,
-    positionSeconds,
+    playbackRate,
+    playSoundbite,
     resume,
+    retryPlayback,
     seekTo,
     skipToNext,
-  } = usePlayback();
+    skipToNextTrack,
+    skipToPrevious,
+    skipToPreviousTrack,
+    transportState,
+  } = usePlaybackSession();
+  const { chapters } = useNowPlayingChapters();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
+  const sectionListRef = useRef<SectionList<FullPlayerPaneRow>>(null);
 
-  const [scrubberWidth, setScrubberWidth] = useState(0);
-  const [openPanel, setOpenPanel] = useState<FullPlayerPanel>(null);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const [chipStripHeight, setChipStripHeight] = useState(FULL_PLAYER_CHIP_HEADER_HEIGHT);
+  const [openSheet, setOpenSheet] = useState<FullPlayerSheet>(null);
+  const [showCreateClipNotice, setShowCreateClipNotice] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isMarkedPlayed, setIsMarkedPlayed] = useState(false);
+  const [isCondensed, setIsCondensed] = useState(false);
+  const [manualUpcomingCount, setManualUpcomingCount] = useState(0);
+  const [actionNoticeKey, setActionNoticeKey] = useState<string | null>(null);
+  const [isSavingSubscription, setIsSavingSubscription] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const isV4vEnabled = getMobileConfig().isV4vEnabled;
+  const authContext = useMemo(
+    () => ({ accessToken, clearSession, refreshToken, setTokens }),
+    [accessToken, clearSession, refreshToken, setTokens]
+  );
+  const contentMaxWidth = isTablet ? breakpoints.lg : viewportWidth;
+
+  const currentItem = itemFromTarget(activeTarget);
+  const currentItemIdText = currentItem?.id_text ?? null;
+  const previewFlags = currentItem === null ? null : itemSectionFlagsFromDto(currentItem);
+  const channel = channelFromTarget(activeTarget);
+  const hasSections = hasSectionsForTarget(activeTarget);
+  const isPlaybackActive = activeTarget !== null && nowPlaying !== null;
+  const shareUrl = activeTarget !== null ? buildNowPlayingShareUrl(activeTarget) : null;
+  const addToPlaylistTarget = resolveAddToPlaylistTarget(activeTarget);
+  const showV4v = shouldShowV4vAction(activeTarget, isV4vEnabled);
+  const activePaneNoticeKey = actionNoticeKey ?? playbackNoticeKey;
+  const summaryText = useMemo(() => {
+    const value = currentItem?.item_description?.value;
+    if (value === undefined || value === null || value.length === 0) {
+      return '';
+    }
+    return htmlToPlainText(value).trim();
+  }, [currentItem?.item_description?.value]);
+  const displayedSummary = useMemo(() => {
+    if (descriptionExpanded || summaryText.length <= 360) {
+      return summaryText;
+    }
+    return `${summaryText.slice(0, 360)}…`;
+  }, [descriptionExpanded, summaryText]);
+
+  const {
+    activeTab,
+    chapterRows,
+    clipHasMore,
+    clipRows,
+    clipSort,
+    isLoadingMoreClips,
+    isPrefsHydrated,
+    isTabLoading,
+    loadMoreClips,
+    loadTab,
+    selectClipSort,
+    selectTab,
+    soundbiteRows,
+    supportedTabs,
+    tabErrorKey,
+    transcriptText,
+  } = useEpisodeSectionPanes({
+    episode: currentItem,
+    itemIdText: currentItemIdText,
+    offlineModeEnabled,
+    previewFlags,
+  });
+
+  const autoUpcomingCount = useMemo(
+    () =>
+      Object.keys(autoQueueResources)
+        .map(Number)
+        .filter((rowIndex) => rowIndex > autoQueueActiveRow).length,
+    [autoQueueActiveRow, autoQueueResources]
+  );
+  const canSkipToNext = hasNextQueueItem(manualUpcomingCount, autoUpcomingCount);
+  const episodeHasChaptersForTrackButtons = hasEpisodeChaptersForTrackButtons(
+    activeTarget,
+    chapters
+  );
+  const canToggleSubscription = channel !== null;
+
+  const sectionChips = useMemo<SectionChipItem<EpisodeTab>[]>(
+    () =>
+      supportedTabs.map((tab) => ({
+        key: tab,
+        label: t(EPISODE_TAB_LABEL_KEYS[tab]),
+        testID: `full-player-section-${tab}`,
+      })),
+    [supportedTabs, t]
+  );
+  const clipSortOptions = useMemo<MenuSelectChipOption<EpisodeClipSort>[]>(() => {
+    return EPISODE_CLIP_SORT_OPTIONS.map((option) => ({
+      label: t(CLIP_SORT_LABEL_KEYS[option]),
+      testID: `full-player-clip-sort-${option}`,
+      value: option,
+    }));
+  }, [t]);
+  const listRows = useMemo((): FullPlayerPaneRow[] => {
+    if (isTabLoading) {
+      return [];
+    }
+    if (activeTab === 'clips') {
+      return clipRows.map((clip) => ({ clip, id: clip.id_text, type: 'clip' }));
+    }
+    if (activeTab === 'chapters') {
+      return chapterRows.map((chapter) => ({ chapter, id: chapter.id_text, type: 'chapter' }));
+    }
+    if (activeTab === 'soundbites') {
+      return soundbiteRows.map((soundbite, index) => ({
+        id: soundbite.id_text,
+        index,
+        soundbite,
+        type: 'soundbite',
+      }));
+    }
+    return [];
+  }, [activeTab, chapterRows, clipRows, isTabLoading, soundbiteRows]);
+  const sections = useMemo<FullPlayerSection[]>(() => {
+    if (!hasSections || !isPrefsHydrated || supportedTabs.length === 0) {
+      return EMPTY_SECTIONS;
+    }
+    return [{ data: listRows, key: activeTab }];
+  }, [activeTab, hasSections, isPrefsHydrated, listRows, supportedTabs.length]);
+
+  const layout = useMemo(
+    () =>
+      resolveFullPlayerLayout({
+        chipStripHeight,
+        hasSections,
+        isTablet,
+        maxContentWidth: Math.max(
+          0,
+          Math.min(contentMaxWidth, viewportWidth) - tokens.spacing.lg * 2
+        ),
+        safeAreaBottom: insets.bottom,
+        safeAreaTop: 0,
+        viewportHeight,
+        viewportWidth,
+      }),
+    [
+      chipStripHeight,
+      contentMaxWidth,
+      hasSections,
+      insets.bottom,
+      isTablet,
+      tokens.spacing.lg,
+      viewportHeight,
+      viewportWidth,
+    ]
+  );
+  const artworkSizeCap = isTablet ? FULL_PLAYER_ARTWORK_MAX_TABLET : FULL_PLAYER_ARTWORK_MAX_PHONE;
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        actionNotice: {
+          color: themeStyles.textSecondary.color,
+          marginTop: tokens.spacing.md,
+        },
+        chapterRow: {
+          borderBottomColor: themeStyles.border.borderColor,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          paddingVertical: tokens.spacing.base,
+        },
+        chapterRowLast: {
+          borderBottomWidth: 0,
+        },
+        chapterTime: {
+          color: themeStyles.textSecondary.color,
+          marginTop: tokens.spacing.xs,
+        },
+        chapterTitle: {
+          color: themeStyles.textPrimary.color,
+          fontSize: 16,
+          fontWeight: '600',
+        },
+        bottomSafeFill: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          bottom: 0,
+          left: 0,
+          position: 'absolute',
+          right: 0,
+        },
+        chipHeader: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          justifyContent: 'center',
+          minHeight: FULL_PLAYER_CHIP_HEADER_HEIGHT,
+          paddingHorizontal: tokens.spacing.lg,
+        },
+        chipRowSlot: {
+          justifyContent: 'center',
+          paddingTop: listChipRowBottomGap(tokens.spacing),
+        },
+        column: {
+          alignSelf: 'center',
+          maxWidth: contentMaxWidth,
+          width: '100%',
+        },
+        condensedArtwork: {
+          borderRadius: tokens.radii.sm,
+          height: 28,
+          overflow: 'hidden',
+          width: 28,
+        },
+        condensedBar: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: tokens.spacing.sm,
+          marginBottom: tokens.spacing.sm,
+        },
+        condensedTitle: {
+          color: themeStyles.textPrimary.color,
+          flex: 1,
+          fontSize: 14,
+          minWidth: 0,
+        },
+        container: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
+        },
+        list: {
+          flex: 1,
+        },
+        listContent: {
+          paddingBottom: Math.max(tokens.spacing['2xl'], insets.bottom + tokens.spacing.xl),
+        },
+        loadMore: {
+          marginTop: tokens.spacing.md,
+        },
+        loadMoreLabel: {
+          color: themeStyles.textPrimary.color,
+          fontSize: 14,
+          fontWeight: '600',
+        },
+        pane: {
+          paddingBottom: tokens.spacing.lg,
+          paddingHorizontal: tokens.spacing.lg,
+          paddingTop: tokens.spacing.md,
+        },
+        paneEmpty: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 15,
+        },
+        paneText: {
+          color: themeStyles.textPrimary.color,
+          fontSize: 16,
+          lineHeight: 24,
+        },
+        playerRegion: {
+          // A viewport too short for the fixed bands clips them here rather than letting them paint
+          // over the chip strip below.
+          overflow: 'hidden',
+          paddingBottom: FULL_PLAYER_REGION_BOTTOM_PADDING,
+          paddingHorizontal: tokens.spacing.lg,
+          paddingTop: FULL_PLAYER_REGION_TOP_PADDING,
+        },
+        playerRegionContent: {
+          alignItems: 'stretch',
+          flex: 1,
+          width: '100%',
+        },
+        playerRegionControlStack: {
+          gap: FULL_PLAYER_CONTROL_STACK_GAP,
+          marginTop: FULL_PLAYER_CONTROL_STACK_GAP,
+          width: '100%',
+        },
+        playerRegionUpperBands: {
+          alignItems: 'stretch',
+          flexGrow: 1,
+          flexShrink: 1,
+          gap: FULL_PLAYER_REGION_GAP,
+          minHeight: 0,
+          width: '100%',
+        },
+        showMore: {
+          color: themeStyles.textSecondary.color,
+          marginTop: tokens.spacing.sm,
+        },
+        subtitle: {
+          color: tokens.text.accent,
+          fontSize: 15,
+          fontWeight: '600',
+          textAlign: 'center',
+        },
+        title: {
+          color: themeStyles.textPrimary.color,
+          fontSize: 22,
+          fontWeight: '600',
+          minWidth: 0,
+        },
+        titleBlock: {
+          alignItems: 'center',
+          gap: tokens.spacing.xs,
+          justifyContent: 'center',
+          minHeight: FULL_PLAYER_TITLE_BLOCK_HEIGHT,
+        },
+        viewport: {
+          flex: 1,
+        },
+      }),
+    [contentMaxWidth, insets.bottom, themeStyles, tokens]
+  );
 
   // Expand re-parents the single native surface to the `full` target; collapse (unmount) animates it
   // back to `mini`. Reparenting + geometry only — never `load`/`destroy`, so playback stays
   // continuous. The `full` target view is the `PodverseVideoSurfaceView`
   // rendered below, which registers itself with the host; this only flips which target is active.
   useEffect(() => {
-    nativePlaybackBridge.animateVideoSurface('full', VIDEO_SURFACE_ANIMATE_MS);
+    nativePlaybackBridge.animateVideoSurface('full', ROOT_SLIDE_UP_ANIMATION_MS);
     return () => {
-      nativePlaybackBridge.animateVideoSurface('mini', VIDEO_SURFACE_ANIMATE_MS);
+      nativePlaybackBridge.animateVideoSurface('mini', ROOT_SLIDE_UP_ANIMATION_MS);
     };
   }, []);
 
@@ -112,283 +575,744 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     };
   }, [onClose]);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        artwork: {
-          alignSelf: 'center',
-          aspectRatio: 1,
-          maxHeight: 320,
-          maxWidth: 320,
-          width: '100%',
-        },
-        content: {
-          gap: tokens.spacing.xl,
-          paddingBottom: tokens.spacing['2xl'],
-          paddingHorizontal: tokens.spacing['2xl'],
-        },
-        contentTablet: {
-          alignItems: 'flex-start',
-          flexDirection: 'row',
-        },
-        controlsColumn: {
-          flex: 1,
-          gap: tokens.spacing.xl,
-          minWidth: 0,
-        },
-        controlsRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: tokens.spacing.md,
-          justifyContent: 'center',
-        },
-        entriesRow: {
-          flexDirection: 'row',
-          gap: tokens.spacing.md,
-          justifyContent: 'center',
-        },
-        header: {
-          alignItems: 'flex-start',
-          paddingBottom: tokens.spacing.md,
-          paddingHorizontal: tokens.spacing['2xl'],
-          paddingTop: tokens.spacing['2xl'],
-        },
-        root: {
-          flex: 1,
-        },
-        scroll: {
-          flex: 1,
-        },
-        subtitle: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 15,
-          textAlign: 'center',
-        },
-        timeRow: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          marginTop: tokens.spacing.sm,
-        },
-        timeText: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 12,
-        },
-        title: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 22,
-          fontWeight: '700',
-          textAlign: 'center',
-        },
-        videoSurface: {
-          alignSelf: 'center',
-          aspectRatio: 1,
-          maxHeight: 320,
-          maxWidth: 320,
-          width: '100%',
-        },
-        // Tablet left column: keep artwork from stretching full width of the row.
-        videoSurfaceTablet: {
-          alignSelf: 'flex-start',
-          flexShrink: 0,
-          marginRight: tokens.spacing.xl,
-          maxWidth: 360,
-          width: '42%',
-        },
-      }),
-    [themeStyles, tokens]
-  );
+  useEffect(() => {
+    setIsCondensed(false);
+  }, [activeTarget, hasSections]);
 
-  const isPlaybackActive = activeTarget !== null && nowPlaying !== null;
-  const progressRatio = durationSeconds > 0 ? clampRatio(positionSeconds / durationSeconds) : 0;
-  const segmentContent = activeTarget !== null ? segmentContentFromTarget(activeTarget) : null;
-  const shareUrl = activeTarget !== null ? buildNowPlayingShareUrl(activeTarget) : null;
+  useEffect(() => {
+    setIsMarkedPlayed(false);
+  }, [activeTarget]);
 
-  const togglePanel = (panel: Exclude<FullPlayerPanel, null>) => {
-    setOpenPanel((current) => (current === panel ? null : panel));
+  useEffect(() => {
+    setDescriptionExpanded(false);
+  }, [currentItemIdText]);
+
+  useEffect(() => {
+    scrollSectionListToTop(sectionListRef.current);
+  }, [currentItemIdText]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (channel === null) {
+        if (!cancelled) {
+          setIsSubscribed(false);
+        }
+        return;
+      }
+      const subscribed = await subscriptionsRepository.isSubscribed(channel.id_text);
+      if (!cancelled) {
+        setIsSubscribed(subscribed);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [channel]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (activeTarget === null) {
+        if (!cancelled) {
+          setManualUpcomingCount(0);
+        }
+        return;
+      }
+
+      try {
+        const queue = await fetchPrimaryQueue();
+        if (queue === null) {
+          if (!cancelled) {
+            setManualUpcomingCount(0);
+          }
+          return;
+        }
+        const upcoming = await fetchUpcoming(queue.id_text);
+        if (!cancelled) {
+          setManualUpcomingCount(upcoming.length);
+        }
+      } catch {
+        if (!cancelled) {
+          setManualUpcomingCount(0);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTarget, fetchPrimaryQueue, fetchUpcoming]);
+
+  const handleOpenSheet = (sheet: Exclude<FullPlayerSheet, null>) => {
+    setOpenSheet(sheet);
+  };
+
+  const handleCloseSheet = () => {
+    setOpenSheet(null);
   };
 
   const handleShare = () => {
     shareResolvedUrl(shareUrl);
   };
 
-  const handleScrubberLayout = (event: LayoutChangeEvent) => {
-    setScrubberWidth(event.nativeEvent.layout.width);
+  const handleViewportLayout = (event: LayoutChangeEvent) => {
+    setViewportHeight(event.nativeEvent.layout.height);
+    setViewportWidth(event.nativeEvent.layout.width);
   };
 
-  const handleScrubberSeek = (event: GestureResponderEvent) => {
-    if (scrubberWidth <= 0 || durationSeconds <= 0) {
+  // The strip grows with the OS font setting, so the peek reserve follows the measured chips rather
+  // than the default-size constant — otherwise pane copy reappears under them at large text sizes.
+  const handleChipStripLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    setChipStripHeight((current) => (Math.abs(current - height) < 1 ? current : height));
+  }, []);
+
+  const handleSelectTab = useCallback(
+    (tab: EpisodeTab) => {
+      selectTab(tab);
+      scrollSectionListToChips(sectionListRef.current, layout.playerRegionHeight);
+    },
+    [layout.playerRegionHeight, selectTab]
+  );
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (!hasSections) {
       return;
     }
-    const ratio = clampRatio(event.nativeEvent.locationX / scrubberWidth);
-    seekTo(ratio * durationSeconds);
+    const nextOffset = event.nativeEvent.contentOffset.y;
+    setIsCondensed((current) =>
+      resolveCondensedState({
+        isCondensed: current,
+        playerRegionHeight: layout.playerRegionHeight,
+        scrollOffset: nextOffset,
+      })
+    );
   };
 
-  const handleTogglePlay = () => {
-    if (isPlaying) {
-      pause();
-    } else {
-      void resume();
+  const handlePlay = () => {
+    void resume();
+  };
+
+  const handlePause = () => {
+    pause();
+  };
+
+  const handleRetry = () => {
+    void retryPlayback();
+  };
+
+  const handleAddToPlaylist = useCallback(() => {
+    if (addToPlaylistTarget === null) {
+      return;
     }
-  };
+    requestAddToPlaylist(addToPlaylistTarget);
+  }, [addToPlaylistTarget, requestAddToPlaylist]);
 
-  return (
-    <View
-      style={[styles.root, { backgroundColor: themeStyles.screen.backgroundColor }]}
-      testID="full-player-screen"
-    >
-      <View style={styles.header}>
-        <Button
-          label={t('misc.close')}
-          onPress={onClose}
-          size="sm"
-          testID="full-player-close"
-          variant="secondary"
+  const handleToggleSubscription = useCallback(() => {
+    if (channel === null || isSavingSubscription) {
+      return;
+    }
+
+    void (async () => {
+      setIsSavingSubscription(true);
+      setActionNoticeKey(null);
+      try {
+        if (isSubscribed) {
+          const result = await subscriptionsRepository.unsubscribe({
+            accountSync: status === 'authenticated' ? authContext : undefined,
+            idText: channel.id_text,
+            source: 'directory',
+          });
+          setIsSubscribed(false);
+          homeFeedRefresh.notify();
+          if (result.serverError) {
+            setActionNoticeKey('errors.generic');
+          }
+          return;
+        }
+
+        const entry = mapDirectoryChannelToSubscribed(channel);
+        if (entry === null) {
+          setActionNoticeKey('errors.generic');
+          return;
+        }
+
+        if (status === 'authenticated' && isTierKnown) {
+          const access = evaluateFeature('subscribe_sync');
+          if (!access.allowed) {
+            openGate(access.reason);
+            return;
+          }
+        }
+
+        if (status === 'authenticated') {
+          try {
+            await requestWithMobileAuthRefresh(authContext, async (api) =>
+              api.reqAccountFollowChannel({ channel_id_text: channel.id_text })
+            );
+          } catch (error) {
+            if (handleGateError(error)) {
+              return;
+            }
+            setActionNoticeKey('errors.generic');
+            return;
+          }
+        }
+
+        await subscriptionsRepository.subscribeLocal(entry);
+        setIsSubscribed(true);
+        homeFeedRefresh.notify();
+      } finally {
+        setIsSavingSubscription(false);
+      }
+    })();
+  }, [
+    authContext,
+    channel,
+    evaluateFeature,
+    handleGateError,
+    isSavingSubscription,
+    isSubscribed,
+    isTierKnown,
+    openGate,
+    status,
+  ]);
+
+  const handleMarkAsPlayed = useCallback(() => {
+    const target = resolveQueueMutationTarget(activeTarget);
+    if (target === null) {
+      return;
+    }
+
+    if (isTierKnown) {
+      const access = evaluateFeature('queue_history_sync');
+      if (!access.allowed) {
+        openGate(access.reason);
+        return;
+      }
+    }
+
+    void (async () => {
+      const nextCompleted = !isMarkedPlayed;
+      setActionNoticeKey(null);
+      try {
+        const marked = await markAsPlayed(
+          target.idText,
+          target.kind,
+          target.mediaType,
+          nextCompleted
+        );
+        if (!marked) {
+          setActionNoticeKey('features.history.mark_as_played_error');
+          return;
+        }
+        setIsMarkedPlayed(nextCompleted);
+        setActionNoticeKey(
+          nextCompleted
+            ? 'features.history.marked_as_played'
+            : 'features.history.marked_as_unplayed'
+        );
+      } catch (error) {
+        if (handleGateError(error)) {
+          return;
+        }
+        setActionNoticeKey('features.history.mark_as_played_error');
+      }
+    })();
+  }, [
+    activeTarget,
+    evaluateFeature,
+    handleGateError,
+    isMarkedPlayed,
+    isTierKnown,
+    markAsPlayed,
+    openGate,
+  ]);
+
+  const handleChapterPress = useCallback(
+    (chapter: DTOItemChapter) => {
+      const parsed = Number.parseFloat(chapter.start_time);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return;
+      }
+      seekTo(parsed);
+    },
+    [seekTo]
+  );
+
+  const renderPaneFooter = useCallback(() => {
+    if (!hasSections || !isPrefsHydrated) {
+      return null;
+    }
+
+    if (isTabLoading) {
+      return <LoadingSection testID={`full-player-pane-loading-${activeTab}`} />;
+    }
+
+    if (tabErrorKey !== null) {
+      return (
+        <ListError
+          messageKey={tabErrorKey}
+          onRetry={() => {
+            void loadTab(activeTab);
+          }}
+          testID={`full-player-pane-error-${activeTab}`}
         />
-      </View>
+      );
+    }
 
-      <ScrollView
-        contentContainerStyle={[styles.content, isTablet ? styles.contentTablet : undefined]}
-        style={styles.scroll}
-        testID={isTablet ? 'full-player-two-column' : undefined}
-      >
-        {isPlaybackActive ? (
-          <>
-            {/* Style-only tablet branch — same surface node so rotation does not remount the engine. */}
-            <View
-              style={[styles.videoSurface, isTablet ? styles.videoSurfaceTablet : undefined]}
-              testID="full-player-video-surface"
+    if (offlineModeEnabled && isEpisodeTabNetworkBody(activeTab)) {
+      const hasCachedBody =
+        (activeTab === 'chapters' && chapterRows.length > 0) ||
+        (activeTab === 'soundbites' && soundbiteRows.length > 0) ||
+        (activeTab === 'clips' && clipRows.length > 0) ||
+        (activeTab === 'transcript' && transcriptText.length > 0);
+      if (!hasCachedBody) {
+        return (
+          <View style={styles.pane}>
+            <View style={styles.column}>
+              <ListEmpty
+                messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+                testID="full-player-offline-unavailable"
+              />
+            </View>
+          </View>
+        );
+      }
+    }
+
+    if (activeTab === 'summary') {
+      return (
+        <View style={styles.pane} testID="full-player-summary-pane">
+          <View style={styles.column}>
+            {displayedSummary.length > 0 ? (
+              <Text style={styles.paneText} testID="full-player-summary-text">
+                {displayedSummary}
+              </Text>
+            ) : (
+              <Text style={styles.paneEmpty}>{t('info.summary.no_summary')}</Text>
+            )}
+            {summaryText.length > 360 ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: descriptionExpanded }}
+                onPress={() => {
+                  setDescriptionExpanded((current) => !current);
+                }}
+                testID="full-player-summary-toggle"
+              >
+                <Text style={styles.showMore}>
+                  {t(descriptionExpanded ? 'info.show_less' : 'info.show_more')}
+                </Text>
+              </Pressable>
+            ) : null}
+            {activePaneNoticeKey !== null ? (
+              <Text style={styles.actionNotice} testID="full-player-action-notice">
+                {t(activePaneNoticeKey)}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+      );
+    }
+
+    if (activeTab === 'transcript') {
+      return (
+        <View style={styles.pane} testID="full-player-transcript-pane">
+          <View style={styles.column}>
+            {transcriptText.length === 0 ? (
+              <ListEmpty messageKey="misc.info" testID="full-player-empty-transcript" />
+            ) : (
+              <Text style={styles.paneText} testID="full-player-transcript-text">
+                {transcriptText}
+              </Text>
+            )}
+          </View>
+        </View>
+      );
+    }
+
+    if (activeTab === 'chapters' && chapterRows.length === 0) {
+      return (
+        <View style={styles.pane}>
+          <View style={styles.column}>
+            <ListEmpty messageKey="misc.info" testID="full-player-empty-chapters" />
+          </View>
+        </View>
+      );
+    }
+
+    if (activeTab === 'soundbites' && soundbiteRows.length === 0) {
+      return (
+        <View style={styles.pane}>
+          <View style={styles.column}>
+            <ListEmpty
+              messageKey="info.soundbite.no_official_clips_found"
+              testID="full-player-empty-soundbites"
+            />
+          </View>
+        </View>
+      );
+    }
+
+    if (activeTab === 'clips' && clipRows.length === 0) {
+      return (
+        <View style={styles.pane}>
+          <View style={styles.column}>
+            <ListEmpty messageKey="features.clip.no_clips_found" testID="full-player-empty-clips" />
+          </View>
+        </View>
+      );
+    }
+
+    if (activeTab === 'clips' && clipHasMore) {
+      return (
+        <View style={styles.pane}>
+          <View style={styles.column}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                void loadMoreClips();
+              }}
+              style={styles.loadMore}
+              testID="full-player-clip-load-more"
             >
+              <Text style={styles.loadMoreLabel}>
+                {isLoadingMoreClips ? t('misc.loading') : t('info.show_more')}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+
+    return null;
+  }, [
+    activePaneNoticeKey,
+    activeTab,
+    chapterRows.length,
+    clipHasMore,
+    clipRows.length,
+    descriptionExpanded,
+    displayedSummary,
+    hasSections,
+    isLoadingMoreClips,
+    isPrefsHydrated,
+    isTabLoading,
+    loadMoreClips,
+    loadTab,
+    offlineModeEnabled,
+    soundbiteRows.length,
+    styles.actionNotice,
+    styles.column,
+    styles.loadMore,
+    styles.loadMoreLabel,
+    styles.pane,
+    styles.paneEmpty,
+    styles.paneText,
+    styles.showMore,
+    summaryText.length,
+    t,
+    tabErrorKey,
+    transcriptText,
+  ]);
+
+  const renderSectionHeader = useCallback(() => {
+    if (!hasSections || !isPrefsHydrated) {
+      return null;
+    }
+    return (
+      <View style={styles.chipHeader} testID="full-player-section-header">
+        <View style={styles.column}>
+          {isCondensed && nowPlaying !== null ? (
+            <View style={styles.condensedBar} testID="full-player-condensed-bar">
               <CoverImage
                 accessibilityLabel={t('media_player.media_player_image')}
-                style={styles.artwork}
-                uri={nowPlaying.viewerImageUrl ?? nowPlaying.imageUrl}
-                viewerUri={nowPlaying.viewerImageUrl ?? nowPlaying.imageUrl}
+                opensViewer={false}
+                style={styles.condensedArtwork}
+                uri={nowPlaying.imageUrl}
               />
-              {/* Single shared native surface; hidden for audio-only so the artwork shows. */}
-              <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="full" />
+              <MarqueeText style={styles.condensedTitle} testID="full-player-condensed-title">
+                {nowPlaying.title}
+              </MarqueeText>
+              <PlayerTransportButton
+                appearance="bare"
+                onPause={handlePause}
+                onPlay={handlePlay}
+                onRetry={handleRetry}
+                state={transportState}
+                testID="full-player-condensed-play-pause"
+              />
             </View>
+          ) : null}
+          <View onLayout={handleChipStripLayout} style={styles.chipRowSlot}>
+            <SectionChipRow
+              items={sectionChips}
+              leading={
+                activeTab === 'clips' ? (
+                  <MenuSelectChip
+                    heading={t('filters.screen.sort_heading')}
+                    onSelect={selectClipSort}
+                    options={clipSortOptions}
+                    testID="full-player-clip-sort"
+                    value={clipSort}
+                  />
+                ) : undefined
+              }
+              onSelect={handleSelectTab}
+              selectedKey={activeTab}
+              testID="full-player-sections"
+            />
+          </View>
+        </View>
+      </View>
+    );
+  }, [
+    activeTab,
+    clipSort,
+    clipSortOptions,
+    handleChipStripLayout,
+    handleSelectTab,
+    handlePause,
+    handlePlay,
+    handleRetry,
+    hasSections,
+    isCondensed,
+    isPrefsHydrated,
+    nowPlaying,
+    sectionChips,
+    selectClipSort,
+    styles.chipHeader,
+    styles.chipRowSlot,
+    styles.column,
+    styles.condensedArtwork,
+    styles.condensedBar,
+    styles.condensedTitle,
+    t,
+    transportState,
+  ]);
 
-            <View style={isTablet ? styles.controlsColumn : undefined}>
-              <View>
-                <Text style={styles.title} testID="full-player-title">
-                  {nowPlaying.title}
-                </Text>
-                {nowPlaying.channelTitle !== null ? (
-                  <Text style={styles.subtitle}>{nowPlaying.channelTitle}</Text>
-                ) : null}
-              </View>
+  const listHeader = (
+    <View
+      style={[styles.playerRegion, { height: layout.playerRegionHeight }]}
+      testID="full-player-region"
+    >
+      <View style={[styles.column, styles.playerRegionContent]}>
+        <View style={styles.playerRegionUpperBands}>
+          <View style={styles.titleBlock}>
+            <MarqueeText align="center" style={styles.title} testID="full-player-title">
+              {nowPlaying?.title ?? t('media_player.fullscreen_media_player')}
+            </MarqueeText>
+            {nowPlaying?.channelTitle !== null && nowPlaying?.channelTitle !== undefined ? (
+              <Text numberOfLines={1} style={styles.subtitle}>
+                {nowPlaying.channelTitle}
+              </Text>
+            ) : null}
+          </View>
 
-              <View>
+          <FullPlayerArtwork
+            accessibilityLabel={t('media_player.media_player_image')}
+            artworkSize={layout.artworkSize}
+            artworkSizeCap={artworkSizeCap}
+            chapters={chapters}
+          />
+
+          <FullPlayerSegmentBand chapters={chapters} />
+
+          <FullPlayerScrubber chapters={chapters} />
+        </View>
+
+        <View style={styles.playerRegionControlStack}>
+          <FullPlayerTransportRow
+            hasEpisodeChaptersForTrackButtons={episodeHasChaptersForTrackButtons}
+            hasNextQueueItem={canSkipToNext}
+            onJumpBack={() => {
+              jumpBy(-MEDIA_JUMP_BACK_SECONDS);
+            }}
+            onJumpForward={() => {
+              jumpBy(MEDIA_JUMP_FORWARD_SECONDS);
+            }}
+            onPause={handlePause}
+            onPlay={handlePlay}
+            onRetry={handleRetry}
+            onSkipToNext={() => {
+              void skipToNext();
+            }}
+            onSkipToNextTrack={() => {
+              void skipToNextTrack();
+            }}
+            onSkipToPrevious={() => {
+              void skipToPrevious();
+            }}
+            onSkipToPreviousTrack={() => {
+              void skipToPreviousTrack();
+            }}
+            state={transportState}
+          />
+
+          <FullPlayerUtilityRow
+            onOpenMore={() => {
+              handleOpenSheet('more');
+            }}
+            onOpenSleepTimer={() => {
+              handleOpenSheet('sleep');
+            }}
+            onOpenSpeed={() => {
+              handleOpenSheet('speed');
+            }}
+            playbackRate={playbackRate}
+          />
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container} testID="full-player-screen">
+      <FullPlayerActionRow
+        disableAddToPlaylist={addToPlaylistTarget === null}
+        disableQueue={activeTarget === null}
+        disableShare={shareUrl === null}
+        onAddToPlaylist={handleAddToPlaylist}
+        onClose={onClose}
+        onCreateClip={() => {
+          setShowCreateClipNotice(true);
+        }}
+        onOpenQueue={() => {
+          handleOpenSheet('up-next');
+        }}
+        onOpenV4v={onOpenV4v}
+        onShare={handleShare}
+        showV4v={showV4v}
+      />
+
+      <View onLayout={handleViewportLayout} style={styles.viewport}>
+        <SectionList
+          ListHeaderComponent={isPlaybackActive ? listHeader : null}
+          alwaysBounceVertical={false}
+          bounces={false}
+          contentContainerStyle={styles.listContent}
+          keyExtractor={(row) => row.id}
+          onScroll={handleScroll}
+          overScrollMode="never"
+          ref={sectionListRef}
+          renderItem={({ item: row, index }) => {
+            if (row.type === 'chapter') {
+              return (
                 <Pressable
-                  accessibilityLabel={t('media_player.seek')}
-                  accessibilityRole="adjustable"
-                  accessibilityValue={{
-                    max: Math.round(durationSeconds),
-                    min: 0,
-                    now: Math.round(positionSeconds),
-                    text: t('media_player.position_of_duration', {
-                      duration: formatClock(durationSeconds),
-                      position: formatClock(positionSeconds),
-                    }),
+                  accessibilityRole="button"
+                  onPress={() => {
+                    handleChapterPress(row.chapter);
                   }}
-                  onLayout={handleScrubberLayout}
-                  onPress={handleScrubberSeek}
-                  testID="full-player-scrubber"
+                  style={[
+                    styles.chapterRow,
+                    index === listRows.length - 1 ? styles.chapterRowLast : null,
+                  ]}
+                  testID="full-player-chapter-row"
                 >
-                  <ProgressTrack
-                    fillTestID="full-player-scrubber-fill"
-                    height={6}
-                    ratio={progressRatio}
-                  />
+                  <View style={styles.column}>
+                    <Text style={styles.chapterTitle}>
+                      {row.chapter.title ?? row.chapter.id_text}
+                    </Text>
+                    <Text style={styles.chapterTime}>
+                      {t('info.time.start_end', {
+                        timeEnd: formatPlaybackTime(row.chapter.end_time),
+                        timeStart: formatPlaybackTime(row.chapter.start_time),
+                      })}
+                    </Text>
+                  </View>
                 </Pressable>
-                <View style={styles.timeRow}>
-                  <Text style={styles.timeText} testID="full-player-position">
-                    {formatClock(positionSeconds)}
-                  </Text>
-                  <Text style={styles.timeText}>{formatClock(durationSeconds)}</Text>
-                </View>
-              </View>
+              );
+            }
 
-              <View style={styles.controlsRow}>
-                <Button
-                  label={isPlaying ? t('media_player.pause') : t('media_player.play')}
-                  onPress={handleTogglePlay}
-                  testID="full-player-play-pause"
-                  variant="primary"
-                />
-                <Button
-                  label={t('media_player.skip_to_next')}
-                  onPress={() => {
-                    void skipToNext();
-                  }}
-                  testID="full-player-skip-next"
-                  variant="secondary"
-                />
-              </View>
-
-              <View style={styles.entriesRow}>
-                <Button
-                  label={t('media_player.up_next')}
-                  onPress={() => {
-                    togglePanel('up-next');
-                  }}
-                  testID="full-player-up-next"
-                  variant={openPanel === 'up-next' ? 'primary' : 'secondary'}
-                />
-                <Button
-                  label={t('media_player.playback_speed.playback_speed')}
-                  onPress={() => {
-                    togglePanel('speed');
-                  }}
-                  testID="full-player-speed"
-                  variant={openPanel === 'speed' ? 'primary' : 'secondary'}
-                />
-              </View>
-
-              <View style={styles.entriesRow}>
-                <Button
-                  label={t('media_player.sleep_timer.sleep_timer')}
-                  onPress={() => {
-                    togglePanel('sleep');
-                  }}
-                  size="sm"
-                  testID="full-player-sleep-timer"
-                  variant={openPanel === 'sleep' ? 'primary' : 'secondary'}
-                />
-                <Button
-                  disabled={shareUrl === null}
-                  label={t('media_player.share')}
-                  onPress={handleShare}
-                  size="sm"
-                  testID="full-player-share"
-                  variant="secondary"
-                />
-                {isV4vEnabled ? (
-                  <Button
-                    label={t('media_player.value_for_value')}
-                    onPress={onOpenV4v}
-                    size="sm"
-                    testID="full-player-v4v"
-                    variant="secondary"
+            if (row.type === 'soundbite') {
+              return (
+                <View style={styles.column}>
+                  <HomeFeedRow
+                    isLast={index === listRows.length - 1}
+                    mediaType="clips"
+                    onPlayPress={() => {
+                      if (currentItem !== null && channel !== null) {
+                        void playSoundbite(row.soundbite, currentItem, channel);
+                      }
+                    }}
+                    onPress={() => {
+                      if (currentItem !== null && channel !== null) {
+                        void playSoundbite(row.soundbite, currentItem, channel);
+                      }
+                    }}
+                    onQueuePress={(feedRow, position) => {
+                      runQueueAction(feedRow, 'clips', position);
+                    }}
+                    row={toSoundbiteRow(
+                      row.soundbite,
+                      row.index,
+                      t('info.soundbite.official_clip')
+                    )}
+                    showChannelContext={false}
                   />
-                ) : null}
+                </View>
+              );
+            }
+
+            return (
+              <View style={styles.column}>
+                <HomeFeedRow
+                  isLast={index === listRows.length - 1}
+                  mediaType="clips"
+                  onPlayPress={(feedRow) => {
+                    runPlayAction(feedRow, 'clips');
+                  }}
+                  onPress={(feedRow) => {
+                    runPlayAction(feedRow, 'clips');
+                  }}
+                  onQueuePress={(feedRow, position) => {
+                    runQueueAction(feedRow, 'clips', position);
+                  }}
+                  row={clipToHomeRow(row.clip)}
+                  showChannelContext={false}
+                />
               </View>
+            );
+          }}
+          renderSectionFooter={renderPaneFooter}
+          renderSectionHeader={renderSectionHeader}
+          scrollEventThrottle={16}
+          scrollEnabled={hasSections && isPrefsHydrated}
+          sections={sections}
+          stickySectionHeadersEnabled={hasSections && isPrefsHydrated}
+          style={styles.list}
+          testID="full-player-section-list"
+        />
+        {hasSections ? (
+          <View pointerEvents="none" style={[styles.bottomSafeFill, { height: insets.bottom }]} />
+        ) : null}
+      </View>
 
-              {openPanel === 'up-next' ? <FullPlayerUpNext /> : null}
-              {openPanel === 'speed' ? <FullPlayerSpeedControl /> : null}
-              {openPanel === 'sleep' ? <FullPlayerSleepTimer /> : null}
-
-              {segmentContent !== null ? (
-                <FullPlayerSegments channel={segmentContent.channel} item={segmentContent.item} />
-              ) : null}
-            </View>
-          </>
-        ) : (
-          <Text style={styles.title} testID="full-player-idle">
-            {t('media_player.fullscreen_media_player')}
-          </Text>
-        )}
-      </ScrollView>
+      <FullPlayerSleepTimer onCancel={handleCloseSheet} visible={openSheet === 'sleep'} />
+      <FullPlayerSpeedControl onCancel={handleCloseSheet} visible={openSheet === 'speed'} />
+      <FullPlayerUpNext onCancel={handleCloseSheet} visible={openSheet === 'up-next'} />
+      <FullPlayerMoreSheet
+        canToggleSubscription={canToggleSubscription}
+        isMarkedPlayed={isMarkedPlayed}
+        isSubscribed={isSubscribed}
+        onCancel={handleCloseSheet}
+        onTogglePlayed={handleMarkAsPlayed}
+        onToggleSubscription={handleToggleSubscription}
+        visible={openSheet === 'more'}
+      />
+      <ConfirmDialog
+        body={t('misc.not_available_yet')}
+        cancelLabel={t('misc.close')}
+        cancelTestID="full-player-create-clip-close"
+        onCancel={() => {
+          setShowCreateClipNotice(false);
+        }}
+        testID="full-player-create-clip-dialog"
+        title={t('features.clip.create_clip')}
+        visible={showCreateClipNotice}
+      />
+      {addToPlaylistSheet}
     </View>
   );
 }

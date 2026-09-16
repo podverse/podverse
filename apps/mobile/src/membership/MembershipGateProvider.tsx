@@ -23,7 +23,7 @@ type GatePresentation = {
 
 /**
  * App-wide membership gate. Member-only actions stay visible; on a `membership.*` 403 the app shows
- * a consistent modal (Cancel + auth-based Renew/Sign Up) instead of a raw error, and Renew/Sign Up
+ * a consistent modal (Cancel + auth-based Renew / Sign up) instead of a raw error, and that action
  * routes to the Membership screen (the host provides that navigation so this module never imports
  * the navigator — avoids an import cycle).
  *

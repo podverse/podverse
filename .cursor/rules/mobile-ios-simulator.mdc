@@ -63,11 +63,12 @@ xcrun simctl list devices available
   ram/CPU/host GPU on ensure/boot (`tune-android` to re-apply without booting). See
   [APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md).
 
-- Boot manual iOS before ad-hoc `simctl launch`:
+- Boot manual iOS before ad-hoc `simctl launch`. Xcode 27+ hosts the simulator UI
+  in **Device Hub** (`DeviceHub.app`); earlier Xcode uses Simulator.app. Prefer the helper:
 
 ```bash
 xcrun simctl boot "iPhone 17 Pro"
-open -a Simulator
+bash scripts/mobile/open-simulator-ui.sh
 ```
 
 ## Do not
@@ -76,7 +77,16 @@ open -a Simulator
   default (forces a picker).
 - Do **not** point Maestro E2E at manual devices (`clearState` would wipe manual sessions).
 - Do **not** use **`iPhone 15`**, **`iPhone 15 Pro`**, **`iPhone 15 Plus`**, or **iOS 15** runtime
-  names — not available on contributor machines with Xcode 26.
+  names — not available on contributor machines with Xcode 26+.
+- Do **not** use Xcode 27's destination default **`iPhone 18 Pro`** in copy-paste commands —
+  pass `"iPhone 17 Pro"` (manual) or use `mobile:e2e:ios` (E2E twin).
+- Do **not** accept Xcode's **Update to recommended settings** on the generated `apps/mobile/ios`
+  project (User Script Sandboxing and a raised deployment target break Expo/RN prebuild output).
+- Pod build settings Xcode 27 requires live in `withPodverseIosPodBuildSettings` /
+  `ensure-ios-pod-build-settings.sh`: `IPHONEOS_DEPLOYMENT_TARGET` **≥ 15.0** (simulator range
+  15.0–27.0) and `SWIFT_ENABLE_EXPLICIT_MODULES = NO` for pods (expo-sqlite's public `sqlite3.h`
+  shadows the SDK header and breaks the explicit-module dependency scan). The app target keeps
+  explicit modules — do not disable them project-wide.
 - Do **not** suggest tablet AVDs (e.g. `Galaxy_Tab_*`) for day-to-day Android runs.
 - Do **not** recommend x86_64 Android system images on Apple Silicon.
 - Do not assume a simulator/emulator is already booted (`No devices are booted`).

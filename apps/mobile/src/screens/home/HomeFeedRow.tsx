@@ -5,7 +5,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatDateAbbrev } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
-import { formatSecondsToReadableDuration } from '@podverse/helpers/timeFormatter';
 
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
@@ -15,6 +14,9 @@ import {
   UNSEEN_INDICATOR_SIZE,
   UnseenIndicator,
 } from '../../components/primitives';
+import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
+import { useDownloadAction } from '../../downloads/useDownloads';
+import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
 import {
   LIST_ROW_ARTWORK_SIZE,
   listRowArtworkGap,
@@ -108,7 +110,7 @@ const useUpdatedLabel = (
 };
 
 const useDurationLabel = (duration: string | null | undefined, isLive: boolean): string | null => {
-  const { i18n } = useTranslation();
+  const { t } = useTranslation();
 
   return useMemo(() => {
     if (isLive) {
@@ -117,8 +119,8 @@ const useDurationLabel = (duration: string | null | undefined, isLive: boolean):
     if (duration === undefined || duration === null || duration.length === 0) {
       return null;
     }
-    return formatSecondsToReadableDuration(duration, i18n.language);
-  }, [duration, i18n.language, isLive]);
+    return formatPlaybackDurationLabel(Number(duration), t);
+  }, [duration, isLive, t]);
 };
 
 /**
@@ -151,6 +153,12 @@ export function HomeFeedRow({
   const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
   const isLive = row.metadata?.isLive === true;
   const durationLabel = useDurationLabel(row.duration, isLive);
+  const {
+    isDownloadable,
+    remove: removeDownload,
+    start: startDownload,
+    status: downloadStatus,
+  } = useDownloadAction(download?.item);
   const description =
     row.description !== undefined && row.description !== null && row.description.length > 0
       ? row.description
@@ -266,6 +274,15 @@ export function HomeFeedRow({
           onQueueNext: () => {
             onQueuePress(row, 'next');
           },
+          onDownload: isDownloadable
+            ? () => {
+                runDownloadAction({
+                  remove: removeDownload,
+                  start: startDownload,
+                  status: downloadStatus,
+                });
+              }
+            : undefined,
           onShare:
             onSharePress !== undefined
               ? () => {
@@ -273,9 +290,24 @@ export function HomeFeedRow({
                 }
               : undefined,
         },
-        { idSuffix: `-${row.id}` }
+        {
+          downloadLabelKey: isDownloadable ? downloadActionLabelKey(downloadStatus) : undefined,
+          downloadTone: downloadStatus === 'complete' ? 'danger' : undefined,
+          idSuffix: `-${row.id}`,
+        }
       ),
-    [onAddToPlaylistPress, onMarkAsPlayedPress, onQueuePress, onSharePress, row, t]
+    [
+      downloadStatus,
+      isDownloadable,
+      onAddToPlaylistPress,
+      onMarkAsPlayedPress,
+      onQueuePress,
+      onSharePress,
+      removeDownload,
+      row,
+      startDownload,
+      t,
+    ]
   );
 
   return (

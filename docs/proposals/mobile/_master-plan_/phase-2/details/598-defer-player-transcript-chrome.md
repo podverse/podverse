@@ -2,20 +2,22 @@
 
 **Master step:** P2.3.5
 **Model (author + implement):** Auto
-**Status:** deferred to a future phase
+**Status:** partially opened — see Scope
 
 ## Scope
 
-- **Defer** full-player / mini-player integrated transcript UI (sync highlight, scrubber coupling,
-  side panels).
-- Episode-detail transcript **tab** remains the place transcripts show.
-- Revisit when the player area (P2.1.4) is detailed.
+- **Defer** transcript **coupling**: follow-along highlighting, scrubber synchronization, and
+  tap-a-line-to-seek, on both the full player and the mini player.
+- **Opened:** the player carries a **Transcript chip** that renders the same plain transcript pane
+  episode detail renders — [750](750-player-section-chips-and-panes.md). A transcript being readable
+  from the player is not the same as a transcript driving playback.
+- Episode detail remains the other place transcripts show, from the same shared pane.
 
 ## Acceptance criteria
 
 - Documented as deferred in Phase 2 Track P2.3
-- Agents do not add player transcript chrome during player or feature work unless the operator
-  opens this deferral
+- Agents do not add transcript-to-playback coupling during player or feature work unless the operator
+  opens the rest of this deferral
 
 ## Web parity references
 

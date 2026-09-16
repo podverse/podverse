@@ -10,9 +10,9 @@ export async function generateMetadata() {
 export default function MobileAppPage() {
   return (
     <>
-      <MainHeader title="Mobile App" />
+      <MainHeader title="Mobile app" />
       <MainWrapper>
-        <p>Coming Soon</p>
+        <p>Coming soon</p>
       </MainWrapper>
     </>
   );

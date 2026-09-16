@@ -13,7 +13,7 @@ type HomeOverflowMenuProps = {
   onMarkAllSeen: () => void;
   onViewModeChange: (viewMode: HomeViewMode) => void;
   /**
-   * Mark All As Seen only applies to the Podcasts subscription list. Keep the trigger visible on
+   * Mark all as seen only applies to the Podcasts subscription list. Keep the trigger visible on
    * every Home chip; omit this section when the current chip is not Podcasts.
    */
   showMarkAllSeen: boolean;
@@ -21,7 +21,7 @@ type HomeOverflowMenuProps = {
 };
 
 /**
- * Home title-bar overflow: list/grid (Home-wide) and optional Mark All As Seen.
+ * Home title-bar overflow: list/grid (Home-wide) and optional Mark all as seen.
  *
  * Lives in `headerRight` via {@link HeaderBarAction}. The view is two checked rows rather than a
  * flipping label so the menu states which mode is in effect for every eligible media chip.

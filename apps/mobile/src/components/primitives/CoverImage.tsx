@@ -1,10 +1,12 @@
 import { Image } from 'expo-image';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ImageStyle, StyleProp, ViewStyle } from 'react-native';
+import type { GestureResponderEvent, ImageStyle, StyleProp, ViewStyle } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
+import type { CoverImageTapPoint } from './coverImageTap';
+import { isDeliberateCoverImageTap } from './coverImageTap';
 import { ImageViewerModal } from './ImageViewerModal';
 
 /**
@@ -23,8 +25,9 @@ export type CoverImageProps = {
   fallbackLabel?: string;
   accessibilityLabel?: string;
   /**
-   * When true (default) and `uri` is set, tapping opens the full-screen image viewer.
-   * Set false when this image sits inside a pressable row, cell, or header.
+   * When true (default) and `uri` is set, a stationary tap opens the full-screen image viewer.
+   * A press that moves (scroll or drag) does not. Set false when this image sits inside a
+   * pressable row, cell, or header.
    */
   opensViewer?: boolean;
   style?: StyleProp<CoverImageStyle>;
@@ -45,7 +48,8 @@ export const prefetchCoverImage = (uri: string | null | undefined): void => {
 /**
  * Square cover / artwork. Podcast, episode, and album art stay square — do not pass a
  * `borderRadius` unless a specific surface (for example a circular avatar) needs one.
- * Standalone art opens the image viewer; pass `opensViewer={false}` when the parent is the control.
+ * Standalone art opens the image viewer on a stationary tap; pass `opensViewer={false}` when the
+ * parent is the control.
  *
  * Uses expo-image with memory+disk cache so a list decode can be reused on a compact header
  * without a second network round-trip.
@@ -62,6 +66,12 @@ export function CoverImage({
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const tapStartRef = useRef<CoverImageTapPoint | null>(null);
+  const tapMovedRef = useRef(false);
+
+  const pointFromEvent = (event: GestureResponderEvent): CoverImageTapPoint => {
+    return { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
+  };
 
   const styles = useMemo(
     () =>
@@ -131,8 +141,23 @@ export function CoverImage({
         accessibilityHint={t('media.view_full_image')}
         accessibilityLabel={resolvedLabel}
         accessibilityRole="button"
-        onPress={() => {
+        onPress={(event) => {
+          const stayedPut =
+            !tapMovedRef.current &&
+            isDeliberateCoverImageTap(tapStartRef.current, pointFromEvent(event));
+          if (!stayedPut) {
+            return;
+          }
           setIsViewerOpen(true);
+        }}
+        onPressIn={(event) => {
+          tapStartRef.current = pointFromEvent(event);
+          tapMovedRef.current = false;
+        }}
+        onTouchMove={(event) => {
+          if (!isDeliberateCoverImageTap(tapStartRef.current, pointFromEvent(event))) {
+            tapMovedRef.current = true;
+          }
         }}
         testID={testID}
       >

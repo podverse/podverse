@@ -1,7 +1,7 @@
 import { Text } from 'react-native';
 
 import { isMobileE2eFromEnv } from '../config/env';
-import { usePlayback } from './PlaybackProvider';
+import { usePlaybackSession } from './PlaybackProvider';
 
 /**
  * E2E-only playback status markers in tab chrome. The mini player has no distinct playing/paused
@@ -9,7 +9,7 @@ import { usePlayback } from './PlaybackProvider';
  * and complete live on the More E2E Playback screen with the other harness controls.
  */
 export function PlaybackE2eStatus() {
-  const { activeTarget, isPlaying, nowPlaying } = usePlayback();
+  const { activeTarget, isPlaying, nowPlaying } = usePlaybackSession();
 
   if (!isMobileE2eFromEnv() || activeTarget === null) {
     return null;

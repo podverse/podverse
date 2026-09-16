@@ -1,0 +1,74 @@
+appId: com.podverse.app.next
+name: Playback Resume On Relaunch
+---
+# Cold-start restore of the device-local now-playing snapshot (anonymous).
+#
+# Plays a seeded episode, pauses so the last position is written, relaunches WITHOUT clearState,
+# and asserts the mini player returns paused with the restored title. E2E builds always hydrate
+# as anonymous (`shouldResetSessionForE2e`), so this covers the anonymous restore path; signed-in
+# relaunch is verified manually.
+#
+# Enclosures resolve via the test-assets server on :2111. Requires flow_needs_test_assets +
+# flow_needs_e2e_api.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+
+- tapOn:
+    id: "home-row-play-.*"
+
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+- assertVisible:
+    id: mini-player-title
+- assertVisible:
+    id: mini-player-play-pause
+- takeScreenshot: playback-resume-before-relaunch
+
+# Pause writes the snapshot immediately (not only on the progress throttle).
+- tapOn:
+    id: mini-player-play-pause
+- assertVisible:
+    id: mini-player
+
+# Relaunch WITHOUT clearState so AsyncStorage keeps the last-playback snapshot.
+- launchApp:
+    clearState: false
+- runFlow: shared/connect-dev-client.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: mini-player
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: mini-player-title
+- assertVisible:
+    id: mini-player-play-pause
+# Snapshot restore loads the last item paused. Playing here means setRate/loadAndStart raced.
+- assertVisible:
+    id: playback-active-e2e
+    text: paused
+- takeScreenshot: playback-resume-after-relaunch

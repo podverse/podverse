@@ -18,7 +18,7 @@ export type SortSelectRowProps<T extends string> = {
 /**
  * A sort control that keeps its choices on the screen it belongs to.
  *
- * Home opens a dedicated Filter & Sort screen because it has two controls and a media type to scope
+ * Home opens a dedicated Filter & sort screen because it has two controls and a media type to scope
  * them by. A detail screen has one control with a couple of options, so the choices are disclosed
  * in place: the same pill and the same checkmarked option rows, without a push and a Done for a
  * decision that takes one tap. It also means the control works identically wherever the screen is

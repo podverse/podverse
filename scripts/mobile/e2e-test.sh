@@ -41,7 +41,8 @@ flow_needs_e2e_api() {
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | browse | deep-link | \
   detail-sort-prefs | engine-audio-spike | home | library-downloads | library-playlists | \
   membership-gate | notifications-inbox | offline-mode | opml | play-mini-player | \
-  playback-multi-device-handoff | playback-offline-reconciliation | podcast-episode | \
+  playback-multi-device-handoff | playback-offline-reconciliation | playback-resume-on-relaunch | \
+  player-screen | podcast-episode | \
   popularity-tracking | push | queue-add | search | search-unparsed | settings-downloads | \
   subscriptions-anonymous | tab-switch-playback | tablet | v4v | video-transition)
     return 0
@@ -68,7 +69,8 @@ flow_needs_tablet() {
 flow_needs_test_assets() {
   case "$1" in
   add-by-rss | auto-queue-advance | engine-audio-spike | library-downloads | play-mini-player | \
-  playback-offline-reconciliation | tab-switch-playback | tablet | v4v | video-transition)
+  playback-offline-reconciliation | playback-resume-on-relaunch | player-screen | \
+  tab-switch-playback | tablet | v4v | video-transition)
     return 0
     ;;
   *)
@@ -550,7 +552,7 @@ print_blocked_guidance() {
     echo "       Maestro never started its XCTest runner, so the screenshot will look normal."
     echo "    2. Reset the simulator and clear any orphaned driver:"
     echo "         bash scripts/mobile/ensure-devices.sh recover-e2e-ios"
-    echo "    3. If that fails to boot, CoreSimulator itself is wedged. Quit Simulator.app, then:"
+    echo "    3. If that fails to boot, CoreSimulator itself is wedged. Quit Device Hub (or Simulator.app), then:"
     echo "         killall -9 com.apple.CoreSimulator.CoreSimulatorService"
     echo "       That restarts every simulator on the host, including manual ones."
     echo "    4. Reinstall the app if the simulator was erased: npm run mobile:e2e:ios"

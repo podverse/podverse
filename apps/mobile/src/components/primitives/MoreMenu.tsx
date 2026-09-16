@@ -12,6 +12,8 @@ export type MoreMenuItem = {
   onPress: () => void;
   selected?: boolean;
   testID?: string;
+  /** Danger commands (Delete) use the danger text token. Press still runs immediately. */
+  tone?: 'danger';
 };
 
 export type MoreMenuSection = {
@@ -111,6 +113,9 @@ export function MoreMenu({
           textAlign: 'center',
           width: '100%',
         },
+        itemLabelDanger: {
+          color: tokens.text.danger,
+        },
         itemPressed: {
           opacity: 0.7,
         },
@@ -196,7 +201,13 @@ export function MoreMenu({
                   ]}
                   testID={item.testID ?? `${testID}-${item.key}`}
                 >
-                  <Text numberOfLines={1} style={styles.itemLabel}>
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.itemLabel,
+                      item.tone === 'danger' ? styles.itemLabelDanger : null,
+                    ]}
+                  >
                     {item.label}
                   </Text>
                   {isSelected ? (

@@ -1,0 +1,171 @@
+appId: com.podverse.app.next
+name: Player screen flow
+---
+# Full-player shell behavior: chip peek, sticky condensed bar, pane loading, and sheet-only controls.
+# Uses the chaptered seeded episode so the Chapters pane is always available.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- openLink: podverse-next://podcast/e2ePodChnl001/episode/e2ePodChap0001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+- tapOn:
+    id: mini-player
+
+- assertVisible:
+    id: full-player-screen
+- assertVisible:
+    id: full-player-sections
+# Pane copy sits below the chip strip; first paint shows chips only.
+- assertNotVisible:
+    id: full-player-summary-text
+- takeScreenshot: player-screen-initial-peek
+
+- scrollUntilVisible:
+    element:
+      id: full-player-condensed-bar
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-condensed-play-pause
+- tapOn:
+    id: full-player-condensed-play-pause
+- tapOn:
+    id: full-player-condensed-play-pause
+- takeScreenshot: player-screen-condensed
+
+- scrollUntilVisible:
+    element:
+      id: full-player-region
+    direction: UP
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-region
+# The segment row below the artwork is reserved whether or not a chapter or clip is named, so a
+# chapter starting cannot move the artwork or the transport.
+- assertVisible:
+    id: full-player-segment-band
+- assertVisible:
+    id: full-player-transport-row
+- assertVisible:
+    id: full-player-skip-previous
+- assertVisible:
+    id: full-player-jump-back
+- assertVisible:
+    id: full-player-play-pause
+- assertVisible:
+    id: full-player-jump-forward
+- assertVisible:
+    id: full-player-skip-next
+- assertVisible:
+    id: full-player-scrubber
+- assertVisible:
+    id: full-player-position
+# Duration comes from item_about.duration or native metadata so seek is enabled after play.
+- assertVisible:
+    id: full-player-duration
+- assertVisible:
+    id: full-player-chapter-marker
+- takeScreenshot: player-screen-region-restored
+
+- longPressOn:
+    id: full-player-scrubber
+- extendedWaitUntil:
+    visible:
+      id: full-player-chapter-tooltip
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: player-screen-chapter-tooltip
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-chapter-tooltip
+    timeout: ${TIMEOUT_SLOWER}
+
+- tapOn:
+    id: full-player-create-clip
+- assertVisible:
+    id: full-player-create-clip-dialog
+- takeScreenshot: player-screen-create-clip-placeholder
+- tapOn:
+    id: full-player-create-clip-close
+- assertNotVisible:
+    id: full-player-create-clip-dialog
+- assertVisible:
+    id: full-player-action-row
+
+- tapOn:
+    id: full-player-more
+- assertVisible:
+    id: full-player-more-sheet
+- assertVisible:
+    id: full-player-more-subscription
+- assertVisible:
+    id: full-player-more-mark-played
+- takeScreenshot: player-screen-more-sheet
+- tapOn:
+    id: full-player-more-sheet-cancel
+- assertNotVisible:
+    id: full-player-more-sheet
+
+- tapOn:
+    id: full-player-speed
+- assertVisible:
+    id: full-player-speed-sheet
+- assertNotVisible:
+    id: full-player-speed-control
+- takeScreenshot: player-screen-speed-sheet
+- tapOn:
+    id: full-player-speed-sheet-cancel
+
+- tapOn:
+    id: full-player-sleep-timer
+- assertVisible:
+    id: full-player-sleep-sheet
+- assertNotVisible:
+    id: full-player-sleep-timer-control
+- takeScreenshot: player-screen-sleep-sheet
+- tapOn:
+    id: full-player-sleep-sheet-cancel
+
+# A chip tap is navigation: the list scrolls until the chips stick under the condensed bar.
+- tapOn:
+    id: full-player-section-chapters
+- extendedWaitUntil:
+    visible:
+      id: full-player-condensed-bar
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-pane-loading-chapters
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: full-player-chapter-row
+- takeScreenshot: player-screen-chapters-pane
+
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}

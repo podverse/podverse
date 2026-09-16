@@ -1,6 +1,6 @@
 import type { DTOItemChapter } from '@podverse/helpers';
 
-import { selectItemChapterForTime } from '../../utils/mediaPlayer/selectItemChapterForTime';
+import { selectItemChapterForTime } from '../playback';
 
 type ResolveEmbedActiveChapterForArtworkInput = {
   showChapterInfo: boolean;

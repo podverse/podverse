@@ -529,7 +529,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
    * the feed declares one again.
    *
    * Held until the channel and the stored episodes have both been read, because a cache miss must
-   * not be treated as absence or a restored Official Clips / Podroll pane would be thrown away.
+   * not be treated as absence or a restored Official clips / Podroll pane would be thrown away.
    */
   useEffect(() => {
     if (channel === null || !hasCheckedSoundbites) {

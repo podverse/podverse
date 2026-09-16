@@ -77,6 +77,8 @@ name: Library Downloads Offline Play
     id: library-downloads-screen
 - assertVisible:
     id: "download-row-.*"
+- assertVisible:
+    id: "download-row-channel-.*"
 - assertNotVisible:
     id: library-downloads-clear-finished
 - assertNotVisible:

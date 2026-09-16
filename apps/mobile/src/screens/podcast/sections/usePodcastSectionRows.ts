@@ -5,6 +5,7 @@ import type { ApiRequestService } from '@podverse/helpers-requests';
 
 import { requestWithMobileAuthRefresh } from '../../../auth';
 import { useAuth } from '../../../auth/AuthProvider';
+import { emptyIfNotFound } from '../../../lib/apiErrorStatus';
 
 /** One page of a remote section, in the row shape the pane renders. */
 export type PodcastSectionPage<TRow> = {
@@ -88,8 +89,9 @@ export function usePodcastSectionRows<TRow>(
       setErrorKey(null);
 
       try {
-        const page = await requestWithMobileAuthRefresh(authContext, async (api) =>
-          fetchPage(api, 1)
+        const page = await emptyIfNotFound(
+          async () => requestWithMobileAuthRefresh(authContext, async (api) => fetchPage(api, 1)),
+          { hasMore: false, rows: [] }
         );
         loadedPageRef.current = 1;
         setRows(page.rows);
@@ -114,8 +116,10 @@ export function usePodcastSectionRows<TRow>(
     const nextPage = loadedPageRef.current + 1;
     setIsLoadingMore(true);
     try {
-      const page = await requestWithMobileAuthRefresh(authContext, async (api) =>
-        fetchPage(api, nextPage)
+      const page = await emptyIfNotFound(
+        async () =>
+          requestWithMobileAuthRefresh(authContext, async (api) => fetchPage(api, nextPage)),
+        { hasMore: false, rows: [] }
       );
       loadedPageRef.current = nextPage;
       setRows((current) => [...current, ...page.rows]);
