@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { DTOItem } from '@podverse/helpers';
 import { formatDateAbbrev, itemHeaderLightboxArtworkCandidates } from '@podverse/helpers';
 
+import { DownloadControl } from '../../components/download/DownloadControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import { CoverImage } from '../../components/primitives';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
@@ -254,6 +255,7 @@ export function EpisodePlayChrome({
           playTestID={`home-row-play-${episode.id_text}`}
         />
       </View>
+      <DownloadControl item={episode} />
     </View>
   );
 }

@@ -19,6 +19,8 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
   const { styles: themeStyles } = useTheme();
   const { accessToken, account, setAccount, status } = useAuth();
   const [agreement, setAgreement] = useState<DTOPopularityTrackingAgreement | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorKey, setErrorKey] = useState<string | null>(null);
 
   const currentVersion = agreement?.version ?? '';
   const accountSettings = account?.account_settings ?? null;
@@ -35,10 +37,12 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
       ? isPopularityTrackingPromptRequired(accountSettings, currentVersion)
       : neverDecided);
 
-  useEffect(() => {
+  const loadAgreement = useCallback(() => {
     if (status !== 'authenticated' || accessToken === null) {
       setAgreement(null);
       setPopularityTrackingCurrentVersion('');
+      setIsLoading(false);
+      setErrorKey(null);
       return;
     }
 
@@ -47,6 +51,8 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
       return;
     }
 
+    setIsLoading(true);
+    setErrorKey(null);
     let cancelled = false;
     void api
       .reqLegalPopularityTracking()
@@ -56,15 +62,29 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
         }
         setAgreement(data);
         setPopularityTrackingCurrentVersion(data.version);
+        setErrorKey(null);
       })
       .catch((error: unknown) => {
         console.warn('[PopularityTrackingProvider] load failed', error);
+        if (!cancelled) {
+          setErrorKey('errors.generic');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       });
 
     return () => {
       cancelled = true;
     };
   }, [accessToken, status]);
+
+  useEffect(() => {
+    const cleanup = loadAgreement();
+    return cleanup;
+  }, [loadAgreement]);
 
   const handleDecision = useCallback(
     async (accepted: boolean) => {
@@ -93,11 +113,14 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
             <PopularityTrackingAgreementBody
               alreadyAgreed={alreadyAgreed}
               agreement={agreement}
+              errorKey={errorKey}
+              isLoading={isLoading}
               learnMoreTestID="popularity-tracking-learn-more"
               noTestID="popularity-tracking-no"
               onDecision={(accepted) => {
                 void handleDecision(accepted);
               }}
+              onRetry={loadAgreement}
               yesTestID="popularity-tracking-yes"
             />
           </ScrollView>

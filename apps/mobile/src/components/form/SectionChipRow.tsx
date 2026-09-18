@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { placeSelectedFirst } from '../../lib/sectionChipOrder';
 import { listChipRowBottomGap } from '../../theme/screenLayout';
@@ -149,26 +149,27 @@ export function SectionChipRow<T extends string>({
   }, [selectedKey]);
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContent}
-      horizontal
-      ref={scrollRef}
-      showsHorizontalScrollIndicator={false}
-      style={styles.scroll}
-      testID={testID}
-    >
-      {leading}
-      {orderedItems.map((item) => (
-        <SectionChip
-          key={item.key}
-          label={item.label}
-          onPress={() => {
-            onSelect(item.key);
-          }}
-          selected={item.key === selectedKey}
-          testID={item.testID}
-        />
-      ))}
-    </ScrollView>
+    <View accessible={false} testID={testID}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        horizontal
+        ref={scrollRef}
+        showsHorizontalScrollIndicator={false}
+        style={styles.scroll}
+      >
+        {leading}
+        {orderedItems.map((item) => (
+          <SectionChip
+            key={item.key}
+            label={item.label}
+            onPress={() => {
+              onSelect(item.key);
+            }}
+            selected={item.key === selectedKey}
+            testID={item.testID}
+          />
+        ))}
+      </ScrollView>
+    </View>
   );
 }

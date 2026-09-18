@@ -218,17 +218,37 @@ const upsertPlaylists = async (
       idText: schema.playlist.idText,
       isOwned: schema.playlist.isOwned,
       isFollowed: schema.playlist.isFollowed,
+      ownerAccountIdText: schema.playlist.ownerAccountIdText,
+      payloadJson: schema.playlist.payloadJson,
     })
     .from(schema.playlist)
     .where(inArray(schema.playlist.idText, idTexts));
 
   const existingFlags = new Map(
-    existingRows.map((row) => [row.idText, { isOwned: row.isOwned, isFollowed: row.isFollowed }])
+    existingRows.map((row) => [
+      row.idText,
+      {
+        isFollowed: row.isFollowed,
+        isOwned: row.isOwned,
+        ownerAccountIdText: row.ownerAccountIdText,
+        payload: safeJsonParse<DTOPlaylist>(row.payloadJson),
+      },
+    ])
   );
 
   const updatedAt = Date.now();
   for (const playlist of playlists) {
+    const lastUpdated =
+      playlist.last_updated !== undefined && playlist.last_updated.length > 0
+        ? playlist.last_updated
+        : new Date().toISOString();
     const existing = existingFlags.get(playlist.id_text);
+    const account = playlist.account ?? existing?.payload?.account;
+    const ownerAccountIdText = account?.id_text ?? existing?.ownerAccountIdText ?? null;
+    const storedPlaylist: DTOPlaylist =
+      account === undefined
+        ? { ...playlist, last_updated: lastUpdated }
+        : { ...playlist, account, last_updated: lastUpdated };
     const isOwned =
       updates.markOwned === true ? 1 : updates.markOwned === false ? 0 : (existing?.isOwned ?? 0);
     const isFollowed =
@@ -249,11 +269,11 @@ const upsertPlaylists = async (
         sharableStatusId: playlist.sharable_status_id,
         isDefaultLikes: playlist.is_default_likes ? 1 : 0,
         itemCount: playlist.item_count,
-        lastUpdated: playlist.last_updated,
-        ownerAccountIdText: playlist.account?.id_text ?? null,
+        lastUpdated,
+        ownerAccountIdText,
         isOwned,
         isFollowed,
-        payloadJson: JSON.stringify(playlist),
+        payloadJson: JSON.stringify(storedPlaylist),
         updatedAt,
       })
       .onConflictDoUpdate({
@@ -266,11 +286,11 @@ const upsertPlaylists = async (
           sharableStatusId: playlist.sharable_status_id,
           isDefaultLikes: playlist.is_default_likes ? 1 : 0,
           itemCount: playlist.item_count,
-          lastUpdated: playlist.last_updated,
-          ownerAccountIdText: playlist.account?.id_text ?? null,
+          lastUpdated,
+          ownerAccountIdText,
           isOwned,
           isFollowed,
-          payloadJson: JSON.stringify(playlist),
+          payloadJson: JSON.stringify(storedPlaylist),
           updatedAt,
         },
       });
@@ -579,7 +599,7 @@ export const playlistRepository = {
     const playlist = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistEdit(params)
     );
-    await upsertPlaylists([playlist], {});
+    await upsertPlaylists([playlist], { markOwned: true });
     await projectLibraryBrowseFromCache();
     return playlist;
   },

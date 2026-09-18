@@ -65,7 +65,11 @@ export const shouldShowV4vAction = (
     return false;
   }
   const item = itemFromTarget(target);
-  return item !== null && item.item_values.length > 0;
+  if (item === null) {
+    return false;
+  }
+  // Queue and detail payloads can omit item_values even though DTOItem lists it.
+  return Array.isArray(item.item_values) && item.item_values.length > 0;
 };
 
 export const resolveAddToPlaylistTarget = (

@@ -98,15 +98,11 @@ const clip = (idText: string, clipItem: DTOItem): DTOClip => ({
 });
 
 const soundbite = (idText: string, sourceItem: DTOItem): DTOItemSoundbite => ({
-  end_time: null,
+  duration: '30',
   id: 1,
   id_text: idText,
   item: sourceItem,
-  item_id: sourceItem.id_text,
-  sharable_status: {
-    id: 1,
-    status: 'public',
-  },
+  item_id: sourceItem.id,
   start_time: '15',
   title: 'Soundbite',
 });
@@ -133,6 +129,15 @@ describe('fullPlayerRows', () => {
     expect(shouldShowV4vAction(withValueTags, true)).toBe(true);
     expect(shouldShowV4vAction(withValueTags, false)).toBe(false);
     expect(shouldShowV4vAction(withoutValueTags, true)).toBe(false);
+
+    const omittedValues = item('episode-abridged', false);
+    Reflect.deleteProperty(omittedValues, 'item_values');
+    const abridgedTarget: PlaybackTarget = {
+      channel: channel('podcast'),
+      item: omittedValues,
+      kind: 'item-podcast',
+    };
+    expect(shouldShowV4vAction(abridgedTarget, true)).toBe(false);
   });
 
   it('uses shared jump constants and playlist targets', () => {

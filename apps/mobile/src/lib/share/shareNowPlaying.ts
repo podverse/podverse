@@ -8,8 +8,7 @@ import {
   buildNowPlayingShareUrl as buildNowPlayingShareUrlFromWebBaseUrl,
   buildPublicShareUrl as buildPublicShareUrlFromWebBaseUrl,
 } from './shareUrl';
-
-type ShareResource = 'clip' | 'episode' | 'playlist' | 'podcast' | 'profile';
+import type { ShareResource } from './shareUrl';
 
 export const buildPublicShareUrl = (resource: ShareResource, idText: string): string => {
   return buildPublicShareUrlFromWebBaseUrl(getMobileConfig().webBaseUrl, resource, idText);

@@ -72,8 +72,11 @@ const E2E_CLIP_ID_TEXT = 'e2eClip00000001';
 const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
 const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
-/** @deprecated Alias — album channel id_text matches E2E_MUSIC_ALBUM_ID_TEXT */
-const E2E_MUSIC_CHANNEL_ID_TEXT = E2E_MUSIC_ALBUM_ID_TEXT;
+/** Publisher-feed artist channel. Mobile `artist.yaml` deep-links here. */
+const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
+const E2E_MUSIC_ARTIST_FEED_URL = 'https://e2e-seed-music.example/artist.xml';
+const E2E_MUSIC_ARTIST_FEED_PI_ID = 876543218;
+const E2E_MUSIC_ALBUM_PODCAST_GUID = '11111111-2222-4333-8444-555555555501';
 const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
 const E2E_MUSIC_TRACK_TWO_ID_TEXT = 'e2eMusicTrk002';
 const E2E_MUSIC_QUEUE_ID_TEXT = 'e2eMusicQueue01';
@@ -842,15 +845,16 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   );
 
   const musicChannelResult = await client.query(
-    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+    `INSERT INTO channel (id_text, feed_id, medium_id, title, podcast_guid)
      VALUES (
        $1,
        $2,
        (SELECT id FROM medium WHERE value = 'music' LIMIT 1),
-       'E2E Music Album'
+       'E2E Music Album',
+       $3
      )
      RETURNING id`,
-    [E2E_MUSIC_CHANNEL_ID_TEXT, musicFeedId]
+    [E2E_MUSIC_ALBUM_ID_TEXT, musicFeedId, E2E_MUSIC_ALBUM_PODCAST_GUID]
   );
   const musicChannelId = musicChannelResult.rows[0].id;
 
@@ -985,7 +989,95 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   );
 
   console.log(
-    `Seeded music media-player E2E channel ${E2E_MUSIC_CHANNEL_ID_TEXT} (queue ${E2E_MUSIC_QUEUE_ID_TEXT}; tracks ${E2E_MUSIC_TRACK_ONE_ID_TEXT}, ${E2E_MUSIC_TRACK_TWO_ID_TEXT})`
+    `Seeded music media-player E2E channel ${E2E_MUSIC_ALBUM_ID_TEXT} (queue ${E2E_MUSIC_QUEUE_ID_TEXT}; tracks ${E2E_MUSIC_TRACK_ONE_ID_TEXT}, ${E2E_MUSIC_TRACK_TWO_ID_TEXT})`
+  );
+
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    E2E_MUSIC_ARTIST_FEED_PI_ID,
+    E2E_MUSIC_ARTIST_FEED_URL,
+  ]);
+
+  const musicArtistFeedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [E2E_MUSIC_ARTIST_FEED_URL, E2E_MUSIC_ARTIST_FEED_PI_ID]
+  );
+  const musicArtistFeedId = musicArtistFeedResult.rows[0].id;
+
+  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [musicArtistFeedId]);
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [musicArtistFeedId]
+  );
+
+  const musicArtistChannelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'music' LIMIT 1),
+       'E2E Music Artist'
+     )
+     RETURNING id`,
+    [E2E_MUSIC_CHANNEL_ID_TEXT, musicArtistFeedId]
+  );
+  const musicArtistChannelId = musicArtistChannelResult.rows[0].id;
+
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [musicArtistChannelId]);
+  await client.query(
+    `INSERT INTO channel_description (channel_id, value)
+     VALUES ($1, $2)`,
+    [musicArtistChannelId, 'E2E seeded artist for deterministic album and track remote items.']
+  );
+  await client.query(
+    `INSERT INTO channel_image (channel_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [musicArtistChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
+  );
+
+  const musicTrackOneGuid = `${E2E_MUSIC_FEED_URL}#track-one`;
+  const musicTrackTwoGuid = `${E2E_MUSIC_FEED_URL}#track-two`;
+
+  await client.query(
+    `INSERT INTO channel_remote_item (channel_id, feed_guid, feed_url, item_guid, title, medium_id)
+     VALUES
+       (
+         $1,
+         $2,
+         $3,
+         NULL,
+         'E2E Music Album',
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       ),
+       (
+         $1,
+         $2,
+         $3,
+         $4,
+         'E2E Music Track One',
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       ),
+       (
+         $1,
+         $2,
+         $3,
+         $5,
+         'E2E Music Track Two',
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       )`,
+    [
+      musicArtistChannelId,
+      E2E_MUSIC_ALBUM_PODCAST_GUID,
+      E2E_MUSIC_FEED_URL,
+      musicTrackOneGuid,
+      musicTrackTwoGuid,
+    ]
+  );
+
+  console.log(
+    `Seeded music artist E2E channel ${E2E_MUSIC_CHANNEL_ID_TEXT} (album ${E2E_MUSIC_ALBUM_ID_TEXT}; tracks ${E2E_MUSIC_TRACK_ONE_ID_TEXT}, ${E2E_MUSIC_TRACK_TWO_ID_TEXT})`
   );
 
   // Add-by-RSS resources live in the podcast queue at upcoming

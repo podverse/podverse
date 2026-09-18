@@ -92,7 +92,7 @@ export function MarqueeText({ align = 'left', children, style, testID }: Marquee
   };
 
   return (
-    <View onLayout={handleViewportLayout} style={styles.viewport}>
+    <View onLayout={handleViewportLayout} style={styles.viewport} testID={testID}>
       <Animated.Text
         numberOfLines={1}
         style={[
@@ -100,7 +100,6 @@ export function MarqueeText({ align = 'left', children, style, testID }: Marquee
           align === 'center' && !scrolls ? styles.centered : null,
           scrolls ? { transform: [{ translateX: offset }], width: contentWidth } : null,
         ]}
-        testID={testID}
       >
         {children}
       </Animated.Text>

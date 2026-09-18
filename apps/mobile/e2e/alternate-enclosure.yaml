@@ -21,6 +21,12 @@ name: Alternate Enclosure Flow
     id: "home-row-play-.*"
 - extendedWaitUntil:
     visible:
+      id: mini-player
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player
+- extendedWaitUntil:
+    visible:
       id: full-player-screen
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:

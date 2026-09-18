@@ -16,10 +16,15 @@ name: Artist flow
     visible:
       id: artist-detail-sections
     timeout: ${TIMEOUT_SLOW}
-- assertVisible:
-    id: artist-detail-section-albums
-- assertVisible:
-    id: artist-detail-section-tracks
+# Albums and tracks chips are added after the publisher-feed request returns.
+- extendedWaitUntil:
+    visible:
+      id: artist-detail-section-albums
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: artist-detail-section-tracks
+    timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: artist-detail-default
 
 - tapOn:
@@ -55,5 +60,5 @@ name: Artist flow
       id: track-detail-screen
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
-    id: track-detail-play-chrome
+    id: track-detail-playback-chrome
 - takeScreenshot: artist-to-track-detail

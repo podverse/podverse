@@ -75,7 +75,11 @@ import { useOfflineMode } from '../../prefs/offlineMode';
 import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
-import { EPISODE_TAB_LABEL_KEYS, itemSectionFlagsFromDto } from '../episode/episodeTabs';
+import {
+  EPISODE_TAB_LABEL_KEYS,
+  itemHasChapters,
+  itemSectionFlagsFromDto,
+} from '../episode/episodeTabs';
 import { useEpisodeSectionPanes } from '../episode/useEpisodeSectionPanes';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -124,16 +128,12 @@ const CLIP_SORT_LABEL_KEYS: Record<EpisodeClipSort, string> = {
 
 const EMPTY_SECTIONS: FullPlayerSection[] = [];
 
-type SectionListScrollResponder = {
-  scrollTo: (options: { animated: boolean; y: number }) => void;
-};
-
-type ScrollableSectionList = {
-  getScrollResponder: () => SectionListScrollResponder | null;
-};
-
-const scrollSectionListToTop = (list: ScrollableSectionList | null): void => {
-  list?.getScrollResponder()?.scrollTo({ animated: false, y: 0 });
+const scrollSectionListToTop = (list: SectionList<FullPlayerPaneRow> | null): void => {
+  const responder = list?.getScrollResponder?.();
+  if (responder === undefined) {
+    return;
+  }
+  responder.scrollTo({ animated: false, y: 0 });
 };
 
 const toSoundbiteRow = (
@@ -266,7 +266,24 @@ export function FullPlayerScreen({
 
   const currentItem = itemFromTarget(activeTarget);
   const currentItemIdText = currentItem?.id_text ?? null;
-  const previewFlags = currentItem === null ? null : itemSectionFlagsFromDto(currentItem);
+  const episodeForPanes = useMemo(() => {
+    if (currentItem === null) {
+      return null;
+    }
+    if (itemHasChapters(currentItem) || chapters.length === 0) {
+      return currentItem;
+    }
+    return {
+      ...currentItem,
+      item_chapters_feed: {
+        id: 0,
+        item_id: currentItem.id,
+        type: 'application/json',
+        url: '',
+      },
+    };
+  }, [chapters.length, currentItem]);
+  const previewFlags = episodeForPanes === null ? null : itemSectionFlagsFromDto(episodeForPanes);
   const channel = channelFromTarget(activeTarget);
   const hasSections = hasSectionsForTarget(activeTarget);
   const isPlaybackActive = activeTarget !== null && nowPlaying !== null;
@@ -306,7 +323,7 @@ export function FullPlayerScreen({
     tabErrorKey,
     transcriptText,
   } = useEpisodeSectionPanes({
-    episode: currentItem,
+    episode: episodeForPanes,
     itemIdText: currentItemIdText,
     offlineModeEnabled,
     previewFlags,

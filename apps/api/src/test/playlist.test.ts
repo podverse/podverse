@@ -65,8 +65,16 @@ const {
   clipGetByIdTextMock,
   getAccountMock,
 } = vi.hoisted(() => ({
-  playlistCreateMock: vi.fn(async () => ({ id: 1, playlist_id_text: PLAYLIST_ID_TEXT })),
-  playlistUpdateMock: vi.fn(async () => ({ id: 1, playlist_id_text: PLAYLIST_ID_TEXT })),
+  playlistCreateMock: vi.fn(async () => ({
+    id: 1,
+    id_text: PLAYLIST_ID_TEXT,
+    playlist_id_text: PLAYLIST_ID_TEXT,
+  })),
+  playlistUpdateMock: vi.fn(async () => ({
+    id: 1,
+    id_text: PLAYLIST_ID_TEXT,
+    playlist_id_text: PLAYLIST_ID_TEXT,
+  })),
   playlistDeleteMock: vi.fn(async () => {}),
   playlistGetByIdTextMock: vi.fn(
     async (
@@ -85,8 +93,9 @@ const {
   ),
   playlistGetOnePrivateMock: vi.fn(async () => ({
     id: 1,
+    id_text: PLAYLIST_ID_TEXT,
     title: 'Mine',
-    account: { id: TEST_USER_ID },
+    account: { id: TEST_USER_ID, id_text: TEST_USER_ACCOUNT_ID_TEXT },
   })),
   playlistGetOnePublicMock: vi.fn(async () => ({
     id: 1,
@@ -290,6 +299,8 @@ describe('playlist routes', () => {
         .send(validCreateBody);
 
       expect(res.status).toBe(201);
+      expect(res.body.account.id_text).toBe(TEST_USER_ACCOUNT_ID_TEXT);
+      expect(res.body.account.id).toBeUndefined();
       expect(playlistCreateMock).toHaveBeenCalledWith(
         TEST_USER_ID,
         expect.objectContaining({
@@ -341,6 +352,8 @@ describe('playlist routes', () => {
         .send(validUpdateBody);
 
       expect(res.status).toBe(200);
+      expect(res.body.account.id_text).toBe(TEST_USER_ACCOUNT_ID_TEXT);
+      expect(res.body.account.id).toBeUndefined();
       expect(playlistUpdateMock).toHaveBeenCalled();
     });
 

@@ -66,7 +66,7 @@ const TRACK_ARTWORK_SIZE = 96;
 
 const formatProgressTimeLabel = (
   progress: EpisodePlaybackProgress,
-  translate: (key: string, options?: { timeRemaining?: string }) => string,
+  translate: (key: string, options?: { count?: number; timeRemaining?: string }) => string,
   fallbackDuration: string | null
 ): string | null => {
   const kind = episodeProgressTimeKind(progress);
@@ -120,7 +120,12 @@ function TrackPlayChrome({
   const { stored } = useEpisodeStoredProgress(item);
 
   const activeMediaId =
-    activeTarget !== null && activeTarget.kind !== 'clip' ? activeTarget.item.id_text : null;
+    activeTarget !== null &&
+    activeTarget.kind !== 'clip' &&
+    'item' in activeTarget &&
+    activeTarget.item !== null
+      ? activeTarget.item.id_text
+      : null;
   const explicitSelectedParams =
     activeMediaId === item.id_text ? enclosureSelectedParams : undefined;
   const {
@@ -228,7 +233,7 @@ function TrackPlayChrome({
   );
 
   return (
-    <View style={styles.root} testID="track-detail-play-chrome">
+    <View accessible={false} style={styles.root} testID="track-detail-playback-chrome">
       <CoverImage
         accessibilityLabel={trackTitle}
         fallbackLabel={trackTitle}

@@ -2,16 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const isOfflineModeEnabled = vi.fn(() => false);
 const getInfoAsync = vi.fn();
-const resolveItemEnclosureUrl = vi.fn(
-  async (..._args: unknown[]) => 'https://cdn.example.com/ep.mp3'
-);
+const resolveItemEnclosureUrl = vi.fn(() => 'https://cdn.example.com/ep.mp3');
 const buildItemLabeledEnclosures = vi.fn(() => []);
 const downloadStoreGet = vi.fn();
 const hydrate = vi.fn(async (..._args: unknown[]) => undefined);
 const markFileMissing = vi.fn(async (..._args: unknown[]) => undefined);
 
 vi.mock('expo-file-system', () => ({
-  getInfoAsync: (...args: unknown[]) => getInfoAsync(...args),
+  getInfoAsync: (uri: string) => getInfoAsync(uri),
 }));
 
 vi.mock('../../prefs/offlineMode', () => ({
@@ -19,20 +17,20 @@ vi.mock('../../prefs/offlineMode', () => ({
 }));
 
 vi.mock('./resolveEnclosureUrl', () => ({
-  buildItemLabeledEnclosures: (...args: unknown[]) => buildItemLabeledEnclosures(...args),
-  resolveItemEnclosureUrl: (...args: unknown[]) => resolveItemEnclosureUrl(...args),
+  buildItemLabeledEnclosures: () => buildItemLabeledEnclosures(),
+  resolveItemEnclosureUrl: () => resolveItemEnclosureUrl(),
 }));
 
 vi.mock('../../downloads/downloadManager', () => ({
   downloadManager: {
-    hydrate: (...args: unknown[]) => hydrate(...args),
-    markFileMissing: (...args: unknown[]) => markFileMissing(...args),
+    hydrate: () => hydrate(),
+    markFileMissing: () => markFileMissing(),
   },
 }));
 
 vi.mock('../../downloads/downloadStore', () => ({
   downloadStore: {
-    get: (...args: unknown[]) => downloadStoreGet(...args),
+    get: (itemIdText: string) => downloadStoreGet(itemIdText),
   },
 }));
 

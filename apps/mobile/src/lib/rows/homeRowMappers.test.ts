@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { DTOPlaylistResource, DTOQueueResource } from '@podverse/helpers/dto';
 
 import { safeJsonParse } from '../../data/db/serialization';
-import { playlistResourceToHomeRow, queueResourceToHomeRow } from './homeRowMappers';
+import { clipToHomeRow, playlistResourceToHomeRow, queueResourceToHomeRow } from './homeRowMappers';
 
 const toQueueResource = (value: unknown): DTOQueueResource => {
   const parsed = safeJsonParse<DTOQueueResource>(JSON.stringify(value));
@@ -200,6 +200,32 @@ describe('queueResourceToHomeRow', () => {
     );
 
     expect(row).toBeNull();
+  });
+});
+
+describe('clipToHomeRow', () => {
+  it('maps a clip with a source item', () => {
+    const row = clipToHomeRow({
+      id_text: 'clip-1',
+      item: buildItem({ id_text: 'clip-item-1', title: 'Clip source item' }),
+      title: 'Clip title',
+    });
+
+    expect(row.id).toBe('clip-1');
+    expect(row.title).toBe('Clip title');
+    expect(row.subtitle).toBe('Test channel');
+  });
+
+  it('maps a clip whose source item is missing', () => {
+    const row = clipToHomeRow({
+      id_text: 'clip-orphan',
+      title: 'Orphan clip',
+    });
+
+    expect(row.id).toBe('clip-orphan');
+    expect(row.title).toBe('Orphan clip');
+    expect(row.description).toBeNull();
+    expect(row.imageUrl).toBeNull();
   });
 });
 

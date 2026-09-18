@@ -94,6 +94,7 @@ export default defineConfig({
       'src/lib/cachedValue.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
       'src/lib/playback/lastPlaybackStorage.test.ts',
+      'src/lib/rows/homeRowMappers.test.ts',
       'src/lib/share/shareSheetPassthrough.test.ts',
       'src/lib/share/shareUrl.test.ts',
       'src/lib/text/marqueeScroll.test.ts',

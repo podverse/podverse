@@ -3,7 +3,6 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { ORMContext } from '@podverse/orm';
-import { getDefaultLocale } from '@podverse/orm';
 
 import { MANAGED_COPY_UPDATED_AT } from '../lib/managedCopy/managedCopyContent.js';
 import { getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
@@ -79,7 +78,8 @@ describe('GET /managed-copy/:slug', () => {
       .set('Accept-Language', 'de-DE,de;q=0.9');
 
     expect(res.status).toBe(200);
-    expect(res.body.locale).toBe(getDefaultLocale());
+    expect(res.body.locale).toBe('en-US');
+    expect(res.body.markdown).toContain('Why do some clips start at the wrong time?');
   });
 
   it('interpolates {brand_name} tokens in served markdown', async () => {

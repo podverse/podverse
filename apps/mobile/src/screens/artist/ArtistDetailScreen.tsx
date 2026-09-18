@@ -103,15 +103,6 @@ const SECTION_LABEL_KEYS: Record<ArtistTab, string> = {
   tracks: 'media.music.tracks',
 };
 
-const toTrackRows = (items: DTOItem[], artistTitle: string | null): HomeFeedRowData[] => {
-  return items
-    .map((item) => ({
-      ...mapItemToHomeFeedRow(item),
-      subtitle: artistTitle,
-    }))
-    .filter((row) => row.id.length > 0);
-};
-
 const toPodrollEntries = (response: RemoteItemsResponse): PodrollEntry[] => {
   const rows: PodrollEntry[] = [];
   for (const channel of response.channelsAdded) {
@@ -415,7 +406,11 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     if (availableSections.includes(section)) {
       return;
     }
-    setSection(availableSections[0]);
+    const nextSection = availableSections[0];
+    if (nextSection === undefined) {
+      return;
+    }
+    setSection(nextSection);
   }, [availableSections, section]);
 
   const sectionChips = useMemo<SectionChipItem<ArtistTab>[]>(
@@ -598,12 +593,19 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   );
 
   const tracksRows = useMemo<ArtistTracksRow[]>(() => {
-    const addedRows = toTrackRows(tracksAdded, titleRef.current).map((row, index) => ({
-      item: tracksAdded[index],
-      key: `added-${row.id}`,
-      kind: 'added' as const,
-      row,
-    }));
+    const addedRows: ArtistTracksRow[] = [];
+    for (const item of tracksAdded) {
+      const row = { ...mapItemToHomeFeedRow(item), subtitle: titleRef.current };
+      if (row.id.length === 0) {
+        continue;
+      }
+      addedRows.push({
+        item,
+        key: `added-${row.id}`,
+        kind: 'added',
+        row,
+      });
+    }
 
     const unaddedRows = tracksUnadded.map((row) => ({
       key: `unadded-${row.guid}`,
@@ -701,7 +703,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
                 void openExternalUrl(link);
               };
             })()}
-            subtitle={item.row.feedTitle ?? item.row.authorName ?? item.row.author}
+            subtitle={item.row.feedTitle ?? item.row.authorName ?? item.row.author ?? undefined}
             testID={`artist-track-unadded-row-${index}`}
             title={item.row.title ?? item.row.guid}
           />
@@ -763,7 +765,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
                   })
                 );
               }}
-              subtitle={item.row.channel_about?.author ?? null}
+              subtitle={item.row.channel_about?.author ?? undefined}
               testID={`artist-album-row-${index}`}
               title={item.row.title ?? item.row.id_text}
             />
@@ -779,7 +781,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
                   }
                 : undefined
             }
-            subtitle={item.row.author}
+            subtitle={item.row.author ?? undefined}
             testID={`artist-album-unadded-row-${index}`}
             title={item.row.title}
           />

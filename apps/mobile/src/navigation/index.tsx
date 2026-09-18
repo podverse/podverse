@@ -1347,7 +1347,7 @@ function TabScaffold({
   // The tablet tab bar is a left rail, so there is no bottom column for the bar to sit above. A
   // full-width strip under the whole navigator is the equivalent position, and it carries the
   // home-indicator inset itself because nothing sits beneath it here. Order matches phone:
-  // sync → Offline Mode → current clip/chapter → mini player.
+  // E2E playback markers → sync → Offline Mode → current clip/chapter → mini player.
   return (
     <View style={tabScaffoldStyles.tabletRoot}>
       {navigator}
@@ -1360,6 +1360,7 @@ function TabScaffold({
           },
         ]}
       >
+        <PlaybackE2eStatus />
         <GlobalActivityBar />
         <OfflineModeBanner />
         <NowPlayingSegmentBar />

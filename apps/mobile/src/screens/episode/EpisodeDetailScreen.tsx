@@ -430,8 +430,11 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   }, []);
 
   const handleOpenPodcast = useCallback(() => {
-    const podcastId = channel?.id_text;
-    if (podcastId === undefined || podcastId.length === 0) {
+    if (channel === null) {
+      return;
+    }
+    const podcastId = channel.id_text;
+    if (podcastId.length === 0) {
       return;
     }
     navigation.navigate(
@@ -466,7 +469,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   }, [activeTab, chapterRows, clipRows, isTabLoading, soundbiteRows]);
 
   const podcastTitle = channel?.title ?? channelTitle ?? t('media.podcast.podcast');
-  const canOpenPodcast = channel?.id_text !== undefined && channel.id_text.length > 0;
+  const canOpenPodcast = channel !== null && channel.id_text.length > 0;
 
   const listHeader =
     downloadableEpisode !== null && episodeRow !== null ? (

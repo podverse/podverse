@@ -1,14 +1,25 @@
 import { APP_ROUTES, buildAppRoutePath } from '@podverse/helpers';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
-export type ShareResource = 'clip' | 'episode' | 'playlist' | 'podcast' | 'profile';
+export type ShareResource =
+  | 'album'
+  | 'artist'
+  | 'clip'
+  | 'episode'
+  | 'playlist'
+  | 'podcast'
+  | 'profile'
+  | 'track';
 
 const SHARE_RESOURCE_ROUTES: Record<ShareResource, (typeof APP_ROUTES)[keyof typeof APP_ROUTES]> = {
+  album: APP_ROUTES.ALBUM,
+  artist: APP_ROUTES.ARTIST,
   clip: APP_ROUTES.CLIP,
   episode: APP_ROUTES.EPISODE,
   playlist: APP_ROUTES.PLAYLIST,
   podcast: APP_ROUTES.PODCAST,
   profile: APP_ROUTES.PROFILE,
+  track: APP_ROUTES.TRACK,
 };
 
 const trimTrailingSlashes = (value: string): string => {

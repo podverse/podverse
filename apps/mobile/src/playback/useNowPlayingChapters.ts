@@ -113,10 +113,7 @@ export function useNowPlayingChapters(): { chapters: DTOItemChapter[] } {
   const cache = useSyncExternalStore(subscribeChapters, getChaptersSnapshot, getChaptersSnapshot);
 
   const item = itemFromTarget(activeTarget);
-  const chaptersItemIdText =
-    item !== null && item.item_chapters_feed !== null && item.item_chapters_feed !== undefined
-      ? item.id_text
-      : null;
+  const chaptersItemIdText = item !== null ? item.id_text : null;
 
   useEffect(() => {
     if (chaptersItemIdText === null) {

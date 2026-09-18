@@ -27,8 +27,7 @@ name: Make clip
 
 - tapOn:
     id: full-player-create-clip
-- assertVisible:
-    id: make-clip-screen
+# First create opens the how-to as a covering modal, so the form id is not visible until it closes.
 - assertVisible:
     id: make-clip-how-to-modal
 - extendedWaitUntil:
@@ -41,6 +40,8 @@ name: Make clip
     id: make-clip-how-to-close
 - assertNotVisible:
     id: make-clip-how-to-modal
+- assertVisible:
+    id: make-clip-screen
 
 - tapOn:
     id: make-clip-start-time

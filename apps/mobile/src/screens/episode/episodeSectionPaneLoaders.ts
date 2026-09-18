@@ -1,7 +1,7 @@
 import type { DTOClip, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers/dto';
 
 import { emptyIfNotFound } from '../../lib/apiErrorStatus';
-import { sectionResponseHasMore } from '../podcast/sections/usePodcastSectionRows';
+import { sectionResponseHasMore } from '../podcast/sections/sectionResponseHasMore';
 
 const EMPTY_CLIP_PAGE = {
   data: [] as DTOClip[],

@@ -58,8 +58,9 @@ const shareUrlFromResource = (resource: DTOPlaylistResource): string | null => {
   if (resource.item?.id_text) {
     return buildPublicShareUrl('episode', resource.item.id_text);
   }
-  if (resource.item_soundbite?.item?.id_text) {
-    return buildPublicShareUrl('episode', resource.item_soundbite.item.id_text);
+  const soundbiteItemId = resource.item_soundbite?.item?.id_text;
+  if (soundbiteItemId !== undefined && soundbiteItemId.length > 0) {
+    return buildPublicShareUrl('episode', soundbiteItemId);
   }
   return null;
 };
@@ -165,18 +166,20 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         }
       );
       const pageRows = response.data;
-      const previousCount = params.append ? resources.length : 0;
-      const nextRows = params.append ? [...resources, ...pageRows] : pageRows;
-      const byId = new Map(nextRows.map((resource) => [resource.id, resource]));
-      const merged = [...byId.values()];
-      setResources(merged);
+      let mergedLength = 0;
+      setResources((current) => {
+        const nextRows = params.append ? [...current, ...pageRows] : pageRows;
+        const byId = new Map(nextRows.map((resource) => [resource.id, resource]));
+        const merged = [...byId.values()];
+        mergedLength = merged.length;
+        return merged;
+      });
 
-      const count = response.meta?.count ?? merged.length;
-      const loadedCount = params.append ? previousCount + pageRows.length : pageRows.length;
-      setHasMorePages(loadedCount < count);
+      const count = response.meta?.count ?? mergedLength;
+      setHasMorePages(mergedLength < count);
       setNextPage(params.page + 1);
     },
-    [authArgs, playlistId, resources]
+    [authArgs, playlistId]
   );
 
   const loadPlaylist = useCallback(
@@ -367,6 +370,47 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
 
   const applyPlaylistReorderMutation = useCallback(
     async (mutation: PlaylistReorderMutation): Promise<void> => {
+      if (mutation.type === 'addBetween') {
+        if (mutation.target.kind === 'clip') {
+          await playlistRepository.addClipBetween(
+            authArgs,
+            playlistId,
+            mutation.target.idText,
+            mutation.position1,
+            mutation.position2
+          );
+          return;
+        }
+        if (mutation.target.kind === 'soundbite') {
+          await playlistRepository.addSoundbiteBetween(
+            authArgs,
+            playlistId,
+            mutation.target.idText,
+            mutation.position1,
+            mutation.position2
+          );
+          return;
+        }
+        if (mutation.target.kind === 'add_by_rss') {
+          await playlistRepository.addAddByRssBetween(
+            authArgs,
+            playlistId,
+            mutation.target.resourceData,
+            mutation.position1,
+            mutation.position2
+          );
+          return;
+        }
+        await playlistRepository.addItemBetween(
+          authArgs,
+          playlistId,
+          mutation.target.idText,
+          mutation.position1,
+          mutation.position2
+        );
+        return;
+      }
+
       if (mutation.type === 'addFirst') {
         if (mutation.target.kind === 'clip') {
           await playlistRepository.addClipFirst(authArgs, playlistId, mutation.target.idText);
@@ -388,64 +432,23 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         return;
       }
 
-      if (mutation.type === 'addLast') {
-        if (mutation.target.kind === 'clip') {
-          await playlistRepository.addClipLast(authArgs, playlistId, mutation.target.idText);
-          return;
-        }
-        if (mutation.target.kind === 'soundbite') {
-          await playlistRepository.addSoundbiteLast(authArgs, playlistId, mutation.target.idText);
-          return;
-        }
-        if (mutation.target.kind === 'add_by_rss') {
-          await playlistRepository.addAddByRssLast(
-            authArgs,
-            playlistId,
-            mutation.target.resourceData
-          );
-          return;
-        }
-        await playlistRepository.addItemLast(authArgs, playlistId, mutation.target.idText);
-        return;
-      }
-
       if (mutation.target.kind === 'clip') {
-        await playlistRepository.addClipBetween(
-          authArgs,
-          playlistId,
-          mutation.target.idText,
-          mutation.position1,
-          mutation.position2
-        );
+        await playlistRepository.addClipLast(authArgs, playlistId, mutation.target.idText);
         return;
       }
       if (mutation.target.kind === 'soundbite') {
-        await playlistRepository.addSoundbiteBetween(
-          authArgs,
-          playlistId,
-          mutation.target.idText,
-          mutation.position1,
-          mutation.position2
-        );
+        await playlistRepository.addSoundbiteLast(authArgs, playlistId, mutation.target.idText);
         return;
       }
       if (mutation.target.kind === 'add_by_rss') {
-        await playlistRepository.addAddByRssBetween(
+        await playlistRepository.addAddByRssLast(
           authArgs,
           playlistId,
-          mutation.target.resourceData,
-          mutation.position1,
-          mutation.position2
+          mutation.target.resourceData
         );
         return;
       }
-      await playlistRepository.addItemBetween(
-        authArgs,
-        playlistId,
-        mutation.target.idText,
-        mutation.position1,
-        mutation.position2
-      );
+      await playlistRepository.addItemLast(authArgs, playlistId, mutation.target.idText);
     },
     [authArgs, playlistId]
   );
@@ -585,16 +588,18 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         void playPlaylistRowById(resource.item.id_text, 'item', playlistId);
         return;
       }
+      const soundbite = resource.item_soundbite;
+      const soundbiteItem = soundbite?.item;
+      const soundbiteChannel = soundbiteItem?.channel;
       if (
-        resource.item_soundbite !== undefined &&
-        resource.item_soundbite.item !== undefined &&
-        resource.item_soundbite.item.channel !== undefined
+        soundbite !== undefined &&
+        soundbite !== null &&
+        soundbiteItem !== undefined &&
+        soundbiteItem !== null &&
+        soundbiteChannel !== undefined &&
+        soundbiteChannel !== null
       ) {
-        void playSoundbite(
-          resource.item_soundbite,
-          resource.item_soundbite.item,
-          resource.item_soundbite.item.channel
-        );
+        void playSoundbite(soundbite, soundbiteItem, soundbiteChannel);
         return;
       }
       runPlayAction(row, row.mediaType);
@@ -807,15 +812,6 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
       </View>
     ) : null;
 
-  const showEmpty =
-    !isLoading &&
-    !isRefreshing &&
-    !showAuthRequired &&
-    !showOfflineUnavailable &&
-    playlist !== null &&
-    !isReordering &&
-    resourceRows.length === 0;
-
   if (showOfflineUnavailable) {
     return (
       <View style={styles.container} testID="library-playlist-detail-screen">
@@ -831,7 +827,6 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     <View style={styles.container} testID="library-playlist-detail-screen">
       <AuthAwareLoadState
         emptyTestID="library-playlist-detail-auth-required"
-        emptyMessageKey="misc.info"
         errorKey={errorKey}
         errorTestID="library-playlist-detail-error"
         isLoading={isLoading}
@@ -840,9 +835,9 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
           void loadPlaylist();
         }}
         showAuthRequired={showAuthRequired}
-        showEmpty={showEmpty}
       >
         <FillList
+          ListEmptyComponent={null}
           ListFooterComponent={listFooter}
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.content}

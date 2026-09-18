@@ -35,7 +35,7 @@ export function PopularityTrackingAgreementPanel({
   return (
     <div style={{ position: 'relative' }}>
       {markdown !== null ? <CopyMarkdown markdown={markdown} /> : null}
-      {showSpinnerOverlay ? <WebLoadingSpinnerOverlay /> : null}
+      <WebLoadingSpinnerOverlay isLoading={showSpinnerOverlay} />
       <PopularityTrackingDecisionActions
         disabled={!isCopyVisible}
         onDecided={onDecided}

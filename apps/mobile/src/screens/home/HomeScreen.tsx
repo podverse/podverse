@@ -65,7 +65,6 @@ import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import type { BrowseMediaType } from '../browse/browseTypes';
 import { HOME_MEDIA_TYPE_ORDER, MEDIA_TYPE_LABEL_KEYS } from '../browse/browseTypes';
-import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import {
   fetchDownloadedHomeFeedRows,
@@ -133,10 +132,10 @@ export function HomeScreen() {
 
   // Only episodes/tracks (item) and clips (clip) are playlist resources; null means the row gets no
   // add-to-playlist action.
-  const addToPlaylistTarget = useMemo<Pick<
-    Extract<AddToPlaylistTarget, { kind: 'clip' | 'item' }>,
-    'kind' | 'medium'
-  > | null>(() => {
+  const addToPlaylistTarget = useMemo<{
+    kind: 'clip' | 'item';
+    medium: 'av' | 'music';
+  } | null>(() => {
     if (selectedMediaType === 'clips') {
       return { kind: 'clip', medium: 'av' };
     }

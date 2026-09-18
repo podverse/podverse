@@ -1,6 +1,5 @@
 import type {
   DTOChannel,
-  DTOClip,
   DTOItemImage,
   DTOItemSoundbite,
   DTOPlaylistResource,
@@ -65,15 +64,35 @@ export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
   };
 }
 
-export function clipToHomeRow(clip: DTOClip): HomeFeedRowData {
+/** Clip list rows can omit `item` when the API only returns the clip shell. */
+export type ClipHomeRowSource = {
+  id_text: string;
+  item?: ItemHomeRowSource | null;
+  title?: string | null;
+};
+
+export function clipToHomeRow(clip: ClipHomeRowSource): HomeFeedRowData {
+  const item = clip.item;
+  if (item === null || item === undefined) {
+    return {
+      description: null,
+      duration: null,
+      id: clip.id_text,
+      imageUrl: null,
+      subtitle: null,
+      title: clip.title ?? clip.id_text,
+      updatedAt: null,
+    };
+  }
+
   return {
-    description: itemDescriptionPlain(clip.item),
-    duration: itemDuration(clip.item),
+    description: itemDescriptionPlain(item),
+    duration: itemDuration(item),
     id: clip.id_text,
-    imageUrl: getItemPrimaryImageUrl(clip.item),
-    subtitle: clip.item.channel?.title ?? null,
-    title: clip.title ?? clip.item.title ?? clip.id_text,
-    updatedAt: clip.item.pub_date ?? null,
+    imageUrl: getItemPrimaryImageUrl(item),
+    subtitle: item.channel?.title ?? null,
+    title: clip.title ?? item.title ?? clip.id_text,
+    updatedAt: item.pub_date ?? null,
   };
 }
 
@@ -114,15 +133,11 @@ export function playlistResourceToHomeRow(
   options?: PlaylistResourceHomeRowOptions
 ): PlaylistResourceHomeRow | null {
   if (resource.clip) {
+    const clipRow = clipToHomeRow(resource.clip);
     return {
-      description: itemDescriptionPlain(resource.clip.item),
-      duration: itemDuration(resource.clip.item),
+      ...clipRow,
       id: `clip-${resource.clip.id_text}`,
-      imageUrl: getItemPrimaryImageUrl(resource.clip.item),
       mediaType: 'clips',
-      subtitle: resource.clip.item.channel?.title ?? null,
-      title: resource.clip.title ?? resource.clip.item.title ?? resource.clip.id_text,
-      updatedAt: resource.clip.item.pub_date ?? null,
     };
   }
 

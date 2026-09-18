@@ -61,7 +61,7 @@ export function FaqPageClient() {
           </Button>
         </div>
       ) : null}
-      {isLoading ? <WebLoadingSpinnerOverlay /> : null}
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </section>
   );
 }

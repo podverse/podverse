@@ -30,7 +30,6 @@ import { HomeFeedGridCell } from '../home/HomeFeedGridCell';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { MediaTypeSelector } from '../home/MediaTypeSelector';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
-import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import type { BrowseCategoryOption } from './browseCategories';
 import {
@@ -120,10 +119,10 @@ export function BrowseScreen() {
       })
     : 0;
 
-  const addToPlaylistTarget = useMemo<Pick<
-    Extract<AddToPlaylistTarget, { kind: 'clip' | 'item' }>,
-    'kind' | 'medium'
-  > | null>(() => {
+  const addToPlaylistTarget = useMemo<{
+    kind: 'clip' | 'item';
+    medium: 'av' | 'music';
+  } | null>(() => {
     if (selectedMediaType === 'clips') {
       return { kind: 'clip', medium: 'av' };
     }

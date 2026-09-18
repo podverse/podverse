@@ -154,7 +154,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       setErrorKey(null);
 
       try {
-        await loadActiveQueueResources(getQueueMediumIdFromType(selectedMedium));
+        await loadActiveQueueResources(getQueueMediumIdFromType(selectedMedium) ?? undefined);
       } catch {
         setErrorKey('errors.generic');
       } finally {
@@ -184,6 +184,9 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       }
 
       const resource = current[index];
+      if (resource === undefined) {
+        return null;
+      }
       const next = [...current.slice(0, index), ...current.slice(index + 1)];
       queueResourcesRef.current = next;
       setQueueResources(next);
@@ -251,7 +254,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   );
 
   const reconcileQueue = useCallback(async () => {
-    await loadActiveQueueResources(getQueueMediumIdFromType(selectedMedium));
+    await loadActiveQueueResources(getQueueMediumIdFromType(selectedMedium) ?? undefined);
   }, [loadActiveQueueResources, selectedMedium]);
 
   const updateQueueResourceListPosition = useCallback(
@@ -272,6 +275,43 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       }
 
       const context = buildAuthContext();
+      if (mutation.type === 'addBetween') {
+        if (mutation.target.kind === 'clip') {
+          return queueRepository.addClipBetween(
+            context,
+            activeQueue.id_text,
+            mutation.target.idText,
+            mutation.position1,
+            mutation.position2
+          );
+        }
+        if (mutation.target.kind === 'soundbite') {
+          return queueRepository.addSoundbiteBetween(
+            context,
+            activeQueue.id_text,
+            mutation.target.idText,
+            mutation.position1,
+            mutation.position2
+          );
+        }
+        if (mutation.target.kind === 'add_by_rss') {
+          return queueRepository.addAddByRssBetween(
+            context,
+            activeQueue.id_text,
+            mutation.target.resourceData,
+            mutation.position1,
+            mutation.position2
+          );
+        }
+        return queueRepository.addItemBetween(
+          context,
+          activeQueue.id_text,
+          mutation.target.idText,
+          mutation.position1,
+          mutation.position2
+        );
+      }
+
       if (mutation.type === 'addNext') {
         if (mutation.target.kind === 'clip') {
           return queueRepository.addClipNext(context, activeQueue.id_text, mutation.target.idText);
@@ -293,61 +333,24 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         return queueRepository.addItemNext(context, activeQueue.id_text, mutation.target.idText);
       }
 
-      if (mutation.type === 'addLast') {
-        if (mutation.target.kind === 'clip') {
-          return queueRepository.addClipLast(context, activeQueue.id_text, mutation.target.idText);
-        }
-        if (mutation.target.kind === 'soundbite') {
-          return queueRepository.addSoundbiteLast(
-            context,
-            activeQueue.id_text,
-            mutation.target.idText
-          );
-        }
-        if (mutation.target.kind === 'add_by_rss') {
-          return queueRepository.addAddByRssLast(
-            context,
-            activeQueue.id_text,
-            mutation.target.resourceData
-          );
-        }
-        return queueRepository.addItemLast(context, activeQueue.id_text, mutation.target.idText);
-      }
-
       if (mutation.target.kind === 'clip') {
-        return queueRepository.addClipBetween(
-          context,
-          activeQueue.id_text,
-          mutation.target.idText,
-          mutation.position1,
-          mutation.position2
-        );
+        return queueRepository.addClipLast(context, activeQueue.id_text, mutation.target.idText);
       }
       if (mutation.target.kind === 'soundbite') {
-        return queueRepository.addSoundbiteBetween(
+        return queueRepository.addSoundbiteLast(
           context,
           activeQueue.id_text,
-          mutation.target.idText,
-          mutation.position1,
-          mutation.position2
+          mutation.target.idText
         );
       }
       if (mutation.target.kind === 'add_by_rss') {
-        return queueRepository.addAddByRssBetween(
+        return queueRepository.addAddByRssLast(
           context,
           activeQueue.id_text,
-          mutation.target.resourceData,
-          mutation.position1,
-          mutation.position2
+          mutation.target.resourceData
         );
       }
-      return queueRepository.addItemBetween(
-        context,
-        activeQueue.id_text,
-        mutation.target.idText,
-        mutation.position1,
-        mutation.position2
-      );
+      return queueRepository.addItemLast(context, activeQueue.id_text, mutation.target.idText);
     },
     [activeQueue, buildAuthContext]
   );

@@ -2092,11 +2092,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     async (target: PlaybackTarget): Promise<DTOItemChapter[]> => {
       const item = itemFromTarget(target);
       const fallbackChapter = target.kind === 'chapter' ? target.chapter : null;
-      if (
-        item === null ||
-        item.item_chapters_feed === null ||
-        item.item_chapters_feed === undefined
-      ) {
+      if (item === null) {
         return fallbackChapter === null ? [] : [fallbackChapter];
       }
       const chapters = await resolveNowPlayingChapters(buildContext(), item.id_text);
