@@ -444,7 +444,7 @@
     "source": {
       "source": "Source",
       "source_with_format": "Source : {format}",
-      "select_source": "Sélectionner la source média",
+      "select_source": "Sélectionner la source de médias",
       "video": "Vidéo",
       "video_with_resolution": "Vidéo {resolution}p",
       "video_with_ext": "Vidéo {ext}",
@@ -656,6 +656,8 @@
     "unknown_date": "Date inconnue",
     "redirecting": "Redirection...",
     "terms": "Conditions",
+    "faq": "FAQ",
+    "how_to": "Comment faire",
     "mobile": "Mobile",
     "donate": "Faire un don",
     "open_source": "Open source",
@@ -725,9 +727,11 @@
     "login_for_subscriptions": "Connectez-vous pour utiliser cette fonctionnalité.",
     "login_to_create_playlists": "Connectez-vous pour utiliser cette fonctionnalité.",
     "no_playlists_created": "Vous n'avez pas encore de playlists. Créez-en une pour commencer.",
+    "no_followed_playlists": "Vous ne suivez encore aucune playlist.",
     "login_to_create_clips": "Connectez-vous pour utiliser cette fonctionnalité.",
     "login_for_queues": "Connectez-vous pour utiliser cette fonctionnalité.",
     "login_for_history": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_for_playlists": "Connectez-vous pour utiliser cette fonctionnalité.",
     "login_to_add_feeds": "Connectez-vous pour utiliser cette fonctionnalité.",
     "login_to_refresh_feeds": "Connectez-vous pour utiliser cette fonctionnalité.",
     "login_to_subscribe": "Connectez-vous pour utiliser cette fonctionnalité.",
@@ -1367,6 +1371,10 @@
       "terms": {
         "title": "Conditions",
         "description": "Lisez les conditions de service de {brand_name}."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Lisez les questions frequemment posees sur {brand_name}."
       },
       "donate": {
         "title": "Faire un don",

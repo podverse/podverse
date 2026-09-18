@@ -201,7 +201,6 @@ Incremental installs often leave nested paths stale.
 - [ ] If allowlisting: documented rationale in `docs/development/security/NPM-AUDIT-ALLOWLIST.md`
 - [ ] If allowlisting: passed the same advisory IDs to all publish scripts **and**
       `publish-staging.yml` that call `check-audit-gate.sh`
-- [ ] LLM history updated with investigation results
 
 ## See Also
 

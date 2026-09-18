@@ -1,9 +1,5 @@
 import type { DTOChannel } from '@podverse/helpers';
-import {
-  DIRECTORY_ADD_POLL_TIMEOUT_MS,
-  isAlbumMediumId,
-  isArtistMediumId,
-} from '@podverse/helpers';
+import { DIRECTORY_ADD_POLL_TIMEOUT_MS } from '@podverse/helpers';
 
 export const PI_FEED_ADD_POLL_INTERVAL_MS = 2000;
 
@@ -21,25 +17,6 @@ export const isParsedReadyChannel = <T extends ChannelWithReadyFields>(
 };
 
 export type PiFeedAddOutcome = 'ready' | 'timeout' | 'cancelled';
-
-export type ChannelDetailRouteKind = 'podcast' | 'album' | 'artist';
-
-/**
- * Maps channel medium to detail kind (web parity with
- * getChannelRouteKind / redirectToChannelPageByMedium). Used on Search (and Home)
- * stacks that register the shared channel-browse screens.
- */
-export const getChannelDetailRouteKind = (
-  mediumId: number | null | undefined
-): ChannelDetailRouteKind => {
-  if (isArtistMediumId(mediumId)) {
-    return 'artist';
-  }
-  if (isAlbumMediumId(mediumId)) {
-    return 'album';
-  }
-  return 'podcast';
-};
 
 /**
  * Pure poll loop helper used by PodcastIndexFeedPreviewScreen.

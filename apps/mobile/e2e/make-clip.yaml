@@ -1,0 +1,169 @@
+appId: com.podverse.app.next
+name: Make clip
+---
+# Covers once-only how-to, capture, preview, create, edit, FAQ, and delete.
+# Requires flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- openLink: podverse-next://podcast/e2ePodChnl001/episode/e2ePodChap0001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+
+- tapOn:
+    id: full-player-create-clip
+- assertVisible:
+    id: make-clip-screen
+- assertVisible:
+    id: make-clip-how-to-modal
+- extendedWaitUntil:
+    notVisible:
+      id: make-clip-how-to-modal-loading
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    text: "Making a clip"
+- tapOn:
+    id: make-clip-how-to-close
+- assertNotVisible:
+    id: make-clip-how-to-modal
+
+- tapOn:
+    id: make-clip-start-time
+- assertVisible:
+    id: make-clip-start-time-value
+- tapOn:
+    id: make-clip-end-time
+- assertVisible:
+    id: make-clip-end-time-value
+- tapOn:
+    id: make-clip-clear-end-time
+- assertVisible:
+    id: make-clip-end-time-hint
+- tapOn:
+    id: make-clip-end-time
+- assertVisible:
+    id: make-clip-end-time-value
+
+- tapOn:
+    id: make-clip-start-preview
+- tapOn:
+    id: make-clip-end-preview
+
+- tapOn:
+    id: make-clip-title
+- inputText: "E2E make clip"
+- tapOn:
+    id: make-clip-visibility-public
+- takeScreenshot: make-clip-form-filled
+
+- tapOn:
+    id: make-clip-save
+- extendedWaitUntil:
+    visible:
+      id: make-clip-created-dialog
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: make-clip-created-share
+- takeScreenshot: make-clip-created
+- tapOn:
+    id: make-clip-created-close
+- assertVisible:
+    id: full-player-screen
+
+- tapOn:
+    id: full-player-create-clip
+- assertVisible:
+    id: make-clip-screen
+- assertNotVisible:
+    id: make-clip-how-to-modal
+
+- tapOn:
+    id: make-clip-faq
+- assertVisible:
+    id: make-clip-faq-modal
+- extendedWaitUntil:
+    notVisible:
+      id: make-clip-faq-modal-loading
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    text: "Why do some clips start at the wrong time?"
+- tapOn:
+    id: make-clip-faq-close
+- assertNotVisible:
+    id: make-clip-faq-modal
+
+- assertVisible:
+    id: make-clip-title
+    text: "E2E make clip"
+
+- tapOn:
+    id: make-clip-save
+- extendedWaitUntil:
+    visible:
+      id: make-clip-created-dialog
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: make-clip-created-close
+- assertVisible:
+    id: full-player-screen
+
+- tapOn:
+    id: full-player-close
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-my-clips
+- assertVisible:
+    id: library-my-clips-screen
+- tapOn:
+    id: "home-row-more-.*"
+- tapOn:
+    text: "Edit clip"
+- assertVisible:
+    id: make-clip-screen
+
+- tapOn:
+    id: make-clip-title
+- inputText: " updated"
+- tapOn:
+    id: make-clip-save
+- assertVisible:
+    id: library-my-clips-screen
+
+- tapOn:
+    text: "E2E make clip updated"
+- assertVisible:
+    id: clip-detail-screen
+- tapOn:
+    id: clip-detail-delete
+- assertVisible:
+    id: clip-detail-delete-dialog
+- tapOn:
+    id: clip-detail-delete-confirm
+- extendedWaitUntil:
+    visible:
+      id: library-my-clips-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: make-clip-delete-complete

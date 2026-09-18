@@ -2,6 +2,7 @@ import type { SortPrefScope } from '@podverse/helpers';
 import { pickSortPrefToken } from '@podverse/helpers';
 import type { QueryParamsChannelSort, QueryParamsStatsRange } from '@podverse/helpers-requests';
 import {
+  QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES,
   QUERY_PARAMS_CHANNEL_SORT_VALUES,
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
@@ -78,13 +79,32 @@ export type AddByRssEpisodeSort = (typeof ADD_BY_RSS_EPISODE_SORT_OPTIONS)[numbe
 
 export const DEFAULT_ADD_BY_RSS_EPISODE_SORT: AddByRssEpisodeSort = 'recent';
 
-/** An album's track order: as the artist sequenced it, or reversed. */
-export const ALBUM_TRACK_SORT_OPTIONS = ['forward', 'backward'] as const;
+export const ALBUM_TABS = ['tracks', 'about', 'podroll', 'settings'] as const;
+
+export type AlbumTab = (typeof ALBUM_TABS)[number];
+
+export const DEFAULT_ALBUM_TAB: AlbumTab = 'tracks';
+
+/** An album's track order: as authored, reversed, or ranked by popularity. */
+export const ALBUM_TRACK_SORT_OPTIONS = QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES;
 
 export type AlbumTrackSort = (typeof ALBUM_TRACK_SORT_OPTIONS)[number];
 
 /** Album order is authored, so the sequence the artist chose is the one to open on. */
 export const DEFAULT_ALBUM_TRACK_SORT: AlbumTrackSort = 'forward';
+
+/** The popularity window `top` ranks album tracks within. */
+export const ALBUM_DETAIL_RANGE_OPTIONS = QUERY_PARAMS_STATS_RANGE_VALUES;
+
+export type AlbumDetailRange = QueryParamsStatsRange;
+
+export const DEFAULT_ALBUM_DETAIL_RANGE: AlbumDetailRange = 'week';
+
+export const ARTIST_TABS = ['albums', 'tracks', 'about', 'podroll', 'settings'] as const;
+
+export type ArtistTab = (typeof ARTIST_TABS)[number];
+
+export const DEFAULT_ARTIST_TAB: ArtistTab = 'albums';
 
 /**
  * The clip list on an episode.
@@ -105,6 +125,12 @@ export const EPISODE_TABS = ['summary', 'clips', 'chapters', 'soundbites', 'tran
 export type EpisodeTab = (typeof EPISODE_TABS)[number];
 
 export const DEFAULT_EPISODE_TAB: EpisodeTab = 'summary';
+
+export const TRACK_TABS = ['summary', 'transcript'] as const;
+
+export type TrackTab = (typeof TRACK_TABS)[number];
+
+export const DEFAULT_TRACK_TAB: TrackTab = 'summary';
 
 const channelScope = (channelIdText: string): SortPrefScope => {
   return { idText: channelIdText, kind: 'channel' };
@@ -187,14 +213,29 @@ export const writeAddByRssDetailSort = async (
 };
 
 export type AlbumDetailPrefs = {
+  range: AlbumDetailRange;
   sort: AlbumTrackSort;
+  tab: AlbumTab;
 };
 
 export const readAlbumDetailPrefs = async (channelIdText: string): Promise<AlbumDetailPrefs> => {
   const stored = await readSortPref(channelScope(channelIdText));
   return {
+    range: pickSortPrefToken(
+      stored?.range,
+      ALBUM_DETAIL_RANGE_OPTIONS,
+      DEFAULT_ALBUM_DETAIL_RANGE
+    ),
     sort: pickSortPrefToken(stored?.sort, ALBUM_TRACK_SORT_OPTIONS, DEFAULT_ALBUM_TRACK_SORT),
+    tab: pickSortPrefToken(stored?.tab, ALBUM_TABS, DEFAULT_ALBUM_TAB),
   };
+};
+
+export const writeAlbumDetailTab = async (
+  channelIdText: string,
+  tab: AlbumTab
+): Promise<void> => {
+  await writeSortPref(channelScope(channelIdText), { tab });
 };
 
 export const writeAlbumDetailSort = async (
@@ -202,6 +243,33 @@ export const writeAlbumDetailSort = async (
   sort: AlbumTrackSort
 ): Promise<void> => {
   await writeSortPref(channelScope(channelIdText), { sort });
+};
+
+export const writeAlbumDetailRange = async (
+  channelIdText: string,
+  range: AlbumDetailRange
+): Promise<void> => {
+  await writeSortPref(channelScope(channelIdText), { range });
+};
+
+export type ArtistDetailPrefs = {
+  tab: ArtistTab;
+};
+
+export const readArtistDetailPrefs = async (
+  channelIdText: string
+): Promise<ArtistDetailPrefs> => {
+  const stored = await readSortPref(channelScope(channelIdText));
+  return {
+    tab: pickSortPrefToken(stored?.tab, ARTIST_TABS, DEFAULT_ARTIST_TAB),
+  };
+};
+
+export const writeArtistDetailTab = async (
+  channelIdText: string,
+  tab: ArtistTab
+): Promise<void> => {
+  await writeSortPref(channelScope(channelIdText), { tab });
 };
 
 export type EpisodeDetailPrefs = {
@@ -236,4 +304,19 @@ export const writeEpisodeDetailClipSort = async (
   sort: EpisodeClipSort
 ): Promise<void> => {
   await writeSortPref(itemScope(itemIdText), { sort });
+};
+
+export type TrackDetailPrefs = {
+  tab: TrackTab;
+};
+
+export const readTrackDetailPrefs = async (itemIdText: string): Promise<TrackDetailPrefs> => {
+  const stored = await readSortPref(itemScope(itemIdText));
+  return {
+    tab: pickSortPrefToken(stored?.tab, TRACK_TABS, DEFAULT_TRACK_TAB),
+  };
+};
+
+export const writeTrackDetailTab = async (itemIdText: string, tab: TrackTab): Promise<void> => {
+  await writeSortPref(itemScope(itemIdText), { tab });
 };

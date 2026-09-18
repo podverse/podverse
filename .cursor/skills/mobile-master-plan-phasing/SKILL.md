@@ -263,7 +263,8 @@ Respond with:
 - **Recommended PG** and human-readable phase name (e.g. `PG-0 — foundation / abcmemory`).
 - **Tracks and step ranges** (e.g. 0.1–0.19, detail IDs 001–019).
 - **Prerequisites** satisfied / outstanding.
-- **Model mix** (count of Auto / Codex 5.3 / Opus 5 steps).
+- **Model mix** (count of cursor-grok-4.6-high-fast / Codex 5.3 / Opus 5 steps; include Auto only
+  when intentionally chosen).
 - **Risk notes** (spike gates, open decisions).
 - **Do not** create files until operator confirms (unless they already asked to detail this phase).
 
@@ -310,7 +311,7 @@ Use Appendix D template from master plan:
 
 | Model     | Minimum content                                                          |
 | --------- | ------------------------------------------------------------------------ |
-| Auto      | Scope + acceptance bullets + operator-only notes                         |
+| cursor-grok-4.6-high-fast | Scope + acceptance bullets + operator-only notes              |
 | Codex 5.3 | Above + web parity links + file paths + verification commands            |
 | Opus 5    | Above + architecture notes, edge cases, spike outcomes, cross-track deps |
 
@@ -335,7 +336,8 @@ COPY-PASTA prompts are 3–8 lines; full instructions live in numbered plan file
 Each COPY-PASTA prompt must include:
 
 - Outside the paste fence (operator reads these; selects them in the Cursor UI):
-  **Cursor model:** Auto | Codex 5.3 | Opus 5 and **Reasoning:** low | medium | high | extra high
+  **Cursor model:** cursor-grok-4.6-high-fast | Codex 5.3 | Opus 5 (Auto only when intentionally chosen)
+  and **Reasoning:** low | medium | high | extra high
   (see **copy-pasta-recommend-model** — never put these lines inside the fence)
 - Inside the paste fence: `Read and execute .llm/plans/active/mobile-<phase-slug>/<NN-plan>.md`
   plus a short reminder to follow the detail doc / locked decisions and not run tests during

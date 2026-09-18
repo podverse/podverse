@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { DTOItem, DTOItemEnclosure, DTOLiveItem } from '@podverse/helpers/dto';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
+import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosure';
 
 import { isHlsSource, isItemDownloadable } from './downloadEligibility';
 
@@ -51,6 +52,16 @@ const buildItem = (enclosures: DTOItemEnclosure[], overrides: Partial<DTOItem> =
   // Only the fields exercised by eligibility are populated; cast documents the partial fixture.
   return item as DTOItem;
 };
+
+const selectedParams = (
+  type: EnclosureSelectedParams['type'],
+  enclosureRowSelected: number,
+  sourceRowSelected = 0
+): EnclosureSelectedParams => ({
+  enclosureRowSelected,
+  sourceRowSelected,
+  type,
+});
 
 describe('isHlsSource', () => {
   it('detects .m3u8 URIs (with and without query/hash)', () => {
@@ -133,5 +144,34 @@ describe('isItemDownloadable', () => {
       expect(result.source.mediaType).toBe('video');
       expect(result.source.fileExtension).toBe('mp4');
     }
+  });
+
+  it('uses an explicit selected progressive source when provided', () => {
+    const item = buildItem([
+      enclosureWithSource('https://x/audio-default.mp3', {
+        type: 'audio/mpeg',
+        item_enclosure_default: true,
+      }),
+      enclosureWithSource('https://x/video-selected.mp4', { type: 'video/mp4', height: 720 }),
+    ]);
+    const result = isItemDownloadable(item, selectedParams('video', 0));
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.source.uri).toBe('https://x/video-selected.mp4');
+      expect(result.source.mediaType).toBe('video');
+    }
+  });
+
+  it('rejects explicit selected HLS source even when a progressive fallback exists', () => {
+    const item = buildItem([
+      enclosureWithSource('https://x/audio.mp3', { type: 'audio/mpeg' }),
+      enclosureWithSource('https://x/video.m3u8', {
+        type: 'application/x-mpegurl',
+        height: 720,
+      }),
+    ]);
+    const result = isItemDownloadable(item, selectedParams('video', 0));
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.reason).toBe('hls_playlist');
   });
 });

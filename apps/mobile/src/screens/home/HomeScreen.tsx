@@ -31,6 +31,7 @@ import {
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
 import {
   BROWSE_STACK_ROUTES,
+  buildAlbumDetailParams,
   buildPodcastDetailParams,
   HOME_STACK_ROUTES,
   SEARCH_STACK_ROUTES,
@@ -132,12 +133,14 @@ export function HomeScreen() {
 
   // Only episodes/tracks (item) and clips (clip) are playlist resources; null means the row gets no
   // add-to-playlist action.
-  const addToPlaylistKind = useMemo<AddToPlaylistTarget['kind'] | null>(() => {
+  const addToPlaylistTarget = useMemo<
+    Pick<Extract<AddToPlaylistTarget, { kind: 'clip' | 'item' }>, 'kind' | 'medium'> | null
+  >(() => {
     if (selectedMediaType === 'clips') {
-      return 'clip';
+      return { kind: 'clip', medium: 'av' };
     }
     if (selectedMediaType === 'episodes' || selectedMediaType === 'tracks') {
-      return 'item';
+      return { kind: 'item', medium: selectedMediaType === 'tracks' ? 'music' : 'av' };
     }
     return null;
   }, [selectedMediaType]);
@@ -573,9 +576,14 @@ export function HomeScreen() {
       }
 
       if (selectedMediaType === 'albums') {
-        navigation.navigate(HOME_STACK_ROUTES.AlbumDetail, {
-          albumId: row.id,
-        });
+        navigation.navigate(
+          HOME_STACK_ROUTES.AlbumDetail,
+          buildAlbumDetailParams({
+            albumId: row.id,
+            previewImageUrl: row.imageUrl,
+            previewTitle: row.title,
+          })
+        );
         return;
       }
 
@@ -903,9 +911,13 @@ export function HomeScreen() {
               isLast={index === visibleRows.length - 1}
               mediaType={selectedMediaType}
               onAddToPlaylistPress={
-                status === 'authenticated' && addToPlaylistKind !== null
+                status === 'authenticated' && addToPlaylistTarget !== null
                   ? (nextRow) => {
-                      requestAddToPlaylist({ idText: nextRow.id, kind: addToPlaylistKind });
+                      requestAddToPlaylist({
+                        idText: nextRow.id,
+                        kind: addToPlaylistTarget.kind,
+                        medium: addToPlaylistTarget.medium,
+                      });
                     }
                   : undefined
               }

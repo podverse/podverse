@@ -5,6 +5,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { DTOItem } from '@podverse/helpers/dto';
 
 import { useDownloadAction } from '../../downloads/useDownloads';
+import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 
 type DownloadControlProps = {
@@ -23,9 +25,14 @@ type DownloadControlProps = {
 export function DownloadControl({ item }: DownloadControlProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
+  const activeItemId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
+  const explicitSelectedParams =
+    activeItemId === item.id_text ? enclosureSelectedParams : undefined;
   const { isDownloadable, noticeKey, percentComplete, remove, start, status } = useDownloadAction(
     item,
-    true
+    true,
+    { explicitSelectedParams }
   );
 
   const styles = useMemo(

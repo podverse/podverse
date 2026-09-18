@@ -19,8 +19,7 @@ Rules:
 - Follow repository rules and required workflows exactly.
 - Use non-interactive command flags only; avoid any step that requires prompts.
 - If a step would block on interactive input, choose a non-interactive alternative and
-  continue. Record any assumption in LLM history.
+  continue.
 - Keep going through errors by fixing them and retrying until the plans complete.
 - Run tests or verification steps explicitly called for in the plans.
-- Update LLM history before and after file changes as required.
 ```

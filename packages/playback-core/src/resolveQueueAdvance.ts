@@ -3,12 +3,18 @@
  *
  * Mirrors the decision order in web `NonLiveMediaOrchestrator` `onEnded`
  * (`apps/web/src/components/MediaPlayer/Controller/NonLiveMediaOrchestrator.tsx`):
+ * while clip authoring is holding now playing on mobile, pause and keep the current item; otherwise
  * play the next manual upcoming item first; otherwise advance the auto-queue; otherwise stop.
  *
  * Side-effect free so both clients (and Vitest) share identical ordering. Callers own the effects
  * (move-to-history, load-active, native bridge load) — this only decides which path to take.
  */
 export type QueueAdvanceInput = {
+  /**
+   * Hold the now-playing item where it is: pause instead of advancing, and leave it as now playing.
+   * Set while the user is authoring a clip against this item.
+   */
+  holdNowPlaying: boolean;
   /** Count of manual upcoming items available to play next (0 when the manual queue is exhausted). */
   upcomingManualCount: number;
   /** Whether the auto-queue buffer (or its source) can still provide a next resource. */
@@ -16,9 +22,12 @@ export type QueueAdvanceInput = {
 };
 
 export type QueueAdvanceDecision =
-  { kind: 'play-next-manual' } | { kind: 'advance-auto-queue' } | { kind: 'stop' };
+  { kind: 'hold' } | { kind: 'play-next-manual' } | { kind: 'advance-auto-queue' } | { kind: 'stop' };
 
 export function resolveQueueAdvance(input: QueueAdvanceInput): QueueAdvanceDecision {
+  if (input.holdNowPlaying) {
+    return { kind: 'hold' };
+  }
   if (input.upcomingManualCount > 0) {
     return { kind: 'play-next-manual' };
   }

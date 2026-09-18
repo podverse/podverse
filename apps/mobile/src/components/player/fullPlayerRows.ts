@@ -1,4 +1,5 @@
-import { MEDIA_JUMP_BACK_SECONDS, MEDIA_JUMP_FORWARD_SECONDS } from '@podverse/helpers';
+import { MEDIA_JUMP_BACK_SECONDS, MEDIA_JUMP_FORWARD_SECONDS, MediumEnum } from '@podverse/helpers';
+import type { AddByRSSResourceData } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
@@ -14,8 +15,20 @@ export type FullPlayerQueueMutationTarget = {
 };
 
 export type FullPlayerAddToPlaylistTarget = {
-  idText: string;
-  kind: 'clip' | 'item';
+  medium: 'av' | 'music';
+} & (
+  | {
+      idText: string;
+      kind: 'clip' | 'item' | 'soundbite';
+    }
+  | { kind: 'add-by-rss'; resourceData: AddByRSSResourceData }
+);
+
+const addToPlaylistMediumFromChannel = (target: PlaybackTarget): 'av' | 'music' => {
+  if (target.kind === 'add-by-rss') {
+    return target.resourceData.medium_id === MediumEnum.Music ? 'music' : 'av';
+  }
+  return target.channel.medium_id === MediumEnum.Music ? 'music' : 'av';
 };
 
 const itemFromTarget = (target: PlaybackTarget | null): DTOItem | null => {
@@ -61,19 +74,21 @@ export const resolveAddToPlaylistTarget = (
   if (target === null) {
     return null;
   }
+  const medium = addToPlaylistMediumFromChannel(target);
   switch (target.kind) {
     case 'clip':
-      return { idText: target.clip.id_text, kind: 'clip' };
+      return { idText: target.clip.id_text, kind: 'clip', medium };
     case 'soundbite':
+      return { idText: target.soundbite.id_text, kind: 'soundbite', medium };
     case 'chapter':
     case 'item-podcast':
     case 'item-video':
     case 'item-music':
-      return { idText: target.item.id_text, kind: 'item' };
+      return { idText: target.item.id_text, kind: 'item', medium };
     case 'livestream':
-      return target.item !== null ? { idText: target.item.id_text, kind: 'item' } : null;
+      return target.item !== null ? { idText: target.item.id_text, kind: 'item', medium } : null;
     case 'add-by-rss':
-      return null;
+      return { kind: 'add-by-rss', medium, resourceData: target.resourceData };
   }
 };
 

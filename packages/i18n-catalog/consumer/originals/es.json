@@ -656,6 +656,8 @@
     "unknown_date": "Fecha desconocida",
     "redirecting": "Redirigiendo...",
     "terms": "Términos",
+    "faq": "Preguntas frecuentes",
+    "how_to": "Cómo hacerlo",
     "mobile": "Móvil",
     "donate": "Donar",
     "open_source": "Código abierto",
@@ -725,9 +727,11 @@
     "login_for_subscriptions": "Inicia sesión para usar esta función.",
     "login_to_create_playlists": "Inicia sesión para usar esta función.",
     "no_playlists_created": "No tienes ninguna lista de reproducción todavía. Crea una para empezar.",
+    "no_followed_playlists": "Aún no sigues ninguna lista de reproducción.",
     "login_to_create_clips": "Inicia sesión para usar esta función.",
     "login_for_queues": "Inicia sesión para usar esta función.",
     "login_for_history": "Inicia sesión para usar esta función.",
+    "login_for_playlists": "Inicia sesión para usar esta función.",
     "login_to_add_feeds": "Inicia sesión para usar esta función.",
     "login_to_refresh_feeds": "Inicia sesión para usar esta función.",
     "login_to_subscribe": "Inicia sesión para usar esta función.",
@@ -1367,6 +1371,10 @@
       "terms": {
         "title": "Términos",
         "description": "Lee los términos de servicio de {brand_name}."
+      },
+      "faq": {
+        "title": "Preguntas frecuentes",
+        "description": "Lee preguntas frecuentes sobre {brand_name}."
       },
       "donate": {
         "title": "Donar",

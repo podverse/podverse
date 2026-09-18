@@ -111,20 +111,17 @@ The `00-` prefix ensures index files sort first in directory listings.
 5. **Plan index/overview?** → Use `00-master-plan.md` or `00-overview.md`
 6. **Plan execution guide?** → Use `EXECUTION.md` (for parallel/agent instructions)
 7. **Plan files?** → Must go in `.llm/plans/` (NOT `.cursor/plans/`)
-8. **Optional human LLM notes under `.llm/history/`?** → Use `.llm/history/` (NOT `.cursor/history/`); see `.llm/LLM.md`
 
-### Plan and History Location
+### Plan Location
 
-**Critical**: Plans and history are **not Cursor-specific** and must never be placed in `.cursor/` directory.
+**Critical**: Plans are **not Cursor-specific** and must never be placed in `.cursor/` directory.
 
 ```
 ✅ Correct:
 .llm/plans/active/feature-x/
-.llm/history/active/feature-y/
 
 ❌ Incorrect:
 .cursor/plans/active/feature-x/
-.cursor/history/active/feature-y/
 ```
 
 The `.cursor/` directory is for Cursor IDE-specific configuration only (rules, skills, settings).

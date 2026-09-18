@@ -366,6 +366,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('POPULARITY_TRACKING_AGREEMENT_VERSION', 'Legal'));
   results.push(validateRequired('POPULARITY_TRACKING_AGREEMENT_DATE', 'Legal'));
   results.push(validateOptional('POPULARITY_TRACKING_CONTENT_DIR', 'Legal'));
+  results.push(validateOptional('MANAGED_COPY_CONTENT_DIR', 'Legal'));
 
   // Social Media (optional - used when signup mode uses email flows but not required)
   results.push(validateOptional('SOCIAL_FACEBOOK_IMAGE_URL', 'Social Media'));

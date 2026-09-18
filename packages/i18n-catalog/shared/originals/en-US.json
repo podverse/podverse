@@ -31,6 +31,7 @@
   },
   "misc": {
     "loading": "Loading…",
+    "faq": "FAQ",
     "try_again": "Try again",
     "reload_page": "Reload page",
     "return_to_home_page": "Return to home page"

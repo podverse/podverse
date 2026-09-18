@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { getChannelRouteKind } from '@podverse/helpers/medium';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
@@ -16,11 +17,14 @@ import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import type { SearchStackParamList } from '../../navigation';
-import { buildPodcastDetailParams, SEARCH_STACK_ROUTES } from '../../navigation';
+import {
+  buildAlbumDetailParams,
+  buildPodcastDetailParams,
+  SEARCH_STACK_ROUTES,
+} from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import {
-  getChannelDetailRouteKind,
   isParsedReadyChannel,
   pollUntilParsedReadyChannel,
 } from './podcastIndexFeedPreview';
@@ -48,13 +52,20 @@ const replaceWithSearchChannelDetail = (
   idText: string,
   preview: { imageUrl: string | null; title: string }
 ) => {
-  const kind = getChannelDetailRouteKind(mediumId);
+  const kind = getChannelRouteKind(mediumId);
   if (kind === 'artist') {
     navigation.replace(SEARCH_STACK_ROUTES.ArtistDetail, { artistId: idText });
     return;
   }
   if (kind === 'album') {
-    navigation.replace(SEARCH_STACK_ROUTES.AlbumDetail, { albumId: idText });
+    navigation.replace(
+      SEARCH_STACK_ROUTES.AlbumDetail,
+      buildAlbumDetailParams({
+        albumId: idText,
+        previewImageUrl: preview.imageUrl,
+        previewTitle: preview.title,
+      })
+    );
     return;
   }
   navigation.replace(

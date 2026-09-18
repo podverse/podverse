@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 
 import type { DTOChannel } from '@podverse/helpers';
+import type { ChannelRouteKind } from '@podverse/helpers';
 import { getItemTypeFromMedium } from '@podverse/helpers';
 
 import { ROUTES } from '../../constants/routes';
-import type { ChannelRouteKind } from './redirectToChannelPageByMedium';
 import { getChannelPath, getChannelRouteKind } from './redirectToChannelPageByMedium';
 
 /**

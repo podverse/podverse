@@ -1,6 +1,12 @@
 import type { DTOItem } from '@podverse/helpers/dto';
-import type { LabeledItemEnclosure } from '@podverse/helpers/item/itemEnclosure';
-import { buildLabeledItemEnclosures } from '@podverse/helpers/item/itemEnclosure';
+import type {
+  EnclosureSelectedParams,
+  LabeledItemEnclosure,
+} from '@podverse/helpers/item/itemEnclosure';
+import {
+  buildLabeledItemEnclosures,
+  getSelectedLabeledItemEnclosureAndSource,
+} from '@podverse/helpers/item/itemEnclosure';
 
 import type { DownloadMediaType } from './downloadTypes';
 
@@ -58,13 +64,38 @@ const toCandidate = (labeled: LabeledItemEnclosure): ProgressiveCandidate | null
   return { labeled, uri, mime: labeled.enclosure.type ?? null };
 };
 
+const candidateFromExplicitSelection = (
+  labeledEnclosures: LabeledItemEnclosure[],
+  selectedParams: EnclosureSelectedParams
+): ProgressiveCandidate | null => {
+  const selected = getSelectedLabeledItemEnclosureAndSource({
+    enclosureRowIndex: selectedParams.enclosureRowSelected,
+    labeledItemEnclosures: labeledEnclosures,
+    sourceRowIndex: selectedParams.sourceRowSelected,
+    type: selectedParams.type,
+  });
+  const uri = selected.source?.uri?.trim();
+  if (uri === undefined || uri === '' || selected.labeledItemEnclosure === null) {
+    return null;
+  }
+  return {
+    labeled: selected.labeledItemEnclosure,
+    mime: selected.labeledItemEnclosure.enclosure.type ?? null,
+    uri,
+  };
+};
+
 /**
  * Decide whether an item can be downloaded for offline playback and, if so, which progressive
- * source to fetch. Rejects livestreams and HLS-only items, and prefers an audio source (matching
- * mobile audio-first playback) among progressive candidates. Pure and unit-tested — screens and the
- * download manager call this before creating a downloads row (see mobile-only-features §1.1–1.2).
+ * source to fetch. Rejects livestreams and HLS-only items. An explicit enclosure selection wins
+ * when it resolves to a progressive source; otherwise the default path prefers audio among
+ * progressive candidates. Pure and unit-tested — screens and the download manager call this before
+ * creating a downloads row (see mobile-only-features §1.1–1.2).
  */
-export const isItemDownloadable = (item: DTOItem): DownloadEligibility => {
+export const isItemDownloadable = (
+  item: DTOItem,
+  selectedParams?: EnclosureSelectedParams | null
+): DownloadEligibility => {
   if (item.live_item !== null && item.live_item !== undefined) {
     return { ok: false, reason: 'livestream' };
   }
@@ -74,7 +105,8 @@ export const isItemDownloadable = (item: DTOItem): DownloadEligibility => {
     return { ok: false, reason: 'no_enclosure' };
   }
 
-  const candidates = buildLabeledItemEnclosures(enclosures)
+  const labeledEnclosures = buildLabeledItemEnclosures(enclosures);
+  const candidates = labeledEnclosures
     .map(toCandidate)
     .filter((candidate): candidate is ProgressiveCandidate => candidate !== null);
 
@@ -87,7 +119,26 @@ export const isItemDownloadable = (item: DTOItem): DownloadEligibility => {
     return { ok: false, reason: 'hls_playlist' };
   }
 
-  // Prefer audio (mobile plays audio-first); labeled entries are already default-first ordered.
+  // Explicit source selection takes precedence when it points to a progressive file.
+  if (selectedParams !== undefined && selectedParams !== null) {
+    const explicit = candidateFromExplicitSelection(labeledEnclosures, selectedParams);
+    if (explicit !== null) {
+      if (isHlsSource(explicit.uri, explicit.mime)) {
+        return { ok: false, reason: 'hls_playlist' };
+      }
+      return {
+        ok: true,
+        source: {
+          fileExtension: explicit.labeled.fileExtension ?? null,
+          mediaType: explicit.labeled.mediaType,
+          mime: explicit.mime,
+          uri: explicit.uri,
+        },
+      };
+    }
+  }
+
+  // Prefer audio by default; labeled entries are already default-first ordered.
   const chosen =
     progressive.find((candidate) => candidate.labeled.mediaType === 'audio') ?? progressive[0];
 

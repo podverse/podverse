@@ -220,7 +220,7 @@ class ClipController {
           });
         });
       },
-      { skipMembershipStatus: false }
+      { skipMembershipStatus: true }
     );
   }
 

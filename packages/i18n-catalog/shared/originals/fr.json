@@ -31,6 +31,7 @@
   },
   "misc": {
     "loading": "Chargement…",
+    "faq": "FAQ",
     "try_again": "Réessayez",
     "reload_page": "Recharger la page",
     "return_to_home_page": "Aller à l'accueil"

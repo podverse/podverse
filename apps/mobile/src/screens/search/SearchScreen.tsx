@@ -7,6 +7,7 @@ import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 
 import type { QueryParamsPodcastIndexSearchMedium, SearchPodcastsFeed } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
+import { getChannelRouteKind } from '@podverse/helpers/medium';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -18,13 +19,12 @@ import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { SearchStackParamList } from '../../navigation';
-import { buildPodcastDetailParams, SEARCH_STACK_ROUTES } from '../../navigation';
+import { buildAlbumDetailParams, buildPodcastDetailParams, SEARCH_STACK_ROUTES } from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { getChannelDetailRouteKind } from './podcastIndexFeedPreview';
 
 type SearchScreenProps = NativeStackScreenProps<
   SearchStackParamList,
@@ -273,16 +273,22 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
         return;
       }
 
-      const kind = getChannelDetailRouteKind(channel.medium_id);
+      const kind = getChannelRouteKind(channel.medium_id);
       // Stay on the Search stack (tab isolation) — do not jump to Home for detail.
       if (kind === 'artist') {
         navigation.navigate(SEARCH_STACK_ROUTES.ArtistDetail, {
           artistId: channel.id_text,
         });
       } else if (kind === 'album') {
-        navigation.navigate(SEARCH_STACK_ROUTES.AlbumDetail, {
-          albumId: channel.id_text,
-        });
+        navigation.navigate(
+          SEARCH_STACK_ROUTES.AlbumDetail,
+          buildAlbumDetailParams({
+            albumId: channel.id_text,
+            previewImageUrl:
+              toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
+            previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
+          })
+        );
       } else {
         navigation.navigate(
           SEARCH_STACK_ROUTES.PodcastDetail,

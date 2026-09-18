@@ -16,6 +16,26 @@ async function loginViaApi(page: Page, email: string): Promise<void> {
 }
 
 test.describe('Popularity tracking consent', () => {
+  test('When the popularity-tracking copy is loading, the page shows a loading spinner before content.', async ({
+    page,
+  }) => {
+    await loginViaApi(page, UNDECIDED_EMAIL);
+    await page.route(
+      '**/api/v2/legal/popularity-tracking',
+      async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await route.continue();
+      },
+      { times: 1 }
+    );
+
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/popularity-tracking/);
+    await expect(page.getByLabel('Loading…')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Popularity tracking' })).toBeVisible();
+    await expect(page.getByLabel('Loading…')).toBeHidden();
+  });
+
   test('When a logged-in account has never decided, the gate blocks the rest of the app.', async ({
     page,
   }, testInfo) => {

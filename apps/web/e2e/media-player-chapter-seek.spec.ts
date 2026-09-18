@@ -90,8 +90,7 @@ test.describe('Media player chapter seek', () => {
     /**
      * Clear the seeded podcast queue resources so the QueueController's
      * auto-load effect does not race with this spec's chapter Play
-     * click. See
-     * `.llm/history/active/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md`.
+     * click.
      */
     await clearSeededPodcastQueueResources(page);
   });

@@ -8,8 +8,8 @@ This document describes the GitHub Secrets required for the monorepo's CI/CD wor
 | --------------------- | ----------------------------------------- | --------------------------------------------------------------------------- |
 | `GHCR_REGISTRY_TOKEN` | `publish-staging.yml`, `publish-main.yml` | Preferred token for querying GHCR tags during staging smart-start / promote |
 | `OPENAI_API_KEY`      | i18n.yml                                  | Auto-generate translations after merge to develop                           |
-| `APP_ID`              | complete-feature.yml, i18n.yml            | GitHub App authentication for protected branch pushes                       |
-| `APP_PRIVATE_KEY`     | complete-feature.yml, i18n.yml            | GitHub App authentication for protected branch pushes                       |
+| `APP_ID`              | i18n.yml                                  | GitHub App authentication for protected branch pushes                       |
+| `APP_PRIVATE_KEY`     | i18n.yml                                  | GitHub App authentication for protected branch pushes                       |
 
 ## Automatic Secrets
 
@@ -133,15 +133,6 @@ Triggers on push to `develop` when `en-US.json` files change:
 1. Runs LLM translations for all non-English locales
 2. Compiles translation files
 3. Commits and pushes generated translations to `develop`
-
-### complete-feature.yml
-
-**Secrets used**: `APP_ID`, `APP_PRIVATE_KEY`, `GITHUB_TOKEN`
-
-Triggers when PR is merged to `develop`:
-
-1. Moves LLM history from `active/` to `completed/`
-2. Commits changes to `develop` branch
 
 ## Security Notes
 

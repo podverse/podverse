@@ -1,4 +1,4 @@
-import { FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent } from 'react-native';
@@ -12,12 +12,16 @@ import {
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives/Button';
 import { FULL_PLAYER_JUMP_BACK_SECONDS, FULL_PLAYER_JUMP_FORWARD_SECONDS } from './fullPlayerRows';
+import { PlayerJumpButton } from './PlayerJumpButton';
 import { PlayerTransportButton } from './PlayerTransportButton';
 
 type FullPlayerTransportRowProps = {
   /** When true, previous/next accept a hold that skips the episode (web chapter long-press). */
   hasEpisodeChaptersForTrackButtons: boolean;
   hasNextQueueItem: boolean;
+  isMusicNowPlaying: boolean;
+  isRepeatEnabled: boolean;
+  isShuffleEnabled: boolean;
   onJumpBack: () => void;
   onJumpForward: () => void;
   onPause: (event: GestureResponderEvent) => void;
@@ -27,6 +31,8 @@ type FullPlayerTransportRowProps = {
   onSkipToNextTrack: () => void;
   onSkipToPrevious: () => void;
   onSkipToPreviousTrack: () => void;
+  onToggleRepeat: () => void;
+  onToggleShuffle: () => void;
   state: PlaybackTransportState;
 };
 
@@ -37,6 +43,9 @@ type FullPlayerTransportRowProps = {
 export function FullPlayerTransportRow({
   hasEpisodeChaptersForTrackButtons,
   hasNextQueueItem,
+  isMusicNowPlaying,
+  isRepeatEnabled,
+  isShuffleEnabled,
   onJumpBack,
   onJumpForward,
   onPause,
@@ -46,6 +55,8 @@ export function FullPlayerTransportRow({
   onSkipToNextTrack,
   onSkipToPrevious,
   onSkipToPreviousTrack,
+  onToggleRepeat,
+  onToggleShuffle,
   state,
 }: FullPlayerTransportRowProps) {
   const { t } = useTranslation();
@@ -110,25 +121,32 @@ export function FullPlayerTransportRow({
         />
       </View>
       <View style={styles.slot}>
-        <Button
-          accessibilityLabel={t('media_player.jump_back', {
-            seconds: FULL_PLAYER_JUMP_BACK_SECONDS,
-          })}
-          icon={
-            <FontAwesome6
-              color={iconColor}
-              name="rotate-left"
-              size={FULL_PLAYER_TRANSPORT_ICON_SIZE}
-              solid
-            />
-          }
-          iconOnly
-          label={t('media_player.jump_back', { seconds: FULL_PLAYER_JUMP_BACK_SECONDS })}
-          onPress={onJumpBack}
-          size="lg"
-          testID="full-player-jump-back"
-          variant="ghost"
-        />
+        {isMusicNowPlaying ? (
+          <Button
+            accessibilityLabel={t('media_player.shuffle.toggle_shuffle')}
+            icon={
+              <Ionicons
+                color={iconColor}
+                name={isShuffleEnabled ? 'shuffle' : 'shuffle-outline'}
+                size={FULL_PLAYER_TRANSPORT_ICON_SIZE}
+              />
+            }
+            iconOnly
+            label={t('media_player.shuffle.toggle_shuffle')}
+            onPress={onToggleShuffle}
+            size="lg"
+            testID="full-player-shuffle"
+            variant={isShuffleEnabled ? 'secondary' : 'ghost'}
+          />
+        ) : (
+          <PlayerJumpButton
+            direction="back"
+            onPress={onJumpBack}
+            seconds={FULL_PLAYER_JUMP_BACK_SECONDS}
+            showSeconds={false}
+            testID="full-player-jump-back"
+          />
+        )}
       </View>
       <View style={styles.slot}>
         <PlayerTransportButton
@@ -141,25 +159,32 @@ export function FullPlayerTransportRow({
         />
       </View>
       <View style={styles.slot}>
-        <Button
-          accessibilityLabel={t('media_player.jump_forward', {
-            seconds: FULL_PLAYER_JUMP_FORWARD_SECONDS,
-          })}
-          icon={
-            <FontAwesome6
-              color={iconColor}
-              name="rotate-right"
-              size={FULL_PLAYER_TRANSPORT_ICON_SIZE}
-              solid
-            />
-          }
-          iconOnly
-          label={t('media_player.jump_forward', { seconds: FULL_PLAYER_JUMP_FORWARD_SECONDS })}
-          onPress={onJumpForward}
-          size="lg"
-          testID="full-player-jump-forward"
-          variant="ghost"
-        />
+        {isMusicNowPlaying ? (
+          <Button
+            accessibilityLabel={t('media_player.repeat.toggle_repeat')}
+            icon={
+              <Ionicons
+                color={iconColor}
+                name={isRepeatEnabled ? 'repeat' : 'repeat-outline'}
+                size={FULL_PLAYER_TRANSPORT_ICON_SIZE}
+              />
+            }
+            iconOnly
+            label={t('media_player.repeat.toggle_repeat')}
+            onPress={onToggleRepeat}
+            size="lg"
+            testID="full-player-repeat"
+            variant={isRepeatEnabled ? 'secondary' : 'ghost'}
+          />
+        ) : (
+          <PlayerJumpButton
+            direction="forward"
+            onPress={onJumpForward}
+            seconds={FULL_PLAYER_JUMP_FORWARD_SECONDS}
+            showSeconds={false}
+            testID="full-player-jump-forward"
+          />
+        )}
       </View>
       <View style={styles.slot}>
         <Button

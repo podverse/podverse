@@ -266,6 +266,22 @@ export const isAlbumMediumId = (mediumId: number | null | undefined): boolean =>
 export const isArtistMediumId = (mediumId: number | null | undefined): boolean =>
   mediumId !== null && mediumId !== undefined && ARTIST_MEDIUMS.has(mediumId);
 
+export type ChannelRouteKind = 'podcast' | 'album' | 'artist';
+
+/**
+ * Canonical channel route kind for a medium.
+ * Podcast/video family, unmapped mediums, and null/undefined default to podcast.
+ */
+export const getChannelRouteKind = (mediumId: number | null | undefined): ChannelRouteKind => {
+  if (isArtistMediumId(mediumId)) {
+    return 'artist';
+  }
+  if (isAlbumMediumId(mediumId)) {
+    return 'album';
+  }
+  return 'podcast';
+};
+
 export type MediumFilter = 'podcast' | 'music' | 'all';
 
 /** True if mediumId matches the filter. */

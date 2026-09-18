@@ -1,18 +1,16 @@
 # `.llm/` directory
 
-**Planning workspace** for this repo — feature plans, optional history, human templates, and reference context.
+**Planning workspace** for this repo — feature plans, human templates, and reference context.
 
 **Not abcmemory.** Standing agent guidance (what Cursor loads every session) lives **only** under [`.cursor/`](/.cursor/skills/abcmemory/SKILL.md) plus `.cursorrules` and `.cursorignore`. When you say **abcremember**, agents write to `.cursor/`, not here, unless you explicitly ask otherwise.
 
 ## Directory index — `.llm/` (planning workspace)
 
-| Path                      | Operator doc                                                           |
-| ------------------------- | ---------------------------------------------------------------------- |
-| `.llm/context/`           | [LLM-CONTEXT.md](context/LLM-CONTEXT.md)                               |
-| `.llm/history/active/`    | [LLM-HISTORY-ACTIVE.md](history/active/LLM-HISTORY-ACTIVE.md)          |
-| `.llm/history/completed/` | [LLM-HISTORY-COMPLETED.md](history/completed/LLM-HISTORY-COMPLETED.md) |
-| `.llm/plans/active/`      | [LLM-PLANS-ACTIVE.md](plans/active/LLM-PLANS-ACTIVE.md)                |
-| `.llm/templates/`         | [LLM-TEMPLATES.md](templates/LLM-TEMPLATES.md)                         |
+| Path                 | Operator doc                                            |
+| -------------------- | ------------------------------------------------------- |
+| `.llm/context/`      | [LLM-CONTEXT.md](context/LLM-CONTEXT.md)                |
+| `.llm/plans/active/` | [LLM-PLANS-ACTIVE.md](plans/active/LLM-PLANS-ACTIVE.md) |
+| `.llm/templates/`    | [LLM-TEMPLATES.md](templates/LLM-TEMPLATES.md)          |
 
 ## Directory index — abcmemory (`.cursor/`)
 
@@ -31,12 +29,9 @@ Vocabulary: **abcmemory** / **abcremember** — [abcmemory skill](/.cursor/skill
 .llm/
 ├── LLM.md                 # This file
 ├── context/               # Codebase summaries for contributors (e.g. architecture)
-├── history/
-│   ├── active/            # Optional per-feature folders if your team records notes here
-│   └── completed/         # Archived by automation or manually (see below)
 ├── plans/
 │   └── active/
-└── templates/             # Human templates for plans/history (not abcmemory)
+└── templates/             # Human templates for plans (not abcmemory)
 ```
 
 Empty layout directories may contain a `.gitkeep` so git tracks the folder after clone.
@@ -59,18 +54,3 @@ confirms the work is no longer needed. See `.cursor/skills/plan-completion/SKILL
 for the 300-line plan limit.
 
 **Import specifiers (Tier A vs Next `src`):** see [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
-
-## Optional history notes
-
-Some teams keep markdown notes under `.llm/history/active/<feature>/`. That is **optional** and not required for contributing.
-
-A retired description of an older session-logging workflow (for humans only) lives in
-`docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md`. That path is listed in `.cursorignore`
-so Cursor does not treat it as agent instructions.
-
-### Completing features (GitHub Actions)
-
-When a PR merges to `develop`, `.github/workflows/complete-feature.yml` may detect a matching
-folder under `.llm/history/active/<feature-name>/` (derived from the branch name), set completion
-metadata, move it under `.llm/history/completed/YYYY-MM/`, and push. If no folder exists, the job
-no-ops.

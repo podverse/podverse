@@ -1,0 +1,39 @@
+appId: com.podverse.app.next
+name: Album flow
+---
+# Album detail shows tracks and opens track detail in-app.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- openLink: podverse-next://album/e2eMusicAlbm01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: album-detail-track-list
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: album-track-row-0
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: album-detail-section-tracks
+- takeScreenshot: album-detail-tracks
+
+- tapOn:
+    id: album-track-row-0
+- extendedWaitUntil:
+    visible:
+      id: track-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: track-detail-album-header
+- assertVisible:
+    id: track-detail-play-chrome
+- assertVisible:
+    id: track-detail-tab-summary
+- takeScreenshot: album-to-track-detail

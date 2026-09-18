@@ -2,6 +2,7 @@ import * as FileSystem from 'expo-file-system';
 
 import { primaryListArtworkUrl } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
+import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosure';
 
 import { channelItemsRepository, downloadsRepository } from '../data/repositories';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
@@ -388,12 +389,15 @@ export const downloadManager = {
    * enclosure) without creating a row, and de-dupes an item that is already queued/downloading/
    * paused/complete so duplicate taps do not spawn extra jobs.
    */
-  enqueue: async (item: DTOItem): Promise<EnqueueResult> => {
+  enqueue: async (
+    item: DTOItem,
+    explicitSelectedParams?: EnclosureSelectedParams | null
+  ): Promise<EnqueueResult> => {
     if (isOfflineModeEnabled()) {
       return { ok: false, reason: 'offline_mode' };
     }
 
-    const eligibility = isItemDownloadable(item);
+    const eligibility = isItemDownloadable(item, explicitSelectedParams);
     if (!eligibility.ok) {
       return { ok: false, reason: eligibility.reason };
     }

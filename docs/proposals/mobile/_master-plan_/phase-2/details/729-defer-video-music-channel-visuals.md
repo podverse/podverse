@@ -2,7 +2,7 @@
 
 **Master step:** P2.3 (operational backlog — new)
 **Model (author + implement):** Auto
-**Status:** deferred to a future phase
+**Status:** music half superseded by 762–764; video half deferred
 
 ## Scope
 
@@ -11,34 +11,36 @@ mobile had **no** dedicated video or music channel screens. Phase 2 podcast work
 `ChannelHeader` + section-chip primitives with medium slots
 ([723](723-podcast-channel-header-and-section-chips.md)) but only implements the **podcast** medium.
 
-**Deferred:** deciding and implementing video and music channel visuals.
+### Music half — superseded
 
-### When picked up
+Album / artist / track detail parity is implemented under
+[762](762-album-detail-parity.md)–[764](764-track-detail-and-library-routes.md) and
+`.llm/plans/completed/04-mobile-p2-music-detail/`, after medium foundations
+([760](760-shared-medium-route-kind.md), [761](761-channel-detail-shell-and-prefs.md)).
 
-- Drive from **website** layouts (`apps/web` album / artist / video routes), not from legacy mobile
-  screenshots (there are none).
-- Reuse the shared primitives; vary chips, sort options, and header actions per medium.
-- Album / artist sketches already exist under `apps/mobile/src/screens/album/` and `artist/` —
-  rebuild them in their own Phase 2 screenshot batches rather than inside P2.1.2.
+### Video half — still deferred
 
-## Acceptance criteria (when implemented)
+Video-medium channels stay on podcast / episode detail (match web today: no `/video` detail pages;
+`/videos` is "Coming soon"). Real video divergence is enclosure selection and the player surface
+([765](765-enclosure-selection-session-state.md)–[768](768-enclosure-driven-video-surface.md)), not
+dedicated video screens. No Home `videos` chip.
 
-- Video and music channel screens use the shared header / chip shell with medium-specific sections.
-- Visual direction is locked from website + operator answers before coding.
-- E2E covers at least one album and one artist (or video) path.
+## Acceptance criteria (video half, when reconsidered)
+
+- Only reconsider dedicated video screens if web ships a real video browse / channel UX.
+- Until then, keep Video medium on podcast/episode routes.
 
 ## Web parity references
 
 - [`apps/web/src/app/album/`](apps/web/src/app/album/)
 - [`apps/web/src/app/artist/`](apps/web/src/app/artist/)
+- [`apps/web/src/app/videos/page.tsx`](apps/web/src/app/videos/page.tsx)
 - Mobile sketches: [`AlbumDetailScreen.tsx`](apps/mobile/src/screens/album/AlbumDetailScreen.tsx),
   [`ArtistDetailScreen.tsx`](apps/mobile/src/screens/artist/ArtistDetailScreen.tsx)
-- Skill: **mobile-legacy-screenshot-planning** (operator-guided; website as parity source when legacy
-  has no screen)
 
 ## Verification
 
 ```bash
-# Mobile Maestro (when implemented)
-npm run mobile:e2e:test -- browse
+# Mobile Maestro (when music set implements)
+npm run mobile:e2e:test -- album
 ```

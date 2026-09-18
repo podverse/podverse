@@ -79,7 +79,7 @@ jobs:
           else
             git commit --no-verify -m "chore: auto-generate i18n translations [bot]"
             
-            # Pull latest changes (in case complete-feature workflow pushed)
+            # Pull latest changes if another workflow pushed to develop
             # Use rebase to put our commit on top
             git pull --rebase origin develop || true
             

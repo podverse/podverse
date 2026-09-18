@@ -21,6 +21,7 @@ export const ROUTES = {
   EMBED: '/embed',
   EMBED_BUILDER: '/embed/builder',
   EPISODES: '/episodes',
+  FAQ: '/faq',
   HISTORY: '/history',
   MOBILE_APP: '/mobile-app',
   MUSIC_LIVESTREAMS: '/music/livestreams',

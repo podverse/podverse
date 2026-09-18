@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DTOChannel } from '@podverse/helpers';
-import { MediumEnum } from '@podverse/helpers';
+import { getChannelRouteKind, MediumEnum } from '@podverse/helpers';
 
 import { ROUTES } from '../../constants/routes';
 import {
   getChannelPath,
   getChannelPathByMedium,
-  getChannelRouteKind,
   getItemPathByMedium,
 } from './redirectToChannelPageByMedium';
 

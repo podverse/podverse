@@ -110,8 +110,7 @@ test.describe('Media player time-bounded playback (clip and soundbite)', () => {
      * auto-load effect (which treats the first upcoming resource like a
      * now-playing item when no resource is at the now-playing position)
      * does not race with this spec's user-initiated Play click and
-     * clobber `mpClip` / `mpItem` with `e2ePodResume01`. See
-     * `.llm/history/active/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md`.
+     * clobber `mpClip` / `mpItem` with `e2ePodResume01`.
      */
     await clearSeededPodcastQueueResources(page);
   });

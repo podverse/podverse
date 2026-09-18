@@ -103,6 +103,7 @@ export const startApp = async () => {
     const { publisherFeedRouter } = await import('./routes/publisherFeed.js');
     const { accountSettingsRouter } = await import('./routes/accountSettings.js');
     const { legalRouter } = await import('./routes/legal.js');
+    const { managedCopyRouter } = await import('./routes/managedCopy.js');
     const { profileContentRouter, myProfileContentRouter } =
       await import('./routes/profileContent.js');
 
@@ -131,6 +132,7 @@ export const startApp = async () => {
     app.use(externalServicesRouter);
     app.use(feedRouter);
     app.use(legalRouter);
+    app.use(managedCopyRouter);
     app.use(itemRouter);
     app.use(itemChapterRouter);
     app.use(itemSoundbiteRouter);

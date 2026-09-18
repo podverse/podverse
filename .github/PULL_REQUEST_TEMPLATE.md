@@ -45,10 +45,6 @@ If this PR changes API route behavior, auth semantics, validators, or request/re
 
 <!-- Required only when route behavior changed but no spec files were edited -->
 
-## LLM Development (Optional)
-
-If you maintain optional notes under `.llm/history/`, see [.llm/LLM.md](.llm/LLM.md). When a PR merges to `develop`, a workflow may archive matching feature folders under `.llm/history/active/` to `.llm/history/completed/`.
-
 ## CI
 
 > **Note**: A maintainer will comment `/test` to run CI checks on this PR (lint/type-check/builds;

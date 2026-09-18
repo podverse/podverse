@@ -30,6 +30,10 @@ type QueueResourceHomeRowOptions = {
   addByRssPrivateTitle?: string;
 };
 
+type PlaylistResourceHomeRowOptions = {
+  addByRssPrivateTitle?: string;
+};
+
 /** Structural subset shared by `DTOItem` and `DTOItemQueueItem` for home-row mapping. */
 type ItemHomeRowSource = {
   channel?: DTOChannel;
@@ -106,7 +110,8 @@ function itemSoundbiteToHomeRow(itemSoundbite: DTOItemSoundbite): PlaylistResour
 }
 
 export function playlistResourceToHomeRow(
-  resource: DTOPlaylistResource
+  resource: DTOPlaylistResource,
+  options?: PlaylistResourceHomeRowOptions
 ): PlaylistResourceHomeRow | null {
   if (resource.clip) {
     return {
@@ -133,7 +138,75 @@ export function playlistResourceToHomeRow(
     return itemSoundbiteToHomeRow(resource.item_soundbite);
   }
 
-  return null;
+  const addByRssHashId =
+    typeof resource.add_by_rss_hash_id === 'string' && resource.add_by_rss_hash_id.length > 0
+      ? resource.add_by_rss_hash_id
+      : null;
+  if (addByRssHashId === null) {
+    return null;
+  }
+
+  const redactedTitle = options?.addByRssPrivateTitle ?? addByRssHashId;
+  if (resource.is_add_by_rss_redacted === true) {
+    return {
+      description: null,
+      duration: null,
+      id: `add-by-rss-${resource.id}`,
+      imageUrl: null,
+      mediaType: 'episodes',
+      subtitle: null,
+      title: redactedTitle,
+      updatedAt: null,
+    };
+  }
+
+  const resourceData = resource.add_by_rss_resource_data;
+  if (!isObjectLike(resourceData)) {
+    return {
+      description: null,
+      duration: null,
+      id: `add-by-rss-${resource.id}`,
+      imageUrl: null,
+      mediaType: 'episodes',
+      subtitle: null,
+      title: addByRssHashId,
+      updatedAt: null,
+    };
+  }
+
+  const descriptionRaw = getNonEmptyTrimmedStringProperty(resourceData, 'description');
+  const title =
+    getNonEmptyTrimmedStringProperty(resourceData, 'title') ??
+    getNonEmptyTrimmedStringProperty(resourceData, 'id_text') ??
+    addByRssHashId;
+  const durationRaw = resourceData.duration;
+  const pubDateRaw = resourceData.pub_date;
+  const itemDescription = resourceData.item_description;
+
+  const descriptionFromItem =
+    isObjectLike(itemDescription) && typeof itemDescription.value === 'string'
+      ? htmlToPlainText(itemDescription.value)
+      : '';
+
+  return {
+    description: descriptionRaw ?? (descriptionFromItem.length > 0 ? descriptionFromItem : null),
+    duration:
+      typeof durationRaw === 'number'
+        ? String(durationRaw)
+        : typeof durationRaw === 'string' && durationRaw.trim().length > 0
+          ? durationRaw.trim()
+          : null,
+    id: `add-by-rss-${resource.id}`,
+    imageUrl: primaryListArtworkUrl(
+      toAddByRssImages(resourceData.item_images),
+      toAddByRssImages(resourceData.channel_images)
+    ),
+    mediaType: resolveAddByRssMediaType(resourceData),
+    subtitle: getNonEmptyTrimmedStringProperty(resourceData, 'channel_title'),
+    title,
+    updatedAt:
+      typeof pubDateRaw === 'string' && pubDateRaw.trim().length > 0 ? pubDateRaw.trim() : null,
+  };
 }
 
 const toAddByRssImages = (value: unknown): DTOItemImage[] => {

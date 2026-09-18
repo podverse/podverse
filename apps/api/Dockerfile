@@ -67,6 +67,7 @@ COPY --from=builder /opt/packages/mq/dist/ ./packages/mq/dist/
 COPY --from=builder /opt/apps/api/package.json ./apps/api/
 COPY --from=builder /opt/apps/api/dist/ ./apps/api/dist/
 COPY --from=builder /opt/apps/api/legal/ ./apps/api/legal/
+COPY --from=builder /opt/apps/api/managed-copy/ ./apps/api/managed-copy/
 
 # Install production dependencies only
 RUN npm ci --omit=dev --ignore-scripts

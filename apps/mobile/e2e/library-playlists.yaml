@@ -20,11 +20,29 @@ name: Library Playlists Authoring
 - assertVisible:
     id: library-playlists-screen
 
+# Library list chips: My / Followed.
+- assertVisible:
+    id: library-playlists-type-private
+- tapOn:
+    id: library-playlists-type-followed
+- assertVisible:
+    id: library-playlists-list
+- tapOn:
+    id: library-playlists-type-private
+- assertVisible:
+    id: library-playlists-list
+
 # 9d.1 create: open the create form, fill title, exercise the sharable-status chips, submit.
 - tapOn:
     id: library-playlists-create
 - assertVisible:
     id: playlist-form-screen
+- assertVisible:
+    id: playlist-form-medium-chips
+- tapOn:
+    id: playlist-form-medium-music
+- tapOn:
+    id: playlist-form-medium-av
 - tapOn:
     id: playlist-form-title
 - inputText: "E2E Playlist"
@@ -52,6 +70,8 @@ name: Library Playlists Authoring
     id: library-playlist-detail-edit
 - assertVisible:
     id: playlist-form-screen
+- assertVisible:
+    id: playlist-form-medium-readonly
 - tapOn:
     id: playlist-form-title
 - inputText: " Edited"
@@ -68,3 +88,23 @@ name: Library Playlists Authoring
       id: library-playlist-detail-screen
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: library-playlists-edit-back-to-detail
+
+# Delete (edit-only flow): confirm dialog then return to playlists list.
+- tapOn:
+    id: library-playlist-detail-edit
+- assertVisible:
+    id: playlist-form-screen
+- tapOn:
+    id: playlist-form-delete
+- assertVisible:
+    id: playlist-form-delete-confirm-dialog
+- tapOn:
+    id: playlist-form-delete-confirm
+- extendedWaitUntil:
+    visible:
+      id: library-playlists-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: library-playlists-deleted-back-to-list
+
+# Drag-reorder assertion intentionally omitted: long-press drag arbitration is a device-level
+# gesture check and flakes in Maestro. Covered by manual validation with queue-style drag handles.

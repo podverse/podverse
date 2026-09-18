@@ -60,17 +60,17 @@ is detailed only when its screenshots arrive. `Status`: `not started` → `quest
 | Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status                                    |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
 | P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips)                   |
-| P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast screen; episode later)      |
+| P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast + music detail); episode later |
 | P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                      |
-| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | planned (player done; Make Clip planned)  |
+| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | done (player + enclosures + medium player + Make Clip) |
 | P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | done (Downloads, queue); history pending  |
-| P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started                               |
+| P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | done                                      |
 | P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                               |
 | P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | in progress (popularity-tracking consent) |
 | P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started                               |
 | P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (consent)                     |
 | P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started                               |
-| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | planned (FAQ only, with Make Clip)        |
+| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | in progress (FAQ only)                    |
 
 **Not in Phase 2:** the legacy `V4V*` screens (`V4VBoostagramScreen`, `V4VConsentScreen`,
 `V4VInfoStreamingSatsScreen`, `V4VPreviewScreen`, `V4VProvidersScreen`, `V4VProvidersAlbyScreen`,
@@ -133,13 +133,30 @@ notification defaults (auto-enable on subscribe + type-default Settings UI) land
 
 Locked decisions live in those detail docs. Subscribe stays notification-off unless the account
 opts into auto-enable; Share and Bell are always on the header; Gear is signed-in and subscribed
-only; auto-download and video/music channel visuals stay deferred
-([728](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md),
-[729](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md)).
-Header density and adaptive item rows (channel context vs in-channel) landed in 730.
+only; auto-download stays deferred
+([728](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md)).
+Music channel visuals are planned below (762–764); the video half of
+[729](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md)
+stays deferred because video channels keep podcast/episode UX (match web). Header density and
+adaptive item rows (channel context vs in-channel) landed in 730.
 
 Detail IDs start at **723** because `722` is already
 [722-popularity-tracking-consent](/docs/proposals/mobile/_master-plan_/phase-2/details/722-popularity-tracking-consent.md).
+
+### Implemented steps — P2.1.2 Music detail (album / artist / track)
+
+Web-parity music surfaces are implemented from `apps/web` album / artist / track pages (not legacy
+screenshots). Medium foundations (P2.4.13) remain the prerequisite. Completed plan set:
+`.llm/plans/completed/04-mobile-p2-music-detail/`. This un-defers and lands the **music half** of 729.
+
+| Step   | Detail                                                                                                                           | Model     | Status  |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| P2.1.2 | [762-album-detail-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/762-album-detail-parity.md)                       | Codex 5.3 | done |
+| P2.1.2 | [763-artist-detail-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/763-artist-detail-parity.md)                     | Codex 5.3 | done |
+| P2.1.2 | [764-track-detail-and-library-routes](/docs/proposals/mobile/_master-plan_/phase-2/details/764-track-detail-and-library-routes.md) | Codex 5.3 | done |
+
+Locked decisions: `.llm/plans/completed/04-mobile-p2-music-detail/00-SUMMARY.md`. Boosts stay Phase 3;
+video stays on podcast/episode routes; no Home `videos` chip.
 
 ### Planned steps — P2.1.5 Library (Downloads) + Settings storage
 
@@ -203,18 +220,17 @@ deferred (598); the Transcript chip itself is in 750.
 The clip authoring area split out of the player work, detailed from an operator screenshot of the
 previous-generation Make Clip screen. It brings a slice of P2.1.12 with it, because the previous
 generation's Make Clip screen links to How To and FAQ content and those documents have to exist
-somewhere. Plan set: `.llm/plans/active/mobile-p2-make-clip/`.
+somewhere.
 
 | Step    | Detail                                                                                                                             | Model     | Status  |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
-| P2.1.4  | [752-mobile-make-clip-authoring](/docs/proposals/mobile/_master-plan_/phase-2/details/752-mobile-make-clip-authoring.md)           | Opus 5    | planned |
-| P2.1.4  | [753-clip-authoring-playback-hold](/docs/proposals/mobile/_master-plan_/phase-2/details/753-clip-authoring-playback-hold.md)       | Opus 5    | planned |
-| P2.1.12 | [754-server-managed-copy-endpoint](/docs/proposals/mobile/_master-plan_/phase-2/details/754-server-managed-copy-endpoint.md)       | Codex 5.3 | planned |
-| P2.1.12 | [755-mobile-faq-and-clip-how-to](/docs/proposals/mobile/_master-plan_/phase-2/details/755-mobile-faq-and-clip-how-to.md)           | Codex 5.3 | planned |
-| P2.5.4  | [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md) | Codex 5.3 | planned |
+| P2.1.4  | [752-mobile-make-clip-authoring](/docs/proposals/mobile/_master-plan_/phase-2/details/752-mobile-make-clip-authoring.md)           | Opus 5    | done    |
+| P2.1.4  | [753-clip-authoring-playback-hold](/docs/proposals/mobile/_master-plan_/phase-2/details/753-clip-authoring-playback-hold.md)       | Opus 5    | done    |
+| P2.1.12 | [754-server-managed-copy-endpoint](/docs/proposals/mobile/_master-plan_/phase-2/details/754-server-managed-copy-endpoint.md)       | Codex 5.3 | done    |
+| P2.1.12 | [755-mobile-faq-and-clip-how-to](/docs/proposals/mobile/_master-plan_/phase-2/details/755-mobile-faq-and-clip-how-to.md)           | Codex 5.3 | done    |
+| P2.5.4  | [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md) | Codex 5.3 | done    |
 
-Locked decisions live in
-[00-SUMMARY.md](/.llm/plans/active/mobile-p2-make-clip/00-SUMMARY.md). The load-bearing ones: times
+Locked decisions for this set are captured in the implemented details. The load-bearing ones: times
 are captured from the playhead and never typed; visibility is three chips matching the API's three
 sharable statuses; the queue **holds** the now-playing item while authoring rather than looping it as
 the previous generation did; create and update require a membership while delete does not; and the
@@ -227,6 +243,57 @@ recorded as a known gap in 756, not assumed parity.
 
 **Deliberately not in this area:** the rest of the previous generation's FAQ (the two open-source
 answers), the other P2.1.12 static screens, and any clip authoring on web beyond what already ships.
+
+### Implemented steps — P2.1.4 Alternate enclosures
+
+Mobile now matches web parity for preferred-type seeding, source picker, and enclosure-switch
+resume. The implementation plan set is complete and removed from active planning.
+
+| Step   | Detail                                                                                                                             | Model     | Status  |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| P2.1.4 | [765-enclosure-selection-session-state](/docs/proposals/mobile/_master-plan_/phase-2/details/765-enclosure-selection-session-state.md) | Opus 5 | done |
+| P2.1.4 | [766-enclosure-source-picker](/docs/proposals/mobile/_master-plan_/phase-2/details/766-enclosure-source-picker.md)                 | Codex 5.3 | done |
+| P2.1.4 | [767-enclosure-switch-and-downloads](/docs/proposals/mobile/_master-plan_/phase-2/details/767-enclosure-switch-and-downloads.md)   | Opus 5    | done |
+
+Locked decisions were captured in the alternate-enclosures plan set before closeout.
+
+### Implemented steps — P2.1.4 Medium player + video surface
+
+Enclosure-driven video surface (web `isNonLiveVideoPlaying` parity) and music transport chrome are
+implemented. The plan set is complete and removed from active planning.
+
+| Step   | Detail                                                                                                                             | Model     | Status  |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| P2.1.4 | [768-enclosure-driven-video-surface](/docs/proposals/mobile/_master-plan_/phase-2/details/768-enclosure-driven-video-surface.md)   | Opus 5    | done |
+| P2.1.4 | [769-music-player-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/769-music-player-chrome.md)                         | Codex 5.3 | done |
+
+Locked decisions were captured in the medium-player plan set before closeout. No video channel or
+video detail screens — Video medium stays on podcast/episode UX.
+
+### Implemented steps — P2.1.6 Playlists
+
+Web (`apps/web/src/app/playlists/`, `apps/web/src/app/playlist/`) is the behavior authority; no
+legacy screenshots were provided for this area. Plan set:
+`.llm/plans/completed/06-mobile-p2-playlists/`. Executed after queue work (757–759): playlist
+reorder reuses long-press drag on `ReorderableSections` and the drop → first / last / between
+resolver.
+
+| Step   | Detail                                                                                                                                           | Model     | Status  |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ------- |
+| P2.1.6 | [771-playlist-data-layer-and-offline-cache](/docs/proposals/mobile/_master-plan_/phase-2/details/771-playlist-data-layer-and-offline-cache.md) | Codex 5.3 | done |
+| P2.1.6 | [772-library-playlists-list](/docs/proposals/mobile/_master-plan_/phase-2/details/772-library-playlists-list.md)                               | Codex 5.3 | done |
+| P2.1.6 | [773-playlist-detail-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/773-playlist-detail-parity.md)                               | Codex 5.3 | done |
+| P2.1.6 | [774-playlist-edit-items-reorder-and-remove](/docs/proposals/mobile/_master-plan_/phase-2/details/774-playlist-edit-items-reorder-and-remove.md) | Opus 5  | done |
+| P2.1.6 | [775-playlist-form-parity-and-delete](/docs/proposals/mobile/_master-plan_/phase-2/details/775-playlist-form-parity-and-delete.md)             | Codex 5.3 | done |
+| P2.1.6 | [776-add-to-playlist-sheet-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/776-add-to-playlist-sheet-parity.md)                   | Codex 5.3 | done |
+
+Locked decisions: `.llm/plans/completed/06-mobile-p2-playlists/00-SUMMARY.md`. Library = My / Followed
+chips (existing endpoints); Browse keeps public discovery; membership for mutations; offline-first
+`playlistRepository`; owner edit-items mode with long-press drag + swipe remove; row tap plays.
+
+Deferred from this area into Track P2.3: Liked playlists / row likes ([777](/docs/proposals/mobile/_master-plan_/phase-2/details/777-defer-liked-playlist-and-row-likes.md)),
+public sorts beyond top and Library medium filter
+([778](/docs/proposals/mobile/_master-plan_/phase-2/details/778-defer-playlist-medium-and-public-sort.md)).
 
 ## Track P2.2 — Visual polish (absorbs Phase 1 Track 23)
 
@@ -265,11 +332,13 @@ doc written except where noted.
 | P2.3.12 | new          | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md) — tablet left rail and missing mini player                              | Opus 5    |
 | P2.3.13 | new          | [894-schedule-cross-app-comments](/docs/proposals/mobile/_master-plan_/phase-2/details/894-schedule-cross-app-comments.md) — Podcasting 2.0 cross-app comments                                   | Opus 5    |
 | P2.3.14 | new          | [728-defer-channel-auto-download](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md) — per-channel auto-download (placeholder on podcast settings)         | Auto      |
-| P2.3.15 | new          | [729-defer-video-music-channel-visuals](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md) — video/music channel visuals from website                | Auto      |
+| P2.3.15 | new          | [729-defer-video-music-channel-visuals](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md) — **music half superseded** by 762–764; video half stays deferred (podcast/episode UX) | Auto      |
 | P2.3.16 | new          | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md) — Clear cache / expo-image / concurrency pref                     | Auto      |
 | P2.3.17 | new          | [745-defer-mobile-add-by-rss-playback-recording](/docs/proposals/mobile/_master-plan_/phase-2/details/745-defer-mobile-add-by-rss-playback-recording.md) — mobile records no add-by-RSS playback | Opus 5    |
 | P2.3.18 | new          | [746-defer-handoff-dismissal-memory](/docs/proposals/mobile/_master-plan_/phase-2/details/746-defer-handoff-dismissal-memory.md) — one dismissal slot, re-prompts when the other device plays on | Opus 5    |
 | P2.3.19 | new          | [751-defer-player-volume-slider](/docs/proposals/mobile/_master-plan_/phase-2/details/751-defer-player-volume-slider.md) — device volume in the player More sheet needs a native module          | Auto      |
+| P2.3.20 | new          | [777-defer-liked-playlist-and-row-likes](/docs/proposals/mobile/_master-plan_/phase-2/details/777-defer-liked-playlist-and-row-likes.md) — Liked playlists + per-row like toggles (cross-cutting) | Codex 5.3 |
+| P2.3.21 | new          | [778-defer-playlist-medium-and-public-sort](/docs/proposals/mobile/_master-plan_/phase-2/details/778-defer-playlist-medium-and-public-sort.md) — public sorts beyond top; Library AV/Music filter | Codex 5.3 |
 
 **P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components must
 be screen reader accessible when they land, per
@@ -310,7 +379,13 @@ screen work depends on, and they change contracts beyond `apps/mobile` (API, ORM
 | P2.4.9  | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                       | Opus 5 | done   |
 | P2.4.10 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                         | Opus 5 | done   |
 | P2.4.11 | [743-offline-playback-reconciliation](/docs/proposals/mobile/_master-plan_/phase-2/details/743-offline-playback-reconciliation.md)       | Opus 5 | done   |
-| P2.4.12 | [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)           | Opus 5 | done   |
+| P2.4.12 | [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)           | Opus 5 | done    |
+| P2.4.13 | [760-shared-medium-route-kind](/docs/proposals/mobile/_master-plan_/phase-2/details/760-shared-medium-route-kind.md)                   | Codex 5.3 | done    |
+| P2.4.13 | [761-channel-detail-shell-and-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/761-channel-detail-shell-and-prefs.md)       | Codex 5.3 | done    |
+
+**P2.4.13 (medium foundations)** is complete and shares route-kind vocabulary across web and mobile.
+It remains the prerequisite for music detail.
+No Home `videos` chip; subscribed video channels stay under `podcasts` (web `av`).
 
 **P2.4.11 and P2.4.12 are complete, and they are foundational correctness work.** Playback
 reconciliation now records meaningful-event timestamps across writes, persists offline playback in a
@@ -387,7 +462,8 @@ deliberate parity choice rather than a correctness requirement.
 | P2.5.1 | [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md)       | Opus 5    | done    | P2.4.4     |
 | P2.5.2 | [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)         | Codex 5.3 | done    | P2.1.1     |
 | P2.5.3 | [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)         | Opus 5    | done    | P2.4.6     |
-| P2.5.4 | [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md) | Codex 5.3 | planned | P2.1.12    |
+| P2.5.4 | [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md) | Codex 5.3 | done    | P2.1.12    |
+| P2.5.5 | [770-web-medium-route-kind-counterpart](/docs/proposals/mobile/_master-plan_/phase-2/details/770-web-medium-route-kind-counterpart.md) | Codex 5.3 | done    | P2.4.13 |
 
 Web changes also live inside two P2.4 steps rather than as separate entries: the shared tier resolver
 in P2.4.1 refactors web's `useMembershipGate`, and the notifications rename in P2.4.5 touches web's
@@ -395,7 +471,9 @@ inbox, bell badge, and hooks.
 
 **Intentional divergences — recorded, not accidental.** Mobile subscriptions are local-first and work
 signed out; web's stay account-backed. Mobile's Home is subscribed-only with media-type chips; web
-keeps its type selector and server pagination. Neither is a parity gap.
+keeps its type selector and server pagination. Mobile Browse has a `videos` chip while web's
+`/videos` stays "Coming soon" and Home on both lumps video under podcasts / `av`. Neither is a
+parity gap for this phase.
 
 ## Appendix — Phase 2 detail index
 
@@ -463,16 +541,35 @@ above whenever status changes, per
 | [740-home-empty-discovery-ctas](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md)                                   | P2.1.1  | Codex 5.3 | done          |
 | [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | P2.1.1  | Codex 5.3 | done          |
 | [728-defer-channel-auto-download](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md)                               | P2.3.14 | Auto      | deferred      |
-| [729-defer-video-music-channel-visuals](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md)                   | P2.3.15 | Auto      | deferred      |
+| [729-defer-video-music-channel-visuals](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md)                   | P2.3.15 | Auto      | music half superseded (762–764); video half deferred |
 | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md)                                 | P2.3.12 | Opus 5    | deferred      |
 | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md)                                   | P2.3.7  | Codex 5.3 | deferred      |
 | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)                                   | P2.3.10 | Opus 5    | deferred      |
 | [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md)  | P2.3.11 | Auto      | deferred      |
-| [752-mobile-make-clip-authoring](/docs/proposals/mobile/_master-plan_/phase-2/details/752-mobile-make-clip-authoring.md)                                 | P2.1.4  | Opus 5    | planned       |
-| [753-clip-authoring-playback-hold](/docs/proposals/mobile/_master-plan_/phase-2/details/753-clip-authoring-playback-hold.md)                             | P2.1.4  | Opus 5    | planned       |
-| [754-server-managed-copy-endpoint](/docs/proposals/mobile/_master-plan_/phase-2/details/754-server-managed-copy-endpoint.md)                             | P2.1.12 | Codex 5.3 | planned       |
-| [755-mobile-faq-and-clip-how-to](/docs/proposals/mobile/_master-plan_/phase-2/details/755-mobile-faq-and-clip-how-to.md)                                 | P2.1.12 | Codex 5.3 | planned       |
-| [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md)                       | P2.5.4  | Codex 5.3 | planned       |
+| [752-mobile-make-clip-authoring](/docs/proposals/mobile/_master-plan_/phase-2/details/752-mobile-make-clip-authoring.md)                                 | P2.1.4  | Opus 5    | done          |
+| [753-clip-authoring-playback-hold](/docs/proposals/mobile/_master-plan_/phase-2/details/753-clip-authoring-playback-hold.md)                             | P2.1.4  | Opus 5    | done          |
+| [754-server-managed-copy-endpoint](/docs/proposals/mobile/_master-plan_/phase-2/details/754-server-managed-copy-endpoint.md)                             | P2.1.12 | Codex 5.3 | done          |
+| [755-mobile-faq-and-clip-how-to](/docs/proposals/mobile/_master-plan_/phase-2/details/755-mobile-faq-and-clip-how-to.md)                                 | P2.1.12 | Codex 5.3 | done          |
+| [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md)                       | P2.5.4  | Codex 5.3 | done          |
+| [760-shared-medium-route-kind](/docs/proposals/mobile/_master-plan_/phase-2/details/760-shared-medium-route-kind.md)                                     | P2.4.13 | Codex 5.3 | done          |
+| [761-channel-detail-shell-and-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/761-channel-detail-shell-and-prefs.md)                         | P2.4.13 | Codex 5.3 | done          |
+| [762-album-detail-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/762-album-detail-parity.md)                                               | P2.1.2  | Codex 5.3 | done          |
+| [763-artist-detail-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/763-artist-detail-parity.md)                                             | P2.1.2  | Codex 5.3 | done          |
+| [764-track-detail-and-library-routes](/docs/proposals/mobile/_master-plan_/phase-2/details/764-track-detail-and-library-routes.md)                       | P2.1.2  | Codex 5.3 | done          |
+| [765-enclosure-selection-session-state](/docs/proposals/mobile/_master-plan_/phase-2/details/765-enclosure-selection-session-state.md)                   | P2.1.4  | Opus 5    | done          |
+| [766-enclosure-source-picker](/docs/proposals/mobile/_master-plan_/phase-2/details/766-enclosure-source-picker.md)                                       | P2.1.4  | Codex 5.3 | done          |
+| [767-enclosure-switch-and-downloads](/docs/proposals/mobile/_master-plan_/phase-2/details/767-enclosure-switch-and-downloads.md)                         | P2.1.4  | Opus 5    | done          |
+| [768-enclosure-driven-video-surface](/docs/proposals/mobile/_master-plan_/phase-2/details/768-enclosure-driven-video-surface.md)                         | P2.1.4  | Opus 5    | done          |
+| [769-music-player-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/769-music-player-chrome.md)                                               | P2.1.4  | Codex 5.3 | done          |
+| [770-web-medium-route-kind-counterpart](/docs/proposals/mobile/_master-plan_/phase-2/details/770-web-medium-route-kind-counterpart.md)                   | P2.5.5  | Codex 5.3 | done          |
+| [771-playlist-data-layer-and-offline-cache](/docs/proposals/mobile/_master-plan_/phase-2/details/771-playlist-data-layer-and-offline-cache.md)           | P2.1.6  | Codex 5.3 | done       |
+| [772-library-playlists-list](/docs/proposals/mobile/_master-plan_/phase-2/details/772-library-playlists-list.md)                                         | P2.1.6  | Codex 5.3 | done       |
+| [773-playlist-detail-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/773-playlist-detail-parity.md)                                         | P2.1.6  | Codex 5.3 | done       |
+| [774-playlist-edit-items-reorder-and-remove](/docs/proposals/mobile/_master-plan_/phase-2/details/774-playlist-edit-items-reorder-and-remove.md)         | P2.1.6  | Opus 5    | done       |
+| [775-playlist-form-parity-and-delete](/docs/proposals/mobile/_master-plan_/phase-2/details/775-playlist-form-parity-and-delete.md)                       | P2.1.6  | Codex 5.3 | done       |
+| [776-add-to-playlist-sheet-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/776-add-to-playlist-sheet-parity.md)                             | P2.1.6  | Codex 5.3 | done       |
+| [777-defer-liked-playlist-and-row-likes](/docs/proposals/mobile/_master-plan_/phase-2/details/777-defer-liked-playlist-and-row-likes.md)                 | P2.3.20 | Codex 5.3 | deferred      |
+| [778-defer-playlist-medium-and-public-sort](/docs/proposals/mobile/_master-plan_/phase-2/details/778-defer-playlist-medium-and-public-sort.md)           | P2.3.21 | Codex 5.3 | deferred      |
 
 New Phase 2 detail docs use the **700–899** ID band (see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) § Detail ID bands).

@@ -2,20 +2,19 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ComponentType } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 
 import type { DTOChannel } from '@podverse/helpers';
 import { primaryChannelLightboxArtworkUrl, primaryChannelListArtworkUrl } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import { ChannelHeader } from '../../components/channel';
+import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
-import { ListFilterField, MenuSelectChip, SectionChipRow } from '../../components/form';
+import { ListFilterField, MenuSelectChip } from '../../components/form';
 import { Button } from '../../components/primitives/Button';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { ListEmpty } from '../../components/state/ListEmpty';
-import { LoadingSection } from '../../components/state/LoadingSection';
 import { channelSeenRepository } from '../../data/repositories/channelSeenRepository';
 import { downloadsRepository } from '../../data/repositories/downloadsRepository';
 import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
@@ -50,7 +49,6 @@ import {
   writePodcastDetailTab,
 } from '../../prefs/detailListPrefs';
 import { isOfflineModeEnabled, useOfflineMode } from '../../prefs/offlineMode';
-import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import {
   channelHasPodroll,
@@ -110,12 +108,12 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
  * different endpoints and different row shapes, and a single list that tried to serve all of them
  * would branch on section in every callback.
  *
- * Actions on the channel as a whole (share, notifications, settings) belong in the stack header
- * rather than in the body, so they stay reachable while the list is scrolled.
+ * Actions on the channel as a whole live with the channel identity block so the same affordances
+ * can be shared across podcast, album, and artist screens.
  */
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { podcastId, previewImageUrl, previewTitle } = route.params;
@@ -180,25 +178,20 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        chipRow: {
-          marginTop: listHeaderStackGap(tokens.spacing),
+        channelActions: {
+          gap: tokens.spacing.sm,
         },
-        container: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          flex: 1,
-        },
-        headerActions: {
+        channelActionRow: {
           alignItems: 'center',
           flexDirection: 'row',
+          flexWrap: 'wrap',
+          marginHorizontal: -tokens.spacing.sm,
         },
-        pinnedChrome: {
-          ...screenBodyInsets(tokens.spacing),
-        },
-        sectionBody: {
-          flex: 1,
+        subscribeButtonRow: {
+          alignItems: 'flex-start',
         },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   const authContext = useMemo(
@@ -385,40 +378,32 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
 
   const isSignedIn = status === 'authenticated';
   /**
-   * Settings are only offered once there is something to settle: an account to hold the choices and
-   * a subscription that makes them worth holding. The bell and share stay unconditional, so a
-   * signed-out visitor still has both a way to pass the podcast on and a way to find out what
-   * following it would give them.
+   * Settings are offered once there is something to settle: an account to hold the choices and a
+   * subscription that makes them worth holding.
    */
   const canOpenSettings = isSignedIn && isSubscribed;
   const notificationsEnabled = notifications.isEnabled;
   const toggleNotifications = notifications.toggleEnabled;
 
+  const handleShare = useCallback(() => {
+    shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
+  }, [podcastId]);
+
+  const openExternalUrl = useCallback(async (href: string) => {
+    try {
+      await Linking.openURL(href);
+    } catch {
+      // The controls are optional conveniences; failing to open leaves the screen usable.
+    }
+  }, []);
+
+  const feedUrl = channel?.feed?.url ?? null;
+  const websiteUrl = channel?.channel_about?.website_link_url ?? null;
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View style={styles.headerActions}>
-          <HeaderBarAction
-            accessibilityLabel={t('features.share')}
-            icon="share-outline"
-            onPress={() => {
-              shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
-            }}
-            testID="podcast-detail-share"
-          />
-          <HeaderBarAction
-            accessibilityLabel={t(
-              notificationsEnabled
-                ? 'features.notifications.disable_notifications_for_this_podcast'
-                : 'features.notifications.enable_notifications_for_this_podcast'
-            )}
-            icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
-            onPress={() => {
-              void toggleNotifications();
-            }}
-            testID="podcast-detail-notifications-toggle"
-          />
-          {canOpenSettings ? (
+      headerRight: canOpenSettings
+        ? () => (
             <HeaderBarAction
               accessibilityLabel={t('nav.stack.podcast_settings')}
               icon="settings-outline"
@@ -427,19 +412,10 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
               }}
               testID="podcast-detail-settings"
             />
-          ) : null}
-        </View>
-      ),
+          )
+        : undefined,
     });
-  }, [
-    canOpenSettings,
-    navigation,
-    notificationsEnabled,
-    podcastId,
-    styles.headerActions,
-    t,
-    toggleNotifications,
-  ]);
+  }, [canOpenSettings, navigation, podcastId, t]);
 
   /**
    * Subscribing has three behaviors and unsubscribing has one.
@@ -618,16 +594,60 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const channelHeader = (
     <ChannelHeader
       actions={
-        <Button
-          label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
-          loading={isSavingSubscription}
-          onPress={() => {
-            void handleSubscriptionToggle();
-          }}
-          size="sm"
-          testID="podcast-detail-subscribe-toggle"
-          variant="outline"
-        />
+        <View style={styles.channelActions}>
+          <View style={styles.subscribeButtonRow}>
+            <Button
+              label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
+              loading={isSavingSubscription}
+              onPress={() => {
+                void handleSubscriptionToggle();
+              }}
+              size="sm"
+              testID="podcast-detail-subscribe-toggle"
+              variant="outline"
+            />
+          </View>
+          <View style={styles.channelActionRow}>
+            <HeaderBarAction
+              accessibilityLabel={t(
+                notificationsEnabled
+                  ? 'features.notifications.disable_notifications_for_this_podcast'
+                  : 'features.notifications.enable_notifications_for_this_podcast'
+              )}
+              icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
+              onPress={() => {
+                void toggleNotifications();
+              }}
+              testID="podcast-detail-notifications-toggle"
+            />
+            <HeaderBarAction
+              accessibilityLabel={t('features.share')}
+              icon="share-outline"
+              onPress={handleShare}
+              testID="podcast-detail-share"
+            />
+            {feedUrl !== null && feedUrl.length > 0 ? (
+              <HeaderBarAction
+                accessibilityLabel={t('info.rss_feed')}
+                icon="logo-rss"
+                onPress={() => {
+                  void openExternalUrl(feedUrl);
+                }}
+                testID="podcast-detail-rss"
+              />
+            ) : null}
+            {websiteUrl !== null && websiteUrl.length > 0 ? (
+              <HeaderBarAction
+                accessibilityLabel={t('info.website')}
+                icon="globe-outline"
+                onPress={() => {
+                  void openExternalUrl(websiteUrl);
+                }}
+                testID="podcast-detail-website"
+              />
+            ) : null}
+          </View>
+        </View>
       }
       artworkUri={artworkUri}
       notice={subscriptionNoticeKey === null ? null : t(subscriptionNoticeKey)}
@@ -635,42 +655,6 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       title={headerTitle}
       viewerUri={primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? artworkUri}
     />
-  );
-
-  const pinnedChrome = (
-    <View style={styles.pinnedChrome}>
-      {channelHeader}
-      <View style={styles.chipRow}>
-        <SectionChipRow
-          items={sectionChips}
-          leading={
-            sortEnabled ? (
-              <>
-                <MenuSelectChip
-                  heading={t('filters.screen.sort_heading')}
-                  onSelect={handleSortSelect}
-                  options={sortOptions}
-                  testID="podcast-detail-sort"
-                  value={sort}
-                />
-                {sort === 'top' ? (
-                  <MenuSelectChip
-                    heading={t('filters.screen.range_heading')}
-                    onSelect={handleRangeSelect}
-                    options={rangeOptions}
-                    testID="podcast-detail-range"
-                    value={range}
-                  />
-                ) : null}
-              </>
-            ) : undefined
-          }
-          onSelect={handleSectionSelect}
-          selectedKey={section}
-          testID="podcast-detail-sections"
-        />
-      </View>
-    </View>
   );
 
   const listHeader = isFilterableSection(section) ? (
@@ -687,38 +671,57 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const SectionPane = SECTION_COMPONENTS[section];
   const sectionUnavailableOffline =
     offlineModeEnabled && isPodcastSectionUnavailableOffline(section);
+  const sectionBody = sectionUnavailableOffline ? (
+    <ListEmpty
+      messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+      testID="podcast-detail-offline-unavailable"
+    />
+  ) : (
+    <SectionPane
+      channel={channel}
+      channelIdText={podcastId}
+      filterTerm={filterTerm}
+      isChannelLoading={isChannelLoading}
+      listHeader={listHeader}
+      onRefreshChannel={loadChannel}
+      range={range}
+      sort={sort}
+    />
+  );
+
+  const chipLeading = sortEnabled ? (
+    <>
+      <MenuSelectChip
+        heading={t('filters.screen.sort_heading')}
+        onSelect={handleSortSelect}
+        options={sortOptions}
+        testID="podcast-detail-sort"
+        value={sort}
+      />
+      {sort === 'top' ? (
+        <MenuSelectChip
+          heading={t('filters.screen.range_heading')}
+          onSelect={handleRangeSelect}
+          options={rangeOptions}
+          testID="podcast-detail-range"
+          value={range}
+        />
+      ) : null}
+    </>
+  ) : undefined;
 
   return (
-    <View style={styles.container} testID="podcast-detail-screen">
-      {isSectionHydrated ? (
-        <>
-          {pinnedChrome}
-          <View style={styles.sectionBody}>
-            {sectionUnavailableOffline ? (
-              <ListEmpty
-                messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
-                testID="podcast-detail-offline-unavailable"
-              />
-            ) : (
-              <SectionPane
-                channel={channel}
-                channelIdText={podcastId}
-                filterTerm={filterTerm}
-                isChannelLoading={isChannelLoading}
-                listHeader={listHeader}
-                onRefreshChannel={loadChannel}
-                range={range}
-                sort={sort}
-              />
-            )}
-          </View>
-        </>
-      ) : (
-        <>
-          <View style={styles.pinnedChrome}>{channelHeader}</View>
-          <LoadingSection testID="podcast-detail-section-loading" />
-        </>
-      )}
-    </View>
+    <ChannelDetailShell
+      channelHeader={channelHeader}
+      chipLeading={chipLeading}
+      isSectionHydrated={isSectionHydrated}
+      loadingTestID="podcast-detail-section-loading"
+      onSelectSection={handleSectionSelect}
+      sectionBody={sectionBody}
+      sectionChips={sectionChips}
+      sectionsTestID="podcast-detail-sections"
+      selectedSection={section}
+      testID="podcast-detail-screen"
+    />
   );
 }

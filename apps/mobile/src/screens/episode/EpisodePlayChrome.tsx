@@ -11,6 +11,8 @@ import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindo
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
+import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
@@ -85,12 +87,16 @@ export function EpisodePlayChrome({
   const { t, i18n } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { stored } = useEpisodeStoredProgress(episode);
+  const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
+  const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
+  const explicitSelectedParams =
+    activeMediaId === episode.id_text ? enclosureSelectedParams : undefined;
   const {
     isDownloadable,
     remove: removeDownload,
     start: startDownload,
     status: downloadStatus,
-  } = useDownloadAction(episode);
+  } = useDownloadAction(episode, false, { explicitSelectedParams });
   const artworkUri = getItemPrimaryImageUrl(episode);
   const viewerUri = itemHeaderLightboxArtworkCandidates(episode.item_images)[0] ?? artworkUri;
   const episodeTitle = episode.title ?? episode.id_text;

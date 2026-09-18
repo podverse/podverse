@@ -7,7 +7,11 @@ import { formatDateAbbrev } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
-import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
+import {
+  buildMediaRowMoreActions,
+  type MediaRowMoreAction,
+  MediaRowActions,
+} from '../../components/player/MediaRowActions';
 import {
   Badge,
   CoverImage,
@@ -17,6 +21,8 @@ import {
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
+import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import {
   LIST_ROW_ARTWORK_SIZE,
   listRowArtworkGap,
@@ -43,6 +49,8 @@ type HomeFeedRowProps = {
   onMarkAsPlayedPress?: (row: HomeFeedRowData) => void;
   /** When provided, adds a "Share" more-action. */
   onSharePress?: (row: HomeFeedRowData) => void;
+  /** Additional more-menu actions shown before the standard queue/download/share actions. */
+  extraMoreActions?: MediaRowMoreAction[];
   /**
    * The item this row stands for, plus the `testID` the control answers to. Supplying it puts a
    * one-tap download control on the row; the control decides whether there is anything to offer,
@@ -138,6 +146,7 @@ export function HomeFeedRow({
   onAddToPlaylistPress,
   onMarkAsPlayedPress,
   onSharePress,
+  extraMoreActions,
   customActions,
   download,
   isLast = false,
@@ -153,12 +162,18 @@ export function HomeFeedRow({
   const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
   const isLive = row.metadata?.isLive === true;
   const durationLabel = useDurationLabel(row.duration, isLive);
+  const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
+  const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
+  const explicitSelectedParams =
+    download !== undefined && activeMediaId === download.item.id_text
+      ? enclosureSelectedParams
+      : undefined;
   const {
     isDownloadable,
     remove: removeDownload,
     start: startDownload,
     status: downloadStatus,
-  } = useDownloadAction(download?.item);
+  } = useDownloadAction(download?.item, false, { explicitSelectedParams });
   const description =
     row.description !== undefined && row.description !== null && row.description.length > 0
       ? row.description
@@ -251,9 +266,8 @@ export function HomeFeedRow({
     [isLast, themeStyles, tokens]
   );
 
-  const moreActions = useMemo(
-    () =>
-      buildMediaRowMoreActions(
+  const moreActions = useMemo(() => {
+    const standardActions = buildMediaRowMoreActions(
         t,
         {
           onAddToPlaylist:
@@ -295,9 +309,11 @@ export function HomeFeedRow({
           downloadTone: downloadStatus === 'complete' ? 'danger' : undefined,
           idSuffix: `-${row.id}`,
         }
-      ),
-    [
+      );
+    return extraMoreActions !== undefined ? [...extraMoreActions, ...standardActions] : standardActions;
+  }, [
       downloadStatus,
+      extraMoreActions,
       isDownloadable,
       onAddToPlaylistPress,
       onMarkAsPlayedPress,
@@ -307,8 +323,7 @@ export function HomeFeedRow({
       row,
       startDownload,
       t,
-    ]
-  );
+    ]);
 
   return (
     <Pressable

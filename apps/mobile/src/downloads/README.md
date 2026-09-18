@@ -6,8 +6,8 @@ index and API access live in `src/data/` (`downloadsRepository`). See mobile-onl
 
 ## Eligibility gate
 
-`isItemDownloadable(item)` decides whether an item can be downloaded and, if so, which progressive
-source to fetch. It **rejects**:
+`isItemDownloadable(item, selectedParams?)` decides whether an item can be downloaded and, if so,
+which progressive source to fetch. It **rejects**:
 
 - **Livestreams** — `item.live_item` is set (Podcasting 2.0 live item). Livestreams are streamed,
   not fixed files.
@@ -16,8 +16,10 @@ source to fetch. It **rejects**:
   manifest of segments, not a single downloadable file.
 - **No enclosure** — no enclosure with a usable source URI.
 
-When both an HLS and a progressive enclosure exist, the progressive one is selected (audio-first,
-matching mobile playback). Selection reuses `@podverse/helpers/item/itemEnclosure`
+When both an HLS and a progressive enclosure exist, the default path chooses the progressive one
+(audio-first, matching mobile playback). If an explicit enclosure selection is passed (for the
+active session item), that selected source is used when progressive; selected HLS remains
+non-downloadable. Selection reuses `@podverse/helpers/item/itemEnclosure`
 (`buildLabeledItemEnclosures`) so URI / media-type / extension logic stays identical to web.
 
 **Progressive formats (first-class):** audio `mp3 aac opus m4a ogg wav`, video `mp4 m4v webm mov
@@ -71,10 +73,11 @@ with progress callbacks, writing to app-private `documentDirectory`. Path layout
 
 ## Playback from download
 
-`resolvePlaybackUrl(item)` (in `src/lib/playback/resolvePlaybackUrl.ts`) prefers a **completed local
-file** (`file://` from `documentDirectory`) and falls back to the remote enclosure. Only progressive
-files ever have a download row. If a `complete` row's file is missing on disk, the row is flipped to
-`failed` and playback falls back to remote for that attempt.
+`resolvePlaybackUrl(item, selectedParams)` (in `src/lib/playback/resolvePlaybackUrl.ts`) prefers a
+**completed local file** (`file://` from `documentDirectory`) and falls back to the remote enclosure
+selected from the session's labeled-enclosure params. Only progressive files ever have a download
+row. If a `complete` row's file is missing on disk, the row is flipped to `failed` and playback
+falls back to remote for that attempt.
 
 ## Storage quota + auto-free
 

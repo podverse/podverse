@@ -1,0 +1,91 @@
+appId: com.podverse.app.next
+name: Alternate Enclosure Flow
+---
+# Verifies source-picker wiring when a multi-enclosure fixture is available.
+# The flow still passes against single-enclosure fixtures and only runs switch
+# assertions when the Source action exists.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- openLink: podverse-next://podcast/e2ePodChnl001/episode/e2ePodResume03
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: episode-detail-play-chrome
+
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-play-pause
+- takeScreenshot: alternate-enclosure-full-player
+
+- tapOn:
+    id: full-player-more
+- extendedWaitUntil:
+    visible:
+      id: full-player-more-sheet
+    timeout: ${TIMEOUT_FAST}
+
+- runFlow:
+    when:
+      visible:
+        id: full-player-more-source
+    commands:
+      - tapOn:
+          id: full-player-more-source
+      - extendedWaitUntil:
+          visible:
+            id: full-player-source-picker-enclosures
+          timeout: ${TIMEOUT_FAST}
+      - assertVisible:
+          id: full-player-source-picker-enclosure-0
+      - assertVisible:
+          id: full-player-source-picker-enclosure-1
+      - takeScreenshot: alternate-enclosure-picker-enclosures
+      - tapOn:
+          id: full-player-source-picker-enclosure-1
+      - runFlow:
+          when:
+            visible:
+              id: full-player-source-picker-sources
+          commands:
+            - assertVisible:
+                id: full-player-source-picker-source-0
+            - takeScreenshot: alternate-enclosure-picker-sources
+            - tapOn:
+                id: full-player-source-picker-source-0
+      - extendedWaitUntil:
+          visible:
+            id: full-player-screen
+          timeout: ${TIMEOUT_FAST}
+      - assertVisible:
+          id: full-player-play-pause
+      - assertVisible:
+          id: full-player-video-surface
+      - takeScreenshot: alternate-enclosure-after-switch
+
+- runFlow:
+    when:
+      visible:
+        id: full-player-more-sheet
+    commands:
+      - tapOn:
+          id: full-player-more-sheet-cancel
+
+- tapOn:
+    id: full-player-close
+- extendedWaitUntil:
+    visible:
+      id: mini-player
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: playback-active-e2e
+- takeScreenshot: alternate-enclosure-mini-player-active

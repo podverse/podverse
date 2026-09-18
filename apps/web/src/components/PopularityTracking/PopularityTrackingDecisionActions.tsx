@@ -11,12 +11,14 @@ import { getApiRequestService } from '../../factories/apiRequestService';
 import { showToast } from '../Toast/Toast';
 
 type PopularityTrackingDecisionActionsProps = {
+  disabled?: boolean;
   onDecided?: () => void;
   onToggleFullAgreement: () => void;
   showFullAgreement: boolean;
 };
 
 export function PopularityTrackingDecisionActions({
+  disabled = false,
   onDecided,
   onToggleFullAgreement,
   showFullAgreement,
@@ -52,16 +54,27 @@ export function PopularityTrackingDecisionActions({
         })}
       </p>
       <div>
-        <Button type="button" variant="primary" onClick={() => void handleDecision(true)}>
+        <Button
+          type="button"
+          variant="primary"
+          disabled={disabled}
+          onClick={() => void handleDecision(true)}
+        >
           {t('yes')}
         </Button>
-        <Button type="button" variant="secondary" onClick={() => void handleDecision(false)}>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onClick={() => void handleDecision(false)}
+        >
           {t('no')}
         </Button>
         <Button
           type="button"
           variant="secondary"
           aria-expanded={showFullAgreement}
+          disabled={disabled}
           onClick={onToggleFullAgreement}
         >
           {showFullAgreement ? t('back_to_choice') : t('learn_more')}

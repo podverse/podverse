@@ -1,23 +1,27 @@
 import type { ReactNode } from 'react';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { DTOPlaylist } from '@podverse/helpers';
+import type { AddByRSSResourceData, DTOPlaylist } from '@podverse/helpers';
 
-import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
+import { playlistRepository } from '../../data';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
+import { useAccessTier } from '../../membership/useAccessTier';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * A resource the user wants to append to a playlist. `kind` selects the correct playlist-resource
- * API (item vs clip); mobile supports the two playable kinds that Home / detail lists expose.
- * Soundbite and add-by-RSS resources are not valid targets for this action.
+ * A resource the user wants to insert at the first position in a playlist.
  */
-export type AddToPlaylistTarget = { kind: 'item' | 'clip'; idText: string };
+export type AddToPlaylistTarget =
+  | { kind: 'item' | 'clip' | 'soundbite'; idText: string; medium: 'av' | 'music' }
+  | { kind: 'add-by-rss'; medium: 'av' | 'music'; resourceData: AddByRSSResourceData };
 
 const FIRST_PAGE = 1;
 
@@ -30,15 +34,16 @@ type UseAddToPlaylist = {
 
 /**
  * Shared "Add to playlist" affordance (9d.4). Returns an imperative opener plus a bottom-sheet
- * element the caller renders once. The sheet lists the account's private playlists and appends the
- * target to the chosen playlist via the `*AddLast` resource API (web-default position). Copy
- * resolves through i18n (`features.playlist.*`); errors are surfaced (no silent catch).
+ * element the caller renders once. The sheet lists owned playlists for the target medium and adds
+ * the resource to the top of the selected playlist.
  */
 export function useAddToPlaylist(): UseAddToPlaylist {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
-  const { handleGateError } = useMembershipGate();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const { handleGateError, openGate } = useMembershipGate();
 
   const [target, setTarget] = useState<AddToPlaylistTarget | null>(null);
   const [playlists, setPlaylists] = useState<DTOPlaylist[]>([]);
@@ -51,18 +56,19 @@ export function useAddToPlaylist(): UseAddToPlaylist {
     [accessToken, clearSession, refreshToken, setTokens]
   );
 
-  const loadPlaylists = useCallback(async () => {
+  const loadPlaylists = useCallback(async (nextTarget: AddToPlaylistTarget) => {
     setIsLoading(true);
     setNoticeKey(null);
     try {
-      const response = await requestWithMobileAuthRefresh(authArgs, async (api) =>
-        api.reqPlaylistGetMany({
-          medium: 'all',
+      const response = await playlistRepository.listOwned(
+        authArgs,
+        {
+          medium: nextTarget.medium,
           page: FIRST_PAGE,
           range: null,
-          sort: 'recent',
-          type: 'private',
-        })
+          sort: 'a_z',
+        },
+        { refresh: true }
       );
       setPlaylists(response.data);
     } catch {
@@ -80,7 +86,7 @@ export function useAddToPlaylist(): UseAddToPlaylist {
       }
       setTarget(next);
       setNoticeKey(null);
-      void loadPlaylists();
+      void loadPlaylists(next);
     },
     [loadPlaylists, status]
   );
@@ -98,11 +104,15 @@ export function useAddToPlaylist(): UseAddToPlaylist {
       setIsSaving(true);
       setNoticeKey(null);
       try {
-        await requestWithMobileAuthRefresh(authArgs, async (api) =>
-          target.kind === 'clip'
-            ? api.reqPlaylistResourceClipAddLast(playlist.id_text, target.idText)
-            : api.reqPlaylistResourceItemAddLast(playlist.id_text, target.idText)
-        );
+        if (target.kind === 'clip') {
+          await playlistRepository.addClipFirst(authArgs, playlist.id_text, target.idText);
+        } else if (target.kind === 'soundbite') {
+          await playlistRepository.addSoundbiteFirst(authArgs, playlist.id_text, target.idText);
+        } else if (target.kind === 'add-by-rss') {
+          await playlistRepository.addAddByRssFirst(authArgs, playlist.id_text, target.resourceData);
+        } else {
+          await playlistRepository.addItemFirst(authArgs, playlist.id_text, target.idText);
+        }
         setNoticeKey('features.playlist.added_to_playlist');
       } catch (error) {
         if (handleGateError(error)) {
@@ -116,6 +126,27 @@ export function useAddToPlaylist(): UseAddToPlaylist {
     },
     [authArgs, closeSheet, handleGateError, isSaving, target]
   );
+
+  const canOpenPlaylistCreate = useMemo(() => {
+    return navigation.getState().routeNames.includes(LIBRARY_STACK_ROUTES.PlaylistCreate);
+  }, [navigation]);
+
+  const handleCreatePlaylist = useCallback(() => {
+    if (status !== 'authenticated') {
+      openGate('needs_account');
+      return;
+    }
+    if (isTierKnown) {
+      const access = evaluateFeature('add_by_rss_add');
+      if (!access.allowed) {
+        openGate(access.reason);
+        return;
+      }
+    }
+
+    closeSheet();
+    navigation.dispatch(CommonActions.navigate({ name: LIBRARY_STACK_ROUTES.PlaylistCreate }));
+  }, [closeSheet, evaluateFeature, isTierKnown, navigation, openGate, status]);
 
   const styles = useMemo(
     () =>
@@ -152,6 +183,7 @@ export function useAddToPlaylist(): UseAddToPlaylist {
           paddingTop: tokens.spacing.sm,
         },
         sheetActions: {
+          gap: tokens.spacing.md,
           paddingHorizontal: tokens.spacing.lg,
           paddingTop: tokens.spacing.md,
         },
@@ -189,12 +221,13 @@ export function useAddToPlaylist(): UseAddToPlaylist {
             </Text>
           ) : null}
           {!isLoading && playlists.length > 0 ? (
-            <ScrollView style={styles.optionsScroll}>
-              {playlists.map((playlist) => (
+            <FlatList
+              data={playlists}
+              keyExtractor={(playlist) => playlist.id_text}
+              renderItem={({ item: playlist }) => (
                 <Pressable
                   accessibilityRole="button"
                   disabled={isSaving}
-                  key={playlist.id_text}
                   onPress={() => {
                     void addToPlaylist(playlist);
                   }}
@@ -203,8 +236,9 @@ export function useAddToPlaylist(): UseAddToPlaylist {
                 >
                   <Text style={styles.optionText}>{playlist.title ?? playlist.id_text}</Text>
                 </Pressable>
-              ))}
-            </ScrollView>
+              )}
+              style={styles.optionsScroll}
+            />
           ) : null}
           {noticeKey !== null ? (
             <Text style={styles.notice} testID="add-to-playlist-notice">
@@ -212,6 +246,14 @@ export function useAddToPlaylist(): UseAddToPlaylist {
             </Text>
           ) : null}
           <View style={styles.sheetActions}>
+            {canOpenPlaylistCreate ? (
+              <Button
+                label={t('features.playlist.create_playlist')}
+                onPress={handleCreatePlaylist}
+                testID="add-to-playlist-create"
+                variant="secondary"
+              />
+            ) : null}
             <Button
               label={t('misc.close')}
               onPress={closeSheet}

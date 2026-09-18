@@ -27,7 +27,6 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { requestWithMobileAuthRefresh, useAuth } from '../../auth';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
-import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FullPlayerActionRow } from '../../components/player/FullPlayerActionRow';
@@ -99,6 +98,7 @@ import { FullPlayerSpeedControl } from './FullPlayerSpeedControl';
 
 type FullPlayerScreenProps = {
   onClose: () => void;
+  onOpenMakeClip: (params: { mode: 'create' } | { mode: 'edit'; clipId: string }) => void;
   /** Navigate to the Library queue screen. */
   onOpenQueue: () => void;
   /** Navigate to the V4V information screen. */
@@ -202,14 +202,20 @@ const hasSectionsForTarget = (target: PlaybackTarget | null): boolean => {
   return itemFromTarget(target) !== null;
 };
 
-export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayerScreenProps) {
+export function FullPlayerScreen({
+  onClose,
+  onOpenMakeClip,
+  onOpenQueue,
+  onOpenV4v,
+}: FullPlayerScreenProps) {
   const { t } = useTranslation();
   const { isTablet } = useResponsive();
   const insets = useSafeAreaInsets();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { autoQueueActiveRow, autoQueueResources } = useAutoQueue();
+  const { autoQueueActiveRow, autoQueueConfig, autoQueueResources, setAutoQueueConfig } =
+    useAutoQueue();
   const { fetchPrimaryQueue } = usePrimaryQueue();
   const { fetchUpcoming } = useQueueResources();
   const { markAsPlayed } = useQueueMutations();
@@ -218,6 +224,8 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
   const {
     activeTarget,
+    enclosureSelectedParams,
+    itemLabeledEnclosures,
     jumpBy,
     nowPlaying,
     pause,
@@ -230,6 +238,7 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
     skipToNextTrack,
     skipToPrevious,
     skipToPreviousTrack,
+    switchEnclosureSelectedParams,
     transportState,
   } = usePlaybackSession();
   const { chapters } = useNowPlayingChapters();
@@ -240,7 +249,6 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
   const [viewportWidth, setViewportWidth] = useState(0);
   const [chipStripHeight, setChipStripHeight] = useState(FULL_PLAYER_CHIP_HEADER_HEIGHT);
   const [openSheet, setOpenSheet] = useState<FullPlayerSheet>(null);
-  const [showCreateClipNotice, setShowCreateClipNotice] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isMarkedPlayed, setIsMarkedPlayed] = useState(false);
   const [isCondensed, setIsCondensed] = useState(false);
@@ -312,6 +320,7 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
     [autoQueueActiveRow, autoQueueResources]
   );
   const canSkipToNext = hasNextQueueItem(manualUpcomingCount, autoUpcomingCount);
+  const isMusicNowPlaying = activeTarget?.kind === 'item-music';
   const episodeHasChaptersForTrackButtons = hasEpisodeChaptersForTrackButtons(
     activeTarget,
     chapters
@@ -679,6 +688,20 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
   const handlePause = () => {
     pause();
   };
+
+  const handleToggleShuffle = useCallback(() => {
+    setAutoQueueConfig({
+      ...autoQueueConfig,
+      random: !autoQueueConfig.random,
+    });
+  }, [autoQueueConfig, setAutoQueueConfig]);
+
+  const handleToggleRepeat = useCallback(() => {
+    setAutoQueueConfig({
+      ...autoQueueConfig,
+      repeat: !autoQueueConfig.repeat,
+    });
+  }, [autoQueueConfig, setAutoQueueConfig]);
 
   const handleRetry = () => {
     void retryPlayback();
@@ -1109,6 +1132,9 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
           <FullPlayerTransportRow
             hasEpisodeChaptersForTrackButtons={episodeHasChaptersForTrackButtons}
             hasNextQueueItem={canSkipToNext}
+            isMusicNowPlaying={isMusicNowPlaying}
+            isRepeatEnabled={autoQueueConfig.repeat}
+            isShuffleEnabled={autoQueueConfig.random}
             onJumpBack={() => {
               jumpBy(-MEDIA_JUMP_BACK_SECONDS);
             }}
@@ -1130,6 +1156,8 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
             onSkipToPreviousTrack={() => {
               void skipToPreviousTrack();
             }}
+            onToggleRepeat={handleToggleRepeat}
+            onToggleShuffle={handleToggleShuffle}
             state={transportState}
           />
 
@@ -1158,7 +1186,14 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
         onAddToPlaylist={handleAddToPlaylist}
         onClose={onClose}
         onCreateClip={() => {
-          setShowCreateClipNotice(true);
+          if (isTierKnown) {
+            const access = evaluateFeature('clip_authoring');
+            if (!access.allowed) {
+              openGate(access.reason);
+              return;
+            }
+          }
+          onOpenMakeClip({ mode: 'create' });
         }}
         onOpenQueue={onOpenQueue}
         onOpenV4v={onOpenV4v}
@@ -1273,23 +1308,15 @@ export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayer
       <FullPlayerSpeedControl onCancel={handleCloseSheet} visible={openSheet === 'speed'} />
       <FullPlayerMoreSheet
         canToggleSubscription={canToggleSubscription}
+        enclosureSelectedParams={enclosureSelectedParams}
+        itemLabeledEnclosures={itemLabeledEnclosures}
         isMarkedPlayed={isMarkedPlayed}
         isSubscribed={isSubscribed}
         onCancel={handleCloseSheet}
+        onSelectEnclosureParams={switchEnclosureSelectedParams}
         onTogglePlayed={handleMarkAsPlayed}
         onToggleSubscription={handleToggleSubscription}
         visible={openSheet === 'more'}
-      />
-      <ConfirmDialog
-        body={t('misc.not_available_yet')}
-        cancelLabel={t('misc.close')}
-        cancelTestID="full-player-create-clip-close"
-        onCancel={() => {
-          setShowCreateClipNotice(false);
-        }}
-        testID="full-player-create-clip-dialog"
-        title={t('features.clip.create_clip')}
-        visible={showCreateClipNotice}
       />
       {addToPlaylistSheet}
     </View>

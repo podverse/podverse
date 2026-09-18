@@ -23,6 +23,10 @@ import type {
   DTOQueueResource,
 } from '@podverse/helpers/dto';
 import { getErrorCode } from '@podverse/helpers/error';
+import type {
+  EnclosureSelectedParams,
+  LabeledItemEnclosure,
+} from '@podverse/helpers/item/itemEnclosure';
 import type { PlaybackEventKind } from '@podverse/helpers/playbackEvents';
 import {
   PLAYBACK_POSITION_LOCAL_INTERVAL_MS,
@@ -37,6 +41,10 @@ import type {
   MusicItemPlaybackIntent,
   PlaybackLoadDecision,
   PlaybackTarget,
+} from '@podverse/playback-core';
+import {
+  buildEnclosureSwitchPlaybackDecisionIfChanged,
+  resolveResumeAtSecondsForEnclosureSwitch,
 } from '@podverse/playback-core';
 import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNearEndSeconds';
 import { resolveQueueAdvance } from '@podverse/playback-core/resolveQueueAdvance';
@@ -80,9 +88,17 @@ import {
   writeLastPlaybackSnapshot,
 } from '../lib/playback/lastPlaybackStorage';
 import { resolveMediaFileDurationHintSeconds } from '../lib/playback/mediaFileDurationHint';
+import {
+  DEFAULT_ENCLOSURE_SELECTED_PARAMS,
+  buildItemLabeledEnclosures,
+  resolveItemEnclosureUrl,
+  resolveSelectedItemEnclosureMediaType,
+  resolveSessionEnclosureSelectedParams,
+} from '../lib/playback/resolveEnclosureUrl';
 import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
 import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
 import { getPref, setPref } from '../prefs/prefsStore';
+import { readPlaybackMediaTypePref } from '../prefs/preferredMediaType';
 import {
   readPlaybackReconcileConflicts,
   subscribePlaybackReconcileConflicts,
@@ -278,6 +294,13 @@ const itemFromTarget = (target: PlaybackTarget): DTOItem | null => {
   }
 };
 
+const itemIdFromTarget = (target: PlaybackTarget | null): string | null => {
+  if (target === null || target.kind === 'add-by-rss') {
+    return null;
+  }
+  return target.item?.id_text ?? null;
+};
+
 const seekBoundsFromTarget = (
   target: PlaybackTarget,
   durationSeconds: number,
@@ -370,8 +393,11 @@ export type PlaybackContextValue = {
   positionSeconds: number;
   durationSeconds: number;
   playbackRate: number;
-  /** Audio-first play notice key (e.g. missing enclosure, unavailable livestream). */
+  /** Playback notice key (e.g. missing enclosure, unavailable livestream). */
   noticeKey: string | null;
+  enclosureSelectedParams: EnclosureSelectedParams;
+  itemLabeledEnclosures: LabeledItemEnclosure[];
+  switchEnclosureSelectedParams: (params: EnclosureSelectedParams) => Promise<void>;
   playItem: (
     item: DTOItem,
     channel: DTOChannel,
@@ -393,6 +419,11 @@ export type PlaybackContextValue = {
     kind: 'item' | 'clip',
     playlistIdText: string
   ) => Promise<void>;
+  beginAuthoringHold: () => void;
+  endAuthoringHold: () => void;
+  clearPauseBoundary: () => void;
+  previewWindow: (params: { fromSeconds: number; pauseAtSeconds?: number | null }) => Promise<void>;
+  loadItemPausedAt: (item: DTOItem, channel: DTOChannel, seconds: number) => Promise<void>;
   pause: () => void;
   resume: () => Promise<void>;
   /** Reload the current source after an engine error. */
@@ -468,6 +499,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const [transportState, setTransportState] = useState<PlaybackTransportState>('paused');
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
+  const [itemLabeledEnclosures, setItemLabeledEnclosures] = useState<LabeledItemEnclosure[]>([]);
+  const [enclosureSelectedParams, setEnclosureSelectedParamsState] =
+    useState<EnclosureSelectedParams>(DEFAULT_ENCLOSURE_SELECTED_PARAMS);
   const [playbackHandoffPrompt, setPlaybackHandoffPrompt] =
     useState<PlaybackHandoffPromptState | null>(null);
   const [playbackReconcileConflicts, setPlaybackReconcileConflicts] = useState<
@@ -479,6 +513,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const positionRef = useRef<number>(0);
   const durationRef = useRef<number>(0);
   const pauseAtRef = useRef<number | null>(null);
+  const authoringHoldRef = useRef<boolean>(false);
   const playbackRateRef = useRef<number>(1);
   const advancingRef = useRef<boolean>(false);
   const isPlayingRef = useRef<boolean>(false);
@@ -487,6 +522,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   // means "cannot start yet", never "buffering again mid-episode".
   const sourcePlayableRef = useRef<boolean>(false);
   const lastPlaybackSnapshotWriteRef = useRef<number>(0);
+  const enclosureSelectedParamsRef = useRef<EnclosureSelectedParams>(
+    DEFAULT_ENCLOSURE_SELECTED_PARAMS
+  );
   const previousAuthStatusRef = useRef(status);
   const lastPlaybackLocalWriteRef = useRef<number>(0);
   const lastPlaybackNetworkWriteRef = useRef<number>(0);
@@ -564,6 +602,39 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setPlaybackProgressPlaying(playing);
     setIsPlaying(playing);
   }, []);
+
+  const setEnclosureSelectedParams = useCallback((params: EnclosureSelectedParams): void => {
+    enclosureSelectedParamsRef.current = params;
+    setEnclosureSelectedParamsState(params);
+  }, []);
+
+  const resetEnclosureSelectionSession = useCallback((): void => {
+    setItemLabeledEnclosures([]);
+    setEnclosureSelectedParams(DEFAULT_ENCLOSURE_SELECTED_PARAMS);
+  }, [setEnclosureSelectedParams]);
+
+  const resolvePlaybackSelectionForItem = useCallback(
+    async (item: DTOItem): Promise<{
+      labeledItemEnclosures: LabeledItemEnclosure[];
+      selectedParams: EnclosureSelectedParams;
+    }> => {
+      const labeledItemEnclosures = buildItemLabeledEnclosures(item);
+      const nextCurrentParams =
+        itemIdFromTarget(activeTargetRef.current) === item.id_text
+          ? enclosureSelectedParamsRef.current
+          : DEFAULT_ENCLOSURE_SELECTED_PARAMS;
+      const preferredMediaType = await readPlaybackMediaTypePref();
+      const selectedParams = resolveSessionEnclosureSelectedParams({
+        current: nextCurrentParams,
+        labeledItemEnclosures,
+        preferredMediaType,
+      });
+      setItemLabeledEnclosures(labeledItemEnclosures);
+      setEnclosureSelectedParams(selectedParams);
+      return { labeledItemEnclosures, selectedParams };
+    },
+    [setEnclosureSelectedParams]
+  );
 
   const resolveAuthenticatedAccountIdText = useCallback(async (): Promise<string | null> => {
     if (statusRef.current !== 'authenticated') {
@@ -781,6 +852,18 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [setAutoQueueActiveRow, setAutoQueueConfig, setAutoQueueResources]
   );
 
+  const beginAuthoringHold = useCallback((): void => {
+    authoringHoldRef.current = true;
+  }, []);
+
+  const endAuthoringHold = useCallback((): void => {
+    authoringHoldRef.current = false;
+  }, []);
+
+  const clearPauseBoundary = useCallback((): void => {
+    pauseAtRef.current = null;
+  }, []);
+
   const writeLastPlaybackSnapshotForTarget = useCallback(
     (target: PlaybackTarget, positionValue: number) => {
       const snapshot = lastPlaybackSnapshotFromTarget(
@@ -814,8 +897,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setNowPlaying(null);
     setPlaybackPlaying(false);
     setTransportState('paused');
+    resetEnclosureSelectionSession();
     void clearLastPlaybackSnapshot();
-  }, [setPlaybackPlaying]);
+  }, [resetEnclosureSelectionSession, setPlaybackPlaying]);
 
   const playTarget = useCallback(
     async (
@@ -827,9 +911,14 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         explicitPlaybackSeconds?: number;
         mediaFileDurationHintSeconds?: number;
         autoPlayOverride?: boolean;
+        playbackDecisionOverride?: PlaybackLoadDecision;
+        shouldSkipPlayEventWrite?: boolean;
       }
     ): Promise<void> => {
       setNoticeKey(null);
+      if (target.kind === 'add-by-rss') {
+        resetEnclosureSelectionSession();
+      }
       lastSourceUrlRef.current = params.url;
       sourcePlayableRef.current = false;
       setTransportState('loading');
@@ -843,7 +932,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           },
           params.url,
           playbackRateRef.current,
-          params.autoPlayOverride
+          params.autoPlayOverride,
+          params.playbackDecisionOverride
         );
       } catch {
         setTransportState('error');
@@ -872,7 +962,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       sourcePlayableRef.current = true;
       setTransportState(shouldAutoPlay ? 'playing' : 'paused');
 
-      if (shouldAutoPlay) {
+      if (shouldAutoPlay && params.shouldSkipPlayEventWrite !== true) {
         const statsTargets = decision.shouldRecordPlaybackStat
           ? resolvePlaybackStatsTargets(target)
           : null;
@@ -893,6 +983,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [
       applyAutoQueueDirective,
       applyLoad,
+      resetEnclosureSelectionSession,
       resolvePlaybackStatsTargets,
       setPlaybackPlaying,
       toStatsReplayPayload,
@@ -919,7 +1010,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         setNoticeKey('media_player.livestream_unavailable');
         return;
       }
-      const url = await resolvePlaybackUrl(item);
+      const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
+      const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -937,7 +1029,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
     },
-    [playTarget]
+    [playTarget, resolvePlaybackSelectionForItem]
   );
 
   const startClipPlayback = useCallback(
@@ -952,7 +1044,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride?: boolean;
       }
     ): Promise<void> => {
-      const url = await resolvePlaybackUrl(item);
+      const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
+      const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -970,7 +1063,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
     },
-    [playTarget]
+    [playTarget, resolvePlaybackSelectionForItem]
   );
 
   const startSoundbitePlayback = useCallback(
@@ -985,7 +1078,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride?: boolean;
       }
     ): Promise<void> => {
-      const url = await resolvePlaybackUrl(item);
+      const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
+      const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -1003,7 +1097,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
     },
-    [playTarget]
+    [playTarget, resolvePlaybackSelectionForItem]
   );
 
   const playItem = useCallback(
@@ -1015,6 +1109,22 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       await startItemPlayback(item, channel, {
         autoQueue: { mode: 'clear' },
         intent: options?.intent ?? 'explicit_play',
+      });
+    },
+    [startItemPlayback]
+  );
+
+  const loadItemPausedAt = useCallback(
+    async (item: DTOItem, channel: DTOChannel, seconds: number): Promise<void> => {
+      await startItemPlayback(item, channel, {
+        autoPlayOverride: false,
+        autoQueue: { mode: 'clear' },
+        explicitPlaybackSeconds: Math.max(0, seconds),
+        intent: 'explicit_play',
+        mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
+          undefined,
+          item.item_about.duration
+        ),
       });
     },
     [startItemPlayback]
@@ -1036,7 +1146,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const playChapter = useCallback(
     async (chapter: DTOItemChapter, item: DTOItem, channel: DTOChannel): Promise<void> => {
-      const url = await resolvePlaybackUrl(item);
+      const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
+      const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -1052,7 +1163,60 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
     },
-    [playTarget]
+    [playTarget, resolvePlaybackSelectionForItem]
+  );
+
+  const switchEnclosureSelectedParams = useCallback(
+    async (nextParams: EnclosureSelectedParams): Promise<void> => {
+      const target = activeTargetRef.current;
+      if (target === null || target.kind === 'add-by-rss' || target.kind === 'livestream') {
+        setEnclosureSelectedParams(nextParams);
+        return;
+      }
+
+      const currentParams = enclosureSelectedParamsRef.current;
+      const decision = buildEnclosureSwitchPlaybackDecisionIfChanged({
+        currentEnclosureSelectedParams: currentParams,
+        labeledItemEnclosures: itemLabeledEnclosures,
+        mpClip: target.kind === 'clip' ? target.clip : null,
+        mpItemChapter: target.kind === 'chapter' ? target.chapter : null,
+        mpItemSoundbite: target.kind === 'soundbite' ? target.soundbite : null,
+        nextEnclosureSelectedParams: nextParams,
+        resumeAtSeconds: resolveResumeAtSecondsForEnclosureSwitch(
+          positionRef.current,
+          positionRef.current
+        ),
+      });
+
+      setEnclosureSelectedParams(nextParams);
+      if (decision === null) {
+        return;
+      }
+
+      const nextUrl = resolveItemEnclosureUrl({
+        labeledItemEnclosures: itemLabeledEnclosures,
+        selectedParams: nextParams,
+      });
+      if (nextUrl === null) {
+        setNoticeKey('media_player.no_media');
+        return;
+      }
+
+      await playTarget(target, {
+        autoPlayOverride: isPlayingRef.current,
+        autoQueue: { mode: 'preserve' },
+        explicitPlaybackSeconds: decision.initialSeekSeconds,
+        mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
+          undefined,
+          target.item.item_about.duration
+        ),
+        playbackDecisionOverride: decision,
+        shouldSkipPlayEventWrite: true,
+        summary: summaryFromItem(target.item, target.channel),
+        url: nextUrl,
+      });
+    },
+    [itemLabeledEnclosures, playTarget, setEnclosureSelectedParams]
   );
 
   const playItemByIdWithIntent = useCallback(
@@ -1490,6 +1654,34 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       advancingRef.current = true;
       try {
         const target = activeTargetRef.current;
+        const holdNowPlaying = transitionKind === 'complete' && authoringHoldRef.current;
+        const hasAutoQueueNext = holdNowPlaying ? false : computeHasAutoQueueNext();
+        let activeResource: DTOQueueResource | null = null;
+        let upcomingManualCount = 0;
+        if (!holdNowPlaying) {
+          try {
+            const result = await loadActive(activeQueueRef.current?.medium_id);
+            activeResource = result.activeResource;
+            upcomingManualCount =
+              result.activeResource !== null ? result.upcomingResources.length : 0;
+          } catch (error) {
+            if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+              throw error;
+            }
+          }
+        }
+        const decision = resolveQueueAdvance({
+          hasAutoQueueNext,
+          holdNowPlaying,
+          upcomingManualCount,
+        });
+        if (decision.kind === 'hold') {
+          nativePlaybackBridge.pause();
+          setPlaybackPlaying(false);
+          setTransportState('paused');
+          return;
+        }
+
         const eventKind = playbackEventFromDiscreteSignal(transitionKind);
         const completed = transitionKind === 'complete';
         if (completed) {
@@ -1514,21 +1706,6 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
             }
           }
         }
-
-        let activeResource: DTOQueueResource | null = null;
-        let upcomingManualCount = 0;
-        try {
-          const result = await loadActive(activeQueueRef.current?.medium_id);
-          activeResource = result.activeResource;
-          upcomingManualCount =
-            result.activeResource !== null ? result.upcomingResources.length : 0;
-        } catch (error) {
-          if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
-            throw error;
-          }
-        }
-        const hasAutoQueueNext = computeHasAutoQueueNext();
-        const decision = resolveQueueAdvance({ hasAutoQueueNext, upcomingManualCount });
 
         if (decision.kind === 'play-next-manual' && activeResource !== null) {
           try {
@@ -1796,13 +1973,17 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     };
   }, [reconcileFromNative, writeLastPlaybackSnapshotForTarget, writePlaybackEvent]);
 
-  // Drive the video surface's JS-desired visibility from the playback target kind: only
-  // full video items request the surface; clips/soundbites/chapters and audio podcasts keep it
-  // hidden. The native host additionally gates on real video frames, so a video-medium item playing
-  // an audio enclosure never leaves a black rectangle. No `load`/`destroy` — playhead is untouched.
+  // Drive the video surface from the selected enclosure media type. The native host additionally
+  // gates on real video frames, so mismatched metadata never leaves a black rectangle.
   useEffect(() => {
-    nativePlaybackBridge.setVideoSurfaceVisible(activeTarget?.kind === 'item-video');
-  }, [activeTarget]);
+    const hasActiveNonLiveItem =
+      activeTarget !== null && activeTarget.kind !== 'add-by-rss' && activeTarget.kind !== 'livestream';
+    const selectedMediaType = resolveSelectedItemEnclosureMediaType({
+      labeledItemEnclosures: itemLabeledEnclosures,
+      selectedParams: enclosureSelectedParams,
+    });
+    nativePlaybackBridge.setVideoSurfaceVisible(hasActiveNonLiveItem && selectedMediaType === 'video');
+  }, [activeTarget, enclosureSelectedParams, itemLabeledEnclosures]);
 
   const pause = useCallback(() => {
     nativePlaybackBridge.pause();
@@ -1882,6 +2063,15 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       });
     },
     [writePlaybackEvent]
+  );
+
+  const previewWindow = useCallback(
+    async (params: { fromSeconds: number; pauseAtSeconds?: number | null }): Promise<void> => {
+      pauseAtRef.current = params.pauseAtSeconds ?? null;
+      seekTo(Math.max(0, params.fromSeconds));
+      await resume();
+    },
+    [resume, seekTo]
   );
 
   const resolveChaptersForTarget = useCallback(
@@ -2025,6 +2215,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       isPlaying,
       noticeKey,
       nowPlaying,
+      enclosureSelectedParams,
+      itemLabeledEnclosures,
       pause,
       playChapter,
       playAddByRssResourceData,
@@ -2032,16 +2224,22 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playClipById,
       playItem,
       playItemById,
+      loadItemPausedAt,
       playPlaylistRowById,
       playQueueResourceFromQueue,
       playSoundbite,
       playbackRate,
+      beginAuthoringHold,
+      endAuthoringHold,
+      clearPauseBoundary,
+      previewWindow,
       resume,
       retryPlayback,
       completeNowPlaying,
       jumpBy,
       seekTo,
       setRate,
+      switchEnclosureSelectedParams,
       skipToPrevious,
       skipToPreviousTrack,
       skipToNext,
@@ -2055,6 +2253,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       isPlaying,
       noticeKey,
       nowPlaying,
+      enclosureSelectedParams,
+      itemLabeledEnclosures,
       pause,
       playChapter,
       playAddByRssResourceData,
@@ -2062,14 +2262,20 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playClipById,
       playItem,
       playItemById,
+      loadItemPausedAt,
       playPlaylistRowById,
       playQueueResourceFromQueue,
       playSoundbite,
       playbackRate,
+      beginAuthoringHold,
+      endAuthoringHold,
+      clearPauseBoundary,
+      previewWindow,
       resume,
       retryPlayback,
       seekTo,
       setRate,
+      switchEnclosureSelectedParams,
       skipToNext,
       skipToNextTrack,
       skipToPrevious,

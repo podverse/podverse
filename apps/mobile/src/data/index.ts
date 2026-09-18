@@ -24,16 +24,19 @@ export {
   accountRepository,
   addByRssRepository,
   autoQueueRepository,
+  clipRepository,
   downloadsRepository,
   exampleRepository,
   playbackContentRepository,
   playbackOutboxRepository,
+  playlistRepository,
   queueRepository,
   segmentsRepository,
   selectPrimaryQueue,
   statsRepository,
 } from './repositories';
 export type {
+  CreateClipInput,
   ExampleSnapshot,
   PlaybackLocalStateRecord,
   PlaybackOutboxDrainResult,
@@ -43,6 +46,7 @@ export type {
   MobileAuthRequestContext,
   MoveNowPlayingToHistoryTarget,
   PlaybackStatsTargets,
+  UpdateClipInput,
 } from './repositories';
 export {
   eventKindEmitsRemovalTombstone,

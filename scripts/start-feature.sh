@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Podverse Start Feature Script
-# Creates a properly named git branch (optional LLM history scaffold disabled; see docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md)
+# Creates a properly named git branch.
 
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
@@ -86,9 +86,6 @@ if [[ "$CURRENT_BRANCH" != "develop" && "$CURRENT_BRANCH" != "main" ]]; then
 fi
 
 git checkout -b "$BRANCH"
-
-# Feature branches do not create LLM history files automatically.
-# Add notes manually when the work benefits from a durable history.
 
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"

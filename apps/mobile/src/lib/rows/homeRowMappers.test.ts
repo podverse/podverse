@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { DTOQueueResource } from '@podverse/helpers/dto';
+import type { DTOPlaylistResource, DTOQueueResource } from '@podverse/helpers/dto';
 
 import { safeJsonParse } from '../../data/db/serialization';
-import { queueResourceToHomeRow } from './homeRowMappers';
+import { playlistResourceToHomeRow, queueResourceToHomeRow } from './homeRowMappers';
 
 const toQueueResource = (value: unknown): DTOQueueResource => {
   const parsed = safeJsonParse<DTOQueueResource>(JSON.stringify(value));
@@ -46,6 +46,27 @@ const buildResource = (overrides: Record<string, unknown> = {}): DTOQueueResourc
     media_file_duration: '120',
     playback_position: '0',
     playlist_id: 1,
+    ...overrides,
+  });
+};
+
+const toPlaylistResource = (value: unknown): DTOPlaylistResource => {
+  const parsed = safeJsonParse<DTOPlaylistResource>(JSON.stringify(value));
+  if (parsed === null) {
+    throw new Error('Failed to build DTOPlaylistResource fixture');
+  }
+  return parsed;
+};
+
+const buildPlaylistResource = (overrides: Record<string, unknown> = {}): DTOPlaylistResource => {
+  return toPlaylistResource({
+    clip_id: null,
+    id: 1,
+    item: buildItem(),
+    item_id: 1,
+    item_soundbite_id: null,
+    list_position: '1',
+    playlist_id: 10,
     ...overrides,
   });
 };
@@ -176,6 +197,116 @@ describe('queueResourceToHomeRow', () => {
         item_id: null,
       }),
       'queue'
+    );
+
+    expect(row).toBeNull();
+  });
+});
+
+describe('playlistResourceToHomeRow', () => {
+  it('maps item resources', () => {
+    const row = playlistResourceToHomeRow(buildPlaylistResource());
+
+    expect(row).not.toBeNull();
+    expect(row?.title).toBe('Test episode');
+    expect(row?.subtitle).toBe('Test channel');
+    expect(row?.mediaType).toBe('episodes');
+  });
+
+  it('maps clip resources', () => {
+    const row = playlistResourceToHomeRow(
+      buildPlaylistResource({
+        clip: {
+          id_text: 'clip-1',
+          item: buildItem({ id_text: 'clip-item-1', title: 'Clip source item' }),
+          title: 'Clip title',
+        },
+        clip_id: 22,
+        id: 2,
+        item: null,
+        item_id: null,
+      })
+    );
+
+    expect(row).not.toBeNull();
+    expect(row?.id).toBe('clip-clip-1');
+    expect(row?.mediaType).toBe('clips');
+    expect(row?.title).toBe('Clip title');
+  });
+
+  it('maps soundbite resources', () => {
+    const row = playlistResourceToHomeRow(
+      buildPlaylistResource({
+        id: 3,
+        item: null,
+        item_id: null,
+        item_soundbite: {
+          duration: '31',
+          id_text: 'soundbite-1',
+          item: buildItem({ id_text: 'soundbite-item-1', title: 'Soundbite source item' }),
+          title: 'Soundbite title',
+        },
+        item_soundbite_id: 7,
+      })
+    );
+
+    expect(row).not.toBeNull();
+    expect(row?.id).toBe('soundbite-soundbite-1');
+    expect(row?.mediaType).toBe('clips');
+    expect(row?.title).toBe('Soundbite title');
+  });
+
+  it('maps add-by-RSS resources from resource data', () => {
+    const row = playlistResourceToHomeRow(
+      buildPlaylistResource({
+        add_by_rss_hash_id: 'rss-1',
+        add_by_rss_resource_data: {
+          channel_title: 'RSS channel',
+          duration: 77,
+          item_images: [{ image_width_size: 300, is_resized: false, url: 'https://example.com/a' }],
+          medium_id: 4,
+          pub_date: '2026-04-01T00:00:00.000Z',
+          title: 'RSS episode',
+        },
+        id: 4,
+        item: null,
+        item_id: null,
+      })
+    );
+
+    expect(row).not.toBeNull();
+    expect(row?.id).toBe('add-by-rss-4');
+    expect(row?.title).toBe('RSS episode');
+    expect(row?.subtitle).toBe('RSS channel');
+    expect(row?.duration).toBe('77');
+    expect(row?.mediaType).toBe('tracks');
+  });
+
+  it('maps redacted add-by-RSS resources with localized placeholder text', () => {
+    const row = playlistResourceToHomeRow(
+      buildPlaylistResource({
+        add_by_rss_hash_id: 'rss-private-1',
+        id: 5,
+        is_add_by_rss_redacted: true,
+        item: null,
+        item_id: null,
+      }),
+      { addByRssPrivateTitle: 'Private add-by-RSS item' }
+    );
+
+    expect(row).not.toBeNull();
+    expect(row?.id).toBe('add-by-rss-5');
+    expect(row?.title).toBe('Private add-by-RSS item');
+    expect(row?.imageUrl).toBeNull();
+  });
+
+  it('returns null for unusable resources', () => {
+    const row = playlistResourceToHomeRow(
+      buildPlaylistResource({
+        id: 6,
+        item: null,
+        item_id: null,
+      })
     );
 
     expect(row).toBeNull();

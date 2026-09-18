@@ -18,7 +18,7 @@ alwaysApply: true
 
 ## Not abcmemory
 
-**`.llm/`** (plans, history, templates, context) is a **planning workspace**, not agent memory. Do not treat it as a second abcmemory tree.
+**`.llm/`** (plans, templates, context) is a **planning workspace**, not agent memory. Do not treat it as a second abcmemory tree.
 
 Also not abcmemory unless you explicitly ask: `docs/`, `.github/`, and ad-hoc paths.
 

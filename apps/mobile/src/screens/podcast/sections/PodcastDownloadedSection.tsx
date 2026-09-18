@@ -126,7 +126,7 @@ export function PodcastDownloadedSection({
 
   const handleAddToPlaylist = useCallback(
     (row: HomeFeedRowData) => {
-      requestAddToPlaylist({ idText: row.id, kind: 'item' });
+      requestAddToPlaylist({ idText: row.id, kind: 'item', medium: 'av' });
     },
     [requestAddToPlaylist]
   );

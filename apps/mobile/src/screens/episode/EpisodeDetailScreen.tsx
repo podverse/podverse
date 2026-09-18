@@ -413,7 +413,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         openGate('needs_account');
         return;
       }
-      requestAddToPlaylist({ idText: row.id, kind: 'item' });
+      requestAddToPlaylist({ idText: row.id, kind: 'item', medium: 'av' });
     },
     [openGate, requestAddToPlaylist, status]
   );

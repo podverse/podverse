@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
+import type { DTOItemSoundbite } from '@podverse/helpers/dto';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import {
@@ -96,6 +97,20 @@ const clip = (idText: string, clipItem: DTOItem): DTOClip => ({
   start_time: '0',
 });
 
+const soundbite = (idText: string, sourceItem: DTOItem): DTOItemSoundbite => ({
+  end_time: null,
+  id: 1,
+  id_text: idText,
+  item: sourceItem,
+  item_id: sourceItem.id_text,
+  sharable_status: {
+    id: 1,
+    status: 'public',
+  },
+  start_time: '15',
+  title: 'Soundbite',
+});
+
 describe('fullPlayerRows', () => {
   it('disables next when manual and auto queues are empty', () => {
     expect(hasNextQueueItem(0, 0)).toBe(false);
@@ -136,14 +151,42 @@ describe('fullPlayerRows', () => {
       item: item('episode-2', false),
       kind: 'item-podcast',
     };
+    const soundbiteTarget: PlaybackTarget = {
+      channel: channel('podcast'),
+      item: item('episode-3', false),
+      kind: 'soundbite',
+      soundbite: soundbite('soundbite-1', item('episode-3', false)),
+    };
+    const addByRssTarget: PlaybackTarget = {
+      kind: 'add-by-rss',
+      resourceData: {
+        channel_title: 'RSS channel',
+        title: 'RSS item',
+      },
+    };
 
     expect(resolveAddToPlaylistTarget(clipTarget)).toEqual({
       idText: 'clip-1',
       kind: 'clip',
+      medium: 'av',
     });
     expect(resolveAddToPlaylistTarget(itemTarget)).toEqual({
       idText: 'episode-2',
       kind: 'item',
+      medium: 'av',
+    });
+    expect(resolveAddToPlaylistTarget(soundbiteTarget)).toEqual({
+      idText: 'soundbite-1',
+      kind: 'soundbite',
+      medium: 'av',
+    });
+    expect(resolveAddToPlaylistTarget(addByRssTarget)).toEqual({
+      kind: 'add-by-rss',
+      medium: 'av',
+      resourceData: {
+        channel_title: 'RSS channel',
+        title: 'RSS item',
+      },
     });
   });
 });

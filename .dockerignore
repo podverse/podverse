@@ -41,7 +41,7 @@ tools/
 .vscode/
 *.code-workspace
 
-# LLM history and plans
+# LLM plans and templates
 .llm/
 
 # Environment files (secrets - not needed in build)

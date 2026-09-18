@@ -99,6 +99,12 @@ export const MEDIA_JUMP_BACK_SECONDS = 10;
 /** Media player small increment/decrement in seconds. */
 export const MEDIA_JUMP_INCREMENT_SECONDS = 1;
 
+/** Media player fine-adjust amount in seconds, for setting clip boundaries. */
+export const MEDIA_MINI_JUMP_SECONDS = 1;
+
+/** How far before a clip's end time an end-time preview starts, so the approach is audible. */
+export const CLIP_END_PREVIEW_LEAD_SECONDS = 3;
+
 /** Live item listener poll interval in ms. */
 export const LIVE_ITEM_POLL_INTERVAL_MS = 5000;
 

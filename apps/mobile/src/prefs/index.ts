@@ -17,6 +17,13 @@ export type {
   SubscriptionListFilter,
 } from './prefsStore';
 export {
+  hasSeenMakeClipHowToPref,
+  readClipVisibilityPref,
+  writeClipVisibilityPref,
+  writeSeenMakeClipHowToPref,
+} from './clipPrefs';
+export type { ClipVisibility } from './clipPrefs';
+export {
   hydrateOfflineMode,
   isOfflineModeEnabled,
   isSyncNetworkUsable,

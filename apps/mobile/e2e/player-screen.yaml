@@ -119,14 +119,14 @@ name: Player screen flow
 - tapOn:
     id: full-player-create-clip
 - assertVisible:
-    id: full-player-create-clip-dialog
-- takeScreenshot: player-screen-create-clip-placeholder
-- tapOn:
-    id: full-player-create-clip-close
-- assertNotVisible:
-    id: full-player-create-clip-dialog
+    id: make-clip-screen
 - assertVisible:
-    id: full-player-action-row
+    id: make-clip-close
+- takeScreenshot: player-screen-create-clip-screen
+- tapOn:
+    id: make-clip-close
+- assertVisible:
+    id: full-player-screen
 
 - tapOn:
     id: full-player-more

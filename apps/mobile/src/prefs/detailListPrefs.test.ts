@@ -2,23 +2,33 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   DEFAULT_ADD_BY_RSS_EPISODE_SORT,
+  DEFAULT_ALBUM_DETAIL_RANGE,
+  DEFAULT_ALBUM_TAB,
   DEFAULT_ALBUM_TRACK_SORT,
+  DEFAULT_ARTIST_TAB,
   DEFAULT_EPISODE_CLIP_SORT,
   DEFAULT_EPISODE_TAB,
   DEFAULT_PODCAST_DETAIL_RANGE,
   DEFAULT_PODCAST_DETAIL_SORT,
   DEFAULT_PODCAST_TAB,
+  DEFAULT_TRACK_TAB,
   readAddByRssDetailPrefs,
   readAlbumDetailPrefs,
+  readArtistDetailPrefs,
   readEpisodeDetailPrefs,
   readPodcastDetailPrefs,
+  readTrackDetailPrefs,
+  writeAlbumDetailRange,
+  writeAlbumDetailTab,
   writeAddByRssDetailSort,
   writeAlbumDetailSort,
+  writeArtistDetailTab,
   writeEpisodeDetailClipSort,
   writeEpisodeDetailTab,
   writePodcastDetailRange,
   writePodcastDetailSort,
   writePodcastDetailTab,
+  writeTrackDetailTab,
 } from './detailListPrefs';
 
 const inMemoryStore = new Map<string, string>();
@@ -53,11 +63,19 @@ describe('detailListPrefs', () => {
   it('opens on the documented defaults when nothing has been chosen', async () => {
     await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual(defaultPodcastPrefs);
     await expect(readAlbumDetailPrefs('album-a')).resolves.toEqual({
+      range: DEFAULT_ALBUM_DETAIL_RANGE,
       sort: DEFAULT_ALBUM_TRACK_SORT,
+      tab: DEFAULT_ALBUM_TAB,
+    });
+    await expect(readArtistDetailPrefs('artist-a')).resolves.toEqual({
+      tab: DEFAULT_ARTIST_TAB,
     });
     await expect(readEpisodeDetailPrefs('episode-a')).resolves.toEqual({
       clipSort: DEFAULT_EPISODE_CLIP_SORT,
       tab: DEFAULT_EPISODE_TAB,
+    });
+    await expect(readTrackDetailPrefs('track-a')).resolves.toEqual({
+      tab: DEFAULT_TRACK_TAB,
     });
     await expect(readAddByRssDetailPrefs('feed-a')).resolves.toEqual({
       sort: DEFAULT_ADD_BY_RSS_EPISODE_SORT,
@@ -131,11 +149,28 @@ describe('detailListPrefs', () => {
       'sort.channel:podcast-a',
       JSON.stringify({ range: 'fortnight', sort: 'shuffle', tab: 'boosts' })
     );
+    inMemoryStore.set(
+      'sort.channel:album-a',
+      JSON.stringify({ range: 'fortnight', sort: 'oldest', tab: 'boosts' })
+    );
+    inMemoryStore.set('sort.channel:artist-a', JSON.stringify({ tab: 'boosts' }));
     inMemoryStore.set('sort.item:episode-a', JSON.stringify({ tab: 'lyrics' }));
+    inMemoryStore.set('sort.item:track-a', JSON.stringify({ tab: 'lyrics' }));
 
     await expect(readPodcastDetailPrefs('podcast-a')).resolves.toEqual(defaultPodcastPrefs);
+    await expect(readAlbumDetailPrefs('album-a')).resolves.toEqual({
+      range: DEFAULT_ALBUM_DETAIL_RANGE,
+      sort: DEFAULT_ALBUM_TRACK_SORT,
+      tab: DEFAULT_ALBUM_TAB,
+    });
+    await expect(readArtistDetailPrefs('artist-a')).resolves.toEqual({
+      tab: DEFAULT_ARTIST_TAB,
+    });
     await expect(readEpisodeDetailPrefs('episode-a')).resolves.toMatchObject({
       tab: DEFAULT_EPISODE_TAB,
+    });
+    await expect(readTrackDetailPrefs('track-a')).resolves.toEqual({
+      tab: DEFAULT_TRACK_TAB,
     });
   });
 
@@ -151,7 +186,41 @@ describe('detailListPrefs', () => {
   it('reads an album sort written for the same channel, since an album is a channel', async () => {
     await writeAlbumDetailSort('album-a', 'backward');
 
-    await expect(readAlbumDetailPrefs('album-a')).resolves.toEqual({ sort: 'backward' });
+    await expect(readAlbumDetailPrefs('album-a')).resolves.toEqual({
+      range: DEFAULT_ALBUM_DETAIL_RANGE,
+      sort: 'backward',
+      tab: DEFAULT_ALBUM_TAB,
+    });
+  });
+
+  it('holds an album tab, sort, and range together without one clearing the rest', async () => {
+    await writeAlbumDetailTab('album-a', 'about');
+    await writeAlbumDetailSort('album-a', 'top');
+    await writeAlbumDetailRange('album-a', 'month');
+
+    await expect(readAlbumDetailPrefs('album-a')).resolves.toEqual({
+      range: 'month',
+      sort: 'top',
+      tab: 'about',
+    });
+  });
+
+  it('remembers one artist tab per artist channel', async () => {
+    await writeArtistDetailTab('artist-a', 'tracks');
+
+    await expect(readArtistDetailPrefs('artist-a')).resolves.toEqual({ tab: 'tracks' });
+    await expect(readArtistDetailPrefs('artist-b')).resolves.toEqual({
+      tab: DEFAULT_ARTIST_TAB,
+    });
+  });
+
+  it('remembers one track tab per track item', async () => {
+    await writeTrackDetailTab('track-a', 'transcript');
+
+    await expect(readTrackDetailPrefs('track-a')).resolves.toEqual({ tab: 'transcript' });
+    await expect(readTrackDetailPrefs('track-b')).resolves.toEqual({
+      tab: DEFAULT_TRACK_TAB,
+    });
   });
 
   it('remembers nothing for a channel with no id_text rather than pooling them', async () => {
@@ -159,5 +228,12 @@ describe('detailListPrefs', () => {
 
     expect(inMemoryStore.size).toBe(0);
     await expect(readPodcastDetailPrefs('')).resolves.toEqual(defaultPodcastPrefs);
+    await expect(readAlbumDetailPrefs('')).resolves.toEqual({
+      range: DEFAULT_ALBUM_DETAIL_RANGE,
+      sort: DEFAULT_ALBUM_TRACK_SORT,
+      tab: DEFAULT_ALBUM_TAB,
+    });
+    await expect(readArtistDetailPrefs('')).resolves.toEqual({ tab: DEFAULT_ARTIST_TAB });
+    await expect(readTrackDetailPrefs('')).resolves.toEqual({ tab: DEFAULT_TRACK_TAB });
   });
 });

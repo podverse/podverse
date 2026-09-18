@@ -176,5 +176,8 @@
   },
   "media_player": {
     "chapter_tooltip": "Chapter: {title}"
+  },
+  "misc": {
+    "how_to": "How to"
   }
 }
