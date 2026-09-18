@@ -1,13 +1,17 @@
 import { Image } from 'expo-image';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent, ImageStyle, StyleProp, ViewStyle } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { isShareSheetPassthroughWindow } from '../../lib/share/shareSheetPassthrough';
 import { useTheme } from '../../theme/useTheme';
 import type { CoverImageTapPoint } from './coverImageTap';
 import { isDeliberateCoverImageTap } from './coverImageTap';
 import { ImageViewerModal } from './ImageViewerModal';
+
+/** RN Modal fade, plus a beat so UIKit finishes dismiss before this node leaves the tree. */
+const IMAGE_VIEWER_UNMOUNT_DELAY_MS = 350;
 
 /**
  * Sizing lands on the artwork itself or, when there is no URI, on the fallback box that stands in
@@ -49,7 +53,8 @@ export const prefetchCoverImage = (uri: string | null | undefined): void => {
  * Square cover / artwork. Podcast, episode, and album art stay square — do not pass a
  * `borderRadius` unless a specific surface (for example a circular avatar) needs one.
  * Standalone art opens the image viewer on a stationary tap; pass `opensViewer={false}` when the
- * parent is the control.
+ * parent is the control. The viewer Modal stays out of the tree until that tap, and unmounts after
+ * its fade, so a system share sheet cannot present it as a side effect.
  *
  * Uses expo-image with memory+disk cache so a list decode can be reused on a compact header
  * without a second network round-trip.
@@ -66,8 +71,25 @@ export function CoverImage({
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [isViewerMounted, setIsViewerMounted] = useState(false);
   const tapStartRef = useRef<CoverImageTapPoint | null>(null);
   const tapMovedRef = useRef(false);
+
+  useEffect(() => {
+    if (isViewerOpen) {
+      setIsViewerMounted(true);
+      return;
+    }
+    if (!isViewerMounted) {
+      return;
+    }
+    const handle = setTimeout(() => {
+      setIsViewerMounted(false);
+    }, IMAGE_VIEWER_UNMOUNT_DELAY_MS);
+    return () => {
+      clearTimeout(handle);
+    };
+  }, [isViewerMounted, isViewerOpen]);
 
   const pointFromEvent = (event: GestureResponderEvent): CoverImageTapPoint => {
     return { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
@@ -88,6 +110,9 @@ export function CoverImage({
           fontSize: 11,
           fontWeight: '600',
           textAlign: 'center',
+        },
+        viewerHit: {
+          overflow: 'hidden',
         },
       }),
     [themeStyles, tokens]
@@ -116,7 +141,7 @@ export function CoverImage({
   // accessible name. Standalone covers hide the Image too — the outer Pressable speaks for it.
   // No secondary fill behind a known URI — that reads as an empty placeholder while the bitmap
   // paints (worse on slow Android decode).
-  const image = (
+  const image = (imageStyle: StyleProp<CoverImageStyle>) => (
     <Image
       accessibilityElementsHidden
       accessibilityIgnoresInvertColors
@@ -125,14 +150,14 @@ export function CoverImage({
       importantForAccessibility="no"
       recyclingKey={uri}
       source={{ uri }}
-      style={style}
+      style={imageStyle}
       testID={opensViewer ? undefined : testID}
       transition={0}
     />
   );
 
   if (!opensViewer) {
-    return image;
+    return image(style);
   }
 
   return (
@@ -142,6 +167,9 @@ export function CoverImage({
         accessibilityLabel={resolvedLabel}
         accessibilityRole="button"
         onPress={(event) => {
+          if (isShareSheetPassthroughWindow()) {
+            return;
+          }
           const stayedPut =
             !tapMovedRef.current &&
             isDeliberateCoverImageTap(tapStartRef.current, pointFromEvent(event));
@@ -159,20 +187,23 @@ export function CoverImage({
             tapMovedRef.current = true;
           }
         }}
+        style={[styles.viewerHit, style]}
         testID={testID}
       >
-        {image}
+        {image(StyleSheet.absoluteFill)}
       </Pressable>
-      <ImageViewerModal
-        accessibilityLabel={resolvedLabel}
-        onClose={() => {
-          setIsViewerOpen(false);
-        }}
-        uri={
-          viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : uri
-        }
-        visible={isViewerOpen}
-      />
+      {isViewerMounted ? (
+        <ImageViewerModal
+          accessibilityLabel={resolvedLabel}
+          onClose={() => {
+            setIsViewerOpen(false);
+          }}
+          uri={
+            viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : uri
+          }
+          visible={isViewerOpen}
+        />
+      ) : null}
     </>
   );
 }

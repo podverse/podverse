@@ -93,8 +93,8 @@ const resolveHighlightBounds = ({
 /**
  * Full-player scrubber: drag/tap seek on the line (no thumb), chapter markers, active-segment
  * highlight, and a long-press chapter tooltip. The visible track is thin; the hit target is 44pt.
- * Clocks and fill subscribe to the progress store so the parent screen does not re-render on every
- * tick.
+ * While dragging, the left clock follows the pending seek so it matches the fill. Clocks and fill
+ * subscribe to the progress store so the parent screen does not re-render on every tick.
  */
 export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   const { t } = useTranslation();
@@ -107,6 +107,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const [tooltipTitle, setTooltipTitle] = useState<string | null>(null);
   const [tooltipPercent, setTooltipPercent] = useState(0);
+  const [scrubPreviewSeconds, setScrubPreviewSeconds] = useState<number | null>(null);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ignoreTapRef = useRef(false);
 
@@ -189,6 +190,21 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
     [durationSeconds, seekTo]
   );
 
+  const updateScrubPreview = useCallback(
+    (ratio: number) => {
+      if (durationSeconds <= 0) {
+        return;
+      }
+      const next = Math.floor(clampRatio(ratio) * durationSeconds);
+      setScrubPreviewSeconds((current) => (current === next ? current : next));
+    },
+    [durationSeconds]
+  );
+
+  const clearScrubPreview = useCallback(() => {
+    setScrubPreviewSeconds(null);
+  }, []);
+
   const markIgnoreTap = useCallback(() => {
     ignoreTapRef.current = true;
   }, []);
@@ -226,6 +242,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
       const next = Math.min(1, Math.max(0, event.x / width));
       isScrubbing.value = true;
       scrubRatio.value = next;
+      runOnJS(updateScrubPreview)(next);
     })
     .onUpdate((event) => {
       'worklet';
@@ -233,7 +250,9 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
       if (width <= 0) {
         return;
       }
-      scrubRatio.value = Math.min(1, Math.max(0, event.x / width));
+      const next = Math.min(1, Math.max(0, event.x / width));
+      scrubRatio.value = next;
+      runOnJS(updateScrubPreview)(next);
     })
     .onEnd(() => {
       'worklet';
@@ -245,6 +264,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
     .onFinalize(() => {
       'worklet';
       isScrubbing.value = false;
+      runOnJS(clearScrubPreview)();
     });
 
   const tap = Gesture.Tap()
@@ -349,7 +369,8 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
     [themeStyles, tokens]
   );
 
-  const displayPosition = formatHHMMSS(Math.max(0, clockSeconds));
+  const displayPositionSeconds = scrubPreviewSeconds ?? clockSeconds;
+  const displayPosition = formatHHMMSS(Math.max(0, displayPositionSeconds));
   const displayDuration = formatHHMMSS(Math.max(0, durationSeconds));
 
   return (
@@ -387,7 +408,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
           accessibilityValue={{
             max: Math.round(durationSeconds),
             min: 0,
-            now: Math.round(positionSeconds),
+            now: Math.round(scrubPreviewSeconds ?? positionSeconds),
             text: t('media_player.position_of_duration', {
               duration: displayDuration,
               position: displayPosition,

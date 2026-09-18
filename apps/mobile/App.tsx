@@ -10,6 +10,7 @@ import splashIcon from './assets/splash/icon.png';
 import { AuthPromptProvider, AuthProvider, useAuth } from './src/auth';
 import { ForcedLogoutNotice } from './src/components/feedback/ForcedLogoutNotice';
 import { MembershipExpiredBanner } from './src/components/feedback/MembershipExpiredBanner';
+import { ShareSheetPassthroughOverlay } from './src/components/share/ShareSheetPassthroughOverlay';
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
@@ -120,6 +121,7 @@ export default function App() {
           </AuthProvider>
         </TabLayoutProvider>
       </ThemeProvider>
+      <ShareSheetPassthroughOverlay />
     </GestureHandlerRootView>
   );
 }

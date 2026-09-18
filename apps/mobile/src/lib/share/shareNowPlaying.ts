@@ -3,6 +3,7 @@ import { Share } from 'react-native';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { getMobileConfig } from '../../config';
+import { presentShareSheet } from './shareSheetPassthrough';
 import {
   buildNowPlayingShareUrl as buildNowPlayingShareUrlFromWebBaseUrl,
   buildPublicShareUrl as buildPublicShareUrlFromWebBaseUrl,
@@ -23,9 +24,7 @@ export const shareResolvedUrl = (url: string | null): void => {
   if (url === null) {
     return;
   }
-  void Share.share({ message: url, url }).catch(() => {
-    // Share dismissal / unavailable share sheet is a safe no-op.
-  });
+  void presentShareSheet(() => Share.share({ message: url, url }));
 };
 
 /**
