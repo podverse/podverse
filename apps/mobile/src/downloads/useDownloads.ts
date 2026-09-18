@@ -206,8 +206,7 @@ export const useDownloadAction = (
       : null;
 
   return {
-    isDownloadable:
-      item !== undefined && isItemDownloadable(item, explicitSelectedParams).ok,
+    isDownloadable: item !== undefined && isItemDownloadable(item, explicitSelectedParams).ok,
     noticeKey,
     percentComplete,
     remove,

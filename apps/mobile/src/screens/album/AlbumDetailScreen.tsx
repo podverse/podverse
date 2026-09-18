@@ -13,8 +13,8 @@ import {
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
-import { MenuSelectChip } from '../../components/form';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
+import { MenuSelectChip } from '../../components/form';
 import { FillList, ListRow } from '../../components/primitives';
 import { Button } from '../../components/primitives/Button';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
@@ -26,8 +26,8 @@ import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChr
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
-import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
@@ -596,7 +596,8 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     }
   }, []);
 
-  const channelArtworkUri = primaryChannelListArtworkUrl(channel?.channel_images) ?? previewArtworkUri;
+  const channelArtworkUri =
+    primaryChannelListArtworkUrl(channel?.channel_images) ?? previewArtworkUri;
   const channelViewerUri =
     primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? channelArtworkUri;
   const title = channel?.title ?? previewHeaderTitle ?? t('media.music.album');
@@ -687,9 +688,14 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         )
       }
       ListFooterComponent={
-        playbackNoticeKey !== null ? <Text style={styles.notice}>{t(playbackNoticeKey)}</Text> : null
+        playbackNoticeKey !== null ? (
+          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
+        ) : null
       }
-      contentContainerStyle={{ paddingHorizontal: tokens.spacing.lg, paddingTop: tokens.spacing.md }}
+      contentContainerStyle={{
+        paddingHorizontal: tokens.spacing.lg,
+        paddingTop: tokens.spacing.md,
+      }}
       data={trackRows}
       keyExtractor={(row) => row.id}
       refreshControl={
@@ -706,7 +712,11 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         const track = tracksById.get(row.id);
         return (
           <HomeFeedRow
-            download={track === undefined ? undefined : { item: track, testID: `album-track-download-${index}` }}
+            download={
+              track === undefined
+                ? undefined
+                : { item: track, testID: `album-track-download-${index}` }
+            }
             isLast={index === trackRows.length - 1}
             mediaType="tracks"
             onPlayPress={(nextRow) => {
@@ -760,7 +770,10 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           <ListEmpty messageKey="info.no_podroll_found" testID="album-detail-podroll-empty" />
         )
       }
-      contentContainerStyle={{ paddingHorizontal: tokens.spacing.lg, paddingTop: tokens.spacing.md }}
+      contentContainerStyle={{
+        paddingHorizontal: tokens.spacing.lg,
+        paddingTop: tokens.spacing.md,
+      }}
       data={podrollRows}
       keyExtractor={(row) => row.id}
       refreshControl={
@@ -820,7 +833,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           />
         }
       />
-      {notifications.errorKey !== null ? <Text style={styles.notice}>{t(notifications.errorKey)}</Text> : null}
+      {notifications.errorKey !== null ? (
+        <Text style={styles.notice}>{t(notifications.errorKey)}</Text>
+      ) : null}
       <Text style={styles.notice} testID="album-detail-settings-auto-download-notice">
         {t('features.download.auto_download_unavailable')}
       </Text>

@@ -40,9 +40,7 @@ const clampEndSeconds = (endSeconds: number, durationSeconds: number): number =>
 
 export const validateMakeClipForm = (
   input: MakeClipValidationInput
-):
-  | { ok: true; value: ValidatedMakeClipForm }
-  | { ok: false; reason: MakeClipValidationReason } => {
+): { ok: true; value: ValidatedMakeClipForm } | { ok: false; reason: MakeClipValidationReason } => {
   if (input.startSeconds === null) {
     return { ok: false, reason: 'start_required' };
   }

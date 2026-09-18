@@ -3,9 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SharableStatusEnum } from '@podverse/helpers';
 
 export type ClipVisibility =
-  | SharableStatusEnum.Public
-  | SharableStatusEnum.Unlisted
-  | SharableStatusEnum.Private;
+  SharableStatusEnum.Public | SharableStatusEnum.Unlisted | SharableStatusEnum.Private;
 
 const CLIP_VISIBILITY_PREF_KEY = 'clip.visibility';
 const HAS_SEEN_MAKE_CLIP_HOW_TO_PREF_KEY = 'clip.has_seen_make_clip_how_to';

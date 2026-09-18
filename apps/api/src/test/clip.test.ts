@@ -295,9 +295,12 @@ describe('clip routes', () => {
       });
 
       const res = await withMutedExpectedErrorLogs(async () =>
-        request(app).patch(`${clipBase}/${CLIP_ID_TEXT}`).set(authHeaders(TEST_USER_ID)).send({
-          ...validClipBody,
-        })
+        request(app)
+          .patch(`${clipBase}/${CLIP_ID_TEXT}`)
+          .set(authHeaders(TEST_USER_ID))
+          .send({
+            ...validClipBody,
+          })
       );
 
       expect(res.status).toBe(403);

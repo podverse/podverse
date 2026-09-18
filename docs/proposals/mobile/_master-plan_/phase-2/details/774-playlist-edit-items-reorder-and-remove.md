@@ -33,11 +33,11 @@ Whole-row long-press drag, same arbitration contract as the queue:
 Drop math mirrors web's `handleDragEnd` in
 [`ListPlaylistResources`](apps/web/src/components/List/Playlists/ListPlaylistResources.tsx):
 
-| Drop index       | Call                                                    |
-| ---------------- | ------------------------------------------------------- |
-| `0`              | `*AddFirst`                                             |
-| `length - 1`     | `*AddLast`                                              |
-| anything between | `*AddBetween(prev.list_position, next.list_position)`   |
+| Drop index       | Call                                                  |
+| ---------------- | ----------------------------------------------------- |
+| `0`              | `*AddFirst`                                           |
+| `length - 1`     | `*AddLast`                                            |
+| anything between | `*AddBetween(prev.list_position, next.list_position)` |
 
 Dispatch on the moved resource's type (item, clip, soundbite, add-by-RSS) via `playlistRepository`.
 Neighbor positions come from the **reordered** array. Prefer extracting a shared pure helper with

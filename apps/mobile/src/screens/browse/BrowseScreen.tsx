@@ -120,9 +120,10 @@ export function BrowseScreen() {
       })
     : 0;
 
-  const addToPlaylistTarget = useMemo<
-    Pick<Extract<AddToPlaylistTarget, { kind: 'clip' | 'item' }>, 'kind' | 'medium'> | null
-  >(() => {
+  const addToPlaylistTarget = useMemo<Pick<
+    Extract<AddToPlaylistTarget, { kind: 'clip' | 'item' }>,
+    'kind' | 'medium'
+  > | null>(() => {
     if (selectedMediaType === 'clips') {
       return { kind: 'clip', medium: 'av' };
     }

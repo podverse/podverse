@@ -108,11 +108,7 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
     async (clip: DTOClip): Promise<void> => {
       const clipItem = clip.item;
       const clipChannel = clipItem.channel;
-      if (
-        clipChannel !== null &&
-        clipChannel !== undefined &&
-        activeItemId !== clipItem.id_text
-      ) {
+      if (clipChannel !== null && clipChannel !== undefined && activeItemId !== clipItem.id_text) {
         await loadItemPausedAt(clipItem, clipChannel, parseSeconds(clip.start_time));
       }
     },

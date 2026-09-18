@@ -39,15 +39,15 @@ bell, RSS, website, share, funding, and boost. Mobile podcast header already has
 settings / bell via other chrome). Extend the shared `actions` slot so the same affordances are
 available for podcast, album, and artist:
 
-| Action    | When shown                                      | Notes                                      |
-| --------- | ----------------------------------------------- | ------------------------------------------ |
-| Subscribe | Always                                          | Existing                                   |
-| Bell      | Always (or signed-in per podcast settings rule) | Match podcast header                       |
-| RSS       | `channel.feed.url` present                      | Opens feed URL                             |
-| Website   | `channel_about.website_link_url` present        | Opens external                             |
-| Share     | Always                                          | Existing share helpers                     |
-| Funding   | Fundings present                                | Phase 3 / V4V — placeholder or omit        |
-| Boost     | Deferred                                        | Phase 3 — do not add                       |
+| Action    | When shown                                      | Notes                               |
+| --------- | ----------------------------------------------- | ----------------------------------- |
+| Subscribe | Always                                          | Existing                            |
+| Bell      | Always (or signed-in per podcast settings rule) | Match podcast header                |
+| RSS       | `channel.feed.url` present                      | Opens feed URL                      |
+| Website   | `channel_about.website_link_url` present        | Opens external                      |
+| Share     | Always                                          | Existing share helpers              |
+| Funding   | Fundings present                                | Phase 3 / V4V — placeholder or omit |
+| Boost     | Deferred                                        | Phase 3 — do not add                |
 
 Funding and boost stay out of this detail (Phase 3). RSS / website / share land here so music
 screens inherit them without a second pass.
@@ -57,13 +57,13 @@ screens inherit them without a second pass.
 [`detailListPrefs.ts`](apps/mobile/src/prefs/detailListPrefs.ts) today has podcast tabs, album
 `forward` / `backward` only, and episode tabs. Extend:
 
-| Pref                         | Values                                                              | Default   |
-| ---------------------------- | ------------------------------------------------------------------- | --------- |
-| `ALBUM_TABS`                 | `tracks`, `about`, `podroll`, `settings`                            | `tracks`  |
-| `ALBUM_TRACK_SORT_OPTIONS`   | Add `top` to existing `forward` / `backward`                        | `forward` |
+| Pref                         | Values                                                               | Default   |
+| ---------------------------- | -------------------------------------------------------------------- | --------- |
+| `ALBUM_TABS`                 | `tracks`, `about`, `podroll`, `settings`                             | `tracks`  |
+| `ALBUM_TRACK_SORT_OPTIONS`   | Add `top` to existing `forward` / `backward`                         | `forward` |
 | `ALBUM_DETAIL_RANGE_OPTIONS` | Same stats ranges as podcast (`day` / `week` / `month` / `all-time`) | `week`    |
-| `ARTIST_TABS`                | `albums`, `tracks`, `about`, `podroll`, `settings`                  | `albums`  |
-| `TRACK_TABS`                 | `summary`, `transcript`                                             | `summary` |
+| `ARTIST_TABS`                | `albums`, `tracks`, `about`, `podroll`, `settings`                   | `albums`  |
+| `TRACK_TABS`                 | `summary`, `transcript`                                              | `summary` |
 
 Boosts are intentionally absent (Phase 3). Tab order in the stored union may differ from painted
 order — callers reconcile evidence chips the way podcast does

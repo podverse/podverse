@@ -221,20 +221,13 @@ export type AlbumDetailPrefs = {
 export const readAlbumDetailPrefs = async (channelIdText: string): Promise<AlbumDetailPrefs> => {
   const stored = await readSortPref(channelScope(channelIdText));
   return {
-    range: pickSortPrefToken(
-      stored?.range,
-      ALBUM_DETAIL_RANGE_OPTIONS,
-      DEFAULT_ALBUM_DETAIL_RANGE
-    ),
+    range: pickSortPrefToken(stored?.range, ALBUM_DETAIL_RANGE_OPTIONS, DEFAULT_ALBUM_DETAIL_RANGE),
     sort: pickSortPrefToken(stored?.sort, ALBUM_TRACK_SORT_OPTIONS, DEFAULT_ALBUM_TRACK_SORT),
     tab: pickSortPrefToken(stored?.tab, ALBUM_TABS, DEFAULT_ALBUM_TAB),
   };
 };
 
-export const writeAlbumDetailTab = async (
-  channelIdText: string,
-  tab: AlbumTab
-): Promise<void> => {
+export const writeAlbumDetailTab = async (channelIdText: string, tab: AlbumTab): Promise<void> => {
   await writeSortPref(channelScope(channelIdText), { tab });
 };
 
@@ -256,9 +249,7 @@ export type ArtistDetailPrefs = {
   tab: ArtistTab;
 };
 
-export const readArtistDetailPrefs = async (
-  channelIdText: string
-): Promise<ArtistDetailPrefs> => {
+export const readArtistDetailPrefs = async (channelIdText: string): Promise<ArtistDetailPrefs> => {
   const stored = await readSortPref(channelScope(channelIdText));
   return {
     tab: pickSortPrefToken(stored?.tab, ARTIST_TABS, DEFAULT_ARTIST_TAB),

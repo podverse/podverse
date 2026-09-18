@@ -3,8 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { formatDateAbbrev, getErrorCode, getErrorResponseStatus, MediumEnum } from '@podverse/helpers';
 import type { AddByRSSResourceData, DTOPlaylist, DTOPlaylistResource } from '@podverse/helpers';
+import {
+  formatDateAbbrev,
+  getErrorCode,
+  getErrorResponseStatus,
+  MediumEnum,
+} from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { Button, FillList, SwipeActionRow } from '../../components/primitives';
@@ -19,9 +24,9 @@ import type { PlaylistReorderMutation } from '../../lib/reorder/resolvePlaylistD
 import { resolvePlaylistDrop } from '../../lib/reorder/resolvePlaylistDrop';
 import { playlistResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
-import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
+import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
@@ -151,9 +156,14 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
 
   const loadResourcesPage = useCallback(
     async (params: { append: boolean; page: number; refresh: boolean }): Promise<void> => {
-      const response = await playlistRepository.getResourcesPage(authArgs, playlistId, params.page, {
-        refresh: params.refresh,
-      });
+      const response = await playlistRepository.getResourcesPage(
+        authArgs,
+        playlistId,
+        params.page,
+        {
+          refresh: params.refresh,
+        }
+      );
       const pageRows = response.data;
       const previousCount = params.append ? resources.length : 0;
       const nextRows = params.append ? [...resources, ...pageRows] : pageRows;
@@ -275,7 +285,15 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     } finally {
       setIsLoadingMore(false);
     }
-  }, [hasMorePages, isLoading, isLoadingMore, isRefreshing, isReordering, loadResourcesPage, nextPage]);
+  }, [
+    hasMorePages,
+    isLoading,
+    isLoadingMore,
+    isRefreshing,
+    isReordering,
+    loadResourcesPage,
+    nextPage,
+  ]);
 
   const loadReorderResourcesFromServer = useCallback(async (): Promise<void> => {
     const allResources = await playlistRepository.getResourcesPrivateAll(authArgs, playlistId, {
@@ -359,7 +377,11 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
           return;
         }
         if (mutation.target.kind === 'add_by_rss') {
-          await playlistRepository.addAddByRssFirst(authArgs, playlistId, mutation.target.resourceData);
+          await playlistRepository.addAddByRssFirst(
+            authArgs,
+            playlistId,
+            mutation.target.resourceData
+          );
           return;
         }
         await playlistRepository.addItemFirst(authArgs, playlistId, mutation.target.idText);
@@ -376,7 +398,11 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
           return;
         }
         if (mutation.target.kind === 'add_by_rss') {
-          await playlistRepository.addAddByRssLast(authArgs, playlistId, mutation.target.resourceData);
+          await playlistRepository.addAddByRssLast(
+            authArgs,
+            playlistId,
+            mutation.target.resourceData
+          );
           return;
         }
         await playlistRepository.addItemLast(authArgs, playlistId, mutation.target.idText);
@@ -496,7 +522,11 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         return playlistRepository.deleteAddByRss(authArgs, playlistId, resource.add_by_rss_hash_id);
       }
       if (resource.item_soundbite?.id_text) {
-        return playlistRepository.deleteSoundbite(authArgs, playlistId, resource.item_soundbite.id_text);
+        return playlistRepository.deleteSoundbite(
+          authArgs,
+          playlistId,
+          resource.item_soundbite.id_text
+        );
       }
       if (resource.clip?.id_text) {
         return playlistRepository.deleteClip(authArgs, playlistId, resource.clip.id_text);
@@ -569,7 +599,15 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
       }
       runPlayAction(row, row.mediaType);
     },
-    [isDragActive, isSavingOrder, playAddByRssResourceData, playPlaylistRowById, playSoundbite, playlistId, runPlayAction]
+    [
+      isDragActive,
+      isSavingOrder,
+      playAddByRssResourceData,
+      playPlaylistRowById,
+      playSoundbite,
+      playlistId,
+      runPlayAction,
+    ]
   );
 
   const renderResourceRow = useCallback(
@@ -647,7 +685,9 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
             rowEntries.length > 1
               ? (entry) => {
                   const actions = [
-                    ...(entry.index > 0 ? [{ label: t('misc.move_up'), name: ACTION_MOVE_UP }] : []),
+                    ...(entry.index > 0
+                      ? [{ label: t('misc.move_up'), name: ACTION_MOVE_UP }]
+                      : []),
                     ...(entry.index < rowEntries.length - 1
                       ? [{ label: t('misc.move_down'), name: ACTION_MOVE_DOWN }]
                       : []),
@@ -674,14 +714,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         />
       </SectionCard>
     ),
-    [
-      handleDragActiveChange,
-      handleDrop,
-      handleReorder,
-      renderReorderRow,
-      rowEntries,
-      t,
-    ]
+    [handleDragActiveChange, handleDrop, handleReorder, renderReorderRow, rowEntries, t]
   );
 
   const creator = playlist?.account?.account_profile?.display_name ?? t('misc.anonymous');
@@ -753,7 +786,9 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
           </View>
         ) : null}
       </SectionCard>
-      {isReordering && isOwner ? <View testID="library-playlist-reorder-list">{reorderList}</View> : null}
+      {isReordering && isOwner ? (
+        <View testID="library-playlist-reorder-list">{reorderList}</View>
+      ) : null}
       {isReordering && reorderErrorKey !== null ? (
         <Text style={styles.notice} testID="library-playlist-reorder-error">
           {t(reorderErrorKey)}
@@ -765,7 +800,9 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
   const listFooter =
     !isReordering && (playbackNoticeKey !== null || isLoadingMore) ? (
       <View>
-        {playbackNoticeKey !== null ? <Text style={styles.notice}>{t(playbackNoticeKey)}</Text> : null}
+        {playbackNoticeKey !== null ? (
+          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
+        ) : null}
         {isLoadingMore ? <ActivityIndicator size="small" /> : null}
       </View>
     ) : null;

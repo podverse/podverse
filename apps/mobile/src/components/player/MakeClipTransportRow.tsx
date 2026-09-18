@@ -9,8 +9,8 @@ import {
 
 import type { PlaybackTransportState } from '../../playback/playbackTransport';
 import { FULL_PLAYER_TRANSPORT_ROW_HEIGHT } from '../../screens/player/fullPlayerLayout';
-import { PlayerTransportButton } from './PlayerTransportButton';
 import { PlayerJumpButton } from './PlayerJumpButton';
+import { PlayerTransportButton } from './PlayerTransportButton';
 
 type MakeClipTransportRowProps = {
   onJumpBack: () => void;

@@ -53,9 +53,9 @@ describe('parseCopyMarkdown', () => {
 
 describe('getCopyMarkdownIntro', () => {
   it('returns the text before the first heading', () => {
-    expect(getCopyMarkdownIntro(['Intro paragraph.', '', '# Details', '', 'More detail.'].join('\n'))).toBe(
-      'Intro paragraph.'
-    );
+    expect(
+      getCopyMarkdownIntro(['Intro paragraph.', '', '# Details', '', 'More detail.'].join('\n'))
+    ).toBe('Intro paragraph.');
   });
 
   it('returns the full document when there is no heading', () => {

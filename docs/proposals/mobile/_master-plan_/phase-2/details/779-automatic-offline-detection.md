@@ -28,11 +28,11 @@ local variable inside a `useEffect` in `apps/mobile/src/sync/SyncProvider.tsx`, 
 
 ## Three concepts
 
-| Concept              | Meaning                                                          | Who reads it                        |
-| -------------------- | ---------------------------------------------------------------- | ----------------------------------- |
-| `offline.mode` pref  | User-forced. Refuse the network, steer tabs, persistent banner    | Hard network gates, tab steering    |
-| Connectivity state   | `online` / `device_offline` / `server_unreachable`                | Sync queue, downloads, banner       |
-| Effective offline    | `userForced || connectivity !== 'online'`                        | Screen fallback copy, outbox replay |
+| Concept             | Meaning                                                        | Who reads it                     |
+| ------------------- | -------------------------------------------------------------- | -------------------------------- |
+| `offline.mode` pref | User-forced. Refuse the network, steer tabs, persistent banner | Hard network gates, tab steering |
+| Connectivity state  | `online` / `device_offline` / `server_unreachable`             | Sync queue, downloads, banner    |
+| Effective offline   | `userForced                                                    |                                  | connectivity !== 'online'` | Screen fallback copy, outbox replay |
 
 ## Locked decisions
 
@@ -85,18 +85,18 @@ probes, just more slowly. Keep it that way: no behavior may depend on NetInfo be
 
 ## Behavior — forced vs auto
 
-| Surface                        | Manual toggle on                  | Auto-offline                                    |
-| ------------------------------ | --------------------------------- | ----------------------------------------------- |
-| Bottom-chrome strip            | "Offline mode is on", persistent  | Cause-specific, after debounce, clears on success |
-| More → Features switch         | On                                | Unchanged (off)                                 |
-| Background sync queue          | Parked                            | Parked, resumes on probe success                |
-| API helpers                    | Refuse immediately                | Attempt; failures classify as offline           |
-| Remote playback fallback       | Refused (local `file://` only)    | **Allowed**                                     |
-| New download enqueue           | Rejected (`offline_mode`)         | Queued; starts when back                        |
-| In-flight downloads            | Paused                            | Paused, auto-resume on restore                  |
-| Playback outbox replay         | Stopped                           | Stopped, resumes on restore                     |
-| Podcast detail section         | Forced to Downloaded              | **Unchanged** (remembered tab kept)             |
-| Browse / Search / Home Clips   | Unavailable fill                  | Attempt, then offline-flavored error + Retry    |
+| Surface                      | Manual toggle on                 | Auto-offline                                      |
+| ---------------------------- | -------------------------------- | ------------------------------------------------- |
+| Bottom-chrome strip          | "Offline mode is on", persistent | Cause-specific, after debounce, clears on success |
+| More → Features switch       | On                               | Unchanged (off)                                   |
+| Background sync queue        | Parked                           | Parked, resumes on probe success                  |
+| API helpers                  | Refuse immediately               | Attempt; failures classify as offline             |
+| Remote playback fallback     | Refused (local `file://` only)   | **Allowed**                                       |
+| New download enqueue         | Rejected (`offline_mode`)        | Queued; starts when back                          |
+| In-flight downloads          | Paused                           | Paused, auto-resume on restore                    |
+| Playback outbox replay       | Stopped                          | Stopped, resumes on restore                       |
+| Podcast detail section       | Forced to Downloaded             | **Unchanged** (remembered tab kept)               |
+| Browse / Search / Home Clips | Unavailable fill                 | Attempt, then offline-flavored error + Retry      |
 
 ## Acceptance criteria
 

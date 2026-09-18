@@ -67,7 +67,9 @@ describe('buildEnclosureSwitchPlaybackDecisionIfChanged', () => {
     const params = selectedParams('audio', 0, 0);
     const decision = buildEnclosureSwitchPlaybackDecisionIfChanged({
       currentEnclosureSelectedParams: params,
-      labeledItemEnclosures: [labeled({ id: 1, mediaType: 'audio', sourceUri: 'https://x/a.mp3', type: 'audio/mpeg' })],
+      labeledItemEnclosures: [
+        labeled({ id: 1, mediaType: 'audio', sourceUri: 'https://x/a.mp3', type: 'audio/mpeg' }),
+      ],
       mpClip: null,
       mpItemChapter: null,
       mpItemSoundbite: null,

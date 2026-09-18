@@ -19,7 +19,11 @@ import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { SearchStackParamList } from '../../navigation';
-import { buildAlbumDetailParams, buildPodcastDetailParams, SEARCH_STACK_ROUTES } from '../../navigation';
+import {
+  buildAlbumDetailParams,
+  buildPodcastDetailParams,
+  SEARCH_STACK_ROUTES,
+} from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
 import { screenBodyInsets } from '../../theme/screenLayout';

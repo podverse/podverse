@@ -52,14 +52,14 @@ Contributor policy: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](/docs/develop
 
 Use this table to choose where to **create or update** abcmemory:
 
-| Kind of instruction                         | Prefer                                                                                                    |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Always-on repo convention                   | `.cursorrules` or new/updated always-applied `.cursor/rules/*.mdc`                                        |
-| Applies to specific paths/file types        | Scoped `.cursor/rules/*.mdc` with `globs`                                                                 |
-| Domain/task workflow (API, E2E, K8s, etc.)  | New or extended `.cursor/skills/<topic>/SKILL.md`                                                         |
-| Reusable prompt block for agents            | `.cursor/prompts/<topic>.md`                                                                              |
-| Cursor event automation (shell gates, etc.) | `.cursor/hooks.json` + `.cursor/hooks/*`                                                                  |
-| Path ignores for Cursor indexing            | `.cursorignore`                                                                                           |
+| Kind of instruction                         | Prefer                                                                                 |
+| ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Always-on repo convention                   | `.cursorrules` or new/updated always-applied `.cursor/rules/*.mdc`                     |
+| Applies to specific paths/file types        | Scoped `.cursor/rules/*.mdc` with `globs`                                              |
+| Domain/task workflow (API, E2E, K8s, etc.)  | New or extended `.cursor/skills/<topic>/SKILL.md`                                      |
+| Reusable prompt block for agents            | `.cursor/prompts/<topic>.md`                                                           |
+| Cursor event automation (shell gates, etc.) | `.cursor/hooks.json` + `.cursor/hooks/*`                                               |
+| Path ignores for Cursor indexing            | `.cursorignore`                                                                        |
 | Feature plan or one-off execution note      | `.llm/plans/` — **not** abcremember unless you also want standing policy in `.cursor/` |
 
 ## Rules when abremembering

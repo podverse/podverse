@@ -10,14 +10,14 @@ The two chrome rows that bracket the player region, and the More sheet they open
 
 ### Top action row (fixed, above the scroller)
 
-| Control         | Behavior                                                                   |
-| --------------- | -------------------------------------------------------------------------- |
-| Dismiss         | Chevron-down; closes the player (keeps `full-player-close`)                |
-| Create clip     | **Placeholder** — pressable; says it is not available yet, changes nothing |
-| Add to playlist | Real — the existing `useAddToPlaylist` sheet                               |
-| Share           | Real — the existing `shareResolvedUrl` / `buildNowPlayingShareUrl`         |
+| Control         | Behavior                                                                         |
+| --------------- | -------------------------------------------------------------------------------- |
+| Dismiss         | Chevron-down; closes the player (keeps `full-player-close`)                      |
+| Create clip     | **Placeholder** — pressable; says it is not available yet, changes nothing       |
+| Add to playlist | Real — the existing `useAddToPlaylist` sheet                                     |
+| Share           | Real — the existing `shareResolvedUrl` / `buildNowPlayingShareUrl`               |
 | Queue           | Real — navigates to the Library queue screen (same destination as web `/queues`) |
-| Value for value | Config-gated, as today (keeps `full-player-v4v`)                           |
+| Value for value | Config-gated, as today (keeps `full-player-v4v`)                                 |
 
 Clip authoring remains its own later area. The scissors is visible so the affordance is not lost, and
 it behaves like the icons beside it: pressing it shows a short "not available yet" message and changes

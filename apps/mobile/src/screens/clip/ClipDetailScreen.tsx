@@ -15,11 +15,11 @@ import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import { Button } from '../../components/primitives';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import { clipRepository } from '../../data/repositories/clipRepository';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
+import { clipRepository } from '../../data/repositories/clipRepository';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { navigateToMakeClipScreen } from '../../navigation';
-import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -233,15 +233,7 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
         setShowDeleteConfirm(false);
       }
     })();
-  }, [
-    accessToken,
-    clearSession,
-    clip,
-    handleGateError,
-    navigation,
-    refreshToken,
-    setTokens,
-  ]);
+  }, [accessToken, clearSession, clip, handleGateError, navigation, refreshToken, setTokens]);
 
   return (
     <ScrollView

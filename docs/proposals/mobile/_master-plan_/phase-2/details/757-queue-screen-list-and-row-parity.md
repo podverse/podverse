@@ -54,13 +54,13 @@ scroll; the chip row sits in `ListHeaderComponent`. Pull-to-refresh reloads the 
 
 ### States
 
-| State                     | Presentation                                                          |
-| ------------------------- | --------------------------------------------------------------------- |
-| Loading                   | `AuthAwareLoadState` spinner; never an empty message while in flight  |
-| Signed out                | `showAuthRequired` — generic `authentication.login_required`           |
-| Signed in, no membership  | `useMembershipGate().openGate('needs_membership')` on gated action     |
-| Empty queue               | `ListEmpty`; an empty queue is a real answer, not an error             |
-| Load failed               | `ListError` with retry                                                |
+| State                    | Presentation                                                         |
+| ------------------------ | -------------------------------------------------------------------- |
+| Loading                  | `AuthAwareLoadState` spinner; never an empty message while in flight |
+| Signed out               | `showAuthRequired` — generic `authentication.login_required`         |
+| Signed in, no membership | `useMembershipGate().openGate('needs_membership')` on gated action   |
+| Empty queue              | `ListEmpty`; an empty queue is a real answer, not an error           |
+| Load failed              | `ListError` with retry                                               |
 
 Queue is a **membership-tier** feature
 ([`mobile-anonymous-vs-account-features`](/.cursor/rules/mobile-anonymous-vs-account-features.mdc)),

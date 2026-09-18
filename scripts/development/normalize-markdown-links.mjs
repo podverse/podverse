@@ -61,10 +61,7 @@ function candidateRepoHrefs(resolvedAbs) {
 
   if (rel.startsWith('.llm/')) {
     const tail = rel.slice('.llm/'.length);
-    if (
-      !tail.startsWith('plans/') &&
-      !tail.startsWith('exports/')
-    ) {
+    if (!tail.startsWith('plans/') && !tail.startsWith('exports/')) {
       candidates.push(tail);
     }
   }

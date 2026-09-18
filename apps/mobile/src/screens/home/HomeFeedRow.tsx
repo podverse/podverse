@@ -9,8 +9,8 @@ import type { DTOItem } from '@podverse/helpers/dto';
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import {
   buildMediaRowMoreActions,
-  type MediaRowMoreAction,
   MediaRowActions,
+  type MediaRowMoreAction,
 } from '../../components/player/MediaRowActions';
 import {
   Badge,
@@ -268,62 +268,64 @@ export function HomeFeedRow({
 
   const moreActions = useMemo(() => {
     const standardActions = buildMediaRowMoreActions(
-        t,
-        {
-          onAddToPlaylist:
-            onAddToPlaylistPress !== undefined
-              ? () => {
-                  onAddToPlaylistPress(row);
-                }
-              : undefined,
-          onMarkAsPlayed:
-            onMarkAsPlayedPress !== undefined
-              ? () => {
-                  onMarkAsPlayedPress(row);
-                }
-              : undefined,
-          onQueueLast: () => {
-            onQueuePress(row, 'last');
-          },
-          onQueueNext: () => {
-            onQueuePress(row, 'next');
-          },
-          onDownload: isDownloadable
+      t,
+      {
+        onAddToPlaylist:
+          onAddToPlaylistPress !== undefined
             ? () => {
-                runDownloadAction({
-                  remove: removeDownload,
-                  start: startDownload,
-                  status: downloadStatus,
-                });
+                onAddToPlaylistPress(row);
               }
             : undefined,
-          onShare:
-            onSharePress !== undefined
-              ? () => {
-                  onSharePress(row);
-                }
-              : undefined,
+        onMarkAsPlayed:
+          onMarkAsPlayedPress !== undefined
+            ? () => {
+                onMarkAsPlayedPress(row);
+              }
+            : undefined,
+        onQueueLast: () => {
+          onQueuePress(row, 'last');
         },
-        {
-          downloadLabelKey: isDownloadable ? downloadActionLabelKey(downloadStatus) : undefined,
-          downloadTone: downloadStatus === 'complete' ? 'danger' : undefined,
-          idSuffix: `-${row.id}`,
-        }
-      );
-    return extraMoreActions !== undefined ? [...extraMoreActions, ...standardActions] : standardActions;
+        onQueueNext: () => {
+          onQueuePress(row, 'next');
+        },
+        onDownload: isDownloadable
+          ? () => {
+              runDownloadAction({
+                remove: removeDownload,
+                start: startDownload,
+                status: downloadStatus,
+              });
+            }
+          : undefined,
+        onShare:
+          onSharePress !== undefined
+            ? () => {
+                onSharePress(row);
+              }
+            : undefined,
+      },
+      {
+        downloadLabelKey: isDownloadable ? downloadActionLabelKey(downloadStatus) : undefined,
+        downloadTone: downloadStatus === 'complete' ? 'danger' : undefined,
+        idSuffix: `-${row.id}`,
+      }
+    );
+    return extraMoreActions !== undefined
+      ? [...extraMoreActions, ...standardActions]
+      : standardActions;
   }, [
-      downloadStatus,
-      extraMoreActions,
-      isDownloadable,
-      onAddToPlaylistPress,
-      onMarkAsPlayedPress,
-      onQueuePress,
-      onSharePress,
-      removeDownload,
-      row,
-      startDownload,
-      t,
-    ]);
+    downloadStatus,
+    extraMoreActions,
+    isDownloadable,
+    onAddToPlaylistPress,
+    onMarkAsPlayedPress,
+    onQueuePress,
+    onSharePress,
+    removeDownload,
+    row,
+    startDownload,
+    t,
+  ]);
 
   return (
     <Pressable

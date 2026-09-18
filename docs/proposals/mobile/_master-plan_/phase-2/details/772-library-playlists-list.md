@@ -15,10 +15,10 @@ that violates [`mobile-list-virtualization`](/.cursor/rules/mobile-list-virtuali
 
 `OptionChipGroup` with:
 
-| Chip          | `reqPlaylistGetMany` type   | Label key                      |
-| ------------- | --------------------------- | ------------------------------ |
-| My playlists  | `'private'`                 | `features.playlist.my_playlists` |
-| Followed      | `'private_followed'`        | `filters.type.subscribed`      |
+| Chip         | `reqPlaylistGetMany` type | Label key                        |
+| ------------ | ------------------------- | -------------------------------- |
+| My playlists | `'private'`               | `features.playlist.my_playlists` |
+| Followed     | `'private_followed'`      | `filters.type.subscribed`        |
 
 Public / global discovery stays on **Browse → playlists** (`type: 'public'`). No combined endpoint
 and no Home chip — deliberate divergence from web's three-tab `/playlists` page, recorded in the
@@ -44,13 +44,13 @@ next page through `playlistRepository`. Show creator on Followed rows (web's `sh
 
 ### States and tiers
 
-| State                    | Presentation                                                         |
-| ------------------------ | -------------------------------------------------------------------- |
-| Loading                  | Spinner; never empty while in flight                                 |
-| Signed out               | `AuthAwareLoadState` / `CallToActionSection` with login              |
-| Signed in, cached empty  | `ListEmpty` with `instructions.no_playlists_created` (My) or empty followed copy |
-| Load failed              | `ListError` with retry                                               |
-| Offline Mode, no cache   | Existing offline unavailable message                                 |
+| State                   | Presentation                                                                     |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| Loading                 | Spinner; never empty while in flight                                             |
+| Signed out              | `AuthAwareLoadState` / `CallToActionSection` with login                          |
+| Signed in, cached empty | `ListEmpty` with `instructions.no_playlists_created` (My) or empty followed copy |
+| Load failed             | `ListError` with retry                                                           |
+| Offline Mode, no cache  | Existing offline unavailable message                                             |
 
 **Account-tier** to view My / Followed lists. **Membership-tier** to create — gate Create with
 `useMembershipGate().openGate` on press, not a persistent card above the list

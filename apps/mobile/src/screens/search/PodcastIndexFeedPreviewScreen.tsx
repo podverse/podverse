@@ -3,8 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { getChannelRouteKind } from '@podverse/helpers/medium';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
+import { getChannelRouteKind } from '@podverse/helpers/medium';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
@@ -24,10 +24,7 @@ import {
 } from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
-import {
-  isParsedReadyChannel,
-  pollUntilParsedReadyChannel,
-} from './podcastIndexFeedPreview';
+import { isParsedReadyChannel, pollUntilParsedReadyChannel } from './podcastIndexFeedPreview';
 
 type PodcastIndexFeedPreviewScreenProps = NativeStackScreenProps<
   SearchStackParamList,

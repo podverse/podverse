@@ -5,7 +5,11 @@ import { resolveQueueAdvance } from '../resolveQueueAdvance.js';
 describe('resolveQueueAdvance', () => {
   it('plays the next manual item when manual upcoming has items', () => {
     expect(
-      resolveQueueAdvance({ hasAutoQueueNext: false, holdNowPlaying: false, upcomingManualCount: 1 })
+      resolveQueueAdvance({
+        hasAutoQueueNext: false,
+        holdNowPlaying: false,
+        upcomingManualCount: 1,
+      })
     ).toEqual({
       kind: 'play-next-manual',
     });
@@ -29,7 +33,11 @@ describe('resolveQueueAdvance', () => {
 
   it('stops when both manual upcoming and auto-queue are exhausted', () => {
     expect(
-      resolveQueueAdvance({ hasAutoQueueNext: false, holdNowPlaying: false, upcomingManualCount: 0 })
+      resolveQueueAdvance({
+        hasAutoQueueNext: false,
+        holdNowPlaying: false,
+        upcomingManualCount: 0,
+      })
     ).toEqual({
       kind: 'stop',
     });

@@ -1,10 +1,11 @@
-import { SharableStatusEnum } from '@podverse/helpers';
 import type { DTOClip } from '@podverse/helpers';
+import { SharableStatusEnum } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import type { MobileAuthRequestContext } from './types';
 
-type ClipVisibility = SharableStatusEnum.Public | SharableStatusEnum.Unlisted | SharableStatusEnum.Private;
+type ClipVisibility =
+  SharableStatusEnum.Public | SharableStatusEnum.Unlisted | SharableStatusEnum.Private;
 
 export type CreateClipInput = {
   itemIdText: string;
@@ -26,9 +27,7 @@ const toSharableStatusId = (visibility: ClipVisibility): number => {
   return visibility;
 };
 
-const fromSharableStatusId = (
-  value: number | undefined
-): ClipVisibility => {
+const fromSharableStatusId = (value: number | undefined): ClipVisibility => {
   if (value === SharableStatusEnum.Public) {
     return SharableStatusEnum.Public;
   }
@@ -40,8 +39,7 @@ const fromSharableStatusId = (
 
 const toRequestPayload = (input: CreateClipInput) => {
   return {
-    end_time:
-      input.endTimeSeconds !== null ? formatTimeSeconds(input.endTimeSeconds) : null,
+    end_time: input.endTimeSeconds !== null ? formatTimeSeconds(input.endTimeSeconds) : null,
     item_id_text: input.itemIdText,
     sharable_status_id: toSharableStatusId(input.visibility),
     start_time: formatTimeSeconds(input.startTimeSeconds),

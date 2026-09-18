@@ -43,14 +43,14 @@ import { useOfflineMode } from '../../prefs/offlineMode';
 import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
-import type { HomeFeedRowData } from '../home/homeFeedData';
-import { mapItemToHomeFeedRow } from '../home/homeFeedData';
-import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
-import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import type { EpisodePlaybackProgress } from '../episode/episodePlaybackProgress';
 import { episodeProgressTimeKind, parsePlaybackSeconds } from '../episode/episodePlaybackProgress';
 import { loadEpisodeTranscriptPane } from '../episode/episodeSectionPaneLoaders';
 import { useEpisodeStoredProgress } from '../episode/useEpisodePlaybackProgress';
+import type { HomeFeedRowData } from '../home/homeFeedData';
+import { mapItemToHomeFeedRow } from '../home/homeFeedData';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
+import { useAddToPlaylist } from '../library/useAddToPlaylist';
 
 type TrackDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'TrackDetail'>;
 
@@ -70,7 +70,8 @@ const formatProgressTimeLabel = (
   fallbackDuration: string | null
 ): string | null => {
   const kind = episodeProgressTimeKind(progress);
-  const formatSeconds = (seconds: number): string | null => formatPlaybackDurationLabel(seconds, translate);
+  const formatSeconds = (seconds: number): string | null =>
+    formatPlaybackDurationLabel(seconds, translate);
 
   if (kind === 'remaining') {
     const remaining = Math.max(0, progress.durationSeconds - progress.positionSeconds);
@@ -120,7 +121,8 @@ function TrackPlayChrome({
 
   const activeMediaId =
     activeTarget !== null && activeTarget.kind !== 'clip' ? activeTarget.item.id_text : null;
-  const explicitSelectedParams = activeMediaId === item.id_text ? enclosureSelectedParams : undefined;
+  const explicitSelectedParams =
+    activeMediaId === item.id_text ? enclosureSelectedParams : undefined;
   const {
     isDownloadable,
     remove: removeDownload,
@@ -341,17 +343,22 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     [themeStyles, tokens]
   );
 
-  const applyTrack = useCallback((item: DTOItem, nextChannel: DTOChannel | null, nextTitle: string | null) => {
-    setTrack((current) => (shouldReplaceCachedValue(current, item) ? item : current));
-    if (nextChannel !== null) {
-      setChannel((current) => (shouldReplaceCachedValue(current, nextChannel) ? nextChannel : current));
-      setChannelTitle((current) => (current === nextChannel.title ? current : nextChannel.title));
-      return;
-    }
-    if (nextTitle !== null) {
-      setChannelTitle((current) => (current === nextTitle ? current : nextTitle));
-    }
-  }, []);
+  const applyTrack = useCallback(
+    (item: DTOItem, nextChannel: DTOChannel | null, nextTitle: string | null) => {
+      setTrack((current) => (shouldReplaceCachedValue(current, item) ? item : current));
+      if (nextChannel !== null) {
+        setChannel((current) =>
+          shouldReplaceCachedValue(current, nextChannel) ? nextChannel : current
+        );
+        setChannelTitle((current) => (current === nextChannel.title ? current : nextChannel.title));
+        return;
+      }
+      if (nextTitle !== null) {
+        setChannelTitle((current) => (current === nextTitle ? current : nextTitle));
+      }
+    },
+    []
+  );
 
   const loadTrack = useCallback(async () => {
     setIsLoading(true);
@@ -614,7 +621,9 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
           onQueuePress={handleQueue}
           onSharePress={handleShare}
         />
-        {playbackNoticeKey !== null ? <Text style={styles.notice}>{t(playbackNoticeKey)}</Text> : null}
+        {playbackNoticeKey !== null ? (
+          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
+        ) : null}
         <View style={styles.chipRow}>
           <SectionChipRow
             items={sectionChips}
@@ -688,7 +697,10 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     <View style={styles.container} testID="track-detail-screen">
       {isLoading ? <LoadingSection testID="track-detail-loading" /> : null}
       {!isLoading && offlineModeEnabled && track === null ? (
-        <ListEmpty messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY} testID="track-detail-offline-unavailable" />
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="track-detail-offline-unavailable"
+        />
       ) : null}
       {!isLoading && errorKey !== null ? (
         <ListError

@@ -15,13 +15,13 @@ only sets a notice string, and the row's `onPress` is `() => {}`.
 call `req*` directly ([`mobile-react-native`](/.cursor/rules/mobile-react-native.mdc)), so the
 methods land in the repository before any UI uses them:
 
-| Repository method                             | API                                                |
-| --------------------------------------------- | -------------------------------------------------- |
-| `removeItem` / `removeClip` / `removeSoundbite` | `reqQueueResource{Item,Clip,ItemSoundbite}Delete`  |
-| `removeAddByRss`                              | `reqQueueResourceItemAddByRSSDelete`               |
-| `addItemBetween` and the clip / soundbite / add-by-RSS peers | `reqQueueResource*AddBetween`         |
-| `addSoundbiteNext` / `addSoundbiteLast`       | `reqQueueResourceItemSoundbite{AddNext,AddLast}`   |
-| `addAddByRssNext` / `addAddByRssLast`         | `reqQueueResourceItemAddByRSS{AddNext,AddLast}`    |
+| Repository method                                            | API                                               |
+| ------------------------------------------------------------ | ------------------------------------------------- |
+| `removeItem` / `removeClip` / `removeSoundbite`              | `reqQueueResource{Item,Clip,ItemSoundbite}Delete` |
+| `removeAddByRss`                                             | `reqQueueResourceItemAddByRSSDelete`              |
+| `addItemBetween` and the clip / soundbite / add-by-RSS peers | `reqQueueResource*AddBetween`                     |
+| `addSoundbiteNext` / `addSoundbiteLast`                      | `reqQueueResourceItemSoundbite{AddNext,AddLast}`  |
+| `addAddByRssNext` / `addAddByRssLast`                        | `reqQueueResourceItemAddByRSS{AddNext,AddLast}`   |
 
 Every mutation projects the native cache the way the existing add methods do — CarPlay and Android
 Auto read that cache with the app closed

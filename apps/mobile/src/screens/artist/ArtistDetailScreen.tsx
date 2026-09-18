@@ -27,12 +27,12 @@ import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
-import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
+import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
-import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
@@ -646,9 +646,14 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         )
       }
       ListFooterComponent={
-        playbackNoticeKey !== null ? <Text style={styles.notice}>{t(playbackNoticeKey)}</Text> : null
+        playbackNoticeKey !== null ? (
+          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
+        ) : null
       }
-      contentContainerStyle={{ paddingHorizontal: tokens.spacing.lg, paddingTop: tokens.spacing.md }}
+      contentContainerStyle={{
+        paddingHorizontal: tokens.spacing.lg,
+        paddingTop: tokens.spacing.md,
+      }}
       data={tracksRows}
       keyExtractor={(row) => row.key}
       refreshControl={
@@ -729,7 +734,10 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           <ListEmpty messageKey="misc.info" testID="artist-detail-albums-empty" />
         )
       }
-      contentContainerStyle={{ paddingHorizontal: tokens.spacing.lg, paddingTop: tokens.spacing.md }}
+      contentContainerStyle={{
+        paddingHorizontal: tokens.spacing.lg,
+        paddingTop: tokens.spacing.md,
+      }}
       data={albumsRows}
       keyExtractor={(row) => row.key}
       refreshControl={
@@ -795,7 +803,10 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     );
 
   const podrollBody = offlineModeEnabled ? (
-    <ListEmpty messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY} testID="artist-detail-podroll-offline" />
+    <ListEmpty
+      messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+      testID="artist-detail-podroll-offline"
+    />
   ) : (
     <FillList
       ListEmptyComponent={
@@ -813,7 +824,10 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           <ListEmpty messageKey="info.no_podroll_found" testID="artist-detail-podroll-empty" />
         )
       }
-      contentContainerStyle={{ paddingHorizontal: tokens.spacing.lg, paddingTop: tokens.spacing.md }}
+      contentContainerStyle={{
+        paddingHorizontal: tokens.spacing.lg,
+        paddingTop: tokens.spacing.md,
+      }}
       data={podrollRows}
       keyExtractor={(row) => row.id}
       refreshControl={
@@ -873,7 +887,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           />
         }
       />
-      {notifications.errorKey !== null ? <Text style={styles.notice}>{t(notifications.errorKey)}</Text> : null}
+      {notifications.errorKey !== null ? (
+        <Text style={styles.notice}>{t(notifications.errorKey)}</Text>
+      ) : null}
       <Text style={styles.notice} testID="artist-detail-settings-auto-download-notice">
         {t('features.download.auto_download_unavailable')}
       </Text>

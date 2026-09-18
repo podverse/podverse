@@ -84,6 +84,5 @@ name: Queue screen flow
 - assertVisible:
     id: library-queue-empty
 - takeScreenshot: queue-screen-empty
-
 # Drag reorder is intentionally not asserted here. Maestro long-press drag does not reliably
 # validate the tap/swipe/drag arbitration contract; resolver unit tests + device checks cover it.

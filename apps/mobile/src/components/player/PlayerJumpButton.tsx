@@ -3,9 +3,9 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useTheme } from '../../theme/useTheme';
 import type { ButtonSize } from '../primitives/Button';
 import { Button } from '../primitives/Button';
-import { useTheme } from '../../theme/useTheme';
 
 type PlayerJumpButtonProps = {
   direction: 'back' | 'forward';
@@ -47,7 +47,8 @@ export function PlayerJumpButton({
     [tokens.button.secondaryColor]
   );
 
-  const directionLabelKey = direction === 'back' ? 'media_player.jump_back' : 'media_player.jump_forward';
+  const directionLabelKey =
+    direction === 'back' ? 'media_player.jump_back' : 'media_player.jump_forward';
   const iconName = direction === 'back' ? 'rotate-left' : 'rotate-right';
 
   return (
@@ -55,7 +56,12 @@ export function PlayerJumpButton({
       accessibilityLabel={t(directionLabelKey, { seconds })}
       icon={
         <View style={styles.glyphWrap}>
-          <FontAwesome6 color={tokens.button.secondaryColor} name={iconName} size={JUMP_GLYPH_SIZE} solid />
+          <FontAwesome6
+            color={tokens.button.secondaryColor}
+            name={iconName}
+            size={JUMP_GLYPH_SIZE}
+            solid
+          />
           {showSeconds ? <Text style={styles.glyphLabel}>{Math.abs(seconds)}</Text> : null}
         </View>
       }

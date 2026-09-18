@@ -4,31 +4,35 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { CLIP_END_PREVIEW_LEAD_SECONDS } from '@podverse/helpers';
-import { MEDIA_JUMP_BACK_SECONDS, MEDIA_JUMP_FORWARD_SECONDS, MEDIA_MINI_JUMP_SECONDS } from '@podverse/helpers';
+import {
+  MEDIA_JUMP_BACK_SECONDS,
+  MEDIA_JUMP_FORWARD_SECONDS,
+  MEDIA_MINI_JUMP_SECONDS,
+} from '@podverse/helpers';
 import { SharableStatusEnum } from '@podverse/helpers';
 
 import { ClipTimeCard } from '../../components/clip/ClipTimeCard';
 import { ManagedCopyModal } from '../../components/content/ManagedCopyModal';
-import { OptionChipGroup, TextField } from '../../components/form';
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
-import { MakeClipTransportRow } from '../../components/player/MakeClipTransportRow';
+import { OptionChipGroup, TextField } from '../../components/form';
 import { FullPlayerScrubber } from '../../components/player/FullPlayerScrubber';
+import { MakeClipTransportRow } from '../../components/player/MakeClipTransportRow';
 import { Button } from '../../components/primitives';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { RetryableError } from '../../components/state/RetryableError';
 import { useManagedCopy } from '../../hooks/useManagedCopy';
-import { useMembershipGate } from '../../membership/MembershipGateProvider';
-import { screenBodyInsets } from '../../theme/screenLayout';
-import { useTheme } from '../../theme/useTheme';
-import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
-import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
 import type { ClipVisibility } from '../../prefs/clipPrefs';
 import { hasSeenMakeClipHowToPref, writeSeenMakeClipHowToPref } from '../../prefs/clipPrefs';
-import type { DeleteClipResult, SaveClipResult } from './useMakeClipForm';
+import { screenBodyInsets } from '../../theme/screenLayout';
+import { useTheme } from '../../theme/useTheme';
 import type { MakeClipValidationReason } from './makeClipValidation';
+import type { DeleteClipResult, SaveClipResult } from './useMakeClipForm';
 import { useMakeClipForm } from './useMakeClipForm';
 
 type MakeClipStackParamList = {
@@ -331,11 +335,7 @@ export function MakeClipScreen({ navigation, route }: MakeClipScreenProps) {
             state={transportState}
           />
           {errorKey !== null ? (
-            <RetryableError
-              errorKey={errorKey}
-              onRetry={handleSave}
-              testID="make-clip-error"
-            />
+            <RetryableError errorKey={errorKey} onRetry={handleSave} testID="make-clip-error" />
           ) : null}
           {isEdit ? (
             <View style={styles.deleteRow}>

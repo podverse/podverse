@@ -2,11 +2,11 @@ import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
+import { useTheme } from '../../theme/useTheme';
 import type { SectionChipItem } from '../form';
 import { SectionChipRow } from '../form';
 import { LoadingSection } from '../state/LoadingSection';
-import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
-import { useTheme } from '../../theme/useTheme';
 
 export type ChannelDetailShellProps<TSection extends string> = {
   channelHeader: ReactNode;

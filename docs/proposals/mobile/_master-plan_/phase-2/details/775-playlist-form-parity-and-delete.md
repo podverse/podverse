@@ -14,12 +14,12 @@ edit parity. Today: title, description, hand-rolled sharable-status chips, mediu
 
 Mirror [`PlaylistForm`](apps/web/src/components/Playlist/PlaylistForm.tsx):
 
-| Field            | Create                         | Edit                                      |
-| ---------------- | ------------------------------ | ----------------------------------------- |
-| Title            | Required                       | Required                                  |
-| Description      | Optional                       | Optional                                  |
-| Medium           | `OptionChipGroup` AV / Music   | Read-only (locked after create)           |
-| Sharable status  | `OptionChipGroup` public / unlisted / private | Same                             |
+| Field           | Create                                        | Edit                            |
+| --------------- | --------------------------------------------- | ------------------------------- |
+| Title           | Required                                      | Required                        |
+| Description     | Optional                                      | Optional                        |
+| Medium          | `OptionChipGroup` AV / Music                  | Read-only (locked after create) |
+| Sharable status | `OptionChipGroup` public / unlisted / private | Same                            |
 
 Replace the hand-rolled chip `Pressable`s with `OptionChipGroup`
 ([`mobile-settings-option-density`](/.cursor/rules/mobile-settings-option-density.mdc)). Default

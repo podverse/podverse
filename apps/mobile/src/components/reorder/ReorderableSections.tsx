@@ -155,15 +155,7 @@ function ReorderableRow<T>({
     }
 
     return gesture;
-  }, [
-    activeKey,
-    beginDrag,
-    itemKey,
-    onDragEnd,
-    onDragMove,
-    translationY,
-    usesBodyGesture,
-  ]);
+  }, [activeKey, beginDrag, itemKey, onDragEnd, onDragMove, translationY, usesBodyGesture]);
 
   const styles = useMemo(
     () =>

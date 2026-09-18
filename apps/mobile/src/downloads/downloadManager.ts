@@ -6,13 +6,13 @@ import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosu
 
 import { channelItemsRepository, downloadsRepository } from '../data/repositories';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
+import { isEffectivelyOffline, subscribeConnectivity } from '../net/connectivity';
 import {
   isDownloadQuotaUnlimited,
   readDownloadAutoDeleteOnDeviceLowEnabled,
   readDownloadAutoDeleteOnLimitEnabled,
   readDownloadQuotaBytes,
 } from '../prefs/downloadPrefs';
-import { isEffectivelyOffline, subscribeConnectivity } from '../net/connectivity';
 import { isOfflineModeEnabled, subscribeOfflineMode } from '../prefs/offlineMode';
 import { mergeDownloadChannelIdentity, usableDownloadChannelText } from './downloadChannelIdentity';
 import type { DownloadIneligibleReason } from './downloadEligibility';

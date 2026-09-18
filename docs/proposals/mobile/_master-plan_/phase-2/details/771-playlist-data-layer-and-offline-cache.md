@@ -21,10 +21,10 @@ screen. There is no playlist table; Offline Mode shows the generic unavailable m
 Add forward-only migration **17** after the current latest (`16` in
 [`migrations.ts`](apps/mobile/src/data/db/migrations.ts)):
 
-| Table               | Purpose                                                                 |
-| ------------------- | ----------------------------------------------------------------------- |
-| `playlist`          | Cached `DTOPlaylist` JSON + ownership / follow flags + list watermarks  |
-| `playlist_resource` | Cached `DTOPlaylistResource` rows keyed by playlist + `list_position`   |
+| Table               | Purpose                                                                |
+| ------------------- | ---------------------------------------------------------------------- |
+| `playlist`          | Cached `DTOPlaylist` JSON + ownership / follow flags + list watermarks |
+| `playlist_resource` | Cached `DTOPlaylistResource` rows keyed by playlist + `list_position`  |
 
 Store whole DTOs as `payload_json` the way other entity tables do
 ([`dto-changes-are-device-data-migrations`](/.cursor/rules/dto-changes-are-device-data-migrations.mdc)).
@@ -36,13 +36,13 @@ per-playlist resource pages.
 `apps/mobile/src/data/repositories/playlistRepository.ts`, exported from the repositories barrel.
 Mirror `queueRepository` patterns (auth context argument, error handling, read-through / write-behind):
 
-| Method family                         | API wrappers                                                                 |
-| ------------------------------------- | ---------------------------------------------------------------------------- |
-| List owned / followed                 | `reqPlaylistGetMany` (`type: 'private'` \| `'private_followed'`)             |
-| Get one / create / edit / delete      | `reqPlaylistGet`, `reqPlaylistCreate`, `reqPlaylistEdit`, `reqPlaylistDelete` |
-| Follow / unfollow                     | `reqAccountFollowPlaylist`, `reqAccountUnfollowPlaylist`                     |
-| Resources (paginated + private-all)   | `reqPlaylistResourceGetManyByPlaylistIdText`, `…GetAllByPlaylistIdTextPrivate` |
-| Add first / last / between / delete   | `reqPlaylistResource*` for item, clip, soundbite, add-by-RSS                 |
+| Method family                       | API wrappers                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------------ |
+| List owned / followed               | `reqPlaylistGetMany` (`type: 'private'` \| `'private_followed'`)               |
+| Get one / create / edit / delete    | `reqPlaylistGet`, `reqPlaylistCreate`, `reqPlaylistEdit`, `reqPlaylistDelete`  |
+| Follow / unfollow                   | `reqAccountFollowPlaylist`, `reqAccountUnfollowPlaylist`                       |
+| Resources (paginated + private-all) | `reqPlaylistResourceGetManyByPlaylistIdText`, `…GetAllByPlaylistIdTextPrivate` |
+| Add first / last / between / delete | `reqPlaylistResource*` for item, clip, soundbite, add-by-RSS                   |
 
 Every mutation that changes a list the car can browse must project the native library-browse cache
 ([`mobile-carplay-android-auto`](/.cursor/rules/mobile-carplay-android-auto.mdc)). Route

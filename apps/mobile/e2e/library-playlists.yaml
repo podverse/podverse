@@ -105,6 +105,5 @@ name: Library Playlists Authoring
       id: library-playlists-screen
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: library-playlists-deleted-back-to-list
-
 # Drag-reorder assertion intentionally omitted: long-press drag arbitration is a device-level
 # gesture check and flakes in Maestro. Covered by manual validation with queue-style drag handles.

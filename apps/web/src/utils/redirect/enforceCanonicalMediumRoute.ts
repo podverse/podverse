@@ -2,10 +2,10 @@ import { redirect } from 'next/navigation';
 
 import type { DTOChannel } from '@podverse/helpers';
 import type { ChannelRouteKind } from '@podverse/helpers';
-import { getItemTypeFromMedium } from '@podverse/helpers';
+import { getChannelRouteKind, getItemTypeFromMedium } from '@podverse/helpers';
 
 import { ROUTES } from '../../constants/routes';
-import { getChannelPath, getChannelRouteKind } from './redirectToChannelPageByMedium';
+import { getChannelPath } from './redirectToChannelPageByMedium';
 
 /**
  * Redirect to the canonical channel page for the feed's medium when the current

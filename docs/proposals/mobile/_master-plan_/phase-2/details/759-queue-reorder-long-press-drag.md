@@ -45,11 +45,11 @@ Those actions are the accessible path to the same reorder, not a second feature.
 Web resolves a drop index into one of three calls. Mirror it exactly — this is the part most likely
 to be reinvented incorrectly:
 
-| Drop index        | Call                                                              |
-| ----------------- | ----------------------------------------------------------------- |
-| `0`               | `addNext`                                                         |
-| `length - 1`      | `addLast`                                                         |
-| anything between  | `addBetween(prev.list_position, next.list_position)`               |
+| Drop index       | Call                                                 |
+| ---------------- | ---------------------------------------------------- |
+| `0`              | `addNext`                                            |
+| `length - 1`     | `addLast`                                            |
+| anything between | `addBetween(prev.list_position, next.list_position)` |
 
 Positions come from the **reordered** list's neighbors, not the original indices. Dispatch on the
 moved resource's type (item, clip, soundbite, add-by-RSS) using the repository methods added in

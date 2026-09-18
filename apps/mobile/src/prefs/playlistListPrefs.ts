@@ -1,7 +1,13 @@
 import type { SortPrefScope } from '@podverse/helpers';
 import { pickSortPrefToken } from '@podverse/helpers';
-import type { QueryParamsSubscribedFullSort, QueryParamsStatsRange } from '@podverse/helpers-requests';
-import { QUERY_PARAMS_STATS_RANGE_VALUES, QUERY_PARAMS_SUBSCRIBED_FULL_SORT } from '@podverse/helpers-requests';
+import type {
+  QueryParamsStatsRange,
+  QueryParamsSubscribedFullSort,
+} from '@podverse/helpers-requests';
+import {
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+  QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
+} from '@podverse/helpers-requests';
 
 import { readSortPref, writeSortPref } from './sortPrefs';
 

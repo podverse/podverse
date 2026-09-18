@@ -23,10 +23,10 @@ Update `redirectToChannelPageByMedium.test.ts` and any imports that type on the 
 
 ### Recorded gaps (do not close)
 
-| Gap                         | Why it stays                                                                 |
-| --------------------------- | ---------------------------------------------------------------------------- |
-| Web `/videos` page          | Still "Coming soon"; product has not decided a video browse tree for web     |
-| `/video/[id]` / `/channel/` | Notification path prefixes only; no Next pages                               |
+| Gap                         | Why it stays                                                                                                                     |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Web `/videos` page          | Still "Coming soon"; product has not decided a video browse tree for web                                                         |
+| `/video/[id]` / `/channel/` | Notification path prefixes only; no Next pages                                                                                   |
 | Clip editor queue hold      | Web advance path is `useQueueResourcesLoadActive`, not shared `resolveQueueAdvance` — tracked with Make Clip (756), not this set |
 
 Mobile Browse keeps a `videos` chip while web's sidebar has no Videos link. That asymmetry is

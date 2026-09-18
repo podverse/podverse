@@ -332,8 +332,7 @@ const addByRssToHomeRow = (
       : '';
 
   return {
-    description:
-      descriptionRaw ?? (descriptionFromItem.length > 0 ? descriptionFromItem : null),
+    description: descriptionRaw ?? (descriptionFromItem.length > 0 ? descriptionFromItem : null),
     duration:
       typeof durationRaw === 'number'
         ? String(durationRaw)

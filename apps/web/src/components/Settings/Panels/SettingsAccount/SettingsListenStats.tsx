@@ -46,7 +46,11 @@ export function SettingsListenStats() {
   return (
     <SettingsSection>
       <h3>{t('title')}</h3>
-      <PopularityTrackingAgreementPanel agreement={agreement} hasError={hasError} isLoading={isLoading} />
+      <PopularityTrackingAgreementPanel
+        agreement={agreement}
+        hasError={hasError}
+        isLoading={isLoading}
+      />
     </SettingsSection>
   );
 }

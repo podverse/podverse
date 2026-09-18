@@ -17,12 +17,12 @@ Depends on: [760](760-shared-medium-route-kind.md), [761](761-channel-detail-she
 Match web [`AlbumPageListHeader.tsx`](apps/web/src/app/album/[channel_id]/AlbumPageListHeader.tsx),
 **not** the union array order:
 
-| Order | Tab        | Always / evidence                         |
-| ----- | ---------- | ----------------------------------------- |
-| 1     | `tracks`   | Always-on                                 |
+| Order | Tab        | Always / evidence                              |
+| ----- | ---------- | ---------------------------------------------- |
+| 1     | `tracks`   | Always-on                                      |
 | 2     | `about`    | Always-on (empty description is a real answer) |
-| 3     | `podroll`  | Evidence — when channel has podroll       |
-| 4     | `settings` | Signed-in                                 |
+| 3     | `podroll`  | Evidence — when channel has podroll            |
+| 4     | `settings` | Signed-in                                      |
 
 No `boosts` tab (Phase 3). Persist tab / sort / range via album prefs from 761.
 

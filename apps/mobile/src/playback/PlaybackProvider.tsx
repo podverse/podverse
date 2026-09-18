@@ -89,16 +89,16 @@ import {
 } from '../lib/playback/lastPlaybackStorage';
 import { resolveMediaFileDurationHintSeconds } from '../lib/playback/mediaFileDurationHint';
 import {
-  DEFAULT_ENCLOSURE_SELECTED_PARAMS,
   buildItemLabeledEnclosures,
+  DEFAULT_ENCLOSURE_SELECTED_PARAMS,
   resolveItemEnclosureUrl,
   resolveSelectedItemEnclosureMediaType,
   resolveSessionEnclosureSelectedParams,
 } from '../lib/playback/resolveEnclosureUrl';
 import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
 import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
-import { getPref, setPref } from '../prefs/prefsStore';
 import { readPlaybackMediaTypePref } from '../prefs/preferredMediaType';
+import { getPref, setPref } from '../prefs/prefsStore';
 import {
   readPlaybackReconcileConflicts,
   subscribePlaybackReconcileConflicts,
@@ -225,7 +225,9 @@ const extractAddByRssArtworkUrl = (images: unknown): string | null => {
   return null;
 };
 
-const summaryFromAddByRssResourceData = (resourceData: AddByRSSResourceData): PlaybackNowPlaying => {
+const summaryFromAddByRssResourceData = (
+  resourceData: AddByRSSResourceData
+): PlaybackNowPlaying => {
   const title =
     typeof resourceData.title === 'string' && resourceData.title.length > 0
       ? resourceData.title
@@ -614,7 +616,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   }, [setEnclosureSelectedParams]);
 
   const resolvePlaybackSelectionForItem = useCallback(
-    async (item: DTOItem): Promise<{
+    async (
+      item: DTOItem
+    ): Promise<{
       labeledItemEnclosures: LabeledItemEnclosure[];
       selectedParams: EnclosureSelectedParams;
     }> => {
@@ -1376,7 +1380,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         intent,
       });
     },
-    [ensureChannel, startAddByRssPlayback, startClipPlayback, startItemPlayback, startSoundbitePlayback]
+    [
+      ensureChannel,
+      startAddByRssPlayback,
+      startClipPlayback,
+      startItemPlayback,
+      startSoundbitePlayback,
+    ]
   );
 
   const playQueueResourceFromQueue = useCallback(
@@ -1977,12 +1987,16 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   // gates on real video frames, so mismatched metadata never leaves a black rectangle.
   useEffect(() => {
     const hasActiveNonLiveItem =
-      activeTarget !== null && activeTarget.kind !== 'add-by-rss' && activeTarget.kind !== 'livestream';
+      activeTarget !== null &&
+      activeTarget.kind !== 'add-by-rss' &&
+      activeTarget.kind !== 'livestream';
     const selectedMediaType = resolveSelectedItemEnclosureMediaType({
       labeledItemEnclosures: itemLabeledEnclosures,
       selectedParams: enclosureSelectedParams,
     });
-    nativePlaybackBridge.setVideoSurfaceVisible(hasActiveNonLiveItem && selectedMediaType === 'video');
+    nativePlaybackBridge.setVideoSurfaceVisible(
+      hasActiveNonLiveItem && selectedMediaType === 'video'
+    );
   }, [activeTarget, enclosureSelectedParams, itemLabeledEnclosures]);
 
   const pause = useCallback(() => {

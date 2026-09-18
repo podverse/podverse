@@ -26,7 +26,9 @@ test.describe('FAQ page', () => {
     await expect(faqHeading).toBeVisible();
     await expect(loadingSpinner).toBeHidden();
 
-    const topBefore = await faqHeading.evaluate((node) => Math.round(node.getBoundingClientRect().top));
+    const topBefore = await faqHeading.evaluate((node) =>
+      Math.round(node.getBoundingClientRect().top)
+    );
     await expect
       .poll(async () => faqHeading.evaluate((node) => Math.round(node.getBoundingClientRect().top)))
       .toBe(topBefore);

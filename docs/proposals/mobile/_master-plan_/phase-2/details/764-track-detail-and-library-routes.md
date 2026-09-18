@@ -25,10 +25,10 @@ Web paints [`CoreAlbumHeader`](apps/web/src/components/Core/Artist/Album/) then
 
 ### Tabs
 
-| Tab          | Label key                 | Condition                          |
-| ------------ | ------------------------- | ---------------------------------- |
-| `summary`    | `info.summary.summary`    | Always                             |
-| `transcript` | `info.transcript.lyrics`  | Evidence — item has transcripts    |
+| Tab          | Label key                | Condition                       |
+| ------------ | ------------------------ | ------------------------------- |
+| `summary`    | `info.summary.summary`   | Always                          |
+| `transcript` | `info.transcript.lyrics` | Evidence — item has transcripts |
 
 No boosts. No chapters / clips / soundbites (web track page omits them). Persist tab via
 `TRACK_TABS` prefs from 761. Prefer shared keys so web and mobile stay aligned.

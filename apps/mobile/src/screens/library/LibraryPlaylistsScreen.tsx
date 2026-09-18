@@ -4,10 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import type { DTOPlaylist } from '@podverse/helpers';
-import type { QueryParamsSubscribedFullSort, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type {
+  QueryParamsStatsRange,
+  QueryParamsSubscribedFullSort,
+} from '@podverse/helpers-requests';
 
-import { useAuth } from '../../auth/AuthProvider';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
+import { useAuth } from '../../auth/AuthProvider';
 import type { MenuSelectChipOption, OptionChipOption } from '../../components/form';
 import { MenuSelectChip, OptionChipGroup } from '../../components/form';
 import { Button, Card, FillList, ListRow, VerticalCenter } from '../../components/primitives';
@@ -18,8 +21,8 @@ import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { playlistRepository } from '../../data';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
-import { useAccessTier } from '../../membership/useAccessTier';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
@@ -333,7 +336,11 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     !hasCachedList &&
     listRows.length === 0;
   const showEmpty =
-    !showSignedOut && !showLoading && !showError && !showOfflineUnavailable && listRows.length === 0;
+    !showSignedOut &&
+    !showLoading &&
+    !showError &&
+    !showOfflineUnavailable &&
+    listRows.length === 0;
 
   const listEmpty = showLoading ? (
     <LoadingSection testID="library-playlists-loading" />
@@ -451,7 +458,7 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
             tintColor={themeStyles.buttonPrimary.backgroundColor}
           />
         }
-        renderItem={({ index, item: playlist }) => (
+        renderItem={({ item: playlist }) => (
           <View style={styles.rowSpacing}>
             <Card>
               <ListRow

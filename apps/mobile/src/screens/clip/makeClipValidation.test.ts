@@ -1,5 +1,6 @@
-import { SharableStatusEnum } from '@podverse/helpers';
 import { describe, expect, it } from 'vitest';
+
+import { SharableStatusEnum } from '@podverse/helpers';
 
 import { validateMakeClipForm } from './makeClipValidation';
 

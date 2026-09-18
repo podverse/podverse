@@ -32,12 +32,12 @@ surface even if the chosen file is audio-only.
 
 ### Regression cases
 
-| Case                                              | Expected                         |
-| ------------------------------------------------- | -------------------------------- |
-| Podcast + preferred video + MP4 alternate         | Surface visible when selected    |
-| Podcast + preferred audio                         | Surface hidden                   |
-| Video-medium channel + mistyped audio enclosure   | Surface hidden (enclosure wins)  |
-| Switch enclosure audio → video mid-session        | Surface appears after switch     |
+| Case                                            | Expected                        |
+| ----------------------------------------------- | ------------------------------- |
+| Podcast + preferred video + MP4 alternate       | Surface visible when selected   |
+| Podcast + preferred audio                       | Surface hidden                  |
+| Video-medium channel + mistyped audio enclosure | Surface hidden (enclosure wins) |
+| Switch enclosure audio → video mid-session      | Surface appears after switch    |
 
 `PlaybackTarget` kind (`item-video` vs `item-podcast`) may stay medium-derived for queue / stats;
 only surface visibility becomes enclosure-driven. Document that split in the plan summary if both

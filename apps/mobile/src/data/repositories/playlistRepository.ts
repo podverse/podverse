@@ -1,6 +1,5 @@
 import { asc, eq, inArray } from 'drizzle-orm';
 
-import { articleStrippedTitle, MediumEnum } from '@podverse/helpers';
 import type {
   AddByRSSResourceData,
   BetweenParams,
@@ -8,7 +7,11 @@ import type {
   DTOPlaylistResource,
   QueryParamsQueueMedium,
 } from '@podverse/helpers';
-import type { QueryParamsSubscribedFullSort, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import { articleStrippedTitle, MediumEnum } from '@podverse/helpers';
+import type {
+  QueryParamsStatsRange,
+  QueryParamsSubscribedFullSort,
+} from '@podverse/helpers-requests';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
@@ -16,7 +19,12 @@ import { isOfflineModeEnabled, OfflineModeEnabledError } from '../../prefs/offli
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { NativeCacheBrowseNode } from '../nativeCache';
 import { projectLibraryBrowseIndexToNativeCache } from '../nativeCache';
-import { isWatermarkStale, readSyncWatermark, readThroughOrFetch, writeSyncWatermark } from '../sync';
+import {
+  isWatermarkStale,
+  readSyncWatermark,
+  readThroughOrFetch,
+  writeSyncWatermark,
+} from '../sync';
 import {
   mapPlaylistToNode,
   mapSubscribedChannelToNode,
@@ -159,11 +167,7 @@ const sortPlaylists = (
   return sorted;
 };
 
-const paginateList = <T>(
-  values: T[],
-  page: number,
-  limit: number
-): ApiListResponse<T> => {
+const paginateList = <T>(values: T[], page: number, limit: number): ApiListResponse<T> => {
   const safePage = page > 0 ? page : 1;
   const start = (safePage - 1) * limit;
   return {
@@ -194,7 +198,9 @@ const playlistFromRow = (row: typeof schema.playlist.$inferSelect): DTOPlaylist 
   };
 };
 
-const playlistResourceFromRow = (row: typeof schema.playlistResource.$inferSelect): DTOPlaylistResource | null => {
+const playlistResourceFromRow = (
+  row: typeof schema.playlistResource.$inferSelect
+): DTOPlaylistResource | null => {
   return safeJsonParse<DTOPlaylistResource>(row.payloadJson);
 };
 
@@ -224,17 +230,13 @@ const upsertPlaylists = async (
   for (const playlist of playlists) {
     const existing = existingFlags.get(playlist.id_text);
     const isOwned =
-      updates.markOwned === true
-        ? 1
-        : updates.markOwned === false
-          ? 0
-          : existing?.isOwned ?? 0;
+      updates.markOwned === true ? 1 : updates.markOwned === false ? 0 : (existing?.isOwned ?? 0);
     const isFollowed =
       updates.markFollowed === true
         ? 1
         : updates.markFollowed === false
           ? 0
-          : existing?.isFollowed ?? 0;
+          : (existing?.isFollowed ?? 0);
 
     await getDb()
       .insert(schema.playlist)
@@ -585,7 +587,9 @@ export const playlistRepository = {
   delete: async (context: MobileAuthRequestContext, playlistIdText: string): Promise<void> => {
     assertOnlineWrite();
     await initializeDatabase();
-    await requestWithMobileAuthRefresh(context, async (api) => api.reqPlaylistDelete(playlistIdText));
+    await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqPlaylistDelete(playlistIdText)
+    );
     await getDb().transaction(async (transaction) => {
       await transaction.delete(schema.playlist).where(eq(schema.playlist.idText, playlistIdText));
       await transaction
@@ -634,7 +638,9 @@ export const playlistRepository = {
     return (
       (await readThroughOrFetch<DTOPlaylistResource[]>({
         readLocal: async () => {
-          const watermark = await readSyncWatermark(playlistResourceAllWatermarkKey(playlistIdText));
+          const watermark = await readSyncWatermark(
+            playlistResourceAllWatermarkKey(playlistIdText)
+          );
           const resources = await readPlaylistResourcesCached(playlistIdText);
           if (watermark === null && resources.length === 0) {
             return null;
@@ -661,7 +667,10 @@ export const playlistRepository = {
         api.reqPlaylistResourceGetManyByPlaylistIdText(playlistIdText, { page: safePage })
       );
       await upsertPlaylistResources(playlistIdText, response.data);
-      await writeSyncWatermark(playlistResourcePageWatermarkKey(playlistIdText, safePage), Date.now());
+      await writeSyncWatermark(
+        playlistResourcePageWatermarkKey(playlistIdText, safePage),
+        Date.now()
+      );
       return response;
     }
     return (

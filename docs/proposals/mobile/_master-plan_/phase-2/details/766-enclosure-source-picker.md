@@ -18,10 +18,10 @@ Only when `labeledEnclosures.length > 1` (same gate as web). Single-enclosure it
 
 ### Surfaces
 
-| Entry                         | Pattern                                              |
-| ----------------------------- | ---------------------------------------------------- |
-| Full player More sheet        | Action in [`FullPlayerMoreSheet`](apps/mobile/src/components/player/FullPlayerMoreSheet.tsx) |
-| Row more menu                 | Optional action in [`MediaRowActions`](apps/mobile/src/components/player/MediaRowActions.tsx) when playing / queuing from a list |
+| Entry                  | Pattern                                                                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Full player More sheet | Action in [`FullPlayerMoreSheet`](apps/mobile/src/components/player/FullPlayerMoreSheet.tsx)                                     |
+| Row more menu          | Optional action in [`MediaRowActions`](apps/mobile/src/components/player/MediaRowActions.tsx) when playing / queuing from a list |
 
 Use existing [`MoreMenu`](apps/mobile/src/components/primitives/MoreMenu.tsx) (or a small dedicated
 modal built on the same bottom-sheet pattern). Do **not** add `@gorhom/bottom-sheet` or

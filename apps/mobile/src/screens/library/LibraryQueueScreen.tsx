@@ -14,23 +14,23 @@ import type { ReorderDropEvent } from '../../components/reorder/ReorderableSecti
 import { ReorderableSections } from '../../components/reorder/ReorderableSections';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
-import { queueRepository } from '../../data';
-import type { MobileAuthRequestContext } from '../../data';
 import { useQueues } from '../../contexts/QueuesProvider';
+import type { MobileAuthRequestContext } from '../../data';
+import { queueRepository } from '../../data';
 import { useQueueResourcesLoadActive } from '../../hooks/useQueueResourcesLoadActive';
 import type { QueueReorderMutation } from '../../lib/reorder/resolveQueueDrop';
 import { resolveQueueDrop } from '../../lib/reorder/resolveQueueDrop';
-import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { QueueResourceHomeRow } from '../../lib/rows/homeRowMappers';
 import { queueResourceToHomeRow } from '../../lib/rows/homeRowMappers';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import type { QueueListMedium } from '../../prefs/queueListPrefs';
 import {
   DEFAULT_QUEUE_LIST_MEDIUM,
   readQueueListMedium,
   writeQueueListMedium,
 } from '../../prefs/queueListPrefs';
-import type { QueueListMedium } from '../../prefs/queueListPrefs';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -86,37 +86,34 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     };
   }, []);
 
-  const styles = useMemo(
-    () => {
-      const bodyInsets = screenBodyInsets(tokens.spacing);
-      return StyleSheet.create({
-        container: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          flex: 1,
-        },
-        headerSection: {
-          ...bodyInsets,
-          gap: tokens.spacing.base,
-        },
-        listContent: {
-          flexGrow: 1,
-          paddingBottom: tokens.spacing['2xl'],
-          paddingHorizontal: bodyInsets.paddingHorizontal,
-        },
-        listRule: {
-          backgroundColor: themeStyles.border.borderColor,
-          height: 1,
-        },
-        notice: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: bodyInsets.paddingHorizontal,
-        },
-      });
-    },
-    [themeStyles, tokens]
-  );
+  const styles = useMemo(() => {
+    const bodyInsets = screenBodyInsets(tokens.spacing);
+    return StyleSheet.create({
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+      headerSection: {
+        ...bodyInsets,
+        gap: tokens.spacing.base,
+      },
+      listContent: {
+        flexGrow: 1,
+        paddingBottom: tokens.spacing['2xl'],
+        paddingHorizontal: bodyInsets.paddingHorizontal,
+      },
+      listRule: {
+        backgroundColor: themeStyles.border.borderColor,
+        height: 1,
+      },
+      notice: {
+        color: themeStyles.textSecondary.color,
+        fontSize: 13,
+        marginTop: tokens.spacing.sm,
+        paddingHorizontal: bodyInsets.paddingHorizontal,
+      },
+    });
+  }, [themeStyles, tokens]);
 
   const queueRows = useMemo<QueueRow[]>(() => {
     return queueResources.flatMap((resource) => {
@@ -222,7 +219,11 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         typeof resource.add_by_rss_hash_id === 'string' &&
         resource.add_by_rss_hash_id.length > 0
       ) {
-        await queueRepository.removeAddByRss(context, activeQueue.id_text, resource.add_by_rss_hash_id);
+        await queueRepository.removeAddByRss(
+          context,
+          activeQueue.id_text,
+          resource.add_by_rss_hash_id
+        );
         return;
       }
 
@@ -253,13 +254,16 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     await loadActiveQueueResources(getQueueMediumIdFromType(selectedMedium));
   }, [loadActiveQueueResources, selectedMedium]);
 
-  const updateQueueResourceListPosition = useCallback((resourceId: number, listPosition: string) => {
-    const updated = queueResourcesRef.current.map((resource) =>
-      resource.id === resourceId ? { ...resource, list_position: listPosition } : resource
-    );
-    queueResourcesRef.current = updated;
-    setQueueResources(updated);
-  }, []);
+  const updateQueueResourceListPosition = useCallback(
+    (resourceId: number, listPosition: string) => {
+      const updated = queueResourcesRef.current.map((resource) =>
+        resource.id === resourceId ? { ...resource, list_position: listPosition } : resource
+      );
+      queueResourcesRef.current = updated;
+      setQueueResources(updated);
+    },
+    []
+  );
 
   const applyQueueReorderMutation = useCallback(
     async (mutation: QueueReorderMutation): Promise<DTOQueueResource | null> => {
@@ -388,12 +392,21 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         return;
       }
     },
-    [applyQueueReorderMutation, handleGateError, isSavingOrder, reconcileQueue, updateQueueResourceListPosition]
+    [
+      applyQueueReorderMutation,
+      handleGateError,
+      isSavingOrder,
+      reconcileQueue,
+      updateQueueResourceListPosition,
+    ]
   );
 
   const handleDrop = useCallback(
     (event: ReorderDropEvent) => {
-      if (event.fromSection !== REORDER_DROP_SECTION_ID || event.toSection !== REORDER_DROP_SECTION_ID) {
+      if (
+        event.fromSection !== REORDER_DROP_SECTION_ID ||
+        event.toSection !== REORDER_DROP_SECTION_ID
+      ) {
         return;
       }
       void handleReorder(event.fromIndex, event.toIndex);
@@ -514,7 +527,9 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         <FillList
           ListEmptyComponent={listEmpty}
           ListFooterComponent={
-            actionNoticeKey !== null ? <Text style={styles.notice}>{t(actionNoticeKey)}</Text> : null
+            actionNoticeKey !== null ? (
+              <Text style={styles.notice}>{t(actionNoticeKey)}</Text>
+            ) : null
           }
           contentContainerStyle={styles.listContent}
           data={reorderData}

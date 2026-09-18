@@ -56,7 +56,9 @@ export function FaqPageClient() {
       {showError ? (
         <div style={{ display: 'grid', gap: 12 }}>
           <p>{t('errors.generic')}</p>
-          <Button label={t('retry')} onClick={retry} type="button" variant="secondary" />
+          <Button onClick={retry} type="button" variant="secondary">
+            {t('retry')}
+          </Button>
         </div>
       ) : null}
       {isLoading ? <WebLoadingSpinnerOverlay /> : null}

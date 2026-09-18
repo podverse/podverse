@@ -29,12 +29,12 @@ Today mobile:
 
 Widen `AddToPlaylistTarget` to:
 
-| Kind           | Repository call                                      |
-| -------------- | ---------------------------------------------------- |
-| `item`         | `reqPlaylistResourceItemAddFirst`                    |
-| `clip`         | `reqPlaylistResourceClipAddFirst`                    |
-| `soundbite`    | `reqPlaylistResourceItemSoundbiteAddFirst`           |
-| `add_by_rss`   | `reqPlaylistResourceItemAddByRSSAddFirst` (+ payload) |
+| Kind         | Repository call                                       |
+| ------------ | ----------------------------------------------------- |
+| `item`       | `reqPlaylistResourceItemAddFirst`                     |
+| `clip`       | `reqPlaylistResourceClipAddFirst`                     |
+| `soundbite`  | `reqPlaylistResourceItemSoundbiteAddFirst`            |
+| `add_by_rss` | `reqPlaylistResourceItemAddByRSSAddFirst` (+ payload) |
 
 Wire callers that already know those kinds (player, episode, home rows) so the sheet can open for
 them. Do not invent like-toggles here — that is [777](777-defer-liked-playlist-and-row-likes.md).

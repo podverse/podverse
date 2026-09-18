@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { getChannelRouteKind, MediumEnum } from './medium.js';
 import type { ChannelRouteKind } from './medium.js';
+import { getChannelRouteKind, MediumEnum } from './medium.js';
 
 describe('getChannelRouteKind', () => {
   const expectRouteKind = (

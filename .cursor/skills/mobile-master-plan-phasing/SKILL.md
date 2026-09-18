@@ -309,11 +309,11 @@ Use Appendix D template from master plan:
 
 **Depth by Model tier:**
 
-| Model     | Minimum content                                                          |
-| --------- | ------------------------------------------------------------------------ |
-| cursor-grok-4.6-high-fast | Scope + acceptance bullets + operator-only notes              |
-| Codex 5.3 | Above + web parity links + file paths + verification commands            |
-| Opus 5    | Above + architecture notes, edge cases, spike outcomes, cross-track deps |
+| Model                     | Minimum content                                                          |
+| ------------------------- | ------------------------------------------------------------------------ |
+| cursor-grok-4.6-high-fast | Scope + acceptance bullets + operator-only notes                         |
+| Codex 5.3                 | Above + web parity links + file paths + verification commands            |
+| Opus 5                    | Above + architecture notes, edge cases, spike outcomes, cross-track deps |
 
 Pull parity context from `docs/proposals/mobile/` and existing web code paths when known.
 

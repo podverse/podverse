@@ -54,7 +54,8 @@ export function useMediaPlayerResourceUpdate() {
         }
       }
 
-      const decision = playbackDecisionOverride ?? resolvePlaybackLoadDecision(request, { abridged });
+      const decision =
+        playbackDecisionOverride ?? resolvePlaybackLoadDecision(request, { abridged });
       const shouldAutoPlay = autoPlayOverride ?? decision.shouldAutoPlay;
       const source = { initialSeekSeconds: decision.initialSeekSeconds, url };
       // Autoplay uses the atomic `loadAndStart` (2.25); session restore stays load-only (paused) so a

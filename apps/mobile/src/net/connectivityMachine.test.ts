@@ -6,12 +6,12 @@ import type {
   ConnectivityTransition,
 } from './connectivityMachine';
 import {
+  createConnectivityMachine,
   MIN_STATE_DWELL_MS,
   OFFLINE_ENTRY_DEBOUNCE_MS,
   OFFLINE_ENTRY_FAILURE_THRESHOLD,
   PROBE_BASE_DELAY_MS,
   PROBE_MAX_DELAY_MS,
-  createConnectivityMachine,
   probeDelayForStep,
   reduceConnectivity,
 } from './connectivityMachine';

@@ -22,7 +22,10 @@ export type QueueAdvanceInput = {
 };
 
 export type QueueAdvanceDecision =
-  { kind: 'hold' } | { kind: 'play-next-manual' } | { kind: 'advance-auto-queue' } | { kind: 'stop' };
+  | { kind: 'hold' }
+  | { kind: 'play-next-manual' }
+  | { kind: 'advance-auto-queue' }
+  | { kind: 'stop' };
 
 export function resolveQueueAdvance(input: QueueAdvanceInput): QueueAdvanceDecision {
   if (input.holdNowPlaying) {

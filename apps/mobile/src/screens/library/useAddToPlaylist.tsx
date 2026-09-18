@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
+import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { CommonActions, useNavigation } from '@react-navigation/native';
+import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { AddByRSSResourceData, DTOPlaylist } from '@podverse/helpers';
@@ -11,8 +11,8 @@ import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
 import { playlistRepository } from '../../data';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
-import { useAccessTier } from '../../membership/useAccessTier';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 
@@ -56,28 +56,31 @@ export function useAddToPlaylist(): UseAddToPlaylist {
     [accessToken, clearSession, refreshToken, setTokens]
   );
 
-  const loadPlaylists = useCallback(async (nextTarget: AddToPlaylistTarget) => {
-    setIsLoading(true);
-    setNoticeKey(null);
-    try {
-      const response = await playlistRepository.listOwned(
-        authArgs,
-        {
-          medium: nextTarget.medium,
-          page: FIRST_PAGE,
-          range: null,
-          sort: 'a_z',
-        },
-        { refresh: true }
-      );
-      setPlaylists(response.data);
-    } catch {
-      setPlaylists([]);
-      setNoticeKey('errors.generic');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [authArgs]);
+  const loadPlaylists = useCallback(
+    async (nextTarget: AddToPlaylistTarget) => {
+      setIsLoading(true);
+      setNoticeKey(null);
+      try {
+        const response = await playlistRepository.listOwned(
+          authArgs,
+          {
+            medium: nextTarget.medium,
+            page: FIRST_PAGE,
+            range: null,
+            sort: 'a_z',
+          },
+          { refresh: true }
+        );
+        setPlaylists(response.data);
+      } catch {
+        setPlaylists([]);
+        setNoticeKey('errors.generic');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [authArgs]
+  );
 
   const requestAddToPlaylist = useCallback(
     (next: AddToPlaylistTarget) => {
@@ -109,7 +112,11 @@ export function useAddToPlaylist(): UseAddToPlaylist {
         } else if (target.kind === 'soundbite') {
           await playlistRepository.addSoundbiteFirst(authArgs, playlist.id_text, target.idText);
         } else if (target.kind === 'add-by-rss') {
-          await playlistRepository.addAddByRssFirst(authArgs, playlist.id_text, target.resourceData);
+          await playlistRepository.addAddByRssFirst(
+            authArgs,
+            playlist.id_text,
+            target.resourceData
+          );
         } else {
           await playlistRepository.addItemFirst(authArgs, playlist.id_text, target.idText);
         }

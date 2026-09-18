@@ -191,8 +191,7 @@ export function MediaRowActions({
     enclosureSelectedParams,
     itemLabeledEnclosures,
     switchEnclosureSelectedParams,
-  } =
-    usePlaybackSession();
+  } = usePlaybackSession();
   const [isSheetVisible, setIsSheetVisible] = useState(false);
   const [isSourcePickerVisible, setIsSourcePickerVisible] = useState(false);
   const useIcons = appearance === 'icons';

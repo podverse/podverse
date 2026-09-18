@@ -21,7 +21,7 @@ function getRequestedLocale(req: Request): string {
 export class ManagedCopyController {
   static async get(req: Request, res: Response): Promise<void> {
     const slug = req.params.slug;
-    if (slug === undefined || !isManagedCopySlug(slug)) {
+    if (typeof slug !== 'string' || !isManagedCopySlug(slug)) {
       res.status(404).json({ message: 'Not found' });
       return;
     }

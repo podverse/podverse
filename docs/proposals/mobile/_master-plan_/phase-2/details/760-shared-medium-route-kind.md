@@ -41,9 +41,9 @@ export const getChannelRouteKind = (
 
 ### Call-site collapse
 
-| Surface | Today                                              | After                                              |
-| ------- | -------------------------------------------------- | -------------------------------------------------- |
-| Web     | Local `getChannelRouteKind` in redirect util       | Import from `@podverse/helpers`; keep path helpers |
+| Surface | Today                                               | After                                              |
+| ------- | --------------------------------------------------- | -------------------------------------------------- |
+| Web     | Local `getChannelRouteKind` in redirect util        | Import from `@podverse/helpers`; keep path helpers |
 | Mobile  | `getChannelDetailRouteKind` in podcastIndex preview | Delete; import `getChannelRouteKind`               |
 
 Web path helpers (`getChannelPathByMedium`, `getItemPathByMedium`, enforce-canonical redirects) stay

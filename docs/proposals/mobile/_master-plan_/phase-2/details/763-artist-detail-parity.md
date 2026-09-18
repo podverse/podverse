@@ -17,13 +17,13 @@ preferably [762](762-album-detail-parity.md) for album navigation targets.
 
 Match web [`ArtistPageListHeader.tsx`](apps/web/src/app/artist/[channel_id]/ArtistPageListHeader.tsx):
 
-| Order | Tab        | Condition                                      |
-| ----- | ---------- | ---------------------------------------------- |
-| 1     | `albums`   | When added or unadded albums exist             |
-| 2     | `tracks`   | When added or unadded tracks exist             |
-| 3     | `about`    | When description exists (or always-on empty)   |
-| 4     | `podroll`  | Evidence                                       |
-| 5     | `settings` | Signed-in                                      |
+| Order | Tab        | Condition                                    |
+| ----- | ---------- | -------------------------------------------- |
+| 1     | `albums`   | When added or unadded albums exist           |
+| 2     | `tracks`   | When added or unadded tracks exist           |
+| 3     | `about`    | When description exists (or always-on empty) |
+| 4     | `podroll`  | Evidence                                     |
+| 5     | `settings` | Signed-in                                    |
 
 No sort control (web has none). Persist tab via artist prefs from 761.
 
