@@ -189,6 +189,41 @@ describe('createSyncQueue', () => {
     expect(later).toHaveBeenCalledTimes(1);
   });
 
+  it('parks the run when the server answers that it is not serving', async () => {
+    const queue = createSyncQueue();
+    const failures: SyncJobFailure[] = [];
+    queue.subscribeToFailures((failure) => {
+      failures.push(failure);
+    });
+    const later = vi.fn(async () => undefined);
+
+    queue.enqueue([
+      job({
+        dedupeKey: 'gateway',
+        run: async () => {
+          throw Object.assign(new Error('Request failed'), { response: { status: 503 } });
+        },
+      }),
+      job({ dedupeKey: 'later', kind: 'queue-hydrate', run: later }),
+    ]);
+
+    await vi.waitFor(() => {
+      expect(queue.getState().status).toBe('paused');
+    });
+    // Every remaining job would hit the same wall, so the run waits rather than burning through it.
+    expect(later).not.toHaveBeenCalled();
+    // The gateway did answer, so this is a reported fault rather than the silence of being offline.
+    expect(failures[0]?.errorCode).toBe('http_503');
+    expect(failures[0]?.isOffline).toBe(false);
+
+    queue.setNetworkReachable(true);
+
+    await vi.waitFor(() => {
+      expect(queue.getState().status).toBe('idle');
+    });
+    expect(later).toHaveBeenCalledTimes(1);
+  });
+
   it('gives up on a job that outlives its budget so the queue head cannot wedge', async () => {
     const queue = createSyncQueue({ defaultTimeoutMs: 10 });
     const failures: SyncJobFailure[] = [];

@@ -13,7 +13,11 @@ unavailable message if they cannot work offline.
 ### Locked decisions
 
 - **Toggle-only activation.** The user turns Offline Mode on or off. Device reachability does
-  **not** enter or leave the mode.
+  **not** enter or leave the mode. **Superseded by
+  [779-automatic-offline-detection](779-automatic-offline-detection.md):** the pref itself is still
+  written only by the user, but the app now derives a separate connectivity state alongside it. That
+  state is softer — it explains and parks background work without refusing user-initiated requests,
+  remote streaming, or new downloads, and it never steers a screen.
 - **Park all network while on.** No new API calls, no background sync, no new downloads, no
   remote playback fallback. Playback uses a completed local file only.
 - **Mobile-only.** Web has no offline download library. Intentional divergence

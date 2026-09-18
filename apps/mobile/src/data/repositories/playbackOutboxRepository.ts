@@ -9,7 +9,7 @@ import { computeClockOffsetMs } from '@podverse/helpers/playbackTimestamps';
 
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { createUuid } from '../../lib/createUuid';
-import { isOfflineModeEnabled } from '../../prefs/offlineMode';
+import { isEffectivelyOffline } from '../../net/connectivity';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import { readPlaybackClockOffsetMs, writePlaybackClockOffsetMs } from '../sync';
 import type {
@@ -1018,7 +1018,10 @@ export const playbackOutboxRepository = {
     let replayedEvents = 0;
     let deletedRows = 0;
 
-    while (!isOfflineModeEnabled()) {
+    // Stops on the user's switch and on a network that is not working. Without the second, a 500-
+    // event outbox grinds through every batch failing each one, at the moment the app can least
+    // afford the work. Undelivered rows stay put; the next replay picks them up where this left off.
+    while (!isEffectivelyOffline()) {
       const batchRows = await getDb()
         .select()
         .from(schema.playbackOutbox)
@@ -1041,7 +1044,7 @@ export const playbackOutboxRepository = {
       }
 
       for (const [queueIdText, rows] of byQueue.entries()) {
-        if (isOfflineModeEnabled()) {
+        if (isEffectivelyOffline()) {
           break;
         }
         const result = await replayOneQueueBatch(context, queueIdText, rows);

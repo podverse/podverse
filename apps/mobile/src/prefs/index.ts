@@ -34,5 +34,7 @@ export {
   writeOfflineModeEnabled,
 } from './offlineMode';
 export type { OfflineModeControls } from './offlineMode';
+export { useOfflineStatus } from './offlineStatus';
+export type { OfflineCause, OfflineStatus } from './offlineStatus';
 export { DEFAULT_VISIBLE_TABS, readVisibleTabs, writeVisibleTabs } from './tabLayout';
 export type { ContentTabId } from './tabLayout';

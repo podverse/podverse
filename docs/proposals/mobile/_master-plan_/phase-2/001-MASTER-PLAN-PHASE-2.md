@@ -168,6 +168,7 @@ Nextgen product feedback on the Downloads screen (not a legacy port). Plan set:
 | P2.1.5  | [731-redundant-screen-titles-sweep](/docs/proposals/mobile/_master-plan_/phase-2/details/731-redundant-screen-titles-sweep.md)             | Auto      | done     |
 | P2.1.10 | [732-downloads-settings-storage](/docs/proposals/mobile/_master-plan_/phase-2/details/732-downloads-settings-storage.md)                   | Codex 5.3 | done     |
 | P2.1.10 | [742-offline-mode](/docs/proposals/mobile/_master-plan_/phase-2/details/742-offline-mode.md)                                               | Auto      | done     |
+| P2.1.10 | [779-automatic-offline-detection](/docs/proposals/mobile/_master-plan_/phase-2/details/779-automatic-offline-detection.md)                 | Opus 5    | done     |
 | P2.1.5  | [733-download-list-sections-and-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/733-download-list-sections-and-rows.md)         | Codex 5.3 | done     |
 | P2.1.5  | [734-download-pause-resume-concurrency](/docs/proposals/mobile/_master-plan_/phase-2/details/734-download-pause-resume-concurrency.md)     | Opus 5    | done     |
 | P2.1.5  | [735-swipe-action-row](/docs/proposals/mobile/_master-plan_/phase-2/details/735-swipe-action-row.md)                                       | Codex 5.3 | done     |
@@ -531,6 +532,7 @@ above whenever status changes, per
 | [731-redundant-screen-titles-sweep](/docs/proposals/mobile/_master-plan_/phase-2/details/731-redundant-screen-titles-sweep.md)                           | P2.1.5  | Auto      | done          |
 | [732-downloads-settings-storage](/docs/proposals/mobile/_master-plan_/phase-2/details/732-downloads-settings-storage.md)                                 | P2.1.10 | Codex 5.3 | done          |
 | [742-offline-mode](/docs/proposals/mobile/_master-plan_/phase-2/details/742-offline-mode.md)                                                             | P2.1.10 | Auto      | done          |
+| [779-automatic-offline-detection](/docs/proposals/mobile/_master-plan_/phase-2/details/779-automatic-offline-detection.md)                               | P2.1.10 | Opus 5    | done          |
 | [733-download-list-sections-and-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/733-download-list-sections-and-rows.md)                       | P2.1.5  | Codex 5.3 | done          |
 | [734-download-pause-resume-concurrency](/docs/proposals/mobile/_master-plan_/phase-2/details/734-download-pause-resume-concurrency.md)                   | P2.1.5  | Opus 5    | done          |
 | [735-swipe-action-row](/docs/proposals/mobile/_master-plan_/phase-2/details/735-swipe-action-row.md)                                                     | P2.1.5  | Codex 5.3 | done          |

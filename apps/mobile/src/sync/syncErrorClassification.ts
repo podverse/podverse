@@ -20,6 +20,14 @@ export type SyncErrorClassification = {
    * rest of the run, and the log ignores it: being offline is a state, not a fault to report.
    */
   isOffline: boolean;
+  /**
+   * The request reached something, and that something said the app behind it is not serving.
+   *
+   * Kept separate from `isOffline` because the two callers want different answers from the same
+   * error: the queue asks whether to park the rest of the run, and the connectivity machine asks
+   * whether to blame the device or the server. Collapsing them would force one of the two to guess.
+   */
+  isServerUnreachable: boolean;
 };
 
 /** Thrown by the queue when a job outlives its budget, so the head of a serial queue cannot wedge. */
@@ -42,6 +50,15 @@ const OFFLINE_ERROR_CODES = new Set([
   'ETIMEDOUT',
 ]);
 
+/**
+ * Gateway statuses. A load balancer answering on behalf of an app that is down proves the network
+ * works and proves the app does not, which is a different fact from either a plain 5xx or silence.
+ *
+ * Kept out of `OFFLINE_ERROR_CODES` on purpose: that set holds axios transport codes, and these are
+ * HTTP answers.
+ */
+const SERVER_UNREACHABLE_STATUSES = new Set([502, 503, 504]);
+
 const looksLikeNetworkMessage = (message: string): boolean => {
   const normalized = message.toLowerCase();
   return (
@@ -52,18 +69,20 @@ const looksLikeNetworkMessage = (message: string): boolean => {
 };
 
 /**
- * Sort a thrown value into a stable code plus whether it means "no network".
+ * Sort a thrown value into a stable code plus what it says about the network.
  *
- * HTTP statuses classify as reached-the-server even at 5xx: the server answered, so continuing the
- * run is reasonable. Only a request that produced no response at all pauses the queue.
+ * A request that produced no response at all is `isOffline`. A gateway status is
+ * `isServerUnreachable`. Every other HTTP status counts as the server having answered, which is
+ * evidence the network works no matter how unhappy the answer was — a 403 and a 500 both prove
+ * there is a server on the other end.
  */
 export const classifySyncError = (error: unknown): SyncErrorClassification => {
   if (error instanceof SyncJobTimeoutError) {
-    return { code: 'sync_job_timeout', isOffline: false };
+    return { code: 'sync_job_timeout', isOffline: false, isServerUnreachable: false };
   }
 
   if (error instanceof OfflineModeEnabledError) {
-    return { code: 'offline_mode', isOffline: true };
+    return { code: 'offline_mode', isOffline: true, isServerUnreachable: false };
   }
 
   const status = getErrorResponseStatus(error);
@@ -72,26 +91,30 @@ export const classifySyncError = (error: unknown): SyncErrorClassification => {
     // names its own failure keeps both: `http_403` alone leaves support asking which 403 this was.
     const bodyCode = getErrorResponseBodyCode(error);
     const code = bodyCode === undefined ? `http_${status}` : `http_${status}:${bodyCode}`;
-    return { code, isOffline: false };
+    return {
+      code,
+      isOffline: false,
+      isServerUnreachable: SERVER_UNREACHABLE_STATUSES.has(status),
+    };
   }
 
   const errorCode = getErrorCode(error);
   if (errorCode === 'ERR_OFFLINE_MODE') {
-    return { code: 'offline_mode', isOffline: true };
+    return { code: 'offline_mode', isOffline: true, isServerUnreachable: false };
   }
 
   if (errorCode !== undefined && OFFLINE_ERROR_CODES.has(errorCode)) {
-    return { code: errorCode.toLowerCase(), isOffline: true };
+    return { code: errorCode.toLowerCase(), isOffline: true, isServerUnreachable: false };
   }
 
   const message = getErrorMessage(error, '');
   if (looksLikeNetworkMessage(message)) {
-    return { code: 'network_unreachable', isOffline: true };
+    return { code: 'network_unreachable', isOffline: true, isServerUnreachable: false };
   }
 
   if (errorCode !== undefined) {
-    return { code: errorCode.toLowerCase(), isOffline: false };
+    return { code: errorCode.toLowerCase(), isOffline: false, isServerUnreachable: false };
   }
 
-  return { code: 'unknown', isOffline: false };
+  return { code: 'unknown', isOffline: false, isServerUnreachable: false };
 };

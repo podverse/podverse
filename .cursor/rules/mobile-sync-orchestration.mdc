@@ -79,6 +79,12 @@ A failed job does not turn the bar red. The queue skips it, finishes the run, an
 disappears; the next trigger retries. An offline user is doing nothing wrong and must not be
 scolded.
 
+Two failures park the rest of the run instead of skipping: a request that never reached the server,
+and a gateway status saying the server is not serving. Both mean every remaining job would hit the
+same wall, and pending jobs keep their place rather than being spent against it. Resume comes from
+a request or health probe succeeding — a platform reachability event is a hint that schedules a
+probe, not a reason to start work again.
+
 Failures are instead appended to a **capped sync event log** (500 entries) that the user can reach
 from More, so a support conversation has something concrete in it.
 
@@ -93,5 +99,5 @@ translated sentence and no code is not diagnosable.
 - [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)
 - [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)
 - Skill: **mobile-data-layer** — offline-first storage and native cache projection
-- Rule: **mobile-offline-mode** — user-forced Offline Mode parks this queue the same way as a real
-  outage; do not auto-toggle from NetInfo
+- Rule: **mobile-offline-mode** — the user's toggle and a derived outage both park this queue;
+  neither one writes the other, and only the toggle steers UI

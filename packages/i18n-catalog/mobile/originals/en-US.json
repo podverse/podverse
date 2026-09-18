@@ -95,7 +95,9 @@
       "title": "Offline mode",
       "description": "Offline mode uses only downloads and other content already stored on this device. Search, Browse, sync, and anything that needs the internet stay unavailable until you turn it off.",
       "unavailable": "This screen isn't available in offline mode.",
-      "banner": "Offline mode is on"
+      "banner": "Offline mode is on",
+      "banner_no_connection": "No internet connection",
+      "banner_server_unreachable": "Can't reach the server"
     },
     "downloads": {
       "storage_heading": "Storage",

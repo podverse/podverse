@@ -95,7 +95,9 @@
       "title": "Modo sin conexión",
       "description": "El modo sin conexión usa solo las descargas y el resto del contenido ya guardado en este dispositivo. Buscar, Explorar, la sincronización y todo lo que necesita internet permanecen no disponibles hasta que lo desactives.",
       "unavailable": "Esta pantalla no está disponible en el modo sin conexión.",
-      "banner": "El modo sin conexión está activado"
+      "banner": "El modo sin conexión está activado",
+      "banner_no_connection": "Sin conexión a internet",
+      "banner_server_unreachable": "No se puede acceder al servidor"
     },
     "downloads": {
       "storage_heading": "Almacenamiento",

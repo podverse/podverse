@@ -39,7 +39,12 @@ import { defineConfig } from 'vitest/config';
  * the serial background sync queue with its trigger planning (`src/sync/syncQueue.ts`,
  * `src/sync/syncJobPlan.ts` — kept free of RN/Expo imports so serialization, dedupe, growing totals,
  * and failure isolation are testable; the job bodies that reach repositories (`src/sync/syncJobs.ts`)
- * and the RN triggers (`src/sync/SyncProvider.tsx`) are excluded), the sync failure taxonomy that
+ * and the RN triggers (`src/sync/SyncProvider.tsx`) are excluded), the derived connectivity rules
+ * that decide whether the network is usable — entry debounce, success-only exit, probe backoff,
+ * dwell floor, and device-versus-server attribution (`src/net/connectivityMachine.ts` — pure and
+ * clock-injected, so no timer ever has to elapse in a test; the NetInfo subscription, timers, and
+ * health probe stay in `src/net/connectivity.ts` and `src/net/connectivityProbe.ts`), the sync
+ * failure taxonomy that
  * produces the quotable error code (`src/sync/syncErrorClassification.ts`), and the sync event log's
  * cap / eviction rule and export format (`src/data/repositories/syncEventLog.ts` — pure; the
  * SQLite half stays in `syncEventLogRepository.ts`). Playback reconciliation is here on the same
@@ -95,6 +100,7 @@ export default defineConfig({
       'src/membership/checkoutUrl.test.ts',
       'src/membership/membershipDenial.test.ts',
       'src/navigation/deepLinking.test.ts',
+      'src/net/connectivityMachine.test.ts',
       'src/playback/nowPlayingSegment.test.ts',
       'src/playback/playbackEventSource.test.ts',
       'src/playback/playbackHandoff.test.ts',

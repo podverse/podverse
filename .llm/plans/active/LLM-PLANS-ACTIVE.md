@@ -14,7 +14,13 @@ templates are blanks; this directory holds real plan instances.
 
 _Active (mobile), git-sort / run order:_
 
-- _None currently._
+No active mobile set. Start the next one from a phase-2 detail doc.
+
+Completed automatic offline detection archive:
+`.llm/plans/completed/07-mobile-auto-offline-detection/`
+([779](/docs/proposals/mobile/_master-plan_/phase-2/details/779-automatic-offline-detection.md),
+P2.1.10), which superseded the toggle-only activation decision in
+[742](/docs/proposals/mobile/_master-plan_/phase-2/details/742-offline-mode.md).
 
 Completed Make Clip + FAQ set: 752–756 landed and the active plan set was removed.
 

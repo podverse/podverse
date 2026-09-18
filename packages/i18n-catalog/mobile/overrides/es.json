@@ -95,7 +95,9 @@
       "title": "",
       "description": "",
       "unavailable": "",
-      "banner": ""
+      "banner": "",
+      "banner_no_connection": "",
+      "banner_server_unreachable": ""
     },
     "downloads": {
       "storage_heading": "",
