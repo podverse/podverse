@@ -151,6 +151,7 @@ export const HOME_STACK_ROUTES = {
   ClipDetail: 'ClipDetail',
   EpisodeDetail: 'EpisodeDetail',
   HomeRoot: 'HomeRoot',
+  PlaylistCreate: 'PlaylistCreate',
   PodcastDetail: 'PodcastDetail',
   PodcastSettings: 'PodcastSettings',
   TrackDetail: 'TrackDetail',

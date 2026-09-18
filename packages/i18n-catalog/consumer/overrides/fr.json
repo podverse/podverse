@@ -656,6 +656,8 @@
     "unknown_date": "",
     "redirecting": "",
     "terms": "",
+    "faq": "",
+    "how_to": "",
     "mobile": "",
     "donate": "",
     "open_source": "",
@@ -725,9 +727,11 @@
     "login_for_subscriptions": "",
     "login_to_create_playlists": "",
     "no_playlists_created": "",
+    "no_followed_playlists": "",
     "login_to_create_clips": "",
     "login_for_queues": "",
     "login_for_history": "",
+    "login_for_playlists": "",
     "login_to_add_feeds": "",
     "login_to_refresh_feeds": "",
     "login_to_subscribe": "",
@@ -1365,6 +1369,10 @@
         "description": ""
       },
       "terms": {
+        "title": "",
+        "description": ""
+      },
+      "faq": {
         "title": "",
         "description": ""
       },
