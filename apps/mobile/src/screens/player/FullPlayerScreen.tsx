@@ -96,15 +96,16 @@ import {
 } from './fullPlayerLayout';
 import { FullPlayerSleepTimer } from './FullPlayerSleepTimer';
 import { FullPlayerSpeedControl } from './FullPlayerSpeedControl';
-import { FullPlayerUpNext } from './FullPlayerUpNext';
 
 type FullPlayerScreenProps = {
   onClose: () => void;
+  /** Navigate to the Library queue screen. */
+  onOpenQueue: () => void;
   /** Navigate to the V4V information screen. */
   onOpenV4v: () => void;
 };
 
-type FullPlayerSheet = 'more' | 'sleep' | 'speed' | 'up-next' | null;
+type FullPlayerSheet = 'more' | 'sleep' | 'speed' | null;
 
 type FullPlayerPaneRow =
   | { type: 'chapter'; id: string; chapter: DTOItemChapter }
@@ -201,7 +202,7 @@ const hasSectionsForTarget = (target: PlaybackTarget | null): boolean => {
   return itemFromTarget(target) !== null;
 };
 
-export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) {
+export function FullPlayerScreen({ onClose, onOpenQueue, onOpenV4v }: FullPlayerScreenProps) {
   const { t } = useTranslation();
   const { isTablet } = useResponsive();
   const insets = useSafeAreaInsets();
@@ -1153,16 +1154,13 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     <View style={styles.container} testID="full-player-screen">
       <FullPlayerActionRow
         disableAddToPlaylist={addToPlaylistTarget === null}
-        disableQueue={activeTarget === null}
         disableShare={shareUrl === null}
         onAddToPlaylist={handleAddToPlaylist}
         onClose={onClose}
         onCreateClip={() => {
           setShowCreateClipNotice(true);
         }}
-        onOpenQueue={() => {
-          handleOpenSheet('up-next');
-        }}
+        onOpenQueue={onOpenQueue}
         onOpenV4v={onOpenV4v}
         onShare={handleShare}
         showV4v={showV4v}
@@ -1273,7 +1271,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
 
       <FullPlayerSleepTimer onCancel={handleCloseSheet} visible={openSheet === 'sleep'} />
       <FullPlayerSpeedControl onCancel={handleCloseSheet} visible={openSheet === 'speed'} />
-      <FullPlayerUpNext onCancel={handleCloseSheet} visible={openSheet === 'up-next'} />
       <FullPlayerMoreSheet
         canToggleSubscription={canToggleSubscription}
         isMarkedPlayed={isMarkedPlayed}

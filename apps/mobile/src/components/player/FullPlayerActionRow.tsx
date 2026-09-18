@@ -7,7 +7,6 @@ import { HeaderBarChrome } from '../screen/HeaderBarChrome';
 
 type FullPlayerActionRowProps = {
   disableAddToPlaylist: boolean;
-  disableQueue: boolean;
   disableShare: boolean;
   onAddToPlaylist: () => void;
   onClose: () => void;
@@ -20,7 +19,6 @@ type FullPlayerActionRowProps = {
 
 export function FullPlayerActionRow({
   disableAddToPlaylist,
-  disableQueue,
   disableShare,
   onAddToPlaylist,
   onClose,
@@ -73,7 +71,6 @@ export function FullPlayerActionRow({
           />
           <HeaderBarAction
             accessibilityLabel={t('features.queue.queue')}
-            disabled={disableQueue}
             icon="list-outline"
             onPress={onOpenQueue}
             testID="full-player-queue"

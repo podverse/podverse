@@ -48,14 +48,17 @@ export type ReorderRowAccessibility = {
 };
 
 export type ReorderableSectionsProps<T> = {
+  dragActivation?: 'handle' | 'row-long-press';
   handleTestID?: (item: T, context: ReorderableItemContext) => string;
   keyExtractor: (item: T) => string;
   onDragActiveChange?: (isActive: boolean) => void;
   onDrop: (event: ReorderDropEvent) => void;
   renderItem: (item: T, context: ReorderableItemContext) => ReactNode;
   renderSection: (sectionId: string, children: ReactNode) => ReactNode;
+  rowContainerVariant?: 'default' | 'plain';
   rowAccessibility?: (item: T, context: ReorderableItemContext) => ReorderRowAccessibility;
   sections: readonly ReorderableSection<T>[];
+  showHandle?: boolean;
 };
 
 type StartDrag = {
@@ -68,6 +71,7 @@ type StartDrag = {
 type ReorderableRowProps<T> = {
   activeKey: SharedValue<string>;
   context: ReorderableItemContext;
+  dragActivation: 'handle' | 'row-long-press';
   handleTestID?: string;
   item: T;
   itemKey: string;
@@ -75,14 +79,17 @@ type ReorderableRowProps<T> = {
   onDragMove: (absoluteY: number) => void;
   onDragStart: (start: StartDrag) => void;
   renderItem: (item: T, context: ReorderableItemContext) => ReactNode;
+  rowContainerVariant: 'default' | 'plain';
   rowAccessibility?: ReorderRowAccessibility;
   shiftY: number;
+  showHandle: boolean;
   translationY: SharedValue<number>;
 };
 
 function ReorderableRow<T>({
   activeKey,
   context,
+  dragActivation,
   handleTestID,
   item,
   itemKey,
@@ -90,8 +97,10 @@ function ReorderableRow<T>({
   onDragMove,
   onDragStart,
   renderItem,
+  rowContainerVariant,
   rowAccessibility,
   shiftY,
+  showHandle,
   translationY,
 }: ReorderableRowProps<T>) {
   const { styles: themeStyles, tokens } = useTheme();
@@ -120,33 +129,51 @@ function ReorderableRow<T>({
     });
   }, [context.index, context.sectionId, itemKey, onDragStart]);
 
-  const pan = useMemo(
-    () =>
-      Gesture.Pan()
-        .maxPointers(1)
-        .activeOffsetY([-8, 8])
-        .onStart(() => {
-          activeKey.value = itemKey;
-          translationY.value = 0;
-          runOnJS(beginDrag)();
-        })
-        .onUpdate((event) => {
-          translationY.value = event.translationY;
-          runOnJS(onDragMove)(event.absoluteY);
-        })
-        .onFinalize(() => {
-          translationY.value = 0;
-          activeKey.value = '';
-          runOnJS(onDragEnd)();
-        }),
-    [activeKey, beginDrag, itemKey, onDragEnd, onDragMove, translationY]
-  );
+  const usesBodyGesture = dragActivation === 'row-long-press' || showHandle === false;
+
+  const pan = useMemo(() => {
+    const gesture = Gesture.Pan()
+      .maxPointers(1)
+      .activeOffsetY([-8, 8])
+      .onStart(() => {
+        activeKey.value = itemKey;
+        translationY.value = 0;
+        runOnJS(beginDrag)();
+      })
+      .onUpdate((event) => {
+        translationY.value = event.translationY;
+        runOnJS(onDragMove)(event.absoluteY);
+      })
+      .onFinalize(() => {
+        translationY.value = 0;
+        activeKey.value = '';
+        runOnJS(onDragEnd)();
+      });
+
+    if (usesBodyGesture) {
+      gesture.activateAfterLongPress(220).failOffsetX([-20, 20]);
+    }
+
+    return gesture;
+  }, [
+    activeKey,
+    beginDrag,
+    itemKey,
+    onDragEnd,
+    onDragMove,
+    translationY,
+    usesBodyGesture,
+  ]);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
         body: {
           flex: 1,
+        },
+        rowPlain: {
+          alignItems: 'stretch',
+          flexDirection: 'row',
         },
         row: {
           alignItems: 'center',
@@ -183,27 +210,44 @@ function ReorderableRow<T>({
       accessible={rowAccessibility !== undefined && !isE2e}
       collapsable={false}
       onAccessibilityAction={rowAccessibility === undefined ? undefined : handleAccessibilityAction}
-      style={[styles.row, animatedStyle]}
+      style={[rowContainerVariant === 'plain' ? styles.rowPlain : styles.row, animatedStyle]}
     >
-      <View accessible={false} style={styles.body}>
-        {renderItem(item, context)}
-      </View>
-      <GestureDetector gesture={pan}>
-        <ReorderHandle testID={handleTestID} />
-      </GestureDetector>
+      {usesBodyGesture ? (
+        <GestureDetector gesture={pan}>
+          <View accessible={false} style={styles.body}>
+            {renderItem(item, context)}
+          </View>
+        </GestureDetector>
+      ) : (
+        <View accessible={false} style={styles.body}>
+          {renderItem(item, context)}
+        </View>
+      )}
+      {showHandle ? (
+        usesBodyGesture ? (
+          <ReorderHandle testID={handleTestID} />
+        ) : (
+          <GestureDetector gesture={pan}>
+            <ReorderHandle testID={handleTestID} />
+          </GestureDetector>
+        )
+      ) : null}
     </Animated.View>
   );
 }
 
 export function ReorderableSections<T>({
+  dragActivation = 'handle',
   handleTestID,
   keyExtractor,
   onDragActiveChange,
   onDrop,
   renderItem,
   renderSection,
+  rowContainerVariant = 'default',
   rowAccessibility,
   sections,
+  showHandle = true,
 }: ReorderableSectionsProps<T>) {
   const { tokens } = useTheme();
   const translationY = useSharedValue(0);
@@ -382,6 +426,7 @@ export function ReorderableSections<T>({
                   <ReorderableRow
                     activeKey={activeKey}
                     context={context}
+                    dragActivation={dragActivation}
                     handleTestID={handleTestID?.(item, context)}
                     item={item}
                     itemKey={itemKey}
@@ -389,8 +434,10 @@ export function ReorderableSections<T>({
                     onDragMove={handleDragMove}
                     onDragStart={handleDragStart}
                     renderItem={renderItem}
+                    rowContainerVariant={rowContainerVariant}
                     rowAccessibility={rowAccessibility?.(item, context)}
                     shiftY={shiftY}
+                    showHandle={showHandle}
                     translationY={translationY}
                   />
                 </View>

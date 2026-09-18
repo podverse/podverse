@@ -1368,6 +1368,12 @@ export function MobileTabNavigator({
                 }
                 props.navigation.navigate(ROOT_STACK_ROUTES.MainTabs);
               }}
+              onOpenQueue={() => {
+                props.navigation.navigate(ROOT_STACK_ROUTES.MainTabs, {
+                  params: { screen: LIBRARY_STACK_ROUTES.LibraryQueue },
+                  screen: 'My Library',
+                });
+              }}
               onOpenV4v={() => {
                 props.navigation.navigate(ROOT_STACK_ROUTES.V4vInfo);
               }}

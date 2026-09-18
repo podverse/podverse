@@ -217,6 +217,7 @@ npm run mobile:e2e:test -- --platform ios podcast-episode
 npm run mobile:e2e:test -- --platform ios popularity-tracking
 npm run mobile:e2e:test -- --platform ios push
 npm run mobile:e2e:test -- --platform ios queue-add
+npm run mobile:e2e:test -- --platform ios queue-screen
 npm run mobile:e2e:test -- --platform ios search
 npm run mobile:e2e:test -- --platform ios search-unparsed
 npm run mobile:e2e:test -- --platform ios settings-downloads
@@ -258,6 +259,7 @@ npm run mobile:e2e:test -- --platform android podcast-episode
 npm run mobile:e2e:test -- --platform android popularity-tracking
 npm run mobile:e2e:test -- --platform android push
 npm run mobile:e2e:test -- --platform android queue-add
+npm run mobile:e2e:test -- --platform android queue-screen
 npm run mobile:e2e:test -- --platform android search
 npm run mobile:e2e:test -- --platform android search-unparsed
 npm run mobile:e2e:test -- --platform android settings-downloads
@@ -371,6 +373,7 @@ npm run mobile:e2e:test -- podcast-episode
 npm run mobile:e2e:test -- popularity-tracking
 npm run mobile:e2e:test -- push
 npm run mobile:e2e:test -- queue-add
+npm run mobile:e2e:test -- queue-screen
 npm run mobile:e2e:test -- search
 npm run mobile:e2e:test -- search-unparsed
 npm run mobile:e2e:test -- settings-downloads

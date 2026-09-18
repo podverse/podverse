@@ -1,0 +1,89 @@
+appId: com.podverse.app.next
+name: Queue screen flow
+---
+# Queue screen parity smoke: load rows, medium chips, swipe remove, and empty state.
+# Needs Mobile E2E API (:4230) only. No media playback assertions, so test-assets are not required.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+# Add one row to the AV queue so swipe-remove and post-remove empty state are deterministic.
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+- tapOn:
+    id: "home-row-more-.*"
+- assertVisible:
+    id: "media-row-menu-.*"
+- tapOn:
+    id: "media-row-action-queue-last-.*"
+
+# Library -> Queue load with rows.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-queue
+- assertVisible:
+    id: library-queue-screen
+- extendedWaitUntil:
+    visible:
+      id: "queue-row-.*-swipe"
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: queue-screen-loaded
+
+# Medium chips render and switching them reloads queue data.
+- assertVisible:
+    id: library-queue-medium-av
+- assertVisible:
+    id: library-queue-medium-music
+- tapOn:
+    id: library-queue-medium-music
+- takeScreenshot: queue-screen-music-medium
+- tapOn:
+    id: library-queue-medium-av
+- extendedWaitUntil:
+    visible:
+      id: "queue-row-.*-swipe"
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: queue-screen-av-medium
+
+# Swipe remove path.
+- swipe:
+    from:
+      id: "queue-row-.*-swipe"
+    direction: LEFT
+- extendedWaitUntil:
+    visible:
+      id: "queue-row-.*-swipe-remove"
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: queue-screen-swipe-remove
+- tapOn:
+    id: "queue-row-.*-swipe-remove"
+- extendedWaitUntil:
+    notVisible:
+      id: "queue-row-.*-swipe"
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: library-queue-empty
+- takeScreenshot: queue-screen-empty
+
+# Drag reorder is intentionally not asserted here. Maestro long-press drag does not reliably
+# validate the tap/swipe/drag arbitration contract; resolver unit tests + device checks cover it.

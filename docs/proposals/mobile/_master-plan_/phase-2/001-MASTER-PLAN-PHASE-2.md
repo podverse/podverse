@@ -62,15 +62,15 @@ is detailed only when its screenshots arrive. `Status`: `not started` → `quest
 | P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips)                   |
 | P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast screen; episode later)      |
 | P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                      |
-| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | done (player screen; Make Clip split)     |
-| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | done (Downloads)                          |
+| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | planned (player done; Make Clip planned)  |
+| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | done (Downloads, queue); history pending  |
 | P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started                               |
 | P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                               |
 | P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | in progress (popularity-tracking consent) |
 | P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started                               |
 | P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (consent)                     |
 | P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started                               |
-| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | not started                               |
+| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | planned (FAQ only, with Make Clip)        |
 
 **Not in Phase 2:** the legacy `V4V*` screens (`V4VBoostagramScreen`, `V4VConsentScreen`,
 `V4VInfoStreamingSatsScreen`, `V4VPreviewScreen`, `V4VProvidersScreen`, `V4VProvidersAlbyScreen`,
@@ -159,6 +159,27 @@ Nextgen product feedback on the Downloads screen (not a legacy port). Plan set:
 
 Locked decisions: `.llm/plans/completed/mobile-p2-library-downloads/00-SUMMARY.md`.
 
+### Implemented steps — P2.1.5 Library (Queue)
+
+Queue now matches the intended web parity surface for this area: one combined queue list, medium
+chips, tap play-and-remove, swipe remove, and long-press reorder with accessibility move actions.
+Web (`apps/web/src/app/queues/`) remained the behavior reference for this work. The implementation
+plan set is complete and removed from active planning.
+
+| Step   | Detail                                                                                                                               | Model     | Status  |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------ | --------- | ------- |
+| P2.1.5 | [757-queue-screen-list-and-row-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/757-queue-screen-list-and-row-parity.md) | Codex 5.3 | done    |
+| P2.1.5 | [758-queue-play-and-remove](/docs/proposals/mobile/_master-plan_/phase-2/details/758-queue-play-and-remove.md)                       | Opus 5    | done    |
+| P2.1.5 | [759-queue-reorder-long-press-drag](/docs/proposals/mobile/_master-plan_/phase-2/details/759-queue-reorder-long-press-drag.md)       | Opus 5    | done    |
+
+Locked decisions for this area are reflected in details 757, 758, and 759. History and a clear-queue
+affordance remain outside this set.
+
+Queue reorder reopened the functional half of
+[599](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) for this
+screen, and that functional work is now complete. Haptics, spring animation, and custom drag chrome
+remain deferred under 599.
+
 ### Implemented steps — P2.1.4 Player & now playing
 
 Operator-dictated area. Inventory and locked decisions live in
@@ -174,9 +195,38 @@ Operator-dictated area. Inventory and locked decisions live in
 | P2.1.4  | [750-player-section-chips-and-panes](/docs/proposals/mobile/_master-plan_/phase-2/details/750-player-section-chips-and-panes.md)       | Codex 5.3 | done     |
 | P2.3.19 | [751-defer-player-volume-slider](/docs/proposals/mobile/_master-plan_/phase-2/details/751-defer-player-volume-slider.md)               | Auto      | deferred |
 
-Clip authoring stays split out as its own later area — the player carries a scissors control that says
-it is not available yet when pressed, and does nothing else. Transcript **coupling** stays deferred
-(598); the Transcript chip itself is in 750.
+Clip authoring was split out as its own area and is now planned below. Transcript **coupling** stays
+deferred (598); the Transcript chip itself is in 750.
+
+### Planned steps — P2.1.4 Make Clip + P2.1.12 FAQ
+
+The clip authoring area split out of the player work, detailed from an operator screenshot of the
+previous-generation Make Clip screen. It brings a slice of P2.1.12 with it, because the previous
+generation's Make Clip screen links to How To and FAQ content and those documents have to exist
+somewhere. Plan set: `.llm/plans/active/mobile-p2-make-clip/`.
+
+| Step    | Detail                                                                                                                             | Model     | Status  |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| P2.1.4  | [752-mobile-make-clip-authoring](/docs/proposals/mobile/_master-plan_/phase-2/details/752-mobile-make-clip-authoring.md)           | Opus 5    | planned |
+| P2.1.4  | [753-clip-authoring-playback-hold](/docs/proposals/mobile/_master-plan_/phase-2/details/753-clip-authoring-playback-hold.md)       | Opus 5    | planned |
+| P2.1.12 | [754-server-managed-copy-endpoint](/docs/proposals/mobile/_master-plan_/phase-2/details/754-server-managed-copy-endpoint.md)       | Codex 5.3 | planned |
+| P2.1.12 | [755-mobile-faq-and-clip-how-to](/docs/proposals/mobile/_master-plan_/phase-2/details/755-mobile-faq-and-clip-how-to.md)           | Codex 5.3 | planned |
+| P2.5.4  | [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md) | Codex 5.3 | planned |
+
+Locked decisions live in
+[00-SUMMARY.md](/.llm/plans/active/mobile-p2-make-clip/00-SUMMARY.md). The load-bearing ones: times
+are captured from the playhead and never typed; visibility is three chips matching the API's three
+sharable statuses; the queue **holds** the now-playing item while authoring rather than looping it as
+the previous generation did; create and update require a membership while delete does not; and the
+FAQ and how-to copy is served from the API so it can change without an app release.
+
+**Two cross-surface changes ride along.** `ClipController.deleteClip` drops its membership
+requirement, which changes web and every other client at the same time, and web gains a `/faq` page
+plus the shared clip-preview constant (P2.5.4). Web's clip editor still does not hold its queue —
+recorded as a known gap in 756, not assumed parity.
+
+**Deliberately not in this area:** the rest of the previous generation's FAQ (the two open-source
+answers), the other P2.1.12 static screens, and any clip authoring on web beyond what already ships.
 
 ## Track P2.2 — Visual polish (absorbs Phase 1 Track 23)
 
@@ -206,7 +256,7 @@ doc written except where noted.
 | P2.3.3  | 18.16        | CI tablet emulator matrix job (optional nightly, not a PR gate)                                                                                                                                  | Codex 5.3 |
 | P2.3.4  | 18.17        | Store listings: separate screenshots per form factor                                                                                                                                             | Auto      |
 | P2.3.5  | 21.11        | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md) — player transcript chrome deferred                             | Auto      |
-| P2.3.6  | 21.12        | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) — pixel drag-and-drop polish deferred                                           | Auto      |
+| P2.3.6  | 21.12        | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) — queue reopened and completed the functional reorder half; polish (haptics/springs/custom drag chrome) stays deferred | Auto      |
 | P2.3.7  | new          | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md) — group UI themes by mode                                                 | Codex 5.3 |
 | P2.3.8  | new          | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                                                                   | Codex 5.3 |
 | P2.3.9  | new          | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                                                             | Codex 5.3 |
@@ -332,11 +382,12 @@ deliberate parity choice rather than a correctness requirement.
 
 **Sequence P2.5 after the P2.4 foundations it depends on.**
 
-| Step   | Detail                                                                                                                       | Model     | Status | Depends on |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------- | --------- | ------ | ---------- |
-| P2.5.1 | [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md) | Opus 5    | done   | P2.4.4     |
-| P2.5.2 | [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)   | Codex 5.3 | done   | P2.1.1     |
-| P2.5.3 | [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)   | Opus 5    | done   | P2.4.6     |
+| Step   | Detail                                                                                                                             | Model     | Status  | Depends on |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- | ---------- |
+| P2.5.1 | [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md)       | Opus 5    | done    | P2.4.4     |
+| P2.5.2 | [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)         | Codex 5.3 | done    | P2.1.1     |
+| P2.5.3 | [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)         | Opus 5    | done    | P2.4.6     |
+| P2.5.4 | [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md) | Codex 5.3 | planned | P2.1.12    |
 
 Web changes also live inside two P2.4 steps rather than as separate entries: the shared tier resolver
 in P2.4.1 refactors web's `useMembershipGate`, and the notifications rename in P2.4.5 touches web's
@@ -388,6 +439,9 @@ above whenever status changes, per
 | [749-player-action-rows-and-more-sheet](/docs/proposals/mobile/_master-plan_/phase-2/details/749-player-action-rows-and-more-sheet.md)                   | P2.1.4  | Codex 5.3 | done          |
 | [750-player-section-chips-and-panes](/docs/proposals/mobile/_master-plan_/phase-2/details/750-player-section-chips-and-panes.md)                         | P2.1.4  | Codex 5.3 | done          |
 | [751-defer-player-volume-slider](/docs/proposals/mobile/_master-plan_/phase-2/details/751-defer-player-volume-slider.md)                                 | P2.3.19 | Auto      | deferred      |
+| [757-queue-screen-list-and-row-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/757-queue-screen-list-and-row-parity.md)                     | P2.1.5  | Codex 5.3 | done          |
+| [758-queue-play-and-remove](/docs/proposals/mobile/_master-plan_/phase-2/details/758-queue-play-and-remove.md)                                           | P2.1.5  | Opus 5    | done          |
+| [759-queue-reorder-long-press-drag](/docs/proposals/mobile/_master-plan_/phase-2/details/759-queue-reorder-long-press-drag.md)                           | P2.1.5  | Opus 5    | done          |
 | [720-defer-home-media-type-sort-coverage](/docs/proposals/mobile/_master-plan_/phase-2/details/720-defer-home-media-type-sort-coverage.md)               | P2.1.3  | Codex 5.3 | deferred      |
 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | P2.1.1  | Auto      | done          |
 | [723-podcast-channel-header-and-section-chips](/docs/proposals/mobile/_master-plan_/phase-2/details/723-podcast-channel-header-and-section-chips.md)     | P2.1.2  | Codex 5.3 | done          |
@@ -414,6 +468,11 @@ above whenever status changes, per
 | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md)                                   | P2.3.7  | Codex 5.3 | deferred      |
 | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)                                   | P2.3.10 | Opus 5    | deferred      |
 | [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md)  | P2.3.11 | Auto      | deferred      |
+| [752-mobile-make-clip-authoring](/docs/proposals/mobile/_master-plan_/phase-2/details/752-mobile-make-clip-authoring.md)                                 | P2.1.4  | Opus 5    | planned       |
+| [753-clip-authoring-playback-hold](/docs/proposals/mobile/_master-plan_/phase-2/details/753-clip-authoring-playback-hold.md)                             | P2.1.4  | Opus 5    | planned       |
+| [754-server-managed-copy-endpoint](/docs/proposals/mobile/_master-plan_/phase-2/details/754-server-managed-copy-endpoint.md)                             | P2.1.12 | Codex 5.3 | planned       |
+| [755-mobile-faq-and-clip-how-to](/docs/proposals/mobile/_master-plan_/phase-2/details/755-mobile-faq-and-clip-how-to.md)                                 | P2.1.12 | Codex 5.3 | planned       |
+| [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md)                       | P2.5.4  | Codex 5.3 | planned       |
 
 New Phase 2 detail docs use the **700–899** ID band (see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) § Detail ID bands).

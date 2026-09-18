@@ -79,14 +79,7 @@ name: Play Mini Player
 - assertVisible:
     id: full-player-play-pause
 
-# Up-next, speed, and sleep timer open as sheets (no inline expansion).
-- tapOn:
-    id: full-player-up-next
-- assertVisible:
-    id: full-player-up-next-sheet
-- takeScreenshot: play-mini-player-up-next
-- tapOn:
-    id: full-player-up-next-sheet-cancel
+# Speed and sleep timer open as sheets (no inline expansion).
 - tapOn:
     id: full-player-speed
 - assertVisible:
@@ -104,19 +97,14 @@ name: Play Mini Player
 - tapOn:
     id: full-player-sleep-sheet-cancel
 
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - tapOn:
-          id: full-player-close
-# Android native-stack modals: Maestro Close taps complete without dismissing. Hardware Back
-# hits the same `onClose` path via BackHandler in FullPlayerScreen.
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - pressKey: Back
+# Queue matches web: leave the player for the dedicated queue screen.
+- tapOn:
+    id: full-player-queue
+- extendedWaitUntil:
+    visible:
+      id: library-queue-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: play-mini-player-queue-screen
 - extendedWaitUntil:
     notVisible:
       id: full-player-screen

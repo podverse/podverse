@@ -12,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 
+import type { AddByRSSResourceData } from '@podverse/helpers';
 import { primaryLightboxArtworkUrl, primaryListArtworkUrl } from '@podverse/helpers';
 import type {
   DTOChannel,
@@ -28,6 +29,10 @@ import {
   PLAYBACK_POSITION_NETWORK_INTERVAL_MS,
 } from '@podverse/helpers/playbackOutboxLimits';
 import { getQueueForMedium } from '@podverse/helpers/queue';
+import {
+  reconstructAddByRSSItemFromResourceData,
+  reconstructAddByRSSLivestreamFromResourceData,
+} from '@podverse/parser-mapping';
 import type {
   MusicItemPlaybackIntent,
   PlaybackLoadDecision,
@@ -58,6 +63,7 @@ import { useQueueMutations } from '../hooks/useQueueMutations';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
 import type { AutoQueueResourcesMapRow } from '../lib/autoQueue/autoQueue';
 import { autoQueueIncrementActiveRow } from '../lib/autoQueue/autoQueue';
+import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
 import {
   buildChapterPlaybackTarget,
   buildClipPlaybackTarget,
@@ -168,6 +174,78 @@ const parseSeconds = (value: string | number | null | undefined): number | null 
   }
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+const isAddByRssResourceData = (value: unknown): value is AddByRSSResourceData => {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+};
+
+const hasAddByRssLivestreamStartTime = (resourceData: AddByRSSResourceData): boolean => {
+  const startTime = resourceData.start_time;
+  return (
+    (typeof startTime === 'string' && startTime.length > 0) ||
+    typeof startTime === 'number' ||
+    startTime instanceof Date
+  );
+};
+
+const extractAddByRssArtworkUrl = (images: unknown): string | null => {
+  if (!Array.isArray(images)) {
+    return null;
+  }
+
+  for (const entry of images) {
+    if (
+      typeof entry === 'object' &&
+      entry !== null &&
+      'url' in entry &&
+      typeof entry['url'] === 'string' &&
+      entry['url'].trim().length > 0
+    ) {
+      return entry['url'].trim();
+    }
+  }
+
+  return null;
+};
+
+const summaryFromAddByRssResourceData = (resourceData: AddByRSSResourceData): PlaybackNowPlaying => {
+  const title =
+    typeof resourceData.title === 'string' && resourceData.title.length > 0
+      ? resourceData.title
+      : '';
+  const channelTitle =
+    typeof resourceData.channel_title === 'string' && resourceData.channel_title.length > 0
+      ? resourceData.channel_title
+      : null;
+  const imageUrl =
+    extractAddByRssArtworkUrl(resourceData.item_images) ??
+    extractAddByRssArtworkUrl(resourceData.channel_images);
+
+  return {
+    channelTitle,
+    imageUrl,
+    title,
+    viewerImageUrl: imageUrl,
+  };
+};
+
+const resolveAddByRssPlaybackUrl = (resourceData: AddByRSSResourceData): string | null => {
+  if (hasAddByRssLivestreamStartTime(resourceData)) {
+    const reconstructedLivestream = reconstructAddByRSSLivestreamFromResourceData(resourceData);
+    const liveUrl = reconstructedLivestream?.item?.enclosure?.url;
+    if (typeof liveUrl === 'string' && liveUrl.trim().length > 0) {
+      return resolveE2eMediaUrl(liveUrl.trim());
+    }
+  }
+
+  const reconstructedItem = reconstructAddByRSSItemFromResourceData(resourceData);
+  const itemUrl = reconstructedItem?.bundle?.enclosures?.[0]?.item_enclosure_sources?.[0]?.uri;
+  if (typeof itemUrl === 'string' && itemUrl.trim().length > 0) {
+    return resolveE2eMediaUrl(itemUrl.trim());
+  }
+
+  return null;
 };
 
 const nonNegative = (value: number): number => {
@@ -302,8 +380,13 @@ export type PlaybackContextValue = {
   playClip: (clip: DTOClip, item: DTOItem, channel: DTOChannel) => Promise<void>;
   playSoundbite: (soundbite: DTOItemSoundbite, item: DTOItem, channel: DTOChannel) => Promise<void>;
   playChapter: (chapter: DTOItemChapter, item: DTOItem, channel: DTOChannel) => Promise<void>;
+  playAddByRssResourceData: (
+    resourceData: AddByRSSResourceData,
+    options?: { explicitPlaybackSeconds?: number }
+  ) => Promise<void>;
   playItemById: (idText: string) => Promise<void>;
   playClipById: (idText: string) => Promise<void>;
+  playQueueResourceFromQueue: (resource: DTOQueueResource) => Promise<void>;
   /** Play a playlist row and seed the auto-queue source to that playlist (web list-row parity). */
   playPlaylistRowById: (
     idText: string,
@@ -1032,13 +1115,66 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [playClipByIdWithDirective, playItemByIdWithIntent]
   );
 
+  const startAddByRssPlayback = useCallback(
+    async (
+      resourceData: AddByRSSResourceData,
+      options: {
+        autoQueue: AutoQueueDirective;
+        explicitPlaybackSeconds?: number;
+      }
+    ): Promise<void> => {
+      const url = resolveAddByRssPlaybackUrl(resourceData);
+      if (url === null) {
+        setNoticeKey('media_player.no_media');
+        return;
+      }
+      await playTarget(
+        {
+          kind: 'add-by-rss',
+          resourceData,
+        },
+        {
+          autoQueue: options.autoQueue,
+          explicitPlaybackSeconds: options.explicitPlaybackSeconds,
+          summary: summaryFromAddByRssResourceData(resourceData),
+          url,
+        }
+      );
+    },
+    [playTarget]
+  );
+
+  const playAddByRssResourceData = useCallback(
+    async (
+      resourceData: AddByRSSResourceData,
+      options?: { explicitPlaybackSeconds?: number }
+    ): Promise<void> => {
+      await startAddByRssPlayback(resourceData, {
+        autoQueue: { mode: 'clear' },
+        explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
+      });
+    },
+    [startAddByRssPlayback]
+  );
+
   const playQueueResource = useCallback(
     async (
       resource: DTOQueueResource,
       intent: MusicItemPlaybackIntent,
-      options?: { explicitPlaybackSeconds?: number; autoPlayOverride?: boolean }
+      options?: {
+        explicitPlaybackSeconds?: number;
+        autoPlayOverride?: boolean;
+        autoQueue?: AutoQueueDirective;
+      }
     ): Promise<void> => {
-      const preserve: AutoQueueDirective = { mode: 'preserve' };
+      const autoQueue = options?.autoQueue ?? { mode: 'preserve' };
+      if (isAddByRssResourceData(resource.add_by_rss_resource_data)) {
+        await startAddByRssPlayback(resource.add_by_rss_resource_data, {
+          autoQueue,
+          explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
+        });
+        return;
+      }
       if (resource.clip) {
         const item = resource.clip.item;
         const channel = await ensureChannel(item);
@@ -1047,7 +1183,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
         await startClipPlayback(resource.clip, item, channel, {
           autoPlayOverride: options?.autoPlayOverride,
-          autoQueue: preserve,
+          autoQueue,
           explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
         });
         return;
@@ -1060,7 +1196,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
         await startSoundbitePlayback(resource.item_soundbite, item, channel, {
           autoPlayOverride: options?.autoPlayOverride,
-          autoQueue: preserve,
+          autoQueue,
           explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
         });
         return;
@@ -1071,12 +1207,22 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       }
       await startItemPlayback(resource.item, channel, {
         autoPlayOverride: options?.autoPlayOverride,
-        autoQueue: preserve,
+        autoQueue,
         explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
         intent,
       });
     },
-    [ensureChannel, startClipPlayback, startItemPlayback, startSoundbitePlayback]
+    [ensureChannel, startAddByRssPlayback, startClipPlayback, startItemPlayback, startSoundbitePlayback]
+  );
+
+  const playQueueResourceFromQueue = useCallback(
+    async (resource: DTOQueueResource): Promise<void> => {
+      await playQueueResource(resource, 'explicit_play', {
+        autoQueue: { mode: 'clear' },
+        explicitPlaybackSeconds: normalizePlaybackPosition(resource.playback_position),
+      });
+    },
+    [playQueueResource]
   );
 
   const rememberPlaybackHandoffDismissal = useCallback((dismissedStateKey: string | null): void => {
@@ -1881,11 +2027,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       nowPlaying,
       pause,
       playChapter,
+      playAddByRssResourceData,
       playClip,
       playClipById,
       playItem,
       playItemById,
       playPlaylistRowById,
+      playQueueResourceFromQueue,
       playSoundbite,
       playbackRate,
       resume,
@@ -1909,11 +2057,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       nowPlaying,
       pause,
       playChapter,
+      playAddByRssResourceData,
       playClip,
       playClipById,
       playItem,
       playItemById,
       playPlaylistRowById,
+      playQueueResourceFromQueue,
       playSoundbite,
       playbackRate,
       resume,

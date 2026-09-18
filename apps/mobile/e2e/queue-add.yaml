@@ -48,9 +48,9 @@ name: Queue Add
     id: library-nav-queue
 - assertVisible:
     id: library-queue-screen
-# Each upcoming row renders a remove control keyed by queueResourceId (dynamic); match by regex.
+# Each queue row wraps in SwipeActionRow keyed by queueResourceId (dynamic); match by regex.
 - extendedWaitUntil:
     visible:
-      id: "library-queue-remove-.*"
+      id: "queue-row-.*-swipe"
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: queue-add-library-queue-row

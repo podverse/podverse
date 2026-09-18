@@ -6,7 +6,8 @@ import type {
   DTOPlaylistResource,
   DTOQueueResource,
 } from '@podverse/helpers';
-import { primaryChannelListArtworkUrl } from '@podverse/helpers';
+import { primaryChannelListArtworkUrl, primaryListArtworkUrl } from '@podverse/helpers';
+import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
 import { htmlToPlainText } from '@podverse/helpers/html';
 
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
@@ -21,8 +22,12 @@ export type PlaylistResourceHomeRow = HomeFeedRowData & {
 };
 
 export type QueueResourceHomeRow = HomeFeedRowData & {
-  mediaType: 'episodes' | 'tracks';
+  mediaType: 'clips' | 'episodes' | 'tracks';
   queueResourceId: number;
+};
+
+type QueueResourceHomeRowOptions = {
+  addByRssPrivateTitle?: string;
 };
 
 /** Structural subset shared by `DTOItem` and `DTOItemQueueItem` for home-row mapping. */
@@ -131,26 +136,172 @@ export function playlistResourceToHomeRow(
   return null;
 }
 
-export function queueResourceToHomeRow(
+const toAddByRssImages = (value: unknown): DTOItemImage[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const images: DTOItemImage[] = [];
+  for (const maybeImage of value) {
+    if (!isObjectLike(maybeImage)) {
+      continue;
+    }
+    const url = getNonEmptyTrimmedStringProperty(maybeImage, 'url');
+    if (url === null) {
+      continue;
+    }
+    const imageWidthSize = maybeImage.image_width_size;
+    images.push({
+      id: 0,
+      item_id: 0,
+      image_width_size: typeof imageWidthSize === 'number' ? imageWidthSize : null,
+      is_resized: maybeImage.is_resized === true,
+      url,
+    });
+  }
+
+  return images;
+};
+
+const resolveAddByRssMediaType = (record: Record<string, unknown>): 'episodes' | 'tracks' => {
+  const mediumIdRaw = record.medium_id;
+  if (typeof mediumIdRaw === 'number') {
+    return mediumIdRaw === 4 ? 'tracks' : 'episodes';
+  }
+  if (typeof mediumIdRaw === 'string') {
+    const parsed = Number.parseInt(mediumIdRaw, 10);
+    return Number.isNaN(parsed) ? 'episodes' : parsed === 4 ? 'tracks' : 'episodes';
+  }
+
+  return 'episodes';
+};
+
+const resolveQueueItem = (
   resource: DTOQueueResource,
   idPrefix: 'history' | 'queue'
-): QueueResourceHomeRow | null {
-  // Clip / soundbite rows may arrive with `item: null` from the API; skip rather than throw so a
-  // single incomplete resource cannot blank the whole Library Queue screen (errors.generic).
-  if (resource.item === null || resource.item === undefined) {
+): ItemHomeRowSource | null => {
+  if (resource.item !== null && resource.item !== undefined) {
+    return resource.item;
+  }
+  if (idPrefix === 'history') {
     return null;
   }
 
-  const itemRow = itemToHomeRow(resource.item);
+  if (resource.clip?.item !== null && resource.clip?.item !== undefined) {
+    return resource.clip.item;
+  }
+  if (resource.item_soundbite?.item !== null && resource.item_soundbite?.item !== undefined) {
+    return resource.item_soundbite.item;
+  }
+
+  return null;
+};
+
+const addByRssToHomeRow = (
+  resource: DTOQueueResource,
+  idPrefix: 'history' | 'queue',
+  options?: QueueResourceHomeRowOptions
+): QueueResourceHomeRow | null => {
+  if (idPrefix === 'history') {
+    return null;
+  }
+
+  const addByRssHashId =
+    typeof resource.add_by_rss_hash_id === 'string' && resource.add_by_rss_hash_id.length > 0
+      ? resource.add_by_rss_hash_id
+      : null;
+  if (addByRssHashId === null) {
+    return null;
+  }
+
+  const redactedTitle = options?.addByRssPrivateTitle ?? addByRssHashId;
+  if (resource.is_add_by_rss_redacted === true) {
+    return {
+      description: null,
+      duration: null,
+      id: `${idPrefix}-${resource.id}`,
+      imageUrl: null,
+      mediaType: 'episodes',
+      queueResourceId: resource.id,
+      subtitle: null,
+      title: redactedTitle,
+      updatedAt: null,
+    };
+  }
+
+  const resourceData = resource.add_by_rss_resource_data;
+  if (!isObjectLike(resourceData)) {
+    return {
+      description: null,
+      duration: null,
+      id: `${idPrefix}-${resource.id}`,
+      imageUrl: null,
+      mediaType: 'episodes',
+      queueResourceId: resource.id,
+      subtitle: null,
+      title: addByRssHashId,
+      updatedAt: null,
+    };
+  }
+
+  const descriptionRaw = getNonEmptyTrimmedStringProperty(resourceData, 'description');
+  const title =
+    getNonEmptyTrimmedStringProperty(resourceData, 'title') ??
+    getNonEmptyTrimmedStringProperty(resourceData, 'id_text') ??
+    addByRssHashId;
+  const durationRaw = resourceData.duration;
+  const pubDateRaw = resourceData.pub_date;
+  const itemDescription = resourceData.item_description;
+
+  const descriptionFromItem =
+    isObjectLike(itemDescription) && typeof itemDescription.value === 'string'
+      ? htmlToPlainText(itemDescription.value)
+      : '';
+
   return {
-    description: itemRow.description,
-    duration: itemRow.duration,
+    description:
+      descriptionRaw ?? (descriptionFromItem.length > 0 ? descriptionFromItem : null),
+    duration:
+      typeof durationRaw === 'number'
+        ? String(durationRaw)
+        : typeof durationRaw === 'string' && durationRaw.trim().length > 0
+          ? durationRaw.trim()
+          : null,
     id: `${idPrefix}-${resource.id}`,
-    imageUrl: itemRow.imageUrl,
-    mediaType: itemRow.mediaType,
+    imageUrl: primaryListArtworkUrl(
+      toAddByRssImages(resourceData.item_images),
+      toAddByRssImages(resourceData.channel_images)
+    ),
+    mediaType: resolveAddByRssMediaType(resourceData),
     queueResourceId: resource.id,
-    subtitle: itemRow.subtitle,
-    title: itemRow.title,
-    updatedAt: itemRow.updatedAt,
+    subtitle: getNonEmptyTrimmedStringProperty(resourceData, 'channel_title'),
+    title,
+    updatedAt:
+      typeof pubDateRaw === 'string' && pubDateRaw.trim().length > 0 ? pubDateRaw.trim() : null,
   };
+};
+
+export function queueResourceToHomeRow(
+  resource: DTOQueueResource,
+  idPrefix: 'history' | 'queue',
+  options?: QueueResourceHomeRowOptions
+): QueueResourceHomeRow | null {
+  const item = resolveQueueItem(resource, idPrefix);
+  if (item !== null) {
+    const itemRow = itemToHomeRow(item);
+    const mediaType = resource.clip || resource.item_soundbite ? 'clips' : itemRow.mediaType;
+    return {
+      description: itemRow.description,
+      duration: itemRow.duration,
+      id: `${idPrefix}-${resource.id}`,
+      imageUrl: itemRow.imageUrl,
+      mediaType,
+      queueResourceId: resource.id,
+      subtitle: itemRow.subtitle,
+      title: itemRow.title,
+      updatedAt: itemRow.updatedAt,
+    };
+  }
+
+  return addByRssToHomeRow(resource, idPrefix, options);
 }
