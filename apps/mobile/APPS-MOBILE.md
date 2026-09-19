@@ -50,6 +50,10 @@ Mobile auth is bearer-first:
 - **Local-dev only:** when Metro `__DEV__` is on and `EXPO_PUBLIC_MOBILE_E2E` is not `1`, the login
   screen prefills `local-premium@example.com` / `Test!1Aa` (see
   `infra/development/seeds/local-dev-accounts.sql`). E2E and production builds leave fields empty.
+- **E2E only:** when Metro `__DEV__` is on and `EXPO_PUBLIC_MOBILE_E2E` is `1`, a transparent
+  `e2e-quick-login` control signs in as the seeded E2E user without opening the login form.
+  Store builds and a normal Metro session do not render it. The login screen itself stays covered
+  by the `auth-login` Maestro flow.
 
 ## Home feed (subscribed)
 

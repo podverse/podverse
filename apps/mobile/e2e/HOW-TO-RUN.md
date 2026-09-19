@@ -387,7 +387,10 @@ npm run mobile:e2e:test -- sync-log
 Same stack as [sections 3–5](#3-prepare-test-databases). Test-assets on `:2111` are
 optional for this group.
 
-Seeded login: `e2e-user@example.com` / `Test!1Aa`.
+Seeded login: `e2e-user@example.com` / `Test!1Aa`. Authenticated flows sign in through
+`shared/login-seeded-user.yaml`, which taps the E2E-only `e2e-quick-login` control
+(`__DEV__` and `EXPO_PUBLIC_MOBILE_E2E=1`) and skips the form. `auth-login` is the flow
+that still walks the form (`shared/login-seeded-user-ui.yaml`).
 
 ```bash
 npm run mobile:e2e:test -- album

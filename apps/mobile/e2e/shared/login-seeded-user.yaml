@@ -1,39 +1,12 @@
 appId: com.podverse.app.next
 ---
-# Seeded E2E login (requires Mobile E2E API on :4230 + mobile:dev:e2e).
-# Password fields are plaintext when EXPO_PUBLIC_MOBILE_E2E=1 (see scripts/mobile/dev-e2e.sh).
-# Anonymous cold start lands on the tab shell; login is reached from More.
+# Programmatic seeded login. The control renders only when Metro __DEV__ is on and
+# EXPO_PUBLIC_MOBILE_E2E=1. The login form itself is covered by auth-login
+# (shared/login-seeded-user-ui.yaml).
 
 - tapOn:
-    id: tab-more
-- assertVisible:
-    id: more-screen
-- tapOn:
-    id: anonymous-login-cta
-- assertVisible:
-    id: login-screen
-
-- tapOn:
-    id: login-email
-- inputText: e2e-user@example.com
-
-- tapOn:
-    id: login-password
-- inputText: "Test!1Aa"
-
-# Android often leaves the soft keyboard over Submit after inputText.
-# iOS shows Submit above the keyboard and `hideKeyboard` is flaky there
-# ("Couldn't hide the keyboard"), so only dismiss on Android.
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - hideKeyboard
-
-- tapOn:
-    id: login-submit
-
+    id: e2e-quick-login
 - extendedWaitUntil:
     visible:
-      id: tab-home
+      id: e2e-session-authenticated
     timeout: ${TIMEOUT_SLOW}

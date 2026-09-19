@@ -16,6 +16,7 @@ import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
 import { initializeI18n } from './src/i18n';
+import { E2eQuickLogin } from './src/lib/e2e/E2eQuickLogin';
 import { MembershipGateProvider } from './src/membership/MembershipGateProvider';
 import { MobileTabNavigator, navigateToMembershipScreen } from './src/navigation';
 import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
@@ -311,6 +312,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
           </SafeAreaProvider>
         </View>
       </Modal>
+      <E2eQuickLogin />
       <StatusBar style={statusBarStyle} />
     </>
   );

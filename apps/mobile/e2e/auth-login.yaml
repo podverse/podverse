@@ -4,7 +4,7 @@ name: Auth Login
 # Login screenshot flow using seeded account on API 4230.
 
 - runFlow: shared/launch-and-connect.yaml
-- runFlow: shared/login-seeded-user.yaml
+- runFlow: shared/login-seeded-user-ui.yaml
 
 # Login opens from More and dismisses onto authenticated More. The tab bar is
 # visible there, but Home is not mounted until we switch.

@@ -183,7 +183,11 @@ assertion. Check them before blaming locators or timeouts:
 2. **`secureTextEntry` blocks Maestro `inputText`** — iOS Strong-Password autofill over a secure
    field leaves the value empty. The app renders password fields as plaintext when
    `EXPO_PUBLIC_MOBILE_E2E=1` (set by `scripts/mobile/dev-e2e.sh`); confirm the failure screenshot
-   shows the typed value before deeper debugging.
+   shows the typed value before deeper debugging. Only `auth-login` types into the form
+   (`shared/login-seeded-user-ui.yaml`). Every other authenticated flow taps `e2e-quick-login`
+   (`shared/login-seeded-user.yaml`), which calls the same token + account hydrate without
+   opening the screen. That control exists only when Metro `__DEV__` is on and
+   `EXPO_PUBLIC_MOBILE_E2E=1`.
 
 3. **Silent submit = swallowed error in the screen, not a Maestro bug.** If Submit is tapped but the
    screen stays put with **no** error text (and the assertion times out), the async handler likely
@@ -226,9 +230,10 @@ hierarchy` that names "Smoke" in the scroll view's aggregated text but has no `m
    bundle or connection failure looks different: Metro logs the error, or a redbox or the launcher
    is on screen.
 
-   Because most flows run `shared/login-seeded-user.yaml`, one wedge on the sign-in path fails a
-   large share of the suite with unrelated-looking locator errors. Confirm the shared path before
-   triaging areas separately.
+   Because most flows run `shared/login-seeded-user.yaml`, one failure on that shortcut fails a
+   large share of the suite with unrelated-looking locator errors. The shortcut surfaces
+   `e2e-quick-login-error` when sign-in fails. `auth-login` is the flow that still opens the
+   login form. Confirm the shared path before triaging areas separately.
 
 8. **Transient UI cannot be asserted.** A snapshot on Android can take longer than a few seconds, so
    anything that dismisses itself on a short timer is unobservable. Screenshot it and move on; do

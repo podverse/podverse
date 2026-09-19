@@ -143,7 +143,10 @@
     "playback_intro": "Ces commandes n'existent que dans les builds de test E2E. Elles lancent le média de seed que les écrans produit n'exposent pas encore.",
     "play_video": "Lire la vidéo E2E",
     "skip_next": "Passer au suivant",
-    "complete_now_playing": "Marquer la lecture en cours comme terminée"
+    "complete_now_playing": "Marquer la lecture en cours comme terminée",
+    "quick_login": "Se connecter en tant qu'utilisateur E2E",
+    "quick_login_popularity": "Se connecter en tant qu'utilisateur E2E indécis",
+    "session_ready": "Session E2E prête"
   },
   "subscriptions": {
     "downloaded_only": "Téléchargés uniquement"

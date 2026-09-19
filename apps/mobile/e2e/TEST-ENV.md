@@ -89,10 +89,14 @@ nullable when variables are unset so UI-only flows remain valid.
 - Reuse existing Podverse test-env concepts where possible, but do not assume web E2E seed layout is
   automatically correct for mobile.
 
-Seeded auth credential for future mobile login/logout flows (6.11 / 6.12):
+Seeded auth credential:
 
 - Email: `e2e-user@example.com`
 - Password: `Test!1Aa`
+
+Most Maestro flows sign in by tapping `e2e-quick-login`. That control renders only when
+Metro `__DEV__` is on and `EXPO_PUBLIC_MOBILE_E2E=1`. `auth-login` is the flow that types
+these credentials into the login form.
 
 API-backed pre-run uses **separate terminals**. Do not chain Metro/API/test-assets into one
 pasteable shell with Maestro — see [HOW-TO-RUN.md](./HOW-TO-RUN.md).

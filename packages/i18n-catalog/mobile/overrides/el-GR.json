@@ -143,7 +143,10 @@
     "playback_intro": "",
     "play_video": "",
     "skip_next": "",
-    "complete_now_playing": ""
+    "complete_now_playing": "",
+    "quick_login": "",
+    "quick_login_popularity": "",
+    "session_ready": ""
   },
   "subscriptions": {
     "downloaded_only": ""
