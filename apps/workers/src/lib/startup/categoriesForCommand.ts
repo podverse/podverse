@@ -69,6 +69,7 @@ const BASE_ORM_IMAGE_SHRINK_COMMANDS = [
 
 const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = [
   'parserRSSParseFeed',
+  'devParserRSSParseMusicMediumFeeds',
   'devParserRSSParsePodcasting20Feeds',
   'devParserRSSParseTrendingFeeds',
   'seedEmbedDemoShowcaseFeeds',

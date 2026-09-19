@@ -212,6 +212,15 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run dev_parser_rss_parse_trending_feeds -w apps/workers -- -max 50',
   },
   {
+    name: 'devParserRSSParseMusicMediumFeeds',
+    label: 'Dev: parse music-medium PI feeds to DB',
+    description:
+      'Podcast Index /podcasts/bymedium?medium=music → parse and save (dev seed; -max to cap).',
+    category: 'dev',
+    risk: 'dev_only',
+    example_cli: 'npm run dev_parser_rss_parse_music_medium_feeds -w apps/workers -- -max 20',
+  },
+  {
     name: 'devParserRSSParsePodcasting20Feeds',
     label: 'Dev: parse Podcasting 2.0 feed helper set',
     description:

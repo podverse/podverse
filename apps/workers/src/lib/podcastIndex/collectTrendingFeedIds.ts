@@ -1,6 +1,8 @@
 import { getPodcastIndexConfig } from '@workers/config/index.js';
 import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
 
+import { podcastIndexFeedId } from './podcastIndexFeedId.js';
+
 export const DEFAULT_MAX_TRENDING_FEEDS = 50;
 export const HARD_MAX_TRENDING_FEEDS = 1000;
 const MAX_PAGINATION_STEPS = 20;
@@ -47,12 +49,8 @@ export async function collectTrendingFeedIds(
     );
 
     for (const feed of feeds) {
-      const idRaw = (feed as { id?: number }).id;
-      if (idRaw === undefined || idRaw === null) {
-        continue;
-      }
-      const id = typeof idRaw === 'number' ? idRaw : Number(idRaw);
-      if (Number.isNaN(id) || id <= 0) {
+      const id = podcastIndexFeedId(feed);
+      if (id === null) {
         continue;
       }
       if (!seen.has(id)) {

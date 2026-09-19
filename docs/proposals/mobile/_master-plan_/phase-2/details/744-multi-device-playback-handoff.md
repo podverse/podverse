@@ -79,7 +79,7 @@ point; it is a genuine meaningful event.
 
 - **Model A, silent last-write-wins** — the behavior this step removes. It is not shipped as an
   interim, because a silent swap of the loaded item is more surprising than either alternative.
-- **Model C, Spotify-style active-device handoff** (opening device 2 pauses device 1) — needs device
+- **Model C, exclusive active-device handoff** (opening device 2 pauses device 1) — needs device
   identity, a per-account device registry, and a realtime channel. A device that never receives the
   "you were superseded" signal keeps playing, which is worse than not trying. The data model from
   743 leaves C possible later.

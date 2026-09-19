@@ -185,6 +185,7 @@
     "i18n:validate": "npm run i18n:validate -w @podverse/i18n-catalog",
     "workers:parse_podcasting20_feeds": "node apps/workers/dist/index.js devParserRSSParsePodcasting20Feeds",
     "workers:parse_trending_feeds": "node apps/workers/dist/index.js devParserRSSParseTrendingFeeds",
+    "workers:parse_music_medium_feeds": "node apps/workers/dist/index.js devParserRSSParseMusicMediumFeeds",
     "workers:seed_simulated_stats": "node apps/workers/dist/index.js devStatsSeedSimulatedAggregated",
     "workers:seed_local_user_content": "node apps/workers/dist/index.js devSeedLocalUserContent"
   }

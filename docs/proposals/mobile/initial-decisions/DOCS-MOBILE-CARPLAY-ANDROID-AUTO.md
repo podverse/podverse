@@ -29,8 +29,9 @@ platform services that the OS keeps alive for media.**
 ## How the platforms actually work
 
 Both platforms have a first-class "media app" contract. If you implement it natively, the OS treats
-your app like Spotify/Apple Music: it can run audio in the background indefinitely and can show car
-menus driven by a long-lived service — independent of whether your UI/Activity/JS is alive.
+the app as a background-capable media client: it can run audio in the background indefinitely and
+can show car menus driven by a long-lived service — independent of whether the UI/Activity/JS is
+alive.
 
 ### Android Auto
 

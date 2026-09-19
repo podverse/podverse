@@ -11,6 +11,7 @@ import { mqOpmlImportRun } from '@workers/commands/mq/rss/runOpmlImport.js';
 import { mqRSSRunParser } from '@workers/commands/mq/rss/runParser.js';
 import { reencryptAddByRSSCredentials } from '@workers/commands/orm/addByRSS/reencryptCredentials.js';
 import { parserRSSParseFeed } from '@workers/commands/parser/rss/parseFeed.js';
+import { devParserRSSParseMusicMediumFeeds } from '@workers/commands/parser/rss/parseMusicMediumFeeds.js';
 import { devParserRSSParsePodcasting20Feeds } from '@workers/commands/parser/rss/parsePodcasting20Feeds.js';
 import { devParserRSSParseTrendingFeeds } from '@workers/commands/parser/rss/parseTrendingFeeds.js';
 import {
@@ -45,6 +46,7 @@ export default {
   archiveAll,
   reencryptAddByRSSCredentials,
   parserRSSParseFeed,
+  devParserRSSParseMusicMediumFeeds,
   devParserRSSParsePodcasting20Feeds,
   devParserRSSParseTrendingFeeds,
   seedEmbedDemoShowcaseFeeds,

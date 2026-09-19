@@ -271,6 +271,7 @@ Stop those containers with `make local_stop_parsers`.
 ```bash
 npm run workers:parse_podcasting20_feeds
 npm run workers:parse_trending_feeds -- -max 50
+npm run workers:parse_music_medium_feeds -- -max 50
 npm run workers:seed_local_user_content
 npm run workers:seed_simulated_stats
 ```
@@ -278,6 +279,11 @@ npm run workers:seed_simulated_stats
 These write straight to Postgres (no running consumer required). Directory
 **search** in the app still needs the PI keys. **Add podcast** / add-by-RSS then
 need the **Workers** consumers from step 6.
+
+`workers:parse_music_medium_feeds` pulls Podcast Index feeds tagged
+`podcast:medium` music (`/podcasts/bymedium`) and parses them so album, artist,
+and track surfaces have rows. Trending and the Podcasting 2.0 helper set are
+spoken-word only. Default `-max` is 20.
 
 `workers:seed_local_user_content` gives the operator login accounts and
 `dummy01`–`dummy06` overlapping follows, public AV clips (15–30s in the first

@@ -29,7 +29,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                                                                                                            |
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                                                                                                                 |
 | Base + ORM + MQ + KeyValDB + PI     | Base, ORM, MQ, KeyValDB, PodcastIndex    | mqOpmlImportRun                                                                                                                                     |
-| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParsePodcasting20Feeds                                                              |
+| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParseMusicMediumFeeds, devParserRSSParsePodcasting20Feeds                           |
 | Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                                                                                                         |
 | Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkResetShrunken, imageShrinkResetShrunkenDryRun, imageShrinkSourcePrune                                         |
 | Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                                                                                                            |
@@ -119,9 +119,9 @@ These variables are required only for commands that include the Podcast Index ca
 - **`PODCAST_INDEX_SECRET_KEY`** (Required) - Podcast Index API secret key
 - **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for
   Podcast Index API requests. Default is `200`. Set to `0` to disable. For
-  **`devParserRSSParseTrendingFeeds`**, the same delay is also applied between trending fetches
-  and between per-feed parse steps, so long runs (many feeds) stay within polite bounds when set
-  to a non-zero value.
+  **`devParserRSSParseTrendingFeeds`** and **`devParserRSSParseMusicMediumFeeds`**, the same
+  delay is also applied between Podcast Index list fetches and between per-feed parse steps, so
+  long runs (many feeds) stay within polite bounds when set to a non-zero value.
 - **`PODCAST_INDEX_API_MAX_RETRIES`** (Optional) - Retries after the first failed Podcast Index
   API request. Default is `3` (four total attempts including the initial request).
 - **`PODCAST_INDEX_API_RETRY_BASE_DELAY_MS`** (Optional) - Base delay in milliseconds for
