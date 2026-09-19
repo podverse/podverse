@@ -2,8 +2,8 @@ appId: com.podverse.app.next
 name: Browse Tab And Tab Bar Pref
 ---
 # Default bar is Home / Browse / Search / My Library / More. Notifications lives in More.
-# Browse is one chip row: popularity range and Categories (filter chrome) only when the
-# current type can use them, then directory types with the selected type first.
+# Browse is one chip row: directory types in a stable order, then Categories and the
+# popularity range (filter chrome) only when the current type can use them. The sort chip is last.
 # Settings can swap Notifications onto the bar (replaces the last visible content tab).
 
 - runFlow: shared/launch-and-connect.yaml

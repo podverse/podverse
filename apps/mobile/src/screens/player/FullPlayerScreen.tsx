@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LayoutChangeEvent } from 'react-native';
-import {
-  BackHandler,
-  FlatList,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { BackHandler, FlatList, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints } from '@podverse/design-tokens';
@@ -368,7 +360,8 @@ export function FullPlayerScreen({
     }
     return [];
   }, [activeTab, chapterRows, clipRows, isTabLoading, soundbiteRows]);
-  const paneRows = !hasSections || !isPrefsHydrated || supportedTabs.length === 0 ? EMPTY_PANE_ROWS : listRows;
+  const paneRows =
+    !hasSections || !isPrefsHydrated || supportedTabs.length === 0 ? EMPTY_PANE_ROWS : listRows;
 
   const layout = useMemo(
     () =>
@@ -1003,7 +996,7 @@ export function FullPlayerScreen({
           <View onLayout={handleChipStripLayout} style={styles.chipRowSlot}>
             <SectionChipRow
               items={sectionChips}
-              leading={
+              trailing={
                 activeTab === 'clips' ? (
                   <MenuSelectChip
                     heading={t('filters.screen.sort_heading')}

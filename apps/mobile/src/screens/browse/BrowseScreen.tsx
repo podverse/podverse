@@ -555,14 +555,8 @@ export function BrowseScreen() {
         {isHydrated ? (
           <MediaTypeSelector
             labelKeys={MEDIA_TYPE_LABEL_KEYS}
-            leading={
+            trailing={
               <>
-                {shouldShowBrowseSortChip(selectedMediaType, isCategoryView) ? (
-                  <BrowseSortChip
-                    onRangeChange={handleRangeChange}
-                    range={activePrefs?.range ?? DEFAULT_BROWSE_RANGE}
-                  />
-                ) : null}
                 {shouldShowBrowseCategoryChip(selectedMediaType) ? (
                   <SectionChip
                     label={categoriesChipLabel}
@@ -570,6 +564,12 @@ export function BrowseScreen() {
                     selected={isCategoryView || selectedCategory !== null}
                     testID="browse-category-button"
                     variant="filter"
+                  />
+                ) : null}
+                {shouldShowBrowseSortChip(selectedMediaType, isCategoryView) ? (
+                  <BrowseSortChip
+                    onRangeChange={handleRangeChange}
+                    range={activePrefs?.range ?? DEFAULT_BROWSE_RANGE}
                   />
                 ) : null}
               </>

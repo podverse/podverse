@@ -38,11 +38,14 @@ separate surface.
   utility row (the seam before the section chips). Both paddings are chrome so the bands sum to the
   region height rather than overflowing. The chip header has no hairlines.
 - Peek sizes first paint so the chip strip sits at the fold. `resolveFullPlayerLayout` reserves the
-  chip strip plus the bottom safe-area inset from the player height. The list header is the player,
-  then the chips, then a spacer for that inset, so pane copy starts below the fold. Chips scroll
-  with the player. `FULL_PLAYER_CHIP_HEADER_HEIGHT` is the default-text-size floor — the strip
-  reports its measured height (`chipStripHeight`) and peek follows the larger of the two, so
-  accessibility text sizes cannot leak Summary copy under the chips. Measure the chip row slot only.
+  chip strip plus the bottom safe-area inset from the player height, which is what keeps the chips
+  above the home indicator. The list header is the player, then the chips, then a spacer of half
+  that inset so the pane sits below the chips without a full home-indicator gap. The chip-to-pane
+  seam is `listChipRowBottomGap` on `SectionChipRow` plus that half-inset spacer and the pane
+  `paddingTop` — do not add a second full inset under the chips. Chips scroll with the player.
+  `FULL_PLAYER_CHIP_HEADER_HEIGHT` is the default-text-size floor — the strip reports its measured
+  height (`chipStripHeight`) and peek follows the larger of the two, so accessibility text sizes
+  cannot leak Summary copy under the chips. Measure the chip row slot only.
 - The pane `FlatList` owns scroll. `ListHeaderComponent` is the player region plus chips; `data` is
   the chapter / clip / official-clip rows; summary and transcript live in the footer. A chip tap
   only swaps the pane; it does not scroll the list.

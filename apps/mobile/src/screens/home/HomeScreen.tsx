@@ -862,7 +862,7 @@ export function HomeScreen() {
         {isMediaTypeHydrated ? (
           <MediaTypeSelector
             labelKeys={MEDIA_TYPE_LABEL_KEYS}
-            leading={
+            trailing={
               isHomeSortableMediaType(selectedMediaType) ? (
                 <HomeSortChip
                   onRangeChange={handleRangeChange}

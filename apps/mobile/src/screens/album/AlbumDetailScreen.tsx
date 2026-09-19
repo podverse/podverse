@@ -851,7 +851,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           ? podrollBody
           : settingsBody;
 
-  const chipLeading =
+  const chipTrailing =
     section === 'tracks' ? (
       <>
         <MenuSelectChip
@@ -876,7 +876,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   return (
     <ChannelDetailShell
       channelHeader={channelHeader}
-      chipLeading={chipLeading}
+      chipTrailing={chipTrailing}
       isSectionHydrated={isSectionHydrated}
       loadingTestID="album-detail-section-loading"
       onSelectSection={handleSectionSelect}

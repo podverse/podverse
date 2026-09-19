@@ -89,8 +89,9 @@ that section; Playback (`Play E2E video`, skip-next) only when `EXPO_PUBLIC_MOBI
 Header-to-card gap is `spacing.lg`; space between groups is `spacing.xl`.
 
 **Browse vs Home:** Browse is a global directory that reuses `MediaTypeSelector`, `HomeFeedRow`,
-and `FillList`. It does **not** reuse `HomeScreen`. One chip row: sort and Categories (filter
-chrome) only when the current type can use them, then media types with the selected type first.
+and `FillList`. It does **not** reuse `HomeScreen`. One chip row: media types in a stable order,
+then Categories and sort (filter chrome) only when the current type can use them. The sort chip
+is last. Selecting a type does not move that chip.
 Tapping Categories replaces the list with categories (range chip hides); tapping a category
 filters the last type (podcasts, episodes, clips, videos) and relabels the chip. Music,
 playlists, and users have no Categories chip. Tapping a type leaves the category list. No filter

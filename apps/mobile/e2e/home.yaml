@@ -26,8 +26,8 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# Home's sort chip leads the media-type row when the type can sort. The selected type sits first
-# after it. The face shows the current order; the caret opens
+# Home's sort chip trails the media-type row when the type can sort. Type chips stay in place.
+# The face shows the current order; the caret opens
 # A-Z, Recent, and Popularity. Popularity opens a second sheet for the listen-count window, and
 # the chip then shows that window. A-Z is the default. There is no Categories chip here.
 - assertVisible:
@@ -226,7 +226,7 @@ name: Home Media Types
 - assertVisible:
     id: home-screen
 
-# Artists, albums, tracks, and clips share the same leading sort chip.
+# Artists, albums, tracks, and clips share the same trailing sort chip.
 - assertVisible:
     id: home-sort-button
 

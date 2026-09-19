@@ -689,7 +689,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     />
   );
 
-  const chipLeading = sortEnabled ? (
+  const chipTrailing = sortEnabled ? (
     <>
       <MenuSelectChip
         heading={t('filters.screen.sort_heading')}
@@ -713,7 +713,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   return (
     <ChannelDetailShell
       channelHeader={channelHeader}
-      chipLeading={chipLeading}
+      chipTrailing={chipTrailing}
       isSectionHydrated={isSectionHydrated}
       loadingTestID="podcast-detail-section-loading"
       onSelectSection={handleSectionSelect}

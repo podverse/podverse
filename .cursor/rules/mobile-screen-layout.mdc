@@ -207,17 +207,16 @@ first-visit insert is at the end of the row — **mobile-section-chrome-cache**.
 Mode** is on, podcast detail defaults to Downloaded (override only; do not overwrite the stored
 tab pref) — **mobile-offline-mode**.
 
-Sort and category controls sit in the chip-row **leading** slot and use **filter** chrome (square
+Sort and category controls sit in the chip-row **trailing** slot and use **filter** chrome (square
 radius, accent outline) so they read as list narrows, not as sibling section pills. Mount them
 **only when the current chip can use them** — `isSortableSection` / `isHomeSortableMediaType` /
 `shouldShowBrowseSortChip` for sort, `shouldShowBrowseCategoryChip` for Categories. Unmount when
 the filter cannot sort or pick a category (About, Podroll, Official Clips, music Browse types,
 the category picker). Do not leave a disabled sort chip in the row to hold layout.
 
-The **selected section / media-type chip is first** after that leading slot. `SectionChipRow`
-reorders with `placeSelectedFirst` and scrolls to `x = 0` on select. Evidence chips still resolve
-last in `PODCAST_TABS` so a first-visit insert is at the end of the available set; once a chip is
-selected it moves to the front.
+Section and media-type chips keep the order the caller handed in. Selecting one does not move it
+to the front. Evidence chips still resolve last in `PODCAST_TABS` so a first-visit insert is at
+the end of the available set.
 
 ## Action-gated account / membership
 

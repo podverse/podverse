@@ -10,7 +10,7 @@ import { LoadingSection } from '../state/LoadingSection';
 
 export type ChannelDetailShellProps<TSection extends string> = {
   channelHeader: ReactNode;
-  chipLeading?: ReactNode;
+  chipTrailing?: ReactNode;
   sectionBody: ReactNode;
   sectionChips: readonly SectionChipItem<TSection>[];
   selectedSection: TSection;
@@ -26,7 +26,7 @@ export type ChannelDetailShellProps<TSection extends string> = {
  */
 export function ChannelDetailShell<TSection extends string>({
   channelHeader,
-  chipLeading,
+  chipTrailing,
   isSectionHydrated,
   loadingTestID,
   onSelectSection,
@@ -67,10 +67,10 @@ export function ChannelDetailShell<TSection extends string>({
             <View style={styles.chipRow}>
               <SectionChipRow
                 items={sectionChips}
-                leading={chipLeading}
                 onSelect={onSelectSection}
                 selectedKey={selectedSection}
                 testID={sectionsTestID}
+                trailing={chipTrailing}
               />
             </View>
           </View>

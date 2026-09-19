@@ -495,7 +495,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         <View style={styles.chipRow}>
           <SectionChipRow
             items={sectionChips}
-            leading={
+            trailing={
               activeTab === 'clips' ? (
                 <MenuSelectChip
                   heading={t('filters.screen.sort_heading')}
