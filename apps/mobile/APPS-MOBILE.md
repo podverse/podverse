@@ -324,12 +324,16 @@ This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **
 
 | Terminal             | Command                                                                                      | Role                                                                     |
 | -------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Mobile Metro         | `npm run mobile:dev` (emulator) / `mobile:dev:device` (USB phone LAN API) / `mobile:dev:e2e` | Keep running — Expo + Metro on `:8081`                                   |
-| Mobile iOS / Android | `npm run mobile:ios` / `mobile:android` / `mobile:android:device`                            | Install/launch only (`--no-bundler` always); Metro stays in Mobile Metro |
+| Mobile Metro         | `npm run mobile:dev` (emulator) / `mobile:dev:device` (USB phone LAN API) | Keep running — local Expo + Metro on `:8081` (API `:3000`)               |
+| Mobile E2E Metro     | `npm run mobile:dev:e2e`                                                 | Keep running — Maestro Metro on `:8081` (API `:4230`). Stop Mobile Metro first. |
+| Mobile iOS / Android | `npm run mobile:ios` / `mobile:android` / `mobile:android:device`        | Install/launch only (`--no-bundler` always); local Metro in Mobile Metro |
 
 VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) — `Mobile` (one-shots:
-`build:packages`, `mobile_e2e_deps` / seed / health), `Mobile Metro` (`mobile:dev` or
-`mobile:dev:e2e`), `Mobile iOS`, `Mobile Android`, `Mobile E2E API`, `Mobile Maestro`.
+`build:packages`, `mobile_e2e_deps` / seed / health), `Mobile Metro` (`mobile:dev`),
+`Mobile E2E Metro` (`mobile:dev:e2e`), `Mobile E2E iOS`, `Mobile E2E Android`,
+`Mobile E2E API`, `Mobile Maestro`. Pause/resume:
+[HOW-TO-RUN.md § Cold start](/apps/mobile/e2e/HOW-TO-RUN.md#cold-start-nothing-running)
+/ [Pause local for Maestro](/apps/mobile/e2e/HOW-TO-RUN.md#pause-local-for-maestro).
 
 ### First-time / after prebuild order
 
@@ -886,8 +890,8 @@ API-backed (five terminals; Track 5 harness; no auth login/logout yet):
 make mobile_e2e_deps
 make mobile_e2e_seed
 
-# T1 — leave running: npm run mobile:dev:e2e
-# T2 / T3 — exits: npm run mobile:e2e:ios / mobile:e2e:android
+# T1 — Mobile E2E Metro, leave running: npm run mobile:dev:e2e
+# T2 / T3 — Mobile E2E iOS / Mobile E2E Android, exits: npm run mobile:e2e:ios / mobile:e2e:android
 # T4 — leave running: npm run mobile:e2e:api
 # T5 — exits:
 npm run mobile:e2e:test -- api-health

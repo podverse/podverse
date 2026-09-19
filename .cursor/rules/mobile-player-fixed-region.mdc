@@ -9,8 +9,10 @@ alwaysApply: false
 
 # Mobile full player fixed-region contract
 
-The full player is a fixed-height region above scrollable panes. The region keeps its geometry while
-chips and pane content below it change.
+The full player is one scrolling column: player region, then chips, then pane. The player region
+keeps a fixed internal geometry while chips and pane content below it change. Nothing on this
+screen is sticky, overlay-pinned, or shrinks with scroll. The mini player on other screens is a
+separate surface.
 
 ## Required
 
@@ -35,12 +37,15 @@ chips and pane content below it change.
   `FULL_PLAYER_REGION_TOP_PADDING` above the title and `FULL_PLAYER_REGION_BOTTOM_PADDING` below the
   utility row (the seam before the section chips). Both paddings are chrome so the bands sum to the
   region height rather than overflowing. The chip header has no hairlines.
-- Peek reserves the chip strip plus the bottom safe-area inset, and a bottom fill covers the inset
-  so pane copy cannot show there. The header does not include that inset, so chips stay close to
-  pane content after scroll. `FULL_PLAYER_CHIP_HEADER_HEIGHT` is the default-text-size floor —
-  the strip reports its measured height (`chipStripHeight`) and peek follows the larger of the two,
-  so accessibility text sizes cannot leak Summary copy under the chips. Measure the chip row slot,
-  never the header, or the condensed bar would change the reserve mid-scroll.
+- Peek sizes first paint so the chip strip sits at the fold. `resolveFullPlayerLayout` reserves the
+  chip strip plus the bottom safe-area inset from the player height. The list header is the player,
+  then the chips, then a spacer for that inset, so pane copy starts below the fold. Chips scroll
+  with the player. `FULL_PLAYER_CHIP_HEADER_HEIGHT` is the default-text-size floor — the strip
+  reports its measured height (`chipStripHeight`) and peek follows the larger of the two, so
+  accessibility text sizes cannot leak Summary copy under the chips. Measure the chip row slot only.
+- The pane `FlatList` owns scroll. `ListHeaderComponent` is the player region plus chips; `data` is
+  the chapter / clip / official-clip rows; summary and transcript live in the footer. A chip tap
+  only swaps the pane; it does not scroll the list.
 - The segment band (`FULL_PLAYER_SEGMENT_BAND_HEIGHT`) sits **below** the artwork and is reserved
   unconditionally, exactly as web reserves `--media-modal-subtitle-reserve`. A chapter or clip name
   arriving mid-playback fades into a row that is already there — it never resizes the artwork or
@@ -51,13 +56,11 @@ chips and pane content below it change.
   `0`.
 - New player controls open sheets. Do not expand controls inline inside the fixed region.
 - If a new control needs persistent space, reserve a fixed-height band for it in layout math.
-- Sticky chips and the condensed bar belong to the scroll shell, not inside pane content. A chip
-  tap only swaps the pane; it does not scroll the list.
 - Video renders inside the measured artwork square and letterboxes when aspect ratios differ.
-- Playhead UI lives in leaf components that read `playbackProgressStore`; the fixed-region shell
+- Playhead UI lives in leaf components that read `playbackProgressStore`; the region shell
   uses `usePlaybackSession()` only.
 - Pull-to-dismiss is the native-stack top-edge gesture only (`fullScreenGestureEnabled: false`).
-- The pane `SectionList` does not bounce or over-scroll — this screen has no pull-to-refresh.
+- The pane `FlatList` does not bounce or over-scroll — this screen has no pull-to-refresh.
 
 ## Do not
 
@@ -65,6 +68,9 @@ chips and pane content below it change.
   permanently reserved band; anything else jumps the layout while a listener is watching it.
 - Do not let pane loading, empty states, or chip switching push transport or utility rows.
 - Do not bind region size to transcript/chapter/clip body height.
+- Do not pin chips, overlay the player above the list, shrink the player with scroll, or add a
+  condensed now-playing bar on this screen. Do not put chips in a sticky `SectionList` header or
+  pad a short pane with a `minHeight` spacer.
 - Do not give the region a minimum height that can exceed the viewport, and do not reserve peek from
   a hardcoded chip height alone — both push the chip strip off-screen on short viewports or at large
   text sizes.

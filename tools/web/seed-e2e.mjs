@@ -104,9 +104,10 @@ const E2E_CLIP_END_SECONDS = 12;
 const E2E_SOUNDBITE_START_SECONDS = 14;
 const E2E_SOUNDBITE_DURATION_SECONDS = 6;
 
-// The two chapters span the whole 60s enclosure, the way a chaptered episode does in the wild, so
+// Intro and Topic A span the whole 60s enclosure, the way a chaptered episode does in the wild, so
 // any position on a scrubber names a chapter. The one-second gap between them is deliberate: it
-// covers the case where a position falls outside every chapter range.
+// covers the case where a position falls outside every chapter range. Extra filler chapters after
+// 60s make the mobile full-player Chapters pane tall enough to collapse.
 const E2E_CHAPTER_ONE_START_SECONDS = 1;
 const E2E_CHAPTER_ONE_END_SECONDS = 20;
 const E2E_CHAPTER_TWO_START_SECONDS = 21;
@@ -835,6 +836,27 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
       E2E_CHAPTER_TWO_START_SECONDS,
       E2E_CHAPTER_TWO_END_SECONDS,
     ]
+  );
+
+  // Extra TOC chapters after the 60s enclosure so the mobile full-player Chapters pane is tall
+  // enough to collapse the player. Intro / Topic A still span the playable file.
+  const fillerChapterRows = Array.from({ length: 12 }, (_, index) => {
+    const n = String(index + 1).padStart(2, '0');
+    const start = 60 + index;
+    return `('e2eChapFil${n}', $1, '${'3'.repeat(30)}${n}', ${start}, ${start + 1}, 'Filler ${n}', true)`;
+  });
+  await client.query(
+    `INSERT INTO item_chapter (
+       id_text,
+       item_chapters_object_id,
+       data_hash,
+       start_time,
+       end_time,
+       title,
+       table_of_contents
+     )
+     VALUES ${fillerChapterRows.join(',\n       ')}`,
+    [chaptersObjectId]
   );
 
   await client.query(

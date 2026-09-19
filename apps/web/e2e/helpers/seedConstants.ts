@@ -27,6 +27,8 @@ export const E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT = 'e2ePodChap0001';
 
 export const E2E_ITEM_CHAPTER_INTRO_ID_TEXT = 'e2eChapIntro01';
 export const E2E_ITEM_CHAPTER_TOPIC_ID_TEXT = 'e2eChapTopic01';
+/** First of `e2eChapFil01`–`e2eChapFil12` on the chaptered episode — tall Chapters pane only. */
+export const E2E_ITEM_CHAPTER_FILLER_FIRST_ID_TEXT = 'e2eChapFil01';
 
 export const E2E_CLIP_ID_TEXT = 'e2eClip00000001';
 export const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
@@ -75,7 +77,7 @@ export const E2E_SOUNDBITE_START_SECONDS = 14;
 export const E2E_SOUNDBITE_DURATION_SECONDS = 6;
 
 /**
- * The two chapters span the whole 60s enclosure, the way a chaptered episode does in the wild, so
+ * Intro and Topic A span the whole 60s enclosure, the way a chaptered episode does in the wild, so
  * any position on a scrubber names a chapter. The one-second gap between them is deliberate: it
  * covers the case where a position falls outside every chapter range.
  */

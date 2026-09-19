@@ -300,7 +300,8 @@ fi
 
 if ! lsof -nP -iTCP:"$MOBILE_METRO_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
   echo "Error: Metro is not listening on port ${MOBILE_METRO_PORT}." >&2
-  echo "Start it in another terminal: npm run mobile:dev:e2e (full suite) or npm run mobile:dev" >&2
+  echo "Start it in Mobile E2E Metro (API-backed / full suite): npm run mobile:dev:e2e" >&2
+  echo "Or in Mobile Metro (UI-only): npm run mobile:dev" >&2
   exit 1
 fi
 
@@ -831,7 +832,7 @@ if [[ "$NEEDS_E2E_API" -eq 1 ]]; then
   if printf '%s' "$METRO_ENV" | grep -q 'EXPO_PUBLIC_'; then
     if ! printf '%s' "$METRO_ENV" | grep -q 'EXPO_PUBLIC_MOBILE_E2E=1'; then
       echo "Error: Metro on :${MOBILE_METRO_PORT} is UI-only (mobile:dev)." >&2
-      echo "API-backed / full-suite flows need E2E Metro. Restart it in Mobile Metro:" >&2
+      echo "API-backed / full-suite flows need E2E Metro. Stop Mobile Metro, then in Mobile E2E Metro:" >&2
       echo "  npm run mobile:dev:e2e" >&2
       echo "Then reload/reinstall the app so it targets :${MOBILE_E2E_API_PORT}." >&2
       exit 1

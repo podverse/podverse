@@ -1,8 +1,9 @@
 appId: com.podverse.app.next
 name: Player screen flow
 ---
-# Full-player shell behavior: chip peek, sticky condensed bar, pane loading, and sheet-only controls.
-# Uses the chaptered seeded episode so the Chapters pane is always available.
+# Full-player shell behavior: one scrolling column (player, chips, pane), first-paint chip peek,
+# pane loading, and sheet-only controls. Uses the chaptered seeded episode so the Chapters pane
+# is always available and long enough to scroll the player off screen.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -29,9 +30,8 @@ name: Player screen flow
     id: full-player-screen
 - assertVisible:
     id: full-player-sections
-# First paint keeps the whole transport on screen with the chip strip peeking under it, and the
-# condensed bar belongs to the scrolled state. Pane copy stays mounted below the fold so scrolling
-# reveals it without a pop-in, which is why its absence is left to the screenshot: off-screen and
+# First paint keeps the whole transport on screen with the chip strip peeking under it. Pane copy
+# stays below the fold, which is why its absence is left to the screenshot: off-screen and
 # unmounted read the same to Maestro on iOS.
 - assertVisible:
     id: full-player-transport-row
@@ -39,22 +39,27 @@ name: Player screen flow
     id: full-player-condensed-bar
 - takeScreenshot: player-screen-initial-peek
 
-- scrollUntilVisible:
-    element:
-      id: full-player-condensed-bar
-    direction: DOWN
-    timeout: ${TIMEOUT_SLOWEST}
-- assertVisible:
-    id: full-player-condensed-play-pause
 - tapOn:
-    id: full-player-condensed-play-pause
-- tapOn:
-    id: full-player-condensed-play-pause
-- takeScreenshot: player-screen-condensed
+    id: full-player-section-chapters
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-pane-loading-chapters
+    timeout: ${TIMEOUT_SLOWER}
 
 - scrollUntilVisible:
     element:
-      id: full-player-region
+      id: full-player-chapter-row
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-chapter-row
+- takeScreenshot: player-screen-chapters-pane
+
+# Player chrome lives in the list header, so scrolling back to the transport is ordinary list
+# scroll — not overlay restore.
+- scrollUntilVisible:
+    element:
+      id: full-player-transport-row
     direction: UP
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
@@ -85,29 +90,6 @@ name: Player screen flow
 - assertVisible:
     id: full-player-chapter-marker
 - takeScreenshot: player-screen-region-restored
-
-- tapOn:
-    id: full-player-section-chapters
-- extendedWaitUntil:
-    notVisible:
-      id: full-player-pane-loading-chapters
-    timeout: ${TIMEOUT_SLOWER}
-- assertVisible:
-    id: full-player-transport-row
-- scrollUntilVisible:
-    element:
-      id: full-player-chapter-row
-    direction: DOWN
-    timeout: ${TIMEOUT_SLOW}
-- assertVisible:
-    id: full-player-chapter-row
-- takeScreenshot: player-screen-chapters-pane
-
-- scrollUntilVisible:
-    element:
-      id: full-player-region
-    direction: UP
-    timeout: ${TIMEOUT_SLOW}
 
 # The chapter tooltip is a transient affordance. A hierarchy snapshot on Android can take longer
 # than the window it lives in, so this flow does not assert it — asserting it would require the

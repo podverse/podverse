@@ -28,8 +28,14 @@ All commands are from the **monorepo root**. Use the named tabs in
 | **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"`               | No (exits; app stays) |
 | **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`        | No (exits; app stays) |
 
-Do **not** start **Mobile E2E API** or `mobile:dev:e2e` for this flow. Those point
-the app at the E2E API on `:4230`, not your local Docker Postgres.
+Do **not** start **Mobile E2E Metro** or **Mobile E2E API** for this flow. Those
+point the app at the E2E API on `:4230`, not your local Docker Postgres.
+
+To pause for Maestro: stop **Dev** and **Mobile Metro** (leave **Workers**). Then
+**Mobile E2E Metro**, **Mobile E2E API**, **Mobile E2E test-assets**, health, and
+**Mobile E2E iOS**. Do not reuse **Dev**’s `:2111`. From a cold start (nothing
+running): [HOW-TO-RUN.md § Cold start](/apps/mobile/e2e/HOW-TO-RUN.md#cold-start-nothing-running).
+Switch back: [HOW-TO-RUN.md § Pause local for Maestro](/apps/mobile/e2e/HOW-TO-RUN.md#pause-local-for-maestro).
 
 `npm run dev:workers` and the `workers` lane inside `dev:all:watch` only
 **recompile** `apps/workers`. They do **not** consume message-queue jobs.
@@ -303,7 +309,8 @@ Generated local RSS (no PI keys):
 
 ## 7. Mobile Metro (leave running)
 
-Pick **one** command in **Mobile Metro**. Run only one Metro.
+Pick **one** command in **Mobile Metro**. Only one Metro on `:8081` — stop this
+tab before **Mobile E2E Metro**.
 
 **Simulator or emulator (this walkthrough):**
 

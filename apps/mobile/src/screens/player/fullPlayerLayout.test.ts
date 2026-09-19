@@ -4,8 +4,6 @@ import {
   FULL_PLAYER_ARTWORK_MAX_PHONE,
   FULL_PLAYER_ARTWORK_MAX_TABLET,
   FULL_PLAYER_CHIP_HEADER_HEIGHT,
-  FULL_PLAYER_CONDENSE_ENTER_RATIO,
-  FULL_PLAYER_CONDENSE_EXIT_RATIO,
   FULL_PLAYER_CONTROL_STACK_GAP,
   FULL_PLAYER_CONTROL_STACK_GAP_COUNT,
   FULL_PLAYER_PROGRESS_BLOCK_HEIGHT,
@@ -17,9 +15,7 @@ import {
   FULL_PLAYER_TITLE_BLOCK_HEIGHT,
   FULL_PLAYER_TRANSPORT_ROW_HEIGHT,
   FULL_PLAYER_UTILITY_ROW_HEIGHT,
-  resolveCondensedState,
   resolveFullPlayerLayout,
-  resolveMinPaneContentHeight,
 } from './fullPlayerLayout';
 
 const phoneInput = {
@@ -133,85 +129,5 @@ describe('resolveFullPlayerLayout', () => {
       playerRegionHeight: 0,
       viewerHeight: 0,
     });
-  });
-});
-
-describe('resolveMinPaneContentHeight', () => {
-  it('reserves enough scroll for the region to condense on a short pane', () => {
-    const minHeight = resolveMinPaneContentHeight({
-      hasSections: true,
-      playerRegionHeight: 700,
-      viewportHeight: 844,
-    });
-    const reachableOffset = minHeight - 844;
-
-    expect(reachableOffset).toBeGreaterThan(700 * FULL_PLAYER_CONDENSE_ENTER_RATIO);
-  });
-
-  it('reserves nothing when the target has no panes to scroll', () => {
-    expect(
-      resolveMinPaneContentHeight({
-        hasSections: false,
-        playerRegionHeight: 700,
-        viewportHeight: 844,
-      })
-    ).toBe(0);
-  });
-
-  it('reserves nothing before the viewport has been measured', () => {
-    expect(
-      resolveMinPaneContentHeight({
-        hasSections: true,
-        playerRegionHeight: 0,
-        viewportHeight: 0,
-      })
-    ).toBe(0);
-  });
-});
-
-describe('resolveCondensedState', () => {
-  const playerRegionHeight = 400;
-  const enterThreshold = playerRegionHeight * FULL_PLAYER_CONDENSE_ENTER_RATIO;
-  const exitThreshold = playerRegionHeight * FULL_PLAYER_CONDENSE_EXIT_RATIO;
-  const betweenThresholds = (enterThreshold + exitThreshold) / 2;
-
-  it('keeps non-condensed state between the thresholds', () => {
-    expect(
-      resolveCondensedState({
-        isCondensed: false,
-        playerRegionHeight,
-        scrollOffset: betweenThresholds,
-      })
-    ).toBe(false);
-  });
-
-  it('keeps condensed state between the thresholds', () => {
-    expect(
-      resolveCondensedState({
-        isCondensed: true,
-        playerRegionHeight,
-        scrollOffset: betweenThresholds,
-      })
-    ).toBe(true);
-  });
-
-  it('condenses at the enter threshold', () => {
-    expect(
-      resolveCondensedState({
-        isCondensed: false,
-        playerRegionHeight,
-        scrollOffset: enterThreshold,
-      })
-    ).toBe(true);
-  });
-
-  it('restores below the exit threshold', () => {
-    expect(
-      resolveCondensedState({
-        isCondensed: true,
-        playerRegionHeight,
-        scrollOffset: exitThreshold,
-      })
-    ).toBe(false);
   });
 });

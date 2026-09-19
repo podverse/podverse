@@ -48,7 +48,7 @@ Do **not** collapse platforms into a single screenshot page. Open the slot / flo
 - **UI-only Metro symptom:** API-backed / `:all` runs with `mobile:dev` (not `mobile:dev:e2e`) show
   Network Error / “Could not sign in” / missing `tab-home` — the app still points at `:3000`.
   `e2e-test.sh` fail-fasts when it can read Metro’s env and `EXPO_PUBLIC_MOBILE_E2E=1` is absent.
-  Fix: restart **Mobile Metro** with `npm run mobile:dev:e2e`, reload/reinstall, then re-run.
+  Fix: stop **Mobile Metro**; **Mobile E2E Metro** `npm run mobile:dev:e2e`; reload/reinstall the E2E app; then re-run.
 
 For first-failure debugging, isolate the device platform so one failing iOS flow does not trigger
 a wasted Android pass. Run the first flow on iOS, fix it until it passes, then run that same flow
@@ -86,12 +86,13 @@ implementation. For mobile feature/UI PRs, instruct the operator to generate slo
 1. Narrowest Maestro flow under `apps/mobile/e2e/<area>.yaml` (add/update when behavior changes).
 2. Assume / point to [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) and label tabs from
    [`.vscode/terminals.json`](/.vscode/terminals.json) (**vscode-terminals-commands** rule):
-   - **UI-only:** **Mobile Metro** (`mobile:dev`) + **Mobile iOS** / **Mobile Android** installs +
-     **Mobile Maestro**.
+   - **UI-only:** **Mobile Metro** (`mobile:dev`) or **Mobile E2E Metro** + **Mobile E2E iOS** /
+     **Mobile E2E Android** installs + **Mobile Maestro**.
    - **API-backed / full suite:** **Mobile** one-shots (`make mobile_e2e_deps` / `mobile_e2e_seed`),
-     then leave-running **Mobile Metro** (`mobile:dev:e2e`) + **Mobile E2E API**, and for playback
-     flows also **Mobile E2E test-assets** (`mobile:e2e:test-assets` on `:2111`), installs, then
-     **Mobile Maestro** (`mobile:e2e:test -- <area>` or `mobile:e2e:test:all`).
+     then leave-running **Mobile E2E Metro** (`mobile:dev:e2e`; stop **Mobile Metro** first) +
+     **Mobile E2E API**, and for playback flows also **Mobile E2E test-assets**
+     (`mobile:e2e:test-assets` on `:2111`), installs, then **Mobile Maestro**
+     (`mobile:e2e:test -- <area>` or `mobile:e2e:test:all`).
 3. Tell them where to review **after** they run:
    - Failures index: `.artifacts/mobile-e2e-reports/latest/failures.json`
    - Hub: `.artifacts/mobile-e2e-reports/latest/index.html`
@@ -106,7 +107,7 @@ Do **not** put them in the same fenced `bash` block as `mobile:e2e:test` (or oth
 commands) as if the operator can paste the whole list into one terminal. That forces Ctrl+C on Metro
 (“Stopped server”) before later steps run.
 
-**Mobile E2E API** is leave-running independently of Metro. Restarting **Mobile Metro** does **not**
+**Mobile E2E API** is leave-running independently of Metro. Restarting **Mobile E2E Metro** does **not**
 require restarting the API if `:4230` is already healthy. Auth/tab/api-health flows do need the API
 up (see **mobile-maestro-timeouts**). **Mobile E2E test-assets** (`:2111`) is leave-running the same
 way for playback flows (add-by-rss play).
@@ -115,8 +116,9 @@ Timeouts: prefer the shared `TIMEOUT_*` ladder (**mobile-maestro-timeouts**); de
 reasonable tier.
 
 Final response `bash` blocks should contain only **one-shot** commands (prep Make targets if
-needed, Maestro, `open` report paths). For leave-running Metro/API, name the tabs (**Mobile Metro**,
-**Mobile E2E API**) in prose — do not paste blockers into the same verify block. Optional:
+needed, Maestro, `open` report paths). For leave-running Metro/API, name the tabs
+(**Mobile E2E Metro**, **Mobile E2E API**) in prose — do not paste blockers into the same
+verify block. Optional:
 `mobile:e2e:api:bg` + `mobile:e2e:api:health` in **Mobile** when background API is intentional.
 
 ## Agents: read reports when debugging
@@ -267,7 +269,7 @@ hierarchy` that names "Smoke" in the scroll view's aggregated text but has no `m
    - `.artifacts/mobile-e2e-reports/latest/ios-phone/index.html`
    - `.artifacts/mobile-e2e-reports/latest/android-phone/index.html`
 3. If Metro / E2E installs / API are not already assumed running, name the leave-running tabs
-   (**Mobile Metro**, **Mobile E2E API**, **Mobile iOS** / **Mobile Android**) in prose and link
+   (**Mobile E2E Metro**, **Mobile E2E API**, **Mobile E2E iOS** / **Mobile E2E Android**) in prose and link
    [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) — do not paste leave-running commands into the
    final verification `bash` block.
 
@@ -281,7 +283,7 @@ open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ```
 
-Example ending (API-backed — **Mobile Maestro**; assume **Mobile Metro**=`mobile:dev:e2e` and
+Example ending (API-backed — **Mobile Maestro**; assume **Mobile E2E Metro** and
 **Mobile E2E API** already up):
 
 ```bash

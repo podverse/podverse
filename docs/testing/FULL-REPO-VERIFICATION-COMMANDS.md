@@ -97,7 +97,7 @@ make mobile_e2e_deps
 
 Run the required leave-running services in their named tabs:
 
-**Mobile Metro**
+**Mobile E2E Metro**
 
 ```bash
 npm run mobile:dev:e2e
@@ -134,13 +134,13 @@ conflict. See
 
 Install the E2E binaries:
 
-**Mobile iOS**
+**Mobile E2E iOS**
 
 ```bash
 npm run mobile:e2e:ios
 ```
 
-**Mobile Android**
+**Mobile E2E Android**
 
 ```bash
 npm run mobile:e2e:android

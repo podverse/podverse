@@ -37,8 +37,9 @@ PR matrix; an optional nightly-only mid-band emulator can be added under master-
 Each slot HTML matches web E2E chrome (summary + Prev/Next Shot/Test/Error).
 
 Use **separate terminals** for Metro and E2E installs. `npm run mobile:e2e:test` boots E2E
-devices and runs Maestro, but it is **strict**: Metro must already be on `:8081`, and the app must
-already be installed on each E2E slot (no auto-install, no background Metro).
+devices and runs Maestro, but it is **strict**: **Mobile E2E Metro** must already be on `:8081`
+(`mobile:dev:e2e` for API-backed), and the app must already be installed on each E2E slot (no
+auto-install, no background Metro). See [HOW-TO-RUN.md § Pause local for Maestro](./HOW-TO-RUN.md#pause-local-for-maestro).
 
 Manual `npm run mobile:ios` / `mobile:android` default to manual device names.
 

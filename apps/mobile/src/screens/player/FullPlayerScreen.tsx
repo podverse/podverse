@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
 import {
   BackHandler,
+  FlatList,
   Platform,
   Pressable,
-  SectionList,
   StyleSheet,
   Text,
   View,
@@ -42,8 +42,7 @@ import { FullPlayerScrubber } from '../../components/player/FullPlayerScrubber';
 import { FullPlayerSegmentBand } from '../../components/player/FullPlayerSegmentBand';
 import { FullPlayerTransportRow } from '../../components/player/FullPlayerTransportRow';
 import { FullPlayerUtilityRow } from '../../components/player/FullPlayerUtilityRow';
-import { PlayerTransportButton } from '../../components/player/PlayerTransportButton';
-import { CoverImage } from '../../components/primitives/CoverImage';
+import { LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives/listVirtualization';
 import { MarqueeText } from '../../components/primitives/MarqueeText';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -94,9 +93,7 @@ import {
   FULL_PLAYER_REGION_GAP,
   FULL_PLAYER_REGION_TOP_PADDING,
   FULL_PLAYER_TITLE_BLOCK_HEIGHT,
-  resolveCondensedState,
   resolveFullPlayerLayout,
-  resolveMinPaneContentHeight,
 } from './fullPlayerLayout';
 import { FullPlayerSleepTimer } from './FullPlayerSleepTimer';
 import { FullPlayerSpeedControl } from './FullPlayerSpeedControl';
@@ -117,24 +114,15 @@ type FullPlayerPaneRow =
   | { type: 'clip'; id: string; clip: DTOClip }
   | { type: 'soundbite'; id: string; index: number; soundbite: DTOItemSoundbite };
 
-type FullPlayerSection = {
-  data: FullPlayerPaneRow[];
-  key: EpisodeTab;
-};
-
 const CLIP_SORT_LABEL_KEYS: Record<EpisodeClipSort, string> = {
   oldest: 'filters.sort.oldest',
   recent: 'filters.sort.recent',
 };
 
-const EMPTY_SECTIONS: FullPlayerSection[] = [];
+const EMPTY_PANE_ROWS: FullPlayerPaneRow[] = [];
 
-const scrollSectionListToTop = (list: SectionList<FullPlayerPaneRow> | null): void => {
-  const responder = list?.getScrollResponder?.();
-  if (responder === undefined) {
-    return;
-  }
-  responder.scrollTo({ animated: false, y: 0 });
+const scrollPaneListToTop = (list: FlatList<FullPlayerPaneRow> | null): void => {
+  list?.scrollToOffset({ animated: false, offset: 0 });
 };
 
 const toSoundbiteRow = (
@@ -244,7 +232,7 @@ export function FullPlayerScreen({
   } = usePlaybackSession();
   const { chapters } = useNowPlayingChapters();
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
-  const sectionListRef = useRef<SectionList<FullPlayerPaneRow>>(null);
+  const paneListRef = useRef<FlatList<FullPlayerPaneRow>>(null);
 
   const [viewportHeight, setViewportHeight] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
@@ -252,7 +240,6 @@ export function FullPlayerScreen({
   const [openSheet, setOpenSheet] = useState<FullPlayerSheet>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isMarkedPlayed, setIsMarkedPlayed] = useState(false);
-  const [isCondensed, setIsCondensed] = useState(false);
   const [manualUpcomingCount, setManualUpcomingCount] = useState(0);
   const [actionNoticeKey, setActionNoticeKey] = useState<string | null>(null);
   const [isSavingSubscription, setIsSavingSubscription] = useState(false);
@@ -381,12 +368,7 @@ export function FullPlayerScreen({
     }
     return [];
   }, [activeTab, chapterRows, clipRows, isTabLoading, soundbiteRows]);
-  const sections = useMemo<FullPlayerSection[]>(() => {
-    if (!hasSections || !isPrefsHydrated || supportedTabs.length === 0) {
-      return EMPTY_SECTIONS;
-    }
-    return [{ data: listRows, key: activeTab }];
-  }, [activeTab, hasSections, isPrefsHydrated, listRows, supportedTabs.length]);
+  const paneRows = !hasSections || !isPrefsHydrated || supportedTabs.length === 0 ? EMPTY_PANE_ROWS : listRows;
 
   const layout = useMemo(
     () =>
@@ -415,11 +397,6 @@ export function FullPlayerScreen({
     ]
   );
   const artworkSizeCap = isTablet ? FULL_PLAYER_ARTWORK_MAX_TABLET : FULL_PLAYER_ARTWORK_MAX_PHONE;
-  const minPaneContentHeight = resolveMinPaneContentHeight({
-    hasSections,
-    playerRegionHeight: layout.playerRegionHeight,
-    viewportHeight,
-  });
 
   const styles = useMemo(
     () =>
@@ -431,6 +408,7 @@ export function FullPlayerScreen({
         chapterRow: {
           borderBottomColor: themeStyles.border.borderColor,
           borderBottomWidth: StyleSheet.hairlineWidth,
+          paddingHorizontal: tokens.spacing.lg,
           paddingVertical: tokens.spacing.base,
         },
         chapterRowLast: {
@@ -444,13 +422,6 @@ export function FullPlayerScreen({
           color: themeStyles.textPrimary.color,
           fontSize: 16,
           fontWeight: '600',
-        },
-        bottomSafeFill: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          bottom: 0,
-          left: 0,
-          position: 'absolute',
-          right: 0,
         },
         chipHeader: {
           backgroundColor: themeStyles.screen.backgroundColor,
@@ -467,34 +438,21 @@ export function FullPlayerScreen({
           maxWidth: contentMaxWidth,
           width: '100%',
         },
-        condensedArtwork: {
-          borderRadius: tokens.radii.sm,
-          height: 28,
-          overflow: 'hidden',
-          width: 28,
-        },
-        condensedBar: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: tokens.spacing.sm,
-          marginBottom: tokens.spacing.sm,
-        },
-        condensedTitle: {
-          color: themeStyles.textPrimary.color,
-          flex: 1,
-          fontSize: 14,
-          minWidth: 0,
-        },
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
+        },
+        headerSafeSpacer: {
+          height: insets.bottom,
         },
         list: {
           flex: 1,
         },
         listContent: {
-          minHeight: minPaneContentHeight,
           paddingBottom: Math.max(tokens.spacing['2xl'], insets.bottom + tokens.spacing.xl),
+        },
+        listHeader: {
+          backgroundColor: themeStyles.screen.backgroundColor,
         },
         loadMore: {
           marginTop: tokens.spacing.md,
@@ -519,9 +477,12 @@ export function FullPlayerScreen({
           lineHeight: 24,
         },
         playerRegion: {
+          backgroundColor: themeStyles.screen.backgroundColor,
           // A viewport too short for the fixed bands clips them here rather than letting them paint
           // over the chip strip below.
           overflow: 'hidden',
+        },
+        playerRegionFull: {
           paddingBottom: FULL_PLAYER_REGION_BOTTOM_PADDING,
           paddingHorizontal: tokens.spacing.lg,
           paddingTop: FULL_PLAYER_REGION_TOP_PADDING,
@@ -534,6 +495,12 @@ export function FullPlayerScreen({
         playerRegionControlStack: {
           gap: FULL_PLAYER_CONTROL_STACK_GAP,
           marginTop: FULL_PLAYER_CONTROL_STACK_GAP,
+          width: '100%',
+        },
+        playerRegionArtworkPassThrough: {
+          flexGrow: 1,
+          flexShrink: 1,
+          minHeight: 0,
           width: '100%',
         },
         playerRegionUpperBands: {
@@ -570,7 +537,7 @@ export function FullPlayerScreen({
           flex: 1,
         },
       }),
-    [contentMaxWidth, insets.bottom, minPaneContentHeight, themeStyles, tokens]
+    [contentMaxWidth, insets.bottom, themeStyles, tokens]
   );
 
   // Expand re-parents the single native surface to the `full` target; collapse (unmount) animates it
@@ -600,10 +567,6 @@ export function FullPlayerScreen({
   }, [onClose]);
 
   useEffect(() => {
-    setIsCondensed(false);
-  }, [activeTarget, hasSections]);
-
-  useEffect(() => {
     setIsMarkedPlayed(false);
   }, [activeTarget]);
 
@@ -612,7 +575,7 @@ export function FullPlayerScreen({
   }, [currentItemIdText]);
 
   useEffect(() => {
-    scrollSectionListToTop(sectionListRef.current);
+    scrollPaneListToTop(paneListRef.current);
   }, [currentItemIdText]);
 
   useEffect(() => {
@@ -690,20 +653,6 @@ export function FullPlayerScreen({
     const { height } = event.nativeEvent.layout;
     setChipStripHeight((current) => (Math.abs(current - height) < 1 ? current : height));
   }, []);
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (!hasSections) {
-      return;
-    }
-    const nextOffset = event.nativeEvent.contentOffset.y;
-    setIsCondensed((current) =>
-      resolveCondensedState({
-        isCondensed: current,
-        playerRegionHeight: layout.playerRegionHeight,
-        scrollOffset: nextOffset,
-      })
-    );
-  };
 
   const handlePlay = () => {
     void resume();
@@ -1047,34 +996,10 @@ export function FullPlayerScreen({
     transcriptText,
   ]);
 
-  const renderSectionHeader = useCallback(() => {
-    if (!hasSections || !isPrefsHydrated) {
-      return null;
-    }
-    return (
+  const chipStrip =
+    hasSections && isPrefsHydrated ? (
       <View style={styles.chipHeader} testID="full-player-section-header">
         <View style={styles.column}>
-          {isCondensed && nowPlaying !== null ? (
-            <View style={styles.condensedBar} testID="full-player-condensed-bar">
-              <CoverImage
-                accessibilityLabel={t('media_player.media_player_image')}
-                opensViewer={false}
-                style={styles.condensedArtwork}
-                uri={nowPlaying.imageUrl}
-              />
-              <MarqueeText style={styles.condensedTitle} testID="full-player-condensed-title">
-                {nowPlaying.title}
-              </MarqueeText>
-              <PlayerTransportButton
-                appearance="bare"
-                onPause={handlePause}
-                onPlay={handlePlay}
-                onRetry={handleRetry}
-                state={transportState}
-                testID="full-player-condensed-play-pause"
-              />
-            </View>
-          ) : null}
           <View onLayout={handleChipStripLayout} style={styles.chipRowSlot}>
             <SectionChipRow
               items={sectionChips}
@@ -1096,40 +1021,16 @@ export function FullPlayerScreen({
           </View>
         </View>
       </View>
-    );
-  }, [
-    activeTab,
-    clipSort,
-    clipSortOptions,
-    handleChipStripLayout,
-    handlePause,
-    handlePlay,
-    handleRetry,
-    hasSections,
-    isCondensed,
-    isPrefsHydrated,
-    nowPlaying,
-    sectionChips,
-    selectClipSort,
-    selectTab,
-    styles.chipHeader,
-    styles.chipRowSlot,
-    styles.column,
-    styles.condensedArtwork,
-    styles.condensedBar,
-    styles.condensedTitle,
-    t,
-    transportState,
-  ]);
+    ) : null;
 
-  const listHeader = (
+  const playerRegion = isPlaybackActive ? (
     <View
       style={[styles.playerRegion, { height: layout.playerRegionHeight }]}
       testID="full-player-region"
     >
-      <View style={[styles.column, styles.playerRegionContent]}>
+      <View style={[styles.column, styles.playerRegionContent, styles.playerRegionFull]}>
         <View style={styles.playerRegionUpperBands}>
-          <View style={styles.titleBlock}>
+          <View pointerEvents="none" style={styles.titleBlock}>
             <MarqueeText align="center" style={styles.title} testID="full-player-title">
               {nowPlaying?.title ?? t('media_player.fullscreen_media_player')}
             </MarqueeText>
@@ -1140,19 +1041,25 @@ export function FullPlayerScreen({
             ) : null}
           </View>
 
-          <FullPlayerArtwork
-            accessibilityLabel={t('media_player.media_player_image')}
-            artworkSize={layout.artworkSize}
-            artworkSizeCap={artworkSizeCap}
-            chapters={chapters}
-          />
+          <View pointerEvents="none" style={styles.playerRegionArtworkPassThrough}>
+            <FullPlayerArtwork
+              accessibilityLabel={t('media_player.media_player_image')}
+              artworkSize={layout.artworkSize}
+              artworkSizeCap={artworkSizeCap}
+              chapters={chapters}
+            />
+          </View>
 
-          <FullPlayerSegmentBand chapters={chapters} />
+          <View pointerEvents="none">
+            <FullPlayerSegmentBand chapters={chapters} />
+          </View>
 
-          <FullPlayerScrubber chapters={chapters} />
+          <View pointerEvents="auto">
+            <FullPlayerScrubber chapters={chapters} />
+          </View>
         </View>
 
-        <View style={styles.playerRegionControlStack}>
+        <View pointerEvents="auto" style={styles.playerRegionControlStack}>
           <FullPlayerTransportRow
             hasEpisodeChaptersForTrackButtons={episodeHasChaptersForTrackButtons}
             hasNextQueueItem={canSkipToNext}
@@ -1200,7 +1107,16 @@ export function FullPlayerScreen({
         </View>
       </View>
     </View>
-  );
+  ) : null;
+
+  const listHeader =
+    playerRegion !== null || chipStrip !== null ? (
+      <View style={styles.listHeader}>
+        {playerRegion}
+        {chipStrip}
+        {hasSections ? <View style={styles.headerSafeSpacer} /> : null}
+      </View>
+    ) : null;
 
   return (
     <View style={styles.container} testID="full-player-screen">
@@ -1226,15 +1142,18 @@ export function FullPlayerScreen({
       />
 
       <View onLayout={handleViewportLayout} style={styles.viewport}>
-        <SectionList
-          ListHeaderComponent={isPlaybackActive ? listHeader : null}
+        <FlatList
+          ListFooterComponent={renderPaneFooter}
+          ListHeaderComponent={listHeader}
           alwaysBounceVertical={false}
           bounces={false}
           contentContainerStyle={styles.listContent}
+          data={paneRows}
+          extraData={`${activeTab}-${isTabLoading}`}
           keyExtractor={(row) => row.id}
-          onScroll={handleScroll}
           overScrollMode="never"
-          ref={sectionListRef}
+          ref={paneListRef}
+          removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
           renderItem={({ item: row, index }) => {
             if (row.type === 'chapter') {
               return (
@@ -1314,18 +1233,10 @@ export function FullPlayerScreen({
               </View>
             );
           }}
-          renderSectionFooter={renderPaneFooter}
-          renderSectionHeader={renderSectionHeader}
-          scrollEventThrottle={16}
           scrollEnabled={hasSections && isPrefsHydrated}
-          sections={sections}
-          stickySectionHeadersEnabled={hasSections && isPrefsHydrated}
           style={styles.list}
           testID="full-player-section-list"
         />
-        {hasSections ? (
-          <View pointerEvents="none" style={[styles.bottomSafeFill, { height: insets.bottom }]} />
-        ) : null}
       </View>
 
       <FullPlayerSleepTimer onCancel={handleCloseSheet} visible={openSheet === 'sleep'} />

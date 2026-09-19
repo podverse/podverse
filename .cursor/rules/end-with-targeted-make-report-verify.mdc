@@ -20,7 +20,7 @@ open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ```
 
    (Omit `-- <area>` only when the default `hello-world` smoke is the right scope. Label the verify
-   block as **Mobile Maestro**. Remind that **Mobile Metro** + **Mobile iOS** / **Mobile Android**
+   block as **Mobile Maestro**. Remind that **Mobile E2E Metro** + **Mobile E2E iOS** / **Mobile E2E Android**
    (and **Mobile E2E API** for API-backed) must already be up — see
    [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) and **vscode-terminals-commands**. Do **not**
    paste leave-running `mobile:dev` / `mobile:dev:e2e` / `mobile:e2e:api` into this block.)
@@ -37,6 +37,6 @@ Preferred commands:
 - Full web regression: `make e2e_test_report`
 - API only: `npm run test:e2e:api`
 
-**Final COPY-PASTA prompt:** When completing the last step in a plan set (`COPY-PASTA.md` / `00-EXECUTION-ORDER.md`), assume the operator ran all prompts without running tests until the end. List **all** cumulative verification commands for the whole set (dedupe; order: build/lint → unit → API → E2E web/mobile). Use **one** fenced `bash` block for one-shot commands only; for mobile leave-running Metro/API, name **Mobile Metro** / **Mobile E2E API** in prose (HOW-TO-RUN + **vscode-terminals-commands**) — do not force a single-shell paste of blockers. See **response-ending-make-verify**, **mobile-e2e-screenshots**, and **plan-completion** skills.
+**Final COPY-PASTA prompt:** When completing the last step in a plan set (`COPY-PASTA.md` / `00-EXECUTION-ORDER.md`), assume the operator ran all prompts without running tests until the end. List **all** cumulative verification commands for the whole set (dedupe; order: build/lint → unit → API → E2E web/mobile). Use **one** fenced `bash` block for one-shot commands only; for mobile leave-running Metro/API, name **Mobile E2E Metro** / **Mobile E2E API** in prose (HOW-TO-RUN + **vscode-terminals-commands**) — do not force a single-shell paste of blockers. See **response-ending-make-verify**, **mobile-e2e-screenshots**, and **plan-completion** skills.
 
 Extended reference: **response-ending-make-verify**, **ui-e2e-screenshot-report**, **mobile-e2e-screenshots**, and **plan-completion** skills.

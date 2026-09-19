@@ -107,7 +107,38 @@ if another host service sits in that range — see [Blocked runs](#blocked-runs-
 
 Start these and leave them up. Do not continue until each tab is listening.
 
-**Mobile Metro** (leave running — must be the E2E variant, not `mobile:dev`):
+### Cold start (nothing running)
+
+No **Dev**, **Mobile Metro**, or **Workers** required. First-time native
+(`mobile:install` / `mobile:prebuild`) is [section 2](#2-first-time-native-once-per-machine).
+
+**Mobile** (one-shot):
+
+```bash
+make mobile_e2e_deps
+bash scripts/mobile/ensure-devices.sh e2e
+```
+
+Then this section’s three leave-running tabs, [section 5](#5-confirm-health-then-install-the-app)
+health + **Mobile E2E iOS** / **Mobile E2E Android**, then **Mobile Maestro**. Example
+playback flow: `npm run mobile:e2e:test -- --platform ios player-screen`.
+
+### Pause local for Maestro
+
+Do **not** reuse **Dev**’s `dev:test-assets`. It binds `localhost` (often IPv6-only).
+Mobile E2E needs **Mobile E2E test-assets** (`BIND_ADDRESS=0.0.0.0` on `:2111`).
+That wrapper will not start if **Dev** already owns the port.
+
+- **Stop:** **Dev** (`dev:all:watch`) and **Mobile Metro**. Leave **Workers**.
+- **Start:** **Mobile E2E Metro** (`mobile:dev:e2e`), **Mobile E2E API**,
+  **Mobile E2E test-assets**. Then health + **Mobile E2E iOS**. Do not reload
+  `"iPhone 17 Pro"`. Use `"iPhone 17 Pro E2E"`.
+- **Resume:** stop the three E2E leave-running tabs. Restart **Dev** and **Mobile Metro**.
+  Reload `"iPhone 17 Pro"`.
+
+UI-only areas (`hello-world`, …) can stay on **Mobile Metro** and skip API / test-assets.
+
+**Mobile E2E Metro** (leave running — not `mobile:dev` in **Mobile Metro**):
 
 ```bash
 npm run mobile:dev:e2e
@@ -115,7 +146,7 @@ npm run mobile:dev:e2e
 
 That injects iOS `http://localhost:4230/api/v2` and Android `http://10.0.2.2:4230/api/v2`,
 plus `EXPO_PUBLIC_MOBILE_E2E=1` and `EXPO_PUBLIC_MOBILE_V4V_ENABLED=1`. After changing
-those flags, reload or reinstall the app so Metro rebundles.
+those flags, reload or reinstall the E2E app so Metro rebundles.
 
 **Mobile E2E API** (leave running):
 
@@ -136,9 +167,9 @@ flow):
 npm run mobile:e2e:test-assets
 ```
 
-Serves the same `tools/test-assets` fixtures as web Playwright on port **2111**. Enclosure
-URLs in the seed point at `http://localhost:2111/e2e/audio/...`. On Android E2E the app
-rewrites that host to `10.0.2.2`. Stop with `npm run mobile:e2e:test-assets:stop`.
+Same `podverse-test-assets` fixtures as web, but this wrapper binds `0.0.0.0` so iOS
+`127.0.0.1` and Android `10.0.2.2` can play. Do not reuse **Dev**’s `:2111`. Stop with
+`npm run mobile:e2e:test-assets:stop`.
 
 ## 5. Confirm health, then install the app
 
@@ -152,13 +183,13 @@ npm run mobile:e2e:test-assets:health
 Do not install or run Maestro until both health commands succeed. The API health payload
 must show `fixturesEnabled: true`.
 
-**Mobile iOS** (wait until it finishes):
+**Mobile E2E iOS** (wait until it finishes):
 
 ```bash
 npm run mobile:e2e:ios
 ```
 
-**Mobile Android** (wait until it finishes):
+**Mobile E2E Android** (wait until it finishes):
 
 ```bash
 npm run mobile:e2e:android
@@ -340,8 +371,9 @@ a new flow needs the E2E API when run alone, add its basename to `flow_needs_e2e
 
 ### UI-only areas
 
-**Mobile Metro** may be `npm run mobile:dev` (no `:4230`). API and test-assets are
-optional. Still install with `mobile:e2e:ios` / `mobile:e2e:android`.
+**Mobile Metro** may stay on `npm run mobile:dev` (no `:4230`) for these UI-only
+areas. API and test-assets are optional. Still install from **Mobile E2E iOS** /
+**Mobile E2E Android**. API-backed areas need **Mobile E2E Metro** instead.
 
 ```bash
 npm run mobile:e2e:test -- hello-world
@@ -468,7 +500,7 @@ Verifies multi-column Home and podcast split detail on tablet viewports. **Not**
 Leave-running stack is the same as [sections 4–5](#4-leave-running-services) (Metro E2E,
 API, test-assets, health). Then install tablet slots and run the flow.
 
-**Mobile iOS** / **Mobile Android** (exit when done):
+**Mobile E2E iOS** / **Mobile E2E Android** (exit when done):
 
 ```bash
 npm run mobile:e2e:ios:tablet
@@ -493,18 +525,18 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 
 | Message / symptom                                                                          | Fix                                                                                                                                                                                                                                                      |
 | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Metro not listening on 8081                                                                | **Mobile Metro**: `npm run mobile:dev` (UI-only) or `npm run mobile:dev:e2e` (API-backed / full suite)                                                                                                                                                   |
-| App not installed on E2E iOS                                                               | **Mobile iOS**: `npm run mobile:e2e:ios`                                                                                                                                                                                                                 |
-| App not installed on E2E Android                                                           | **Mobile Android**: `npm run mobile:e2e:android`                                                                                                                                                                                                         |
-| App not installed on E2E iOS / Android tablet                                              | **Mobile iOS** / **Mobile Android**: `npm run mobile:e2e:ios:tablet` / `npm run mobile:e2e:android:tablet`                                                                                                                                               |
+| Metro not listening on 8081                                                                | Local: **Mobile Metro** `npm run mobile:dev`. Maestro: **Mobile E2E Metro** `npm run mobile:dev:e2e` (stop the other first)                                                                                                                              |
+| App not installed on E2E iOS                                                               | **Mobile E2E iOS**: `npm run mobile:e2e:ios`                                                                                                                                                                                                              |
+| App not installed on E2E Android                                                           | **Mobile E2E Android**: `npm run mobile:e2e:android`                                                                                                                                                                                                     |
+| App not installed on E2E iOS / Android tablet                                              | **Mobile E2E iOS** / **Mobile E2E Android**: `npm run mobile:e2e:ios:tablet` / `npm run mobile:e2e:android:tablet`                                                                                                                                        |
 | `full-player-title` missing on tablet flow                                                 | Flow sets landscape; ensure tablet device is wide enough (`iPad Pro 13-inch (M4) E2E` / `Pixel_Tablet_API_33_e2e`). Re-run `ensure-devices.sh e2e-tablet`                                                                                                |
 | API-backed flow cannot reach API (`:4230`)                                                 | **Mobile E2E API**: `npm run mobile:e2e:api:bg`; then in **Mobile** `npm run mobile:e2e:api:health`                                                                                                                                                      |
 | Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api:bg` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                       |
 | Runner exits: playback flows need tools/test-assets on :2111                               | **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets`; health: `npm run mobile:e2e:test-assets:health`                                                                                                                                            |
 | Empty search / no `search-result-row-0` / no `rss-feed-row-first`                          | Same stale-API issue, or seed missing — runner auto-seeds; restart API if fixtures flag is false                                                                                                                                                         |
 | `add-by-rss-home-playback-active` never appears after Play                                 | Restart **Mobile E2E test-assets** (`npm run mobile:e2e:test-assets` — binds `0.0.0.0` so IPv4/`10.0.2.2` works). Reload app after JS rewrite changes.                                                                                                   |
-| Network Error / “Could not sign in” / `tab-home` not visible in API-backed or `:all` runs  | Metro is UI-only (`mobile:dev`). **Mobile Metro**: stop it, run `npm run mobile:dev:e2e`, reload/reinstall the app so it targets `:4230`                                                                                                                 |
-| Runner exits: “Metro on :8081 is UI-only”                                                  | Same as above — API-backed / full-suite flows require `mobile:dev:e2e` (guard in `e2e-test.sh`)                                                                                                                                                          |
+| Network Error / “Could not sign in” / `tab-home` not visible in API-backed or `:all` runs  | Metro is UI-only (`mobile:dev` in **Mobile Metro**). Stop it; **Mobile E2E Metro**: `npm run mobile:dev:e2e`; reload/reinstall the E2E app so it targets `:4230`                                                                                         |
+| Runner exits: “Metro on :8081 is UI-only”                                                  | Same as above — API-backed / full-suite flows require **Mobile E2E Metro** (`mobile:dev:e2e`)                                                                                                                                                           |
 | API start says port 4230 already in use                                                    | Free the port or stop managed process: `npm run mobile:e2e:api:stop`                                                                                                                                                                                     |
 | Stuck on Expo “Development Build” launcher                                                 | Flows should run `shared/launch-and-connect.yaml` (retries Dev Client connect)                                                                                                                                                                           |
 | Assertion fails; screenshot shows “developer menu” / Continue                              | Same shared flow dismisses the one-time Expo dev-client menu (see below)                                                                                                                                                                                 |

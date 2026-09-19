@@ -63,7 +63,7 @@ Step **5.20** client URL wiring is in place for E2E dev-server startup:
 
 Steps **5.21–5.23** (test-assets / media) are in place:
 
-- Leave-running: `npm run mobile:e2e:test-assets` (`podverse-test-assets` on **2111**, same as web)
+- Leave-running: `npm run mobile:e2e:test-assets` (`podverse-test-assets` on **2111**, `0.0.0.0`). Do not reuse **Dev**’s `dev:test-assets` (`localhost` bind).
 - Health: `npm run mobile:e2e:test-assets:health` (known fixture GET)
 - Runner `flow_needs_test_assets` fails fast when playback flows run without `:2111`
 - Android E2E rewrites enclosure hosts `localhost:2111` / `127.0.0.1:2111` → `10.0.2.2:2111`
@@ -100,9 +100,9 @@ pasteable shell with Maestro — see [HOW-TO-RUN.md](./HOW-TO-RUN.md).
 ```bash
 # One-shot prep (exits) — Mobile
 make mobile_e2e_deps
-make mobile_e2e_seed
+bash scripts/mobile/ensure-devices.sh e2e
 
-# Leave running — Mobile Metro
+# Leave running — Mobile E2E Metro
 npm run mobile:dev:e2e
 
 # Leave running — Mobile E2E API
@@ -115,12 +115,12 @@ npm run mobile:e2e:test-assets
 npm run mobile:e2e:api:health
 npm run mobile:e2e:test-assets:health
 
-# One-shot installs — Mobile iOS / Mobile Android
+# One-shot installs — Mobile E2E iOS / Mobile E2E Android
 npm run mobile:e2e:ios
 npm run mobile:e2e:android
 
-# Mobile Maestro — after health + installs
-npm run mobile:e2e:test -- add-by-rss
+# Mobile Maestro — after health + installs (runner reseeds)
+npm run mobile:e2e:test -- --platform ios player-screen
 ```
 
 Or background API from the prep shell: `npm run mobile:e2e:api:bg` then

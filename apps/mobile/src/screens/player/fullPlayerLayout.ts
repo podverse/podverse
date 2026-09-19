@@ -21,12 +21,6 @@ export type FullPlayerLayout = {
   viewerHeight: number;
 };
 
-export type CondensedStateInput = {
-  isCondensed: boolean;
-  playerRegionHeight: number;
-  scrollOffset: number;
-};
-
 /**
  * Row under the artwork that names the clip, official clip, or chapter. Always reserved, whether or
  * not there is a name to show, so a chapter arriving cannot move the artwork or the transport.
@@ -78,19 +72,10 @@ export const FULL_PLAYER_ARTWORK_MAX_PHONE = 420;
 export const FULL_PLAYER_ARTWORK_MAX_TABLET = 520;
 
 /**
- * Chip strip at default text size. A floor for the rendered header and the fallback reserve until
+ * Chip strip at default text size. A floor for the rendered strip and the fallback reserve until
  * the strip reports its measured height.
  */
 export const FULL_PLAYER_CHIP_HEADER_HEIGHT = 52;
-
-export const FULL_PLAYER_CONDENSE_ENTER_RATIO = 1;
-export const FULL_PLAYER_CONDENSE_EXIT_RATIO = 0.9;
-
-/**
- * Scroll left past the condense threshold once the pane is scrolled to its end, so reaching the
- * condensed bar never depends on landing on the exact final pixel.
- */
-export const FULL_PLAYER_CONDENSE_OVERSHOOT = 24;
 
 const asNonNegative = (value: number): number => {
   if (!Number.isFinite(value)) {
@@ -161,47 +146,4 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
     playerRegionHeight,
     viewerHeight,
   };
-};
-
-/**
- * Shortest the pane list's content may be for the region to still condense.
- *
- * Condensing is driven by scroll offset, and the region fills the viewport, so a pane shorter than
- * the region has nothing to scroll and the condensed bar is unreachable. Applied as a `minHeight` on
- * the list's content container, this guarantees the affordance without padding a pane that is
- * already long enough: the player's transport stays where the listener left it from one episode to
- * the next instead of moving with the length of the description.
- */
-export const resolveMinPaneContentHeight = (input: {
-  hasSections: boolean;
-  playerRegionHeight: number;
-  viewportHeight: number;
-}): number => {
-  const viewportHeight = asNonNegative(input.viewportHeight);
-  const playerRegionHeight = asNonNegative(input.playerRegionHeight);
-  if (!input.hasSections || viewportHeight <= 0 || playerRegionHeight <= 0) {
-    return 0;
-  }
-  const requiredOffset =
-    playerRegionHeight * FULL_PLAYER_CONDENSE_ENTER_RATIO + FULL_PLAYER_CONDENSE_OVERSHOOT;
-  return viewportHeight + requiredOffset;
-};
-
-export const resolveCondensedState = (input: CondensedStateInput): boolean => {
-  const playerRegionHeight = asNonNegative(input.playerRegionHeight);
-  if (playerRegionHeight <= 0) {
-    return false;
-  }
-
-  const offset = asNonNegative(input.scrollOffset);
-  const enterThreshold = playerRegionHeight * FULL_PLAYER_CONDENSE_ENTER_RATIO;
-  const exitThreshold = playerRegionHeight * FULL_PLAYER_CONDENSE_EXIT_RATIO;
-
-  if (!input.isCondensed && offset >= enterThreshold) {
-    return true;
-  }
-  if (input.isCondensed && offset <= exitThreshold) {
-    return false;
-  }
-  return input.isCondensed;
 };

@@ -147,7 +147,7 @@ platform change, not our JS:
   `mobile:prebuild` stays correct. Regression guard: CARPLAY-SIMULATOR-CHECKLIST §0.
 - **Operator action:** this is a **native** change — rebuild the iOS app
   (`npm run mobile:e2e:ios`), not just a Metro reload. Confirm the phone reaches the JS UI and
-  **Mobile Metro** logs an `iOS Bundled … index.js` line before starting the suite.
+  **Mobile E2E Metro** logs an `iOS Bundled … index.js` line before starting the suite.
 - **Refs:** RN `SceneDelegate` migration (facebook/react-native#53744, #53602), Expo prebuild
   UIScene-required (expo/expo#46664), Apple TN3187.
 

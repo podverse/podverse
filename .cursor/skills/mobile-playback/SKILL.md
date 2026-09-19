@@ -171,16 +171,19 @@ player already own buffering and failure, and repeating that on every row is red
 
 ## Full player fixed region + panes
 
-`FullPlayerScreen` is a `SectionList` scroll shell with a fixed-height player region, sticky chips
-(no hairlines, chips vertically centered in that band),
-and a condensed now-playing bar that appears once the region scrolls away.
+`FullPlayerScreen` is one scrolling column. The player region and chips live in the pane
+`FlatList` header; chapter / clip / official-clip rows are `data`; summary and transcript sit in
+the footer. Nothing is sticky or overlay-pinned, and the player does not shrink as the list
+scrolls. Chips have no hairlines and stay vertically centered in their band. A chip tap swaps the
+pane only; it does not scroll.
 `FULL_PLAYER_REGION_BOTTOM_PADDING` separates the utility row from those chips. First paint peeks
-the measured chip strip plus the bottom safe-area inset (covered by a bottom fill, not header
-padding) — Summary copy and list rows require a scroll. The artwork is the band that gives way, so
-short viewports and large OS text sizes shrink the square instead of moving the chips.
+the measured chip strip at the fold (`resolveFullPlayerLayout` reserves the strip plus the bottom
+safe-area inset; the header includes a matching spacer) — Summary copy and list rows require a
+scroll. The artwork is the band that gives way, so short viewports and large OS text sizes shrink
+the square instead of moving the chips.
 
-- Use `resolveFullPlayerLayout` / `resolveCondensedState` in
-  `apps/mobile/src/screens/player/fullPlayerLayout.ts` for all region math.
+- Use `resolveFullPlayerLayout` in `apps/mobile/src/screens/player/fullPlayerLayout.ts` for all
+  region math.
 - Keep transport controls on shared constants from `@podverse/helpers`
   (`MEDIA_JUMP_BACK_SECONDS` = 10, `MEDIA_JUMP_FORWARD_SECONDS` = 30).
 - Previous/next match web: tap is chapter-aware for whole-item playback (`skipToPrevious` /
@@ -267,7 +270,7 @@ touch target because it is the one a listener reaches for without looking.
   item, and next skips the queue.
 - **Rate is plain text.** Playback speed is a `ghost` label with no fill or border, so it does not
   read as a second primary action beside the play circle.
-- **Chips share the screen background.** The sticky header is opaque in the screen's own background
+- **Chips share the screen background.** The chip strip is opaque in the screen's own background
   color, never a tinted band, and a selected chip is the label for the pane below it — panes do not
   repeat it as a heading.
 - **Flush slide-up.** Root slide-up screens (`FullPlayer`, `V4vInfo`) import
@@ -276,9 +279,9 @@ touch target because it is the one a listener reaches for without looking.
   the same number the mini↔full video surface reparent uses. Do not use `presentation: 'modal'`
   (iOS page sheet) and do not invent a second duration. Set `fullScreenGestureEnabled: false` so
   pull-to-dismiss starts only from the top edge — a full-screen swipe fights the player's scroll.
-- **No list bounce.** The full player's `SectionList` keeps `bounces` / `alwaysBounceVertical` off
+- **No list bounce.** The full player's `FlatList` keeps `bounces` / `alwaysBounceVertical` off
   and `overScrollMode="never"`. There is no pull-to-refresh on that screen, so rubber-banding at
-  the top must not steal the dismiss gesture or pull pane content away from the chips.
+  the top must not steal the dismiss gesture.
 
 ## Bottom chrome stack (phone and tablet)
 
