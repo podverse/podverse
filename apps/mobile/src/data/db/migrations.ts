@@ -247,6 +247,52 @@ export const MIGRATIONS: Migration[] = [
         ON playback_local_state (account_id_text, queue_id_text);`,
     ],
   },
+  {
+    version: 17,
+    statements: [
+      // Offline-first playlist metadata used by My playlists / followed playlists lists.
+      `CREATE TABLE IF NOT EXISTS playlist (
+        id_text TEXT PRIMARY KEY NOT NULL,
+        id INTEGER NOT NULL,
+        title TEXT,
+        description TEXT,
+        medium_id INTEGER NOT NULL,
+        sharable_status_id INTEGER NOT NULL,
+        is_default_likes INTEGER NOT NULL,
+        item_count INTEGER NOT NULL,
+        last_updated TEXT NOT NULL,
+        owner_account_id_text TEXT,
+        is_owned INTEGER NOT NULL DEFAULT 0,
+        is_followed INTEGER NOT NULL DEFAULT 0,
+        payload_json TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_playlist_owned_last_updated
+        ON playlist (is_owned, last_updated DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_playlist_followed_last_updated
+        ON playlist (is_followed, last_updated DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_playlist_medium
+        ON playlist (medium_id);`,
+      // Playlist resources are keyed by server resource id and grouped by playlist id_text for
+      // list-order reads.
+      `CREATE TABLE IF NOT EXISTS playlist_resource (
+        id INTEGER PRIMARY KEY NOT NULL,
+        playlist_id INTEGER NOT NULL,
+        playlist_id_text TEXT NOT NULL,
+        list_position TEXT NOT NULL,
+        clip_id INTEGER,
+        item_id INTEGER,
+        item_soundbite_id INTEGER,
+        add_by_rss_hash_id TEXT,
+        payload_json TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_playlist_resource_playlist_position
+        ON playlist_resource (playlist_id_text, list_position);`,
+      `CREATE INDEX IF NOT EXISTS idx_playlist_resource_playlist_updated
+        ON playlist_resource (playlist_id_text, updated_at DESC);`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

@@ -1,4 +1,3 @@
-import NetInfo from '@react-native-community/netinfo';
 import type { PropsWithChildren } from 'react';
 import {
   createContext,
@@ -14,6 +13,11 @@ import { AppState } from 'react-native';
 import { useAuth } from '../auth/AuthProvider';
 import { useQueues } from '../contexts/QueuesProvider';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
+import {
+  getConnectivity,
+  reportUserNetworkAction,
+  subscribeConnectivity,
+} from '../net/connectivity';
 import {
   hydrateOfflineMode,
   isSyncNetworkUsable,
@@ -41,6 +45,21 @@ type SyncContextValue = {
 };
 
 const SyncContext = createContext<SyncContextValue | undefined>(undefined);
+
+/**
+ * Triggers that mean somebody turned up expecting fresh data.
+ *
+ * These probe the network immediately instead of waiting out a backoff step, so a user who pulls
+ * to refresh during an outage gets an answer at the speed they asked for it.
+ * `connectivity-restored` is excluded because it originates in the connectivity machine; reporting
+ * it back would be a loop.
+ */
+const NETWORK_INTENT_TRIGGERS = new Set<SyncTrigger>([
+  'app-foreground',
+  'app-start',
+  'pull-to-refresh',
+  'sign-in',
+]);
 
 export function SyncProvider({ children }: PropsWithChildren) {
   const { accessToken, clearSession, refreshToken, setAccount, setTokens, status } = useAuth();
@@ -85,6 +104,10 @@ export function SyncProvider({ children }: PropsWithChildren) {
     });
     if (planned.length === 0) {
       return;
+    }
+
+    if (NETWORK_INTENT_TRIGGERS.has(trigger)) {
+      reportUserNetworkAction();
     }
 
     syncQueue.enqueue(
@@ -148,13 +171,19 @@ export function SyncProvider({ children }: PropsWithChildren) {
     };
   }, [requestSync]);
 
+  /**
+   * The queue runs when the network is usable and the user has not asked us to stay put.
+   *
+   * Reachability is the derived connectivity state rather than a raw platform reading, so the
+   * queue parks on a server outage as readily as on a dead radio, and restores only once something
+   * has actually succeeded.
+   */
   useEffect(() => {
-    let netReachable = true;
+    let connectivity = getConnectivity();
     let offlineModeEnabled = false;
-    let hasNetInfo = false;
 
     const applyReachability = (allowRestore: boolean): void => {
-      const usable = isSyncNetworkUsable(netReachable, offlineModeEnabled);
+      const usable = isSyncNetworkUsable(connectivity === 'online', offlineModeEnabled);
       syncQueue.setNetworkReachable(usable);
       if (usable && allowRestore) {
         requestSync('connectivity-restored');
@@ -163,8 +192,7 @@ export function SyncProvider({ children }: PropsWithChildren) {
 
     void hydrateOfflineMode().then((enabled) => {
       offlineModeEnabled = enabled;
-      // Park immediately if Offline Mode was left on from a previous session. Do not restore
-      // until NetInfo confirms the platform is reachable.
+      // Park immediately if Offline Mode was left on from a previous session.
       if (enabled) {
         syncQueue.setNetworkReachable(false);
       }
@@ -177,23 +205,20 @@ export function SyncProvider({ children }: PropsWithChildren) {
         syncQueue.setNetworkReachable(false);
         return;
       }
-      // Turning Offline Mode off resumes only when the platform is also reachable.
-      if (wasEnabled && hasNetInfo) {
+      // Turning Offline Mode off resumes only when the network is also usable.
+      if (wasEnabled) {
         applyReachability(true);
       }
     });
 
-    const unsubscribeNet = NetInfo.addEventListener((netState) => {
-      hasNetInfo = true;
-      // `isInternetReachable` is null until the first probe resolves; treat that as connected so a
-      // slow probe cannot hold the queue back on a working network.
-      netReachable = netState.isConnected === true && netState.isInternetReachable !== false;
+    const unsubscribeConnectivity = subscribeConnectivity((next) => {
+      connectivity = next;
       applyReachability(true);
     });
 
     return () => {
       unsubscribeOffline();
-      unsubscribeNet();
+      unsubscribeConnectivity();
     };
   }, [requestSync]);
 

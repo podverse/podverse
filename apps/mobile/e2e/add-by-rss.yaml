@@ -55,12 +55,8 @@ name: Add By RSS Flow
 - takeScreenshot: add-by-rss-home-detail
 
 # Real media: enclosure localhost:2111 → 127.0.0.1 (iOS) / 10.0.2.2 (Android) in E2E.
-# Playback lives on the Home detail, not the Library manage list.
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - hideKeyboard
+# Playback lives on the Home detail, not the Library manage list. Do not hideKeyboard
+# here — with the keyboard already gone, Android treats that as Back and pops this screen.
 - tapOn:
     id: add-by-rss-home-play-first
 - extendedWaitUntil:

@@ -10,6 +10,7 @@ import {
   startTestApp,
   stopTestApp,
   TEST_USER_ACCOUNT_ID_TEXT,
+  withMutedExpectedErrorLogs,
 } from './helpers/index.js';
 
 const TEST_EMAIL = 'clip-test@example.com';
@@ -194,6 +195,26 @@ describe('clip routes', () => {
 
       expect(res.status).toBe(400);
     });
+
+    it('returns 403 with expired membership', async () => {
+      clipCreateMock.mockClear();
+      getAccountMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() - 86400000),
+        },
+      });
+
+      const res = await withMutedExpectedErrorLogs(async () =>
+        request(app).post(`${clipBase}/`).set(authHeaders(TEST_USER_ID)).send(validClipBody)
+      );
+
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe('membership_expired');
+      expect(clipCreateMock).not.toHaveBeenCalled();
+    });
   });
 
   // ─── PATCH /:clip_id_text (update) ──────────────────────────────────
@@ -261,6 +282,31 @@ describe('clip routes', () => {
 
       expect(res.status).toBe(401);
     });
+
+    it('returns 403 with expired membership', async () => {
+      clipUpdateMock.mockClear();
+      getAccountMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() - 86400000),
+        },
+      });
+
+      const res = await withMutedExpectedErrorLogs(async () =>
+        request(app)
+          .patch(`${clipBase}/${CLIP_ID_TEXT}`)
+          .set(authHeaders(TEST_USER_ID))
+          .send({
+            ...validClipBody,
+          })
+      );
+
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe('membership_expired');
+      expect(clipUpdateMock).not.toHaveBeenCalled();
+    });
   });
 
   // ─── DELETE /:clip_id_text ──────────────────────────────────────────
@@ -273,6 +319,30 @@ describe('clip routes', () => {
         account: { id: TEST_USER_ID },
       });
       clipDeleteMock.mockResolvedValueOnce({});
+
+      const res = await request(app)
+        .delete(`${clipBase}/${CLIP_ID_TEXT}`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(204);
+      expect(clipDeleteMock).toHaveBeenCalledWith(TEST_USER_ID, CLIP_ID_TEXT);
+    });
+
+    it('returns 204 for an expired member deleting an owned clip', async () => {
+      getAccountMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() - 86400000),
+        },
+        sharable_status: { id: 1 },
+      });
+      clipGetByIdTextMock.mockResolvedValueOnce({
+        id: 1,
+        clip_id_text: CLIP_ID_TEXT,
+        account: { id: TEST_USER_ID },
+      });
 
       const res = await request(app)
         .delete(`${clipBase}/${CLIP_ID_TEXT}`)

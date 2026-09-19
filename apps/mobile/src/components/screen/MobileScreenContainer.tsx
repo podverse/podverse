@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
@@ -40,15 +40,21 @@ export function MobileScreenContainer({
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-      scrollEnabled={scrollEnabled}
+    <View
+      accessible={false}
+      collapsable={false}
       style={{ backgroundColor: themeStyles.screen.backgroundColor, flex: 1 }}
       testID={testID}
     >
-      {heading !== undefined ? <Text style={styles.heading}>{heading}</Text> : null}
-      {children}
-    </ScrollView>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        scrollEnabled={scrollEnabled}
+        style={{ flex: 1 }}
+      >
+        {heading !== undefined ? <Text style={styles.heading}>{heading}</Text> : null}
+        {children}
+      </ScrollView>
+    </View>
   );
 }

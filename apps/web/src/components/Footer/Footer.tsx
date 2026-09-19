@@ -54,6 +54,7 @@ export const Footer: React.FC = () => {
           <Link href={ROUTES.CONTACT}>{tContact('contact')}</Link>
           <Link href={ROUTES.ABOUT}>{tInfo('about')}</Link>
           <Link href={ROUTES.DONATE}>{tMisc('donate')}</Link>
+          <Link href={ROUTES.FAQ}>{tMisc('faq')}</Link>
           <Link href={ROUTES.TERMS}>{tMisc('terms')}</Link>
           <Link href={ROUTES.MEMBERSHIP}>{tMembership('premium')}</Link>
           {/* <Link disabled href={ROUTES.MOBILE_APP}>{tMisc("mobile")}</Link> */}

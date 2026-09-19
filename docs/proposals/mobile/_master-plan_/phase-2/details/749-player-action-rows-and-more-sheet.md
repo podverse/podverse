@@ -10,14 +10,14 @@ The two chrome rows that bracket the player region, and the More sheet they open
 
 ### Top action row (fixed, above the scroller)
 
-| Control         | Behavior                                                                   |
-| --------------- | -------------------------------------------------------------------------- |
-| Dismiss         | Chevron-down; closes the player (keeps `full-player-close`)                |
-| Create clip     | **Placeholder** — pressable; says it is not available yet, changes nothing |
-| Add to playlist | Real — the existing `useAddToPlaylist` sheet                               |
-| Share           | Real — the existing `shareResolvedUrl` / `buildNowPlayingShareUrl`         |
-| Queue           | Real — opens Up next as a sheet                                            |
-| Value for value | Config-gated, as today (keeps `full-player-v4v`)                           |
+| Control         | Behavior                                                                         |
+| --------------- | -------------------------------------------------------------------------------- |
+| Dismiss         | Chevron-down; closes the player (keeps `full-player-close`)                      |
+| Create clip     | **Placeholder** — pressable; says it is not available yet, changes nothing       |
+| Add to playlist | Real — the existing `useAddToPlaylist` sheet                                     |
+| Share           | Real — the existing `shareResolvedUrl` / `buildNowPlayingShareUrl`               |
+| Queue           | Real — navigates to the Library queue screen (same destination as web `/queues`) |
+| Value for value | Config-gated, as today (keeps `full-player-v4v`)                                 |
 
 Clip authoring remains its own later area. The scissors is visible so the affordance is not lost, and
 it behaves like the icons beside it: pressing it shows a short "not available yet" message and changes
@@ -30,15 +30,15 @@ single-acknowledge dialog; extend `ConfirmDialog` if it cannot yet express one a
 
 Three controls: **sleep timer**, **playback speed** (showing the current rate), **More**.
 
-Share, Up next, and V4V move out of this area — they are top-row icons or More-sheet rows now — so
-the row matches the screenshot's moon / `1X` / `•••`.
+Share, queue, and V4V live on the top row, so this row matches the screenshot's moon / `1X` / `•••`.
 
 ### Panels become sheets
 
-Sleep timer, speed, and Up next are inline expanding panels today. Inside a fixed-height player
+Sleep timer and speed are inline expanding panels today. Inside a fixed-height player
 region an inline panel would resize the region and defeat [747](747-player-screen-layout-and-scroll.md),
-so all three move into the existing `MoreMenu` bottom-sheet pattern. This is the change that makes
-the fixed region possible; it is not cosmetic.
+so both move into the existing `MoreMenu` bottom-sheet pattern. This is the change that makes
+the fixed region possible; it is not cosmetic. Queue leaves the player for the Library queue
+screen, matching web's dedicated `/queues` page.
 
 ### More sheet
 
@@ -62,8 +62,8 @@ slider is deferred — [751](751-defer-player-volume-slider.md).
 - Pressing create clip shows a "not available yet" message that a screen reader announces; dismissing
   it leaves playback, queue, and stored state untouched.
 - Utility row shows the sleep-timer glyph, the live playback rate, and More.
-- Sleep timer, speed, and Up next open as sheets; the player region height never changes when they
-  open or close.
+- Sleep timer and speed open as sheets; the player region height never changes when they
+  open or close. Queue navigates to the Library queue screen.
 - More sheet subscribes / unsubscribes and marks played / unplayed against the now-playing item, with
   the same gating and notice copy those actions use elsewhere.
 - Every control has an accessible name; 44pt minimum targets.

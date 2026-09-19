@@ -34,7 +34,6 @@ if the operator flags jank on a specific large feed. Not required for MVP.
 | `PlaylistDetailScreen`          | `FlatList` for browse path (reorder path intentionally mapped)                         | all playlist items     | ✅ compliant for baseline scope                              |
 | `PodcastDetailScreen` episodes  | `FlatList` + `ListHeaderComponent`/`ListFooterComponent` (split-aware right pane list) | accumulates pages      | ✅ compliant                                                 |
 | `SearchScreen`                  | `ScrollView` + `.map()`                                                                | ~1 API page (~60)      | ✅ acceptable (bounded); revisit only if paginated later     |
-| `FullPlayerUpNext`              | `.map()` in player sheet                                                               | queue window           | ✅ acceptable (small, bounded)                               |
 | `LibraryPlaylistsScreen`        | `.map()`                                                                               | user's playlists       | ✅ acceptable (small)                                        |
 | Album / Artist / Episode detail | `.map()`                                                                               | per-entity lists       | ⚠️ low priority; convert if a large-entity jank case appears |
 

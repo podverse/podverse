@@ -10,6 +10,8 @@ import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downl
 import type { DownloadStatus } from '../../downloads/downloadTypes';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
+import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { LIST_ROW_ACTION_ICON_SIZE, LIST_ROW_ACTION_SIZE } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
@@ -50,7 +52,13 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
 export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
-  const { isDownloadable, remove, start, status } = useDownloadAction(item);
+  const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
+  const activeItemId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
+  const explicitSelectedParams =
+    activeItemId === item.id_text ? enclosureSelectedParams : undefined;
+  const { isDownloadable, remove, start, status } = useDownloadAction(item, false, {
+    explicitSelectedParams,
+  });
 
   const styles = useMemo(
     () =>

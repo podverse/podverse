@@ -758,6 +758,28 @@ components:
           example: "2026-09-11"
         markdown:
           type: string
+    ApiGetManagedCopyResponse200:
+      type: object
+      required:
+        - slug
+        - locale
+        - updated_at
+        - markdown
+      properties:
+        slug:
+          type: string
+          enum:
+            - faq
+            - clip-how-to
+          example: faq
+        locale:
+          type: string
+          example: en-US
+        updated_at:
+          type: string
+          example: "2026-09-17"
+        markdown:
+          type: string
     ApiPatchAccountSettingsPlaybackRequest:
       type: object
       required:
@@ -3336,6 +3358,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /managed-copy/{slug}:
+    get:
+      operationId: apiGetManagedCopySlug
+      tags:
+        - legal
+      summary: GET /managed-copy/{slug}
+      description: Public endpoint for managed markdown copy by slug.
+      security: []
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+            enum:
+              - faq
+              - clip-how-to
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetManagedCopyResponse200"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
         "500":
           description: Internal server error
           content:
@@ -7839,7 +7897,7 @@ paths:
       tags:
         - clip
       summary: DELETE /clip/{clip_id_text}
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
+      description: Authenticated endpoint (cookieAuth or bearerAuth). Ownership is required, active membership is not.
       security:
         - bearerAuth: []
         - cookieAuth: []

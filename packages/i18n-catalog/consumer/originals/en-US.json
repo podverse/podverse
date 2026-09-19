@@ -153,6 +153,7 @@
       "delete_clip": "Delete clip",
       "delete_clip_confirm": "Are you sure you want to delete this clip?",
       "my_clips": "My clips",
+      "end_must_be_after_start": "End time must be after start time",
       "clip_created": "Clip created",
       "clip_updated": "Clip updated",
       "link_to_clip": "Link to clip",
@@ -656,6 +657,7 @@
     "unknown_date": "Unknown date",
     "redirecting": "Redirecting...",
     "terms": "Terms",
+    "how_to": "How to",
     "mobile": "Mobile",
     "donate": "Donate",
     "open_source": "Open source",
@@ -725,9 +727,11 @@
     "login_for_subscriptions": "Log in to use this feature.",
     "login_to_create_playlists": "Log in to use this feature.",
     "no_playlists_created": "You do not have any playlists yet. Create one to get started.",
+    "no_followed_playlists": "You are not following any playlists yet.",
     "login_to_create_clips": "Log in to use this feature.",
     "login_for_queues": "Log in to use this feature.",
     "login_for_history": "Log in to use this feature.",
+    "login_for_playlists": "Log in to use this feature.",
     "login_to_add_feeds": "Log in to use this feature.",
     "login_to_refresh_feeds": "Log in to use this feature.",
     "login_to_subscribe": "Log in to use this feature.",
@@ -1367,6 +1371,10 @@
       "terms": {
         "title": "Terms",
         "description": "Read the {brand_name} terms of service."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Read frequently asked questions about {brand_name}."
       },
       "donate": {
         "title": "Donate",

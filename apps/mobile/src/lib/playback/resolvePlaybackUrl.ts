@@ -1,12 +1,16 @@
 import * as FileSystem from 'expo-file-system';
 
 import type { DTOItem } from '@podverse/helpers/dto';
+import type {
+  EnclosureSelectedParams,
+  LabeledItemEnclosure,
+} from '@podverse/helpers/item/itemEnclosure';
 
 import type { DownloadRecord } from '../../downloads';
 import { downloadManager } from '../../downloads/downloadManager';
 import { downloadStore } from '../../downloads/downloadStore';
 import { isOfflineModeEnabled } from '../../prefs/offlineMode';
-import { resolveItemAudioEnclosureUrl } from './resolveEnclosureUrl';
+import { buildItemLabeledEnclosures, resolveItemEnclosureUrl } from './resolveEnclosureUrl';
 
 /**
  * Resolve the URL the media engine should load for an item, preferring a
@@ -26,7 +30,11 @@ import { resolveItemAudioEnclosureUrl } from './resolveEnclosureUrl';
  * neither a local file nor a usable remote source (callers keep their existing
  * `media_player.no_media` notice).
  */
-export async function resolvePlaybackUrl(item: DTOItem): Promise<string | null> {
+export async function resolvePlaybackUrl(
+  item: DTOItem,
+  selectedParams: EnclosureSelectedParams,
+  labeledItemEnclosures?: LabeledItemEnclosure[]
+): Promise<string | null> {
   const localUrl = await resolveLocalDownloadUrl(item.id_text);
   if (localUrl !== null) {
     return localUrl;
@@ -34,7 +42,8 @@ export async function resolvePlaybackUrl(item: DTOItem): Promise<string | null> 
   if (isOfflineModeEnabled()) {
     return null;
   }
-  return resolveItemAudioEnclosureUrl(item);
+  const labeled = labeledItemEnclosures ?? buildItemLabeledEnclosures(item);
+  return resolveItemEnclosureUrl({ labeledItemEnclosures: labeled, selectedParams });
 }
 
 const resolveLocalDownloadUrl = async (itemIdText: string): Promise<string | null> => {

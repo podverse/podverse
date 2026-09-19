@@ -1,0 +1,25 @@
+# Server-managed copy
+
+When deciding where user-facing text belongs, use this test:
+
+- **Would this text need to change when the service behavior changes, without an app release?**
+  - If yes: serve it from the API (`GET /managed-copy/:slug`).
+  - If no: keep it in the i18n catalog.
+
+Most UI copy stays in the catalog. Served copy is for operational content that can change between
+releases.
+
+## Current served documents
+
+- FAQ (`faq`)
+- Make Clip how-to (`clip-how-to`)
+- Popularity-tracking agreement (legacy dedicated endpoint)
+
+## Rules
+
+- Do not add bundled fallback prose for served documents in app code or locale JSON.
+- Always render loading and retry states while fetching served documents.
+- Add new served docs by adding locale markdown files plus allowlisted slug support, not by creating
+  a new endpoint for each document.
+
+Reference: [754-server-managed-copy-endpoint](/docs/proposals/mobile/_master-plan_/phase-2/details/754-server-managed-copy-endpoint.md)

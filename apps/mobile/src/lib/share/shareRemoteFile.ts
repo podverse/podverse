@@ -2,6 +2,7 @@ import * as FileSystem from 'expo-file-system';
 import { Share } from 'react-native';
 
 import { isMobileE2eFromEnv } from '../../config/env';
+import { presentShareSheet } from './shareSheetPassthrough';
 
 const fallbackFilename = (url: string): string => {
   try {
@@ -38,5 +39,5 @@ export async function shareRemoteFile(remoteUrl: string): Promise<void> {
     return;
   }
 
-  await Share.share({ title: filename, url: result.uri });
+  await presentShareSheet(() => Share.share({ title: filename, url: result.uri }));
 }

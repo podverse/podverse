@@ -30,8 +30,11 @@ async function main(): Promise<void> {
   await generator.ensureAssetsDirectory();
   await generator.generateMP3('e2e-podcast-short-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
   await generator.generateMP3('e2e-podcast-resume-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
-  await generator.generateMP3('e2e-music-track-one-30s-330hz.mp3', 30, 330, COMMON_OPTIONS);
-  await generator.generateMP3('e2e-music-track-two-30s-294hz.mp3', 30, 294, COMMON_OPTIONS);
+  // The music tracks are long enough to outlast a mobile device walking through the player: a
+  // Maestro flow spends tens of seconds per screen on a slow emulator, and a track that ends
+  // mid-flow advances the queue underneath every assertion that follows.
+  await generator.generateMP3('e2e-music-track-one-120s-330hz.mp3', 120, 330, COMMON_OPTIONS);
+  await generator.generateMP3('e2e-music-track-two-120s-294hz.mp3', 120, 294, COMMON_OPTIONS);
   await generator.generateMP3('e2e-addbyrss-with-position-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
   await generator.generateMP3('e2e-addbyrss-fresh-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
   // Real video fixture (has an h264 video track) for the mobile video mini->full transition E2E.

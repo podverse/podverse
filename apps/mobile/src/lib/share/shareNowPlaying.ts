@@ -3,12 +3,12 @@ import { Share } from 'react-native';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { getMobileConfig } from '../../config';
+import { presentShareSheet } from './shareSheetPassthrough';
+import type { ShareResource } from './shareUrl';
 import {
   buildNowPlayingShareUrl as buildNowPlayingShareUrlFromWebBaseUrl,
   buildPublicShareUrl as buildPublicShareUrlFromWebBaseUrl,
 } from './shareUrl';
-
-type ShareResource = 'clip' | 'episode' | 'playlist' | 'podcast' | 'profile';
 
 export const buildPublicShareUrl = (resource: ShareResource, idText: string): string => {
   return buildPublicShareUrlFromWebBaseUrl(getMobileConfig().webBaseUrl, resource, idText);
@@ -23,9 +23,7 @@ export const shareResolvedUrl = (url: string | null): void => {
   if (url === null) {
     return;
   }
-  void Share.share({ message: url, url }).catch(() => {
-    // Share dismissal / unavailable share sheet is a safe no-op.
-  });
+  void presentShareSheet(() => Share.share({ message: url, url }));
 };
 
 /**

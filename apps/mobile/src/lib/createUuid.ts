@@ -7,10 +7,15 @@ const hexFromBytes = (bytes: Uint8Array): string =>
 export const createUuid = (): string => {
   const bytes = new Uint8Array(16);
   for (let i = 0; i < bytes.length; i += 1) {
-    bytes[i] = Math.floor(Math.random() * 256);
+    const value = Math.floor(Math.random() * 256);
+    if (i === 6) {
+      bytes[i] = (value & 0x0f) | 0x40;
+    } else if (i === 8) {
+      bytes[i] = (value & 0x3f) | 0x80;
+    } else {
+      bytes[i] = value;
+    }
   }
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
   const hex = hexFromBytes(bytes);
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 };

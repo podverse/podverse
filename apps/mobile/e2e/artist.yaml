@@ -1,0 +1,64 @@
+appId: com.podverse.app.next
+name: Artist flow
+---
+# Artist detail opens linked album and track detail routes.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- openLink: podverse-next://artist/e2eMusicChnl01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: artist-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: artist-detail-sections
+    timeout: ${TIMEOUT_SLOW}
+# Albums and tracks chips are added after the publisher-feed request returns.
+- extendedWaitUntil:
+    visible:
+      id: artist-detail-section-albums
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: artist-detail-section-tracks
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: artist-detail-default
+
+- tapOn:
+    id: artist-detail-section-albums
+- extendedWaitUntil:
+    visible:
+      id: artist-album-row-0
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: artist-album-row-0
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: artist-to-album-detail
+- tapOn:
+    id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      id: artist-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+
+- tapOn:
+    id: artist-detail-section-tracks
+- extendedWaitUntil:
+    visible:
+      id: artist-track-row-0
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: artist-track-row-0
+- extendedWaitUntil:
+    visible:
+      id: track-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: track-detail-playback-chrome
+- takeScreenshot: artist-to-track-detail

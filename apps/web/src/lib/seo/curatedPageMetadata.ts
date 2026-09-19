@@ -17,6 +17,7 @@ const CURATED_PAGE_PATHS = {
   clips: '/clips',
   videos: '/videos',
   profiles: '/profiles',
+  faq: '/faq',
   about: '/about',
   contact: '/contact',
   terms: '/terms',

@@ -2,6 +2,11 @@ export { SyncProvider, useSync } from './SyncProvider';
 export { classifySyncError, SyncJobTimeoutError } from './syncErrorClassification';
 export type { SyncErrorClassification } from './syncErrorClassification';
 export {
+  publishPlaybackPositionAdoptions,
+  readPlaybackPositionAdoptions,
+  subscribePlaybackPositionAdoptions,
+} from './playbackPositionAdoption';
+export {
   publishPlaybackReconcileConflicts,
   readPlaybackReconcileConflicts,
   subscribePlaybackReconcileConflicts,

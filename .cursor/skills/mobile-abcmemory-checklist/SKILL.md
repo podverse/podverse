@@ -16,7 +16,7 @@ Per **abcmemory-vocabulary** rule and **abcmemory** skill:
 | ----------------------------------------------------------- | ------------------------------------------------ | ------------------------ |
 | **abcmemory** (`.cursor/`, `.cursorrules`, `.cursorignore`) | Standing instructions Cursor loads every session | rules, skills, prompts   |
 | **`.llm/plans/`**                                           | Transient execution plans, COPY-PASTA sets       | `mobile-pg0-foundation/` |
-| **`.llm/context/`**, **`.llm/history/`**                    | Human reference, optional notes                  | not agent memory         |
+| **`.llm/context/`**                                         | Human reference                                  | not agent memory         |
 | **`docs/proposals/mobile/`**                                | Durable design + master plan details             | `details/NNN-*.md`       |
 
 **abcremember** writes to **abcmemory** unless the user explicitly asks to store something under

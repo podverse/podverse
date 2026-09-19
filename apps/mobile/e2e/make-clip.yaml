@@ -1,0 +1,209 @@
+appId: com.podverse.app.next
+name: Make clip
+---
+# Covers once-only how-to, capture, preview, create, edit, FAQ, and delete.
+# Requires flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- openLink: podverse-next://podcast/e2ePodChnl001/episode/e2ePodChap0001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+
+- tapOn:
+    id: full-player-create-clip
+# First create opens the how-to as a covering modal, so the form id is not visible until it closes.
+- assertVisible:
+    id: make-clip-how-to-modal
+- extendedWaitUntil:
+    notVisible:
+      id: make-clip-how-to-modal-loading
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    text: "Making a clip"
+- tapOn:
+    id: make-clip-how-to-close
+- assertNotVisible:
+    id: make-clip-how-to-modal
+- assertVisible:
+    id: make-clip-screen
+
+# Both marks are captured from the live playback position, so the flow has to own that position.
+# Pause, rewind past the start of the episode, and use the transport jumps to put a known gap between
+# the marks: reading a position that is still advancing cannot guarantee end after start, and an
+# episode that has played to its end reports the same second for both.
+- runFlow:
+    when:
+      visible:
+        id: make-clip-play-pause
+        text: "Pause"
+    commands:
+      - tapOn:
+          id: make-clip-play-pause
+- repeat:
+    times: 6
+    commands:
+      - tapOn:
+          id: make-clip-jump-back-10
+- extendedWaitUntil:
+    visible:
+      id: full-player-position
+      text: "0:00"
+    timeout: ${TIMEOUT_SLOW}
+
+- tapOn:
+    id: make-clip-start-time
+- assertVisible:
+    id: make-clip-start-time-value
+    text: "0:00"
+- tapOn:
+    id: make-clip-end-time
+- assertVisible:
+    id: make-clip-end-time-value
+- tapOn:
+    id: make-clip-clear-end-time
+- assertVisible:
+    id: make-clip-end-time-hint
+
+- tapOn:
+    id: make-clip-jump-forward-30
+- extendedWaitUntil:
+    visible:
+      id: full-player-position
+      text: "0:30"
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: make-clip-end-time
+- assertVisible:
+    id: make-clip-end-time-value
+    text: "0:30"
+
+- tapOn:
+    id: make-clip-start-preview
+- tapOn:
+    id: make-clip-end-preview
+
+- tapOn:
+    id: make-clip-title
+- inputText: "E2E make clip"
+- tapOn:
+    id: make-clip-visibility-public
+- takeScreenshot: make-clip-form-filled
+
+- tapOn:
+    id: make-clip-save
+- extendedWaitUntil:
+    visible:
+      id: make-clip-created-dialog
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: make-clip-created-share
+- takeScreenshot: make-clip-created
+- tapOn:
+    id: make-clip-created-close
+- assertVisible:
+    id: full-player-screen
+
+# A second Create covers the once-only how-to staying closed and the FAQ. It opens an empty form —
+# create never restores the clip just saved, and never restores a draft — so it leaves without saving.
+- tapOn:
+    id: full-player-create-clip
+- assertVisible:
+    id: make-clip-screen
+- assertNotVisible:
+    id: make-clip-how-to-modal
+
+- tapOn:
+    id: make-clip-faq
+- assertVisible:
+    id: make-clip-faq-modal
+- extendedWaitUntil:
+    notVisible:
+      id: make-clip-faq-modal-loading
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    text: "Why do some clips start at the wrong time?"
+- tapOn:
+    id: make-clip-faq-close
+- assertNotVisible:
+    id: make-clip-faq-modal
+
+- assertVisible:
+    id: make-clip-start-time-hint
+
+- tapOn:
+    id: make-clip-close
+- extendedWaitUntil:
+    visible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-my-clips
+- assertVisible:
+    id: library-my-clips-screen
+- tapOn:
+    id: "home-row-more-.*"
+- tapOn:
+    text: "Edit clip"
+- assertVisible:
+    id: make-clip-screen
+
+- tapOn:
+    id: make-clip-title
+- inputText: " updated"
+- tapOn:
+    id: make-clip-save
+- assertVisible:
+    id: library-my-clips-screen
+
+- tapOn:
+    text: "E2E make clip updated"
+- assertVisible:
+    id: clip-detail-screen
+- tapOn:
+    id: clip-detail-delete
+- assertVisible:
+    id: clip-detail-delete-dialog
+- tapOn:
+    id: clip-detail-delete-confirm
+- extendedWaitUntil:
+    visible:
+      id: library-my-clips-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: make-clip-delete-complete

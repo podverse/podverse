@@ -191,7 +191,9 @@ Every phone `<area>` you can pass. Each line is one top-level file under
 
 ```bash
 npm run mobile:e2e:test -- --platform ios add-by-rss
+npm run mobile:e2e:test -- --platform ios album
 npm run mobile:e2e:test -- --platform ios api-health
+npm run mobile:e2e:test -- --platform ios artist
 npm run mobile:e2e:test -- --platform ios auth-login
 npm run mobile:e2e:test -- --platform ios auth-logout
 npm run mobile:e2e:test -- --platform ios auto-queue-advance
@@ -204,6 +206,7 @@ npm run mobile:e2e:test -- --platform ios home
 npm run mobile:e2e:test -- --platform ios library-downloads
 npm run mobile:e2e:test -- --platform ios library-playlists
 npm run mobile:e2e:test -- --platform ios locale-switch-home-smoke
+npm run mobile:e2e:test -- --platform ios make-clip
 npm run mobile:e2e:test -- --platform ios membership-gate
 npm run mobile:e2e:test -- --platform ios notifications-inbox
 npm run mobile:e2e:test -- --platform ios offline-mode
@@ -217,6 +220,7 @@ npm run mobile:e2e:test -- --platform ios podcast-episode
 npm run mobile:e2e:test -- --platform ios popularity-tracking
 npm run mobile:e2e:test -- --platform ios push
 npm run mobile:e2e:test -- --platform ios queue-add
+npm run mobile:e2e:test -- --platform ios queue-screen
 npm run mobile:e2e:test -- --platform ios search
 npm run mobile:e2e:test -- --platform ios search-unparsed
 npm run mobile:e2e:test -- --platform ios settings-downloads
@@ -224,6 +228,7 @@ npm run mobile:e2e:test -- --platform ios settings-select
 npm run mobile:e2e:test -- --platform ios subscriptions-anonymous
 npm run mobile:e2e:test -- --platform ios sync-log
 npm run mobile:e2e:test -- --platform ios tab-switch-playback
+npm run mobile:e2e:test -- --platform ios track
 npm run mobile:e2e:test -- --platform ios v4v
 npm run mobile:e2e:test -- --platform ios video-transition
 ```
@@ -232,7 +237,9 @@ npm run mobile:e2e:test -- --platform ios video-transition
 
 ```bash
 npm run mobile:e2e:test -- --platform android add-by-rss
+npm run mobile:e2e:test -- --platform android album
 npm run mobile:e2e:test -- --platform android api-health
+npm run mobile:e2e:test -- --platform android artist
 npm run mobile:e2e:test -- --platform android auth-login
 npm run mobile:e2e:test -- --platform android auth-logout
 npm run mobile:e2e:test -- --platform android auto-queue-advance
@@ -245,6 +252,7 @@ npm run mobile:e2e:test -- --platform android home
 npm run mobile:e2e:test -- --platform android library-downloads
 npm run mobile:e2e:test -- --platform android library-playlists
 npm run mobile:e2e:test -- --platform android locale-switch-home-smoke
+npm run mobile:e2e:test -- --platform android make-clip
 npm run mobile:e2e:test -- --platform android membership-gate
 npm run mobile:e2e:test -- --platform android notifications-inbox
 npm run mobile:e2e:test -- --platform android offline-mode
@@ -258,6 +266,7 @@ npm run mobile:e2e:test -- --platform android podcast-episode
 npm run mobile:e2e:test -- --platform android popularity-tracking
 npm run mobile:e2e:test -- --platform android push
 npm run mobile:e2e:test -- --platform android queue-add
+npm run mobile:e2e:test -- --platform android queue-screen
 npm run mobile:e2e:test -- --platform android search
 npm run mobile:e2e:test -- --platform android search-unparsed
 npm run mobile:e2e:test -- --platform android settings-downloads
@@ -265,6 +274,7 @@ npm run mobile:e2e:test -- --platform android settings-select
 npm run mobile:e2e:test -- --platform android subscriptions-anonymous
 npm run mobile:e2e:test -- --platform android sync-log
 npm run mobile:e2e:test -- --platform android tab-switch-playback
+npm run mobile:e2e:test -- --platform android track
 npm run mobile:e2e:test -- --platform android v4v
 npm run mobile:e2e:test -- --platform android video-transition
 ```
@@ -345,15 +355,12 @@ npm run mobile:e2e:test -- sync-log
 Same stack as [sections 3–5](#3-prepare-test-databases). Test-assets on `:2111` are
 optional for this group.
 
-`membership-gate` logs in as the seeded **Trial** `e2e-user`, taps Podcast Index directory
-**Add** (`unparsedfixture`), and asserts the real
-`membership.feature_not_available_for_account_type` **403** surfaces the premium gate
-modal → **Renew** → Membership screen.
-
 Seeded login: `e2e-user@example.com` / `Test!1Aa`.
 
 ```bash
+npm run mobile:e2e:test -- album
 npm run mobile:e2e:test -- api-health
+npm run mobile:e2e:test -- artist
 npm run mobile:e2e:test -- auth-login
 npm run mobile:e2e:test -- auth-logout
 npm run mobile:e2e:test -- browse
@@ -361,7 +368,6 @@ npm run mobile:e2e:test -- deep-link
 npm run mobile:e2e:test -- detail-sort-prefs
 npm run mobile:e2e:test -- home
 npm run mobile:e2e:test -- library-playlists
-npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- notifications-inbox
 npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml
@@ -371,15 +377,22 @@ npm run mobile:e2e:test -- podcast-episode
 npm run mobile:e2e:test -- popularity-tracking
 npm run mobile:e2e:test -- push
 npm run mobile:e2e:test -- queue-add
+npm run mobile:e2e:test -- queue-screen
 npm run mobile:e2e:test -- search
 npm run mobile:e2e:test -- search-unparsed
 npm run mobile:e2e:test -- settings-downloads
 npm run mobile:e2e:test -- subscriptions-anonymous
+npm run mobile:e2e:test -- track
 ```
 
 ### API + test-assets areas
 
 `:2111` must be listening (`npm run mobile:e2e:test-assets`).
+
+`membership-gate` logs in as the seeded **Trial** `e2e-user`, taps Podcast Index directory
+**Add** (`unparsedfixture`), asserts the real
+`membership.feature_not_available_for_account_type` **403** gate path, and also covers the
+anonymous full-player scissors gate for Make Clip.
 
 The **`v4v`** flow plays a seeded episode to reach the full player, then taps
 Value-for-Value. That button is hidden by default; `mobile:dev:e2e` sets
@@ -398,6 +411,8 @@ npm run mobile:e2e:test -- add-by-rss
 npm run mobile:e2e:test -- auto-queue-advance
 npm run mobile:e2e:test -- engine-audio-spike
 npm run mobile:e2e:test -- library-downloads
+npm run mobile:e2e:test -- make-clip
+npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- play-mini-player
 npm run mobile:e2e:test -- playback-offline-reconciliation
 npm run mobile:e2e:test -- playback-resume-on-relaunch

@@ -311,3 +311,48 @@ export const sectionChromeFlags = sqliteTable('section_chrome_flags', {
 
 export type SectionChromeFlagsRow = typeof sectionChromeFlags.$inferSelect;
 export type SectionChromeFlagsInsert = typeof sectionChromeFlags.$inferInsert;
+
+/**
+ * Cached playlists for the Library playlists surfaces. `payload_json` stores the full DTOPlaylist;
+ * scalar columns support local filtering and ordering.
+ */
+export const playlist = sqliteTable('playlist', {
+  idText: text('id_text').primaryKey(),
+  id: integer('id').notNull(),
+  title: text('title'),
+  description: text('description'),
+  mediumId: integer('medium_id').notNull(),
+  sharableStatusId: integer('sharable_status_id').notNull(),
+  isDefaultLikes: integer('is_default_likes').notNull(),
+  itemCount: integer('item_count').notNull(),
+  lastUpdated: text('last_updated').notNull(),
+  ownerAccountIdText: text('owner_account_id_text'),
+  /** 0/1 flags used for local My vs Followed list filtering. */
+  isOwned: integer('is_owned').notNull().default(0),
+  isFollowed: integer('is_followed').notNull().default(0),
+  payloadJson: text('payload_json').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type PlaylistRow = typeof playlist.$inferSelect;
+export type PlaylistInsert = typeof playlist.$inferInsert;
+
+/**
+ * Cached playlist resources keyed by server resource id. The same DTOPlaylistResource row is used
+ * for item, clip, soundbite, and add-by-RSS resources.
+ */
+export const playlistResource = sqliteTable('playlist_resource', {
+  id: integer('id').primaryKey(),
+  playlistId: integer('playlist_id').notNull(),
+  playlistIdText: text('playlist_id_text').notNull(),
+  listPosition: text('list_position').notNull(),
+  clipId: integer('clip_id'),
+  itemId: integer('item_id'),
+  itemSoundbiteId: integer('item_soundbite_id'),
+  addByRssHashId: text('add_by_rss_hash_id'),
+  payloadJson: text('payload_json').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type PlaylistResourceRow = typeof playlistResource.$inferSelect;
+export type PlaylistResourceInsert = typeof playlistResource.$inferInsert;

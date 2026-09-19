@@ -130,17 +130,17 @@ name: Detail Sort Prefs
     timeout: ${TIMEOUT_SLOWEST}
 - extendedWaitUntil:
     visible:
-      id: album-detail-sort-pill
+      id: album-detail-sort-pill-button
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-album-default
 
 - tapOn:
-    id: album-detail-sort-pill
+    id: album-detail-sort-pill-button
 - tapOn:
     id: album-detail-sort-backward
 - extendedWaitUntil:
     visible:
-      id: album-detail-sort-pill
+      id: album-detail-sort-pill-button
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: detail-sort-album-backward
 
@@ -148,7 +148,7 @@ name: Detail Sort Prefs
 - runFlow: shared/confirm-ios-open-dialog.yaml
 - extendedWaitUntil:
     visible:
-      id: album-detail-sort-pill
+      id: album-detail-sort-pill-button
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-album-restored
 

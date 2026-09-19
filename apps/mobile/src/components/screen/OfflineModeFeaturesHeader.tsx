@@ -10,6 +10,9 @@ import { ListRow } from '../primitives/ListRow';
 /**
  * Offline Mode switch for More → Features. Sits at the top of the Features card; when on, the
  * description appears under the row so the user knows what the mode does before leaving More.
+ *
+ * Reflects the user's pref and nothing else. A switch that also read the network state would
+ * invite the user to turn off something they never turned on, and would flip under them.
  */
 export function OfflineModeFeaturesHeader() {
   const { t } = useTranslation();

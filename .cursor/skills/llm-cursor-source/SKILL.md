@@ -33,6 +33,6 @@ Operator directory docs (`CURSOR-*.md`, `LLM-*.md`) describe folders for humans;
 
 ## Contributor policy
 
-Overview, plans, and optional history notes:
+Overview and plans:
 
 - [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](/docs/development/llm/DOCS-DEVELOPMENT-LLM.md)

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { DTOItem } from '@podverse/helpers/dto';
+import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosure';
 
 import {
   isDownloadQuotaUnlimited,
@@ -157,10 +158,12 @@ export type DownloadAction = {
  */
 export const useDownloadAction = (
   item: DTOItem | undefined,
-  includeProgress = false
+  includeProgress = false,
+  options?: { explicitSelectedParams?: EnclosureSelectedParams | null }
 ): DownloadAction => {
   const record = useItemDownload(item?.id_text ?? '', includeProgress);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
+  const explicitSelectedParams = options?.explicitSelectedParams;
 
   const start = useCallback(() => {
     if (item === undefined) {
@@ -169,7 +172,7 @@ export const useDownloadAction = (
     setNoticeKey(null);
     void (async () => {
       try {
-        const result = await downloadManager.enqueue(item);
+        const result = await downloadManager.enqueue(item, explicitSelectedParams);
         if (!result.ok) {
           setNoticeKey(
             result.reason === 'offline_mode'
@@ -181,7 +184,7 @@ export const useDownloadAction = (
         setNoticeKey('errors.generic');
       }
     })();
-  }, [item]);
+  }, [explicitSelectedParams, item]);
 
   const remove = useCallback(() => {
     if (item === undefined) {
@@ -203,7 +206,7 @@ export const useDownloadAction = (
       : null;
 
   return {
-    isDownloadable: item !== undefined && isItemDownloadable(item).ok,
+    isDownloadable: item !== undefined && isItemDownloadable(item, explicitSelectedParams).ok,
     noticeKey,
     percentComplete,
     remove,

@@ -2,6 +2,7 @@ import type { QueueExtraParams } from '@podverse/helpers';
 import type { BetweenParams } from '@podverse/helpers';
 import type { AddByRssSeenMarkEntry, ChannelSeenMarkEntry } from '@podverse/helpers';
 import type { MediaTypePreference } from '@podverse/helpers';
+import type { ManagedCopySlug } from '@podverse/helpers';
 import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
 import type {
   CreateAccountFCMDeviceParams,
@@ -158,6 +159,7 @@ import {
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
 import { reqLegalPopularityTracking } from './legal/popularityTracking.js';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
+import { reqManagedCopyGet } from './managedCopy/managedCopy.js';
 import { reqMembershipGetPricing } from './membership/membership.js';
 import {
   reqMetaboostMbrssV1MintAppAssertion,
@@ -815,6 +817,10 @@ export class ApiRequestService {
 
   reqLegalPopularityTracking() {
     return reqLegalPopularityTracking(this);
+  }
+
+  reqManagedCopyGet(slug: ManagedCopySlug) {
+    return reqManagedCopyGet(this, slug);
   }
 
   reqAccountSettingsPlaybackUpdate(params: { preferred_media_type: MediaTypePreference }) {

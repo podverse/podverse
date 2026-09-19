@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import { AppOverlay } from '../overlay';
 
 export type MoreMenuItem = {
   disabled?: boolean;
@@ -149,7 +150,7 @@ export function MoreMenu({
   );
 
   return (
-    <Modal animationType="none" onRequestClose={onCancel} transparent visible={visible}>
+    <AppOverlay animation="none" onRequestClose={onCancel} visible={visible}>
       <View style={styles.backdrop}>
         <Pressable
           accessible={false}
@@ -235,6 +236,6 @@ export function MoreMenu({
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </AppOverlay>
   );
 }

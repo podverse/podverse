@@ -141,11 +141,12 @@ export const createSyncQueue = (options: CreateSyncQueueOptions = {}): SyncQueue
   };
 
   const reportFailure = (job: SyncJob, error: unknown): void => {
-    const { code, isOffline } = classifySyncError(error);
+    const { code, isOffline, isServerUnreachable } = classifySyncError(error);
 
-    if (isOffline) {
+    if (isOffline || isServerUnreachable) {
       // Park the rest of the run instead of walking every remaining job into the same wall. The
-      // pending jobs keep their place and resume when the platform says we are back.
+      // pending jobs keep their place and resume when the platform says we are back. A server that
+      // is down is the same situation as silence: every remaining job would fail identically.
       isPausedOffline = true;
     }
 

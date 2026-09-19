@@ -1,12 +1,13 @@
 import * as FileSystem from 'expo-file-system';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import type { OpmlImportStatusResponse } from '@podverse/helpers-requests';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { AppOverlay, OverlayPanel, OverlayScrim } from '../../components/overlay';
 import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -61,9 +62,12 @@ export function MoreOpmlScreen() {
     () =>
       StyleSheet.create({
         backdrop: {
-          backgroundColor: 'rgba(0, 0, 0, 0.45)',
           flex: 1,
           justifyContent: 'flex-end',
+        },
+        scrim: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
         },
         cardSpacing: {
           marginTop: tokens.spacing.md,
@@ -312,10 +316,9 @@ export function MoreOpmlScreen() {
         </Card>
       </View>
 
-      <Modal
-        animationType="slide"
+      <AppOverlay
+        animation="slide"
         onRequestClose={closeRateLimitModal}
-        transparent
         visible={rateLimitMessage !== null}
       >
         <Pressable
@@ -324,22 +327,29 @@ export function MoreOpmlScreen() {
           style={styles.backdrop}
           testID="opml-rate-limit-backdrop"
         >
-          <Pressable onPress={stopPropagation} style={styles.sheet} testID="opml-rate-limit-modal">
-            <Text style={styles.sheetTitle}>{t('settings.opml.import_rate_limited_title')}</Text>
-            {rateLimitMessage !== null ? (
-              <Text style={styles.sheetMessage}>{rateLimitMessage}</Text>
-            ) : null}
-            <View style={styles.sheetActions}>
-              <Button
-                label={t('misc.close')}
-                onPress={closeRateLimitModal}
-                testID="opml-rate-limit-close"
-                variant="secondary"
-              />
-            </View>
-          </Pressable>
+          <OverlayScrim pointerEvents="none" style={styles.scrim} />
+          <OverlayPanel>
+            <Pressable
+              onPress={stopPropagation}
+              style={styles.sheet}
+              testID="opml-rate-limit-modal"
+            >
+              <Text style={styles.sheetTitle}>{t('settings.opml.import_rate_limited_title')}</Text>
+              {rateLimitMessage !== null ? (
+                <Text style={styles.sheetMessage}>{rateLimitMessage}</Text>
+              ) : null}
+              <View style={styles.sheetActions}>
+                <Button
+                  label={t('misc.close')}
+                  onPress={closeRateLimitModal}
+                  testID="opml-rate-limit-close"
+                  variant="secondary"
+                />
+              </View>
+            </Pressable>
+          </OverlayPanel>
         </Pressable>
-      </Modal>
+      </AppOverlay>
     </MobileScreenContainer>
   );
 }

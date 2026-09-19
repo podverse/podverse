@@ -20,6 +20,16 @@ alwaysApply: false
   net) so an eventual in-place upgrade still resolves existing `podverse://` links. Do not add
   compatibility with the v4 *backend* protocol — schemes are only routing prefixes.
 
+## A link opened while the app runs navigates — it never resets the root
+
+- Handle it with `resolveMobileDeepLinkAction` and `dispatch`, not `resetRoot`. Resetting replaces
+  the root screen, which owns the tab bar and every tab's stack; on Android those outgoing native
+  views are still held by their old parents when the new tree mounts, and the app is torn down
+  mid-navigation. `resolveMobileDeepLinkState` stays the `linking.getStateFromPath` resolver.
+- This is why the deep-link E2E flows (`membership-gate`, `podcast-episode`, `album`, `artist`,
+  `track`, `offline-mode`, the playback flows) exercise `openLink` mid-flow rather than only at
+  launch. Keep it that way.
+
 ## The scheme does NOT decide "same app" upgrades — identity does
 
 Whether stores treat v5 as an in-place update of v4 is determined by **app identity + signing**, not

@@ -5,6 +5,7 @@ export * from './clip.js';
 export * from './embedDemoShowcase.js';
 export * from './medium.js';
 export * from './membershipClaimToken.js';
+export * from './managedCopy.js';
 export * from './onDemandParserEvent.js';
 export * from './queueExtraParams.js';
 export * from './sharableStatus.js';

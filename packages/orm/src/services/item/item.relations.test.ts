@@ -12,4 +12,13 @@ describe('ItemService relation mapping source guard', () => {
     expect(src).toContain('const channelRelation = relations.channel;');
     expect(src).toContain('...(channelRelation ? { channel: channelRelation } : {}),');
   });
+
+  it('forwards the requested live_item relation shape instead of collapsing it to true', () => {
+    expect(src).toContain('const liveItemRelation = relations.live_item;');
+    expect(src).toContain('...(liveItemRelation ? { live_item: liveItemRelation } : {}),');
+  });
+
+  it('requests the nested live item status for single-item reads', () => {
+    expect(src).toContain('live_item: { live_item_status: true },');
+  });
 });

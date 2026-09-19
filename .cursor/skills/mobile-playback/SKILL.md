@@ -63,8 +63,39 @@ Reference: [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md §5–10](/docs/proposa
 4. Run `playback-core` decision → bridge `loadAndStart`.
 5. **Write native cache snapshot** (feeds CarPlay/Android Auto — **mobile-carplay-android-auto** rule).
 
+**Step 1 comes before the queue read, and the order is load-bearing.** The next thing to play is the
+queue's own first row (`combineQueueNowPlayingAndUpcoming` → `activeResource`), so a queue read taken
+before the finished resource leaves it returns that same resource — it is still now-playing, or it
+still sits upcoming when playback started from a detail screen rather than from the queue. Advancing
+then restarts the track that just ended, and because the title never changes, a flow asserting "the
+track is showing" passes while the product loops. Web orders these the same way
+(`NonLiveMediaOrchestrator` `onEnded`).
+
+**Read the queue for the medium of what was playing**, not whichever queue is active
+(`getQueueForMedium(queues, target.channel.medium_id)`). Starting a track leaves the previous
+medium's queue active until the new claim lands, so the active queue answers for the wrong medium —
+skipping into a podcast from music, or finding nothing and stopping. Add-by-RSS has no channel and no
+queue behind it and falls back to the active queue.
+
 Web reference hooks: `useQueueResourceMoveNowPlayingToHistory`, `useMediaPlayerControllerQueueHeadLoading`,
 `combineQueueNowPlayingAndUpcoming` (moving to playback-core).
+
+## Same-item multi-device adoption
+
+This reads like a bug to anyone meeting it cold. It is not. Do not "fix" it into a prompt.
+
+- **Same item** both sides, remote newer, nothing playing locally → the position is adopted
+  **silently**, no prompt. Settled in
+  [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)
+  (`Status: done`), with "no prompt" as an acceptance criterion.
+- **Different item** → the handoff prompt, because only that case has an answer the app cannot
+  derive.
+- Both branches come from `resolveHandoffDecision` in `@podverse/helpers`, which web consumes too.
+  Changing either changes both surfaces and contradicts a `done` detail. That needs an operator
+  decision and an amendment first.
+
+A deliberate local scrub writes a newer meaningful event, so `shouldAdoptRemotePosition` declines
+and the playhead is not yanked forward.
 
 ## Last-playback snapshot (cold-start restore)
 
@@ -159,8 +190,7 @@ short viewports and large OS text sizes shrink the square instead of moving the 
   `rotate-right`), matching web's `FaRotateLeft` / `FaRotateRight`.
 - Pane loading and chip visibility come from `useEpisodeSectionPanes` so episode detail and full
   player stay in lockstep on Summary, Clips, Chapters, Official clips, and Transcript. A chip tap
-  on the full player also scrolls to the section header (`handleSelectTab`) so the chosen pane
-  comes on screen and the chips stick under the condensed bar.
+  swaps the pane only; it does not scroll.
 - Sleep timer, playback speed, up next, and More actions open sheets (`MoreMenu` surfaces), not
   inline expansion.
 

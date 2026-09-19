@@ -3,17 +3,22 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import type { DTOPopularityTrackingAgreement } from '@podverse/helpers';
-import { getPopularityTrackingAbridgedMarkdown } from '@podverse/helpers';
+import { getCopyMarkdownIntro } from '@podverse/helpers';
 
+import { CopyMarkdown } from '../components/content/CopyMarkdown';
 import { Button } from '../components/primitives/Button';
+import { LoadingSection } from '../components/state/LoadingSection';
+import { RetryableError } from '../components/state/RetryableError';
 import { useTheme } from '../theme/useTheme';
-import { PopularityTrackingMarkdown } from './PopularityTrackingMarkdown';
 
 type PopularityTrackingAgreementBodyProps = {
   alreadyAgreed: boolean;
   agreement: DTOPopularityTrackingAgreement | null;
+  isLoading: boolean;
+  errorKey: string | null;
   learnMoreTestID: string;
   noTestID: string;
+  onRetry: () => void;
   onDecision: (accepted: boolean) => void;
   yesTestID: string;
 };
@@ -21,8 +26,11 @@ type PopularityTrackingAgreementBodyProps = {
 export function PopularityTrackingAgreementBody({
   alreadyAgreed,
   agreement,
+  isLoading,
+  errorKey,
   learnMoreTestID,
   noTestID,
+  onRetry,
   onDecision,
   yesTestID,
 }: PopularityTrackingAgreementBodyProps) {
@@ -34,11 +42,20 @@ export function PopularityTrackingAgreementBody({
       ? null
       : showFullAgreement
         ? agreement.markdown
-        : getPopularityTrackingAbridgedMarkdown(agreement.markdown);
+        : getCopyMarkdownIntro(agreement.markdown);
+  const canInteract = markdown !== null && !isLoading && errorKey === null;
 
   return (
     <View style={{ gap: tokens.spacing.md }}>
-      {markdown !== null ? <PopularityTrackingMarkdown markdown={markdown} /> : null}
+      {isLoading ? <LoadingSection testID="popularity-tracking-agreement-loading" /> : null}
+      {!isLoading && errorKey !== null ? (
+        <RetryableError
+          errorKey={errorKey}
+          onRetry={onRetry}
+          testID="popularity-tracking-agreement-error"
+        />
+      ) : null}
+      {canInteract && markdown !== null ? <CopyMarkdown markdown={markdown} /> : null}
       {alreadyAgreed ? (
         <Text style={{ color: themeStyles.textPrimary.color }}>
           {t('popularity_tracking.already_agreed')}
@@ -52,6 +69,7 @@ export function PopularityTrackingAgreementBody({
         </Text>
       ) : null}
       <Button
+        disabled={!canInteract}
         label={t('popularity_tracking.yes')}
         onPress={() => {
           onDecision(true);
@@ -59,6 +77,7 @@ export function PopularityTrackingAgreementBody({
         testID={yesTestID}
       />
       <Button
+        disabled={!canInteract}
         label={t('popularity_tracking.no')}
         onPress={() => {
           onDecision(false);
@@ -67,6 +86,7 @@ export function PopularityTrackingAgreementBody({
         variant="secondary"
       />
       <Button
+        disabled={!canInteract}
         label={
           showFullAgreement
             ? t('popularity_tracking.back_to_choice')

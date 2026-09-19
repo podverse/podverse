@@ -12,11 +12,13 @@ Direct test effort to the highest-risk behavior first so coverage gains are mean
 
 ## Priority Order
 
-1. Auth/security logic (`apps/api/src/lib/auth`, rate-limit and token checks)
-2. Parser/ingestion guardrails (`packages/parser`, feed spam/parse policy)
-3. ORM business rules (`packages/orm/src/services`, especially membership/dedupe/stats constraints)
-4. Value-transfer math (`packages/v4v-helpers`, `packages/v4v-metaboost`)
-5. High-impact web utilities/hooks (`apps/web/src/utils`, non-trivial business hooks)
+1. Logic that a device flow is currently the only proof of. Extract it; the flow is both the least
+   reliable coverage and the most expensive, so a unit test buys confidence and refunds time.
+2. Auth/security logic (`apps/api/src/lib/auth`, rate-limit and token checks)
+3. Parser/ingestion guardrails (`packages/parser`, feed spam/parse policy)
+4. ORM business rules (`packages/orm/src/services`, especially membership/dedupe/stats constraints)
+5. Value-transfer math (`packages/v4v-helpers`, `packages/v4v-metaboost`)
+6. High-impact web utilities/hooks (`apps/web/src/utils`, non-trivial business hooks)
 
 ## Selection Rules
 

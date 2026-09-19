@@ -168,7 +168,9 @@ These commands run the selected phone flow on both phone platforms:
 
 ```bash
 npm run mobile:e2e:test -- add-by-rss
+npm run mobile:e2e:test -- album
 npm run mobile:e2e:test -- api-health
+npm run mobile:e2e:test -- artist
 npm run mobile:e2e:test -- auth-login
 npm run mobile:e2e:test -- auth-logout
 npm run mobile:e2e:test -- auto-queue-advance
@@ -192,6 +194,7 @@ npm run mobile:e2e:test -- podcast-episode
 npm run mobile:e2e:test -- popularity-tracking
 npm run mobile:e2e:test -- push
 npm run mobile:e2e:test -- queue-add
+npm run mobile:e2e:test -- queue-screen
 npm run mobile:e2e:test -- search-unparsed
 npm run mobile:e2e:test -- search
 npm run mobile:e2e:test -- settings-downloads
@@ -199,6 +202,7 @@ npm run mobile:e2e:test -- settings-select
 npm run mobile:e2e:test -- subscriptions-anonymous
 npm run mobile:e2e:test -- sync-log
 npm run mobile:e2e:test -- tab-switch-playback
+npm run mobile:e2e:test -- track
 npm run mobile:e2e:test -- v4v
 npm run mobile:e2e:test -- video-transition
 ```

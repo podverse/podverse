@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { TextField } from '../../components/form';
+import { LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -242,6 +243,7 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
         data={isLoading || errorKey !== null ? [] : feeds}
         keyExtractor={(feed) => feed.idText}
         keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
         renderItem={renderFeed}
       />
     </View>

@@ -74,5 +74,6 @@ export class Playlist {
   @BeforeInsert()
   generateIdText() {
     this.id_text = generateRandomIdText();
+    this.last_updated = new Date();
   }
 }

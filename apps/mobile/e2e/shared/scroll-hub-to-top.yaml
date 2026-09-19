@@ -1,0 +1,17 @@
+appId: com.podverse.app.next
+---
+# Return the visible hub (More, My Library, Browse) to the top of its ScrollView.
+#
+# Hub screens render every row at once, so Maestro finds a row far above the viewport in the
+# hierarchy and reports it visible. That makes `scrollUntilVisible ... direction: UP` exit on the
+# first check without scrolling, and a tap on a native control that is off screen lands on nothing
+# — the flow passes the tap and then fails the assertion about what the tap should have done.
+#
+# Blind swipes instead of a target, because there is no visibility predicate to stop on. The count
+# is deliberately more than the tallest hub needs; swiping past the top is a no-op, so the cost of
+# being generous is a second, and the cost of being exact is a flake on a taller hub.
+- repeat:
+    times: 8
+    commands:
+      - swipe:
+          direction: DOWN

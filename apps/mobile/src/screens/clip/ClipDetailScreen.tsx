@@ -1,18 +1,26 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import { htmlToPlainText } from '@podverse/helpers/html';
 import { formatPlaybackTime } from '@podverse/helpers/time';
+import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
+import { Button } from '../../components/primitives';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
+import { clipRepository } from '../../data/repositories/clipRepository';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
+import { navigateToMakeClipScreen } from '../../navigation';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
@@ -23,17 +31,35 @@ type ClipDetailScreenProps = {
   route: { params: { clipId: string } };
 };
 
+const parseSeconds = (value: string): number => {
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return 0;
+  }
+  return Math.floor(parsed);
+};
+
+const itemFromTarget = (target: PlaybackTarget | null): DTOItem | null => {
+  if (target === null || target.kind === 'add-by-rss') {
+    return null;
+  }
+  return target.item;
+};
+
 export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { account, accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { playbackNoticeKey, runBoundedClipPlay } = useClipPlayback();
   const { runQueueAction } = useHomeRowPlayback();
+  const { activeTarget, loadItemPausedAt } = usePlaybackSession();
+  const { handleGateError } = useMembershipGate();
   const [clip, setClip] = useState<DTOClip | null>(null);
   const [item, setItem] = useState<DTOItem | null>(null);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const { clipId } = route.params;
 
   const styles = useMemo(
@@ -84,6 +110,11 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
           color: themeStyles.textSecondary.color,
           fontSize: 13,
           marginTop: tokens.spacing.sm,
+        },
+        ownerActions: {
+          flexDirection: 'row',
+          gap: tokens.spacing.md,
+          marginTop: tokens.spacing.md,
         },
       }),
     [themeStyles, tokens]
@@ -140,9 +171,12 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
     }
   }, [accessToken, clearSession, clipId, refreshToken, setTokens]);
 
-  useEffect(() => {
-    void loadClip();
-  }, [loadClip]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadClip();
+      return () => undefined;
+    }, [loadClip])
+  );
 
   const clipDescription = useMemo(() => {
     if (clip?.description) {
@@ -155,6 +189,51 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
 
     return '';
   }, [clip?.description, item?.item_description?.value]);
+  const activeItemId = itemFromTarget(activeTarget)?.id_text ?? null;
+  const isOwnedClip =
+    clip?.account?.id_text !== undefined &&
+    account?.id_text !== undefined &&
+    clip.account.id_text === account.id_text;
+
+  const handleOpenEdit = useCallback(() => {
+    if (clip === null || item === null || channel === null) {
+      return;
+    }
+
+    void (async () => {
+      if (activeItemId !== item.id_text) {
+        await loadItemPausedAt(item, channel, parseSeconds(clip.start_time));
+      }
+      navigateToMakeClipScreen({ mode: 'edit', clipId: clip.id_text });
+    })();
+  }, [activeItemId, channel, clip, item, loadItemPausedAt]);
+
+  const handleDelete = useCallback(() => {
+    if (clip === null) {
+      return;
+    }
+
+    void (async () => {
+      try {
+        await clipRepository.delete(
+          {
+            accessToken,
+            clearSession,
+            refreshToken,
+            setTokens,
+          },
+          clip.id_text
+        );
+        navigation.goBack();
+      } catch (error) {
+        if (!handleGateError(error)) {
+          setErrorKey('errors.generic');
+        }
+      } finally {
+        setShowDeleteConfirm(false);
+      }
+    })();
+  }, [accessToken, clearSession, clip, handleGateError, navigation, refreshToken, setTokens]);
 
   return (
     <ScrollView
@@ -204,6 +283,24 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
             {playbackNoticeKey !== null ? (
               <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
             ) : null}
+            {isOwnedClip ? (
+              <View style={styles.ownerActions}>
+                <Button
+                  label={t('features.clip.edit_clip')}
+                  onPress={handleOpenEdit}
+                  testID="clip-detail-edit"
+                  variant="secondary"
+                />
+                <Button
+                  label={t('features.clip.delete_clip')}
+                  onPress={() => {
+                    setShowDeleteConfirm(true);
+                  }}
+                  testID="clip-detail-delete"
+                  variant="danger"
+                />
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.card}>
@@ -246,6 +343,20 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
           </View>
         </>
       ) : null}
+      <ConfirmDialog
+        body={t('features.clip.delete_clip_confirm')}
+        cancelLabel={t('misc.cancel')}
+        cancelTestID="clip-detail-delete-cancel"
+        confirmLabel={t('features.clip.delete_clip')}
+        confirmTestID="clip-detail-delete-confirm"
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+        }}
+        onConfirm={handleDelete}
+        testID="clip-detail-delete-dialog"
+        title={t('features.clip.delete_clip')}
+        visible={showDeleteConfirm}
+      />
     </ScrollView>
   );
 }

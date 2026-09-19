@@ -13,8 +13,9 @@ import { EMPTY_ABRIDGED_INDEX } from '../lib/addByRss/domain';
 /**
  * RN equivalent of web `useMediaPlayerResourceUpdate`: apply a playback-core load decision to the
  * native engine. Resolves the decision from the abridged resume index (authenticated users only),
- * loads the URL at the decided seek, applies rate, and auto-plays when the decision says so. Returns
- * the decision so the orchestrator can arm bounded `pauseAt` enforcement (the native bridge has no
+ * unless a playback-core decision is explicitly provided (for enclosure-switch resume). Loads the
+ * URL at the decided seek, applies rate, and auto-plays when the decision says so. Returns the
+ * decision so the orchestrator can arm bounded `pauseAt` enforcement (the native bridge has no
  * pause-at). All load policy lives in `@podverse/playback-core`; this is transport wiring only.
  */
 export function useMediaPlayerResourceUpdate() {
@@ -32,7 +33,8 @@ export function useMediaPlayerResourceUpdate() {
       playbackRate: number,
       // Session restore loads paused (no surprise audio on cold start); pass `false` to override the
       // decision's autoplay. When undefined the playback-core decision decides.
-      autoPlayOverride?: boolean
+      autoPlayOverride?: boolean,
+      playbackDecisionOverride?: PlaybackLoadDecision
     ): Promise<PlaybackLoadDecision> => {
       const { accessToken, clearSession, refreshToken, setTokens, status } = authRef.current;
 
@@ -52,7 +54,8 @@ export function useMediaPlayerResourceUpdate() {
         }
       }
 
-      const decision = resolvePlaybackLoadDecision(request, { abridged });
+      const decision =
+        playbackDecisionOverride ?? resolvePlaybackLoadDecision(request, { abridged });
       const shouldAutoPlay = autoPlayOverride ?? decision.shouldAutoPlay;
       const source = { initialSeekSeconds: decision.initialSeekSeconds, url };
       // Autoplay uses the atomic `loadAndStart` (2.25); session restore stays load-only (paused) so a

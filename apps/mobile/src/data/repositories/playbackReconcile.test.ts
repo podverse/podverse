@@ -326,6 +326,71 @@ describe('planPlaybackReconcile invariants', () => {
     expect(second.resolveConflicts).toEqual([]);
   });
 
+  it('adopts a newer position for the same now-playing resource, with nothing to prompt about', () => {
+    const plan = run({
+      localState: [
+        state('episode-a', {
+          zone: 'now_playing',
+          playbackPosition: 5,
+          lastMeaningfulAt: at('2026-09-13T10:00:00.000Z'),
+        }),
+      ],
+      remoteState: [
+        state('episode-a', {
+          zone: 'now_playing',
+          playbackPosition: 47,
+          lastMeaningfulAt: at('2026-09-13T10:05:00.000Z'),
+        }),
+      ],
+    });
+
+    expect(plan.resolveConflicts).toEqual([]);
+    expect(plan.adoptPositions.map((entry) => entry.playbackPosition)).toEqual([47]);
+  });
+
+  it('leaves the position alone when this device is the more recent listener', () => {
+    const plan = run({
+      localState: [
+        state('episode-a', {
+          zone: 'now_playing',
+          playbackPosition: 47,
+          lastMeaningfulAt: at('2026-09-13T10:05:00.000Z'),
+        }),
+      ],
+      remoteState: [
+        state('episode-a', {
+          zone: 'now_playing',
+          playbackPosition: 5,
+          lastMeaningfulAt: at('2026-09-13T10:00:00.000Z'),
+        }),
+      ],
+    });
+
+    expect(plan.adoptPositions).toEqual([]);
+  });
+
+  it('never moves the position out from under active local playback', () => {
+    const plan = run({
+      isPlayingLocally: true,
+      localState: [
+        state('episode-a', {
+          zone: 'now_playing',
+          playbackPosition: 5,
+          lastMeaningfulAt: at('2026-09-13T10:00:00.000Z'),
+        }),
+      ],
+      remoteState: [
+        state('episode-a', {
+          zone: 'now_playing',
+          playbackPosition: 47,
+          lastMeaningfulAt: at('2026-09-13T10:05:00.000Z'),
+        }),
+      ],
+    });
+
+    expect(plan.adoptPositions).toEqual([]);
+  });
+
   it('suppresses prompting while local playback is active', () => {
     const plan = run({
       isPlayingLocally: true,

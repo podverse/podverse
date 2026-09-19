@@ -76,7 +76,8 @@ flow for day-to-day Metro E2E.
 
 Top-level `apps/mobile/e2e/<area>.yaml` files (examples): `hello-world`, `locale-switch-home-smoke`,
 `api-health`, `auth-login`, `auth-logout`, `deep-link`, `push`, `tab-switch-playback`,
-`home`, `search`, `search-unparsed`, `podcast-episode`, `add-by-rss`. New top-level YAML is
+`home`, `search`, `search-unparsed`, `podcast-episode`, `add-by-rss`, `queue-add`,
+`queue-screen`. New top-level YAML is
 auto-included in the full suite.
 
 **How to run:** [HOW-TO-RUN.md](./HOW-TO-RUN.md) — numbered sections 1–5 (unit / API /

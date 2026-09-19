@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { useTheme } from '../../theme/useTheme';
+import { AppOverlay, OverlayScrim } from '../overlay';
 import { Button } from '../primitives';
 
 /**
@@ -45,7 +46,7 @@ export function ConfirmDialog({
           justifyContent: 'flex-end',
           marginTop: tokens.spacing.sm,
         },
-        // Neutral dimming scrim (not a theme color); mirrors the standard RN modal backdrop.
+        // Neutral dimming scrim (not a theme color); mirrors the standard platform dialog backdrop.
         backdrop: {
           alignItems: 'center',
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -56,6 +57,9 @@ export function ConfirmDialog({
         body: {
           color: themeStyles.textSecondary.color,
           fontSize: 15,
+        },
+        contents: {
+          flex: 1,
         },
         dialog: {
           backgroundColor: themeStyles.screen.backgroundColor,
@@ -80,38 +84,40 @@ export function ConfirmDialog({
     confirmLabel !== undefined && confirmTestID !== undefined && onConfirm !== undefined;
 
   return (
-    <Modal animationType="fade" onRequestClose={onCancel} transparent visible={visible}>
-      {/* The scrim is a sighted-only shortcut for the cancel button, so it stays out of the
-          accessibility tree; `accessibilityViewIsModal` keeps VoiceOver inside the dialog rather
-          than letting it wander onto the screen behind. */}
-      <Pressable accessible={false} onPress={onCancel} style={styles.backdrop}>
-        <Pressable
-          accessibilityViewIsModal
-          accessibilityRole="alert"
-          onPress={stopPropagation}
-          style={styles.dialog}
-          testID={testID}
-        >
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.body}>{body}</Text>
-          <View style={styles.actions}>
-            <Button
-              label={cancelLabel}
-              onPress={onCancel}
-              testID={cancelTestID}
-              variant="secondary"
-            />
-            {showConfirmAction ? (
+    <AppOverlay animation="fade" onRequestClose={onCancel} visible={visible}>
+      <OverlayScrim style={styles.contents}>
+        {/* The scrim is a sighted-only shortcut for the cancel button, so it stays out of the
+            accessibility tree; `accessibilityViewIsModal` keeps VoiceOver inside the dialog rather
+            than letting it wander onto the screen behind. */}
+        <Pressable accessible={false} onPress={onCancel} style={styles.backdrop}>
+          <Pressable
+            accessibilityViewIsModal
+            accessibilityRole="alert"
+            onPress={stopPropagation}
+            style={styles.dialog}
+            testID={testID}
+          >
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.body}>{body}</Text>
+            <View style={styles.actions}>
               <Button
-                label={confirmLabel}
-                onPress={onConfirm}
-                testID={confirmTestID}
-                variant="primary"
+                label={cancelLabel}
+                onPress={onCancel}
+                testID={cancelTestID}
+                variant="secondary"
               />
-            ) : null}
-          </View>
+              {showConfirmAction ? (
+                <Button
+                  label={confirmLabel}
+                  onPress={onConfirm}
+                  testID={confirmTestID}
+                  variant="primary"
+                />
+              ) : null}
+            </View>
+          </Pressable>
         </Pressable>
-      </Pressable>
-    </Modal>
+      </OverlayScrim>
+    </AppOverlay>
   );
 }

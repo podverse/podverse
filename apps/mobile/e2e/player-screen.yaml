@@ -29,16 +29,21 @@ name: Player screen flow
     id: full-player-screen
 - assertVisible:
     id: full-player-sections
-# Pane copy sits below the chip strip; first paint shows chips only.
+# First paint keeps the whole transport on screen with the chip strip peeking under it, and the
+# condensed bar belongs to the scrolled state. Pane copy stays mounted below the fold so scrolling
+# reveals it without a pop-in, which is why its absence is left to the screenshot: off-screen and
+# unmounted read the same to Maestro on iOS.
+- assertVisible:
+    id: full-player-transport-row
 - assertNotVisible:
-    id: full-player-summary-text
+    id: full-player-condensed-bar
 - takeScreenshot: player-screen-initial-peek
 
 - scrollUntilVisible:
     element:
       id: full-player-condensed-bar
     direction: DOWN
-    timeout: ${TIMEOUT_SLOW}
+    timeout: ${TIMEOUT_SLOWEST}
 - assertVisible:
     id: full-player-condensed-play-pause
 - tapOn:
@@ -81,29 +86,68 @@ name: Player screen flow
     id: full-player-chapter-marker
 - takeScreenshot: player-screen-region-restored
 
-- longPressOn:
-    id: full-player-scrubber
-- extendedWaitUntil:
-    visible:
-      id: full-player-chapter-tooltip
-    timeout: ${TIMEOUT_SLOW}
-- takeScreenshot: player-screen-chapter-tooltip
+- tapOn:
+    id: full-player-section-chapters
 - extendedWaitUntil:
     notVisible:
-      id: full-player-chapter-tooltip
+      id: full-player-pane-loading-chapters
     timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: full-player-transport-row
+- scrollUntilVisible:
+    element:
+      id: full-player-chapter-row
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-chapter-row
+- takeScreenshot: player-screen-chapters-pane
+
+- scrollUntilVisible:
+    element:
+      id: full-player-region
+    direction: UP
+    timeout: ${TIMEOUT_SLOW}
+
+# The chapter tooltip is a transient affordance. A hierarchy snapshot on Android can take longer
+# than the window it lives in, so this flow does not assert it — asserting it would require the
+# label to stay on screen. The screenshot in the report is the check.
+- longPressOn:
+    id: full-player-scrubber
+- takeScreenshot: player-screen-chapter-tooltip
+- tapOn:
+    id: full-player-scrubber
 
 - tapOn:
     id: full-player-create-clip
-- assertVisible:
-    id: full-player-create-clip-dialog
-- takeScreenshot: player-screen-create-clip-placeholder
+# The first Create clip of an install covers the form with the how-to (make-clip covers its content).
+# Overlays live in the app's own tree, so the form's ids stay in the hierarchy underneath and only a
+# real dismissal makes the header actionable — asserting the form first would tap through the how-to.
+- extendedWaitUntil:
+    visible:
+      id: make-clip-how-to-modal
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    notVisible:
+      id: make-clip-how-to-modal-loading
+    timeout: ${TIMEOUT_SLOWER}
 - tapOn:
-    id: full-player-create-clip-close
+    id: make-clip-how-to-close
 - assertNotVisible:
-    id: full-player-create-clip-dialog
+    id: make-clip-how-to-modal
 - assertVisible:
-    id: full-player-action-row
+    id: make-clip-screen
+- assertVisible:
+    id: make-clip-close
+- takeScreenshot: player-screen-create-clip-screen
+- tapOn:
+    id: make-clip-close
+# Popping back to the player plays a stack transition, so wait for it rather than asserting into the
+# animation.
+- extendedWaitUntil:
+    visible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
 
 - tapOn:
     id: full-player-more
@@ -138,21 +182,6 @@ name: Player screen flow
 - takeScreenshot: player-screen-sleep-sheet
 - tapOn:
     id: full-player-sleep-sheet-cancel
-
-# A chip tap is navigation: the list scrolls until the chips stick under the condensed bar.
-- tapOn:
-    id: full-player-section-chapters
-- extendedWaitUntil:
-    visible:
-      id: full-player-condensed-bar
-    timeout: ${TIMEOUT_SLOW}
-- extendedWaitUntil:
-    notVisible:
-      id: full-player-pane-loading-chapters
-    timeout: ${TIMEOUT_SLOWER}
-- assertVisible:
-    id: full-player-chapter-row
-- takeScreenshot: player-screen-chapters-pane
 
 - runFlow:
     when:

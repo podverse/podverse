@@ -1,32 +1,78 @@
 import type { DTOItem } from '@podverse/helpers/dto';
+import type {
+  EnclosureSelectedParams,
+  LabeledItemEnclosure,
+  MediaTypePreference,
+} from '@podverse/helpers/item/itemEnclosure';
+import {
+  buildLabeledItemEnclosures,
+  getSelectedLabeledItemEnclosureAndSource,
+  resolvePreferredMediaTypeEnclosureSelectedParams,
+} from '@podverse/helpers/item/itemEnclosure';
 
 import { resolveE2eMediaUrl } from '../e2e/resolveE2eMediaUrl';
 
-const isAudioType = (type: string | null | undefined): boolean => {
-  return typeof type === 'string' && type.toLowerCase().startsWith('audio');
+export const DEFAULT_ENCLOSURE_SELECTED_PARAMS: EnclosureSelectedParams = {
+  enclosureRowSelected: null,
+  sourceRowSelected: null,
+  type: 'default',
 };
 
-/**
- * Resolve the audio-first enclosure URL for an item. Prefers an audio
- * enclosure, then the item's default enclosure, then the first; picks the first source `uri`.
- * Video items still resolve to a URL here (native engine can play the audio track). Returns `null`
- * when no usable source exists. The result is E2E-rewritten so device tests hit the local host.
- */
-export function resolveItemAudioEnclosureUrl(item: DTOItem): string | null {
-  const enclosures = item.item_enclosures ?? [];
-  if (enclosures.length === 0) {
+export const isFreshEnclosureSelectedParams = (params: EnclosureSelectedParams): boolean => {
+  return (
+    params.type === 'default' &&
+    params.enclosureRowSelected === null &&
+    params.sourceRowSelected === null
+  );
+};
+
+export const resolveSessionEnclosureSelectedParams = (params: {
+  current: EnclosureSelectedParams;
+  labeledItemEnclosures: LabeledItemEnclosure[];
+  preferredMediaType: MediaTypePreference;
+}): EnclosureSelectedParams => {
+  if (!isFreshEnclosureSelectedParams(params.current)) {
+    return params.current;
+  }
+  if (params.labeledItemEnclosures.length === 0) {
+    return params.current;
+  }
+  return resolvePreferredMediaTypeEnclosureSelectedParams(
+    params.labeledItemEnclosures,
+    params.preferredMediaType
+  );
+};
+
+export const resolveItemEnclosureUrl = (params: {
+  labeledItemEnclosures: LabeledItemEnclosure[];
+  selectedParams: EnclosureSelectedParams;
+}): string | null => {
+  const selected = getSelectedLabeledItemEnclosureAndSource({
+    enclosureRowIndex: params.selectedParams.enclosureRowSelected,
+    labeledItemEnclosures: params.labeledItemEnclosures,
+    sourceRowIndex: params.selectedParams.sourceRowSelected,
+    type: params.selectedParams.type,
+  });
+  const uri = selected.source?.uri?.trim();
+  if (uri === undefined || uri.length === 0) {
     return null;
   }
+  return resolveE2eMediaUrl(uri);
+};
 
-  const preferred =
-    enclosures.find((enclosure) => isAudioType(enclosure.type)) ??
-    enclosures.find((enclosure) => enclosure.item_enclosure_default) ??
-    enclosures[0];
+export const resolveSelectedItemEnclosureMediaType = (params: {
+  labeledItemEnclosures: LabeledItemEnclosure[];
+  selectedParams: EnclosureSelectedParams;
+}): 'audio' | 'video' | null => {
+  const selected = getSelectedLabeledItemEnclosureAndSource({
+    enclosureRowIndex: params.selectedParams.enclosureRowSelected,
+    labeledItemEnclosures: params.labeledItemEnclosures,
+    sourceRowIndex: params.selectedParams.sourceRowSelected,
+    type: params.selectedParams.type,
+  });
+  return selected.labeledItemEnclosure?.mediaType ?? null;
+};
 
-  const uri = preferred?.item_enclosure_sources?.[0]?.uri;
-  if (typeof uri !== 'string' || uri.trim() === '') {
-    return null;
-  }
-
-  return resolveE2eMediaUrl(uri.trim());
-}
+export const buildItemLabeledEnclosures = (item: DTOItem): LabeledItemEnclosure[] => {
+  return buildLabeledItemEnclosures(item.item_enclosures ?? []);
+};

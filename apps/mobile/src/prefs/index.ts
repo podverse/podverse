@@ -17,6 +17,13 @@ export type {
   SubscriptionListFilter,
 } from './prefsStore';
 export {
+  hasSeenMakeClipHowToPref,
+  readClipVisibilityPref,
+  writeClipVisibilityPref,
+  writeSeenMakeClipHowToPref,
+} from './clipPrefs';
+export type { ClipVisibility } from './clipPrefs';
+export {
   hydrateOfflineMode,
   isOfflineModeEnabled,
   isSyncNetworkUsable,
@@ -27,5 +34,7 @@ export {
   writeOfflineModeEnabled,
 } from './offlineMode';
 export type { OfflineModeControls } from './offlineMode';
+export { useOfflineStatus } from './offlineStatus';
+export type { OfflineCause, OfflineStatus } from './offlineStatus';
 export { DEFAULT_VISIBLE_TABS, readVisibleTabs, writeVisibleTabs } from './tabLayout';
 export type { ContentTabId } from './tabLayout';

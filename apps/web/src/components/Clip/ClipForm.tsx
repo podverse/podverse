@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { hhmmssToSecondsNumber } from '@podverse/helpers';
+import { CLIP_END_PREVIEW_LEAD_SECONDS, hhmmssToSecondsNumber } from '@podverse/helpers';
 import {
   Button,
   CallToActionMessage,
@@ -91,7 +91,10 @@ export const ClipForm: React.FC<ClipFormProps> = ({
   const endTimeOnButtonClick = () => {
     if (endTimeString) {
       const endTimeInSeconds = hhmmssToSecondsNumber(endTimeString);
-      const seekTime = endTimeInSeconds > 3 ? endTimeInSeconds - 3 : 0;
+      const seekTime =
+        endTimeInSeconds > CLIP_END_PREVIEW_LEAD_SECONDS
+          ? endTimeInSeconds - CLIP_END_PREVIEW_LEAD_SECONDS
+          : 0;
       seek(seekTime);
       setMPCurrentTime(seekTime);
       pauseAt(endTimeInSeconds);

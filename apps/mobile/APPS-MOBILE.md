@@ -132,7 +132,7 @@ Auto now-playing. **Do not** use `react-native-track-player`.
 ## Player UI (Track 11)
 
 Mini player (`src/components/player/MiniPlayer.tsx`) and full player
-(`src/screens/player/FullPlayerScreen.tsx` + `FullPlayerUpNext` / `FullPlayerSegments` /
+(`src/screens/player/FullPlayerScreen.tsx` + `FullPlayerSegments` /
 `FullPlayerSpeedControl` / `FullPlayerSleepTimer`) both read the **shared** `PlaybackProvider`
 (`usePlayback()`) hosted at the app root and drive the one process-wide `nativePlaybackBridge`
 singleton. Expanding the mini player to the full player modal must **never** call `bridge.load` /

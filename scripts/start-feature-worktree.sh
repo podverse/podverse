@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Podverse Start Feature Worktree Script
-# Creates a new branch in a new work tree with symlinked env overrides (optional LLM history scaffold disabled; see docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md),
+# Creates a new branch in a new work tree with symlinked env overrides,
 # so you can start working immediately without re-entering override values.
 #
 # Optional: set PODVERSE_NIX_DEV_SHELL (e.g. .#fish) to use a non-default Nix dev shell
@@ -105,7 +105,7 @@ echo ""
 echo -e "${CYAN}Creating work tree at $WORKTREE_PATH (branch: $BRANCH)...${NC}"
 (cd "$REPO_ROOT" && git worktree add "$WORKTREE_PATH" -b "$BRANCH" "$BASE_BRANCH")
 
-# Resolve to absolute path for make -C and history file
+# Resolve to absolute path for make -C
 if [[ "$WORKTREE_PATH" != /* ]]; then
   WORKTREE_ABS="$(cd "$REPO_ROOT" && cd "$WORKTREE_PATH" && pwd)"
 else
@@ -132,9 +132,6 @@ else
   (cd "$WORKTREE_PATH" && npm install)
   echo -e "${YELLOW}Nix not in PATH; used system npm. For flake tools, run 'direnv allow' and use the Nix shell.${NC}"
 fi
-
-# Feature worktrees do not create LLM history files automatically.
-# Add notes manually when the work benefits from a durable history.
 
 echo ""
 echo -e "${GREEN}Work tree ready.${NC}"

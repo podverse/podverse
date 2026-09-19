@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
+import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosure';
 import { clampRatio } from '@podverse/helpers/math';
 
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
@@ -16,6 +17,7 @@ import { LIST_ROW_ACTION_ICON_SIZE, LIST_ROW_PLAY_ICON_SIZE } from '../../theme/
 import { useTheme } from '../../theme/useTheme';
 import type { ButtonSize, ButtonVariant } from '../primitives';
 import { Button, MoreMenu, ProgressTrack } from '../primitives';
+import { EnclosureSourcePickerSheet } from './EnclosureSourcePickerSheet';
 
 /**
  * One "more" menu entry. `label` is passed **already localized** by the caller (or produced by
@@ -184,14 +186,51 @@ export function MediaRowActions({
 }: MediaRowActionsProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
+  const {
+    activeTarget,
+    enclosureSelectedParams,
+    itemLabeledEnclosures,
+    switchEnclosureSelectedParams,
+  } = usePlaybackSession();
   const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const [isSourcePickerVisible, setIsSourcePickerVisible] = useState(false);
   const useIcons = appearance === 'icons';
   const hasDuration = durationLabel !== null && durationLabel.length > 0;
   // Icon rows follow legacy: Play is the glowing ring; More is a bare ellipsis (no outline).
   const playButtonVariant: ButtonVariant = useIcons ? 'play' : playVariant;
   const moreButtonVariant: ButtonVariant = useIcons ? 'ghost' : playVariant;
 
-  const hasMoreActions = moreActions !== undefined && moreActions.length > 0;
+  const resolvedPlaybackMediaId =
+    playbackMediaId !== null ? normalizeHomeFeedPlaybackMediaId(playbackMediaId) : null;
+  const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
+  const isActiveRow = activeMediaId !== null && activeMediaId === resolvedPlaybackMediaId;
+  const canOpenSourcePicker = isActiveRow && itemLabeledEnclosures.length > 1;
+
+  const menuActions = useMemo<MediaRowMoreAction[]>(() => {
+    const actions = moreActions ?? [];
+    if (!canOpenSourcePicker) {
+      return actions;
+    }
+    return [
+      {
+        key: 'source',
+        label: t('media_player.source.source'),
+        onPress: () => {
+          setIsSourcePickerVisible(true);
+        },
+        testID: `media-row-action-source${idSuffix}`,
+      },
+      ...actions,
+    ];
+  }, [canOpenSourcePicker, idSuffix, moreActions, t]);
+
+  const hasMoreActions = menuActions.length > 0;
+
+  useEffect(() => {
+    if (!canOpenSourcePicker) {
+      setIsSourcePickerVisible(false);
+    }
+  }, [canOpenSourcePicker]);
 
   const styles = useMemo(
     () =>
@@ -307,7 +346,7 @@ export function MediaRowActions({
           onCancel={closeSheet}
           sections={[
             {
-              items: (moreActions ?? []).map((action) => ({
+              items: menuActions.map((action) => ({
                 disabled: action.disabled,
                 key: action.key,
                 label: action.label,
@@ -321,6 +360,20 @@ export function MediaRowActions({
           ]}
           testID={`media-row-menu${idSuffix}`}
           visible={isSheetVisible}
+        />
+      ) : null}
+      {canOpenSourcePicker ? (
+        <EnclosureSourcePickerSheet
+          labeledItemEnclosures={itemLabeledEnclosures}
+          onCancel={() => {
+            setIsSourcePickerVisible(false);
+          }}
+          onSelectParams={(params: EnclosureSelectedParams) => {
+            void switchEnclosureSelectedParams(params);
+          }}
+          selectedParams={enclosureSelectedParams}
+          testID={`media-row-source-picker${idSuffix}`}
+          visible={isSourcePickerVisible}
         />
       ) : null}
     </View>

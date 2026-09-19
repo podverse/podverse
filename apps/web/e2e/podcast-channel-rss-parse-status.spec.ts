@@ -30,7 +30,7 @@ test.describe('Podcast channel RSS parse status', () => {
         new RegExp(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}.*type=settings`)
       );
       await expect(page.getByRole('heading', { name: 'RSS feed' })).toBeVisible();
-      await expect(page.getByText(/Last Parsed:/)).toBeVisible();
+      await expect(page.getByText(/Last parsed:/)).toBeVisible();
       await expect(page.getByText(/Last failed parse:/)).toBeVisible();
 
       await capturePageLoad(

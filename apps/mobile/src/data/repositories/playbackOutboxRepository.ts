@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, ne, or } from 'drizzle-orm';
 
 import { toEpochMsOrNull } from '@podverse/helpers';
 import type { DTOQueue, DTOQueueResource, QueueExtraParams } from '@podverse/helpers/dto';
@@ -9,7 +9,7 @@ import { computeClockOffsetMs } from '@podverse/helpers/playbackTimestamps';
 
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { createUuid } from '../../lib/createUuid';
-import { isOfflineModeEnabled } from '../../prefs/offlineMode';
+import { isEffectivelyOffline } from '../../net/connectivity';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import { readPlaybackClockOffsetMs, writePlaybackClockOffsetMs } from '../sync';
 import type {
@@ -64,6 +64,8 @@ export type PlaybackOutboxDrainResult = {
 
 export type PlaybackOutboxReconcileResult = PlaybackOutboxDrainResult & {
   adoptedRows: number;
+  /** Now-playing positions another device advanced, for the player to move to. */
+  adoptPositions: PlaybackReconcileResourceState[];
   pushedEvents: number;
   resolveConflicts: PlaybackReconcileDifferentNowPlayingConflict[];
 };
@@ -932,6 +934,27 @@ export const playbackOutboxRepository = {
           },
         });
 
+      // A queue holds one now-playing resource: taking that spot sends the previous holder to
+      // history with its saved position, which is what the server does when a resource is added to
+      // now-playing. Local state has to follow, or an offline session leaves two rows claiming the
+      // spot and the reconcile resolves the older one back into it.
+      if (mergedState.zone === 'now_playing') {
+        await transaction
+          .update(schema.playbackLocalState)
+          .set({ zone: 'history' })
+          .where(
+            and(
+              eq(schema.playbackLocalState.accountIdText, event.accountIdText),
+              eq(schema.playbackLocalState.queueIdText, event.queueIdText),
+              eq(schema.playbackLocalState.zone, 'now_playing'),
+              or(
+                ne(schema.playbackLocalState.resourceKind, event.resourceKind),
+                ne(schema.playbackLocalState.resourceIdText, event.resourceIdText)
+              )
+            )
+          );
+      }
+
       const candidates = await transaction
         .select({ id: schema.playbackOutbox.id, eventKind: schema.playbackOutbox.eventKind })
         .from(schema.playbackOutbox)
@@ -1018,7 +1041,10 @@ export const playbackOutboxRepository = {
     let replayedEvents = 0;
     let deletedRows = 0;
 
-    while (!isOfflineModeEnabled()) {
+    // Stops on the user's switch and on a network that is not working. Without the second, a 500-
+    // event outbox grinds through every batch failing each one, at the moment the app can least
+    // afford the work. Undelivered rows stay put; the next replay picks them up where this left off.
+    while (!isEffectivelyOffline()) {
       const batchRows = await getDb()
         .select()
         .from(schema.playbackOutbox)
@@ -1041,7 +1067,7 @@ export const playbackOutboxRepository = {
       }
 
       for (const [queueIdText, rows] of byQueue.entries()) {
-        if (isOfflineModeEnabled()) {
+        if (isEffectivelyOffline()) {
           break;
         }
         const result = await replayOneQueueBatch(context, queueIdText, rows);
@@ -1101,6 +1127,7 @@ export const playbackOutboxRepository = {
     return {
       ...drained,
       adoptedRows: plan.adopt.length,
+      adoptPositions: plan.adoptPositions,
       pushedEvents,
       resolveConflicts: plan.resolveConflicts,
     };

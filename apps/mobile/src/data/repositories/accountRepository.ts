@@ -14,6 +14,7 @@ import {
   mapSubscribedChannelToNode,
   mergeLibraryBrowseNodes,
 } from './libraryBrowseProjection';
+import { playlistRepository } from './playlistRepository';
 import { subscriptionsRepository } from './subscriptionsRepository';
 import type { MobileAuthRequestContext } from './types';
 
@@ -133,15 +134,12 @@ export const accountRepository = {
       return [];
     }
 
-    const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
-      apiRequestService.reqPlaylistGetMany({
-        medium: 'all',
-        page: 1,
-        range: null,
-        sort: 'a_z',
-        type: 'private_followed',
-      })
-    );
+    const response = await playlistRepository.listFollowed(context, {
+      medium: 'all',
+      page: 1,
+      range: null,
+      sort: 'a_z',
+    });
 
     const nodes: NativeCacheBrowseNode[] = [];
     for (const playlist of response.data) {

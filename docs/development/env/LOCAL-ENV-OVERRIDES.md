@@ -156,7 +156,6 @@ optional issue numbers), then:
 - Runs `direnv allow` in the work tree (if direnv is installed) so the first terminal there loads
   the Nix flake
 - Runs `npm install` in the work tree (via Nix when available) so `node_modules` is ready
-- Creates the LLM history file in the new work tree
 
 Optional: set `PODVERSE_NIX_DEV_SHELL` (e.g. `.#fish`) so the Nix shell used for `npm install`
 matches your preferred interactive shell. Example: `PODVERSE_NIX_DEV_SHELL=.#fish make start_feature_worktree`.

@@ -5,6 +5,21 @@ name: Offline Mode
 # then restore Browse when the toggle is turned off.
 #
 # Needs flow_needs_e2e_api (login + seeded podcast deep link).
+#
+# Covers the user's toggle only. The banner also reports two states the app derives from the
+# network, and neither can be produced honestly from inside a Maestro run:
+#
+#   - "Can't reach the server" (id: offline-mode-banner-server_unreachable) needs the API to go
+#     away mid-run. Maestro cannot stop the Mobile E2E API process, so it is a manual check:
+#     sign in, stop that process, use the app until a request fails, and the strip should read
+#     "Can't reach the server" while the tab bar and mini player stay put. Restarting the API
+#     should clear it without a relaunch.
+#   - "No internet connection" (id: offline-mode-banner-device_offline) needs airplane mode, which
+#     is not reliably togglable on both an iOS simulator and an Android emulator.
+#
+# The timing rules underneath both — how long a blip is tolerated, when the strip may change, and
+# how often the app retries — are unit-tested. Asserting a debounce window through the UI would
+# measure the harness, not the app.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -23,6 +38,10 @@ name: Offline Mode
     id: more-offline-mode-description
 - assertVisible:
     id: offline-mode-banner
+# The per-cause handle: proves the strip is explaining the toggle rather than a network state,
+# which the shared outer id cannot distinguish.
+- assertVisible:
+    id: offline-mode-banner-forced
 - takeScreenshot: offline-mode-more-on
 
 - tapOn:
@@ -63,6 +82,10 @@ name: Offline Mode
     id: more-offline-mode-description
 - assertNotVisible:
     id: offline-mode-banner
+# The strip goes away entirely rather than swapping to a network-flavored message: the E2E API is
+# up, so the app is online in every sense.
+- assertNotVisible:
+    id: offline-mode-banner-forced
 - takeScreenshot: offline-mode-more-off
 
 - tapOn:

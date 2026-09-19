@@ -313,6 +313,29 @@ whether the request was user-initiated or background sync.
 - Before starting a long native build, device reset, or E2E run, state the command, intended VS Code
   tab, and expected scope. For background work, report meaningful milestones and explicitly report
   completion or failure before starting dependent work.
+- Start from `failures.json`, never from a directory of screenshots. One screenshot per failure, and
+  only when the failure is visual.
+- Search a Maestro log for the failing step and read a window around it. Do not read a run log end
+  to end.
+- **Never read a view-hierarchy or `uiautomator` dump whole.** Grep it for the `testID` or label in
+  question. These files are enormous and almost entirely irrelevant to the question being asked.
+- Do not re-read a file you already have in context to confirm something you already read.
+- Write the deferred-problem entry at the moment of failure, while the evidence is in hand.
+  Reconstructing it later means re-reading everything.
+
+## Product over runner
+
+A change that leaves the app worse than it was is not a fix, however green it makes the run.
+
+- When a flow cannot observe a correct behavior, the flow gives way: descope the assertion, keep a
+  screenshot where the affordance is visual, and say in the response that coverage was traded away
+  and why.
+- Check whether the behavior is specified before changing it. A `done` detail under
+  `docs/proposals/` outranks a failing assertion, and an assertion that contradicts one is itself
+  the bug.
+- Verify a platform default before writing a workaround for it. A global switch flipped on a wrong
+  premise spreads into docs and later work.
+- Descoping an assertion is a legitimate outcome. Deleting a whole flow needs the operator.
 
 ## Completion response
 

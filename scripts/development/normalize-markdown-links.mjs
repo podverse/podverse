@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Rewrite markdown link hrefs that start with ../ to repo-root paths (leading /).
- * Skips .llm/history/. Dry-run by default; pass --write to apply.
+ * Dry-run by default; pass --write to apply.
  *
  * Run from repository root:
  *   node scripts/development/normalize-markdown-links.mjs
@@ -29,25 +29,13 @@ const IGNORE_DIRS = new Set([
 const LINK_HREF_RE = /\]\((\.\.\/(?:[^()]|\([^()]*\))+)\)/g;
 const FENCED_BLOCK_RE = /(```[\s\S]*?```)/g;
 
-function isHistoryPath(relPath) {
-  const normalized = relPath.split(path.sep).join('/');
-  return normalized.startsWith('.llm/history/') || normalized === '.llm/history';
-}
-
 function shouldProcessFile(absPath) {
   const rel = path.relative(repoRoot, absPath);
-  if (!rel.endsWith('.md') && !rel.endsWith('.mdc')) {
-    return false;
-  }
-  return !isHistoryPath(rel);
+  return rel.endsWith('.md') || rel.endsWith('.mdc');
 }
 
-function shouldEnterDir(absPath) {
-  const rel = path.relative(repoRoot, absPath);
-  if (rel === '') {
-    return true;
-  }
-  return !isHistoryPath(rel);
+function shouldEnterDir() {
+  return true;
 }
 
 function pathExists(absPath) {
@@ -73,11 +61,7 @@ function candidateRepoHrefs(resolvedAbs) {
 
   if (rel.startsWith('.llm/')) {
     const tail = rel.slice('.llm/'.length);
-    if (
-      !tail.startsWith('plans/') &&
-      !tail.startsWith('history/') &&
-      !tail.startsWith('exports/')
-    ) {
+    if (!tail.startsWith('plans/') && !tail.startsWith('exports/')) {
       candidates.push(tail);
     }
   }

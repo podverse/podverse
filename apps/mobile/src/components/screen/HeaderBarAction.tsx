@@ -19,6 +19,7 @@ export type HeaderBarActionProps = {
  * Title-bar control for the trailing (or leading) header slot. Pass an icon, a localized label,
  * or both. Screens and the image viewer share this so top-right actions stay one control.
  * Glyph and label use `tokens.text.primary` (same as the title), never accent/link blue.
+ * A press dims to the same 0.7 opacity `Button` uses so the tap is visible.
  */
 export function HeaderBarAction({
   accessibilityLabel,
@@ -44,6 +45,9 @@ export function HeaderBarAction({
         buttonDisabled: {
           opacity: 0.4,
         },
+        buttonPressed: {
+          opacity: 0.7,
+        },
         label: {
           color: tokens.text.primary,
           fontSize: 16,
@@ -61,7 +65,11 @@ export function HeaderBarAction({
       disabled={disabled}
       hitSlop={8}
       onPress={onPress}
-      style={[styles.button, disabled ? styles.buttonDisabled : null]}
+      style={({ pressed }) => [
+        styles.button,
+        disabled ? styles.buttonDisabled : null,
+        !disabled && pressed ? styles.buttonPressed : null,
+      ]}
       testID={testID}
     >
       {icon !== undefined ? (

@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 import {
@@ -189,6 +189,60 @@ export async function clearSeededPodcastQueueResources(page: Page): Promise<void
       }
     }
   }
+}
+
+/**
+ * `MediaPlayerControllerLiveStreamAV` builds its media element imperatively and appends it to a
+ * container tagged `data-vjs-player-<mediaType>`. Scoping to that container separates the live
+ * element from the always-mounted non-live `<audio>`, which shares the same tag name.
+ */
+export function liveStreamMediaContainer(page: Page, mediaType: 'audio' | 'video'): Locator {
+  return page.locator(`[data-vjs-player-${mediaType}]`);
+}
+
+export function liveStreamMediaElement(page: Page, mediaType: 'audio' | 'video'): Locator {
+  return liveStreamMediaContainer(page, mediaType).locator(mediaType);
+}
+
+/**
+ * The media player aside carries its own Play control, so a bare `Play` role query matches it as
+ * soon as anything is loaded. Scope detail-page play clicks to `main` to reach the header button.
+ */
+export async function clickDetailPagePlayButton(page: Page): Promise<void> {
+  await page.locator('main').getByRole('button', { name: 'Play' }).first().click();
+}
+
+/**
+ * Open a seeded live item's detail page and start it. `mediaElementSourceFromTarget` returns `null`
+ * for livestream targets, so the non-live `<audio>` stays sourceless and every sourced element on
+ * the page belongs to the live controller.
+ */
+export async function openLivestreamAndPlay(
+  page: Page,
+  itemIdText: string,
+  heading: string
+): Promise<void> {
+  await page.goto(`/podcast/livestream/${itemIdText}`);
+  await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+  await clickDetailPagePlayButton(page);
+}
+
+export async function openEpisodeAndPlay(
+  page: Page,
+  itemIdText: string,
+  heading: string
+): Promise<void> {
+  await page.goto(`/episode/${itemIdText}`);
+  await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+  await clickDetailPagePlayButton(page);
+}
+
+/**
+ * Exactly one media element on the page carries a `src`. Two would mean the previous controller was
+ * never torn down, which is the double-audio regression the live/non-live transitions guard.
+ */
+export async function expectSingleSourcedMediaElement(page: Page): Promise<void> {
+  await expect(page.locator('audio[src], video[src]')).toHaveCount(1);
 }
 
 export async function expectMediaPlayerTitleAbsent(page: Page, title: string): Promise<void> {

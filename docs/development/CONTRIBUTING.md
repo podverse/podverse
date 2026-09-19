@@ -24,7 +24,7 @@ Build order details and dependency-safe sequencing are documented in
 
 ### Starting a Feature
 
-Use the feature script to create a properly named branch with LLM history file:
+Use the feature script to create a properly named branch:
 
 ```bash
 npm run start-feature
@@ -34,7 +34,6 @@ This interactive script:
 
 - Prompts for feature type (feature, fix, chore, docs, hotfix, release, llm)
 - Creates a branch with proper naming convention (e.g., `feature/add-podcast-chapters`)
-- Creates an LLM history file in `.llm/history/active/`
 - Links to GitHub issues (optional)
 
 To start a feature in a **new work tree** (so the main clone stays on `develop`), with env overrides
@@ -45,9 +44,9 @@ make start_feature_worktree
 ```
 
 This uses the same prompts as `npm run start-feature`, then creates the work tree and branch, runs
-`make local_env_link` and `make local_env_setup` in the new work tree, runs `direnv allow` and
-`npm install` (via Nix when available) so the new window is ready to use, and creates the LLM
-history file there. You can set `PODVERSE_NIX_DEV_SHELL=.#fish` (or another flake shell) so the
+`make local_env_link` and `make local_env_setup` in the new work tree, and runs `direnv allow` and
+`npm install` (via Nix when available) so the new window is ready to use. You can set
+`PODVERSE_NIX_DEV_SHELL=.#fish` (or another flake shell) so the
 Nix environment used for npm install matches your preferred shell. See [Local Env Overrides (home
 directory)](env/LOCAL-ENV-OVERRIDES.md). When doing local setup (prepare/link/setup), after
 `local_env_setup` you must start infra and create DB users: run `make local_infra_up` then
@@ -58,7 +57,6 @@ directory)](env/LOCAL-ENV-OVERRIDES.md). When doing local setup (prepare/link/se
 1. Code and lint: `npm run lint`
 2. Use `import type` for imports that are only used in type positions (annotations, generics, etc.); the ESLint rule `@typescript-eslint/consistent-type-imports` enforces this and can auto-fix with `npm run lint:fix` (or `eslint --fix`).
 3. Commit with issue reference: `Fix bug #123`
-4. Keep LLM history updated if using AI assistance
 
 ### Dependencies and lockfile
 
@@ -67,8 +65,6 @@ If you **add or change dependencies** (or bump version), the lockfile must be ge
 ### Completing a Feature
 
 When ready to submit a PR, simply push your branch and open a PR.
-
-> **Note**: LLM history files are automatically moved from `active/` to `completed/` when the PR is merged. You don't need to run any completion commands.
 
 ### Shell script formatting (optional)
 
@@ -170,28 +166,5 @@ Jenkins under `infra/pipelines/jenkins/` is for **alpha server** automation only
 
 ## LLM Development (Optional)
 
-If using AI assistants (Cursor, Claude, etc.), we encourage tracking your development history:
-
-1. **Start with the script**: `npm run start-feature` creates both the branch and history file
-2. **Keep history updated**: Record prompts and key decisions in `.llm/history/active/`
-3. **Submit your PR**: History is automatically moved to `completed/` when merged
-
-### 10-Session Limit
-
-History files are limited to **10 sessions maximum** to prevent context overload. When a file reaches 10 sessions:
-
-1. Rename `[feature].md` to `[feature]-part-01.md`
-2. Create `[feature]-part-02.md` for sessions 11+
-3. Continue numbering sessions sequentially (don't reset)
-
-Example structure:
-
-```
-.llm/history/active/
-  my-feature/                    # Each feature has its own directory
-    my-feature.md                # Initial file (or after split:)
-    my-feature-part-01.md        # Sessions 1-10
-    my-feature-part-02.md        # Sessions 11-20, current
-```
-
-This helps maintain context for future LLM sessions and documents architectural decisions. However, it's not required - contributors can develop with or without LLM assistance and history tracking.
+If you use AI assistants, standing guidance lives under `.cursor/` and feature plans live under
+`.llm/plans/`. See [DOCS-DEVELOPMENT-LLM.md](llm/DOCS-DEVELOPMENT-LLM.md).

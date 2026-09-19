@@ -3,18 +3,23 @@
 import { useState } from 'react';
 
 import type { DTOPopularityTrackingAgreement } from '@podverse/helpers';
-import { getPopularityTrackingAbridgedMarkdown } from '@podverse/helpers';
+import { getCopyMarkdownIntro } from '@podverse/helpers';
 
+import { WebLoadingSpinnerOverlay } from '../LoadingSpinner/WebLoadingSpinnerOverlay';
+import { CopyMarkdown } from '../Markdown/CopyMarkdown';
 import { PopularityTrackingDecisionActions } from './PopularityTrackingDecisionActions';
-import { PopularityTrackingMarkdown } from './PopularityTrackingMarkdown';
 
 type PopularityTrackingAgreementPanelProps = {
   agreement: DTOPopularityTrackingAgreement | null;
+  hasError?: boolean;
+  isLoading?: boolean;
   onDecided?: () => void;
 };
 
 export function PopularityTrackingAgreementPanel({
   agreement,
+  hasError = false,
+  isLoading = false,
   onDecided,
 }: PopularityTrackingAgreementPanelProps) {
   const [showFullAgreement, setShowFullAgreement] = useState(false);
@@ -23,18 +28,22 @@ export function PopularityTrackingAgreementPanel({
       ? null
       : showFullAgreement
         ? agreement.markdown
-        : getPopularityTrackingAbridgedMarkdown(agreement.markdown);
+        : getCopyMarkdownIntro(agreement.markdown);
+  const isCopyVisible = markdown !== null && !isLoading && !hasError;
+  const showSpinnerOverlay = isLoading || hasError || !isCopyVisible;
 
   return (
-    <>
-      {markdown !== null ? <PopularityTrackingMarkdown markdown={markdown} /> : null}
+    <div style={{ position: 'relative' }}>
+      {markdown !== null ? <CopyMarkdown markdown={markdown} /> : null}
+      <WebLoadingSpinnerOverlay isLoading={showSpinnerOverlay} />
       <PopularityTrackingDecisionActions
+        disabled={!isCopyVisible}
         onDecided={onDecided}
         onToggleFullAgreement={() => {
           setShowFullAgreement((current) => !current);
         }}
         showFullAgreement={showFullAgreement}
       />
-    </>
+    </div>
   );
 }

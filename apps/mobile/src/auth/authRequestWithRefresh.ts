@@ -1,7 +1,10 @@
 import { getErrorResponseBodyCode, getErrorResponseStatus } from '@podverse/helpers/error';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
+import type { RequestOutcome } from '../net/connectivity';
+import { reportNetworkOutcome } from '../net/connectivity';
 import { isOfflineModeEnabled, OfflineModeEnabledError } from '../prefs/offlineMode';
+import { classifySyncError } from '../sync/syncErrorClassification';
 import type { SessionEndReason } from './forcedLogoutNotice';
 import { createMobileApiRequestService } from './mobileApi';
 
@@ -13,6 +16,52 @@ export type AuthRequestDeps = {
 };
 
 let inFlightRefresh: Promise<string | null> | null = null;
+
+/**
+ * What a failure proves about the network, or null when it proves nothing.
+ *
+ * `classifySyncError` does the sorting so the connectivity machine and the sync event log can never
+ * disagree about the same error. Null matters: a bug in our own response handling is not evidence
+ * the network works, and reporting it as such would talk the app out of an offline state it is
+ * genuinely in.
+ */
+const networkOutcomeForError = (error: unknown): RequestOutcome | null => {
+  // Offline Mode parking its own requests is a preference, not a reading of the network.
+  if (error instanceof OfflineModeEnabledError) {
+    return null;
+  }
+
+  const { isOffline, isServerUnreachable } = classifySyncError(error);
+  if (isServerUnreachable) {
+    return 'server_error';
+  }
+  if (isOffline) {
+    return 'no_response';
+  }
+  return getErrorResponseStatus(error) === undefined ? null : 'reached_server';
+};
+
+/**
+ * Run a request and tell the connectivity machine what it proved.
+ *
+ * Every request the app makes is a free reachability test, and nearly all of them come through
+ * here, which is why automatic offline detection needs no polling of its own. An unhappy status
+ * still counts as reaching the server — the question is whether anything answered, not whether the
+ * answer was the one we wanted.
+ */
+const withNetworkOutcomeReported = async <T>(run: () => Promise<T>): Promise<T> => {
+  try {
+    const result = await run();
+    reportNetworkOutcome('reached_server');
+    return result;
+  } catch (error) {
+    const outcome = networkOutcomeForError(error);
+    if (outcome !== null) {
+      reportNetworkOutcome(outcome);
+    }
+    throw error;
+  }
+};
 
 export const refreshAccessTokenSingleFlight = async ({
   clearSession,
@@ -40,7 +89,9 @@ export const refreshAccessTokenSingleFlight = async ({
     try {
       // Use ApiRequestService methods — standalone reqAuthMobileRefresh is not
       // re-exported from @podverse/helpers-requests.
-      const refreshedTokens = await apiRequestService.reqAuthMobileRefresh(refreshToken);
+      const refreshedTokens = await withNetworkOutcomeReported(() =>
+        apiRequestService.reqAuthMobileRefresh(refreshToken)
+      );
       await setTokens({
         accessToken: refreshedTokens.access_token,
         refreshToken: refreshedTokens.refresh_token,
@@ -79,7 +130,7 @@ export const requestWithMobileAuthRefresh = async <T>(
   }
 
   try {
-    return await runRequest(initialApiRequestService);
+    return await withNetworkOutcomeReported(() => runRequest(initialApiRequestService));
   } catch (error) {
     if (error instanceof OfflineModeEnabledError) {
       throw error;
@@ -107,6 +158,6 @@ export const requestWithMobileAuthRefresh = async <T>(
       throw error;
     }
 
-    return runRequest(retryApiRequestService);
+    return withNetworkOutcomeReported(() => runRequest(retryApiRequestService));
   }
 };

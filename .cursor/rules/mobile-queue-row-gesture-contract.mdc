@@ -1,0 +1,34 @@
+---
+description: Queue row gesture contract in Library queue
+globs:
+  - "apps/mobile/src/screens/library/LibraryQueueScreen.tsx"
+  - "apps/mobile/src/components/reorder/ReorderableSections.tsx"
+  - "apps/mobile/src/components/primitives/SwipeActionRow.tsx"
+alwaysApply: false
+---
+
+# Mobile queue row gesture contract
+
+For rows on `LibraryQueueScreen`, keep one interaction contract:
+
+- Tap the row to play it and remove it from queue.
+- Remove is the swipe reveal action from `SwipeActionRow` only.
+- Reorder is long-press drag on the row body, not a separate inline button.
+
+These recognizers are composed deliberately:
+
+- A quick tap reaches play-and-remove.
+- Horizontal swipe reaches the remove reveal.
+- Long-press vertical drag starts reorder and does not trigger play on release.
+
+## Accessibility path
+
+Drag gestures are not the screen-reader path. Queue rows remain `accessibilityRole="adjustable"`
+with Move up / Move down actions (`misc.move_up` / `misc.move_down`) and those actions route through
+the same reorder resolver as drag.
+
+## Do not add parallel controls
+
+- Do not add an inline remove button for queue rows.
+- Do not add a More-menu remove row for queue rows.
+- Do not add a separate play button that competes with row tap.

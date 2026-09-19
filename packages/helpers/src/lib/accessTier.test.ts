@@ -81,6 +81,7 @@ const ANONYMOUS_FEATURES: GatedFeature[] = [
 const MEMBERSHIP_FEATURES: GatedFeature[] = [
   'add_by_rss_add',
   'add_by_rss_refresh',
+  'clip_authoring',
   'directory_add_by_rss',
   'notifications',
   'queue_history_sync',
@@ -118,6 +119,19 @@ describe('evaluateFeatureAccess', () => {
     });
 
     expect(evaluateFeatureAccess('add_by_rss_add', LAPSED)).toEqual({
+      allowed: false,
+      reason: 'membership_expired',
+      requiredTier: 'membership',
+    });
+  });
+
+  it('gates clip authoring by account and active membership', () => {
+    expect(evaluateFeatureAccess('clip_authoring', ANONYMOUS)).toEqual({
+      allowed: false,
+      reason: 'needs_account',
+      requiredTier: 'membership',
+    });
+    expect(evaluateFeatureAccess('clip_authoring', LAPSED)).toEqual({
       allowed: false,
       reason: 'membership_expired',
       requiredTier: 'membership',

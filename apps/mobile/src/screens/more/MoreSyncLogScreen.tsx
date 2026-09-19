@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Share, StyleSheet, Text, View } from 'react-native';
 
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
-import { Button } from '../../components/primitives';
+import { Button, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { isMobileE2eFromEnv } from '../../config/env';
 import type { SyncEventLogEntry } from '../../data/repositories';
@@ -197,6 +197,7 @@ export function MoreSyncLogScreen() {
         keyExtractor={(item) => String(item.id)}
         ListEmptyComponent={<ListEmpty messageKey="sync.log.empty" testID="sync-log-empty" />}
         ListHeaderComponent={renderHeader}
+        removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
         renderItem={renderRow}
       />
       <ConfirmDialog

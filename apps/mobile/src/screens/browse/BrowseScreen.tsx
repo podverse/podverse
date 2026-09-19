@@ -13,7 +13,11 @@ import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { BrowseStackParamList } from '../../navigation';
-import { BROWSE_STACK_ROUTES, buildPodcastDetailParams } from '../../navigation';
+import {
+  BROWSE_STACK_ROUTES,
+  buildAlbumDetailParams,
+  buildPodcastDetailParams,
+} from '../../navigation';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE } from '../../prefs/homeListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
@@ -26,7 +30,6 @@ import { HomeFeedGridCell } from '../home/HomeFeedGridCell';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { MediaTypeSelector } from '../home/MediaTypeSelector';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
-import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import type { BrowseCategoryOption } from './browseCategories';
 import {
@@ -116,12 +119,15 @@ export function BrowseScreen() {
       })
     : 0;
 
-  const addToPlaylistKind = useMemo<AddToPlaylistTarget['kind'] | null>(() => {
+  const addToPlaylistTarget = useMemo<{
+    kind: 'clip' | 'item';
+    medium: 'av' | 'music';
+  } | null>(() => {
     if (selectedMediaType === 'clips') {
-      return 'clip';
+      return { kind: 'clip', medium: 'av' };
     }
     if (selectedMediaType === 'episodes' || selectedMediaType === 'tracks') {
-      return 'item';
+      return { kind: 'item', medium: selectedMediaType === 'tracks' ? 'music' : 'av' };
     }
     return null;
   }, [selectedMediaType]);
@@ -400,7 +406,14 @@ export function BrowseScreen() {
         return;
       }
       if (selectedMediaType === 'albums') {
-        navigation.navigate(BROWSE_STACK_ROUTES.AlbumDetail, { albumId: row.id });
+        navigation.navigate(
+          BROWSE_STACK_ROUTES.AlbumDetail,
+          buildAlbumDetailParams({
+            albumId: row.id,
+            previewImageUrl: row.imageUrl,
+            previewTitle: row.title,
+          })
+        );
         return;
       }
       if (selectedMediaType === 'tracks') {
@@ -641,9 +654,13 @@ export function BrowseScreen() {
               isLast={index === feedRows.length - 1}
               mediaType={selectedMediaType}
               onAddToPlaylistPress={
-                status === 'authenticated' && addToPlaylistKind !== null
+                status === 'authenticated' && addToPlaylistTarget !== null
                   ? (nextRow) => {
-                      requestAddToPlaylist({ idText: nextRow.id, kind: addToPlaylistKind });
+                      requestAddToPlaylist({
+                        idText: nextRow.id,
+                        kind: addToPlaylistTarget.kind,
+                        medium: addToPlaylistTarget.medium,
+                      });
                     }
                   : undefined
               }

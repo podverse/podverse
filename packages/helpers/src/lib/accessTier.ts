@@ -26,6 +26,7 @@ export type GatedFeature =
   | 'add_by_rss_add'
   | 'add_by_rss_refresh'
   | 'add_by_rss_view'
+  | 'clip_authoring'
   | 'directory_add_by_rss'
   | 'downloads'
   | 'notifications'
@@ -55,6 +56,7 @@ export const FEATURE_REQUIRED_TIER: Readonly<Record<GatedFeature, AccessTier>> =
   // Server writes or server-side jobs.
   subscribe_sync: 'membership',
   queue_history_sync: 'membership',
+  clip_authoring: 'membership',
   add_by_rss_add: 'membership',
   add_by_rss_refresh: 'membership',
   notifications: 'membership',

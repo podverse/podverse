@@ -19,6 +19,7 @@ import {
   FULL_PLAYER_UTILITY_ROW_HEIGHT,
   resolveCondensedState,
   resolveFullPlayerLayout,
+  resolveMinPaneContentHeight,
 } from './fullPlayerLayout';
 
 const phoneInput = {
@@ -132,6 +133,39 @@ describe('resolveFullPlayerLayout', () => {
       playerRegionHeight: 0,
       viewerHeight: 0,
     });
+  });
+});
+
+describe('resolveMinPaneContentHeight', () => {
+  it('reserves enough scroll for the region to condense on a short pane', () => {
+    const minHeight = resolveMinPaneContentHeight({
+      hasSections: true,
+      playerRegionHeight: 700,
+      viewportHeight: 844,
+    });
+    const reachableOffset = minHeight - 844;
+
+    expect(reachableOffset).toBeGreaterThan(700 * FULL_PLAYER_CONDENSE_ENTER_RATIO);
+  });
+
+  it('reserves nothing when the target has no panes to scroll', () => {
+    expect(
+      resolveMinPaneContentHeight({
+        hasSections: false,
+        playerRegionHeight: 700,
+        viewportHeight: 844,
+      })
+    ).toBe(0);
+  });
+
+  it('reserves nothing before the viewport has been measured', () => {
+    expect(
+      resolveMinPaneContentHeight({
+        hasSections: true,
+        playerRegionHeight: 0,
+        viewportHeight: 0,
+      })
+    ).toBe(0);
   });
 });
 

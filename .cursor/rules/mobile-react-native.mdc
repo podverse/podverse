@@ -103,7 +103,8 @@ alwaysApply: false
   `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`,
   `VerticalCenter`, `HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `MobileScreenContainer`,
   `ThemedStackHeader`,
-  `SectionCard`, `ListSection`, `ReorderableSections` / `ReorderableList`,
+  `SectionCard`, `ListSection`, `ReorderableSections` / `ReorderableList` (`dragActivation` supports
+  row-long-press and `showHandle` toggles handle-only vs body drag),
   `ListLoading` / `ListEmpty` / `ListError`, `CallToActionSection`, `LoadingSection`,
   `AuthAwareLoadState`, `RetryableError`, `MediaRowActions`, `MiniPlayer`, gate/banner feedback.
   Do **not** use `@podverse/ui` (web/SCSS). Details: **mobile-reusable-components** skill.

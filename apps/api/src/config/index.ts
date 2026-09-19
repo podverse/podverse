@@ -94,6 +94,9 @@ type Config = {
     agreementDate: string;
     contentDir: string;
   };
+  managedCopy: {
+    contentDir: string;
+  };
   mailer: {
     disabled: boolean;
     host: string;
@@ -304,6 +307,9 @@ export const config: Config = {
     version: process.env.POPULARITY_TRACKING_AGREEMENT_VERSION!,
     agreementDate: process.env.POPULARITY_TRACKING_AGREEMENT_DATE!,
     contentDir: process.env.POPULARITY_TRACKING_CONTENT_DIR ?? '',
+  },
+  managedCopy: {
+    contentDir: process.env.MANAGED_COPY_CONTENT_DIR ?? '',
   },
   mailer: {
     disabled:

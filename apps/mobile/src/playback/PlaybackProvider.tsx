@@ -12,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 
+import type { AddByRSSResourceData } from '@podverse/helpers';
 import { primaryLightboxArtworkUrl, primaryListArtworkUrl } from '@podverse/helpers';
 import type {
   DTOChannel,
@@ -22,16 +23,28 @@ import type {
   DTOQueueResource,
 } from '@podverse/helpers/dto';
 import { getErrorCode } from '@podverse/helpers/error';
+import type {
+  EnclosureSelectedParams,
+  LabeledItemEnclosure,
+} from '@podverse/helpers/item/itemEnclosure';
 import type { PlaybackEventKind } from '@podverse/helpers/playbackEvents';
 import {
   PLAYBACK_POSITION_LOCAL_INTERVAL_MS,
   PLAYBACK_POSITION_NETWORK_INTERVAL_MS,
 } from '@podverse/helpers/playbackOutboxLimits';
 import { getQueueForMedium } from '@podverse/helpers/queue';
+import {
+  reconstructAddByRSSItemFromResourceData,
+  reconstructAddByRSSLivestreamFromResourceData,
+} from '@podverse/parser-mapping';
 import type {
   MusicItemPlaybackIntent,
   PlaybackLoadDecision,
   PlaybackTarget,
+} from '@podverse/playback-core';
+import {
+  buildEnclosureSwitchPlaybackDecisionIfChanged,
+  resolveResumeAtSecondsForEnclosureSwitch,
 } from '@podverse/playback-core';
 import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNearEndSeconds';
 import { resolveQueueAdvance } from '@podverse/playback-core/resolveQueueAdvance';
@@ -51,13 +64,17 @@ import {
   queueRepository,
   statsRepository,
 } from '../data';
-import type { PlaybackReconcileDifferentNowPlayingConflict } from '../data/repositories/playbackReconcile';
+import type {
+  PlaybackReconcileDifferentNowPlayingConflict,
+  PlaybackReconcileResourceState,
+} from '../data/repositories/playbackReconcile';
 import type { AutoQueueSeed } from '../hooks/useAutoQueueLoadResources';
 import { useAutoQueueLoadResources } from '../hooks/useAutoQueueLoadResources';
 import { useQueueMutations } from '../hooks/useQueueMutations';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
 import type { AutoQueueResourcesMapRow } from '../lib/autoQueue/autoQueue';
 import { autoQueueIncrementActiveRow } from '../lib/autoQueue/autoQueue';
+import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
 import {
   buildChapterPlaybackTarget,
   buildClipPlaybackTarget,
@@ -74,9 +91,21 @@ import {
   writeLastPlaybackSnapshot,
 } from '../lib/playback/lastPlaybackStorage';
 import { resolveMediaFileDurationHintSeconds } from '../lib/playback/mediaFileDurationHint';
+import {
+  buildItemLabeledEnclosures,
+  DEFAULT_ENCLOSURE_SELECTED_PARAMS,
+  resolveItemEnclosureUrl,
+  resolveSelectedItemEnclosureMediaType,
+  resolveSessionEnclosureSelectedParams,
+} from '../lib/playback/resolveEnclosureUrl';
 import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
 import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
+import { readPlaybackMediaTypePref } from '../prefs/preferredMediaType';
 import { getPref, setPref } from '../prefs/prefsStore';
+import {
+  readPlaybackPositionAdoptions,
+  subscribePlaybackPositionAdoptions,
+} from '../sync/playbackPositionAdoption';
 import {
   readPlaybackReconcileConflicts,
   subscribePlaybackReconcileConflicts,
@@ -170,6 +199,80 @@ const parseSeconds = (value: string | number | null | undefined): number | null 
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const isAddByRssResourceData = (value: unknown): value is AddByRSSResourceData => {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+};
+
+const hasAddByRssLivestreamStartTime = (resourceData: AddByRSSResourceData): boolean => {
+  const startTime = resourceData.start_time;
+  return (
+    (typeof startTime === 'string' && startTime.length > 0) ||
+    typeof startTime === 'number' ||
+    startTime instanceof Date
+  );
+};
+
+const extractAddByRssArtworkUrl = (images: unknown): string | null => {
+  if (!Array.isArray(images)) {
+    return null;
+  }
+
+  for (const entry of images) {
+    if (
+      typeof entry === 'object' &&
+      entry !== null &&
+      'url' in entry &&
+      typeof entry['url'] === 'string' &&
+      entry['url'].trim().length > 0
+    ) {
+      return entry['url'].trim();
+    }
+  }
+
+  return null;
+};
+
+const summaryFromAddByRssResourceData = (
+  resourceData: AddByRSSResourceData
+): PlaybackNowPlaying => {
+  const title =
+    typeof resourceData.title === 'string' && resourceData.title.length > 0
+      ? resourceData.title
+      : '';
+  const channelTitle =
+    typeof resourceData.channel_title === 'string' && resourceData.channel_title.length > 0
+      ? resourceData.channel_title
+      : null;
+  const imageUrl =
+    extractAddByRssArtworkUrl(resourceData.item_images) ??
+    extractAddByRssArtworkUrl(resourceData.channel_images);
+
+  return {
+    channelTitle,
+    imageUrl,
+    title,
+    viewerImageUrl: imageUrl,
+  };
+};
+
+const resolveAddByRssPlaybackUrl = (resourceData: AddByRSSResourceData): string | null => {
+  if (hasAddByRssLivestreamStartTime(resourceData)) {
+    const reconstructedLivestream = reconstructAddByRSSLivestreamFromResourceData(resourceData);
+    const liveUrl = reconstructedLivestream?.item?.enclosure?.url;
+    if (typeof liveUrl === 'string' && liveUrl.trim().length > 0) {
+      return resolveE2eMediaUrl(liveUrl.trim());
+    }
+  }
+
+  const reconstructedItem = reconstructAddByRSSItemFromResourceData(resourceData);
+  const itemUrl = reconstructedItem?.bundle?.enclosures?.[0]?.item_enclosure_sources?.[0]?.uri;
+  if (typeof itemUrl === 'string' && itemUrl.trim().length > 0) {
+    return resolveE2eMediaUrl(itemUrl.trim());
+  }
+
+  return null;
+};
+
 const nonNegative = (value: number): number => {
   if (!Number.isFinite(value)) {
     return 0;
@@ -198,6 +301,13 @@ const itemFromTarget = (target: PlaybackTarget): DTOItem | null => {
     case 'livestream':
       return target.item;
   }
+};
+
+const itemIdFromTarget = (target: PlaybackTarget | null): string | null => {
+  if (target === null || target.kind === 'add-by-rss') {
+    return null;
+  }
+  return target.item?.id_text ?? null;
 };
 
 const seekBoundsFromTarget = (
@@ -292,8 +402,11 @@ export type PlaybackContextValue = {
   positionSeconds: number;
   durationSeconds: number;
   playbackRate: number;
-  /** Audio-first play notice key (e.g. missing enclosure, unavailable livestream). */
+  /** Playback notice key (e.g. missing enclosure, unavailable livestream). */
   noticeKey: string | null;
+  enclosureSelectedParams: EnclosureSelectedParams;
+  itemLabeledEnclosures: LabeledItemEnclosure[];
+  switchEnclosureSelectedParams: (params: EnclosureSelectedParams) => Promise<void>;
   playItem: (
     item: DTOItem,
     channel: DTOChannel,
@@ -302,14 +415,24 @@ export type PlaybackContextValue = {
   playClip: (clip: DTOClip, item: DTOItem, channel: DTOChannel) => Promise<void>;
   playSoundbite: (soundbite: DTOItemSoundbite, item: DTOItem, channel: DTOChannel) => Promise<void>;
   playChapter: (chapter: DTOItemChapter, item: DTOItem, channel: DTOChannel) => Promise<void>;
+  playAddByRssResourceData: (
+    resourceData: AddByRSSResourceData,
+    options?: { explicitPlaybackSeconds?: number }
+  ) => Promise<void>;
   playItemById: (idText: string) => Promise<void>;
   playClipById: (idText: string) => Promise<void>;
+  playQueueResourceFromQueue: (resource: DTOQueueResource) => Promise<void>;
   /** Play a playlist row and seed the auto-queue source to that playlist (web list-row parity). */
   playPlaylistRowById: (
     idText: string,
     kind: 'item' | 'clip',
     playlistIdText: string
   ) => Promise<void>;
+  beginAuthoringHold: () => void;
+  endAuthoringHold: () => void;
+  clearPauseBoundary: () => void;
+  previewWindow: (params: { fromSeconds: number; pauseAtSeconds?: number | null }) => Promise<void>;
+  loadItemPausedAt: (item: DTOItem, channel: DTOChannel, seconds: number) => Promise<void>;
   pause: () => void;
   resume: () => Promise<void>;
   /** Reload the current source after an engine error. */
@@ -385,6 +508,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const [transportState, setTransportState] = useState<PlaybackTransportState>('paused');
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
+  const [itemLabeledEnclosures, setItemLabeledEnclosures] = useState<LabeledItemEnclosure[]>([]);
+  const [enclosureSelectedParams, setEnclosureSelectedParamsState] =
+    useState<EnclosureSelectedParams>(DEFAULT_ENCLOSURE_SELECTED_PARAMS);
   const [playbackHandoffPrompt, setPlaybackHandoffPrompt] =
     useState<PlaybackHandoffPromptState | null>(null);
   const [playbackReconcileConflicts, setPlaybackReconcileConflicts] = useState<
@@ -396,6 +522,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const positionRef = useRef<number>(0);
   const durationRef = useRef<number>(0);
   const pauseAtRef = useRef<number | null>(null);
+  const authoringHoldRef = useRef<boolean>(false);
   const playbackRateRef = useRef<number>(1);
   const advancingRef = useRef<boolean>(false);
   const isPlayingRef = useRef<boolean>(false);
@@ -404,6 +531,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   // means "cannot start yet", never "buffering again mid-episode".
   const sourcePlayableRef = useRef<boolean>(false);
   const lastPlaybackSnapshotWriteRef = useRef<number>(0);
+  const enclosureSelectedParamsRef = useRef<EnclosureSelectedParams>(
+    DEFAULT_ENCLOSURE_SELECTED_PARAMS
+  );
   const previousAuthStatusRef = useRef(status);
   const lastPlaybackLocalWriteRef = useRef<number>(0);
   const lastPlaybackNetworkWriteRef = useRef<number>(0);
@@ -481,6 +611,41 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setPlaybackProgressPlaying(playing);
     setIsPlaying(playing);
   }, []);
+
+  const setEnclosureSelectedParams = useCallback((params: EnclosureSelectedParams): void => {
+    enclosureSelectedParamsRef.current = params;
+    setEnclosureSelectedParamsState(params);
+  }, []);
+
+  const resetEnclosureSelectionSession = useCallback((): void => {
+    setItemLabeledEnclosures([]);
+    setEnclosureSelectedParams(DEFAULT_ENCLOSURE_SELECTED_PARAMS);
+  }, [setEnclosureSelectedParams]);
+
+  const resolvePlaybackSelectionForItem = useCallback(
+    async (
+      item: DTOItem
+    ): Promise<{
+      labeledItemEnclosures: LabeledItemEnclosure[];
+      selectedParams: EnclosureSelectedParams;
+    }> => {
+      const labeledItemEnclosures = buildItemLabeledEnclosures(item);
+      const nextCurrentParams =
+        itemIdFromTarget(activeTargetRef.current) === item.id_text
+          ? enclosureSelectedParamsRef.current
+          : DEFAULT_ENCLOSURE_SELECTED_PARAMS;
+      const preferredMediaType = await readPlaybackMediaTypePref();
+      const selectedParams = resolveSessionEnclosureSelectedParams({
+        current: nextCurrentParams,
+        labeledItemEnclosures,
+        preferredMediaType,
+      });
+      setItemLabeledEnclosures(labeledItemEnclosures);
+      setEnclosureSelectedParams(selectedParams);
+      return { labeledItemEnclosures, selectedParams };
+    },
+    [setEnclosureSelectedParams]
+  );
 
   const resolveAuthenticatedAccountIdText = useCallback(async (): Promise<string | null> => {
     if (statusRef.current !== 'authenticated') {
@@ -698,6 +863,18 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [setAutoQueueActiveRow, setAutoQueueConfig, setAutoQueueResources]
   );
 
+  const beginAuthoringHold = useCallback((): void => {
+    authoringHoldRef.current = true;
+  }, []);
+
+  const endAuthoringHold = useCallback((): void => {
+    authoringHoldRef.current = false;
+  }, []);
+
+  const clearPauseBoundary = useCallback((): void => {
+    pauseAtRef.current = null;
+  }, []);
+
   const writeLastPlaybackSnapshotForTarget = useCallback(
     (target: PlaybackTarget, positionValue: number) => {
       const snapshot = lastPlaybackSnapshotFromTarget(
@@ -731,8 +908,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setNowPlaying(null);
     setPlaybackPlaying(false);
     setTransportState('paused');
+    resetEnclosureSelectionSession();
     void clearLastPlaybackSnapshot();
-  }, [setPlaybackPlaying]);
+  }, [resetEnclosureSelectionSession, setPlaybackPlaying]);
 
   const playTarget = useCallback(
     async (
@@ -744,9 +922,14 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         explicitPlaybackSeconds?: number;
         mediaFileDurationHintSeconds?: number;
         autoPlayOverride?: boolean;
+        playbackDecisionOverride?: PlaybackLoadDecision;
+        shouldSkipPlayEventWrite?: boolean;
       }
     ): Promise<void> => {
       setNoticeKey(null);
+      if (target.kind === 'add-by-rss') {
+        resetEnclosureSelectionSession();
+      }
       lastSourceUrlRef.current = params.url;
       sourcePlayableRef.current = false;
       setTransportState('loading');
@@ -760,7 +943,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           },
           params.url,
           playbackRateRef.current,
-          params.autoPlayOverride
+          params.autoPlayOverride,
+          params.playbackDecisionOverride
         );
       } catch {
         setTransportState('error');
@@ -789,7 +973,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       sourcePlayableRef.current = true;
       setTransportState(shouldAutoPlay ? 'playing' : 'paused');
 
-      if (shouldAutoPlay) {
+      if (shouldAutoPlay && params.shouldSkipPlayEventWrite !== true) {
         const statsTargets = decision.shouldRecordPlaybackStat
           ? resolvePlaybackStatsTargets(target)
           : null;
@@ -810,6 +994,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [
       applyAutoQueueDirective,
       applyLoad,
+      resetEnclosureSelectionSession,
       resolvePlaybackStatsTargets,
       setPlaybackPlaying,
       toStatsReplayPayload,
@@ -836,7 +1021,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         setNoticeKey('media_player.livestream_unavailable');
         return;
       }
-      const url = await resolvePlaybackUrl(item);
+      const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
+      const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -854,7 +1040,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
     },
-    [playTarget]
+    [playTarget, resolvePlaybackSelectionForItem]
   );
 
   const startClipPlayback = useCallback(
@@ -869,7 +1055,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride?: boolean;
       }
     ): Promise<void> => {
-      const url = await resolvePlaybackUrl(item);
+      const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
+      const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -887,7 +1074,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
     },
-    [playTarget]
+    [playTarget, resolvePlaybackSelectionForItem]
   );
 
   const startSoundbitePlayback = useCallback(
@@ -902,7 +1089,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride?: boolean;
       }
     ): Promise<void> => {
-      const url = await resolvePlaybackUrl(item);
+      const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
+      const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -920,7 +1108,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
     },
-    [playTarget]
+    [playTarget, resolvePlaybackSelectionForItem]
   );
 
   const playItem = useCallback(
@@ -932,6 +1120,22 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       await startItemPlayback(item, channel, {
         autoQueue: { mode: 'clear' },
         intent: options?.intent ?? 'explicit_play',
+      });
+    },
+    [startItemPlayback]
+  );
+
+  const loadItemPausedAt = useCallback(
+    async (item: DTOItem, channel: DTOChannel, seconds: number): Promise<void> => {
+      await startItemPlayback(item, channel, {
+        autoPlayOverride: false,
+        autoQueue: { mode: 'clear' },
+        explicitPlaybackSeconds: Math.max(0, seconds),
+        intent: 'explicit_play',
+        mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
+          undefined,
+          item.item_about.duration
+        ),
       });
     },
     [startItemPlayback]
@@ -953,7 +1157,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const playChapter = useCallback(
     async (chapter: DTOItemChapter, item: DTOItem, channel: DTOChannel): Promise<void> => {
-      const url = await resolvePlaybackUrl(item);
+      const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
+      const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -969,7 +1174,60 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
     },
-    [playTarget]
+    [playTarget, resolvePlaybackSelectionForItem]
+  );
+
+  const switchEnclosureSelectedParams = useCallback(
+    async (nextParams: EnclosureSelectedParams): Promise<void> => {
+      const target = activeTargetRef.current;
+      if (target === null || target.kind === 'add-by-rss' || target.kind === 'livestream') {
+        setEnclosureSelectedParams(nextParams);
+        return;
+      }
+
+      const currentParams = enclosureSelectedParamsRef.current;
+      const decision = buildEnclosureSwitchPlaybackDecisionIfChanged({
+        currentEnclosureSelectedParams: currentParams,
+        labeledItemEnclosures: itemLabeledEnclosures,
+        mpClip: target.kind === 'clip' ? target.clip : null,
+        mpItemChapter: target.kind === 'chapter' ? target.chapter : null,
+        mpItemSoundbite: target.kind === 'soundbite' ? target.soundbite : null,
+        nextEnclosureSelectedParams: nextParams,
+        resumeAtSeconds: resolveResumeAtSecondsForEnclosureSwitch(
+          positionRef.current,
+          positionRef.current
+        ),
+      });
+
+      setEnclosureSelectedParams(nextParams);
+      if (decision === null) {
+        return;
+      }
+
+      const nextUrl = resolveItemEnclosureUrl({
+        labeledItemEnclosures: itemLabeledEnclosures,
+        selectedParams: nextParams,
+      });
+      if (nextUrl === null) {
+        setNoticeKey('media_player.no_media');
+        return;
+      }
+
+      await playTarget(target, {
+        autoPlayOverride: isPlayingRef.current,
+        autoQueue: { mode: 'preserve' },
+        explicitPlaybackSeconds: decision.initialSeekSeconds,
+        mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
+          undefined,
+          target.item.item_about.duration
+        ),
+        playbackDecisionOverride: decision,
+        shouldSkipPlayEventWrite: true,
+        summary: summaryFromItem(target.item, target.channel),
+        url: nextUrl,
+      });
+    },
+    [itemLabeledEnclosures, playTarget, setEnclosureSelectedParams]
   );
 
   const playItemByIdWithIntent = useCallback(
@@ -1032,13 +1290,66 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [playClipByIdWithDirective, playItemByIdWithIntent]
   );
 
+  const startAddByRssPlayback = useCallback(
+    async (
+      resourceData: AddByRSSResourceData,
+      options: {
+        autoQueue: AutoQueueDirective;
+        explicitPlaybackSeconds?: number;
+      }
+    ): Promise<void> => {
+      const url = resolveAddByRssPlaybackUrl(resourceData);
+      if (url === null) {
+        setNoticeKey('media_player.no_media');
+        return;
+      }
+      await playTarget(
+        {
+          kind: 'add-by-rss',
+          resourceData,
+        },
+        {
+          autoQueue: options.autoQueue,
+          explicitPlaybackSeconds: options.explicitPlaybackSeconds,
+          summary: summaryFromAddByRssResourceData(resourceData),
+          url,
+        }
+      );
+    },
+    [playTarget]
+  );
+
+  const playAddByRssResourceData = useCallback(
+    async (
+      resourceData: AddByRSSResourceData,
+      options?: { explicitPlaybackSeconds?: number }
+    ): Promise<void> => {
+      await startAddByRssPlayback(resourceData, {
+        autoQueue: { mode: 'clear' },
+        explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
+      });
+    },
+    [startAddByRssPlayback]
+  );
+
   const playQueueResource = useCallback(
     async (
       resource: DTOQueueResource,
       intent: MusicItemPlaybackIntent,
-      options?: { explicitPlaybackSeconds?: number; autoPlayOverride?: boolean }
+      options?: {
+        explicitPlaybackSeconds?: number;
+        autoPlayOverride?: boolean;
+        autoQueue?: AutoQueueDirective;
+      }
     ): Promise<void> => {
-      const preserve: AutoQueueDirective = { mode: 'preserve' };
+      const autoQueue = options?.autoQueue ?? { mode: 'preserve' };
+      if (isAddByRssResourceData(resource.add_by_rss_resource_data)) {
+        await startAddByRssPlayback(resource.add_by_rss_resource_data, {
+          autoQueue,
+          explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
+        });
+        return;
+      }
       if (resource.clip) {
         const item = resource.clip.item;
         const channel = await ensureChannel(item);
@@ -1047,7 +1358,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
         await startClipPlayback(resource.clip, item, channel, {
           autoPlayOverride: options?.autoPlayOverride,
-          autoQueue: preserve,
+          autoQueue,
           explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
         });
         return;
@@ -1060,7 +1371,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
         await startSoundbitePlayback(resource.item_soundbite, item, channel, {
           autoPlayOverride: options?.autoPlayOverride,
-          autoQueue: preserve,
+          autoQueue,
           explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
         });
         return;
@@ -1071,12 +1382,28 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       }
       await startItemPlayback(resource.item, channel, {
         autoPlayOverride: options?.autoPlayOverride,
-        autoQueue: preserve,
+        autoQueue,
         explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
         intent,
       });
     },
-    [ensureChannel, startClipPlayback, startItemPlayback, startSoundbitePlayback]
+    [
+      ensureChannel,
+      startAddByRssPlayback,
+      startClipPlayback,
+      startItemPlayback,
+      startSoundbitePlayback,
+    ]
+  );
+
+  const playQueueResourceFromQueue = useCallback(
+    async (resource: DTOQueueResource): Promise<void> => {
+      await playQueueResource(resource, 'explicit_play', {
+        autoQueue: { mode: 'clear' },
+        explicitPlaybackSeconds: normalizePlaybackPosition(resource.playback_position),
+      });
+    },
+    [playQueueResource]
   );
 
   const rememberPlaybackHandoffDismissal = useCallback((dismissedStateKey: string | null): void => {
@@ -1344,6 +1671,17 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       advancingRef.current = true;
       try {
         const target = activeTargetRef.current;
+        // Clip authoring holds the item where it is: pause and leave it now-playing. This is settled
+        // before anything else because the rest of this function writes the item out of the queue,
+        // which is exactly what a hold must not do.
+        if (transitionKind === 'complete' && authoringHoldRef.current) {
+          nativePlaybackBridge.pause();
+          setPlaybackPlaying(false);
+          setTransportState('paused');
+          return;
+        }
+        const hasAutoQueueNext = computeHasAutoQueueNext();
+
         const eventKind = playbackEventFromDiscreteSignal(transitionKind);
         const completed = transitionKind === 'complete';
         if (completed) {
@@ -1369,10 +1707,24 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           }
         }
 
+        // Read the queue only after the finished resource has left it, because the next thing to
+        // play is the queue's own first row. Reading first returns the resource that is ending — it
+        // is still now-playing, or still sits upcoming when playback started from a detail screen —
+        // and playing that row restarts the same track instead of advancing. Web orders these the
+        // same way (`NonLiveMediaOrchestrator` `onEnded`).
+        //
+        // The queue is the one for the medium of what was playing, not whichever queue happens to be
+        // active: starting a track leaves a podcast queue active until its own claim lands, and
+        // asking that queue for the next row skips into the wrong medium. Add-by-RSS has no channel
+        // and no queue behind it, so it falls back to the active queue.
         let activeResource: DTOQueueResource | null = null;
         let upcomingManualCount = 0;
+        const advanceMediumId =
+          target !== null && target.kind !== 'add-by-rss'
+            ? target.channel.medium_id
+            : activeQueueRef.current?.medium_id;
         try {
-          const result = await loadActive(activeQueueRef.current?.medium_id);
+          const result = await loadActive(advanceMediumId);
           activeResource = result.activeResource;
           upcomingManualCount =
             result.activeResource !== null ? result.upcomingResources.length : 0;
@@ -1381,8 +1733,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
             throw error;
           }
         }
-        const hasAutoQueueNext = computeHasAutoQueueNext();
-        const decision = resolveQueueAdvance({ hasAutoQueueNext, upcomingManualCount });
+        const decision = resolveQueueAdvance({
+          hasAutoQueueNext,
+          holdNowPlaying: false,
+          upcomingManualCount,
+        });
 
         if (decision.kind === 'play-next-manual' && activeResource !== null) {
           try {
@@ -1650,13 +2005,21 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     };
   }, [reconcileFromNative, writeLastPlaybackSnapshotForTarget, writePlaybackEvent]);
 
-  // Drive the video surface's JS-desired visibility from the playback target kind: only
-  // full video items request the surface; clips/soundbites/chapters and audio podcasts keep it
-  // hidden. The native host additionally gates on real video frames, so a video-medium item playing
-  // an audio enclosure never leaves a black rectangle. No `load`/`destroy` — playhead is untouched.
+  // Drive the video surface from the selected enclosure media type. The native host additionally
+  // gates on real video frames, so mismatched metadata never leaves a black rectangle.
   useEffect(() => {
-    nativePlaybackBridge.setVideoSurfaceVisible(activeTarget?.kind === 'item-video');
-  }, [activeTarget]);
+    const hasActiveNonLiveItem =
+      activeTarget !== null &&
+      activeTarget.kind !== 'add-by-rss' &&
+      activeTarget.kind !== 'livestream';
+    const selectedMediaType = resolveSelectedItemEnclosureMediaType({
+      labeledItemEnclosures: itemLabeledEnclosures,
+      selectedParams: enclosureSelectedParams,
+    });
+    nativePlaybackBridge.setVideoSurfaceVisible(
+      hasActiveNonLiveItem && selectedMediaType === 'video'
+    );
+  }, [activeTarget, enclosureSelectedParams, itemLabeledEnclosures]);
 
   const pause = useCallback(() => {
     nativePlaybackBridge.pause();
@@ -1738,15 +2101,72 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [writePlaybackEvent]
   );
 
+  /**
+   * Move the loaded player to a position another device reached on the same resource.
+   *
+   * No playback event is written back. The position came from the server, so reporting it again
+   * would restamp it with this device's clock and make this device look like the most recent
+   * listener — two devices catching up on each other would then trade the "latest" claim forever.
+   */
+  const adoptRemotePlaybackPosition = useCallback(
+    (seconds: number): void => {
+      const target = activeTargetRef.current;
+      if (target === null) {
+        return;
+      }
+
+      nativePlaybackBridge.seek(seconds);
+      positionRef.current = seconds;
+      setPlaybackPositionSeconds(seconds);
+      writeLastPlaybackSnapshotForTarget(target, seconds);
+    },
+    [writeLastPlaybackSnapshotForTarget]
+  );
+
+  useEffect(() => {
+    const applyAdoptions = (adoptions: readonly PlaybackReconcileResourceState[]): void => {
+      // The player is the last word on whether the position may move: reconcile ran in the
+      // background and the user may have started listening in the meantime.
+      if (adoptions.length === 0 || isPlayingRef.current) {
+        return;
+      }
+
+      const target = activeTargetRef.current;
+      const loaded = target === null ? null : nowPlayingResourceFromTarget(target);
+      if (loaded === null) {
+        return;
+      }
+
+      const match = adoptions.find(
+        (adoption) =>
+          adoption.resourceKind === loaded.resourceKind &&
+          adoption.resourceIdText === loaded.resourceIdText
+      );
+      if (match === undefined || match.playbackPosition === positionRef.current) {
+        return;
+      }
+
+      adoptRemotePlaybackPosition(match.playbackPosition);
+    };
+
+    applyAdoptions(readPlaybackPositionAdoptions());
+    return subscribePlaybackPositionAdoptions(applyAdoptions);
+  }, [adoptRemotePlaybackPosition]);
+
+  const previewWindow = useCallback(
+    async (params: { fromSeconds: number; pauseAtSeconds?: number | null }): Promise<void> => {
+      pauseAtRef.current = params.pauseAtSeconds ?? null;
+      seekTo(Math.max(0, params.fromSeconds));
+      await resume();
+    },
+    [resume, seekTo]
+  );
+
   const resolveChaptersForTarget = useCallback(
     async (target: PlaybackTarget): Promise<DTOItemChapter[]> => {
       const item = itemFromTarget(target);
       const fallbackChapter = target.kind === 'chapter' ? target.chapter : null;
-      if (
-        item === null ||
-        item.item_chapters_feed === null ||
-        item.item_chapters_feed === undefined
-      ) {
+      if (item === null) {
         return fallbackChapter === null ? [] : [fallbackChapter];
       }
       const chapters = await resolveNowPlayingChapters(buildContext(), item.id_text);
@@ -1879,21 +2299,31 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       isPlaying,
       noticeKey,
       nowPlaying,
+      enclosureSelectedParams,
+      itemLabeledEnclosures,
       pause,
       playChapter,
+      playAddByRssResourceData,
       playClip,
       playClipById,
       playItem,
       playItemById,
+      loadItemPausedAt,
       playPlaylistRowById,
+      playQueueResourceFromQueue,
       playSoundbite,
       playbackRate,
+      beginAuthoringHold,
+      endAuthoringHold,
+      clearPauseBoundary,
+      previewWindow,
       resume,
       retryPlayback,
       completeNowPlaying,
       jumpBy,
       seekTo,
       setRate,
+      switchEnclosureSelectedParams,
       skipToPrevious,
       skipToPreviousTrack,
       skipToNext,
@@ -1907,19 +2337,29 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       isPlaying,
       noticeKey,
       nowPlaying,
+      enclosureSelectedParams,
+      itemLabeledEnclosures,
       pause,
       playChapter,
+      playAddByRssResourceData,
       playClip,
       playClipById,
       playItem,
       playItemById,
+      loadItemPausedAt,
       playPlaylistRowById,
+      playQueueResourceFromQueue,
       playSoundbite,
       playbackRate,
+      beginAuthoringHold,
+      endAuthoringHold,
+      clearPauseBoundary,
+      previewWindow,
       resume,
       retryPlayback,
       seekTo,
       setRate,
+      switchEnclosureSelectedParams,
       skipToNext,
       skipToNextTrack,
       skipToPrevious,

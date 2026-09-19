@@ -10,6 +10,15 @@ name: Settings Select Pages
 - assertVisible:
     id: more-screen
 - tapOn:
+    id: more-faq-row
+- assertVisible:
+    id: more-faq-screen
+- takeScreenshot: more-faq-screen
+- tapOn:
+    id: stack-header-back
+- assertVisible:
+    id: more-screen
+- tapOn:
     id: more-settings
 - assertVisible:
     id: more-settings-screen

@@ -95,7 +95,9 @@
       "title": "Mode hors ligne",
       "description": "Le mode hors ligne n'utilise que les téléchargements et le reste du contenu déjà stocké sur cet appareil. Recherche, Parcourir, la synchro et tout ce qui a besoin d'Internet restent indisponibles jusqu'à ce que vous le désactiviez.",
       "unavailable": "Cet écran n'est pas disponible en mode hors ligne.",
-      "banner": "Le mode hors ligne est activé"
+      "banner": "Le mode hors ligne est activé",
+      "banner_no_connection": "Pas de connexion internet",
+      "banner_server_unreachable": "Impossible d'atteindre le serveur"
     },
     "downloads": {
       "storage_heading": "Stockage",
@@ -176,5 +178,8 @@
   },
   "media_player": {
     "chapter_tooltip": "Chapitre : {title}"
+  },
+  "misc": {
+    "clear": "Effacer"
   }
 }

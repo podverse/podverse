@@ -19,6 +19,8 @@ export function PopularityTrackingGateClient() {
   const { loggedInAccount } = useAccount();
   const config = useConfig();
   const [agreement, setAgreement] = useState<DTOPopularityTrackingAgreement | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasError, setHasError] = useState<boolean>(false);
   const promptRequired = isPopularityTrackingPromptRequiredForAccount(
     loggedInAccount,
     config.public.legal.popularityTracking.version
@@ -38,18 +40,30 @@ export function PopularityTrackingGateClient() {
 
   useEffect(() => {
     if (loggedInAccount === null) {
+      setIsLoading(false);
       return;
     }
+    setIsLoading(true);
+    setHasError(false);
     let cancelled = false;
     void getApiRequestService()
       .reqLegalPopularityTracking()
       .then((data) => {
         if (!cancelled) {
           setAgreement(data);
+          setHasError(false);
         }
       })
       .catch((error: unknown) => {
         console.error('[PopularityTrackingGateClient] load failed:', error);
+        if (!cancelled) {
+          setHasError(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -65,6 +79,8 @@ export function PopularityTrackingGateClient() {
       <h1>{t('title')}</h1>
       <PopularityTrackingAgreementPanel
         agreement={agreement}
+        hasError={hasError}
+        isLoading={isLoading}
         onDecided={() => {
           router.replace('/');
         }}

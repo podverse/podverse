@@ -174,9 +174,12 @@ Prefer these model tiers (cheapest → premium):
 
 | Model | Use when |
 | ----- | -------- |
-| **Auto** | Mechanical transcription, simple config/docs, operator-only steps, low-risk edits |
+| **cursor-grok-4.6-high-fast** | Mechanical transcription, simple config/docs, operator-only steps, low-risk edits |
 | **Codex 5.3** | Standard feature work, mirroring existing patterns, CI/E2E scaffolding, most RN/web tasks |
 | **Opus 5** | Native/engine work, cross-cutting architecture, assembly, store safety, playback parity |
+
+Auto remains available in Cursor. Prefer cursor-grok-4.6-high-fast as the default low-cost choice,
+and use Auto only when there is a specific reason to do so.
 
 | Reasoning | Use when |
 | --------- | -------- |
@@ -246,7 +249,7 @@ Verify: [quick verification command]
 
 ### Agent 2A: Group A
 
-**Cursor model:** Auto
+**Cursor model:** cursor-grok-4.6-high-fast
 **Reasoning:** low
 
 \`\`\`
@@ -281,7 +284,7 @@ Read and execute .llm/plans/active/feature/migration-09-group-b.md
 - Agent labels: "Agent 2A", "Agent 2B" for easy reference
 - Parallel indicators: "(Execute in Parallel - 4 Agents)"
 - **Recommended Cursor model** and **Reasoning** on every prompt, **outside** the paste fence
-  (Auto, Codex 5.3, or Opus 5 preferred; selected in the Cursor UI)
+  (cursor-grok-4.6-high-fast, Codex 5.3, or Opus 5 preferred; selected in the Cursor UI)
 
 ## Efficiency Metrics
 

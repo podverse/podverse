@@ -1,19 +1,20 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import type { DTOPlaylist } from '@podverse/helpers';
-import { SharableStatusEnum } from '@podverse/helpers';
+import type { DTOPlaylist, QueryParamsQueueMedium } from '@podverse/helpers';
+import { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
 
-import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
-import { TextField } from '../../components/form';
+import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
+import { OptionChipGroup, TextField } from '../../components/form';
 import { Button } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { LoadingSection } from '../../components/state/LoadingSection';
+import { playlistRepository } from '../../data';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
@@ -24,9 +25,8 @@ type PlaylistFormScreenProps = NativeStackScreenProps<
   'PlaylistCreate' | 'PlaylistEdit'
 >;
 
-// Mobile playlists default to the AV medium, matching the web create form. The form does not expose
-// a medium picker.
-const CREATE_MEDIUM = 'av';
+const CREATE_MEDIUM: QueryParamsQueueMedium = 'av';
+const MUSIC_MEDIUM: QueryParamsQueueMedium = 'music';
 
 const SHARABLE_STATUS_OPTIONS: { id: SharableStatusEnum; labelKey: string; testId: string }[] = [
   {
@@ -46,6 +46,23 @@ const SHARABLE_STATUS_OPTIONS: { id: SharableStatusEnum; labelKey: string; testI
   },
 ];
 
+const PLAYLIST_MEDIUM_OPTIONS: {
+  labelKey: string;
+  testId: string;
+  value: QueryParamsQueueMedium;
+}[] = [
+  {
+    labelKey: 'media.podcast.podcasts',
+    testId: 'playlist-form-medium-av',
+    value: CREATE_MEDIUM,
+  },
+  {
+    labelKey: 'media.music.music',
+    testId: 'playlist-form-medium-music',
+    value: MUSIC_MEDIUM,
+  },
+];
+
 export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
@@ -58,11 +75,14 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
 
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
+  const [medium, setMedium] = useState<QueryParamsQueueMedium>(CREATE_MEDIUM);
   const [sharableStatusId, setSharableStatusId] = useState<SharableStatusEnum>(
     SharableStatusEnum.Private
   );
   const [isLoading, setIsLoading] = useState<boolean>(isEdit);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState<boolean>(!isEdit);
 
@@ -74,31 +94,6 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        chip: {
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          marginRight: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        chipRow: {
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          marginTop: tokens.spacing.sm,
-        },
-        chipSelected: {
-          backgroundColor: tokens.button.primaryBg,
-          borderColor: tokens.button.primaryBg,
-        },
-        chipLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 13,
-          fontWeight: '600',
-        },
-        chipLabelSelected: {
-          color: tokens.button.primaryColor,
-        },
         actions: {
           flexDirection: 'row',
           gap: tokens.spacing.md,
@@ -140,9 +135,9 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
     setIsLoading(true);
     setErrorKey(null);
     try {
-      const playlist: DTOPlaylist = await requestWithMobileAuthRefresh(authArgs, async (api) =>
-        api.reqPlaylistGet(editPlaylistId)
-      );
+      const playlist: DTOPlaylist = await playlistRepository.getByIdText(authArgs, editPlaylistId, {
+        refresh: true,
+      });
       const ownerIdText = playlist.account?.id_text;
       const owns = ownerIdText !== undefined && ownerIdText === account?.id_text;
       setIsOwner(owns);
@@ -150,6 +145,7 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
         setTitle(playlist.title ?? '');
         setDescription(playlist.description ?? '');
         setSharableStatusId(playlist.sharable_status_id);
+        setMedium(playlist.medium_id === MediumEnum.Music ? MUSIC_MEDIUM : CREATE_MEDIUM);
       }
     } catch {
       setErrorKey('errors.generic');
@@ -177,27 +173,28 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
     setErrorKey(null);
     try {
       if (editPlaylistId !== null) {
-        await requestWithMobileAuthRefresh(authArgs, async (api) =>
-          api.reqPlaylistEdit({
-            description: nextDescription,
-            id_text: editPlaylistId,
-            sharable_status_id: sharableStatusId,
-            title: trimmedTitle,
-          })
-        );
+        await playlistRepository.edit(authArgs, {
+          description: nextDescription,
+          id_text: editPlaylistId,
+          sharable_status_id: sharableStatusId,
+          title: trimmedTitle,
+        });
         navigation.goBack();
         return;
       }
 
-      const created: DTOPlaylist = await requestWithMobileAuthRefresh(authArgs, async (api) =>
-        api.reqPlaylistCreate({
-          description: nextDescription,
-          medium: CREATE_MEDIUM,
-          sharable_status_id: sharableStatusId,
-          title: trimmedTitle,
-        })
-      );
-      navigation.replace(LIBRARY_STACK_ROUTES.PlaylistDetail, { playlistId: created.id_text });
+      const created: DTOPlaylist = await playlistRepository.create(authArgs, {
+        description: nextDescription,
+        medium,
+        sharable_status_id: sharableStatusId,
+        title: trimmedTitle,
+      });
+      const routeNames = navigation.getState().routeNames;
+      if (routeNames.includes(LIBRARY_STACK_ROUTES.PlaylistDetail)) {
+        navigation.replace(LIBRARY_STACK_ROUTES.PlaylistDetail, { playlistId: created.id_text });
+      } else {
+        navigation.goBack();
+      }
     } catch (error) {
       if (handleGateError(error)) {
         return;
@@ -212,14 +209,46 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
     description,
     editPlaylistId,
     handleGateError,
+    medium,
     navigation,
     sharableStatusId,
     trimmedTitle,
   ]);
 
+  const handleDelete = useCallback(async () => {
+    if (editPlaylistId === null || isDeleting) {
+      return;
+    }
+    setIsDeleting(true);
+    setErrorKey(null);
+    try {
+      await playlistRepository.delete(authArgs, editPlaylistId);
+      navigation.navigate(LIBRARY_STACK_ROUTES.LibraryPlaylists);
+    } catch (error) {
+      if (handleGateError(error)) {
+        setShowDeleteConfirm(false);
+        return;
+      }
+      setErrorKey('errors.generic');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  }, [authArgs, editPlaylistId, handleGateError, isDeleting, navigation]);
+
   const heading = isEdit
     ? t('features.playlist.edit_playlist')
     : t('features.playlist.create_playlist');
+  const mediumOptions = PLAYLIST_MEDIUM_OPTIONS.map((option) => ({
+    label: t(option.labelKey),
+    testID: option.testId,
+    value: option.value,
+  }));
+  const sharableOptions = SHARABLE_STATUS_OPTIONS.map((option) => ({
+    label: t(option.labelKey),
+    testID: option.testId,
+    value: option.id,
+  }));
 
   if (status !== 'authenticated') {
     return (
@@ -284,28 +313,27 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
         value={description}
       />
 
-      <Text style={styles.label}>{t('features.playlist.playlist_type')}</Text>
-      <View style={styles.chipRow}>
-        {SHARABLE_STATUS_OPTIONS.map((option) => {
-          const selected = option.id === sharableStatusId;
-          return (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-              key={option.id}
-              onPress={() => {
-                setSharableStatusId(option.id);
-              }}
-              style={[styles.chip, selected ? styles.chipSelected : null]}
-              testID={option.testId}
-            >
-              <Text style={[styles.chipLabel, selected ? styles.chipLabelSelected : null]}>
-                {t(option.labelKey)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <Text style={styles.label}>{t('media.podcast.podcasts')}</Text>
+      {!isEdit ? (
+        <OptionChipGroup
+          onChange={setMedium}
+          options={mediumOptions}
+          testID="playlist-form-medium-chips"
+          value={medium}
+        />
+      ) : (
+        <Text style={styles.notice} testID="playlist-form-medium-readonly">
+          {t(medium === MUSIC_MEDIUM ? 'media.music.music' : 'media.podcast.podcasts')}
+        </Text>
+      )}
+
+      <Text style={styles.label}>{t('misc.sharable_status.sharable_status')}</Text>
+      <OptionChipGroup
+        onChange={setSharableStatusId}
+        options={sharableOptions}
+        testID="playlist-form-sharable-chips"
+        value={sharableStatusId}
+      />
 
       {errorKey !== null ? (
         <Text style={styles.error} testID="playlist-form-error">
@@ -315,7 +343,7 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
 
       <View style={styles.actions}>
         <Button
-          disabled={!canSubmit}
+          disabled={!canSubmit || isDeleting}
           label={isSubmitting ? t('misc.saving') : t('misc.save')}
           loading={isSubmitting}
           onPress={() => {
@@ -332,6 +360,36 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
           variant="secondary"
         />
       </View>
+      {isEdit ? (
+        <View style={styles.actions}>
+          <Button
+            disabled={isDeleting || isSubmitting}
+            label={t('features.playlist.delete_playlist')}
+            loading={isDeleting}
+            onPress={() => {
+              setShowDeleteConfirm(true);
+            }}
+            testID="playlist-form-delete"
+            variant="danger"
+          />
+        </View>
+      ) : null}
+      <ConfirmDialog
+        body={t('features.playlist.delete_playlist_confirm')}
+        cancelLabel={t('misc.cancel')}
+        cancelTestID="playlist-form-delete-cancel"
+        confirmLabel={t('features.playlist.delete_playlist')}
+        confirmTestID="playlist-form-delete-confirm"
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+        }}
+        onConfirm={() => {
+          void handleDelete();
+        }}
+        testID="playlist-form-delete-confirm-dialog"
+        title={t('features.playlist.delete_playlist')}
+        visible={showDeleteConfirm}
+      />
     </MobileScreenContainer>
   );
 }

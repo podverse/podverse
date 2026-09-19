@@ -6,7 +6,7 @@ name: Membership Gate
 # premium gate modal; "Renew" routes to the Membership screen. Also asserts the auth-based CTA:
 # logged-out shows "Sign up", logged-in shows "Extend my membership".
 #
-# API-backed only (no test-assets). The seeded e2e-user is a valid Trial member, so subscribe/playlist
+# API-backed + test-assets. The seeded e2e-user is a valid Trial member, so subscribe/playlist
 # would NOT 403 — the directory-add capability gate (allowDirectoryAddByRSS=false for Trial, and NOT
 # bypassed by PODVERSE_E2E_FIXTURES) is the deterministic trigger. Fixture query `unparsedfixture`
 # opens the PI preview/add screen (see search-unparsed.yaml / e2eUnparsedSearchFixture.ts).
@@ -79,6 +79,40 @@ name: Membership Gate
 - extendedWaitUntil:
     notVisible:
       id: premium-gate-modal
+    timeout: ${TIMEOUT_FAST}
+
+- openLink: podverse-next://podcast/e2ePodChnl001/episode/e2ePodChap0001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+- tapOn:
+    id: full-player-create-clip
+- assertVisible:
+    id: premium-gate-modal
+- takeScreenshot: membership-gate-anonymous-make-clip
+- tapOn:
+    id: premium-gate-cancel
+- extendedWaitUntil:
+    notVisible:
+      id: premium-gate-modal
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: full-player-close
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
     timeout: ${TIMEOUT_FAST}
 
 # Log in as the seeded Trial user.

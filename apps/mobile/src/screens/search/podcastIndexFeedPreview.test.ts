@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { DIRECTORY_ADD_POLL_TIMEOUT_MS, MediumEnum } from '@podverse/helpers';
+import { getChannelRouteKind } from '@podverse/helpers/medium';
 
 import {
-  getChannelDetailRouteKind,
   isParsedReadyChannel,
   PI_FEED_ADD_POLL_TIMEOUT_MS,
   pollUntilParsedReadyChannel,
@@ -22,10 +22,10 @@ describe('podcastIndexFeedPreview helpers', () => {
     expect(isParsedReadyChannel({ id_text: 'abc', medium_id: MediumEnum.Podcast })).toBe(true);
   });
 
-  it('getChannelDetailRouteKind maps medium to podcast, album, or artist', () => {
-    expect(getChannelDetailRouteKind(MediumEnum.Podcast)).toBe('podcast');
-    expect(getChannelDetailRouteKind(MediumEnum.Music)).toBe('album');
-    expect(getChannelDetailRouteKind(MediumEnum.PublisherMusic)).toBe('artist');
+  it('getChannelRouteKind maps medium to podcast, album, or artist', () => {
+    expect(getChannelRouteKind(MediumEnum.Podcast)).toBe('podcast');
+    expect(getChannelRouteKind(MediumEnum.Music)).toBe('album');
+    expect(getChannelRouteKind(MediumEnum.PublisherMusic)).toBe('artist');
   });
 
   it('pollUntilParsedReadyChannel resolves when the channel becomes ready', async () => {

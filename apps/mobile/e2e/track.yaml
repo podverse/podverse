@@ -1,0 +1,98 @@
+appId: com.podverse.app.next
+name: Track flow
+---
+# Music detail and transport parity: album rows open track detail, then full player
+# shows music controls and skip-next advances to the next seeded track.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- openLink: podverse-next://album/e2eMusicAlbm01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: album-track-row-0
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: album-track-row-0
+- extendedWaitUntil:
+    visible:
+      id: track-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: track-detail-album-header
+- assertVisible:
+    id: track-detail-playback-chrome
+- assertVisible:
+    id: track-detail-tab-summary
+- takeScreenshot: track-detail-screen
+
+- tapOn:
+    id: "track-detail-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+- tapOn:
+    id: mini-player
+
+- extendedWaitUntil:
+    visible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+
+# Pause before reading the player. The assertions below take longer on a slow device than a short
+# seeded track runs, so a track left playing can reach its end and advance on its own — and then
+# every claim about "the track that is playing" is racing the track. Pausing costs no coverage: play
+# was already proven above, the music transport is the same paused, and skip-next resumes.
+- tapOn:
+    id: full-player-play-pause
+- assertVisible:
+    id: full-player-transport-row
+- assertVisible:
+    id: full-player-skip-previous
+- assertVisible:
+    id: full-player-shuffle
+- assertVisible:
+    id: full-player-play-pause
+- assertVisible:
+    id: full-player-repeat
+- assertVisible:
+    id: full-player-skip-next
+- assertNotVisible:
+    id: full-player-jump-back
+- assertNotVisible:
+    id: full-player-jump-forward
+- assertVisible: E2E Music Track One
+- takeScreenshot: track-full-player-controls
+
+- tapOn:
+    id: full-player-skip-next
+- extendedWaitUntil:
+    visible: E2E Music Track Two
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: track-next-track
+
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: playback-active-e2e

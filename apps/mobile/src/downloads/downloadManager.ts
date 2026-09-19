@@ -2,9 +2,11 @@ import * as FileSystem from 'expo-file-system';
 
 import { primaryListArtworkUrl } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
+import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosure';
 
 import { channelItemsRepository, downloadsRepository } from '../data/repositories';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
+import { isEffectivelyOffline, subscribeConnectivity } from '../net/connectivity';
 import {
   isDownloadQuotaUnlimited,
   readDownloadAutoDeleteOnDeviceLowEnabled,
@@ -66,6 +68,18 @@ let pumpRunning = false;
 let autoDeleteNotice: AutoDeleteNotice | null = null;
 /** When true, Pause all is active until Resume all or an individual resume. */
 let pauseAllActive = false;
+/**
+ * Set while the app is effectively offline. Holds the pump rather than letting it start transfers
+ * that cannot succeed, and stays separate from `pauseAllActive` so the Pause all control keeps
+ * reflecting only what the user pressed.
+ */
+let networkPauseActive = false;
+/**
+ * Items the network paused, so a restore resumes exactly those and nothing else. A download the
+ * user paused stays paused: connectivity returning is not permission to restart work somebody
+ * deliberately stopped. Not persisted — after a cold start nothing is in flight.
+ */
+const networkPausedItemIdTexts = new Set<string>();
 let hydratePromise: Promise<void> | null = null;
 
 const ensureHydrated = (): Promise<void> => {
@@ -347,12 +361,16 @@ const nextQueuedDownload = (): DownloadRecord | null => {
 };
 
 const pumpQueue = (): void => {
-  if (pumpRunning || pauseAllActive) {
+  if (pumpRunning || pauseAllActive || networkPauseActive) {
     return;
   }
   pumpRunning = true;
   try {
-    while (!pauseAllActive && activeTransfers.size < DOWNLOAD_MAX_CONCURRENCY) {
+    while (
+      !pauseAllActive &&
+      !networkPauseActive &&
+      activeTransfers.size < DOWNLOAD_MAX_CONCURRENCY
+    ) {
       const next = nextQueuedDownload();
       if (next === null) {
         break;
@@ -368,6 +386,96 @@ const pumpQueue = (): void => {
   } finally {
     pumpRunning = false;
   }
+};
+
+/**
+ * Stop transfers because the network cannot carry them.
+ *
+ * Membership changes only — no per-byte work, and the whole set lands in one batch so a
+ * forty-row list repaints once rather than forty times.
+ */
+const pauseForNetwork = async (): Promise<void> => {
+  if (networkPauseActive) {
+    return;
+  }
+  networkPauseActive = true;
+  await ensureHydrated();
+
+  const affected = downloadStore
+    .getAll()
+    .filter((record) => record.status === 'downloading' || record.status === 'queued');
+  if (affected.length === 0) {
+    return;
+  }
+
+  downloadStore.batch(() => {
+    for (const record of affected) {
+      networkPausedItemIdTexts.add(record.itemIdText);
+      downloadStore.applyChange(record.itemIdText, { status: 'paused' });
+    }
+    downloadStore.notify();
+  });
+
+  // `affected` holds the records as they were before the batch, which is what still says which of
+  // them had a live transfer to stop.
+  for (const record of affected) {
+    if (record.status === 'downloading') {
+      activeTransfers.delete(record.itemIdText);
+      persistProgress(record.itemIdText, true);
+      const resumable = inFlight.get(record.itemIdText);
+      if (resumable !== undefined) {
+        try {
+          await resumable.pauseAsync();
+        } catch {
+          // Best-effort.
+        }
+      }
+    }
+    await downloadsRepository.patch(record.itemIdText, { status: 'paused' });
+  }
+};
+
+/**
+ * Pick the transfers back up once the network can carry them again.
+ *
+ * Only the rows `pauseForNetwork` stopped, and only while Pause all is off — a user who paused
+ * everything before losing signal still means it after getting signal back.
+ */
+const resumeAfterNetwork = async (): Promise<void> => {
+  networkPauseActive = false;
+
+  if (networkPausedItemIdTexts.size === 0) {
+    pumpQueue();
+    return;
+  }
+
+  await ensureHydrated();
+  const resuming = downloadStore
+    .getAll()
+    .filter(
+      (record) => record.status === 'paused' && networkPausedItemIdTexts.has(record.itemIdText)
+    );
+  networkPausedItemIdTexts.clear();
+
+  if (resuming.length === 0 || pauseAllActive) {
+    pumpQueue();
+    return;
+  }
+
+  downloadStore.batch(() => {
+    for (const record of resuming) {
+      downloadStore.applyChange(record.itemIdText, { status: 'queued' });
+    }
+    downloadStore.notify();
+  });
+
+  // Persist before pumping: the pump writes `downloading` for the rows it claims, and a trailing
+  // `queued` write would overwrite it.
+  for (const record of resuming) {
+    await downloadsRepository.patch(record.itemIdText, { status: 'queued' });
+  }
+
+  pumpQueue();
 };
 
 export const downloadManager = {
@@ -388,12 +496,15 @@ export const downloadManager = {
    * enclosure) without creating a row, and de-dupes an item that is already queued/downloading/
    * paused/complete so duplicate taps do not spawn extra jobs.
    */
-  enqueue: async (item: DTOItem): Promise<EnqueueResult> => {
+  enqueue: async (
+    item: DTOItem,
+    explicitSelectedParams?: EnclosureSelectedParams | null
+  ): Promise<EnqueueResult> => {
     if (isOfflineModeEnabled()) {
       return { ok: false, reason: 'offline_mode' };
     }
 
-    const eligibility = isItemDownloadable(item);
+    const eligibility = isItemDownloadable(item, explicitSelectedParams);
     if (!eligibility.ok) {
       return { ok: false, reason: eligibility.reason };
     }
@@ -469,6 +580,8 @@ export const downloadManager = {
    */
   pause: async (itemIdText: string): Promise<void> => {
     await ensureHydrated();
+    // A deliberate pause takes the row off the network's list, so a restore leaves it alone.
+    networkPausedItemIdTexts.delete(itemIdText);
     const record = downloadStore.get(itemIdText);
     if (record === null) {
       return;
@@ -496,6 +609,7 @@ export const downloadManager = {
   /** Resume one paused job. Clears the Pause-all master state. */
   resume: async (itemIdText: string): Promise<void> => {
     await ensureHydrated();
+    networkPausedItemIdTexts.delete(itemIdText);
     const record = downloadStore.get(itemIdText);
     if (record === null || record.status !== 'paused') {
       return;
@@ -509,6 +623,8 @@ export const downloadManager = {
   pauseAll: async (): Promise<void> => {
     await ensureHydrated();
     pauseAllActive = true;
+    // The user now owns every pause in the list, including any the network made first.
+    networkPausedItemIdTexts.clear();
     const affected = downloadStore
       .getAll()
       .filter((record) => record.status === 'downloading' || record.status === 'queued');
@@ -544,6 +660,7 @@ export const downloadManager = {
   resumeAll: async (): Promise<void> => {
     await ensureHydrated();
     pauseAllActive = false;
+    networkPausedItemIdTexts.clear();
     const paused = downloadStore.getAll().filter((record) => record.status === 'paused');
 
     downloadStore.batch(() => {
@@ -600,6 +717,7 @@ export const downloadManager = {
    */
   remove: async (itemIdText: string): Promise<void> => {
     await ensureHydrated();
+    networkPausedItemIdTexts.delete(itemIdText);
     const resumable = inFlight.get(itemIdText);
     inFlight.delete(itemIdText);
     const record = forgetDownload(itemIdText);
@@ -623,6 +741,7 @@ export const downloadManager = {
   removeAll: async (): Promise<void> => {
     await ensureHydrated();
     pauseAllActive = false;
+    networkPausedItemIdTexts.clear();
     const all = [...downloadStore.getAll()];
     downloadStore.clear();
     lastProgressPersistAt.clear();
@@ -670,9 +789,20 @@ export const downloadManager = {
   },
 };
 
-// When Offline Mode turns on, pause every in-flight transfer so nothing keeps using the network.
-void subscribeOfflineMode((enabled) => {
-  if (enabled) {
-    void downloadManager.pauseAll();
+/**
+ * Hold transfers whenever the app cannot use the network, and pick them up when it can again.
+ *
+ * Both causes land here: the user's Offline Mode switch and a network that stopped working. An
+ * interrupted transfer resumes from its byte count, so pausing costs a few seconds of re-fetch
+ * where letting it run costs the whole file and a `failed` row the user has to notice and retry.
+ */
+const syncTransfersWithOfflineState = (): void => {
+  if (isEffectivelyOffline()) {
+    void pauseForNetwork();
+    return;
   }
-});
+  void resumeAfterNetwork();
+};
+
+void subscribeOfflineMode(syncTransfersWithOfflineState);
+void subscribeConnectivity(syncTransfersWithOfflineState);

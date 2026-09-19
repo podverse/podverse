@@ -45,6 +45,12 @@ In YAML use `${TIMEOUT_FAST}` (etc.), **never** invent ad-hoc `15000` / `60000` 
 3. Raise **one step** at a time (fast → slow → slower → slowest).
 4. Share login / connect flows under `e2e/shared/` so timeouts stay consistent.
 5. Do **not** use long sleeps (`waitForAnimationToEnd` without need). Prefer `extendedWaitUntil` on a `testID`.
+6. Raising a timeout is the **last** response to a failure, not the first. Find what the wait is
+   actually waiting for; an overlay or a loading state the flow never dismissed is the usual
+   answer, and a longer timeout only makes the eventual failure slower.
+7. When a wait genuinely needs the next rung up, raise **that wait alone** and record which one
+   and why, so a later reader can tell a measured value from an inherited one.
+8. Inflation compounds: a suite of pessimistic waits turns a fast failure into a slow one.
 
 ## API-backed flows
 

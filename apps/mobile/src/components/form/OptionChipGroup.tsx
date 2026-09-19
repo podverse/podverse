@@ -3,13 +3,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 
-export type OptionChipOption<T extends string> = {
+export type OptionChipOption<T extends string | number> = {
   value: T;
   label: string;
   testID?: string;
 };
 
-export type OptionChipGroupProps<T extends string> = {
+export type OptionChipGroupProps<T extends string | number> = {
   options: readonly OptionChipOption<T>[];
   value: T;
   onChange: (value: T) => void;
@@ -20,7 +20,7 @@ export type OptionChipGroupProps<T extends string> = {
  * Segmented chip / pill group for settings with **2–3** choices (see
  * **mobile-settings-option-density**). Labels are passed already localized by the caller.
  */
-export function OptionChipGroup<T extends string>({
+export function OptionChipGroup<T extends string | number>({
   options,
   value,
   onChange,

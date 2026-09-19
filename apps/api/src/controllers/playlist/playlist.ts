@@ -63,6 +63,24 @@ function preparePlaylistsForJson(playlists: Playlist[]): PlaylistApiJson[] {
   return playlistsToJson(playlists);
 }
 
+function omitAccountNumericId(playlist: Playlist): Playlist {
+  if (playlist.account !== undefined && playlist.account !== null) {
+    Reflect.deleteProperty(playlist.account, 'id');
+  }
+  return playlist;
+}
+
+async function loadOwnerPlaylistForResponse(
+  accountIdText: string,
+  playlistIdText: string
+): Promise<Playlist | null> {
+  const playlist = await playlistService.getOnePrivate(accountIdText, playlistIdText);
+  if (playlist === null) {
+    return null;
+  }
+  return omitAccountNumericId(playlist);
+}
+
 const playlistResourceWithProfileRelations: FindOptionsRelations<PlaylistResource> = {
   playlist: { account: { account_profile: true } },
 };
@@ -170,7 +188,12 @@ class PlaylistController {
           };
 
           try {
-            const playlist = await playlistService.create(account.id, dto);
+            const created = await playlistService.create(account.id, dto);
+            const playlist = await loadOwnerPlaylistForResponse(account.id_text, created.id_text);
+            if (playlist === null) {
+              res.status(404).json({ message: 'Playlist not found' });
+              return;
+            }
             res.status(201).json(preparePlaylistForJson(playlist));
           } catch (err) {
             handleGenericErrorResponse(res, err);
@@ -211,7 +234,15 @@ class PlaylistController {
               };
 
               try {
-                const playlist = await playlistService.update(account.id, playlist_id_text, dto);
+                await playlistService.update(account.id, playlist_id_text, dto);
+                const playlist = await loadOwnerPlaylistForResponse(
+                  account.id_text,
+                  playlist_id_text
+                );
+                if (playlist === null) {
+                  res.status(404).json({ message: 'Playlist not found' });
+                  return;
+                }
                 res.status(200).json(preparePlaylistForJson(playlist));
               } catch (err) {
                 handleGenericErrorResponse(res, err);
@@ -851,8 +882,8 @@ class PlaylistController {
                 playlist = await playlistService.getOnePublic(playlist_id_text);
               }
 
-              if (playlist?.account?.id) {
-                delete playlist.account.id;
+              if (playlist !== null) {
+                omitAccountNumericId(playlist);
               }
 
               if (playlist) {

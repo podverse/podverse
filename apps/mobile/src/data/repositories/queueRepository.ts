@@ -145,6 +145,20 @@ const forceRefreshNowPlaying = async (
   return fetched;
 };
 
+/**
+ * Force-refresh the account's queue list and rewrite the SQLite cache. Which queue is active — and
+ * whether a queue exists at all — changes as playback runs, and every screen that reads history,
+ * now-playing, or upcoming picks its queue from this list, so a mutation that can move the active
+ * flag has to rewrite it rather than wait out the read-through TTL.
+ */
+const forceRefreshQueues = async (context: MobileAuthRequestContext): Promise<DTOQueue[]> => {
+  const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
+    api.reqQueueGetAllForAccountPrivate()
+  );
+  await writeQueueCache(CACHE_KEY_QUEUES, fetched);
+  return fetched;
+};
+
 /** Force-refresh upcoming from the server after a mutation and rewrite the SQLite cache. */
 const forceRefreshUpcoming = async (
   context: MobileAuthRequestContext,
@@ -168,6 +182,28 @@ const forceRefreshHistoryPage = async (
   );
   await writeQueueCache(historyCacheKey(queueIdText, page), response.data);
   return response.data;
+};
+
+const toBetweenParams = (
+  position1: number,
+  position2: number
+): { position1: string; position2: string } => {
+  return {
+    position1: String(position1),
+    position2: String(position2),
+  };
+};
+
+const refreshQueueSnapshotAfterMutation = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string
+): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
+  const [nowPlaying, upcoming] = await Promise.all([
+    forceRefreshNowPlaying(context, queueIdText),
+    forceRefreshUpcoming(context, queueIdText),
+  ]);
+  await projectQueueForQueue(queueIdText);
+  return { nowPlaying, upcoming };
 };
 
 /**
@@ -371,59 +407,242 @@ export const queueRepository = {
     return history ?? [];
   },
 
-  /** Add an episode/track next in the queue, then refresh + project. Returns fresh upcoming. */
+  /** Add an episode/track next in the queue, then refresh + project. Returns the added resource. */
   addItemNext: async (
     context: MobileAuthRequestContext,
     queueIdText: string,
     itemIdText: string
-  ): Promise<DTOQueueResource[]> => {
-    await requestWithMobileAuthRefresh(context, async (api) =>
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddNext(queueIdText, itemIdText)
     );
-    const upcoming = await forceRefreshUpcoming(context, queueIdText);
+    await forceRefreshUpcoming(context, queueIdText);
     await projectQueueForQueue(queueIdText);
-    return upcoming;
+    return added;
   },
 
-  /** Add an episode/track last in the queue, then refresh + project. Returns fresh upcoming. */
+  /** Add an episode/track last in the queue, then refresh + project. Returns the added resource. */
   addItemLast: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    itemIdText: string
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemAddLast(queueIdText, itemIdText)
+    );
+    await forceRefreshUpcoming(context, queueIdText);
+    await projectQueueForQueue(queueIdText);
+    return added;
+  },
+
+  /** Add a clip next in the queue, then refresh + project. Returns the added resource. */
+  addClipNext: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    clipIdText: string
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceClipAddNext(queueIdText, clipIdText)
+    );
+    await forceRefreshUpcoming(context, queueIdText);
+    await projectQueueForQueue(queueIdText);
+    return added;
+  },
+
+  /** Add a clip last in the queue, then refresh + project. Returns the added resource. */
+  addClipLast: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    clipIdText: string
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceClipAddLast(queueIdText, clipIdText)
+    );
+    await forceRefreshUpcoming(context, queueIdText);
+    await projectQueueForQueue(queueIdText);
+    return added;
+  },
+
+  /** Add an episode/track between queue neighbors. */
+  addItemBetween: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    itemIdText: string,
+    position1: number,
+    position2: number
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemAddBetween(
+        queueIdText,
+        itemIdText,
+        toBetweenParams(position1, position2)
+      )
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return added;
+  },
+
+  /** Add a clip between queue neighbors. */
+  addClipBetween: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    clipIdText: string,
+    position1: number,
+    position2: number
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceClipAddBetween(
+        queueIdText,
+        clipIdText,
+        toBetweenParams(position1, position2)
+      )
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return added;
+  },
+
+  /** Add an item-soundbite next in the queue, then refresh + project. Returns the added resource. */
+  addSoundbiteNext: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    soundbiteIdText: string
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemSoundbiteAddNext(queueIdText, soundbiteIdText)
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return added;
+  },
+
+  /** Add an item-soundbite between queue neighbors. */
+  addSoundbiteBetween: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    soundbiteIdText: string,
+    position1: number,
+    position2: number
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemSoundbiteAddBetween(
+        queueIdText,
+        soundbiteIdText,
+        toBetweenParams(position1, position2)
+      )
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return added;
+  },
+
+  /** Add an item-soundbite last in the queue, then refresh + project. Returns the added resource. */
+  addSoundbiteLast: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    soundbiteIdText: string
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemSoundbiteAddLast(queueIdText, soundbiteIdText)
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return added;
+  },
+
+  /** Add an add-by-RSS item next in the queue, then refresh + project. Returns the added resource. */
+  addAddByRssNext: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    resourceData: object
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemAddByRSSAddNext(queueIdText, {
+        add_by_rss_resource_data: resourceData,
+      })
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return added;
+  },
+
+  /** Add an add-by-RSS item between queue neighbors. */
+  addAddByRssBetween: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    resourceData: object,
+    position1: number,
+    position2: number
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemAddByRSSAddBetween(queueIdText, {
+        add_by_rss_resource_data: resourceData,
+        ...toBetweenParams(position1, position2),
+      })
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return added;
+  },
+
+  /** Add an add-by-RSS item last in the queue, then refresh + project. Returns the added resource. */
+  addAddByRssLast: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    resourceData: object
+  ): Promise<DTOQueueResource> => {
+    const added = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemAddByRSSAddLast(queueIdText, {
+        add_by_rss_resource_data: resourceData,
+      })
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return added;
+  },
+
+  /** Remove an episode/track from the queue, then refresh + project. */
+  removeItem: async (
     context: MobileAuthRequestContext,
     queueIdText: string,
     itemIdText: string
   ): Promise<DTOQueueResource[]> => {
     await requestWithMobileAuthRefresh(context, async (api) =>
-      api.reqQueueResourceItemAddLast(queueIdText, itemIdText)
+      api.reqQueueResourceItemDelete(queueIdText, itemIdText)
     );
-    const upcoming = await forceRefreshUpcoming(context, queueIdText);
-    await projectQueueForQueue(queueIdText);
+    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText);
     return upcoming;
   },
 
-  /** Add a clip next in the queue, then refresh + project. Returns fresh upcoming. */
-  addClipNext: async (
+  /** Remove a clip from the queue, then refresh + project. */
+  removeClip: async (
     context: MobileAuthRequestContext,
     queueIdText: string,
     clipIdText: string
   ): Promise<DTOQueueResource[]> => {
     await requestWithMobileAuthRefresh(context, async (api) =>
-      api.reqQueueResourceClipAddNext(queueIdText, clipIdText)
+      api.reqQueueResourceClipDelete(queueIdText, clipIdText)
     );
-    const upcoming = await forceRefreshUpcoming(context, queueIdText);
-    await projectQueueForQueue(queueIdText);
+    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText);
     return upcoming;
   },
 
-  /** Add a clip last in the queue, then refresh + project. Returns fresh upcoming. */
-  addClipLast: async (
+  /** Remove an item-soundbite from the queue, then refresh + project. */
+  removeSoundbite: async (
     context: MobileAuthRequestContext,
     queueIdText: string,
-    clipIdText: string
+    soundbiteIdText: string
   ): Promise<DTOQueueResource[]> => {
     await requestWithMobileAuthRefresh(context, async (api) =>
-      api.reqQueueResourceClipAddLast(queueIdText, clipIdText)
+      api.reqQueueResourceItemSoundbiteDelete(queueIdText, soundbiteIdText)
     );
-    const upcoming = await forceRefreshUpcoming(context, queueIdText);
-    await projectQueueForQueue(queueIdText);
+    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    return upcoming;
+  },
+
+  /** Remove an add-by-RSS entry from the queue, then refresh + project. */
+  removeAddByRss: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    addByRssHashId: string
+  ): Promise<DTOQueueResource[]> => {
+    await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemAddByRSSDelete(queueIdText, addByRssHashId)
+    );
+    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText);
     return upcoming;
   },
 
@@ -456,7 +675,9 @@ export const queueRepository = {
 
   /**
    * Refresh queue cache rows from authoritative server state after playback reconcile and re-project
-   * the native cache snapshot for car/watch surfaces.
+   * the native cache snapshot for car/watch surfaces. The queue list is refreshed first: a reconcile
+   * can be the moment a queue first appears or takes over as active, and screens choose their queue
+   * from that list before they read any resources.
    */
   refreshAfterPlaybackReconcile: async (
     context: MobileAuthRequestContext,
@@ -468,6 +689,8 @@ export const queueRepository = {
     if (uniqueQueueIdTexts.length === 0) {
       return;
     }
+
+    await forceRefreshQueues(context);
 
     const abridged = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourcesGetAllByAccountAbridged()

@@ -57,6 +57,18 @@ export type HomeFeedRowData = {
    * "how many unseen" is a question only a subscription can answer.
    */
   metadata?: HomeRowMetadata;
+  /**
+   * The episode / track / clip a row's actions act on, for rows whose `id` identifies a container
+   * (a queue or history entry) instead of the content inside it. Content rows leave it unset: their
+   * `id` already is the target.
+   */
+  contentTarget?: HomeRowContentTarget;
+};
+
+/** Identity of the playable resource behind a row. */
+export type HomeRowContentTarget = {
+  idText: string;
+  kind: 'clip' | 'item';
 };
 
 type HomeFeedOptions = {

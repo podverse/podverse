@@ -23,16 +23,20 @@ export const isPlayableHomeMediaType = (mediaType: HomeMediaType): boolean => {
 
 /**
  * Resolve a row into a queue-mutation / play target. Content rows (Home / detail lists) carry the
- * resource `id_text` directly; playlist rows are prefixed (`item-` / `clip-`). Collection rows that
- * are not an "add new item" target (`queue-` / `history-` now-playing/upcoming rows, and
- * `soundbite-` playlist rows) return `null` because they do not represent direct content targets.
+ * resource `id_text` directly; playlist rows are prefixed (`item-` / `clip-`). Queue and history
+ * rows are identified by their entry rather than by what is inside them, so they name the episode,
+ * track, or clip through `contentTarget`; without one — a soundbite entry — the row has no target
+ * these actions can act on.
  */
 const resolveRowTarget = (
   row: HomeFeedRowData,
   mediaType: QueueMutationMediaType
 ): { idText: string; kind: QueueMutationKind } | null => {
   const id = row.id;
-  if (id.startsWith('queue-') || id.startsWith('history-') || id.startsWith('soundbite-')) {
+  if (id.startsWith('queue-') || id.startsWith('history-')) {
+    return row.contentTarget ?? null;
+  }
+  if (id.startsWith('soundbite-')) {
     return null;
   }
   if (id.startsWith('clip-')) {

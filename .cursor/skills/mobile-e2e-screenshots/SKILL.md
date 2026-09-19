@@ -228,6 +228,22 @@ hierarchy` that names "Smoke" in the scroll view's aggregated text but has no `m
    large share of the suite with unrelated-looking locator errors. Confirm the shared path before
    triaging areas separately.
 
+8. **Transient UI cannot be asserted.** A snapshot on Android can take longer than a few seconds, so
+   anything that dismisses itself on a short timer is unobservable. Screenshot it and move on; do
+   not make the product keep it on screen so the runner can see it.
+
+9. **`assertNotVisible` does not mean off-screen on iOS.** XCUITest reports mounted-but-off-screen
+   elements as present, so "below the fold" is not assertable there. Prove below-the-fold layout
+   with a unit test on the layout function and let the flow assert what is genuinely on screen.
+
+10. **Media fixtures must outlast the flow that plays them.** A seeded track shorter than the
+    assertions around it will end mid-flow and advance the queue, and then every claim about what
+    is playing is racing the clock. Pausing before a long assertion block is a legitimate, cheap
+    fix.
+
+11. **Boot gates belong to the flow, not the shared launcher.** A shared launch step loosened for
+    one flow's needs silently stops gating the other forty.
+
 ## Response format
 
 **Mandatory** for mobile UI / feature implementation responses (parity with web

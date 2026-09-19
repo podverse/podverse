@@ -1,42 +1,97 @@
 ---
-description: Offline Mode is a crucial mobile UX — toggle on More, park all network, default to downloaded views
+description: Offline Mode is a crucial mobile UX — the More toggle parks all network and steers UI; automatic offline detection is softer and explains only
 globs: apps/mobile/**/*
 alwaysApply: false
 ---
 
 # Mobile Offline Mode
 
-Offline Mode is a **crucial mobile UX feature**, not an edge case. It is a user-forced offline
-switch, distinct from the offline-first data layer (SQLite + repositories). The data layer keeps
-subscribed content readable without a connection; Offline Mode **refuses the network** and **steers
-UI** to downloaded / already-stored views.
+Offline Mode is a **crucial mobile UX feature**, not an edge case. Keep three concepts apart — most
+mistakes here are one of them being mistaken for another.
 
-## Toggle
+| Concept               | What it is                                                              | Where it lives                              |
+| --------------------- | ----------------------------------------------------------------------- | ------------------------------------------- |
+| **The toggle**        | The user forcing the app offline. Refuses the network and **steers UI**. | `offline.mode` pref, `prefs/offlineMode.ts`  |
+| **Connectivity**      | What the network is actually doing: online / device offline / server unreachable. | Derived, `net/connectivity.ts`      |
+| **Effective offline** | Either of the above. Selects fallback copy, and nothing else.            | `isEffectivelyOffline()`, `useOfflineStatus()` |
+
+All of this is separate from the offline-first data layer (SQLite + repositories), which keeps
+subscribed content readable with no connection regardless of any of the three.
+
+## The toggle
 
 - Device-local preference (`offline.mode` in AsyncStorage via `prefs/`). Do **not** sync to the
-  account.
+  account, and do **not** write it from a reachability reading. Nothing but the user sets it.
 - Control lives on **More**, **first under Features** (above overflow tabs / Settings / OPML).
+- The switch shows **the pref only**, never the derived state. A switch that reflected a network
+  reading would invite the user to turn off something they never turned on, and would flip under
+  them.
 - When on, show description text under the switch explaining that only downloads and other content
   already on the device are available.
-- Activation is **toggle-only**. Do **not** auto-enter or auto-leave from NetInfo / airplane mode.
 
-## While on — park all network
+## While the toggle is on — park all network
 
 - Background sync parks the same way as a real outage (`setNetworkReachable` is false).
 - API helpers refuse immediately (no token refresh, no silent retry).
-- New downloads are rejected; in-flight transfers pause when the toggle flips on.
+- New downloads are rejected; in-flight transfers pause.
 - Playback uses a completed local `file://` only — no remote enclosure fallback.
+
+## Automatic offline is softer than the toggle
+
+Detection exists so the app stops burning through failures and can say why. It is **not** a way to
+turn the toggle on for the user, and the two do not gate the same things.
+
+| Under the toggle                       | Under automatic offline                                   |
+| -------------------------------------- | --------------------------------------------------------- |
+| Requests refused outright              | Requests still attempted — an attempt is the only reliable way to learn we are back |
+| Remote streaming refused               | Remote streaming allowed: a media host can be up when the API is not |
+| New downloads rejected                 | New downloads **queue** and start on restore               |
+| Screens steer to Downloaded / About    | **Never** steers a tab, section, or chip                   |
+
+Rearranging somebody's screens because their signal dipped moves the app under them for a condition
+they did not choose, and moves it back a moment later. A screen that cannot work without the
+network keeps attempting and shows a retryable offline-flavored error through its own chrome.
+
+Gate the hard refusals on `isOfflineModeEnabled()` — the pref alone. Use `isEffectivelyOffline()`
+for background loops that would otherwise fail in a tight cycle, and `useOfflineStatus()` for copy.
+
+## Entering and leaving automatically
+
+- **Exit requires proof.** Only a request that reached the server, or a successful health probe,
+  returns the app to online. NetInfo reporting a connection is a hint that schedules a probe and
+  never an exit on its own — it reports a captive portal and a dying signal as connected.
+- **Entry is debounced.** A single failure or one disconnect changes nothing the user can see. A
+  blip that resolves inside the window must leave no trace, including no delayed banner.
+- Retries back off exponentially to a cap, and a deliberate user action probes immediately.
+- A minimum dwell keeps the message from changing faster than it can be read. Proof that the
+  network works is exempt — leaving a working app in an offline state is the worse failure.
+- Connectivity is ephemeral. Do not persist it to AsyncStorage or the account; a stale reading
+  restored at launch is worse than no reading.
+
+Keep these rules in a module with no React Native or Expo imports and no clock reads, so they stay
+unit-testable in node.
 
 ## Screen behavior
 
 - Screens that can work offline **default** to their offline-compatible view (usually
-  **Downloaded**). Offline Mode overrides the remembered section/tab on navigate; do not overwrite
-  the stored pref. About and other local panes stay selectable after an explicit tap.
-- A slim **Offline mode is on** warning strip sits in persistent bottom chrome above the tab bar,
-  in order: sync progress → Offline Mode → mini player. It does not slide away on stack push.
-- Screens that cannot (Browse global, Search, Home Clips, …) show a dedicated unavailable message —
-  never a spinner, empty list, or silent failure.
+  **Downloaded**) **while the toggle is on**. It overrides the remembered section/tab on navigate;
+  do not overwrite the stored pref. About and other local panes stay selectable after an explicit
+  tap.
+- A slim warning strip sits in persistent bottom chrome above the tab bar, in order: sync progress
+  → offline strip → mini player. It does not slide away on stack push. One strip covers all three
+  causes, with copy chosen by cause and a per-cause `testID`.
+- Screens that cannot work offline (Browse global, Search, Home Clips, …) show a dedicated
+  unavailable message while the toggle is on — never a spinner, empty list, or silent failure.
 - Do not auto-switch bottom tabs; the user sees the message on the tab they opened.
+
+## The strip is the only announcement
+
+A connectivity change gets the bottom-chrome strip and nothing else. No toast, no snackbar, no
+dialog, no push notification. On a weak signal those arrive over and over, for something the user
+already knows and cannot fix, and each one costs an interaction to dismiss.
+
+Copy stays brand-neutral — "Can't reach the server", not the product name — so it reads correctly on
+a self-hosted instance.
 
 ## Playback is recorded while parked
 
@@ -46,10 +101,13 @@ Offline listening is persisted device-locally and reconciled when connectivity r
 - Replay is bounded at 500 events with oldest-first eviction when the cap is reached.
 - Position updates collapse to the latest position per item before replay.
 - Completion stays sticky across replay so a completed item is not reopened by stale position writes.
-- Replay runs once Offline Mode is off and the network is reachable.
+- Replay stops on effective offline and leaves undelivered rows queued — never delete a row that
+  failed to deliver. It resumes through the existing replay sync job.
 
 ## Related
 
+- [742-offline-mode](/docs/proposals/mobile/_master-plan_/phase-2/details/742-offline-mode.md)
+- [779-automatic-offline-detection](/docs/proposals/mobile/_master-plan_/phase-2/details/779-automatic-offline-detection.md)
 - Skill: **mobile-data-layer** — offline-first storage (not this toggle)
 - Rule: **mobile-sync-orchestration** — sync queue parks on unreachability
 - Rule: **mobile-screen-layout** — Downloaded section / fill empties

@@ -27,7 +27,6 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { requestWithMobileAuthRefresh, useAuth } from '../../auth';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
-import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FullPlayerActionRow } from '../../components/player/FullPlayerActionRow';
@@ -76,7 +75,11 @@ import { useOfflineMode } from '../../prefs/offlineMode';
 import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
-import { EPISODE_TAB_LABEL_KEYS, itemSectionFlagsFromDto } from '../episode/episodeTabs';
+import {
+  EPISODE_TAB_LABEL_KEYS,
+  itemHasChapters,
+  itemSectionFlagsFromDto,
+} from '../episode/episodeTabs';
 import { useEpisodeSectionPanes } from '../episode/useEpisodeSectionPanes';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -93,18 +96,21 @@ import {
   FULL_PLAYER_TITLE_BLOCK_HEIGHT,
   resolveCondensedState,
   resolveFullPlayerLayout,
+  resolveMinPaneContentHeight,
 } from './fullPlayerLayout';
 import { FullPlayerSleepTimer } from './FullPlayerSleepTimer';
 import { FullPlayerSpeedControl } from './FullPlayerSpeedControl';
-import { FullPlayerUpNext } from './FullPlayerUpNext';
 
 type FullPlayerScreenProps = {
   onClose: () => void;
+  onOpenMakeClip: (params: { mode: 'create' } | { mode: 'edit'; clipId: string }) => void;
+  /** Navigate to the Library queue screen. */
+  onOpenQueue: () => void;
   /** Navigate to the V4V information screen. */
   onOpenV4v: () => void;
 };
 
-type FullPlayerSheet = 'more' | 'sleep' | 'speed' | 'up-next' | null;
+type FullPlayerSheet = 'more' | 'sleep' | 'speed' | null;
 
 type FullPlayerPaneRow =
   | { type: 'chapter'; id: string; chapter: DTOItemChapter }
@@ -123,26 +129,12 @@ const CLIP_SORT_LABEL_KEYS: Record<EpisodeClipSort, string> = {
 
 const EMPTY_SECTIONS: FullPlayerSection[] = [];
 
-type SectionListScrollResponder = {
-  scrollTo: (options: { animated: boolean; y: number }) => void;
-};
-
-type ScrollableSectionList = {
-  getScrollResponder: () => SectionListScrollResponder | null;
-};
-
-const scrollSectionListToTop = (list: ScrollableSectionList | null): void => {
-  list?.getScrollResponder()?.scrollTo({ animated: false, y: 0 });
-};
-
-const scrollSectionListToChips = (
-  list: ScrollableSectionList | null,
-  playerRegionHeight: number
-): void => {
-  if (playerRegionHeight <= 0) {
+const scrollSectionListToTop = (list: SectionList<FullPlayerPaneRow> | null): void => {
+  const responder = list?.getScrollResponder?.();
+  if (responder === undefined) {
     return;
   }
-  list?.getScrollResponder()?.scrollTo({ animated: true, y: playerRegionHeight });
+  responder.scrollTo({ animated: false, y: 0 });
 };
 
 const toSoundbiteRow = (
@@ -211,14 +203,20 @@ const hasSectionsForTarget = (target: PlaybackTarget | null): boolean => {
   return itemFromTarget(target) !== null;
 };
 
-export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) {
+export function FullPlayerScreen({
+  onClose,
+  onOpenMakeClip,
+  onOpenQueue,
+  onOpenV4v,
+}: FullPlayerScreenProps) {
   const { t } = useTranslation();
   const { isTablet } = useResponsive();
   const insets = useSafeAreaInsets();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { autoQueueActiveRow, autoQueueResources } = useAutoQueue();
+  const { autoQueueActiveRow, autoQueueConfig, autoQueueResources, setAutoQueueConfig } =
+    useAutoQueue();
   const { fetchPrimaryQueue } = usePrimaryQueue();
   const { fetchUpcoming } = useQueueResources();
   const { markAsPlayed } = useQueueMutations();
@@ -227,6 +225,8 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
   const {
     activeTarget,
+    enclosureSelectedParams,
+    itemLabeledEnclosures,
     jumpBy,
     nowPlaying,
     pause,
@@ -239,6 +239,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     skipToNextTrack,
     skipToPrevious,
     skipToPreviousTrack,
+    switchEnclosureSelectedParams,
     transportState,
   } = usePlaybackSession();
   const { chapters } = useNowPlayingChapters();
@@ -249,7 +250,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
   const [viewportWidth, setViewportWidth] = useState(0);
   const [chipStripHeight, setChipStripHeight] = useState(FULL_PLAYER_CHIP_HEADER_HEIGHT);
   const [openSheet, setOpenSheet] = useState<FullPlayerSheet>(null);
-  const [showCreateClipNotice, setShowCreateClipNotice] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isMarkedPlayed, setIsMarkedPlayed] = useState(false);
   const [isCondensed, setIsCondensed] = useState(false);
@@ -267,7 +267,24 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
 
   const currentItem = itemFromTarget(activeTarget);
   const currentItemIdText = currentItem?.id_text ?? null;
-  const previewFlags = currentItem === null ? null : itemSectionFlagsFromDto(currentItem);
+  const episodeForPanes = useMemo(() => {
+    if (currentItem === null) {
+      return null;
+    }
+    if (itemHasChapters(currentItem) || chapters.length === 0) {
+      return currentItem;
+    }
+    return {
+      ...currentItem,
+      item_chapters_feed: {
+        id: 0,
+        item_id: currentItem.id,
+        type: 'application/json',
+        url: '',
+      },
+    };
+  }, [chapters.length, currentItem]);
+  const previewFlags = episodeForPanes === null ? null : itemSectionFlagsFromDto(episodeForPanes);
   const channel = channelFromTarget(activeTarget);
   const hasSections = hasSectionsForTarget(activeTarget);
   const isPlaybackActive = activeTarget !== null && nowPlaying !== null;
@@ -307,7 +324,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     tabErrorKey,
     transcriptText,
   } = useEpisodeSectionPanes({
-    episode: currentItem,
+    episode: episodeForPanes,
     itemIdText: currentItemIdText,
     offlineModeEnabled,
     previewFlags,
@@ -321,6 +338,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     [autoQueueActiveRow, autoQueueResources]
   );
   const canSkipToNext = hasNextQueueItem(manualUpcomingCount, autoUpcomingCount);
+  const isMusicNowPlaying = activeTarget?.kind === 'item-music';
   const episodeHasChaptersForTrackButtons = hasEpisodeChaptersForTrackButtons(
     activeTarget,
     chapters
@@ -397,6 +415,11 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     ]
   );
   const artworkSizeCap = isTablet ? FULL_PLAYER_ARTWORK_MAX_TABLET : FULL_PLAYER_ARTWORK_MAX_PHONE;
+  const minPaneContentHeight = resolveMinPaneContentHeight({
+    hasSections,
+    playerRegionHeight: layout.playerRegionHeight,
+    viewportHeight,
+  });
 
   const styles = useMemo(
     () =>
@@ -470,6 +493,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
           flex: 1,
         },
         listContent: {
+          minHeight: minPaneContentHeight,
           paddingBottom: Math.max(tokens.spacing['2xl'], insets.bottom + tokens.spacing.xl),
         },
         loadMore: {
@@ -546,7 +570,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
           flex: 1,
         },
       }),
-    [contentMaxWidth, insets.bottom, themeStyles, tokens]
+    [contentMaxWidth, insets.bottom, minPaneContentHeight, themeStyles, tokens]
   );
 
   // Expand re-parents the single native surface to the `full` target; collapse (unmount) animates it
@@ -667,14 +691,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     setChipStripHeight((current) => (Math.abs(current - height) < 1 ? current : height));
   }, []);
 
-  const handleSelectTab = useCallback(
-    (tab: EpisodeTab) => {
-      selectTab(tab);
-      scrollSectionListToChips(sectionListRef.current, layout.playerRegionHeight);
-    },
-    [layout.playerRegionHeight, selectTab]
-  );
-
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!hasSections) {
       return;
@@ -696,6 +712,20 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
   const handlePause = () => {
     pause();
   };
+
+  const handleToggleShuffle = useCallback(() => {
+    setAutoQueueConfig({
+      ...autoQueueConfig,
+      random: !autoQueueConfig.random,
+    });
+  }, [autoQueueConfig, setAutoQueueConfig]);
+
+  const handleToggleRepeat = useCallback(() => {
+    setAutoQueueConfig({
+      ...autoQueueConfig,
+      repeat: !autoQueueConfig.repeat,
+    });
+  }, [autoQueueConfig, setAutoQueueConfig]);
 
   const handleRetry = () => {
     void retryPlayback();
@@ -1059,7 +1089,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
                   />
                 ) : undefined
               }
-              onSelect={handleSelectTab}
+              onSelect={selectTab}
               selectedKey={activeTab}
               testID="full-player-sections"
             />
@@ -1072,7 +1102,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     clipSort,
     clipSortOptions,
     handleChipStripLayout,
-    handleSelectTab,
     handlePause,
     handlePlay,
     handleRetry,
@@ -1082,6 +1111,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     nowPlaying,
     sectionChips,
     selectClipSort,
+    selectTab,
     styles.chipHeader,
     styles.chipRowSlot,
     styles.column,
@@ -1126,6 +1156,9 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
           <FullPlayerTransportRow
             hasEpisodeChaptersForTrackButtons={episodeHasChaptersForTrackButtons}
             hasNextQueueItem={canSkipToNext}
+            isMusicNowPlaying={isMusicNowPlaying}
+            isRepeatEnabled={autoQueueConfig.repeat}
+            isShuffleEnabled={autoQueueConfig.random}
             onJumpBack={() => {
               jumpBy(-MEDIA_JUMP_BACK_SECONDS);
             }}
@@ -1147,6 +1180,8 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
             onSkipToPreviousTrack={() => {
               void skipToPreviousTrack();
             }}
+            onToggleRepeat={handleToggleRepeat}
+            onToggleShuffle={handleToggleShuffle}
             state={transportState}
           />
 
@@ -1171,16 +1206,20 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
     <View style={styles.container} testID="full-player-screen">
       <FullPlayerActionRow
         disableAddToPlaylist={addToPlaylistTarget === null}
-        disableQueue={activeTarget === null}
         disableShare={shareUrl === null}
         onAddToPlaylist={handleAddToPlaylist}
         onClose={onClose}
         onCreateClip={() => {
-          setShowCreateClipNotice(true);
+          if (isTierKnown) {
+            const access = evaluateFeature('clip_authoring');
+            if (!access.allowed) {
+              openGate(access.reason);
+              return;
+            }
+          }
+          onOpenMakeClip({ mode: 'create' });
         }}
-        onOpenQueue={() => {
-          handleOpenSheet('up-next');
-        }}
+        onOpenQueue={onOpenQueue}
         onOpenV4v={onOpenV4v}
         onShare={handleShare}
         showV4v={showV4v}
@@ -1291,26 +1330,17 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
 
       <FullPlayerSleepTimer onCancel={handleCloseSheet} visible={openSheet === 'sleep'} />
       <FullPlayerSpeedControl onCancel={handleCloseSheet} visible={openSheet === 'speed'} />
-      <FullPlayerUpNext onCancel={handleCloseSheet} visible={openSheet === 'up-next'} />
       <FullPlayerMoreSheet
         canToggleSubscription={canToggleSubscription}
+        enclosureSelectedParams={enclosureSelectedParams}
+        itemLabeledEnclosures={itemLabeledEnclosures}
         isMarkedPlayed={isMarkedPlayed}
         isSubscribed={isSubscribed}
         onCancel={handleCloseSheet}
+        onSelectEnclosureParams={switchEnclosureSelectedParams}
         onTogglePlayed={handleMarkAsPlayed}
         onToggleSubscription={handleToggleSubscription}
         visible={openSheet === 'more'}
-      />
-      <ConfirmDialog
-        body={t('misc.not_available_yet')}
-        cancelLabel={t('misc.close')}
-        cancelTestID="full-player-create-clip-close"
-        onCancel={() => {
-          setShowCreateClipNotice(false);
-        }}
-        testID="full-player-create-clip-dialog"
-        title={t('features.clip.create_clip')}
-        visible={showCreateClipNotice}
       />
       {addToPlaylistSheet}
     </View>

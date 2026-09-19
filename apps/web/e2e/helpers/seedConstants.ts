@@ -31,6 +31,7 @@ export const E2E_ITEM_CHAPTER_TOPIC_ID_TEXT = 'e2eChapTopic01';
 export const E2E_CLIP_ID_TEXT = 'e2eClip00000001';
 export const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
+/** Publisher-feed artist channel. Mobile `artist.yaml` deep-links here. */
 export const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
 export const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
 export const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
@@ -73,15 +74,29 @@ export const E2E_CLIP_END_SECONDS = 12;
 export const E2E_SOUNDBITE_START_SECONDS = 14;
 export const E2E_SOUNDBITE_DURATION_SECONDS = 6;
 
+/**
+ * The two chapters span the whole 60s enclosure, the way a chaptered episode does in the wild, so
+ * any position on a scrubber names a chapter. The one-second gap between them is deliberate: it
+ * covers the case where a position falls outside every chapter range.
+ */
 export const E2E_CHAPTER_ONE_START_SECONDS = 1;
-export const E2E_CHAPTER_ONE_END_SECONDS = 5;
-export const E2E_CHAPTER_TWO_START_SECONDS = 6;
-export const E2E_CHAPTER_TWO_END_SECONDS = 10;
+export const E2E_CHAPTER_ONE_END_SECONDS = 20;
+export const E2E_CHAPTER_TWO_START_SECONDS = 21;
+export const E2E_CHAPTER_TWO_END_SECONDS = 60;
+
+/**
+ * Lightning value block on the podcast fixtures, so value-for-value surfaces have something to
+ * offer. The address is a syntactically valid 33-byte compressed pubkey that belongs to no node:
+ * nothing in the suite sends a payment, and a fixture must never point at a real destination.
+ */
+export const E2E_ITEM_VALUE_SUGGESTED_BTC = 0.00000005;
+export const E2E_ITEM_VALUE_RECIPIENT_ADDRESS =
+  '020000000000000000000000000000000000000000000000000000000000000e2e';
 
 export const E2E_MUSIC_TRACK_ONE_P_SECONDS = 7;
-export const E2E_MUSIC_TRACK_DURATION_SECONDS = 30;
+export const E2E_MUSIC_TRACK_DURATION_SECONDS = 120;
 /** Within 5s of `E2E_MUSIC_TRACK_DURATION_SECONDS`; restore clamps to 0. */
-export const E2E_MUSIC_TRACK_NEAR_END_P_SECONDS = 27;
+export const E2E_MUSIC_TRACK_NEAR_END_P_SECONDS = 117;
 
 export const E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 25;
 export const E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS = 60;
@@ -100,8 +115,8 @@ export const E2E_IMAGE_ASSET_BASE_URL = 'http://localhost:2111/e2e/images';
 export const EMBED_FIXTURE_ASSET_BASE_URL = E2E_ASSET_BASE_URL;
 export const EMBED_FIXTURE_IMAGE_BASE_URL = E2E_IMAGE_ASSET_BASE_URL;
 export const EMBED_SAMPLE_ALT_AUDIO_OGG_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
-export const EMBED_SAMPLE_ALT_VIDEO_MP4_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-30s-330hz.mp3`;
-export const EMBED_SAMPLE_ALT_VIDEO_WEBM_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
+export const EMBED_SAMPLE_ALT_VIDEO_MP4_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-120s-330hz.mp3`;
+export const EMBED_SAMPLE_ALT_VIDEO_WEBM_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-120s-294hz.mp3`;
 export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-placeholder.png`;
 
 export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Heavenly Bodies';
@@ -153,8 +168,8 @@ export const EMBED_FIXTURE_CHAPTER_VIDEO_ID_TEXT = 'embSmpChpVCh02';
 
 export const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 export const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
-export const E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-30s-330hz.mp3`;
-export const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
+export const E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-120s-330hz.mp3`;
+export const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-120s-294hz.mp3`;
 export const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
 export const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 
@@ -171,6 +186,20 @@ export const E2E_VIDEO_CHANNEL_ID_TEXT = 'e2eVideoChnl01';
 export const E2E_VIDEO_ITEM_ID_TEXT = 'e2eVideoItm001';
 export const E2E_VIDEO_CHANNEL_TITLE = 'E2E Video Transition Channel';
 export const E2E_VIDEO_ITEM_DURATION_SECONDS = 30;
+
+/**
+ * Live items with real enclosures for the live-stream media-player specs, in their own unsubscribed
+ * channel so the `v5fCrIj9Io` livestream specs keep their enclosure-free `.first()` link target.
+ * The sources are progressive mp3/mp4 from the asset server, so these fixtures cover enclosure and
+ * controller selection plus the floating video portal — not live-edge or manifest behavior.
+ * Sync with `tools/web/seed-e2e.mjs`.
+ */
+export const E2E_LIVE_AV_CHANNEL_ID_TEXT = 'e2eLiveAvChn01';
+export const E2E_LIVE_AV_CHANNEL_TITLE = 'E2E Live AV Channel';
+export const E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT = 'e2eLiveAud001';
+export const E2E_LIVE_AV_AUDIO_ITEM_TITLE = 'E2E Live Audio Stream';
+export const E2E_LIVE_AV_VIDEO_ITEM_ID_TEXT = 'e2eLiveVid001';
+export const E2E_LIVE_AV_VIDEO_ITEM_TITLE = 'E2E Live Video Stream';
 
 /** Embed player E2E fixtures — sync with `tools/web/seed-e2e.mjs`. */
 export const E2E_EMBED_VIDEO_CHANNEL_ID_TEXT = 'e2eEmbedVidCh01';

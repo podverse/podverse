@@ -188,6 +188,20 @@ name: Podcast Episode Flow
     id: podcast-detail-notifications-toggle
 - runFlow:
     when:
+      visible:
+        id: podcast-detail-rss
+    commands:
+      - assertVisible:
+          id: podcast-detail-rss
+- runFlow:
+    when:
+      visible:
+        id: podcast-detail-website
+    commands:
+      - assertVisible:
+          id: podcast-detail-website
+- runFlow:
+    when:
       notVisible:
         id: podcast-detail-settings
     commands:
