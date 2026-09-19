@@ -1069,11 +1069,16 @@ export const itemGetOneRelations: FindOptionsRelations<Item> = {
   item_transcripts: true,
   item_txts: true,
   item_values: true,
-  live_item: true,
+  // `DTOLiveItem.live_item_status` is non-optional, and consumers such as the livestream detail
+  // play button read the nested id, so the single-item shape has to match `itemGetManyRelations`.
+  live_item: { live_item_status: true },
 };
 
 const getItemOneToOneRelations = (relations: FindOptionsRelations<Item>) => {
   const channelRelation = relations.channel;
+  // Forwarded rather than collapsed to `true` so a caller asking for `live_item.live_item_status`
+  // gets it; collapsing drops the nested status the DTO declares as always present.
+  const liveItemRelation = relations.live_item;
   const oneToOneRelations: FindOptionsRelations<Item> = {
     ...(channelRelation ? { channel: channelRelation } : {}),
     ...(relations.item_about ? { item_about: { item_itunes_episode_type: true } } : {}),
@@ -1082,7 +1087,7 @@ const getItemOneToOneRelations = (relations: FindOptionsRelations<Item>) => {
     ...(relations.item_license ? { item_license: true } : {}),
     ...(relations.item_location ? { item_location: true } : {}),
     ...(relations.item_season ? { item_season: { channel_season: true } } : {}),
-    ...(relations.live_item ? { live_item: true } : {}),
+    ...(liveItemRelation ? { live_item: liveItemRelation } : {}),
   };
 
   return oneToOneRelations;

@@ -1,0 +1,112 @@
+---
+description: Mobile dialogs, sheets, and menus render in the React tree through `AppOverlay`; an RN `Modal` over a root-stack card is invisible to Android accessibility
+globs:
+  - apps/mobile/**/*.tsx
+alwaysApply: false
+---
+
+# Mobile overlays render in the tree
+
+Every dialog, sheet, menu, and viewer that appears **over app content** mounts through
+**`AppOverlay`** from [`src/components/overlay`](/apps/mobile/src/components/overlay/index.ts). It
+registers its children with the overlay host, which renders them from `OverlayOutlet` above the
+navigator — one React tree, one native window.
+
+```tsx
+// GOOD
+<AppOverlay onRequestClose={onCancel} visible={visible}>
+  <Pressable onPress={onCancel} style={styles.backdrop}>…</Pressable>
+</AppOverlay>
+```
+
+`AppOverlay` carries the parts an overlay needs, so no caller reimplements them: `OverlayA11yShield`
+hides the app beneath from VoiceOver and TalkBack while an overlay is open, Android's hardware back
+routes to `onRequestClose`, overlays stack in the order they opened, and the host is subscribed
+through `useSyncExternalStore` so opening one does not re-render the app.
+
+## Why not `Modal`
+
+A React Native `Modal` creates a separate native window. On Android, `ReactModalHostView` posts that
+window's size to the shadow tree as an **asynchronous state update**, and the modal's subtree has no
+size until it lands. When a `react-native-screens` **root-stack card** covers the tabs — the full
+player, make clip, V4V — that update never arrives.
+
+The failure is quiet and total. The subtree stays 0×0, so the overlay paints as a small stamp in the
+top-left corner **and is excluded from the Android accessibility tree entirely**: TalkBack cannot
+reach it, and neither can Maestro. Nothing redboxes, and the press that opened it did fire. Sizing
+the content from `useWindowDimensions()` fixes the painting and leaves the accessibility hole, which
+is why the overlay must not live in a second window at all.
+
+## Do
+
+- Reach for `AppOverlay` for every overlay over content: confirm dialogs, action sheets, overflow
+  menus, image viewers, managed-copy readers, rate-limit notices.
+- Render `AppOverlay` unconditionally and let `visible` drive it, the same contract as
+  [mobile-modal-presentation-lifecycle](/.cursor/rules/mobile-modal-presentation-lifecycle.mdc).
+- Animate with `Animated` inside the overlay's own children — the host does not animate for you.
+- Give the overlay's content `accessibilityViewIsModal` and a role, so assistive tech treats it as
+  the focused surface.
+
+## Don't
+
+- Do not import `Modal` in `apps/mobile` for an overlay over content, even one that "works on iOS".
+- Do not work around a clipped or unreachable overlay by measuring the window, raising `zIndex`, or
+  setting `statusBarTranslucent`. Those address the paint, not the accessibility tree.
+- Do not mount an overlay outside `OverlayHostProvider`; `AppOverlay` throws rather than render into
+  nowhere.
+
+## Flows see through an open overlay
+
+One window means the covered screen's `testID`s stay in the hierarchy while an overlay is open.
+`OverlayA11yShield` marks that subtree unimportant for accessibility, which is what TalkBack and
+VoiceOver honor — but UiAutomator asks for unimportant views too, so **Maestro still finds and taps
+them**. A `Modal` used to hide them for free; nothing does now.
+
+So in a Maestro flow, `assertVisible` on a screen underneath proves nothing, and a tap aimed at it
+lands on whatever the overlay put at those coordinates. Header buttons are the trap: a screen's back
+button and an overlay's close button occupy the same corner, so the tap "passes" and the flow reads
+as a dead control.
+
+Dismiss the overlay explicitly, then interact with the screen:
+
+```yaml
+# GOOD — the once-only how-to covers the form; close it before touching the form's header
+- tapOn:
+    id: full-player-create-clip
+- extendedWaitUntil:
+    visible:
+      id: make-clip-how-to-modal
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: make-clip-how-to-close
+- assertNotVisible:
+    id: make-clip-how-to-modal
+- assertVisible:
+    id: make-clip-screen
+```
+
+## The one boundary
+
+`App.tsx`'s auth sheet and the popularity-tracking consent prompt stay RN `Modal`s with
+`presentationStyle="fullScreen"`. They are top-level app modes that replace the whole screen, they
+only ever appear over the tab navigator, and a presented view controller is the platform-correct
+presentation for them.
+
+That boundary is narrow: a full-screen mode at the root, never over a root-stack card. Anything that
+can open while the full player or make clip is up belongs in `AppOverlay`, and new overlays start
+there.
+
+`OverlayOutlet` mounts inside `AppBody`. The login and signup sheet in `App.tsx` is a native `Modal`
+with `presentationStyle="fullScreen"` and a **sibling** of the outlet. Any `ConfirmDialog`,
+`MoreMenu`, or managed-copy sheet raised from login or signup therefore renders underneath the auth
+window: present in the tree, reachable by tests, invisible to the user. Keep auth-screen messaging
+inline, or move the auth sheet into the overlay host first. Do not raise an `AppOverlay` from a
+surface that is still an RN `Modal`.
+
+## Related
+
+- **mobile-modal-presentation-lifecycle** — the `visible`-driven contract, and why full-screen modals
+  must not overlap
+- **screen-reader-accessibility** — focus containment expectations an overlay has to meet
+- **mobile-list-virtualization** — the other `react-native-screens` interaction on Android, where a
+  removal transition reparents clipped list children

@@ -10,6 +10,7 @@ import { accountRepository } from '../data/repositories/accountRepository';
 import { resolveSupportedLocale } from '../i18n/locale';
 import { startFcmTokenRefreshSync, stopFcmTokenRefreshSync } from '../push/fcmDeviceSync';
 import { refreshAccessTokenSingleFlight } from './authRequestWithRefresh';
+import { shouldResetLeakedE2eSession } from './e2eSessionReset';
 import type { SessionEndReason } from './forcedLogoutNotice';
 import {
   clearForcedLogoutNotice,
@@ -21,16 +22,6 @@ import { clearAllSecureTokens, readSecureToken, writeSecureToken } from './secur
 import { reconcileAccountPrefsFromAccount } from './syncAccountPrefs';
 
 export type AuthStatus = 'unknown' | 'anonymous' | 'authenticated';
-
-// E2E flows must always start from a clean anonymous session. Maestro
-// `launchApp: clearState` does not clear expo-secure-store (iOS Keychain /
-// Android keystore-backed prefs), so a prior flow's login would otherwise persist
-// and boot straight into the authenticated shell (or block hydrate). The `__DEV__`
-// guard guarantees this reset can never run in a release build even if the E2E
-// flag is somehow set.
-const shouldResetSessionForE2e = (): boolean => {
-  return __DEV__ && getMobileConfig().isE2e;
-};
 
 type SetTokensInput = {
   accessToken: string;
@@ -103,7 +94,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const hydrateFromSecureStorage = useCallback(async () => {
-    if (shouldResetSessionForE2e()) {
+    if (await shouldResetLeakedE2eSession()) {
       await clearSession('reset');
       return;
     }

@@ -304,49 +304,32 @@ must run unchanged across every phase.
 
 ### 6c. Test feed selection
 
-Phase 1 decision (see
-[media-player-architecture skill](/.cursor/skills/media-player-architecture/SKILL.md)
-and
-[01-baseline-verification-and-feed-selection.md](/.llm/plans/active/media-player-livestream-hls-migration/01-baseline-verification-and-feed-selection.md)):
-exercise **only the controller-plumbing surface** against the existing
-internal seed; do not stand up a live-stream test server or external
-network dependency in Phase 1. The infrastructure decision (real HLS
-server, mocked HLS via `page.route`, or extended seed) belongs to the
-**Phase 4 HLS migration plan-set** that actually changes the live-stream
-code path.
+All four live-stream specs run against the internal seed. No live-stream
+test server or external network dependency is involved; the asset server
+on port 2111 serves the enclosures.
 
-| Slot       | Choice                                                   | Source                                            | Date verified | Scope                                                               |
-| ---------- | -------------------------------------------------------- | ------------------------------------------------- | ------------- | ------------------------------------------------------------------- |
-| Live audio | Seeded internal feed `v5fCrIj9Io` / item `e2eLiveStrm01` | [tools/web/seed-e2e.mjs](/tools/web/seed-e2e.mjs) | 2026-05-13    | Controller-mount assertions only (no play, no seek, no real stream) |
-| Live video | _Deferred to Phase 4_ — see subsection below             | _TBD by Phase 4 plan-set_                         | _TBD_         | _TBD_                                                               |
+| Slot                     | Choice                                                                     | Source                                            | Scope                                                                             |
+| ------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Live audio, no enclosure | Feed `v5fCrIj9Io` / item `e2eLiveStrm01`                                   | [tools/web/seed-e2e.mjs](/tools/web/seed-e2e.mjs) | Controller-tree mount on navigation, without play (audio-start spec)              |
+| Live audio, playable     | Feed `e2eLiveAvChn01` / item `e2eLiveAud001`, progressive mp3 on port 2111 | [tools/web/seed-e2e.mjs](/tools/web/seed-e2e.mjs) | Play, dispose, and recreate across live ⇄ non-live transitions (transition specs) |
+| Live video, playable     | Feed `e2eLiveAvChn01` / item `e2eLiveVid001`, progressive mp4 on port 2111 | [tools/web/seed-e2e.mjs](/tools/web/seed-e2e.mjs) | video.js init and floating-portal placement (video-start spec)                    |
 
-### 6c. Deferred to Phase 4
+The playable live items sit in their own unsubscribed channel so
+`v5fCrIj9Io` keeps a single enclosure-free live item — the audio-start and
+header-image specs both resolve
+`a[href*="/podcast/livestream/"]:first` there — and so the subscribed-list
+filter spec still matches exactly one channel on the term `livestream`.
 
-Three of the four live-stream specs are intentionally left
-`test.fixme()` at the end of Phase 1 because their assertions become
-meaningful only once Phase 4 starts modifying the live-stream code path
-and needs the regression oracle.
-
-| Spec                                                                                                                         | Reason for deferral                                                                     | Phase 4 prerequisite                                                                                                                                                                                                      |
-| ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [media-player-livestream-video-start.spec.ts](/apps/web/e2e/media-player-livestream-video-start.spec.ts)                     | No video live-stream item in the current seed                                           | Either (a) add a video `live_item` to [seed-e2e.mjs](/tools/web/seed-e2e.mjs) with a mocked HLS URL, (b) add Playwright `page.route` HLS mocks, or (c) point at a public HLS test stream gated by `E2E_LIVE_FEEDS_OK` env |
-| [media-player-livestream-to-podcast-transition.spec.ts](/apps/web/e2e/media-player-livestream-to-podcast-transition.spec.ts) | Seed has no regular (non-live) podcast item with an enclosure for the transition target | Add one item with a real or mocked enclosure URL to [seed-e2e.mjs](/tools/web/seed-e2e.mjs); reuse the same HLS infrastructure decision as the video-start spec                                                           |
-| [media-player-podcast-to-livestream-transition.spec.ts](/apps/web/e2e/media-player-podcast-to-livestream-transition.spec.ts) | Same as above — needs both a playable podcast item and a playable live-stream item      | Same as above                                                                                                                                                                                                             |
-
-**Why Phase 4, not Phase 2 or 3?** Phases 2 and 3 (playback domain types
-and controller decomposition) do not change the live-stream code path.
-Phase 4 unifies live-stream + non-live audio/video onto a single
-`<MediaElement>` and replaces video.js — that is the work the
-dispose/recreate and transition specs are oracles for. Building the test
-infrastructure in Phase 1 means maintaining it through Phases 2 and 3
-for zero net benefit; building it inside the Phase 4 plan-set means the
-infrastructure decision (real server vs mock vs seed extension) is made
-by the same plan-set that will use it.
-
-The cheap-and-durable Phase 1 oracle that remains useful through every
-phase is the audio-start controller-mount assertion — it locks down
-"items with `live_item` set route to `MediaPlayerControllerLiveStreamAV`"
-and breaks loudly if Phase 4 fumbles the controller-selection logic.
+**What a progressive file does and does not cover.** Enclosure selection,
+controller selection, video.js init, dispose/recreate, and floating-portal
+placement are all real: they depend on the labeled enclosure's media type
+and on `mpItem.live_item`, not on the transport. Live-edge semantics —
+`duration === Infinity`, a `currentTime` that never advances, manifest
+reload, and cross-source fallback — need a real HLS source and are
+asserted nowhere today. Phase 4 replaces video.js with a single
+`<MediaElement>`, so it owns that infrastructure decision (real server vs
+`page.route` mock vs an `E2E_LIVE_FEEDS_OK`-gated public stream) and should
+extend these specs rather than start from scratch.
 
 ## Cross-cutting side effects glossary
 

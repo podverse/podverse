@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Modal, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 
 import { shareRemoteFile } from '../../lib/share/shareRemoteFile';
 import { useTheme } from '../../theme/useTheme';
+import { AppOverlay, OverlayScrim } from '../overlay';
 import { HeaderBarAction } from '../screen/HeaderBarAction';
 import { HeaderBarChrome } from '../screen/HeaderBarChrome';
 import { MoreMenu } from './MoreMenu';
@@ -55,13 +56,8 @@ export function ImageViewerModal({
   }, [uri]);
 
   return (
-    <Modal
-      animationType="fade"
-      onRequestClose={onClose}
-      supportedOrientations={['portrait']}
-      visible={visible}
-    >
-      <View style={styles.root} testID="image-viewer">
+    <AppOverlay animation="fade" onRequestClose={onClose} visible={visible}>
+      <OverlayScrim style={styles.root} testID="image-viewer">
         <HeaderBarChrome
           backAccessibilityLabel={t('misc.go_back')}
           backTestID="image-viewer-back"
@@ -107,7 +103,7 @@ export function ImageViewerModal({
           testID="image-viewer-menu"
           visible={isMenuOpen}
         />
-      </View>
-    </Modal>
+      </OverlayScrim>
+    </AppOverlay>
   );
 }

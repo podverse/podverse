@@ -46,6 +46,13 @@ name: Track flow
     visible:
       id: full-player-screen
     timeout: ${TIMEOUT_SLOW}
+
+# Pause before reading the player. The assertions below take longer on a slow device than a short
+# seeded track runs, so a track left playing can reach its end and advance on its own — and then
+# every claim about "the track that is playing" is racing the track. Pausing costs no coverage: play
+# was already proven above, the music transport is the same paused, and skip-next resumes.
+- tapOn:
+    id: full-player-play-pause
 - assertVisible:
     id: full-player-transport-row
 - assertVisible:

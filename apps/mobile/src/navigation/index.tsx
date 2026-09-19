@@ -90,7 +90,7 @@ import { useTheme } from '../theme/useTheme';
 import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
 import type { AlbumDetailRouteParams } from './albumDetailParams';
 import { mapScopedPathToFlatPath } from './deepLinking';
-import { resolveMobileDeepLinkState } from './notificationStack';
+import { resolveMobileDeepLinkAction, resolveMobileDeepLinkState } from './notificationStack';
 import { OrderedTabBar } from './OrderedTabBar';
 import type { PodcastDetailRouteParams } from './podcastDetailParams';
 import { ROOT_SLIDE_UP_SCREEN_OPTIONS } from './slideUpScreen';
@@ -1393,12 +1393,9 @@ export function MobileTabNavigator({
       return;
     }
 
-    const nextState = resolveMobileDeepLinkState(
-      pendingDeepLinkUrl,
-      mobileNavigationLinking.config
-    );
-    if (nextState !== undefined) {
-      rootNavigationRef.resetRoot(nextState);
+    const action = resolveMobileDeepLinkAction(pendingDeepLinkUrl, mobileNavigationLinking.config);
+    if (action !== undefined) {
+      rootNavigationRef.dispatch(action);
     } else {
       rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs);
     }

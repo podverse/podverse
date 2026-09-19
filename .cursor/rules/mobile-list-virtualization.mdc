@@ -8,6 +8,15 @@ For files under `apps/mobile/src/**/*.tsx`:
   episode lists, search results, queue rows) must render with `FlatList` or `SectionList`.
 - Do not render those lists with `ScrollView` + `.map()`.
 
+## Clipping
+
+- Every `FlatList` / `SectionList` passes `removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}`
+  (`apps/mobile/src/components/primitives/listVirtualization.ts`). `FillList` already does, so
+  prefer it. Never pass `removeClippedSubviews` a literal, and never leave it unset — the Android
+  default is `true`, which desynchronizes native child indices from the renderer during a
+  react-native-screens screen-removal transition and tears the app down mid-navigation. That file
+  documents the constraint and is the one place to revisit it.
+
 ## Scroll ownership
 
 - The virtualized list owns scroll.

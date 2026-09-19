@@ -31,7 +31,11 @@ import { defineConfig } from 'vitest/config';
  * (`src/screens/search/podcastIndexFeedPreview.ts`), the client-version/platform header builder
  * (`src/auth/mobileClientHeaders.ts` — pure; the RN-coupled resolution stays in `mobileApi.ts`), the
  * forced-logout notice marker (`src/auth/forcedLogoutNotice.ts` — AsyncStorage-backed, and
- * AsyncStorage mocks cleanly in node; the RN modal that renders it stays untested here), the
+ * AsyncStorage mocks cleanly in node; the RN modal that renders it stays untested here), the rule
+ * that tells an E2E session left behind by a finished flow apart from one a relaunch should keep
+ * (`src/auth/e2eSessionReset.ts`), the best-effort replay of buffered listen stats, which must
+ * resolve even when the account is not entitled to them (`src/data/repositories/statsRepository.ts` —
+ * its only dependency is the auth request helper, which mocks), the
  * membership denial mapping (`src/membership/membershipDenial.ts` — pure; note the membership-state
  * derivation now lives in `@podverse/helpers` `deriveMembershipState`, tested there, and the RN-coupled
  * `useMembership` hook is excluded), the membership checkout URL builder
@@ -54,7 +58,9 @@ import { defineConfig } from 'vitest/config';
  * feeds it (`src/playback/playbackEventSource.ts`), and the handoff prompt and dismissal memory
  * (`src/playback/playbackHandoff.ts`) are all pure, while their SQLite halves stay in
  * `playbackOutboxRepository.ts` and the RN provider stays in `PlaybackProvider.tsx`. The player
- * chrome's rules sit on the same split: the transport glyph mapping that keeps the spinner to a
+ * chrome's rules sit on the same split: the overlay store's closing phase and transition durations
+ * (`src/components/overlay/overlayStore.ts`, `src/components/overlay/overlayTransitions.ts`), the
+ * transport glyph mapping that keeps the spinner to a
  * source that cannot start yet (`src/playback/playbackTransport.ts`), which clip or chapter the
  * now-playing bar names (`src/playback/nowPlayingSegment.ts`), the marquee overflow and travel math
  * (`src/lib/text/marqueeScroll.ts`), reading a 404 as an empty list (`src/lib/apiErrorStatus.ts`),
@@ -73,9 +79,12 @@ export default defineConfig({
     environment: 'node',
     include: [
       'modules/podverse-media-engine/src/**/*.test.ts',
+      'src/auth/e2eSessionReset.test.ts',
       'src/auth/forcedLogoutNotice.test.ts',
       'src/auth/localDevLoginPrefill.test.ts',
       'src/auth/mobileClientHeaders.test.ts',
+      'src/components/overlay/overlayStore.test.ts',
+      'src/components/overlay/overlayTransitions.test.ts',
       'src/components/player/fullPlayerRows.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/db/migrations.test.ts',
@@ -86,6 +95,7 @@ export default defineConfig({
       'src/data/repositories/playbackOutbox.test.ts',
       'src/data/repositories/playbackReconcile.test.ts',
       'src/data/repositories/subscriptionsMerge.test.ts',
+      'src/data/repositories/statsRepository.test.ts',
       'src/data/repositories/subscriptionsSignupPlan.test.ts',
       'src/data/repositories/syncEventLog.test.ts',
       'src/downloads/**/*.test.ts',

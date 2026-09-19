@@ -21,7 +21,9 @@ import { subscriptionsRepository } from '../data/repositories/subscriptionsRepos
 import type { MobileAuthRequestContext } from '../data/repositories/types';
 import { readIsPlayingLocallyForSync } from '../playback/playbackSyncState';
 import { DEFAULT_HOME_RANGE, homeSortToApiRange, readHomeListPrefs } from '../prefs/homeListPrefs';
+import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
 import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
+import { publishQueueDataChanged } from './queueDataRevision';
 import type { SyncJobKind } from './syncJobKinds';
 import { SYNC_JOB_LABEL_KEYS } from './syncJobKinds';
 import type { PlannedSyncJob } from './syncJobPlan';
@@ -351,6 +353,7 @@ const createQueueHydrateJob = (deps: SyncJobDeps, priority: SyncJobPriority): Sy
   return buildJob('queue-hydrate', priority, 'queue-hydrate', async () => {
     await queueRepository.getAbridgedIndex(deps.getAuthContext());
     await deps.loadActiveQueue();
+    publishQueueDataChanged();
   });
 };
 
@@ -359,6 +362,7 @@ const createPlaybackReplayJob = (deps: SyncJobDeps, priority: SyncJobPriority): 
     const account = await accountRepository.getSnapshot();
     if (account === null) {
       publishPlaybackReconcileConflicts([]);
+      publishPlaybackPositionAdoptions([]);
       return;
     }
 
@@ -368,6 +372,8 @@ const createPlaybackReplayJob = (deps: SyncJobDeps, priority: SyncJobPriority): 
       { isPlayingLocally: readIsPlayingLocallyForSync() }
     );
     publishPlaybackReconcileConflicts(result.resolveConflicts);
+    publishPlaybackPositionAdoptions(result.adoptPositions);
+    publishQueueDataChanged();
   });
 };
 

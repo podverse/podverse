@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, ne, or } from 'drizzle-orm';
 
 import { toEpochMsOrNull } from '@podverse/helpers';
 import type { DTOQueue, DTOQueueResource, QueueExtraParams } from '@podverse/helpers/dto';
@@ -64,6 +64,8 @@ export type PlaybackOutboxDrainResult = {
 
 export type PlaybackOutboxReconcileResult = PlaybackOutboxDrainResult & {
   adoptedRows: number;
+  /** Now-playing positions another device advanced, for the player to move to. */
+  adoptPositions: PlaybackReconcileResourceState[];
   pushedEvents: number;
   resolveConflicts: PlaybackReconcileDifferentNowPlayingConflict[];
 };
@@ -932,6 +934,27 @@ export const playbackOutboxRepository = {
           },
         });
 
+      // A queue holds one now-playing resource: taking that spot sends the previous holder to
+      // history with its saved position, which is what the server does when a resource is added to
+      // now-playing. Local state has to follow, or an offline session leaves two rows claiming the
+      // spot and the reconcile resolves the older one back into it.
+      if (mergedState.zone === 'now_playing') {
+        await transaction
+          .update(schema.playbackLocalState)
+          .set({ zone: 'history' })
+          .where(
+            and(
+              eq(schema.playbackLocalState.accountIdText, event.accountIdText),
+              eq(schema.playbackLocalState.queueIdText, event.queueIdText),
+              eq(schema.playbackLocalState.zone, 'now_playing'),
+              or(
+                ne(schema.playbackLocalState.resourceKind, event.resourceKind),
+                ne(schema.playbackLocalState.resourceIdText, event.resourceIdText)
+              )
+            )
+          );
+      }
+
       const candidates = await transaction
         .select({ id: schema.playbackOutbox.id, eventKind: schema.playbackOutbox.eventKind })
         .from(schema.playbackOutbox)
@@ -1104,6 +1127,7 @@ export const playbackOutboxRepository = {
     return {
       ...drained,
       adoptedRows: plan.adopt.length,
+      adoptPositions: plan.adoptPositions,
       pushedEvents,
       resolveConflicts: plan.resolveConflicts,
     };

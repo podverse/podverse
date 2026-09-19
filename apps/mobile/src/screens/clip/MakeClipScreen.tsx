@@ -42,7 +42,7 @@ type MakeClipStackParamList = {
 type MakeClipScreenProps = NativeStackScreenProps<MakeClipStackParamList, 'MakeClip'>;
 
 const VALIDATION_REASON_COPY_KEYS: Record<MakeClipValidationReason, string> = {
-  end_must_be_after_start: 'errors.generic',
+  end_must_be_after_start: 'features.clip.end_must_be_after_start',
   start_required: 'misc.required',
 };
 

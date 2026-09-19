@@ -16,6 +16,7 @@ export { FillList, isFillListScrollLocked } from './FillList';
 export type { FillListProps } from './FillList';
 export { ListRow } from './ListRow';
 export type { ListRowProps } from './ListRow';
+export { LIST_REMOVE_CLIPPED_SUBVIEWS } from './listVirtualization';
 export { MarqueeText } from './MarqueeText';
 export type { MarqueeTextProps } from './MarqueeText';
 export { MoreMenu } from './MoreMenu';

@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../theme/useTheme';
+import { AppOverlay, OverlayPanel } from '../overlay';
 import { HeaderBarChrome } from '../screen/HeaderBarChrome';
 import { LoadingSection } from '../state/LoadingSection';
 import { RetryableError } from '../state/RetryableError';
@@ -53,8 +54,8 @@ export function ManagedCopyModal({
   );
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
-      <View style={styles.root} testID={testID}>
+    <AppOverlay animation="slide" onRequestClose={onClose} visible={visible}>
+      <OverlayPanel style={styles.root} testID={testID}>
         <HeaderBarChrome
           backAccessibilityLabel={backAccessibilityLabel}
           backTestID={backTestID}
@@ -80,7 +81,7 @@ export function ManagedCopyModal({
             <CopyMarkdown markdown={markdown} />
           </ScrollView>
         ) : null}
-      </View>
-    </Modal>
+      </OverlayPanel>
+    </AppOverlay>
   );
 }

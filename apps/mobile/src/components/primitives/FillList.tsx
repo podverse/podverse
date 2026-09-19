@@ -3,9 +3,13 @@ import { forwardRef } from 'react';
 import type { FlatListProps } from 'react-native';
 import { FlatList, StyleSheet } from 'react-native';
 
-type LockedScrollProps = 'alwaysBounceVertical' | 'bounces' | 'overScrollMode' | 'scrollEnabled';
+import { LIST_REMOVE_CLIPPED_SUBVIEWS } from './listVirtualization';
 
-export type FillListProps<ItemT> = Omit<FlatListProps<ItemT>, LockedScrollProps>;
+/** Props `FillList` owns: scroll lock derives from the fill state, clipping is fixed app-wide. */
+type LockedProps =
+  'alwaysBounceVertical' | 'bounces' | 'overScrollMode' | 'removeClippedSubviews' | 'scrollEnabled';
+
+export type FillListProps<ItemT> = Omit<FlatListProps<ItemT>, LockedProps>;
 
 /**
  * True when the list is showing a fill empty (VerticalCenter, LoadingSection, CallToActionSection)
@@ -52,6 +56,7 @@ function FillListInner<ItemT>(
       overScrollMode={lockScroll ? 'never' : 'auto'}
       ref={ref}
       refreshControl={lockScroll ? undefined : refreshControl}
+      removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
       scrollEnabled={!lockScroll}
     />
   );

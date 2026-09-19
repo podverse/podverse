@@ -177,11 +177,7 @@ export function TextField({
       ) : null}
       <View pointerEvents="box-none" style={styles.column}>
         {hasEyebrow ? (
-          <View
-            accessibilityElementsHidden
-            importantForAccessibility="no"
-            pointerEvents="none"
-          >
+          <View accessibilityElementsHidden importantForAccessibility="no" pointerEvents="none">
             <Text style={styles.eyebrow}>{eyebrow}</Text>
           </View>
         ) : null}

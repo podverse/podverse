@@ -10,7 +10,7 @@ import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helper
 import { htmlToPlainText } from '@podverse/helpers/html';
 
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
-import type { HomeFeedRowData } from '../../screens/home/homeFeedData';
+import type { HomeFeedRowData, HomeRowContentTarget } from '../../screens/home/homeFeedData';
 
 export type ItemHomeRow = HomeFeedRowData & {
   mediaType: 'episodes' | 'tracks';
@@ -33,9 +33,12 @@ type PlaylistResourceHomeRowOptions = {
   addByRssPrivateTitle?: string;
 };
 
-/** Structural subset shared by `DTOItem` and `DTOItemQueueItem` for home-row mapping. */
-type ItemHomeRowSource = {
-  channel?: DTOChannel;
+/**
+ * Structural subset shared by `DTOItem` and `DTOItemQueueItem` for home-row mapping. `channel` is
+ * narrowed to the fields a row reads, so a row can be mapped without an entire channel graph.
+ */
+export type ItemHomeRowSource = {
+  channel?: Pick<DTOChannel, 'channel_images' | 'medium_id' | 'title'>;
   id_text: string;
   item_about?: { duration?: string | null };
   item_description?: { value?: string | null };
@@ -285,6 +288,23 @@ const resolveQueueItem = (
   return null;
 };
 
+/**
+ * The playable resource behind a queue / history row. A soundbite has no content id these actions
+ * can act on, so its row carries no target and its actions stay inert.
+ */
+const resolveQueueResourceContentTarget = (
+  resource: DTOQueueResource,
+  item: ItemHomeRowSource
+): HomeRowContentTarget | undefined => {
+  if (resource.clip) {
+    return { idText: resource.clip.id_text, kind: 'clip' };
+  }
+  if (resource.item_soundbite) {
+    return undefined;
+  }
+  return { idText: item.id_text, kind: 'item' };
+};
+
 const addByRssToHomeRow = (
   resource: DTOQueueResource,
   idPrefix: 'history' | 'queue',
@@ -378,6 +398,7 @@ export function queueResourceToHomeRow(
     const itemRow = itemToHomeRow(item);
     const mediaType = resource.clip || resource.item_soundbite ? 'clips' : itemRow.mediaType;
     return {
+      contentTarget: resolveQueueResourceContentTarget(resource, item),
       description: itemRow.description,
       duration: itemRow.duration,
       id: `${idPrefix}-${resource.id}`,

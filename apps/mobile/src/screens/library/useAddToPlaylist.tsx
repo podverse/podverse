@@ -3,11 +3,12 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { AddByRSSResourceData, DTOPlaylist } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
+import { AppOverlay, OverlayPanel, OverlayScrim } from '../../components/overlay';
 import { Button } from '../../components/primitives';
 import { playlistRepository } from '../../data';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
@@ -159,9 +160,12 @@ export function useAddToPlaylist(): UseAddToPlaylist {
     () =>
       StyleSheet.create({
         backdrop: {
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
           flex: 1,
           justifyContent: 'flex-end',
+        },
+        scrim: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
         },
         notice: {
           color: themeStyles.textSecondary.color,
@@ -208,69 +212,72 @@ export function useAddToPlaylist(): UseAddToPlaylist {
   const showEmpty = !isLoading && noticeKey === null && playlists.length === 0;
 
   const addToPlaylistSheet = (
-    <Modal animationType="slide" onRequestClose={closeSheet} transparent visible={target !== null}>
+    <AppOverlay animation="slide" onRequestClose={closeSheet} visible={target !== null}>
       <Pressable
         accessibilityLabel={t('misc.close')}
         onPress={closeSheet}
         style={styles.backdrop}
         testID="add-to-playlist-backdrop"
       >
-        <Pressable onPress={stopPropagation} style={styles.sheet} testID="add-to-playlist-sheet">
-          <Text style={styles.sheetTitle}>{t('features.playlist.add_to_playlist')}</Text>
-          {isLoading ? (
-            <Text style={styles.notice} testID="add-to-playlist-loading">
-              {t('misc.loading_your_content')}
-            </Text>
-          ) : null}
-          {showEmpty ? (
-            <Text style={styles.notice} testID="add-to-playlist-empty">
-              {t('features.playlist.my_playlists')}
-            </Text>
-          ) : null}
-          {!isLoading && playlists.length > 0 ? (
-            <FlatList
-              data={playlists}
-              keyExtractor={(playlist) => playlist.id_text}
-              renderItem={({ item: playlist }) => (
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={isSaving}
-                  onPress={() => {
-                    void addToPlaylist(playlist);
-                  }}
-                  style={styles.optionRow}
-                  testID={`add-to-playlist-option-${playlist.id_text}`}
-                >
-                  <Text style={styles.optionText}>{playlist.title ?? playlist.id_text}</Text>
-                </Pressable>
-              )}
-              style={styles.optionsScroll}
-            />
-          ) : null}
-          {noticeKey !== null ? (
-            <Text style={styles.notice} testID="add-to-playlist-notice">
-              {t(noticeKey)}
-            </Text>
-          ) : null}
-          <View style={styles.sheetActions}>
-            {canOpenPlaylistCreate ? (
-              <Button
-                label={t('features.playlist.create_playlist')}
-                onPress={handleCreatePlaylist}
-                testID="add-to-playlist-create"
-                variant="secondary"
+        <OverlayScrim pointerEvents="none" style={styles.scrim} />
+        <OverlayPanel>
+          <Pressable onPress={stopPropagation} style={styles.sheet} testID="add-to-playlist-sheet">
+            <Text style={styles.sheetTitle}>{t('features.playlist.add_to_playlist')}</Text>
+            {isLoading ? (
+              <Text style={styles.notice} testID="add-to-playlist-loading">
+                {t('misc.loading_your_content')}
+              </Text>
+            ) : null}
+            {showEmpty ? (
+              <Text style={styles.notice} testID="add-to-playlist-empty">
+                {t('features.playlist.my_playlists')}
+              </Text>
+            ) : null}
+            {!isLoading && playlists.length > 0 ? (
+              <FlatList
+                data={playlists}
+                keyExtractor={(playlist) => playlist.id_text}
+                renderItem={({ item: playlist }) => (
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={isSaving}
+                    onPress={() => {
+                      void addToPlaylist(playlist);
+                    }}
+                    style={styles.optionRow}
+                    testID={`add-to-playlist-option-${playlist.id_text}`}
+                  >
+                    <Text style={styles.optionText}>{playlist.title ?? playlist.id_text}</Text>
+                  </Pressable>
+                )}
+                style={styles.optionsScroll}
               />
             ) : null}
-            <Button
-              label={t('misc.close')}
-              onPress={closeSheet}
-              testID="add-to-playlist-close"
-              variant="secondary"
-            />
-          </View>
-        </Pressable>
+            {noticeKey !== null ? (
+              <Text style={styles.notice} testID="add-to-playlist-notice">
+                {t(noticeKey)}
+              </Text>
+            ) : null}
+            <View style={styles.sheetActions}>
+              {canOpenPlaylistCreate ? (
+                <Button
+                  label={t('features.playlist.create_playlist')}
+                  onPress={handleCreatePlaylist}
+                  testID="add-to-playlist-create"
+                  variant="secondary"
+                />
+              ) : null}
+              <Button
+                label={t('misc.close')}
+                onPress={closeSheet}
+                testID="add-to-playlist-close"
+                variant="secondary"
+              />
+            </View>
+          </Pressable>
+        </OverlayPanel>
       </Pressable>
-    </Modal>
+    </AppOverlay>
   );
 
   return { addToPlaylistSheet, requestAddToPlaylist };

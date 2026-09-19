@@ -79,6 +79,11 @@ name: Playback Offline Reconciliation
     id: tab-more
 - assertVisible:
     id: more-screen
+# The hub keeps the scroll position open-e2e-playback left behind, so the Features switch is above
+# the viewport and a tap would land on nothing.
+- runFlow: shared/scroll-hub-to-top.yaml
+- assertVisible:
+    id: more-offline-mode-switch
 - tapOn:
     id: more-offline-mode-switch
 - assertNotVisible:

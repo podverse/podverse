@@ -3,13 +3,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { Image, Linking, Modal, Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { initialWindowMetrics, SafeAreaProvider } from 'react-native-safe-area-context';
 
 import splashBanner from './assets/splash/banner.png';
 import splashIcon from './assets/splash/icon.png';
 import { AuthPromptProvider, AuthProvider, useAuth } from './src/auth';
 import { ForcedLogoutNotice } from './src/components/feedback/ForcedLogoutNotice';
 import { MembershipExpiredBanner } from './src/components/feedback/MembershipExpiredBanner';
+import { OverlayA11yShield, OverlayHostProvider, OverlayOutlet } from './src/components/overlay';
 import { ShareSheetPassthroughOverlay } from './src/components/share/ShareSheetPassthroughOverlay';
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
@@ -106,21 +107,29 @@ export default function App() {
   // dismisses the launch storyboard before the JS bundle runs).
   return (
     <GestureHandlerRootView style={styles.appRoot}>
-      <ThemeProvider>
-        <TabLayoutProvider>
-          <AuthProvider>
-            {isI18nReady ? (
-              <AppReadyGate
-                onConsumePendingDeepLink={() => {
-                  setPendingDeepLinkUrl(null);
-                }}
-                pendingDeepLinkUrl={pendingDeepLinkUrl}
-              />
-            ) : null}
-            <SplashController isI18nReady={isI18nReady} />
-          </AuthProvider>
-        </TabLayoutProvider>
-      </ThemeProvider>
+      {/* Insets at the root, not only inside the navigators: overlays render above the navigator and
+          still need the window's safe area. */}
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        {/* Outermost overlay provider so any component that can raise an overlay — including the
+            playback and membership providers above the navigator — can reach the host. */}
+        <OverlayHostProvider>
+          <ThemeProvider>
+            <TabLayoutProvider>
+              <AuthProvider>
+                {isI18nReady ? (
+                  <AppReadyGate
+                    onConsumePendingDeepLink={() => {
+                      setPendingDeepLinkUrl(null);
+                    }}
+                    pendingDeepLinkUrl={pendingDeepLinkUrl}
+                  />
+                ) : null}
+                <SplashController isI18nReady={isI18nReady} />
+              </AuthProvider>
+            </TabLayoutProvider>
+          </ThemeProvider>
+        </OverlayHostProvider>
+      </SafeAreaProvider>
       <ShareSheetPassthroughOverlay />
     </GestureHandlerRootView>
   );
@@ -249,7 +258,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
           <MembershipGateProvider onNavigateToMembership={navigateToMembershipScreen}>
             <PopularityTrackingProvider>
               <ForcedLogoutNotice />
-              <View style={styles.appRoot}>
+              <OverlayA11yShield>
                 <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
                 <MobileTabNavigator
                   onConsumePendingDeepLink={onConsumePendingDeepLink}
@@ -265,7 +274,9 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
                     setAuthMode('signup');
                   }}
                 />
-              </View>
+              </OverlayA11yShield>
+              {/* After the navigator so overlays cover root-stack cards. */}
+              <OverlayOutlet />
             </PopularityTrackingProvider>
           </MembershipGateProvider>
         </AuthPromptProvider>

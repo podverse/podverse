@@ -7,11 +7,12 @@ Each set still has its own internal prompt order — this file is **set vs set**
 
 ## Default (one chat, serial)
 
-Wait for a set to finish before starting the next.
+No numbered mobile set is active.
 
-No runnable set is queued. The most recent one is archived at
-`.llm/plans/completed/07-mobile-auto-offline-detection/`. The next set takes the next free number
-and gets a row here saying why it sits in that slot, alongside its own `00-EXECUTION-ORDER.md`.
+Completed: `.llm/plans/completed/09-post-sweep-regression-repair/` (followed
+`.llm/plans/completed/08-overnight-test-fix-sweep/`; that sweep's defer log is
+[DEFERRED-PROBLEMS.md](../completed/08-overnight-test-fix-sweep/DEFERRED-PROBLEMS.md), empty). The
+previous mobile set is `.llm/plans/completed/07-mobile-auto-offline-detection/`.
 
 ## Do not run yet
 

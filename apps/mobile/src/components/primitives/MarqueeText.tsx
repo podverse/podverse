@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { LayoutChangeEvent, StyleProp, TextStyle } from 'react-native';
-import { AccessibilityInfo, Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 
+import { useReduceMotion } from '../../hooks/useReduceMotion';
 import {
   MARQUEE_EDGE_HOLD_MS,
   MARQUEE_RESET_MS,
@@ -32,24 +33,8 @@ export type MarqueeTextProps = {
 export function MarqueeText({ align = 'left', children, style, testID }: MarqueeTextProps) {
   const [viewportWidth, setViewportWidth] = useState(0);
   const [contentWidth, setContentWidth] = useState(0);
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const reduceMotion = useReduceMotion();
   const offset = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    let active = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (active) {
-        setReduceMotion(enabled);
-      }
-    });
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
-      setReduceMotion(enabled);
-    });
-    return () => {
-      active = false;
-      subscription.remove();
-    };
-  }, []);
 
   const scrolls = shouldMarqueeScroll({ contentWidth, reduceMotion, viewportWidth });
 

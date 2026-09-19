@@ -1,6 +1,11 @@
 appId: com.podverse.app.next
 ---
 # More → E2E → Playback. The tab shell must already be visible.
+#
+# The E2E section is the last one on the hub, so reaching it takes several swipes. The budget covers
+# the whole scroll loop, and each iteration pays for an Android hierarchy dump — seconds each on an
+# emulator running playback. The loop exits as soon as the row is found, so the top tier costs
+# nothing on iOS, where the same scroll finishes well inside the fastest tier.
 - tapOn:
     id: tab-more
 - assertVisible:
@@ -9,7 +14,7 @@ appId: com.podverse.app.next
     element:
       id: more-nav-e2e-playback
     direction: DOWN
-    timeout: ${TIMEOUT_FAST}
+    timeout: ${TIMEOUT_SLOWEST}
 - tapOn:
     id: more-nav-e2e-playback
 - assertVisible:

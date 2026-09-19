@@ -6,9 +6,14 @@ import {
   buildMobileHomePodcastEpisodePath,
   buildMobileHomeScopedPath,
   MOBILE_HOME_TAB_PATH,
+  MOBILE_HOME_TAB_SEGMENT,
 } from '@podverse/helpers';
 
-import { applyHomeContentStackToState, parseHomeContentStackPath } from './notificationStack';
+import {
+  applyHomeContentStackToState,
+  parseHomeContentStackPath,
+  resolveMobileDeepLinkAction,
+} from './notificationStack';
 
 describe('parseHomeContentStackPath', () => {
   it('builds Home > podcast > episode', () => {
@@ -76,5 +81,33 @@ describe('applyHomeContentStackToState', () => {
       ],
       type: 'stack',
     });
+  });
+});
+
+describe('resolveMobileDeepLinkAction', () => {
+  const options = {
+    screens: {
+      MainTabs: {
+        screens: {
+          Home: {
+            screens: {
+              EpisodeDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.EPISODE}/:episodeId`,
+              HomeRoot: MOBILE_HOME_TAB_SEGMENT,
+              PodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PODCAST}/:podcastId`,
+            },
+          },
+        },
+      },
+    },
+  };
+
+  // A RESET payload would replace the root screen, taking the tab bar and every tab stack with it.
+  it('navigates to the destination rather than resetting the root', () => {
+    const action = resolveMobileDeepLinkAction(
+      `${APP_ROUTES.PODCAST}/ch-1${APP_ROUTES.EPISODE}/ep-1`,
+      options
+    );
+
+    expect(action).toMatchObject({ payload: { name: 'MainTabs' }, type: 'NAVIGATE' });
   });
 });

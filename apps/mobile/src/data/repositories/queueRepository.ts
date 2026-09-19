@@ -145,6 +145,20 @@ const forceRefreshNowPlaying = async (
   return fetched;
 };
 
+/**
+ * Force-refresh the account's queue list and rewrite the SQLite cache. Which queue is active — and
+ * whether a queue exists at all — changes as playback runs, and every screen that reads history,
+ * now-playing, or upcoming picks its queue from this list, so a mutation that can move the active
+ * flag has to rewrite it rather than wait out the read-through TTL.
+ */
+const forceRefreshQueues = async (context: MobileAuthRequestContext): Promise<DTOQueue[]> => {
+  const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
+    api.reqQueueGetAllForAccountPrivate()
+  );
+  await writeQueueCache(CACHE_KEY_QUEUES, fetched);
+  return fetched;
+};
+
 /** Force-refresh upcoming from the server after a mutation and rewrite the SQLite cache. */
 const forceRefreshUpcoming = async (
   context: MobileAuthRequestContext,
@@ -661,7 +675,9 @@ export const queueRepository = {
 
   /**
    * Refresh queue cache rows from authoritative server state after playback reconcile and re-project
-   * the native cache snapshot for car/watch surfaces.
+   * the native cache snapshot for car/watch surfaces. The queue list is refreshed first: a reconcile
+   * can be the moment a queue first appears or takes over as active, and screens choose their queue
+   * from that list before they read any resources.
    */
   refreshAfterPlaybackReconcile: async (
     context: MobileAuthRequestContext,
@@ -673,6 +689,8 @@ export const queueRepository = {
     if (uniqueQueueIdTexts.length === 0) {
       return;
     }
+
+    await forceRefreshQueues(context);
 
     const abridged = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourcesGetAllByAccountAbridged()

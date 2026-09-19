@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { DTOPlaylistResource, DTOQueueResource } from '@podverse/helpers/dto';
 
 import { safeJsonParse } from '../../data/db/serialization';
+import type { ItemHomeRowSource } from './homeRowMappers';
 import { clipToHomeRow, playlistResourceToHomeRow, queueResourceToHomeRow } from './homeRowMappers';
 
 const toQueueResource = (value: unknown): DTOQueueResource => {
@@ -13,7 +14,7 @@ const toQueueResource = (value: unknown): DTOQueueResource => {
   return parsed;
 };
 
-const buildItem = (overrides: Record<string, unknown> = {}): Record<string, unknown> => {
+const buildItem = (overrides: Partial<ItemHomeRowSource> = {}): ItemHomeRowSource => {
   return {
     channel: {
       channel_images: [],

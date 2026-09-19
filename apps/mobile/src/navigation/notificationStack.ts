@@ -1,5 +1,8 @@
 import type { NavigationState, PartialState } from '@react-navigation/native';
-import { getStateFromPath as getDefaultStateFromPath } from '@react-navigation/native';
+import {
+  getActionFromState,
+  getStateFromPath as getDefaultStateFromPath,
+} from '@react-navigation/native';
 
 import {
   APP_ROUTES,
@@ -182,4 +185,28 @@ export const resolveMobileDeepLinkState = (
     getDefaultStateFromPath(MOBILE_HOME_TAB_PATH, options) ??
     undefined
   );
+};
+
+/**
+ * Navigation action for a link opened while the app is already running.
+ *
+ * A link has to reach its destination without replacing the root screen. The root screen owns the
+ * tab bar and every tab's stack, so replacing it removes all of those native views at the moment
+ * the renderer is also re-laying-out the tab bar — on Android the outgoing views are still held by
+ * their old parents when the new tree is mounted, which fails the mount and tears the app down.
+ * Navigating to the destination leaves the mounted tree in place and pushes onto it.
+ *
+ * `undefined` when the path resolves to nothing the navigator can act on; the caller decides where
+ * to land instead.
+ */
+export const resolveMobileDeepLinkAction = (
+  path: string,
+  options: Parameters<typeof getDefaultStateFromPath>[1]
+): ReturnType<typeof getActionFromState> => {
+  const state = resolveMobileDeepLinkState(path, options);
+  if (state === undefined) {
+    return undefined;
+  }
+
+  return getActionFromState(state, options);
 };

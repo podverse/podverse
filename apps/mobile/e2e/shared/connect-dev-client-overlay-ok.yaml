@@ -1,0 +1,19 @@
+appId: com.podverse.app.next
+---
+# Same launcher as connect-dev-client.yaml, for the one boot that is allowed to land on an overlay.
+# An overlay raised during boot hides app content from the accessibility tree on purpose, and from
+# outside that is indistinguishable from a bundle that has not rendered, so the outlet is the only
+# element left to assert.
+- runFlow: connect-dev-client-launcher.yaml
+- extendedWaitUntil:
+    visible:
+      id: home-screen
+    timeout: ${TIMEOUT_SLOWEST}
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: home-screen
+    commands:
+      - assertVisible:
+          id: app-overlay-outlet

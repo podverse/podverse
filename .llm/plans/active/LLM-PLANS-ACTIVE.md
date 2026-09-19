@@ -12,9 +12,13 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_Active (mobile), git-sort / run order:_
+_Active (mobile / verification), git-sort / run order:_
 
-No active mobile set. Start the next one from a phase-2 detail doc.
+_None._ The post-sweep repair set is archived at
+`.llm/plans/completed/09-post-sweep-regression-repair/`. The overnight sweep it followed is at
+`.llm/plans/completed/08-overnight-test-fix-sweep/`; that set's
+[TEST-DRIVEN-REGRESSIONS.md](../completed/08-overnight-test-fix-sweep/TEST-DRIVEN-REGRESSIONS.md)
+now records diagnosis and outcome.
 
 Completed automatic offline detection archive:
 `.llm/plans/completed/07-mobile-auto-offline-detection/`

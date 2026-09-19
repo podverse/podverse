@@ -64,7 +64,10 @@ import {
   queueRepository,
   statsRepository,
 } from '../data';
-import type { PlaybackReconcileDifferentNowPlayingConflict } from '../data/repositories/playbackReconcile';
+import type {
+  PlaybackReconcileDifferentNowPlayingConflict,
+  PlaybackReconcileResourceState,
+} from '../data/repositories/playbackReconcile';
 import type { AutoQueueSeed } from '../hooks/useAutoQueueLoadResources';
 import { useAutoQueueLoadResources } from '../hooks/useAutoQueueLoadResources';
 import { useQueueMutations } from '../hooks/useQueueMutations';
@@ -99,6 +102,10 @@ import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
 import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
 import { readPlaybackMediaTypePref } from '../prefs/preferredMediaType';
 import { getPref, setPref } from '../prefs/prefsStore';
+import {
+  readPlaybackPositionAdoptions,
+  subscribePlaybackPositionAdoptions,
+} from '../sync/playbackPositionAdoption';
 import {
   readPlaybackReconcileConflicts,
   subscribePlaybackReconcileConflicts,
@@ -1664,33 +1671,16 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       advancingRef.current = true;
       try {
         const target = activeTargetRef.current;
-        const holdNowPlaying = transitionKind === 'complete' && authoringHoldRef.current;
-        const hasAutoQueueNext = holdNowPlaying ? false : computeHasAutoQueueNext();
-        let activeResource: DTOQueueResource | null = null;
-        let upcomingManualCount = 0;
-        if (!holdNowPlaying) {
-          try {
-            const result = await loadActive(activeQueueRef.current?.medium_id);
-            activeResource = result.activeResource;
-            upcomingManualCount =
-              result.activeResource !== null ? result.upcomingResources.length : 0;
-          } catch (error) {
-            if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
-              throw error;
-            }
-          }
-        }
-        const decision = resolveQueueAdvance({
-          hasAutoQueueNext,
-          holdNowPlaying,
-          upcomingManualCount,
-        });
-        if (decision.kind === 'hold') {
+        // Clip authoring holds the item where it is: pause and leave it now-playing. This is settled
+        // before anything else because the rest of this function writes the item out of the queue,
+        // which is exactly what a hold must not do.
+        if (transitionKind === 'complete' && authoringHoldRef.current) {
           nativePlaybackBridge.pause();
           setPlaybackPlaying(false);
           setTransportState('paused');
           return;
         }
+        const hasAutoQueueNext = computeHasAutoQueueNext();
 
         const eventKind = playbackEventFromDiscreteSignal(transitionKind);
         const completed = transitionKind === 'complete';
@@ -1716,6 +1706,38 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
             }
           }
         }
+
+        // Read the queue only after the finished resource has left it, because the next thing to
+        // play is the queue's own first row. Reading first returns the resource that is ending — it
+        // is still now-playing, or still sits upcoming when playback started from a detail screen —
+        // and playing that row restarts the same track instead of advancing. Web orders these the
+        // same way (`NonLiveMediaOrchestrator` `onEnded`).
+        //
+        // The queue is the one for the medium of what was playing, not whichever queue happens to be
+        // active: starting a track leaves a podcast queue active until its own claim lands, and
+        // asking that queue for the next row skips into the wrong medium. Add-by-RSS has no channel
+        // and no queue behind it, so it falls back to the active queue.
+        let activeResource: DTOQueueResource | null = null;
+        let upcomingManualCount = 0;
+        const advanceMediumId =
+          target !== null && target.kind !== 'add-by-rss'
+            ? target.channel.medium_id
+            : activeQueueRef.current?.medium_id;
+        try {
+          const result = await loadActive(advanceMediumId);
+          activeResource = result.activeResource;
+          upcomingManualCount =
+            result.activeResource !== null ? result.upcomingResources.length : 0;
+        } catch (error) {
+          if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+            throw error;
+          }
+        }
+        const decision = resolveQueueAdvance({
+          hasAutoQueueNext,
+          holdNowPlaying: false,
+          upcomingManualCount,
+        });
 
         if (decision.kind === 'play-next-manual' && activeResource !== null) {
           try {
@@ -2078,6 +2100,58 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     },
     [writePlaybackEvent]
   );
+
+  /**
+   * Move the loaded player to a position another device reached on the same resource.
+   *
+   * No playback event is written back. The position came from the server, so reporting it again
+   * would restamp it with this device's clock and make this device look like the most recent
+   * listener — two devices catching up on each other would then trade the "latest" claim forever.
+   */
+  const adoptRemotePlaybackPosition = useCallback(
+    (seconds: number): void => {
+      const target = activeTargetRef.current;
+      if (target === null) {
+        return;
+      }
+
+      nativePlaybackBridge.seek(seconds);
+      positionRef.current = seconds;
+      setPlaybackPositionSeconds(seconds);
+      writeLastPlaybackSnapshotForTarget(target, seconds);
+    },
+    [writeLastPlaybackSnapshotForTarget]
+  );
+
+  useEffect(() => {
+    const applyAdoptions = (adoptions: readonly PlaybackReconcileResourceState[]): void => {
+      // The player is the last word on whether the position may move: reconcile ran in the
+      // background and the user may have started listening in the meantime.
+      if (adoptions.length === 0 || isPlayingRef.current) {
+        return;
+      }
+
+      const target = activeTargetRef.current;
+      const loaded = target === null ? null : nowPlayingResourceFromTarget(target);
+      if (loaded === null) {
+        return;
+      }
+
+      const match = adoptions.find(
+        (adoption) =>
+          adoption.resourceKind === loaded.resourceKind &&
+          adoption.resourceIdText === loaded.resourceIdText
+      );
+      if (match === undefined || match.playbackPosition === positionRef.current) {
+        return;
+      }
+
+      adoptRemotePlaybackPosition(match.playbackPosition);
+    };
+
+    applyAdoptions(readPlaybackPositionAdoptions());
+    return subscribePlaybackPositionAdoptions(applyAdoptions);
+  }, [adoptRemotePlaybackPosition]);
 
   const previewWindow = useCallback(
     async (params: { fromSeconds: number; pauseAtSeconds?: number | null }): Promise<void> => {

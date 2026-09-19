@@ -96,6 +96,7 @@ import {
   FULL_PLAYER_TITLE_BLOCK_HEIGHT,
   resolveCondensedState,
   resolveFullPlayerLayout,
+  resolveMinPaneContentHeight,
 } from './fullPlayerLayout';
 import { FullPlayerSleepTimer } from './FullPlayerSleepTimer';
 import { FullPlayerSpeedControl } from './FullPlayerSpeedControl';
@@ -414,6 +415,11 @@ export function FullPlayerScreen({
     ]
   );
   const artworkSizeCap = isTablet ? FULL_PLAYER_ARTWORK_MAX_TABLET : FULL_PLAYER_ARTWORK_MAX_PHONE;
+  const minPaneContentHeight = resolveMinPaneContentHeight({
+    hasSections,
+    playerRegionHeight: layout.playerRegionHeight,
+    viewportHeight,
+  });
 
   const styles = useMemo(
     () =>
@@ -487,6 +493,7 @@ export function FullPlayerScreen({
           flex: 1,
         },
         listContent: {
+          minHeight: minPaneContentHeight,
           paddingBottom: Math.max(tokens.spacing['2xl'], insets.bottom + tokens.spacing.xl),
         },
         loadMore: {
@@ -563,7 +570,7 @@ export function FullPlayerScreen({
           flex: 1,
         },
       }),
-    [contentMaxWidth, insets.bottom, themeStyles, tokens]
+    [contentMaxWidth, insets.bottom, minPaneContentHeight, themeStyles, tokens]
   );
 
   // Expand re-parents the single native surface to the `full` target; collapse (unmount) animates it

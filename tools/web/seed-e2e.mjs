@@ -104,13 +104,23 @@ const E2E_CLIP_END_SECONDS = 12;
 const E2E_SOUNDBITE_START_SECONDS = 14;
 const E2E_SOUNDBITE_DURATION_SECONDS = 6;
 
+// The two chapters span the whole 60s enclosure, the way a chaptered episode does in the wild, so
+// any position on a scrubber names a chapter. The one-second gap between them is deliberate: it
+// covers the case where a position falls outside every chapter range.
 const E2E_CHAPTER_ONE_START_SECONDS = 1;
-const E2E_CHAPTER_ONE_END_SECONDS = 5;
-const E2E_CHAPTER_TWO_START_SECONDS = 6;
-const E2E_CHAPTER_TWO_END_SECONDS = 10;
+const E2E_CHAPTER_ONE_END_SECONDS = 20;
+const E2E_CHAPTER_TWO_START_SECONDS = 21;
+const E2E_CHAPTER_TWO_END_SECONDS = 60;
+
+// Lightning value block on the podcast fixtures, so value-for-value surfaces have something to
+// offer. The address is a syntactically valid 33-byte compressed pubkey that belongs to no node:
+// nothing in the suite sends a payment, and a fixture must never point at a real destination.
+const E2E_ITEM_VALUE_SUGGESTED_BTC = 0.00000005;
+const E2E_ITEM_VALUE_RECIPIENT_ADDRESS =
+  '020000000000000000000000000000000000000000000000000000000000000e2e';
 
 const E2E_MUSIC_TRACK_ONE_P_SECONDS = 7;
-const E2E_MUSIC_TRACK_DURATION_SECONDS = 30;
+const E2E_MUSIC_TRACK_DURATION_SECONDS = 120;
 
 const E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 25;
 const E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS = 60;
@@ -119,8 +129,8 @@ const E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS = 60;
 const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
 const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
-const E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-30s-330hz.mp3`;
-const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
+const E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-120s-330hz.mp3`;
+const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-120s-294hz.mp3`;
 const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
 const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 
@@ -138,6 +148,21 @@ const E2E_VIDEO_CHANNEL_ID_TEXT = 'e2eVideoChnl01';
 const E2E_VIDEO_ITEM_ID_TEXT = 'e2eVideoItm001';
 const E2E_VIDEO_CHANNEL_TITLE = 'E2E Video Transition Channel';
 const E2E_VIDEO_ITEM_DURATION_SECONDS = 30;
+
+// Playable live items (audio + video) for the web live-stream media-player specs. These live in
+// their own channel rather than in `E2E_LIVESTREAM_CHANNEL_ID_TEXT` so the livestream header-image
+// and controller-plumbing specs keep `a[href*="/podcast/livestream/"]:first` pointing at the
+// enclosure-free item they assert against. The channel stays unsubscribed and its title avoids the
+// word "livestream" so the subscribed-list filter spec still resolves a single match.
+// Mirror of apps/web/e2e/helpers/seedConstants.ts.
+const E2E_LIVE_AV_FEED_URL = 'https://e2e-seed-live-av.example/podcast.xml';
+const E2E_LIVE_AV_FEED_PI_ID = 876543219;
+const E2E_LIVE_AV_CHANNEL_ID_TEXT = 'e2eLiveAvChn01';
+const E2E_LIVE_AV_CHANNEL_TITLE = 'E2E Live AV Channel';
+const E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT = 'e2eLiveAud001';
+const E2E_LIVE_AV_AUDIO_ITEM_TITLE = 'E2E Live Audio Stream';
+const E2E_LIVE_AV_VIDEO_ITEM_ID_TEXT = 'e2eLiveVid001';
+const E2E_LIVE_AV_VIDEO_ITEM_TITLE = 'E2E Live Video Stream';
 
 const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
 
@@ -665,6 +690,20 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
       `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
        VALUES ($1, $2, 'audio/mpeg')`,
       [enclosureId, enclosureUrl]
+    );
+
+    // A value-enabled feed declares Lightning keysend for its episodes, and every surface that
+    // offers value-for-value asks the item whether it has a value block with a payable recipient.
+    const itemValueResult = await client.query(
+      `INSERT INTO item_value (item_id, type, method, suggested)
+       VALUES ($1, 'lightning', 'keysend', $2)
+       RETURNING id`,
+      [itemId, E2E_ITEM_VALUE_SUGGESTED_BTC]
+    );
+    await client.query(
+      `INSERT INTO item_value_recipient (item_value_id, type, address, split, name, fee)
+       VALUES ($1, 'node', $2, 100, 'E2E Podcast Host', false)`,
+      [itemValueResult.rows[0].id, E2E_ITEM_VALUE_RECIPIENT_ADDRESS]
     );
 
     return itemId;
@@ -1287,7 +1326,129 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     `Seeded video-medium E2E channel ${E2E_VIDEO_CHANNEL_ID_TEXT} (item ${E2E_VIDEO_ITEM_ID_TEXT}, enclosure ${E2E_VIDEO_SHORT_ENCLOSURE_URL})`
   );
 
+  await seedLiveAvFixtures(client);
+
   await seedEmbedFixtures(client, { accountId });
+}
+
+/**
+ * Live channel whose live items carry real enclosures served by the asset server on port 2111, so
+ * the live-stream media-player specs can press play. The files are progressive mp3/mp4 rather than
+ * HLS manifests: they exercise enclosure selection, controller selection, and the floating video
+ * portal, not live-edge or manifest-reload behavior.
+ */
+async function seedLiveAvFixtures(client) {
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    E2E_LIVE_AV_FEED_PI_ID,
+    E2E_LIVE_AV_FEED_URL,
+  ]);
+
+  const feedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [E2E_LIVE_AV_FEED_URL, E2E_LIVE_AV_FEED_PI_ID]
+  );
+  const feedId = feedResult.rows[0].id;
+
+  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [feedId]);
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [feedId]
+  );
+
+  const channelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
+       $3
+     )
+     RETURNING id`,
+    [E2E_LIVE_AV_CHANNEL_ID_TEXT, feedId, E2E_LIVE_AV_CHANNEL_TITLE]
+  );
+  const channelId = channelResult.rows[0].id;
+
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+  await client.query(
+    `INSERT INTO channel_description (channel_id, value)
+     VALUES ($1, $2)`,
+    [channelId, 'E2E seeded channel with playable live audio and live video items.']
+  );
+  await client.query(
+    `INSERT INTO channel_image (channel_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [channelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
+  );
+
+  async function insertLiveItem({ idText, guidSlug, title, enclosureType, enclosureUrl }) {
+    const itemResult = await client.query(
+      `INSERT INTO item (
+         id_text,
+         channel_id,
+         guid,
+         pub_date,
+         title,
+         item_flag_status_id
+       )
+       VALUES ($1, $2, $3, NOW(), $4, 1)
+       RETURNING id`,
+      [idText, channelId, `${E2E_LIVE_AV_FEED_URL}#${guidSlug}`, title]
+    );
+    const itemId = itemResult.rows[0].id;
+
+    await client.query(
+      `INSERT INTO item_description (item_id, value)
+       VALUES ($1, $2)`,
+      [itemId, `${title} deterministic E2E live-stream fixture.`]
+    );
+    await client.query(
+      `INSERT INTO item_image (item_id, url, image_width_size)
+       VALUES ($1, $2, 1400)`,
+      [itemId, E2E_FIXTURE_ITEM_IMAGE_URL]
+    );
+
+    await client.query(
+      `INSERT INTO live_item (item_id, live_item_status_id, start_time)
+       VALUES ($1, (SELECT id FROM live_item_status WHERE status = 'live' LIMIT 1), NOW())`,
+      [itemId]
+    );
+
+    const enclosureResult = await client.query(
+      `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
+       VALUES ($1, $2, 0, 0, true)
+       RETURNING id`,
+      [itemId, enclosureType]
+    );
+
+    await client.query(
+      `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
+       VALUES ($1, $2, $3)`,
+      [enclosureResult.rows[0].id, enclosureUrl, enclosureType]
+    );
+  }
+
+  await insertLiveItem({
+    idText: E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT,
+    guidSlug: 'live-audio',
+    title: E2E_LIVE_AV_AUDIO_ITEM_TITLE,
+    enclosureType: 'audio/mpeg',
+    enclosureUrl: E2E_PODCAST_SHORT_ENCLOSURE_URL,
+  });
+  await insertLiveItem({
+    idText: E2E_LIVE_AV_VIDEO_ITEM_ID_TEXT,
+    guidSlug: 'live-video',
+    title: E2E_LIVE_AV_VIDEO_ITEM_TITLE,
+    enclosureType: 'video/mp4',
+    enclosureUrl: E2E_VIDEO_SHORT_ENCLOSURE_URL,
+  });
+
+  console.log(
+    `Seeded playable live E2E channel ${E2E_LIVE_AV_CHANNEL_ID_TEXT} (audio ${E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT}, video ${E2E_LIVE_AV_VIDEO_ITEM_ID_TEXT})`
+  );
 }
 
 async function main() {

@@ -2,14 +2,7 @@ import { APP_ROUTES, buildAppRoutePath } from '@podverse/helpers';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 export type ShareResource =
-  | 'album'
-  | 'artist'
-  | 'clip'
-  | 'episode'
-  | 'playlist'
-  | 'podcast'
-  | 'profile'
-  | 'track';
+  'album' | 'artist' | 'clip' | 'episode' | 'playlist' | 'podcast' | 'profile' | 'track';
 
 const SHARE_RESOURCE_ROUTES: Record<ShareResource, (typeof APP_ROUTES)[keyof typeof APP_ROUTES]> = {
   album: APP_ROUTES.ALBUM,

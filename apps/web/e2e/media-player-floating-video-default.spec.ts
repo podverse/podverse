@@ -29,9 +29,8 @@ function floatingVideoPortalLocator(page: Page): Locator {
 }
 
 /**
- * Livestream floating portal uses the same SCSS defaults; no video live_item seed yet
- * (see MEDIA-PLAYER-DECISION-MATRIX.md § 6c). Verify livestream manually when a feed is
- * available.
+ * The livestream floating portal uses the same SCSS defaults; its own mount and placement coverage
+ * lives in `media-player-livestream-video-start.spec.ts`.
  */
 test.describe('Floating video default appearance', () => {
   test.beforeEach(async ({ page }) => {

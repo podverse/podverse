@@ -23,7 +23,7 @@ import { FULL_PLAYER_PROGRESS_BLOCK_HEIGHT } from '../../screens/player/fullPlay
 import { useTheme } from '../../theme/useTheme';
 
 const LONG_PRESS_MS = 500;
-const TOOLTIP_AUTO_DISMISS_MS = 2000;
+const CHAPTER_TOOLTIP_AUTO_DISMISS_MS = 5000;
 const TRACK_HEIGHT = 6;
 const TRACK_HIT_HEIGHT = 44;
 const MARKER_WIDTH = 2;
@@ -108,8 +108,8 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   const [tooltipTitle, setTooltipTitle] = useState<string | null>(null);
   const [tooltipPercent, setTooltipPercent] = useState(0);
   const [scrubPreviewSeconds, setScrubPreviewSeconds] = useState<number | null>(null);
-  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ignoreTapRef = useRef(false);
+  const chapterTooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isScrubbing = useSharedValue(false);
   const scrubRatio = useSharedValue(0);
@@ -148,21 +148,35 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
     [chapters, durationSeconds]
   );
 
-  const clearTooltipTimer = useCallback(() => {
-    if (tooltipTimerRef.current !== null) {
-      clearTimeout(tooltipTimerRef.current);
-      tooltipTimerRef.current = null;
+  const clearChapterTooltipTimer = useCallback(() => {
+    if (chapterTooltipTimerRef.current !== null) {
+      clearTimeout(chapterTooltipTimerRef.current);
+      chapterTooltipTimerRef.current = null;
     }
   }, []);
 
+  const hideChapterTooltip = useCallback(() => {
+    clearChapterTooltipTimer();
+    setTooltipTitle(null);
+  }, [clearChapterTooltipTimer]);
+
+  /**
+   * The chapter name clears on the next touch of the scrubber, when the episode's chapters change,
+   * or after a few seconds on its own. It names the chapter under the press, not the playhead.
+   */
+  useEffect(() => {
+    hideChapterTooltip();
+  }, [chapters, hideChapterTooltip]);
+
   useEffect(() => {
     return () => {
-      clearTooltipTimer();
+      clearChapterTooltipTimer();
     };
-  }, [clearTooltipTimer]);
+  }, [clearChapterTooltipTimer]);
 
   const showChapterTooltip = useCallback(
     (percent: number) => {
+      clearChapterTooltipTimer();
       const chapter = getChapterAtPercent(percent, chapters, durationSeconds);
       const title = chapter?.title;
       if (typeof title !== 'string' || title.length === 0) {
@@ -171,13 +185,12 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
       }
       setTooltipPercent(percent);
       setTooltipTitle(title);
-      clearTooltipTimer();
-      tooltipTimerRef.current = setTimeout(() => {
+      chapterTooltipTimerRef.current = setTimeout(() => {
+        chapterTooltipTimerRef.current = null;
         setTooltipTitle(null);
-        tooltipTimerRef.current = null;
-      }, TOOLTIP_AUTO_DISMISS_MS);
+      }, CHAPTER_TOOLTIP_AUTO_DISMISS_MS);
     },
-    [chapters, clearTooltipTimer, durationSeconds]
+    [chapters, clearChapterTooltipTimer, durationSeconds]
   );
 
   const commitSeek = useCallback(
@@ -243,6 +256,9 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
       isScrubbing.value = true;
       scrubRatio.value = next;
       runOnJS(updateScrubPreview)(next);
+      // Every touch on the track begins here, tap and long press included, so a chapter name left
+      // over from an earlier press clears the moment the listener touches the scrubber again.
+      runOnJS(hideChapterTooltip)();
     })
     .onUpdate((event) => {
       'worklet';

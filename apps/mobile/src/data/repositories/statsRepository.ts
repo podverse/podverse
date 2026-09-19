@@ -20,7 +20,7 @@ const fireAndForget = (promise: Promise<unknown>): void => {
   });
 };
 
-const trackPlaybackStatsStrict = async (
+const postPlaybackStats = async (
   context: MobileAuthRequestContext,
   targets: PlaybackStatsTargets
 ): Promise<void> => {
@@ -42,10 +42,24 @@ const trackPlaybackStatsStrict = async (
 
 export const statsRepository = {
   trackPlaybackStats: (context: MobileAuthRequestContext, targets: PlaybackStatsTargets): void => {
-    fireAndForget(trackPlaybackStatsStrict(context, targets));
+    fireAndForget(postPlaybackStats(context, targets));
   },
-  replayPlaybackStats: (
+
+  /**
+   * Stats buffered while offline, sent as part of the playback outbox drain. Awaited so the drain
+   * sends them in order instead of firing a burst, but a failure resolves: the account may not be
+   * entitled to listen stats at all (the server answers 403), and a rejection here would abandon the
+   * drain with the listens already accepted, leaving the outbox to retry the same doomed call
+   * forever.
+   */
+  replayPlaybackStats: async (
     context: MobileAuthRequestContext,
     targets: PlaybackStatsTargets
-  ): Promise<void> => trackPlaybackStatsStrict(context, targets),
+  ): Promise<void> => {
+    try {
+      await postPlaybackStats(context, targets);
+    } catch {
+      // Best-effort, exactly as when the same stat is recorded during live playback.
+    }
+  },
 };

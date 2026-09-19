@@ -12,13 +12,13 @@ export const E2E_FIXTURE_PLACEHOLDER_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2
 
 export const EMBED_SAMPLE_EPISODE_AUDIO_AUDIO_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 export const EMBED_SAMPLE_PODCAST_ITEM_AUDIO_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
-export const EMBED_SAMPLE_TRACK_AUDIO_AUDIO_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-30s-330hz.mp3`;
-export const EMBED_SAMPLE_TRACK_TWO_AUDIO_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
+export const EMBED_SAMPLE_TRACK_AUDIO_AUDIO_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-120s-330hz.mp3`;
+export const EMBED_SAMPLE_TRACK_TWO_AUDIO_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-120s-294hz.mp3`;
 export const EMBED_SAMPLE_SCROLL_ITEM_AUDIO_URL = EMBED_SAMPLE_EPISODE_AUDIO_AUDIO_URL;
 
 export const EMBED_SAMPLE_ALT_AUDIO_OGG_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
-export const EMBED_SAMPLE_ALT_VIDEO_MP4_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-30s-330hz.mp3`;
-export const EMBED_SAMPLE_ALT_VIDEO_WEBM_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
+export const EMBED_SAMPLE_ALT_VIDEO_MP4_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-120s-330hz.mp3`;
+export const EMBED_SAMPLE_ALT_VIDEO_WEBM_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-120s-294hz.mp3`;
 export const EMBED_FIXTURE_VIDEO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 
 export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = E2E_FIXTURE_PLACEHOLDER_IMAGE_URL;

@@ -2,8 +2,9 @@ import { expect, test } from '@playwright/test';
 
 /**
  * Loading the seeded live-audio item must not crash the page or produce a stray non-live `<audio>`
- * element with a `src` attribute. The seeded `live_item` has no enclosure URL, so this spec covers
- * navigation and controller-tree mounting without starting or seeking a stream.
+ * element with a `src` attribute. The `v5fCrIj9Io` live item carries no enclosure, so this spec
+ * covers navigation and controller-tree mounting without starting or seeking a stream. Playing a
+ * live stream is covered by the video-start and transition specs against `e2eLiveAvChn01`.
  */
 test.describe('Media player live-stream audio start (controller plumbing)', () => {
   test('Navigating into the seeded livestream item renders the media player tree without crashing', async ({

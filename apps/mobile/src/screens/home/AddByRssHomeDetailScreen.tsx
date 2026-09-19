@@ -11,7 +11,7 @@ import {
 
 import { SortSelectRow } from '../../components/form/SortSelectRow';
 import { MediaRowActions } from '../../components/player/MediaRowActions';
-import { Button, CoverImage } from '../../components/primitives';
+import { Button, CoverImage, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -306,6 +306,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       contentContainerStyle={styles.content}
       data={errorKey === null && !isLoading ? sortedEpisodes : []}
       keyExtractor={(row) => row.id}
+      removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
       renderItem={({ index, item: row }) => (
         <HomeFeedRow
           customActions={

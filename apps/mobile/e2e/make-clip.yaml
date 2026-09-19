@@ -43,10 +43,34 @@ name: Make clip
 - assertVisible:
     id: make-clip-screen
 
+# Both marks are captured from the live playback position, so the flow has to own that position.
+# Pause, rewind past the start of the episode, and use the transport jumps to put a known gap between
+# the marks: reading a position that is still advancing cannot guarantee end after start, and an
+# episode that has played to its end reports the same second for both.
+- runFlow:
+    when:
+      visible:
+        id: make-clip-play-pause
+        text: "Pause"
+    commands:
+      - tapOn:
+          id: make-clip-play-pause
+- repeat:
+    times: 6
+    commands:
+      - tapOn:
+          id: make-clip-jump-back-10
+- extendedWaitUntil:
+    visible:
+      id: full-player-position
+      text: "0:00"
+    timeout: ${TIMEOUT_SLOW}
+
 - tapOn:
     id: make-clip-start-time
 - assertVisible:
     id: make-clip-start-time-value
+    text: "0:00"
 - tapOn:
     id: make-clip-end-time
 - assertVisible:
@@ -55,10 +79,19 @@ name: Make clip
     id: make-clip-clear-end-time
 - assertVisible:
     id: make-clip-end-time-hint
+
+- tapOn:
+    id: make-clip-jump-forward-30
+- extendedWaitUntil:
+    visible:
+      id: full-player-position
+      text: "0:30"
+    timeout: ${TIMEOUT_SLOW}
 - tapOn:
     id: make-clip-end-time
 - assertVisible:
     id: make-clip-end-time-value
+    text: "0:30"
 
 - tapOn:
     id: make-clip-start-preview
@@ -86,6 +119,8 @@ name: Make clip
 - assertVisible:
     id: full-player-screen
 
+# A second Create covers the once-only how-to staying closed and the FAQ. It opens an empty form —
+# create never restores the clip just saved, and never restores a draft — so it leaves without saving.
 - tapOn:
     id: full-player-create-clip
 - assertVisible:
@@ -109,22 +144,26 @@ name: Make clip
     id: make-clip-faq-modal
 
 - assertVisible:
-    id: make-clip-title
-    text: "E2E make clip"
+    id: make-clip-start-time-hint
 
 - tapOn:
-    id: make-clip-save
+    id: make-clip-close
 - extendedWaitUntil:
     visible:
-      id: make-clip-created-dialog
+      id: full-player-screen
     timeout: ${TIMEOUT_SLOW}
-- tapOn:
-    id: make-clip-created-close
-- assertVisible:
-    id: full-player-screen
 
-- tapOn:
-    id: full-player-close
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
 - extendedWaitUntil:
     notVisible:
       id: full-player-screen

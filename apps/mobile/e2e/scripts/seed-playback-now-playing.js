@@ -12,6 +12,8 @@
 //   E2E_LAST_PLAYED_AT      ISO-8601 timestamp. When omitted, four minutes after now so a
 //                           just-paused local item is older than this other-device row. The
 //                           server accepts client timestamps up to five minutes in the future.
+//   E2E_QUEUE_ID_TEXT       queue to write into. When omitted, the account's active queue, which
+//                           is the one the app plays into — see the note below.
 
 const optional = (value, fallback) =>
   typeof value === 'string' && value.length > 0 ? value : fallback;
@@ -28,9 +30,9 @@ const LOGIN_PASSWORD = optional(
   typeof E2E_LOGIN_PASSWORD !== 'undefined' ? E2E_LOGIN_PASSWORD : null,
   'Test!1Aa'
 );
-const QUEUE_ID_TEXT = optional(
+const REQUESTED_QUEUE_ID_TEXT = optional(
   typeof E2E_QUEUE_ID_TEXT !== 'undefined' ? E2E_QUEUE_ID_TEXT : null,
-  'e2ePodQueue01'
+  ''
 );
 const ITEM_ID_TEXT = optional(
   typeof E2E_ITEM_ID_TEXT !== 'undefined' ? E2E_ITEM_ID_TEXT : null,
@@ -84,6 +86,36 @@ if (typeof accessToken !== 'string' || accessToken.length === 0) {
 }
 
 const authHeaders = { Authorization: `Bearer ${accessToken}` };
+
+// Handoff is decided per queue: the app compares its now-playing against the server's for the same
+// queue, because that is what two devices on one account share. So this row has to land in the
+// queue the app is playing into — the account's active queue — and not in a seeded fixture queue
+// the account also owns. Mirrors the app's own selection (active queue, else the first one).
+const resolveQueueIdText = () => {
+  if (REQUESTED_QUEUE_ID_TEXT.length > 0) {
+    return REQUESTED_QUEUE_ID_TEXT;
+  }
+
+  const response = http.get(`${API_BASE_URL}/queue/all-for-account/private`, {
+    headers: authHeaders,
+  });
+  failOn('queue list', response);
+
+  const queues = json(response.body);
+  if (!Array.isArray(queues) || queues.length === 0) {
+    throw new Error('seed-playback-now-playing: the account has no queues');
+  }
+
+  const active = queues.find((queue) => queue && queue.is_active_queue === true);
+  const selected = active !== undefined ? active : queues[0];
+  if (typeof selected.id_text !== 'string' || selected.id_text.length === 0) {
+    throw new Error('seed-playback-now-playing: the selected queue has no id_text');
+  }
+
+  return selected.id_text;
+};
+
+const QUEUE_ID_TEXT = resolveQueueIdText();
 const seedBody = {
   last_played_at: LAST_PLAYED_AT,
   playback_event_kind: PLAYBACK_EVENT_KIND,

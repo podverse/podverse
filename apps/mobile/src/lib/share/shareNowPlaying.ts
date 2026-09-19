@@ -4,11 +4,11 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { getMobileConfig } from '../../config';
 import { presentShareSheet } from './shareSheetPassthrough';
+import type { ShareResource } from './shareUrl';
 import {
   buildNowPlayingShareUrl as buildNowPlayingShareUrlFromWebBaseUrl,
   buildPublicShareUrl as buildPublicShareUrlFromWebBaseUrl,
 } from './shareUrl';
-import type { ShareResource } from './shareUrl';
 
 export const buildPublicShareUrl = (resource: ShareResource, idText: string): string => {
   return buildPublicShareUrlFromWebBaseUrl(getMobileConfig().webBaseUrl, resource, idText);

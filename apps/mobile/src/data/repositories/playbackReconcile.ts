@@ -49,6 +49,13 @@ export type PlaybackReconcileDifferentNowPlayingConflict = {
 
 export type PlaybackReconcilePlan = {
   adopt: PlaybackReconcileResourceState[];
+  /**
+   * Now-playing states whose position this device's player should move to, because the same
+   * resource was listened to more recently somewhere else. The different-resource case is a
+   * question for the user and goes to `resolveConflicts`; this one is answered silently, since
+   * there is nothing to choose between — it is the same episode, further along.
+   */
+  adoptPositions: PlaybackReconcileResourceState[];
   push: PlaybackReconcilePushAction[];
   resolveConflicts: PlaybackReconcileDifferentNowPlayingConflict[];
   resolved: PlaybackReconcileResourceState[];
@@ -448,6 +455,36 @@ const collectDifferentNowPlayingConflicts = ({
   return conflicts.sort((left, right) => left.queueIdText.localeCompare(right.queueIdText));
 };
 
+/**
+ * Whether a resolved state carries a position this device's player should move to: the same
+ * resource, still now-playing, last touched more recently elsewhere, and at a different position
+ * than this device holds. A device that is playing keeps its own position — taking it away mid-listen
+ * would be worse than being slightly behind.
+ */
+const shouldAdoptRemotePosition = ({
+  isPlayingLocally,
+  local,
+  remote,
+  resolved,
+}: {
+  isPlayingLocally: boolean;
+  local: PlaybackReconcileResourceState | undefined;
+  remote: PlaybackReconcileResourceState | undefined;
+  resolved: PlaybackReconcileResourceState;
+}): boolean => {
+  if (isPlayingLocally || local === undefined || remote === undefined) {
+    return false;
+  }
+  if (resolved.zone !== 'now_playing') {
+    return false;
+  }
+  if (compareMeaningfulAt(remote.lastMeaningfulAt, local.lastMeaningfulAt) <= 0) {
+    return false;
+  }
+
+  return resolved.playbackPosition !== local.playbackPosition;
+};
+
 export const planPlaybackReconcile = ({
   localOutboxEvents,
   localState,
@@ -525,6 +562,7 @@ export const planPlaybackReconcile = ({
 
   const resolved = [...resolvedByKey.values()].sort(compareStatesStable);
   const adopt: PlaybackReconcileResourceState[] = [];
+  const adoptPositions: PlaybackReconcileResourceState[] = [];
   const push: PlaybackReconcilePushAction[] = [];
 
   for (const state of resolved) {
@@ -535,6 +573,10 @@ export const planPlaybackReconcile = ({
     }
 
     const remote = remoteByKey.get(key);
+    if (shouldAdoptRemotePosition({ isPlayingLocally, local, remote, resolved: state })) {
+      adoptPositions.push(state);
+    }
+
     const latestLocalEvent = latestLocalEventByKey.get(key);
     if (shouldPushResolvedState({ latestLocalEvent, remote, resolved: state })) {
       const applyClockOffset =
@@ -545,7 +587,7 @@ export const planPlaybackReconcile = ({
     }
   }
 
-  return { adopt, push, resolveConflicts, resolved };
+  return { adopt, adoptPositions, push, resolveConflicts, resolved };
 };
 
 export const findNowPlayingInvariantViolations = (
