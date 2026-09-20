@@ -128,3 +128,19 @@ export function screenBodyInsets(
     paddingTop: spacing.lg,
   };
 }
+
+/**
+ * Space from the last body line (prose, field, date) to the first full-width CTA on a static
+ * form-style screen. Wider than in-body gaps so the actions read as a separate decision block.
+ */
+export function formActionsTopGap(spacing: ThemeTokens['spacing']): number {
+  return spacing.xl;
+}
+
+/**
+ * Space between stacked full-width CTAs on a static form-style screen. Tighter than the
+ * content→actions seam; wider than in-body prose gaps.
+ */
+export function formActionsGap(spacing: ThemeTokens['spacing']): number {
+  return spacing.lg;
+}

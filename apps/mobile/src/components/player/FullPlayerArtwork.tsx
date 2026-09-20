@@ -2,13 +2,13 @@ import { useCallback, useMemo, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 
-import { shouldUseChapterArtwork } from '@podverse/helpers';
 import type { DTOItemChapter } from '@podverse/helpers/dto';
 
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useActiveNowPlayingChapter } from '../../playback/useNowPlayingChapters';
 import { CoverImage } from '../primitives/CoverImage';
+import { resolvePlayerChapterArtworkUri } from './playerChapterArtwork';
 
 type FullPlayerArtworkProps = {
   accessibilityLabel: string;
@@ -36,16 +36,13 @@ export function FullPlayerArtwork({
   const { activeTarget, nowPlaying } = usePlaybackSession();
   const activeChapter = useActiveNowPlayingChapter(chapters);
 
-  const useChapterArt = shouldUseChapterArtwork({
+  const imageUri = resolvePlayerChapterArtworkUri({
+    activeChapter,
+    chapters,
+    fallbackUri: nowPlaying?.viewerImageUrl ?? nowPlaying?.imageUrl ?? null,
     mpClip: activeTarget?.kind === 'clip' ? activeTarget.clip : null,
-    mpItemChapter: activeChapter,
     mpItemSoundbite: activeTarget?.kind === 'soundbite' ? activeTarget.soundbite : null,
   });
-  const chapterImg =
-    useChapterArt && typeof activeChapter?.img === 'string' && activeChapter.img.length > 0
-      ? activeChapter.img
-      : null;
-  const imageUri = chapterImg ?? nowPlaying?.viewerImageUrl ?? nowPlaying?.imageUrl ?? null;
 
   const [measuredBand, setMeasuredBand] = useState<{ height: number; width: number } | null>(null);
 

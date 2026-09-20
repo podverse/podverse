@@ -13,6 +13,7 @@ import { Button } from '../../components/primitives';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
+import { formActionsTopGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
@@ -56,7 +57,7 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
       flex: 1,
     },
     submit: {
-      marginTop: tokens.spacing.xl,
+      marginTop: formActionsTopGap(tokens.spacing),
     },
   });
 

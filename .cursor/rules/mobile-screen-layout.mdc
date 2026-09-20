@@ -255,6 +255,23 @@ child).
 The body is the generic login-required sentence — see **generic-login-required-copy**. Hide the
 in-body heading on that fill — the `HeaderBar` title is enough.
 
+## Static form-style screens (body + CTAs)
+
+Consent prompts, login / sign-up, and other **static** screens (prose or fields, then a decision)
+are not lists. Do not use one column `gap` for both the body and the buttons — that makes the
+first CTA look like another paragraph.
+
+- **Body** (copy, dates, fields) keeps a tight internal gap (`spacing.md` or `spacing.base`).
+- **Actions** are a separate block: `formActionsTopGap` (`spacing.xl`) above the first CTA,
+  `formActionsGap` (`spacing.lg`) between stacked full-width buttons. Helpers live in
+  `screenLayout.ts`.
+- CTAs are **`Button` `fullWidth`**. Do not hug the label.
+- Put the actions in their own `View`. Do not share the body's `gap` with them.
+- Full-screen Modal variants also use **`ModalSafeArea`**.
+
+Login and Sign up already use this seam above Submit. Popularity tracking uses the same helpers
+for Yes / No / Learn more.
+
 ## Login / Sign up overlay
 
 Login and Sign up slide up as a full-screen `Modal` over the tab shell — they must not replace
@@ -263,6 +280,14 @@ the navigator. Dismiss with a down chevron (`HeaderBarChrome` `backIcon="chevron
 link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`). Fields use
 **`TextField`** with the same `eyebrow` + `placeholder` pairing as web (`email_or_username` on
 login; confirm-password eyebrow with password placeholder on sign-up).
+
+## Full-screen Modal safe area
+
+A React Native `Modal` is a new native window. Insets from the app-root `SafeAreaProvider` do
+not apply inside it, so a bare `SafeAreaView` reports 0 and content sits under the status bar.
+Wrap Modal bodies in **`ModalSafeArea`** (`components/screen/ModalSafeArea`), which remounts
+`SafeAreaProvider` and insets all four edges. The auth sheet already remounts the provider for
+the same reason. Do not rely on the root provider alone for full-screen Modals.
 
 ## Do not
 

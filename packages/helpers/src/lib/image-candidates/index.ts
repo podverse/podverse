@@ -1,5 +1,6 @@
 export * from './addByRSSFeedListArtworkCandidates.js';
 export * from './addByRSSResourceMergedArtworkCandidates.js';
+export * from './chapterArtwork.js';
 export * from './dedupedTrimmedUrlCandidates.js';
 export * from './itemHeaderLightboxArtworkCandidates.js';
 export * from './itemHeaderSquareArtworkCandidates.js';

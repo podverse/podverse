@@ -56,7 +56,10 @@ const setChaptersCache = (itemIdText: string | null, chapters: DTOItemChapter[])
   if (
     chaptersCache.itemIdText === itemIdText &&
     chaptersCache.chapters.length === chapters.length &&
-    chaptersCache.chapters.every((chapter, index) => chapter.id_text === chapters[index]?.id_text)
+    chaptersCache.chapters.every(
+      (chapter, index) =>
+        chapter.id_text === chapters[index]?.id_text && chapter.img === chapters[index]?.img
+    )
   ) {
     return;
   }

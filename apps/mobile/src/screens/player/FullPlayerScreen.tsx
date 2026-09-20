@@ -16,7 +16,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints } from '@podverse/design-tokens';
-import { MEDIA_JUMP_BACK_SECONDS, MEDIA_JUMP_FORWARD_SECONDS } from '@podverse/helpers';
+import {
+  chapterSectionHasImages,
+  MEDIA_JUMP_BACK_SECONDS,
+  MEDIA_JUMP_FORWARD_SECONDS,
+  resolveChapterRowArtwork,
+} from '@podverse/helpers';
 import type {
   DTOChannel,
   DTOClip,
@@ -33,7 +38,7 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 import { requestWithMobileAuthRefresh, useAuth } from '../../auth';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 import { useBoostSheet } from '../../components/boost/useBoostSheet';
-import { FundingLinksSection, ItemSummaryPeople } from '../../components/content';
+import { ChapterListRow, FundingLinksSection, ItemSummaryPeople } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FullPlayerActionRow } from '../../components/player/FullPlayerActionRow';
@@ -366,6 +371,12 @@ export function FullPlayerScreen({
     offlineModeEnabled,
     previewFlags,
   });
+  const playerChapters = chapterRows.length > 0 ? chapterRows : chapters;
+  const chapterListShowsImages = chapterSectionHasImages(chapterRows);
+  const chapterFallbackImageUrl =
+    currentItem !== null
+      ? getItemPrimaryImageUrl(currentItem)
+      : nowPlaying?.imageUrl ?? null;
 
   const autoUpcomingCount = useMemo(
     () =>
@@ -459,24 +470,6 @@ export function FullPlayerScreen({
         actionNotice: {
           color: themeStyles.textSecondary.color,
           marginTop: tokens.spacing.md,
-        },
-        chapterRow: {
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.base,
-        },
-        chapterRowLast: {
-          borderBottomWidth: 0,
-        },
-        chapterTime: {
-          color: themeStyles.textSecondary.color,
-          marginTop: tokens.spacing.xs,
-        },
-        chapterTitle: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '600',
         },
         chipHeader: {
           justifyContent: 'center',
@@ -1132,7 +1125,7 @@ export function FullPlayerScreen({
               accessibilityLabel={t('media_player.media_player_image')}
               artworkSize={layout.artworkSize}
               artworkSizeCap={artworkSizeCap}
-              chapters={chapters}
+              chapters={playerChapters}
             />
           </View>
 
@@ -1256,30 +1249,28 @@ export function FullPlayerScreen({
                 removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
                 renderItem={({ item: row, index }) => {
                   if (row.type === 'chapter') {
+                    const artwork = resolveChapterRowArtwork(
+                      row.chapter,
+                      chapterFallbackImageUrl,
+                      chapterListShowsImages
+                    );
                     return (
-                      <Pressable
-                        accessibilityRole="button"
+                      <ChapterListRow
+                        artworkAccessibilityLabel={t('info.chapter.chapter_image')}
+                        artworkUri={artwork.show ? artwork.uri : null}
+                        isLast={index === listRows.length - 1}
                         onPress={() => {
                           handleChapterPress(row.chapter);
                         }}
-                        style={[
-                          styles.chapterRow,
-                          index === listRows.length - 1 ? styles.chapterRowLast : null,
-                        ]}
+                        paddingHorizontal={tokens.spacing.lg}
+                        showArtwork={artwork.show}
                         testID="full-player-chapter-row"
-                      >
-                        <View style={styles.column}>
-                          <Text style={styles.chapterTitle}>
-                            {row.chapter.title ?? row.chapter.id_text}
-                          </Text>
-                          <Text style={styles.chapterTime}>
-                            {t('info.time.start_end', {
-                              timeEnd: formatHHMMSS(Number(row.chapter.end_time)),
-                              timeStart: formatHHMMSS(Number(row.chapter.start_time)),
-                            })}
-                          </Text>
-                        </View>
-                      </Pressable>
+                        timeRange={t('info.time.start_end', {
+                          timeEnd: formatHHMMSS(Number(row.chapter.end_time)),
+                          timeStart: formatHHMMSS(Number(row.chapter.start_time)),
+                        })}
+                        title={row.chapter.title ?? row.chapter.id_text}
+                      />
                     );
                   }
 

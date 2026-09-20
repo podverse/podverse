@@ -13,6 +13,9 @@ name: Popularity Tracking Gate
     visible:
       id: popularity-tracking-yes
     timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: popularity-tracking-prompt
+- takeScreenshot: popularity-tracking-prompt
 
 - tapOn:
     id: popularity-tracking-learn-more

@@ -33,18 +33,24 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `UnseenIndicator`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`) |
 | Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                                                                                     |
-| Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `OfflineModeBanner`, `MobileScreenContainer`, `ThemedStackHeader`)                                                          |
+| Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `OfflineModeBanner`, `MobileScreenContainer`, `ModalSafeArea`, `ThemedStackHeader`)                                          |
 | Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                                                                                                                 |
 | Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                                       |
 | Playback row actions / mini player          | `components/player/`                                                                                                                                                                                 |
 | Membership / gate feedback                  | `components/feedback/` (`ConfirmDialog` via `openGate`, `HelperNote`, `GatedFeatureNotice` only when there is no action to attach)                                                                   |
 | Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                                    |
 | Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                                                                                  |
+| Chapter list rows                           | `components/content/ChapterListRow` — full player and episode detail; images only when the section has any (**mobile-chapter-artwork**)                                                              |
 | Shared stateful logic                       | `hooks/`                                                                                                                                                                                             |
 | Pure helpers                                | `lib/`                                                                                                                                                                                               |
 
 Do **not** import `@podverse/ui` (web components / SCSS). Tokens come from `@podverse/design-tokens`
 via **mobile-theme-parity**.
+
+**Static form-style screens:** Body copy/fields stay in one tight stack. Full-width CTAs sit in
+a **separate** block with `formActionsTopGap` above the first button and `formActionsGap`
+between stacked buttons (`screenLayout.ts`). Do not share one `gap` across prose and CTAs —
+see **mobile-screen-layout**.
 
 **Text fields:** `TextField` is the only painted input (tertiary fill, focus ring — never a
 stroked `TextInput`). Pass **`eyebrow` + `placeholder`** for forms (login, sign-up, playlist,

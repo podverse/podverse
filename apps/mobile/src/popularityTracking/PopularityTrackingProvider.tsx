@@ -2,7 +2,6 @@ import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, ScrollView, StyleSheet, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { DTOPopularityTrackingAgreement } from '@podverse/helpers';
 import { isPopularityTrackingAllowed, isPopularityTrackingPromptRequired } from '@podverse/helpers';
@@ -10,13 +9,15 @@ import { isPopularityTrackingAllowed, isPopularityTrackingPromptRequired } from 
 import { useAuth } from '../auth/AuthProvider';
 import { createMobileApiRequestService } from '../auth/mobileApi';
 import { syncAllowListenStatsToAccountSettings } from '../auth/syncAccountPrefs';
+import { ModalSafeArea } from '../components/screen/ModalSafeArea';
+import { screenBodyInsets } from '../theme/screenLayout';
 import { useTheme } from '../theme/useTheme';
 import { PopularityTrackingAgreementBody } from './PopularityTrackingAgreementBody';
 import { setPopularityTrackingCurrentVersion } from './popularityTrackingGate';
 
 export function PopularityTrackingProvider({ children }: PropsWithChildren) {
   const { t } = useTranslation();
-  const { styles: themeStyles } = useTheme();
+  const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, account, setAccount, status } = useAuth();
   const [agreement, setAgreement] = useState<DTOPopularityTrackingAgreement | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -103,10 +104,14 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
     <>
       {children}
       <Modal animationType="fade" visible={promptRequired} presentationStyle="fullScreen">
-        <SafeAreaView
-          style={[styles.root, { backgroundColor: themeStyles.screen.backgroundColor }]}
-        >
-          <ScrollView contentContainerStyle={styles.body}>
+        <ModalSafeArea testID="popularity-tracking-prompt">
+          <ScrollView
+            contentContainerStyle={[
+              styles.body,
+              screenBodyInsets(tokens.spacing),
+              { paddingBottom: tokens.spacing['2xl'] },
+            ]}
+          >
             <Text style={[styles.title, { color: themeStyles.textPrimary.color }]}>
               {t('popularity_tracking.title')}
             </Text>
@@ -124,7 +129,7 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
               yesTestID="popularity-tracking-yes"
             />
           </ScrollView>
-        </SafeAreaView>
+        </ModalSafeArea>
       </Modal>
     </>
   );
@@ -133,11 +138,6 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
 const styles = StyleSheet.create({
   body: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-  root: {
-    flex: 1,
   },
   title: {
     fontSize: 24,

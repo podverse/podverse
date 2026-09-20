@@ -238,9 +238,12 @@ chapter tooltip (~500ms / 2s dismiss), and hour-aware clocks (`formatHHMMSS` —
 style as the progress bar, `1:19:59` not `01:19:59`; **playback-timestamp-format**).
 While the finger is down, `playbackScrubPreviewStore` holds the pending second; the left clock and
 `resolveNowPlayingSegment` follow that preview so the chapter name can change before the engine
-seeks. Chapter artwork uses `shouldUseChapterArtwork` on
-`FullPlayerArtwork` / `MiniPlayerArtwork`. Chapters for chrome come from `useNowPlayingChapters`
-(process-wide cache) plus `useActiveNowPlayingChapter` in leaves only.
+seeks. Chapter artwork uses `resolvePlayerChapterArtworkUri` (`shouldUseChapterArtwork` plus
+`resolveActiveChapterImageUrl`) on `FullPlayerArtwork` / `MiniPlayerArtwork`: when the active
+chapter has an image and the target is not a clip or official clip, that image replaces the
+item/channel art. Chapter lists use `ChapterListRow` and only show images when any chapter in the
+section has one — see **mobile-chapter-artwork**. Chapters for chrome come from
+`useNowPlayingChapters` (process-wide cache) plus `useActiveNowPlayingChapter` in leaves only.
 
 ### Full player chrome conventions
 

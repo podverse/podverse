@@ -11,13 +11,13 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
-import { primaryChannelListArtworkUrl } from '@podverse/helpers';
+import { chapterSectionHasImages, primaryChannelListArtworkUrl, resolveChapterRowArtwork } from '@podverse/helpers';
 import { htmlToPlainText } from '@podverse/helpers/html';
 import { formatHHMMSS } from '@podverse/helpers/time';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import { FundingLinksSection, ItemSummaryPeople } from '../../components/content';
+import { ChapterListRow, FundingLinksSection, ItemSummaryPeople } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FillList } from '../../components/primitives';
@@ -121,23 +121,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        chapterRow: {
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          paddingVertical: tokens.spacing.base,
-        },
-        chapterRowLast: {
-          borderBottomWidth: 0,
-        },
-        chapterTime: {
-          ...typography.caption,
-          color: themeStyles.textSecondary.color,
-          marginTop: tokens.spacing.xs,
-        },
-        chapterTitle: {
-          ...typography.subheading,
-          color: themeStyles.textPrimary.color,
-        },
         chipRow: {
           marginTop: listHeaderStackGap(tokens.spacing),
         },
@@ -344,6 +327,8 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     offlineModeEnabled,
     previewFlags,
   });
+  const chapterListShowsImages = chapterSectionHasImages(chapterRows);
+  const chapterFallbackImageUrl = episode !== null ? getItemPrimaryImageUrl(episode) : null;
 
   useEffect(() => {
     listRef.current?.scrollToOffset({ animated: false, offset: 0 });
@@ -672,23 +657,24 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
           ref={listRef}
           renderItem={({ item: row, index }) => {
             if (row.type === 'chapter') {
+              const artwork = resolveChapterRowArtwork(
+                row.chapter,
+                chapterFallbackImageUrl,
+                chapterListShowsImages
+              );
               return (
-                <View
-                  style={[
-                    styles.chapterRow,
-                    index === listRows.length - 1 ? styles.chapterRowLast : null,
-                  ]}
-                >
-                  <Text style={styles.chapterTitle}>
-                    {row.chapter.title ?? row.chapter.id_text}
-                  </Text>
-                  <Text style={styles.chapterTime}>
-                    {t('info.time.start_end', {
-                      timeEnd: formatHHMMSS(Number(row.chapter.end_time)),
-                      timeStart: formatHHMMSS(Number(row.chapter.start_time)),
-                    })}
-                  </Text>
-                </View>
+                <ChapterListRow
+                  artworkAccessibilityLabel={t('info.chapter.chapter_image')}
+                  artworkUri={artwork.show ? artwork.uri : null}
+                  isLast={index === listRows.length - 1}
+                  showArtwork={artwork.show}
+                  testID="episode-detail-chapter-row"
+                  timeRange={t('info.time.start_end', {
+                    timeEnd: formatHHMMSS(Number(row.chapter.end_time)),
+                    timeStart: formatHHMMSS(Number(row.chapter.start_time)),
+                  })}
+                  title={row.chapter.title ?? row.chapter.id_text}
+                />
               );
             }
 

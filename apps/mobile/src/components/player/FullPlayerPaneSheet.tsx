@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 
+import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 export type FullPlayerPaneSheetProps = {
@@ -47,6 +48,8 @@ export function FullPlayerPaneSheet({
           borderWidth: 1,
           marginHorizontal: tokens.spacing.md,
           overflow: 'hidden',
+          // Same inset as the old sheet start/end caps — keeps content off the rounded corners.
+          paddingVertical: listChipRowBottomGap(tokens.spacing) * 2,
         },
       }),
     [themeStyles, tokens]

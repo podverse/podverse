@@ -16,6 +16,7 @@ import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
 import { writeSignupMergeEmail } from '../../data/repositories/subscriptionsSignupMarker';
+import { formActionsTopGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type SignUpScreenProps = {
@@ -71,7 +72,7 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
       flex: 1,
     },
     submit: {
-      marginTop: tokens.spacing.xl,
+      marginTop: formActionsTopGap(tokens.spacing),
     },
     success: {
       color: themeStyles.textPrimary.color,

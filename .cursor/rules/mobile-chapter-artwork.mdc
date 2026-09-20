@@ -1,0 +1,32 @@
+---
+description: Chapter images replace player art; chapter lists show images only when the section has any
+globs:
+  - apps/mobile/src/screens/player/**/*.tsx
+  - apps/mobile/src/screens/episode/**/*.tsx
+  - apps/mobile/src/components/player/**/*.tsx
+  - apps/mobile/src/components/content/ChapterListRow.tsx
+  - packages/helpers/src/lib/image-candidates/chapterArtwork.ts
+alwaysApply: false
+---
+
+# Mobile chapter artwork
+
+## Player image
+
+When the active chapter has an `img` and the target is not a clip or official clip, that URL
+replaces the item/channel image on the full player and the mini player. Resolve through
+`resolvePlayerChapterArtworkUri` so a chapter snapshot missing `img` can still pick it up from the
+loaded chapter list. Do not keep showing episode art while a chapter image is available.
+
+## Chapter list
+
+Full-player and episode-detail chapter rows share `ChapterListRow`.
+
+- If **any** chapter in the section has an image, **every** row shows a leading image: the
+  chapter `img` when present, otherwise the same item/channel list URL the row would use
+  (`getItemPrimaryImageUrl`), otherwise the `CoverImage` system fallback.
+- If **no** chapter in the section has an image, omit leading images entirely. Do not fill the
+  list with item/channel art just to keep a column.
+
+Use `chapterSectionHasImages` and `resolveChapterRowArtwork` from `@podverse/helpers`. Inside a
+pressable row, `CoverImage` is `opensViewer={false}`.

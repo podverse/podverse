@@ -83,6 +83,9 @@ with scroll. The mini player on other screens is a separate surface.
 - New player controls open sheets. Do not expand controls inline inside the fixed region.
 - If a new control needs persistent space, reserve a fixed-height band for it in layout math.
 - Video renders inside the measured artwork square and letterboxes when aspect ratios differ.
+- When the active chapter has an image, that image replaces the item/channel artwork in the
+  viewer square (**mobile-chapter-artwork**). Chapter list rows in the pane follow the same
+  section-has-images rule.
 - Playhead UI lives in leaf components that read `playbackProgressStore`; the region shell
   uses `usePlaybackSession()` only.
 - Pull-to-dismiss is the native-stack top-edge gesture only (`fullScreenGestureEnabled: false`).
