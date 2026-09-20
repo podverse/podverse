@@ -8,6 +8,7 @@ import { useAuth } from '../auth/AuthProvider';
 import type { MobileAuthRequestContext } from '../data';
 import { segmentsRepository } from '../data';
 import { usePlaybackProgress, usePlaybackSession } from './PlaybackProvider';
+import { usePlaybackScrubPreview } from './playbackScrubPreviewStore';
 
 const itemFromTarget = (target: PlaybackTarget | null) => {
   if (target === null) {
@@ -138,9 +139,11 @@ export function useNowPlayingChapters(): { chapters: DTOItemChapter[] } {
 export function useActiveNowPlayingChapter(chapters: DTOItemChapter[]): DTOItemChapter | null {
   const { activeTarget } = usePlaybackSession();
   const { positionSeconds } = usePlaybackProgress();
+  const previewPositionSeconds = usePlaybackScrubPreview();
+  const lookupSeconds = previewPositionSeconds ?? positionSeconds;
 
   return useMemo(() => {
-    if (activeTarget?.kind === 'chapter') {
+    if (activeTarget?.kind === 'chapter' && previewPositionSeconds === null) {
       return activeTarget.chapter;
     }
     if (
@@ -152,6 +155,6 @@ export function useActiveNowPlayingChapter(chapters: DTOItemChapter[]): DTOItemC
     ) {
       return null;
     }
-    return selectItemChapterForTime(chapters, positionSeconds);
-  }, [activeTarget, chapters, positionSeconds]);
+    return selectItemChapterForTime(chapters, lookupSeconds);
+  }, [activeTarget, chapters, lookupSeconds, previewPositionSeconds]);
 }

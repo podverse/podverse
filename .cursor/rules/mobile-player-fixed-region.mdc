@@ -39,16 +39,22 @@ separate surface.
   region height rather than overflowing. The chip header has no hairlines.
 - Peek sizes first paint so the chip strip sits at the fold. `resolveFullPlayerLayout` reserves the
   chip strip plus the bottom safe-area inset from the player height, which is what keeps the chips
-  above the home indicator. The list header is the player, then the chips, then a spacer of half
-  that inset so the pane sits below the chips without a full home-indicator gap. The chip-to-pane
-  seam is `listChipRowBottomGap` on `SectionChipRow` plus that half-inset spacer and the pane
-  `paddingTop` — do not add a second full inset under the chips. Chips scroll with the player.
+  above the home indicator. The list header is the player, then the chips. Inside the pane sheet,
+  space above the chips and space from chips to pane content are each **2×** `listChipRowBottomGap`
+  (`SectionChipRow` owns one unit below; the chip slot adds the second). Do not add a safe-area
+  spacer or a third pane `paddingTop`. Chips scroll with the player.
   `FULL_PLAYER_CHIP_HEADER_HEIGHT` is the default-text-size floor — the strip reports its measured
   height (`chipStripHeight`) and peek follows the larger of the two, so accessibility text sizes
   cannot leak Summary copy under the chips. Measure the chip row slot only.
 - The pane `FlatList` owns scroll. `ListHeaderComponent` is the player region plus chips; `data` is
   the chapter / clip / official-clip rows; summary and transcript live in the footer. A chip tap
   only swaps the pane; it does not scroll the list.
+- Chips and pane sit in a rounded, inset sheet (`themeStyles.paneSheet`) so the fold reads as a
+  distinct surface you can scroll. Dark uses page ink (`background.primary`); other themes use the
+  card surface. The sheet is not sticky and does not change peek math — it paints the same scrolling
+  column. Round the top corners on the chip-strip wrapper and the bottom corners on the sheet end
+  cap. The end cap's padding matches the 2× chip seam above the pills. Give every pane row and
+  footer the same fill and side inset so the card is continuous.
 - The segment band (`FULL_PLAYER_SEGMENT_BAND_HEIGHT`) sits **below** the artwork and is reserved
   unconditionally, exactly as web reserves `--media-modal-subtitle-reserve`. A chapter or clip name
   arriving mid-playback fades into a row that is already there — it never resizes the artwork or

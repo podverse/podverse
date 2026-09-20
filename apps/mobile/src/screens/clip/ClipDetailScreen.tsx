@@ -6,7 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import { htmlToPlainText } from '@podverse/helpers/html';
-import { formatPlaybackTime } from '@podverse/helpers/time';
+import { formatHHMMSS } from '@podverse/helpers/time';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
@@ -262,8 +262,8 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
             </Text>
             <Text style={styles.cardText}>
               {t('info.time.start_end', {
-                timeEnd: formatPlaybackTime(clip.end_time),
-                timeStart: formatPlaybackTime(clip.start_time),
+                timeEnd: formatHHMMSS(Number(clip.end_time)),
+                timeStart: formatHHMMSS(Number(clip.start_time)),
               })}
             </Text>
             <Pressable

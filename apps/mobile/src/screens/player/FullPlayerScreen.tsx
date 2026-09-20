@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LayoutChangeEvent } from 'react-native';
@@ -14,7 +15,7 @@ import type {
   DTOItemSoundbite,
 } from '@podverse/helpers/dto';
 import { htmlToPlainText } from '@podverse/helpers/html';
-import { formatPlaybackTime } from '@podverse/helpers/time';
+import { formatHHMMSS } from '@podverse/helpers/time';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import type { PlaybackTarget } from '@podverse/playback-core';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
@@ -136,7 +137,7 @@ const toSoundbiteRow = (
       soundbite.item !== undefined && soundbite.item !== null
         ? getItemPrimaryImageUrl(soundbite.item)
         : null,
-    subtitle: formatPlaybackTime(soundbite.start_time),
+    subtitle: formatHHMMSS(Number(soundbite.start_time)),
     title: soundbite.title ?? `${fallbackTitle} ${index + 1}`,
   };
 };
@@ -451,14 +452,16 @@ export function FullPlayerScreen({
           fontWeight: '600',
         },
         chipHeader: {
-          backgroundColor: themeStyles.screen.backgroundColor,
           justifyContent: 'center',
           minHeight: FULL_PLAYER_CHIP_HEADER_HEIGHT,
           paddingHorizontal: tokens.spacing.lg,
         },
         chipRowSlot: {
           justifyContent: 'center',
-          paddingTop: listChipRowBottomGap(tokens.spacing),
+          // Twice the shared chip seam. SectionChipRow already owns one unit below the pills, so
+          // the extra unit here makes the content gap match the space above.
+          paddingBottom: listChipRowBottomGap(tokens.spacing),
+          paddingTop: listChipRowBottomGap(tokens.spacing) * 2,
         },
         column: {
           alignSelf: 'center',
@@ -468,9 +471,6 @@ export function FullPlayerScreen({
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
-        },
-        headerSafeSpacer: {
-          height: insets.bottom,
         },
         list: {
           flex: 1,
@@ -490,9 +490,38 @@ export function FullPlayerScreen({
           fontWeight: '600',
         },
         pane: {
-          paddingBottom: tokens.spacing.lg,
           paddingHorizontal: tokens.spacing.lg,
-          paddingTop: tokens.spacing.md,
+        },
+        paneSheet: {
+          backgroundColor: themeStyles.paneSheet.backgroundColor,
+          borderColor: themeStyles.border.borderColor,
+          borderLeftWidth: 1,
+          borderRightWidth: 1,
+          marginHorizontal: tokens.spacing.md,
+        },
+        paneSheetFill: {
+          backgroundColor: themeStyles.paneSheet.backgroundColor,
+        },
+        paneSheetStart: {
+          backgroundColor: themeStyles.paneSheet.backgroundColor,
+          borderColor: themeStyles.border.borderColor,
+          borderTopLeftRadius: tokens.radii.md,
+          borderTopRightRadius: tokens.radii.md,
+          borderWidth: 1,
+          borderBottomWidth: 0,
+          marginHorizontal: tokens.spacing.md,
+          overflow: 'hidden',
+        },
+        paneSheetEnd: {
+          backgroundColor: themeStyles.paneSheet.backgroundColor,
+          borderBottomLeftRadius: tokens.radii.md,
+          borderBottomRightRadius: tokens.radii.md,
+          borderColor: themeStyles.border.borderColor,
+          borderTopWidth: 0,
+          borderWidth: 1,
+          marginHorizontal: tokens.spacing.md,
+          overflow: 'hidden',
+          paddingBottom: listChipRowBottomGap(tokens.spacing) * 2,
         },
         paneEmpty: {
           color: themeStyles.textSecondary.color,
@@ -864,31 +893,35 @@ export function FullPlayerScreen({
       return null;
     }
 
+    let body: ReactNode = null;
+
     if (isTabLoading) {
-      return <LoadingSection testID={`full-player-pane-loading-${activeTab}`} />;
-    }
-
-    if (tabErrorKey !== null) {
-      return (
-        <ListError
-          messageKey={tabErrorKey}
-          onRetry={() => {
-            void loadTab(activeTab);
-          }}
-          testID={`full-player-pane-error-${activeTab}`}
-        />
+      body = (
+        <View style={styles.paneSheet}>
+          <LoadingSection testID={`full-player-pane-loading-${activeTab}`} />
+        </View>
       );
-    }
-
-    if (offlineModeEnabled && isEpisodeTabNetworkBody(activeTab)) {
+    } else if (tabErrorKey !== null) {
+      body = (
+        <View style={styles.paneSheet}>
+          <ListError
+            messageKey={tabErrorKey}
+            onRetry={() => {
+              void loadTab(activeTab);
+            }}
+            testID={`full-player-pane-error-${activeTab}`}
+          />
+        </View>
+      );
+    } else if (offlineModeEnabled && isEpisodeTabNetworkBody(activeTab)) {
       const hasCachedBody =
         (activeTab === 'chapters' && chapterRows.length > 0) ||
         (activeTab === 'soundbites' && soundbiteRows.length > 0) ||
         (activeTab === 'clips' && clipRows.length > 0) ||
         (activeTab === 'transcript' && transcriptText.length > 0);
       if (!hasCachedBody) {
-        return (
-          <View style={styles.pane}>
+        body = (
+          <View style={[styles.paneSheet, styles.pane]}>
             <View style={styles.column}>
               <ListEmpty
                 messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
@@ -900,9 +933,9 @@ export function FullPlayerScreen({
       }
     }
 
-    if (activeTab === 'summary') {
-      return (
-        <View style={styles.pane} testID="full-player-summary-pane">
+    if (body === null && activeTab === 'summary') {
+      body = (
+        <View style={[styles.paneSheet, styles.pane]} testID="full-player-summary-pane">
           <View style={styles.column}>
             {displayedSummary.length > 0 ? (
               <Text style={styles.paneText} testID="full-player-summary-text">
@@ -937,22 +970,20 @@ export function FullPlayerScreen({
           </View>
         </View>
       );
-    }
-
-    if (activeTab === 'funding') {
-      return (
-        <FundingLinksSection
-          fundings={currentItem?.item_fundings ?? []}
-          isLoading={currentItem === null}
-          layout="inline"
-          testIDPrefix="full-player"
-        />
+    } else if (body === null && activeTab === 'funding') {
+      body = (
+        <View style={styles.paneSheet}>
+          <FundingLinksSection
+            fundings={currentItem?.item_fundings ?? []}
+            isLoading={currentItem === null}
+            layout="inline"
+            testIDPrefix="full-player"
+          />
+        </View>
       );
-    }
-
-    if (activeTab === 'transcript') {
-      return (
-        <View style={styles.pane} testID="full-player-transcript-pane">
+    } else if (body === null && activeTab === 'transcript') {
+      body = (
+        <View style={[styles.paneSheet, styles.pane]} testID="full-player-transcript-pane">
           <View style={styles.column}>
             {transcriptText.length === 0 ? (
               <ListEmpty messageKey="misc.info" testID="full-player-empty-transcript" />
@@ -964,21 +995,17 @@ export function FullPlayerScreen({
           </View>
         </View>
       );
-    }
-
-    if (activeTab === 'chapters' && chapterRows.length === 0) {
-      return (
-        <View style={styles.pane}>
+    } else if (body === null && activeTab === 'chapters' && chapterRows.length === 0) {
+      body = (
+        <View style={[styles.paneSheet, styles.pane]}>
           <View style={styles.column}>
             <ListEmpty messageKey="misc.info" testID="full-player-empty-chapters" />
           </View>
         </View>
       );
-    }
-
-    if (activeTab === 'soundbites' && soundbiteRows.length === 0) {
-      return (
-        <View style={styles.pane}>
+    } else if (body === null && activeTab === 'soundbites' && soundbiteRows.length === 0) {
+      body = (
+        <View style={[styles.paneSheet, styles.pane]}>
           <View style={styles.column}>
             <ListEmpty
               messageKey="info.soundbite.no_official_clips_found"
@@ -987,21 +1014,17 @@ export function FullPlayerScreen({
           </View>
         </View>
       );
-    }
-
-    if (activeTab === 'clips' && clipRows.length === 0) {
-      return (
-        <View style={styles.pane}>
+    } else if (body === null && activeTab === 'clips' && clipRows.length === 0) {
+      body = (
+        <View style={[styles.paneSheet, styles.pane]}>
           <View style={styles.column}>
             <ListEmpty messageKey="features.clip.no_clips_found" testID="full-player-empty-clips" />
           </View>
         </View>
       );
-    }
-
-    if (activeTab === 'clips' && clipHasMore) {
-      return (
-        <View style={styles.pane}>
+    } else if (body === null && activeTab === 'clips' && clipHasMore) {
+      body = (
+        <View style={[styles.paneSheet, styles.pane]}>
           <View style={styles.column}>
             <Pressable
               accessibilityRole="button"
@@ -1020,7 +1043,12 @@ export function FullPlayerScreen({
       );
     }
 
-    return null;
+    return (
+      <>
+        {body}
+        <View style={styles.paneSheetEnd} testID="full-player-pane-sheet-end" />
+      </>
+    );
   }, [
     activePaneNoticeKey,
     activeTab,
@@ -1043,6 +1071,8 @@ export function FullPlayerScreen({
     styles.loadMoreLabel,
     styles.pane,
     styles.paneEmpty,
+    styles.paneSheet,
+    styles.paneSheetEnd,
     styles.paneText,
     styles.showMore,
     summaryText.length,
@@ -1165,11 +1195,16 @@ export function FullPlayerScreen({
   ) : null;
 
   const listHeader =
-    playerRegion !== null || chipStrip !== null ? (
+    playerRegion !== null || chipStrip !== null || hasSections ? (
       <View style={styles.listHeader}>
         {playerRegion}
-        {chipStrip}
-        {hasSections ? <View style={styles.headerSafeSpacer} /> : null}
+        {hasSections ? (
+          <View style={styles.paneSheetStart} testID="full-player-pane-sheet">
+            {chipStrip}
+          </View>
+        ) : (
+          chipStrip
+        )}
       </View>
     ) : null;
 
@@ -1225,6 +1260,7 @@ export function FullPlayerScreen({
                     handleChapterPress(row.chapter);
                   }}
                   style={[
+                    styles.paneSheet,
                     styles.chapterRow,
                     index === listRows.length - 1 ? styles.chapterRowLast : null,
                   ]}
@@ -1236,8 +1272,8 @@ export function FullPlayerScreen({
                     </Text>
                     <Text style={styles.chapterTime}>
                       {t('info.time.start_end', {
-                        timeEnd: formatPlaybackTime(row.chapter.end_time),
-                        timeStart: formatPlaybackTime(row.chapter.start_time),
+                        timeEnd: formatHHMMSS(Number(row.chapter.end_time)),
+                        timeStart: formatHHMMSS(Number(row.chapter.start_time)),
                       })}
                     </Text>
                   </View>
@@ -1247,51 +1283,57 @@ export function FullPlayerScreen({
 
             if (row.type === 'soundbite') {
               return (
-                <View style={styles.column}>
-                  <HomeFeedRow
-                    isLast={index === listRows.length - 1}
-                    mediaType="clips"
-                    onPlayPress={() => {
-                      if (currentItem !== null && channel !== null) {
-                        void playSoundbite(row.soundbite, currentItem, channel);
-                      }
-                    }}
-                    onPress={() => {
-                      if (currentItem !== null && channel !== null) {
-                        void playSoundbite(row.soundbite, currentItem, channel);
-                      }
-                    }}
-                    onQueuePress={(feedRow, position) => {
-                      runQueueAction(feedRow, 'clips', position);
-                    }}
-                    row={toSoundbiteRow(
-                      row.soundbite,
-                      row.index,
-                      t('info.soundbite.official_clip')
-                    )}
-                    showChannelContext={false}
-                  />
+                <View style={styles.paneSheet}>
+                  <View style={styles.column}>
+                    <HomeFeedRow
+                      isLast={index === listRows.length - 1}
+                      mediaType="clips"
+                      style={styles.paneSheetFill}
+                      onPlayPress={() => {
+                        if (currentItem !== null && channel !== null) {
+                          void playSoundbite(row.soundbite, currentItem, channel);
+                        }
+                      }}
+                      onPress={() => {
+                        if (currentItem !== null && channel !== null) {
+                          void playSoundbite(row.soundbite, currentItem, channel);
+                        }
+                      }}
+                      onQueuePress={(feedRow, position) => {
+                        runQueueAction(feedRow, 'clips', position);
+                      }}
+                      row={toSoundbiteRow(
+                        row.soundbite,
+                        row.index,
+                        t('info.soundbite.official_clip')
+                      )}
+                      showChannelContext={false}
+                    />
+                  </View>
                 </View>
               );
             }
 
             return (
-              <View style={styles.column}>
-                <HomeFeedRow
-                  isLast={index === listRows.length - 1}
-                  mediaType="clips"
-                  onPlayPress={(feedRow) => {
-                    runPlayAction(feedRow, 'clips');
-                  }}
-                  onPress={(feedRow) => {
-                    runPlayAction(feedRow, 'clips');
-                  }}
-                  onQueuePress={(feedRow, position) => {
-                    runQueueAction(feedRow, 'clips', position);
-                  }}
-                  row={clipToHomeRow(row.clip)}
-                  showChannelContext={false}
-                />
+              <View style={styles.paneSheet}>
+                <View style={styles.column}>
+                  <HomeFeedRow
+                    isLast={index === listRows.length - 1}
+                    mediaType="clips"
+                    style={styles.paneSheetFill}
+                    onPlayPress={(feedRow) => {
+                      runPlayAction(feedRow, 'clips');
+                    }}
+                    onPress={(feedRow) => {
+                      runPlayAction(feedRow, 'clips');
+                    }}
+                    onQueuePress={(feedRow, position) => {
+                      runQueueAction(feedRow, 'clips', position);
+                    }}
+                    row={clipToHomeRow(row.clip)}
+                    showChannelContext={false}
+                  />
+                </View>
               </View>
             );
           }}

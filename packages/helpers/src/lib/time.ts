@@ -38,10 +38,20 @@ export const DEFAULT_SCHEDULED_JOB_RETENTION_DAYS = 30;
  */
 export const DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS = 30;
 
-export function formatHHMMSS(sec: number) {
-  const hours = Math.floor(sec / 3600);
-  const minutes = Math.floor((sec % 3600) / 60);
-  const seconds = Math.floor(sec % 60);
+/**
+ * Player clock for every Podverse surface. First unit is never zero-padded:
+ * `1:19:59`, `1:05`, `0:00` — not `01:19:59`. Hours appear only at 3600s+.
+ * Accepts a number or a DTO string of seconds (`start_time` / `end_time`).
+ */
+export function formatHHMMSS(sec: number | string) {
+  const value = typeof sec === 'string' ? Number.parseFloat(sec) : sec;
+  if (!Number.isFinite(value) || value < 0) {
+    return '0:00';
+  }
+
+  const hours = Math.floor(value / 3600);
+  const minutes = Math.floor((value % 3600) / 60);
+  const seconds = Math.floor(value % 60);
 
   if (hours > 0) {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -50,15 +60,7 @@ export function formatHHMMSS(sec: number) {
 }
 
 export function formatNumericToHHMMSS(sec: string): string {
-  const totalSeconds = Math.floor(parseFloat(sec));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  return formatHHMMSS(sec);
 }
 
 export type FormatClockOptions = {
@@ -81,28 +83,12 @@ export function formatClock(
   return `${minutes.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
 }
 
-/** Format string-encoded seconds as a zero-padded `MM:SS` or `HH:MM:SS` player clock. */
+/** Null-safe string adapter for {@link formatHHMMSS}. Prefer `formatHHMMSS` at UI callsites. */
 export function formatPlaybackTime(rawValue: string | null | undefined): string {
-  if (!rawValue) {
-    return '00:00';
+  if (rawValue === null || rawValue === undefined || rawValue === '') {
+    return formatHHMMSS(0);
   }
-
-  const seconds = Math.floor(Number.parseFloat(rawValue));
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    return '00:00';
-  }
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minutes
-      .toString()
-      .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }
-
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  return formatHHMMSS(rawValue);
 }
 
 export function formatInputToHHMMSS(input: string): string {

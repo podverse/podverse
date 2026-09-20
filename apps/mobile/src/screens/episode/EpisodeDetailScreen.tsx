@@ -13,7 +13,7 @@ import type {
 } from '@podverse/helpers';
 import { primaryChannelListArtworkUrl } from '@podverse/helpers';
 import { htmlToPlainText } from '@podverse/helpers/html';
-import { formatPlaybackTime } from '@podverse/helpers/time';
+import { formatHHMMSS } from '@podverse/helpers/time';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -84,7 +84,7 @@ const toSoundbiteRow = (
       soundbite.item !== undefined && soundbite.item !== null
         ? getItemPrimaryImageUrl(soundbite.item)
         : null,
-    subtitle: formatPlaybackTime(soundbite.start_time),
+    subtitle: formatHHMMSS(Number(soundbite.start_time)),
     title: soundbite.title ?? `${fallbackTitle} ${index + 1}`,
   };
 };
@@ -684,8 +684,8 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
                   </Text>
                   <Text style={styles.chapterTime}>
                     {t('info.time.start_end', {
-                      timeEnd: formatPlaybackTime(row.chapter.end_time),
-                      timeStart: formatPlaybackTime(row.chapter.start_time),
+                      timeEnd: formatHHMMSS(Number(row.chapter.end_time)),
+                      timeStart: formatHHMMSS(Number(row.chapter.start_time)),
                     })}
                   </Text>
                 </View>

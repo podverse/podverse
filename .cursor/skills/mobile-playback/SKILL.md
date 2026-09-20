@@ -224,8 +224,11 @@ duration lands before the periodic tick. Play paths seed duration from `item.ite
 `FullPlayerScrubber` is the only full-player progress leaf: drag/tap seek on the **line** (no thumb;
 the hit target is 44pt around a 6pt track), chapter boundary ticks (`getChapterBoundaryRatios` from
 `@podverse/playback-core/chapterProgressMarkers`), active chapter/clip/soundbite highlight, long-press
-chapter tooltip (~500ms / 2s dismiss), and hour-aware clocks (`formatHHMMSS`, same helper as web).
-Chapter artwork uses `shouldUseChapterArtwork` on
+chapter tooltip (~500ms / 2s dismiss), and hour-aware clocks (`formatHHMMSS` — same helper and
+style as the progress bar, `1:19:59` not `01:19:59`; **playback-timestamp-format**).
+While the finger is down, `playbackScrubPreviewStore` holds the pending second; the left clock and
+`resolveNowPlayingSegment` follow that preview so the chapter name can change before the engine
+seeks. Chapter artwork uses `shouldUseChapterArtwork` on
 `FullPlayerArtwork` / `MiniPlayerArtwork`. Chapters for chrome come from `useNowPlayingChapters`
 (process-wide cache) plus `useActiveNowPlayingChapter` in leaves only.
 

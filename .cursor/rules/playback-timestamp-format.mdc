@@ -1,0 +1,39 @@
+---
+description: Media clocks use formatHHMMSS — 1:19:59, never 01:19:59
+globs:
+  - "apps/web/**"
+  - "apps/mobile/**"
+  - "apps/management-web/**"
+  - "packages/ui/**"
+  - "packages/helpers/**"
+alwaysApply: true
+---
+
+# Playback timestamp format
+
+The visible media clock is **`formatHHMMSS`** from `@podverse/helpers` (or `@podverse/helpers/time`).
+That is the same helper the progress bar uses. Style: **`1:19:59`**, **`1:05`**, **`0:00`**. Hours
+appear only at 3600s+. **Never** zero-pad the first unit (`01:19:59` / `01:05` is wrong).
+
+It accepts a number or a DTO string of seconds (`start_time`, `end_time`).
+
+## Do
+
+```ts
+formatHHMMSS(positionSeconds);
+formatHHMMSS(chapter.start_time);
+formatHHMMSS(Number(chapter.end_time));
+```
+
+Web clip/chapter ranges go through `ReadableTimeRange`, which already calls `formatHHMMSS`.
+
+## Don't
+
+- `formatPlaybackTime` at a UI callsite — it is only a null-safe string adapter for the same clock
+- `formatClock` — it never switches to `H:MM:SS` and always pads minutes (`01:05`, `60:00`)
+- `formatNumericToHHMMSS` as a second display helper — it delegates to `formatHHMMSS`
+- A local `padStart` clock or a second `MM:SS` / `HH:MM:SS` helper
+- `formatDateTimeAbbrev` for playhead / clip / chapter / transcript clocks
+
+Web, mobile, embed, and any later surface share this helper so a chapter at 4512s cannot read
+`01:15:12` on one surface and `1:15:12` on another.

@@ -18,6 +18,10 @@ import {
   usePlaybackProgress,
   usePlaybackSession,
 } from '../../playback/PlaybackProvider';
+import {
+  setPlaybackScrubPreviewSeconds,
+  usePlaybackScrubPreview,
+} from '../../playback/playbackScrubPreviewStore';
 import { useActiveNowPlayingChapter } from '../../playback/useNowPlayingChapters';
 import { FULL_PLAYER_PROGRESS_BLOCK_HEIGHT } from '../../screens/player/fullPlayerLayout';
 import { useTheme } from '../../theme/useTheme';
@@ -93,8 +97,9 @@ const resolveHighlightBounds = ({
 /**
  * Full-player scrubber: drag/tap seek on the line (no thumb), chapter markers, active-segment
  * highlight, and a long-press chapter tooltip. The visible track is thin; the hit target is 44pt.
- * While dragging, the left clock follows the pending seek so it matches the fill. Clocks and fill
- * subscribe to the progress store so the parent screen does not re-render on every tick.
+ * While dragging, the left clock and chapter chrome follow the pending seek so they match the
+ * fill. The engine playhead stays put until the finger lifts. Clocks and fill subscribe to the
+ * progress store so the parent screen does not re-render on every tick.
  */
 export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   const { t } = useTranslation();
@@ -107,7 +112,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const [tooltipTitle, setTooltipTitle] = useState<string | null>(null);
   const [tooltipPercent, setTooltipPercent] = useState(0);
-  const [scrubPreviewSeconds, setScrubPreviewSeconds] = useState<number | null>(null);
+  const scrubPreviewSeconds = usePlaybackScrubPreview();
   const ignoreTapRef = useRef(false);
   const chapterTooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -171,6 +176,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   useEffect(() => {
     return () => {
       clearChapterTooltipTimer();
+      setPlaybackScrubPreviewSeconds(null);
     };
   }, [clearChapterTooltipTimer]);
 
@@ -208,14 +214,13 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
       if (durationSeconds <= 0) {
         return;
       }
-      const next = Math.floor(clampRatio(ratio) * durationSeconds);
-      setScrubPreviewSeconds((current) => (current === next ? current : next));
+      setPlaybackScrubPreviewSeconds(clampRatio(ratio) * durationSeconds);
     },
     [durationSeconds]
   );
 
   const clearScrubPreview = useCallback(() => {
-    setScrubPreviewSeconds(null);
+    setPlaybackScrubPreviewSeconds(null);
   }, []);
 
   const markIgnoreTap = useCallback(() => {

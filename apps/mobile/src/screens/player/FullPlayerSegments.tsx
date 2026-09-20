@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers/dto';
-import { formatClock } from '@podverse/helpers/time';
+import { formatHHMMSS } from '@podverse/helpers/time';
 
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
@@ -84,7 +84,9 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
                 {chapter.title ?? chapter.id_text}
               </Text>
               <Text style={styles.rowTime}>
-                {formatClock(Number(chapter.start_time), { fallback: '' })}
+                {Number.isFinite(Number(chapter.start_time))
+                  ? formatHHMMSS(Number(chapter.start_time))
+                  : ''}
               </Text>
             </Pressable>
           ))}
@@ -110,7 +112,9 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
                 {soundbite.title ?? `${t('info.soundbite.official_clip')} ${index + 1}`}
               </Text>
               <Text style={styles.rowTime}>
-                {formatClock(Number(soundbite.start_time), { fallback: '' })}
+                {Number.isFinite(Number(soundbite.start_time))
+                  ? formatHHMMSS(Number(soundbite.start_time))
+                  : ''}
               </Text>
             </Pressable>
           ))}

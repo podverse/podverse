@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatDateAbbrev } from '@podverse/helpers';
@@ -71,6 +72,8 @@ type HomeFeedRowProps = {
    * header's identity on every row.
    */
   showChannelContext?: boolean;
+  /** Merged onto the row container — use to match a parent surface. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -159,6 +162,7 @@ export function HomeFeedRow({
   row,
   testID,
   showChannelContext = true,
+  style,
 }: HomeFeedRowProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
@@ -379,7 +383,7 @@ export function HomeFeedRow({
       onPress={() => {
         onPress(row);
       }}
-      style={styles.row}
+      style={[styles.row, style]}
       testID={testID ?? `home-feed-row-${row.id}`}
     >
       <View style={styles.rowBody}>
