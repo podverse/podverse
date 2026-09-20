@@ -56,6 +56,11 @@ import { useAuth } from '../auth/AuthProvider';
 import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
 import { useNativePlaybackBridge } from '../bridge/useNativePlaybackBridge';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
+import {
+  canAdvanceToNextQueueItem,
+  shouldClearNowPlayingAfterAdvance,
+  upcomingManualCountFromCombined,
+} from '../components/player/fullPlayerRows';
 import { playbackErrorFromLoadFailure } from '../feedback/actionErrorCopy';
 import { useAutoQueue } from '../contexts/AutoQueueProvider';
 import { useQueues } from '../contexts/QueuesProvider';
@@ -429,6 +434,8 @@ export type PlaybackContextValue = {
   ) => Promise<void>;
   beginAuthoringHold: () => void;
   endAuthoringHold: () => void;
+  /** True while Make clip is mounted. Complete must not clear now-playing. */
+  isAuthoringHold: boolean;
   clearPauseBoundary: () => void;
   previewWindow: (params: { fromSeconds: number; pauseAtSeconds?: number | null }) => Promise<void>;
   loadItemPausedAt: (item: DTOItem, channel: DTOChannel, seconds: number) => Promise<void>;
@@ -523,6 +530,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const durationRef = useRef<number>(0);
   const pauseAtRef = useRef<number | null>(null);
   const authoringHoldRef = useRef<boolean>(false);
+  const [isAuthoringHold, setIsAuthoringHold] = useState(false);
   const playbackRateRef = useRef<number>(1);
   const advancingRef = useRef<boolean>(false);
   const isPlayingRef = useRef<boolean>(false);
@@ -861,10 +869,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const beginAuthoringHold = useCallback((): void => {
     authoringHoldRef.current = true;
+    setIsAuthoringHold(true);
   }, []);
 
   const endAuthoringHold = useCallback((): void => {
     authoringHoldRef.current = false;
+    setIsAuthoringHold(false);
   }, []);
 
   const clearPauseBoundary = useCallback((): void => {
@@ -1575,28 +1585,29 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   }, [playQueueResource]);
 
   const playAutoQueueRow = useCallback(
-    async (row: AutoQueueResourcesMapRow): Promise<void> => {
+    async (row: AutoQueueResourcesMapRow): Promise<boolean> => {
       const preserve: AutoQueueDirective = { mode: 'preserve' };
       if (row.clip) {
         const item = row.clip.item;
         const channel = row.channel ?? (await ensureChannel(item));
         if (channel === null) {
-          return;
+          return false;
         }
         await startClipPlayback(row.clip, item, channel, { autoQueue: preserve });
-        return;
+        return true;
       }
       if (row.item_soundbite && row.item_soundbite.item) {
         const item = row.item_soundbite.item;
         const channel = row.channel ?? (await ensureChannel(item));
         if (channel === null) {
-          return;
+          return false;
         }
         await startSoundbitePlayback(row.item_soundbite, item, channel, { autoQueue: preserve });
-        return;
+        return true;
       }
       // Item rows carry the slim `DTOItemQueueItem`; fetch the full item for enclosures.
       await playItemByIdWithIntent(row.item.id_text, 'fresh_transition', preserve);
+      return true;
     },
     [ensureChannel, playItemByIdWithIntent, startClipPlayback, startSoundbitePlayback]
   );
@@ -1629,7 +1640,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     return currentAutoQueueSeed() !== null;
   }, [currentAutoQueueSeed]);
 
-  const advanceAutoQueue = useCallback(async (): Promise<void> => {
+  const advanceAutoQueue = useCallback(async (): Promise<boolean> => {
     const nextRow = autoQueueIncrementActiveRow(autoQueueActiveRowRef.current);
     let row = autoQueueResourcesRef.current[nextRow];
     if (row === undefined) {
@@ -1642,19 +1653,56 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       }
     }
     if (row === undefined) {
-      clearNowPlaying();
-      return;
+      return false;
     }
     setAutoQueueActiveRow(nextRow);
     autoQueueActiveRowRef.current = nextRow;
-    await playAutoQueueRow(row);
-  }, [
-    clearNowPlaying,
-    currentAutoQueueSeed,
-    loadAutoQueueResources,
-    playAutoQueueRow,
-    setAutoQueueActiveRow,
-  ]);
+    return playAutoQueueRow(row);
+  }, [currentAutoQueueSeed, loadAutoQueueResources, playAutoQueueRow, setAutoQueueActiveRow]);
+
+  const resolveHasAutoQueueRow = useCallback(async (): Promise<boolean> => {
+    const nextRow = autoQueueIncrementActiveRow(autoQueueActiveRowRef.current);
+    if (autoQueueResourcesRef.current[nextRow] !== undefined) {
+      return true;
+    }
+    const seed = currentAutoQueueSeed();
+    if (seed === null) {
+      return false;
+    }
+    try {
+      const loaded = await loadAutoQueueResources(seed);
+      autoQueueResourcesRef.current = loaded;
+      return loaded[nextRow] !== undefined;
+    } catch {
+      return false;
+    }
+  }, [currentAutoQueueSeed, loadAutoQueueResources]);
+
+  const probeHasQueueAhead = useCallback(
+    async (target: PlaybackTarget): Promise<boolean> => {
+      const advanceMediumId =
+        target.kind !== 'add-by-rss' ? target.channel.medium_id : activeQueueRef.current?.medium_id;
+      let upcomingManualCount = 0;
+      try {
+        const result = await loadActive(advanceMediumId);
+        upcomingManualCount = upcomingManualCountFromCombined(
+          result.upcomingResources.length,
+          result.activeResource !== null
+        );
+      } catch (error) {
+        if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+          return false;
+        }
+      }
+      if (canAdvanceToNextQueueItem(upcomingManualCount, false)) {
+        return true;
+      }
+      // Playlist/seed hints can lie after another device emptied the queue. Only treat auto-queue
+      // as ahead when a real next row is already loaded or can be fetched now.
+      return resolveHasAutoQueueRow();
+    },
+    [loadActive, resolveHasAutoQueueRow]
+  );
 
   const advance = useCallback(
     async (transitionKind: 'complete' | 'skip'): Promise<void> => {
@@ -1737,25 +1785,30 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           upcomingManualCount,
         });
 
+        let didStartNextItem = false;
         if (decision.kind === 'play-next-manual' && activeResource !== null) {
           try {
             await playQueueResource(activeResource, 'fresh_transition');
+            didStartNextItem =
+              activeTargetRef.current !== null && activeTargetRef.current !== target;
           } catch (error) {
             if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
               throw error;
             }
-            clearNowPlaying();
           }
         } else if (decision.kind === 'advance-auto-queue') {
           try {
-            await advanceAutoQueue();
+            didStartNextItem = await advanceAutoQueue();
           } catch (error) {
             if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
               throw error;
             }
-            clearNowPlaying();
           }
-        } else {
+        }
+
+        // Skip with nothing ahead (stale UI, another device emptied the queue, or auto-queue
+        // seed that failed to load) must keep the current item playing. Natural complete may stop.
+        if (shouldClearNowPlayingAfterAdvance(transitionKind, didStartNextItem)) {
           clearNowPlaying();
         }
       } finally {
@@ -2288,10 +2341,19 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     if (action.kind === 'none') {
       return;
     }
+    if (!(await probeHasQueueAhead(target))) {
+      return;
+    }
     await advance('skip');
-  }, [advance, resolveChaptersForTarget, seekTo]);
+  }, [advance, probeHasQueueAhead, resolveChaptersForTarget, seekTo]);
 
-  const skipToNextTrack = useCallback(() => advance('skip'), [advance]);
+  const skipToNextTrack = useCallback(async (): Promise<void> => {
+    const target = activeTargetRef.current;
+    if (target === null || !(await probeHasQueueAhead(target))) {
+      return;
+    }
+    await advance('skip');
+  }, [advance, probeHasQueueAhead]);
   const completeNowPlaying = useCallback(() => advance('complete'), [advance]);
 
   const sessionValue = useMemo<PlaybackSessionContextValue>(
@@ -2316,6 +2378,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playbackRate,
       beginAuthoringHold,
       endAuthoringHold,
+      isAuthoringHold,
       clearPauseBoundary,
       previewWindow,
       resume,
@@ -2355,6 +2418,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playbackRate,
       beginAuthoringHold,
       endAuthoringHold,
+      isAuthoringHold,
       clearPauseBoundary,
       previewWindow,
       resume,

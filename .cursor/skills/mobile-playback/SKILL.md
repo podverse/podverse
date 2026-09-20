@@ -173,7 +173,8 @@ player already own buffering and failure, and repeating that on every row is red
 
 `FullPlayerScreen` is one scrolling column. The player region and chips live in the pane
 `FlatList` header; chapter / clip / official-clip rows are `data`; summary and transcript sit in
-the footer. Nothing is sticky or overlay-pinned, and the player does not shrink as the list
+the footer. Chips sit above the pane sheet and line up with that sheet's outer border, not the
+inset pane text. Nothing is sticky or overlay-pinned, and the player does not shrink as the list
 scrolls. Chips have no hairlines and stay vertically centered in their band. A chip tap swaps the
 pane only; it does not scroll.
 `FULL_PLAYER_REGION_BOTTOM_PADDING` separates the utility row from those chips. First paint peeks
@@ -188,7 +189,15 @@ the square instead of moving the chips.
   (`MEDIA_JUMP_BACK_SECONDS` = 10, `MEDIA_JUMP_FORWARD_SECONDS` = 30).
 - Previous/next match web: tap is chapter-aware for whole-item playback (`skipToPrevious` /
   `skipToNext`); when chapters exist, a 500ms hold skips the episode (`skipToPreviousTrack` /
-  `skipToNextTrack`). Clip and soundbite targets never use chapter prev/next.
+  `skipToNextTrack`) only when something is ahead. Probe the live queue before mutating: a
+  long-press with an empty upcoming + auto-queue is a no-op, including when another device emptied
+  the queue after the last UI refresh. A skip that cannot start the next item must leave the
+  current item playing; only natural complete may clear now-playing. Clip and soundbite targets
+  never use chapter prev/next.
+- When the item completes and nothing is ahead, now-playing clears and the **focused** full player
+  dismisses. Make clip holds the item (`beginAuthoringHold`) and must stay mounted: do not add
+  empty-session dismiss there, and do not `goBack()` from an unfocused full player (that would pop
+  make clip).
 - Jump back/forward use circular rotate glyphs (`FontAwesome6` `rotate-left` /
   `rotate-right`), matching web's `FaRotateLeft` / `FaRotateRight`.
 - Pane loading and chip visibility come from `useEpisodeSectionPanes` so episode detail and full

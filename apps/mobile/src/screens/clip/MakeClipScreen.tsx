@@ -92,6 +92,8 @@ export function MakeClipScreen({ navigation, route }: MakeClipScreenProps) {
   const faqCopy = useManagedCopy({ enabled: isFaqOpen, slug: 'faq' });
   const howToCopy = useManagedCopy({ enabled: isHowToOpen, slug: 'clip-how-to' });
 
+  // Clip authoring must keep the current item now-playing even if the playhead reaches the end
+  // with nothing queued next. This screen never auto-dismisses on an empty session.
   useEffect(() => {
     beginAuthoringHold();
     return () => {

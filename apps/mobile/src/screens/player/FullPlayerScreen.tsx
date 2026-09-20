@@ -1,3 +1,4 @@
+import { useIsFocused } from '@react-navigation/native';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +34,7 @@ import {
   hasNextQueueItem,
   resolveAddToPlaylistTarget,
   resolveQueueMutationTarget,
+  shouldDismissFullPlayerOnEmptySession,
   shouldShowV4vAction,
 } from '../../components/player/fullPlayerRows';
 import { FullPlayerScrubber } from '../../components/player/FullPlayerScrubber';
@@ -246,6 +248,7 @@ export function FullPlayerScreen({
     resume,
     retryPlayback,
     seekTo,
+    isAuthoringHold,
     skipToNext,
     skipToNextTrack,
     skipToPrevious,
@@ -253,6 +256,7 @@ export function FullPlayerScreen({
     switchEnclosureSelectedParams,
     transportState,
   } = usePlaybackSession();
+  const isFocused = useIsFocused();
   const { chapters } = useNowPlayingChapters();
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const paneListRef = useRef<FlatList<FullPlayerPaneRow>>(null);
@@ -454,12 +458,14 @@ export function FullPlayerScreen({
         chipHeader: {
           justifyContent: 'center',
           minHeight: FULL_PLAYER_CHIP_HEADER_HEIGHT,
-          paddingHorizontal: tokens.spacing.lg,
+          // Same inset as the pane sheet margin, so the pills line up with the wrapper border
+          // rather than the inset content text.
+          paddingHorizontal: tokens.spacing.md,
         },
         chipRowSlot: {
           justifyContent: 'center',
           // Twice the shared chip seam. SectionChipRow already owns one unit below the pills, so
-          // the extra unit here makes the content gap match the space above.
+          // the extra unit here is the space from chips to the wrapper below.
           paddingBottom: listChipRowBottomGap(tokens.spacing),
           paddingTop: listChipRowBottomGap(tokens.spacing) * 2,
         },
@@ -491,6 +497,9 @@ export function FullPlayerScreen({
         },
         pane: {
           paddingHorizontal: tokens.spacing.lg,
+          // Same top inset as `chapterRow` so Summary / transcript / empty copy starts where the
+          // first chapter title does, not flush to the sheet cap.
+          paddingTop: tokens.spacing.base,
         },
         paneSheet: {
           backgroundColor: themeStyles.paneSheet.backgroundColor,
@@ -511,6 +520,7 @@ export function FullPlayerScreen({
           borderBottomWidth: 0,
           marginHorizontal: tokens.spacing.md,
           overflow: 'hidden',
+          paddingTop: listChipRowBottomGap(tokens.spacing) * 2,
         },
         paneSheetEnd: {
           backgroundColor: themeStyles.paneSheet.backgroundColor,
@@ -622,6 +632,20 @@ export function FullPlayerScreen({
       subscription.remove();
     };
   }, [onClose]);
+
+  // Natural complete with nothing ahead clears now-playing. Dismiss this screen only when it is
+  // focused — `goBack()` while Make clip is on top would pop that screen instead.
+  useEffect(() => {
+    if (
+      shouldDismissFullPlayerOnEmptySession({
+        hasPlaybackSession: activeTarget !== null && nowPlaying !== null,
+        isAuthoringHold,
+        isFocused,
+      })
+    ) {
+      onClose();
+    }
+  }, [activeTarget, isAuthoringHold, isFocused, nowPlaying, onClose]);
 
   useEffect(() => {
     setIsMarkedPlayed(false);
@@ -1084,26 +1108,24 @@ export function FullPlayerScreen({
   const chipStrip =
     hasSections && isPrefsHydrated ? (
       <View style={styles.chipHeader} testID="full-player-section-header">
-        <View style={styles.column}>
-          <View onLayout={handleChipStripLayout} style={styles.chipRowSlot}>
-            <SectionChipRow
-              items={sectionChips}
-              trailing={
-                activeTab === 'clips' ? (
-                  <MenuSelectChip
-                    heading={t('filters.screen.sort_heading')}
-                    onSelect={selectClipSort}
-                    options={clipSortOptions}
-                    testID="full-player-clip-sort"
-                    value={clipSort}
-                  />
-                ) : undefined
-              }
-              onSelect={selectTab}
-              selectedKey={activeTab}
-              testID="full-player-sections"
-            />
-          </View>
+        <View onLayout={handleChipStripLayout} style={styles.chipRowSlot}>
+          <SectionChipRow
+            items={sectionChips}
+            trailing={
+              activeTab === 'clips' ? (
+                <MenuSelectChip
+                  heading={t('filters.screen.sort_heading')}
+                  onSelect={selectClipSort}
+                  options={clipSortOptions}
+                  testID="full-player-clip-sort"
+                  value={clipSort}
+                />
+              ) : undefined
+            }
+            onSelect={selectTab}
+            selectedKey={activeTab}
+            testID="full-player-sections"
+          />
         </View>
       </View>
     ) : null;
@@ -1198,13 +1220,10 @@ export function FullPlayerScreen({
     playerRegion !== null || chipStrip !== null || hasSections ? (
       <View style={styles.listHeader}>
         {playerRegion}
+        {chipStrip}
         {hasSections ? (
-          <View style={styles.paneSheetStart} testID="full-player-pane-sheet">
-            {chipStrip}
-          </View>
-        ) : (
-          chipStrip
-        )}
+          <View style={styles.paneSheetStart} testID="full-player-pane-sheet" />
+        ) : null}
       </View>
     ) : null;
 
