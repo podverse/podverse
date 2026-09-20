@@ -186,6 +186,6 @@ export const fetchBrowseFeedRows = async (
     })
   );
   return normalizeChannelRows(response.data, {
-    includeAuthor: mediaType === 'podcasts',
+    includeAuthor: mediaType === 'podcasts' || mediaType === 'albums',
   });
 };

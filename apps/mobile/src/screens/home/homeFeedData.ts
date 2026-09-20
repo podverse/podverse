@@ -192,8 +192,8 @@ const normalizeId = (record: Record<string, unknown>): string | null => {
 
 export type NormalizeChannelRowsOptions = {
   /**
-   * When true, put the channel host/author on the row subtitle (Browse Podcasts / Search-style
-   * discovery). Default keeps other channel lists (Videos, Artists, Albums) title + date only.
+   * When true, put the channel host/author on the row subtitle (Browse Podcasts and Albums /
+   * Search-style discovery). Default keeps other channel lists (Videos, Artists) title + date only.
    */
   includeAuthor?: boolean;
 };
