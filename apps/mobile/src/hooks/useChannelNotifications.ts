@@ -1,8 +1,16 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { SyncedNotificationType } from '../auth';
 import { syncChannelNotificationEnabled, syncChannelNotificationType } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
+import {
+  rememberChannelIdentity,
+  rememberChannelNotifications,
+} from '../data/repositories/channelActionChromeRepository';
+import {
+  getChannelActionChrome,
+  resolveChannelNotificationsEnabled,
+} from '../lib/channelActionChrome';
 import { useMembershipGate } from '../membership/MembershipGateProvider';
 import { useAccessTier } from '../membership/useAccessTier';
 
@@ -26,10 +34,10 @@ export type ChannelNotificationsState = {
  * One reader and writer for a podcast's notification state, shared by the header bell and the
  * podcast settings screen.
  *
- * The account is the only source of truth here — there is no device-local mirror — so the switches
- * read straight from `account.account_notification_channels` and every write replaces the account
- * with the server's answer. That keeps the bell and the settings switches in agreement without
- * either telling the other what it did.
+ * The account rows are the source of truth once a numeric channel id is known. Until then the
+ * device cache and navigate preview keep the bell from painting "off" and then turning on
+ * (`mobile-navigate-known-state`). Every write still replaces the account with the server's
+ * answer, so the bell and the settings switches stay in agreement.
  *
  * Denials are answered twice: `evaluateFeature` refuses before spending a request, and
  * `handleGateError` catches a server 403 that the client could not predict. Anything else surfaces
@@ -41,9 +49,11 @@ export type ChannelNotificationsState = {
 export const useChannelNotifications = ({
   channelId,
   channelIdText,
+  previewNotificationsEnabled,
 }: {
   channelId: number | null;
   channelIdText: string;
+  previewNotificationsEnabled?: boolean;
 }): ChannelNotificationsState => {
   const { accessToken, account, setAccount, status } = useAuth();
   const { handleGateError, openGate } = useMembershipGate();
@@ -52,19 +62,52 @@ export const useChannelNotifications = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const isSignedIn = status === 'authenticated';
+  const cachedChrome = getChannelActionChrome(channelIdText);
+  const resolvedChannelId = channelId ?? cachedChrome?.channelId ?? null;
 
   const notificationChannel = useMemo(() => {
-    if (channelId === null) {
+    if (resolvedChannelId === null) {
       return null;
     }
     return (
       account?.account_notification_channels?.find(
-        (candidate) => candidate.channel_id === channelId
+        (candidate) => candidate.channel_id === resolvedChannelId
       ) ?? null
     );
-  }, [account?.account_notification_channels, channelId]);
+  }, [account?.account_notification_channels, resolvedChannelId]);
 
-  const isEnabled = notificationChannel !== null;
+  const accountNotificationChannelIds = useMemo(
+    () =>
+      account === null || account === undefined
+        ? undefined
+        : (account.account_notification_channels ?? []).map((candidate) => candidate.channel_id),
+    [account]
+  );
+
+  const isEnabled = isSignedIn
+    ? resolveChannelNotificationsEnabled({
+        accountNotificationChannelIds,
+        cachedChannelId: cachedChrome?.channelId ?? null,
+        cachedNotificationsEnabled: cachedChrome?.notificationsEnabled ?? null,
+        channelId,
+        previewNotificationsEnabled,
+      })
+    : false;
+
+  useEffect(() => {
+    if (channelId !== null) {
+      rememberChannelIdentity(channelIdText, channelId);
+    }
+    if (resolvedChannelId !== null && accountNotificationChannelIds !== undefined) {
+      rememberChannelNotifications(channelIdText, notificationChannel !== null);
+    }
+  }, [
+    accountNotificationChannelIds,
+    channelId,
+    channelIdText,
+    notificationChannel,
+    resolvedChannelId,
+  ]);
 
   const enabledTypes = useMemo(
     () =>

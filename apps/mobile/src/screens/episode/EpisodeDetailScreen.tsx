@@ -177,7 +177,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         },
         showMore: {
           ...typography.caption,
-          color: themeStyles.textSecondary.color,
+          color: tokens.text.link,
           marginTop: tokens.spacing.sm,
         },
         transcript: {

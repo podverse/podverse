@@ -10,6 +10,10 @@ import { LiveItemStatusEnum } from '@podverse/helpers/dto';
 import { requestWithMobileAuthRefresh } from '../../../auth';
 import { useAuth } from '../../../auth/AuthProvider';
 import { channelItemsRepository } from '../../../data/repositories/channelItemsRepository';
+import {
+  extendDirectoryChannelOrDropGone,
+  syncDirectoryChannelOrDropGone,
+} from '../../../data/repositories/directoryChannelGone';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../../membership/MembershipGateProvider';
 import type { ChannelBrowseStackParamList } from '../../../navigation';
@@ -155,10 +159,16 @@ export function PodcastEpisodesSection({
         }
 
         try {
-          const result = await channelItemsRepository.syncChannel(authContext, channelIdText, {
+          const outcome = await syncDirectoryChannelOrDropGone(authContext, channelIdText, {
             channelTitle: channelTitleRef.current,
           });
-          setHasMorePages(result.hasMore);
+          if (outcome.kind === 'gone') {
+            setHasMorePages(false);
+            setLiveItems([]);
+            await readStoredEpisodes();
+            return;
+          }
+          setHasMorePages(outcome.result.hasMore);
           await readStoredEpisodes();
 
           // Live items are a real-time surface with nothing to store, so they simply stay empty
@@ -191,10 +201,15 @@ export function PodcastEpisodesSection({
   const loadMoreEpisodes = useCallback(async () => {
     setIsLoadingMore(true);
     try {
-      const result = await channelItemsRepository.extendWindow(authContext, channelIdText, {
+      const outcome = await extendDirectoryChannelOrDropGone(authContext, channelIdText, {
         channelTitle: channelTitleRef.current,
       });
-      setHasMorePages(result.hasMore);
+      if (outcome.kind === 'gone') {
+        setHasMorePages(false);
+        await readStoredEpisodes();
+        return;
+      }
+      setHasMorePages(outcome.result.hasMore);
       await readStoredEpisodes();
     } catch {
       setErrorKey('errors.generic');

@@ -177,8 +177,10 @@
       "clear_confirm_title": "Effacer le journal de synchronisation ?",
       "clear_confirm_body": "Cela supprime toutes les entrées enregistrées sur cet appareil.",
       "outcome_failure": "Échec",
+      "outcome_reconciled": "Retiré",
       "outcome_skipped": "Ignoré — hors ligne",
-      "outcome_success": "Réussi"
+      "outcome_success": "Réussi",
+      "directory_channel_gone": "Retiré {channel} de cet appareil. Il n'est plus dans le répertoire."
     }
   },
   "media_player": {

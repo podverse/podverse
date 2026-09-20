@@ -1,6 +1,14 @@
+import { eq } from 'drizzle-orm';
+
+import {
+  CHANNEL_ACTION_CHROME_KEY,
+  hydrateChannelActionChrome,
+  parsePersistedChannelActionChrome,
+} from '../../lib/channelActionChrome';
 import { hydrateSectionChromeFlagsMemory } from '../../lib/sectionChromeFlags';
 import { getDb, getSqlite } from './client';
 import { runMigrations } from './runMigrations';
+import { safeJsonParse } from './serialization';
 import * as schema from './schema';
 
 let initializePromise: Promise<void> | null = null;
@@ -17,6 +25,22 @@ const initialize = async (): Promise<void> => {
     })
     .from(schema.sectionChromeFlags);
   hydrateSectionChromeFlagsMemory(chromeRows);
+
+  const [subscribedRows, actionChromeRows] = await Promise.all([
+    getDb().select({ idText: schema.subscribedChannel.idText }).from(schema.subscribedChannel),
+    getDb()
+      .select({ value: schema.kvMeta.value })
+      .from(schema.kvMeta)
+      .where(eq(schema.kvMeta.key, CHANNEL_ACTION_CHROME_KEY))
+      .limit(1),
+  ]);
+  const persistedRaw = actionChromeRows[0]?.value;
+  hydrateChannelActionChrome({
+    persisted: parsePersistedChannelActionChrome(
+      persistedRaw === undefined || persistedRaw === null ? null : safeJsonParse(persistedRaw)
+    ),
+    subscribedIdTexts: subscribedRows.map((row) => row.idText),
+  });
 };
 
 /**

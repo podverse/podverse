@@ -590,6 +590,7 @@ export function HomeScreen() {
           buildPodcastDetailParams({
             podcastId: row.id,
             previewImageUrl: row.imageUrl,
+            previewIsSubscribed: row.isSubscribed,
             previewTitle: row.title,
           })
         );
@@ -623,6 +624,7 @@ export function HomeScreen() {
           buildAlbumDetailParams({
             albumId: row.id,
             previewImageUrl: row.imageUrl,
+            previewIsSubscribed: row.isSubscribed,
             previewTitle: row.title,
           })
         );

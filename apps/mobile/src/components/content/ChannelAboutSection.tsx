@@ -13,26 +13,7 @@ import { ListEmpty } from '../state/ListEmpty';
 import { LoadingSection } from '../state/LoadingSection';
 
 import { AboutPersonRow } from './AboutPersonRow';
-import type { AboutPerson } from './aboutPerson';
-import { toAboutPersonFromChannel } from './aboutPerson';
-
-type AboutCell =
-  | {
-      feedUrl: string | null;
-      key: string;
-      kind: 'description';
-      text: string | null;
-      websiteUrl: string | null;
-    }
-  | { key: string; kind: 'people-heading' }
-  | { key: string; kind: 'person'; person: AboutPerson };
-
-const nonEmpty = (value: string | null | undefined): string | null => {
-  if (value === null || value === undefined || value.length === 0) {
-    return null;
-  }
-  return value;
-};
+import { buildChannelAboutCells } from './channelAboutCells';
 
 export type ChannelAboutSectionProps = {
   channel: DTOChannel | null;
@@ -112,33 +93,7 @@ export function ChannelAboutSection({
     [themeStyles, tokens]
   );
 
-  const cells = useMemo<AboutCell[]>(() => {
-    const description = nonEmpty(channel?.channel_description?.value);
-    const feedUrl = nonEmpty(channel?.feed?.url);
-    const websiteUrl = nonEmpty(channel?.channel_about?.website_link_url);
-    const people = (channel?.channel_persons ?? []).map(toAboutPersonFromChannel);
-    const next: AboutCell[] = [];
-
-    const hasLinks = feedUrl !== null || websiteUrl !== null;
-    if (description !== null || hasLinks) {
-      next.push({
-        feedUrl,
-        key: 'description',
-        kind: 'description',
-        text: description,
-        websiteUrl,
-      });
-    }
-
-    if (people.length > 0) {
-      next.push({ key: 'people-heading', kind: 'people-heading' });
-      for (const person of people) {
-        next.push({ key: `person-${person.id}`, kind: 'person', person });
-      }
-    }
-
-    return next;
-  }, [channel]);
+  const cells = useMemo(() => buildChannelAboutCells(channel), [channel]);
 
   const openExternalUrl = useCallback(async (href: string) => {
     try {

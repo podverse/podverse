@@ -5,9 +5,14 @@ import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import {
+  hydrateChannelActionChrome,
+  snapshotPersistedChannelActionChrome,
+} from '../../lib/channelActionChrome';
 import { getDb, initializeDatabase, schema } from '../db';
 import type { SubscribedChannelRow } from '../db/schema';
 import { addByRssRepository } from './addByRssRepository';
+import { rememberChannelSubscribed } from './channelActionChromeRepository';
 import { channelItemsRepository } from './channelItemsRepository';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
 import { channelSeenRepository } from './channelSeenRepository';
@@ -99,6 +104,10 @@ const replaceDirectoryCache = async (entries: SubscribedChannel[]): Promise<void
         updatedAt,
       }))
     );
+  });
+  hydrateChannelActionChrome({
+    persisted: snapshotPersistedChannelActionChrome(),
+    subscribedIdTexts: entries.map((entry) => entry.idText),
   });
 };
 
@@ -232,6 +241,7 @@ export const subscriptionsRepository = {
           updatedAt: Date.now(),
         },
       });
+    rememberChannelSubscribed(entry.idText, true);
   },
 
   /** Remove a directory subscription locally. Never gated — unsubscribe works in every state. */
@@ -247,6 +257,7 @@ export const subscriptionsRepository = {
     // badge answering a question about a subscription the user already ended.
     await channelSeenRepository.remove(idText);
     await channelLiveStatusRepository.remove(idText);
+    rememberChannelSubscribed(idText, false);
   },
 
   /**

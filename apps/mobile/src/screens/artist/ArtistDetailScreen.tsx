@@ -34,6 +34,7 @@ import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChr
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
+import { resolveInitialSubscribed } from '../../lib/channelActionChrome';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
@@ -159,7 +160,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   );
   const [artistTitle, setArtistTitle] = useState<string | null>(null);
   const [artistArtwork, setArtistArtwork] = useState<string | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(() =>
+    resolveInitialSubscribed(artistId)
+  );
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const [isSectionHydrated, setIsSectionHydrated] = useState<boolean>(false);
@@ -237,6 +240,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     setAlbumsUnadded([]);
     setArtistTitle(null);
     setArtistArtwork(null);
+    setIsSubscribed(resolveInitialSubscribed(artistId));
   }, [artistId]);
 
   useEffect(() => {

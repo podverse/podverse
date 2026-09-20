@@ -2,6 +2,11 @@ export { accountRepository } from './accountRepository';
 export { addByRssRepository } from './addByRssRepository';
 export { autoQueueRepository } from './autoQueueRepository';
 export {
+  rememberChannelIdentity,
+  rememberChannelNotifications,
+  rememberChannelSubscribed,
+} from './channelActionChromeRepository';
+export {
   CHANNEL_ITEM_WINDOW_DEFAULT_DEPTH,
   CHANNEL_ITEM_WINDOW_MAX_DEPTH,
   CHANNEL_ITEM_WINDOW_STEP,
@@ -10,6 +15,15 @@ export {
 export type { ChannelItemRecord, ChannelItemWindow } from './channelItemWindow';
 export { channelItemsRepository } from './channelItemsRepository';
 export type { ChannelWindowSyncResult } from './channelItemsRepository';
+export {
+  DIRECTORY_CHANNEL_GONE_CODE,
+  dropGoneDirectoryChannel,
+  extendDirectoryChannelOrDropGone,
+  formatDirectoryChannelGoneDetail,
+  isDirectoryChannelGoneError,
+  syncDirectoryChannelOrDropGone,
+} from './directoryChannelGone';
+export type { DirectoryChannelSyncOutcome } from './directoryChannelGone';
 export { channelLiveStatusRepository } from './channelLiveStatusRepository';
 export { channelSeenRepository } from './channelSeenRepository';
 export type { ChannelSeenUnseen } from './channelSeenRepository';

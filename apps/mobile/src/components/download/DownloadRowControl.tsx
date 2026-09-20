@@ -19,6 +19,8 @@ import { useTheme } from '../../theme/useTheme';
 type DownloadRowControlProps = {
   item: DTOItem;
   testID: string;
+  /** When the file is on disk, Maestro waits on this id. List rows omit it so their id stays stable. */
+  completeTestID?: string;
 };
 
 const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Ionicons>['name'] => {
@@ -47,10 +49,14 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
  *
  * The busy state is a spinner with no percentage, and the row does not subscribe to byte progress.
  * A screen can show forty of these at once, and per-chunk work multiplied by forty rows is what
- * makes a list stutter while something downloads. Episode detail and My Library → Downloads are
- * where a user goes for the number; both report it and announce it.
+ * makes a list stutter while something downloads. My Library → Downloads is where a user goes for
+ * the number.
  */
-export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
+export function DownloadRowControl({
+  completeTestID,
+  item,
+  testID,
+}: DownloadRowControlProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
   const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
@@ -101,7 +107,9 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
         runDownloadAction({ remove, start, status });
       }}
       style={({ pressed }) => [styles.control, pressed ? styles.pressed : null]}
-      testID={testID}
+      testID={
+        status === 'complete' && completeTestID !== undefined ? completeTestID : testID
+      }
     >
       {isInProgress ? (
         <ActivityIndicator color={tokens.text.secondary} size="small" />

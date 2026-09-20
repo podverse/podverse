@@ -15,6 +15,7 @@ import { ShareSheetPassthroughOverlay } from './src/components/share/ShareSheetP
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
+import { downloadManager } from './src/downloads/downloadManager';
 import { ActionErrorProvider } from './src/feedback/ActionErrorProvider';
 import { initializeI18n } from './src/i18n';
 import { E2eQuickLogin } from './src/lib/e2e/E2eQuickLogin';
@@ -51,9 +52,15 @@ export default function App() {
   useEffect(() => {
     // Open the offline-first DB in the background; do not gate render on it so a migration
     // failure never blocks the UI. Repositories `await initializeDatabase()` before querying.
-    void initializeDatabase().catch((error) => {
-      console.warn('[data] database initialization failed', error);
-    });
+    void initializeDatabase()
+      .then(() =>
+        downloadManager.hydrate().catch((error: unknown) => {
+          console.warn('[downloads] hydrate failed', error);
+        })
+      )
+      .catch((error) => {
+        console.warn('[data] database initialization failed', error);
+      });
 
     void initializeI18n().finally(() => {
       setIsI18nReady(true);

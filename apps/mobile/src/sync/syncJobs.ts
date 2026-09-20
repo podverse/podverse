@@ -14,6 +14,7 @@ import { channelItemsRepository } from '../data/repositories/channelItemsReposit
 import type { ChannelItemWindow } from '../data/repositories/channelItemWindow';
 import { channelLiveStatusRepository } from '../data/repositories/channelLiveStatusRepository';
 import { channelSeenRepository } from '../data/repositories/channelSeenRepository';
+import { syncDirectoryChannelOrDropGone } from '../data/repositories/directoryChannelGone';
 import { homeClipsCacheRepository } from '../data/repositories/homeClipsCacheRepository';
 import { playbackOutboxRepository } from '../data/repositories/playbackOutboxRepository';
 import { queueRepository } from '../data/repositories/queueRepository';
@@ -112,7 +113,7 @@ const createChannelItemsJob = (
     priority,
     `channel-items:${window.channelIdText}`,
     async () => {
-      await channelItemsRepository.syncChannel(deps.getAuthContext(), window.channelIdText);
+      await syncDirectoryChannelOrDropGone(deps.getAuthContext(), window.channelIdText);
     },
     channelItemsTimeoutMs(window.depth)
   );

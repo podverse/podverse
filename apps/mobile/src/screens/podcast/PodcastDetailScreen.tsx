@@ -23,6 +23,7 @@ import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChr
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
+import { resolveInitialSubscribed } from '../../lib/channelActionChrome';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import {
   isPodcastSectionUnavailableOffline,
@@ -123,7 +124,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { podcastId, previewImageUrl, previewTitle } = route.params;
+  const { podcastId, previewImageUrl, previewIsSubscribed, previewNotificationsEnabled, previewTitle } =
+    route.params;
   const cachedChrome = getCachedChannelSectionFlags(podcastId);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [isChannelLoading, setIsChannelLoading] = useState<boolean>(true);
@@ -138,7 +140,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   );
   const [hasCheckedSoundbites, setHasCheckedSoundbites] = useState<boolean>(cachedChrome !== null);
   const chromeConfirmedRef = useRef(false);
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(() =>
+    resolveInitialSubscribed(podcastId, previewIsSubscribed)
+  );
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const [section, setSection] = useState<PodcastTab>(DEFAULT_PODCAST_TAB);
@@ -184,7 +188,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
     setPreviewHasFunding(nextChrome?.hasFunding === true);
     setHasCheckedSoundbites(nextChrome !== null);
-  }, [podcastId]);
+    setIsSubscribed(resolveInitialSubscribed(podcastId, previewIsSubscribed));
+  }, [podcastId, previewIsSubscribed]);
 
   const styles = useMemo(
     () =>
@@ -381,6 +386,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const notifications = useChannelNotifications({
     channelId: channel?.id ?? null,
     channelIdText: podcastId,
+    previewNotificationsEnabled,
   });
 
   const isSignedIn = status === 'authenticated';

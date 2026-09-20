@@ -29,6 +29,7 @@ import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChr
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
+import { resolveInitialSubscribed } from '../../lib/channelActionChrome';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
@@ -159,7 +160,8 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { albumId, previewImageUrl, previewTitle } = route.params;
+  const { albumId, previewImageUrl, previewIsSubscribed, previewNotificationsEnabled, previewTitle } =
+    route.params;
   const { evaluateFeature, isTierKnown } = useAccessTier();
   const { handleGateError, openGate } = useMembershipGate();
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
@@ -180,7 +182,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       ? previewImageUrl
       : null
   );
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(() =>
+    resolveInitialSubscribed(albumId, previewIsSubscribed)
+  );
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const [isSectionHydrated, setIsSectionHydrated] = useState<boolean>(false);
@@ -202,6 +206,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const notifications = useChannelNotifications({
     channelId: channel?.id ?? null,
     channelIdText: albumId,
+    previewNotificationsEnabled,
   });
 
   const authContext = useMemo(
@@ -263,7 +268,8 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     setIsChannelLoading(true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
     setPreviewHasFunding(nextChrome?.hasFunding === true);
-  }, [albumId]);
+    setIsSubscribed(resolveInitialSubscribed(albumId, previewIsSubscribed));
+  }, [albumId, previewIsSubscribed]);
 
   useEffect(() => {
     let isMounted = true;

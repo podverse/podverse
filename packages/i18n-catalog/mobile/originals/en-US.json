@@ -177,8 +177,10 @@
       "clear_confirm_title": "Clear sync log?",
       "clear_confirm_body": "This removes every recorded entry from this device.",
       "outcome_failure": "Failed",
+      "outcome_reconciled": "Removed",
       "outcome_skipped": "Skipped — offline",
-      "outcome_success": "Succeeded"
+      "outcome_success": "Succeeded",
+      "directory_channel_gone": "Removed {channel} from this device. It is no longer in the directory."
     }
   },
   "media_player": {

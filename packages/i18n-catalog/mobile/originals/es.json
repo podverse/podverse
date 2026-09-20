@@ -177,8 +177,10 @@
       "clear_confirm_title": "¿Borrar el registro de sincronización?",
       "clear_confirm_body": "Esto elimina todas las entradas registradas en este dispositivo.",
       "outcome_failure": "Error",
+      "outcome_reconciled": "Eliminado",
       "outcome_skipped": "Omitido: sin conexión",
-      "outcome_success": "Correcto"
+      "outcome_success": "Correcto",
+      "directory_channel_gone": "Se eliminó {channel} de este dispositivo. Ya no está en el directorio."
     }
   },
   "media_player": {

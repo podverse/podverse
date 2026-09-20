@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { DTOItem } from '@podverse/helpers';
 import { formatDateAbbrev, itemHeaderLightboxArtworkCandidates } from '@podverse/helpers';
 
-import { DownloadControl } from '../../components/download/DownloadControl';
+import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import { CoverImage } from '../../components/primitives';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
@@ -71,9 +71,10 @@ const formatProgressTimeLabel = (
 /**
  * Episode identity and the same play / duration / more bar a podcast episode row uses.
  *
- * Artwork sits alone at the top. Podcast name, episode title, and pub date stack under it so a
- * long title grows the header instead of covering the chips below. The play bar is
- * `MediaRowActions` in the icon appearance the list rows use.
+ * Artwork sits at the top with the same download/delete icon a list episode row uses, far right
+ * of the image. Podcast name, episode title, and pub date stack under that row so a long title
+ * grows the header instead of covering the chips below. The play bar is `MediaRowActions` in the
+ * icon appearance the list rows use.
  */
 export function EpisodePlayChrome({
   episode,
@@ -111,6 +112,12 @@ export function EpisodePlayChrome({
         artwork: {
           height: EPISODE_ARTWORK_SIZE,
           width: EPISODE_ARTWORK_SIZE,
+        },
+        artworkRow: {
+          alignItems: 'flex-start',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          width: '100%',
         },
         date: {
           ...typography.caption,
@@ -229,14 +236,21 @@ export function EpisodePlayChrome({
 
   return (
     <View style={styles.root} testID="episode-detail-header">
-      <CoverImage
-        accessibilityLabel={episodeTitle}
-        fallbackLabel={episodeTitle}
-        style={styles.artwork}
-        testID="episode-detail-artwork"
-        uri={artworkUri}
-        viewerUri={viewerUri}
-      />
+      <View style={styles.artworkRow}>
+        <CoverImage
+          accessibilityLabel={episodeTitle}
+          fallbackLabel={episodeTitle}
+          style={styles.artwork}
+          testID="episode-detail-artwork"
+          uri={artworkUri}
+          viewerUri={viewerUri}
+        />
+        <DownloadRowControl
+          completeTestID="episode-detail-download-complete"
+          item={episode}
+          testID="episode-detail-download"
+        />
+      </View>
       <View style={styles.titles}>
         {podcastName}
         <Text accessibilityRole="header" style={styles.title} testID="episode-detail-title">
@@ -264,7 +278,6 @@ export function EpisodePlayChrome({
           playTestID={`home-row-play-${episode.id_text}`}
         />
       </View>
-      <DownloadControl item={episode} />
     </View>
   );
 }

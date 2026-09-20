@@ -177,8 +177,10 @@
       "clear_confirm_title": "Εκκαθάριση αρχείου καταγραφής συγχρονισμού;",
       "clear_confirm_body": "Αυτό αφαιρεί κάθε καταγεγραμμένη εγγραφή από αυτή τη συσκευή.",
       "outcome_failure": "Απέτυχε",
+      "outcome_reconciled": "Αφαιρέθηκε",
       "outcome_skipped": "Παραλείφθηκε — εκτός σύνδεσης",
-      "outcome_success": "Επιτυχία"
+      "outcome_success": "Επιτυχία",
+      "directory_channel_gone": "Αφαιρέθηκε το {channel} από αυτή τη συσκευή. Δεν υπάρχει πλέον στον κατάλογο."
     }
   },
   "media_player": {

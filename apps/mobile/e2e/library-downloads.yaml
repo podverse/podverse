@@ -41,14 +41,14 @@ name: Library Downloads Offline Play
     id: episode-detail-screen
 - takeScreenshot: library-downloads-episode-detail
 
-# Start the offline download; the Download control is only present for eligible (progressive) items.
+# Start the offline download; the same list-row download icon is only present for eligible items.
 - assertVisible:
-    id: episode-download-button
+    id: episode-detail-download
 - tapOn:
-    id: episode-download-button
+    id: episode-detail-download
 - extendedWaitUntil:
     visible:
-      id: episode-download-complete
+      id: episode-detail-download-complete
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: library-downloads-episode-downloaded
 

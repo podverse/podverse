@@ -516,7 +516,7 @@ export function FullPlayerScreen({
           width: '100%',
         },
         showMore: {
-          color: themeStyles.textSecondary.color,
+          color: tokens.text.link,
           marginTop: tokens.spacing.sm,
         },
         subtitle: {

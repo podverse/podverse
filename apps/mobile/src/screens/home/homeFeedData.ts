@@ -40,6 +40,11 @@ export type HomeFeedRowData = {
   /** Set for Podcasts subscription rows so taps can route by origin. */
   source?: SubscriptionSource;
   /**
+   * Known at the row: a Home follow is subscribed; a Downloaded-only footer row is not.
+   * Passed through navigate params so the destination subscribe control does not guess.
+   */
+  isSubscribed?: boolean;
+  /**
    * Plain-text episode snippet for item rows. Null when the payload has no description (channel
    * rows, directory stubs).
    */
@@ -317,6 +322,7 @@ const mapSubscribedChannelToRow = (
   return {
     id: channel.idText,
     imageUrl: channel.imageUrl,
+    isSubscribed: true,
     metadata,
     sourceId: channel.sourceIdText,
     source: channel.source,
@@ -400,6 +406,7 @@ export const fetchUnsubscribedDownloadHomeRows = async (): Promise<HomeFeedRowDa
   return channels.map((channel) => ({
     id: channel.channelIdText,
     imageUrl: channel.imageUrl,
+    isSubscribed: false,
     metadata: {
       downloadedCount: channel.downloadedCount,
       isLive: false,

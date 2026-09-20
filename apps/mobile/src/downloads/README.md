@@ -52,7 +52,7 @@ touches on that same thread:
 | Channel               | Fires for            | Cadence                                       | Who subscribes                         |
 | --------------------- | -------------------- | --------------------------------------------- | -------------------------------------- |
 | `subscribe`           | set + status changes | leading edge, then one trailing pass (100 ms) | everything                             |
-| `subscribeToProgress` | byte movement        | trailing only (500 ms)                        | episode detail, My Library → Downloads |
+| `subscribeToProgress` | byte movement        | trailing only (500 ms)                        | My Library → Downloads |
 
 `batch(fn)` collapses a bulk operation (pause all, resume all, clear finished) into one notification.
 
@@ -62,8 +62,8 @@ every few seconds per transfer, plus a forced flush on pause and on failure — 
 interrupted download resumes near where it stopped. Rules: **mobile-progress-ux-and-notification-channels**.
 
 **Progress detail goes where the user asked for it.** A list row shows a busy spinner and no number
-(`DownloadRowControl`); the episode detail control and the Downloads screen show percentages and
-bars; badges and the activity bar are derived from statuses alone.
+(`DownloadRowControl`); the Downloads screen shows percentages and bars; badges and the activity
+bar are derived from statuses alone.
 
 ## Storage
 

@@ -9,7 +9,11 @@ import { Badge, Button, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/pr
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { isMobileE2eFromEnv } from '../../config/env';
 import type { SyncEventLogEntry } from '../../data/repositories';
-import { formatSyncEventLogExport, syncEventLogRepository } from '../../data/repositories';
+import {
+  DIRECTORY_CHANNEL_GONE_CODE,
+  formatSyncEventLogExport,
+  syncEventLogRepository,
+} from '../../data/repositories';
 import { getSyncLogLabelKey } from '../../sync/syncJobKinds';
 import { useTheme } from '../../theme/useTheme';
 
@@ -23,12 +27,14 @@ import { useTheme } from '../../theme/useTheme';
 
 const OUTCOME_LABEL_KEYS: Record<SyncEventLogEntry['outcome'], string> = {
   failure: 'sync.log.outcome_failure',
+  reconciled: 'sync.log.outcome_reconciled',
   skipped: 'sync.log.outcome_skipped',
   success: 'sync.log.outcome_success',
 };
 
 const OUTCOME_BADGE_TONES: Record<SyncEventLogEntry['outcome'], BadgeTone> = {
   failure: 'danger',
+  reconciled: 'muted',
   skipped: 'muted',
   success: 'muted',
 };
@@ -144,10 +150,14 @@ export function MoreSyncLogScreen() {
     const jobLabel = jobLabelKey === null ? jobKind : t(jobLabelKey);
     const outcomeLabel = t(OUTCOME_LABEL_KEYS[item.outcome]);
     const timestamp = timestampFormatter.format(new Date(item.occurredAt));
+    const detailMessage =
+      item.errorCode === DIRECTORY_CHANNEL_GONE_CODE && item.message !== null
+        ? t('sync.log.directory_channel_gone', { channel: item.message })
+        : item.message;
 
     // One announcement per entry: four fragments read in sequence is how a screen reader user ends
     // up unable to tell which code belonged to which job.
-    const accessibilityLabel = [jobLabel, outcomeLabel, timestamp, item.errorCode, item.message]
+    const accessibilityLabel = [jobLabel, outcomeLabel, timestamp, item.errorCode, detailMessage]
       .filter((part) => part !== null && part !== '')
       .join('. ');
 
@@ -172,9 +182,9 @@ export function MoreSyncLogScreen() {
             {item.errorCode}
           </Text>
         )}
-        {item.message === null ? null : (
+        {detailMessage === null ? null : (
           <Text numberOfLines={3} style={styles.message}>
-            {item.message}
+            {detailMessage}
           </Text>
         )}
       </View>

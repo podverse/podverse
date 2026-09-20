@@ -12,12 +12,20 @@ export const SYNC_EVENT_LOG_CAP = 200;
 /**
  * `skipped` covers a job the queue parked rather than ran — being offline is a state, not a fault,
  * and recording it as a failure would tell a user they did something wrong.
+ *
+ * `reconciled` is a directory follow the item list said is gone. The device dropped it on purpose,
+ * so it is not a retryable failure and not an offline skip.
  */
-export type SyncEventOutcome = 'failure' | 'skipped' | 'success';
+export type SyncEventOutcome = 'failure' | 'reconciled' | 'skipped' | 'success';
 
 /** Narrows a stored `outcome` column. Rows that fail this were not written by this app. */
 export const isSyncEventOutcome = (value: string): value is SyncEventOutcome => {
-  return value === 'failure' || value === 'skipped' || value === 'success';
+  return (
+    value === 'failure' ||
+    value === 'reconciled' ||
+    value === 'skipped' ||
+    value === 'success'
+  );
 };
 
 export type SyncEventLogEntry = {

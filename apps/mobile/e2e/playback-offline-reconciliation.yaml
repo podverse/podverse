@@ -15,12 +15,12 @@ name: Playback Offline Reconciliation
 - assertVisible:
     id: episode-detail-screen
 - assertVisible:
-    id: episode-download-button
+    id: episode-detail-download
 - tapOn:
-    id: episode-download-button
+    id: episode-detail-download
 - extendedWaitUntil:
     visible:
-      id: episode-download-complete
+      id: episode-detail-download-complete
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: playback-offline-downloaded-episode-b
 

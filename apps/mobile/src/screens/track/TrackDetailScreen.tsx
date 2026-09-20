@@ -12,6 +12,7 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { ChannelHeader } from '../../components/channel';
 import { FundingLinksSection, ItemSummaryPeople } from '../../components/content';
+import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import type { SectionChipItem } from '../../components/form';
 import { SectionChipRow } from '../../components/form';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
@@ -215,6 +216,12 @@ function TrackPlayChrome({
           height: TRACK_ARTWORK_SIZE,
           width: TRACK_ARTWORK_SIZE,
         },
+        artworkRow: {
+          alignItems: 'flex-start',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          width: '100%',
+        },
         date: {
           ...typography.caption,
           color: tokens.text.accent,
@@ -247,13 +254,20 @@ function TrackPlayChrome({
 
   return (
     <View accessible={false} style={styles.root} testID="track-detail-playback-chrome">
-      <CoverImage
-        accessibilityLabel={trackTitle}
-        fallbackLabel={trackTitle}
-        style={styles.artwork}
-        testID="track-detail-artwork"
-        uri={artworkUri}
-      />
+      <View style={styles.artworkRow}>
+        <CoverImage
+          accessibilityLabel={trackTitle}
+          fallbackLabel={trackTitle}
+          style={styles.artwork}
+          testID="track-detail-artwork"
+          uri={artworkUri}
+        />
+        <DownloadRowControl
+          completeTestID="track-detail-download-complete"
+          item={item}
+          testID="track-detail-download"
+        />
+      </View>
       <View style={styles.titles}>
         {onAlbumPress !== undefined && channel !== null ? (
           <Pressable
@@ -354,7 +368,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
         },
         showMore: {
           ...typography.caption,
-          color: themeStyles.textSecondary.color,
+          color: tokens.text.link,
           marginTop: tokens.spacing.sm,
         },
         transcript: {
@@ -693,7 +707,10 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
               </Text>
             </Pressable>
           ) : null}
-          <ItemSummaryPeople itemPersons={track?.item_persons ?? []} testIDPrefix="track-detail" />
+          <ItemSummaryPeople
+            itemPersons={track?.item_persons ?? []}
+            testIDPrefix="track-detail"
+          />
         </View>
       );
     }

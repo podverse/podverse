@@ -177,8 +177,10 @@
       "clear_confirm_title": "",
       "clear_confirm_body": "",
       "outcome_failure": "",
+      "outcome_reconciled": "",
       "outcome_skipped": "",
-      "outcome_success": ""
+      "outcome_success": "",
+      "directory_channel_gone": ""
     }
   },
   "media_player": {

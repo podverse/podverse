@@ -45,14 +45,14 @@ describe('selectSyncEventEvictions', () => {
     expect(selectSyncEventEvictions(candidates, 1)).toEqual([1, 2]);
   });
 
-  it('drops successes and skips before it touches a failure', () => {
+  it('drops successes, skips, and reconciles before it touches a failure', () => {
     // The failure is the oldest row, so a plain oldest-first rule would evict exactly the entry
     // somebody is about to report.
     const candidates = [
       candidate(1, 100, 'failure'),
       candidate(2, 200, 'success'),
       candidate(3, 300, 'skipped'),
-      candidate(4, 400, 'success'),
+      candidate(4, 400, 'reconciled'),
     ];
     expect(selectSyncEventEvictions(candidates, 2)).toEqual([2, 3]);
   });

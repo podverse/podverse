@@ -46,6 +46,8 @@ name: Podcast Episode Flow
 - assertVisible:
     id: episode-detail-artwork
 - assertVisible:
+    id: episode-detail-download
+- assertVisible:
     id: episode-detail-podcast-title
 - assertVisible:
     id: episode-detail-title

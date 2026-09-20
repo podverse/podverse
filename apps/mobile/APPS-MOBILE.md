@@ -57,9 +57,10 @@ Mobile auth is bearer-first:
 
 ## Home feed (subscribed)
 
-Authenticated Home loads `type: 'subscribed'` via `fetchHomeFeedRows`. After any successful channel
-follow/unfollow, call `homeFeedRefresh.notify()` (`src/lib/home/homeFeedRefresh.ts`) so Home
-reloads without pull-to-refresh. Same pattern as `downloadManager.subscribe`.
+Home paints subscribed lists from SQLite (`fetchHomeFeedRows`). Network catch-up is the serial
+sync queue (indicator bar + More-tab sync log). After any successful channel follow/unfollow, call
+`homeFeedRefresh.notify()` (`src/lib/home/homeFeedRefresh.ts`) so Home rereads locally without
+pull-to-refresh. Same pattern as `downloadManager.subscribe`.
 
 ## Podcast Index search → preview/add
 
