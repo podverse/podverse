@@ -20,10 +20,12 @@ export const ContentAboutAccordion = ({
   channel_persons,
   item_persons,
 }: ContentAboutAccordionProps) => {
+  const hasDescription = description !== undefined && description.length > 0;
+
   return (
     <Accordion header={<ContentAboutHeader />} open={defaultOpen} contentClassName={styles.content}>
       <div className={styles.wrapper}>
-        <ContentAboutDescription description={description} />
+        {hasDescription ? <ContentAboutDescription description={description} /> : null}
         <ContentPeopleRows channel_persons={channel_persons} item_persons={item_persons} />
       </div>
     </Accordion>

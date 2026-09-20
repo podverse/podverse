@@ -14,6 +14,10 @@ type ContentAbout = {
   isAccordion?: boolean;
 };
 
+/**
+ * Channel About (and optionally item people when a caller passes them): description plus people.
+ * People still render when description prose is empty.
+ */
 export const ContentAbout = ({
   description,
   channel_persons,
@@ -21,7 +25,11 @@ export const ContentAbout = ({
   defaultOpen,
   isAccordion,
 }: ContentAbout) => {
-  if (!description) {
+  const hasDescription = description !== undefined && description.length > 0;
+  const hasPeople =
+    (channel_persons?.length ?? 0) > 0 || (item_persons?.length ?? 0) > 0;
+
+  if (!hasDescription && !hasPeople) {
     return null;
   }
 
@@ -34,12 +42,12 @@ export const ContentAbout = ({
         defaultOpen={defaultOpen}
       />
     );
-  } else {
-    return (
-      <div className={styles.listView}>
-        <ContentAboutDescription description={description} />
-        <ContentPeopleRows channel_persons={channel_persons} item_persons={item_persons} />
-      </div>
-    );
   }
+
+  return (
+    <div className={styles.listView}>
+      {hasDescription ? <ContentAboutDescription description={description} /> : null}
+      <ContentPeopleRows channel_persons={channel_persons} item_persons={item_persons} />
+    </div>
+  );
 };

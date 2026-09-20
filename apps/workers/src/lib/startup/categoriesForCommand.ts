@@ -42,6 +42,7 @@ const BASE_ONLY_COMMANDS = ['podcastIndexDeadFeedsDeleteCache'] as const;
 const BASE_PODCAST_INDEX_COMMANDS = [
   'podcastIndexTrendingPodcastsGet',
   'podcastIndexValueUpdateAll',
+  'devDiscoverArtistPublisherFeeds',
 ] as const;
 
 const BASE_ORM_PODCAST_INDEX_COMMANDS = ['podcastIndexDeadFeedsFlagAndMerge'] as const;

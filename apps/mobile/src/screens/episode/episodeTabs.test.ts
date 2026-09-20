@@ -15,11 +15,23 @@ describe('resolveEpisodeTabs', () => {
         episode: null,
         previewFlags: {
           hasChapters: true,
+          hasFunding: false,
           hasSoundbites: true,
           hasTranscript: true,
         },
       })
     ).toEqual(['summary', 'clips', 'chapters', 'soundbites', 'transcript']);
+  });
+
+  it('keeps Funding last when the item has funding rows', () => {
+    expect(
+      resolveEpisodeTabs({
+        episode: {
+          item_fundings: [{ id: 1 }],
+        },
+        previewFlags: null,
+      })
+    ).toEqual(['summary', 'clips', 'funding']);
   });
 
   it('lets the item DTO override cached evidence', () => {
@@ -31,6 +43,7 @@ describe('resolveEpisodeTabs', () => {
         },
         previewFlags: {
           hasChapters: true,
+          hasFunding: false,
           hasSoundbites: true,
           hasTranscript: false,
         },

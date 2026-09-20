@@ -4,6 +4,7 @@ import type { PodcastDetailSort, PodcastTab } from '../../prefs/detailListPrefs'
 import { PODCAST_TABS } from '../../prefs/detailListPrefs';
 
 export type PodcastSectionChannel = {
+  channel_fundings?: readonly unknown[] | null;
   channel_podroll?: {
     channel_podroll_remote_items?: readonly unknown[] | null;
   } | null;
@@ -14,6 +15,7 @@ export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
   clips: 'features.clip.clips',
   downloaded: 'features.download.downloaded',
   episodes: 'media.podcast.episodes',
+  funding: 'info.funding',
   podroll: 'info.podroll',
   soundbites: 'info.soundbite.official_clips',
 };
@@ -42,24 +44,30 @@ export const channelHasPodroll = (channel: PodcastSectionChannel | null): boolea
   return (channel?.channel_podroll?.channel_podroll_remote_items?.length ?? 0) > 0;
 };
 
+export const channelHasFunding = (channel: PodcastSectionChannel | null): boolean => {
+  return (channel?.channel_fundings?.length ?? 0) > 0;
+};
+
 /**
  * Which sections this podcast can offer.
  *
  * Episodes, Downloaded, About, and Clips are always answerable. Official clips and Podroll sit
  * after those and appear from cached evidence, then from the channel DTO / stored episodes once
- * those have been read. A chip for something this podcast has never been seen to carry stays off
- * so the first-visit insert, when it happens, is at the end of the row.
+ * those have been read. Funding is last, and only when this channel has funding rows.
  */
 export const resolvePodcastSections = ({
   channel,
   hasSoundbites,
+  previewHasFunding,
   previewHasPodroll,
 }: {
   channel: PodcastSectionChannel | null;
   hasSoundbites: boolean;
+  previewHasFunding?: boolean;
   previewHasPodroll?: boolean;
 }): PodcastTab[] => {
   const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll === true;
+  const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding === true;
 
   return PODCAST_TABS.filter((section) => {
     if (ALWAYS_ON_PODCAST_SECTIONS.has(section)) {
@@ -71,7 +79,10 @@ export const resolvePodcastSections = ({
     if (section === 'podroll') {
       return hasPodroll;
     }
-    return true;
+    if (section === 'funding') {
+      return hasFunding;
+    }
+    return false;
   });
 };
 

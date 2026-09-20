@@ -625,6 +625,17 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
      VALUES ($1, $2, 1400)`,
     [podcastChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
   );
+  await client.query(
+    `INSERT INTO channel_person (channel_id, name, role, person_group, href)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      podcastChannelId,
+      'E2E Channel Host',
+      'host',
+      'cast',
+      'https://e2e-seed-podcast.example/host',
+    ]
+  );
 
   await deleteE2eQueueByIdText(client, E2E_PODCAST_QUEUE_ID_TEXT);
 
@@ -717,6 +728,17 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     enclosureUrl: E2E_PODCAST_RESUME_ENCLOSURE_URL,
     pubDateOffsetSeconds: 0,
   });
+  await client.query(
+    `INSERT INTO item_person (item_id, name, role, person_group, href)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      resumePositiveItemId,
+      'E2E Episode Guest',
+      'guest',
+      'cast',
+      'https://e2e-seed-podcast.example/guest',
+    ]
+  );
   const resumeNearEndItemId = await insertPodcastItem({
     idText: E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT,
     guidSlug: 'resume-near-end',

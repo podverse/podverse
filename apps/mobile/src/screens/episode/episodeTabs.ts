@@ -5,6 +5,7 @@ import { DEFAULT_EPISODE_TAB, EPISODE_TABS } from '../../prefs/detailListPrefs';
 export const EPISODE_TAB_LABEL_KEYS: Record<EpisodeTab, string> = {
   chapters: 'info.chapter.chapters',
   clips: 'features.clip.clips',
+  funding: 'info.funding',
   soundbites: 'info.soundbite.official_clips',
   summary: 'info.summary.summary',
   transcript: 'info.transcript.transcript',
@@ -12,6 +13,7 @@ export const EPISODE_TAB_LABEL_KEYS: Record<EpisodeTab, string> = {
 
 export type EpisodeTabItem = {
   item_chapters_feed?: unknown;
+  item_fundings?: readonly unknown[] | null;
   item_soundbites?: readonly unknown[] | null;
   item_transcripts?: readonly unknown[] | null;
 };
@@ -30,17 +32,23 @@ export const itemHasTranscript = (item: EpisodeTabItem): boolean => {
   return (item.item_transcripts?.length ?? 0) > 0;
 };
 
+export const itemHasFunding = (item: EpisodeTabItem): boolean => {
+  return (item.item_fundings?.length ?? 0) > 0;
+};
+
 export const itemSectionFlagsFromDto = (item: EpisodeTabItem): ItemSectionChromeFlags => {
   return {
     hasChapters: itemHasChapters(item),
+    hasFunding: itemHasFunding(item),
     hasSoundbites: itemHasSoundbites(item),
     hasTranscript: itemHasTranscript(item),
   };
 };
 
 /**
- * Summary and Clips are always offered. Chapters, official clips, and transcript sit last and
- * appear from cached evidence until the item DTO confirms them.
+ * Summary and Clips are always offered. Chapters, official clips, and transcript sit after those
+ * and appear from cached evidence until the item DTO confirms them. Funding is last, and only
+ * when this item has funding rows.
  */
 export const resolveEpisodeTabs = ({
   episode,
@@ -55,6 +63,7 @@ export const resolveEpisodeTabs = ({
     episode !== null ? itemHasSoundbites(episode) : previewFlags?.hasSoundbites === true;
   const hasTranscript =
     episode !== null ? itemHasTranscript(episode) : previewFlags?.hasTranscript === true;
+  const hasFunding = episode !== null ? itemHasFunding(episode) : previewFlags?.hasFunding === true;
 
   return EPISODE_TABS.filter((tab) => {
     if (ALWAYS_ON_EPISODE_TABS.has(tab)) {
@@ -69,7 +78,10 @@ export const resolveEpisodeTabs = ({
     if (tab === 'transcript') {
       return hasTranscript;
     }
-    return true;
+    if (tab === 'funding') {
+      return hasFunding;
+    }
+    return false;
   });
 };
 

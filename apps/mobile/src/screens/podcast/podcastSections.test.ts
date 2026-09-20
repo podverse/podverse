@@ -34,6 +34,26 @@ describe('resolvePodcastSections', () => {
     ).toEqual(['episodes', 'downloaded', 'about', 'clips', 'podroll']);
   });
 
+  it('keeps Funding last when the channel has funding rows', () => {
+    expect(
+      resolvePodcastSections({
+        channel: {
+          channel_fundings: [{ url: 'https://example.com/support' }],
+          channel_podroll: { channel_podroll_remote_items: [{ feed_guid: 'guid-1' }] },
+        },
+        hasSoundbites: true,
+      })
+    ).toEqual([
+      'episodes',
+      'downloaded',
+      'about',
+      'clips',
+      'soundbites',
+      'podroll',
+      'funding',
+    ]);
+  });
+
   it('lets the channel DTO override a cached Podroll flag', () => {
     expect(
       resolvePodcastSections({

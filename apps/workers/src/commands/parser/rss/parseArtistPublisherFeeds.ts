@@ -1,84 +1,77 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
-import {
-  collectArtistPublisherFeedIds,
-  DEFAULT_MAX_ARTIST_PUBLISHER_FEEDS,
-  HARD_MAX_ARTIST_PUBLISHER_FEEDS,
-} from '@workers/lib/podcastIndex/collectArtistPublisherFeedIds.js';
+import { ARTIST_PUBLISHER_FEEDS } from '@workers/lib/podcastIndex/artistPublisherFeeds.js';
 import { sleepRateLimit } from '@workers/lib/podcastIndex/collectTrendingFeedIds.js';
 
 import { parsePodcastIndexFeedById } from './parseFeed.js';
 
-const DEFAULT_MAX_FEEDS = DEFAULT_MAX_ARTIST_PUBLISHER_FEEDS;
-const HARD_MAX_FEEDS = HARD_MAX_ARTIST_PUBLISHER_FEEDS;
+function hasForceParse(args: CommandLineArgs): boolean {
+  return typeof args.f !== 'undefined' || typeof args.forceParse !== 'undefined';
+}
 
 function normalizeError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
 }
 
+/**
+ * Local-dev seed: parse the committed ARTIST_PUBLISHER_FEEDS list only (no live PI crawl).
+ * Refresh the list with `devDiscoverArtistPublisherFeeds` when needed.
+ */
 export async function devParserRSSParseArtistPublisherFeeds(args: CommandLineArgs) {
   const logger = getLoggerService();
+  const forceParse = hasForceParse(args);
 
   const rawMaxArg = 'max' in args ? args.max : 'n' in args ? args.n : undefined;
   const rawMax = Array.isArray(rawMaxArg) ? rawMaxArg[0] : rawMaxArg;
-  let k = DEFAULT_MAX_FEEDS;
+  let feeds = [...ARTIST_PUBLISHER_FEEDS];
   if (rawMax !== undefined && rawMax !== '') {
     const parsed = parseInt(String(rawMax), 10);
     if (!Number.isNaN(parsed) && parsed > 0) {
-      k = parsed;
+      feeds = feeds.slice(0, parsed);
     }
   }
 
-  if (k > HARD_MAX_FEEDS) {
+  if (feeds.length === 0) {
     logger.warn(
-      `[devParserRSSParseArtistPublisherFeeds] -max / -n ${k} is above the ${HARD_MAX_FEEDS} cap; using ${HARD_MAX_FEEDS}.`
-    );
-    k = HARD_MAX_FEEDS;
-  }
-
-  const hasForceParse = typeof args.f !== 'undefined' || typeof args.forceParse !== 'undefined';
-
-  logger.info(
-    `[devParserRSSParseArtistPublisherFeeds] Collecting up to ${k} artist publisher-music feed ids (default ${DEFAULT_MAX_FEEDS}, cap ${HARD_MAX_FEEDS})...`
-  );
-
-  const feedIds = await collectArtistPublisherFeedIds(k);
-
-  if (feedIds.length === 0) {
-    logger.warn(
-      '[devParserRSSParseArtistPublisherFeeds] No artist publisher-music feed ids collected.'
+      '[devParserRSSParseArtistPublisherFeeds] ARTIST_PUBLISHER_FEEDS is empty. Run workers:discover_artist_publisher_feeds first.'
     );
     return;
   }
 
   logger.info(
-    `[devParserRSSParseArtistPublisherFeeds] Parsing ${feedIds.length} feed(s) (requested K=${k}).`
+    `[devParserRSSParseArtistPublisherFeeds] Parsing ${feeds.length} committed artist publisher-music feed(s).`
   );
 
   let succeeded = 0;
   let failed = 0;
 
-  for (let i = 0; i < feedIds.length; i++) {
+  for (let i = 0; i < feeds.length; i++) {
     if (i > 0) {
       await sleepRateLimit();
     }
-    const id = feedIds[i];
-    if (id === undefined) {
+    const feed = feeds[i];
+    if (feed === undefined) {
       continue;
     }
     try {
-      await parsePodcastIndexFeedById(id, hasForceParse);
+      logger.info(
+        `[devParserRSSParseArtistPublisherFeeds] Parsing ${feed.title} (podcast_index_id=${feed.podcastIndexId})...`
+      );
+      await parsePodcastIndexFeedById(feed.podcastIndexId, forceParse);
       succeeded += 1;
+      logger.info(
+        `[devParserRSSParseArtistPublisherFeeds] Parsed ${feed.title} (podcast_index_id=${feed.podcastIndexId}).`
+      );
     } catch (error) {
       failed += 1;
       logger.error(
-        `[devParserRSSParseArtistPublisherFeeds] Feed podcast_index_id=${id} failed:`,
+        `[devParserRSSParseArtistPublisherFeeds] Failed ${feed.title} (podcast_index_id=${feed.podcastIndexId}).`,
         normalizeError(error)
       );
     }
   }
 
   logger.info(
-    `[devParserRSSParseArtistPublisherFeeds] Done. Succeeded: ${succeeded}, failed: ${failed}, total: ${feedIds.length}.`
+    `[devParserRSSParseArtistPublisherFeeds] Done. Succeeded: ${succeeded}, failed: ${failed}, total: ${feeds.length}.`
   );
 }

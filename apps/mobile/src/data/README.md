@@ -82,8 +82,10 @@ Screen / hook  →  repository  →  SQLite (source of truth for phone UI)
   are broadcasting, in `channel_live_status` — the one row element the device cannot derive, since
   live items are excluded from every regular item query; directory statuses come from one queued
   call to the subscribed live-item endpoint, add-by-RSS from the parsed bundle already on disk, with
-  the trust window and status-ranking rules in `channelLiveStatus.ts`). `syncEventLogRepository`
-  (capped diagnostic record of background sync
+  the trust window and status-ranking rules in `channelLiveStatus.ts`). `homeClipsCacheRepository`
+  (last subscribed-clips page in `kv_meta` so Home Clips can paint without waiting on the network).
+  `syncEventLogRepository`
+  (capped diagnostic record of sync-job and Home cache-read
   failures in `sync_event_log`, surfaced at More ▸ Sync log; local-only, with the cap and eviction
   rule in the pure sibling `syncEventLog.ts`). `playbackOutboxRepository` (durable replay rows in
   `playback_outbox` plus signed-in local playback state in `playback_local_state`, with meaningful

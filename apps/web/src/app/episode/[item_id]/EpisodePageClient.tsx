@@ -1,11 +1,11 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItem } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { CoreEpisodeHeader } from '../../../components/Core/Podcast/Episodes/CoreEpisodeHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { EpisodePageContextProvider } from './EpisodePageContext';
 import { EpisodePageList } from './EpisodePageList';
 import { EpisodePageListHeader } from './EpisodePageListHeader';

@@ -290,10 +290,10 @@ need the **Workers** consumers from step 6.
 `workers:parse_music_medium_feeds` pulls Podcast Index feeds tagged
 `podcast:medium` music (`/podcasts/bymedium`) and parses them so **album** and
 track surfaces have rows. `workers:parse_artist_publisher_feeds` seeds **artist**
-channels (`publisher-music`): a committed helper set of Podcast Index ids, plus
-live discovery from `/podcasts/bymedium?medium=publisher` when available and by
-walking music albums for publisher parents. Trending and the Podcasting 2.0
-helper set are spoken-word only. Default `-max` is 20.
+channels (`publisher-music`) from a committed Podcast Index id list (no live
+crawl). Refresh that list with the maintainer-only
+`workers:discover_artist_publisher_feeds` when needed, then commit the updated
+file. Trending and the Podcasting 2.0 helper set are spoken-word only.
 
 `workers:seed_local_user_content` gives the operator login accounts and
 `dummy01`–`dummy06` overlapping follows, public AV clips (15–30s in the first

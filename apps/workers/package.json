@@ -25,6 +25,7 @@
     "dev_parser_rss_parse_trending_feeds": "node ./dist/index.js devParserRSSParseTrendingFeeds",
     "dev_parser_rss_parse_music_medium_feeds": "node ./dist/index.js devParserRSSParseMusicMediumFeeds",
     "dev_parser_rss_parse_artist_publisher_feeds": "node ./dist/index.js devParserRSSParseArtistPublisherFeeds",
+    "dev_discover_artist_publisher_feeds": "node ./dist/index.js devDiscoverArtistPublisherFeeds",
     "dev_stats_seed_simulated_aggregated": "node ./dist/index.js devStatsSeedSimulatedAggregated",
     "dev_seed_local_user_content": "node ./dist/index.js devSeedLocalUserContent",
     "seed_embed_demo_showcase_feeds": "node ./dist/index.js seedEmbedDemoShowcaseFeeds",

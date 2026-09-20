@@ -17,6 +17,7 @@ import { formatPlaybackTime } from '@podverse/helpers/time';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { FundingLinksSection, ItemSummaryPeople } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FillList } from '../../components/primitives';
@@ -567,7 +568,22 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
               </Text>
             </Pressable>
           ) : null}
+          <ItemSummaryPeople
+            itemPersons={episode?.item_persons ?? []}
+            testIDPrefix="episode-detail"
+          />
         </View>
+      );
+    }
+
+    if (activeTab === 'funding') {
+      return (
+        <FundingLinksSection
+          fundings={episode?.item_fundings ?? []}
+          isLoading={episode === null}
+          layout="inline"
+          testIDPrefix="episode-detail"
+        />
       );
     }
 

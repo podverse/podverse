@@ -7,7 +7,7 @@
  */
 
 /** Small enough to stay invisible in device storage, big enough to cover a support conversation. */
-export const SYNC_EVENT_LOG_CAP = 500;
+export const SYNC_EVENT_LOG_CAP = 200;
 
 /**
  * `skipped` covers a job the queue parked rather than ran — being offline is a state, not a fault,

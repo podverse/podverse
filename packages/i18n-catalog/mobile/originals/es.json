@@ -163,12 +163,14 @@
       "episodes": "Actualizando tus episodios",
       "rss_feeds": "Actualizando tus fuentes RSS",
       "seen_state": "Actualizando las novedades",
-      "live_status": "Comprobando qué está en directo"
+      "live_status": "Comprobando qué está en directo",
+      "clips": "Actualizando tus clips",
+      "home_feed": "Lectura de Inicio en este dispositivo"
     },
     "progress": "{completed} de {total}",
     "log": {
       "title": "Registro de sincronización",
-      "intro": "Problemas de sincronización en segundo plano registrados en este dispositivo. Compártelo con el soporte si tus podcasts, listas de reproducción o cola dejan de actualizarse.",
+      "intro": "Problemas registrados en este dispositivo al sincronizar o al leer Inicio desde la caché. Compártelo con el soporte si tus podcasts, listas de reproducción, cola o lista de Inicio dejan de actualizarse.",
       "empty": "No se han registrado problemas de sincronización",
       "export": "Compartir",
       "clear": "Borrar",

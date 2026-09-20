@@ -3,29 +3,25 @@ import type { DTOItem } from '@podverse/helpers/dto';
 import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
 import { htmlToPlainText } from '@podverse/helpers/html';
 
-import { requestWithMobileAuthRefresh } from '../../auth';
-import type { AuthStatus } from '../../auth/AuthProvider';
-import type {
-  MobileAuthRequestContext,
-  SubscribedChannel,
-  SubscriptionSource,
-} from '../../data/repositories';
+import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
 import {
   channelItemsRepository,
   channelLiveStatusRepository,
   channelSeenRepository,
   downloadsRepository,
+  homeClipsCacheRepository,
   subscriptionsRepository,
 } from '../../data/repositories';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import type { HomeRangeOption, HomeSortOption } from '../../prefs/homeListPrefs';
-import {
-  DEFAULT_HOME_RANGE,
-  DEFAULT_HOME_SORT,
-  homeSortToApiRange,
-  homeSortToApiSort,
-} from '../../prefs/homeListPrefs';
+import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
+import {
+  HOME_FEED_METADATA_TIMEOUT_CODE,
+  HOME_FEED_METADATA_TIMEOUT_MS,
+  appendHomeFeedReadFailure,
+  withHomeFeedReadBudget,
+} from './homeFeedReadLog';
 import type { HomeRowMetadata } from './homeRowMetadata';
 import { buildHomeRowMetadata } from './homeRowMetadata';
 
@@ -72,26 +68,11 @@ export type HomeRowContentTarget = {
 };
 
 type HomeFeedOptions = {
-  /** Listen-count window, used only while `sort` is popularity. */
+  /** Listen-count window, stored with the Home sort chip. Channel/item order reads it from SQLite. */
   range?: HomeRangeOption;
-  /** List order. Podcasts and Episodes apply it locally; the other types pass it to the API. */
+  /** List order. Channel and item chips apply it locally; clips apply A-Z on the cached page. */
   sort?: HomeSortOption;
 };
-
-const toDirectorySort = (sort: HomeSortOption): 'recent' | 'top' => {
-  const apiSort = homeSortToApiSort(sort);
-  return apiSort === 'a_z' ? 'recent' : apiSort;
-};
-
-/**
- * Composed from the repository context rather than restated, so the shape cannot drift from what
- * `requestWithMobileAuthRefresh` actually needs.
- */
-type HomeFeedAuthDeps = MobileAuthRequestContext & {
-  status: AuthStatus;
-};
-
-const HOME_FEED_PAGE = 1;
 
 const readStringFromNestedRecord = (
   record: Record<string, unknown>,
@@ -193,7 +174,7 @@ const normalizeId = (record: Record<string, unknown>): string | null => {
 export type NormalizeChannelRowsOptions = {
   /**
    * When true, put the channel host/author on the row subtitle (Browse Podcasts and Albums /
-   * Search-style discovery). Default keeps other channel lists (Videos, Artists) title + date only.
+   * Search-style discovery). Default keeps other channel lists (Artists) title + date only.
    */
   includeAuthor?: boolean;
 };
@@ -376,6 +357,37 @@ const attachSubscriptionMetadata = async (
   );
 };
 
+const mapSubscribedChannelsBare = (
+  subscribed: readonly SubscribedChannel[]
+): HomeFeedRowData[] => {
+  return subscribed.map((channel) => mapSubscribedChannelToRow(channel, undefined));
+};
+
+/**
+ * Titles and art come from the follow list. Badges wait on three extra local queries; if those
+ * hang, Home still paints the follows and the More-tab sync log records why the badges are late.
+ */
+const attachSubscriptionMetadataOrBare = async (
+  subscribed: readonly SubscribedChannel[],
+  mediaType: HomeMediaType
+): Promise<HomeFeedRowData[]> => {
+  try {
+    return await withHomeFeedReadBudget(
+      attachSubscriptionMetadata(subscribed),
+      HOME_FEED_METADATA_TIMEOUT_MS,
+      `${mediaType}-metadata`,
+      HOME_FEED_METADATA_TIMEOUT_CODE
+    );
+  } catch (error) {
+    appendHomeFeedReadFailure({
+      error,
+      mediaType,
+      source: 'metadata',
+    });
+    return mapSubscribedChannelsBare(subscribed);
+  }
+};
+
 /**
  * Channels with at least one complete download that are not in the current subscription set.
  * Home Podcasts shows these in a footer section so offline-only shows stay reachable.
@@ -423,85 +435,33 @@ export const fetchDownloadedHomeFeedRows = async (
 
 export const fetchHomeFeedRows = async (
   mediaType: HomeMediaType,
-  authDeps: HomeFeedAuthDeps,
   options: HomeFeedOptions = {}
 ): Promise<HomeFeedRowData[]> => {
   const sort = options.sort ?? DEFAULT_HOME_SORT;
-  const range = options.range ?? DEFAULT_HOME_RANGE;
 
   if (mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums') {
     // Channel chips read local follows only. Kind splits podcasts / artists / albums so a music
-    // follow never appears under Podcasts and the reverse.
+    // follow never appears under Podcasts and the reverse. Popularity ranks arrive from the sync
+    // queue; this path never waits on the network to paint.
     const kind =
       mediaType === 'podcasts' ? 'podcasts' : mediaType === 'artists' ? 'artists' : 'albums';
-
-    if (
-      sort === 'popularity' &&
-      authDeps.status === 'authenticated' &&
-      !(await subscriptionsRepository.hasPopularityRanks(range))
-    ) {
-      try {
-        await subscriptionsRepository.refreshPopularityRanks(authDeps, range);
-      } catch {
-        // Keep the unranked local list. A missing rank sorts after a known one, which is still a
-        // complete answer for the follows this device already has.
-      }
-    }
     const subscribed = await subscriptionsRepository.list({ kind, sort });
-    return attachSubscriptionMetadata(subscribed);
+    return attachSubscriptionMetadataOrBare(subscribed, mediaType);
   }
 
   if (mediaType === 'episodes') {
-    // Episodes for subscribed channels come from the device, so this list reads, filters, and
-    // sorts the same with no connection. The ranking is local rather than server-side as a result.
-    if (
-      sort === 'popularity' &&
-      authDeps.status === 'authenticated' &&
-      !(await channelItemsRepository.hasPopularityRanks(range))
-    ) {
-      try {
-        await channelItemsRepository.refreshPopularityRanks(authDeps, range);
-      } catch {
-        // Keep the unranked recency window. Same set either way — only the order is missing.
-      }
-    }
+    // Episodes for subscribed channels come from the device. An empty window stays empty until
+    // the channel-items job writes rows — Home does not fill the gap over the network.
     const podcastChannels = await subscriptionsRepository.list({ kind: 'podcasts', sort });
     const podcastChannelIds = podcastChannels.map((channel) => channel.idText);
     const stored = await channelItemsRepository.listSubscribed({
       channelIdTexts: podcastChannelIds,
       sort,
     });
-    if (stored.length > 0) {
-      return mapItemsToHomeFeedRows(stored);
-    }
-
-    // Nothing stored yet — a fresh install whose first sync has not reached episodes. Only an
-    // account can be asked to fill that gap: subscriptions are device-local, so the server can
-    // answer "what is this user subscribed to" for a signed-in device and nothing better than the
-    // global directory for a signed-out one. Home does not show the directory, so a signed-out
-    // device waits for the queue instead.
-    if (authDeps.status !== 'authenticated') {
-      return [];
-    }
-
-    const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
-      api.reqItemGetMany({
-        category: null,
-        medium: 'podcasts',
-        page: HOME_FEED_PAGE,
-        range: homeSortToApiRange(sort, range),
-        sort: toDirectorySort(sort),
-        type: 'subscribed',
-      })
-    );
-    // Subscribed items have recency and popularity endpoints, not a title endpoint, so A-Z is
-    // applied here to the page that came back. Same set either way — this path exists to fill a
-    // screen while the item sync catches up, not to be a second source of episodes.
-    return applyHomeSort(normalizeItemRows(response.data), sort);
+    return mapItemsToHomeFeedRows(stored);
   }
 
   if (mediaType === 'tracks') {
-    // Tracks from followed albums/artists, assembled from the device the same way Episodes are.
     const musicChannels = await subscriptionsRepository.list({ sort });
     const musicChannelIds = musicChannels
       .filter((channel) => channel.kind === 'artists' || channel.kind === 'albums')
@@ -510,47 +470,14 @@ export const fetchHomeFeedRows = async (
       channelIdTexts: musicChannelIds,
       sort,
     });
-    if (stored.length > 0) {
-      return mapItemsToHomeFeedRows(stored);
-    }
-
-    if (authDeps.status !== 'authenticated') {
-      return [];
-    }
-
-    const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
-      api.reqItemGetMany({
-        category: null,
-        medium: 'music',
-        page: HOME_FEED_PAGE,
-        range: homeSortToApiRange(sort, range),
-        sort: toDirectorySort(sort),
-        type: 'subscribed',
-      })
-    );
-    return applyHomeSort(normalizeItemRows(response.data), sort);
+    return mapItemsToHomeFeedRows(stored);
   }
 
   if (mediaType === 'clips') {
-    // The subscribed clip list is account-backed. Signed-out Home never asks the global directory —
-    // the screen decides between a login fill and a Browse CTA.
-    if (authDeps.status !== 'authenticated') {
-      return [];
-    }
-
-    const directorySort = toDirectorySort(sort);
-    const directoryRange = homeSortToApiRange(sort, range);
-    const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
-      api.reqClipGetManyPublic({
-        category: null,
-        medium: 'podcasts',
-        page: HOME_FEED_PAGE,
-        range: directoryRange,
-        sort: directorySort,
-        type: 'subscribed',
-      })
-    );
-    return applyHomeSort(normalizeClipRows(response.data), sort);
+    // Account-backed clips land in kv via the home-clips job. Signed-out and pre-sync reads
+    // are empty; the screen chooses Login vs Browse from that.
+    const stored = await homeClipsCacheRepository.listPayload();
+    return applyHomeSort(normalizeClipRows(stored), sort);
   }
 
   return [];

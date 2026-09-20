@@ -15,6 +15,7 @@ export { channelSeenRepository } from './channelSeenRepository';
 export type { ChannelSeenUnseen } from './channelSeenRepository';
 export { clipRepository } from './clipRepository';
 export type { CreateClipInput, UpdateClipInput } from './clipRepository';
+export { homeClipsCacheRepository } from './homeClipsCacheRepository';
 export { downloadsRepository } from './downloadsRepository';
 export type { UnsubscribedDownloadChannel } from './downloadsRepository';
 export { notificationsRepository } from './notificationsRepository';

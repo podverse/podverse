@@ -9,6 +9,7 @@ export type HeaderBarActionProps = {
   accessibilityLabel: string;
   disabled?: boolean;
   icon?: ComponentProps<typeof Ionicons>['name'];
+  iconColor?: string;
   iconSize?: number;
   label?: string;
   onPress: () => void;
@@ -25,6 +26,7 @@ export function HeaderBarAction({
   accessibilityLabel,
   disabled = false,
   icon,
+  iconColor,
   iconSize = 22,
   label,
   onPress,
@@ -73,7 +75,7 @@ export function HeaderBarAction({
       testID={testID}
     >
       {icon !== undefined ? (
-        <Ionicons color={tokens.text.primary} name={icon} size={iconSize} />
+        <Ionicons color={iconColor ?? tokens.text.primary} name={icon} size={iconSize} />
       ) : null}
       {label !== undefined ? <Text style={styles.label}>{label}</Text> : null}
     </Pressable>

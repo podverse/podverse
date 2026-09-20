@@ -222,12 +222,21 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
   },
   {
     name: 'devParserRSSParseArtistPublisherFeeds',
-    label: 'Dev: parse artist publisher-music PI feeds to DB',
+    label: 'Dev: parse committed artist publisher-music feeds to DB',
     description:
-      'Committed artist helper set plus PI publisher/music-walk discovery → parse publisher-music feeds (dev seed; -max to cap).',
+      'Parse the committed ARTIST_PUBLISHER_FEEDS list by Podcast Index id (dev seed; optional -max prefix, -f force).',
     category: 'dev',
     risk: 'dev_only',
-    example_cli: 'npm run dev_parser_rss_parse_artist_publisher_feeds -w apps/workers -- -max 20',
+    example_cli: 'npm run workers:parse_artist_publisher_feeds',
+  },
+  {
+    name: 'devDiscoverArtistPublisherFeeds',
+    label: 'Dev: discover artist publisher-music PI feeds (rewrite list)',
+    description:
+      'Maintainer-only crawl: find publisher-music feeds via PI + album RSS walk, rewrite ARTIST_PUBLISHER_FEEDS, then commit.',
+    category: 'dev',
+    risk: 'dev_only',
+    example_cli: 'npm run workers:discover_artist_publisher_feeds -- -max 50',
   },
   {
     name: 'devParserRSSParsePodcasting20Feeds',

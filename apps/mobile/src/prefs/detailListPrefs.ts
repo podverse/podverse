@@ -27,8 +27,9 @@ import { readSortPref, writeSortPref } from './sortPrefs';
  * Remembered because it decides what the screen loads. Restoring it after the screen had already
  * loaded Episodes would mean fetching twice and showing the wrong pane in between.
  *
- * Always-on panes come first in the available set; evidence panes (Official clips, Podroll) stay
- * last so a first-visit insert is at the end. The painted row then puts the selected pane first.
+ * Always-on panes come first in the available set; evidence panes (Official clips, Podroll,
+ * Funding) stay last so a first-visit insert is at the end. Funding is always the rightmost chip
+ * when this channel has funding rows. The painted row then puts the selected pane first.
  * A remembered evidence pane is still subject to what this channel actually carries — the caller
  * reconciles that.
  */
@@ -39,6 +40,7 @@ export const PODCAST_TABS = [
   'clips',
   'soundbites',
   'podroll',
+  'funding',
 ] as const;
 
 export type PodcastTab = (typeof PODCAST_TABS)[number];
@@ -79,7 +81,7 @@ export type AddByRssEpisodeSort = (typeof ADD_BY_RSS_EPISODE_SORT_OPTIONS)[numbe
 
 export const DEFAULT_ADD_BY_RSS_EPISODE_SORT: AddByRssEpisodeSort = 'recent';
 
-export const ALBUM_TABS = ['tracks', 'about', 'podroll', 'settings'] as const;
+export const ALBUM_TABS = ['tracks', 'about', 'podroll', 'settings', 'funding'] as const;
 
 export type AlbumTab = (typeof ALBUM_TABS)[number];
 
@@ -100,7 +102,7 @@ export type AlbumDetailRange = QueryParamsStatsRange;
 
 export const DEFAULT_ALBUM_DETAIL_RANGE: AlbumDetailRange = 'week';
 
-export const ARTIST_TABS = ['albums', 'tracks', 'about', 'podroll', 'settings'] as const;
+export const ARTIST_TABS = ['albums', 'tracks', 'about', 'podroll', 'settings', 'funding'] as const;
 
 export type ArtistTab = (typeof ARTIST_TABS)[number];
 
@@ -120,13 +122,20 @@ export type EpisodeClipSort = (typeof EPISODE_CLIP_SORT_OPTIONS)[number];
 export const DEFAULT_EPISODE_CLIP_SORT: EpisodeClipSort = 'recent';
 
 /** Every tab an episode can offer. Which are actually shown depends on what the episode carries. */
-export const EPISODE_TABS = ['summary', 'clips', 'chapters', 'soundbites', 'transcript'] as const;
+export const EPISODE_TABS = [
+  'summary',
+  'clips',
+  'chapters',
+  'soundbites',
+  'transcript',
+  'funding',
+] as const;
 
 export type EpisodeTab = (typeof EPISODE_TABS)[number];
 
 export const DEFAULT_EPISODE_TAB: EpisodeTab = 'summary';
 
-export const TRACK_TABS = ['summary', 'transcript'] as const;
+export const TRACK_TABS = ['summary', 'transcript', 'funding'] as const;
 
 export type TrackTab = (typeof TRACK_TABS)[number];
 

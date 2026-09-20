@@ -43,17 +43,23 @@ See **legacy-app-reference** for when and how to open that checkout.
 
 These three get used interchangeably in conversation. In code they are not the same thing.
 
-- **description** is the RSS-spec prose (`<description>`, `channel_description`,
-  `item_description`). Use this name for the field, the DTO, and internal cell/kind identifiers
-  that hold that text.
-- **about** is how a **channel** (podcast, album, artist) presents that description — the About
-  section / chip (`info.about`).
-- **summary** is how an **item** (episode, clip, track) presents that description — the Summary
-  tab (`info.summary.summary`).
+- **description** is the **RSS-spec term** and the DTO field that holds that prose
+  (`<description>`, `channel_description`, `item_description`). Use this name for the field,
+  the DTO, and internal cell/kind identifiers that hold that text — not for the user-facing
+  section label.
+- **About** is the **channel-level** user-facing presentation (`info.about`) of that description
+  plus the extras that stay aligned with web (people; on mobile also RSS and website). Funding
+  is its own chip, not an About body link. Podcast, album, and artist About chips use this name.
+- **Summary** is the **item-level** user-facing presentation (`info.summary.*`) of that
+  description plus item people. Episode, track, livestream, and full-player Summary tabs use
+  this name.
 
 Do not rename a channel About cell or section to `summary`, or an item Summary tab to
 `description` / `about`, just because the spoken terms overlap. Leave catalog keys on their
-surface (`info.about` vs `info.summary.*`).
+surface (`info.about` vs `info.summary.*`). Do not swap those labels in UI copy, section chips,
+or testIDs.
 
 `channel_about` / `item_about` are a different DTO: structured metadata (author, duration,
 website URL), not the description prose. Do not treat those as the About/Summary body.
+
+Cross-surface field contract: **about-summary-web-mobile-alignment**.

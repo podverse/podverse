@@ -93,7 +93,7 @@ and `FillList`. It does **not** reuse `HomeScreen`. One chip row: media types in
 then Categories and sort (filter chrome) only when the current type can use them. The sort chip
 is last. Selecting a type does not move that chip.
 Tapping Categories replaces the list with categories (range chip hides); tapping a category
-filters the last type (podcasts, episodes, clips, videos) and relabels the chip. Music,
+filters the last type (podcasts, episodes, clips) and relabels the chip. Music,
 playlists, and users have no Categories chip. Tapping a type leaves the category list. No filter
 field and no item count — Search covers directory lookup. Home keeps its filter (finite
 subscriptions) and has no item count either. Search stays Podcast Index full-text; do not send

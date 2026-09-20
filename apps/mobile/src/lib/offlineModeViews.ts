@@ -78,7 +78,7 @@ export const isPodcastSectionUnavailableOffline = (section: PodcastTab): boolean
  * item. Official clips may still paint when the item DTO already embeds `item_soundbites`.
  */
 export const isEpisodeTabNetworkBody = (
-  tab: 'summary' | 'chapters' | 'clips' | 'soundbites' | 'transcript'
+  tab: 'summary' | 'chapters' | 'clips' | 'soundbites' | 'transcript' | 'funding'
 ): boolean => {
   return tab === 'chapters' || tab === 'clips' || tab === 'soundbites' || tab === 'transcript';
 };

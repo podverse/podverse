@@ -53,6 +53,16 @@ name: Podcast Episode Flow
     id: episode-detail-tab-summary
 - assertVisible:
     id: episode-detail-description
+# Item people render under Summary when the episode payload includes item_persons.
+- runFlow:
+    when:
+      visible:
+        id: episode-detail-people
+    commands:
+      - assertVisible:
+          id: episode-detail-people
+      - assertVisible:
+          id: "episode-detail-person-.*"
 - tapOn:
     id: "home-row-more-.*"
 - extendedWaitUntil:
@@ -131,7 +141,45 @@ name: Podcast Episode Flow
     commands:
       - assertVisible:
           id: podcast-detail-website
+# People rows appear when the channel GET returned channel_persons.
+- runFlow:
+    when:
+      visible:
+        id: "podcast-detail-person-.*"
+    commands:
+      - assertVisible:
+          id: "podcast-detail-person-.*"
 - takeScreenshot: podcast-episode-section-about
+
+# Funding is its own chip, last, and only when this channel publishes funding links.
+- runFlow:
+    when:
+      visible:
+        id: podcast-detail-section-funding
+    commands:
+      - tapOn:
+          id: podcast-detail-section-funding
+      - assertVisible:
+          id: podcast-detail-funding
+      - assertVisible:
+          id: "podcast-detail-funding-link-.*"
+
+# Boost opens from the gold donate icon left of the notification bell when the channel is eligible.
+- runFlow:
+    when:
+      visible:
+        id: podcast-detail-boost
+    commands:
+      - tapOn:
+          id: podcast-detail-boost
+      - assertVisible:
+          id: boost-sheet
+      - tapOn:
+          id: boost-sheet-submit
+      - assertVisible:
+          id: boost-not-available
+      - tapOn:
+          id: boost-not-available-close
 
 # Downloaded is always offered (with Episodes, About, and Clips). Official clips and Podroll sit
 # after those when this channel has been seen to have them.

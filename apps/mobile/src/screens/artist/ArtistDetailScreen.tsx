@@ -15,10 +15,13 @@ import {
   primaryChannelListArtworkUrl,
   primaryListArtworkUrl,
 } from '@podverse/helpers';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
+import { ChannelAboutSection, FundingLinksSection } from '../../components/content';
 import type { SectionChipItem } from '../../components/form';
 import { FillList, ListRow } from '../../components/primitives';
 import { Button } from '../../components/primitives/Button';
@@ -55,7 +58,7 @@ import type { HomeFeedRowData } from '../home/homeFeedData';
 import { mapItemToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
-import { channelHasPodroll } from '../podcast/podcastSections';
+import { channelHasFunding, channelHasPodroll } from '../podcast/podcastSections';
 
 type ArtistDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'ArtistDetail'>;
 
@@ -98,6 +101,7 @@ type PodrollEntry = {
 const SECTION_LABEL_KEYS: Record<ArtistTab, string> = {
   about: 'info.about',
   albums: 'media.music.albums',
+  funding: 'info.funding',
   podroll: 'info.podroll',
   settings: 'settings.settings',
   tracks: 'media.music.tracks',
@@ -143,11 +147,15 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const { evaluateFeature, isTierKnown } = useAccessTier();
   const { handleGateError, openGate } = useMembershipGate();
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
+  const { boostSheet, openBoost } = useBoostSheet();
   const cachedChrome = getCachedChannelSectionFlags(artistId);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [isChannelLoading, setIsChannelLoading] = useState<boolean>(true);
   const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
     cachedChrome?.hasPodroll === true
+  );
+  const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
+    cachedChrome?.hasFunding === true
   );
   const [artistTitle, setArtistTitle] = useState<string | null>(null);
   const [artistArtwork, setArtistArtwork] = useState<string | null>(null);
@@ -184,21 +192,8 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        aboutText: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          lineHeight: 24,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingTop: tokens.spacing.md,
-        },
         channelActions: {
           gap: tokens.spacing.sm,
-        },
-        channelActionRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          marginHorizontal: -tokens.spacing.sm,
         },
         headerActions: {
           alignItems: 'center',
@@ -235,6 +230,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     setChannel(null);
     setIsChannelLoading(true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
+    setPreviewHasFunding(nextChrome?.hasFunding === true);
     setTracksAdded([]);
     setTracksUnadded([]);
     setAlbumsAdded([]);
@@ -324,8 +320,10 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         setAlbumsAdded(response.channelsAdded);
         setAlbumsUnadded(response.channelsUnadded);
         const hasPodroll = channelHasPodroll(response.channel);
+        const hasFunding = channelHasFunding(response.channel);
         setPreviewHasPodroll(hasPodroll);
-        void sectionChromeFlagsRepository.mergeChannel(artistId, { hasPodroll });
+        setPreviewHasFunding(hasFunding);
+        void sectionChromeFlagsRepository.mergeChannel(artistId, { hasFunding, hasPodroll });
       } catch {
         setRowsErrorKey('errors.generic');
       } finally {
@@ -376,6 +374,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     const hasAlbums = offlineModeEnabled || albumsAdded.length > 0 || albumsUnadded.length > 0;
     const hasTracks = tracksAdded.length > 0 || tracksUnadded.length > 0;
     const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll;
+    const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding;
 
     const tabs: ArtistTab[] = [];
     if (hasAlbums) {
@@ -391,6 +390,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     if (isSignedIn) {
       tabs.push('settings');
     }
+    if (hasFunding) {
+      tabs.push('funding');
+    }
     return tabs;
   }, [
     albumsAdded.length,
@@ -398,6 +400,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     channel,
     isSignedIn,
     offlineModeEnabled,
+    previewHasFunding,
     previewHasPodroll,
     tracksAdded.length,
     tracksUnadded.length,
@@ -515,11 +518,23 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
 
   const notificationsEnabled = notifications.isEnabled;
   const toggleNotifications = notifications.toggleEnabled;
+  const canShowBoost = getBoostEligibilityForContent({ channel }).canShowBoostAction;
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.headerActions}>
+          {canShowBoost && channel !== null ? (
+            <HeaderBarAction
+              accessibilityLabel={t('value.boost')}
+              icon="cash-outline"
+              iconColor={tokens.text.warning}
+              onPress={() => {
+                openBoost({ channel, item: null });
+              }}
+              testID="artist-detail-boost"
+            />
+          ) : null}
           <HeaderBarAction
             accessibilityLabel={t(
               notificationsEnabled
@@ -541,7 +556,18 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         </View>
       ),
     });
-  }, [handleShare, navigation, notificationsEnabled, styles.headerActions, t, toggleNotifications]);
+  }, [
+    canShowBoost,
+    channel,
+    handleShare,
+    navigation,
+    notificationsEnabled,
+    openBoost,
+    styles.headerActions,
+    t,
+    tokens.text.warning,
+    toggleNotifications,
+  ]);
 
   const openExternalUrl = useCallback(async (url: string) => {
     try {
@@ -556,10 +582,6 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? channelArtworkUri;
   const title = channel?.title ?? artistTitle ?? t('media.music.artist');
   const subtitle = channel?.channel_about?.author ?? null;
-  const feedUrl = channel?.feed?.url ?? null;
-  const websiteUrl = channel?.channel_about?.website_link_url ?? null;
-  const hasOutboundLinks =
-    (feedUrl !== null && feedUrl.length > 0) || (websiteUrl !== null && websiteUrl.length > 0);
 
   const channelHeader = (
     <ChannelHeader
@@ -577,30 +599,6 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
               variant="outline"
             />
           </View>
-          {hasOutboundLinks ? (
-            <View style={styles.channelActionRow}>
-              {feedUrl !== null && feedUrl.length > 0 ? (
-                <HeaderBarAction
-                  accessibilityLabel={t('info.rss_feed')}
-                  icon="logo-rss"
-                  onPress={() => {
-                    void openExternalUrl(feedUrl);
-                  }}
-                  testID="artist-detail-rss"
-                />
-              ) : null}
-              {websiteUrl !== null && websiteUrl.length > 0 ? (
-                <HeaderBarAction
-                  accessibilityLabel={t('info.website')}
-                  icon="globe-outline"
-                  onPress={() => {
-                    void openExternalUrl(websiteUrl);
-                  }}
-                  testID="artist-detail-website"
-                />
-              ) : null}
-            </View>
-          ) : null}
         </View>
       }
       artworkUri={channelArtworkUri}
@@ -812,17 +810,21 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     />
   );
 
-  const aboutDescription = channel?.channel_description?.value?.trim() ?? '';
-  const aboutBody =
-    isChannelLoading && channel === null ? (
-      <LoadingSection testID="artist-detail-about-loading" />
-    ) : aboutDescription.length > 0 ? (
-      <Text style={styles.aboutText} testID="artist-detail-about">
-        {aboutDescription}
-      </Text>
-    ) : (
-      <ListEmpty messageKey="misc.info" testID="artist-detail-about-empty" />
-    );
+  const aboutBody = (
+    <ChannelAboutSection
+      channel={channel}
+      isChannelLoading={isChannelLoading}
+      testIDPrefix="artist-detail"
+    />
+  );
+
+  const fundingBody = (
+    <FundingLinksSection
+      fundings={channel?.channel_fundings ?? []}
+      isLoading={isChannelLoading && channel === null}
+      testIDPrefix="artist-detail"
+    />
+  );
 
   const podrollBody = offlineModeEnabled ? (
     <ListEmpty
@@ -927,19 +929,24 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           ? aboutBody
           : section === 'podroll'
             ? podrollBody
-            : settingsBody;
+            : section === 'funding'
+              ? fundingBody
+              : settingsBody;
 
   return (
-    <ChannelDetailShell
-      channelHeader={channelHeader}
-      isSectionHydrated={isSectionHydrated}
-      loadingTestID="artist-detail-section-loading"
-      onSelectSection={handleSectionSelect}
-      sectionBody={sectionBody}
-      sectionChips={sectionChips}
-      sectionsTestID="artist-detail-sections"
-      selectedSection={section}
-      testID="artist-detail-screen"
-    />
+    <>
+      <ChannelDetailShell
+        channelHeader={channelHeader}
+        isSectionHydrated={isSectionHydrated}
+        loadingTestID="artist-detail-section-loading"
+        onSelectSection={handleSectionSelect}
+        sectionBody={sectionBody}
+        sectionChips={sectionChips}
+        sectionsTestID="artist-detail-sections"
+        selectedSection={section}
+        testID="artist-detail-screen"
+      />
+      {boostSheet}
+    </>
   );
 }

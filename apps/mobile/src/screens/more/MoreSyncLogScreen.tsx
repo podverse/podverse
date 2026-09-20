@@ -4,31 +4,33 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Share, StyleSheet, Text, View } from 'react-native';
 
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
-import { Button, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
+import type { BadgeTone } from '../../components/primitives';
+import { Badge, Button, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { isMobileE2eFromEnv } from '../../config/env';
 import type { SyncEventLogEntry } from '../../data/repositories';
 import { formatSyncEventLogExport, syncEventLogRepository } from '../../data/repositories';
-import type { SyncJobKind } from '../../sync/syncJobKinds';
-import { SYNC_JOB_KINDS, SYNC_JOB_LABEL_KEYS } from '../../sync/syncJobKinds';
+import { getSyncLogLabelKey } from '../../sync/syncJobKinds';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Diagnostics for sync failures the indicator stays silent about.
+ * Diagnostics for sync-job and Home cache-read failures the indicator stays silent about.
  *
  * Plain and dense on purpose: the reason to open this screen is that something is not working and
  * somebody needs to be told what, so it optimizes for getting the contents out rather than for
  * looking like the rest of the app.
  */
 
-const isSyncJobKind = (value: string): value is SyncJobKind => {
-  return SYNC_JOB_KINDS.some((kind) => kind === value);
-};
-
 const OUTCOME_LABEL_KEYS: Record<SyncEventLogEntry['outcome'], string> = {
   failure: 'sync.log.outcome_failure',
   skipped: 'sync.log.outcome_skipped',
   success: 'sync.log.outcome_success',
+};
+
+const OUTCOME_BADGE_TONES: Record<SyncEventLogEntry['outcome'], BadgeTone> = {
+  failure: 'danger',
+  skipped: 'muted',
+  success: 'muted',
 };
 
 export function MoreSyncLogScreen() {
@@ -118,6 +120,7 @@ export function MoreSyncLogScreen() {
         },
         rowTitle: {
           color: themeStyles.textPrimary.color,
+          flexShrink: 1,
           fontSize: 14,
           fontWeight: '600',
         },
@@ -125,13 +128,20 @@ export function MoreSyncLogScreen() {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
         },
+        titleRow: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: tokens.spacing.sm,
+        },
       }),
     [themeStyles, tokens]
   );
 
   const renderRow = ({ item }: { item: SyncEventLogEntry }) => {
     const jobKind = item.jobKind;
-    const jobLabel = isSyncJobKind(jobKind) ? t(SYNC_JOB_LABEL_KEYS[jobKind]) : jobKind;
+    const jobLabelKey = getSyncLogLabelKey(jobKind);
+    const jobLabel = jobLabelKey === null ? jobKind : t(jobLabelKey);
     const outcomeLabel = t(OUTCOME_LABEL_KEYS[item.outcome]);
     const timestamp = timestampFormatter.format(new Date(item.occurredAt));
 
@@ -148,8 +158,15 @@ export function MoreSyncLogScreen() {
         style={styles.row}
         testID={`sync-log-row-${item.id}`}
       >
-        <Text style={styles.rowTitle}>{jobLabel}</Text>
-        <Text style={styles.meta}>{`${outcomeLabel} · ${timestamp}`}</Text>
+        <View style={styles.titleRow}>
+          <Badge
+            label={outcomeLabel}
+            testID={`sync-log-row-outcome-${item.id}`}
+            tone={OUTCOME_BADGE_TONES[item.outcome]}
+          />
+          <Text style={styles.rowTitle}>{jobLabel}</Text>
+        </View>
+        <Text style={styles.meta}>{timestamp}</Text>
         {item.errorCode === null ? null : (
           <Text selectable style={styles.code} testID={`sync-log-row-code-${item.id}`}>
             {item.errorCode}

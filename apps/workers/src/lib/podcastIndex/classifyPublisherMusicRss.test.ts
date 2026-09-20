@@ -42,6 +42,17 @@ describe('isPublisherMusicRssXml', () => {
     expect(isPublisherMusicRssXml(xml)).toBe(false);
   });
 
+  it('returns false for a publisher feed with no music remote items', () => {
+    const xml = `<?xml version="1.0"?>
+<rss xmlns:podcast="https://podcastindex.org/namespace/1.0">
+  <channel>
+    <title>Empty publisher</title>
+    <podcast:medium>publisher</podcast:medium>
+  </channel>
+</rss>`;
+    expect(isPublisherMusicRssXml(xml)).toBe(false);
+  });
+
   it('returns false when medium is music (album) rather than publisher', () => {
     const xml = `<?xml version="1.0"?>
 <rss xmlns:podcast="https://podcastindex.org/namespace/1.0">

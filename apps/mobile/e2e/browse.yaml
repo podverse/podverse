@@ -27,7 +27,7 @@ name: Browse Tab And Tab Bar Pref
     id: browse-category-button
 - assertVisible:
     id: browse-media-type-podcasts
-- assertVisible:
+- assertNotVisible:
     id: browse-media-type-videos
 # Phone chip row does not fit Playlists / Users. Swipe the selector itself —
 # a %-of-screen start Y can miss the pills, and iOS omits off-screen testIDs.
@@ -125,14 +125,6 @@ name: Browse Tab And Tab Bar Pref
 - assertNotVisible:
     id: browse-category-all
 - takeScreenshot: browse-screen-artists
-
-- tapOn:
-    id: browse-media-type-videos
-- extendedWaitUntil:
-    visible:
-      id: browse-category-button
-    timeout: ${TIMEOUT_SLOWER}
-- takeScreenshot: browse-screen-videos
 
 - tapOn:
     id: tab-more

@@ -6,9 +6,11 @@ import { StyleSheet, View } from 'react-native';
 
 import type { DTOChannel } from '@podverse/helpers';
 import { primaryChannelLightboxArtworkUrl, primaryChannelListArtworkUrl } from '@podverse/helpers';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { ListFilterField, MenuSelectChip } from '../../components/form';
@@ -51,6 +53,7 @@ import {
 import { isOfflineModeEnabled, useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import {
+  channelHasFunding,
   channelHasPodroll,
   isFilterableSection,
   isSortableSection,
@@ -64,6 +67,7 @@ import {
   PodcastClipsSection,
   PodcastDownloadedSection,
   PodcastEpisodesSection,
+  PodcastFundingSection,
   PodcastOfficialClipsSection,
   PodcastPodrollSection,
 } from './sections';
@@ -95,6 +99,7 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
   clips: PodcastClipsSection,
   downloaded: PodcastDownloadedSection,
   episodes: PodcastEpisodesSection,
+  funding: PodcastFundingSection,
   podroll: PodcastPodrollSection,
   soundbites: PodcastOfficialClipsSection,
 };
@@ -108,13 +113,14 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
  * different endpoints and different row shapes, and a single list that tried to serve all of them
  * would branch on section in every callback.
  *
- * Subscribe lives on the channel identity block. RSS and website URLs live on About, under the
- * description. Share, notifications, and settings live in the stack title bar — the same slot
+ * Subscribe lives on the channel identity block. RSS and website URLs live on About. Funding is
+ * its own chip. Share, notifications, and settings live in the stack title bar — the same slot
  * every channel and item detail screen uses (`mobile-screen-layout`).
  */
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
+  const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { podcastId, previewImageUrl, previewTitle } = route.params;
@@ -126,6 +132,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   );
   const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
     cachedChrome?.hasPodroll === true
+  );
+  const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
+    cachedChrome?.hasFunding === true
   );
   const [hasCheckedSoundbites, setHasCheckedSoundbites] = useState<boolean>(cachedChrome !== null);
   const chromeConfirmedRef = useRef(false);
@@ -173,6 +182,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setIsChannelLoading(true);
     setHasSoundbites(nextChrome?.hasOfficialClips === true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
+    setPreviewHasFunding(nextChrome?.hasFunding === true);
     setHasCheckedSoundbites(nextChrome !== null);
   }, [podcastId]);
 
@@ -223,8 +233,11 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         );
         setChannel(response);
         const hasPodroll = channelHasPodroll(response);
+        const hasFunding = channelHasFunding(response);
         setPreviewHasPodroll(hasPodroll);
+        setPreviewHasFunding(hasFunding);
         void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+          hasFunding,
           hasOfficialClips: soundbites,
           hasPodroll,
         });
@@ -263,6 +276,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       }
       setHasSoundbites(flags.hasOfficialClips);
       setPreviewHasPodroll(flags.hasPodroll);
+      setPreviewHasFunding(flags.hasFunding);
       setHasCheckedSoundbites(true);
     });
 
@@ -375,6 +389,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
    * subscription that makes them worth holding.
    */
   const canOpenSettings = isSignedIn && isSubscribed;
+  const canShowBoost = getBoostEligibilityForContent({ channel }).canShowBoostAction;
   const notificationsEnabled = notifications.isEnabled;
   const toggleNotifications = notifications.toggleEnabled;
 
@@ -386,6 +401,17 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.headerActions}>
+          {canShowBoost && channel !== null ? (
+            <HeaderBarAction
+              accessibilityLabel={t('value.boost')}
+              icon="cash-outline"
+              iconColor={tokens.text.warning}
+              onPress={() => {
+                openBoost({ channel, item: null });
+              }}
+              testID="podcast-detail-boost"
+            />
+          ) : null}
           <HeaderBarAction
             accessibilityLabel={t(
               notificationsEnabled
@@ -419,12 +445,16 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     });
   }, [
     canOpenSettings,
+    canShowBoost,
+    channel,
     handleShare,
     navigation,
     notificationsEnabled,
+    openBoost,
     podcastId,
     styles.headerActions,
     t,
+    tokens.text.warning,
     toggleNotifications,
   ]);
 
@@ -506,8 +536,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   ]);
 
   const availableSections = useMemo(
-    () => resolvePodcastSections({ channel, hasSoundbites, previewHasPodroll }),
-    [channel, hasSoundbites, previewHasPodroll]
+    () => resolvePodcastSections({ channel, hasSoundbites, previewHasFunding, previewHasPodroll }),
+    [channel, hasSoundbites, previewHasFunding, previewHasPodroll]
   );
 
   /**
@@ -678,17 +708,20 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   ) : undefined;
 
   return (
-    <ChannelDetailShell
-      channelHeader={channelHeader}
-      chipTrailing={chipTrailing}
-      isSectionHydrated={isSectionHydrated}
-      loadingTestID="podcast-detail-section-loading"
-      onSelectSection={handleSectionSelect}
-      sectionBody={sectionBody}
-      sectionChips={sectionChips}
-      sectionsTestID="podcast-detail-sections"
-      selectedSection={section}
-      testID="podcast-detail-screen"
-    />
+    <>
+      <ChannelDetailShell
+        channelHeader={channelHeader}
+        chipTrailing={chipTrailing}
+        isSectionHydrated={isSectionHydrated}
+        loadingTestID="podcast-detail-section-loading"
+        onSelectSection={handleSectionSelect}
+        sectionBody={sectionBody}
+        sectionChips={sectionChips}
+        sectionsTestID="podcast-detail-sections"
+        selectedSection={section}
+        testID="podcast-detail-screen"
+      />
+      {boostSheet}
+    </>
   );
 }

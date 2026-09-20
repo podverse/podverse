@@ -11,6 +11,7 @@ import { htmlToPlainText } from '@podverse/helpers/html';
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { ChannelHeader } from '../../components/channel';
+import { FundingLinksSection, ItemSummaryPeople } from '../../components/content';
 import type { SectionChipItem } from '../../components/form';
 import { SectionChipRow } from '../../components/form';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
@@ -23,12 +24,14 @@ import { channelItemsRepository } from '../../data/repositories/channelItemsRepo
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import { downloadsRepository } from '../../data/repositories/downloadsRepository';
 import { playbackContentRepository } from '../../data/repositories/playbackContentRepository';
+import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
 import { useActionError } from '../../feedback/ActionErrorProvider';
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { shouldReplaceCachedValue } from '../../lib/cachedValue';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
+import { getCachedItemSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { ChannelBrowseStackParamList } from '../../navigation';
@@ -59,6 +62,7 @@ type TrackTabRow = { id: string };
 const EMPTY_TRACK_TAB_ROWS: TrackTabRow[] = [];
 
 const TRACK_TAB_LABEL_KEYS: Record<TrackTab, string> = {
+  funding: 'info.funding',
   summary: 'info.summary.summary',
   transcript: 'info.transcript.lyrics',
 };
@@ -300,12 +304,16 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   const { openGate } = useMembershipGate();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
   const { trackId } = route.params;
+  const cachedItemChrome = getCachedItemSectionFlags(trackId);
   const listRef = useRef<FlatList<TrackTabRow>>(null);
   const [track, setTrack] = useState<DTOItem | null>(null);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [channelTitle, setChannelTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
+    cachedItemChrome?.hasFunding === true
+  );
   const [activeTab, setActiveTab] = useState<TrackTab>(DEFAULT_TRACK_TAB);
   const [isPrefsHydrated, setIsPrefsHydrated] = useState(false);
   const [transcriptText, setTranscriptText] = useState('');
@@ -455,13 +463,28 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     };
   }, [trackId]);
 
-  const hasTranscript = (track?.item_transcripts?.length ?? 0) > 0;
-  const supportedTabs = useMemo<TrackTab[]>(() => {
-    if (hasTranscript || transcriptText.length > 0) {
-      return ['summary', 'transcript'];
+  useEffect(() => {
+    if (track === null) {
+      return;
     }
-    return ['summary'];
-  }, [hasTranscript, transcriptText.length]);
+    const nextHasFunding = (track.item_fundings?.length ?? 0) > 0;
+    setPreviewHasFunding(nextHasFunding);
+    void sectionChromeFlagsRepository.mergeItem(trackId, { hasFunding: nextHasFunding });
+  }, [track, trackId]);
+
+  const hasTranscript = (track?.item_transcripts?.length ?? 0) > 0;
+  const hasFunding =
+    track !== null ? (track.item_fundings?.length ?? 0) > 0 : previewHasFunding;
+  const supportedTabs = useMemo<TrackTab[]>(() => {
+    const tabs: TrackTab[] = ['summary'];
+    if (hasTranscript || transcriptText.length > 0) {
+      tabs.push('transcript');
+    }
+    if (hasFunding) {
+      tabs.push('funding');
+    }
+    return tabs;
+  }, [hasFunding, hasTranscript, transcriptText.length]);
 
   useEffect(() => {
     if (!supportedTabs.includes(activeTab)) {
@@ -670,7 +693,19 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
               </Text>
             </Pressable>
           ) : null}
+          <ItemSummaryPeople itemPersons={track?.item_persons ?? []} testIDPrefix="track-detail" />
         </View>
+      );
+    }
+
+    if (activeTab === 'funding') {
+      return (
+        <FundingLinksSection
+          fundings={track?.item_fundings ?? []}
+          isLoading={track === null}
+          layout="inline"
+          testIDPrefix="track-detail"
+        />
       );
     }
 

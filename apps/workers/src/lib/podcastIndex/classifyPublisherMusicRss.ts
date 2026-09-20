@@ -19,6 +19,11 @@ export function isPublisherMusicRssXml(xml: string): boolean {
   }
 
   const remoteMediums = extractRemoteItemMediums(xml);
+  const musicRemoteCount = remoteMediums.filter((m) => m.toLowerCase().includes('music')).length;
+  if (musicRemoteCount === 0) {
+    return false;
+  }
+
   const detected = detectDuckTypedPublisherMediumId({
     medium: 'publisher',
     podcastRemoteItems: remoteMediums.map((m) => ({ medium: m })),

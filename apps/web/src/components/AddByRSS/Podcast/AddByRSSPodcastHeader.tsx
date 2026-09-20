@@ -11,6 +11,7 @@ import {
 } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import { Button, ImageLightboxModal, SkeletonFlashImage } from '@podverse/ui';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
@@ -21,7 +22,6 @@ import {
 } from '../../../utils/addByRSS/actions';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import { addByRSSChannelHeaderTriple } from '../../../utils/image/addByRSSChannelHeaderCandidates';
-import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { CommonPodcastHeader } from '../../Common/Podcast/CommonPodcastHeader';
 import { CommonPodcastHeaderViewDesktop } from '../../Common/Podcast/CommonPodcastHeaderViewDesktop';
 import { CommonPodcastHeaderViewTablet } from '../../Common/Podcast/CommonPodcastHeaderViewTablet';

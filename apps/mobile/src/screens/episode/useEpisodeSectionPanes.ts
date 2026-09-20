@@ -51,6 +51,7 @@ type UseEpisodeSectionPanesResult = {
 const createLoadedTabs = (): LoadedTabs => ({
   chapters: false,
   clips: false,
+  funding: true,
   soundbites: false,
   summary: true,
   transcript: false,
@@ -132,7 +133,7 @@ export function useEpisodeSectionPanes({
 
   const loadTab = useCallback(
     async (tab: EpisodeTab): Promise<void> => {
-      if (itemIdText === null || tab === 'summary' || loadedTabs[tab]) {
+      if (itemIdText === null || tab === 'summary' || tab === 'funding' || loadedTabs[tab]) {
         return;
       }
 
@@ -242,7 +243,7 @@ export function useEpisodeSectionPanes({
   );
 
   useEffect(() => {
-    if (!isPrefsHydrated || activeTab === 'summary') {
+    if (!isPrefsHydrated || activeTab === 'summary' || activeTab === 'funding') {
       return;
     }
     void loadTab(activeTab);

@@ -156,7 +156,7 @@ screenshots). Medium foundations (P2.4.13) remain the prerequisite. Completed pl
 | P2.1.2 | [764-track-detail-and-library-routes](/docs/proposals/mobile/_master-plan_/phase-2/details/764-track-detail-and-library-routes.md) | Codex 5.3 | done   |
 
 Locked decisions: `.llm/plans/completed/04-mobile-p2-music-detail/00-SUMMARY.md`. Boosts stay Phase 3;
-video stays on podcast/episode routes; no Home `videos` chip.
+video stays on podcast/episode routes; no Home or Browse `videos` chip.
 
 ### Planned steps — P2.1.5 Library (Downloads) + Settings storage
 
@@ -386,7 +386,7 @@ screen work depends on, and they change contracts beyond `apps/mobile` (API, ORM
 
 **P2.4.13 (medium foundations)** is complete and shares route-kind vocabulary across web and mobile.
 It remains the prerequisite for music detail.
-No Home `videos` chip; subscribed video channels stay under `podcasts` (web `av`).
+No Home or Browse `videos` chip; video channels stay under `podcasts` via `av` (same as web).
 
 **P2.4.11 and P2.4.12 are complete, and they are foundational correctness work.** Playback
 reconciliation now records meaningful-event timestamps across writes, persists offline playback in a
@@ -472,9 +472,9 @@ inbox, bell badge, and hooks.
 
 **Intentional divergences — recorded, not accidental.** Mobile subscriptions are local-first and work
 signed out; web's stay account-backed. Mobile's Home is subscribed-only with media-type chips; web
-keeps its type selector and server pagination. Mobile Browse has a `videos` chip while web's
-`/videos` stays "Coming soon" and Home on both lumps video under podcasts / `av`. Neither is a
-parity gap for this phase.
+keeps its type selector and server pagination. Browse and Home on both surfaces lump video under
+podcasts / `av` (no Videos chip); web's `/videos` page stays "Coming soon" until a video browse tree
+is decided.
 
 ## Appendix — Phase 2 detail index
 

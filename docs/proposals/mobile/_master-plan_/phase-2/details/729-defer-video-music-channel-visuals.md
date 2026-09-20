@@ -23,7 +23,7 @@ Album / artist / track detail parity is implemented under
 Video-medium channels stay on podcast / episode detail (match web today: no `/video` detail pages;
 `/videos` is "Coming soon"). Real video divergence is enclosure selection and the player surface
 ([765](765-enclosure-selection-session-state.md)–[768](768-enclosure-driven-video-surface.md)), not
-dedicated video screens. No Home `videos` chip.
+dedicated video screens. No Home or Browse `videos` chip; discovery uses `av` like web.
 
 ## Acceptance criteria (video half, when reconsidered)
 

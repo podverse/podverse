@@ -382,7 +382,7 @@ export function BrowseScreen() {
 
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
-      if (selectedMediaType === 'podcasts' || selectedMediaType === 'videos') {
+      if (selectedMediaType === 'podcasts') {
         navigation.navigate(
           BROWSE_STACK_ROUTES.PodcastDetail,
           buildPodcastDetailParams({

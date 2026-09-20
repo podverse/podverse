@@ -24,6 +24,7 @@ export const SYNC_JOB_KINDS = [
   'channel-seen',
   'channel-live-status',
   'popularity-ranks',
+  'home-clips',
 ] as const;
 
 export type SyncJobKind = (typeof SYNC_JOB_KINDS)[number];
@@ -51,4 +52,34 @@ export const SYNC_JOB_LABEL_KEYS: Record<SyncJobKind, string> = {
   'channel-seen': 'sync.job.seen_state',
   'channel-live-status': 'sync.job.live_status',
   'popularity-ranks': 'sync.job.subscriptions',
+  'home-clips': 'sync.job.clips',
+};
+
+/**
+ * Log rows that are not queue jobs. Home's local read is interactive cache; a hang or throw
+ * there is recorded so More → Sync log can explain an empty or stale list.
+ */
+export const SYNC_DIAGNOSTIC_LOG_KIND_LABEL_KEYS = {
+  'home-feed-read': 'sync.job.home_feed',
+} as const;
+
+const isSyncJobKind = (value: string): value is SyncJobKind => {
+  return SYNC_JOB_KINDS.some((kind) => kind === value);
+};
+
+const isSyncDiagnosticLogKind = (
+  value: string
+): value is keyof typeof SYNC_DIAGNOSTIC_LOG_KIND_LABEL_KEYS => {
+  return value in SYNC_DIAGNOSTIC_LOG_KIND_LABEL_KEYS;
+};
+
+/** Label key for a sync-log row, or null when the kind is unknown and should be shown raw. */
+export const getSyncLogLabelKey = (jobKind: string): string | null => {
+  if (isSyncJobKind(jobKind)) {
+    return SYNC_JOB_LABEL_KEYS[jobKind];
+  }
+  if (isSyncDiagnosticLogKind(jobKind)) {
+    return SYNC_DIAGNOSTIC_LOG_KIND_LABEL_KEYS[jobKind];
+  }
+  return null;
 };

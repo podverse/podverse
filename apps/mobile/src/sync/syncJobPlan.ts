@@ -58,6 +58,7 @@ export const planSyncRun = ({ isAuthenticated, trigger }: SyncPlanInput): Planne
   // Membership-tier and checked when the job runs, so a lapsed member keeps their feeds without
   // the device asking for work the server would refuse.
   planned.push({ kind: 'add-by-rss-refresh', priority });
+  planned.push({ kind: 'home-clips', priority });
 
   // Device registration is a per-session handshake, not reconciliation. Repeating it on every
   // foreground would spend a request to tell the server something it already knows.

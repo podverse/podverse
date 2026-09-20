@@ -163,7 +163,9 @@
       "episodes": "",
       "rss_feeds": "",
       "seen_state": "",
-      "live_status": ""
+      "live_status": "",
+      "clips": "",
+      "home_feed": ""
     },
     "progress": "",
     "log": {

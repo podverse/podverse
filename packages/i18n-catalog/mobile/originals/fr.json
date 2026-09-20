@@ -163,12 +163,14 @@
       "episodes": "Mise à jour de vos épisodes",
       "rss_feeds": "Mise à jour de vos flux RSS",
       "seen_state": "Mise à jour des nouveautés",
-      "live_status": "Vérification des directs"
+      "live_status": "Vérification des directs",
+      "clips": "Mise à jour de vos extraits",
+      "home_feed": "Lecture de l'accueil depuis cet appareil"
     },
     "progress": "{completed} sur {total}",
     "log": {
       "title": "Journal de synchronisation",
-      "intro": "Problèmes de synchronisation en arrière-plan enregistrés sur cet appareil. Partagez-le avec l'assistance si vos podcasts, playlists ou file d'attente cessent de se mettre à jour.",
+      "intro": "Problèmes enregistrés sur cet appareil lors de la synchronisation ou de la lecture de l'accueil depuis le cache. Partagez-le avec l'assistance si vos podcasts, playlists, file d'attente ou liste d'accueil cessent de se mettre à jour.",
       "empty": "Aucun problème de synchronisation enregistré",
       "export": "Partager",
       "clear": "Effacer",

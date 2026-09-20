@@ -324,6 +324,7 @@
   },
   "info": {
     "funding": "Funding",
+    "funding_support": "These links are how the publisher asks for support.",
     "website": "Website",
     "rss": "RSS",
     "rss_feed": "RSS feed",

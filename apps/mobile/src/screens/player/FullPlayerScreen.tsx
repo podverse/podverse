@@ -16,9 +16,12 @@ import type {
 import { htmlToPlainText } from '@podverse/helpers/html';
 import { formatPlaybackTime } from '@podverse/helpers/time';
 import type { PlaybackTarget } from '@podverse/playback-core';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh, useAuth } from '../../auth';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
+import { FundingLinksSection, ItemSummaryPeople } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FullPlayerActionRow } from '../../components/player/FullPlayerActionRow';
@@ -194,6 +197,7 @@ export function FullPlayerScreen({
   const { isTablet } = useResponsive();
   const insets = useSafeAreaInsets();
   const { styles: themeStyles, tokens } = useTheme();
+  const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { autoQueueActiveRow, autoQueueConfig, autoQueueResources, setAutoQueueConfig } =
@@ -273,6 +277,10 @@ export function FullPlayerScreen({
   const shareUrl = activeTarget !== null ? buildNowPlayingShareUrl(activeTarget) : null;
   const addToPlaylistTarget = resolveAddToPlaylistTarget(activeTarget);
   const showV4v = shouldShowV4vAction(activeTarget, isV4vEnabled);
+  const canShowBoost = getBoostEligibilityForContent({
+    channel,
+    item: currentItem,
+  }).canShowBoostAction;
   const activePaneNoticeKey = actionNoticeKey ?? playbackNoticeKey;
   const summaryText = useMemo(() => {
     const value = currentItem?.item_description?.value;
@@ -883,6 +891,10 @@ export function FullPlayerScreen({
                 </Text>
               </Pressable>
             ) : null}
+            <ItemSummaryPeople
+              itemPersons={currentItem?.item_persons ?? []}
+              testIDPrefix="full-player"
+            />
             {activePaneNoticeKey !== null ? (
               <Text style={styles.actionNotice} testID="full-player-action-notice">
                 {t(activePaneNoticeKey)}
@@ -890,6 +902,17 @@ export function FullPlayerScreen({
             ) : null}
           </View>
         </View>
+      );
+    }
+
+    if (activeTab === 'funding') {
+      return (
+        <FundingLinksSection
+          fundings={currentItem?.item_fundings ?? []}
+          isLoading={currentItem === null}
+          layout="inline"
+          testIDPrefix="full-player"
+        />
       );
     }
 
@@ -1133,9 +1156,16 @@ export function FullPlayerScreen({
           }
           onOpenMakeClip({ mode: 'create' });
         }}
+        onOpenBoost={() => {
+          if (channel === null) {
+            return;
+          }
+          openBoost({ channel, item: currentItem });
+        }}
         onOpenQueue={onOpenQueue}
         onOpenV4v={onOpenV4v}
         onShare={handleShare}
+        showBoost={canShowBoost}
         showV4v={showV4v}
       />
 
@@ -1252,6 +1282,7 @@ export function FullPlayerScreen({
         visible={openSheet === 'more'}
       />
       {addToPlaylistSheet}
+      {boostSheet}
     </View>
   );
 }

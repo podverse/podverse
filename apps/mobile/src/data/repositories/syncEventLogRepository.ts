@@ -23,7 +23,7 @@ export type SyncEventLogAppend = {
 
 /**
  * Trim back to the cap. The candidate read is unfiltered because the retention rule needs to see
- * every row to know which ones it is allowed to drop, and at 500 narrow rows that is cheap enough
+ * every row to know which ones it is allowed to drop, and at 200 narrow rows that is cheap enough
  * to prefer over a second copy of the rule expressed in SQL.
  */
 const evictOverflow = async (): Promise<void> => {
@@ -73,6 +73,7 @@ export const syncEventLogRepository = {
   /** Newest first, which is both the reading order and the order that matters when it is long. */
   list: async (): Promise<SyncEventLogEntry[]> => {
     await initializeDatabase();
+    await evictOverflow();
     const rows = await getDb()
       .select()
       .from(schema.syncEventLog)

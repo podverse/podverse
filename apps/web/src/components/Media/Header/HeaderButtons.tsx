@@ -11,9 +11,9 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { useModals } from '../../../contexts/Modals';
-import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { IconButton } from './IconButton';
 import { NotificationIconButton } from './NotificationIconButton';
 import { SubscribeButton } from './SubscribeButton';

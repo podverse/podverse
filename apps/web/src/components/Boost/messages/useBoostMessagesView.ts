@@ -3,9 +3,9 @@
 import { useMemo } from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { useModals } from '../../../contexts/Modals';
-import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { useMbrssV1BoostCapability } from '../hooks/useMbrssV1BoostCapability';
 import { createMbrssBoostBreadcrumbLinkResolver } from './createMbrssBoostBreadcrumbLinkResolver';
 import { createBoostMessagesPageFetcher } from './fetchPublicBoostMessages';

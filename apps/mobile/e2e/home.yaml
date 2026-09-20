@@ -18,6 +18,8 @@ name: Home Media Types
 - assertVisible:
     id: home-screen
 - assertNotVisible:
+    id: home-list-loading
+- assertNotVisible:
     id: home-subscription-filter
 
 # Podcasts (default)

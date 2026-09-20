@@ -1,15 +1,27 @@
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import type { MetaBoost } from '@podverse/v4v-metaboost';
-import { resolveMetaBoostFromApiValueMetadata } from '@podverse/v4v-metaboost';
+import type { DTOChannel } from '@podverse/helpers';
+
+import type { MetaBoost } from './metaBoost.js';
+import { resolveMetaBoostFromApiValueMetadata } from './metaBoostStandard.js';
+
+export type BoostEligibilityChannel = {
+  channel_meta_boost?: DTOChannel['channel_meta_boost'];
+  channel_values?: DTOChannel['channel_values'];
+  podcast_guid?: string | null;
+};
+
+export type BoostEligibilityItem = {
+  guid?: string | null;
+};
 
 type BoostEligibilityInput = {
-  channel: DTOChannel | null;
-  item?: DTOItem | null;
+  channel: BoostEligibilityChannel | null;
+  item?: BoostEligibilityItem | null;
   itemGuid?: string | null;
 };
 
 export type MbrssMessagesScope =
-  { type: 'channel'; podcastGuid: string } | { type: 'item'; itemGuid: string };
+  | { type: 'channel'; podcastGuid: string }
+  | { type: 'item'; itemGuid: string };
 
 export type BoostEligibility = {
   canShowBoostAction: boolean;
@@ -19,6 +31,10 @@ export type BoostEligibility = {
   mbrssMessagesScope: MbrssMessagesScope | null;
 };
 
+/**
+ * Whether a channel can offer a boost. Item values do not turn the action on by themselves.
+ * The action requires channel value rows and a MetaBoost standard of `mbrss-v1` or `mb-v1`.
+ */
 export const getBoostEligibilityForContent = ({
   channel,
   item = null,

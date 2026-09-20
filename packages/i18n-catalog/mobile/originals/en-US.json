@@ -163,12 +163,14 @@
       "episodes": "Updating your episodes",
       "rss_feeds": "Updating your RSS feeds",
       "seen_state": "Updating what's new",
-      "live_status": "Checking what's live"
+      "live_status": "Checking what's live",
+      "clips": "Updating your clips",
+      "home_feed": "Reading Home from this device"
     },
     "progress": "{completed} of {total}",
     "log": {
       "title": "Sync log",
-      "intro": "Background sync problems recorded on this device. Share this with support if your podcasts, playlists, or queue stop updating.",
+      "intro": "Problems recorded on this device while syncing or reading Home from cache. Share this with support if your podcasts, playlists, queue, or Home list stop updating.",
       "empty": "No sync problems recorded",
       "export": "Share",
       "clear": "Clear",

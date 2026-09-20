@@ -324,6 +324,7 @@
   },
   "info": {
     "funding": "Financement",
+    "funding_support": "Ces liens indiquent comment l’éditeur demande du soutien.",
     "website": "Site web",
     "rss": "RSS",
     "rss_feed": "Flux RSS",

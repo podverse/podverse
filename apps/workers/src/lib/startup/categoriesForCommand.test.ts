@@ -106,4 +106,10 @@ describe('getCategoriesForCommand', () => {
       )
     );
   });
+
+  it('maps devDiscoverArtistPublisherFeeds to Base and PodcastIndex', () => {
+    expect(sortCategories(getCategoriesForCommand('devDiscoverArtistPublisherFeeds'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_PODCAST_INDEX]))
+    );
+  });
 });

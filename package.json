@@ -187,6 +187,7 @@
     "workers:parse_trending_feeds": "node apps/workers/dist/index.js devParserRSSParseTrendingFeeds",
     "workers:parse_music_medium_feeds": "node apps/workers/dist/index.js devParserRSSParseMusicMediumFeeds",
     "workers:parse_artist_publisher_feeds": "node apps/workers/dist/index.js devParserRSSParseArtistPublisherFeeds",
+    "workers:discover_artist_publisher_feeds": "node apps/workers/dist/index.js devDiscoverArtistPublisherFeeds",
     "workers:seed_simulated_stats": "node apps/workers/dist/index.js devStatsSeedSimulatedAggregated",
     "workers:seed_local_user_content": "node apps/workers/dist/index.js devSeedLocalUserContent"
   }

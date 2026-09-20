@@ -292,6 +292,7 @@ describe('planSyncRun', () => {
     expect(kinds).toContain('playback-replay');
     expect(kinds).toContain('queue-hydrate');
     expect(kinds).toContain('add-by-rss-refresh');
+    expect(kinds).toContain('home-clips');
   });
 
   it('registers the push device on start and sign-in but not on every foreground', () => {

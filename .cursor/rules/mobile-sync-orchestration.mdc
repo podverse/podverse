@@ -85,7 +85,7 @@ same wall, and pending jobs keep their place rather than being spent against it.
 a request or health probe succeeding — a platform reachability event is a hint that schedules a
 probe, not a reason to start work again.
 
-Failures are instead appended to a **capped sync event log** (500 entries) that the user can reach
+Failures are instead appended to a **capped sync event log** (200 entries) that the user can reach
 from More, so a support conversation has something concrete in it.
 
 **Recorded messages must embed the machine-readable error code.** The displayed message is

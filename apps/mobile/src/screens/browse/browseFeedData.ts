@@ -21,21 +21,19 @@ const listType = (category: string | null): 'global' | 'category' => {
   return category !== null ? 'category' : 'global';
 };
 
+/** Match web Podcasts / Episodes / Clips: `av` folds podcast- and video-medium channels together. */
 const channelMedium = (mediaType: BrowseMediaType): QueryParamsMedium => {
-  if (mediaType === 'videos') {
-    return 'videos';
-  }
   if (mediaType === 'artists') {
     return 'publisher-music';
   }
   if (mediaType === 'albums') {
     return 'music';
   }
-  return 'podcasts';
+  return 'av';
 };
 
 const itemMedium = (mediaType: BrowseMediaType): QueryParamsMedium => {
-  return mediaType === 'videos' ? 'videos' : mediaType === 'tracks' ? 'music' : 'podcasts';
+  return mediaType === 'tracks' ? 'music' : 'av';
 };
 
 const nestedDisplayName = (record: Record<string, unknown>, ownerKey: string): string | null => {
@@ -151,7 +149,7 @@ export const fetchBrowseFeedRows = async (
     const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
       api.reqClipGetManyPublic({
         category,
-        medium: 'podcasts',
+        medium: 'av',
         page: BROWSE_FEED_PAGE,
         range,
         sort: 'top',

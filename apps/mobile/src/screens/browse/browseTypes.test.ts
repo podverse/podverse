@@ -10,11 +10,10 @@ import {
 } from './browseTypes';
 
 describe('browseTypes', () => {
-  it('offers categories on podcasts, episodes, clips, and videos only', () => {
+  it('offers categories on podcasts, episodes, and clips only', () => {
     expect(isBrowseCategoryMediaType('podcasts')).toBe(true);
     expect(isBrowseCategoryMediaType('episodes')).toBe(true);
     expect(isBrowseCategoryMediaType('clips')).toBe(true);
-    expect(isBrowseCategoryMediaType('videos')).toBe(true);
     expect(isBrowseCategoryMediaType('artists')).toBe(false);
     expect(isBrowseCategoryMediaType('albums')).toBe(false);
     expect(isBrowseCategoryMediaType('tracks')).toBe(false);
@@ -33,7 +32,7 @@ describe('browseTypes', () => {
 
   it('hides Categories on media types that have no directory categories', () => {
     expect(shouldShowBrowseCategoryChip('podcasts')).toBe(true);
-    expect(shouldShowBrowseCategoryChip('videos')).toBe(true);
+    expect(shouldShowBrowseCategoryChip('episodes')).toBe(true);
     expect(shouldShowBrowseCategoryChip('artists')).toBe(false);
     expect(shouldShowBrowseCategoryChip('playlists')).toBe(false);
   });
@@ -49,7 +48,6 @@ describe('browseTypes', () => {
     expect(isPlayableDirectoryMediaType('clips')).toBe(true);
     expect(isPlayableDirectoryMediaType('tracks')).toBe(true);
     expect(isPlayableDirectoryMediaType('podcasts')).toBe(false);
-    expect(isPlayableDirectoryMediaType('videos')).toBe(false);
     expect(isPlayableDirectoryMediaType('playlists')).toBe(false);
     expect(isPlayableDirectoryMediaType('users')).toBe(false);
   });

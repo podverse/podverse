@@ -14,13 +14,19 @@ import { channelItemsRepository } from '../data/repositories/channelItemsReposit
 import type { ChannelItemWindow } from '../data/repositories/channelItemWindow';
 import { channelLiveStatusRepository } from '../data/repositories/channelLiveStatusRepository';
 import { channelSeenRepository } from '../data/repositories/channelSeenRepository';
+import { homeClipsCacheRepository } from '../data/repositories/homeClipsCacheRepository';
 import { playbackOutboxRepository } from '../data/repositories/playbackOutboxRepository';
 import { queueRepository } from '../data/repositories/queueRepository';
 import type { SubscribedChannel } from '../data/repositories/subscriptionsRepository';
 import { subscriptionsRepository } from '../data/repositories/subscriptionsRepository';
 import type { MobileAuthRequestContext } from '../data/repositories/types';
 import { readIsPlayingLocallyForSync } from '../playback/playbackSyncState';
-import { DEFAULT_HOME_RANGE, homeSortToApiRange, readHomeListPrefs } from '../prefs/homeListPrefs';
+import {
+  DEFAULT_HOME_RANGE,
+  homeSortToApiRange,
+  homeSortToApiSort,
+  readHomeListPrefs,
+} from '../prefs/homeListPrefs';
 import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
 import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import { publishQueueDataChanged } from './queueDataRevision';
@@ -230,6 +236,17 @@ const createLibraryBrowseProjectionJob = (
   });
 };
 
+const createHomeClipsJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
+  return buildJob('home-clips', priority, 'home-clips', async () => {
+    const clipsPrefs = await readHomeListPrefs('clips');
+    const apiSort = homeSortToApiSort(clipsPrefs.sort);
+    await homeClipsCacheRepository.refreshFromAccount(deps.getAuthContext(), {
+      range: homeSortToApiRange(clipsPrefs.sort, clipsPrefs.range),
+      sort: apiSort === 'a_z' ? 'recent' : apiSort,
+    });
+  });
+};
+
 const createPopularityRanksJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('popularity-ranks', priority, 'popularity-ranks', async () => {
     const context = deps.getAuthContext();
@@ -406,6 +423,8 @@ export const buildSyncJobs = (planned: PlannedSyncJob[], deps: SyncJobDeps): Syn
         return createChannelItemsScanJob(deps, priority);
       case 'add-by-rss-refresh':
         return createAddByRssRefreshJob(deps, priority);
+      case 'home-clips':
+        return createHomeClipsJob(deps, priority);
       default:
         // The remaining kinds are only ever reached through the job that discovers them, so a plan
         // asking for one directly is a programming error rather than a runtime condition.

@@ -14,7 +14,6 @@ import { FillList, SwipeActionRow } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
-import { LoadingSection } from '../../components/state/LoadingSection';
 import {
   channelSeenRepository,
   downloadsRepository,
@@ -70,8 +69,19 @@ import {
   fetchDownloadedHomeFeedRows,
   fetchHomeFeedRows,
   fetchUnsubscribedDownloadHomeRows,
-  type HomeFeedRowData,
 } from './homeFeedData';
+import type { HomeFeedRowData } from './homeFeedData';
+import type { HomeFeedLoadSource } from './homeFeedLoadPolicy';
+import {
+  homeFeedKeepsVisibleRowsOnError,
+  homeFeedShowsRefreshControl,
+} from './homeFeedLoadPolicy';
+import {
+  HOME_FEED_PREFS_TIMEOUT_CODE,
+  HOME_FEED_READ_TIMEOUT_MS,
+  appendHomeFeedReadFailure,
+  withHomeFeedReadBudget,
+} from './homeFeedReadLog';
 import { HomeFeedGridCell } from './HomeFeedGridCell';
 import { HomeFeedRow } from './HomeFeedRow';
 import { readHomeFilterTerm, writeHomeFilterTerm } from './homeFilterSession';
@@ -112,8 +122,8 @@ export function HomeScreen() {
   const [unsubscribedDownloadRows, setUnsubscribedDownloadRows] = useState<HomeFeedRowData[]>([]);
   const [hasPodcastSubscriptions, setHasPodcastSubscriptions] = useState<boolean>(false);
   const [filterTerm, setFilterTerm] = useState<string>(readHomeFilterTerm);
-  const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
+  const [hasCompletedFeedRead, setHasCompletedFeedRead] = useState<boolean>(false);
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
   const [actionErrorKey, setActionErrorKey] = useState<string | null>(null);
   const feedRequestIdRef = useRef<number>(0);
@@ -124,11 +134,17 @@ export function HomeScreen() {
   const viewModeEligible = isHomeViewModeMediaType(selectedMediaType);
   const showMarkAllSeen = selectedMediaType === 'podcasts';
 
-  // Null until the choices for the list actually on screen have been read. The feed waits on it, so
-  // the list arrives in the remembered order rather than appearing in the default one and
-  // rearranging itself a moment later.
-  const activePrefs =
-    listPrefs !== null && listPrefs.mediaType === selectedMediaType ? listPrefs : null;
+  // Defaults until AsyncStorage catches up, so the list can paint from SQLite on the first frame.
+  // Remembered sort applies when it arrives and the list rereads locally — never behind a spinner.
+  const resolvedPrefs: HomeListPrefsState =
+    listPrefs !== null && listPrefs.mediaType === selectedMediaType
+      ? listPrefs
+      : {
+          mediaType: selectedMediaType,
+          range: DEFAULT_HOME_RANGE,
+          sort: DEFAULT_HOME_SORT,
+          viewMode: listPrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE,
+        };
 
   // Only episodes/tracks (item) and clips (clip) are playlist resources; null means the row gets no
   // add-to-playlist action.
@@ -149,17 +165,31 @@ export function HomeScreen() {
     let isMounted = true;
 
     void (async () => {
-      const storedMediaType = await readPreferredMediaType();
-      if (!isMounted) {
-        return;
-      }
+      try {
+        const storedMediaType = await withHomeFeedReadBudget(
+          readPreferredMediaType(),
+          HOME_FEED_READ_TIMEOUT_MS,
+          'preferred-media-type',
+          HOME_FEED_PREFS_TIMEOUT_CODE
+        );
+        if (!isMounted) {
+          return;
+        }
 
-      if (storedMediaType !== null) {
-        setSelectedMediaType(storedMediaType);
+        if (storedMediaType !== null) {
+          setSelectedMediaType(storedMediaType);
+        }
+      } catch (error) {
+        appendHomeFeedReadFailure({
+          error,
+          mediaType: DEFAULT_HOME_MEDIA_TYPE,
+          source: 'prefs',
+        });
+      } finally {
+        if (isMounted) {
+          setIsMediaTypeHydrated(true);
+        }
       }
-      // Which list is showing settles first, so the choices are only ever read for that list and
-      // the feed is never loaded for one the user is about to leave.
-      setIsMediaTypeHydrated(true);
     })();
 
     return () => {
@@ -178,9 +208,30 @@ export function HomeScreen() {
     let isMounted = true;
 
     const readPrefs = async () => {
-      const stored = await readHomeListPrefs(selectedMediaType);
-      if (isMounted) {
-        setListPrefs({ ...stored, mediaType: selectedMediaType });
+      try {
+        const stored = await withHomeFeedReadBudget(
+          readHomeListPrefs(selectedMediaType),
+          HOME_FEED_READ_TIMEOUT_MS,
+          `${selectedMediaType}-list-prefs`,
+          HOME_FEED_PREFS_TIMEOUT_CODE
+        );
+        if (isMounted) {
+          setListPrefs({ ...stored, mediaType: selectedMediaType });
+        }
+      } catch (error) {
+        appendHomeFeedReadFailure({
+          error,
+          mediaType: selectedMediaType,
+          source: 'prefs',
+        });
+        if (isMounted) {
+          setListPrefs({
+            mediaType: selectedMediaType,
+            range: DEFAULT_HOME_RANGE,
+            sort: DEFAULT_HOME_SORT,
+            viewMode: DEFAULT_HOME_VIEW_MODE,
+          });
+        }
       }
     };
 
@@ -197,8 +248,9 @@ export function HomeScreen() {
 
   const handleMediaTypeChange = useCallback((mediaType: HomeMediaType) => {
     setFeedRows([]);
+    setUnsubscribedDownloadRows([]);
     setFeedErrorKey(null);
-    setIsFeedLoading(true);
+    setHasCompletedFeedRead(false);
     setSelectedMediaType(mediaType);
     void writePreferredMediaType(mediaType);
   }, []);
@@ -259,27 +311,18 @@ export function HomeScreen() {
     [navigation]
   );
   const loadFeed = useCallback(
-    async (source: 'initial' | 'refresh' | 'retry' | 'synced') => {
-      if (activePrefs === null) {
-        return;
-      }
+    async (source: HomeFeedLoadSource) => {
       const requestId = feedRequestIdRef.current + 1;
       feedRequestIdRef.current = requestId;
 
-      if (source === 'refresh') {
+      if (homeFeedShowsRefreshControl(source)) {
         if (isFeedRefreshing) {
           return;
         }
         setIsFeedRefreshing(true);
-        // The gesture reloads this screen and also asks the queue to reconcile everything else.
-        // The spinner answers "is this list current"; the sync bar answers "what is the app doing".
+        // The gesture rereads this list and also asks the queue to reconcile everything else.
+        // The refresh control answers "is this list current"; the sync bar answers the rest.
         requestSync('pull-to-refresh');
-      } else if (source === 'synced') {
-        // Re-read after the queue settled. No spinner and no new sync request: the sync bar already
-        // said what was happening, and asking again from here would loop.
-      } else {
-        setIsFeedLoading(true);
-        setIsFeedRefreshing(false);
       }
 
       if (requestId === feedRequestIdRef.current) {
@@ -292,27 +335,29 @@ export function HomeScreen() {
           }
           setFeedRows([]);
           setUnsubscribedDownloadRows([]);
+          setHasCompletedFeedRead(true);
         } else {
-          const rows =
+          const rows = await withHomeFeedReadBudget(
             offlineModeEnabled && isHomeDownloadedItemsOnly(selectedMediaType)
-              ? await fetchDownloadedHomeFeedRows(selectedMediaType)
-              : await fetchHomeFeedRows(
-                  selectedMediaType,
-                  {
-                    accessToken,
-                    clearSession,
-                    refreshToken,
-                    setTokens,
-                    status,
-                  },
-                  { range: activePrefs.range, sort: activePrefs.sort }
-                );
+              ? fetchDownloadedHomeFeedRows(selectedMediaType)
+              : fetchHomeFeedRows(selectedMediaType, {
+                  range: resolvedPrefs.range,
+                  sort: resolvedPrefs.sort,
+                }),
+            HOME_FEED_READ_TIMEOUT_MS,
+            `${source}-${selectedMediaType}`
+          );
           if (requestId !== feedRequestIdRef.current) {
             return;
           }
           setFeedRows(rows);
+          setHasCompletedFeedRead(true);
           if (selectedMediaType === 'podcasts') {
-            const unsubscribed = await fetchUnsubscribedDownloadHomeRows();
+            const unsubscribed = await withHomeFeedReadBudget(
+              fetchUnsubscribedDownloadHomeRows(),
+              HOME_FEED_READ_TIMEOUT_MS,
+              `${source}-unsubscribed-downloads`
+            );
             if (requestId !== feedRequestIdRef.current) {
               return;
             }
@@ -335,47 +380,44 @@ export function HomeScreen() {
             }
           }
         }
-      } catch {
+      } catch (error) {
         if (requestId !== feedRequestIdRef.current) {
           return;
         }
-        // A re-read the user did not ask for keeps quiet: the rows already on screen are still
-        // worth reading, and an error over the top of them would say nothing useful.
-        if (source === 'synced') {
+        appendHomeFeedReadFailure({
+          error,
+          mediaType: selectedMediaType,
+          source,
+        });
+        setHasCompletedFeedRead(true);
+        if (homeFeedKeepsVisibleRowsOnError(source)) {
           return;
         }
-        if (source === 'initial' || source === 'retry') {
-          setFeedRows([]);
-          setUnsubscribedDownloadRows([]);
-        }
+        setFeedRows([]);
+        setUnsubscribedDownloadRows([]);
         setFeedErrorKey('errors.generic');
       } finally {
-        if (requestId === feedRequestIdRef.current) {
-          if (source === 'refresh') {
-            setIsFeedRefreshing(false);
-          } else if (source !== 'synced') {
-            setIsFeedLoading(false);
-          }
+        if (requestId === feedRequestIdRef.current && homeFeedShowsRefreshControl(source)) {
+          setIsFeedRefreshing(false);
         }
       }
     },
     [
-      accessToken,
-      activePrefs,
-      clearSession,
       isFeedRefreshing,
       offlineModeEnabled,
-      refreshToken,
       requestSync,
+      resolvedPrefs.range,
+      resolvedPrefs.sort,
       selectedMediaType,
-      setTokens,
-      status,
     ]
   );
 
+  const loadFeedRef = useRef(loadFeed);
+  loadFeedRef.current = loadFeed;
+
   useEffect(() => {
-    void loadFeed('initial');
-  }, [loadFeed]);
+    void loadFeedRef.current('initial');
+  }, [offlineModeEnabled, resolvedPrefs.range, resolvedPrefs.sort, selectedMediaType]);
 
   useEffect(() => {
     return homeFeedRefresh.subscribe(() => {
@@ -521,12 +563,12 @@ export function HomeScreen() {
           onMarkAllSeen={handleMarkAllSeen}
           onViewModeChange={handleViewModeChange}
           showMarkAllSeen={showMarkAllSeen}
-          viewMode={activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE}
+          viewMode={resolvedPrefs.viewMode}
         />
       ),
     });
   }, [
-    activePrefs?.viewMode,
+    resolvedPrefs.viewMode,
     canMarkAllSeen,
     handleMarkAllSeen,
     handleViewModeChange,
@@ -608,7 +650,7 @@ export function HomeScreen() {
   // the two fit a screen at completely different densities and are counted separately. Cell width is
   // measured rather than flexed: flex:1 stretches a short last row (or a single subscription) to
   // full width and the grid looks like one column.
-  const isGridView = viewModeEligible && activePrefs?.viewMode === 'grid';
+  const isGridView = viewModeEligible && resolvedPrefs.viewMode === 'grid';
   const columns = isGridView ? resolveGridColumns(width) : rowColumns;
   const horizontalInset = tokens.spacing.lg;
   const gridGap = tokens.spacing.md;
@@ -681,7 +723,7 @@ export function HomeScreen() {
     });
   }, [gridCellWidth, isGridView, themeStyles, tokens]);
 
-  const showFeedRows = !isFeedLoading && feedErrorKey === null;
+  const showFeedRows = feedErrorKey === null;
   const showFilterField =
     showFeedRows && feedRows.length > 0 && isHomeFilterMediaType(selectedMediaType);
   const showActionError = showFeedRows && feedRows.length > 0 && actionErrorKey !== null;
@@ -699,6 +741,7 @@ export function HomeScreen() {
     status !== 'authenticated' &&
     hasPodcastSubscriptions;
   const showNoSubscriptions =
+    hasCompletedFeedRead &&
     !showClipsOfflineUnavailable &&
     showFeedRows &&
     feedRows.length === 0 &&
@@ -723,7 +766,7 @@ export function HomeScreen() {
           {t(actionErrorKey)}
         </Text>
       ) : null}
-      {!isFeedLoading && feedErrorKey !== null ? (
+      {feedErrorKey !== null ? (
         <ListError
           messageKey={feedErrorKey}
           onRetry={() => {
@@ -749,9 +792,7 @@ export function HomeScreen() {
     selectedMediaType === 'tracks';
   const searchMediumOnEmpty = selectedMediaType === 'podcasts' ? 'all' : ('music' as const);
 
-  const listEmpty = isFeedLoading ? (
-    <LoadingSection testID="home-list-loading" />
-  ) : showClipsOfflineUnavailable ? (
+  const listEmpty = !hasCompletedFeedRead ? null : showClipsOfflineUnavailable ? (
     <ListEmpty
       messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
       testID="home-clips-offline-unavailable"
@@ -867,8 +908,8 @@ export function HomeScreen() {
                 <HomeSortChip
                   onRangeChange={handleRangeChange}
                   onSortChange={handleSortChange}
-                  range={activePrefs?.range ?? DEFAULT_HOME_RANGE}
-                  sort={activePrefs?.sort ?? DEFAULT_HOME_SORT}
+                  range={resolvedPrefs.range}
+                  sort={resolvedPrefs.sort}
                 />
               ) : undefined
             }

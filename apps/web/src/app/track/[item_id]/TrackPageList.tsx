@@ -51,7 +51,12 @@ export const TrackPageList: React.FC<TrackPageListProps> = ({
 
   return (
     <DetailListWrapper>
-      {type === 'summary' && <CoreEpisodeSummary description={ssrItem.item_description?.value} />}
+      {type === 'summary' && (
+        <CoreEpisodeSummary
+          description={ssrItem.item_description?.value}
+          item_persons={ssrItem.item_persons}
+        />
+      )}
       {type === 'boosts' && boostsPageFetcher !== null && (
         <BoostMessagesSection
           heading={tV4VBoostMessages('title')}

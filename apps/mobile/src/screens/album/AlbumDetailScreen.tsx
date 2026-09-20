@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, RefreshControl, StyleSheet, Switch, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Switch, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import {
@@ -9,10 +9,13 @@ import {
   primaryChannelListArtworkUrl,
   primaryListArtworkUrl,
 } from '@podverse/helpers';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
+import { ChannelAboutSection, FundingLinksSection } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip } from '../../components/form';
 import { FillList, ListRow } from '../../components/primitives';
@@ -54,7 +57,7 @@ import { mapItemToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { HomeRowMetadata } from '../home/homeRowMetadata';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
-import { channelHasPodroll } from '../podcast/podcastSections';
+import { channelHasFunding, channelHasPodroll } from '../podcast/podcastSections';
 
 type AlbumDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'AlbumDetail'>;
 
@@ -77,6 +80,7 @@ const FIRST_PAGE = 1;
 
 const SECTION_LABEL_KEYS: Record<AlbumTab, string> = {
   about: 'info.about',
+  funding: 'info.funding',
   podroll: 'info.podroll',
   settings: 'settings.settings',
   tracks: 'media.music.tracks',
@@ -152,6 +156,7 @@ const removeDuplicateItems = (items: DTOItem[]): DTOItem[] => {
 export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { albumId, previewImageUrl, previewTitle } = route.params;
@@ -163,6 +168,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const [isChannelLoading, setIsChannelLoading] = useState<boolean>(true);
   const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
     cachedChrome?.hasPodroll === true
+  );
+  const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
+    cachedChrome?.hasFunding === true
   );
   const [previewHeaderTitle, setPreviewHeaderTitle] = useState<string | null>(
     previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null
@@ -205,21 +213,8 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        aboutText: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          lineHeight: 24,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingTop: tokens.spacing.md,
-        },
         channelActions: {
           gap: tokens.spacing.sm,
-        },
-        channelActionRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          marginHorizontal: -tokens.spacing.sm,
         },
         headerActions: {
           alignItems: 'center',
@@ -267,6 +262,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     setChannel(null);
     setIsChannelLoading(true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
+    setPreviewHasFunding(nextChrome?.hasFunding === true);
   }, [albumId]);
 
   useEffect(() => {
@@ -335,8 +331,10 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         );
         setChannel(response);
         const hasPodroll = channelHasPodroll(response);
+        const hasFunding = channelHasFunding(response);
         setPreviewHasPodroll(hasPodroll);
-        void sectionChromeFlagsRepository.mergeChannel(albumId, { hasPodroll });
+        setPreviewHasFunding(hasFunding);
+        void sectionChromeFlagsRepository.mergeChannel(albumId, { hasFunding, hasPodroll });
       } catch {
         // Channel and list panes surface their own states.
       }
@@ -437,6 +435,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
 
   const availableSections = useMemo<AlbumTab[]>(() => {
     const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll;
+    const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding;
     return ALBUM_TABS.filter((tab) => {
       if (tab === 'settings') {
         return isSignedIn;
@@ -444,9 +443,12 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       if (tab === 'podroll') {
         return hasPodroll;
       }
+      if (tab === 'funding') {
+        return hasFunding;
+      }
       return true;
     });
-  }, [channel, isSignedIn, previewHasPodroll]);
+  }, [channel, isSignedIn, previewHasFunding, previewHasPodroll]);
 
   useEffect(() => {
     if (availableSections.includes(section)) {
@@ -594,11 +596,23 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
 
   const notificationsEnabled = notifications.isEnabled;
   const toggleNotifications = notifications.toggleEnabled;
+  const canShowBoost = getBoostEligibilityForContent({ channel }).canShowBoostAction;
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.headerActions}>
+          {canShowBoost && channel !== null ? (
+            <HeaderBarAction
+              accessibilityLabel={t('value.boost')}
+              icon="cash-outline"
+              iconColor={tokens.text.warning}
+              onPress={() => {
+                openBoost({ channel, item: null });
+              }}
+              testID="album-detail-boost"
+            />
+          ) : null}
           <HeaderBarAction
             accessibilityLabel={t(
               notificationsEnabled
@@ -620,25 +634,24 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         </View>
       ),
     });
-  }, [handleShare, navigation, notificationsEnabled, styles.headerActions, t, toggleNotifications]);
-
-  const openExternalUrl = useCallback(async (url: string) => {
-    try {
-      await Linking.openURL(url);
-    } catch {
-      // Optional convenience links only.
-    }
-  }, []);
+  }, [
+    canShowBoost,
+    channel,
+    handleShare,
+    navigation,
+    notificationsEnabled,
+    openBoost,
+    styles.headerActions,
+    t,
+    tokens.text.warning,
+    toggleNotifications,
+  ]);
 
   const channelArtworkUri =
     primaryChannelListArtworkUrl(channel?.channel_images) ?? previewArtworkUri;
   const channelViewerUri =
     primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? channelArtworkUri;
   const title = channel?.title ?? previewHeaderTitle ?? t('media.music.album');
-  const feedUrl = channel?.feed?.url ?? null;
-  const websiteUrl = channel?.channel_about?.website_link_url ?? null;
-  const hasOutboundLinks =
-    (feedUrl !== null && feedUrl.length > 0) || (websiteUrl !== null && websiteUrl.length > 0);
 
   const channelHeader = (
     <ChannelHeader
@@ -656,30 +669,6 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
               variant="outline"
             />
           </View>
-          {hasOutboundLinks ? (
-            <View style={styles.channelActionRow}>
-              {feedUrl !== null && feedUrl.length > 0 ? (
-                <HeaderBarAction
-                  accessibilityLabel={t('info.rss_feed')}
-                  icon="logo-rss"
-                  onPress={() => {
-                    void openExternalUrl(feedUrl);
-                  }}
-                  testID="album-detail-rss"
-                />
-              ) : null}
-              {websiteUrl !== null && websiteUrl.length > 0 ? (
-                <HeaderBarAction
-                  accessibilityLabel={t('info.website')}
-                  icon="globe-outline"
-                  onPress={() => {
-                    void openExternalUrl(websiteUrl);
-                  }}
-                  testID="album-detail-website"
-                />
-              ) : null}
-            </View>
-          ) : null}
         </View>
       }
       artworkUri={channelArtworkUri}
@@ -759,17 +748,21 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     />
   );
 
-  const aboutDescription = channel?.channel_description?.value?.trim() ?? '';
-  const aboutBody =
-    isChannelLoading && channel === null ? (
-      <LoadingSection testID="album-detail-about-loading" />
-    ) : aboutDescription.length > 0 ? (
-      <Text style={styles.aboutText} testID="album-detail-about">
-        {aboutDescription}
-      </Text>
-    ) : (
-      <ListEmpty messageKey="misc.info" testID="album-detail-about-empty" />
-    );
+  const aboutBody = (
+    <ChannelAboutSection
+      channel={channel}
+      isChannelLoading={isChannelLoading}
+      testIDPrefix="album-detail"
+    />
+  );
+
+  const fundingBody = (
+    <FundingLinksSection
+      fundings={channel?.channel_fundings ?? []}
+      isLoading={isChannelLoading && channel === null}
+      testIDPrefix="album-detail"
+    />
+  );
 
   const podrollBody = offlineModeEnabled ? (
     <ListEmpty messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY} testID="album-detail-podroll-offline" />
@@ -869,7 +862,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         ? aboutBody
         : section === 'podroll'
           ? podrollBody
-          : settingsBody;
+          : section === 'funding'
+            ? fundingBody
+            : settingsBody;
 
   const chipTrailing =
     section === 'tracks' ? (
@@ -894,17 +889,20 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     ) : undefined;
 
   return (
-    <ChannelDetailShell
-      channelHeader={channelHeader}
-      chipTrailing={chipTrailing}
-      isSectionHydrated={isSectionHydrated}
-      loadingTestID="album-detail-section-loading"
-      onSelectSection={handleSectionSelect}
-      sectionBody={sectionBody}
-      sectionChips={sectionChips}
-      sectionsTestID="album-detail-sections"
-      selectedSection={section}
-      testID="album-detail-screen"
-    />
+    <>
+      <ChannelDetailShell
+        channelHeader={channelHeader}
+        chipTrailing={chipTrailing}
+        isSectionHydrated={isSectionHydrated}
+        loadingTestID="album-detail-section-loading"
+        onSelectSection={handleSectionSelect}
+        sectionBody={sectionBody}
+        sectionChips={sectionChips}
+        sectionsTestID="album-detail-sections"
+        selectedSection={section}
+        testID="album-detail-screen"
+      />
+      {boostSheet}
+    </>
   );
 }

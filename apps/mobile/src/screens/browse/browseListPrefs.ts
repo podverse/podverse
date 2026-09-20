@@ -26,12 +26,7 @@ export type BrowseListPrefs = {
  * Episodes, tracks, clips, playlists, and users are list-only — a tile cannot name the row.
  */
 export const isBrowseViewModeMediaType = (mediaType: BrowseMediaType): boolean => {
-  return (
-    mediaType === 'podcasts' ||
-    mediaType === 'videos' ||
-    mediaType === 'artists' ||
-    mediaType === 'albums'
-  );
+  return mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums';
 };
 
 const isHomeViewMode = (value: string): value is HomeViewMode => {
