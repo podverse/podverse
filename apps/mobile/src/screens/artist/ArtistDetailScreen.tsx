@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, RefreshControl, StyleSheet, Switch, Text, View } from 'react-native';
 
@@ -199,6 +199,10 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           flexDirection: 'row',
           flexWrap: 'wrap',
           marginHorizontal: -tokens.spacing.sm,
+        },
+        headerActions: {
+          alignItems: 'center',
+          flexDirection: 'row',
         },
         notice: {
           color: themeStyles.textSecondary.color,
@@ -509,6 +513,36 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     shareResolvedUrl(buildPublicShareUrl('artist', artistId));
   }, [artistId]);
 
+  const notificationsEnabled = notifications.isEnabled;
+  const toggleNotifications = notifications.toggleEnabled;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          <HeaderBarAction
+            accessibilityLabel={t(
+              notificationsEnabled
+                ? 'features.notifications.disable_notifications_for_this_artist'
+                : 'features.notifications.enable_notifications_for_this_artist'
+            )}
+            icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
+            onPress={() => {
+              void toggleNotifications();
+            }}
+            testID="artist-detail-notifications-toggle"
+          />
+          <HeaderBarAction
+            accessibilityLabel={t('features.share')}
+            icon="share-outline"
+            onPress={handleShare}
+            testID="artist-detail-share"
+          />
+        </View>
+      ),
+    });
+  }, [handleShare, navigation, notificationsEnabled, styles.headerActions, t, toggleNotifications]);
+
   const openExternalUrl = useCallback(async (url: string) => {
     try {
       await Linking.openURL(url);
@@ -524,6 +558,8 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const subtitle = channel?.channel_about?.author ?? null;
   const feedUrl = channel?.feed?.url ?? null;
   const websiteUrl = channel?.channel_about?.website_link_url ?? null;
+  const hasOutboundLinks =
+    (feedUrl !== null && feedUrl.length > 0) || (websiteUrl !== null && websiteUrl.length > 0);
 
   const channelHeader = (
     <ChannelHeader
@@ -541,46 +577,30 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
               variant="outline"
             />
           </View>
-          <View style={styles.channelActionRow}>
-            <HeaderBarAction
-              accessibilityLabel={t(
-                notifications.isEnabled
-                  ? 'features.notifications.disable_notifications_for_this_artist'
-                  : 'features.notifications.enable_notifications_for_this_artist'
-              )}
-              icon={notifications.isEnabled ? 'notifications' : 'notifications-off-outline'}
-              onPress={() => {
-                void notifications.toggleEnabled();
-              }}
-              testID="artist-detail-notifications-toggle"
-            />
-            <HeaderBarAction
-              accessibilityLabel={t('features.share')}
-              icon="share-outline"
-              onPress={handleShare}
-              testID="artist-detail-share"
-            />
-            {feedUrl !== null && feedUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.rss_feed')}
-                icon="logo-rss"
-                onPress={() => {
-                  void openExternalUrl(feedUrl);
-                }}
-                testID="artist-detail-rss"
-              />
-            ) : null}
-            {websiteUrl !== null && websiteUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.website')}
-                icon="globe-outline"
-                onPress={() => {
-                  void openExternalUrl(websiteUrl);
-                }}
-                testID="artist-detail-website"
-              />
-            ) : null}
-          </View>
+          {hasOutboundLinks ? (
+            <View style={styles.channelActionRow}>
+              {feedUrl !== null && feedUrl.length > 0 ? (
+                <HeaderBarAction
+                  accessibilityLabel={t('info.rss_feed')}
+                  icon="logo-rss"
+                  onPress={() => {
+                    void openExternalUrl(feedUrl);
+                  }}
+                  testID="artist-detail-rss"
+                />
+              ) : null}
+              {websiteUrl !== null && websiteUrl.length > 0 ? (
+                <HeaderBarAction
+                  accessibilityLabel={t('info.website')}
+                  icon="globe-outline"
+                  onPress={() => {
+                    void openExternalUrl(websiteUrl);
+                  }}
+                  testID="artist-detail-website"
+                />
+              ) : null}
+            </View>
+          ) : null}
         </View>
       }
       artworkUri={channelArtworkUri}

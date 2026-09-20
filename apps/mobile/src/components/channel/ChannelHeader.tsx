@@ -13,7 +13,7 @@ export type ChannelHeaderProps = {
   description?: string | null;
   /** Lines of description before truncation. */
   descriptionLines?: number;
-  /** Renders under the title — the subscribe control, and whatever sits beside it. */
+  /** Renders under the title — subscribe, plus optional outbound links (RSS, website). */
   actions?: ReactNode;
   /** Already-localized status text under the actions, e.g. a failed follow. */
   notice?: string | null;

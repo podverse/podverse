@@ -108,8 +108,9 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
  * different endpoints and different row shapes, and a single list that tried to serve all of them
  * would branch on section in every callback.
  *
- * Actions on the channel as a whole live with the channel identity block so the same affordances
- * can be shared across podcast, album, and artist screens.
+ * Subscribe and outbound RSS / website links live on the channel identity block. Share,
+ * notifications, and settings live in the stack title bar — the same slot every channel and item
+ * detail screen uses (`mobile-screen-layout`).
  */
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
@@ -186,6 +187,10 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           flexDirection: 'row',
           flexWrap: 'wrap',
           marginHorizontal: -tokens.spacing.sm,
+        },
+        headerActions: {
+          alignItems: 'center',
+          flexDirection: 'row',
         },
         subscribeButtonRow: {
           alignItems: 'flex-start',
@@ -399,11 +404,32 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
 
   const feedUrl = channel?.feed?.url ?? null;
   const websiteUrl = channel?.channel_about?.website_link_url ?? null;
+  const hasOutboundLinks =
+    (feedUrl !== null && feedUrl.length > 0) || (websiteUrl !== null && websiteUrl.length > 0);
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: canOpenSettings
-        ? () => (
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          <HeaderBarAction
+            accessibilityLabel={t(
+              notificationsEnabled
+                ? 'features.notifications.disable_notifications_for_this_podcast'
+                : 'features.notifications.enable_notifications_for_this_podcast'
+            )}
+            icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
+            onPress={() => {
+              void toggleNotifications();
+            }}
+            testID="podcast-detail-notifications-toggle"
+          />
+          <HeaderBarAction
+            accessibilityLabel={t('features.share')}
+            icon="share-outline"
+            onPress={handleShare}
+            testID="podcast-detail-share"
+          />
+          {canOpenSettings ? (
             <HeaderBarAction
               accessibilityLabel={t('nav.stack.podcast_settings')}
               icon="settings-outline"
@@ -412,10 +438,20 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
               }}
               testID="podcast-detail-settings"
             />
-          )
-        : undefined,
+          ) : null}
+        </View>
+      ),
     });
-  }, [canOpenSettings, navigation, podcastId, t]);
+  }, [
+    canOpenSettings,
+    handleShare,
+    navigation,
+    notificationsEnabled,
+    podcastId,
+    styles.headerActions,
+    t,
+    toggleNotifications,
+  ]);
 
   /**
    * Subscribing has three behaviors and unsubscribing has one.
@@ -607,46 +643,30 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
               variant="outline"
             />
           </View>
-          <View style={styles.channelActionRow}>
-            <HeaderBarAction
-              accessibilityLabel={t(
-                notificationsEnabled
-                  ? 'features.notifications.disable_notifications_for_this_podcast'
-                  : 'features.notifications.enable_notifications_for_this_podcast'
-              )}
-              icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
-              onPress={() => {
-                void toggleNotifications();
-              }}
-              testID="podcast-detail-notifications-toggle"
-            />
-            <HeaderBarAction
-              accessibilityLabel={t('features.share')}
-              icon="share-outline"
-              onPress={handleShare}
-              testID="podcast-detail-share"
-            />
-            {feedUrl !== null && feedUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.rss_feed')}
-                icon="logo-rss"
-                onPress={() => {
-                  void openExternalUrl(feedUrl);
-                }}
-                testID="podcast-detail-rss"
-              />
-            ) : null}
-            {websiteUrl !== null && websiteUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.website')}
-                icon="globe-outline"
-                onPress={() => {
-                  void openExternalUrl(websiteUrl);
-                }}
-                testID="podcast-detail-website"
-              />
-            ) : null}
-          </View>
+          {hasOutboundLinks ? (
+            <View style={styles.channelActionRow}>
+              {feedUrl !== null && feedUrl.length > 0 ? (
+                <HeaderBarAction
+                  accessibilityLabel={t('info.rss_feed')}
+                  icon="logo-rss"
+                  onPress={() => {
+                    void openExternalUrl(feedUrl);
+                  }}
+                  testID="podcast-detail-rss"
+                />
+              ) : null}
+              {websiteUrl !== null && websiteUrl.length > 0 ? (
+                <HeaderBarAction
+                  accessibilityLabel={t('info.website')}
+                  icon="globe-outline"
+                  onPress={() => {
+                    void openExternalUrl(websiteUrl);
+                  }}
+                  testID="podcast-detail-website"
+                />
+              ) : null}
+            </View>
+          ) : null}
         </View>
       }
       artworkUri={artworkUri}

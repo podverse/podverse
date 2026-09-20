@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  consumeShareSheetPassthroughTap,
   isShareSheetPassthroughWindow,
   presentShareSheet,
-  SHARE_DISMISS_TAP_GUARD_MS,
   SHARE_PRESENT_DELAY_MS,
 } from './shareSheetPassthrough';
 
@@ -38,11 +38,16 @@ describe('shareSheetPassthrough', () => {
     expect(isShareSheetPassthroughWindow()).toBe(true);
 
     resolveShare();
-    await Promise.resolve();
+    await presented;
+    expect(isShareSheetPassthroughWindow()).toBe(false);
+  });
+
+  it('ends as soon as the dismiss tap is swallowed', async () => {
+    const share = vi.fn(() => new Promise<void>(() => undefined));
+    void presentShareSheet(share);
     expect(isShareSheetPassthroughWindow()).toBe(true);
 
-    await vi.advanceTimersByTimeAsync(SHARE_DISMISS_TAP_GUARD_MS);
-    await presented;
+    consumeShareSheetPassthroughTap();
     expect(isShareSheetPassthroughWindow()).toBe(false);
   });
 });

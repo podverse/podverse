@@ -30,14 +30,17 @@ per-screen inset under the title bar.
   divider, hairline, or shadow under the title.
 - Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar` via
   **`HeaderBarChrome`**). Trailing header actions use **`HeaderBarAction`** in `headerRight` —
-  do not invent a one-off top-right `Pressable`. **Header icons and header action labels use
-  `tokens.text.primary`** (same as the title) — never `tokens.text.accent` / link blue. That
-  color lives in **`HeaderBarAction`**; do not reintroduce accent tint on back, overflow, or
-  trailing header controls. A header More opens **`MoreMenu`** — a bottom
-  sheet that appears instantly: tertiary action group with centered bold rows, then a
-  separate opaque quaternary Cancel block (same bold weight). Do not slide or fade, do
-  not use a translucent Cancel fill, do not use a centered card, and do not style Cancel
-  as a pill.
+  do not invent a one-off top-right `Pressable`. **Share, notification (bell), and settings**
+  on podcast, album, artist, episode, and track detail belong in that title-bar slot. Do
+  **not** place them in **`ChannelHeader`** to match web `HeaderButtons` — web has no stack
+  title bar; mobile does. `ChannelHeader` `actions` is subscribe plus optional outbound
+  links (RSS, website). **Header icons and header action labels use `tokens.text.primary`**
+  (same as the title) — never `tokens.text.accent` / link blue. That color lives in
+  **`HeaderBarAction`**; do not reintroduce accent tint on back, overflow, or trailing
+  header controls. A header More opens **`MoreMenu`** — a bottom sheet that appears
+  instantly: tertiary action group with centered bold rows, then a separate opaque
+  quaternary Cancel block (same bold weight). Do not slide or fade, do not use a
+  translucent Cancel fill, do not use a centered card, and do not style Cancel as a pill.
 - Tab roots use the same title slot (Home, Search, …). Page controls such as Home's media-type
   pills and Search's field and chips sit in the body under that bar, not inside it.
 
@@ -191,7 +194,8 @@ Podcast section lists use **`PodcastSectionList`**, which already composes **`Fi
 **`ChannelHeader`** and the section chip row stay **outside** the section list so they remain
 visible while the rows scroll. **`ListFilterField`** stays in that list's `ListHeaderComponent` —
 it is not pinned. Pull-to-refresh belongs on **`PodcastSectionList`** (the list below the chips),
-so the spinner appears above the filter.
+so the spinner appears above the filter. Share, the notification bell, and settings stay in
+the stack `headerRight`, not in this pinned identity block.
 
 ## Podcast detail filter visibility
 

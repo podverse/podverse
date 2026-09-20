@@ -37,8 +37,11 @@ No `boosts` tab (Phase 3). Persist tab / sort / range via album prefs from 761.
 
 ### Header
 
-`ChannelHeader` with album artwork, title, author subtitle, shell actions (subscribe, bell, RSS,
-website, share). Description lives in About pane, not stacked under the header as a second card.
+`ChannelHeader` with album artwork, title, author subtitle, and identity actions (subscribe,
+plus RSS / website when present). Bell and share live in the stack `headerRight`, not in the
+identity block — same split as podcast ([761](761-channel-detail-shell-and-prefs.md),
+[`mobile-screen-layout`](/.cursor/rules/mobile-screen-layout.mdc)). Description lives in the
+About pane, not stacked under the header as a second card.
 
 ### First paint
 

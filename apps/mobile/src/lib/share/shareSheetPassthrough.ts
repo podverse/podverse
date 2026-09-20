@@ -1,14 +1,11 @@
 /**
  * A system share sheet lives in another window. The tap that dismisses it is also delivered to
- * the app underneath (artwork, transport, chips) on both iOS and Android. This session stays
- * active for the whole sheet plus a short beat after dismiss so that tap can be swallowed.
+ * the app underneath (artwork, transport, chips). The session is active only while that sheet
+ * is up; the swallow layer hides as soon as it eats that tap or the sheet settles.
  */
 
 /** Wait for the triggering Pressable to finish before the OS sheet presents. */
 export const SHARE_PRESENT_DELAY_MS = 50;
-
-/** Backdrop-dismiss taps arrive in the same turn the sheet promise settles — keep eating them. */
-export const SHARE_DISMISS_TAP_GUARD_MS = 500;
 
 type Listener = () => void;
 
@@ -36,9 +33,14 @@ export const subscribeShareSheetPassthrough = (listener: Listener): (() => void)
   };
 };
 
+/** The dismiss tap has been swallowed — drop the session so the next press reaches the app. */
+export const consumeShareSheetPassthroughTap = (): void => {
+  setSessionActive(false);
+};
+
 /**
  * Present a system share sheet after the current press ends. The passthrough session stays
- * active until shortly after the sheet settles so a dismiss tap does not reach app chrome.
+ * active until the sheet settles or the swallow layer eats the dismiss tap.
  */
 export const presentShareSheet = (share: () => Promise<unknown>): Promise<void> => {
   setSessionActive(true);
@@ -48,10 +50,8 @@ export const presentShareSheet = (share: () => Promise<unknown>): Promise<void> 
         .then(() => share())
         .catch(() => undefined)
         .finally(() => {
-          setTimeout(() => {
-            setSessionActive(false);
-            resolve();
-          }, SHARE_DISMISS_TAP_GUARD_MS);
+          setSessionActive(false);
+          resolve();
         });
     }, SHARE_PRESENT_DELAY_MS);
   });

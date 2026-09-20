@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, RefreshControl, StyleSheet, Switch, Text, View } from 'react-native';
 
@@ -220,6 +220,10 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           flexDirection: 'row',
           flexWrap: 'wrap',
           marginHorizontal: -tokens.spacing.sm,
+        },
+        headerActions: {
+          alignItems: 'center',
+          flexDirection: 'row',
         },
         notice: {
           color: themeStyles.textSecondary.color,
@@ -588,6 +592,36 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     shareResolvedUrl(buildPublicShareUrl('album', albumId));
   }, [albumId]);
 
+  const notificationsEnabled = notifications.isEnabled;
+  const toggleNotifications = notifications.toggleEnabled;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          <HeaderBarAction
+            accessibilityLabel={t(
+              notificationsEnabled
+                ? 'features.notifications.disable_notifications_for_this_album'
+                : 'features.notifications.enable_notifications_for_this_album'
+            )}
+            icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
+            onPress={() => {
+              void toggleNotifications();
+            }}
+            testID="album-detail-notifications-toggle"
+          />
+          <HeaderBarAction
+            accessibilityLabel={t('features.share')}
+            icon="share-outline"
+            onPress={handleShare}
+            testID="album-detail-share"
+          />
+        </View>
+      ),
+    });
+  }, [handleShare, navigation, notificationsEnabled, styles.headerActions, t, toggleNotifications]);
+
   const openExternalUrl = useCallback(async (url: string) => {
     try {
       await Linking.openURL(url);
@@ -603,6 +637,8 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const title = channel?.title ?? previewHeaderTitle ?? t('media.music.album');
   const feedUrl = channel?.feed?.url ?? null;
   const websiteUrl = channel?.channel_about?.website_link_url ?? null;
+  const hasOutboundLinks =
+    (feedUrl !== null && feedUrl.length > 0) || (websiteUrl !== null && websiteUrl.length > 0);
 
   const channelHeader = (
     <ChannelHeader
@@ -620,46 +656,30 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
               variant="outline"
             />
           </View>
-          <View style={styles.channelActionRow}>
-            <HeaderBarAction
-              accessibilityLabel={t(
-                notifications.isEnabled
-                  ? 'features.notifications.disable_notifications_for_this_album'
-                  : 'features.notifications.enable_notifications_for_this_album'
-              )}
-              icon={notifications.isEnabled ? 'notifications' : 'notifications-off-outline'}
-              onPress={() => {
-                void notifications.toggleEnabled();
-              }}
-              testID="album-detail-notifications-toggle"
-            />
-            <HeaderBarAction
-              accessibilityLabel={t('features.share')}
-              icon="share-outline"
-              onPress={handleShare}
-              testID="album-detail-share"
-            />
-            {feedUrl !== null && feedUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.rss_feed')}
-                icon="logo-rss"
-                onPress={() => {
-                  void openExternalUrl(feedUrl);
-                }}
-                testID="album-detail-rss"
-              />
-            ) : null}
-            {websiteUrl !== null && websiteUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.website')}
-                icon="globe-outline"
-                onPress={() => {
-                  void openExternalUrl(websiteUrl);
-                }}
-                testID="album-detail-website"
-              />
-            ) : null}
-          </View>
+          {hasOutboundLinks ? (
+            <View style={styles.channelActionRow}>
+              {feedUrl !== null && feedUrl.length > 0 ? (
+                <HeaderBarAction
+                  accessibilityLabel={t('info.rss_feed')}
+                  icon="logo-rss"
+                  onPress={() => {
+                    void openExternalUrl(feedUrl);
+                  }}
+                  testID="album-detail-rss"
+                />
+              ) : null}
+              {websiteUrl !== null && websiteUrl.length > 0 ? (
+                <HeaderBarAction
+                  accessibilityLabel={t('info.website')}
+                  icon="globe-outline"
+                  onPress={() => {
+                    void openExternalUrl(websiteUrl);
+                  }}
+                  testID="album-detail-website"
+                />
+              ) : null}
+            </View>
+          ) : null}
         </View>
       }
       artworkUri={channelArtworkUri}

@@ -32,25 +32,29 @@ Podcast keeps its panes under `screens/podcast/sections/`; album and artist gain
 modules later ([762](762-album-detail-parity.md), [763](763-artist-detail-parity.md)). This detail
 does **not** rebuild album/artist — only the shell and prefs they will use.
 
-### ChannelHeader actions parity
+### Channel and stack header actions
 
-Web's [`HeaderButtons`](apps/web/src/components/Media/Header/HeaderButtons.tsx) offers subscribe,
-bell, RSS, website, share, funding, and boost. Mobile podcast header already has subscribe (and
-settings / bell via other chrome). Extend the shared `actions` slot so the same affordances are
-available for podcast, album, and artist:
+Web's [`HeaderButtons`](apps/web/src/components/Media/Header/HeaderButtons.tsx) groups subscribe,
+bell, RSS, website, share, funding, and boost in the media header because web has no stack title
+bar. Mobile does. Follow [`mobile-screen-layout`](/.cursor/rules/mobile-screen-layout.mdc): share
+and the notification bell (and podcast settings) use `HeaderBarAction` in the stack
+`headerRight`. `ChannelHeader` `actions` is subscribe plus optional outbound links only. Do not
+copy web `HeaderButtons` into the identity block.
 
-| Action    | When shown                                      | Notes                               |
-| --------- | ----------------------------------------------- | ----------------------------------- |
-| Subscribe | Always                                          | Existing                            |
-| Bell      | Always (or signed-in per podcast settings rule) | Match podcast header                |
-| RSS       | `channel.feed.url` present                      | Opens feed URL                      |
-| Website   | `channel_about.website_link_url` present        | Opens external                      |
-| Share     | Always                                          | Existing share helpers              |
-| Funding   | Fundings present                                | Phase 3 / V4V — placeholder or omit |
-| Boost     | Deferred                                        | Phase 3 — do not add                |
+| Action    | Where                                         | When shown                         | Notes                  |
+| --------- | --------------------------------------------- | ---------------------------------- | ---------------------- |
+| Bell      | Stack `headerRight`                           | Always                             | Icon reflects on/off   |
+| Share     | Stack `headerRight`                           | Always                             | Existing share helpers |
+| Settings  | Stack `headerRight` (podcast) or Settings tab | Signed-in and subscribed (podcast) | Album/artist use a tab |
+| Subscribe | `ChannelHeader` `actions`                     | Always                             | Existing               |
+| RSS       | `ChannelHeader` `actions`                     | `channel.feed.url` present         | Opens feed URL         |
+| Website   | `ChannelHeader` `actions`                     | `website_link_url` present         | Opens external         |
+| Funding   | —                                             | Fundings present                   | Phase 3 — omit         |
+| Boost     | —                                             | Deferred                           | Phase 3 — do not add   |
 
-Funding and boost stay out of this detail (Phase 3). RSS / website / share land here so music
-screens inherit them without a second pass.
+Funding and boost stay out of this detail (Phase 3). RSS / website land on the identity block so
+music screens inherit them without a second pass. Bell and share stay in the title bar on
+podcast, album, and artist.
 
 ### Detail prefs unions
 
@@ -84,7 +88,8 @@ chrome cache).
 
 - Shared shell used by podcast; album/artist still their old screens until 762/763.
 - Prefs unions and readers exist for album (incl. `top` + range), artist, and track tabs.
-- Header actions include RSS / website / share when data allows; no boost/funding wiring.
+- Stack `headerRight` includes bell and share; `ChannelHeader` includes subscribe plus RSS /
+  website when data allows; no boost/funding wiring.
 - No visual inventing — match existing podcast chrome density.
 
 ## Web parity references
