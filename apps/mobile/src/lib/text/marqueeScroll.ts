@@ -1,17 +1,33 @@
-/** Trailing air past the last glyph at full scroll, so the end does not sit against the edge. */
-export const MARQUEE_TAIL_GAP = 12;
+import { spacing } from '../../theme/spacing';
+
+/**
+ * Air between the last glyph and the repeated first word. Wider than `spacing.base` so the seam
+ * reads as a break rather than the next word of the same title.
+ */
+export const MARQUEE_LOOP_GAP = spacing['2xl'];
 
 /** Scroll speed. Slow enough to read a long episode title while it passes. */
 export const MARQUEE_SPEED_DP_PER_SECOND = 28;
 
-/** Pause with the start of the label visible before scrolling, and again at the end. */
+/** Pause with the start of the label visible before the loop starts. */
 export const MARQUEE_EDGE_HOLD_MS = 1600;
-
-/** Snap back to the start rather than reversing, so each pass reads the same way. */
-export const MARQUEE_RESET_MS = 320;
 
 /** Sub-pixel differences are measurement noise, not overflow worth animating. */
 const OVERFLOW_EPSILON = 1;
+
+/**
+ * Ignore layout jitter so a 0.4dp onLayout wobble cannot restart the pass or flip
+ * overflow on and off.
+ */
+export const stabilizeMeasuredWidth = (previous: number, next: number): number => {
+  if (!Number.isFinite(next) || next < 0) {
+    return previous;
+  }
+  if (Math.abs(previous - next) <= OVERFLOW_EPSILON) {
+    return previous;
+  }
+  return next;
+};
 
 /**
  * Whether a label overflows its viewport by enough to be worth scrolling.
@@ -34,9 +50,9 @@ export const shouldMarqueeScroll = ({
   return contentWidth - viewportWidth > OVERFLOW_EPSILON;
 };
 
-/** How far the label travels: the hidden overflow plus trailing air. */
-export const marqueeScrollDistance = (contentWidth: number, viewportWidth: number): number => {
-  return Math.max(0, contentWidth - viewportWidth) + MARQUEE_TAIL_GAP;
+/** How far one revolution travels: one full copy plus the seam before the title repeats. */
+export const marqueeLoopDistance = (contentWidth: number): number => {
+  return Math.max(0, contentWidth) + MARQUEE_LOOP_GAP;
 };
 
 /** Travel time at a constant speed, so short and long titles scroll at the same rate. */

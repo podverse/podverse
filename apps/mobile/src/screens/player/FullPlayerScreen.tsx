@@ -555,10 +555,11 @@ export function FullPlayerScreen({
           minWidth: 0,
         },
         titleBlock: {
-          alignItems: 'center',
+          alignItems: 'stretch',
           gap: tokens.spacing.xs,
           justifyContent: 'center',
           minHeight: FULL_PLAYER_TITLE_BLOCK_HEIGHT,
+          width: '100%',
         },
         viewport: {
           flex: 1,

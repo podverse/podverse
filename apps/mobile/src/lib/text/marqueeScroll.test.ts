@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
+import { spacing } from '../../theme/spacing';
 import {
-  MARQUEE_TAIL_GAP,
-  marqueeScrollDistance,
+  MARQUEE_LOOP_GAP,
+  marqueeLoopDistance,
   marqueeScrollDurationMs,
   shouldMarqueeScroll,
+  stabilizeMeasuredWidth,
 } from './marqueeScroll';
 
 describe('shouldMarqueeScroll', () => {
@@ -42,13 +44,28 @@ describe('shouldMarqueeScroll', () => {
   });
 });
 
-describe('marqueeScrollDistance', () => {
-  it('travels the hidden overflow plus trailing air', () => {
-    expect(marqueeScrollDistance(320, 180)).toBe(140 + MARQUEE_TAIL_GAP);
+describe('marqueeLoopDistance', () => {
+  it('travels one copy plus the seam', () => {
+    expect(marqueeLoopDistance(320)).toBe(320 + MARQUEE_LOOP_GAP);
   });
 
-  it('never travels backwards for a label that fits', () => {
-    expect(marqueeScrollDistance(120, 180)).toBe(MARQUEE_TAIL_GAP);
+  it('keeps the seam wider than a word-sized gap', () => {
+    expect(MARQUEE_LOOP_GAP).toBe(spacing['2xl']);
+    expect(MARQUEE_LOOP_GAP).toBeGreaterThan(spacing.base);
+  });
+});
+
+describe('stabilizeMeasuredWidth', () => {
+  it('keeps the first real width', () => {
+    expect(stabilizeMeasuredWidth(0, 348)).toBe(348);
+  });
+
+  it('ignores sub-pixel jitter that would restart a pass', () => {
+    expect(stabilizeMeasuredWidth(348, 348.4)).toBe(348);
+  });
+
+  it('accepts a real resize of the bar', () => {
+    expect(stabilizeMeasuredWidth(348, 280)).toBe(280);
   });
 });
 
