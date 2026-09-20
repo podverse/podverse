@@ -3,6 +3,8 @@
 import type { AccountSignupMode } from '@podverse/helpers';
 import {
   DEFAULT_AUTH_JWT_EXPIRATION,
+  DEFAULT_AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION,
+  DEFAULT_AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION,
   DEFAULT_FREE_TRIAL_EXPIRATION,
   DEFAULT_RESET_PASSWORD_TOKEN_EXPIRATION,
   DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION,
@@ -66,6 +68,10 @@ type Config = {
     /** From AUTH_JWT_EXPIRATION. */
     jwtExpiration: number;
     sessionCookieMaxAgeMs: number;
+    /** From AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION. */
+    mobileAccessTokenExpiration: number;
+    /** From AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION. */
+    mobileRefreshTokenExpiration: number;
     /** When true, login may include JWT in JSON if the client sends includeTokenInResponseBody (non-cookie clients only). */
     allowTokenInResponseBody: boolean;
   };
@@ -275,6 +281,14 @@ export const config: Config = {
       jwtSecret: process.env.AUTH_JWT_SECRET!,
       jwtExpiration,
       sessionCookieMaxAgeMs: jwtExpiration * MS_PER_SECOND,
+      mobileAccessTokenExpiration: readOptionalPositiveExpirationEnv(
+        'AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION',
+        DEFAULT_AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION
+      ),
+      mobileRefreshTokenExpiration: readOptionalPositiveExpirationEnv(
+        'AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION',
+        DEFAULT_AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION
+      ),
       allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
     };
   })(),

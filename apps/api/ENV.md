@@ -164,6 +164,8 @@ For local setup, set [legal entity](#legal-entity) in [`legal.env`](/dev/env-ove
 ### Token Expiration
 
 - **`AUTH_JWT_EXPIRATION`** (Optional) - Session JWT and auth cookie max-age, in seconds (default: 31536000). Values ending with `_EXPIRATION` are always integer seconds.
+- **`AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION`** (Optional) - Mobile access JWT lifetime in seconds (default: 900, 15 minutes).
+- **`AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION`** (Optional) - Mobile refresh JWT lifetime in seconds (default: 31536000, 365 days). Rotating `AUTH_JWT_SECRET` ends every mobile session.
 
 - **`VERIFY_EMAIL_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Email verification token lifetime in seconds (integer > 0)
 - **`EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Email change verification token lifetime in seconds (integer > 0)
@@ -239,6 +241,8 @@ Variables whose names end with `_EXPIRATION`, or that contain `PORT`, are automa
 - `KEYVALDB_PORT`
 - `KEYVALDB_CACHE_EXPIRATION`
 - `AUTH_JWT_EXPIRATION`
+- `AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION`
+- `AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION`
 - `MEMBERSHIP_FREE_TRIAL_EXPIRATION`
 - `MAILER_PORT`
 - `VERIFY_EMAIL_TOKEN_EXPIRATION`

@@ -3,7 +3,7 @@
  * Ports 5732 (Postgres) and 6679 (Valkey) are Podverse test-only; dev uses 5432/6379.
  */
 
-/** Minimum seconds for any `*_EXPIRATION` in default test env (1 day). */
+/** Default seconds for most `*_EXPIRATION` keys in test env (1 day). Mobile access stays at 900. */
 export const PODVERSE_TEST_MIN_EXPIRATION = 86400;
 
 const exp = String(PODVERSE_TEST_MIN_EXPIRATION);
@@ -32,6 +32,8 @@ const apiTestEnvBase = (): Record<string, string> => ({
   USER_AGENT: 'Example Bot test/API/5',
   AUTH_JWT_SECRET: '11111111-1111-4111-8111-111111111111',
   AUTH_JWT_EXPIRATION: exp,
+  AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION: '900',
+  AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION: '31536000',
   AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY: 'false',
   API_PREFIX: '/api',
   API_VERSION: '/v2',
@@ -156,6 +158,8 @@ const managementApiTestEnvBase = (): Record<string, string> => ({
   LOG_DIR: '',
   AUTH_JWT_SECRET: '11111111-1111-4111-8111-111111111111',
   AUTH_JWT_EXPIRATION: exp,
+  AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION: '900',
+  AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION: '31536000',
   AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY: 'false',
   API_PREFIX: '/api',
   API_VERSION: '/v2',

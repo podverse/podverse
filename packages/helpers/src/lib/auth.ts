@@ -1,9 +1,9 @@
-import { SECONDS_PER_DAY, SECONDS_PER_MINUTE } from './timeConstants.js';
+import { ONE_YEAR_SECONDS, SECONDS_PER_MINUTE } from './timeConstants.js';
 
 export const AuthCookieName = 'jwt';
 
 /**
- * How long a mobile bearer token is honoured before the client must refresh, in seconds.
+ * Fallback when `AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION` is unset — 15 minutes.
  *
  * Short because a mobile access token travels in a header rather than a cookie the browser will
  * scope for us, so the window in which a leaked one is useful is the only bound available.
@@ -12,12 +12,44 @@ export const AuthCookieName = 'jwt';
  * a phone are the same session policy, and letting the two drift would mean a security decision
  * changed in one place and not the other.
  */
-export const MOBILE_ACCESS_TOKEN_TTL_SECONDS = 15 * SECONDS_PER_MINUTE;
+export const DEFAULT_AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION = 15 * SECONDS_PER_MINUTE;
 
 /**
- * How long a mobile refresh token stays valid, in seconds.
+ * Fallback when `AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION` is unset — 1 year.
  *
- * Long enough that ordinary use never forces a re-login, which is what keeps the access token above
- * short enough to be worth having. Rotation on use is what limits the damage of a stolen one.
+ * Long enough that an unused install stays signed in across ordinary gaps. Rotating
+ * `AUTH_JWT_SECRET` is the operator action that ends every mobile session at once.
  */
-export const MOBILE_REFRESH_TOKEN_TTL_SECONDS = 30 * SECONDS_PER_DAY;
+export const DEFAULT_AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION = ONE_YEAR_SECONDS;
+
+export type MobileRefreshJwtPayload = {
+  id: number;
+  id_text: string;
+  token_use: 'refresh';
+};
+
+export function isMobileRefreshJwtPayload(value: unknown): value is MobileRefreshJwtPayload {
+  if (value === null || typeof value !== 'object') {
+    return false;
+  }
+
+  if (!('token_use' in value) || value.token_use !== 'refresh') {
+    return false;
+  }
+
+  if (
+    !('id' in value) ||
+    typeof value.id !== 'number' ||
+    !Number.isInteger(value.id) ||
+    !Number.isFinite(value.id) ||
+    value.id <= 0
+  ) {
+    return false;
+  }
+
+  if (!('id_text' in value) || typeof value.id_text !== 'string' || value.id_text === '') {
+    return false;
+  }
+
+  return true;
+}

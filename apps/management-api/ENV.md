@@ -74,6 +74,8 @@ Management-api builds absolute URLs for invite links. **Regular users** open the
 ### Auth & user management
 
 - **`AUTH_JWT_EXPIRATION`** (Optional) - JWT session and cookie max-age in seconds (default: 31536000, 365 days)
+- **`AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION`** (Optional) - Mobile access JWT lifetime in seconds (default: 900, 15 minutes)
+- **`AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION`** (Optional) - Mobile refresh JWT lifetime in seconds (default: 31536000, 365 days). Rotating `AUTH_JWT_SECRET` ends every mobile session.
 - **`MANAGEMENT_API_SET_PASSWORD_EXPIRATION`** (Optional) - Set-password invite link lifetime in seconds (default: 604800, 7 days)
 
 ### General
@@ -101,6 +103,8 @@ Variables whose names end with `_EXPIRATION` or that contain `PORT` are automati
 - `DB_PORT`
 - `API_PORT`
 - `AUTH_JWT_EXPIRATION`
+- `AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION`
+- `AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION`
 - `MANAGEMENT_API_SET_PASSWORD_EXPIRATION`
 
 ### Format Validation

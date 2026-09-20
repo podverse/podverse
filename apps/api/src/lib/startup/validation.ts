@@ -152,6 +152,20 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   );
   results.push(
     validateOptional(
+      'AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION',
+      'Auth & Security',
+      'Blank uses default (900 seconds)'
+    )
+  );
+  results.push(
+    validateOptional(
+      'AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION',
+      'Auth & Security',
+      'Blank uses default (31536000 seconds)'
+    )
+  );
+  results.push(
+    validateOptional(
       'AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY',
       'Auth & Security',
       'Blank/false: omit token from login JSON; true: allow token when client sends includeTokenInResponseBody'

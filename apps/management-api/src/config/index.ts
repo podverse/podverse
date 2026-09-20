@@ -2,6 +2,8 @@
 
 import {
   DEFAULT_AUTH_JWT_EXPIRATION,
+  DEFAULT_AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION,
+  DEFAULT_AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION,
   DEFAULT_SET_PASSWORD_EXPIRATION,
   MS_PER_SECOND,
   readOptionalPositiveExpirationEnv,
@@ -32,6 +34,8 @@ type Config = {
     jwtSecret: string;
     jwtExpiration: number;
     sessionCookieMaxAgeMs: number;
+    mobileAccessTokenExpiration: number;
+    mobileRefreshTokenExpiration: number;
     allowTokenInResponseBody: boolean;
   };
   api: {
@@ -105,6 +109,14 @@ export const config: Config = {
       jwtSecret: process.env.AUTH_JWT_SECRET!,
       jwtExpiration,
       sessionCookieMaxAgeMs: jwtExpiration * MS_PER_SECOND,
+      mobileAccessTokenExpiration: readOptionalPositiveExpirationEnv(
+        'AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION',
+        DEFAULT_AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION
+      ),
+      mobileRefreshTokenExpiration: readOptionalPositiveExpirationEnv(
+        'AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION',
+        DEFAULT_AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION
+      ),
       allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
     };
   })(),
