@@ -270,6 +270,7 @@ export function FullPlayerScreen({
   const [manualUpcomingCount, setManualUpcomingCount] = useState(0);
   const [actionNoticeKey, setActionNoticeKey] = useState<string | null>(null);
   const [isSavingSubscription, setIsSavingSubscription] = useState(false);
+  const [isMarkingPlayed, setIsMarkingPlayed] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const isV4vEnabled = getMobileConfig().isV4vEnabled;
@@ -852,7 +853,7 @@ export function FullPlayerScreen({
 
   const handleMarkAsPlayed = useCallback(() => {
     const target = resolveQueueMutationTarget(activeTarget);
-    if (target === null) {
+    if (target === null || isMarkingPlayed) {
       return;
     }
 
@@ -866,6 +867,7 @@ export function FullPlayerScreen({
 
     void (async () => {
       const nextCompleted = !isMarkedPlayed;
+      setIsMarkingPlayed(true);
       setActionNoticeKey(null);
       try {
         const marked = await markAsPlayed(
@@ -889,6 +891,8 @@ export function FullPlayerScreen({
           return;
         }
         setActionNoticeKey('features.history.mark_as_played_error');
+      } finally {
+        setIsMarkingPlayed(false);
       }
     })();
   }, [
@@ -896,6 +900,7 @@ export function FullPlayerScreen({
     evaluateFeature,
     handleGateError,
     isMarkedPlayed,
+    isMarkingPlayed,
     isTierKnown,
     markAsPlayed,
     openGate,
@@ -1369,6 +1374,7 @@ export function FullPlayerScreen({
         enclosureSelectedParams={enclosureSelectedParams}
         itemLabeledEnclosures={itemLabeledEnclosures}
         isMarkedPlayed={isMarkedPlayed}
+        isMarkingPlayed={isMarkingPlayed}
         isSubscribed={isSubscribed}
         onCancel={handleCloseSheet}
         onSelectEnclosureParams={switchEnclosureSelectedParams}

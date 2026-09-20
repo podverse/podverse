@@ -1,0 +1,57 @@
+---
+description: Choose debounce, throttle, quantize, or in-flight guards for continuous and tap input
+globs:
+  - "apps/mobile/**"
+  - "apps/web/src/**"
+  - "apps/management-web/src/**"
+  - "packages/ui/src/**"
+alwaysApply: false
+---
+
+# Input rate control
+
+Choose the mechanism by intent — do not sprinkle `setTimeout` as a default.
+
+| Intent | Mechanism |
+| ------ | --------- |
+| Wait until they stop typing, then fetch | Trailing debounce |
+| Act on the first tap, then coalesce a burst | Leading-plus-trailing throttle |
+| Finger is dragging a value the UI can only show coarsely | Quantize to the smallest visible unit and dedupe |
+| A write must not double-fire | In-flight guard in the handler (not only a `disabled` prop) |
+| Local list filter already in memory | Nothing — stay responsive |
+
+## Continuous gesture / drag
+
+- Never debounce something a finger is dragging — the visual must track the finger. Quantize to the
+  smallest unit the label or slot can show, dedupe, and keep the paint on the UI thread.
+- RNGH `Gesture.*` objects must be `useMemo`'d. Rebuilding a `Gesture` on every React render
+  re-attaches the recognizer mid-gesture and causes scrubber / drag thrash.
+- Gate worklet-to-JS hops (`runOnJS`) on a **changed quantized value**, not every frame.
+- Per-frame `setState` during drag must compare against the previous value first (e.g.
+  `isSameHoverTarget`) so an unchanged slot does not re-render the tree.
+
+## Taps that write
+
+- Every tap that writes to the network or durable storage needs an in-flight guard inside the
+  handler. A `disabled` prop alone is not enough (programmatic calls, accessibility actions).
+- Prefer a shared helper (`createInFlightGuard`) keyed by action + resource id when many call sites
+  share one mutation hook.
+
+## Concurrent async reads
+
+- Concurrent fetches that apply to the same UI need a request-generation id (see
+  `feedRequestIdRef` on Home, `searchRequestIdRef` on Search) so a slow response cannot overwrite a
+  newer one.
+
+## Reuse before inventing
+
+- Prefer an existing coalescing window before adding a new timer: playback outbox intervals
+  (`PLAYBACK_POSITION_NETWORK_INTERVAL_MS`, `PLAYBACK_POSITION_LOCAL_INTERVAL_MS`,
+  `PLAYBACK_SEEK_NETWORK_COALESCE_MS`), download store ~2 Hz channel.
+- Precedents: Search `SEARCH_DEBOUNCE_MS` 450, web `SearchInput` / `useTableFilterState`.
+
+## Do not
+
+- Debounce a local in-memory list filter (`ListFilterField`).
+- Debounce the visible playback clock — clocks already quantize to whole seconds.
+- Persist free-text filter terms to device prefs (see **filter-sort-persistence**).

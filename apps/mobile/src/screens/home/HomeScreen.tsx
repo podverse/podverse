@@ -129,6 +129,7 @@ export function HomeScreen() {
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
   const [actionErrorKey, setActionErrorKey] = useState<string | null>(null);
   const feedRequestIdRef = useRef<number>(0);
+  const unsubscribingIdsRef = useRef<Set<string>>(new Set());
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
 
@@ -494,6 +495,10 @@ export function HomeScreen() {
 
   const handleUnsubscribe = useCallback(
     async (row: HomeFeedRowData) => {
+      if (unsubscribingIdsRef.current.has(row.id)) {
+        return;
+      }
+      unsubscribingIdsRef.current.add(row.id);
       setActionErrorKey(null);
       try {
         const result = await subscriptionsRepository.unsubscribe({
@@ -519,6 +524,8 @@ export function HomeScreen() {
       } catch {
         setActionErrorKey('errors.generic');
         throw new Error('Unsubscribe failed');
+      } finally {
+        unsubscribingIdsRef.current.delete(row.id);
       }
     },
     [accessToken, clearSession, feedRows.length, refreshToken, selectedMediaType, setTokens, status]

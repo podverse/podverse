@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
 import { addByRssRepository } from '../data';
 import { mergeLocalAndRemoteAddByRssFeeds } from '../lib/addByRss/domain';
 import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
+import { createInFlightGuard } from '../lib/rateLimit/createInFlightGuard';
 import type { MobileAddByRSSFeedRecord } from '../prefs/addByRSSFeeds';
 
 type UseAddByRssFeedsOptions = {
@@ -16,6 +17,8 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
   const [feeds, setFeeds] = useState<MobileAddByRSSFeedRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [removingFeedUrl, setRemovingFeedUrl] = useState<string | null>(null);
+  const removeGuard = useMemo(() => createInFlightGuard(), []);
 
   const reloadFeeds = useCallback(async () => {
     setIsLoading(true);
@@ -72,30 +75,38 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
 
   const removeFeed = useCallback(
     async (feedUrl: string) => {
-      try {
-        await requestWithMobileAuthRefresh(
-          {
-            accessToken,
-            clearSession,
-            refreshToken,
-            setTokens,
-          },
-          async (api) =>
-            api.reqAccountUnfollowAddByRSSChannel({
-              feed_url: feedUrl,
-            })
-        );
-      } catch {
-        onNotice('errors.generic');
-      }
+      const result = await removeGuard.run(feedUrl, async () => {
+        setRemovingFeedUrl(feedUrl);
+        try {
+          try {
+            await requestWithMobileAuthRefresh(
+              {
+                accessToken,
+                clearSession,
+                refreshToken,
+                setTokens,
+              },
+              async (api) =>
+                api.reqAccountUnfollowAddByRSSChannel({
+                  feed_url: feedUrl,
+                })
+            );
+          } catch {
+            onNotice('errors.generic');
+          }
 
-      await addByRssRepository.removeFeed(feedUrl);
-      const nextFeeds = await addByRssRepository.listFeeds();
-      setFeeds(nextFeeds);
-      // Home stays mounted under its tab, so it will not reload on its own.
-      homeFeedRefresh.notify();
+          await addByRssRepository.removeFeed(feedUrl);
+          const nextFeeds = await addByRssRepository.listFeeds();
+          setFeeds(nextFeeds);
+          // Home stays mounted under its tab, so it will not reload on its own.
+          homeFeedRefresh.notify();
+        } finally {
+          setRemovingFeedUrl(null);
+        }
+      });
+      return result !== false;
     },
-    [accessToken, clearSession, onNotice, refreshToken, setTokens]
+    [accessToken, clearSession, onNotice, refreshToken, removeGuard, setTokens]
   );
 
   return {
@@ -104,5 +115,6 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
     isLoading,
     reloadFeeds,
     removeFeed,
+    removingFeedUrl,
   };
 }

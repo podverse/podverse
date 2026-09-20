@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
 import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
@@ -33,12 +33,17 @@ export function useAddByRssAddFlow({
   const { evaluateFeature } = useAccessTier();
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [addErrorKey, setAddErrorKey] = useState<string | null>(null);
+  const isAddingRef = useRef(false);
 
   // Adding requires server-side feed parsing, so it is membership-tier. Feeds already added stay
   // visible and playable when a membership lapses — only adding stops.
   const addAccess = evaluateFeature('add_by_rss_add');
 
   const addFeed = useCallback(async () => {
+    if (isAddingRef.current) {
+      return;
+    }
+
     if (!addAccess.allowed) {
       openGate(addAccess.reason);
       return;
@@ -52,6 +57,7 @@ export function useAddByRssAddFlow({
 
     // The keyboard covers the tab bar. Dismiss now so the list and tabs are reachable while parse runs.
     Keyboard.dismiss();
+    isAddingRef.current = true;
     setIsAdding(true);
     setAddErrorKey(null);
     onNotice(null);
@@ -126,6 +132,7 @@ export function useAddByRssAddFlow({
       }
       setAddErrorKey('errors.generic');
     } finally {
+      isAddingRef.current = false;
       setIsAdding(false);
     }
   }, [

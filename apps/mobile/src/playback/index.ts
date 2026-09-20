@@ -1,6 +1,7 @@
 export {
   PlaybackProvider,
   usePlayback,
+  usePlaybackDuration,
   usePlaybackPositionClock,
   usePlaybackProgress,
   usePlaybackProgressRatio,

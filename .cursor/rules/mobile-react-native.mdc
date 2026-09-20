@@ -52,6 +52,7 @@ alwaysApply: false
   fine-grained ticks (bytes, position) get their own opt-in notification channel at ~2 Hz — never a
   SQLite write, native-cache projection, or filesystem walk per tick. See
   **mobile-progress-ux-and-notification-channels**; `src/downloads/downloadStore.ts` is the example.
+  Continuous gestures, typing-to-fetch, and write taps: **input-rate-control**.
 - **Add-by-RSS:** server parse + poll only; map with `@podverse/parser-mapping`; never import
   `@podverse/parser`.
 - **Visual:** prefer shared RN primitives (`components/primitives/`) + tokens. In **Phase 2**, polish

@@ -63,6 +63,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [resolvingFeedId, setResolvingFeedId] = useState<string | null>(null);
   const inputRef = useRef<TextInput | null>(null);
+  const searchRequestIdRef = useRef(0);
 
   const wantsAutoFocus = route.params?.autoFocus === true;
   const requestedMedium = route.params?.medium;
@@ -128,6 +129,8 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
       return;
     }
 
+    const requestId = searchRequestIdRef.current + 1;
+    searchRequestIdRef.current = requestId;
     let isMounted = true;
     void (async () => {
       setIsLoading(true);
@@ -147,20 +150,20 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
             })
         );
 
-        if (!isMounted) {
+        if (!isMounted || requestId !== searchRequestIdRef.current) {
           return;
         }
 
         setFeeds(response.feeds);
       } catch {
-        if (!isMounted) {
+        if (!isMounted || requestId !== searchRequestIdRef.current) {
           return;
         }
 
         setErrorKey('errors.generic');
         setFeeds([]);
       } finally {
-        if (isMounted) {
+        if (isMounted && requestId === searchRequestIdRef.current) {
           setIsLoading(false);
         }
       }

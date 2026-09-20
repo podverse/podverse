@@ -31,6 +31,7 @@ import type { PlaybackEventKind } from '@podverse/helpers/playbackEvents';
 import {
   PLAYBACK_POSITION_LOCAL_INTERVAL_MS,
   PLAYBACK_POSITION_NETWORK_INTERVAL_MS,
+  PLAYBACK_SEEK_NETWORK_COALESCE_MS,
 } from '@podverse/helpers/playbackOutboxLimits';
 import { getQueueForMedium } from '@podverse/helpers/queue';
 import { getShuffleHash } from '@podverse/helpers-requests';
@@ -111,6 +112,7 @@ import {
   resolveSessionEnclosureSelectedParams,
 } from '../lib/playback/resolveEnclosureUrl';
 import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
+import { shouldPostSeekEventNow } from '../lib/playback/seekEventCoalescing';
 import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
 import { readPlaybackMediaTypePref } from '../prefs/preferredMediaType';
 import { getPref, setPref } from '../prefs/prefsStore';
@@ -135,6 +137,7 @@ import {
   shouldPromptForPlaybackHandoffConflict,
 } from './playbackHandoff';
 import {
+  getPlaybackDurationSeconds,
   getPlaybackPositionClockSeconds,
   getPlaybackProgressRatio,
   getPlaybackProgressSnapshot,
@@ -144,6 +147,7 @@ import {
   setPlaybackProgress,
   setPlaybackProgressPlaying,
   setPlaybackProgressRate,
+  subscribePlaybackDuration,
   subscribePlaybackPositionClock,
   subscribePlaybackProgress,
 } from './playbackProgressStore';
@@ -545,6 +549,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const previousAuthStatusRef = useRef(status);
   const lastPlaybackLocalWriteRef = useRef<number>(0);
   const lastPlaybackNetworkWriteRef = useRef<number>(0);
+  const lastSeekNetworkPostAtRef = useRef<number | null>(null);
+  const seekNetworkFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const appStateRef = useRef(AppState.currentState);
   const accountIdTextRef = useRef<string | null>(account?.id_text ?? null);
   const playbackHandoffPromptRef = useRef<PlaybackHandoffPromptState | null>(null);
@@ -611,6 +617,15 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     return subscribePlaybackReconcileConflicts((conflicts) => {
       setPlaybackReconcileConflicts([...conflicts]);
     });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (seekNetworkFlushTimerRef.current !== null) {
+        clearTimeout(seekNetworkFlushTimerRef.current);
+        seekNetworkFlushTimerRef.current = null;
+      }
+    };
   }, []);
 
   const setPlaybackPlaying = useCallback((playing: boolean): void => {
@@ -798,6 +813,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
         if (!shouldPostNetworkNow) {
           return true;
+        }
+
+        // A forced network post (play/pause/complete/leading seek) supersedes a pending trailing
+        // seek flush — the newer claim already carries the latest position the listener needs.
+        if (seekNetworkFlushTimerRef.current !== null) {
+          clearTimeout(seekNetworkFlushTimerRef.current);
+          seekNetworkFlushTimerRef.current = null;
         }
 
         lastPlaybackNetworkWriteRef.current = occurredAt;
@@ -2144,13 +2166,51 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       nativePlaybackBridge.seek(seconds);
       positionRef.current = seconds;
       setPlaybackPositionSeconds(seconds);
+      const occurredAt = Date.now();
+      const postNetworkNow = shouldPostSeekEventNow({
+        lastSeekPostAtMs: lastSeekNetworkPostAtRef.current,
+        occurredAt,
+        windowMs: PLAYBACK_SEEK_NETWORK_COALESCE_MS,
+      });
+
+      if (postNetworkNow) {
+        lastSeekNetworkPostAtRef.current = occurredAt;
+        void writePlaybackEvent({
+          eventKind: playbackEventFromDiscreteSignal('seek'),
+          forceNetwork: true,
+          isPlaying: isPlayingRef.current,
+          mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
+          occurredAt,
+          playbackPositionSeconds: seconds,
+        });
+        return;
+      }
+
       void writePlaybackEvent({
         eventKind: playbackEventFromDiscreteSignal('seek'),
-        forceNetwork: true,
+        forceNetwork: false,
         isPlaying: isPlayingRef.current,
         mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
+        occurredAt,
         playbackPositionSeconds: seconds,
       });
+
+      if (seekNetworkFlushTimerRef.current !== null) {
+        return;
+      }
+      seekNetworkFlushTimerRef.current = setTimeout(() => {
+        seekNetworkFlushTimerRef.current = null;
+        const flushAt = Date.now();
+        lastSeekNetworkPostAtRef.current = flushAt;
+        void writePlaybackEvent({
+          eventKind: playbackEventFromDiscreteSignal('seek'),
+          forceNetwork: true,
+          isPlaying: isPlayingRef.current,
+          mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
+          occurredAt: flushAt,
+          playbackPositionSeconds: positionRef.current,
+        });
+      }, PLAYBACK_SEEK_NETWORK_COALESCE_MS);
     },
     [writePlaybackEvent]
   );
@@ -2479,6 +2539,15 @@ export function usePlaybackPositionClock(): number {
     subscribePlaybackPositionClock,
     getPlaybackPositionClockSeconds,
     getPlaybackPositionClockSeconds
+  );
+}
+
+/** Media duration — re-renders when length changes, not on every playhead tick. */
+export function usePlaybackDuration(): number {
+  return useSyncExternalStore(
+    subscribePlaybackDuration,
+    getPlaybackDurationSeconds,
+    getPlaybackDurationSeconds
   );
 }
 

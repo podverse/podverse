@@ -16,6 +16,7 @@ import type { HoverTarget, SectionBounds, SlotLayout } from '../../lib/reorder/r
 import {
   computeItemShift,
   flattenReorderSections,
+  isSameHoverTarget,
   resolveHover,
 } from '../../lib/reorder/resolveHover';
 import { useTheme } from '../../theme/useTheme';
@@ -341,7 +342,7 @@ export function ReorderableSections<T>({
         absoluteY
       );
       hoverRef.current = next;
-      setHover(next);
+      setHover((prev) => (isSameHoverTarget(prev, next) ? prev : next));
     },
     [flatItems]
   );

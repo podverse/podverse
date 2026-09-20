@@ -27,7 +27,7 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
   const [inputValue, setInputValue] = useState<string>('');
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const [parsedFeedUrls, setParsedFeedUrls] = useState<ReadonlySet<string>>(new Set());
-  const { errorKey, feeds, isLoading, reloadFeeds, removeFeed } = useAddByRssFeeds({
+  const { errorKey, feeds, isLoading, reloadFeeds, removeFeed, removingFeedUrl } = useAddByRssFeeds({
     onNotice: setNoticeKey,
   });
   const { addErrorKey, addFeed, isAdding } = useAddByRssAddFlow({
@@ -201,6 +201,7 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
       const statusKey = isParsed
         ? 'features.add_by_rss.status_parsed'
         : 'features.add_by_rss.status_processing';
+      const isRemoving = removingFeedUrl === feed.feedUrl;
 
       return (
         <View
@@ -216,10 +217,11 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
             {t(statusKey)}
           </Text>
           <Pressable
+            disabled={isRemoving}
             onPress={() => {
               void removeFeed(feed.feedUrl);
             }}
-            style={styles.feedButton}
+            style={[styles.feedButton, isRemoving ? styles.addButtonDisabled : null]}
             testID={index === 0 ? 'rss-feed-remove-first' : `rss-feed-remove-${feed.idText}`}
           >
             <Text style={styles.feedButtonLabel}>{t('features.unsubscribe')}</Text>
@@ -227,7 +229,7 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
         </View>
       );
     },
-    [parsedFeedUrls, removeFeed, styles, t]
+    [parsedFeedUrls, removeFeed, removingFeedUrl, styles, t]
   );
 
   return (
