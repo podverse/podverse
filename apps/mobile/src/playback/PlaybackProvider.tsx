@@ -33,6 +33,7 @@ import {
   PLAYBACK_POSITION_NETWORK_INTERVAL_MS,
 } from '@podverse/helpers/playbackOutboxLimits';
 import { getQueueForMedium } from '@podverse/helpers/queue';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import {
   reconstructAddByRSSItemFromResourceData,
   reconstructAddByRSSLivestreamFromResourceData,
@@ -75,8 +76,11 @@ import type { AutoQueueSeed } from '../hooks/useAutoQueueLoadResources';
 import { useAutoQueueLoadResources } from '../hooks/useAutoQueueLoadResources';
 import { useQueueMutations } from '../hooks/useQueueMutations';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
-import type { AutoQueueResourcesMapRow } from '../lib/autoQueue/autoQueue';
-import { autoQueueIncrementActiveRow } from '../lib/autoQueue/autoQueue';
+import type { AutoQueueDirective, AutoQueueResourcesMapRow } from '../lib/autoQueue/autoQueue';
+import {
+  autoQueueIncrementActiveRow,
+  resolveAutoQueueConfigAfterDirective,
+} from '../lib/autoQueue/autoQueue';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
 import {
   buildChapterPlaybackTarget,
@@ -158,16 +162,6 @@ export type PlaybackNowPlaying = {
   viewerImageUrl: string | null;
   channelTitle: string | null;
 };
-
-/**
- * Caller-declared auto-queue side effect for a load (mirrors web's `autoQueueShouldClear` /
- * `newAutoQueueConfig` on `useMediaPlayerResourceUpdate` — NOT the playback-core decision flag):
- * - `clear`: explicit user play resets the auto-queue resources and drops any playlist source.
- * - `preserve`: auto-advance keeps the seeded auto-queue intact.
- * - `seed-playlist`: playlist row play sets the playlist as the auto-queue source.
- */
-type AutoQueueDirective =
-  { mode: 'clear' } | { mode: 'preserve' } | { mode: 'seed-playlist'; playlistIdText: string };
 
 const LAST_PLAYBACK_SNAPSHOT_THROTTLE_MS = 5000;
 const PLAYBACK_HANDOFF_DISMISSED_STATE_PREF_KEY = 'playback.handoff_dismissed_state';
@@ -854,15 +848,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       autoQueueResourcesRef.current = {};
       setAutoQueueActiveRow(0);
       autoQueueActiveRowRef.current = 0;
-      const nextConfig =
-        directive.mode === 'seed-playlist'
-          ? {
-              ...autoQueueConfigRef.current,
-              disabled: false,
-              nextPage: 1,
-              playlist_id_text: directive.playlistIdText,
-            }
-          : { ...autoQueueConfigRef.current, nextPage: 1, playlist_id_text: null };
+      const nextConfig = resolveAutoQueueConfigAfterDirective(
+        autoQueueConfigRef.current,
+        directive,
+        getShuffleHash
+      );
       setAutoQueueConfig(nextConfig);
       autoQueueConfigRef.current = nextConfig;
     },

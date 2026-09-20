@@ -71,6 +71,20 @@ name: Browse Tab And Tab Bar Pref
 - takeScreenshot: browse-screen-podcasts
 
 - tapOn:
+    id: browse-media-type-episodes
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: "home-feed-row-subtitle-.*"
+- assertVisible:
+    id: "home-feed-row-updated-.*"
+- assertVisible:
+    id: "home-feed-row-duration-.*"
+- takeScreenshot: browse-screen-episodes
+
+- tapOn:
     id: browse-sort-button
 - assertVisible:
     id: browse-sort-menu
@@ -125,6 +139,63 @@ name: Browse Tab And Tab Bar Pref
 - assertNotVisible:
     id: browse-category-all
 - takeScreenshot: browse-screen-artists
+
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: browse-media-type-tracks
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: "home-feed-row-title-.*"
+- assertVisible:
+    id: "home-feed-row-subtitle-.*"
+- assertNotVisible:
+    id: "home-feed-row-updated-.*"
+- assertNotVisible:
+    id: "home-feed-row-description-.*"
+- tapOn:
+    id: "home-row-more-.*"
+- extendedWaitUntil:
+    visible:
+      id: "media-row-menu-.*"
+    timeout: ${TIMEOUT_FASTER}
+- assertVisible:
+    id: "media-row-action-queue-next-.*"
+- assertVisible:
+    id: "media-row-action-queue-last-.*"
+- assertVisible:
+    id: "media-row-action-add-to-playlist-.*"
+- assertVisible:
+    id: "media-row-action-go-to-track-.*"
+- assertVisible:
+    id: "media-row-action-go-to-album-.*"
+- takeScreenshot: browse-screen-tracks
+- tapOn:
+    id: "media-row-menu-.*-cancel"
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_FASTER}
+- tapOn:
+    id: "home-feed-row-title-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: mini-player
+- assertVisible:
+    id: mini-player-title
+- takeScreenshot: browse-tracks-play
 
 - tapOn:
     id: tab-more

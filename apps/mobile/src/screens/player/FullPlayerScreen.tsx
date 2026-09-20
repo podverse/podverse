@@ -15,6 +15,7 @@ import type {
 } from '@podverse/helpers/dto';
 import { htmlToPlainText } from '@podverse/helpers/html';
 import { formatPlaybackTime } from '@podverse/helpers/time';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import type { PlaybackTarget } from '@podverse/playback-core';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
@@ -48,9 +49,12 @@ import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindo
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useActionError } from '../../feedback/ActionErrorProvider';
+import type { AutoQueueSeed } from '../../hooks/useAutoQueueLoadResources';
+import { useAutoQueueLoadResources } from '../../hooks/useAutoQueueLoadResources';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueMutations } from '../../hooks/useQueueMutations';
 import { useQueueResources } from '../../hooks/useQueueResources';
+import { toggleAutoQueueShuffle } from '../../lib/autoQueue/autoQueue';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import {
   isEpisodeTabNetworkBody,
@@ -174,6 +178,18 @@ const channelFromTarget = (target: PlaybackTarget | null): DTOChannel | null => 
   }
 };
 
+const autoQueueSeedFromTarget = (target: PlaybackTarget | null): AutoQueueSeed | null => {
+  if (target === null || target.kind === 'add-by-rss' || target.kind === 'livestream') {
+    return null;
+  }
+  return {
+    channel: target.channel,
+    clip: target.kind === 'clip' ? target.clip : null,
+    item: target.item,
+    item_soundbite: target.kind === 'soundbite' ? target.soundbite : null,
+  };
+};
+
 const hasSectionsForTarget = (target: PlaybackTarget | null): boolean => {
   if (target === null) {
     return false;
@@ -200,8 +216,15 @@ export function FullPlayerScreen({
   const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { autoQueueActiveRow, autoQueueConfig, autoQueueResources, setAutoQueueConfig } =
-    useAutoQueue();
+  const {
+    autoQueueActiveRow,
+    autoQueueConfig,
+    autoQueueResources,
+    setAutoQueueActiveRow,
+    setAutoQueueConfig,
+    setAutoQueueResources,
+  } = useAutoQueue();
+  const loadAutoQueueResources = useAutoQueueLoadResources();
   const { fetchPrimaryQueue } = usePrimaryQueue();
   const { fetchUpcoming } = useQueueResources();
   const { markAsPlayed } = useQueueMutations();
@@ -667,11 +690,21 @@ export function FullPlayerScreen({
   };
 
   const handleToggleShuffle = useCallback(() => {
-    setAutoQueueConfig({
-      ...autoQueueConfig,
-      random: !autoQueueConfig.random,
-    });
-  }, [autoQueueConfig, setAutoQueueConfig]);
+    setAutoQueueActiveRow(0);
+    setAutoQueueResources({});
+    setAutoQueueConfig(toggleAutoQueueShuffle(autoQueueConfig, getShuffleHash));
+    const seed = autoQueueSeedFromTarget(activeTarget);
+    setTimeout(() => {
+      void loadAutoQueueResources(seed);
+    }, 0);
+  }, [
+    activeTarget,
+    autoQueueConfig,
+    loadAutoQueueResources,
+    setAutoQueueActiveRow,
+    setAutoQueueConfig,
+    setAutoQueueResources,
+  ]);
 
   const handleToggleRepeat = useCallback(() => {
     setAutoQueueConfig({

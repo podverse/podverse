@@ -317,7 +317,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { openGate } = useMembershipGate();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
-  const { trackId } = route.params;
+  const { previewImageUrl, previewTitle, trackId } = route.params;
   const cachedItemChrome = getCachedItemSectionFlags(trackId);
   const listRef = useRef<FlatList<TrackTabRow>>(null);
   const [track, setTrack] = useState<DTOItem | null>(null);
@@ -655,11 +655,18 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     track !== null && trackRow !== null ? (
       <View>
         <ChannelHeader
-          artworkUri={primaryChannelListArtworkUrl(channel?.channel_images)}
+          artworkUri={
+            primaryChannelListArtworkUrl(channel?.channel_images) ??
+            (previewImageUrl !== undefined &&
+            previewImageUrl !== null &&
+            previewImageUrl.length > 0
+              ? previewImageUrl
+              : null)
+          }
           onTitlePress={channel !== null ? openAlbum : undefined}
           subtitle={channel?.channel_about?.author ?? null}
           testID="track-detail-album-header"
-          title={channel?.title ?? channelTitle ?? t('media.music.album')}
+          title={channel?.title ?? channelTitle ?? previewTitle ?? t('media.music.album')}
         />
         <TrackPlayChrome
           channel={channel}

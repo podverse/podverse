@@ -82,6 +82,9 @@ export type MediaRowMoreActionHandlers = {
   onQueueNext?: () => void;
   onQueueLast?: () => void;
   onAddToPlaylist?: () => void;
+  onGoToTrack?: () => void;
+  onGoToAlbum?: () => void;
+  onGoToArtist?: () => void;
   onMarkAsPlayed?: () => void;
   onDownload?: () => void;
   onShare?: () => void;
@@ -99,6 +102,9 @@ const MORE_ACTION_SPECS: {
     intent: 'onAddToPlaylist',
     key: 'add-to-playlist',
   },
+  { i18nKey: 'media.music.track_go_to', intent: 'onGoToTrack', key: 'go-to-track' },
+  { i18nKey: 'media.music.album_go_to', intent: 'onGoToAlbum', key: 'go-to-album' },
+  { i18nKey: 'media.music.artist_go_to', intent: 'onGoToArtist', key: 'go-to-artist' },
   { i18nKey: 'features.history.mark_as_played', intent: 'onMarkAsPlayed', key: 'mark-as-played' },
   { i18nKey: 'features.share', intent: 'onShare', key: 'share' },
   { i18nKey: 'features.download.download_episode', intent: 'onDownload', key: 'download' },

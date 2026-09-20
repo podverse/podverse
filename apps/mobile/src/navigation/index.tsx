@@ -89,10 +89,12 @@ import { useNavigationTheme } from '../theme/useNavigationTheme';
 import { useTheme } from '../theme/useTheme';
 import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
 import type { AlbumDetailRouteParams } from './albumDetailParams';
+import type { ArtistDetailRouteParams } from './artistDetailParams';
 import { mapScopedPathToFlatPath } from './deepLinking';
 import { resolveMobileDeepLinkAction, resolveMobileDeepLinkState } from './notificationStack';
 import { OrderedTabBar } from './OrderedTabBar';
 import type { PodcastDetailRouteParams } from './podcastDetailParams';
+import type { TrackDetailRouteParams } from './trackDetailParams';
 import { ROOT_SLIDE_UP_SCREEN_OPTIONS } from './slideUpScreen';
 import { tabBarIcon } from './tabBarIcon';
 import { useTabLayout } from './TabLayoutProvider';
@@ -370,19 +372,23 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
 
 export type { AlbumDetailRouteParams } from './albumDetailParams';
 export { buildAlbumDetailParams } from './albumDetailParams';
+export type { ArtistDetailRouteParams } from './artistDetailParams';
+export { buildArtistDetailParams } from './artistDetailParams';
 export type { PodcastDetailRouteParams } from './podcastDetailParams';
 export { buildPodcastDetailParams } from './podcastDetailParams';
+export type { TrackDetailRouteParams } from './trackDetailParams';
+export { buildTrackDetailParams } from './trackDetailParams';
 
 /** Channel/item detail params shared by Home and Search stacks (tab isolation). */
 export type ChannelBrowseStackParamList = {
   AlbumDetail: AlbumDetailRouteParams;
-  ArtistDetail: { artistId: string };
+  ArtistDetail: ArtistDetailRouteParams;
   ClipDetail: { clipId: string };
   EpisodeDetail: { episodeId: string };
   PlaylistCreate: undefined;
   PodcastDetail: PodcastDetailRouteParams;
   PodcastSettings: { podcastId: string };
-  TrackDetail: { trackId: string };
+  TrackDetail: TrackDetailRouteParams;
 };
 
 export type HomeStackParamList = ChannelBrowseStackParamList & {
@@ -412,7 +418,7 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
 export type LibraryStackParamList = {
   AddByRssRoot: undefined;
   AlbumDetail: AlbumDetailRouteParams;
-  ArtistDetail: { artistId: string };
+  ArtistDetail: ArtistDetailRouteParams;
   EpisodeDetail: { episodeId: string };
   LibraryClipDetail: { clipId: string };
   LibraryDownloads: undefined;
@@ -426,7 +432,7 @@ export type LibraryStackParamList = {
   LibraryQueue: undefined;
   PodcastDetail: PodcastDetailRouteParams;
   PodcastSettings: { podcastId: string };
-  TrackDetail: { trackId: string };
+  TrackDetail: TrackDetailRouteParams;
 };
 
 export type BrowseStackParamList = ChannelBrowseStackParamList & {

@@ -51,6 +51,10 @@ type HomeFeedRowProps = {
   onSharePress?: (row: HomeFeedRowData) => void;
   /** Additional more-menu actions shown before the standard queue/download/share actions. */
   extraMoreActions?: MediaRowMoreAction[];
+  /** Track lists: open TrackDetail from More. */
+  onGoToTrackPress?: (row: HomeFeedRowData) => void;
+  /** Track lists: open the parent album or artist from More. */
+  onGoToChannelPress?: (row: HomeFeedRowData) => void;
   /**
    * The item this row stands for, plus the `testID` the control answers to. Supplying it puts a
    * one-tap download control on the row; the control decides whether there is anything to offer,
@@ -147,6 +151,8 @@ export function HomeFeedRow({
   onMarkAsPlayedPress,
   onSharePress,
   extraMoreActions,
+  onGoToTrackPress,
+  onGoToChannelPress,
   customActions,
   download,
   isLast = false,
@@ -288,6 +294,30 @@ export function HomeFeedRow({
         onQueueNext: () => {
           onQueuePress(row, 'next');
         },
+        onGoToTrack:
+          mediaType === 'tracks' && onGoToTrackPress !== undefined
+            ? () => {
+                onGoToTrackPress(row);
+              }
+            : undefined,
+        onGoToAlbum:
+          mediaType === 'tracks' &&
+          onGoToChannelPress !== undefined &&
+          row.channelId !== undefined &&
+          row.channelKind !== 'artists'
+            ? () => {
+                onGoToChannelPress(row);
+              }
+            : undefined,
+        onGoToArtist:
+          mediaType === 'tracks' &&
+          onGoToChannelPress !== undefined &&
+          row.channelId !== undefined &&
+          row.channelKind === 'artists'
+            ? () => {
+                onGoToChannelPress(row);
+              }
+            : undefined,
         onDownload: isDownloadable
           ? () => {
               runDownloadAction({
@@ -317,6 +347,9 @@ export function HomeFeedRow({
     downloadStatus,
     extraMoreActions,
     isDownloadable,
+    mediaType,
+    onGoToChannelPress,
+    onGoToTrackPress,
     onAddToPlaylistPress,
     onMarkAsPlayedPress,
     onQueuePress,

@@ -37,7 +37,13 @@ import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowP
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import type { ChannelBrowseStackParamList } from '../../navigation';
-import { buildPodcastDetailParams, CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
+import {
+  buildAlbumDetailParams,
+  buildArtistDetailParams,
+  buildPodcastDetailParams,
+  buildTrackDetailParams,
+  CHANNEL_BROWSE_STACK_ROUTES,
+} from '../../navigation';
 import type { AlbumDetailRange, AlbumTab, AlbumTrackSort } from '../../prefs/detailListPrefs';
 import {
   ALBUM_DETAIL_RANGE_OPTIONS,
@@ -100,13 +106,22 @@ const RANGE_LABEL_KEYS: Record<AlbumDetailRange, string> = {
   week: 'filters.range.week',
 };
 
-const toTrackRows = (items: DTOItem[], albumTitle: string | null): HomeFeedRowData[] => {
+const toTrackRows = (
+  items: DTOItem[],
+  albumId: string,
+  albumTitle: string | null
+): HomeFeedRowData[] => {
   return items
-    .map((item) => ({
-      ...mapItemToHomeFeedRow(item),
-      metadata: item.live_item ? LIVE_ROW_METADATA : undefined,
-      subtitle: albumTitle,
-    }))
+    .map((item) => {
+      const compact = mapItemToHomeFeedRow(item, { compact: true });
+      return {
+        ...compact,
+        channelId: compact.channelId ?? albumId,
+        channelKind: compact.channelKind ?? 'albums',
+        metadata: item.live_item ? LIVE_ROW_METADATA : undefined,
+        subtitle: albumTitle,
+      };
+    })
     .filter((row) => row.id.length > 0);
 };
 
@@ -370,7 +385,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       try {
         const storedItems = await readStoredTracks();
         if (offlineModeEnabled) {
-          setTrackRows(toTrackRows(storedItems, channelTitleRef.current));
+          setTrackRows(toTrackRows(storedItems, albumId, channelTitleRef.current));
           setTracksById(new Map(storedItems.map((item) => [item.id_text, item])));
           return;
         }
@@ -387,7 +402,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           api.reqLiveItemGetManyByChannel(albumId)
         );
         const merged = removeDuplicateItems([...liveItems, ...seasonResponse.data]);
-        setTrackRows(toTrackRows(merged, channelTitleRef.current));
+        setTrackRows(toTrackRows(merged, albumId, channelTitleRef.current));
         setTracksById(new Map(merged.map((item) => [item.id_text, item])));
       } catch {
         setTrackErrorKey('errors.generic');
@@ -734,11 +749,43 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
             }
             isLast={index === trackRows.length - 1}
             mediaType="tracks"
+            onGoToChannelPress={(nextRow) => {
+              if (nextRow.channelId === undefined) {
+                return;
+              }
+              if (nextRow.channelKind === 'artists') {
+                navigation.navigate(
+                  CHANNEL_BROWSE_STACK_ROUTES.ArtistDetail,
+                  buildArtistDetailParams({
+                    artistId: nextRow.channelId,
+                    previewTitle: nextRow.subtitle,
+                  })
+                );
+                return;
+              }
+              navigation.navigate(
+                CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
+                buildAlbumDetailParams({
+                  albumId: nextRow.channelId,
+                  previewTitle: nextRow.subtitle,
+                })
+              );
+            }}
+            onGoToTrackPress={(nextRow) => {
+              navigation.navigate(
+                CHANNEL_BROWSE_STACK_ROUTES.TrackDetail,
+                buildTrackDetailParams({
+                  previewImageUrl: nextRow.imageUrl,
+                  previewTitle: nextRow.title,
+                  trackId: nextRow.id,
+                })
+              );
+            }}
             onPlayPress={(nextRow) => {
               runPlayAction(nextRow, 'tracks');
             }}
             onPress={(nextRow) => {
-              navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.TrackDetail, { trackId: nextRow.id });
+              runPlayAction(nextRow, 'tracks');
             }}
             onQueuePress={(nextRow, position) => {
               runQueueAction(nextRow, 'tracks', position);

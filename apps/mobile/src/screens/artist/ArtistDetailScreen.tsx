@@ -44,7 +44,9 @@ import { useAccessTier } from '../../membership/useAccessTier';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import {
   buildAlbumDetailParams,
+  buildArtistDetailParams,
   buildPodcastDetailParams,
+  buildTrackDetailParams,
   CHANNEL_BROWSE_STACK_ROUTES,
 } from '../../navigation';
 import type { ArtistTab } from '../../prefs/detailListPrefs';
@@ -144,7 +146,13 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { artistId } = route.params;
+  const {
+    artistId,
+    previewImageUrl,
+    previewIsSubscribed,
+    previewNotificationsEnabled,
+    previewTitle,
+  } = route.params;
   const { evaluateFeature, isTierKnown } = useAccessTier();
   const { handleGateError, openGate } = useMembershipGate();
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
@@ -158,10 +166,16 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
     cachedChrome?.hasFunding === true
   );
-  const [artistTitle, setArtistTitle] = useState<string | null>(null);
-  const [artistArtwork, setArtistArtwork] = useState<string | null>(null);
+  const [artistTitle, setArtistTitle] = useState<string | null>(
+    previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null
+  );
+  const [artistArtwork, setArtistArtwork] = useState<string | null>(
+    previewImageUrl !== undefined && previewImageUrl !== null && previewImageUrl.length > 0
+      ? previewImageUrl
+      : null
+  );
   const [isSubscribed, setIsSubscribed] = useState<boolean>(() =>
-    resolveInitialSubscribed(artistId)
+    resolveInitialSubscribed(artistId, previewIsSubscribed)
   );
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
@@ -190,6 +204,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const notifications = useChannelNotifications({
     channelId: channel?.id ?? null,
     channelIdText: artistId,
+    previewNotificationsEnabled,
   });
 
   const styles = useMemo(
@@ -229,6 +244,15 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   );
 
   useEffect(() => {
+    setArtistArtwork(
+      previewImageUrl !== undefined && previewImageUrl !== null && previewImageUrl.length > 0
+        ? previewImageUrl
+        : null
+    );
+    setArtistTitle(previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null);
+  }, [previewImageUrl, previewTitle]);
+
+  useEffect(() => {
     const nextChrome = getCachedChannelSectionFlags(artistId);
     setChannel(null);
     setIsChannelLoading(true);
@@ -238,10 +262,8 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     setTracksUnadded([]);
     setAlbumsAdded([]);
     setAlbumsUnadded([]);
-    setArtistTitle(null);
-    setArtistArtwork(null);
-    setIsSubscribed(resolveInitialSubscribed(artistId));
-  }, [artistId]);
+    setIsSubscribed(resolveInitialSubscribed(artistId, previewIsSubscribed));
+  }, [artistId, previewIsSubscribed]);
 
   useEffect(() => {
     let isMounted = true;
@@ -617,7 +639,13 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const tracksRows = useMemo<ArtistTracksRow[]>(() => {
     const addedRows: ArtistTracksRow[] = [];
     for (const item of tracksAdded) {
-      const row = { ...mapItemToHomeFeedRow(item), subtitle: titleRef.current };
+      const compact = mapItemToHomeFeedRow(item, { compact: true });
+      const row = {
+        ...compact,
+        channelId: compact.channelId ?? artistId,
+        channelKind: compact.channelKind ?? 'artists',
+        subtitle: titleRef.current,
+      };
       if (row.id.length === 0) {
         continue;
       }
@@ -636,7 +664,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     }));
 
     return [...addedRows, ...unaddedRows];
-  }, [tracksAdded, tracksUnadded]);
+  }, [artistId, tracksAdded, tracksUnadded]);
 
   const albumsRows = useMemo<ArtistAlbumsRow[]>(() => {
     const addedRows = albumsAdded.map((row) => ({
@@ -696,13 +724,43 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
               download={{ item: item.item, testID: `artist-track-download-${index}` }}
               isLast={index === tracksRows.length - 1}
               mediaType="tracks"
+              onGoToChannelPress={(nextRow) => {
+                if (nextRow.channelId === undefined) {
+                  return;
+                }
+                if (nextRow.channelKind === 'artists') {
+                  navigation.navigate(
+                    CHANNEL_BROWSE_STACK_ROUTES.ArtistDetail,
+                    buildArtistDetailParams({
+                      artistId: nextRow.channelId,
+                      previewTitle: nextRow.subtitle,
+                    })
+                  );
+                  return;
+                }
+                navigation.navigate(
+                  CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
+                  buildAlbumDetailParams({
+                    albumId: nextRow.channelId,
+                    previewTitle: nextRow.subtitle,
+                  })
+                );
+              }}
+              onGoToTrackPress={(nextRow) => {
+                navigation.navigate(
+                  CHANNEL_BROWSE_STACK_ROUTES.TrackDetail,
+                  buildTrackDetailParams({
+                    previewImageUrl: nextRow.imageUrl,
+                    previewTitle: nextRow.title,
+                    trackId: nextRow.id,
+                  })
+                );
+              }}
               onPlayPress={(nextRow) => {
                 runPlayAction(nextRow, 'tracks');
               }}
               onPress={(nextRow) => {
-                navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.TrackDetail, {
-                  trackId: nextRow.id,
-                });
+                runPlayAction(nextRow, 'tracks');
               }}
               onQueuePress={(nextRow, position) => {
                 runQueueAction(nextRow, 'tracks', position);

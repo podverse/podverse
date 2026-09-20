@@ -16,7 +16,9 @@ import type { BrowseStackParamList } from '../../navigation';
 import {
   BROWSE_STACK_ROUTES,
   buildAlbumDetailParams,
+  buildArtistDetailParams,
   buildPodcastDetailParams,
+  buildTrackDetailParams,
 } from '../../navigation';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE } from '../../prefs/homeListPrefs';
@@ -402,7 +404,14 @@ export function BrowseScreen() {
         return;
       }
       if (selectedMediaType === 'artists') {
-        navigation.navigate(BROWSE_STACK_ROUTES.ArtistDetail, { artistId: row.id });
+        navigation.navigate(
+          BROWSE_STACK_ROUTES.ArtistDetail,
+          buildArtistDetailParams({
+            artistId: row.id,
+            previewImageUrl: row.imageUrl,
+            previewTitle: row.title,
+          })
+        );
         return;
       }
       if (selectedMediaType === 'albums') {
@@ -417,7 +426,7 @@ export function BrowseScreen() {
         return;
       }
       if (selectedMediaType === 'tracks') {
-        navigation.navigate(BROWSE_STACK_ROUTES.TrackDetail, { trackId: row.id });
+        runPlayAction(row, 'tracks');
         return;
       }
       if (selectedMediaType === 'playlists') {
@@ -426,7 +435,47 @@ export function BrowseScreen() {
       }
       navigation.navigate(BROWSE_STACK_ROUTES.Profile, { accountIdText: row.id });
     },
-    [navigation, selectedMediaType]
+    [navigation, runPlayAction, selectedMediaType]
+  );
+
+  const handleGoToTrack = useCallback(
+    (row: HomeFeedRowData) => {
+      navigation.navigate(
+        BROWSE_STACK_ROUTES.TrackDetail,
+        buildTrackDetailParams({
+          previewImageUrl: row.imageUrl,
+          previewTitle: row.title,
+          trackId: row.id,
+        })
+      );
+    },
+    [navigation]
+  );
+
+  const handleGoToChannel = useCallback(
+    (row: HomeFeedRowData) => {
+      if (row.channelId === undefined) {
+        return;
+      }
+      if (row.channelKind === 'artists') {
+        navigation.navigate(
+          BROWSE_STACK_ROUTES.ArtistDetail,
+          buildArtistDetailParams({
+            artistId: row.channelId,
+            previewTitle: row.subtitle,
+          })
+        );
+        return;
+      }
+      navigation.navigate(
+        BROWSE_STACK_ROUTES.AlbumDetail,
+        buildAlbumDetailParams({
+          albumId: row.channelId,
+          previewTitle: row.subtitle,
+        })
+      );
+    },
+    [navigation]
   );
 
   const categoryRows = useMemo<CategoryListRow[]>(() => {
@@ -664,6 +713,10 @@ export function BrowseScreen() {
                     }
                   : undefined
               }
+              onGoToChannelPress={
+                selectedMediaType === 'tracks' ? handleGoToChannel : undefined
+              }
+              onGoToTrackPress={selectedMediaType === 'tracks' ? handleGoToTrack : undefined}
               onPlayPress={(nextRow) => {
                 runPlayAction(
                   nextRow,

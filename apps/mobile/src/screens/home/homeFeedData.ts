@@ -10,6 +10,7 @@ import {
   channelSeenRepository,
   downloadsRepository,
   homeClipsCacheRepository,
+  subscriptionChannelKindFromMediumId,
   subscriptionsRepository,
 } from '../../data/repositories';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
@@ -64,6 +65,10 @@ export type HomeFeedRowData = {
    * `id` already is the target.
    */
   contentTarget?: HomeRowContentTarget;
+  /** Parent album or artist for a track row's go-to action. */
+  channelId?: string;
+  /** Which go-to label and destination to use for `channelId`. */
+  channelKind?: 'albums' | 'artists';
 };
 
 /** Identity of the playable resource behind a row. */
@@ -223,7 +228,31 @@ export const normalizeChannelRows = (
   return rows;
 };
 
-export const normalizeItemRows = (items: unknown[]): HomeFeedRowData[] => {
+export type NormalizeItemRowsKind = 'episode' | 'track';
+
+const readFlatItemSubtitle = (item: Record<string, unknown>): string | null => {
+  return (
+    getNonEmptyTrimmedStringProperty(item, 'podcast_title') ??
+    getNonEmptyTrimmedStringProperty(item, 'channel_title') ??
+    getNonEmptyTrimmedStringProperty(item, 'author')
+  );
+};
+
+const readTrackChannelKind = (
+  item: Record<string, unknown>
+): HomeFeedRowData['channelKind'] | undefined => {
+  const channel = item.channel;
+  if (!isObjectLike(channel) || typeof channel.medium_id !== 'number') {
+    return undefined;
+  }
+  const kind = subscriptionChannelKindFromMediumId(channel.medium_id);
+  return kind === 'albums' || kind === 'artists' ? kind : undefined;
+};
+
+export const normalizeItemRows = (
+  items: unknown[],
+  kind: NormalizeItemRowsKind
+): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {
@@ -237,17 +266,52 @@ export const normalizeItemRows = (items: unknown[]): HomeFeedRowData[] => {
       continue;
     }
 
-    const subtitle =
-      getNonEmptyTrimmedStringProperty(item, 'podcast_title') ??
-      getNonEmptyTrimmedStringProperty(item, 'channel_title') ??
-      getNonEmptyTrimmedStringProperty(item, 'author');
+    if (kind === 'track') {
+      const subtitle =
+        readStringFromNestedRecord(item, 'channel', 'title') ?? readFlatItemSubtitle(item);
+      const channelId = readStringFromNestedRecord(item, 'channel', 'id_text');
+      const channelKind = readTrackChannelKind(item);
+      const row: HomeFeedRowData = {
+        id,
+        imageUrl: readImageUrl(item),
+        subtitle,
+        title,
+      };
+      if (channelId !== null) {
+        row.channelId = channelId;
+      }
+      if (channelKind !== undefined) {
+        row.channelKind = channelKind;
+      }
+      rows.push(row);
+      continue;
+    }
 
-    rows.push({
+    const subtitle =
+      readStringFromNestedRecord(item, 'channel', 'title') ?? readFlatItemSubtitle(item);
+    const updatedAt = readUpdatedAt(item.pub_date);
+    const duration = readStringFromNestedRecord(item, 'item_about', 'duration');
+    const descriptionSource = readStringFromNestedRecord(item, 'item_description', 'value');
+    const description =
+      descriptionSource !== null ? htmlToPlainText(descriptionSource) : '';
+
+    const row: HomeFeedRowData = {
       id,
       imageUrl: readImageUrl(item),
       subtitle,
       title,
-    });
+    };
+    if (updatedAt !== null) {
+      row.updatedAt = updatedAt;
+    }
+    if (duration !== null) {
+      row.duration = duration;
+    }
+    if (description.length > 0) {
+      row.description = description;
+    }
+
+    rows.push(row);
   }
 
   return rows;
@@ -283,11 +347,50 @@ export const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
   return rows;
 };
 
+export type MapItemToHomeFeedRowOptions = {
+  /** Compact music rows: title + album/artist only. */
+  compact?: boolean;
+};
+
+const channelKindFromItem = (item: DTOItem): HomeFeedRowData['channelKind'] | undefined => {
+  const kind = subscriptionChannelKindFromMediumId(item.channel?.medium_id);
+  return kind === 'albums' || kind === 'artists' ? kind : undefined;
+};
+
+/**
+ * Compact track row: title, album/artist overline, and go-to ids. Date, duration, and description
+ * stay off so Home / Browse / in-channel music lists stay dense.
+ */
+export const mapTrackToHomeFeedRow = (item: DTOItem): HomeFeedRowData => {
+  const channelId = item.channel?.id_text?.trim() ?? '';
+  const channelKind = channelKindFromItem(item);
+  const row: HomeFeedRowData = {
+    id: item.id_text,
+    imageUrl: getItemPrimaryImageUrl(item),
+    subtitle: item.channel?.title ?? null,
+    title: item.title ?? item.id_text,
+  };
+  if (channelId.length > 0) {
+    row.channelId = channelId;
+  }
+  if (channelKind !== undefined) {
+    row.channelKind = channelKind;
+  }
+  return row;
+};
+
 /**
  * Map a full item to a feed row. Used wherever rows come from typed `DTOItem`s rather than a raw
  * list payload, so a stored episode and a freshly fetched one render identically.
  */
-export const mapItemToHomeFeedRow = (item: DTOItem): HomeFeedRowData => {
+export const mapItemToHomeFeedRow = (
+  item: DTOItem,
+  options: MapItemToHomeFeedRowOptions = {}
+): HomeFeedRowData => {
+  if (options.compact === true) {
+    return mapTrackToHomeFeedRow(item);
+  }
+
   const plainDescription = htmlToPlainText(item.item_description?.value);
   const duration = item.item_about?.duration?.trim() ?? '';
 
@@ -302,8 +405,11 @@ export const mapItemToHomeFeedRow = (item: DTOItem): HomeFeedRowData => {
   };
 };
 
-export const mapItemsToHomeFeedRows = (items: readonly DTOItem[]): HomeFeedRowData[] => {
-  return items.map(mapItemToHomeFeedRow).filter((row) => row.id.length > 0);
+export const mapItemsToHomeFeedRows = (
+  items: readonly DTOItem[],
+  options: MapItemToHomeFeedRowOptions = {}
+): HomeFeedRowData[] => {
+  return items.map((item) => mapItemToHomeFeedRow(item, options)).filter((row) => row.id.length > 0);
 };
 
 const applyHomeSort = (rows: HomeFeedRowData[], sort: HomeSortOption): HomeFeedRowData[] => {
@@ -431,13 +537,18 @@ export const fetchDownloadedHomeFeedRows = async (
 
   return completed
     .filter((record) => (wantVideo ? record.mediaType === 'video' : record.mediaType === 'audio'))
-    .map((record) => ({
-      id: record.itemIdText,
-      imageUrl: record.artworkUrl,
-      subtitle: record.channelTitle,
-      title: record.title ?? record.itemIdText,
-      updatedAt: record.updatedAt,
-    }));
+    .map((record) => {
+      const row: HomeFeedRowData = {
+        id: record.itemIdText,
+        imageUrl: record.artworkUrl,
+        subtitle: record.channelTitle,
+        title: record.title ?? record.itemIdText,
+      };
+      if (mediaType === 'episodes') {
+        row.updatedAt = record.updatedAt;
+      }
+      return row;
+    });
 };
 
 export const fetchHomeFeedRows = async (
@@ -477,7 +588,7 @@ export const fetchHomeFeedRows = async (
       channelIdTexts: musicChannelIds,
       sort,
     });
-    return mapItemsToHomeFeedRows(stored);
+    return mapItemsToHomeFeedRows(stored, { compact: true });
   }
 
   if (mediaType === 'clips') {

@@ -31,7 +31,9 @@ import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
 import {
   BROWSE_STACK_ROUTES,
   buildAlbumDetailParams,
+  buildArtistDetailParams,
   buildPodcastDetailParams,
+  buildTrackDetailParams,
   HOME_STACK_ROUTES,
   SEARCH_STACK_ROUTES,
 } from '../../navigation';
@@ -612,9 +614,15 @@ export function HomeScreen() {
       }
 
       if (selectedMediaType === 'artists') {
-        navigation.navigate(HOME_STACK_ROUTES.ArtistDetail, {
-          artistId: row.id,
-        });
+        navigation.navigate(
+          HOME_STACK_ROUTES.ArtistDetail,
+          buildArtistDetailParams({
+            artistId: row.id,
+            previewImageUrl: row.imageUrl,
+            previewIsSubscribed: row.isSubscribed,
+            previewTitle: row.title,
+          })
+        );
         return;
       }
 
@@ -631,11 +639,49 @@ export function HomeScreen() {
         return;
       }
 
-      navigation.navigate(HOME_STACK_ROUTES.TrackDetail, {
-        trackId: row.id,
-      });
+      runPlayAction(row, 'tracks');
     },
-    [navigation, selectedMediaType]
+    [navigation, runPlayAction, selectedMediaType]
+  );
+
+  const handleGoToTrack = useCallback(
+    (row: HomeFeedRowData) => {
+      navigation.navigate(
+        HOME_STACK_ROUTES.TrackDetail,
+        buildTrackDetailParams({
+          previewImageUrl: row.imageUrl,
+          previewTitle: row.title,
+          trackId: row.id,
+        })
+      );
+    },
+    [navigation]
+  );
+
+  const handleGoToChannel = useCallback(
+    (row: HomeFeedRowData) => {
+      if (row.channelId === undefined) {
+        return;
+      }
+      if (row.channelKind === 'artists') {
+        navigation.navigate(
+          HOME_STACK_ROUTES.ArtistDetail,
+          buildArtistDetailParams({
+            artistId: row.channelId,
+            previewTitle: row.subtitle,
+          })
+        );
+        return;
+      }
+      navigation.navigate(
+        HOME_STACK_ROUTES.AlbumDetail,
+        buildAlbumDetailParams({
+          albumId: row.channelId,
+          previewTitle: row.subtitle,
+        })
+      );
+    },
+    [navigation]
   );
 
   // Runs against the rows already on screen, so it narrows whichever media type is showing and
@@ -964,6 +1010,10 @@ export function HomeScreen() {
                     }
                   : undefined
               }
+              onGoToChannelPress={
+                selectedMediaType === 'tracks' ? handleGoToChannel : undefined
+              }
+              onGoToTrackPress={selectedMediaType === 'tracks' ? handleGoToTrack : undefined}
               onPlayPress={(nextRow) => {
                 runPlayAction(nextRow, selectedMediaType);
               }}

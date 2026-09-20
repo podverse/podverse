@@ -25,7 +25,9 @@
       "track": "Track",
       "tracks": "Tracks",
       "track_image": "Track image",
-      "track_go_to": "Go to track"
+      "track_go_to": "Go to track",
+      "album_go_to": "Go to album",
+      "artist_go_to": "Go to artist"
     },
     "video": {
       "channel": "Channel",

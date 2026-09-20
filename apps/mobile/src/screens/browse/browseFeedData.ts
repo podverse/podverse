@@ -4,7 +4,11 @@ import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helper
 import { createMobileApiRequestService, requestWithMobileAuthRefresh } from '../../auth';
 import type { MobileAuthRequestContext } from '../../data/repositories';
 import type { HomeFeedRowData } from '../home/homeFeedData';
-import { normalizeChannelRows, normalizeClipRows, normalizeItemRows } from '../home/homeFeedData';
+import {
+  mapItemsToHomeFeedRows,
+  normalizeChannelRows,
+  normalizeClipRows,
+} from '../home/homeFeedData';
 import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
 import { isBrowseCategoryMediaType } from './browseTypes';
 
@@ -170,7 +174,10 @@ export const fetchBrowseFeedRows = async (
         type,
       })
     );
-    return normalizeItemRows(response.data);
+    if (mediaType === 'episodes') {
+      return mapItemsToHomeFeedRows(response.data);
+    }
+    return mapItemsToHomeFeedRows(response.data, { compact: true });
   }
 
   const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>

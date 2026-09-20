@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeChannelRows, readChannelUpdatedAt, readUpdatedAt } from './homeFeedData';
+import type { DTOItem } from '@podverse/helpers/dto';
+import { MediumEnum } from '@podverse/helpers/medium';
+
+import {
+  mapItemToHomeFeedRow,
+  mapItemsToHomeFeedRows,
+  normalizeChannelRows,
+  normalizeItemRows,
+  readChannelUpdatedAt,
+  readUpdatedAt,
+} from './homeFeedData';
 
 describe('readUpdatedAt', () => {
   it('keeps a positive epoch and drops zero or non-finite values', () => {
@@ -101,5 +111,197 @@ describe('normalizeChannelRows', () => {
     );
 
     expect(rows[0]?.subtitle).toBeNull();
+  });
+});
+
+describe('normalizeItemRows', () => {
+  it('maps nested episode fields onto subtitle, date, duration, and description', () => {
+    const rows = normalizeItemRows(
+      [
+        {
+          channel: { title: 'No Agenda Show' },
+          id_text: 'ep-1',
+          item_about: { duration: '  3600  ' },
+          item_description: { value: '<p>A weekly look at the news.</p>' },
+          pub_date: '2026-03-04T12:00:00.000Z',
+          title: 'Episode 1824',
+        },
+      ],
+      'episode'
+    );
+
+    expect(rows).toEqual([
+      {
+        description: 'A weekly look at the news.',
+        duration: '3600',
+        id: 'ep-1',
+        imageUrl: null,
+        subtitle: 'No Agenda Show',
+        title: 'Episode 1824',
+        updatedAt: '2026-03-04T12:00:00.000Z',
+      },
+    ]);
+  });
+
+  it('omits missing nested episode fields and still uses a flat podcast_title subtitle', () => {
+    const rows = normalizeItemRows(
+      [
+        {
+          id_text: 'ep-2',
+          podcast_title: 'Fallback Show',
+          title: 'Episode without extras',
+        },
+      ],
+      'episode'
+    );
+
+    expect(rows).toEqual([
+      {
+        id: 'ep-2',
+        imageUrl: null,
+        subtitle: 'Fallback Show',
+        title: 'Episode without extras',
+      },
+    ]);
+    expect(rows[0]).not.toHaveProperty('updatedAt');
+    expect(rows[0]).not.toHaveProperty('duration');
+    expect(rows[0]).not.toHaveProperty('description');
+  });
+
+  it('does not set updatedAt from junk or empty pub_date', () => {
+    const rows = normalizeItemRows(
+      [
+        {
+          id_text: 'ep-3',
+          pub_date: 'not-a-date',
+          title: 'Bad date',
+        },
+        {
+          id_text: 'ep-4',
+          pub_date: '   ',
+          title: 'Empty date',
+        },
+      ],
+      'episode'
+    );
+
+    expect(rows[0]).not.toHaveProperty('updatedAt');
+    expect(rows[1]).not.toHaveProperty('updatedAt');
+  });
+
+  it('leaves track rows thin even when the payload has date, duration, and description', () => {
+    const rows = normalizeItemRows(
+      [
+        {
+          channel: {
+            id_text: 'album-1',
+            medium_id: MediumEnum.Music,
+            title: 'Example Album',
+          },
+          id_text: 'tr-1',
+          item_about: { duration: '215' },
+          item_description: { value: '<p>A liner note.</p>' },
+          podcast_title: 'Flat Album',
+          pub_date: '2026-03-04T12:00:00.000Z',
+          title: 'Track One',
+        },
+      ],
+      'track'
+    );
+
+    expect(rows).toEqual([
+      {
+        channelId: 'album-1',
+        channelKind: 'albums',
+        id: 'tr-1',
+        imageUrl: null,
+        subtitle: 'Example Album',
+        title: 'Track One',
+      },
+    ]);
+    expect(rows[0]).not.toHaveProperty('updatedAt');
+    expect(rows[0]).not.toHaveProperty('duration');
+    expect(rows[0]).not.toHaveProperty('description');
+  });
+});
+
+describe('mapItemToHomeFeedRow', () => {
+  const richTrack = {
+    channel: {
+      id_text: 'album-9',
+      medium_id: MediumEnum.Music,
+      title: 'Nested Album',
+    },
+    id_text: 'tr-9',
+    item_about: { duration: '215' },
+    item_description: { value: '<p>A liner note.</p>' },
+    item_images: [],
+    pub_date: '2026-03-04T12:00:00.000Z',
+    title: 'Track Nine',
+  } as DTOItem;
+
+  it('keeps episode rows rich', () => {
+    const row = mapItemToHomeFeedRow({
+      channel: { title: 'No Agenda Show' },
+      id_text: 'ep-9',
+      item_about: { duration: '3600' },
+      item_description: { value: '<p>A weekly look at the news.</p>' },
+      item_images: [],
+      pub_date: '2026-03-04T12:00:00.000Z',
+      title: 'Episode 1824',
+    } as DTOItem);
+
+    expect(row).toEqual({
+      description: 'A weekly look at the news.',
+      duration: '3600',
+      id: 'ep-9',
+      imageUrl: null,
+      subtitle: 'No Agenda Show',
+      title: 'Episode 1824',
+      updatedAt: '2026-03-04T12:00:00.000Z',
+    });
+  });
+
+  it('omits date, duration, and description on compact track rows and keeps channel go-to', () => {
+    const row = mapItemToHomeFeedRow(richTrack, { compact: true });
+
+    expect(row).toEqual({
+      channelId: 'album-9',
+      channelKind: 'albums',
+      id: 'tr-9',
+      imageUrl: null,
+      subtitle: 'Nested Album',
+      title: 'Track Nine',
+    });
+    expect(row).not.toHaveProperty('updatedAt');
+    expect(row).not.toHaveProperty('duration');
+    expect(row).not.toHaveProperty('description');
+  });
+
+  it('maps a compact artist track to go-to artist', () => {
+    const row = mapItemToHomeFeedRow(
+      {
+        channel: {
+          id_text: 'artist-1',
+          medium_id: MediumEnum.PublisherMusic,
+          title: 'Example Artist',
+        },
+        id_text: 'tr-10',
+        item_images: [],
+        title: 'Track Ten',
+      } as DTOItem,
+      { compact: true }
+    );
+
+    expect(row.channelId).toBe('artist-1');
+    expect(row.channelKind).toBe('artists');
+    expect(row.subtitle).toBe('Example Artist');
+  });
+
+  it('maps a list of items compactly when asked', () => {
+    const rows = mapItemsToHomeFeedRows([richTrack], { compact: true });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).not.toHaveProperty('updatedAt');
+    expect(rows[0]?.channelId).toBe('album-9');
   });
 });

@@ -25,7 +25,9 @@
       "track": "Pista",
       "tracks": "Pistas",
       "track_image": "Imagen de la pista",
-      "track_go_to": "Ir a la pista"
+      "track_go_to": "Ir a la pista",
+      "album_go_to": "Ir al álbum",
+      "artist_go_to": "Ir al artista"
     },
     "video": {
       "channel": "Canal",

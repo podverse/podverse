@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Album flow
 ---
-# Album detail shows tracks and opens track detail in-app.
+# Album detail shows tracks. More → Go to track opens track detail (row press plays).
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -25,7 +25,13 @@ name: Album flow
 - takeScreenshot: album-detail-tracks
 
 - tapOn:
-    id: album-track-row-0
+    id: "home-row-more-.*"
+- extendedWaitUntil:
+    visible:
+      id: "media-row-menu-.*"
+    timeout: ${TIMEOUT_FASTER}
+- tapOn:
+    id: "media-row-action-go-to-track-.*"
 - extendedWaitUntil:
     visible:
       id: track-detail-screen
