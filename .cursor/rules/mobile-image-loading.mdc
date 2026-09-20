@@ -31,8 +31,12 @@ Section chips that appear only after a detail DTO (Official Clips, Podroll, epis
 and the like) follow the same first-paint habit via the **device chrome cache**, not extra
 list-API fields — **mobile-section-chrome-cache**.
 
+Subscribe, the notification bell, and download/delete icons follow the same habit —
+**mobile-navigate-known-state**. Pass what the source already knows; do not default and correct.
+
 ## Related
 
 - Skill: **mobile-image-loading**
 - URL helpers: **header-hero-image-sources**
 - Section chips: **mobile-section-chrome-cache**
+- Interactive chrome: **mobile-navigate-known-state**

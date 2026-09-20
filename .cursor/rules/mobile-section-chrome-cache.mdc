@@ -44,5 +44,6 @@ account. Do not denormalize them onto Postgres `channel` / `item`.
 ## Related
 
 - First-paint art: **mobile-image-loading**
+- Subscribe / bell / download icons: **mobile-navigate-known-state**
 - Chip row layout: **mobile-screen-layout**
 - Startup from cache: **mobile-sync-orchestration**

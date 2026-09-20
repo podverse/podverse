@@ -31,6 +31,7 @@ mobile sessions without re-reading a plan:
 | ---------------------------------------------------- | -------------------------------------------------- |
 | Always-on mobile convention                          | `.cursorrules` short note or always-applied rule   |
 | Applies only under `apps/mobile/**`                  | Scoped `.cursor/rules/*.mdc` with `globs`          |
+| List→detail first-paint (art, chips, subscribe, bell, download icons) | Scoped rules: **mobile-image-loading**, **mobile-section-chrome-cache**, **mobile-navigate-known-state** |
 | Workflow (E2E reports, flavors, worktrees, playback) | `.cursor/skills/mobile-*/SKILL.md`                 |
 | Ignore generated native trees                        | `.cursorignore`                                    |
 | Import allowlist / app entry                         | `apps/mobile/AGENTS.md` (app-local, not abcmemory) |

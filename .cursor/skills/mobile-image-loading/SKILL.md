@@ -56,7 +56,8 @@ animation cost just to hide a cold load. Do not prefetch full-size lightbox file
 feel smoother — that burns bandwidth and decode time on constrained devices.
 
 Section chips that depend on a detail DTO use the same first-paint habit (device cache, not a
-server `has_*` column). See **mobile-section-chrome-cache**.
+server `has_*` column). See **mobile-section-chrome-cache**. Subscribe, the notification bell, and
+download/delete icons use **mobile-navigate-known-state**.
 
 ## Related
 
@@ -65,3 +66,4 @@ server `has_*` column). See **mobile-section-chrome-cache**.
 - **mobile-sync-orchestration** — first paint from cache on launch; pushed screens follow the same
   habit for already-known chrome
 - **mobile-section-chrome-cache** — Official Clips / Podroll / episode evidence tabs
+- **mobile-navigate-known-state** — subscribe / bell / download icons known before push
