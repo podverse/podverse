@@ -24,6 +24,7 @@ const phoneInput = {
   maxContentWidth: 420,
   safeAreaBottom: 34,
   safeAreaTop: 47,
+  sheetBottomInset: 16,
   viewportHeight: 844,
   viewportWidth: 390,
 };
@@ -125,9 +126,45 @@ describe('resolveFullPlayerLayout', () => {
       })
     ).toEqual({
       artworkSize: 0,
+      paneSheetHeight: 0,
       peekHeight: 0,
       playerRegionHeight: 0,
       viewerHeight: 0,
     });
+  });
+
+  it('sizes the pane sheet so chips plus sheet plus bottom gap fill the viewport', () => {
+    const layout = resolveFullPlayerLayout({
+      ...phoneInput,
+      safeAreaTop: 0,
+    });
+    const strip = FULL_PLAYER_CHIP_HEADER_HEIGHT;
+    const bottomGap = phoneInput.safeAreaBottom + phoneInput.sheetBottomInset;
+    expect(layout.paneSheetHeight).toBe(phoneInput.viewportHeight - strip - bottomGap);
+    // Locked frame: chips + sheet + bottom gap fill one viewport. Outer content is that frame
+    // plus the player region, so max scroll equals playerRegionHeight.
+    expect(strip + layout.paneSheetHeight + bottomGap).toBe(phoneInput.viewportHeight);
+    expect(layout.playerRegionHeight).toBe(
+      phoneInput.viewportHeight - strip - phoneInput.safeAreaBottom
+    );
+  });
+
+  it('grows the pane sheet when the measured chip strip is taller than the floor', () => {
+    const chipStripHeight = FULL_PLAYER_CHIP_HEADER_HEIGHT + 30;
+    const layout = resolveFullPlayerLayout({
+      ...phoneInput,
+      chipStripHeight,
+      safeAreaTop: 0,
+    });
+    const bottomGap = phoneInput.safeAreaBottom + phoneInput.sheetBottomInset;
+    expect(layout.paneSheetHeight).toBe(phoneInput.viewportHeight - chipStripHeight - bottomGap);
+  });
+
+  it('collapses the pane sheet when there are no sections', () => {
+    const layout = resolveFullPlayerLayout({
+      ...phoneInput,
+      hasSections: false,
+    });
+    expect(layout.paneSheetHeight).toBe(0);
   });
 });

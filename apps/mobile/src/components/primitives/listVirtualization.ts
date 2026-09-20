@@ -1,3 +1,5 @@
+import { LogBox } from 'react-native';
+
 /**
  * Pass this for `removeClippedSubviews` on an Android `FlatList` that lives in a
  * `react-native-screens` stack card.
@@ -21,3 +23,14 @@
  * is given up.
  */
 export const LIST_REMOVE_CLIPPED_SUBVIEWS = false;
+
+/**
+ * RN fires a yellow box whenever a VirtualizedList is a descendant of a ScrollView. That check is
+ * structural — it still fires when the parent slot has a fixed height and cannot expand the outer
+ * column. The full player's outer ScrollView + height-locked inner FlatList is intentional product
+ * nesting (see **mobile-player-fixed-region**). Call once from `FullPlayerScreen` so that banner
+ * does not appear. Do not reuse this to silence other nesting; only the bounded pane sheet qualifies.
+ */
+export const ignoreFullPlayerBoundedNestedListWarning = (): void => {
+  LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+};

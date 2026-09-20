@@ -9,12 +9,23 @@ export type FullPlayerLayoutInput = {
   maxContentWidth: number;
   safeAreaBottom: number;
   safeAreaTop: number;
+  /**
+   * Gap under the pane sheet (matches the sheet's horizontal margin token) so the bottom radius
+   * sits above the home indicator instead of flush to the screen edge.
+   */
+  sheetBottomInset: number;
   viewportHeight: number;
   viewportWidth: number;
 };
 
 export type FullPlayerLayout = {
   artworkSize: number;
+  /**
+   * Viewport-derived slot for the ink pane sheet: chips at the top of the fold, bottom radius on
+   * screen. The wrapper uses this as minHeight and matching height/maxHeight so every tab paints
+   * the same card and long content cannot grow the outer column.
+   */
+  paneSheetHeight: number;
   peekHeight: number;
   playerRegionHeight: number;
   /** Space left for the artwork band after every fixed band and seam is reserved. */
@@ -85,6 +96,10 @@ const asNonNegative = (value: number): number => {
   return Math.max(0, value);
 };
 
+export const resolveFullPlayerChipStripHeight = (chipStripHeight?: number): number => {
+  return Math.max(FULL_PLAYER_CHIP_HEADER_HEIGHT, asNonNegative(chipStripHeight ?? 0));
+};
+
 export const resolveFullPlayerPeekHeight = (
   hasSections: boolean,
   safeAreaBottom: number,
@@ -93,8 +108,7 @@ export const resolveFullPlayerPeekHeight = (
   if (!hasSections) {
     return 0;
   }
-  const stripHeight = Math.max(FULL_PLAYER_CHIP_HEADER_HEIGHT, asNonNegative(chipStripHeight ?? 0));
-  return stripHeight + asNonNegative(safeAreaBottom);
+  return resolveFullPlayerChipStripHeight(chipStripHeight) + asNonNegative(safeAreaBottom);
 };
 
 const fixedChromeHeight =
@@ -114,6 +128,7 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
   if (viewportHeight <= 0 || viewportWidth <= 0) {
     return {
       artworkSize: 0,
+      paneSheetHeight: 0,
       peekHeight: 0,
       playerRegionHeight: 0,
       viewerHeight: 0,
@@ -122,6 +137,10 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
 
   const safeAreaTop = asNonNegative(input.safeAreaTop);
   const safeAreaBottom = asNonNegative(input.safeAreaBottom);
+  const sheetBottomInset = asNonNegative(input.sheetBottomInset);
+  const stripHeight = input.hasSections
+    ? resolveFullPlayerChipStripHeight(input.chipStripHeight)
+    : 0;
   const peekHeight = Math.min(
     resolveFullPlayerPeekHeight(input.hasSections, safeAreaBottom, input.chipStripHeight),
     Math.max(0, viewportHeight - safeAreaTop)
@@ -134,6 +153,13 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
 
   const viewerHeight = Math.max(0, playerRegionHeight - fixedChromeHeight);
 
+  // Locked frame when scrolled to the sheet: chips + sheet + bottom gap fill the viewport.
+  // Outer content is that frame plus the player region, so max scroll equals playerRegionHeight.
+  const bottomGap = input.hasSections ? safeAreaBottom + sheetBottomInset : 0;
+  const paneSheetHeight = input.hasSections
+    ? Math.max(0, viewportHeight - stripHeight - bottomGap)
+    : 0;
+
   const contentWidth = Math.max(0, Math.min(viewportWidth, asNonNegative(input.maxContentWidth)));
   const artworkCap = input.isTablet
     ? FULL_PLAYER_ARTWORK_MAX_TABLET
@@ -143,6 +169,7 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
 
   return {
     artworkSize,
+    paneSheetHeight,
     peekHeight,
     playerRegionHeight,
     viewerHeight,

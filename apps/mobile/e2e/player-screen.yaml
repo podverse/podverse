@@ -1,9 +1,9 @@
 appId: com.podverse.app.next
 name: Player screen flow
 ---
-# Full-player shell behavior: one scrolling column (player, chips, pane), first-paint chip peek,
-# pane loading, and sheet-only controls. Uses the chaptered seeded episode so the Chapters pane
-# is always available and long enough to scroll the player off screen.
+# Full-player shell: outer scroll (player → chips → height-locked pane sheet), first-paint chip
+# peek, inner pane scroll, and sheet-only controls. Uses the chaptered seeded episode so the
+# Chapters pane is always available.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -46,6 +46,17 @@ name: Player screen flow
       id: full-player-pane-loading-chapters
     timeout: ${TIMEOUT_SLOWER}
 
+# Outer scroll brings the height-locked sheet on screen (chips at top, bottom radius visible).
+- scrollUntilVisible:
+    element:
+      id: full-player-pane-sheet
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-pane-sheet
+- assertVisible:
+    id: full-player-section-header
+# Chapter rows scroll inside the sheet, not by lengthening the outer column.
 - scrollUntilVisible:
     element:
       id: full-player-chapter-row
@@ -53,10 +64,12 @@ name: Player screen flow
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     id: full-player-chapter-row
+- assertVisible:
+    id: full-player-pane-sheet
 - takeScreenshot: player-screen-chapters-pane
 
-# Player chrome lives in the list header, so scrolling back to the transport is ordinary list
-# scroll — not overlay restore.
+# Restore the transport by outer scroll from the chip strip — not by assuming one list owns both
+# directions. Swipes on the chips drive the outer scroller; the ink sheet keeps its own inner list.
 - scrollUntilVisible:
     element:
       id: full-player-transport-row

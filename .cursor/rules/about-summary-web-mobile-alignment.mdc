@@ -18,6 +18,16 @@ Vocabulary for description / About / Summary lives in **abcmemory-vocabulary**.
 People render whenever the matching person array is non-empty, even if description prose is
 empty. Do not hide people behind an empty-description gate.
 
+## Length (mobile)
+
+Feed authors can paste unbounded HTML into channel description and item summary. On mobile,
+**About** and **Summary** prose (podcast / album / artist About; episode / track / livestream /
+full-player Summary) must **truncate by default** with **Show more** / **Show less**
+(`info.show_more` / `info.show_less`), matching the existing **360**-character collapse used on
+episode and track detail. A scrolling pane or height-locked sheet does **not** replace this —
+do not render the full string until the user expands it. Reset expanded state when the entity
+changes.
+
 ## Placement divergence (intentional)
 
 Web has more screen width and keeps RSS, website, and funding as **always-visible header

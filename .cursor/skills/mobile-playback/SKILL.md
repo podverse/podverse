@@ -171,20 +171,20 @@ player already own buffering and failure, and repeating that on every row is red
 
 ## Full player fixed region + panes
 
-`FullPlayerScreen` is one scrolling column. The player region and chips live in the pane
-`FlatList` header; chapter / clip / official-clip rows are `data`; summary and transcript sit in
-the footer. Chips sit above the pane sheet and line up with that sheet's outer border, not the
-inset pane text. Nothing is sticky or overlay-pinned, and the player does not shrink as the list
-scrolls. Chips have no hairlines and stay vertically centered in their band. A chip tap swaps the
-pane only; it does not scroll.
+`FullPlayerScreen` is an outer `ScrollView` (player region → chips → height-locked pane sheet) with
+an inner `FlatList` for pane body. The player region does not shrink as the outer list scrolls, and
+nothing is sticky or overlay-pinned. Once the sheet fills the viewport under the chips (bottom
+radius on screen), outer scroll stops; remaining Summary / chapters / clips scroll inside
+`FullPlayerPaneSheet`. Returning to the player is an outer gesture on the chips (or iOS status-bar
+`scrollsToTop` on the outer scroller). Chips sit above the sheet and line up with that sheet's
+outer border, not the inset pane text. A chip tap swaps the pane only; it does not scroll.
 `FULL_PLAYER_REGION_BOTTOM_PADDING` separates the utility row from those chips. First paint peeks
 the measured chip strip at the fold (`resolveFullPlayerLayout` reserves the strip plus the bottom
-safe-area inset; the header includes a matching spacer) — Summary copy and list rows require a
-scroll. The artwork is the band that gives way, so short viewports and large OS text sizes shrink
-the square instead of moving the chips.
+safe-area inset) — Summary copy and list rows require a scroll. The artwork is the band that gives
+way, so short viewports and large OS text sizes shrink the square instead of moving the chips.
 
 - Use `resolveFullPlayerLayout` in `apps/mobile/src/screens/player/fullPlayerLayout.ts` for all
-  region math.
+  region and `paneSheetHeight` math (pass `sheetBottomInset` from `tokens.spacing.md`).
 - Keep transport controls on shared constants from `@podverse/helpers`
   (`MEDIA_JUMP_BACK_SECONDS` = 10, `MEDIA_JUMP_FORWARD_SECONDS` = 30).
 - Previous/next match web: tap is chapter-aware for whole-item playback (`skipToPrevious` /
@@ -208,7 +208,8 @@ the square instead of moving the chips.
 
 The contract for this area is enforced by
 [`mobile-player-fixed-region`](/.cursor/rules/mobile-player-fixed-region.mdc): only the viewer band
-flexes; everything else keeps a fixed reserved height.
+flexes; everything else keeps a fixed reserved height; the pane sheet owns the viewport-derived
+minHeight slot.
 
 ### Playhead progress store
 

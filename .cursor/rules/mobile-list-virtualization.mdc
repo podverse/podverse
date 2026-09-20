@@ -24,7 +24,15 @@ For files under `apps/mobile/src/**/*.tsx`:
 - Screen-level chrome that must stay visible (Home media-type chips, podcast identity + section
   chips) sits **above** the list, not in `ListHeaderComponent`. Title filters stay in the list
   header so pull-to-refresh appears above them.
-- Do not nest `FlatList`/`SectionList` inside `ScrollView` (including `MobileScreenContainer`).
+- Do not nest `FlatList`/`SectionList` inside `ScrollView` (including `MobileScreenContainer`),
+  except the full-player pane: a nested `FlatList` is allowed when the parent has an **explicit
+  minHeight/height slot that cannot expand the outer scroller** (`FullPlayerPaneSheet` +
+  `paneSheetHeight` from `fullPlayerLayout.ts`). That is the failure mode the nest ban prevents.
+  Keep that inner list virtualized (chapters/clips). RN's nest yellow box is structural and still
+  fires for this pattern — silence **only** that message via
+  `ignoreFullPlayerBoundedNestedListWarning()` in `listVirtualization.ts` (wired from
+  `FullPlayerScreen`). Do not ignore other LogBox warnings for this, and do not copy the ignore
+  elsewhere without the same bounded-slot guarantee.
 
 ## Grid rules
 
@@ -36,6 +44,7 @@ For files under `apps/mobile/src/**/*.tsx`:
 
 - Small/fixed lists (chips, short settings groups, bounded control panels) may stay simple `.map()`.
 - Functional-sketch reorder paths may remain non-virtualized unless requested otherwise.
+- Full-player height-locked pane sheet — see **mobile-player-fixed-region**.
 
 ## Reference
 
