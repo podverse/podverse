@@ -35,6 +35,11 @@ export const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
 /** Publisher-feed artist channel. Mobile `artist.yaml` deep-links here. */
 export const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
+
+/** Directory publisher-music artist (`e2eArtPub01` = 11 chars). Distinct from the music album fixture. */
+export const E2E_DIRECTORY_ARTIST_ID_TEXT = 'e2eArtPub01';
+export const E2E_DIRECTORY_ARTIST_TITLE = 'E2E Directory Artist';
+export const E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO = '2026-03-15T18:00:00.000Z';
 export const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
 export const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
 export const E2E_MUSIC_TRACK_TWO_ID_TEXT = 'e2eMusicTrk002';

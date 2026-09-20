@@ -59,7 +59,7 @@ is detailed only when its screenshots arrive. `Status`: `not started` → `quest
 
 | Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status                                                 |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips)                                |
+| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips; artist dates + per-type view prefs) |
 | P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast + music detail); episode later           |
 | P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                                   |
 | P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | done (player + enclosures + medium player + Make Clip) |
@@ -98,12 +98,15 @@ that web also reads and writes.
 | P2.1.1 | [738-browse-podcast-host-names](/docs/proposals/mobile/_master-plan_/phase-2/details/738-browse-podcast-host-names.md)                                   | Codex 5.3 | done   |
 | P2.1.1 | [739-home-subscribed-channel-kind-and-loaders](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)     | Codex 5.3 | done   |
 | P2.1.1 | [740-home-empty-discovery-ctas](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md)                                   | Codex 5.3 | done   |
-| P2.1.1 | [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | Codex 5.3 | done   |
-| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done   |
+| P2.1.1 | [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | Codex 5.3 | done    |
+| P2.1.1 | [780-artist-feed-last-pub-date](/docs/proposals/mobile/_master-plan_/phase-2/details/780-artist-feed-last-pub-date.md)                                   | Codex 5.3 | done    |
+| P2.1.1 | [782-per-type-channel-list-grid-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/782-per-type-channel-list-grid-prefs.md)                     | Codex 5.3 | done    |
+| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done    |
 | P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | Codex 5.3 | done   |
 
 The original steps above are implemented and their plans are archived. The focused P2.1.1 follow-ups
-in details 721, 738, and 739–741 are implemented and complete.
+in details 721, 738, 739–741, and 780–782 are implemented and complete (COPY-PASTA archive:
+`.llm/plans/completed/12-mobile-p2-artist-rows-and-view-prefs/`).
 Focused device review remains recommended follow-up verification, not a prerequisite for completion.
 
 Locked decisions for this area live in `.llm/plans/completed/mobile-p2-home-podcasts/00-SUMMARY.md`,
@@ -464,7 +467,9 @@ deliberate parity choice rather than a correctness requirement.
 | P2.5.2 | [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)             | Codex 5.3 | done   | P2.1.1     |
 | P2.5.3 | [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)             | Opus 5    | done   | P2.4.6     |
 | P2.5.4 | [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md)     | Codex 5.3 | done   | P2.1.12    |
-| P2.5.5 | [770-web-medium-route-kind-counterpart](/docs/proposals/mobile/_master-plan_/phase-2/details/770-web-medium-route-kind-counterpart.md) | Codex 5.3 | done   | P2.4.13    |
+| P2.5.5 | [770-web-medium-route-kind-counterpart](/docs/proposals/mobile/_master-plan_/phase-2/details/770-web-medium-route-kind-counterpart.md) | Codex 5.3 | done    | P2.4.13    |
+| P2.5.6 | [781-artist-list-row-dates](/docs/proposals/mobile/_master-plan_/phase-2/details/781-artist-list-row-dates.md)                         | Codex 5.3 | done    | P2.1.1     |
+| P2.5.7 | [782-per-type-channel-list-grid-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/782-per-type-channel-list-grid-prefs.md)   | Codex 5.3 | done    | P2.4.6     |
 
 Web changes also live inside two P2.4 steps rather than as separate entries: the shared tier resolver
 in P2.4.1 refactors web's `useMembershipGate`, and the notifications rename in P2.4.5 touches web's
@@ -572,6 +577,9 @@ above whenever status changes, per
 | [776-add-to-playlist-sheet-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/776-add-to-playlist-sheet-parity.md)                             | P2.1.6  | Codex 5.3 | done                                                 |
 | [777-defer-liked-playlist-and-row-likes](/docs/proposals/mobile/_master-plan_/phase-2/details/777-defer-liked-playlist-and-row-likes.md)                 | P2.3.20 | Codex 5.3 | deferred                                             |
 | [778-defer-playlist-medium-and-public-sort](/docs/proposals/mobile/_master-plan_/phase-2/details/778-defer-playlist-medium-and-public-sort.md)           | P2.3.21 | Codex 5.3 | deferred                                             |
+| [780-artist-feed-last-pub-date](/docs/proposals/mobile/_master-plan_/phase-2/details/780-artist-feed-last-pub-date.md)                                   | P2.1.1  | Codex 5.3 | done                                                 |
+| [781-artist-list-row-dates](/docs/proposals/mobile/_master-plan_/phase-2/details/781-artist-list-row-dates.md)                                           | P2.5.6  | Codex 5.3 | done                                                 |
+| [782-per-type-channel-list-grid-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/782-per-type-channel-list-grid-prefs.md)                     | P2.1.1  | Codex 5.3 | done                                                 |
 
 New Phase 2 detail docs use the **700–899** ID band (see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) § Detail ID bands).

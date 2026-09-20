@@ -140,6 +140,44 @@ name: Browse Tab And Tab Bar Pref
     id: browse-category-all
 - takeScreenshot: browse-screen-artists
 
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: "home-feed-row-updated-.*"
+- tapOn:
+    id: browse-overflow-trigger
+- extendedWaitUntil:
+    visible:
+      id: browse-overflow-menu
+    timeout: ${TIMEOUT_FASTER}
+- tapOn:
+    id: browse-overflow-view-grid
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-cell-.*"
+    timeout: ${TIMEOUT_SLOWER}
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- tapOn:
+    id: browse-media-type-podcasts
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: "home-feed-row-title-.*"
+- assertNotVisible:
+    id: "home-feed-cell-.*"
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: browse-media-type-artists
 - swipe:
     from:
       id: browse-media-type-selector

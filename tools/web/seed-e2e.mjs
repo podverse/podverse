@@ -76,6 +76,12 @@ const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
 const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
 const E2E_MUSIC_ARTIST_FEED_URL = 'https://e2e-seed-music.example/artist.xml';
 const E2E_MUSIC_ARTIST_FEED_PI_ID = 876543218;
+/** Directory publisher-music artist (`e2eArtPub01` = 11 chars). Do not reuse the music album fixture. */
+const E2E_DIRECTORY_ARTIST_ID_TEXT = 'e2eArtPub01';
+const E2E_DIRECTORY_ARTIST_TITLE = 'E2E Directory Artist';
+const E2E_DIRECTORY_ARTIST_FEED_URL = 'https://e2e-seed-directory-artist.example/artist.xml';
+const E2E_DIRECTORY_ARTIST_FEED_PI_ID = 876543219;
+const E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO = '2026-03-15T18:00:00.000Z';
 const E2E_MUSIC_ALBUM_PODCAST_GUID = '11111111-2222-4333-8444-555555555501';
 const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
 const E2E_MUSIC_TRACK_TWO_ID_TEXT = 'e2eMusicTrk002';
@@ -1161,6 +1167,62 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
 
   console.log(
     `Seeded music artist E2E channel ${E2E_MUSIC_CHANNEL_ID_TEXT} (album ${E2E_MUSIC_ALBUM_ID_TEXT}; tracks ${E2E_MUSIC_TRACK_ONE_ID_TEXT}, ${E2E_MUSIC_TRACK_TWO_ID_TEXT})`
+  );
+
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    E2E_DIRECTORY_ARTIST_FEED_PI_ID,
+    E2E_DIRECTORY_ARTIST_FEED_URL,
+  ]);
+
+  const directoryArtistFeedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [E2E_DIRECTORY_ARTIST_FEED_URL, E2E_DIRECTORY_ARTIST_FEED_PI_ID]
+  );
+  const directoryArtistFeedId = directoryArtistFeedResult.rows[0].id;
+
+  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [directoryArtistFeedId]);
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [directoryArtistFeedId]
+  );
+
+  const directoryArtistChannelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'publisher-music' LIMIT 1),
+       $3
+     )
+     RETURNING id`,
+    [E2E_DIRECTORY_ARTIST_ID_TEXT, directoryArtistFeedId, E2E_DIRECTORY_ARTIST_TITLE]
+  );
+  const directoryArtistChannelId = directoryArtistChannelResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO channel_about (channel_id, last_pub_date)
+     VALUES ($1, $2)`,
+    [directoryArtistChannelId, E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO]
+  );
+  await client.query(
+    `INSERT INTO channel_description (channel_id, value)
+     VALUES ($1, $2)`,
+    [
+      directoryArtistChannelId,
+      'E2E seeded publisher-music artist for directory last-pub-date rows.',
+    ]
+  );
+  await client.query(
+    `INSERT INTO channel_image (channel_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [directoryArtistChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
+  );
+
+  console.log(
+    `Seeded directory artist E2E channel ${E2E_DIRECTORY_ARTIST_ID_TEXT} (last_pub_date ${E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO})`
   );
 
   // Add-by-RSS resources live in the podcast queue at upcoming

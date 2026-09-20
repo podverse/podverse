@@ -1,14 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
+import { formatDateAbbrev } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { listItemImageCandidates } from '../../../utils/image/listItemImageCandidates';
 import type { ArtistListItem } from './types';
+import { ARTIST_ROW_UPDATED_TEST_ID } from './types';
 
 import styles from '../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
 
@@ -19,7 +21,9 @@ type CommonArtistListRowProps = {
 export const CommonArtistListRow: React.FC<CommonArtistListRowProps> = ({ item }) => {
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
-  const showSubtitle = item.showSubtitle ?? Boolean(item.subtitle);
+  const locale = useLocale();
+  const dateLabel = item.lastPubDate ? formatDateAbbrev(item.lastPubDate, locale) : null;
+  const showAuthorSubtitle = dateLabel === null && (item.showSubtitle ?? Boolean(item.subtitle));
 
   return (
     <Link href={item.href} className={styles.link}>
@@ -33,8 +37,14 @@ export const CommonArtistListRow: React.FC<CommonArtistListRowProps> = ({ item }
         />
         <div className={styles.content}>
           <h3 className={styles.title}>{item.title}</h3>
-          {showSubtitle && (
-            <span className={styles.lastPubDate}>{item.subtitle || tMisc('untitled')}</span>
+          {dateLabel ? (
+            <span className={styles.lastPubDate} data-testid={ARTIST_ROW_UPDATED_TEST_ID}>
+              {dateLabel}
+            </span>
+          ) : (
+            showAuthorSubtitle && (
+              <span className={styles.lastPubDate}>{item.subtitle || tMisc('untitled')}</span>
+            )
           )}
         </div>
       </div>

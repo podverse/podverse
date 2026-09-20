@@ -16,13 +16,14 @@ import {
 import { Dropdown, MainHeader } from '@podverse/ui';
 
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
-import { useLocalSettings } from '../../contexts/LocalSettings';
+import { LIST_VIEW_MODE_SCOPE_ARTISTS } from '../../hooks/listViewMode';
+import { useListViewMode } from '../../hooks/useListViewMode';
 import { useArtistsPageContext } from './ArtistsPageContext';
 import { getArtistsPageDropdownConfig } from './ArtistsPageDropdownConfig';
 
 export const ArtistsPageHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useArtistsPageContext();
-  const { viewSelected, setViewSelected } = useLocalSettings();
+  const { viewSelected, setViewSelected } = useListViewMode(LIST_VIEW_MODE_SCOPE_ARTISTS);
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');

@@ -11,9 +11,10 @@ import { HowToStartInfo } from '../../components/HowToStartInfo/HowToStartInfo';
 import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
 import { ROUTES } from '../../constants/routes';
-import { useLocalSettings } from '../../contexts/LocalSettings';
+import { LIST_VIEW_MODE_SCOPE_PODCASTS } from '../../hooks/listViewMode';
 import { useChannelUnseenBadges } from '../../hooks/useChannelUnseenBadges';
 import { useFullSubscribedChannels } from '../../hooks/useFullSubscribedChannels';
+import { useListViewMode } from '../../hooks/useListViewMode';
 import { onClickCategory } from '../../utils/categories';
 import { selectFilteredSubscribedPage } from './podcastsFilter';
 import { usePodcastsPageContext } from './PodcastsPageContext';
@@ -32,7 +33,7 @@ export const PodcastsPageList: React.FC = () => {
     showCategoriesModal,
     setShowCategoriesModal,
   } = usePodcastsPageContext();
-  const { viewSelected } = useLocalSettings();
+  const { viewSelected } = useListViewMode(LIST_VIEW_MODE_SCOPE_PODCASTS);
   const { medium, page, range, sort, type, category } = filterParams;
   const router = useRouter();
   const tSubscriptions = useTranslations('subscriptions');

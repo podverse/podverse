@@ -277,13 +277,15 @@ export function HomeScreen() {
     [selectedMediaType]
   );
 
-  const handleViewModeChange = useCallback((viewMode: HomeViewMode) => {
-    // Applied here as well as written, so the list redraws on the tap rather than after the
-    // storage round trip. The write is still what a relaunch reads. One Home-wide choice covers
-    // every eligible chip.
-    setListPrefs((current) => (current === null ? current : { ...current, viewMode }));
-    void writeHomeViewMode(viewMode);
-  }, []);
+  const handleViewModeChange = useCallback(
+    (viewMode: HomeViewMode) => {
+      // Applied here as well as written, so the list redraws on the tap rather than after the
+      // storage round trip. The write is still what a relaunch reads.
+      setListPrefs((current) => (current === null ? current : { ...current, viewMode }));
+      void writeHomeViewMode(selectedMediaType, viewMode);
+    },
+    [selectedMediaType]
+  );
 
   const handleFilterTermChange = useCallback((term: string) => {
     setFilterTerm(term);

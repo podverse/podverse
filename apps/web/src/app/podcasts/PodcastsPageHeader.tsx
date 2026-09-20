@@ -9,6 +9,7 @@ import {
 } from '@podverse/helpers-requests';
 import { MainHeader } from '@podverse/ui';
 
+import { LIST_VIEW_MODE_SCOPE_PODCASTS } from '../../hooks/listViewMode';
 import { useSubscribedListHeader } from '../../hooks/useSubscribedListHeader';
 import { PodcastsFilterInput } from './PodcastsFilterInput';
 import { usePodcastsPageContext } from './PodcastsPageContext';
@@ -35,6 +36,7 @@ export const PodcastsPageHeader: React.FC = () => {
     sortValues: QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
     type,
     typeValues: QUERY_PARAMS_SUBSCRIBED_TYPE,
+    viewModeScope: LIST_VIEW_MODE_SCOPE_PODCASTS,
   });
   const title = filterParams.category
     ? `${tMedia('podcast.podcasts')} > ${tCategories(filterParams.category)}`

@@ -211,12 +211,15 @@ export function BrowseScreen() {
     void writeBrowseRange(range);
   }, []);
 
-  const handleViewModeChange = useCallback((nextViewMode: HomeViewMode) => {
-    setListPrefs((current) =>
-      current === null ? current : { ...current, viewMode: nextViewMode }
-    );
-    void writeBrowseViewMode(nextViewMode);
-  }, []);
+  const handleViewModeChange = useCallback(
+    (nextViewMode: HomeViewMode) => {
+      setListPrefs((current) =>
+        current === null ? current : { ...current, viewMode: nextViewMode }
+      );
+      void writeBrowseViewMode(selectedMediaType, nextViewMode);
+    },
+    [selectedMediaType]
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({

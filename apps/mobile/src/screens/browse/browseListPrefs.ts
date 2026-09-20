@@ -1,4 +1,4 @@
-import type { SortPrefScope } from '@podverse/helpers';
+import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
 
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE, HOME_VIEW_MODES } from '../../prefs/homeListPrefs';
@@ -13,6 +13,10 @@ import {
 
 const BROWSE_ROOT_SCOPE: SortPrefScope = { kind: 'list', name: 'browse' };
 
+const BROWSE_VIEW_MODE_MEDIA_TYPES = ['podcasts', 'artists', 'albums'] as const;
+
+type BrowseViewModeMediaType = (typeof BROWSE_VIEW_MODE_MEDIA_TYPES)[number];
+
 export type BrowseListPrefs = {
   category: string | null;
   mediaType: BrowseMediaType;
@@ -26,11 +30,39 @@ export type BrowseListPrefs = {
  * Episodes, tracks, clips, playlists, and users are list-only — a tile cannot name the row.
  */
 export const isBrowseViewModeMediaType = (mediaType: BrowseMediaType): boolean => {
-  return mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums';
+  return BROWSE_VIEW_MODE_MEDIA_TYPES.some((eligible) => eligible === mediaType);
+};
+
+const isBrowseViewModeMediaTypeName = (
+  mediaType: BrowseMediaType
+): mediaType is BrowseViewModeMediaType => {
+  return isBrowseViewModeMediaType(mediaType);
+};
+
+const buildBrowseViewModeScope = (mediaType: BrowseViewModeMediaType): SortPrefScope => {
+  return { kind: 'list', name: `browse-${mediaType}` };
 };
 
 const isHomeViewMode = (value: string): value is HomeViewMode => {
   return HOME_VIEW_MODES.some((mode) => mode === value);
+};
+
+const readBrowseViewMode = async (
+  mediaType: BrowseMediaType,
+  root: SortPrefValue | null
+): Promise<HomeViewMode> => {
+  if (isBrowseViewModeMediaTypeName(mediaType)) {
+    const stored = await readSortPref(buildBrowseViewModeScope(mediaType));
+    if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
+      return stored.viewMode;
+    }
+  }
+
+  if (root?.viewMode !== undefined && isHomeViewMode(root.viewMode)) {
+    return root.viewMode;
+  }
+
+  return DEFAULT_HOME_VIEW_MODE;
 };
 
 export const readBrowseListPrefs = async (): Promise<BrowseListPrefs> => {
@@ -44,10 +76,7 @@ export const readBrowseListPrefs = async (): Promise<BrowseListPrefs> => {
       ? stored.range
       : DEFAULT_BROWSE_RANGE;
   const category = stored?.category !== undefined ? stored.category : null;
-  const viewMode =
-    stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)
-      ? stored.viewMode
-      : DEFAULT_HOME_VIEW_MODE;
+  const viewMode = await readBrowseViewMode(mediaType, stored);
 
   return {
     category,
@@ -71,10 +100,27 @@ export const writeBrowseCategory = async (category: string | null): Promise<void
   });
 };
 
-export const writeBrowseViewMode = async (viewMode: HomeViewMode): Promise<void> => {
-  await writeSortPref(BROWSE_ROOT_SCOPE, { viewMode });
+export const writeBrowseViewMode = async (
+  mediaType: BrowseMediaType,
+  viewMode: HomeViewMode
+): Promise<void> => {
+  if (!isBrowseViewModeMediaTypeName(mediaType)) {
+    return;
+  }
+
+  await writeSortPref(buildBrowseViewModeScope(mediaType), { viewMode });
 };
 
 export const subscribeBrowseListPrefs = (listener: () => void): (() => void) => {
-  return subscribeSortPref(BROWSE_ROOT_SCOPE, listener);
+  const unsubscribeRoot = subscribeSortPref(BROWSE_ROOT_SCOPE, listener);
+  const unsubscribeViewModes = BROWSE_VIEW_MODE_MEDIA_TYPES.map((mediaType) =>
+    subscribeSortPref(buildBrowseViewModeScope(mediaType), listener)
+  );
+
+  return () => {
+    unsubscribeRoot();
+    for (const unsubscribe of unsubscribeViewModes) {
+      unsubscribe();
+    }
+  };
 };
