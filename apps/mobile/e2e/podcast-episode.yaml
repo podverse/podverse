@@ -116,6 +116,21 @@ name: Podcast Episode Flow
     timeout: ${TIMEOUT_SLOWER}
 - assertNotVisible:
     id: podcast-detail-sort-button
+# RSS and website URLs sit under the description when the channel publishes them.
+- runFlow:
+    when:
+      visible:
+        id: podcast-detail-rss
+    commands:
+      - assertVisible:
+          id: podcast-detail-rss
+- runFlow:
+    when:
+      visible:
+        id: podcast-detail-website
+    commands:
+      - assertVisible:
+          id: podcast-detail-website
 - takeScreenshot: podcast-episode-section-about
 
 # Downloaded is always offered (with Episodes, About, and Clips). Official clips and Podroll sit
@@ -186,20 +201,6 @@ name: Podcast Episode Flow
     id: podcast-detail-share
 - assertVisible:
     id: podcast-detail-notifications-toggle
-- runFlow:
-    when:
-      visible:
-        id: podcast-detail-rss
-    commands:
-      - assertVisible:
-          id: podcast-detail-rss
-- runFlow:
-    when:
-      visible:
-        id: podcast-detail-website
-    commands:
-      - assertVisible:
-          id: podcast-detail-website
 - runFlow:
     when:
       notVisible:

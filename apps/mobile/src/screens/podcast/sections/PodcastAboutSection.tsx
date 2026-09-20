@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannelPerson } from '@podverse/helpers';
 
@@ -13,18 +13,34 @@ import { useTheme } from '../../../theme/useTheme';
 import type { PodcastSectionPaneProps } from './podcastSectionPane';
 
 type AboutCell =
-  | { key: string; kind: 'description'; text: string }
+  | {
+      key: string;
+      kind: 'description';
+      feedUrl: string | null;
+      text: string | null;
+      websiteUrl: string | null;
+    }
   | { key: string; kind: 'people-heading' }
   | { key: string; kind: 'person'; person: DTOChannelPerson };
 
+const nonEmpty = (value: string | null | undefined): string | null => {
+  if (value === null || value === undefined || value.length === 0) {
+    return null;
+  }
+  return value;
+};
+
 /**
- * The channel's own description in full, plus the people credited in its feed.
+ * The channel's own description in full, its RSS and website URLs, and the people credited in its
+ * feed.
  *
  * This section reads the channel the screen owns. Until that load settles, the body is a spinner —
  * an empty description is only shown after the channel is known.
  *
  * The cells are a single list rather than a scroll view of blocks: the identity block and chips stay
- * pinned, and prose and person rows take their turn in this list like any other section's rows.
+ * pinned, and prose, outbound links, and person rows take their turn in this list like any other
+ * section's rows. Links sit under the description and above People so they stay with the
+ * publisher copy.
  */
 export function PodcastAboutSection({
   channel,
@@ -45,6 +61,25 @@ export function PodcastAboutSection({
           ...typography.heading,
           color: themeStyles.textPrimary.color,
           marginTop: tokens.spacing.lg,
+        },
+        linkLabel: {
+          ...typography.body,
+          color: themeStyles.textPrimary.color,
+          fontWeight: '600',
+        },
+        linkLine: {
+          ...typography.body,
+          color: themeStyles.textPrimary.color,
+        },
+        links: {
+          gap: tokens.spacing.sm,
+        },
+        linksAfterProse: {
+          marginTop: tokens.spacing.lg,
+        },
+        linkUrl: {
+          ...typography.body,
+          color: tokens.text.accent,
         },
         list: {
           backgroundColor: themeStyles.screen.backgroundColor,
@@ -70,12 +105,20 @@ export function PodcastAboutSection({
   );
 
   const cells = useMemo<AboutCell[]>(() => {
-    const description = channel?.channel_description?.value ?? '';
+    const description = nonEmpty(channel?.channel_description?.value);
+    const feedUrl = nonEmpty(channel?.feed?.url);
+    const websiteUrl = nonEmpty(channel?.channel_about?.website_link_url);
     const people = channel?.channel_persons ?? [];
     const next: AboutCell[] = [];
 
-    if (description.length > 0) {
-      next.push({ key: 'description', kind: 'description', text: description });
+    if (description !== null || feedUrl !== null || websiteUrl !== null) {
+      next.push({
+        feedUrl,
+        key: 'description',
+        kind: 'description',
+        text: description,
+        websiteUrl,
+      });
     }
 
     if (people.length > 0) {
@@ -89,16 +132,33 @@ export function PodcastAboutSection({
   }, [channel]);
 
   /**
-   * A credited person's link goes to whatever they published it as, which is the open web rather than
-   * anything this app can render. A link that will not open is left as a row that simply reads.
+   * Outbound About links (RSS, website, a credited person) go to whatever the publisher published,
+   * which is the open web rather than anything this app can render. A URL that will not open is left
+   * as a control that simply reads.
    */
-  const openPersonLink = useCallback(async (href: string) => {
+  const openExternalUrl = useCallback(async (href: string) => {
     try {
       await Linking.openURL(href);
     } catch (error) {
-      console.warn('Could not open the link for a credited person', href, error);
+      console.warn('Could not open an About link', href, error);
     }
   }, []);
+
+  const renderOutboundLink = (label: string, url: string, testID: string) => (
+    <Pressable
+      accessibilityLabel={`${label}: ${url}`}
+      accessibilityRole="link"
+      onPress={() => {
+        void openExternalUrl(url);
+      }}
+      testID={testID}
+    >
+      <Text style={styles.linkLine}>
+        <Text style={styles.linkLabel}>{`${label}: `}</Text>
+        <Text style={styles.linkUrl}>{url}</Text>
+      </Text>
+    </Pressable>
+  );
 
   const renderPerson = (person: DTOChannelPerson) => {
     const href = person.href;
@@ -120,7 +180,7 @@ export function PodcastAboutSection({
         onPress={
           hasLink
             ? () => {
-                void openPersonLink(href);
+                void openExternalUrl(href);
               }
             : undefined
         }
@@ -149,9 +209,22 @@ export function PodcastAboutSection({
       keyExtractor={(cell) => cell.key}
       renderItem={({ item: cell }) => {
         if (cell.kind === 'description') {
+          const hasProse = cell.text !== null;
+          const hasLinks = cell.feedUrl !== null || cell.websiteUrl !== null;
+
           return (
             <View style={styles.surface}>
-              <Text style={styles.prose}>{cell.text}</Text>
+              {hasProse ? <Text style={styles.prose}>{cell.text}</Text> : null}
+              {hasLinks ? (
+                <View style={[styles.links, hasProse ? styles.linksAfterProse : null]}>
+                  {cell.feedUrl !== null
+                    ? renderOutboundLink(t('info.rss'), cell.feedUrl, 'podcast-detail-rss')
+                    : null}
+                  {cell.websiteUrl !== null
+                    ? renderOutboundLink(t('info.website'), cell.websiteUrl, 'podcast-detail-website')
+                    : null}
+                </View>
+              ) : null}
             </View>
           );
         }

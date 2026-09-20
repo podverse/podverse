@@ -89,4 +89,21 @@ describe('getCategoriesForCommand', () => {
       )
     );
   });
+
+  it('maps devParserRSSParseArtistPublisherFeeds to full parser stack categories', () => {
+    expect(
+      sortCategories(getCategoriesForCommand('devParserRSSParseArtistPublisherFeeds'))
+    ).toEqual(
+      sortCategories(
+        new Set([
+          CATEGORY_BASE,
+          CATEGORY_ORM,
+          CATEGORY_MQ,
+          CATEGORY_PARSER,
+          CATEGORY_PODCAST_INDEX,
+          CATEGORY_WEB_NOTIFICATIONS,
+        ])
+      )
+    );
+  });
 });

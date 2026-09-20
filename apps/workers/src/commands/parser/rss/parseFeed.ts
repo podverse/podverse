@@ -10,7 +10,7 @@ import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
  * Fetches the feed URL from the Podcast Index, parses the RSS, persists to the DB, and
  * enqueues follow-up MQ work (remote items, image hints). Used by `parserRSSParseFeed` and
  * dev/bulk commands such as `devParserRSSParseTrendingFeeds` and
- * `devParserRSSParseMusicMediumFeeds`.
+ * `devParserRSSParseMusicMediumFeeds` and `devParserRSSParseArtistPublisherFeeds`.
  */
 export async function parsePodcastIndexFeedById(
   podcastIndexId: number,

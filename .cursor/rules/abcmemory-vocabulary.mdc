@@ -38,3 +38,22 @@ checkout **`../podverse-rn`** relative to this monorepo root (typically
 `apps/mobile`.
 
 See **legacy-app-reference** for when and how to open that checkout.
+
+## description / about / summary
+
+These three get used interchangeably in conversation. In code they are not the same thing.
+
+- **description** is the RSS-spec prose (`<description>`, `channel_description`,
+  `item_description`). Use this name for the field, the DTO, and internal cell/kind identifiers
+  that hold that text.
+- **about** is how a **channel** (podcast, album, artist) presents that description — the About
+  section / chip (`info.about`).
+- **summary** is how an **item** (episode, clip, track) presents that description — the Summary
+  tab (`info.summary.summary`).
+
+Do not rename a channel About cell or section to `summary`, or an item Summary tab to
+`description` / `about`, just because the spoken terms overlap. Leave catalog keys on their
+surface (`info.about` vs `info.summary.*`).
+
+`channel_about` / `item_about` are a different DTO: structured metadata (author, duration,
+website URL), not the description prose. Do not treat those as the About/Summary body.

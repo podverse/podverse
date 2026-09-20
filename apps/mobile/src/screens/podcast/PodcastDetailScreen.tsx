@@ -2,7 +2,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ComponentType } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { DTOChannel } from '@podverse/helpers';
 import { primaryChannelLightboxArtworkUrl, primaryChannelListArtworkUrl } from '@podverse/helpers';
@@ -108,9 +108,9 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
  * different endpoints and different row shapes, and a single list that tried to serve all of them
  * would branch on section in every callback.
  *
- * Subscribe and outbound RSS / website links live on the channel identity block. Share,
- * notifications, and settings live in the stack title bar — the same slot every channel and item
- * detail screen uses (`mobile-screen-layout`).
+ * Subscribe lives on the channel identity block. RSS and website URLs live on About, under the
+ * description. Share, notifications, and settings live in the stack title bar — the same slot
+ * every channel and item detail screen uses (`mobile-screen-layout`).
  */
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
@@ -179,21 +179,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        channelActions: {
-          gap: tokens.spacing.sm,
-        },
-        channelActionRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          marginHorizontal: -tokens.spacing.sm,
-        },
         headerActions: {
           alignItems: 'center',
           flexDirection: 'row',
-        },
-        subscribeButtonRow: {
-          alignItems: 'flex-start',
         },
       }),
     [tokens]
@@ -393,19 +381,6 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const handleShare = useCallback(() => {
     shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
   }, [podcastId]);
-
-  const openExternalUrl = useCallback(async (href: string) => {
-    try {
-      await Linking.openURL(href);
-    } catch {
-      // The controls are optional conveniences; failing to open leaves the screen usable.
-    }
-  }, []);
-
-  const feedUrl = channel?.feed?.url ?? null;
-  const websiteUrl = channel?.channel_about?.website_link_url ?? null;
-  const hasOutboundLinks =
-    (feedUrl !== null && feedUrl.length > 0) || (websiteUrl !== null && websiteUrl.length > 0);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -630,44 +605,16 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const channelHeader = (
     <ChannelHeader
       actions={
-        <View style={styles.channelActions}>
-          <View style={styles.subscribeButtonRow}>
-            <Button
-              label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
-              loading={isSavingSubscription}
-              onPress={() => {
-                void handleSubscriptionToggle();
-              }}
-              size="sm"
-              testID="podcast-detail-subscribe-toggle"
-              variant="outline"
-            />
-          </View>
-          {hasOutboundLinks ? (
-            <View style={styles.channelActionRow}>
-              {feedUrl !== null && feedUrl.length > 0 ? (
-                <HeaderBarAction
-                  accessibilityLabel={t('info.rss_feed')}
-                  icon="logo-rss"
-                  onPress={() => {
-                    void openExternalUrl(feedUrl);
-                  }}
-                  testID="podcast-detail-rss"
-                />
-              ) : null}
-              {websiteUrl !== null && websiteUrl.length > 0 ? (
-                <HeaderBarAction
-                  accessibilityLabel={t('info.website')}
-                  icon="globe-outline"
-                  onPress={() => {
-                    void openExternalUrl(websiteUrl);
-                  }}
-                  testID="podcast-detail-website"
-                />
-              ) : null}
-            </View>
-          ) : null}
-        </View>
+        <Button
+          label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
+          loading={isSavingSubscription}
+          onPress={() => {
+            void handleSubscriptionToggle();
+          }}
+          size="sm"
+          testID="podcast-detail-subscribe-toggle"
+          variant="outline"
+        />
       }
       artworkUri={artworkUri}
       notice={subscriptionNoticeKey === null ? null : t(subscriptionNoticeKey)}
