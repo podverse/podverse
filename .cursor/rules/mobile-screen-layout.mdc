@@ -222,6 +222,14 @@ Section and media-type chips keep the order the caller handed in. Selecting one 
 to the front. Evidence chips still resolve last in `PODCAST_TABS` so a first-visit insert is at
 the end of the available set.
 
+## Action error icons
+
+An error glyph, or a failed download row that has no glyph, does not retry or toast on its own.
+The next press opens `ConfirmDialog` through `useActionError` (`openPlaybackError` /
+`openDownloadError`): a kind-specific explanation, a reportable detail line when one exists,
+Cancel, and a retry action. The dialog does not open until that press. List-row play buttons stay
+play/pause; pre-play `noticeKey` text stays inline.
+
 ## Action-gated account / membership
 
 When the screen is usable and one control is gated, keep the control visible. On press, call

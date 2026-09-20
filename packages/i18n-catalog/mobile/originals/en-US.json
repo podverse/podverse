@@ -184,5 +184,23 @@
   },
   "misc": {
     "clear": "Clear"
+  },
+  "action_error": {
+    "playback_title": "Playback error",
+    "download_title": "Download error",
+    "playback_a11y": "Playback error",
+    "download_a11y": "Download error",
+    "report": "Details: {detail}",
+    "playback_network": "The connection failed while loading this media. Check your network, then try again.",
+    "playback_unsupported": "This file uses a format this device cannot play. The podcast host may need to offer a different file.",
+    "playback_file_not_found": "The media file could not be found. It may have been removed from the host.",
+    "playback_decode": "This device could not decode the media.",
+    "playback_audio_session": "Audio could not start. Close other apps that are playing sound, then try again.",
+    "playback_invalid_source": "The media address is not valid.",
+    "playback_unknown": "Something went wrong while playing. Try again.",
+    "download_no_storage": "There is not enough free space on this device. Free some space, then try again.",
+    "download_transfer_failed": "The download did not finish. Check your connection, then try again.",
+    "download_file_missing": "The downloaded file is missing from this device.",
+    "download_unknown": "The download failed. Try again."
   }
 }

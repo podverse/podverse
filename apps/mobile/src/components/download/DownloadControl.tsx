@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
@@ -29,11 +30,9 @@ export function DownloadControl({ item }: DownloadControlProps) {
   const activeItemId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
   const explicitSelectedParams =
     activeItemId === item.id_text ? enclosureSelectedParams : undefined;
-  const { isDownloadable, noticeKey, percentComplete, remove, start, status } = useDownloadAction(
-    item,
-    true,
-    { explicitSelectedParams }
-  );
+  const { errorReason, isDownloadable, noticeKey, percentComplete, remove, start, status } =
+    useDownloadAction(item, true, { explicitSelectedParams });
+  const { openDownloadError } = useActionError();
 
   const styles = useMemo(
     () =>
@@ -134,16 +133,29 @@ export function DownloadControl({ item }: DownloadControlProps) {
     <View>
       <Pressable
         accessibilityRole="button"
-        onPress={start}
+        onPress={() => {
+          if (status === 'failed') {
+            openDownloadError(errorReason, start);
+            return;
+          }
+          start();
+        }}
         style={styles.button}
         testID="episode-download-button"
       >
         <Text style={styles.buttonLabel}>{t('features.download.download_episode')}</Text>
       </Pressable>
       {status === 'failed' ? (
-        <Text style={styles.notice} testID="episode-download-error">
-          {t('features.download.episode_download_error')}
-        </Text>
+        <Pressable
+          accessibilityLabel={t('action_error.download_a11y')}
+          accessibilityRole="button"
+          onPress={() => {
+            openDownloadError(errorReason, start);
+          }}
+          testID="episode-download-error"
+        >
+          <Text style={styles.notice}>{t('features.download.episode_download_error')}</Text>
+        </Pressable>
       ) : null}
       {noticeKey !== null ? (
         <Text style={styles.notice} testID="episode-download-notice">

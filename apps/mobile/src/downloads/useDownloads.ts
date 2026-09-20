@@ -143,6 +143,8 @@ export type DownloadAction = {
   percentComplete: number | null;
   /** Catalog key for a refused enqueue. */
   noticeKey: string | null;
+  /** Stored machine reason when `status` is `failed`; otherwise `null`. */
+  errorReason: string | null;
   start: () => void;
   remove: () => void;
 };
@@ -207,6 +209,7 @@ export const useDownloadAction = (
 
   return {
     isDownloadable: item !== undefined && isItemDownloadable(item, explicitSelectedParams).ok,
+    errorReason: record?.errorReason ?? null,
     noticeKey,
     percentComplete,
     remove,

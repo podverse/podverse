@@ -17,7 +17,8 @@ type PlayerTransportButtonProps = {
   appearance?: 'bare' | 'ring';
   onPause: (event: GestureResponderEvent) => void;
   onPlay: (event: GestureResponderEvent) => void;
-  onRetry: (event: GestureResponderEvent) => void;
+  /** Opens the explanation. Does not retry; the dialog's confirm action does. */
+  onErrorPress: (event: GestureResponderEvent) => void;
   size?: ButtonSize;
   state: PlaybackTransportState;
   testID: string;
@@ -43,18 +44,18 @@ const iconName = (
 };
 
 /**
- * Play / pause / loading / retry control for the mini player and full player only.
+ * Play / pause / loading / error control for the mini player and full player only.
  *
  * Carries the accent glyph the list-row and detail play buttons use; `appearance` decides whether it
  * also wears their ring. List rows and detail screens use `MediaRowActions` play/pause and must not
  * mount this — a spinner or error icon on every row would fight the player chrome that already owns
- * that state.
+ * that state. An error glyph opens an explanation; it does not retry on its own.
  */
 export function PlayerTransportButton({
   appearance = 'ring',
   onPause,
   onPlay,
-  onRetry,
+  onErrorPress,
   size = 'sm',
   state,
   testID,
@@ -65,7 +66,7 @@ export function PlayerTransportButton({
 
   const label =
     state === 'error'
-      ? t('misc.try_again')
+      ? t('action_error.playback_a11y')
       : state === 'loading'
         ? t('misc.loading')
         : state === 'playing'
@@ -86,7 +87,7 @@ export function PlayerTransportButton({
 
   const handlePress = (event: GestureResponderEvent) => {
     if (state === 'error') {
-      onRetry(event);
+      onErrorPress(event);
       return;
     }
     if (state === 'playing') {

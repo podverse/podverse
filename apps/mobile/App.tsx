@@ -15,6 +15,7 @@ import { ShareSheetPassthroughOverlay } from './src/components/share/ShareSheetP
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
+import { ActionErrorProvider } from './src/feedback/ActionErrorProvider';
 import { initializeI18n } from './src/i18n';
 import { E2eQuickLogin } from './src/lib/e2e/E2eQuickLogin';
 import { MembershipGateProvider } from './src/membership/MembershipGateProvider';
@@ -153,10 +154,12 @@ function AppReadyGate({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppReady
       <QueuesProvider>
         <SyncProvider>
           <PlaybackProvider>
-            <AppBody
-              onConsumePendingDeepLink={onConsumePendingDeepLink}
-              pendingDeepLinkUrl={pendingDeepLinkUrl}
-            />
+            <ActionErrorProvider>
+              <AppBody
+                onConsumePendingDeepLink={onConsumePendingDeepLink}
+                pendingDeepLinkUrl={pendingDeepLinkUrl}
+              />
+            </ActionErrorProvider>
           </PlaybackProvider>
         </SyncProvider>
       </QueuesProvider>

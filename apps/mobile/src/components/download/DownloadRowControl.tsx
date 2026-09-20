@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import type { DownloadStatus } from '../../downloads/downloadTypes';
 import { useDownloadAction } from '../../downloads/useDownloads';
@@ -56,9 +57,10 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
   const activeItemId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
   const explicitSelectedParams =
     activeItemId === item.id_text ? enclosureSelectedParams : undefined;
-  const { isDownloadable, remove, start, status } = useDownloadAction(item, false, {
+  const { isDownloadable, errorReason, remove, start, status } = useDownloadAction(item, false, {
     explicitSelectedParams,
   });
+  const { openDownloadError } = useActionError();
 
   const styles = useMemo(
     () =>
@@ -85,11 +87,17 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
 
   return (
     <Pressable
-      accessibilityLabel={t(downloadActionLabelKey(status))}
+      accessibilityLabel={
+        status === 'failed' ? t('action_error.download_a11y') : t(downloadActionLabelKey(status))
+      }
       accessibilityRole="button"
       accessibilityState={{ busy: isInProgress }}
       onPress={(event) => {
         stopPropagation(event);
+        if (status === 'failed') {
+          openDownloadError(errorReason, start);
+          return;
+        }
         runDownloadAction({ remove, start, status });
       }}
       style={({ pressed }) => [styles.control, pressed ? styles.pressed : null]}

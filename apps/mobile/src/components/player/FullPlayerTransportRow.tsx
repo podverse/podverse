@@ -26,7 +26,7 @@ type FullPlayerTransportRowProps = {
   onJumpForward: () => void;
   onPause: (event: GestureResponderEvent) => void;
   onPlay: (event: GestureResponderEvent) => void;
-  onRetry: (event: GestureResponderEvent) => void;
+  onErrorPress: (event: GestureResponderEvent) => void;
   onSkipToNext: () => void;
   onSkipToNextTrack: () => void;
   onSkipToPrevious: () => void;
@@ -50,7 +50,7 @@ export function FullPlayerTransportRow({
   onJumpForward,
   onPause,
   onPlay,
-  onRetry,
+  onErrorPress,
   onSkipToNext,
   onSkipToNextTrack,
   onSkipToPrevious,
@@ -152,7 +152,7 @@ export function FullPlayerTransportRow({
         <PlayerTransportButton
           onPause={onPause}
           onPlay={onPlay}
-          onRetry={onRetry}
+          onErrorPress={onErrorPress}
           size="xl"
           state={state}
           testID="full-player-play-pause"

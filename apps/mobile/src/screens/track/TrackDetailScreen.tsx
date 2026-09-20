@@ -23,6 +23,7 @@ import { channelItemsRepository } from '../../data/repositories/channelItemsRepo
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import { downloadsRepository } from '../../data/repositories/downloadsRepository';
 import { playbackContentRepository } from '../../data/repositories/playbackContentRepository';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { shouldReplaceCachedValue } from '../../lib/cachedValue';
@@ -129,11 +130,13 @@ function TrackPlayChrome({
   const explicitSelectedParams =
     activeMediaId === item.id_text ? enclosureSelectedParams : undefined;
   const {
+    errorReason,
     isDownloadable,
     remove: removeDownload,
     start: startDownload,
     status: downloadStatus,
   } = useDownloadAction(item, false, { explicitSelectedParams });
+  const { openDownloadError } = useActionError();
 
   const artworkUri = getItemPrimaryImageUrl(item);
   const trackTitle = item.title ?? item.id_text;
@@ -158,6 +161,10 @@ function TrackPlayChrome({
           onAddToPlaylist: onAddToPlaylistPress,
           onDownload: isDownloadable
             ? () => {
+                if (downloadStatus === 'failed') {
+                  openDownloadError(errorReason, startDownload);
+                  return;
+                }
                 runDownloadAction({
                   remove: removeDownload,
                   start: startDownload,
@@ -182,6 +189,7 @@ function TrackPlayChrome({
       ),
     [
       downloadStatus,
+      errorReason,
       item,
       item.id_text,
       isDownloadable,
@@ -189,6 +197,7 @@ function TrackPlayChrome({
       onMarkAsPlayedPress,
       onQueuePress,
       onSharePress,
+      openDownloadError,
       removeDownload,
       startDownload,
       t,

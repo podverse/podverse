@@ -184,5 +184,23 @@
   },
   "misc": {
     "clear": "Borrar"
+  },
+  "action_error": {
+    "playback_title": "Error de reproducción",
+    "download_title": "Error de descarga",
+    "playback_a11y": "Error de reproducción",
+    "download_a11y": "Error de descarga",
+    "report": "Detalles: {detail}",
+    "playback_network": "La conexión falló al cargar este medio. Revisa tu red e inténtalo de nuevo.",
+    "playback_unsupported": "Este archivo usa un formato que este dispositivo no puede reproducir. El anfitrión del podcast puede tener que ofrecer otro archivo.",
+    "playback_file_not_found": "No se encontró el archivo. Puede que el anfitrión lo haya quitado.",
+    "playback_decode": "Este dispositivo no pudo decodificar el medio.",
+    "playback_audio_session": "No se pudo iniciar el audio. Cierra otras apps que estén reproduciendo sonido e inténtalo de nuevo.",
+    "playback_invalid_source": "La dirección del medio no es válida.",
+    "playback_unknown": "Algo salió mal al reproducir. Inténtalo de nuevo.",
+    "download_no_storage": "No hay suficiente espacio libre en este dispositivo. Libera espacio e inténtalo de nuevo.",
+    "download_transfer_failed": "La descarga no terminó. Revisa tu conexión e inténtalo de nuevo.",
+    "download_file_missing": "Falta el archivo descargado en este dispositivo.",
+    "download_unknown": "La descarga falló. Inténtalo de nuevo."
   }
 }

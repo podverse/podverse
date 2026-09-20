@@ -9,6 +9,7 @@ import { DownloadControl } from '../../components/download/DownloadControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import { CoverImage } from '../../components/primitives';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
@@ -93,11 +94,13 @@ export function EpisodePlayChrome({
   const explicitSelectedParams =
     activeMediaId === episode.id_text ? enclosureSelectedParams : undefined;
   const {
+    errorReason,
     isDownloadable,
     remove: removeDownload,
     start: startDownload,
     status: downloadStatus,
   } = useDownloadAction(episode, false, { explicitSelectedParams });
+  const { openDownloadError } = useActionError();
   const artworkUri = getItemPrimaryImageUrl(episode);
   const viewerUri = itemHeaderLightboxArtworkCandidates(episode.item_images)[0] ?? artworkUri;
   const episodeTitle = episode.title ?? episode.id_text;
@@ -170,6 +173,10 @@ export function EpisodePlayChrome({
           },
           onDownload: isDownloadable
             ? () => {
+                if (downloadStatus === 'failed') {
+                  openDownloadError(errorReason, startDownload);
+                  return;
+                }
                 runDownloadAction({
                   remove: removeDownload,
                   start: startDownload,
@@ -191,11 +198,13 @@ export function EpisodePlayChrome({
       downloadStatus,
       episode.id_text,
       episodeRow,
+      errorReason,
       isDownloadable,
       onAddToPlaylistPress,
       onMarkAsPlayedPress,
       onQueuePress,
       onSharePress,
+      openDownloadError,
       removeDownload,
       startDownload,
       t,

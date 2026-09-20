@@ -44,6 +44,7 @@ import { useAutoQueue } from '../../contexts/AutoQueueProvider';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueMutations } from '../../hooks/useQueueMutations';
 import { useQueueResources } from '../../hooks/useQueueResources';
@@ -202,12 +203,14 @@ export function FullPlayerScreen({
   const { markAsPlayed } = useQueueMutations();
   const { evaluateFeature, isTierKnown } = useAccessTier();
   const { handleGateError, openGate } = useMembershipGate();
+  const { openPlaybackError } = useActionError();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
   const {
     activeTarget,
     enclosureSelectedParams,
     itemLabeledEnclosures,
     jumpBy,
+    lastPlaybackError,
     nowPlaying,
     pause,
     playbackRate,
@@ -669,8 +672,10 @@ export function FullPlayerScreen({
     });
   }, [autoQueueConfig, setAutoQueueConfig]);
 
-  const handleRetry = () => {
-    void retryPlayback();
+  const handleErrorPress = () => {
+    openPlaybackError(lastPlaybackError, () => {
+      void retryPlayback();
+    });
   };
 
   const handleAddToPlaylist = useCallback(() => {
@@ -1067,7 +1072,7 @@ export function FullPlayerScreen({
             }}
             onPause={handlePause}
             onPlay={handlePlay}
-            onRetry={handleRetry}
+            onErrorPress={handleErrorPress}
             onSkipToNext={() => {
               void skipToNext();
             }}

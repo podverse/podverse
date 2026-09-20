@@ -11,6 +11,7 @@ import { SwipeActionRow } from '../../components/primitives/SwipeActionRow';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { usableDownloadChannelText } from '../../downloads/downloadChannelIdentity';
 import { downloadManager } from '../../downloads/downloadManager';
 import type { DownloadRecord } from '../../downloads/downloadTypes';
@@ -67,6 +68,7 @@ export function LibraryDownloadsScreen() {
   // The one screen a user opens to watch transfers, so it is the one that subscribes to byte
   // progress. Everywhere else reads statuses only.
   const { downloads, isLoading, errorKey, reload, pauseAllActive } = useDownloadsList(true);
+  const { openDownloadError } = useActionError();
 
   const styles = useMemo(
     () =>
@@ -182,7 +184,9 @@ export function LibraryDownloadsScreen() {
         return;
       }
       if (record.status === 'failed') {
-        void downloadManager.retry(record.itemIdText);
+        openDownloadError(record.errorReason, () => {
+          void downloadManager.retry(record.itemIdText);
+        });
         return;
       }
       if (record.status === 'complete') {
@@ -191,7 +195,7 @@ export function LibraryDownloadsScreen() {
         });
       }
     },
-    [navigation]
+    [navigation, openDownloadError]
   );
 
   const renderRow = useCallback(

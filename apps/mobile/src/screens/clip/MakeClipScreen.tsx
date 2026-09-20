@@ -22,6 +22,7 @@ import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { RetryableError } from '../../components/state/RetryableError';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { useManagedCopy } from '../../hooks/useManagedCopy';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
@@ -72,6 +73,7 @@ export function MakeClipScreen({ navigation, route }: MakeClipScreenProps) {
     clearPauseBoundary,
     endAuthoringHold,
     jumpBy,
+    lastPlaybackError,
     pause,
     previewWindow,
     resume,
@@ -80,6 +82,7 @@ export function MakeClipScreen({ navigation, route }: MakeClipScreenProps) {
   } = usePlaybackSession();
   const { chapters } = useNowPlayingChapters();
   const { handleGateError } = useMembershipGate();
+  const { openPlaybackError } = useActionError();
   const form = useMakeClipForm(route.params);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [createdClipUrl, setCreatedClipUrl] = useState<string | null>(null);
@@ -329,8 +332,10 @@ export function MakeClipScreen({ navigation, route }: MakeClipScreenProps) {
             onPlay={() => {
               void resume();
             }}
-            onRetry={() => {
-              void retryPlayback();
+            onErrorPress={() => {
+              openPlaybackError(lastPlaybackError, () => {
+                void retryPlayback();
+              });
             }}
             state={transportState}
           />

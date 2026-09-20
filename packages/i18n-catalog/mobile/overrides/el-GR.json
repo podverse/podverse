@@ -184,5 +184,23 @@
   },
   "misc": {
     "clear": ""
+  },
+  "action_error": {
+    "playback_title": "",
+    "download_title": "",
+    "playback_a11y": "",
+    "download_a11y": "",
+    "report": "",
+    "playback_network": "",
+    "playback_unsupported": "",
+    "playback_file_not_found": "",
+    "playback_decode": "",
+    "playback_audio_session": "",
+    "playback_invalid_source": "",
+    "playback_unknown": "",
+    "download_no_storage": "",
+    "download_transfer_failed": "",
+    "download_file_missing": "",
+    "download_unknown": ""
   }
 }

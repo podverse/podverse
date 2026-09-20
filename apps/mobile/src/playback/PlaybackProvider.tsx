@@ -49,10 +49,13 @@ import {
 import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNearEndSeconds';
 import { resolveQueueAdvance } from '@podverse/playback-core/resolveQueueAdvance';
 
+import type { PlaybackErrorEvent } from '../../modules/podverse-media-engine';
+
 import { useAuth } from '../auth/AuthProvider';
 import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
 import { useNativePlaybackBridge } from '../bridge/useNativePlaybackBridge';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
+import { playbackErrorFromLoadFailure } from '../feedback/actionErrorCopy';
 import { useAutoQueue } from '../contexts/AutoQueueProvider';
 import { useQueues } from '../contexts/QueuesProvider';
 import type { MobileAuthRequestContext } from '../data';
@@ -399,6 +402,8 @@ export type PlaybackContextValue = {
    * Mini / full player transport glyph. List rows stay play/pause via `isPlaying` only.
    */
   transportState: PlaybackTransportState;
+  /** Last engine or load failure. `null` once a later load succeeds. */
+  lastPlaybackError: PlaybackErrorEvent | null;
   positionSeconds: number;
   durationSeconds: number;
   playbackRate: number;
@@ -506,6 +511,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const [nowPlaying, setNowPlaying] = useState<PlaybackNowPlaying | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [transportState, setTransportState] = useState<PlaybackTransportState>('paused');
+  const [lastPlaybackError, setLastPlaybackError] = useState<PlaybackErrorEvent | null>(null);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const [itemLabeledEnclosures, setItemLabeledEnclosures] = useState<LabeledItemEnclosure[]>([]);
@@ -947,6 +953,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           params.playbackDecisionOverride
         );
       } catch {
+        setLastPlaybackError(playbackErrorFromLoadFailure());
         setTransportState('error');
         activeTargetRef.current = target;
         setActiveTarget(target);
@@ -971,6 +978,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       // The native load resolved, so the source is prepared: stop spinning even if the engine has
       // not published its next state yet.
       sourcePlayableRef.current = true;
+      setLastPlaybackError(null);
       setTransportState(shouldAutoPlay ? 'playing' : 'paused');
 
       if (shouldAutoPlay && params.shouldSkipPlayEventWrite !== true) {
@@ -1899,8 +1907,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     ended: () => {
       void advance('complete');
     },
-    error: () => {
+    error: (event) => {
       setPlaybackPlaying(false);
+      setLastPlaybackError(event);
       setTransportState('error');
     },
     playbackState: (event) => {
@@ -2052,9 +2061,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       });
       nativePlaybackBridge.setRate(playbackRateRef.current);
       sourcePlayableRef.current = true;
+      setLastPlaybackError(null);
       setPlaybackPlaying(true);
       setTransportState('playing');
     } catch {
+      setLastPlaybackError(playbackErrorFromLoadFailure());
       setTransportState('error');
     }
   }, [setPlaybackPlaying]);
@@ -2319,6 +2330,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       previewWindow,
       resume,
       retryPlayback,
+      lastPlaybackError,
       completeNowPlaying,
       jumpBy,
       seekTo,
@@ -2357,6 +2369,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       previewWindow,
       resume,
       retryPlayback,
+      lastPlaybackError,
       seekTo,
       setRate,
       switchEnclosureSelectedParams,
