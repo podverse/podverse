@@ -1,3 +1,4 @@
+import * as FileSystem from 'expo-file-system';
 import type { PropsWithChildren } from 'react';
 import {
   createContext,
@@ -78,6 +79,8 @@ import type {
   PlaybackReconcileDifferentNowPlayingConflict,
   PlaybackReconcileResourceState,
 } from '../data/repositories/playbackReconcile';
+import { downloadManager } from '../downloads/downloadManager';
+import { downloadStore } from '../downloads/downloadStore';
 import type { AutoQueueSeed } from '../hooks/useAutoQueueLoadResources';
 import { useAutoQueueLoadResources } from '../hooks/useAutoQueueLoadResources';
 import { useQueueMutations } from '../hooks/useQueueMutations';
@@ -105,6 +108,12 @@ import {
 } from '../lib/playback/lastPlaybackStorage';
 import { resolveMediaFileDurationHintSeconds } from '../lib/playback/mediaFileDurationHint';
 import {
+  DOWNLOAD_HANDOFF_POSITION_TOLERANCE_SECONDS,
+  DOWNLOAD_HANDOFF_PROGRESS_SUPPRESS_MS,
+  isDownloadHandoffProgressLanded,
+  planDownloadCompletePlaybackHandoff,
+} from '../lib/playback/planDownloadCompletePlaybackHandoff';
+import {
   buildItemLabeledEnclosures,
   DEFAULT_ENCLOSURE_SELECTED_PARAMS,
   resolveItemEnclosureUrl,
@@ -114,6 +123,7 @@ import {
 import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
 import { shouldPostSeekEventNow } from '../lib/playback/seekEventCoalescing';
 import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
+import { isOfflineModeEnabled } from '../prefs/offlineMode';
 import { readPlaybackMediaTypePref } from '../prefs/preferredMediaType';
 import { getPref, setPref } from '../prefs/prefsStore';
 import {
@@ -136,6 +146,7 @@ import {
   buildPlaybackHandoffDismissedStateKey,
   shouldPromptForPlaybackHandoffConflict,
 } from './playbackHandoff';
+import { setPlaybackSourceMarker } from './playbackSourceMarker';
 import {
   getPlaybackDurationSeconds,
   getPlaybackPositionClockSeconds,
@@ -539,6 +550,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const advancingRef = useRef<boolean>(false);
   const isPlayingRef = useRef<boolean>(false);
   const lastSourceUrlRef = useRef<string | null>(null);
+  /** Claimed while a download-complete source swap is in flight, including the file-exists check. */
+  const downloadSourceSwapLockRef = useRef(false);
+  /** Drop playhead samples until the replacement item has seeked near the captured position. */
+  const downloadSourceSwapSuppressProgressRef = useRef(false);
+  const downloadSourceSwapSawReadyRef = useRef(false);
+  const downloadSourceSwapSeekSecondsRef = useRef<number | null>(null);
+  const downloadSourceSwapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Whether the engine has reported the current source playable. Gates the transport spinner: it
   // means "cannot start yet", never "buffering again mid-episode".
   const sourcePlayableRef = useRef<boolean>(false);
@@ -923,11 +941,24 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     []
   );
 
+  const clearDownloadSourceSwap = useCallback((): void => {
+    downloadSourceSwapLockRef.current = false;
+    downloadSourceSwapSuppressProgressRef.current = false;
+    downloadSourceSwapSawReadyRef.current = false;
+    downloadSourceSwapSeekSecondsRef.current = null;
+    if (downloadSourceSwapTimeoutRef.current !== null) {
+      clearTimeout(downloadSourceSwapTimeoutRef.current);
+      downloadSourceSwapTimeoutRef.current = null;
+    }
+  }, []);
+
   const clearNowPlaying = useCallback(() => {
     nativePlaybackBridge.pause();
     pauseAtRef.current = null;
     activeTargetRef.current = null;
+    clearDownloadSourceSwap();
     lastSourceUrlRef.current = null;
+    setPlaybackSourceMarker(null);
     sourcePlayableRef.current = false;
     positionRef.current = 0;
     durationRef.current = 0;
@@ -938,7 +969,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setTransportState('paused');
     resetEnclosureSelectionSession();
     void clearLastPlaybackSnapshot();
-  }, [resetEnclosureSelectionSession, setPlaybackPlaying]);
+  }, [clearDownloadSourceSwap, resetEnclosureSelectionSession, setPlaybackPlaying]);
 
   const playTarget = useCallback(
     async (
@@ -958,7 +989,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       if (target.kind === 'add-by-rss') {
         resetEnclosureSelectionSession();
       }
+      clearDownloadSourceSwap();
       lastSourceUrlRef.current = params.url;
+      setPlaybackSourceMarker(params.url);
       sourcePlayableRef.current = false;
       setTransportState('loading');
       let decision: PlaybackLoadDecision;
@@ -1024,6 +1057,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [
       applyAutoQueueDirective,
       applyLoad,
+      clearDownloadSourceSwap,
       resetEnclosureSelectionSession,
       resolvePlaybackStatsTargets,
       setPlaybackPlaying,
@@ -1234,11 +1268,30 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      const nextUrl = resolveItemEnclosureUrl({
+      const remoteUrl = resolveItemEnclosureUrl({
         labeledItemEnclosures: itemLabeledEnclosures,
         selectedParams: nextParams,
       });
-      if (nextUrl === null) {
+      const resolved = await resolvePlaybackUrl(target.item, nextParams, itemLabeledEnclosures);
+      const record = downloadStore.get(target.item.id_text);
+      const localMatchesSelection =
+        remoteUrl !== null &&
+        resolved !== null &&
+        resolved.startsWith('file://') &&
+        record !== null &&
+        planDownloadCompletePlaybackHandoff({
+          advancing: false,
+          lastSourceUrl: remoteUrl,
+          record,
+          rewriteEnclosureUrl: resolveE2eMediaUrl,
+          target,
+        }) !== null;
+      let nextUrl: string;
+      if (localMatchesSelection && resolved !== null) {
+        nextUrl = resolved;
+      } else if (remoteUrl !== null && !isOfflineModeEnabled()) {
+        nextUrl = remoteUrl;
+      } else {
         setNoticeKey('media_player.no_media');
         return;
       }
@@ -1259,6 +1312,123 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     },
     [itemLabeledEnclosures, playTarget, setEnclosureSelectedParams]
   );
+
+  const reloadActiveSource = useCallback(
+    async (localUrl: string): Promise<void> => {
+      const sourceUrlBeforeSwap = lastSourceUrlRef.current;
+      const itemIdBeforeSwap = itemIdFromTarget(activeTargetRef.current);
+      const wasPlaying = isPlayingRef.current;
+      let nativePosition: number | null = null;
+      try {
+        const read = await nativePlaybackBridge.getPosition();
+        if (Number.isFinite(read) && read >= 0) {
+          nativePosition = read;
+        }
+      } catch {
+        // The last progress sample is the playhead when the engine read fails.
+      }
+
+      if (
+        !downloadSourceSwapLockRef.current ||
+        lastSourceUrlRef.current !== sourceUrlBeforeSwap ||
+        itemIdFromTarget(activeTargetRef.current) !== itemIdBeforeSwap
+      ) {
+        downloadSourceSwapLockRef.current = false;
+        return;
+      }
+
+      const position = nativePosition ?? positionRef.current;
+      positionRef.current = position;
+
+      downloadSourceSwapSawReadyRef.current = false;
+      downloadSourceSwapSeekSecondsRef.current = position;
+      downloadSourceSwapSuppressProgressRef.current = true;
+      if (downloadSourceSwapTimeoutRef.current !== null) {
+        clearTimeout(downloadSourceSwapTimeoutRef.current);
+      }
+      downloadSourceSwapTimeoutRef.current = setTimeout(() => {
+        clearDownloadSourceSwap();
+      }, DOWNLOAD_HANDOFF_PROGRESS_SUPPRESS_MS);
+
+      lastSourceUrlRef.current = localUrl;
+      setPlaybackSourceMarker(localUrl);
+      try {
+        const source = { initialSeekSeconds: position, url: localUrl };
+        if (wasPlaying) {
+          await nativePlaybackBridge.loadAndStart(source);
+        } else {
+          await nativePlaybackBridge.load(source);
+          nativePlaybackBridge.pause();
+        }
+        nativePlaybackBridge.setRate(playbackRateRef.current);
+      } catch {
+        clearDownloadSourceSwap();
+        setLastPlaybackError(playbackErrorFromLoadFailure());
+        setPlaybackPlaying(false);
+        setTransportState('error');
+      }
+    },
+    [clearDownloadSourceSwap, setPlaybackPlaying]
+  );
+
+  const adoptCompletedDownloadIfStreaming = useCallback(async (): Promise<void> => {
+    if (downloadSourceSwapLockRef.current || advancingRef.current) {
+      return;
+    }
+    const target = activeTargetRef.current;
+    const itemIdText = itemIdFromTarget(target);
+    if (target === null || itemIdText === null) {
+      return;
+    }
+    const record = downloadStore.get(itemIdText);
+    if (record === null) {
+      return;
+    }
+    const sourceUrlAtDecision = lastSourceUrlRef.current;
+    const handoff = planDownloadCompletePlaybackHandoff({
+      advancing: advancingRef.current,
+      lastSourceUrl: sourceUrlAtDecision,
+      record,
+      rewriteEnclosureUrl: resolveE2eMediaUrl,
+      target,
+    });
+    if (handoff === null) {
+      return;
+    }
+
+    downloadSourceSwapLockRef.current = true;
+    let exists = false;
+    try {
+      const info = await FileSystem.getInfoAsync(handoff.localUrl);
+      exists = info.exists;
+    } catch {
+      exists = false;
+    }
+    if (!exists) {
+      downloadSourceSwapLockRef.current = false;
+      try {
+        await downloadManager.markFileMissing(itemIdText);
+      } catch {
+        // The row stays complete until a later play resolves the missing file.
+      }
+      return;
+    }
+    if (
+      advancingRef.current ||
+      itemIdFromTarget(activeTargetRef.current) !== itemIdText ||
+      lastSourceUrlRef.current !== sourceUrlAtDecision
+    ) {
+      downloadSourceSwapLockRef.current = false;
+      return;
+    }
+    await reloadActiveSource(handoff.localUrl);
+  }, [reloadActiveSource]);
+
+  useEffect(() => {
+    return downloadStore.subscribe(() => {
+      void adoptCompletedDownloadIfStreaming();
+    });
+  }, [adoptCompletedDownloadIfStreaming]);
 
   const playItemByIdWithIntent = useCallback(
     async (
@@ -1954,6 +2124,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           nativePlaybackBridge.getPosition(),
           nativePlaybackBridge.getDuration(),
         ]);
+        if (downloadSourceSwapSuppressProgressRef.current) {
+          return;
+        }
         if (Number.isFinite(position) && position >= 0) {
           positionRef.current = position;
           setPlaybackPositionSeconds(position);
@@ -1973,11 +2146,24 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       void advance('complete');
     },
     error: (event) => {
+      clearDownloadSourceSwap();
       setPlaybackPlaying(false);
       setLastPlaybackError(event);
       setTransportState('error');
     },
     playbackState: (event) => {
+      if (downloadSourceSwapSuppressProgressRef.current) {
+        if (event.state === 'ready' || event.state === 'playing') {
+          downloadSourceSwapSawReadyRef.current = true;
+        } else if (event.state === 'error') {
+          clearDownloadSourceSwap();
+        }
+        // The replacement item reports loading or paused until its seek finishes. Keep the
+        // transport glyph already on screen so the control does not flip during the swap.
+        if (event.state !== 'playing' && event.state !== 'error') {
+          return;
+        }
+      }
       if (isEnginePlayableState(event.state)) {
         sourcePlayableRef.current = true;
       }
@@ -1995,6 +2181,21 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       }
     },
     progress: (event) => {
+      if (downloadSourceSwapSuppressProgressRef.current) {
+        const seekSeconds = downloadSourceSwapSeekSecondsRef.current;
+        const landed =
+          seekSeconds !== null &&
+          isDownloadHandoffProgressLanded({
+            positionSeconds: event.positionSeconds,
+            sawReady: downloadSourceSwapSawReadyRef.current,
+            seekSeconds,
+            toleranceSeconds: DOWNLOAD_HANDOFF_POSITION_TOLERANCE_SECONDS,
+          });
+        if (!landed) {
+          return;
+        }
+        clearDownloadSourceSwap();
+      }
       positionRef.current = event.positionSeconds;
       setPlaybackPositionSeconds(event.positionSeconds);
       if (event.durationSeconds > 0) {

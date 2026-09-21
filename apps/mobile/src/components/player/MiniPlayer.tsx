@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
 
+import { PlaybackSourceDebugBadge } from '../../debug/PlaybackSourceDebugBadge';
 import { useActionError } from '../../feedback/ActionErrorProvider';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
@@ -36,9 +37,12 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        clipped: {
+          overflow: 'hidden',
+        },
         container: {
           backgroundColor: tokens.background.secondary,
-          overflow: 'hidden',
+          overflow: 'visible',
         },
         containerTablet: {
           alignSelf: 'center',
@@ -100,30 +104,33 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
       style={[styles.container, isTablet ? styles.containerTablet : undefined]}
       testID="mini-player"
     >
-      <MiniPlayerProgress />
-      <View style={styles.row}>
-        <MiniPlayerArtwork accessibilityLabel={t('media_player.media_player_image')} />
-        <View style={styles.textColumn}>
-          <MarqueeText style={styles.title} testID="mini-player-title">
-            {nowPlaying.title}
-          </MarqueeText>
-          {nowPlaying.channelTitle !== null ? (
-            <Text numberOfLines={1} style={styles.subtitle}>
-              {nowPlaying.channelTitle}
-            </Text>
-          ) : null}
-        </View>
-        <View style={styles.transport}>
-          <PlayerTransportButton
-            appearance="bare"
-            onPause={handlePause}
-            onPlay={handlePlay}
-            onErrorPress={handleErrorPress}
-            state={transportState}
-            testID="mini-player-play-pause"
-          />
+      <View style={styles.clipped}>
+        <MiniPlayerProgress />
+        <View style={styles.row}>
+          <MiniPlayerArtwork accessibilityLabel={t('media_player.media_player_image')} />
+          <View style={styles.textColumn}>
+            <MarqueeText style={styles.title} testID="mini-player-title">
+              {nowPlaying.title}
+            </MarqueeText>
+            {nowPlaying.channelTitle !== null ? (
+              <Text numberOfLines={1} style={styles.subtitle}>
+                {nowPlaying.channelTitle}
+              </Text>
+            ) : null}
+          </View>
+          <View style={styles.transport}>
+            <PlayerTransportButton
+              appearance="bare"
+              onPause={handlePause}
+              onPlay={handlePlay}
+              onErrorPress={handleErrorPress}
+              state={transportState}
+              testID="mini-player-play-pause"
+            />
+          </View>
         </View>
       </View>
+      <PlaybackSourceDebugBadge placement="mini-player" />
     </Pressable>
   );
 }

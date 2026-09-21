@@ -1,9 +1,10 @@
 appId: com.podverse.app.next
 name: Library Downloads Offline Play
 ---
-# Download a seeded progressive episode, wait for complete, then play it — playback resolves the
-# completed local `file://` via resolvePlaybackUrl — and confirm it appears in My Library ->
-# Downloads under the Completed section. Storage usage lives under More → Settings → Downloads.
+# Play a seeded progressive episode while it is still streaming, then download that same file.
+# When the download completes, playback switches to the local file and keeps playing.
+# Confirm the episode appears in My Library -> Downloads under the Completed section.
+# Storage usage lives under More → Settings → Downloads.
 #
 # Fixture: a seeded podcast episode with a progressive mp3 enclosure on the test-assets server
 # (:2111), non-live and non-HLS (livestream / m3u8 items never render the Download control). The
@@ -11,8 +12,8 @@ name: Library Downloads Offline Play
 # transfer works on the iOS simulator (127.0.0.1) and Android emulator (10.0.2.2).
 #
 # Limitation: Maestro cannot reliably toggle airplane mode, so this proves the
-# download -> complete -> play path (which uses the local file once complete) rather than literally
-# cutting the network. True offline playback is verified manually (airplane mode).
+# stream -> download complete -> local handoff (playback-source-e2e flips remote to local)
+# rather than literally cutting the network. True offline playback is verified manually.
 # Needs flow_needs_e2e_api + flow_needs_test_assets (registered in scripts/mobile/e2e-test.sh).
 
 - runFlow: shared/launch-and-connect.yaml
@@ -41,7 +42,24 @@ name: Library Downloads Offline Play
     id: episode-detail-screen
 - takeScreenshot: library-downloads-episode-detail
 
-# Start the offline download; the same list-row download icon is only present for eligible items.
+# Play first, while the enclosure is still remote.
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: playing
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: playback-source-e2e
+      text: remote
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+
+# Download the episode that is streaming. Completion swaps the engine onto the local file
+# without stopping playback.
 - assertVisible:
     id: episode-detail-download
 - tapOn:
@@ -50,17 +68,15 @@ name: Library Downloads Offline Play
     visible:
       id: episode-detail-download-complete
     timeout: ${TIMEOUT_SLOWEST}
-- takeScreenshot: library-downloads-episode-downloaded
-
-# Play the episode — the completed local file is preferred over the remote enclosure.
-- tapOn:
-    id: "home-row-play-.*"
 - extendedWaitUntil:
     visible:
-      id: playback-active-e2e
+      id: playback-source-e2e
+      text: local
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
-    id: mini-player
+    id: playback-active-e2e
+    text: playing
+- takeScreenshot: library-downloads-episode-downloaded
 - takeScreenshot: library-downloads-offline-now-playing
 
 # The completed download appears in My Library -> Downloads. Finished jobs are not in-progress,

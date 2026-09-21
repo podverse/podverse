@@ -65,6 +65,10 @@ object PodverseAudioEngine {
   private val mainHandler = Handler(Looper.getMainLooper())
   private var progressPosting = false
   private var lastState: String = PlaybackState.IDLE
+  /** Bumped on every load so a ready callback from a replaced item cannot start playback. */
+  private var loadGeneration: Int = 0
+  /** When this equals [loadGeneration], start playback once the item reports ready (after a seek). */
+  private var playWhenReadyGeneration: Int = -1
 
   private object PlaybackState {
     const val IDLE = "idle"
@@ -133,45 +137,70 @@ object PodverseAudioEngine {
    * sources (offline playback) — Media3 [MediaItem.fromUri] handles all three; there is never
    * a second player for local files. Missing `file://` targets fail fast with a `file_not_found`
    * error instead of surfacing a late/opaque decode failure.
+   *
+   * A positive [initialSeekSeconds] is the media item's start position, and playback waits until
+   * the player is ready so audio does not begin at the start of the file and then jump.
    */
   fun load(context: Context, url: String, initialSeekSeconds: Double?) {
+    prepareSource(context, url, initialSeekSeconds, playWhenPrepared = false)
+  }
+
+  /**
+   * Atomic load + play. When [initialSeekSeconds] is positive, play starts from the ready callback
+   * after the start position is applied. Otherwise play is issued on the same main-thread turn as
+   * prepare.
+   */
+  fun loadAndStart(context: Context, url: String, initialSeekSeconds: Double?) {
+    prepareSource(context, url, initialSeekSeconds, playWhenPrepared = true)
+  }
+
+  private fun prepareSource(
+    context: Context,
+    url: String,
+    initialSeekSeconds: Double?,
+    playWhenPrepared: Boolean,
+  ) {
     onMain {
       if (isMissingLocalFile(url)) {
+        playWhenReadyGeneration = -1
         publish(PlaybackState.ERROR)
         emit("error", mapOf("code" to "file_not_found", "message" to "File not found: $url"))
         return@onMain
       }
+      val generation = ++loadGeneration
+      val seekSeconds = initialSeekSeconds ?: 0.0
+      val hasSeek = seekSeconds > 0
+      playWhenReadyGeneration = if (playWhenPrepared && hasSeek) generation else -1
       val p = getOrCreatePlayer(context)
       publish(PlaybackState.LOADING)
-      p.setMediaItem(MediaItem.fromUri(url))
+      if (hasSeek) {
+        p.setMediaItem(MediaItem.fromUri(url), (seekSeconds * 1000).toLong())
+      } else {
+        p.setMediaItem(MediaItem.fromUri(url))
+      }
       p.prepare()
-      if (initialSeekSeconds != null && initialSeekSeconds > 0) {
-        p.seekTo((initialSeekSeconds * 1000).toLong())
+      if (playWhenPrepared && !hasSeek) {
+        startPlayback(context, p)
       }
     }
   }
 
-  /**
-   * Atomic load + play. Both hops run on the main thread in order on the
-   * single player, so the item is prepared before playback starts. Used by the primary autoplay path.
-   */
-  fun loadAndStart(context: Context, url: String, initialSeekSeconds: Double?) {
-    load(context, url, initialSeekSeconds)
-    play(context)
+  private fun startPlayback(context: Context, p: ExoPlayer) {
+    // Start playback first, then bring up MediaLibraryService as a *regular* service.
+    // Do NOT use startForegroundService here: Media3 only calls Service.startForeground() once
+    // playback is ongoing / the media notification is posted. Calling startForegroundService
+    // before that races the OS timeout and crashes with
+    // ForegroundServiceDidNotStartInTimeException (and can leave audio silent after restart).
+    p.playWhenReady = true
+    p.play()
+    val app = context.applicationContext
+    app.startService(Intent(app, PodverseMediaLibraryService::class.java))
   }
 
   fun play(context: Context) {
     onMain {
       val p = getOrCreatePlayer(context)
-      // Start playback first, then bring up MediaLibraryService as a *regular* service.
-      // Do NOT use startForegroundService here: Media3 only calls Service.startForeground() once
-      // playback is ongoing / the media notification is posted. Calling startForegroundService
-      // before that races the OS timeout and crashes with
-      // ForegroundServiceDidNotStartInTimeException (and can leave audio silent after restart).
-      p.playWhenReady = true
-      p.play()
-      val app = context.applicationContext
-      app.startService(Intent(app, PodverseMediaLibraryService::class.java))
+      startPlayback(context, p)
     }
   }
 
@@ -242,6 +271,14 @@ object PodverseAudioEngine {
               "positionSeconds" to getPositionUnsafe(),
               "durationSeconds" to getDurationUnsafe(),
             ))
+          if (playWhenReadyGeneration == loadGeneration && playWhenReadyGeneration >= 0) {
+            playWhenReadyGeneration = -1
+            val readyPlayer = player
+            val readyContext = appContext
+            if (readyPlayer != null && readyContext != null) {
+              startPlayback(readyContext, readyPlayer)
+            }
+          }
         }
         Player.STATE_ENDED -> {
           publish(PlaybackState.ENDED)
@@ -265,6 +302,7 @@ object PodverseAudioEngine {
     }
 
     override fun onPlayerError(error: PlaybackException) {
+      playWhenReadyGeneration = -1
       publish(PlaybackState.ERROR)
       emit(
         "error",

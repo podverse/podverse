@@ -65,8 +65,10 @@ import { defineConfig } from 'vitest/config';
  * now-playing bar names (`src/playback/nowPlayingSegment.ts`), the marquee overflow and travel math
  * (`src/lib/text/marqueeScroll.ts`), reading a 404 as an empty list (`src/lib/apiErrorStatus.ts`),
  * and whether a server refresh should replace what a cache-first screen already painted
- * (`src/lib/cachedValue.ts`), and the universal last-playback snapshot that restores the mini
- * player on cold start for every auth status (`src/lib/playback/lastPlaybackStorage.ts`). The
+ * (`src/lib/cachedValue.ts`), the universal last-playback snapshot that restores the mini
+ * player on cold start for every auth status (`src/lib/playback/lastPlaybackStorage.ts`), and the
+ * decision to swap a live remote stream onto a just-finished download of that same enclosure
+ * (`src/lib/playback/planDownloadCompletePlaybackHandoff.ts`). The
  * migration ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
  * connection. Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
@@ -104,6 +106,7 @@ export default defineConfig({
       'src/lib/cachedValue.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
       'src/lib/playback/lastPlaybackStorage.test.ts',
+      'src/lib/playback/planDownloadCompletePlaybackHandoff.test.ts',
       'src/lib/rows/homeRowMappers.test.ts',
       'src/lib/share/shareSheetPassthrough.test.ts',
       'src/lib/share/shareUrl.test.ts',

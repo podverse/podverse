@@ -103,8 +103,9 @@ downloads without SQLite. Byte progress cannot change that set, which is why it 
 
 ## E2E
 
-- `apps/mobile/e2e/library-downloads.yaml` — download → complete → play → list (Completed). Needs
-  E2E API + test-assets.
+- `apps/mobile/e2e/library-downloads.yaml` — play while streaming, then download; completion
+  switches the engine to the local file (`playback-source-e2e` `remote` → `local`) and the row
+  appears under Completed. Needs E2E API + test-assets.
 - `apps/mobile/e2e/settings-downloads.yaml` — Settings → Downloads meters, delete-all confirm, limit
   picker. Needs E2E API.
 
@@ -122,5 +123,7 @@ Run: `npm run mobile:e2e:test -- library-downloads,settings-downloads` (see
   `useDownloads.ts` — list / item / storage hooks.
 - `downloadQuota.ts` — quota cap, usage sum, oldest-first eviction, byte formatting (pure,
   unit-tested); `src/prefs/downloadPrefs.ts` — limit + auto-free toggles.
-- Playback: `src/lib/playback/resolvePlaybackUrl.ts`.
+- Playback: `src/lib/playback/resolvePlaybackUrl.ts` (local file on a new play) and
+  `src/lib/playback/planDownloadCompletePlaybackHandoff.ts` (swap onto that file when a download
+  of the current stream finishes).
 - Persistence: `src/data/repositories/downloadsRepository.ts` (SQLite + native-cache projection).
