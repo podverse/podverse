@@ -52,7 +52,7 @@ import {
 import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNearEndSeconds';
 import { resolveQueueAdvance } from '@podverse/playback-core/resolveQueueAdvance';
 
-import type { PlaybackErrorEvent } from '../../modules/podverse-media-engine';
+import type { PlaybackErrorEvent, PlaybackStateValue } from '../../modules/podverse-media-engine';
 
 import { useAuth } from '../auth/AuthProvider';
 import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
@@ -506,6 +506,15 @@ const hasPlaybackStatsTargets = (targets: PlaybackStatsTargets): boolean => {
 // Module-level guard so the last-playback restore fires at most once per app process.
 let lastPlaybackRestoreStarted = false;
 
+/** How long a start-play latch stays up after `playing` so a startup `paused` cannot flash the play icon. */
+const START_PLAY_SETTLE_MS = 300;
+
+/**
+ * How long a start-play latch can stay up if `playing` never arrives. Past this, a later pause
+ * (lock screen, another device) is a real pause and must show the play glyph.
+ */
+const PENDING_START_MAX_MS = 5000;
+
 export function PlaybackProvider({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   const { accessToken, account, clearSession, refreshToken, setTokens, status } = useAuth();
@@ -560,6 +569,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   // Whether the engine has reported the current source playable. Gates the transport spinner: it
   // means "cannot start yet", never "buffering again mid-episode".
   const sourcePlayableRef = useRef<boolean>(false);
+  // A start-play load owns the glyph until it settles. The load sets pause; startup engine beats
+  // must not move it. The latch drops after `playing`, on error, or after a max wait.
+  const pendingStartRef = useRef<boolean>(false);
+  const startHasPlayedRef = useRef<boolean>(false);
+  const latestEngineStateRef = useRef<PlaybackStateValue | null>(null);
+  const pendingStartSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastPlaybackSnapshotWriteRef = useRef<number>(0);
   const enclosureSelectedParamsRef = useRef<EnclosureSelectedParams>(
     DEFAULT_ENCLOSURE_SELECTED_PARAMS
@@ -643,6 +658,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         clearTimeout(seekNetworkFlushTimerRef.current);
         seekNetworkFlushTimerRef.current = null;
       }
+      if (pendingStartSettleTimerRef.current !== null) {
+        clearTimeout(pendingStartSettleTimerRef.current);
+        pendingStartSettleTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -652,6 +671,43 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setPlaybackProgressPlaying(playing);
     setIsPlaying(playing);
   }, []);
+
+  const releasePendingStart = useCallback((): void => {
+    pendingStartRef.current = false;
+    startHasPlayedRef.current = false;
+    if (pendingStartSettleTimerRef.current !== null) {
+      clearTimeout(pendingStartSettleTimerRef.current);
+      pendingStartSettleTimerRef.current = null;
+    }
+  }, []);
+
+  const schedulePendingStartRelease = useCallback((delayMs: number): void => {
+    if (pendingStartSettleTimerRef.current !== null) {
+      clearTimeout(pendingStartSettleTimerRef.current);
+    }
+    pendingStartSettleTimerRef.current = setTimeout(() => {
+      pendingStartSettleTimerRef.current = null;
+      if (!pendingStartRef.current) {
+        return;
+      }
+      const startHasPlayed = startHasPlayedRef.current;
+      pendingStartRef.current = false;
+      startHasPlayedRef.current = false;
+      const latest = latestEngineStateRef.current;
+      // A pause that is still the latest state after playback started falls back to the play glyph.
+      // A start that never reported playing keeps the glyph the load already chose.
+      if (startHasPlayed && (latest === 'paused' || latest === 'ended')) {
+        setPlaybackPlaying(false);
+        setTransportState('paused');
+      }
+    }, delayMs);
+  }, [setPlaybackPlaying]);
+
+  const armPendingStart = useCallback((): void => {
+    startHasPlayedRef.current = false;
+    pendingStartRef.current = true;
+    schedulePendingStartRelease(PENDING_START_MAX_MS);
+  }, [schedulePendingStartRelease]);
 
   const setEnclosureSelectedParams = useCallback((params: EnclosureSelectedParams): void => {
     enclosureSelectedParamsRef.current = params;
@@ -960,6 +1016,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     lastSourceUrlRef.current = null;
     setPlaybackSourceMarker(null);
     sourcePlayableRef.current = false;
+    releasePendingStart();
     positionRef.current = 0;
     durationRef.current = 0;
     resetPlaybackProgress();
@@ -969,7 +1026,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setTransportState('paused');
     resetEnclosureSelectionSession();
     void clearLastPlaybackSnapshot();
-  }, [clearDownloadSourceSwap, resetEnclosureSelectionSession, setPlaybackPlaying]);
+  }, [clearDownloadSourceSwap, releasePendingStart, resetEnclosureSelectionSession, setPlaybackPlaying]);
 
   const playTarget = useCallback(
     async (
@@ -993,6 +1050,15 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       lastSourceUrlRef.current = params.url;
       setPlaybackSourceMarker(params.url);
       sourcePlayableRef.current = false;
+      latestEngineStateRef.current = null;
+      // Arm before the native load so startup `ready` / `paused` / `stalled` cannot move the glyph
+      // before this function sets pause.
+      const expectsAutoPlay = params.autoPlayOverride !== false;
+      if (expectsAutoPlay) {
+        armPendingStart();
+      } else {
+        releasePendingStart();
+      }
       setTransportState('loading');
       let decision: PlaybackLoadDecision;
       try {
@@ -1008,6 +1074,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           params.playbackDecisionOverride
         );
       } catch {
+        releasePendingStart();
         setLastPlaybackError(playbackErrorFromLoadFailure());
         setTransportState('error');
         activeTargetRef.current = target;
@@ -1029,12 +1096,22 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         durationSeconds: durationRef.current,
         positionSeconds: decision.initialSeekSeconds,
       });
-      setPlaybackPlaying(shouldAutoPlay);
-      // The native load resolved, so the source is prepared: stop spinning even if the engine has
-      // not published its next state yet.
-      sourcePlayableRef.current = true;
-      setLastPlaybackError(null);
-      setTransportState(shouldAutoPlay ? 'playing' : 'paused');
+      if (shouldAutoPlay) {
+        // The load was issued. The glyph becomes pause here; an error that already arrived released
+        // the latch, so this does not overwrite it.
+        if (pendingStartRef.current) {
+          sourcePlayableRef.current = true;
+          setLastPlaybackError(null);
+          setPlaybackPlaying(true);
+          setTransportState('playing');
+        }
+      } else {
+        releasePendingStart();
+        sourcePlayableRef.current = true;
+        setLastPlaybackError(null);
+        setPlaybackPlaying(false);
+        setTransportState('paused');
+      }
 
       if (shouldAutoPlay && params.shouldSkipPlayEventWrite !== true) {
         const statsTargets = decision.shouldRecordPlaybackStat
@@ -1057,7 +1134,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [
       applyAutoQueueDirective,
       applyLoad,
+      armPendingStart,
       clearDownloadSourceSwap,
+      releasePendingStart,
       resetEnclosureSelectionSession,
       resolvePlaybackStatsTargets,
       setPlaybackPlaying,
@@ -1347,6 +1426,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         clearTimeout(downloadSourceSwapTimeoutRef.current);
       }
       downloadSourceSwapTimeoutRef.current = setTimeout(() => {
+        // The handoff window ended. Drop the start-play latch so a pause that stuck can show play.
+        releasePendingStart();
         clearDownloadSourceSwap();
       }, DOWNLOAD_HANDOFF_PROGRESS_SUPPRESS_MS);
 
@@ -1355,20 +1436,23 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       try {
         const source = { initialSeekSeconds: position, url: localUrl };
         if (wasPlaying) {
+          armPendingStart();
           await nativePlaybackBridge.loadAndStart(source);
         } else {
+          releasePendingStart();
           await nativePlaybackBridge.load(source);
           nativePlaybackBridge.pause();
         }
         nativePlaybackBridge.setRate(playbackRateRef.current);
       } catch {
+        releasePendingStart();
         clearDownloadSourceSwap();
         setLastPlaybackError(playbackErrorFromLoadFailure());
         setPlaybackPlaying(false);
         setTransportState('error');
       }
     },
-    [clearDownloadSourceSwap, setPlaybackPlaying]
+    [armPendingStart, clearDownloadSourceSwap, releasePendingStart, setPlaybackPlaying]
   );
 
   const adoptCompletedDownloadIfStreaming = useCallback(async (): Promise<void> => {
@@ -1914,6 +1998,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         // which is exactly what a hold must not do.
         if (transitionKind === 'complete' && authoringHoldRef.current) {
           nativePlaybackBridge.pause();
+          releasePendingStart();
           setPlaybackPlaying(false);
           setTransportState('paused');
           return;
@@ -2014,6 +2099,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       loadActive,
       moveNowPlayingToHistory,
       playQueueResource,
+      releasePendingStart,
       writePlaybackEvent,
     ]
   );
@@ -2147,6 +2233,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     },
     error: (event) => {
       clearDownloadSourceSwap();
+      releasePendingStart();
       setPlaybackPlaying(false);
       setLastPlaybackError(event);
       setTransportState('error');
@@ -2164,16 +2251,37 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           return;
         }
       }
+      latestEngineStateRef.current = event.state;
+      const pendingStart = pendingStartRef.current;
+      const startHasPlayed = startHasPlayedRef.current;
       if (isEnginePlayableState(event.state)) {
         sourcePlayableRef.current = true;
       }
-      const nextTransport = playbackTransportForEngineState(event.state, sourcePlayableRef.current);
+      const settledStart = event.state === 'error' || (event.state === 'ended' && startHasPlayed);
+      if (settledStart) {
+        releasePendingStart();
+      }
+      const nextTransport = playbackTransportForEngineState(
+        event.state,
+        sourcePlayableRef.current,
+        pendingStart && !settledStart
+      );
+      if (event.state === 'playing' && pendingStart) {
+        startHasPlayedRef.current = true;
+        schedulePendingStartRelease(START_PLAY_SETTLE_MS);
+      }
       if (nextTransport !== null) {
         setTransportState(nextTransport);
       }
       if (event.state === 'playing') {
+        setLastPlaybackError(null);
         setPlaybackPlaying(true);
-      } else if (event.state === 'paused' || event.state === 'ended' || event.state === 'error') {
+      } else if (event.state === 'error') {
+        setPlaybackPlaying(false);
+      } else if (
+        (event.state === 'paused' || event.state === 'ended') &&
+        !(pendingStart && !settledStart)
+      ) {
         setPlaybackPlaying(false);
       }
       if (event.state === 'ready' || event.state === 'playing') {
@@ -2298,6 +2406,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const pause = useCallback(() => {
     nativePlaybackBridge.pause();
+    releasePendingStart();
     setPlaybackPlaying(false);
     setTransportState('paused');
     const target = activeTargetRef.current;
@@ -2311,7 +2420,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
       playbackPositionSeconds: positionRef.current,
     });
-  }, [setPlaybackPlaying, writeLastPlaybackSnapshotForTarget, writePlaybackEvent]);
+  }, [
+    releasePendingStart,
+    setPlaybackPlaying,
+    writeLastPlaybackSnapshotForTarget,
+    writePlaybackEvent,
+  ]);
 
   const retryPlayback = useCallback(async () => {
     const url = lastSourceUrlRef.current;
@@ -2319,6 +2433,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       return;
     }
     sourcePlayableRef.current = false;
+    latestEngineStateRef.current = null;
+    armPendingStart();
     setTransportState('loading');
     try {
       await nativePlaybackBridge.loadAndStart({
@@ -2326,15 +2442,18 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         url,
       });
       nativePlaybackBridge.setRate(playbackRateRef.current);
-      sourcePlayableRef.current = true;
-      setLastPlaybackError(null);
-      setPlaybackPlaying(true);
-      setTransportState('playing');
+      if (pendingStartRef.current) {
+        sourcePlayableRef.current = true;
+        setLastPlaybackError(null);
+        setPlaybackPlaying(true);
+        setTransportState('playing');
+      }
     } catch {
+      releasePendingStart();
       setLastPlaybackError(playbackErrorFromLoadFailure());
       setTransportState('error');
     }
-  }, [setPlaybackPlaying]);
+  }, [armPendingStart, releasePendingStart, setPlaybackPlaying]);
 
   const resume = useCallback(async () => {
     await nativePlaybackBridge.play();
