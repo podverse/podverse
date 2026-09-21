@@ -535,12 +535,14 @@ make local_setup
 Error: listen EADDRINUSE: address already in use :::3000
 ```
 
-**Solution**: Find and stop the process using the port:
+**Solution** (**Root**): stop whatever is still listening on the local API port
+(default `:3000`; uses `API_PORT` or `apps/api/.env` when set):
 
 ```bash
-lsof -i :3000
-kill -9 <PID>
+npm run dev:api:stop
 ```
+
+That is not `npm run mobile:e2e:api:stop` (E2E API on `:4230`).
 
 ### Database Not Initialized
 

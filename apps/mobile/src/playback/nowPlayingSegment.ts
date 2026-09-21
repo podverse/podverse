@@ -1,4 +1,5 @@
 import type { DTOItemChapter } from '@podverse/helpers/dto';
+import { isValidHttpUrl } from '@podverse/helpers-validation/client';
 import type { PlaybackTarget } from '@podverse/playback-core';
 import { selectItemChapterForTime } from '@podverse/playback-core/selectItemChapterForTime';
 
@@ -10,6 +11,15 @@ export type NowPlayingSegment = {
   kind: NowPlayingSegmentKind;
   startTime: string | null;
   title: string;
+  /** External chapter webpage when the named segment is a chapter and `web_url` is http(s). */
+  webUrl: string | null;
+};
+
+const resolveChapterWebUrl = (webUrl: string | null | undefined): string | null => {
+  if (typeof webUrl !== 'string' || webUrl.length === 0) {
+    return null;
+  }
+  return isValidHttpUrl(webUrl) ? webUrl : null;
 };
 
 /** Catalog key for the accessible name of a now-playing segment. */
@@ -45,7 +55,8 @@ const named = (
   kind: NowPlayingSegmentKind,
   title: string | null | undefined,
   startTime: string | null | undefined,
-  endTime: string | null | undefined
+  endTime: string | null | undefined,
+  webUrl: string | null | undefined = null
 ): NowPlayingSegment | null => {
   if (typeof title !== 'string' || title.length === 0) {
     return null;
@@ -55,6 +66,7 @@ const named = (
     kind,
     startTime: asTime(startTime),
     title,
+    webUrl: kind === 'chapter' ? resolveChapterWebUrl(webUrl) : null,
   };
 };
 
@@ -98,9 +110,16 @@ export const resolveNowPlayingSegment = ({
       'chapter',
       target.chapter.title,
       target.chapter.start_time,
-      target.chapter.end_time
+      target.chapter.end_time,
+      target.chapter.web_url
     );
   }
   const chapter = selectItemChapterForTime(chapters, lookupSeconds);
-  return named('chapter', chapter?.title, chapter?.start_time, chapter?.end_time);
+  return named(
+    'chapter',
+    chapter?.title,
+    chapter?.start_time,
+    chapter?.end_time,
+    chapter?.web_url
+  );
 };

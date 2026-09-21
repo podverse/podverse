@@ -1129,7 +1129,7 @@ export function FullPlayerScreen({
             />
           </View>
 
-          <View pointerEvents="none">
+          <View pointerEvents="box-none">
             <FullPlayerSegmentBand chapters={chapters} />
           </View>
 

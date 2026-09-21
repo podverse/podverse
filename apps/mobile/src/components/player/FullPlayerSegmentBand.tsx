@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOItemChapter } from '@podverse/helpers/dto';
 import { formatHHMMSS } from '@podverse/helpers/time';
@@ -16,6 +16,7 @@ import { usePlaybackScrubPreview } from '../../playback/playbackScrubPreviewStor
 import { FULL_PLAYER_SEGMENT_BAND_HEIGHT } from '../../screens/player/fullPlayerLayout';
 import { useTheme } from '../../theme/useTheme';
 import { MarqueeText } from '../primitives/MarqueeText';
+import { ChapterLinkButton } from './ChapterLinkButton';
 import { nowPlayingSegmentLeadingIcon } from './nowPlayingSegmentIcon';
 
 const CONDENSED_ICON_SIZE = 14;
@@ -42,7 +43,8 @@ const formatSegmentTimeLabel = (
  * Names the clip, official clip, or chapter under the playhead, in the row below the artwork. The
  * row keeps its height with nothing to name, so a chapter arriving fades in without moving the
  * artwork above it or the transport below it. Subscribes to progress so the full-player shell can
- * stay off the tick path.
+ * stay off the tick path. When the named segment is a chapter with a link, the whole band opens
+ * that URL; the link glyph is only a marker.
  */
 export function FullPlayerSegmentBand({ chapters }: FullPlayerSegmentBandProps) {
   const { t } = useTranslation();
@@ -62,11 +64,26 @@ export function FullPlayerSegmentBand({ chapters }: FullPlayerSegmentBandProps) 
       StyleSheet.create({
         segmentBand: {
           alignItems: 'center',
-          gap: tokens.spacing.md,
           height: FULL_PLAYER_SEGMENT_BAND_HEIGHT,
           justifyContent: 'center',
           minWidth: 0,
           width: '100%',
+        },
+        segmentCluster: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: tokens.spacing.md,
+          minWidth: 0,
+          width: '100%',
+        },
+        segmentClusterPressed: {
+          opacity: 0.7,
+        },
+        segmentCopy: {
+          alignItems: 'center',
+          flex: 1,
+          gap: tokens.spacing.md,
+          minWidth: 0,
         },
         segmentText: {
           color: themeStyles.textSecondary.color,
@@ -95,7 +112,21 @@ export function FullPlayerSegmentBand({ chapters }: FullPlayerSegmentBandProps) 
     [themeStyles, tokens]
   );
 
+  const chapterWebUrl = segment?.kind === 'chapter' ? segment.webUrl : null;
+
+  const openChapterLink = useCallback(async () => {
+    if (chapterWebUrl === null) {
+      return;
+    }
+    try {
+      await Linking.openURL(chapterWebUrl);
+    } catch (error) {
+      console.warn('Could not open a chapter link', chapterWebUrl, error);
+    }
+  }, [chapterWebUrl]);
+
   const iconName = segment === null ? null : nowPlayingSegmentLeadingIcon(segment.kind);
+  const showChapterLink = chapterWebUrl !== null;
   const timeLabel =
     segment === null
       ? null
@@ -108,41 +139,71 @@ export function FullPlayerSegmentBand({ chapters }: FullPlayerSegmentBandProps) 
       : timeLabel === null
         ? `${t(nowPlayingSegmentLabelKey(segment.kind))}: ${segment.title}`
         : `${t(nowPlayingSegmentLabelKey(segment.kind))}: ${segment.title}, ${timeLabel}`;
+  const chapterLinkAccessibilityLabel =
+    accessibilityLabel === undefined
+      ? t('media_player.open_chapter_link')
+      : `${accessibilityLabel}. ${t('media_player.open_chapter_link')}`;
+
+  const copy =
+    segment === null ? null : (
+      <View pointerEvents="none" style={styles.segmentCopy}>
+        <View style={styles.titleRow}>
+          {iconName !== null ? (
+            <Ionicons
+              color={themeStyles.textSecondary.color}
+              name={iconName}
+              size={CONDENSED_ICON_SIZE}
+            />
+          ) : null}
+          <View style={styles.segmentTitle}>
+            <MarqueeText
+              align={iconName === null ? 'center' : 'left'}
+              style={styles.segmentText}
+              testID="full-player-segment-title"
+            >
+              {segment.title}
+            </MarqueeText>
+          </View>
+        </View>
+        {timeLabel !== null ? (
+          <Text numberOfLines={1} style={styles.segmentTime} testID="full-player-segment-time">
+            {timeLabel}
+          </Text>
+        ) : null}
+      </View>
+    );
 
   return (
-    <View
-      accessibilityLabel={accessibilityLabel}
-      accessibilityRole={segment === null ? undefined : 'text'}
-      accessible={segment !== null}
-      style={styles.segmentBand}
-      testID="full-player-segment-band"
-    >
-      {segment !== null ? (
-        <>
-          <View style={styles.titleRow}>
-            {iconName !== null ? (
-              <Ionicons
-                color={themeStyles.textSecondary.color}
-                name={iconName}
-                size={CONDENSED_ICON_SIZE}
-              />
-            ) : null}
-            <View style={styles.segmentTitle}>
-              <MarqueeText
-                align={iconName === null ? 'center' : 'left'}
-                style={styles.segmentText}
-                testID="full-player-segment-title"
-              >
-                {segment.title}
-              </MarqueeText>
-            </View>
+    <View pointerEvents="box-none" style={styles.segmentBand} testID="full-player-segment-band">
+      {segment !== null && copy !== null ? (
+        showChapterLink ? (
+          <Pressable
+            accessibilityLabel={chapterLinkAccessibilityLabel}
+            accessibilityRole="link"
+            onPress={() => {
+              void openChapterLink();
+            }}
+            pointerEvents="auto"
+            style={({ pressed }) => [
+              styles.segmentCluster,
+              pressed ? styles.segmentClusterPressed : null,
+            ]}
+            testID="full-player-chapter-link"
+          >
+            {copy}
+            <ChapterLinkButton />
+          </Pressable>
+        ) : (
+          <View
+            accessibilityLabel={accessibilityLabel}
+            accessibilityRole="text"
+            accessible
+            pointerEvents="none"
+            style={styles.segmentCluster}
+          >
+            {copy}
           </View>
-          {timeLabel !== null ? (
-            <Text numberOfLines={1} style={styles.segmentTime} testID="full-player-segment-time">
-              {timeLabel}
-            </Text>
-          ) : null}
-        </>
+        )
       ) : null}
     </View>
   );

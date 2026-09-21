@@ -9,9 +9,11 @@ import {
 import {
   E2E_CHAPTER_ONE_END_SECONDS,
   E2E_CHAPTER_ONE_START_SECONDS,
+  E2E_CHAPTER_ONE_WEB_URL,
   E2E_CHAPTER_TWO_START_SECONDS,
   E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT,
 } from './helpers/seedConstants';
+import { actionAndCapture } from './helpers/stepScreenshots';
 
 const API_LOGIN_URL = 'http://localhost:4030/api/v2/auth/login';
 const LOGIN_EMAIL = 'e2e-user@example.com';
@@ -137,5 +139,31 @@ test.describe('Media player chapter seek', () => {
     await fastForwardAudioTo(page, E2E_CHAPTER_ONE_END_SECONDS + 0.5);
 
     await expectMediaPlayerTitleVisible(page, 'Topic A');
+  });
+
+  test('When a chapter is playing, the fullscreen player shows a chapter link next to the title and time', async ({
+    page,
+  }, testInfo) => {
+    await openChapteredEpisode(page);
+    await page.locator('main').getByRole('button', { name: 'Play' }).first().click();
+    await expectAudioCurrentTimeNear(page, E2E_CHAPTER_ONE_START_SECONDS);
+    await expectMediaPlayerTitleVisible(page, 'Intro');
+
+    const chapterLink = page
+      .getByRole('dialog', { name: 'Fullscreen media player' })
+      .getByTestId('media-player-chapter-link');
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'Opening the fullscreen media player shows the chapter link beside the chapter title and time.',
+      async () => {
+        await page.locator('#media-player').getByRole('button').first().click();
+        await expect(page.getByRole('dialog', { name: 'Fullscreen media player' })).toBeVisible();
+        await expect(chapterLink).toBeVisible();
+        await expect(chapterLink.locator(`[href="${E2E_CHAPTER_ONE_WEB_URL}"]`)).toBeVisible();
+      },
+      chapterLink
+    );
   });
 });

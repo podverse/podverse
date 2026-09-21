@@ -12,6 +12,7 @@ import {
   buildTrackPath,
   MediumEnum,
 } from '@podverse/helpers';
+import { isValidHttpUrl } from '@podverse/helpers-validation/client';
 
 import type { MediaPlayerAddByRSSState } from '../../contexts/MediaPlayer';
 import { selectItemChapterForTime, shouldSuppressChapterSelectionAtTime } from '../../lib/playback';
@@ -41,7 +42,16 @@ export type MediaPlayerInfoResolution = {
   subsectionUrl: string;
   subsectionStartTime: string | null;
   subsectionEndTime: string | null;
+  /** External chapter webpage, only when a chapter (not a clip) is named and `web_url` is http(s). */
+  chapterWebUrl: string | null;
   resolvedLikeTarget: DTOItem | null;
+};
+
+const resolveChapterWebUrl = (webUrl: string | null | undefined): string | null => {
+  if (typeof webUrl !== 'string' || webUrl.length === 0) {
+    return null;
+  }
+  return isValidHttpUrl(webUrl) ? webUrl : null;
 };
 
 const toNumber = (value: string | number | null | undefined): number | null => {
@@ -201,6 +211,10 @@ export const getMediaPlayerInfoResolution = ({
   const { channelLinkUrl, itemLinkUrl } = resolveDefaultLinks(mpChannel, mpItem, mpAddByRSS);
   const { subsectionTitle, subsectionUrl, subsectionStartTime, subsectionEndTime } =
     resolveSubsection(mpClip, mpItemSoundbite, activeChapter);
+  const chapterWebUrl =
+    mpClip === null && mpItemSoundbite === null
+      ? resolveChapterWebUrl(activeChapter?.web_url)
+      : null;
 
   const itemTitleFromSource =
     (typeof mpAddByRSS?.resourceData?.title === 'string' ? mpAddByRSS.resourceData.title : null) ??
@@ -224,6 +238,7 @@ export const getMediaPlayerInfoResolution = ({
     subsectionUrl,
     subsectionStartTime,
     subsectionEndTime,
+    chapterWebUrl,
     resolvedLikeTarget,
   };
 };

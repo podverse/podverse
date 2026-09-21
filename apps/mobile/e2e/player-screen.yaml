@@ -81,6 +81,11 @@ name: Player screen flow
 # chapter starting cannot move the artwork or the transport.
 - assertVisible:
     id: full-player-segment-band
+# A named chapter puts the chapter link to the right of the title and time.
+- assertVisible:
+    id: full-player-segment-title
+- assertVisible:
+    id: full-player-chapter-link
 - assertVisible:
     id: full-player-transport-row
 - assertVisible:

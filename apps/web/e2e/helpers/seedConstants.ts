@@ -90,6 +90,8 @@ export const E2E_CHAPTER_ONE_START_SECONDS = 1;
 export const E2E_CHAPTER_ONE_END_SECONDS = 20;
 export const E2E_CHAPTER_TWO_START_SECONDS = 21;
 export const E2E_CHAPTER_TWO_END_SECONDS = 60;
+export const E2E_CHAPTER_ONE_WEB_URL = 'https://example.com/e2e-chapter-intro';
+export const E2E_CHAPTER_TWO_WEB_URL = 'https://example.com/e2e-chapter-topic-a';
 
 /**
  * Lightning value block on the podcast fixtures, so value-for-value surfaces have something to

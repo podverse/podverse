@@ -44,7 +44,13 @@ describe('resolveNowPlayingSegment', () => {
         positionSeconds: 12,
         target: { channel, clip, item, kind: 'clip' },
       })
-    ).toEqual({ endTime: '40', kind: 'clip', startTime: '12', title: 'Best bit' });
+    ).toEqual({
+      endTime: '40',
+      kind: 'clip',
+      startTime: '12',
+      title: 'Best bit',
+      webUrl: null,
+    });
   });
 
   it('names the chapter target when the finger is up', () => {
@@ -64,7 +70,61 @@ describe('resolveNowPlayingSegment', () => {
         positionSeconds: 10,
         target: { channel, chapter: playing, item, kind: 'chapter' },
       })
-    ).toEqual({ endTime: '30', kind: 'chapter', startTime: '0', title: 'Intro' });
+    ).toEqual({
+      endTime: '30',
+      kind: 'chapter',
+      startTime: '0',
+      title: 'Intro',
+      webUrl: null,
+    });
+  });
+
+  it('carries a chapter web_url when it is an http(s) URL', () => {
+    const playing = chapter({
+      end_time: '30',
+      id: 1,
+      id_text: 'c1',
+      start_time: '0',
+      title: 'Intro',
+      web_url: 'https://example.com/intro',
+    });
+    expect(
+      resolveNowPlayingSegment({
+        chapters: [playing],
+        positionSeconds: 10,
+        target: { channel, chapter: playing, item, kind: 'chapter' },
+      })
+    ).toEqual({
+      endTime: '30',
+      kind: 'chapter',
+      startTime: '0',
+      title: 'Intro',
+      webUrl: 'https://example.com/intro',
+    });
+  });
+
+  it('drops a chapter web_url that is not http(s)', () => {
+    const playing = chapter({
+      end_time: '30',
+      id: 1,
+      id_text: 'c1',
+      start_time: '0',
+      title: 'Intro',
+      web_url: 'javascript:alert(1)',
+    });
+    expect(
+      resolveNowPlayingSegment({
+        chapters: [playing],
+        positionSeconds: 10,
+        target: { channel, chapter: playing, item, kind: 'chapter' },
+      })
+    ).toEqual({
+      endTime: '30',
+      kind: 'chapter',
+      startTime: '0',
+      title: 'Intro',
+      webUrl: null,
+    });
   });
 
   it('follows a scrub preview even while the engine playhead stays put', () => {
@@ -79,7 +139,13 @@ describe('resolveNowPlayingSegment', () => {
         previewPositionSeconds: 45,
         target: { channel, item, kind: 'item-podcast' },
       })
-    ).toEqual({ endTime: '90', kind: 'chapter', startTime: '30', title: 'Interview' });
+    ).toEqual({
+      endTime: '90',
+      kind: 'chapter',
+      startTime: '30',
+      title: 'Interview',
+      webUrl: null,
+    });
   });
 
   it('follows a scrub preview while a chapter target is playing', () => {
@@ -95,7 +161,13 @@ describe('resolveNowPlayingSegment', () => {
         previewPositionSeconds: 45,
         target: { channel, chapter: playing, item, kind: 'chapter' },
       })
-    ).toEqual({ endTime: '90', kind: 'chapter', startTime: '30', title: 'Interview' });
+    ).toEqual({
+      endTime: '90',
+      kind: 'chapter',
+      startTime: '30',
+      title: 'Interview',
+      webUrl: null,
+    });
   });
 
   it('follows the chapter list while a plain episode plays', () => {
@@ -109,7 +181,40 @@ describe('resolveNowPlayingSegment', () => {
         positionSeconds: 45,
         target: { channel, item, kind: 'item-podcast' },
       })
-    ).toEqual({ endTime: '90', kind: 'chapter', startTime: '30', title: 'Interview' });
+    ).toEqual({
+      endTime: '90',
+      kind: 'chapter',
+      startTime: '30',
+      title: 'Interview',
+      webUrl: null,
+    });
+  });
+
+  it('follows a chapter web_url from the chapter list on a plain episode', () => {
+    const chapters = [
+      chapter({ end_time: '30', id: 1, id_text: 'c1', start_time: '0', title: 'Intro' }),
+      chapter({
+        end_time: '90',
+        id: 2,
+        id_text: 'c2',
+        start_time: '30',
+        title: 'Interview',
+        web_url: 'https://example.com/interview',
+      }),
+    ];
+    expect(
+      resolveNowPlayingSegment({
+        chapters,
+        positionSeconds: 45,
+        target: { channel, item, kind: 'item-podcast' },
+      })
+    ).toEqual({
+      endTime: '90',
+      kind: 'chapter',
+      startTime: '30',
+      title: 'Interview',
+      webUrl: 'https://example.com/interview',
+    });
   });
 
   it('says nothing between chapters or when the episode has none', () => {
@@ -151,6 +256,7 @@ describe('resolveNowPlayingSegment', () => {
       kind: 'official-clip',
       startTime: '30',
       title: 'Host reads the ads',
+      webUrl: null,
     });
   });
 

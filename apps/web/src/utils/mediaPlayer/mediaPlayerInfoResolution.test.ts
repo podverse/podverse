@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import type { DTOChannel, DTOClip, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import { buildEpisodePath, MediumEnum } from '@podverse/helpers';
 
 import { getMediaPlayerInfoResolution } from './mediaPlayerInfoResolution';
@@ -50,6 +50,7 @@ describe('getMediaPlayerInfoResolution', () => {
     expect(result.displayItemTitle).toBe('Inner');
     expect(result.subsectionTitle).toBe('Inner');
     expect(result.subsectionUrl).toBe('/chapter/ch-toc-false');
+    expect(result.chapterWebUrl).toBeNull();
   });
 
   it('uses first-position tie-break when overlapping chapters are same tier', () => {
@@ -85,6 +86,7 @@ describe('getMediaPlayerInfoResolution', () => {
     expect(result.displayItemTitle).toBe('First chapter');
     expect(result.subsectionTitle).toBe('First chapter');
     expect(result.subsectionUrl).toBe('/chapter/chapter-first');
+    expect(result.chapterWebUrl).toBeNull();
   });
 
   it('suppresses chapter title at playhead 0 when a chapter starts at 0', () => {
@@ -134,6 +136,7 @@ describe('getMediaPlayerInfoResolution', () => {
     expect(result.itemTitle).toBe('Episode title');
     expect(result.displayItemTitle).toBe('Episode title');
     expect(result.subsectionTitle).toBeNull();
+    expect(result.chapterWebUrl).toBeNull();
   });
 
   it('falls back to item title when there is no matching chapter', () => {
@@ -188,6 +191,7 @@ describe('getMediaPlayerInfoResolution', () => {
     expect(result.displayItemTitle).toBe('Episode title');
     expect(result.subsectionTitle).toBeNull();
     expect(result.itemLinkUrl).toBe(buildEpisodePath('episode-1'));
+    expect(result.chapterWebUrl).toBeNull();
   });
 
   it('keeps itemTitle as base episode title when an active chapter has a subsection title', () => {
@@ -237,5 +241,91 @@ describe('getMediaPlayerInfoResolution', () => {
     expect(result.itemTitle).toBe('Episode title');
     expect(result.displayItemTitle).toBe('Chapter title');
     expect(result.subsectionTitle).toBe('Chapter title');
+    expect(result.chapterWebUrl).toBeNull();
+  });
+
+  it('exposes chapterWebUrl when the active chapter has an http(s) web_url', () => {
+    const activeChapter = chapter({
+      id: 1,
+      id_text: 'chapter-linked',
+      table_of_contents: true,
+      title: 'Linked chapter',
+      start_time: '10',
+      end_time: '30',
+      web_url: 'https://example.com/chapter',
+    });
+
+    const result = getMediaPlayerInfoResolution({
+      mpChannel: null,
+      mpItem: null,
+      mpAddByRSS: null,
+      mpClip: null,
+      mpItemSoundbite: null,
+      mpItemChapter: null,
+      mpItemChapters: [activeChapter],
+      currentTimeSeconds: 15,
+    });
+
+    expect(result.subsectionTitle).toBe('Linked chapter');
+    expect(result.chapterWebUrl).toBe('https://example.com/chapter');
+  });
+
+  it('hides chapterWebUrl when web_url is not http(s)', () => {
+    const activeChapter = chapter({
+      id: 1,
+      id_text: 'chapter-unsafe',
+      table_of_contents: true,
+      title: 'Unsafe chapter',
+      start_time: '10',
+      end_time: '30',
+      web_url: 'javascript:alert(1)',
+    });
+
+    const result = getMediaPlayerInfoResolution({
+      mpChannel: null,
+      mpItem: null,
+      mpAddByRSS: null,
+      mpClip: null,
+      mpItemSoundbite: null,
+      mpItemChapter: null,
+      mpItemChapters: [activeChapter],
+      currentTimeSeconds: 15,
+    });
+
+    expect(result.subsectionTitle).toBe('Unsafe chapter');
+    expect(result.chapterWebUrl).toBeNull();
+  });
+
+  it('hides chapterWebUrl while a clip is playing even if a chapter has a web_url', () => {
+    const activeChapter = chapter({
+      id: 1,
+      id_text: 'chapter-linked',
+      table_of_contents: true,
+      title: 'Linked chapter',
+      start_time: '10',
+      end_time: '30',
+      web_url: 'https://example.com/chapter',
+    });
+    const mpClip = {
+      id: 1,
+      id_text: 'clip-1',
+      title: 'Best bit',
+      start_time: '12',
+      end_time: '18',
+    } as DTOClip;
+
+    const result = getMediaPlayerInfoResolution({
+      mpChannel: null,
+      mpItem: null,
+      mpAddByRSS: null,
+      mpClip,
+      mpItemSoundbite: null,
+      mpItemChapter: null,
+      mpItemChapters: [activeChapter],
+      currentTimeSeconds: 15,
+    });
+
+    expect(result.subsectionTitle).toBe('Best bit');
+    expect(result.chapterWebUrl).toBeNull();
   });
 });

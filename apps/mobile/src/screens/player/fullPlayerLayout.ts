@@ -37,7 +37,7 @@ export type FullPlayerLayout = {
  * Always reserved, whether or not there is a name to show, so a chapter arriving cannot move the
  * artwork or the transport.
  */
-export const FULL_PLAYER_SEGMENT_BAND_HEIGHT = 46;
+export const FULL_PLAYER_SEGMENT_BAND_HEIGHT = 56;
 /** Episode title + channel title share one band with a tight internal gap. */
 export const FULL_PLAYER_TITLE_BLOCK_HEIGHT = 48;
 export const FULL_PLAYER_PROGRESS_BLOCK_HEIGHT = 52;

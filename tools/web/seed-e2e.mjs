@@ -118,6 +118,8 @@ const E2E_CHAPTER_ONE_START_SECONDS = 1;
 const E2E_CHAPTER_ONE_END_SECONDS = 20;
 const E2E_CHAPTER_TWO_START_SECONDS = 21;
 const E2E_CHAPTER_TWO_END_SECONDS = 60;
+const E2E_CHAPTER_ONE_WEB_URL = 'https://example.com/e2e-chapter-intro';
+const E2E_CHAPTER_TWO_WEB_URL = 'https://example.com/e2e-chapter-topic-a';
 
 // Lightning value block on the podcast fixtures, so value-for-value surfaces have something to
 // offer. The address is a syntactically valid 33-byte compressed pubkey that belongs to no node:
@@ -836,6 +838,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
        start_time,
        end_time,
        title,
+       web_url,
        table_of_contents
      )
      VALUES
@@ -846,6 +849,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
          $2,
          $3,
          'Intro',
+         $6,
          true
        ),
        (
@@ -855,6 +859,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
          $4,
          $5,
          'Topic A',
+         $7,
          true
        )`,
     [
@@ -863,6 +868,8 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
       E2E_CHAPTER_ONE_END_SECONDS,
       E2E_CHAPTER_TWO_START_SECONDS,
       E2E_CHAPTER_TWO_END_SECONDS,
+      E2E_CHAPTER_ONE_WEB_URL,
+      E2E_CHAPTER_TWO_WEB_URL,
     ]
   );
 

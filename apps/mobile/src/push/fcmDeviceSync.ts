@@ -162,10 +162,14 @@ export const unregisterFcmDeviceForAccount = async ({
     readSecureValue(REGISTERED_FCM_TOKEN_KEY),
   ]);
 
-  await api.reqAccountFCMDeviceDelete({
-    fcm_token: fcmToken,
-    installation_id: installationId,
-  });
+  const hasInstallationId = installationId !== null && installationId !== '';
+  const hasFcmToken = fcmToken !== null && fcmToken !== '';
+  if (hasInstallationId || hasFcmToken) {
+    await api.reqAccountFCMDeviceDelete({
+      fcm_token: fcmToken,
+      installation_id: installationId,
+    });
+  }
   await deleteSecureValue(REGISTERED_FCM_TOKEN_KEY);
 };
 

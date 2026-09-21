@@ -106,23 +106,13 @@ export class AccountFCMDeviceService extends BaseManyService<AccountFCMDevice, '
     }
     const { fcm_token, installation_id } = params;
 
+    // Unregister is valid with no matching row (logout before a token was ever saved).
     if (installation_id) {
-      const byInstall = await this.repositoryRead.findOne({
-        where: { account_id, installation_id },
-      });
-      if (byInstall) {
-        return this._delete(account, { installation_id });
-      }
+      await this._delete(account, { installation_id });
     }
-
     if (fcm_token) {
-      const byToken = await this.repositoryRead.findOne({ where: { account_id, fcm_token } });
-      if (byToken) {
-        return this._delete(account, { fcm_token });
-      }
+      await this._delete(account, { fcm_token });
     }
-
-    throw new Error('FCM Device not found for deletion.');
   }
 
   async getFCMTokensByChannelIdText(channel_id_text: string): Promise<string[]> {

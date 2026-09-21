@@ -195,6 +195,18 @@ describe('account device routes', () => {
       expect(res.body.message).toBe('FCM device deleted successfully');
     });
 
+    it('DELETE /fcm-device/delete returns 200 when no identifiers are stored', async () => {
+      fcmDeleteMock.mockResolvedValueOnce(undefined);
+
+      const res = await request(app)
+        .delete(`${accountBase}/fcm-device/delete`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ fcm_token: null, installation_id: null });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('FCM device deleted successfully');
+    });
+
     it('GET /fcm-device/all-for-account returns 200 with device list', async () => {
       fcmGetAllForAccountMock.mockResolvedValueOnce([{ id: 1 }, { id: 2 }]);
 
@@ -270,6 +282,18 @@ describe('account device routes', () => {
         .delete(`${accountBase}/webpush-device/delete`)
         .set(authHeaders(TEST_USER_ID))
         .send({ endpoint: 'https://push.example.com/subscribe' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('WebPush device deleted successfully');
+    });
+
+    it('DELETE /webpush-device/delete returns 200 when the service finds no row', async () => {
+      webpushDeleteMock.mockResolvedValueOnce(undefined);
+
+      const res = await request(app)
+        .delete(`${accountBase}/webpush-device/delete`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ endpoint: 'https://push.example.com/missing' });
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('WebPush device deleted successfully');

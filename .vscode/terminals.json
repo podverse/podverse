@@ -10,7 +10,7 @@
     },
     {
       "name": "Dev",
-      "description": "Leave running: npm run dev:all:watch (main + management). Focused: npm run dev:main:all (no admin).",
+      "description": "Leave running: npm run dev:all:watch (main + management). Focused: npm run dev:main:all (no admin). Stuck :3000: npm run dev:api:stop from Root.",
       "cwd": ".",
       "open": true,
       "command": "clear"
