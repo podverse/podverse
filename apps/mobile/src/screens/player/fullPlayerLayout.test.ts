@@ -16,6 +16,7 @@ import {
   FULL_PLAYER_TRANSPORT_ROW_HEIGHT,
   FULL_PLAYER_UTILITY_ROW_HEIGHT,
   resolveFullPlayerLayout,
+  resolveFullPlayerViewport,
 } from './fullPlayerLayout';
 
 const phoneInput = {
@@ -166,5 +167,35 @@ describe('resolveFullPlayerLayout', () => {
       hasSections: false,
     });
     expect(layout.paneSheetHeight).toBe(0);
+  });
+});
+
+describe('resolveFullPlayerViewport', () => {
+  it('sizes the body as the window minus the action row and the status inset', () => {
+    expect(
+      resolveFullPlayerViewport({
+        headerBarHeight: 44,
+        safeAreaTop: 59,
+        windowHeight: 874,
+        windowWidth: 402,
+      })
+    ).toEqual({
+      height: 874 - 44 - 59,
+      width: 402,
+    });
+  });
+
+  it('clamps a bar taller than the window to zero', () => {
+    expect(
+      resolveFullPlayerViewport({
+        headerBarHeight: 44,
+        safeAreaTop: 59,
+        windowHeight: 40,
+        windowWidth: -1,
+      })
+    ).toEqual({
+      height: 0,
+      width: 0,
+    });
   });
 });

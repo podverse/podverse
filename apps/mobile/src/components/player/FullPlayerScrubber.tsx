@@ -375,8 +375,8 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
     () =>
       StyleSheet.create({
         block: {
+          height: FULL_PLAYER_PROGRESS_BLOCK_HEIGHT,
           justifyContent: 'center',
-          minHeight: FULL_PLAYER_PROGRESS_BLOCK_HEIGHT,
           position: 'relative',
         },
         highlight: {

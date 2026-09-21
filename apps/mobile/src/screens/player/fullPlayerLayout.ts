@@ -32,6 +32,18 @@ export type FullPlayerLayout = {
   viewerHeight: number;
 };
 
+export type FullPlayerViewportInput = {
+  headerBarHeight: number;
+  safeAreaTop: number;
+  windowHeight: number;
+  windowWidth: number;
+};
+
+export type FullPlayerViewport = {
+  height: number;
+  width: number;
+};
+
 /**
  * Row under the artwork that names the clip, official clip, or chapter and its start–end clock.
  * Always reserved, whether or not there is a name to show, so a chapter arriving cannot move the
@@ -94,6 +106,22 @@ const asNonNegative = (value: number): number => {
     return 0;
   }
   return Math.max(0, value);
+};
+
+/**
+ * Body under the action row, known on the first commit. The action row already owns the status
+ * inset, so this is the window minus that bar — the same box the flex viewport reports later.
+ */
+export const resolveFullPlayerViewport = (input: FullPlayerViewportInput): FullPlayerViewport => {
+  return {
+    height: Math.max(
+      0,
+      asNonNegative(input.windowHeight) -
+        asNonNegative(input.headerBarHeight) -
+        asNonNegative(input.safeAreaTop)
+    ),
+    width: asNonNegative(input.windowWidth),
+  };
 };
 
 export const resolveFullPlayerChipStripHeight = (chipStripHeight?: number): number => {

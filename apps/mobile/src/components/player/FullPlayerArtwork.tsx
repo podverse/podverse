@@ -1,5 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
-import type { LayoutChangeEvent } from 'react-native';
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import type { DTOItemChapter } from '@podverse/helpers/dto';
@@ -12,10 +11,8 @@ import { resolvePlayerChapterArtworkUri } from './playerChapterArtwork';
 
 type FullPlayerArtworkProps = {
   accessibilityLabel: string;
-  /** Square edge from layout math, used until the band reports its measured size. */
+  /** Square edge from layout math. Not taken from a later measurement of this band. */
   artworkSize: number;
-  /** Phone or tablet cap, so a tall viewport does not grow the square without limit. */
-  artworkSizeCap: number;
   chapters: DTOItemChapter[];
 };
 
@@ -23,14 +20,12 @@ type FullPlayerArtworkProps = {
  * Full-player artwork square. Swaps in chapter art when the active chapter has an image and the
  * target is not a clip or official clip — same gate web uses via `shouldUseChapterArtwork`.
  *
- * The band is the one part of the fixed region that flexes, and it sizes the square from its own
- * measured box. Bands whose text can grow with the OS font setting therefore take their space from
- * the artwork instead of pushing the transport rows past the bottom of the region.
+ * `artworkSize` is the square's edge. It comes from layout math, not from measuring this band.
+ * The band still flexes so leftover space stays with the artwork.
  */
 export function FullPlayerArtwork({
   accessibilityLabel,
   artworkSize,
-  artworkSizeCap,
   chapters,
 }: FullPlayerArtworkProps) {
   const { activeTarget, nowPlaying } = usePlaybackSession();
@@ -43,27 +38,6 @@ export function FullPlayerArtwork({
     mpClip: activeTarget?.kind === 'clip' ? activeTarget.clip : null,
     mpItemSoundbite: activeTarget?.kind === 'soundbite' ? activeTarget.soundbite : null,
   });
-
-  const [measuredBand, setMeasuredBand] = useState<{ height: number; width: number } | null>(null);
-
-  const handleBandLayout = useCallback((event: LayoutChangeEvent) => {
-    const { height, width } = event.nativeEvent.layout;
-    setMeasuredBand((current) => {
-      if (
-        current !== null &&
-        Math.abs(current.height - height) < 1 &&
-        Math.abs(current.width - width) < 1
-      ) {
-        return current;
-      }
-      return { height, width };
-    });
-  }, []);
-
-  const squareSize =
-    measuredBand === null
-      ? artworkSize
-      : Math.max(0, Math.min(measuredBand.height, measuredBand.width, artworkSizeCap));
 
   const styles = useMemo(
     () =>
@@ -82,28 +56,31 @@ export function FullPlayerArtwork({
         },
         viewerSquare: {
           alignSelf: 'center',
-          height: squareSize,
+          height: artworkSize,
           overflow: 'hidden',
-          width: squareSize,
+          width: artworkSize,
         },
       }),
-    [squareSize]
+    [artworkSize]
   );
 
   if (nowPlaying === null) {
-    return <View onLayout={handleBandLayout} style={styles.viewerBand} />;
+    return <View style={styles.viewerBand} />;
   }
 
   return (
-    <View onLayout={handleBandLayout} style={styles.viewerBand}>
-      <View style={styles.viewerSquare} testID="full-player-video-surface">
+    <View style={styles.viewerBand}>
+      <View pointerEvents="box-none" style={styles.viewerSquare} testID="full-player-video-surface">
         <CoverImage
           accessibilityLabel={accessibilityLabel}
           style={styles.artwork}
+          testID="full-player-artwork"
           uri={imageUri}
           viewerUri={imageUri}
         />
-        <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="full" />
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="full" />
+        </View>
       </View>
     </View>
   );

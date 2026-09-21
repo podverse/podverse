@@ -58,6 +58,7 @@ import { FullPlayerTransportRow } from '../../components/player/FullPlayerTransp
 import { FullPlayerUtilityRow } from '../../components/player/FullPlayerUtilityRow';
 import { ignoreFullPlayerBoundedNestedListWarning, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives/listVirtualization';
 import { MarqueeText } from '../../components/primitives/MarqueeText';
+import { HEADER_BAR_HEIGHT } from '../../components/screen/HeaderBar';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
@@ -103,8 +104,6 @@ import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import {
-  FULL_PLAYER_ARTWORK_MAX_PHONE,
-  FULL_PLAYER_ARTWORK_MAX_TABLET,
   FULL_PLAYER_CHIP_HEADER_HEIGHT,
   FULL_PLAYER_CONTROL_STACK_GAP,
   FULL_PLAYER_REGION_BOTTOM_PADDING,
@@ -112,6 +111,7 @@ import {
   FULL_PLAYER_REGION_TOP_PADDING,
   FULL_PLAYER_TITLE_BLOCK_HEIGHT,
   resolveFullPlayerLayout,
+  resolveFullPlayerViewport,
 } from './fullPlayerLayout';
 import { FullPlayerSleepTimer } from './FullPlayerSleepTimer';
 import { FullPlayerSpeedControl } from './FullPlayerSpeedControl';
@@ -235,7 +235,7 @@ export function FullPlayerScreen({
   onOpenV4v,
 }: FullPlayerScreenProps) {
   const { t } = useTranslation();
-  const { isTablet } = useResponsive();
+  const { height: windowHeight, isTablet, width: windowWidth } = useResponsive();
   const insets = useSafeAreaInsets();
   const { styles: themeStyles, tokens } = useTheme();
   const { boostSheet, openBoost } = useBoostSheet();
@@ -284,8 +284,14 @@ export function FullPlayerScreen({
   const outerScrollRef = useRef<ScrollView>(null);
   const paneListRef = useRef<FlatList<FullPlayerPaneRow>>(null);
 
-  const [viewportHeight, setViewportHeight] = useState(0);
-  const [viewportWidth, setViewportWidth] = useState(0);
+  const seededViewport = resolveFullPlayerViewport({
+    headerBarHeight: HEADER_BAR_HEIGHT,
+    safeAreaTop: insets.top,
+    windowHeight,
+    windowWidth,
+  });
+  const [viewportHeight, setViewportHeight] = useState(seededViewport.height);
+  const [viewportWidth, setViewportWidth] = useState(seededViewport.width);
   const [chipStripHeight, setChipStripHeight] = useState(FULL_PLAYER_CHIP_HEADER_HEIGHT);
   const [openSheet, setOpenSheet] = useState<FullPlayerSheet>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -462,8 +468,6 @@ export function FullPlayerScreen({
       viewportWidth,
     ]
   );
-  const artworkSizeCap = isTablet ? FULL_PLAYER_ARTWORK_MAX_TABLET : FULL_PLAYER_ARTWORK_MAX_PHONE;
-
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -544,7 +548,7 @@ export function FullPlayerScreen({
           marginTop: FULL_PLAYER_CONTROL_STACK_GAP,
           width: '100%',
         },
-        playerRegionArtworkPassThrough: {
+        playerRegionArtworkBand: {
           flexGrow: 1,
           flexShrink: 1,
           minHeight: 0,
@@ -577,8 +581,9 @@ export function FullPlayerScreen({
         titleBlock: {
           alignItems: 'stretch',
           gap: tokens.spacing.xs,
+          height: FULL_PLAYER_TITLE_BLOCK_HEIGHT,
           justifyContent: 'center',
-          minHeight: FULL_PLAYER_TITLE_BLOCK_HEIGHT,
+          overflow: 'hidden',
           width: '100%',
         },
         viewport: {
@@ -706,8 +711,9 @@ export function FullPlayerScreen({
   };
 
   const handleViewportLayout = (event: LayoutChangeEvent) => {
-    setViewportHeight(event.nativeEvent.layout.height);
-    setViewportWidth(event.nativeEvent.layout.width);
+    const { height, width } = event.nativeEvent.layout;
+    setViewportHeight((current) => (Math.abs(current - height) < 1 ? current : height));
+    setViewportWidth((current) => (Math.abs(current - width) < 1 ? current : width));
   };
 
   // The strip grows with the OS font setting, so the peek reserve follows the measured chips rather
@@ -1120,11 +1126,10 @@ export function FullPlayerScreen({
             ) : null}
           </View>
 
-          <View pointerEvents="none" style={styles.playerRegionArtworkPassThrough}>
+          <View pointerEvents="box-none" style={styles.playerRegionArtworkBand}>
             <FullPlayerArtwork
               accessibilityLabel={t('media_player.media_player_image')}
               artworkSize={layout.artworkSize}
-              artworkSizeCap={artworkSizeCap}
               chapters={playerChapters}
             />
           </View>
