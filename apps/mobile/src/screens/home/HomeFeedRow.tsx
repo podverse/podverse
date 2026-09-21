@@ -391,7 +391,6 @@ export function HomeFeedRow({
           {showArtwork ? (
             <View style={styles.artworkWrap}>
               <CoverImage
-                fallbackLabel={t('media.image')}
                 opensViewer={false}
                 style={styles.image}
                 uri={row.imageUrl}

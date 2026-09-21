@@ -226,7 +226,6 @@ export function LibraryDownloadsScreen() {
           >
             <View style={styles.identityRow}>
               <CoverImage
-                fallbackLabel={t('media.image')}
                 opensViewer={false}
                 style={styles.image}
                 uri={item.artworkUrl}

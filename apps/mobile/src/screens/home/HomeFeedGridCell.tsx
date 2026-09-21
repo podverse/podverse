@@ -86,7 +86,6 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
       <View style={styles.tile}>
         {/* Artwork is decorative here: the Pressable owns the accessible name (title + badges). */}
         <CoverImage
-          fallbackLabel={row.title}
           opensViewer={false}
           style={styles.artwork}
           uri={row.imageUrl}

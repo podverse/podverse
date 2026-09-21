@@ -207,18 +207,16 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   const listHeader =
     detail === null ? null : (
       <View style={styles.header}>
-        {headerArtwork.listUrl !== null ? (
-          <CoverImage
-            accessibilityLabel={
-              detail.mappedFeed?.channel.channel.title ??
-              detail.feed.title ??
-              t('features.add_by_rss.label')
-            }
-            style={styles.headerImage}
-            uri={headerArtwork.listUrl}
-            viewerUri={headerArtwork.viewerUrl}
-          />
-        ) : null}
+        <CoverImage
+          accessibilityLabel={
+            detail.mappedFeed?.channel.channel.title ??
+            detail.feed.title ??
+            t('features.add_by_rss.label')
+          }
+          style={styles.headerImage}
+          uri={headerArtwork.listUrl}
+          viewerUri={headerArtwork.viewerUrl}
+        />
         <Text style={styles.headerTitle}>
           {detail.mappedFeed?.channel.channel.title ?? detail.feed.title ?? detail.feed.feedUrl}
         </Text>

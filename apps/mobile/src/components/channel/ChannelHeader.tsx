@@ -7,7 +7,7 @@ import { useTheme } from '../../theme/useTheme';
 import { CoverImage } from '../primitives';
 
 export type ChannelHeaderProps = {
-  /** List-size artwork. Falls back to the title's initials-free placeholder when absent. */
+  /** List-size artwork. Missing art uses the shared headphone placeholder. */
   artworkUri: string | null;
   /** Already-localized. Truncated, with the full text living on the About section. */
   description?: string | null;
@@ -108,7 +108,6 @@ export function ChannelHeader({
       <View style={styles.row}>
         <CoverImage
           accessibilityLabel={title}
-          fallbackLabel={title}
           style={styles.artwork}
           uri={artworkUri}
           viewerUri={viewerUri}

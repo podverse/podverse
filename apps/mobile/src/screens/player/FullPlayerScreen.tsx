@@ -67,7 +67,6 @@ import { useAutoQueue } from '../../contexts/AutoQueueProvider';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
-import { PlaybackSourceDebugBadge } from '../../debug/PlaybackSourceDebugBadge';
 import { useActionError } from '../../feedback/ActionErrorProvider';
 import type { AutoQueueSeed } from '../../hooks/useAutoQueueLoadResources';
 import { useAutoQueueLoadResources } from '../../hooks/useAutoQueueLoadResources';
@@ -1357,7 +1356,6 @@ export function FullPlayerScreen({
       />
       {addToPlaylistSheet}
       {boostSheet}
-      {isPlaybackActive ? <PlaybackSourceDebugBadge placement="full-player" /> : null}
     </View>
   );
 }

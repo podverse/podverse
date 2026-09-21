@@ -47,7 +47,6 @@ export function AboutPersonRow({ person, testID }: AboutPersonRowProps) {
       }
       leading={
         <CoverImage
-          fallbackLabel={t('info.people.person_image')}
           opensViewer={false}
           style={styles.personImage}
           uri={person.img}

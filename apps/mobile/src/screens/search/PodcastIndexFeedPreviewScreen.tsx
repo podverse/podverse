@@ -379,7 +379,6 @@ export function PodcastIndexFeedPreviewScreen({
         <View style={styles.header}>
           <CoverImage
             accessibilityLabel={feed.title}
-            fallbackLabel={t('media.podcast.podcast')}
             style={styles.image}
             testID="pi-feed-preview-image"
             uri={feed.imageUrl}

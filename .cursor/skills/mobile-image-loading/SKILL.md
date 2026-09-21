@@ -25,8 +25,8 @@ Prefer, in order:
 2. **SQLite / repository** hydration when preview is missing (deep link to a subscribed channel).
 3. Network DTO refresh replaces preview when it arrives. Preview is display-only until confirmed.
 
-Gray fallback (`CoverImage` with no `uri`) is only for a truly unknown channel — never for a row
-the user just tapped that already had art.
+The headphone placeholder (`CoverImage` with no `uri`, or a URI that fails to load) is only for a
+truly unknown channel — never for a row the user just tapped that already had art.
 
 ## CoverImage owns the cache
 
@@ -38,7 +38,8 @@ compact header without a second network round-trip. Standalone covers open the l
 - List and compact header must use the **same list-size URL**
   (`primaryChannelListArtworkUrl` / `primaryListArtworkUrl`) so the disk cache hits.
 - Lightbox / full-screen viewer stays **largest original** and is **not** prefetched on list tap.
-- Do not put a gray fill behind a `uri` that is already set — that reads as an empty placeholder.
+- Do not paint the placeholder bitmap behind a `uri` that is already set — that flashes the
+  headphone icon while a known cover decodes.
 
 ## Never block a tap
 

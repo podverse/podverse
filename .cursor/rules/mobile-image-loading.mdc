@@ -22,9 +22,9 @@ When navigating from a painted list/grid/row into a detail header that shows the
 ## Don't
 
 - Don't navigate with only an id when the source already painted a title and image — that produces
-  a gray empty cover until the network returns.
+  the placeholder cover until the network returns.
 - Don't `await` prefetch (or any image warm-up) before `navigation.navigate`.
-- Don't show the gray `CoverImage` fallback when a URI is already known from preview or local store.
+- Don't show the `CoverImage` placeholder when a URI is already known from preview or local store.
 - Don't prefetch lightbox / largest-original URLs on list tap.
 
 Section chips that appear only after a detail DTO (Official Clips, Podroll, episode chapters,

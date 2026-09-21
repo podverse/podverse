@@ -138,7 +138,6 @@ export function PodcastPodrollSection({
         <ListRow
           leading={
             <CoverImage
-              fallbackLabel={t('media.image')}
               opensViewer={false}
               style={styles.image}
               uri={entry.imageUrl}

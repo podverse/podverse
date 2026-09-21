@@ -257,7 +257,6 @@ function TrackPlayChrome({
       <View style={styles.artworkRow}>
         <CoverImage
           accessibilityLabel={trackTitle}
-          fallbackLabel={trackTitle}
           style={styles.artwork}
           testID="track-detail-artwork"
           uri={artworkUri}

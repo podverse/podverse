@@ -239,7 +239,6 @@ export function EpisodePlayChrome({
       <View style={styles.artworkRow}>
         <CoverImage
           accessibilityLabel={episodeTitle}
-          fallbackLabel={episodeTitle}
           style={styles.artwork}
           testID="episode-detail-artwork"
           uri={artworkUri}

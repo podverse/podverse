@@ -2,20 +2,28 @@ import { Image } from 'expo-image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent, ImageStyle, StyleProp, ViewStyle } from 'react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import placeholderArtwork from '../../../assets/images/placeholder-image.png';
 import { isShareSheetPassthroughWindow } from '../../lib/share/shareSheetPassthrough';
 import { useTheme } from '../../theme/useTheme';
 import type { CoverImageTapPoint } from './coverImageTap';
 import { isDeliberateCoverImageTap } from './coverImageTap';
 import { ImageViewerModal } from './ImageViewerModal';
 
-/** RN Modal fade, plus a beat so UIKit finishes dismiss before this node leaves the tree. */
+/** Overlay fade, plus a beat so dismiss finishes before this node leaves the tree. */
 const IMAGE_VIEWER_UNMOUNT_DELAY_MS = 350;
 
 /**
- * Sizing lands on the artwork itself or, when there is no URI, on the fallback box that stands in
- * for it, so it has to satisfy both an `Image` and a `View`.
+ * Missing-artwork bitmap, the same file web serves as `/images/placeholder-image.png`.
+ * Shown when there is no URI or the remote file fails. Not painted behind a URI that is
+ * already set — that would flash this icon while a known cover decodes.
+ */
+const placeholderSource = typeof placeholderArtwork === 'number' ? placeholderArtwork : null;
+
+/**
+ * Sizing lands on the artwork itself or, when there is no URI, on the fallback frame that stands
+ * in for it, so it has to satisfy both an `Image` and a `View`.
  */
 type CoverImageStyle = ImageStyle & ViewStyle;
 
@@ -25,13 +33,11 @@ export type CoverImageProps = {
    * Largest-original URL for the full-screen viewer. When omitted, the viewer uses `uri`.
    */
   viewerUri?: string | null;
-  /** Shown when `uri` is missing. Caller localizes. */
-  fallbackLabel?: string;
   accessibilityLabel?: string;
   /**
    * When true (default) and `uri` is set, a stationary tap opens the full-screen image viewer.
    * A press that moves (scroll or drag) does not. Set false when this image sits inside a
-   * pressable row, cell, or header.
+   * pressable row, cell, or header. The placeholder bitmap never opens the viewer.
    */
   opensViewer?: boolean;
   style?: StyleProp<CoverImageStyle>;
@@ -53,15 +59,14 @@ export const prefetchCoverImage = (uri: string | null | undefined): void => {
  * Square cover / artwork. Podcast, episode, and album art stay square — do not pass a
  * `borderRadius` unless a specific surface (for example a circular avatar) needs one.
  * Standalone art opens the image viewer on a stationary tap; pass `opensViewer={false}` when the
- * parent is the control. The viewer Modal stays out of the tree until that tap, and unmounts after
- * its fade, so a system share sheet cannot present it as a side effect.
+ * parent is the control. The viewer stays out of the tree until that tap, and unmounts after its
+ * fade, so a system share sheet cannot present it as a side effect.
  *
  * Uses expo-image with memory+disk cache so a list decode can be reused on a compact header
- * without a second network round-trip.
+ * without a second network round-trip. A missing or failed URI shows the bundled placeholder.
  */
 export function CoverImage({
   accessibilityLabel,
-  fallbackLabel,
   opensViewer = true,
   style,
   testID,
@@ -69,9 +74,10 @@ export function CoverImage({
   viewerUri,
 }: CoverImageProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { styles: themeStyles } = useTheme();
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [isViewerMounted, setIsViewerMounted] = useState(false);
+  const [failedUri, setFailedUri] = useState<string | null>(null);
   const tapStartRef = useRef<CoverImageTapPoint | null>(null);
   const tapMovedRef = useRef(false);
 
@@ -98,49 +104,64 @@ export function CoverImage({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        fallback: {
-          alignItems: 'center',
-          backgroundColor: tokens.background.secondary,
+        placeholderFrame: {
           borderColor: themeStyles.border.borderColor,
           borderWidth: 1,
-          justifyContent: 'center',
-        },
-        fallbackText: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 11,
-          fontWeight: '600',
-          textAlign: 'center',
+          overflow: 'hidden',
         },
         viewerHit: {
           overflow: 'hidden',
         },
       }),
-    [themeStyles, tokens]
+    [themeStyles]
   );
 
   const resolvedLabel = accessibilityLabel ?? t('media.image');
+  const displayUri = uri !== null && uri !== undefined && uri.length > 0 ? uri : null;
+  const resolvedViewerUri =
+    viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : displayUri;
 
-  if (uri === null || uri === undefined || uri.length === 0) {
+  const viewer =
+    isViewerMounted && resolvedViewerUri !== null ? (
+      <ImageViewerModal
+        accessibilityLabel={resolvedLabel}
+        onClose={() => {
+          setIsViewerOpen(false);
+        }}
+        uri={resolvedViewerUri}
+        visible={isViewerOpen}
+      />
+    ) : null;
+
+  if (displayUri === null || failedUri === displayUri) {
     return (
-      <View
-        accessibilityElementsHidden={!opensViewer}
-        importantForAccessibility={opensViewer ? 'yes' : 'no'}
-        style={[styles.fallback, style]}
-        testID={testID}
-      >
-        {fallbackLabel !== undefined ? (
-          <Text numberOfLines={3} style={styles.fallbackText}>
-            {fallbackLabel}
-          </Text>
-        ) : null}
-      </View>
+      <>
+        <View
+          accessibilityElementsHidden={!opensViewer}
+          accessibilityLabel={opensViewer ? resolvedLabel : undefined}
+          accessibilityRole={opensViewer ? 'image' : undefined}
+          importantForAccessibility={opensViewer ? 'yes' : 'no'}
+          style={[styles.placeholderFrame, style]}
+          testID={testID}
+        >
+          <Image
+            accessibilityElementsHidden
+            accessibilityIgnoresInvertColors
+            contentFit="contain"
+            importantForAccessibility="no"
+            source={placeholderSource}
+            style={StyleSheet.absoluteFill}
+          />
+        </View>
+        {viewer}
+      </>
     );
   }
 
   // Artwork inside a parent Pressable (row / grid cell) is decorative: the parent owns the
   // accessible name. Standalone covers hide the Image too — the outer Pressable speaks for it.
-  // No secondary fill behind a known URI — that reads as an empty placeholder while the bitmap
-  // paints (worse on slow Android decode).
+  // No placeholder behind a known URI — that flashes the fallback icon while the bitmap paints
+  // (worse on slow Android decode).
   const image = (imageStyle: StyleProp<CoverImageStyle>) => (
     <Image
       accessibilityElementsHidden
@@ -148,8 +169,11 @@ export function CoverImage({
       cachePolicy="memory-disk"
       contentFit="cover"
       importantForAccessibility="no"
-      recyclingKey={uri}
-      source={{ uri }}
+      onError={() => {
+        setFailedUri(displayUri);
+      }}
+      recyclingKey={displayUri}
+      source={{ uri: displayUri }}
       style={imageStyle}
       testID={opensViewer ? undefined : testID}
       transition={0}
@@ -192,18 +216,7 @@ export function CoverImage({
       >
         {image(StyleSheet.absoluteFill)}
       </Pressable>
-      {isViewerMounted ? (
-        <ImageViewerModal
-          accessibilityLabel={resolvedLabel}
-          onClose={() => {
-            setIsViewerOpen(false);
-          }}
-          uri={
-            viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : uri
-          }
-          visible={isViewerOpen}
-        />
-      ) : null}
+      {viewer}
     </>
   );
 }

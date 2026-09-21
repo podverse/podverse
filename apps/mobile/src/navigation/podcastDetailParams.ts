@@ -4,7 +4,7 @@ import { getChannelActionChrome } from '../lib/channelActionChrome';
 
 /**
  * Params for opening Podcast Detail with already-known list chrome so the header can paint
- * on the first frame (no gray empty cover while the channel DTO loads).
+ * on the first frame (no placeholder cover while the channel DTO loads).
  */
 export type PodcastDetailRouteParams = {
   podcastId: string;
