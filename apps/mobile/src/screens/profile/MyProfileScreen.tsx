@@ -98,7 +98,9 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
             albums={content.albums}
             clips={content.clips}
             emptyTestIdPrefix="my-profile"
-            playlistVariant="plain"
+            onPlaylistPress={(playlistId) => {
+              navigation.navigate(MORE_STACK_ROUTES.PlaylistDetail, { playlistId });
+            }}
             playlists={content.playlists}
             podcasts={content.podcasts}
           />

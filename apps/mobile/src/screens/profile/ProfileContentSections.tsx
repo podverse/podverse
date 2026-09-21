@@ -1,21 +1,19 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOClip, DTOPlaylist } from '@podverse/helpers';
 
+import { PlaylistListRow } from '../../components/content';
 import { ListSection } from '../../components/section/ListSection';
 import { SectionCard } from '../../components/section/SectionCard';
 import { channelToHomeRow, clipToHomeRow } from '../../lib/rows/homeRowMappers';
-import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 
 type ProfileContentSectionsProps = {
   albums: DTOChannel[];
   clips: DTOClip[];
   emptyTestIdPrefix: 'my-profile' | 'profile';
+  onPlaylistPress: (playlistId: string) => void;
   playlists: DTOPlaylist[];
-  playlistVariant: 'card' | 'plain';
   podcasts: DTOChannel[];
 };
 
@@ -23,37 +21,11 @@ export function ProfileContentSections({
   albums,
   clips,
   emptyTestIdPrefix,
+  onPlaylistPress,
   playlists,
-  playlistVariant,
   podcasts,
 }: ProfileContentSectionsProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        playlistCard: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          marginTop: tokens.spacing.sm,
-          padding: tokens.spacing.md,
-        },
-        playlistSubtitle: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.xs,
-        },
-        playlistTitle: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '600',
-        },
-      }),
-    [themeStyles, tokens]
-  );
 
   return (
     <>
@@ -97,21 +69,18 @@ export function ProfileContentSections({
         <ListSection
           emptyTestID={`${emptyTestIdPrefix}-playlists-empty`}
           items={playlists}
-          renderItem={(playlist: DTOPlaylist) =>
-            playlistVariant === 'card' ? (
-              <Pressable key={playlist.id_text} style={styles.playlistCard}>
-                <Text style={styles.playlistTitle}>{playlist.title ?? playlist.id_text}</Text>
-                <Text style={styles.playlistSubtitle}>
-                  {t('features.playlist.item_count', { count: playlist.item_count })}
-                </Text>
-              </Pressable>
-            ) : (
-              <View key={playlist.id_text}>
-                <Text>{playlist.title ?? playlist.id_text}</Text>
-                <Text>{t('features.playlist.item_count', { count: playlist.item_count })}</Text>
-              </View>
-            )
-          }
+          renderItem={(playlist: DTOPlaylist, _index, isLast) => (
+            <PlaylistListRow
+              isLast={isLast}
+              key={playlist.id_text}
+              onPress={() => {
+                onPlaylistPress(playlist.id_text);
+              }}
+              playlist={playlist}
+              showCreator={false}
+              testID={`${emptyTestIdPrefix}-playlist-row-${playlist.id_text}`}
+            />
+          )}
         />
       </SectionCard>
 

@@ -101,11 +101,12 @@ that web also reads and writes.
 | P2.1.1 | [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | Codex 5.3 | done    |
 | P2.1.1 | [780-artist-feed-last-pub-date](/docs/proposals/mobile/_master-plan_/phase-2/details/780-artist-feed-last-pub-date.md)                                   | Codex 5.3 | done    |
 | P2.1.1 | [782-per-type-channel-list-grid-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/782-per-type-channel-list-grid-prefs.md)                     | Codex 5.3 | done    |
+| P2.1.1 | [783-playlist-and-user-directory-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/783-playlist-and-user-directory-rows.md)                     | Codex 5.3 | done    |
 | P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done    |
 | P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | Codex 5.3 | done   |
 
 The original steps above are implemented and their plans are archived. The focused P2.1.1 follow-ups
-in details 721, 738, 739–741, and 780–782 are implemented and complete (COPY-PASTA archive:
+in details 721, 738, 739–741, and 780–783 are implemented and complete (COPY-PASTA archive:
 `.llm/plans/completed/12-mobile-p2-artist-rows-and-view-prefs/`).
 Focused device review remains recommended follow-up verification, not a prerequisite for completion.
 
@@ -290,6 +291,7 @@ resolver.
 | P2.1.6 | [774-playlist-edit-items-reorder-and-remove](/docs/proposals/mobile/_master-plan_/phase-2/details/774-playlist-edit-items-reorder-and-remove.md) | Opus 5    | done   |
 | P2.1.6 | [775-playlist-form-parity-and-delete](/docs/proposals/mobile/_master-plan_/phase-2/details/775-playlist-form-parity-and-delete.md)               | Codex 5.3 | done   |
 | P2.1.6 | [776-add-to-playlist-sheet-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/776-add-to-playlist-sheet-parity.md)                     | Codex 5.3 | done   |
+| P2.1.6 | [783-playlist-and-user-directory-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/783-playlist-and-user-directory-rows.md)             | Codex 5.3 | done   |
 
 Locked decisions: `.llm/plans/completed/06-mobile-p2-playlists/00-SUMMARY.md`. Library = My / Followed
 chips (existing endpoints); Browse keeps public discovery; membership for mutations; offline-first
@@ -580,6 +582,7 @@ above whenever status changes, per
 | [780-artist-feed-last-pub-date](/docs/proposals/mobile/_master-plan_/phase-2/details/780-artist-feed-last-pub-date.md)                                   | P2.1.1  | Codex 5.3 | done                                                 |
 | [781-artist-list-row-dates](/docs/proposals/mobile/_master-plan_/phase-2/details/781-artist-list-row-dates.md)                                           | P2.5.6  | Codex 5.3 | done                                                 |
 | [782-per-type-channel-list-grid-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/782-per-type-channel-list-grid-prefs.md)                     | P2.1.1  | Codex 5.3 | done                                                 |
+| [783-playlist-and-user-directory-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/783-playlist-and-user-directory-rows.md)                     | P2.1.1  | Codex 5.3 | done                                                 |
 
 New Phase 2 detail docs use the **700–899** ID band (see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) § Detail ID bands).

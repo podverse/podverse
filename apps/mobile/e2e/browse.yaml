@@ -47,6 +47,26 @@ name: Browse Tab And Tab Bar Pref
     id: browse-media-type-playlists
 - assertVisible:
     id: browse-media-type-users
+# Playlists and users are text-only catalog rows (no HomeFeedRow artwork). Public top lists
+# are stats-backed and may be empty after seed; prove the chrome, not a required row.
+- tapOn:
+    id: browse-media-type-playlists
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: "home-feed-row-.*"
+- takeScreenshot: browse-screen-playlists
+- tapOn:
+    id: browse-media-type-users
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: "home-feed-row-.*"
+- takeScreenshot: browse-screen-users
 - swipe:
     from:
       id: browse-media-type-selector
@@ -59,6 +79,8 @@ name: Browse Tab And Tab Bar Pref
     from:
       id: browse-media-type-selector
     direction: RIGHT
+- tapOn:
+    id: browse-media-type-podcasts
 - assertNotVisible:
     id: browse-filter-input
 - assertNotVisible:
@@ -239,6 +261,22 @@ name: Browse Tab And Tab Bar Pref
     id: tab-more
 - assertVisible:
     id: more-nav-notifications
+- tapOn:
+    id: more-nav-profile
+- extendedWaitUntil:
+    visible:
+      id: my-profile-screen
+    timeout: ${TIMEOUT_SLOWER}
+- scrollUntilVisible:
+    element:
+      id: my-profile-playlist-row-e2eEmbPlList01
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: my-profile-playlist-row-e2eEmbPlList01-subtitle
+- takeScreenshot: browse-my-profile-playlist-row
+- tapOn:
+    id: stack-header-back
 - tapOn:
     id: more-settings
 - tapOn:

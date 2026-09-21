@@ -1,6 +1,10 @@
 export { AboutPersonRow } from './AboutPersonRow';
 export { ChapterListRow } from './ChapterListRow';
 export type { ChapterListRowProps } from './ChapterListRow';
+export { PlaylistListRow } from './PlaylistListRow';
+export type { PlaylistListRowProps } from './PlaylistListRow';
+export { ProfileListRow } from './ProfileListRow';
+export type { ProfileListRowProps } from './ProfileListRow';
 export type { AboutFundingLink, AboutPerson } from './aboutPerson';
 export {
   toAboutFundingLink,

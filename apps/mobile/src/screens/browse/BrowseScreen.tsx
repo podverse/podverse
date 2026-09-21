@@ -5,7 +5,10 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
+import type { DTOAccount, DTOPlaylist } from '@podverse/helpers';
+
 import { useAuth } from '../../auth/AuthProvider';
+import { PlaylistListRow, ProfileListRow } from '../../components/content';
 import { SectionChip } from '../../components/form';
 import { FillList } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -40,7 +43,8 @@ import {
   visibleBrowseCategories,
 } from './browseCategories';
 import { BrowseCategoryRow } from './BrowseCategoryRow';
-import { fetchBrowseFeedRows } from './browseFeedData';
+import type { BrowseFeedResult } from './browseFeedData';
+import { emptyBrowseFeed, fetchBrowseFeedRows } from './browseFeedData';
 import type { BrowseListPrefs } from './browseListPrefs';
 import {
   isBrowseViewModeMediaType,
@@ -74,7 +78,10 @@ type CategoryListRow = {
 };
 
 type BrowseListRow =
-  { kind: 'category'; row: CategoryListRow } | { kind: 'feed'; row: HomeFeedRowData };
+  | { id: string; kind: 'category'; row: CategoryListRow }
+  | { id: string; kind: 'feed'; row: HomeFeedRowData }
+  | { id: string; kind: 'playlist'; playlist: DTOPlaylist }
+  | { id: string; kind: 'user'; account: DTOAccount };
 
 export function BrowseScreen() {
   const { t } = useTranslation();
@@ -96,7 +103,10 @@ export function BrowseScreen() {
   const [expandedCategoryRoots, setExpandedCategoryRoots] = useState<ReadonlySet<string>>(
     () => new Set()
   );
-  const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
+  const [directoryFeed, setDirectoryFeed] = useState<BrowseFeedResult>({
+    kind: 'media',
+    rows: [],
+  });
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
@@ -169,7 +179,7 @@ export function BrowseScreen() {
 
       navigation.setParams({ mediaType: undefined });
       setIsCategoryView(false);
-      setFeedRows([]);
+      setDirectoryFeed(emptyBrowseFeed(requestedMediaType));
       setFeedErrorKey(null);
       setIsFeedLoading(true);
       setSelectedMediaType(requestedMediaType);
@@ -179,7 +189,7 @@ export function BrowseScreen() {
 
   const handleMediaTypeChange = useCallback((mediaType: BrowseMediaType) => {
     setIsCategoryView(false);
-    setFeedRows([]);
+    setDirectoryFeed(emptyBrowseFeed(mediaType));
     setFeedErrorKey(null);
     setIsFeedLoading(true);
     setSelectedMediaType(mediaType);
@@ -304,7 +314,7 @@ export function BrowseScreen() {
         setFeedErrorKey(null);
       }
       try {
-        const rows = await fetchBrowseFeedRows(
+        const result = await fetchBrowseFeedRows(
           selectedMediaType,
           {
             accessToken,
@@ -317,13 +327,13 @@ export function BrowseScreen() {
         if (requestId !== feedRequestIdRef.current) {
           return;
         }
-        setFeedRows(rows);
+        setDirectoryFeed(result);
       } catch {
         if (requestId !== feedRequestIdRef.current) {
           return;
         }
         if (source === 'initial' || source === 'retry') {
-          setFeedRows([]);
+          setDirectoryFeed(emptyBrowseFeed(selectedMediaType));
         }
         setFeedErrorKey('errors.generic');
       } finally {
@@ -430,13 +440,7 @@ export function BrowseScreen() {
       }
       if (selectedMediaType === 'tracks') {
         runPlayAction(row, 'tracks');
-        return;
       }
-      if (selectedMediaType === 'playlists') {
-        navigation.navigate(BROWSE_STACK_ROUTES.PlaylistDetail, { playlistId: row.id });
-        return;
-      }
-      navigation.navigate(BROWSE_STACK_ROUTES.Profile, { accountIdText: row.id });
     },
     [navigation, runPlayAction, selectedMediaType]
   );
@@ -481,6 +485,20 @@ export function BrowseScreen() {
     [navigation]
   );
 
+  const handlePlaylistPress = useCallback(
+    (playlistId: string) => {
+      navigation.navigate(BROWSE_STACK_ROUTES.PlaylistDetail, { playlistId });
+    },
+    [navigation]
+  );
+
+  const handleUserPress = useCallback(
+    (accountIdText: string) => {
+      navigation.navigate(BROWSE_STACK_ROUTES.Profile, { accountIdText });
+    },
+    [navigation]
+  );
+
   const categoryRows = useMemo<CategoryListRow[]>(() => {
     const allRow: CategoryListRow = {
       expanded: false,
@@ -503,12 +521,33 @@ export function BrowseScreen() {
     return [allRow, ...mapped];
   }, [categoryOptions, expandedCategoryRoots, t]);
 
+  const directoryCount =
+    directoryFeed.kind === 'playlists'
+      ? directoryFeed.playlists.length
+      : directoryFeed.kind === 'users'
+        ? directoryFeed.accounts.length
+        : directoryFeed.rows.length;
+
   const listRows = useMemo<BrowseListRow[]>(() => {
     if (isCategoryView) {
-      return categoryRows.map((row) => ({ kind: 'category', row }));
+      return categoryRows.map((row) => ({ id: row.id, kind: 'category', row }));
     }
-    return feedRows.map((row) => ({ kind: 'feed', row }));
-  }, [categoryRows, feedRows, isCategoryView]);
+    if (directoryFeed.kind === 'playlists') {
+      return directoryFeed.playlists.map((playlist) => ({
+        id: playlist.id_text,
+        kind: 'playlist',
+        playlist,
+      }));
+    }
+    if (directoryFeed.kind === 'users') {
+      return directoryFeed.accounts.map((account) => ({
+        account,
+        id: account.id_text,
+        kind: 'user',
+      }));
+    }
+    return directoryFeed.rows.map((row) => ({ id: row.id, kind: 'feed', row }));
+  }, [categoryRows, directoryFeed, isCategoryView]);
 
   const styles = useMemo(() => {
     const bodyInsets = screenBodyInsets(tokens.spacing);
@@ -548,7 +587,7 @@ export function BrowseScreen() {
   }, [gridCellWidth, themeStyles, tokens]);
 
   const showFeedRows = !isCategoryView && !isFeedLoading && feedErrorKey === null;
-  const showEmptyDirectory = showFeedRows && feedRows.length === 0;
+  const showEmptyDirectory = showFeedRows && directoryCount === 0;
   const showCategoryLoading = isCategoryView && isCategoryLoading && categoryOptions.length === 0;
 
   const categoriesChipLabel =
@@ -645,7 +684,7 @@ export function BrowseScreen() {
         extraData={`${isCategoryView}:${selectedCategory ?? ''}:${[...expandedCategoryRoots].join(',')}:${isGridView}`}
         keyboardShouldPersistTaps="handled"
         key={`cols-${columns}-${isCategoryView ? 'cat' : 'feed'}`}
-        keyExtractor={(item) => `${item.kind}:${item.row.id}`}
+        keyExtractor={(item) => `${item.kind}:${item.id}`}
         numColumns={isCategoryView ? 1 : columns}
         refreshControl={
           <RefreshControl
@@ -693,6 +732,33 @@ export function BrowseScreen() {
             );
           }
 
+          if (item.kind === 'playlist') {
+            return (
+              <PlaylistListRow
+                isLast={index === listRows.length - 1}
+                onPress={() => {
+                  handlePlaylistPress(item.playlist.id_text);
+                }}
+                playlist={item.playlist}
+                showCreator
+                testID={`browse-playlist-row-${item.playlist.id_text}`}
+              />
+            );
+          }
+
+          if (item.kind === 'user') {
+            return (
+              <ProfileListRow
+                account={item.account}
+                isLast={index === listRows.length - 1}
+                onPress={() => {
+                  handleUserPress(item.account.id_text);
+                }}
+                testID={`browse-user-row-${item.account.id_text}`}
+              />
+            );
+          }
+
           if (isGridView) {
             return (
               <View style={columns > 1 ? styles.columnCell : undefined}>
@@ -703,7 +769,7 @@ export function BrowseScreen() {
 
           return (
             <HomeFeedRow
-              isLast={index === feedRows.length - 1}
+              isLast={index === listRows.length - 1}
               mediaType={selectedMediaType}
               onAddToPlaylistPress={
                 status === 'authenticated' && addToPlaylistTarget !== null

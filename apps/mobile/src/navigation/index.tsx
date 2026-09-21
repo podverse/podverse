@@ -216,6 +216,7 @@ export const MORE_STACK_ROUTES = {
   MoreOpml: 'MoreOpml',
   MorePublicProfile: 'MorePublicProfile',
   MoreProfile: 'MoreProfile',
+  PlaylistDetail: 'PlaylistDetail',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
   MoreSettingsAppearance: 'MoreSettingsAppearance',
@@ -458,6 +459,7 @@ export type MoreStackParamList = {
   MoreOpml: undefined;
   MorePublicProfile: { accountIdText: string };
   MoreProfile: undefined;
+  PlaylistDetail: { playlistId: string };
   MoreRoot: undefined;
   MoreSettings: undefined;
   MoreSettingsAppearance: undefined;
@@ -908,6 +910,11 @@ function MoreStackNavigator({
         component={MyProfileScreen}
         name={MORE_STACK_ROUTES.MoreProfile}
         options={{ title: t('features.profile') }}
+      />
+      <MoreStack.Screen
+        component={PlaylistDetailScreen}
+        name={MORE_STACK_ROUTES.PlaylistDetail}
+        options={{ title: t('features.playlist.playlist') }}
       />
       <MoreStack.Screen
         component={ProfileScreen}

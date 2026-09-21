@@ -64,6 +64,23 @@ name: Library Playlists Authoring
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: library-playlists-created-detail
 
+# Created playlists have no description; the row still shows features.playlist.item_count.
+# Tap the exact title — the owned list also includes seeded embed playlists.
+- tapOn:
+    id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      text: "E2E Playlist"
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: "library-playlist-row-.*-subtitle"
+- tapOn:
+    text: "E2E Playlist"
+- extendedWaitUntil:
+    visible:
+      id: library-playlist-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+
 # Edit (owner-only edit button) + back: save calls navigation.goBack() -> detail again,
 # proving the pushed edit screen is not a dead-end.
 - tapOn:

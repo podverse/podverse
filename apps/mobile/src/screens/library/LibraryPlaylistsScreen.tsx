@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,9 +12,10 @@ import type {
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
+import { PlaylistListRow } from '../../components/content';
 import type { MenuSelectChipOption, OptionChipOption } from '../../components/form';
 import { MenuSelectChip, OptionChipGroup } from '../../components/form';
-import { Button, Card, FillList, ListRow, VerticalCenter } from '../../components/primitives';
+import { Button, FillList, VerticalCenter } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -275,6 +277,16 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     void reloadFirstPage(false);
   }, [isPrefsReady, reloadFirstPage, selectedRange, selectedSort, selectedType, status]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!isPrefsReady) {
+        return () => undefined;
+      }
+      void reloadFirstPage(true);
+      return () => undefined;
+    }, [isPrefsReady, reloadFirstPage])
+  );
+
   const handleLoadMore = useCallback(() => {
     if (
       status !== 'authenticated' ||
@@ -377,18 +389,6 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     />
   ) : null;
 
-  const renderSubtitle = (playlist: DTOPlaylist): string => {
-    const itemCountLabel = t('features.playlist.item_count', {
-      count: playlist.item_count,
-    });
-    if (selectedType !== 'private_followed') {
-      return itemCountLabel;
-    }
-
-    const displayName = playlist.account?.account_profile?.display_name?.trim() ?? '';
-    return displayName.length > 0 ? `${itemCountLabel} · ${displayName}` : itemCountLabel;
-  };
-
   const listHeader =
     status === 'authenticated' ? (
       <View>
@@ -458,21 +458,18 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
             tintColor={themeStyles.buttonPrimary.backgroundColor}
           />
         }
-        renderItem={({ item: playlist }) => (
-          <View style={styles.rowSpacing}>
-            <Card>
-              <ListRow
-                onPress={() => {
-                  navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistDetail, {
-                    playlistId: playlist.id_text,
-                  });
-                }}
-                subtitle={renderSubtitle(playlist)}
-                testID={`library-playlist-row-${playlist.id_text}`}
-                title={playlist.title ?? playlist.id_text}
-              />
-            </Card>
-          </View>
+        renderItem={({ index, item: playlist }) => (
+          <PlaylistListRow
+            isLast={index === listRows.length - 1}
+            onPress={() => {
+              navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistDetail, {
+                playlistId: playlist.id_text,
+              });
+            }}
+            playlist={playlist}
+            showCreator={selectedType === 'private_followed'}
+            testID={`library-playlist-row-${playlist.id_text}`}
+          />
         )}
         testID="library-playlists-list"
       />

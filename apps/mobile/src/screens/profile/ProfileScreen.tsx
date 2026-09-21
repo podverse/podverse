@@ -68,7 +68,9 @@ export function ProfileScreen({ navigation, route }: ProfileScreenProps) {
           albums={content.albums}
           clips={content.clips}
           emptyTestIdPrefix="profile"
-          playlistVariant="card"
+          onPlaylistPress={(playlistId) => {
+            navigation.navigate('PlaylistDetail', { playlistId });
+          }}
           playlists={content.playlists}
           podcasts={content.podcasts}
         />

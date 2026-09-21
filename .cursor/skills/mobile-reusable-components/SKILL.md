@@ -41,6 +41,7 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 | Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                                    |
 | Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                                                                                  |
 | Chapter list rows                           | `components/content/ChapterListRow` — full player and episode detail; images only when the section has any (**mobile-chapter-artwork**)                                                              |
+| Playlist / user catalog rows                | `components/content/PlaylistListRow`, `ProfileListRow` — text-only (no artwork); copy helpers in `lib/rows/catalogRowCopy`                                                                          |
 | Shared stateful logic                       | `hooks/`                                                                                                                                                                                             |
 | Pure helpers                                | `lib/`                                                                                                                                                                                               |
 
