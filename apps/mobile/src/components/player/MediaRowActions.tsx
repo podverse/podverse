@@ -35,9 +35,13 @@ export type MediaRowMoreAction = {
 };
 
 export type MediaRowActionsProps = {
-  /** Localized Play/Pause label (caller owns play↔pause copy). */
-  playLabel: string;
-  onPlayPress: () => void;
+  /**
+   * Localized Play/Pause label (caller owns play↔pause copy). Required when `showPlayButton` is
+   * true (the default).
+   */
+  playLabel?: string;
+  /** Required when `showPlayButton` is true (the default). */
+  onPlayPress?: () => void;
   playTestID?: string;
   playVariant?: ButtonVariant;
   /** More-menu entries. When empty/undefined the More trigger is not rendered. */
@@ -67,6 +71,11 @@ export type MediaRowActionsProps = {
    * edge.
    */
   showActiveProgress?: boolean;
+  /**
+   * When false, omit Play/Pause, duration, and in-row progress and render only More. The container
+   * stays compact (no flex grow) so it can sit inline in a row and stay vertically centered.
+   */
+  showPlayButton?: boolean;
 };
 
 /** Minimal translate signature so the pure builder is unit-testable without i18next. */
@@ -166,6 +175,7 @@ const mediaRowProgressTrackStyle = { flex: 1, minWidth: 32 };
 /**
  * Shared media-row action affordance mirroring web `PlayButtonRow` + `ItemRowMoreActions` intents:
  * an inline Play/Pause control plus an optional "More options" trigger opening `MoreMenu`.
+ * Set `showPlayButton` to false for a compact More-only control (music track list rows).
  * Per-action copy is localized by the caller; the generic chrome uses i18n here.
  *
  * Presses stop propagation so the control works inside a row `Pressable` without also triggering
@@ -189,6 +199,7 @@ export function MediaRowActions({
   durationTestID,
   playbackMediaId = null,
   showActiveProgress = true,
+  showPlayButton = true,
 }: MediaRowActionsProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
@@ -245,7 +256,7 @@ export function MediaRowActions({
           alignItems: 'center',
           flexDirection: 'row',
           gap: tokens.spacing.sm,
-          ...(useIcons ? { flex: 1, justifyContent: 'space-between' } : null),
+          ...(useIcons && showPlayButton ? { flex: 1, justifyContent: 'space-between' } : null),
         },
         duration: {
           color: tokens.text.accent,
@@ -261,7 +272,7 @@ export function MediaRowActions({
           minWidth: 0,
         },
       }),
-    [tokens, useIcons]
+    [showPlayButton, tokens, useIcons]
   );
 
   const closeSheet = () => {
@@ -294,9 +305,9 @@ export function MediaRowActions({
     />
   ) : null;
 
-  return (
-    <View style={styles.container}>
-      {useIcons ? (
+  const playControl =
+    showPlayButton && playLabel !== undefined && onPlayPress !== undefined ? (
+      useIcons ? (
         playbackMediaId !== null && playbackMediaId.length > 0 ? (
           <MediaRowIconsLeading
             durationLabel={durationLabel}
@@ -343,7 +354,12 @@ export function MediaRowActions({
           size={size}
           useIcons={false}
         />
-      )}
+      )
+    ) : null;
+
+  return (
+    <View style={styles.container}>
+      {playControl}
       {moreButton}
 
       {hasMoreActions ? (

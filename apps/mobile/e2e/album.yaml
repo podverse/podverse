@@ -20,6 +20,8 @@ name: Album flow
     visible:
       id: album-track-row-0
     timeout: ${TIMEOUT_SLOW}
+- assertNotVisible:
+    id: "home-row-play-.*"
 - assertVisible:
     id: album-detail-section-tracks
 - takeScreenshot: album-detail-tracks

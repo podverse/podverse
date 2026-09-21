@@ -53,6 +53,8 @@ name: Artist flow
     visible:
       id: artist-track-row-0
     timeout: ${TIMEOUT_SLOW}
+- assertNotVisible:
+    id: "home-row-play-.*"
 - tapOn:
     id: "home-row-more-.*"
 - extendedWaitUntil:

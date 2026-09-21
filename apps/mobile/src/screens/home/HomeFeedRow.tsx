@@ -164,10 +164,12 @@ const useClipRangeLabel = (row: HomeFeedRowData): string | null => {
 /**
  * Shared list row for channels and playable items.
  *
- * Playable item rows use three bands (identity + download, description, play/duration/more) so a
+ * Episode and clip rows use three bands (identity + download, description, play/duration/more) so a
  * Home Episodes list can show channel context without stacking every control in one column, and an
  * in-channel list can drop artwork without inventing a second row component. `showContextLine`
  * keeps a parent title when that artwork stays hidden.
+ * Track rows omit the play band: More sits in the identity row, vertically centered with the
+ * artwork and text. The row press still starts playback.
  */
 export function HomeFeedRow({
   mediaType,
@@ -192,6 +194,7 @@ export function HomeFeedRow({
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const isPlayable = isPlayableDirectoryMediaType(mediaType);
+  const showInlineTrackMore = customActions === undefined && mediaType === 'tracks';
   const { liveLabel, unseenSpoken } = useMetadataAnnouncements(row.metadata);
   const unseenBadge = row.metadata?.unseenBadge ?? null;
   const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
@@ -475,6 +478,15 @@ export function HomeFeedRow({
           {download !== undefined ? (
             <DownloadRowControl item={download.item} testID={download.testID} />
           ) : null}
+          {showInlineTrackMore ? (
+            <MediaRowActions
+              appearance="icons"
+              idSuffix={`-${row.id}`}
+              moreActions={moreActions}
+              moreTestID={`home-row-more-${row.id}`}
+              showPlayButton={false}
+            />
+          ) : null}
         </View>
 
         {description !== null ? (
@@ -489,7 +501,7 @@ export function HomeFeedRow({
 
         {customActions !== undefined ? (
           customActions
-        ) : isPlayable ? (
+        ) : isPlayable && mediaType !== 'tracks' ? (
           <View style={styles.rowActions}>
             <MediaRowActions
               appearance="icons"
