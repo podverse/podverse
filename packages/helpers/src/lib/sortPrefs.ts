@@ -11,9 +11,10 @@
 /**
  * Which screen a preference belongs to.
  *
- * A global list has exactly one instance, so its name is the whole scope. A detail screen has one
- * per entity, which is what lets a user keep one sort for one podcast and a different sort for
- * another.
+ * A list name is the whole scope only when that surface has exactly one instance (Search,
+ * `/episodes`). Home and Browse/directory of the same media type are two instances — podcasts on
+ * Home must not share list/grid with podcasts on Browse. A detail screen has one instance per
+ * entity, which is what lets a user keep one sort for one podcast and a different sort for another.
  */
 export type SortPrefScope =
   | { kind: 'list'; name: string }

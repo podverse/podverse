@@ -42,6 +42,7 @@ export * from './lib/billingEvents.js';
 export * from './lib/billingDomain.js';
 export * from './lib/boolean.js';
 export * from './lib/category.js';
+export * from './lib/channelListViewPrefs.js';
 export * from './lib/channelSeen.js';
 export * from './lib/comparison/isEqual.js';
 export * from './lib/computeExponentialBackoffDelayMs.js';

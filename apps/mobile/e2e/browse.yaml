@@ -106,6 +106,55 @@ name: Browse Tab And Tab Bar Pref
     id: "home-feed-row-duration-.*"
 - takeScreenshot: browse-screen-episodes
 
+# Clips mix any podcast and any episode, so each row names that parent context.
+# Three left swipes is what reaches the end of the chip row (Playlists / Users) from Podcasts.
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: browse-media-type-clips
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+# Top clips need aggregated stats. The e2e database may have none, so only assert the
+# parent line when a row actually painted.
+- runFlow:
+    when:
+      visible:
+        id: "home-feed-row-.*"
+    commands:
+      - assertVisible:
+          id: "home-feed-row-subtitle-.*"
+- takeScreenshot: browse-screen-clips
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- tapOn:
+    id: browse-media-type-episodes
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+
 - tapOn:
     id: browse-sort-button
 - assertVisible:

@@ -1,5 +1,9 @@
 import type { SortPrefScope } from '@podverse/helpers';
-import { pickSortPrefToken } from '@podverse/helpers';
+import {
+  directoryListViewModeScope,
+  isChannelListViewModeType,
+  pickSortPrefToken,
+} from '@podverse/helpers';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 
@@ -81,7 +85,7 @@ export const isHomeSortableMediaType = (_mediaType: HomeMediaType): boolean => {
  * episode, track, or clip — those share covers across many rows.
  */
 export const isHomeViewModeMediaType = (mediaType: HomeMediaType): boolean => {
-  return mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums';
+  return isChannelListViewModeType(mediaType);
 };
 
 /**
@@ -117,9 +121,11 @@ export type HomeListPrefs = {
  * `viewMode`, then the default list.
  */
 export const readHomeViewMode = async (mediaType: HomeMediaType): Promise<HomeViewMode> => {
-  const stored = await readSortPref(buildScope(mediaType));
-  if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
-    return stored.viewMode;
+  if (isChannelListViewModeType(mediaType)) {
+    const stored = await readSortPref(directoryListViewModeScope(mediaType));
+    if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
+      return stored.viewMode;
+    }
   }
 
   const homeLayout = await readSortPref(HOME_VIEW_MODE_SCOPE);
@@ -127,7 +133,7 @@ export const readHomeViewMode = async (mediaType: HomeMediaType): Promise<HomeVi
     return homeLayout.viewMode;
   }
 
-  const podcasts = await readSortPref(buildScope('podcasts'));
+  const podcasts = await readSortPref(directoryListViewModeScope('podcasts'));
   if (podcasts?.viewMode !== undefined && isHomeViewMode(podcasts.viewMode)) {
     return podcasts.viewMode;
   }
@@ -170,7 +176,11 @@ export const writeHomeViewMode = async (
   mediaType: HomeMediaType,
   viewMode: HomeViewMode
 ): Promise<void> => {
-  await writeSortPref(buildScope(mediaType), { viewMode });
+  if (!isChannelListViewModeType(mediaType)) {
+    return;
+  }
+
+  await writeSortPref(directoryListViewModeScope(mediaType), { viewMode });
 };
 
 /**

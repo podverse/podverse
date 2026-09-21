@@ -5,7 +5,11 @@ import type { DTOChannel, DTOClip, DTOPlaylist } from '@podverse/helpers';
 import { PlaylistListRow } from '../../components/content';
 import { ListSection } from '../../components/section/ListSection';
 import { SectionCard } from '../../components/section/SectionCard';
-import { channelToHomeRow, clipToHomeRow } from '../../lib/rows/homeRowMappers';
+import {
+  channelToHomeRow,
+  clipToHomeRow,
+  MIXED_SOURCE_CLIP_ROW_OPTIONS,
+} from '../../lib/rows/homeRowMappers';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 
 type ProfileContentSectionsProps = {
@@ -96,7 +100,7 @@ export function ProfileContentSections({
               onPlayPress={() => {}}
               onPress={() => {}}
               onQueuePress={() => {}}
-              row={clipToHomeRow(clip)}
+              row={clipToHomeRow(clip, MIXED_SOURCE_CLIP_ROW_OPTIONS)}
             />
           )}
         />

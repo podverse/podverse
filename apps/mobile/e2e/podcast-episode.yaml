@@ -87,6 +87,8 @@ name: Podcast Episode Flow
     timeout: ${TIMEOUT_SLOWER}
 - assertNotVisible:
     id: episode-detail-tab-error-clips
+- assertNotVisible:
+    id: "home-feed-row-subtitle-.*"
 - takeScreenshot: podcast-episode-episode-clips
 
 # --- Sections: a chip swaps what the list holds without leaving the screen ---
@@ -112,6 +114,8 @@ name: Podcast Episode Flow
     id: podcast-detail-sort-button
 - assertNotVisible:
     id: podcast-detail-filter-input
+- assertVisible:
+    id: home-feed-row-subtitle-e2eClip00000001
 - takeScreenshot: podcast-episode-section-clips
 
 # About reads the channel the screen loaded. Sort and the title filter stay off; the About chip

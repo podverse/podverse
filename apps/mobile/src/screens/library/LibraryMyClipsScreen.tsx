@@ -15,7 +15,7 @@ import { MobileScreenContainer } from '../../components/screen/MobileScreenConta
 import { ListSection } from '../../components/section/ListSection';
 import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
-import { clipToHomeRow } from '../../lib/rows/homeRowMappers';
+import { MIXED_SOURCE_CLIP_ROW_OPTIONS, clipToHomeRow } from '../../lib/rows/homeRowMappers';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { navigateToMakeClipScreen } from '../../navigation';
@@ -167,7 +167,7 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
                 onQueuePress={(nextRow, position) => {
                   runQueueAction(nextRow, 'clips', position);
                 }}
-                row={clipToHomeRow(clip)}
+                row={clipToHomeRow(clip, MIXED_SOURCE_CLIP_ROW_OPTIONS)}
               />
             )}
           />

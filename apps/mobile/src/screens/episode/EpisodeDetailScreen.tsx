@@ -717,6 +717,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
                   runQueueAction(feedRow, 'clips', position);
                 }}
                 row={clipToHomeRow(row.clip)}
+                showChannelContext={false}
               />
             );
           }}

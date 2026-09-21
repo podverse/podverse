@@ -18,14 +18,17 @@ restore it on the next load, without the user re-applying it. This applies to **
 A user may want one sort for one podcast and a different sort for another. Persistence is keyed by
 the **specific instance**, not the route shape.
 
-| Correct                                    | Wrong                                              |
-| ------------------------------------------ | -------------------------------------------------- |
-| `/podcast/abc` and `/podcast/xyz` differ    | One remembered sort shared by all podcast pages    |
-| Each episode page keeps its own tab + sort  | One bucket for "episode detail"                    |
-| Global lists keyed by list (`podcasts`)     | —                                                  |
+| Correct                                         | Wrong                                              |
+| ----------------------------------------------- | -------------------------------------------------- |
+| `/podcast/abc` and `/podcast/xyz` differ         | One remembered sort shared by all podcast pages    |
+| Each episode page keeps its own tab + sort       | One bucket for "episode detail"                    |
+| Home podcasts and Browse podcasts differ         | One list/grid for every "podcasts" list            |
+| Search / `/episodes` keyed by that list          | —                                                  |
 
-Global list routes (`/podcasts`, `/episodes`, `/clips`, …) have exactly one instance, so their list
-name **is** the scope. Detail routes must include the channel or item identifier.
+A list name is the scope only when that surface has exactly one instance (`/episodes`, Search).
+Home and Browse/directory of the same media type are two instances and need two list names —
+`podcasts` on Home must not share list/grid with `podcasts` on Browse (web: `/` vs `/podcasts`).
+Detail routes must include the channel or item identifier.
 
 ## Local to the device, never the server
 

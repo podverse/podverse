@@ -1,5 +1,6 @@
 import type {
   DTOChannel,
+  DTOChannelImage,
   DTOItemImage,
   DTOItemSoundbite,
   DTOPlaylistResource,
@@ -8,6 +9,7 @@ import type {
 import { primaryChannelListArtworkUrl, primaryListArtworkUrl } from '@podverse/helpers';
 import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
 import { htmlToPlainText } from '@podverse/helpers/html';
+import { formatHHMMSS } from '@podverse/helpers/time';
 
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import type { HomeFeedRowData, HomeRowContentTarget } from '../../screens/home/homeFeedData';
@@ -67,37 +69,231 @@ export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
   };
 }
 
+/**
+ * Which parent titles a clip row may repeat. A screen that already names the podcast or the
+ * episode leaves that flag off; a mixed list (Home, Browse, library, profile) sets both.
+ */
+export type ClipHomeRowOptions = {
+  showChannelInfo?: boolean;
+  showItemInfo?: boolean;
+};
+
+/** Home, Browse, My clips, profile, and playlists mix podcasts and episodes. */
+export const MIXED_SOURCE_CLIP_ROW_OPTIONS: ClipHomeRowOptions = {
+  showChannelInfo: true,
+  showItemInfo: true,
+};
+
 /** Clip list rows can omit `item` when the API only returns the clip shell. */
 export type ClipHomeRowSource = {
+  end_time?: string | number | null;
   id_text: string;
   item?: ItemHomeRowSource | null;
+  start_time?: string | number | null;
   title?: string | null;
 };
 
-export function clipToHomeRow(clip: ClipHomeRowSource): HomeFeedRowData {
+const nonEmptyTitle = (value: string | null | undefined): string | null => {
+  const trimmed = value?.trim() ?? '';
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const clipContextSubtitle = (
+  channelTitle: string | null,
+  itemTitle: string | null,
+  options: ClipHomeRowOptions
+): string | null => {
+  const channel = options.showChannelInfo === true ? channelTitle : null;
+  const item = options.showItemInfo === true ? itemTitle : null;
+  if (channel !== null && item !== null) {
+    return `${channel} • ${item}`;
+  }
+  return channel ?? item;
+};
+
+const clipTimeString = (value: string | number | null | undefined): string | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value.trim();
+  }
+  return null;
+};
+
+/**
+ * Clip start–end label. `formatRange` supplies the localized join (`info.time.start_end`) so this
+ * stays free of catalog strings.
+ */
+export function clipListTimeRangeLabel(
+  startTime: string | number | null | undefined,
+  endTime: string | number | null | undefined,
+  formatRange: (timeStart: string, timeEnd: string) => string
+): string | null {
+  const start = clipTimeString(startTime);
+  if (start === null) {
+    return null;
+  }
+  const timeStart = formatHHMMSS(start);
+  const end = clipTimeString(endTime);
+  if (end === null) {
+    return timeStart;
+  }
+  return formatRange(timeStart, formatHHMMSS(end));
+}
+
+export function clipToHomeRow(
+  clip: ClipHomeRowSource,
+  options: ClipHomeRowOptions = {}
+): HomeFeedRowData {
   const item = clip.item;
+  const channelTitle = nonEmptyTitle(item?.channel?.title);
+  const itemTitle = nonEmptyTitle(item?.title);
+  const clipStartTime = clipTimeString(clip.start_time);
+  const clipEndTime = clipTimeString(clip.end_time);
+
   if (item === null || item === undefined) {
     return {
+      clipEndTime,
+      clipStartTime,
       description: null,
       duration: null,
       id: clip.id_text,
       imageUrl: null,
       subtitle: null,
-      title: clip.title ?? clip.id_text,
+      title: nonEmptyTitle(clip.title) ?? clip.id_text,
       updatedAt: null,
     };
   }
 
   return {
+    clipEndTime,
+    clipStartTime,
     description: itemDescriptionPlain(item),
-    duration: itemDuration(item),
+    duration: null,
     id: clip.id_text,
     imageUrl: getItemPrimaryImageUrl(item),
-    subtitle: item.channel?.title ?? null,
-    title: clip.title ?? item.title ?? clip.id_text,
+    subtitle: clipContextSubtitle(channelTitle, itemTitle, options),
+    title: nonEmptyTitle(clip.title) ?? itemTitle ?? clip.id_text,
     updatedAt: item.pub_date ?? null,
   };
 }
+
+const readImageWidth = (value: unknown): number | null => {
+  return typeof value === 'number' ? value : null;
+};
+
+const readItemImages = (value: unknown): DTOItemImage[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const images: DTOItemImage[] = [];
+  for (const maybeImage of value) {
+    if (!isObjectLike(maybeImage)) {
+      continue;
+    }
+    const url = getNonEmptyTrimmedStringProperty(maybeImage, 'url');
+    if (url === null) {
+      continue;
+    }
+    images.push({
+      id: 0,
+      image_width_size: readImageWidth(maybeImage.image_width_size),
+      is_resized: maybeImage.is_resized === true,
+      item_id: 0,
+      url,
+    });
+  }
+  return images;
+};
+
+const readChannelImages = (value: unknown): DTOChannelImage[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const images: DTOChannelImage[] = [];
+  for (const maybeImage of value) {
+    if (!isObjectLike(maybeImage)) {
+      continue;
+    }
+    const url = getNonEmptyTrimmedStringProperty(maybeImage, 'url');
+    if (url === null) {
+      continue;
+    }
+    images.push({
+      channel_id: 0,
+      id: 0,
+      image_width_size: readImageWidth(maybeImage.image_width_size),
+      is_resized: maybeImage.is_resized === true,
+      url,
+    });
+  }
+  return images;
+};
+
+const readClipItem = (value: unknown): ItemHomeRowSource | null => {
+  if (!isObjectLike(value)) {
+    return null;
+  }
+  const idText = getNonEmptyTrimmedStringProperty(value, 'id_text');
+  if (idText === null) {
+    return null;
+  }
+
+  const about = isObjectLike(value.item_about) ? value.item_about : null;
+  const description = isObjectLike(value.item_description) ? value.item_description : null;
+  const channelRecord = isObjectLike(value.channel) ? value.channel : null;
+  const mediumId = channelRecord?.medium_id;
+
+  return {
+    channel:
+      channelRecord === null
+        ? undefined
+        : {
+            channel_images: readChannelImages(channelRecord.channel_images),
+            medium_id: typeof mediumId === 'number' ? mediumId : 0,
+            title: getNonEmptyTrimmedStringProperty(channelRecord, 'title'),
+          },
+    id_text: idText,
+    item_about:
+      about === null
+        ? undefined
+        : { duration: getNonEmptyTrimmedStringProperty(about, 'duration') },
+    item_description:
+      description === null
+        ? undefined
+        : { value: getNonEmptyTrimmedStringProperty(description, 'value') },
+    item_images: readItemImages(value.item_images),
+    pub_date: getNonEmptyTrimmedStringProperty(value, 'pub_date'),
+    title: getNonEmptyTrimmedStringProperty(value, 'title'),
+  };
+};
+
+/** Public clip list payloads are nested `DTOClip` objects, including rows cached for Home. */
+export const clipHomeRowSourceFromUnknown = (value: unknown): ClipHomeRowSource | null => {
+  if (!isObjectLike(value)) {
+    return null;
+  }
+  const idText = getNonEmptyTrimmedStringProperty(value, 'id_text');
+  if (idText === null) {
+    return null;
+  }
+
+  const startTime = value.start_time;
+  const endTime = value.end_time;
+
+  return {
+    end_time:
+      typeof endTime === 'number' || typeof endTime === 'string' ? endTime : null,
+    id_text: idText,
+    item: readClipItem(value.item),
+    start_time:
+      typeof startTime === 'number' || typeof startTime === 'string' ? startTime : null,
+    title: getNonEmptyTrimmedStringProperty(value, 'title'),
+  };
+};
 
 export function itemToHomeRow(item: ItemHomeRowSource): ItemHomeRow {
   const mediumId = item.channel?.medium_id ?? null;
@@ -136,7 +332,7 @@ export function playlistResourceToHomeRow(
   options?: PlaylistResourceHomeRowOptions
 ): PlaylistResourceHomeRow | null {
   if (resource.clip) {
-    const clipRow = clipToHomeRow(resource.clip);
+    const clipRow = clipToHomeRow(resource.clip, MIXED_SOURCE_CLIP_ROW_OPTIONS);
     return {
       ...clipRow,
       id: `clip-${resource.clip.id_text}`,

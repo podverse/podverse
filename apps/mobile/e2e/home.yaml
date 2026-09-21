@@ -291,6 +291,8 @@ name: Home Media Types
 - assertVisible:
     id: home-feed-row-e2eClip00000001
 - assertVisible:
+    id: home-feed-row-subtitle-e2eClip00000001
+- assertVisible:
     id: home-feed-row-e2eClipNav0001
 - assertNotVisible:
     id: home-list-empty-browse

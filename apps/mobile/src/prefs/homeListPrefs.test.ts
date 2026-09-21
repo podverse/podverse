@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { readBrowseListPrefs } from '../screens/browse/browseListPrefs';
 import {
   DEFAULT_HOME_RANGE,
   DEFAULT_HOME_SORT,
@@ -58,6 +59,15 @@ describe('homeListPrefs', () => {
       viewMode: DEFAULT_HOME_VIEW_MODE,
     });
     await expect(readHomeListPrefs('albums')).resolves.toMatchObject({
+      viewMode: DEFAULT_HOME_VIEW_MODE,
+    });
+  });
+
+  it('leaves Browse podcasts on list when Home podcasts is grid', async () => {
+    await writeHomeViewMode('podcasts', 'grid');
+
+    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({ viewMode: 'grid' });
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
       viewMode: DEFAULT_HOME_VIEW_MODE,
     });
   });

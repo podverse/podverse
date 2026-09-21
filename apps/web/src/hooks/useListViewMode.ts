@@ -88,6 +88,6 @@ export function useListViewMode(scope: SortPrefScope | null): {
 
   return {
     setViewSelected: setScopedViewSelected,
-    viewSelected: resolveListViewMode(scopedView ?? undefined, globalViewSelected),
+    viewSelected: resolveListViewMode(scopedView ?? undefined),
   };
 }

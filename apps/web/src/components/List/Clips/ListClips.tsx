@@ -26,6 +26,7 @@ type Props = {
   showSubscribeMessage?: boolean;
   type?: QueryParamsItemsType;
   category?: CategoryMappingKeys | null;
+  showChannelInfo?: boolean;
   showItemInfo?: boolean;
 };
 
@@ -37,6 +38,7 @@ export const ListClips: React.FC<Props> = ({
   clips,
   totalPages,
   showSubscribeMessage,
+  showChannelInfo,
   showItemInfo,
 }) => {
   const tInstructions = useTranslations('instructions');
@@ -78,6 +80,7 @@ export const ListClips: React.FC<Props> = ({
               channel={channel}
               item={item}
               clip={clip}
+              showChannelInfo={showChannelInfo}
               showItemInfo={showItemInfo}
               playlist_id_text={null}
               likeRow={buildListLikeRow(clip.id_text, { isLiked, toggle })}

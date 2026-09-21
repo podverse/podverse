@@ -155,6 +155,7 @@ export function PodcastOfficialClipsSection({
           }}
           row={entry.row}
           showChannelContext={false}
+          showContextLine
           testID={`podcast-soundbite-row-${index}`}
         />
       )}

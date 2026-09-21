@@ -24,6 +24,7 @@ test.describe('Artists list date and view', () => {
       .getByTestId('artist-row-updated')
       .filter({ hasText: DIRECTORY_ARTIST_DATE });
     const layoutButton = page.getByRole('button', { name: 'Change layout view' });
+    const gridViewItem = page.getByRole('menuitem', { name: '✓ Grid view' });
 
     await test.step('The public Artists directory shows the seeded title and formatted date', async () => {
       await page.goto(ARTISTS_URL);
@@ -43,8 +44,30 @@ test.describe('Artists list date and view', () => {
     await actionAndCapture(
       page,
       testInfo,
+      'Podcasts is switched to grid so its view is stored on its own scope.',
+      async () => {
+        await page.goto(PODCASTS_URL);
+        await expect(page).toHaveURL(/\/podcasts\/?$/);
+        await expect(page.getByRole('heading', { name: 'Podcasts', exact: true })).toBeVisible();
+
+        await layoutButton.click();
+        await page.getByRole('menuitem', { name: 'Grid view' }).click();
+        await layoutButton.click();
+        await expect(gridViewItem).toBeVisible();
+      },
+      gridViewItem
+    );
+
+    await actionAndCapture(
+      page,
+      testInfo,
       'Switching Artists to list view keeps the seeded date on the row.',
       async () => {
+        await page.goto(ARTISTS_URL);
+        await expect(page).toHaveURL(/\/artists\/?$/);
+        await expect(artistTitle).toBeVisible();
+        await expect(artistDate).toBeVisible();
+
         await layoutButton.click();
         await page.getByRole('menuitem', { name: 'List view' }).click();
         await expect(artistTitle).toBeVisible();
@@ -64,8 +87,9 @@ test.describe('Artists list date and view', () => {
         await expect(page.getByRole('heading', { name: 'Podcasts', exact: true })).toBeVisible();
 
         await layoutButton.click();
-        await expect(page.getByRole('menuitem', { name: '✓ Grid view' })).toBeVisible();
-      }
+        await expect(gridViewItem).toBeVisible();
+      },
+      gridViewItem
     );
   });
 });

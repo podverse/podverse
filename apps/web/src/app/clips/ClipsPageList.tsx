@@ -49,6 +49,7 @@ export const ClipsPageList: React.FC = () => {
         showSubscribeMessage={showSubscribeMessage}
         type={type}
         category={category}
+        showChannelInfo
         showItemInfo
       />
       <WebLoadingSpinnerOverlay isLoading={isLoading} />

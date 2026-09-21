@@ -14,6 +14,11 @@ import {
   subscriptionsRepository,
 } from '../../data/repositories';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
+import {
+  MIXED_SOURCE_CLIP_ROW_OPTIONS,
+  clipHomeRowSourceFromUnknown,
+  clipToHomeRow,
+} from '../../lib/rows/homeRowMappers';
 import type { HomeRangeOption, HomeSortOption } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
@@ -52,8 +57,17 @@ export type HomeFeedRowData = {
   description?: string | null;
   /**
    * Duration in seconds as a string (DTO `item_about.duration`). Null when unknown or not an item.
+   * Clip rows leave this unset and use `clipStartTime` / `clipEndTime` instead.
    */
   duration?: string | null;
+  /**
+   * Preformatted label beside Play. Wins over `duration` and over a clip start–end range, so a
+   * range string is never passed through `Number()`.
+   */
+  durationLabel?: string | null;
+  /** Clip segment bounds in seconds. The row formats these as a start–end label. */
+  clipStartTime?: string | null;
+  clipEndTime?: string | null;
   /**
    * Set only for subscription rows. The other media types list content rather than follows, and
    * "how many unseen" is a question only a subscription can answer.
@@ -317,31 +331,19 @@ export const normalizeItemRows = (
   return rows;
 };
 
+/**
+ * Directory and Home clip lists mix any podcast and any episode, so each row names both.
+ * Payloads are nested `DTOClip` objects; flat title fields are not part of that contract.
+ */
 export const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {
-    if (!isObjectLike(item)) {
+    const source = clipHomeRowSourceFromUnknown(item);
+    if (source === null) {
       continue;
     }
-
-    const id = normalizeId(item);
-    const title = getNonEmptyTrimmedStringProperty(item, 'title');
-    if (id === null || title === null) {
-      continue;
-    }
-
-    const subtitle =
-      getNonEmptyTrimmedStringProperty(item, 'podcast_title') ??
-      getNonEmptyTrimmedStringProperty(item, 'channel_title') ??
-      getNonEmptyTrimmedStringProperty(item, 'item_title');
-
-    rows.push({
-      id,
-      imageUrl: readImageUrl(item),
-      subtitle,
-      title,
-    });
+    rows.push(clipToHomeRow(source, MIXED_SOURCE_CLIP_ROW_OPTIONS));
   }
 
   return rows;

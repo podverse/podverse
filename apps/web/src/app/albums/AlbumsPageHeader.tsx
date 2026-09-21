@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { DIRECTORY_LIST_VIEW_MODE_SCOPE_ALBUMS } from '@podverse/helpers';
 import type {
   QueryParamsStatsRange,
   QueryParamsSubscribedFullSort,
@@ -16,14 +17,13 @@ import {
 import { Dropdown, MainHeader } from '@podverse/ui';
 
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
-import { LIST_VIEW_MODE_SCOPE_ALBUMS } from '../../hooks/listViewMode';
 import { useListViewMode } from '../../hooks/useListViewMode';
 import { useAlbumsPageContext } from './AlbumsPageContext';
 import { getAlbumsPageDropdownConfig } from './AlbumsPageDropdownConfig';
 
 export const AlbumsPageHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useAlbumsPageContext();
-  const { viewSelected, setViewSelected } = useListViewMode(LIST_VIEW_MODE_SCOPE_ALBUMS);
+  const { viewSelected, setViewSelected } = useListViewMode(DIRECTORY_LIST_VIEW_MODE_SCOPE_ALBUMS);
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');

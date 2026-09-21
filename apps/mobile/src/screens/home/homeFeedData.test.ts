@@ -7,6 +7,7 @@ import {
   mapItemToHomeFeedRow,
   mapItemsToHomeFeedRows,
   normalizeChannelRows,
+  normalizeClipRows,
   normalizeItemRows,
   readChannelUpdatedAt,
   readUpdatedAt,
@@ -303,5 +304,42 @@ describe('mapItemToHomeFeedRow', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).not.toHaveProperty('updatedAt');
     expect(rows[0]?.channelId).toBe('album-9');
+  });
+});
+
+describe('normalizeClipRows', () => {
+  it('reads nested podcast and episode titles from a public clip payload', () => {
+    const rows = normalizeClipRows([
+      {
+        end_time: '90',
+        id_text: 'clip-public-1',
+        item: {
+          channel: {
+            channel_images: [{ url: 'https://example.com/show.jpg' }],
+            medium_id: 2,
+            title: 'Nested Show',
+          },
+          id_text: 'item-public-1',
+          item_images: [{ is_resized: true, url: 'https://example.com/episode.jpg' }],
+          pub_date: '2026-04-01T00:00:00.000Z',
+          title: 'Nested Episode',
+        },
+        start_time: '30',
+        title: 'Nested Clip',
+      },
+    ]);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.title).toBe('Nested Clip');
+    expect(rows[0]?.subtitle).toBe('Nested Show • Nested Episode');
+    expect(rows[0]?.imageUrl).toBe('https://example.com/episode.jpg');
+    expect(rows[0]?.updatedAt).toBe('2026-04-01T00:00:00.000Z');
+    expect(rows[0]?.clipStartTime).toBe('30');
+    expect(rows[0]?.clipEndTime).toBe('90');
+    expect(rows[0]?.duration).toBeNull();
+  });
+
+  it('skips payloads that are not clips', () => {
+    expect(normalizeClipRows([null, { title: 'No id' }, 'clip'])).toEqual([]);
   });
 });

@@ -1,4 +1,9 @@
 import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
+import {
+  browseListViewModeScope,
+  CHANNEL_LIST_VIEW_MODE_TYPES,
+  isChannelListViewModeType,
+} from '@podverse/helpers';
 
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE, HOME_VIEW_MODES } from '../../prefs/homeListPrefs';
@@ -13,10 +18,6 @@ import {
 
 const BROWSE_ROOT_SCOPE: SortPrefScope = { kind: 'list', name: 'browse' };
 
-const BROWSE_VIEW_MODE_MEDIA_TYPES = ['podcasts', 'artists', 'albums'] as const;
-
-type BrowseViewModeMediaType = (typeof BROWSE_VIEW_MODE_MEDIA_TYPES)[number];
-
 export type BrowseListPrefs = {
   category: string | null;
   mediaType: BrowseMediaType;
@@ -30,17 +31,7 @@ export type BrowseListPrefs = {
  * Episodes, tracks, clips, playlists, and users are list-only — a tile cannot name the row.
  */
 export const isBrowseViewModeMediaType = (mediaType: BrowseMediaType): boolean => {
-  return BROWSE_VIEW_MODE_MEDIA_TYPES.some((eligible) => eligible === mediaType);
-};
-
-const isBrowseViewModeMediaTypeName = (
-  mediaType: BrowseMediaType
-): mediaType is BrowseViewModeMediaType => {
-  return isBrowseViewModeMediaType(mediaType);
-};
-
-const buildBrowseViewModeScope = (mediaType: BrowseViewModeMediaType): SortPrefScope => {
-  return { kind: 'list', name: `browse-${mediaType}` };
+  return isChannelListViewModeType(mediaType);
 };
 
 const isHomeViewMode = (value: string): value is HomeViewMode => {
@@ -51,8 +42,8 @@ const readBrowseViewMode = async (
   mediaType: BrowseMediaType,
   root: SortPrefValue | null
 ): Promise<HomeViewMode> => {
-  if (isBrowseViewModeMediaTypeName(mediaType)) {
-    const stored = await readSortPref(buildBrowseViewModeScope(mediaType));
+  if (isChannelListViewModeType(mediaType)) {
+    const stored = await readSortPref(browseListViewModeScope(mediaType));
     if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
       return stored.viewMode;
     }
@@ -104,17 +95,17 @@ export const writeBrowseViewMode = async (
   mediaType: BrowseMediaType,
   viewMode: HomeViewMode
 ): Promise<void> => {
-  if (!isBrowseViewModeMediaTypeName(mediaType)) {
+  if (!isChannelListViewModeType(mediaType)) {
     return;
   }
 
-  await writeSortPref(buildBrowseViewModeScope(mediaType), { viewMode });
+  await writeSortPref(browseListViewModeScope(mediaType), { viewMode });
 };
 
 export const subscribeBrowseListPrefs = (listener: () => void): (() => void) => {
   const unsubscribeRoot = subscribeSortPref(BROWSE_ROOT_SCOPE, listener);
-  const unsubscribeViewModes = BROWSE_VIEW_MODE_MEDIA_TYPES.map((mediaType) =>
-    subscribeSortPref(buildBrowseViewModeScope(mediaType), listener)
+  const unsubscribeViewModes = CHANNEL_LIST_VIEW_MODE_TYPES.map((mediaType) =>
+    subscribeSortPref(browseListViewModeScope(mediaType), listener)
   );
 
   return () => {

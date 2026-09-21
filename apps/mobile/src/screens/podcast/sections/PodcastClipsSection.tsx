@@ -66,7 +66,10 @@ export function PodcastClipsSection({
     rows,
   } = usePodcastSectionRows(fetchPage);
 
-  const clipRows = useMemo<HomeFeedRowData[]>(() => rows.map(clipToHomeRow), [rows]);
+  const clipRows = useMemo<HomeFeedRowData[]>(
+    () => rows.map((clip) => clipToHomeRow(clip, { showItemInfo: true })),
+    [rows]
+  );
 
   return (
     <PodcastSectionList
@@ -100,6 +103,7 @@ export function PodcastClipsSection({
           }}
           row={row}
           showChannelContext={false}
+          showContextLine
           testID={`podcast-clip-row-${index}`}
         />
       )}

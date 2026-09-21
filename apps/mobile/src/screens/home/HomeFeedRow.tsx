@@ -22,6 +22,7 @@ import {
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
+import { clipListTimeRangeLabel } from '../../lib/rows/homeRowMappers';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import {
@@ -67,11 +68,16 @@ type HomeFeedRowProps = {
   isLast?: boolean;
   testID?: string;
   /**
-   * When true (default), show list artwork and the channel/context line above the title — Home
-   * Episodes, Search, Library. When false, omit both so an in-channel screen does not repeat the
-   * header's identity on every row.
+   * When true (default), show list artwork and, unless `showContextLine` says otherwise, the
+   * channel/context line above the title. When false, omit artwork so an in-channel screen does
+   * not repeat the header's identity on every row.
    */
   showChannelContext?: boolean;
+  /**
+   * When set, controls the context line independently of artwork. Podcast clip rows name the
+   * episode without repeating channel art. Defaults to `showChannelContext`.
+   */
+  showContextLine?: boolean;
   /** Merged onto the row container — use to match a parent surface. */
   style?: StyleProp<ViewStyle>;
 };
@@ -138,12 +144,30 @@ const useDurationLabel = (duration: string | null | undefined, isLive: boolean):
   }, [duration, isLive, t]);
 };
 
+const useClipRangeLabel = (row: HomeFeedRowData): string | null => {
+  const { t } = useTranslation();
+
+  return useMemo(() => {
+    if (
+      row.durationLabel !== undefined &&
+      row.durationLabel !== null &&
+      row.durationLabel.length > 0
+    ) {
+      return row.durationLabel;
+    }
+    return clipListTimeRangeLabel(row.clipStartTime, row.clipEndTime, (timeStart, timeEnd) =>
+      t('info.time.start_end', { timeEnd, timeStart })
+    );
+  }, [row.clipEndTime, row.clipStartTime, row.durationLabel, t]);
+};
+
 /**
  * Shared list row for channels and playable items.
  *
  * Playable item rows use three bands (identity + download, description, play/duration/more) so a
  * Home Episodes list can show channel context without stacking every control in one column, and an
- * in-channel list can drop art and channel name without inventing a second row component.
+ * in-channel list can drop artwork without inventing a second row component. `showContextLine`
+ * keeps a parent title when that artwork stays hidden.
  */
 export function HomeFeedRow({
   mediaType,
@@ -162,6 +186,7 @@ export function HomeFeedRow({
   row,
   testID,
   showChannelContext = true,
+  showContextLine,
   style,
 }: HomeFeedRowProps) {
   const { t } = useTranslation();
@@ -171,7 +196,12 @@ export function HomeFeedRow({
   const unseenBadge = row.metadata?.unseenBadge ?? null;
   const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
   const isLive = row.metadata?.isLive === true;
-  const durationLabel = useDurationLabel(row.duration, isLive);
+  const clipRangeLabel = useClipRangeLabel(row);
+  const episodeDurationLabel = useDurationLabel(
+    clipRangeLabel !== null ? null : row.duration,
+    isLive
+  );
+  const durationLabel = clipRangeLabel ?? episodeDurationLabel;
   const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
   const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
   const explicitSelectedParams =
@@ -188,8 +218,9 @@ export function HomeFeedRow({
     row.description !== undefined && row.description !== null && row.description.length > 0
       ? row.description
       : null;
+  const contextLineVisible = showContextLine ?? showChannelContext;
   const channelLabel =
-    showChannelContext && row.subtitle !== null && row.subtitle.length > 0 ? row.subtitle : null;
+    contextLineVisible && row.subtitle !== null && row.subtitle.length > 0 ? row.subtitle : null;
   const downloadedLabel =
     row.metadata !== undefined && row.metadata.downloadedCount > 0
       ? t('subscriptions.row.downloaded_count', { count: row.metadata.downloadedCount })
