@@ -19,15 +19,16 @@ export enum MediumEnum {
   PublisherL = 18,
   CourseL = 19,
   AV = 20,
-  PublisherAV = 21,
-  PublisherPodcast = 22,
-  PublisherMusic = 23,
-  PublisherVideo = 24,
-  PublisherFilm = 25,
-  PublisherAudiobook = 26,
-  PublisherNewsletter = 27,
-  PublisherBlog = 28,
-  PublisherCourse = 29,
+  // These ids are the medium table primary keys (publisher-av is 29, after the other publisher rows).
+  PublisherPodcast = 21,
+  PublisherMusic = 22,
+  PublisherVideo = 23,
+  PublisherFilm = 24,
+  PublisherAudiobook = 25,
+  PublisherNewsletter = 26,
+  PublisherBlog = 27,
+  PublisherCourse = 28,
+  PublisherAV = 29,
 }
 
 /**

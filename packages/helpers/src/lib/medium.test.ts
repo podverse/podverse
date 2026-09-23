@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ChannelRouteKind } from './medium.js';
-import { getChannelRouteKind, MediumEnum } from './medium.js';
+import { getChannelRouteKind, getMediumIdArrayFromType, MediumEnum } from './medium.js';
 
 describe('getChannelRouteKind', () => {
   const expectRouteKind = (
@@ -25,6 +25,14 @@ describe('getChannelRouteKind', () => {
 
   it('maps publisher music medium to artist route', () => {
     expectRouteKind(MediumEnum.PublisherMusic, 'artist');
+  });
+
+  it('uses the medium table ids for publisher rows', () => {
+    expect(MediumEnum.PublisherPodcast).toBe(21);
+    expect(MediumEnum.PublisherMusic).toBe(22);
+    expect(MediumEnum.PublisherVideo).toBe(23);
+    expect(MediumEnum.PublisherAV).toBe(29);
+    expect(getMediumIdArrayFromType('publisher-music')).toEqual([22]);
   });
 
   it('maps null and unmapped mediums to podcast route', () => {

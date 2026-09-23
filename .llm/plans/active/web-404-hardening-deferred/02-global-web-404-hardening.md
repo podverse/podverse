@@ -14,8 +14,8 @@ todos:
   - id: migrate-risk-pages
     content: Apply shared loader pattern to all confirmed-risk dynamic page routes
     status: pending
-  - id: remove-dead-guards
-    content: Delete dead null checks after awaited throwing fetches and keep intentional redirect semantics
+  - id: remove-unreachable-guards
+    content: Delete unreachable null checks after awaited throwing fetches and keep intentional redirect semantics
     status: pending
   - id: tests
     content: Add unit + focused route behavior tests for 404 mapping and non-404 passthrough
@@ -62,7 +62,7 @@ Implement one shared server-page loader utility in `apps/web` that becomes the o
 ## Why this is not a workaround
 - It creates a clear contract at a single architectural seam: “detail data load for route render”.
 - It preserves observability and correctness by only mapping explicit 404.
-- It avoids per-page copy/paste try/catch and dead null checks.
+- It avoids per-page copy/paste try/catch and unreachable null checks.
 - It scales to future pages with one import pattern and code review rule.
 
 ## Hardening additions
@@ -74,5 +74,5 @@ Implement one shared server-page loader utility in `apps/web` that becomes the o
 1. Introduce helper + tests.
 2. Update `seo/fetchers.ts` (or page loader layer) to use helper.
 3. Update all confirmed-risk pages.
-4. Remove dead `if (!entity) notFound()` checks that can never execute after thrown requests.
+4. Remove unreachable `if (!entity) notFound()` checks that can never run after thrown requests.
 5. Add/adjust docs/rules for future-proofing.
