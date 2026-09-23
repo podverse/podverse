@@ -19,6 +19,12 @@ import type { MobileAuthRequestContext } from './types';
 
 const QUEUE_TTL_MS = 5 * 60 * 1000;
 
+/**
+ * Advances when queue data is cleared. A response that started under an older generation belongs
+ * to a session that has ended, so its write is dropped.
+ */
+let queueCacheGeneration = 0;
+
 const CACHE_KEY_QUEUES = 'queues';
 const CACHE_KEY_ABRIDGED_INDEX = 'queue-resources-abridged';
 const nowPlayingCacheKey = (queueIdText: string): string => `now-playing:${queueIdText}`;
@@ -48,7 +54,14 @@ const readQueueCache = async <T>(cacheKey: string): Promise<QueueCacheHit<T> | n
   return value === null ? null : { value, updatedAt: row.updatedAt };
 };
 
-const writeQueueCache = async (cacheKey: string, value: unknown): Promise<void> => {
+const writeQueueCache = async (
+  cacheKey: string,
+  value: unknown,
+  generation: number
+): Promise<void> => {
+  if (generation !== queueCacheGeneration) {
+    return;
+  }
   await initializeDatabase();
   const updatedAt = Date.now();
   const payloadJson = JSON.stringify(value);
@@ -125,13 +138,22 @@ const projectQueueForQueue = async (queueIdText: string): Promise<void> => {
   });
 };
 
+/** Skip the car snapshot when the session that started this read has already ended. */
+const projectQueueIfCurrent = async (queueIdText: string, generation: number): Promise<void> => {
+  if (generation !== queueCacheGeneration) {
+    return;
+  }
+  await projectQueueForQueue(queueIdText);
+};
+
 /**
  * Force-refresh now-playing from the server after a mutation and reconcile the SQLite cache
  * (write when present, delete when the server reports no now-playing). Returns the fresh value.
  */
 const forceRefreshNowPlaying = async (
   context: MobileAuthRequestContext,
-  queueIdText: string
+  queueIdText: string,
+  generation: number
 ): Promise<DTOQueueResource | null> => {
   const cacheKey = nowPlayingCacheKey(queueIdText);
   const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
@@ -140,7 +162,7 @@ const forceRefreshNowPlaying = async (
   if (fetched === null) {
     await deleteQueueCache(cacheKey);
   } else {
-    await writeQueueCache(cacheKey, fetched);
+    await writeQueueCache(cacheKey, fetched, generation);
   }
   return fetched;
 };
@@ -151,23 +173,27 @@ const forceRefreshNowPlaying = async (
  * now-playing, or upcoming picks its queue from this list, so a mutation that can move the active
  * flag has to rewrite it rather than wait out the read-through TTL.
  */
-const forceRefreshQueues = async (context: MobileAuthRequestContext): Promise<DTOQueue[]> => {
+const forceRefreshQueues = async (
+  context: MobileAuthRequestContext,
+  generation: number
+): Promise<DTOQueue[]> => {
   const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
     api.reqQueueGetAllForAccountPrivate()
   );
-  await writeQueueCache(CACHE_KEY_QUEUES, fetched);
+  await writeQueueCache(CACHE_KEY_QUEUES, fetched, generation);
   return fetched;
 };
 
 /** Force-refresh upcoming from the server after a mutation and rewrite the SQLite cache. */
 const forceRefreshUpcoming = async (
   context: MobileAuthRequestContext,
-  queueIdText: string
+  queueIdText: string,
+  generation: number
 ): Promise<DTOQueueResource[]> => {
   const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
     api.reqQueueResourcesGetAllUpcomingByQueueIdText(queueIdText)
   );
-  await writeQueueCache(upcomingCacheKey(queueIdText), fetched);
+  await writeQueueCache(upcomingCacheKey(queueIdText), fetched, generation);
   return fetched;
 };
 
@@ -175,12 +201,13 @@ const forceRefreshUpcoming = async (
 const forceRefreshHistoryPage = async (
   context: MobileAuthRequestContext,
   queueIdText: string,
-  page: number
+  page: number,
+  generation: number
 ): Promise<DTOQueueResource[]> => {
   const response = await requestWithMobileAuthRefresh(context, async (api) =>
     api.reqQueueResourcesGetHistoryByQueueIdTextPaginated(queueIdText, page)
   );
-  await writeQueueCache(historyCacheKey(queueIdText, page), response.data);
+  await writeQueueCache(historyCacheKey(queueIdText, page), response.data, generation);
   return response.data;
 };
 
@@ -196,13 +223,14 @@ const toBetweenParams = (
 
 const refreshQueueSnapshotAfterMutation = async (
   context: MobileAuthRequestContext,
-  queueIdText: string
+  queueIdText: string,
+  generation: number
 ): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
   const [nowPlaying, upcoming] = await Promise.all([
-    forceRefreshNowPlaying(context, queueIdText),
-    forceRefreshUpcoming(context, queueIdText),
+    forceRefreshNowPlaying(context, queueIdText, generation),
+    forceRefreshUpcoming(context, queueIdText, generation),
   ]);
-  await projectQueueForQueue(queueIdText);
+  await projectQueueIfCurrent(queueIdText, generation);
   return { nowPlaying, upcoming };
 };
 
@@ -227,6 +255,7 @@ const addResourceToHistory = async (
   queueIdText: string,
   target: MoveNowPlayingToHistoryTarget
 ): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
+  const generation = queueCacheGeneration;
   const params: QueueExtraParams = {
     ...(target.playbackPosition !== undefined
       ? { playback_position: target.playbackPosition }
@@ -246,10 +275,10 @@ const addResourceToHistory = async (
 
   await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
   const [nowPlaying, upcoming] = await Promise.all([
-    forceRefreshNowPlaying(context, queueIdText),
-    forceRefreshUpcoming(context, queueIdText),
+    forceRefreshNowPlaying(context, queueIdText, generation),
+    forceRefreshUpcoming(context, queueIdText, generation),
   ]);
-  await projectQueueForQueue(queueIdText);
+  await projectQueueIfCurrent(queueIdText, generation);
   return { nowPlaying, upcoming };
 };
 
@@ -266,6 +295,7 @@ export const queueRepository = {
    * queue from this list (never call `req*` from screens).
    */
   getQueues: async (context: MobileAuthRequestContext): Promise<DTOQueue[]> => {
+    const generation = queueCacheGeneration;
     const queues = await readThroughOrFetch<DTOQueue[]>({
       readLocal: async () => (await readQueueCache<DTOQueue[]>(CACHE_KEY_QUEUES))?.value ?? null,
       isStale: async () => isCacheStale(await readQueueCache<DTOQueue[]>(CACHE_KEY_QUEUES)),
@@ -273,7 +303,7 @@ export const queueRepository = {
         const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
           api.reqQueueGetAllForAccountPrivate()
         );
-        await writeQueueCache(CACHE_KEY_QUEUES, fetched);
+        await writeQueueCache(CACHE_KEY_QUEUES, fetched, generation);
         return fetched;
       },
     });
@@ -292,6 +322,7 @@ export const queueRepository = {
   getAbridgedIndex: async (
     context: MobileAuthRequestContext
   ): Promise<DTOQueueResourceAbridgedResponseData[]> => {
+    const generation = queueCacheGeneration;
     const abridged = await readThroughOrFetch<DTOQueueResourceAbridgedResponseData[]>({
       readLocal: async () =>
         (await readQueueCache<DTOQueueResourceAbridgedResponseData[]>(CACHE_KEY_ABRIDGED_INDEX))
@@ -304,7 +335,7 @@ export const queueRepository = {
         const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
           api.reqQueueResourcesGetAllByAccountAbridged()
         );
-        await writeQueueCache(CACHE_KEY_ABRIDGED_INDEX, fetched);
+        await writeQueueCache(CACHE_KEY_ABRIDGED_INDEX, fetched, generation);
         return fetched;
       },
     });
@@ -317,6 +348,7 @@ export const queueRepository = {
     queueIdText: string,
     options?: { skipCache?: boolean }
   ): Promise<DTOQueueResource | null> => {
+    const generation = queueCacheGeneration;
     const cacheKey = nowPlayingCacheKey(queueIdText);
     const hit = await readQueueCache<DTOQueueResource>(cacheKey);
 
@@ -325,9 +357,9 @@ export const queueRepository = {
         api.reqQueueResourcesGetNowPlayingByQueueIdText(queueIdText)
       );
       if (fetched !== null) {
-        await writeQueueCache(cacheKey, fetched);
+        await writeQueueCache(cacheKey, fetched, generation);
       }
-      await projectQueueForQueue(queueIdText);
+      await projectQueueIfCurrent(queueIdText, generation);
       return fetched;
     };
 
@@ -370,6 +402,7 @@ export const queueRepository = {
     queueIdText: string
   ): Promise<DTOQueueResource[]> => {
     const cacheKey = upcomingCacheKey(queueIdText);
+    const generation = queueCacheGeneration;
     const upcoming = await readThroughOrFetch<DTOQueueResource[]>({
       readLocal: async () => (await readQueueCache<DTOQueueResource[]>(cacheKey))?.value ?? null,
       isStale: async () => isCacheStale(await readQueueCache<DTOQueueResource[]>(cacheKey)),
@@ -377,8 +410,8 @@ export const queueRepository = {
         const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
           api.reqQueueResourcesGetAllUpcomingByQueueIdText(queueIdText)
         );
-        await writeQueueCache(cacheKey, fetched);
-        await projectQueueForQueue(queueIdText);
+        await writeQueueCache(cacheKey, fetched, generation);
+        await projectQueueIfCurrent(queueIdText, generation);
         return fetched;
       },
     });
@@ -392,6 +425,7 @@ export const queueRepository = {
     page: number
   ): Promise<DTOQueueResource[]> => {
     const cacheKey = historyCacheKey(queueIdText, page);
+    const generation = queueCacheGeneration;
     const history = await readThroughOrFetch<DTOQueueResource[]>({
       readLocal: async () => (await readQueueCache<DTOQueueResource[]>(cacheKey))?.value ?? null,
       isStale: async () => isCacheStale(await readQueueCache<DTOQueueResource[]>(cacheKey)),
@@ -399,7 +433,7 @@ export const queueRepository = {
         const response = await requestWithMobileAuthRefresh(context, async (api) =>
           api.reqQueueResourcesGetHistoryByQueueIdTextPaginated(queueIdText, page)
         );
-        await writeQueueCache(cacheKey, response.data);
+        await writeQueueCache(cacheKey, response.data, generation);
         return response.data;
       },
     });
@@ -413,11 +447,12 @@ export const queueRepository = {
     queueIdText: string,
     itemIdText: string
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddNext(queueIdText, itemIdText)
     );
-    await forceRefreshUpcoming(context, queueIdText);
-    await projectQueueForQueue(queueIdText);
+    await forceRefreshUpcoming(context, queueIdText, generation);
+    await projectQueueIfCurrent(queueIdText, generation);
     return added;
   },
 
@@ -427,11 +462,12 @@ export const queueRepository = {
     queueIdText: string,
     itemIdText: string
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddLast(queueIdText, itemIdText)
     );
-    await forceRefreshUpcoming(context, queueIdText);
-    await projectQueueForQueue(queueIdText);
+    await forceRefreshUpcoming(context, queueIdText, generation);
+    await projectQueueIfCurrent(queueIdText, generation);
     return added;
   },
 
@@ -441,11 +477,12 @@ export const queueRepository = {
     queueIdText: string,
     clipIdText: string
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceClipAddNext(queueIdText, clipIdText)
     );
-    await forceRefreshUpcoming(context, queueIdText);
-    await projectQueueForQueue(queueIdText);
+    await forceRefreshUpcoming(context, queueIdText, generation);
+    await projectQueueIfCurrent(queueIdText, generation);
     return added;
   },
 
@@ -455,11 +492,12 @@ export const queueRepository = {
     queueIdText: string,
     clipIdText: string
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceClipAddLast(queueIdText, clipIdText)
     );
-    await forceRefreshUpcoming(context, queueIdText);
-    await projectQueueForQueue(queueIdText);
+    await forceRefreshUpcoming(context, queueIdText, generation);
+    await projectQueueIfCurrent(queueIdText, generation);
     return added;
   },
 
@@ -471,6 +509,7 @@ export const queueRepository = {
     position1: number,
     position2: number
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddBetween(
         queueIdText,
@@ -478,7 +517,7 @@ export const queueRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -490,6 +529,7 @@ export const queueRepository = {
     position1: number,
     position2: number
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceClipAddBetween(
         queueIdText,
@@ -497,7 +537,7 @@ export const queueRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -507,10 +547,11 @@ export const queueRepository = {
     queueIdText: string,
     soundbiteIdText: string
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemSoundbiteAddNext(queueIdText, soundbiteIdText)
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -522,6 +563,7 @@ export const queueRepository = {
     position1: number,
     position2: number
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemSoundbiteAddBetween(
         queueIdText,
@@ -529,7 +571,7 @@ export const queueRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -539,10 +581,11 @@ export const queueRepository = {
     queueIdText: string,
     soundbiteIdText: string
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemSoundbiteAddLast(queueIdText, soundbiteIdText)
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -552,12 +595,13 @@ export const queueRepository = {
     queueIdText: string,
     resourceData: object
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddByRSSAddNext(queueIdText, {
         add_by_rss_resource_data: resourceData,
       })
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -569,13 +613,14 @@ export const queueRepository = {
     position1: number,
     position2: number
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddByRSSAddBetween(queueIdText, {
         add_by_rss_resource_data: resourceData,
         ...toBetweenParams(position1, position2),
       })
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -585,12 +630,13 @@ export const queueRepository = {
     queueIdText: string,
     resourceData: object
   ): Promise<DTOQueueResource> => {
+    const generation = queueCacheGeneration;
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddByRSSAddLast(queueIdText, {
         add_by_rss_resource_data: resourceData,
       })
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -600,10 +646,11 @@ export const queueRepository = {
     queueIdText: string,
     itemIdText: string
   ): Promise<DTOQueueResource[]> => {
+    const generation = queueCacheGeneration;
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemDelete(queueIdText, itemIdText)
     );
-    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return upcoming;
   },
 
@@ -613,10 +660,11 @@ export const queueRepository = {
     queueIdText: string,
     clipIdText: string
   ): Promise<DTOQueueResource[]> => {
+    const generation = queueCacheGeneration;
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceClipDelete(queueIdText, clipIdText)
     );
-    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return upcoming;
   },
 
@@ -626,10 +674,11 @@ export const queueRepository = {
     queueIdText: string,
     soundbiteIdText: string
   ): Promise<DTOQueueResource[]> => {
+    const generation = queueCacheGeneration;
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemSoundbiteDelete(queueIdText, soundbiteIdText)
     );
-    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return upcoming;
   },
 
@@ -639,10 +688,11 @@ export const queueRepository = {
     queueIdText: string,
     addByRssHashId: string
   ): Promise<DTOQueueResource[]> => {
+    const generation = queueCacheGeneration;
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddByRSSDelete(queueIdText, addByRssHashId)
     );
-    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText);
+    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
     return upcoming;
   },
 
@@ -683,6 +733,7 @@ export const queueRepository = {
     context: MobileAuthRequestContext,
     queueIdTexts: readonly string[]
   ): Promise<void> => {
+    const generation = queueCacheGeneration;
     const uniqueQueueIdTexts = [...new Set(queueIdTexts)].filter(
       (queueIdText) => queueIdText.length > 0
     );
@@ -690,21 +741,29 @@ export const queueRepository = {
       return;
     }
 
-    await forceRefreshQueues(context);
+    await forceRefreshQueues(context, generation);
 
     const abridged = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourcesGetAllByAccountAbridged()
     );
-    await writeQueueCache(CACHE_KEY_ABRIDGED_INDEX, abridged);
+    await writeQueueCache(CACHE_KEY_ABRIDGED_INDEX, abridged, generation);
 
     for (const queueIdText of uniqueQueueIdTexts) {
       await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
       await Promise.all([
-        forceRefreshNowPlaying(context, queueIdText),
-        forceRefreshUpcoming(context, queueIdText),
-        forceRefreshHistoryPage(context, queueIdText, 1),
+        forceRefreshNowPlaying(context, queueIdText, generation),
+        forceRefreshUpcoming(context, queueIdText, generation),
+        forceRefreshHistoryPage(context, queueIdText, 1, generation),
       ]);
-      await projectQueueForQueue(queueIdText);
+      await projectQueueIfCurrent(queueIdText, generation);
     }
+  },
+
+  /** Drop every cached queue row and empty the native now-playing projection. */
+  clearAll: async (): Promise<void> => {
+    queueCacheGeneration += 1;
+    await initializeDatabase();
+    await getDb().delete(schema.queueCache);
+    await projectQueueSnapshotToNativeCache({ nowPlayingIdText: null, entries: [] });
   },
 };

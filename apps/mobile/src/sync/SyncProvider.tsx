@@ -23,6 +23,8 @@ import {
   isSyncNetworkUsable,
   subscribeOfflineMode,
 } from '../prefs/offlineMode';
+import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
+import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import { attachSyncEventLogSink } from './syncEventLogSink';
 import type { SyncTrigger } from './syncJobPlan';
 import { planSyncRun } from './syncJobPlan';
@@ -123,13 +125,15 @@ export function SyncProvider({ children }: PropsWithChildren) {
     );
   }, []);
 
-  // Signing out drops queued account work rather than letting it run against a session that no
-  // longer exists, and clears the store the queue was hydrating.
+  // Signing out drops queued account work, the in-memory queue, and pending playback conflicts.
+  // Those conflicts name queue ids the next account does not own.
   useEffect(() => {
     if (status !== 'anonymous') {
       return;
     }
     syncQueue.reset();
+    publishPlaybackReconcileConflicts([]);
+    publishPlaybackPositionAdoptions([]);
     setQueues([]);
     setActiveQueue(null);
     setActiveQueueUpcomingResources([]);

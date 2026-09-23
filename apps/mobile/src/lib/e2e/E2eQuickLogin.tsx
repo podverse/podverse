@@ -73,19 +73,24 @@ export function E2eQuickLogin() {
 
     setIsLoading(true);
     setError(null);
-    void completeMobilePasswordLogin({
-      clearSession,
-      email,
-      password: E2E_USER_PASSWORD,
-      setAccount,
-      setAuthError,
-      setTokens,
-    })
-      .then((result) => {
-        if (!result.ok) {
-          setError(t(completeMobilePasswordLoginMessageKey(result.error)));
-        }
-      })
+    void (async () => {
+      // Switching accounts goes through sign-out, the same as a person doing it by hand, so
+      // account-scoped data is cleared before the next account's tokens exist.
+      if (status === 'authenticated') {
+        await clearSession('user_logout');
+      }
+      const result = await completeMobilePasswordLogin({
+        clearSession,
+        email,
+        password: E2E_USER_PASSWORD,
+        setAccount,
+        setAuthError,
+        setTokens,
+      });
+      if (!result.ok) {
+        setError(t(completeMobilePasswordLoginMessageKey(result.error)));
+      }
+    })()
       .catch(() => {
         setError(t('authentication.could_not_sign_in'));
       })
