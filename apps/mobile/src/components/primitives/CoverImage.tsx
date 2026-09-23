@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent, ImageStyle, StyleProp, ViewStyle } from 'react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import placeholderArtwork from '../../../assets/images/placeholder-image.png';
 import { isShareSheetPassthroughWindow } from '../../lib/share/shareSheetPassthrough';
-import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 import type { CoverImageTapPoint } from './coverImageTap';
 import { isDeliberateCoverImageTap } from './coverImageTap';
 import { ImageViewerModal } from './ImageViewerModal';
@@ -20,6 +21,18 @@ const IMAGE_VIEWER_UNMOUNT_DELAY_MS = 350;
  * already set — that would flash this icon while a known cover decodes.
  */
 const placeholderSource = typeof placeholderArtwork === 'number' ? placeholderArtwork : null;
+
+const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) =>
+  StyleSheet.create({
+    placeholderFrame: {
+      borderColor: themeStyles.border.borderColor,
+      borderWidth: 1,
+      overflow: 'hidden',
+    },
+    viewerHit: {
+      overflow: 'hidden',
+    },
+  });
 
 /**
  * Sizing lands on the artwork itself or, when there is no URI, on the fallback frame that stands
@@ -65,7 +78,7 @@ export const prefetchCoverImage = (uri: string | null | undefined): void => {
  * Uses expo-image with memory+disk cache so a list decode can be reused on a compact header
  * without a second network round-trip. A missing or failed URI shows the bundled placeholder.
  */
-export function CoverImage({
+export const CoverImage = memo(function CoverImage({
   accessibilityLabel,
   opensViewer = true,
   style,
@@ -74,7 +87,7 @@ export function CoverImage({
   viewerUri,
 }: CoverImageProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [isViewerMounted, setIsViewerMounted] = useState(false);
   const [failedUri, setFailedUri] = useState<string | null>(null);
@@ -100,21 +113,6 @@ export function CoverImage({
   const pointFromEvent = (event: GestureResponderEvent): CoverImageTapPoint => {
     return { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
   };
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        placeholderFrame: {
-          borderColor: themeStyles.border.borderColor,
-          borderWidth: 1,
-          overflow: 'hidden',
-        },
-        viewerHit: {
-          overflow: 'hidden',
-        },
-      }),
-    [themeStyles]
-  );
 
   const resolvedLabel = accessibilityLabel ?? t('media.image');
   const displayUri = uri !== null && uri !== undefined && uri.length > 0 ? uri : null;
@@ -219,4 +217,4 @@ export function CoverImage({
       {viewer}
     </>
   );
-}
+});

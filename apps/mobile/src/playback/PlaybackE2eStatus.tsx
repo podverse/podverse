@@ -3,10 +3,7 @@ import { Text } from 'react-native';
 
 import { isMobileE2eFromEnv } from '../config/env';
 import { usePlaybackSession } from './PlaybackProvider';
-import {
-  getPlaybackSourceMarker,
-  subscribePlaybackSourceMarker,
-} from './playbackSourceMarker';
+import { getPlaybackSourceMarker, subscribePlaybackSourceMarker } from './playbackSourceMarker';
 
 /**
  * E2E-only playback status markers in tab chrome. The mini player has no distinct playing/paused

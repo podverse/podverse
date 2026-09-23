@@ -110,6 +110,11 @@ name: Podcast Episode Flow
     visible:
       id: podcast-detail-clip-list
     timeout: ${TIMEOUT_SLOWER}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
+      TRAILING_ID: podcast-detail-sort-button
 - assertVisible:
     id: podcast-detail-sort-button
 - assertNotVisible:
@@ -120,6 +125,10 @@ name: Podcast Episode Flow
 
 # About reads the channel the screen loaded. Sort and the title filter stay off; the About chip
 # moves to the front of the section row. Wait out the spinner so the shot is settled content.
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
 - tapOn:
     id: podcast-detail-section-about
 - extendedWaitUntil:

@@ -2,9 +2,12 @@ import { Platform } from 'react-native';
 
 import { parseMobileDeepLinkSchemes } from './deepLinkSchemes';
 
+export { isMobileE2eFromEnv } from './e2eEnv';
+
 /**
- * Sole module with literal `process.env.EXPO_PUBLIC_*` reads for mobile app settings.
- * Expo only inlines literal member access — never use dynamic `process.env[name]`.
+ * Literal `process.env.EXPO_PUBLIC_*` reads for mobile app settings live in this file,
+ * `e2eEnv.ts`, and `perfEnv.ts`. Expo only inlines literal member access — never use dynamic
+ * `process.env[name]`.
  */
 
 export type MobileApiEnvVarName =
@@ -48,8 +51,6 @@ export const selectMobileApiBaseUrl = (): SelectedMobileApiBaseUrl => {
     value: trimToNull(process.env.EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID),
   };
 };
-
-export const isMobileE2eFromEnv = (): boolean => process.env.EXPO_PUBLIC_MOBILE_E2E === '1';
 
 /**
  * Value-for-value (boost) entry is opt-in and hidden by default. Store-restricted builds (e.g.

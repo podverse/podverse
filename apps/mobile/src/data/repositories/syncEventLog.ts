@@ -21,10 +21,7 @@ export type SyncEventOutcome = 'failure' | 'reconciled' | 'skipped' | 'success';
 /** Narrows a stored `outcome` column. Rows that fail this were not written by this app. */
 export const isSyncEventOutcome = (value: string): value is SyncEventOutcome => {
   return (
-    value === 'failure' ||
-    value === 'reconciled' ||
-    value === 'skipped' ||
-    value === 'success'
+    value === 'failure' || value === 'reconciled' || value === 'skipped' || value === 'success'
   );
 };
 

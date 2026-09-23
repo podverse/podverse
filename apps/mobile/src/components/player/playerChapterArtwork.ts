@@ -19,8 +19,6 @@ export const resolvePlayerChapterArtworkUri = ({
     mpItemChapter: activeChapter,
     mpItemSoundbite,
   });
-  const chapterImg = useChapterArt
-    ? resolveActiveChapterImageUrl(activeChapter, chapters)
-    : null;
+  const chapterImg = useChapterArt ? resolveActiveChapterImageUrl(activeChapter, chapters) : null;
   return chapterImg ?? fallbackUri;
 };

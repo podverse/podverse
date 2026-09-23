@@ -39,6 +39,7 @@ import { sumBadgeCounts } from '../downloads/inProgressDownloadCount';
 import { useInProgressDownloadCount } from '../downloads/useDownloads';
 import { useNotificationsUnreadCount } from '../hooks/useNotificationsUnreadCount';
 import { isMobileE2eHarnessEnabled } from '../lib/e2e/e2eHarness';
+import { PerfE2eReport } from '../lib/perf/PerfE2eReport';
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import { isContentTabId, TAB_TEST_ID_SLUG, tabLabelKey } from '../prefs/tabLayout';
@@ -94,10 +95,10 @@ import { mapScopedPathToFlatPath } from './deepLinking';
 import { resolveMobileDeepLinkAction, resolveMobileDeepLinkState } from './notificationStack';
 import { OrderedTabBar } from './OrderedTabBar';
 import type { PodcastDetailRouteParams } from './podcastDetailParams';
-import type { TrackDetailRouteParams } from './trackDetailParams';
 import { ROOT_SLIDE_UP_SCREEN_OPTIONS } from './slideUpScreen';
 import { tabBarIcon } from './tabBarIcon';
 import { useTabLayout } from './TabLayoutProvider';
+import type { TrackDetailRouteParams } from './trackDetailParams';
 
 type MobileTabNavigatorProps = {
   onConsumePendingDeepLink: () => void;
@@ -1266,6 +1267,7 @@ function TabScaffold({
         ) : (
           <View>
             <PlaybackE2eStatus />
+            <PerfE2eReport />
             {/*
               Persistent bottom chrome above tabs, outermost first: sync → Offline Mode → current
               clip/chapter → mini player. Sync sits at the top of the stack because it comes and
@@ -1374,6 +1376,7 @@ function TabScaffold({
         ]}
       >
         <PlaybackE2eStatus />
+        <PerfE2eReport />
         <GlobalActivityBar />
         <OfflineModeBanner />
         <NowPlayingSegmentBar />

@@ -1,0 +1,64 @@
+appId: com.podverse.app.next
+name: Perf — Episodes fling smoothness
+---
+# Fixed-count Episodes fling so frame stats can be compared across runs.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-perf-user.yaml
+- tapOn:
+    id: tab-home
+- tapOn:
+    id: home-media-type-episodes
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-.*"
+    timeout: ${TIMEOUT_SLOWEST}
+
+- swipe:
+    from:
+      id: home-screen
+    direction: UP
+- swipe:
+    from:
+      id: home-screen
+    direction: UP
+- swipe:
+    from:
+      id: home-screen
+    direction: UP
+- swipe:
+    from:
+      id: home-screen
+    direction: UP
+- swipe:
+    from:
+      id: home-screen
+    direction: UP
+- swipe:
+    from:
+      id: home-screen
+    direction: UP
+- swipe:
+    from:
+      id: home-screen
+    direction: DOWN
+- swipe:
+    from:
+      id: home-screen
+    direction: DOWN
+- swipe:
+    from:
+      id: home-screen
+    direction: DOWN
+- swipe:
+    from:
+      id: home-screen
+    direction: DOWN
+- swipe:
+    from:
+      id: home-screen
+    direction: DOWN
+- swipe:
+    from:
+      id: home-screen
+    direction: DOWN

@@ -66,7 +66,9 @@ describe('scoped viewMode writes', () => {
       undefined
     );
     expect(
-      resolveListViewMode(readSortPrefFromStore(store, HOME_LIST_VIEW_MODE_SCOPE_PODCASTS)?.viewMode)
+      resolveListViewMode(
+        readSortPrefFromStore(store, HOME_LIST_VIEW_MODE_SCOPE_PODCASTS)?.viewMode
+      )
     ).toBe('rows');
   });
 });

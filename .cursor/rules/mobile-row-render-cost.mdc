@@ -1,0 +1,116 @@
+---
+description: A mobile list row pays every cost once per mounted row; narrow subscriptions, lazy-mount overlays, stable props, cached stylesheets, bounded text work
+globs:
+  - "apps/mobile/src/**/*.tsx"
+  - "apps/mobile/src/**/*.ts"
+alwaysApply: false
+---
+
+# Mobile — a list row pays every cost N times
+
+A row component is not one component. With the render window in
+[`listVirtualization.ts`](/apps/mobile/src/components/primitives/listVirtualization.ts) there are
+roughly twenty of it mounted, and the whole set is torn down and rebuilt every time a media-type
+chip, a tab, or a section selector swaps the list. React Native runs all of that on the one thread
+that also handles the next tap, so per-row cost shows up as a stall between the tap and the next
+paint — not as a slow spinner.
+
+Before adding anything to a row, or to a component a row renders, ask what it costs times the
+window, and again on every switch.
+
+## Narrow the subscription before reaching for `React.memo`
+
+`React.memo` cannot stop a re-render caused by `useContext`. A row that reads a broad context
+re-renders on every unrelated change to it no matter how stable its props are, so the context split
+comes first and the memo second.
+
+- Rows read **`usePlaybackRow()`** (targets, enclosure params, `pause`, `playClipById`) or
+  **`usePlaybackIsPlaying()`**. Not `usePlayback()` / `usePlaybackSession()` — that value is
+  memoized over ~35 dependencies including `transportState`, so it changes on every play, pause, and
+  rate change.
+- The playhead (`usePlaybackProgressRatio` and friends) belongs to now-playing chrome only. A row
+  never subscribes to something that ticks.
+- Per-tick data subscriptions are opt-in and default off (`includeProgress = false`). See
+  **mobile-progress-ux-and-notification-channels**.
+- OS/environment state a row reads is one process-wide store behind `useSyncExternalStore`
+  (`useReduceMotion`), not a listener per instance.
+
+## Don't mount what the user has not asked for
+
+- An overflow menu, sheet, or viewer mounts on **first open** and stays mounted after
+  (`shouldMountRowMoreMenu`). A closed `AppOverlay` per row is real tree, real layout, real cost.
+- A control that needs a record mounts only when the record exists (`resolveHomeFeedRowDownload`),
+  rather than rendering an inert instance for every row.
+
+## Keep props stable across the row boundary
+
+Rows are wrapped in `React.memo`, which only pays off if the parent hands back the same references:
+
+- Hoist styles, `renderItem`, `keyExtractor`, and option arrays to module scope or memoize them.
+- Prefer one stable handler that receives the row over a closure minted per row; when a per-row
+  closure is unavoidable, key it by id inside the row.
+- Row data is fresh immutable literals per load and is never mutated in place, which is what makes
+  memo comparison safe. Keep it that way.
+- A new object or array literal in JSX props defeats memo for all N rows at once.
+
+## One `StyleSheet` per theme, not per instance
+
+Read styles through **`useThemedStyles`** ([`src/theme/useThemedStyles.ts`](/apps/mobile/src/theme/useThemedStyles.ts))
+with a **module-scope** factory. `useMemo(() => StyleSheet.create(…))` caches per instance, so it
+builds an identical stylesheet for every row; this caches on factory identity and theme object, so
+the first row pays and the rest read. An inline arrow factory is a new cache entry every render —
+never pass one.
+
+Styles that depend on props take one of two shapes:
+
+- **A factory per variant**, when the variants are a small fixed set (`Badge` tone,
+  `MediaRowActions` appearance). Pick the factory before calling the hook.
+- **Split static from dynamic**, when they are not (`Button`'s 6 variants × 4 sizes, safe-area
+  insets, `isLast`, caller padding). Cache the theme-only chrome in the factory and compose the
+  dynamic part at the call site in a style array.
+
+## Bound text work to what is displayed
+
+A feed description runs to kilobytes of markup and a row shows two lines of it. Use
+**`htmlToPlainTextPreview`** from `@podverse/helpers` on any list or preview path; keep
+`htmlToPlainText` for surfaces where the whole string can be read. Do not persist a second
+pre-rendered column to avoid the work — that is a device data migration
+(**dto-changes-are-device-data-migrations**) for a win the slice already gets.
+
+## Switching lists is one interruptible load
+
+A chip, tab, or section switch is the moment all of the above is paid, so the switch itself must not
+add to it:
+
+- Load **once** per switch. Wait for persisted filter/sort preferences to resolve before the first
+  read instead of loading with defaults and again with the real prefs.
+- Guard every `setState` after an await with a request-id ref so a superseded load cannot paint over
+  the current one, and so the user can switch again mid-flight.
+- Clear the list in the **same urgent commit** as the selector state. Holding the clear in a
+  transition leaves the previous selection's rows mounted under the new chip, which reads as the
+  wrong list loading. The clear is cheap; the stall is uncancelled load work, so cancel that.
+- Show the list's loading state while the read is in flight (`VerticalCenter` + `ListLoading` in
+  `ListEmptyComponent`). An empty list with no indicator reads as a broken screen.
+- Keep loader identity out of the effect deps that trigger it, or a refresh re-triggers the initial
+  load.
+
+## What not to trade away
+
+These are mechanical changes to how work is scheduled, not license to change what the user sees.
+Style values stay byte-identical, `testID`s and `accessibilityLabel` / `accessibilityState` /
+`accessibilityRole` stay exactly as they were, and affordances keep appearing where they did — a
+lazily mounted menu still opens on the first press. Pick the verification tier with
+**mobile-test-economics**, and when a claim is about speed, get the number from the perf harness
+(`scripts/mobile/perf-report.mjs`, see **mobile-perf-measured-claims**) rather than asserting it.
+
+Pay these costs down before proposing a structural list rewrite (FlashList, a new row architecture).
+The cheap fixes are what make the structural question measurable.
+
+## Related
+
+- **mobile-perf-measured-claims** — a speed claim needs a measured number, and where it gets recorded
+- **mobile-list-virtualization** — render window, clipping, and scroll ownership
+- **mobile-progress-ux-and-notification-channels** — memory-first taps, coarse vs fine channels
+- **mobile-overlays-in-tree** — overlays render through `AppOverlay` in one native window
+- **mobile-theme-parity** — tokens and theme structure the style factories read
+- **mobile-image-loading** — the row's other expensive asset

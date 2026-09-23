@@ -4,7 +4,7 @@ import {
   ARTWORK_LIST_SIZE_FIND_TARGET,
   primaryListArtworkUrl,
 } from '@podverse/helpers';
-import { htmlToPlainText } from '@podverse/helpers/html';
+import { htmlToPlainTextPreview } from '@podverse/helpers/html';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
@@ -53,7 +53,7 @@ export const buildAddByRssHomeDetailData = (
     const title = itemBundle.item.title ?? guid;
     const imageUrl =
       primaryListArtworkUrl(itemBundle.images, mappedFeed.channel.images) ?? channelImageUrl;
-    const plainDescription = htmlToPlainText(itemBundle.description?.value);
+    const plainDescription = htmlToPlainTextPreview(itemBundle.description?.value);
     const duration = itemBundle.about?.duration?.trim() ?? '';
 
     return {

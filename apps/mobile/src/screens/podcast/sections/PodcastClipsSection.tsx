@@ -10,11 +10,14 @@ import type { ChannelBrowseStackParamList } from '../../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../../navigation';
 import type { HomeFeedRowData } from '../../home/homeFeedData';
 import { HomeFeedRow } from '../../home/HomeFeedRow';
+import type { QueueActionPosition } from '../../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../../home/useHomeRowPlayback';
 import { PodcastSectionList } from './PodcastSectionList';
 import type { PodcastSectionPaneProps } from './podcastSectionPane';
 import type { PodcastSectionPage } from './usePodcastSectionRows';
 import { sectionResponseHasMore, usePodcastSectionRows } from './usePodcastSectionRows';
+
+const clipRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
 
 /**
  * Clips listeners made from this podcast's episodes.
@@ -71,6 +74,49 @@ export function PodcastClipsSection({
     [rows]
   );
 
+  const handlePlayPress = useCallback(
+    (clipRow: HomeFeedRowData) => {
+      runPlayAction(clipRow, 'clips');
+    },
+    [runPlayAction]
+  );
+
+  const handleClipPress = useCallback(
+    (clipRow: HomeFeedRowData) => {
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.ClipDetail, { clipId: clipRow.id });
+    },
+    [navigation]
+  );
+
+  const handleQueuePress = useCallback(
+    (clipRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(clipRow, 'clips', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleRefresh = useCallback(() => {
+    void onRefreshChannel();
+    refresh();
+  }, [onRefreshChannel, refresh]);
+
+  const renderRow = useCallback(
+    ({ index, isLast, row }: { index: number; isLast: boolean; row: HomeFeedRowData }) => (
+      <HomeFeedRow
+        isLast={isLast}
+        mediaType="clips"
+        onPlayPress={handlePlayPress}
+        onPress={handleClipPress}
+        onQueuePress={handleQueuePress}
+        row={row}
+        showChannelContext={false}
+        showContextLine
+        testID={`podcast-clip-row-${index}`}
+      />
+    ),
+    [handleClipPress, handlePlayPress, handleQueuePress]
+  );
+
   return (
     <PodcastSectionList
       emptyMessageKey="features.clip.no_clips_found"
@@ -79,34 +125,13 @@ export function PodcastClipsSection({
       isInitialLoading={isInitialLoading}
       isLoadingMore={isLoadingMore}
       isRefreshing={isRefreshing}
-      keyExtractor={(row) => row.id}
+      keyExtractor={clipRowKeyExtractor}
       listHeader={listHeader}
       noticeKey={playbackNoticeKey}
       onLoadMore={loadMore}
-      onRefresh={() => {
-        void onRefreshChannel();
-        refresh();
-      }}
+      onRefresh={handleRefresh}
       onRetry={retry}
-      renderRow={({ index, isLast, row }) => (
-        <HomeFeedRow
-          isLast={isLast}
-          mediaType="clips"
-          onPlayPress={(clipRow) => {
-            runPlayAction(clipRow, 'clips');
-          }}
-          onPress={(clipRow) => {
-            navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.ClipDetail, { clipId: clipRow.id });
-          }}
-          onQueuePress={(clipRow, position) => {
-            runQueueAction(clipRow, 'clips', position);
-          }}
-          row={row}
-          showChannelContext={false}
-          showContextLine
-          testID={`podcast-clip-row-${index}`}
-        />
-      )}
+      renderRow={renderRow}
       rows={clipRows}
       testID="podcast-detail-clip-list"
     />

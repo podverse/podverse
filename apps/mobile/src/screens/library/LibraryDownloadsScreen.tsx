@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '../../components/primitives/Button';
@@ -11,11 +12,11 @@ import { SwipeActionRow } from '../../components/primitives/SwipeActionRow';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import { useActionError } from '../../feedback/ActionErrorProvider';
 import { usableDownloadChannelText } from '../../downloads/downloadChannelIdentity';
 import { downloadManager } from '../../downloads/downloadManager';
 import type { DownloadRecord } from '../../downloads/downloadTypes';
-import { useDownloadsList } from '../../downloads/useDownloads';
+import { useDownloadsList, useItemDownload } from '../../downloads/useDownloads';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import {
@@ -61,13 +62,105 @@ const progressRatio = (record: DownloadRecord): number | null => {
   return Math.min(1, record.bytesDownloaded / record.byteSize);
 };
 
+const downloadKeyExtractor = (item: DownloadRecord): string => item.itemIdText;
+
+type LibraryDownloadRowStyles = {
+  channelTitle: TextStyle;
+  identityRow: ViewStyle;
+  identityText: ViewStyle;
+  image: ImageStyle & ViewStyle;
+  progress: ViewStyle;
+  row: ViewStyle;
+  rowStatus: TextStyle;
+  rowTitle: TextStyle;
+};
+
+type LibraryDownloadRowProps = {
+  onPress: (record: DownloadRecord) => void;
+  onRemove: (itemIdText: string) => void;
+  record: DownloadRecord;
+  removeLabel: string;
+  styles: LibraryDownloadRowStyles;
+};
+
+function LibraryDownloadRow({
+  onPress,
+  onRemove,
+  record,
+  removeLabel,
+  styles,
+}: LibraryDownloadRowProps) {
+  const { t } = useTranslation();
+  const live = useItemDownload(record.itemIdText, true);
+  const current = live ?? record;
+  const ratio = progressRatio(current);
+  const statusKey = statusLabelKey(current);
+  const statusText = statusKey !== null ? t(statusKey) : null;
+  const accessibilityStatus = statusText ?? t('features.download.section_completed');
+  const channelTitle = usableDownloadChannelText(current.channelTitle);
+  const handlePress = useCallback(() => {
+    onPress(current);
+  }, [current, onPress]);
+  const handleRemove = useCallback(() => {
+    onRemove(record.itemIdText);
+  }, [onRemove, record.itemIdText]);
+
+  return (
+    <SwipeActionRow
+      onRemove={handleRemove}
+      removeLabel={removeLabel}
+      testID={`download-row-${record.itemIdText}`}
+    >
+      <Pressable
+        accessibilityLabel={[channelTitle, current.title ?? current.itemIdText, accessibilityStatus]
+          .filter((part) => part !== null && part !== undefined && part.length > 0)
+          .join(', ')}
+        accessibilityRole="button"
+        onPress={handlePress}
+        style={styles.row}
+      >
+        <View style={styles.identityRow}>
+          <CoverImage opensViewer={false} style={styles.image} uri={current.artworkUrl} />
+          <View style={styles.identityText}>
+            {channelTitle !== null ? (
+              <Text
+                numberOfLines={1}
+                style={styles.channelTitle}
+                testID={`download-row-channel-${record.itemIdText}`}
+              >
+                {channelTitle}
+              </Text>
+            ) : null}
+            <Text numberOfLines={2} style={styles.rowTitle}>
+              {current.title ?? current.itemIdText}
+            </Text>
+            {statusText !== null ? (
+              <Text style={styles.rowStatus} testID={`download-row-status-${record.itemIdText}`}>
+                {statusText}
+              </Text>
+            ) : null}
+            {ratio !== null ? (
+              <ProgressTrack
+                fillTestID={`download-row-progress-${record.itemIdText}`}
+                height={3}
+                ratio={ratio}
+                style={styles.progress}
+              />
+            ) : null}
+          </View>
+        </View>
+      </Pressable>
+    </SwipeActionRow>
+  );
+}
+
 export function LibraryDownloadsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<LibraryStackParamList>>();
   const { styles: themeStyles, tokens } = useTheme();
-  // The one screen a user opens to watch transfers, so it is the one that subscribes to byte
-  // progress. Everywhere else reads statuses only.
-  const { downloads, isLoading, errorKey, reload, pauseAllActive } = useDownloadsList(true);
+  // Status changes rebuild the sections. Each in-progress row subscribes to its own bytes for the
+  // bar, so a progress tick does not re-render the rest of the list.
+  const { downloads, isLoading, errorKey, reload, pauseAllActive } = useDownloadsList();
   const { openDownloadError } = useActionError();
 
   const styles = useMemo(
@@ -198,71 +291,46 @@ export function LibraryDownloadsScreen() {
     [navigation, openDownloadError]
   );
 
-  const renderRow = useCallback(
-    ({ item }: { item: DownloadRecord }) => {
-      const ratio = progressRatio(item);
-      const statusKey = statusLabelKey(item);
-      const statusText = statusKey !== null ? t(statusKey) : null;
-      const accessibilityStatus = statusText ?? t('features.download.section_completed');
-      const channelTitle = usableDownloadChannelText(item.channelTitle);
+  const handleRemove = useCallback((itemIdText: string) => {
+    void downloadManager.remove(itemIdText);
+  }, []);
 
-      return (
-        <SwipeActionRow
-          onRemove={() => {
-            void downloadManager.remove(item.itemIdText);
-          }}
-          removeLabel={t('features.download.remove')}
-          testID={`download-row-${item.itemIdText}`}
-        >
-          <Pressable
-            accessibilityLabel={[channelTitle, item.title ?? item.itemIdText, accessibilityStatus]
-              .filter((part) => part !== null && part !== undefined && part.length > 0)
-              .join(', ')}
-            accessibilityRole="button"
-            onPress={() => {
-              handleRowPress(item);
-            }}
-            style={styles.row}
-          >
-            <View style={styles.identityRow}>
-              <CoverImage
-                opensViewer={false}
-                style={styles.image}
-                uri={item.artworkUrl}
-              />
-              <View style={styles.identityText}>
-                {channelTitle !== null ? (
-                  <Text
-                    numberOfLines={1}
-                    style={styles.channelTitle}
-                    testID={`download-row-channel-${item.itemIdText}`}
-                  >
-                    {channelTitle}
-                  </Text>
-                ) : null}
-                <Text numberOfLines={2} style={styles.rowTitle}>
-                  {item.title ?? item.itemIdText}
-                </Text>
-                {statusText !== null ? (
-                  <Text style={styles.rowStatus} testID={`download-row-status-${item.itemIdText}`}>
-                    {statusText}
-                  </Text>
-                ) : null}
-                {ratio !== null ? (
-                  <ProgressTrack
-                    fillTestID={`download-row-progress-${item.itemIdText}`}
-                    height={3}
-                    ratio={ratio}
-                    style={styles.progress}
-                  />
-                ) : null}
-              </View>
-            </View>
-          </Pressable>
-        </SwipeActionRow>
-      );
-    },
-    [handleRowPress, styles, t]
+  const removeLabel = t('features.download.remove');
+
+  const downloadRowStyles = useMemo<LibraryDownloadRowStyles>(
+    () => ({
+      channelTitle: styles.channelTitle,
+      identityRow: styles.identityRow,
+      identityText: styles.identityText,
+      image: styles.image,
+      progress: styles.progress,
+      row: styles.row,
+      rowStatus: styles.rowStatus,
+      rowTitle: styles.rowTitle,
+    }),
+    [
+      styles.channelTitle,
+      styles.identityRow,
+      styles.identityText,
+      styles.image,
+      styles.progress,
+      styles.row,
+      styles.rowStatus,
+      styles.rowTitle,
+    ]
+  );
+
+  const renderRow = useCallback(
+    ({ item }: { item: DownloadRecord }) => (
+      <LibraryDownloadRow
+        onPress={handleRowPress}
+        onRemove={handleRemove}
+        record={item}
+        removeLabel={removeLabel}
+        styles={downloadRowStyles}
+      />
+    ),
+    [downloadRowStyles, handleRemove, handleRowPress, removeLabel]
   );
 
   const listHeader = useMemo(() => {
@@ -290,6 +358,20 @@ export function LibraryDownloadsScreen() {
     );
   }, [hasControllableJobs, pauseAllActive, styles.masterRow, t]);
 
+  const listEmpty = useMemo(
+    () => <ListEmpty messageKey="features.download.empty" testID="library-downloads-empty" />,
+    []
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: DownloadSection }) => (
+      <Text accessibilityRole="header" style={styles.sectionHeader}>
+        {section.title}
+      </Text>
+    ),
+    [styles.sectionHeader]
+  );
+
   if (isLoading) {
     return (
       <View style={styles.screen} testID="library-downloads-screen">
@@ -314,17 +396,11 @@ export function LibraryDownloadsScreen() {
     <View style={styles.screen} testID="library-downloads-screen">
       <SectionList
         contentContainerStyle={styles.content}
-        keyExtractor={(item) => item.itemIdText}
-        ListEmptyComponent={
-          <ListEmpty messageKey="features.download.empty" testID="library-downloads-empty" />
-        }
+        keyExtractor={downloadKeyExtractor}
+        ListEmptyComponent={listEmpty}
         ListHeaderComponent={listHeader}
         renderItem={renderRow}
-        renderSectionHeader={({ section }) => (
-          <Text accessibilityRole="header" style={styles.sectionHeader}>
-            {section.title}
-          </Text>
-        )}
+        renderSectionHeader={renderSectionHeader}
         sections={sections}
         stickySectionHeadersEnabled={false}
       />

@@ -17,6 +17,7 @@ Use this page as a quick map for development documentation.
 
 - [k8s](./k8s/)
 - [env](./env/)
+- [mobile](./mobile/) — includes [mobile perf baselines](./mobile/MOBILE-PERF-BASELINES.md) (measured chip-switch and scroll numbers; read before running a capture)
 - [release](./release/)
 - [security](./security/)
 - [tooling](./tooling/) — includes [Next build FD warnings](./tooling/DOCS-DEVELOPMENT-TOOLING-NEXT-BUILD-WARNINGS.md) (Node 24 + Turbopack)

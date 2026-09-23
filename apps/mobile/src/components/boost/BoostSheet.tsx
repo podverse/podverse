@@ -12,7 +12,6 @@ import { TextField } from '../form/TextField';
 import { AppOverlay, OverlayPanel, OverlayScrim } from '../overlay';
 import { Button, CoverImage } from '../primitives';
 import { HeaderBarAction } from '../screen/HeaderBarAction';
-
 import {
   boostRecipientsForTab,
   boostValueDenominationKey,
@@ -153,15 +152,11 @@ export function BoostSheet({ onClose, target }: BoostSheetProps) {
   const showMessages =
     activeTab !== null &&
     shouldShowBoostMessageFields(activeTab.key, recipientTypesForTab(activeTab));
-  const denominationKey =
-    activeTab === null ? null : boostValueDenominationKey(activeTab.key);
+  const denominationKey = activeTab === null ? null : boostValueDenominationKey(activeTab.key);
   const artworkUri =
     target === null
       ? null
-      : primaryListArtworkUrl(
-          target.item?.item_images,
-          target.channel.channel_images
-        );
+      : primaryListArtworkUrl(target.item?.item_images, target.channel.channel_images);
   const heading =
     target === null
       ? ''

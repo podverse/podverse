@@ -115,11 +115,5 @@ export const resolveNowPlayingSegment = ({
     );
   }
   const chapter = selectItemChapterForTime(chapters, lookupSeconds);
-  return named(
-    'chapter',
-    chapter?.title,
-    chapter?.start_time,
-    chapter?.end_time,
-    chapter?.web_url
-  );
+  return named('chapter', chapter?.title, chapter?.start_time, chapter?.end_time, chapter?.web_url);
 };

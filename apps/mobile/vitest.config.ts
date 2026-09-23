@@ -60,12 +60,16 @@ import { defineConfig } from 'vitest/config';
  * `playbackOutboxRepository.ts` and the RN provider stays in `PlaybackProvider.tsx`. The player
  * chrome's rules sit on the same split: the overlay store's closing phase and transition durations
  * (`src/components/overlay/overlayStore.ts`, `src/components/overlay/overlayTransitions.ts`), the
+ * process-wide Reduce Motion store (`src/hooks/useReduceMotion.ts` — AccessibilityInfo is mocked
+ * so the singleton listener is testable in node), the
  * transport glyph mapping that keeps the spinner to a
  * source that cannot start yet (`src/playback/playbackTransport.ts`), which clip or chapter the
  * now-playing bar names (`src/playback/nowPlayingSegment.ts`), the marquee overflow and travel math
  * (`src/lib/text/marqueeScroll.ts`), reading a 404 as an empty list (`src/lib/apiErrorStatus.ts`),
  * and whether a server refresh should replace what a cache-first screen already painted
- * (`src/lib/cachedValue.ts`), the universal last-playback snapshot that restores the mini
+ * (`src/lib/cachedValue.ts`), the E2E-gated perf mark/counter buffer
+ * (`src/lib/perf/perfSpans.ts` — env is mocked so both flag states are reachable in node), the
+ * universal last-playback snapshot that restores the mini
  * player on cold start for every auth status (`src/lib/playback/lastPlaybackStorage.ts`), and the
  * decision to swap a live remote stream onto a just-finished download of that same enclosure
  * (`src/lib/playback/planDownloadCompletePlaybackHandoff.ts`). The
@@ -87,6 +91,8 @@ export default defineConfig({
       'src/auth/mobileClientHeaders.test.ts',
       'src/components/overlay/overlayStore.test.ts',
       'src/components/overlay/overlayTransitions.test.ts',
+      'src/components/player/MediaRowActions.test.ts',
+      'src/components/primitives/FillList.test.ts',
       'src/components/player/fullPlayerRows.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/db/migrations.test.ts',
@@ -101,10 +107,12 @@ export default defineConfig({
       'src/data/repositories/subscriptionsSignupPlan.test.ts',
       'src/data/repositories/syncEventLog.test.ts',
       'src/downloads/**/*.test.ts',
+      'src/hooks/useReduceMotion.test.ts',
       'src/lib/addByRss/domain.test.ts',
       'src/lib/apiErrorStatus.test.ts',
       'src/lib/cachedValue.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
+      'src/lib/perf/perfSpans.test.ts',
       'src/lib/playback/lastPlaybackStorage.test.ts',
       'src/lib/playback/planDownloadCompletePlaybackHandoff.test.ts',
       'src/lib/rows/homeRowMappers.test.ts',
@@ -123,6 +131,7 @@ export default defineConfig({
       'src/prefs/homeListPrefs.test.ts',
       'src/prefs/prefsStore.test.ts',
       'src/push/notificationTarget.test.ts',
+      'src/screens/home/HomeFeedRow.test.ts',
       'src/screens/home/homeRowMetadata.test.ts',
       'src/screens/home/addByRssHomeDetailData.test.ts',
       'src/screens/episode/episodeSectionPaneLoaders.test.ts',
@@ -132,6 +141,7 @@ export default defineConfig({
       'src/sync/syncErrorClassification.test.ts',
       'src/sync/syncQueue.test.ts',
       'src/theme/resolveColumns.test.ts',
+      'src/theme/useThemedStyles.test.ts',
     ],
   },
 });

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
@@ -12,12 +12,19 @@ import {
   normalizeHomeFeedPlaybackMediaId,
   playbackTargetRowMediaId,
 } from '../../lib/playback/buildPlaybackTarget';
-import { usePlaybackProgress, usePlaybackSession } from '../../playback/PlaybackProvider';
+import {
+  usePlaybackIsPlaying,
+  usePlaybackProgress,
+  usePlaybackRow,
+} from '../../playback/PlaybackProvider';
 import { LIST_ROW_ACTION_ICON_SIZE, LIST_ROW_PLAY_ICON_SIZE } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 import type { ButtonSize, ButtonVariant } from '../primitives';
 import { Button, MoreMenu, ProgressTrack } from '../primitives';
 import { EnclosureSourcePickerSheet } from './EnclosureSourcePickerSheet';
+import { shouldMountRowMoreMenu } from './rowMoreMenuMount';
 
 /**
  * One "more" menu entry. `label` is passed **already localized** by the caller (or produced by
@@ -172,6 +179,72 @@ function MediaRowActiveProgress({ testID }: { testID?: string }) {
 
 const mediaRowProgressTrackStyle = { flex: 1, minWidth: 32 };
 
+const durationStyle = ({ tokens }: ThemedStylesTheme) => ({
+  color: tokens.text.accent,
+  fontSize: 14,
+  fontWeight: '400' as const,
+  lineHeight: 18,
+});
+
+type MediaRowActionStyles = {
+  container: ViewStyle;
+  duration: TextStyle;
+  leading: ViewStyle;
+};
+
+const createLabelStyles = (theme: ThemedStylesTheme): MediaRowActionStyles =>
+  StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.sm,
+    },
+    duration: durationStyle(theme),
+    leading: {
+      alignItems: 'center',
+      flex: undefined,
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.base,
+      minWidth: 0,
+    },
+  });
+
+const createIconPlayStyles = (theme: ThemedStylesTheme): MediaRowActionStyles =>
+  StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.sm,
+      justifyContent: 'space-between' as const,
+    },
+    duration: durationStyle(theme),
+    leading: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.base,
+      minWidth: 0,
+    },
+  });
+
+const createIconMoreOnlyStyles = (theme: ThemedStylesTheme): MediaRowActionStyles =>
+  StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.sm,
+    },
+    duration: durationStyle(theme),
+    leading: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.base,
+      minWidth: 0,
+    },
+  });
+
 /**
  * Shared media-row action affordance mirroring web `PlayButtonRow` + `ItemRowMoreActions` intents:
  * an inline Play/Pause control plus an optional "More options" trigger opening `MoreMenu`.
@@ -184,7 +257,7 @@ const mediaRowProgressTrackStyle = { flex: 1, minWidth: 32 };
  * When `playbackMediaId` is set, session match drives pause chrome and mounts an isolated progress
  * track for the active row only (ticks do not re-render sibling rows).
  */
-export function MediaRowActions({
+export const MediaRowActions = memo(function MediaRowActions({
   playLabel,
   onPlayPress,
   playTestID,
@@ -208,8 +281,9 @@ export function MediaRowActions({
     enclosureSelectedParams,
     itemLabeledEnclosures,
     switchEnclosureSelectedParams,
-  } = usePlaybackSession();
+  } = usePlaybackRow();
   const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const [hasOpenedSheet, setHasOpenedSheet] = useState(false);
   const [isSourcePickerVisible, setIsSourcePickerVisible] = useState(false);
   const useIcons = appearance === 'icons';
   const hasDuration = durationLabel !== null && durationLabel.length > 0;
@@ -249,30 +323,12 @@ export function MediaRowActions({
     }
   }, [canOpenSourcePicker]);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: tokens.spacing.sm,
-          ...(useIcons && showPlayButton ? { flex: 1, justifyContent: 'space-between' } : null),
-        },
-        duration: {
-          color: tokens.text.accent,
-          fontSize: 14,
-          fontWeight: '400',
-          lineHeight: 18,
-        },
-        leading: {
-          alignItems: 'center',
-          flex: useIcons ? 1 : undefined,
-          flexDirection: 'row',
-          gap: tokens.spacing.base,
-          minWidth: 0,
-        },
-      }),
-    [showPlayButton, tokens, useIcons]
+  const styles = useThemedStyles(
+    useIcons
+      ? showPlayButton
+        ? createIconPlayStyles
+        : createIconMoreOnlyStyles
+      : createLabelStyles
   );
 
   const closeSheet = () => {
@@ -297,6 +353,7 @@ export function MediaRowActions({
       label={t('media.more_options')}
       onPress={(event) => {
         stopPropagation(event);
+        setHasOpenedSheet(true);
         setIsSheetVisible(true);
       }}
       size={size}
@@ -362,7 +419,7 @@ export function MediaRowActions({
       {playControl}
       {moreButton}
 
-      {hasMoreActions ? (
+      {shouldMountRowMoreMenu(hasMoreActions, hasOpenedSheet) ? (
         <MoreMenu
           cancelLabel={t('misc.cancel')}
           onCancel={closeSheet}
@@ -400,7 +457,7 @@ export function MediaRowActions({
       ) : null}
     </View>
   );
-}
+});
 
 type MediaRowPlayButtonProps = {
   playLabel: string;
@@ -492,7 +549,8 @@ function MediaRowIconsLeading({
   durationStyle,
   showActiveProgress,
 }: MediaRowIconsLeadingProps) {
-  const { activeTarget, isPlaying } = usePlaybackSession();
+  const { activeTarget } = usePlaybackRow();
+  const isPlaying = usePlaybackIsPlaying();
   const resolvedPlaybackMediaId = normalizeHomeFeedPlaybackMediaId(playbackMediaId);
   const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
   const isActiveRow = activeMediaId !== null && activeMediaId === resolvedPlaybackMediaId;

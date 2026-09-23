@@ -146,6 +146,7 @@
     "complete_now_playing": "Marcar en reproducción como completado",
     "quick_login": "Iniciar sesión como usuario E2E",
     "quick_login_popularity": "Iniciar sesión como usuario E2E indeciso",
+    "quick_login_perf": "Iniciar sesión como usuario E2E perf",
     "session_ready": "Sesión E2E lista"
   },
   "subscriptions": {

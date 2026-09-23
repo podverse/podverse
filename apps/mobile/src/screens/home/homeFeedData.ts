@@ -1,7 +1,7 @@
 import { articleStrippedTitle, primaryListArtworkUrl } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
-import { htmlToPlainText } from '@podverse/helpers/html';
+import { htmlToPlainTextPreview } from '@podverse/helpers/html';
 
 import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
 import {
@@ -15,17 +15,17 @@ import {
 } from '../../data/repositories';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import {
-  MIXED_SOURCE_CLIP_ROW_OPTIONS,
   clipHomeRowSourceFromUnknown,
   clipToHomeRow,
+  MIXED_SOURCE_CLIP_ROW_OPTIONS,
 } from '../../lib/rows/homeRowMappers';
 import type { HomeRangeOption, HomeSortOption } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import {
+  appendHomeFeedReadFailure,
   HOME_FEED_METADATA_TIMEOUT_CODE,
   HOME_FEED_METADATA_TIMEOUT_MS,
-  appendHomeFeedReadFailure,
   withHomeFeedReadBudget,
 } from './homeFeedReadLog';
 import type { HomeRowMetadata } from './homeRowMetadata';
@@ -91,7 +91,27 @@ export type HomeRowContentTarget = {
   kind: 'clip' | 'item';
 };
 
+/**
+ * Thrown when a read is abandoned because a newer one superseded it. Callers treat this as "no
+ * result", never as a failure — nothing went wrong and there is nothing to report.
+ */
+export class HomeFeedStaleReadError extends Error {
+  constructor() {
+    super('home feed read superseded');
+    this.name = 'HomeFeedStaleReadError';
+  }
+}
+
+export const isHomeFeedStaleRead = (error: unknown): boolean =>
+  error instanceof HomeFeedStaleReadError;
+
 type HomeFeedOptions = {
+  /**
+   * Consulted after each await and before each mapping pass. Returning false abandons the read with
+   * `HomeFeedStaleReadError` so a superseded chip selection does not pay for parsing rows nobody
+   * will see.
+   */
+  isCurrent?: () => boolean;
   /** Listen-count window, stored with the Home sort chip. Channel/item order reads it from SQLite. */
   range?: HomeRangeOption;
   /** List order. Channel and item chips apply it locally; clips apply A-Z on the cached page. */
@@ -306,8 +326,7 @@ export const normalizeItemRows = (
     const updatedAt = readUpdatedAt(item.pub_date);
     const duration = readStringFromNestedRecord(item, 'item_about', 'duration');
     const descriptionSource = readStringFromNestedRecord(item, 'item_description', 'value');
-    const description =
-      descriptionSource !== null ? htmlToPlainText(descriptionSource) : '';
+    const description = descriptionSource !== null ? htmlToPlainTextPreview(descriptionSource) : '';
 
     const row: HomeFeedRowData = {
       id,
@@ -393,7 +412,7 @@ export const mapItemToHomeFeedRow = (
     return mapTrackToHomeFeedRow(item);
   }
 
-  const plainDescription = htmlToPlainText(item.item_description?.value);
+  const plainDescription = htmlToPlainTextPreview(item.item_description?.value);
   const duration = item.item_about?.duration?.trim() ?? '';
 
   return {
@@ -411,7 +430,9 @@ export const mapItemsToHomeFeedRows = (
   items: readonly DTOItem[],
   options: MapItemToHomeFeedRowOptions = {}
 ): HomeFeedRowData[] => {
-  return items.map((item) => mapItemToHomeFeedRow(item, options)).filter((row) => row.id.length > 0);
+  return items
+    .map((item) => mapItemToHomeFeedRow(item, options))
+    .filter((row) => row.id.length > 0);
 };
 
 const applyHomeSort = (rows: HomeFeedRowData[], sort: HomeSortOption): HomeFeedRowData[] => {
@@ -471,9 +492,7 @@ const attachSubscriptionMetadata = async (
   );
 };
 
-const mapSubscribedChannelsBare = (
-  subscribed: readonly SubscribedChannel[]
-): HomeFeedRowData[] => {
+const mapSubscribedChannelsBare = (subscribed: readonly SubscribedChannel[]): HomeFeedRowData[] => {
   return subscribed.map((channel) => mapSubscribedChannelToRow(channel, undefined));
 };
 
@@ -558,6 +577,11 @@ export const fetchHomeFeedRows = async (
   options: HomeFeedOptions = {}
 ): Promise<HomeFeedRowData[]> => {
   const sort = options.sort ?? DEFAULT_HOME_SORT;
+  const ensureCurrent = (): void => {
+    if (options.isCurrent !== undefined && !options.isCurrent()) {
+      throw new HomeFeedStaleReadError();
+    }
+  };
 
   if (mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums') {
     // Channel chips read local follows only. Kind splits podcasts / artists / albums so a music
@@ -566,6 +590,7 @@ export const fetchHomeFeedRows = async (
     const kind =
       mediaType === 'podcasts' ? 'podcasts' : mediaType === 'artists' ? 'artists' : 'albums';
     const subscribed = await subscriptionsRepository.list({ kind, sort });
+    ensureCurrent();
     return attachSubscriptionMetadataOrBare(subscribed, mediaType);
   }
 
@@ -573,16 +598,19 @@ export const fetchHomeFeedRows = async (
     // Episodes for subscribed channels come from the device. An empty window stays empty until
     // the channel-items job writes rows — Home does not fill the gap over the network.
     const podcastChannels = await subscriptionsRepository.list({ kind: 'podcasts', sort });
+    ensureCurrent();
     const podcastChannelIds = podcastChannels.map((channel) => channel.idText);
     const stored = await channelItemsRepository.listSubscribed({
       channelIdTexts: podcastChannelIds,
       sort,
     });
+    ensureCurrent();
     return mapItemsToHomeFeedRows(stored);
   }
 
   if (mediaType === 'tracks') {
     const musicChannels = await subscriptionsRepository.list({ sort });
+    ensureCurrent();
     const musicChannelIds = musicChannels
       .filter((channel) => channel.kind === 'artists' || channel.kind === 'albums')
       .map((channel) => channel.idText);
@@ -590,6 +618,7 @@ export const fetchHomeFeedRows = async (
       channelIdTexts: musicChannelIds,
       sort,
     });
+    ensureCurrent();
     return mapItemsToHomeFeedRows(stored, { compact: true });
   }
 
@@ -597,6 +626,7 @@ export const fetchHomeFeedRows = async (
     // Account-backed clips land in kv via the home-clips job. Signed-out and pre-sync reads
     // are empty; the screen chooses Login vs Browse from that.
     const stored = await homeClipsCacheRepository.listPayload();
+    ensureCurrent();
     return applyHomeSort(normalizeClipRows(stored), sort);
   }
 

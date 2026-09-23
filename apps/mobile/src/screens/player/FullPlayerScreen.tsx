@@ -56,7 +56,10 @@ import { FullPlayerScrubber } from '../../components/player/FullPlayerScrubber';
 import { FullPlayerSegmentBand } from '../../components/player/FullPlayerSegmentBand';
 import { FullPlayerTransportRow } from '../../components/player/FullPlayerTransportRow';
 import { FullPlayerUtilityRow } from '../../components/player/FullPlayerUtilityRow';
-import { ignoreFullPlayerBoundedNestedListWarning, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives/listVirtualization';
+import {
+  ignoreFullPlayerBoundedNestedListWarning,
+  LIST_REMOVE_CLIPPED_SUBVIEWS,
+} from '../../components/primitives/listVirtualization';
 import { MarqueeText } from '../../components/primitives/MarqueeText';
 import { HEADER_BAR_HEIGHT } from '../../components/screen/HeaderBar';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -380,9 +383,7 @@ export function FullPlayerScreen({
   const playerChapters = chapterRows.length > 0 ? chapterRows : chapters;
   const chapterListShowsImages = chapterSectionHasImages(chapterRows);
   const chapterFallbackImageUrl =
-    currentItem !== null
-      ? getItemPrimaryImageUrl(currentItem)
-      : nowPlaying?.imageUrl ?? null;
+    currentItem !== null ? getItemPrimaryImageUrl(currentItem) : (nowPlaying?.imageUrl ?? null);
 
   const autoUpcomingCount = useMemo(
     () =>

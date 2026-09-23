@@ -327,11 +327,11 @@ This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **
 
 ### Two terminals (typical session)
 
-| Terminal             | Command                                                                                      | Role                                                                     |
-| -------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Mobile Metro         | `npm run mobile:dev` (emulator) / `mobile:dev:device` (USB phone LAN API) | Keep running — local Expo + Metro on `:8081` (API `:3000`)               |
-| Mobile E2E Metro     | `npm run mobile:dev:e2e`                                                 | Keep running — Maestro Metro on `:8081` (API `:4230`). Stop Mobile Metro first. |
-| Mobile iOS / Android | `npm run mobile:ios` / `mobile:android` / `mobile:android:device`        | Install/launch only (`--no-bundler` always); local Metro in Mobile Metro |
+| Terminal             | Command                                                                   | Role                                                                            |
+| -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Mobile Metro         | `npm run mobile:dev` (emulator) / `mobile:dev:device` (USB phone LAN API) | Keep running — local Expo + Metro on `:8081` (API `:3000`)                      |
+| Mobile E2E Metro     | `npm run mobile:dev:e2e`                                                  | Keep running — Maestro Metro on `:8081` (API `:4230`). Stop Mobile Metro first. |
+| Mobile iOS / Android | `npm run mobile:ios` / `mobile:android` / `mobile:android:device`         | Install/launch only (`--no-bundler` always); local Metro in Mobile Metro        |
 
 VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) — `Mobile` (one-shots:
 `build:packages`, `mobile_e2e_deps` / seed / health), `Mobile Metro` (`mobile:dev`),

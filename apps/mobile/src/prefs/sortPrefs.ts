@@ -7,6 +7,8 @@ import {
   sanitizeSortPrefValue,
 } from '@podverse/helpers';
 
+import { perfCount } from '../lib/perf/perfSpans';
+
 /**
  * Remembered filter and sort selections, keyed per screen instance.
  *
@@ -37,6 +39,7 @@ const notify = (scopeKey: string): void => {
 };
 
 const readByScopeKey = async (scopeKey: string): Promise<SortPrefValue | null> => {
+  perfCount('prefs.getItem');
   const stored = await AsyncStorage.getItem(`${STORAGE_PREFIX}${scopeKey}`);
   if (stored === null) {
     return null;

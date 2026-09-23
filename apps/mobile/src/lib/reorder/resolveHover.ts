@@ -93,16 +93,11 @@ export function resolveHover(
   };
 }
 
-export function isSameHoverTarget(
-  a: HoverTarget | null,
-  b: HoverTarget | null
-): boolean {
+export function isSameHoverTarget(a: HoverTarget | null, b: HoverTarget | null): boolean {
   if (a === null || b === null) {
     return a === b;
   }
-  return (
-    a.flatIndex === b.flatIndex && a.sectionId === b.sectionId && a.toIndex === b.toIndex
-  );
+  return a.flatIndex === b.flatIndex && a.sectionId === b.sectionId && a.toIndex === b.toIndex;
 }
 
 export function computeItemShift(

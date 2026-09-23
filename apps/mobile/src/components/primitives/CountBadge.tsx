@@ -1,11 +1,45 @@
-import { useMemo } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 
 /** Edge length of a one-digit badge, so `minWidth === height` and `borderRadius` make a circle. */
 const BADGE_SIZE = 20;
+
+const createStyles = ({ tokens }: ThemedStylesTheme) =>
+  StyleSheet.create({
+    accent: {
+      backgroundColor: tokens.text.accent,
+    },
+    accentLabel: {
+      color: tokens.background.primary,
+    },
+    badge: {
+      alignItems: 'center',
+      borderRadius: BADGE_SIZE / 2,
+      height: BADGE_SIZE,
+      justifyContent: 'center',
+      minWidth: BADGE_SIZE,
+      paddingHorizontal: 0,
+    },
+    badgeStretch: {
+      paddingHorizontal: tokens.spacing.xs,
+    },
+    label: {
+      fontSize: 11,
+      fontWeight: '700',
+      includeFontPadding: false,
+      lineHeight: 14,
+      textAlign: 'center',
+    },
+    muted: {
+      backgroundColor: tokens.border.tertiary,
+    },
+    mutedLabel: {
+      color: tokens.text.primary,
+    },
+  });
 
 export type CountBadgeTone = 'accent' | 'muted';
 
@@ -26,43 +60,9 @@ export type CountBadgeProps = {
  * accessibility label. Unseen presence uses `UnseenIndicator`, not this chip.
  */
 export function CountBadge({ count, style, testID, tone = 'accent' }: CountBadgeProps) {
-  const { tokens } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const face = String(count);
   const stretches = count >= 10;
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        accent: {
-          backgroundColor: tokens.text.accent,
-        },
-        accentLabel: {
-          color: tokens.background.primary,
-        },
-        badge: {
-          alignItems: 'center',
-          borderRadius: BADGE_SIZE / 2,
-          height: BADGE_SIZE,
-          justifyContent: 'center',
-          minWidth: BADGE_SIZE,
-          paddingHorizontal: stretches ? tokens.spacing.xs : 0,
-        },
-        label: {
-          fontSize: 11,
-          fontWeight: '700',
-          includeFontPadding: false,
-          lineHeight: 14,
-          textAlign: 'center',
-        },
-        muted: {
-          backgroundColor: tokens.border.tertiary,
-        },
-        mutedLabel: {
-          color: tokens.text.primary,
-        },
-      }),
-    [stretches, tokens]
-  );
 
   if (count <= 0) {
     return null;
@@ -75,7 +75,7 @@ export function CountBadge({ count, style, testID, tone = 'accent' }: CountBadge
     <View
       accessibilityElementsHidden
       importantForAccessibility="no"
-      style={[styles.badge, toneStyle, style]}
+      style={[styles.badge, stretches ? styles.badgeStretch : null, toneStyle, style]}
       testID={testID}
     >
       <Text style={[styles.label, toneLabelStyle]}>{face}</Text>

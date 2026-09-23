@@ -53,7 +53,6 @@ import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNe
 import { resolveQueueAdvance } from '@podverse/playback-core/resolveQueueAdvance';
 
 import type { PlaybackErrorEvent, PlaybackStateValue } from '../../modules/podverse-media-engine';
-
 import { useAuth } from '../auth/AuthProvider';
 import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
 import { useNativePlaybackBridge } from '../bridge/useNativePlaybackBridge';
@@ -63,7 +62,6 @@ import {
   shouldClearNowPlayingAfterAdvance,
   upcomingManualCountFromCombined,
 } from '../components/player/fullPlayerRows';
-import { playbackErrorFromLoadFailure } from '../feedback/actionErrorCopy';
 import { useAutoQueue } from '../contexts/AutoQueueProvider';
 import { useQueues } from '../contexts/QueuesProvider';
 import type { MobileAuthRequestContext } from '../data';
@@ -81,6 +79,7 @@ import type {
 } from '../data/repositories/playbackReconcile';
 import { downloadManager } from '../downloads/downloadManager';
 import { downloadStore } from '../downloads/downloadStore';
+import { playbackErrorFromLoadFailure } from '../feedback/actionErrorCopy';
 import type { AutoQueueSeed } from '../hooks/useAutoQueueLoadResources';
 import { useAutoQueueLoadResources } from '../hooks/useAutoQueueLoadResources';
 import { useQueueMutations } from '../hooks/useQueueMutations';
@@ -146,7 +145,6 @@ import {
   buildPlaybackHandoffDismissedStateKey,
   shouldPromptForPlaybackHandoffConflict,
 } from './playbackHandoff';
-import { setPlaybackSourceMarker } from './playbackSourceMarker';
 import {
   getPlaybackDurationSeconds,
   getPlaybackPositionClockSeconds,
@@ -162,6 +160,7 @@ import {
   subscribePlaybackPositionClock,
   subscribePlaybackProgress,
 } from './playbackProgressStore';
+import { setPlaybackSourceMarker } from './playbackSourceMarker';
 import { writeIsPlayingLocallyForSync } from './playbackSyncState';
 import type { PlaybackTransportState } from './playbackTransport';
 import { isEnginePlayableState, playbackTransportForEngineState } from './playbackTransport';
@@ -482,6 +481,18 @@ export type PlaybackSessionContextValue = Omit<
   'durationSeconds' | 'positionSeconds'
 >;
 
+export interface PlaybackRowContextValue {
+  activeTarget: PlaybackSessionContextValue['activeTarget'];
+  enclosureSelectedParams: PlaybackSessionContextValue['enclosureSelectedParams'];
+  itemLabeledEnclosures: PlaybackSessionContextValue['itemLabeledEnclosures'];
+  noticeKey: PlaybackSessionContextValue['noticeKey'];
+  pause: PlaybackSessionContextValue['pause'];
+  playClipById: PlaybackSessionContextValue['playClipById'];
+  playItemById: PlaybackSessionContextValue['playItemById'];
+  resume: PlaybackSessionContextValue['resume'];
+  switchEnclosureSelectedParams: PlaybackSessionContextValue['switchEnclosureSelectedParams'];
+}
+
 /** High-frequency playhead. Prefer mounting consumers only for the active now-playing chrome. */
 export type PlaybackProgressContextValue = {
   durationSeconds: number;
@@ -489,6 +500,8 @@ export type PlaybackProgressContextValue = {
 };
 
 const PlaybackSessionContext = createContext<PlaybackSessionContextValue | undefined>(undefined);
+const PlaybackRowContext = createContext<PlaybackRowContextValue | undefined>(undefined);
+const PlaybackIsPlayingContext = createContext<boolean | undefined>(undefined);
 
 const summaryFromItem = (item: DTOItem, channel: DTOChannel): PlaybackNowPlaying => ({
   channelTitle: channel.title ?? null,
@@ -681,27 +694,30 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
-  const schedulePendingStartRelease = useCallback((delayMs: number): void => {
-    if (pendingStartSettleTimerRef.current !== null) {
-      clearTimeout(pendingStartSettleTimerRef.current);
-    }
-    pendingStartSettleTimerRef.current = setTimeout(() => {
-      pendingStartSettleTimerRef.current = null;
-      if (!pendingStartRef.current) {
-        return;
+  const schedulePendingStartRelease = useCallback(
+    (delayMs: number): void => {
+      if (pendingStartSettleTimerRef.current !== null) {
+        clearTimeout(pendingStartSettleTimerRef.current);
       }
-      const startHasPlayed = startHasPlayedRef.current;
-      pendingStartRef.current = false;
-      startHasPlayedRef.current = false;
-      const latest = latestEngineStateRef.current;
-      // A pause that is still the latest state after playback started falls back to the play glyph.
-      // A start that never reported playing keeps the glyph the load already chose.
-      if (startHasPlayed && (latest === 'paused' || latest === 'ended')) {
-        setPlaybackPlaying(false);
-        setTransportState('paused');
-      }
-    }, delayMs);
-  }, [setPlaybackPlaying]);
+      pendingStartSettleTimerRef.current = setTimeout(() => {
+        pendingStartSettleTimerRef.current = null;
+        if (!pendingStartRef.current) {
+          return;
+        }
+        const startHasPlayed = startHasPlayedRef.current;
+        pendingStartRef.current = false;
+        startHasPlayedRef.current = false;
+        const latest = latestEngineStateRef.current;
+        // A pause that is still the latest state after playback started falls back to the play glyph.
+        // A start that never reported playing keeps the glyph the load already chose.
+        if (startHasPlayed && (latest === 'paused' || latest === 'ended')) {
+          setPlaybackPlaying(false);
+          setTransportState('paused');
+        }
+      }, delayMs);
+    },
+    [setPlaybackPlaying]
+  );
 
   const armPendingStart = useCallback((): void => {
     startHasPlayedRef.current = false;
@@ -1026,7 +1042,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setTransportState('paused');
     resetEnclosureSelectionSession();
     void clearLastPlaybackSnapshot();
-  }, [clearDownloadSourceSwap, releasePendingStart, resetEnclosureSelectionSession, setPlaybackPlaying]);
+  }, [
+    clearDownloadSourceSwap,
+    releasePendingStart,
+    resetEnclosureSelectionSession,
+    setPlaybackPlaying,
+  ]);
 
   const playTarget = useCallback(
     async (
@@ -1481,7 +1502,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     }
 
     downloadSourceSwapLockRef.current = true;
-    let exists = false;
+    let exists: boolean;
     try {
       const info = await FileSystem.getInfoAsync(handoff.localUrl);
       exists = info.exists;
@@ -2815,24 +2836,53 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     ]
   );
 
+  const rowValue = useMemo<PlaybackRowContextValue>(
+    () => ({
+      activeTarget,
+      enclosureSelectedParams,
+      itemLabeledEnclosures,
+      noticeKey,
+      pause,
+      playClipById,
+      playItemById,
+      resume,
+      switchEnclosureSelectedParams,
+    }),
+    [
+      activeTarget,
+      enclosureSelectedParams,
+      itemLabeledEnclosures,
+      noticeKey,
+      pause,
+      playClipById,
+      playItemById,
+      resume,
+      switchEnclosureSelectedParams,
+    ]
+  );
+
   return (
     <PlaybackSessionContext.Provider value={sessionValue}>
-      {children}
-      <ConfirmDialog
-        body={t('media_player.handoff.body', {
-          localTitle: playbackHandoffPrompt?.localTitle ?? '',
-          serverTitle: playbackHandoffPrompt?.serverTitle ?? '',
-        })}
-        cancelLabel={t('media_player.handoff.continue_action')}
-        cancelTestID="playback-handoff-continue"
-        confirmLabel={t('media_player.handoff.switch_action')}
-        confirmTestID="playback-handoff-switch"
-        onCancel={handlePlaybackHandoffContinue}
-        onConfirm={handlePlaybackHandoffSwitch}
-        testID="playback-handoff-dialog"
-        title={t('media_player.handoff.title')}
-        visible={playbackHandoffPrompt !== null}
-      />
+      <PlaybackRowContext.Provider value={rowValue}>
+        <PlaybackIsPlayingContext.Provider value={isPlaying}>
+          {children}
+          <ConfirmDialog
+            body={t('media_player.handoff.body', {
+              localTitle: playbackHandoffPrompt?.localTitle ?? '',
+              serverTitle: playbackHandoffPrompt?.serverTitle ?? '',
+            })}
+            cancelLabel={t('media_player.handoff.continue_action')}
+            cancelTestID="playback-handoff-continue"
+            confirmLabel={t('media_player.handoff.switch_action')}
+            confirmTestID="playback-handoff-switch"
+            onCancel={handlePlaybackHandoffContinue}
+            onConfirm={handlePlaybackHandoffSwitch}
+            testID="playback-handoff-dialog"
+            title={t('media_player.handoff.title')}
+            visible={playbackHandoffPrompt !== null}
+          />
+        </PlaybackIsPlayingContext.Provider>
+      </PlaybackRowContext.Provider>
     </PlaybackSessionContext.Provider>
   );
 }
@@ -2841,6 +2891,22 @@ export function usePlaybackSession(): PlaybackSessionContextValue {
   const context = useContext(PlaybackSessionContext);
   if (context === undefined) {
     throw new Error('usePlaybackSession must be used within a PlaybackProvider');
+  }
+  return context;
+}
+
+export function usePlaybackRow(): PlaybackRowContextValue {
+  const context = useContext(PlaybackRowContext);
+  if (context === undefined) {
+    throw new Error('usePlaybackRow must be used within a PlaybackProvider');
+  }
+  return context;
+}
+
+export function usePlaybackIsPlaying(): boolean {
+  const context = useContext(PlaybackIsPlayingContext);
+  if (context === undefined) {
+    throw new Error('usePlaybackIsPlaying must be used within a PlaybackProvider');
   }
   return context;
 }

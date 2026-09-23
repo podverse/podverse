@@ -17,6 +17,18 @@ For files under `apps/mobile/src/**/*.tsx`:
   react-native-screens screen-removal transition and tears the app down mid-navigation. That file
   documents the constraint and is the one place to revisit it.
 
+## Render window
+
+- `FillList` applies the shared render-window defaults (`applyFillListRenderWindow` in
+  `listVirtualization.ts`): `windowSize`, `initialNumToRender`, `maxToRenderPerBatch`, and
+  `updateCellsBatchingPeriod`. Prefer it over a bare `FlatList` so a screen inherits them.
+- RN's default `windowSize` of ten keeps roughly ten viewport-heights of rows mounted in each
+  direction, which is what makes a list switch expensive to tear down. The shared value is tuned in
+  that one file — change it there, not per screen.
+- Override an individual prop only when a screen needs it (a grid's first commit, a short bounded
+  list), and pass it through `FillList` so the other three keep the default.
+- What a mounted row costs is the other half of this: **mobile-row-render-cost**.
+
 ## Scroll ownership
 
 - The virtualized list owns scroll.
@@ -49,4 +61,5 @@ For files under `apps/mobile/src/**/*.tsx`:
 ## Reference
 
 - See `apps/mobile/src/screens/home/HomeScreen.tsx` for the canonical pattern.
+- Per-row cost inside the window: **mobile-row-render-cost**.
 - Proposal detail: `docs/proposals/mobile/_master-plan_/phase-2/details/597-list-virtualization-polish.md`.

@@ -5,7 +5,7 @@ import { useQueueMutations } from '../../hooks/useQueueMutations';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
-import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { usePlaybackIsPlaying, usePlaybackRow } from '../../playback/PlaybackProvider';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import type { HomeFeedRowData } from './homeFeedData';
 
@@ -71,13 +71,13 @@ export function useHomeRowPlayback() {
   const { evaluateFeature, isTierKnown } = useAccessTier();
   const {
     activeTarget,
-    isPlaying,
     noticeKey: playbackNoticeKeyFromEngine,
     pause,
     playClipById,
     playItemById,
     resume,
-  } = usePlaybackSession();
+  } = usePlaybackRow();
+  const isPlaying = usePlaybackIsPlaying();
 
   /**
    * Open the gate when the account-backed queue and history are out of reach, and report whether the

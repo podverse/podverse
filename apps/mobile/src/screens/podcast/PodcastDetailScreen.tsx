@@ -1,6 +1,14 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ComponentType } from 'react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
@@ -124,8 +132,13 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { podcastId, previewImageUrl, previewIsSubscribed, previewNotificationsEnabled, previewTitle } =
-    route.params;
+  const {
+    podcastId,
+    previewImageUrl,
+    previewIsSubscribed,
+    previewNotificationsEnabled,
+    previewTitle,
+  } = route.params;
   const cachedChrome = getCachedChannelSectionFlags(podcastId);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [isChannelLoading, setIsChannelLoading] = useState<boolean>(true);
@@ -146,6 +159,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const [section, setSection] = useState<PodcastTab>(DEFAULT_PODCAST_TAB);
+  const deferredSection = useDeferredValue(section);
   const [isSectionHydrated, setIsSectionHydrated] = useState<boolean>(false);
   const [sort, setSort] = useState<PodcastDetailSort>(DEFAULT_PODCAST_DETAIL_SORT);
   const [range, setRange] = useState<PodcastDetailRange>(DEFAULT_PODCAST_DETAIL_RANGE);
@@ -638,6 +652,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const artworkUri = channelArtworkUri ?? previewArtworkUri;
   const headerTitle = channel?.title ?? previewHeaderTitle ?? t('media.podcast.podcast');
   const sortEnabled = isSortableSection(section);
+  const isSectionPending = section !== deferredSection;
   const channelHeader = (
     <ChannelHeader
       actions={
@@ -660,7 +675,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     />
   );
 
-  const listHeader = isFilterableSection(section) ? (
+  const listHeader = isFilterableSection(deferredSection) ? (
     <ListFilterField
       clearLabel={t('filters.list.clear')}
       label={t('filters.list.title_label')}
@@ -671,9 +686,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     />
   ) : null;
 
-  const SectionPane = SECTION_COMPONENTS[section];
+  const SectionPane = SECTION_COMPONENTS[deferredSection];
   const sectionUnavailableOffline =
-    offlineModeEnabled && isPodcastSectionUnavailableOffline(section);
+    offlineModeEnabled && isPodcastSectionUnavailableOffline(deferredSection);
   const sectionBody = sectionUnavailableOffline ? (
     <ListEmpty
       messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
@@ -684,7 +699,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       channel={channel}
       channelIdText={podcastId}
       filterTerm={filterTerm}
-      isChannelLoading={isChannelLoading}
+      isChannelLoading={isChannelLoading || isSectionPending}
       listHeader={listHeader}
       onRefreshChannel={loadChannel}
       range={range}

@@ -141,12 +141,12 @@ surfaces work app-closed. Schema: Track **12.1**; implementation steps **10.22**
 The mini player and full player share one transport control (`PlayerTransportButton` +
 `transportState` from `usePlayback()`):
 
-| Engine / load                 | Glyph      | Press                                              |
-| ----------------------------- | ---------- | -------------------------------------------------- |
-| Playing                       | Pause icon | Pause                                              |
-| Paused / ready / idle / ended | Play icon  | Resume                                             |
-| Source not playable yet       | Spinner    | None                                               |
-| Error                         | Error icon | Retry (`retryPlayback` reloads the current source) |
+| Engine / load                                  | Glyph      | Press                                              |
+| ---------------------------------------------- | ---------- | -------------------------------------------------- |
+| Start-play load issued, and playing            | Pause icon | Pause                                              |
+| Paused / ready / ended, once the start settled | Play icon  | Resume                                             |
+| Waiting for the load to be issued              | Spinner    | None                                               |
+| Error                                          | Error icon | Retry (`retryPlayback` reloads the current source) |
 
 The glyph and its accent color match list rows and detail chrome; `appearance` decides the frame.
 The full player uses `ring` — the same bordered play circle as those rows. The mini player uses
@@ -154,12 +154,19 @@ The full player uses `ring` — the same bordered play circle as those rows. The
 and titles it sits beside; a bare glyph there takes the larger icon size bare row controls use.
 Neither ever wears a filled/primary face that would read as a different kind of button.
 
-**The spinner means "this source cannot start yet", never "buffering".** It shows between a load
-starting and the engine reporting the source playable, and `playbackTransport.ts` gates it on that:
-once the source is playable, later `loading` / `stalled` events keep the play/pause mark, because
+**The spinner means "this source cannot start yet", never "buffering".** It shows from the tap until
+the load is issued. The moment the engine accepts the source, the glyph is pause. Engine startup
+beats (`ready`, `paused`, `loading`, `stalled`, `idle`, and a stale `ended`) never move that glyph.
+After `playing`, the start latch stays up briefly so a following startup `paused` cannot flash the
+play icon; if that pause is still the latest state when the latch drops, the glyph becomes play. A
+thrown load or an engine `error` is the only thing that replaces the start glyph, so a failed URL
+cannot leave the control spinning forever. A load that does not autoplay (cold-start restore) goes
+spinner → play.
+
+Once the source has played, later `loading` / `stalled` events keep the play/pause mark, because
 there is already enough media to play and a spinner flickering over the control the listener is
-aiming at is worse than silence about the network. A load resolving also clears the spinner on its
-own, so a missing engine state event cannot leave it spinning forever.
+aiming at is worse than silence about the network. `playbackTransport.ts` gates the start with
+`pendingStart`, and rebuffers after that with the playable flag.
 
 The mini player's elapsed/remaining glance is the **top edge** of the bar — a flush 2px
 `ProgressTrack`, not a separate bar and not a second `borderTop`. The full player's scrubber stays

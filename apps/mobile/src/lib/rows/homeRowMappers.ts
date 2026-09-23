@@ -8,7 +8,7 @@ import type {
 } from '@podverse/helpers';
 import { primaryChannelListArtworkUrl, primaryListArtworkUrl } from '@podverse/helpers';
 import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
-import { htmlToPlainText } from '@podverse/helpers/html';
+import { htmlToPlainTextPreview } from '@podverse/helpers/html';
 import { formatHHMMSS } from '@podverse/helpers/time';
 
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
@@ -50,7 +50,7 @@ export type ItemHomeRowSource = {
 };
 
 const itemDescriptionPlain = (item: ItemHomeRowSource): string | null => {
-  const plain = htmlToPlainText(item.item_description?.value ?? undefined);
+  const plain = htmlToPlainTextPreview(item.item_description?.value ?? undefined);
   return plain.length > 0 ? plain : null;
 };
 
@@ -285,12 +285,10 @@ export const clipHomeRowSourceFromUnknown = (value: unknown): ClipHomeRowSource 
   const endTime = value.end_time;
 
   return {
-    end_time:
-      typeof endTime === 'number' || typeof endTime === 'string' ? endTime : null,
+    end_time: typeof endTime === 'number' || typeof endTime === 'string' ? endTime : null,
     id_text: idText,
     item: readClipItem(value.item),
-    start_time:
-      typeof startTime === 'number' || typeof startTime === 'string' ? startTime : null,
+    start_time: typeof startTime === 'number' || typeof startTime === 'string' ? startTime : null,
     title: getNonEmptyTrimmedStringProperty(value, 'title'),
   };
 };
@@ -399,7 +397,7 @@ export function playlistResourceToHomeRow(
 
   const descriptionFromItem =
     isObjectLike(itemDescription) && typeof itemDescription.value === 'string'
-      ? htmlToPlainText(itemDescription.value)
+      ? htmlToPlainTextPreview(itemDescription.value)
       : '';
 
   return {
@@ -559,7 +557,7 @@ const addByRssToHomeRow = (
 
   const descriptionFromItem =
     isObjectLike(itemDescription) && typeof itemDescription.value === 'string'
-      ? htmlToPlainText(itemDescription.value)
+      ? htmlToPlainTextPreview(itemDescription.value)
       : '';
 
   return {

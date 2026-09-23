@@ -3,6 +3,7 @@ import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccount, DTOPlaylist } from '@podverse/helpers';
@@ -34,6 +35,7 @@ import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedGridCell } from '../home/HomeFeedGridCell';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { MediaTypeSelector } from '../home/MediaTypeSelector';
+import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import type { BrowseCategoryOption } from './browseCategories';
@@ -83,6 +85,157 @@ type BrowseListRow =
   | { id: string; kind: 'playlist'; playlist: DTOPlaylist }
   | { id: string; kind: 'user'; account: DTOAccount };
 
+type BrowsePlayMediaType = 'clips' | 'episodes' | 'tracks';
+
+const browseListRowKeyExtractor = (item: BrowseListRow): string => `${item.kind}:${item.id}`;
+
+function browsePlayMediaType(mediaType: BrowseMediaType): BrowsePlayMediaType {
+  if (mediaType === 'clips') {
+    return 'clips';
+  }
+  if (mediaType === 'tracks') {
+    return 'tracks';
+  }
+  return 'episodes';
+}
+
+function BrowseCategoryItem({
+  isLast,
+  isSelected,
+  onSelect,
+  onToggleExpand,
+  row,
+  styles,
+}: {
+  isLast: boolean;
+  isSelected: boolean;
+  onSelect: (mappingKey: string | null) => void;
+  onToggleExpand: (rootMappingKey: string) => void;
+  row: CategoryListRow;
+  styles: { categoryRow: ViewStyle; categoryRowLast: ViewStyle };
+}) {
+  const handleSelect = useCallback(() => {
+    onSelect(row.mappingKey);
+  }, [onSelect, row.mappingKey]);
+  const handleToggle = useCallback(() => {
+    if (row.mappingKey !== null) {
+      onToggleExpand(row.mappingKey);
+    }
+  }, [onToggleExpand, row.mappingKey]);
+
+  return (
+    <View style={[styles.categoryRow, isLast ? styles.categoryRowLast : null]}>
+      <BrowseCategoryRow
+        expanded={row.expanded}
+        hasChildren={row.hasChildren}
+        indentDepth={row.indentDepth}
+        onSelect={handleSelect}
+        onToggleExpand={handleToggle}
+        selected={isSelected}
+        testID={
+          row.mappingKey === null ? 'browse-category-all' : `browse-category-${row.mappingKey}`
+        }
+        title={row.title}
+      />
+    </View>
+  );
+}
+
+function BrowsePlaylistItem({
+  isLast,
+  onPress,
+  playlist,
+}: {
+  isLast: boolean;
+  onPress: (playlistId: string) => void;
+  playlist: DTOPlaylist;
+}) {
+  const handlePress = useCallback(() => {
+    onPress(playlist.id_text);
+  }, [onPress, playlist.id_text]);
+
+  return (
+    <PlaylistListRow
+      isLast={isLast}
+      onPress={handlePress}
+      playlist={playlist}
+      showCreator
+      testID={`browse-playlist-row-${playlist.id_text}`}
+    />
+  );
+}
+
+function BrowseUserItem({
+  account,
+  isLast,
+  onPress,
+}: {
+  account: DTOAccount;
+  isLast: boolean;
+  onPress: (accountId: string) => void;
+}) {
+  const handlePress = useCallback(() => {
+    onPress(account.id_text);
+  }, [account.id_text, onPress]);
+
+  return (
+    <ProfileListRow
+      account={account}
+      isLast={isLast}
+      onPress={handlePress}
+      testID={`browse-user-row-${account.id_text}`}
+    />
+  );
+}
+
+function BrowseFeedItem({
+  addToPlaylistPress,
+  cellStyle,
+  goToChannel,
+  goToTrack,
+  isGridView,
+  isLast,
+  mediaType,
+  onPlay,
+  onPress,
+  onQueue,
+  row,
+}: {
+  addToPlaylistPress?: (row: HomeFeedRowData) => void;
+  cellStyle: StyleProp<ViewStyle>;
+  goToChannel?: (row: HomeFeedRowData) => void;
+  goToTrack?: (row: HomeFeedRowData) => void;
+  isGridView: boolean;
+  isLast: boolean;
+  mediaType: BrowseMediaType;
+  onPlay: (row: HomeFeedRowData) => void;
+  onPress: (row: HomeFeedRowData) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+  row: HomeFeedRowData;
+}) {
+  if (isGridView) {
+    return (
+      <View style={cellStyle}>
+        <HomeFeedGridCell onPress={onPress} row={row} />
+      </View>
+    );
+  }
+
+  return (
+    <HomeFeedRow
+      isLast={isLast}
+      mediaType={mediaType}
+      onAddToPlaylistPress={addToPlaylistPress}
+      onGoToChannelPress={goToChannel}
+      onGoToTrackPress={goToTrack}
+      onPlayPress={onPlay}
+      onPress={onPress}
+      onQueuePress={onQueue}
+      row={row}
+    />
+  );
+}
+
 export function BrowseScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<BrowseStackParamList>>();
@@ -112,6 +265,7 @@ export function BrowseScreen() {
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
   const feedRequestIdRef = useRef<number>(0);
   const categoryRequestIdRef = useRef<number>(0);
+  const isFeedRefreshingRef = useRef(false);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
 
@@ -187,14 +341,27 @@ export function BrowseScreen() {
     }, [navigation, requestedMediaType])
   );
 
-  const handleMediaTypeChange = useCallback((mediaType: BrowseMediaType) => {
-    setIsCategoryView(false);
-    setDirectoryFeed(emptyBrowseFeed(mediaType));
-    setFeedErrorKey(null);
-    setIsFeedLoading(true);
-    setSelectedMediaType(mediaType);
-    void writeBrowseMediaType(mediaType);
-  }, []);
+  const handleMediaTypeChange = useCallback(
+    (mediaType: BrowseMediaType) => {
+      if (mediaType === selectedMediaType && !isCategoryView) {
+        return;
+      }
+
+      // Advancing here invalidates the in-flight read for the chip the user just left, rather than
+      // waiting for the next loadFeed to do it.
+      feedRequestIdRef.current += 1;
+
+      // Chip, rows, and loading state commit together. A held clear leaves the previous media type's
+      // rows mounted under the new chip, which reads as the wrong list loading.
+      setSelectedMediaType(mediaType);
+      setIsCategoryView(false);
+      setDirectoryFeed(emptyBrowseFeed(mediaType));
+      setFeedErrorKey(null);
+      setIsFeedLoading(true);
+      void writeBrowseMediaType(mediaType);
+    },
+    [isCategoryView, selectedMediaType]
+  );
 
   const handleCategoriesPress = useCallback(() => {
     setIsCategoryView(true);
@@ -301,12 +468,14 @@ export function BrowseScreen() {
       feedRequestIdRef.current = requestId;
 
       if (source === 'refresh') {
-        if (isFeedRefreshing) {
+        if (isFeedRefreshingRef.current) {
           return;
         }
+        isFeedRefreshingRef.current = true;
         setIsFeedRefreshing(true);
       } else {
         setIsFeedLoading(true);
+        isFeedRefreshingRef.current = false;
         setIsFeedRefreshing(false);
       }
 
@@ -337,12 +506,13 @@ export function BrowseScreen() {
         }
         setFeedErrorKey('errors.generic');
       } finally {
-        if (requestId === feedRequestIdRef.current) {
-          if (source === 'refresh') {
+        if (source === 'refresh') {
+          isFeedRefreshingRef.current = false;
+          if (requestId === feedRequestIdRef.current) {
             setIsFeedRefreshing(false);
-          } else {
-            setIsFeedLoading(false);
           }
+        } else if (requestId === feedRequestIdRef.current) {
+          setIsFeedLoading(false);
         }
       }
     },
@@ -350,7 +520,6 @@ export function BrowseScreen() {
       accessToken,
       activePrefs,
       clearSession,
-      isFeedRefreshing,
       offlineModeEnabled,
       refreshToken,
       selectedMediaType,
@@ -393,7 +562,13 @@ export function BrowseScreen() {
       return;
     }
     void loadFeedRef.current('initial');
-  }, [isCategoryView, loadFeed]);
+  }, [
+    activePrefs?.category,
+    activePrefs?.range,
+    isCategoryView,
+    offlineModeEnabled,
+    selectedMediaType,
+  ]);
 
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
@@ -587,11 +762,215 @@ export function BrowseScreen() {
   }, [gridCellWidth, themeStyles, tokens]);
 
   const showFeedRows = !isCategoryView && !isFeedLoading && feedErrorKey === null;
+  const isFeedBusy = isFeedLoading;
   const showEmptyDirectory = showFeedRows && directoryCount === 0;
   const showCategoryLoading = isCategoryView && isCategoryLoading && categoryOptions.length === 0;
 
   const categoriesChipLabel =
     selectedCategory !== null ? t(`categories.${selectedCategory}`) : t('categories.categories');
+
+  const handlePlayPress = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      runPlayAction(nextRow, browsePlayMediaType(selectedMediaType));
+    },
+    [runPlayAction, selectedMediaType]
+  );
+
+  const handleQueuePress = useCallback(
+    (nextRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(nextRow, browsePlayMediaType(selectedMediaType), position);
+    },
+    [runQueueAction, selectedMediaType]
+  );
+
+  const handleAddToPlaylistPress = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      if (addToPlaylistTarget === null) {
+        return;
+      }
+      requestAddToPlaylist({
+        idText: nextRow.id,
+        kind: addToPlaylistTarget.kind,
+        medium: addToPlaylistTarget.medium,
+      });
+    },
+    [addToPlaylistTarget, requestAddToPlaylist]
+  );
+
+  const handleRetryFeed = useCallback(() => {
+    void loadFeed('retry');
+  }, [loadFeed]);
+
+  const handleRetryCategories = useCallback(() => {
+    void loadCategories('initial');
+  }, [loadCategories]);
+
+  const handleRefreshList = useCallback(() => {
+    if (isCategoryView) {
+      void loadCategories('refresh');
+      return;
+    }
+    void loadFeed('refresh');
+  }, [isCategoryView, loadCategories, loadFeed]);
+
+  const listHeader = useMemo(
+    () => (
+      <>
+        {!isCategoryView && !isFeedBusy && feedErrorKey !== null ? (
+          <ListError
+            messageKey={feedErrorKey}
+            onRetry={handleRetryFeed}
+            testID="browse-list-error"
+          />
+        ) : null}
+        {isCategoryView && categoryErrorKey !== null ? (
+          <ListError
+            messageKey={categoryErrorKey}
+            onRetry={handleRetryCategories}
+            testID="browse-category-error"
+          />
+        ) : null}
+      </>
+    ),
+    [
+      categoryErrorKey,
+      feedErrorKey,
+      handleRetryCategories,
+      handleRetryFeed,
+      isCategoryView,
+      isFeedBusy,
+    ]
+  );
+
+  const listEmpty = useMemo(
+    () =>
+      showCategoryLoading ? (
+        <LoadingSection testID="browse-category-loading" />
+      ) : isFeedLoading && !isCategoryView ? (
+        <LoadingSection testID="browse-list-loading" />
+      ) : showEmptyDirectory ? (
+        <ListEmpty messageKey="features.browse.empty" testID="browse-list-empty" />
+      ) : null,
+    [isCategoryView, isFeedLoading, showCategoryLoading, showEmptyDirectory]
+  );
+
+  const listFooter = useMemo(
+    () =>
+      !isCategoryView && playbackNoticeKey !== null ? (
+        <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
+      ) : null,
+    [isCategoryView, playbackNoticeKey, styles.feedNotice, t]
+  );
+
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRefreshList}
+        refreshing={isCategoryView ? isCategoryRefreshing : isFeedRefreshing}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
+      />
+    ),
+    [
+      handleRefreshList,
+      isCategoryRefreshing,
+      isCategoryView,
+      isFeedRefreshing,
+      themeStyles.buttonPrimary.backgroundColor,
+    ]
+  );
+
+  const listRowCount = listRows.length;
+  const categoryRowCount = categoryRows.length;
+  const rowAddToPlaylistPress =
+    status === 'authenticated' && addToPlaylistTarget !== null
+      ? handleAddToPlaylistPress
+      : undefined;
+  const rowGoToChannel = selectedMediaType === 'tracks' ? handleGoToChannel : undefined;
+  const rowGoToTrack = selectedMediaType === 'tracks' ? handleGoToTrack : undefined;
+  const feedCellStyle = columns > 1 ? styles.columnCell : undefined;
+  const categoryRowStyles = useMemo(
+    () => ({
+      categoryRow: styles.categoryRow,
+      categoryRowLast: styles.categoryRowLast,
+    }),
+    [styles.categoryRow, styles.categoryRowLast]
+  );
+
+  const renderItem = useCallback(
+    ({ index, item }: { index: number; item: BrowseListRow }) => {
+      if (item.kind === 'category') {
+        const isSelected =
+          item.row.mappingKey === null
+            ? selectedCategory === null
+            : item.row.mappingKey === selectedCategory;
+        return (
+          <BrowseCategoryItem
+            isLast={index === categoryRowCount - 1}
+            isSelected={isSelected}
+            onSelect={handleCategorySelect}
+            onToggleExpand={handleCategoryExpandToggle}
+            row={item.row}
+            styles={categoryRowStyles}
+          />
+        );
+      }
+
+      if (item.kind === 'playlist') {
+        return (
+          <BrowsePlaylistItem
+            isLast={index === listRowCount - 1}
+            onPress={handlePlaylistPress}
+            playlist={item.playlist}
+          />
+        );
+      }
+
+      if (item.kind === 'user') {
+        return (
+          <BrowseUserItem
+            account={item.account}
+            isLast={index === listRowCount - 1}
+            onPress={handleUserPress}
+          />
+        );
+      }
+
+      return (
+        <BrowseFeedItem
+          addToPlaylistPress={rowAddToPlaylistPress}
+          cellStyle={feedCellStyle}
+          goToChannel={rowGoToChannel}
+          goToTrack={rowGoToTrack}
+          isGridView={isGridView}
+          isLast={index === listRowCount - 1}
+          mediaType={selectedMediaType}
+          onPlay={handlePlayPress}
+          onPress={handleRowPress}
+          onQueue={handleQueuePress}
+          row={item.row}
+        />
+      );
+    },
+    [
+      categoryRowCount,
+      categoryRowStyles,
+      feedCellStyle,
+      handleCategoryExpandToggle,
+      handleCategorySelect,
+      handlePlayPress,
+      handlePlaylistPress,
+      handleQueuePress,
+      handleRowPress,
+      handleUserPress,
+      isGridView,
+      listRowCount,
+      rowAddToPlaylistPress,
+      rowGoToChannel,
+      rowGoToTrack,
+      selectedCategory,
+      selectedMediaType,
+    ]
+  );
 
   if (offlineModeEnabled) {
     return (
@@ -603,42 +982,6 @@ export function BrowseScreen() {
       </View>
     );
   }
-
-  const listHeader = (
-    <>
-      {!isCategoryView && !isFeedLoading && feedErrorKey !== null ? (
-        <ListError
-          messageKey={feedErrorKey}
-          onRetry={() => {
-            void loadFeed('retry');
-          }}
-          testID="browse-list-error"
-        />
-      ) : null}
-      {isCategoryView && categoryErrorKey !== null ? (
-        <ListError
-          messageKey={categoryErrorKey}
-          onRetry={() => {
-            void loadCategories('initial');
-          }}
-          testID="browse-category-error"
-        />
-      ) : null}
-    </>
-  );
-
-  const listEmpty = showCategoryLoading ? (
-    <LoadingSection testID="browse-category-loading" />
-  ) : isFeedLoading && !isCategoryView ? (
-    <LoadingSection testID="browse-list-loading" />
-  ) : showEmptyDirectory ? (
-    <ListEmpty messageKey="features.browse.empty" testID="browse-list-empty" />
-  ) : null;
-
-  const listFooter =
-    !isCategoryView && playbackNoticeKey !== null ? (
-      <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
-    ) : null;
 
   return (
     <View style={styles.container} testID="browse-screen">
@@ -684,134 +1027,10 @@ export function BrowseScreen() {
         extraData={`${isCategoryView}:${selectedCategory ?? ''}:${[...expandedCategoryRoots].join(',')}:${isGridView}`}
         keyboardShouldPersistTaps="handled"
         key={`cols-${columns}-${isCategoryView ? 'cat' : 'feed'}`}
-        keyExtractor={(item) => `${item.kind}:${item.id}`}
+        keyExtractor={browseListRowKeyExtractor}
         numColumns={isCategoryView ? 1 : columns}
-        refreshControl={
-          <RefreshControl
-            onRefresh={() => {
-              if (isCategoryView) {
-                void loadCategories('refresh');
-                return;
-              }
-              void loadFeed('refresh');
-            }}
-            refreshing={isCategoryView ? isCategoryRefreshing : isFeedRefreshing}
-            tintColor={themeStyles.buttonPrimary.backgroundColor}
-          />
-        }
-        renderItem={({ index, item }) => {
-          if (item.kind === 'category') {
-            const isSelected =
-              item.row.mappingKey === null
-                ? selectedCategory === null
-                : item.row.mappingKey === selectedCategory;
-            const isLast = index === categoryRows.length - 1;
-            return (
-              <View style={[styles.categoryRow, isLast ? styles.categoryRowLast : null]}>
-                <BrowseCategoryRow
-                  expanded={item.row.expanded}
-                  hasChildren={item.row.hasChildren}
-                  indentDepth={item.row.indentDepth}
-                  onSelect={() => {
-                    handleCategorySelect(item.row.mappingKey);
-                  }}
-                  onToggleExpand={() => {
-                    if (item.row.mappingKey !== null) {
-                      handleCategoryExpandToggle(item.row.mappingKey);
-                    }
-                  }}
-                  selected={isSelected}
-                  testID={
-                    item.row.mappingKey === null
-                      ? 'browse-category-all'
-                      : `browse-category-${item.row.mappingKey}`
-                  }
-                  title={item.row.title}
-                />
-              </View>
-            );
-          }
-
-          if (item.kind === 'playlist') {
-            return (
-              <PlaylistListRow
-                isLast={index === listRows.length - 1}
-                onPress={() => {
-                  handlePlaylistPress(item.playlist.id_text);
-                }}
-                playlist={item.playlist}
-                showCreator
-                testID={`browse-playlist-row-${item.playlist.id_text}`}
-              />
-            );
-          }
-
-          if (item.kind === 'user') {
-            return (
-              <ProfileListRow
-                account={item.account}
-                isLast={index === listRows.length - 1}
-                onPress={() => {
-                  handleUserPress(item.account.id_text);
-                }}
-                testID={`browse-user-row-${item.account.id_text}`}
-              />
-            );
-          }
-
-          if (isGridView) {
-            return (
-              <View style={columns > 1 ? styles.columnCell : undefined}>
-                <HomeFeedGridCell onPress={handleRowPress} row={item.row} />
-              </View>
-            );
-          }
-
-          return (
-            <HomeFeedRow
-              isLast={index === listRows.length - 1}
-              mediaType={selectedMediaType}
-              onAddToPlaylistPress={
-                status === 'authenticated' && addToPlaylistTarget !== null
-                  ? (nextRow) => {
-                      requestAddToPlaylist({
-                        idText: nextRow.id,
-                        kind: addToPlaylistTarget.kind,
-                        medium: addToPlaylistTarget.medium,
-                      });
-                    }
-                  : undefined
-              }
-              onGoToChannelPress={
-                selectedMediaType === 'tracks' ? handleGoToChannel : undefined
-              }
-              onGoToTrackPress={selectedMediaType === 'tracks' ? handleGoToTrack : undefined}
-              onPlayPress={(nextRow) => {
-                runPlayAction(
-                  nextRow,
-                  selectedMediaType === 'clips'
-                    ? 'clips'
-                    : selectedMediaType === 'tracks'
-                      ? 'tracks'
-                      : 'episodes'
-                );
-              }}
-              onPress={handleRowPress}
-              onQueuePress={(nextRow, position) => {
-                runQueueAction(
-                  nextRow,
-                  selectedMediaType === 'clips'
-                    ? 'clips'
-                    : selectedMediaType === 'tracks'
-                      ? 'tracks'
-                      : 'episodes',
-                  position
-                );
-              }}
-              row={item.row}
-            />
-          );
-        }}
+        refreshControl={refreshControl}
+        renderItem={renderItem}
         testID="browse-feed-list"
       />
       {addToPlaylistSheet}

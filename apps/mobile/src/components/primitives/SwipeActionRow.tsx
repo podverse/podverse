@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 
 export type SwipeActionRowProps = {
   children: ReactNode;
@@ -15,6 +17,29 @@ export type SwipeActionRowProps = {
   actionTestID?: string;
   testID?: string;
 };
+
+const createStyles = ({ tokens }: ThemedStylesTheme) =>
+  StyleSheet.create({
+    action: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+      backgroundColor: tokens.button.dangerBg,
+      justifyContent: 'center',
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    actionLabel: {
+      ...typography.label,
+      color: tokens.button.dangerColor,
+    },
+    actionLabelHidden: {
+      opacity: 0,
+    },
+    spinnerOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
 
 /**
  * List row that reveals a danger action on swipe-left. The same action is exposed via
@@ -31,34 +56,9 @@ export function SwipeActionRow({
   testID,
 }: SwipeActionRowProps) {
   const { tokens } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const swipeableRef = useRef<Swipeable | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        action: {
-          alignItems: 'center',
-          alignSelf: 'stretch',
-          backgroundColor: tokens.button.dangerBg,
-          justifyContent: 'center',
-          paddingHorizontal: tokens.spacing.lg,
-        },
-        actionLabel: {
-          ...typography.label,
-          color: tokens.button.dangerColor,
-        },
-        actionLabelHidden: {
-          opacity: 0,
-        },
-        spinnerOverlay: {
-          ...StyleSheet.absoluteFillObject,
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-      }),
-    [tokens]
-  );
 
   const close = useCallback(() => {
     swipeableRef.current?.close();

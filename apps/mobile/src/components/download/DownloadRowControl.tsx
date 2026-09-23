@@ -1,20 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
-import { useMemo } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 
-import { useActionError } from '../../feedback/ActionErrorProvider';
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import type { DownloadStatus } from '../../downloads/downloadTypes';
 import { useDownloadAction } from '../../downloads/useDownloads';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
-import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { usePlaybackRow } from '../../playback/PlaybackProvider';
 import { LIST_ROW_ACTION_ICON_SIZE, LIST_ROW_ACTION_SIZE } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 
 type DownloadRowControlProps = {
   item: DTOItem;
@@ -38,6 +40,19 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
   }
 };
 
+const createStyles = (_theme: ThemedStylesTheme) =>
+  StyleSheet.create({
+    control: {
+      alignItems: 'center',
+      height: LIST_ROW_ACTION_SIZE,
+      justifyContent: 'center',
+      width: LIST_ROW_ACTION_SIZE,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });
+
 /**
  * The download affordance as a list row carries it: one icon, one tap. **Renders nothing** when the
  * item cannot be downloaded — a livestream, an HLS-only source, or no enclosure — the same
@@ -52,14 +67,14 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
  * makes a list stutter while something downloads. My Library → Downloads is where a user goes for
  * the number.
  */
-export function DownloadRowControl({
+export const DownloadRowControl = memo(function DownloadRowControl({
   completeTestID,
   item,
   testID,
 }: DownloadRowControlProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
-  const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
+  const { activeTarget, enclosureSelectedParams } = usePlaybackRow();
   const activeItemId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
   const explicitSelectedParams =
     activeItemId === item.id_text ? enclosureSelectedParams : undefined;
@@ -67,22 +82,7 @@ export function DownloadRowControl({
     explicitSelectedParams,
   });
   const { openDownloadError } = useActionError();
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        control: {
-          alignItems: 'center',
-          height: LIST_ROW_ACTION_SIZE,
-          justifyContent: 'center',
-          width: LIST_ROW_ACTION_SIZE,
-        },
-        pressed: {
-          opacity: 0.7,
-        },
-      }),
-    []
-  );
+  const styles = useThemedStyles(createStyles);
 
   if (!isDownloadable) {
     return null;
@@ -107,9 +107,7 @@ export function DownloadRowControl({
         runDownloadAction({ remove, start, status });
       }}
       style={({ pressed }) => [styles.control, pressed ? styles.pressed : null]}
-      testID={
-        status === 'complete' && completeTestID !== undefined ? completeTestID : testID
-      }
+      testID={status === 'complete' && completeTestID !== undefined ? completeTestID : testID}
     >
       {isInProgress ? (
         <ActivityIndicator color={tokens.text.secondary} size="small" />
@@ -122,4 +120,4 @@ export function DownloadRowControl({
       )}
     </Pressable>
   );
-}
+});

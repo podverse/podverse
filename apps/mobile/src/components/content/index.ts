@@ -6,11 +6,7 @@ export type { PlaylistListRowProps } from './PlaylistListRow';
 export { ProfileListRow } from './ProfileListRow';
 export type { ProfileListRowProps } from './ProfileListRow';
 export type { AboutFundingLink, AboutPerson } from './aboutPerson';
-export {
-  toAboutFundingLink,
-  toAboutPersonFromChannel,
-  toAboutPersonFromItem,
-} from './aboutPerson';
+export { toAboutFundingLink, toAboutPersonFromChannel, toAboutPersonFromItem } from './aboutPerson';
 export { ChannelAboutSection } from './ChannelAboutSection';
 export type { ChannelAboutSectionProps } from './ChannelAboutSection';
 export { FundingLinksSection } from './FundingLinksSection';

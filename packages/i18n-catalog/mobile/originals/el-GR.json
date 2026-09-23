@@ -146,6 +146,7 @@
     "complete_now_playing": "Σήμανση τρέχουσας αναπαραγωγής ως ολοκληρωμένης",
     "quick_login": "Σύνδεση ως χρήστης E2E",
     "quick_login_popularity": "Σύνδεση ως αναποφάσιστος χρήστης E2E",
+    "quick_login_perf": "Σύνδεση ως χρήστης E2E perf",
     "session_ready": "Συνεδρία E2E έτοιμη"
   },
   "subscriptions": {

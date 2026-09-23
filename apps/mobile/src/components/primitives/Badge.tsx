@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { memo } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 
 export type BadgeTone = 'accent' | 'danger' | 'neutral' | 'muted';
 
@@ -19,6 +20,70 @@ export type BadgeProps = {
   testID?: string;
 };
 
+const badgeChrome = ({ tokens }: Pick<ThemedStylesTheme, 'tokens'>) => ({
+  alignSelf: 'flex-start' as const,
+  borderRadius: tokens.radii.round,
+  borderWidth: 1,
+  paddingHorizontal: tokens.spacing.sm,
+  paddingVertical: 2,
+});
+
+const labelChrome = {
+  fontSize: 11,
+  fontWeight: '600' as const,
+};
+
+const createAccentStyles = (theme: ThemedStylesTheme) => ({
+  badge: badgeChrome(theme),
+  label: labelChrome,
+  tone: {
+    backgroundColor: theme.tokens.text.accent,
+    borderColor: theme.tokens.text.accent,
+  },
+  toneLabel: {
+    color: theme.tokens.background.primary,
+  },
+});
+
+const createDangerStyles = (theme: ThemedStylesTheme) => ({
+  badge: badgeChrome(theme),
+  label: labelChrome,
+  tone: {
+    backgroundColor: theme.tokens.button.opaqueDangerBg,
+    borderColor: theme.tokens.button.opaqueDangerBorder,
+    borderWidth: 1.5,
+    paddingHorizontal: theme.tokens.spacing.base,
+  },
+  toneLabel: {
+    color: theme.tokens.button.dangerColor,
+    fontWeight: '700' as const,
+  },
+});
+
+const createMutedStyles = (theme: ThemedStylesTheme) => ({
+  badge: badgeChrome(theme),
+  label: labelChrome,
+  tone: {
+    backgroundColor: theme.tokens.border.tertiary,
+    borderColor: theme.tokens.border.tertiary,
+  },
+  toneLabel: {
+    color: theme.tokens.text.primary,
+  },
+});
+
+const createNeutralStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) => ({
+  badge: badgeChrome({ tokens }),
+  label: labelChrome,
+  tone: {
+    backgroundColor: themeStyles.buttonSecondary.backgroundColor,
+    borderColor: themeStyles.border.borderColor,
+  },
+  toneLabel: {
+    color: themeStyles.buttonSecondary.color,
+  },
+});
+
 /**
  * A small rounded pill of text.
  *
@@ -27,75 +92,25 @@ export type BadgeProps = {
  * than leaving a screen reader to announce "3" on its own. Callers that want it read separately
  * wrap it and say so there.
  */
-export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
-  const { styles: themeStyles, tokens } = useTheme();
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        accent: {
-          backgroundColor: tokens.text.accent,
-          borderColor: tokens.text.accent,
-        },
-        accentLabel: {
-          color: tokens.background.primary,
-        },
-        badge: {
-          alignSelf: 'flex-start',
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          paddingHorizontal: tokens.spacing.sm,
-          paddingVertical: 2,
-        },
-        danger: {
-          backgroundColor: tokens.button.opaqueDangerBg,
-          borderColor: tokens.button.opaqueDangerBorder,
-          borderWidth: 1.5,
-          paddingHorizontal: tokens.spacing.base,
-        },
-        dangerLabel: {
-          color: tokens.button.dangerColor,
-          fontWeight: '700',
-        },
-        label: {
-          fontSize: 11,
-          fontWeight: '600',
-        },
-        muted: {
-          // Gray chip for counts overlaid on artwork (primary theme: #444 + white label).
-          backgroundColor: tokens.border.tertiary,
-          borderColor: tokens.border.tertiary,
-        },
-        mutedLabel: {
-          color: tokens.text.primary,
-        },
-        neutral: {
-          backgroundColor: themeStyles.buttonSecondary.backgroundColor,
-          borderColor: themeStyles.border.borderColor,
-        },
-        neutralLabel: {
-          color: themeStyles.buttonSecondary.color,
-        },
-      }),
-    [themeStyles, tokens]
+export const Badge = memo(function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
+  const styles = useThemedStyles(
+    tone === 'accent'
+      ? createAccentStyles
+      : tone === 'danger'
+        ? createDangerStyles
+        : tone === 'muted'
+          ? createMutedStyles
+          : createNeutralStyles
   );
-
-  const toneFaces = {
-    accent: { badge: styles.accent, label: styles.accentLabel },
-    danger: { badge: styles.danger, label: styles.dangerLabel },
-    muted: { badge: styles.muted, label: styles.mutedLabel },
-    neutral: { badge: styles.neutral, label: styles.neutralLabel },
-  } as const;
-  const toneFace = toneFaces[tone];
 
   return (
     <View
       accessibilityElementsHidden
       importantForAccessibility="no"
-      style={[styles.badge, toneFace.badge, style]}
+      style={[styles.badge, styles.tone, style]}
       testID={testID}
     >
-      <Text style={[styles.label, toneFace.label]}>{label}</Text>
+      <Text style={[styles.label, styles.toneLabel]}>{label}</Text>
     </View>
   );
-}
+});

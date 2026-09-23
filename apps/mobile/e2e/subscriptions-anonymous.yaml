@@ -22,6 +22,11 @@ name: Anonymous Subscriptions Persist
     id: home-list-empty-search
 - assertVisible:
     id: home-list-empty-browse
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
+      TRAILING_ID: home-sort-button
 - assertVisible:
     id: home-sort-button
 - assertVisible:

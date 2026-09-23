@@ -19,7 +19,7 @@ When editing `apps/management-web/src/**/*.tsx`:
 
 Recent convergence examples (phase 05): database **table browser** pagination uses **`Pagination`** from **`@podverse/ui`** instead of ad hoc prev/next buttons; prefer **`FormDropdown`** over native `<select>` when matching web control patterns. **Field titles** on form controls: see **`management-web-form-eyebrow`** (use **`eyebrow`**, not freestanding **`Label`**).
 
-Common candidates to share:
+Common pieces to share:
 
 - Form controls and action rows (`FormGroup`, `Input`, `Label`, `FormDropdown`, `FormPrimaryActions`)
 - Table and pagination wrappers (`Table`, `Pagination`)

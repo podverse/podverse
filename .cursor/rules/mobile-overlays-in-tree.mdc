@@ -54,6 +54,8 @@ is why the overlay must not live in a second window at all.
   setting `statusBarTranslucent`. Those address the paint, not the accessibility tree.
 - Do not mount an overlay outside `OverlayHostProvider`; `AppOverlay` throws rather than render into
   nowhere.
+- Do not mount a closed overlay once per list row. A row's overflow menu mounts on the first press
+  and stays mounted after — **mobile-row-render-cost**.
 
 ## Flows see through an open overlay
 
@@ -110,3 +112,4 @@ surface that is still an RN `Modal`.
 - **screen-reader-accessibility** — focus containment expectations an overlay has to meet
 - **mobile-list-virtualization** — the other `react-native-screens` interaction on Android, where a
   removal transition reparents clipped list children
+- **mobile-row-render-cost** — what a row may mount, subscribe to, and build per instance

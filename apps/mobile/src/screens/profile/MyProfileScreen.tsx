@@ -1,11 +1,9 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useLayoutEffect, useMemo } from 'react';
+import { useCallback, useLayoutEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
-import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
-import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { useMyProfileContentLoad } from '../../hooks/useProfileContentLoad';
@@ -13,6 +11,7 @@ import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { ProfileContentSections } from './ProfileContentSections';
 
@@ -42,6 +41,18 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
           fontSize: 13,
           fontWeight: '600',
         },
+        profileHeading: {
+          color: themeStyles.textPrimary.color,
+          fontSize: 20,
+          fontWeight: '700',
+          marginBottom: tokens.spacing.sm,
+        },
+        screen: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
+          paddingBottom: tokens.spacing['2xl'],
+          ...screenBodyInsets(tokens.spacing),
+        },
       }),
     [themeStyles, tokens]
   );
@@ -53,59 +64,80 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
     navigation.setOptions({ title: profileTitle });
   }, [navigation, profileTitle]);
 
+  const handleRetry = useCallback(() => {
+    void reload();
+  }, [reload]);
+
+  const handleOpenPublicProfile = useCallback(() => {
+    if (account?.id_text === undefined) {
+      return;
+    }
+    navigation.navigate(MORE_STACK_ROUTES.MorePublicProfile, {
+      accountIdText: account.id_text,
+    });
+  }, [account?.id_text, navigation]);
+
+  const listHeader = useMemo(
+    () => (
+      <>
+        <Text accessibilityRole="header" style={styles.profileHeading}>
+          {t('features.my_profile')}
+        </Text>
+        {account?.id_text ? (
+          <Pressable
+            onPress={handleOpenPublicProfile}
+            style={styles.profileButton}
+            testID="my-profile-open-public"
+          >
+            <Text style={styles.profileButtonLabel}>{t('features.profile')}</Text>
+          </Pressable>
+        ) : null}
+      </>
+    ),
+    [
+      account?.id_text,
+      handleOpenPublicProfile,
+      styles.profileButton,
+      styles.profileButtonLabel,
+      styles.profileHeading,
+      t,
+    ]
+  );
+
   if (offlineModeEnabled) {
     return (
-      <MobileScreenContainer testID="my-profile-screen">
+      <View style={styles.screen} testID="my-profile-screen">
         <ListEmpty
           messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
           testID="my-profile-offline-unavailable"
         />
-      </MobileScreenContainer>
+      </View>
     );
   }
 
   return (
-    <MobileScreenContainer testID="my-profile-screen">
+    <View style={styles.screen} testID="my-profile-screen">
       <AuthAwareLoadState
         emptyTestID="my-profile-auth-required"
         errorKey={errorKey}
         errorTestID="my-profile-error"
         isLoading={isLoading}
         loadingTestID="my-profile-loading"
-        onRetry={() => {
-          void reload();
-        }}
+        onRetry={handleRetry}
         showAuthRequired={status !== 'authenticated'}
       >
-        <>
-          <SectionCard heading={t('features.my_profile')}>
-            {account?.id_text ? (
-              <Pressable
-                onPress={() => {
-                  navigation.navigate(MORE_STACK_ROUTES.MorePublicProfile, {
-                    accountIdText: account.id_text,
-                  });
-                }}
-                style={styles.profileButton}
-                testID="my-profile-open-public"
-              >
-                <Text style={styles.profileButtonLabel}>{t('features.profile')}</Text>
-              </Pressable>
-            ) : null}
-          </SectionCard>
-
-          <ProfileContentSections
-            albums={content.albums}
-            clips={content.clips}
-            emptyTestIdPrefix="my-profile"
-            onPlaylistPress={(playlistId) => {
-              navigation.navigate(MORE_STACK_ROUTES.PlaylistDetail, { playlistId });
-            }}
-            playlists={content.playlists}
-            podcasts={content.podcasts}
-          />
-        </>
+        <ProfileContentSections
+          albums={content.albums}
+          clips={content.clips}
+          emptyTestIdPrefix="my-profile"
+          header={listHeader}
+          onPlaylistPress={(playlistId) => {
+            navigation.navigate(MORE_STACK_ROUTES.PlaylistDetail, { playlistId });
+          }}
+          playlists={content.playlists}
+          podcasts={content.podcasts}
+        />
       </AuthAwareLoadState>
-    </MobileScreenContainer>
+    </View>
   );
 }

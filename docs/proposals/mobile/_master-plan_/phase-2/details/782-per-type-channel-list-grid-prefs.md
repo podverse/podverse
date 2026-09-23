@@ -9,11 +9,11 @@
 List vs grid for channel lists (podcasts, artists, albums) must be remembered independently.
 A user may want a grid on Home Artists and a list on Browse Podcasts. Today:
 
-| Surface       | Current store                                                     |
-| ------------- | ----------------------------------------------------------------- |
-| Mobile Browse | One `viewMode` on `{ kind: 'list', name: 'browse' }`              |
-| Mobile Home   | One Home-wide `{ kind: 'list', name: 'home-layout' }`             |
-| Web           | One global cookie `vs` (`grid` \| `rows`) for every ViewSelector  |
+| Surface       | Current store                                                    |
+| ------------- | ---------------------------------------------------------------- |
+| Mobile Browse | One `viewMode` on `{ kind: 'list', name: 'browse' }`             |
+| Mobile Home   | One Home-wide `{ kind: 'list', name: 'home-layout' }`            |
+| Web           | One global cookie `vs` (`grid` \| `rows`) for every ViewSelector |
 
 `viewMode` already exists on the shared [`SortPrefValue`](/packages/helpers/src/lib/sortPrefs.ts).
 Use it. Storage stays device-local (mobile AsyncStorage, web `local-settings` cookie `sp`).
@@ -35,20 +35,20 @@ This replaces the Home-wide layout choice recorded in
 
 ## Scopes
 
-| Surface        | Type     | Scope key                         |
-| -------------- | -------- | --------------------------------- |
-| Mobile Home    | podcasts | `podcasts` (existing sort scope)  |
-| Mobile Home    | artists  | `artists`                         |
-| Mobile Home    | albums   | `albums`                          |
-| Mobile Browse  | podcasts | `browse-podcasts`                 |
-| Mobile Browse  | artists  | `browse-artists`                  |
-| Mobile Browse  | albums   | `browse-albums`                   |
-| Web directory  | podcasts | `podcasts`                        |
-| Web directory  | artists  | `artists`                         |
-| Web directory  | albums   | `albums`                          |
-| Web Home       | av       | `home-podcasts`                   |
-| Web Home       | publisher-music | `home-artists`             |
-| Web Home       | music    | `home-albums`                     |
+| Surface       | Type            | Scope key                        |
+| ------------- | --------------- | -------------------------------- |
+| Mobile Home   | podcasts        | `podcasts` (existing sort scope) |
+| Mobile Home   | artists         | `artists`                        |
+| Mobile Home   | albums          | `albums`                         |
+| Mobile Browse | podcasts        | `browse-podcasts`                |
+| Mobile Browse | artists         | `browse-artists`                 |
+| Mobile Browse | albums          | `browse-albums`                  |
+| Web directory | podcasts        | `podcasts`                       |
+| Web directory | artists         | `artists`                        |
+| Web directory | albums          | `albums`                         |
+| Web Home      | av              | `home-podcasts`                  |
+| Web Home      | publisher-music | `home-artists`                   |
+| Web Home      | music           | `home-albums`                    |
 
 Mobile Home and web `/podcasts` may share the list name `podcasts` because the stores differ
 (AsyncStorage vs cookie).

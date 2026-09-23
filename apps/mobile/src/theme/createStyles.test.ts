@@ -1,5 +1,6 @@
-import { getThemeTokens } from '@podverse/design-tokens';
 import { describe, expect, it } from 'vitest';
+
+import { getThemeTokens } from '@podverse/design-tokens';
 
 import { createStyles } from './createStyles';
 

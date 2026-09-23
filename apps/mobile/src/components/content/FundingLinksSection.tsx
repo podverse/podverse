@@ -8,7 +8,6 @@ import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { FillList } from '../primitives';
 import { LoadingSection } from '../state/LoadingSection';
-
 import { toAboutFundingLink } from './aboutPerson';
 
 export type FundingLinkSource = {

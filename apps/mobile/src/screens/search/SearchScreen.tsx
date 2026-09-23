@@ -28,6 +28,7 @@ import { useOfflineMode } from '../../prefs/offlineMode';
 import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
+import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 
 type SearchScreenProps = NativeStackScreenProps<
@@ -37,13 +38,44 @@ type SearchScreenProps = NativeStackScreenProps<
 
 const SEARCH_DEBOUNCE_MS = 450;
 
-const feedToRow = (feed: SearchPodcastsFeed) => ({
+const searchResultKeyExtractor = (feed: SearchPodcastsFeed): string => String(feed.id);
+
+const feedToRow = (feed: SearchPodcastsFeed): HomeFeedRowData => ({
   id: String(feed.id),
   imageUrl: toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
   subtitle: toNonEmptyTrimmedString(feed.author),
   title: feed.title,
   updatedAt: feed.newestItemPubdate > 0 ? feed.newestItemPubdate : null,
 });
+
+const noopPlayPress = (_row: HomeFeedRowData): void => undefined;
+const noopQueuePress = (_row: HomeFeedRowData): void => undefined;
+
+type SearchResultRowProps = {
+  feed: SearchPodcastsFeed;
+  isLast: boolean;
+  onPress: (feed: SearchPodcastsFeed) => void;
+  testID: string;
+};
+
+function SearchResultRow({ feed, isLast, onPress, testID }: SearchResultRowProps) {
+  const row = useMemo(() => feedToRow(feed), [feed]);
+  const handlePress = useCallback(() => {
+    onPress(feed);
+  }, [feed, onPress]);
+
+  return (
+    <HomeFeedRow
+      isLast={isLast}
+      mediaType="podcasts"
+      onPlayPress={noopPlayPress}
+      onPress={handlePress}
+      onQueuePress={noopQueuePress}
+      row={row}
+      testID={testID}
+    />
+  );
+}
 
 /**
  * Discovery, matching web `/search`: a filled field, All / Music chips, then an unboxed list of
@@ -236,109 +268,146 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
 
   const showResultRows = !isLoading && errorKey === null && feeds.length > 0;
 
-  const handleMediumChange = (next: QueryParamsPodcastIndexSearchMedium) => {
+  const handleMediumChange = useCallback((next: QueryParamsPodcastIndexSearchMedium) => {
     setMedium(next);
     void writeSearchListMedium(next);
-  };
+  }, []);
 
-  const handleSubmitSearch = () => {
+  const handleSubmitSearch = useCallback(() => {
     setDebouncedQuery(query.trim());
-  };
+  }, [query]);
 
-  const handleFeedPress = async (feed: SearchPodcastsFeed) => {
-    const feedId = String(feed.id);
-    if (resolvingFeedId !== null) {
-      return;
-    }
-
-    setResolvingFeedId(feedId);
-    setErrorKey(null);
-    try {
-      const channel = await requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) => api.reqChannelGetByPodcastIndexId(feedId)
-      );
-
-      // Endpoint returns null when the channel is not parsed-ready. Mirror web: open the
-      // Podcast Index preview/add screen instead of a generic "Try again" dead-end.
-      if (channel === null || channel.id_text.length === 0 || !channel.medium_id) {
-        const imageUrl =
-          feed.image.length > 0 ? feed.image : feed.artwork.length > 0 ? feed.artwork : null;
-        navigation.navigate(SEARCH_STACK_ROUTES.SearchResultDetail, {
-          author: feed.author,
-          description: feed.description,
-          feedUrl: feed.url,
-          imageUrl,
-          resultId: feedId,
-          title: feed.title,
-        });
+  const handleFeedPress = useCallback(
+    async (feed: SearchPodcastsFeed) => {
+      const feedId = String(feed.id);
+      if (resolvingFeedId !== null) {
         return;
       }
 
-      const kind = getChannelRouteKind(channel.medium_id);
-      // Stay on the Search stack (tab isolation) — do not jump to Home for detail.
-      if (kind === 'artist') {
-        navigation.navigate(SEARCH_STACK_ROUTES.ArtistDetail, {
-          artistId: channel.id_text,
-        });
-      } else if (kind === 'album') {
-        navigation.navigate(
-          SEARCH_STACK_ROUTES.AlbumDetail,
-          buildAlbumDetailParams({
-            albumId: channel.id_text,
-            previewImageUrl:
-              toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
-            previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
-          })
+      setResolvingFeedId(feedId);
+      setErrorKey(null);
+      try {
+        const channel = await requestWithMobileAuthRefresh(
+          {
+            accessToken,
+            clearSession,
+            refreshToken,
+            setTokens,
+          },
+          async (api) => api.reqChannelGetByPodcastIndexId(feedId)
         );
-      } else {
-        navigation.navigate(
-          SEARCH_STACK_ROUTES.PodcastDetail,
-          buildPodcastDetailParams({
-            podcastId: channel.id_text,
-            previewImageUrl:
-              toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
-            previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
-          })
-        );
-      }
-    } catch {
-      setErrorKey('errors.generic');
-    } finally {
-      setResolvingFeedId(null);
-    }
-  };
 
-  const listEmpty = isLoading ? (
-    <LoadingSection testID="search-loading" />
-  ) : errorKey !== null ? (
-    <VerticalCenter>
-      <ListError
-        messageKey={errorKey}
-        onRetry={() => {
-          setDebouncedQuery(query.trim());
-        }}
-        testID="search-error"
-      />
-    </VerticalCenter>
-  ) : debouncedQuery.length === 0 ? null : (
-    <VerticalCenter>
-      <ListEmpty messageKey="misc.info" testID="search-empty-results" />
-    </VerticalCenter>
+        // Endpoint returns null when the channel is not parsed-ready. Mirror web: open the
+        // Podcast Index preview/add screen instead of a generic "Try again" dead-end.
+        if (channel === null || channel.id_text.length === 0 || !channel.medium_id) {
+          const imageUrl =
+            feed.image.length > 0 ? feed.image : feed.artwork.length > 0 ? feed.artwork : null;
+          navigation.navigate(SEARCH_STACK_ROUTES.SearchResultDetail, {
+            author: feed.author,
+            description: feed.description,
+            feedUrl: feed.url,
+            imageUrl,
+            resultId: feedId,
+            title: feed.title,
+          });
+          return;
+        }
+
+        const kind = getChannelRouteKind(channel.medium_id);
+        // Stay on the Search stack (tab isolation) — do not jump to Home for detail.
+        if (kind === 'artist') {
+          navigation.navigate(SEARCH_STACK_ROUTES.ArtistDetail, {
+            artistId: channel.id_text,
+          });
+        } else if (kind === 'album') {
+          navigation.navigate(
+            SEARCH_STACK_ROUTES.AlbumDetail,
+            buildAlbumDetailParams({
+              albumId: channel.id_text,
+              previewImageUrl:
+                toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
+              previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
+            })
+          );
+        } else {
+          navigation.navigate(
+            SEARCH_STACK_ROUTES.PodcastDetail,
+            buildPodcastDetailParams({
+              podcastId: channel.id_text,
+              previewImageUrl:
+                toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
+              previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
+            })
+          );
+        }
+      } catch {
+        setErrorKey('errors.generic');
+      } finally {
+        setResolvingFeedId(null);
+      }
+    },
+    [accessToken, clearSession, navigation, refreshToken, resolvingFeedId, setTokens]
   );
 
-  const listFooter =
-    resolvingFeedId !== null ? <Text style={styles.notice}>{t('misc.loading')}</Text> : null;
+  const handleResultPress = useCallback(
+    (feed: SearchPodcastsFeed) => {
+      void handleFeedPress(feed);
+    },
+    [handleFeedPress]
+  );
 
-  const mediumOptions = [
-    { label: t('filters.type.all'), testID: 'search-medium-all', value: 'all' },
-    { label: t('media.music.music'), testID: 'search-medium-music', value: 'music' },
-  ] as const;
+  const handleRetrySearch = useCallback(() => {
+    setDebouncedQuery(query.trim());
+  }, [query]);
+
+  const listEmpty = useMemo(() => {
+    if (isLoading) {
+      return <LoadingSection testID="search-loading" />;
+    }
+    if (errorKey !== null) {
+      return (
+        <VerticalCenter>
+          <ListError messageKey={errorKey} onRetry={handleRetrySearch} testID="search-error" />
+        </VerticalCenter>
+      );
+    }
+    if (debouncedQuery.length === 0) {
+      return null;
+    }
+    return (
+      <VerticalCenter>
+        <ListEmpty messageKey="misc.info" testID="search-empty-results" />
+      </VerticalCenter>
+    );
+  }, [debouncedQuery.length, errorKey, handleRetrySearch, isLoading]);
+
+  const listFooter = useMemo(
+    () =>
+      resolvingFeedId !== null ? <Text style={styles.notice}>{t('misc.loading')}</Text> : null,
+    [resolvingFeedId, styles.notice, t]
+  );
+
+  const mediumOptions = useMemo(
+    () =>
+      [
+        { label: t('filters.type.all'), testID: 'search-medium-all', value: 'all' },
+        { label: t('media.music.music'), testID: 'search-medium-music', value: 'music' },
+      ] as const,
+    [t]
+  );
+
+  const feedCount = feeds.length;
+  const renderItem = useCallback(
+    ({ index, item: feed }: { index: number; item: SearchPodcastsFeed }) => (
+      <SearchResultRow
+        feed={feed}
+        isLast={index === feedCount - 1}
+        onPress={handleResultPress}
+        testID={`search-result-row-${index}`}
+      />
+    ),
+    [feedCount, handleResultPress]
+  );
 
   if (offlineModeEnabled) {
     return (
@@ -377,20 +446,8 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
         contentContainerStyle={styles.resultsContent}
         data={showResultRows ? feeds : []}
         keyboardShouldPersistTaps="handled"
-        keyExtractor={(feed) => String(feed.id)}
-        renderItem={({ index, item: feed }) => (
-          <HomeFeedRow
-            isLast={index === feeds.length - 1}
-            mediaType="podcasts"
-            onPlayPress={(_row) => {}}
-            onPress={() => {
-              void handleFeedPress(feed);
-            }}
-            onQueuePress={(_row) => {}}
-            row={feedToRow(feed)}
-            testID={`search-result-row-${index}`}
-          />
-        )}
+        keyExtractor={searchResultKeyExtractor}
+        renderItem={renderItem}
         style={styles.resultsList}
         testID="search-results"
       />

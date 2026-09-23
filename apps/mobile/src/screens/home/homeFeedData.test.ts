@@ -1,17 +1,37 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { DTOItem } from '@podverse/helpers/dto';
 import { MediumEnum } from '@podverse/helpers/medium';
 
+import type { SubscribedChannel } from '../../data/repositories';
+import { channelItemsRepository, subscriptionsRepository } from '../../data/repositories';
 import {
-  mapItemToHomeFeedRow,
+  fetchHomeFeedRows,
+  HomeFeedStaleReadError,
+  isHomeFeedStaleRead,
   mapItemsToHomeFeedRows,
+  mapItemToHomeFeedRow,
   normalizeChannelRows,
   normalizeClipRows,
   normalizeItemRows,
   readChannelUpdatedAt,
   readUpdatedAt,
 } from './homeFeedData';
+
+vi.mock('../../data/repositories', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../data/repositories')>();
+  return {
+    ...actual,
+    channelItemsRepository: {
+      ...actual.channelItemsRepository,
+      listSubscribed: vi.fn(),
+    },
+    subscriptionsRepository: {
+      ...actual.subscriptionsRepository,
+      list: vi.fn(),
+    },
+  };
+});
 
 describe('readUpdatedAt', () => {
   it('keeps a positive epoch and drops zero or non-finite values', () => {
@@ -226,31 +246,80 @@ describe('normalizeItemRows', () => {
   });
 });
 
+type ItemFixture = {
+  channel: { id_text?: string; medium_id?: MediumEnum; title: string };
+  description?: string;
+  duration?: string;
+  id_text: string;
+  pub_date?: string;
+  title: string;
+};
+
+const itemFixture = (fixture: ItemFixture): DTOItem => ({
+  channel: {
+    feed_id: 1,
+    has_podcast_index_value: false,
+    has_value_time_splits: false,
+    id: 1,
+    id_text: fixture.channel.id_text ?? '',
+    medium_id: fixture.channel.medium_id ?? MediumEnum.Podcast,
+    podcast_guid: null,
+    slug: null,
+    sortable_title: null,
+    title: fixture.channel.title,
+  },
+  channel_id: 1,
+  id: 1,
+  id_text: fixture.id_text,
+  item_about: { duration: fixture.duration, id: 1, item_id: 1 },
+  item_chat: { id: 1, item_id: 1, server: '' },
+  item_content_links: [],
+  item_description:
+    fixture.description === undefined
+      ? undefined
+      : { id: 1, item_id: 1, value: fixture.description },
+  item_enclosures: [],
+  item_flag_status_id: 1,
+  item_fundings: [],
+  item_images: [],
+  item_license: { id: 1, identifier: '', item_id: 1, url: null },
+  item_location: { id: 1, item_id: 1, name: null },
+  item_persons: [],
+  item_season: { channel_season_id: 1, id: 1, item_id: 1, title: null },
+  item_social_interacts: [],
+  item_soundbites: [],
+  item_transcripts: [],
+  item_txts: [],
+  item_values: [],
+  pub_date: fixture.pub_date,
+  title: fixture.title,
+});
+
 describe('mapItemToHomeFeedRow', () => {
-  const richTrack = {
+  const richTrack = itemFixture({
     channel: {
       id_text: 'album-9',
       medium_id: MediumEnum.Music,
       title: 'Nested Album',
     },
+    description: '<p>A liner note.</p>',
+    duration: '215',
     id_text: 'tr-9',
-    item_about: { duration: '215' },
-    item_description: { value: '<p>A liner note.</p>' },
-    item_images: [],
     pub_date: '2026-03-04T12:00:00.000Z',
     title: 'Track Nine',
-  } as DTOItem;
+  });
 
   it('keeps episode rows rich', () => {
-    const row = mapItemToHomeFeedRow({
-      channel: { title: 'No Agenda Show' },
-      id_text: 'ep-9',
-      item_about: { duration: '3600' },
-      item_description: { value: '<p>A weekly look at the news.</p>' },
-      item_images: [],
-      pub_date: '2026-03-04T12:00:00.000Z',
-      title: 'Episode 1824',
-    } as DTOItem);
+    const row = mapItemToHomeFeedRow(
+      itemFixture({
+        channel: { title: 'No Agenda Show' },
+        description: '<p>A weekly look at the news.</p>',
+        duration: '3600',
+        id_text: 'ep-9',
+        pub_date: '2026-03-04T12:00:00.000Z',
+        title: 'Episode 1824',
+      })
+    );
 
     expect(row).toEqual({
       description: 'A weekly look at the news.',
@@ -281,16 +350,15 @@ describe('mapItemToHomeFeedRow', () => {
 
   it('maps a compact artist track to go-to artist', () => {
     const row = mapItemToHomeFeedRow(
-      {
+      itemFixture({
         channel: {
           id_text: 'artist-1',
           medium_id: MediumEnum.PublisherMusic,
           title: 'Example Artist',
         },
         id_text: 'tr-10',
-        item_images: [],
         title: 'Track Ten',
-      } as DTOItem,
+      }),
       { compact: true }
     );
 
@@ -341,5 +409,62 @@ describe('normalizeClipRows', () => {
 
   it('skips payloads that are not clips', () => {
     expect(normalizeClipRows([null, { title: 'No id' }, 'clip'])).toEqual([]);
+  });
+});
+
+describe('fetchHomeFeedRows isCurrent', () => {
+  const followedPodcast = (): SubscribedChannel => ({
+    idText: 'show-1',
+    imageUrl: null,
+    kind: 'podcasts',
+    latestItemPubDateMs: null,
+    medium: 'podcasts',
+    popularityRank: null,
+    source: 'directory',
+    title: 'Example Show',
+  });
+
+  const storedEpisode = itemFixture({
+    channel: { title: 'No Agenda Show' },
+    description: '<p>A weekly look at the news.</p>',
+    duration: '3600',
+    id_text: 'ep-stale-1',
+    pub_date: '2026-03-04T12:00:00.000Z',
+    title: 'Episode 1824',
+  });
+
+  beforeEach(() => {
+    vi.mocked(subscriptionsRepository.list).mockReset();
+    vi.mocked(channelItemsRepository.listSubscribed).mockReset();
+    vi.mocked(subscriptionsRepository.list).mockResolvedValue([followedPodcast()]);
+    vi.mocked(channelItemsRepository.listSubscribed).mockResolvedValue([storedEpisode]);
+  });
+
+  it('abandons a superseded read before mapping rows', async () => {
+    const error = await fetchHomeFeedRows('episodes', { isCurrent: () => false }).then(
+      () => {
+        throw new Error('expected fetchHomeFeedRows to reject');
+      },
+      (reason: unknown) => reason
+    );
+
+    expect(isHomeFeedStaleRead(error)).toBe(true);
+    expect(error).toBeInstanceOf(HomeFeedStaleReadError);
+    expect(channelItemsRepository.listSubscribed).not.toHaveBeenCalled();
+  });
+
+  it('matches a read that omits isCurrent when isCurrent stays true', async () => {
+    const withoutOption = await fetchHomeFeedRows('episodes');
+    const withCurrent = await fetchHomeFeedRows('episodes', { isCurrent: () => true });
+
+    expect(withCurrent).toEqual(withoutOption);
+    expect(withCurrent).toEqual(mapItemsToHomeFeedRows([storedEpisode]));
+  });
+});
+
+describe('isHomeFeedStaleRead', () => {
+  it('returns false for a plain Error and for undefined', () => {
+    expect(isHomeFeedStaleRead(new Error('disk failed'))).toBe(false);
+    expect(isHomeFeedStaleRead(undefined)).toBe(false);
   });
 });

@@ -149,7 +149,13 @@ describe('resolveNowPlayingSegment', () => {
   });
 
   it('follows a scrub preview while a chapter target is playing', () => {
-    const playing = chapter({ end_time: '30', id: 1, id_text: 'c1', start_time: '0', title: 'Intro' });
+    const playing = chapter({
+      end_time: '30',
+      id: 1,
+      id_text: 'c1',
+      start_time: '0',
+      title: 'Intro',
+    });
     const chapters = [
       playing,
       chapter({ end_time: '90', id: 2, id_text: 'c2', start_time: '30', title: 'Interview' }),

@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { AccessibilityInfo, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { matchesTitleFilter } from '@podverse/helpers';
@@ -10,10 +11,11 @@ import { matchesTitleFilter } from '@podverse/helpers';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { ListFilterField, ListFilterHeader } from '../../components/form';
-import { FillList, SwipeActionRow } from '../../components/primitives';
+import { FillList, SwipeActionRow, VerticalCenter } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
+import { ListLoading } from '../../components/state/ListLoading';
 import {
   channelSeenRepository,
   downloadsRepository,
@@ -27,6 +29,7 @@ import {
   isHomeDownloadedItemsOnly,
   OFFLINE_UNAVAILABLE_MESSAGE_KEY,
 } from '../../lib/offlineModeViews';
+import { perfMark } from '../../lib/perf/perfSpans';
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
 import {
   BROWSE_STACK_ROUTES,
@@ -67,30 +70,29 @@ import { useTheme } from '../../theme/useTheme';
 import type { BrowseMediaType } from '../browse/browseTypes';
 import { HOME_MEDIA_TYPE_ORDER, MEDIA_TYPE_LABEL_KEYS } from '../browse/browseTypes';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
+import type { HomeFeedRowData } from './homeFeedData';
 import {
   fetchDownloadedHomeFeedRows,
   fetchHomeFeedRows,
   fetchUnsubscribedDownloadHomeRows,
+  isHomeFeedStaleRead,
 } from './homeFeedData';
-import type { HomeFeedRowData } from './homeFeedData';
+import { HomeFeedGridCell } from './HomeFeedGridCell';
 import type { HomeFeedLoadSource } from './homeFeedLoadPolicy';
+import { homeFeedKeepsVisibleRowsOnError, homeFeedShowsRefreshControl } from './homeFeedLoadPolicy';
 import {
-  homeFeedKeepsVisibleRowsOnError,
-  homeFeedShowsRefreshControl,
-} from './homeFeedLoadPolicy';
-import {
+  appendHomeFeedReadFailure,
   HOME_FEED_PREFS_TIMEOUT_CODE,
   HOME_FEED_READ_TIMEOUT_MS,
-  appendHomeFeedReadFailure,
   withHomeFeedReadBudget,
 } from './homeFeedReadLog';
-import { HomeFeedGridCell } from './HomeFeedGridCell';
 import { HomeFeedRow } from './HomeFeedRow';
 import { readHomeFilterTerm, writeHomeFilterTerm } from './homeFilterSession';
 import { HomeOverflowMenu } from './HomeOverflowMenu';
 import { mergeDownloadedCountsIntoHomeRows } from './homeRowMetadata';
 import { HomeSortChip } from './HomeSortChip';
 import { MediaTypeSelector } from './MediaTypeSelector';
+import type { QueueActionPosition } from './useHomeRowPlayback';
 import { useHomeRowPlayback } from './useHomeRowPlayback';
 
 /**
@@ -106,6 +108,115 @@ type HomeListPrefsState = {
   sort: HomeSortOption;
   viewMode: HomeViewMode;
 };
+
+const homeFeedRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
+
+function HomeFeedListItem({
+  addToPlaylistPress,
+  cellStyle,
+  goToChannel,
+  goToTrack,
+  isGridView,
+  isLast,
+  mediaType,
+  onPlay,
+  onPress,
+  onQueue,
+  onUnsubscribe,
+  row,
+  unsubscribeLabel,
+}: {
+  addToPlaylistPress?: (row: HomeFeedRowData) => void;
+  cellStyle: StyleProp<ViewStyle>;
+  goToChannel?: (row: HomeFeedRowData) => void;
+  goToTrack?: (row: HomeFeedRowData) => void;
+  isGridView: boolean;
+  isLast: boolean;
+  mediaType: HomeMediaType;
+  onPlay: (row: HomeFeedRowData) => void;
+  onPress: (row: HomeFeedRowData) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+  onUnsubscribe: (row: HomeFeedRowData) => void;
+  row: HomeFeedRowData;
+  unsubscribeLabel: string;
+}) {
+  const handleRemove = useCallback(() => {
+    onUnsubscribe(row);
+  }, [onUnsubscribe, row]);
+
+  const feedRow = isGridView ? (
+    <HomeFeedGridCell onPress={onPress} row={row} />
+  ) : (
+    <HomeFeedRow
+      isLast={isLast}
+      mediaType={mediaType}
+      onAddToPlaylistPress={addToPlaylistPress}
+      onGoToChannelPress={goToChannel}
+      onGoToTrackPress={goToTrack}
+      onPlayPress={onPlay}
+      onPress={onPress}
+      onQueuePress={onQueue}
+      row={row}
+    />
+  );
+
+  return (
+    <View style={cellStyle}>
+      {!isGridView && isHomeFilterMediaType(mediaType) ? (
+        <SwipeActionRow
+          actionTestID={`home-feed-row-${row.id}-unsubscribe`}
+          onRemove={handleRemove}
+          removeLabel={unsubscribeLabel}
+          testID={`home-feed-row-${row.id}-swipe`}
+        >
+          {feedRow}
+        </SwipeActionRow>
+      ) : (
+        feedRow
+      )}
+    </View>
+  );
+}
+
+function HomeUnsubscribedDownloadRow({
+  isLast,
+  onDelete,
+  onPlay,
+  onPress,
+  onQueue,
+  row,
+}: {
+  isLast: boolean;
+  onDelete: (row: HomeFeedRowData) => void;
+  onPlay: (row: HomeFeedRowData) => void;
+  onPress: (row: HomeFeedRowData) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+  row: HomeFeedRowData;
+}) {
+  const { t } = useTranslation();
+  const handleRemove = useCallback(() => {
+    onDelete(row);
+  }, [onDelete, row]);
+
+  return (
+    <SwipeActionRow
+      actionTestID={`home-unsubscribed-download-row-${row.id}-delete-all`}
+      onRemove={handleRemove}
+      removeLabel={t('features.download.delete_all')}
+      testID={`home-unsubscribed-download-row-${row.id}-swipe`}
+    >
+      <HomeFeedRow
+        isLast={isLast}
+        mediaType="podcasts"
+        onPlayPress={onPlay}
+        onPress={onPress}
+        onQueuePress={onQueue}
+        row={row}
+        testID={`home-unsubscribed-download-row-${row.id}`}
+      />
+    </SwipeActionRow>
+  );
+}
 
 export function HomeScreen() {
   const { t } = useTranslation();
@@ -129,6 +240,8 @@ export function HomeScreen() {
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
   const [actionErrorKey, setActionErrorKey] = useState<string | null>(null);
   const feedRequestIdRef = useRef<number>(0);
+  const hasLoadedFeedOnceRef = useRef(false);
+  const isFeedRefreshingRef = useRef(false);
   const unsubscribingIdsRef = useRef<Set<string>>(new Set());
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
@@ -148,6 +261,8 @@ export function HomeScreen() {
           sort: DEFAULT_HOME_SORT,
           viewMode: listPrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE,
         };
+
+  const arePrefsHydrated = listPrefs !== null && listPrefs.mediaType === selectedMediaType;
 
   // Only episodes/tracks (item) and clips (clip) are playlist resources; null means the row gets no
   // add-to-playlist action.
@@ -211,6 +326,7 @@ export function HomeScreen() {
     let isMounted = true;
 
     const readPrefs = async () => {
+      perfMark('home.prefs.start', selectedMediaType);
       try {
         const stored = await withHomeFeedReadBudget(
           readHomeListPrefs(selectedMediaType),
@@ -219,6 +335,7 @@ export function HomeScreen() {
           HOME_FEED_PREFS_TIMEOUT_CODE
         );
         if (isMounted) {
+          perfMark('home.prefs.end', selectedMediaType);
           setListPrefs({ ...stored, mediaType: selectedMediaType });
         }
       } catch (error) {
@@ -228,6 +345,7 @@ export function HomeScreen() {
           source: 'prefs',
         });
         if (isMounted) {
+          perfMark('home.prefs.end', 'fallback');
           setListPrefs({
             mediaType: selectedMediaType,
             range: DEFAULT_HOME_RANGE,
@@ -249,14 +367,28 @@ export function HomeScreen() {
     };
   }, [isMediaTypeHydrated, selectedMediaType]);
 
-  const handleMediaTypeChange = useCallback((mediaType: HomeMediaType) => {
-    setFeedRows([]);
-    setUnsubscribedDownloadRows([]);
-    setFeedErrorKey(null);
-    setHasCompletedFeedRead(false);
-    setSelectedMediaType(mediaType);
-    void writePreferredMediaType(mediaType);
-  }, []);
+  const handleMediaTypeChange = useCallback(
+    (mediaType: HomeMediaType) => {
+      perfMark('home.chip.tap', mediaType);
+      if (mediaType === selectedMediaType) {
+        return;
+      }
+
+      // Advancing here rather than in loadFeed is what makes rapid taps coalesce: the read for the
+      // chip the user just left is abandoned mid-flight instead of finishing and being discarded.
+      feedRequestIdRef.current += 1;
+
+      // Chip and rows commit together. A held clear leaves the previous media type's rows mounted
+      // under the new chip, which reads as the wrong list loading.
+      setSelectedMediaType(mediaType);
+      setFeedRows([]);
+      setUnsubscribedDownloadRows([]);
+      setFeedErrorKey(null);
+      setHasCompletedFeedRead(false);
+      void writePreferredMediaType(mediaType);
+    },
+    [selectedMediaType]
+  );
 
   const handleSortChange = useCallback(
     (sort: HomeSortOption) => {
@@ -317,13 +449,15 @@ export function HomeScreen() {
   );
   const loadFeed = useCallback(
     async (source: HomeFeedLoadSource) => {
+      perfMark('home.load.start', source);
       const requestId = feedRequestIdRef.current + 1;
       feedRequestIdRef.current = requestId;
 
       if (homeFeedShowsRefreshControl(source)) {
-        if (isFeedRefreshing) {
+        if (isFeedRefreshingRef.current) {
           return;
         }
+        isFeedRefreshingRef.current = true;
         setIsFeedRefreshing(true);
         // The gesture rereads this list and also asks the queue to reconcile everything else.
         // The refresh control answers "is this list current"; the sync bar answers the rest.
@@ -346,15 +480,18 @@ export function HomeScreen() {
             offlineModeEnabled && isHomeDownloadedItemsOnly(selectedMediaType)
               ? fetchDownloadedHomeFeedRows(selectedMediaType)
               : fetchHomeFeedRows(selectedMediaType, {
+                  isCurrent: () => requestId === feedRequestIdRef.current,
                   range: resolvedPrefs.range,
                   sort: resolvedPrefs.sort,
                 }),
             HOME_FEED_READ_TIMEOUT_MS,
             `${source}-${selectedMediaType}`
           );
+          perfMark('home.repo.end', selectedMediaType);
           if (requestId !== feedRequestIdRef.current) {
             return;
           }
+          perfMark('home.rows.set', selectedMediaType);
           setFeedRows(rows);
           setHasCompletedFeedRead(true);
           if (selectedMediaType === 'podcasts') {
@@ -386,7 +523,8 @@ export function HomeScreen() {
           }
         }
       } catch (error) {
-        if (requestId !== feedRequestIdRef.current) {
+        if (isHomeFeedStaleRead(error) || requestId !== feedRequestIdRef.current) {
+          perfMark('home.load.abandoned', selectedMediaType);
           return;
         }
         appendHomeFeedReadFailure({
@@ -402,27 +540,44 @@ export function HomeScreen() {
         setUnsubscribedDownloadRows([]);
         setFeedErrorKey('errors.generic');
       } finally {
-        if (requestId === feedRequestIdRef.current && homeFeedShowsRefreshControl(source)) {
-          setIsFeedRefreshing(false);
+        if (homeFeedShowsRefreshControl(source)) {
+          isFeedRefreshingRef.current = false;
+          if (requestId === feedRequestIdRef.current) {
+            setIsFeedRefreshing(false);
+          }
         }
       }
     },
-    [
-      isFeedRefreshing,
-      offlineModeEnabled,
-      requestSync,
-      resolvedPrefs.range,
-      resolvedPrefs.sort,
-      selectedMediaType,
-    ]
+    [offlineModeEnabled, requestSync, resolvedPrefs.range, resolvedPrefs.sort, selectedMediaType]
   );
 
   const loadFeedRef = useRef(loadFeed);
   loadFeedRef.current = loadFeed;
 
   useEffect(() => {
+    if (hasLoadedFeedOnceRef.current && !arePrefsHydrated) {
+      return;
+    }
+    hasLoadedFeedOnceRef.current = true;
     void loadFeedRef.current('initial');
-  }, [offlineModeEnabled, resolvedPrefs.range, resolvedPrefs.sort, selectedMediaType]);
+  }, [
+    arePrefsHydrated,
+    offlineModeEnabled,
+    resolvedPrefs.range,
+    resolvedPrefs.sort,
+    selectedMediaType,
+  ]);
+
+  // One animation frame after commit, not a true paint callback. Consistent across runs.
+  useEffect(() => {
+    if (feedRows.length === 0) {
+      return;
+    }
+    const handle = requestAnimationFrame(() => {
+      perfMark('home.paint', selectedMediaType);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [feedRows, selectedMediaType]);
 
   useEffect(() => {
     return homeFeedRefresh.subscribe(() => {
@@ -693,6 +848,56 @@ export function HomeScreen() {
     [navigation]
   );
 
+  const handlePlayPress = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      runPlayAction(nextRow, selectedMediaType);
+    },
+    [runPlayAction, selectedMediaType]
+  );
+
+  const handleQueuePress = useCallback(
+    (nextRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(nextRow, selectedMediaType, position);
+    },
+    [runQueueAction, selectedMediaType]
+  );
+
+  const handlePodcastPlayPress = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      runPlayAction(nextRow, 'podcasts');
+    },
+    [runPlayAction]
+  );
+
+  const handlePodcastQueuePress = useCallback(
+    (nextRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(nextRow, 'podcasts', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleAddToPlaylistPress = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      if (addToPlaylistTarget === null) {
+        return;
+      }
+      requestAddToPlaylist({
+        idText: nextRow.id,
+        kind: addToPlaylistTarget.kind,
+        medium: addToPlaylistTarget.medium,
+      });
+    },
+    [addToPlaylistTarget, requestAddToPlaylist]
+  );
+
+  const handleRetryFeed = useCallback(() => {
+    void loadFeed('retry');
+  }, [loadFeed]);
+
+  const handleRefreshFeed = useCallback(() => {
+    void loadFeed('refresh');
+  }, [loadFeed]);
+
   // Runs against the rows already on screen, so it narrows whichever media type is showing and
   // needs no connection — the Podcasts and Episodes lists it matters most for are read from the
   // device to begin with.
@@ -781,6 +986,7 @@ export function HomeScreen() {
   }, [gridCellWidth, isGridView, themeStyles, tokens]);
 
   const showFeedRows = feedErrorKey === null;
+  const isFeedBusy = !hasCompletedFeedRead;
   const showFilterField =
     showFeedRows && feedRows.length > 0 && isHomeFilterMediaType(selectedMediaType);
   const showActionError = showFeedRows && feedRows.length > 0 && actionErrorKey !== null;
@@ -798,48 +1004,12 @@ export function HomeScreen() {
     status !== 'authenticated' &&
     hasPodcastSubscriptions;
   const showNoSubscriptions =
-    hasCompletedFeedRead &&
+    !isFeedBusy &&
     !showClipsOfflineUnavailable &&
     showFeedRows &&
     feedRows.length === 0 &&
     (selectedMediaType !== 'podcasts' || unsubscribedDownloadRows.length === 0);
   const showNoFilterMatches = showFeedRows && feedRows.length > 0 && visibleRows.length === 0;
-
-  const listHeader = (
-    <>
-      {showFilterField ? (
-        <ListFilterHeader hasItemsBelow={visibleRows.length > 0} style={styles.filterRow}>
-          <ListFilterField
-            clearLabel={t('subscriptions.filter.clear')}
-            label={t('subscriptions.filter.placeholder')}
-            onChangeTerm={handleFilterTermChange}
-            term={filterTerm}
-            testID="home-filter"
-          />
-        </ListFilterHeader>
-      ) : null}
-      {showActionError && actionErrorKey !== null ? (
-        <Text style={styles.feedNotice} testID="home-action-error">
-          {t(actionErrorKey)}
-        </Text>
-      ) : null}
-      {feedErrorKey !== null ? (
-        <ListError
-          messageKey={feedErrorKey}
-          onRetry={() => {
-            void loadFeed('retry');
-          }}
-          testID="home-list-error"
-        />
-      ) : null}
-      {showNoFilterMatches ? (
-        <ListEmpty
-          messageKey="subscriptions.no_filter_matches"
-          testID="home-list-no-filter-matches"
-        />
-      ) : null}
-    </>
-  );
 
   const emptyBrowseMediaType: BrowseMediaType = selectedMediaType;
   const showSearchOnEmpty =
@@ -849,109 +1019,245 @@ export function HomeScreen() {
     selectedMediaType === 'tracks';
   const searchMediumOnEmpty = selectedMediaType === 'podcasts' ? 'all' : ('music' as const);
 
-  const listEmpty = !hasCompletedFeedRead ? null : showClipsOfflineUnavailable ? (
-    <ListEmpty
-      messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
-      testID="home-clips-offline-unavailable"
-    />
-  ) : showNoSubscriptions && showClipsLogin ? (
-    <CallToActionSection
-      actionLabelKey="authentication.login"
-      actionTestID="home-list-empty-login"
-      messageKey="authentication.login_required"
-      onAction={onRequestLogin}
-      testID="home-list-empty"
-    />
-  ) : showNoSubscriptions && showSearchOnEmpty ? (
-    <CallToActionSection
-      actionLabelKey="features.search.search"
-      actionTestID="home-list-empty-search"
-      messageKey="subscriptions.empty_message"
-      onAction={() => {
-        handleSearchPress(searchMediumOnEmpty);
-      }}
-      onSecondaryAction={() => {
-        handleBrowsePress(emptyBrowseMediaType);
-      }}
-      secondaryActionLabelKey="nav.tab.browse"
-      secondaryActionTestID="home-list-empty-browse"
-      testID="home-list-empty"
-    />
-  ) : showNoSubscriptions ? (
-    <CallToActionSection
-      actionLabelKey="nav.tab.browse"
-      actionTestID="home-list-empty-browse"
-      messageKey="subscriptions.empty_message"
-      onAction={() => {
-        handleBrowsePress(emptyBrowseMediaType);
-      }}
-      testID="home-list-empty"
-    />
-  ) : null;
+  const handleEmptySearch = useCallback(() => {
+    handleSearchPress(searchMediumOnEmpty);
+  }, [handleSearchPress, searchMediumOnEmpty]);
 
-  const listFooter = (
-    <>
-      {showFeedRows && selectedMediaType === 'podcasts' && unsubscribedDownloadRows.length > 0 ? (
-        <View
-          style={[
-            styles.unsubscribedSection,
-            feedRows.length > 0 ? styles.unsubscribedSectionAfterList : null,
-          ]}
-          testID="home-unsubscribed-downloads"
-        >
-          {feedRows.length > 0 ? (
-            <View style={styles.unsubscribedDivider} testID="home-unsubscribed-downloads-divider" />
-          ) : null}
-          <Text
-            accessibilityRole="header"
-            style={styles.unsubscribedSectionTitle}
-            testID="home-unsubscribed-downloads-title"
-          >
-            {t('subscriptions.downloaded_only')}
+  const handleEmptyBrowse = useCallback(() => {
+    handleBrowsePress(emptyBrowseMediaType);
+  }, [emptyBrowseMediaType, handleBrowsePress]);
+
+  const listHeader = useMemo(
+    () => (
+      <>
+        {showFilterField ? (
+          <ListFilterHeader hasItemsBelow={visibleRows.length > 0} style={styles.filterRow}>
+            <ListFilterField
+              clearLabel={t('subscriptions.filter.clear')}
+              label={t('subscriptions.filter.placeholder')}
+              onChangeTerm={handleFilterTermChange}
+              term={filterTerm}
+              testID="home-filter"
+            />
+          </ListFilterHeader>
+        ) : null}
+        {showActionError && actionErrorKey !== null ? (
+          <Text style={styles.feedNotice} testID="home-action-error">
+            {t(actionErrorKey)}
           </Text>
-          {isGridView ? (
-            <View style={styles.unsubscribedGrid}>
-              {unsubscribedDownloadRows.map((row) => (
-                <View key={row.id} style={styles.columnCell}>
-                  <HomeFeedGridCell
-                    onPress={handleRowPress}
-                    row={row}
-                    testID={`home-unsubscribed-download-cell-${row.id}`}
-                  />
-                </View>
-              ))}
-            </View>
-          ) : (
-            unsubscribedDownloadRows.map((row, index) => (
-              <SwipeActionRow
-                actionTestID={`home-unsubscribed-download-row-${row.id}-delete-all`}
-                key={row.id}
-                onRemove={() => handleDeleteUnsubscribedDownloads(row)}
-                removeLabel={t('features.download.delete_all')}
-                testID={`home-unsubscribed-download-row-${row.id}-swipe`}
-              >
-                <HomeFeedRow
-                  isLast={index === unsubscribedDownloadRows.length - 1}
-                  mediaType="podcasts"
-                  onPlayPress={(nextRow) => {
-                    runPlayAction(nextRow, 'podcasts');
-                  }}
+        ) : null}
+        {feedErrorKey !== null ? (
+          <ListError messageKey={feedErrorKey} onRetry={handleRetryFeed} testID="home-list-error" />
+        ) : null}
+        {showNoFilterMatches ? (
+          <ListEmpty
+            messageKey="subscriptions.no_filter_matches"
+            testID="home-list-no-filter-matches"
+          />
+        ) : null}
+      </>
+    ),
+    [
+      actionErrorKey,
+      feedErrorKey,
+      filterTerm,
+      handleFilterTermChange,
+      handleRetryFeed,
+      showActionError,
+      showFilterField,
+      showNoFilterMatches,
+      styles.feedNotice,
+      styles.filterRow,
+      t,
+      visibleRows.length,
+    ]
+  );
+
+  const listEmpty = useMemo(
+    () =>
+      isFeedBusy ? (
+        <VerticalCenter testID="home-feed-loading">
+          <ListLoading testID="home-feed-loading-indicator" />
+        </VerticalCenter>
+      ) : showClipsOfflineUnavailable ? (
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="home-clips-offline-unavailable"
+        />
+      ) : showNoSubscriptions && showClipsLogin ? (
+        <CallToActionSection
+          actionLabelKey="authentication.login"
+          actionTestID="home-list-empty-login"
+          messageKey="authentication.login_required"
+          onAction={onRequestLogin}
+          testID="home-list-empty"
+        />
+      ) : showNoSubscriptions && showSearchOnEmpty ? (
+        <CallToActionSection
+          actionLabelKey="features.search.search"
+          actionTestID="home-list-empty-search"
+          messageKey="subscriptions.empty_message"
+          onAction={handleEmptySearch}
+          onSecondaryAction={handleEmptyBrowse}
+          secondaryActionLabelKey="nav.tab.browse"
+          secondaryActionTestID="home-list-empty-browse"
+          testID="home-list-empty"
+        />
+      ) : showNoSubscriptions ? (
+        <CallToActionSection
+          actionLabelKey="nav.tab.browse"
+          actionTestID="home-list-empty-browse"
+          messageKey="subscriptions.empty_message"
+          onAction={handleEmptyBrowse}
+          testID="home-list-empty"
+        />
+      ) : null,
+    [
+      handleEmptyBrowse,
+      handleEmptySearch,
+      isFeedBusy,
+      onRequestLogin,
+      showClipsLogin,
+      showClipsOfflineUnavailable,
+      showNoSubscriptions,
+      showSearchOnEmpty,
+    ]
+  );
+
+  const unsubscribedDownloadCount = unsubscribedDownloadRows.length;
+
+  const listFooter = useMemo(
+    () => (
+      <>
+        {showFeedRows && selectedMediaType === 'podcasts' && unsubscribedDownloadCount > 0 ? (
+          <View
+            style={[
+              styles.unsubscribedSection,
+              feedRows.length > 0 ? styles.unsubscribedSectionAfterList : null,
+            ]}
+            testID="home-unsubscribed-downloads"
+          >
+            {feedRows.length > 0 ? (
+              <View
+                style={styles.unsubscribedDivider}
+                testID="home-unsubscribed-downloads-divider"
+              />
+            ) : null}
+            <Text
+              accessibilityRole="header"
+              style={styles.unsubscribedSectionTitle}
+              testID="home-unsubscribed-downloads-title"
+            >
+              {t('subscriptions.downloaded_only')}
+            </Text>
+            {isGridView ? (
+              <View style={styles.unsubscribedGrid}>
+                {unsubscribedDownloadRows.map((row) => (
+                  <View key={row.id} style={styles.columnCell}>
+                    <HomeFeedGridCell
+                      onPress={handleRowPress}
+                      row={row}
+                      testID={`home-unsubscribed-download-cell-${row.id}`}
+                    />
+                  </View>
+                ))}
+              </View>
+            ) : (
+              unsubscribedDownloadRows.map((row, index) => (
+                <HomeUnsubscribedDownloadRow
+                  isLast={index === unsubscribedDownloadCount - 1}
+                  key={row.id}
+                  onDelete={handleDeleteUnsubscribedDownloads}
+                  onPlay={handlePodcastPlayPress}
                   onPress={handleRowPress}
-                  onQueuePress={(nextRow, position) => {
-                    runQueueAction(nextRow, 'podcasts', position);
-                  }}
+                  onQueue={handlePodcastQueuePress}
                   row={row}
-                  testID={`home-unsubscribed-download-row-${row.id}`}
                 />
-              </SwipeActionRow>
-            ))
-          )}
-        </View>
-      ) : null}
-      {playbackNoticeKey !== null ? (
-        <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
-      ) : null}
-    </>
+              ))
+            )}
+          </View>
+        ) : null}
+        {playbackNoticeKey !== null ? (
+          <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
+        ) : null}
+      </>
+    ),
+    [
+      feedRows.length,
+      handleDeleteUnsubscribedDownloads,
+      handlePodcastPlayPress,
+      handlePodcastQueuePress,
+      handleRowPress,
+      isGridView,
+      playbackNoticeKey,
+      selectedMediaType,
+      showFeedRows,
+      styles.columnCell,
+      styles.feedNotice,
+      styles.unsubscribedDivider,
+      styles.unsubscribedGrid,
+      styles.unsubscribedSection,
+      styles.unsubscribedSectionAfterList,
+      styles.unsubscribedSectionTitle,
+      t,
+      unsubscribedDownloadCount,
+      unsubscribedDownloadRows,
+    ]
+  );
+
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRefreshFeed}
+        refreshing={isFeedRefreshing}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
+      />
+    ),
+    [handleRefreshFeed, isFeedRefreshing, themeStyles.buttonPrimary.backgroundColor]
+  );
+
+  const visibleRowCount = visibleRows.length;
+  const rowAddToPlaylistPress =
+    status === 'authenticated' && addToPlaylistTarget !== null
+      ? handleAddToPlaylistPress
+      : undefined;
+  const rowGoToChannel = selectedMediaType === 'tracks' ? handleGoToChannel : undefined;
+  const rowGoToTrack = selectedMediaType === 'tracks' ? handleGoToTrack : undefined;
+  const unsubscribeLabel = t('features.unsubscribe');
+  const feedCellStyle = columns > 1 ? styles.columnCell : undefined;
+
+  const renderItem = useCallback(
+    ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
+      <HomeFeedListItem
+        addToPlaylistPress={rowAddToPlaylistPress}
+        cellStyle={feedCellStyle}
+        goToChannel={rowGoToChannel}
+        goToTrack={rowGoToTrack}
+        isGridView={isGridView}
+        isLast={index === visibleRowCount - 1}
+        mediaType={selectedMediaType}
+        onPlay={handlePlayPress}
+        onPress={handleRowPress}
+        onQueue={handleQueuePress}
+        onUnsubscribe={handleUnsubscribe}
+        row={row}
+        unsubscribeLabel={unsubscribeLabel}
+      />
+    ),
+    [
+      feedCellStyle,
+      handlePlayPress,
+      handleQueuePress,
+      handleRowPress,
+      handleUnsubscribe,
+      isGridView,
+      rowAddToPlaylistPress,
+      rowGoToChannel,
+      rowGoToTrack,
+      selectedMediaType,
+      unsubscribeLabel,
+      visibleRowCount,
+    ]
   );
 
   return (
@@ -990,67 +1296,10 @@ export function HomeScreen() {
         data={showFeedRows ? visibleRows : []}
         keyboardShouldPersistTaps="handled"
         key={`cols-${columns}`}
-        keyExtractor={(row) => row.id}
+        keyExtractor={homeFeedRowKeyExtractor}
         numColumns={columns}
-        refreshControl={
-          <RefreshControl
-            onRefresh={() => {
-              void loadFeed('refresh');
-            }}
-            refreshing={isFeedRefreshing}
-            tintColor={themeStyles.buttonPrimary.backgroundColor}
-          />
-        }
-        renderItem={({ index, item: row }) => {
-          const feedRow = isGridView ? (
-            <HomeFeedGridCell onPress={handleRowPress} row={row} />
-          ) : (
-            <HomeFeedRow
-              isLast={index === visibleRows.length - 1}
-              mediaType={selectedMediaType}
-              onAddToPlaylistPress={
-                status === 'authenticated' && addToPlaylistTarget !== null
-                  ? (nextRow) => {
-                      requestAddToPlaylist({
-                        idText: nextRow.id,
-                        kind: addToPlaylistTarget.kind,
-                        medium: addToPlaylistTarget.medium,
-                      });
-                    }
-                  : undefined
-              }
-              onGoToChannelPress={
-                selectedMediaType === 'tracks' ? handleGoToChannel : undefined
-              }
-              onGoToTrackPress={selectedMediaType === 'tracks' ? handleGoToTrack : undefined}
-              onPlayPress={(nextRow) => {
-                runPlayAction(nextRow, selectedMediaType);
-              }}
-              onPress={handleRowPress}
-              onQueuePress={(nextRow, position) => {
-                runQueueAction(nextRow, selectedMediaType, position);
-              }}
-              row={row}
-            />
-          );
-
-          return (
-            <View style={columns > 1 ? styles.columnCell : undefined}>
-              {!isGridView && isHomeFilterMediaType(selectedMediaType) ? (
-                <SwipeActionRow
-                  actionTestID={`home-feed-row-${row.id}-unsubscribe`}
-                  onRemove={() => handleUnsubscribe(row)}
-                  removeLabel={t('features.unsubscribe')}
-                  testID={`home-feed-row-${row.id}-swipe`}
-                >
-                  {feedRow}
-                </SwipeActionRow>
-              ) : (
-                feedRow
-              )}
-            </View>
-          );
-        }}
+        refreshControl={refreshControl}
+        renderItem={renderItem}
         testID="home-feed-list"
       />
       {addToPlaylistSheet}

@@ -70,15 +70,15 @@ export type KnownDownloadErrorReason = (typeof DOWNLOAD_ERROR_REASONS)[number];
 
 export type DownloadErrorReasonKey = KnownDownloadErrorReason | 'unknown';
 
+const isKnownDownloadErrorReason = (reason: string): reason is KnownDownloadErrorReason => {
+  return DOWNLOAD_ERROR_REASONS.some((known) => known === reason);
+};
+
 export const downloadErrorReasonKey = (reason: string | null): DownloadErrorReasonKey => {
-  switch (reason) {
-    case 'file_missing':
-    case 'no_storage':
-    case 'transfer_failed':
-      return reason;
-    default:
-      return 'unknown';
+  if (reason !== null && isKnownDownloadErrorReason(reason)) {
+    return reason;
   }
+  return 'unknown';
 };
 
 /**

@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { PlaybackTarget } from '@podverse/playback-core';
 
+import type { DownloadCompleteHandoffRecord } from './planDownloadCompletePlaybackHandoff';
 import {
   DOWNLOAD_HANDOFF_POSITION_TOLERANCE_SECONDS,
   isDownloadHandoffProgressLanded,
   planDownloadCompletePlaybackHandoff,
 } from './planDownloadCompletePlaybackHandoff';
-import type { DownloadCompleteHandoffRecord } from './planDownloadCompletePlaybackHandoff';
 
 const identity = (uri: string): string => uri;
 
@@ -59,9 +59,7 @@ const completeRecord = (
   ...patch,
 });
 
-const plan = (
-  patch: Partial<Parameters<typeof planDownloadCompletePlaybackHandoff>[0]> = {}
-) =>
+const plan = (patch: Partial<Parameters<typeof planDownloadCompletePlaybackHandoff>[0]> = {}) =>
   planDownloadCompletePlaybackHandoff({
     advancing: false,
     lastSourceUrl: 'https://cdn.example.com/ep.mp3',

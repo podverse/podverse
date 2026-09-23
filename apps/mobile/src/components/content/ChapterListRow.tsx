@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { LIST_ROW_ARTWORK_SIZE } from '../../theme/screenLayout';
-import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 import { CoverImage } from '../primitives/CoverImage';
 import { ListRow } from '../primitives/ListRow';
 
@@ -18,12 +19,26 @@ export type ChapterListRowProps = {
   title: string;
 };
 
+const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
+  artwork: {
+    height: LIST_ROW_ARTWORK_SIZE,
+    width: LIST_ROW_ARTWORK_SIZE,
+  },
+  row: {
+    borderBottomColor: themeStyles.border.borderColor,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
+  },
+});
+
 /**
  * Chapter list row used on the full player and episode detail. Artwork is omitted when the
  * section has no chapter images; when any chapter has an image, every row shows one (chapter
  * URL, then item/channel/system fallback).
  */
-export function ChapterListRow({
+export const ChapterListRow = memo(function ChapterListRow({
   artworkAccessibilityLabel,
   artworkUri,
   isLast,
@@ -34,29 +49,16 @@ export function ChapterListRow({
   timeRange,
   title,
 }: ChapterListRowProps) {
-  const { styles: themeStyles, tokens } = useTheme();
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        artwork: {
-          height: LIST_ROW_ARTWORK_SIZE,
-          width: LIST_ROW_ARTWORK_SIZE,
-        },
-        row: {
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          paddingHorizontal: paddingHorizontal ?? 0,
-        },
-        rowLast: {
-          borderBottomWidth: 0,
-        },
-      }),
-    [paddingHorizontal, themeStyles]
-  );
+  const styles = useThemedStyles(createStyles);
 
   return (
-    <View style={[styles.row, isLast ? styles.rowLast : null]}>
+    <View
+      style={[
+        styles.row,
+        isLast ? styles.rowLast : null,
+        { paddingHorizontal: paddingHorizontal ?? 0 },
+      ]}
+    >
       <ListRow
         leading={
           showArtwork ? (
@@ -76,4 +78,4 @@ export function ChapterListRow({
       />
     </View>
   );
-}
+});

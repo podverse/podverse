@@ -13,6 +13,9 @@
  */
 
 import crypto from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import bcrypt from 'bcrypt';
 import { Redis } from 'ioredis';
@@ -39,6 +42,14 @@ const TEST_PASSWORD = 'Test!1Aa';
 const E2E_CONFIGURED_TERMS_VERSION = '2026-01-01';
 const E2E_POPULARITY_TRACKING_VERSION = '2026-09-11';
 const E2E_POPULARITY_UNDECIDED_EMAIL = 'e2e-popularity-undecided@example.com';
+/** Sync with apps/mobile/src/lib/e2e/e2eSeedConstants.ts (`E2E_PERF_EMAIL`). */
+const E2E_PERF_EMAIL = 'e2e-perf@example.com';
+/** `e2ePerfUser01` is 13 characters, inside nano_id_v2's 9–15 range. */
+const E2E_PERF_ACCOUNT_ID_TEXT = 'e2ePerfUser01';
+const E2E_PERF_FEED_URL_PREFIX = 'https://e2e-perf.example/';
+const E2E_PERF_CHANNEL_COUNT = 100;
+const E2E_PERF_ITEM_COUNT = 300;
+const E2E_PERF_PODCAST_CHANNEL_COUNT = 40;
 const E2E_OUTDATED_TERMS_VERSION = '2025-01-01';
 const E2E_STALE_TERMS_EMAIL = 'e2e-stale-terms@example.com';
 
@@ -494,6 +505,48 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
 
   console.log(`Seeded SEO public profile: ${E2E_SEO_PUBLIC_PROFILE_ID_TEXT}`);
 
+  const perfAccountResult = await client.query(
+    `INSERT INTO "account" (id_text, verified, sharable_status_id)
+     VALUES ($1, true, 1)
+     RETURNING id`,
+    [E2E_PERF_ACCOUNT_ID_TEXT]
+  );
+  const perfAccountId = perfAccountResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO "account_credentials" (account_id, email, password)
+     VALUES ($1, $2, $3)`,
+    [perfAccountId, E2E_PERF_EMAIL, passwordHash]
+  );
+
+  await client.query(
+    `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
+     VALUES ($1, 1, $2)`,
+    [perfAccountId, membershipExpiresAt.toISOString()]
+  );
+
+  await client.query(
+    `INSERT INTO "account_terms_acceptance" (account_id, terms_version, accepted_at)
+     VALUES ($1, $2, NOW())`,
+    [perfAccountId, E2E_CONFIGURED_TERMS_VERSION]
+  );
+
+  // An undecided listen-stats row opens the consent prompt over the tab shell. This account is a
+  // normal signed-in library, so the decision is already recorded.
+  await client.query(
+    `INSERT INTO "account_settings" (
+       account_id,
+       allow_listen_stats,
+       listen_stats_accepted,
+       listen_stats_agreement_version,
+       listen_stats_decided_at
+     )
+     VALUES ($1, true, true, $2, NOW())`,
+    [perfAccountId, E2E_POPULARITY_TRACKING_VERSION]
+  );
+
+  console.log(`Seeded perf user: ${E2E_PERF_EMAIL}`);
+
   return accountId;
 }
 
@@ -636,13 +689,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   await client.query(
     `INSERT INTO channel_person (channel_id, name, role, person_group, href)
      VALUES ($1, $2, $3, $4, $5)`,
-    [
-      podcastChannelId,
-      'E2E Channel Host',
-      'host',
-      'cast',
-      'https://e2e-seed-podcast.example/host',
-    ]
+    [podcastChannelId, 'E2E Channel Host', 'host', 'cast', 'https://e2e-seed-podcast.example/host']
   );
 
   await deleteE2eQueueByIdText(client, E2E_PODCAST_QUEUE_ID_TEXT);
@@ -1564,6 +1611,343 @@ async function seedLiveAvFixtures(client) {
   );
 }
 
+const E2E_PERF_ITEM_DESCRIPTION_UNIT =
+  '<p>E2E perf item summary. Hosts &amp; guests discuss &lt;markup&gt;, entities, and a long feed body.</p>';
+
+function buildPerfItemDescriptionHtml() {
+  const repeats = Math.ceil(2000 / E2E_PERF_ITEM_DESCRIPTION_UNIT.length);
+  return E2E_PERF_ITEM_DESCRIPTION_UNIT.repeat(repeats);
+}
+
+const PERF_REMOTE_IMAGE_URLS_PATH = join(
+  dirname(fileURLToPath(import.meta.url)),
+  'perf-remote-image-urls.json'
+);
+
+function assertPerfRemoteImageUrl(url) {
+  if (typeof url !== 'string' || !url.startsWith('https://') || url.length > 2083) {
+    throw new Error('Perf remote image URL must be an https URL of at most 2083 characters');
+  }
+  if (
+    /[\s']/.test(url) ||
+    url.includes('localhost') ||
+    url.includes('127.0.0.1') ||
+    url.includes('10.0.2.2')
+  ) {
+    throw new Error(`Perf remote image URL is not a third-party https URL: ${url}`);
+  }
+}
+
+/**
+ * Saved third-party artwork for the perf volume only. Each list is unique and long enough to give
+ * every perf channel and item its own URL, so a list fling cannot cache-hit one shared file.
+ */
+function loadPerfRemoteImageUrls() {
+  const parsed = JSON.parse(readFileSync(PERF_REMOTE_IMAGE_URLS_PATH, 'utf8'));
+  const channelUrls = parsed.channelUrls;
+  const itemUrls = parsed.itemUrls;
+  if (!Array.isArray(channelUrls) || !Array.isArray(itemUrls)) {
+    throw new Error(`${PERF_REMOTE_IMAGE_URLS_PATH} needs channelUrls and itemUrls arrays`);
+  }
+  if (channelUrls.length < E2E_PERF_CHANNEL_COUNT || itemUrls.length < E2E_PERF_ITEM_COUNT) {
+    throw new Error(
+      `${PERF_REMOTE_IMAGE_URLS_PATH} has ${channelUrls.length} channel URLs and ${itemUrls.length} item URLs; need ${E2E_PERF_CHANNEL_COUNT} and ${E2E_PERF_ITEM_COUNT}`
+    );
+  }
+  const channelSlice = channelUrls.slice(0, E2E_PERF_CHANNEL_COUNT);
+  const itemSlice = itemUrls.slice(0, E2E_PERF_ITEM_COUNT);
+  for (const url of [...channelSlice, ...itemSlice]) {
+    assertPerfRemoteImageUrl(url);
+  }
+  if (
+    new Set(channelSlice).size !== channelSlice.length ||
+    new Set(itemSlice).size !== itemSlice.length
+  ) {
+    throw new Error('Perf remote image URL lists must be unique within each list');
+  }
+  return { channelUrls: channelSlice, itemUrls: itemSlice };
+}
+
+function perfImageRows(urls) {
+  return urls.map((url, index) => ({ n: index + 1, url }));
+}
+
+/**
+ * Perf-volume channels and items. `PODVERSE_E2E_PERF_VOLUME=1` inserts them; every run deletes
+ * them first so a flag-off seed leaves none.
+ *
+ * Subscribed channel lists require `feed_policy.public_visible`, so these feeds stay visible.
+ * `channel_about.last_pub_date` defaults to now, which would put the rows at the front of every
+ * recent directory page, so dates are pinned to 2010 and the existing fixtures stay ahead.
+ * Follows attach only to the perf account.
+ *
+ * Artwork defaults to one local fixture image on every channel and no item images. Set
+ * `PODVERSE_E2E_PERF_REMOTE_IMAGES=1` with the volume flag to assign the saved third-party URL
+ * list instead. That list is perf-only; a regression seed never reads it.
+ */
+async function seedPerfVolumeFixtures(client) {
+  const volumeOn = process.env.PODVERSE_E2E_PERF_VOLUME === '1';
+  const remoteImages = process.env.PODVERSE_E2E_PERF_REMOTE_IMAGES === '1';
+  if (remoteImages && !volumeOn) {
+    throw new Error(
+      'PODVERSE_E2E_PERF_REMOTE_IMAGES=1 requires PODVERSE_E2E_PERF_VOLUME=1. Unset it for regression E2E.'
+    );
+  }
+
+  await client.query(`DELETE FROM channel WHERE id_text LIKE 'e2ePerfCh%'`);
+  await client.query(`DELETE FROM feed WHERE url LIKE $1`, [`${E2E_PERF_FEED_URL_PREFIX}%`]);
+
+  if (!volumeOn) {
+    const leftover = await client.query(
+      `SELECT
+         (SELECT COUNT(*)::int FROM channel WHERE id_text LIKE 'e2ePerfCh%') AS channels,
+         (SELECT COUNT(*)::int FROM item WHERE id_text LIKE 'e2ePerfIt%') AS items,
+         (SELECT COUNT(*)::int FROM feed WHERE url LIKE $1) AS feeds`,
+      [`${E2E_PERF_FEED_URL_PREFIX}%`]
+    );
+    const left = leftover.rows[0];
+    if (left.channels !== 0 || left.items !== 0 || left.feeds !== 0) {
+      throw new Error(`Perf volume survived a flag-off seed: ${JSON.stringify(left)}`);
+    }
+    console.log('Perf volume skipped (PODVERSE_E2E_PERF_VOLUME is not 1).');
+    return;
+  }
+
+  const descriptionHtml = buildPerfItemDescriptionHtml();
+  if (descriptionHtml.length < 2000 || descriptionHtml.length > 10000) {
+    throw new Error(`Perf item description length ${descriptionHtml.length} is outside 2000–10000`);
+  }
+
+  await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     SELECT $1 || 'feed-' || n || '.xml', 900000 + n
+     FROM generate_series(1, $2::int) AS n`,
+    [E2E_PERF_FEED_URL_PREFIX, E2E_PERF_CHANNEL_COUNT]
+  );
+
+  await client.query(
+    `INSERT INTO feed_log (feed_id)
+     SELECT f.id
+     FROM feed f
+     WHERE f.url LIKE $1`,
+    [`${E2E_PERF_FEED_URL_PREFIX}%`]
+  );
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     SELECT f.id, true, true, true
+     FROM feed f
+     WHERE f.url LIKE $1`,
+    [`${E2E_PERF_FEED_URL_PREFIX}%`]
+  );
+
+  await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     SELECT
+       'e2ePerfCh' || lpad(n::text, 3, '0'),
+       f.id,
+       (SELECT id FROM medium WHERE value = CASE
+          WHEN n <= $3::int THEN 'podcast'
+          WHEN n <= 70 THEN 'publisher-music'
+          ELSE 'music' END LIMIT 1),
+       'E2E Perf Channel ' || n
+     FROM generate_series(1, $1::int) AS n
+     JOIN feed f ON f.url = $2 || 'feed-' || n || '.xml'`,
+    [E2E_PERF_CHANNEL_COUNT, E2E_PERF_FEED_URL_PREFIX, E2E_PERF_PODCAST_CHANNEL_COUNT]
+  );
+
+  await client.query(
+    `INSERT INTO channel_about (channel_id, last_pub_date)
+     SELECT c.id, TIMESTAMP '2010-01-01 00:00:00' + (n || ' days')::interval
+     FROM generate_series(1, $1::int) AS n
+     JOIN channel c ON c.id_text = 'e2ePerfCh' || lpad(n::text, 3, '0')`,
+    [E2E_PERF_CHANNEL_COUNT]
+  );
+
+  await client.query(
+    `INSERT INTO channel_description (channel_id, value)
+     SELECT c.id, 'E2E perf channel ' || n || '.'
+     FROM generate_series(1, $1::int) AS n
+     JOIN channel c ON c.id_text = 'e2ePerfCh' || lpad(n::text, 3, '0')`,
+    [E2E_PERF_CHANNEL_COUNT]
+  );
+
+  const remoteImageUrls = remoteImages ? loadPerfRemoteImageUrls() : null;
+  if (remoteImageUrls === null) {
+    await client.query(
+      `INSERT INTO channel_image (channel_id, url, image_width_size)
+       SELECT c.id, $1, 1400
+       FROM channel c
+       WHERE c.id_text LIKE 'e2ePerfCh%'`,
+      [E2E_FIXTURE_CHANNEL_IMAGE_URL]
+    );
+  } else {
+    await client.query(
+      `INSERT INTO channel_image (channel_id, url)
+       SELECT c.id, elem.url
+       FROM jsonb_to_recordset($1::jsonb) AS elem(n int, url text)
+       JOIN channel c ON c.id_text = 'e2ePerfCh' || lpad(elem.n::text, 3, '0')`,
+      [JSON.stringify(perfImageRows(remoteImageUrls.channelUrls))]
+    );
+  }
+
+  await client.query(
+    `INSERT INTO account_following_channel (account_id, channel_id)
+     SELECT a.id, c.id
+     FROM channel c
+     JOIN account_credentials cred ON cred.email = $1
+     JOIN account a ON a.id = cred.account_id
+     WHERE c.id_text LIKE 'e2ePerfCh%'`,
+    [E2E_PERF_EMAIL]
+  );
+
+  await client.query(
+    `INSERT INTO item (id_text, channel_id, guid, pub_date, title, item_flag_status_id)
+     SELECT
+       'e2ePerfIt' || lpad(n::text, 4, '0'),
+       c.id,
+       $1 || 'item-' || n,
+       TIMESTAMP '2010-01-01 00:00:00+00' + (n || ' hours')::interval,
+       'E2E Perf Item ' || n,
+       1
+     FROM generate_series(1, $2::int) AS n
+     JOIN channel c
+       ON c.id_text = 'e2ePerfCh' || lpad((((n - 1) % $3::int) + 1)::text, 3, '0')`,
+    [E2E_PERF_FEED_URL_PREFIX, E2E_PERF_ITEM_COUNT, E2E_PERF_PODCAST_CHANNEL_COUNT]
+  );
+
+  if (remoteImageUrls !== null) {
+    await client.query(
+      `INSERT INTO item_image (item_id, url)
+       SELECT i.id, elem.url
+       FROM jsonb_to_recordset($1::jsonb) AS elem(n int, url text)
+       JOIN item i ON i.id_text = 'e2ePerfIt' || lpad(elem.n::text, 4, '0')`,
+      [JSON.stringify(perfImageRows(remoteImageUrls.itemUrls))]
+    );
+  }
+
+  await client.query(
+    `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
+     SELECT i.id, 'audio/mpeg', 0, 24, true
+     FROM item i
+     WHERE i.id_text LIKE 'e2ePerfIt%'`
+  );
+
+  await client.query(
+    `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
+     SELECT e.id, $1, 'audio/mpeg'
+     FROM item_enclosure e
+     JOIN item i ON i.id = e.item_id
+     WHERE i.id_text LIKE 'e2ePerfIt%'`,
+    [E2E_PODCAST_SHORT_ENCLOSURE_URL]
+  );
+
+  await client.query(
+    `INSERT INTO item_description (item_id, value)
+     SELECT i.id, $1
+     FROM item i
+     WHERE i.id_text LIKE 'e2ePerfIt%'`,
+    [descriptionHtml]
+  );
+
+  const counts = await client.query(
+    `SELECT
+       (SELECT COUNT(*)::int FROM channel WHERE id_text LIKE 'e2ePerfCh%') AS channels,
+       (SELECT COUNT(*)::int FROM channel c
+          JOIN medium m ON m.id = c.medium_id
+          WHERE c.id_text LIKE 'e2ePerfCh%' AND m.value = 'podcast') AS podcasts,
+       (SELECT COUNT(*)::int FROM channel c
+          JOIN medium m ON m.id = c.medium_id
+          WHERE c.id_text LIKE 'e2ePerfCh%' AND m.value = 'publisher-music') AS artists,
+       (SELECT COUNT(*)::int FROM channel c
+          JOIN medium m ON m.id = c.medium_id
+          WHERE c.id_text LIKE 'e2ePerfCh%' AND m.value = 'music') AS albums,
+       (SELECT COUNT(*)::int FROM channel_about ca
+          JOIN channel c ON c.id = ca.channel_id
+          WHERE c.id_text LIKE 'e2ePerfCh%') AS abouts,
+       (SELECT COUNT(*)::int FROM item WHERE id_text LIKE 'e2ePerfIt%') AS items,
+       (SELECT MIN(char_length(d.value)) FROM item_description d
+          JOIN item i ON i.id = d.item_id
+          WHERE i.id_text LIKE 'e2ePerfIt%') AS min_description,
+       (SELECT COUNT(*)::int FROM feed_policy fp
+          JOIN feed f ON f.id = fp.feed_id
+          WHERE f.url LIKE $1 AND fp.public_visible) AS visible_feeds,
+       (SELECT COUNT(*)::int FROM account_following_channel afc
+          JOIN account_credentials cred ON cred.account_id = afc.account_id
+          JOIN channel c ON c.id = afc.channel_id
+          WHERE cred.email = $2 AND c.id_text LIKE 'e2ePerfCh%') AS perf_follows,
+       (SELECT COUNT(*)::int FROM account_following_channel afc
+          JOIN account_credentials cred ON cred.account_id = afc.account_id
+          JOIN channel c ON c.id = afc.channel_id
+          WHERE cred.email = $3 AND c.id_text LIKE 'e2ePerfCh%') AS primary_perf_follows,
+       (SELECT COUNT(*)::int FROM channel_image ci
+          JOIN channel c ON c.id = ci.channel_id
+          WHERE c.id_text LIKE 'e2ePerfCh%') AS channel_images,
+       (SELECT COUNT(DISTINCT ci.url)::int FROM channel_image ci
+          JOIN channel c ON c.id = ci.channel_id
+          WHERE c.id_text LIKE 'e2ePerfCh%') AS channel_image_urls,
+       (SELECT COUNT(*)::int FROM item_image ii
+          JOIN item i ON i.id = ii.item_id
+          WHERE i.id_text LIKE 'e2ePerfIt%') AS item_images,
+       (SELECT COUNT(DISTINCT ii.url)::int FROM item_image ii
+          JOIN item i ON i.id = ii.item_id
+          WHERE i.id_text LIKE 'e2ePerfIt%') AS item_image_urls,
+       (SELECT COUNT(*)::int FROM channel_image ci
+          JOIN channel c ON c.id = ci.channel_id
+          WHERE c.id_text LIKE 'e2ePerfCh%' AND ci.url = $4) AS fixture_channel_images`,
+    [`${E2E_PERF_FEED_URL_PREFIX}%`, E2E_PERF_EMAIL, E2E_USER_EMAIL, E2E_FIXTURE_CHANNEL_IMAGE_URL]
+  );
+  const row = counts.rows[0];
+  const channels = Number(row.channels);
+  const podcasts = Number(row.podcasts);
+  const artists = Number(row.artists);
+  const albums = Number(row.albums);
+  const abouts = Number(row.abouts);
+  const items = Number(row.items);
+  const minDescription = Number(row.min_description);
+  const visibleFeeds = Number(row.visible_feeds);
+  const perfFollows = Number(row.perf_follows);
+  const primaryPerfFollows = Number(row.primary_perf_follows);
+  const channelImages = Number(row.channel_images);
+  const channelImageUrls = Number(row.channel_image_urls);
+  const itemImages = Number(row.item_images);
+  const itemImageUrls = Number(row.item_image_urls);
+  const fixtureChannelImages = Number(row.fixture_channel_images);
+  const imagesOk = remoteImages
+    ? channelImages === E2E_PERF_CHANNEL_COUNT &&
+      channelImageUrls === E2E_PERF_CHANNEL_COUNT &&
+      itemImages === E2E_PERF_ITEM_COUNT &&
+      itemImageUrls === E2E_PERF_ITEM_COUNT &&
+      fixtureChannelImages === 0
+    : channelImages === E2E_PERF_CHANNEL_COUNT &&
+      channelImageUrls === 1 &&
+      itemImages === 0 &&
+      fixtureChannelImages === E2E_PERF_CHANNEL_COUNT;
+  if (
+    channels !== E2E_PERF_CHANNEL_COUNT ||
+    podcasts !== E2E_PERF_PODCAST_CHANNEL_COUNT ||
+    artists !== 30 ||
+    albums !== 30 ||
+    abouts !== E2E_PERF_CHANNEL_COUNT ||
+    items !== E2E_PERF_ITEM_COUNT ||
+    minDescription < 2000 ||
+    visibleFeeds !== E2E_PERF_CHANNEL_COUNT ||
+    perfFollows !== E2E_PERF_CHANNEL_COUNT ||
+    primaryPerfFollows !== 0 ||
+    !imagesOk
+  ) {
+    throw new Error(`Perf volume counts were ${JSON.stringify(row)}`);
+  }
+
+  const artwork =
+    remoteImageUrls === null
+      ? 'shared local channel image, no item images'
+      : `${channelImageUrls} unique channel URLs, ${itemImageUrls} unique item URLs`;
+  console.log(
+    `Seeded perf volume: ${row.channels} channels, ${row.items} items, followed by ${E2E_PERF_EMAIL} (${artwork})`
+  );
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
   const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
@@ -1582,6 +1966,7 @@ async function main() {
   const accountId = await resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash);
   await clearOpmlImportKeyvalState(accountId);
   await seedMediaPlayerAndEmbedFixtures(client, accountId);
+  await seedPerfVolumeFixtures(client);
 
   await client.end();
   console.log('Web E2E seed complete.');

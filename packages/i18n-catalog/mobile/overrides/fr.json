@@ -146,6 +146,7 @@
     "complete_now_playing": "",
     "quick_login": "",
     "quick_login_popularity": "",
+    "quick_login_perf": "",
     "session_ready": ""
   },
   "subscriptions": {

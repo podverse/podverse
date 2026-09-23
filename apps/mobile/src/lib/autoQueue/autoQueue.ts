@@ -35,9 +35,7 @@ export type AutoQueueConfig = {
  * play; `seed-playlist` points the buffer at a playlist.
  */
 export type AutoQueueDirective =
-  | { mode: 'clear' }
-  | { mode: 'preserve' }
-  | { mode: 'seed-playlist'; playlistIdText: string };
+  { mode: 'clear' } | { mode: 'preserve' } | { mode: 'seed-playlist'; playlistIdText: string };
 
 export function checkIsActiveRowHighestKey(
   autoQueueActiveRow: number | null,

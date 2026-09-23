@@ -22,7 +22,11 @@ describe('resolveAutoQueueConfigAfterDirective', () => {
       shuffleHash: 'stale-hash',
     });
 
-    const next = resolveAutoQueueConfigAfterDirective(current, { mode: 'clear' }, () => 'fresh-hash');
+    const next = resolveAutoQueueConfigAfterDirective(
+      current,
+      { mode: 'clear' },
+      () => 'fresh-hash'
+    );
 
     expect(next.shuffleHash).toBe('fresh-hash');
     expect(next.nextPage).toBe(1);

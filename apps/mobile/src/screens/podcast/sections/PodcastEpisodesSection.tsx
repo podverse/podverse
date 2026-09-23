@@ -22,6 +22,7 @@ import type { HomeFeedRowData } from '../../home/homeFeedData';
 import { mapItemsToHomeFeedRows, mapItemToHomeFeedRow } from '../../home/homeFeedData';
 import { HomeFeedRow } from '../../home/HomeFeedRow';
 import type { HomeRowMetadata } from '../../home/homeRowMetadata';
+import type { QueueActionPosition } from '../../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../../home/useHomeRowPlayback';
 import { useAddToPlaylist } from '../../library/useAddToPlaylist';
 import { toStoredItemSort } from '../podcastSections';
@@ -49,6 +50,64 @@ const LIVE_ROW_METADATA: HomeRowMetadata = {
   latestItemPubDateMs: null,
   unseenBadge: null,
 };
+
+const episodeRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
+
+type PodcastEpisodeRowProps = {
+  channel: PodcastSectionPaneProps['channel'];
+  index: number;
+  isLast: boolean;
+  item: DTOItem | undefined;
+  onAddToPlaylist: (row: HomeFeedRowData) => void;
+  onMarkAsPlayed: (row: HomeFeedRowData) => void;
+  onPlay: (row: HomeFeedRowData) => void;
+  onPress: (row: HomeFeedRowData) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+  onShare: (row: HomeFeedRowData) => void;
+  row: HomeFeedRowData;
+};
+
+function PodcastEpisodeRow({
+  channel,
+  index,
+  isLast,
+  item,
+  onAddToPlaylist,
+  onMarkAsPlayed,
+  onPlay,
+  onPress,
+  onQueue,
+  onShare,
+  row,
+}: PodcastEpisodeRowProps) {
+  const downloadItem = useMemo(() => {
+    if (item === undefined) {
+      return undefined;
+    }
+    if (item.channel !== undefined || channel === null) {
+      return item;
+    }
+    return { ...item, channel };
+  }, [channel, item]);
+
+  return (
+    <HomeFeedRow
+      downloadItem={downloadItem}
+      downloadTestID={`podcast-episode-download-${index}`}
+      isLast={isLast}
+      mediaType="episodes"
+      onAddToPlaylistPress={onAddToPlaylist}
+      onMarkAsPlayedPress={onMarkAsPlayed}
+      onPlayPress={onPlay}
+      onPress={onPress}
+      onQueuePress={onQueue}
+      onSharePress={onShare}
+      row={row}
+      showChannelContext={false}
+      testID={`podcast-episode-row-${index}`}
+    />
+  );
+}
 
 const toLiveRows = (items: DTOItem[]): PodcastLiveRow[] => {
   return items
@@ -256,6 +315,61 @@ export function PodcastEpisodesSection({
     [runMarkAsPlayedAction]
   );
 
+  const handlePlayPress = useCallback(
+    (episodeRow: HomeFeedRowData) => {
+      runPlayAction(episodeRow, 'episodes');
+    },
+    [runPlayAction]
+  );
+
+  const handleQueuePress = useCallback(
+    (episodeRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(episodeRow, 'episodes', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleLoadMore = useCallback(() => {
+    void loadMoreEpisodes();
+  }, [loadMoreEpisodes]);
+
+  const handleRefresh = useCallback(() => {
+    void onRefreshChannel();
+    void loadEpisodes({ source: 'refresh' });
+  }, [loadEpisodes, onRefreshChannel]);
+
+  const handleRetry = useCallback(() => {
+    void loadEpisodes({ source: 'retry' });
+  }, [loadEpisodes]);
+
+  const renderRow = useCallback(
+    ({ index, isLast, row }: { index: number; isLast: boolean; row: HomeFeedRowData }) => (
+      <PodcastEpisodeRow
+        channel={channel}
+        index={index}
+        isLast={isLast}
+        item={itemsById.get(row.id)}
+        onAddToPlaylist={handleAddToPlaylist}
+        onMarkAsPlayed={handleMarkAsPlayed}
+        onPlay={handlePlayPress}
+        onPress={handleEpisodePress}
+        onQueue={handleQueuePress}
+        onShare={handleShare}
+        row={row}
+      />
+    ),
+    [
+      channel,
+      handleAddToPlaylist,
+      handleEpisodePress,
+      handleMarkAsPlayed,
+      handlePlayPress,
+      handleQueuePress,
+      handleShare,
+      itemsById,
+    ]
+  );
+
   /**
    * Broadcasting rows, ready to sit above the stored ones.
    *
@@ -309,53 +423,13 @@ export function PodcastEpisodesSection({
         isInitialLoading={isInitialLoading}
         isLoadingMore={isLoadingMore}
         isRefreshing={isRefreshing}
-        keyExtractor={(row) => row.id}
+        keyExtractor={episodeRowKeyExtractor}
         listHeader={listHeader}
         noticeKey={playbackNoticeKey}
-        onLoadMore={() => {
-          void loadMoreEpisodes();
-        }}
-        onRefresh={() => {
-          void onRefreshChannel();
-          void loadEpisodes({ source: 'refresh' });
-        }}
-        onRetry={() => {
-          void loadEpisodes({ source: 'retry' });
-        }}
-        renderRow={({ index, isLast, row }) => {
-          const item = itemsById.get(row.id);
-
-          return (
-            <HomeFeedRow
-              download={
-                item === undefined
-                  ? undefined
-                  : {
-                      item:
-                        item.channel !== undefined || channel === null
-                          ? item
-                          : { ...item, channel },
-                      testID: `podcast-episode-download-${index}`,
-                    }
-              }
-              isLast={isLast}
-              mediaType="episodes"
-              onAddToPlaylistPress={handleAddToPlaylist}
-              onMarkAsPlayedPress={handleMarkAsPlayed}
-              onPlayPress={(episodeRow) => {
-                runPlayAction(episodeRow, 'episodes');
-              }}
-              onPress={handleEpisodePress}
-              onQueuePress={(episodeRow, position) => {
-                runQueueAction(episodeRow, 'episodes', position);
-              }}
-              onSharePress={handleShare}
-              row={row}
-              showChannelContext={false}
-              testID={`podcast-episode-row-${index}`}
-            />
-          );
-        }}
+        onLoadMore={handleLoadMore}
+        onRefresh={handleRefresh}
+        onRetry={handleRetry}
+        renderRow={renderRow}
         rows={visibleRows}
         statusTestIDPrefix="podcast-detail"
         testID="podcast-detail-episode-list"

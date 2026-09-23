@@ -12,6 +12,7 @@ import { getMobileConfig } from '../../config';
 import { useTheme } from '../../theme/useTheme';
 import { isE2eQuickLoginEnabled } from './e2eQuickLoginGate';
 import {
+  E2E_PERF_EMAIL,
   E2E_POPULARITY_UNDECIDED_EMAIL,
   E2E_USER_EMAIL,
   E2E_USER_PASSWORD,
@@ -116,6 +117,16 @@ export function E2eQuickLogin() {
         }}
         style={styles.hit}
         testID="e2e-quick-login-popularity"
+      />
+      <Pressable
+        accessibilityLabel={t('e2e.quick_login_perf')}
+        accessibilityRole="button"
+        accessibilityState={{ busy: isLoading, disabled: busy }}
+        onPress={() => {
+          signIn(E2E_PERF_EMAIL);
+        }}
+        style={styles.hit}
+        testID="e2e-quick-login-perf"
       />
       {status === 'authenticated' ? (
         <View

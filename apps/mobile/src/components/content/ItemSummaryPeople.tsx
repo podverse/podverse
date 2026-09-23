@@ -6,9 +6,8 @@ import type { DTOItemPerson } from '@podverse/helpers';
 
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
-
-import { AboutPersonRow } from './AboutPersonRow';
 import { toAboutPersonFromItem } from './aboutPerson';
+import { AboutPersonRow } from './AboutPersonRow';
 
 type ItemSummaryPeopleProps = {
   itemPersons: DTOItemPerson[];

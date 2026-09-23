@@ -3,7 +3,7 @@ import { forwardRef } from 'react';
 import type { FlatListProps } from 'react-native';
 import { FlatList, StyleSheet } from 'react-native';
 
-import { LIST_REMOVE_CLIPPED_SUBVIEWS } from './listVirtualization';
+import { applyFillListRenderWindow, LIST_REMOVE_CLIPPED_SUBVIEWS } from './listVirtualization';
 
 /** Props `FillList` owns: scroll lock derives from the fill state, clipping is fixed app-wide. */
 type LockedProps =
@@ -47,7 +47,7 @@ function FillListInner<ItemT>(
 
   return (
     <FlatList
-      {...rest}
+      {...applyFillListRenderWindow(rest)}
       ListEmptyComponent={ListEmptyComponent}
       alwaysBounceVertical={!lockScroll}
       bounces={!lockScroll}
@@ -66,6 +66,9 @@ function FillListInner<ItemT>(
  * FlatList that locks scroll when `data` is empty and `ListEmptyComponent` is a fill state.
  * Pass `ListEmptyComponent={null}` when the empty UI lives in the header or footer and the list
  * should still scroll (filter-no-matches, detail screens whose chrome is the header).
+ *
+ * Supplies render-window defaults (`windowSize`, `initialNumToRender`, `maxToRenderPerBatch`,
+ * `updateCellsBatchingPeriod`) that a caller may override.
  *
  * The alias keeps the generic `ItemT` on the public type — `forwardRef` otherwise widens it away.
  */

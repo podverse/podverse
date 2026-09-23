@@ -28,7 +28,12 @@ test.describe('About and Summary people', () => {
 
     const guestName = page.getByText('E2E Episode Guest', { exact: true });
     await expect(guestName).toBeVisible();
-    await captureVerifiedElement(page, testInfo, guestName, 'Episode Summary shows the seeded guest');
+    await captureVerifiedElement(
+      page,
+      testInfo,
+      guestName,
+      'Episode Summary shows the seeded guest'
+    );
     await capturePageLoad(page, testInfo, 'Episode Summary with people');
   });
 });

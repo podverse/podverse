@@ -3,7 +3,6 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 import { useTranslation } from 'react-i18next';
 
 import type { PlaybackErrorEvent } from '../../modules/podverse-media-engine';
-
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
 import {
   actionErrorDetailLine,

@@ -6,6 +6,7 @@ import type { VerifiedCallback } from 'passport-jwt';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
+import type { AccountEntitlementCapability } from '@podverse/helpers';
 import {
   APP_ROUTES,
   AuthCookieName,
@@ -13,7 +14,6 @@ import {
   hasValidMembership,
   isMobileRefreshJwtPayload,
 } from '@podverse/helpers';
-import type { AccountEntitlementCapability } from '@podverse/helpers';
 import type { Account, FindOptionsRelations } from '@podverse/orm';
 import {
   AccountService,
@@ -36,7 +36,10 @@ import { verifyPassword } from './password.js';
 const isProduction = config.nodeEnv === 'production';
 const MEMBERSHIP_EXPIRED_I18N_KEY = 'membership.membership_expired';
 
-const issueMobileTokenPair = (params: { accountId: number; accountIdText: string }): {
+const issueMobileTokenPair = (params: {
+  accountId: number;
+  accountIdText: string;
+}): {
   token_type: 'Bearer';
   access_token: string;
   access_token_expires_in: number;

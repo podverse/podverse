@@ -14,14 +14,14 @@ import {
 } from '@podverse/playback-core/chapterProgressMarkers';
 
 import {
+  getPlaybackProgressRatio,
+  subscribePlaybackProgress,
+} from '../../playback/playbackProgressStore';
+import {
   usePlaybackDuration,
   usePlaybackPositionClock,
   usePlaybackSession,
 } from '../../playback/PlaybackProvider';
-import {
-  getPlaybackProgressRatio,
-  subscribePlaybackProgress,
-} from '../../playback/playbackProgressStore';
 import {
   setPlaybackScrubPreviewSeconds,
   usePlaybackScrubPreview,

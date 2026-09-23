@@ -20,6 +20,11 @@ name: Detail Sort Prefs
     visible:
       id: podcast-detail-screen
     timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
+      TRAILING_ID: podcast-detail-sort-button
 - extendedWaitUntil:
     visible:
       id: podcast-detail-sort-button
@@ -54,6 +59,12 @@ name: Detail Sort Prefs
     visible:
       id: podcast-detail-range-button
     timeout: ${TIMEOUT_FASTER}
+# The range chip mounts already counted as visible while its center is still past the
+# trailing edge of the phone, so a tap there never opens the sheet.
+- swipe:
+    from:
+      id: podcast-detail-sections
+    direction: LEFT
 - tapOn:
     id: podcast-detail-range-button
 - tapOn:
@@ -63,6 +74,10 @@ name: Detail Sort Prefs
 - takeScreenshot: detail-sort-podcast-a-top-month
 
 # --- Podcast A: the section is remembered too, because it decides what the screen loads ---
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
 - tapOn:
     id: podcast-detail-section-about
 - extendedWaitUntil:
@@ -87,6 +102,11 @@ name: Detail Sort Prefs
     visible:
       id: podcast-detail-screen
     timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
+      TRAILING_ID: podcast-detail-sort-button
 - extendedWaitUntil:
     visible:
       id: podcast-detail-sort-button
@@ -128,6 +148,11 @@ name: Detail Sort Prefs
     visible:
       id: album-detail-screen
     timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: album-detail-sections
+      TRAILING_ID: album-detail-sort-pill-button
 - extendedWaitUntil:
     visible:
       id: album-detail-sort-pill-button
@@ -148,6 +173,15 @@ name: Detail Sort Prefs
 - runFlow: shared/confirm-ios-open-dialog.yaml
 - extendedWaitUntil:
     visible:
+      id: album-detail-sections
+    timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: album-detail-sections
+      TRAILING_ID: album-detail-sort-pill-button
+- extendedWaitUntil:
+    visible:
       id: album-detail-sort-pill-button
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-album-restored
@@ -165,6 +199,11 @@ name: Detail Sort Prefs
     timeout: ${TIMEOUT_SLOW}
 - tapOn:
     id: episode-detail-tab-clips
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: episode-detail-sections
+      TRAILING_ID: episode-detail-clip-sort-button
 - extendedWaitUntil:
     visible:
       id: episode-detail-clip-sort-button
@@ -186,6 +225,15 @@ name: Detail Sort Prefs
 # Reopening lands on Clips with the same order, without passing through Summary first.
 - openLink: podverse-next://episode/e2ePodChap0001
 - runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-sections
+    timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: episode-detail-sections
+      TRAILING_ID: episode-detail-clip-sort-button
 - extendedWaitUntil:
     visible:
       id: episode-detail-clip-sort-button

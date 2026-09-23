@@ -8,8 +8,8 @@ import {
 import { hydrateSectionChromeFlagsMemory } from '../../lib/sectionChromeFlags';
 import { getDb, getSqlite } from './client';
 import { runMigrations } from './runMigrations';
-import { safeJsonParse } from './serialization';
 import * as schema from './schema';
+import { safeJsonParse } from './serialization';
 
 let initializePromise: Promise<void> | null = null;
 

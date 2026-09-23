@@ -73,7 +73,7 @@ Then open with a short read-back structured as **three lists**:
 | List                            | Contents                                        |
 | ------------------------------- | ----------------------------------------------- |
 | **Already have**                | Nextgen features present and working            |
-| **Legacy has, nextgen doesn't** | The actual gap — the candidate work             |
+| **Legacy has, nextgen doesn't** | The actual gap — the work to consider           |
 | **Nextgen has, legacy doesn't** | Deliberate improvements to protect, not regress |
 
 This proves you read both the images and the code, and gives the operator a cheap chance to correct

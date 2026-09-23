@@ -37,10 +37,29 @@ Do not run tests during agent work; leave operator verification commands at the 
 
 A phase-level summary table with Model + Reasoning columns is fine in addition to per-prompt lines.
 
+## Operator steps stay outside the fence
+
+A fenced block is pasted into chat and executed. It may contain only work the agent can finish in
+that turn. Anything a person does by hand stays in the checklist above the fence: switching a
+leave-running Metro, installing on a device, tapping a screen, confirming what is on screen.
+
+When the agent must wait for that person, the fence says so as an instruction, not as a comment
+between commands:
+
+- Stop this turn after the step that hands off (for example `--arm`).
+- Do not run the next command (`--collect`, the next arm, the diagnosis) in that same turn.
+- The operator's later reply that the step is done is what continues the prompt.
+
+A `# operator performs the gesture` line between two commands will be run through. Split that into
+separate pastes when the waits are separate jobs (capture, then a later diagnosis). One paste may
+span later turns only when it states that each reply continues the same prompt.
+
 ## Required
 
 - Include **`Cursor model:`** and **`Reasoning:`** on **each** prompt (or a phase-level table with
   Model + Reasoning columns) **above** the paste fence.
+- Keep operator actions above the fence. A wait inside the fence is an explicit stop-this-turn
+  instruction. See **Operator steps stay outside the fence** above.
 - In Cursor, prefer models: **cursor-grok-4.6-high-fast** (default low-cost), **Codex 5.3**
   (medium), **Opus 5** (premium). **Auto** remains available; use it only when there is a clear
   reason to prefer Auto over cursor-grok-4.6-high-fast for that prompt.

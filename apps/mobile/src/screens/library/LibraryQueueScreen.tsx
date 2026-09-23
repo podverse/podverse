@@ -45,6 +45,53 @@ const ACTION_MOVE_UP = 'moveUp';
 const REORDER_DROP_SECTION_ID = 'queue';
 const REORDER_LIST_SENTINEL = 'library-queue-reorder-root';
 
+const queueListKeyExtractor = (entry: string): string => entry;
+const queueRowKeyExtractor = (row: QueueRow): string => row.id;
+const noopQueuePress = (): void => undefined;
+
+type LibraryQueueRowProps = {
+  isLast: boolean;
+  onPlayAndRemove: (resource: DTOQueueResource) => void;
+  onSwipeRemove: (resource: DTOQueueResource) => Promise<void>;
+  removeLabel: string;
+  resource: DTOQueueResource;
+  row: QueueRow;
+};
+
+function LibraryQueueRow({
+  isLast,
+  onPlayAndRemove,
+  onSwipeRemove,
+  removeLabel,
+  resource,
+  row,
+}: LibraryQueueRowProps) {
+  const handlePlay = useCallback(() => {
+    onPlayAndRemove(resource);
+  }, [onPlayAndRemove, resource]);
+  const handleRemove = useCallback(() => {
+    return onSwipeRemove(resource);
+  }, [onSwipeRemove, resource]);
+
+  return (
+    <SwipeActionRow
+      onRemove={handleRemove}
+      removeLabel={removeLabel}
+      testID={`queue-row-${row.queueResourceId}-swipe`}
+    >
+      <HomeFeedRow
+        customActions={null}
+        isLast={isLast}
+        mediaType={row.mediaType}
+        onPlayPress={handlePlay}
+        onPress={handlePlay}
+        onQueuePress={noopQueuePress}
+        row={row}
+      />
+    </SwipeActionRow>
+  );
+}
+
 export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
@@ -503,15 +550,114 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     void loadQueue();
   }, [isMediumReady, loadQueue, status]);
 
-  const handleMediumChange = (nextMedium: QueueListMedium) => {
+  const handleMediumChange = useCallback((nextMedium: QueueListMedium) => {
     setSelectedMedium(nextMedium);
     void writeQueueListMedium(nextMedium);
-  };
+  }, []);
 
-  const listEmpty = (
-    <VerticalCenter>
-      <ListEmpty messageKey="misc.info" testID="library-queue-empty" />
-    </VerticalCenter>
+  const handleRetry = useCallback(() => {
+    void loadQueue();
+  }, [loadQueue]);
+
+  const handleRefresh = useCallback(() => {
+    void loadQueue({ refresh: true });
+  }, [loadQueue]);
+
+  const listEmpty = useMemo(
+    () => (
+      <VerticalCenter>
+        <ListEmpty messageKey="misc.info" testID="library-queue-empty" />
+      </VerticalCenter>
+    ),
+    []
+  );
+
+  const listFooter = useMemo(
+    () =>
+      actionNoticeKey !== null ? <Text style={styles.notice}>{t(actionNoticeKey)}</Text> : null,
+    [actionNoticeKey, styles.notice, t]
+  );
+
+  const listHeader = useMemo(
+    () => (
+      <View style={styles.headerSection}>
+        <OptionChipGroup
+          onChange={handleMediumChange}
+          options={mediumOptions}
+          testID="library-queue-medium-chips"
+          value={selectedMedium}
+        />
+        <View style={styles.listRule} />
+      </View>
+    ),
+    [handleMediumChange, mediumOptions, selectedMedium, styles.headerSection, styles.listRule]
+  );
+
+  const removeLabel = t('features.queue.remove_from_queue');
+  const renderQueueRow = useCallback(
+    (row: QueueRow, context: { isLast: boolean }) => {
+      const resource = queueResourcesById.get(row.queueResourceId);
+      if (resource === undefined) {
+        return null;
+      }
+
+      return (
+        <LibraryQueueRow
+          isLast={context.isLast}
+          onPlayAndRemove={handlePlayAndRemove}
+          onSwipeRemove={handleSwipeRemove}
+          removeLabel={removeLabel}
+          resource={resource}
+          row={row}
+        />
+      );
+    },
+    [handlePlayAndRemove, handleSwipeRemove, queueResourcesById, removeLabel]
+  );
+
+  const renderReorderableQueue = useCallback(
+    () => (
+      <ReorderableSections
+        dragActivation="row-long-press"
+        keyExtractor={queueRowKeyExtractor}
+        onDragActiveChange={handleDragActiveChange}
+        onDrop={handleDrop}
+        renderItem={renderQueueRow}
+        renderSection={(_sectionId, children) => <View>{children}</View>}
+        rowAccessibility={
+          queueRows.length > 1
+            ? (row, context) => {
+                const actions = [
+                  ...(context.index > 0
+                    ? [{ label: t('misc.move_up'), name: ACTION_MOVE_UP }]
+                    : []),
+                  ...(context.index < queueRows.length - 1
+                    ? [{ label: t('misc.move_down'), name: ACTION_MOVE_DOWN }]
+                    : []),
+                ];
+
+                return {
+                  actions,
+                  label: row.title,
+                  onAction: (name) => {
+                    if (name === ACTION_MOVE_UP) {
+                      void handleReorder(context.index, context.index - 1);
+                      return;
+                    }
+                    if (name === ACTION_MOVE_DOWN) {
+                      void handleReorder(context.index, context.index + 1);
+                    }
+                  },
+                };
+              }
+            : undefined
+        }
+        rowContainerVariant="plain"
+        sections={[{ id: REORDER_DROP_SECTION_ID, items: queueRows }]}
+        showHandle={false}
+      />
+    ),
+    [handleDragActiveChange, handleDrop, handleReorder, queueRows, renderQueueRow, t]
   );
 
   return (
@@ -522,104 +668,19 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         errorTestID="library-queue-error"
         isLoading={isInitialLoading || !isMediumReady}
         loadingTestID="library-queue-loading"
-        onRetry={() => {
-          void loadQueue();
-        }}
+        onRetry={handleRetry}
         showAuthRequired={status !== 'authenticated'}
       >
         <FillList
           ListEmptyComponent={listEmpty}
-          ListFooterComponent={
-            actionNoticeKey !== null ? (
-              <Text style={styles.notice}>{t(actionNoticeKey)}</Text>
-            ) : null
-          }
+          ListFooterComponent={listFooter}
           contentContainerStyle={styles.listContent}
           data={reorderData}
-          keyExtractor={(entry) => entry}
-          ListHeaderComponent={
-            <View style={styles.headerSection}>
-              <OptionChipGroup
-                onChange={handleMediumChange}
-                options={mediumOptions}
-                testID="library-queue-medium-chips"
-                value={selectedMedium}
-              />
-              <View style={styles.listRule} />
-            </View>
-          }
-          onRefresh={() => {
-            void loadQueue({ refresh: true });
-          }}
+          keyExtractor={queueListKeyExtractor}
+          ListHeaderComponent={listHeader}
+          onRefresh={handleRefresh}
           refreshing={isRefreshing}
-          renderItem={() => (
-            <ReorderableSections
-              dragActivation="row-long-press"
-              keyExtractor={(row) => row.id}
-              onDragActiveChange={handleDragActiveChange}
-              onDrop={handleDrop}
-              renderItem={(row, context) => {
-                const resource = queueResourcesById.get(row.queueResourceId);
-                if (resource === undefined) {
-                  return null;
-                }
-
-                return (
-                  <SwipeActionRow
-                    onRemove={() => handleSwipeRemove(resource)}
-                    removeLabel={t('features.queue.remove_from_queue')}
-                    testID={`queue-row-${row.queueResourceId}-swipe`}
-                  >
-                    <HomeFeedRow
-                      customActions={null}
-                      isLast={context.isLast}
-                      mediaType={row.mediaType}
-                      onPlayPress={() => {
-                        handlePlayAndRemove(resource);
-                      }}
-                      onPress={() => {
-                        handlePlayAndRemove(resource);
-                      }}
-                      onQueuePress={() => {}}
-                      row={row}
-                    />
-                  </SwipeActionRow>
-                );
-              }}
-              renderSection={(_sectionId, children) => <View>{children}</View>}
-              rowAccessibility={
-                queueRows.length > 1
-                  ? (row, context) => {
-                      const actions = [
-                        ...(context.index > 0
-                          ? [{ label: t('misc.move_up'), name: ACTION_MOVE_UP }]
-                          : []),
-                        ...(context.index < queueRows.length - 1
-                          ? [{ label: t('misc.move_down'), name: ACTION_MOVE_DOWN }]
-                          : []),
-                      ];
-
-                      return {
-                        actions,
-                        label: row.title,
-                        onAction: (name) => {
-                          if (name === ACTION_MOVE_UP) {
-                            void handleReorder(context.index, context.index - 1);
-                            return;
-                          }
-                          if (name === ACTION_MOVE_DOWN) {
-                            void handleReorder(context.index, context.index + 1);
-                          }
-                        },
-                      };
-                    }
-                  : undefined
-              }
-              rowContainerVariant="plain"
-              sections={[{ id: REORDER_DROP_SECTION_ID, items: queueRows }]}
-              showHandle={false}
-            />
-          )}
+          renderItem={renderReorderableQueue}
           testID="library-queue-list"
         />
       </AuthAwareLoadState>

@@ -5,9 +5,9 @@ import type { DTOItemSoundbite } from '@podverse/helpers/dto';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import {
+  canAdvanceToNextQueueItem,
   FULL_PLAYER_JUMP_BACK_SECONDS,
   FULL_PLAYER_JUMP_FORWARD_SECONDS,
-  canAdvanceToNextQueueItem,
   hasNextQueueItem,
   resolveAddToPlaylistTarget,
   shouldClearNowPlayingAfterAdvance,

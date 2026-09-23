@@ -1,5 +1,3 @@
-import { eq } from 'drizzle-orm';
-
 import {
   CHANNEL_ACTION_CHROME_KEY,
   rememberChannelIdentity as rememberChannelIdentityMemory,

@@ -102,10 +102,7 @@ export function resolveArtistPublisherFeedsModulePath(): string {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
   const repoRoot = findMonorepoRoot(moduleDir);
   if (repoRoot !== null) {
-    return path.join(
-      repoRoot,
-      'apps/workers/src/lib/podcastIndex/artistPublisherFeeds.ts'
-    );
+    return path.join(repoRoot, 'apps/workers/src/lib/podcastIndex/artistPublisherFeeds.ts');
   }
   const fromCwdRoot = path.join(
     process.cwd(),
@@ -114,10 +111,7 @@ export function resolveArtistPublisherFeedsModulePath(): string {
   if (fs.existsSync(fromCwdRoot)) {
     return fromCwdRoot;
   }
-  const fromCwdWorkers = path.join(
-    process.cwd(),
-    'src/lib/podcastIndex/artistPublisherFeeds.ts'
-  );
+  const fromCwdWorkers = path.join(process.cwd(), 'src/lib/podcastIndex/artistPublisherFeeds.ts');
   if (fs.existsSync(fromCwdWorkers)) {
     return fromCwdWorkers;
   }
@@ -154,9 +148,7 @@ function findMonorepoRoot(dir: string): string | null {
   return null;
 }
 
-export function formatArtistPublisherFeedsModule(
-  feeds: readonly ArtistPublisherFeedDef[]
-): string {
+export function formatArtistPublisherFeedsModule(feeds: readonly ArtistPublisherFeedDef[]): string {
   const entries = feeds
     .map(
       (feed) => `  {
@@ -385,9 +377,7 @@ async function fillFromMusicAlbumPublisherParents(
       await sleepRateLimit();
       const id = await resolvePublisherParentToPodcastIndexId(parent);
       if (id === null || seen.has(id)) {
-        progress.info(
-          `[discoverArtistPublisherFeeds] Parent not in PI or already seen: ${key}`
-        );
+        progress.info(`[discoverArtistPublisherFeeds] Parent not in PI or already seen: ${key}`);
         continue;
       }
       const entry = await classifyPodcastIndexIdAsArtist(id);

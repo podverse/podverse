@@ -108,7 +108,10 @@ export function MarqueeText({ align = 'left', children, style, testID }: Marquee
           {children}
         </Text>
         <Animated.View
-          style={[styles.paint, scrolls ? { transform: [{ translateX: offset }] } : styles.paintFit]}
+          style={[
+            styles.paint,
+            scrolls ? { transform: [{ translateX: offset }] } : styles.paintFit,
+          ]}
         >
           <Text
             numberOfLines={1}

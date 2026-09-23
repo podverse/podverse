@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { LIST_ROW_ACTION_SIZE, PLAYER_TRANSPORT_CIRCLE_SIZE } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 
 export type ButtonVariant = 'outline' | 'primary' | 'secondary' | 'danger' | 'play' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -30,6 +32,25 @@ export type ButtonProps = {
   testID?: string;
 };
 
+const createStyles = ({ tokens }: ThemedStylesTheme) =>
+  StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      borderRadius: tokens.radii.round,
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+    icon: {
+      marginRight: tokens.spacing.sm,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });
+
 /**
  * Themed pressable button. Copy is passed in (`label`) — never hardcoded here — so the caller owns
  * i18n. Colors come from the active theme's button / accent tokens; the pill radius / spacing come
@@ -44,7 +65,7 @@ export type ButtonProps = {
  * Sizes `sm`–`lg` cover rows, forms, and detail chrome. `xl` is for the player's play circle
  * (`PLAYER_TRANSPORT_CIRCLE_SIZE`) — the one control sized to be hit without looking.
  */
-export function Button({
+export const Button = memo(function Button({
   icon,
   iconOnly = false,
   label,
@@ -60,6 +81,7 @@ export function Button({
   testID,
 }: ButtonProps) {
   const { styles: themeStyles, tokens } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const palette =
     variant === 'primary'
@@ -94,18 +116,14 @@ export function Button({
           ? 48
           : PLAYER_TRANSPORT_CIRCLE_SIZE;
 
-  const styles = useMemo(
+  const variantStyles = useMemo(
     () =>
       StyleSheet.create({
         container: {
-          alignItems: 'center',
           alignSelf: fullWidth ? 'stretch' : 'flex-start',
           backgroundColor: palette.backgroundColor,
           borderColor: isOutline ? tokens.button.outlineColor : undefined,
-          borderRadius: tokens.radii.round,
           borderWidth: isOutline ? 1 : 0,
-          flexDirection: 'row',
-          justifyContent: 'center',
           minHeight: iconOnly ? iconOnlySize : undefined,
           minWidth: iconOnly ? iconOnlySize : undefined,
           paddingHorizontal: iconOnly
@@ -123,12 +141,6 @@ export function Button({
                 ? tokens.spacing.base
                 : tokens.spacing.md,
         },
-        disabled: {
-          opacity: 0.5,
-        },
-        pressed: {
-          opacity: 0.7,
-        },
         label: {
           ...typography.label,
           ...(size === 'sm'
@@ -137,9 +149,6 @@ export function Button({
               ? typography.subheading
               : null),
           color: palette.color,
-        },
-        icon: {
-          marginRight: tokens.spacing.sm,
         },
         spinner: {
           marginRight: iconOnly ? 0 : tokens.spacing.sm,
@@ -169,18 +178,19 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => [
         styles.container,
+        variantStyles.container,
         isDisabled ? styles.disabled : null,
         !isDisabled && pressed ? styles.pressed : null,
       ]}
       testID={testID}
     >
       {loading ? (
-        <ActivityIndicator color={palette.color} size="small" style={styles.spinner} />
+        <ActivityIndicator color={palette.color} size="small" style={variantStyles.spinner} />
       ) : null}
       {!loading && icon !== undefined ? (
         <View style={iconOnly ? undefined : styles.icon}>{icon}</View>
       ) : null}
-      {!iconOnly ? <Text style={styles.label}>{label}</Text> : null}
+      {!iconOnly ? <Text style={variantStyles.label}>{label}</Text> : null}
     </Pressable>
   );
-}
+});

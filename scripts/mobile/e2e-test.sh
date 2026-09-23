@@ -40,7 +40,8 @@ flow_needs_e2e_api() {
   case "$1" in
   add-by-rss | album | api-health | artist | auth-login | auth-logout | auto-queue-advance | browse | deep-link | \
   detail-sort-prefs | engine-audio-spike | home | library-downloads | library-playlists | \
-  make-clip | membership-gate | notifications-inbox | offline-mode | opml | play-mini-player | \
+  make-clip | membership-gate | notifications-inbox | offline-mode | opml | perf-chip-switch | \
+  perf-scroll | play-mini-player | \
   playback-multi-device-handoff | playback-offline-reconciliation | playback-resume-on-relaunch | \
   player-screen | podcast-episode | track | \
   popularity-tracking | push | queue-add | queue-screen | search | search-unparsed | settings-downloads | \
@@ -57,6 +58,18 @@ flow_needs_e2e_api() {
 flow_needs_tablet() {
   case "$1" in
   tablet)
+    return 0
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+}
+
+# Diagnostic captures. Runnable by name; left out of the auto-discovered suite.
+flow_is_perf() {
+  case "$1" in
+  perf-chip-switch | perf-scroll)
     return 0
     ;;
   *)
@@ -309,13 +322,15 @@ FLOWS=()
 NEEDS_E2E_API=0
 NEEDS_TEST_ASSETS=0
 NEEDS_TABLET=0
+NEEDS_PERF_VOLUME=0
 
 if [[ "$SPEC_RAW" == "all" ]]; then
   # Auto-discover top-level flows so new apps/mobile/e2e/<area>.yaml joins the suite.
   # Exclude tablet-only flows — they need opt-in tablet devices (`npm run mobile:e2e:test -- tablet`).
+  # Exclude perf diagnostics — runnable by name (`npm run mobile:e2e:test -- perf-chip-switch`).
   while IFS= read -r flow_path; do
     base="$(basename "$flow_path" .yaml)"
-    if flow_needs_tablet "$base"; then
+    if flow_needs_tablet "$base" || flow_is_perf "$base"; then
       continue
     fi
     FLOWS+=("$flow_path")
@@ -345,6 +360,9 @@ else
     fi
     if flow_needs_tablet "$spec"; then
       NEEDS_TABLET=1
+    fi
+    if flow_is_perf "$spec"; then
+      NEEDS_PERF_VOLUME=1
     fi
   done
 fi
@@ -811,6 +829,19 @@ if [[ "$NEEDS_E2E_API" -eq 1 ]]; then
   if [[ "$MOBILE_E2E_SKIP_SEED" == '1' ]]; then
     echo "Skipping mobile E2E DB reseed (--skip-seed). Results depend on the database as it stands."
   else
+    # Perf flows sign in as the perf account. Its follows are inserted only when this flag is
+    # set, and this reseed deletes them first, so a perf run has to turn the flag on itself.
+    if [[ "$NEEDS_PERF_VOLUME" -eq 1 ]]; then
+      export PODVERSE_E2E_PERF_VOLUME=1
+      echo "Perf flow in this run: PODVERSE_E2E_PERF_VOLUME=1 for the reseed."
+      if [[ "${PODVERSE_E2E_PERF_REMOTE_IMAGES:-}" == '1' ]]; then
+        echo "Perf remote images: PODVERSE_E2E_PERF_REMOTE_IMAGES=1 (third-party artwork, perf seed only)."
+      fi
+    elif [[ "${PODVERSE_E2E_PERF_REMOTE_IMAGES:-}" == '1' ]]; then
+      echo "Error: PODVERSE_E2E_PERF_REMOTE_IMAGES=1 is only valid on a perf flow." >&2
+      echo "Unset it before a regression run. It never applies to the normal E2E seed." >&2
+      exit 1
+    fi
     echo "Seeding mobile E2E DB (make mobile_e2e_seed — reuses web seed)..."
     seed_mobile_e2e_db_safely
 

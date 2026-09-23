@@ -60,6 +60,7 @@ import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { mapItemToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
+import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { channelHasFunding, channelHasPodroll } from '../podcast/podcastSections';
 
@@ -109,6 +110,145 @@ const SECTION_LABEL_KEYS: Record<ArtistTab, string> = {
   settings: 'settings.settings',
   tracks: 'media.music.tracks',
 };
+
+const artistTracksKeyExtractor = (row: ArtistTracksRow): string => row.key;
+const artistAlbumsKeyExtractor = (row: ArtistAlbumsRow): string => row.key;
+const artistPodrollKeyExtractor = (row: PodrollEntry): string => row.id;
+
+function ArtistAddedTrackRow({
+  index,
+  isLast,
+  item,
+  onGoToChannel,
+  onGoToTrack,
+  onPlay,
+  onQueue,
+  row,
+}: {
+  index: number;
+  isLast: boolean;
+  item: DTOItem;
+  onGoToChannel: (row: HomeFeedRowData) => void;
+  onGoToTrack: (row: HomeFeedRowData) => void;
+  onPlay: (row: HomeFeedRowData) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+  row: HomeFeedRowData;
+}) {
+  return (
+    <HomeFeedRow
+      downloadItem={item}
+      downloadTestID={`artist-track-download-${index}`}
+      isLast={isLast}
+      mediaType="tracks"
+      onGoToChannelPress={onGoToChannel}
+      onGoToTrackPress={onGoToTrack}
+      onPlayPress={onPlay}
+      onPress={onPlay}
+      onQueuePress={onQueue}
+      row={row}
+      showChannelContext={false}
+      testID={`artist-track-row-${index}`}
+    />
+  );
+}
+
+function ArtistUnaddedTrackRow({
+  index,
+  onOpenUrl,
+  row,
+}: {
+  index: number;
+  onOpenUrl: (url: string) => void;
+  row: ArtistTrackUnadded;
+}) {
+  const link = row.link;
+  const hasLink = link !== undefined && link !== null && link.length > 0;
+  const handlePress = useCallback(() => {
+    if (link === undefined || link === null || link.length === 0) {
+      return;
+    }
+    void onOpenUrl(link);
+  }, [link, onOpenUrl]);
+
+  return (
+    <ListRow
+      onPress={hasLink ? handlePress : undefined}
+      subtitle={row.feedTitle ?? row.authorName ?? row.author ?? undefined}
+      testID={`artist-track-unadded-row-${index}`}
+      title={row.title ?? row.guid}
+    />
+  );
+}
+
+function ArtistAddedAlbumRow({
+  index,
+  onPress,
+  row,
+}: {
+  index: number;
+  onPress: (row: DTOChannel) => void;
+  row: DTOChannel;
+}) {
+  const handlePress = useCallback(() => {
+    onPress(row);
+  }, [onPress, row]);
+
+  return (
+    <ListRow
+      onPress={handlePress}
+      subtitle={row.channel_about?.author ?? undefined}
+      testID={`artist-album-row-${index}`}
+      title={row.title ?? row.id_text}
+    />
+  );
+}
+
+function ArtistUnaddedAlbumRow({
+  index,
+  onOpenUrl,
+  row,
+}: {
+  index: number;
+  onOpenUrl: (url: string) => void;
+  row: ArtistAlbumUnadded;
+}) {
+  const hasUrl = row.url.length > 0;
+  const handlePress = useCallback(() => {
+    void onOpenUrl(row.url);
+  }, [onOpenUrl, row.url]);
+
+  return (
+    <ListRow
+      onPress={hasUrl ? handlePress : undefined}
+      subtitle={row.author ?? undefined}
+      testID={`artist-album-unadded-row-${index}`}
+      title={row.title}
+    />
+  );
+}
+
+function ArtistPodrollRow({
+  index,
+  item,
+  onPress,
+}: {
+  index: number;
+  item: PodrollEntry;
+  onPress: (item: PodrollEntry) => void;
+}) {
+  const handlePress = useCallback(() => {
+    onPress(item);
+  }, [item, onPress]);
+
+  return (
+    <ListRow
+      onPress={handlePress}
+      subtitle={item.subtitle ?? undefined}
+      testID={`artist-podroll-row-${index}`}
+      title={item.title}
+    />
+  );
+}
 
 const toPodrollEntries = (response: RemoteItemsResponse): PodrollEntry[] => {
   const rows: PodrollEntry[] = [];
@@ -235,6 +375,13 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           marginBottom: tokens.spacing.sm,
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,
+        },
+        list: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+        },
+        listContent: {
+          paddingHorizontal: tokens.spacing.lg,
+          paddingTop: tokens.spacing.md,
         },
         subscribeButtonRow: {
           alignItems: 'flex-start',
@@ -603,6 +750,115 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     }
   }, []);
 
+  const handleGoToChannel = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      if (nextRow.channelId === undefined) {
+        return;
+      }
+      if (nextRow.channelKind === 'artists') {
+        navigation.navigate(
+          CHANNEL_BROWSE_STACK_ROUTES.ArtistDetail,
+          buildArtistDetailParams({
+            artistId: nextRow.channelId,
+            previewTitle: nextRow.subtitle,
+          })
+        );
+        return;
+      }
+      navigation.navigate(
+        CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
+        buildAlbumDetailParams({
+          albumId: nextRow.channelId,
+          previewTitle: nextRow.subtitle,
+        })
+      );
+    },
+    [navigation]
+  );
+
+  const handleGoToTrack = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      navigation.navigate(
+        CHANNEL_BROWSE_STACK_ROUTES.TrackDetail,
+        buildTrackDetailParams({
+          previewImageUrl: nextRow.imageUrl,
+          previewTitle: nextRow.title,
+          trackId: nextRow.id,
+        })
+      );
+    },
+    [navigation]
+  );
+
+  const handlePlayTrack = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      runPlayAction(nextRow, 'tracks');
+    },
+    [runPlayAction]
+  );
+
+  const handleQueueTrack = useCallback(
+    (nextRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(nextRow, 'tracks', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleRetryRows = useCallback(() => {
+    void loadRows({ source: 'retry' });
+  }, [loadRows]);
+
+  const handleRefreshRows = useCallback(() => {
+    void loadRows({ source: 'refresh' });
+  }, [loadRows]);
+
+  const handleRetryPodroll = useCallback(() => {
+    void loadPodroll({ source: 'retry' });
+  }, [loadPodroll]);
+
+  const handleRefreshPodroll = useCallback(() => {
+    void loadRows({ source: 'refresh' });
+    void loadPodroll({ source: 'refresh' });
+  }, [loadPodroll, loadRows]);
+
+  const handleOpenAddedAlbum = useCallback(
+    (row: DTOChannel) => {
+      navigation.navigate(
+        CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
+        buildAlbumDetailParams({
+          albumId: row.id_text,
+          previewImageUrl: primaryChannelListArtworkUrl(row.channel_images),
+          previewTitle: row.title,
+        })
+      );
+    },
+    [navigation]
+  );
+
+  const handlePodrollPress = useCallback(
+    (item: PodrollEntry) => {
+      if (item.target.kind === 'channel') {
+        navigation.navigate(
+          CHANNEL_BROWSE_STACK_ROUTES.PodcastDetail,
+          buildPodcastDetailParams({
+            podcastId: item.target.idText,
+            previewImageUrl: item.imageUrl,
+            previewTitle: item.title,
+          })
+        );
+        return;
+      }
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
+        episodeId: item.target.idText,
+      });
+    },
+    [navigation]
+  );
+
+  const handleSubscriptionTogglePress = useCallback(() => {
+    void handleSubscriptionToggle();
+  }, [handleSubscriptionToggle]);
+
   const channelArtworkUri = primaryChannelListArtworkUrl(channel?.channel_images) ?? artistArtwork;
   const channelViewerUri =
     primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? channelArtworkUri;
@@ -617,9 +873,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
             <Button
               label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
               loading={isSavingSubscription}
-              onPress={() => {
-                void handleSubscriptionToggle();
-              }}
+              onPress={handleSubscriptionTogglePress}
               size="sm"
               testID="artist-detail-subscribe-toggle"
               variant="outline"
@@ -680,194 +934,159 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     return [...addedRows, ...unaddedRows];
   }, [albumsAdded, albumsUnadded]);
 
-  const tracksBody = (
-    <FillList
-      ListEmptyComponent={
-        isRowsLoading ? (
-          <LoadingSection testID="artist-detail-tracks-loading" />
-        ) : rowsErrorKey !== null ? (
-          <ListError
-            messageKey={rowsErrorKey}
-            onRetry={() => {
-              void loadRows({ source: 'retry' });
-            }}
-            testID="artist-detail-tracks-error"
-          />
-        ) : (
-          <ListEmpty messageKey="misc.info" testID="artist-detail-tracks-empty" />
-        )
-      }
-      ListFooterComponent={
-        playbackNoticeKey !== null ? (
-          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
-        ) : null
-      }
-      contentContainerStyle={{
-        paddingHorizontal: tokens.spacing.lg,
-        paddingTop: tokens.spacing.md,
-      }}
-      data={tracksRows}
-      keyExtractor={(row) => row.key}
-      refreshControl={
-        <RefreshControl
-          onRefresh={() => {
-            void loadRows({ source: 'refresh' });
-          }}
-          refreshing={isRowsRefreshing}
-          tintColor={themeStyles.buttonPrimary.backgroundColor}
-        />
-      }
-      renderItem={({ index, item }) => {
-        if (item.kind === 'added') {
-          return (
-            <HomeFeedRow
-              download={{ item: item.item, testID: `artist-track-download-${index}` }}
-              isLast={index === tracksRows.length - 1}
-              mediaType="tracks"
-              onGoToChannelPress={(nextRow) => {
-                if (nextRow.channelId === undefined) {
-                  return;
-                }
-                if (nextRow.channelKind === 'artists') {
-                  navigation.navigate(
-                    CHANNEL_BROWSE_STACK_ROUTES.ArtistDetail,
-                    buildArtistDetailParams({
-                      artistId: nextRow.channelId,
-                      previewTitle: nextRow.subtitle,
-                    })
-                  );
-                  return;
-                }
-                navigation.navigate(
-                  CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
-                  buildAlbumDetailParams({
-                    albumId: nextRow.channelId,
-                    previewTitle: nextRow.subtitle,
-                  })
-                );
-              }}
-              onGoToTrackPress={(nextRow) => {
-                navigation.navigate(
-                  CHANNEL_BROWSE_STACK_ROUTES.TrackDetail,
-                  buildTrackDetailParams({
-                    previewImageUrl: nextRow.imageUrl,
-                    previewTitle: nextRow.title,
-                    trackId: nextRow.id,
-                  })
-                );
-              }}
-              onPlayPress={(nextRow) => {
-                runPlayAction(nextRow, 'tracks');
-              }}
-              onPress={(nextRow) => {
-                runPlayAction(nextRow, 'tracks');
-              }}
-              onQueuePress={(nextRow, position) => {
-                runQueueAction(nextRow, 'tracks', position);
-              }}
-              row={item.row}
-              showChannelContext={false}
-              testID={`artist-track-row-${index}`}
-            />
-          );
-        }
+  const tracksCount = tracksRows.length;
 
+  const tracksEmpty = useMemo(
+    () =>
+      isRowsLoading ? (
+        <LoadingSection testID="artist-detail-tracks-loading" />
+      ) : rowsErrorKey !== null ? (
+        <ListError
+          messageKey={rowsErrorKey}
+          onRetry={handleRetryRows}
+          testID="artist-detail-tracks-error"
+        />
+      ) : (
+        <ListEmpty messageKey="misc.info" testID="artist-detail-tracks-empty" />
+      ),
+    [handleRetryRows, isRowsLoading, rowsErrorKey]
+  );
+
+  const tracksFooter = useMemo(
+    () =>
+      playbackNoticeKey !== null ? <Text style={styles.notice}>{t(playbackNoticeKey)}</Text> : null,
+    [playbackNoticeKey, styles.notice, t]
+  );
+
+  const rowsRefreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRefreshRows}
+        refreshing={isRowsRefreshing}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
+      />
+    ),
+    [handleRefreshRows, isRowsRefreshing, themeStyles.buttonPrimary.backgroundColor]
+  );
+
+  const renderTracksItem = useCallback(
+    ({ index, item }: { index: number; item: ArtistTracksRow }) => {
+      if (item.kind === 'added') {
         return (
-          <ListRow
-            onPress={(() => {
-              const link = item.row.link;
-              if (link === undefined || link === null || link.length === 0) {
-                return undefined;
-              }
-              return () => {
-                void openExternalUrl(link);
-              };
-            })()}
-            subtitle={item.row.feedTitle ?? item.row.authorName ?? item.row.author ?? undefined}
-            testID={`artist-track-unadded-row-${index}`}
-            title={item.row.title ?? item.row.guid}
+          <ArtistAddedTrackRow
+            index={index}
+            isLast={index === tracksCount - 1}
+            item={item.item}
+            onGoToChannel={handleGoToChannel}
+            onGoToTrack={handleGoToTrack}
+            onPlay={handlePlayTrack}
+            onQueue={handleQueueTrack}
+            row={item.row}
           />
         );
-      }}
-      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
+      }
+
+      return <ArtistUnaddedTrackRow index={index} onOpenUrl={openExternalUrl} row={item.row} />;
+    },
+    [
+      handleGoToChannel,
+      handleGoToTrack,
+      handlePlayTrack,
+      handleQueueTrack,
+      openExternalUrl,
+      tracksCount,
+    ]
+  );
+
+  const albumsEmpty = useMemo(
+    () =>
+      isRowsLoading ? (
+        <LoadingSection testID="artist-detail-albums-loading" />
+      ) : rowsErrorKey !== null ? (
+        <ListError
+          messageKey={rowsErrorKey}
+          onRetry={handleRetryRows}
+          testID="artist-detail-albums-error"
+        />
+      ) : offlineModeEnabled ? (
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="artist-detail-albums-offline-unavailable"
+        />
+      ) : (
+        <ListEmpty messageKey="misc.info" testID="artist-detail-albums-empty" />
+      ),
+    [handleRetryRows, isRowsLoading, offlineModeEnabled, rowsErrorKey]
+  );
+
+  const renderAlbumsItem = useCallback(
+    ({ index, item }: { index: number; item: ArtistAlbumsRow }) => {
+      if (item.kind === 'added') {
+        return <ArtistAddedAlbumRow index={index} onPress={handleOpenAddedAlbum} row={item.row} />;
+      }
+
+      return <ArtistUnaddedAlbumRow index={index} onOpenUrl={openExternalUrl} row={item.row} />;
+    },
+    [handleOpenAddedAlbum, openExternalUrl]
+  );
+
+  const podrollEmpty = useMemo(
+    () =>
+      isPodrollLoading ? (
+        <LoadingSection testID="artist-detail-podroll-loading" />
+      ) : podrollErrorKey !== null ? (
+        <ListError
+          messageKey={podrollErrorKey}
+          onRetry={handleRetryPodroll}
+          testID="artist-detail-podroll-error"
+        />
+      ) : (
+        <ListEmpty messageKey="info.no_podroll_found" testID="artist-detail-podroll-empty" />
+      ),
+    [handleRetryPodroll, isPodrollLoading, podrollErrorKey]
+  );
+
+  const podrollRefreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRefreshPodroll}
+        refreshing={isPodrollRefreshing}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
+      />
+    ),
+    [handleRefreshPodroll, isPodrollRefreshing, themeStyles.buttonPrimary.backgroundColor]
+  );
+
+  const renderPodrollItem = useCallback(
+    ({ index, item }: { index: number; item: PodrollEntry }) => (
+      <ArtistPodrollRow index={index} item={item} onPress={handlePodrollPress} />
+    ),
+    [handlePodrollPress]
+  );
+
+  const tracksBody = (
+    <FillList
+      ListEmptyComponent={tracksEmpty}
+      ListFooterComponent={tracksFooter}
+      contentContainerStyle={styles.listContent}
+      data={tracksRows}
+      keyExtractor={artistTracksKeyExtractor}
+      refreshControl={rowsRefreshControl}
+      renderItem={renderTracksItem}
+      style={styles.list}
       testID="artist-detail-tracks-list"
     />
   );
 
   const albumsBody = (
     <FillList
-      ListEmptyComponent={
-        isRowsLoading ? (
-          <LoadingSection testID="artist-detail-albums-loading" />
-        ) : rowsErrorKey !== null ? (
-          <ListError
-            messageKey={rowsErrorKey}
-            onRetry={() => {
-              void loadRows({ source: 'retry' });
-            }}
-            testID="artist-detail-albums-error"
-          />
-        ) : offlineModeEnabled ? (
-          <ListEmpty
-            messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
-            testID="artist-detail-albums-offline-unavailable"
-          />
-        ) : (
-          <ListEmpty messageKey="misc.info" testID="artist-detail-albums-empty" />
-        )
-      }
-      contentContainerStyle={{
-        paddingHorizontal: tokens.spacing.lg,
-        paddingTop: tokens.spacing.md,
-      }}
+      ListEmptyComponent={albumsEmpty}
+      contentContainerStyle={styles.listContent}
       data={albumsRows}
-      keyExtractor={(row) => row.key}
-      refreshControl={
-        <RefreshControl
-          onRefresh={() => {
-            void loadRows({ source: 'refresh' });
-          }}
-          refreshing={isRowsRefreshing}
-          tintColor={themeStyles.buttonPrimary.backgroundColor}
-        />
-      }
-      renderItem={({ index, item }) => {
-        if (item.kind === 'added') {
-          return (
-            <ListRow
-              onPress={() => {
-                navigation.navigate(
-                  CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
-                  buildAlbumDetailParams({
-                    albumId: item.row.id_text,
-                    previewImageUrl: primaryChannelListArtworkUrl(item.row.channel_images),
-                    previewTitle: item.row.title,
-                  })
-                );
-              }}
-              subtitle={item.row.channel_about?.author ?? undefined}
-              testID={`artist-album-row-${index}`}
-              title={item.row.title ?? item.row.id_text}
-            />
-          );
-        }
-
-        return (
-          <ListRow
-            onPress={
-              item.row.url.length > 0
-                ? () => {
-                    void openExternalUrl(item.row.url);
-                  }
-                : undefined
-            }
-            subtitle={item.row.author ?? undefined}
-            testID={`artist-album-unadded-row-${index}`}
-            title={item.row.title}
-          />
-        );
-      }}
-      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
+      keyExtractor={artistAlbumsKeyExtractor}
+      refreshControl={rowsRefreshControl}
+      renderItem={renderAlbumsItem}
+      style={styles.list}
       testID="artist-detail-albums-list"
     />
   );
@@ -895,61 +1114,13 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     />
   ) : (
     <FillList
-      ListEmptyComponent={
-        isPodrollLoading ? (
-          <LoadingSection testID="artist-detail-podroll-loading" />
-        ) : podrollErrorKey !== null ? (
-          <ListError
-            messageKey={podrollErrorKey}
-            onRetry={() => {
-              void loadPodroll({ source: 'retry' });
-            }}
-            testID="artist-detail-podroll-error"
-          />
-        ) : (
-          <ListEmpty messageKey="info.no_podroll_found" testID="artist-detail-podroll-empty" />
-        )
-      }
-      contentContainerStyle={{
-        paddingHorizontal: tokens.spacing.lg,
-        paddingTop: tokens.spacing.md,
-      }}
+      ListEmptyComponent={podrollEmpty}
+      contentContainerStyle={styles.listContent}
       data={podrollRows}
-      keyExtractor={(row) => row.id}
-      refreshControl={
-        <RefreshControl
-          onRefresh={() => {
-            void loadRows({ source: 'refresh' });
-            void loadPodroll({ source: 'refresh' });
-          }}
-          refreshing={isPodrollRefreshing}
-          tintColor={themeStyles.buttonPrimary.backgroundColor}
-        />
-      }
-      renderItem={({ index, item }) => (
-        <ListRow
-          onPress={() => {
-            if (item.target.kind === 'channel') {
-              navigation.navigate(
-                CHANNEL_BROWSE_STACK_ROUTES.PodcastDetail,
-                buildPodcastDetailParams({
-                  podcastId: item.target.idText,
-                  previewImageUrl: item.imageUrl,
-                  previewTitle: item.title,
-                })
-              );
-              return;
-            }
-            navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
-              episodeId: item.target.idText,
-            });
-          }}
-          subtitle={item.subtitle ?? undefined}
-          testID={`artist-podroll-row-${index}`}
-          title={item.title}
-        />
-      )}
-      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
+      keyExtractor={artistPodrollKeyExtractor}
+      refreshControl={podrollRefreshControl}
+      renderItem={renderPodrollItem}
+      style={styles.list}
       testID="artist-detail-podroll-list"
     />
   );

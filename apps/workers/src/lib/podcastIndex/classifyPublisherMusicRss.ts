@@ -63,9 +63,7 @@ export function extractPublisherParentsFromAlbumXml(xml: string): PublisherParen
 }
 
 function extractChannelMedium(xml: string): string | null {
-  const withPrefix = xml.match(
-    /<(?:podcast:)?medium(?:\s[^>]*)?>([^<]*)<\/(?:podcast:)?medium>/i
-  );
+  const withPrefix = xml.match(/<(?:podcast:)?medium(?:\s[^>]*)?>([^<]*)<\/(?:podcast:)?medium>/i);
   if (withPrefix?.[1] !== undefined) {
     return withPrefix[1].trim();
   }

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { SubscribedChannel } from '../../data/repositories';
 import {
   channelItemsRepository,
   channelLiveStatusRepository,
@@ -9,7 +10,6 @@ import {
   subscriptionsRepository,
   syncEventLogRepository,
 } from '../../data/repositories';
-import type { SubscribedChannel } from '../../data/repositories';
 import { fetchHomeFeedRows } from './homeFeedData';
 import { HOME_FEED_METADATA_TIMEOUT_CODE, HOME_FEED_METADATA_TIMEOUT_MS } from './homeFeedReadLog';
 
@@ -73,7 +73,7 @@ describe('fetchHomeFeedRows local paint', () => {
 
   it('paints podcasts from the follow list and never asks the directory for ranks', async () => {
     vi.mocked(subscriptionsRepository.list).mockResolvedValue([followedShow()]);
-    vi.mocked(channelLiveStatusRepository.listBroadcastingKeys).mockResolvedValue([]);
+    vi.mocked(channelLiveStatusRepository.listBroadcastingKeys).mockResolvedValue(new Set());
     vi.mocked(downloadsRepository.countCompletedByChannel).mockResolvedValue(new Map());
     vi.mocked(channelSeenRepository.listUnseen).mockResolvedValue([]);
 
@@ -119,7 +119,7 @@ describe('fetchHomeFeedRows local paint', () => {
   it('paints follow titles when badge queries hang and records home_feed_metadata_timeout', async () => {
     vi.useFakeTimers();
     vi.mocked(subscriptionsRepository.list).mockResolvedValue([followedShow()]);
-    vi.mocked(channelLiveStatusRepository.listBroadcastingKeys).mockResolvedValue([]);
+    vi.mocked(channelLiveStatusRepository.listBroadcastingKeys).mockResolvedValue(new Set());
     vi.mocked(downloadsRepository.countCompletedByChannel).mockResolvedValue(new Map());
     vi.mocked(channelSeenRepository.listUnseen).mockReturnValue(new Promise(() => undefined));
 

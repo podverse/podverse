@@ -26,8 +26,7 @@ export const ContentAbout = ({
   isAccordion,
 }: ContentAbout) => {
   const hasDescription = description !== undefined && description.length > 0;
-  const hasPeople =
-    (channel_persons?.length ?? 0) > 0 || (item_persons?.length ?? 0) > 0;
+  const hasPeople = (channel_persons?.length ?? 0) > 0 || (item_persons?.length ?? 0) > 0;
 
   if (!hasDescription && !hasPeople) {
     return null;

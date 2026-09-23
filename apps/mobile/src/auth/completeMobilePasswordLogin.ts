@@ -17,8 +17,7 @@ export type CompleteMobilePasswordLoginError =
   | 'session_expired';
 
 export type CompleteMobilePasswordLoginResult =
-  | { ok: true }
-  | { error: CompleteMobilePasswordLoginError; ok: false };
+  { ok: true } | { error: CompleteMobilePasswordLoginError; ok: false };
 
 export type CompleteMobilePasswordLoginParams = {
   clearSession: (reason: SessionEndReason) => Promise<void>;

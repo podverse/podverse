@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import type { DTOPlaylist } from '@podverse/helpers';
 
 import { formatPlaylistRowSubtitle, playlistCreatorLabel } from '../../lib/rows/catalogRowCopy';
-import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 import { ListRow } from '../primitives/ListRow';
 
 export type PlaylistListRowProps = {
@@ -17,11 +18,21 @@ export type PlaylistListRowProps = {
   testID?: string;
 };
 
+const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
+  row: {
+    borderBottomColor: themeStyles.border.borderColor,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
+  },
+});
+
 /**
  * Text-only playlist catalog row. Matches web `ListPlaylistRow`: title, item count, optional
  * description, and an optional creator line. Playlist DTOs have no artwork.
  */
-export function PlaylistListRow({
+export const PlaylistListRow = memo(function PlaylistListRow({
   isLast,
   onPress,
   playlist,
@@ -29,24 +40,10 @@ export function PlaylistListRow({
   testID,
 }: PlaylistListRowProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const title = playlist.title?.trim() || playlist.id_text;
   const subtitle = formatPlaylistRowSubtitle(playlist, t);
   const creator = showCreator ? playlistCreatorLabel(playlist, t) : undefined;
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        row: {
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-        },
-        rowLast: {
-          borderBottomWidth: 0,
-        },
-      }),
-    [themeStyles]
-  );
 
   return (
     <View style={[styles.row, isLast ? styles.rowLast : null]}>
@@ -62,4 +59,4 @@ export function PlaylistListRow({
       />
     </View>
   );
-}
+});

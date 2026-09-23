@@ -27,9 +27,11 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
   const [inputValue, setInputValue] = useState<string>('');
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const [parsedFeedUrls, setParsedFeedUrls] = useState<ReadonlySet<string>>(new Set());
-  const { errorKey, feeds, isLoading, reloadFeeds, removeFeed, removingFeedUrl } = useAddByRssFeeds({
-    onNotice: setNoticeKey,
-  });
+  const { errorKey, feeds, isLoading, reloadFeeds, removeFeed, removingFeedUrl } = useAddByRssFeeds(
+    {
+      onNotice: setNoticeKey,
+    }
+  );
   const { addErrorKey, addFeed, isAdding } = useAddByRssAddFlow({
     inputValue,
     onAfterAdd: reloadFeeds,

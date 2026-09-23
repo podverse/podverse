@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 import { AppOverlay } from '../overlay';
 
 export type MoreMenuItem = {
@@ -51,6 +53,82 @@ const collectSheetRows = (sections: MoreMenuSection[]): SheetRow[] => {
   return rows;
 };
 
+const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
+  StyleSheet.create({
+    actionGroup: {
+      backgroundColor: tokens.background.tertiary,
+      borderColor: themeStyles.border.borderColor,
+      borderRadius: tokens.radii.md,
+      borderWidth: 1,
+      overflow: 'hidden',
+    },
+    backdrop: {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    cancel: {
+      alignItems: 'center',
+      backgroundColor: tokens.background.quaternary,
+      borderColor: themeStyles.border.borderColor,
+      borderRadius: tokens.radii.md,
+      borderWidth: 1,
+      justifyContent: 'center',
+      marginTop: tokens.spacing.md,
+      minHeight: ACTION_ROW_MIN_HEIGHT,
+    },
+    cancelLabel: {
+      ...typography.heading,
+      color: themeStyles.textPrimary.color,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    itemDisabled: {
+      opacity: 0.5,
+    },
+    itemDivider: {
+      borderTopColor: themeStyles.border.borderColor,
+      borderTopWidth: 1,
+    },
+    itemLabel: {
+      ...typography.heading,
+      color: themeStyles.textPrimary.color,
+      fontWeight: '700',
+      textAlign: 'center',
+      width: '100%',
+    },
+    itemLabelDanger: {
+      color: tokens.text.danger,
+    },
+    itemPressed: {
+      opacity: 0.7,
+    },
+    itemRow: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: ACTION_ROW_MIN_HEIGHT,
+      paddingHorizontal: tokens.spacing.lg,
+    },
+    sectionTitle: {
+      color: themeStyles.textSecondary.color,
+      fontSize: 13,
+      fontWeight: '700',
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.base,
+      textAlign: 'center',
+    },
+    selectedMark: {
+      ...typography.heading,
+      color: themeStyles.buttonPrimary.backgroundColor,
+      fontWeight: '700',
+      position: 'absolute',
+      right: tokens.spacing.lg,
+    },
+    sheet: {
+      paddingHorizontal: tokens.spacing.lg,
+    },
+  });
+
 /**
  * Overflow menu for a More control. Appears instantly at the bottom (no slide or fade): one rounded
  * action group (tertiary fill, centered bold command rows) and a separate Cancel block
@@ -65,88 +143,15 @@ export function MoreMenu({
   testID,
   visible,
 }: MoreMenuProps) {
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const rows = useMemo(() => collectSheetRows(sections), [sections]);
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        actionGroup: {
-          backgroundColor: tokens.background.tertiary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          overflow: 'hidden',
-        },
-        backdrop: {
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          flex: 1,
-          justifyContent: 'flex-end',
-        },
-        cancel: {
-          alignItems: 'center',
-          backgroundColor: tokens.background.quaternary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          justifyContent: 'center',
-          marginTop: tokens.spacing.md,
-          minHeight: ACTION_ROW_MIN_HEIGHT,
-        },
-        cancelLabel: {
-          ...typography.heading,
-          color: themeStyles.textPrimary.color,
-          fontWeight: '700',
-          textAlign: 'center',
-        },
-        itemDisabled: {
-          opacity: 0.5,
-        },
-        itemDivider: {
-          borderTopColor: themeStyles.border.borderColor,
-          borderTopWidth: 1,
-        },
-        itemLabel: {
-          ...typography.heading,
-          color: themeStyles.textPrimary.color,
-          fontWeight: '700',
-          textAlign: 'center',
-          width: '100%',
-        },
-        itemLabelDanger: {
-          color: tokens.text.danger,
-        },
-        itemPressed: {
-          opacity: 0.7,
-        },
-        itemRow: {
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: ACTION_ROW_MIN_HEIGHT,
-          paddingHorizontal: tokens.spacing.lg,
-        },
-        sectionTitle: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          fontWeight: '700',
-          paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.base,
-          textAlign: 'center',
-        },
-        selectedMark: {
-          ...typography.heading,
-          color: themeStyles.buttonPrimary.backgroundColor,
-          fontWeight: '700',
-          position: 'absolute',
-          right: tokens.spacing.lg,
-        },
-        sheet: {
-          paddingBottom: Math.max(insets.bottom, tokens.spacing['2xl']),
-          paddingHorizontal: tokens.spacing.lg,
-        },
-      }),
-    [insets.bottom, themeStyles, tokens]
+  const sheetInset = useMemo(
+    () => ({
+      paddingBottom: Math.max(insets.bottom, tokens.spacing['2xl']),
+    }),
+    [insets.bottom, tokens.spacing]
   );
 
   return (
@@ -161,7 +166,7 @@ export function MoreMenu({
         <View
           accessibilityRole="menu"
           accessibilityViewIsModal
-          style={styles.sheet}
+          style={[styles.sheet, sheetInset]}
           testID={testID}
         >
           <View style={styles.actionGroup}>

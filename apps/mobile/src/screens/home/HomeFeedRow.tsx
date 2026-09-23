@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -22,19 +22,22 @@ import {
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
-import { clipListTimeRangeLabel } from '../../lib/rows/homeRowMappers';
+import { perfCount } from '../../lib/perf/perfSpans';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
-import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { clipListTimeRangeLabel } from '../../lib/rows/homeRowMappers';
+import { usePlaybackRow } from '../../playback/PlaybackProvider';
 import {
   LIST_ROW_ARTWORK_SIZE,
   listRowArtworkGap,
   listRowVerticalPadding,
 } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
-import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 import type { DirectoryMediaType } from '../browse/browseTypes';
 import { isPlayableDirectoryMediaType } from '../browse/browseTypes';
 import type { HomeFeedRowData } from './homeFeedData';
+import { resolveHomeFeedRowDownload } from './homeFeedRowDownload';
 import type { HomeRowMetadata } from './homeRowMetadata';
 import type { QueueActionPosition } from './useHomeRowPlayback';
 
@@ -58,11 +61,12 @@ type HomeFeedRowProps = {
   /** Track lists: open the parent album or artist from More. */
   onGoToChannelPress?: (row: HomeFeedRowData) => void;
   /**
-   * The item this row stands for, plus the `testID` the control answers to. Supplying it puts a
-   * one-tap download control on the row; the control decides whether there is anything to offer,
-   * so a livestream or HLS-only item renders no affordance.
+   * The item this row stands for. Supplying it puts a one-tap download control on the row; the
+   * control decides whether there is anything to offer, so a livestream or HLS-only item renders
+   * no affordance. `downloadTestID` is required alongside it.
    */
-  download?: { item: DTOItem; testID: string };
+  downloadItem?: DTOItem;
+  downloadTestID?: string;
   row: HomeFeedRowData;
   /** Last row in a list: no bottom hairline so it does not sit on the list edge. */
   isLast?: boolean;
@@ -81,6 +85,83 @@ type HomeFeedRowProps = {
   /** Merged onto the row container — use to match a parent surface. */
   style?: StyleProp<ViewStyle>;
 };
+
+const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
+  StyleSheet.create({
+    artworkWrap: {
+      height: LIST_ROW_ARTWORK_SIZE,
+      width: LIST_ROW_ARTWORK_SIZE,
+    },
+    channelTitle: {
+      ...typography.caption,
+      color: themeStyles.textPrimary.color,
+    },
+    date: {
+      ...typography.caption,
+      color: tokens.text.accent,
+    },
+    dateRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
+    },
+    description: {
+      ...typography.caption,
+      color: themeStyles.textSecondary.color,
+    },
+    image: {
+      height: LIST_ROW_ARTWORK_SIZE,
+      width: LIST_ROW_ARTWORK_SIZE,
+    },
+    identityRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: listRowArtworkGap(tokens.spacing),
+    },
+    identityText: {
+      flex: 1,
+      gap: tokens.spacing.xs,
+      justifyContent: 'center',
+      minWidth: 0,
+    },
+    liveBadge: {
+      alignSelf: 'center',
+    },
+    liveOnArtwork: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    row: {
+      alignItems: 'stretch',
+      backgroundColor: themeStyles.screen.backgroundColor,
+      borderBottomColor: themeStyles.border.borderColor,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
+    },
+    rowActions: {
+      marginTop: tokens.spacing.sm,
+    },
+    rowBody: {
+      flex: 1,
+      gap: tokens.spacing.md,
+      minWidth: 0,
+      ...listRowVerticalPadding(tokens.spacing.base),
+    },
+    rowLast: {
+      borderBottomWidth: 0,
+    },
+    unseenRail: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: UNSEEN_INDICATOR_SIZE,
+    },
+    title: {
+      ...typography.subheading,
+      color: themeStyles.textPrimary.color,
+    },
+  });
 
 /**
  * Spoken names for the live chip and unseen indicator, already localized.
@@ -171,7 +252,7 @@ const useClipRangeLabel = (row: HomeFeedRowData): string | null => {
  * Track rows omit the play band: More sits in the identity row, vertically centered with the
  * artwork and text. The row press still starts playback.
  */
-export function HomeFeedRow({
+export const HomeFeedRow = memo(function HomeFeedRow({
   mediaType,
   onPress,
   onPlayPress,
@@ -183,7 +264,8 @@ export function HomeFeedRow({
   onGoToTrackPress,
   onGoToChannelPress,
   customActions,
-  download,
+  downloadItem,
+  downloadTestID,
   isLast = false,
   row,
   testID,
@@ -192,7 +274,11 @@ export function HomeFeedRow({
   style,
 }: HomeFeedRowProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  // One count per mount. A later render of the same instance is not another mount.
+  useEffect(() => {
+    perfCount('home.row.mount');
+  }, []);
+  const styles = useThemedStyles(createStyles);
   const isPlayable = isPlayableDirectoryMediaType(mediaType);
   const showInlineTrackMore = customActions === undefined && mediaType === 'tracks';
   const { liveLabel, unseenSpoken } = useMetadataAnnouncements(row.metadata);
@@ -205,7 +291,8 @@ export function HomeFeedRow({
     isLive
   );
   const durationLabel = clipRangeLabel ?? episodeDurationLabel;
-  const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
+  const { activeTarget, enclosureSelectedParams } = usePlaybackRow();
+  const download = resolveHomeFeedRowDownload(downloadItem, downloadTestID);
   const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
   const explicitSelectedParams =
     download !== undefined && activeMediaId === download.item.id_text
@@ -232,83 +319,6 @@ export function HomeFeedRow({
   // channel rows use the download count when there is one.
   const overlineLabel = channelLabel ?? downloadedLabel;
   const showArtwork = showChannelContext;
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        artworkWrap: {
-          height: LIST_ROW_ARTWORK_SIZE,
-          width: LIST_ROW_ARTWORK_SIZE,
-        },
-        channelTitle: {
-          ...typography.caption,
-          color: themeStyles.textPrimary.color,
-        },
-        date: {
-          ...typography.caption,
-          color: tokens.text.accent,
-        },
-        dateRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: tokens.spacing.sm,
-        },
-        description: {
-          ...typography.caption,
-          color: themeStyles.textSecondary.color,
-        },
-        image: {
-          height: LIST_ROW_ARTWORK_SIZE,
-          width: LIST_ROW_ARTWORK_SIZE,
-        },
-        identityRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: listRowArtworkGap(tokens.spacing),
-        },
-        identityText: {
-          flex: 1,
-          gap: tokens.spacing.xs,
-          justifyContent: 'center',
-          minWidth: 0,
-        },
-        liveBadge: {
-          alignSelf: 'center',
-        },
-        liveOnArtwork: {
-          ...StyleSheet.absoluteFillObject,
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        row: {
-          alignItems: 'stretch',
-          backgroundColor: themeStyles.screen.backgroundColor,
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-          flexDirection: 'row',
-          gap: tokens.spacing.sm,
-        },
-        rowActions: {
-          marginTop: tokens.spacing.sm,
-        },
-        rowBody: {
-          flex: 1,
-          gap: tokens.spacing.md,
-          minWidth: 0,
-          ...listRowVerticalPadding(tokens.spacing.base),
-        },
-        unseenRail: {
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: UNSEEN_INDICATOR_SIZE,
-        },
-        title: {
-          ...typography.subheading,
-          color: themeStyles.textPrimary.color,
-        },
-      }),
-    [isLast, themeStyles, tokens]
-  );
 
   const moreActions = useMemo(() => {
     const standardActions = buildMediaRowMoreActions(
@@ -417,18 +427,14 @@ export function HomeFeedRow({
       onPress={() => {
         onPress(row);
       }}
-      style={[styles.row, style]}
+      style={isLast ? [styles.row, styles.rowLast, style] : [styles.row, style]}
       testID={testID ?? `home-feed-row-${row.id}`}
     >
       <View style={styles.rowBody}>
         <View style={styles.identityRow}>
           {showArtwork ? (
             <View style={styles.artworkWrap}>
-              <CoverImage
-                opensViewer={false}
-                style={styles.image}
-                uri={row.imageUrl}
-              />
+              <CoverImage opensViewer={false} style={styles.image} uri={row.imageUrl} />
               {liveLabel !== null ? (
                 <View pointerEvents="none" style={styles.liveOnArtwork}>
                   <Badge
@@ -527,4 +533,4 @@ export function HomeFeedRow({
       ) : null}
     </Pressable>
   );
-}
+});

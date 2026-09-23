@@ -26,9 +26,9 @@ import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindo
 import { downloadsRepository } from '../../data/repositories/downloadsRepository';
 import { playbackContentRepository } from '../../data/repositories/playbackContentRepository';
 import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
-import { useActionError } from '../../feedback/ActionErrorProvider';
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { shouldReplaceCachedValue } from '../../lib/cachedValue';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
@@ -61,6 +61,8 @@ type TrackDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList
 
 type TrackTabRow = { id: string };
 const EMPTY_TRACK_TAB_ROWS: TrackTabRow[] = [];
+const trackTabRowKeyExtractor = (row: TrackTabRow): string => row.id;
+const renderTrackTabItem = (): null => null;
 
 const TRACK_TAB_LABEL_KEYS: Record<TrackTab, string> = {
   funding: 'info.funding',
@@ -486,8 +488,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   }, [track, trackId]);
 
   const hasTranscript = (track?.item_transcripts?.length ?? 0) > 0;
-  const hasFunding =
-    track !== null ? (track.item_fundings?.length ?? 0) > 0 : previewHasFunding;
+  const hasFunding = track !== null ? (track.item_fundings?.length ?? 0) > 0 : previewHasFunding;
   const supportedTabs = useMemo<TrackTab[]>(() => {
     const tabs: TrackTab[] = ['summary'];
     if (hasTranscript || transcriptText.length > 0) {
@@ -650,49 +651,84 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     );
   }, [channel, navigation]);
 
-  const listHeader =
-    track !== null && trackRow !== null ? (
-      <View>
-        <ChannelHeader
-          artworkUri={
-            primaryChannelListArtworkUrl(channel?.channel_images) ??
-            (previewImageUrl !== undefined &&
-            previewImageUrl !== null &&
-            previewImageUrl.length > 0
-              ? previewImageUrl
-              : null)
-          }
-          onTitlePress={channel !== null ? openAlbum : undefined}
-          subtitle={channel?.channel_about?.author ?? null}
-          testID="track-detail-album-header"
-          title={channel?.title ?? channelTitle ?? previewTitle ?? t('media.music.album')}
-        />
-        <TrackPlayChrome
-          channel={channel}
-          item={track}
-          itemRow={trackRow}
-          onAddToPlaylistPress={handleAddToPlaylist}
-          onAlbumPress={channel !== null ? openAlbum : undefined}
-          onMarkAsPlayedPress={handleMarkAsPlayed}
-          onPlayPress={handlePlay}
-          onQueuePress={handleQueue}
-          onSharePress={handleShare}
-        />
-        {playbackNoticeKey !== null ? (
-          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
-        ) : null}
-        <View style={styles.chipRow}>
-          <SectionChipRow
-            items={sectionChips}
-            onSelect={handleTabPress}
-            selectedKey={activeTab}
-            testID="track-detail-sections"
-          />
-        </View>
-      </View>
-    ) : null;
+  const handleToggleDescription = useCallback(() => {
+    setDescriptionExpanded((current) => !current);
+  }, []);
 
-  const paneFooter = (() => {
+  const handleRetryTrack = useCallback(() => {
+    void loadTrack();
+  }, [loadTrack]);
+
+  const handleRetryTranscript = useCallback(() => {
+    setTranscriptText('');
+    void loadTranscript();
+  }, [loadTranscript]);
+
+  const headerArtworkUri =
+    primaryChannelListArtworkUrl(channel?.channel_images) ??
+    (previewImageUrl !== undefined && previewImageUrl !== null && previewImageUrl.length > 0
+      ? previewImageUrl
+      : null);
+
+  const listHeader = useMemo(
+    () =>
+      track !== null && trackRow !== null ? (
+        <View>
+          <ChannelHeader
+            artworkUri={headerArtworkUri}
+            onTitlePress={channel !== null ? openAlbum : undefined}
+            subtitle={channel?.channel_about?.author ?? null}
+            testID="track-detail-album-header"
+            title={channel?.title ?? channelTitle ?? previewTitle ?? t('media.music.album')}
+          />
+          <TrackPlayChrome
+            channel={channel}
+            item={track}
+            itemRow={trackRow}
+            onAddToPlaylistPress={handleAddToPlaylist}
+            onAlbumPress={channel !== null ? openAlbum : undefined}
+            onMarkAsPlayedPress={handleMarkAsPlayed}
+            onPlayPress={handlePlay}
+            onQueuePress={handleQueue}
+            onSharePress={handleShare}
+          />
+          {playbackNoticeKey !== null ? (
+            <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
+          ) : null}
+          <View style={styles.chipRow}>
+            <SectionChipRow
+              items={sectionChips}
+              onSelect={handleTabPress}
+              selectedKey={activeTab}
+              testID="track-detail-sections"
+            />
+          </View>
+        </View>
+      ) : null,
+    [
+      activeTab,
+      channel,
+      channelTitle,
+      handleAddToPlaylist,
+      handleMarkAsPlayed,
+      handlePlay,
+      handleQueue,
+      handleShare,
+      handleTabPress,
+      headerArtworkUri,
+      openAlbum,
+      playbackNoticeKey,
+      previewTitle,
+      sectionChips,
+      styles.chipRow,
+      styles.notice,
+      t,
+      track,
+      trackRow,
+    ]
+  );
+
+  const paneFooter = useMemo(() => {
     if (activeTab === 'summary') {
       return (
         <View testID="track-detail-summary">
@@ -703,9 +739,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ expanded: descriptionExpanded }}
-              onPress={() => {
-                setDescriptionExpanded((current) => !current);
-              }}
+              onPress={handleToggleDescription}
               testID="track-detail-description-toggle"
             >
               <Text style={styles.showMore}>
@@ -713,10 +747,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
               </Text>
             </Pressable>
           ) : null}
-          <ItemSummaryPeople
-            itemPersons={track?.item_persons ?? []}
-            testIDPrefix="track-detail"
-          />
+          <ItemSummaryPeople itemPersons={track?.item_persons ?? []} testIDPrefix="track-detail" />
         </View>
       );
     }
@@ -739,10 +770,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
       return (
         <ListError
           messageKey={transcriptErrorKey}
-          onRetry={() => {
-            setTranscriptText('');
-            void loadTranscript();
-          }}
+          onRetry={handleRetryTranscript}
           testID="track-detail-transcript-error"
         />
       );
@@ -763,7 +791,34 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
         {transcriptText}
       </Text>
     );
-  })();
+  }, [
+    activeTab,
+    descriptionExpanded,
+    descriptionValue.length,
+    displayDescription,
+    handleRetryTranscript,
+    handleToggleDescription,
+    isTranscriptLoading,
+    offlineModeEnabled,
+    styles.description,
+    styles.showMore,
+    styles.transcript,
+    t,
+    track,
+    transcriptErrorKey,
+    transcriptText,
+  ]);
+
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRetryTrack}
+        refreshing={isLoading}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
+      />
+    ),
+    [handleRetryTrack, isLoading, themeStyles.buttonPrimary.backgroundColor]
+  );
 
   return (
     <View style={styles.container} testID="track-detail-screen">
@@ -775,13 +830,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
         />
       ) : null}
       {!isLoading && errorKey !== null ? (
-        <ListError
-          messageKey={errorKey}
-          onRetry={() => {
-            void loadTrack();
-          }}
-          testID="track-detail-error"
-        />
+        <ListError messageKey={errorKey} onRetry={handleRetryTrack} testID="track-detail-error" />
       ) : null}
       {!isLoading && errorKey === null && track !== null && !isPrefsHydrated ? (
         <LoadingSection testID="track-detail-tab-prefs-loading" />
@@ -793,18 +842,10 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.content}
           data={EMPTY_TRACK_TAB_ROWS}
-          keyExtractor={(row) => row.id}
+          keyExtractor={trackTabRowKeyExtractor}
           ref={listRef}
-          refreshControl={
-            <RefreshControl
-              onRefresh={() => {
-                void loadTrack();
-              }}
-              refreshing={isLoading}
-              tintColor={themeStyles.buttonPrimary.backgroundColor}
-            />
-          }
-          renderItem={() => null}
+          refreshControl={refreshControl}
+          renderItem={renderTrackTabItem}
           testID="track-detail-list"
         />
       ) : null}

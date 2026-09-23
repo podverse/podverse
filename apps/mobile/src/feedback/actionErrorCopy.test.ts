@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import type { PlaybackErrorKind } from '../../modules/podverse-media-engine';
-
 import {
   actionErrorDetailLine,
   downloadErrorMessageKeys,
@@ -43,7 +42,9 @@ describe('downloadErrorMessageKeys', () => {
       'action_error.download_file_missing'
     );
     expect(downloadErrorMessageKeys(null).bodyKey).toBe('action_error.download_unknown');
-    expect(downloadErrorMessageKeys('something_else').bodyKey).toBe('action_error.download_unknown');
+    expect(downloadErrorMessageKeys('something_else').bodyKey).toBe(
+      'action_error.download_unknown'
+    );
 
     for (const reason of ['no_storage', 'transfer_failed', 'file_missing', null, ''] as const) {
       const keys = downloadErrorMessageKeys(reason);

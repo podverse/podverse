@@ -71,9 +71,7 @@ describe('isSameHoverTarget', () => {
 
   it('treats null pairs as equal only when both are null', () => {
     expect(isSameHoverTarget(null, null)).toBe(true);
-    expect(isSameHoverTarget(null, { flatIndex: 0, sectionId: 'visible', toIndex: 0 })).toBe(
-      false
-    );
+    expect(isSameHoverTarget(null, { flatIndex: 0, sectionId: 'visible', toIndex: 0 })).toBe(false);
   });
 });
 

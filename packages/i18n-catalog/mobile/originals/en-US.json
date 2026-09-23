@@ -146,6 +146,7 @@
     "complete_now_playing": "Mark now-playing complete",
     "quick_login": "Sign in as E2E user",
     "quick_login_popularity": "Sign in as undecided E2E user",
+    "quick_login_perf": "Sign in as perf E2E user",
     "session_ready": "E2E session ready"
   },
   "subscriptions": {

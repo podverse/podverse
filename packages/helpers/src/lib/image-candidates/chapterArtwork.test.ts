@@ -52,10 +52,9 @@ describe('resolveChapterRowArtwork', () => {
 describe('resolveActiveChapterImageUrl', () => {
   it('prefers the active chapter image, then the matching list row', () => {
     expect(
-      resolveActiveChapterImageUrl(
-        { id_text: 'ch-1', img: 'https://active.test/a.jpg' },
-        [{ id_text: 'ch-1', img: 'https://list.test/l.jpg' }]
-      )
+      resolveActiveChapterImageUrl({ id_text: 'ch-1', img: 'https://active.test/a.jpg' }, [
+        { id_text: 'ch-1', img: 'https://list.test/l.jpg' },
+      ])
     ).toBe('https://active.test/a.jpg');
     expect(
       resolveActiveChapterImageUrl({ id_text: 'ch-1', img: null }, [
@@ -63,6 +62,8 @@ describe('resolveActiveChapterImageUrl', () => {
       ])
     ).toBe('https://list.test/l.jpg');
     expect(resolveActiveChapterImageUrl({ id_text: 'ch-1', img: null }, [])).toBeNull();
-    expect(resolveActiveChapterImageUrl(null, [{ id_text: 'ch-1', img: 'https://x.test/c.jpg' }])).toBeNull();
+    expect(
+      resolveActiveChapterImageUrl(null, [{ id_text: 'ch-1', img: 'https://x.test/c.jpg' }])
+    ).toBeNull();
   });
 });

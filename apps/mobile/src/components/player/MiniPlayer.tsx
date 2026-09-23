@@ -29,8 +29,15 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
   const { t } = useTranslation();
   const { isTablet } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
-  const { activeTarget, lastPlaybackError, nowPlaying, pause, resume, retryPlayback, transportState } =
-    usePlaybackSession();
+  const {
+    activeTarget,
+    lastPlaybackError,
+    nowPlaying,
+    pause,
+    resume,
+    retryPlayback,
+    transportState,
+  } = usePlaybackSession();
   const { openPlaybackError } = useActionError();
 
   const styles = useMemo(

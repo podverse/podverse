@@ -21,7 +21,10 @@ import { isValidNanoIdV2IdText } from '@podverse/orm';
 const isProduction = config.nodeEnv === 'production';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 
-const issueMobileTokenPair = (params: { adminId: number; adminIdText: string }): {
+const issueMobileTokenPair = (params: {
+  adminId: number;
+  adminIdText: string;
+}): {
   token_type: 'Bearer';
   access_token: string;
   access_token_expires_in: number;

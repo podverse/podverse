@@ -164,10 +164,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
             )}
           </div>
           {infoResolution.chapterWebUrl !== null ? (
-            <ChapterLinkButton
-              className={styles.chapterLink}
-              href={infoResolution.chapterWebUrl}
-            />
+            <ChapterLinkButton className={styles.chapterLink} href={infoResolution.chapterWebUrl} />
           ) : null}
         </>
       )}

@@ -49,9 +49,9 @@ re-render, which is what keeps a forty-row list still while five things download
 Two notification channels, because a transfer reports bytes many times a second and RN handles
 touches on that same thread:
 
-| Channel               | Fires for            | Cadence                                       | Who subscribes                         |
-| --------------------- | -------------------- | --------------------------------------------- | -------------------------------------- |
-| `subscribe`           | set + status changes | leading edge, then one trailing pass (100 ms) | everything                             |
+| Channel               | Fires for            | Cadence                                       | Who subscribes         |
+| --------------------- | -------------------- | --------------------------------------------- | ---------------------- |
+| `subscribe`           | set + status changes | leading edge, then one trailing pass (100 ms) | everything             |
 | `subscribeToProgress` | byte movement        | trailing only (500 ms)                        | My Library → Downloads |
 
 `batch(fn)` collapses a bulk operation (pause all, resume all, clear finished) into one notification.

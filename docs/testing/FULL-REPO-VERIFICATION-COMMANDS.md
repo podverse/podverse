@@ -187,6 +187,8 @@ npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- notifications-inbox
 npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml
+npm run mobile:e2e:test -- perf-chip-switch
+npm run mobile:e2e:test -- perf-scroll
 npm run mobile:e2e:test -- play-mini-player
 npm run mobile:e2e:test -- playback-multi-device-handoff
 npm run mobile:e2e:test -- playback-offline-reconciliation

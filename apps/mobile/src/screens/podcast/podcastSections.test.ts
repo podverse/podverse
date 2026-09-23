@@ -43,15 +43,7 @@ describe('resolvePodcastSections', () => {
         },
         hasSoundbites: true,
       })
-    ).toEqual([
-      'episodes',
-      'downloaded',
-      'about',
-      'clips',
-      'soundbites',
-      'podroll',
-      'funding',
-    ]);
+    ).toEqual(['episodes', 'downloaded', 'about', 'clips', 'soundbites', 'podroll', 'funding']);
   });
 
   it('lets the channel DTO override a cached Podroll flag', () => {

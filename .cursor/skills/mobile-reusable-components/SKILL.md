@@ -33,7 +33,7 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `UnseenIndicator`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`) |
 | Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                                                                                     |
-| Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `OfflineModeBanner`, `MobileScreenContainer`, `ModalSafeArea`, `ThemedStackHeader`)                                          |
+| Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `OfflineModeBanner`, `MobileScreenContainer`, `ModalSafeArea`, `ThemedStackHeader`)                                         |
 | Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                                                                                                                 |
 | Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                                       |
 | Playback row actions / mini player          | `components/player/`                                                                                                                                                                                 |
@@ -41,7 +41,7 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 | Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                                    |
 | Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                                                                                  |
 | Chapter list rows                           | `components/content/ChapterListRow` — full player and episode detail; images only when the section has any (**mobile-chapter-artwork**)                                                              |
-| Playlist / user catalog rows                | `components/content/PlaylistListRow`, `ProfileListRow` — text-only (no artwork); copy helpers in `lib/rows/catalogRowCopy`                                                                          |
+| Playlist / user catalog rows                | `components/content/PlaylistListRow`, `ProfileListRow` — text-only (no artwork); copy helpers in `lib/rows/catalogRowCopy`                                                                           |
 | Shared stateful logic                       | `hooks/`                                                                                                                                                                                             |
 | Pure helpers                                | `lib/`                                                                                                                                                                                               |
 
@@ -108,7 +108,9 @@ Browse rows there.
 
 **List rows:** `HomeFeedRow` for media/results (`isLast` drops the bottom hairline; vertical
 padding is `spacing.base`; artwork is 60×60). Title / subtitle / metadata use a column `gap`
-(`spacing.sm`), not per-line margins, and the text stack is vertically centered. `ListSection`
+(`spacing.sm`), not per-line margins, and the text stack is vertically centered. Track rows
+(`mediaType="tracks"`) omit the list play/pause band and put More in `identityRow`, vertically
+centered with the artwork and text; the row press still starts playback. `ListSection`
 passes `(item, index, isLast)`. `ListRow` is the title/subtitle primitive with the same gap and
 padding. A numeric `badgeCount` renders `CountBadge` left of `trailing` (chevron) and hides at 0;
 do not invent a second count chip. See **mobile-screen-layout**.

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 
-import { BoostSheet } from './BoostSheet';
 import type { BoostSheetTarget } from './BoostSheet';
+import { BoostSheet } from './BoostSheet';
 
 type UseBoostSheet = {
   boostSheet: ReactNode;

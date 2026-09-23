@@ -1,8 +1,8 @@
 import { getErrorResponseStatus } from '@podverse/helpers/error';
 
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
-import { channelItemsRepository } from './channelItemsRepository';
 import type { ChannelWindowSyncResult } from './channelItemsRepository';
+import { channelItemsRepository } from './channelItemsRepository';
 import { subscriptionsRepository } from './subscriptionsRepository';
 import { syncEventLogRepository } from './syncEventLogRepository';
 import type { MobileAuthRequestContext } from './types';
@@ -28,8 +28,7 @@ export const formatDirectoryChannelGoneDetail = (
 };
 
 export type DirectoryChannelSyncOutcome =
-  | { kind: 'gone' }
-  | { kind: 'synced'; result: ChannelWindowSyncResult };
+  { kind: 'gone' } | { kind: 'synced'; result: ChannelWindowSyncResult };
 
 export const dropGoneDirectoryChannel = async (params: {
   channelIdText: string;
@@ -85,10 +84,11 @@ export const syncDirectoryChannelOrDropGone = async (
   channelIdText: string,
   options: { channelTitle?: string | null } = {}
 ): Promise<DirectoryChannelSyncOutcome> => {
-  return runOrDropGone(
-    () => channelItemsRepository.syncChannel(context, channelIdText, options),
-    { channelIdText, channelTitle: options.channelTitle, context }
-  );
+  return runOrDropGone(() => channelItemsRepository.syncChannel(context, channelIdText, options), {
+    channelIdText,
+    channelTitle: options.channelTitle,
+    context,
+  });
 };
 
 export const extendDirectoryChannelOrDropGone = async (
@@ -96,8 +96,9 @@ export const extendDirectoryChannelOrDropGone = async (
   channelIdText: string,
   options: { channelTitle?: string | null } = {}
 ): Promise<DirectoryChannelSyncOutcome> => {
-  return runOrDropGone(
-    () => channelItemsRepository.extendWindow(context, channelIdText, options),
-    { channelIdText, channelTitle: options.channelTitle, context }
-  );
+  return runOrDropGone(() => channelItemsRepository.extendWindow(context, channelIdText, options), {
+    channelIdText,
+    channelTitle: options.channelTitle,
+    context,
+  });
 };

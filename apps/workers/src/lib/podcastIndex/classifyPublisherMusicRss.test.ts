@@ -77,8 +77,6 @@ describe('extractPublisherParentsFromAlbumXml', () => {
   </channel>
 </rss>`;
     const parents = extractPublisherParentsFromAlbumXml(xml);
-    expect(parents).toEqual([
-      { feedUrl: 'https://example.com/artist.xml', feedGuid: 'abc' },
-    ]);
+    expect(parents).toEqual([{ feedUrl: 'https://example.com/artist.xml', feedGuid: 'abc' }]);
   });
 });

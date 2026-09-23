@@ -1,10 +1,10 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, StyleSheet } from 'react-native';
+import { Linking } from 'react-native';
 
-import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 import { CoverImage, ListRow } from '../primitives';
-
 import type { AboutPerson } from './aboutPerson';
 
 type AboutPersonRowProps = {
@@ -12,22 +12,19 @@ type AboutPersonRowProps = {
   testID: string;
 };
 
+const createStyles = (_theme: ThemedStylesTheme) => ({
+  personImage: {
+    height: 48,
+    width: 48,
+  },
+});
+
 /**
  * One credited person: optional portrait, name, role, and outbound href when the feed published one.
  */
 export function AboutPersonRow({ person, testID }: AboutPersonRowProps) {
   const { t } = useTranslation();
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        personImage: {
-          height: 48,
-          width: 48,
-        },
-      }),
-    []
-  );
+  const styles = useThemedStyles(createStyles);
 
   const openExternalUrl = useCallback(async (href: string) => {
     try {
@@ -45,13 +42,7 @@ export function AboutPersonRow({ person, testID }: AboutPersonRowProps) {
       accessibilityLabel={
         hasLink ? `${person.name}, ${t('info.people.link_to_persons_webpage')}` : undefined
       }
-      leading={
-        <CoverImage
-          opensViewer={false}
-          style={styles.personImage}
-          uri={person.img}
-        />
-      }
+      leading={<CoverImage opensViewer={false} style={styles.personImage} uri={person.img} />}
       onPress={
         hasLink
           ? () => {

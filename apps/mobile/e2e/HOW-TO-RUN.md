@@ -242,6 +242,8 @@ npm run mobile:e2e:test -- --platform ios membership-gate
 npm run mobile:e2e:test -- --platform ios notifications-inbox
 npm run mobile:e2e:test -- --platform ios offline-mode
 npm run mobile:e2e:test -- --platform ios opml
+npm run mobile:e2e:test -- --platform ios perf-chip-switch
+npm run mobile:e2e:test -- --platform ios perf-scroll
 npm run mobile:e2e:test -- --platform ios play-mini-player
 npm run mobile:e2e:test -- --platform ios playback-multi-device-handoff
 npm run mobile:e2e:test -- --platform ios playback-offline-reconciliation
@@ -288,6 +290,8 @@ npm run mobile:e2e:test -- --platform android membership-gate
 npm run mobile:e2e:test -- --platform android notifications-inbox
 npm run mobile:e2e:test -- --platform android offline-mode
 npm run mobile:e2e:test -- --platform android opml
+npm run mobile:e2e:test -- --platform android perf-chip-switch
+npm run mobile:e2e:test -- --platform android perf-scroll
 npm run mobile:e2e:test -- --platform android play-mini-player
 npm run mobile:e2e:test -- --platform android playback-multi-device-handoff
 npm run mobile:e2e:test -- --platform android playback-offline-reconciliation
@@ -406,6 +410,8 @@ npm run mobile:e2e:test -- library-playlists
 npm run mobile:e2e:test -- notifications-inbox
 npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml
+npm run mobile:e2e:test -- perf-chip-switch
+npm run mobile:e2e:test -- perf-scroll
 npm run mobile:e2e:test -- playback-multi-device-handoff
 npm run mobile:e2e:test -- player-screen
 npm run mobile:e2e:test -- podcast-episode
@@ -419,6 +425,14 @@ npm run mobile:e2e:test -- settings-downloads
 npm run mobile:e2e:test -- subscriptions-anonymous
 npm run mobile:e2e:test -- track
 ```
+
+`perf-chip-switch` and `perf-scroll` sign in as `e2e-perf@example.com` and turn on
+`PODVERSE_E2E_PERF_VOLUME=1` for their own reseed (100 channels, 300 items). That seed gives every
+channel one local image from the test-assets server and no item images. To measure third-party
+artwork instead, export `PODVERSE_E2E_PERF_REMOTE_IMAGES=1` for that run only. The URL list is
+`tools/web/perf-remote-image-urls.json`. Unset the flag before any regression flow; the runner
+refuses it outside a perf flow. The report script clears app data when the flag is set so a prior
+localhost image is not still on disk.
 
 ### API + test-assets areas
 
@@ -529,9 +543,9 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | Message / symptom                                                                          | Fix                                                                                                                                                                                                                                                      |
 | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Metro not listening on 8081                                                                | Local: **Mobile Metro** `npm run mobile:dev`. Maestro: **Mobile E2E Metro** `npm run mobile:dev:e2e` (stop the other first)                                                                                                                              |
-| App not installed on E2E iOS                                                               | **Mobile E2E iOS**: `npm run mobile:e2e:ios`                                                                                                                                                                                                              |
+| App not installed on E2E iOS                                                               | **Mobile E2E iOS**: `npm run mobile:e2e:ios`                                                                                                                                                                                                             |
 | App not installed on E2E Android                                                           | **Mobile E2E Android**: `npm run mobile:e2e:android`                                                                                                                                                                                                     |
-| App not installed on E2E iOS / Android tablet                                              | **Mobile E2E iOS** / **Mobile E2E Android**: `npm run mobile:e2e:ios:tablet` / `npm run mobile:e2e:android:tablet`                                                                                                                                        |
+| App not installed on E2E iOS / Android tablet                                              | **Mobile E2E iOS** / **Mobile E2E Android**: `npm run mobile:e2e:ios:tablet` / `npm run mobile:e2e:android:tablet`                                                                                                                                       |
 | `full-player-title` missing on tablet flow                                                 | Flow sets landscape; ensure tablet device is wide enough (`iPad Pro 13-inch (M4) E2E` / `Pixel_Tablet_API_33_e2e`). Re-run `ensure-devices.sh e2e-tablet`                                                                                                |
 | API-backed flow cannot reach API (`:4230`)                                                 | **Mobile E2E API**: `npm run mobile:e2e:api:bg`; then in **Mobile** `npm run mobile:e2e:api:health`                                                                                                                                                      |
 | Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api:bg` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                       |
@@ -539,7 +553,7 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | Empty search / no `search-result-row-0` / no `rss-feed-row-first`                          | Same stale-API issue, or seed missing — runner auto-seeds; restart API if fixtures flag is false                                                                                                                                                         |
 | `add-by-rss-home-playback-active` never appears after Play                                 | Restart **Mobile E2E test-assets** (`npm run mobile:e2e:test-assets` — binds `0.0.0.0` so IPv4/`10.0.2.2` works). Reload app after JS rewrite changes.                                                                                                   |
 | Network Error / “Could not sign in” / `tab-home` not visible in API-backed or `:all` runs  | Metro is UI-only (`mobile:dev` in **Mobile Metro**). Stop it; **Mobile E2E Metro**: `npm run mobile:dev:e2e`; reload/reinstall the E2E app so it targets `:4230`                                                                                         |
-| Runner exits: “Metro on :8081 is UI-only”                                                  | Same as above — API-backed / full-suite flows require **Mobile E2E Metro** (`mobile:dev:e2e`)                                                                                                                                                           |
+| Runner exits: “Metro on :8081 is UI-only”                                                  | Same as above — API-backed / full-suite flows require **Mobile E2E Metro** (`mobile:dev:e2e`)                                                                                                                                                            |
 | API start says port 4230 already in use                                                    | Free the port or stop managed process: `npm run mobile:e2e:api:stop`                                                                                                                                                                                     |
 | Stuck on Expo “Development Build” launcher                                                 | Flows should run `shared/launch-and-connect.yaml` (retries Dev Client connect)                                                                                                                                                                           |
 | Assertion fails; screenshot shows “developer menu” / Continue                              | Same shared flow dismisses the one-time Expo dev-client menu (see below)                                                                                                                                                                                 |

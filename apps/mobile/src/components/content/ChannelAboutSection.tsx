@@ -11,7 +11,6 @@ import { useTheme } from '../../theme/useTheme';
 import { FillList } from '../primitives';
 import { ListEmpty } from '../state/ListEmpty';
 import { LoadingSection } from '../state/LoadingSection';
-
 import { AboutPersonRow } from './AboutPersonRow';
 import { buildChannelAboutCells } from './channelAboutCells';
 
@@ -170,7 +169,10 @@ export function ChannelAboutSection({
         }
 
         return (
-          <AboutPersonRow person={cell.person} testID={`${testIDPrefix}-person-${cell.person.id}`} />
+          <AboutPersonRow
+            person={cell.person}
+            testID={`${testIDPrefix}-person-${cell.person.id}`}
+          />
         );
       }}
       style={styles.list}

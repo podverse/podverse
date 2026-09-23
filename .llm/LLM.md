@@ -6,10 +6,10 @@
 
 ## Directory index — `.llm/` (planning workspace)
 
-| Path                 | Operator doc                                            |
-| -------------------- | ------------------------------------------------------- |
-| `.llm/context/`      | [LLM-CONTEXT.md](context/LLM-CONTEXT.md)                |
-| `.llm/templates/`    | [LLM-TEMPLATES.md](templates/LLM-TEMPLATES.md)          |
+| Path              | Operator doc                                   |
+| ----------------- | ---------------------------------------------- |
+| `.llm/context/`   | [LLM-CONTEXT.md](context/LLM-CONTEXT.md)       |
+| `.llm/templates/` | [LLM-TEMPLATES.md](templates/LLM-TEMPLATES.md) |
 
 ## Directory index — abcmemory (`.cursor/`)
 

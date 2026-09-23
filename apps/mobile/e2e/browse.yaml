@@ -19,12 +19,27 @@ name: Browse Tab And Tab Bar Pref
     id: browse-screen
 - extendedWaitUntil:
     visible:
+      id: browse-media-type-selector
+    timeout: ${TIMEOUT_SLOWER}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
+- extendedWaitUntil:
+    visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
 - assertVisible:
     id: browse-media-type-selector
 - assertVisible:
     id: browse-category-button
+# Revealing the sort chip scrolls this row to its trailing edge, which takes Podcasts
+# off the leading edge. Put the row back before asserting or tapping the first type.
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
 - assertVisible:
     id: browse-media-type-podcasts
 - assertNotVisible:
@@ -155,6 +170,16 @@ name: Browse Tab And Tab Bar Pref
       id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
 
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
+# Counted visible while its center is still past the trailing edge, so the tap misses.
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
 - tapOn:
     id: browse-sort-button
 - assertVisible:
@@ -195,12 +220,18 @@ name: Browse Tab And Tab Bar Pref
 - assertVisible:
     id: browse-sort-button
 
+# Artists sits just off the leading edge once the sort chip is on screen.
 - swipe:
     from:
       id: browse-media-type-selector
-    direction: LEFT
+    direction: RIGHT
 - tapOn:
     id: browse-media-type-artists
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
 - extendedWaitUntil:
     visible:
       id: browse-sort-button
@@ -229,10 +260,10 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: "home-feed-cell-.*"
     timeout: ${TIMEOUT_SLOWER}
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: RIGHT
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
 - tapOn:
     id: browse-media-type-podcasts
 - extendedWaitUntil:

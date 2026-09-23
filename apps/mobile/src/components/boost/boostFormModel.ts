@@ -18,12 +18,7 @@ export type BoostRecipientDisplay = {
   splitPercent: number;
 };
 
-const KNOWN_VALUE_KEYS = new Set([
-  'lightning',
-  'paypal_send',
-  'patreon_send',
-  'buymeacoffee_send',
-]);
+const KNOWN_VALUE_KEYS = new Set(['lightning', 'paypal_send', 'patreon_send', 'buymeacoffee_send']);
 
 export const boostValueKey = (value: BoostValueKeySource): string =>
   value.type === 'lightning' ? 'lightning' : `${value.type}_${value.method}`;
@@ -114,10 +109,7 @@ export type BoostValueTab = {
   key: string;
 };
 
-export const buildBoostValueTabs = (
-  channel: DTOChannel,
-  item: DTOItem | null
-): BoostValueTab[] => {
+export const buildBoostValueTabs = (channel: DTOChannel, item: DTOItem | null): BoostValueTab[] => {
   const channelValues = mergeLightningChannelValues(channel.channel_values ?? []);
   const itemValues = mergeLightningItemValues(item?.item_values ?? []);
   const seen = new Set<string>();
@@ -150,7 +142,7 @@ const recipientRows = (
       address: recipient.address,
       amount: share * totalAmount,
       id: `${recipient.id}-${index}`,
-      name: recipient.name,
+      name: recipient.name ?? null,
       splitPercent: Math.round(share * 100),
     };
   });
@@ -179,9 +171,7 @@ export const recipientTypesForTab = (tab: BoostValueTab | null): string[] => {
   }
   const itemRecipients = tab.itemValue?.item_value_recipients ?? [];
   const source =
-    itemRecipients.length > 0
-      ? itemRecipients
-      : (tab.channelValue?.channel_value_recipients ?? []);
+    itemRecipients.length > 0 ? itemRecipients : (tab.channelValue?.channel_value_recipients ?? []);
   return source.map((recipient) => recipient.type);
 };
 
