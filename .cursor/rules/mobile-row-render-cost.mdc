@@ -88,7 +88,11 @@ add to it:
   the current one, and so the user can switch again mid-flight.
 - Clear the list in the **same urgent commit** as the selector state. Holding the clear in a
   transition leaves the previous selection's rows mounted under the new chip, which reads as the
-  wrong list loading. The clear is cheap; the stall is uncancelled load work, so cancel that.
+  wrong list loading. That mounted teardown sat in front of the preference read and was the wait the
+  harness measured; clearing with the chip is what made the gate fast. Cancelling the in-flight load
+  did not move the stall. An in-memory sort-prefs cache and a shared row translator were also
+  measured and reverted — see
+  [MOBILE-PERF-BASELINES.md](/docs/development/mobile/MOBILE-PERF-BASELINES.md).
 - Show the list's loading state while the read is in flight (`VerticalCenter` + `ListLoading` in
   `ListEmptyComponent`). An empty list with no indicator reads as a broken screen.
 - Keep loader identity out of the effect deps that trigger it, or a refresh re-triggers the initial

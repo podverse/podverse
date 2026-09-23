@@ -476,5 +476,52 @@ describe('auth routes', () => {
         .send({ refresh_token: issue.body.access_token });
       expect(refreshWithAccess.status).toBe(401);
     });
+
+    it('rejects a refresh JWT for an account that no longer exists', async () => {
+      const refreshToken = jwt.sign(
+        {
+          id: 999999,
+          id_text: TEST_ACCOUNT_ID_TEXT,
+          scope: 'podverse_app_mobile',
+          token_use: 'refresh',
+        },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      getMock.mockResolvedValueOnce(null);
+
+      const res = await request(app)
+        .post(`${authBase}/mobile/refresh`)
+        .send({ refresh_token: refreshToken });
+      expect(res.status).toBe(401);
+    });
+
+    it('rejects a refresh JWT whose id_text does not match the account', async () => {
+      const refreshToken = jwt.sign(
+        {
+          id: TEST_USER_ID,
+          id_text: TEST_ACCOUNT_ID_TEXT,
+          scope: 'podverse_app_mobile',
+          token_use: 'refresh',
+        },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      getMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: 'different-account-id',
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() + 86400000 * 365),
+        },
+      });
+
+      const res = await request(app)
+        .post(`${authBase}/mobile/refresh`)
+        .send({ refresh_token: refreshToken });
+      expect(res.status).toBe(401);
+    });
   });
 });

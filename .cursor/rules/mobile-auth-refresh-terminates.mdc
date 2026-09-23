@@ -1,0 +1,49 @@
+---
+description: Mobile auth 401 handling must terminate — never refresh into a token-change loop
+globs:
+  - "apps/mobile/src/auth/**"
+  - "apps/mobile/src/**/*Request*"
+alwaysApply: false
+---
+
+# Mobile — every 401 path must terminate
+
+A 401 on a mobile authenticated request must end in **valid credentials** or **`clearSession`**.
+It must never leave the app authenticated with credentials the server has already refused after a
+refresh. That pattern is how a dead session turns into an infinite request storm.
+
+## Why this exists
+
+`accessToken` is in the dependency list of many effects (notifications unread count, popularity
+tracking, queue loaders, FCM sync). Each `setTokens` call gives those effects a new token value and
+they fire again. If a refresh returns 200 but the next request is still 401, and the client only
+rethrows without clearing, every effect retries forever.
+
+## Do
+
+- Route authenticated product requests through `requestWithMobileAuthRefresh`.
+- When a **just-refreshed** access token is still rejected with 401, call
+  `clearSession('session_expired')` before rethrowing.
+- When the **refresh** call itself is 401 (or reuse-detected), call `clearSession('session_expired')`.
+- Advance the auth session generation inside `clearSession` **before** any await, so an in-flight
+  refresh cannot write tokens after sign-out and resurrect the session.
+- Keep `clearSession` single-flight: concurrent 401s share one clear.
+
+## Don't
+
+- Don't handle a 401 by refreshing, calling `setTokens`, retrying, getting 401 again, and only
+  rethrowing — that is the loop.
+- Don't key an effect on `accessToken` in a way that **itself** causes a token change on failure.
+  Reading the token to build a request is fine; writing a new token from that effect's failure path
+  without ending the session is not.
+- Don't treat a network timeout or 5xx as session expiry — those leave the session intact so an
+  offline device stays signed in (`SessionEndReason` / `forcedLogoutNotice`).
+
+## Related
+
+- [`mobile-account-scoped-data`](/.cursor/rules/mobile-account-scoped-data.mdc) — what `clearSession`
+  must wipe
+- [`mobile-sync-orchestration`](/.cursor/rules/mobile-sync-orchestration.mdc) — token refresh is
+  orthogonal to the sync queue
+- Implementation: `apps/mobile/src/auth/authRequestWithRefresh.ts`,
+  `apps/mobile/src/auth/AuthProvider.tsx`

@@ -88,7 +88,7 @@ number. Seeded Android warm spread is 29%, just inside the 30% line.
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Cache sort preferences in memory     | Module-level cache in `sortPrefs.ts` for `sort.` keys, including cached `null`                                        | **Reverted.** Warm `prefsGate` p95 406 ms vs 555 ms baseline, −26.9%. Bar was −60%. Per-tap `prefs.getItem` fell from 4 to 1, warm `total` p95 from 1145 ms to 642 ms, cold gate unchanged (620 ms vs 632 ms).                                                                                                                                                             |
 | Urgent clear plus loading state      | Home chip and list clear commit together; `ListLoading` while `hasCompletedFeedRead` is false                         | **Kept.** One seeded Android run, warm `total` p95 304 ms vs 1145 ms baseline (−73%). `prefs.getItem` per tap stayed at 4. Early paints 0 of 4. Rapid Android chip taps feel smooth. iOS was not rechecked.                                                                                                                                                                |
-| Third-party artwork on the perf seed | `PODVERSE_E2E_PERF_REMOTE_IMAGES=1` assigns 100 unique channel URLs and 300 unique item URLs. Default seed unchanged. | **Not the remaining stall.** One seeded Android run vs the post-07 localhost run: cold paint p95 136 ms vs 138 ms, warm total p95 304 ms vs 304 ms, fling 116 of 120 frames over 32 ms after the first two (localhost 117 and 116), worst frame 692 ms (localhost 653 ms and 400 ms). Screenshot shows distinct remote covers. Do not average with the localhost baseline. |
+| Third-party artwork on the perf seed | `PODVERSE_E2E_PERF_REMOTE_IMAGES=1` assigns 100 unique channel URLs and 300 unique item URLs. Default seed unchanged. | **Did not move the numbers.** One seeded Android run vs the post-07 localhost run: cold paint p95 136 ms vs 138 ms, warm total p95 304 ms vs 304 ms, fling 116 of 120 frames over 32 ms after the first two (localhost 117 and 116), worst frame 692 ms (localhost 653 ms and 400 ms). Screenshot shows distinct remote covers. Do not average with the localhost baseline. |
 | One translator for every list row    | A single `useTranslation()` published to the Home row subtree, replacing nine per-row subscriptions                   | **Reverted.** Warm paint p95 128 ms vs 139 ms post-07 (−8%; bar was −30%). Per-tap `home.row.mount` p95 stayed 24. Fling 117 of 120 frames over 32 ms after the first two, matching the post-07 Episodes fling.                                                                                                                                                            |
 | Urgent clear on Browse               | Browse chip and list clear commit together; pull-to-refresh lock releases even when the refresh is superseded         | **Kept.** No Browse perf flow; checked by hand on Android. Home re-measured to confirm it was untouched: warm `total` p95 371 ms, early paints 0 of 4, inside the Android warm spread.                                                                                                                                                                                     |
 
@@ -116,7 +116,12 @@ chip's rows mounted, so the swipe could start before Episodes rows existed.
 
 After the Home clear commits with the chip, that wait cannot succeed until an Episodes row exists.
 Two flings from that state, same device and seed: 119 and 118 of 120 frames over 32 ms, 117 and 116
-after the first two, worst frame 653 ms and 400 ms. That is the Episodes-list number.
+after the first two, worst frame 653 ms and 400 ms. That is the Episodes-list number from the
+scripted flow.
+
+A hand fling of Home → Episodes on the Android emulator on 2026-09-22 showed no stutter. Those
+scripted counts are a different gesture: `perf-scroll.yaml` swipes a fixed number of times and
+`dumpsys gfxinfo` scores frames. Do not open follow-up work from the frame table alone.
 
 ## Known-bad measurements
 
@@ -146,11 +151,7 @@ both. Reload between manual gestures.
 
 ## Open questions
 
-- **Home → Episodes scroll stutter.** Two scripted flings that actually wait for an Episodes row are
-  almost entirely over 32 ms (worst 653 ms and 400 ms). The earlier 20.8 ms / zero-over-32 ms fling
-  started while the previous chip's rows were still mounted. A hand fling on a slower phone is still
-  unmeasured.
-- **Third-party artwork is measured and is not the remaining stall.** The default volume seed still
+- **Third-party artwork is measured and is not the chip-switch stall.** The default volume seed still
   points every channel at one `localhost:2111` PNG and inserts no item images.
   `PODVERSE_E2E_PERF_REMOTE_IMAGES=1` assigns `tools/web/perf-remote-image-urls.json`. One Android
   capture with that flag (distinct covers visible) matched the localhost chip and fling numbers

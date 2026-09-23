@@ -7043,7 +7043,11 @@ paths:
       tags:
         - auth
       summary: POST /auth/mobile/refresh
-      description: Auto-generated from route matrix. Public endpoint.
+      description: >
+        Exchange a still-valid mobile refresh JWT for a new access/refresh pair. Public endpoint.
+        Returns 401 when the refresh JWT is invalid, expired, not a refresh token, or the account
+        named in the JWT no longer exists or no longer matches id_text (for example after a reseed
+        that replaced the account row).
       security: []
       requestBody:
         required: true
@@ -7065,7 +7069,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ValidationErrorResponse"
         "401":
-          description: Unauthorized
+          description: >
+            Unauthorized — invalid/expired refresh JWT, wrong token_use, missing account, or
+            id_text mismatch for the account named in the JWT
           content:
             application/json:
               schema:

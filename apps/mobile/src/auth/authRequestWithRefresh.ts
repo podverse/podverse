@@ -18,6 +18,24 @@ export type AuthRequestDeps = {
 let inFlightRefresh: Promise<string | null> | null = null;
 
 /**
+ * Advances when a session ends. A refresh that started under an older generation must not write
+ * tokens after sign-out — that would resurrect a dead session and re-fire every effect keyed on
+ * `accessToken`.
+ */
+let authSessionGeneration = 0;
+
+/** Current auth session generation. Captured before a refresh awaits the network. */
+export const getAuthSessionGeneration = (): number => authSessionGeneration;
+
+/**
+ * Call from `clearSession` before any await. Every concurrent clear bumps once; a refresh that
+ * started earlier sees the mismatch and skips `setTokens`.
+ */
+export const advanceAuthSessionGeneration = (): void => {
+  authSessionGeneration += 1;
+};
+
+/**
  * What a failure proves about the network, or null when it proves nothing.
  *
  * `classifySyncError` does the sorting so the connectivity machine and the sync event log can never
@@ -76,6 +94,8 @@ export const refreshAccessTokenSingleFlight = async ({
     return inFlightRefresh;
   }
 
+  const generationAtStart = authSessionGeneration;
+
   inFlightRefresh = (async () => {
     const apiRequestService = createMobileApiRequestService();
     if (apiRequestService === null) {
@@ -92,6 +112,13 @@ export const refreshAccessTokenSingleFlight = async ({
       const refreshedTokens = await withNetworkOutcomeReported(() =>
         apiRequestService.reqAuthMobileRefresh(refreshToken)
       );
+
+      // Sign-out (or another clear) won the race. Writing these tokens would flip status back to
+      // authenticated and restart every accessToken-keyed effect.
+      if (generationAtStart !== authSessionGeneration) {
+        return null;
+      }
+
       await setTokens({
         accessToken: refreshedTokens.access_token,
         refreshToken: refreshedTokens.refresh_token,
@@ -158,6 +185,17 @@ export const requestWithMobileAuthRefresh = async <T>(
       throw error;
     }
 
-    return withNetworkOutcomeReported(() => runRequest(retryApiRequestService));
+    try {
+      return await withNetworkOutcomeReported(() => runRequest(retryApiRequestService));
+    } catch (retryError) {
+      // Refresh succeeded but the new access token is still refused. The credentials are dead —
+      // typically the account no longer exists while the refresh JWT still verifies. Ending the
+      // session here is what makes a 401 storm structurally impossible: accessToken becomes null
+      // and every effect keyed on it bails out.
+      if (getErrorResponseStatus(retryError) === 401) {
+        await deps.clearSession('session_expired');
+      }
+      throw retryError;
+    }
   }
 };

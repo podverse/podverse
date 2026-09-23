@@ -31,7 +31,8 @@ import { verifyPassword } from './password.js';
  * `token` unless AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
  * Mobile access and refresh lifetimes come from AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION and
  * AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION. A refresh JWT is accepted when it verifies with
- * AUTH_JWT_SECRET and carries token_use=refresh.
+ * AUTH_JWT_SECRET, carries token_use=refresh, and the account named by id / id_text still exists
+ * with a matching id_text.
  */
 const isProduction = config.nodeEnv === 'production';
 const MEMBERSHIP_EXPIRED_I18N_KEY = 'membership.membership_expired';
@@ -123,6 +124,29 @@ const authenticateAccountCredentials = async (
 // stays effective (no stale cached instance from another test file).
 function getAccountService(): AccountService {
   return new AccountService();
+}
+
+/**
+ * Load the account for JWT identity claims and accept it only when `id_text` still matches.
+ * Access-token verification and mobile refresh share this so a deleted or replaced account cannot
+ * keep minting tokens while protected routes reject them.
+ */
+async function getAccountMatchingJwtIdentity(
+  claims: { id: number; id_text: string },
+  options?: { relations?: FindOptionsRelations<Account> }
+): Promise<Account | null> {
+  const account = await getAccountService().get(claims.id, options);
+  if (!account) {
+    return null;
+  }
+
+  const accountIdText =
+    typeof account.id_text === 'string' && account.id_text !== '' ? account.id_text : undefined;
+  if (accountIdText === undefined || accountIdText !== claims.id_text) {
+    return null;
+  }
+
+  return account;
 }
 
 let billingPriceCatalogServiceSingleton: BillingPriceCatalogService | undefined;
@@ -361,16 +385,12 @@ const verifyTokenAndMembership = (
           'account_membership_status.account_membership',
         ]);
       }
-      const account = await getAccountService().get(payload.id, { relations });
+      const account = await getAccountMatchingJwtIdentity(
+        { id: payload.id, id_text: payload.id_text },
+        { relations }
+      );
       if (!account) {
         console.error('[verifyTokenAndMembership] No account found for user id:', payload.id);
-        res.status(401).json({ message: 'Unauthorized' });
-        return;
-      }
-
-      const accountIdText =
-        typeof account.id_text === 'string' && account.id_text !== '' ? account.id_text : undefined;
-      if (accountIdText === undefined || accountIdText !== payload.id_text) {
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
@@ -521,10 +541,19 @@ export const refreshMobileToken = async (req: Request, res: Response): Promise<v
     return;
   }
 
+  const account = await getAccountMatchingJwtIdentity({
+    id: decoded.id,
+    id_text: decoded.id_text,
+  });
+  if (!account || account.id_text === undefined || account.id_text === '') {
+    res.status(401).json({ message: 'Invalid refresh token' });
+    return;
+  }
+
   res.json(
     issueMobileTokenPair({
-      accountId: decoded.id,
-      accountIdText: decoded.id_text,
+      accountId: account.id,
+      accountIdText: account.id_text,
     })
   );
 };

@@ -1,5 +1,13 @@
 import type { PropsWithChildren } from 'react';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type { DTOAccount } from '@podverse/helpers/dto';
 
@@ -11,7 +19,10 @@ import { playlistRepository } from '../data/repositories/playlistRepository';
 import { queueRepository } from '../data/repositories/queueRepository';
 import { resolveSupportedLocale } from '../i18n/locale';
 import { startFcmTokenRefreshSync, stopFcmTokenRefreshSync } from '../push/fcmDeviceSync';
-import { refreshAccessTokenSingleFlight } from './authRequestWithRefresh';
+import {
+  advanceAuthSessionGeneration,
+  refreshAccessTokenSingleFlight,
+} from './authRequestWithRefresh';
 import { shouldResetLeakedE2eSession } from './e2eSessionReset';
 import type { SessionEndReason } from './forcedLogoutNotice';
 import {
@@ -53,6 +64,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [account, setAccount] = useState<DTOAccount | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<AuthStatus>('unknown');
+  // Concurrent 401s all race into clearSession; they share one wipe rather than each re-clearing
+  // storage, re-marking the notice, and re-running repository clears.
+  const clearSessionInFlightRef = useRef<Promise<void> | null>(null);
 
   const setTokens = useCallback(async ({ accessToken, refreshToken }: SetTokensInput) => {
     await Promise.all([
@@ -70,32 +84,48 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const clearSession = useCallback(async (reason: SessionEndReason) => {
-    await clearAllSecureTokens();
+    if (clearSessionInFlightRef.current !== null) {
+      return clearSessionInFlightRef.current;
+    }
 
-    if (shouldNotifyForcedLogout(reason)) {
-      try {
-        await markForcedLogout();
-      } catch (markError) {
-        console.warn('Failed to record the forced-logout notice', markError);
+    const clearPromise = (async () => {
+      // Bump before any await so an in-flight refresh cannot write tokens after this clear starts.
+      advanceAuthSessionGeneration();
+
+      await clearAllSecureTokens();
+
+      if (shouldNotifyForcedLogout(reason)) {
+        try {
+          await markForcedLogout();
+        } catch (markError) {
+          console.warn('Failed to record the forced-logout notice', markError);
+        }
       }
-    }
 
+      try {
+        // Account data goes with the session: the account snapshot, queue data, and playlists.
+        // Subscriptions and add-by-RSS feeds are the device's data; a signed-out user keeps browsing and
+        // playing them.
+        await accountRepository.clearSnapshot();
+        await queueRepository.clearAll();
+        await playlistRepository.clearAll();
+      } catch (snapshotError) {
+        console.warn('Failed to clear cached account data during session reset', snapshotError);
+      }
+
+      setAccessToken(null);
+      setRefreshToken(null);
+      setAccount(null);
+      setError(null);
+      setStatus('anonymous');
+    })();
+
+    clearSessionInFlightRef.current = clearPromise;
     try {
-      // Account data goes with the session: the account snapshot, queue data, and playlists.
-      // Subscriptions and add-by-RSS feeds are the device's data; a signed-out user keeps browsing and
-      // playing them.
-      await accountRepository.clearSnapshot();
-      await queueRepository.clearAll();
-      await playlistRepository.clearAll();
-    } catch (snapshotError) {
-      console.warn('Failed to clear cached account data during session reset', snapshotError);
+      await clearPromise;
+    } finally {
+      clearSessionInFlightRef.current = null;
     }
-
-    setAccessToken(null);
-    setRefreshToken(null);
-    setAccount(null);
-    setError(null);
-    setStatus('anonymous');
   }, []);
 
   const hydrateFromSecureStorage = useCallback(async () => {

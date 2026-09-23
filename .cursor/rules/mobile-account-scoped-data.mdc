@@ -53,6 +53,17 @@ jobs. A write of account data that lands after `clearSession` puts the old accou
 repository that caches account data captures a session generation before the request and skips the
 write if the generation changed. Advance the generation where the store is cleared.
 
+Auth token refresh uses the same generation idea: `advanceAuthSessionGeneration` runs at the start
+of `clearSession`, and `refreshAccessTokenSingleFlight` skips `setTokens` when the generation
+changed while it waited — otherwise a late refresh would sign the user back in after logout.
+
+## A 401 must not churn tokens forever
+
+See [`mobile-auth-refresh-terminates`](/.cursor/rules/mobile-auth-refresh-terminates.mdc). Every
+authenticated 401 path ends in valid credentials or `clearSession`. Refreshed credentials that are
+still rejected are dead; writing them again and re-firing `accessToken`-keyed effects is how a
+request loop starts.
+
 ## Identity has one source per moment
 
 The token, the account snapshot, and cached ids briefly disagree during a switch. Do not combine
