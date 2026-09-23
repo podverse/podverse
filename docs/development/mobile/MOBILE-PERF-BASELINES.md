@@ -3,6 +3,9 @@
 Measured numbers for `apps/mobile`, kept here because plan directories under `.llm/plans/` are
 deleted once their work lands. Anything worth not re-measuring belongs in this file.
 
+For a short narrative of the Home and Browse chip-tap fix (cause, fix, iOS versus Android), see
+[MOBILE-CHIP-TAP.md](./MOBILE-CHIP-TAP.md).
+
 A perf capture costs four to ten minutes of device time per run, and a reseed on top of that. Read
 this file before running one. If the number you need is here, cite it instead.
 
@@ -160,6 +163,7 @@ both. Reload between manual gestures.
 
 ## Related
 
+- [MOBILE-CHIP-TAP.md](./MOBILE-CHIP-TAP.md) — why chip taps stalled and what the urgent clear fixed
 - [mobile-perf-measured-claims](/.cursor/rules/mobile-perf-measured-claims.mdc) — when a perf claim
   needs a number, and where the number goes
 - [mobile-row-render-cost](/.cursor/rules/mobile-row-render-cost.mdc) — per-row cost, paid once per

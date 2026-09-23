@@ -1078,6 +1078,8 @@ Store metadata as code:
   closed, Phase 2 active)
 - [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md) — Phase 1
   (historical)
+- [MOBILE-PERF-BASELINES.md](/docs/development/mobile/MOBILE-PERF-BASELINES.md) — measured chip-switch
+  and scroll numbers, rejected candidates, and known-bad measurements; read before running a capture
 - [MOBILE-RELEASE-RUNBOOK.md](/docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md)
 - [MOBILE-BETA-TESTER-ONBOARDING.md](/docs/operations/mobile/MOBILE-BETA-TESTER-ONBOARDING.md)
 - [podverse-media-engine README](modules/podverse-media-engine/README.md) — bridge contract + cache hooks
