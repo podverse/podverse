@@ -179,6 +179,7 @@ npm run mobile:e2e:test -- deep-link
 npm run mobile:e2e:test -- detail-sort-prefs
 npm run mobile:e2e:test -- engine-audio-spike
 npm run mobile:e2e:test -- hello-world
+npm run mobile:e2e:test -- history-screen
 npm run mobile:e2e:test -- home
 npm run mobile:e2e:test -- library-downloads
 npm run mobile:e2e:test -- library-playlists

@@ -1,15 +1,17 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { DTOQueueResource } from '@podverse/helpers/dto';
-import { getQueueMediumIdFromType } from '@podverse/helpers/medium';
+import type { QueueListMedium } from '@podverse/helpers/medium';
+import { DEFAULT_QUEUE_LIST_MEDIUM, getQueueMediumIdFromType } from '@podverse/helpers/medium';
 
 import { useAuth } from '../../auth/AuthProvider';
 import type { OptionChipOption } from '../../components/form/OptionChipGroup';
 import { OptionChipGroup } from '../../components/form/OptionChipGroup';
-import { FillList, SwipeActionRow, VerticalCenter } from '../../components/primitives';
+import { FillList, ReorderHandle, SwipeActionRow, VerticalCenter } from '../../components/primitives';
 import type { ReorderDropEvent } from '../../components/reorder/ReorderableSections';
 import { ReorderableSections } from '../../components/reorder/ReorderableSections';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
@@ -19,6 +21,7 @@ import { LoadingSection } from '../../components/state/LoadingSection';
 import { useQueues } from '../../contexts/QueuesProvider';
 import type { MobileAuthRequestContext } from '../../data';
 import { queueRepository } from '../../data';
+import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueResourcesLoadActive } from '../../hooks/useQueueResourcesLoadActive';
 import { resolveListFill } from '../../lib/listFill';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
@@ -30,12 +33,6 @@ import { queueResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
-import type { QueueListMedium } from '../../prefs/queueListPrefs';
-import {
-  DEFAULT_QUEUE_LIST_MEDIUM,
-  readQueueListMedium,
-  writeQueueListMedium,
-} from '../../prefs/queueListPrefs';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -92,6 +89,7 @@ function LibraryQueueRow({
         onPress={handlePlay}
         onQueuePress={noopQueuePress}
         row={row}
+        trailing={<ReorderHandle testID={`queue-row-${row.queueResourceId}-reorder`} />}
       />
     </SwipeActionRow>
   );
@@ -102,6 +100,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { activeQueue, activeQueueUpcomingResources } = useQueues();
+  const { fetchActiveQueueListMedium } = usePrimaryQueue();
   const { handleGateError } = useMembershipGate();
   const { activeTarget, playQueueResourceFromQueue } = usePlaybackSession();
   const loadActiveQueueResources = useQueueResourcesLoadActive();
@@ -146,22 +145,33 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     selectedMedium,
   ]);
 
-  useEffect(() => {
-    let isMounted = true;
-    void (async () => {
-      const storedMedium = await readQueueListMedium();
-      if (!isMounted) {
-        return;
-      }
-      setSelectedMedium(storedMedium);
-      setIsMediumReady(true);
-    })();
+  // Open on the account active-queue medium (even with no now-playing row); else podcasts.
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      void (async () => {
+        const nextMedium = await fetchActiveQueueListMedium();
+        if (!isMounted) {
+          return;
+        }
+        setSelectedMedium((previousMedium) => {
+          if (previousMedium !== nextMedium) {
+            loadRequestIdRef.current += 1;
+            queueResourcesRef.current = [];
+            setQueueResources([]);
+            setIsInitialLoading(true);
+            setErrorKey(null);
+          }
+          return nextMedium;
+        });
+        setIsMediumReady(true);
+      })();
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
+      return () => {
+        isMounted = false;
+      };
+    }, [fetchActiveQueueListMedium])
+  );
   const styles = useMemo(() => {
     const bodyInsets = screenBodyInsets(tokens.spacing);
     return StyleSheet.create({
@@ -618,7 +628,6 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       setQueueResources([]);
       setIsInitialLoading(true);
       setErrorKey(null);
-      void writeQueueListMedium(nextMedium);
     },
     [selectedMedium]
   );

@@ -4,6 +4,7 @@ globs:
   - "apps/mobile/src/screens/library/LibraryQueueScreen.tsx"
   - "apps/mobile/src/components/reorder/ReorderableSections.tsx"
   - "apps/mobile/src/components/primitives/SwipeActionRow.tsx"
+  - "apps/mobile/src/components/primitives/ReorderHandle.tsx"
 alwaysApply: false
 ---
 
@@ -14,6 +15,9 @@ For rows on `LibraryQueueScreen`, keep one interaction contract:
 - Tap the row to play it and remove it from queue.
 - Remove is the swipe reveal action from `SwipeActionRow` only.
 - Reorder is long-press drag on the row body, not a separate inline button.
+- A decorative three-bar grip (`ReorderHandle`) sits in the row's far-right `trailing` slot
+  inside `HomeFeedRow`. It marks that drag is available; it is not its own control. Taps and
+  long-presses on the grip use the same play and reorder paths as the rest of the row.
 
 These recognizers are composed deliberately:
 
@@ -25,10 +29,15 @@ These recognizers are composed deliberately:
 
 Drag gestures are not the screen-reader path. Queue rows remain `accessibilityRole="adjustable"`
 with Move up / Move down actions (`misc.move_up` / `misc.move_down`) and those actions route through
-the same reorder resolver as drag.
+the same reorder resolver as drag. The grip stays `accessible={false}` so it does not become a
+separate focus target.
 
 ## Do not add parallel controls
 
 - Do not add an inline remove button for queue rows.
 - Do not add a More-menu remove row for queue rows.
 - Do not add a separate play button that competes with row tap.
+- Do not turn on `ReorderableSections` `showHandle` for queue rows — that places the grip outside
+  the row press target. Keep `showHandle={false}` and render `ReorderHandle` via `HomeFeedRow`
+  `trailing` instead.
+- Do not wire a pan gesture to the grip alone; body long-press remains the drag activation.

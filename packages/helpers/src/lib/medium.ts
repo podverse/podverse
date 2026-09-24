@@ -228,6 +228,38 @@ export const getQueueMediumIdFromMediumId = (mediumId: number | null): MediumEnu
   return getQueueMediumIdFromType(getQueryParamFromQueueMediumId(mediumId));
 };
 
+/** Podcasts (`av`) or Music chip for queue / history lists. */
+export type QueueListMedium = 'av' | 'music';
+
+export const DEFAULT_QUEUE_LIST_MEDIUM: QueueListMedium = 'av';
+
+/**
+ * Medium chip for queue and history screens: the account's `is_active_queue` medium, else
+ * podcasts (`av`). An active queue counts even when it has no now-playing row.
+ */
+export const getQueueListMediumFromActiveQueues = (
+  queues: readonly { is_active_queue?: boolean | null; medium_id: number }[]
+): QueueListMedium => {
+  const activeQueue = queues.find((queue) => queue.is_active_queue === true);
+  if (activeQueue === undefined) {
+    return DEFAULT_QUEUE_LIST_MEDIUM;
+  }
+  return getQueryParamFromQueueMediumId(activeQueue.medium_id) === 'music' ? 'music' : 'av';
+};
+
+/**
+ * Prefer an explicit `av` / `music` query param; otherwise the active account queue (else `av`).
+ */
+export const resolveQueueListMedium = (options: {
+  queryMedium?: QueryParamsQueueMedium | null;
+  queues: readonly { is_active_queue?: boolean | null; medium_id: number }[];
+}): QueueListMedium => {
+  if (options.queryMedium === 'av' || options.queryMedium === 'music') {
+    return options.queryMedium;
+  }
+  return getQueueListMediumFromActiveQueues(options.queues);
+};
+
 // --- Medium ID classification (podcast / music / album / artist) ---
 
 const PODCAST_MEDIUMS = new Set([

@@ -84,6 +84,11 @@ type HomeFeedRowProps = {
   showContextLine?: boolean;
   /** Merged onto the row container — use to match a parent surface. */
   style?: StyleProp<ViewStyle>;
+  /**
+   * Far-right content inside the row press target (for example a decorative reorder grip).
+   * Vertically centered beside the row body; stays part of the same tap and long-press.
+   */
+  trailing?: ReactNode;
 };
 
 const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
@@ -160,6 +165,9 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
     title: {
       ...typography.subheading,
       color: themeStyles.textPrimary.color,
+    },
+    trailing: {
+      alignSelf: 'center',
     },
   });
 
@@ -272,6 +280,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   showChannelContext = true,
   showContextLine,
   style,
+  trailing,
 }: HomeFeedRowProps) {
   const { t } = useTranslation();
   // One count per mount. A later render of the same instance is not another mount.
@@ -537,6 +546,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
           <UnseenIndicator testID={`home-feed-row-unseen-${row.id}`} />
         </View>
       ) : null}
+      {trailing !== undefined ? <View style={styles.trailing}>{trailing}</View> : null}
     </Pressable>
   );
 });

@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 import type { DTOQueue, QueryParamsQueueMedium } from '@podverse/helpers';
-import { QUERY_PARAMS_QUEUE_MEDIUMS } from '@podverse/helpers';
+import { QUERY_PARAMS_QUEUE_MEDIUMS, resolveQueueListMedium } from '@podverse/helpers';
 
 import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { HistoryPageClient } from './HistoryPageClient';
 
 const searchParamsSchema = z.object({
-  medium: z.enum(QUERY_PARAMS_QUEUE_MEDIUMS).optional().default('av'),
+  medium: z.enum(QUERY_PARAMS_QUEUE_MEDIUMS).optional(),
   page: z
     .string()
     .transform((v) => parseInt(v, 10))
@@ -30,7 +30,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
 
   const queryParams = await searchParams;
-  const { currentMedium, currentPage } = parseSearchParams(queryParams);
+  const { queryMedium, currentPage } = parseSearchParams(queryParams);
 
   let ssrQueues: DTOQueue[] = [];
 
@@ -38,6 +38,8 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
     const response = await ssrApiRequestService.reqQueueGetAllForAccountPrivate();
     ssrQueues = response;
   }
+
+  const currentMedium = resolveQueueListMedium({ queryMedium, queues: ssrQueues });
 
   return (
     <HistoryPageClient
@@ -48,7 +50,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
 }
 
 type ParseSearchParams = {
-  currentMedium: QueryParamsQueueMedium;
+  queryMedium: QueryParamsQueueMedium | undefined;
   currentPage: number;
 };
 
@@ -57,12 +59,12 @@ function parseSearchParams(queryParams: SearchParams): ParseSearchParams {
 
   if (!parsed.success) {
     return {
-      currentMedium: 'av',
+      queryMedium: undefined,
       currentPage: 1,
     };
   }
 
   const data = parsed.data;
 
-  return { currentMedium: data.medium, currentPage: data.page };
+  return { queryMedium: data.medium, currentPage: data.page };
 }

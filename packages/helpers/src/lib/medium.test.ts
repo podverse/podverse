@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ChannelRouteKind } from './medium.js';
-import { getChannelRouteKind, getMediumIdArrayFromType, MediumEnum } from './medium.js';
+import {
+  getChannelRouteKind,
+  getMediumIdArrayFromType,
+  getQueueListMediumFromActiveQueues,
+  MediumEnum,
+  resolveQueueListMedium,
+} from './medium.js';
 
 describe('getChannelRouteKind', () => {
   const expectRouteKind = (
@@ -39,5 +45,53 @@ describe('getChannelRouteKind', () => {
     expectRouteKind(MediumEnum.Audiobook, 'podcast');
     expectRouteKind(null, 'podcast');
     expectRouteKind(undefined, 'podcast');
+  });
+});
+
+describe('getQueueListMediumFromActiveQueues', () => {
+  it('returns av when no queue is active', () => {
+    expect(
+      getQueueListMediumFromActiveQueues([
+        { is_active_queue: false, medium_id: MediumEnum.Music },
+        { is_active_queue: false, medium_id: MediumEnum.AV },
+      ])
+    ).toBe('av');
+  });
+
+  it('returns music when the active queue is music', () => {
+    expect(
+      getQueueListMediumFromActiveQueues([
+        { is_active_queue: false, medium_id: MediumEnum.AV },
+        { is_active_queue: true, medium_id: MediumEnum.Music },
+      ])
+    ).toBe('music');
+  });
+
+  it('returns av when the active queue is AV', () => {
+    expect(
+      getQueueListMediumFromActiveQueues([
+        { is_active_queue: true, medium_id: MediumEnum.AV },
+        { is_active_queue: false, medium_id: MediumEnum.Music },
+      ])
+    ).toBe('av');
+  });
+});
+
+describe('resolveQueueListMedium', () => {
+  it('prefers an explicit query medium over the active queue', () => {
+    expect(
+      resolveQueueListMedium({
+        queryMedium: 'av',
+        queues: [{ is_active_queue: true, medium_id: MediumEnum.Music }],
+      })
+    ).toBe('av');
+  });
+
+  it('uses the active queue when the query medium is absent', () => {
+    expect(
+      resolveQueueListMedium({
+        queues: [{ is_active_queue: true, medium_id: MediumEnum.Music }],
+      })
+    ).toBe('music');
   });
 });

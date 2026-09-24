@@ -47,6 +47,8 @@ name: Queue screen flow
     visible:
       id: "queue-row-.*-swipe"
     timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: "queue-row-.*-reorder"
 - takeScreenshot: queue-screen-loaded
 
 # Medium chips render and switching them reloads queue data.
@@ -67,6 +69,8 @@ name: Queue screen flow
     visible:
       id: "queue-row-.*-swipe"
     timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: "queue-row-.*-reorder"
 - takeScreenshot: queue-screen-av-medium
 
 # Swipe remove path.
@@ -92,3 +96,4 @@ name: Queue screen flow
 - takeScreenshot: queue-screen-empty
 # Drag reorder is intentionally not asserted here. Maestro long-press drag does not reliably
 # validate the tap/swipe/drag arbitration contract; resolver unit tests + device checks cover it.
+# The decorative reorder grip is asserted above whenever a queue row is visible.
