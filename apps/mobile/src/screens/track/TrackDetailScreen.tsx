@@ -38,11 +38,7 @@ import type { ChannelBrowseStackParamList } from '../../navigation';
 import { buildAlbumDetailParams, CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import type { TrackTab } from '../../prefs/detailListPrefs';
-import {
-  DEFAULT_TRACK_TAB,
-  readTrackDetailPrefs,
-  writeTrackDetailTab,
-} from '../../prefs/detailListPrefs';
+import { DEFAULT_TRACK_TAB } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
@@ -329,7 +325,6 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     cachedItemChrome?.hasFunding === true
   );
   const [activeTab, setActiveTab] = useState<TrackTab>(DEFAULT_TRACK_TAB);
-  const [isPrefsHydrated, setIsPrefsHydrated] = useState(false);
   const [transcriptText, setTranscriptText] = useState('');
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [transcriptErrorKey, setTranscriptErrorKey] = useState<string | null>(null);
@@ -457,23 +452,11 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   }, [loadTrack]);
 
   useEffect(() => {
-    let isMounted = true;
-    setIsPrefsHydrated(false);
+    setActiveTab(DEFAULT_TRACK_TAB);
     setTranscriptText('');
     setTranscriptErrorKey(null);
     setIsTranscriptLoading(false);
     setDescriptionExpanded(false);
-    void (async () => {
-      const prefs = await readTrackDetailPrefs(trackId);
-      if (!isMounted) {
-        return;
-      }
-      setActiveTab(prefs.tab);
-      setIsPrefsHydrated(true);
-    })();
-    return () => {
-      isMounted = false;
-    };
   }, [trackId]);
 
   useEffect(() => {
@@ -543,13 +526,9 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     [supportedTabs, t]
   );
 
-  const handleTabPress = useCallback(
-    (tab: TrackTab) => {
-      setActiveTab(tab);
-      void writeTrackDetailTab(trackId, tab);
-    },
-    [trackId]
-  );
+  const handleTabPress = useCallback((tab: TrackTab) => {
+    setActiveTab(tab);
+  }, []);
 
   const descriptionHtml = track?.item_description?.value ?? null;
 
@@ -807,10 +786,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
       {!isLoading && errorKey !== null ? (
         <ListError messageKey={errorKey} onRetry={handleRetryTrack} testID="track-detail-error" />
       ) : null}
-      {!isLoading && errorKey === null && track !== null && !isPrefsHydrated ? (
-        <LoadingSection testID="track-detail-tab-prefs-loading" />
-      ) : null}
-      {!isLoading && errorKey === null && track !== null && isPrefsHydrated ? (
+      {!isLoading && errorKey === null && track !== null ? (
         <FillList
           ListEmptyComponent={null}
           ListFooterComponent={paneFooter}

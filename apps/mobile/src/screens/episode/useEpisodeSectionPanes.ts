@@ -10,7 +10,6 @@ import {
   DEFAULT_EPISODE_TAB,
   readEpisodeDetailPrefs,
   writeEpisodeDetailClipSort,
-  writeEpisodeDetailTab,
 } from '../../prefs/detailListPrefs';
 import {
   loadEpisodeChaptersPane,
@@ -108,7 +107,6 @@ export function useEpisodeSectionPanes({
       if (!isMounted) {
         return;
       }
-      setActiveTab(stored.tab);
       setClipSort(stored.clipSort);
       setIsPrefsHydrated(true);
     })();
@@ -123,7 +121,7 @@ export function useEpisodeSectionPanes({
       return;
     }
     const nextTab = resolveEpisodeTabForItem({
-      rememberedTab: activeTab,
+      selectedTab: activeTab,
       supportedTabs,
     });
     if (nextTab !== activeTab) {
@@ -249,15 +247,9 @@ export function useEpisodeSectionPanes({
     void loadTab(activeTab);
   }, [activeTab, isPrefsHydrated, loadTab]);
 
-  const selectTab = useCallback(
-    (tab: EpisodeTab) => {
-      setActiveTab(tab);
-      if (itemIdText !== null) {
-        void writeEpisodeDetailTab(itemIdText, tab);
-      }
-    },
-    [itemIdText]
-  );
+  const selectTab = useCallback((tab: EpisodeTab) => {
+    setActiveTab(tab);
+  }, []);
 
   const selectClipSort = useCallback(
     (sort: EpisodeClipSort) => {

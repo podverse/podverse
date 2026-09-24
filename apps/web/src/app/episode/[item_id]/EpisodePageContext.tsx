@@ -104,7 +104,6 @@ export const EpisodePageContextProvider = ({
     values: buildDetailSortPrefPatch({
       range: filterParams.range,
       sort: filterParams.sort,
-      tab: filterParams.type,
     }),
   });
 

@@ -57,7 +57,6 @@ import {
   readPodcastDetailPrefs,
   writePodcastDetailRange,
   writePodcastDetailSort,
-  writePodcastDetailTab,
 } from '../../prefs/detailListPrefs';
 import { isOfflineModeEnabled, useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
@@ -167,8 +166,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [range, setRange] = useState<PodcastDetailRange>(DEFAULT_PODCAST_DETAIL_RANGE);
   /**
    * Free text lives only as long as the screen does. A remembered filter would reopen a podcast
-   * showing a fraction of its episodes with no hint why, so unlike the section and the order this
-   * one is deliberately not carried anywhere.
+   * showing a fraction of its episodes with no hint why, so unlike the order this one is
+   * deliberately not carried anywhere. The section chip is also visit-local — every open starts on
+   * Episodes.
    */
   const [filterTerm, setFilterTerm] = useState<string>('');
   /**
@@ -351,29 +351,29 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   }, [podcastId, previewArtworkUri, previewHeaderTitle]);
 
   /**
-   * Keyed on the channel, so arriving at a second podcast opens on that podcast's section and order
-   * rather than on whatever the previous one was left showing.
+   * Keyed on the channel, so arriving at a second podcast opens on Episodes (or Downloaded while
+   * Offline Mode is on) with that podcast's remembered sort and range.
    */
   useEffect(() => {
     let isMounted = true;
     setIsSectionHydrated(false);
+    const offline = isOfflineModeEnabled();
+    setSection(
+      offline
+        ? resolvePodcastSectionForOfflineMode(DEFAULT_PODCAST_TAB, [
+            'about',
+            'clips',
+            'downloaded',
+            'episodes',
+          ])
+        : DEFAULT_PODCAST_TAB
+    );
 
     void (async () => {
       const prefs = await readPodcastDetailPrefs(podcastId);
       if (!isMounted) {
         return;
       }
-      // Offline Mode wins over the remembered tab on arrival; the stored pref is left alone.
-      const offline = isOfflineModeEnabled();
-      const nextSection = offline
-        ? resolvePodcastSectionForOfflineMode(prefs.tab, [
-            'about',
-            'clips',
-            'downloaded',
-            'episodes',
-          ])
-        : prefs.tab;
-      setSection(nextSection);
       setSort(prefs.sort);
       setRange(prefs.range);
       setIsSectionHydrated(true);
@@ -553,12 +553,11 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   );
 
   /**
-   * A remembered section still has to exist on this podcast — one whose feed has dropped its
-   * podroll cannot open on it. The stored preference is left alone, so the section comes back if
-   * the feed declares one again.
+   * A selected section still has to exist on this podcast — one whose feed has dropped its
+   * podroll cannot stay on it. Falls back to Episodes (or Downloaded while Offline Mode is on).
    *
    * Held until the channel and the stored episodes have both been read, because a cache miss must
-   * not be treated as absence or a restored Official clips / Podroll pane would be thrown away.
+   * not be treated as absence or an Official clips / Podroll pane would be thrown away mid-visit.
    */
   useEffect(() => {
     if (channel === null || !hasCheckedSoundbites) {
@@ -575,9 +574,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
 
   /**
    * Turning Offline Mode on while already on this screen (or finishing hydrate after the mode
-   * flag arrives) switches the chip to Downloaded. Display-only — the stored tab pref is not
-   * overwritten. Manual chip taps while Offline Mode is on still update `section` without write.
-   * Keyed on podcast identity so a later chrome update does not yank the chip back after a tap.
+   * flag arrives) switches the chip to Downloaded. Manual chip taps while Offline Mode is on still
+   * update `section`. Keyed on podcast identity so a later chrome update does not yank the chip
+   * back after a tap.
    */
   useEffect(() => {
     if (!offlineModeEnabled || !isSectionHydrated) {
@@ -586,15 +585,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setSection('downloaded');
   }, [isSectionHydrated, offlineModeEnabled, podcastId]);
 
-  const handleSectionSelect = useCallback(
-    (next: PodcastTab) => {
-      setSection(next);
-      if (!offlineModeEnabled) {
-        void writePodcastDetailTab(podcastId, next);
-      }
-    },
-    [offlineModeEnabled, podcastId]
-  );
+  const handleSectionSelect = useCallback((next: PodcastTab) => {
+    setSection(next);
+  }, []);
 
   const handleSortSelect = useCallback(
     (next: PodcastDetailSort) => {

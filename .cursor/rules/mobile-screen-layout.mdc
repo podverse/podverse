@@ -216,8 +216,8 @@ podroll is a short publisher list without title filtering. Episodes, official so
 episodes for this channel from `downloadsRepository.listCompleteByChannel`. An empty list is a
 real answer. Evidence chips (Official Clips, Podroll, …) sit **after** that always-on set so a
 first-visit insert is at the end of the row — **mobile-section-chrome-cache**. While **Offline
-Mode** is on, podcast detail defaults to Downloaded (override only; do not overwrite the stored
-tab pref) — **mobile-offline-mode**.
+Mode** is on, podcast detail opens on Downloaded — **mobile-offline-mode**. The section chip is
+visit-local; every open starts on Episodes (or Downloaded while Offline Mode is on).
 
 Sort and category controls sit in the chip-row **trailing** slot and use **filter** chrome (square
 radius, accent outline) so they read as list narrows, not as sibling section pills. Mount them

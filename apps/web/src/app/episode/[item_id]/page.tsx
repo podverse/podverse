@@ -34,9 +34,9 @@ import type { EpisodePageDropdownConfigCurrentParams } from './EpisodePageDropdo
 import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
 
 /**
- * The control fields carry no schema default, so an absent parameter stays `undefined` and this
- * episode's remembered selection is reachable. A default applied here would win before the stored
- * preference was ever consulted.
+ * Sort and range carry no schema default, so an absent parameter stays `undefined` and this
+ * episode's remembered clip order is reachable. `type` (section chip) also stays optional so a
+ * clean URL opens on Summary; an explicit `?type=` selects that chip for this request only.
  */
 const searchParamsSchema = z.object({
   page: z
@@ -137,7 +137,7 @@ function parseSearchParams(
     ),
     type: resolveStoredToken(
       data?.type,
-      storedSortPref?.tab,
+      undefined,
       QUERY_PARAMS_ITEM_TYPE_VALUES,
       'summary'
     ),
@@ -145,6 +145,6 @@ function parseSearchParams(
 
   return {
     ...filterParams,
-    hasExplicitUrlParams: hasExplicitControlParams([data?.type, data?.sort, data?.range]),
+    hasExplicitUrlParams: hasExplicitControlParams([data?.sort, data?.range]),
   };
 }

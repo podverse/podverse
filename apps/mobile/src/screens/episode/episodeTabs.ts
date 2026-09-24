@@ -86,11 +86,11 @@ export const resolveEpisodeTabs = ({
 };
 
 export const resolveEpisodeTabForItem = ({
-  rememberedTab,
+  selectedTab,
   supportedTabs,
 }: {
-  rememberedTab: EpisodeTab;
+  selectedTab: EpisodeTab;
   supportedTabs: readonly EpisodeTab[];
 }): EpisodeTab => {
-  return supportedTabs.includes(rememberedTab) ? rememberedTab : DEFAULT_EPISODE_TAB;
+  return supportedTabs.includes(selectedTab) ? selectedTab : DEFAULT_EPISODE_TAB;
 };

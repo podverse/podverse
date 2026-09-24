@@ -89,7 +89,6 @@ export const AlbumPageContextProvider = ({
     values: buildDetailSortPrefPatch({
       range: filterParams.range,
       sort: filterParams.sort,
-      tab: filterParams.type,
     }),
   });
 

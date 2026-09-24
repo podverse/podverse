@@ -55,7 +55,6 @@ import {
   readAlbumDetailPrefs,
   writeAlbumDetailRange,
   writeAlbumDetailSort,
-  writeAlbumDetailTab,
 } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
@@ -352,12 +351,12 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   useEffect(() => {
     let isMounted = true;
     setIsSectionHydrated(false);
+    setSection(DEFAULT_ALBUM_TAB);
     void (async () => {
       const prefs = await readAlbumDetailPrefs(albumId);
       if (!isMounted) {
         return;
       }
-      setSection(prefs.tab);
       setSort(prefs.sort);
       setRange(prefs.range);
       setIsSectionHydrated(true);
@@ -572,13 +571,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     [t]
   );
 
-  const handleSectionSelect = useCallback(
-    (next: AlbumTab) => {
-      setSection(next);
-      void writeAlbumDetailTab(albumId, next);
-    },
-    [albumId]
-  );
+  const handleSectionSelect = useCallback((next: AlbumTab) => {
+    setSection(next);
+  }, []);
 
   const handleSortSelect = useCallback(
     (next: AlbumTrackSort) => {

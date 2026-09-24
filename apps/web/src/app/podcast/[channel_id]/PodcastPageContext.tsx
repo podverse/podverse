@@ -103,7 +103,6 @@ export const PodcastPageContextProvider = ({
     values: buildDetailSortPrefPatch({
       range: filterParams.range,
       sort: filterParams.sort,
-      tab: filterParams.type,
     }),
   });
 

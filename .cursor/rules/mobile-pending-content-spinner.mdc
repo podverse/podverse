@@ -22,8 +22,9 @@ The user sees a flash of "nothing here" and then the real data.
   arrived or the first fetch failed, etc.).
 - Use the shared chrome: `LoadingSection`, `ListLoading`, `AuthAwareLoadState`, or
   `PodcastSectionList` `isInitialLoading`.
-- Keep the spinner up through the first paint of a remembered chip or tab whose body depends on
-  a DTO that has not arrived yet (podcast About while the channel request is still out).
+- Keep the spinner up through the first paint of a chip or tab whose body depends on a DTO that
+  has not arrived yet (podcast About while the channel request is still out; Home media type
+  while preferences resolve).
 
 ## Don't
 

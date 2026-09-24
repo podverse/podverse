@@ -52,11 +52,7 @@ import {
   CHANNEL_BROWSE_STACK_ROUTES,
 } from '../../navigation';
 import type { ArtistTab } from '../../prefs/detailListPrefs';
-import {
-  DEFAULT_ARTIST_TAB,
-  readArtistDetailPrefs,
-  writeArtistDetailTab,
-} from '../../prefs/detailListPrefs';
+import { DEFAULT_ARTIST_TAB } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { LIST_ROW_ARTWORK_SIZE } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
@@ -348,7 +344,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   );
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
-  const [isSectionHydrated, setIsSectionHydrated] = useState<boolean>(false);
+  const isSectionHydrated = true;
   const [section, setSection] = useState<ArtistTab>(DEFAULT_ARTIST_TAB);
   const [tracksAdded, setTracksAdded] = useState<DTOItem[]>([]);
   const [tracksUnadded, setTracksUnadded] = useState<ArtistTrackUnadded[]>([]);
@@ -429,19 +425,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   }, [artistId, previewIsSubscribed]);
 
   useEffect(() => {
-    let isMounted = true;
-    setIsSectionHydrated(false);
-    void (async () => {
-      const prefs = await readArtistDetailPrefs(artistId);
-      if (!isMounted) {
-        return;
-      }
-      setSection(prefs.tab);
-      setIsSectionHydrated(true);
-    })();
-    return () => {
-      isMounted = false;
-    };
+    setSection(DEFAULT_ARTIST_TAB);
   }, [artistId]);
 
   useEffect(() => {
@@ -615,13 +599,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     [availableSections, t]
   );
 
-  const handleSectionSelect = useCallback(
-    (next: ArtistTab) => {
-      setSection(next);
-      void writeArtistDetailTab(artistId, next);
-    },
-    [artistId]
-  );
+  const handleSectionSelect = useCallback((next: ArtistTab) => {
+    setSection(next);
+  }, []);
 
   const handleSubscriptionToggle = useCallback(async () => {
     if (isSavingSubscription) {

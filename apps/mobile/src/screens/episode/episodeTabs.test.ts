@@ -53,19 +53,19 @@ describe('resolveEpisodeTabs', () => {
 });
 
 describe('resolveEpisodeTabForItem', () => {
-  it('keeps the remembered tab when this item supports it', () => {
+  it('keeps the selected tab when this item supports it', () => {
     expect(
       resolveEpisodeTabForItem({
-        rememberedTab: 'chapters',
+        selectedTab: 'chapters',
         supportedTabs: ['summary', 'clips', 'chapters'],
       })
     ).toBe('chapters');
   });
 
-  it('falls back to Summary when the remembered tab is not available', () => {
+  it('falls back to Summary when the selected tab is not available', () => {
     expect(
       resolveEpisodeTabForItem({
-        rememberedTab: 'transcript',
+        selectedTab: 'transcript',
         supportedTabs: ['summary', 'clips'],
       })
     ).toBe('summary');
