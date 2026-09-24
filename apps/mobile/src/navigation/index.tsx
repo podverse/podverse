@@ -711,7 +711,7 @@ function LibraryStackNavigator() {
       <LibraryStack.Screen
         component={LibraryMyClipsScreen}
         name={LIBRARY_STACK_ROUTES.LibraryMyClips}
-        options={{ title: t('features.clip.clips') }}
+        options={{ title: t('features.my_clips') }}
       />
       <LibraryStack.Screen
         component={ClipDetailScreen}
@@ -1001,7 +1001,7 @@ function LibraryHubScreen({
                 navigation.navigate(LIBRARY_STACK_ROUTES.LibraryMyClips);
               },
               testID: 'library-nav-my-clips',
-              title: t('features.clip.clips'),
+              title: t('features.my_clips'),
             },
             {
               onPress: () => {

@@ -11,7 +11,6 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import type { MediaRowMoreAction } from '../../components/player/MediaRowActions';
 import { FillList } from '../../components/primitives';
-import { SectionHeading } from '../../components/section/SectionHeading';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { clipToHomeRow, MIXED_SOURCE_CLIP_ROW_OPTIONS } from '../../lib/rows/homeRowMappers';
@@ -105,43 +104,26 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        list: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          flex: 1,
-          marginTop: tokens.spacing.md,
-        },
-        listContent: {
-          padding: tokens.spacing.lg,
-        },
-        notice: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
-        },
-        screen: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          flex: 1,
-          paddingBottom: tokens.spacing['2xl'],
-          ...screenBodyInsets(tokens.spacing),
-        },
-        screenHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.lg,
-        },
-        sectionHeading: {
-          marginBottom: tokens.spacing.sm,
-        },
-      }),
-    [themeStyles, tokens]
-  );
+  const styles = useMemo(() => {
+    const bodyInsets = screenBodyInsets(tokens.spacing);
+    return StyleSheet.create({
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+      listContent: {
+        flexGrow: 1,
+        paddingBottom: tokens.spacing['2xl'],
+        paddingHorizontal: bodyInsets.paddingHorizontal,
+        paddingTop: bodyInsets.paddingTop,
+      },
+      notice: {
+        color: themeStyles.textSecondary.color,
+        fontSize: 13,
+        marginTop: tokens.spacing.sm,
+      },
+    });
+  }, [themeStyles, tokens]);
 
   const loadClips = useCallback(async () => {
     if (status !== 'authenticated') {
@@ -218,17 +200,6 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
     [activeItemId, loadItemPausedAt]
   );
 
-  const listHeader = useMemo(
-    () => (
-      <>
-        <Text accessibilityRole="header" style={styles.screenHeading}>
-          {t('features.clip.clips')}
-        </Text>
-        <SectionHeading style={styles.sectionHeading}>{t('features.clip.clips')}</SectionHeading>
-      </>
-    ),
-    [styles.screenHeading, styles.sectionHeading, t]
-  );
   const listEmpty = useMemo(
     () => <ListEmpty messageKey="features.clip.empty" testID="library-my-clips-empty" />,
     []
@@ -257,18 +228,16 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
   const showList = status === 'authenticated' && !isLoading && errorKey === null;
 
   return (
-    <View style={styles.screen} testID="library-my-clips-screen">
+    <View style={styles.container} testID="library-my-clips-screen">
       {showList ? (
         <FillList
           ListEmptyComponent={listEmpty}
           ListFooterComponent={listFooter}
-          ListHeaderComponent={listHeader}
           contentContainerStyle={styles.listContent}
           data={clips}
           keyExtractor={myClipKeyExtractor}
           keyboardShouldPersistTaps="handled"
           renderItem={renderItem}
-          style={styles.list}
         />
       ) : (
         <AuthAwareLoadState
