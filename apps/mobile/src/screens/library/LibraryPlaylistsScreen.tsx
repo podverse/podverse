@@ -338,16 +338,19 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
 
   const handleTypeChange = useCallback((type: PlaylistListType) => {
     setSelectedType(type);
+    setIsLoading(true);
     void writePlaylistListType(type);
   }, []);
 
   const handleSortChange = useCallback((sort: QueryParamsSubscribedFullSort) => {
     setSelectedSort(sort);
+    setIsLoading(true);
     void writePlaylistListSort(sort);
   }, []);
 
   const handleRangeChange = useCallback((range: QueryParamsStatsRange) => {
     setSelectedRange(range);
+    setIsLoading(true);
     void writePlaylistListRange(range);
   }, []);
 

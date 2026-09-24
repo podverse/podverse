@@ -421,6 +421,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     setTracksUnadded([]);
     setAlbumsAdded([]);
     setAlbumsUnadded([]);
+    setIsRowsLoading(true);
     setIsSubscribed(resolveInitialSubscribed(artistId, previewIsSubscribed));
   }, [artistId, previewIsSubscribed]);
 

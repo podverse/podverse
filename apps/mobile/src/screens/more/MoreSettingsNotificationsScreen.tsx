@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountNotificationPreference } from '@podverse/helpers';
 import { NotificationCategoryEnum } from '@podverse/helpers';
@@ -13,6 +13,7 @@ import {
 } from '../../auth/syncAccountPrefs';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
+import { ToggleSwitch } from '../../components/primitives/ToggleSwitch';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
@@ -362,7 +363,7 @@ export function MoreSettingsNotificationsScreen() {
             testID="more-settings-notification-auto-enable-on-subscribe"
             title={t('settings.notifications.auto_enable_on_subscribe')}
             trailing={
-              <Switch
+              <ToggleSwitch
                 accessibilityLabel={t('settings.notifications.auto_enable_on_subscribe')}
                 onValueChange={(nextValue) => {
                   void handleAutoEnableOnSubscribeToggle(nextValue);
@@ -389,7 +390,7 @@ export function MoreSettingsNotificationsScreen() {
                 testID={`more-settings-notification-type-default-${row.type}`}
                 title={t(row.labelKey)}
                 trailing={
-                  <Switch
+                  <ToggleSwitch
                     accessibilityLabel={t(row.labelKey)}
                     onValueChange={(nextValue) => {
                       void handleNotificationTypeDefaultToggle(row.type, nextValue);
@@ -426,7 +427,7 @@ export function MoreSettingsNotificationsScreen() {
                     testID={`more-settings-notification-${row.category}-in-app`}
                     title={t(row.labelKey)}
                     trailing={
-                      <Switch
+                      <ToggleSwitch
                         disabled={row.forceInAppEnabled}
                         onValueChange={(nextValue) => {
                           void handleNotificationPreferenceToggle({
@@ -448,7 +449,7 @@ export function MoreSettingsNotificationsScreen() {
                         : t('settings.notifications.preference_push_disabled')
                     }
                     trailing={
-                      <Switch
+                      <ToggleSwitch
                         disabled={!canTogglePush}
                         onValueChange={(nextValue) => {
                           void handleNotificationPreferenceToggle({

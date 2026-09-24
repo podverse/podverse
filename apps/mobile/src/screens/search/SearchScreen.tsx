@@ -141,7 +141,13 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setDebouncedQuery(query.trim());
+      const nextQuery = query.trim();
+      setDebouncedQuery(nextQuery);
+      // Loading in the same turn as the query that triggers the fetch, so the next paint cannot
+      // show the previous empty result under the new term.
+      if (nextQuery.length > 0) {
+        setIsLoading(true);
+      }
     }, SEARCH_DEBOUNCE_MS);
 
     return () => {
@@ -163,10 +169,12 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
 
     const requestId = searchRequestIdRef.current + 1;
     searchRequestIdRef.current = requestId;
+    // Set loading in this commit so a medium or query change cannot paint the previous empty
+    // result as "no results" for the new selection.
+    setIsLoading(true);
+    setErrorKey(null);
     let isMounted = true;
     void (async () => {
-      setIsLoading(true);
-      setErrorKey(null);
       try {
         const response = await requestWithMobileAuthRefresh(
           {
@@ -270,8 +278,11 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
 
   const handleMediumChange = useCallback((next: QueryParamsPodcastIndexSearchMedium) => {
     setMedium(next);
+    if (debouncedQuery.length > 0) {
+      setIsLoading(true);
+    }
     void writeSearchListMedium(next);
-  }, []);
+  }, [debouncedQuery.length]);
 
   const handleSubmitSearch = useCallback(() => {
     setDebouncedQuery(query.trim());

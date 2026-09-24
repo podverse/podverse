@@ -83,6 +83,7 @@
     }
   },
   "settings": {
+    "dependent_of": "Μέρος του {parent}",
     "groups": {
       "appearance": "Εμφάνιση",
       "appearance_description": "Θέμα και γλώσσα",

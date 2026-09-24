@@ -83,6 +83,7 @@
     }
   },
   "settings": {
+    "dependent_of": "Parte de {parent}",
     "groups": {
       "appearance": "Apariencia",
       "appearance_description": "Tema e idioma",

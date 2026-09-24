@@ -1,10 +1,13 @@
+import { useContext } from 'react';
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { listRowVerticalPadding } from '../../theme/screenLayout';
+import { LIST_ROW_OPTICAL_BOTTOM_EXTRA, listRowVerticalPadding } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
+import { ToggleSwitch } from '../primitives/ToggleSwitch';
+import { SettingsDependentContext } from './SettingsDependentGroup';
 
 export type SettingsSwitchRowProps = {
   title: string;
@@ -43,7 +46,18 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       alignItems: 'center',
       flexDirection: 'row',
       gap: tokens.spacing.md,
+    },
+    rowNested: {
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.base,
+    },
+    rowParent: {
       paddingHorizontal: tokens.spacing.lg,
+    },
+    rowSwitch: {
+      paddingVertical: tokens.spacing.lg,
+    },
+    rowText: {
       ...listRowVerticalPadding(tokens.spacing.lg),
     },
     title: {
@@ -54,11 +68,17 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
     titleColumn: {
       flex: 1,
     },
+    titleNudge: {
+      includeFontPadding: false,
+      transform: [{ translateY: LIST_ROW_OPTICAL_BOTTOM_EXTRA }],
+    },
   });
 
 /**
  * Settings row with a trailing switch, or a pressable row when `onPress` is supplied without a
- * switch. Title and switch share one horizontal inset so section titles and row text align.
+ * switch. A switch row uses equal vertical padding and shifts a single-line title so its ink
+ * lines up with the switch. Inside `SettingsDependentGroup`, the row uses compact inset padding
+ * and the switch names the parent setting.
  */
 export function SettingsSwitchRow({
   accessibilityLabel,
@@ -72,17 +92,28 @@ export function SettingsSwitchRow({
   value,
 }: SettingsSwitchRowProps) {
   const styles = useThemedStyles(createStyles);
+  const dependent = useContext(SettingsDependentContext);
+  const isNested = dependent !== null;
   const label = accessibilityLabel ?? title;
   const isSwitch = onValueChange !== undefined && value !== undefined;
+  const hasTitleDetail = children !== undefined && children !== null;
+  const alignTitleToSwitch = isSwitch && !hasTitleDetail;
+  const rowStyle = [
+    styles.row,
+    isNested ? styles.rowNested : styles.rowParent,
+    isNested ? null : isSwitch ? styles.rowSwitch : styles.rowText,
+    !isNested && showDivider ? styles.divider : null,
+  ];
 
   const body = (
     <>
       <View style={styles.titleColumn}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, alignTitleToSwitch ? styles.titleNudge : null]}>{title}</Text>
         {children !== undefined ? <View style={styles.children}>{children}</View> : null}
       </View>
       {isSwitch ? (
-        <Switch
+        <ToggleSwitch
+          accessibilityHint={dependent?.accessibilityHint}
           accessibilityLabel={label}
           accessibilityRole="switch"
           accessibilityState={{ checked: value, disabled }}
@@ -102,7 +133,7 @@ export function SettingsSwitchRow({
         accessibilityRole="button"
         disabled={disabled}
         onPress={onPress}
-        style={[styles.row, showDivider ? styles.divider : null]}
+        style={rowStyle}
         testID={testID}
       >
         {body}
@@ -111,7 +142,7 @@ export function SettingsSwitchRow({
   }
 
   return (
-    <View style={[styles.row, showDivider ? styles.divider : null]} testID={testID}>
+    <View style={rowStyle} testID={testID}>
       {body}
     </View>
   );

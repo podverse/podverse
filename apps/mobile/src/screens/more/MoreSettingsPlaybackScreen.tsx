@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { MediaTypePreference } from '@podverse/helpers';
 
@@ -9,6 +9,7 @@ import { syncPlaybackPreferenceToAccount } from '../../auth/syncAccountPrefs';
 import { OptionChipGroup } from '../../components/form';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
+import { ToggleSwitch } from '../../components/primitives/ToggleSwitch';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import {
   readAutoQueuePrefs,
@@ -160,7 +161,7 @@ export function MoreSettingsPlaybackScreen() {
                 testID="more-settings-auto-queue-random"
                 title={t('media_player.shuffle.toggle_shuffle')}
                 trailing={
-                  <Switch
+                  <ToggleSwitch
                     onValueChange={(nextValue) => {
                       void handleAutoQueueRandomToggle(nextValue);
                     }}
@@ -174,7 +175,7 @@ export function MoreSettingsPlaybackScreen() {
                 testID="more-settings-auto-queue-repeat"
                 title={t('media_player.repeat.toggle_repeat')}
                 trailing={
-                  <Switch
+                  <ToggleSwitch
                     onValueChange={(nextValue) => {
                       void handleAutoQueueRepeatToggle(nextValue);
                     }}

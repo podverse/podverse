@@ -18,6 +18,7 @@ import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
 import { ConfirmDialog } from '../feedback/ConfirmDialog';
 import {
+  SettingsDependentGroup,
   SettingsGroup,
   SettingsRowDescription,
   SettingsSwitchRow,
@@ -175,34 +176,38 @@ export function ChannelSettingsPane({
           testID={`${testIDPrefix}-settings-notifications-card`}
           title={t('settings.notifications.notifications')}
         >
-          <SettingsSwitchRow
-            accessibilityLabel={t('settings.notifications.allow')}
-            disabled={notifications.isSaving}
-            onValueChange={(nextValue) => {
-              void notifications.setEnabled(nextValue);
-            }}
-            testID={`${testIDPrefix}-settings-notifications`}
-            title={t('settings.notifications.allow')}
-            value={notifications.isEnabled}
-          />
-          {notifications.isEnabled ? (
-            <View testID={`${testIDPrefix}-settings-notification-types`}>
-              {NOTIFICATION_TYPE_ROWS.map((row) => (
-                <SettingsSwitchRow
-                  key={row.type}
-                  accessibilityLabel={t(row.labelKey)}
-                  disabled={notifications.isSaving}
-                  onValueChange={(nextValue) => {
-                    void notifications.setTypeEnabled(row.type, nextValue);
-                  }}
-                  showDivider
-                  testID={`${testIDPrefix}-settings-notification-type-${row.type}`}
-                  title={t(row.labelKey)}
-                  value={notifications.isTypeEnabled(row.type)}
-                />
-              ))}
-            </View>
-          ) : null}
+          <SettingsDependentGroup
+            parent={
+              <SettingsSwitchRow
+                accessibilityLabel={t('settings.notifications.allow')}
+                disabled={notifications.isSaving}
+                onValueChange={(nextValue) => {
+                  void notifications.setEnabled(nextValue);
+                }}
+                testID={`${testIDPrefix}-settings-notifications`}
+                title={t('settings.notifications.allow')}
+                value={notifications.isEnabled}
+              />
+            }
+            parentLabel={t('settings.notifications.allow')}
+            testID={`${testIDPrefix}-settings-notification-types`}
+          >
+            {notifications.isEnabled
+              ? NOTIFICATION_TYPE_ROWS.map((row) => (
+                  <SettingsSwitchRow
+                    key={row.type}
+                    accessibilityLabel={t(row.labelKey)}
+                    disabled={notifications.isSaving}
+                    onValueChange={(nextValue) => {
+                      void notifications.setTypeEnabled(row.type, nextValue);
+                    }}
+                    testID={`${testIDPrefix}-settings-notification-type-${row.type}`}
+                    title={t(row.labelKey)}
+                    value={notifications.isTypeEnabled(row.type)}
+                  />
+                ))
+              : null}
+          </SettingsDependentGroup>
           {notifications.errorKey !== null ? (
             <View style={styles.feedInner}>
               <SettingsRowDescription testID={`${testIDPrefix}-settings-notifications-error`}>

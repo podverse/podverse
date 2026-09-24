@@ -17,6 +17,8 @@ export type {
   SectionChipRowProps,
   SectionChipVariant,
 } from './SectionChipRow';
+export { SettingsDependentGroup } from './SettingsDependentGroup';
+export type { SettingsDependentGroupProps } from './SettingsDependentGroup';
 export { SettingsGroup } from './SettingsGroup';
 export type { SettingsGroupProps } from './SettingsGroup';
 export { SettingsOptionNavRow } from './SettingsOptionNavRow';

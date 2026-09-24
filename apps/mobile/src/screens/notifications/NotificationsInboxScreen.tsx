@@ -120,7 +120,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   const [notifications, setNotifications] = useState<DTOAccountNotification[]>(
     () => lastCachedInbox?.items ?? []
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => lastCachedInbox === null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(lastCachedInbox?.unreadCount ?? 0);

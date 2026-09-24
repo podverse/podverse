@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
@@ -119,7 +119,8 @@ export function usePodcastSectionRows<TRow>(
     }
   }, [authContext, fetchPage]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    setIsInitialLoading(true);
     void loadFirstPage(false);
   }, [loadFirstPage]);
 

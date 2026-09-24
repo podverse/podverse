@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import type { BadgeTone } from '../../components/primitives';
 import { Badge, Button, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { isMobileE2eFromEnv } from '../../config/env';
 import type { SyncEventLogEntry } from '../../data/repositories';
 import {
@@ -43,10 +44,16 @@ export function MoreSyncLogScreen() {
   const { i18n, t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const [entries, setEntries] = useState<SyncEventLogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isClearConfirmVisible, setIsClearConfirmVisible] = useState<boolean>(false);
 
   const load = useCallback(async () => {
-    setEntries(await syncEventLogRepository.list());
+    setIsLoading(true);
+    try {
+      setEntries(await syncEventLogRepository.list());
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useFocusEffect(
@@ -222,7 +229,13 @@ export function MoreSyncLogScreen() {
         contentContainerStyle={styles.content}
         data={entries}
         keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={<ListEmpty messageKey="sync.log.empty" testID="sync-log-empty" />}
+        ListEmptyComponent={
+          isLoading ? (
+            <LoadingSection testID="sync-log-loading" />
+          ) : (
+            <ListEmpty messageKey="sync.log.empty" testID="sync-log-empty" />
+          )
+        }
         ListHeaderComponent={renderHeader}
         removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
         renderItem={renderRow}

@@ -90,6 +90,8 @@ export function useAddToPlaylist(): UseAddToPlaylist {
       }
       setTarget(next);
       setNoticeKey(null);
+      setPlaylists([]);
+      setIsLoading(true);
       void loadPlaylists(next);
     },
     [loadPlaylists, status]

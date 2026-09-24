@@ -31,14 +31,14 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 
 | Kind                                        | Path                                                                                                                                                                                                 |
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `UnseenIndicator`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`) |
+| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `UnseenIndicator`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `ToggleSwitch`, `VerticalCenter`) |
 | Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                                                                                     |
 | Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `OfflineModeBanner`, `MobileScreenContainer`, `ModalSafeArea`, `ThemedStackHeader`)                                         |
 | Section / list grouping                     | `components/section/` (`SectionHeading`, `SectionCard`)                                                                                                                                             |
 | Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                                       |
 | Playback row actions / mini player          | `components/player/`                                                                                                                                                                                 |
 | Membership / gate feedback                  | `components/feedback/` (`ConfirmDialog` via `openGate`, `HelperNote`, `GatedFeatureNotice` only when there is no action to attach)                                                                   |
-| Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                                    |
+| Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsSwitchRow`, `SettingsDependentGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                     |
 | Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                                                                                  |
 | Chapter list rows                           | `components/content/ChapterListRow` — full player and episode detail; images only when the section has any (**mobile-chapter-artwork**)                                                              |
 | Playlist / user catalog rows                | `components/content/PlaylistListRow`, `ProfileListRow` — text-only (no artwork); copy helpers in `lib/rows/catalogRowCopy`                                                                           |
@@ -69,6 +69,11 @@ relationship. See **mobile-screen-layout**.
 Appearance, Tab bar, Playback, and Notifications. 2–3 choices → `OptionChipGroup`; 4+ → push
 option-list screen (not bottom sheet). Selected chip uses `buttonPrimary` fill. Option rows
 stack label / description / current value (not trailing). See **mobile-settings-option-density**.
+
+**Dependent settings:** A parent switch that owns child switches uses `SettingsDependentGroup`.
+Children sit in a tertiary inset panel indented under the parent title; their switches stay in
+the parent switch's column. Prefer `ToggleSwitch` over a raw React Native `Switch` so iOS 26
+layout matches the drawn control. `SettingsSwitchRow` centers the title ink on the switch.
 
 **Cover images:** `CoverImage` (`expo-image`, memory+disk cache) opens **`ImageViewerModal`** on a
 stationary tap (full width, contained, portrait). A tap that drags stays a scroll — do not open

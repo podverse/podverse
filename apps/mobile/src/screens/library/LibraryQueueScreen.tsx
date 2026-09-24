@@ -14,10 +14,13 @@ import type { ReorderDropEvent } from '../../components/reorder/ReorderableSecti
 import { ReorderableSections } from '../../components/reorder/ReorderableSections';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
+import { ListError } from '../../components/state/ListError';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { useQueues } from '../../contexts/QueuesProvider';
 import type { MobileAuthRequestContext } from '../../data';
 import { queueRepository } from '../../data';
 import { useQueueResourcesLoadActive } from '../../hooks/useQueueResourcesLoadActive';
+import { resolveListFill } from '../../lib/listFill';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { queueResourcesForQueueScreen } from '../../lib/queue/queueScreenResources';
 import type { QueueReorderMutation } from '../../lib/reorder/resolveQueueDrop';
@@ -104,7 +107,10 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const loadActiveQueueResources = useQueueResourcesLoadActive();
   const dragTapBlockUntilRef = useRef<number>(0);
   const queueResourcesRef = useRef<readonly DTOQueueResource[]>([]);
+  const loadRequestIdRef = useRef(0);
   const [selectedMedium, setSelectedMedium] = useState<QueueListMedium>(DEFAULT_QUEUE_LIST_MEDIUM);
+  /** Medium whose rows are already in `queueResources`. Stays stale across a chip tap until load settles. */
+  const [settledMedium, setSettledMedium] = useState<QueueListMedium | null>(null);
   const [queueResources, setQueueResources] = useState<readonly DTOQueueResource[]>([]);
   const [isMediumReady, setIsMediumReady] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
@@ -118,13 +124,27 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     activeTarget === null ? null : playbackTargetRowMediaId(activeTarget);
 
   useEffect(() => {
+    const expectedMediumId = getQueueMediumIdFromType(selectedMedium);
+    if (
+      expectedMediumId === null ||
+      activeQueue === null ||
+      activeQueue.medium_id !== expectedMediumId
+    ) {
+      return;
+    }
+
     const visibleResources = queueResourcesForQueueScreen(activeQueueUpcomingResources, {
       playingContentId,
-      viewedQueueIsActive: activeQueue?.is_active_queue === true,
+      viewedQueueIsActive: activeQueue.is_active_queue === true,
     });
     queueResourcesRef.current = visibleResources;
     setQueueResources(visibleResources);
-  }, [activeQueue?.is_active_queue, activeQueueUpcomingResources, playingContentId]);
+  }, [
+    activeQueue,
+    activeQueueUpcomingResources,
+    playingContentId,
+    selectedMedium,
+  ]);
 
   useEffect(() => {
     let isMounted = true;
@@ -202,6 +222,10 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         return;
       }
 
+      const requestId = loadRequestIdRef.current + 1;
+      loadRequestIdRef.current = requestId;
+      const isCurrent = () => loadRequestIdRef.current === requestId;
+
       if (options?.refresh === true) {
         setIsRefreshing(true);
       } else {
@@ -210,15 +234,36 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       setErrorKey(null);
 
       try {
-        await loadActiveQueueResources(getQueueMediumIdFromType(selectedMedium) ?? undefined);
+        const result = await loadActiveQueueResources(
+          getQueueMediumIdFromType(selectedMedium) ?? undefined
+        );
+        if (!isCurrent()) {
+          return;
+        }
+
+        // Commit filtered rows in the same turn as clearing the spinner so ListEmpty cannot paint
+        // an empty frame while the context→local effect has not run yet.
+        const visibleResources = queueResourcesForQueueScreen(result.upcomingResources, {
+          playingContentId,
+          viewedQueueIsActive: result.activeQueue?.is_active_queue === true,
+        });
+        queueResourcesRef.current = visibleResources;
+        setQueueResources(visibleResources);
+        setSettledMedium(selectedMedium);
       } catch {
+        if (!isCurrent()) {
+          return;
+        }
         setErrorKey('errors.generic');
+        setSettledMedium(selectedMedium);
       } finally {
-        setIsInitialLoading(false);
-        setIsRefreshing(false);
+        if (isCurrent()) {
+          setIsInitialLoading(false);
+          setIsRefreshing(false);
+        }
       }
     },
-    [isMediumReady, loadActiveQueueResources, selectedMedium]
+    [isMediumReady, loadActiveQueueResources, playingContentId, selectedMedium]
   );
 
   const buildAuthContext = useCallback(
@@ -559,10 +604,24 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     void loadQueue();
   }, [isMediumReady, loadQueue, status]);
 
-  const handleMediumChange = useCallback((nextMedium: QueueListMedium) => {
-    setSelectedMedium(nextMedium);
-    void writeQueueListMedium(nextMedium);
-  }, []);
+  const handleMediumChange = useCallback(
+    (nextMedium: QueueListMedium) => {
+      if (nextMedium === selectedMedium) {
+        return;
+      }
+
+      // Invalidate in-flight loads for the medium the user just left. Leave settledMedium stale so
+      // ListEmpty cannot treat the cleared list as a settled empty for the new chip.
+      loadRequestIdRef.current += 1;
+      setSelectedMedium(nextMedium);
+      queueResourcesRef.current = [];
+      setQueueResources([]);
+      setIsInitialLoading(true);
+      setErrorKey(null);
+      void writeQueueListMedium(nextMedium);
+    },
+    [selectedMedium]
+  );
 
   const handleRetry = useCallback(() => {
     void loadQueue();
@@ -574,14 +633,35 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
 
   const emptyMessageKey =
     selectedMedium === 'music' ? 'features.queue.empty_music' : 'features.queue.empty_podcasts';
-  const listEmpty = useMemo(
-    () => (
-      <VerticalCenter>
-        <ListEmpty messageKey={emptyMessageKey} testID="library-queue-empty" />
-      </VerticalCenter>
-    ),
-    [emptyMessageKey]
-  );
+  const queueFill = resolveListFill({
+    errorKey,
+    isSettled: !isInitialLoading && settledMedium === selectedMedium,
+    rowCount: queueRows.length,
+  });
+  const listEmpty = useMemo(() => {
+    if (queueFill === 'loading') {
+      return <LoadingSection testID="library-queue-loading" />;
+    }
+    if (queueFill === 'error' && errorKey !== null) {
+      return (
+        <VerticalCenter>
+          <ListError
+            messageKey={errorKey}
+            onRetry={handleRetry}
+            testID="library-queue-error"
+          />
+        </VerticalCenter>
+      );
+    }
+    if (queueFill === 'empty') {
+      return (
+        <VerticalCenter>
+          <ListEmpty messageKey={emptyMessageKey} testID="library-queue-empty" />
+        </VerticalCenter>
+      );
+    }
+    return null;
+  }, [emptyMessageKey, errorKey, handleRetry, queueFill]);
 
   const listFooter = useMemo(
     () =>
@@ -671,13 +751,14 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     [handleDragActiveChange, handleDrop, handleReorder, queueRows, renderQueueRow, t]
   );
 
+  const showQueueRows = queueFill === 'ready';
+
   return (
     <View style={styles.container} testID="library-queue-screen">
       <AuthAwareLoadState
         emptyTestID="library-queue-auth-required"
-        errorKey={errorKey}
-        errorTestID="library-queue-error"
-        isLoading={isInitialLoading || !isMediumReady}
+        errorKey={null}
+        isLoading={!isMediumReady}
         loadingTestID="library-queue-loading"
         onRetry={handleRetry}
         showAuthRequired={status !== 'authenticated'}
@@ -686,7 +767,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
           ListEmptyComponent={listEmpty}
           ListFooterComponent={listFooter}
           contentContainerStyle={styles.listContent}
-          data={reorderData}
+          data={showQueueRows ? reorderData : []}
           keyExtractor={queueListKeyExtractor}
           ListHeaderComponent={listHeader}
           onRefresh={handleRefresh}

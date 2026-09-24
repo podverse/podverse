@@ -2,13 +2,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import { Button } from '../../components/primitives/Button';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
 import { ProgressTrack } from '../../components/primitives/ProgressTrack';
+import { ToggleSwitch } from '../../components/primitives/ToggleSwitch';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { ListLoading } from '../../components/state/ListLoading';
 import { downloadManager } from '../../downloads/downloadManager';
@@ -213,7 +214,7 @@ export function MoreSettingsDownloadsScreen() {
                 testID="more-settings-downloads-auto-limit"
                 title={t('settings.downloads.auto_delete_on_limit')}
                 trailing={
-                  <Switch
+                  <ToggleSwitch
                     onValueChange={(next) => {
                       void writeDownloadAutoDeleteOnLimitEnabled(next).then(() => storage.reload());
                     }}
@@ -230,7 +231,7 @@ export function MoreSettingsDownloadsScreen() {
                 testID="more-settings-downloads-auto-device-low"
                 title={t('settings.downloads.auto_delete_on_device_low')}
                 trailing={
-                  <Switch
+                  <ToggleSwitch
                     onValueChange={(next) => {
                       void writeDownloadAutoDeleteOnDeviceLowEnabled(next).then(() =>
                         storage.reload()
