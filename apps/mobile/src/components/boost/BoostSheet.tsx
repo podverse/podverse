@@ -6,11 +6,13 @@ import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { primaryListArtworkUrl } from '@podverse/helpers';
 
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
+import { formActionsTopGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { ConfirmDialog } from '../feedback/ConfirmDialog';
+import { FormActions } from '../form/FormActions';
 import { TextField } from '../form/TextField';
 import { AppOverlay, OverlayPanel, OverlayScrim } from '../overlay';
-import { Button, CoverImage } from '../primitives';
+import { CoverImage } from '../primitives';
 import { HeaderBarAction } from '../screen/HeaderBarAction';
 import {
   boostRecipientsForTab,
@@ -61,10 +63,7 @@ export function BoostSheet({ onClose, target }: BoostSheetProps) {
     () =>
       StyleSheet.create({
         actions: {
-          flexDirection: 'row',
-          gap: tokens.spacing.sm,
-          justifyContent: 'flex-end',
-          marginTop: tokens.spacing.lg,
+          marginTop: formActionsTopGap(tokens.spacing),
         },
         amountRow: {
           alignItems: 'center',
@@ -272,22 +271,24 @@ export function BoostSheet({ onClose, target }: BoostSheetProps) {
                     {`${recipient.name !== null && recipient.name.length > 0 ? recipient.name : recipient.address} · ${recipient.splitPercent}% · ${recipient.amount}`}
                   </Text>
                 ))}
-                <View style={styles.actions}>
-                  <Button
-                    label={t('misc.cancel')}
-                    onPress={onClose}
-                    testID="boost-sheet-cancel"
-                    variant="secondary"
-                  />
-                  <Button
-                    label={t('misc.submit')}
-                    onPress={() => {
-                      setNotAvailableVisible(true);
-                    }}
-                    testID="boost-sheet-submit"
-                    variant="primary"
-                  />
-                </View>
+                <FormActions
+                  actions={[
+                    {
+                      label: t('misc.cancel'),
+                      onPress: onClose,
+                      testID: 'boost-sheet-cancel',
+                      variant: 'secondary',
+                    },
+                    {
+                      label: t('misc.submit'),
+                      onPress: () => {
+                        setNotAvailableVisible(true);
+                      },
+                      testID: 'boost-sheet-submit',
+                    },
+                  ]}
+                  style={styles.actions}
+                />
               </ScrollView>
             </Pressable>
           </OverlayPanel>

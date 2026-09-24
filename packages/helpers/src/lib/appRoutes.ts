@@ -17,6 +17,7 @@ export const APP_ROUTES = {
   OFFICIAL_CLIP: '/official-clip',
   PLAYLIST: '/playlist',
   PODCAST: '/podcast',
+  PODCAST_INDEX_FEED: '/podcast-index/feed',
   PODCAST_LIVESTREAM: '/podcast/livestream',
   PROFILE: '/profile',
   POPULARITY_TRACKING: '/popularity-tracking',
@@ -59,6 +60,25 @@ export const buildPlaylistPath = (idText: string): string =>
 
 export const buildPodcastPath = (idText: string): string =>
   buildAppRoutePath(APP_ROUTES.PODCAST, idText);
+
+export const buildPodcastIndexFeedPath = (podcastIndexId: string): string =>
+  buildAppRoutePath(APP_ROUTES.PODCAST_INDEX_FEED, podcastIndexId);
+
+/** Search-tab preview for a Podcast Index feed (`search/result/:resultId`). */
+export const buildMobileSearchResultPath = (resultId: string): string =>
+  `/search/result/${resultId}`;
+
+export const podcastIndexIdFromFeedPath = (path: string): string | null => {
+  const prefix = `${APP_ROUTES.PODCAST_INDEX_FEED}/`;
+  if (!path.startsWith(prefix)) {
+    return null;
+  }
+  const id = path.slice(prefix.length).replace(/\/$/, '');
+  if (!/^[1-9]\d*$/.test(id)) {
+    return null;
+  }
+  return id;
+};
 
 export const buildPodcastLivestreamPath = (idText: string): string =>
   buildAppRoutePath(APP_ROUTES.PODCAST_LIVESTREAM, idText);
@@ -141,6 +161,7 @@ export type NotificationLinkMessageType =
   | 'new-video-channel'
   | 'new-track'
   | 'new-album'
+  | 'podcast-index-feed'
   | 'livestream-started'
   | 'livestream-scheduled';
 
@@ -161,6 +182,8 @@ export const getNotificationLinkPathPrefix = (
       return APP_ROUTES.TRACK;
     case 'new-album':
       return APP_ROUTES.ALBUM;
+    case 'podcast-index-feed':
+      return APP_ROUTES.PODCAST_INDEX_FEED;
     case 'livestream-started':
     case 'livestream-scheduled':
       return mediumId === MediumEnum.Music
@@ -192,6 +215,7 @@ export const buildNotificationLinkPath = (params: {
     case 'new-video-channel':
     case 'new-track':
     case 'new-album':
+    case 'podcast-index-feed':
       return buildAppRoutePath(prefix, params.itemIdText);
     case 'new':
     default:

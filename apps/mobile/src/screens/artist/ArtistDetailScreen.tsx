@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import type {
   DTOChannel,
@@ -9,12 +9,14 @@ import type {
   EpisodeByGuidResponse,
   PodcastBatchByFeedGuidResponse,
   RemoteItemsResponse,
+  UnaddedTrackParentAlbum,
 } from '@podverse/helpers';
 import {
   podcastIndexFeedListImageUrl,
   primaryChannelLightboxArtworkUrl,
   primaryChannelListArtworkUrl,
   primaryListArtworkUrl,
+  resolveUnaddedTrackParentAlbum,
   unparsedPodcastIndexFeedTarget,
 } from '@podverse/helpers';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
@@ -87,6 +89,7 @@ type ArtistTracksRow =
       kind: 'unadded';
       key: string;
       row: ArtistTrackUnadded;
+      target: UnaddedTrackParentAlbum;
     };
 
 type ArtistAlbumsRow =
@@ -161,25 +164,22 @@ function ArtistAddedTrackRow({
 
 function ArtistUnaddedTrackRow({
   index,
-  onOpenUrl,
+  onPress,
   row,
+  target,
 }: {
   index: number;
-  onOpenUrl: (url: string) => void;
+  onPress: (row: ArtistTrackUnadded, target: UnaddedTrackParentAlbum) => void;
   row: ArtistTrackUnadded;
+  target: UnaddedTrackParentAlbum;
 }) {
-  const link = row.link;
-  const hasLink = link !== undefined && link !== null && link.length > 0;
   const handlePress = useCallback(() => {
-    if (link === undefined || link === null || link.length === 0) {
-      return;
-    }
-    void onOpenUrl(link);
-  }, [link, onOpenUrl]);
+    onPress(row, target);
+  }, [onPress, row, target]);
 
   return (
     <ListRow
-      onPress={hasLink ? handlePress : undefined}
+      onPress={handlePress}
       subtitle={row.feedTitle ?? row.authorName ?? row.author ?? undefined}
       testID={`artist-track-unadded-row-${index}`}
       title={row.title ?? row.guid}
@@ -735,14 +735,6 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     toggleNotifications,
   ]);
 
-  const openExternalUrl = useCallback(async (url: string) => {
-    try {
-      await Linking.openURL(url);
-    } catch {
-      // Optional convenience links only.
-    }
-  }, []);
-
   const handleGoToChannel = useCallback(
     (nextRow: HomeFeedRowData) => {
       if (nextRow.channelId === undefined) {
@@ -824,6 +816,24 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           previewTitle: row.title,
         })
       );
+    },
+    [navigation]
+  );
+
+  const handleOpenUnaddedTrack = useCallback(
+    (_row: ArtistTrackUnadded, target: UnaddedTrackParentAlbum) => {
+      if (target.kind === 'album') {
+        navigation.navigate(
+          CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
+          buildAlbumDetailParams({
+            albumId: target.albumIdText,
+          })
+        );
+        return;
+      }
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.SearchResultDetail, {
+        resultId: target.podcastIndexId,
+      });
     },
     [navigation]
   );
@@ -922,14 +932,26 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
       });
     }
 
-    const unaddedRows = tracksUnadded.map((row) => ({
-      key: `unadded-${row.guid}`,
-      kind: 'unadded' as const,
-      row,
-    }));
+    const unaddedRows: ArtistTracksRow[] = [];
+    for (const row of tracksUnadded) {
+      const target = resolveUnaddedTrackParentAlbum({
+        albums: albumsAdded,
+        feedGuid: row.feedGuid,
+        feedId: row.feedId,
+      });
+      if (target === null) {
+        continue;
+      }
+      unaddedRows.push({
+        key: `unadded-${row.feedGuid ?? ''}-${row.guid}`,
+        kind: 'unadded',
+        row,
+        target,
+      });
+    }
 
     return [...addedRows, ...unaddedRows];
-  }, [artistId, tracksAdded, tracksUnadded]);
+  }, [albumsAdded, artistId, tracksAdded, tracksUnadded]);
 
   const albumsRows = useMemo<ArtistAlbumsRow[]>(() => {
     const addedRows = albumsAdded.map((row) => ({
@@ -997,14 +1019,21 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         );
       }
 
-      return <ArtistUnaddedTrackRow index={index} onOpenUrl={openExternalUrl} row={item.row} />;
+      return (
+        <ArtistUnaddedTrackRow
+          index={index}
+          onPress={handleOpenUnaddedTrack}
+          row={item.row}
+          target={item.target}
+        />
+      );
     },
     [
       handleGoToChannel,
       handleGoToTrack,
+      handleOpenUnaddedTrack,
       handlePlayTrack,
       handleQueueTrack,
-      openExternalUrl,
       tracksCount,
     ]
   );

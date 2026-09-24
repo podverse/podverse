@@ -56,6 +56,8 @@ import { compatChannelImageDtos, compatItemImageDtos } from '@podverse/parser-ma
 import { _request } from '../_request.js';
 import { handleNewItemNotifications } from '../notifications/handleNewItemNotifications.js';
 import { handleNewLiveItemNotifications } from '../notifications/handleNewLiveItemNotifications.js';
+import { handleNewRemoteItemNotifications } from '../notifications/handleNewRemoteItemNotifications.js';
+import { newRemoteItemsFromParsedChannel } from '../notifications/remoteAlbumNotification.js';
 import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from './errors.js';
 import { getParsedFeedMd5Hash } from './hash/parsedFeed.js';
 import { createParsedItemStableKeySet } from './itemStableKey.js';
@@ -347,7 +349,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
     const channelSeasonService = new ChannelSeasonService();
     const channelSeasonIndex = await channelSeasonService.getChannelSeasonIndex(channel);
 
-    await handleParsedChannel(parsedFeed, channel, channelSeasonIndex);
+    const parsedChannelResult = await handleParsedChannel(parsedFeed, channel, channelSeasonIndex);
+    const newRemoteItems = newRemoteItemsFromParsedChannel(parsedChannelResult);
     await resolvePendingChannelFollows({
       channelIdText: channel.id_text,
       feedUrl: feed.url,
@@ -413,6 +416,10 @@ export const parseRSSFeedAndSaveToDatabase = async (
       newLiveItemIdentifiers.liveItemGuids.length > 0
     ) {
       await handleNewLiveItemNotifications(channel, newLiveItemIdentifiers);
+    }
+
+    if (newRemoteItems.length > 0) {
+      await handleNewRemoteItemNotifications(channel, newRemoteItems);
     }
 
     const feedLogService = new FeedLogService();

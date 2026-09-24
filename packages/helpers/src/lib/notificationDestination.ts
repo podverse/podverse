@@ -8,12 +8,15 @@ import {
   buildMobileHomeAlbumTrackPath,
   buildMobileHomePodcastEpisodePath,
   buildMobileHomeScopedPath,
+  buildMobileSearchResultPath,
   buildNotificationLinkPath,
+  buildPodcastIndexFeedPath,
   buildPodcastLivestreamPath,
   buildPodcastPath,
   buildTrackPath,
   buildVideoPath,
   MOBILE_HOME_TAB_PATH,
+  podcastIndexIdFromFeedPath,
 } from './appRoutes.js';
 import { MediumEnum } from './medium.js';
 
@@ -44,6 +47,7 @@ const NOTIFICATION_LINK_MESSAGE_TYPES: readonly NotificationLinkMessageType[] = 
   'new-video-channel',
   'new-track',
   'new-album',
+  'podcast-index-feed',
   'livestream-started',
   'livestream-scheduled',
 ];
@@ -126,12 +130,28 @@ export const resolveNotificationDestination = (params: {
   itemIdText?: string | null;
   channelIdText?: string | null;
   linkPath?: string | null;
+  podcastIndexId?: string | null;
 }): NotificationDestination => {
   const messageType = asNonEmptyString(params.messageType);
   const itemIdText = asNonEmptyString(params.itemIdText);
   const channelIdText = asNonEmptyString(params.channelIdText);
   const linkPath = asNonEmptyString(params.linkPath);
+  const podcastIndexId = asNonEmptyString(params.podcastIndexId);
   const mediumId = params.mediumId ?? MediumEnum.Podcast;
+
+  const podcastIndexFeedId =
+    (messageType === 'podcast-index-feed' ? (podcastIndexId ?? itemIdText) : null) ??
+    (linkPath !== null ? podcastIndexIdFromFeedPath(linkPath) : null);
+
+  if (podcastIndexFeedId !== null) {
+    return {
+      channelIdText,
+      itemIdText: podcastIndexFeedId,
+      kind: 'path',
+      mobileStackPath: buildMobileSearchResultPath(podcastIndexFeedId),
+      webPath: buildPodcastIndexFeedPath(podcastIndexFeedId),
+    };
+  }
 
   if (messageType !== null && isNotificationLinkMessageType(messageType)) {
     if (messageType === 'new-episode' || messageType === 'new-video') {
@@ -304,6 +324,8 @@ export const resolveNotificationDestinationFromPayload = (
     asNonEmptyString(data.podcastId);
   const linkPath =
     asNonEmptyString(data.link_path) ?? asNonEmptyString(data.link) ?? asNonEmptyString(data.url);
+  const podcastIndexId =
+    asNonEmptyString(data.podcastIndexId) ?? asNonEmptyString(data.podcast_index_id);
 
   return resolveNotificationDestination({
     channelIdText,
@@ -311,5 +333,6 @@ export const resolveNotificationDestinationFromPayload = (
     linkPath,
     mediumId: asMediumId(data.mediumId) ?? asMediumId(data.medium_id),
     messageType,
+    podcastIndexId,
   });
 };

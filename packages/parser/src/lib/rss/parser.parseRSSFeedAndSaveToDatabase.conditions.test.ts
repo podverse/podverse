@@ -109,6 +109,10 @@ vi.mock('../notifications/handleNewLiveItemNotifications.js', () => ({
   handleNewLiveItemNotifications: handleNewLiveItemNotificationsMock,
 }));
 
+vi.mock('../notifications/handleNewRemoteItemNotifications.js', () => ({
+  handleNewRemoteItemNotifications: vi.fn(),
+}));
+
 vi.mock('../_request.js', () => ({
   _request: vi.fn(),
 }));

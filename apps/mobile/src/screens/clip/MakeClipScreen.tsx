@@ -14,10 +14,9 @@ import { SharableStatusEnum } from '@podverse/helpers';
 import { ClipTimeCard } from '../../components/clip/ClipTimeCard';
 import { ManagedCopyModal } from '../../components/content/ManagedCopyModal';
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
-import { OptionChipGroup, TextField } from '../../components/form';
+import { FormActions, FormField, OptionChipGroup, TextField } from '../../components/form';
 import { FullPlayerScrubber } from '../../components/player/FullPlayerScrubber';
 import { MakeClipTransportRow } from '../../components/player/MakeClipTransportRow';
-import { Button } from '../../components/primitives';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { LoadingSection } from '../../components/state/LoadingSection';
@@ -30,7 +29,7 @@ import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
 import type { ClipVisibility } from '../../prefs/clipPrefs';
 import { hasSeenMakeClipHowToPref, writeSeenMakeClipHowToPref } from '../../prefs/clipPrefs';
-import { screenBodyInsets } from '../../theme/screenLayout';
+import { formActionsGap, screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import type { MakeClipValidationReason } from './makeClipValidation';
 import type { DeleteClipResult, SaveClipResult } from './useMakeClipForm';
@@ -127,22 +126,12 @@ export function MakeClipScreen({ navigation, route }: MakeClipScreenProps) {
           gap: tokens.spacing.md,
           paddingBottom: tokens.spacing['2xl'],
         },
-        deleteRow: {
-          marginTop: tokens.spacing.lg,
-        },
-        helpButtons: {
-          flexDirection: 'row',
-          gap: tokens.spacing.md,
-          marginTop: tokens.spacing.sm,
+        followingActions: {
+          marginTop: formActionsGap(tokens.spacing),
         },
         root: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
-        },
-        sectionLabel: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 14,
-          fontWeight: '600',
         },
         tip: {
           color: themeStyles.textSecondary.color,
@@ -286,15 +275,14 @@ export function MakeClipScreen({ navigation, route }: MakeClipScreenProps) {
             testID="make-clip-title"
             value={form.title}
           />
-          <View>
-            <Text style={styles.sectionLabel}>{t('misc.sharable_status.sharable_status')}</Text>
+          <FormField label={t('misc.sharable_status.sharable_status')}>
             <OptionChipGroup
               options={visibilityOptions}
               onChange={form.setVisibility}
               testID="make-clip-visibility"
               value={form.visibility}
             />
-          </View>
+          </FormField>
           <ClipTimeCard
             emptyHintKey="misc.required"
             label={t('features.clip.start_time')}
@@ -344,34 +332,41 @@ export function MakeClipScreen({ navigation, route }: MakeClipScreenProps) {
           {errorKey !== null ? (
             <RetryableError errorKey={errorKey} onRetry={handleSave} testID="make-clip-error" />
           ) : null}
-          {isEdit ? (
-            <View style={styles.deleteRow}>
-              <Button
-                label={t('features.clip.delete_clip')}
-                onPress={() => {
-                  setShowDeleteConfirm(true);
-                }}
-                testID="make-clip-delete"
-                variant="danger"
+          <View>
+            {isEdit ? (
+              <FormActions
+                actions={[
+                  {
+                    label: t('features.clip.delete_clip'),
+                    onPress: () => {
+                      setShowDeleteConfirm(true);
+                    },
+                    testID: 'make-clip-delete',
+                    variant: 'danger',
+                  },
+                ]}
               />
-            </View>
-          ) : null}
-          <View style={styles.helpButtons}>
-            <Button
-              label={t('misc.how_to')}
-              onPress={() => {
-                setIsHowToOpen(true);
-              }}
-              testID="make-clip-how-to"
-              variant="secondary"
-            />
-            <Button
-              label={t('misc.faq')}
-              onPress={() => {
-                setIsFaqOpen(true);
-              }}
-              testID="make-clip-faq"
-              variant="secondary"
+            ) : null}
+            <FormActions
+              actions={[
+                {
+                  label: t('misc.how_to'),
+                  onPress: () => {
+                    setIsHowToOpen(true);
+                  },
+                  testID: 'make-clip-how-to',
+                  variant: 'secondary',
+                },
+                {
+                  label: t('misc.faq'),
+                  onPress: () => {
+                    setIsFaqOpen(true);
+                  },
+                  testID: 'make-clip-faq',
+                  variant: 'secondary',
+                },
+              ]}
+              style={isEdit ? styles.followingActions : undefined}
             />
           </View>
         </ScrollView>

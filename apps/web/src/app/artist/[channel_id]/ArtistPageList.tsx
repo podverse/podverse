@@ -64,6 +64,7 @@ export const ArtistPageList: React.FC<ArtistPageListProps> = ({
       )}
       {type === 'tracks' && (
         <ListTracksRemoteItems
+          channelsAdded={ssrChannelsAdded}
           itemsAdded={ssrItemsAdded}
           itemsUnadded={ssrItemsUnadded}
           viewSelected="rows"

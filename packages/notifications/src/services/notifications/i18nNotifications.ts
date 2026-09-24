@@ -6,6 +6,7 @@ export type NotificationMessageType =
   | 'new-video-channel'
   | 'new-track'
   | 'new-album'
+  | 'podcast-index-feed'
   | 'livestream-started'
   | 'livestream-scheduled';
 
@@ -20,6 +21,7 @@ export const i18nNotifications: Record<string, NotificationLocaleMap> = {
     'new-video-channel': '',
     'new-track': '',
     'new-album': '',
+    'podcast-index-feed': '',
     'livestream-started': 'Live: ',
     'livestream-scheduled': 'Live Scheduled: ',
   },
@@ -31,6 +33,7 @@ export const i18nNotifications: Record<string, NotificationLocaleMap> = {
     'new-video-channel': '',
     'new-track': '',
     'new-album': '',
+    'podcast-index-feed': '',
     'livestream-started': 'En vivo: ',
     'livestream-scheduled': 'En vivo programado: ',
   },
@@ -42,6 +45,7 @@ export const i18nNotifications: Record<string, NotificationLocaleMap> = {
     'new-video-channel': '',
     'new-track': '',
     'new-album': '',
+    'podcast-index-feed': '',
     'livestream-started': 'En direct: ',
     'livestream-scheduled': 'En direct programmé: ',
   },
@@ -53,6 +57,7 @@ export const i18nNotifications: Record<string, NotificationLocaleMap> = {
     'new-video-channel': '',
     'new-track': '',
     'new-album': '',
+    'podcast-index-feed': '',
     'livestream-started': 'Ζωντανά: ',
     'livestream-scheduled': 'Προγραμματισμένα ζωντανά: ',
   },

@@ -10,6 +10,7 @@ import type { NotificationMessageType } from '@podverse/notifications';
 import type { Channel, ChannelImage } from '@podverse/orm';
 import { ItemService } from '@podverse/orm';
 
+import { limitNotificationsPerParse } from './notificationParseLimit.js';
 import type { ItemNotificationData } from './sharedNotificationHelpers.js';
 import {
   createInAppNotificationsForAccounts,
@@ -112,14 +113,14 @@ export async function handleNewItemNotifications(
       return;
     }
 
-    // Sort items by pub_date descending and limit to 3 most recent
-    const sortedItems = [...items]
-      .sort((a, b) => {
+    // One notification for this parse: the most recently published new item.
+    const sortedItems = limitNotificationsPerParse(
+      [...items].sort((a, b) => {
         const dateA = a.pub_date ? new Date(a.pub_date).getTime() : 0;
         const dateB = b.pub_date ? new Date(b.pub_date).getTime() : 0;
         return dateB - dateA;
       })
-      .slice(0, 3);
+    );
 
     // Load channel images if not already loaded
     const channelImages: ChannelImage[] = await loadChannelImages(channel);
@@ -127,7 +128,7 @@ export async function handleNewItemNotifications(
     // Determine the message type based on channel medium
     const messageType = getMessageTypeFromMedium(channel.medium_id);
 
-    // Prepare notification data for each item (limited to 3 most recent)
+    // Prepare notification data for the one item this parse may announce.
     const itemNotifications: ItemNotificationData[] = sortedItems.map((item) => ({
       itemTitle: item.title || '',
       channelTitle: channel.title || '',

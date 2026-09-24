@@ -271,11 +271,15 @@ are not lists. Do not use one column `gap` for both the body and the buttons —
 first CTA look like another paragraph.
 
 - **Body** (copy, dates, fields) keeps a tight internal gap (`spacing.md` or `spacing.base`).
-- **Actions** are a separate block: `formActionsTopGap` (`spacing.xl`) above the first CTA,
-  `formActionsGap` (`spacing.lg`) between stacked full-width buttons. Helpers live in
-  `screenLayout.ts`.
-- CTAs are **`Button` `fullWidth`**. Do not hug the label.
-- Put the actions in their own `View`. Do not share the body's `gap` with them.
+- Choice chips on a form use **`FormField`**. The label names the field and must not repeat an
+  option. It sits `spacing.md` above `OptionChipGroup` or a locked value.
+- **Actions** use **`FormActions`**, in their own block. Do not share the body's `gap` with them.
+  `formActionsTopGap` (`spacing.xl`) sits above that block. One action is full width. Two or more
+  share the row in equal slots: dismiss or secondary first, confirm or primary last (on the
+  right). A destructive action is its own full-width `FormActions` under the row, separated by
+  `formActionsGap` (`spacing.lg`). Helpers live in `screenLayout.ts`.
+- Do not hug a form button to its label, and do not put the confirm action on the left.
+- Do not add a second display heading when the stack title already names the screen.
 - Full-screen Modal variants also use **`ModalSafeArea`**.
 
 Login and Sign up already use this seam above Submit. Popularity tracking uses the same helpers

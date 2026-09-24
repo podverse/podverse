@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { TextField } from '../../components/form';
+import { FormActions, TextField } from '../../components/form';
 import { LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -15,7 +15,7 @@ import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { LibraryStackParamList } from '../../navigation';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { useOfflineMode } from '../../prefs/offlineMode';
-import { screenBodyInsets } from '../../theme/screenLayout';
+import { formActionsTopGap, screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type AddByRssRootScreenProps = NativeStackScreenProps<LibraryStackParamList, 'AddByRssRoot'>;
@@ -42,21 +42,8 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        addButton: {
-          alignItems: 'center',
-          backgroundColor: tokens.button.primaryBg,
-          borderRadius: tokens.radii.round,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
         addButtonDisabled: {
           opacity: 0.6,
-        },
-        addButtonLabel: {
-          color: tokens.button.primaryColor,
-          fontSize: 14,
-          fontWeight: '600',
         },
         card: {
           backgroundColor: tokens.background.secondary,
@@ -107,12 +94,6 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
           fontSize: 16,
           fontWeight: '600',
         },
-        heading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.lg,
-        },
         notice: {
           color: themeStyles.textSecondary.color,
           fontSize: 13,
@@ -127,6 +108,9 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
           fontSize: 16,
           fontWeight: '600',
           marginBottom: tokens.spacing.sm,
+        },
+        submit: {
+          marginTop: formActionsTopGap(tokens.spacing),
         },
       }),
     [themeStyles, tokens]
@@ -150,7 +134,6 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
 
   const listHeader = (
     <View>
-      <Text style={styles.heading}>{t('features.add_by_rss.label')}</Text>
       {offlineModeEnabled ? (
         <View style={styles.card} testID="rss-add-offline-unavailable">
           <ListEmpty
@@ -171,16 +154,20 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
             testID="rss-url-input"
             value={inputValue}
           />
-          <Pressable
-            disabled={isAdding}
-            onPress={() => {
-              void addFeed();
-            }}
-            style={[styles.addButton, isAdding ? styles.addButtonDisabled : null]}
-            testID="rss-add-submit"
-          >
-            <Text style={styles.addButtonLabel}>{t('features.add_by_rss.label')}</Text>
-          </Pressable>
+          <FormActions
+            actions={[
+              {
+                disabled: isAdding,
+                label: t('features.add_by_rss.label'),
+                loading: isAdding,
+                onPress: () => {
+                  void addFeed();
+                },
+                testID: 'rss-add-submit',
+              },
+            ]}
+            style={styles.submit}
+          />
           {addErrorKey !== null ? (
             <Text style={styles.notice} testID="rss-add-error">
               {t(addErrorKey)}

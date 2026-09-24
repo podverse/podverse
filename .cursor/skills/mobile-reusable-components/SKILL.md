@@ -38,7 +38,7 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 | Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                                       |
 | Playback row actions / mini player          | `components/player/`                                                                                                                                                                                 |
 | Membership / gate feedback                  | `components/feedback/` (`ConfirmDialog` via `openGate`, `HelperNote`, `GatedFeatureNotice` only when there is no action to attach)                                                                   |
-| Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsSwitchRow`, `SettingsDependentGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                     |
+| Form / settings selects                     | `components/form/` (`TextField`, `FormField`, `FormActions`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsSwitchRow`, `SettingsDependentGroup`, `SettingsOptionNavRow`, `OptionListScreen`) |
 | Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                                                                                  |
 | Chapter list rows                           | `components/content/ChapterListRow` — full player and episode detail; images only when the section has any (**mobile-chapter-artwork**)                                                              |
 | Playlist / user catalog rows                | `components/content/PlaylistListRow`, `ProfileListRow` — text-only (no artwork); copy helpers in `lib/rows/catalogRowCopy`                                                                           |
@@ -48,10 +48,12 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 Do **not** import `@podverse/ui` (web components / SCSS). Tokens come from `@podverse/design-tokens`
 via **mobile-theme-parity**.
 
-**Static form-style screens:** Body copy/fields stay in one tight stack. Full-width CTAs sit in
-a **separate** block with `formActionsTopGap` above the first button and `formActionsGap`
-between stacked buttons (`screenLayout.ts`). Do not share one `gap` across prose and CTAs —
-see **mobile-screen-layout**.
+**Static form-style screens:** Body copy/fields stay in one tight stack. Choice chips use
+`FormField` (the label names the field and does not repeat an option). Actions use `FormActions`:
+one action is full width; two or more share the row equally with confirm last, on the right.
+`formActionsTopGap` sits above that block and `formActionsGap` separates a destructive action
+under it (`screenLayout.ts`). Do not share one `gap` across prose and CTAs, and do not repeat the
+stack title as an in-body heading. See **mobile-screen-layout**.
 
 **Text fields:** `TextField` is the only painted input (tertiary fill, focus ring — never a
 stroked `TextInput`). Pass **`eyebrow` + `placeholder`** for forms (login, sign-up, playlist,
