@@ -34,6 +34,41 @@ const httpError = (status: number): Error => {
   return error;
 };
 
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+const encodeBase64Url = (value: string): string => {
+  const bytes = Array.from(value, (char) => char.charCodeAt(0));
+  let output = '';
+  for (let index = 0; index < bytes.length; index += 3) {
+    const b0 = bytes[index] ?? 0;
+    const b1 = bytes[index + 1];
+    const b2 = bytes[index + 2];
+    output += BASE64_ALPHABET.charAt(b0 >> 2);
+    output += BASE64_ALPHABET.charAt(((b0 & 3) << 4) | ((b1 ?? 0) >> 4));
+    if (b1 === undefined) {
+      break;
+    }
+    output += BASE64_ALPHABET.charAt(((b1 & 15) << 2) | ((b2 ?? 0) >> 6));
+    if (b2 === undefined) {
+      break;
+    }
+    output += BASE64_ALPHABET.charAt(b2 & 63);
+  }
+  return output;
+};
+
+const jwtWithExp = (expSeconds: number): string => {
+  return `header.${encodeBase64Url(JSON.stringify({ exp: expSeconds }))}.sig`;
+};
+
+const accessTokenExpiringIn = (secondsFromNow: number): string =>
+  jwtWithExp(Math.floor(Date.now() / 1000) + secondsFromNow);
+
+const sentAccessTokens = (): unknown[] =>
+  createMobileApiRequestService.mock.calls
+    .filter((call) => call.length > 0)
+    .map((call) => call[0]);
+
 describe('requestWithMobileAuthRefresh', () => {
   const clearSession = vi.fn(async () => undefined);
   const setTokens = vi.fn(async () => undefined);
@@ -49,6 +84,268 @@ describe('requestWithMobileAuthRefresh', () => {
     setTokens.mockResolvedValue(undefined);
     // Leave any prior single-flight refresh settled before the next case.
     advanceAuthSessionGeneration();
+  });
+
+  it('sends a still-valid access token without refreshing', async () => {
+    const accessToken = accessTokenExpiringIn(3600);
+    createMobileApiRequestService.mockReturnValue({});
+    const runRequest = vi.fn().mockResolvedValue({ ok: true });
+
+    await expect(
+      requestWithMobileAuthRefresh(
+        {
+          accessToken,
+          clearSession,
+          refreshToken: 'refresh',
+          setTokens,
+        },
+        runRequest
+      )
+    ).resolves.toEqual({ ok: true });
+
+    expect(createMobileApiRequestService).toHaveBeenCalledTimes(1);
+    expect(createMobileApiRequestService).toHaveBeenCalledWith(accessToken);
+    expect(runRequest).toHaveBeenCalledTimes(1);
+    expect(setTokens).not.toHaveBeenCalled();
+    expect(clearSession).not.toHaveBeenCalled();
+  });
+
+  it('refreshes an expired access token before the request and sends only the new token', async () => {
+    const expiredAccessToken = accessTokenExpiringIn(-120);
+    const nextAccessToken = accessTokenExpiringIn(3600);
+    const reqAuthMobileRefresh = vi.fn(async () => ({
+      access_token: nextAccessToken,
+      refresh_token: 'new-refresh',
+    }));
+    createMobileApiRequestService.mockImplementation((token?: unknown) => {
+      if (token === undefined) {
+        return { reqAuthMobileRefresh };
+      }
+      return {};
+    });
+    const runRequest = vi.fn().mockResolvedValue({ ok: true });
+
+    await expect(
+      requestWithMobileAuthRefresh(
+        {
+          accessToken: expiredAccessToken,
+          clearSession,
+          refreshToken: 'refresh',
+          setTokens,
+        },
+        runRequest
+      )
+    ).resolves.toEqual({ ok: true });
+
+    expect(reqAuthMobileRefresh).toHaveBeenCalledTimes(1);
+    expect(runRequest).toHaveBeenCalledTimes(1);
+    expect(sentAccessTokens()).toEqual([nextAccessToken]);
+    expect(clearSession).not.toHaveBeenCalled();
+  });
+
+  it('refreshes an access token inside the skew window before sending', async () => {
+    const expiringAccessToken = accessTokenExpiringIn(30);
+    const nextAccessToken = accessTokenExpiringIn(3600);
+    const reqAuthMobileRefresh = vi.fn(async () => ({
+      access_token: nextAccessToken,
+      refresh_token: 'new-refresh',
+    }));
+    createMobileApiRequestService.mockImplementation((token?: unknown) => {
+      if (token === undefined) {
+        return { reqAuthMobileRefresh };
+      }
+      return {};
+    });
+    const runRequest = vi.fn().mockResolvedValue({ ok: true });
+
+    await expect(
+      requestWithMobileAuthRefresh(
+        {
+          accessToken: expiringAccessToken,
+          clearSession,
+          refreshToken: 'refresh',
+          setTokens,
+        },
+        runRequest
+      )
+    ).resolves.toEqual({ ok: true });
+
+    expect(reqAuthMobileRefresh).toHaveBeenCalledTimes(1);
+    expect(sentAccessTokens()).toEqual([nextAccessToken]);
+  });
+
+  it('refreshes an unreadable access token before sending', async () => {
+    const nextAccessToken = accessTokenExpiringIn(3600);
+    const reqAuthMobileRefresh = vi.fn(async () => ({
+      access_token: nextAccessToken,
+      refresh_token: 'new-refresh',
+    }));
+    createMobileApiRequestService.mockImplementation((token?: unknown) => {
+      if (token === undefined) {
+        return { reqAuthMobileRefresh };
+      }
+      return {};
+    });
+    const runRequest = vi.fn().mockResolvedValue({ ok: true });
+
+    await expect(
+      requestWithMobileAuthRefresh(
+        {
+          accessToken: 'not-a-jwt',
+          clearSession,
+          refreshToken: 'refresh',
+          setTokens,
+        },
+        runRequest
+      )
+    ).resolves.toEqual({ ok: true });
+
+    expect(reqAuthMobileRefresh).toHaveBeenCalledTimes(1);
+    expect(sentAccessTokens()).toEqual([nextAccessToken]);
+  });
+
+  it('coalesces concurrent expired callers into one refresh and sends the new token', async () => {
+    const expiredAccessToken = accessTokenExpiringIn(-120);
+    const nextAccessToken = accessTokenExpiringIn(3600);
+    const reqAuthMobileRefresh = vi.fn(async () => ({
+      access_token: nextAccessToken,
+      refresh_token: 'new-refresh',
+    }));
+    createMobileApiRequestService.mockImplementation((token?: unknown) => {
+      if (token === undefined) {
+        return { reqAuthMobileRefresh };
+      }
+      return {};
+    });
+    const runRequest = vi.fn().mockResolvedValue({ ok: true });
+    const deps = {
+      accessToken: expiredAccessToken,
+      clearSession,
+      refreshToken: 'refresh',
+      setTokens,
+    };
+
+    const results = await Promise.all([
+      requestWithMobileAuthRefresh(deps, runRequest),
+      requestWithMobileAuthRefresh(deps, runRequest),
+      requestWithMobileAuthRefresh(deps, runRequest),
+      requestWithMobileAuthRefresh(deps, runRequest),
+      requestWithMobileAuthRefresh(deps, runRequest),
+    ]);
+
+    expect(results).toEqual([{ ok: true }, { ok: true }, { ok: true }, { ok: true }, { ok: true }]);
+    expect(reqAuthMobileRefresh).toHaveBeenCalledTimes(1);
+    expect(setTokens).toHaveBeenCalledTimes(1);
+    expect(sentAccessTokens().every((token) => token === nextAccessToken)).toBe(true);
+    expect(clearSession).not.toHaveBeenCalled();
+  });
+
+  it('sends the stored access token when a later call still holds the expired one', async () => {
+    const expiredAccessToken = accessTokenExpiringIn(-120);
+    const nextAccessToken = accessTokenExpiringIn(3600);
+    const reqAuthMobileRefresh = vi.fn(async () => ({
+      access_token: nextAccessToken,
+      refresh_token: 'new-refresh',
+    }));
+    createMobileApiRequestService.mockImplementation((token?: unknown) => {
+      if (token === undefined) {
+        return { reqAuthMobileRefresh };
+      }
+      return {};
+    });
+    const runRequest = vi.fn().mockResolvedValue({ ok: true });
+    const deps = {
+      accessToken: expiredAccessToken,
+      clearSession,
+      refreshToken: 'refresh',
+      setTokens,
+    };
+
+    await requestWithMobileAuthRefresh(deps, runRequest);
+    await requestWithMobileAuthRefresh(deps, runRequest);
+
+    expect(reqAuthMobileRefresh).toHaveBeenCalledTimes(1);
+    expect(runRequest).toHaveBeenCalledTimes(2);
+    expect(sentAccessTokens()).toEqual([nextAccessToken, nextAccessToken]);
+  });
+
+  it('omits an expired access token when there is no refresh token', async () => {
+    createMobileApiRequestService.mockReturnValue({});
+    const runRequest = vi.fn().mockResolvedValue({ ok: true });
+
+    await expect(
+      requestWithMobileAuthRefresh(
+        {
+          accessToken: accessTokenExpiringIn(-120),
+          clearSession,
+          refreshToken: null,
+          setTokens,
+        },
+        runRequest
+      )
+    ).resolves.toEqual({ ok: true });
+
+    expect(createMobileApiRequestService).toHaveBeenCalledWith(null);
+    expect(runRequest).toHaveBeenCalledTimes(1);
+    expect(setTokens).not.toHaveBeenCalled();
+    expect(clearSession).not.toHaveBeenCalled();
+  });
+
+  it('does not clear the session when refresh fails for a network error', async () => {
+    const reqAuthMobileRefresh = vi.fn(async () => {
+      throw new Error('network down');
+    });
+    createMobileApiRequestService.mockReturnValue({ reqAuthMobileRefresh });
+    const runRequest = vi.fn();
+
+    await expect(
+      requestWithMobileAuthRefresh(
+        {
+          accessToken: accessTokenExpiringIn(-120),
+          clearSession,
+          refreshToken: 'refresh',
+          setTokens,
+        },
+        runRequest
+      )
+    ).rejects.toThrow('network down');
+
+    expect(runRequest).not.toHaveBeenCalled();
+    expect(setTokens).not.toHaveBeenCalled();
+    expect(clearSession).not.toHaveBeenCalled();
+  });
+
+  it('clears the session when a just-refreshed access token is still 401', async () => {
+    const nextAccessToken = accessTokenExpiringIn(3600);
+    const reqAuthMobileRefresh = vi.fn(async () => ({
+      access_token: nextAccessToken,
+      refresh_token: 'new-refresh',
+    }));
+    createMobileApiRequestService.mockImplementation((token?: unknown) => {
+      if (token === undefined) {
+        return { reqAuthMobileRefresh };
+      }
+      return {};
+    });
+    const runRequest = vi.fn().mockRejectedValue(httpError(401));
+
+    await expect(
+      requestWithMobileAuthRefresh(
+        {
+          accessToken: accessTokenExpiringIn(-120),
+          clearSession,
+          refreshToken: 'refresh',
+          setTokens,
+        },
+        runRequest
+      )
+    ).rejects.toMatchObject({ response: { status: 401 } });
+
+    expect(reqAuthMobileRefresh).toHaveBeenCalledTimes(1);
+    expect(runRequest).toHaveBeenCalledTimes(1);
+    expect(sentAccessTokens()).toEqual([nextAccessToken]);
+    expect(clearSession).toHaveBeenCalledTimes(1);
+    expect(clearSession).toHaveBeenCalledWith('session_expired');
   });
 
   it('clears the session when refresh succeeds but the retry is still 401', async () => {
@@ -70,7 +367,7 @@ describe('requestWithMobileAuthRefresh', () => {
     await expect(
       requestWithMobileAuthRefresh(
         {
-          accessToken: 'stale-access',
+          accessToken: accessTokenExpiringIn(3600),
           clearSession,
           refreshToken: 'stale-refresh',
           setTokens,
@@ -99,7 +396,7 @@ describe('requestWithMobileAuthRefresh', () => {
     await expect(
       requestWithMobileAuthRefresh(
         {
-          accessToken: 'stale-access',
+          accessToken: accessTokenExpiringIn(3600),
           clearSession,
           refreshToken: 'stale-refresh',
           setTokens,
@@ -132,7 +429,7 @@ describe('requestWithMobileAuthRefresh', () => {
     await expect(
       requestWithMobileAuthRefresh(
         {
-          accessToken: 'stale-access',
+          accessToken: accessTokenExpiringIn(3600),
           clearSession,
           refreshToken: 'stale-refresh',
           setTokens,
@@ -161,7 +458,7 @@ describe('requestWithMobileAuthRefresh', () => {
     const runRequest = vi.fn().mockRejectedValue(httpError(401));
 
     const deps = {
-      accessToken: 'stale-access',
+      accessToken: accessTokenExpiringIn(3600),
       clearSession,
       refreshToken: 'stale-refresh',
       setTokens,

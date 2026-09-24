@@ -4,14 +4,14 @@ import type { DTOPopularityTrackingAgreement } from '@podverse/helpers';
 import { isPopularityTrackingAllowed } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
-import { createMobileApiRequestService } from '../../auth/mobileApi';
+import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { syncAllowListenStatsToAccountSettings } from '../../auth/syncAccountPrefs';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { PopularityTrackingAgreementBody } from '../../popularityTracking/PopularityTrackingAgreementBody';
 import { getPopularityTrackingCurrentVersion } from '../../popularityTracking/popularityTrackingGate';
 
 export function MoreSettingsPopularityTrackingScreen() {
-  const { accessToken, account, setAccount } = useAuth();
+  const { accessToken, account, clearSession, refreshToken, setAccount, setTokens } = useAuth();
   const [agreement, setAgreement] = useState<DTOPopularityTrackingAgreement | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -19,16 +19,13 @@ export function MoreSettingsPopularityTrackingScreen() {
   const alreadyAgreed = isPopularityTrackingAllowed(account?.account_settings, currentVersion);
 
   const loadAgreement = useCallback(() => {
-    const api = createMobileApiRequestService(accessToken);
-    if (api === null) {
-      setIsLoading(false);
-      return;
-    }
     setIsLoading(true);
     setErrorKey(null);
     let cancelled = false;
-    void api
-      .reqLegalPopularityTracking()
+    void requestWithMobileAuthRefresh(
+      { accessToken, clearSession, refreshToken, setTokens },
+      (api) => api.reqLegalPopularityTracking()
+    )
       .then((data) => {
         if (!cancelled) {
           setAgreement(data);
@@ -49,7 +46,7 @@ export function MoreSettingsPopularityTrackingScreen() {
     return () => {
       cancelled = true;
     };
-  }, [accessToken]);
+  }, [accessToken, clearSession, refreshToken, setTokens]);
 
   useEffect(() => {
     const cleanup = loadAgreement();
@@ -60,11 +57,11 @@ export function MoreSettingsPopularityTrackingScreen() {
     async (accepted: boolean) => {
       await syncAllowListenStatsToAccountSettings({
         accepted,
-        accessToken,
+        auth: { accessToken, clearSession, refreshToken, setTokens },
         setAccount,
       });
     },
-    [accessToken, setAccount]
+    [accessToken, clearSession, refreshToken, setAccount, setTokens]
   );
 
   return (

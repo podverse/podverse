@@ -26,7 +26,7 @@ const PLAYBACK_MEDIA_OPTIONS: readonly MediaTypePreference[] = ['video', 'audio'
 
 export function MoreSettingsPlaybackScreen() {
   const { t } = useTranslation();
-  const { accessToken, setAccount } = useAuth();
+  const { accessToken, clearSession, refreshToken, setAccount, setTokens } = useAuth();
   const { styles: themeStyles, tokens } = useTheme();
   const [playbackMediaType, setPlaybackMediaType] = useState<MediaTypePreference>(
     DEFAULT_PLAYBACK_MEDIA_TYPE
@@ -64,7 +64,7 @@ export function MoreSettingsPlaybackScreen() {
       try {
         await writePlaybackMediaTypePref(mediaType);
         await syncPlaybackPreferenceToAccount({
-          accessToken,
+          auth: { accessToken, clearSession, refreshToken, setTokens },
           preferredMediaType: mediaType,
           setAccount,
         });
@@ -72,7 +72,7 @@ export function MoreSettingsPlaybackScreen() {
         setErrorMessageKey('errors.generic');
       }
     },
-    [accessToken, setAccount]
+    [accessToken, clearSession, refreshToken, setAccount, setTokens]
   );
 
   const handleAutoQueueRandomToggle = useCallback(async (enabled: boolean) => {

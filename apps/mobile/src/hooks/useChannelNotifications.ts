@@ -55,7 +55,8 @@ export const useChannelNotifications = ({
   channelIdText: string;
   previewNotificationsEnabled?: boolean;
 }): ChannelNotificationsState => {
-  const { accessToken, account, setAccount, status } = useAuth();
+  const { accessToken, account, clearSession, refreshToken, setAccount, setTokens, status } =
+    useAuth();
   const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -164,21 +165,21 @@ export const useChannelNotifications = ({
     async (next: boolean): Promise<void> => {
       await runWrite(async () => {
         await syncChannelNotificationEnabled({
-          accessToken,
+          auth: { accessToken, clearSession, refreshToken, setTokens },
           channelIdText,
           enabled: next,
           setAccount,
         });
       });
     },
-    [accessToken, channelIdText, runWrite, setAccount]
+    [accessToken, channelIdText, clearSession, refreshToken, runWrite, setAccount, setTokens]
   );
 
   const setTypeEnabled = useCallback(
     async (type: SyncedNotificationType, next: boolean): Promise<void> => {
       await runWrite(async () => {
         await syncChannelNotificationType({
-          accessToken,
+          auth: { accessToken, clearSession, refreshToken, setTokens },
           channelIdText,
           enabled: next,
           setAccount,
@@ -186,7 +187,7 @@ export const useChannelNotifications = ({
         });
       });
     },
-    [accessToken, channelIdText, runWrite, setAccount]
+    [accessToken, channelIdText, clearSession, refreshToken, runWrite, setAccount, setTokens]
   );
 
   const toggleEnabled = useCallback(async (): Promise<void> => {

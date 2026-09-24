@@ -1,5 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
+import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
+import { requestWithMobileAuthRefreshIfSignedIn } from '../auth/authRequestWithRefresh';
 import { createMobileApiRequestService } from '../auth/mobileApi';
 import { createUuid } from '../lib/createUuid';
 import {
@@ -38,21 +40,20 @@ const getOrCreateInstallationId = async (): Promise<string> => {
 };
 
 const syncDeviceTokenWithServer = async ({
-  accessToken,
+  auth,
   locale,
   nextToken,
 }: {
-  accessToken: string;
+  auth: AuthRequestDeps;
   locale: string;
   nextToken: string;
 }): Promise<void> => {
-  const platform = getFcmTransportPlatform();
-  if (platform === null) {
+  if (auth.accessToken === null) {
     return;
   }
 
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
+  const platform = getFcmTransportPlatform();
+  if (platform === null) {
     return;
   }
 
@@ -63,33 +64,44 @@ const syncDeviceTokenWithServer = async ({
     return;
   }
 
-  if (previousToken === null || previousToken === '') {
-    await api.reqAccountFCMDeviceCreate({
-      fcm_token: nextToken,
-      installation_id: installationId,
-      platform,
-    });
-  } else {
-    await api.reqAccountFCMDeviceUpdate({
-      installation_id: installationId,
-      new_fcm_token: nextToken,
-      platform,
-      previous_fcm_token: previousToken,
-    });
+  const registered =
+    previousToken === null || previousToken === ''
+      ? await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+          api.reqAccountFCMDeviceCreate({
+            fcm_token: nextToken,
+            installation_id: installationId,
+            platform,
+          })
+        )
+      : await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+          api.reqAccountFCMDeviceUpdate({
+            installation_id: installationId,
+            new_fcm_token: nextToken,
+            platform,
+            previous_fcm_token: previousToken,
+          })
+        );
+  if (registered === null) {
+    return;
   }
 
-  await api.reqAccountFCMDeviceUpdateLocale({ locale });
+  const localeUpdated = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+    api.reqAccountFCMDeviceUpdateLocale({ locale })
+  );
+  if (localeUpdated === null) {
+    return;
+  }
   await writeSecureValue(REGISTERED_FCM_TOKEN_KEY, nextToken);
 };
 
 export const registerFcmDeviceForAccount = async ({
-  accessToken,
+  auth,
   locale,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
 }): Promise<void> => {
-  if (accessToken === null) {
+  if (auth.accessToken === null) {
     return;
   }
 
@@ -104,30 +116,30 @@ export const registerFcmDeviceForAccount = async ({
   }
 
   await syncDeviceTokenWithServer({
-    accessToken,
+    auth,
     locale,
     nextToken,
   });
 };
 
 export const startFcmTokenRefreshSync = ({
-  accessToken,
+  auth,
   locale,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
 }): void => {
   if (stopTokenRefreshSubscription !== null) {
     stopTokenRefreshSubscription();
   }
 
-  if (accessToken === null) {
+  if (auth.accessToken === null) {
     stopTokenRefreshSubscription = null;
     return;
   }
 
   stopTokenRefreshSubscription = onFcmDeviceTokenRefresh((nextToken) => {
-    void syncDeviceTokenWithServer({ accessToken, locale, nextToken }).catch((error) => {
+    void syncDeviceTokenWithServer({ auth, locale, nextToken }).catch((error: unknown) => {
       console.warn('Failed to sync refreshed FCM token to account', error);
     });
   });
@@ -174,13 +186,13 @@ export const unregisterFcmDeviceForAccount = async ({
 };
 
 export const syncFcmDeviceLocaleIfRegistered = async ({
-  accessToken,
+  auth,
   locale,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
 }): Promise<void> => {
-  if (accessToken === null) {
+  if (auth.accessToken === null) {
     return;
   }
 
@@ -189,10 +201,7 @@ export const syncFcmDeviceLocaleIfRegistered = async ({
     return;
   }
 
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
-  await api.reqAccountFCMDeviceUpdateLocale({ locale });
+  await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+    api.reqAccountFCMDeviceUpdateLocale({ locale })
+  );
 };

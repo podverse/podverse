@@ -402,8 +402,8 @@ const createPushRegistrationJob = (deps: SyncJobDeps, priority: SyncJobPriority)
       return;
     }
     await registerPushDeviceForAccount({
-      accessToken: deps.getAuthContext().accessToken,
       account,
+      auth: deps.getAuthContext(),
     });
   });
 };

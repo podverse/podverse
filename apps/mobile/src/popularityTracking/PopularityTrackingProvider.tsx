@@ -7,7 +7,7 @@ import type { DTOPopularityTrackingAgreement } from '@podverse/helpers';
 import { isPopularityTrackingAllowed, isPopularityTrackingPromptRequired } from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
-import { createMobileApiRequestService } from '../auth/mobileApi';
+import { requestWithMobileAuthRefresh } from '../auth/authRequestWithRefresh';
 import { syncAllowListenStatsToAccountSettings } from '../auth/syncAccountPrefs';
 import { ModalSafeArea } from '../components/screen/ModalSafeArea';
 import { screenBodyInsets } from '../theme/screenLayout';
@@ -18,7 +18,8 @@ import { setPopularityTrackingCurrentVersion } from './popularityTrackingGate';
 export function PopularityTrackingProvider({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const { accessToken, account, setAccount, status } = useAuth();
+  const { accessToken, account, clearSession, refreshToken, setAccount, setTokens, status } =
+    useAuth();
   const [agreement, setAgreement] = useState<DTOPopularityTrackingAgreement | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -47,16 +48,13 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    const api = createMobileApiRequestService(accessToken);
-    if (api === null) {
-      return;
-    }
-
     setIsLoading(true);
     setErrorKey(null);
     let cancelled = false;
-    void api
-      .reqLegalPopularityTracking()
+    void requestWithMobileAuthRefresh(
+      { accessToken, clearSession, refreshToken, setTokens },
+      (api) => api.reqLegalPopularityTracking()
+    )
       .then((data) => {
         if (cancelled) {
           return;
@@ -80,7 +78,7 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
     return () => {
       cancelled = true;
     };
-  }, [accessToken, status]);
+  }, [accessToken, clearSession, refreshToken, setTokens, status]);
 
   useEffect(() => {
     const cleanup = loadAgreement();
@@ -91,11 +89,11 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
     async (accepted: boolean) => {
       await syncAllowListenStatsToAccountSettings({
         accepted,
-        accessToken,
+        auth: { accessToken, clearSession, refreshToken, setTokens },
         setAccount,
       });
     },
-    [accessToken, setAccount]
+    [accessToken, clearSession, refreshToken, setAccount, setTokens]
   );
 
   const alreadyAgreed = isPopularityTrackingAllowed(account?.account_settings, currentVersion);

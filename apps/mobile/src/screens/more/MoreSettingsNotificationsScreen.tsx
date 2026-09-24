@@ -154,7 +154,7 @@ export function MoreSettingsNotificationsScreen() {
 
       try {
         await syncAutoEnableOnSubscribeToAccountSettings({
-          accessToken,
+          auth: requestContext,
           enabled: nextValue,
           setAccount,
         });
@@ -165,7 +165,7 @@ export function MoreSettingsNotificationsScreen() {
         setErrorMessageKey('errors.generic');
       }
     },
-    [accessToken, handleGateError, isAuthenticated, setAccount, showNotificationLoginAlert]
+    [handleGateError, isAuthenticated, requestContext, setAccount, showNotificationLoginAlert]
   );
 
   const handleNotificationTypeDefaultToggle = useCallback(
@@ -179,7 +179,7 @@ export function MoreSettingsNotificationsScreen() {
 
       try {
         await syncNotificationTypeToAccountSettings({
-          accessToken,
+          auth: requestContext,
           enabled: nextValue,
           setAccount,
           type,
@@ -191,7 +191,7 @@ export function MoreSettingsNotificationsScreen() {
         setErrorMessageKey('errors.generic');
       }
     },
-    [accessToken, handleGateError, isAuthenticated, setAccount, showNotificationLoginAlert]
+    [handleGateError, isAuthenticated, requestContext, setAccount, showNotificationLoginAlert]
   );
 
   const handleNotificationPreferenceToggle = useCallback(
@@ -234,14 +234,17 @@ export function MoreSettingsNotificationsScreen() {
 
           setShowNotificationPermissionHint(false);
           try {
-            await registerFcmDeviceForAccount({ accessToken, locale: selectedLocale });
+            await registerFcmDeviceForAccount({ auth: requestContext, locale: selectedLocale });
           } catch (error) {
             console.warn('Failed to register FCM device after permission grant', error);
           }
         } else if (pushProvider === 'unifiedpush') {
           setShowNotificationPermissionHint(false);
           try {
-            await registerUnifiedPushDeviceForAccount({ accessToken, locale: selectedLocale });
+            await registerUnifiedPushDeviceForAccount({
+              auth: requestContext,
+              locale: selectedLocale,
+            });
           } catch (error) {
             console.warn('Failed to register UnifiedPush device after notification enable', error);
           }
@@ -280,7 +283,6 @@ export function MoreSettingsNotificationsScreen() {
       }
     },
     [
-      accessToken,
       handleGateError,
       isAuthenticated,
       notificationPreferences,

@@ -21,7 +21,10 @@ import { resolveSupportedLocale } from '../i18n/locale';
 import { startFcmTokenRefreshSync, stopFcmTokenRefreshSync } from '../push/fcmDeviceSync';
 import {
   advanceAuthSessionGeneration,
+  getAuthSessionGeneration,
+  primeAccessTokenRefresh,
   refreshAccessTokenSingleFlight,
+  rememberAuthCredentials,
 } from './authRequestWithRefresh';
 import { shouldResetLeakedE2eSession } from './e2eSessionReset';
 import type { SessionEndReason } from './forcedLogoutNotice';
@@ -69,6 +72,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const clearSessionInFlightRef = useRef<Promise<void> | null>(null);
 
   const setTokens = useCallback(async ({ accessToken, refreshToken }: SetTokensInput) => {
+    const generationAtStart = getAuthSessionGeneration();
+    // Publish before the keychain write so a request already in flight sees this pair.
+    rememberAuthCredentials(accessToken, refreshToken);
     await Promise.all([
       writeSecureToken('accessToken', accessToken),
       writeSecureToken('refreshToken', refreshToken),
@@ -76,6 +82,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
       // or logged in without ever seeing it.
       clearForcedLogoutNotice(),
     ]);
+
+    // Sign-out during the keychain write already cleared the published pair.
+    if (generationAtStart !== getAuthSessionGeneration()) {
+      return;
+    }
 
     setAccessToken(accessToken);
     setRefreshToken(refreshToken);
@@ -146,6 +157,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return;
     }
 
+    if (storedRefreshToken !== null) {
+      rememberAuthCredentials(storedAccessToken, storedRefreshToken);
+    }
+
     // Both sources here are local — SecureStore for the tokens, SQLite for the account — so the
     // shell renders at the correct signed-in state without a single request. `SyncProvider` sees
     // the resolved status and queues the refresh behind the app being usable.
@@ -164,7 +179,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
     // arrive behind the sync indicator.
     setStatus('authenticated');
     setError(null);
-  }, [clearSession]);
+
+    if (storedRefreshToken !== null) {
+      primeAccessTokenRefresh({
+        accessToken: storedAccessToken,
+        clearSession,
+        refreshToken: storedRefreshToken,
+        setTokens,
+      });
+    }
+  }, [clearSession, setTokens]);
 
   const refreshWithStoredToken = useCallback(async () => {
     return refreshAccessTokenSingleFlight({
@@ -200,12 +224,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const locale = resolveSupportedLocale(
       account?.account_settings?.account_settings_locale?.locale
     );
-    startFcmTokenRefreshSync({ accessToken, locale });
+    startFcmTokenRefreshSync({
+      auth: { accessToken, clearSession, refreshToken, setTokens },
+      locale,
+    });
 
     return () => {
       stopFcmTokenRefreshSync();
     };
-  }, [accessToken, account, status]);
+  }, [accessToken, account, clearSession, refreshToken, setTokens, status]);
 
   const value = useMemo<AuthContextValue>(() => {
     return {
