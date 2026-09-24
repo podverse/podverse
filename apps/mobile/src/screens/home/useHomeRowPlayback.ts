@@ -131,31 +131,37 @@ export function useHomeRowPlayback() {
   );
 
   const runQueueAction = useCallback(
-    (row: HomeFeedRowData, mediaType: HomeMediaType, position: QueueActionPosition = 'last') => {
+    (
+      row: HomeFeedRowData,
+      mediaType: HomeMediaType,
+      position: QueueActionPosition = 'last'
+    ): Promise<boolean> => {
       if (mediaType !== 'episodes' && mediaType !== 'tracks' && mediaType !== 'clips') {
-        return;
+        return Promise.resolve(false);
       }
 
       const target = resolveRowTarget(row, mediaType);
       if (target === null) {
-        return;
+        return Promise.resolve(false);
       }
 
       if (didOpenQueueHistoryGate()) {
-        return;
+        return Promise.resolve(false);
       }
 
-      void (async () => {
+      return (async () => {
         try {
           const added = await (position === 'next'
             ? addToQueueNext(target.idText, target.kind, mediaType)
             : addToQueueLast(target.idText, target.kind, mediaType));
           setActionNoticeKey(added ? 'features.queue.added_to_queue' : 'features.queue.add_error');
+          return added;
         } catch (error) {
           if (handleGateError(error)) {
-            return;
+            return false;
           }
           setActionNoticeKey('features.queue.add_error');
+          return false;
         }
       })();
     },

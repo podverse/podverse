@@ -39,8 +39,10 @@ import {
   mergeHistoryListOptions,
   QUEUE_IN_CLAUSE_MAX_IDS,
 } from './queueResourceListGuardrails.js';
-
-const QUEUE_LIST_POSITION_INCREMENT = 0.00000001;
+import {
+  QUEUE_LIST_POSITION_INCREMENT,
+  upcomingListPositionBeforeFirst,
+} from './queueResourceListPositions.js';
 
 const epsilon = 1e-21;
 
@@ -818,7 +820,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     });
 
     const lastQueued = await this.repositoryRead.findOne({
-      where: { queue: { id: queue.id } },
+      where: { queue: { id: queue.id }, list_position: listPositionMoreThan(0) },
       order: { list_position: 'DESC' },
     });
 
@@ -901,15 +903,13 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     resourceKey: QueueLinkedResourceKey
   ): Promise<QueueResource> {
     const { firstQueued } = await this.getFirstAndLastQueuedItemsByQueueIdText(queue_id_text);
-    const newPosition = firstQueued
-      ? parseFloat(firstQueued.list_position) - QUEUE_LIST_POSITION_INCREMENT
-      : 1;
+    const newPosition = upcomingListPositionBeforeFirst(firstQueued?.list_position ?? null);
     return this.addResourceToQueueHelper(
       queue_id_text,
       resource_id_text,
       resourceService,
       resourceKey,
-      () => newPosition.toString()
+      () => newPosition
     );
   }
 
@@ -1518,12 +1518,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     return this.addItemAddByRSSToQueueHelper(
       queue_id_text,
       add_by_rss_resource_data,
-      (firstQueued) => {
-        const newPosition = firstQueued
-          ? parseFloat(firstQueued.list_position) - QUEUE_LIST_POSITION_INCREMENT
-          : 1;
-        return newPosition < 0 ? '0' : newPosition.toString();
-      }
+      (firstQueued) => upcomingListPositionBeforeFirst(firstQueued?.list_position ?? null)
     );
   }
 

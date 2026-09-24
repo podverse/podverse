@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -77,6 +77,8 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
   const [historyRows, setHistoryRows] = useState<HistoryRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const hasLoadedOnceRef = useRef(false);
+  const historyRequestIdRef = useRef(0);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
 
   const styles = useMemo(
@@ -102,24 +104,42 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
   );
 
   const loadHistory = useCallback(async () => {
+    const requestId = historyRequestIdRef.current + 1;
+    historyRequestIdRef.current = requestId;
+    const isReload = hasLoadedOnceRef.current;
+    const isCurrent = () => historyRequestIdRef.current === requestId;
+
     if (status !== 'authenticated') {
+      if (!isCurrent()) {
+        return;
+      }
       setHistoryRows([]);
       setErrorKey(null);
       setIsLoading(false);
+      hasLoadedOnceRef.current = true;
       return;
     }
 
-    setIsLoading(true);
-    setErrorKey(null);
+    if (!isReload) {
+      setIsLoading(true);
+      setErrorKey(null);
+    }
     try {
       const selectedQueue = await fetchPrimaryQueue();
+      if (!isCurrent()) {
+        return;
+      }
       if (selectedQueue === null) {
         setHistoryRows([]);
         setIsLoading(false);
+        hasLoadedOnceRef.current = true;
         return;
       }
 
       const historyResources = await fetchHistoryPage(selectedQueue.id_text, FIRST_PAGE);
+      if (!isCurrent()) {
+        return;
+      }
 
       setHistoryRows(
         historyResources.flatMap((resource) => {
@@ -127,17 +147,27 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
           return row === null ? [] : [row];
         })
       );
+      setErrorKey(null);
     } catch {
-      setErrorKey('errors.generic');
-      setHistoryRows([]);
+      if (!isCurrent()) {
+        return;
+      }
+      if (!isReload) {
+        setErrorKey('errors.generic');
+        setHistoryRows([]);
+      }
     } finally {
-      setIsLoading(false);
+      if (isCurrent()) {
+        hasLoadedOnceRef.current = true;
+        setIsLoading(false);
+      }
     }
   }, [fetchHistoryPage, fetchPrimaryQueue, status]);
 
-  // Reloading on the revision as well as on mount is what lets a listen recorded offline appear
-  // here: it reaches the server through the reconcile that runs after the network comes back, which
-  // can land while this screen is already open.
+  // The revision counter moves when queue data changes, including a history row moved back into
+  // the queue and a listen that reaches the server after the network returns. A reload keeps the
+  // rows on screen until the fresh page arrives. A successful queue action also drops its row
+  // before that refetch, and bumps the request id so an older response cannot put it back.
   useEffect(() => {
     void loadHistory();
   }, [loadHistory, queueDataRevision]);
@@ -154,7 +184,14 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
       mediaType: HistoryRow['mediaType'],
       position: QueueActionPosition
     ) => {
-      runQueueAction(nextRow, mediaType, position);
+      void (async () => {
+        const added = await runQueueAction(nextRow, mediaType, position);
+        if (!added) {
+          return;
+        }
+        historyRequestIdRef.current += 1;
+        setHistoryRows((rows) => rows.filter((row) => row.id !== nextRow.id));
+      })();
     },
     [runQueueAction]
   );

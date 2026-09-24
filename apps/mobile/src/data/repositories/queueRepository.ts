@@ -11,6 +11,7 @@ import type {
 // Import from the request module (not the auth barrel) to keep the React AuthProvider out of the
 // data-layer module graph.
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import { publishQueueDataChanged } from '../../sync/queueDataRevision';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { NativeCacheQueueEntry } from '../nativeCache';
 import { projectQueueSnapshotToNativeCache } from '../nativeCache';
@@ -235,6 +236,22 @@ const refreshQueueSnapshotAfterMutation = async (
 };
 
 /**
+ * After a queue write, drop cached history pages and refresh now-playing plus upcoming before
+ * telling open screens. A row has one list position, so history must not keep a copy the queue
+ * just claimed, and the History screen drops it as soon as this publish lands.
+ */
+const refreshQueueViewsAfterMutation = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string,
+  generation: number
+): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
+  await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
+  const snapshot = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+  publishQueueDataChanged();
+  return snapshot;
+};
+
+/**
  * A now-playing resource targeted by a move-to-history mutation. Mirrors the web
  * `useQueueResourcesMoveNowPlayingToHistory` clip / soundbite / item branches.
  */
@@ -273,13 +290,7 @@ const addResourceToHistory = async (
     return api.reqQueueResourceItemAddHistory(queueIdText, target.idText, params);
   });
 
-  await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
-  const [nowPlaying, upcoming] = await Promise.all([
-    forceRefreshNowPlaying(context, queueIdText, generation),
-    forceRefreshUpcoming(context, queueIdText, generation),
-  ]);
-  await projectQueueIfCurrent(queueIdText, generation);
-  return { nowPlaying, upcoming };
+  return refreshQueueViewsAfterMutation(context, queueIdText, generation);
 };
 
 /**
@@ -410,7 +421,7 @@ export const queueRepository = {
     const promoted = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourcesPromoteUpcomingToNowPlaying(queueIdText)
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return promoted;
   },
 
@@ -468,8 +479,7 @@ export const queueRepository = {
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddNext(queueIdText, itemIdText)
     );
-    await forceRefreshUpcoming(context, queueIdText, generation);
-    await projectQueueIfCurrent(queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -483,8 +493,7 @@ export const queueRepository = {
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddLast(queueIdText, itemIdText)
     );
-    await forceRefreshUpcoming(context, queueIdText, generation);
-    await projectQueueIfCurrent(queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -498,8 +507,7 @@ export const queueRepository = {
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceClipAddNext(queueIdText, clipIdText)
     );
-    await forceRefreshUpcoming(context, queueIdText, generation);
-    await projectQueueIfCurrent(queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -513,8 +521,7 @@ export const queueRepository = {
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceClipAddLast(queueIdText, clipIdText)
     );
-    await forceRefreshUpcoming(context, queueIdText, generation);
-    await projectQueueIfCurrent(queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -534,7 +541,7 @@ export const queueRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -554,7 +561,7 @@ export const queueRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -568,7 +575,7 @@ export const queueRepository = {
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemSoundbiteAddNext(queueIdText, soundbiteIdText)
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -588,7 +595,7 @@ export const queueRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -602,7 +609,7 @@ export const queueRepository = {
     const added = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemSoundbiteAddLast(queueIdText, soundbiteIdText)
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -618,7 +625,7 @@ export const queueRepository = {
         add_by_rss_resource_data: resourceData,
       })
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -637,7 +644,7 @@ export const queueRepository = {
         ...toBetweenParams(position1, position2),
       })
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -653,7 +660,7 @@ export const queueRepository = {
         add_by_rss_resource_data: resourceData,
       })
     );
-    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return added;
   },
 
@@ -667,7 +674,7 @@ export const queueRepository = {
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemDelete(queueIdText, itemIdText)
     );
-    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    const { upcoming } = await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return upcoming;
   },
 
@@ -681,7 +688,7 @@ export const queueRepository = {
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceClipDelete(queueIdText, clipIdText)
     );
-    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    const { upcoming } = await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return upcoming;
   },
 
@@ -695,7 +702,7 @@ export const queueRepository = {
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemSoundbiteDelete(queueIdText, soundbiteIdText)
     );
-    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    const { upcoming } = await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return upcoming;
   },
 
@@ -709,7 +716,7 @@ export const queueRepository = {
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqQueueResourceItemAddByRSSDelete(queueIdText, addByRssHashId)
     );
-    const { upcoming } = await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    const { upcoming } = await refreshQueueViewsAfterMutation(context, queueIdText, generation);
     return upcoming;
   },
 

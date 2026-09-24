@@ -18,6 +18,8 @@ import { useQueues } from '../../contexts/QueuesProvider';
 import type { MobileAuthRequestContext } from '../../data';
 import { queueRepository } from '../../data';
 import { useQueueResourcesLoadActive } from '../../hooks/useQueueResourcesLoadActive';
+import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
+import { queueResourcesForQueueScreen } from '../../lib/queue/queueScreenResources';
 import type { QueueReorderMutation } from '../../lib/reorder/resolveQueueDrop';
 import { resolveQueueDrop } from '../../lib/reorder/resolveQueueDrop';
 import type { QueueResourceHomeRow } from '../../lib/rows/homeRowMappers';
@@ -98,7 +100,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { activeQueue, activeQueueUpcomingResources } = useQueues();
   const { handleGateError } = useMembershipGate();
-  const { playQueueResourceFromQueue } = usePlaybackSession();
+  const { activeTarget, playQueueResourceFromQueue } = usePlaybackSession();
   const loadActiveQueueResources = useQueueResourcesLoadActive();
   const dragTapBlockUntilRef = useRef<number>(0);
   const queueResourcesRef = useRef<readonly DTOQueueResource[]>([]);
@@ -112,10 +114,17 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [actionNoticeKey, setActionNoticeKey] = useState<QueueActionNoticeKey | null>(null);
 
+  const playingContentId =
+    activeTarget === null ? null : playbackTargetRowMediaId(activeTarget);
+
   useEffect(() => {
-    queueResourcesRef.current = activeQueueUpcomingResources;
-    setQueueResources(activeQueueUpcomingResources);
-  }, [activeQueueUpcomingResources]);
+    const visibleResources = queueResourcesForQueueScreen(activeQueueUpcomingResources, {
+      playingContentId,
+      viewedQueueIsActive: activeQueue?.is_active_queue === true,
+    });
+    queueResourcesRef.current = visibleResources;
+    setQueueResources(visibleResources);
+  }, [activeQueue?.is_active_queue, activeQueueUpcomingResources, playingContentId]);
 
   useEffect(() => {
     let isMounted = true;
