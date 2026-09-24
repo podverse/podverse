@@ -106,6 +106,7 @@ export const ARTIST_TABS = ['albums', 'tracks', 'about', 'podroll', 'settings', 
 
 export type ArtistTab = (typeof ARTIST_TABS)[number];
 
+/** Albums first — the artist screen opens on its album list, same role Episodes has on a podcast. */
 export const DEFAULT_ARTIST_TAB: ArtistTab = 'albums';
 
 /**

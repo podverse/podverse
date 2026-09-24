@@ -3,7 +3,12 @@ import type { ChannelRemoteItem } from '@orm/entities/channel/channelRemoteItem.
 import type { Item } from '@orm/entities/item/item.js';
 
 import { ChannelService } from './channel/channel.js';
+import { FeedService } from './feed/feed.js';
 import { ItemService } from './item/item.js';
+import {
+  feedUrlsForPublisherAlbumUrlLookup,
+  isPublisherAlbumRemoteRef,
+} from './publisherFeed.helpers.js';
 
 export class PublisherFeedService {
   async getPublisherFeedChannels(channel_remote_items: ChannelRemoteItem[]): Promise<Channel[]> {
@@ -45,6 +50,57 @@ export class PublisherFeedService {
     });
 
     return publisherItems;
+  }
+
+  /**
+   * When a remote album ref did not match by podcast_guid, try the stored feed_url
+   * against a local feed. Only parsed-ready channels (with channel_about) join added.
+   */
+  private async promoteUnmatchedAlbumsByFeedUrl(
+    unmatchedAlbumRefs: ChannelRemoteItem[],
+    publisherChannelsAdded: Channel[]
+  ): Promise<ChannelRemoteItem[]> {
+    const feedUrls = feedUrlsForPublisherAlbumUrlLookup(unmatchedAlbumRefs);
+    if (feedUrls.length === 0) {
+      return unmatchedAlbumRefs;
+    }
+
+    const feedService = new FeedService();
+    const channelService = new ChannelService();
+    const channelByFeedUrl = new Map<string, Channel>();
+
+    for (const feedUrl of feedUrls) {
+      const feed = await feedService.getByUrl({ url: feedUrl });
+      const channelId = feed?.channel?.id;
+      if (channelId === undefined || channelId === null) {
+        continue;
+      }
+      const channel = await channelService.get(channelId, {
+        channel_about: true,
+        channel_images: true,
+      });
+      if (channel?.channel_about) {
+        channelByFeedUrl.set(feedUrl, channel);
+      }
+    }
+
+    if (channelByFeedUrl.size === 0) {
+      return unmatchedAlbumRefs;
+    }
+
+    const remainingUnadded: ChannelRemoteItem[] = [];
+    for (const rItem of unmatchedAlbumRefs) {
+      const feedUrl = typeof rItem.feed_url === 'string' ? rItem.feed_url.trim() : '';
+      const matched = feedUrl.length > 0 ? channelByFeedUrl.get(feedUrl) : undefined;
+      if (matched) {
+        if (!publisherChannelsAdded.find((pc) => pc.id === matched.id)) {
+          publisherChannelsAdded.push(matched);
+        }
+      } else {
+        remainingUnadded.push(rItem);
+      }
+    }
+    return remainingUnadded;
   }
 
   async getPublisherFeedRemoteItemsForChannel(idOrIdText: string) {
@@ -112,17 +168,23 @@ export class PublisherFeedService {
     const publisherChannelsUnadded: ChannelRemoteItem[] = [];
 
     for (const rItem of channel_remote_items) {
-      if (rItem.feed_guid && !rItem.item_guid) {
-        if (foundChannelGuids.has(rItem.feed_guid)) {
-          const ch = publisherChannels.find((c) => c.podcast_guid === rItem.feed_guid);
-          if (ch && !publisherChannelsAdded.find((pc) => pc.id === ch.id)) {
-            publisherChannelsAdded.push(ch);
-          }
-        } else {
-          publisherChannelsUnadded.push(rItem);
+      if (!isPublisherAlbumRemoteRef(rItem)) {
+        continue;
+      }
+      if (rItem.feed_guid && foundChannelGuids.has(rItem.feed_guid)) {
+        const ch = publisherChannels.find((c) => c.podcast_guid === rItem.feed_guid);
+        if (ch && !publisherChannelsAdded.find((pc) => pc.id === ch.id)) {
+          publisherChannelsAdded.push(ch);
         }
+      } else {
+        publisherChannelsUnadded.push(rItem);
       }
     }
+
+    const publisherChannelsUnaddedAfterUrl = await this.promoteUnmatchedAlbumsByFeedUrl(
+      publisherChannelsUnadded,
+      publisherChannelsAdded
+    );
 
     const publisherItemsAdded: Item[] = [];
     const publisherItemsUnadded: ChannelRemoteItem[] = [];
@@ -146,7 +208,7 @@ export class PublisherFeedService {
     return {
       channel,
       publisherChannelsAdded,
-      publisherChannelsUnadded,
+      publisherChannelsUnadded: publisherChannelsUnaddedAfterUrl,
       publisherItemsAdded,
       publisherItemsUnadded,
     };

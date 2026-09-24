@@ -23,7 +23,8 @@ export class PublisherFeedController {
         result.publisherChannelsAdded as unknown as DTOChannel[],
         result.publisherChannelsUnadded,
         result.publisherItemsAdded as unknown as DTOItem[],
-        result.publisherItemsUnadded
+        result.publisherItemsUnadded,
+        { enrichUnaddedChannelsByFeedUrl: true }
       );
 
       const finalResult = {

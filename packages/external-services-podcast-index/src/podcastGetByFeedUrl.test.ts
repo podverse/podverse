@@ -21,11 +21,11 @@ function createLogger(): ILoggerLike {
   };
 }
 
-function createService() {
+function createService(loggerService: ILoggerLike = createLogger()) {
   return new PodcastIndexService({
     authKey: 'auth-key',
     baseUrl: 'https://api.podcastindex.org/api/1.0',
-    loggerService: createLogger(),
+    loggerService,
     secretKey: 'secret-key',
     userAgent: 'test-agent',
   });
@@ -122,5 +122,45 @@ describe('PodcastIndexService.podcastGetByFeedUrl', () => {
     requestWithUserAgent.mockResolvedValue({ data: { status: 'true' } });
     await expect(service.podcastGetByFeedUrl('https://empty.example/feed.xml')).resolves.toBeNull();
     expect(requestWithUserAgent).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not logError for byfeedurl 400 misses', async () => {
+    const loggerService = createLogger();
+    requestWithUserAgent.mockRejectedValue({
+      code: 'ERR_BAD_REQUEST',
+      message: 'Request failed with status code 400',
+      response: { status: 400 },
+    });
+
+    const service = createService(loggerService);
+    await expect(
+      service.podcastGetByFeedUrl('https://unknown.example/feed.xml')
+    ).resolves.toBeNull();
+
+    expect(requestWithUserAgent).toHaveBeenCalledTimes(2);
+    expect(loggerService.logError).not.toHaveBeenCalled();
+  });
+
+  it('still logErrors for byfeedurl 500 failures', async () => {
+    const loggerService = createLogger();
+    requestWithUserAgent.mockRejectedValue({
+      code: 'ERR_BAD_RESPONSE',
+      message: 'Request failed with status code 500',
+      response: { status: 500 },
+    });
+
+    const service = new PodcastIndexService({
+      authKey: 'auth-key',
+      baseUrl: 'https://api.podcastindex.org/api/1.0',
+      loggerService,
+      maxRetries: 0,
+      secretKey: 'secret-key',
+      userAgent: 'test-agent',
+    });
+    await expect(
+      service.podcastGetByFeedUrl('https://broken.example/feed.xml')
+    ).resolves.toBeNull();
+
+    expect(loggerService.logError).toHaveBeenCalled();
   });
 });

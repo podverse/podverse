@@ -160,7 +160,7 @@ export const HOME_STACK_ROUTES = {
   TrackDetail: 'TrackDetail',
 } as const;
 
-/** Shared channel/item detail route names (registered on Home and Search stacks). */
+/** Shared channel/item detail route names (registered on Home, Browse, Library, and Search stacks). */
 export const CHANNEL_BROWSE_STACK_ROUTES = {
   AlbumDetail: 'AlbumDetail',
   ArtistDetail: 'ArtistDetail',
@@ -169,12 +169,13 @@ export const CHANNEL_BROWSE_STACK_ROUTES = {
   PlaylistCreate: 'PlaylistCreate',
   PodcastDetail: 'PodcastDetail',
   PodcastSettings: 'PodcastSettings',
+  /** Podcast Index feed preview (same screen Search uses for unparsed results). */
+  SearchResultDetail: 'SearchResultDetail',
   TrackDetail: 'TrackDetail',
 } as const;
 
 export const SEARCH_STACK_ROUTES = {
   ...CHANNEL_BROWSE_STACK_ROUTES,
-  SearchResultDetail: 'SearchResultDetail',
   SearchRoot: 'SearchRoot',
 } as const;
 
@@ -195,6 +196,7 @@ export const LIBRARY_STACK_ROUTES = {
   LibraryQueue: 'LibraryQueue',
   PodcastDetail: 'PodcastDetail',
   PodcastSettings: 'PodcastSettings',
+  SearchResultDetail: 'SearchResultDetail',
   TrackDetail: 'TrackDetail',
 } as const;
 
@@ -381,7 +383,18 @@ export { buildPodcastDetailParams } from './podcastDetailParams';
 export type { TrackDetailRouteParams } from './trackDetailParams';
 export { buildTrackDetailParams } from './trackDetailParams';
 
-/** Channel/item detail params shared by Home and Search stacks (tab isolation). */
+/** Params for the Podcast Index feed preview shared across tab stacks. */
+export type SearchResultDetailParams = {
+  /** Podcast Index feed id (also used by deep link `search/result/:resultId`). */
+  resultId: string;
+  author?: string;
+  description?: string;
+  feedUrl?: string;
+  imageUrl?: string | null;
+  title?: string;
+};
+
+/** Channel/item detail params shared by Home, Browse, Library, and Search stacks (tab isolation). */
 export type ChannelBrowseStackParamList = {
   AlbumDetail: AlbumDetailRouteParams;
   ArtistDetail: ArtistDetailRouteParams;
@@ -390,6 +403,7 @@ export type ChannelBrowseStackParamList = {
   PlaylistCreate: undefined;
   PodcastDetail: PodcastDetailRouteParams;
   PodcastSettings: { podcastId: string };
+  SearchResultDetail: SearchResultDetailParams;
   TrackDetail: TrackDetailRouteParams;
 };
 
@@ -399,15 +413,6 @@ export type HomeStackParamList = ChannelBrowseStackParamList & {
 };
 
 export type SearchStackParamList = ChannelBrowseStackParamList & {
-  SearchResultDetail: {
-    /** Podcast Index feed id (also used by deep link `search/result/:resultId`). */
-    resultId: string;
-    author?: string;
-    description?: string;
-    feedUrl?: string;
-    imageUrl?: string | null;
-    title?: string;
-  };
   /**
    * `autoFocus` is a request from another tab (Home's empty state) to start a fresh search: the
    * field is cleared and focused so the user can type straight away. Tapping the Search tab
@@ -434,6 +439,7 @@ export type LibraryStackParamList = {
   LibraryQueue: undefined;
   PodcastDetail: PodcastDetailRouteParams;
   PodcastSettings: { podcastId: string };
+  SearchResultDetail: SearchResultDetailParams;
   TrackDetail: TrackDetailRouteParams;
 };
 
@@ -573,6 +579,11 @@ function HomeStackNavigator() {
         options={{ title: t('media.music.album') }}
       />
       <HomeStack.Screen
+        component={PodcastIndexFeedPreviewScreen}
+        name={CHANNEL_BROWSE_STACK_ROUTES.SearchResultDetail}
+        options={{ title: t('nav.stack.search_result') }}
+      />
+      <HomeStack.Screen
         component={TrackDetailScreen}
         name={HOME_STACK_ROUTES.TrackDetail}
         options={{ title: t('media.music.track') }}
@@ -683,6 +694,11 @@ function LibraryStackNavigator() {
         options={{ title: t('media.music.album') }}
       />
       <LibraryStack.Screen
+        component={PodcastIndexFeedPreviewScreen}
+        name={LIBRARY_STACK_ROUTES.SearchResultDetail}
+        options={{ title: t('nav.stack.search_result') }}
+      />
+      <LibraryStack.Screen
         component={TrackDetailScreen}
         name={LIBRARY_STACK_ROUTES.TrackDetail}
         options={{ title: t('media.music.track') }}
@@ -781,6 +797,11 @@ function BrowseStackNavigator() {
         component={AlbumDetailScreen}
         name={BROWSE_STACK_ROUTES.AlbumDetail}
         options={{ title: t('media.music.album') }}
+      />
+      <BrowseStack.Screen
+        component={PodcastIndexFeedPreviewScreen}
+        name={BROWSE_STACK_ROUTES.SearchResultDetail}
+        options={{ title: t('nav.stack.search_result') }}
       />
       <BrowseStack.Screen
         component={TrackDetailScreen}

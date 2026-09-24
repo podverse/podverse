@@ -16,19 +16,19 @@ import { ListLoading } from '../../components/state/ListLoading';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
-import type { SearchStackParamList } from '../../navigation';
+import type { ChannelBrowseStackParamList } from '../../navigation';
 import {
   buildAlbumDetailParams,
   buildPodcastDetailParams,
-  SEARCH_STACK_ROUTES,
+  CHANNEL_BROWSE_STACK_ROUTES,
 } from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import { isParsedReadyChannel, pollUntilParsedReadyChannel } from './podcastIndexFeedPreview';
 
 type PodcastIndexFeedPreviewScreenProps = NativeStackScreenProps<
-  SearchStackParamList,
-  typeof SEARCH_STACK_ROUTES.SearchResultDetail
+  ChannelBrowseStackParamList,
+  typeof CHANNEL_BROWSE_STACK_ROUTES.SearchResultDetail
 >;
 
 type PreviewFeedState = {
@@ -42,7 +42,7 @@ type PreviewFeedState = {
 
 type AddErrorKey = 'features.search.add_failed' | 'features.search.add_timed_out' | null;
 
-/** Replace the stale Add preview with channel detail on the Search stack. */
+/** Replace the stale Add preview with channel detail on the current tab stack. */
 const replaceWithSearchChannelDetail = (
   navigation: PodcastIndexFeedPreviewScreenProps['navigation'],
   mediumId: number,
@@ -51,12 +51,12 @@ const replaceWithSearchChannelDetail = (
 ) => {
   const kind = getChannelRouteKind(mediumId);
   if (kind === 'artist') {
-    navigation.replace(SEARCH_STACK_ROUTES.ArtistDetail, { artistId: idText });
+    navigation.replace(CHANNEL_BROWSE_STACK_ROUTES.ArtistDetail, { artistId: idText });
     return;
   }
   if (kind === 'album') {
     navigation.replace(
-      SEARCH_STACK_ROUTES.AlbumDetail,
+      CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
       buildAlbumDetailParams({
         albumId: idText,
         previewImageUrl: preview.imageUrl,
@@ -66,7 +66,7 @@ const replaceWithSearchChannelDetail = (
     return;
   }
   navigation.replace(
-    SEARCH_STACK_ROUTES.PodcastDetail,
+    CHANNEL_BROWSE_STACK_ROUTES.PodcastDetail,
     buildPodcastDetailParams({
       podcastId: idText,
       previewImageUrl: preview.imageUrl,

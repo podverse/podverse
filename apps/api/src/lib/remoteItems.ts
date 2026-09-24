@@ -23,11 +23,105 @@ export type FinalRemoteItemsResult = {
   itemsUnadded: EpisodeByGuidResponse['episode'][];
 };
 
+export type BuildRemoteItemsFinalResultOptions = {
+  /**
+   * When true (publisher-feed / artist albums only), channel refs the guid batch
+   * missed are looked up by feed_url via Podcast Index byfeedurl.
+   */
+  enrichUnaddedChannelsByFeedUrl?: boolean;
+};
+
+type PodcastIndexFeed = PodcastBatchByFeedGuidResponse['feeds'][number];
+
+function podcastIndexFeedCacheKey(feed: PodcastIndexFeed): string | null {
+  const feedGuid = feed.podcastGuid ? feed.podcastGuid : null;
+  return feedGuid ? `pi:feed:${feedGuid}` : null;
+}
+
+function isPositivePodcastIndexId(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+/**
+ * For album refs still missing after batch-by-guid, look up Podcast Index by feed URL.
+ * Returns feeds to append (deduped by podcast index id against alreadyMerged).
+ */
+export async function enrichMissedChannelsUnaddedByFeedUrl(
+  originalChannelsUnadded: RemoteItemGeneric[],
+  alreadyMerged: PodcastIndexFeed[],
+  lookupByFeedUrl: (feedUrl: string) => Promise<PodcastIndexFeed | null>
+): Promise<PodcastIndexFeed[]> {
+  const foundGuids = new Set<string>();
+  const foundIds = new Set<number>();
+  for (const feed of alreadyMerged) {
+    if (feed.podcastGuid) {
+      foundGuids.add(feed.podcastGuid);
+    }
+    if (isPositivePodcastIndexId(feed.id)) {
+      foundIds.add(feed.id);
+    }
+  }
+
+  const extras: PodcastIndexFeed[] = [];
+  const triedUrls = new Set<string>();
+
+  for (const ref of originalChannelsUnadded) {
+    if (ref.feed_guid && foundGuids.has(ref.feed_guid)) {
+      continue;
+    }
+    const feedUrl = typeof ref.feed_url === 'string' ? ref.feed_url.trim() : '';
+    if (feedUrl.length === 0 || isLocalFeedUrl(feedUrl) || triedUrls.has(feedUrl)) {
+      continue;
+    }
+    triedUrls.add(feedUrl);
+
+    try {
+      const feed = await lookupByFeedUrl(feedUrl);
+      if (feed === null || !isPositivePodcastIndexId(feed.id) || foundIds.has(feed.id)) {
+        continue;
+      }
+      foundIds.add(feed.id);
+      if (feed.podcastGuid) {
+        foundGuids.add(feed.podcastGuid);
+      }
+      extras.push(feed);
+    } catch {
+      // swallow — same as guid batch path
+    }
+  }
+
+  return extras;
+}
+
+async function cachePodcastIndexFeed(feed: PodcastIndexFeed): Promise<void> {
+  try {
+    const key = podcastIndexFeedCacheKey(feed);
+    if (key) {
+      await cacheSetJson<PodcastIndexFeed>(key, feed, config.keyvaldb.cacheExpiration);
+    }
+  } catch {
+    // swallow
+  }
+}
+
+async function lookupPodcastIndexFeedByUrl(feedUrl: string): Promise<PodcastIndexFeed | null> {
+  const normalized = await podcastIndexService.podcastGetByFeedUrl(feedUrl);
+  if (normalized === null || normalized === undefined) {
+    return null;
+  }
+  if (!isPositivePodcastIndexId(normalized.id)) {
+    return null;
+  }
+  // normalizePodcastFeed spreads the PI feed and adds feedId / podcast_index_id.
+  return normalized as PodcastIndexFeed;
+}
+
 export async function buildRemoteItemsFinalResult(
   originalChannelsAdded: DTOChannel[],
   originalChannelsUnadded: RemoteItemGeneric[],
   originalItemsAdded: DTOItem[],
-  originalItemsUnadded: RemoteItemGeneric[]
+  originalItemsUnadded: RemoteItemGeneric[],
+  options?: BuildRemoteItemsFinalResultOptions
 ): Promise<FinalRemoteItemsResult> {
   const feedGuids: string[] = [];
   if (originalChannelsUnadded && Array.isArray(originalChannelsUnadded)) {
@@ -60,19 +154,7 @@ export async function buildRemoteItemsFinalResult(
         fetchedFeeds = piResponse && Array.isArray(piResponse.feeds) ? piResponse.feeds : [];
 
         for (const f of fetchedFeeds) {
-          try {
-            const feedGuid = f.podcastGuid ? f.podcastGuid : null;
-            if (feedGuid) {
-              const key = `pi:feed:${feedGuid}`;
-              await cacheSetJson<PodcastBatchByFeedGuidResponse['feeds'][number]>(
-                key,
-                f,
-                config.keyvaldb.cacheExpiration
-              );
-            }
-          } catch {
-            // swallow
-          }
+          await cachePodcastIndexFeed(f);
         }
       }
 
@@ -92,6 +174,18 @@ export async function buildRemoteItemsFinalResult(
       }
 
       channelsUnaddedFromPI = merged;
+    }
+
+    if (options?.enrichUnaddedChannelsByFeedUrl) {
+      const urlExtras = await enrichMissedChannelsUnaddedByFeedUrl(
+        originalChannelsUnadded || [],
+        channelsUnaddedFromPI,
+        lookupPodcastIndexFeedByUrl
+      );
+      for (const f of urlExtras) {
+        await cachePodcastIndexFeed(f);
+      }
+      channelsUnaddedFromPI = [...channelsUnaddedFromPI, ...urlExtras];
     }
   } catch {
     channelsUnaddedFromPI = [];

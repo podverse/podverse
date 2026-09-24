@@ -11,9 +11,11 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import {
+  podcastIndexFeedListImageUrl,
   primaryChannelLightboxArtworkUrl,
   primaryChannelListArtworkUrl,
   primaryListArtworkUrl,
+  unparsedPodcastIndexFeedTarget,
 } from '@podverse/helpers';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
@@ -23,7 +25,7 @@ import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
 import { ChannelAboutSection, FundingLinksSection } from '../../components/content';
 import type { SectionChipItem } from '../../components/form';
-import { FillList, ListRow } from '../../components/primitives';
+import { CoverImage, FillList, ListRow } from '../../components/primitives';
 import { Button } from '../../components/primitives/Button';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -56,6 +58,7 @@ import {
   writeArtistDetailTab,
 } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
+import { LIST_ROW_ARTWORK_SIZE } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { mapItemToHomeFeedRow } from '../home/homeFeedData';
@@ -63,6 +66,14 @@ import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { channelHasFunding, channelHasPodroll } from '../podcast/podcastSections';
+
+/** Artwork sizing only, so it does not depend on the theme. */
+const albumCoverStyles = StyleSheet.create({
+  image: {
+    height: LIST_ROW_ARTWORK_SIZE,
+    width: LIST_ROW_ARTWORK_SIZE,
+  },
+});
 
 type ArtistDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'ArtistDetail'>;
 
@@ -193,8 +204,18 @@ function ArtistAddedAlbumRow({
     onPress(row);
   }, [onPress, row]);
 
+  const imageUrl = primaryChannelListArtworkUrl(row.channel_images);
+
   return (
     <ListRow
+      leading={
+        <CoverImage
+          decodeEdge={LIST_ROW_ARTWORK_SIZE}
+          opensViewer={false}
+          style={albumCoverStyles.image}
+          uri={imageUrl}
+        />
+      }
       onPress={handlePress}
       subtitle={row.channel_about?.author ?? undefined}
       testID={`artist-album-row-${index}`}
@@ -205,21 +226,29 @@ function ArtistAddedAlbumRow({
 
 function ArtistUnaddedAlbumRow({
   index,
-  onOpenUrl,
+  onPress,
   row,
 }: {
   index: number;
-  onOpenUrl: (url: string) => void;
+  onPress: (row: ArtistAlbumUnadded) => void;
   row: ArtistAlbumUnadded;
 }) {
-  const hasUrl = row.url.length > 0;
+  const target = unparsedPodcastIndexFeedTarget(row);
   const handlePress = useCallback(() => {
-    void onOpenUrl(row.url);
-  }, [onOpenUrl, row.url]);
+    onPress(row);
+  }, [onPress, row]);
 
   return (
     <ListRow
-      onPress={hasUrl ? handlePress : undefined}
+      leading={
+        <CoverImage
+          decodeEdge={LIST_ROW_ARTWORK_SIZE}
+          opensViewer={false}
+          style={albumCoverStyles.image}
+          uri={podcastIndexFeedListImageUrl(row)}
+        />
+      }
+      onPress={target !== null ? handlePress : undefined}
       subtitle={row.author ?? undefined}
       testID={`artist-album-unadded-row-${index}`}
       title={row.title}
@@ -544,15 +573,14 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   }, [isSectionHydrated, loadPodroll, offlineModeEnabled, section]);
 
   const availableSections = useMemo<ArtistTab[]>(() => {
-    const hasAlbums = offlineModeEnabled || albumsAdded.length > 0 || albumsUnadded.length > 0;
+    // Albums and About are always offered (same idea as podcast Episodes / About): an empty
+    // albums list is a real answer. Hiding Albums until the publisher-feed request returns makes
+    // the screen fall back to About and stay there after albums arrive.
     const hasTracks = tracksAdded.length > 0 || tracksUnadded.length > 0;
     const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll;
     const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding;
 
-    const tabs: ArtistTab[] = [];
-    if (hasAlbums) {
-      tabs.push('albums');
-    }
+    const tabs: ArtistTab[] = ['albums'];
     if (hasTracks) {
       tabs.push('tracks');
     }
@@ -568,11 +596,8 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     }
     return tabs;
   }, [
-    albumsAdded.length,
-    albumsUnadded.length,
     channel,
     isSignedIn,
-    offlineModeEnabled,
     previewHasFunding,
     previewHasPodroll,
     tracksAdded.length,
@@ -835,6 +860,24 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     [navigation]
   );
 
+  const handleOpenUnaddedAlbum = useCallback(
+    (row: ArtistAlbumUnadded) => {
+      const target = unparsedPodcastIndexFeedTarget(row);
+      if (target === null) {
+        return;
+      }
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.SearchResultDetail, {
+        author: target.author,
+        description: target.description,
+        feedUrl: target.feedUrl,
+        imageUrl: target.imageUrl,
+        resultId: target.podcastIndexId,
+        title: target.title,
+      });
+    },
+    [navigation]
+  );
+
   const handlePodrollPress = useCallback(
     (item: PodrollEntry) => {
       if (item.target.kind === 'channel') {
@@ -1025,9 +1068,11 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         return <ArtistAddedAlbumRow index={index} onPress={handleOpenAddedAlbum} row={item.row} />;
       }
 
-      return <ArtistUnaddedAlbumRow index={index} onOpenUrl={openExternalUrl} row={item.row} />;
+      return (
+        <ArtistUnaddedAlbumRow index={index} onPress={handleOpenUnaddedAlbum} row={item.row} />
+      );
     },
-    [handleOpenAddedAlbum, openExternalUrl]
+    [handleOpenAddedAlbum, handleOpenUnaddedAlbum]
   );
 
   const podrollEmpty = useMemo(

@@ -59,6 +59,7 @@ export * from './lib/html.js';
 export * from './lib/image.js';
 export * from './lib/image-candidates/index.js';
 export * from './lib/imageShrink.js';
+export * from './lib/podcastIndexFeedReference.js';
 export * from './lib/itemItunesEpisodeType.js';
 export * from './lib/item/item.js';
 export * from './lib/item/itemEnclosure.js';
