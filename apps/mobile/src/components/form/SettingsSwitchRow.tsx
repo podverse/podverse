@@ -48,7 +48,8 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       gap: tokens.spacing.md,
     },
     rowNested: {
-      paddingHorizontal: tokens.spacing.md,
+      paddingLeft: 0,
+      paddingRight: tokens.spacing.lg,
       paddingVertical: tokens.spacing.base,
     },
     rowParent: {
@@ -77,8 +78,8 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
 /**
  * Settings row with a trailing switch, or a pressable row when `onPress` is supplied without a
  * switch. A switch row uses equal vertical padding and shifts a single-line title so its ink
- * lines up with the switch. Inside `SettingsDependentGroup`, the row uses compact inset padding
- * and the switch names the parent setting.
+ * lines up with the switch. Inside `SettingsDependentGroup`, the row indents further and the
+ * switch names the parent setting.
  */
 export function SettingsSwitchRow({
   accessibilityLabel,

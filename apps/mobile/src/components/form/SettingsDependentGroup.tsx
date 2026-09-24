@@ -6,9 +6,12 @@ import { StyleSheet, View } from 'react-native';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
 
+/** Thin vertical line that lines up with the parent setting title. */
+const SETTINGS_DEPENDENT_RAIL_WIDTH = StyleSheet.hairlineWidth;
+
 export type SettingsDependentContextValue = {
   accessibilityHint: string;
-  /** True while this row renders inside the inset child panel. */
+  /** True while this row renders as a child of the parent switch. */
   nested: true;
 };
 
@@ -29,22 +32,31 @@ export type SettingsDependentGroupProps = {
   testID?: string;
 };
 
-const createStyles = ({ tokens }: ThemedStylesTheme) =>
+const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
   StyleSheet.create({
-    panel: {
-      backgroundColor: tokens.background.tertiary,
-      borderRadius: tokens.radii.sm,
-      marginBottom: tokens.spacing.md,
-      marginLeft: tokens.spacing.lg,
-      marginRight: tokens.spacing.md,
-      overflow: 'hidden',
+    childrenColumn: {
+      flex: 1,
+    },
+    gutter: {
+      width: tokens.spacing.lg,
+    },
+    nest: {
+      flexDirection: 'row',
+    },
+    rail: {
+      alignSelf: 'stretch',
+      backgroundColor: themeStyles.border.borderColor,
+      width: SETTINGS_DEPENDENT_RAIL_WIDTH,
+    },
+    railGap: {
+      width: tokens.spacing.base,
     },
   });
 
 /**
- * Parent switch plus the switches that apply only while it is on. Children sit in a tertiary
- * inset panel indented under the parent title; their switches stay in the parent's column.
- * With no children, only the parent renders.
+ * Parent switch plus the switches that apply only while it is on. A thin rail sits under the
+ * parent title; children indent past it and their switches stay in the parent's column. With no
+ * children, only the parent renders.
  */
 export function SettingsDependentGroup({
   children,
@@ -66,8 +78,11 @@ export function SettingsDependentGroup({
       {parent}
       {childList.length > 0 ? (
         <SettingsDependentContext.Provider value={contextValue}>
-          <View style={styles.panel} testID={testID}>
-            {childList}
+          <View style={styles.nest} testID={testID}>
+            <View style={styles.gutter} />
+            <View style={styles.rail} />
+            <View style={styles.railGap} />
+            <View style={styles.childrenColumn}>{childList}</View>
           </View>
         </SettingsDependentContext.Provider>
       ) : null}

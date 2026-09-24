@@ -71,9 +71,13 @@ option-list screen (not bottom sheet). Selected chip uses `buttonPrimary` fill. 
 stack label / description / current value (not trailing). See **mobile-settings-option-density**.
 
 **Dependent settings:** A parent switch that owns child switches uses `SettingsDependentGroup`.
-Children sit in a tertiary inset panel indented under the parent title; their switches stay in
-the parent switch's column. Prefer `ToggleSwitch` over a raw React Native `Switch` so iOS 26
-layout matches the drawn control. `SettingsSwitchRow` centers the title ink on the switch.
+A thin rail lines up with the parent title; children indent past it (no fill). Prefer
+`ToggleSwitch` over a raw React Native `Switch` so iOS 26 layout matches the drawn control.
+`SettingsSwitchRow` centers the title ink on the switch.
+
+**Bottom chrome strips:** Offline Mode, chapter/clip, and activity-label rows above the mini
+player share `bottomChromeStrip*` helpers in `theme/bottomChromeStrip.ts` (same height, size, and
+weight). Colors stay per strip.
 
 **Cover images:** `CoverImage` (`expo-image`, memory+disk cache) opens **`ImageViewerModal`** on a
 stationary tap (full width, contained, portrait). A tap that drags stays a scroll — do not open

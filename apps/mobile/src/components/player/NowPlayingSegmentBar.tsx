@@ -12,16 +12,19 @@ import {
 import { usePlaybackProgress, usePlaybackSession } from '../../playback/PlaybackProvider';
 import { usePlaybackScrubPreview } from '../../playback/playbackScrubPreviewStore';
 import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
-import { typography } from '../../theme/typography';
+import {
+  BOTTOM_CHROME_STRIP_ICON_SIZE,
+  bottomChromeStripContainerLayout,
+  bottomChromeStripTextStyle,
+} from '../../theme/bottomChromeStrip';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { nowPlayingSegmentLeadingIcon } from './nowPlayingSegmentIcon';
 
-const SEGMENT_ICON_SIZE = 14;
-
 /**
  * Slim strip naming the clip, official clip, or chapter playing inside the current episode.
  * Chapters come from {@link useNowPlayingChapters}; the playhead drives which chapter is named.
+ * Height and type match the other bottom-chrome strips ({@link bottomChromeStripContainerLayout}).
  */
 export function NowPlayingSegmentBar() {
   const { t } = useTranslation();
@@ -42,8 +45,7 @@ export function NowPlayingSegmentBar() {
           borderTopWidth: StyleSheet.hairlineWidth,
           flexDirection: 'row',
           gap: tokens.spacing.md,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.sm,
+          ...bottomChromeStripContainerLayout(tokens.spacing),
         },
         containerTablet: {
           alignSelf: 'center',
@@ -51,7 +53,7 @@ export function NowPlayingSegmentBar() {
           width: '100%',
         },
         label: {
-          ...typography.caption,
+          ...bottomChromeStripTextStyle(),
           color: themeStyles.textSecondary.color,
           flex: 1,
         },
@@ -87,7 +89,7 @@ export function NowPlayingSegmentBar() {
         <Ionicons
           color={themeStyles.textSecondary.color}
           name={iconName}
-          size={SEGMENT_ICON_SIZE}
+          size={BOTTOM_CHROME_STRIP_ICON_SIZE}
         />
       ) : null}
       <Text

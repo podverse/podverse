@@ -8,6 +8,10 @@ import {
 } from '../../downloads/inProgressDownloadCount';
 import { useDownloadsList } from '../../downloads/useDownloads';
 import { useSync } from '../../sync';
+import {
+  bottomChromeStripHeight,
+  bottomChromeStripTextStyle,
+} from '../../theme/bottomChromeStrip';
 import { useTheme } from '../../theme/useTheme';
 import { ProgressTrack } from '../primitives/ProgressTrack';
 
@@ -66,34 +70,34 @@ export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
         container: {
           backgroundColor: tokens.background.secondary,
           borderTopColor: themeStyles.border.borderColor,
-          borderTopWidth: 1,
-          paddingBottom: tokens.spacing.sm + bottomInset,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          paddingBottom: bottomInset,
           paddingHorizontal: tokens.spacing.lg,
-          paddingTop: tokens.spacing.sm,
         },
         count: {
+          ...bottomChromeStripTextStyle(),
           color: themeStyles.textSecondary.color,
-          fontSize: 12,
         },
         label: {
+          ...bottomChromeStripTextStyle(),
           color: themeStyles.textSecondary.color,
           flexShrink: 1,
-          fontSize: 12,
         },
         row: {
           alignItems: 'center',
           flexDirection: 'row',
           gap: tokens.spacing.md,
+          height: bottomChromeStripHeight(tokens.spacing),
           justifyContent: 'space-between',
         },
         rowAfterTrack: {
           marginTop: tokens.spacing.sm,
         },
-        section: {
+        sectionFollow: {
           marginTop: tokens.spacing.sm,
         },
-        sectionFirst: {
-          marginTop: 0,
+        syncSection: {
+          paddingTop: tokens.spacing.sm,
         },
       }),
     [bottomInset, themeStyles, tokens]
@@ -118,7 +122,7 @@ export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
             now: completedCount,
             text: syncCountText,
           }}
-          style={styles.sectionFirst}
+          style={styles.syncSection}
           testID="sync-progress-bar"
         >
           <ProgressTrack
@@ -141,7 +145,7 @@ export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
           accessibilityLabel={downloadLabel}
           accessibilityRole="text"
           accessibilityState={{ busy: true }}
-          style={syncVisible ? styles.section : styles.sectionFirst}
+          style={syncVisible ? styles.sectionFollow : undefined}
           testID="download-activity-bar"
         >
           <View style={styles.row}>

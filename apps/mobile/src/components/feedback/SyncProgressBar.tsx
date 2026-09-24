@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 
 import { useSync } from '../../sync';
+import {
+  bottomChromeStripHeight,
+  bottomChromeStripTextStyle,
+} from '../../theme/bottomChromeStrip';
 import { useTheme } from '../../theme/useTheme';
 import { ProgressTrack } from '../primitives/ProgressTrack';
 
@@ -54,24 +58,25 @@ export function SyncProgressBar({ bottomInset = 0 }: SyncProgressBarProps) {
         container: {
           backgroundColor: tokens.background.secondary,
           borderTopColor: themeStyles.border.borderColor,
-          borderTopWidth: 1,
-          paddingBottom: tokens.spacing.sm + bottomInset,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          paddingBottom: bottomInset,
           paddingHorizontal: tokens.spacing.lg,
           paddingTop: tokens.spacing.sm,
         },
         count: {
+          ...bottomChromeStripTextStyle(),
           color: themeStyles.textSecondary.color,
-          fontSize: 12,
         },
         label: {
+          ...bottomChromeStripTextStyle(),
           color: themeStyles.textSecondary.color,
           flexShrink: 1,
-          fontSize: 12,
         },
         row: {
           alignItems: 'center',
           flexDirection: 'row',
           gap: tokens.spacing.md,
+          height: bottomChromeStripHeight(tokens.spacing),
           justifyContent: 'space-between',
           marginTop: tokens.spacing.sm,
         },
