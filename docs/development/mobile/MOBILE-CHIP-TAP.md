@@ -79,7 +79,9 @@ The fix is the same code on both platforms. Before it, the devices did not share
 | Android | Preference gate (most of the wait)                   |
 | iOS     | Paint and preference gate close; paint slightly ahead |
 
-The kept timing is the seeded Android emulator. iOS was not measured again after the clear.
+The kept timing is the seeded Android emulator. On a real iOS library the clear was not enough:
+expo-image was still resizing full covers on the main queue. That stall, and the thumbnail path
+that removed it, is [MOBILE-IOS-CHIP-SWITCH.md](./MOBILE-IOS-CHIP-SWITCH.md).
 
 How the stale list shows up in the harness also differs. Android records that flash as its own early
 paint sample. iOS often folds it into the tap's total, so a zero early-paint count on iOS does not
@@ -87,6 +89,7 @@ mean the flash was absent.
 
 ## Still open
 
-Once the clear waits for a real Episodes row, scrolling that list is still janky on the seeded
-Android emulator (most frames over 32 ms). That is a separate question from the chip tap. See the
-open questions in the baselines doc.
+Scrolling an Episodes list is still an open question on iOS with a real library (and on the seeded
+Android emulator for scripted flings). Measure with `--gesture scroll` and `scroll.uiframes` /
+`scroll.jsframes` before claiming a cause. See the open questions and proposed gates in the
+baselines doc.

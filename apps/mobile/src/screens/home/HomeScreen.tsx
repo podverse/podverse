@@ -29,6 +29,7 @@ import {
   isHomeDownloadedItemsOnly,
   OFFLINE_UNAVAILABLE_MESSAGE_KEY,
 } from '../../lib/offlineModeViews';
+import { beginPerfChipSample, endPerfChipSample, stampPerfFrame } from '../../lib/perf/perfFrames';
 import { perfMark } from '../../lib/perf/perfSpans';
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
 import {
@@ -110,9 +111,11 @@ type HomeListPrefsState = {
 };
 
 const homeFeedRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
+const EMPTY_HOME_FEED_ROWS: readonly HomeFeedRowData[] = [];
 
 function HomeFeedListItem({
   addToPlaylistPress,
+  artworkEdge,
   cellStyle,
   goToChannel,
   goToTrack,
@@ -127,6 +130,7 @@ function HomeFeedListItem({
   unsubscribeLabel,
 }: {
   addToPlaylistPress?: (row: HomeFeedRowData) => void;
+  artworkEdge: number;
   cellStyle: StyleProp<ViewStyle>;
   goToChannel?: (row: HomeFeedRowData) => void;
   goToTrack?: (row: HomeFeedRowData) => void;
@@ -145,7 +149,7 @@ function HomeFeedListItem({
   }, [onUnsubscribe, row]);
 
   const feedRow = isGridView ? (
-    <HomeFeedGridCell onPress={onPress} row={row} />
+    <HomeFeedGridCell artworkEdge={artworkEdge} onPress={onPress} row={row} />
   ) : (
     <HomeFeedRow
       isLast={isLast}
@@ -230,6 +234,10 @@ export function HomeScreen() {
   const [selectedMediaType, setSelectedMediaType] =
     useState<HomeMediaType>(DEFAULT_HOME_MEDIA_TYPE);
   const [isMediaTypeHydrated, setIsMediaTypeHydrated] = useState<boolean>(false);
+  // The chip the user just tapped, before the list switches. Drives the active chip and a spinner
+  // over the still-mounted old list for one small commit; the switch itself runs a frame later.
+  const [pendingMediaType, setPendingMediaType] = useState<HomeMediaType | null>(null);
+  const pendingSwitchFrameRef = useRef<number | null>(null);
   const [listPrefs, setListPrefs] = useState<HomeListPrefsState | null>(null);
   const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
   const [unsubscribedDownloadRows, setUnsubscribedDownloadRows] = useState<HomeFeedRowData[]>([]);
@@ -293,6 +301,7 @@ export function HomeScreen() {
         if (!isMounted) {
           return;
         }
+        perfMark('home.chip.initial', storedMediaType ?? DEFAULT_HOME_MEDIA_TYPE);
 
         if (storedMediaType !== null) {
           setSelectedMediaType(storedMediaType);
@@ -303,6 +312,7 @@ export function HomeScreen() {
           mediaType: DEFAULT_HOME_MEDIA_TYPE,
           source: 'prefs',
         });
+        perfMark('home.chip.initial', DEFAULT_HOME_MEDIA_TYPE);
       } finally {
         if (isMounted) {
           setIsMediaTypeHydrated(true);
@@ -312,6 +322,37 @@ export function HomeScreen() {
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  // One animation frame after the pending chip and spinner commit.
+  useEffect(() => {
+    if (pendingMediaType === null) {
+      return;
+    }
+    const handle = requestAnimationFrame(() => {
+      perfMark('home.chip.pending', pendingMediaType);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [pendingMediaType]);
+
+  // One animation frame after the selected chip and cleared list commit.
+  useEffect(() => {
+    if (!isMediaTypeHydrated) {
+      return;
+    }
+    const mediaType = selectedMediaType;
+    const handle = requestAnimationFrame(() => {
+      perfMark('home.chip.frame', mediaType);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [isMediaTypeHydrated, selectedMediaType]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingSwitchFrameRef.current !== null) {
+        cancelAnimationFrame(pendingSwitchFrameRef.current);
+      }
     };
   }, []);
 
@@ -367,27 +408,45 @@ export function HomeScreen() {
     };
   }, [isMediaTypeHydrated, selectedMediaType]);
 
+  const commitMediaTypeChange = useCallback((mediaType: HomeMediaType) => {
+    pendingSwitchFrameRef.current = null;
+
+    // Advancing here rather than in loadFeed is what makes rapid taps coalesce: the read for the
+    // chip the user just left is abandoned mid-flight instead of finishing and being discarded.
+    feedRequestIdRef.current += 1;
+
+    // Tearing down the old rows is the expensive part of a switch; it runs under the pending
+    // spinner, and the pending state hands off to the busy spinner in this same commit.
+    setPendingMediaType(null);
+    setSelectedMediaType(mediaType);
+    setFeedRows([]);
+    setUnsubscribedDownloadRows([]);
+    setFeedErrorKey(null);
+    setHasCompletedFeedRead(false);
+    void writePreferredMediaType(mediaType);
+  }, []);
+
   const handleMediaTypeChange = useCallback(
     (mediaType: HomeMediaType) => {
       perfMark('home.chip.tap', mediaType);
+      if (pendingSwitchFrameRef.current !== null) {
+        cancelAnimationFrame(pendingSwitchFrameRef.current);
+        pendingSwitchFrameRef.current = null;
+      }
       if (mediaType === selectedMediaType) {
+        setPendingMediaType(null);
         return;
       }
 
-      // Advancing here rather than in loadFeed is what makes rapid taps coalesce: the read for the
-      // chip the user just left is abandoned mid-flight instead of finishing and being discarded.
-      feedRequestIdRef.current += 1;
-
-      // Chip and rows commit together. A held clear leaves the previous media type's rows mounted
-      // under the new chip, which reads as the wrong list loading.
-      setSelectedMediaType(mediaType);
-      setFeedRows([]);
-      setUnsubscribedDownloadRows([]);
-      setFeedErrorKey(null);
-      setHasCompletedFeedRead(false);
-      void writePreferredMediaType(mediaType);
+      // This commit only touches the chip row and the spinner overlay, so it paints on the next
+      // frame; the switch that clears the list waits for that frame.
+      beginPerfChipSample();
+      setPendingMediaType(mediaType);
+      pendingSwitchFrameRef.current = requestAnimationFrame(() => {
+        commitMediaTypeChange(mediaType);
+      });
     },
-    [selectedMediaType]
+    [commitMediaTypeChange, selectedMediaType]
   );
 
   const handleSortChange = useCallback(
@@ -568,13 +627,15 @@ export function HomeScreen() {
     selectedMediaType,
   ]);
 
-  // One animation frame after commit, not a true paint callback. Consistent across runs.
+  // One animation frame after the new rows commit, not a true paint callback. Closes the chip
+  // frame sample for that switch.
   useEffect(() => {
     if (feedRows.length === 0) {
       return;
     }
     const handle = requestAnimationFrame(() => {
       perfMark('home.paint', selectedMediaType);
+      endPerfChipSample();
     });
     return () => cancelAnimationFrame(handle);
   }, [feedRows, selectedMediaType]);
@@ -850,6 +911,7 @@ export function HomeScreen() {
 
   const handlePlayPress = useCallback(
     (nextRow: HomeFeedRowData) => {
+      perfMark('home.play.tap', selectedMediaType);
       runPlayAction(nextRow, selectedMediaType);
     },
     [runPlayAction, selectedMediaType]
@@ -952,6 +1014,16 @@ export function HomeScreen() {
       selectorSection: {
         ...insets,
       },
+      listArea: {
+        flex: 1,
+      },
+      listAreaHidden: {
+        opacity: 0,
+      },
+      pendingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: themeStyles.screen.backgroundColor,
+      },
       feedNotice: {
         color: themeStyles.textSecondary.color,
         fontSize: 13,
@@ -987,6 +1059,18 @@ export function HomeScreen() {
 
   const showFeedRows = feedErrorKey === null;
   const isFeedBusy = !hasCompletedFeedRead;
+
+  // One animation frame while the list is the loading spinner.
+  useEffect(() => {
+    if (!isFeedBusy || feedRows.length > 0) {
+      return;
+    }
+    const handle = requestAnimationFrame(() => {
+      perfMark('home.spinner', selectedMediaType);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [feedRows.length, isFeedBusy, selectedMediaType]);
+
   const showFilterField =
     showFeedRows && feedRows.length > 0 && isHomeFilterMediaType(selectedMediaType);
   const showActionError = showFeedRows && feedRows.length > 0 && actionErrorKey !== null;
@@ -1155,6 +1239,7 @@ export function HomeScreen() {
                 {unsubscribedDownloadRows.map((row) => (
                   <View key={row.id} style={styles.columnCell}>
                     <HomeFeedGridCell
+                      artworkEdge={gridCellWidth}
                       onPress={handleRowPress}
                       row={row}
                       testID={`home-unsubscribed-download-cell-${row.id}`}
@@ -1230,6 +1315,7 @@ export function HomeScreen() {
     ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
       <HomeFeedListItem
         addToPlaylistPress={rowAddToPlaylistPress}
+        artworkEdge={gridCellWidth}
         cellStyle={feedCellStyle}
         goToChannel={rowGoToChannel}
         goToTrack={rowGoToTrack}
@@ -1246,6 +1332,7 @@ export function HomeScreen() {
     ),
     [
       feedCellStyle,
+      gridCellWidth,
       handlePlayPress,
       handleQueuePress,
       handleRowPress,
@@ -1260,6 +1347,64 @@ export function HomeScreen() {
     ]
   );
 
+  const gridViewLabel = isGridView ? t('layouts.grid_view') : undefined;
+  const listData = showFeedRows ? visibleRows : EMPTY_HOME_FEED_ROWS;
+
+  // Memoized so a pending chip tap re-renders only the chip row and the overlay; the list props
+  // do not depend on `pendingMediaType`, and FillList itself is not memoized.
+  // Keep controls and summary in ListHeaderComponent while rows render as FlatList items, so
+  // tablet grid columns can virtualize with numColumns.
+  const feedList = useMemo(
+    () => (
+      <FillList
+        ListEmptyComponent={listEmpty}
+        ListFooterComponent={listFooter}
+        ListHeaderComponent={listHeader}
+        accessibilityLabel={gridViewLabel}
+        accessibilityRole="list"
+        columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
+        contentContainerStyle={styles.content}
+        data={listData}
+        keyboardShouldPersistTaps="handled"
+        key={`cols-${columns}`}
+        keyExtractor={homeFeedRowKeyExtractor}
+        numColumns={columns}
+        refreshControl={refreshControl}
+        renderItem={renderItem}
+        testID="home-feed-list"
+      />
+    ),
+    [
+      columns,
+      gridViewLabel,
+      listData,
+      listEmpty,
+      listFooter,
+      listHeader,
+      refreshControl,
+      renderItem,
+      styles.columnWrapper,
+      styles.content,
+    ]
+  );
+
+  const displayedMediaType = pendingMediaType ?? selectedMediaType;
+  const isSwitchPending = pendingMediaType !== null;
+
+  const showsLoading = isSwitchPending || (isFeedBusy && feedRows.length === 0);
+
+  useLayoutEffect(() => {
+    if (showsLoading) {
+      stampPerfFrame('spinner.visible');
+    }
+  }, [showsLoading]);
+
+  useLayoutEffect(() => {
+    if (!isSwitchPending && hasCompletedFeedRead) {
+      stampPerfFrame('list.visible');
+    }
+  }, [feedRows, hasCompletedFeedRead, isSwitchPending]);
+
   return (
     <View style={styles.container} testID="home-screen">
       <View style={styles.selectorSection}>
@@ -1267,7 +1412,7 @@ export function HomeScreen() {
           <MediaTypeSelector
             labelKeys={MEDIA_TYPE_LABEL_KEYS}
             trailing={
-              isHomeSortableMediaType(selectedMediaType) ? (
+              isHomeSortableMediaType(displayedMediaType) ? (
                 <HomeSortChip
                   onRangeChange={handleRangeChange}
                   onSortChange={handleSortChange}
@@ -1277,31 +1422,28 @@ export function HomeScreen() {
               ) : undefined
             }
             onChange={handleMediaTypeChange}
-            selectedMediaType={selectedMediaType}
+            selectedMediaType={displayedMediaType}
             testIDPrefix="home"
             types={HOME_MEDIA_TYPE_ORDER}
           />
         ) : null}
       </View>
-      {/* Keep controls and summary in ListHeaderComponent while rows render as FlatList items, so */}
-      {/* tablet grid columns can virtualize with numColumns. */}
-      <FillList
-        ListEmptyComponent={listEmpty}
-        ListFooterComponent={listFooter}
-        ListHeaderComponent={listHeader}
-        accessibilityLabel={isGridView ? t('layouts.grid_view') : undefined}
-        accessibilityRole="list"
-        columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
-        contentContainerStyle={styles.content}
-        data={showFeedRows ? visibleRows : []}
-        keyboardShouldPersistTaps="handled"
-        key={`cols-${columns}`}
-        keyExtractor={homeFeedRowKeyExtractor}
-        numColumns={columns}
-        refreshControl={refreshControl}
-        renderItem={renderItem}
-        testID="home-feed-list"
-      />
+      <View style={styles.listArea}>
+        <View
+          importantForAccessibility={isSwitchPending ? 'no-hide-descendants' : 'auto'}
+          pointerEvents={isSwitchPending ? 'none' : 'auto'}
+          style={[styles.listArea, isSwitchPending ? styles.listAreaHidden : null]}
+        >
+          {feedList}
+        </View>
+        {isSwitchPending ? (
+          <View style={styles.pendingOverlay}>
+            <VerticalCenter testID="home-feed-loading">
+              <ListLoading testID="home-feed-loading-indicator" />
+            </VerticalCenter>
+          </View>
+        ) : null}
+      </View>
       {addToPlaylistSheet}
     </View>
   );

@@ -108,22 +108,22 @@ describe('perfSpans', () => {
     });
   });
 
-  it('caps the mark buffer at 500 and drops the oldest', async () => {
-    const { getPerfTimeline, perfMark } = await loadRecorder();
+  it('caps the mark buffer and drops the oldest', async () => {
+    const { getPerfTimeline, PERF_MARK_CAP, perfMark } = await loadRecorder();
 
-    for (let index = 0; index < 501; index += 1) {
+    for (let index = 0; index <= PERF_MARK_CAP; index += 1) {
       perfMark(`mark-${index}`);
     }
 
     const { marks } = getPerfTimeline();
-    expect(marks).toHaveLength(500);
+    expect(marks).toHaveLength(PERF_MARK_CAP);
     expect(marks[0]?.name).toBe('mark-1');
-    expect(marks[499]?.name).toBe('mark-500');
+    expect(marks[PERF_MARK_CAP - 1]?.name).toBe(`mark-${PERF_MARK_CAP}`);
   });
 
   it('flushes a long timeline as short n/m lines that concatenate', async () => {
     const { flushPerfTimeline, perfMark } = await loadRecorder();
-    const log = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const detail = 'x'.repeat(4000);
 
     perfMark('home.chip.tap', detail);

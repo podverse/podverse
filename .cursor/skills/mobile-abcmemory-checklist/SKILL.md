@@ -33,6 +33,7 @@ mobile sessions without re-reading a plan:
 | Applies only under `apps/mobile/**`                                   | Scoped `.cursor/rules/*.mdc` with `globs`                                                                |
 | List→detail first-paint (art, chips, subscribe, bell, download icons) | Scoped rules: **mobile-image-loading**, **mobile-section-chrome-cache**, **mobile-navigate-known-state** |
 | List render / per-row cost (contexts, memo props, styles, text work)  | Scoped rules: **mobile-row-render-cost**, **mobile-list-virtualization**                                 |
+| iOS list/grid cover decode (edge in device pixels, screen scale)      | Scoped rule + skill: **mobile-image-loading**                                                            |
 | New store, cache, or context holding per-account data                 | Scoped rule: **mobile-account-scoped-data** (clear on session end; switch through `anonymous`)           |
 | Workflow (E2E reports, flavors, worktrees, playback)                  | `.cursor/skills/mobile-*/SKILL.md`                                                                       |
 | Ignore generated native trees                                         | `.cursorignore`                                                                                          |

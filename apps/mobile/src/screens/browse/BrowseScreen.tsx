@@ -16,6 +16,8 @@ import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
+import { stampPerfFrame } from '../../lib/perf/perfFrames';
+import { perfMark } from '../../lib/perf/perfSpans';
 import type { BrowseStackParamList } from '../../navigation';
 import {
   BROWSE_STACK_ROUTES,
@@ -88,6 +90,7 @@ type BrowseListRow =
 type BrowsePlayMediaType = 'clips' | 'episodes' | 'tracks';
 
 const browseListRowKeyExtractor = (item: BrowseListRow): string => `${item.kind}:${item.id}`;
+const EMPTY_BROWSE_LIST_ROWS: readonly BrowseListRow[] = [];
 
 function browsePlayMediaType(mediaType: BrowseMediaType): BrowsePlayMediaType {
   if (mediaType === 'clips') {
@@ -190,6 +193,7 @@ function BrowseUserItem({
 
 function BrowseFeedItem({
   addToPlaylistPress,
+  artworkEdge,
   cellStyle,
   goToChannel,
   goToTrack,
@@ -202,6 +206,7 @@ function BrowseFeedItem({
   row,
 }: {
   addToPlaylistPress?: (row: HomeFeedRowData) => void;
+  artworkEdge: number;
   cellStyle: StyleProp<ViewStyle>;
   goToChannel?: (row: HomeFeedRowData) => void;
   goToTrack?: (row: HomeFeedRowData) => void;
@@ -216,7 +221,7 @@ function BrowseFeedItem({
   if (isGridView) {
     return (
       <View style={cellStyle}>
-        <HomeFeedGridCell onPress={onPress} row={row} />
+        <HomeFeedGridCell artworkEdge={artworkEdge} onPress={onPress} row={row} />
       </View>
     );
   }
@@ -247,6 +252,10 @@ export function BrowseScreen() {
   const [selectedMediaType, setSelectedMediaType] =
     useState<BrowseMediaType>(DEFAULT_BROWSE_MEDIA_TYPE);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
+  // The chip the user just tapped, before the list switches. Drives the active chip and a spinner
+  // over the still-mounted old list for one small commit; the switch itself runs a frame later.
+  const [pendingMediaType, setPendingMediaType] = useState<BrowseMediaType | null>(null);
+  const pendingSwitchFrameRef = useRef<number | null>(null);
   const [listPrefs, setListPrefs] = useState<BrowseListPrefs | null>(null);
   const [isCategoryView, setIsCategoryView] = useState<boolean>(false);
   const [categoryOptions, setCategoryOptions] = useState<BrowseCategoryOption[]>([]);
@@ -301,10 +310,15 @@ export function BrowseScreen() {
   useEffect(() => {
     let isMounted = true;
 
+    let hasMarkedInitialChip = false;
     const readPrefs = async () => {
       const stored = await readBrowseListPrefs();
       if (!isMounted) {
         return;
+      }
+      if (!hasMarkedInitialChip) {
+        hasMarkedInitialChip = true;
+        perfMark('browse.chip.initial', stored.mediaType);
       }
       setSelectedMediaType(stored.mediaType);
       setListPrefs(stored);
@@ -336,31 +350,57 @@ export function BrowseScreen() {
       setDirectoryFeed(emptyBrowseFeed(requestedMediaType));
       setFeedErrorKey(null);
       setIsFeedLoading(true);
+      if (pendingSwitchFrameRef.current !== null) {
+        cancelAnimationFrame(pendingSwitchFrameRef.current);
+        pendingSwitchFrameRef.current = null;
+      }
+      setPendingMediaType(null);
       setSelectedMediaType(requestedMediaType);
       void writeBrowseMediaType(requestedMediaType);
     }, [navigation, requestedMediaType])
   );
 
+  const commitMediaTypeChange = useCallback((mediaType: BrowseMediaType) => {
+    pendingSwitchFrameRef.current = null;
+
+    // Advancing here invalidates the in-flight read for the chip the user just left, rather than
+    // waiting for the next loadFeed to do it.
+    feedRequestIdRef.current += 1;
+
+    // Tearing down the old rows is the expensive part of a switch; it runs under the pending
+    // spinner, and the pending state hands off to the loading state in this same commit.
+    setPendingMediaType(null);
+    setSelectedMediaType(mediaType);
+    setIsCategoryView(false);
+    setDirectoryFeed(emptyBrowseFeed(mediaType));
+    setFeedErrorKey(null);
+    setIsFeedLoading(true);
+    void (async () => {
+      await writeBrowseMediaType(mediaType);
+      perfMark('browse.prefs.end', mediaType);
+    })();
+  }, []);
+
   const handleMediaTypeChange = useCallback(
     (mediaType: BrowseMediaType) => {
+      perfMark('browse.chip.tap', mediaType);
+      if (pendingSwitchFrameRef.current !== null) {
+        cancelAnimationFrame(pendingSwitchFrameRef.current);
+        pendingSwitchFrameRef.current = null;
+      }
       if (mediaType === selectedMediaType && !isCategoryView) {
+        setPendingMediaType(null);
         return;
       }
 
-      // Advancing here invalidates the in-flight read for the chip the user just left, rather than
-      // waiting for the next loadFeed to do it.
-      feedRequestIdRef.current += 1;
-
-      // Chip, rows, and loading state commit together. A held clear leaves the previous media type's
-      // rows mounted under the new chip, which reads as the wrong list loading.
-      setSelectedMediaType(mediaType);
-      setIsCategoryView(false);
-      setDirectoryFeed(emptyBrowseFeed(mediaType));
-      setFeedErrorKey(null);
-      setIsFeedLoading(true);
-      void writeBrowseMediaType(mediaType);
+      // This commit only touches the chip row and the spinner overlay, so it paints on the next
+      // frame; the switch that clears the list waits for that frame.
+      setPendingMediaType(mediaType);
+      pendingSwitchFrameRef.current = requestAnimationFrame(() => {
+        commitMediaTypeChange(mediaType);
+      });
     },
-    [isCategoryView, selectedMediaType]
+    [commitMediaTypeChange, isCategoryView, selectedMediaType]
   );
 
   const handleCategoriesPress = useCallback(() => {
@@ -464,6 +504,7 @@ export function BrowseScreen() {
       if (offlineModeEnabled || activePrefs === null) {
         return;
       }
+      perfMark('browse.load.start', source);
       const requestId = feedRequestIdRef.current + 1;
       feedRequestIdRef.current = requestId;
 
@@ -493,9 +534,11 @@ export function BrowseScreen() {
           },
           { category: activePrefs.category, range: activePrefs.range }
         );
+        perfMark('browse.repo.end', selectedMediaType);
         if (requestId !== feedRequestIdRef.current) {
           return;
         }
+        perfMark('browse.rows.set', selectedMediaType);
         setDirectoryFeed(result);
       } catch {
         if (requestId !== feedRequestIdRef.current) {
@@ -531,6 +574,37 @@ export function BrowseScreen() {
   loadCategoriesRef.current = loadCategories;
   const loadFeedRef = useRef(loadFeed);
   loadFeedRef.current = loadFeed;
+
+  // One animation frame after the pending chip and spinner commit.
+  useEffect(() => {
+    if (pendingMediaType === null) {
+      return;
+    }
+    const handle = requestAnimationFrame(() => {
+      perfMark('browse.chip.pending', pendingMediaType);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [pendingMediaType]);
+
+  // One animation frame after the selected chip and cleared list commit.
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+    const mediaType = selectedMediaType;
+    const handle = requestAnimationFrame(() => {
+      perfMark('browse.chip.frame', mediaType);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [isHydrated, selectedMediaType]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingSwitchFrameRef.current !== null) {
+        cancelAnimationFrame(pendingSwitchFrameRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!isCategoryView) {
@@ -569,6 +643,25 @@ export function BrowseScreen() {
     offlineModeEnabled,
     selectedMediaType,
   ]);
+
+  useEffect(() => {
+    if (isCategoryView) {
+      return;
+    }
+    const rowCount =
+      directoryFeed.kind === 'media'
+        ? directoryFeed.rows.length
+        : directoryFeed.kind === 'playlists'
+          ? directoryFeed.playlists.length
+          : directoryFeed.accounts.length;
+    if (rowCount === 0) {
+      return;
+    }
+    const handle = requestAnimationFrame(() => {
+      perfMark('browse.paint', selectedMediaType);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [directoryFeed, isCategoryView, selectedMediaType]);
 
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
@@ -755,6 +848,16 @@ export function BrowseScreen() {
         fontSize: 13,
         marginTop: tokens.spacing.sm,
       },
+      listArea: {
+        flex: 1,
+      },
+      listAreaHidden: {
+        opacity: 0,
+      },
+      pendingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: themeStyles.screen.backgroundColor,
+      },
       selectorSection: {
         ...bodyInsets,
       },
@@ -938,6 +1041,7 @@ export function BrowseScreen() {
       return (
         <BrowseFeedItem
           addToPlaylistPress={rowAddToPlaylistPress}
+          artworkEdge={gridCellWidth}
           cellStyle={feedCellStyle}
           goToChannel={rowGoToChannel}
           goToTrack={rowGoToTrack}
@@ -955,6 +1059,7 @@ export function BrowseScreen() {
       categoryRowCount,
       categoryRowStyles,
       feedCellStyle,
+      gridCellWidth,
       handleCategoryExpandToggle,
       handleCategorySelect,
       handlePlayPress,
@@ -971,6 +1076,76 @@ export function BrowseScreen() {
       selectedMediaType,
     ]
   );
+
+  const gridViewLabel = isGridView ? t('layouts.grid_view') : undefined;
+  const listData = isCategoryView
+    ? showCategoryLoading
+      ? EMPTY_BROWSE_LIST_ROWS
+      : listRows
+    : showFeedRows
+      ? listRows
+      : EMPTY_BROWSE_LIST_ROWS;
+  const listExtraData = `${isCategoryView}:${selectedCategory ?? ''}:${[...expandedCategoryRoots].join(',')}:${isGridView}`;
+
+  // Memoized so a pending chip tap re-renders only the chip row and the overlay; the list props
+  // do not depend on `pendingMediaType`, and FillList itself is not memoized.
+  const feedList = useMemo(
+    () => (
+      <FillList
+        ListEmptyComponent={listEmpty}
+        ListFooterComponent={listFooter}
+        ListHeaderComponent={listHeader}
+        accessibilityLabel={gridViewLabel}
+        accessibilityRole="list"
+        columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
+        contentContainerStyle={styles.content}
+        data={listData}
+        extraData={listExtraData}
+        keyboardShouldPersistTaps="handled"
+        key={`cols-${columns}-${isCategoryView ? 'cat' : 'feed'}`}
+        keyExtractor={browseListRowKeyExtractor}
+        numColumns={isCategoryView ? 1 : columns}
+        refreshControl={refreshControl}
+        renderItem={renderItem}
+        testID="browse-feed-list"
+      />
+    ),
+    [
+      columns,
+      gridViewLabel,
+      isCategoryView,
+      listData,
+      listEmpty,
+      listExtraData,
+      listFooter,
+      listHeader,
+      refreshControl,
+      renderItem,
+      styles.columnWrapper,
+      styles.content,
+    ]
+  );
+
+  const displayedMediaType = pendingMediaType ?? selectedMediaType;
+  const isSwitchPending = pendingMediaType !== null;
+  const showSortChip = shouldShowBrowseSortChip(
+    displayedMediaType,
+    isCategoryView && !isSwitchPending
+  );
+
+  const showsLoading = isSwitchPending || (isFeedLoading && !isCategoryView);
+
+  useLayoutEffect(() => {
+    if (showsLoading) {
+      stampPerfFrame('spinner.visible');
+    }
+  }, [showsLoading]);
+
+  useLayoutEffect(() => {
+    if (!isSwitchPending && !isFeedLoading && !isCategoryView) {
+      stampPerfFrame('list.visible');
+    }
+  }, [directoryFeed, isCategoryView, isFeedLoading, isSwitchPending]);
 
   if (offlineModeEnabled) {
     return (
@@ -991,7 +1166,7 @@ export function BrowseScreen() {
             labelKeys={MEDIA_TYPE_LABEL_KEYS}
             trailing={
               <>
-                {shouldShowBrowseCategoryChip(selectedMediaType) ? (
+                {shouldShowBrowseCategoryChip(displayedMediaType) ? (
                   <SectionChip
                     label={categoriesChipLabel}
                     onPress={handleCategoriesPress}
@@ -1000,7 +1175,7 @@ export function BrowseScreen() {
                     variant="filter"
                   />
                 ) : null}
-                {shouldShowBrowseSortChip(selectedMediaType, isCategoryView) ? (
+                {showSortChip ? (
                   <BrowseSortChip
                     onRangeChange={handleRangeChange}
                     range={activePrefs?.range ?? DEFAULT_BROWSE_RANGE}
@@ -1009,30 +1184,26 @@ export function BrowseScreen() {
               </>
             }
             onChange={handleMediaTypeChange}
-            selectedMediaType={selectedMediaType}
+            selectedMediaType={displayedMediaType}
             testIDPrefix="browse"
             types={BROWSE_MEDIA_TYPE_ORDER}
           />
         ) : null}
       </View>
-      <FillList
-        ListEmptyComponent={listEmpty}
-        ListFooterComponent={listFooter}
-        ListHeaderComponent={listHeader}
-        accessibilityLabel={isGridView ? t('layouts.grid_view') : undefined}
-        accessibilityRole="list"
-        columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
-        contentContainerStyle={styles.content}
-        data={isCategoryView ? (showCategoryLoading ? [] : listRows) : showFeedRows ? listRows : []}
-        extraData={`${isCategoryView}:${selectedCategory ?? ''}:${[...expandedCategoryRoots].join(',')}:${isGridView}`}
-        keyboardShouldPersistTaps="handled"
-        key={`cols-${columns}-${isCategoryView ? 'cat' : 'feed'}`}
-        keyExtractor={browseListRowKeyExtractor}
-        numColumns={isCategoryView ? 1 : columns}
-        refreshControl={refreshControl}
-        renderItem={renderItem}
-        testID="browse-feed-list"
-      />
+      <View style={styles.listArea}>
+        <View
+          importantForAccessibility={isSwitchPending ? 'no-hide-descendants' : 'auto'}
+          pointerEvents={isSwitchPending ? 'none' : 'auto'}
+          style={[styles.listArea, isSwitchPending ? styles.listAreaHidden : null]}
+        >
+          {feedList}
+        </View>
+        {isSwitchPending ? (
+          <View style={styles.pendingOverlay}>
+            <LoadingSection testID="browse-list-loading" />
+          </View>
+        ) : null}
+      </View>
       {addToPlaylistSheet}
     </View>
   );

@@ -18,6 +18,11 @@ When navigating from a painted list/grid/row into a detail header that shows the
 - Render all product artwork through **`CoverImage`** (`expo-image`, memory+disk cache).
 - Use the **same list-size URL** on list and compact header so the cache hits
   (**header-hero-image-sources**).
+- On iOS, every list, grid, and compact header cover passes **`decodeEdge`** (the displayed edge
+  in points). `useCoverThumbnail` decodes off the main thread at
+  `round(points × PixelRatio)` and tags the load with `scale: PixelRatio.get()`, so the layer
+  draws 1:1. Omit `decodeEdge` on the full-screen viewer and on large player art; those show the
+  original. Android and animated GIFs stay on the plain expo-image path.
 
 ## Don't
 
@@ -26,6 +31,13 @@ When navigating from a painted list/grid/row into a detail header that shows the
 - Don't `await` prefetch (or any image warm-up) before `navigation.navigate`.
 - Don't show the `CoverImage` placeholder when a URI is already known from preview or local store.
 - Don't prefetch lightbox / largest-original URLs on list tap.
+- Don't decode a list or grid thumbnail larger than the tile in device pixels. Extra pixels are
+  minified by the GPU, photographs look softer, and the cache fills faster.
+- Don't load that thumbnail at scale 1. The pixel count can be right and the layer still shrinks
+  a 1x-tagged bitmap by the screen scale.
+- Don't send iOS list artwork through expo-image's URI path (`source={{ uri }}` plus width/height).
+  That resizes on the main queue. Pass the image reference from `useCoverThumbnail`.
+- Don't patch `node_modules/expo-image` to change decode. The thumbnail hook is the seam.
 
 Section chips that appear only after a detail DTO (Official Clips, Podroll, episode chapters,
 and the like) follow the same first-paint habit via the **device chrome cache**, not extra

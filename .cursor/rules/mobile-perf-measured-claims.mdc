@@ -51,8 +51,9 @@ sessions. A measurement that cannot be true is a harness bug:
 
 - Parse `dumpsys gfxinfo framestats` by **column name**. Android 12+ inserts `FrameTimelineVsyncId`
   at index 1, so positional indexing silently subtracts a counter from a timestamp.
-- iOS `frames` is `null`. There is no automatable frame timing there, so a smoothness claim verified
-  only on iOS is not verified.
+- iOS UI-thread frames come from `scroll.uiframes` (native `podverse-perf-probe`); JS-thread frames
+  from `scroll.jsframes`. Android also reports `dumpsys gfxinfo` under `frames`. A smoothness claim
+  needs one of those numbers.
 - Maestro element taps land seconds apart. A scripted "rapid" gesture is sequential unless measured
   otherwise, so claims about superseding an in-flight load come from the manual capture.
 - A capture against a fixture with almost no rows cannot exhibit a row-cost bug. Confirm there is
@@ -77,6 +78,15 @@ record the disagreement rather than picking the flattering one.
 
 On the Home chip switch the Pixel is preference-gate bound and the iPhone is paint bound. Measure the
 weaker device — a regression shows there first — and do not assume a fix that moved one moved both.
+
+After the shared clear-on-tap, the iPhone stall a finger could feel was expo-image resizing full
+covers on the main queue. Off-thread thumbnails at device pixels, tagged with the screen scale,
+moved revisit chip visible from about 777 ms to 67 ms (ledger row T5). That is the floor. Do not
+start the parked Home follow-ups (kept lists, a playback row store, stable row objects on refresh)
+to chase the same-frame targets unless a new manual capture misses that floor, or play or refresh
+itself feels heavy. Narrative:
+[MOBILE-IOS-CHIP-SWITCH.md](/docs/development/mobile/MOBILE-IOS-CHIP-SWITCH.md). The image rules
+are **mobile-image-loading**.
 
 ## Related
 

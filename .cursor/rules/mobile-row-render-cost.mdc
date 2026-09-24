@@ -95,6 +95,9 @@ add to it:
   [MOBILE-PERF-BASELINES.md](/docs/development/mobile/MOBILE-PERF-BASELINES.md).
 - Show the list's loading state while the read is in flight (`VerticalCenter` + `ListLoading` in
   `ListEmptyComponent`). An empty list with no indicator reads as a broken screen.
+- On iOS the expensive part of mounting those rows was full-cover resize on the main queue. List
+  and grid art goes through `CoverImage` `decodeEdge` / `useCoverThumbnail`
+  (**mobile-image-loading**). Do not put the original URI back on that path to sharpen a tile.
 - Keep loader identity out of the effect deps that trigger it, or a refresh re-triggers the initial
   load.
 

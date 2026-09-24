@@ -1,0 +1,352 @@
+@@ lines imports top
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ from import { useNavigation } from '@react-navigation/native';
+@@ through import { perfMark } from '../../lib/perf/perfSpans';
+@@ replace
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { AppState, Keyboard, StyleSheet, View } from 'react-native';
+
+import { useAuth } from '../../auth/AuthProvider';
+import { isMobileE2eFromEnv } from '../../config/env';
+import { keptListPolicy, showKeptList, trimKeptLists } from '../../lib/lists/keptLists';
+import { beginPerfChipSample } from '../../lib/perf/perfFrames';
+import { perfMark } from '../../lib/perf/perfSpans';
+@@ end
+
+@@ edit offline import
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+} from '../../prefs/homeListPrefs';
+@@ replace
+} from '../../prefs/homeListPrefs';
+import { useOfflineMode } from '../../prefs/offlineMode';
+@@ end
+
+@@ edit module helpers
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+export function HomeScreen() {
+@@ replace
+type HomePrefsByType = Partial<Record<HomeMediaType, HomeListPrefsState>>;
+
+const HOME_KEPT_LIST_POLICY = keptListPolicy(isMobileE2eFromEnv());
+
+const isSameListPrefs = (a: HomeListPrefsState, b: HomeListPrefsState): boolean =>
+  a.range === b.range && a.sort === b.sort && a.viewMode === b.viewMode;
+
+/** Applies a choice to one media type's remembered prefs; a type not read yet stays unread. */
+const patchListPrefs = (
+  current: HomePrefsByType,
+  mediaType: HomeMediaType,
+  patch: Partial<Omit<HomeListPrefsState, 'mediaType'>>
+): HomePrefsByType => {
+  const existing = current[mediaType];
+  return existing === undefined ? current : { ...current, [mediaType]: { ...existing, ...patch } };
+};
+
+export function HomeScreen() {
+@@ end
+
+@@ lines state
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ from   const [selectedMediaType, setSelectedMediaType] =
+@@ through   const listRef = useRef<HomeMediaTypeListHandle>(null);
+@@ replace
+  const { account, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
+  const [selectedMediaType, setSelectedMediaType] =
+    useState<HomeMediaType>(DEFAULT_HOME_MEDIA_TYPE);
+  const [isMediaTypeHydrated, setIsMediaTypeHydrated] = useState<boolean>(false);
+  // Lists stay mounted after their chip is left, most recently shown first; the first is on screen.
+  const [keptMediaTypes, setKeptMediaTypes] = useState<HomeMediaType[]>(() => [
+    DEFAULT_HOME_MEDIA_TYPE,
+  ]);
+  const [prefsByType, setPrefsByType] = useState<HomePrefsByType>({});
+  const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
+  const [canMarkAllSeen, setCanMarkAllSeen] = useState<boolean>(false);
+  const activeListRef = useRef<HomeMediaTypeListHandle>(null);
+@@ end
+
+@@ lines prefs resolution
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ from   // Defaults until AsyncStorage catches up, so the list can paint from SQLite on the first frame.
+@@ through   const arePrefsHydrated = listPrefs !== null && listPrefs.mediaType === selectedMediaType;
+@@ replace
+  // Defaults until AsyncStorage catches up, so a list can paint from SQLite on the first frame.
+  // Remembered sort applies when it arrives and the list rereads locally — never behind a spinner.
+  // Until then the layout follows the list the user came from, so rows do not change shape.
+  const previousMediaType = keptMediaTypes[1];
+  const carriedViewMode =
+    previousMediaType === undefined ? undefined : prefsByType[previousMediaType]?.viewMode;
+  const resolvePrefs = (mediaType: HomeMediaType): HomeListPrefsState =>
+    prefsByType[mediaType] ?? {
+      mediaType,
+      range: DEFAULT_HOME_RANGE,
+      sort: DEFAULT_HOME_SORT,
+      viewMode: carriedViewMode ?? DEFAULT_HOME_VIEW_MODE,
+    };
+  const resolvedPrefs = resolvePrefs(selectedMediaType);
+@@ end
+
+@@ lines drop pending frame effect
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ from   // One animation frame after the pending chip and spinner commit.
+@@ through   }, [pendingMediaType]);
+@@ drop-blank-after
+@@ replace
+@@ end
+
+@@ edit hydration
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+          setSelectedMediaType(storedMediaType);
+@@ replace
+          setSelectedMediaType(storedMediaType);
+          setKeptMediaTypes((kept) => showKeptList(kept, storedMediaType, HOME_KEPT_LIST_POLICY));
+@@ end
+
+@@ edit chip frame comment
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  // One animation frame after the selected chip and cleared list commit.
+@@ replace
+  // One animation frame after the commit that selects the chip and shows its list.
+@@ end
+
+@@ edit drop cleanup effect
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  useEffect(() => {
+    return () => {
+      if (pendingSwitchFrameRef.current !== null) {
+        cancelAnimationFrame(pendingSwitchFrameRef.current);
+      }
+    };
+  }, []);
+
+@@ replace
+@@ end
+
+@@ edit storeListPrefs
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  // Owns the choices for whichever list is showing, including changes made on the sort screen:
+@@ replace
+  const storeListPrefs = useCallback((next: HomeListPrefsState) => {
+    setPrefsByType((current) => {
+      const existing = current[next.mediaType];
+      return existing !== undefined && isSameListPrefs(existing, next)
+        ? current
+        : { ...current, [next.mediaType]: next };
+    });
+  }, []);
+
+  // Owns the choices for whichever list is showing, including changes made on the sort screen:
+@@ end
+
+@@ edit store read prefs
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+          setListPrefs({ ...stored, mediaType: selectedMediaType });
+@@ replace
+          storeListPrefs({ ...stored, mediaType: selectedMediaType });
+@@ end
+
+@@ edit store fallback prefs
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+          setListPrefs({
+            mediaType: selectedMediaType,
+@@ replace
+          storeListPrefs({
+            mediaType: selectedMediaType,
+@@ end
+
+@@ edit sort handler
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+      setListPrefs((current) => (current === null ? current : { ...current, sort }));
+@@ replace
+      setPrefsByType((current) => patchListPrefs(current, selectedMediaType, { sort }));
+@@ end
+
+@@ edit range handler
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+      setListPrefs((current) =>
+        current === null ? current : { ...current, range, sort: 'popularity' }
+      );
+@@ replace
+      setPrefsByType((current) =>
+        patchListPrefs(current, selectedMediaType, { range, sort: 'popularity' })
+      );
+@@ end
+
+@@ edit view mode handler
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+      setListPrefs((current) => (current === null ? current : { ...current, viewMode }));
+@@ replace
+      setPrefsByType((current) => patchListPrefs(current, selectedMediaType, { viewMode }));
+@@ end
+
+@@ edit mark all seen
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+    listRef.current?.markAllSeen();
+@@ replace
+    activeListRef.current?.markAllSeen();
+@@ end
+
+@@ edit kept list effects
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  useLayoutEffect(() => {
+    navigation.setOptions({
+@@ replace
+  // Lists past the limit are dropped only once taps pause, so no switch pays for an unmount.
+  useEffect(() => {
+    if (keptMediaTypes.length <= HOME_KEPT_LIST_POLICY.limit) {
+      return;
+    }
+    const handle = setTimeout(() => {
+      setKeptMediaTypes((kept) => trimKeptLists(kept, HOME_KEPT_LIST_POLICY.limit));
+    }, HOME_KEPT_LIST_POLICY.evictDelayMs);
+    return () => clearTimeout(handle);
+  }, [keptMediaTypes]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('memoryWarning', () => {
+      setKeptMediaTypes((kept) => trimKeptLists(kept, 1));
+    });
+    return () => subscription.remove();
+  }, []);
+
+  // Hidden lists hold rows read for one account in one mode; a change to either drops them rather
+  // than risk showing them.
+  const listIdentity = `${status}|${account?.id_text ?? ''}|${offlineModeEnabled ? 'offline' : 'online'}`;
+  const listIdentityRef = useRef(listIdentity);
+  useEffect(() => {
+    if (listIdentityRef.current === listIdentity) {
+      return;
+    }
+    listIdentityRef.current = listIdentity;
+    setKeptMediaTypes((kept) => trimKeptLists(kept, 1));
+  }, [listIdentity]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+@@ end
+
+@@ edit styles
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+        listArea: {
+          flex: 1,
+        },
+        listAreaHidden: {
+          opacity: 0,
+        },
+        pendingOverlay: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: themeStyles.screen.backgroundColor,
+        },
+@@ replace
+        listArea: {
+          flex: 1,
+        },
+        listLayer: {
+          ...StyleSheet.absoluteFillObject,
+        },
+        listLayerHidden: {
+          ...StyleSheet.absoluteFillObject,
+          opacity: 0,
+        },
+@@ end
+
+@@ edit sortable chip
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+              isHomeSortableMediaType(displayedMediaType) ? (
+@@ replace
+              isHomeSortableMediaType(selectedMediaType) ? (
+@@ end
+
+@@ edit selector selected
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+            selectedMediaType={displayedMediaType}
+@@ replace
+            selectedMediaType={selectedMediaType}
+@@ end
+
+@@ lines drop displayed/pending values
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ from   const displayedMediaType = pendingMediaType ?? selectedMediaType;
+@@ through   }, [isSwitchPending]);
+@@ drop-blank-after
+@@ replace
+@@ end
+
+@@ lines list layers
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ from       <View style={styles.listArea}>
+@@ up-to       {addToPlaylistSheet}
+@@ replace
+      <View style={styles.listArea}>
+        {HOME_MEDIA_TYPE_ORDER.map((mediaType) => {
+          const isActive = mediaType === selectedMediaType;
+          if (!isActive && !keptMediaTypes.includes(mediaType)) {
+            return null;
+          }
+          return (
+            <View
+              accessibilityElementsHidden={!isActive}
+              importantForAccessibility={isActive ? 'auto' : 'no-hide-descendants'}
+              key={mediaType}
+              pointerEvents={isActive ? 'auto' : 'none'}
+              style={isActive ? styles.listLayer : styles.listLayerHidden}
+            >
+              <HomeMediaTypeList
+                arePrefsHydrated={prefsByType[mediaType] !== undefined}
+                isActive={isActive}
+                mediaType={mediaType}
+                onCanMarkAllSeenChange={setCanMarkAllSeen}
+                prefs={resolvePrefs(mediaType)}
+                ref={isActive ? activeListRef : undefined}
+                requestAddToPlaylist={requestAddToPlaylist}
+              />
+            </View>
+          );
+        })}
+      </View>
+@@ end
+
+@@ lines media type handlers
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ from   const commitMediaTypeChange = useCallback((mediaType: HomeMediaType) => {
+@@ through     [commitMediaTypeChange, selectedMediaType]
+@@ replace
+  const handleMediaTypeChange = useCallback(
+    (mediaType: HomeMediaType) => {
+      perfMark('home.chip.tap', mediaType);
+      if (mediaType === selectedMediaType) {
+        return;
+      }
+      if (keptMediaTypes.includes(mediaType)) {
+        perfMark('home.visit.revisit', mediaType);
+      }
+      beginPerfChipSample();
+      // A hidden list keeps its views, so a focused filter field would hold the keyboard up for an
+      // input nobody can see.
+      Keyboard.dismiss();
+      // One commit selects the chip and shows its list: a kept list as it was left, a new one on its
+      // loading spinner. Outside E2E nothing unmounts here; lists past the limit go once taps pause.
+      setSelectedMediaType(mediaType);
+      setKeptMediaTypes((kept) => showKeptList(kept, mediaType, HOME_KEPT_LIST_POLICY));
+      void writePreferredMediaType(mediaType);
+    },
+    [keptMediaTypes, selectedMediaType]
+@@ end

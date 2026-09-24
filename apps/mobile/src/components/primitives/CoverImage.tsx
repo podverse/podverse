@@ -1,3 +1,4 @@
+import type { ImageRef, ImageSource } from 'expo-image';
 import { Image } from 'expo-image';
 import { memo, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -5,12 +6,17 @@ import type { GestureResponderEvent, ImageStyle, StyleProp, ViewStyle } from 're
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import placeholderArtwork from '../../../assets/images/placeholder-image.png';
+import { isMobilePerfNoImagesFromEnv } from '../../config/perfNoImagesEnv';
+import { perfCount, perfMark } from '../../lib/perf/perfSpans';
 import { isShareSheetPassthroughWindow } from '../../lib/share/shareSheetPassthrough';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
 import type { CoverImageTapPoint } from './coverImageTap';
 import { isDeliberateCoverImageTap } from './coverImageTap';
 import { ImageViewerModal } from './ImageViewerModal';
+import { useCoverThumbnail } from './useCoverThumbnail';
+
+const skipRemoteImages = isMobilePerfNoImagesFromEnv();
 
 /** Overlay fade, plus a beat so dismiss finishes before this node leaves the tree. */
 const IMAGE_VIEWER_UNMOUNT_DELAY_MS = 350;
@@ -53,6 +59,12 @@ export type CoverImageProps = {
    * pressable row, cell, or header. The placeholder bitmap never opens the viewer.
    */
   opensViewer?: boolean;
+  /**
+   * Displayed edge in points, for list and grid artwork. On iOS the cover shows a thumbnail
+   * decoded off the main thread at this size (`useCoverThumbnail`); elsewhere it is passed to
+   * expo-image as the source width/height. Omit on full-size surfaces.
+   */
+  decodeEdge?: number;
   style?: StyleProp<CoverImageStyle>;
   testID?: string;
 };
@@ -68,6 +80,19 @@ export const prefetchCoverImage = (uri: string | null | undefined): void => {
   void Image.prefetch(uri);
 };
 
+// Only a new largest edge is marked, which keeps the timeline small; the counter counts every load.
+let largestLoggedImageEdge = 0;
+
+const noteImageLoad = (width: number, height: number): void => {
+  perfCount('image.load');
+  const maxEdge = Math.max(width, height);
+  if (!Number.isFinite(maxEdge) || maxEdge <= largestLoggedImageEdge) {
+    return;
+  }
+  largestLoggedImageEdge = maxEdge;
+  perfMark('image.load', `maxEdge=${maxEdge}`);
+};
+
 /**
  * Square cover / artwork. Podcast, episode, and album art stay square — do not pass a
  * `borderRadius` unless a specific surface (for example a circular avatar) needs one.
@@ -80,6 +105,7 @@ export const prefetchCoverImage = (uri: string | null | undefined): void => {
  */
 export const CoverImage = memo(function CoverImage({
   accessibilityLabel,
+  decodeEdge,
   opensViewer = true,
   style,
   testID,
@@ -115,7 +141,9 @@ export const CoverImage = memo(function CoverImage({
   };
 
   const resolvedLabel = accessibilityLabel ?? t('media.image');
-  const displayUri = uri !== null && uri !== undefined && uri.length > 0 ? uri : null;
+  const displayUri =
+    skipRemoteImages || uri === null || uri === undefined || uri.length === 0 ? null : uri;
+  const thumbnail = useCoverThumbnail(displayUri, decodeEdge);
   const resolvedViewerUri =
     viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : displayUri;
 
@@ -131,7 +159,7 @@ export const CoverImage = memo(function CoverImage({
       />
     ) : null;
 
-  if (displayUri === null || failedUri === displayUri) {
+  if (displayUri === null || failedUri === displayUri || thumbnail.status === 'failed') {
     return (
       <>
         <View
@@ -160,18 +188,31 @@ export const CoverImage = memo(function CoverImage({
   // accessible name. Standalone covers hide the Image too — the outer Pressable speaks for it.
   // No placeholder behind a known URI — that flashes the fallback icon while the bitmap paints
   // (worse on slow Android decode).
+  let imageSource: ImageRef | ImageSource | null = { uri: displayUri };
+  if (thumbnail.status === 'ready') {
+    imageSource = thumbnail.ref;
+  } else if (thumbnail.status === 'loading') {
+    imageSource = null;
+  } else if (decodeEdge !== undefined && Number.isFinite(decodeEdge) && decodeEdge > 0) {
+    imageSource = { height: decodeEdge, uri: displayUri, width: decodeEdge };
+  }
+
   const image = (imageStyle: StyleProp<CoverImageStyle>) => (
     <Image
       accessibilityElementsHidden
       accessibilityIgnoresInvertColors
+      allowDownscaling
       cachePolicy="memory-disk"
       contentFit="cover"
       importantForAccessibility="no"
       onError={() => {
         setFailedUri(displayUri);
       }}
+      onLoad={(event) => {
+        noteImageLoad(event.source.width, event.source.height);
+      }}
       recyclingKey={displayUri}
-      source={{ uri: displayUri }}
+      source={imageSource}
       style={imageStyle}
       testID={opensViewer ? undefined : testID}
       transition={0}

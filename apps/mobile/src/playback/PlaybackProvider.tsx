@@ -90,6 +90,7 @@ import {
   resolveAutoQueueConfigAfterDirective,
 } from '../lib/autoQueue/autoQueue';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
+import { perfCount } from '../lib/perf/perfSpans';
 import {
   buildChapterPlaybackTarget,
   buildClipPlaybackTarget,
@@ -2896,6 +2897,9 @@ export function usePlaybackSession(): PlaybackSessionContextValue {
 }
 
 export function usePlaybackRow(): PlaybackRowContextValue {
+  useEffect(() => {
+    perfCount('playback.row.read');
+  }, []);
   const context = useContext(PlaybackRowContext);
   if (context === undefined) {
     throw new Error('usePlaybackRow must be used within a PlaybackProvider');

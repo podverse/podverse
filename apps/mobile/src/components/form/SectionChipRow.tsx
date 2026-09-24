@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { notePerfTouch, stampPerfFrame } from '../../lib/perf/perfFrames';
+import { perfMark } from '../../lib/perf/perfSpans';
 import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
@@ -94,7 +96,13 @@ export function SectionChip({
       accessibilityLabel={label}
       accessibilityRole={isFilter ? 'button' : 'tab'}
       accessibilityState={{ selected }}
-      onPress={onPress}
+      onPress={(event) => {
+        notePerfTouch(event.nativeEvent.timestamp);
+        onPress();
+      }}
+      onPressIn={() => {
+        perfMark('chip.pressin', testID);
+      }}
       style={[styles.chip, isFilter ? filterChrome.chip : selected ? styles.chipActive : null]}
       testID={testID}
     >
@@ -143,6 +151,11 @@ export function SectionChipRow<T extends string>({
       }),
     [tokens]
   );
+
+  // Runs in the commit that first shows the newly selected chip.
+  useLayoutEffect(() => {
+    stampPerfFrame('chip.visible');
+  }, [selectedKey]);
 
   return (
     <View accessible={false} testID={testID}>

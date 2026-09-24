@@ -8,13 +8,22 @@ import {
   buildSummary,
   CHIP_TAPS_PER_PASS,
   deriveChipSwitchReport,
+  deriveCounterDeltas,
+  deriveImageLoadReport,
+  derivePressinLatency,
+  deriveScrollFrameReport,
+  deriveTapUiReport,
+  deriveUiLongReport,
   formatSummaryTxt,
   helpText,
   MANUAL_GESTURE,
+  parseFootprint,
+  parseFrameGapDetail,
   parseGfxinfoFramestats,
   parseTimelineFromLog,
   percentile,
   PERF_LOG_TAG,
+  STAGE_NAMES,
 } from './perf-report.mjs';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -83,6 +92,33 @@ test('deriveChipSwitchReport computes stage durations from an ordered mark list'
   assert.equal(report.counters['prefs.getItem'], 4);
   assert.equal(report.counters['home.row.mount'], 9);
   assert.equal(report.counters['home.load.abandoned'], 0);
+});
+
+test('pending, chipFrame, and spinner are tap-to-frame durations', () => {
+  const report = deriveChipSwitchReport({
+    counters: {},
+    marks: [
+      mark('home.chip.tap', 100, 'podcasts'),
+      mark('home.chip.pending', 116, 'podcasts'),
+      mark('home.chip.frame', 180, 'podcasts'),
+      mark('home.spinner', 190, 'podcasts'),
+      mark('home.prefs.end', 200, 'podcasts'),
+      mark('home.load.start', 210, 'initial'),
+      mark('home.repo.end', 240, 'podcasts'),
+      mark('home.rows.set', 250, 'podcasts'),
+      mark('home.paint', 300, 'podcasts'),
+      mark('chip.jsframes', 300, 'count=4,over17=1,over33=0,maxMs=80.0'),
+    ],
+  });
+  const tap = report.passes[0].taps[0];
+  assert.equal(tap.pending, 16);
+  assert.equal(report.passes[0].stages.pending.p95, 16);
+  assert.equal(tap.chipFrame, 80);
+  assert.equal(tap.spinner, 90);
+  assert.equal(report.passes[0].stages.chipFrame.p95, 80);
+  assert.equal(report.passes[0].stages.spinner.p95, 90);
+  assert.equal(report.chipFrames.js[0].maxGapMs, 80);
+  assert.equal(report.chipFrames.ui.length, 0);
 });
 
 test('a tap with home.chip.tap and no home.paint is abandoned, not zero', () => {
@@ -466,7 +502,7 @@ test('manual mode derives one pass labelled manual, with null frames', () => {
   const text = formatSummaryTxt(summary);
   assert.match(text, /pass 1 \(manual\)/);
   assert.match(text, /mode\s+manual/);
-  assert.match(text, /null {2}\(manual capture has no scripted fling\)/);
+  assert.match(text, /null {2}\(no gfxinfo \/ use scroll\.uiframes from the timeline\)/);
   assert.doesNotMatch(text, /pass 2/);
   assert.doesNotMatch(text, /no automatable iOS frame stats/);
 
@@ -476,7 +512,7 @@ test('manual mode derives one pass labelled manual, with null frames', () => {
   assert.equal(help.includes(MANUAL_GESTURE), true);
   assert.equal(
     MANUAL_GESTURE,
-    'from Home, tap Podcasts → Episodes → Artists → Episodes → Podcasts as fast as you can, then wait three seconds for the timeline to flush.'
+    'from Home with Podcasts selected, tap Episodes → Artists → Episodes → Podcasts about one second apart, three times through, then wait three seconds for the timeline to flush.'
   );
 });
 
@@ -495,7 +531,7 @@ test('formatSummaryTxt keeps a missing stage as an em dash, not zero', () => {
     passes: report.passes,
   });
   assert.match(text, /abandoned taps: 1/);
-  assert.match(text, /null {2}\(no automatable iOS frame stats\)/);
+  assert.match(text, /null {2}\(no gfxinfo on this device; see scrollFrames\)/);
   assert.match(text, /dirty=true/);
   assert.doesNotMatch(text, /total\s+0\.0\s+0\.0\s+0\.0/);
 });
@@ -610,14 +646,21 @@ test('formatSummaryTxt prints the early-paint line with stale samples and with n
     /early paints: 6 of 8 {2}stale p50 683\.0 {2}p95 700\.0 {2}max 700\.0 {2}n 2/
   );
   assert.equal(staleText.includes('staleMs'), false);
+  assert.deepEqual(STAGE_NAMES, [
+    'pending',
+    'chipFrame',
+    'spinner',
+    'prefsGate',
+    'read',
+    'commit',
+    'paint',
+    'total',
+  ]);
   assert.equal(
-    REPORT_SOURCE.includes("STAGE_NAMES = ['prefsGate', 'read', 'commit', 'paint', 'total']"),
-    true
-  );
-  assert.equal(
-    REPORT_SOURCE.includes(
-      "COUNTER_NAMES = ['prefs.getItem', 'home.row.mount', 'home.load.abandoned']"
-    ),
+    REPORT_SOURCE.includes("'prefs.getItem'") &&
+      REPORT_SOURCE.includes("'home.row.mount'") &&
+      REPORT_SOURCE.includes("'home.load.abandoned'") &&
+      REPORT_SOURCE.includes("'image.load'"),
     true
   );
 
@@ -653,4 +696,219 @@ test('stageMs still throws when a stage ends before it starts', () => {
     /prefsGate has a negative duration/
   );
   assert.equal(REPORT_SOURCE.includes('has a negative duration'), true);
+});
+
+test('deriveChipSwitchReport accepts browse surface marks', () => {
+  const report = deriveChipSwitchReport(
+    {
+      counters: {},
+      marks: [
+        mark('browse.chip.tap', 100, 'episodes'),
+        mark('browse.prefs.end', 130, 'episodes'),
+        mark('browse.load.start', 140, 'initial'),
+        mark('browse.repo.end', 200, 'episodes'),
+        mark('browse.rows.set', 220, 'episodes'),
+        mark('browse.paint', 260, 'episodes'),
+      ],
+    },
+    { surface: 'browse' }
+  );
+  assert.equal(report.surface, 'browse');
+  assert.equal(report.passes[0].taps[0].total, 160);
+  assert.equal(report.passes[0].taps[0].prefsGate, 30);
+});
+
+test('parseFrameGapDetail and deriveScrollFrameReport read scroll marks', () => {
+  assert.deepEqual(parseFrameGapDetail('count=10,over17=3,over33=1,maxMs=40.0'), {
+    frameCount: 10,
+    maxGapMs: 40,
+    over17Ms: 3,
+    over33Ms: 1,
+  });
+  const report = deriveScrollFrameReport({
+    counters: {},
+    marks: [
+      mark('scroll.jsframes', 1, 'count=8,over17=2,over33=0,maxMs=20.0'),
+      mark('scroll.uiframes', 2, 'count=8,over17=4,over33=1,maxMs=45.5'),
+    ],
+  });
+  assert.equal(report.js.length, 1);
+  assert.equal(report.ui[0].over33Ms, 1);
+  assert.equal(report.ui[0].maxGapMs, 45.5);
+});
+
+test('deriveImageLoadReport and derivePressinLatency', () => {
+  const image = deriveImageLoadReport({
+    counters: { 'image.load': 2 },
+    marks: [mark('image.load', 1, 'maxEdge=3000'), mark('image.load', 2, 'maxEdge=120')],
+  });
+  assert.equal(image.count, 2);
+  assert.equal(image.maxEdge, 3000);
+
+  const latencies = derivePressinLatency({
+    marks: [
+      mark('chip.pressin', 10, 'home-media-type-episodes'),
+      mark('home.chip.tap', 25, 'episodes'),
+      mark('chip.pressin', 40, 'home-media-type-podcasts'),
+      mark('home.chip.tap', 50, 'podcasts'),
+    ],
+  });
+  assert.deepEqual(latencies, [15, 10]);
+});
+
+const TAP_UI_TIMELINE = {
+  counters: {},
+  marks: [
+    mark('home.chip.initial', 0, 'podcasts'),
+    mark('chip.touch', 1000, 'touchMs=5000.000,lagMs=12.0'),
+    mark('home.chip.tap', 1002, 'episodes'),
+    mark('chip.visible', 1100, 'touchMs=5000.000,ms=40.0'),
+    mark('spinner.visible', 1100, 'touchMs=5000.000,ms=40.0'),
+    mark('list.visible', 1500, 'touchMs=5000.000,ms=380.0'),
+    mark('ui.long', 1500, 'gapMs=150.0,agoMs=400.0'),
+    mark('chip.touch', 2000, 'touchMs=6000.000,lagMs=4.0'),
+    mark('home.chip.tap', 2001, 'podcasts'),
+    mark('home.visit.revisit', 2001, 'podcasts'),
+    mark('chip.visible', 2100, 'touchMs=6000.000,ms=20.0'),
+    mark('list.visible', 2100, 'touchMs=6000.000,ms=20.0'),
+  ],
+};
+
+test('deriveTapUiReport pairs touches with stamps and splits first visits from revisits', () => {
+  const report = deriveTapUiReport(TAP_UI_TIMELINE, 'home');
+  assert.equal(report.all.taps, 2);
+  assert.equal(report.first.taps, 1);
+  assert.equal(report.revisit.taps, 1);
+  assert.equal(report.revisit.keptReveals, 1);
+  assert.equal(report.first.touchLagMs.p95, 12);
+  assert.equal(report.first.chipVisibleMs.p95, 40);
+  assert.equal(report.first.listVisibleMs.p95, 380);
+  assert.equal(report.first.uiMaxGapMs.p95, 150);
+  assert.equal(report.first.uiOver100Taps, 1);
+  assert.equal(report.revisit.uiMaxGapMs.p95, 0);
+  assert.deepEqual(Object.keys(report.byTransition), ['podcasts→episodes', 'episodes→podcasts']);
+});
+
+test('deriveTapUiReport never pairs stamps to a touch on a mismatched clock', () => {
+  const report = deriveTapUiReport(
+    {
+      counters: {},
+      marks: [
+        mark('home.chip.initial', 0, 'podcasts'),
+        mark('chip.touch', 1000, 'clock=mismatch'),
+        mark('home.chip.tap', 1001, 'episodes'),
+        mark('chip.visible', 1100, 'touchMs=5000.000,ms=40.0'),
+        mark('home.chip.tap', 3000, 'episodes'),
+      ],
+    },
+    'home'
+  );
+  assert.equal(report.all.taps, 1);
+  assert.equal(report.all.chipVisibleMs.n, 0);
+  assert.equal(report.all.touchLagMs.n, 0);
+  assert.equal(report.noopTaps, 1);
+});
+
+test('deriveCounterDeltas measures a counter from each start mark to the next', () => {
+  const plays = deriveCounterDeltas(
+    {
+      counters: { 'home.row.render': 70 },
+      marks: [
+        mark('home.play.tap', 0, 'episodes', { 'home.row.render': 10 }),
+        mark('home.play.tap', 100, 'episodes', { 'home.row.render': 30 }),
+        mark('home.play.tap', 200, 'episodes', { 'home.row.render': 32 }),
+      ],
+    },
+    { counter: 'home.row.render', start: 'home.play.tap' }
+  );
+  assert.equal(plays.n, 3);
+  assert.equal(plays.p50, 20);
+  assert.equal(plays.max, 38);
+
+  const refreshes = deriveCounterDeltas(
+    {
+      counters: { 'home.row.render': 9 },
+      marks: [
+        mark('home.load.start', 0, 'refresh', { 'home.row.render': 1 }),
+        mark('home.load.start', 50, 'synced', { 'home.row.render': 5 }),
+      ],
+    },
+    { counter: 'home.row.render', detail: 'refresh', start: 'home.load.start' }
+  );
+  assert.equal(refreshes.n, 1);
+  assert.equal(refreshes.max, 4);
+});
+
+test('deriveUiLongReport counts only gaps that end after the gesture starts', () => {
+  const report = deriveUiLongReport(
+    {
+      counters: {},
+      marks: [
+        mark('ui.long', 100, 'gapMs=300.0,agoMs=50.0'),
+        mark('home.chip.tap', 1000, 'episodes'),
+        mark('ui.long', 1500, 'gapMs=120.0,agoMs=100.0'),
+        mark('ui.long', 1600, 'gapMs=30.0,agoMs=10.0'),
+      ],
+    },
+    900
+  );
+  assert.equal(report.n, 2);
+  assert.equal(report.over100, 1);
+  assert.equal(report.max, 120);
+});
+
+test('parseFootprint reads phys_footprint and its peak in MB', () => {
+  const text =
+    'Auxiliary data:\n    phys_footprint: 822083584 B\n    phys_footprint_peak: 1159725056 B\n';
+  assert.deepEqual(parseFootprint(text), { peakMb: 1106, physMb: 784 });
+  assert.equal(parseFootprint('no footprint here'), null);
+});
+
+test('buildSummary reports row renders for play captures without chip stages', () => {
+  const summary = buildSummary({
+    commit: 'abc',
+    device: 'ios',
+    dirty: false,
+    frames: null,
+    gesture: 'play',
+    mode: 'manual',
+    timeline: {
+      counters: { 'home.row.render': 8 },
+      marks: [
+        mark('home.chip.tap', 0, 'episodes'),
+        mark('home.play.tap', 100, 'episodes', { 'home.row.render': 2 }),
+      ],
+    },
+  });
+  assert.equal(summary.surface, null);
+  assert.equal(summary.tapUi, undefined);
+  assert.equal(summary.rowRenders.playTap.max, 6);
+  assert.equal(summary.uiLong.n, 0);
+});
+
+test('formatSummaryTxt prints tapUi, uiLong, rowRenders, and footprint', () => {
+  const text = formatSummaryTxt({
+    commit: 'abc',
+    counters: {},
+    countersPerTap: {},
+    device: 'ios',
+    dirty: false,
+    footprint: { peakMb: 900, physMb: 700 },
+    frames: null,
+    mode: 'manual',
+    passes: [],
+    rowRenders: {
+      playTap: deriveCounterDeltas(TAP_UI_TIMELINE, {
+        counter: 'home.row.render',
+        start: 'home.play.tap',
+      }),
+    },
+    tapUi: deriveTapUiReport(TAP_UI_TIMELINE, 'home'),
+    uiLong: deriveUiLongReport(TAP_UI_TIMELINE),
+  });
+  assert.match(text, /tapUi/);
+  assert.match(text, /podcasts→episodes/);
+  assert.match(text, /uiLong/);
+  assert.match(text, /rowRenders/);
+  assert.match(text, /footprint {2}phys 700 MB {2}peak 900 MB/);
 });

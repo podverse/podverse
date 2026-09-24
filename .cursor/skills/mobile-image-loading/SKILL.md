@@ -1,6 +1,6 @@
 ---
 name: mobile-image-loading
-description: Mobile artwork prefetch, disk cache, and first-paint preview so list→detail navigation does not flash empty covers. Use when wiring CoverImage, navigating into a channel/item header, or tuning image UX on weak Android.
+description: Mobile artwork prefetch, disk cache, first-paint preview, and iOS list thumbnails. Use when wiring CoverImage, decodeEdge, navigating into a channel/item header, or tuning image UX.
 ---
 
 # Mobile image loading (prefetch, cache, FOUC)
@@ -40,6 +40,31 @@ compact header without a second network round-trip. Standalone covers open the l
 - Lightbox / full-screen viewer stays **largest original** and is **not** prefetched on list tap.
 - Do not paint the placeholder bitmap behind a `uri` that is already set — that flashes the
   headphone icon while a known cover decodes.
+
+## iOS list thumbnails
+
+expo-image on iOS resizes a remote URI on the main queue. A Home chip switch mounts about twenty
+covers in the commit that must paint the new chip, so full-size art stalls the finger lift.
+Android already decodes at view size off the main thread.
+
+`CoverImage` takes `decodeEdge` (displayed points) on list, grid, and compact header art.
+`useCoverThumbnail` (`apps/mobile/src/components/primitives/useCoverThumbnail.ts`) is iOS-only:
+
+- Eligible URIs exclude animated GIFs. No edge, or Android, returns `off` and the plain path runs.
+- `thumbnailEdgePx` is `round(points × PixelRatio)`, at least 1. That is the decode size
+  (`maxWidth` / `maxHeight` on `Image.loadAsync`). Do not add a step, a multiplier, or a "high
+  definition" bump. A bitmap larger than the tile is minified in the layer and looks worse.
+- The load source includes `scale: PixelRatio.get()`. Native `ImageSource` has `scale`; the public
+  TypeScript type omits it, so the source is a variable rather than a type assertion. Scale 1
+  leaves a device-pixel bitmap tagged as hundreds of points, and trilinear minification softens
+  photographs while flat logos still look acceptable.
+- The view receives the `ImageRef`, not `{ uri }`. An image reference skips the main-queue resize.
+- The cache is about 24 MB of decoded pixels, keyed by pixel edge and URI. Do not `release()` the
+  reference. A failed load is not remembered.
+
+The channel header passes its 78 pt edge. The full-screen viewer and large player art omit
+`decodeEdge`. Narrative and the T5 numbers:
+[MOBILE-IOS-CHIP-SWITCH.md](/docs/development/mobile/MOBILE-IOS-CHIP-SWITCH.md).
 
 ## Never block a tap
 

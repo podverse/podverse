@@ -113,6 +113,8 @@
     "dev:management-web-sidecar": "(test -f apps/management-web/sidecar/dist/server.js || npm run build:sidecar:management-web) && npm run dev:sidecar -w apps/management-web",
     "mobile:dev": "npm --prefix apps/mobile run start",
     "mobile:dev:perf": "EXPO_PUBLIC_MOBILE_PERF=1 npm --prefix apps/mobile run start",
+    "mobile:dev:perf:noimages": "EXPO_PUBLIC_MOBILE_PERF=1 EXPO_PUBLIC_MOBILE_PERF_NO_IMAGES=1 npm --prefix apps/mobile run start",
+    "mobile:dev:perf:prodjs": "EXPO_PUBLIC_MOBILE_PERF=1 npm --prefix apps/mobile run start -- --no-dev --minify",
     "mobile:dev:clear": "npm --prefix apps/mobile run start:clear",
     "mobile:dev:device": "bash scripts/mobile/dev-physical-android.sh",
     "mobile:dev:e2e": "bash scripts/mobile/dev-e2e.sh",

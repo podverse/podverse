@@ -8,6 +8,7 @@ import { useThemedStyles } from '../../theme/useThemedStyles';
 import type { HomeFeedRowData } from './homeFeedData';
 
 type HomeFeedGridCellProps = {
+  artworkEdge?: number;
   onPress: (row: HomeFeedRowData) => void;
   row: HomeFeedRowData;
   testID?: string;
@@ -53,6 +54,7 @@ const createStyles = ({ tokens }: ThemedStylesTheme) =>
  * screen reader is not left with blank squares.
  */
 export const HomeFeedGridCell = memo(function HomeFeedGridCell({
+  artworkEdge,
   onPress,
   row,
   testID,
@@ -87,7 +89,12 @@ export const HomeFeedGridCell = memo(function HomeFeedGridCell({
     >
       <View style={styles.tile}>
         {/* Artwork is decorative here: the Pressable owns the accessible name (title + badges). */}
-        <CoverImage opensViewer={false} style={styles.artwork} uri={row.imageUrl} />
+        <CoverImage
+          decodeEdge={artworkEdge}
+          opensViewer={false}
+          style={styles.artwork}
+          uri={row.imageUrl}
+        />
         {liveLabel !== null ? (
           <Badge
             label={liveLabel}

@@ -278,6 +278,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   useEffect(() => {
     perfCount('home.row.mount');
   }, []);
+  perfCount('home.row.render');
   const styles = useThemedStyles(createStyles);
   const isPlayable = isPlayableDirectoryMediaType(mediaType);
   const showInlineTrackMore = customActions === undefined && mediaType === 'tracks';
@@ -434,7 +435,12 @@ export const HomeFeedRow = memo(function HomeFeedRow({
         <View style={styles.identityRow}>
           {showArtwork ? (
             <View style={styles.artworkWrap}>
-              <CoverImage opensViewer={false} style={styles.image} uri={row.imageUrl} />
+              <CoverImage
+                decodeEdge={LIST_ROW_ARTWORK_SIZE}
+                opensViewer={false}
+                style={styles.image}
+                uri={row.imageUrl}
+              />
               {liveLabel !== null ? (
                 <View pointerEvents="none" style={styles.liveOnArtwork}>
                   <Badge

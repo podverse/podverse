@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DTOItem } from '@podverse/helpers/dto';
 import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosure';
 
+import { perfCount } from '../lib/perf/perfSpans';
 import {
   isDownloadQuotaUnlimited,
   readDownloadAutoDeleteOnDeviceLowEnabled,
@@ -215,6 +216,9 @@ export const useDownloadAction = (
   options?: { explicitSelectedParams?: EnclosureSelectedParams | null }
 ): DownloadAction => {
   const record = useItemDownload(item?.id_text ?? '', includeProgress);
+  useEffect(() => {
+    perfCount('download.action.read');
+  }, []);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const explicitSelectedParams = options?.explicitSelectedParams;
 

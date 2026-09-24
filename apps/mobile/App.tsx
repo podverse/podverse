@@ -19,6 +19,7 @@ import { downloadManager } from './src/downloads/downloadManager';
 import { ActionErrorProvider } from './src/feedback/ActionErrorProvider';
 import { initializeI18n } from './src/i18n';
 import { E2eQuickLogin } from './src/lib/e2e/E2eQuickLogin';
+import { startPerfUiMonitor } from './src/lib/perf/perfFrames';
 import { MembershipGateProvider } from './src/membership/MembershipGateProvider';
 import { MobileTabNavigator, navigateToMembershipScreen } from './src/navigation';
 import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
@@ -44,6 +45,8 @@ const SPLASH_MIN_VISIBLE_MS = 1000;
 void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
   console.warn('[splash] preventAutoHideAsync failed', error);
 });
+
+startPerfUiMonitor();
 
 export default function App() {
   const [isI18nReady, setIsI18nReady] = useState(false);

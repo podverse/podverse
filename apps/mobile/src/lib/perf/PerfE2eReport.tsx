@@ -2,11 +2,10 @@ import { useSyncExternalStore } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { isMobileE2eFromEnv } from '../../config/e2eEnv';
-import { isMobilePerfEnabledFromEnv } from '../../config/perfEnv';
 import { getPerfTimeline, subscribePerfTimeline } from './perfSpans';
 
-// Same gate as the recorder, read once at load. A normal or production build renders nothing.
-const isRecording = isMobileE2eFromEnv() || isMobilePerfEnabledFromEnv();
+// Maestro is the only reader of this node, so manual perf builds skip it and its re-renders.
+const isE2e = isMobileE2eFromEnv();
 
 const styles = StyleSheet.create({
   report: {
@@ -23,16 +22,8 @@ const styles = StyleSheet.create({
   },
 });
 
-/**
- * Proof the perf harness is mounted when the E2E harness or the dev perf flag is on. Maestro
- * asserts `perf-report-e2e`. The timeline travels on the device log (`flushPerfTimeline`); this
- * node is a 1×1 absolute status (`markCount/counterCount`) so it cannot take space in the tab bar.
- */
-export function PerfE2eReport() {
+function PerfE2eStatus() {
   const timeline = useSyncExternalStore(subscribePerfTimeline, getPerfTimeline);
-  if (!isRecording) {
-    return null;
-  }
   const markCount = timeline.marks.length;
   const counterCount = Object.keys(timeline.counters).length;
   return (
@@ -40,4 +31,16 @@ export function PerfE2eReport() {
       <Text numberOfLines={1} style={styles.status}>{`${markCount}/${counterCount}`}</Text>
     </View>
   );
+}
+
+/**
+ * Proof the perf harness is mounted in E2E builds. Maestro asserts `perf-report-e2e`. The timeline
+ * travels on the device log (`flushPerfTimeline`); this node is a 1×1 absolute status
+ * (`markCount/counterCount`) so it cannot take space in the tab bar.
+ */
+export function PerfE2eReport() {
+  if (!isE2e) {
+    return null;
+  }
+  return <PerfE2eStatus />;
 }
