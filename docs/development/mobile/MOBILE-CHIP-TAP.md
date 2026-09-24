@@ -74,9 +74,9 @@ sequenceDiagram
 
 The fix is the same code on both platforms. Before it, the devices did not share one bottleneck:
 
-| Device  | Largest stage before the fix                         |
-| ------- | ---------------------------------------------------- |
-| Android | Preference gate (most of the wait)                   |
+| Device  | Largest stage before the fix                          |
+| ------- | ----------------------------------------------------- |
+| Android | Preference gate (most of the wait)                    |
 | iOS     | Paint and preference gate close; paint slightly ahead |
 
 The kept timing is the seeded Android emulator. On a real iOS library the clear was not enough:

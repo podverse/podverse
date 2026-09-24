@@ -12,16 +12,16 @@ this file before running one. If the number you need is here, cite it instead.
 
 ## The harness
 
-| Piece                  | Where                                                                       |
-| ---------------------- | --------------------------------------------------------------------------- |
-| Span recorder          | `apps/mobile/src/lib/perf/perfSpans.ts` (dev/E2E only, inert in production) |
-| Frame probe (UI thread)| `apps/mobile/modules/podverse-perf-probe` (CADisplayLink / Choreographer)   |
-| Scroll JS frames       | `apps/mobile/src/lib/perf/perfFrames.ts` via `FillList`                     |
-| Home chip-switch marks | `apps/mobile/src/screens/home/HomeScreen.tsx`                               |
-| Browse chip-switch marks | `apps/mobile/src/screens/browse/BrowseScreen.tsx`                         |
-| Report script          | `scripts/mobile/perf-report.mjs`                                            |
-| Seeded flows           | `apps/mobile/e2e/perf-chip-switch.yaml`, `perf-browse-chip-switch.yaml`, `perf-scroll.yaml` |
-| Output                 | `.artifacts/mobile-perf/<timestamp>/summary.{json,txt}`                     |
+| Piece                    | Where                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------- |
+| Span recorder            | `apps/mobile/src/lib/perf/perfSpans.ts` (dev/E2E only, inert in production)                 |
+| Frame probe (UI thread)  | `apps/mobile/modules/podverse-perf-probe` (CADisplayLink / Choreographer)                   |
+| Scroll JS frames         | `apps/mobile/src/lib/perf/perfFrames.ts` via `FillList`                                     |
+| Home chip-switch marks   | `apps/mobile/src/screens/home/HomeScreen.tsx`                                               |
+| Browse chip-switch marks | `apps/mobile/src/screens/browse/BrowseScreen.tsx`                                           |
+| Report script            | `scripts/mobile/perf-report.mjs`                                                            |
+| Seeded flows             | `apps/mobile/e2e/perf-chip-switch.yaml`, `perf-browse-chip-switch.yaml`, `perf-scroll.yaml` |
+| Output                   | `.artifacts/mobile-perf/<timestamp>/summary.{json,txt}`                                     |
 
 ```bash
 PODVERSE_E2E_PERF_VOLUME=1 make mobile_e2e_seed
@@ -137,16 +137,16 @@ number. Seeded Android warm spread is 29%, just inside the 30% line.
 
 ## Candidate results
 
-| Candidate                            | Change                                                                                                                | Result                                                                                                                                                                                                                                                                                                                                                                     |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cache sort preferences in memory     | Module-level cache in `sortPrefs.ts` for `sort.` keys, including cached `null`                                        | **Reverted.** Warm `prefsGate` p95 406 ms vs 555 ms baseline, −26.9%. Bar was −60%. Per-tap `prefs.getItem` fell from 4 to 1, warm `total` p95 from 1145 ms to 642 ms, cold gate unchanged (620 ms vs 632 ms).                                                                                                                                                             |
-| Urgent clear plus loading state      | Home chip and list clear commit together; `ListLoading` while `hasCompletedFeedRead` is false                         | **Kept.** One seeded Android run, warm `total` p95 304 ms vs 1145 ms baseline (−73%). `prefs.getItem` per tap stayed at 4. Early paints 0 of 4. Rapid Android chip taps feel smooth. iOS was not rechecked.                                                                                                                                                                |
-| Third-party artwork on the perf seed | `PODVERSE_E2E_PERF_REMOTE_IMAGES=1` assigns 100 unique channel URLs and 300 unique item URLs. Default seed unchanged. | **Did not move the numbers.** One seeded Android run vs the post-07 localhost run: cold paint p95 136 ms vs 138 ms, warm total p95 304 ms vs 304 ms, fling 116 of 120 frames over 32 ms after the first two (localhost 117 and 116), worst frame 692 ms (localhost 653 ms and 400 ms). Screenshot shows distinct remote covers. Do not average with the localhost baseline. |
-| One translator for every list row    | A single `useTranslation()` published to the Home row subtree, replacing nine per-row subscriptions                   | **Reverted.** Warm paint p95 128 ms vs 139 ms post-07 (−8%; bar was −30%). Per-tap `home.row.mount` p95 stayed 24. Fling 117 of 120 frames over 32 ms after the first two, matching the post-07 Episodes fling.                                                                                                                                                            |
-| Urgent clear on Browse               | Browse chip and list clear commit together; pull-to-refresh lock releases even when the refresh is superseded         | **Kept.** No Browse perf flow; checked by hand on Android. Home re-measured to confirm it was untouched: warm `total` p95 371 ms, early paints 0 of 4, inside the Android warm spread.                                                                                                                                                                                     |
-| List-row `decodeEdge` on CoverImage  | Home list/grid passes `LIST_ROW_ARTWORK_SIZE` into expo-image `source` width/height; `allowDownscaling` on           | **Superseded.** Passing width/height still resized on the iOS main queue. The kept path decodes a thumbnail off that queue at device pixels, tagged with the screen scale. Chips: T5 in the ledger below. The Episodes fling gate was not re-measured. |
-| Yield a frame before list work       | Home and Browse start prefs/feed reads only after one `requestAnimationFrame` for the new chip (`chipFrameReadyFor`) | **Reverted.** One manual iOS run (4 taps): `chipFrame` 31–49 ms (was 96–138), `home.spinner` 45–69 ms, but `total` rose to 147–174 ms (was 102–149) and the chip still waited on the commit that unmounts the old rows. Gate was p95 ≤ 32 ms; operator felt no change.                                                                                                      |
-| Chip and spinner before list work    | Home and Browse set `pendingMediaType` on tap: active chip plus a spinner over the still-mounted old list, list element memoized. The real switch runs in the next `requestAnimationFrame` | **Pending gate.** Prediction: manual iOS `pending` p95 ≤ 25 ms, `total` p95 ≤ 150 ms. Revert if `pending` p95 is above 33 ms or the operator feels no change.                                                                                                                                                                                                                  |
+| Candidate                            | Change                                                                                                                                                                                     | Result                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cache sort preferences in memory     | Module-level cache in `sortPrefs.ts` for `sort.` keys, including cached `null`                                                                                                             | **Reverted.** Warm `prefsGate` p95 406 ms vs 555 ms baseline, −26.9%. Bar was −60%. Per-tap `prefs.getItem` fell from 4 to 1, warm `total` p95 from 1145 ms to 642 ms, cold gate unchanged (620 ms vs 632 ms).                                                                                                                                                              |
+| Urgent clear plus loading state      | Home chip and list clear commit together; `ListLoading` while `hasCompletedFeedRead` is false                                                                                              | **Kept.** One seeded Android run, warm `total` p95 304 ms vs 1145 ms baseline (−73%). `prefs.getItem` per tap stayed at 4. Early paints 0 of 4. Rapid Android chip taps feel smooth. iOS was not rechecked.                                                                                                                                                                 |
+| Third-party artwork on the perf seed | `PODVERSE_E2E_PERF_REMOTE_IMAGES=1` assigns 100 unique channel URLs and 300 unique item URLs. Default seed unchanged.                                                                      | **Did not move the numbers.** One seeded Android run vs the post-07 localhost run: cold paint p95 136 ms vs 138 ms, warm total p95 304 ms vs 304 ms, fling 116 of 120 frames over 32 ms after the first two (localhost 117 and 116), worst frame 692 ms (localhost 653 ms and 400 ms). Screenshot shows distinct remote covers. Do not average with the localhost baseline. |
+| One translator for every list row    | A single `useTranslation()` published to the Home row subtree, replacing nine per-row subscriptions                                                                                        | **Reverted.** Warm paint p95 128 ms vs 139 ms post-07 (−8%; bar was −30%). Per-tap `home.row.mount` p95 stayed 24. Fling 117 of 120 frames over 32 ms after the first two, matching the post-07 Episodes fling.                                                                                                                                                             |
+| Urgent clear on Browse               | Browse chip and list clear commit together; pull-to-refresh lock releases even when the refresh is superseded                                                                              | **Kept.** No Browse perf flow; checked by hand on Android. Home re-measured to confirm it was untouched: warm `total` p95 371 ms, early paints 0 of 4, inside the Android warm spread.                                                                                                                                                                                      |
+| List-row `decodeEdge` on CoverImage  | Home list/grid passes `LIST_ROW_ARTWORK_SIZE` into expo-image `source` width/height; `allowDownscaling` on                                                                                 | **Superseded.** Passing width/height still resized on the iOS main queue. The kept path decodes a thumbnail off that queue at device pixels, tagged with the screen scale. Chips: T5 in the ledger below. The Episodes fling gate was not re-measured.                                                                                                                      |
+| Yield a frame before list work       | Home and Browse start prefs/feed reads only after one `requestAnimationFrame` for the new chip (`chipFrameReadyFor`)                                                                       | **Reverted.** One manual iOS run (4 taps): `chipFrame` 31–49 ms (was 96–138), `home.spinner` 45–69 ms, but `total` rose to 147–174 ms (was 102–149) and the chip still waited on the commit that unmounts the old rows. Gate was p95 ≤ 32 ms; operator felt no change.                                                                                                      |
+| Chip and spinner before list work    | Home and Browse set `pendingMediaType` on tap: active chip plus a spinner over the still-mounted old list, list element memoized. The real switch runs in the next `requestAnimationFrame` | **Pending gate.** Prediction: manual iOS `pending` p95 ≤ 25 ms, `total` p95 ≤ 150 ms. Revert if `pending` p95 is above 33 ms or the operator feels no change.                                                                                                                                                                                                               |
 
 The preference cache is worth knowing about: the storage round-trips were real and removing them did
 help, but about three quarters of the gate time survived, so **the gate is not the `AsyncStorage`
@@ -166,13 +166,13 @@ measured natively on one clock, so they are what the user sees (rAF marks are no
 difference smaller than the B1–B2 spread, and never less than 8 ms, is no change. Each change lands
 alone and is captured before the next, so this table shows which changes mattered.
 
-| Label | Date | Build | chipVisible p95 first / revisit | spinnerVisible p95 | listVisible p95 revisit | uiMaxGap p95 | taps ≥100 ms gap | touchLag p95 | row renders (play / refresh) | footprint MB | Impression | Decision |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B1 | 2026-09-23 | dev JS | 46.3 / 776.7 | 776.7 | 776.7 | 759.8 | 12/12 | 368.6 | — | 614 | not given | baseline |
-| B2 | 2026-09-23 | dev JS | 440.2 / 792.3 | 792.3 | 792.3 | 400.0 | 16/16 | 402.3 | — | 611 | not given | baseline (16 taps) |
-| P0 | 2026-09-23 | dev JS | — | — | — | — | — | — | 16 p50, 32 p95 / — | 621 | not given | baseline (n=8) |
-| R0 | 2026-09-23 | dev JS | — | — | — | — | — | — | — / 16 | 391 | not given | baseline (n=4) |
-| T5 | 2026-09-23 | dev JS | 83.6 / 66.7 | 83.6 | 178.9 | 59.2 | 0/13 | 21.9 | — | 265 | quick; grid art a little softer | kept (13 taps) |
+| Label | Date       | Build  | chipVisible p95 first / revisit | spinnerVisible p95 | listVisible p95 revisit | uiMaxGap p95 | taps ≥100 ms gap | touchLag p95 | row renders (play / refresh) | footprint MB | Impression                      | Decision           |
+| ----- | ---------- | ------ | ------------------------------- | ------------------ | ----------------------- | ------------ | ---------------- | ------------ | ---------------------------- | ------------ | ------------------------------- | ------------------ |
+| B1    | 2026-09-23 | dev JS | 46.3 / 776.7                    | 776.7              | 776.7                   | 759.8        | 12/12            | 368.6        | —                            | 614          | not given                       | baseline           |
+| B2    | 2026-09-23 | dev JS | 440.2 / 792.3                   | 792.3              | 792.3                   | 400.0        | 16/16            | 402.3        | —                            | 611          | not given                       | baseline (16 taps) |
+| P0    | 2026-09-23 | dev JS | —                               | —                  | —                       | —            | —                | —            | 16 p50, 32 p95 / —           | 621          | not given                       | baseline (n=8)     |
+| R0    | 2026-09-23 | dev JS | —                               | —                  | —                       | —            | —                | —            | — / 16                       | 391          | not given                       | baseline (n=4)     |
+| T5    | 2026-09-23 | dev JS | 83.6 / 66.7                     | 83.6               | 178.9                   | 59.2         | 0/13             | 21.9         | —                            | 265          | quick; grid art a little softer | kept (13 taps)     |
 
 ## Episodes fling — corrected frame baseline, 2026-09-22
 
@@ -225,11 +225,11 @@ both. Reload between manual gestures.
 
 ## Proposed gates (confirm with real-library diagnosis)
 
-| Gesture | Gate | Notes |
-| ------- | ---- | ----- |
-| Chip press → selected chip | pressin latency p95 ≤ 100 ms | From `chip.pressin` → `*.chip.tap` |
-| Home/Browse chip total | warm total p95 ≤ 300 ms on iOS | Manual and seeded kept apart |
-| Episodes fling | UI `over33` / `count` ≤ 5% | From `scroll.uiframes` |
+| Gesture                    | Gate                           | Notes                              |
+| -------------------------- | ------------------------------ | ---------------------------------- |
+| Chip press → selected chip | pressin latency p95 ≤ 100 ms   | From `chip.pressin` → `*.chip.tap` |
+| Home/Browse chip total     | warm total p95 ≤ 300 ms on iOS | Manual and seeded kept apart       |
+| Episodes fling             | UI `over33` / `count` ≤ 5%     | From `scroll.uiframes`             |
 
 ## iOS diagnosis session
 

@@ -45,12 +45,12 @@ do not: they show the original.
 
 On the manual iPhone, after the thumbnail path and before the scale tag (capture T5):
 
-| | Before (B1 / B2) | After (T5) |
-| --- | --- | --- |
-| Chip visible p95, revisit | 777 ms / 792 ms | 67 ms |
-| UI-thread gap p95 | 760 ms / 400 ms | 59 ms |
-| Taps with a gap ≥ 100 ms | 12/12 and 16/16 | 0/13 |
-| Footprint | ~614 MB | 265 MB |
+|                           | Before (B1 / B2) | After (T5) |
+| ------------------------- | ---------------- | ---------- |
+| Chip visible p95, revisit | 777 ms / 792 ms  | 67 ms      |
+| UI-thread gap p95         | 760 ms / 400 ms  | 59 ms      |
+| Taps with a gap ≥ 100 ms  | 12/12 and 16/16  | 0/13       |
+| Footprint                 | ~614 MB          | 265 MB     |
 
 First-visit chip time was already noisy between the two baselines (46 ms and 440 ms). T5's 84 ms
 sits inside that spread. The operator's later check, after the exact-pixel edge and the screen

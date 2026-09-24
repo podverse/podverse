@@ -5,10 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
-import {
-  podcastIndexFeedListImageUrl,
-  unparsedPodcastIndexFeedTarget,
-} from '@podverse/helpers';
+import { podcastIndexFeedListImageUrl, unparsedPodcastIndexFeedTarget } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';

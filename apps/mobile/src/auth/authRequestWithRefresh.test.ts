@@ -200,10 +200,8 @@ describe('refreshAccessTokenSingleFlight', () => {
   });
 
   it('skips setTokens when the session generation advances while refresh is in flight', async () => {
-    let resolveRefresh: (value: {
-      access_token: string;
-      refresh_token: string;
-    }) => void = () => undefined;
+    let resolveRefresh: (value: { access_token: string; refresh_token: string }) => void = () =>
+      undefined;
 
     const reqAuthMobileRefresh = vi.fn(
       () =>

@@ -113,7 +113,9 @@ describe('enrichMissedChannelsUnaddedByFeedUrl', () => {
   });
 
   it('skips feeds that lack a positive podcast index id', async () => {
-    const lookup = vi.fn(async () => feed({ id: 0, title: 'Bad', url: 'https://example.com/x.xml' }));
+    const lookup = vi.fn(async () =>
+      feed({ id: 0, title: 'Bad', url: 'https://example.com/x.xml' })
+    );
 
     const extras = await enrichMissedChannelsUnaddedByFeedUrl(
       [
