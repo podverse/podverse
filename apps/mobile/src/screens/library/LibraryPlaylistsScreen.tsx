@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
@@ -13,10 +13,10 @@ import type {
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { PlaylistListRow } from '../../components/content';
-import type { MenuSelectChipOption, OptionChipOption } from '../../components/form';
-import { MenuSelectChip, OptionChipGroup } from '../../components/form';
-import { Button, FillList, VerticalCenter } from '../../components/primitives';
-import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
+import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
+import { MenuSelectChip, SectionChipRow } from '../../components/form';
+import { FillList, VerticalCenter } from '../../components/primitives';
+import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -39,6 +39,7 @@ import {
   writePlaylistListSort,
   writePlaylistListType,
 } from '../../prefs/playlistListPrefs';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type LibraryPlaylistsScreenProps = NativeStackScreenProps<
@@ -114,26 +115,26 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
   const [hasCachedList, setHasCachedList] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        createButton: {
-          marginBottom: tokens.spacing.md,
-        },
-        rowSpacing: {
-          marginTop: tokens.spacing.sm,
-        },
-        sortRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-        },
-        stateFill: {
-          flex: 1,
-        },
-      }),
-    [themeStyles, tokens]
-  );
+  const styles = useMemo(() => {
+    const insets = screenBodyInsets(tokens.spacing);
+    return StyleSheet.create({
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+      listArea: {
+        flex: 1,
+      },
+      listContent: {
+        flexGrow: 1,
+        paddingBottom: tokens.spacing['2xl'],
+        paddingHorizontal: insets.paddingHorizontal,
+      },
+      selectorSection: {
+        ...insets,
+      },
+    });
+  }, [themeStyles, tokens]);
 
   const authContext = useMemo(
     () => ({
@@ -147,17 +148,17 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
 
   const listKind = selectedType === 'private' ? 'owned' : 'followed';
 
-  const listTypeOptions = useMemo<readonly OptionChipOption<PlaylistListType>[]>(
+  const listTypeChips = useMemo<readonly SectionChipItem<PlaylistListType>[]>(
     () => [
       {
+        key: 'private',
         label: t('features.playlist.my_playlists'),
         testID: 'library-playlists-type-private',
-        value: 'private',
       },
       {
+        key: 'private_followed',
         label: t('filters.type.subscribed'),
         testID: 'library-playlists-type-followed',
-        value: 'private_followed',
       },
     ],
     [t]
@@ -361,6 +362,22 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistCreate);
   }, [evaluateFeature, isTierKnown, navigation, openGate]);
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight:
+        status === 'authenticated'
+          ? () => (
+              <HeaderBarAction
+                accessibilityLabel={t('features.playlist.create_playlist')}
+                icon="add"
+                onPress={handleCreatePress}
+                testID="library-playlists-create"
+              />
+            )
+          : undefined,
+    });
+  }, [handleCreatePress, navigation, status, t]);
+
   const handlePlaylistPress = useCallback(
     (playlist: DTOPlaylist) => {
       navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistDetail, {
@@ -450,60 +467,36 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     showSignedOut,
   ]);
 
-  const listHeader = useMemo(
-    () =>
-      status === 'authenticated' ? (
-        <View>
-          <View style={styles.createButton}>
-            <Button
-              label={t('features.playlist.create_playlist')}
-              onPress={handleCreatePress}
-              testID="library-playlists-create"
-            />
-          </View>
-          <OptionChipGroup
-            onChange={handleTypeChange}
-            options={listTypeOptions}
-            testID="library-playlists-type-chips"
-            value={selectedType}
+  const chipTrailing = useMemo(
+    () => (
+      <>
+        <MenuSelectChip
+          heading={t('filters.screen.sort_heading')}
+          menuTitle={t('filters.screen.sort_heading')}
+          onSelect={handleSortChange}
+          options={sortOptions}
+          testID="library-playlists-sort"
+          value={selectedSort}
+        />
+        {selectedSort === 'top' ? (
+          <MenuSelectChip
+            heading={t('filters.screen.range_heading')}
+            menuTitle={t('filters.screen.range_heading')}
+            onSelect={handleRangeChange}
+            options={rangeOptions}
+            testID="library-playlists-range"
+            value={selectedRange}
           />
-          <View style={[styles.rowSpacing, styles.sortRow]}>
-            <MenuSelectChip
-              heading={t('filters.screen.sort_heading')}
-              menuTitle={t('filters.screen.sort_heading')}
-              onSelect={handleSortChange}
-              options={sortOptions}
-              testID="library-playlists-sort"
-              value={selectedSort}
-            />
-            {selectedSort === 'top' ? (
-              <MenuSelectChip
-                heading={t('filters.screen.range_heading')}
-                menuTitle={t('filters.screen.range_heading')}
-                onSelect={handleRangeChange}
-                options={rangeOptions}
-                testID="library-playlists-range"
-                value={selectedRange}
-              />
-            ) : null}
-          </View>
-        </View>
-      ) : null,
+        ) : null}
+      </>
+    ),
     [
-      handleCreatePress,
       handleRangeChange,
       handleSortChange,
-      handleTypeChange,
-      listTypeOptions,
       rangeOptions,
       selectedRange,
       selectedSort,
-      selectedType,
       sortOptions,
-      status,
-      styles.createButton,
-      styles.rowSpacing,
-      styles.sortRow,
       t,
     ]
   );
@@ -546,22 +539,31 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
   );
 
   return (
-    <MobileScreenContainer
-      heading={t('features.playlist.playlists')}
-      testID="library-playlists-screen"
-    >
-      <FillList
-        ListEmptyComponent={listEmpty}
-        ListHeaderComponent={listHeader}
-        contentContainerStyle={styles.stateFill}
-        data={showLoading || showSignedOut || showError || showOfflineUnavailable ? [] : listRows}
-        keyExtractor={playlistKeyExtractor}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        refreshControl={refreshControl}
-        renderItem={renderItem}
-        testID="library-playlists-list"
-      />
-    </MobileScreenContainer>
+    <View style={styles.container} testID="library-playlists-screen">
+      {status === 'authenticated' ? (
+        <View style={styles.selectorSection}>
+          <SectionChipRow
+            items={listTypeChips}
+            onSelect={handleTypeChange}
+            selectedKey={selectedType}
+            testID="library-playlists-type-chips"
+            trailing={chipTrailing}
+          />
+        </View>
+      ) : null}
+      <View style={styles.listArea}>
+        <FillList
+          ListEmptyComponent={listEmpty}
+          contentContainerStyle={styles.listContent}
+          data={showLoading || showSignedOut || showError || showOfflineUnavailable ? [] : listRows}
+          keyExtractor={playlistKeyExtractor}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          refreshControl={refreshControl}
+          renderItem={renderItem}
+          testID="library-playlists-list"
+        />
+      </View>
+    </View>
   );
 }
