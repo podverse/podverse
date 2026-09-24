@@ -5,7 +5,6 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { FillList } from '../../components/primitives';
-import { SectionHeading } from '../../components/section/SectionHeading';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
@@ -84,15 +83,8 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     () =>
       StyleSheet.create({
         list: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
+          backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
-          marginTop: tokens.spacing.md,
-        },
-        listContent: {
-          padding: tokens.spacing.lg,
         },
         notice: {
           color: themeStyles.textSecondary.color,
@@ -104,15 +96,6 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
           flex: 1,
           paddingBottom: tokens.spacing['2xl'],
           ...screenBodyInsets(tokens.spacing),
-        },
-        screenHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.lg,
-        },
-        sectionHeading: {
-          marginBottom: tokens.spacing.sm,
         },
       }),
     [themeStyles, tokens]
@@ -179,19 +162,6 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     void loadHistory();
   }, [loadHistory]);
 
-  const listHeader = useMemo(
-    () => (
-      <>
-        <Text accessibilityRole="header" style={styles.screenHeading}>
-          {t('features.history.history')}
-        </Text>
-        <SectionHeading style={styles.sectionHeading}>
-          {t('features.history.history')}
-        </SectionHeading>
-      </>
-    ),
-    [styles.screenHeading, styles.sectionHeading, t]
-  );
   const listEmpty = useMemo(() => <ListEmpty testID="library-history-empty" />, []);
   const listFooter = useMemo(
     () =>
@@ -220,8 +190,6 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
         <FillList
           ListEmptyComponent={listEmpty}
           ListFooterComponent={listFooter}
-          ListHeaderComponent={listHeader}
-          contentContainerStyle={styles.listContent}
           data={historyRows}
           keyExtractor={historyRowKeyExtractor}
           keyboardShouldPersistTaps="handled"
