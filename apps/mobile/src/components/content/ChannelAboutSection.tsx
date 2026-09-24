@@ -13,6 +13,7 @@ import { ListEmpty } from '../state/ListEmpty';
 import { LoadingSection } from '../state/LoadingSection';
 import { AboutPersonRow } from './AboutPersonRow';
 import { buildChannelAboutCells } from './channelAboutCells';
+import { DescriptionText } from './DescriptionText';
 
 export type ChannelAboutSectionProps = {
   channel: DTOChannel | null;
@@ -73,6 +74,11 @@ export function ChannelAboutSection({
           ...typography.body,
           color: tokens.text.accent,
         },
+        showMore: {
+          ...typography.caption,
+          color: tokens.text.link,
+          marginTop: tokens.spacing.sm,
+        },
         list: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
@@ -80,6 +86,11 @@ export function ChannelAboutSection({
         prose: {
           ...typography.prose,
           color: themeStyles.textPrimary.color,
+        },
+        proseLink: {
+          ...typography.prose,
+          color: tokens.text.link,
+          textDecorationLine: 'underline',
         },
         surface: {
           backgroundColor: tokens.background.secondary,
@@ -136,12 +147,22 @@ export function ChannelAboutSection({
       keyExtractor={(cell) => cell.key}
       renderItem={({ item: cell }) => {
         if (cell.kind === 'description') {
-          const hasProse = cell.text !== null;
+          const hasProse = cell.text !== null && cell.text.length > 0;
           const hasLinks = cell.feedUrl !== null || cell.websiteUrl !== null;
 
           return (
             <View style={styles.surface}>
-              {hasProse ? <Text style={styles.prose}>{cell.text}</Text> : null}
+              {hasProse ? (
+                <DescriptionText
+                  html={cell.text}
+                  linkStyle={styles.proseLink}
+                  resetKey={channel?.id ?? null}
+                  showMoreStyle={styles.showMore}
+                  testID={`${testIDPrefix}-description`}
+                  textStyle={styles.prose}
+                  toggleTestID={`${testIDPrefix}-description-toggle`}
+                />
+              ) : null}
               {hasLinks ? (
                 <View style={[styles.links, hasProse ? styles.linksAfterProse : null]}>
                   {cell.feedUrl !== null

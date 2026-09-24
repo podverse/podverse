@@ -2,7 +2,7 @@ import type { Channel } from '@orm/entities/channel/channel.js';
 import type { ChannelRemoteItem } from '@orm/entities/channel/channelRemoteItem.js';
 import type { Item } from '@orm/entities/item/item.js';
 
-import { ChannelService } from './channel/channel.js';
+import { channelGetOneRelations, ChannelService } from './channel/channel.js';
 import { FeedService } from './feed/feed.js';
 import { ItemService } from './item/item.js';
 import {
@@ -106,11 +106,9 @@ export class PublisherFeedService {
   async getPublisherFeedRemoteItemsForChannel(idOrIdText: string) {
     const channelService = new ChannelService();
 
-    const channel = await channelService.getByIdOrIdText(idOrIdText, {
-      channel_description: true,
-      channel_images: true,
-      channel_remote_items: true,
-    });
+    // Artist pages use this channel for About, people, funding, and podroll. It needs the
+    // same relations as GET /channel, including feed URL and website.
+    const channel = await channelService.getByIdOrIdText(idOrIdText, channelGetOneRelations);
 
     if (!channel) {
       return {

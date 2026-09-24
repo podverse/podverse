@@ -55,6 +55,7 @@ export * from './lib/fileName.js';
 export * from './lib/configValidation.js';
 export * from './lib/guid.js';
 export * from './lib/hash.js';
+export * from './lib/descriptionDocument.js';
 export * from './lib/html.js';
 export * from './lib/image.js';
 export * from './lib/image-candidates/index.js';

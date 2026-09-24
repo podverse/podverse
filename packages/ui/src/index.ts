@@ -43,15 +43,8 @@ export type {
   DescriptionListProps,
   DescriptionListRowProps,
 } from './components/layout/DescriptionList/DescriptionList';
-export {
-  DescriptionRenderer,
-  isHtmlString,
-  SafeHtmlDescription,
-} from './components/layout/Description/DescriptionRenderer';
-export type {
-  DescriptionRendererProps,
-  SafeHtmlDescriptionProps,
-} from './components/layout/Description/DescriptionRenderer';
+export { DescriptionRenderer } from './components/layout/Description/DescriptionRenderer';
+export type { DescriptionRendererProps } from './components/layout/Description/DescriptionRenderer';
 /**
  * Notice / message family. Pick one:
  * - `Banner`: page-top dismissible info bar (membership expiry, system notices).

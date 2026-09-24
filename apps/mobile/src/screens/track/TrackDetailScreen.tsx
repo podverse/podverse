@@ -6,12 +6,11 @@ import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native'
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { formatDateAbbrev, primaryChannelListArtworkUrl } from '@podverse/helpers';
-import { htmlToPlainText } from '@podverse/helpers/html';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { ChannelHeader } from '../../components/channel';
-import { FundingLinksSection, ItemSummaryPeople } from '../../components/content';
+import { DescriptionText, FundingLinksSection, ItemSummaryPeople } from '../../components/content';
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import type { SectionChipItem } from '../../components/form';
 import { SectionChipRow } from '../../components/form';
@@ -334,7 +333,6 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   const [transcriptText, setTranscriptText] = useState('');
   const [isTranscriptLoading, setIsTranscriptLoading] = useState(false);
   const [transcriptErrorKey, setTranscriptErrorKey] = useState<string | null>(null);
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const { playbackNoticeKey, runMarkAsPlayedAction, runPlayAction, runQueueAction } =
     useHomeRowPlayback();
 
@@ -553,19 +551,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     [trackId]
   );
 
-  const descriptionValue = useMemo(() => {
-    if (track?.item_description?.value === undefined || track.item_description.value.length === 0) {
-      return '';
-    }
-    return htmlToPlainText(track.item_description.value);
-  }, [track]);
-
-  const displayDescription = useMemo(() => {
-    if (descriptionExpanded || descriptionValue.length <= 360) {
-      return descriptionValue;
-    }
-    return `${descriptionValue.slice(0, 360)}…`;
-  }, [descriptionExpanded, descriptionValue]);
+  const descriptionHtml = track?.item_description?.value ?? null;
 
   const playableTrack = useMemo((): DTOItem | null => {
     if (track === null) {
@@ -651,10 +637,6 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     );
   }, [channel, navigation]);
 
-  const handleToggleDescription = useCallback(() => {
-    setDescriptionExpanded((current) => !current);
-  }, []);
-
   const handleRetryTrack = useCallback(() => {
     void loadTrack();
   }, [loadTrack]);
@@ -732,21 +714,16 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     if (activeTab === 'summary') {
       return (
         <View testID="track-detail-summary">
-          <Text style={styles.description} testID="track-detail-description">
-            {displayDescription.length > 0 ? displayDescription : t('info.summary.no_summary')}
-          </Text>
-          {descriptionValue.length > 360 ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ expanded: descriptionExpanded }}
-              onPress={handleToggleDescription}
-              testID="track-detail-description-toggle"
-            >
-              <Text style={styles.showMore}>
-                {t(descriptionExpanded ? 'info.show_less' : 'info.show_more')}
-              </Text>
-            </Pressable>
-          ) : null}
+          <DescriptionText
+            emptyLabel={t('info.summary.no_summary')}
+            html={descriptionHtml}
+            linkStyle={styles.showMore}
+            resetKey={trackId}
+            showMoreStyle={styles.showMore}
+            testID="track-detail-description"
+            textStyle={styles.description}
+            toggleTestID="track-detail-description-toggle"
+          />
           <ItemSummaryPeople itemPersons={track?.item_persons ?? []} testIDPrefix="track-detail" />
         </View>
       );
@@ -793,11 +770,8 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     );
   }, [
     activeTab,
-    descriptionExpanded,
-    descriptionValue.length,
-    displayDescription,
+    descriptionHtml,
     handleRetryTranscript,
-    handleToggleDescription,
     isTranscriptLoading,
     offlineModeEnabled,
     styles.description,
@@ -805,6 +779,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     styles.transcript,
     t,
     track,
+    trackId,
     transcriptErrorKey,
     transcriptText,
   ]);

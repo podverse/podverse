@@ -29,7 +29,6 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers/dto';
-import { htmlToPlainText } from '@podverse/helpers/html';
 import { formatHHMMSS } from '@podverse/helpers/time';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import type { PlaybackTarget } from '@podverse/playback-core';
@@ -38,7 +37,12 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 import { requestWithMobileAuthRefresh, useAuth } from '../../auth';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 import { useBoostSheet } from '../../components/boost/useBoostSheet';
-import { ChapterListRow, FundingLinksSection, ItemSummaryPeople } from '../../components/content';
+import {
+  ChapterListRow,
+  DescriptionText,
+  FundingLinksSection,
+  ItemSummaryPeople,
+} from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FullPlayerActionRow } from '../../components/player/FullPlayerActionRow';
@@ -303,7 +307,6 @@ export function FullPlayerScreen({
   const [actionNoticeKey, setActionNoticeKey] = useState<string | null>(null);
   const [isSavingSubscription, setIsSavingSubscription] = useState(false);
   const [isMarkingPlayed, setIsMarkingPlayed] = useState(false);
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const isV4vEnabled = getMobileConfig().isV4vEnabled;
   const authContext = useMemo(
@@ -343,19 +346,7 @@ export function FullPlayerScreen({
     item: currentItem,
   }).canShowBoostAction;
   const activePaneNoticeKey = actionNoticeKey ?? playbackNoticeKey;
-  const summaryText = useMemo(() => {
-    const value = currentItem?.item_description?.value;
-    if (value === undefined || value === null || value.length === 0) {
-      return '';
-    }
-    return htmlToPlainText(value).trim();
-  }, [currentItem?.item_description?.value]);
-  const displayedSummary = useMemo(() => {
-    if (descriptionExpanded || summaryText.length <= 360) {
-      return summaryText;
-    }
-    return `${summaryText.slice(0, 360)}…`;
-  }, [descriptionExpanded, summaryText]);
+  const summaryHtml = currentItem?.item_description?.value ?? null;
 
   const {
     activeTab,
@@ -519,10 +510,6 @@ export function FullPlayerScreen({
           // first chapter title does, not flush to the sheet cap.
           paddingTop: tokens.spacing.base,
         },
-        paneEmpty: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 15,
-        },
         paneText: {
           color: themeStyles.textPrimary.color,
           fontSize: 16,
@@ -637,10 +624,6 @@ export function FullPlayerScreen({
   useEffect(() => {
     setIsMarkedPlayed(false);
   }, [activeTarget]);
-
-  useEffect(() => {
-    setDescriptionExpanded(false);
-  }, [currentItemIdText]);
 
   useEffect(() => {
     scrollOuterToTop(outerScrollRef.current);
@@ -948,27 +931,16 @@ export function FullPlayerScreen({
       body = (
         <View style={styles.pane} testID="full-player-summary-pane">
           <View style={styles.column}>
-            {displayedSummary.length > 0 ? (
-              <Text style={styles.paneText} testID="full-player-summary-text">
-                {displayedSummary}
-              </Text>
-            ) : (
-              <Text style={styles.paneEmpty}>{t('info.summary.no_summary')}</Text>
-            )}
-            {summaryText.length > 360 ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ expanded: descriptionExpanded }}
-                onPress={() => {
-                  setDescriptionExpanded((current) => !current);
-                }}
-                testID="full-player-summary-toggle"
-              >
-                <Text style={styles.showMore}>
-                  {t(descriptionExpanded ? 'info.show_less' : 'info.show_more')}
-                </Text>
-              </Pressable>
-            ) : null}
+            <DescriptionText
+              emptyLabel={t('info.summary.no_summary')}
+              html={summaryHtml}
+              linkStyle={styles.showMore}
+              resetKey={currentItemIdText}
+              showMoreStyle={styles.showMore}
+              testID="full-player-summary-text"
+              textStyle={styles.paneText}
+              toggleTestID="full-player-summary-toggle"
+            />
             <ItemSummaryPeople
               itemPersons={currentItem?.item_persons ?? []}
               testIDPrefix="full-player"
@@ -1060,8 +1032,7 @@ export function FullPlayerScreen({
     clipHasMore,
     clipRows.length,
     currentItem,
-    descriptionExpanded,
-    displayedSummary,
+    currentItemIdText,
     hasSections,
     isLoadingMoreClips,
     isPrefsHydrated,
@@ -1075,10 +1046,9 @@ export function FullPlayerScreen({
     styles.loadMore,
     styles.loadMoreLabel,
     styles.pane,
-    styles.paneEmpty,
     styles.paneText,
     styles.showMore,
-    summaryText.length,
+    summaryHtml,
     t,
     tabErrorKey,
     transcriptText,

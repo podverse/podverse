@@ -16,12 +16,16 @@ import {
   primaryChannelListArtworkUrl,
   resolveChapterRowArtwork,
 } from '@podverse/helpers';
-import { htmlToPlainText } from '@podverse/helpers/html';
 import { formatHHMMSS } from '@podverse/helpers/time';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import { ChapterListRow, FundingLinksSection, ItemSummaryPeople } from '../../components/content';
+import {
+  ChapterListRow,
+  DescriptionText,
+  FundingLinksSection,
+  ItemSummaryPeople,
+} from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FillList } from '../../components/primitives';
@@ -215,7 +219,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const [channelTitle, setChannelTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
   const { playbackNoticeKey, runMarkAsPlayedAction, runPlayAction, runQueueAction } =
     useHomeRowPlayback();
   const { playSoundbite } = usePlaybackSession();
@@ -454,24 +457,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     [supportedTabs, t]
   );
 
-  const descriptionValue = useMemo(() => {
-    if (
-      episode?.item_description?.value === undefined ||
-      episode.item_description.value.length === 0
-    ) {
-      return '';
-    }
-
-    return htmlToPlainText(episode.item_description.value);
-  }, [episode]);
-
-  const displayDescription = useMemo(() => {
-    if (descriptionExpanded || descriptionValue.length <= 360) {
-      return descriptionValue;
-    }
-
-    return `${descriptionValue.slice(0, 360)}…`;
-  }, [descriptionExpanded, descriptionValue]);
+  const descriptionHtml = episode?.item_description?.value ?? null;
 
   const downloadableEpisode = useMemo((): DTOItem | null => {
     if (episode === null) {
@@ -603,10 +589,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     [navigation]
   );
 
-  const handleToggleDescription = useCallback(() => {
-    setDescriptionExpanded((current) => !current);
-  }, []);
-
   const handleRetryEpisode = useCallback(() => {
     void loadEpisode();
   }, [loadEpisode]);
@@ -718,21 +700,16 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     if (activeTab === 'summary') {
       return (
         <View testID="episode-detail-summary">
-          <Text style={styles.description} testID="episode-detail-description">
-            {displayDescription.length > 0 ? displayDescription : t('info.summary.no_summary')}
-          </Text>
-          {descriptionValue.length > 360 ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ expanded: descriptionExpanded }}
-              onPress={handleToggleDescription}
-              testID="episode-detail-description-toggle"
-            >
-              <Text style={styles.showMore}>
-                {t(descriptionExpanded ? 'info.show_less' : 'info.show_more')}
-              </Text>
-            </Pressable>
-          ) : null}
+          <DescriptionText
+            emptyLabel={t('info.summary.no_summary')}
+            html={descriptionHtml}
+            linkStyle={styles.showMore}
+            resetKey={episodeId}
+            showMoreStyle={styles.showMore}
+            testID="episode-detail-description"
+            textStyle={styles.description}
+            toggleTestID="episode-detail-description-toggle"
+          />
           <ItemSummaryPeople
             itemPersons={episode?.item_persons ?? []}
             testIDPrefix="episode-detail"
@@ -805,13 +782,11 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     chapterRows.length,
     clipHasMore,
     clipRows.length,
-    descriptionExpanded,
-    descriptionValue.length,
-    displayDescription,
+    descriptionHtml,
     episode,
+    episodeId,
     handleLoadMoreClipsPress,
     handleRetryTab,
-    handleToggleDescription,
     isLoadingMoreClips,
     isTabLoading,
     offlineModeEnabled,

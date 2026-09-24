@@ -1,10 +1,26 @@
-import { stripAndDecodeHtml } from '@podverse/helpers';
+'use client';
 
-type ContentAboutDescription = {
+import dynamic from 'next/dynamic';
+
+type ContentAboutDescriptionProps = {
   description?: string;
 };
 
-export const ContentAboutDescription = ({ description }: ContentAboutDescription) => {
-  const cleanedDescription = description ? stripAndDecodeHtml(description) : '';
-  return <p>{cleanedDescription}</p>;
+const DescriptionRenderer = dynamic(
+  () =>
+    import('@podverse/ui').then((mod) => ({
+      default: mod.DescriptionRenderer,
+    })),
+  { loading: () => <div /> }
+);
+
+/**
+ * Channel About prose: the same rich-text path episode Summary uses.
+ */
+export const ContentAboutDescription = ({ description }: ContentAboutDescriptionProps) => {
+  if (description === undefined || description.length === 0) {
+    return null;
+  }
+
+  return <DescriptionRenderer description={description} />;
 };
