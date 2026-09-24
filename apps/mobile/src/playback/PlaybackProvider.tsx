@@ -21,6 +21,7 @@ import type {
   DTOItem,
   DTOItemChapter,
   DTOItemSoundbite,
+  DTOQueue,
   DTOQueueResource,
 } from '@podverse/helpers/dto';
 import { getErrorCode } from '@podverse/helpers/error';
@@ -82,6 +83,7 @@ import { downloadStore } from '../downloads/downloadStore';
 import { playbackErrorFromLoadFailure } from '../feedback/actionErrorCopy';
 import type { AutoQueueSeed } from '../hooks/useAutoQueueLoadResources';
 import { useAutoQueueLoadResources } from '../hooks/useAutoQueueLoadResources';
+import { useQueueDataRevision } from '../hooks/useQueueDataRevision';
 import { useQueueMutations } from '../hooks/useQueueMutations';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
 import type { AutoQueueDirective, AutoQueueResourcesMapRow } from '../lib/autoQueue/autoQueue';
@@ -519,6 +521,8 @@ const hasPlaybackStatsTargets = (targets: PlaybackStatsTargets): boolean => {
 
 // Module-level guard so the last-playback restore fires at most once per app process.
 let lastPlaybackRestoreStarted = false;
+/** True after the once-per-process snapshot restore has finished (including a null snapshot). */
+let lastPlaybackRestoreSettled = false;
 
 /** How long a start-play latch stays up after `playing` so a startup `paused` cannot flash the play icon. */
 const START_PLAY_SETTLE_MS = 300;
@@ -532,7 +536,7 @@ const PENDING_START_MAX_MS = 5000;
 export function PlaybackProvider({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   const { accessToken, account, clearSession, refreshToken, setTokens, status } = useAuth();
-  const { activeQueue, queues, setActiveQueue } = useQueues();
+  const { activeQueue, queues, setActiveQueue, activeQueueUpcomingResources } = useQueues();
   const {
     autoQueueActiveRow,
     autoQueueConfig,
@@ -542,6 +546,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setAutoQueueResources,
   } = useAutoQueue();
   const loadActive = useQueueResourcesLoadActive();
+  const queueDataRevision = useQueueDataRevision();
   const { moveNowPlayingToHistory } = useQueueMutations();
   const loadAutoQueueResources = useAutoQueueLoadResources();
   const applyLoad = useMediaPlayerResourceUpdate();
@@ -594,6 +599,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     DEFAULT_ENCLOSURE_SELECTED_PARAMS
   );
   const previousAuthStatusRef = useRef(status);
+  /** One failed/attempted adopt per resource so a missing enclosure does not spin. */
+  const queueHeadAdoptAttemptedRef = useRef<string | null>(null);
+  /** Queue that still needs a promote write after an offline adopt. */
+  const pendingPromoteQueueIdTextRef = useRef<string | null>(null);
+  const queueHeadAdoptInFlightRef = useRef(false);
   const lastPlaybackLocalWriteRef = useRef<number>(0);
   const lastPlaybackNetworkWriteRef = useRef<number>(0);
   const lastSeekNetworkPostAtRef = useRef<number | null>(null);
@@ -2129,6 +2139,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   // Universal last-playback restore: every resolved auth status restores the device-local
   // now-playing snapshot once per process, loaded paused so cold start never blasts audio. Sign-in
   // (anonymous → authenticated) clears the snapshot so the account's server queue is authoritative.
+  // When the snapshot is missing and the player is still empty, the active queue head is adopted
+  // next (existing now-playing, or first upcoming promoted without recording a listen).
   const restoreFromSnapshot = useCallback(
     async (snapshot: LastPlaybackSnapshot): Promise<void> => {
       const context = buildContext();
@@ -2202,6 +2214,161 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [buildContext, ensureChannel, startClipPlayback, startItemPlayback, startSoundbitePlayback]
   );
 
+  const adoptQueueHeadWhenPlayerEmpty = useCallback(async (): Promise<void> => {
+    if (!lastPlaybackRestoreSettled) {
+      return;
+    }
+    if (statusRef.current !== 'authenticated') {
+      return;
+    }
+    if (activeTargetRef.current !== null) {
+      return;
+    }
+    if (queueHeadAdoptInFlightRef.current) {
+      return;
+    }
+    queueHeadAdoptInFlightRef.current = true;
+
+    try {
+      const context = buildContext();
+      let primaryQueueIdText: string | null = null;
+      let accountQueues: DTOQueue[] = [];
+      try {
+        const loaded = await loadActive();
+        primaryQueueIdText = loaded.activeQueue?.id_text ?? null;
+        accountQueues = loaded.queues;
+      } catch (error) {
+        if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+          if (__DEV__) {
+            console.warn('[playback] queue-head adopt loadActive failed', error);
+          }
+          return;
+        }
+        primaryQueueIdText = activeQueueRef.current?.id_text ?? null;
+        accountQueues = queuesRef.current;
+      }
+
+      if (primaryQueueIdText === null || activeTargetRef.current !== null) {
+        return;
+      }
+
+      if (pendingPromoteQueueIdTextRef.current !== null) {
+        try {
+          await queueRepository.promoteFirstUpcomingToNowPlaying(
+            context,
+            pendingPromoteQueueIdTextRef.current
+          );
+          pendingPromoteQueueIdTextRef.current = null;
+          await loadActive();
+        } catch (error) {
+          if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+            if (__DEV__) {
+              console.warn('[playback] pending promote-upcoming failed', error);
+            }
+          }
+        }
+      }
+
+      if (activeTargetRef.current !== null) {
+        return;
+      }
+
+      const resolveQueueHeadResource = async (
+        queueIdText: string
+      ): Promise<DTOQueueResource | null> => {
+        try {
+          const nowPlayingResource = await queueRepository.getNowPlaying(context, queueIdText);
+          if (nowPlayingResource !== null) {
+            return nowPlayingResource;
+          }
+          const upcoming = await queueRepository.getUpcoming(context, queueIdText);
+          const firstUpcoming = upcoming[0] ?? null;
+          if (firstUpcoming === null) {
+            return null;
+          }
+          try {
+            const promoted = await queueRepository.promoteFirstUpcomingToNowPlaying(
+              context,
+              queueIdText
+            );
+            pendingPromoteQueueIdTextRef.current = null;
+            await loadActive(accountQueues.find((q) => q.id_text === queueIdText)?.medium_id);
+            return promoted;
+          } catch (error) {
+            if (getErrorCode(error) === 'ERR_OFFLINE_MODE') {
+              pendingPromoteQueueIdTextRef.current = queueIdText;
+              return firstUpcoming;
+            }
+            if (__DEV__) {
+              console.warn('[playback] promote-upcoming failed', error);
+            }
+            return null;
+          }
+        } catch (error) {
+          if (__DEV__) {
+            console.warn('[playback] queue-head adopt read failed', error);
+          }
+          return null;
+        }
+      };
+
+      let queueIdTextForLoad = primaryQueueIdText;
+      let resourceToLoad = await resolveQueueHeadResource(primaryQueueIdText);
+
+      if (resourceToLoad === null && activeTargetRef.current === null) {
+        const otherQueue = accountQueues.find((queue) => queue.id_text !== primaryQueueIdText);
+        if (otherQueue !== undefined) {
+          try {
+            const otherLoaded = await loadActive(otherQueue.medium_id);
+            if (activeTargetRef.current !== null) {
+              return;
+            }
+            if (otherLoaded.activeResource !== null) {
+              queueIdTextForLoad = otherLoaded.activeQueue?.id_text ?? otherQueue.id_text;
+              resourceToLoad = await resolveQueueHeadResource(queueIdTextForLoad);
+            } else {
+              await loadActive();
+            }
+          } catch (error) {
+            if (__DEV__) {
+              console.warn('[playback] other-queue adopt fallback failed', error);
+            }
+          }
+        }
+      }
+
+      if (resourceToLoad === null || activeTargetRef.current !== null) {
+        return;
+      }
+
+      const resourceRef = resolveQueueResourceRef(resourceToLoad);
+      const attemptKey =
+        resourceRef === null
+          ? null
+          : `${queueIdTextForLoad}:${resourceRef.resourceKind}:${resourceRef.resourceIdText}`;
+      if (attemptKey !== null && queueHeadAdoptAttemptedRef.current === attemptKey) {
+        return;
+      }
+      if (attemptKey !== null) {
+        queueHeadAdoptAttemptedRef.current = attemptKey;
+      }
+
+      try {
+        await playQueueResource(resourceToLoad, 'session_restore', {
+          autoPlayOverride: false,
+          autoQueue: { mode: 'clear' },
+          explicitPlaybackSeconds: normalizePlaybackPosition(resourceToLoad.playback_position),
+        });
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('[playback] queue-head adopt load failed', error);
+        }
+      }
+    } finally {
+      queueHeadAdoptInFlightRef.current = false;
+    }
+  }, [buildContext, loadActive, playQueueResource]);
+
   useEffect(() => {
     const previousStatus = previousAuthStatusRef.current;
     previousAuthStatusRef.current = status;
@@ -2209,21 +2376,45 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     // Sign-in clears any snapshot from a prior anonymous session — the account queue wins.
     if (previousStatus === 'anonymous' && status === 'authenticated') {
       void clearLastPlaybackSnapshot();
+      lastPlaybackRestoreSettled = true;
+      queueHeadAdoptAttemptedRef.current = null;
+      void adoptQueueHeadWhenPlayerEmpty();
       return;
     }
 
-    if (status === 'unknown' || lastPlaybackRestoreStarted) {
+    if (status === 'anonymous') {
+      queueHeadAdoptAttemptedRef.current = null;
+      pendingPromoteQueueIdTextRef.current = null;
+      return;
+    }
+
+    if (status === 'unknown') {
+      return;
+    }
+
+    if (lastPlaybackRestoreStarted) {
+      if (lastPlaybackRestoreSettled) {
+        void adoptQueueHeadWhenPlayerEmpty();
+      }
       return;
     }
     lastPlaybackRestoreStarted = true;
     void (async () => {
       const snapshot = await readLastPlaybackSnapshot();
-      if (snapshot === null || statusRef.current === 'unknown') {
-        return;
+      if (snapshot !== null && statusRef.current !== 'unknown') {
+        await restoreFromSnapshot(snapshot);
       }
-      await restoreFromSnapshot(snapshot);
+      lastPlaybackRestoreSettled = true;
+      await adoptQueueHeadWhenPlayerEmpty();
     })();
-  }, [restoreFromSnapshot, status]);
+  }, [adoptQueueHeadWhenPlayerEmpty, restoreFromSnapshot, status]);
+
+  useEffect(() => {
+    if (status !== 'authenticated' || !lastPlaybackRestoreSettled) {
+      return;
+    }
+    void adoptQueueHeadWhenPlayerEmpty();
+  }, [activeQueueUpcomingResources, adoptQueueHeadWhenPlayerEmpty, queueDataRevision, status]);
 
   const reconcileFromNative = useCallback((): void => {
     void (async () => {

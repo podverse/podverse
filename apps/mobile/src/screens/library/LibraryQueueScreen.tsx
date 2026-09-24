@@ -141,8 +141,8 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         flex: 1,
       },
       headerSection: {
-        ...bodyInsets,
         gap: tokens.spacing.base,
+        paddingTop: bodyInsets.paddingTop,
       },
       listContent: {
         flexGrow: 1,

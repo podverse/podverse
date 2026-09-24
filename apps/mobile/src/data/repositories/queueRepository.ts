@@ -397,6 +397,23 @@ export const queueRepository = {
     return hit.value;
   },
 
+  /**
+   * When the queue has no now-playing row, move the first upcoming row to position 0 without
+   * recording a listen. Refreshes now-playing + upcoming caches and projects the native snapshot.
+   * Returns the resulting now-playing resource, or null when the queue is empty.
+   */
+  promoteFirstUpcomingToNowPlaying: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string
+  ): Promise<DTOQueueResource | null> => {
+    const generation = queueCacheGeneration;
+    const promoted = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourcesPromoteUpcomingToNowPlaying(queueIdText)
+    );
+    await refreshQueueSnapshotAfterMutation(context, queueIdText, generation);
+    return promoted;
+  },
+
   getUpcoming: async (
     context: MobileAuthRequestContext,
     queueIdText: string

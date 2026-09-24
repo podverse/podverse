@@ -114,8 +114,30 @@ Mobile keeps a **universal** device-local now-playing snapshot in AsyncStorage
 Restore is cache-first (`getLocalChannelForItem` before network) and logs failures in `__DEV__`.
 `autoPlayOverride: false` uses native `load` (not `loadAndStart`). iOS `setRate` must **not** assign
 `AVPlayer.rate` while paused — a non-zero rate starts audio. Store the rate and apply it on `play`.
-Web deliberately differs: signed-in users hydrate from the server queue; only anonymous users use
-`pv_web_anonymous_last_playback`. Do not merge those models.
+Web deliberately differs on the snapshot: signed-in users hydrate from the server queue; only
+anonymous users use `pv_web_anonymous_last_playback`. Do not merge those models. Signed-in web
+uses the same empty-player promote: `POST …/resources/promote-upcoming` when the head is upcoming,
+then a paused load that does not post `play`.
+
+**Empty player + queue head:** After the snapshot restore settles (including a null snapshot), if the
+player still has no target and the account queue has a head, mobile loads that head **paused**:
+
+1. Prefer the last-active queue (`is_active_queue`): existing now-playing (`list_position` 0), else
+   `POST …/resources/promote-upcoming` moves the first upcoming row to now-playing **without**
+   writing `last_played_at` (app open is not a listen), then load that row paused.
+2. If that queue has neither now-playing nor upcoming, try the other account queue (AV ↔ music) the
+   same way. Falling back does **not** flip `is_active_queue`; that flag moves when the user actually
+   presses play.
+3. Offline: still load the cached head into the player; retry the promote write when a later refresh
+   can reach the server. One adopt attempt per resource so a failed enclosure does not spin.
+
+Auto-queue is **not** consulted at open. Those rows are rebuilt from whatever is already playing;
+with an empty player there is no seed, and guessing the next episode from history would outrank
+items the user queued on the other medium. Auto-queue still advances after skip / ended while
+playback is in progress.
+
+The snapshot still wins when it exists. Re-check when queue data changes and the player is empty
+(hydrate, queue-last while nothing is loaded).
 
 ## Seamless video (mini ↔ full player)
 

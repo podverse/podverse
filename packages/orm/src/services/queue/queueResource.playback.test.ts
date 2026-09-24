@@ -93,7 +93,9 @@ describe('QueueResourceService playback policy', () => {
 
     const manager = {
       findOne: managerFindOneMock,
+      getRepository: vi.fn(),
       query: managerQueryMock,
+      save: vi.fn(async (entity: unknown) => entity),
       transaction: transactionMock,
     };
 
@@ -383,5 +385,93 @@ describe('QueueResourceService playback policy', () => {
     );
 
     expect(repositoryReadWriteRemoveMock).not.toHaveBeenCalled();
+  });
+
+  describe('promoteFirstUpcomingToNowPlaying', () => {
+    it('returns the existing now-playing row without changing last_played_at', async () => {
+      const lastPlayedAt = new Date('2026-09-13T10:00:00.000Z');
+      const nowPlaying = {
+        id: 101,
+        last_played_at: lastPlayedAt,
+        list_position: '0',
+        playback_position: '42',
+      };
+      managerFindOneMock
+        .mockResolvedValueOnce({ id: 22, id_text: 'queue-promote' })
+        .mockResolvedValueOnce(nowPlaying);
+      repositoryReadFindMock.mockResolvedValue([nowPlaying]);
+
+      const service = new QueueResourceService();
+      const repositoryReadWrite = getRepositoryReadWriteMock();
+      const result = await service.promoteFirstUpcomingToNowPlaying('queue-promote');
+
+      expect(result).toEqual(nowPlaying);
+      expect(repositoryReadWrite.manager.save).not.toHaveBeenCalled();
+      expect(result?.last_played_at).toEqual(lastPlayedAt);
+    });
+
+    it('moves the first upcoming row to list_position 0 and leaves last_played_at alone', async () => {
+      const lastPlayedAt = new Date('2026-09-12T08:00:00.000Z');
+      const upcoming = {
+        id: 202,
+        last_played_at: lastPlayedAt,
+        list_position: '1',
+        playback_position: '0',
+      };
+      managerFindOneMock
+        .mockResolvedValueOnce({ id: 22, id_text: 'queue-promote' })
+        .mockResolvedValueOnce(null);
+
+      const upcomingQb = {
+        andWhere: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(upcoming),
+        orderBy: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+      };
+      const repositoryReadWrite = getRepositoryReadWriteMock();
+      repositoryReadWrite.manager.getRepository.mockReturnValue({
+        createQueryBuilder: vi.fn().mockReturnValue(upcomingQb),
+      });
+      repositoryReadWrite.manager.save.mockImplementation(async (entity: typeof upcoming) => entity);
+      repositoryReadFindMock.mockResolvedValue([
+        { ...upcoming, list_position: '0', last_played_at: lastPlayedAt },
+      ]);
+
+      const service = new QueueResourceService();
+      const result = await service.promoteFirstUpcomingToNowPlaying('queue-promote');
+
+      expect(repositoryReadWrite.manager.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 202,
+          last_played_at: lastPlayedAt,
+          list_position: '0',
+        })
+      );
+      expect(result?.list_position).toBe('0');
+      expect(result?.last_played_at).toEqual(lastPlayedAt);
+    });
+
+    it('returns null when there is no now-playing and no upcoming', async () => {
+      managerFindOneMock
+        .mockResolvedValueOnce({ id: 22, id_text: 'queue-promote' })
+        .mockResolvedValueOnce(null);
+
+      const upcomingQb = {
+        andWhere: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(null),
+        orderBy: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+      };
+      const repositoryReadWrite = getRepositoryReadWriteMock();
+      repositoryReadWrite.manager.getRepository.mockReturnValue({
+        createQueryBuilder: vi.fn().mockReturnValue(upcomingQb),
+      });
+
+      const service = new QueueResourceService();
+      const result = await service.promoteFirstUpcomingToNowPlaying('queue-promote');
+
+      expect(result).toBeNull();
+      expect(repositoryReadWrite.manager.save).not.toHaveBeenCalled();
+    });
   });
 });

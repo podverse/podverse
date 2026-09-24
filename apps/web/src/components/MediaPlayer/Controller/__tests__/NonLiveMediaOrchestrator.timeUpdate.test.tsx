@@ -156,7 +156,9 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
       queueResourcesLoadActive={() =>
         Promise.resolve({
           activeResource: null,
+          activeQueue: null,
           historyMoved: 0,
+          queues: [],
           upcomingManualCount: 0,
           upcomingResources: [],
         })

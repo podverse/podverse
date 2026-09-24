@@ -31,6 +31,7 @@ import {
 import { useAutoQueueLoadResources } from './useAutoQueueLoadResources';
 import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from './usePlayAddByRSS';
+import { useQueueResourcesLoadActive } from './useQueueResourcesLoadActive';
 import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 
 /**
@@ -58,6 +59,12 @@ export type QueueHeadLoadingState = {
   handoffPrompt: QueueHeadPlaybackHandoffPrompt | null;
   continueLocalPlayback: () => void;
   switchToServerPlayback: () => void;
+};
+
+/** Upcoming rows sit strictly above 0. Now-playing is ~0; history is negative. */
+const isUpcomingQueueListPosition = (listPosition: string): boolean => {
+  const position = Number(listPosition);
+  return Number.isFinite(position) && position > 0;
 };
 
 const queueResourceIdentity = (
@@ -132,12 +139,25 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const playAddByRSS = usePlayAddByRSS();
   const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
-  const { activeQueueUpcomingResources } = useQueues();
+  const { activeQueue, activeQueueUpcomingResources } = useQueues();
+  const queueResourcesLoadActive = useQueueResourcesLoadActive();
   const { autoQueueResources, autoQueueActiveRow, autoQueueConfig } = useAutoQueue();
   const autoQueueLoadResources = useAutoQueueLoadResources();
   const [playbackHandoffPrompt, setPlaybackHandoffPrompt] =
     useState<PlaybackHandoffPromptState | null>(null);
   const playbackHandoffDismissedStateKeyRef = useRef<string | null>(null);
+  const activeQueueRef = useRef(activeQueue);
+  const queueResourcesLoadActiveRef = useRef(queueResourcesLoadActive);
+  const queueHeadAdoptInFlightRef = useRef(false);
+  const queueHeadAdoptedWithoutListenRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    activeQueueRef.current = activeQueue;
+  }, [activeQueue]);
+
+  useEffect(() => {
+    queueResourcesLoadActiveRef.current = queueResourcesLoadActive;
+  }, [queueResourcesLoadActive]);
 
   const autoQueueResourcesRef = useRef(autoQueueResources);
   useEffect(() => {
@@ -271,7 +291,11 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
   }
 
   type QueueResourceLoadOptions = {
-    forcePlay: boolean;
+    forcePlay?: boolean;
+    /** Empty-player hydration must not stamp `last_played_at`. */
+    skipNowPlayingWrite?: boolean;
+    /** Empty-player hydration loads paused. */
+    pauseOnLoad?: boolean;
   };
 
   const rememberQueueResourceAsLocalState = (nextResource: DTOQueueResource): void => {
@@ -367,8 +391,11 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
             shuffleHash: autoQueueConfigRef.current.shuffleHash,
           },
           autoQueueShouldClear: true,
-          isPlaying: options?.forcePlay === true ? true : undefined,
-          shouldPlay: options?.forcePlay === true ? true : undefined,
+          isPlaying:
+            options?.forcePlay === true ? true : options?.pauseOnLoad === true ? false : undefined,
+          shouldPlay:
+            options?.forcePlay === true ? true : options?.pauseOnLoad === true ? false : undefined,
+          skipNowPlayingWrite: options?.skipNowPlayingWrite === true,
         });
       }
     }
@@ -410,8 +437,19 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
                 shuffleHash: autoQueueConfigRef.current.shuffleHash,
               },
               autoQueueShouldClear: true,
-              isPlaying: options?.forcePlay === true ? true : undefined,
-              shouldPlay: options?.forcePlay === true ? true : undefined,
+              isPlaying:
+                options?.forcePlay === true
+                  ? true
+                  : options?.pauseOnLoad === true
+                    ? false
+                    : undefined,
+              shouldPlay:
+                options?.forcePlay === true
+                  ? true
+                  : options?.pauseOnLoad === true
+                    ? false
+                    : undefined,
+              skipNowPlayingWrite: options?.skipNowPlayingWrite === true,
             });
           }
         }
@@ -462,8 +500,19 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
                 shuffleHash: autoQueueConfigRef.current.shuffleHash,
               },
               autoQueueShouldClear: true,
-              isPlaying: options?.forcePlay === true ? true : undefined,
-              shouldPlay: options?.forcePlay === true ? true : undefined,
+              isPlaying:
+                options?.forcePlay === true
+                  ? true
+                  : options?.pauseOnLoad === true
+                    ? false
+                    : undefined,
+              shouldPlay:
+                options?.forcePlay === true
+                  ? true
+                  : options?.pauseOnLoad === true
+                    ? false
+                    : undefined,
+              skipNowPlayingWrite: options?.skipNowPlayingWrite === true,
             });
           }
         }
@@ -471,7 +520,10 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     }
   }
 
-  async function handleLoadQueueItemAddByRSS(nextResource: DTOQueueResource) {
+  async function handleLoadQueueItemAddByRSS(
+    nextResource: DTOQueueResource,
+    options?: QueueResourceLoadOptions
+  ) {
     const resourceData = nextResource.add_by_rss_resource_data ?? null;
     const indexItem = await loadAddByRSSIndexItemFromResourceData(resourceData);
     if (indexItem) {
@@ -482,7 +534,12 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
         indexItem,
         playbackPosition !== undefined && !Number.isNaN(playbackPosition)
           ? playbackPosition
-          : undefined
+          : undefined,
+        undefined,
+        {
+          recordNowPlaying: options?.skipNowPlayingWrite !== true,
+          shouldPlay: options?.pauseOnLoad === true ? false : options?.forcePlay !== false,
+        }
       );
       rememberQueueResourceAsLocalState(nextResource);
     }
@@ -547,14 +604,22 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
   };
 
   useEffect(() => {
-    if (activeQueueUpcomingResources && activeQueueUpcomingResources.length > 0) {
-      const nextResource = activeQueueUpcomingResources[0];
-      if (!nextResource) return;
+    if (!activeQueueUpcomingResources || activeQueueUpcomingResources.length === 0) {
+      return;
+    }
+    const nextResource = activeQueueUpcomingResources[0];
+    if (!nextResource) {
+      return;
+    }
+    if (!shouldLoadQueueResource(nextResource)) {
+      return;
+    }
 
-      if (!shouldLoadQueueResource(nextResource)) {
-        return;
-      }
+    const playerEmpty =
+      mpItem === null && mpAddByRSS === null && mpClip === null && mpItemSoundbite === null;
+    const adoptedWithoutListen = queueHeadAdoptedWithoutListenRef.current === nextResource.id;
 
+    const dispatchLoad = (options?: QueueResourceLoadOptions) => {
       const nextIdText =
         typeof nextResource.add_by_rss_resource_data?.id_text === 'string'
           ? nextResource.add_by_rss_resource_data.id_text
@@ -565,15 +630,40 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
         !nextResource.is_add_by_rss_redacted &&
         !isAlreadyPlayingThisAddByRSS
       ) {
-        void handleLoadQueueItemAddByRSS(nextResource);
-      } else if (nextResource?.item && !isAlreadyPlayingThisAddByRSS) {
-        void handleLoadQueueItem(nextResource);
-      } else if (nextResource?.clip) {
-        void handleLoadQueueClip(nextResource);
-      } else if (nextResource?.item_soundbite) {
-        void handleLoadQueueItemSoundbite(nextResource);
+        void handleLoadQueueItemAddByRSS(nextResource, options);
+      } else if (nextResource.item && !isAlreadyPlayingThisAddByRSS) {
+        void handleLoadQueueItem(nextResource, options);
+      } else if (nextResource.clip) {
+        void handleLoadQueueClip(nextResource, options);
+      } else if (nextResource.item_soundbite) {
+        void handleLoadQueueItemSoundbite(nextResource, options);
       }
+    };
+
+    if (!playerEmpty) {
+      dispatchLoad(adoptedWithoutListen ? { skipNowPlayingWrite: true } : undefined);
+      return;
     }
+
+    if (queueHeadAdoptInFlightRef.current || adoptedWithoutListen) {
+      return;
+    }
+
+    queueHeadAdoptInFlightRef.current = true;
+    void (async () => {
+      try {
+        const queueIdText = activeQueueRef.current?.id_text;
+        if (isUpcomingQueueListPosition(nextResource.list_position) && queueIdText) {
+          await apiRequestService.reqQueueResourcesPromoteUpcomingToNowPlaying(queueIdText);
+          await queueResourcesLoadActiveRef.current();
+        }
+      } catch {
+        // The row still loads. A full reload retries the promote; this pass does not loop.
+      }
+      queueHeadAdoptedWithoutListenRef.current = nextResource.id;
+      queueHeadAdoptInFlightRef.current = false;
+      dispatchLoad({ skipNowPlayingWrite: true, pauseOnLoad: true });
+    })();
   }, [
     activeQueueUpcomingResources,
     mpAddByRSS?.idText,

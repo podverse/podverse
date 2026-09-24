@@ -2167,6 +2167,9 @@ components:
     ApiGetQueueQueueIdTextResourcesNowPlayingResponse200:
       allOf:
         - $ref: "#/components/schemas/QueueResourceNullableResponse"
+    ApiPostQueueQueueIdTextResourcesPromoteUpcomingResponse200:
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceNullableResponse"
     ApiGetQueueQueueIdTextResourcesUpcomingAllResponse200:
       allOf:
         - $ref: "#/components/schemas/QueueResourceArrayResponse"
@@ -15268,6 +15271,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiGetQueueQueueIdTextResourcesNowPlayingResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /queue/{queue_id_text}/resources/promote-upcoming:
+    post:
+      operationId: apiPostQueueQueueIdTextResourcesPromoteUpcoming
+      tags:
+        - queue
+      summary: POST /queue/{queue_id_text}/resources/promote-upcoming
+      description: >
+        When the queue has no now-playing row, move the first upcoming row to now-playing
+        (`list_position` 0) without changing last_played_at, playback position, or completed.
+        When now-playing already exists, return it unchanged. Returns null when both are empty.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: queue_id_text
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Now-playing resource after promotion, existing now-playing, or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostQueueQueueIdTextResourcesPromoteUpcomingResponse200"
+              examples:
+                promoted:
+                  summary: First upcoming moved to now-playing
+                  value:
+                    id: 42
+                    list_position: "0"
+                alreadyNowPlaying:
+                  summary: Existing now-playing left alone
+                  value:
+                    id: 7
+                    list_position: "0"
+                empty:
+                  summary: No now-playing and no upcoming
+                  value: null
         "400":
           description: Bad request
           content:

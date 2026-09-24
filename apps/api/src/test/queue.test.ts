@@ -51,6 +51,7 @@ const {
   queueUpdateIsActiveMock,
   qrGetAllByAccountAbridgedMock,
   qrGetNowPlayingMock,
+  qrPromoteUpcomingMock,
   qrGetAllUpcomingMock,
   qrGetHistoryPaginatedMock,
   qrReplayPlaybackEventsMock,
@@ -95,6 +96,7 @@ const {
     { queue_id: 1, some_field: 'a', nullish: null },
   ]),
   qrGetNowPlayingMock: vi.fn(async () => ({ id: 1, resource: 'now' })),
+  qrPromoteUpcomingMock: vi.fn(async () => ({ id: 1, list_position: '0' })),
   qrGetAllUpcomingMock: vi.fn(async () => [{ id: 2 }]),
   qrGetHistoryPaginatedMock: vi.fn(async () => [[{ id: 3 }], 1]),
   qrReplayPlaybackEventsMock: vi.fn(async () => [{ id: 10 }]),
@@ -153,6 +155,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   class MockQueueResourceService {
     getAllByAccountAbridged = qrGetAllByAccountAbridgedMock;
     getNowPlayingByQueueIdText = qrGetNowPlayingMock;
+    promoteFirstUpcomingToNowPlaying = qrPromoteUpcomingMock;
     getAllUpcomingByQueueIdText = qrGetAllUpcomingMock;
     getHistoryResourcesByQueueIdText = qrGetHistoryPaginatedMock;
     replayPlaybackEvents = qrReplayPlaybackEventsMock;
@@ -297,6 +300,29 @@ describe('queue routes', () => {
 
       it('GET /:id/resources/now-playing returns 401 without auth', async () => {
         const res = await request(app).get(`${queueBase}/${QUEUE_ID_TEXT}/resources/now-playing`);
+        expect(res.status).toBe(401);
+      });
+
+      it('POST /:id/resources/promote-upcoming returns 200', async () => {
+        getAccountMock.mockResolvedValueOnce({
+          id: TEST_USER_ID,
+          id_text: TEST_USER_ACCOUNT_ID_TEXT,
+          account_credentials: { email: TEST_EMAIL },
+          account_membership_status: {
+            membership_expires_at: new Date(Date.now() + 86400000 * 365),
+          },
+        });
+        const res = await request(app)
+          .post(`${queueBase}/${QUEUE_ID_TEXT}/resources/promote-upcoming`)
+          .set(auth());
+        expect(res.status).toBe(200);
+        expect(qrPromoteUpcomingMock).toHaveBeenCalledWith(QUEUE_ID_TEXT);
+      });
+
+      it('POST /:id/resources/promote-upcoming returns 401 without auth', async () => {
+        const res = await request(app).post(
+          `${queueBase}/${QUEUE_ID_TEXT}/resources/promote-upcoming`
+        );
         expect(res.status).toBe(401);
       });
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import type { DTOQueueResource } from '@podverse/helpers';
-import { getQueueMediumIdForChannelMediumId, MediumEnum } from '@podverse/helpers';
+import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
+import { getQueueForMedium, MediumEnum } from '@podverse/helpers';
 
 import { useAccount } from '../contexts/Account';
 import { autoQueueIncrementActiveRow, useAutoQueue } from '../contexts/AutoQueue';
@@ -10,6 +10,9 @@ import { getApiRequestService } from '../factories/apiRequestService';
 import { combineQueueNowPlayingAndUpcoming } from '../lib/queue/combineQueueNowPlayingAndUpcoming';
 
 export type QueueResourcesLoadActiveResult = {
+  activeQueue: DTOQueue | null;
+  /** Account queues from the same fetch used to resolve the active queue. */
+  queues: DTOQueue[];
   historyMoved: number;
   upcomingResources: DTOQueueResource[];
   /** The resource callers may synchronously translate into a PlaybackLoadRequest. */
@@ -19,8 +22,10 @@ export type QueueResourcesLoadActiveResult = {
 };
 
 const emptyLoadActiveResult: QueueResourcesLoadActiveResult = {
+  activeQueue: null,
   activeResource: null,
   historyMoved: 0,
+  queues: [],
   upcomingManualCount: 0,
   upcomingResources: [],
 };
@@ -61,9 +66,9 @@ export function useQueueResourcesLoadActive() {
 
   /**
    * Load active queue resources.
-   * @param medium_id - Optional medium ID to determine which queue to check.
-   *                    When provided, uses getQueueMediumIdForChannelMediumId to map to the correct queue.
-   *                    Falls back to AV queue if not provided or no match found.
+   * @param medium_id - Optional channel or queue medium ID. Podcast/Video map to the AV queue via
+   *                    `getQueueForMedium`; falls back to `is_active_queue`, then a now-playing
+   *                    scan, then the AV queue.
    */
   return useCallback(async (medium_id?: number): Promise<QueueResourcesLoadActiveResult> => {
     const apiRequestService = getApiRequestService();
@@ -76,25 +81,21 @@ export function useQueueResourcesLoadActive() {
     const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
     setQueues(queueData);
 
-    let activeQueue;
+    let activeQueue: DTOQueue | null = null;
 
-    // If medium_id is provided, use it to find the correct queue first
     if (medium_id !== undefined) {
-      const queueMediumId = getQueueMediumIdForChannelMediumId(medium_id);
-      if (queueMediumId !== null) {
-        activeQueue = queueData.find((queue) => queue.medium_id === queueMediumId);
-      }
+      activeQueue = getQueueForMedium(queueData, medium_id);
     }
 
     // Fallback: is_active_queue
-    if (!activeQueue) {
-      activeQueue = queueData.find((queue) => queue.is_active_queue);
+    if (activeQueue === null) {
+      activeQueue = queueData.find((queue) => queue.is_active_queue) ?? null;
     }
 
     // If still no active queue, check all queues for a now-playing item
     // This handles edge cases where is_active_queue wasn't set properly
-    let nowPlayingResource = null;
-    if (!activeQueue) {
+    let nowPlayingResource: DTOQueueResource | null = null;
+    if (activeQueue === null) {
       for (const queue of queueData) {
         const nowPlaying = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
           queue.id_text
@@ -108,15 +109,15 @@ export function useQueueResourcesLoadActive() {
     }
 
     // Final fallback: AV queue
-    if (!activeQueue) {
-      activeQueue = queueData.find((queue) => queue.medium_id === MediumEnum.AV);
+    if (activeQueue === null) {
+      activeQueue = queueData.find((queue) => queue.medium_id === MediumEnum.AV) ?? null;
     }
 
-    if (activeQueue) {
+    if (activeQueue !== null) {
       setActiveQueue(activeQueue);
 
       // Use already-fetched nowPlayingResource if available, otherwise fetch it
-      if (!nowPlayingResource) {
+      if (nowPlayingResource === null) {
         nowPlayingResource = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
           activeQueue.id_text
         );
@@ -144,14 +145,19 @@ export function useQueueResourcesLoadActive() {
       }
 
       return {
+        activeQueue,
         activeResource: combinedQueueResources[0] ?? null,
         historyMoved: 0,
+        queues: queueData,
         upcomingResources: combinedQueueResources,
         upcomingManualCount: combinedQueueResources.length,
         hasAutoQueueNext: combinedQueueResources.length === 0 ? hasAutoQueueNext : undefined,
       };
     }
 
-    return emptyLoadActiveResult;
+    return {
+      ...emptyLoadActiveResult,
+      queues: queueData,
+    };
   }, []);
 }

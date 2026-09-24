@@ -107,6 +107,20 @@ in [`AnonymousPlaybackRestoreController.tsx`](/apps/web/src/components/Queue/Ano
 `MediaPlayerController` (`handleLoadQueueItem` / Clip / Soundbite /
 AddByRSS). **`autoQueueShouldClear: true`** in every path.
 
+When the player has no loaded target, that load is paused and does not post
+`play`. If the head is upcoming (`list_position` > 0), web first calls
+`POST /queue/{id}/resources/promote-upcoming`, which moves the row to
+now-playing without writing `last_played_at`. A later refresh of that same
+row also skips the `play` write so the promote is not undone by a listen stamp.
+
+On signed-in mount, `QueueController` loads the last-active queue first. If that
+queue has no now-playing and no upcoming and the player is still empty, it
+loads the other account queue (AV ↔ music) into the store so the queue-head
+effect can promote and load paused. Falling back does not flip
+`is_active_queue`. Auto-queue is not consulted at open — those rows are not
+persisted and only advance after skip / ended while something is already
+playing.
+
 | Resource shape                                         | `currentTime` after `loadedmetadata`                                                                                                                           | `mpIsPlaying`                                                            | Side effects                                                                                                                                           |
 | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `nextResource.item` only (no clip/soundbite)           | item-podcast/video: `p` or `0`; item-music: **`session_restore`** resumes `playback_position` (near-end clamp); **`fresh_transition`** after skip/ended is `0` | follows `mpShouldPlay`; queue load does not set `shouldPlay` → unchanged | `handleLoadQueueItem` defaults music to `session_restore`; `pendingMusicQueueLoadIntentRef` supplies `fresh_transition` before skip/ended `loadActive` |

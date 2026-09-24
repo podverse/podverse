@@ -29,6 +29,11 @@ export type MediaPlayerPlaybackLoadInput = PlaybackLoadRequest & {
   autoQueueShouldClear: boolean;
   enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default';
   skipMoveNowPlayingToHistory: boolean;
+  /**
+   * Empty-player queue hydration loads the row without a listen. A `play` write
+   * would stamp `last_played_at` and move the zone by inventing one.
+   */
+  skipNowPlayingWrite?: boolean;
 };
 
 function durationHintSecondsForTarget(
@@ -233,6 +238,7 @@ export function useMediaPlayerResourceUpdate() {
       newAutoQueueConfig,
       autoQueueShouldClear,
       enclosureSelectedParams,
+      skipNowPlayingWrite,
     } = input;
 
     if (target.kind !== 'add-by-rss') {
@@ -300,7 +306,7 @@ export function useMediaPlayerResourceUpdate() {
     );
     const hintedDuration = parsePlaybackSeconds(mediaFileDurationHintSeconds);
     const finalDuration = hintedDuration !== undefined ? hintedDuration : rowDuration;
-    if (!embedGuardrails.skipAutoQueueMutations) {
+    if (!embedGuardrails.skipAutoQueueMutations && skipNowPlayingWrite !== true) {
       const np = nowPlayingFieldsFromTarget(target);
       void updateNowPlaying({
         ...np,

@@ -245,6 +245,7 @@ import {
   reqQueueResourcesGetAllUpcomingByQueueIdText,
   reqQueueResourcesGetHistoryByQueueIdTextPaginated,
   reqQueueResourcesGetNowPlayingByQueueIdText,
+  reqQueueResourcesPromoteUpcomingToNowPlaying,
 } from './queue/queueResource/queueResource.js';
 import {
   reqQueueResourceClipAddBetween,
@@ -1240,6 +1241,10 @@ export class ApiRequestService {
 
   reqQueueResourcesGetNowPlayingByQueueIdText(queue_id_text: string) {
     return reqQueueResourcesGetNowPlayingByQueueIdText(this, { queue_id_text });
+  }
+
+  reqQueueResourcesPromoteUpcomingToNowPlaying(queue_id_text: string) {
+    return reqQueueResourcesPromoteUpcomingToNowPlaying(this, { queue_id_text });
   }
 
   reqQueueResourcesGetAllUpcomingByQueueIdText(queue_id_text: string) {
