@@ -1057,6 +1057,7 @@
       "category_terms_of_service_description": "Required legal and policy announcements.",
       "category_general": "General",
       "category_general_description": "Important account-level notifications.",
+      "allow": "Allow notifications",
       "new_item": "New item",
       "livestream_scheduled": "Livestream scheduled",
       "livestream_started": "Livestream started",

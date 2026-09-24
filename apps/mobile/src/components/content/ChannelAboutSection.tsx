@@ -9,6 +9,7 @@ import { screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { FillList } from '../primitives';
+import { SectionHeading } from '../section/SectionHeading';
 import { ListEmpty } from '../state/ListEmpty';
 import { LoadingSection } from '../state/LoadingSection';
 import { AboutPersonRow } from './AboutPersonRow';
@@ -51,8 +52,6 @@ export function ChannelAboutSection({
           paddingHorizontal: screenBodyInsets(tokens.spacing).paddingHorizontal,
         },
         heading: {
-          ...typography.heading,
-          color: themeStyles.textPrimary.color,
           marginTop: tokens.spacing.lg,
         },
         linkLabel: {
@@ -183,9 +182,7 @@ export function ChannelAboutSection({
 
         if (cell.kind === 'people-heading') {
           return (
-            <Text accessibilityRole="header" style={styles.heading}>
-              {t('info.people.people')}
-            </Text>
+            <SectionHeading style={styles.heading}>{t('info.people.people')}</SectionHeading>
           );
         }
 

@@ -257,81 +257,72 @@ name: Podcast Episode Flow
     timeout: ${TIMEOUT_FASTER}
 
 # --- Header actions and podcast settings, signed in ---
-# Share and the bell are unconditional. The gear needs a subscription as well as an account, so the
-# subscribe below is what makes it appear — and skipping it when it is already there keeps the flow
-# correct whether or not the account's follows have reached this device yet.
+# Share and the bell stay in the title bar. Settings is a section chip for signed-in users.
 - assertVisible:
     id: podcast-detail-share
 - assertVisible:
     id: podcast-detail-notifications-toggle
-- runFlow:
-    when:
-      notVisible:
-        id: podcast-detail-settings
-    commands:
-      - tapOn:
-          id: podcast-detail-subscribe-toggle
 - extendedWaitUntil:
     visible:
-      id: podcast-detail-settings
+      id: podcast-detail-section-settings
     timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: podcast-episode-header-actions
 
 - tapOn:
-    id: podcast-detail-settings
+    id: podcast-detail-section-settings
 - extendedWaitUntil:
     visible:
-      id: podcast-settings-screen
+      id: podcast-detail-settings
     timeout: ${TIMEOUT_FAST}
 - assertVisible:
-    id: podcast-settings-feed-card
+    id: podcast-detail-settings-feed-card
 - assertVisible:
-    id: podcast-settings-check-feed
-# Auto-download is offered and inert, so the affordance is visible without pretending to work.
+    id: podcast-detail-settings-check-feed
+# Auto-download explains itself on tap rather than showing a standing caption or a dead switch.
 - assertVisible:
-    id: podcast-settings-auto-download
-- assertVisible: "Auto-download is not available yet."
+    id: podcast-detail-settings-auto-download
+- tapOn:
+    id: podcast-detail-settings-auto-download
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-settings-auto-download-unavailable
+    timeout: ${TIMEOUT_FASTER}
+- assertVisible: "Not available yet."
+- tapOn:
+    id: podcast-detail-settings-auto-download-close
+- extendedWaitUntil:
+    notVisible:
+      id: podcast-detail-settings-auto-download-unavailable
+    timeout: ${TIMEOUT_FASTER}
 # Notifications start off for this channel, so there are no types to configure yet.
 - assertNotVisible:
-    id: podcast-settings-notification-types
+    id: podcast-detail-settings-notification-types
 - takeScreenshot: podcast-settings-notifications-off
 
 # The master switch is what creates the account's notification row for this channel; the three type
 # switches only exist once it does.
 - tapOn:
-    id: podcast-settings-notifications-toggle
+    id: podcast-detail-settings-notifications-toggle
 - extendedWaitUntil:
     visible:
-      id: podcast-settings-notification-types
+      id: podcast-detail-settings-notification-types
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
-    id: podcast-settings-notification-type-new-item
+    id: podcast-detail-settings-notification-type-new-item
 - assertVisible:
-    id: podcast-settings-notification-type-livestream-scheduled
+    id: podcast-detail-settings-notification-type-livestream-scheduled
 - assertVisible:
-    id: podcast-settings-notification-type-livestream-started
+    id: podcast-detail-settings-notification-type-livestream-started
 - assertNotVisible:
-    id: podcast-settings-notifications-error
+    id: podcast-detail-settings-notifications-error
 - takeScreenshot: podcast-settings-notifications-on
 
 # The header bell and these switches read the same account row, so turning it off from the header
-# empties the settings screen rather than leaving the two disagreeing.
-- tapOn:
-    id: stack-header-back
-- extendedWaitUntil:
-    visible:
-      id: podcast-detail-screen
-    timeout: ${TIMEOUT_FAST}
+# hides the type rows rather than leaving the two disagreeing.
 - tapOn:
     id: podcast-detail-notifications-toggle
-- tapOn:
-    id: podcast-detail-settings
-- extendedWaitUntil:
-    visible:
-      id: podcast-settings-screen
-    timeout: ${TIMEOUT_FAST}
 - extendedWaitUntil:
     notVisible:
-      id: podcast-settings-notification-types
+      id: podcast-detail-settings-notification-types
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: podcast-settings-notifications-off-from-header

@@ -57,7 +57,7 @@
       "auto_removed_notice": "Removed the oldest downloads to free up space",
       "dismiss": "Dismiss",
       "in_progress_count": "{count} in progress",
-      "auto_download": "Auto-download new episodes",
+      "auto_download": "Auto-download",
       "auto_download_unavailable": "Auto-download is not available yet.",
       "paused": "Paused",
       "pause_all": "Pause all",

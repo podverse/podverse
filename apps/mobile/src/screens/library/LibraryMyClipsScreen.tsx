@@ -11,6 +11,7 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import type { MediaRowMoreAction } from '../../components/player/MediaRowActions';
 import { FillList } from '../../components/primitives';
+import { SectionHeading } from '../../components/section/SectionHeading';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { clipToHomeRow, MIXED_SOURCE_CLIP_ROW_OPTIONS } from '../../lib/rows/homeRowMappers';
@@ -136,9 +137,6 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
           marginBottom: tokens.spacing.lg,
         },
         sectionHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 20,
-          fontWeight: '700',
           marginBottom: tokens.spacing.sm,
         },
       }),
@@ -226,9 +224,7 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
         <Text accessibilityRole="header" style={styles.screenHeading}>
           {t('features.clip.clips')}
         </Text>
-        <Text accessibilityRole="header" style={styles.sectionHeading}>
-          {t('features.clip.clips')}
-        </Text>
+        <SectionHeading style={styles.sectionHeading}>{t('features.clip.clips')}</SectionHeading>
       </>
     ),
     [styles.screenHeading, styles.sectionHeading, t]

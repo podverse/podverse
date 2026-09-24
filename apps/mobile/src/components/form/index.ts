@@ -17,8 +17,12 @@ export type {
   SectionChipRowProps,
   SectionChipVariant,
 } from './SectionChipRow';
+export { SettingsGroup } from './SettingsGroup';
+export type { SettingsGroupProps } from './SettingsGroup';
 export { SettingsOptionNavRow } from './SettingsOptionNavRow';
 export type { SettingsOptionNavRowProps } from './SettingsOptionNavRow';
+export { SettingsRowDescription, SettingsSwitchRow } from './SettingsSwitchRow';
+export type { SettingsSwitchRowProps } from './SettingsSwitchRow';
 export { SortPill } from './SortPill';
 export type { SortPillProps } from './SortPill';
 export { SortSelectRow } from './SortSelectRow';

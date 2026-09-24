@@ -34,7 +34,39 @@ describe('resolvePodcastSections', () => {
     ).toEqual(['episodes', 'downloaded', 'about', 'clips', 'podroll']);
   });
 
-  it('keeps Funding last when the channel has funding rows', () => {
+  it('offers Settings last for signed-in users, after Funding', () => {
+    expect(
+      resolvePodcastSections({
+        channel: {
+          channel_fundings: [{ url: 'https://example.com/support' }],
+          channel_podroll: { channel_podroll_remote_items: [{ feed_guid: 'guid-1' }] },
+        },
+        hasSoundbites: true,
+        isSignedIn: true,
+      })
+    ).toEqual([
+      'episodes',
+      'downloaded',
+      'about',
+      'clips',
+      'soundbites',
+      'podroll',
+      'funding',
+      'settings',
+    ]);
+  });
+
+  it('hides Settings when signed out', () => {
+    expect(
+      resolvePodcastSections({
+        channel: null,
+        hasSoundbites: false,
+        isSignedIn: false,
+      })
+    ).toEqual([...ALWAYS_ON]);
+  });
+
+  it('keeps Funding last among content chips when signed out', () => {
     expect(
       resolvePodcastSections({
         channel: {

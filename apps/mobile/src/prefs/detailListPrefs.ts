@@ -27,11 +27,10 @@ import { readSortPref, writeSortPref } from './sortPrefs';
  * Remembered because it decides what the screen loads. Restoring it after the screen had already
  * loaded Episodes would mean fetching twice and showing the wrong pane in between.
  *
- * Always-on panes come first in the available set; evidence panes (Official clips, Podroll,
- * Funding) stay last so a first-visit insert is at the end. Funding is always the rightmost chip
- * when this channel has funding rows. The painted row then puts the selected pane first.
- * A remembered evidence pane is still subject to what this channel actually carries — the caller
- * reconciles that.
+ * Always-on panes come first in the available set; evidence panes (Official clips, Podroll) and
+ * Funding follow. Settings (signed-in) is the last section chip — only the optional trailing
+ * sort / category filter chip may sit after it. A remembered evidence pane is still subject to
+ * what this channel actually carries — the caller reconciles that.
  */
 export const PODCAST_TABS = [
   'episodes',
@@ -41,6 +40,7 @@ export const PODCAST_TABS = [
   'soundbites',
   'podroll',
   'funding',
+  'settings',
 ] as const;
 
 export type PodcastTab = (typeof PODCAST_TABS)[number];
@@ -81,7 +81,7 @@ export type AddByRssEpisodeSort = (typeof ADD_BY_RSS_EPISODE_SORT_OPTIONS)[numbe
 
 export const DEFAULT_ADD_BY_RSS_EPISODE_SORT: AddByRssEpisodeSort = 'recent';
 
-export const ALBUM_TABS = ['tracks', 'about', 'podroll', 'settings', 'funding'] as const;
+export const ALBUM_TABS = ['tracks', 'about', 'podroll', 'funding', 'settings'] as const;
 
 export type AlbumTab = (typeof ALBUM_TABS)[number];
 
@@ -102,7 +102,7 @@ export type AlbumDetailRange = QueryParamsStatsRange;
 
 export const DEFAULT_ALBUM_DETAIL_RANGE: AlbumDetailRange = 'week';
 
-export const ARTIST_TABS = ['albums', 'tracks', 'about', 'podroll', 'settings', 'funding'] as const;
+export const ARTIST_TABS = ['albums', 'tracks', 'about', 'podroll', 'funding', 'settings'] as const;
 
 export type ArtistTab = (typeof ARTIST_TABS)[number];
 

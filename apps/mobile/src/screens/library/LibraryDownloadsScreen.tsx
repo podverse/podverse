@@ -9,6 +9,7 @@ import { Button } from '../../components/primitives/Button';
 import { CoverImage } from '../../components/primitives/CoverImage';
 import { ProgressTrack } from '../../components/primitives/ProgressTrack';
 import { SwipeActionRow } from '../../components/primitives/SwipeActionRow';
+import { SectionHeading } from '../../components/section/SectionHeading';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -216,9 +217,7 @@ export function LibraryDownloadsScreen() {
           flex: 1,
         },
         sectionHeader: {
-          ...typography.heading,
           backgroundColor: themeStyles.screen.backgroundColor,
-          color: themeStyles.textPrimary.color,
           paddingBottom: tokens.spacing.sm,
           paddingTop: tokens.spacing.md,
         },
@@ -365,9 +364,7 @@ export function LibraryDownloadsScreen() {
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: DownloadSection }) => (
-      <Text accessibilityRole="header" style={styles.sectionHeader}>
-        {section.title}
-      </Text>
+      <SectionHeading style={styles.sectionHeader}>{section.title}</SectionHeading>
     ),
     [styles.sectionHeader]
   );

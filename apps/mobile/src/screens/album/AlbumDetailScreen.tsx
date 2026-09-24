@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, StyleSheet, Switch, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import {
@@ -14,7 +14,7 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { useBoostSheet } from '../../components/boost/useBoostSheet';
-import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
+import { ChannelDetailShell, ChannelHeader, ChannelSettingsPane } from '../../components/channel';
 import { ChannelAboutSection, FundingLinksSection } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip } from '../../components/form';
@@ -314,19 +314,6 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           fontSize: 13,
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.lg,
-        },
-        settingsCard: {
-          marginHorizontal: tokens.spacing.lg,
-          marginTop: tokens.spacing.md,
-          paddingBottom: tokens.spacing.md,
-        },
-        settingsHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.sm,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
         },
         list: {
           backgroundColor: themeStyles.screen.backgroundColor,
@@ -1001,31 +988,11 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   );
 
   const settingsBody = (
-    <View style={styles.settingsCard} testID="album-detail-settings">
-      <Text style={styles.settingsHeading}>{t('settings.notifications.notifications')}</Text>
-      <ListRow
-        testID="album-detail-settings-notifications"
-        title={t('features.notifications.enable_notifications_for_this_album')}
-        trailing={
-          <Switch
-            accessibilityLabel={t('features.notifications.enable_notifications_for_this_album')}
-            accessibilityRole="switch"
-            accessibilityState={{ checked: notifications.isEnabled }}
-            disabled={notifications.isSaving}
-            onValueChange={(nextValue) => {
-              void notifications.setEnabled(nextValue);
-            }}
-            value={notifications.isEnabled}
-          />
-        }
-      />
-      {notifications.errorKey !== null ? (
-        <Text style={styles.notice}>{t(notifications.errorKey)}</Text>
-      ) : null}
-      <Text style={styles.notice} testID="album-detail-settings-auto-download-notice">
-        {t('features.download.auto_download_unavailable')}
-      </Text>
-    </View>
+    <ChannelSettingsPane
+      channel={channel}
+      notifications={notifications}
+      testIDPrefix="album-detail"
+    />
   );
 
   const sectionBody =

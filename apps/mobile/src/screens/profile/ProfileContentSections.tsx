@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SectionList, StyleSheet, Text, View } from 'react-native';
+import { SectionList, StyleSheet, View } from 'react-native';
 
 import type { DTOChannel, DTOClip, DTOPlaylist } from '@podverse/helpers';
 
@@ -10,6 +10,7 @@ import {
   applyFillListRenderWindow,
   LIST_REMOVE_CLIPPED_SUBVIEWS,
 } from '../../components/primitives/listVirtualization';
+import { SectionHeading } from '../../components/section/SectionHeading';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import {
   channelToHomeRow,
@@ -164,16 +165,10 @@ export function ProfileContentSections({
           padding: tokens.spacing.lg,
         },
         sectionHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 20,
-          fontWeight: '700',
           marginBottom: tokens.spacing.sm,
           marginTop: tokens.spacing.md,
         },
         sectionHeadingFirst: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 20,
-          fontWeight: '700',
           marginBottom: tokens.spacing.sm,
         },
       }),
@@ -227,12 +222,11 @@ export function ProfileContentSections({
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: ProfileSection }) => (
-      <Text
-        accessibilityRole="header"
+      <SectionHeading
         style={section.key === 'podcasts' ? styles.sectionHeadingFirst : styles.sectionHeading}
       >
         {section.title}
-      </Text>
+      </SectionHeading>
     ),
     [styles.sectionHeading, styles.sectionHeadingFirst]
   );

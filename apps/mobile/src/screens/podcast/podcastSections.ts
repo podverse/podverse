@@ -17,6 +17,7 @@ export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
   episodes: 'media.podcast.episodes',
   funding: 'info.funding',
   podroll: 'info.podroll',
+  settings: 'settings.settings',
   soundbites: 'info.soundbite.official_clips',
 };
 
@@ -53,16 +54,19 @@ export const channelHasFunding = (channel: PodcastSectionChannel | null): boolea
  *
  * Episodes, Downloaded, About, and Clips are always answerable. Official clips and Podroll sit
  * after those and appear from cached evidence, then from the channel DTO / stored episodes once
- * those have been read. Funding is last, and only when this channel has funding rows.
+ * those have been read. Funding appears when this channel has funding rows. Settings is last
+ * among section chips (signed-in only); the optional sort / category trailing chip may follow it.
  */
 export const resolvePodcastSections = ({
   channel,
   hasSoundbites,
+  isSignedIn = false,
   previewHasFunding,
   previewHasPodroll,
 }: {
   channel: PodcastSectionChannel | null;
   hasSoundbites: boolean;
+  isSignedIn?: boolean;
   previewHasFunding?: boolean;
   previewHasPodroll?: boolean;
 }): PodcastTab[] => {
@@ -78,6 +82,9 @@ export const resolvePodcastSections = ({
     }
     if (section === 'podroll') {
       return hasPodroll;
+    }
+    if (section === 'settings') {
+      return isSignedIn;
     }
     if (section === 'funding') {
       return hasFunding;

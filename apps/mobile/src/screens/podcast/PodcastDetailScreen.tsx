@@ -79,6 +79,7 @@ import {
   PodcastFundingSection,
   PodcastOfficialClipsSection,
   PodcastPodrollSection,
+  PodcastSettingsSection,
 } from './sections';
 
 type PodcastDetailScreenProps = NativeStackScreenProps<
@@ -110,6 +111,7 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
   episodes: PodcastEpisodesSection,
   funding: PodcastFundingSection,
   podroll: PodcastPodrollSection,
+  settings: PodcastSettingsSection,
   soundbites: PodcastOfficialClipsSection,
 };
 
@@ -123,8 +125,8 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
  * would branch on section in every callback.
  *
  * Subscribe lives on the channel identity block. RSS and website URLs live on About. Funding is
- * its own chip. Share, notifications, and settings live in the stack title bar — the same slot
- * every channel and item detail screen uses (`mobile-screen-layout`).
+ * its own chip. Share and notifications live in the stack title bar. Channel settings are the
+ * Settings chip (`mobile-screen-layout`).
  */
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
@@ -362,16 +364,16 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         return;
       }
       // Offline Mode wins over the remembered tab on arrival; the stored pref is left alone.
-      setSection(
-        isOfflineModeEnabled()
-          ? resolvePodcastSectionForOfflineMode(prefs.tab, [
-              'about',
-              'clips',
-              'downloaded',
-              'episodes',
-            ])
-          : prefs.tab
-      );
+      const offline = isOfflineModeEnabled();
+      const nextSection = offline
+        ? resolvePodcastSectionForOfflineMode(prefs.tab, [
+            'about',
+            'clips',
+            'downloaded',
+            'episodes',
+          ])
+        : prefs.tab;
+      setSection(nextSection);
       setSort(prefs.sort);
       setRange(prefs.range);
       setIsSectionHydrated(true);
@@ -404,11 +406,6 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   });
 
   const isSignedIn = status === 'authenticated';
-  /**
-   * Settings are offered once there is something to settle: an account to hold the choices and a
-   * subscription that makes them worth holding.
-   */
-  const canOpenSettings = isSignedIn && isSubscribed;
   const canShowBoost = getBoostEligibilityForContent({ channel }).canShowBoostAction;
   const notificationsEnabled = notifications.isEnabled;
   const toggleNotifications = notifications.toggleEnabled;
@@ -450,28 +447,16 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
             onPress={handleShare}
             testID="podcast-detail-share"
           />
-          {canOpenSettings ? (
-            <HeaderBarAction
-              accessibilityLabel={t('nav.stack.podcast_settings')}
-              icon="settings-outline"
-              onPress={() => {
-                navigation.navigate('PodcastSettings', { podcastId });
-              }}
-              testID="podcast-detail-settings"
-            />
-          ) : null}
         </View>
       ),
     });
   }, [
-    canOpenSettings,
     canShowBoost,
     channel,
     handleShare,
     navigation,
     notificationsEnabled,
     openBoost,
-    podcastId,
     styles.headerActions,
     t,
     tokens.text.warning,
@@ -556,8 +541,15 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   ]);
 
   const availableSections = useMemo(
-    () => resolvePodcastSections({ channel, hasSoundbites, previewHasFunding, previewHasPodroll }),
-    [channel, hasSoundbites, previewHasFunding, previewHasPodroll]
+    () =>
+      resolvePodcastSections({
+        channel,
+        hasSoundbites,
+        isSignedIn,
+        previewHasFunding,
+        previewHasPodroll,
+      }),
+    [channel, hasSoundbites, isSignedIn, previewHasFunding, previewHasPodroll]
   );
 
   /**
@@ -701,6 +693,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       filterTerm={filterTerm}
       isChannelLoading={isChannelLoading || isSectionPending}
       listHeader={listHeader}
+      notifications={notifications}
       onRefreshChannel={loadChannel}
       range={range}
       sort={sort}

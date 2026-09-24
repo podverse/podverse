@@ -31,8 +31,8 @@ export type ChannelNotificationsState = {
 };
 
 /**
- * One reader and writer for a podcast's notification state, shared by the header bell and the
- * podcast settings screen.
+ * One reader and writer for a channel's notification state, shared by the header bell and the
+ * Settings chip on podcast, album, and artist detail.
  *
  * The account rows are the source of truth once a numeric channel id is known. Until then the
  * device cache and navigate preview keep the bell from painting "off" and then turning on

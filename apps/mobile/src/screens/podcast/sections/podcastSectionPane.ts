@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
 
+import type { ChannelNotificationsState } from '../../../hooks/useChannelNotifications';
 import type { PodcastDetailRange, PodcastDetailSort } from '../../../prefs/detailListPrefs';
 
 /**
@@ -15,6 +16,8 @@ import type { PodcastDetailRange, PodcastDetailSort } from '../../../prefs/detai
  * `filterTerm`, `range`, and `sort` are handed down already settled. A section applies the ones
  * that mean something to it and ignores the rest, so the controls have one owner and cannot
  * disagree with what is on screen.
+ *
+ * `notifications` is for the Settings pane so the header bell and the chip share one hook.
  */
 export type PodcastSectionPaneProps = {
   /** `null` until the channel has been read, which the identity block already accounts for. */
@@ -29,6 +32,8 @@ export type PodcastSectionPaneProps = {
   filterTerm: string;
   /** Title filter, when this section has one. Render as the list's `ListHeaderComponent`. */
   listHeader: ReactNode;
+  /** Per-channel notification state from the screen's `useChannelNotifications` hook. */
+  notifications?: ChannelNotificationsState;
   /** Re-read the channel alongside the section's own refresh, so pull-to-refresh renews both. */
   onRefreshChannel: () => Promise<void>;
   /** The popularity window, which only means something while `sort` is `top`. */

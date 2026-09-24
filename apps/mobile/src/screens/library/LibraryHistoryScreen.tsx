@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { FillList } from '../../components/primitives';
+import { SectionHeading } from '../../components/section/SectionHeading';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
@@ -111,9 +112,6 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
           marginBottom: tokens.spacing.lg,
         },
         sectionHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 20,
-          fontWeight: '700',
           marginBottom: tokens.spacing.sm,
         },
       }),
@@ -187,9 +185,9 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
         <Text accessibilityRole="header" style={styles.screenHeading}>
           {t('features.history.history')}
         </Text>
-        <Text accessibilityRole="header" style={styles.sectionHeading}>
+        <SectionHeading style={styles.sectionHeading}>
           {t('features.history.history')}
-        </Text>
+        </SectionHeading>
       </>
     ),
     [styles.screenHeading, styles.sectionHeading, t]

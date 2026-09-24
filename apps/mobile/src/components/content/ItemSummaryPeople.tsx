@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { DTOItemPerson } from '@podverse/helpers';
 
-import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import { SectionHeading } from '../section/SectionHeading';
 import { toAboutPersonFromItem } from './aboutPerson';
 import { AboutPersonRow } from './AboutPersonRow';
 
@@ -20,21 +20,19 @@ type ItemSummaryPeopleProps = {
  */
 export function ItemSummaryPeople({ itemPersons, testIDPrefix }: ItemSummaryPeopleProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
         heading: {
-          ...typography.heading,
-          color: themeStyles.textPrimary.color,
           marginTop: tokens.spacing.lg,
         },
         root: {
           gap: tokens.spacing.xs,
         },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   const people = useMemo(() => itemPersons.map(toAboutPersonFromItem), [itemPersons]);
@@ -45,9 +43,7 @@ export function ItemSummaryPeople({ itemPersons, testIDPrefix }: ItemSummaryPeop
 
   return (
     <View style={styles.root} testID={`${testIDPrefix}-people`}>
-      <Text accessibilityRole="header" style={styles.heading}>
-        {t('info.people.people')}
-      </Text>
+      <SectionHeading style={styles.heading}>{t('info.people.people')}</SectionHeading>
       {people.map((person) => (
         <AboutPersonRow
           key={person.id}
