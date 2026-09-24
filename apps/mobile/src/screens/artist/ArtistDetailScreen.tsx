@@ -957,7 +957,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           testID="artist-detail-tracks-error"
         />
       ) : (
-        <ListEmpty messageKey="misc.info" testID="artist-detail-tracks-empty" />
+        <ListEmpty messageKey="media.music.no_tracks_found" testID="artist-detail-tracks-empty" />
       ),
     [handleRetryRows, isRowsLoading, rowsErrorKey]
   );
@@ -1024,7 +1024,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           testID="artist-detail-albums-offline-unavailable"
         />
       ) : (
-        <ListEmpty messageKey="misc.info" testID="artist-detail-albums-empty" />
+        <ListEmpty messageKey="media.music.no_albums_found" testID="artist-detail-albums-empty" />
       ),
     [handleRetryRows, isRowsLoading, offlineModeEnabled, rowsErrorKey]
   );

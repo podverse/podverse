@@ -572,13 +572,15 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     void loadQueue({ refresh: true });
   }, [loadQueue]);
 
+  const emptyMessageKey =
+    selectedMedium === 'music' ? 'features.queue.empty_music' : 'features.queue.empty_podcasts';
   const listEmpty = useMemo(
     () => (
       <VerticalCenter>
-        <ListEmpty messageKey="misc.info" testID="library-queue-empty" />
+        <ListEmpty messageKey={emptyMessageKey} testID="library-queue-empty" />
       </VerticalCenter>
     ),
-    []
+    [emptyMessageKey]
   );
 
   const listFooter = useMemo(

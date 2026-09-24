@@ -12,7 +12,8 @@
       "episode": "Épisode",
       "episodes": "Épisodes",
       "episode_image": "Image de l'épisode",
-      "no_episodes_found": "Aucun épisode trouvé"
+      "no_episodes_found": "Aucun épisode trouvé",
+      "no_podcasts_found": "Aucun podcast trouvé"
     },
     "music": {
       "music": "Musique",
@@ -27,7 +28,9 @@
       "track_image": "Image de la piste",
       "track_go_to": "Aller à la piste",
       "album_go_to": "Aller à l'album",
-      "artist_go_to": "Aller à l'artiste"
+      "artist_go_to": "Aller à l'artiste",
+      "no_tracks_found": "Aucune piste trouvée",
+      "no_albums_found": "Aucun album trouvé"
     },
     "video": {
       "channel": "Chaîne",
@@ -59,7 +62,8 @@
     "search": {
       "search": "Recherche",
       "search_by_title": "Recherche par titre...",
-      "empty_prompt": "Recherchez dans le Podcast Index par titre. Vos résultats apparaîtront ici."
+      "empty_prompt": "Recherchez dans le Podcast Index par titre. Vos résultats apparaîtront ici.",
+      "no_results": "Aucun résultat trouvé"
     },
     "add_feed": {
       "add_feed": "Ajouter un flux",
@@ -113,6 +117,8 @@
       "remove_error": "Erreur lors de la suppression de la file d'attente",
       "remove_from_queue": "Retirer de la file d'attente",
       "removed_from_queue": "Retiré de la file d'attente",
+      "empty_podcasts": "Rien dans votre file de podcasts pour le moment",
+      "empty_music": "Rien dans votre file de musique pour le moment",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "history": {
@@ -123,6 +129,7 @@
       "mark_as_unplayed": "Marquer comme non joué",
       "marked_as_unplayed": "Marqué comme non joué",
       "mark_as_played_error": "Erreur lors du marquage comme joué",
+      "empty": "Rien dans votre historique pour le moment",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "playlist": {
@@ -144,12 +151,14 @@
       "playlist_type": "Type de playlist",
       "add_to_liked": "Ajouter aux j'aime",
       "remove_from_liked": "Retirer des j'aime",
+      "no_playlists_found": "Aucune playlist trouvée",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
       "no_clips_found": "Aucun clip trouvé",
+      "empty": "Aucun clip pour le moment",
       "create_clip": "Créer un clip",
       "edit_clip": "Modifier le clip",
       "delete_clip": "Supprimer le clip",
@@ -342,7 +351,8 @@
     "transcript": {
       "transcript": "Transcription",
       "search_transcript": "Rechercher dans la transcription...",
-      "lyrics": "Paroles"
+      "lyrics": "Paroles",
+      "no_transcript": "Aucune transcription disponible"
     },
     "credits": "Crédits",
     "people": {
@@ -353,7 +363,8 @@
     "chapter": {
       "chapter": "Chapitre",
       "chapters": "Chapitres",
-      "chapter_image": "Image du chapitre"
+      "chapter_image": "Image du chapitre",
+      "no_chapters": "Aucun chapitre disponible"
     },
     "soundbite": {
       "official_clip": "Extrait officiel",

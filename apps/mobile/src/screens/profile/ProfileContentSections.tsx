@@ -37,7 +37,7 @@ type ProfileSectionKey = 'albums' | 'clips' | 'playlists' | 'podcasts';
 type ProfileSectionItem =
   | { channel: DTOChannel; kind: 'album' }
   | { clip: DTOClip; kind: 'clip' }
-  | { emptyTestID: string; kind: 'empty' }
+  | { emptyTestID: string; kind: 'empty'; messageKey: string }
   | { kind: 'playlist'; playlist: DTOPlaylist }
   | { channel: DTOChannel; kind: 'podcast' };
 
@@ -51,9 +51,13 @@ const noopPlayPress = (_row: HomeFeedRowData): void => undefined;
 const noopPress = (_row: HomeFeedRowData): void => undefined;
 const noopQueuePress = (_row: HomeFeedRowData, _position: QueueActionPosition): void => undefined;
 
-function withEmptyFallback(items: ProfileSectionItem[], emptyTestID: string): ProfileSectionItem[] {
+function withEmptyFallback(
+  items: ProfileSectionItem[],
+  emptyTestID: string,
+  messageKey: string
+): ProfileSectionItem[] {
   if (items.length === 0) {
-    return [{ emptyTestID, kind: 'empty' }];
+    return [{ emptyTestID, kind: 'empty', messageKey }];
   }
   return items;
 }
@@ -180,7 +184,8 @@ export function ProfileContentSections({
       {
         data: withEmptyFallback(
           podcasts.map((channel) => ({ channel, kind: 'podcast' })),
-          `${emptyTestIdPrefix}-podcasts-empty`
+          `${emptyTestIdPrefix}-podcasts-empty`,
+          'media.podcast.no_podcasts_found'
         ),
         key: 'podcasts',
         title: t('media.podcast.podcasts'),
@@ -188,7 +193,8 @@ export function ProfileContentSections({
       {
         data: withEmptyFallback(
           albums.map((channel) => ({ channel, kind: 'album' })),
-          `${emptyTestIdPrefix}-albums-empty`
+          `${emptyTestIdPrefix}-albums-empty`,
+          'media.music.no_albums_found'
         ),
         key: 'albums',
         title: t('media.music.albums'),
@@ -196,7 +202,8 @@ export function ProfileContentSections({
       {
         data: withEmptyFallback(
           playlists.map((playlist) => ({ kind: 'playlist', playlist })),
-          `${emptyTestIdPrefix}-playlists-empty`
+          `${emptyTestIdPrefix}-playlists-empty`,
+          'features.playlist.no_playlists_found'
         ),
         key: 'playlists',
         title: t('features.playlist.playlists'),
@@ -204,7 +211,8 @@ export function ProfileContentSections({
       {
         data: withEmptyFallback(
           clips.map((clip) => ({ clip, kind: 'clip' })),
-          `${emptyTestIdPrefix}-clips-empty`
+          `${emptyTestIdPrefix}-clips-empty`,
+          'features.clip.no_clips_found'
         ),
         key: 'clips',
         title: t('features.clip.clips'),
@@ -243,7 +251,7 @@ export function ProfileContentSections({
     }) => {
       const isLast = index === section.data.length - 1;
       if (item.kind === 'empty') {
-        return <ListEmpty testID={item.emptyTestID} />;
+        return <ListEmpty messageKey={item.messageKey} testID={item.emptyTestID} />;
       }
       if (item.kind === 'podcast') {
         return <ProfileChannelRow channel={item.channel} isLast={isLast} mediaType="podcasts" />;

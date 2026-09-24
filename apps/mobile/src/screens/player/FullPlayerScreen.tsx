@@ -967,7 +967,10 @@ export function FullPlayerScreen({
         <View style={styles.pane} testID="full-player-transcript-pane">
           <View style={styles.column}>
             {transcriptText.length === 0 ? (
-              <ListEmpty messageKey="misc.info" testID="full-player-empty-transcript" />
+              <ListEmpty
+                messageKey="info.transcript.no_transcript"
+                testID="full-player-empty-transcript"
+              />
             ) : (
               <Text style={styles.paneText} testID="full-player-transcript-text">
                 {transcriptText}
@@ -980,7 +983,10 @@ export function FullPlayerScreen({
       body = (
         <View style={styles.pane}>
           <View style={styles.column}>
-            <ListEmpty messageKey="misc.info" testID="full-player-empty-chapters" />
+            <ListEmpty
+              messageKey="info.chapter.no_chapters"
+              testID="full-player-empty-chapters"
+            />
           </View>
         </View>
       );

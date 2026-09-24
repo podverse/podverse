@@ -27,7 +27,7 @@ type AuthAwareLoadStateProps = {
 export function AuthAwareLoadState({
   authMessageKey = 'authentication.login_required',
   children,
-  emptyMessageKey = 'misc.info',
+  emptyMessageKey,
   emptyTestID,
   errorKey,
   errorTestID,
@@ -62,7 +62,7 @@ export function AuthAwareLoadState({
     );
   }
 
-  if (showEmpty) {
+  if (showEmpty && emptyMessageKey !== undefined) {
     return (
       <VerticalCenter>
         <ListEmpty messageKey={emptyMessageKey} testID={emptyTestID} />

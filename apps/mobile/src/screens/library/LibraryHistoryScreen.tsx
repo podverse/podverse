@@ -199,7 +199,10 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     void loadHistory();
   }, [loadHistory]);
 
-  const listEmpty = useMemo(() => <ListEmpty testID="library-history-empty" />, []);
+  const listEmpty = useMemo(
+    () => <ListEmpty messageKey="features.history.empty" testID="library-history-empty" />,
+    []
+  );
   const listFooter = useMemo(
     () =>
       playbackNoticeKey !== null ? <Text style={styles.notice}>{t(playbackNoticeKey)}</Text> : null,

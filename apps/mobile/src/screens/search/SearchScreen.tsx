@@ -376,7 +376,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     }
     return (
       <VerticalCenter>
-        <ListEmpty messageKey="misc.info" testID="search-empty-results" />
+        <ListEmpty messageKey="features.search.no_results" testID="search-empty-results" />
       </VerticalCenter>
     );
   }, [debouncedQuery.length, errorKey, handleRetrySearch, isLoading]);

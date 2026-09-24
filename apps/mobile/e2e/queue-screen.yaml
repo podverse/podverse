@@ -56,6 +56,10 @@ name: Queue screen flow
     id: library-queue-medium-music
 - tapOn:
     id: library-queue-medium-music
+- extendedWaitUntil:
+    visible:
+      text: "Nothing in your music queue yet"
+    timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: queue-screen-music-medium
 - tapOn:
     id: library-queue-medium-av
@@ -83,6 +87,8 @@ name: Queue screen flow
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     id: library-queue-empty
+- assertVisible:
+    text: "Nothing in your podcast queue yet"
 - takeScreenshot: queue-screen-empty
 # Drag reorder is intentionally not asserted here. Maestro long-press drag does not reliably
 # validate the tap/swipe/drag arbitration contract; resolver unit tests + device checks cover it.

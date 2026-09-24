@@ -12,7 +12,8 @@
       "episode": "Episodio",
       "episodes": "Episodios",
       "episode_image": "Imagen del episodio",
-      "no_episodes_found": "No se encontraron episodios"
+      "no_episodes_found": "No se encontraron episodios",
+      "no_podcasts_found": "No se encontraron podcasts"
     },
     "music": {
       "music": "Música",
@@ -27,7 +28,9 @@
       "track_image": "Imagen de la pista",
       "track_go_to": "Ir a la pista",
       "album_go_to": "Ir al álbum",
-      "artist_go_to": "Ir al artista"
+      "artist_go_to": "Ir al artista",
+      "no_tracks_found": "No se encontraron pistas",
+      "no_albums_found": "No se encontraron álbumes"
     },
     "video": {
       "channel": "Canal",
@@ -59,7 +62,8 @@
     "search": {
       "search": "Buscar",
       "search_by_title": "Buscar por título...",
-      "empty_prompt": "Busca en el Podcast Index por título. Tus resultados aparecerán aquí."
+      "empty_prompt": "Busca en el Podcast Index por título. Tus resultados aparecerán aquí.",
+      "no_results": "No se encontraron resultados"
     },
     "add_feed": {
       "add_feed": "Agregar feed",
@@ -113,6 +117,8 @@
       "remove_error": "Error al eliminar de la cola",
       "remove_from_queue": "Eliminar de la cola",
       "removed_from_queue": "Eliminado de la cola",
+      "empty_podcasts": "Todavía no hay nada en tu cola de podcasts",
+      "empty_music": "Todavía no hay nada en tu cola de música",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "history": {
@@ -123,6 +129,7 @@
       "mark_as_unplayed": "Marcar como no reproducido",
       "marked_as_unplayed": "Marcado como no reproducido",
       "mark_as_played_error": "Error al marcar como reproducido",
+      "empty": "Todavía no hay nada en tu historial",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "playlist": {
@@ -144,12 +151,14 @@
       "playlist_type": "Tipo de lista de reproducción",
       "add_to_liked": "Añadir a me gusta",
       "remove_from_liked": "Quitar de me gusta",
+      "no_playlists_found": "No se encontraron listas de reproducción",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
       "no_clips_found": "No se encontraron clips",
+      "empty": "Aún no hay clips",
       "create_clip": "Crear clip",
       "edit_clip": "Editar clip",
       "delete_clip": "Eliminar clip",
@@ -342,7 +351,8 @@
     "transcript": {
       "transcript": "Transcripción",
       "search_transcript": "Buscar transcripción...",
-      "lyrics": "Letras"
+      "lyrics": "Letras",
+      "no_transcript": "No hay transcripción disponible"
     },
     "credits": "Créditos",
     "people": {
@@ -353,7 +363,8 @@
     "chapter": {
       "chapter": "Capítulo",
       "chapters": "Capítulos",
-      "chapter_image": "Imagen del capítulo"
+      "chapter_image": "Imagen del capítulo",
+      "no_chapters": "No hay capítulos disponibles"
     },
     "soundbite": {
       "official_clip": "Clip oficial",

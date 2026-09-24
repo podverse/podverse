@@ -731,7 +731,10 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
 
     if (activeTab === 'transcript') {
       return transcriptText.length === 0 ? (
-        <ListEmpty messageKey="misc.info" testID="episode-detail-tab-empty-transcript" />
+        <ListEmpty
+          messageKey="info.transcript.no_transcript"
+          testID="episode-detail-tab-empty-transcript"
+        />
       ) : (
         <Text style={styles.transcript} testID="episode-detail-tab-transcript-content">
           {transcriptText}
@@ -740,7 +743,12 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     }
 
     if (activeTab === 'chapters' && chapterRows.length === 0) {
-      return <ListEmpty messageKey="misc.info" testID="episode-detail-tab-empty-chapters" />;
+      return (
+        <ListEmpty
+          messageKey="info.chapter.no_chapters"
+          testID="episode-detail-tab-empty-chapters"
+        />
+      );
     }
 
     if (activeTab === 'soundbites' && soundbiteRows.length === 0) {

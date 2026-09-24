@@ -7,7 +7,7 @@ import { useTheme } from '../../theme/useTheme';
 import { Button, VerticalCenter } from '../primitives';
 
 type ListEmptyProps = {
-  messageKey?: string;
+  messageKey: string;
   testID?: string;
   /**
    * Optional next step, for empty lists the user can act on — "nothing subscribed yet" offering
@@ -27,7 +27,7 @@ type ListEmptyProps = {
 export function ListEmpty({
   actionLabelKey,
   actionTestID,
-  messageKey = 'misc.info',
+  messageKey,
   onAction,
   testID = 'list-empty',
 }: ListEmptyProps) {

@@ -229,7 +229,10 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
     ),
     [styles.screenHeading, styles.sectionHeading, t]
   );
-  const listEmpty = useMemo(() => <ListEmpty testID="library-my-clips-empty" />, []);
+  const listEmpty = useMemo(
+    () => <ListEmpty messageKey="features.clip.empty" testID="library-my-clips-empty" />,
+    []
+  );
   const listFooter = useMemo(
     () =>
       playbackNoticeKey !== null ? <Text style={styles.notice}>{t(playbackNoticeKey)}</Text> : null,

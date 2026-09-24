@@ -12,7 +12,8 @@
       "episode": "Episode",
       "episodes": "Episodes",
       "episode_image": "Episode image",
-      "no_episodes_found": "No episodes found"
+      "no_episodes_found": "No episodes found",
+      "no_podcasts_found": "No podcasts found"
     },
     "music": {
       "music": "Music",
@@ -27,7 +28,9 @@
       "track_image": "Track image",
       "track_go_to": "Go to track",
       "album_go_to": "Go to album",
-      "artist_go_to": "Go to artist"
+      "artist_go_to": "Go to artist",
+      "no_tracks_found": "No tracks found",
+      "no_albums_found": "No albums found"
     },
     "video": {
       "channel": "Channel",
@@ -59,7 +62,8 @@
     "search": {
       "search": "Search",
       "search_by_title": "Search by title...",
-      "empty_prompt": "Search the Podcast Index by title."
+      "empty_prompt": "Search the Podcast Index by title.",
+      "no_results": "No results found"
     },
     "add_feed": {
       "add_feed": "Add feed",
@@ -113,6 +117,8 @@
       "remove_error": "Error removing from queue",
       "remove_from_queue": "Remove from queue",
       "removed_from_queue": "Removed from queue",
+      "empty_podcasts": "Nothing in your podcast queue yet",
+      "empty_music": "Nothing in your music queue yet",
       "login_prompt": "Log in to use this feature."
     },
     "history": {
@@ -123,6 +129,7 @@
       "mark_as_unplayed": "Mark as unplayed",
       "marked_as_unplayed": "Marked as unplayed",
       "mark_as_played_error": "Error marking as played",
+      "empty": "Nothing in your history yet",
       "login_prompt": "Log in to use this feature."
     },
     "playlist": {
@@ -144,12 +151,14 @@
       "playlist_type": "Playlist type",
       "add_to_liked": "Add to Liked",
       "remove_from_liked": "Remove from Liked",
+      "no_playlists_found": "No playlists found",
       "login_prompt": "Log in to use this feature."
     },
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
       "no_clips_found": "No clips found",
+      "empty": "No clips yet",
       "create_clip": "Create clip",
       "edit_clip": "Edit clip",
       "delete_clip": "Delete clip",
@@ -342,7 +351,8 @@
     "transcript": {
       "transcript": "Transcript",
       "search_transcript": "Search transcript...",
-      "lyrics": "Lyrics"
+      "lyrics": "Lyrics",
+      "no_transcript": "No transcript available"
     },
     "credits": "Credits",
     "people": {
@@ -353,7 +363,8 @@
     "chapter": {
       "chapter": "Chapter",
       "chapters": "Chapters",
-      "chapter_image": "Chapter image"
+      "chapter_image": "Chapter image",
+      "no_chapters": "No chapters available"
     },
     "soundbite": {
       "official_clip": "Official clip",

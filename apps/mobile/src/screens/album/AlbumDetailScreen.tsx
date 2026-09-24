@@ -835,7 +835,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           testID="album-detail-error"
         />
       ) : (
-        <ListEmpty messageKey="misc.info" testID="album-detail-empty" />
+        <ListEmpty messageKey="media.music.no_tracks_found" testID="album-detail-empty" />
       ),
     [handleRetryTracks, isTracksLoading, trackErrorKey]
   );

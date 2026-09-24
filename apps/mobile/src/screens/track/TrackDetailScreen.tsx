@@ -740,7 +740,12 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
       );
     }
     if (transcriptText.length === 0) {
-      return <ListEmpty messageKey="misc.info" testID="track-detail-transcript-empty" />;
+      return (
+        <ListEmpty
+          messageKey="info.transcript.no_transcript"
+          testID="track-detail-transcript-empty"
+        />
+      );
     }
     return (
       <Text style={styles.transcript} testID="track-detail-transcript-content">

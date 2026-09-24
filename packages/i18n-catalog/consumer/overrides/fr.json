@@ -12,7 +12,8 @@
       "episode": "",
       "episodes": "",
       "episode_image": "",
-      "no_episodes_found": ""
+      "no_episodes_found": "",
+      "no_podcasts_found": ""
     },
     "music": {
       "music": "",
@@ -27,7 +28,9 @@
       "track_image": "",
       "track_go_to": "",
       "album_go_to": "",
-      "artist_go_to": ""
+      "artist_go_to": "",
+      "no_tracks_found": "",
+      "no_albums_found": ""
     },
     "video": {
       "channel": "",
@@ -59,7 +62,8 @@
     "search": {
       "search": "",
       "search_by_title": "",
-      "empty_prompt": ""
+      "empty_prompt": "",
+      "no_results": ""
     },
     "add_feed": {
       "add_feed": "",
@@ -113,6 +117,8 @@
       "remove_error": "",
       "remove_from_queue": "",
       "removed_from_queue": "",
+      "empty_podcasts": "",
+      "empty_music": "",
       "login_prompt": ""
     },
     "history": {
@@ -123,6 +129,7 @@
       "mark_as_unplayed": "",
       "marked_as_unplayed": "",
       "mark_as_played_error": "",
+      "empty": "",
       "login_prompt": ""
     },
     "playlist": {
@@ -144,12 +151,14 @@
       "playlist_type": "",
       "add_to_liked": "",
       "remove_from_liked": "",
+      "no_playlists_found": "",
       "login_prompt": ""
     },
     "clip": {
       "clip": "",
       "clips": "",
       "no_clips_found": "",
+      "empty": "",
       "create_clip": "",
       "edit_clip": "",
       "delete_clip": "",
@@ -342,7 +351,8 @@
     "transcript": {
       "transcript": "",
       "search_transcript": "",
-      "lyrics": ""
+      "lyrics": "",
+      "no_transcript": ""
     },
     "credits": "",
     "people": {
@@ -353,7 +363,8 @@
     "chapter": {
       "chapter": "",
       "chapters": "",
-      "chapter_image": ""
+      "chapter_image": "",
+      "no_chapters": ""
     },
     "soundbite": {
       "official_clip": "",
