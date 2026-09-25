@@ -9,6 +9,7 @@ import { LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { getMobileConfig } from '../../config';
 import { addByRssRepository } from '../../data/repositories';
 import { useAddByRssAddFlow } from '../../hooks/useAddByRssAddFlow';
 import { useAddByRssFeeds } from '../../hooks/useAddByRssFeeds';
@@ -24,6 +25,7 @@ type AddByRssRootScreenProps = NativeStackScreenProps<LibraryStackParamList, 'Ad
 
 export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const { t } = useTranslation();
+  const { isE2e } = getMobileConfig();
   const { styles: themeStyles, tokens } = useTheme();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const [inputValue, setInputValue] = useState<string>('');
@@ -216,7 +218,8 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
               eyebrow={t('features.add_by_rss.basic_auth_password')}
               onChangeText={setPassword}
               placeholder={t('misc.optional')}
-              secureTextEntry
+              // iOS Autofill plus a secure field blocks Maestro inputText. E2E shows the password in plaintext.
+              secureTextEntry={!isE2e}
               testID="rss-password-input"
               value={password}
             />

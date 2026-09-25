@@ -11,6 +11,8 @@ import {
   E2E_EMBED_MUSIC_TRACK_VIDEO_ID_TEXT,
   E2E_EMBED_VIDEO_ITEM_ID_TEXT,
   E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT,
+  E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT,
+  E2E_LIVE_AV_VIDEO_ITEM_ID_TEXT,
   E2E_MUSIC_TRACK_ONE_ID_TEXT,
   E2E_MUSIC_TRACK_TWO_ID_TEXT,
   E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT,
@@ -92,7 +94,8 @@ export async function waitForAudioReadyAtLeast(
  * by the logged-in account so that subsequent media-player E2E tests start
  * with a deterministic abridged index regardless of which earlier test ran
  * in the same Playwright invocation (podcast resume rows, chaptered items,
- * embed-video episodes, music tracks, clips, soundbites, add-by-RSS).
+ * embed-video episodes, live audio and video items, music tracks, clips,
+ * soundbites, add-by-RSS).
  *
  * Why every queue and not just the seeded `E2E_PODCAST_QUEUE_ID_TEXT`:
  *   `useQueueResourceUpdateNowPlaying` looks up the active queue by
@@ -130,6 +133,8 @@ export async function clearSeededPodcastQueueResources(page: Page): Promise<void
     E2E_EMBED_VIDEO_ITEM_ID_TEXT,
     E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT,
     E2E_EMBED_MUSIC_TRACK_VIDEO_ID_TEXT,
+    E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT,
+    E2E_LIVE_AV_VIDEO_ITEM_ID_TEXT,
     E2E_MUSIC_TRACK_ONE_ID_TEXT,
     E2E_MUSIC_TRACK_TWO_ID_TEXT,
   ];

@@ -50,6 +50,12 @@ name: Settings Downloads Storage
     id: more-settings-downloads-cellular-default
 - assertVisible:
     id: more-settings-downloads-catch-up-limit
+# The auto-free rows sit below the fold once the mini player is up.
+- scrollUntilVisible:
+    element:
+      id: more-settings-downloads-auto-limit
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     id: more-settings-downloads-auto-limit
 - assertVisible:

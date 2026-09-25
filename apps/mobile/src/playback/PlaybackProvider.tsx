@@ -1710,7 +1710,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         return;
       }
       if (resource.clip) {
-        const item = resource.clip.item;
+        const item = await playbackContentRepository.ensureItemValues(
+          buildContext(),
+          resource.clip.item
+        );
         const channel = await ensureChannel(item);
         if (channel === null) {
           return;
@@ -1723,7 +1726,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         return;
       }
       if (resource.item_soundbite && resource.item_soundbite.item) {
-        const item = resource.item_soundbite.item;
+        const item = await playbackContentRepository.ensureItemValues(
+          buildContext(),
+          resource.item_soundbite.item
+        );
         const channel = await ensureChannel(item);
         if (channel === null) {
           return;
@@ -1735,11 +1741,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         });
         return;
       }
-      const channel = await ensureChannel(resource.item);
+      const item = await playbackContentRepository.ensureItemValues(buildContext(), resource.item);
+      const channel = await ensureChannel(item);
       if (channel === null) {
         return;
       }
-      await startItemPlayback(resource.item, channel, {
+      await startItemPlayback(item, channel, {
         autoPlayOverride: options?.autoPlayOverride,
         autoQueue,
         explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
@@ -1747,6 +1754,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       });
     },
     [
+      buildContext,
       ensureChannel,
       startAddByRssPlayback,
       startClipPlayback,
@@ -2428,7 +2436,6 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     if (status === 'anonymous') {
       queueHeadAdoptAttemptedRef.current = null;
       pendingPromoteQueueIdTextRef.current = null;
-      return;
     }
 
     if (status === 'unknown') {

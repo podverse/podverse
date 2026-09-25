@@ -9,6 +9,7 @@ import {
   createNavigationContainerRef,
   getPathFromState as getDefaultPathFromState,
   NavigationContainer,
+  StackActions,
 } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -1293,6 +1294,24 @@ function TabScaffold({
           minWidth: isTabletLayout ? 120 : undefined,
         },
       }}
+      screenListeners={({ navigation, route }) => ({
+        tabPress: () => {
+          const tabState = navigation.getState();
+          const focused = tabState.routes[tabState.index];
+          if (focused === undefined || focused.key !== route.key) {
+            return;
+          }
+          const nested = focused.state;
+          if (nested?.key === undefined || nested.index === undefined || nested.index < 1) {
+            return;
+          }
+          // Pressing the selected tab returns that tab's stack to its first screen.
+          navigation.dispatch({
+            ...StackActions.popToTop(),
+            target: nested.key,
+          });
+        },
+      })}
       tabBar={(props) =>
         isTabletLayout ? (
           <OrderedTabBar {...props} />

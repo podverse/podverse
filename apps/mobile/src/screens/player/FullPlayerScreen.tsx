@@ -1243,7 +1243,7 @@ export function FullPlayerScreen({
                         }}
                         paddingHorizontal={tokens.spacing.lg}
                         showArtwork={artwork.show}
-                        testID="full-player-chapter-row"
+                        testID={`full-player-chapter-row-${row.chapter.id_text}`}
                         timeRange={t('info.time.start_end', {
                           timeEnd: formatHHMMSS(Number(row.chapter.end_time)),
                           timeStart: formatHHMMSS(Number(row.chapter.start_time)),

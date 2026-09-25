@@ -7,7 +7,8 @@ name: Queue screen flow
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
-# Add one row to the AV queue so swipe-remove and post-remove empty state are deterministic.
+# Add one row to the AV queue so the loaded list and swipe-remove path have a known row.
+# The seeded podcast queue already has rows; the flow clears them before the empty state.
 - tapOn:
     id: tab-search
 - assertVisible:
@@ -51,7 +52,7 @@ name: Queue screen flow
     id: "queue-row-.*-reorder"
 - takeScreenshot: queue-screen-loaded
 
-# Medium chips render and switching them reloads queue data.
+# Medium chips render and switching them reloads queue data. The seeded music queue has tracks.
 - assertVisible:
     id: library-queue-medium-av
 - assertVisible:
@@ -60,7 +61,7 @@ name: Queue screen flow
     id: library-queue-medium-music
 - extendedWaitUntil:
     visible:
-      text: "Nothing in your music queue yet"
+      text: "E2E Music Track One"
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: queue-screen-music-medium
 - tapOn:
@@ -85,12 +86,28 @@ name: Queue screen flow
 - takeScreenshot: queue-screen-swipe-remove
 - tapOn:
     id: "queue-row-.*-swipe-remove"
+# The seeded podcast queue has more than the row this flow added. Clear the rest, then the
+# empty state is the one this screen shows for the podcast medium.
+- repeat:
+    times: 8
+    while:
+      visible:
+        id: "queue-row-.*-swipe"
+    commands:
+      - swipe:
+          from:
+            id: "queue-row-.*-swipe"
+          direction: LEFT
+      - extendedWaitUntil:
+          visible:
+            id: "queue-row-.*-swipe-remove"
+          timeout: ${TIMEOUT_FAST}
+      - tapOn:
+          id: "queue-row-.*-swipe-remove"
 - extendedWaitUntil:
-    notVisible:
-      id: "queue-row-.*-swipe"
+    visible:
+      id: library-queue-empty
     timeout: ${TIMEOUT_SLOW}
-- assertVisible:
-    id: library-queue-empty
 - assertVisible:
     text: "Nothing in your podcast queue yet"
 - takeScreenshot: queue-screen-empty

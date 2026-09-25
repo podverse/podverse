@@ -287,7 +287,9 @@ name: Podcast Episode Flow
     visible:
       id: podcast-detail-settings-auto-download-unavailable
     timeout: ${TIMEOUT_FASTER}
-- assertVisible: "Not available yet."
+# The sheet groups its title, body, and Close into one accessible name.
+- assertVisible:
+    text: ".*Not available yet.*"
 - tapOn:
     id: podcast-detail-settings-auto-download-close
 - extendedWaitUntil:

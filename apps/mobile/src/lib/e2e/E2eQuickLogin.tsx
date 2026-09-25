@@ -8,6 +8,7 @@ import {
   completeMobilePasswordLoginMessageKey,
   useAuth,
 } from '../../auth';
+import { HEADER_BAR_HEIGHT } from '../../components/screen/HeaderBar';
 import { getMobileConfig } from '../../config';
 import { useTheme } from '../../theme/useTheme';
 import { isE2eQuickLoginEnabled } from './e2eQuickLoginGate';
@@ -25,6 +26,10 @@ import {
  * Each target is 44pt and fully opaque. iOS drops touches on a view at or below 0.01 opacity
  * even when that view is still in the accessibility tree, and Maestro still reports the tap as
  * passed. The boxes paint nothing, so screenshots stay clean.
+ *
+ * The row sits in the header, inset past the back chevron. A column under the header covers
+ * the leading play control on list rows, and sharing the chevron's slot makes a back tap
+ * sign in again.
  */
 const E2E_QUICK_LOGIN_HIT_SIZE = 44;
 
@@ -51,7 +56,8 @@ export function E2eQuickLogin() {
       width: E2E_QUICK_LOGIN_HIT_SIZE,
     },
     host: {
-      left: 0,
+      flexDirection: 'row',
+      left: HEADER_BAR_HEIGHT + 12,
       position: 'absolute',
       top: insets.top,
       zIndex: 2000,

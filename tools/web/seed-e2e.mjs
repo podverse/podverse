@@ -87,11 +87,13 @@ const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
 const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
 const E2E_MUSIC_ARTIST_FEED_URL = 'https://e2e-seed-music.example/artist.xml';
 const E2E_MUSIC_ARTIST_FEED_PI_ID = 876543218;
-/** Directory publisher-music artist (`e2eArtPub01` = 11 chars). Do not reuse the music album fixture. */
+/** Directory publisher-music artist (`e2eArtPub01` = 11 chars). Do not reuse the music album fixture.
+ * Podcast Index id must stay unique: live AV uses 876543219, and that seed deletes feeds by id.
+ */
 const E2E_DIRECTORY_ARTIST_ID_TEXT = 'e2eArtPub01';
 const E2E_DIRECTORY_ARTIST_TITLE = 'E2E Directory Artist';
 const E2E_DIRECTORY_ARTIST_FEED_URL = 'https://e2e-seed-directory-artist.example/artist.xml';
-const E2E_DIRECTORY_ARTIST_FEED_PI_ID = 876543219;
+const E2E_DIRECTORY_ARTIST_FEED_PI_ID = 876543223;
 const E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO = '2026-03-15T18:00:00.000Z';
 const E2E_MUSIC_ALBUM_PODCAST_GUID = '11111111-2222-4333-8444-555555555501';
 const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';

@@ -132,7 +132,9 @@ class AccountAddByRSSParseController {
 
               if (dedupeTTLSeconds) {
                 const existing = await getAddByRSSParseDedupeEntry(account.id, feedUrl);
-                if (existing) {
+                // A body that carries credentials is an explicit check of a protected feed.
+                // The duplicate window must not drop it, or save-and-check fails right after add.
+                if (existing !== null && resolved.credentials === null) {
                   res.status(429).json({
                     message: 'Duplicate request. Please wait before retrying.',
                     retry_after_seconds: dedupeTTLSeconds,

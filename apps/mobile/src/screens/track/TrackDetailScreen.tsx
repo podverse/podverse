@@ -456,7 +456,6 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     setTranscriptText('');
     setTranscriptErrorKey(null);
     setIsTranscriptLoading(false);
-    setDescriptionExpanded(false);
   }, [trackId]);
 
   useEffect(() => {

@@ -45,15 +45,19 @@ export const QueueController: React.FC = () => {
       return;
     }
 
-    const otherQueue = loaded.queues.find((queue) => queue.id_text !== loaded.activeQueue?.id_text);
-    if (otherQueue === undefined) {
-      return;
+    const otherQueues = loaded.queues.filter(
+      (queue) => queue.id_text !== loaded.activeQueue?.id_text
+    );
+    for (const otherQueue of otherQueues) {
+      const otherLoaded = await queueResourcesLoadActive(undefined, {
+        queueIdText: otherQueue.id_text,
+      });
+      if (otherLoaded.activeResource !== null) {
+        return;
+      }
     }
 
-    const otherLoaded = await queueResourcesLoadActive(otherQueue.medium_id);
-    if (otherLoaded.activeResource === null) {
-      await queueResourcesLoadActive();
-    }
+    await queueResourcesLoadActive();
   });
 
   useEffect(() => {

@@ -190,6 +190,37 @@ describe('Add-by-RSS parse credentials in transit', () => {
     expect(status.body.feedUrl).toBe(url);
   });
 
+  it('accepts a second parse that carries credentials inside the duplicate window', async () => {
+    const url = feedUrl('credential-recheck');
+    const send = () =>
+      request(app)
+        .post(`${accountBase}/add-by-rss/parse`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ feed_url: url, basic_auth_username: USERNAME, basic_auth_password: PASSWORD });
+
+    const first = await send();
+    expect(first.status).toBe(201);
+
+    const second = await send();
+    expect(second.status).toBe(201);
+    expect(second.body.request_id).not.toBe(first.body.request_id);
+  });
+
+  it('rejects a second public parse inside the duplicate window', async () => {
+    const url = feedUrl('public-duplicate');
+    const send = () =>
+      request(app)
+        .post(`${accountBase}/add-by-rss/parse`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ feed_url: url });
+
+    const first = await send();
+    expect(first.status).toBe(201);
+
+    const second = await send();
+    expect(second.status).toBe(429);
+  });
+
   it('sends no envelope for a public feed', async () => {
     const res = await request(app)
       .post(`${accountBase}/add-by-rss/parse`)

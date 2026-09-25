@@ -21,6 +21,11 @@ export type QueueResourcesLoadActiveResult = {
   hasAutoQueueNext?: boolean;
 };
 
+/** Select one account queue by id. Skips medium mapping and the is_active fallback. */
+export type LoadActiveQueueSelection = {
+  queueIdText: string;
+};
+
 const emptyLoadActiveResult: QueueResourcesLoadActiveResult = {
   activeQueue: null,
   activeResource: null,
@@ -69,95 +74,105 @@ export function useQueueResourcesLoadActive() {
    * @param medium_id - Optional channel or queue medium ID. Podcast/Video map to the AV queue via
    *                    `getQueueForMedium`; falls back to `is_active_queue`, then a now-playing
    *                    scan, then the AV queue.
+   * @param selection - When set, load that queue id and skip the medium and is_active fallbacks.
+   *                    Podcast-medium queues are not visible through `getQueueForMedium`.
    */
-  return useCallback(async (medium_id?: number): Promise<QueueResourcesLoadActiveResult> => {
-    const apiRequestService = getApiRequestService();
+  return useCallback(
+    async (
+      medium_id?: number,
+      selection?: LoadActiveQueueSelection
+    ): Promise<QueueResourcesLoadActiveResult> => {
+      const apiRequestService = getApiRequestService();
 
-    if (!loggedInAccountRef.current) {
-      setQueues([]);
-      return emptyLoadActiveResult;
-    }
-
-    const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
-    setQueues(queueData);
-
-    let activeQueue: DTOQueue | null = null;
-
-    if (medium_id !== undefined) {
-      activeQueue = getQueueForMedium(queueData, medium_id);
-    }
-
-    // Fallback: is_active_queue
-    if (activeQueue === null) {
-      activeQueue = queueData.find((queue) => queue.is_active_queue) ?? null;
-    }
-
-    // If still no active queue, check all queues for a now-playing item
-    // This handles edge cases where is_active_queue wasn't set properly
-    let nowPlayingResource: DTOQueueResource | null = null;
-    if (activeQueue === null) {
-      for (const queue of queueData) {
-        const nowPlaying = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
-          queue.id_text
-        );
-        if (nowPlaying) {
-          activeQueue = queue;
-          nowPlayingResource = nowPlaying;
-          break;
-        }
-      }
-    }
-
-    // Final fallback: AV queue
-    if (activeQueue === null) {
-      activeQueue = queueData.find((queue) => queue.medium_id === MediumEnum.AV) ?? null;
-    }
-
-    if (activeQueue !== null) {
-      setActiveQueue(activeQueue);
-
-      // Use already-fetched nowPlayingResource if available, otherwise fetch it
-      if (nowPlayingResource === null) {
-        nowPlayingResource = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
-          activeQueue.id_text
-        );
+      if (!loggedInAccountRef.current) {
+        setQueues([]);
+        return emptyLoadActiveResult;
       }
 
-      const upcomingQueueResources =
-        await apiRequestService.reqQueueResourcesGetAllUpcomingByQueueIdText(activeQueue.id_text);
+      const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
+      setQueues(queueData);
 
-      const combinedQueueResources = combineQueueNowPlayingAndUpcoming(
-        nowPlayingResource,
-        upcomingQueueResources
-      );
+      let activeQueue: DTOQueue | null = null;
 
-      setActiveQueueUpcomingResources(combinedQueueResources);
+      if (selection !== undefined) {
+        activeQueue = queueData.find((queue) => queue.id_text === selection.queueIdText) ?? null;
+      } else if (medium_id !== undefined) {
+        activeQueue = getQueueForMedium(queueData, medium_id);
+      }
 
-      let hasAutoQueueNext = false;
-      if (combinedQueueResources.length === 0) {
-        const nextAutoQueueActiveRow = autoQueueIncrementActiveRow(autoQueueActiveRowRef.current);
-        if (autoQueueResourcesRef.current[nextAutoQueueActiveRow]) {
-          hasAutoQueueNext = true;
-          setAutoQueueActiveRow(nextAutoQueueActiveRow);
-        } else if (autoQueueConfigRef.current.repeat) {
-          setAutoQueueActiveRow(0);
+      // Fallback: is_active_queue. An explicit queue id must not fall through to another queue.
+      if (selection === undefined && activeQueue === null) {
+        activeQueue = queueData.find((queue) => queue.is_active_queue) ?? null;
+      }
+
+      // If still no active queue, check all queues for a now-playing item
+      // This handles edge cases where is_active_queue wasn't set properly
+      let nowPlayingResource: DTOQueueResource | null = null;
+      if (selection === undefined && activeQueue === null) {
+        for (const queue of queueData) {
+          const nowPlaying = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
+            queue.id_text
+          );
+          if (nowPlaying) {
+            activeQueue = queue;
+            nowPlayingResource = nowPlaying;
+            break;
+          }
         }
+      }
+
+      // Final fallback: AV queue
+      if (selection === undefined && activeQueue === null) {
+        activeQueue = queueData.find((queue) => queue.medium_id === MediumEnum.AV) ?? null;
+      }
+
+      if (activeQueue !== null) {
+        setActiveQueue(activeQueue);
+
+        // Use already-fetched nowPlayingResource if available, otherwise fetch it
+        if (nowPlayingResource === null) {
+          nowPlayingResource = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
+            activeQueue.id_text
+          );
+        }
+
+        const upcomingQueueResources =
+          await apiRequestService.reqQueueResourcesGetAllUpcomingByQueueIdText(activeQueue.id_text);
+
+        const combinedQueueResources = combineQueueNowPlayingAndUpcoming(
+          nowPlayingResource,
+          upcomingQueueResources
+        );
+
+        setActiveQueueUpcomingResources(combinedQueueResources);
+
+        let hasAutoQueueNext = false;
+        if (combinedQueueResources.length === 0 && selection === undefined) {
+          const nextAutoQueueActiveRow = autoQueueIncrementActiveRow(autoQueueActiveRowRef.current);
+          if (autoQueueResourcesRef.current[nextAutoQueueActiveRow]) {
+            hasAutoQueueNext = true;
+            setAutoQueueActiveRow(nextAutoQueueActiveRow);
+          } else if (autoQueueConfigRef.current.repeat) {
+            setAutoQueueActiveRow(0);
+          }
+        }
+
+        return {
+          activeQueue,
+          activeResource: combinedQueueResources[0] ?? null,
+          historyMoved: 0,
+          queues: queueData,
+          upcomingResources: combinedQueueResources,
+          upcomingManualCount: combinedQueueResources.length,
+          hasAutoQueueNext: combinedQueueResources.length === 0 ? hasAutoQueueNext : undefined,
+        };
       }
 
       return {
-        activeQueue,
-        activeResource: combinedQueueResources[0] ?? null,
-        historyMoved: 0,
+        ...emptyLoadActiveResult,
         queues: queueData,
-        upcomingResources: combinedQueueResources,
-        upcomingManualCount: combinedQueueResources.length,
-        hasAutoQueueNext: combinedQueueResources.length === 0 ? hasAutoQueueNext : undefined,
       };
-    }
-
-    return {
-      ...emptyLoadActiveResult,
-      queues: queueData,
-    };
-  }, []);
+    },
+    []
+  );
 }

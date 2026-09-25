@@ -10,6 +10,7 @@ import { FormActions, TextField } from '../../components/form';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { LoadingSection } from '../../components/state/LoadingSection';
+import { getMobileConfig } from '../../config';
 import { addByRssCredentialStore, addByRssRepository } from '../../data';
 import { syncEventLogRepository } from '../../data/repositories';
 import { buildAddByRssParseFailureLog } from '../../lib/addByRss/addByRssErrorLog';
@@ -37,6 +38,7 @@ type AddByRssCredentialsScreenProps = NativeStackScreenProps<
 export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredentialsScreenProps) {
   const { feedIdText } = route.params;
   const { t } = useTranslation();
+  const { isE2e } = getMobileConfig();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, account, clearSession, refreshToken, setTokens } = useAuth();
   const { handleGateError, openGate } = useMembershipGate();
@@ -271,7 +273,8 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
           eyebrow={t('features.add_by_rss.basic_auth_password')}
           onChangeText={setPassword}
           placeholder={t('features.add_by_rss.basic_auth_password')}
-          secureTextEntry
+          // iOS Autofill plus a secure field blocks Maestro inputText. E2E shows the password in plaintext.
+          secureTextEntry={!isE2e}
           testID="rss-credentials-password"
           value={password}
         />

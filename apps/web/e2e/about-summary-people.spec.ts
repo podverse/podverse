@@ -14,7 +14,12 @@ test.describe('About and Summary people', () => {
     await page.goto(CHANNEL_ABOUT_URL);
     await expect(page).toHaveURL(new RegExp(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}.*type=about`));
 
-    const hostName = page.getByText('E2E Channel Host', { exact: true });
+    // The channel side column and the About tab both render the host. The tab copy is the one
+    // outside the side column.
+    const hostName = page
+      .getByRole('main')
+      .locator('xpath=.//*[normalize-space(.)="E2E Channel Host" and not(ancestor::aside)]')
+      .last();
     await expect(hostName).toBeVisible();
     await captureVerifiedElement(page, testInfo, hostName, 'Channel About shows the seeded host');
     await capturePageLoad(page, testInfo, 'Channel About with people');

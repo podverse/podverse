@@ -211,7 +211,12 @@ name: Anonymous Subscriptions Persist
 - takeScreenshot: home-clips-login-required
 
 # Swipe left on the subscribed channel to reveal Unsubscribe. The row is gone when it completes,
-# so Home returns to the empty discovery state this flow opened on.
+# so Home returns to the empty discovery state this flow opened on. Clips sits at the trailing
+# edge, so the podcasts chip is off the leading edge until the row scrolls back.
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
 - tapOn:
     id: home-media-type-podcasts
 - assertVisible:

@@ -350,15 +350,18 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
 
         setMPDuration(newDuration);
         setMPCurrentTime(initialSeekSeconds);
-        updateNowPlaying({
-          mpChannel: mpChannelRef.current,
-          mpClip: mpClipRef.current,
-          mpItem: mpItemRef.current,
-          mpItemSoundbite: mpItemSoundbiteRef.current,
-          mpDuration: newDuration,
-          mpCurrentTime: initialSeekSeconds,
-          eventKind: 'play',
-        });
+        // A paused load must not stamp last_played_at. Play writes the listen when playback starts.
+        if (mpShouldPlayRef.current === true) {
+          updateNowPlaying({
+            mpChannel: mpChannelRef.current,
+            mpClip: mpClipRef.current,
+            mpItem: mpItemRef.current,
+            mpItemSoundbite: mpItemSoundbiteRef.current,
+            mpDuration: newDuration,
+            mpCurrentTime: initialSeekSeconds,
+            eventKind: 'play',
+          });
+        }
 
         setPendingPlaybackDecision?.(null);
 
@@ -419,17 +422,23 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       }
 
       setMPDuration(newDuration);
-      updateNowPlaying({
-        mpChannel: mpChannelRef.current,
-        mpClip: mpClipRef.current,
-        mpItem: mpItemRef.current,
-        mpItemSoundbite: mpItemSoundbiteRef.current,
-        mpDuration: newDuration,
-        mpCurrentTime: newCurrentTime !== null ? newCurrentTime : 0,
-        eventKind: 'play',
-      });
+      // A paused load must not stamp last_played_at. Play writes the listen when playback starts.
+      if (mpShouldPlayRef.current === true) {
+        updateNowPlaying({
+          mpChannel: mpChannelRef.current,
+          mpClip: mpClipRef.current,
+          mpItem: mpItemRef.current,
+          mpItemSoundbite: mpItemSoundbiteRef.current,
+          mpDuration: newDuration,
+          mpCurrentTime: newCurrentTime !== null ? newCurrentTime : 0,
+          eventKind: 'play',
+        });
+      }
 
       if (!loggedInAccountRef.current || mpAddByRSSRef.current) {
+        return;
+      }
+      if (mpShouldPlayRef.current !== true) {
         return;
       }
       if (mpChannelRef.current) {

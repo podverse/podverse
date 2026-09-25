@@ -19,6 +19,13 @@ name: Popularity Tracking Gate
 
 - tapOn:
     id: popularity-tracking-learn-more
+# Opening the full agreement pushes Yes below the screen. Maestro taps the element's center,
+# which is off-screen until the sheet is scrolled.
+- scrollUntilVisible:
+    element:
+      id: popularity-tracking-yes
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
 - tapOn:
     id: popularity-tracking-yes
 
