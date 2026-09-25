@@ -169,6 +169,20 @@ const E2E_VIDEO_ITEM_ID_TEXT = 'e2eVideoItm001';
 const E2E_VIDEO_CHANNEL_TITLE = 'E2E Video Transition Channel';
 const E2E_VIDEO_ITEM_DURATION_SECONDS = 30;
 
+// Non-live VOD HLS playlist for playback start. The enclosure MIME stays audio/mpeg so
+// playback must classify the `.m3u8` path (the query does not change that). Unsubscribed
+// and not queued, so list and queue specs keep their existing rows. The EVENT HLS playlist
+// is served beside it and is not seeded.
+const E2E_HLS_FEED_URL = 'https://e2e-seed-hls-vod.example/podcast.xml';
+const E2E_HLS_FEED_PI_ID = 876543222;
+const E2E_HLS_ASSET_BASE_URL = 'http://localhost:2111/e2e/hls';
+const E2E_HLS_VOD_ENCLOSURE_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-vod.m3u8?fixture=vod`;
+const E2E_HLS_CHANNEL_ID_TEXT = 'e2eHlsChnl001';
+const E2E_HLS_VOD_ITEM_ID_TEXT = 'e2eHlsVodIt01';
+const E2E_HLS_CHANNEL_TITLE = 'E2E HLS VOD Channel';
+const E2E_HLS_VOD_ITEM_TITLE = 'E2E HLS VOD Episode';
+const E2E_HLS_VOD_DURATION_SECONDS = 6;
+
 // Playable live items (audio + video) for the web live-stream media-player specs. These live in
 // their own channel rather than in `E2E_LIVESTREAM_CHANNEL_ID_TEXT` so the livestream header-image
 // and controller-plumbing specs keep `a[href*="/podcast/livestream/"]:first` pointing at the
@@ -1487,8 +1501,109 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   );
 
   await seedLiveAvFixtures(client);
+  await seedHlsVodFixture(client);
 
   await seedEmbedFixtures(client, { accountId });
+}
+
+/**
+ * Unsubscribed podcast item whose only enclosure is the VOD HLS playlist on :2111.
+ * Web and mobile playback specs open it by id. It is not added to a queue.
+ */
+async function seedHlsVodFixture(client) {
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    E2E_HLS_FEED_PI_ID,
+    E2E_HLS_FEED_URL,
+  ]);
+
+  const feedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [E2E_HLS_FEED_URL, E2E_HLS_FEED_PI_ID]
+  );
+  const feedId = feedResult.rows[0].id;
+
+  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [feedId]);
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [feedId]
+  );
+
+  const channelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
+       $3
+     )
+     RETURNING id`,
+    [E2E_HLS_CHANNEL_ID_TEXT, feedId, E2E_HLS_CHANNEL_TITLE]
+  );
+  const channelId = channelResult.rows[0].id;
+
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+  await client.query(
+    `INSERT INTO channel_description (channel_id, value)
+     VALUES ($1, $2)`,
+    [channelId, 'E2E seeded podcast channel for non-live HLS playback.']
+  );
+  await client.query(
+    `INSERT INTO channel_image (channel_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [channelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
+  );
+
+  const itemResult = await client.query(
+    `INSERT INTO item (
+       id_text,
+       channel_id,
+       guid,
+       pub_date,
+       title,
+       item_flag_status_id
+     )
+     VALUES ($1, $2, $3, NOW(), $4, 1)
+     RETURNING id`,
+    [E2E_HLS_VOD_ITEM_ID_TEXT, channelId, `${E2E_HLS_FEED_URL}#hls-vod`, E2E_HLS_VOD_ITEM_TITLE]
+  );
+  const itemId = itemResult.rows[0].id;
+
+  await client.query(`INSERT INTO item_about (item_id, duration) VALUES ($1, $2)`, [
+    itemId,
+    E2E_HLS_VOD_DURATION_SECONDS,
+  ]);
+  await client.query(
+    `INSERT INTO item_description (item_id, value)
+     VALUES ($1, $2)`,
+    [itemId, 'E2E HLS VOD episode. Deterministic HLS playlist fixture.']
+  );
+  await client.query(
+    `INSERT INTO item_image (item_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [itemId, E2E_FIXTURE_ITEM_IMAGE_URL]
+  );
+
+  const enclosureResult = await client.query(
+    `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
+     VALUES ($1, 'audio/mpeg', 0, 32, true)
+     RETURNING id`,
+    [itemId]
+  );
+  const enclosureId = enclosureResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
+     VALUES ($1, $2, 'audio/mpeg')`,
+    [enclosureId, E2E_HLS_VOD_ENCLOSURE_URL]
+  );
+
+  console.log(
+    `Seeded HLS VOD E2E channel ${E2E_HLS_CHANNEL_ID_TEXT} (item ${E2E_HLS_VOD_ITEM_ID_TEXT}, enclosure ${E2E_HLS_VOD_ENCLOSURE_URL})`
+  );
 }
 
 /**

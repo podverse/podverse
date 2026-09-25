@@ -234,6 +234,7 @@ npm run mobile:e2e:test -- --platform ios detail-sort-prefs
 npm run mobile:e2e:test -- --platform ios engine-audio-spike
 npm run mobile:e2e:test -- --platform ios hello-world
 npm run mobile:e2e:test -- --platform ios history-screen
+npm run mobile:e2e:test -- --platform ios hls-playback
 npm run mobile:e2e:test -- --platform ios home
 npm run mobile:e2e:test -- --platform ios library-downloads
 npm run mobile:e2e:test -- --platform ios library-playlists
@@ -283,6 +284,7 @@ npm run mobile:e2e:test -- --platform android detail-sort-prefs
 npm run mobile:e2e:test -- --platform android engine-audio-spike
 npm run mobile:e2e:test -- --platform android hello-world
 npm run mobile:e2e:test -- --platform android history-screen
+npm run mobile:e2e:test -- --platform android hls-playback
 npm run mobile:e2e:test -- --platform android home
 npm run mobile:e2e:test -- --platform android library-downloads
 npm run mobile:e2e:test -- --platform android library-playlists
@@ -458,10 +460,15 @@ After changing `PodverseVideoSurfaceView`, play the video item on an iOS simulat
 Android emulator, and a physical device and confirm live frames (not static artwork) with
 no reload or playhead jump on expand and collapse.
 
+`hls-playback` uses **Play E2E HLS** on the same page (`testID=e2e-play-hls-item`). It plays
+the seeded VOD HLS playlist `e2e-hls-vod.m3u8` from `tools/test-assets/assets/e2e/hls/`. If those
+files are missing, regenerate E2E media (same command as the video fixture) and reseed.
+
 ```bash
 npm run mobile:e2e:test -- add-by-rss
 npm run mobile:e2e:test -- auto-queue-advance
 npm run mobile:e2e:test -- engine-audio-spike
+npm run mobile:e2e:test -- hls-playback
 npm run mobile:e2e:test -- library-downloads
 npm run mobile:e2e:test -- make-clip
 npm run mobile:e2e:test -- membership-gate

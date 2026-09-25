@@ -13,7 +13,12 @@ import type {
   QueueResourcesAbridgedIndex,
   SelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
-import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
+import {
+  getSelectedLabeledItemEnclosureAndSource,
+  isEqual,
+  isHlsSource,
+  MediumEnum,
+} from '@podverse/helpers';
 
 import { useAccount } from '../../../contexts/Account';
 import { useEmbedPlaybackGuardrails } from '../../../contexts/EmbedPlaybackMode';
@@ -45,6 +50,7 @@ import {
   trackStatsItem,
 } from '../../../utils/statsTracking/statsTracking';
 import { MediaElement } from '../MediaElement/MediaElement';
+import { toFileMediaElementSource } from '../MediaElement/mediaElementSourceFromTarget';
 
 export interface NonLiveMediaOrchestratorProps {
   mediaType: 'audio' | 'video';
@@ -744,10 +750,20 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     if (!selectedItemEnclosureAndSource) {
       return;
     }
-    if (!selectedItemEnclosureAndSource.labeledItemEnclosure?.enclosure?.type) {
+    const rawUri = selectedItemEnclosureAndSource.source?.uri;
+    if (typeof rawUri !== 'string' || rawUri.trim() === '') {
       return;
     }
-    if (!selectedItemEnclosureAndSource.source?.uri) {
+    const enclosureType = selectedItemEnclosureAndSource.labeledItemEnclosure?.enclosure?.type;
+    const trimmedType = typeof enclosureType === 'string' ? enclosureType.trim() : '';
+    const sourceContentType = selectedItemEnclosureAndSource.source?.content_type;
+    const sourceMime =
+      typeof sourceContentType === 'string' && sourceContentType.trim() !== ''
+        ? sourceContentType
+        : null;
+    const classificationMime = trimmedType !== '' ? trimmedType : sourceMime;
+    const hlsPlaylistAttachment = isHlsSource(rawUri, classificationMime);
+    if (trimmedType === '' && !hlsPlaylistAttachment) {
       return;
     }
 
@@ -756,6 +772,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     const isLiveItem = checkIsLiveItem(mpItemRef.current);
 
     bridge.applyItemEnclosureSurfaceChange({
+      hlsPlaylistAttachment,
       treatAsActiveNonLiveFile:
         (mediaType === 'audio'
           ? isAudioFile || (allowVideoOnAudioOrchestrator && isVideoFile)
@@ -860,12 +877,19 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     const fallback = mpAddByRSS.resourceData.enclosure_url;
     return typeof fallback === 'string' && fallback.trim() !== '' ? fallback.trim() : undefined;
   })();
-  const sourceUri =
+  const rawSourceUri =
     addByRSSEnclosureUrl ?? selectedItemEnclosureAndSource?.source?.uri ?? undefined;
+  const sourceUri =
+    typeof rawSourceUri === 'string' && rawSourceUri.trim() !== ''
+      ? rawSourceUri.trim()
+      : undefined;
+  const selectedUri = selectedItemEnclosureAndSource?.source?.uri?.trim() ?? '';
+  const sourceMime =
+    sourceUri !== undefined && sourceUri === selectedUri
+      ? selectedItemEnclosureAndSource?.labeledItemEnclosure?.enclosure.type
+      : undefined;
   const elementSource: MediaElementSource | null =
-    typeof sourceUri === 'string' && sourceUri.trim() !== ''
-      ? { kind: 'file', src: sourceUri.trim() }
-      : null;
+    sourceUri !== undefined ? toFileMediaElementSource(sourceUri, sourceMime) : null;
 
   useEffect(() => {
     if (mediaType !== 'video') {

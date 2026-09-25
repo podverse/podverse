@@ -165,6 +165,7 @@
     "playback": "Playback",
     "playback_intro": "These controls exist only in E2E test builds. They start seeded media the product screens do not expose yet.",
     "play_video": "Play E2E video",
+    "play_hls": "Play E2E HLS",
     "skip_next": "Skip to next",
     "complete_now_playing": "Mark now-playing complete",
     "quick_login": "Sign in as E2E user",

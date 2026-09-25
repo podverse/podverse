@@ -1,12 +1,13 @@
 import type { DTOItemEnclosure, DTOItemEnclosureIntegrity } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosures,
-  getDownloadFilenameFromSource,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
 
+import { showToast } from '../../components/Toast/Toast';
 import type { ModalSourceSelector } from '../../contexts/Modals';
 import type { AddByRSSItemIndexItem } from '../addByRSS/types';
+import { startProgressiveDownload } from './startProgressiveDownload';
 
 type AddByRSSBundleEnclosure = AddByRSSItemIndexItem['bundle']['enclosures'][number];
 
@@ -97,23 +98,26 @@ export function downloadAddByRSSMediaWithModal({
     sourceRowIndex: null,
   });
 
-  if (selected?.source?.uri) {
-    const loadingKey =
-      variant === 'episode' ? 'download.downloading_episode' : 'download.downloading_track';
-    const successKey =
-      variant === 'episode' ? 'download.episode_downloaded' : 'download.track_downloaded';
-    const errorKey =
-      variant === 'episode' ? 'download.episode_download_error' : 'download.track_download_error';
-    const filename = getDownloadFilenameFromSource({
-      itemTitle,
-      sourceUri: selected.source.uri,
-      fallbackFilename: defaultFilename,
-    });
-
-    showToastPromiseWithLoading(downloadAndSaveFile(selected.source.uri, filename), {
-      loading: tFeatures(loadingKey),
-      success: tFeatures(successKey),
+  const errorKey =
+    variant === 'episode' ? 'download.episode_download_error' : 'download.track_download_error';
+  const resolution = startProgressiveDownload({
+    uri: selected?.source?.uri,
+    mime: selected?.labeledItemEnclosure?.enclosure.type,
+    itemTitle,
+    fallbackFilename: defaultFilename,
+    downloadAndSaveFile,
+    showToastPromiseWithLoading,
+    messages: {
+      loading: tFeatures(
+        variant === 'episode' ? 'download.downloading_episode' : 'download.downloading_track'
+      ),
+      success: tFeatures(
+        variant === 'episode' ? 'download.episode_downloaded' : 'download.track_downloaded'
+      ),
       error: tFeatures(errorKey),
-    });
+    },
+  });
+  if (!resolution.ok && resolution.reason === 'hls_playlist') {
+    showToast(tFeatures(errorKey), 'error');
   }
 }

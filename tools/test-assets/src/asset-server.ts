@@ -78,6 +78,10 @@ export class AssetServer {
         return 'application/x-subrip';
       case '.txt':
         return 'text/plain';
+      case '.m3u8':
+        return 'application/vnd.apple.mpegurl';
+      case '.ts':
+        return 'video/mp2t';
       case '.html':
         return 'text/html';
       default:

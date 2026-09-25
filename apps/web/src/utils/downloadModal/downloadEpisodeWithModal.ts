@@ -1,11 +1,12 @@
 import type { DTOItem } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosures,
-  getDownloadFilenameFromSource,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
 
+import { showToast } from '../../components/Toast/Toast';
 import type { ModalSourceSelector } from '../../contexts/Modals';
+import { startProgressiveDownload } from './startProgressiveDownload';
 
 type DownloadEpisodeWithModalParams = {
   item: DTOItem;
@@ -46,17 +47,21 @@ export const downloadEpisodeWithModal = async ({
       enclosureRowIndex: null,
       sourceRowIndex: null,
     });
-    if (selected?.source?.uri) {
-      const filename = getDownloadFilenameFromSource({
-        itemTitle: item.title,
-        sourceUri: selected.source.uri,
-        fallbackFilename: 'episode.mp3',
-      });
-      showToastPromiseWithLoading(downloadAndSaveFile(selected.source.uri, filename), {
+    const resolution = startProgressiveDownload({
+      uri: selected?.source?.uri,
+      mime: selected?.labeledItemEnclosure?.enclosure.type,
+      itemTitle: item.title || null,
+      fallbackFilename: 'episode.mp3',
+      downloadAndSaveFile,
+      showToastPromiseWithLoading,
+      messages: {
         loading: tFeatures('download.downloading_episode'),
         success: tFeatures('download.episode_downloaded'),
         error: tFeatures('download.episode_download_error'),
-      });
+      },
+    });
+    if (!resolution.ok && resolution.reason === 'hls_playlist') {
+      showToast(tFeatures('download.episode_download_error'), 'error');
     }
   }
 };

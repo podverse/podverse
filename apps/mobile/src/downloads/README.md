@@ -11,8 +11,8 @@ which progressive source to fetch. It **rejects**:
 
 - **Livestreams** — `item.live_item` is set (Podcasting 2.0 live item). Livestreams are streamed,
   not fixed files.
-- **HLS / m3u8** — the only usable enclosure(s) resolve to a `.m3u8` playlist or an HLS MIME
-  (`application/x-mpegurl`, `application/vnd.apple.mpegurl`, `audio/mpegurl`). A playlist is a
+- **HLS playlist / m3u8** — the only usable enclosure(s) resolve to an HLS playlist (`.m3u8`) or an HLS MIME
+  (`application/x-mpegurl`, `application/vnd.apple.mpegurl`, `audio/mpegurl`). An HLS playlist is a
   manifest of segments, not a single downloadable file.
 - **No enclosure** — no enclosure with a usable source URI.
 

@@ -48,6 +48,7 @@
     "@podverse/v4v-helpers": "*",
     "@podverse/v4v-metaboost": "*",
     "classnames": "^2.5.1",
+    "hls.js": "^1.7.3",
     "next": "^16.3.2",
     "next-intl": "^4.13.7",
     "react": "^19.2.8",

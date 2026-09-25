@@ -109,6 +109,30 @@ describe('isItemDownloadable', () => {
     expect(result.ok === false && result.reason).toBe('hls_playlist');
   });
 
+  it('rejects the asset-server VOD HLS playlist fixture', () => {
+    const item = buildItem([
+      enclosureWithSource('http://localhost:2111/e2e/hls/e2e-hls-vod.m3u8?fixture=vod', {
+        type: 'audio/mpeg',
+      }),
+    ]);
+    const result = isItemDownloadable(item);
+    expect(result.ok === false && result.reason).toBe('hls_playlist');
+  });
+
+  it('rejects a query-string HLS playlist even when the MIME type is progressive', () => {
+    const item = buildItem([
+      enclosureWithSource('https://x/stream.m3u8?token=1', { type: 'audio/mpeg' }),
+    ]);
+    const result = isItemDownloadable(item);
+    expect(result.ok === false && result.reason).toBe('hls_playlist');
+  });
+
+  it('rejects a MIME-only HLS playlist', () => {
+    const item = buildItem([enclosureWithSource('https://x/stream', { type: 'audio/mpegurl' })]);
+    const result = isItemDownloadable(item);
+    expect(result.ok === false && result.reason).toBe('hls_playlist');
+  });
+
   it('accepts a progressive audio file and selects it', () => {
     const item = buildItem([
       enclosureWithSource('https://x/ep.mp3', { type: 'audio/mpeg', item_enclosure_default: true }),

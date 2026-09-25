@@ -197,6 +197,21 @@ export const E2E_VIDEO_CHANNEL_TITLE = 'E2E Video Transition Channel';
 export const E2E_VIDEO_ITEM_DURATION_SECONDS = 30;
 
 /**
+ * Non-live VOD HLS playlist for playback start. Enclosure type stays `audio/mpeg`;
+ * the `.m3u8` path (query included) is what classifies it. Unsubscribed and not queued.
+ * Regenerate via `npm run generate:e2e-media -w podverse-test-assets`
+ * (`tools/test-assets/assets/e2e/hls/`). Sync with `tools/web/seed-e2e.mjs`.
+ */
+export const E2E_HLS_ASSET_BASE_URL = 'http://localhost:2111/e2e/hls';
+export const E2E_HLS_VOD_ENCLOSURE_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-vod.m3u8?fixture=vod`;
+export const E2E_HLS_EVENT_PLAYLIST_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-event.m3u8`;
+export const E2E_HLS_CHANNEL_ID_TEXT = 'e2eHlsChnl001';
+export const E2E_HLS_VOD_ITEM_ID_TEXT = 'e2eHlsVodIt01';
+export const E2E_HLS_CHANNEL_TITLE = 'E2E HLS VOD Channel';
+export const E2E_HLS_VOD_ITEM_TITLE = 'E2E HLS VOD Episode';
+export const E2E_HLS_VOD_DURATION_SECONDS = 6;
+
+/**
  * Live items with real enclosures for the live-stream media-player specs, in their own unsubscribed
  * channel so the `v5fCrIj9Io` livestream specs keep their enclosure-free `.first()` link target.
  * The sources are progressive mp3/mp4 from the asset server, so these fixtures cover enclosure and

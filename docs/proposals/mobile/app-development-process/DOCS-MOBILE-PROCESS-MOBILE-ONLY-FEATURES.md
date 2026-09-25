@@ -45,9 +45,9 @@ Livestream vs on-demand is **structural**, not “guess from MIME alone”:
 2. Hide / disable Download on livestream detail and live media rows (match web: no download menu).
 3. Do **not** treat Ended liveItems as downloadable VOD unless product later maps them to a
    progressive enclosure — v1: still no download.
-4. Reject HLS / playlist URLs even on non-live items: URI ends with `.m3u8` (ignore query), or
+4. Reject an HLS playlist even on non-live items: URI ends with `.m3u8` (ignore query), or
    enclosure `type` is `application/x-mpegurl` / `application/vnd.apple.mpegurl` (case-insensitive).
-   Saving an m3u8 playlist is not offline media playback.
+   Saving an HLS playlist is not offline media playback.
 
 Eligibility helpers should live in `apps/mobile/src/lib/` or the downloads module (pure, unit-tested)
 and be called from the manager **and** UI — not only hidden in the button.

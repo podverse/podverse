@@ -9,6 +9,8 @@ import type {
 } from '@podverse/helpers';
 import { getSelectedLabeledItemEnclosureAndSource, isEqual } from '@podverse/helpers';
 
+import { resolveLivestreamVideoJsSourceType } from './livestreamVideoJsSourceType';
+
 import 'video.js/dist/video-js.css';
 
 export interface MediaPlayerControllerLiveStreamAVProps {
@@ -62,9 +64,10 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<
 
     const labeled = selectedItemEnclosureAndSource?.labeledItemEnclosure;
     const srcObj = selectedItemEnclosureAndSource?.source;
+    const srcUrl = typeof srcObj?.uri === 'string' ? srcObj.uri.trim() : '';
 
-    // If enclosure missing basic data, dispose and bail.
-    if (!labeled?.enclosure?.type || !srcObj?.uri) {
+    // A livestream needs a URI. The video.js type can be inferred when the enclosure type is empty.
+    if (labeled === null || labeled === undefined || srcUrl === '') {
       if (videoJsPlayerRef.current && !videoJsPlayerRef.current.isDisposed()) {
         videoJsPlayerRef.current.dispose();
         videoJsPlayerRef.current = null;
@@ -85,11 +88,14 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<
       return;
     }
 
-    const srcUrl = srcObj.uri;
-    const srcType = labeled.enclosure.type;
+    const srcType = resolveLivestreamVideoJsSourceType(
+      srcUrl,
+      labeled.enclosure.type,
+      srcObj?.content_type
+    );
 
-    // If item not a live item or missing src data, dispose.
-    if (!mpItem?.live_item || !srcUrl || !srcType) {
+    // If item not a live item or the source type cannot be resolved, dispose.
+    if (!mpItem?.live_item || srcType === null) {
       if (videoJsPlayerRef.current && !videoJsPlayerRef.current.isDisposed()) {
         videoJsPlayerRef.current.dispose();
         videoJsPlayerRef.current = null;

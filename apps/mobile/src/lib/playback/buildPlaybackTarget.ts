@@ -29,6 +29,56 @@ export function buildItemPlaybackTarget(
   return { channel, item, kind: 'item-podcast' };
 }
 
+export type ItemPlaybackStart = {
+  target: PlaybackTarget;
+  explicitPlaybackSeconds?: number;
+  mediaFileDurationHintSeconds?: number;
+};
+
+/**
+ * A Podcasting 2.0 live item has no file position. Playback uses the livestream target so
+ * load policy starts at the live edge, and resume seconds plus a file-duration hint are omitted.
+ */
+export function resolveItemPlaybackStart(params: {
+  item: DTOItem;
+  channel: DTOChannel;
+  intent: MusicItemPlaybackIntent;
+  explicitPlaybackSeconds?: number;
+  mediaFileDurationHintSeconds?: number;
+}): ItemPlaybackStart {
+  if (params.item.live_item !== null && params.item.live_item !== undefined) {
+    return {
+      target: { channel: params.channel, item: params.item, kind: 'livestream' },
+    };
+  }
+
+  const start: ItemPlaybackStart = {
+    target: buildItemPlaybackTarget(params.item, params.channel, params.intent),
+  };
+  if (params.explicitPlaybackSeconds !== undefined) {
+    start.explicitPlaybackSeconds = params.explicitPlaybackSeconds;
+  }
+  if (params.mediaFileDurationHintSeconds !== undefined) {
+    start.mediaFileDurationHintSeconds = params.mediaFileDurationHintSeconds;
+  }
+  return start;
+}
+
+/**
+ * Source for a native reload of the current item. A livestream omits a start seek so the
+ * engine stays on the live edge instead of restoring a file position.
+ */
+export function playbackReloadSource(
+  target: PlaybackTarget | null,
+  url: string,
+  positionSeconds: number
+): { url: string; initialSeekSeconds?: number } {
+  if (target?.kind === 'livestream') {
+    return { url };
+  }
+  return { initialSeekSeconds: positionSeconds, url };
+}
+
 export function buildClipPlaybackTarget(
   clip: DTOClip,
   item: DTOItem,

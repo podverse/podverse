@@ -1,0 +1,28 @@
+appId: com.podverse.app.next
+name: HLS Playback
+---
+# Play the seeded non-live VOD HLS playlist on the first-party media engine and prove playback becomes
+# active. The item (e2eHlsVodIt01) enclosure is
+# tools/test-assets/assets/e2e/hls/e2e-hls-vod.m3u8, served on :2111. The orchestrator rewrites
+# localhost via resolveE2eMediaUrl. Requires flow_needs_test_assets + flow_needs_e2e_api.
+#
+# The flow starts playback via the E2E-only `e2e-play-hls-item` control on More → E2E → Playback.
+# That row is hidden unless EXPO_PUBLIC_MOBILE_E2E=1.
+#
+# If the HLS playlist or segments are missing, the enclosure 404s and playback never goes active: this
+# flow then fails at the playback-active-e2e wait. Generate fixtures and reseed first.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+- runFlow: shared/open-e2e-playback.yaml
+
+- tapOn:
+    id: e2e-play-hls-item
+
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: mini-player
+- takeScreenshot: hls-playback-now-playing

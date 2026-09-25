@@ -265,6 +265,63 @@ export class AssetGenerator {
     console.log('   ✅ All assets generated\n');
   }
 
+  /**
+   * Audio-only HLS fixtures under `hls/`. The VOD HLS playlist is a short sine tone.
+   * The EVENT HLS playlist reuses those segments and omits `#EXT-X-ENDLIST`, so a player
+   * can start it without a live encoder. Skip-if-exists. Segment URIs are basenames
+   * so they resolve next to the HLS playlist on the asset server.
+   */
+  async generateHlsAudioFixtures(): Promise<void> {
+    const dir = path.join(this.assetsDir, 'hls');
+    fs.mkdirSync(dir, { recursive: true });
+
+    const vodName = 'e2e-hls-vod.m3u8';
+    const vodPath = path.join(dir, vodName);
+    if (!fs.existsSync(vodPath)) {
+      const ffmpegStatic = await import('ffmpeg-static').catch((err) => {
+        throw new Error(
+          `Failed to import ffmpeg-static. Make sure to run 'npm install' first. Error: ${err instanceof Error ? err.message : String(err)}`
+        );
+      });
+      const ffmpegPath = ffmpegStatic.default;
+      if (!ffmpegPath) {
+        throw new Error('ffmpeg-static binary not found. Make sure ffmpeg-static is installed.');
+      }
+
+      const command = `cd "${dir}" && "${ffmpegPath}" -hide_banner -loglevel error -y -f lavfi -i sine=frequency=440:sample_rate=22050:duration=6 -c:a aac -b:a 32k -ac 1 -ar 22050 -f hls -hls_time 2 -hls_playlist_type vod -hls_segment_filename "e2e-hls-vod-%03d.ts" "${vodName}"`;
+      try {
+        await execAsync(command);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to generate HLS fixtures: ${errorMessage}`);
+      }
+
+      const raw = fs.readFileSync(vodPath, 'utf8');
+      const rewritten = raw
+        .split('\n')
+        .map((line) => {
+          const trimmed = line.trim();
+          if (trimmed === '' || trimmed.startsWith('#')) {
+            return line;
+          }
+          return path.basename(trimmed);
+        })
+        .join('\n');
+      fs.writeFileSync(vodPath, rewritten.endsWith('\n') ? rewritten : `${rewritten}\n`);
+      console.log('   ✅ Generated: e2e-hls-vod.m3u8');
+    }
+
+    const eventPath = path.join(dir, 'e2e-hls-event.m3u8');
+    if (!fs.existsSync(eventPath)) {
+      const vod = fs.readFileSync(vodPath, 'utf8');
+      const eventBody = vod
+        .replace('#EXT-X-PLAYLIST-TYPE:VOD', '#EXT-X-PLAYLIST-TYPE:EVENT')
+        .replace(/\r?\n#EXT-X-ENDLIST\s*$/, '\n');
+      fs.writeFileSync(eventPath, eventBody.endsWith('\n') ? eventBody : `${eventBody}\n`);
+      console.log('   ✅ Generated: e2e-hls-event.m3u8');
+    }
+  }
+
   private getAudioFrequency(): number {
     return AUDIO_FREQ_MIN + Math.floor(Math.random() * (AUDIO_FREQ_MAX - AUDIO_FREQ_MIN + 1));
   }

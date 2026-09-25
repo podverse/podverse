@@ -2,6 +2,7 @@ import type { DTOItemEnclosureSource } from '../../dtos/index.js';
 import type { DTOItemEnclosure } from '../../dtos/item/itemEnclosure.js';
 import type { FormattedBitrate } from '../bitrate.js';
 import { formatBitrate } from '../bitrate.js';
+import { isHlsMimeType, mediaSourcePathExtension } from './mediaSourceClassification.js';
 
 const EXTENSION_MEDIA_TYPE_MAP: Record<string, 'audio' | 'video'> = {
   mp3: 'audio',
@@ -18,12 +19,10 @@ const EXTENSION_MEDIA_TYPE_MAP: Record<string, 'audio' | 'video'> = {
 };
 
 export function getMediaTypeFromSource(uri: string): 'audio' | 'video' | undefined {
-  const urlWithoutParams = uri.split(/[?#]/)[0] ?? '';
-  const match = urlWithoutParams.match(/\.([a-z0-9]+)$/i);
-  if (!match || !match[1]) {
+  const ext = mediaSourcePathExtension(uri);
+  if (ext === null) {
     return undefined;
   }
-  const ext = match[1].toLowerCase();
   return EXTENSION_MEDIA_TYPE_MAP[ext];
 }
 
@@ -239,27 +238,29 @@ export function buildLabeledItemEnclosures(enclosures: DTOItemEnclosure[]): Labe
     const source = e.item_enclosure_sources?.[0];
     let ext: string | undefined;
     if (source?.uri) {
-      const urlWithoutParams = source.uri.split(/[?#]/)[0] ?? '';
-      const match = urlWithoutParams.match(/\.([a-z0-9]+)$/i);
-      if (match && match[1]) {
-        ext = match[1].toLowerCase();
+      const pathExtension = mediaSourcePathExtension(source.uri);
+      if (pathExtension !== null) {
+        ext = pathExtension;
       }
     }
     if (!ext && e.type) {
-      // Map common mime types to typical file extensions.
-      const mime = e.type.toLowerCase();
-      const mimeMap: Record<string, string> = {
-        'audio/mpeg': 'mp3',
-        'audio/opus': 'opus',
-        'audio/aac': 'aac',
-        'audio/ogg': 'ogg',
-        'audio/wav': 'wav',
-        'video/mp4': 'mp4',
-        'video/quicktime': 'mov',
-        'video/x-matroska': 'mkv',
-        'application/x-mpegurl': 'm3u8',
-      };
-      ext = mimeMap[mime];
+      if (isHlsMimeType(e.type)) {
+        ext = 'm3u8';
+      } else {
+        // Map common mime types to typical file extensions.
+        const mime = e.type.toLowerCase();
+        const mimeMap: Record<string, string> = {
+          'audio/mpeg': 'mp3',
+          'audio/opus': 'opus',
+          'audio/aac': 'aac',
+          'audio/ogg': 'ogg',
+          'audio/wav': 'wav',
+          'video/mp4': 'mp4',
+          'video/quicktime': 'mov',
+          'video/x-matroska': 'mkv',
+        };
+        ext = mimeMap[mime];
+      }
     }
     if (ext) {
       labeled.fileExtension = ext;

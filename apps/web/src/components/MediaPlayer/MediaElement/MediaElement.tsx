@@ -1,7 +1,12 @@
 'use client';
 
-import { createElement, type CSSProperties, type ReactElement, type RefObject } from 'react';
+import { createElement, useEffect } from 'react';
+import type { CSSProperties, ReactElement, RefObject } from 'react';
 
+import {
+  attachNonLiveHlsPlayback,
+  detachNonLiveHlsPlayback,
+} from '../../../hooks/mediaElementBridgeSurface';
 import type { MediaElementSource } from '../../../hooks/useMediaElementBridge';
 
 export type MediaElementProps = {
@@ -15,17 +20,38 @@ export type MediaElementProps = {
 };
 
 /**
- * Single non-live `<audio>` / `<video>` shell. `key` stays `${audio|video}::file` until HLS attach
- * mode exists (livestream plan-set).
+ * Single non-live `<audio>` / `<video>` shell. A progressive file sets `src` here.
+ * An HLS playlist omits `src` and is attached after mount: native HLS, or lazy `hls.js` when
+ * the browser cannot play an HLS playlist itself.
  */
 export function MediaElement(props: MediaElementProps): ReactElement {
   const { isVideo, source, mediaRef, preload = 'auto', hidden, style } = props;
   const layoutStyle = hidden ? { display: 'none' as const, ...style } : style;
   const elementKey = `${isVideo ? 'video' : 'audio'}::file`;
+  const hlsPlaylistSrc = source?.delivery === 'hls' ? source.src : null;
   const file =
-    source !== null && source.kind === 'file'
-      ? { src: source.src, mimeType: source.mimeType }
-      : null;
+    source !== null && source.kind === 'file' && hlsPlaylistSrc === null ? { src: source.src } : null;
+
+  useEffect(() => {
+    const media = mediaRef.current;
+    if (media === null) {
+      return;
+    }
+    if (hlsPlaylistSrc === null) {
+      detachNonLiveHlsPlayback(media);
+      return;
+    }
+    let cancelled = false;
+    void attachNonLiveHlsPlayback(media, hlsPlaylistSrc).then(() => {
+      if (cancelled) {
+        detachNonLiveHlsPlayback(media);
+      }
+    });
+    return () => {
+      cancelled = true;
+      detachNonLiveHlsPlayback(media);
+    };
+  }, [mediaRef, hlsPlaylistSrc]);
 
   const srcProps = file !== null ? { src: file.src } : {};
 

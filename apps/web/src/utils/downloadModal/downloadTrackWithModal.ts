@@ -1,11 +1,12 @@
 import type { DTOItem } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosures,
-  getDownloadFilenameFromSource,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
 
+import { showToast } from '../../components/Toast/Toast';
 import type { ModalSourceSelector } from '../../contexts/Modals';
+import { startProgressiveDownload } from './startProgressiveDownload';
 
 type DownloadTrackWithModalParams = {
   item: DTOItem;
@@ -46,17 +47,21 @@ export const downloadTrackWithModal = async ({
       enclosureRowIndex: null,
       sourceRowIndex: null,
     });
-    if (selected?.source?.uri) {
-      const filename = getDownloadFilenameFromSource({
-        itemTitle: item.title,
-        sourceUri: selected.source.uri,
-        fallbackFilename: 'track.mp3',
-      });
-      showToastPromiseWithLoading(downloadAndSaveFile(selected.source.uri, filename), {
+    const resolution = startProgressiveDownload({
+      uri: selected?.source?.uri,
+      mime: selected?.labeledItemEnclosure?.enclosure.type,
+      itemTitle: item.title || null,
+      fallbackFilename: 'track.mp3',
+      downloadAndSaveFile,
+      showToastPromiseWithLoading,
+      messages: {
         loading: tFeatures('download.downloading_track'),
         success: tFeatures('download.track_downloaded'),
         error: tFeatures('download.track_download_error'),
-      });
+      },
+    });
+    if (!resolution.ok && resolution.reason === 'hls_playlist') {
+      showToast(tFeatures('download.track_download_error'), 'error');
     }
   }
 };

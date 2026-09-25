@@ -86,6 +86,10 @@
     "./item/itemEnclosure": {
       "types": "./dist/lib/item/itemEnclosure.d.ts",
       "default": "./dist/lib/item/itemEnclosure.js"
+    },
+    "./item/mediaSourceClassification": {
+      "types": "./dist/lib/item/mediaSourceClassification.d.ts",
+      "default": "./dist/lib/item/mediaSourceClassification.js"
     }
   },
   "files": [

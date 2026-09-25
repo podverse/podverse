@@ -7,14 +7,17 @@ import {
   buildLabeledItemEnclosures,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers/item/itemEnclosure';
+import { isHlsSource } from '@podverse/helpers/item/mediaSourceClassification';
 
 import type { DownloadMediaType } from './downloadTypes';
+
+export { isHlsSource };
 
 /**
  * Why an item cannot be downloaded for offline play:
  * - `livestream`   — the item is a Podcasting 2.0 live item (`item.live_item` set); it streams, it
  *                    is not a fixed file.
- * - `hls_playlist` — the only usable enclosure(s) point at an HLS/m3u8 playlist, which is a
+ * - `hls_playlist` — the only usable enclosure(s) point at an HLS playlist, which is a
  *                    manifest of segments, not a single progressive file we can store and replay.
  * - `no_enclosure` — no enclosure with a usable source URI.
  * - `offline_mode` — Offline Mode is on; the download manager rejects new transfers (not decided
@@ -33,22 +36,6 @@ export interface DownloadSourceSelection {
 
 export type DownloadEligibility =
   { ok: true; source: DownloadSourceSelection } | { ok: false; reason: DownloadIneligibleReason };
-
-const HLS_MIME_TYPES = new Set([
-  'application/x-mpegurl',
-  'application/vnd.apple.mpegurl',
-  'audio/x-mpegurl',
-  'audio/mpegurl',
-]);
-
-/** True when a URI/MIME describes an HLS playlist (streamed), not a downloadable progressive file. */
-export const isHlsSource = (uri: string, mime: string | null): boolean => {
-  const pathOnly = uri.split(/[?#]/)[0]?.toLowerCase() ?? '';
-  if (pathOnly.endsWith('.m3u8')) {
-    return true;
-  }
-  return mime !== null && HLS_MIME_TYPES.has(mime.toLowerCase());
-};
 
 type ProgressiveCandidate = {
   labeled: LabeledItemEnclosure;

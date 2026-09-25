@@ -43,7 +43,7 @@ export const isDownloadMediaType = (value: string): value is DownloadMediaType =
 export interface DownloadRecord {
   /** Stable local key — the item's `id_text`. */
   itemIdText: string;
-  /** Resolved progressive enclosure URI being fetched (never a `.m3u8` playlist). */
+  /** Resolved progressive enclosure URI being fetched (never an HLS playlist). */
   enclosureUri: string;
   /** Deterministic hash of `enclosureUri` for de-dupe / stable on-disk naming. */
   enclosureUrlHash: string;

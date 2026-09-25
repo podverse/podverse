@@ -16,6 +16,7 @@
     "@podverse/integrations-web": "*",
     "@types/react": "^19.2.18",
     "axios": "^1.19.0",
+    "hls.js": "^1.7.3",
     "next": "^16.3.2",
     "next-intl": "^4.13.7",
     "react": "^19.2.8",

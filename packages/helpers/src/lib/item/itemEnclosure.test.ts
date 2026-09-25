@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DTOItemEnclosure } from '../../dtos/item/itemEnclosure.js';
-import { resolveItemEnclosureModalityIndicator } from './itemEnclosure.js';
+import {
+  buildLabeledItemEnclosures,
+  resolveItemEnclosureModalityIndicator,
+} from './itemEnclosure.js';
 
 function buildEnclosure(overrides: Partial<DTOItemEnclosure>): DTOItemEnclosure {
   return {
@@ -54,5 +57,37 @@ describe('resolveItemEnclosureModalityIndicator', () => {
     expect(resolveItemEnclosureModalityIndicator([audioEnclosure, videoEnclosureByType])).toBe(
       'mixed'
     );
+  });
+});
+
+describe('buildLabeledItemEnclosures HLS extension', () => {
+  it('keeps a query-string HLS playlist extension and maps HLS MIME types to m3u8', () => {
+    const fromUri = buildLabeledItemEnclosures([
+      buildEnclosure({
+        type: 'audio/mpeg',
+        item_enclosure_sources: [
+          { id: 1, item_enclosure_id: 0, uri: 'https://x/live.m3u8?token=1' },
+        ],
+      }),
+    ]);
+    expect(fromUri[0]?.fileExtension).toBe('m3u8');
+
+    const fromMime = buildLabeledItemEnclosures([
+      buildEnclosure({
+        type: 'application/vnd.apple.mpegURL',
+        item_enclosure_sources: [{ id: 1, item_enclosure_id: 0, uri: 'https://x/live' }],
+      }),
+    ]);
+    expect(fromMime[0]?.fileExtension).toBe('m3u8');
+
+    const progressive = buildLabeledItemEnclosures([
+      buildEnclosure({
+        type: 'audio/mpeg',
+        item_enclosure_sources: [
+          { id: 1, item_enclosure_id: 0, uri: 'https://x/ep.mp3?token=1' },
+        ],
+      }),
+    ]);
+    expect(progressive[0]?.fileExtension).toBe('mp3');
   });
 });

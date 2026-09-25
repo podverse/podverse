@@ -63,3 +63,20 @@ or testIDs.
 website URL), not the description prose. Do not treat those as the About/Summary body.
 
 Cross-surface field contract: **about-summary-web-mobile-alignment**.
+
+## playlist / HLS playlist
+
+**playlist** is a Podverse schema playlist: the `playlist` table, `playlist_id`, playlist screens,
+and catalog keys under `playlist.*`.
+
+An m3u8 media manifest is an **HLS playlist**. Write "HLS playlist" or "m3u8" in prose. In
+identifiers use `hlsPlaylist` (camelCase) or `hls_playlist` (snake_case reason codes and
+`HLS_PLAYLIST_*` constants). Do not write the one-word form `hlsplaylist`.
+
+A search for `playlist` still matches `hlsPlaylist` and `hls_playlist`, because those names
+contain that substring. Search `hlsPlaylist`, `hls_playlist`, or "HLS playlist" for manifests.
+Search whole-word `playlist` for the schema entity, and skip the qualified HLS names.
+
+Leave ffmpeg's `-hls_playlist_type` as ffmpeg spells it. Leave test URIs whose query parameter
+is literally `playlist=` (for example `ep.mp3?playlist=stream.m3u8`). Those fixtures show a query
+parameter, not an HLS playlist.

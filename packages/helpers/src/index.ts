@@ -65,6 +65,7 @@ export * from './lib/unaddedTrackParentAlbum.js';
 export * from './lib/itemItunesEpisodeType.js';
 export * from './lib/item/item.js';
 export * from './lib/item/itemEnclosure.js';
+export * from './lib/item/mediaSourceClassification.js';
 export * from './lib/liveItem/liveItemEnclosure.js';
 export * from './lib/liveItemStatus.js';
 export * from './lib/liveItemVisibility.js';

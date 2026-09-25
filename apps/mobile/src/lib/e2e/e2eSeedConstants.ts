@@ -10,6 +10,9 @@
 /** `E2E_VIDEO_ITEM_ID_TEXT` — the seeded video-medium episode (`e2eVideoChnl01`). */
 export const E2E_VIDEO_ITEM_ID_TEXT = 'e2eVideoItm001';
 
+/** Seeded non-live VOD HLS playlist episode (`e2eHlsChnl001`). */
+export const E2E_HLS_VOD_ITEM_ID_TEXT = 'e2eHlsVodIt01';
+
 /** Seeded account most authenticated Maestro flows sign in as. */
 export const E2E_USER_EMAIL = 'e2e-user@example.com';
 

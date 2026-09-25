@@ -39,13 +39,15 @@ android {
   }
 }
 
-// Media3 version for the shared ExoPlayer + MediaLibraryService (car foundation).
+// Media3 version for the shared ExoPlayer + MediaLibraryService (phone and car).
 // Overridable from the root project via ext.media3Version.
+// HLS playlists load only when media3-exoplayer-hls is present at this same version.
 def media3Version = rootProject.ext.has("media3Version") ? rootProject.ext.get("media3Version") : "1.4.1"
 
 dependencies {
   // ContextCompat (used by PodverseAudioEngine to start the foreground MediaLibraryService).
   implementation "androidx.core:core-ktx:1.13.1"
   implementation "androidx.media3:media3-exoplayer:${media3Version}"
+  implementation "androidx.media3:media3-exoplayer-hls:${media3Version}"
   implementation "androidx.media3:media3-session:${media3Version}"
 }

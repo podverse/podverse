@@ -96,10 +96,11 @@ import { perfCount } from '../lib/perf/perfSpans';
 import {
   buildChapterPlaybackTarget,
   buildClipPlaybackTarget,
-  buildItemPlaybackTarget,
   buildSoundbitePlaybackTarget,
+  playbackReloadSource,
   playbackTargetToHistoryTarget,
   playbackTargetToStatsTargets,
+  resolveItemPlaybackStart,
 } from '../lib/playback/buildPlaybackTarget';
 import type { LastPlaybackSnapshot } from '../lib/playback/lastPlaybackStorage';
 import {
@@ -1191,26 +1192,27 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride?: boolean;
       }
     ): Promise<void> => {
-      if (item.live_item !== null && item.live_item !== undefined) {
-        // Livestream playback is unavailable in the native engine; surface a localized notice.
-        setNoticeKey('media_player.livestream_unavailable');
-        return;
-      }
       const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
       const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
       }
-      const target = buildItemPlaybackTarget(item, channel, options.intent);
-      await playTarget(target, {
-        autoPlayOverride: options.autoPlayOverride,
-        autoQueue: options.autoQueue,
+      const start = resolveItemPlaybackStart({
+        channel,
         explicitPlaybackSeconds: options.explicitPlaybackSeconds,
+        intent: options.intent,
+        item,
         mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
           options.mediaFileDurationHintSeconds,
           item.item_about.duration
         ),
+      });
+      await playTarget(start.target, {
+        autoPlayOverride: options.autoPlayOverride,
+        autoQueue: options.autoQueue,
+        explicitPlaybackSeconds: start.explicitPlaybackSeconds,
+        mediaFileDurationHintSeconds: start.mediaFileDurationHintSeconds,
         summary: summaryFromItem(item, channel),
         url,
       });
@@ -2650,10 +2652,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     armPendingStart();
     setTransportState('loading');
     try {
-      await nativePlaybackBridge.loadAndStart({
-        initialSeekSeconds: positionRef.current,
-        url,
-      });
+      await nativePlaybackBridge.loadAndStart(
+        playbackReloadSource(activeTargetRef.current, url, positionRef.current)
+      );
       nativePlaybackBridge.setRate(playbackRateRef.current);
       if (pendingStartRef.current) {
         sourcePlayableRef.current = true;

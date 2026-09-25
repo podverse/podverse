@@ -19,7 +19,7 @@ import { buildItemLabeledEnclosures, resolveItemEnclosureUrl } from './resolveEn
  *
  * Only progressive files are ever downloaded (livestreams / HLS never have a download row — see
  * `downloadEligibility`), so this never returns a local URL for a live item; those keep the remote
- * path and the PlaybackProvider live_item block.
+ * enclosure path.
  *
  * While Offline Mode is on, only a completed local file is returned — there is no remote
  * enclosure fallback.
