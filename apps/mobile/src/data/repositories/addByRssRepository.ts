@@ -8,8 +8,8 @@ import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { buildAddByRssParseFailureLog } from '../../lib/addByRss/addByRssErrorLog';
 import type {
-  AddByRssCredentialStatus,
   AddByRssCredentials,
+  AddByRssCredentialStatus,
   AddByRssNeedsCredentialsFeed,
 } from '../../lib/addByRss/credentials';
 import {
@@ -25,9 +25,9 @@ import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { AddByRssFeedRow } from '../db/schema';
 import { addByRssCredentialStore } from './addByRssCredentialStore';
+import { autoDownloadRepository } from './autoDownloadRepository';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
 import { channelSeenRepository } from './channelSeenRepository';
-import { autoDownloadRepository } from './autoDownloadRepository';
 import { syncEventLogRepository } from './syncEventLogRepository';
 import type { MobileAuthRequestContext } from './types';
 

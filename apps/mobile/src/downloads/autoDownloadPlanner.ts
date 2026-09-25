@@ -9,11 +9,7 @@ import { isItemDownloadable } from './downloadEligibility';
  */
 
 export type AutoDownloadCandidateStatus =
-  | 'pending'
-  | 'enqueued'
-  | 'skipped_ineligible'
-  | 'skipped_over_cap'
-  | 'user_removed';
+  'pending' | 'enqueued' | 'skipped_ineligible' | 'skipped_over_cap' | 'user_removed';
 
 /** How many newest episodes one catch-up may keep, across every opted-in podcast. */
 export const DEFAULT_AUTO_DOWNLOAD_CATCH_UP_LIMIT = 20;

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  HLS_PLAYLIST_MIME_TYPE,
   classifyMediaSource,
+  HLS_PLAYLIST_MIME_TYPE,
   isHlsMimeType,
   isHlsSource,
   isHttpOrHttpsUri,

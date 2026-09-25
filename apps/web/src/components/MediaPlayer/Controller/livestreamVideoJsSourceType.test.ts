@@ -27,8 +27,6 @@ describe('resolveLivestreamVideoJsSourceType', () => {
   });
 
   it('leaves a progressive file with no type unresolved', () => {
-    expect(resolveLivestreamVideoJsSourceType('https://x/ep.mp3?playlist=a.m3u8', null)).toBe(
-      null
-    );
+    expect(resolveLivestreamVideoJsSourceType('https://x/ep.mp3?playlist=a.m3u8', null)).toBe(null);
   });
 });

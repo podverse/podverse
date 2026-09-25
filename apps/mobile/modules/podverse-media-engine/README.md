@@ -162,17 +162,17 @@ and `destroy` are synchronous native functions; `load`, `play`, `getPosition`, a
 async (resolve on the JS thread after the native call). All methods run against the single shared
 player instance.
 
-| Method                 | Args                                           | Returns           | Errors / notes                                                                                                           |
-| ---------------------- | ---------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `load(source)`         | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure. `basicAuth`: see below.              |
-| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Atomic `load` + `play`. Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore).        |
-| `play()`               | —                                              | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.                                         |
-| `pause()`              | —                                              | `void`            | Keeps current item and position.                                                                                         |
-| `seek(seconds)`        | `number` (seconds)                             | `void`            | Absolute seek. Clamping owned by native.                                                                                 |
-| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                   | `void`            | Sets playback rate. Must not start playback while paused (iOS `AVPlayer.rate` would otherwise auto-play).                |
-| `getPosition()`        | —                                              | `Promise<number>` | Current playhead in seconds.                                                                                             |
-| `getDuration()`        | —                                              | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                                                              |
-| `destroy()`            | —                                              | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native.                                  |
+| Method                 | Args                                                       | Returns           | Errors / notes                                                                                                    |
+| ---------------------- | ---------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `load(source)`         | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure. `basicAuth`: see below.        |
+| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Atomic `load` + `play`. Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore). |
+| `play()`               | —                                                          | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.                                  |
+| `pause()`              | —                                                          | `void`            | Keeps current item and position.                                                                                  |
+| `seek(seconds)`        | `number` (seconds)                                         | `void`            | Absolute seek. Clamping owned by native.                                                                          |
+| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                               | `void`            | Sets playback rate. Must not start playback while paused (iOS `AVPlayer.rate` would otherwise auto-play).         |
+| `getPosition()`        | —                                                          | `Promise<number>` | Current playhead in seconds.                                                                                      |
+| `getDuration()`        | —                                                          | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                                                       |
+| `destroy()`            | —                                                          | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native.                           |
 
 ### Source URLs (`load` / `loadAndStart`) — remote + local files (step 2.26 / detail 105)
 
@@ -211,13 +211,13 @@ Event names are stable — they are the input to future RN queue orchestrators. 
 to ~500 ms (within the 250–1000 ms guidance) on both platforms. Subscribe via the JS adapter
 (`useNativePlaybackBridge`), not the native module.
 
-| Event           | Payload                                                      | When                                                        |
-| --------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| `playbackState` | `{ state: PlaybackStateValue }`                              | Lifecycle transitions (idle…error).                         |
-| `progress`      | `{ positionSeconds: number; durationSeconds: number }`       | ~500 ms while playing.                                      |
-| `ended`         | `{ positionSeconds: number }`                                | Item played to natural end.                                 |
+| Event           | Payload                                                                                                          | When                                                                                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `playbackState` | `{ state: PlaybackStateValue }`                                                                                  | Lifecycle transitions (idle…error).                                                                                                                                       |
+| `progress`      | `{ positionSeconds: number; durationSeconds: number }`                                                           | ~500 ms while playing.                                                                                                                                                    |
+| `ended`         | `{ positionSeconds: number }`                                                                                    | Item played to natural end.                                                                                                                                               |
 | `error`         | `{ code: string; message: string; kind: PlaybackErrorKind; httpStatus?: number; url?: string; detail?: string }` | Playback/load failure. `kind` is normalized (see taxonomy). `httpStatus` is the media host's response status, `url` the request that failed, `detail` the platform cause. |
-| `stalled`       | `{ positionSeconds: number }`                                | Buffer underrun / rebuffering.                              |
+| `stalled`       | `{ positionSeconds: number }`                                                                                    | Buffer underrun / rebuffering.                                                                                                                                            |
 
 ### Error taxonomy (step 2.27 / detail 106)
 

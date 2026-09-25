@@ -9,11 +9,11 @@ const {
   getManyByGuidMock,
   sendItemNotificationsMock,
 } = vi.hoisted(() => ({
-    getDevicesMock: vi.fn(),
-    getManyByGuidEnclosureUrlMock: vi.fn(),
-    getManyByGuidMock: vi.fn(),
-    sendItemNotificationsMock: vi.fn(),
-  }));
+  getDevicesMock: vi.fn(),
+  getManyByGuidEnclosureUrlMock: vi.fn(),
+  getManyByGuidMock: vi.fn(),
+  sendItemNotificationsMock: vi.fn(),
+}));
 
 vi.mock('@parser/factories/loggerService.js', () => ({
   loggerService: {

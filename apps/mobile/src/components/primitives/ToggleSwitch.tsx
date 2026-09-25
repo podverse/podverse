@@ -1,5 +1,5 @@
-import { Platform, Switch } from 'react-native';
 import type { SwitchProps } from 'react-native';
+import { Platform, Switch } from 'react-native';
 
 /**
  * RN sizes every iOS Switch as a fixed 51×31 layout box, but iOS 26 draws a wider control (~63×28).
@@ -7,8 +7,7 @@ import type { SwitchProps } from 'react-native';
  */
 const IOS_26_SWITCH_LAYOUT = { height: 28, width: 63 } as const;
 
-const usesIos26SwitchLayout =
-  Platform.OS === 'ios' && parseInt(String(Platform.Version), 10) >= 26;
+const usesIos26SwitchLayout = Platform.OS === 'ios' && parseInt(String(Platform.Version), 10) >= 26;
 
 export type ToggleSwitchProps = SwitchProps;
 

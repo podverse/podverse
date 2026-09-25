@@ -80,7 +80,8 @@ export function groupNewRemoteItemsByFeed(refs: readonly RemoteItemDto[]): Remot
     }
 
     const title = trimmedOrNull(ref.title);
-    const isAlbumRef = ref.item_guid === null || ref.item_guid === undefined || ref.item_guid === '';
+    const isAlbumRef =
+      ref.item_guid === null || ref.item_guid === undefined || ref.item_guid === '';
     if (isAlbumRef) {
       if (group.albumTitle === null && title !== null) {
         group.albumTitle = title;

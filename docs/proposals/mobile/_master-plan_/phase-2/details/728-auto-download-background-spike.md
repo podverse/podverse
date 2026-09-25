@@ -5,12 +5,12 @@
 
 ## What was checked
 
-| Path | Platform | Expected mechanism | Result |
-| ---- | -------- | ------------------ | ------ |
-| Silent push → background JS → FileSystem download | iOS | FCM / APNs `content-available: 1` data message; `expo-notifications` + `expo-task-manager` background task; `expo-file-system` `createDownloadResumable` (NSURLSession background) | **Supported** on Expo SDK 52 with UIBackgroundModes `remote-notification` + `fetch`. Force-quit still drops delivery (documented OS limit). |
-| Same | Android | High-priority FCM data message; UnifiedPush data payload | **Supported**. Less restricted than iOS while the process can run. |
-| Periodic refresh without push | Both | `expo-background-fetch` + `expo-task-manager` | **Best-effort**; OS schedules intervals. Sufficient as a backstop for add-by-RSS and missed pushes. |
-| Foreground sync evaluate | Both | After `channel-items` / `add-by-rss-parse` | **Reliable**; primary path when the app is open. |
+| Path                                              | Platform | Expected mechanism                                                                                                                                                                 | Result                                                                                                                                      |
+| ------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Silent push → background JS → FileSystem download | iOS      | FCM / APNs `content-available: 1` data message; `expo-notifications` + `expo-task-manager` background task; `expo-file-system` `createDownloadResumable` (NSURLSession background) | **Supported** on Expo SDK 52 with UIBackgroundModes `remote-notification` + `fetch`. Force-quit still drops delivery (documented OS limit). |
+| Same                                              | Android  | High-priority FCM data message; UnifiedPush data payload                                                                                                                           | **Supported**. Less restricted than iOS while the process can run.                                                                          |
+| Periodic refresh without push                     | Both     | `expo-background-fetch` + `expo-task-manager`                                                                                                                                      | **Best-effort**; OS schedules intervals. Sufficient as a backstop for add-by-RSS and missed pushes.                                         |
+| Foreground sync evaluate                          | Both     | After `channel-items` / `add-by-rss-parse`                                                                                                                                         | **Reliable**; primary path when the app is open.                                                                                            |
 
 ## Operator device checklist (still required before ship)
 

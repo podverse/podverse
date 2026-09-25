@@ -26,7 +26,6 @@ import {
 import { downloadManager } from '../../downloads/downloadManager';
 import { downloadStore } from '../../downloads/downloadStore';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
-import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import {
   isHomeClipsUnavailableOffline,
   isHomeDownloadedItemsOnly,
@@ -44,6 +43,7 @@ import {
   HOME_STACK_ROUTES,
   SEARCH_STACK_ROUTES,
 } from '../../navigation';
+import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import type { HomeRangeOption, HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
 import {
   DEFAULT_HOME_RANGE,

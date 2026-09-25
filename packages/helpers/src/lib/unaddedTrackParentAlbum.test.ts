@@ -2,9 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { resolveUnaddedTrackParentAlbum } from './unaddedTrackParentAlbum.js';
 
-const albums = [
-  { id_text: 'album-local', podcast_guid: '11111111-1111-4111-8111-111111111111' },
-];
+const albums = [{ id_text: 'album-local', podcast_guid: '11111111-1111-4111-8111-111111111111' }];
 
 describe('resolveUnaddedTrackParentAlbum', () => {
   it('opens the local album when the track feed guid matches', () => {

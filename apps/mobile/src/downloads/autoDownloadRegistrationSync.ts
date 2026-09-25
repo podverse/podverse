@@ -1,5 +1,5 @@
-import { createBackgroundAuthDeps } from '../auth/backgroundAuthDeps';
 import { requestWithMobileAuthRefreshIfSignedIn } from '../auth/authRequestWithRefresh';
+import { createBackgroundAuthDeps } from '../auth/backgroundAuthDeps';
 import { getOrCreateInstallationId } from '../push/installationId';
 import {
   clearAutoDownloadRegistrationCache,

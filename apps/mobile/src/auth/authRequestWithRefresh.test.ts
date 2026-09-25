@@ -65,9 +65,7 @@ const accessTokenExpiringIn = (secondsFromNow: number): string =>
   jwtWithExp(Math.floor(Date.now() / 1000) + secondsFromNow);
 
 const sentAccessTokens = (): unknown[] =>
-  createMobileApiRequestService.mock.calls
-    .filter((call) => call.length > 0)
-    .map((call) => call[0]);
+  createMobileApiRequestService.mock.calls.filter((call) => call.length > 0).map((call) => call[0]);
 
 describe('requestWithMobileAuthRefresh', () => {
   const clearSession = vi.fn(async () => undefined);

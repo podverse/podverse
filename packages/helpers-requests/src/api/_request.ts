@@ -45,16 +45,16 @@ import {
   type ReqAccountAddByRSSChaptersTranscriptParams,
 } from './account/addByRSSChaptersTranscript.js';
 import {
+  type PutAccountAutoDownloadChannelsParams,
+  reqAccountAutoDownloadChannelsPut,
+} from './account/autoDownload/autoDownload.js';
+import {
   reqAccountChannelSeenList,
   reqAccountChannelSeenListAddByRss,
   reqAccountChannelSeenMark,
   reqAccountChannelSeenMarkAddByRss,
   reqAccountChannelSeenMarkAll,
 } from './account/channelSeen.js';
-import {
-  reqAccountAutoDownloadChannelsPut,
-  type PutAccountAutoDownloadChannelsParams,
-} from './account/autoDownload/autoDownload.js';
 import {
   reqAccountFCMDeviceCreate,
   reqAccountFCMDeviceDelete,

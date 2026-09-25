@@ -116,10 +116,7 @@ describe('detailListPrefs', () => {
   });
 
   it('ignores a stored episode section chip and keeps clip sort', async () => {
-    inMemoryStore.set(
-      'sort.item:episode-a',
-      JSON.stringify({ sort: 'oldest', tab: 'clips' })
-    );
+    inMemoryStore.set('sort.item:episode-a', JSON.stringify({ sort: 'oldest', tab: 'clips' }));
 
     await expect(readEpisodeDetailPrefs('episode-a')).resolves.toEqual({
       clipSort: 'oldest',

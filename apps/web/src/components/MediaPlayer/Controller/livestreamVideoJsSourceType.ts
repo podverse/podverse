@@ -14,8 +14,7 @@ export function resolveLivestreamVideoJsSourceType(
   if (trimmedType !== '') {
     return trimmedType;
   }
-  const trimmedContentType =
-    typeof sourceContentType === 'string' ? sourceContentType.trim() : '';
+  const trimmedContentType = typeof sourceContentType === 'string' ? sourceContentType.trim() : '';
   const mime = trimmedContentType !== '' ? trimmedContentType : null;
   if (!isHlsSource(uri, mime)) {
     return null;

@@ -20,8 +20,7 @@ export type DownloadTransferSnapshot = {
 };
 
 export type DownloadTransferValidation =
-  | { ok: true }
-  | { ok: false; errorReason: typeof INVALID_DOWNLOAD_RESPONSE_REASON };
+  { ok: true } | { ok: false; errorReason: typeof INVALID_DOWNLOAD_RESPONSE_REASON };
 
 const isNonMediaDownloadContentType = (token: string): boolean => {
   return NON_MEDIA_DOWNLOAD_CONTENT_TYPES.some((denied) => denied === token);

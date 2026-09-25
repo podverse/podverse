@@ -126,12 +126,12 @@ describe('nextRequiresCredentials', () => {
   });
 
   it('sets the flag when the origin demands or rejects credentials', () => {
-    expect(nextRequiresCredentials({ status: 'failed', failureReason: 'credentials_required' })).toBe(
-      true
-    );
-    expect(nextRequiresCredentials({ status: 'failed', failureReason: 'credentials_rejected' })).toBe(
-      true
-    );
+    expect(
+      nextRequiresCredentials({ status: 'failed', failureReason: 'credentials_required' })
+    ).toBe(true);
+    expect(
+      nextRequiresCredentials({ status: 'failed', failureReason: 'credentials_rejected' })
+    ).toBe(true);
     expect(nextRequiresCredentials({ status: 'failed', failureReason: 'network' })).toBeUndefined();
   });
 });

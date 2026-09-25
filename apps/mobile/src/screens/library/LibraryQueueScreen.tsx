@@ -11,7 +11,12 @@ import { DEFAULT_QUEUE_LIST_MEDIUM, getQueueMediumIdFromType } from '@podverse/h
 import { useAuth } from '../../auth/AuthProvider';
 import type { OptionChipOption } from '../../components/form/OptionChipGroup';
 import { OptionChipGroup } from '../../components/form/OptionChipGroup';
-import { FillList, ReorderHandle, SwipeActionRow, VerticalCenter } from '../../components/primitives';
+import {
+  FillList,
+  ReorderHandle,
+  SwipeActionRow,
+  VerticalCenter,
+} from '../../components/primitives';
 import type { ReorderDropEvent } from '../../components/reorder/ReorderableSections';
 import { ReorderableSections } from '../../components/reorder/ReorderableSections';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
@@ -119,8 +124,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [actionNoticeKey, setActionNoticeKey] = useState<QueueActionNoticeKey | null>(null);
 
-  const playingContentId =
-    activeTarget === null ? null : playbackTargetRowMediaId(activeTarget);
+  const playingContentId = activeTarget === null ? null : playbackTargetRowMediaId(activeTarget);
 
   useEffect(() => {
     const expectedMediumId = getQueueMediumIdFromType(selectedMedium);
@@ -138,12 +142,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     });
     queueResourcesRef.current = visibleResources;
     setQueueResources(visibleResources);
-  }, [
-    activeQueue,
-    activeQueueUpcomingResources,
-    playingContentId,
-    selectedMedium,
-  ]);
+  }, [activeQueue, activeQueueUpcomingResources, playingContentId, selectedMedium]);
 
   // Open on the account active-queue medium (even with no now-playing row); else podcasts.
   useFocusEffect(
@@ -654,11 +653,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     if (queueFill === 'error' && errorKey !== null) {
       return (
         <VerticalCenter>
-          <ListError
-            messageKey={errorKey}
-            onRetry={handleRetry}
-            testID="library-queue-error"
-          />
+          <ListError messageKey={errorKey} onRetry={handleRetry} testID="library-queue-error" />
         </VerticalCenter>
       );
     }

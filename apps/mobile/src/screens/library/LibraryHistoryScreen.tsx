@@ -298,11 +298,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     if (historyFill === 'error' && errorKey !== null) {
       return (
         <VerticalCenter>
-          <ListError
-            messageKey={errorKey}
-            onRetry={handleRetry}
-            testID="library-history-error"
-          />
+          <ListError messageKey={errorKey} onRetry={handleRetry} testID="library-history-error" />
         </VerticalCenter>
       );
     }

@@ -96,10 +96,9 @@ export class AccountNotificationChannelTypeService {
     type: AccountNotificationTypeEnum,
     enabled: boolean
   ): Promise<{ updated: number }> {
-    const channels =
-      await this.accountNotificationChannelService.getAllByAccountId(account_id, {
-        relations: { channel: true },
-      });
+    const channels = await this.accountNotificationChannelService.getAllByAccountId(account_id, {
+      relations: { channel: true },
+    });
 
     let updated = 0;
     for (const notificationChannel of channels) {

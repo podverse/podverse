@@ -1,5 +1,5 @@
-import { Children, createContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
+import { Children, createContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 

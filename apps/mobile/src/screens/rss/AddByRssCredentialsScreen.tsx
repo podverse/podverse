@@ -13,10 +13,7 @@ import { LoadingSection } from '../../components/state/LoadingSection';
 import { addByRssCredentialStore, addByRssRepository } from '../../data';
 import { syncEventLogRepository } from '../../data/repositories';
 import { buildAddByRssParseFailureLog } from '../../lib/addByRss/addByRssErrorLog';
-import {
-  credentialNoticeKeyForParse,
-  toAddByRssCredentials,
-} from '../../lib/addByRss/credentials';
+import { credentialNoticeKeyForParse, toAddByRssCredentials } from '../../lib/addByRss/credentials';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
@@ -281,7 +278,11 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
       </View>
 
       {noticeKey !== null ? (
-        <Text accessibilityLiveRegion="polite" style={styles.notice} testID="rss-credentials-notice">
+        <Text
+          accessibilityLiveRegion="polite"
+          style={styles.notice}
+          testID="rss-credentials-notice"
+        >
           {t(noticeKey)}
         </Text>
       ) : null}

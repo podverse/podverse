@@ -33,9 +33,9 @@ describe('getAddByRSSCredentialsNeed', () => {
         true
       )
     ).toBe('rejected');
-    expect(
-      getAddByRSSCredentialsNeed({ lastFailureReason: 'credentials_required' }, true)
-    ).toBe('missing');
+    expect(getAddByRSSCredentialsNeed({ lastFailureReason: 'credentials_required' }, true)).toBe(
+      'missing'
+    );
   });
 
   it('does not treat unrelated parse failures as a credentials problem', () => {

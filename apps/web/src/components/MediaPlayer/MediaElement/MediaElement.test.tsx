@@ -28,7 +28,9 @@ describe('MediaElement', () => {
       />
     );
 
-    expect(container.querySelector('audio')?.getAttribute('src')).toBe('https://cdn.example/ep.mp3');
+    expect(container.querySelector('audio')?.getAttribute('src')).toBe(
+      'https://cdn.example/ep.mp3'
+    );
     expect(attachNonLiveHlsPlayback).not.toHaveBeenCalled();
   });
 

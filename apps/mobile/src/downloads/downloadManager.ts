@@ -8,13 +8,13 @@ import { channelItemsRepository, downloadsRepository } from '../data/repositorie
 import { autoDownloadRepository } from '../data/repositories/autoDownloadRepository';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
 import { isEffectivelyOffline, subscribeConnectivity } from '../net/connectivity';
+import { addByRssRequestHeaderAuth } from '../playback/addByRssMediaAuth';
 import {
   isDownloadQuotaUnlimited,
   readDownloadAutoDeleteOnDeviceLowEnabled,
   readDownloadAutoDeleteOnLimitEnabled,
   readDownloadQuotaBytes,
 } from '../prefs/downloadPrefs';
-import { addByRssRequestHeaderAuth } from '../playback/addByRssMediaAuth';
 import { isOfflineModeEnabled, subscribeOfflineMode } from '../prefs/offlineMode';
 import { mergeDownloadChannelIdentity, usableDownloadChannelText } from './downloadChannelIdentity';
 import type { DownloadIneligibleReason } from './downloadEligibility';
@@ -32,8 +32,8 @@ import {
 } from './downloadStorage';
 import { downloadStore } from './downloadStore';
 import {
-  INVALID_DOWNLOAD_RESPONSE_REASON,
   contentTypeHeaderValue,
+  INVALID_DOWNLOAD_RESPONSE_REASON,
   validateDownloadTransfer,
 } from './downloadTransferValidation';
 import type { DownloadPatch, DownloadRecord } from './downloadTypes';
@@ -371,7 +371,8 @@ const runTransfer = async (itemIdText: string): Promise<void> => {
     activeTransfers.delete(itemIdText);
     return;
   }
-  const downloadOptions = credentialAuth.headers === null ? {} : { headers: credentialAuth.headers };
+  const downloadOptions =
+    credentialAuth.headers === null ? {} : { headers: credentialAuth.headers };
 
   let resumable = inFlight.get(itemIdText);
   if (resumable === undefined) {
@@ -595,9 +596,7 @@ export const downloadManager = {
    */
   reconcileInterruptedDownloads: async (): Promise<void> => {
     await ensureHydrated();
-    const interrupted = downloadStore
-      .getAll()
-      .filter((record) => record.status === 'downloading');
+    const interrupted = downloadStore.getAll().filter((record) => record.status === 'downloading');
     for (const record of interrupted) {
       if (record.filePath !== null) {
         try {

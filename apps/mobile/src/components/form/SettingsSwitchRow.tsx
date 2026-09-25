@@ -1,5 +1,5 @@
-import { useContext } from 'react';
 import type { ReactNode } from 'react';
+import { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { LIST_ROW_OPTICAL_BOTTOM_EXTRA, listRowVerticalPadding } from '../../theme/screenLayout';

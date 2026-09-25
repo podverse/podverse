@@ -8,10 +8,7 @@ import {
 } from '../../downloads/inProgressDownloadCount';
 import { useDownloadsList } from '../../downloads/useDownloads';
 import { useSync } from '../../sync';
-import {
-  bottomChromeStripHeight,
-  bottomChromeStripTextStyle,
-} from '../../theme/bottomChromeStrip';
+import { bottomChromeStripHeight, bottomChromeStripTextStyle } from '../../theme/bottomChromeStrip';
 import { useTheme } from '../../theme/useTheme';
 
 export type GlobalActivityBarProps = {

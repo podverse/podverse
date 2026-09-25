@@ -40,9 +40,7 @@ type ResolvedRemoteAlbum =
       title: string;
     };
 
-const isParsedReadyAlbum = (
-  channel: Channel | null
-): channel is Channel & { id_text: string } => {
+const isParsedReadyAlbum = (channel: Channel | null): channel is Channel & { id_text: string } => {
   return (
     channel !== null &&
     channel.channel_about !== null &&
@@ -186,9 +184,7 @@ export async function handleNewRemoteItemNotifications(
         channelIdText: itemNotification.channelIdText,
         itemIdText: itemNotification.itemIdText,
         mediumId: itemNotification.mediumId,
-        ...(resolved.kind === 'podcast-index'
-          ? { podcastIndexId: resolved.podcastIndexId }
-          : {}),
+        ...(resolved.kind === 'podcast-index' ? { podcastIndexId: resolved.podcastIndexId } : {}),
         type: itemNotification.messageType,
       },
       title: getInAppNotificationTitle(itemNotification.messageType, itemNotification.itemTitle),

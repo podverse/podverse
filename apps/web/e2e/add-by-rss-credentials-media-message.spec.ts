@@ -12,7 +12,6 @@ import {
   readNeedsCredentialsFeedIdText,
   unfollowFeedOnServer,
 } from './helpers/addByRSSCredentials';
-import { capturePageLoad } from './helpers/stepScreenshots';
 import {
   E2E_ADD_BY_RSS_CHANNEL_IMAGE_URL,
   E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS,
@@ -20,6 +19,7 @@ import {
   E2E_ADD_BY_RSS_PUB_DATE_ISO,
   E2E_PODCAST_QUEUE_ID_TEXT,
 } from './helpers/seedConstants';
+import { capturePageLoad } from './helpers/stepScreenshots';
 
 const FEED_URL = buildE2eProtectedFeedUrl('credentials-media-message');
 const FEED_TITLE = 'E2E protected media feed';

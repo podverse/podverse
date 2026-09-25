@@ -40,17 +40,28 @@ describe('listNewRemoteItemRefs', () => {
       ref({ feed_guid: FEED_A, title: 'Already stored' }),
       ref({ feed_guid: FEED_B, item_guid: 'track-1', title: 'New track' }),
       ref({ feed_guid: FEED_B, item_guid: 'track-1', title: 'Duplicate' }),
-      ref({ feed_guid: FEED_A, feed_url: 'https://example.com/new.xml', title: 'Same album, new url' }),
+      ref({
+        feed_guid: FEED_A,
+        feed_url: 'https://example.com/new.xml',
+        title: 'Same album, new url',
+      }),
     ];
 
-    expect(listNewRemoteItemRefs(existing, incoming).map((row) => row.title)).toEqual(['New track']);
+    expect(listNewRemoteItemRefs(existing, incoming).map((row) => row.title)).toEqual([
+      'New track',
+    ]);
   });
 });
 
 describe('groupNewRemoteItemsByFeed', () => {
   it('groups by feed guid and keeps album and track titles', () => {
     const groups = groupNewRemoteItemsByFeed([
-      ref({ feed_guid: FEED_B, feed_url: 'https://b.example/rss', item_guid: 't1', title: 'Track one' }),
+      ref({
+        feed_guid: FEED_B,
+        feed_url: 'https://b.example/rss',
+        item_guid: 't1',
+        title: 'Track one',
+      }),
       ref({ feed_guid: FEED_A, title: 'Album A' }),
       ref({ feed_guid: FEED_B, item_guid: 't2', title: 'Track two' }),
     ]);
@@ -105,8 +116,8 @@ describe('newRemoteItemsFromParsedChannel', () => {
   it('treats a missing parse result as no new remote items', () => {
     expect(newRemoteItemsFromParsedChannel(undefined)).toEqual([]);
     expect(newRemoteItemsFromParsedChannel(null)).toEqual([]);
-    expect(newRemoteItemsFromParsedChannel({ newRemoteItems: [ref({ feed_guid: FEED_A })] })).toHaveLength(
-      1
-    );
+    expect(
+      newRemoteItemsFromParsedChannel({ newRemoteItems: [ref({ feed_guid: FEED_A })] })
+    ).toHaveLength(1);
   });
 });

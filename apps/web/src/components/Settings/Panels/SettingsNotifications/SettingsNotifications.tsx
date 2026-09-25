@@ -168,16 +168,16 @@ export function SettingsNotifications() {
         setLoggedInAccount(updated);
 
         const count = next
-          ? (
+          ? ((
               await getApiRequestService().reqChannelGetMany({
                 category: null,
-                medium: 'podcast',
+                medium: 'podcasts',
                 page: 1,
                 range: null,
                 sort: 'a_z',
                 type: 'subscribed',
               })
-            ).meta.count ?? 0
+            ).meta.count ?? 0)
           : (await getApiRequestService().reqAccountNotificationChannelsGetAll()).length;
 
         if (count > 0) {

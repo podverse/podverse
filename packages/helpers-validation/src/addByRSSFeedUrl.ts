@@ -17,9 +17,7 @@ export type ResolvedAddByRSSFeedUrlCredentials = {
 };
 
 const isUsableCredential = (value: string | null | undefined): value is string =>
-  typeof value === 'string' &&
-  value.length > 0 &&
-  value.length <= ADD_BY_RSS_CREDENTIAL_MAX_LENGTH;
+  typeof value === 'string' && value.length > 0 && value.length <= ADD_BY_RSS_CREDENTIAL_MAX_LENGTH;
 
 /**
  * Canonical add-by-RSS feed URL: userinfo removed, then canonicalized. This is the form the API

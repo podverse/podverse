@@ -135,12 +135,7 @@ function parseSearchParams(
       QUERY_PARAMS_ITEM_SORT_VALUES,
       'recent'
     ),
-    type: resolveStoredToken(
-      data?.type,
-      undefined,
-      QUERY_PARAMS_ITEM_TYPE_VALUES,
-      'summary'
-    ),
+    type: resolveStoredToken(data?.type, undefined, QUERY_PARAMS_ITEM_TYPE_VALUES, 'summary'),
   });
 
   return {

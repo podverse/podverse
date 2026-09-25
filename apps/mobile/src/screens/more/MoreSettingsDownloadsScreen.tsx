@@ -194,23 +194,20 @@ export function MoreSettingsDownloadsScreen() {
     return true;
   }, [evaluateFeature, openGate]);
 
-  const commitAutoDownloadDefault = useCallback(
-    async (next: boolean, applyToExisting: boolean) => {
-      await writeAutoDownloadDefaultEnabled(next);
-      setAutoDownloadDefault(next);
-      if (applyToExisting) {
-        const subscribed = await subscriptionsRepository.list();
-        const cellular = await readAutoDownloadCellularDefaultEnabled();
-        await autoDownloadRepository.applyEnabledToAllSubscribed({
-          allowCellular: cellular,
-          channelIdTexts: subscribed.map((row) => row.idText),
-          enabled: next,
-        });
-        void syncAutoDownloadRegistrationNow();
-      }
-    },
-    []
-  );
+  const commitAutoDownloadDefault = useCallback(async (next: boolean, applyToExisting: boolean) => {
+    await writeAutoDownloadDefaultEnabled(next);
+    setAutoDownloadDefault(next);
+    if (applyToExisting) {
+      const subscribed = await subscriptionsRepository.list();
+      const cellular = await readAutoDownloadCellularDefaultEnabled();
+      await autoDownloadRepository.applyEnabledToAllSubscribed({
+        allowCellular: cellular,
+        channelIdTexts: subscribed.map((row) => row.idText),
+        enabled: next,
+      });
+      void syncAutoDownloadRegistrationNow();
+    }
+  }, []);
 
   const commitCellularDefault = useCallback(async (next: boolean, applyToExisting: boolean) => {
     await writeAutoDownloadCellularDefaultEnabled(next);
@@ -319,7 +316,9 @@ export function MoreSettingsDownloadsScreen() {
 
         <Card padded={false} testID="more-settings-downloads-auto-download-card">
           <View style={styles.sectionInner}>
-            <Text style={styles.sectionHeading}>{t('settings.downloads.auto_download_heading')}</Text>
+            <Text style={styles.sectionHeading}>
+              {t('settings.downloads.auto_download_heading')}
+            </Text>
             <View style={styles.sectionStack}>
               <ListRow
                 testID="more-settings-downloads-auto-download-default"

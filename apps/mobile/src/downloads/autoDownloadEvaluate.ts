@@ -8,11 +8,8 @@ import { autoDownloadRepository } from '../data/repositories/autoDownloadReposit
 import { channelItemsRepository } from '../data/repositories/channelItemsRepository';
 import { readAutoDownloadCatchUpLimit } from '../prefs/downloadPrefs';
 import { isOfflineModeEnabled } from '../prefs/offlineMode';
-import {
-  autoDownloadNetworkFromNetInfoType,
-  planAutoDownloads,
-} from './autoDownloadPlanner';
 import type { AutoDownloadChannelSettings, AutoDownloadPlanMode } from './autoDownloadPlanner';
+import { autoDownloadNetworkFromNetInfoType, planAutoDownloads } from './autoDownloadPlanner';
 import { downloadManager } from './downloadManager';
 
 /**

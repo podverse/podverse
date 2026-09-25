@@ -1,7 +1,7 @@
 'use client';
 
-import { createElement, useEffect } from 'react';
 import type { CSSProperties, ReactElement, RefObject } from 'react';
+import { createElement, useEffect } from 'react';
 
 import {
   attachNonLiveHlsPlayback,
@@ -30,7 +30,9 @@ export function MediaElement(props: MediaElementProps): ReactElement {
   const elementKey = `${isVideo ? 'video' : 'audio'}::file`;
   const hlsPlaylistSrc = source?.delivery === 'hls' ? source.src : null;
   const file =
-    source !== null && source.kind === 'file' && hlsPlaylistSrc === null ? { src: source.src } : null;
+    source !== null && source.kind === 'file' && hlsPlaylistSrc === null
+      ? { src: source.src }
+      : null;
 
   useEffect(() => {
     const media = mediaRef.current;

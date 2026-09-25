@@ -1,4 +1,4 @@
-import type { DTOAccount } from '@podverse/helpers';
+import type { AddByRSSParseStatus, DTOAccount } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText, sleep } from '@podverse/helpers';
 import type { AddByRSSBasicAuthCredentials } from '@podverse/helpers-validation/client';
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
@@ -10,8 +10,8 @@ import {
   getAddByRSSParseStatus,
   unfollowAddByRSSChannel,
 } from './api';
-import { deleteCredentials, getCredentials, setCredentials } from './credentialStore';
 import { nextLocalRequiresCredentials } from './credentialsStatus';
+import { deleteCredentials, getCredentials, setCredentials } from './credentialStore';
 import { getAddByRSSFeedByUrl, removeAddByRSSFeed, upsertAddByRSSFeed } from './storage';
 import type { AddByRSSFeedRecord, AddByRSSParsedFeed, AddByRSSResourceType } from './types';
 
@@ -27,7 +27,7 @@ export type AddByRSSParseOutcome = Pick<
 type ApplyAddByRSSParseStatusParams = {
   feedUrl: string;
   parsedFeed: AddByRSSParsedFeed | undefined;
-  status: AddByRSSFeedRecord['status'];
+  status: AddByRSSParseStatus;
   cache?: AddByRSSFeedRecord['cache'];
   outcome?: AddByRSSParseOutcome;
   fallbackRecord?: AddByRSSFeedRecord | null;

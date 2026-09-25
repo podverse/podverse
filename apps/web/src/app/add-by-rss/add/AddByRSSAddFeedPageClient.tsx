@@ -236,7 +236,12 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
             accountId: loggedInAccount.id_text,
             feedUrl,
           });
-          await runParseAndRedirect(loggedInAccount.id_text, response.request_id, feedUrl, existing);
+          await runParseAndRedirect(
+            loggedInAccount.id_text,
+            response.request_id,
+            feedUrl,
+            existing
+          );
           return;
         }
       }
@@ -315,7 +320,9 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                           type="text"
                           autoComplete="username"
                           maxLength={ADD_BY_RSS_CREDENTIAL_MAX_LENGTH}
-                          aria-invalid={basicAuthError && !basicAuthUsername.trim() ? true : undefined}
+                          aria-invalid={
+                            basicAuthError && !basicAuthUsername.trim() ? true : undefined
+                          }
                           disabled={isAddingFeed}
                         />
                         <TextInput

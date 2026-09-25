@@ -45,9 +45,7 @@ export const QueueController: React.FC = () => {
       return;
     }
 
-    const otherQueue = loaded.queues.find(
-      (queue) => queue.id_text !== loaded.activeQueue?.id_text
-    );
+    const otherQueue = loaded.queues.find((queue) => queue.id_text !== loaded.activeQueue?.id_text);
     if (otherQueue === undefined) {
       return;
     }

@@ -145,10 +145,7 @@ export function ChannelSettingsPane({
         testID={`${testIDPrefix}-settings`}
       >
         {showFeed ? (
-          <SettingsGroup
-            testID={`${testIDPrefix}-settings-feed-card`}
-            title={t('info.rss_feed')}
-          >
+          <SettingsGroup testID={`${testIDPrefix}-settings-feed-card`} title={t('info.rss_feed')}>
             <View style={styles.feedInner}>
               {feedStatusLines.map((line) => (
                 <SettingsRowDescription key={line}>{line}</SettingsRowDescription>

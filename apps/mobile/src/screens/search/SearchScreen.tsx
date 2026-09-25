@@ -276,13 +276,16 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
 
   const showResultRows = !isLoading && errorKey === null && feeds.length > 0;
 
-  const handleMediumChange = useCallback((next: QueryParamsPodcastIndexSearchMedium) => {
-    setMedium(next);
-    if (debouncedQuery.length > 0) {
-      setIsLoading(true);
-    }
-    void writeSearchListMedium(next);
-  }, [debouncedQuery.length]);
+  const handleMediumChange = useCallback(
+    (next: QueryParamsPodcastIndexSearchMedium) => {
+      setMedium(next);
+      if (debouncedQuery.length > 0) {
+        setIsLoading(true);
+      }
+      void writeSearchListMedium(next);
+    },
+    [debouncedQuery.length]
+  );
 
   const handleSubmitSearch = useCallback(() => {
     setDebouncedQuery(query.trim());

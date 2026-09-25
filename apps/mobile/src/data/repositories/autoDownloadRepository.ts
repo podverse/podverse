@@ -1,6 +1,5 @@
 import { and, eq, inArray } from 'drizzle-orm';
 
-import { getDb, initializeDatabase, schema } from '../db';
 import type { AutoDownloadCandidateStatus } from '../../downloads/autoDownloadPlanner';
 import {
   DEFAULT_AUTO_DOWNLOAD_ALLOW_CELLULAR,
@@ -8,6 +7,7 @@ import {
   readAutoDownloadCellularDefaultEnabled,
   readAutoDownloadDefaultEnabled,
 } from '../../prefs/downloadPrefs';
+import { getDb, initializeDatabase, schema } from '../db';
 
 /**
  * Device-local auto-download settings and candidate ledger. Screens and the evaluate job read
@@ -25,7 +25,9 @@ export type ChannelAutoDownloadRecord = {
   updatedAtMs: number;
 };
 
-const toRecord = (row: typeof schema.channelAutoDownload.$inferSelect): ChannelAutoDownloadRecord => ({
+const toRecord = (
+  row: typeof schema.channelAutoDownload.$inferSelect
+): ChannelAutoDownloadRecord => ({
   allowCellular: row.allowCellular === 1,
   channelIdText: row.channelIdText,
   enabled: row.enabled === 1,

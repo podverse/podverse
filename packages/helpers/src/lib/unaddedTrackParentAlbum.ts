@@ -1,6 +1,5 @@
 export type UnaddedTrackParentAlbum =
-  | { kind: 'album'; albumIdText: string }
-  | { kind: 'podcast-index'; podcastIndexId: string };
+  { kind: 'album'; albumIdText: string } | { kind: 'podcast-index'; podcastIndexId: string };
 
 type ParentAlbumRef = {
   id_text: string;

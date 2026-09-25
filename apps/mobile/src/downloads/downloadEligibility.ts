@@ -30,11 +30,7 @@ export { isHlsSource };
  *                    by `isItemDownloadable`).
  */
 export type DownloadIneligibleReason =
-  | 'livestream'
-  | 'hls_playlist'
-  | 'no_enclosure'
-  | 'unsupported_source'
-  | 'offline_mode';
+  'livestream' | 'hls_playlist' | 'no_enclosure' | 'unsupported_source' | 'offline_mode';
 
 /** The selected progressive source to fetch when an item is downloadable. */
 export interface DownloadSourceSelection {

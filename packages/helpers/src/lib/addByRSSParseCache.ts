@@ -13,11 +13,7 @@ export type AddByRSSParseFailureReason =
 export type AddByRSSParseAuthChallenge = 'basic' | 'other' | 'none';
 
 export type AddByRSSParseCredentialsState =
-  | 'sent'
-  | 'not_provided'
-  | 'withheld_other_domain'
-  | 'withheld_insecure'
-  | 'decrypt_failed';
+  'sent' | 'not_provided' | 'withheld_other_domain' | 'withheld_insecure' | 'decrypt_failed';
 
 /**
  * Parse status stored in Valkey and returned to clients. Never carries username or password —

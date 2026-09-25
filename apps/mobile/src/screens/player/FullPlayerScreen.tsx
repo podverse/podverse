@@ -983,10 +983,7 @@ export function FullPlayerScreen({
       body = (
         <View style={styles.pane}>
           <View style={styles.column}>
-            <ListEmpty
-              messageKey="info.chapter.no_chapters"
-              testID="full-player-empty-chapters"
-            />
+            <ListEmpty messageKey="info.chapter.no_chapters" testID="full-player-empty-chapters" />
           </View>
         </View>
       );

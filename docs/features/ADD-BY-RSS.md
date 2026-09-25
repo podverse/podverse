@@ -10,11 +10,11 @@ The durable constraints live in [`add-by-rss-client-held-credentials`](/.cursor/
 
 ### Where credentials live
 
-| Surface | Store | Scope |
-| --- | --- | --- |
-| Web | IndexedDB database `add-by-rss-credentials`, values AES-GCM encrypted with a non-extractable per-account WebCrypto key (`apps/web/src/utils/addByRSS/credentialStore.ts`) | Account + canonical feed URL |
-| Mobile | SecureStore, with an `add_by_rss_credential_index` table listing which feeds have an entry (`apps/mobile/src/data/repositories/addByRssCredentialStore.ts`) | Account + canonical feed URL |
-| Server | Nothing. Postgres keeps `requires_credentials` only; Valkey parse-cache entries keep `failureReason`, `httpStatus`, `authChallenge`, and `credentialsState`, never the secret | — |
+| Surface | Store                                                                                                                                                                         | Scope                        |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Web     | IndexedDB database `add-by-rss-credentials`, values AES-GCM encrypted with a non-extractable per-account WebCrypto key (`apps/web/src/utils/addByRSS/credentialStore.ts`)     | Account + canonical feed URL |
+| Mobile  | SecureStore, with an `add_by_rss_credential_index` table listing which feeds have an entry (`apps/mobile/src/data/repositories/addByRssCredentialStore.ts`)                   | Account + canonical feed URL |
+| Server  | Nothing. Postgres keeps `requires_credentials` only; Valkey parse-cache entries keep `failureReason`, `httpStatus`, `authChallenge`, and `credentialsState`, never the secret | —                            |
 
 Signing out (and deleting the account) clears that account's credentials on the device. The feeds themselves stay; they are device data.
 

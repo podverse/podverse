@@ -88,7 +88,9 @@ describe('resolveCredentialScope', () => {
     });
 
     it('treats localhost subdomains as exact-match hosts', () => {
-      expect(resolveCredentialScope('https://localhost/f', 'https://localhost:2111/a')).toBe('send');
+      expect(resolveCredentialScope('https://localhost/f', 'https://localhost:2111/a')).toBe(
+        'send'
+      );
       expect(resolveCredentialScope('https://a.localhost/f', 'https://b.localhost/a')).toBe(
         'withheld_other_domain'
       );

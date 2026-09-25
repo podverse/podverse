@@ -16,8 +16,7 @@ import type { PlaybackTarget } from '../../../lib/playback';
  */
 export function toFileMediaElementSource(src: string, mime?: string | null): MediaElementSource {
   const classification = classifyMediaSource(src, mime);
-  const trimmedMime =
-    typeof mime === 'string' && mime.trim() !== '' ? mime.trim() : undefined;
+  const trimmedMime = typeof mime === 'string' && mime.trim() !== '' ? mime.trim() : undefined;
   let mimeType: string | undefined;
   if (classification.delivery === 'hls') {
     mimeType =

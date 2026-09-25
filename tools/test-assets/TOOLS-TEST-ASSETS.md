@@ -31,14 +31,14 @@ A single **Basic-Auth-protected** feed is generated every time you run generate 
 
 The server derives these from `feed-basic-auth.rss` on each request, so they need no extra generation. Each exercises one credential-scope rule. The feed variants are served under `/basic-auth/` and gated like the base feed.
 
-| Fixture | URL | Without auth | With `username:password` |
-| --- | --- | --- | --- |
-| Feed and media gated | `http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss` | 401 + `WWW-Authenticate: Basic` | 200 |
-| Feed gated, media public | `http://localhost:2111/basic-auth/variants/feed-public-media.rss` | 401 | 200; resources on `/basic-auth-public-media/…` |
-| Public media mirror | `http://localhost:2111/basic-auth-public-media/audio/audio-001.mp3` | 200 (`feeds/` is always 404) | 200 |
-| Feed gated, media on another host | `http://localhost:2111/basic-auth/variants/feed-other-host-media.rss` | 401 | 200; resources on `http://127.0.0.1:2111/basic-auth/…` (still gated) |
-| Redirect to another host | `http://localhost:2111/redirect/other-host/<path>` | 302 to `<path>` on the other loopback host | 302; a client that follows it must not resend the credentials |
-| Authorization probe | `http://localhost:2111/debug/authorization` | `{"authorization":"absent"}` | `{"authorization":"present"}` (the value is never echoed) |
+| Fixture                           | URL                                                                   | Without auth                               | With `username:password`                                             |
+| --------------------------------- | --------------------------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| Feed and media gated              | `http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss`          | 401 + `WWW-Authenticate: Basic`            | 200                                                                  |
+| Feed gated, media public          | `http://localhost:2111/basic-auth/variants/feed-public-media.rss`     | 401                                        | 200; resources on `/basic-auth-public-media/…`                       |
+| Public media mirror               | `http://localhost:2111/basic-auth-public-media/audio/audio-001.mp3`   | 200 (`feeds/` is always 404)               | 200                                                                  |
+| Feed gated, media on another host | `http://localhost:2111/basic-auth/variants/feed-other-host-media.rss` | 401                                        | 200; resources on `http://127.0.0.1:2111/basic-auth/…` (still gated) |
+| Redirect to another host          | `http://localhost:2111/redirect/other-host/<path>`                    | 302 to `<path>` on the other loopback host | 302; a client that follows it must not resend the credentials        |
+| Authorization probe               | `http://localhost:2111/debug/authorization`                           | `{"authorization":"absent"}`               | `{"authorization":"present"}` (the value is never echoed)            |
 
 - **Other host:** `localhost` and `127.0.0.1` count as different hosts, because credentials for IPs and `localhost` are scoped by exact host. A client given the other-host feed must play or fetch its media **without** credentials, get 401, and log the withheld reason (`credentials_withheld_other_domain`). The server has to answer on IPv4 for these checks: start it with `BIND_ADDRESS=0.0.0.0` if `localhost` resolves to `::1` only (`npm run mobile:e2e:test-assets` already does).
 - **Redirect:** `/redirect/other-host/` flips `localhost` ↔ `127.0.0.1` based on the request's `Host` header. Set `REDIRECT_OTHER_HOST` to redirect elsewhere (for example a LAN address when checking from a device). Pair it with the probe, `/redirect/other-host/debug/authorization`, to see whether a client carried `Authorization` across the redirect.

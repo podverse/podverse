@@ -2,8 +2,8 @@ import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import type { PlaybackErrorEvent } from '../../modules/podverse-media-engine';
-import { redactUrlCredentials } from '../data/repositories/syncEventLog';
 import type { SyncEventLogDetails } from '../data/repositories/syncEventLog';
+import { redactUrlCredentials } from '../data/repositories/syncEventLog';
 import type { SyncEventLogAppend } from '../data/repositories/syncEventLogRepository';
 import {
   ADD_BY_RSS_CREDENTIALS_REJECTED_CODE,

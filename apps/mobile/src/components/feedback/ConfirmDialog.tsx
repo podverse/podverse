@@ -3,8 +3,8 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { useTheme } from '../../theme/useTheme';
-import { FormActions } from '../form/FormActions';
 import type { FormAction } from '../form/FormActions';
+import { FormActions } from '../form/FormActions';
 import { AppOverlay, OverlayScrim } from '../overlay';
 
 /**

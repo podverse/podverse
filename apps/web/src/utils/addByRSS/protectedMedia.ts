@@ -34,9 +34,7 @@ export const classifyAddByRSSProtectedMediaFailure = (
   return 'media_needs_credentials';
 };
 
-export const addByRSSProtectedMediaMessageKey = (
-  failure: AddByRSSProtectedMediaFailure
-): string =>
+export const addByRSSProtectedMediaMessageKey = (failure: AddByRSSProtectedMediaFailure): string =>
   failure === 'media_other_domain'
     ? 'add_by_rss.media_other_domain'
     : 'add_by_rss.media_needs_credentials';

@@ -1,8 +1,8 @@
 import { useTranslations } from 'next-intl';
 import { Fragment } from 'react';
 
-import { labeledItemEnclosuresForDirectDownload } from '@podverse/helpers';
 import type { EnclosureSelectedParams, LabeledItemEnclosure } from '@podverse/helpers';
+import { labeledItemEnclosuresForDirectDownload } from '@podverse/helpers';
 import { Divider } from '@podverse/ui';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';

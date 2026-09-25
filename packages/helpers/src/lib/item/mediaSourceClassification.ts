@@ -32,8 +32,7 @@ export type MediaSourceClassification = {
 export type DirectDownloadBlockReason = 'missing_uri' | 'hls_playlist';
 
 export type DirectDownloadResolution =
-  | { ok: true; uri: string }
-  | { ok: false; reason: DirectDownloadBlockReason };
+  { ok: true; uri: string } | { ok: false; reason: DirectDownloadBlockReason };
 
 /** Path with the query string and hash removed. Extension checks use this, not the raw URI. */
 export function uriPathWithoutQueryOrHash(uri: string): string {
@@ -155,10 +154,7 @@ export function isProgressiveDownloadUri(uri: string, mime?: string | null): boo
   return !isObviousNonMediaDownloadSource(trimmed, mime);
 }
 
-export function classifyMediaSource(
-  uri: string,
-  mime?: string | null
-): MediaSourceClassification {
+export function classifyMediaSource(uri: string, mime?: string | null): MediaSourceClassification {
   const extension = mediaSourcePathExtension(uri);
   const normalizedMime = normalizeMimeType(mime);
   return {

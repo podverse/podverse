@@ -1,13 +1,9 @@
 import {
   advanceAuthSessionGeneration,
-  rememberAuthCredentials,
   type AuthRequestDeps,
+  rememberAuthCredentials,
 } from './authRequestWithRefresh';
-import {
-  clearAllSecureTokens,
-  readSecureToken,
-  writeSecureToken,
-} from './secureTokenStorage';
+import { clearAllSecureTokens, readSecureToken, writeSecureToken } from './secureTokenStorage';
 
 /**
  * Auth deps for headless / background work: tokens from SecureStore, writes stay in SecureStore.

@@ -15,14 +15,14 @@ start without the user opening the app.
 
 ### Locked decisions
 
-| Question | Decision |
-| -------- | -------- |
-| Tier | **Membership** (signed in, valid membership). Lapsed members keep settings and completed files; auto download pauses; toggling opens the renewal gate. |
-| Storage | **Device-local** source of truth (SQLite + AsyncStorage). Server holds only a per-installation mirror of channel ids for silent push. |
-| Global default | Auto download for **new** subscriptions = **off**. Cellular allowed = **off** (Wi‑Fi only). |
-| Inheritance | Subscribe snapshots global → channel row; per-channel override. Changing global later affects only new subscriptions unless the user picks **Apply to all** ([`global-default-apply-to-existing`](/.cursor/rules/global-default-apply-to-existing.mdc)). |
-| Web | Auto download is **mobile-only** (web has no offline library). Notification-default apply popups ship on **web and mobile**. |
-| Fallback | If the background spike cannot prove iOS silent-push downloads, drop to best-effort anonymous (foreground + background fetch only) and skip server push registration. |
+| Question       | Decision                                                                                                                                                                                                                                                 |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tier           | **Membership** (signed in, valid membership). Lapsed members keep settings and completed files; auto download pauses; toggling opens the renewal gate.                                                                                                   |
+| Storage        | **Device-local** source of truth (SQLite + AsyncStorage). Server holds only a per-installation mirror of channel ids for silent push.                                                                                                                    |
+| Global default | Auto download for **new** subscriptions = **off**. Cellular allowed = **off** (Wi‑Fi only).                                                                                                                                                              |
+| Inheritance    | Subscribe snapshots global → channel row; per-channel override. Changing global later affects only new subscriptions unless the user picks **Apply to all** ([`global-default-apply-to-existing`](/.cursor/rules/global-default-apply-to-existing.mdc)). |
+| Web            | Auto download is **mobile-only** (web has no offline library). Notification-default apply popups ship on **web and mobile**.                                                                                                                             |
+| Fallback       | If the background spike cannot prove iOS silent-push downloads, drop to best-effort anonymous (foreground + background fetch only) and skip server push registration.                                                                                    |
 
 ### Reliability
 
@@ -45,12 +45,12 @@ start without the user opening the app.
 
 ### Surfaces
 
-| Control | Where |
-| ------- | ----- |
-| Global auto download + cellular defaults | More → Settings → Downloads |
-| Per-podcast auto download + cellular | Podcast settings |
-| Silent-push channel registration | `PUT /account/auto-download/channels` |
-| New-item data-only push | Parser next to `handleNewItemNotifications` |
+| Control                                  | Where                                       |
+| ---------------------------------------- | ------------------------------------------- |
+| Global auto download + cellular defaults | More → Settings → Downloads                 |
+| Per-podcast auto download + cellular     | Podcast settings                            |
+| Silent-push channel registration         | `PUT /account/auto-download/channels`       |
+| New-item data-only push                  | Parser next to `handleNewItemNotifications` |
 
 ## Acceptance criteria
 

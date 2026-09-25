@@ -49,7 +49,7 @@ export class AccountDeviceAutoDownloadChannelService extends BaseManyService<
     const channelIds = channels.map((channel) => channel.id);
     const resolvedTexts = channels.map((channel) => channel.id_text);
 
-    await this.repositoryWrite.manager.transaction(async (manager) => {
+    await this.repositoryReadWrite.manager.transaction(async (manager) => {
       const repo = manager.getRepository(AccountDeviceAutoDownloadChannel);
       await repo.delete({ account_id, installation_id });
       if (channelIds.length === 0) {
@@ -68,7 +68,7 @@ export class AccountDeviceAutoDownloadChannelService extends BaseManyService<
   }
 
   async clearForInstallation(account_id: number, installation_id: string): Promise<void> {
-    await this.repositoryWrite.delete({ account_id, installation_id });
+    await this.repositoryReadWrite.delete({ account_id, installation_id });
   }
 
   /**
@@ -90,11 +90,7 @@ export class AccountDeviceAutoDownloadChannelService extends BaseManyService<
         'fcm',
         'fcm.account_id = reg.account_id AND fcm.installation_id = reg.installation_id'
       )
-      .innerJoin(
-        'account_membership_status',
-        'status',
-        'status.account_id = reg.account_id'
-      )
+      .innerJoin('account_membership_status', 'status', 'status.account_id = reg.account_id')
       .where('reg.channel_id = :channel_id', { channel_id })
       .andWhere('status.membership_expires_at IS NOT NULL')
       .andWhere('status.membership_expires_at >= NOW()')
@@ -128,11 +124,7 @@ export class AccountDeviceAutoDownloadChannelService extends BaseManyService<
     const rows = await this.repositoryRead
       .createQueryBuilder('reg')
       .innerJoin('account_up_device', 'up', 'up.account_id = reg.account_id')
-      .innerJoin(
-        'account_membership_status',
-        'status',
-        'status.account_id = reg.account_id'
-      )
+      .innerJoin('account_membership_status', 'status', 'status.account_id = reg.account_id')
       .where('reg.channel_id = :channel_id', { channel_id })
       .andWhere('status.membership_expires_at IS NOT NULL')
       .andWhere('status.membership_expires_at >= NOW()')
@@ -168,6 +160,6 @@ export class AccountDeviceAutoDownloadChannelService extends BaseManyService<
     if (channelIds.length === 0) {
       return;
     }
-    await this.repositoryWrite.delete({ channel_id: In(channelIds) });
+    await this.repositoryReadWrite.delete({ channel_id: In(channelIds) });
   }
 }

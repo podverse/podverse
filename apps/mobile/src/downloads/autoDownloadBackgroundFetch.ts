@@ -28,7 +28,9 @@ export const registerAutoDownloadBackgroundFetch = async (): Promise<void> => {
       return;
     }
 
-    const isRegistered = await TaskManager.isTaskRegisteredAsync(AUTO_DOWNLOAD_BACKGROUND_FETCH_TASK);
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(
+      AUTO_DOWNLOAD_BACKGROUND_FETCH_TASK
+    );
     if (isRegistered) {
       return;
     }

@@ -12,8 +12,8 @@ import Joi from 'joi';
 
 import { APP_ROUTES } from '@podverse/helpers';
 import { resolveAddByRSSFeedUrlCredentials } from '@podverse/helpers-validation';
-import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
 import type { AccountFollowingAddByRSSChannelDto } from '@podverse/orm';
+import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
 

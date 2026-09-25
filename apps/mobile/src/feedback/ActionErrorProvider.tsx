@@ -72,10 +72,8 @@ export function ActionErrorProvider({ children }: PropsWithChildren) {
     (event: PlaybackErrorEvent | null, onConfirm: () => void) => {
       const kind = event?.kind ?? 'unknown';
       openWithKeys(
-        playbackCredentialsMessageKeys(
-          addByRssCredentialsStateForLastLoad(),
-          event?.httpStatus
-        ) ?? playbackErrorMessageKeys(kind),
+        playbackCredentialsMessageKeys(addByRssCredentialsStateForLastLoad(), event?.httpStatus) ??
+          playbackErrorMessageKeys(kind),
         actionErrorDetailLine({
           code: event?.code ?? '',
           httpStatus: event?.httpStatus,

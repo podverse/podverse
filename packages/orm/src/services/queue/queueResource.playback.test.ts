@@ -432,7 +432,9 @@ describe('QueueResourceService playback policy', () => {
       repositoryReadWrite.manager.getRepository.mockReturnValue({
         createQueryBuilder: vi.fn().mockReturnValue(upcomingQb),
       });
-      repositoryReadWrite.manager.save.mockImplementation(async (entity: typeof upcoming) => entity);
+      repositoryReadWrite.manager.save.mockImplementation(
+        async (entity: typeof upcoming) => entity
+      );
       repositoryReadFindMock.mockResolvedValue([
         { ...upcoming, list_position: '0', last_played_at: lastPlayedAt },
       ]);

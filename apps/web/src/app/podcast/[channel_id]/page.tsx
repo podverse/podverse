@@ -233,12 +233,7 @@ function parseSearchParams(
       QUERY_PARAMS_CHANNEL_SORT_VALUES,
       'recent'
     ),
-    type: resolveStoredToken(
-      data?.type,
-      undefined,
-      QUERY_PARAMS_CHANNEL_TYPE_VALUES,
-      'episodes'
-    ),
+    type: resolveStoredToken(data?.type, undefined, QUERY_PARAMS_CHANNEL_TYPE_VALUES, 'episodes'),
   });
 
   return {

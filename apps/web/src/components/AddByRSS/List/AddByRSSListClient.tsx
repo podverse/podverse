@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type { AddByRSSParseStatus } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers';
 import { CallToActionMessage, Dropdown, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
@@ -13,8 +14,8 @@ import { useModals } from '../../../contexts/Modals';
 import type { AddByRSSParseOutcome } from '../../../utils/addByRSS/actions';
 import { applyAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import { getFollowedAddByRSSChannels } from '../../../utils/addByRSS/api';
-import { listFeedsWithCredentials } from '../../../utils/addByRSS/credentialStore';
 import { partitionAddByRSSFeedsByCredentials } from '../../../utils/addByRSS/credentialsStatus';
+import { listFeedsWithCredentials } from '../../../utils/addByRSS/credentialStore';
 import {
   ADD_BY_RSS_ITEMS_PAGE_SIZE,
   buildAddByRSSItemsIndex,
@@ -338,7 +339,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
     async (
       feedUrl: string,
       parsedFeed: AddByRSSParsedFeed | undefined,
-      status: AddByRSSFeedRecord['status'],
+      status: AddByRSSParseStatus,
       cache?: AddByRSSFeedRecord['cache'],
       outcome?: AddByRSSParseOutcome
     ) => {

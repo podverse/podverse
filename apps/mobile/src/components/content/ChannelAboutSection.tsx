@@ -181,9 +181,7 @@ export function ChannelAboutSection({
         }
 
         if (cell.kind === 'people-heading') {
-          return (
-            <SectionHeading style={styles.heading}>{t('info.people.people')}</SectionHeading>
-          );
+          return <SectionHeading style={styles.heading}>{t('info.people.people')}</SectionHeading>;
         }
 
         return (

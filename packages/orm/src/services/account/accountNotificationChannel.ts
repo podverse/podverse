@@ -1,8 +1,8 @@
 import { AppDataSourceReadWrite } from '@orm/db/index.js';
 import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel.js';
 import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
-import { AccountFollowingChannelService } from '@orm/services/account/accountFollowingChannel.js';
 import { AccountService } from '@orm/services/account/account.js';
+import { AccountFollowingChannelService } from '@orm/services/account/accountFollowingChannel.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import { ChannelService } from '@orm/services/channel/channel.js';
 import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
@@ -159,7 +159,7 @@ export class AccountNotificationChannelService extends BaseManyService<
       return { deleted: 0 };
     }
 
-    await this.repositoryWrite.delete({ account_id });
+    await this.repositoryReadWrite.delete({ account_id });
     return { deleted: existing.length };
   }
 }

@@ -176,10 +176,7 @@ describe('AccountNotificationPreferenceService', () => {
 
   it('skips the preference read when no account ids are provided', async () => {
     const service = new AccountNotificationPreferenceService();
-    const result = await service.getForAccountsAndCategory(
-      [],
-      NotificationCategoryEnum.NewContent
-    );
+    const result = await service.getForAccountsAndCategory([], NotificationCategoryEnum.NewContent);
 
     expect(result).toEqual([]);
     expect(findReadMock).not.toHaveBeenCalled();

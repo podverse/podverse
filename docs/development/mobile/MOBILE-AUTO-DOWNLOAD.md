@@ -13,13 +13,13 @@ share the “apply this default to existing podcasts” popup; that popup is abo
 
 ## What the user controls
 
-| Setting | Default | Where it lives | What it does |
-| ------- | ------- | -------------- | ------------ |
-| Auto download new subscriptions | Off | AsyncStorage (`downloads.auto_download_default`) | Copied onto a channel row at subscribe time |
-| Download over cellular by default | Off (Wi‑Fi only) | AsyncStorage (`downloads.auto_download_cellular_default`) | Copied onto that same row |
-| Catch-up limit | 20 (also 10 or 50) | AsyncStorage (`downloads.auto_download_catch_up_limit`) | Newest episodes kept on one open after the app was away |
-| Per-podcast auto download | Inherited, then overridable | SQLite `channel_auto_download` | On/off for that podcast |
-| Per-podcast allow cellular | Inherited, then overridable | Same row | Whether that podcast may use cellular |
+| Setting                           | Default                     | Where it lives                                            | What it does                                            |
+| --------------------------------- | --------------------------- | --------------------------------------------------------- | ------------------------------------------------------- |
+| Auto download new subscriptions   | Off                         | AsyncStorage (`downloads.auto_download_default`)          | Copied onto a channel row at subscribe time             |
+| Download over cellular by default | Off (Wi‑Fi only)            | AsyncStorage (`downloads.auto_download_cellular_default`) | Copied onto that same row                               |
+| Catch-up limit                    | 20 (also 10 or 50)          | AsyncStorage (`downloads.auto_download_catch_up_limit`)   | Newest episodes kept on one open after the app was away |
+| Per-podcast auto download         | Inherited, then overridable | SQLite `channel_auto_download`                            | On/off for that podcast                                 |
+| Per-podcast allow cellular        | Inherited, then overridable | Same row                                                  | Whether that podcast may use cellular                   |
 
 More → Settings → Downloads holds the globals, including the catch-up limit. Podcast settings holds
 the per-podcast pair.
@@ -169,13 +169,13 @@ ineligible cases the manual download path rejects) is stored as `skipped_ineligi
 
 ## Server pieces
 
-| Piece | Role |
-| ----- | ---- |
-| `account_device_auto_download_channel` | `(account_id, installation_id, channel_id)`. Linear migration `0011_account_device_auto_download_channel.sql`. |
-| `PUT /account/auto-download/channels` | Idempotent replace for one installation. Membership required. |
-| `AccountDeviceAutoDownloadChannelService` | Replace, and the two “who to wake” queries (FCM by installation, UnifiedPush by account). |
-| `handleNewItemAutoDownloadPushes` | Parser hook. Failures are logged; they do not fail the parse. |
-| `dataOnlyPushOrchestrator` | FCM iOS, FCM Android, or UnifiedPush. No inbox row, no banner. |
+| Piece                                     | Role                                                                                                           |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `account_device_auto_download_channel`    | `(account_id, installation_id, channel_id)`. Linear migration `0011_account_device_auto_download_channel.sql`. |
+| `PUT /account/auto-download/channels`     | Idempotent replace for one installation. Membership required.                                                  |
+| `AccountDeviceAutoDownloadChannelService` | Replace, and the two “who to wake” queries (FCM by installation, UnifiedPush by account).                      |
+| `handleNewItemAutoDownloadPushes`         | Parser hook. Failures are logged; they do not fail the parse.                                                  |
+| `dataOnlyPushOrchestrator`                | FCM iOS, FCM Android, or UnifiedPush. No inbox row, no banner.                                                 |
 
 ## iOS and Android
 
@@ -248,15 +248,15 @@ Differences from FCM:
 
 ### Side-by-side
 
-| | iOS (APNs via FCM) | Android FCM | Android UnifiedPush |
-| --- | --- | --- | --- |
-| Wake message | Background push, priority 5, `content-available` | High-priority data message | HTTP POST, `X-UnifiedPush: 1` |
-| User-visible banner | No | No | No |
-| After force-quit / force-stop | No silent wake until next open | No FCM until next open | Depends on the distributor |
-| Periodic backstop | `fetch` background mode, OS-timed | Scheduled fetch, boot-restartable | Same fetch task |
-| Add-by-RSS | No server push; foreground parse, then incremental evaluate | Same | Same |
-| Download API | `expo-file-system` resumable, default session | Same | Same |
-| Membership check | Client gate, and again on the server before send | Same | Same |
+|                               | iOS (APNs via FCM)                                          | Android FCM                       | Android UnifiedPush           |
+| ----------------------------- | ----------------------------------------------------------- | --------------------------------- | ----------------------------- |
+| Wake message                  | Background push, priority 5, `content-available`            | High-priority data message        | HTTP POST, `X-UnifiedPush: 1` |
+| User-visible banner           | No                                                          | No                                | No                            |
+| After force-quit / force-stop | No silent wake until next open                              | No FCM until next open            | Depends on the distributor    |
+| Periodic backstop             | `fetch` background mode, OS-timed                           | Scheduled fetch, boot-restartable | Same fetch task               |
+| Add-by-RSS                    | No server push; foreground parse, then incremental evaluate | Same                              | Same                          |
+| Download API                  | `expo-file-system` resumable, default session               | Same                              | Same                          |
+| Membership check              | Client gate, and again on the server before send            | Same                              | Same                          |
 
 ## What this is not
 

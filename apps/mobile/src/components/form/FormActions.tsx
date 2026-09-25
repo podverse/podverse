@@ -3,8 +3,8 @@ import { StyleSheet, View } from 'react-native';
 
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
-import { Button } from '../primitives/Button';
 import type { ButtonVariant } from '../primitives/Button';
+import { Button } from '../primitives/Button';
 
 export type FormAction = {
   accessibilityLabel?: string;

@@ -20,10 +20,7 @@ type BeginDirectDownloadParams = {
   itemTitle: string | null;
   fallbackFilename: string;
   setModalSourceSelector: (val: ModalSourceSelector) => void;
-  showToastPromiseWithLoading: (
-    promise: Promise<void>,
-    messages: DirectDownloadMessages
-  ) => void;
+  showToastPromiseWithLoading: (promise: Promise<void>, messages: DirectDownloadMessages) => void;
   downloadAndSaveFile: (url: string, filename: string) => Promise<void>;
   messages: DirectDownloadMessages;
   /** Replaces the failure message for the chosen source, e.g. to explain a protected feed. */

@@ -70,12 +70,7 @@ describe('startProgressiveDownload', () => {
 
     expect(
       startProgressiveDownload(
-        params(
-          'https://x/page.html',
-          'text/html',
-          downloadAndSaveFile,
-          showToastPromiseWithLoading
-        )
+        params('https://x/page.html', 'text/html', downloadAndSaveFile, showToastPromiseWithLoading)
       )
     ).toEqual({ ok: false, reason: 'unsupported_source' });
     expect(

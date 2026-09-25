@@ -3,13 +3,14 @@ import { describe, expect, it } from 'vitest';
 import type { DTOItem } from '@podverse/helpers/dto';
 
 import {
+  type AutoDownloadChannelSettings,
   autoDownloadNetworkFromNetInfoType,
   planAutoDownloads,
-  type AutoDownloadChannelSettings,
 } from './autoDownloadPlanner';
 
 const channel = (
-  overrides: Partial<AutoDownloadChannelSettings> & Pick<AutoDownloadChannelSettings, 'channelIdText'>
+  overrides: Partial<AutoDownloadChannelSettings> &
+    Pick<AutoDownloadChannelSettings, 'channelIdText'>
 ): AutoDownloadChannelSettings => ({
   allowCellular: false,
   enabled: true,
@@ -33,18 +34,14 @@ const item = (overrides: {
     item_enclosures: [
       {
         type: overrides.enclosureType ?? 'audio/mpeg',
-        item_enclosure_sources: [
-          { uri: overrides.enclosureUri ?? 'https://example.com/ep.mp3' },
-        ],
+        item_enclosure_sources: [{ uri: overrides.enclosureUri ?? 'https://example.com/ep.mp3' }],
       },
     ],
   }) as DTOItem;
 
 describe('planAutoDownloads', () => {
   it('enqueues a new eligible item on Wi-Fi after the watermark', () => {
-    const channels = new Map([
-      ['ch1', channel({ channelIdText: 'ch1' })],
-    ]);
+    const channels = new Map([['ch1', channel({ channelIdText: 'ch1' })]]);
     const actions = planAutoDownloads({
       channelsByIdText: channels,
       existingStatuses: new Map(),
@@ -62,9 +59,7 @@ describe('planAutoDownloads', () => {
   });
 
   it('defers on cellular when the channel disallows it', () => {
-    const channels = new Map([
-      ['ch1', channel({ channelIdText: 'ch1', allowCellular: false })],
-    ]);
+    const channels = new Map([['ch1', channel({ channelIdText: 'ch1', allowCellular: false })]]);
     const actions = planAutoDownloads({
       channelsByIdText: channels,
       existingStatuses: new Map(),
@@ -78,15 +73,11 @@ describe('planAutoDownloads', () => {
       network: 'cellular',
       transfersAllowed: true,
     });
-    expect(actions).toEqual([
-      { kind: 'pending_network', itemIdText: 'ep1', channelIdText: 'ch1' },
-    ]);
+    expect(actions).toEqual([{ kind: 'pending_network', itemIdText: 'ep1', channelIdText: 'ch1' }]);
   });
 
   it('skips items at or before the enabled_at watermark', () => {
-    const channels = new Map([
-      ['ch1', channel({ channelIdText: 'ch1' })],
-    ]);
+    const channels = new Map([['ch1', channel({ channelIdText: 'ch1' })]]);
     const actions = planAutoDownloads({
       channelsByIdText: channels,
       existingStatuses: new Map(),
@@ -195,9 +186,7 @@ describe('planAutoDownloads', () => {
       transfersAllowed: true,
       pushItemIdTexts: new Set(['pushed']),
     });
-    expect(actions).toEqual([
-      { kind: 'enqueue', itemIdText: 'pushed', channelIdText: 'ch1' },
-    ]);
+    expect(actions).toEqual([{ kind: 'enqueue', itemIdText: 'pushed', channelIdText: 'ch1' }]);
   });
 
   it('catch-up keeps the newest episodes across podcasts and skips the rest', () => {
@@ -277,9 +266,7 @@ describe('planAutoDownloads', () => {
       transfersAllowed: true,
       pushItemIdTexts: new Set(['pushed']),
     });
-    expect(actions).toEqual([
-      { kind: 'enqueue', itemIdText: 'pushed', channelIdText: 'ch1' },
-    ]);
+    expect(actions).toEqual([{ kind: 'enqueue', itemIdText: 'pushed', channelIdText: 'ch1' }]);
   });
 
   it('retry_pending only revisits rows already waiting', () => {
@@ -298,9 +285,7 @@ describe('planAutoDownloads', () => {
       network: 'wifi',
       transfersAllowed: true,
     });
-    expect(actions).toEqual([
-      { kind: 'enqueue', itemIdText: 'waiting', channelIdText: 'ch1' },
-    ]);
+    expect(actions).toEqual([{ kind: 'enqueue', itemIdText: 'waiting', channelIdText: 'ch1' }]);
   });
 
   it('does not re-decide episodes already skipped for the cap', () => {
@@ -308,9 +293,7 @@ describe('planAutoDownloads', () => {
     const actions = planAutoDownloads({
       channelsByIdText: channels,
       existingStatuses: new Map([['old', 'skipped_over_cap']]),
-      items: [
-        item({ id_text: 'old', channelIdText: 'ch1', pub_date: '2026-02-01T00:00:00.000Z' }),
-      ],
+      items: [item({ id_text: 'old', channelIdText: 'ch1', pub_date: '2026-02-01T00:00:00.000Z' })],
       mode: 'catch_up',
       network: 'wifi',
       transfersAllowed: true,

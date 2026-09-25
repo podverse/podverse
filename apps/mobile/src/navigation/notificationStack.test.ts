@@ -32,9 +32,7 @@ describe('parseHomeContentStackPath', () => {
 
   it('ignores podcast settings paths', () => {
     expect(
-      parseHomeContentStackPath(
-        `${buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'ch-1')}/settings`
-      )
+      parseHomeContentStackPath(`${buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'ch-1')}/settings`)
     ).toBeNull();
   });
 

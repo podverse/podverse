@@ -6,15 +6,9 @@ import { MediumEnum } from '@podverse/helpers/medium';
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers/queue/abridged';
 import { resolvePlaybackLoadDecision } from '@podverse/playback-core/resolvePlaybackLoadDecision';
 
-import {
-  playbackReloadSource,
-  resolveItemPlaybackStart,
-} from './buildPlaybackTarget';
+import { playbackReloadSource, resolveItemPlaybackStart } from './buildPlaybackTarget';
 import { lastPlaybackSnapshotFromTarget } from './lastPlaybackStorage';
-import {
-  buildItemLabeledEnclosures,
-  resolveItemEnclosureUrl,
-} from './resolveEnclosureUrl';
+import { buildItemLabeledEnclosures, resolveItemEnclosureUrl } from './resolveEnclosureUrl';
 
 const emptyAbridged: QueueResourcesAbridgedIndex = {
   add_by_rss_resource_datas: {},
@@ -124,9 +118,7 @@ describe('resolveItemPlaybackStart', () => {
 
   it('selects the remote HLS enclosure for a live item', () => {
     const item = buildItem({
-      item_enclosures: [
-        enclosureWithSource('https://cdn.example/live.m3u8?token=1', 'audio/mpeg'),
-      ],
+      item_enclosures: [enclosureWithSource('https://cdn.example/live.m3u8?token=1', 'audio/mpeg')],
       live_item: liveItemFixture,
     });
     const url = resolveItemEnclosureUrl({

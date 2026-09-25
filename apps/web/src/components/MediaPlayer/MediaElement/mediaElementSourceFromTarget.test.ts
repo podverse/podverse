@@ -30,9 +30,7 @@ describe('toFileMediaElementSource', () => {
   });
 
   it('keeps an HLS enclosure type and a progressive file type', () => {
-    expect(
-      toFileMediaElementSource('https://x/live', 'application/vnd.apple.mpegURL')
-    ).toEqual({
+    expect(toFileMediaElementSource('https://x/live', 'application/vnd.apple.mpegURL')).toEqual({
       kind: 'file',
       src: 'https://x/live',
       mimeType: 'application/vnd.apple.mpegURL',

@@ -23,8 +23,7 @@ const parseUrl = (value: string): URL | null => {
   }
 };
 
-const isHttpProtocol = (protocol: string): boolean =>
-  protocol === 'https:' || protocol === 'http:';
+const isHttpProtocol = (protocol: string): boolean => protocol === 'https:' || protocol === 'http:';
 
 /** `URL.hostname` brackets IPv6 literals and normalizes IPv4 shorthand to dotted form. */
 const isExactMatchHostname = (hostname: string): boolean =>

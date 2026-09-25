@@ -12,11 +12,11 @@ const {
   getRepositoryReadWriteMock,
   repositoryReadFindOneMock,
 } = vi.hoisted(() => ({
-    getByIdTextMock: vi.fn(),
-    getRepositoryReadMock: vi.fn(),
-    getRepositoryReadWriteMock: vi.fn(),
-    repositoryReadFindOneMock: vi.fn(),
-  }));
+  getByIdTextMock: vi.fn(),
+  getRepositoryReadMock: vi.fn(),
+  getRepositoryReadWriteMock: vi.fn(),
+  repositoryReadFindOneMock: vi.fn(),
+}));
 
 vi.mock('@orm/context.js', () => ({
   getDataSourceRead: () => ({

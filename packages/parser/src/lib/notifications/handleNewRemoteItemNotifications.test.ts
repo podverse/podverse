@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MediumEnum } from '@podverse/helpers';
 import type { RemoteItemDto } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
 import type { Channel } from '@podverse/orm';
 
 const {

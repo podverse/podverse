@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type { AddByRSSParseStatus } from '@podverse/helpers';
 import { Dropdown, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSTrackNodes } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackNodes';
@@ -207,7 +208,7 @@ export const AddByRSSTracksPageClient: React.FC = () => {
     async (
       feedUrl: string,
       parsedFeed: AddByRSSParsedFeed | undefined,
-      status: AddByRSSFeedRecord['status'],
+      status: AddByRSSParseStatus,
       cache?: AddByRSSFeedRecord['cache'],
       outcome?: AddByRSSParseOutcome
     ) => {

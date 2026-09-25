@@ -85,9 +85,7 @@ describe('buildLabeledItemEnclosures HLS extension', () => {
     const progressive = buildLabeledItemEnclosures([
       buildEnclosure({
         type: 'audio/mpeg',
-        item_enclosure_sources: [
-          { id: 1, item_enclosure_id: 0, uri: 'https://x/ep.mp3?token=1' },
-        ],
+        item_enclosure_sources: [{ id: 1, item_enclosure_id: 0, uri: 'https://x/ep.mp3?token=1' }],
       }),
     ]);
     expect(progressive[0]?.fileExtension).toBe('mp3');

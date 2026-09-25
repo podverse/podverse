@@ -493,15 +493,7 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
         ) : null}
       </>
     ),
-    [
-      handleRangeChange,
-      handleSortChange,
-      rangeOptions,
-      selectedRange,
-      selectedSort,
-      sortOptions,
-      t,
-    ]
+    [handleRangeChange, handleSortChange, rangeOptions, selectedRange, selectedSort, sortOptions, t]
   );
 
   const loadPlaylists = useCallback(async () => {

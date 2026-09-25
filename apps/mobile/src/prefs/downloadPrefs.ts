@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import type { AutoDownloadCatchUpLimit } from '../downloads/autoDownloadPlanner';
 import {
   AUTO_DOWNLOAD_CATCH_UP_LIMIT_PRESETS,
   DEFAULT_AUTO_DOWNLOAD_CATCH_UP_LIMIT,
 } from '../downloads/autoDownloadPlanner';
-import type { AutoDownloadCatchUpLimit } from '../downloads/autoDownloadPlanner';
 import { DEFAULT_DOWNLOAD_QUOTA_BYTES } from '../downloads/downloadQuota';
 import { DEFAULT_DOWNLOAD_AUTO_DELETE, getPref, setPref } from './prefsStore';
 

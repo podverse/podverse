@@ -32,13 +32,16 @@ export async function followFeedOnServer(
   page: Page,
   params: { feedUrl: string; title: string; requiresCredentials: boolean }
 ): Promise<void> {
-  const response = await page.request.post(`${E2E_API_BASE_URL}/account/follow/add-by-rss-channel`, {
-    data: {
-      feed_url: params.feedUrl,
-      title: params.title,
-      requires_credentials: params.requiresCredentials,
-    },
-  });
+  const response = await page.request.post(
+    `${E2E_API_BASE_URL}/account/follow/add-by-rss-channel`,
+    {
+      data: {
+        feed_url: params.feedUrl,
+        title: params.title,
+        requires_credentials: params.requiresCredentials,
+      },
+    }
+  );
   expect(response.ok(), await response.text()).toBeTruthy();
 }
 

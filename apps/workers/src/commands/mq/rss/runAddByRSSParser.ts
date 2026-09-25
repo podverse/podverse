@@ -6,9 +6,7 @@ import {
   classifyAddByRSSParseFailure,
   nextRequiresCredentials,
 } from '@workers/lib/addByRSS/classifyAddByRSSParseFailure.js';
-import {
-  resolveAddByRSSMessageCredentials,
-} from '@workers/lib/addByRSS/resolveAddByRSSMessageCredentials.js';
+import { resolveAddByRSSMessageCredentials } from '@workers/lib/addByRSS/resolveAddByRSSMessageCredentials.js';
 import { setAddByRSSParseCacheEntry } from '@workers/lib/addByRSSParseCache.js';
 
 import type { AddByRSSParseCredentialsState, MQQueueNameParamKey } from '@podverse/helpers';

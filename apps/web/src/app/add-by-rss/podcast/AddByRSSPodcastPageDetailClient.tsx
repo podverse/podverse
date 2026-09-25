@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type { AddByRSSParseStatus } from '@podverse/helpers';
 import {
   DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
   getTotalPages,
@@ -192,7 +193,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
     async (
       feedUrl: string,
       parsedFeed: AddByRSSParsedFeed | undefined,
-      status: AddByRSSFeedRecord['status'],
+      status: AddByRSSParseStatus,
       cache?: AddByRSSFeedRecord['cache'],
       outcome?: AddByRSSParseOutcome
     ) => {
