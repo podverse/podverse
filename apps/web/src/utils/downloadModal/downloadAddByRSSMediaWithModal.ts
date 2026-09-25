@@ -1,13 +1,9 @@
 import type { DTOItemEnclosure, DTOItemEnclosureIntegrity } from '@podverse/helpers';
-import {
-  buildLabeledItemEnclosures,
-  getSelectedLabeledItemEnclosureAndSource,
-} from '@podverse/helpers';
 
 import { showToast } from '../../components/Toast/Toast';
 import type { ModalSourceSelector } from '../../contexts/Modals';
 import type { AddByRSSItemIndexItem } from '../addByRSS/types';
-import { startProgressiveDownload } from './startProgressiveDownload';
+import { beginDirectDownload } from './beginDirectDownload';
 
 type AddByRSSBundleEnclosure = AddByRSSItemIndexItem['bundle']['enclosures'][number];
 
@@ -75,38 +71,18 @@ export function downloadAddByRSSMediaWithModal({
     return;
   }
 
-  const dtoLike = compatEnclosuresToDTOLike(enclosures);
-  const labeledItemEnclosures = buildLabeledItemEnclosures(dtoLike);
-  const hasMultipleEnclosures = labeledItemEnclosures && labeledItemEnclosures.length > 1;
-
   const itemTitle = indexItem?.bundle?.item?.title ?? (variant === 'episode' ? 'episode' : 'track');
-  const defaultFilename = variant === 'episode' ? 'episode.mp3' : 'track.mp3';
-
-  if (hasMultipleEnclosures) {
-    setModalSourceSelector({
-      labeledItemEnclosures,
-      actionType: variant === 'episode' ? 'download-episode' : 'download-track',
-      itemTitle: itemTitle || null,
-    });
-    return;
-  }
-
-  const selected = getSelectedLabeledItemEnclosureAndSource({
-    labeledItemEnclosures,
-    type: 'default',
-    enclosureRowIndex: null,
-    sourceRowIndex: null,
-  });
-
   const errorKey =
     variant === 'episode' ? 'download.episode_download_error' : 'download.track_download_error';
-  const resolution = startProgressiveDownload({
-    uri: selected?.source?.uri,
-    mime: selected?.labeledItemEnclosure?.enclosure.type,
-    itemTitle,
-    fallbackFilename: defaultFilename,
-    downloadAndSaveFile,
+
+  beginDirectDownload({
+    enclosures: compatEnclosuresToDTOLike(enclosures),
+    actionType: variant === 'episode' ? 'download-episode' : 'download-track',
+    itemTitle: itemTitle || null,
+    fallbackFilename: variant === 'episode' ? 'episode.mp3' : 'track.mp3',
+    setModalSourceSelector,
     showToastPromiseWithLoading,
+    downloadAndSaveFile,
     messages: {
       loading: tFeatures(
         variant === 'episode' ? 'download.downloading_episode' : 'download.downloading_track'
@@ -116,8 +92,8 @@ export function downloadAddByRSSMediaWithModal({
       ),
       error: tFeatures(errorKey),
     },
+    onIneligible: () => {
+      showToast(tFeatures(errorKey), 'error');
+    },
   });
-  if (!resolution.ok && resolution.reason === 'hls_playlist') {
-    showToast(tFeatures(errorKey), 'error');
-  }
 }

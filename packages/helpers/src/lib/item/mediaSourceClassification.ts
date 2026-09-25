@@ -1,7 +1,9 @@
 /**
  * Read-time classification of an enclosure URI and MIME type.
  * Callers use this for playback delivery and for deciding whether a URI is one
- * file that can be saved. It does not fetch the URI or store a flag.
+ * file that can be saved. Download eligibility also uses `isHttpOrHttpsUri`,
+ * `isObviousNonMediaDownloadSource`, and `isProgressiveDownloadUri`. This module does not fetch
+ * the URI or store a flag.
  */
 
 export const HLS_SOURCE_MIME_TYPES = [
@@ -63,6 +65,66 @@ export function isHlsMimeType(mime: string | null | undefined): boolean {
 }
 
 /**
+ * Enclosure types that are documents, not a progressive media file.
+ * Parameters such as `; charset=utf-8` are ignored by `normalizeMimeType`.
+ */
+const NON_MEDIA_DOWNLOAD_MIME_TYPES = [
+  'application/bittorrent',
+  'application/pdf',
+  'application/x-bittorrent',
+  'application/x-pdf',
+  'application/xhtml+xml',
+  'text/html',
+] as const;
+
+const NON_MEDIA_DOWNLOAD_MIME_TYPE_SET = new Set<string>(NON_MEDIA_DOWNLOAD_MIME_TYPES);
+
+const HTML_DOWNLOAD_EXTENSIONS = new Set(['htm', 'html', 'xhtml']);
+
+/** True when the URI scheme is `http` or `https`. Other schemes are not downloaded. */
+export function isHttpOrHttpsUri(uri: string): boolean {
+  const match = /^([a-z][a-z0-9+.-]*):/i.exec(uri.trim());
+  const scheme = match?.[1]?.toLowerCase();
+  return scheme === 'http' || scheme === 'https';
+}
+
+/**
+ * True when a page or document extension and the MIME type describe the same non-media file.
+ * A media MIME type does not agree, so a `.html` path labeled `audio/mpeg` stays eligible.
+ */
+function mimeAgreesWithNonMediaExtension(extension: string, mime: string): boolean {
+  if (HTML_DOWNLOAD_EXTENSIONS.has(extension)) {
+    return mime.startsWith('text/') || mime === 'application/xhtml+xml';
+  }
+  if (extension === 'pdf') {
+    return mime === 'application/pdf' || mime === 'application/x-pdf';
+  }
+  if (extension === 'torrent') {
+    return mime === 'application/bittorrent' || mime === 'application/x-bittorrent';
+  }
+  return false;
+}
+
+/**
+ * True for an obvious non-media document. An explicit document MIME type is enough on its own.
+ * A page or document extension counts only when the MIME type agrees. A missing MIME type does not.
+ */
+export function isObviousNonMediaDownloadSource(uri: string, mime?: string | null): boolean {
+  const normalizedMime = normalizeMimeType(mime);
+  if (normalizedMime !== null && NON_MEDIA_DOWNLOAD_MIME_TYPE_SET.has(normalizedMime)) {
+    return true;
+  }
+  if (normalizedMime === null) {
+    return false;
+  }
+  const extension = mediaSourcePathExtension(uri);
+  if (extension === null) {
+    return false;
+  }
+  return mimeAgreesWithNonMediaExtension(extension, normalizedMime);
+}
+
+/**
  * True when the path ends in `.m3u8` (query and hash ignored) or the MIME type is an HLS playlist type.
  * A `.m3u8` path wins even when the MIME type names a progressive file.
  */
@@ -71,6 +133,26 @@ export function isHlsSource(uri: string, mime?: string | null): boolean {
     return true;
   }
   return isHlsMimeType(mime);
+}
+
+/**
+ * True when a URI can be saved as one progressive file.
+ * Allows `http` and `https` only. An HLS playlist, an explicit document MIME type, or a
+ * page/document extension that agrees with the MIME type is not saveable. A missing MIME type
+ * stays saveable.
+ */
+export function isProgressiveDownloadUri(uri: string, mime?: string | null): boolean {
+  const trimmed = uri.trim();
+  if (trimmed === '') {
+    return false;
+  }
+  if (isHlsSource(trimmed, mime)) {
+    return false;
+  }
+  if (!isHttpOrHttpsUri(trimmed)) {
+    return false;
+  }
+  return !isObviousNonMediaDownloadSource(trimmed, mime);
 }
 
 export function classifyMediaSource(

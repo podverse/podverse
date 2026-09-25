@@ -15,12 +15,18 @@ which progressive source to fetch. It **rejects**:
   (`application/x-mpegurl`, `application/vnd.apple.mpegurl`, `audio/mpegurl`). An HLS playlist is a
   manifest of segments, not a single downloadable file.
 - **No enclosure** — no enclosure with a usable source URI.
+- **Unsupported source** — the URI scheme is not `http` or `https`, or the enclosure is an obvious
+  non-media document (`text/html`, `application/pdf`, `application/x-bittorrent`, and close
+  equivalents). A page or document extension is rejected only when the MIME type agrees. A missing
+  MIME type stays eligible.
 
-When both an HLS and a progressive enclosure exist, the default path chooses the progressive one
-(audio-first, matching mobile playback). If an explicit enclosure selection is passed (for the
-active session item), that selected source is used when progressive; selected HLS remains
-non-downloadable. Selection reuses `@podverse/helpers/item/itemEnclosure`
-(`buildLabeledItemEnclosures`) so URI / media-type / extension logic stays identical to web.
+When both an HLS or non-media enclosure and a progressive file exist, the default path chooses the
+progressive one (audio-first). A later progressive source on the same enclosure is kept. If an
+explicit enclosure selection is passed (for the active session item), that selected source is used
+when it is saveable; selected HLS and selected non-media sources stay non-downloadable. Manual
+download and auto-download both call `isItemDownloadable`. Selection reuses
+`@podverse/helpers/item/itemEnclosure` (`buildLabeledItemEnclosures` and
+`labeledItemEnclosuresForDirectDownload`) so the saveable set matches web direct download.
 
 **Progressive formats (first-class):** audio `mp3 aac opus m4a ogg wav`, video `mp4 m4v webm mov
 mkv` (see the helpers extension/MIME maps). Files are stored on disk **with their progressive
@@ -30,9 +36,13 @@ extension** — never a `.m3u8` as the media file.
 
 `DownloadStatus`: `queued → downloading → complete`; `downloading → paused` / `paused → downloading`;
 `downloading → failed`; `queued|downloading|paused → cancelled` (via remove); `failed → queued`
-(retry). **Concurrency is 5** (`DOWNLOAD_MAX_CONCURRENCY`) — up to five Expo `DownloadResumable`
-transfers at once. Pause all parks in-flight jobs and marks remaining queued jobs `paused`. The
-queue is FIFO by `createdAt`, so taps are honored in the order they were made.
+(retry). A finished transfer becomes `complete` only when the HTTP status is 2xx, the file is
+non-empty, and the response content type is not `text/html`, `application/json`, or `text/plain`.
+Anything else is `failed` with `errorReason` `invalid_response`, and the written file is deleted.
+Network and runtime exceptions stay `transfer_failed`. **Concurrency is 5**
+(`DOWNLOAD_MAX_CONCURRENCY`) — up to five Expo `DownloadResumable` transfers at once. Pause all
+parks in-flight jobs and marks remaining queued jobs `paused`. The queue is FIFO by `createdAt`,
+so taps are honored in the order they were made.
 
 Screens and hooks read `downloadStore` and act through `downloadManager` — never Expo FileSystem
 directly, and never `downloadsRepository` for state a transfer is changing. Downloads do **not** enter
@@ -119,6 +129,8 @@ Run: `npm run mobile:e2e:test -- library-downloads,settings-downloads` (see
 - `downloadStore.ts` — in-memory mirror, split status / progress channels (pure, unit-tested).
 - `downloadStorage.ts` — on-disk naming/paths + URI hash (pure, unit-tested).
 - `downloadStorageStats.ts` — device / downloads / app data / cache byte breakdown for Settings.
+- `downloadTransferValidation.ts` — status, size, and non-media content-type checks before a
+  transfer is stored as `complete` (pure, unit-tested).
 - `downloadManager.ts` — Expo FileSystem transfer runner (concurrency 5, pause/resume, auto-free);
   `useDownloads.ts` — list / item / storage hooks.
 - `downloadQuota.ts` — quota cap, usage sum, oldest-first eviction, byte formatting (pure,

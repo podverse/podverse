@@ -6,8 +6,12 @@ import type {
 import {
   buildLabeledItemEnclosures,
   getSelectedLabeledItemEnclosureAndSource,
+  labeledItemEnclosuresForDirectDownload,
 } from '@podverse/helpers/item/itemEnclosure';
-import { isHlsSource } from '@podverse/helpers/item/mediaSourceClassification';
+import {
+  isHlsSource,
+  isProgressiveDownloadUri,
+} from '@podverse/helpers/item/mediaSourceClassification';
 
 import type { DownloadMediaType } from './downloadTypes';
 
@@ -20,11 +24,17 @@ export { isHlsSource };
  * - `hls_playlist` — the only usable enclosure(s) point at an HLS playlist, which is a
  *                    manifest of segments, not a single progressive file we can store and replay.
  * - `no_enclosure` — no enclosure with a usable source URI.
+ * - `unsupported_source` — the enclosure is not an `http`/`https` URI, or it is an obvious
+ *                    non-media document. A missing MIME type stays eligible.
  * - `offline_mode` — Offline Mode is on; the download manager rejects new transfers (not decided
  *                    by `isItemDownloadable`).
  */
 export type DownloadIneligibleReason =
-  'livestream' | 'hls_playlist' | 'no_enclosure' | 'offline_mode';
+  | 'livestream'
+  | 'hls_playlist'
+  | 'no_enclosure'
+  | 'unsupported_source'
+  | 'offline_mode';
 
 /** The selected progressive source to fetch when an item is downloadable. */
 export interface DownloadSourceSelection {
@@ -43,12 +53,18 @@ type ProgressiveCandidate = {
   mime: string | null;
 };
 
-const toCandidate = (labeled: LabeledItemEnclosure): ProgressiveCandidate | null => {
-  const uri = labeled.enclosure.item_enclosure_sources[0]?.uri?.trim();
-  if (uri === undefined || uri === '') {
+/** `null` when this progressive URI can be saved. HLS is reported separately from other rejects. */
+const progressiveDownloadBlock = (
+  uri: string,
+  mime: string | null
+): 'hls_playlist' | 'unsupported_source' | null => {
+  if (isProgressiveDownloadUri(uri, mime)) {
     return null;
   }
-  return { labeled, uri, mime: labeled.enclosure.type ?? null };
+  if (isHlsSource(uri, mime)) {
+    return 'hls_playlist';
+  }
+  return 'unsupported_source';
 };
 
 const candidateFromExplicitSelection = (
@@ -74,10 +90,10 @@ const candidateFromExplicitSelection = (
 
 /**
  * Decide whether an item can be downloaded for offline playback and, if so, which progressive
- * source to fetch. Rejects livestreams and HLS-only items. An explicit enclosure selection wins
- * when it resolves to a progressive source; otherwise the default path prefers audio among
- * progressive candidates. Pure and unit-tested — screens and the download manager call this before
- * creating a downloads row (see mobile-only-features §1.1–1.2).
+ * source to fetch. Rejects livestreams, HLS-only items, non-http(s) URIs, and obvious non-media
+ * documents. An explicit enclosure selection wins when it resolves to a saveable source; otherwise
+ * the default path prefers audio among saveable candidates. Pure and unit-tested — screens, the
+ * download manager, and the auto-download planner call this before creating a downloads row.
  */
 export const isItemDownloadable = (
   item: DTOItem,
@@ -93,25 +109,30 @@ export const isItemDownloadable = (
   }
 
   const labeledEnclosures = buildLabeledItemEnclosures(enclosures);
-  const candidates = labeledEnclosures
-    .map(toCandidate)
-    .filter((candidate): candidate is ProgressiveCandidate => candidate !== null);
+  const sourceEntries = labeledEnclosures.flatMap((labeled) => {
+    const mime = labeled.enclosure.type ?? null;
+    return (labeled.enclosure.item_enclosure_sources ?? [])
+      .map((source) => source.uri?.trim() ?? '')
+      .filter((uri) => uri !== '')
+      .map((uri) => ({ uri, mime }));
+  });
 
-  if (candidates.length === 0) {
-    return { ok: false, reason: 'no_enclosure' };
+  const saveable = labeledItemEnclosuresForDirectDownload(labeledEnclosures);
+  if (saveable.length === 0) {
+    if (sourceEntries.length === 0) {
+      return { ok: false, reason: 'no_enclosure' };
+    }
+    const onlyHls = sourceEntries.every((entry) => isHlsSource(entry.uri, entry.mime));
+    return { ok: false, reason: onlyHls ? 'hls_playlist' : 'unsupported_source' };
   }
 
-  const progressive = candidates.filter((candidate) => !isHlsSource(candidate.uri, candidate.mime));
-  if (progressive.length === 0) {
-    return { ok: false, reason: 'hls_playlist' };
-  }
-
-  // Explicit source selection takes precedence when it points to a progressive file.
+  // Explicit source selection takes precedence when it points to a saveable file.
   if (selectedParams !== undefined && selectedParams !== null) {
     const explicit = candidateFromExplicitSelection(labeledEnclosures, selectedParams);
     if (explicit !== null) {
-      if (isHlsSource(explicit.uri, explicit.mime)) {
-        return { ok: false, reason: 'hls_playlist' };
+      const block = progressiveDownloadBlock(explicit.uri, explicit.mime);
+      if (block !== null) {
+        return { ok: false, reason: block };
       }
       return {
         ok: true,
@@ -126,20 +147,20 @@ export const isItemDownloadable = (
   }
 
   // Prefer audio by default; labeled entries are already default-first ordered.
-  const chosen =
-    progressive.find((candidate) => candidate.labeled.mediaType === 'audio') ?? progressive[0];
+  const chosen = saveable.find((candidate) => candidate.mediaType === 'audio') ?? saveable[0];
+  const uri = chosen?.enclosure.item_enclosure_sources[0]?.uri?.trim() ?? '';
 
-  if (chosen === undefined) {
+  if (chosen === undefined || uri === '') {
     return { ok: false, reason: 'no_enclosure' };
   }
 
   return {
     ok: true,
     source: {
-      uri: chosen.uri,
-      mime: chosen.mime,
-      mediaType: chosen.labeled.mediaType,
-      fileExtension: chosen.labeled.fileExtension ?? null,
+      uri,
+      mime: chosen.enclosure.type ?? null,
+      mediaType: chosen.mediaType,
+      fileExtension: chosen.fileExtension ?? null,
     },
   };
 };

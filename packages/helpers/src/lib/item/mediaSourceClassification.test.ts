@@ -5,6 +5,9 @@ import {
   classifyMediaSource,
   isHlsMimeType,
   isHlsSource,
+  isHttpOrHttpsUri,
+  isObviousNonMediaDownloadSource,
+  isProgressiveDownloadUri,
   resolveDirectDownloadUri,
 } from './mediaSourceClassification.js';
 
@@ -80,6 +83,55 @@ describe('classifyMediaSource', () => {
       ok: false,
       reason: 'hls_playlist',
     });
+  });
+});
+
+describe('isHttpOrHttpsUri', () => {
+  it('allows http and https and rejects other schemes', () => {
+    expect(isHttpOrHttpsUri('https://x/ep.mp3')).toBe(true);
+    expect(isHttpOrHttpsUri('HTTP://x/ep.mp3')).toBe(true);
+    expect(isHttpOrHttpsUri('  http://localhost:2111/ep.mp3  ')).toBe(true);
+    expect(isHttpOrHttpsUri('ftp://x/ep.mp3')).toBe(false);
+    expect(isHttpOrHttpsUri('file:///tmp/ep.mp3')).toBe(false);
+    expect(isHttpOrHttpsUri('/ep.mp3')).toBe(false);
+  });
+});
+
+describe('isObviousNonMediaDownloadSource', () => {
+  it('rejects explicit document MIME types, including parameters and close equivalents', () => {
+    expect(isObviousNonMediaDownloadSource('https://x/ep.mp3', 'text/html')).toBe(true);
+    expect(isObviousNonMediaDownloadSource('https://x/page', 'text/html; charset=utf-8')).toBe(
+      true
+    );
+    expect(isObviousNonMediaDownloadSource('https://x/notes', 'application/pdf')).toBe(true);
+    expect(isObviousNonMediaDownloadSource('https://x/notes', 'application/x-pdf')).toBe(true);
+    expect(isObviousNonMediaDownloadSource('https://x/page', 'application/xhtml+xml')).toBe(true);
+    expect(isObviousNonMediaDownloadSource('https://x/file', 'application/x-bittorrent')).toBe(
+      true
+    );
+    expect(isObviousNonMediaDownloadSource('https://x/file', 'application/bittorrent')).toBe(true);
+  });
+
+  it('uses a page extension only when the MIME type agrees', () => {
+    expect(isObviousNonMediaDownloadSource('https://x/page.html', 'text/plain')).toBe(true);
+    expect(isObviousNonMediaDownloadSource('https://x/page.html', 'audio/mpeg')).toBe(false);
+    expect(isObviousNonMediaDownloadSource('https://x/page.html', null)).toBe(false);
+    expect(isObviousNonMediaDownloadSource('https://x/notes.pdf', 'application/octet-stream')).toBe(
+      false
+    );
+    expect(isObviousNonMediaDownloadSource('https://x/ep.mp3', null)).toBe(false);
+    expect(isObviousNonMediaDownloadSource('https://x/ep.mp3', 'audio/mpeg')).toBe(false);
+  });
+});
+
+describe('isProgressiveDownloadUri', () => {
+  it('allows an http(s) progressive file and rejects HLS, documents, and other schemes', () => {
+    expect(isProgressiveDownloadUri('https://x/ep.mp3', 'audio/mpeg')).toBe(true);
+    expect(isProgressiveDownloadUri('http://localhost:2111/ep.mp3', null)).toBe(true);
+    expect(isProgressiveDownloadUri('https://x/ep.mp3', '')).toBe(true);
+    expect(isProgressiveDownloadUri('https://x/stream.m3u8', 'audio/mpeg')).toBe(false);
+    expect(isProgressiveDownloadUri('https://x/page.html', 'text/html')).toBe(false);
+    expect(isProgressiveDownloadUri('ftp://x/ep.mp3', 'audio/mpeg')).toBe(false);
   });
 });
 

@@ -157,7 +157,7 @@ export const useItemDownload = (
 };
 
 export type DownloadAction = {
-  /** False for livestream, HLS-only, and enclosure-less items: nothing to offer. */
+  /** False when the item has no saveable progressive http(s) file to offer. */
   isDownloadable: boolean;
   /** `null` before anything has been asked for this item. */
   status: DownloadStatus | null;

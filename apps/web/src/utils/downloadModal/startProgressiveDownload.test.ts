@@ -64,6 +64,29 @@ describe('startProgressiveDownload', () => {
     expect(showToastPromiseWithLoading).not.toHaveBeenCalled();
   });
 
+  it('does not fetch a document or a non-http URI', () => {
+    const downloadAndSaveFile = vi.fn(() => Promise.resolve());
+    const showToastPromiseWithLoading = vi.fn();
+
+    expect(
+      startProgressiveDownload(
+        params(
+          'https://x/page.html',
+          'text/html',
+          downloadAndSaveFile,
+          showToastPromiseWithLoading
+        )
+      )
+    ).toEqual({ ok: false, reason: 'unsupported_source' });
+    expect(
+      startProgressiveDownload(
+        params('ftp://x/ep.mp3', 'audio/mpeg', downloadAndSaveFile, showToastPromiseWithLoading)
+      )
+    ).toEqual({ ok: false, reason: 'unsupported_source' });
+    expect(downloadAndSaveFile).not.toHaveBeenCalled();
+    expect(showToastPromiseWithLoading).not.toHaveBeenCalled();
+  });
+
   it('does not fetch a missing URI', () => {
     const downloadAndSaveFile = vi.fn(() => Promise.resolve());
     const showToastPromiseWithLoading = vi.fn();

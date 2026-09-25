@@ -2,7 +2,11 @@ import type { DTOItemEnclosureSource } from '../../dtos/index.js';
 import type { DTOItemEnclosure } from '../../dtos/item/itemEnclosure.js';
 import type { FormattedBitrate } from '../bitrate.js';
 import { formatBitrate } from '../bitrate.js';
-import { isHlsMimeType, mediaSourcePathExtension } from './mediaSourceClassification.js';
+import {
+  isHlsMimeType,
+  isProgressiveDownloadUri,
+  mediaSourcePathExtension,
+} from './mediaSourceClassification.js';
 
 const EXTENSION_MEDIA_TYPE_MAP: Record<string, 'audio' | 'video'> = {
   mp3: 'audio',
@@ -268,4 +272,92 @@ export function buildLabeledItemEnclosures(enclosures: DTOItemEnclosure[]): Labe
 
     return labeled;
   });
+}
+
+function enclosureMime(type: string | null | undefined): string | null {
+  if (typeof type !== 'string') {
+    return null;
+  }
+  const trimmed = type.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
+/**
+ * Labeled enclosures a direct download can offer. HLS playlists, non-http(s) URIs, and obvious
+ * non-media documents are omitted. Each remaining enclosure keeps only its saveable sources, in
+ * their original order.
+ */
+export function labeledItemEnclosuresForDirectDownload(
+  labeledItemEnclosures: LabeledItemEnclosure[]
+): LabeledItemEnclosure[] {
+  const downloadable: LabeledItemEnclosure[] = [];
+
+  for (const labeled of labeledItemEnclosures) {
+    const mime = enclosureMime(labeled.enclosure.type);
+    const sources = labeled.enclosure.item_enclosure_sources ?? [];
+    const progressiveSources = sources.filter((source) => {
+      const uri = source.uri?.trim() ?? '';
+      return uri !== '' && isProgressiveDownloadUri(uri, mime);
+    });
+    if (progressiveSources.length === 0) {
+      continue;
+    }
+
+    const firstUri = progressiveSources[0]?.uri ?? '';
+    const extension = mediaSourcePathExtension(firstUri);
+    const next: LabeledItemEnclosure = {
+      ...labeled,
+      enclosure: {
+        ...labeled.enclosure,
+        item_enclosure_sources: progressiveSources,
+      },
+    };
+    if (extension !== null) {
+      next.fileExtension = extension;
+    } else if (next.fileExtension === 'm3u8') {
+      next.fileExtension = undefined;
+    }
+    downloadable.push(next);
+  }
+
+  return downloadable;
+}
+
+export type DirectDownloadSourcePick = {
+  uri: string;
+  mime: string | null;
+  mediaType: 'audio' | 'video';
+  fileExtension: string | null;
+};
+
+/**
+ * The progressive file a direct download starts with when the caller does not ask the user to
+ * choose. Audio is preferred. Pass enclosures from `buildLabeledItemEnclosures` so a default
+ * enclosure stays ahead of the others within that media type.
+ */
+export function pickDefaultDirectDownloadSource(
+  labeledItemEnclosures: LabeledItemEnclosure[]
+): DirectDownloadSourcePick | null {
+  const downloadable = labeledItemEnclosuresForDirectDownload(labeledItemEnclosures);
+  const candidates: { labeled: LabeledItemEnclosure; uri: string }[] = [];
+  for (const labeled of downloadable) {
+    const uri = labeled.enclosure.item_enclosure_sources[0]?.uri?.trim() ?? '';
+    if (uri === '') {
+      continue;
+    }
+    candidates.push({ labeled, uri });
+  }
+
+  const chosen =
+    candidates.find((candidate) => candidate.labeled.mediaType === 'audio') ?? candidates[0];
+  if (chosen === undefined) {
+    return null;
+  }
+
+  return {
+    uri: chosen.uri,
+    mime: enclosureMime(chosen.labeled.enclosure.type),
+    mediaType: chosen.labeled.mediaType,
+    fileExtension: chosen.labeled.fileExtension ?? null,
+  };
 }

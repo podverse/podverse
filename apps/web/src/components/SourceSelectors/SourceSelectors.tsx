@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Fragment } from 'react';
 
+import { labeledItemEnclosuresForDirectDownload } from '@podverse/helpers';
 import type { EnclosureSelectedParams, LabeledItemEnclosure } from '@podverse/helpers';
 import { Divider } from '@podverse/ui';
 
@@ -53,9 +54,13 @@ export const SourceSelectors = ({
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const { readCurrentTimeSeconds } = useMediaPlayerControls();
   const { setModalSourceSelector } = useModals();
+  const isDownloadAction = actionType === 'download-episode' || actionType === 'download-track';
+  const rows = isDownloadAction
+    ? labeledItemEnclosuresForDirectDownload(labeledItemEnclosures)
+    : labeledItemEnclosures;
 
   const onClick = (enclosureIndex: number, sourceIndex: number) => {
-    const labeledItemEnclosure = labeledItemEnclosures[enclosureIndex];
+    const labeledItemEnclosure = rows[enclosureIndex];
     if (!labeledItemEnclosure) {
       return;
     }
@@ -117,7 +122,7 @@ export const SourceSelectors = ({
             error: tFeatures(errorKey),
           },
         });
-        if (!resolution.ok && resolution.reason === 'hls_playlist') {
+        if (!resolution.ok && resolution.reason !== 'missing_uri') {
           showToast(tFeatures(errorKey), 'error');
         }
       }
@@ -132,14 +137,14 @@ export const SourceSelectors = ({
 
   return (
     <div className={styles.sourceSelectors}>
-      {labeledItemEnclosures.map((labeledItemEnclosure, idx) => (
+      {rows.map((labeledItemEnclosure, idx) => (
         <Fragment key={idx}>
           <SourceSelectorRow
             labeledItemEnclosure={labeledItemEnclosure}
             labeledItemEnclosureIndex={idx}
             onClick={onClick}
           />
-          {idx < labeledItemEnclosures.length - 1 && <Divider className={styles.divider} />}
+          {idx < rows.length - 1 && <Divider className={styles.divider} />}
         </Fragment>
       ))}
     </div>

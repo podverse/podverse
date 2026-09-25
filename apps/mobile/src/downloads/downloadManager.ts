@@ -30,6 +30,11 @@ import {
   hashEnclosureUri,
 } from './downloadStorage';
 import { downloadStore } from './downloadStore';
+import {
+  INVALID_DOWNLOAD_RESPONSE_REASON,
+  contentTypeHeaderValue,
+  validateDownloadTransfer,
+} from './downloadTransferValidation';
 import type { DownloadPatch, DownloadRecord } from './downloadTypes';
 import { DOWNLOAD_MAX_CONCURRENCY } from './downloadTypes';
 
@@ -42,8 +47,11 @@ import { DOWNLOAD_MAX_CONCURRENCY } from './downloadTypes';
  * and is the durable record. Screens observe `downloadStore`, never Expo FileSystem, and never poll
  * SQLite on a progress tick.
  *
- * Livestreams and HLS/m3u8 are rejected by `isItemDownloadable` before any row is created — this
- * module only ever transfers progressive files (see src/downloads/README.md).
+ * Livestreams, HLS playlists, non-http(s) URIs, and obvious non-media documents are rejected by
+ * `isItemDownloadable` before any row is created — this module only ever transfers progressive
+ * files (see src/downloads/README.md). A finished transfer
+ * is stored as `complete` only after `validateDownloadTransfer` accepts the status, file size, and
+ * content type. A rejected payload is deleted and the row stays `failed` (`invalid_response`).
  */
 
 export type EnqueueResult = { ok: true } | { ok: false; reason: DownloadIneligibleReason };
@@ -213,6 +221,41 @@ const forgetDownload = (itemIdText: string): DownloadRecord | null => {
   return record;
 };
 
+/** Bytes on disk for a finished transfer. Missing, directory, or unreadable paths count as empty. */
+const readDownloadedByteSize = async (uri: string): Promise<number> => {
+  if (uri === '') {
+    return 0;
+  }
+  try {
+    const info = await FileSystem.getInfoAsync(uri);
+    if (!info.exists || info.isDirectory) {
+      return 0;
+    }
+    return info.size;
+  } catch {
+    return 0;
+  }
+};
+
+/** Drop a rejected payload so a retry fetches the enclosure again instead of resuming it. */
+const rejectInvalidTransfer = async (itemIdText: string, fileUri: string): Promise<void> => {
+  if (fileUri !== '') {
+    try {
+      await FileSystem.deleteAsync(fileUri, { idempotent: true });
+    } catch {
+      // Best-effort file cleanup.
+    }
+  }
+  lastProgressPersistAt.delete(itemIdText);
+  await applyChange(itemIdText, {
+    byteSize: null,
+    bytesDownloaded: 0,
+    errorReason: INVALID_DOWNLOAD_RESPONSE_REASON,
+    filePath: null,
+    status: 'failed',
+  });
+};
+
 /** Delete the file (best-effort) and the durable row for a download already dropped from memory. */
 const eraseDownload = async (record: DownloadRecord | null, itemIdText: string): Promise<void> => {
   if (record !== null && record.filePath !== null) {
@@ -326,6 +369,23 @@ const runTransfer = async (itemIdText: string): Promise<void> => {
 
     const current = downloadStore.get(itemIdText);
     if (current === null || current.status === 'paused') {
+      return;
+    }
+
+    const byteSize = await readDownloadedByteSize(result.uri);
+    const afterRead = downloadStore.get(itemIdText);
+    if (afterRead === null || afterRead.status === 'paused') {
+      return;
+    }
+
+    const validation = validateDownloadTransfer({
+      byteSize,
+      contentTypes: [result.mimeType, contentTypeHeaderValue(result.headers)],
+      status:
+        typeof result.status === 'number' && Number.isFinite(result.status) ? result.status : null,
+    });
+    if (!validation.ok) {
+      await rejectInvalidTransfer(itemIdText, result.uri);
       return;
     }
 
@@ -525,9 +585,9 @@ export const downloadManager = {
   },
 
   /**
-   * Enqueue an item for offline download. Rejects ineligible items (livestream / HLS / no
-   * enclosure) without creating a row, and de-dupes an item that is already queued/downloading/
-   * paused/complete so duplicate taps do not spawn extra jobs.
+   * Enqueue an item for offline download. Rejects ineligible items (livestream, HLS, non-http(s),
+   * non-media, or no enclosure) without creating a row, and de-dupes an item that is already
+   * queued, downloading, paused, or complete so duplicate taps do not spawn extra jobs.
    */
   enqueue: async (
     item: DTOItem,
@@ -719,10 +779,16 @@ export const downloadManager = {
     if (record === null || record.status !== 'failed') {
       return;
     }
-    void applyChange(itemIdText, {
+    const patch: DownloadPatch = {
       errorReason: null,
       status: pauseAllActive ? 'paused' : 'queued',
-    });
+    };
+    // A leftover byte count would resume a transfer whose file was deleted.
+    if (record.errorReason === INVALID_DOWNLOAD_RESPONSE_REASON) {
+      patch.byteSize = null;
+      patch.bytesDownloaded = 0;
+    }
+    void applyChange(itemIdText, patch);
     if (!pauseAllActive) {
       pumpQueue();
     }

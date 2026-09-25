@@ -1,6 +1,7 @@
-import type { DirectDownloadResolution } from '@podverse/helpers';
+import type { DirectDownloadBlockReason } from '@podverse/helpers';
 import {
   getDownloadFilenameFromSource,
+  isProgressiveDownloadUri,
   resolveDirectDownloadUri,
 } from '@podverse/helpers';
 
@@ -25,9 +26,14 @@ type StartProgressiveDownloadParams = {
   };
 };
 
+export type StartProgressiveDownloadResult =
+  | { ok: true; uri: string }
+  | { ok: false; reason: DirectDownloadBlockReason | 'unsupported_source' };
+
 /**
- * Starts a direct file download when the URI is one file. An HLS playlist is not fetched.
- * Returns the classification so the caller can explain a refusal.
+ * Starts a direct file download when the URI is one progressive file. An HLS playlist, a
+ * non-http(s) URI, and an obvious non-media document are not fetched. Returns the classification
+ * so the caller can explain a refusal.
  */
 export function startProgressiveDownload({
   uri,
@@ -37,10 +43,13 @@ export function startProgressiveDownload({
   downloadAndSaveFile,
   showToastPromiseWithLoading,
   messages,
-}: StartProgressiveDownloadParams): DirectDownloadResolution {
+}: StartProgressiveDownloadParams): StartProgressiveDownloadResult {
   const resolution = resolveDirectDownloadUri(uri, mime);
   if (!resolution.ok) {
     return resolution;
+  }
+  if (!isProgressiveDownloadUri(resolution.uri, mime)) {
+    return { ok: false, reason: 'unsupported_source' };
   }
 
   const filename = getDownloadFilenameFromSource({

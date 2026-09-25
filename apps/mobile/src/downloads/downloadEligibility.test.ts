@@ -146,6 +146,24 @@ describe('isItemDownloadable', () => {
     }
   });
 
+  it('keeps a later progressive source on an enclosure that also has an HLS playlist', () => {
+    const item = buildItem([
+      buildEnclosure({
+        type: 'audio/mpeg',
+        item_enclosure_sources: [
+          { id: 0, item_enclosure_id: 0, uri: 'https://x/stream.m3u8' },
+          { id: 1, item_enclosure_id: 0, uri: 'https://x/ep.mp3' },
+        ],
+      }),
+    ]);
+    const result = isItemDownloadable(item);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.source.uri).toBe('https://x/ep.mp3');
+      expect(result.source.fileExtension).toBe('mp3');
+    }
+  });
+
   it('prefers the progressive source when both HLS and a progressive file exist', () => {
     const item = buildItem([
       enclosureWithSource('https://x/stream.m3u8', { type: 'application/x-mpegurl' }),
@@ -183,6 +201,60 @@ describe('isItemDownloadable', () => {
     if (result.ok) {
       expect(result.source.uri).toBe('https://x/video-selected.mp4');
       expect(result.source.mediaType).toBe('video');
+    }
+  });
+
+  it('rejects an explicit non-media selection even when a progressive file exists', () => {
+    const item = buildItem([
+      enclosureWithSource('https://x/audio.mp3', { type: 'audio/mpeg' }),
+      enclosureWithSource('https://x/notes.pdf', { type: 'application/pdf' }),
+    ]);
+    const result = isItemDownloadable(item, selectedParams('audio', 1));
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.reason).toBe('unsupported_source');
+  });
+
+  it('rejects a document MIME type and a non-http URI', () => {
+    const pdf = isItemDownloadable(
+      buildItem([enclosureWithSource('https://x/notes.pdf', { type: 'application/pdf' })])
+    );
+    expect(pdf.ok === false && pdf.reason).toBe('unsupported_source');
+
+    const html = isItemDownloadable(
+      buildItem([enclosureWithSource('https://x/page.html', { type: 'text/html' })])
+    );
+    expect(html.ok === false && html.reason).toBe('unsupported_source');
+
+    const ftp = isItemDownloadable(
+      buildItem([enclosureWithSource('ftp://x/ep.mp3', { type: 'audio/mpeg' })])
+    );
+    expect(ftp.ok === false && ftp.reason).toBe('unsupported_source');
+  });
+
+  it('keeps a missing MIME type and a media type on a page-like path', () => {
+    const missingMime = isItemDownloadable(
+      buildItem([enclosureWithSource('https://x/ep.mp3', { type: '' })])
+    );
+    expect(missingMime.ok).toBe(true);
+
+    const pagePath = isItemDownloadable(
+      buildItem([enclosureWithSource('https://x/page.html', { type: 'audio/mpeg' })])
+    );
+    expect(pagePath.ok).toBe(true);
+    if (pagePath.ok) {
+      expect(pagePath.source.uri).toBe('https://x/page.html');
+    }
+  });
+
+  it('skips a non-media sibling and keeps the progressive file', () => {
+    const item = buildItem([
+      enclosureWithSource('https://x/notes.pdf', { type: 'application/pdf' }),
+      enclosureWithSource('https://x/ep.mp3', { type: 'audio/mpeg' }),
+    ]);
+    const result = isItemDownloadable(item);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.source.uri).toBe('https://x/ep.mp3');
     }
   });
 

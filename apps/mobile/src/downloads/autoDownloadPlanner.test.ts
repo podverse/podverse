@@ -22,6 +22,8 @@ const item = (overrides: {
   channelIdText: string;
   pub_date: string;
   live?: boolean;
+  enclosureType?: string;
+  enclosureUri?: string;
 }): DTOItem =>
   ({
     id_text: overrides.id_text,
@@ -30,8 +32,10 @@ const item = (overrides: {
     channel: { id_text: overrides.channelIdText },
     item_enclosures: [
       {
-        type: 'audio/mpeg',
-        item_enclosure_sources: [{ uri: 'https://example.com/ep.mp3' }],
+        type: overrides.enclosureType ?? 'audio/mpeg',
+        item_enclosure_sources: [
+          { uri: overrides.enclosureUri ?? 'https://example.com/ep.mp3' },
+        ],
       },
     ],
   }) as DTOItem;
@@ -126,6 +130,30 @@ describe('planAutoDownloads', () => {
       { kind: 'skip_already_decided', itemIdText: 'ep1' },
       { kind: 'skip_already_decided', itemIdText: 'ep2' },
     ]);
+  });
+
+  it('skips an obvious non-media enclosure with the same reason as manual download', () => {
+    const channels = new Map([['ch1', channel({ channelIdText: 'ch1' })]]);
+    const actions = planAutoDownloads({
+      channelsByIdText: channels,
+      existingStatuses: new Map(),
+      items: [
+        item({
+          id_text: 'notes',
+          channelIdText: 'ch1',
+          pub_date: '2026-02-01T00:00:00.000Z',
+          enclosureType: 'application/pdf',
+          enclosureUri: 'https://example.com/notes.pdf',
+        }),
+      ],
+      network: 'wifi',
+      transfersAllowed: true,
+    });
+    expect(actions[0]).toMatchObject({
+      kind: 'skip_ineligible',
+      itemIdText: 'notes',
+      reason: 'unsupported_source',
+    });
   });
 
   it('marks livestreams ineligible', () => {
