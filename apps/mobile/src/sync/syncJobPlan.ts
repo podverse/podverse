@@ -64,6 +64,7 @@ export const planSyncRun = ({ isAuthenticated, trigger }: SyncPlanInput): Planne
   // foreground would spend a request to tell the server something it already knows.
   if (trigger === 'app-start' || trigger === 'sign-in') {
     planned.push({ kind: 'push-device-registration', priority });
+    planned.push({ kind: 'auto-download-registration', priority });
   }
 
   return planned;

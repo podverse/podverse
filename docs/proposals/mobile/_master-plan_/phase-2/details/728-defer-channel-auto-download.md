@@ -1,53 +1,74 @@
-# 728-defer-channel-auto-download
+# 728-channel-auto-download
 
-**Master step:** P2.3 (operational backlog — new)
+Runtime picture (triggers, server mirror, iOS vs Android):
+[MOBILE-AUTO-DOWNLOAD](/docs/development/mobile/MOBILE-AUTO-DOWNLOAD.md).
+
+**Master step:** P2.3 (operational backlog)
 **Model (author + implement):** Auto
-**Status:** deferred to a future phase
+**Status:** implementing (mobile-auto-download plan set)
 
 ## Scope
 
-Per-channel **auto-download** (download new episodes automatically when subscribed) appeared in the
-legacy podcast settings and was requested as a **placeholder** on the nextgen podcast settings
-screen ([726](726-podcast-settings-and-header-bell.md)). Implementation is **deferred**.
+Per-channel **auto download** — download new episodes automatically when a podcast is opted in —
+plus global defaults that new subscriptions inherit, and OS / silent-push triggers so transfers can
+start without the user opening the app.
 
-### What ships now
+### Locked decisions
 
-- A visible, disabled (or “coming later”) row on the podcast settings screen so the product
-  affordance is not forgotten.
-- This detail doc as the durable home for the feature.
+| Question | Decision |
+| -------- | -------- |
+| Tier | **Membership** (signed in, valid membership). Lapsed members keep settings and completed files; auto download pauses; toggling opens the renewal gate. |
+| Storage | **Device-local** source of truth (SQLite + AsyncStorage). Server holds only a per-installation mirror of channel ids for silent push. |
+| Global default | Auto download for **new** subscriptions = **off**. Cellular allowed = **off** (Wi‑Fi only). |
+| Inheritance | Subscribe snapshots global → channel row; per-channel override. Changing global later affects only new subscriptions unless the user picks **Apply to all** ([`global-default-apply-to-existing`](/.cursor/rules/global-default-apply-to-existing.mdc)). |
+| Web | Auto download is **mobile-only** (web has no offline library). Notification-default apply popups ship on **web and mobile**. |
+| Fallback | If the background spike cannot prove iOS silent-push downloads, drop to best-effort anonymous (foreground + background fetch only) and skip server push registration. |
 
-### When picked up
+### Reliability
 
-Decide and record:
+- Idempotent `auto_download_candidate` ledger (`pending` / `enqueued` / `skipped_ineligible` /
+  `user_removed`). Deleted downloads are not re-fetched.
+- Per-channel `enabled_at` watermark — no backfill of the catalog when enabling.
+- Gates every run: membership, Offline Mode toggle, NetInfo vs cellular pref, `isItemDownloadable`,
+  quota / auto-free.
+- Network-blocked items stay `pending` and retry on Wi‑Fi / foreground / background fetch.
+- Launch reconciles interrupted `downloading` rows against disk.
+- Sync kinds `auto-download-evaluate` and `auto-download-registration` are visible in the sync bar
+  and event log.
 
-- Whether auto-download is anonymous (local only) or membership-tier.
-- Default on/off when enabling notifications or when subscribing.
-- Interaction with download quota, Wi‑Fi-only prefs, and livestream / HLS eligibility
-  (`downloadEligibility`).
-- Storage: device-local per channel vs account-synced.
-- Whether web gets a counterpart or mobile-only is intentional.
+### Honest platform limits
 
-Do not invent scheduling until those decisions are locked.
+- iOS drops silent pushes after a force-quit, throttles them, and delays them in Low Power Mode.
+- Background fetch timing is OS-controlled.
+- Add-by-RSS feeds are not server-parsed on a schedule; they auto download only on foreground or
+  background fetch.
 
-## Acceptance criteria (when implemented)
+### Surfaces
 
-- Per-channel auto-download can be toggled from podcast settings.
+| Control | Where |
+| ------- | ----- |
+| Global auto download + cellular defaults | More → Settings → Downloads |
+| Per-podcast auto download + cellular | Podcast settings |
+| Silent-push channel registration | `PUT /account/auto-download/channels` |
+| New-item data-only push | Parser next to `handleNewItemNotifications` |
+
+## Acceptance criteria
+
+- Global defaults default off; new follows inherit the snapshot; per-channel overrides work.
+- Toggling a global default with existing matching entities shows apply-to-all vs only-new.
 - New eligible episodes enqueue through `downloadManager` without opening each episode.
 - Ineligible items (live / HLS) are skipped without error spam.
-- Preferences survive app restart; sync behavior matches the locked decision.
-- E2E covers enable → new episode appears in Downloads.
-
-## Web parity references
-
-- Mobile: [`downloadManager`](apps/mobile/src/downloads/downloadManager.ts),
-  [`DownloadControl`](apps/mobile/src/components/download/DownloadControl.tsx)
-- Legacy inspiration: podcast-rn podcast settings auto-download (not a port target)
-- Placeholder consumer: [726-podcast-settings-and-header-bell](726-podcast-settings-and-header-bell.md)
+- Preferences survive restart; registration clears on sign-out / membership loss.
+- E2E covers settings toggles and downloads appearance where Maestro can assert.
 
 ## Verification
 
 ```bash
-# Mobile Maestro (when implemented)
-npm run mobile:e2e:test -- podcast-episode
-npm run mobile:e2e:test -- library-downloads
+# Mobile Maestro
+npm run mobile:e2e:test -- podcast-episode,settings-downloads,library-downloads,notifications-inbox
+
+# API / web (notification apply popups + auto-download registration)
+npm run openapi:check
+npm run test:e2e:api
+make e2e_test_web_report_spec SPEC=e2e/settings-notifications.spec.ts
 ```

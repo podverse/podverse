@@ -42,8 +42,11 @@ const {
   notificationChannelGetAllByAccountMock,
   notificationChannelCreateMock,
   notificationChannelDeleteMock,
+  notificationChannelBulkEnableMock,
+  notificationChannelBulkDisableMock,
   notificationChannelTypeCreateMock,
   notificationChannelTypeDeleteMock,
+  notificationChannelTypeBulkSetMock,
   settingsNotificationGetByAccountIdMock,
   statsAggregatedGetManyMock,
   statsAggregatedGetManyByAccountsAndCountMock,
@@ -106,12 +109,15 @@ const {
     channel_id_text: 'test-channel',
   })),
   notificationChannelDeleteMock: vi.fn(async () => {}),
+  notificationChannelBulkEnableMock: vi.fn(async () => ({ created: 2 })),
+  notificationChannelBulkDisableMock: vi.fn(async () => ({ deleted: 3 })),
   notificationChannelTypeCreateMock: vi.fn(async () => ({
     id: 1,
     channel_id_text: 'test-channel',
     type: 'new-item',
   })),
   notificationChannelTypeDeleteMock: vi.fn(async () => {}),
+  notificationChannelTypeBulkSetMock: vi.fn(async () => ({ updated: 4 })),
   settingsNotificationGetByAccountIdMock: vi.fn(async () => ({
     id: 1,
     account_settings_id: 1,
@@ -175,11 +181,14 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     getAllByAccountId = notificationChannelGetAllByAccountMock;
     create = notificationChannelCreateMock;
     delete = notificationChannelDeleteMock;
+    enableForAllFollowedChannels = notificationChannelBulkEnableMock;
+    disableAll = notificationChannelBulkDisableMock;
   }
 
   class MockAccountNotificationChannelTypeService {
     create = notificationChannelTypeCreateMock;
     delete = notificationChannelTypeDeleteMock;
+    setTypeForAllChannels = notificationChannelTypeBulkSetMock;
   }
 
   class MockAccountSettingsNotificationService {
@@ -858,6 +867,67 @@ describe('account follows and notification routes', () => {
       );
 
       expect(res.status).toBe(401);
+    });
+  });
+
+  describe('POST /notification/channels/bulk-enable', () => {
+    it('returns 200 with created count', async () => {
+      notificationChannelBulkEnableMock.mockResolvedValueOnce({ created: 2 });
+
+      const res = await request(app)
+        .post(`${accountBase}/notification/channels/bulk-enable`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.created).toBe(2);
+      expect(notificationChannelBulkEnableMock).toHaveBeenCalledWith(TEST_USER_ID);
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app).post(`${accountBase}/notification/channels/bulk-enable`);
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('POST /notification/channels/bulk-disable', () => {
+    it('returns 200 with deleted count', async () => {
+      notificationChannelBulkDisableMock.mockResolvedValueOnce({ deleted: 3 });
+
+      const res = await request(app)
+        .post(`${accountBase}/notification/channels/bulk-disable`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.deleted).toBe(3);
+      expect(notificationChannelBulkDisableMock).toHaveBeenCalledWith(TEST_USER_ID);
+    });
+  });
+
+  describe('POST /notification/channels/bulk-type', () => {
+    it('returns 200 with updated count', async () => {
+      notificationChannelTypeBulkSetMock.mockResolvedValueOnce({ updated: 4 });
+
+      const res = await request(app)
+        .post(`${accountBase}/notification/channels/bulk-type`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ type: 'new-item', enabled: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.updated).toBe(4);
+      expect(notificationChannelTypeBulkSetMock).toHaveBeenCalledWith(
+        TEST_USER_ID,
+        'new-item',
+        true
+      );
+    });
+
+    it('returns 400 when type is missing', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/notification/channels/bulk-type`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ enabled: true });
+
+      expect(res.status).toBe(400);
     });
   });
 

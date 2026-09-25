@@ -21,6 +21,7 @@ import {
   InlineFormButtons,
   InlineFormFieldGroup,
   InlineFormInfo,
+  Modal,
   SwitchButton,
   TextInput,
 } from '@podverse/ui';
@@ -61,6 +62,12 @@ export function SettingsNotifications() {
   const [upAuthKeyInput, setUPAuthKeyInput] = useState('');
   const [upEndpointError, setUPEndpointError] = useState<string | undefined>(undefined);
   const [preferences, setPreferences] = useState<DTOAccountNotificationPreference[]>([]);
+  const [applyDialog, setApplyDialog] = useState<null | 'auto_enable' | 'type_default'>(null);
+  const [pendingApplyEnabled, setPendingApplyEnabled] = useState(false);
+  const [pendingApplyType, setPendingApplyType] = useState<AccountNotificationTypeValues | null>(
+    null
+  );
+  const [affectedCount, setAffectedCount] = useState(0);
 
   const pushMethodRegistered = registered || upRegistered;
 
@@ -159,6 +166,25 @@ export function SettingsNotifications() {
           auto_enable_on_subscribe: next,
         });
         setLoggedInAccount(updated);
+
+        const count = next
+          ? (
+              await getApiRequestService().reqChannelGetMany({
+                category: null,
+                medium: 'podcast',
+                page: 1,
+                range: null,
+                sort: 'a_z',
+                type: 'subscribed',
+              })
+            ).meta.count ?? 0
+          : (await getApiRequestService().reqAccountNotificationChannelsGetAll()).length;
+
+        if (count > 0) {
+          setPendingApplyEnabled(next);
+          setAffectedCount(count);
+          setApplyDialog('auto_enable');
+        }
       } catch (error) {
         if (!tryHandleMembershipGateError(error)) {
           console.warn('Could not update auto-enable-on-subscribe setting', error);
@@ -182,12 +208,50 @@ export function SettingsNotifications() {
           ? await getApiRequestService().reqAccountSettingsNotificationTypeCreate({ type })
           : await getApiRequestService().reqAccountSettingsNotificationTypeDelete({ type });
         setLoggedInAccount(updated);
+
+        const channels = await getApiRequestService().reqAccountNotificationChannelsGetAll();
+        if (channels.length > 0) {
+          setPendingApplyType(type);
+          setPendingApplyEnabled(next);
+          setAffectedCount(channels.length);
+          setApplyDialog('type_default');
+        }
       } catch (error) {
         if (!tryHandleMembershipGateError(error)) {
           console.warn('Could not update notification type default', type, error);
         }
       }
     });
+  };
+
+  const confirmApplyDialog = async () => {
+    const dialog = applyDialog;
+    setApplyDialog(null);
+    if (dialog === null) {
+      return;
+    }
+
+    try {
+      if (dialog === 'auto_enable') {
+        if (pendingApplyEnabled) {
+          await getApiRequestService().reqAccountNotificationChannelsBulkEnable();
+        } else {
+          await getApiRequestService().reqAccountNotificationChannelsBulkDisable();
+        }
+        return;
+      }
+
+      if (dialog === 'type_default' && pendingApplyType !== null) {
+        await getApiRequestService().reqAccountNotificationChannelsBulkType({
+          enabled: pendingApplyEnabled,
+          type: pendingApplyType,
+        });
+      }
+    } catch (error) {
+      if (!tryHandleMembershipGateError(error)) {
+        console.warn('Could not apply notification default to existing podcasts', error);
+      }
+    }
   };
 
   const loadPreferences = useCallback(async () => {
@@ -639,6 +703,56 @@ export function SettingsNotifications() {
           );
         })}
       </SettingsSection>
+
+      <Modal
+        ariaLabel={
+          applyDialog === 'type_default'
+            ? tSettings('notifications.type_default_apply_title')
+            : tSettings('notifications.auto_enable_apply_title')
+        }
+        closeButtonAriaLabel={tMisc('close_modal')}
+        header={
+          applyDialog === 'type_default'
+            ? tSettings('notifications.type_default_apply_title')
+            : tSettings('notifications.auto_enable_apply_title')
+        }
+        isOpen={applyDialog !== null}
+        onClose={() => {
+          setApplyDialog(null);
+        }}
+      >
+        <Modal.Body>
+          <p>
+            {applyDialog === 'type_default'
+              ? tSettings('notifications.type_default_apply_body', { count: affectedCount })
+              : tSettings('notifications.auto_enable_apply_body', { count: affectedCount })}
+          </p>
+        </Modal.Body>
+        <Modal.Actions>
+          <Button
+            onClick={() => {
+              setApplyDialog(null);
+            }}
+            type="button"
+            variant="secondary"
+          >
+            {applyDialog === 'type_default'
+              ? tSettings('notifications.type_default_apply_new_only')
+              : tSettings('notifications.auto_enable_apply_new_only')}
+          </Button>
+          <Button
+            onClick={() => {
+              void confirmApplyDialog();
+            }}
+            type="button"
+            variant="primary"
+          >
+            {applyDialog === 'type_default'
+              ? tSettings('notifications.type_default_apply_all')
+              : tSettings('notifications.auto_enable_apply_all')}
+          </Button>
+        </Modal.Actions>
+      </Modal>
     </>
   );
 }

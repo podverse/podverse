@@ -81,6 +81,7 @@ const ANONYMOUS_FEATURES: GatedFeature[] = [
 const MEMBERSHIP_FEATURES: GatedFeature[] = [
   'add_by_rss_add',
   'add_by_rss_refresh',
+  'auto_download',
   'clip_authoring',
   'directory_add_by_rss',
   'notifications',

@@ -356,3 +356,33 @@ export const playlistResource = sqliteTable('playlist_resource', {
 
 export type PlaylistResourceRow = typeof playlistResource.$inferSelect;
 export type PlaylistResourceInsert = typeof playlistResource.$inferInsert;
+
+/**
+ * Per-channel auto-download settings. Device-local; the server only mirrors enabled channel ids
+ * per installation for silent-push wakeups. `enabled_at` is the no-backfill watermark.
+ */
+export const channelAutoDownload = sqliteTable('channel_auto_download', {
+  channelIdText: text('channel_id_text').primaryKey(),
+  source: text('source').notNull(),
+  enabled: integer('enabled').notNull(),
+  allowCellular: integer('allow_cellular').notNull(),
+  enabledAt: integer('enabled_at'),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type ChannelAutoDownloadRow = typeof channelAutoDownload.$inferSelect;
+export type ChannelAutoDownloadInsert = typeof channelAutoDownload.$inferInsert;
+
+/**
+ * Idempotent auto-download ledger. An item is decided once so sync/push retries and user deletes
+ * do not re-enqueue the same episode.
+ */
+export const autoDownloadCandidate = sqliteTable('auto_download_candidate', {
+  itemIdText: text('item_id_text').primaryKey(),
+  channelIdText: text('channel_id_text').notNull(),
+  status: text('status').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type AutoDownloadCandidateRow = typeof autoDownloadCandidate.$inferSelect;
+export type AutoDownloadCandidateInsert = typeof autoDownloadCandidate.$inferInsert;

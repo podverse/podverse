@@ -5,6 +5,7 @@ import type { DTOItem } from '@podverse/helpers/dto';
 import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosure';
 
 import { channelItemsRepository, downloadsRepository } from '../data/repositories';
+import { autoDownloadRepository } from '../data/repositories/autoDownloadRepository';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
 import { isEffectivelyOffline, subscribeConnectivity } from '../net/connectivity';
 import {
@@ -485,6 +486,38 @@ export const downloadManager = {
    */
   hydrate: (): Promise<void> => ensureHydrated(),
 
+  /**
+   * After a cold start, rows left `downloading` have no live Expo resumable. Mark them queued so
+   * the pump can resume, or failed when the file is already complete on disk.
+   */
+  reconcileInterruptedDownloads: async (): Promise<void> => {
+    await ensureHydrated();
+    const interrupted = downloadStore
+      .getAll()
+      .filter((record) => record.status === 'downloading');
+    for (const record of interrupted) {
+      if (record.filePath !== null) {
+        try {
+          const info = await FileSystem.getInfoAsync(record.filePath);
+          if (info.exists && !info.isDirectory && (info.size ?? 0) > 0) {
+            await applyChange(record.itemIdText, {
+              byteSize: info.size ?? record.byteSize,
+              bytesDownloaded: info.size ?? record.bytesDownloaded,
+              status: 'complete',
+            });
+            continue;
+          }
+        } catch {
+          // Fall through to re-queue.
+        }
+      }
+      await applyChange(record.itemIdText, { status: 'queued' });
+    }
+    if (!pauseAllActive) {
+      pumpQueue();
+    }
+  },
+
   /** Discard the mirror and read it again from SQLite (error retry, pull-to-refresh). */
   reload: async (): Promise<void> => {
     hydratePromise = null;
@@ -731,6 +764,9 @@ export const downloadManager = {
     }
 
     await eraseDownload(record, itemIdText);
+    void autoDownloadRepository.markUserRemoved(itemIdText).catch(() => {
+      // Ledger update is best-effort; missing rows are fine.
+    });
     pumpQueue();
   },
 

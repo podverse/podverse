@@ -15,6 +15,10 @@ import { ShareSheetPassthroughOverlay } from './src/components/share/ShareSheetP
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
+import {
+  registerAutoDownloadBackgroundFetch,
+  registerAutoDownloadBackgroundNotificationTask,
+} from './src/downloads/autoDownloadBackgroundBootstrap';
 import { downloadManager } from './src/downloads/downloadManager';
 import { ActionErrorProvider } from './src/feedback/ActionErrorProvider';
 import { initializeI18n } from './src/i18n';
@@ -59,6 +63,14 @@ export default function App() {
       .then(() =>
         downloadManager.hydrate().catch((error: unknown) => {
           console.warn('[downloads] hydrate failed', error);
+        })
+      )
+      .then(() =>
+        Promise.all([
+          registerAutoDownloadBackgroundNotificationTask(),
+          registerAutoDownloadBackgroundFetch(),
+        ]).catch((error: unknown) => {
+          console.warn('[auto-download] background registration failed', error);
         })
       )
       .catch((error) => {

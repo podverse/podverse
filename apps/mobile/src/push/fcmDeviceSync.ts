@@ -3,15 +3,14 @@ import * as SecureStore from 'expo-secure-store';
 import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
 import { requestWithMobileAuthRefreshIfSignedIn } from '../auth/authRequestWithRefresh';
 import { createMobileApiRequestService } from '../auth/mobileApi';
-import { createUuid } from '../lib/createUuid';
 import {
   getFcmDeviceToken,
   getFcmPermissionStatus,
   getFcmTransportPlatform,
   onFcmDeviceTokenRefresh,
 } from './fcmTransport';
+import { getOrCreateInstallationId, readInstallationId } from './installationId';
 
-const INSTALLATION_ID_KEY = 'push.installationId';
 const REGISTERED_FCM_TOKEN_KEY = 'push.fcm.registeredToken';
 
 let stopTokenRefreshSubscription: (() => void) | null = null;
@@ -26,17 +25,6 @@ const writeSecureValue = async (key: string, value: string): Promise<void> => {
 
 const deleteSecureValue = async (key: string): Promise<void> => {
   await SecureStore.deleteItemAsync(key);
-};
-
-const getOrCreateInstallationId = async (): Promise<string> => {
-  const existingId = await readSecureValue(INSTALLATION_ID_KEY);
-  if (existingId !== null && existingId !== '') {
-    return existingId;
-  }
-
-  const generatedId = createUuid();
-  await writeSecureValue(INSTALLATION_ID_KEY, generatedId);
-  return generatedId;
 };
 
 const syncDeviceTokenWithServer = async ({
@@ -170,7 +158,7 @@ export const unregisterFcmDeviceForAccount = async ({
   }
 
   const [installationId, fcmToken] = await Promise.all([
-    readSecureValue(INSTALLATION_ID_KEY),
+    readInstallationId(),
     readSecureValue(REGISTERED_FCM_TOKEN_KEY),
   ]);
 

@@ -32,6 +32,11 @@ export type { CreateClipInput, UpdateClipInput } from './clipRepository';
 export { homeClipsCacheRepository } from './homeClipsCacheRepository';
 export { downloadsRepository } from './downloadsRepository';
 export type { UnsubscribedDownloadChannel } from './downloadsRepository';
+export { autoDownloadRepository } from './autoDownloadRepository';
+export type {
+  ChannelAutoDownloadRecord,
+  ChannelAutoDownloadSource,
+} from './autoDownloadRepository';
 export { notificationsRepository } from './notificationsRepository';
 export { playbackContentRepository } from './playbackContentRepository';
 export {

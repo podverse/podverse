@@ -90,6 +90,44 @@ class AccountNotificationChannelTypeController {
       { skipMembershipStatus: true }
     );
   }
+
+  static async bulkSetType(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        const bodySchema = Joi.object({
+          type: Joi.string()
+            .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+            .required(),
+          enabled: Joi.boolean().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { type, enabled } = req.body as {
+              type: AccountNotificationTypeEnum;
+              enabled: boolean;
+            };
+            const result =
+              await AccountNotificationChannelTypeController.accountNotificationChannelTypeService.setTypeForAllChannels(
+                jwtUser.id,
+                type,
+                enabled
+              );
+            res.json(result);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      {
+        skipMembershipStatus: false,
+        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.allowNotifications,
+      }
+    );
+  }
 }
 
 export { AccountNotificationChannelTypeController };

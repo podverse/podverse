@@ -87,4 +87,34 @@ export class AccountNotificationChannelTypeService {
       type,
     });
   }
+
+  /**
+   * Add or remove one notification type across every channel the account has notifications for.
+   */
+  async setTypeForAllChannels(
+    account_id: number,
+    type: AccountNotificationTypeEnum,
+    enabled: boolean
+  ): Promise<{ updated: number }> {
+    const channels =
+      await this.accountNotificationChannelService.getAllByAccountId(account_id, {
+        relations: { channel: true },
+      });
+
+    let updated = 0;
+    for (const notificationChannel of channels) {
+      const channelIdText = notificationChannel.channel?.id_text;
+      if (!channelIdText) {
+        continue;
+      }
+      if (enabled) {
+        await this.create(account_id, channelIdText, type);
+      } else {
+        await this.delete(account_id, channelIdText, type);
+      }
+      updated += 1;
+    }
+
+    return { updated };
+  }
 }

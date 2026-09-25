@@ -10,6 +10,7 @@ import type { NativeCacheBrowseNode } from '../data/nativeCache';
 import { accountRepository } from '../data/repositories/accountRepository';
 import type { AddByRssRefreshTicket } from '../data/repositories/addByRssRepository';
 import { addByRssRepository } from '../data/repositories/addByRssRepository';
+import { autoDownloadRepository } from '../data/repositories/autoDownloadRepository';
 import { channelItemsRepository } from '../data/repositories/channelItemsRepository';
 import type { ChannelItemWindow } from '../data/repositories/channelItemWindow';
 import { channelLiveStatusRepository } from '../data/repositories/channelLiveStatusRepository';
@@ -21,6 +22,9 @@ import { queueRepository } from '../data/repositories/queueRepository';
 import type { SubscribedChannel } from '../data/repositories/subscriptionsRepository';
 import { subscriptionsRepository } from '../data/repositories/subscriptionsRepository';
 import type { MobileAuthRequestContext } from '../data/repositories/types';
+import { shouldDeferAutoDownloadEvaluateToCatchUp } from '../downloads/autoDownloadCatchUpSession';
+import { runAutoDownloadEvaluate } from '../downloads/autoDownloadEvaluate';
+import { runAutoDownloadRegistration } from '../downloads/autoDownloadRegistration';
 import { readIsPlayingLocallyForSync } from '../playback/playbackSyncState';
 import {
   DEFAULT_HOME_RANGE,
@@ -34,7 +38,7 @@ import { publishQueueDataChanged } from './queueDataRevision';
 import type { SyncJobKind } from './syncJobKinds';
 import { SYNC_JOB_LABEL_KEYS } from './syncJobKinds';
 import type { PlannedSyncJob } from './syncJobPlan';
-import type { SyncJob, SyncJobPriority } from './syncQueue';
+import type { SyncJob, SyncJobContext, SyncJobPriority } from './syncQueue';
 import { DEFAULT_SYNC_JOB_TIMEOUT_MS } from './syncQueue';
 
 /**
@@ -103,6 +107,40 @@ const channelItemsTimeoutMs = (depth: number): number => {
   );
 };
 
+const createAutoDownloadEvaluateJob = (
+  deps: SyncJobDeps,
+  priority: SyncJobPriority,
+  channelIdTexts?: readonly string[]
+): SyncJob => {
+  const dedupe =
+    channelIdTexts === undefined || channelIdTexts.length === 0
+      ? 'auto-download-evaluate'
+      : `auto-download-evaluate:${[...channelIdTexts].sort().join(',')}`;
+  return buildJob('auto-download-evaluate', priority, dedupe, async () => {
+    const account = await accountRepository.getSnapshot();
+    const membershipAllows =
+      account !== null &&
+      evaluateFeatureAccess('auto_download', deriveMembershipState(account)).allowed;
+    await runAutoDownloadEvaluate({
+      channelIdTexts,
+      membershipAllows,
+      mode: 'incremental',
+    });
+  });
+};
+
+const enqueueAutoDownloadEvaluateIfReady = (
+  context: SyncJobContext,
+  deps: SyncJobDeps,
+  priority: SyncJobPriority,
+  channelIdTexts: readonly string[]
+): void => {
+  if (shouldDeferAutoDownloadEvaluateToCatchUp()) {
+    return;
+  }
+  context.enqueue(createAutoDownloadEvaluateJob(deps, priority, channelIdTexts));
+};
+
 const createChannelItemsJob = (
   deps: SyncJobDeps,
   priority: SyncJobPriority,
@@ -112,8 +150,12 @@ const createChannelItemsJob = (
     'channel-items',
     priority,
     `channel-items:${window.channelIdText}`,
-    async () => {
+    async (context) => {
       await syncDirectoryChannelOrDropGone(deps.getAuthContext(), window.channelIdText);
+      const settings = await autoDownloadRepository.getByChannelIdText(window.channelIdText);
+      if (settings?.enabled === true) {
+        enqueueAutoDownloadEvaluateIfReady(context, deps, priority, [window.channelIdText]);
+      }
     },
     channelItemsTimeoutMs(window.depth)
   );
@@ -155,9 +197,18 @@ const createAddByRssParseJob = (
   priority: SyncJobPriority,
   ticket: AddByRssRefreshTicket
 ): SyncJob => {
-  return buildJob('add-by-rss-parse', priority, `add-by-rss-parse:${ticket.feedUrl}`, async () => {
-    await addByRssRepository.applyRefreshResult(deps.getAuthContext(), ticket);
-  });
+  return buildJob(
+    'add-by-rss-parse',
+    priority,
+    `add-by-rss-parse:${ticket.feedUrl}`,
+    async (context) => {
+      await addByRssRepository.applyRefreshResult(deps.getAuthContext(), ticket);
+      const settings = await autoDownloadRepository.getByChannelIdText(ticket.feedUrl);
+      if (settings?.enabled === true) {
+        enqueueAutoDownloadEvaluateIfReady(context, deps, priority, [ticket.feedUrl]);
+      }
+    }
+  );
 };
 
 /**
@@ -395,6 +446,24 @@ const createPlaybackReplayJob = (deps: SyncJobDeps, priority: SyncJobPriority): 
   });
 };
 
+const createAutoDownloadRegistrationJob = (
+  deps: SyncJobDeps,
+  priority: SyncJobPriority
+): SyncJob => {
+  return buildJob(
+    'auto-download-registration',
+    priority,
+    'auto-download-registration',
+    async () => {
+      const account = await accountRepository.getSnapshot();
+      if (account === null) {
+        return;
+      }
+      await runAutoDownloadRegistration({ auth: deps.getAuthContext() });
+    }
+  );
+};
+
 const createPushRegistrationJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('push-device-registration', priority, 'push-device-registration', async () => {
     const account = await accountRepository.getSnapshot();
@@ -420,12 +489,16 @@ export const buildSyncJobs = (planned: PlannedSyncJob[], deps: SyncJobDeps): Syn
         return createQueueHydrateJob(deps, priority);
       case 'push-device-registration':
         return createPushRegistrationJob(deps, priority);
+      case 'auto-download-registration':
+        return createAutoDownloadRegistrationJob(deps, priority);
       case 'channel-items-scan':
         return createChannelItemsScanJob(deps, priority);
       case 'add-by-rss-refresh':
         return createAddByRssRefreshJob(deps, priority);
       case 'home-clips':
         return createHomeClipsJob(deps, priority);
+      case 'auto-download-evaluate':
+        return createAutoDownloadEvaluateJob(deps, priority);
       default:
         // The remaining kinds are only ever reached through the job that discovers them, so a plan
         // asking for one directly is a programming error rather than a runtime condition.

@@ -54,6 +54,7 @@ import { compatChannelImageDtos, compatItemImageDtos } from '@podverse/parser-ma
 // import { firebaseAccessTokenServiceFactory } from '@parser/factories/firebaseAccessTokenService.js';
 // import { NotificationsServiceFactory } from '@parser/factories/notificationsService.js';
 import { _request } from '../_request.js';
+import { handleNewItemAutoDownloadPushes } from '../notifications/handleNewItemAutoDownloadPushes.js';
 import { handleNewItemNotifications } from '../notifications/handleNewItemNotifications.js';
 import { handleNewLiveItemNotifications } from '../notifications/handleNewLiveItemNotifications.js';
 import { handleNewRemoteItemNotifications } from '../notifications/handleNewRemoteItemNotifications.js';
@@ -409,6 +410,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
       newItemIdentifiers.newItemGuidEnclosureUrls.length > 0
     ) {
       await handleNewItemNotifications(channel, newItemIdentifiers);
+      await handleNewItemAutoDownloadPushes(channel, newItemIdentifiers);
     }
 
     if (

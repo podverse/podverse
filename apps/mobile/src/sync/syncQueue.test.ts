@@ -301,7 +301,10 @@ describe('planSyncRun', () => {
 
     expect(kindsFor('app-start')).toContain('push-device-registration');
     expect(kindsFor('sign-in')).toContain('push-device-registration');
+    expect(kindsFor('app-start')).toContain('auto-download-registration');
+    expect(kindsFor('sign-in')).toContain('auto-download-registration');
     expect(kindsFor('app-foreground')).not.toContain('push-device-registration');
+    expect(kindsFor('app-foreground')).not.toContain('auto-download-registration');
   });
 
   it('marks a pull-to-refresh as user work so it overtakes an opportunistic pass', () => {

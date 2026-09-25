@@ -26,8 +26,8 @@
   },
   "features": {
     "opml": {
-      "rate_limited_time_one": "1 minute",
-      "rate_limited_time_other": "{minutes} minutes"
+      "rate_limited_time_one": "1 minuto",
+      "rate_limited_time_other": "{minutes} minutos"
     },
     "channel": {
       "section_requires_connection": "Esta sección necesita conexión. Inténtalo de nuevo cuando vuelvas a estar en línea."
@@ -108,6 +108,9 @@
       "cache": "Caché",
       "limit_label": "Límite de descargas",
       "unlimited": "Ilimitado",
+      "auto_download_catch_up_label": "Límite de puesta al día",
+      "auto_download_catch_up_description": "Tras cerrar la app, la descarga automática conserva solo los episodios más recientes de todos tus pódcasts y omite el resto de esa puesta al día. Los episodios que llegan con la app abierta no tienen este límite.",
+      "auto_download_catch_up_count": "{count} episodios",
       "auto_free_heading": "Liberar espacio automáticamente",
       "auto_delete_on_limit": "Cuando se alcanza mi límite de descargas",
       "auto_delete_on_limit_description": "Elimina primero las descargas finalizadas más antiguas hasta volver a estar por debajo del límite.",

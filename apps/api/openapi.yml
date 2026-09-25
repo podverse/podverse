@@ -921,6 +921,30 @@ components:
       type: object
       description: Operation-specific response payload for GET /account/opml/import/status/{request_id} (200).
       additionalProperties: true
+    ApiPutAccountAutoDownloadChannelsRequest:
+      type: object
+      description: Operation-specific request payload for PUT /account/auto-download/channels.
+      required:
+        - installation_id
+        - channel_id_texts
+      properties:
+        installation_id:
+          type: string
+          maxLength: 36
+        channel_id_texts:
+          type: array
+          items:
+            type: string
+    ApiPutAccountAutoDownloadChannelsResponse200:
+      type: object
+      description: Operation-specific response payload for PUT /account/auto-download/channels (200).
+      required:
+        - channel_id_texts
+      properties:
+        channel_id_texts:
+          type: array
+          items:
+            type: string
     ApiGetAccountFcmDeviceAllForAccountResponse200:
       type: object
       description: Operation-specific response payload for GET /account/fcm-device/all-for-account (200).
@@ -4164,6 +4188,193 @@ paths:
           description: >
             Not found. Unknown or unauthorized request ids return
             `code` `OPML_REQUEST_NOT_FOUND` with an English `message`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notification/channels/bulk-enable:
+    post:
+      operationId: apiPostAccountNotificationChannelsBulkEnable
+      tags:
+        - account
+      summary: POST /account/notification/channels/bulk-enable
+      description: Enable notifications for every followed channel that does not already have a row. Authenticated.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - created
+                properties:
+                  created:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notification/channels/bulk-disable:
+    post:
+      operationId: apiPostAccountNotificationChannelsBulkDisable
+      tags:
+        - account
+      summary: POST /account/notification/channels/bulk-disable
+      description: Remove every per-channel notification row for the account. Authenticated.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - deleted
+                properties:
+                  deleted:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notification/channels/bulk-type:
+    post:
+      operationId: apiPostAccountNotificationChannelsBulkType
+      tags:
+        - account
+      summary: POST /account/notification/channels/bulk-type
+      description: Add or remove one notification type across every channel with notifications. Authenticated.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - enabled
+              properties:
+                type:
+                  type: string
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - updated
+                properties:
+                  updated:
+                    type: integer
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/auto-download/channels:
+    put:
+      operationId: apiPutAccountAutoDownloadChannels
+      tags:
+        - account
+      summary: PUT /account/auto-download/channels
+      description: Replace the full set of auto-download channel registrations for one installation. Authenticated endpoint (cookieAuth or bearerAuth). Requires valid membership.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPutAccountAutoDownloadChannelsRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPutAccountAutoDownloadChannelsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
           content:
             application/json:
               schema:

@@ -293,6 +293,33 @@ export const MIGRATIONS: Migration[] = [
         ON playlist_resource (playlist_id_text, updated_at DESC);`,
     ],
   },
+  {
+    version: 18,
+    statements: [
+      // Per-channel auto-download opt-in. enabled_at is the watermark so enabling never backfills.
+      `CREATE TABLE IF NOT EXISTS channel_auto_download (
+        channel_id_text TEXT PRIMARY KEY NOT NULL,
+        source TEXT NOT NULL,
+        enabled INTEGER NOT NULL,
+        allow_cellular INTEGER NOT NULL,
+        enabled_at INTEGER,
+        updated_at INTEGER NOT NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_channel_auto_download_enabled
+        ON channel_auto_download (enabled);`,
+      // One decision per item. user_removed keeps a deleted download from being re-fetched.
+      `CREATE TABLE IF NOT EXISTS auto_download_candidate (
+        item_id_text TEXT PRIMARY KEY NOT NULL,
+        channel_id_text TEXT NOT NULL,
+        status TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_auto_download_candidate_channel_status
+        ON auto_download_candidate (channel_id_text, status);`,
+      `CREATE INDEX IF NOT EXISTS idx_auto_download_candidate_status
+        ON auto_download_candidate (status);`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

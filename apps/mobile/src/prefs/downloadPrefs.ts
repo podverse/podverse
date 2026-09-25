@@ -1,5 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import {
+  AUTO_DOWNLOAD_CATCH_UP_LIMIT_PRESETS,
+  DEFAULT_AUTO_DOWNLOAD_CATCH_UP_LIMIT,
+} from '../downloads/autoDownloadPlanner';
+import type { AutoDownloadCatchUpLimit } from '../downloads/autoDownloadPlanner';
 import { DEFAULT_DOWNLOAD_QUOTA_BYTES } from '../downloads/downloadQuota';
 import { DEFAULT_DOWNLOAD_AUTO_DELETE, getPref, setPref } from './prefsStore';
 
@@ -10,11 +15,20 @@ import { DEFAULT_DOWNLOAD_AUTO_DELETE, getPref, setPref } from './prefsStore';
 
 const DOWNLOAD_AUTO_DELETE_DEVICE_LOW_KEY = 'downloads.auto_delete_device_low';
 const DOWNLOAD_QUOTA_BYTES_KEY = 'downloads.quota_bytes';
+const DOWNLOAD_AUTO_DOWNLOAD_DEFAULT_KEY = 'downloads.auto_download_default';
+const DOWNLOAD_AUTO_DOWNLOAD_CELLULAR_DEFAULT_KEY = 'downloads.auto_download_cellular_default';
+const DOWNLOAD_AUTO_DOWNLOAD_CATCH_UP_LIMIT_KEY = 'downloads.auto_download_catch_up_limit';
 
 /** Sentinel stored for an uncapped download library. */
 export const DOWNLOAD_QUOTA_UNLIMITED = 0;
 
 export const DEFAULT_DOWNLOAD_AUTO_DELETE_DEVICE_LOW = false;
+
+/** New subscriptions inherit this; off so users must opt in. */
+export const DEFAULT_AUTO_DOWNLOAD_ON_SUBSCRIBE = false;
+
+/** New auto-download channels inherit Wi‑Fi-only unless the user opts into cellular. */
+export const DEFAULT_AUTO_DOWNLOAD_ALLOW_CELLULAR = false;
 
 export type DownloadQuotaOptionBytes = typeof DOWNLOAD_QUOTA_UNLIMITED | number;
 
@@ -91,3 +105,53 @@ export const writeDownloadQuotaBytes = async (bytes: number): Promise<void> => {
 
 export const isDownloadQuotaUnlimited = (quotaBytes: number): boolean =>
   quotaBytes === DOWNLOAD_QUOTA_UNLIMITED;
+
+const readStoredBoolean = async (key: string, fallback: boolean): Promise<boolean> => {
+  const stored = await AsyncStorage.getItem(key);
+  if (stored === 'true') {
+    return true;
+  }
+  if (stored === 'false') {
+    return false;
+  }
+  return fallback;
+};
+
+export const readAutoDownloadDefaultEnabled = async (): Promise<boolean> =>
+  readStoredBoolean(DOWNLOAD_AUTO_DOWNLOAD_DEFAULT_KEY, DEFAULT_AUTO_DOWNLOAD_ON_SUBSCRIBE);
+
+export const writeAutoDownloadDefaultEnabled = async (enabled: boolean): Promise<void> => {
+  await AsyncStorage.setItem(DOWNLOAD_AUTO_DOWNLOAD_DEFAULT_KEY, enabled ? 'true' : 'false');
+};
+
+export const readAutoDownloadCellularDefaultEnabled = async (): Promise<boolean> =>
+  readStoredBoolean(
+    DOWNLOAD_AUTO_DOWNLOAD_CELLULAR_DEFAULT_KEY,
+    DEFAULT_AUTO_DOWNLOAD_ALLOW_CELLULAR
+  );
+
+export const writeAutoDownloadCellularDefaultEnabled = async (enabled: boolean): Promise<void> => {
+  await AsyncStorage.setItem(
+    DOWNLOAD_AUTO_DOWNLOAD_CELLULAR_DEFAULT_KEY,
+    enabled ? 'true' : 'false'
+  );
+};
+
+const isCatchUpLimit = (value: number): value is AutoDownloadCatchUpLimit => {
+  return AUTO_DOWNLOAD_CATCH_UP_LIMIT_PRESETS.some((preset) => preset === value);
+};
+
+export const readAutoDownloadCatchUpLimit = async (): Promise<AutoDownloadCatchUpLimit> => {
+  const stored = await AsyncStorage.getItem(DOWNLOAD_AUTO_DOWNLOAD_CATCH_UP_LIMIT_KEY);
+  if (stored === null) {
+    return DEFAULT_AUTO_DOWNLOAD_CATCH_UP_LIMIT;
+  }
+  const parsed = Number(stored);
+  return isCatchUpLimit(parsed) ? parsed : DEFAULT_AUTO_DOWNLOAD_CATCH_UP_LIMIT;
+};
+
+export const writeAutoDownloadCatchUpLimit = async (
+  limit: AutoDownloadCatchUpLimit
+): Promise<void> => {
+  await AsyncStorage.setItem(DOWNLOAD_AUTO_DOWNLOAD_CATCH_UP_LIMIT_KEY, String(limit));
+};

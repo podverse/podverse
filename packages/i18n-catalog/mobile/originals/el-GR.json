@@ -26,8 +26,8 @@
   },
   "features": {
     "opml": {
-      "rate_limited_time_one": "1 minute",
-      "rate_limited_time_other": "{minutes} minutes"
+      "rate_limited_time_one": "1 λεπτό",
+      "rate_limited_time_other": "{minutes} λεπτά"
     },
     "channel": {
       "section_requires_connection": "Αυτή η ενότητα χρειάζεται σύνδεση. Δοκιμάστε ξανά όταν είστε πάλι συνδεδεμένοι."
@@ -108,6 +108,9 @@
       "cache": "Cache",
       "limit_label": "Όριο λήψεων",
       "unlimited": "Απεριόριστο",
+      "auto_download_catch_up_label": "Όριο αναπλήρωσης",
+      "auto_download_catch_up_description": "Μετά το κλείσιμο της εφαρμογής, η αυτόματη λήψη κρατά μόνο τα νεότερα επεισόδια από όλα τα podcast και παραλείπει τα υπόλοιπα αυτής της αναπλήρωσης. Τα επεισόδια που φτάνουν όσο η εφαρμογή είναι ανοιχτή δεν περιορίζονται από αυτή τη ρύθμιση.",
+      "auto_download_catch_up_count": "{count} επεισόδια",
       "auto_free_heading": "Αυτόματη απελευθέρωση χώρου",
       "auto_delete_on_limit": "Όταν φτάσει το όριο λήψεων",
       "auto_delete_on_limit_description": "Διαγράφει πρώτα τις παλαιότερες ολοκληρωμένες λήψεις μέχρι να επανέλθετε κάτω από το όριο.",

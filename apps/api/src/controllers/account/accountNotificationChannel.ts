@@ -113,6 +113,49 @@ class AccountNotificationChannelController {
       { skipMembershipStatus: true }
     );
   }
+
+  static async bulkEnable(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        try {
+          const jwtUser = getAuthenticatedUser(req);
+          const result =
+            await AccountNotificationChannelController.accountNotificationChannelService.enableForAllFollowedChannels(
+              jwtUser.id
+            );
+          res.json(result);
+        } catch (err) {
+          handleGenericErrorResponse(res, err);
+        }
+      },
+      {
+        skipMembershipStatus: false,
+        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.allowNotifications,
+      }
+    );
+  }
+
+  static async bulkDisable(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        try {
+          const jwtUser = getAuthenticatedUser(req);
+          const result =
+            await AccountNotificationChannelController.accountNotificationChannelService.disableAll(
+              jwtUser.id
+            );
+          res.json(result);
+        } catch (err) {
+          handleGenericErrorResponse(res, err);
+        }
+      },
+      { skipMembershipStatus: true }
+    );
+  }
 }
 
 export { AccountNotificationChannelController };

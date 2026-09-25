@@ -5,18 +5,21 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { DTOAccountNotificationPreference } from '@podverse/helpers';
 import { NotificationCategoryEnum } from '@podverse/helpers';
 
+import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import type { SyncedNotificationType } from '../../auth/syncAccountPrefs';
 import {
   syncAutoEnableOnSubscribeToAccountSettings,
   syncNotificationTypeToAccountSettings,
 } from '../../auth/syncAccountPrefs';
+import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
 import { ToggleSwitch } from '../../components/primitives/ToggleSwitch';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
+import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { resolveSupportedLocale } from '../../i18n/locale';
 import { NOTIFICATION_TYPE_ROWS } from '../../lib/notifications/notificationTypeRows';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
@@ -89,6 +92,10 @@ export function MoreSettingsNotificationsScreen() {
     useState<boolean>(false);
   const [showNotificationPermissionHint, setShowNotificationPermissionHint] =
     useState<boolean>(false);
+  const [applyDialog, setApplyDialog] = useState<null | 'auto_enable' | 'type_default'>(null);
+  const [pendingDefault, setPendingDefault] = useState<boolean>(false);
+  const [pendingType, setPendingType] = useState<SyncedNotificationType | null>(null);
+  const [affectedCount, setAffectedCount] = useState(0);
 
   const selectedLocale = resolveSupportedLocale(i18n.language);
 
@@ -159,6 +166,22 @@ export function MoreSettingsNotificationsScreen() {
           enabled: nextValue,
           setAccount,
         });
+
+        const count = nextValue
+          ? (await subscriptionsRepository.list()).length
+          : (
+              await requestWithMobileAuthRefresh(requestContext, (api) =>
+                api.reqAccountNotificationChannelsGetAll()
+              )
+            ).length;
+
+        if (count === 0) {
+          return;
+        }
+
+        setPendingDefault(nextValue);
+        setAffectedCount(count);
+        setApplyDialog('auto_enable');
       } catch (error) {
         if (handleGateError(error)) {
           return;
@@ -185,6 +208,18 @@ export function MoreSettingsNotificationsScreen() {
           setAccount,
           type,
         });
+
+        const channels = await requestWithMobileAuthRefresh(requestContext, (api) =>
+          api.reqAccountNotificationChannelsGetAll()
+        );
+        if (channels.length === 0) {
+          return;
+        }
+
+        setPendingType(type);
+        setPendingDefault(nextValue);
+        setAffectedCount(channels.length);
+        setApplyDialog('type_default');
       } catch (error) {
         if (handleGateError(error)) {
           return;
@@ -194,6 +229,43 @@ export function MoreSettingsNotificationsScreen() {
     },
     [handleGateError, isAuthenticated, requestContext, setAccount, showNotificationLoginAlert]
   );
+
+  const confirmApplyDialog = useCallback(async () => {
+    const dialog = applyDialog;
+    setApplyDialog(null);
+    if (dialog === null) {
+      return;
+    }
+
+    try {
+      if (dialog === 'auto_enable') {
+        if (pendingDefault) {
+          await requestWithMobileAuthRefresh(requestContext, (api) =>
+            api.reqAccountNotificationChannelsBulkEnable()
+          );
+        } else {
+          await requestWithMobileAuthRefresh(requestContext, (api) =>
+            api.reqAccountNotificationChannelsBulkDisable()
+          );
+        }
+        return;
+      }
+
+      if (dialog === 'type_default' && pendingType !== null) {
+        await requestWithMobileAuthRefresh(requestContext, (api) =>
+          api.reqAccountNotificationChannelsBulkType({
+            enabled: pendingDefault,
+            type: pendingType,
+          })
+        );
+      }
+    } catch (error) {
+      if (handleGateError(error)) {
+        return;
+      }
+      setErrorMessageKey('errors.generic');
+    }
+  }, [applyDialog, handleGateError, pendingDefault, pendingType, requestContext]);
 
   const handleNotificationPreferenceToggle = useCallback(
     async (params: {
@@ -353,6 +425,38 @@ export function MoreSettingsNotificationsScreen() {
 
   return (
     <MobileScreenContainer testID="more-settings-notifications-screen">
+      <ConfirmDialog
+        body={
+          applyDialog === 'type_default'
+            ? t('settings.notifications.type_default_apply_body', { count: affectedCount })
+            : t('settings.notifications.auto_enable_apply_body', { count: affectedCount })
+        }
+        cancelLabel={
+          applyDialog === 'type_default'
+            ? t('settings.notifications.type_default_apply_new_only')
+            : t('settings.notifications.auto_enable_apply_new_only')
+        }
+        cancelTestID="more-settings-notifications-apply-new-only"
+        confirmLabel={
+          applyDialog === 'type_default'
+            ? t('settings.notifications.type_default_apply_all')
+            : t('settings.notifications.auto_enable_apply_all')
+        }
+        confirmTestID="more-settings-notifications-apply-all"
+        onCancel={() => {
+          setApplyDialog(null);
+        }}
+        onConfirm={() => {
+          void confirmApplyDialog();
+        }}
+        testID="more-settings-notifications-apply-dialog"
+        title={
+          applyDialog === 'type_default'
+            ? t('settings.notifications.type_default_apply_title')
+            : t('settings.notifications.auto_enable_apply_title')
+        }
+        visible={applyDialog !== null}
+      />
       <Card
         padded={false}
         style={styles.cardSpacing}
@@ -368,6 +472,7 @@ export function MoreSettingsNotificationsScreen() {
                 onValueChange={(nextValue) => {
                   void handleAutoEnableOnSubscribeToggle(nextValue);
                 }}
+                testID="more-settings-notification-auto-enable-on-subscribe-switch"
                 value={autoEnableOnSubscribe}
               />
             }

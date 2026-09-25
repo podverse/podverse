@@ -12,6 +12,7 @@ import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { AddByRssFeedRow } from '../db/schema';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
 import { channelSeenRepository } from './channelSeenRepository';
+import { autoDownloadRepository } from './autoDownloadRepository';
 import type { MobileAuthRequestContext } from './types';
 
 const isResourceType = (value: string): value is MobileAddByRSSFeedRecord['resourceType'] => {
@@ -139,6 +140,13 @@ export const addByRssRepository = {
   ): Promise<void> => {
     await initializeDatabase();
 
+    const existingRows = await getDb()
+      .select({ feedUrl: schema.addByRssFeed.feedUrl })
+      .from(schema.addByRssFeed)
+      .where(eq(schema.addByRssFeed.feedUrl, record.feedUrl))
+      .limit(1);
+    const isNewFeed = existingRows.length === 0;
+
     const baseValues = {
       feedUrl: record.feedUrl,
       id: record.id,
@@ -164,6 +172,14 @@ export const addByRssRepository = {
           set: { ...baseValues, ...parsedValues },
         });
       await channelLiveStatusRepository.setFromAddByRssBundle(record.feedUrl, mappedFeed);
+      if (isNewFeed) {
+        void autoDownloadRepository
+          .seedFromGlobalDefaults({
+            channelIdText: record.feedUrl,
+            source: 'add_by_rss',
+          })
+          .catch(() => undefined);
+      }
       return;
     }
 
@@ -178,6 +194,14 @@ export const addByRssRepository = {
         target: schema.addByRssFeed.feedUrl,
         set: baseValues,
       });
+    if (isNewFeed) {
+      void autoDownloadRepository
+        .seedFromGlobalDefaults({
+          channelIdText: record.feedUrl,
+          source: 'add_by_rss',
+        })
+        .catch(() => undefined);
+    }
   },
 
   /**
@@ -250,6 +274,7 @@ export const addByRssRepository = {
     await getDb().delete(schema.addByRssFeed).where(eq(schema.addByRssFeed.feedUrl, feedUrl));
     await channelLiveStatusRepository.remove(feedUrl);
     await channelSeenRepository.remove(feedUrl);
+    await autoDownloadRepository.removeChannel(feedUrl);
   },
 
   /** Clear all feeds (session reset / logout). */

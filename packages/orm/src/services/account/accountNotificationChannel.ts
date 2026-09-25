@@ -1,6 +1,7 @@
 import { AppDataSourceReadWrite } from '@orm/db/index.js';
 import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel.js';
 import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
+import { AccountFollowingChannelService } from '@orm/services/account/accountFollowingChannel.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import { ChannelService } from '@orm/services/channel/channel.js';
@@ -113,5 +114,52 @@ export class AccountNotificationChannelService extends BaseManyService<
     }
 
     return this._delete(account, { channel_id: channel.id });
+  }
+
+  /**
+   * Enable notifications for every channel the account follows that does not already have a row.
+   * New rows copy the account's notification type defaults (same as create).
+   */
+  async enableForAllFollowedChannels(account_id: number): Promise<{ created: number }> {
+    const account = await this.accountService.get(account_id);
+    if (!account) {
+      throw new Error('Account not found.');
+    }
+
+    const followingService = new AccountFollowingChannelService();
+    const followed = await followingService.getFollowedChannels(account_id, null, {
+      relations: { channel: true },
+      take: 10000,
+    });
+    const existing = await this.getAllByAccountId(account_id);
+    const existingChannelIds = new Set(existing.map((row) => row.channel_id));
+
+    let created = 0;
+    for (const follow of followed) {
+      const channel = follow.channel;
+      if (!channel || existingChannelIds.has(channel.id)) {
+        continue;
+      }
+      await this.create(account_id, channel.id_text);
+      created += 1;
+    }
+
+    return { created };
+  }
+
+  /** Remove every per-channel notification row for the account. */
+  async disableAll(account_id: number): Promise<{ deleted: number }> {
+    const account = await this.accountService.get(account_id);
+    if (!account) {
+      throw new Error('Account not found.');
+    }
+
+    const existing = await this.getAllByAccountId(account_id);
+    if (existing.length === 0) {
+      return { deleted: 0 };
+    }
+
+    await this.repositoryWrite.delete({ account_id });
+    return { deleted: existing.length };
   }
 }

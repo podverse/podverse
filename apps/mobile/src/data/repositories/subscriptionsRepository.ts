@@ -12,6 +12,7 @@ import {
 import { getDb, initializeDatabase, schema } from '../db';
 import type { SubscribedChannelRow } from '../db/schema';
 import { addByRssRepository } from './addByRssRepository';
+import { autoDownloadRepository } from './autoDownloadRepository';
 import { rememberChannelSubscribed } from './channelActionChromeRepository';
 import { channelItemsRepository } from './channelItemsRepository';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
@@ -242,6 +243,14 @@ export const subscriptionsRepository = {
         },
       });
     rememberChannelSubscribed(entry.idText, true);
+    void autoDownloadRepository
+      .seedFromGlobalDefaults({
+        channelIdText: entry.idText,
+        source: entry.source === 'addByRss' ? 'add_by_rss' : 'directory',
+      })
+      .catch(() => {
+        // Seeding is best-effort; the user can toggle podcast settings later.
+      });
   },
 
   /** Remove a directory subscription locally. Never gated — unsubscribe works in every state. */
@@ -257,6 +266,7 @@ export const subscriptionsRepository = {
     // badge answering a question about a subscription the user already ended.
     await channelSeenRepository.remove(idText);
     await channelLiveStatusRepository.remove(idText);
+    await autoDownloadRepository.removeChannel(idText);
     rememberChannelSubscribed(idText, false);
   },
 

@@ -117,6 +117,10 @@ vi.mock('../notifications/handleNewItemNotifications.js', () => ({
   handleNewItemNotifications: handleNewItemNotificationsMock,
 }));
 
+vi.mock('../notifications/handleNewItemAutoDownloadPushes.js', () => ({
+  handleNewItemAutoDownloadPushes: vi.fn(),
+}));
+
 vi.mock('../notifications/handleNewLiveItemNotifications.js', () => ({
   handleNewLiveItemNotifications: handleNewLiveItemNotificationsMock,
 }));

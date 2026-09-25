@@ -65,6 +65,7 @@ import { MoreFaqScreen } from '../screens/more/MoreFaqScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsAppearanceScreen } from '../screens/more/MoreSettingsAppearanceScreen';
+import { MoreSettingsAutoDownloadCatchUpScreen } from '../screens/more/MoreSettingsAutoDownloadCatchUpScreen';
 import { MoreSettingsDownloadLimitScreen } from '../screens/more/MoreSettingsDownloadLimitScreen';
 import { MoreSettingsDownloadsScreen } from '../screens/more/MoreSettingsDownloadsScreen';
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
@@ -219,6 +220,7 @@ export const MORE_STACK_ROUTES = {
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
   MoreSettingsAppearance: 'MoreSettingsAppearance',
+  MoreSettingsAutoDownloadCatchUp: 'MoreSettingsAutoDownloadCatchUp',
   MoreSettingsDownloadLimit: 'MoreSettingsDownloadLimit',
   MoreSettingsDownloads: 'MoreSettingsDownloads',
   MoreSettingsLocale: 'MoreSettingsLocale',
@@ -274,6 +276,7 @@ const mobileNavigationScreens = {
           MoreRoot: 'more',
           MoreSettings: `more${APP_ROUTES.SETTINGS}`,
           MoreSettingsAppearance: `more${APP_ROUTES.SETTINGS}/appearance`,
+          MoreSettingsAutoDownloadCatchUp: `more${APP_ROUTES.SETTINGS}/downloads/catch-up`,
           MoreSettingsDownloadLimit: `more${APP_ROUTES.SETTINGS}/downloads/limit`,
           MoreSettingsDownloads: `more${APP_ROUTES.SETTINGS}/downloads`,
           MoreSettingsLocale: `more${APP_ROUTES.SETTINGS}/locale`,
@@ -460,6 +463,7 @@ export type MoreStackParamList = {
   MoreRoot: undefined;
   MoreSettings: undefined;
   MoreSettingsAppearance: undefined;
+  MoreSettingsAutoDownloadCatchUp: undefined;
   MoreSettingsDownloadLimit: undefined;
   MoreSettingsDownloads: undefined;
   MoreSettingsLocale: undefined;
@@ -857,6 +861,11 @@ function MoreStackNavigator({
         component={MoreSettingsDownloadsScreen}
         name={MORE_STACK_ROUTES.MoreSettingsDownloads}
         options={{ title: t('nav.tab.downloads') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsAutoDownloadCatchUpScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsAutoDownloadCatchUp}
+        options={{ title: t('settings.downloads.auto_download_catch_up_label') }}
       />
       <MoreStack.Screen
         component={MoreSettingsDownloadLimitScreen}
