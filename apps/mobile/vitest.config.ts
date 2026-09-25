@@ -49,9 +49,11 @@ import { defineConfig } from 'vitest/config';
  * clock-injected, so no timer ever has to elapse in a test; the NetInfo subscription, timers, and
  * health probe stay in `src/net/connectivity.ts` and `src/net/connectivityProbe.ts`), the sync
  * failure taxonomy that
- * produces the quotable error code (`src/sync/syncErrorClassification.ts`), and the sync event log's
- * cap / eviction rule and export format (`src/data/repositories/syncEventLog.ts` — pure; the
- * SQLite half stays in `syncEventLogRepository.ts`). Playback reconciliation is here on the same
+ * produces the quotable error code (`src/sync/syncErrorClassification.ts`), and the error log's
+ * cap / eviction rule, detail storage, and copy/export format (`src/data/repositories/syncEventLog.ts`
+ * — pure; the SQLite half stays in `syncEventLogRepository.ts`) along with the rows playback and
+ * add-by-RSS write into it (`src/playback/playbackErrorLog.ts`,
+ * `src/lib/addByRss/addByRssErrorLog.ts`). Playback reconciliation is here on the same
  * split: the bounded offline outbox ordering and drain batching
  * (`src/data/repositories/playbackOutbox.ts`), the later-wins merge that decides adopt / ignore /
  * report-a-conflict (`src/data/repositories/playbackReconcile.ts`), the meaningful-event gate that
@@ -60,13 +62,19 @@ import { defineConfig } from 'vitest/config';
  * `playbackOutboxRepository.ts` and the RN provider stays in `PlaybackProvider.tsx`. The player
  * chrome's rules sit on the same split: the overlay store's closing phase and transition durations
  * (`src/components/overlay/overlayStore.ts`, `src/components/overlay/overlayTransitions.ts`), the
+ * process-wide Reduce Motion store (`src/hooks/useReduceMotion.ts` — AccessibilityInfo is mocked
+ * so the singleton listener is testable in node), the
  * transport glyph mapping that keeps the spinner to a
  * source that cannot start yet (`src/playback/playbackTransport.ts`), which clip or chapter the
  * now-playing bar names (`src/playback/nowPlayingSegment.ts`), the marquee overflow and travel math
  * (`src/lib/text/marqueeScroll.ts`), reading a 404 as an empty list (`src/lib/apiErrorStatus.ts`),
  * and whether a server refresh should replace what a cache-first screen already painted
- * (`src/lib/cachedValue.ts`), and the universal last-playback snapshot that restores the mini
- * player on cold start for every auth status (`src/lib/playback/lastPlaybackStorage.ts`). The
+ * (`src/lib/cachedValue.ts`), the E2E-gated perf mark/counter buffer
+ * (`src/lib/perf/perfSpans.ts` — env is mocked so both flag states are reachable in node), the
+ * universal last-playback snapshot that restores the mini
+ * player on cold start for every auth status (`src/lib/playback/lastPlaybackStorage.ts`), and the
+ * decision to swap a live remote stream onto a just-finished download of that same enclosure
+ * (`src/lib/playback/planDownloadCompletePlaybackHandoff.ts`). The
  * migration ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
  * connection. Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
@@ -85,6 +93,9 @@ export default defineConfig({
       'src/auth/mobileClientHeaders.test.ts',
       'src/components/overlay/overlayStore.test.ts',
       'src/components/overlay/overlayTransitions.test.ts',
+      'src/components/player/MediaRowActions.test.ts',
+      'src/components/primitives/FillList.test.ts',
+      'src/components/primitives/coverThumbnailCache.test.ts',
       'src/components/player/fullPlayerRows.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/db/migrations.test.ts',
@@ -99,11 +110,19 @@ export default defineConfig({
       'src/data/repositories/subscriptionsSignupPlan.test.ts',
       'src/data/repositories/syncEventLog.test.ts',
       'src/downloads/**/*.test.ts',
+      'src/feedback/actionErrorCopy.test.ts',
+      'src/hooks/useReduceMotion.test.ts',
+      'src/lib/addByRss/addByRssErrorLog.test.ts',
+      'src/lib/addByRss/credentials.test.ts',
       'src/lib/addByRss/domain.test.ts',
+      'src/lib/addByRss/mediaAuth.test.ts',
       'src/lib/apiErrorStatus.test.ts',
       'src/lib/cachedValue.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
+      'src/lib/perf/frameStats.test.ts',
+      'src/lib/perf/perfSpans.test.ts',
       'src/lib/playback/lastPlaybackStorage.test.ts',
+      'src/lib/playback/planDownloadCompletePlaybackHandoff.test.ts',
       'src/lib/rows/homeRowMappers.test.ts',
       'src/lib/share/shareSheetPassthrough.test.ts',
       'src/lib/share/shareUrl.test.ts',
@@ -113,6 +132,7 @@ export default defineConfig({
       'src/navigation/deepLinking.test.ts',
       'src/net/connectivityMachine.test.ts',
       'src/playback/nowPlayingSegment.test.ts',
+      'src/playback/playbackErrorLog.test.ts',
       'src/playback/playbackEventSource.test.ts',
       'src/playback/playbackHandoff.test.ts',
       'src/playback/previousAction.test.ts',
@@ -120,6 +140,7 @@ export default defineConfig({
       'src/prefs/homeListPrefs.test.ts',
       'src/prefs/prefsStore.test.ts',
       'src/push/notificationTarget.test.ts',
+      'src/screens/home/HomeFeedRow.test.ts',
       'src/screens/home/homeRowMetadata.test.ts',
       'src/screens/home/addByRssHomeDetailData.test.ts',
       'src/screens/episode/episodeSectionPaneLoaders.test.ts',
@@ -129,6 +150,7 @@ export default defineConfig({
       'src/sync/syncErrorClassification.test.ts',
       'src/sync/syncQueue.test.ts',
       'src/theme/resolveColumns.test.ts',
+      'src/theme/useThemedStyles.test.ts',
     ],
   },
 });

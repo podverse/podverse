@@ -9,8 +9,7 @@ import { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
-import { OptionChipGroup, TextField } from '../../components/form';
-import { Button } from '../../components/primitives';
+import { FormActions, FormField, OptionChipGroup, TextField } from '../../components/form';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { LoadingSection } from '../../components/state/LoadingSection';
@@ -18,6 +17,7 @@ import { playlistRepository } from '../../data';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
+import { formActionsGap, formActionsTopGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type PlaylistFormScreenProps = NativeStackScreenProps<
@@ -95,28 +95,27 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
     () =>
       StyleSheet.create({
         actions: {
-          flexDirection: 'row',
-          gap: tokens.spacing.md,
-          marginTop: tokens.spacing.xl,
+          marginTop: formActionsTopGap(tokens.spacing),
+        },
+        deleteAction: {
+          marginTop: formActionsGap(tokens.spacing),
         },
         error: {
           color: themeStyles.textSecondary.color,
           fontSize: 13,
           marginTop: tokens.spacing.md,
         },
-        field: {
-          marginTop: tokens.spacing.md,
-        },
-        label: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 15,
-          fontWeight: '600',
-          marginTop: tokens.spacing.lg,
+        fields: {
+          gap: tokens.spacing.lg,
         },
         notice: {
           color: themeStyles.textSecondary.color,
           fontSize: 14,
           marginTop: tokens.spacing.md,
+        },
+        readOnlyValue: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 15,
         },
       }),
     [themeStyles, tokens]
@@ -236,9 +235,6 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
     }
   }, [authArgs, editPlaylistId, handleGateError, isDeleting, navigation]);
 
-  const heading = isEdit
-    ? t('features.playlist.edit_playlist')
-    : t('features.playlist.create_playlist');
   const mediumOptions = PLAYLIST_MEDIUM_OPTIONS.map((option) => ({
     label: t(option.labelKey),
     testID: option.testId,
@@ -273,67 +269,73 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
 
   if (isEdit && !isOwner) {
     return (
-      <MobileScreenContainer heading={heading} testID="playlist-form-screen">
+      <MobileScreenContainer testID="playlist-form-screen">
         <Text style={styles.notice} testID="playlist-form-not-owner">
           {errorKey !== null ? t(errorKey) : t('errors.generic')}
         </Text>
-        <View style={styles.actions}>
-          <Button
-            label={t('misc.go_back')}
-            onPress={() => {
-              navigation.goBack();
-            }}
-            testID="playlist-form-cancel"
-            variant="secondary"
-          />
-        </View>
+        <FormActions
+          actions={[
+            {
+              label: t('misc.go_back'),
+              onPress: () => {
+                navigation.goBack();
+              },
+              testID: 'playlist-form-cancel',
+              variant: 'secondary',
+            },
+          ]}
+          style={styles.actions}
+        />
       </MobileScreenContainer>
     );
   }
 
   return (
-    <MobileScreenContainer heading={heading} testID="playlist-form-screen">
-      <TextField
-        accessibilityLabel={t('misc.title')}
-        eyebrow={t('misc.title')}
-        onChangeText={setTitle}
-        placeholder={t('misc.required')}
-        testID="playlist-form-title"
-        value={title}
-      />
-
-      <TextField
-        accessibilityLabel={t('misc.description')}
-        eyebrow={t('misc.description')}
-        multiline
-        onChangeText={setDescription}
-        placeholder={t('misc.optional')}
-        style={styles.field}
-        testID="playlist-form-description"
-        value={description}
-      />
-
-      <Text style={styles.label}>{t('media.podcast.podcasts')}</Text>
-      {!isEdit ? (
-        <OptionChipGroup
-          onChange={setMedium}
-          options={mediumOptions}
-          testID="playlist-form-medium-chips"
-          value={medium}
+    <MobileScreenContainer testID="playlist-form-screen">
+      <View style={styles.fields}>
+        <TextField
+          accessibilityLabel={t('misc.title')}
+          eyebrow={t('misc.title')}
+          onChangeText={setTitle}
+          placeholder={t('misc.required')}
+          testID="playlist-form-title"
+          value={title}
         />
-      ) : (
-        <Text style={styles.notice} testID="playlist-form-medium-readonly">
-          {t(medium === MUSIC_MEDIUM ? 'media.music.music' : 'media.podcast.podcasts')}
-        </Text>
-      )}
 
-      <Text style={styles.label}>{t('misc.sharable_status.sharable_status')}</Text>
-      <OptionChipGroup
-        onChange={setSharableStatusId}
-        options={sharableOptions}
-        testID="playlist-form-sharable-chips"
-        value={sharableStatusId}
-      />
+        <TextField
+          accessibilityLabel={t('misc.description')}
+          eyebrow={t('misc.description')}
+          multiline
+          onChangeText={setDescription}
+          placeholder={t('misc.optional')}
+          testID="playlist-form-description"
+          value={description}
+        />
+
+        <FormField label={t('features.playlist.playlist_type')}>
+          {!isEdit ? (
+            <OptionChipGroup
+              onChange={setMedium}
+              options={mediumOptions}
+              testID="playlist-form-medium-chips"
+              value={medium}
+            />
+          ) : (
+            <Text style={styles.readOnlyValue} testID="playlist-form-medium-readonly">
+              {t(medium === MUSIC_MEDIUM ? 'media.music.music' : 'media.podcast.podcasts')}
+            </Text>
+          )}
+        </FormField>
+
+        <FormField label={t('misc.sharable_status.sharable_status')}>
+          <OptionChipGroup
+            onChange={setSharableStatusId}
+            options={sharableOptions}
+            testID="playlist-form-sharable-chips"
+            value={sharableStatusId}
+          />
+        </FormField>
+      </View>
 
       {errorKey !== null ? (
         <Text style={styles.error} testID="playlist-form-error">
@@ -341,38 +343,44 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
         </Text>
       ) : null}
 
-      <View style={styles.actions}>
-        <Button
-          disabled={!canSubmit || isDeleting}
-          label={isSubmitting ? t('misc.saving') : t('misc.save')}
-          loading={isSubmitting}
-          onPress={() => {
-            void handleSubmit();
-          }}
-          testID="playlist-form-submit"
-        />
-        <Button
-          label={t('misc.cancel')}
-          onPress={() => {
-            navigation.goBack();
-          }}
-          testID="playlist-form-cancel"
-          variant="secondary"
-        />
-      </View>
+      <FormActions
+        actions={[
+          {
+            label: t('misc.cancel'),
+            onPress: () => {
+              navigation.goBack();
+            },
+            testID: 'playlist-form-cancel',
+            variant: 'secondary',
+          },
+          {
+            disabled: !canSubmit || isDeleting,
+            label: isSubmitting ? t('misc.saving') : t('misc.save'),
+            loading: isSubmitting,
+            onPress: () => {
+              void handleSubmit();
+            },
+            testID: 'playlist-form-submit',
+          },
+        ]}
+        style={styles.actions}
+      />
       {isEdit ? (
-        <View style={styles.actions}>
-          <Button
-            disabled={isDeleting || isSubmitting}
-            label={t('features.playlist.delete_playlist')}
-            loading={isDeleting}
-            onPress={() => {
-              setShowDeleteConfirm(true);
-            }}
-            testID="playlist-form-delete"
-            variant="danger"
-          />
-        </View>
+        <FormActions
+          actions={[
+            {
+              disabled: isDeleting || isSubmitting,
+              label: t('features.playlist.delete_playlist'),
+              loading: isDeleting,
+              onPress: () => {
+                setShowDeleteConfirm(true);
+              },
+              testID: 'playlist-form-delete',
+              variant: 'danger',
+            },
+          ]}
+          style={styles.deleteAction}
+        />
       ) : null}
       <ConfirmDialog
         body={t('features.playlist.delete_playlist_confirm')}

@@ -13,7 +13,8 @@ import {
   registerUnifiedPushDeviceForAccount,
   syncUnifiedPushDeviceLocaleIfRegistered,
 } from '../push/unifiedPushDeviceSync';
-import { createMobileApiRequestService } from './mobileApi';
+import type { AuthRequestDeps } from './authRequestWithRefresh';
+import { requestWithMobileAuthRefreshIfSignedIn } from './authRequestWithRefresh';
 
 export type SyncedNotificationType = 'livestream-scheduled' | 'livestream-started' | 'new-item';
 
@@ -53,44 +54,44 @@ export const reconcileAccountPrefsFromAccount = async (account: DTOAccount): Pro
  * of a support conversation instead of only in a console nobody reads.
  */
 export const registerPushDeviceForAccount = async ({
-  accessToken,
   account,
+  auth,
 }: {
-  accessToken: string | null;
   account: DTOAccount;
+  auth: AuthRequestDeps;
 }): Promise<void> => {
+  if (auth.accessToken === null) {
+    return;
+  }
+
   const locale = resolveSupportedLocale(account.account_settings?.account_settings_locale?.locale);
   const pushProvider = getMobileConfig().pushProvider;
 
   if (pushProvider === 'fcm') {
-    await registerFcmDeviceForAccount({ accessToken, locale });
+    await registerFcmDeviceForAccount({ auth, locale });
   } else if (pushProvider === 'unifiedpush') {
-    await registerUnifiedPushDeviceForAccount({ accessToken, locale });
+    await registerUnifiedPushDeviceForAccount({ auth, locale });
   }
 };
 
 export const syncPlaybackPreferenceToAccount = async ({
-  accessToken,
+  auth,
   preferredMediaType,
   setAccount,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   preferredMediaType: MediaTypePreference;
   setAccount: SetAccount;
 }): Promise<void> => {
-  if (accessToken === null) {
-    return;
-  }
-
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
   try {
-    const account = await api.reqAccountSettingsPlaybackUpdate({
-      preferred_media_type: preferredMediaType,
-    });
+    const account = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+      api.reqAccountSettingsPlaybackUpdate({
+        preferred_media_type: preferredMediaType,
+      })
+    );
+    if (account === null) {
+      return;
+    }
     await updateAccountWithServerResponse(account, setAccount);
   } catch (error) {
     console.warn('Failed to sync playback preference to account settings', error);
@@ -98,31 +99,27 @@ export const syncPlaybackPreferenceToAccount = async ({
 };
 
 export const syncLocaleToAccountSettings = async ({
-  accessToken,
+  auth,
   locale,
   setAccount,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
   setAccount: SetAccount;
 }): Promise<void> => {
-  if (accessToken === null) {
-    return;
-  }
-
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
   try {
-    const account = await api.reqAccountSettingsLocaleUpdate({ locale });
+    const account = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+      api.reqAccountSettingsLocaleUpdate({ locale })
+    );
+    if (account === null) {
+      return;
+    }
     await updateAccountWithServerResponse(account, setAccount);
     const pushProvider = getMobileConfig().pushProvider;
     if (pushProvider === 'fcm') {
-      await syncFcmDeviceLocaleIfRegistered({ accessToken, locale });
+      await syncFcmDeviceLocaleIfRegistered({ auth, locale });
     } else if (pushProvider === 'unifiedpush') {
-      await syncUnifiedPushDeviceLocaleIfRegistered({ accessToken, locale });
+      await syncUnifiedPushDeviceLocaleIfRegistered({ auth, locale });
     }
   } catch (error) {
     console.warn('Failed to sync locale to account settings', error);
@@ -131,26 +128,22 @@ export const syncLocaleToAccountSettings = async ({
 
 export const syncAllowListenStatsToAccountSettings = async ({
   accepted,
-  accessToken,
+  auth,
   setAccount,
 }: {
   accepted: boolean;
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   setAccount: SetAccount;
 }): Promise<void> => {
-  if (accessToken === null) {
-    return;
-  }
-
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
   try {
-    const account = await api.reqAccountSettingsListenStatsUpdate({
-      accepted,
-    });
+    const account = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+      api.reqAccountSettingsListenStatsUpdate({
+        accepted,
+      })
+    );
+    if (account === null) {
+      return;
+    }
     await updateAccountWithServerResponse(account, setAccount);
   } catch (error) {
     console.warn('Failed to sync listen-stats setting to account settings', error);
@@ -158,27 +151,23 @@ export const syncAllowListenStatsToAccountSettings = async ({
 };
 
 export const syncAutoEnableOnSubscribeToAccountSettings = async ({
-  accessToken,
+  auth,
   enabled,
   setAccount,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   enabled: boolean;
   setAccount: SetAccount;
 }): Promise<void> => {
-  if (accessToken === null) {
-    return;
-  }
-
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
   try {
-    const account = await api.reqAccountSettingsNotificationUpdate({
-      auto_enable_on_subscribe: enabled,
-    });
+    const account = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+      api.reqAccountSettingsNotificationUpdate({
+        auto_enable_on_subscribe: enabled,
+      })
+    );
+    if (account === null) {
+      return;
+    }
     await updateAccountWithServerResponse(account, setAccount);
   } catch (error) {
     console.warn('Failed to sync auto-enable-on-subscribe to account settings', error);
@@ -197,28 +186,24 @@ export const syncAutoEnableOnSubscribeToAccountSettings = async ({
  * instead of a generic message.
  */
 export const syncChannelNotificationEnabled = async ({
-  accessToken,
+  auth,
   channelIdText,
   enabled,
   setAccount,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   channelIdText: string;
   enabled: boolean;
   setAccount: SetAccount;
 }): Promise<void> => {
-  if (accessToken === null) {
+  const account = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+    enabled
+      ? api.reqAccountNotificationChannelCreate({ channel_id_text: channelIdText })
+      : api.reqAccountNotificationChannelDelete({ channel_id_text: channelIdText })
+  );
+  if (account === null) {
     return;
   }
-
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
-  const account = enabled
-    ? await api.reqAccountNotificationChannelCreate({ channel_id_text: channelIdText })
-    : await api.reqAccountNotificationChannelDelete({ channel_id_text: channelIdText });
   await updateAccountWithServerResponse(account, setAccount);
 };
 
@@ -228,63 +213,55 @@ export const syncChannelNotificationEnabled = async ({
  * Errors propagate for the same reason as the channel toggle above.
  */
 export const syncChannelNotificationType = async ({
-  accessToken,
+  auth,
   channelIdText,
   enabled,
   setAccount,
   type,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   channelIdText: string;
   enabled: boolean;
   setAccount: SetAccount;
   type: SyncedNotificationType;
 }): Promise<void> => {
-  if (accessToken === null) {
+  const account = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+    enabled
+      ? api.reqAccountNotificationChannelTypeCreate({
+          channel_id_text: channelIdText,
+          type,
+        })
+      : api.reqAccountNotificationChannelTypeDelete({
+          channel_id_text: channelIdText,
+          type,
+        })
+  );
+  if (account === null) {
     return;
   }
-
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
-  const account = enabled
-    ? await api.reqAccountNotificationChannelTypeCreate({
-        channel_id_text: channelIdText,
-        type,
-      })
-    : await api.reqAccountNotificationChannelTypeDelete({
-        channel_id_text: channelIdText,
-        type,
-      });
   await updateAccountWithServerResponse(account, setAccount);
 };
 
 export const syncNotificationTypeToAccountSettings = async ({
-  accessToken,
+  auth,
   enabled,
   setAccount,
   type,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   enabled: boolean;
   setAccount: SetAccount;
   type: SyncedNotificationType;
 }): Promise<void> => {
-  if (accessToken === null) {
-    return;
-  }
-
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
   try {
-    const account = enabled
-      ? await api.reqAccountSettingsNotificationTypeCreate({ type })
-      : await api.reqAccountSettingsNotificationTypeDelete({ type });
+    const account = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+      enabled
+        ? api.reqAccountSettingsNotificationTypeCreate({ type })
+        : api.reqAccountSettingsNotificationTypeDelete({ type })
+    );
+    if (account === null) {
+      return;
+    }
     await updateAccountWithServerResponse(account, setAccount);
   } catch (error) {
     console.warn('Failed to sync notification type to account settings', error);

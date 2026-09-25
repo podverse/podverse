@@ -1,0 +1,119 @@
+appId: com.podverse.app.next
+name: Perf — Home chip switch latency
+---
+# Rapid overlapping Home media-type switches. The eight rapid taps are screen points so
+# Maestro skips the hierarchy search, and waitToSettleTimeoutMs is 0 so it does not wait
+# for the UI to settle between taps.
+#
+# Centres from maestro hierarchy dumps. Android (Pixel_6_Pro_API_33_e2e, 1440x3120):
+# podcasts [56,355][313,453] → 13%,13%; episodes [327,355][579,453] → 31%,13%;
+# artists [593,355][796,453] → 48%,13%. iOS (iPhone 17 Pro E2E, 402x874): the same x
+# percentages land in those chips, and y is 16% (chips sit at [16,122][236,150]).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-perf-user.yaml
+
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+- extendedWaitUntil:
+    notVisible:
+      id: home-list-loading
+    timeout: ${TIMEOUT_SLOW}
+
+# Cold pass — four overlapping taps from the default Podcasts selection.
+- assertVisible:
+    id: home-media-type-podcasts
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          point: "31%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "48%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "31%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "13%,13%"
+          waitToSettleTimeoutMs: 0
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          point: "31%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "48%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "31%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "13%,16%"
+          waitToSettleTimeoutMs: 0
+
+# Gap so the report script can split this timeline into pass 1 and pass 2.
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-.*"
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: home-media-type-podcasts
+    selected: true
+- assertVisible:
+    id: "home-feed-row-.*"
+
+# Warm pass — same four overlapping taps after Podcasts has painted.
+- assertVisible:
+    id: home-media-type-podcasts
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          point: "31%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "48%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "31%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "13%,13%"
+          waitToSettleTimeoutMs: 0
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          point: "31%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "48%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "31%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "13%,16%"
+          waitToSettleTimeoutMs: 0
+
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-.*"
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: home-media-type-podcasts
+    selected: true
+- assertVisible:
+    id: "home-feed-row-.*"
+- assertVisible:
+    id: perf-report-e2e
+- takeScreenshot: perf-chip-switch-settled

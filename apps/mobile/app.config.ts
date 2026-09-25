@@ -85,7 +85,7 @@ const config: ExpoConfig = {
       'com.apple.security.application-groups': ['group.com.podverse.app.next'],
     },
     infoPlist: {
-      UIBackgroundModes: ['audio'],
+      UIBackgroundModes: ['audio', 'fetch', 'remote-notification'],
       // Local test-assets (:2111) and E2E API use http://localhost — allow local cleartext.
       NSAppTransportSecurity: {
         NSAllowsLocalNetworking: true,
@@ -126,6 +126,7 @@ const config: ExpoConfig = {
     'expo-dev-client',
     'expo-localization',
     'expo-notifications',
+    'expo-background-fetch',
     [
       'expo-splash-screen',
       {

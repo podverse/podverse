@@ -22,6 +22,19 @@ function typeDefaultSwitch(page: Page, label: string): Locator {
   return page.getByRole('switch', { name: label });
 }
 
+/** Dismiss the apply-to-existing modal when the account has followed podcasts (count > 0). */
+async function dismissApplyDialogIfOpen(page: Page): Promise<void> {
+  const onlyNew = page.getByRole('button', { name: 'Only new subscriptions' });
+  const onlyNewType = page.getByRole('button', { name: 'Only new' });
+  if (await onlyNew.isVisible().catch(() => false)) {
+    await onlyNew.click();
+    return;
+  }
+  if (await onlyNewType.isVisible().catch(() => false)) {
+    await onlyNewType.click();
+  }
+}
+
 test.describe('Settings: notification subscribe defaults', () => {
   test('When an unauthenticated user opens the notifications settings tab, they are redirected to the general settings page.', async ({
     page,
@@ -76,6 +89,7 @@ test.describe('Settings: notification subscribe defaults', () => {
       async () => {
         if ((await autoEnable.getAttribute('aria-checked')) !== 'true') {
           await autoEnable.click();
+          await dismissApplyDialogIfOpen(page);
         }
         await expect(autoEnable).toHaveAttribute('aria-checked', 'true');
         await page.reload();
@@ -91,6 +105,7 @@ test.describe('Settings: notification subscribe defaults', () => {
       'Turning auto-enable off restores the default and persists after a reload.',
       async () => {
         await autoEnable.click();
+        await dismissApplyDialogIfOpen(page);
         await expect(autoEnable).toHaveAttribute('aria-checked', 'false');
         await page.reload();
         await expect(page).toHaveURL(/\/settings\?tab=notifications/);

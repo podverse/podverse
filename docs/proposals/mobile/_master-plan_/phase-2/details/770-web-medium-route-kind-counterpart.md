@@ -29,8 +29,9 @@ Update `redirectToChannelPageByMedium.test.ts` and any imports that type on the 
 | `/video/[id]` / `/channel/` | Notification path prefixes only; no Next pages                                                                                   |
 | Clip editor queue hold      | Web advance path is `useQueueResourcesLoadActive`, not shared `resolveQueueAdvance` — tracked with Make Clip (756), not this set |
 
-Mobile Browse keeps a `videos` chip while web's sidebar has no Videos link. That asymmetry is
-**intentional** for this phase: Home on both surfaces lumps video under podcasts / `av`.
+Mobile Browse matches web discovery: Podcasts / Episodes / Clips use `medium=av` (podcast + video
+channels together). There is no Browse Videos chip. Home on both surfaces also lumps video under
+podcasts / `av`. Web `/videos` remains a placeholder until a video browse tree is decided.
 
 ### Out of scope
 

@@ -12,7 +12,8 @@
       "episode": "Episodio",
       "episodes": "Episodios",
       "episode_image": "Imagen del episodio",
-      "no_episodes_found": "No se encontraron episodios"
+      "no_episodes_found": "No se encontraron episodios",
+      "no_podcasts_found": "No se encontraron podcasts"
     },
     "music": {
       "music": "Música",
@@ -25,7 +26,11 @@
       "track": "Pista",
       "tracks": "Pistas",
       "track_image": "Imagen de la pista",
-      "track_go_to": "Ir a la pista"
+      "track_go_to": "Ir a la pista",
+      "album_go_to": "Ir al álbum",
+      "artist_go_to": "Ir al artista",
+      "no_tracks_found": "No se encontraron pistas",
+      "no_albums_found": "No se encontraron álbumes"
     },
     "video": {
       "channel": "Canal",
@@ -57,7 +62,8 @@
     "search": {
       "search": "Buscar",
       "search_by_title": "Buscar por título...",
-      "empty_prompt": "Busca en el Podcast Index por título. Tus resultados aparecerán aquí."
+      "empty_prompt": "Busca en el Podcast Index por título. Tus resultados aparecerán aquí.",
+      "no_results": "No se encontraron resultados"
     },
     "add_feed": {
       "add_feed": "Agregar feed",
@@ -93,11 +99,11 @@
       "last_parsed": "Último analizado: {date}",
       "wait_to_retry_minutes": "Necesitarás esperar hasta {minutes} minutos para hacer eso de nuevo.",
       "wait_to_retry_minute": "Necesitarás esperar hasta {minutes} minuto para hacer eso de nuevo.",
-      "basic_auth_use": "Use Basic Auth",
-      "basic_auth_requires": "This feed requires username and password",
-      "basic_auth_username": "Username",
-      "basic_auth_password": "Password",
-      "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "basic_auth_use": "Usar autenticación básica",
+      "basic_auth_requires": "Este feed requiere nombre de usuario y contraseña",
+      "basic_auth_username": "Nombre de usuario",
+      "basic_auth_password": "Contraseña",
+      "basic_auth_required_both": "La autenticación básica requiere nombre de usuario y contraseña.",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "my_library": "Mi biblioteca",
@@ -111,6 +117,8 @@
       "remove_error": "Error al eliminar de la cola",
       "remove_from_queue": "Eliminar de la cola",
       "removed_from_queue": "Eliminado de la cola",
+      "empty_podcasts": "Todavía no hay nada en tu cola de podcasts",
+      "empty_music": "Todavía no hay nada en tu cola de música",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "history": {
@@ -121,6 +129,7 @@
       "mark_as_unplayed": "Marcar como no reproducido",
       "marked_as_unplayed": "Marcado como no reproducido",
       "mark_as_played_error": "Error al marcar como reproducido",
+      "empty": "Todavía no hay nada en tu historial",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "playlist": {
@@ -142,12 +151,14 @@
       "playlist_type": "Tipo de lista de reproducción",
       "add_to_liked": "Añadir a me gusta",
       "remove_from_liked": "Quitar de me gusta",
+      "no_playlists_found": "No se encontraron listas de reproducción",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
       "no_clips_found": "No se encontraron clips",
+      "empty": "Aún no hay clips",
       "create_clip": "Crear clip",
       "edit_clip": "Editar clip",
       "delete_clip": "Eliminar clip",
@@ -324,7 +335,9 @@
   },
   "info": {
     "funding": "Financiación",
+    "funding_support": "Estos enlaces son cómo el editor pide apoyo.",
     "website": "Sitio web",
+    "rss": "RSS",
     "rss_feed": "RSS feed",
     "about": "Acerca de",
     "summary": {
@@ -338,7 +351,8 @@
     "transcript": {
       "transcript": "Transcripción",
       "search_transcript": "Buscar transcripción...",
-      "lyrics": "Letras"
+      "lyrics": "Letras",
+      "no_transcript": "No hay transcripción disponible"
     },
     "credits": "Créditos",
     "people": {
@@ -349,7 +363,8 @@
     "chapter": {
       "chapter": "Capítulo",
       "chapters": "Capítulos",
-      "chapter_image": "Imagen del capítulo"
+      "chapter_image": "Imagen del capítulo",
+      "no_chapters": "No hay capítulos disponibles"
     },
     "soundbite": {
       "official_clip": "Clip oficial",
@@ -371,6 +386,7 @@
     "now_playing_clip": "Reproduciendo clip",
     "now_playing_chapter": "Reproduciendo capítulo",
     "now_playing_official_clip": "Reproduciendo clip oficial",
+    "open_chapter_link": "Abrir enlace del capítulo",
     "no_media": "No se encontró media reproducible",
     "livestream_unavailable": "La reproducción de livestream no está disponible aún",
     "show_fullscreen_media_player": "Mostrar el reproductor multimedia en pantalla completa",
@@ -876,7 +892,7 @@
       "livestreams": "Emisiones en directo",
       "carplay": "CarPlay",
       "android_auto": "Android Auto",
-      "boostagrams": "Boostagrams (Value for Value)",
+      "boostagrams": "Boostagrams (valor por valor)",
       "chapters": "Capítulos",
       "comments": "Comentarios entre apps",
       "transcripts": "Transcripciones",
@@ -999,8 +1015,8 @@
       "download_my_data_loading": "Preparando tus datos...",
       "download_my_data_success": "Datos descargados con éxito",
       "download_my_data_error": "Error al descargar los datos",
-      "listen_stats_toggle": "Estadísticas de escucha",
-      "listen_stats_toggle_help": "Permitir eventos de escucha seudónimos para contenido en tendencia. Los eventos se conservan {retention_days} días.",
+      "listen_stats_toggle": "Seguimiento de popularidad",
+      "listen_stats_toggle_help": "Permitir clasificaciones por oyentes únicos que ayudan a encontrar programas populares. Puedes cambiar esto en cualquier momento.",
       "listen_stats_toggle_error": "No se pudo actualizar la preferencia de estadísticas de escucha. Inténtalo de nuevo.",
       "listen_stats_terms_link": "Más información en nuestros <termsLink>Términos de servicio</termsLink>."
     },
@@ -1052,44 +1068,53 @@
       "category_terms_of_service_description": "Anuncios legales y de políticas obligatorios.",
       "category_general": "General",
       "category_general_description": "Notificaciones importantes relacionadas con tu cuenta.",
+      "allow": "Permitir notificaciones",
       "new_item": "Nuevo elemento",
       "livestream_scheduled": "Transmisión en vivo programada",
       "livestream_started": "Transmisión en vivo iniciada",
       "auto_enable_on_subscribe": "Activar notificaciones al suscribirme",
       "auto_enable_on_subscribe_help": "Si está activado, al suscribirte a un podcast también se activan sus notificaciones, usando los tipos seleccionados abajo.",
+      "auto_enable_apply_title": "¿Actualizar los podcasts seguidos?",
+      "auto_enable_apply_body": "¿Aplicar esto a los {count} podcasts seguidos, o solo a los podcasts a los que te suscribas más adelante?",
+      "auto_enable_apply_all": "Aplicar a todos",
+      "auto_enable_apply_new_only": "Solo nuevas suscripciones",
+      "type_default_apply_title": "¿Actualizar los podcasts con notificaciones?",
+      "type_default_apply_body": "¿Aplicar esto a los {count} podcasts con notificaciones activadas, o solo cuando se activen más adelante?",
+      "type_default_apply_all": "Aplicar a todos",
+      "type_default_apply_new_only": "Solo nuevos",
       "type_defaults_section": "Tipos de notificación",
       "type_defaults_section_help": "Elige qué tipos de notificación se aplican cuando las notificaciones están activadas para un podcast."
     },
     "opml": {
       "opml": "OPML",
-      "export_title": "Export OPML",
-      "export_description": "Export your subscribed and Add by RSS channels as an OPML file.",
-      "export_button": "Export OPML",
-      "export_loading": "Preparing OPML export...",
-      "export_success": "OPML export downloaded successfully.",
-      "export_error": "Failed to export OPML.",
-      "import_title": "Import OPML",
-      "import_description": "Upload an OPML file to restore podcast subscriptions. Feeds already in Podverse are subscribed immediately; others are looked up or added by RSS.",
-      "import_button": "Import OPML",
-      "import_loading": "Importing OPML...",
-      "import_in_progress": "Importing feeds… {processed} of {total} processed.",
-      "import_success": "OPML import finished.",
-      "import_error": "Failed to import OPML.",
+      "export_title": "Exportar OPML",
+      "export_description": "Exporta tus canales suscritos y de Agregar por RSS como un archivo OPML.",
+      "export_button": "Exportar OPML",
+      "export_loading": "Preparando la exportación OPML...",
+      "export_success": "Exportación OPML descargada correctamente.",
+      "export_error": "No se pudo exportar el OPML.",
+      "import_title": "Importar OPML",
+      "import_description": "Sube un archivo OPML para restaurar suscripciones a podcasts. Los feeds que ya están en Podverse se suscriben de inmediato; los demás se buscan o se añaden por RSS.",
+      "import_button": "Importar OPML",
+      "import_loading": "Importando OPML...",
+      "import_in_progress": "Importando feeds… {processed} de {total} procesados.",
+      "import_success": "Importación OPML finalizada.",
+      "import_error": "No se pudo importar el OPML.",
       "import_error_body_required": "Se requiere contenido OPML.",
       "import_error_no_valid_feeds": "No se encontraron URLs de feeds válidos en el archivo OPML.",
       "import_error_too_large": "El contenido OPML es demasiado grande. Número máximo de caracteres permitido: {maxChars}. Utilice un archivo más pequeño o divídalo en varias importaciones.",
       "import_error_too_many_feeds": "El OPML contiene demasiados feeds. Número máximo de feeds permitido: {maxFeeds}. Divida el archivo en lotes más pequeños e inténtelo de nuevo.",
       "import_error_request_not_found": "No se encontró la solicitud de importación de OPML.",
-      "import_result_summary": "{total} feeds: {subscribed} subscribed, {enqueued} queued from Podcast Index, {addedByRss} added by RSS, {alreadySubscribed} already subscribed, {failed} failed, {rateLimited} rate limited.",
-      "outcome_subscribed": "Subscribed",
-      "outcome_enqueued": "Queued (Podcast Index)",
-      "outcome_added_by_rss": "Added by RSS",
-      "outcome_already_subscribed": "Already subscribed",
-      "outcome_rate_limited": "Rate limited",
-      "outcome_failed": "Failed",
-      "import_rate_limited_title": "OPML import limit reached",
-      "import_rate_limited": "You can add up to {limit} feeds per hour. To finish importing the rest, try again after {time}.",
-      "import_rate_limited_time": "{minutes, plural, one {# minute} other {# minutes}}"
+      "import_result_summary": "{total} feeds: {subscribed} suscritos, {enqueued} en cola desde Podcast Index, {addedByRss} añadidos por RSS, {alreadySubscribed} ya suscritos, {failed} fallidos, {rateLimited} limitados por tasa.",
+      "outcome_subscribed": "Suscrito",
+      "outcome_enqueued": "En cola (Podcast Index)",
+      "outcome_added_by_rss": "Añadido por RSS",
+      "outcome_already_subscribed": "Ya suscrito",
+      "outcome_rate_limited": "Limitado por tasa",
+      "outcome_failed": "Fallido",
+      "import_rate_limited_title": "Límite de importación OPML alcanzado",
+      "import_rate_limited": "Puedes añadir hasta {limit} feeds por hora. Para terminar de importar el resto, inténtalo de nuevo después de {time}.",
+      "import_rate_limited_time": "{minutes, plural, one {# minuto} other {# minutos}}"
     },
     "keyboard": {
       "keyboard": "Teclado",

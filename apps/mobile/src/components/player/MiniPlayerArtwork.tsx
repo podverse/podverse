@@ -1,7 +1,5 @@
 import { StyleSheet, View } from 'react-native';
 
-import { shouldUseChapterArtwork } from '@podverse/helpers';
-
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import {
@@ -10,6 +8,7 @@ import {
 } from '../../playback/useNowPlayingChapters';
 import { MINI_PLAYER_ARTWORK_SIZE } from '../../theme/screenLayout';
 import { CoverImage } from '../primitives/CoverImage';
+import { resolvePlayerChapterArtworkUri } from './playerChapterArtwork';
 
 type MiniPlayerArtworkProps = {
   accessibilityLabel: string;
@@ -25,16 +24,13 @@ export function MiniPlayerArtwork({ accessibilityLabel }: MiniPlayerArtworkProps
     return null;
   }
 
-  const useChapterArt = shouldUseChapterArtwork({
+  const imageUri = resolvePlayerChapterArtworkUri({
+    activeChapter,
+    chapters,
+    fallbackUri: nowPlaying.imageUrl,
     mpClip: activeTarget.kind === 'clip' ? activeTarget.clip : null,
-    mpItemChapter: activeChapter,
     mpItemSoundbite: activeTarget.kind === 'soundbite' ? activeTarget.soundbite : null,
   });
-  const chapterImg =
-    useChapterArt && typeof activeChapter?.img === 'string' && activeChapter.img.length > 0
-      ? activeChapter.img
-      : null;
-  const imageUri = chapterImg ?? nowPlaying.imageUrl;
 
   return (
     <View style={styles.videoSurface} testID="mini-player-video-surface">

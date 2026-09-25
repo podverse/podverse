@@ -1,42 +1,83 @@
 # Add-by-RSS
 
-Add-by-RSS lets users follow RSS feeds (podcasts, music) that are not in the main directory. Feeds are parsed and stored in the user’s Add-by-RSS library.
+Add-by-RSS lets users follow RSS feeds (podcasts, music) that are not in the main directory. Feeds are parsed by workers and kept in each device's add-by-RSS library; the account's follow list syncs which feeds a user follows across devices.
 
 ## Basic Auth (private feeds)
 
-Feeds that require HTTP Basic Auth are supported. When adding a feed, users can optionally provide a username and password. Credentials are stored per feed in the database (`account_following_add_by_rss_channel`). They are used only for server-side requests (feed parse, chapters, transcript); the password is never returned in any API response.
+Feeds behind HTTP Basic Auth are supported. **The server never stores the username or password.** Each device keeps them in its own secure storage and sends them only with the requests that need them. The follow row (`account_following_add_by_rss_channel`) carries a `requires_credentials` flag instead, so another device knows to ask the user before it can refresh the feed.
+
+The durable constraints live in [`add-by-rss-client-held-credentials`](/.cursor/rules/add-by-rss-client-held-credentials.mdc).
+
+### Where credentials live
+
+| Surface | Store                                                                                                                                                                         | Scope                        |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Web     | IndexedDB database `add-by-rss-credentials`, values AES-GCM encrypted with a non-extractable per-account WebCrypto key (`apps/web/src/utils/addByRSS/credentialStore.ts`)     | Account + canonical feed URL |
+| Mobile  | SecureStore, with an `add_by_rss_credential_index` table listing which feeds have an entry (`apps/mobile/src/data/repositories/addByRssCredentialStore.ts`)                   | Account + canonical feed URL |
+| Server  | Nothing. Postgres keeps `requires_credentials` only; Valkey parse-cache entries keep `failureReason`, `httpStatus`, `authChallenge`, and `credentialsState`, never the secret | —                            |
+
+Signing out (and deleting the account) clears that account's credentials on the device. The feeds themselves stay; they are device data.
+
+A `user:pass@` pasted into a feed URL is split into the username and password fields on the client and again in the API. Stored feed URLs never carry userinfo, and credentials are keyed by the canonical URL (`canonicalAddByRSSFeedUrl` in `@podverse/helpers-validation`).
+
+### Parse path (transit envelope)
+
+1. The client sends `basic_auth_username` / `basic_auth_password` with `POST /account/add-by-rss/parse`, or `credentials_by_url` with `POST /account/add-by-rss/parse/all`.
+2. The API seals them into an AES-256-GCM envelope (`sealAddByRssCredentialsForParse` in `apps/api/src/lib/addByRSSCredentials.ts`, built on `packages/helpers-backend/src/addByRssCredentialsTransit.ts`). The envelope expires after **15 minutes** and its associated data binds it to `accountId | requestId | feedUrl`, so a copied envelope cannot be replayed against another request or feed. The queue message carries only the envelope; its dedupe id excludes it.
+3. The worker opens the envelope in memory, checks the feed URL's scope, and fetches the feed with the Basic Auth header.
+4. The parse result records `failureReason` / `credentialsState` for the client: `credentials_required`, `credentials_rejected`, `credentials_withheld_other_domain`, `credentials_withheld_insecure`, or `credentials_envelope_invalid`.
+
+A flagged feed with no credentials in a refresh-all is not queued; it reports `credentials_required`.
+
+**Chapters and transcripts** (`POST /account/add-by-rss/chapters-transcript`): the client sends the credentials together with `feedUrl`; the API applies them only to in-scope URLs and never stores them.
+
+### `requires_credentials`
+
+- The client sets it when a feed is added with credentials.
+- The worker sets it when a parse without credentials gets a Basic `401`.
+- The worker clears it when a parse without credentials succeeds.
+- The worker leaves it set when credentials were sent and rejected (`401` / `403`).
+
+Linear migration `0012_add_by_rss_client_credentials.sql` dropped the encrypted columns and set the flag on every row that had them, so those users enter credentials again on each device.
+
+### Scope rules
+
+Every surface uses `resolveCredentialScope` from `@podverse/helpers`:
+
+- Credentials go only to hosts on the feed's registrable domain (eTLD+1 via `tldts`, private suffixes included). Subdomains are in scope; a different registrable domain is not.
+- IP addresses and `localhost` must match the feed's host exactly.
+- HTTPS only. Local development (`NODE_ENV=development`) and E2E fixtures (`PODVERSE_E2E_FIXTURES=1`) allow plain HTTP on the API and workers; mobile uses `EXPO_PUBLIC_MOBILE_ADD_BY_RSS_ALLOW_INSECURE_CREDENTIALS=1` or its E2E build.
+- **Redirects:** the `Authorization` header is dropped on the first hop that leaves the scope or downgrades to HTTP, and stays dropped.
+- Media on a different registrable domain from the feed is **out of scope** on every surface: it is requested without credentials, and a failure is logged with the withheld reason.
+
+### Media, downloads, and artwork
+
+- **Web:** always requests the plain enclosure URL. A media element cannot attach Basic Auth, and there is **no media proxy**. When a flagged feed's media fails, the player explains why (`add_by_rss.media_needs_credentials`, or `add_by_rss.media_other_domain` when the host is out of scope) and points to the mobile app. The console log carries hosts only.
+- **Mobile playback:** the native engine answers an HTTP Basic **challenge** only from an in-scope host (iOS `AVAssetResourceLoaderDelegate`, Android OkHttp `Authenticator`); nothing is sent before a challenge, so a redirect elsewhere never receives the credential. A `401` / `403` is logged as `add_by_rss_credentials_required`, `add_by_rss_credentials_rejected`, `playback_credentials_withheld_other_domain`, or `playback_credentials_withheld_insecure`, with a `basic_auth` detail. See [the media engine README](/apps/mobile/modules/podverse-media-engine/README.md#protected-media-sourcebasicauth).
+- **Mobile downloads and artwork:** Android sends the header up front to in-scope URLs; OkHttp drops it on any redirect that changes host, port, or scheme. iOS withholds it, because its download and image stacks give no redirect guarantee; a protected download there fails with `credentials_withheld`.
+- Car surfaces (CarPlay, Android Auto) play from the native cache, which carries no credentials.
+
+### Feeds that need credentials on this device
+
+A followed feed that has `requires_credentials` and no stored credentials on this device (or whose stored credentials were last rejected) appears as a **partial row** in a **Needs username and password** section at the end of each add-by-RSS list, on web and mobile. Its subtitle says whether credentials are missing or were rejected. The row opens a credentials screen (web `/add-by-rss/credentials/<idText>`, mobile `AddByRssCredentials`) that explains the credentials stay on this device, saves them, and checks the feed right away.
 
 ### Environment
 
-Credentials are stored in the DB and looked up at request time. **Required:** set `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY` (64 hex chars, 32 bytes) in the API and workers to encrypt credentials at rest (AES-256-GCM). See:
+`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY` (64 hex characters, 32 bytes; `openssl rand -hex 32`) is required in the API and workers and must match. It is a **transit** key: it seals and opens queue envelopes, and nothing is encrypted at rest with it. Do not reuse the JWT secret; a dedicated key rotates independently of auth.
+
+**Rotation:** deploy the new key as `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY` with the previous one as `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD` (workers try it after the current key fails), wait at least 15 minutes for in-flight envelopes to expire, then remove `_OLD`. No data migration is involved.
 
 - [apps/api/ENV.md](/apps/api/ENV.md) – API
-- [apps/workers/ENV.md](/apps/workers/ENV.md) – Workers (e.g. `mqAddByRSSRunParser`)
+- [apps/workers/ENV.md](/apps/workers/ENV.md) – Workers (`mqAddByRSSRunParser`)
+- [apps/mobile/.env.example](/apps/mobile/.env.example) – mobile allow-insecure flag
 
-### Request paths that use credentials
+### Logging
 
-- **Feed parse**: The add-by-RSS parser (worker) loads credentials for the feed and sends the Basic Auth header when fetching the feed XML.
-- **Chapters / transcript**: The API endpoint that fetches chapters and transcript for add-by-RSS items uses stored credentials when the client sends `feedUrl` in the request body. For private feeds, the client must send `feedUrl` and the user must be logged in; otherwise no Basic Auth is applied.
-- **Images**: If the backend ever proxies add-by-RSS images, credentials would be used; currently client-loaded images do not use server-side Basic Auth.
+Usernames, passwords, `Authorization` headers, and envelopes never appear in API responses, parse-status payloads, logs, or unencrypted queue bodies. `redactForLog` in `packages/helpers-backend/src/redactForLog.ts` masks the credential fields; extend it before logging anything that could carry a request body.
 
-### Security
+### Testing
 
-- Passwords are not included in list or detail API responses (only an optional username or `[saved]` placeholder may be returned when encrypted).
-- Client does not persist the password after submit; it is cleared from form state after a successful add.
-- Sensitive fields are redacted in debug logs (see `packages/orm/src/lib/redactForLog.ts`).
-- **Encryption at rest:** Credentials are encrypted before write and decrypted only in `getCredentialsForFeed`. `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY` is required. Do not use the JWT secret for this key; use a dedicated key so rotation is independent of auth.
-
-### Key rotation
-
-To rotate the encryption key without losing access to stored credentials:
-
-1. Set `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD` to the current key (64 hex chars) and `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY` to the new key (generate with `openssl rand -hex 32`). Deploy or restart API and workers with both vars set.
-2. **Dual-key decryption:** While `_OLD` is set, the API and workers will try the current key first, then the old key when decrypting. So existing ciphertext remains readable until it has been re-encrypted with the new key. You can run the re-encryption script while the app is live.
-3. Run re-encryption. It selects all rows with credentials, decrypts with OLD key (for values starting with `v1:`), re-encrypts with NEW key, and updates the row. Required env: `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`, `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`, and DB vars.
-   - **In Docker / Jenkins:** Use the workers command: `node apps/workers/dist/index.js reencryptAddByRSSCredentials` (same env as workers).
-   - **Local (repo root):** Use the script with API env:  
-     `node --env-file=apps/api/.env node_modules/.bin/ts-node scripts/add-by-rss/reencrypt-add-by-rss-credentials.ts`
-
-4. After re-encryption completes, remove `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD` from the environment and restart API and workers. No JWT or auth changes are required.
-
-**Jenkins (alpha):** The job `aux_ops_add_by_rss_reencrypt_credentials` accepts parameters `OLD_KEY` and `NEW_KEY` (password type) and runs the workers command `reencryptAddByRSSCredentials` inside the workers container. It uses the same DB env as the alpha workers. See [infra/pipelines/jenkins/alpha/Jenkinsfile.aux_ops_add_by_rss_reencrypt_credentials](/infra/pipelines/jenkins/alpha/Jenkinsfile.aux_ops_add_by_rss_reencrypt_credentials).
+- **Fixtures:** `tools/test-assets` serves a gated feed, a gated feed with public media, a gated feed with media on another host, a cross-host redirect, and an `Authorization` probe. See [TOOLS-TEST-ASSETS.md § Credential fixtures](/tools/test-assets/TOOLS-TEST-ASSETS.md#credential-fixtures) and `tools/test-assets/scripts/verify-basic-auth.sh`.
+- **Web E2E:** `apps/web/e2e/add-by-rss-credentials-*.spec.ts` (add, partial row, rejected, media message). The web E2E stack has no broker, so parse outcomes are stubbed.
+- **Mobile E2E:** `apps/mobile/e2e/add-by-rss-credentials.yaml` (add with credentials, sign out, partial row, re-enter, play).
+- **API:** `apps/api/src/test/add-by-rss-parse-credentials.test.ts`.

@@ -1,31 +1,37 @@
 import { articleStrippedTitle, primaryListArtworkUrl } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
-import { htmlToPlainText } from '@podverse/helpers/html';
+import { htmlToPlainTextPreview } from '@podverse/helpers/html';
 
-import { requestWithMobileAuthRefresh } from '../../auth';
-import type { AuthStatus } from '../../auth/AuthProvider';
-import type {
-  MobileAuthRequestContext,
-  SubscribedChannel,
-  SubscriptionSource,
-} from '../../data/repositories';
+import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
 import {
+  addByRssRepository,
   channelItemsRepository,
   channelLiveStatusRepository,
   channelSeenRepository,
   downloadsRepository,
+  homeClipsCacheRepository,
+  subscriptionChannelKindFromMediumId,
+  subscriptionChannelKindFromResourceType,
   subscriptionsRepository,
 } from '../../data/repositories';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
-import type { HomeRangeOption, HomeSortOption } from '../../prefs/homeListPrefs';
+import type { AddByRssNeedsCredentialsFeed } from '../../lib/addByRss/credentials';
 import {
-  DEFAULT_HOME_RANGE,
-  DEFAULT_HOME_SORT,
-  homeSortToApiRange,
-  homeSortToApiSort,
-} from '../../prefs/homeListPrefs';
+  clipHomeRowSourceFromUnknown,
+  clipToHomeRow,
+  MIXED_SOURCE_CLIP_ROW_OPTIONS,
+} from '../../lib/rows/homeRowMappers';
+import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
+import type { HomeRangeOption, HomeSortOption } from '../../prefs/homeListPrefs';
+import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
+import {
+  appendHomeFeedReadFailure,
+  HOME_FEED_METADATA_TIMEOUT_CODE,
+  HOME_FEED_METADATA_TIMEOUT_MS,
+  withHomeFeedReadBudget,
+} from './homeFeedReadLog';
 import type { HomeRowMetadata } from './homeRowMetadata';
 import { buildHomeRowMetadata } from './homeRowMetadata';
 
@@ -44,14 +50,28 @@ export type HomeFeedRowData = {
   /** Set for Podcasts subscription rows so taps can route by origin. */
   source?: SubscriptionSource;
   /**
+   * Known at the row: a Home follow is subscribed; a Downloaded-only footer row is not.
+   * Passed through navigate params so the destination subscribe control does not guess.
+   */
+  isSubscribed?: boolean;
+  /**
    * Plain-text episode snippet for item rows. Null when the payload has no description (channel
    * rows, directory stubs).
    */
   description?: string | null;
   /**
    * Duration in seconds as a string (DTO `item_about.duration`). Null when unknown or not an item.
+   * Clip rows leave this unset and use `clipStartTime` / `clipEndTime` instead.
    */
   duration?: string | null;
+  /**
+   * Preformatted label beside Play. Wins over `duration` and over a clip start–end range, so a
+   * range string is never passed through `Number()`.
+   */
+  durationLabel?: string | null;
+  /** Clip segment bounds in seconds. The row formats these as a start–end label. */
+  clipStartTime?: string | null;
+  clipEndTime?: string | null;
   /**
    * Set only for subscription rows. The other media types list content rather than follows, and
    * "how many unseen" is a question only a subscription can answer.
@@ -63,6 +83,10 @@ export type HomeFeedRowData = {
    * `id` already is the target.
    */
   contentTarget?: HomeRowContentTarget;
+  /** Parent album or artist for a track row's go-to action. */
+  channelId?: string;
+  /** Which go-to label and destination to use for `channelId`. */
+  channelKind?: 'albums' | 'artists';
 };
 
 /** Identity of the playable resource behind a row. */
@@ -71,27 +95,32 @@ export type HomeRowContentTarget = {
   kind: 'clip' | 'item';
 };
 
+/**
+ * Thrown when a read is abandoned because a newer one superseded it. Callers treat this as "no
+ * result", never as a failure — nothing went wrong and there is nothing to report.
+ */
+export class HomeFeedStaleReadError extends Error {
+  constructor() {
+    super('home feed read superseded');
+    this.name = 'HomeFeedStaleReadError';
+  }
+}
+
+export const isHomeFeedStaleRead = (error: unknown): boolean =>
+  error instanceof HomeFeedStaleReadError;
+
 type HomeFeedOptions = {
-  /** Listen-count window, used only while `sort` is popularity. */
+  /**
+   * Consulted after each await and before each mapping pass. Returning false abandons the read with
+   * `HomeFeedStaleReadError` so a superseded chip selection does not pay for parsing rows nobody
+   * will see.
+   */
+  isCurrent?: () => boolean;
+  /** Listen-count window, stored with the Home sort chip. Channel/item order reads it from SQLite. */
   range?: HomeRangeOption;
-  /** List order. Podcasts and Episodes apply it locally; the other types pass it to the API. */
+  /** List order. Channel and item chips apply it locally; clips apply A-Z on the cached page. */
   sort?: HomeSortOption;
 };
-
-const toDirectorySort = (sort: HomeSortOption): 'recent' | 'top' => {
-  const apiSort = homeSortToApiSort(sort);
-  return apiSort === 'a_z' ? 'recent' : apiSort;
-};
-
-/**
- * Composed from the repository context rather than restated, so the shape cannot drift from what
- * `requestWithMobileAuthRefresh` actually needs.
- */
-type HomeFeedAuthDeps = MobileAuthRequestContext & {
-  status: AuthStatus;
-};
-
-const HOME_FEED_PAGE = 1;
 
 const readStringFromNestedRecord = (
   record: Record<string, unknown>,
@@ -192,8 +221,8 @@ const normalizeId = (record: Record<string, unknown>): string | null => {
 
 export type NormalizeChannelRowsOptions = {
   /**
-   * When true, put the channel host/author on the row subtitle (Browse Podcasts / Search-style
-   * discovery). Default keeps other channel lists (Videos, Artists, Albums) title + date only.
+   * When true, put the channel host/author on the row subtitle (Browse Podcasts and Albums /
+   * Search-style discovery). Default keeps other channel lists (Artists) title + date only.
    */
   includeAuthor?: boolean;
 };
@@ -237,37 +266,31 @@ export const normalizeChannelRows = (
   return rows;
 };
 
-export const normalizeItemRows = (items: unknown[]): HomeFeedRowData[] => {
-  const rows: HomeFeedRowData[] = [];
+export type NormalizeItemRowsKind = 'episode' | 'track';
 
-  for (const item of items) {
-    if (!isObjectLike(item)) {
-      continue;
-    }
-
-    const id = normalizeId(item);
-    const title = getNonEmptyTrimmedStringProperty(item, 'title');
-    if (id === null || title === null) {
-      continue;
-    }
-
-    const subtitle =
-      getNonEmptyTrimmedStringProperty(item, 'podcast_title') ??
-      getNonEmptyTrimmedStringProperty(item, 'channel_title') ??
-      getNonEmptyTrimmedStringProperty(item, 'author');
-
-    rows.push({
-      id,
-      imageUrl: readImageUrl(item),
-      subtitle,
-      title,
-    });
-  }
-
-  return rows;
+const readFlatItemSubtitle = (item: Record<string, unknown>): string | null => {
+  return (
+    getNonEmptyTrimmedStringProperty(item, 'podcast_title') ??
+    getNonEmptyTrimmedStringProperty(item, 'channel_title') ??
+    getNonEmptyTrimmedStringProperty(item, 'author')
+  );
 };
 
-export const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
+const readTrackChannelKind = (
+  item: Record<string, unknown>
+): HomeFeedRowData['channelKind'] | undefined => {
+  const channel = item.channel;
+  if (!isObjectLike(channel) || typeof channel.medium_id !== 'number') {
+    return undefined;
+  }
+  const kind = subscriptionChannelKindFromMediumId(channel.medium_id);
+  return kind === 'albums' || kind === 'artists' ? kind : undefined;
+};
+
+export const normalizeItemRows = (
+  items: unknown[],
+  kind: NormalizeItemRowsKind
+): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {
@@ -281,28 +304,119 @@ export const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
       continue;
     }
 
-    const subtitle =
-      getNonEmptyTrimmedStringProperty(item, 'podcast_title') ??
-      getNonEmptyTrimmedStringProperty(item, 'channel_title') ??
-      getNonEmptyTrimmedStringProperty(item, 'item_title');
+    if (kind === 'track') {
+      const subtitle =
+        readStringFromNestedRecord(item, 'channel', 'title') ?? readFlatItemSubtitle(item);
+      const channelId = readStringFromNestedRecord(item, 'channel', 'id_text');
+      const channelKind = readTrackChannelKind(item);
+      const row: HomeFeedRowData = {
+        id,
+        imageUrl: readImageUrl(item),
+        subtitle,
+        title,
+      };
+      if (channelId !== null) {
+        row.channelId = channelId;
+      }
+      if (channelKind !== undefined) {
+        row.channelKind = channelKind;
+      }
+      rows.push(row);
+      continue;
+    }
 
-    rows.push({
+    const subtitle =
+      readStringFromNestedRecord(item, 'channel', 'title') ?? readFlatItemSubtitle(item);
+    const updatedAt = readUpdatedAt(item.pub_date);
+    const duration = readStringFromNestedRecord(item, 'item_about', 'duration');
+    const descriptionSource = readStringFromNestedRecord(item, 'item_description', 'value');
+    const description = descriptionSource !== null ? htmlToPlainTextPreview(descriptionSource) : '';
+
+    const row: HomeFeedRowData = {
       id,
       imageUrl: readImageUrl(item),
       subtitle,
       title,
-    });
+    };
+    if (updatedAt !== null) {
+      row.updatedAt = updatedAt;
+    }
+    if (duration !== null) {
+      row.duration = duration;
+    }
+    if (description.length > 0) {
+      row.description = description;
+    }
+
+    rows.push(row);
   }
 
   return rows;
 };
 
 /**
+ * Directory and Home clip lists mix any podcast and any episode, so each row names both.
+ * Payloads are nested `DTOClip` objects; flat title fields are not part of that contract.
+ */
+export const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
+  const rows: HomeFeedRowData[] = [];
+
+  for (const item of items) {
+    const source = clipHomeRowSourceFromUnknown(item);
+    if (source === null) {
+      continue;
+    }
+    rows.push(clipToHomeRow(source, MIXED_SOURCE_CLIP_ROW_OPTIONS));
+  }
+
+  return rows;
+};
+
+export type MapItemToHomeFeedRowOptions = {
+  /** Compact music rows: title + album/artist only. */
+  compact?: boolean;
+};
+
+const channelKindFromItem = (item: DTOItem): HomeFeedRowData['channelKind'] | undefined => {
+  const kind = subscriptionChannelKindFromMediumId(item.channel?.medium_id);
+  return kind === 'albums' || kind === 'artists' ? kind : undefined;
+};
+
+/**
+ * Compact track row: title, album/artist overline, and go-to ids. Date, duration, and description
+ * stay off so Home / Browse / in-channel music lists stay dense.
+ */
+export const mapTrackToHomeFeedRow = (item: DTOItem): HomeFeedRowData => {
+  const channelId = item.channel?.id_text?.trim() ?? '';
+  const channelKind = channelKindFromItem(item);
+  const row: HomeFeedRowData = {
+    id: item.id_text,
+    imageUrl: getItemPrimaryImageUrl(item),
+    subtitle: item.channel?.title ?? null,
+    title: item.title ?? item.id_text,
+  };
+  if (channelId.length > 0) {
+    row.channelId = channelId;
+  }
+  if (channelKind !== undefined) {
+    row.channelKind = channelKind;
+  }
+  return row;
+};
+
+/**
  * Map a full item to a feed row. Used wherever rows come from typed `DTOItem`s rather than a raw
  * list payload, so a stored episode and a freshly fetched one render identically.
  */
-export const mapItemToHomeFeedRow = (item: DTOItem): HomeFeedRowData => {
-  const plainDescription = htmlToPlainText(item.item_description?.value);
+export const mapItemToHomeFeedRow = (
+  item: DTOItem,
+  options: MapItemToHomeFeedRowOptions = {}
+): HomeFeedRowData => {
+  if (options.compact === true) {
+    return mapTrackToHomeFeedRow(item);
+  }
+
+  const plainDescription = htmlToPlainTextPreview(item.item_description?.value);
   const duration = item.item_about?.duration?.trim() ?? '';
 
   return {
@@ -316,8 +430,13 @@ export const mapItemToHomeFeedRow = (item: DTOItem): HomeFeedRowData => {
   };
 };
 
-export const mapItemsToHomeFeedRows = (items: readonly DTOItem[]): HomeFeedRowData[] => {
-  return items.map(mapItemToHomeFeedRow).filter((row) => row.id.length > 0);
+export const mapItemsToHomeFeedRows = (
+  items: readonly DTOItem[],
+  options: MapItemToHomeFeedRowOptions = {}
+): HomeFeedRowData[] => {
+  return items
+    .map((item) => mapItemToHomeFeedRow(item, options))
+    .filter((row) => row.id.length > 0);
 };
 
 const applyHomeSort = (rows: HomeFeedRowData[], sort: HomeSortOption): HomeFeedRowData[] => {
@@ -336,6 +455,7 @@ const mapSubscribedChannelToRow = (
   return {
     id: channel.idText,
     imageUrl: channel.imageUrl,
+    isSubscribed: true,
     metadata,
     sourceId: channel.sourceIdText,
     source: channel.source,
@@ -376,6 +496,35 @@ const attachSubscriptionMetadata = async (
   );
 };
 
+const mapSubscribedChannelsBare = (subscribed: readonly SubscribedChannel[]): HomeFeedRowData[] => {
+  return subscribed.map((channel) => mapSubscribedChannelToRow(channel, undefined));
+};
+
+/**
+ * Titles and art come from the follow list. Badges wait on three extra local queries; if those
+ * hang, Home still paints the follows and the error log records why the badges are late.
+ */
+const attachSubscriptionMetadataOrBare = async (
+  subscribed: readonly SubscribedChannel[],
+  mediaType: HomeMediaType
+): Promise<HomeFeedRowData[]> => {
+  try {
+    return await withHomeFeedReadBudget(
+      attachSubscriptionMetadata(subscribed),
+      HOME_FEED_METADATA_TIMEOUT_MS,
+      `${mediaType}-metadata`,
+      HOME_FEED_METADATA_TIMEOUT_CODE
+    );
+  } catch (error) {
+    appendHomeFeedReadFailure({
+      error,
+      mediaType,
+      source: 'metadata',
+    });
+    return mapSubscribedChannelsBare(subscribed);
+  }
+};
+
 /**
  * Channels with at least one complete download that are not in the current subscription set.
  * Home Podcasts shows these in a footer section so offline-only shows stay reachable.
@@ -388,6 +537,7 @@ export const fetchUnsubscribedDownloadHomeRows = async (): Promise<HomeFeedRowDa
   return channels.map((channel) => ({
     id: channel.channelIdText,
     imageUrl: channel.imageUrl,
+    isSubscribed: false,
     metadata: {
       downloadedCount: channel.downloadedCount,
       isLive: false,
@@ -398,6 +548,22 @@ export const fetchUnsubscribedDownloadHomeRows = async (): Promise<HomeFeedRowDa
     subtitle: null,
     title: channel.title,
   }));
+};
+
+/**
+ * Add-by-RSS feeds of this channel chip's kind that need a username and password on this device.
+ * Home lists them in a section after its rows; `fetchHomeFeedRows` leaves them out of the rows.
+ */
+export const fetchNeedsCredentialsHomeFeeds = async (
+  mediaType: HomeMediaType
+): Promise<AddByRssNeedsCredentialsFeed<MobileAddByRSSFeedRecord>[]> => {
+  if (mediaType !== 'podcasts' && mediaType !== 'artists' && mediaType !== 'albums') {
+    return [];
+  }
+  const { needsCredentials } = await addByRssRepository.listFeedsByCredentials();
+  return needsCredentials.filter(
+    (item) => subscriptionChannelKindFromResourceType(item.feed.resourceType) === mediaType
+  );
 };
 
 /**
@@ -412,97 +578,60 @@ export const fetchDownloadedHomeFeedRows = async (
 
   return completed
     .filter((record) => (wantVideo ? record.mediaType === 'video' : record.mediaType === 'audio'))
-    .map((record) => ({
-      id: record.itemIdText,
-      imageUrl: record.artworkUrl,
-      subtitle: record.channelTitle,
-      title: record.title ?? record.itemIdText,
-      updatedAt: record.updatedAt,
-    }));
+    .map((record) => {
+      const row: HomeFeedRowData = {
+        id: record.itemIdText,
+        imageUrl: record.artworkUrl,
+        subtitle: record.channelTitle,
+        title: record.title ?? record.itemIdText,
+      };
+      if (mediaType === 'episodes') {
+        row.updatedAt = record.updatedAt;
+      }
+      return row;
+    });
 };
 
 export const fetchHomeFeedRows = async (
   mediaType: HomeMediaType,
-  authDeps: HomeFeedAuthDeps,
   options: HomeFeedOptions = {}
 ): Promise<HomeFeedRowData[]> => {
   const sort = options.sort ?? DEFAULT_HOME_SORT;
-  const range = options.range ?? DEFAULT_HOME_RANGE;
+  const ensureCurrent = (): void => {
+    if (options.isCurrent !== undefined && !options.isCurrent()) {
+      throw new HomeFeedStaleReadError();
+    }
+  };
 
   if (mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums') {
     // Channel chips read local follows only. Kind splits podcasts / artists / albums so a music
-    // follow never appears under Podcasts and the reverse.
+    // follow never appears under Podcasts and the reverse. Popularity ranks arrive from the sync
+    // queue; this path never waits on the network to paint. Add-by-RSS feeds still waiting on a
+    // username and password belong to the section after the rows, not the rows.
     const kind =
       mediaType === 'podcasts' ? 'podcasts' : mediaType === 'artists' ? 'artists' : 'albums';
-
-    if (
-      sort === 'popularity' &&
-      authDeps.status === 'authenticated' &&
-      !(await subscriptionsRepository.hasPopularityRanks(range))
-    ) {
-      try {
-        await subscriptionsRepository.refreshPopularityRanks(authDeps, range);
-      } catch {
-        // Keep the unranked local list. A missing rank sorts after a known one, which is still a
-        // complete answer for the follows this device already has.
-      }
-    }
-    const subscribed = await subscriptionsRepository.list({ kind, sort });
-    return attachSubscriptionMetadata(subscribed);
+    const subscribed = await subscriptionsRepository.list({ credentials: 'ready', kind, sort });
+    ensureCurrent();
+    return attachSubscriptionMetadataOrBare(subscribed, mediaType);
   }
 
   if (mediaType === 'episodes') {
-    // Episodes for subscribed channels come from the device, so this list reads, filters, and
-    // sorts the same with no connection. The ranking is local rather than server-side as a result.
-    if (
-      sort === 'popularity' &&
-      authDeps.status === 'authenticated' &&
-      !(await channelItemsRepository.hasPopularityRanks(range))
-    ) {
-      try {
-        await channelItemsRepository.refreshPopularityRanks(authDeps, range);
-      } catch {
-        // Keep the unranked recency window. Same set either way — only the order is missing.
-      }
-    }
+    // Episodes for subscribed channels come from the device. An empty window stays empty until
+    // the channel-items job writes rows — Home does not fill the gap over the network.
     const podcastChannels = await subscriptionsRepository.list({ kind: 'podcasts', sort });
+    ensureCurrent();
     const podcastChannelIds = podcastChannels.map((channel) => channel.idText);
     const stored = await channelItemsRepository.listSubscribed({
       channelIdTexts: podcastChannelIds,
       sort,
     });
-    if (stored.length > 0) {
-      return mapItemsToHomeFeedRows(stored);
-    }
-
-    // Nothing stored yet — a fresh install whose first sync has not reached episodes. Only an
-    // account can be asked to fill that gap: subscriptions are device-local, so the server can
-    // answer "what is this user subscribed to" for a signed-in device and nothing better than the
-    // global directory for a signed-out one. Home does not show the directory, so a signed-out
-    // device waits for the queue instead.
-    if (authDeps.status !== 'authenticated') {
-      return [];
-    }
-
-    const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
-      api.reqItemGetMany({
-        category: null,
-        medium: 'podcasts',
-        page: HOME_FEED_PAGE,
-        range: homeSortToApiRange(sort, range),
-        sort: toDirectorySort(sort),
-        type: 'subscribed',
-      })
-    );
-    // Subscribed items have recency and popularity endpoints, not a title endpoint, so A-Z is
-    // applied here to the page that came back. Same set either way — this path exists to fill a
-    // screen while the item sync catches up, not to be a second source of episodes.
-    return applyHomeSort(normalizeItemRows(response.data), sort);
+    ensureCurrent();
+    return mapItemsToHomeFeedRows(stored);
   }
 
   if (mediaType === 'tracks') {
-    // Tracks from followed albums/artists, assembled from the device the same way Episodes are.
     const musicChannels = await subscriptionsRepository.list({ sort });
+    ensureCurrent();
     const musicChannelIds = musicChannels
       .filter((channel) => channel.kind === 'artists' || channel.kind === 'albums')
       .map((channel) => channel.idText);
@@ -510,47 +639,16 @@ export const fetchHomeFeedRows = async (
       channelIdTexts: musicChannelIds,
       sort,
     });
-    if (stored.length > 0) {
-      return mapItemsToHomeFeedRows(stored);
-    }
-
-    if (authDeps.status !== 'authenticated') {
-      return [];
-    }
-
-    const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
-      api.reqItemGetMany({
-        category: null,
-        medium: 'music',
-        page: HOME_FEED_PAGE,
-        range: homeSortToApiRange(sort, range),
-        sort: toDirectorySort(sort),
-        type: 'subscribed',
-      })
-    );
-    return applyHomeSort(normalizeItemRows(response.data), sort);
+    ensureCurrent();
+    return mapItemsToHomeFeedRows(stored, { compact: true });
   }
 
   if (mediaType === 'clips') {
-    // The subscribed clip list is account-backed. Signed-out Home never asks the global directory —
-    // the screen decides between a login fill and a Browse CTA.
-    if (authDeps.status !== 'authenticated') {
-      return [];
-    }
-
-    const directorySort = toDirectorySort(sort);
-    const directoryRange = homeSortToApiRange(sort, range);
-    const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
-      api.reqClipGetManyPublic({
-        category: null,
-        medium: 'podcasts',
-        page: HOME_FEED_PAGE,
-        range: directoryRange,
-        sort: directorySort,
-        type: 'subscribed',
-      })
-    );
-    return applyHomeSort(normalizeClipRows(response.data), sort);
+    // Account-backed clips land in kv via the home-clips job. Signed-out and pre-sync reads
+    // are empty; the screen chooses Login vs Browse from that.
+    const stored = await homeClipsCacheRepository.listPayload();
+    ensureCurrent();
+    return applyHomeSort(normalizeClipRows(stored), sort);
   }
 
   return [];

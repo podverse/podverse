@@ -9,21 +9,26 @@ alwaysApply: false
 
 # Mobile full player fixed-region contract
 
-The full player is a fixed-height region above scrollable panes. The region keeps its geometry while
-chips and pane content below it change.
+The full player is an outer scroll column (player region, then chips, then a height-locked pane
+sheet) with an inner scroller for pane body. The player region keeps a fixed internal geometry while
+chips and pane content below it change. Nothing on this screen is sticky, overlay-pinned, or shrinks
+with scroll. The mini player on other screens is a separate surface.
 
 ## Required
 
-- Only the viewer band flexes. Every other band keeps its fixed height. The viewer band flexes for
-  real (`flexGrow` / `flexShrink` with `minHeight: 0`) and sizes its square from its own measured
-  box, so a band whose text grows with the OS font setting takes that space from the artwork
-  instead of pushing the transport rows out of the region.
+- Only the viewer band flexes. Every other band keeps its fixed height (`height`, not only
+  `minHeight`, so reserved chrome matches what renders). The viewer band flexes for real
+  (`flexGrow` / `flexShrink` with `minHeight: 0`). The square's edge is `artworkSize` from
+  `resolveFullPlayerLayout`, seeded from the window on the first commit
+  (`resolveFullPlayerViewport`). It must not change from a later `onLayout` — a second size during
+  the slide-up is a visible flash. Large text clips inside the fixed bands instead of resizing the
+  square after first paint.
 - The artwork is what gives way. It has caps (`FULL_PLAYER_ARTWORK_MAX_PHONE` /
   `_MAX_TABLET`) but no floor: a viewport too short for the fixed bands shrinks the square rather
   than pushing the chip strip off the bottom edge. The region is never taller than the space the
   viewport can give it, and clips (`overflow: 'hidden'`) in the worst case.
-- Region sizing comes from `fullPlayerLayout.ts`; do not introduce ad-hoc magic heights in screen
-  styles. Band styles read the same constants the math reads (`FULL_PLAYER_REGION_GAP`,
+- Region and pane-sheet sizing come from `fullPlayerLayout.ts`; do not introduce ad-hoc magic heights
+  in screen styles. Band styles read the same constants the math reads (`FULL_PLAYER_REGION_GAP`,
   `FULL_PLAYER_CONTROL_STACK_GAP`, `FULL_PLAYER_REGION_TOP_PADDING`,
   `FULL_PLAYER_REGION_BOTTOM_PADDING`, `FULL_PLAYER_CHIP_HEADER_HEIGHT`) so reserved and rendered
   space cannot drift.
@@ -35,12 +40,41 @@ chips and pane content below it change.
   `FULL_PLAYER_REGION_TOP_PADDING` above the title and `FULL_PLAYER_REGION_BOTTOM_PADDING` below the
   utility row (the seam before the section chips). Both paddings are chrome so the bands sum to the
   region height rather than overflowing. The chip header has no hairlines.
-- Peek reserves the chip strip plus the bottom safe-area inset, and a bottom fill covers the inset
-  so pane copy cannot show there. The header does not include that inset, so chips stay close to
-  pane content after scroll. `FULL_PLAYER_CHIP_HEADER_HEIGHT` is the default-text-size floor —
-  the strip reports its measured height (`chipStripHeight`) and peek follows the larger of the two,
-  so accessibility text sizes cannot leak Summary copy under the chips. Measure the chip row slot,
-  never the header, or the condensed bar would change the reserve mid-scroll.
+- Peek sizes first paint so the chip strip sits at the fold. `resolveFullPlayerLayout` reserves the
+  chip strip plus the bottom safe-area inset from the player height, which is what keeps the chips
+  above the home indicator. Space above the chips and space from chips to the pane sheet are each
+  **2×** `listChipRowBottomGap` (`SectionChipRow` owns one unit below; the chip slot adds the
+  second). Chips sit **above** the sheet, inset to the sheet's outer border (`spacing.md`), not to
+  the pane text column. Do not add a safe-area spacer or a third pane `paddingTop`. Chips scroll
+  with the player. `FULL_PLAYER_CHIP_HEADER_HEIGHT` is the default-text-size floor — the strip
+  reports its measured height (`chipStripHeight`) and peek follows the larger of the two, so
+  accessibility text sizes cannot leak Summary copy under the chips. Measure the chip row slot only.
+- **Outer `ScrollView`** owns the player → chips → sheet column (`testID="full-player-outer-scroll"`).
+  Max outer scroll equals the player region height: once the sheet is fully on screen (chips at the
+  top, bottom radius visible), the outer column stops. Returning to the player is an outer gesture
+  on the chips / player (or iOS status-bar `scrollsToTop` on the outer scroller). There is no
+  inner-to-outer scroll chaining. The outer column is **not** a `FlatList` — its children are fixed
+  (player + chips + one sheet), not an unbounded row list.
+- **`FullPlayerPaneSheet`** owns the viewport-derived slot (`paneSheetHeight`): the same value as
+  `minHeight`, `height`, and `maxHeight`, plus `overflow: 'hidden'`. Every tab paints that same card;
+  tab bodies are children and must not compute their own height or add a spacer. Long content
+  cannot grow the outer column. Pass `sheetBottomInset` from `tokens.spacing.md` into layout math so
+  the bottom radius sits above the home indicator.
+- **Inner `FlatList`** (`testID="full-player-section-list"`) scrolls only inside the sheet.
+  `scrollsToTop={false}` so status-bar tap restores the outer player. `data` is the chapter / clip /
+  official-clip rows; summary and transcript live in the footer. A chip tap only swaps the pane; it
+  does not scroll either list. Nesting this list under the outer `ScrollView` is required product
+  behavior; RN's "VirtualizedLists should never be nested" yellow box is structural and expected —
+  silence it only via `ignoreFullPlayerBoundedNestedListWarning()` from
+  `listVirtualization.ts` (called from `FullPlayerScreen`). Do not de-virtualize chapters/clips into
+  `ScrollView` + `.map()`, and do not broaden that ignore to unrelated nesting. Summary prose still
+  uses the mobile About/Summary **Show more** / **Show less** collapse (**about-summary-web-mobile-alignment**)
+  — the height-locked sheet does not replace that truncate.
+- The pane sits in a rounded, inset sheet (`themeStyles.paneSheet`) so the fold reads as a distinct
+  surface. Dark uses page ink (`background.primary`); other themes use the card surface. Chips stay
+  outside that sheet. Round all four corners on the single wrapper (`FullPlayerPaneSheet`). Summary,
+  transcript, and empty pane copy use the same top inset as the first chapter row (`spacing.base`)
+  so the first line of text sits at one position in every tab.
 - The segment band (`FULL_PLAYER_SEGMENT_BAND_HEIGHT`) sits **below** the artwork and is reserved
   unconditionally, exactly as web reserves `--media-modal-subtitle-reserve`. A chapter or clip name
   arriving mid-playback fades into a row that is already there — it never resizes the artwork or
@@ -51,13 +85,19 @@ chips and pane content below it change.
   `0`.
 - New player controls open sheets. Do not expand controls inline inside the fixed region.
 - If a new control needs persistent space, reserve a fixed-height band for it in layout math.
-- Sticky chips and the condensed bar belong to the scroll shell, not inside pane content. A chip
-  tap only swaps the pane; it does not scroll the list.
-- Video renders inside the measured artwork square and letterboxes when aspect ratios differ.
-- Playhead UI lives in leaf components that read `playbackProgressStore`; the fixed-region shell
+- Video renders inside the artwork square and letterboxes when aspect ratios differ.
+- When the active chapter has an image, that image replaces the item/channel artwork in the
+  viewer square (**mobile-chapter-artwork**). Chapter list rows in the pane follow the same
+  section-has-images rule.
+- Playhead UI lives in leaf components that read `playbackProgressStore`; the region shell
   uses `usePlaybackSession()` only.
 - Pull-to-dismiss is the native-stack top-edge gesture only (`fullScreenGestureEnabled: false`).
-- The pane `SectionList` does not bounce or over-scroll — this screen has no pull-to-refresh.
+- The outer and inner scrollers do not bounce or over-scroll — this screen has no pull-to-refresh.
+- The full player has no empty-session body. When the item completes and nothing is ahead,
+  now-playing clears and the **focused** full player dismisses (`onClose`). Do not dismiss while
+  Make clip is authoring (`isAuthoringHold`) or while this screen is unfocused — `goBack()` would
+  pop Make clip. A skip with nothing ahead must keep the current item playing so this path never
+  fires from a long-press.
 
 ## Do not
 
@@ -65,8 +105,13 @@ chips and pane content below it change.
   permanently reserved band; anything else jumps the layout while a listener is watching it.
 - Do not let pane loading, empty states, or chip switching push transport or utility rows.
 - Do not bind region size to transcript/chapter/clip body height.
+- Do not pin chips, overlay the player above the list, shrink the player with scroll, or add a
+  condensed now-playing bar on this screen. Do not put chips in a sticky `SectionList` header.
+- Do not let tab bodies add their own `minHeight` spacer or grow the outer column — the
+  **wrapper** owns the viewport-derived minHeight/height slot.
 - Do not give the region a minimum height that can exceed the viewport, and do not reserve peek from
   a hardcoded chip height alone — both push the chip strip off-screen on short viewports or at large
   text sizes.
+- Do not resize the artwork square from a band `onLayout` after the first commit.
 - Do not subscribe the shell to progress ticks (`usePlayback()` / `usePlaybackProgress()`).
 - Do not enable a full-screen vertical dismiss gesture or list bounce on the full player.

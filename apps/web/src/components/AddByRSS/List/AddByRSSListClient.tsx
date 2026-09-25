@@ -4,14 +4,18 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type { AddByRSSParseStatus } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers';
 import { CallToActionMessage, Dropdown, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { useModals } from '../../../contexts/Modals';
+import type { AddByRSSParseOutcome } from '../../../utils/addByRSS/actions';
 import { applyAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import { getFollowedAddByRSSChannels } from '../../../utils/addByRSS/api';
+import { partitionAddByRSSFeedsByCredentials } from '../../../utils/addByRSS/credentialsStatus';
+import { listFeedsWithCredentials } from '../../../utils/addByRSS/credentialStore';
 import {
   ADD_BY_RSS_ITEMS_PAGE_SIZE,
   buildAddByRSSItemsIndex,
@@ -43,6 +47,7 @@ import { AddByRSSLivestreamFeedNodes } from '../Livestream/AddByRSSLivestreamFee
 import { AddByRSSPodcastListNodes } from '../Podcast/AddByRSSPodcastListNodes';
 import { AddByRSSEpisodeNodes } from '../Podcast/Episode/AddByRSSEpisodeNodes';
 import { AddByRSSListHeader } from './AddByRSSListHeader';
+import { AddByRSSNeedsCredentialsSection } from './AddByRSSNeedsCredentialsSection';
 
 type AddByRSSListClientProps = {
   resourceType: AddByRSSResourceType;
@@ -102,6 +107,15 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
   const [isUpdating, setIsUpdating] = useState(false);
   const [itemIdTextMap, setItemIdTextMap] = useState<Map<string, string>>(new Map());
   const [trackItems, setTrackItems] = useState<AddByRSSItemIndexItem[]>([]);
+  const [feedUrlsWithCredentials, setFeedUrlsWithCredentials] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+
+  const { ready: readyFeeds, needsCredentials } = useMemo(
+    () => partitionAddByRSSFeedsByCredentials(feeds, feedUrlsWithCredentials),
+    [feeds, feedUrlsWithCredentials]
+  );
+  const showsNeedsCredentialsSection = resourceType !== 'tracks' && resourceType !== 'episodes';
 
   const initialListSort = useMemo<ListSort>(() => {
     return searchParams.get('sort') === 'oldest' ? 'oldest' : 'recent';
@@ -208,15 +222,15 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
   const renderFeeds = () => {
     switch (resourceType) {
       case 'podcasts':
-        return <AddByRSSPodcastListNodes feeds={feeds} viewSelected={viewSelected} />;
+        return <AddByRSSPodcastListNodes feeds={readyFeeds} viewSelected={viewSelected} />;
       case 'artists':
-        return <AddByRSSArtistNodes feeds={feeds} viewSelected={viewSelected} />;
+        return <AddByRSSArtistNodes feeds={readyFeeds} viewSelected={viewSelected} />;
       case 'albums':
-        return <AddByRSSAlbumNodes feeds={feeds} viewSelected={viewSelected} />;
+        return <AddByRSSAlbumNodes feeds={readyFeeds} viewSelected={viewSelected} />;
       case 'episodes':
         return (
           <AddByRSSEpisodeNodes
-            feeds={feeds}
+            feeds={readyFeeds}
             viewSelected={viewSelected}
             itemIdTextMap={itemIdTextMap}
           />
@@ -226,7 +240,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
           <AddByRSSTrackNodes items={trackItems} viewSelected={viewSelected} sortOrder={listSort} />
         );
       case 'livestreams':
-        return <AddByRSSLivestreamFeedNodes feeds={feeds} viewSelected={viewSelected} />;
+        return <AddByRSSLivestreamFeedNodes feeds={readyFeeds} viewSelected={viewSelected} />;
       default:
         return null;
     }
@@ -275,6 +289,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
           title: channel.title ?? existingRecord.title,
           imageUrl: channel.image_url ?? existingRecord.imageUrl,
           updatedAt: now,
+          requiresCredentials: channel.requires_credentials === true,
         };
       }
 
@@ -287,6 +302,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
         title: channel.title ?? channel.feed_url,
         imageUrl: channel.image_url ?? null,
         updatedAt: now,
+        requiresCredentials: channel.requires_credentials === true,
       };
     });
 
@@ -304,6 +320,12 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
     }
 
     try {
+      setFeedUrlsWithCredentials(new Set(await listFeedsWithCredentials(loggedInAccount.id_text)));
+    } catch (error) {
+      console.error(error);
+    }
+
+    try {
       await syncFeeds();
       await refreshFeeds();
     } catch (error) {
@@ -317,14 +339,16 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
     async (
       feedUrl: string,
       parsedFeed: AddByRSSParsedFeed | undefined,
-      status: AddByRSSFeedRecord['status'],
-      cache?: AddByRSSFeedRecord['cache']
+      status: AddByRSSParseStatus,
+      cache?: AddByRSSFeedRecord['cache'],
+      outcome?: AddByRSSParseOutcome
     ) => {
       await applyAddByRSSParseStatus({
         feedUrl,
         parsedFeed,
         status,
         cache,
+        outcome,
         onUpdated: (record) => {
           if (record.resourceType === resourceType) {
             setFeeds((prev) => upsertFeedInState(prev, record));
@@ -347,6 +371,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
     const runUpdates = async () => {
       const allFeeds = await getAllAddByRSSFeeds();
       const result = await runAddByRSSParseAll({
+        accountId: loggedInAccount.id_text,
         feeds: allFeeds,
         onQueued: async (feedUrl) => handleParseStatus(feedUrl, undefined, 'queued'),
         onStatusUpdate: async (feedUrl, statusResponse) =>
@@ -354,7 +379,8 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
             feedUrl,
             statusResponse.payload,
             statusResponse.status,
-            statusResponse.cache
+            statusResponse.cache,
+            statusResponse
           ),
       });
 
@@ -408,7 +434,8 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
 
             {isLoading && !isUpdating ? (
               <WebLoadingSpinnerOverlay isLoading />
-            ) : feeds.length === 0 ? (
+            ) : readyFeeds.length === 0 &&
+              (!showsNeedsCredentialsSection || needsCredentials.length === 0) ? (
               <NoResults
                 message={tFeatures(
                   resourceType === 'artists' ||
@@ -419,7 +446,12 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
                 )}
               />
             ) : (
-              renderFeeds()
+              <>
+                {readyFeeds.length > 0 && renderFeeds()}
+                {showsNeedsCredentialsSection && (
+                  <AddByRSSNeedsCredentialsSection feeds={needsCredentials} />
+                )}
+              </>
             )}
           </MainColumnStack>
         </MainSidebarLayout>

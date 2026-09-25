@@ -6,6 +6,7 @@ import { createMobileApiRequestService } from '../../auth/mobileApi';
 import { MembershipFeatureTable } from '../../components/membership/MembershipFeatureTable';
 import { Accordion, Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
+import { SectionHeading } from '../../components/section/SectionHeading';
 import { openCheckout } from '../../membership/checkoutEntry';
 import { useMembership } from '../../membership/useMembership';
 import { typography } from '../../theme/typography';
@@ -105,10 +106,6 @@ export function MoreMembershipScreen() {
           gap: tokens.spacing.base,
           padding: tokens.spacing.lg,
         },
-        cardHeading: {
-          ...typography.heading,
-          color: themeStyles.textPrimary.color,
-        },
         cta: {
           marginBottom: tokens.spacing['4xl'],
           marginTop: tokens.spacing.sm,
@@ -161,7 +158,7 @@ export function MoreMembershipScreen() {
         <View style={styles.section}>
           <Card padded={false} testID="more-membership-pricing">
             <View style={styles.cardBody}>
-              <Text style={styles.cardHeading}>{t('membership.premium_membership')}</Text>
+              <SectionHeading>{t('membership.premium_membership')}</SectionHeading>
               <Text style={styles.priceRow}>
                 {`$${pricing.costMonthly}${t('membership.pricing_per_month')}`}
               </Text>

@@ -63,7 +63,7 @@ Step **5.20** client URL wiring is in place for E2E dev-server startup:
 
 Steps **5.21–5.23** (test-assets / media) are in place:
 
-- Leave-running: `npm run mobile:e2e:test-assets` (`podverse-test-assets` on **2111**, same as web)
+- Leave-running: `npm run mobile:e2e:test-assets` (`podverse-test-assets` on **2111**, `0.0.0.0`). Do not reuse **Dev**’s `dev:test-assets` (`localhost` bind).
 - Health: `npm run mobile:e2e:test-assets:health` (known fixture GET)
 - Runner `flow_needs_test_assets` fails fast when playback flows run without `:2111`
 - Android E2E rewrites enclosure hosts `localhost:2111` / `127.0.0.1:2111` → `10.0.2.2:2111`
@@ -89,10 +89,14 @@ nullable when variables are unset so UI-only flows remain valid.
 - Reuse existing Podverse test-env concepts where possible, but do not assume web E2E seed layout is
   automatically correct for mobile.
 
-Seeded auth credential for future mobile login/logout flows (6.11 / 6.12):
+Seeded auth credential:
 
 - Email: `e2e-user@example.com`
 - Password: `Test!1Aa`
+
+Most Maestro flows sign in by tapping `e2e-quick-login`. That control renders only when
+Metro `__DEV__` is on and `EXPO_PUBLIC_MOBILE_E2E=1`. `auth-login` is the flow that types
+these credentials into the login form.
 
 API-backed pre-run uses **separate terminals**. Do not chain Metro/API/test-assets into one
 pasteable shell with Maestro — see [HOW-TO-RUN.md](./HOW-TO-RUN.md).
@@ -100,9 +104,9 @@ pasteable shell with Maestro — see [HOW-TO-RUN.md](./HOW-TO-RUN.md).
 ```bash
 # One-shot prep (exits) — Mobile
 make mobile_e2e_deps
-make mobile_e2e_seed
+bash scripts/mobile/ensure-devices.sh e2e
 
-# Leave running — Mobile Metro
+# Leave running — Mobile E2E Metro
 npm run mobile:dev:e2e
 
 # Leave running — Mobile E2E API
@@ -115,12 +119,12 @@ npm run mobile:e2e:test-assets
 npm run mobile:e2e:api:health
 npm run mobile:e2e:test-assets:health
 
-# One-shot installs — Mobile iOS / Mobile Android
+# One-shot installs — Mobile E2E iOS / Mobile E2E Android
 npm run mobile:e2e:ios
 npm run mobile:e2e:android
 
-# Mobile Maestro — after health + installs
-npm run mobile:e2e:test -- add-by-rss
+# Mobile Maestro — after health + installs (runner reseeds)
+npm run mobile:e2e:test -- --platform ios player-screen
 ```
 
 Or background API from the prep shell: `npm run mobile:e2e:api:bg` then

@@ -15,6 +15,7 @@ import { CHANNEL_BROWSE_STACK_ROUTES } from '../../../navigation';
 import type { HomeFeedRowData } from '../../home/homeFeedData';
 import { mapItemToHomeFeedRow } from '../../home/homeFeedData';
 import { HomeFeedRow } from '../../home/HomeFeedRow';
+import type { QueueActionPosition } from '../../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../../home/useHomeRowPlayback';
 import { useAddToPlaylist } from '../../library/useAddToPlaylist';
 import { PodcastSectionList } from './PodcastSectionList';
@@ -25,6 +26,8 @@ type DownloadedRow = {
   record: DownloadRecord;
   row: HomeFeedRowData;
 };
+
+const downloadedRowKeyExtractor = (entry: DownloadedRow): string => entry.row.id;
 
 const rowFromDownloadRecord = (record: DownloadRecord): HomeFeedRowData => ({
   description: null,
@@ -138,6 +141,57 @@ export function PodcastDownloadedSection({
     [runMarkAsPlayedAction]
   );
 
+  const handlePlayPress = useCallback(
+    (episodeRow: HomeFeedRowData) => {
+      runPlayAction(episodeRow, 'episodes');
+    },
+    [runPlayAction]
+  );
+
+  const handleQueuePress = useCallback(
+    (episodeRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(episodeRow, 'episodes', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleRefresh = useCallback(() => {
+    void onRefreshChannel();
+    void loadDownloads('refresh');
+  }, [loadDownloads, onRefreshChannel]);
+
+  const handleRetry = useCallback(() => {
+    void loadDownloads('retry');
+  }, [loadDownloads]);
+
+  const renderRow = useCallback(
+    ({ index, isLast, row: entry }: { index: number; isLast: boolean; row: DownloadedRow }) => (
+      <HomeFeedRow
+        downloadItem={entry.item === null ? undefined : entry.item}
+        downloadTestID={`podcast-downloaded-download-${index}`}
+        isLast={isLast}
+        mediaType="episodes"
+        onAddToPlaylistPress={handleAddToPlaylist}
+        onMarkAsPlayedPress={handleMarkAsPlayed}
+        onPlayPress={handlePlayPress}
+        onPress={handleEpisodePress}
+        onQueuePress={handleQueuePress}
+        onSharePress={handleShare}
+        row={entry.row}
+        showChannelContext={false}
+        testID={`podcast-downloaded-row-${index}`}
+      />
+    ),
+    [
+      handleAddToPlaylist,
+      handleEpisodePress,
+      handleMarkAsPlayed,
+      handlePlayPress,
+      handleQueuePress,
+      handleShare,
+    ]
+  );
+
   return (
     <>
       <PodcastSectionList
@@ -146,40 +200,12 @@ export function PodcastDownloadedSection({
         hasFilterHiddenEverything={entries.length > 0 && visibleEntries.length === 0}
         isInitialLoading={isInitialLoading}
         isRefreshing={isRefreshing}
-        keyExtractor={(entry) => entry.row.id}
+        keyExtractor={downloadedRowKeyExtractor}
         listHeader={listHeader}
         noticeKey={playbackNoticeKey}
-        onRefresh={() => {
-          void onRefreshChannel();
-          void loadDownloads('refresh');
-        }}
-        onRetry={() => {
-          void loadDownloads('retry');
-        }}
-        renderRow={({ index, isLast, row: entry }) => (
-          <HomeFeedRow
-            download={
-              entry.item === null
-                ? undefined
-                : { item: entry.item, testID: `podcast-downloaded-download-${index}` }
-            }
-            isLast={isLast}
-            mediaType="episodes"
-            onAddToPlaylistPress={handleAddToPlaylist}
-            onMarkAsPlayedPress={handleMarkAsPlayed}
-            onPlayPress={(episodeRow) => {
-              runPlayAction(episodeRow, 'episodes');
-            }}
-            onPress={handleEpisodePress}
-            onQueuePress={(episodeRow, position) => {
-              runQueueAction(episodeRow, 'episodes', position);
-            }}
-            onSharePress={handleShare}
-            row={entry.row}
-            showChannelContext={false}
-            testID={`podcast-downloaded-row-${index}`}
-          />
-        )}
+        onRefresh={handleRefresh}
+        onRetry={handleRetry}
+        renderRow={renderRow}
         rows={visibleEntries}
         statusTestIDPrefix="podcast-detail-downloaded"
         testID="podcast-detail-downloaded-list"

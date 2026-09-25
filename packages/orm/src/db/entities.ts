@@ -1,6 +1,7 @@
 import { Account } from '@orm/entities/account/account.js';
 import { AccountAppStorePurchase } from '@orm/entities/account/accountAppStorePurchase.js';
 import { AccountCredentials } from '@orm/entities/account/accountCredentials.js';
+import { AccountDeviceAutoDownloadChannel } from '@orm/entities/account/accountDeviceAutoDownloadChannel.js';
 import { AccountEmailChangeVerification } from '@orm/entities/account/accountEmailChangeVerification.js';
 import { AccountFCMDevice } from '@orm/entities/account/accountFCMDevice.js';
 import { AccountFollowingAccount } from '@orm/entities/account/accountFollowingAccount.js';
@@ -133,6 +134,7 @@ export const entities = [
   AccountAppStorePurchase,
   AccountCredentials,
   AccountEmailChangeVerification,
+  AccountDeviceAutoDownloadChannel,
   AccountFCMDevice,
   AccountFollowingAccount,
   AccountFollowingAddByRSSChannel,

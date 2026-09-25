@@ -6,6 +6,7 @@ import {
   AccountChannelSeenController,
   channelSeenReadRateLimit,
 } from '@api/controllers/account/accountChannelSeen.js';
+import { AccountDeviceAutoDownloadController } from '@api/controllers/account/accountDeviceAutoDownload.js';
 import { AccountFCMDeviceController } from '@api/controllers/account/accountFCMDevice.js';
 import { AccountFollowingAccountController } from '@api/controllers/account/accountFollowingAccount.js';
 import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel.js';
@@ -110,6 +111,11 @@ router.post('/opml/import', asyncHandler(AccountOpmlImportController.enqueueImpo
 router.get(
   '/opml/import/status/:request_id',
   asyncHandler(AccountOpmlImportController.getImportStatus)
+);
+
+router.put(
+  '/auto-download/channels',
+  asyncHandler(AccountDeviceAutoDownloadController.putChannels)
 );
 
 router.post('/fcm-device/create', asyncHandler(AccountFCMDeviceController.create));
@@ -227,10 +233,22 @@ router.delete(
   '/notification/channel/:channel_id_text',
   asyncHandler(AccountNotificationChannelController.delete)
 );
+router.post(
+  '/notification/channels/bulk-enable',
+  asyncHandler(AccountNotificationChannelController.bulkEnable)
+);
+router.post(
+  '/notification/channels/bulk-disable',
+  asyncHandler(AccountNotificationChannelController.bulkDisable)
+);
 
 router.post(
   '/notification/channel/type',
   asyncHandler(AccountNotificationChannelTypeController.create)
+);
+router.post(
+  '/notification/channels/bulk-type',
+  asyncHandler(AccountNotificationChannelTypeController.bulkSetType)
 );
 router.delete(
   '/notification/channel/:channel_id_text/type/:type',

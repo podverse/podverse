@@ -1,0 +1,13 @@
+appId: com.podverse.app.next
+---
+# Put the first chip back at the leading edge after the row was scrolled to a trailing
+# control. Later steps tap those leading chips, or swipe left from this position to reach
+# types that were off the trailing edge. Swiping past the start is a no-op. Caller sets
+# CHIP_ROW_ID.
+- repeat:
+    times: 4
+    commands:
+      - swipe:
+          from:
+            id: ${CHIP_ROW_ID}
+          direction: RIGHT

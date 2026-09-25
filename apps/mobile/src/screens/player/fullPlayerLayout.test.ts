@@ -4,8 +4,6 @@ import {
   FULL_PLAYER_ARTWORK_MAX_PHONE,
   FULL_PLAYER_ARTWORK_MAX_TABLET,
   FULL_PLAYER_CHIP_HEADER_HEIGHT,
-  FULL_PLAYER_CONDENSE_ENTER_RATIO,
-  FULL_PLAYER_CONDENSE_EXIT_RATIO,
   FULL_PLAYER_CONTROL_STACK_GAP,
   FULL_PLAYER_CONTROL_STACK_GAP_COUNT,
   FULL_PLAYER_PROGRESS_BLOCK_HEIGHT,
@@ -17,9 +15,8 @@ import {
   FULL_PLAYER_TITLE_BLOCK_HEIGHT,
   FULL_PLAYER_TRANSPORT_ROW_HEIGHT,
   FULL_PLAYER_UTILITY_ROW_HEIGHT,
-  resolveCondensedState,
   resolveFullPlayerLayout,
-  resolveMinPaneContentHeight,
+  resolveFullPlayerViewport,
 } from './fullPlayerLayout';
 
 const phoneInput = {
@@ -28,6 +25,7 @@ const phoneInput = {
   maxContentWidth: 420,
   safeAreaBottom: 34,
   safeAreaTop: 47,
+  sheetBottomInset: 16,
   viewportHeight: 844,
   viewportWidth: 390,
 };
@@ -129,89 +127,75 @@ describe('resolveFullPlayerLayout', () => {
       })
     ).toEqual({
       artworkSize: 0,
+      paneSheetHeight: 0,
       peekHeight: 0,
       playerRegionHeight: 0,
       viewerHeight: 0,
     });
   });
-});
 
-describe('resolveMinPaneContentHeight', () => {
-  it('reserves enough scroll for the region to condense on a short pane', () => {
-    const minHeight = resolveMinPaneContentHeight({
-      hasSections: true,
-      playerRegionHeight: 700,
-      viewportHeight: 844,
+  it('sizes the pane sheet so chips plus sheet plus bottom gap fill the viewport', () => {
+    const layout = resolveFullPlayerLayout({
+      ...phoneInput,
+      safeAreaTop: 0,
     });
-    const reachableOffset = minHeight - 844;
-
-    expect(reachableOffset).toBeGreaterThan(700 * FULL_PLAYER_CONDENSE_ENTER_RATIO);
+    const strip = FULL_PLAYER_CHIP_HEADER_HEIGHT;
+    const bottomGap = phoneInput.safeAreaBottom + phoneInput.sheetBottomInset;
+    expect(layout.paneSheetHeight).toBe(phoneInput.viewportHeight - strip - bottomGap);
+    // Locked frame: chips + sheet + bottom gap fill one viewport. Outer content is that frame
+    // plus the player region, so max scroll equals playerRegionHeight.
+    expect(strip + layout.paneSheetHeight + bottomGap).toBe(phoneInput.viewportHeight);
+    expect(layout.playerRegionHeight).toBe(
+      phoneInput.viewportHeight - strip - phoneInput.safeAreaBottom
+    );
   });
 
-  it('reserves nothing when the target has no panes to scroll', () => {
-    expect(
-      resolveMinPaneContentHeight({
-        hasSections: false,
-        playerRegionHeight: 700,
-        viewportHeight: 844,
-      })
-    ).toBe(0);
+  it('grows the pane sheet when the measured chip strip is taller than the floor', () => {
+    const chipStripHeight = FULL_PLAYER_CHIP_HEADER_HEIGHT + 30;
+    const layout = resolveFullPlayerLayout({
+      ...phoneInput,
+      chipStripHeight,
+      safeAreaTop: 0,
+    });
+    const bottomGap = phoneInput.safeAreaBottom + phoneInput.sheetBottomInset;
+    expect(layout.paneSheetHeight).toBe(phoneInput.viewportHeight - chipStripHeight - bottomGap);
   });
 
-  it('reserves nothing before the viewport has been measured', () => {
-    expect(
-      resolveMinPaneContentHeight({
-        hasSections: true,
-        playerRegionHeight: 0,
-        viewportHeight: 0,
-      })
-    ).toBe(0);
+  it('collapses the pane sheet when there are no sections', () => {
+    const layout = resolveFullPlayerLayout({
+      ...phoneInput,
+      hasSections: false,
+    });
+    expect(layout.paneSheetHeight).toBe(0);
   });
 });
 
-describe('resolveCondensedState', () => {
-  const playerRegionHeight = 400;
-  const enterThreshold = playerRegionHeight * FULL_PLAYER_CONDENSE_ENTER_RATIO;
-  const exitThreshold = playerRegionHeight * FULL_PLAYER_CONDENSE_EXIT_RATIO;
-  const betweenThresholds = (enterThreshold + exitThreshold) / 2;
-
-  it('keeps non-condensed state between the thresholds', () => {
+describe('resolveFullPlayerViewport', () => {
+  it('sizes the body as the window minus the action row and the status inset', () => {
     expect(
-      resolveCondensedState({
-        isCondensed: false,
-        playerRegionHeight,
-        scrollOffset: betweenThresholds,
+      resolveFullPlayerViewport({
+        headerBarHeight: 44,
+        safeAreaTop: 59,
+        windowHeight: 874,
+        windowWidth: 402,
       })
-    ).toBe(false);
+    ).toEqual({
+      height: 874 - 44 - 59,
+      width: 402,
+    });
   });
 
-  it('keeps condensed state between the thresholds', () => {
+  it('clamps a bar taller than the window to zero', () => {
     expect(
-      resolveCondensedState({
-        isCondensed: true,
-        playerRegionHeight,
-        scrollOffset: betweenThresholds,
+      resolveFullPlayerViewport({
+        headerBarHeight: 44,
+        safeAreaTop: 59,
+        windowHeight: 40,
+        windowWidth: -1,
       })
-    ).toBe(true);
-  });
-
-  it('condenses at the enter threshold', () => {
-    expect(
-      resolveCondensedState({
-        isCondensed: false,
-        playerRegionHeight,
-        scrollOffset: enterThreshold,
-      })
-    ).toBe(true);
-  });
-
-  it('restores below the exit threshold', () => {
-    expect(
-      resolveCondensedState({
-        isCondensed: true,
-        playerRegionHeight,
-        scrollOffset: exitThreshold,
-      })
-    ).toBe(false);
+    ).toEqual({
+      height: 0,
+      width: 0,
+    });
   });
 });

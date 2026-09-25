@@ -2,12 +2,14 @@ import { useCallback, useState } from 'react';
 
 import type { AddByRSSResourceData } from '@podverse/helpers';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
+import type { PlaybackTarget } from '@podverse/playback-core';
 import { resolvePlaybackLoadDecision } from '@podverse/playback-core/resolvePlaybackLoadDecision';
 
 import { useNativePlaybackBridge } from '../bridge';
 import { isMobileE2eFromEnv } from '../config/env';
 import { EMPTY_ABRIDGED_INDEX, toAddByRssItemPlaybackResourceData } from '../lib/addByRss/domain';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
+import { withAddByRssPlaybackAuth } from '../playback/addByRssMediaAuth';
 import type { MobileAddByRSSFeedRecord } from '../prefs/addByRSSFeeds';
 
 type UseAddByRssPlaybackOptions = {
@@ -39,23 +41,21 @@ export function useAddByRssPlayback({ onNotice }: UseAddByRssPlaybackOptions) {
 
   const playResource = useCallback(
     async (resourceData: AddByRSSResourceData, mediaUrl: string) => {
+      const target: PlaybackTarget = { kind: 'add-by-rss', resourceData };
       const decision = resolvePlaybackLoadDecision(
-        {
-          target: {
-            kind: 'add-by-rss',
-            resourceData,
-          },
-        },
+        { target },
         {
           abridged: EMPTY_ABRIDGED_INDEX,
         }
       );
 
       try {
-        await bridge.load({
-          initialSeekSeconds: decision.initialSeekSeconds,
-          url: mediaUrl,
-        });
+        await bridge.load(
+          await withAddByRssPlaybackAuth(target, {
+            initialSeekSeconds: decision.initialSeekSeconds,
+            url: mediaUrl,
+          })
+        );
         if (decision.shouldAutoPlay) {
           await bridge.play();
         }

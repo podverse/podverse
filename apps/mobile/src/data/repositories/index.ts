@@ -1,6 +1,12 @@
 export { accountRepository } from './accountRepository';
+export { addByRssCredentialStore } from './addByRssCredentialStore';
 export { addByRssRepository } from './addByRssRepository';
 export { autoQueueRepository } from './autoQueueRepository';
+export {
+  rememberChannelIdentity,
+  rememberChannelNotifications,
+  rememberChannelSubscribed,
+} from './channelActionChromeRepository';
 export {
   CHANNEL_ITEM_WINDOW_DEFAULT_DEPTH,
   CHANNEL_ITEM_WINDOW_MAX_DEPTH,
@@ -10,13 +16,28 @@ export {
 export type { ChannelItemRecord, ChannelItemWindow } from './channelItemWindow';
 export { channelItemsRepository } from './channelItemsRepository';
 export type { ChannelWindowSyncResult } from './channelItemsRepository';
+export {
+  DIRECTORY_CHANNEL_GONE_CODE,
+  dropGoneDirectoryChannel,
+  extendDirectoryChannelOrDropGone,
+  formatDirectoryChannelGoneDetail,
+  isDirectoryChannelGoneError,
+  syncDirectoryChannelOrDropGone,
+} from './directoryChannelGone';
+export type { DirectoryChannelSyncOutcome } from './directoryChannelGone';
 export { channelLiveStatusRepository } from './channelLiveStatusRepository';
 export { channelSeenRepository } from './channelSeenRepository';
 export type { ChannelSeenUnseen } from './channelSeenRepository';
 export { clipRepository } from './clipRepository';
 export type { CreateClipInput, UpdateClipInput } from './clipRepository';
+export { homeClipsCacheRepository } from './homeClipsCacheRepository';
 export { downloadsRepository } from './downloadsRepository';
 export type { UnsubscribedDownloadChannel } from './downloadsRepository';
+export { autoDownloadRepository } from './autoDownloadRepository';
+export type {
+  ChannelAutoDownloadRecord,
+  ChannelAutoDownloadSource,
+} from './autoDownloadRepository';
 export { notificationsRepository } from './notificationsRepository';
 export { playbackContentRepository } from './playbackContentRepository';
 export {
@@ -70,15 +91,21 @@ export { writeSignupMergeEmail } from './subscriptionsSignupMarker';
 export { runSignupSubscriptionMerge } from './subscriptionsSignupMerge';
 export type { SignupMergeOutcome } from './subscriptionsSignupMerge';
 export {
+  formatSyncEventLogEntryReport,
   formatSyncEventLogExport,
   isSyncEventOutcome,
+  listSyncEventLogDetails,
   selectSyncEventEvictions,
+  SYNC_EVENT_DETAIL_KEYS,
   SYNC_EVENT_LOG_CAP,
 } from './syncEventLog';
 export type {
+  SyncEventDetailKey,
   SyncEventEvictionCandidate,
+  SyncEventLogDetails,
   SyncEventLogEntry,
   SyncEventOutcome,
+  SyncEventReportEnvironment,
 } from './syncEventLog';
 export { syncEventLogRepository } from './syncEventLogRepository';
 export type { SyncEventLogAppend } from './syncEventLogRepository';

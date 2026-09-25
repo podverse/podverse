@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type { AddByRSSParseStatus } from '@podverse/helpers';
 import { PAGINATION } from '@podverse/helpers';
 import { isMusicMediumId, parseMediumId } from '@podverse/helpers';
 import { Dropdown, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
@@ -18,6 +19,7 @@ import { dismissToast, showToast, showToastLoading } from '../../../components/T
 import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { useModals } from '../../../contexts/Modals';
+import type { AddByRSSParseOutcome } from '../../../utils/addByRSS/actions';
 import { applyAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import { runAddByRSSParseAll } from '../../../utils/addByRSS/parseAll';
 import {
@@ -161,14 +163,16 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
     async (
       feedUrl: string,
       parsedFeed: AddByRSSParsedFeed | undefined,
-      status: AddByRSSFeedRecord['status'],
-      cache?: AddByRSSFeedRecord['cache']
+      status: AddByRSSParseStatus,
+      cache?: AddByRSSFeedRecord['cache'],
+      outcome?: AddByRSSParseOutcome
     ) => {
       await applyAddByRSSParseStatus({
         feedUrl,
         parsedFeed,
         status,
         cache,
+        outcome,
       });
     },
     []
@@ -186,6 +190,7 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
     const runUpdates = async () => {
       const allFeeds = await getAllAddByRSSFeeds();
       const result = await runAddByRSSParseAll({
+        accountId: loggedInAccount.id_text,
         feeds: allFeeds,
         onQueued: async (feedUrl) => handleParseStatus(feedUrl, undefined, 'queued'),
         onStatusUpdate: async (feedUrl, statusResponse) =>
@@ -193,7 +198,8 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
             feedUrl,
             statusResponse.payload,
             statusResponse.status,
-            statusResponse.cache
+            statusResponse.cache,
+            statusResponse
           ),
       });
 

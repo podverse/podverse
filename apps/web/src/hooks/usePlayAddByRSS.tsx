@@ -17,6 +17,13 @@ import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
 
+export type PlayAddByRSSOptions = {
+  /** False for empty-player queue hydration, which must not stamp `last_played_at`. */
+  recordNowPlaying?: boolean;
+  /** False loads paused. Omitted keeps the gesture path, which starts playback. */
+  shouldPlay?: boolean;
+};
+
 export function usePlayAddByRSS() {
   const {
     applyPlaybackLoad,
@@ -67,7 +74,8 @@ export function usePlayAddByRSS() {
   return (
     indexItem: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem,
     playbackPosition?: number,
-    enclosureSelectedParamsOverride?: EnclosureSelectedParams
+    enclosureSelectedParamsOverride?: EnclosureSelectedParams,
+    options?: PlayAddByRSSOptions
   ) => {
     const apiRequestService = getApiRequestService();
     const resourceData = buildAddByRSSResourceData(indexItem);
@@ -136,7 +144,7 @@ export function usePlayAddByRSS() {
     } else {
       syncPlaybackPolicy(0, duration);
     }
-    setMPShouldPlay(true);
+    setMPShouldPlay(options?.shouldPlay !== false);
 
     // Resolve position when not provided (fetch from API) and sync to queue API.
     if (queue?.id_text) {
@@ -207,16 +215,18 @@ export function usePlayAddByRSS() {
           syncPlaybackPolicy(resolvedPosition, durationSeconds);
         }
 
-        apiRequestService
-          .reqQueueResourceItemAddByRSSAddNowPlaying(queue.id_text, {
-            add_by_rss_resource_data: resourceData,
-            playback_position: String(resolvedPosition),
-            last_played_at: new Date().toISOString(),
-            playback_event_kind: 'play',
-          })
-          .catch(() => {
-            // Fire-and-forget; queue sync is best-effort
-          });
+        if (options?.recordNowPlaying !== false) {
+          apiRequestService
+            .reqQueueResourceItemAddByRSSAddNowPlaying(queue.id_text, {
+              add_by_rss_resource_data: resourceData,
+              playback_position: String(resolvedPosition),
+              last_played_at: new Date().toISOString(),
+              playback_event_kind: 'play',
+            })
+            .catch(() => {
+              // Fire-and-forget; queue sync is best-effort
+            });
+        }
       })();
     }
   };

@@ -293,6 +293,58 @@ export const MIGRATIONS: Migration[] = [
         ON playlist_resource (playlist_id_text, updated_at DESC);`,
     ],
   },
+  {
+    version: 18,
+    statements: [
+      // Per-channel auto-download opt-in. enabled_at is the watermark so enabling never backfills.
+      `CREATE TABLE IF NOT EXISTS channel_auto_download (
+        channel_id_text TEXT PRIMARY KEY NOT NULL,
+        source TEXT NOT NULL,
+        enabled INTEGER NOT NULL,
+        allow_cellular INTEGER NOT NULL,
+        enabled_at INTEGER,
+        updated_at INTEGER NOT NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_channel_auto_download_enabled
+        ON channel_auto_download (enabled);`,
+      // One decision per item. user_removed keeps a deleted download from being re-fetched.
+      `CREATE TABLE IF NOT EXISTS auto_download_candidate (
+        item_id_text TEXT PRIMARY KEY NOT NULL,
+        channel_id_text TEXT NOT NULL,
+        status TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_auto_download_candidate_channel_status
+        ON auto_download_candidate (channel_id_text, status);`,
+      `CREATE INDEX IF NOT EXISTS idx_auto_download_candidate_status
+        ON auto_download_candidate (status);`,
+    ],
+  },
+  {
+    version: 19,
+    statements: [
+      // Structured diagnostics for one error-log entry (media URL, host HTTP status, ids). Rows
+      // written before this column exist keep a null and render with code and message only.
+      `ALTER TABLE sync_event_log ADD COLUMN details_json TEXT;`,
+    ],
+  },
+  {
+    version: 20,
+    statements: [
+      // Whether a feed needs Basic Auth, and the last credential failure a parse reported. The
+      // username and password themselves live in SecureStore, never in SQLite.
+      `ALTER TABLE add_by_rss_feed ADD COLUMN requires_credentials INTEGER NOT NULL DEFAULT 0;`,
+      `ALTER TABLE add_by_rss_feed ADD COLUMN last_auth_failure TEXT;`,
+      // Non-secret index of which feeds hold SecureStore credentials per account. SecureStore
+      // cannot enumerate its keys, so sign-out and list partitioning read this table instead.
+      `CREATE TABLE IF NOT EXISTS add_by_rss_credential_index (
+        account_id_text TEXT NOT NULL,
+        feed_url TEXT NOT NULL,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (account_id_text, feed_url)
+      );`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

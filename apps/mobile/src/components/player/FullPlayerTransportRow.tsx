@@ -26,7 +26,7 @@ type FullPlayerTransportRowProps = {
   onJumpForward: () => void;
   onPause: (event: GestureResponderEvent) => void;
   onPlay: (event: GestureResponderEvent) => void;
-  onRetry: (event: GestureResponderEvent) => void;
+  onErrorPress: (event: GestureResponderEvent) => void;
   onSkipToNext: () => void;
   onSkipToNextTrack: () => void;
   onSkipToPrevious: () => void;
@@ -50,7 +50,7 @@ export function FullPlayerTransportRow({
   onJumpForward,
   onPause,
   onPlay,
-  onRetry,
+  onErrorPress,
   onSkipToNext,
   onSkipToNextTrack,
   onSkipToPrevious,
@@ -85,10 +85,12 @@ export function FullPlayerTransportRow({
   const previousLabel = hasEpisodeChaptersForTrackButtons
     ? t('media_player.skip_to_previous_hold_hint')
     : t('media_player.skip_to_previous');
-  const nextLabel = hasEpisodeChaptersForTrackButtons
+  const canHoldSkipEpisode = hasEpisodeChaptersForTrackButtons && hasNextQueueItem;
+  const nextLabel = canHoldSkipEpisode
     ? t('media_player.skip_to_next_hold_hint')
     : t('media_player.skip_to_next');
-  // Chapters keep next enabled (tap may no-op on the last chapter; hold still skips the episode).
+  // Chapters keep next enabled (tap may no-op on the last chapter). Hold skips the episode only
+  // when something is actually ahead — a stale or emptied queue must not clear now-playing.
   const nextDisabled = !hasEpisodeChaptersForTrackButtons && !hasNextQueueItem;
 
   return (
@@ -152,7 +154,7 @@ export function FullPlayerTransportRow({
         <PlayerTransportButton
           onPause={onPause}
           onPlay={onPlay}
-          onRetry={onRetry}
+          onErrorPress={onErrorPress}
           size="xl"
           state={state}
           testID="full-player-play-pause"
@@ -200,7 +202,7 @@ export function FullPlayerTransportRow({
           iconOnly
           label={nextLabel}
           onLongPress={
-            hasEpisodeChaptersForTrackButtons
+            canHoldSkipEpisode
               ? () => {
                   void onSkipToNextTrack();
                 }

@@ -197,7 +197,7 @@ infra/              # Infrastructure
 
 ## Add-by-RSS
 
-Users can follow RSS feeds (podcasts, music) not in the main directory. Feeds may use optional HTTP Basic Auth; credentials are stored per-feed in the database and used for feed parse, chapters, and transcript. See [ADD-BY-RSS](/docs/features/ADD-BY-RSS.md) for details and environment notes.
+Users can follow RSS feeds (podcasts, music) not in the main directory. Feeds may use optional HTTP Basic Auth; each device holds the credentials and sends them per request (the API seals them into a short-lived queue envelope for the worker), and the server keeps only a `requires_credentials` flag. See [ADD-BY-RSS](/docs/features/ADD-BY-RSS.md) for details and environment notes.
 
 ## OPML import / export
 

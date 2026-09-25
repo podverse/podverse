@@ -42,6 +42,9 @@ async function main(): Promise<void> {
   // 320x240 @ 1 fps keeps the committed binary tiny while still giving AVPlayer / ExoPlayer a real
   // video track so the native VideoSurfaceHost reports currentItemHasVideo=true (surface visible).
   await generator.generateMP4('e2e-video-short-30s.mp4', 30, 440);
+  // VOD HLS playlist + MPEG-TS segments, and an EVENT HLS playlist that reuses those segments.
+  // Written to assets/e2e/hls/; served on :2111.
+  await generator.generateHlsAudioFixtures();
   console.log('E2E media fixtures ready.');
 }
 

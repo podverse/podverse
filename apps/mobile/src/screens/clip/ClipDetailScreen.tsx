@@ -5,12 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
-import { htmlToPlainText } from '@podverse/helpers/html';
-import { formatPlaybackTime } from '@podverse/helpers/time';
+import { formatHHMMSS } from '@podverse/helpers/time';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { DescriptionText } from '../../components/content';
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import { Button } from '../../components/primitives';
 import { ListError } from '../../components/state/ListError';
@@ -96,6 +96,12 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
           fontSize: 14,
           marginTop: tokens.spacing.sm,
         },
+        cardLink: {
+          color: tokens.text.link,
+          fontSize: 14,
+          marginTop: tokens.spacing.sm,
+          textDecorationLine: 'underline',
+        },
         content: {
           padding: tokens.spacing.lg,
           paddingBottom: tokens.spacing['2xl'],
@@ -178,17 +184,10 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
     }, [loadClip])
   );
 
-  const clipDescription = useMemo(() => {
-    if (clip?.description) {
-      return htmlToPlainText(clip.description);
-    }
-
-    if (item?.item_description?.value) {
-      return htmlToPlainText(item.item_description.value);
-    }
-
-    return '';
-  }, [clip?.description, item?.item_description?.value]);
+  const clipDescriptionHtml =
+    clip?.description !== undefined && clip.description !== null && clip.description.length > 0
+      ? clip.description
+      : (item?.item_description?.value ?? null);
   const activeItemId = itemFromTarget(activeTarget)?.id_text ?? null;
   const isOwnedClip =
     clip?.account?.id_text !== undefined &&
@@ -262,8 +261,8 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
             </Text>
             <Text style={styles.cardText}>
               {t('info.time.start_end', {
-                timeEnd: formatPlaybackTime(clip.end_time),
-                timeStart: formatPlaybackTime(clip.start_time),
+                timeEnd: formatHHMMSS(Number(clip.end_time)),
+                timeStart: formatHHMMSS(Number(clip.start_time)),
               })}
             </Text>
             <Pressable
@@ -305,9 +304,15 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
 
           <View style={styles.card}>
             <Text style={styles.cardHeading}>{t('info.summary.summary')}</Text>
-            <Text style={styles.cardText}>
-              {clipDescription.length > 0 ? clipDescription : t('info.summary.no_summary')}
-            </Text>
+            <DescriptionText
+              collapseLength={null}
+              emptyLabel={t('info.summary.no_summary')}
+              html={clipDescriptionHtml}
+              linkStyle={styles.cardLink}
+              resetKey={clipId}
+              testID="clip-detail-description"
+              textStyle={styles.cardText}
+            />
           </View>
 
           <View style={styles.card}>

@@ -1,0 +1,18 @@
+appId: com.podverse.app.next
+---
+# Sort and Categories sit after the section chips in a horizontal row. On a phone they start
+# past the trailing edge, and off-screen chips are omitted from the hierarchy until the row
+# moves. Swipe the row itself — a %-of-screen start Y can miss the pills. Once the target is
+# on screen, further swipes are skipped. Caller sets CHIP_ROW_ID and TRAILING_ID.
+- repeat:
+    times: 4
+    commands:
+      - runFlow:
+          when:
+            notVisible:
+              id: ${TRAILING_ID}
+          commands:
+            - swipe:
+                from:
+                  id: ${CHIP_ROW_ID}
+                direction: LEFT

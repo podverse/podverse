@@ -86,6 +86,10 @@ public final class PodverseAudioEngine: NSObject {
 
   private var currentItem: AVPlayerItem?
   private var nowPlaying = PodverseNowPlayingInfo()
+  /// `AVAssetResourceLoader` holds its delegate weakly, so the current protected item's delegate is
+  /// retained here for as long as that item is loaded. `nil` for items without credentials.
+  private var authLoaderDelegate: PodverseMediaAuthLoaderDelegate?
+  private let authLoaderQueue = DispatchQueue(label: "com.podverse.media-engine.auth-loader")
 
   private var timeObserverToken: Any?
   private var statusObservation: NSKeyValueObservation?
@@ -96,6 +100,12 @@ public final class PodverseAudioEngine: NSObject {
   /// Rate to apply on the next `play()`. Assigning `AVPlayer.rate` while paused starts playback, so
   /// `setRate` stores here until the user (or `loadAndStart`) actually plays.
   private var pendingRate: Float = 1.0
+  /// Bumped on every load so a seek completion from a replaced item cannot start playback.
+  private var loadGeneration: Int = 0
+  /// Applied once the current item is ready. `nil` when the load starts at the beginning.
+  private var pendingInitialSeekSeconds: Double?
+  /// Start playback only after `pendingInitialSeekSeconds` finishes.
+  private var playAfterPendingSeek = false
 
   private override init() {
     super.init()
@@ -125,12 +135,38 @@ public final class PodverseAudioEngine: NSObject {
   // MARK: - Public transport API (called by the Expo module and CarPlay scene)
 
   /// Replace the current item with `url` and optionally seek to `initialSeekSeconds`. Does not start
-  /// playback. Rapid loads cancel the prior item cleanly by replacing it on the single player.
+  /// playback unless `playWhenPrepared` is set. Rapid loads cancel the prior item cleanly by
+  /// replacing it on the single player.
+  ///
+  /// A positive `initialSeekSeconds` is applied only after the item is ready to play, and playback
+  /// starts only after that seek finishes, so the new source does not begin at the start of the file.
   ///
   /// Accepts remote http(s) URLs, `file://` URLs, and absolute filesystem paths (offline playback) —
   /// all play through this one shared player, never a second player or RN `<Video>`. Missing local
   /// files fail fast with a `file_not_found` error instead of hanging.
-  func load(url: String, initialSeekSeconds: Double?) throws {
+  ///
+  /// `basicAuth` (protected add-by-RSS media) is answered only to in-scope 401 challenges through
+  /// `PodverseMediaAuthLoaderDelegate`; it is ignored for local files.
+  func load(url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth? = nil) throws {
+    try load(
+      url: url, initialSeekSeconds: initialSeekSeconds, basicAuth: basicAuth,
+      playWhenPrepared: false)
+  }
+
+  /// Convenience combining `load` + `play`. If `load` throws (invalid URL / missing file), the error
+  /// is already emitted and playback does not start. When `initialSeekSeconds` is positive, `play`
+  /// waits until that seek completes.
+  func loadAndStart(
+    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth? = nil
+  ) throws {
+    try load(
+      url: url, initialSeekSeconds: initialSeekSeconds, basicAuth: basicAuth,
+      playWhenPrepared: true)
+  }
+
+  private func load(
+    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth?, playWhenPrepared: Bool
+  ) throws {
     guard let parsed = resolveSourceURL(url) else {
       let payload: [String: Any] = ["code": "invalid_url", "message": "Invalid URL: \(url)"]
       emit(.error, payload)
@@ -149,6 +185,12 @@ public final class PodverseAudioEngine: NSObject {
 
     publish(state: .loading)
 
+    loadGeneration += 1
+    let generation = loadGeneration
+    let seek = initialSeekSeconds ?? 0
+    pendingInitialSeekSeconds = seek > 0 ? seek : nil
+    playAfterPendingSeek = playWhenPrepared && seek > 0
+
     // Drop per-item notification observers for the previous item before swapping (single-player,
     // replace-item lifecycle). The status KVO is invalidated by reassigning `statusObservation`.
     if let previous = currentItem {
@@ -158,7 +200,17 @@ public final class PodverseAudioEngine: NSObject {
         self, name: .AVPlayerItemPlaybackStalled, object: previous)
     }
 
-    let item = AVPlayerItem(url: parsed)
+    let item: AVPlayerItem
+    if let auth = basicAuth, !parsed.isFileURL {
+      let asset = AVURLAsset(url: parsed)
+      let delegate = PodverseMediaAuthLoaderDelegate(auth: auth)
+      asset.resourceLoader.setDelegate(delegate, queue: authLoaderQueue)
+      authLoaderDelegate = delegate
+      item = AVPlayerItem(asset: asset)
+    } else {
+      authLoaderDelegate = nil
+      item = AVPlayerItem(url: parsed)
+    }
     observeItemStatus(item)
     observeItemEnd(item)
     observeItemStalled(item)
@@ -169,21 +221,45 @@ public final class PodverseAudioEngine: NSObject {
     currentItem = item
     onMain { [weak self] in
       guard let self = self else { return }
+      guard generation == self.loadGeneration else { return }
       self.player.replaceCurrentItem(with: item)
-      if let seek = initialSeekSeconds, seek > 0 {
-        let time = CMTime(seconds: seek, preferredTimescale: 1000)
-        self.player.seek(to: time)
-      }
       self.updateNowPlayingInfo()
+      if playWhenPrepared, seek <= 0 {
+        self.play()
+      } else if item.status == .readyToPlay {
+        self.completePendingInitialSeek(generation: generation)
+      }
     }
   }
 
-  /// Convenience combining `load` + `play`. If `load` throws (invalid URL / missing file), the error
-  /// is already emitted and playback does not start. Once the item is prepared, `play` is issued; the
-  /// item may be prepared even if playback fails to begin.
-  func loadAndStart(url: String, initialSeekSeconds: Double?) throws {
-    try load(url: url, initialSeekSeconds: initialSeekSeconds)
-    play()
+  /// Seek to the pending position once the loaded item is the current player item, then start if
+  /// this load asked to. A status callback that arrives before `replaceCurrentItem` leaves the
+  /// pending seek in place for the replace turn.
+  private func completePendingInitialSeek(generation: Int) {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      guard generation == self.loadGeneration else { return }
+      guard self.player.currentItem === self.currentItem else { return }
+      guard let seek = self.pendingInitialSeekSeconds, seek > 0 else {
+        if self.playAfterPendingSeek {
+          self.playAfterPendingSeek = false
+          self.play()
+        }
+        return
+      }
+      self.pendingInitialSeekSeconds = nil
+      let shouldPlay = self.playAfterPendingSeek
+      self.playAfterPendingSeek = false
+      let time = CMTime(seconds: seek, preferredTimescale: 1000)
+      self.player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+        guard let self = self else { return }
+        guard generation == self.loadGeneration else { return }
+        self.updateNowPlayingElapsed()
+        if shouldPlay {
+          self.play()
+        }
+      }
+    }
   }
 
   /// Override the Now Playing title/artist for the current item (lock screen + CarPlay). The CarPlay
@@ -268,6 +344,7 @@ public final class PodverseAudioEngine: NSObject {
       self.player.replaceCurrentItem(with: nil)
       self.statusObservation = nil
       self.currentItem = nil
+      self.authLoaderDelegate = nil
       self.clearNowPlayingInfo()
       self.deactivateAudioSession()
       self.publish(state: .idle)
@@ -488,6 +565,7 @@ public final class PodverseAudioEngine: NSObject {
         self.publish(state: .ready)
         self.updateNowPlayingInfo()
         self.emitVideoCapability()
+        self.completePendingInitialSeek(generation: self.loadGeneration)
         // One progress sample as soon as the item is prepared so JS gets duration before the
         // periodic observer's next tick (and while paused with no autoplay).
         self.emit(
@@ -497,13 +575,72 @@ public final class PodverseAudioEngine: NSObject {
             "durationSeconds": self.getDuration(),
           ])
       case .failed:
-        let message = item.error?.localizedDescription ?? "Playback item failed"
+        self.pendingInitialSeekSeconds = nil
+        self.playAfterPendingSeek = false
         self.publish(state: .error)
-        self.emit(.error, ["code": "item_failed", "message": message])
+        self.emit(.error, self.itemFailurePayload(item))
       default:
         break
       }
     }
+  }
+
+  /// Bound on the underlying-error walk, in case a chain is cyclic.
+  private static let maxErrorCauseDepth = 8
+
+  /// `item_failed` plus, when available, the host's HTTP status (`httpStatus`), the URL that
+  /// failed (`url`), and the NSError chain and last error-log entry (`detail`). Media is fetched
+  /// from the creator's own server, so the status is what tells support whose side failed.
+  private func itemFailurePayload(_ item: AVPlayerItem) -> [String: Any] {
+    let message = item.error?.localizedDescription ?? "Playback item failed"
+    var payload: [String: Any] = ["code": "item_failed", "message": message]
+    var detailParts: [String] = []
+
+    var nsError = item.error.map { $0 as NSError }
+    var depth = 0
+    while let current = nsError, depth < Self.maxErrorCauseDepth {
+      detailParts.append("\(current.domain) \(current.code)")
+      if payload["httpStatus"] == nil, let reason = current.localizedFailureReason,
+        let status = Self.httpStatus(in: reason)
+      {
+        payload["httpStatus"] = status
+      }
+      if let failingUrl = current.userInfo[NSURLErrorFailingURLStringErrorKey] as? String {
+        payload["url"] = failingUrl
+      }
+      nsError = current.userInfo[NSUnderlyingErrorKey] as? NSError
+      depth += 1
+    }
+
+    if let event = item.errorLog()?.events.last {
+      var eventParts = ["\(event.errorDomain) \(event.errorStatusCode)"]
+      if let comment = event.errorComment, !comment.isEmpty {
+        eventParts.append(comment)
+        if payload["httpStatus"] == nil, let status = Self.httpStatus(in: comment) {
+          payload["httpStatus"] = status
+        }
+      }
+      if payload["httpStatus"] == nil, (100...599).contains(event.errorStatusCode) {
+        payload["httpStatus"] = event.errorStatusCode
+      }
+      if let uri = event.uri, !uri.isEmpty {
+        payload["url"] = uri
+      }
+      detailParts.append(eventParts.joined(separator: ": "))
+    }
+
+    if !detailParts.isEmpty {
+      payload["detail"] = detailParts.joined(separator: " · ")
+    }
+    return payload
+  }
+
+  /// Reads `HTTP 404` style text from an error-log comment or failure reason.
+  private static func httpStatus(in text: String) -> Int? {
+    guard let range = text.range(of: #"HTTP (\d{3})"#, options: .regularExpression) else {
+      return nil
+    }
+    return Int(text[range].dropFirst("HTTP ".count))
   }
 
   private func observeItemEnd(_ item: AVPlayerItem) {

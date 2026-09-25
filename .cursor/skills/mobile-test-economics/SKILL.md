@@ -58,7 +58,7 @@ run passed and you need the second as proof.
 | Discovery           | `home`             | `browse`, `search`, `search-unparsed`, `podcast-episode`, `artist`, `album`, `add-by-rss`, `subscriptions-anonymous`, `detail-sort-prefs`                                                                                  |
 | Library and queue   | `queue-screen`     | `queue-add`, `library-playlists`, `library-downloads`                                                                                                                                                                      |
 | Playback            | `play-mini-player` | `player-screen`, `track`, `playback-resume-on-relaunch`, `playback-multi-device-handoff`, `auto-queue-advance`, `video-transition`, `make-clip`, `alternate-enclosure`, `engine-audio-spike`, `tab-switch-playback`, `v4v` |
-| Sync and offline    | `offline-mode`     | `playback-offline-reconciliation`, `sync-log`, `opml`                                                                                                                                                                      |
+| Sync and offline    | `offline-mode`     | `playback-offline-reconciliation`, `error-log`, `opml`                                                                                                                                                                     |
 | Settings and more   | `settings-select`  | `settings-downloads`, `notifications-inbox`, `push`                                                                                                                                                                        |
 
 Recount the YAML under `apps/mobile/e2e/*.yaml` (not `shared/`) before treating this table as

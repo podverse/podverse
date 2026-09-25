@@ -162,17 +162,17 @@ and `destroy` are synchronous native functions; `load`, `play`, `getPosition`, a
 async (resolve on the JS thread after the native call). All methods run against the single shared
 player instance.
 
-| Method                 | Args                                           | Returns           | Errors / notes                                                                                                           |
-| ---------------------- | ---------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `load(source)`         | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure.                                       |
-| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Atomic `load` + `play` (2.25). Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore). |
-| `play()`               | —                                              | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.                                         |
-| `pause()`              | —                                              | `void`            | Keeps current item and position.                                                                                         |
-| `seek(seconds)`        | `number` (seconds)                             | `void`            | Absolute seek. Clamping owned by native.                                                                                 |
-| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                   | `void`            | Sets playback rate. Must not start playback while paused (iOS `AVPlayer.rate` would otherwise auto-play).                |
-| `getPosition()`        | —                                              | `Promise<number>` | Current playhead in seconds.                                                                                             |
-| `getDuration()`        | —                                              | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                                                              |
-| `destroy()`            | —                                              | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native.                                  |
+| Method                 | Args                                                       | Returns           | Errors / notes                                                                                                    |
+| ---------------------- | ---------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `load(source)`         | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure. `basicAuth`: see below.        |
+| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Atomic `load` + `play`. Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore). |
+| `play()`               | —                                                          | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.                                  |
+| `pause()`              | —                                                          | `void`            | Keeps current item and position.                                                                                  |
+| `seek(seconds)`        | `number` (seconds)                                         | `void`            | Absolute seek. Clamping owned by native.                                                                          |
+| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                               | `void`            | Sets playback rate. Must not start playback while paused (iOS `AVPlayer.rate` would otherwise auto-play).         |
+| `getPosition()`        | —                                                          | `Promise<number>` | Current playhead in seconds.                                                                                      |
+| `getDuration()`        | —                                                          | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                                                       |
+| `destroy()`            | —                                                          | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native.                           |
 
 ### Source URLs (`load` / `loadAndStart`) — remote + local files (step 2.26 / detail 105)
 
@@ -185,19 +185,39 @@ files play through the **same single engine** — never a second player or RN `<
 A missing `file://` target fails fast with a `file-not-found` error (see taxonomy below) instead of
 hanging. Local files emit the same `progress` / `ended` / `error` events as remote sources.
 
+### Protected media (`source.basicAuth`)
+
+`source.basicAuth` (`{ username, password, scopeHost, scopeMatch: 'domain' | 'exact', allowInsecure }`)
+answers an HTTP Basic challenge from a protected add-by-RSS feed's media host. It is never sent
+up front: the credential goes out only in reply to a `401` challenge from a host inside the scope,
+so a redirect to another host gets no credential.
+
+- **iOS:** the item is an `AVURLAsset` whose `resourceLoader` delegate
+  (`PodverseMediaAuthLoaderDelegate`) answers `NSURLAuthenticationMethodHTTPBasic` / `Default`
+  challenges. It declines proxy challenges, retries (`previousFailureCount > 0`), and out-of-scope
+  hosts.
+- **Android:** the item is built through `OkHttpDataSource` with a `ScopedBasicAuthenticator`
+  (`PodverseScopedBasicAuth.kt`), which applies the same checks. Sources without `basicAuth` keep
+  the default data source.
+- **Scope:** `scopeMatch: 'domain'` accepts `scopeHost` and its subdomains; `'exact'` accepts only
+  `scopeHost` (IPs, `localhost`). HTTPS only unless `allowInsecure`. JS resolves `scopeHost` from the
+  feed URL with the public suffix list (`resolveCredentialScopeHost` in `@podverse/helpers`); native
+  applies a suffix match to each challenging host.
+- The password never reaches a native log: both `ScopedBasicAuth` types print without it.
+
 ## Native → JS events (step 2.10 / detail 089)
 
 Event names are stable — they are the input to future RN queue orchestrators. `progress` is throttled
 to ~500 ms (within the 250–1000 ms guidance) on both platforms. Subscribe via the JS adapter
 (`useNativePlaybackBridge`), not the native module.
 
-| Event           | Payload                                                      | When                                                        |
-| --------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| `playbackState` | `{ state: PlaybackStateValue }`                              | Lifecycle transitions (idle…error).                         |
-| `progress`      | `{ positionSeconds: number; durationSeconds: number }`       | ~500 ms while playing.                                      |
-| `ended`         | `{ positionSeconds: number }`                                | Item played to natural end.                                 |
-| `error`         | `{ code: string; message: string; kind: PlaybackErrorKind }` | Playback/load failure. `kind` is normalized (see taxonomy). |
-| `stalled`       | `{ positionSeconds: number }`                                | Buffer underrun / rebuffering.                              |
+| Event           | Payload                                                                                                          | When                                                                                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `playbackState` | `{ state: PlaybackStateValue }`                                                                                  | Lifecycle transitions (idle…error).                                                                                                                                       |
+| `progress`      | `{ positionSeconds: number; durationSeconds: number }`                                                           | ~500 ms while playing.                                                                                                                                                    |
+| `ended`         | `{ positionSeconds: number }`                                                                                    | Item played to natural end.                                                                                                                                               |
+| `error`         | `{ code: string; message: string; kind: PlaybackErrorKind; httpStatus?: number; url?: string; detail?: string }` | Playback/load failure. `kind` is normalized (see taxonomy). `httpStatus` is the media host's response status, `url` the request that failed, `detail` the platform cause. |
+| `stalled`       | `{ positionSeconds: number }`                                                                                    | Buffer underrun / rebuffering.                                                                                                                                            |
 
 ### Error taxonomy (step 2.27 / detail 106)
 
@@ -211,6 +231,7 @@ themselves. Mapper is native-free so Vitest covers the table without a device (p
 
 | `kind`           | Example native codes                                                                      |
 | ---------------- | ----------------------------------------------------------------------------------------- |
+| `host-http`      | any code arriving with `httpStatus` (the creator's host answered with an error status)    |
 | `network`        | Android `ERROR_CODE_IO_NETWORK_CONNECTION_FAILED`, `…_TIMEOUT`, `…_BAD_HTTP_STATUS`       |
 | `file-not-found` | iOS `file_not_found`, Android `ERROR_CODE_IO_FILE_NOT_FOUND`                              |
 | `decode`         | Android `ERROR_CODE_DECODING_FAILED`, `ERROR_CODE_DECODER_INIT_FAILED`                    |

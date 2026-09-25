@@ -23,6 +23,9 @@
     "dev_pi_bulk_feeds_add_from_file": "node ./dist/index.js devPiBulkFeedsAddFromFile",
     "dev_parser_rss_parse_podcasting20_feeds": "node ./dist/index.js devParserRSSParsePodcasting20Feeds",
     "dev_parser_rss_parse_trending_feeds": "node ./dist/index.js devParserRSSParseTrendingFeeds",
+    "dev_parser_rss_parse_music_medium_feeds": "node ./dist/index.js devParserRSSParseMusicMediumFeeds",
+    "dev_parser_rss_parse_artist_publisher_feeds": "node ./dist/index.js devParserRSSParseArtistPublisherFeeds",
+    "dev_discover_artist_publisher_feeds": "node ./dist/index.js devDiscoverArtistPublisherFeeds",
     "dev_stats_seed_simulated_aggregated": "node ./dist/index.js devStatsSeedSimulatedAggregated",
     "dev_seed_local_user_content": "node ./dist/index.js devSeedLocalUserContent",
     "seed_embed_demo_showcase_feeds": "node ./dist/index.js seedEmbedDemoShowcaseFeeds",
@@ -49,8 +52,7 @@
     "podcast_index_trending_podcasts_get": "node ./dist/index.js podcastIndexTrendingPodcastsGet",
     "podcast_index_value_update_all": "node ./dist/index.js podcastIndexValueUpdateAll",
     "stats_update_aggregated": "node ./dist/index.js statsUpdateAggregated",
-    "stats_update_aggregated_rolling": "node ./dist/index.js statsUpdateAggregatedRolling",
-    "reencrypt_add_by_rss_credentials": "node ./dist/index.js reencryptAddByRSSCredentials"
+    "stats_update_aggregated_rolling": "node ./dist/index.js statsUpdateAggregatedRolling"
   },
   "license": "AGPL-3.0",
   "dependencies": {
@@ -66,6 +68,7 @@
     "@podverse/observability": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
+    "@podverse/parser-mapping": "*",
     "@podverse/worker-commands": "*",
     "amqplib": "^2.0.1",
     "axios": "^1.19.0",

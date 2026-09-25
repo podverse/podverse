@@ -57,6 +57,50 @@ export const hasNextQueueItem = (
   return manualUpcomingCount > 0 || autoUpcomingCount > 0;
 };
 
+/**
+ * `loadActive` returns now-playing + upcoming combined. The items *ahead* of the current row are
+ * that list minus the now-playing entry. Read this before a skip so a stale UI count or a
+ * server/local queue that another device emptied cannot advance into an empty session.
+ */
+export const upcomingManualCountFromCombined = (
+  combinedLength: number,
+  hasNowPlayingResource: boolean
+): number => {
+  return Math.max(0, combinedLength - (hasNowPlayingResource ? 1 : 0));
+};
+
+export const canAdvanceToNextQueueItem = (
+  upcomingManualCount: number,
+  hasAutoQueueNext: boolean
+): boolean => {
+  return hasNextQueueItem(upcomingManualCount, hasAutoQueueNext ? 1 : 0);
+};
+
+/** A user skip with nothing ahead must leave the current item playing. Natural complete may stop. */
+export const shouldClearNowPlayingAfterAdvance = (
+  transitionKind: 'complete' | 'skip',
+  didStartNextItem: boolean
+): boolean => {
+  return transitionKind === 'complete' && !didStartNextItem;
+};
+
+/**
+ * Full player dismisses when the session is gone and this screen is the one in front.
+ * Make clip holds the item and stays mounted — do not dismiss that screen, and do not
+ * `goBack()` from an unfocused full player (that would pop make clip).
+ */
+export const shouldDismissFullPlayerOnEmptySession = ({
+  hasPlaybackSession,
+  isAuthoringHold,
+  isFocused,
+}: {
+  hasPlaybackSession: boolean;
+  isAuthoringHold: boolean;
+  isFocused: boolean;
+}): boolean => {
+  return isFocused && !isAuthoringHold && !hasPlaybackSession;
+};
+
 export const shouldShowV4vAction = (
   target: PlaybackTarget | null,
   isV4vEnabled: boolean

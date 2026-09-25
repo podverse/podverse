@@ -32,6 +32,17 @@ describe('playbackTransportForEngineState', () => {
   it('leaves the glyph alone for idle', () => {
     expect(playbackTransportForEngineState('idle', false)).toBeNull();
   });
+
+  it('leaves the glyph alone during a start-play load except for playing and error', () => {
+    expect(playbackTransportForEngineState('loading', false, true)).toBeNull();
+    expect(playbackTransportForEngineState('stalled', false, true)).toBeNull();
+    expect(playbackTransportForEngineState('idle', false, true)).toBeNull();
+    expect(playbackTransportForEngineState('ended', false, true)).toBeNull();
+    expect(playbackTransportForEngineState('ready', true, true)).toBeNull();
+    expect(playbackTransportForEngineState('paused', true, true)).toBeNull();
+    expect(playbackTransportForEngineState('playing', true, true)).toBe('playing');
+    expect(playbackTransportForEngineState('error', true, true)).toBe('error');
+  });
 });
 
 describe('engine state predicates', () => {

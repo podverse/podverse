@@ -1,69 +1,92 @@
 'use client';
 
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 import { useMemo } from 'react';
-import type { IOptions } from 'sanitize-html';
-import sanitizeHtml from 'sanitize-html';
+
+import type { DescriptionNode } from '@podverse/helpers';
+import { readDescriptionDocument } from '@podverse/helpers';
 
 import styles from './SafeHtmlDescription.module.scss';
-
-const ALLOWED_TAGS = [
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'p',
-  'a',
-  'b',
-  'strong',
-  'i',
-  'em',
-  'u',
-  'ul',
-  'ol',
-  'li',
-  'br',
-];
-
-const SANITIZE_OPTIONS: IOptions = {
-  allowedTags: ALLOWED_TAGS,
-  allowedAttributes: {
-    a: ['href', 'title', 'target', 'rel'],
-    '*': ['title'],
-  },
-  allowedSchemes: ['http', 'https', 'mailto'],
-  allowedSchemesByTag: {
-    a: ['http', 'https', 'mailto'],
-  },
-};
-
-export function isHtmlString(str: string): boolean {
-  return /<[a-z][\s\S]*>/i.test(str);
-}
-
-export type SafeHtmlDescriptionProps = {
-  html: string;
-};
-
-export const SafeHtmlDescription: FC<SafeHtmlDescriptionProps> = ({ html }) => {
-  const cleanHtml = useMemo(() => {
-    return sanitizeHtml(html, SANITIZE_OPTIONS);
-  }, [html]);
-
-  return (
-    <div className={styles.safeHtmlDescription} dangerouslySetInnerHTML={{ __html: cleanHtml }} />
-  );
-};
 
 export type DescriptionRendererProps = {
   description: string;
 };
 
+const INLINE_KINDS = new Set(['text', 'br', 'a', 'strong', 'em', 'u']);
+
+const renderNodes = (nodes: DescriptionNode[], keyPrefix: string): ReactNode[] => {
+  return nodes.map((node, index) => {
+    const key = `${keyPrefix}-${index}`;
+
+    if (node.kind === 'text') {
+      return <span key={key}>{node.text}</span>;
+    }
+
+    if (node.kind === 'br') {
+      return <br key={key} />;
+    }
+
+    if (node.kind === 'a') {
+      return (
+        <a key={key} href={node.href} target="_blank" rel="noopener noreferrer">
+          {renderNodes(node.children, key)}
+        </a>
+      );
+    }
+
+    if (node.kind === 'strong') {
+      return <strong key={key}>{renderNodes(node.children, key)}</strong>;
+    }
+
+    if (node.kind === 'em') {
+      return <em key={key}>{renderNodes(node.children, key)}</em>;
+    }
+
+    if (node.kind === 'u') {
+      return <u key={key}>{renderNodes(node.children, key)}</u>;
+    }
+
+    if (node.kind === 'p') {
+      return <p key={key}>{renderNodes(node.children, key)}</p>;
+    }
+
+    if (node.kind === 'ul') {
+      return <ul key={key}>{renderNodes(node.children, key)}</ul>;
+    }
+
+    if (node.kind === 'ol') {
+      return <ol key={key}>{renderNodes(node.children, key)}</ol>;
+    }
+
+    if (node.kind === 'li') {
+      return <li key={key}>{renderNodes(node.children, key)}</li>;
+    }
+
+    const HeadingTag = node.kind;
+    return <HeadingTag key={key}>{renderNodes(node.children, key)}</HeadingTag>;
+  });
+};
+
+/**
+ * Channel About and item Summary body: rich text when the markup is balanced, otherwise plain text.
+ */
 export const DescriptionRenderer: FC<DescriptionRendererProps> = ({ description }) => {
-  if (isHtmlString(description)) {
-    return <SafeHtmlDescription html={description} />;
+  const document = useMemo(() => readDescriptionDocument(description), [description]);
+
+  if (document.plain.length === 0 && (document.rich === null || document.rich.length === 0)) {
+    return null;
   }
-  return <p className={styles.safeHtmlDescription}>{description}</p>;
+
+  if (document.rich === null) {
+    return <p className={styles.safeHtmlDescription}>{document.plain}</p>;
+  }
+
+  const rootsAreInline = document.rich.every((node) => INLINE_KINDS.has(node.kind));
+  const body = rootsAreInline ? (
+    <p>{renderNodes(document.rich, 'd')}</p>
+  ) : (
+    renderNodes(document.rich, 'd')
+  );
+
+  return <div className={styles.safeHtmlDescription}>{body}</div>;
 };

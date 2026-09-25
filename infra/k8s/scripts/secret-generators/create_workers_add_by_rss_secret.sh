@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # VERSION: 1
 # Helper to create the encrypted Workers Add-by-RSS secret.
+# ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY is the transit key API and workers share to seal and open
+# device-sent Basic Auth credentials on the parse queue; it must match the API value.
 
 set -euo pipefail
 

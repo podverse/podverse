@@ -1,0 +1,95 @@
+---
+description: Mobile performance claims need a measured number from the perf harness; baselines and rejected changes are recorded durably so costly captures are not repeated
+globs:
+  - "apps/mobile/src/**/*.ts"
+  - "apps/mobile/src/**/*.tsx"
+  - "apps/mobile/e2e/**/*.yaml"
+  - "scripts/mobile/**/*.mjs"
+alwaysApply: false
+---
+
+# Mobile — a speed claim needs a number, and the number needs a home
+
+Three rounds of `apps/mobile` performance work shipped on causes inferred by reading source, and the
+reported symptom did not improve. There is now a harness. Use it, and write down what it says.
+
+Durable record: [MOBILE-PERF-BASELINES.md](/docs/development/mobile/MOBILE-PERF-BASELINES.md).
+
+## Read the baseline before measuring
+
+A seeded capture is four to ten minutes of device time plus a reseed, and it needs Metro, the E2E
+API, and the right emulator. Before running one, check whether the durable doc already answers the
+question. Cite the recorded number instead of re-deriving it.
+
+Run a fresh capture when the code under the number changed, when the question is about a stage no
+baseline covers, or when the recorded run is against a materially different device or data set.
+
+## Write the number down where it survives
+
+Plan directories under `.llm/plans/` are deleted when their work lands, so a `FINDINGS.md` is a
+working note, not a record. Anything a future change would want to know goes in the durable doc:
+
+- Baseline stage tables, per device, cold and warm kept apart.
+- Per-tap counter deltas, not session totals. A session total includes startup and every earlier tap.
+- **Rejected changes and why**, with the measured delta. A change that was tried and did not
+  explain the stall is the most expensive thing to rediscover.
+- Harness defects that made past numbers wrong, so an old artifact is not read as fact.
+
+## A missed gate is a rejected hypothesis, not a worthless change
+
+A gate like "this stage must fall 60%" tests whether the named cause **owns** the cost. Missing it
+means the hypothesis is wrong. It does not mean the change did nothing.
+
+When a change misses its gate but moves a user-visible number outside run-to-run variance, revert it
+as the plan says, and then **tell the operator the measured delta and let them decide** whether to
+keep it on its own merits. Do not discard the result silently, and do not keep it silently either.
+
+## Do not trust a number that is not physically possible
+
+The frame parser reported single frames taking hours, and that was read as a slow app for two
+sessions. A measurement that cannot be true is a harness bug:
+
+- Parse `dumpsys gfxinfo framestats` by **column name**. Android 12+ inserts `FrameTimelineVsyncId`
+  at index 1, so positional indexing silently subtracts a counter from a timestamp.
+- iOS UI-thread frames come from `scroll.uiframes` (native `podverse-perf-probe`); JS-thread frames
+  from `scroll.jsframes`. Android also reports `dumpsys gfxinfo` under `frames`. A smoothness claim
+  needs one of those numbers.
+- Maestro element taps land seconds apart. A scripted "rapid" gesture is sequential unless measured
+  otherwise, so claims about superseding an in-flight load come from the manual capture.
+- A capture against a fixture with almost no rows cannot exhibit a row-cost bug. Confirm there is
+  something to measure before believing a stage is cheap.
+- The default volume seed gives every channel the same `localhost:2111` image and no item images.
+  `CoverImage` caches by URL, so that seed cannot show unique third-party decode or network cost.
+  `PODVERSE_E2E_PERF_REMOTE_IMAGES=1` (only together with the volume flag) assigns the saved
+  third-party list in `tools/web/perf-remote-image-urls.json`. Those runs are their own population.
+  Do not average them with the localhost-image baseline, and leave the flag unset for regression
+  E2E and for the default perf seed.
+
+## Keep the two captures separate
+
+**Seeded** runs (`Pixel_6_Pro_API_33_e2e`, `"iPhone 17 Pro E2E"`, volume seed) are repeatable and are
+what a gate compares against. **Manual** runs (`Pixel_6_Pro_API_33`, `"iPhone 17 Pro"`, the
+operator's real library, a real hand gesture) are what say whether a change is worth trying.
+
+Never average across captures, devices, or cold and warm passes. When the two disagree in direction,
+record the disagreement rather than picking the flattering one.
+
+## Android and iOS do not have the same bottleneck
+
+On the Home chip switch the Pixel is preference-gate bound and the iPhone is paint bound. Measure the
+weaker device — a regression shows there first — and do not assume a fix that moved one moved both.
+
+After the shared clear-on-tap, the iPhone stall a finger could feel was expo-image resizing full
+covers on the main queue. Off-thread thumbnails at device pixels, tagged with the screen scale,
+moved revisit chip visible from about 777 ms to 67 ms (ledger row T5). That is the floor. Do not
+start the parked Home follow-ups (kept lists, a playback row store, stable row objects on refresh)
+to chase the same-frame targets unless a new manual capture misses that floor, or play or refresh
+itself feels heavy. Narrative:
+[MOBILE-IOS-CHIP-SWITCH.md](/docs/development/mobile/MOBILE-IOS-CHIP-SWITCH.md). The image rules
+are **mobile-image-loading**.
+
+## Related
+
+- **mobile-row-render-cost** — what a row costs once per mounted row
+- **mobile-list-virtualization** — render window, clipping, scroll ownership
+- **mobile-test-economics** — pick the cheapest rung that can hold the claim

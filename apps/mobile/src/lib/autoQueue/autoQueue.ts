@@ -29,6 +29,14 @@ export type AutoQueueConfig = {
   shuffleHash: string;
 };
 
+/**
+ * Caller-declared auto-queue side effect for a load (mirrors web `autoQueueShouldClear` /
+ * `newAutoQueueConfig`). `preserve` keeps the seeded buffer; `clear` resets it for an explicit
+ * play; `seed-playlist` points the buffer at a playlist.
+ */
+export type AutoQueueDirective =
+  { mode: 'clear' } | { mode: 'preserve' } | { mode: 'seed-playlist'; playlistIdText: string };
+
 export function checkIsActiveRowHighestKey(
   autoQueueActiveRow: number | null,
   autoQueueResources: AutoQueueResourcesMap
@@ -60,5 +68,48 @@ export function createDefaultAutoQueueConfig(): AutoQueueConfig {
     random: false,
     repeat: false,
     shuffleHash: getShuffleHash(),
+  };
+}
+
+/**
+ * Next config after an explicit play (`clear`) or playlist row play (`seed-playlist`).
+ * `clear` mints a new shuffle hash so the next shuffle sequence does not repeat. `random` and
+ * `repeat` stay as the user left them. Callers must not use this for `preserve`.
+ */
+export function resolveAutoQueueConfigAfterDirective(
+  current: AutoQueueConfig,
+  directive: Exclude<AutoQueueDirective, { mode: 'preserve' }>,
+  nextShuffleHash: () => string
+): AutoQueueConfig {
+  if (directive.mode === 'seed-playlist') {
+    return {
+      ...current,
+      disabled: false,
+      nextPage: 1,
+      playlist_id_text: directive.playlistIdText,
+    };
+  }
+
+  return {
+    ...current,
+    nextPage: 1,
+    playlist_id_text: null,
+    shuffleHash: nextShuffleHash(),
+  };
+}
+
+/**
+ * Full-player shuffle toggle: flip `random`, mint a new hash, and restart paging. Callers clear
+ * the resource buffer and reload.
+ */
+export function toggleAutoQueueShuffle(
+  current: AutoQueueConfig,
+  nextShuffleHash: () => string
+): AutoQueueConfig {
+  return {
+    ...current,
+    nextPage: 1,
+    random: !current.random,
+    shuffleHash: nextShuffleHash(),
   };
 }

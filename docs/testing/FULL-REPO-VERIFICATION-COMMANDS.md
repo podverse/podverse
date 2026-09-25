@@ -97,7 +97,7 @@ make mobile_e2e_deps
 
 Run the required leave-running services in their named tabs:
 
-**Mobile Metro**
+**Mobile E2E Metro**
 
 ```bash
 npm run mobile:dev:e2e
@@ -134,13 +134,13 @@ conflict. See
 
 Install the E2E binaries:
 
-**Mobile iOS**
+**Mobile E2E iOS**
 
 ```bash
 npm run mobile:e2e:ios
 ```
 
-**Mobile Android**
+**Mobile E2E Android**
 
 ```bash
 npm run mobile:e2e:android
@@ -179,6 +179,8 @@ npm run mobile:e2e:test -- deep-link
 npm run mobile:e2e:test -- detail-sort-prefs
 npm run mobile:e2e:test -- engine-audio-spike
 npm run mobile:e2e:test -- hello-world
+npm run mobile:e2e:test -- history-screen
+npm run mobile:e2e:test -- hls-playback
 npm run mobile:e2e:test -- home
 npm run mobile:e2e:test -- library-downloads
 npm run mobile:e2e:test -- library-playlists
@@ -187,6 +189,8 @@ npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- notifications-inbox
 npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml
+npm run mobile:e2e:test -- perf-chip-switch
+npm run mobile:e2e:test -- perf-scroll
 npm run mobile:e2e:test -- play-mini-player
 npm run mobile:e2e:test -- playback-multi-device-handoff
 npm run mobile:e2e:test -- playback-offline-reconciliation
@@ -200,7 +204,7 @@ npm run mobile:e2e:test -- search
 npm run mobile:e2e:test -- settings-downloads
 npm run mobile:e2e:test -- settings-select
 npm run mobile:e2e:test -- subscriptions-anonymous
-npm run mobile:e2e:test -- sync-log
+npm run mobile:e2e:test -- error-log
 npm run mobile:e2e:test -- tab-switch-playback
 npm run mobile:e2e:test -- track
 npm run mobile:e2e:test -- v4v

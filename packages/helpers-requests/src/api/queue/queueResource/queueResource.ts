@@ -26,6 +26,19 @@ export async function reqQueueResourcesGetNowPlayingByQueueIdText(
   });
 }
 
+export async function reqQueueResourcesPromoteUpcomingToNowPlaying(
+  api: ApiRequestService,
+  params: { queue_id_text: string }
+) {
+  return api.apiRequest<DTOQueueResource | null>({
+    path: `/queue/${params.queue_id_text}/resources/promote-upcoming`,
+    method: 'POST',
+    config: {
+      withCredentials: true,
+    },
+  });
+}
+
 export async function reqQueueResourcesGetAllUpcomingByQueueIdText(
   api: ApiRequestService,
   params: { queue_id_text: string }

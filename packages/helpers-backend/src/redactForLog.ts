@@ -1,6 +1,10 @@
 /**
  * Keys / patterns that must not appear verbatim in debug logs (credentials, tokens, etc.).
- * Matching is case-insensitive; hyphenated keys are normalized to underscores for comparison.
+ * Matching is case-insensitive; hyphenated and camelCase keys are also compared in snake_case
+ * (`credentialsEnvelope` → `credentials_envelope`).
+ *
+ * Only object keys are matched. Credentials embedded inside a string value (for example
+ * `user:pass@` userinfo in a URL) are not scrubbed.
  */
 
 const SENSITIVE_KEYS_EXACT = new Set<string>([
@@ -25,27 +29,38 @@ const SENSITIVE_KEYS_EXACT = new Set<string>([
   'session',
   'sessionid',
   'session_id',
+  'basic_auth_username',
+  'basic_auth_password',
+  'credentials',
+  'credentials_by_url',
+  'credentials_envelope',
 ]);
 
-function normalizeKeyName(key: string): string {
-  return key.toLowerCase().replace(/-/g, '_');
+/** Lowercased forms of `key` to compare: as written, and with camelCase split into snake_case. */
+function normalizedKeyForms(key: string): string[] {
+  const flat = key.toLowerCase().replace(/-/g, '_');
+  const snake = key
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .toLowerCase()
+    .replace(/-/g, '_');
+  return flat === snake ? [flat] : [flat, snake];
 }
 
-/** Exported for unit tests — prefer `redactForLog` in application code. */
-export function isSensitiveLogKey(key: string): boolean {
-  const k = normalizeKeyName(key);
+function isSensitiveNormalizedKey(k: string): boolean {
   if (SENSITIVE_KEYS_EXACT.has(k)) {
     return true;
   }
-  if (
+  return (
     k.endsWith('_password') ||
     k.endsWith('_token') ||
     k.endsWith('_secret') ||
     k.endsWith('_api_key')
-  ) {
-    return true;
-  }
-  return false;
+  );
+}
+
+/** Exported for unit tests — prefer `redactForLog` in application code. */
+export function isSensitiveLogKey(key: string): boolean {
+  return normalizedKeyForms(key).some(isSensitiveNormalizedKey);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

@@ -5,12 +5,11 @@ const listeners = new Set<QueueDataRevisionListener>();
 let revision = 0;
 
 /**
- * Announce that background sync has rewritten queue data — now-playing, upcoming, or history.
+ * Announce that queue data changed — a local queue write or a background reconcile.
  *
  * A screen that reads a queue once on mount would otherwise keep showing what the server had before
- * a reconcile landed. History is the sharpest case: a listen recorded offline reaches the server
- * seconds after reconnecting, and without this signal the screen sits on an empty state that never
- * corrects itself.
+ * the change. History is the sharpest case: moving a row back into the queue, or a listen recorded
+ * offline that reaches the server after reconnect, has to show up without leaving the screen.
  *
  * The payload is a bare counter rather than the rows, so publishing stays cheap and every consumer
  * refetches only what it renders.

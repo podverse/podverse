@@ -258,12 +258,18 @@ export async function getDevicesForNotificationType(
 
   const accountNotificationPreferenceService = new AccountNotificationPreferenceService();
   const defaultPreference = getDefaultNotificationCategoryPreference(category);
+  const preferences = await accountNotificationPreferenceService.getForAccountsAndCategory(
+    accountIdsWithTypeEnabled,
+    category
+  );
+  const preferenceByAccountId = new Map(
+    preferences.map((preference) => [preference.account_id, preference])
+  );
   const inAppEnabledAccountIds: number[] = [];
   const pushEnabledAccountIds: number[] = [];
 
   for (const accountId of accountIdsWithTypeEnabled) {
-    const preferences = await accountNotificationPreferenceService.getForAccount(accountId);
-    const categoryPreference = preferences.find((preference) => preference.category === category);
+    const categoryPreference = preferenceByAccountId.get(accountId);
     const inAppEnabled = categoryPreference?.in_app_enabled ?? defaultPreference.in_app_enabled;
     const pushEnabled = categoryPreference?.push_enabled ?? defaultPreference.push_enabled;
 
@@ -396,6 +402,38 @@ export async function createInAppNotificationsForAccounts(params: {
   return createdRows.length;
 }
 
+type ItemSendLeg = {
+  run: () => Promise<void>;
+  successMessage: string;
+  failureMessage: string;
+};
+
+const toError = (reason: unknown): Error => {
+  if (reason instanceof Error) {
+    return reason;
+  }
+  return new Error(String(reason));
+};
+
+/**
+ * Locale, platform, and service legs for one item do not depend on each other. A failure is
+ * logged on that leg and the other legs still finish.
+ */
+const runItemSendLegs = async (legs: ItemSendLeg[]): Promise<void> => {
+  const results = await Promise.allSettled(legs.map((leg) => leg.run()));
+  for (const [index, result] of results.entries()) {
+    const leg = legs[index];
+    if (leg === undefined) {
+      continue;
+    }
+    if (result.status === 'fulfilled') {
+      loggerService.info(leg.successMessage);
+      continue;
+    }
+    loggerService.logError(leg.failureMessage, toError(result.reason));
+  }
+};
+
 /**
  * Sends notifications for items to grouped devices
  */
@@ -407,51 +445,52 @@ export async function sendItemNotifications(
 ): Promise<void> {
   for (const itemNotification of itemNotifications) {
     const messageText = itemNotification.itemTitle;
-
     const notificationsCtx = getNotificationsContext();
     const firebaseCtx = getFirebaseContext();
+    const imageField =
+      itemNotification.imageUrl !== null && itemNotification.imageUrl !== ''
+        ? { image: itemNotification.imageUrl }
+        : {};
+    const notificationData = {
+      itemIdText: itemNotification.itemIdText,
+      channelIdText: itemNotification.channelIdText,
+      mediumId: itemNotification.mediumId,
+      type: itemNotification.messageType,
+    };
+    const legs: ItemSendLeg[] = [];
 
-    // Send to FCM devices
     for (const [locale, platformMap] of groupedDevices) {
       for (const [platform, tokens] of platformMap) {
-        try {
-          await notificationOrchestrator(notificationsCtx, {
-            service: 'firebase',
-            firebaseCtx,
-            tokens,
-            messageText,
-            messageType: itemNotification.messageType,
-            locale,
-            platform,
-            body: itemNotification.channelTitle,
-            ...(itemNotification.imageUrl ? { image: itemNotification.imageUrl } : {}),
-            channelIdText: itemNotification.channelIdText,
-            linkIdText: itemNotification.itemIdText,
-            mediumId: itemNotification.mediumId,
-            data: {
-              itemIdText: itemNotification.itemIdText,
+        legs.push({
+          run: async () => {
+            await notificationOrchestrator(notificationsCtx, {
+              service: 'firebase',
+              firebaseCtx,
+              tokens,
+              messageText,
+              messageType: itemNotification.messageType,
+              locale,
+              platform,
+              body: itemNotification.channelTitle,
+              ...imageField,
               channelIdText: itemNotification.channelIdText,
+              linkIdText: itemNotification.itemIdText,
               mediumId: itemNotification.mediumId,
-              type: itemNotification.messageType,
-            },
-          });
-
-          loggerService.info(
-            `Sent ${itemNotification.messageType} notification to ${tokens.length} ${platform} devices (${locale}) for item: ${itemNotification.itemIdText}`
-          );
-        } catch (error) {
-          loggerService.logError(
-            `Failed to send notification for item ${itemNotification.itemIdText} to ${platform} devices (${locale})`,
-            error as Error
-          );
-        }
+              data: { ...notificationData },
+            });
+          },
+          successMessage: `Sent ${itemNotification.messageType} notification to ${tokens.length} ${platform} devices (${locale}) for item: ${itemNotification.itemIdText}`,
+          failureMessage: `Failed to send notification for item ${itemNotification.itemIdText} to ${platform} devices (${locale})`,
+        });
       }
     }
 
-    // Send to Web Push subscriptions
     for (const [locale, subscriptions] of webPushSubscriptions) {
-      if (subscriptions.length > 0) {
-        try {
+      if (subscriptions.length === 0) {
+        continue;
+      }
+      legs.push({
+        run: async () => {
           await notificationOrchestrator(notificationsCtx, {
             service: 'webpush',
             subscriptions,
@@ -459,34 +498,24 @@ export async function sendItemNotifications(
             messageType: itemNotification.messageType,
             locale,
             body: itemNotification.channelTitle,
-            ...(itemNotification.imageUrl ? { image: itemNotification.imageUrl } : {}),
+            ...imageField,
             channelIdText: itemNotification.channelIdText,
             linkIdText: itemNotification.itemIdText,
             mediumId: itemNotification.mediumId,
-            data: {
-              itemIdText: itemNotification.itemIdText,
-              channelIdText: itemNotification.channelIdText,
-              mediumId: itemNotification.mediumId,
-              type: itemNotification.messageType,
-            },
+            data: { ...notificationData },
           });
-
-          loggerService.info(
-            `Sent ${itemNotification.messageType} Web Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`
-          );
-        } catch (error) {
-          loggerService.logError(
-            `Failed to send Web Push notification for item ${itemNotification.itemIdText} to ${subscriptions.length} subscription(s) (${locale})`,
-            error as Error
-          );
-        }
-      }
+        },
+        successMessage: `Sent ${itemNotification.messageType} Web Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`,
+        failureMessage: `Failed to send Web Push notification for item ${itemNotification.itemIdText} to ${subscriptions.length} subscription(s) (${locale})`,
+      });
     }
 
-    // Send to Unified Push subscriptions
     for (const [locale, subscriptions] of upSubscriptions) {
-      if (subscriptions.length > 0) {
-        try {
+      if (subscriptions.length === 0) {
+        continue;
+      }
+      legs.push({
+        run: async () => {
           await notificationOrchestrator(notificationsCtx, {
             service: 'unifiedpush',
             subscriptions,
@@ -494,28 +523,18 @@ export async function sendItemNotifications(
             messageType: itemNotification.messageType,
             locale,
             body: itemNotification.channelTitle,
-            ...(itemNotification.imageUrl ? { image: itemNotification.imageUrl } : {}),
+            ...imageField,
             channelIdText: itemNotification.channelIdText,
             linkIdText: itemNotification.itemIdText,
             mediumId: itemNotification.mediumId,
-            data: {
-              itemIdText: itemNotification.itemIdText,
-              channelIdText: itemNotification.channelIdText,
-              mediumId: itemNotification.mediumId,
-              type: itemNotification.messageType,
-            },
+            data: { ...notificationData },
           });
-
-          loggerService.info(
-            `Sent ${itemNotification.messageType} Unified Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`
-          );
-        } catch (error) {
-          loggerService.logError(
-            `Failed to send Unified Push notification for item ${itemNotification.itemIdText} to ${subscriptions.length} subscription(s) (${locale})`,
-            error as Error
-          );
-        }
-      }
+        },
+        successMessage: `Sent ${itemNotification.messageType} Unified Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`,
+        failureMessage: `Failed to send Unified Push notification for item ${itemNotification.itemIdText} to ${subscriptions.length} subscription(s) (${locale})`,
+      });
     }
+
+    await runItemSendLegs(legs);
   }
 }

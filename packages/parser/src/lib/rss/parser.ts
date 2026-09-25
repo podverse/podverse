@@ -54,8 +54,11 @@ import { compatChannelImageDtos, compatItemImageDtos } from '@podverse/parser-ma
 // import { firebaseAccessTokenServiceFactory } from '@parser/factories/firebaseAccessTokenService.js';
 // import { NotificationsServiceFactory } from '@parser/factories/notificationsService.js';
 import { _request } from '../_request.js';
+import { handleNewItemAutoDownloadPushes } from '../notifications/handleNewItemAutoDownloadPushes.js';
 import { handleNewItemNotifications } from '../notifications/handleNewItemNotifications.js';
 import { handleNewLiveItemNotifications } from '../notifications/handleNewLiveItemNotifications.js';
+import { handleNewRemoteItemNotifications } from '../notifications/handleNewRemoteItemNotifications.js';
+import { newRemoteItemsFromParsedChannel } from '../notifications/remoteAlbumNotification.js';
 import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from './errors.js';
 import { getParsedFeedMd5Hash } from './hash/parsedFeed.js';
 import { createParsedItemStableKeySet } from './itemStableKey.js';
@@ -347,7 +350,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
     const channelSeasonService = new ChannelSeasonService();
     const channelSeasonIndex = await channelSeasonService.getChannelSeasonIndex(channel);
 
-    await handleParsedChannel(parsedFeed, channel, channelSeasonIndex);
+    const parsedChannelResult = await handleParsedChannel(parsedFeed, channel, channelSeasonIndex);
+    const newRemoteItems = newRemoteItemsFromParsedChannel(parsedChannelResult);
     await resolvePendingChannelFollows({
       channelIdText: channel.id_text,
       feedUrl: feed.url,
@@ -401,18 +405,25 @@ export const parseRSSFeedAndSaveToDatabase = async (
       );
     }
 
-    if (
-      newItemIdentifiers.newItemGuids.length > 0 ||
-      newItemIdentifiers.newItemGuidEnclosureUrls.length > 0
-    ) {
-      await handleNewItemNotifications(channel, newItemIdentifiers);
-    }
-
+    // Livestream notifications run before new-content and auto-download pushes so a live
+    // start is not delayed by those sends.
     if (
       newLiveItemIdentifiers.pendingItemGuids.length > 0 ||
       newLiveItemIdentifiers.liveItemGuids.length > 0
     ) {
       await handleNewLiveItemNotifications(channel, newLiveItemIdentifiers);
+    }
+
+    if (
+      newItemIdentifiers.newItemGuids.length > 0 ||
+      newItemIdentifiers.newItemGuidEnclosureUrls.length > 0
+    ) {
+      await handleNewItemNotifications(channel, newItemIdentifiers);
+      await handleNewItemAutoDownloadPushes(channel, newItemIdentifiers);
+    }
+
+    if (newRemoteItems.length > 0) {
+      await handleNewRemoteItemNotifications(channel, newRemoteItems);
     }
 
     const feedLogService = new FeedLogService();

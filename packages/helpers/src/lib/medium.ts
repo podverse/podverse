@@ -19,15 +19,16 @@ export enum MediumEnum {
   PublisherL = 18,
   CourseL = 19,
   AV = 20,
-  PublisherAV = 21,
-  PublisherPodcast = 22,
-  PublisherMusic = 23,
-  PublisherVideo = 24,
-  PublisherFilm = 25,
-  PublisherAudiobook = 26,
-  PublisherNewsletter = 27,
-  PublisherBlog = 28,
-  PublisherCourse = 29,
+  // These ids are the medium table primary keys (publisher-av is 29, after the other publisher rows).
+  PublisherPodcast = 21,
+  PublisherMusic = 22,
+  PublisherVideo = 23,
+  PublisherFilm = 24,
+  PublisherAudiobook = 25,
+  PublisherNewsletter = 26,
+  PublisherBlog = 27,
+  PublisherCourse = 28,
+  PublisherAV = 29,
 }
 
 /**
@@ -225,6 +226,38 @@ export const getQueueMediumIdFromType = (
 
 export const getQueueMediumIdFromMediumId = (mediumId: number | null): MediumEnum | null => {
   return getQueueMediumIdFromType(getQueryParamFromQueueMediumId(mediumId));
+};
+
+/** Podcasts (`av`) or Music chip for queue / history lists. */
+export type QueueListMedium = 'av' | 'music';
+
+export const DEFAULT_QUEUE_LIST_MEDIUM: QueueListMedium = 'av';
+
+/**
+ * Medium chip for queue and history screens: the account's `is_active_queue` medium, else
+ * podcasts (`av`). An active queue counts even when it has no now-playing row.
+ */
+export const getQueueListMediumFromActiveQueues = (
+  queues: readonly { is_active_queue?: boolean | null; medium_id: number }[]
+): QueueListMedium => {
+  const activeQueue = queues.find((queue) => queue.is_active_queue === true);
+  if (activeQueue === undefined) {
+    return DEFAULT_QUEUE_LIST_MEDIUM;
+  }
+  return getQueryParamFromQueueMediumId(activeQueue.medium_id) === 'music' ? 'music' : 'av';
+};
+
+/**
+ * Prefer an explicit `av` / `music` query param; otherwise the active account queue (else `av`).
+ */
+export const resolveQueueListMedium = (options: {
+  queryMedium?: QueryParamsQueueMedium | null;
+  queues: readonly { is_active_queue?: boolean | null; medium_id: number }[];
+}): QueueListMedium => {
+  if (options.queryMedium === 'av' || options.queryMedium === 'music') {
+    return options.queryMedium;
+  }
+  return getQueueListMediumFromActiveQueues(options.queues);
 };
 
 // --- Medium ID classification (podcast / music / album / artist) ---

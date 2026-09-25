@@ -3,6 +3,9 @@ export interface DTOAccountFollowingAddByRSSChannel {
   feed_url: string;
   title: string | null;
   image_url: string | null;
-  /** Present when Basic Auth is configured for this feed. For display only; password is never returned. */
-  basic_auth_username?: string | null;
+  /**
+   * The feed needs Basic Auth. Credentials are never returned or stored server-side; devices hold
+   * them and send them with each parse or chapters request.
+   */
+  requires_credentials?: boolean;
 }

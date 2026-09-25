@@ -11,6 +11,8 @@ import type { Request, Response } from 'express';
 import Joi from 'joi';
 
 import { APP_ROUTES } from '@podverse/helpers';
+import { resolveAddByRSSFeedUrlCredentials } from '@podverse/helpers-validation';
+import type { AccountFollowingAddByRSSChannelDto } from '@podverse/orm';
 import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
@@ -62,30 +64,14 @@ class AccountFollowingAddByRSSChannelController {
       req,
       res,
       async () => {
+        // Credentials are never stored server-side. Any `basic_auth_*` keys a client still sends
+        // are unknown to this schema and dropped by stripUnknown before the handler runs.
         const bodySchema = Joi.object({
           feed_url: joiFeedUrl(),
           title: Joi.string().allow(null, ''),
           image_url: Joi.string().uri().allow(null, ''),
-          basic_auth_username: Joi.string().allow(null, '').max(255),
-          basic_auth_password: Joi.string().allow(null, '').max(255),
-        })
-          .messages({
-            'any.invalid': 'Basic Auth requires both username and password when one is provided',
-          })
-          .custom((value, helpers) => {
-            const hasUsername =
-              value.basic_auth_username !== undefined &&
-              value.basic_auth_username !== null &&
-              String(value.basic_auth_username).trim() !== '';
-            const hasPassword =
-              value.basic_auth_password !== undefined &&
-              value.basic_auth_password !== null &&
-              String(value.basic_auth_password) !== '';
-            if (hasUsername !== hasPassword) {
-              return helpers.error('any.invalid');
-            }
-            return value;
-          });
+          requires_credentials: Joi.boolean().optional(),
+        });
 
         validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
@@ -94,23 +80,22 @@ class AccountFollowingAddByRSSChannelController {
             feed_url: string;
             title?: string | null;
             image_url?: string | null;
-            basic_auth_username?: string | null;
-            basic_auth_password?: string | null;
+            requires_credentials?: boolean;
           };
-          const dto = {
-            ...body,
-            basic_auth_username:
-              body.basic_auth_username !== undefined &&
-              body.basic_auth_username !== null &&
-              String(body.basic_auth_username).trim() !== ''
-                ? String(body.basic_auth_username).trim()
-                : null,
-            basic_auth_password:
-              body.basic_auth_password !== undefined &&
-              body.basic_auth_password !== null &&
-              String(body.basic_auth_password) !== ''
-                ? body.basic_auth_password
-                : null,
+          const resolved = resolveAddByRSSFeedUrlCredentials(body.feed_url);
+          if (!resolved) {
+            res.status(400).json({ message: '"feed_url" must be a valid uri' });
+            return;
+          }
+          const requiresCredentials =
+            resolved.credentials !== null ? true : body.requires_credentials;
+          const dto: AccountFollowingAddByRSSChannelDto = {
+            feed_url: resolved.feedUrl,
+            title: body.title,
+            image_url: body.image_url,
+            ...(requiresCredentials !== undefined
+              ? { requires_credentials: requiresCredentials }
+              : {}),
           };
 
           try {
@@ -168,11 +153,12 @@ class AccountFollowingAddByRSSChannelController {
         validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
           const { feed_url } = req.body;
+          const feedUrl = resolveAddByRSSFeedUrlCredentials(feed_url)?.feedUrl ?? feed_url;
 
           try {
             await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.removeRSSChannel(
               account.id,
-              feed_url
+              feedUrl
             );
             res.status(204).end();
           } catch (err) {

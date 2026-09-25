@@ -13,13 +13,19 @@ import type {
   QueueResourcesAbridgedIndex,
   SelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
-import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
+import {
+  getSelectedLabeledItemEnclosureAndSource,
+  isEqual,
+  isHlsSource,
+  MediumEnum,
+} from '@podverse/helpers';
 
 import { useAccount } from '../../../contexts/Account';
 import { useEmbedPlaybackGuardrails } from '../../../contexts/EmbedPlaybackMode';
 import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useRegisterMediaPlayerControlsBridge } from '../../../contexts/MediaPlayerControls';
+import type { AddByRSSMediaFailureParams } from '../../../hooks/useAddByRSSMediaFailureNotice';
 import type { MediaElementBridge, MediaElementSource } from '../../../hooks/useMediaElementBridge';
 import { useMediaElementBridge } from '../../../hooks/useMediaElementBridge';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
@@ -45,6 +51,10 @@ import {
   trackStatsItem,
 } from '../../../utils/statsTracking/statsTracking';
 import { MediaElement } from '../MediaElement/MediaElement';
+import { toFileMediaElementSource } from '../MediaElement/mediaElementSourceFromTarget';
+
+/** `MediaError.MEDIA_ERR_ABORTED`: the load was cancelled (source switch), not a failure. */
+const MEDIA_ERR_ABORTED = 1;
 
 export interface NonLiveMediaOrchestratorProps {
   mediaType: 'audio' | 'video';
@@ -94,6 +104,11 @@ export interface NonLiveMediaOrchestratorProps {
   onAddByRSSEnded?: (positionSeconds: number) => Promise<void>;
   /** When add-by-RSS playback ends and queue is empty, try to play next from list context. Returns true if playback started. */
   onAddByRSSPlayNext?: () => Promise<boolean>;
+  /**
+   * When an add-by-RSS media load fails. Media always loads the plain URL, so a
+   * password-protected feed's media fails here rather than prompting for credentials.
+   */
+  onAddByRSSMediaError?: (params: AddByRSSMediaFailureParams) => void;
   clearNowPlaying: () => void;
   /** Set to `fresh_transition` before skip/ended queue loads so music advances start at 0. */
   pendingMusicQueueLoadIntentRef: React.RefObject<MusicItemPlaybackIntent | null>;
@@ -150,6 +165,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     onAddByRSSPositionSave,
     onAddByRSSEnded,
     onAddByRSSPlayNext,
+    onAddByRSSMediaError,
     clearNowPlaying,
     pendingMusicQueueLoadIntentRef,
     onVideoAspectRatioChange,
@@ -175,6 +191,10 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
   useEffect(() => {
     onAddByRSSPlayNextRef.current = onAddByRSSPlayNext;
   }, [onAddByRSSPlayNext]);
+  const onAddByRSSMediaErrorRef = useRef(onAddByRSSMediaError);
+  useEffect(() => {
+    onAddByRSSMediaErrorRef.current = onAddByRSSMediaError;
+  }, [onAddByRSSMediaError]);
   const clearNowPlayingRef = useRef(clearNowPlaying);
   useEffect(() => {
     clearNowPlayingRef.current = clearNowPlaying;
@@ -290,6 +310,19 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
   }, [seekInternally, setMPIsPlaying, setMPShouldPlay, setMPCurrentTime]);
 
   const bridge = useMediaElementBridge(mediaRef, {
+    onError(error) {
+      const addByRSS = mpAddByRSSRef.current;
+      if (!addByRSS || !error || error.code === MEDIA_ERR_ABORTED) {
+        return;
+      }
+      const channelIdText = addByRSS.resourceData.channel_id_text;
+      onAddByRSSMediaErrorRef.current?.({
+        channelIdText: typeof channelIdText === 'string' ? channelIdText : null,
+        itemIdText: addByRSS.idText,
+        mediaUrl: mediaRef.current?.currentSrc || mediaRef.current?.src || null,
+        mediaErrorCode: error.code,
+      });
+    },
     onLoadedMetadata(newDuration) {
       if (!mediaRef.current) {
         return;
@@ -317,15 +350,18 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
 
         setMPDuration(newDuration);
         setMPCurrentTime(initialSeekSeconds);
-        updateNowPlaying({
-          mpChannel: mpChannelRef.current,
-          mpClip: mpClipRef.current,
-          mpItem: mpItemRef.current,
-          mpItemSoundbite: mpItemSoundbiteRef.current,
-          mpDuration: newDuration,
-          mpCurrentTime: initialSeekSeconds,
-          eventKind: 'play',
-        });
+        // A paused load must not stamp last_played_at. Play writes the listen when playback starts.
+        if (mpShouldPlayRef.current === true) {
+          updateNowPlaying({
+            mpChannel: mpChannelRef.current,
+            mpClip: mpClipRef.current,
+            mpItem: mpItemRef.current,
+            mpItemSoundbite: mpItemSoundbiteRef.current,
+            mpDuration: newDuration,
+            mpCurrentTime: initialSeekSeconds,
+            eventKind: 'play',
+          });
+        }
 
         setPendingPlaybackDecision?.(null);
 
@@ -386,17 +422,23 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       }
 
       setMPDuration(newDuration);
-      updateNowPlaying({
-        mpChannel: mpChannelRef.current,
-        mpClip: mpClipRef.current,
-        mpItem: mpItemRef.current,
-        mpItemSoundbite: mpItemSoundbiteRef.current,
-        mpDuration: newDuration,
-        mpCurrentTime: newCurrentTime !== null ? newCurrentTime : 0,
-        eventKind: 'play',
-      });
+      // A paused load must not stamp last_played_at. Play writes the listen when playback starts.
+      if (mpShouldPlayRef.current === true) {
+        updateNowPlaying({
+          mpChannel: mpChannelRef.current,
+          mpClip: mpClipRef.current,
+          mpItem: mpItemRef.current,
+          mpItemSoundbite: mpItemSoundbiteRef.current,
+          mpDuration: newDuration,
+          mpCurrentTime: newCurrentTime !== null ? newCurrentTime : 0,
+          eventKind: 'play',
+        });
+      }
 
       if (!loggedInAccountRef.current || mpAddByRSSRef.current) {
+        return;
+      }
+      if (mpShouldPlayRef.current !== true) {
         return;
       }
       if (mpChannelRef.current) {
@@ -744,10 +786,20 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     if (!selectedItemEnclosureAndSource) {
       return;
     }
-    if (!selectedItemEnclosureAndSource.labeledItemEnclosure?.enclosure?.type) {
+    const rawUri = selectedItemEnclosureAndSource.source?.uri;
+    if (typeof rawUri !== 'string' || rawUri.trim() === '') {
       return;
     }
-    if (!selectedItemEnclosureAndSource.source?.uri) {
+    const enclosureType = selectedItemEnclosureAndSource.labeledItemEnclosure?.enclosure?.type;
+    const trimmedType = typeof enclosureType === 'string' ? enclosureType.trim() : '';
+    const sourceContentType = selectedItemEnclosureAndSource.source?.content_type;
+    const sourceMime =
+      typeof sourceContentType === 'string' && sourceContentType.trim() !== ''
+        ? sourceContentType
+        : null;
+    const classificationMime = trimmedType !== '' ? trimmedType : sourceMime;
+    const hlsPlaylistAttachment = isHlsSource(rawUri, classificationMime);
+    if (trimmedType === '' && !hlsPlaylistAttachment) {
       return;
     }
 
@@ -756,6 +808,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     const isLiveItem = checkIsLiveItem(mpItemRef.current);
 
     bridge.applyItemEnclosureSurfaceChange({
+      hlsPlaylistAttachment,
       treatAsActiveNonLiveFile:
         (mediaType === 'audio'
           ? isAudioFile || (allowVideoOnAudioOrchestrator && isVideoFile)
@@ -860,12 +913,19 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     const fallback = mpAddByRSS.resourceData.enclosure_url;
     return typeof fallback === 'string' && fallback.trim() !== '' ? fallback.trim() : undefined;
   })();
-  const sourceUri =
+  const rawSourceUri =
     addByRSSEnclosureUrl ?? selectedItemEnclosureAndSource?.source?.uri ?? undefined;
+  const sourceUri =
+    typeof rawSourceUri === 'string' && rawSourceUri.trim() !== ''
+      ? rawSourceUri.trim()
+      : undefined;
+  const selectedUri = selectedItemEnclosureAndSource?.source?.uri?.trim() ?? '';
+  const sourceMime =
+    sourceUri !== undefined && sourceUri === selectedUri
+      ? selectedItemEnclosureAndSource?.labeledItemEnclosure?.enclosure.type
+      : undefined;
   const elementSource: MediaElementSource | null =
-    typeof sourceUri === 'string' && sourceUri.trim() !== ''
-      ? { kind: 'file', src: sourceUri.trim() }
-      : null;
+    sourceUri !== undefined ? toFileMediaElementSource(sourceUri, sourceMime) : null;
 
   useEffect(() => {
     if (mediaType !== 'video') {

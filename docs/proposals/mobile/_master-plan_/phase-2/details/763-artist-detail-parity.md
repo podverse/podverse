@@ -40,7 +40,10 @@ offline empty (network-only publisher remote items).
 
 ### Header
 
-Same shell actions as album. Author subtitle from `channel_about.author`.
+Same action split as album: subscribe plus RSS / website on `ChannelHeader`; bell and share in
+the stack `headerRight` ([761](761-channel-detail-shell-and-prefs.md),
+[`mobile-screen-layout`](/.cursor/rules/mobile-screen-layout.mdc)). Author subtitle from
+`channel_about.author`.
 
 ## Acceptance criteria
 

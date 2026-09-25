@@ -20,6 +20,9 @@ existing notification-channel APIs.
 | **Gear**                                                                                      | Logged in **and** subscribed | Navigate to podcast settings screen                                     |
 
 Use `HeaderBarAction` in `headerRight`. Bell and gear need accessible names (not `testID` alone).
+Do not place share or the bell in `ChannelHeader` — that slot is subscribe and outbound links.
+Web `HeaderButtons` is not the mobile layout for these icons
+([`mobile-screen-layout`](/.cursor/rules/mobile-screen-layout.mdc)).
 
 ### Podcast settings screen
 

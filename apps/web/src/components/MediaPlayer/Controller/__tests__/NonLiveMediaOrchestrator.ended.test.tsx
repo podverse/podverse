@@ -77,7 +77,9 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
   const moveNowPlayingToHistory = vi.fn(() => Promise.resolve());
   const queueResult: QueueResourcesLoadActiveResult = overrides.queueResult ?? {
     activeResource: null,
+    activeQueue: null,
     historyMoved: 0,
+    queues: [],
     upcomingManualCount: 0,
     upcomingResources: [],
   };
@@ -193,7 +195,9 @@ describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
     const { fake, spies } = await renderAV({
       queueResult: {
         activeResource: null,
+        activeQueue: null,
         historyMoved: 0,
+        queues: [],
         upcomingManualCount: 0,
         upcomingResources: [],
       },
@@ -216,7 +220,9 @@ describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
     const { fake, spies } = await renderAV({
       queueResult: {
         activeResource: null,
+        activeQueue: null,
         historyMoved: 0,
+        queues: [],
         upcomingManualCount: 2,
         upcomingResources: [],
         hasAutoQueueNext: false,
@@ -236,7 +242,9 @@ describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
     const { fake, spies } = await renderAV({
       queueResult: {
         activeResource: null,
+        activeQueue: null,
         historyMoved: 0,
+        queues: [],
         upcomingManualCount: 0,
         upcomingResources: [],
         hasAutoQueueNext: true,
@@ -260,7 +268,9 @@ describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
       } as unknown as MediaPlayerAddByRSSState,
       queueResult: {
         activeResource: null,
+        activeQueue: null,
         historyMoved: 0,
+        queues: [],
         upcomingManualCount: 1,
         upcomingResources: [],
         hasAutoQueueNext: false,
@@ -287,7 +297,9 @@ describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
       } as unknown as MediaPlayerAddByRSSState,
       queueResult: {
         activeResource: null,
+        activeQueue: null,
         historyMoved: 0,
+        queues: [],
         upcomingManualCount: 0,
         upcomingResources: [],
         hasAutoQueueNext: false,
@@ -312,7 +324,9 @@ describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
       } as unknown as MediaPlayerAddByRSSState,
       queueResult: {
         activeResource: null,
+        activeQueue: null,
         historyMoved: 0,
+        queues: [],
         upcomingManualCount: 0,
         upcomingResources: [],
         hasAutoQueueNext: false,
@@ -334,7 +348,9 @@ describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
       embedRoute: true,
       queueResult: {
         activeResource: null,
+        activeQueue: null,
         historyMoved: 0,
+        queues: [],
         upcomingManualCount: 0,
         upcomingResources: [],
       },

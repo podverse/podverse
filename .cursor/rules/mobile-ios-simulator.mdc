@@ -14,8 +14,9 @@ When giving `npm run mobile:ios`, `npm run mobile:android`, or `expo run:*` copy
 explicitly asks to pick.
 
 `scripts/mobile/run-expo-macos.sh` defaults to **manual** devices when `--device` is omitted,
-and **always** passes `--no-bundler` (Metro stays in **Mobile Metro** via `npm run mobile:dev` /
-`mobile:dev:e2e`). `npm run mobile:e2e:ios` / `mobile:e2e:android` / `mobile:e2e:test` always
+and **always** passes `--no-bundler` (local Metro stays in **Mobile Metro** via
+`npm run mobile:dev`; E2E Metro stays in **Mobile E2E Metro** via `mobile:dev:e2e`).
+`npm run mobile:e2e:ios` / `mobile:e2e:android` / `mobile:e2e:test` always
 target **E2E** devices (never manual).
 
 ## Device matrix (same app id `com.podverse.app.next`)
@@ -36,9 +37,10 @@ npm run mobile:android:device
 
 # E2E — each leave-running / install step in its named tab
 # (see HOW-TO-RUN.md + vscode-terminals-commands):
-# Mobile Metro: npm run mobile:dev   (API-backed: mobile:dev:e2e)
+# Mobile Metro: npm run mobile:dev
+# Mobile E2E Metro (API-backed): npm run mobile:dev:e2e
 # Mobile E2E API (API-backed only): npm run mobile:e2e:api
-# Mobile iOS / Mobile Android (exit when done):
+# Mobile E2E iOS / Mobile E2E Android (exit when done):
 npm run mobile:e2e:ios
 npm run mobile:e2e:android
 # Mobile Maestro (exit when done):

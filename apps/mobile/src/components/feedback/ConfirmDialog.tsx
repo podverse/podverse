@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { useTheme } from '../../theme/useTheme';
+import type { FormAction } from '../form/FormActions';
+import { FormActions } from '../form/FormActions';
 import { AppOverlay, OverlayScrim } from '../overlay';
-import { Button } from '../primitives';
 
 /**
  * Presentational dialog: title + body with a required dismiss action and an optional confirm action.
@@ -40,12 +41,6 @@ export function ConfirmDialog({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        actions: {
-          flexDirection: 'row',
-          gap: tokens.spacing.md,
-          justifyContent: 'flex-end',
-          marginTop: tokens.spacing.sm,
-        },
         // Neutral dimming scrim (not a theme color); mirrors the standard platform dialog backdrop.
         backdrop: {
           alignItems: 'center',
@@ -80,8 +75,29 @@ export function ConfirmDialog({
     [themeStyles, tokens]
   );
 
-  const showConfirmAction =
-    confirmLabel !== undefined && confirmTestID !== undefined && onConfirm !== undefined;
+  const actions: readonly FormAction[] =
+    confirmLabel !== undefined && confirmTestID !== undefined && onConfirm !== undefined
+      ? [
+          {
+            label: cancelLabel,
+            onPress: onCancel,
+            testID: cancelTestID,
+            variant: 'secondary',
+          },
+          {
+            label: confirmLabel,
+            onPress: onConfirm,
+            testID: confirmTestID,
+          },
+        ]
+      : [
+          {
+            label: cancelLabel,
+            onPress: onCancel,
+            testID: cancelTestID,
+            variant: 'secondary',
+          },
+        ];
 
   return (
     <AppOverlay animation="fade" onRequestClose={onCancel} visible={visible}>
@@ -99,22 +115,7 @@ export function ConfirmDialog({
           >
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.body}>{body}</Text>
-            <View style={styles.actions}>
-              <Button
-                label={cancelLabel}
-                onPress={onCancel}
-                testID={cancelTestID}
-                variant="secondary"
-              />
-              {showConfirmAction ? (
-                <Button
-                  label={confirmLabel}
-                  onPress={onConfirm}
-                  testID={confirmTestID}
-                  variant="primary"
-                />
-              ) : null}
-            </View>
+            <FormActions actions={actions} />
           </Pressable>
         </Pressable>
       </OverlayScrim>

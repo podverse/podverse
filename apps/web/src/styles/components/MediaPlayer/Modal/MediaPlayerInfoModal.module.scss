@@ -128,9 +128,22 @@
   align-items: center;
   display: flex;
   flex: 0 0 auto;
-  flex-direction: column;
+  flex-direction: row;
+  gap: var(--spacing-md);
   justify-content: center;
   min-height: var(--media-modal-subtitle-reserve);
+}
+
+.subtitleCopy {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.chapterLink {
+  flex: 0 0 auto;
 }
 
 .subtitle {

@@ -1,0 +1,152 @@
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { ForwardedRef } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useTranslation } from 'react-i18next';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { AccessibilityInfo, RefreshControl, StyleSheet, Text, View } from 'react-native';
+
+import { matchesTitleFilter } from '@podverse/helpers';
+
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
+import { useAuth } from '../../auth/AuthProvider';
+import { ListFilterField, ListFilterHeader } from '../../components/form';
+import { FillList, SwipeActionRow, VerticalCenter } from '../../components/primitives';
+import { CallToActionSection } from '../../components/state/CallToActionSection';
+import { ListEmpty } from '../../components/state/ListEmpty';
+import { ListError } from '../../components/state/ListError';
+import { ListLoading } from '../../components/state/ListLoading';
+import {
+  channelSeenRepository,
+  downloadsRepository,
+  subscriptionsRepository,
+} from '../../data/repositories';
+import { downloadManager } from '../../downloads/downloadManager';
+import { downloadStore } from '../../downloads/downloadStore';
+import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import {
+  isHomeClipsUnavailableOffline,
+  isHomeDownloadedItemsOnly,
+  OFFLINE_UNAVAILABLE_MESSAGE_KEY,
+} from '../../lib/offlineModeViews';
+import { endPerfChipSample, stampPerfFrame } from '../../lib/perf/perfFrames';
+import { perfMark } from '../../lib/perf/perfSpans';
+import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
+import {
+  BROWSE_STACK_ROUTES,
+  buildAlbumDetailParams,
+  buildArtistDetailParams,
+  buildPodcastDetailParams,
+  buildTrackDetailParams,
+  HOME_STACK_ROUTES,
+  SEARCH_STACK_ROUTES,
+} from '../../navigation';
+import type { HomeRangeOption, HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
+import { isHomeFilterMediaType, isHomeViewModeMediaType } from '../../prefs/homeListPrefs';
+import { useOfflineMode } from '../../prefs/offlineMode';
+import type { HomeMediaType } from '../../prefs/preferredMediaType';
+import { useSync } from '../../sync';
+import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
+import { listFilterFieldBottomMargin, screenBodyInsets } from '../../theme/screenLayout';
+import { typography } from '../../theme/typography';
+import { useResponsive } from '../../theme/useResponsive';
+import { useTheme } from '../../theme/useTheme';
+import type { BrowseMediaType } from '../browse/browseTypes';
+import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
+import type { HomeFeedRowData } from './homeFeedData';
+import {
+  fetchDownloadedHomeFeedRows,
+  fetchHomeFeedRows,
+  fetchUnsubscribedDownloadHomeRows,
+  isHomeFeedStaleRead,
+} from './homeFeedData';
+import { HomeFeedGridCell } from './HomeFeedGridCell';
+import type { HomeFeedLoadSource } from './homeFeedLoadPolicy';
+import { homeFeedKeepsVisibleRowsOnError, homeFeedShowsRefreshControl } from './homeFeedLoadPolicy';
+import {
+  appendHomeFeedReadFailure,
+  HOME_FEED_READ_TIMEOUT_MS,
+  withHomeFeedReadBudget,
+} from './homeFeedReadLog';
+import { HomeFeedRow } from './HomeFeedRow';
+import { readHomeFilterTerm, writeHomeFilterTerm } from './homeFilterSession';
+import { mergeDownloadedCountsIntoHomeRows } from './homeRowMetadata';
+import { reconcileHomeFeedRows } from './reconcileHomeFeedRows';
+import type { QueueActionPosition } from './useHomeRowPlayback';
+import { useHomeRowPlayback } from './useHomeRowPlayback';
+
+// @@SLOT:MODULE@@
+
+export type HomeMediaTypeListHandle = {
+  markAllSeen: () => void;
+};
+
+type HomeMediaTypeListProps = {
+  arePrefsHydrated: boolean;
+  /** The media type this list shows; fixed for the life of the instance. */
+  mediaType: HomeMediaType;
+  onCanMarkAllSeenChange: (canMarkAllSeen: boolean) => void;
+  prefs: HomeListPrefsState;
+  requestAddToPlaylist: (target: AddToPlaylistTarget) => void;
+};
+
+function HomeMediaTypeListInner(
+  {
+    arePrefsHydrated,
+    mediaType: selectedMediaType,
+    onCanMarkAllSeenChange,
+    prefs: resolvedPrefs,
+    requestAddToPlaylist,
+  }: HomeMediaTypeListProps,
+  ref: ForwardedRef<HomeMediaTypeListHandle>
+) {
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const { styles: themeStyles, tokens } = useTheme();
+  // @@SLOT:BODY@@
+
+  // Unmounting abandons a read still in flight, the same way a newer read does.
+  useEffect(() => {
+    return () => {
+      feedRequestIdRef.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
+    onCanMarkAllSeenChange(canMarkAllSeen);
+  }, [canMarkAllSeen, onCanMarkAllSeenChange]);
+
+  useImperativeHandle(ref, () => ({ markAllSeen: handleMarkAllSeen }), [handleMarkAllSeen]);
+
+  const showsLoading = isFeedBusy && feedRows.length === 0;
+
+  useLayoutEffect(() => {
+    if (showsLoading) {
+      stampPerfFrame('spinner.visible');
+    }
+  }, [showsLoading]);
+
+  useLayoutEffect(() => {
+    if (hasCompletedFeedRead) {
+      stampPerfFrame('list.visible');
+    }
+  }, [feedRows, hasCompletedFeedRead]);
+
+  return feedList;
+}
+
+/**
+ * One Home media type's list: its rows, loading and empty states, and row actions. The screen owns
+ * the chip row, the remembered list choices, and the title-bar menu.
+ */
+export const HomeMediaTypeList = forwardRef(HomeMediaTypeListInner);

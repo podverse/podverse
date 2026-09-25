@@ -27,7 +27,8 @@ promoting into `apps/mobile/src/components/` rather than leaving podcast-only co
 1. Stack title stays generic **Podcast** via `ThemedStackHeader`.
 2. Trailing header actions (Share, Bell, Gear) are wired in detail
    [726](726-podcast-settings-and-header-bell.md); this detail leaves the `headerRight` slot ready
-   (`HeaderBarAction`).
+   (`HeaderBarAction`). Those icons stay in the stack title bar — not in `ChannelHeader`
+   ([`mobile-screen-layout`](/.cursor/rules/mobile-screen-layout.mdc)).
 3. Body: `ChannelHeader` → chip row → always-visible title filter → `FlatList` for the active
    section (lists filled in [724](724-podcast-section-lists.md)).
 4. Drop the tablet two-pane split on this screen.

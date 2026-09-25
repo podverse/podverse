@@ -11,17 +11,25 @@
 
 import { requireNativeModule } from 'expo-modules-core';
 
-import type { NativeRawPlaybackEvents } from './types';
+import type { MediaEngineBasicAuth, NativeRawPlaybackEvents } from './types';
 
 /**
  * Raw native module surface as exposed by the Swift/Kotlin `Module` definition. Note this uses the
- * native **positional** `load(url, initialSeekSeconds?)` signature — the higher-level, object-based
- * `NativePlaybackBridge.load(source)` is provided by the JS adapter, which wraps this.
+ * native **positional** `load(url, initialSeekSeconds?, basicAuth?)` signature — the higher-level,
+ * object-based `NativePlaybackBridge.load(source)` is provided by the JS adapter, which wraps this.
  */
 export type PodverseMediaEngineNativeModule = {
-  load(url: string, initialSeekSeconds?: number): Promise<void>;
+  load(
+    url: string,
+    initialSeekSeconds?: number | null,
+    basicAuth?: MediaEngineBasicAuth
+  ): Promise<void>;
   /** Positional `load` + `play` in one native hop. The adapter wraps the object form. */
-  loadAndStart(url: string, initialSeekSeconds?: number): Promise<void>;
+  loadAndStart(
+    url: string,
+    initialSeekSeconds?: number | null,
+    basicAuth?: MediaEngineBasicAuth
+  ): Promise<void>;
   play(): Promise<void>;
   pause(): void;
   seek(seconds: number): void;

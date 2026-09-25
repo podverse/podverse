@@ -8,22 +8,25 @@ import type { EpisodeByGuidResponse } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../../constants/images';
-import { ROUTES } from '../../../../../constants/routes';
 
 import styles from '../../../../../styles/components/Common/List/ListGridNode.module.scss';
 
 interface Props {
+  href: string;
   itemUnadded: NonNullable<EpisodeByGuidResponse['episode']>;
   showChannelInfo?: boolean;
 }
 
-export const ListTrackGridNodeUnadded: React.FC<Props> = ({ itemUnadded, showChannelInfo }) => {
-  const url = `${ROUTES.PODCAST_INDEX}/feed/${itemUnadded.feedId}`;
+export const ListTrackGridNodeUnadded: React.FC<Props> = ({
+  href,
+  itemUnadded,
+  showChannelInfo,
+}) => {
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
 
   return (
-    <Link href={url} className={styles.link}>
+    <Link href={href} className={styles.link}>
       <div className={styles.gridNode}>
         <SkeletonFlashImage
           src={itemUnadded.image}

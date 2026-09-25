@@ -4,7 +4,12 @@ import type { DTOPlaylistResource, DTOQueueResource } from '@podverse/helpers/dt
 
 import { safeJsonParse } from '../../data/db/serialization';
 import type { ItemHomeRowSource } from './homeRowMappers';
-import { clipToHomeRow, playlistResourceToHomeRow, queueResourceToHomeRow } from './homeRowMappers';
+import {
+  clipListTimeRangeLabel,
+  clipToHomeRow,
+  playlistResourceToHomeRow,
+  queueResourceToHomeRow,
+} from './homeRowMappers';
 
 const toQueueResource = (value: unknown): DTOQueueResource => {
   const parsed = safeJsonParse<DTOQueueResource>(JSON.stringify(value));
@@ -205,16 +210,54 @@ describe('queueResourceToHomeRow', () => {
 });
 
 describe('clipToHomeRow', () => {
-  it('maps a clip with a source item', () => {
-    const row = clipToHomeRow({
-      id_text: 'clip-1',
-      item: buildItem({ id_text: 'clip-item-1', title: 'Clip source item' }),
-      title: 'Clip title',
-    });
+  const clip = {
+    end_time: '125',
+    id_text: 'clip-1',
+    item: buildItem({
+      id_text: 'clip-item-1',
+      item_images: [
+        {
+          id: 1,
+          image_width_size: 300,
+          is_resized: true,
+          item_id: 1,
+          url: 'https://example.com/episode.jpg',
+        },
+      ],
+      title: 'Clip source item',
+    }),
+    start_time: '65',
+    title: 'Clip title',
+  };
 
-    expect(row.id).toBe('clip-1');
+  it('names the podcast and the episode on a mixed-source list', () => {
+    const row = clipToHomeRow(clip, { showChannelInfo: true, showItemInfo: true });
+
     expect(row.title).toBe('Clip title');
-    expect(row.subtitle).toBe('Test channel');
+    expect(row.subtitle).toBe('Test channel • Clip source item');
+    expect(row.imageUrl).toBe('https://example.com/episode.jpg');
+    expect(row.duration).toBeNull();
+    expect(row.clipStartTime).toBe('65');
+    expect(row.clipEndTime).toBe('125');
+  });
+
+  it('names only the episode when the screen is already a podcast', () => {
+    const row = clipToHomeRow(clip, { showItemInfo: true });
+
+    expect(row.subtitle).toBe('Clip source item');
+  });
+
+  it('omits parent titles when the screen is already the episode', () => {
+    const row = clipToHomeRow(clip);
+
+    expect(row.subtitle).toBeNull();
+    expect(row.title).toBe('Clip title');
+  });
+
+  it('formats the clip start–end range instead of the episode duration', () => {
+    expect(
+      clipListTimeRangeLabel('65', '125', (timeStart, timeEnd) => `${timeStart} to ${timeEnd}`)
+    ).toBe('1:05 to 2:05');
   });
 
   it('maps a clip whose source item is missing', () => {
@@ -225,6 +268,7 @@ describe('clipToHomeRow', () => {
 
     expect(row.id).toBe('clip-orphan');
     expect(row.title).toBe('Orphan clip');
+    expect(row.subtitle).toBeNull();
     expect(row.description).toBeNull();
     expect(row.imageUrl).toBeNull();
   });
@@ -259,6 +303,7 @@ describe('playlistResourceToHomeRow', () => {
     expect(row?.id).toBe('clip-clip-1');
     expect(row?.mediaType).toBe('clips');
     expect(row?.title).toBe('Clip title');
+    expect(row?.subtitle).toBe('Test channel • Clip source item');
   });
 
   it('maps soundbite resources', () => {

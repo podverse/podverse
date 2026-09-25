@@ -69,8 +69,8 @@ separately.
 9. Reconcile required leave-running services in the service preflight. First inspect the existing
    terminal state, listener ports, PIDs, process commands, and health endpoints so the agent does
    not create duplicate services. Treat service state as unknown until verified:
-   - Mobile Metro: for mobile runs, ensure `npm run mobile:dev:e2e` is the active process on `:8081`.
-     If no Metro is listening, start it in **Mobile Metro**. If a listener is the wrong Metro mode,
+   - Mobile E2E Metro: for mobile runs, ensure `npm run mobile:dev:e2e` is the active process on `:8081`.
+     If no Metro is listening, start it in **Mobile E2E Metro**. If a listener is the wrong Metro mode,
      stop it only when its process command is positively identified as the E2E Metro process, then
      start the E2E process and wait for it to become ready. Do not kill an unidentified listener,
      `mobile:dev`, or an operator-owned process.
@@ -225,7 +225,7 @@ Use the repository's supported runners:
   Use `npm run mobile:e2e:test -- <area>` for a deliberate two-platform run.
 
 Use the exact affected path and the smallest focused command. Do not use direct Playwright
-commands for web E2E. For mobile debugging, establish **Mobile Metro** for every run, **Mobile E2E
+commands for web E2E. For mobile debugging, establish **Mobile E2E Metro** for every run, **Mobile E2E
 API** for API-backed flows, and **Mobile E2E test-assets** for playback flows before invoking
 Maestro. The service preflight owns this check even when the operator says the services should
 already be running.

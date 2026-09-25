@@ -25,6 +25,10 @@
     }
   },
   "features": {
+    "add_by_rss": {
+      "credentials_mobile_media_note": "This app sends them with audio, video, and artwork only when those files are on the same site as the feed.",
+      "credentials_remove_feed_confirm": "Remove this feed? Its username and password are deleted from this device too."
+    },
     "opml": {
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
@@ -57,8 +61,16 @@
       "auto_removed_notice": "Removed the oldest downloads to free up space",
       "dismiss": "Dismiss",
       "in_progress_count": "{count} in progress",
-      "auto_download": "Auto-download new episodes",
-      "auto_download_unavailable": "Auto-download is not available yet.",
+      "auto_download": "Auto download",
+      "auto_download_help": "When on, new episodes for podcasts with auto download enabled download in the background.",
+      "auto_download_cellular": "Download over cellular",
+      "auto_download_cellular_help": "When off, auto download waits for Wi‑Fi. Turning this on uses your cellular data plan.",
+      "auto_download_apply_title": "Update existing podcasts?",
+      "auto_download_apply_body": "Apply this to all {count} subscribed podcasts, or only to podcasts you subscribe to later?",
+      "auto_download_apply_all": "Apply to all",
+      "auto_download_apply_new_only": "Only new subscriptions",
+      "auto_download_cellular_apply_title": "Update auto-download podcasts?",
+      "auto_download_cellular_apply_body": "Apply this cellular setting to all {count} podcasts with auto download on, or only to podcasts you enable later?",
       "paused": "Paused",
       "pause_all": "Pause all",
       "resume_all": "Resume all",
@@ -83,6 +95,7 @@
     }
   },
   "settings": {
+    "dependent_of": "Part of {parent}",
     "groups": {
       "appearance": "Appearance",
       "appearance_description": "Theme and language",
@@ -108,6 +121,20 @@
       "limit_label": "Download limit",
       "unlimited": "Unlimited",
       "auto_free_heading": "Automatically free space",
+      "auto_download_heading": "Auto download",
+      "auto_download_default": "Auto download new subscriptions",
+      "auto_download_default_description": "When on, podcasts you subscribe to start with auto download enabled. You can still change each podcast in its settings.",
+      "auto_download_cellular_default": "Download over cellular by default",
+      "auto_download_cellular_default_description": "When off, auto download waits for Wi‑Fi. New auto-download podcasts inherit this choice.",
+      "auto_download_apply_title": "Update existing podcasts?",
+      "auto_download_apply_body": "Apply this to all {count} subscribed podcasts, or only to podcasts you subscribe to later?",
+      "auto_download_apply_all": "Apply to all",
+      "auto_download_apply_new_only": "Only new subscriptions",
+      "auto_download_cellular_apply_title": "Update auto-download podcasts?",
+      "auto_download_cellular_apply_body": "Apply this cellular setting to all {count} podcasts with auto download on, or only to podcasts you enable later?",
+      "auto_download_catch_up_label": "Catch-up limit",
+      "auto_download_catch_up_description": "After the app has been closed, auto download keeps only the newest episodes across your podcasts and skips the rest of that catch-up. Episodes that arrive while the app is open are not limited by this.",
+      "auto_download_catch_up_count": "{count} episodes",
       "auto_delete_on_limit": "When my download limit is reached",
       "auto_delete_on_limit_description": "Deletes the oldest finished downloads first until you are back under the limit.",
       "auto_delete_on_device_low": "When the phone is low on free space",
@@ -142,8 +169,13 @@
     "playback": "Playback",
     "playback_intro": "These controls exist only in E2E test builds. They start seeded media the product screens do not expose yet.",
     "play_video": "Play E2E video",
+    "play_hls": "Play E2E HLS",
     "skip_next": "Skip to next",
-    "complete_now_playing": "Mark now-playing complete"
+    "complete_now_playing": "Mark now-playing complete",
+    "quick_login": "Sign in as E2E user",
+    "quick_login_popularity": "Sign in as undecided E2E user",
+    "quick_login_perf": "Sign in as perf E2E user",
+    "session_ready": "E2E session ready"
   },
   "subscriptions": {
     "downloaded_only": "Downloaded only"
@@ -159,21 +191,75 @@
       "notifications": "Setting up notifications",
       "episodes": "Updating your episodes",
       "rss_feeds": "Updating your RSS feeds",
+      "auto_download": "Downloading new episodes",
       "seen_state": "Updating what's new",
-      "live_status": "Checking what's live"
+      "live_status": "Checking what's live",
+      "clips": "Updating your clips",
+      "home_feed": "Reading Home from this device"
     },
-    "progress": "{completed} of {total}",
-    "log": {
-      "title": "Sync log",
-      "intro": "Background sync problems recorded on this device. Share this with support if your podcasts, playlists, or queue stop updating.",
-      "empty": "No sync problems recorded",
-      "export": "Share",
-      "clear": "Clear",
-      "clear_confirm_title": "Clear sync log?",
-      "clear_confirm_body": "This removes every recorded entry from this device.",
-      "outcome_failure": "Failed",
-      "outcome_skipped": "Skipped — offline",
-      "outcome_success": "Succeeded"
+    "progress": "{completed} of {total}"
+  },
+  "more_advanced": {
+    "title": "Advanced"
+  },
+  "error_log": {
+    "title": "Error log",
+    "menu_subtitle": "Playback, RSS feed, and sync problems recorded on this device",
+    "intro": "Problems recorded on this device while playing media, adding RSS feeds, syncing, or reading Home from cache. Tap an entry for full details you can copy and send to support.",
+    "empty": "No errors recorded",
+    "export": "Share all",
+    "clear": "Clear",
+    "clear_confirm_title": "Clear error log?",
+    "clear_confirm_body": "This removes every recorded entry from this device.",
+    "outcome_failure": "Failed",
+    "outcome_reconciled": "Removed",
+    "outcome_skipped": "Skipped — offline",
+    "outcome_success": "Succeeded",
+    "directory_channel_gone": "Removed {channel} from this device. It is no longer in the directory.",
+    "row_a11y_hint": "Opens full details",
+    "saved_footnote": "Full details are saved in More › Advanced › Error log.",
+    "kind": {
+      "playback": "Playback"
+    },
+    "add_by_rss": {
+      "parse_failed_notice": "The feed was saved, but it could not be read. Details are in More › Advanced › Error log.",
+      "parse_pending_notice": "The feed was saved and is still being read. Check back soon.",
+      "add_failed": "The feed could not be added. Details are in More › Advanced › Error log."
+    },
+    "detail": {
+      "title": "Error details",
+      "not_found": "This entry is no longer in the error log",
+      "copy": "Copy details",
+      "copied": "Copied",
+      "copy_failed": "Could not copy",
+      "time": "Time (UTC)",
+      "code": "Code",
+      "message": "Message",
+      "hosted_media_note": "Podverse does not host media. Podcasters and artists host their own files and RSS feeds, so an error from their server may need to be fixed by them.",
+      "field": {
+        "http_status": "HTTP status",
+        "media_url": "Media URL",
+        "engine_url": "Player URL",
+        "feed_url": "RSS feed URL",
+        "item_title": "Episode or track",
+        "channel_title": "Podcast, album, or artist",
+        "item_id_text": "Item ID",
+        "channel_id_text": "Channel ID",
+        "clip_id_text": "Clip ID",
+        "soundbite_id_text": "Soundbite ID",
+        "chapter_id_text": "Chapter ID",
+        "add_by_rss_id_text": "Add by RSS item ID",
+        "item_guid": "Item GUID",
+        "resource_kind": "Resource type",
+        "source": "Source",
+        "position_seconds": "Position (seconds)",
+        "error_kind": "Error type",
+        "native_code": "Player error code",
+        "native_detail": "Player error detail",
+        "parse_status": "Parse status",
+        "request_id": "Request ID",
+        "basic_auth": "Feed username and password"
+      }
     }
   },
   "media_player": {
@@ -181,5 +267,29 @@
   },
   "misc": {
     "clear": "Clear"
+  },
+  "action_error": {
+    "playback_title": "Playback error",
+    "download_title": "Download error",
+    "playback_a11y": "Playback error",
+    "download_a11y": "Download error",
+    "report": "Details: {detail}",
+    "playback_host_http": "The server hosting this media returned an error. Podcasters and artists host their own files, so they may need to fix it.",
+    "playback_network": "The connection failed while loading this media. Check your network, then try again.",
+    "playback_unsupported": "This file uses a format this device cannot play. The podcast host may need to offer a different file.",
+    "playback_file_not_found": "The media file could not be found. It may have been removed from the host.",
+    "playback_decode": "This device could not decode the media.",
+    "playback_audio_session": "Audio could not start. Close other apps that are playing sound, then try again.",
+    "playback_invalid_source": "The media address is not valid.",
+    "playback_unknown": "Something went wrong while playing. Try again.",
+    "playback_credentials_required": "This feed's host asked for a username and password. Add them to the feed under Add by RSS, then try again.",
+    "playback_credentials_rejected": "This feed's host did not accept the saved username and password. Update them under Add by RSS, then try again.",
+    "playback_credentials_withheld_other_domain": "This media is on a different site than the feed, so the feed's username and password were not sent to it.",
+    "playback_credentials_withheld_insecure": "This media uses an unencrypted address, so the feed's username and password were not sent to it.",
+    "download_credentials_withheld": "This file needs the feed's username and password, and downloads on this device do not send them. You can still play it without downloading.",
+    "download_no_storage": "There is not enough free space on this device. Free some space, then try again.",
+    "download_transfer_failed": "The download did not finish. Check your connection, then try again.",
+    "download_file_missing": "The downloaded file is missing from this device.",
+    "download_unknown": "The download failed. Try again."
   }
 }

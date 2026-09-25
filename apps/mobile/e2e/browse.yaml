@@ -2,8 +2,8 @@ appId: com.podverse.app.next
 name: Browse Tab And Tab Bar Pref
 ---
 # Default bar is Home / Browse / Search / My Library / More. Notifications lives in More.
-# Browse is one chip row: popularity range and Categories (filter chrome) only when the
-# current type can use them, then directory types with the selected type first.
+# Browse is one chip row: directory types in a stable order, then Categories and the
+# popularity range (filter chrome) only when the current type can use them. The sort chip is last.
 # Settings can swap Notifications onto the bar (replaces the last visible content tab).
 
 - runFlow: shared/launch-and-connect.yaml
@@ -19,15 +19,30 @@ name: Browse Tab And Tab Bar Pref
     id: browse-screen
 - extendedWaitUntil:
     visible:
+      id: browse-media-type-selector
+    timeout: ${TIMEOUT_SLOWER}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
+- extendedWaitUntil:
+    visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
 - assertVisible:
     id: browse-media-type-selector
 - assertVisible:
     id: browse-category-button
+# Revealing the sort chip scrolls this row to its trailing edge, which takes Podcasts
+# off the leading edge. Put the row back before asserting or tapping the first type.
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
 - assertVisible:
     id: browse-media-type-podcasts
-- assertVisible:
+- assertNotVisible:
     id: browse-media-type-videos
 # Phone chip row does not fit Playlists / Users. Swipe the selector itself —
 # a %-of-screen start Y can miss the pills, and iOS omits off-screen testIDs.
@@ -47,6 +62,26 @@ name: Browse Tab And Tab Bar Pref
     id: browse-media-type-playlists
 - assertVisible:
     id: browse-media-type-users
+# Playlists and users are text-only catalog rows (no HomeFeedRow artwork). Public top lists
+# are stats-backed and may be empty after seed; prove the chrome, not a required row.
+- tapOn:
+    id: browse-media-type-playlists
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: "home-feed-row-.*"
+- takeScreenshot: browse-screen-playlists
+- tapOn:
+    id: browse-media-type-users
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: "home-feed-row-.*"
+- takeScreenshot: browse-screen-users
 - swipe:
     from:
       id: browse-media-type-selector
@@ -59,6 +94,8 @@ name: Browse Tab And Tab Bar Pref
     from:
       id: browse-media-type-selector
     direction: RIGHT
+- tapOn:
+    id: browse-media-type-podcasts
 - assertNotVisible:
     id: browse-filter-input
 - assertNotVisible:
@@ -70,6 +107,79 @@ name: Browse Tab And Tab Bar Pref
     timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: browse-screen-podcasts
 
+- tapOn:
+    id: browse-media-type-episodes
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: "home-feed-row-subtitle-.*"
+- assertVisible:
+    id: "home-feed-row-updated-.*"
+- assertVisible:
+    id: "home-feed-row-duration-.*"
+- takeScreenshot: browse-screen-episodes
+
+# Clips mix any podcast and any episode, so each row names that parent context.
+# Three left swipes is what reaches the end of the chip row (Playlists / Users) from Podcasts.
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: browse-media-type-clips
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+# Top clips need aggregated stats. The e2e database may have none, so only assert the
+# parent line when a row actually painted.
+- runFlow:
+    when:
+      visible:
+        id: "home-feed-row-.*"
+    commands:
+      - assertVisible:
+          id: "home-feed-row-subtitle-.*"
+- takeScreenshot: browse-screen-clips
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: RIGHT
+- tapOn:
+    id: browse-media-type-episodes
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
+# Counted visible while its center is still past the trailing edge, so the tap misses.
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
 - tapOn:
     id: browse-sort-button
 - assertVisible:
@@ -110,12 +220,18 @@ name: Browse Tab And Tab Bar Pref
 - assertVisible:
     id: browse-sort-button
 
+# Artists sits just off the leading edge once the sort chip is on screen.
 - swipe:
     from:
       id: browse-media-type-selector
-    direction: LEFT
+    direction: RIGHT
 - tapOn:
     id: browse-media-type-artists
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
 - extendedWaitUntil:
     visible:
       id: browse-sort-button
@@ -126,18 +242,121 @@ name: Browse Tab And Tab Bar Pref
     id: browse-category-all
 - takeScreenshot: browse-screen-artists
 
-- tapOn:
-    id: browse-media-type-videos
 - extendedWaitUntil:
     visible:
-      id: browse-category-button
+      id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
-- takeScreenshot: browse-screen-videos
+- assertVisible:
+    id: "home-feed-row-updated-.*"
+- tapOn:
+    id: browse-overflow-trigger
+- extendedWaitUntil:
+    visible:
+      id: browse-overflow-menu
+    timeout: ${TIMEOUT_FASTER}
+- tapOn:
+    id: browse-overflow-view-grid
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-cell-.*"
+    timeout: ${TIMEOUT_SLOWER}
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+- tapOn:
+    id: browse-media-type-podcasts
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: "home-feed-row-title-.*"
+- assertNotVisible:
+    id: "home-feed-cell-.*"
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: browse-media-type-artists
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: browse-media-type-tracks
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: "home-feed-row-title-.*"
+- assertVisible:
+    id: "home-feed-row-subtitle-.*"
+- assertNotVisible:
+    id: "home-feed-row-updated-.*"
+- assertNotVisible:
+    id: "home-feed-row-description-.*"
+- tapOn:
+    id: "home-row-more-.*"
+- extendedWaitUntil:
+    visible:
+      id: "media-row-menu-.*"
+    timeout: ${TIMEOUT_FASTER}
+- assertVisible:
+    id: "media-row-action-queue-next-.*"
+- assertVisible:
+    id: "media-row-action-queue-last-.*"
+- assertVisible:
+    id: "media-row-action-add-to-playlist-.*"
+- assertVisible:
+    id: "media-row-action-go-to-track-.*"
+- assertVisible:
+    id: "media-row-action-go-to-album-.*"
+- takeScreenshot: browse-screen-tracks
+- tapOn:
+    id: "media-row-menu-.*-cancel"
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_FASTER}
+- tapOn:
+    id: "home-feed-row-title-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: mini-player
+- assertVisible:
+    id: mini-player-title
+- takeScreenshot: browse-tracks-play
 
 - tapOn:
     id: tab-more
 - assertVisible:
     id: more-nav-notifications
+- tapOn:
+    id: more-nav-profile
+- extendedWaitUntil:
+    visible:
+      id: my-profile-screen
+    timeout: ${TIMEOUT_SLOWER}
+- scrollUntilVisible:
+    element:
+      id: my-profile-playlist-row-e2eEmbPlList01
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: my-profile-playlist-row-e2eEmbPlList01-subtitle
+- takeScreenshot: browse-my-profile-playlist-row
+- tapOn:
+    id: stack-header-back
 - tapOn:
     id: more-settings
 - tapOn:

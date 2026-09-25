@@ -1,14 +1,24 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ComponentType } from 'react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { DTOChannel } from '@podverse/helpers';
 import { primaryChannelLightboxArtworkUrl, primaryChannelListArtworkUrl } from '@podverse/helpers';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { ListFilterField, MenuSelectChip } from '../../components/form';
@@ -21,6 +31,7 @@ import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChr
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
+import { resolveInitialSubscribed } from '../../lib/channelActionChrome';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import {
   isPodcastSectionUnavailableOffline,
@@ -46,11 +57,11 @@ import {
   readPodcastDetailPrefs,
   writePodcastDetailRange,
   writePodcastDetailSort,
-  writePodcastDetailTab,
 } from '../../prefs/detailListPrefs';
 import { isOfflineModeEnabled, useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import {
+  channelHasFunding,
   channelHasPodroll,
   isFilterableSection,
   isSortableSection,
@@ -64,8 +75,10 @@ import {
   PodcastClipsSection,
   PodcastDownloadedSection,
   PodcastEpisodesSection,
+  PodcastFundingSection,
   PodcastOfficialClipsSection,
   PodcastPodrollSection,
+  PodcastSettingsSection,
 } from './sections';
 
 type PodcastDetailScreenProps = NativeStackScreenProps<
@@ -95,7 +108,9 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
   clips: PodcastClipsSection,
   downloaded: PodcastDownloadedSection,
   episodes: PodcastEpisodesSection,
+  funding: PodcastFundingSection,
   podroll: PodcastPodrollSection,
+  settings: PodcastSettingsSection,
   soundbites: PodcastOfficialClipsSection,
 };
 
@@ -108,15 +123,23 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
  * different endpoints and different row shapes, and a single list that tried to serve all of them
  * would branch on section in every callback.
  *
- * Actions on the channel as a whole live with the channel identity block so the same affordances
- * can be shared across podcast, album, and artist screens.
+ * Subscribe lives on the channel identity block. RSS and website URLs live on About. Funding is
+ * its own chip. Share and notifications live in the stack title bar. Channel settings are the
+ * Settings chip (`mobile-screen-layout`).
  */
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
+  const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { podcastId, previewImageUrl, previewTitle } = route.params;
+  const {
+    podcastId,
+    previewImageUrl,
+    previewIsSubscribed,
+    previewNotificationsEnabled,
+    previewTitle,
+  } = route.params;
   const cachedChrome = getCachedChannelSectionFlags(podcastId);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [isChannelLoading, setIsChannelLoading] = useState<boolean>(true);
@@ -126,19 +149,26 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
     cachedChrome?.hasPodroll === true
   );
+  const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
+    cachedChrome?.hasFunding === true
+  );
   const [hasCheckedSoundbites, setHasCheckedSoundbites] = useState<boolean>(cachedChrome !== null);
   const chromeConfirmedRef = useRef(false);
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(() =>
+    resolveInitialSubscribed(podcastId, previewIsSubscribed)
+  );
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const [section, setSection] = useState<PodcastTab>(DEFAULT_PODCAST_TAB);
+  const deferredSection = useDeferredValue(section);
   const [isSectionHydrated, setIsSectionHydrated] = useState<boolean>(false);
   const [sort, setSort] = useState<PodcastDetailSort>(DEFAULT_PODCAST_DETAIL_SORT);
   const [range, setRange] = useState<PodcastDetailRange>(DEFAULT_PODCAST_DETAIL_RANGE);
   /**
    * Free text lives only as long as the screen does. A remembered filter would reopen a podcast
-   * showing a fraction of its episodes with no hint why, so unlike the section and the order this
-   * one is deliberately not carried anywhere.
+   * showing a fraction of its episodes with no hint why, so unlike the order this one is
+   * deliberately not carried anywhere. The section chip is also visit-local — every open starts on
+   * Episodes.
    */
   const [filterTerm, setFilterTerm] = useState<string>('');
   /**
@@ -172,23 +202,17 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setIsChannelLoading(true);
     setHasSoundbites(nextChrome?.hasOfficialClips === true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
+    setPreviewHasFunding(nextChrome?.hasFunding === true);
     setHasCheckedSoundbites(nextChrome !== null);
-  }, [podcastId]);
+    setIsSubscribed(resolveInitialSubscribed(podcastId, previewIsSubscribed));
+  }, [podcastId, previewIsSubscribed]);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        channelActions: {
-          gap: tokens.spacing.sm,
-        },
-        channelActionRow: {
+        headerActions: {
           alignItems: 'center',
           flexDirection: 'row',
-          flexWrap: 'wrap',
-          marginHorizontal: -tokens.spacing.sm,
-        },
-        subscribeButtonRow: {
-          alignItems: 'flex-start',
         },
       }),
     [tokens]
@@ -230,8 +254,11 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         );
         setChannel(response);
         const hasPodroll = channelHasPodroll(response);
+        const hasFunding = channelHasFunding(response);
         setPreviewHasPodroll(hasPodroll);
+        setPreviewHasFunding(hasFunding);
         void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+          hasFunding,
           hasOfficialClips: soundbites,
           hasPodroll,
         });
@@ -270,6 +297,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       }
       setHasSoundbites(flags.hasOfficialClips);
       setPreviewHasPodroll(flags.hasPodroll);
+      setPreviewHasFunding(flags.hasFunding);
       setHasCheckedSoundbites(true);
     });
 
@@ -323,29 +351,29 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   }, [podcastId, previewArtworkUri, previewHeaderTitle]);
 
   /**
-   * Keyed on the channel, so arriving at a second podcast opens on that podcast's section and order
-   * rather than on whatever the previous one was left showing.
+   * Keyed on the channel, so arriving at a second podcast opens on Episodes (or Downloaded while
+   * Offline Mode is on) with that podcast's remembered sort and range.
    */
   useEffect(() => {
     let isMounted = true;
     setIsSectionHydrated(false);
+    const offline = isOfflineModeEnabled();
+    setSection(
+      offline
+        ? resolvePodcastSectionForOfflineMode(DEFAULT_PODCAST_TAB, [
+            'about',
+            'clips',
+            'downloaded',
+            'episodes',
+          ])
+        : DEFAULT_PODCAST_TAB
+    );
 
     void (async () => {
       const prefs = await readPodcastDetailPrefs(podcastId);
       if (!isMounted) {
         return;
       }
-      // Offline Mode wins over the remembered tab on arrival; the stored pref is left alone.
-      setSection(
-        isOfflineModeEnabled()
-          ? resolvePodcastSectionForOfflineMode(prefs.tab, [
-              'about',
-              'clips',
-              'downloaded',
-              'episodes',
-            ])
-          : prefs.tab
-      );
       setSort(prefs.sort);
       setRange(prefs.range);
       setIsSectionHydrated(true);
@@ -374,14 +402,11 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const notifications = useChannelNotifications({
     channelId: channel?.id ?? null,
     channelIdText: podcastId,
+    previewNotificationsEnabled,
   });
 
   const isSignedIn = status === 'authenticated';
-  /**
-   * Settings are offered once there is something to settle: an account to hold the choices and a
-   * subscription that makes them worth holding.
-   */
-  const canOpenSettings = isSignedIn && isSubscribed;
+  const canShowBoost = getBoostEligibilityForContent({ channel }).canShowBoostAction;
   const notificationsEnabled = notifications.isEnabled;
   const toggleNotifications = notifications.toggleEnabled;
 
@@ -389,33 +414,54 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
   }, [podcastId]);
 
-  const openExternalUrl = useCallback(async (href: string) => {
-    try {
-      await Linking.openURL(href);
-    } catch {
-      // The controls are optional conveniences; failing to open leaves the screen usable.
-    }
-  }, []);
-
-  const feedUrl = channel?.feed?.url ?? null;
-  const websiteUrl = channel?.channel_about?.website_link_url ?? null;
-
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: canOpenSettings
-        ? () => (
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          {canShowBoost && channel !== null ? (
             <HeaderBarAction
-              accessibilityLabel={t('nav.stack.podcast_settings')}
-              icon="settings-outline"
+              accessibilityLabel={t('value.boost')}
+              icon="cash-outline"
+              iconColor={tokens.text.warning}
               onPress={() => {
-                navigation.navigate('PodcastSettings', { podcastId });
+                openBoost({ channel, item: null });
               }}
-              testID="podcast-detail-settings"
+              testID="podcast-detail-boost"
             />
-          )
-        : undefined,
+          ) : null}
+          <HeaderBarAction
+            accessibilityLabel={t(
+              notificationsEnabled
+                ? 'features.notifications.disable_notifications_for_this_podcast'
+                : 'features.notifications.enable_notifications_for_this_podcast'
+            )}
+            icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
+            onPress={() => {
+              void toggleNotifications();
+            }}
+            testID="podcast-detail-notifications-toggle"
+          />
+          <HeaderBarAction
+            accessibilityLabel={t('features.share')}
+            icon="share-outline"
+            onPress={handleShare}
+            testID="podcast-detail-share"
+          />
+        </View>
+      ),
     });
-  }, [canOpenSettings, navigation, podcastId, t]);
+  }, [
+    canShowBoost,
+    channel,
+    handleShare,
+    navigation,
+    notificationsEnabled,
+    openBoost,
+    styles.headerActions,
+    t,
+    tokens.text.warning,
+    toggleNotifications,
+  ]);
 
   /**
    * Subscribing has three behaviors and unsubscribing has one.
@@ -495,17 +541,23 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   ]);
 
   const availableSections = useMemo(
-    () => resolvePodcastSections({ channel, hasSoundbites, previewHasPodroll }),
-    [channel, hasSoundbites, previewHasPodroll]
+    () =>
+      resolvePodcastSections({
+        channel,
+        hasSoundbites,
+        isSignedIn,
+        previewHasFunding,
+        previewHasPodroll,
+      }),
+    [channel, hasSoundbites, isSignedIn, previewHasFunding, previewHasPodroll]
   );
 
   /**
-   * A remembered section still has to exist on this podcast — one whose feed has dropped its
-   * podroll cannot open on it. The stored preference is left alone, so the section comes back if
-   * the feed declares one again.
+   * A selected section still has to exist on this podcast — one whose feed has dropped its
+   * podroll cannot stay on it. Falls back to Episodes (or Downloaded while Offline Mode is on).
    *
    * Held until the channel and the stored episodes have both been read, because a cache miss must
-   * not be treated as absence or a restored Official clips / Podroll pane would be thrown away.
+   * not be treated as absence or an Official clips / Podroll pane would be thrown away mid-visit.
    */
   useEffect(() => {
     if (channel === null || !hasCheckedSoundbites) {
@@ -522,9 +574,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
 
   /**
    * Turning Offline Mode on while already on this screen (or finishing hydrate after the mode
-   * flag arrives) switches the chip to Downloaded. Display-only — the stored tab pref is not
-   * overwritten. Manual chip taps while Offline Mode is on still update `section` without write.
-   * Keyed on podcast identity so a later chrome update does not yank the chip back after a tap.
+   * flag arrives) switches the chip to Downloaded. Manual chip taps while Offline Mode is on still
+   * update `section`. Keyed on podcast identity so a later chrome update does not yank the chip
+   * back after a tap.
    */
   useEffect(() => {
     if (!offlineModeEnabled || !isSectionHydrated) {
@@ -533,15 +585,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setSection('downloaded');
   }, [isSectionHydrated, offlineModeEnabled, podcastId]);
 
-  const handleSectionSelect = useCallback(
-    (next: PodcastTab) => {
-      setSection(next);
-      if (!offlineModeEnabled) {
-        void writePodcastDetailTab(podcastId, next);
-      }
-    },
-    [offlineModeEnabled, podcastId]
-  );
+  const handleSectionSelect = useCallback((next: PodcastTab) => {
+    setSection(next);
+  }, []);
 
   const handleSortSelect = useCallback(
     (next: PodcastDetailSort) => {
@@ -591,63 +637,20 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const artworkUri = channelArtworkUri ?? previewArtworkUri;
   const headerTitle = channel?.title ?? previewHeaderTitle ?? t('media.podcast.podcast');
   const sortEnabled = isSortableSection(section);
+  const isSectionPending = section !== deferredSection;
   const channelHeader = (
     <ChannelHeader
       actions={
-        <View style={styles.channelActions}>
-          <View style={styles.subscribeButtonRow}>
-            <Button
-              label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
-              loading={isSavingSubscription}
-              onPress={() => {
-                void handleSubscriptionToggle();
-              }}
-              size="sm"
-              testID="podcast-detail-subscribe-toggle"
-              variant="outline"
-            />
-          </View>
-          <View style={styles.channelActionRow}>
-            <HeaderBarAction
-              accessibilityLabel={t(
-                notificationsEnabled
-                  ? 'features.notifications.disable_notifications_for_this_podcast'
-                  : 'features.notifications.enable_notifications_for_this_podcast'
-              )}
-              icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
-              onPress={() => {
-                void toggleNotifications();
-              }}
-              testID="podcast-detail-notifications-toggle"
-            />
-            <HeaderBarAction
-              accessibilityLabel={t('features.share')}
-              icon="share-outline"
-              onPress={handleShare}
-              testID="podcast-detail-share"
-            />
-            {feedUrl !== null && feedUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.rss_feed')}
-                icon="logo-rss"
-                onPress={() => {
-                  void openExternalUrl(feedUrl);
-                }}
-                testID="podcast-detail-rss"
-              />
-            ) : null}
-            {websiteUrl !== null && websiteUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.website')}
-                icon="globe-outline"
-                onPress={() => {
-                  void openExternalUrl(websiteUrl);
-                }}
-                testID="podcast-detail-website"
-              />
-            ) : null}
-          </View>
-        </View>
+        <Button
+          label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
+          loading={isSavingSubscription}
+          onPress={() => {
+            void handleSubscriptionToggle();
+          }}
+          size="sm"
+          testID="podcast-detail-subscribe-toggle"
+          variant="outline"
+        />
       }
       artworkUri={artworkUri}
       notice={subscriptionNoticeKey === null ? null : t(subscriptionNoticeKey)}
@@ -657,7 +660,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     />
   );
 
-  const listHeader = isFilterableSection(section) ? (
+  const listHeader = isFilterableSection(deferredSection) ? (
     <ListFilterField
       clearLabel={t('filters.list.clear')}
       label={t('filters.list.title_label')}
@@ -668,9 +671,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     />
   ) : null;
 
-  const SectionPane = SECTION_COMPONENTS[section];
+  const SectionPane = SECTION_COMPONENTS[deferredSection];
   const sectionUnavailableOffline =
-    offlineModeEnabled && isPodcastSectionUnavailableOffline(section);
+    offlineModeEnabled && isPodcastSectionUnavailableOffline(deferredSection);
   const sectionBody = sectionUnavailableOffline ? (
     <ListEmpty
       messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
@@ -681,15 +684,16 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       channel={channel}
       channelIdText={podcastId}
       filterTerm={filterTerm}
-      isChannelLoading={isChannelLoading}
+      isChannelLoading={isChannelLoading || isSectionPending}
       listHeader={listHeader}
+      notifications={notifications}
       onRefreshChannel={loadChannel}
       range={range}
       sort={sort}
     />
   );
 
-  const chipLeading = sortEnabled ? (
+  const chipTrailing = sortEnabled ? (
     <>
       <MenuSelectChip
         heading={t('filters.screen.sort_heading')}
@@ -711,17 +715,20 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   ) : undefined;
 
   return (
-    <ChannelDetailShell
-      channelHeader={channelHeader}
-      chipLeading={chipLeading}
-      isSectionHydrated={isSectionHydrated}
-      loadingTestID="podcast-detail-section-loading"
-      onSelectSection={handleSectionSelect}
-      sectionBody={sectionBody}
-      sectionChips={sectionChips}
-      sectionsTestID="podcast-detail-sections"
-      selectedSection={section}
-      testID="podcast-detail-screen"
-    />
+    <>
+      <ChannelDetailShell
+        channelHeader={channelHeader}
+        chipTrailing={chipTrailing}
+        isSectionHydrated={isSectionHydrated}
+        loadingTestID="podcast-detail-section-loading"
+        onSelectSection={handleSectionSelect}
+        sectionBody={sectionBody}
+        sectionChips={sectionChips}
+        sectionsTestID="podcast-detail-sections"
+        selectedSection={section}
+        testID="podcast-detail-screen"
+      />
+      {boostSheet}
+    </>
   );
 }

@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { DIRECTORY_LIST_VIEW_MODE_SCOPE_PODCASTS } from '@podverse/helpers';
 import {
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
@@ -35,6 +36,7 @@ export const PodcastsPageHeader: React.FC = () => {
     sortValues: QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
     type,
     typeValues: QUERY_PARAMS_SUBSCRIBED_TYPE,
+    viewModeScope: DIRECTORY_LIST_VIEW_MODE_SCOPE_PODCASTS,
   });
   const title = filterParams.category
     ? `${tMedia('podcast.podcasts')} > ${tCategories(filterParams.category)}`

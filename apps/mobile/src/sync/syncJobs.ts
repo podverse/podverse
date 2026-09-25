@@ -10,24 +10,35 @@ import type { NativeCacheBrowseNode } from '../data/nativeCache';
 import { accountRepository } from '../data/repositories/accountRepository';
 import type { AddByRssRefreshTicket } from '../data/repositories/addByRssRepository';
 import { addByRssRepository } from '../data/repositories/addByRssRepository';
+import { autoDownloadRepository } from '../data/repositories/autoDownloadRepository';
 import { channelItemsRepository } from '../data/repositories/channelItemsRepository';
 import type { ChannelItemWindow } from '../data/repositories/channelItemWindow';
 import { channelLiveStatusRepository } from '../data/repositories/channelLiveStatusRepository';
 import { channelSeenRepository } from '../data/repositories/channelSeenRepository';
+import { syncDirectoryChannelOrDropGone } from '../data/repositories/directoryChannelGone';
+import { homeClipsCacheRepository } from '../data/repositories/homeClipsCacheRepository';
 import { playbackOutboxRepository } from '../data/repositories/playbackOutboxRepository';
 import { queueRepository } from '../data/repositories/queueRepository';
 import type { SubscribedChannel } from '../data/repositories/subscriptionsRepository';
 import { subscriptionsRepository } from '../data/repositories/subscriptionsRepository';
 import type { MobileAuthRequestContext } from '../data/repositories/types';
+import { shouldDeferAutoDownloadEvaluateToCatchUp } from '../downloads/autoDownloadCatchUpSession';
+import { runAutoDownloadEvaluate } from '../downloads/autoDownloadEvaluate';
+import { runAutoDownloadRegistration } from '../downloads/autoDownloadRegistration';
 import { readIsPlayingLocallyForSync } from '../playback/playbackSyncState';
-import { DEFAULT_HOME_RANGE, homeSortToApiRange, readHomeListPrefs } from '../prefs/homeListPrefs';
+import {
+  DEFAULT_HOME_RANGE,
+  homeSortToApiRange,
+  homeSortToApiSort,
+  readHomeListPrefs,
+} from '../prefs/homeListPrefs';
 import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
 import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import { publishQueueDataChanged } from './queueDataRevision';
 import type { SyncJobKind } from './syncJobKinds';
 import { SYNC_JOB_LABEL_KEYS } from './syncJobKinds';
 import type { PlannedSyncJob } from './syncJobPlan';
-import type { SyncJob, SyncJobPriority } from './syncQueue';
+import type { SyncJob, SyncJobContext, SyncJobPriority } from './syncQueue';
 import { DEFAULT_SYNC_JOB_TIMEOUT_MS } from './syncQueue';
 
 /**
@@ -96,6 +107,40 @@ const channelItemsTimeoutMs = (depth: number): number => {
   );
 };
 
+const createAutoDownloadEvaluateJob = (
+  deps: SyncJobDeps,
+  priority: SyncJobPriority,
+  channelIdTexts?: readonly string[]
+): SyncJob => {
+  const dedupe =
+    channelIdTexts === undefined || channelIdTexts.length === 0
+      ? 'auto-download-evaluate'
+      : `auto-download-evaluate:${[...channelIdTexts].sort().join(',')}`;
+  return buildJob('auto-download-evaluate', priority, dedupe, async () => {
+    const account = await accountRepository.getSnapshot();
+    const membershipAllows =
+      account !== null &&
+      evaluateFeatureAccess('auto_download', deriveMembershipState(account)).allowed;
+    await runAutoDownloadEvaluate({
+      channelIdTexts,
+      membershipAllows,
+      mode: 'incremental',
+    });
+  });
+};
+
+const enqueueAutoDownloadEvaluateIfReady = (
+  context: SyncJobContext,
+  deps: SyncJobDeps,
+  priority: SyncJobPriority,
+  channelIdTexts: readonly string[]
+): void => {
+  if (shouldDeferAutoDownloadEvaluateToCatchUp()) {
+    return;
+  }
+  context.enqueue(createAutoDownloadEvaluateJob(deps, priority, channelIdTexts));
+};
+
 const createChannelItemsJob = (
   deps: SyncJobDeps,
   priority: SyncJobPriority,
@@ -105,8 +150,12 @@ const createChannelItemsJob = (
     'channel-items',
     priority,
     `channel-items:${window.channelIdText}`,
-    async () => {
-      await channelItemsRepository.syncChannel(deps.getAuthContext(), window.channelIdText);
+    async (context) => {
+      await syncDirectoryChannelOrDropGone(deps.getAuthContext(), window.channelIdText);
+      const settings = await autoDownloadRepository.getByChannelIdText(window.channelIdText);
+      if (settings?.enabled === true) {
+        enqueueAutoDownloadEvaluateIfReady(context, deps, priority, [window.channelIdText]);
+      }
     },
     channelItemsTimeoutMs(window.depth)
   );
@@ -148,9 +197,22 @@ const createAddByRssParseJob = (
   priority: SyncJobPriority,
   ticket: AddByRssRefreshTicket
 ): SyncJob => {
-  return buildJob('add-by-rss-parse', priority, `add-by-rss-parse:${ticket.feedUrl}`, async () => {
-    await addByRssRepository.applyRefreshResult(deps.getAuthContext(), ticket);
-  });
+  const job = buildJob(
+    'add-by-rss-parse',
+    priority,
+    `add-by-rss-parse:${ticket.feedUrl}`,
+    async (context) => {
+      await addByRssRepository.applyRefreshResult(deps.getAuthContext(), ticket);
+      const settings = await autoDownloadRepository.getByChannelIdText(ticket.feedUrl);
+      if (settings?.enabled === true) {
+        enqueueAutoDownloadEvaluateIfReady(context, deps, priority, [ticket.feedUrl]);
+      }
+    }
+  );
+  return {
+    ...job,
+    logDetails: { feed_url: ticket.feedUrl, request_id: ticket.requestId },
+  };
 };
 
 /**
@@ -159,7 +221,7 @@ const createAddByRssParseJob = (
  * Refreshing a feed is server-side parsing work, so it is membership-tier. Checking before asking
  * is what makes a lapsed membership *degrade* rather than fail: those feeds stay readable and
  * playable from what is already stored, and the device does not spend every foreground transition
- * collecting denials in the sync event log.
+ * collecting denials in the error log.
  */
 const createAddByRssRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('add-by-rss-refresh', priority, 'add-by-rss-refresh', async (context) => {
@@ -168,12 +230,18 @@ const createAddByRssRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority):
       return;
     }
 
+    // Local only, and needed whatever the membership: credentials must not sit in a stored URL.
+    await addByRssRepository.splitStoredUserinfo(account.id_text);
+
     const access = evaluateFeatureAccess('add_by_rss_refresh', deriveMembershipState(account));
     if (!access.allowed) {
       return;
     }
 
-    const tickets = await addByRssRepository.requestRefreshAll(deps.getAuthContext());
+    const tickets = await addByRssRepository.requestRefreshAll(
+      deps.getAuthContext(),
+      account.id_text
+    );
     context.enqueue(tickets.map((ticket) => createAddByRssParseJob(deps, priority, ticket)));
   });
 };
@@ -227,6 +295,17 @@ const createLibraryBrowseProjectionJob = (
 ): SyncJob => {
   return buildJob('library-browse-projection', priority, 'library-browse-projection', async () => {
     await accountRepository.projectLibraryBrowse(scratch.playlistNodes);
+  });
+};
+
+const createHomeClipsJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
+  return buildJob('home-clips', priority, 'home-clips', async () => {
+    const clipsPrefs = await readHomeListPrefs('clips');
+    const apiSort = homeSortToApiSort(clipsPrefs.sort);
+    await homeClipsCacheRepository.refreshFromAccount(deps.getAuthContext(), {
+      range: homeSortToApiRange(clipsPrefs.sort, clipsPrefs.range),
+      sort: apiSort === 'a_z' ? 'recent' : apiSort,
+    });
   });
 };
 
@@ -377,6 +456,24 @@ const createPlaybackReplayJob = (deps: SyncJobDeps, priority: SyncJobPriority): 
   });
 };
 
+const createAutoDownloadRegistrationJob = (
+  deps: SyncJobDeps,
+  priority: SyncJobPriority
+): SyncJob => {
+  return buildJob(
+    'auto-download-registration',
+    priority,
+    'auto-download-registration',
+    async () => {
+      const account = await accountRepository.getSnapshot();
+      if (account === null) {
+        return;
+      }
+      await runAutoDownloadRegistration({ auth: deps.getAuthContext() });
+    }
+  );
+};
+
 const createPushRegistrationJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('push-device-registration', priority, 'push-device-registration', async () => {
     const account = await accountRepository.getSnapshot();
@@ -384,8 +481,8 @@ const createPushRegistrationJob = (deps: SyncJobDeps, priority: SyncJobPriority)
       return;
     }
     await registerPushDeviceForAccount({
-      accessToken: deps.getAuthContext().accessToken,
       account,
+      auth: deps.getAuthContext(),
     });
   });
 };
@@ -402,10 +499,16 @@ export const buildSyncJobs = (planned: PlannedSyncJob[], deps: SyncJobDeps): Syn
         return createQueueHydrateJob(deps, priority);
       case 'push-device-registration':
         return createPushRegistrationJob(deps, priority);
+      case 'auto-download-registration':
+        return createAutoDownloadRegistrationJob(deps, priority);
       case 'channel-items-scan':
         return createChannelItemsScanJob(deps, priority);
       case 'add-by-rss-refresh':
         return createAddByRssRefreshJob(deps, priority);
+      case 'home-clips':
+        return createHomeClipsJob(deps, priority);
+      case 'auto-download-evaluate':
+        return createAutoDownloadEvaluateJob(deps, priority);
       default:
         // The remaining kinds are only ever reached through the job that discovers them, so a plan
         // asking for one directly is a programming error rather than a runtime condition.

@@ -1,11 +1,8 @@
 import type { DTOItem } from '@podverse/helpers';
-import {
-  buildLabeledItemEnclosures,
-  getDownloadFilenameFromSource,
-  getSelectedLabeledItemEnclosureAndSource,
-} from '@podverse/helpers';
 
+import { showToast } from '../../components/Toast/Toast';
 import type { ModalSourceSelector } from '../../contexts/Modals';
+import { beginDirectDownload } from './beginDirectDownload';
 
 type DownloadTrackWithModalParams = {
   item: DTOItem;
@@ -29,34 +26,21 @@ export const downloadTrackWithModal = async ({
   downloadAndSaveFile,
   tFeatures,
 }: DownloadTrackWithModalParams) => {
-  const labeledItemEnclosures = buildLabeledItemEnclosures(item.item_enclosures);
-  const hasMultipleEnclosures = labeledItemEnclosures && labeledItemEnclosures.length > 1;
-
-  if (hasMultipleEnclosures) {
-    setModalSourceSelector({
-      labeledItemEnclosures: labeledItemEnclosures,
-      actionType: 'download-track',
-      itemTitle: item.title || null,
-    });
-    return;
-  } else {
-    const selected = getSelectedLabeledItemEnclosureAndSource({
-      labeledItemEnclosures: labeledItemEnclosures,
-      type: 'default',
-      enclosureRowIndex: null,
-      sourceRowIndex: null,
-    });
-    if (selected?.source?.uri) {
-      const filename = getDownloadFilenameFromSource({
-        itemTitle: item.title,
-        sourceUri: selected.source.uri,
-        fallbackFilename: 'track.mp3',
-      });
-      showToastPromiseWithLoading(downloadAndSaveFile(selected.source.uri, filename), {
-        loading: tFeatures('download.downloading_track'),
-        success: tFeatures('download.track_downloaded'),
-        error: tFeatures('download.track_download_error'),
-      });
-    }
-  }
+  beginDirectDownload({
+    enclosures: item.item_enclosures ?? [],
+    actionType: 'download-track',
+    itemTitle: item.title || null,
+    fallbackFilename: 'track.mp3',
+    setModalSourceSelector,
+    showToastPromiseWithLoading,
+    downloadAndSaveFile,
+    messages: {
+      loading: tFeatures('download.downloading_track'),
+      success: tFeatures('download.track_downloaded'),
+      error: tFeatures('download.track_download_error'),
+    },
+    onIneligible: () => {
+      showToast(tFeatures('download.track_download_error'), 'error');
+    },
+  });
 };

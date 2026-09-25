@@ -1,0 +1,216 @@
+@@ lines screen imports
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ from-start
+@@ up-to export function HomeScreen() {
+@@ replace
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+
+import { VerticalCenter } from '../../components/primitives';
+import { ListLoading } from '../../components/state/ListLoading';
+import { beginPerfChipSample, stampPerfFrame } from '../../lib/perf/perfFrames';
+import { perfMark } from '../../lib/perf/perfSpans';
+import type { HomeStackParamList } from '../../navigation';
+import type { HomeRangeOption, HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
+import {
+  DEFAULT_HOME_RANGE,
+  DEFAULT_HOME_SORT,
+  DEFAULT_HOME_VIEW_MODE,
+  isHomeSortableMediaType,
+  readHomeListPrefs,
+  subscribeHomeListPrefs,
+  writeHomeRange,
+  writeHomeSort,
+  writeHomeViewMode,
+} from '../../prefs/homeListPrefs';
+import {
+  DEFAULT_HOME_MEDIA_TYPE,
+  type HomeMediaType,
+  readPreferredMediaType,
+  writePreferredMediaType,
+} from '../../prefs/preferredMediaType';
+import { screenBodyInsets } from '../../theme/screenLayout';
+import { useTheme } from '../../theme/useTheme';
+import { HOME_MEDIA_TYPE_ORDER, MEDIA_TYPE_LABEL_KEYS } from '../browse/browseTypes';
+import { useAddToPlaylist } from '../library/useAddToPlaylist';
+import {
+  appendHomeFeedReadFailure,
+  HOME_FEED_PREFS_TIMEOUT_CODE,
+  HOME_FEED_READ_TIMEOUT_MS,
+  withHomeFeedReadBudget,
+} from './homeFeedReadLog';
+import type { HomeListPrefsState, HomeMediaTypeListHandle } from './HomeMediaTypeList';
+import { HomeMediaTypeList } from './HomeMediaTypeList';
+import { HomeOverflowMenu } from './HomeOverflowMenu';
+import { HomeSortChip } from './HomeSortChip';
+import { MediaTypeSelector } from './MediaTypeSelector';
+
+@@ end
+
+@@ edit screen no longer translates
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  const { t } = useTranslation();
+@@ replace
+@@ end
+
+@@ edit screen list handle state
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
+@@ replace
+  const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
+  const [canMarkAllSeen, setCanMarkAllSeen] = useState<boolean>(false);
+  const listRef = useRef<HomeMediaTypeListHandle>(null);
+@@ end
+
+@@ edit screen commit remounts the list
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+    // Advancing here rather than in loadFeed is what makes rapid taps coalesce: the read for the
+    // chip the user just left is abandoned mid-flight instead of finishing and being discarded.
+    feedRequestIdRef.current += 1;
+
+    // Tearing down the old rows is the expensive part of a switch; it runs under the pending
+    // spinner, and the pending state hands off to the busy spinner in this same commit.
+    setPendingMediaType(null);
+    setSelectedMediaType(mediaType);
+    setFeedRows([]);
+    setUnsubscribedDownloadRows([]);
+    setFeedErrorKey(null);
+    setHasCompletedFeedRead(false);
+    void writePreferredMediaType(mediaType);
+@@ replace
+    // The list is keyed by media type, so this commit unmounts the old list, abandoning its read
+    // mid-flight, and mounts the new one on its loading spinner. Tearing down the old rows is the
+    // expensive part of a switch; it runs under the pending spinner, and the pending state hands off
+    // to the busy spinner in this same commit.
+    setPendingMediaType(null);
+    setSelectedMediaType(mediaType);
+    void writePreferredMediaType(mediaType);
+@@ end
+
+@@ edit screen mark all seen goes through the list
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  useLayoutEffect(() => {
+    navigation.setOptions({
+@@ replace
+  const handleMarkAllSeen = useCallback(() => {
+    listRef.current?.markAllSeen();
+  }, []);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+@@ end
+
+@@ edit screen stamps only the pending spinner
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  const showsLoading = isSwitchPending || (isFeedBusy && feedRows.length === 0);
+
+  useLayoutEffect(() => {
+    if (showsLoading) {
+      stampPerfFrame('spinner.visible');
+    }
+  }, [showsLoading]);
+
+  useLayoutEffect(() => {
+    if (!isSwitchPending && hasCompletedFeedRead) {
+      stampPerfFrame('list.visible');
+    }
+  }, [feedRows, hasCompletedFeedRead, isSwitchPending]);
+@@ replace
+  useLayoutEffect(() => {
+    if (isSwitchPending) {
+      stampPerfFrame('spinner.visible');
+    }
+  }, [isSwitchPending]);
+@@ end
+
+@@ edit screen styles
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+  const displayedMediaType = pendingMediaType ?? selectedMediaType;
+@@ replace
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
+        },
+        listArea: {
+          flex: 1,
+        },
+        listAreaHidden: {
+          opacity: 0,
+        },
+        pendingOverlay: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: themeStyles.screen.backgroundColor,
+        },
+        selectorSection: {
+          ...screenBodyInsets(tokens.spacing),
+        },
+      }),
+    [themeStyles, tokens]
+  );
+
+  const displayedMediaType = pendingMediaType ?? selectedMediaType;
+@@ end
+
+@@ edit screen renders the list component
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+          {feedList}
+@@ replace
+          <HomeMediaTypeList
+            arePrefsHydrated={arePrefsHydrated}
+            key={selectedMediaType}
+            mediaType={selectedMediaType}
+            onCanMarkAllSeenChange={setCanMarkAllSeen}
+            prefs={resolvedPrefs}
+            ref={listRef}
+            requestAddToPlaylist={requestAddToPlaylist}
+          />
+@@ end
+
+@@ edit list exports the prefs type
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+type HomeListPrefsState = {
+@@ replace
+export type HomeListPrefsState = {
+@@ end
+
+@@ edit list styles drop the screen container
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+@@ replace
+@@ end
+
+@@ edit list styles drop the screen chip and overlay styles
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+      selectorSection: {
+        ...insets,
+      },
+      listArea: {
+        flex: 1,
+      },
+      listAreaHidden: {
+        opacity: 0,
+      },
+      pendingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: themeStyles.screen.backgroundColor,
+      },
+@@ replace
+@@ end

@@ -114,8 +114,30 @@ Mobile keeps a **universal** device-local now-playing snapshot in AsyncStorage
 Restore is cache-first (`getLocalChannelForItem` before network) and logs failures in `__DEV__`.
 `autoPlayOverride: false` uses native `load` (not `loadAndStart`). iOS `setRate` must **not** assign
 `AVPlayer.rate` while paused — a non-zero rate starts audio. Store the rate and apply it on `play`.
-Web deliberately differs: signed-in users hydrate from the server queue; only anonymous users use
-`pv_web_anonymous_last_playback`. Do not merge those models.
+Web deliberately differs on the snapshot: signed-in users hydrate from the server queue; only
+anonymous users use `pv_web_anonymous_last_playback`. Do not merge those models. Signed-in web
+uses the same empty-player promote: `POST …/resources/promote-upcoming` when the head is upcoming,
+then a paused load that does not post `play`.
+
+**Empty player + queue head:** After the snapshot restore settles (including a null snapshot), if the
+player still has no target and the account queue has a head, mobile loads that head **paused**:
+
+1. Prefer the last-active queue (`is_active_queue`): existing now-playing (`list_position` 0), else
+   `POST …/resources/promote-upcoming` moves the first upcoming row to now-playing **without**
+   writing `last_played_at` (app open is not a listen), then load that row paused.
+2. If that queue has neither now-playing nor upcoming, try the other account queue (AV ↔ music) the
+   same way. Falling back does **not** flip `is_active_queue`; that flag moves when the user actually
+   presses play.
+3. Offline: still load the cached head into the player; retry the promote write when a later refresh
+   can reach the server. One adopt attempt per resource so a failed enclosure does not spin.
+
+Auto-queue is **not** consulted at open. Those rows are rebuilt from whatever is already playing;
+with an empty player there is no seed, and guessing the next episode from history would outrank
+items the user queued on the other medium. Auto-queue still advances after skip / ended while
+playback is in progress.
+
+The snapshot still wins when it exists. Re-check when queue data changes and the player is empty
+(hydrate, queue-last while nothing is loaded).
 
 ## Seamless video (mini ↔ full player)
 
@@ -141,12 +163,12 @@ surfaces work app-closed. Schema: Track **12.1**; implementation steps **10.22**
 The mini player and full player share one transport control (`PlayerTransportButton` +
 `transportState` from `usePlayback()`):
 
-| Engine / load                 | Glyph      | Press                                              |
-| ----------------------------- | ---------- | -------------------------------------------------- |
-| Playing                       | Pause icon | Pause                                              |
-| Paused / ready / idle / ended | Play icon  | Resume                                             |
-| Source not playable yet       | Spinner    | None                                               |
-| Error                         | Error icon | Retry (`retryPlayback` reloads the current source) |
+| Engine / load                                  | Glyph      | Press                                              |
+| ---------------------------------------------- | ---------- | -------------------------------------------------- |
+| Start-play load issued, and playing            | Pause icon | Pause                                              |
+| Paused / ready / ended, once the start settled | Play icon  | Resume                                             |
+| Waiting for the load to be issued              | Spinner    | None                                               |
+| Error                                          | Error icon | Retry (`retryPlayback` reloads the current source) |
 
 The glyph and its accent color match list rows and detail chrome; `appearance` decides the frame.
 The full player uses `ring` — the same bordered play circle as those rows. The mini player uses
@@ -154,12 +176,19 @@ The full player uses `ring` — the same bordered play circle as those rows. The
 and titles it sits beside; a bare glyph there takes the larger icon size bare row controls use.
 Neither ever wears a filled/primary face that would read as a different kind of button.
 
-**The spinner means "this source cannot start yet", never "buffering".** It shows between a load
-starting and the engine reporting the source playable, and `playbackTransport.ts` gates it on that:
-once the source is playable, later `loading` / `stalled` events keep the play/pause mark, because
+**The spinner means "this source cannot start yet", never "buffering".** It shows from the tap until
+the load is issued. The moment the engine accepts the source, the glyph is pause. Engine startup
+beats (`ready`, `paused`, `loading`, `stalled`, `idle`, and a stale `ended`) never move that glyph.
+After `playing`, the start latch stays up briefly so a following startup `paused` cannot flash the
+play icon; if that pause is still the latest state when the latch drops, the glyph becomes play. A
+thrown load or an engine `error` is the only thing that replaces the start glyph, so a failed URL
+cannot leave the control spinning forever. A load that does not autoplay (cold-start restore) goes
+spinner → play.
+
+Once the source has played, later `loading` / `stalled` events keep the play/pause mark, because
 there is already enough media to play and a spinner flickering over the control the listener is
-aiming at is worse than silence about the network. A load resolving also clears the spinner on its
-own, so a missing engine state event cannot leave it spinning forever.
+aiming at is worse than silence about the network. `playbackTransport.ts` gates the start with
+`pendingStart`, and rebuffers after that with the playable flag.
 
 The mini player's elapsed/remaining glance is the **top edge** of the bar — a flush 2px
 `ProgressTrack`, not a separate bar and not a second `borderTop`. The full player's scrubber stays
@@ -171,21 +200,33 @@ player already own buffering and failure, and repeating that on every row is red
 
 ## Full player fixed region + panes
 
-`FullPlayerScreen` is a `SectionList` scroll shell with a fixed-height player region, sticky chips
-(no hairlines, chips vertically centered in that band),
-and a condensed now-playing bar that appears once the region scrolls away.
+`FullPlayerScreen` is an outer `ScrollView` (player region → chips → height-locked pane sheet) with
+an inner `FlatList` for pane body. The player region does not shrink as the outer list scrolls, and
+nothing is sticky or overlay-pinned. Once the sheet fills the viewport under the chips (bottom
+radius on screen), outer scroll stops; remaining Summary / chapters / clips scroll inside
+`FullPlayerPaneSheet`. Returning to the player is an outer gesture on the chips (or iOS status-bar
+`scrollsToTop` on the outer scroller). Chips sit above the sheet and line up with that sheet's
+outer border, not the inset pane text. A chip tap swaps the pane only; it does not scroll.
 `FULL_PLAYER_REGION_BOTTOM_PADDING` separates the utility row from those chips. First paint peeks
-the measured chip strip plus the bottom safe-area inset (covered by a bottom fill, not header
-padding) — Summary copy and list rows require a scroll. The artwork is the band that gives way, so
-short viewports and large OS text sizes shrink the square instead of moving the chips.
+the measured chip strip at the fold (`resolveFullPlayerLayout` reserves the strip plus the bottom
+safe-area inset) — Summary copy and list rows require a scroll. The artwork is the band that gives
+way, so short viewports and large OS text sizes shrink the square instead of moving the chips.
 
-- Use `resolveFullPlayerLayout` / `resolveCondensedState` in
-  `apps/mobile/src/screens/player/fullPlayerLayout.ts` for all region math.
+- Use `resolveFullPlayerLayout` in `apps/mobile/src/screens/player/fullPlayerLayout.ts` for all
+  region and `paneSheetHeight` math (pass `sheetBottomInset` from `tokens.spacing.md`).
 - Keep transport controls on shared constants from `@podverse/helpers`
   (`MEDIA_JUMP_BACK_SECONDS` = 10, `MEDIA_JUMP_FORWARD_SECONDS` = 30).
 - Previous/next match web: tap is chapter-aware for whole-item playback (`skipToPrevious` /
   `skipToNext`); when chapters exist, a 500ms hold skips the episode (`skipToPreviousTrack` /
-  `skipToNextTrack`). Clip and soundbite targets never use chapter prev/next.
+  `skipToNextTrack`) only when something is ahead. Probe the live queue before mutating: a
+  long-press with an empty upcoming + auto-queue is a no-op, including when another device emptied
+  the queue after the last UI refresh. A skip that cannot start the next item must leave the
+  current item playing; only natural complete may clear now-playing. Clip and soundbite targets
+  never use chapter prev/next.
+- When the item completes and nothing is ahead, now-playing clears and the **focused** full player
+  dismisses. Make clip holds the item (`beginAuthoringHold`) and must stay mounted: do not add
+  empty-session dismiss there, and do not `goBack()` from an unfocused full player (that would pop
+  make clip).
 - Jump back/forward use circular rotate glyphs (`FontAwesome6` `rotate-left` /
   `rotate-right`), matching web's `FaRotateLeft` / `FaRotateRight`.
 - Pane loading and chip visibility come from `useEpisodeSectionPanes` so episode detail and full
@@ -196,7 +237,8 @@ short viewports and large OS text sizes shrink the square instead of moving the 
 
 The contract for this area is enforced by
 [`mobile-player-fixed-region`](/.cursor/rules/mobile-player-fixed-region.mdc): only the viewer band
-flexes; everything else keeps a fixed reserved height.
+flexes; everything else keeps a fixed reserved height; the pane sheet owns the viewport-derived
+minHeight slot.
 
 ### Playhead progress store
 
@@ -221,10 +263,16 @@ duration lands before the periodic tick. Play paths seed duration from `item.ite
 `FullPlayerScrubber` is the only full-player progress leaf: drag/tap seek on the **line** (no thumb;
 the hit target is 44pt around a 6pt track), chapter boundary ticks (`getChapterBoundaryRatios` from
 `@podverse/playback-core/chapterProgressMarkers`), active chapter/clip/soundbite highlight, long-press
-chapter tooltip (~500ms / 2s dismiss), and hour-aware clocks (`formatHHMMSS`, same helper as web).
-Chapter artwork uses `shouldUseChapterArtwork` on
-`FullPlayerArtwork` / `MiniPlayerArtwork`. Chapters for chrome come from `useNowPlayingChapters`
-(process-wide cache) plus `useActiveNowPlayingChapter` in leaves only.
+chapter tooltip (~500ms / 2s dismiss), and hour-aware clocks (`formatHHMMSS` — same helper and
+style as the progress bar, `1:19:59` not `01:19:59`; **playback-timestamp-format**).
+While the finger is down, `playbackScrubPreviewStore` holds the pending second; the left clock and
+`resolveNowPlayingSegment` follow that preview so the chapter name can change before the engine
+seeks. Chapter artwork uses `resolvePlayerChapterArtworkUri` (`shouldUseChapterArtwork` plus
+`resolveActiveChapterImageUrl`) on `FullPlayerArtwork` / `MiniPlayerArtwork`: when the active
+chapter has an image and the target is not a clip or official clip, that image replaces the
+item/channel art. Chapter lists use `ChapterListRow` and only show images when any chapter in the
+section has one — see **mobile-chapter-artwork**. Chapters for chrome come from
+`useNowPlayingChapters` (process-wide cache) plus `useActiveNowPlayingChapter` in leaves only.
 
 ### Full player chrome conventions
 
@@ -267,7 +315,7 @@ touch target because it is the one a listener reaches for without looking.
   item, and next skips the queue.
 - **Rate is plain text.** Playback speed is a `ghost` label with no fill or border, so it does not
   read as a second primary action beside the play circle.
-- **Chips share the screen background.** The sticky header is opaque in the screen's own background
+- **Chips share the screen background.** The chip strip is opaque in the screen's own background
   color, never a tinted band, and a selected chip is the label for the pane below it — panes do not
   repeat it as a heading.
 - **Flush slide-up.** Root slide-up screens (`FullPlayer`, `V4vInfo`) import
@@ -276,9 +324,9 @@ touch target because it is the one a listener reaches for without looking.
   the same number the mini↔full video surface reparent uses. Do not use `presentation: 'modal'`
   (iOS page sheet) and do not invent a second duration. Set `fullScreenGestureEnabled: false` so
   pull-to-dismiss starts only from the top edge — a full-screen swipe fights the player's scroll.
-- **No list bounce.** The full player's `SectionList` keeps `bounces` / `alwaysBounceVertical` off
+- **No list bounce.** The full player's `FlatList` keeps `bounces` / `alwaysBounceVertical` off
   and `overScrollMode="never"`. There is no pull-to-refresh on that screen, so rubber-banding at
-  the top must not steal the dismiss gesture or pull pane content away from the chips.
+  the top must not steal the dismiss gesture.
 
 ## Bottom chrome stack (phone and tablet)
 

@@ -1,11 +1,11 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItemMusic } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
 import { CoreTrackHeader } from '../../../components/Core/Artist/Album/Track/CoreTrackHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { TrackPageContextProvider } from './TrackPageContext';
 import { TrackPageList } from './TrackPageList';
 import { TrackPageListHeader } from './TrackPageListHeader';

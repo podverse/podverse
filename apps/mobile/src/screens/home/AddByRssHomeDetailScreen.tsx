@@ -17,6 +17,7 @@ import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import { isMobileE2eFromEnv } from '../../config/env';
 import { addByRssRepository, channelSeenRepository } from '../../data/repositories';
+import { useAddByRssArtworkHeaders } from '../../hooks/useAddByRssArtworkHeaders';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList } from '../../navigation';
@@ -32,6 +33,7 @@ import type { AddByRssHomeDetailData } from './addByRssHomeDetailData';
 import { buildAddByRssHomeDetailData, sortAddByRssHomeEpisodes } from './addByRssHomeDetailData';
 import type { HomeFeedRowData } from './homeFeedData';
 import { HomeFeedRow } from './HomeFeedRow';
+import type { QueueActionPosition } from './useHomeRowPlayback';
 
 type AddByRssHomeDetailScreenProps = NativeStackScreenProps<
   HomeStackParamList,
@@ -42,6 +44,55 @@ const SORT_LABEL_KEYS: Record<AddByRssEpisodeSort, string> = {
   alphabetical: 'filters.sort.a_z',
   recent: 'filters.sort.recent',
 };
+
+const addByRssEpisodeKeyExtractor = (row: HomeFeedRowData): string => row.id;
+
+const noopQueuePress = (_row: HomeFeedRowData, _position: QueueActionPosition): void => undefined;
+
+function AddByRssEpisodeRow({
+  index,
+  isLast,
+  onPlay,
+  row,
+}: {
+  index: number;
+  isLast: boolean;
+  onPlay: (row: HomeFeedRowData) => void;
+  row: HomeFeedRowData;
+}) {
+  const { t } = useTranslation();
+  const handlePlay = useCallback(() => {
+    onPlay(row);
+  }, [onPlay, row]);
+
+  const customActions = useMemo(
+    () => (
+      <MediaRowActions
+        appearance="icons"
+        durationLabel={null}
+        idSuffix={`-${row.id}`}
+        onPlayPress={handlePlay}
+        playLabel={t('media_player.play')}
+        playTestID={index === 0 ? 'add-by-rss-home-play-first' : `add-by-rss-home-play-${row.id}`}
+      />
+    ),
+    [handlePlay, index, row.id, t]
+  );
+
+  return (
+    <HomeFeedRow
+      customActions={customActions}
+      isLast={isLast}
+      mediaType="episodes"
+      onPlayPress={handlePlay}
+      onPress={onPlay}
+      onQueuePress={noopQueuePress}
+      row={row}
+      showChannelContext={false}
+      testID={`add-by-rss-home-episode-${row.id}`}
+    />
+  );
+}
 
 export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDetailScreenProps) {
   const { t } = useTranslation();
@@ -204,137 +255,177 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     };
   }, [detail]);
 
-  const listHeader =
-    detail === null ? null : (
-      <View style={styles.header}>
-        {headerArtwork.listUrl !== null ? (
+  const headerArtworkHeaders = useAddByRssArtworkHeaders(
+    detail?.feed.feedUrl ?? null,
+    headerArtwork.listUrl
+  );
+
+  const handleRemovePress = useCallback(() => {
+    void handleRemove();
+  }, [handleRemove]);
+
+  const handleRetryDetail = useCallback(() => {
+    void loadDetail();
+  }, [loadDetail]);
+
+  const handleSortSelect = useCallback(
+    (nextSort: AddByRssEpisodeSort) => {
+      setSort(nextSort);
+      if (detail !== null) {
+        void writeAddByRssDetailSort(detail.feed.idText, nextSort);
+      }
+    },
+    [detail]
+  );
+
+  const episodeCount = sortedEpisodes.length;
+
+  const listHeader = useMemo(
+    () =>
+      detail === null ? null : (
+        <View style={styles.header}>
           <CoverImage
             accessibilityLabel={
               detail.mappedFeed?.channel.channel.title ??
               detail.feed.title ??
               t('features.add_by_rss.label')
             }
+            headers={headerArtworkHeaders}
             style={styles.headerImage}
             uri={headerArtwork.listUrl}
             viewerUri={headerArtwork.viewerUrl}
           />
-        ) : null}
-        <Text style={styles.headerTitle}>
-          {detail.mappedFeed?.channel.channel.title ?? detail.feed.title ?? detail.feed.feedUrl}
-        </Text>
-        <Text style={styles.headerUrl}>{detail.feed.feedUrl}</Text>
-        <Text style={styles.headerUrl}>
-          {t('misc.items')}: {sortedEpisodes.length}
-        </Text>
-        <View style={styles.removeButton}>
-          <Button
-            disabled={isRemoving}
-            label={t('features.unsubscribe')}
-            loading={isRemoving}
-            onPress={() => {
-              void handleRemove();
-            }}
-            testID="add-by-rss-home-remove"
-            variant="secondary"
-          />
+          <Text style={styles.headerTitle}>
+            {detail.mappedFeed?.channel.channel.title ?? detail.feed.title ?? detail.feed.feedUrl}
+          </Text>
+          <Text style={styles.headerUrl}>{detail.feed.feedUrl}</Text>
+          <Text style={styles.headerUrl}>
+            {t('misc.items')}: {episodeCount}
+          </Text>
+          <View style={styles.removeButton}>
+            <Button
+              disabled={isRemoving}
+              label={t('features.unsubscribe')}
+              loading={isRemoving}
+              onPress={handleRemovePress}
+              testID="add-by-rss-home-remove"
+              variant="secondary"
+            />
+          </View>
         </View>
-      </View>
-    );
+      ),
+    [
+      detail,
+      episodeCount,
+      handleRemovePress,
+      headerArtwork.listUrl,
+      headerArtwork.viewerUrl,
+      headerArtworkHeaders,
+      isRemoving,
+      styles.header,
+      styles.headerImage,
+      styles.headerTitle,
+      styles.headerUrl,
+      styles.removeButton,
+      t,
+    ]
+  );
+
+  const listEmpty = useMemo(
+    () =>
+      !isLoading && errorKey === null ? (
+        <ListEmpty
+          messageKey="features.add_by_rss.status_processing"
+          testID="add-by-rss-home-empty"
+        />
+      ) : null,
+    [errorKey, isLoading]
+  );
+
+  const listFooter = useMemo(
+    () =>
+      noticeKey !== null || errorKey !== null || (isMobileE2eFromEnv() && isPlaybackActive) ? (
+        <View>
+          {noticeKey !== null ? (
+            <Text style={styles.notice} testID="add-by-rss-home-notice">
+              {t(noticeKey)}
+            </Text>
+          ) : null}
+          {errorKey !== null ? (
+            <ListError
+              messageKey={errorKey}
+              onRetry={handleRetryDetail}
+              testID="add-by-rss-home-error"
+            />
+          ) : null}
+          {isMobileE2eFromEnv() && isPlaybackActive ? (
+            <Text
+              accessibilityLabel="add-by-rss-home-playback-active"
+              style={styles.notice}
+              testID="add-by-rss-home-playback-active"
+            >
+              {t('media_player.play')}
+            </Text>
+          ) : null}
+        </View>
+      ) : null,
+    [errorKey, handleRetryDetail, isPlaybackActive, noticeKey, styles.notice, t]
+  );
+
+  const listHeaderComponent = useMemo(
+    () => (
+      <>
+        {isLoading ? <ListLoading testID="add-by-rss-home-loading" /> : null}
+        {listHeader}
+        {detail !== null && errorKey === null ? (
+          <>
+            <Text style={styles.sectionTitle}>{t('media.podcast.episodes')}</Text>
+            <SortSelectRow
+              heading={t('filters.screen.sort_heading')}
+              onSelect={handleSortSelect}
+              options={sortOptions}
+              testID="add-by-rss-home-sort"
+              value={sort}
+            />
+          </>
+        ) : null}
+      </>
+    ),
+    [
+      detail,
+      errorKey,
+      handleSortSelect,
+      isLoading,
+      listHeader,
+      sort,
+      sortOptions,
+      styles.sectionTitle,
+      t,
+    ]
+  );
+
+  const renderItem = useCallback(
+    ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
+      <AddByRssEpisodeRow
+        index={index}
+        isLast={index === episodeCount - 1}
+        onPlay={handlePlay}
+        row={row}
+      />
+    ),
+    [episodeCount, handlePlay]
+  );
 
   return (
     <FlatList
-      ListEmptyComponent={
-        !isLoading && errorKey === null ? (
-          <ListEmpty
-            messageKey="features.add_by_rss.status_processing"
-            testID="add-by-rss-home-empty"
-          />
-        ) : null
-      }
-      ListFooterComponent={
-        noticeKey !== null || errorKey !== null || (isMobileE2eFromEnv() && isPlaybackActive) ? (
-          <View>
-            {noticeKey !== null ? (
-              <Text style={styles.notice} testID="add-by-rss-home-notice">
-                {t(noticeKey)}
-              </Text>
-            ) : null}
-            {errorKey !== null ? (
-              <ListError
-                messageKey={errorKey}
-                onRetry={() => {
-                  void loadDetail();
-                }}
-                testID="add-by-rss-home-error"
-              />
-            ) : null}
-            {isMobileE2eFromEnv() && isPlaybackActive ? (
-              <Text
-                accessibilityLabel="add-by-rss-home-playback-active"
-                style={styles.notice}
-                testID="add-by-rss-home-playback-active"
-              >
-                {t('media_player.play')}
-              </Text>
-            ) : null}
-          </View>
-        ) : null
-      }
-      ListHeaderComponent={
-        <>
-          {isLoading ? <ListLoading testID="add-by-rss-home-loading" /> : null}
-          {listHeader}
-          {detail !== null && errorKey === null ? (
-            <>
-              <Text style={styles.sectionTitle}>{t('media.podcast.episodes')}</Text>
-              <SortSelectRow
-                heading={t('filters.screen.sort_heading')}
-                onSelect={(nextSort) => {
-                  setSort(nextSort);
-                  if (detail !== null) {
-                    void writeAddByRssDetailSort(detail.feed.idText, nextSort);
-                  }
-                }}
-                options={sortOptions}
-                testID="add-by-rss-home-sort"
-                value={sort}
-              />
-            </>
-          ) : null}
-        </>
-      }
+      ListEmptyComponent={listEmpty}
+      ListFooterComponent={listFooter}
+      ListHeaderComponent={listHeaderComponent}
       contentContainerStyle={styles.content}
       data={errorKey === null && !isLoading ? sortedEpisodes : []}
-      keyExtractor={(row) => row.id}
+      keyExtractor={addByRssEpisodeKeyExtractor}
       removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
-      renderItem={({ index, item: row }) => (
-        <HomeFeedRow
-          customActions={
-            <MediaRowActions
-              appearance="icons"
-              durationLabel={null}
-              idSuffix={`-${row.id}`}
-              onPlayPress={() => {
-                handlePlay(row);
-              }}
-              playLabel={t('media_player.play')}
-              playTestID={
-                index === 0 ? 'add-by-rss-home-play-first' : `add-by-rss-home-play-${row.id}`
-              }
-            />
-          }
-          isLast={index === sortedEpisodes.length - 1}
-          mediaType="episodes"
-          onPlayPress={() => {
-            handlePlay(row);
-          }}
-          onPress={handlePlay}
-          onQueuePress={() => undefined}
-          row={row}
-          showChannelContext={false}
-          testID={`add-by-rss-home-episode-${row.id}`}
-        />
-      )}
+      renderItem={renderItem}
       testID="add-by-rss-home-detail-screen"
     />
   );

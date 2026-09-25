@@ -8,7 +8,7 @@ import { SectionChipRow } from '../../components/form';
 export type MediaTypeSelectorProps<T extends string> = {
   labelKeys: Record<T, string>;
   /** Sort and Categories, only when the current type can use them. */
-  leading?: ReactNode;
+  trailing?: ReactNode;
   onChange: (mediaType: T) => void;
   /** `null` when no type chip is selected (the Categories list is showing). */
   selectedMediaType: T | null;
@@ -21,10 +21,10 @@ export type MediaTypeSelectorProps<T extends string> = {
  */
 export function MediaTypeSelector<T extends string>({
   labelKeys,
-  leading,
   onChange,
   selectedMediaType,
   testIDPrefix,
+  trailing,
   types,
 }: MediaTypeSelectorProps<T>) {
   const { t } = useTranslation();
@@ -42,10 +42,10 @@ export function MediaTypeSelector<T extends string>({
   return (
     <SectionChipRow
       items={items}
-      leading={leading}
       onSelect={onChange}
       selectedKey={selectedMediaType}
       testID={`${testIDPrefix}-media-type-selector`}
+      trailing={trailing}
     />
   );
 }

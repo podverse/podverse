@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { ManagedCopySlug } from '@podverse/helpers';
 
-import { useAuth } from '../auth';
-import { createMobileApiRequestService } from '../auth/mobileApi';
+import { requestWithMobileAuthRefresh, useAuth } from '../auth';
 
 type UseManagedCopyOptions = {
   enabled?: boolean;
@@ -21,7 +20,7 @@ export function useManagedCopy({
   enabled = true,
   slug,
 }: UseManagedCopyOptions): UseManagedCopyResult {
-  const { accessToken } = useAuth();
+  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const [markdown, setMarkdown] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(enabled);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -37,19 +36,14 @@ export function useManagedCopy({
       return;
     }
 
-    const api = createMobileApiRequestService(accessToken);
-    if (api === null) {
-      setIsLoading(false);
-      setErrorKey('errors.generic');
-      return;
-    }
-
     let cancelled = false;
     setIsLoading(true);
     setErrorKey(null);
 
-    void api
-      .reqManagedCopyGet(slug)
+    void requestWithMobileAuthRefresh(
+      { accessToken, clearSession, refreshToken, setTokens },
+      (api) => api.reqManagedCopyGet(slug)
+    )
       .then((response) => {
         if (!cancelled) {
           setMarkdown(response.markdown);
@@ -71,7 +65,7 @@ export function useManagedCopy({
     return () => {
       cancelled = true;
     };
-  }, [accessToken, enabled, retryCounter, slug]);
+  }, [accessToken, clearSession, enabled, refreshToken, retryCounter, setTokens, slug]);
 
   return { errorKey, isLoading, markdown, retry };
 }

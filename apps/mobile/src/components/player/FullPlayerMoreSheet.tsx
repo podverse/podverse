@@ -15,6 +15,7 @@ type FullPlayerMoreSheetProps = {
   itemLabeledEnclosures: LabeledItemEnclosure[];
   enclosureSelectedParams: EnclosureSelectedParams;
   isMarkedPlayed: boolean;
+  isMarkingPlayed: boolean;
   isSubscribed: boolean;
   onCancel: () => void;
   onSelectEnclosureParams: (params: EnclosureSelectedParams) => Promise<void>;
@@ -28,6 +29,7 @@ export function FullPlayerMoreSheet({
   itemLabeledEnclosures,
   enclosureSelectedParams,
   isMarkedPlayed,
+  isMarkingPlayed,
   isSubscribed,
   onCancel,
   onSelectEnclosureParams,
@@ -73,6 +75,7 @@ export function FullPlayerMoreSheet({
             : []),
           {
             key: 'mark-played',
+            disabled: isMarkingPlayed,
             label: isMarkedPlayed
               ? t('features.history.mark_as_unplayed')
               : t('features.history.mark_as_played'),
@@ -87,6 +90,7 @@ export function FullPlayerMoreSheet({
       canToggleSubscription,
       hasSourcePicker,
       isMarkedPlayed,
+      isMarkingPlayed,
       isSubscribed,
       onTogglePlayed,
       onToggleSubscription,

@@ -39,8 +39,10 @@ import {
   mergeHistoryListOptions,
   QUEUE_IN_CLAUSE_MAX_IDS,
 } from './queueResourceListGuardrails.js';
-
-const QUEUE_LIST_POSITION_INCREMENT = 0.00000001;
+import {
+  QUEUE_LIST_POSITION_INCREMENT,
+  upcomingListPositionBeforeFirst,
+} from './queueResourceListPositions.js';
 
 const epsilon = 1e-21;
 
@@ -680,6 +682,51 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     }
   }
 
+  /**
+   * Place the first upcoming row at now-playing (`list_position` 0) when the queue has no
+   * now-playing row. Leaves `last_played_at`, playback position, and completed alone — this is a
+   * position move so an empty player can adopt the queue head without recording a listen.
+   */
+  async promoteFirstUpcomingToNowPlaying(queue_id_text: string): Promise<QueueResource | null> {
+    const lock = this.getQueueLock(queue_id_text);
+    return lock.runExclusive(async () => {
+      const resourceId = await this.repositoryReadWrite.manager.transaction(async (manager) => {
+        const queue = await manager.findOne(Queue, { where: { id_text: queue_id_text } });
+        if (!queue) {
+          throw new Error('Queue not found.');
+        }
+
+        const existingNowPlaying = await manager.findOne(QueueResource, {
+          where: { queue: { id: queue.id }, list_position: nowPlayingListPositionWhere() },
+        });
+        if (existingNowPlaying) {
+          return existingNowPlaying.id;
+        }
+
+        const firstUpcomingIdQb = manager
+          .getRepository(QueueResource)
+          .createQueryBuilder('qr')
+          .where('qr.queue_id = :qid', { qid: queue.id })
+          .andWhere('qr.list_position > 0');
+        applyResolvesToActiveItemOrAddByRss('qr', firstUpcomingIdQb);
+        const firstUpcoming = await firstUpcomingIdQb.orderBy('qr.list_position', 'ASC').getOne();
+        if (!firstUpcoming) {
+          return null;
+        }
+
+        firstUpcoming.list_position = '0';
+        await manager.save(firstUpcoming);
+        return firstUpcoming.id;
+      });
+
+      if (resourceId === null) {
+        return null;
+      }
+      const loaded = await this.findQueueResourcesByIdListOrdered([resourceId]);
+      return loaded[0] ?? null;
+    });
+  }
+
   async getAllUpcomingByQueueIdText(queue_id_text: string): Promise<QueueResource[]> {
     const queue = await this.queueService.getByIdText(queue_id_text);
     if (!queue) {
@@ -773,7 +820,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     });
 
     const lastQueued = await this.repositoryRead.findOne({
-      where: { queue: { id: queue.id } },
+      where: { queue: { id: queue.id }, list_position: listPositionMoreThan(0) },
       order: { list_position: 'DESC' },
     });
 
@@ -856,15 +903,13 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     resourceKey: QueueLinkedResourceKey
   ): Promise<QueueResource> {
     const { firstQueued } = await this.getFirstAndLastQueuedItemsByQueueIdText(queue_id_text);
-    const newPosition = firstQueued
-      ? parseFloat(firstQueued.list_position) - QUEUE_LIST_POSITION_INCREMENT
-      : 1;
+    const newPosition = upcomingListPositionBeforeFirst(firstQueued?.list_position ?? null);
     return this.addResourceToQueueHelper(
       queue_id_text,
       resource_id_text,
       resourceService,
       resourceKey,
-      () => newPosition.toString()
+      () => newPosition
     );
   }
 
@@ -1473,12 +1518,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     return this.addItemAddByRSSToQueueHelper(
       queue_id_text,
       add_by_rss_resource_data,
-      (firstQueued) => {
-        const newPosition = firstQueued
-          ? parseFloat(firstQueued.list_position) - QUEUE_LIST_POSITION_INCREMENT
-          : 1;
-        return newPosition < 0 ? '0' : newPosition.toString();
-      }
+      (firstQueued) => upcomingListPositionBeforeFirst(firstQueued?.list_position ?? null)
     );
   }
 

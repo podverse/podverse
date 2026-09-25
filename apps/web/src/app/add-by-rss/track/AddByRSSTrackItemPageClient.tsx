@@ -25,6 +25,7 @@ import { NoResults } from '../../../components/NoResults/NoResults';
 import { useAccount } from '../../../contexts/Account';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import {
+  getAddByRSSChaptersTranscriptCredentials,
   getCachedChaptersTranscript,
   getChaptersAndTranscriptUrls,
   setCachedChaptersTranscript,
@@ -66,6 +67,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loggedInAccount } = useAccount();
+  const accountId = loggedInAccount?.id_text ?? null;
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [track, setTrack] = React.useState<AddByRSSItemIndexItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -221,10 +223,17 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
         return;
       }
       try {
+        const credentials = await getAddByRSSChaptersTranscriptCredentials({
+          accountId,
+          feedUrl: feed?.feedUrl,
+          resourceUrls: [transcriptUrl],
+        });
+        if (cancelled) return;
         const res = await getApiRequestService().reqAccountAddByRSSChaptersTranscript({
           itemIdText: track.idText,
           transcriptUrl,
           feedUrl: feed?.feedUrl,
+          ...credentials,
         });
         if (cancelled) return;
         setCachedChaptersTranscript(track.idText, {
@@ -252,7 +261,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     return () => {
       cancelled = true;
     };
-  }, [track, feed, selectedTab, transcriptUrl, tMisc]);
+  }, [track, feed, selectedTab, transcriptUrl, tMisc, accountId]);
 
   const tabData = React.useMemo(() => {
     const tabs: Array<{

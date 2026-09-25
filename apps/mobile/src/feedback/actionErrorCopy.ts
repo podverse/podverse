@@ -1,0 +1,186 @@
+import { getErrorCode, getErrorMessage } from '@podverse/helpers/error';
+
+import type { PlaybackErrorEvent, PlaybackErrorKind } from '../../modules/podverse-media-engine';
+import type { AddByRssMediaCredentialsState } from '../lib/addByRss/mediaAuth';
+
+/**
+ * Catalog keys for an action-error dialog. Confirm is always retry; the body explains the kind.
+ */
+export type ActionErrorMessageKeys = {
+  bodyKey: string;
+  confirmLabelKey: 'misc.try_again';
+  titleKey: string;
+};
+
+const RETRY_LABEL_KEY = 'misc.try_again' as const;
+
+const playbackTitleKey = 'action_error.playback_title';
+const downloadTitleKey = 'action_error.download_title';
+
+/**
+ * One title and body per playback kind. Exhaustive so a new kind cannot ship without copy.
+ */
+export const playbackErrorMessageKeys = (kind: PlaybackErrorKind): ActionErrorMessageKeys => {
+  switch (kind) {
+    case 'host-http':
+      return {
+        bodyKey: 'action_error.playback_host_http',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
+    case 'network':
+      return {
+        bodyKey: 'action_error.playback_network',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
+    case 'unsupported':
+      return {
+        bodyKey: 'action_error.playback_unsupported',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
+    case 'file-not-found':
+      return {
+        bodyKey: 'action_error.playback_file_not_found',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
+    case 'decode':
+      return {
+        bodyKey: 'action_error.playback_decode',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
+    case 'audio-session':
+      return {
+        bodyKey: 'action_error.playback_audio_session',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
+    case 'invalid-source':
+      return {
+        bodyKey: 'action_error.playback_invalid_source',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
+    case 'unknown':
+      return {
+        bodyKey: 'action_error.playback_unknown',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
+  }
+};
+
+const PLAYBACK_CREDENTIALS_BODY_KEYS: Partial<Record<AddByRssMediaCredentialsState, string>> = {
+  not_stored: 'action_error.playback_credentials_required',
+  sent: 'action_error.playback_credentials_rejected',
+  withheld_insecure: 'action_error.playback_credentials_withheld_insecure',
+  withheld_other_domain: 'action_error.playback_credentials_withheld_other_domain',
+};
+
+/**
+ * Body for a protected add-by-RSS host refusing the file (401 / 403), keyed by whether the feed's
+ * credentials went with the load. `null` when credentials do not explain the failure, so the
+ * caller falls back to {@link playbackErrorMessageKeys}.
+ */
+export const playbackCredentialsMessageKeys = (
+  credentialsState: AddByRssMediaCredentialsState | null,
+  httpStatus: number | undefined
+): ActionErrorMessageKeys | null => {
+  if ((httpStatus !== 401 && httpStatus !== 403) || credentialsState === null) {
+    return null;
+  }
+  const bodyKey = PLAYBACK_CREDENTIALS_BODY_KEYS[credentialsState];
+  if (bodyKey === undefined) {
+    return null;
+  }
+  return { bodyKey, confirmLabelKey: RETRY_LABEL_KEY, titleKey: playbackTitleKey };
+};
+
+const DOWNLOAD_ERROR_REASONS = [
+  'credentials_withheld',
+  'file_missing',
+  'no_storage',
+  'transfer_failed',
+] as const;
+
+export type KnownDownloadErrorReason = (typeof DOWNLOAD_ERROR_REASONS)[number];
+
+export type DownloadErrorReasonKey = KnownDownloadErrorReason | 'unknown';
+
+const isKnownDownloadErrorReason = (reason: string): reason is KnownDownloadErrorReason => {
+  return DOWNLOAD_ERROR_REASONS.some((known) => known === reason);
+};
+
+export const downloadErrorReasonKey = (reason: string | null): DownloadErrorReasonKey => {
+  if (reason !== null && isKnownDownloadErrorReason(reason)) {
+    return reason;
+  }
+  return 'unknown';
+};
+
+/**
+ * One title and body per stored download failure. Unknown and missing reasons share the generic body.
+ */
+export const downloadErrorMessageKeys = (reason: string | null): ActionErrorMessageKeys => {
+  switch (downloadErrorReasonKey(reason)) {
+    case 'credentials_withheld':
+      return {
+        bodyKey: 'action_error.download_credentials_withheld',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: downloadTitleKey,
+      };
+    case 'no_storage':
+      return {
+        bodyKey: 'action_error.download_no_storage',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: downloadTitleKey,
+      };
+    case 'transfer_failed':
+      return {
+        bodyKey: 'action_error.download_transfer_failed',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: downloadTitleKey,
+      };
+    case 'file_missing':
+      return {
+        bodyKey: 'action_error.download_file_missing',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: downloadTitleKey,
+      };
+    case 'unknown':
+      return {
+        bodyKey: 'action_error.download_unknown',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: downloadTitleKey,
+      };
+  }
+};
+
+/**
+ * Machine detail a user can screenshot for the host or for support. Empty parts are omitted.
+ */
+export const actionErrorDetailLine = (parts: {
+  code: string;
+  httpStatus?: number;
+  message: string;
+  reason: string;
+}): string => {
+  const status = parts.httpStatus === undefined ? '' : `HTTP ${parts.httpStatus}`;
+  return [parts.reason, status, parts.code, parts.message]
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
+    .join(' · ');
+};
+
+/**
+ * Load and retry failures that never received a native error payload. A rejected native call may
+ * still carry a code and message, which are kept for the dialog detail and the error log.
+ */
+export const playbackErrorFromLoadFailure = (error?: unknown): PlaybackErrorEvent => ({
+  code: error === undefined ? '' : (getErrorCode(error) ?? ''),
+  kind: 'unknown',
+  message: error === undefined ? '' : getErrorMessage(error, ''),
+});

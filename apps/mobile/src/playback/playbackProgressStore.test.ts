@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  getPlaybackDurationSeconds,
   getPlaybackPositionClockSeconds,
   getPlaybackProgressRatio,
   getPlaybackProgressSnapshot,
   resetPlaybackProgress,
   setPlaybackProgress,
   setPlaybackProgressPlaying,
+  subscribePlaybackDuration,
   subscribePlaybackPositionClock,
 } from './playbackProgressStore';
 
@@ -33,6 +35,22 @@ describe('playbackProgressStore', () => {
     expect(clockTicks).toBe(1);
     setPlaybackProgress({ durationSeconds: 60, positionSeconds: 2.0 });
     expect(clockTicks).toBe(2);
+    unsubscribe();
+  });
+
+  it('notifies the duration subscriber only when duration changes', () => {
+    resetPlaybackProgress();
+    let durationTicks = 0;
+    const unsubscribe = subscribePlaybackDuration(() => {
+      durationTicks += 1;
+    });
+    setPlaybackProgress({ durationSeconds: 60, positionSeconds: 1 });
+    expect(getPlaybackDurationSeconds()).toBe(60);
+    expect(durationTicks).toBe(1);
+    setPlaybackProgress({ durationSeconds: 60, positionSeconds: 12 });
+    expect(durationTicks).toBe(1);
+    setPlaybackProgress({ durationSeconds: 90, positionSeconds: 12 });
+    expect(durationTicks).toBe(2);
     unsubscribe();
   });
 

@@ -188,14 +188,6 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run mq_opml_import_run -w apps/workers -- -q opml-import',
   },
   {
-    name: 'reencryptAddByRSSCredentials',
-    label: 'ORM: re-encrypt Add-by-RSS credentials',
-    description: 'Re-encrypt stored Add-by-RSS credentials (maintenance / rotation).',
-    category: 'orm',
-    risk: 'normal',
-    example_cli: 'npm run reencrypt_add_by_rss_credentials -w apps/workers',
-  },
-  {
     name: 'parserRSSParseFeed',
     label: 'Parser: single feed by Podcast Index id',
     description: 'One-off: parse a single feed by -p (podcast_index_id).',
@@ -210,6 +202,33 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     category: 'dev',
     risk: 'dev_only',
     example_cli: 'npm run dev_parser_rss_parse_trending_feeds -w apps/workers -- -max 50',
+  },
+  {
+    name: 'devParserRSSParseMusicMediumFeeds',
+    label: 'Dev: parse music-medium PI feeds to DB',
+    description:
+      'Podcast Index /podcasts/bymedium?medium=music → parse and save (dev seed; -max to cap).',
+    category: 'dev',
+    risk: 'dev_only',
+    example_cli: 'npm run dev_parser_rss_parse_music_medium_feeds -w apps/workers -- -max 20',
+  },
+  {
+    name: 'devParserRSSParseArtistPublisherFeeds',
+    label: 'Dev: parse committed artist publisher-music feeds to DB',
+    description:
+      'Parse the committed ARTIST_PUBLISHER_FEEDS list by Podcast Index id (dev seed; optional -max prefix, -f force).',
+    category: 'dev',
+    risk: 'dev_only',
+    example_cli: 'npm run workers:parse_artist_publisher_feeds',
+  },
+  {
+    name: 'devDiscoverArtistPublisherFeeds',
+    label: 'Dev: discover artist publisher-music PI feeds (rewrite list)',
+    description:
+      'Maintainer-only crawl: find publisher-music feeds via PI + album RSS walk, rewrite ARTIST_PUBLISHER_FEEDS, then commit.',
+    category: 'dev',
+    risk: 'dev_only',
+    example_cli: 'npm run workers:discover_artist_publisher_feeds -- -max 50',
   },
   {
     name: 'devParserRSSParsePodcasting20Feeds',

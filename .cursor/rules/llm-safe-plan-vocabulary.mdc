@@ -1,0 +1,32 @@
+---
+description: Plan and prompt prose must not use words a safety check can read as a person or as harm
+alwaysApply: true
+---
+
+# Plan prose a safety check can misread
+
+Safety checks read the whole prompt, including plan files. A word that is ordinary in engineering
+can be scored as a person or as harm, and the turn stops before any code is read.
+
+## Do not use these in new plan prose, COPY-PASTA lines, or headings
+
+| Avoid | Use instead |
+| --- | --- |
+| The noun that also means a person seeking office or a job (`candidate`) | **change**, **option**, or **trial** |
+| A plan or control that is **dead** | **closed**, **dropped**, or **stuck** |
+| A nested view called a **child** | **nested view** or **subview** |
+
+A code change under measurement is a **change**. "Gated change", "change 08", "this change's
+premise". Never a person-shaped role.
+
+## Leave real identifiers alone
+
+Do not rename an existing function, file, or error symbol to dodge this rule. When the platform
+message itself contains a risky noun, cite the API and the file (`addViewAt` in
+`listVirtualization.ts`) and do not paste the message text into a plan.
+
+## Where this applies
+
+`.llm/plans/**`, COPY-PASTA fences, and any prompt the operator will paste. Comments in product
+code still follow **comments-future-forward**; this rule is about text an agent will read as the
+task.

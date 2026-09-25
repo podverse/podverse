@@ -15,6 +15,8 @@ export const E2E_PODCAST_CHANNEL_TITLE = 'E2E Podcast Seed Channel';
 
 export const E2E_LIVESTREAM_CHANNEL_ID_TEXT = 'v5fCrIj9Io';
 export const E2E_LIVESTREAM_CHANNEL_TITLE = 'E2E Livestream Channel';
+export const E2E_LIVESTREAM_ITEM_ID_TEXT = 'e2eLiveStrm01';
+export const E2E_LIVESTREAM_ITEM_TITLE = 'E2E Livestream Item';
 
 /** Sync with tools/web/seed-e2e.mjs (SEO profile specs). */
 export const E2E_SEO_PUBLIC_PROFILE_ID_TEXT = 'e2eSeoPublic01';
@@ -27,12 +29,19 @@ export const E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT = 'e2ePodChap0001';
 
 export const E2E_ITEM_CHAPTER_INTRO_ID_TEXT = 'e2eChapIntro01';
 export const E2E_ITEM_CHAPTER_TOPIC_ID_TEXT = 'e2eChapTopic01';
+/** First of `e2eChapFil01`–`e2eChapFil12` on the chaptered episode — tall Chapters pane only. */
+export const E2E_ITEM_CHAPTER_FILLER_FIRST_ID_TEXT = 'e2eChapFil01';
 
 export const E2E_CLIP_ID_TEXT = 'e2eClip00000001';
 export const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
 /** Publisher-feed artist channel. Mobile `artist.yaml` deep-links here. */
 export const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
+
+/** Directory publisher-music artist (`e2eArtPub01` = 11 chars). Distinct from the music album fixture. */
+export const E2E_DIRECTORY_ARTIST_ID_TEXT = 'e2eArtPub01';
+export const E2E_DIRECTORY_ARTIST_TITLE = 'E2E Directory Artist';
+export const E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO = '2026-03-15T18:00:00.000Z';
 export const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
 export const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
 export const E2E_MUSIC_TRACK_TWO_ID_TEXT = 'e2eMusicTrk002';
@@ -75,7 +84,7 @@ export const E2E_SOUNDBITE_START_SECONDS = 14;
 export const E2E_SOUNDBITE_DURATION_SECONDS = 6;
 
 /**
- * The two chapters span the whole 60s enclosure, the way a chaptered episode does in the wild, so
+ * Intro and Topic A span the whole 60s enclosure, the way a chaptered episode does in the wild, so
  * any position on a scrubber names a chapter. The one-second gap between them is deliberate: it
  * covers the case where a position falls outside every chapter range.
  */
@@ -83,6 +92,8 @@ export const E2E_CHAPTER_ONE_START_SECONDS = 1;
 export const E2E_CHAPTER_ONE_END_SECONDS = 20;
 export const E2E_CHAPTER_TWO_START_SECONDS = 21;
 export const E2E_CHAPTER_TWO_END_SECONDS = 60;
+export const E2E_CHAPTER_ONE_WEB_URL = 'https://example.com/e2e-chapter-intro';
+export const E2E_CHAPTER_TWO_WEB_URL = 'https://example.com/e2e-chapter-topic-a';
 
 /**
  * Lightning value block on the podcast fixtures, so value-for-value surfaces have something to
@@ -186,6 +197,21 @@ export const E2E_VIDEO_CHANNEL_ID_TEXT = 'e2eVideoChnl01';
 export const E2E_VIDEO_ITEM_ID_TEXT = 'e2eVideoItm001';
 export const E2E_VIDEO_CHANNEL_TITLE = 'E2E Video Transition Channel';
 export const E2E_VIDEO_ITEM_DURATION_SECONDS = 30;
+
+/**
+ * Non-live VOD HLS playlist for playback start. Enclosure type stays `audio/mpeg`;
+ * the `.m3u8` path (query included) is what classifies it. Unsubscribed and not queued.
+ * Regenerate via `npm run generate:e2e-media -w podverse-test-assets`
+ * (`tools/test-assets/assets/e2e/hls/`). Sync with `tools/web/seed-e2e.mjs`.
+ */
+export const E2E_HLS_ASSET_BASE_URL = 'http://localhost:2111/e2e/hls';
+export const E2E_HLS_VOD_ENCLOSURE_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-vod.m3u8?fixture=vod`;
+export const E2E_HLS_EVENT_PLAYLIST_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-event.m3u8`;
+export const E2E_HLS_CHANNEL_ID_TEXT = 'e2eHlsChnl001';
+export const E2E_HLS_VOD_ITEM_ID_TEXT = 'e2eHlsVodIt01';
+export const E2E_HLS_CHANNEL_TITLE = 'E2E HLS VOD Channel';
+export const E2E_HLS_VOD_ITEM_TITLE = 'E2E HLS VOD Episode';
+export const E2E_HLS_VOD_DURATION_SECONDS = 6;
 
 /**
  * Live items with real enclosures for the live-stream media-player specs, in their own unsubscribed

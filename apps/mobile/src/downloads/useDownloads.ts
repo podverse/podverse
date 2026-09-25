@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DTOItem } from '@podverse/helpers/dto';
 import type { EnclosureSelectedParams } from '@podverse/helpers/item/itemEnclosure';
 
+import { perfCount } from '../lib/perf/perfSpans';
 import {
   isDownloadQuotaUnlimited,
   readDownloadAutoDeleteOnDeviceLowEnabled,
@@ -103,7 +104,38 @@ export const useInProgressDownloadCount = (): number => {
 };
 
 /**
- * Subscribe to a single item's download record (or `null` when not downloaded).
+ * Bind one item's download record. An empty id means there is no item: report `null` without
+ * hydrating or subscribing.
+ */
+export const bindItemDownload = (
+  itemIdText: string,
+  includeProgress: boolean,
+  setRecord: (record: DownloadRecord | null) => void
+): (() => void) | undefined => {
+  if (itemIdText.length === 0) {
+    setRecord(null);
+    return;
+  }
+
+  const sync = (): void => {
+    setRecord(downloadStore.get(itemIdText));
+  };
+
+  void downloadManager.hydrate().then(sync).catch(sync);
+  sync();
+
+  const unsubscribe = downloadStore.subscribe(sync);
+  const unsubscribeProgress = includeProgress ? downloadStore.subscribeToProgress(sync) : null;
+
+  return () => {
+    unsubscribe();
+    unsubscribeProgress?.();
+  };
+};
+
+/**
+ * Subscribe to a single item's download record (or `null` when not downloaded). An empty
+ * `itemIdText` means there is no item, and the hook reports `null` without touching the store.
  *
  * Because records are immutable, the state setter receives the same reference when this item did
  * not change — so a row on a long list ignores every other row's transitions.
@@ -112,30 +144,20 @@ export const useItemDownload = (
   itemIdText: string,
   includeProgress = false
 ): DownloadRecord | null => {
-  const [record, setRecord] = useState<DownloadRecord | null>(() => downloadStore.get(itemIdText));
+  const [record, setRecord] = useState<DownloadRecord | null>(() =>
+    itemIdText.length > 0 ? downloadStore.get(itemIdText) : null
+  );
 
-  useEffect(() => {
-    const sync = (): void => {
-      setRecord(downloadStore.get(itemIdText));
-    };
-
-    void downloadManager.hydrate().then(sync).catch(sync);
-    sync();
-
-    const unsubscribe = downloadStore.subscribe(sync);
-    const unsubscribeProgress = includeProgress ? downloadStore.subscribeToProgress(sync) : null;
-
-    return () => {
-      unsubscribe();
-      unsubscribeProgress?.();
-    };
-  }, [includeProgress, itemIdText]);
+  useEffect(
+    () => bindItemDownload(itemIdText, includeProgress, setRecord),
+    [includeProgress, itemIdText]
+  );
 
   return record;
 };
 
 export type DownloadAction = {
-  /** False for livestream, HLS-only, and enclosure-less items: nothing to offer. */
+  /** False when the item has no saveable progressive http(s) file to offer. */
   isDownloadable: boolean;
   /** `null` before anything has been asked for this item. */
   status: DownloadStatus | null;
@@ -143,8 +165,40 @@ export type DownloadAction = {
   percentComplete: number | null;
   /** Catalog key for a refused enqueue. */
   noticeKey: string | null;
+  /** Stored machine reason when `status` is `failed`; otherwise `null`. */
+  errorReason: string | null;
   start: () => void;
   remove: () => void;
+};
+
+export const isDownloadActionDownloadable = (
+  item: DTOItem | undefined,
+  explicitSelectedParams?: EnclosureSelectedParams | null
+): boolean => item !== undefined && isItemDownloadable(item, explicitSelectedParams).ok;
+
+export const startDownloadAction = (
+  item: DTOItem | undefined,
+  explicitSelectedParams: EnclosureSelectedParams | null | undefined,
+  setNoticeKey: (key: string | null) => void
+): void => {
+  if (item === undefined) {
+    return;
+  }
+  setNoticeKey(null);
+  void (async () => {
+    try {
+      const result = await downloadManager.enqueue(item, explicitSelectedParams);
+      if (!result.ok) {
+        setNoticeKey(
+          result.reason === 'offline_mode'
+            ? 'settings.offline_mode.unavailable'
+            : 'features.download.not_downloadable'
+        );
+      }
+    } catch {
+      setNoticeKey('errors.generic');
+    }
+  })();
 };
 
 /**
@@ -162,28 +216,14 @@ export const useDownloadAction = (
   options?: { explicitSelectedParams?: EnclosureSelectedParams | null }
 ): DownloadAction => {
   const record = useItemDownload(item?.id_text ?? '', includeProgress);
+  useEffect(() => {
+    perfCount('download.action.read');
+  }, []);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const explicitSelectedParams = options?.explicitSelectedParams;
 
   const start = useCallback(() => {
-    if (item === undefined) {
-      return;
-    }
-    setNoticeKey(null);
-    void (async () => {
-      try {
-        const result = await downloadManager.enqueue(item, explicitSelectedParams);
-        if (!result.ok) {
-          setNoticeKey(
-            result.reason === 'offline_mode'
-              ? 'settings.offline_mode.unavailable'
-              : 'features.download.not_downloadable'
-          );
-        }
-      } catch {
-        setNoticeKey('errors.generic');
-      }
-    })();
+    startDownloadAction(item, explicitSelectedParams, setNoticeKey);
   }, [explicitSelectedParams, item]);
 
   const remove = useCallback(() => {
@@ -206,7 +246,8 @@ export const useDownloadAction = (
       : null;
 
   return {
-    isDownloadable: item !== undefined && isItemDownloadable(item, explicitSelectedParams).ok,
+    isDownloadable: isDownloadActionDownloadable(item, explicitSelectedParams),
+    errorReason: record?.errorReason ?? null,
     noticeKey,
     percentComplete,
     remove,

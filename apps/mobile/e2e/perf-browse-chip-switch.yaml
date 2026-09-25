@@ -1,0 +1,105 @@
+appId: com.podverse.app.next
+name: Perf — Browse chip switch latency
+---
+# Same rapid overlapping media-type switches as perf-chip-switch, on the Browse tab.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-perf-user.yaml
+
+- tapOn:
+    id: tab-browse
+- assertVisible:
+    id: browse-screen
+- extendedWaitUntil:
+    notVisible:
+      id: browse-list-loading
+    timeout: ${TIMEOUT_SLOW}
+
+- assertVisible:
+    id: browse-media-type-podcasts
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          point: "31%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "48%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "31%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "13%,13%"
+          waitToSettleTimeoutMs: 0
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          point: "31%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "48%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "31%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "13%,16%"
+          waitToSettleTimeoutMs: 0
+
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-.*"
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: browse-media-type-podcasts
+    selected: true
+
+- assertVisible:
+    id: browse-media-type-podcasts
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          point: "31%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "48%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "31%,13%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "13%,13%"
+          waitToSettleTimeoutMs: 0
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          point: "31%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "48%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "31%,16%"
+          waitToSettleTimeoutMs: 0
+      - tapOn:
+          point: "13%,16%"
+          waitToSettleTimeoutMs: 0
+
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-.*"
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: browse-media-type-podcasts
+    selected: true
+- assertVisible:
+    id: perf-report-e2e
+- takeScreenshot: perf-browse-chip-switch-settled

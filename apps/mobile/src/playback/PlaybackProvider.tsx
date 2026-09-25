@@ -1,3 +1,4 @@
+import * as FileSystem from 'expo-file-system';
 import type { PropsWithChildren } from 'react';
 import {
   createContext,
@@ -20,6 +21,7 @@ import type {
   DTOItem,
   DTOItemChapter,
   DTOItemSoundbite,
+  DTOQueue,
   DTOQueueResource,
 } from '@podverse/helpers/dto';
 import { getErrorCode } from '@podverse/helpers/error';
@@ -31,8 +33,10 @@ import type { PlaybackEventKind } from '@podverse/helpers/playbackEvents';
 import {
   PLAYBACK_POSITION_LOCAL_INTERVAL_MS,
   PLAYBACK_POSITION_NETWORK_INTERVAL_MS,
+  PLAYBACK_SEEK_NETWORK_COALESCE_MS,
 } from '@podverse/helpers/playbackOutboxLimits';
 import { getQueueForMedium } from '@podverse/helpers/queue';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import {
   reconstructAddByRSSItemFromResourceData,
   reconstructAddByRSSLivestreamFromResourceData,
@@ -49,10 +53,16 @@ import {
 import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNearEndSeconds';
 import { resolveQueueAdvance } from '@podverse/playback-core/resolveQueueAdvance';
 
+import type { PlaybackErrorEvent, PlaybackStateValue } from '../../modules/podverse-media-engine';
 import { useAuth } from '../auth/AuthProvider';
 import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
 import { useNativePlaybackBridge } from '../bridge/useNativePlaybackBridge';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
+import {
+  canAdvanceToNextQueueItem,
+  shouldClearNowPlayingAfterAdvance,
+  upcomingManualCountFromCombined,
+} from '../components/player/fullPlayerRows';
 import { useAutoQueue } from '../contexts/AutoQueueProvider';
 import { useQueues } from '../contexts/QueuesProvider';
 import type { MobileAuthRequestContext } from '../data';
@@ -64,24 +74,34 @@ import {
   queueRepository,
   statsRepository,
 } from '../data';
+import { syncEventLogRepository } from '../data/repositories';
 import type {
   PlaybackReconcileDifferentNowPlayingConflict,
   PlaybackReconcileResourceState,
 } from '../data/repositories/playbackReconcile';
+import { downloadManager } from '../downloads/downloadManager';
+import { downloadStore } from '../downloads/downloadStore';
+import { playbackErrorFromLoadFailure } from '../feedback/actionErrorCopy';
 import type { AutoQueueSeed } from '../hooks/useAutoQueueLoadResources';
 import { useAutoQueueLoadResources } from '../hooks/useAutoQueueLoadResources';
+import { useQueueDataRevision } from '../hooks/useQueueDataRevision';
 import { useQueueMutations } from '../hooks/useQueueMutations';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
-import type { AutoQueueResourcesMapRow } from '../lib/autoQueue/autoQueue';
-import { autoQueueIncrementActiveRow } from '../lib/autoQueue/autoQueue';
+import type { AutoQueueDirective, AutoQueueResourcesMapRow } from '../lib/autoQueue/autoQueue';
+import {
+  autoQueueIncrementActiveRow,
+  resolveAutoQueueConfigAfterDirective,
+} from '../lib/autoQueue/autoQueue';
 import { resolveE2eMediaUrl } from '../lib/e2e/resolveE2eMediaUrl';
+import { perfCount } from '../lib/perf/perfSpans';
 import {
   buildChapterPlaybackTarget,
   buildClipPlaybackTarget,
-  buildItemPlaybackTarget,
   buildSoundbitePlaybackTarget,
+  playbackReloadSource,
   playbackTargetToHistoryTarget,
   playbackTargetToStatsTargets,
+  resolveItemPlaybackStart,
 } from '../lib/playback/buildPlaybackTarget';
 import type { LastPlaybackSnapshot } from '../lib/playback/lastPlaybackStorage';
 import {
@@ -92,6 +112,12 @@ import {
 } from '../lib/playback/lastPlaybackStorage';
 import { resolveMediaFileDurationHintSeconds } from '../lib/playback/mediaFileDurationHint';
 import {
+  DOWNLOAD_HANDOFF_POSITION_TOLERANCE_SECONDS,
+  DOWNLOAD_HANDOFF_PROGRESS_SUPPRESS_MS,
+  isDownloadHandoffProgressLanded,
+  planDownloadCompletePlaybackHandoff,
+} from '../lib/playback/planDownloadCompletePlaybackHandoff';
+import {
   buildItemLabeledEnclosures,
   DEFAULT_ENCLOSURE_SELECTED_PARAMS,
   resolveItemEnclosureUrl,
@@ -99,7 +125,9 @@ import {
   resolveSessionEnclosureSelectedParams,
 } from '../lib/playback/resolveEnclosureUrl';
 import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
+import { shouldPostSeekEventNow } from '../lib/playback/seekEventCoalescing';
 import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
+import { isOfflineModeEnabled } from '../prefs/offlineMode';
 import { readPlaybackMediaTypePref } from '../prefs/preferredMediaType';
 import { getPref, setPref } from '../prefs/prefsStore';
 import {
@@ -110,6 +138,8 @@ import {
   readPlaybackReconcileConflicts,
   subscribePlaybackReconcileConflicts,
 } from '../sync/playbackReconcileConflict';
+import { addByRssCredentialsStateForUrl, withAddByRssPlaybackAuth } from './addByRssMediaAuth';
+import { buildPlaybackErrorLog, playbackErrorLogSignature } from './playbackErrorLog';
 import {
   nowPlayingResourceFromTarget,
   playbackEventFromBackgroundTransition,
@@ -123,6 +153,7 @@ import {
   shouldPromptForPlaybackHandoffConflict,
 } from './playbackHandoff';
 import {
+  getPlaybackDurationSeconds,
   getPlaybackPositionClockSeconds,
   getPlaybackProgressRatio,
   getPlaybackProgressSnapshot,
@@ -132,9 +163,11 @@ import {
   setPlaybackProgress,
   setPlaybackProgressPlaying,
   setPlaybackProgressRate,
+  subscribePlaybackDuration,
   subscribePlaybackPositionClock,
   subscribePlaybackProgress,
 } from './playbackProgressStore';
+import { playbackSourceMarkerFromUrl, setPlaybackSourceMarker } from './playbackSourceMarker';
 import { writeIsPlayingLocallyForSync } from './playbackSyncState';
 import type { PlaybackTransportState } from './playbackTransport';
 import { isEnginePlayableState, playbackTransportForEngineState } from './playbackTransport';
@@ -155,16 +188,6 @@ export type PlaybackNowPlaying = {
   viewerImageUrl: string | null;
   channelTitle: string | null;
 };
-
-/**
- * Caller-declared auto-queue side effect for a load (mirrors web's `autoQueueShouldClear` /
- * `newAutoQueueConfig` on `useMediaPlayerResourceUpdate` — NOT the playback-core decision flag):
- * - `clear`: explicit user play resets the auto-queue resources and drops any playlist source.
- * - `preserve`: auto-advance keeps the seeded auto-queue intact.
- * - `seed-playlist`: playlist row play sets the playlist as the auto-queue source.
- */
-type AutoQueueDirective =
-  { mode: 'clear' } | { mode: 'preserve' } | { mode: 'seed-playlist'; playlistIdText: string };
 
 const LAST_PLAYBACK_SNAPSHOT_THROTTLE_MS = 5000;
 const PLAYBACK_HANDOFF_DISMISSED_STATE_PREF_KEY = 'playback.handoff_dismissed_state';
@@ -399,6 +422,8 @@ export type PlaybackContextValue = {
    * Mini / full player transport glyph. List rows stay play/pause via `isPlaying` only.
    */
   transportState: PlaybackTransportState;
+  /** Last engine or load failure. `null` once a later load succeeds. */
+  lastPlaybackError: PlaybackErrorEvent | null;
   positionSeconds: number;
   durationSeconds: number;
   playbackRate: number;
@@ -430,6 +455,8 @@ export type PlaybackContextValue = {
   ) => Promise<void>;
   beginAuthoringHold: () => void;
   endAuthoringHold: () => void;
+  /** True while Make clip is mounted. Complete must not clear now-playing. */
+  isAuthoringHold: boolean;
   clearPauseBoundary: () => void;
   previewWindow: (params: { fromSeconds: number; pauseAtSeconds?: number | null }) => Promise<void>;
   loadItemPausedAt: (item: DTOItem, channel: DTOChannel, seconds: number) => Promise<void>;
@@ -461,6 +488,18 @@ export type PlaybackSessionContextValue = Omit<
   'durationSeconds' | 'positionSeconds'
 >;
 
+export interface PlaybackRowContextValue {
+  activeTarget: PlaybackSessionContextValue['activeTarget'];
+  enclosureSelectedParams: PlaybackSessionContextValue['enclosureSelectedParams'];
+  itemLabeledEnclosures: PlaybackSessionContextValue['itemLabeledEnclosures'];
+  noticeKey: PlaybackSessionContextValue['noticeKey'];
+  pause: PlaybackSessionContextValue['pause'];
+  playClipById: PlaybackSessionContextValue['playClipById'];
+  playItemById: PlaybackSessionContextValue['playItemById'];
+  resume: PlaybackSessionContextValue['resume'];
+  switchEnclosureSelectedParams: PlaybackSessionContextValue['switchEnclosureSelectedParams'];
+}
+
 /** High-frequency playhead. Prefer mounting consumers only for the active now-playing chrome. */
 export type PlaybackProgressContextValue = {
   durationSeconds: number;
@@ -468,6 +507,8 @@ export type PlaybackProgressContextValue = {
 };
 
 const PlaybackSessionContext = createContext<PlaybackSessionContextValue | undefined>(undefined);
+const PlaybackRowContext = createContext<PlaybackRowContextValue | undefined>(undefined);
+const PlaybackIsPlayingContext = createContext<boolean | undefined>(undefined);
 
 const summaryFromItem = (item: DTOItem, channel: DTOChannel): PlaybackNowPlaying => ({
   channelTitle: channel.title ?? null,
@@ -484,11 +525,22 @@ const hasPlaybackStatsTargets = (targets: PlaybackStatsTargets): boolean => {
 
 // Module-level guard so the last-playback restore fires at most once per app process.
 let lastPlaybackRestoreStarted = false;
+/** True after the once-per-process snapshot restore has finished (including a null snapshot). */
+let lastPlaybackRestoreSettled = false;
+
+/** How long a start-play latch stays up after `playing` so a startup `paused` cannot flash the play icon. */
+const START_PLAY_SETTLE_MS = 300;
+
+/**
+ * How long a start-play latch can stay up if `playing` never arrives. Past this, a later pause
+ * (lock screen, another device) is a real pause and must show the play glyph.
+ */
+const PENDING_START_MAX_MS = 5000;
 
 export function PlaybackProvider({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   const { accessToken, account, clearSession, refreshToken, setTokens, status } = useAuth();
-  const { activeQueue, queues, setActiveQueue } = useQueues();
+  const { activeQueue, queues, setActiveQueue, activeQueueUpcomingResources } = useQueues();
   const {
     autoQueueActiveRow,
     autoQueueConfig,
@@ -498,6 +550,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setAutoQueueResources,
   } = useAutoQueue();
   const loadActive = useQueueResourcesLoadActive();
+  const queueDataRevision = useQueueDataRevision();
   const { moveNowPlayingToHistory } = useQueueMutations();
   const loadAutoQueueResources = useAutoQueueLoadResources();
   const applyLoad = useMediaPlayerResourceUpdate();
@@ -506,6 +559,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const [nowPlaying, setNowPlaying] = useState<PlaybackNowPlaying | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [transportState, setTransportState] = useState<PlaybackTransportState>('paused');
+  const [lastPlaybackError, setLastPlaybackError] = useState<PlaybackErrorEvent | null>(null);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const [itemLabeledEnclosures, setItemLabeledEnclosures] = useState<LabeledItemEnclosure[]>([]);
@@ -523,24 +577,72 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const durationRef = useRef<number>(0);
   const pauseAtRef = useRef<number | null>(null);
   const authoringHoldRef = useRef<boolean>(false);
+  const [isAuthoringHold, setIsAuthoringHold] = useState(false);
   const playbackRateRef = useRef<number>(1);
   const advancingRef = useRef<boolean>(false);
   const isPlayingRef = useRef<boolean>(false);
   const lastSourceUrlRef = useRef<string | null>(null);
+  /** Last failure written to the error log. Cleared once playback actually runs again. */
+  const lastLoggedPlaybackErrorRef = useRef<string | null>(null);
+  /** Claimed while a download-complete source swap is in flight, including the file-exists check. */
+  const downloadSourceSwapLockRef = useRef(false);
+  /** Drop playhead samples until the replacement item has seeked near the captured position. */
+  const downloadSourceSwapSuppressProgressRef = useRef(false);
+  const downloadSourceSwapSawReadyRef = useRef(false);
+  const downloadSourceSwapSeekSecondsRef = useRef<number | null>(null);
+  const downloadSourceSwapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Whether the engine has reported the current source playable. Gates the transport spinner: it
   // means "cannot start yet", never "buffering again mid-episode".
   const sourcePlayableRef = useRef<boolean>(false);
+  // A start-play load owns the glyph until it settles. The load sets pause; startup engine beats
+  // must not move it. The latch drops after `playing`, on error, or after a max wait.
+  const pendingStartRef = useRef<boolean>(false);
+  const startHasPlayedRef = useRef<boolean>(false);
+  const latestEngineStateRef = useRef<PlaybackStateValue | null>(null);
+  const pendingStartSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastPlaybackSnapshotWriteRef = useRef<number>(0);
   const enclosureSelectedParamsRef = useRef<EnclosureSelectedParams>(
     DEFAULT_ENCLOSURE_SELECTED_PARAMS
   );
   const previousAuthStatusRef = useRef(status);
+  /** One failed/attempted adopt per resource so a missing enclosure does not spin. */
+  const queueHeadAdoptAttemptedRef = useRef<string | null>(null);
+  /** Queue that still needs a promote write after an offline adopt. */
+  const pendingPromoteQueueIdTextRef = useRef<string | null>(null);
+  const queueHeadAdoptInFlightRef = useRef(false);
   const lastPlaybackLocalWriteRef = useRef<number>(0);
   const lastPlaybackNetworkWriteRef = useRef<number>(0);
+  const lastSeekNetworkPostAtRef = useRef<number | null>(null);
+  const seekNetworkFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const appStateRef = useRef(AppState.currentState);
   const accountIdTextRef = useRef<string | null>(account?.id_text ?? null);
   const playbackHandoffPromptRef = useRef<PlaybackHandoffPromptState | null>(null);
   const playbackHandoffDismissedStateKeyRef = useRef<string | null>(null);
+
+  /**
+   * Write a playback failure to the error log. The dialog that shows it closes, and the media comes
+   * from the creator's host, so this row is what lets support say whose server failed.
+   */
+  const recordPlaybackError = useCallback(
+    (error: PlaybackErrorEvent, target: PlaybackTarget | null, url: string | null) => {
+      const entry = buildPlaybackErrorLog({
+        credentialsState: addByRssCredentialsStateForUrl(url),
+        error,
+        isLocalFile: playbackSourceMarkerFromUrl(url) === 'local',
+        mediaUrl: url,
+        occurredAt: Date.now(),
+        positionSeconds: positionRef.current,
+        target,
+      });
+      const signature = playbackErrorLogSignature(entry);
+      if (lastLoggedPlaybackErrorRef.current === signature) {
+        return;
+      }
+      lastLoggedPlaybackErrorRef.current = signature;
+      void syncEventLogRepository.append(entry);
+    },
+    []
+  );
 
   const activeQueueRef = useRef(activeQueue);
   useEffect(() => {
@@ -605,12 +707,65 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     });
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (seekNetworkFlushTimerRef.current !== null) {
+        clearTimeout(seekNetworkFlushTimerRef.current);
+        seekNetworkFlushTimerRef.current = null;
+      }
+      if (pendingStartSettleTimerRef.current !== null) {
+        clearTimeout(pendingStartSettleTimerRef.current);
+        pendingStartSettleTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const setPlaybackPlaying = useCallback((playing: boolean): void => {
     isPlayingRef.current = playing;
     writeIsPlayingLocallyForSync(playing);
     setPlaybackProgressPlaying(playing);
     setIsPlaying(playing);
   }, []);
+
+  const releasePendingStart = useCallback((): void => {
+    pendingStartRef.current = false;
+    startHasPlayedRef.current = false;
+    if (pendingStartSettleTimerRef.current !== null) {
+      clearTimeout(pendingStartSettleTimerRef.current);
+      pendingStartSettleTimerRef.current = null;
+    }
+  }, []);
+
+  const schedulePendingStartRelease = useCallback(
+    (delayMs: number): void => {
+      if (pendingStartSettleTimerRef.current !== null) {
+        clearTimeout(pendingStartSettleTimerRef.current);
+      }
+      pendingStartSettleTimerRef.current = setTimeout(() => {
+        pendingStartSettleTimerRef.current = null;
+        if (!pendingStartRef.current) {
+          return;
+        }
+        const startHasPlayed = startHasPlayedRef.current;
+        pendingStartRef.current = false;
+        startHasPlayedRef.current = false;
+        const latest = latestEngineStateRef.current;
+        // A pause that is still the latest state after playback started falls back to the play glyph.
+        // A start that never reported playing keeps the glyph the load already chose.
+        if (startHasPlayed && (latest === 'paused' || latest === 'ended')) {
+          setPlaybackPlaying(false);
+          setTransportState('paused');
+        }
+      }, delayMs);
+    },
+    [setPlaybackPlaying]
+  );
+
+  const armPendingStart = useCallback((): void => {
+    startHasPlayedRef.current = false;
+    pendingStartRef.current = true;
+    schedulePendingStartRelease(PENDING_START_MAX_MS);
+  }, [schedulePendingStartRelease]);
 
   const setEnclosureSelectedParams = useCallback((params: EnclosureSelectedParams): void => {
     enclosureSelectedParamsRef.current = params;
@@ -792,6 +947,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           return true;
         }
 
+        // A forced network post (play/pause/complete/leading seek) supersedes a pending trailing
+        // seek flush — the newer claim already carries the latest position the listener needs.
+        if (seekNetworkFlushTimerRef.current !== null) {
+          clearTimeout(seekNetworkFlushTimerRef.current);
+          seekNetworkFlushTimerRef.current = null;
+        }
+
         lastPlaybackNetworkWriteRef.current = occurredAt;
         const claimedQueue = shouldClaimActiveQueueForPlaybackEvent(outboxEvent.eventKind);
         const posted = await playbackOutboxRepository.postNowPlayingEvent(
@@ -848,15 +1010,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       autoQueueResourcesRef.current = {};
       setAutoQueueActiveRow(0);
       autoQueueActiveRowRef.current = 0;
-      const nextConfig =
-        directive.mode === 'seed-playlist'
-          ? {
-              ...autoQueueConfigRef.current,
-              disabled: false,
-              nextPage: 1,
-              playlist_id_text: directive.playlistIdText,
-            }
-          : { ...autoQueueConfigRef.current, nextPage: 1, playlist_id_text: null };
+      const nextConfig = resolveAutoQueueConfigAfterDirective(
+        autoQueueConfigRef.current,
+        directive,
+        getShuffleHash
+      );
       setAutoQueueConfig(nextConfig);
       autoQueueConfigRef.current = nextConfig;
     },
@@ -865,10 +1023,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const beginAuthoringHold = useCallback((): void => {
     authoringHoldRef.current = true;
+    setIsAuthoringHold(true);
   }, []);
 
   const endAuthoringHold = useCallback((): void => {
     authoringHoldRef.current = false;
+    setIsAuthoringHold(false);
   }, []);
 
   const clearPauseBoundary = useCallback((): void => {
@@ -895,12 +1055,26 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     []
   );
 
+  const clearDownloadSourceSwap = useCallback((): void => {
+    downloadSourceSwapLockRef.current = false;
+    downloadSourceSwapSuppressProgressRef.current = false;
+    downloadSourceSwapSawReadyRef.current = false;
+    downloadSourceSwapSeekSecondsRef.current = null;
+    if (downloadSourceSwapTimeoutRef.current !== null) {
+      clearTimeout(downloadSourceSwapTimeoutRef.current);
+      downloadSourceSwapTimeoutRef.current = null;
+    }
+  }, []);
+
   const clearNowPlaying = useCallback(() => {
     nativePlaybackBridge.pause();
     pauseAtRef.current = null;
     activeTargetRef.current = null;
+    clearDownloadSourceSwap();
     lastSourceUrlRef.current = null;
+    setPlaybackSourceMarker(null);
     sourcePlayableRef.current = false;
+    releasePendingStart();
     positionRef.current = 0;
     durationRef.current = 0;
     resetPlaybackProgress();
@@ -910,7 +1084,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     setTransportState('paused');
     resetEnclosureSelectionSession();
     void clearLastPlaybackSnapshot();
-  }, [resetEnclosureSelectionSession, setPlaybackPlaying]);
+  }, [
+    clearDownloadSourceSwap,
+    releasePendingStart,
+    resetEnclosureSelectionSession,
+    setPlaybackPlaying,
+  ]);
 
   const playTarget = useCallback(
     async (
@@ -930,8 +1109,19 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       if (target.kind === 'add-by-rss') {
         resetEnclosureSelectionSession();
       }
+      clearDownloadSourceSwap();
       lastSourceUrlRef.current = params.url;
+      setPlaybackSourceMarker(params.url);
       sourcePlayableRef.current = false;
+      latestEngineStateRef.current = null;
+      // Arm before the native load so startup `ready` / `paused` / `stalled` cannot move the glyph
+      // before this function sets pause.
+      const expectsAutoPlay = params.autoPlayOverride !== false;
+      if (expectsAutoPlay) {
+        armPendingStart();
+      } else {
+        releasePendingStart();
+      }
       setTransportState('loading');
       let decision: PlaybackLoadDecision;
       try {
@@ -946,7 +1136,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           params.autoPlayOverride,
           params.playbackDecisionOverride
         );
-      } catch {
+      } catch (error) {
+        releasePendingStart();
+        const failure = playbackErrorFromLoadFailure(error);
+        recordPlaybackError(failure, target, params.url);
+        setLastPlaybackError(failure);
         setTransportState('error');
         activeTargetRef.current = target;
         setActiveTarget(target);
@@ -967,11 +1161,22 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         durationSeconds: durationRef.current,
         positionSeconds: decision.initialSeekSeconds,
       });
-      setPlaybackPlaying(shouldAutoPlay);
-      // The native load resolved, so the source is prepared: stop spinning even if the engine has
-      // not published its next state yet.
-      sourcePlayableRef.current = true;
-      setTransportState(shouldAutoPlay ? 'playing' : 'paused');
+      if (shouldAutoPlay) {
+        // The load was issued. The glyph becomes pause here; an error that already arrived released
+        // the latch, so this does not overwrite it.
+        if (pendingStartRef.current) {
+          sourcePlayableRef.current = true;
+          setLastPlaybackError(null);
+          setPlaybackPlaying(true);
+          setTransportState('playing');
+        }
+      } else {
+        releasePendingStart();
+        sourcePlayableRef.current = true;
+        setLastPlaybackError(null);
+        setPlaybackPlaying(false);
+        setTransportState('paused');
+      }
 
       if (shouldAutoPlay && params.shouldSkipPlayEventWrite !== true) {
         const statsTargets = decision.shouldRecordPlaybackStat
@@ -994,6 +1199,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [
       applyAutoQueueDirective,
       applyLoad,
+      armPendingStart,
+      clearDownloadSourceSwap,
+      recordPlaybackError,
+      releasePendingStart,
       resetEnclosureSelectionSession,
       resolvePlaybackStatsTargets,
       setPlaybackPlaying,
@@ -1016,26 +1225,27 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride?: boolean;
       }
     ): Promise<void> => {
-      if (item.live_item !== null && item.live_item !== undefined) {
-        // Livestream playback is unavailable in the native engine; surface a localized notice.
-        setNoticeKey('media_player.livestream_unavailable');
-        return;
-      }
       const { labeledItemEnclosures, selectedParams } = await resolvePlaybackSelectionForItem(item);
       const url = await resolvePlaybackUrl(item, selectedParams, labeledItemEnclosures);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
       }
-      const target = buildItemPlaybackTarget(item, channel, options.intent);
-      await playTarget(target, {
-        autoPlayOverride: options.autoPlayOverride,
-        autoQueue: options.autoQueue,
+      const start = resolveItemPlaybackStart({
+        channel,
         explicitPlaybackSeconds: options.explicitPlaybackSeconds,
+        intent: options.intent,
+        item,
         mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
           options.mediaFileDurationHintSeconds,
           item.item_about.duration
         ),
+      });
+      await playTarget(start.target, {
+        autoPlayOverride: options.autoPlayOverride,
+        autoQueue: options.autoQueue,
+        explicitPlaybackSeconds: start.explicitPlaybackSeconds,
+        mediaFileDurationHintSeconds: start.mediaFileDurationHintSeconds,
         summary: summaryFromItem(item, channel),
         url,
       });
@@ -1204,11 +1414,30 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      const nextUrl = resolveItemEnclosureUrl({
+      const remoteUrl = resolveItemEnclosureUrl({
         labeledItemEnclosures: itemLabeledEnclosures,
         selectedParams: nextParams,
       });
-      if (nextUrl === null) {
+      const resolved = await resolvePlaybackUrl(target.item, nextParams, itemLabeledEnclosures);
+      const record = downloadStore.get(target.item.id_text);
+      const localMatchesSelection =
+        remoteUrl !== null &&
+        resolved !== null &&
+        resolved.startsWith('file://') &&
+        record !== null &&
+        planDownloadCompletePlaybackHandoff({
+          advancing: false,
+          lastSourceUrl: remoteUrl,
+          record,
+          rewriteEnclosureUrl: resolveE2eMediaUrl,
+          target,
+        }) !== null;
+      let nextUrl: string;
+      if (localMatchesSelection && resolved !== null) {
+        nextUrl = resolved;
+      } else if (remoteUrl !== null && !isOfflineModeEnabled()) {
+        nextUrl = remoteUrl;
+      } else {
         setNoticeKey('media_player.no_media');
         return;
       }
@@ -1229,6 +1458,136 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     },
     [itemLabeledEnclosures, playTarget, setEnclosureSelectedParams]
   );
+
+  const reloadActiveSource = useCallback(
+    async (localUrl: string): Promise<void> => {
+      const sourceUrlBeforeSwap = lastSourceUrlRef.current;
+      const itemIdBeforeSwap = itemIdFromTarget(activeTargetRef.current);
+      const wasPlaying = isPlayingRef.current;
+      let nativePosition: number | null = null;
+      try {
+        const read = await nativePlaybackBridge.getPosition();
+        if (Number.isFinite(read) && read >= 0) {
+          nativePosition = read;
+        }
+      } catch {
+        // The last progress sample is the playhead when the engine read fails.
+      }
+
+      if (
+        !downloadSourceSwapLockRef.current ||
+        lastSourceUrlRef.current !== sourceUrlBeforeSwap ||
+        itemIdFromTarget(activeTargetRef.current) !== itemIdBeforeSwap
+      ) {
+        downloadSourceSwapLockRef.current = false;
+        return;
+      }
+
+      const position = nativePosition ?? positionRef.current;
+      positionRef.current = position;
+
+      downloadSourceSwapSawReadyRef.current = false;
+      downloadSourceSwapSeekSecondsRef.current = position;
+      downloadSourceSwapSuppressProgressRef.current = true;
+      if (downloadSourceSwapTimeoutRef.current !== null) {
+        clearTimeout(downloadSourceSwapTimeoutRef.current);
+      }
+      downloadSourceSwapTimeoutRef.current = setTimeout(() => {
+        // The handoff window ended. Drop the start-play latch so a pause that stuck can show play.
+        releasePendingStart();
+        clearDownloadSourceSwap();
+      }, DOWNLOAD_HANDOFF_PROGRESS_SUPPRESS_MS);
+
+      lastSourceUrlRef.current = localUrl;
+      setPlaybackSourceMarker(localUrl);
+      try {
+        const source = { initialSeekSeconds: position, url: localUrl };
+        if (wasPlaying) {
+          armPendingStart();
+          await nativePlaybackBridge.loadAndStart(source);
+        } else {
+          releasePendingStart();
+          await nativePlaybackBridge.load(source);
+          nativePlaybackBridge.pause();
+        }
+        nativePlaybackBridge.setRate(playbackRateRef.current);
+      } catch (error) {
+        releasePendingStart();
+        clearDownloadSourceSwap();
+        const failure = playbackErrorFromLoadFailure(error);
+        recordPlaybackError(failure, activeTargetRef.current, localUrl);
+        setLastPlaybackError(failure);
+        setPlaybackPlaying(false);
+        setTransportState('error');
+      }
+    },
+    [
+      armPendingStart,
+      clearDownloadSourceSwap,
+      recordPlaybackError,
+      releasePendingStart,
+      setPlaybackPlaying,
+    ]
+  );
+
+  const adoptCompletedDownloadIfStreaming = useCallback(async (): Promise<void> => {
+    if (downloadSourceSwapLockRef.current || advancingRef.current) {
+      return;
+    }
+    const target = activeTargetRef.current;
+    const itemIdText = itemIdFromTarget(target);
+    if (target === null || itemIdText === null) {
+      return;
+    }
+    const record = downloadStore.get(itemIdText);
+    if (record === null) {
+      return;
+    }
+    const sourceUrlAtDecision = lastSourceUrlRef.current;
+    const handoff = planDownloadCompletePlaybackHandoff({
+      advancing: advancingRef.current,
+      lastSourceUrl: sourceUrlAtDecision,
+      record,
+      rewriteEnclosureUrl: resolveE2eMediaUrl,
+      target,
+    });
+    if (handoff === null) {
+      return;
+    }
+
+    downloadSourceSwapLockRef.current = true;
+    let exists: boolean;
+    try {
+      const info = await FileSystem.getInfoAsync(handoff.localUrl);
+      exists = info.exists;
+    } catch {
+      exists = false;
+    }
+    if (!exists) {
+      downloadSourceSwapLockRef.current = false;
+      try {
+        await downloadManager.markFileMissing(itemIdText);
+      } catch {
+        // The row stays complete until a later play resolves the missing file.
+      }
+      return;
+    }
+    if (
+      advancingRef.current ||
+      itemIdFromTarget(activeTargetRef.current) !== itemIdText ||
+      lastSourceUrlRef.current !== sourceUrlAtDecision
+    ) {
+      downloadSourceSwapLockRef.current = false;
+      return;
+    }
+    await reloadActiveSource(handoff.localUrl);
+  }, [reloadActiveSource]);
+
+  useEffect(() => {
+    return downloadStore.subscribe(() => {
+      void adoptCompletedDownloadIfStreaming();
+    });
+  }, [adoptCompletedDownloadIfStreaming]);
 
   const playItemByIdWithIntent = useCallback(
     async (
@@ -1351,7 +1710,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         return;
       }
       if (resource.clip) {
-        const item = resource.clip.item;
+        const item = await playbackContentRepository.ensureItemValues(
+          buildContext(),
+          resource.clip.item
+        );
         const channel = await ensureChannel(item);
         if (channel === null) {
           return;
@@ -1364,7 +1726,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         return;
       }
       if (resource.item_soundbite && resource.item_soundbite.item) {
-        const item = resource.item_soundbite.item;
+        const item = await playbackContentRepository.ensureItemValues(
+          buildContext(),
+          resource.item_soundbite.item
+        );
         const channel = await ensureChannel(item);
         if (channel === null) {
           return;
@@ -1376,11 +1741,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         });
         return;
       }
-      const channel = await ensureChannel(resource.item);
+      const item = await playbackContentRepository.ensureItemValues(buildContext(), resource.item);
+      const channel = await ensureChannel(item);
       if (channel === null) {
         return;
       }
-      await startItemPlayback(resource.item, channel, {
+      await startItemPlayback(item, channel, {
         autoPlayOverride: options?.autoPlayOverride,
         autoQueue,
         explicitPlaybackSeconds: options?.explicitPlaybackSeconds,
@@ -1388,6 +1754,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       });
     },
     [
+      buildContext,
       ensureChannel,
       startAddByRssPlayback,
       startClipPlayback,
@@ -1577,28 +1944,29 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   }, [playQueueResource]);
 
   const playAutoQueueRow = useCallback(
-    async (row: AutoQueueResourcesMapRow): Promise<void> => {
+    async (row: AutoQueueResourcesMapRow): Promise<boolean> => {
       const preserve: AutoQueueDirective = { mode: 'preserve' };
       if (row.clip) {
         const item = row.clip.item;
         const channel = row.channel ?? (await ensureChannel(item));
         if (channel === null) {
-          return;
+          return false;
         }
         await startClipPlayback(row.clip, item, channel, { autoQueue: preserve });
-        return;
+        return true;
       }
       if (row.item_soundbite && row.item_soundbite.item) {
         const item = row.item_soundbite.item;
         const channel = row.channel ?? (await ensureChannel(item));
         if (channel === null) {
-          return;
+          return false;
         }
         await startSoundbitePlayback(row.item_soundbite, item, channel, { autoQueue: preserve });
-        return;
+        return true;
       }
       // Item rows carry the slim `DTOItemQueueItem`; fetch the full item for enclosures.
       await playItemByIdWithIntent(row.item.id_text, 'fresh_transition', preserve);
+      return true;
     },
     [ensureChannel, playItemByIdWithIntent, startClipPlayback, startSoundbitePlayback]
   );
@@ -1631,7 +1999,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     return currentAutoQueueSeed() !== null;
   }, [currentAutoQueueSeed]);
 
-  const advanceAutoQueue = useCallback(async (): Promise<void> => {
+  const advanceAutoQueue = useCallback(async (): Promise<boolean> => {
     const nextRow = autoQueueIncrementActiveRow(autoQueueActiveRowRef.current);
     let row = autoQueueResourcesRef.current[nextRow];
     if (row === undefined) {
@@ -1644,19 +2012,56 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       }
     }
     if (row === undefined) {
-      clearNowPlaying();
-      return;
+      return false;
     }
     setAutoQueueActiveRow(nextRow);
     autoQueueActiveRowRef.current = nextRow;
-    await playAutoQueueRow(row);
-  }, [
-    clearNowPlaying,
-    currentAutoQueueSeed,
-    loadAutoQueueResources,
-    playAutoQueueRow,
-    setAutoQueueActiveRow,
-  ]);
+    return playAutoQueueRow(row);
+  }, [currentAutoQueueSeed, loadAutoQueueResources, playAutoQueueRow, setAutoQueueActiveRow]);
+
+  const resolveHasAutoQueueRow = useCallback(async (): Promise<boolean> => {
+    const nextRow = autoQueueIncrementActiveRow(autoQueueActiveRowRef.current);
+    if (autoQueueResourcesRef.current[nextRow] !== undefined) {
+      return true;
+    }
+    const seed = currentAutoQueueSeed();
+    if (seed === null) {
+      return false;
+    }
+    try {
+      const loaded = await loadAutoQueueResources(seed);
+      autoQueueResourcesRef.current = loaded;
+      return loaded[nextRow] !== undefined;
+    } catch {
+      return false;
+    }
+  }, [currentAutoQueueSeed, loadAutoQueueResources]);
+
+  const probeHasQueueAhead = useCallback(
+    async (target: PlaybackTarget): Promise<boolean> => {
+      const advanceMediumId =
+        target.kind !== 'add-by-rss' ? target.channel.medium_id : activeQueueRef.current?.medium_id;
+      let upcomingManualCount = 0;
+      try {
+        const result = await loadActive(advanceMediumId);
+        upcomingManualCount = upcomingManualCountFromCombined(
+          result.upcomingResources.length,
+          result.activeResource !== null
+        );
+      } catch (error) {
+        if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+          return false;
+        }
+      }
+      if (canAdvanceToNextQueueItem(upcomingManualCount, false)) {
+        return true;
+      }
+      // Playlist/seed hints can lie after another device emptied the queue. Only treat auto-queue
+      // as ahead when a real next row is already loaded or can be fetched now.
+      return resolveHasAutoQueueRow();
+    },
+    [loadActive, resolveHasAutoQueueRow]
+  );
 
   const advance = useCallback(
     async (transitionKind: 'complete' | 'skip'): Promise<void> => {
@@ -1676,6 +2081,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         // which is exactly what a hold must not do.
         if (transitionKind === 'complete' && authoringHoldRef.current) {
           nativePlaybackBridge.pause();
+          releasePendingStart();
           setPlaybackPlaying(false);
           setTransportState('paused');
           return;
@@ -1739,25 +2145,30 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           upcomingManualCount,
         });
 
+        let didStartNextItem = false;
         if (decision.kind === 'play-next-manual' && activeResource !== null) {
           try {
             await playQueueResource(activeResource, 'fresh_transition');
+            didStartNextItem =
+              activeTargetRef.current !== null && activeTargetRef.current !== target;
           } catch (error) {
             if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
               throw error;
             }
-            clearNowPlaying();
           }
         } else if (decision.kind === 'advance-auto-queue') {
           try {
-            await advanceAutoQueue();
+            didStartNextItem = await advanceAutoQueue();
           } catch (error) {
             if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
               throw error;
             }
-            clearNowPlaying();
           }
-        } else {
+        }
+
+        // Skip with nothing ahead (stale UI, another device emptied the queue, or auto-queue
+        // seed that failed to load) must keep the current item playing. Natural complete may stop.
+        if (shouldClearNowPlayingAfterAdvance(transitionKind, didStartNextItem)) {
           clearNowPlaying();
         }
       } finally {
@@ -1771,6 +2182,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       loadActive,
       moveNowPlayingToHistory,
       playQueueResource,
+      releasePendingStart,
       writePlaybackEvent,
     ]
   );
@@ -1778,6 +2190,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   // Universal last-playback restore: every resolved auth status restores the device-local
   // now-playing snapshot once per process, loaded paused so cold start never blasts audio. Sign-in
   // (anonymous → authenticated) clears the snapshot so the account's server queue is authoritative.
+  // When the snapshot is missing and the player is still empty, the active queue head is adopted
+  // next (existing now-playing, or first upcoming promoted without recording a listen).
   const restoreFromSnapshot = useCallback(
     async (snapshot: LastPlaybackSnapshot): Promise<void> => {
       const context = buildContext();
@@ -1851,6 +2265,161 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [buildContext, ensureChannel, startClipPlayback, startItemPlayback, startSoundbitePlayback]
   );
 
+  const adoptQueueHeadWhenPlayerEmpty = useCallback(async (): Promise<void> => {
+    if (!lastPlaybackRestoreSettled) {
+      return;
+    }
+    if (statusRef.current !== 'authenticated') {
+      return;
+    }
+    if (activeTargetRef.current !== null) {
+      return;
+    }
+    if (queueHeadAdoptInFlightRef.current) {
+      return;
+    }
+    queueHeadAdoptInFlightRef.current = true;
+
+    try {
+      const context = buildContext();
+      let primaryQueueIdText: string | null = null;
+      let accountQueues: DTOQueue[] = [];
+      try {
+        const loaded = await loadActive();
+        primaryQueueIdText = loaded.activeQueue?.id_text ?? null;
+        accountQueues = loaded.queues;
+      } catch (error) {
+        if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+          if (__DEV__) {
+            console.warn('[playback] queue-head adopt loadActive failed', error);
+          }
+          return;
+        }
+        primaryQueueIdText = activeQueueRef.current?.id_text ?? null;
+        accountQueues = queuesRef.current;
+      }
+
+      if (primaryQueueIdText === null || activeTargetRef.current !== null) {
+        return;
+      }
+
+      if (pendingPromoteQueueIdTextRef.current !== null) {
+        try {
+          await queueRepository.promoteFirstUpcomingToNowPlaying(
+            context,
+            pendingPromoteQueueIdTextRef.current
+          );
+          pendingPromoteQueueIdTextRef.current = null;
+          await loadActive();
+        } catch (error) {
+          if (getErrorCode(error) !== 'ERR_OFFLINE_MODE') {
+            if (__DEV__) {
+              console.warn('[playback] pending promote-upcoming failed', error);
+            }
+          }
+        }
+      }
+
+      if (activeTargetRef.current !== null) {
+        return;
+      }
+
+      const resolveQueueHeadResource = async (
+        queueIdText: string
+      ): Promise<DTOQueueResource | null> => {
+        try {
+          const nowPlayingResource = await queueRepository.getNowPlaying(context, queueIdText);
+          if (nowPlayingResource !== null) {
+            return nowPlayingResource;
+          }
+          const upcoming = await queueRepository.getUpcoming(context, queueIdText);
+          const firstUpcoming = upcoming[0] ?? null;
+          if (firstUpcoming === null) {
+            return null;
+          }
+          try {
+            const promoted = await queueRepository.promoteFirstUpcomingToNowPlaying(
+              context,
+              queueIdText
+            );
+            pendingPromoteQueueIdTextRef.current = null;
+            await loadActive(accountQueues.find((q) => q.id_text === queueIdText)?.medium_id);
+            return promoted;
+          } catch (error) {
+            if (getErrorCode(error) === 'ERR_OFFLINE_MODE') {
+              pendingPromoteQueueIdTextRef.current = queueIdText;
+              return firstUpcoming;
+            }
+            if (__DEV__) {
+              console.warn('[playback] promote-upcoming failed', error);
+            }
+            return null;
+          }
+        } catch (error) {
+          if (__DEV__) {
+            console.warn('[playback] queue-head adopt read failed', error);
+          }
+          return null;
+        }
+      };
+
+      let queueIdTextForLoad = primaryQueueIdText;
+      let resourceToLoad = await resolveQueueHeadResource(primaryQueueIdText);
+
+      if (resourceToLoad === null && activeTargetRef.current === null) {
+        const otherQueue = accountQueues.find((queue) => queue.id_text !== primaryQueueIdText);
+        if (otherQueue !== undefined) {
+          try {
+            const otherLoaded = await loadActive(otherQueue.medium_id);
+            if (activeTargetRef.current !== null) {
+              return;
+            }
+            if (otherLoaded.activeResource !== null) {
+              queueIdTextForLoad = otherLoaded.activeQueue?.id_text ?? otherQueue.id_text;
+              resourceToLoad = await resolveQueueHeadResource(queueIdTextForLoad);
+            } else {
+              await loadActive();
+            }
+          } catch (error) {
+            if (__DEV__) {
+              console.warn('[playback] other-queue adopt fallback failed', error);
+            }
+          }
+        }
+      }
+
+      if (resourceToLoad === null || activeTargetRef.current !== null) {
+        return;
+      }
+
+      const resourceRef = resolveQueueResourceRef(resourceToLoad);
+      const attemptKey =
+        resourceRef === null
+          ? null
+          : `${queueIdTextForLoad}:${resourceRef.resourceKind}:${resourceRef.resourceIdText}`;
+      if (attemptKey !== null && queueHeadAdoptAttemptedRef.current === attemptKey) {
+        return;
+      }
+      if (attemptKey !== null) {
+        queueHeadAdoptAttemptedRef.current = attemptKey;
+      }
+
+      try {
+        await playQueueResource(resourceToLoad, 'session_restore', {
+          autoPlayOverride: false,
+          autoQueue: { mode: 'clear' },
+          explicitPlaybackSeconds: normalizePlaybackPosition(resourceToLoad.playback_position),
+        });
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('[playback] queue-head adopt load failed', error);
+        }
+      }
+    } finally {
+      queueHeadAdoptInFlightRef.current = false;
+    }
+  }, [buildContext, loadActive, playQueueResource]);
+
   useEffect(() => {
     const previousStatus = previousAuthStatusRef.current;
     previousAuthStatusRef.current = status;
@@ -1858,21 +2427,44 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     // Sign-in clears any snapshot from a prior anonymous session — the account queue wins.
     if (previousStatus === 'anonymous' && status === 'authenticated') {
       void clearLastPlaybackSnapshot();
+      lastPlaybackRestoreSettled = true;
+      queueHeadAdoptAttemptedRef.current = null;
+      void adoptQueueHeadWhenPlayerEmpty();
       return;
     }
 
-    if (status === 'unknown' || lastPlaybackRestoreStarted) {
+    if (status === 'anonymous') {
+      queueHeadAdoptAttemptedRef.current = null;
+      pendingPromoteQueueIdTextRef.current = null;
+    }
+
+    if (status === 'unknown') {
+      return;
+    }
+
+    if (lastPlaybackRestoreStarted) {
+      if (lastPlaybackRestoreSettled) {
+        void adoptQueueHeadWhenPlayerEmpty();
+      }
       return;
     }
     lastPlaybackRestoreStarted = true;
     void (async () => {
       const snapshot = await readLastPlaybackSnapshot();
-      if (snapshot === null || statusRef.current === 'unknown') {
-        return;
+      if (snapshot !== null && statusRef.current !== 'unknown') {
+        await restoreFromSnapshot(snapshot);
       }
-      await restoreFromSnapshot(snapshot);
+      lastPlaybackRestoreSettled = true;
+      await adoptQueueHeadWhenPlayerEmpty();
     })();
-  }, [restoreFromSnapshot, status]);
+  }, [adoptQueueHeadWhenPlayerEmpty, restoreFromSnapshot, status]);
+
+  useEffect(() => {
+    if (status !== 'authenticated' || !lastPlaybackRestoreSettled) {
+      return;
+    }
+    void adoptQueueHeadWhenPlayerEmpty();
+  }, [activeQueueUpcomingResources, adoptQueueHeadWhenPlayerEmpty, queueDataRevision, status]);
 
   const reconcileFromNative = useCallback((): void => {
     void (async () => {
@@ -1881,6 +2473,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           nativePlaybackBridge.getPosition(),
           nativePlaybackBridge.getDuration(),
         ]);
+        if (downloadSourceSwapSuppressProgressRef.current) {
+          return;
+        }
         if (Number.isFinite(position) && position >= 0) {
           positionRef.current = position;
           setPlaybackPositionSeconds(position);
@@ -1899,21 +2494,59 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     ended: () => {
       void advance('complete');
     },
-    error: () => {
+    error: (event) => {
+      clearDownloadSourceSwap();
+      releasePendingStart();
       setPlaybackPlaying(false);
+      recordPlaybackError(event, activeTargetRef.current, lastSourceUrlRef.current);
+      setLastPlaybackError(event);
       setTransportState('error');
     },
     playbackState: (event) => {
+      if (downloadSourceSwapSuppressProgressRef.current) {
+        if (event.state === 'ready' || event.state === 'playing') {
+          downloadSourceSwapSawReadyRef.current = true;
+        } else if (event.state === 'error') {
+          clearDownloadSourceSwap();
+        }
+        // The replacement item reports loading or paused until its seek finishes. Keep the
+        // transport glyph already on screen so the control does not flip during the swap.
+        if (event.state !== 'playing' && event.state !== 'error') {
+          return;
+        }
+      }
+      latestEngineStateRef.current = event.state;
+      const pendingStart = pendingStartRef.current;
+      const startHasPlayed = startHasPlayedRef.current;
       if (isEnginePlayableState(event.state)) {
         sourcePlayableRef.current = true;
       }
-      const nextTransport = playbackTransportForEngineState(event.state, sourcePlayableRef.current);
+      const settledStart = event.state === 'error' || (event.state === 'ended' && startHasPlayed);
+      if (settledStart) {
+        releasePendingStart();
+      }
+      const nextTransport = playbackTransportForEngineState(
+        event.state,
+        sourcePlayableRef.current,
+        pendingStart && !settledStart
+      );
+      if (event.state === 'playing' && pendingStart) {
+        startHasPlayedRef.current = true;
+        schedulePendingStartRelease(START_PLAY_SETTLE_MS);
+      }
       if (nextTransport !== null) {
         setTransportState(nextTransport);
       }
       if (event.state === 'playing') {
+        lastLoggedPlaybackErrorRef.current = null;
+        setLastPlaybackError(null);
         setPlaybackPlaying(true);
-      } else if (event.state === 'paused' || event.state === 'ended' || event.state === 'error') {
+      } else if (event.state === 'error') {
+        setPlaybackPlaying(false);
+      } else if (
+        (event.state === 'paused' || event.state === 'ended') &&
+        !(pendingStart && !settledStart)
+      ) {
         setPlaybackPlaying(false);
       }
       if (event.state === 'ready' || event.state === 'playing') {
@@ -1921,6 +2554,21 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       }
     },
     progress: (event) => {
+      if (downloadSourceSwapSuppressProgressRef.current) {
+        const seekSeconds = downloadSourceSwapSeekSecondsRef.current;
+        const landed =
+          seekSeconds !== null &&
+          isDownloadHandoffProgressLanded({
+            positionSeconds: event.positionSeconds,
+            sawReady: downloadSourceSwapSawReadyRef.current,
+            seekSeconds,
+            toleranceSeconds: DOWNLOAD_HANDOFF_POSITION_TOLERANCE_SECONDS,
+          });
+        if (!landed) {
+          return;
+        }
+        clearDownloadSourceSwap();
+      }
       positionRef.current = event.positionSeconds;
       setPlaybackPositionSeconds(event.positionSeconds);
       if (event.durationSeconds > 0) {
@@ -2023,6 +2671,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const pause = useCallback(() => {
     nativePlaybackBridge.pause();
+    releasePendingStart();
     setPlaybackPlaying(false);
     setTransportState('paused');
     const target = activeTargetRef.current;
@@ -2036,7 +2685,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
       playbackPositionSeconds: positionRef.current,
     });
-  }, [setPlaybackPlaying, writeLastPlaybackSnapshotForTarget, writePlaybackEvent]);
+  }, [
+    releasePendingStart,
+    setPlaybackPlaying,
+    writeLastPlaybackSnapshotForTarget,
+    writePlaybackEvent,
+  ]);
 
   const retryPlayback = useCallback(async () => {
     const url = lastSourceUrlRef.current;
@@ -2044,20 +2698,32 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       return;
     }
     sourcePlayableRef.current = false;
+    latestEngineStateRef.current = null;
+    armPendingStart();
     setTransportState('loading');
     try {
-      await nativePlaybackBridge.loadAndStart({
-        initialSeekSeconds: positionRef.current,
-        url,
-      });
+      const target = activeTargetRef.current;
+      await nativePlaybackBridge.loadAndStart(
+        await withAddByRssPlaybackAuth(
+          target,
+          playbackReloadSource(target, url, positionRef.current)
+        )
+      );
       nativePlaybackBridge.setRate(playbackRateRef.current);
-      sourcePlayableRef.current = true;
-      setPlaybackPlaying(true);
-      setTransportState('playing');
-    } catch {
+      if (pendingStartRef.current) {
+        sourcePlayableRef.current = true;
+        setLastPlaybackError(null);
+        setPlaybackPlaying(true);
+        setTransportState('playing');
+      }
+    } catch (error) {
+      releasePendingStart();
+      const failure = playbackErrorFromLoadFailure(error);
+      recordPlaybackError(failure, activeTargetRef.current, url);
+      setLastPlaybackError(failure);
       setTransportState('error');
     }
-  }, [setPlaybackPlaying]);
+  }, [armPendingStart, recordPlaybackError, releasePendingStart, setPlaybackPlaying]);
 
   const resume = useCallback(async () => {
     await nativePlaybackBridge.play();
@@ -2090,13 +2756,51 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       nativePlaybackBridge.seek(seconds);
       positionRef.current = seconds;
       setPlaybackPositionSeconds(seconds);
+      const occurredAt = Date.now();
+      const postNetworkNow = shouldPostSeekEventNow({
+        lastSeekPostAtMs: lastSeekNetworkPostAtRef.current,
+        occurredAt,
+        windowMs: PLAYBACK_SEEK_NETWORK_COALESCE_MS,
+      });
+
+      if (postNetworkNow) {
+        lastSeekNetworkPostAtRef.current = occurredAt;
+        void writePlaybackEvent({
+          eventKind: playbackEventFromDiscreteSignal('seek'),
+          forceNetwork: true,
+          isPlaying: isPlayingRef.current,
+          mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
+          occurredAt,
+          playbackPositionSeconds: seconds,
+        });
+        return;
+      }
+
       void writePlaybackEvent({
         eventKind: playbackEventFromDiscreteSignal('seek'),
-        forceNetwork: true,
+        forceNetwork: false,
         isPlaying: isPlayingRef.current,
         mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
+        occurredAt,
         playbackPositionSeconds: seconds,
       });
+
+      if (seekNetworkFlushTimerRef.current !== null) {
+        return;
+      }
+      seekNetworkFlushTimerRef.current = setTimeout(() => {
+        seekNetworkFlushTimerRef.current = null;
+        const flushAt = Date.now();
+        lastSeekNetworkPostAtRef.current = flushAt;
+        void writePlaybackEvent({
+          eventKind: playbackEventFromDiscreteSignal('seek'),
+          forceNetwork: true,
+          isPlaying: isPlayingRef.current,
+          mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
+          occurredAt: flushAt,
+          playbackPositionSeconds: positionRef.current,
+        });
+      }, PLAYBACK_SEEK_NETWORK_COALESCE_MS);
     },
     [writePlaybackEvent]
   );
@@ -2287,10 +2991,19 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     if (action.kind === 'none') {
       return;
     }
+    if (!(await probeHasQueueAhead(target))) {
+      return;
+    }
     await advance('skip');
-  }, [advance, resolveChaptersForTarget, seekTo]);
+  }, [advance, probeHasQueueAhead, resolveChaptersForTarget, seekTo]);
 
-  const skipToNextTrack = useCallback(() => advance('skip'), [advance]);
+  const skipToNextTrack = useCallback(async (): Promise<void> => {
+    const target = activeTargetRef.current;
+    if (target === null || !(await probeHasQueueAhead(target))) {
+      return;
+    }
+    await advance('skip');
+  }, [advance, probeHasQueueAhead]);
   const completeNowPlaying = useCallback(() => advance('complete'), [advance]);
 
   const sessionValue = useMemo<PlaybackSessionContextValue>(
@@ -2315,10 +3028,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playbackRate,
       beginAuthoringHold,
       endAuthoringHold,
+      isAuthoringHold,
       clearPauseBoundary,
       previewWindow,
       resume,
       retryPlayback,
+      lastPlaybackError,
       completeNowPlaying,
       jumpBy,
       seekTo,
@@ -2353,10 +3068,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playbackRate,
       beginAuthoringHold,
       endAuthoringHold,
+      isAuthoringHold,
       clearPauseBoundary,
       previewWindow,
       resume,
       retryPlayback,
+      lastPlaybackError,
       seekTo,
       setRate,
       switchEnclosureSelectedParams,
@@ -2368,24 +3085,53 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     ]
   );
 
+  const rowValue = useMemo<PlaybackRowContextValue>(
+    () => ({
+      activeTarget,
+      enclosureSelectedParams,
+      itemLabeledEnclosures,
+      noticeKey,
+      pause,
+      playClipById,
+      playItemById,
+      resume,
+      switchEnclosureSelectedParams,
+    }),
+    [
+      activeTarget,
+      enclosureSelectedParams,
+      itemLabeledEnclosures,
+      noticeKey,
+      pause,
+      playClipById,
+      playItemById,
+      resume,
+      switchEnclosureSelectedParams,
+    ]
+  );
+
   return (
     <PlaybackSessionContext.Provider value={sessionValue}>
-      {children}
-      <ConfirmDialog
-        body={t('media_player.handoff.body', {
-          localTitle: playbackHandoffPrompt?.localTitle ?? '',
-          serverTitle: playbackHandoffPrompt?.serverTitle ?? '',
-        })}
-        cancelLabel={t('media_player.handoff.continue_action')}
-        cancelTestID="playback-handoff-continue"
-        confirmLabel={t('media_player.handoff.switch_action')}
-        confirmTestID="playback-handoff-switch"
-        onCancel={handlePlaybackHandoffContinue}
-        onConfirm={handlePlaybackHandoffSwitch}
-        testID="playback-handoff-dialog"
-        title={t('media_player.handoff.title')}
-        visible={playbackHandoffPrompt !== null}
-      />
+      <PlaybackRowContext.Provider value={rowValue}>
+        <PlaybackIsPlayingContext.Provider value={isPlaying}>
+          {children}
+          <ConfirmDialog
+            body={t('media_player.handoff.body', {
+              localTitle: playbackHandoffPrompt?.localTitle ?? '',
+              serverTitle: playbackHandoffPrompt?.serverTitle ?? '',
+            })}
+            cancelLabel={t('media_player.handoff.continue_action')}
+            cancelTestID="playback-handoff-continue"
+            confirmLabel={t('media_player.handoff.switch_action')}
+            confirmTestID="playback-handoff-switch"
+            onCancel={handlePlaybackHandoffContinue}
+            onConfirm={handlePlaybackHandoffSwitch}
+            testID="playback-handoff-dialog"
+            title={t('media_player.handoff.title')}
+            visible={playbackHandoffPrompt !== null}
+          />
+        </PlaybackIsPlayingContext.Provider>
+      </PlaybackRowContext.Provider>
     </PlaybackSessionContext.Provider>
   );
 }
@@ -2394,6 +3140,25 @@ export function usePlaybackSession(): PlaybackSessionContextValue {
   const context = useContext(PlaybackSessionContext);
   if (context === undefined) {
     throw new Error('usePlaybackSession must be used within a PlaybackProvider');
+  }
+  return context;
+}
+
+export function usePlaybackRow(): PlaybackRowContextValue {
+  useEffect(() => {
+    perfCount('playback.row.read');
+  }, []);
+  const context = useContext(PlaybackRowContext);
+  if (context === undefined) {
+    throw new Error('usePlaybackRow must be used within a PlaybackProvider');
+  }
+  return context;
+}
+
+export function usePlaybackIsPlaying(): boolean {
+  const context = useContext(PlaybackIsPlayingContext);
+  if (context === undefined) {
+    throw new Error('usePlaybackIsPlaying must be used within a PlaybackProvider');
   }
   return context;
 }
@@ -2412,6 +3177,15 @@ export function usePlaybackPositionClock(): number {
     subscribePlaybackPositionClock,
     getPlaybackPositionClockSeconds,
     getPlaybackPositionClockSeconds
+  );
+}
+
+/** Media duration — re-renders when length changes, not on every playhead tick. */
+export function usePlaybackDuration(): number {
+  return useSyncExternalStore(
+    subscribePlaybackDuration,
+    getPlaybackDurationSeconds,
+    getPlaybackDurationSeconds
   );
 }
 

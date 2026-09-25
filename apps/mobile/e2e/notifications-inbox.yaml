@@ -49,3 +49,23 @@ name: Notifications Inbox
 - assertVisible:
     id: more-settings-notification-type-default-livestream-started
 - takeScreenshot: more-settings-notification-subscribe-defaults
+
+# Toggle the subscribe default. When the account already follows podcasts, the apply dialog
+# appears; keep existing rows (Only new) so the rest of the suite stays deterministic.
+- tapOn:
+    id: more-settings-notification-auto-enable-on-subscribe-switch
+- runFlow:
+    when:
+      visible:
+        id: more-settings-notifications-apply-dialog
+    commands:
+      - assertVisible:
+          id: more-settings-notifications-apply-all
+      - assertVisible:
+          id: more-settings-notifications-apply-new-only
+      - takeScreenshot: more-settings-notification-apply-dialog
+      - tapOn:
+          id: more-settings-notifications-apply-new-only
+- assertVisible:
+    id: more-settings-notifications-screen
+- takeScreenshot: more-settings-notification-auto-enable-toggled

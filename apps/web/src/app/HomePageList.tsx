@@ -6,14 +6,15 @@ import { CoreCombinedChannels } from '../components/Core/CombinedChannels/CoreCo
 import { HowToStartInfo } from '../components/HowToStartInfo/HowToStartInfo';
 import { WebLoadingSpinnerOverlay } from '../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useAccount } from '../contexts/Account';
-import { useLocalSettings } from '../contexts/LocalSettings';
+import { homeListViewModeScope } from '../hooks/listViewMode';
+import { useListViewMode } from '../hooks/useListViewMode';
 import { useHomePageContext } from './HomePageContext';
 
 export const HomePageList: React.FC = () => {
   const { filterParams, setFilterParams, channels, totalPages, isLoading } = useHomePageContext();
   const { loggedInAccount } = useAccount();
-  const { viewSelected } = useLocalSettings();
   const { page, medium } = filterParams;
+  const { viewSelected } = useListViewMode(homeListViewModeScope(medium));
 
   return (
     <>

@@ -161,6 +161,8 @@ File: `migration-COPY-PASTA.md` (or `COPY-PASTA.md` in a plan set)
 **CRITICAL**: Make execution rules clear at the top:
 - Phases are SEQUENTIAL (must wait for each to complete)
 - Agents WITHIN phases run in PARALLEL
+- Plan prose follows **llm-safe-plan-vocabulary**. Call a code change under measurement a change,
+  an option, or a trial. Do not use a person-role noun for it, and do not mark a prompt dead.
 
 **Required: Recommended Cursor model and reasoning on every prompt.** Put **`Cursor model:`** and
 **`Reasoning:`** (`low` | `medium` | `high` | `extra high`) **outside** the fenced paste block —
@@ -190,6 +192,12 @@ and use Auto only when there is a specific reason to do so.
 
 Use **one row per prompt** (or a summary table at phase top + per-prompt lines). If none of the
 three models fit, name the alternative model and one sentence why (e.g. a specialized subagent).
+
+**Operator steps stay outside the paste.** The fence is only work the agent can finish in that
+turn. A person switching Metro, installing a device, or tapping a screen is checklist prose above
+the fence. A wait inside the fence is a sentence: stop this turn, and do not run the next command
+until the operator replies that the step is done. A shell comment between two commands is not a
+wait. Authoring detail: **copy-pasta-recommend-model**.
 
 Example per prompt (model/reasoning **outside** the fence):
 
@@ -369,6 +377,9 @@ it to build on. Agents cannot see each other's prompts, so an unstated boundary 
 ❌ **Don't**: Put **Cursor model:** / **Reasoning:** inside the fenced paste block (UI selection, not agent text)
 ✅ **Do**: Label each prompt **above** the fence with **Cursor model:** and **Reasoning:** (low | medium | high | extra high)
 
+❌ **Don't**: Hide an operator gesture in a shell comment between two commands the agent will run together
+✅ **Do**: Keep that gesture above the fence, and write an explicit stop-this-turn inside the fence (**copy-pasta-recommend-model**)
+
 ❌ **Don't**: Copy all details into copy-pasta prompts
 ✅ **Do**: Reference detailed plan files from copy-pasta prompts
 
@@ -428,6 +439,7 @@ Before finalizing plans:
 - [ ] Each plan has verification steps
 - [ ] Copy-pasta references plans (doesn't duplicate)
 - [ ] Every COPY-PASTA prompt has **Cursor model:** and **Reasoning:** outside the paste fence
+- [ ] Operator actions are above the fence; a wait inside it is an explicit stop-this-turn
 - [ ] Execution order is clear
 - [ ] Time estimates provided
 
@@ -473,6 +485,10 @@ You've done this well when:
 - **Execute immediately** - Do NOT ask for confirmation or additional instructions
 - **Prompt is self-contained** - All necessary context is included in the prompt
 - **No explanation needed** - User pasting = user requesting execution
+- **A stop in the paste is binding.** If the prompt says to stop the turn and wait until the
+  operator replies that a step is done, stop. Do not run the command that follows that wait in
+  the same turn. "Execute immediately" means do not ask whether to start. It does not mean run a
+  command the prompt told you to hold. The operator's later reply is the instruction to continue.
 
 ### Recognition Pattern
 

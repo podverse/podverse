@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type { AddByRSSParseStatus } from '@podverse/helpers';
 import { Dropdown, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSListHeader } from '../../../components/AddByRSS/List/AddByRSSListHeader';
@@ -16,6 +17,7 @@ import { dismissToast, showToast, showToastLoading } from '../../../components/T
 import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { useModals } from '../../../contexts/Modals';
+import type { AddByRSSParseOutcome } from '../../../utils/addByRSS/actions';
 import { applyAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import {
   ADD_BY_RSS_ITEMS_PAGE_SIZE,
@@ -206,14 +208,16 @@ export const AddByRSSEpisodesPageClient: React.FC = () => {
     async (
       feedUrl: string,
       parsedFeed: AddByRSSParsedFeed | undefined,
-      status: AddByRSSFeedRecord['status'],
-      cache?: AddByRSSFeedRecord['cache']
+      status: AddByRSSParseStatus,
+      cache?: AddByRSSFeedRecord['cache'],
+      outcome?: AddByRSSParseOutcome
     ) => {
       await applyAddByRSSParseStatus({
         feedUrl,
         parsedFeed,
         status,
         cache,
+        outcome,
       });
     },
     []
@@ -231,6 +235,7 @@ export const AddByRSSEpisodesPageClient: React.FC = () => {
     const runUpdates = async () => {
       const allFeeds = await getAllAddByRSSFeeds();
       const result = await runAddByRSSParseAll({
+        accountId: loggedInAccount.id_text,
         feeds: allFeeds,
         onQueued: async (feedUrl) => handleParseStatus(feedUrl, undefined, 'queued'),
         onStatusUpdate: async (feedUrl, statusResponse) =>
@@ -238,7 +243,8 @@ export const AddByRSSEpisodesPageClient: React.FC = () => {
             feedUrl,
             statusResponse.payload,
             statusResponse.status,
-            statusResponse.cache
+            statusResponse.cache,
+            statusResponse
           ),
       });
 

@@ -12,7 +12,12 @@ export {
   subscribePlaybackReconcileConflicts,
 } from './playbackReconcileConflict';
 export { attachSyncEventLogSink, toSyncEventLogAppend } from './syncEventLogSink';
-export { SYNC_JOB_KINDS, SYNC_JOB_LABEL_KEYS } from './syncJobKinds';
+export {
+  getSyncLogLabelKey,
+  SYNC_DIAGNOSTIC_LOG_KIND_LABEL_KEYS,
+  SYNC_JOB_KINDS,
+  SYNC_JOB_LABEL_KEYS,
+} from './syncJobKinds';
 export type { SyncJobKind } from './syncJobKinds';
 export { planSyncRun } from './syncJobPlan';
 export type { PlannedSyncJob, SyncTrigger } from './syncJobPlan';

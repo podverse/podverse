@@ -274,7 +274,7 @@ describe('management-api auth routes', () => {
       expect(typeof res.body.refresh_token).toBe('string');
     });
 
-    it('rotates refresh token and rejects reuse', async () => {
+    it('refreshes from a still-valid refresh JWT', async () => {
       const issue = await request(app)
         .post(`${authBase}/mobile/token`)
         .send({ email: 'admin@example.com', password: 'test-password' });
@@ -285,28 +285,22 @@ describe('management-api auth routes', () => {
         .send({ refresh_token: refreshToken });
       expect(refreshOne.status).toBe(200);
 
-      const reuse = await request(app)
+      const refreshAgain = await request(app)
         .post(`${authBase}/mobile/refresh`)
         .send({ refresh_token: refreshToken });
-      expect(reuse.status).toBe(401);
-      expect(reuse.body.code).toBe('refresh_token_reuse_detected');
+      expect(refreshAgain.status).toBe(200);
+      expect(typeof refreshAgain.body.access_token).toBe('string');
     });
 
-    it('revokes family and denies refresh after revoke', async () => {
+    it('rejects an access token used as a refresh token', async () => {
       const issue = await request(app)
         .post(`${authBase}/mobile/token`)
         .send({ email: 'admin@example.com', password: 'test-password' });
-      const refreshToken = issue.body.refresh_token as string;
 
-      const revoke = await request(app)
-        .post(`${authBase}/mobile/revoke`)
-        .send({ refresh_token: refreshToken });
-      expect(revoke.status).toBe(200);
-
-      const refreshAfterRevoke = await request(app)
+      const refreshWithAccess = await request(app)
         .post(`${authBase}/mobile/refresh`)
-        .send({ refresh_token: refreshToken });
-      expect(refreshAfterRevoke.status).toBe(401);
+        .send({ refresh_token: issue.body.access_token });
+      expect(refreshWithAccess.status).toBe(401);
     });
   });
 });

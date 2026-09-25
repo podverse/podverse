@@ -11,8 +11,8 @@ todos:
   - id: route-audit-apply
     content: Apply wrapper coverage to all SEO route fetchers used by dynamic content pages
     status: pending
-  - id: cleanup-dead-guards
-    content: Remove/adjust dead falsy notFound checks that cannot trigger after thrown requests
+  - id: cleanup-unreachable-guards
+    content: Remove/adjust unreachable falsy notFound checks that cannot trigger after thrown requests
     status: pending
   - id: tests
     content: Add targeted tests for 404 detection and route notFound behavior
@@ -34,7 +34,7 @@ isProject: false
 2. In `apps/web` SEO fetchers, introduce one centralized wrapper that converts only 404 to `notFound()` and rethrows all non-404 errors.
 3. Route every SEO fetcher through that wrapper so all affected routes get consistent behavior (podcast, episode, clip, chapter, album, livestream variants, etc.).
 4. Preserve existing non-404 behavior (e.g., upstream 500 still surfaces as error rather than silently pretending not-found).
-5. Optional cleanup: remove dead `if (!ssrX) notFound()` checks in routes where awaited calls can only throw on missing data.
+5. Optional cleanup: remove unreachable `if (!ssrX) notFound()` checks in routes where awaited calls can only throw on missing data.
 
 ## Scope of affected route files (high confidence)
 - [`/Users/mitcheldowney/repos/pv/podverse/apps/web/src/app/podcast/[channel_id]/page.tsx`](/Users/mitcheldowney/repos/pv/podverse/apps/web/src/app/podcast/[channel_id]/page.tsx)

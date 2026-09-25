@@ -1,0 +1,51 @@
+---
+description: Detail chrome known at navigate time must paint correctly on the first frame — no subscribe/bell/download correction after push
+globs:
+  - "apps/mobile/**"
+alwaysApply: false
+---
+
+# Mobile — navigate with known interactive state
+
+A push must not paint a guess and then correct it. If the source already knows subscribe,
+notification, or download state — or the device already has it in a synchronous memory cache —
+the destination's first frame uses that value.
+
+This is the same first-paint habit as **mobile-image-loading** (artwork) and
+**mobile-section-chrome-cache** (section chips), applied to controls that flip meaning when they
+are wrong: Subscribe vs Unsubscribe, the notification bell, download vs delete.
+
+## Do
+
+- Before `navigation.navigate`, pass every control state the source already painted or can read
+  synchronously (`previewIsSubscribed`, cached notification flag, numeric `channelId` when known).
+  Use the entity's `build*DetailParams` helper so callers cannot forget a field the header needs.
+- Keep a **synchronous in-memory cache** of subscribe + notification lookup (hydrated with SQLite
+  at `initializeDatabase`, updated on subscribe / unsubscribe / bell toggle). Deep links and
+  Browse read it on first paint; do not wait for `isSubscribed()` or `GET /channel/:id`.
+- Seed `useState` from preview params or that cache. An async SQLite confirm is allowed only when
+  it will not change the first frame.
+- Resolve the notification bell by `channelIdText` (cached numeric id + account rows), not by
+  waiting for the channel DTO's numeric `id`.
+- Hydrate `downloadStore` at bootstrap so list-row download/delete icons read the real status on
+  the first frame of the destination, including during the push transition.
+- When adding a new detail control that has on/off or download/delete meaning, add it to this
+  cache and to the navigate params in the same change. Do not introduce a default and "fix it
+  when the request returns."
+
+## Don't
+
+- Don't default Subscribe / bell-off / download-outline and then flip after a repository or
+  network read. That flash is the bug.
+- Don't `await` SQLite, `/auth/me`, or `GET /channel/:id` before `navigate` just to populate
+  these params. Read memory (and pass what the row already showed). Prefetch stays fire-and-forget
+  (**mobile-image-loading**).
+- Don't look up account notification rows only by numeric `channel.id` that arrives with the
+  detail DTO. The id text is known at tap time.
+- Don't treat "Downloaded only" Home rows as subscribed. Pass `previewIsSubscribed: false` there.
+
+## Related
+
+- Artwork first paint: **mobile-image-loading**
+- Section chips: **mobile-section-chrome-cache**
+- Startup from cache: **mobile-sync-orchestration**

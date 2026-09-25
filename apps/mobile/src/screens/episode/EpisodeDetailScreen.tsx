@@ -11,12 +11,21 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
-import { primaryChannelListArtworkUrl } from '@podverse/helpers';
-import { htmlToPlainText } from '@podverse/helpers/html';
-import { formatPlaybackTime } from '@podverse/helpers/time';
+import {
+  chapterSectionHasImages,
+  primaryChannelListArtworkUrl,
+  resolveChapterRowArtwork,
+} from '@podverse/helpers';
+import { formatHHMMSS } from '@podverse/helpers/time';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import {
+  ChapterListRow,
+  DescriptionText,
+  FundingLinksSection,
+  ItemSummaryPeople,
+} from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
 import { FillList } from '../../components/primitives';
@@ -51,6 +60,7 @@ import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { mapItemToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
+import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import { EpisodePlayChrome } from './EpisodePlayChrome';
@@ -83,10 +93,107 @@ const toSoundbiteRow = (
       soundbite.item !== undefined && soundbite.item !== null
         ? getItemPrimaryImageUrl(soundbite.item)
         : null,
-    subtitle: formatPlaybackTime(soundbite.start_time),
+    subtitle: formatHHMMSS(Number(soundbite.start_time)),
     title: soundbite.title ?? `${fallbackTitle} ${index + 1}`,
   };
 };
+
+const episodePaneRowKeyExtractor = (row: EpisodePaneRow): string => row.id;
+
+function EpisodeChapterRow({
+  chapter,
+  fallbackImageUrl,
+  isLast,
+  showImages,
+}: {
+  chapter: DTOItemChapter;
+  fallbackImageUrl: string | null;
+  isLast: boolean;
+  showImages: boolean;
+}) {
+  const { t } = useTranslation();
+  const artwork = resolveChapterRowArtwork(chapter, fallbackImageUrl, showImages);
+
+  return (
+    <ChapterListRow
+      artworkAccessibilityLabel={t('info.chapter.chapter_image')}
+      artworkUri={artwork.show ? artwork.uri : null}
+      isLast={isLast}
+      showArtwork={artwork.show}
+      testID="episode-detail-chapter-row"
+      timeRange={t('info.time.start_end', {
+        timeEnd: formatHHMMSS(Number(chapter.end_time)),
+        timeStart: formatHHMMSS(Number(chapter.start_time)),
+      })}
+      title={chapter.title ?? chapter.id_text}
+    />
+  );
+}
+
+function EpisodeSoundbiteRow({
+  isLast,
+  onPlay,
+  onQueue,
+  soundbite,
+  soundbiteIndex,
+}: {
+  isLast: boolean;
+  onPlay: (soundbite: DTOItemSoundbite) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+  soundbite: DTOItemSoundbite;
+  soundbiteIndex: number;
+}) {
+  const { t } = useTranslation();
+  const row = useMemo(
+    () => toSoundbiteRow(soundbite, soundbiteIndex, t('info.soundbite.official_clip')),
+    [soundbite, soundbiteIndex, t]
+  );
+  const handlePlay = useCallback(() => {
+    onPlay(soundbite);
+  }, [onPlay, soundbite]);
+
+  return (
+    <HomeFeedRow
+      isLast={isLast}
+      mediaType="clips"
+      onPlayPress={handlePlay}
+      onPress={handlePlay}
+      onQueuePress={onQueue}
+      row={row}
+    />
+  );
+}
+
+function EpisodeClipRow({
+  clip,
+  isLast,
+  onPlay,
+  onPress,
+  onQueue,
+}: {
+  clip: DTOClip;
+  isLast: boolean;
+  onPlay: (row: HomeFeedRowData) => void;
+  onPress: (clipId: string) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+}) {
+  const row = useMemo(() => clipToHomeRow(clip), [clip]);
+  const handlePress = useCallback(() => {
+    onPress(clip.id_text);
+  }, [clip.id_text, onPress]);
+
+  return (
+    <HomeFeedRow
+      isLast={isLast}
+      mediaType="clips"
+      onPlayPress={onPlay}
+      onPress={handlePress}
+      onQueuePress={onQueue}
+      row={row}
+      showChannelContext={false}
+    />
+  );
+}
 
 /**
  * An episode as one scrolling column.
@@ -112,7 +219,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const [channelTitle, setChannelTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
   const { playbackNoticeKey, runMarkAsPlayedAction, runPlayAction, runQueueAction } =
     useHomeRowPlayback();
   const { playSoundbite } = usePlaybackSession();
@@ -120,23 +226,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        chapterRow: {
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          paddingVertical: tokens.spacing.base,
-        },
-        chapterRowLast: {
-          borderBottomWidth: 0,
-        },
-        chapterTime: {
-          ...typography.caption,
-          color: themeStyles.textSecondary.color,
-          marginTop: tokens.spacing.xs,
-        },
-        chapterTitle: {
-          ...typography.subheading,
-          color: themeStyles.textPrimary.color,
-        },
         chipRow: {
           marginTop: listHeaderStackGap(tokens.spacing),
         },
@@ -176,7 +265,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         },
         showMore: {
           ...typography.caption,
-          color: themeStyles.textSecondary.color,
+          color: tokens.text.link,
           marginTop: tokens.spacing.sm,
         },
         transcript: {
@@ -343,6 +432,8 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     offlineModeEnabled,
     previewFlags,
   });
+  const chapterListShowsImages = chapterSectionHasImages(chapterRows);
+  const chapterFallbackImageUrl = episode !== null ? getItemPrimaryImageUrl(episode) : null;
 
   useEffect(() => {
     listRef.current?.scrollToOffset({ animated: false, offset: 0 });
@@ -366,24 +457,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     [supportedTabs, t]
   );
 
-  const descriptionValue = useMemo(() => {
-    if (
-      episode?.item_description?.value === undefined ||
-      episode.item_description.value.length === 0
-    ) {
-      return '';
-    }
-
-    return htmlToPlainText(episode.item_description.value);
-  }, [episode]);
-
-  const displayDescription = useMemo(() => {
-    if (descriptionExpanded || descriptionValue.length <= 360) {
-      return descriptionValue;
-    }
-
-    return `${descriptionValue.slice(0, 360)}…`;
-  }, [descriptionExpanded, descriptionValue]);
+  const descriptionHtml = episode?.item_description?.value ?? null;
 
   const downloadableEpisode = useMemo((): DTOItem | null => {
     if (episode === null) {
@@ -471,50 +545,128 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const podcastTitle = channel?.title ?? channelTitle ?? t('media.podcast.podcast');
   const canOpenPodcast = channel !== null && channel.id_text.length > 0;
 
-  const listHeader =
-    downloadableEpisode !== null && episodeRow !== null ? (
-      <View>
-        <EpisodePlayChrome
-          episode={downloadableEpisode}
-          episodeRow={episodeRow}
-          onAddToPlaylistPress={handleAddToPlaylist}
-          onMarkAsPlayedPress={handleMarkAsPlayed}
-          onPlayPress={(row) => {
-            runPlayAction(row, 'episodes');
-          }}
-          onPodcastPress={canOpenPodcast ? handleOpenPodcast : undefined}
-          onQueuePress={(row, position) => {
-            runQueueAction(row, 'episodes', position);
-          }}
-          onSharePress={handleEpisodeShare}
-          podcastTitle={podcastTitle}
-        />
-        {playbackNoticeKey !== null ? (
-          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
-        ) : null}
-        <View style={styles.chipRow}>
-          <SectionChipRow
-            items={sectionChips}
-            leading={
-              activeTab === 'clips' ? (
-                <MenuSelectChip
-                  heading={t('filters.screen.sort_heading')}
-                  onSelect={handleClipSortSelect}
-                  options={clipSortOptions}
-                  testID="episode-detail-clip-sort"
-                  value={clipSort}
-                />
-              ) : undefined
-            }
-            onSelect={handleTabPress}
-            selectedKey={activeTab}
-            testID="episode-detail-sections"
-          />
-        </View>
-      </View>
-    ) : null;
+  const handleEpisodePlay = useCallback(
+    (row: HomeFeedRowData) => {
+      runPlayAction(row, 'episodes');
+    },
+    [runPlayAction]
+  );
 
-  const paneFooter = (() => {
+  const handleEpisodeQueue = useCallback(
+    (row: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(row, 'episodes', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleClipPlay = useCallback(
+    (row: HomeFeedRowData) => {
+      runPlayAction(row, 'clips');
+    },
+    [runPlayAction]
+  );
+
+  const handleClipQueue = useCallback(
+    (row: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(row, 'clips', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleSoundbitePlay = useCallback(
+    (soundbite: DTOItemSoundbite) => {
+      if (episode !== null && channel !== null) {
+        void playSoundbite(soundbite, episode, channel);
+      }
+    },
+    [channel, episode, playSoundbite]
+  );
+
+  const handleClipRowPress = useCallback(
+    (clipId: string) => {
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.ClipDetail, { clipId });
+    },
+    [navigation]
+  );
+
+  const handleRetryEpisode = useCallback(() => {
+    void loadEpisode();
+  }, [loadEpisode]);
+
+  const handleRetryTab = useCallback(() => {
+    void loadTab(activeTab);
+  }, [activeTab, loadTab]);
+
+  const handleLoadMoreClipsPress = useCallback(() => {
+    void handleLoadMoreClips();
+  }, [handleLoadMoreClips]);
+
+  const listRowCount = listRows.length;
+
+  const listHeader = useMemo(
+    () =>
+      downloadableEpisode !== null && episodeRow !== null ? (
+        <View>
+          <EpisodePlayChrome
+            episode={downloadableEpisode}
+            episodeRow={episodeRow}
+            onAddToPlaylistPress={handleAddToPlaylist}
+            onMarkAsPlayedPress={handleMarkAsPlayed}
+            onPlayPress={handleEpisodePlay}
+            onPodcastPress={canOpenPodcast ? handleOpenPodcast : undefined}
+            onQueuePress={handleEpisodeQueue}
+            onSharePress={handleEpisodeShare}
+            podcastTitle={podcastTitle}
+          />
+          {playbackNoticeKey !== null ? (
+            <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
+          ) : null}
+          <View style={styles.chipRow}>
+            <SectionChipRow
+              items={sectionChips}
+              trailing={
+                activeTab === 'clips' ? (
+                  <MenuSelectChip
+                    heading={t('filters.screen.sort_heading')}
+                    onSelect={handleClipSortSelect}
+                    options={clipSortOptions}
+                    testID="episode-detail-clip-sort"
+                    value={clipSort}
+                  />
+                ) : undefined
+              }
+              onSelect={handleTabPress}
+              selectedKey={activeTab}
+              testID="episode-detail-sections"
+            />
+          </View>
+        </View>
+      ) : null,
+    [
+      activeTab,
+      canOpenPodcast,
+      clipSort,
+      clipSortOptions,
+      downloadableEpisode,
+      episodeRow,
+      handleAddToPlaylist,
+      handleClipSortSelect,
+      handleEpisodePlay,
+      handleEpisodeQueue,
+      handleEpisodeShare,
+      handleMarkAsPlayed,
+      handleOpenPodcast,
+      handleTabPress,
+      playbackNoticeKey,
+      podcastTitle,
+      sectionChips,
+      styles.chipRow,
+      styles.notice,
+      t,
+    ]
+  );
+
+  const paneFooter = useMemo(() => {
     if (isTabLoading) {
       return <LoadingSection testID={`episode-detail-tab-loading-${activeTab}`} />;
     }
@@ -523,9 +675,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       return (
         <ListError
           messageKey={tabErrorKey}
-          onRetry={() => {
-            void loadTab(activeTab);
-          }}
+          onRetry={handleRetryTab}
           testID={`episode-detail-tab-error-${activeTab}`}
         />
       );
@@ -550,30 +700,41 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     if (activeTab === 'summary') {
       return (
         <View testID="episode-detail-summary">
-          <Text style={styles.description} testID="episode-detail-description">
-            {displayDescription.length > 0 ? displayDescription : t('info.summary.no_summary')}
-          </Text>
-          {descriptionValue.length > 360 ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ expanded: descriptionExpanded }}
-              onPress={() => {
-                setDescriptionExpanded((current) => !current);
-              }}
-              testID="episode-detail-description-toggle"
-            >
-              <Text style={styles.showMore}>
-                {t(descriptionExpanded ? 'info.show_less' : 'info.show_more')}
-              </Text>
-            </Pressable>
-          ) : null}
+          <DescriptionText
+            emptyLabel={t('info.summary.no_summary')}
+            html={descriptionHtml}
+            linkStyle={styles.showMore}
+            resetKey={episodeId}
+            showMoreStyle={styles.showMore}
+            testID="episode-detail-description"
+            textStyle={styles.description}
+            toggleTestID="episode-detail-description-toggle"
+          />
+          <ItemSummaryPeople
+            itemPersons={episode?.item_persons ?? []}
+            testIDPrefix="episode-detail"
+          />
         </View>
+      );
+    }
+
+    if (activeTab === 'funding') {
+      return (
+        <FundingLinksSection
+          fundings={episode?.item_fundings ?? []}
+          isLoading={episode === null}
+          layout="inline"
+          testIDPrefix="episode-detail"
+        />
       );
     }
 
     if (activeTab === 'transcript') {
       return transcriptText.length === 0 ? (
-        <ListEmpty messageKey="misc.info" testID="episode-detail-tab-empty-transcript" />
+        <ListEmpty
+          messageKey="info.transcript.no_transcript"
+          testID="episode-detail-tab-empty-transcript"
+        />
       ) : (
         <Text style={styles.transcript} testID="episode-detail-tab-transcript-content">
           {transcriptText}
@@ -582,7 +743,12 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     }
 
     if (activeTab === 'chapters' && chapterRows.length === 0) {
-      return <ListEmpty messageKey="misc.info" testID="episode-detail-tab-empty-chapters" />;
+      return (
+        <ListEmpty
+          messageKey="info.chapter.no_chapters"
+          testID="episode-detail-tab-empty-chapters"
+        />
+      );
     }
 
     if (activeTab === 'soundbites' && soundbiteRows.length === 0) {
@@ -607,9 +773,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       return (
         <Pressable
           accessibilityRole="button"
-          onPress={() => {
-            void handleLoadMoreClips();
-          }}
+          onPress={handleLoadMoreClipsPress}
           style={styles.loadMore}
           testID="episode-detail-clip-load-more"
         >
@@ -621,7 +785,76 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     }
 
     return null;
-  })();
+  }, [
+    activeTab,
+    chapterRows.length,
+    clipHasMore,
+    clipRows.length,
+    descriptionHtml,
+    episode,
+    episodeId,
+    handleLoadMoreClipsPress,
+    handleRetryTab,
+    isLoadingMoreClips,
+    isTabLoading,
+    offlineModeEnabled,
+    soundbiteRows.length,
+    styles.description,
+    styles.loadMore,
+    styles.loadMoreLabel,
+    styles.showMore,
+    styles.transcript,
+    t,
+    tabErrorKey,
+    transcriptText,
+  ]);
+
+  const renderItem = useCallback(
+    ({ item: row, index }: { item: EpisodePaneRow; index: number }) => {
+      const isLast = index === listRowCount - 1;
+      if (row.type === 'chapter') {
+        return (
+          <EpisodeChapterRow
+            chapter={row.chapter}
+            fallbackImageUrl={chapterFallbackImageUrl}
+            isLast={isLast}
+            showImages={chapterListShowsImages}
+          />
+        );
+      }
+
+      if (row.type === 'soundbite') {
+        return (
+          <EpisodeSoundbiteRow
+            isLast={isLast}
+            onPlay={handleSoundbitePlay}
+            onQueue={handleClipQueue}
+            soundbite={row.soundbite}
+            soundbiteIndex={row.index}
+          />
+        );
+      }
+
+      return (
+        <EpisodeClipRow
+          clip={row.clip}
+          isLast={isLast}
+          onPlay={handleClipPlay}
+          onPress={handleClipRowPress}
+          onQueue={handleClipQueue}
+        />
+      );
+    },
+    [
+      chapterFallbackImageUrl,
+      chapterListShowsImages,
+      handleClipPlay,
+      handleClipQueue,
+      handleClipRowPress,
+      handleSoundbitePlay,
+      listRowCount,
+    ]
+  );
 
   return (
     <View style={styles.container} testID="episode-detail-screen">
@@ -635,9 +868,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       {!isLoading && errorKey !== null ? (
         <ListError
           messageKey={errorKey}
-          onRetry={() => {
-            void loadEpisode();
-          }}
+          onRetry={handleRetryEpisode}
           testID="episode-detail-error"
         />
       ) : null}
@@ -652,72 +883,9 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
           contentContainerStyle={styles.listContent}
           data={listRows}
           extraData={`${activeTab}:${clipSort}:${clipHasMore}:${isTabLoading}`}
-          keyExtractor={(row) => row.id}
+          keyExtractor={episodePaneRowKeyExtractor}
           ref={listRef}
-          renderItem={({ item: row, index }) => {
-            if (row.type === 'chapter') {
-              return (
-                <View
-                  style={[
-                    styles.chapterRow,
-                    index === listRows.length - 1 ? styles.chapterRowLast : null,
-                  ]}
-                >
-                  <Text style={styles.chapterTitle}>
-                    {row.chapter.title ?? row.chapter.id_text}
-                  </Text>
-                  <Text style={styles.chapterTime}>
-                    {t('info.time.start_end', {
-                      timeEnd: formatPlaybackTime(row.chapter.end_time),
-                      timeStart: formatPlaybackTime(row.chapter.start_time),
-                    })}
-                  </Text>
-                </View>
-              );
-            }
-
-            if (row.type === 'soundbite') {
-              return (
-                <HomeFeedRow
-                  isLast={index === listRows.length - 1}
-                  mediaType="clips"
-                  onPlayPress={() => {
-                    if (episode !== null && channel !== null) {
-                      void playSoundbite(row.soundbite, episode, channel);
-                    }
-                  }}
-                  onPress={() => {
-                    if (episode !== null && channel !== null) {
-                      void playSoundbite(row.soundbite, episode, channel);
-                    }
-                  }}
-                  onQueuePress={(feedRow, position) => {
-                    runQueueAction(feedRow, 'clips', position);
-                  }}
-                  row={toSoundbiteRow(row.soundbite, row.index, t('info.soundbite.official_clip'))}
-                />
-              );
-            }
-
-            return (
-              <HomeFeedRow
-                isLast={index === listRows.length - 1}
-                mediaType="clips"
-                onPlayPress={(feedRow) => {
-                  runPlayAction(feedRow, 'clips');
-                }}
-                onPress={() => {
-                  navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.ClipDetail, {
-                    clipId: row.clip.id_text,
-                  });
-                }}
-                onQueuePress={(feedRow, position) => {
-                  runQueueAction(feedRow, 'clips', position);
-                }}
-                row={clipToHomeRow(row.clip)}
-              />
-            );
-          }}
+          renderItem={renderItem}
           style={styles.list}
           testID={
             activeTab === 'clips'

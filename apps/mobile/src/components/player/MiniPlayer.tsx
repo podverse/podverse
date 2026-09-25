@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
 
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { MINI_PLAYER_ARTWORK_SIZE } from '../../theme/screenLayout';
@@ -28,8 +29,16 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
   const { t } = useTranslation();
   const { isTablet } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
-  const { activeTarget, nowPlaying, pause, resume, retryPlayback, transportState } =
-    usePlaybackSession();
+  const {
+    activeTarget,
+    lastPlaybackError,
+    nowPlaying,
+    pause,
+    resume,
+    retryPlayback,
+    transportState,
+  } = usePlaybackSession();
+  const { openPlaybackError } = useActionError();
 
   const styles = useMemo(
     () =>
@@ -83,9 +92,11 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
     pause();
   };
 
-  const handleRetry = (event: GestureResponderEvent) => {
+  const handleErrorPress = (event: GestureResponderEvent) => {
     stopPropagation(event);
-    void retryPlayback();
+    openPlaybackError(lastPlaybackError, () => {
+      void retryPlayback();
+    });
   };
 
   return (
@@ -114,7 +125,7 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
             appearance="bare"
             onPause={handlePause}
             onPlay={handlePlay}
-            onRetry={handleRetry}
+            onErrorPress={handleErrorPress}
             state={transportState}
             testID="mini-player-play-pause"
           />

@@ -72,12 +72,8 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
     }
     const { endpoint } = params;
 
-    const existing = await this.repositoryRead.findOne({ where: { account_id, endpoint } });
-    if (existing) {
-      return this._delete(account, { endpoint });
-    }
-
-    throw new Error('WebPush Device not found for deletion.');
+    // Unregister is valid with no matching row (disable push before a subscription was saved).
+    await this._delete(account, { endpoint });
   }
 
   async getWebPushSubscriptionsByChannelIdText(channel_id_text: string): Promise<

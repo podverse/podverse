@@ -12,12 +12,16 @@ import { Button } from '../../components/primitives/Button';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
+import { autoDownloadRepository } from '../../data/repositories/autoDownloadRepository';
+import { syncAutoDownloadRegistrationNow } from '../../downloads/autoDownloadRegistrationSync';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
 import { resolveSupportedLocale } from '../../i18n/locale';
 import { NOTIFICATION_TYPE_ROWS } from '../../lib/notifications/notificationTypeRows';
 import { handleRateLimitMessage } from '../../lib/rateLimit/handleRateLimitMessage';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import type { ChannelBrowseStackParamList } from '../../navigation';
+import { readAutoDownloadCellularDefaultEnabled } from '../../prefs/downloadPrefs';
 import { useTheme } from '../../theme/useTheme';
 
 type PodcastSettingsScreenProps = NativeStackScreenProps<
@@ -41,10 +45,14 @@ export function PodcastSettingsScreen({ route }: PodcastSettingsScreenProps) {
   const { i18n, t } = useTranslation();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { handleGateError, openGate } = useMembershipGate();
+  const { evaluateFeature } = useAccessTier();
   const { styles: themeStyles, tokens } = useTheme();
   const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [feedNotice, setFeedNotice] = useState<string | null>(null);
   const [isCheckingFeed, setIsCheckingFeed] = useState<boolean>(false);
+  const [autoDownloadEnabled, setAutoDownloadEnabled] = useState(false);
+  const [allowCellular, setAllowCellular] = useState(false);
+  const [autoDownloadSaving, setAutoDownloadSaving] = useState(false);
 
   const locale = resolveSupportedLocale(i18n.language);
   const isSignedIn = status === 'authenticated';
@@ -81,6 +89,22 @@ export function PodcastSettingsScreen({ route }: PodcastSettingsScreenProps) {
     };
   }, [authContext, podcastId]);
 
+  useEffect(() => {
+    let isMounted = true;
+    void (async () => {
+      const row = await autoDownloadRepository.getByChannelIdText(podcastId);
+      const cellularDefault = await readAutoDownloadCellularDefaultEnabled();
+      if (!isMounted) {
+        return;
+      }
+      setAutoDownloadEnabled(row?.enabled ?? false);
+      setAllowCellular(row?.allowCellular ?? cellularDefault);
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [podcastId]);
+
   const feed = channel?.feed ?? null;
 
   const feedStatusLines = useMemo(() => {
@@ -102,13 +126,6 @@ export function PodcastSettingsScreen({ route }: PodcastSettingsScreenProps) {
     ).lines;
   }, [feed?.feed_log, locale, t]);
 
-  /**
-   * Queue a re-read of the feed.
-   *
-   * The request is deduped server-side, so a second tap inside the window comes back rate-limited
-   * rather than queueing twice — that answer is worth showing, since it tells the user the feed is
-   * already on its way rather than that nothing happened.
-   */
   const handleCheckFeedForUpdates = useCallback(async () => {
     if (isCheckingFeed) {
       return;
@@ -144,6 +161,68 @@ export function PodcastSettingsScreen({ route }: PodcastSettingsScreenProps) {
       setIsCheckingFeed(false);
     }
   }, [authContext, feed, handleGateError, isCheckingFeed, isSignedIn, openGate, t]);
+
+  const requireAutoDownloadAccess = useCallback((): boolean => {
+    const access = evaluateFeature('auto_download');
+    if (!access.allowed) {
+      openGate(access.reason);
+      return false;
+    }
+    return true;
+  }, [evaluateFeature, openGate]);
+
+  const handleAutoDownloadToggle = useCallback(
+    async (next: boolean) => {
+      if (autoDownloadSaving) {
+        return;
+      }
+      if (!requireAutoDownloadAccess()) {
+        return;
+      }
+      setAutoDownloadSaving(true);
+      try {
+        const cellularDefault = await readAutoDownloadCellularDefaultEnabled();
+        await autoDownloadRepository.upsertChannel({
+          allowCellular: next ? allowCellular || cellularDefault : allowCellular,
+          channelIdText: podcastId,
+          enabled: next,
+          source: 'directory',
+        });
+        setAutoDownloadEnabled(next);
+        if (next && !allowCellular) {
+          setAllowCellular(cellularDefault);
+        }
+        void syncAutoDownloadRegistrationNow();
+      } finally {
+        setAutoDownloadSaving(false);
+      }
+    },
+    [allowCellular, autoDownloadSaving, podcastId, requireAutoDownloadAccess]
+  );
+
+  const handleCellularToggle = useCallback(
+    async (next: boolean) => {
+      if (autoDownloadSaving) {
+        return;
+      }
+      if (!requireAutoDownloadAccess()) {
+        return;
+      }
+      setAutoDownloadSaving(true);
+      try {
+        await autoDownloadRepository.upsertChannel({
+          allowCellular: next,
+          channelIdText: podcastId,
+          enabled: autoDownloadEnabled,
+          source: 'directory',
+        });
+        setAllowCellular(next);
+      } finally {
+        setAutoDownloadSaving(false);
+      }
+    },
+    [autoDownloadEnabled, autoDownloadSaving, podcastId, requireAutoDownloadAccess]
+  );
 
   const styles = useMemo(
     () =>
@@ -260,11 +339,6 @@ export function PodcastSettingsScreen({ route }: PodcastSettingsScreenProps) {
         </View>
       </Card>
 
-      {/*
-        The auto-download affordance is shown and inert. Scheduling downloads for a channel is not
-        built, so the switch is permanently off and non-interactive, and the line underneath says so
-        in words rather than leaving a dead control to be discovered by tapping it.
-      */}
       <Card padded={false} testID="podcast-settings-auto-download-card">
         <View style={styles.sectionInner}>
           <ListRow
@@ -273,14 +347,42 @@ export function PodcastSettingsScreen({ route }: PodcastSettingsScreenProps) {
             trailing={
               <Switch
                 accessibilityLabel={t('features.download.auto_download')}
-                disabled
-                value={false}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: autoDownloadEnabled, busy: autoDownloadSaving }}
+                disabled={autoDownloadSaving}
+                onValueChange={(nextValue) => {
+                  void handleAutoDownloadToggle(nextValue);
+                }}
+                testID="podcast-settings-auto-download-toggle"
+                value={autoDownloadEnabled}
               />
             }
           />
-          <Text style={styles.sectionDescription} testID="podcast-settings-auto-download-notice">
-            {t('features.download.auto_download_unavailable')}
-          </Text>
+          <Text style={styles.sectionDescription}>{t('features.download.auto_download_help')}</Text>
+          {autoDownloadEnabled ? (
+            <View style={styles.sectionStack}>
+              <ListRow
+                testID="podcast-settings-auto-download-cellular"
+                title={t('features.download.auto_download_cellular')}
+                trailing={
+                  <Switch
+                    accessibilityLabel={t('features.download.auto_download_cellular')}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: allowCellular, busy: autoDownloadSaving }}
+                    disabled={autoDownloadSaving}
+                    onValueChange={(nextValue) => {
+                      void handleCellularToggle(nextValue);
+                    }}
+                    testID="podcast-settings-auto-download-cellular-toggle"
+                    value={allowCellular}
+                  />
+                }
+              />
+              <Text style={styles.sectionDescription}>
+                {t('features.download.auto_download_cellular_help')}
+              </Text>
+            </View>
+          ) : null}
         </View>
       </Card>
     </MobileScreenContainer>

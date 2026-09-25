@@ -89,7 +89,7 @@ Before running the scripts, ensure you have the following ready:
 - **Metaboost App Assertion** (`create_metaboost_secret.sh` → Secret `podverse-metaboost-opaque`):
   - `METABOOST_SIGNING_KEY_PEM` and `METABOOST_APP_ASSERTION_ISS` (Optional): For App Assertion minting (set both or neither).
 
-- **API / management API non-secret auth (ConfigMap env)**: `AUTH_JWT_EXPIRATION` and `AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY` are set in `base/api/source/api.env` and `base/management-api/source/management-api.env` (session length in seconds and whether login may return a token in JSON when the client requests it).
+- **API / management API non-secret auth (ConfigMap env)**: `AUTH_JWT_EXPIRATION`, `AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION`, `AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION`, and `AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY` are set in `base/api/source/api.env` and `base/management-api/source/management-api.env` (cookie session length, mobile access/refresh lifetimes in seconds, and whether login may return a token in JSON when the client requests it).
 
 - **Worker (add-by-RSS) keys** (`create_workers_add_by_rss_secret.sh`):
   - `PODCAST_INDEX_AUTH_KEY`: From your PodcastIndex account.

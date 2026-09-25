@@ -37,6 +37,40 @@ describe('serializeLoadCommand', () => {
     expect(() => serializeLoadCommand({ url: '   ' })).toThrow(/url/);
   });
 
+  it('appends basicAuth as the third arg and keeps an omitted seek positional as null', () => {
+    const basicAuth = {
+      allowInsecure: false,
+      password: 'secret',
+      scopeHost: ' Example.COM ',
+      scopeMatch: 'domain' as const,
+      username: 'listener',
+    };
+    expect(serializeLoadCommand({ basicAuth, url: 'https://cdn.example.com/a.mp3' })).toEqual([
+      'https://cdn.example.com/a.mp3',
+      null,
+      { ...basicAuth, scopeHost: 'example.com' },
+    ]);
+    expect(
+      serializeLoadCommand({ basicAuth, initialSeekSeconds: 30, url: 'https://example.com/a.mp3' })
+    ).toEqual(['https://example.com/a.mp3', 30, { ...basicAuth, scopeHost: 'example.com' }]);
+  });
+
+  it('throws when basicAuth has no scope host or username', () => {
+    const base = {
+      allowInsecure: false,
+      password: 'p',
+      scopeHost: 'example.com',
+      scopeMatch: 'domain' as const,
+      username: 'u',
+    };
+    expect(() =>
+      serializeLoadCommand({ basicAuth: { ...base, scopeHost: ' ' }, url: 'https://example.com' })
+    ).toThrow(/scopeHost/);
+    expect(() =>
+      serializeLoadCommand({ basicAuth: { ...base, username: '' }, url: 'https://example.com' })
+    ).toThrow(/username/);
+  });
+
   it('throws when initialSeekSeconds is negative or not finite', () => {
     expect(() => serializeLoadCommand({ initialSeekSeconds: -1, url: 'x' })).toThrow(
       /initialSeekSeconds/

@@ -1,4 +1,5 @@
 import type { DTOItem, DTOItemEnclosure } from '../../dtos/index.js';
+import { isHlsSource } from '../item/mediaSourceClassification.js';
 
 export function getLiveItemEnclosureSource(item: DTOItem | null): {
   url: string | null;
@@ -19,11 +20,11 @@ export function getLiveItemEnclosureSource(item: DTOItem | null): {
     return { url: null, type: '', isAudioHLS: false, isVideoHLS: false };
   }
 
-  if (source.uri.endsWith('.m3u8')) {
-    const enclosureType = defaultEnclosure?.type || source?.content_type || '';
+  const rawEnclosureType = defaultEnclosure?.type || source?.content_type || '';
+  if (isHlsSource(source.uri, rawEnclosureType !== '' ? rawEnclosureType : null)) {
     const codecs = defaultEnclosure?.codecs || '';
     const isAudioHLS =
-      (typeof enclosureType === 'string' && enclosureType.includes('audio')) ||
+      (typeof rawEnclosureType === 'string' && rawEnclosureType.includes('audio')) ||
       (typeof codecs === 'string' && !!codecs.match(/mp4a|aac|opus|vorbis|flac|alac|pcm/i));
     return {
       url: source.uri,
@@ -33,7 +34,7 @@ export function getLiveItemEnclosureSource(item: DTOItem | null): {
     };
   }
 
-  const enclosureType = defaultEnclosure?.type || source?.content_type || 'audio';
+  const enclosureType = rawEnclosureType || 'audio';
 
   if (typeof enclosureType === 'string' && enclosureType.includes('video')) {
     return {

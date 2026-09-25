@@ -72,6 +72,7 @@ not exist yet, so that check is deferred — build the surfaces so it drops in w
 | **Queue and history**                       | Membership | Signed-in only; see the offline note below     |
 | **Add by RSS**                              | Membership | Requires server-side feed parsing              |
 | **Notifications** (inbox and push)          | Membership | Requires server-side storage and push delivery |
+| **Auto download** (new episodes)            | Membership | Needs silent push / background wake on iOS; device prefs stay local |
 
 ### Subscribing has three distinct behaviors
 

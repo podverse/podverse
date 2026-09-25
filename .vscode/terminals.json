@@ -10,7 +10,7 @@
     },
     {
       "name": "Dev",
-      "description": "Leave running: npm run dev:all:watch (main + management). Focused: npm run dev:main:all (no admin).",
+      "description": "Leave running: npm run dev:all:watch (main + management). Focused: npm run dev:main:all (no admin). Stuck :3000: npm run dev:api:stop from Root.",
       "cwd": ".",
       "open": true,
       "command": "clear"
@@ -24,7 +24,7 @@
     },
     {
       "name": "Workers",
-      "description": "Leave-running consumers: npm run dev:workers:parsers (rss-on-demand, rss-normal, rss-live, add-by-rss-on-demand, add-by-rss-background, opml-import, live-item listener). Not npm run dev:workers — that only recompiles. Not crons. Image shrink / DLQ are separate. Optional one-shots: trending/P20 seed, scheduled_jobs_run_due.",
+      "description": "Leave-running consumers: npm run dev:workers:parsers (rss-on-demand, rss-normal, rss-live, add-by-rss-on-demand, add-by-rss-background, opml-import, live-item listener). Not npm run dev:workers — that only recompiles. Not crons. Image shrink / DLQ are separate. Optional one-shots: trending/P20/music seed, scheduled_jobs_run_due.",
       "cwd": ".",
       "open": true,
       "command": "clear"
@@ -45,21 +45,21 @@
     },
     {
       "name": "Mobile Metro",
-      "description": "Leave running :8081. Emulator/day-to-day: npm run mobile:dev. USB Android phone: npm run mobile:dev:device (LAN API IP). API-backed E2E: npm run mobile:dev:e2e. Cache clear: npm run mobile:dev:clear. Run only one.",
+      "description": "Leave running :8081 for local. npm run mobile:dev (API :3000). USB phone: mobile:dev:device. Cache clear: mobile:dev:clear. Stop before Mobile E2E Metro — only one Metro on :8081.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile iOS",
-      "description": "Install/run (exits when done; --no-bundler always). E2E phone: npm run mobile:e2e:ios. E2E tablet: npm run mobile:e2e:ios:tablet. Manual: npm run mobile:ios. Keep Metro in Mobile Metro.",
+      "description": "Manual install/run (exits when done; --no-bundler always). npm run mobile:ios -- --device \"iPhone 17 Pro\". Metro in Mobile Metro. E2E installs: Mobile E2E iOS.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Android",
-      "description": "Install/run (exits when done; --no-bundler always). E2E phone: npm run mobile:e2e:android. E2E tablet: npm run mobile:e2e:android:tablet. Manual emulator: npm run mobile:android. USB phone: npm run mobile:android:device. Keep Metro in Mobile Metro.",
+      "description": "Manual install/run (exits when done; --no-bundler always). Emulator: npm run mobile:android -- --device Pixel_6_Pro_API_33. USB: mobile:android:device. Metro in Mobile Metro. E2E installs: Mobile E2E Android.",
       "cwd": ".",
       "open": true,
       "split": "Mobile iOS",
@@ -81,6 +81,28 @@
       "command": "clear"
     },
     {
+      "name": "Mobile E2E Metro",
+      "description": "Leave running :8081 for Maestro. npm run mobile:dev:e2e (API :4230). Stop Dev and Mobile Metro first. After E2E: stop this, restart Dev + Mobile Metro, reload iPhone 17 Pro.",
+      "cwd": ".",
+      "open": true,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile E2E iOS",
+      "description": "E2E install/run (exits when done; --no-bundler always). Phone: npm run mobile:e2e:ios. Tablet: npm run mobile:e2e:ios:tablet. Metro in Mobile E2E Metro.",
+      "cwd": ".",
+      "open": true,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile E2E Android",
+      "description": "E2E install/run (exits when done; --no-bundler always). Phone: npm run mobile:e2e:android. Tablet: npm run mobile:e2e:android:tablet. Metro in Mobile E2E Metro.",
+      "cwd": ".",
+      "open": true,
+      "split": "Mobile E2E iOS",
+      "command": "clear"
+    },
+    {
       "name": "Mobile E2E API",
       "description": "Leave running for API-backed E2E: npm run mobile:e2e:api:bg (:4230). Skip for UI-only. Runner manages restart around database reseeding; no restart needed when only Metro restarts if :4230 is healthy.",
       "cwd": ".",
@@ -89,14 +111,14 @@
     },
     {
       "name": "Mobile E2E test-assets",
-      "description": "Leave running for playback E2E: npm run mobile:e2e:test-assets (:2111, same as web). Required for add-by-rss play. Health: mobile:e2e:test-assets:health.",
+      "description": "Leave running :2111 for Maestro (BIND 0.0.0.0). npm run mobile:e2e:test-assets. Do not reuse Dev's dev:test-assets — stop Dev first if :2111 is busy. Health: mobile:e2e:test-assets:health.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Maestro",
-      "description": "Run then exit: npm run mobile:e2e:test:all (full suite) or npm run mobile:e2e:test -- <area>. Needs Metro + installs; + E2E API for API-backed / :all; + test-assets for playback flows.",
+      "description": "Run then exit: npm run mobile:e2e:test:all (full suite) or npm run mobile:e2e:test -- <area>. Needs Mobile E2E Metro + Mobile E2E iOS / Mobile E2E Android installs; + E2E API for API-backed / :all; + test-assets for playback flows.",
       "cwd": ".",
       "open": true,
       "command": "clear"

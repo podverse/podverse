@@ -2,42 +2,30 @@ appId: com.podverse.app.next
 name: Popularity Tracking Gate
 ---
 # Undecided seeded account must choose before the tab shell is usable.
+# Sign-in is the E2E shortcut; this flow still asserts the consent prompt itself.
 
 - runFlow: shared/launch-and-connect.yaml
 
 - tapOn:
-    id: tab-more
-- assertVisible:
-    id: more-screen
-- tapOn:
-    id: anonymous-login-cta
-- assertVisible:
-    id: login-screen
-
-- tapOn:
-    id: login-email
-- inputText: e2e-popularity-undecided@example.com
-
-- tapOn:
-    id: login-password
-- inputText: "Test!1Aa"
-
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - hideKeyboard
-
-- tapOn:
-    id: login-submit
+    id: e2e-quick-login-popularity
 
 - extendedWaitUntil:
     visible:
       id: popularity-tracking-yes
     timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: popularity-tracking-prompt
+- takeScreenshot: popularity-tracking-prompt
 
 - tapOn:
     id: popularity-tracking-learn-more
+# Opening the full agreement pushes Yes below the screen. Maestro taps the element's center,
+# which is off-screen until the sheet is scrolled.
+- scrollUntilVisible:
+    element:
+      id: popularity-tracking-yes
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
 - tapOn:
     id: popularity-tracking-yes
 

@@ -63,7 +63,8 @@ their episodes from `channelItemsRepository`, and add-by-RSS feeds from `addByRs
 
 While the queue is non-empty, a sync indicator bar reports **what** is syncing and **how many steps
 remain**, and it disappears when the queue drains. Sync the user cannot see is sync the user
-experiences as an unexplained slowdown.
+experiences as an unexplained slowdown. The indicator is the job label, the step count, and a
+spinner; it does not draw a determinate fill.
 
 - The bar sits directly above the mini player, and directly above the tab bar when the mini player
   is hidden.
@@ -85,8 +86,21 @@ same wall, and pending jobs keep their place rather than being spent against it.
 a request or health probe succeeding — a platform reachability event is a hint that schedules a
 probe, not a reason to start work again.
 
-Failures are instead appended to a **capped sync event log** (500 entries) that the user can reach
-from More, so a support conversation has something concrete in it.
+A directory episode-list **404** is not a retryable failure. That channel is missing or not
+parsed-ready, so the device drops the local follow (and unfollows the account when signed in) and
+records `directory_channel_gone` once. Add-by-RSS feeds are not on this path. Do not leave a
+directory follow in place that will 404 on every launch.
+
+Failures are instead appended to the **error log** (`sync_event_log`, capped at 200 entries) at
+More › Advanced › Error log, so a support conversation has something concrete in it. The same log
+also records playback and add-by-RSS failures. Those surface in the UI, and they are logged anyway
+because the dialog is gone by the time the listener contacts support.
+
+Each entry carries a `details` map of stable snake_case keys (`SYNC_EVENT_DETAIL_KEYS`): our ids,
+the media or feed URL, and the host's HTTP status. Podcasters and artists host their own media, so
+this map is what lets support tell a listener that the fault is on the creator's server. Record
+host status and URLs there, and strip URL credentials before storing them. Do not add free-form
+keys; extend `SYNC_EVENT_DETAIL_KEYS` and the `error_log.detail.field.*` catalog labels together.
 
 **Recorded messages must embed the machine-readable error code.** The displayed message is
 localized, so the code is the only part a user can usefully quote to support. A log entry with a

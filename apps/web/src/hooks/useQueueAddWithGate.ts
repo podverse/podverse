@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
 import { showToast } from '../components/Toast/Toast';
+import { emitQueueDataChangedEvent } from '../lib/queue/queueDataChanged';
 import { useMembershipGate } from './useMembershipGate';
 
 /**
@@ -29,7 +30,8 @@ export function useQueueAddWithGate(): {
       messages: { success: string; error: string }
     ): Promise<void> => {
       try {
-        await action();
+        const result = await action();
+        emitQueueDataChangedEvent(result);
         showToast(messages.success, 'success');
       } catch (error) {
         if (!tryHandleMembershipGateError(error)) {

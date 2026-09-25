@@ -6,11 +6,10 @@
 
 ## Directory index — `.llm/` (planning workspace)
 
-| Path                 | Operator doc                                            |
-| -------------------- | ------------------------------------------------------- |
-| `.llm/context/`      | [LLM-CONTEXT.md](context/LLM-CONTEXT.md)                |
-| `.llm/plans/active/` | [LLM-PLANS-ACTIVE.md](plans/active/LLM-PLANS-ACTIVE.md) |
-| `.llm/templates/`    | [LLM-TEMPLATES.md](templates/LLM-TEMPLATES.md)          |
+| Path              | Operator doc                                   |
+| ----------------- | ---------------------------------------------- |
+| `.llm/context/`   | [LLM-CONTEXT.md](context/LLM-CONTEXT.md)       |
+| `.llm/templates/` | [LLM-TEMPLATES.md](templates/LLM-TEMPLATES.md) |
 
 ## Directory index — abcmemory (`.cursor/`)
 
@@ -49,8 +48,12 @@ Empty layout directories may contain a `.gitkeep` so git tracks the folder after
 
 ## Plans
 
-Active work lives under `.llm/plans/active/`. Completed plan files are removed after the operator
-confirms the work is no longer needed. See `.cursor/skills/plan-completion/SKILL.md` and repo rules
-for the 300-line plan limit.
+Active work lives under `.llm/plans/active/<name>/`. List that directory to see what is in flight;
+each set carries its own `00-SUMMARY.md` / `COPY-PASTA.md`. Do not keep a folder-level inventory or
+set-vs-set run-order file — those go stale when plan sets are deleted. Durable status belongs in
+phase master plans and detail docs.
+
+Completed plan files are removed after the operator confirms the work is no longer needed. See
+`.cursor/skills/plan-completion/SKILL.md` and repo rules for the 300-line plan limit.
 
 **Import specifiers (Tier A vs Next `src`):** see [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).

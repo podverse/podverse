@@ -63,6 +63,8 @@ export class MediaElementFake {
   muted: boolean = false;
   playbackRate: number = 1;
   readyState: number = 0;
+  /** `canPlayType` result. Empty means the element cannot play an HLS playlist natively. */
+  canPlayTypeResult: string = '';
 
   private readonly _now: () => number;
   private readonly _listeners: Map<string, Set<EventListener>> = new Map();
@@ -112,6 +114,10 @@ export class MediaElementFake {
 
   load(): void {
     this._eventLog.push({ kind: 'method-load', t: this._now() });
+  }
+
+  canPlayType(): string {
+    return this.canPlayTypeResult;
   }
 
   async play(): Promise<void> {

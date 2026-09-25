@@ -4,7 +4,10 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { OfflineCause } from '../../prefs/offlineStatus';
 import { useOfflineStatus } from '../../prefs/offlineStatus';
-import { typography } from '../../theme/typography';
+import {
+  bottomChromeStripContainerLayout,
+  bottomChromeStripTextStyle,
+} from '../../theme/bottomChromeStrip';
 import { useTheme } from '../../theme/useTheme';
 
 /**
@@ -14,7 +17,7 @@ import { useTheme } from '../../theme/useTheme';
  *
  * This strip is the only announcement a connectivity change gets. No toast, dialog, or
  * notification — on a bad signal those would arrive over and over for something the user already
- * knows and cannot fix.
+ * knows and cannot fix. Height and type match the other bottom-chrome strips.
  */
 
 /**
@@ -45,14 +48,11 @@ export function OfflineModeBanner() {
           backgroundColor: tokens.background.warning,
           borderTopColor: tokens.border.warning,
           borderTopWidth: StyleSheet.hairlineWidth,
-          justifyContent: 'center',
-          paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.xs,
+          ...bottomChromeStripContainerLayout(tokens.spacing),
         },
         label: {
-          ...typography.caption,
+          ...bottomChromeStripTextStyle(),
           color: tokens.text.warning,
-          fontWeight: '600',
           textAlign: 'center',
         },
       }),

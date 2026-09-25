@@ -5,9 +5,15 @@ import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import {
+  hydrateChannelActionChrome,
+  snapshotPersistedChannelActionChrome,
+} from '../../lib/channelActionChrome';
 import { getDb, initializeDatabase, schema } from '../db';
 import type { SubscribedChannelRow } from '../db/schema';
 import { addByRssRepository } from './addByRssRepository';
+import { autoDownloadRepository } from './autoDownloadRepository';
+import { rememberChannelSubscribed } from './channelActionChromeRepository';
 import { channelItemsRepository } from './channelItemsRepository';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
 import { channelSeenRepository } from './channelSeenRepository';
@@ -100,6 +106,10 @@ const replaceDirectoryCache = async (entries: SubscribedChannel[]): Promise<void
       }))
     );
   });
+  hydrateChannelActionChrome({
+    persisted: snapshotPersistedChannelActionChrome(),
+    subscribedIdTexts: entries.map((entry) => entry.idText),
+  });
 };
 
 /** Add or refresh entries without removing anything already present. */
@@ -136,20 +146,27 @@ export const subscriptionsRepository = {
   /** Merged directory + add-by-RSS follows (default: all, alphabetical). Offline-capable. */
   list: async (
     params: {
+      /**
+       * `ready` leaves out add-by-RSS feeds waiting on a username and password, which Home lists
+       * in their own section at the end. Everything else still counts them as followed.
+       */
+      credentials?: 'all' | 'ready';
       filter?: SubscriptionFilter;
       kind?: SubscriptionChannelKind | null;
       sort?: SubscriptionSort;
     } = {}
   ): Promise<SubscribedChannel[]> => {
     await initializeDatabase();
-    const { filter = 'all', kind = null, sort = 'alphabetical' } = params;
+    const { credentials = 'all', filter = 'all', kind = null, sort = 'alphabetical' } = params;
 
     // The publish dates come from the item store for directory channels and from a column on the
     // feed row for add-by-RSS, so both are read here and attached before the two sets are merged.
     // Always read, not only when ordering by recency: a subscription row states when its channel
     // last published, so the date is part of the answer whichever order it comes back in.
     const [addByRssRecords, directory, latestPubDateByChannel] = await Promise.all([
-      addByRssRepository.listFeeds(),
+      credentials === 'ready'
+        ? addByRssRepository.listFeedsByCredentials().then((split) => split.ready)
+        : addByRssRepository.listFeeds(),
       readDirectoryCache(),
       channelItemsRepository.latestPubDateByChannel(),
     ]);
@@ -232,6 +249,15 @@ export const subscriptionsRepository = {
           updatedAt: Date.now(),
         },
       });
+    rememberChannelSubscribed(entry.idText, true);
+    void autoDownloadRepository
+      .seedFromGlobalDefaults({
+        channelIdText: entry.idText,
+        source: entry.source === 'addByRss' ? 'add_by_rss' : 'directory',
+      })
+      .catch(() => {
+        // Seeding is best-effort; the user can toggle podcast settings later.
+      });
   },
 
   /** Remove a directory subscription locally. Never gated — unsubscribe works in every state. */
@@ -247,6 +273,8 @@ export const subscriptionsRepository = {
     // badge answering a question about a subscription the user already ended.
     await channelSeenRepository.remove(idText);
     await channelLiveStatusRepository.remove(idText);
+    await autoDownloadRepository.removeChannel(idText);
+    rememberChannelSubscribed(idText, false);
   },
 
   /**

@@ -29,7 +29,7 @@ export function CoreArtistNodes({ channels, viewSelected }: Params): React.React
       title: channel.title ?? '',
       imageCandidates,
       href: `${ROUTES.ARTIST}/${channel.id_text}`,
-      subtitle: channel.channel_about?.author ?? null,
+      lastPubDate: channel.channel_about?.last_pub_date ?? null,
       showSubtitle: Boolean(channel.channel_about?.last_pub_date),
     };
   });

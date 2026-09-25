@@ -45,6 +45,18 @@ name: Settings Downloads Storage
 - assertVisible:
     id: more-settings-downloads-limit
 - assertVisible:
+    id: more-settings-downloads-auto-download-default
+- assertVisible:
+    id: more-settings-downloads-cellular-default
+- assertVisible:
+    id: more-settings-downloads-catch-up-limit
+# The auto-free rows sit below the fold once the mini player is up.
+- scrollUntilVisible:
+    element:
+      id: more-settings-downloads-auto-limit
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
     id: more-settings-downloads-auto-limit
 - assertVisible:
     id: more-settings-downloads-auto-device-low
@@ -77,6 +89,22 @@ name: Settings Downloads Storage
 - assertVisible:
     id: more-settings-download-limit-10gb
 - takeScreenshot: settings-downloads-limit
+- tapOn:
+    id: stack-header-back
+- assertVisible:
+    id: more-settings-downloads-screen
+- scrollUntilVisible:
+    element:
+      id: more-settings-downloads-catch-up-limit
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: more-settings-downloads-catch-up-limit
+- assertVisible:
+    id: more-settings-auto-download-catch-up-screen
+- assertVisible:
+    id: more-settings-auto-download-catch-up-20
+- takeScreenshot: settings-downloads-catch-up
 - tapOn:
     id: stack-header-back
 - assertVisible:

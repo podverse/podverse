@@ -1,4 +1,7 @@
-import type { AddByRSSFeedRecord as AddByRSSFeedRecordBase } from '@podverse/helpers';
+import type {
+  AddByRSSFeedRecord as AddByRSSFeedRecordBase,
+  AddByRSSParseFailureReason,
+} from '@podverse/helpers';
 import type { ParseRSSFeedForAddByRSSResult } from '@podverse/parser';
 
 // Re-export from parser-mapping
@@ -24,4 +27,8 @@ export type AddByRSSParsedFeed = ParsedFeedResult['parsedFeed'];
 /** Web feed record: helpers shape + mappedFeed from parser-mapping for type safety. */
 export type AddByRSSFeedRecord = AddByRSSFeedRecordBase & {
   mappedFeed?: AddByRSSMappedFeed;
+  /** Mirrors the follow row's `requires_credentials`, refined by this device's parse results. */
+  requiresCredentials?: boolean;
+  /** Why the most recent parse failed; cleared by the next successful parse. */
+  lastFailureReason?: AddByRSSParseFailureReason | null;
 };

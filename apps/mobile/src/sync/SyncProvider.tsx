@@ -10,8 +10,24 @@ import {
 } from 'react';
 import { AppState } from 'react-native';
 
+import { deriveMembershipState, evaluateFeatureAccess } from '@podverse/helpers';
+
 import { useAuth } from '../auth/AuthProvider';
 import { useQueues } from '../contexts/QueuesProvider';
+import { accountRepository } from '../data/repositories/accountRepository';
+import {
+  isAutoDownloadCatchUpReady,
+  markAutoDownloadCatchUpReady,
+  noteAutoDownloadSyncRunning,
+  requestAutoDownloadCatchUp,
+  takeAutoDownloadCatchUpIfReady,
+} from '../downloads/autoDownloadCatchUpSession';
+import { runAutoDownloadEvaluate } from '../downloads/autoDownloadEvaluate';
+import {
+  startAutoDownloadWifiRetryListener,
+  stopAutoDownloadWifiRetryListener,
+} from '../downloads/autoDownloadWifiRetry';
+import { downloadManager } from '../downloads/downloadManager';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
 import {
   getConnectivity,
@@ -20,9 +36,12 @@ import {
 } from '../net/connectivity';
 import {
   hydrateOfflineMode,
+  isOfflineModeEnabled,
   isSyncNetworkUsable,
   subscribeOfflineMode,
 } from '../prefs/offlineMode';
+import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
+import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import { attachSyncEventLogSink } from './syncEventLogSink';
 import type { SyncTrigger } from './syncJobPlan';
 import { planSyncRun } from './syncJobPlan';
@@ -33,15 +52,44 @@ import { syncQueue } from './syncQueue';
 /**
  * Owns the sync queue's triggers and publishes its state.
  *
- * Everything here enqueues; nothing runs work inline. A foreground transition or a pull gesture
- * that awaited the network would put the user back behind exactly the requests this queue exists to
- * get out of their way.
+ * Sync triggers only enqueue. The foreground auto-download catch-up starts after that queue is
+ * idle, and it is not awaited here, so opening the app does not wait on episode downloads.
  */
 
 type SyncContextValue = {
   /** Ask for a run. Safe to call repeatedly — equivalent queued work collapses. */
   requestSync: (trigger: SyncTrigger) => void;
   state: SyncQueueState;
+};
+
+const startAutoDownloadCatchUpIfIdle = (): void => {
+  if (syncQueue.getState().status !== 'idle') {
+    return;
+  }
+  markAutoDownloadCatchUpReady();
+  if (!isAutoDownloadCatchUpReady(true) || isOfflineModeEnabled()) {
+    return;
+  }
+
+  void (async () => {
+    const account = await accountRepository.getSnapshot();
+    const membershipAllows =
+      account !== null &&
+      evaluateFeatureAccess('auto_download', deriveMembershipState(account)).allowed;
+    if (!membershipAllows || isOfflineModeEnabled() || syncQueue.getState().status !== 'idle') {
+      return;
+    }
+    if (!takeAutoDownloadCatchUpIfReady(true)) {
+      return;
+    }
+    try {
+      await runAutoDownloadEvaluate({ membershipAllows: true, mode: 'catch_up' });
+    } catch (error: unknown) {
+      if (__DEV__) {
+        console.warn('[auto-download] catch-up failed', error);
+      }
+    }
+  })();
 };
 
 const SyncContext = createContext<SyncContextValue | undefined>(undefined);
@@ -90,19 +138,50 @@ export function SyncProvider({ children }: PropsWithChildren) {
   }, [status]);
 
   useEffect(() => {
-    return syncQueue.subscribe(setState);
+    return syncQueue.subscribe((next) => {
+      setState(next);
+      if (next.status === 'running') {
+        noteAutoDownloadSyncRunning();
+      }
+      if (next.status === 'idle') {
+        startAutoDownloadCatchUpIfIdle();
+      }
+    });
   }, []);
 
   useEffect(() => {
     return attachSyncEventLogSink();
   }, []);
 
+  useEffect(() => {
+    startAutoDownloadWifiRetryListener();
+    void downloadManager
+      .hydrate()
+      .then(() => downloadManager.reconcileInterruptedDownloads())
+      .catch((error: unknown) => {
+        if (__DEV__) {
+          console.warn('[downloads] launch reconcile failed', error);
+        }
+      });
+    return () => {
+      stopAutoDownloadWifiRetryListener();
+    };
+  }, []);
+
   const requestSync = useCallback((trigger: SyncTrigger) => {
+    if (trigger === 'app-foreground' || trigger === 'app-start' || trigger === 'sign-in') {
+      requestAutoDownloadCatchUp();
+      if (syncQueue.getState().status === 'running') {
+        noteAutoDownloadSyncRunning();
+      }
+    }
+
     const planned = planSyncRun({
       isAuthenticated: isAuthenticatedRef.current,
       trigger,
     });
     if (planned.length === 0) {
+      startAutoDownloadCatchUpIfIdle();
       return;
     }
 
@@ -121,15 +200,18 @@ export function SyncProvider({ children }: PropsWithChildren) {
         },
       })
     );
+    startAutoDownloadCatchUpIfIdle();
   }, []);
 
-  // Signing out drops queued account work rather than letting it run against a session that no
-  // longer exists, and clears the store the queue was hydrating.
+  // Signing out drops queued account work, the in-memory queue, and pending playback conflicts.
+  // Those conflicts name queue ids the next account does not own.
   useEffect(() => {
     if (status !== 'anonymous') {
       return;
     }
     syncQueue.reset();
+    publishPlaybackReconcileConflicts([]);
+    publishPlaybackPositionAdoptions([]);
     setQueues([]);
     setActiveQueue(null);
     setActiveQueueUpcomingResources([]);

@@ -42,8 +42,11 @@ const {
   notificationChannelGetAllByAccountMock,
   notificationChannelCreateMock,
   notificationChannelDeleteMock,
+  notificationChannelBulkEnableMock,
+  notificationChannelBulkDisableMock,
   notificationChannelTypeCreateMock,
   notificationChannelTypeDeleteMock,
+  notificationChannelTypeBulkSetMock,
   settingsNotificationGetByAccountIdMock,
   statsAggregatedGetManyMock,
   statsAggregatedGetManyByAccountsAndCountMock,
@@ -106,12 +109,15 @@ const {
     channel_id_text: 'test-channel',
   })),
   notificationChannelDeleteMock: vi.fn(async () => {}),
+  notificationChannelBulkEnableMock: vi.fn(async () => ({ created: 2 })),
+  notificationChannelBulkDisableMock: vi.fn(async () => ({ deleted: 3 })),
   notificationChannelTypeCreateMock: vi.fn(async () => ({
     id: 1,
     channel_id_text: 'test-channel',
     type: 'new-item',
   })),
   notificationChannelTypeDeleteMock: vi.fn(async () => {}),
+  notificationChannelTypeBulkSetMock: vi.fn(async () => ({ updated: 4 })),
   settingsNotificationGetByAccountIdMock: vi.fn(async () => ({
     id: 1,
     account_settings_id: 1,
@@ -165,9 +171,6 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     removeRSSChannel = removeRSSChannelMock;
     hasFollowedAddByRSSChannel = hasFollowedAddByRSSChannelMock;
     getFollowedAddByRSSChannelCount = getFollowedAddByRSSChannelCountMock;
-    async getCredentialsForFeed(): Promise<{ username: string; password: string } | null> {
-      return null;
-    }
   }
 
   class MockAccountNotificationChannelService {
@@ -175,11 +178,14 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     getAllByAccountId = notificationChannelGetAllByAccountMock;
     create = notificationChannelCreateMock;
     delete = notificationChannelDeleteMock;
+    enableForAllFollowedChannels = notificationChannelBulkEnableMock;
+    disableAll = notificationChannelBulkDisableMock;
   }
 
   class MockAccountNotificationChannelTypeService {
     create = notificationChannelTypeCreateMock;
     delete = notificationChannelTypeDeleteMock;
+    setTypeForAllChannels = notificationChannelTypeBulkSetMock;
   }
 
   class MockAccountSettingsNotificationService {
@@ -612,6 +618,10 @@ describe('account follows and notification routes', () => {
   // ─── Follow/Unfollow Add-by-RSS Channel ─────────────────────────────
 
   describe('POST /follow/add-by-rss-channel', () => {
+    beforeEach(() => {
+      addOrUpdateRSSChannelMock.mockClear();
+    });
+
     it('returns 201 when adding an RSS channel with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/follow/add-by-rss-channel`)
@@ -623,6 +633,53 @@ describe('account follows and notification routes', () => {
       expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(
         TEST_USER_ID,
         expect.objectContaining({ feed_url: 'https://example.com/feed.xml' })
+      );
+    });
+
+    it('drops basic_auth fields so no credential reaches storage', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/add-by-rss-channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({
+          feed_url: 'https://example.com/private.xml',
+          basic_auth_username: 'alice',
+          basic_auth_password: 'follow-secret',
+        });
+
+      expect(res.status).toBe(201);
+      expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(TEST_USER_ID, {
+        feed_url: 'https://example.com/private.xml',
+        title: undefined,
+        image_url: undefined,
+      });
+    });
+
+    it('strips userinfo from feed_url and flags the feed as requiring credentials', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/add-by-rss-channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ feed_url: 'https://alice:follow-secret@example.com/private.xml' });
+
+      expect(res.status).toBe(201);
+      expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(TEST_USER_ID, {
+        feed_url: 'https://example.com/private.xml',
+        title: undefined,
+        image_url: undefined,
+        requires_credentials: true,
+      });
+      expect(JSON.stringify(res.body)).not.toContain('follow-secret');
+    });
+
+    it('stores an explicit requires_credentials flag', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/add-by-rss-channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ feed_url: 'https://example.com/private.xml', requires_credentials: true });
+
+      expect(res.status).toBe(201);
+      expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(
+        TEST_USER_ID,
+        expect.objectContaining({ requires_credentials: true })
       );
     });
 
@@ -858,6 +915,67 @@ describe('account follows and notification routes', () => {
       );
 
       expect(res.status).toBe(401);
+    });
+  });
+
+  describe('POST /notification/channels/bulk-enable', () => {
+    it('returns 200 with created count', async () => {
+      notificationChannelBulkEnableMock.mockResolvedValueOnce({ created: 2 });
+
+      const res = await request(app)
+        .post(`${accountBase}/notification/channels/bulk-enable`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.created).toBe(2);
+      expect(notificationChannelBulkEnableMock).toHaveBeenCalledWith(TEST_USER_ID);
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app).post(`${accountBase}/notification/channels/bulk-enable`);
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('POST /notification/channels/bulk-disable', () => {
+    it('returns 200 with deleted count', async () => {
+      notificationChannelBulkDisableMock.mockResolvedValueOnce({ deleted: 3 });
+
+      const res = await request(app)
+        .post(`${accountBase}/notification/channels/bulk-disable`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.deleted).toBe(3);
+      expect(notificationChannelBulkDisableMock).toHaveBeenCalledWith(TEST_USER_ID);
+    });
+  });
+
+  describe('POST /notification/channels/bulk-type', () => {
+    it('returns 200 with updated count', async () => {
+      notificationChannelTypeBulkSetMock.mockResolvedValueOnce({ updated: 4 });
+
+      const res = await request(app)
+        .post(`${accountBase}/notification/channels/bulk-type`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ type: 'new-item', enabled: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.updated).toBe(4);
+      expect(notificationChannelTypeBulkSetMock).toHaveBeenCalledWith(
+        TEST_USER_ID,
+        'new-item',
+        true
+      );
+    });
+
+    it('returns 400 when type is missing', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/notification/channels/bulk-type`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ enabled: true });
+
+      expect(res.status).toBe(400);
     });
   });
 

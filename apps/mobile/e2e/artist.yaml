@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Artist flow
 ---
-# Artist detail opens linked album and track detail routes.
+# Artist detail opens linked album and track detail routes. Track detail opens via More.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -53,8 +53,16 @@ name: Artist flow
     visible:
       id: artist-track-row-0
     timeout: ${TIMEOUT_SLOW}
+- assertNotVisible:
+    id: "home-row-play-.*"
 - tapOn:
-    id: artist-track-row-0
+    id: "home-row-more-.*"
+- extendedWaitUntil:
+    visible:
+      id: "media-row-menu-.*"
+    timeout: ${TIMEOUT_FASTER}
+- tapOn:
+    id: "media-row-action-go-to-track-.*"
 - extendedWaitUntil:
     visible:
       id: track-detail-screen

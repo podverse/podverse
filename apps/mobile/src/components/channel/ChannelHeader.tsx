@@ -6,14 +6,17 @@ import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { CoverImage } from '../primitives';
 
+/** Square art beside the title. Shared by the style and the iOS thumbnail decode edge. */
+const CHANNEL_HEADER_ARTWORK_EDGE = 78;
+
 export type ChannelHeaderProps = {
-  /** List-size artwork. Falls back to the title's initials-free placeholder when absent. */
+  /** List-size artwork. Missing art uses the shared headphone placeholder. */
   artworkUri: string | null;
   /** Already-localized. Truncated, with the full text living on the About section. */
   description?: string | null;
   /** Lines of description before truncation. */
   descriptionLines?: number;
-  /** Renders under the title — the subscribe control, and whatever sits beside it. */
+  /** Renders under the title — typically subscribe. RSS and website live on About. */
   actions?: ReactNode;
   /** Already-localized status text under the actions, e.g. a failed follow. */
   notice?: string | null;
@@ -63,8 +66,8 @@ export function ChannelHeader({
           marginTop: tokens.spacing.md,
         },
         artwork: {
-          height: 78,
-          width: 78,
+          height: CHANNEL_HEADER_ARTWORK_EDGE,
+          width: CHANNEL_HEADER_ARTWORK_EDGE,
         },
         description: {
           ...typography.body,
@@ -108,7 +111,7 @@ export function ChannelHeader({
       <View style={styles.row}>
         <CoverImage
           accessibilityLabel={title}
-          fallbackLabel={title}
+          decodeEdge={CHANNEL_HEADER_ARTWORK_EDGE}
           style={styles.artwork}
           uri={artworkUri}
           viewerUri={viewerUri}

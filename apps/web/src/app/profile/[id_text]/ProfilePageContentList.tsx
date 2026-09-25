@@ -149,6 +149,7 @@ export const ProfilePageContentList: React.FC = () => {
             clips={clips}
             totalPages={clipsTotalPages}
             showSubscribeMessage={false}
+            showChannelInfo
             showItemInfo={true}
           />
         </div>

@@ -39,9 +39,9 @@ import type { PodcastPageDropdownConfigCurrentParams } from './PodcastPageDropdo
 import { getPodcastPageFilterParams } from './PodcastPageDropdownConfig';
 
 /**
- * The control fields carry no schema default, so an absent parameter stays `undefined` and this
- * channel's remembered selection is reachable. A default applied here would win before the stored
- * preference was ever consulted.
+ * Sort and range carry no schema default, so an absent parameter stays `undefined` and this
+ * channel's remembered order is reachable. `type` (section chip) also stays optional so a clean URL
+ * opens on Episodes; an explicit `?type=` selects that chip for this request only.
  */
 const searchParamsSchema = z.object({
   page: z
@@ -233,16 +233,11 @@ function parseSearchParams(
       QUERY_PARAMS_CHANNEL_SORT_VALUES,
       'recent'
     ),
-    type: resolveStoredToken(
-      data?.type,
-      storedSortPref?.tab,
-      QUERY_PARAMS_CHANNEL_TYPE_VALUES,
-      'episodes'
-    ),
+    type: resolveStoredToken(data?.type, undefined, QUERY_PARAMS_CHANNEL_TYPE_VALUES, 'episodes'),
   });
 
   return {
     ...filterParams,
-    hasExplicitUrlParams: hasExplicitControlParams([data?.type, data?.sort, data?.range]),
+    hasExplicitUrlParams: hasExplicitControlParams([data?.sort, data?.range]),
   };
 }

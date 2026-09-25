@@ -1,4 +1,5 @@
 import { getMobileConfig } from '../config';
+import { clearAutoDownloadRegistrationOnSignOut } from '../downloads/autoDownloadRegistrationSync';
 import { unregisterFcmDeviceForAccount } from '../push/fcmDeviceSync';
 import { unregisterUnifiedPushDeviceForAccount } from '../push/unifiedPushDeviceSync';
 import type { SessionEndReason } from './forcedLogoutNotice';
@@ -16,6 +17,12 @@ export const logoutWithMobileRevoke = async ({
   refreshToken,
 }: LogoutWithMobileRevokeParams): Promise<void> => {
   try {
+    try {
+      await clearAutoDownloadRegistrationOnSignOut(accessToken);
+    } catch (error) {
+      console.warn('Failed to clear auto-download registration during logout', error);
+    }
+
     try {
       const pushProvider = getMobileConfig().pushProvider;
       if (pushProvider === 'fcm') {

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
-import { useMemo } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
@@ -9,15 +9,20 @@ import type { DTOItem } from '@podverse/helpers/dto';
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import type { DownloadStatus } from '../../downloads/downloadTypes';
 import { useDownloadAction } from '../../downloads/useDownloads';
+import { useActionError } from '../../feedback/ActionErrorProvider';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
-import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { usePlaybackRow } from '../../playback/PlaybackProvider';
 import { LIST_ROW_ACTION_ICON_SIZE, LIST_ROW_ACTION_SIZE } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 
 type DownloadRowControlProps = {
   item: DTOItem;
   testID: string;
+  /** When the file is on disk, Maestro waits on this id. List rows omit it so their id stays stable. */
+  completeTestID?: string;
 };
 
 const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Ionicons>['name'] => {
@@ -35,6 +40,19 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
   }
 };
 
+const createStyles = (_theme: ThemedStylesTheme) =>
+  StyleSheet.create({
+    control: {
+      alignItems: 'center',
+      height: LIST_ROW_ACTION_SIZE,
+      justifyContent: 'center',
+      width: LIST_ROW_ACTION_SIZE,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });
+
 /**
  * The download affordance as a list row carries it: one icon, one tap. **Renders nothing** when the
  * item cannot be downloaded — a livestream, an HLS-only source, or no enclosure — the same
@@ -46,35 +64,25 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
  *
  * The busy state is a spinner with no percentage, and the row does not subscribe to byte progress.
  * A screen can show forty of these at once, and per-chunk work multiplied by forty rows is what
- * makes a list stutter while something downloads. Episode detail and My Library → Downloads are
- * where a user goes for the number; both report it and announce it.
+ * makes a list stutter while something downloads. My Library → Downloads is where a user goes for
+ * the number.
  */
-export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
+export const DownloadRowControl = memo(function DownloadRowControl({
+  completeTestID,
+  item,
+  testID,
+}: DownloadRowControlProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
-  const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
+  const { activeTarget, enclosureSelectedParams } = usePlaybackRow();
   const activeItemId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
   const explicitSelectedParams =
     activeItemId === item.id_text ? enclosureSelectedParams : undefined;
-  const { isDownloadable, remove, start, status } = useDownloadAction(item, false, {
+  const { isDownloadable, errorReason, remove, start, status } = useDownloadAction(item, false, {
     explicitSelectedParams,
   });
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        control: {
-          alignItems: 'center',
-          height: LIST_ROW_ACTION_SIZE,
-          justifyContent: 'center',
-          width: LIST_ROW_ACTION_SIZE,
-        },
-        pressed: {
-          opacity: 0.7,
-        },
-      }),
-    []
-  );
+  const { openDownloadError } = useActionError();
+  const styles = useThemedStyles(createStyles);
 
   if (!isDownloadable) {
     return null;
@@ -85,15 +93,21 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
 
   return (
     <Pressable
-      accessibilityLabel={t(downloadActionLabelKey(status))}
+      accessibilityLabel={
+        status === 'failed' ? t('action_error.download_a11y') : t(downloadActionLabelKey(status))
+      }
       accessibilityRole="button"
       accessibilityState={{ busy: isInProgress }}
       onPress={(event) => {
         stopPropagation(event);
+        if (status === 'failed') {
+          openDownloadError(errorReason, start);
+          return;
+        }
         runDownloadAction({ remove, start, status });
       }}
       style={({ pressed }) => [styles.control, pressed ? styles.pressed : null]}
-      testID={testID}
+      testID={status === 'complete' && completeTestID !== undefined ? completeTestID : testID}
     >
       {isInProgress ? (
         <ActivityIndicator color={tokens.text.secondary} size="small" />
@@ -106,4 +120,4 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
       )}
     </Pressable>
   );
-}
+});

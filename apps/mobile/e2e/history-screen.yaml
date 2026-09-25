@@ -1,0 +1,42 @@
+appId: com.podverse.app.next
+name: History screen flow
+---
+# History screen medium chips smoke: open History and switch Podcasts / Music.
+# Needs Mobile E2E API (:4230) only. No media playback assertions, so test-assets are not required.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-history
+- assertVisible:
+    id: library-history-screen
+- extendedWaitUntil:
+    visible:
+      id: library-history-medium-chips
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: history-screen-loaded
+
+# Medium chips render and switching them reloads history for that queue.
+- assertVisible:
+    id: library-history-medium-av
+- assertVisible:
+    id: library-history-medium-music
+- tapOn:
+    id: library-history-medium-music
+- extendedWaitUntil:
+    visible:
+      id: library-history-medium-music
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: history-screen-music-medium
+- tapOn:
+    id: library-history-medium-av
+- extendedWaitUntil:
+    visible:
+      id: library-history-medium-av
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: history-screen-av-medium

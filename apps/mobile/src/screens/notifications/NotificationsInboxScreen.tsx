@@ -2,6 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TextStyle, ViewStyle } from 'react-native';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
@@ -53,6 +54,63 @@ type NotificationsInboxScreenProps = NativeStackScreenProps<
   'NotificationsInbox'
 >;
 
+type InboxRowStyles = {
+  body: TextStyle;
+  category: TextStyle;
+  rowCard: ViewStyle;
+  sectionHeading: TextStyle;
+  time: TextStyle;
+  title: TextStyle;
+};
+
+const inboxRowKeyExtractor = (item: DTOAccountNotification): string => String(item.id);
+
+function InboxNotificationRow({
+  formatRelativeTime,
+  item,
+  onPress,
+  showEarlierHeading,
+  styles,
+}: {
+  formatRelativeTime: (isoDate: string) => string;
+  item: DTOAccountNotification;
+  onPress: (notification: DTOAccountNotification) => void;
+  showEarlierHeading: boolean;
+  styles: InboxRowStyles;
+}) {
+  const { t } = useTranslation();
+  const handlePress = useCallback(() => {
+    void onPress(item);
+  }, [item, onPress]);
+  const categoryLabelKey =
+    CATEGORY_LABEL_KEYS[item.category] ?? 'settings.notifications.category_general';
+
+  return (
+    <>
+      {showEarlierHeading ? (
+        <Text style={styles.sectionHeading}>{t('notifications.section.earlier')}</Text>
+      ) : null}
+      <View style={styles.rowCard}>
+        <Card>
+          <Pressable
+            accessibilityLabel={item.title}
+            accessibilityRole="button"
+            onPress={handlePress}
+            testID={`notifications-inbox-row-${item.id}`}
+          >
+            <Text style={styles.title}>{item.title}</Text>
+            {item.body !== null && item.body !== '' ? (
+              <Text style={styles.body}>{item.body}</Text>
+            ) : null}
+            <Text style={styles.category}>{t(categoryLabelKey)}</Text>
+            <Text style={styles.time}>{formatRelativeTime(item.created_at)}</Text>
+          </Pressable>
+        </Card>
+      </View>
+    </>
+  );
+}
+
 export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) {
   const { t } = useTranslation();
   const { onRequestLogin } = useAuthPrompt();
@@ -62,7 +120,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   const [notifications, setNotifications] = useState<DTOAccountNotification[]>(
     () => lastCachedInbox?.items ?? []
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => lastCachedInbox === null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(lastCachedInbox?.unreadCount ?? 0);
@@ -314,113 +372,138 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   );
 
   const canLoadMore = page < totalPages;
-  const clampedUnreadCount = Math.min(unreadCount, notifications.length);
-  const unreadItems = notifications.slice(0, clampedUnreadCount);
-  const earlierItems = notifications.slice(clampedUnreadCount);
+  const earlierSectionStartIndex = Math.min(unreadCount, notifications.length);
+  const hasUnreadSection = earlierSectionStartIndex > 0;
+  const hasEarlierSection = notifications.length > earlierSectionStartIndex;
+  const hasRows = notifications.length > 0;
 
-  const sectionedRows = [...unreadItems, ...earlierItems];
-  const earlierSectionStartIndex = unreadItems.length;
-  const hasRows = sectionedRows.length > 0;
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore) {
+      void loadPage(page + 1, 'append');
+    }
+  }, [isLoadingMore, loadPage, page]);
 
-  const sectionHeader = hasRows ? (
-    <>
-      <Text style={styles.recentActivityNote}>{t('notifications_page.recent_activity_note')}</Text>
-      {unreadItems.length > 0 ? (
-        <Text style={styles.sectionHeading}>{t('notifications.section.unread')}</Text>
-      ) : null}
-    </>
-  ) : null;
+  const handleRetryInbox = useCallback(() => {
+    void loadFirstPageAndMarkRead();
+  }, [loadFirstPageAndMarkRead]);
 
-  const listEmpty = isLoading ? (
-    <LoadingSection testID="notifications-inbox-loading" />
-  ) : status !== 'authenticated' ? (
-    <CallToActionSection
-      actionLabelKey="authentication.login"
-      messageKey="authentication.login_required"
-      onAction={onRequestLogin}
-      testID="notifications-inbox-auth-required"
-    />
-  ) : offlineModeEnabled && lastCachedInbox === null ? (
-    <ListEmpty
-      messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
-      testID="notifications-inbox-offline-unavailable"
-    />
-  ) : errorKey !== null ? (
-    <VerticalCenter>
-      <RetryableError
-        errorKey={errorKey}
-        onRetry={() => {
-          void loadFirstPageAndMarkRead();
-        }}
-        testID="notifications-inbox-error"
+  const sectionHeader = useMemo(
+    () =>
+      hasRows ? (
+        <>
+          <Text style={styles.recentActivityNote}>
+            {t('notifications_page.recent_activity_note')}
+          </Text>
+          {hasUnreadSection ? (
+            <Text style={styles.sectionHeading}>{t('notifications.section.unread')}</Text>
+          ) : null}
+        </>
+      ) : null,
+    [hasRows, hasUnreadSection, styles.recentActivityNote, styles.sectionHeading, t]
+  );
+
+  const listEmpty = useMemo(
+    () =>
+      isLoading ? (
+        <LoadingSection testID="notifications-inbox-loading" />
+      ) : status !== 'authenticated' ? (
+        <CallToActionSection
+          actionLabelKey="authentication.login"
+          messageKey="authentication.login_required"
+          onAction={onRequestLogin}
+          testID="notifications-inbox-auth-required"
+        />
+      ) : offlineModeEnabled && lastCachedInbox === null ? (
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="notifications-inbox-offline-unavailable"
+        />
+      ) : errorKey !== null ? (
+        <VerticalCenter>
+          <RetryableError
+            errorKey={errorKey}
+            onRetry={handleRetryInbox}
+            testID="notifications-inbox-error"
+          />
+        </VerticalCenter>
+      ) : (
+        <VerticalCenter>
+          <ListEmpty messageKey="notifications_page.empty" testID="notifications-inbox-empty" />
+        </VerticalCenter>
+      ),
+    [errorKey, handleRetryInbox, isLoading, offlineModeEnabled, onRequestLogin, status]
+  );
+
+  const listFooter = useMemo(
+    () =>
+      canLoadMore && errorKey === null && !offlineModeEnabled ? (
+        <View style={styles.listFooter}>
+          <Pressable
+            onPress={handleLoadMore}
+            style={styles.loadMoreButton}
+            testID="notifications-inbox-load-more"
+          >
+            <Text style={styles.loadMoreLabel}>
+              {isLoadingMore ? t('misc.loading') : t('info.show_more')}
+            </Text>
+          </Pressable>
+        </View>
+      ) : null,
+    [
+      canLoadMore,
+      errorKey,
+      handleLoadMore,
+      isLoadingMore,
+      offlineModeEnabled,
+      styles.listFooter,
+      styles.loadMoreButton,
+      styles.loadMoreLabel,
+      t,
+    ]
+  );
+
+  const inboxRowStyles = useMemo<InboxRowStyles>(
+    () => ({
+      body: styles.body,
+      category: styles.category,
+      rowCard: styles.rowCard,
+      sectionHeading: styles.sectionHeading,
+      time: styles.time,
+      title: styles.title,
+    }),
+    [styles.body, styles.category, styles.rowCard, styles.sectionHeading, styles.time, styles.title]
+  );
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: DTOAccountNotification; index: number }) => (
+      <InboxNotificationRow
+        formatRelativeTime={formatRelativeTime}
+        item={item}
+        onPress={handleNotificationPress}
+        showEarlierHeading={index === earlierSectionStartIndex && hasEarlierSection}
+        styles={inboxRowStyles}
       />
-    </VerticalCenter>
-  ) : (
-    <VerticalCenter>
-      <ListEmpty messageKey="notifications_page.empty" testID="notifications-inbox-empty" />
-    </VerticalCenter>
+    ),
+    [
+      earlierSectionStartIndex,
+      formatRelativeTime,
+      handleNotificationPress,
+      hasEarlierSection,
+      inboxRowStyles,
+    ]
   );
 
   return (
     <View style={styles.container} testID="notifications-inbox-screen">
       <FillList
         ListEmptyComponent={listEmpty}
-        ListFooterComponent={
-          canLoadMore && errorKey === null && !offlineModeEnabled ? (
-            <View style={styles.listFooter}>
-              <Pressable
-                onPress={() => {
-                  if (!isLoadingMore) {
-                    void loadPage(page + 1, 'append');
-                  }
-                }}
-                style={styles.loadMoreButton}
-                testID="notifications-inbox-load-more"
-              >
-                <Text style={styles.loadMoreLabel}>
-                  {isLoadingMore ? t('misc.loading') : t('info.show_more')}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null
-        }
+        ListFooterComponent={listFooter}
         ListHeaderComponent={sectionHeader}
         contentContainerStyle={styles.content}
-        data={sectionedRows}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={({ item, index }) => {
-          const isEarlierBoundary = index === earlierSectionStartIndex && earlierItems.length > 0;
-          const categoryLabelKey =
-            CATEGORY_LABEL_KEYS[item.category as NotificationCategoryEnum] ??
-            'settings.notifications.category_general';
-
-          return (
-            <>
-              {isEarlierBoundary ? (
-                <Text style={styles.sectionHeading}>{t('notifications.section.earlier')}</Text>
-              ) : null}
-              <View style={styles.rowCard}>
-                <Card>
-                  <Pressable
-                    accessibilityLabel={item.title}
-                    accessibilityRole="button"
-                    onPress={() => {
-                      void handleNotificationPress(item);
-                    }}
-                    testID={`notifications-inbox-row-${item.id}`}
-                  >
-                    <Text style={styles.title}>{item.title}</Text>
-                    {item.body !== null && item.body !== '' ? (
-                      <Text style={styles.body}>{item.body}</Text>
-                    ) : null}
-                    <Text style={styles.category}>{t(categoryLabelKey)}</Text>
-                    <Text style={styles.time}>{formatRelativeTime(item.created_at)}</Text>
-                  </Pressable>
-                </Card>
-              </View>
-            </>
-          );
-        }}
+        data={notifications}
+        extraData={`${earlierSectionStartIndex}:${hasEarlierSection}`}
+        keyExtractor={inboxRowKeyExtractor}
+        renderItem={renderItem}
       />
     </View>
   );

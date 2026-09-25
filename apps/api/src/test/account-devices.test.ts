@@ -21,6 +21,7 @@ const {
   fcmDeleteMock,
   fcmGetAllForAccountMock,
   fcmUpdateLocaleMock,
+  autoDownloadReplaceMock,
   webpushCreateMock,
   webpushUpdateMock,
   webpushDeleteMock,
@@ -38,6 +39,7 @@ const {
   fcmDeleteMock: vi.fn(async () => {}),
   fcmGetAllForAccountMock: vi.fn(async () => [{ id: 1, fcm_token: 'token-1' }]),
   fcmUpdateLocaleMock: vi.fn(async () => {}),
+  autoDownloadReplaceMock: vi.fn(async () => ({ channel_id_texts: ['ch1'] })),
   webpushCreateMock: vi.fn(async () => ({ id: 1, endpoint: 'https://push.example.com' })),
   webpushUpdateMock: vi.fn(async () => ({ id: 1, endpoint: 'https://push.example.com' })),
   webpushDeleteMock: vi.fn(async () => {}),
@@ -90,6 +92,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     updateLocaleForAccount = fcmUpdateLocaleMock;
   }
 
+  class MockAccountDeviceAutoDownloadChannelService {
+    replaceForInstallation = autoDownloadReplaceMock;
+  }
+
   class MockAccountWebPushDeviceService {
     create = webpushCreateMock;
     update = webpushUpdateMock;
@@ -112,6 +118,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     CategoryService: MockCategoryService,
     AccountService: MockAccountService,
     AccountFCMDeviceService: MockAccountFCMDeviceService,
+    AccountDeviceAutoDownloadChannelService: MockAccountDeviceAutoDownloadChannelService,
     AccountWebPushDeviceService: MockAccountWebPushDeviceService,
     AccountUPDeviceService: MockAccountUPDeviceService,
   };
@@ -195,6 +202,18 @@ describe('account device routes', () => {
       expect(res.body.message).toBe('FCM device deleted successfully');
     });
 
+    it('DELETE /fcm-device/delete returns 200 when no identifiers are stored', async () => {
+      fcmDeleteMock.mockResolvedValueOnce(undefined);
+
+      const res = await request(app)
+        .delete(`${accountBase}/fcm-device/delete`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ fcm_token: null, installation_id: null });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('FCM device deleted successfully');
+    });
+
     it('GET /fcm-device/all-for-account returns 200 with device list', async () => {
       fcmGetAllForAccountMock.mockResolvedValueOnce([{ id: 1 }, { id: 2 }]);
 
@@ -216,6 +235,38 @@ describe('account device routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Locale updated for account devices');
+    });
+  });
+
+  describe('Auto-download channel registration', () => {
+    it('PUT /auto-download/channels returns 200 with valid data', async () => {
+      autoDownloadReplaceMock.mockResolvedValueOnce({ channel_id_texts: ['ch1', 'ch2'] });
+
+      const res = await request(app)
+        .put(`${accountBase}/auto-download/channels`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ installation_id: 'inst-1', channel_id_texts: ['ch1', 'ch2'] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.channel_id_texts).toEqual(['ch1', 'ch2']);
+      expect(autoDownloadReplaceMock).toHaveBeenCalledWith(TEST_USER_ID, 'inst-1', ['ch1', 'ch2']);
+    });
+
+    it('PUT /auto-download/channels returns 401 without auth', async () => {
+      const res = await request(app)
+        .put(`${accountBase}/auto-download/channels`)
+        .send({ installation_id: 'inst-1', channel_id_texts: [] });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('PUT /auto-download/channels returns 400 when installation_id is missing', async () => {
+      const res = await request(app)
+        .put(`${accountBase}/auto-download/channels`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: ['ch1'] });
+
+      expect(res.status).toBe(400);
     });
   });
 
@@ -270,6 +321,18 @@ describe('account device routes', () => {
         .delete(`${accountBase}/webpush-device/delete`)
         .set(authHeaders(TEST_USER_ID))
         .send({ endpoint: 'https://push.example.com/subscribe' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('WebPush device deleted successfully');
+    });
+
+    it('DELETE /webpush-device/delete returns 200 when the service finds no row', async () => {
+      webpushDeleteMock.mockResolvedValueOnce(undefined);
+
+      const res = await request(app)
+        .delete(`${accountBase}/webpush-device/delete`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ endpoint: 'https://push.example.com/missing' });
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('WebPush device deleted successfully');

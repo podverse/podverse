@@ -15,6 +15,11 @@ name: Add By RSS Flow
     id: library-nav-add-by-rss
 - assertVisible:
     id: rss-root-screen
+# Optional Basic Auth fields sit under the URL; a public feed leaves them empty.
+- assertVisible:
+    id: rss-username-input
+- assertVisible:
+    id: rss-password-input
 - takeScreenshot: add-by-rss-screen-initial
 
 - tapOn:

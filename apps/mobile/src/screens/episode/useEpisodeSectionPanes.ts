@@ -10,7 +10,6 @@ import {
   DEFAULT_EPISODE_TAB,
   readEpisodeDetailPrefs,
   writeEpisodeDetailClipSort,
-  writeEpisodeDetailTab,
 } from '../../prefs/detailListPrefs';
 import {
   loadEpisodeChaptersPane,
@@ -51,6 +50,7 @@ type UseEpisodeSectionPanesResult = {
 const createLoadedTabs = (): LoadedTabs => ({
   chapters: false,
   clips: false,
+  funding: true,
   soundbites: false,
   summary: true,
   transcript: false,
@@ -67,7 +67,7 @@ export function useEpisodeSectionPanes({
   const [activeTab, setActiveTab] = useState<EpisodeTab>(DEFAULT_EPISODE_TAB);
   const [clipSort, setClipSort] = useState<EpisodeClipSort>(DEFAULT_EPISODE_CLIP_SORT);
   const [isPrefsHydrated, setIsPrefsHydrated] = useState(false);
-  const [isTabLoading, setIsTabLoading] = useState(false);
+  const [isTabFetching, setIsTabFetching] = useState(false);
   const [isLoadingMoreClips, setIsLoadingMoreClips] = useState(false);
   const [clipHasMore, setClipHasMore] = useState(false);
   const [tabErrorKey, setTabErrorKey] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export function useEpisodeSectionPanes({
     setActiveTab(DEFAULT_EPISODE_TAB);
     setClipSort(DEFAULT_EPISODE_CLIP_SORT);
     setIsPrefsHydrated(itemIdText === null);
-    setIsTabLoading(false);
+    setIsTabFetching(false);
     setIsLoadingMoreClips(false);
     setClipHasMore(false);
     setTabErrorKey(null);
@@ -107,7 +107,6 @@ export function useEpisodeSectionPanes({
       if (!isMounted) {
         return;
       }
-      setActiveTab(stored.tab);
       setClipSort(stored.clipSort);
       setIsPrefsHydrated(true);
     })();
@@ -122,7 +121,7 @@ export function useEpisodeSectionPanes({
       return;
     }
     const nextTab = resolveEpisodeTabForItem({
-      rememberedTab: activeTab,
+      selectedTab: activeTab,
       supportedTabs,
     });
     if (nextTab !== activeTab) {
@@ -132,7 +131,7 @@ export function useEpisodeSectionPanes({
 
   const loadTab = useCallback(
     async (tab: EpisodeTab): Promise<void> => {
-      if (itemIdText === null || tab === 'summary' || loadedTabs[tab]) {
+      if (itemIdText === null || tab === 'summary' || tab === 'funding' || loadedTabs[tab]) {
         return;
       }
 
@@ -147,7 +146,7 @@ export function useEpisodeSectionPanes({
         return;
       }
 
-      setIsTabLoading(true);
+      setIsTabFetching(true);
       setTabErrorKey(null);
       try {
         if (tab === 'chapters') {
@@ -225,7 +224,7 @@ export function useEpisodeSectionPanes({
       } catch {
         setTabErrorKey('errors.generic');
       } finally {
-        setIsTabLoading(false);
+        setIsTabFetching(false);
       }
     },
     [
@@ -242,21 +241,15 @@ export function useEpisodeSectionPanes({
   );
 
   useEffect(() => {
-    if (!isPrefsHydrated || activeTab === 'summary') {
+    if (!isPrefsHydrated || activeTab === 'summary' || activeTab === 'funding') {
       return;
     }
     void loadTab(activeTab);
   }, [activeTab, isPrefsHydrated, loadTab]);
 
-  const selectTab = useCallback(
-    (tab: EpisodeTab) => {
-      setActiveTab(tab);
-      if (itemIdText !== null) {
-        void writeEpisodeDetailTab(itemIdText, tab);
-      }
-    },
-    [itemIdText]
-  );
+  const selectTab = useCallback((tab: EpisodeTab) => {
+    setActiveTab(tab);
+  }, []);
 
   const selectClipSort = useCallback(
     (sort: EpisodeClipSort) => {
@@ -268,8 +261,11 @@ export function useEpisodeSectionPanes({
       setClipHasMore(false);
       clipPageRef.current = 0;
       setLoadedTabs((previous) => ({ ...previous, clips: false }));
+      if (!offlineModeEnabled) {
+        setIsTabFetching(true);
+      }
     },
-    [itemIdText]
+    [itemIdText, offlineModeEnabled]
   );
 
   const loadMoreClips = useCallback(async () => {
@@ -318,6 +314,16 @@ export function useEpisodeSectionPanes({
     refreshToken,
     setTokens,
   ]);
+
+  // Unloaded network tabs stay on the spinner until loadedTabs flips — otherwise chapters/clips
+  // paint "nothing found" for a frame before loadTab runs.
+  const isTabLoading =
+    isTabFetching ||
+    (activeTab !== 'summary' &&
+      activeTab !== 'funding' &&
+      !loadedTabs[activeTab] &&
+      tabErrorKey === null &&
+      !offlineModeEnabled);
 
   return {
     activeTab,

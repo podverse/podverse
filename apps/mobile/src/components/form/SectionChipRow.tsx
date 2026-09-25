@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { placeSelectedFirst } from '../../lib/sectionChipOrder';
+import { notePerfTouch, stampPerfFrame } from '../../lib/perf/perfFrames';
+import { perfMark } from '../../lib/perf/perfSpans';
 import { listChipRowBottomGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
@@ -33,12 +34,15 @@ export type SectionChipItem<T extends string> = {
 
 export type SectionChipRowProps<T extends string> = {
   items: readonly SectionChipItem<T>[];
-  /** Sort, range, and Categories — only when the current chip can use them. */
-  leading?: ReactNode;
   onSelect: (key: T) => void;
   /** `null` when none of the chips is the current selection. */
   selectedKey: T | null;
   testID: string;
+  /**
+   * Sort, range, and Categories — only when the current chip can use them. Renders after the
+   * section chips so those pills keep a stable order.
+   */
+  trailing?: ReactNode;
 };
 
 /**
@@ -92,7 +96,13 @@ export function SectionChip({
       accessibilityLabel={label}
       accessibilityRole={isFilter ? 'button' : 'tab'}
       accessibilityState={{ selected }}
-      onPress={onPress}
+      onPress={(event) => {
+        notePerfTouch(event.nativeEvent.timestamp);
+        onPress();
+      }}
+      onPressIn={() => {
+        perfMark('chip.pressin', testID);
+      }}
       style={[styles.chip, isFilter ? filterChrome.chip : selected ? styles.chipActive : null]}
       testID={testID}
     >
@@ -109,28 +119,26 @@ export function SectionChip({
 }
 
 /**
- * Horizontal chip selector with a leading slot.
+ * Horizontal chip selector with a trailing slot.
  *
- * The leading slot is what lets one row carry both "which list" and "how it is ordered": Home and
- * Browse scroll their sort and Categories controls ahead of the media types, and a channel screen
- * scrolls its sort and popularity window ahead of its sections. Those leading controls mount only
- * when the current filter can use them. The selected section chip is placed first after that slot
- * so a tap can scroll the row back to the start. The chips themselves are handed in already
- * localized, so the row has no opinion about which medium it is describing.
+ * Section and media-type chips stay in the order the caller handed in. The trailing slot is what
+ * lets one row carry both "which list" and "how it is ordered": Home and Browse put sort and
+ * Categories after the media types, and a channel screen puts sort and the popularity window after
+ * its sections. Those trailing controls mount only when the current filter can use them. The chips
+ * themselves are handed in already localized, so the row has no opinion about which medium it is
+ * describing.
  *
  * Bottom padding is **`listChipRowBottomGap`** — the seam before filter / list / about content —
  * so every screen that mounts this row gets the same space without a local margin.
  */
 export function SectionChipRow<T extends string>({
   items,
-  leading,
   onSelect,
   selectedKey,
   testID,
+  trailing,
 }: SectionChipRowProps<T>) {
   const { tokens } = useTheme();
-  const scrollRef = useRef<ScrollView>(null);
-  const orderedItems = useMemo(() => placeSelectedFirst(items, selectedKey), [items, selectedKey]);
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -144,8 +152,9 @@ export function SectionChipRow<T extends string>({
     [tokens]
   );
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ animated: false, x: 0 });
+  // Runs in the commit that first shows the newly selected chip.
+  useLayoutEffect(() => {
+    stampPerfFrame('chip.visible');
   }, [selectedKey]);
 
   return (
@@ -153,12 +162,10 @@ export function SectionChipRow<T extends string>({
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         horizontal
-        ref={scrollRef}
         showsHorizontalScrollIndicator={false}
         style={styles.scroll}
       >
-        {leading}
-        {orderedItems.map((item) => (
+        {items.map((item) => (
           <SectionChip
             key={item.key}
             label={item.label}
@@ -169,6 +176,7 @@ export function SectionChipRow<T extends string>({
             testID={item.testID}
           />
         ))}
+        {trailing}
       </ScrollView>
     </View>
   );

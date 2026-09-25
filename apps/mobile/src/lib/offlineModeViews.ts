@@ -50,13 +50,12 @@ export const isHomeClipsUnavailableOffline = (mediaType: HomeMediaType): boolean
 
 /**
  * Podcast section to show while Offline Mode is on. Always prefers Downloaded when that chip
- * exists, overriding the remembered tab without writing it back — turning Offline Mode off
- * restores the stored preference. About and other local panes stay selectable after the user taps.
+ * exists. About and other local panes stay selectable after the user taps.
  *
- * Call this only for the user's toggle. A dropped signal leaves the remembered section alone.
+ * Call this only for the user's toggle. A dropped signal leaves the open section alone.
  */
 export const resolvePodcastSectionForOfflineMode = (
-  _rememberedSection: PodcastTab,
+  _preferredSection: PodcastTab,
   availableSections: readonly PodcastTab[]
 ): PodcastTab => {
   if (availableSections.includes('downloaded')) {
@@ -78,7 +77,7 @@ export const isPodcastSectionUnavailableOffline = (section: PodcastTab): boolean
  * item. Official clips may still paint when the item DTO already embeds `item_soundbites`.
  */
 export const isEpisodeTabNetworkBody = (
-  tab: 'summary' | 'chapters' | 'clips' | 'soundbites' | 'transcript'
+  tab: 'summary' | 'chapters' | 'clips' | 'soundbites' | 'transcript' | 'funding'
 ): boolean => {
   return tab === 'chapters' || tab === 'clips' || tab === 'soundbites' || tab === 'transcript';
 };

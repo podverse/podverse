@@ -1,0 +1,80 @@
+---
+description: Mobile state that belongs to one account ends with that account's session — never outlives a sign-out or an account switch
+globs:
+  - "apps/mobile/src/**"
+alwaysApply: false
+---
+
+# Mobile — account data ends with the session
+
+A phone is signed into one account at a time, and the next account on the same phone must never
+read, show, or request the last one's data. When it does, the server answers `403 Forbidden` on an
+id the new account does not own, and the new user sees the old user's queue or playlists — a
+privacy bug, not only an error.
+
+The server is right to refuse. Never "fix" these by loosening an API ownership check or by
+silencing the client's request-error log.
+
+## Classify every store before you write to it
+
+Anything that survives a render — SQLite tables, `kv_meta` keys, AsyncStorage prefs, module-level
+variables, React context state, refs, the native CarPlay / Android Auto cache — is one of:
+
+| Kind | Examples | On session end |
+| ---- | ---- | ---- |
+| **Device data** | subscriptions, add-by-RSS feeds, downloads, `channel_seen`, public directory caches, the last-playback snapshot | **Kept.** Documented in `clearSession` |
+| **Account data** | account snapshot, `queue_cache`, playlists and their owned / followed flags, reconcile conflicts, add-by-RSS feed credentials (SecureStore + `add_by_rss_credential_index`), anything fetched from a `*Private` / `/account/*` / `/queue/*` route | **Cleared** |
+| **Keyed by account** | `playback_outbox`, `playback_local_state` (`account_id_text` column) | Kept; every read filters on the current account |
+
+A new store is account data unless you can say why a different person on the same phone should
+see it. If it is account data and has no `account_id_text` column, it must be cleared.
+
+## Where clearing happens
+
+- **Storage:** `clearSession` in `apps/mobile/src/auth/AuthProvider.tsx`, before it sets
+  `status` to `anonymous`. Every way a session ends (`user_logout`, `session_expired`, `reset`)
+  goes through it.
+- **In-memory stores and module-level caches:** the `status === 'anonymous'` effect in
+  `apps/mobile/src/sync/SyncProvider.tsx`, which already drops queued jobs and empties the queue
+  store. Add new resets there rather than a second effect in another provider.
+
+A TTL is not a clear. "It expires in five minutes" means five minutes of the wrong account.
+
+## Every account change passes through `anonymous`
+
+No code path may go `authenticated` → `authenticated` for a different account. Sign-in helpers
+that can run while already signed in (test shortcuts included) call `clearSession` first. Both
+reset points key on the `anonymous` transition, and neither fires on a direct switch.
+
+## Account data written after an `await` must still belong to this session
+
+A running sync job or fetch is not cancelled by sign-out; `syncQueue.reset()` only drops pending
+jobs. A write of account data that lands after `clearSession` puts the old account's data back. A
+repository that caches account data captures a session generation before the request and skips the
+write if the generation changed. Advance the generation where the store is cleared.
+
+Auth token refresh uses the same generation idea: `advanceAuthSessionGeneration` runs at the start
+of `clearSession`, and `refreshAccessTokenSingleFlight` skips `setTokens` when the generation
+changed while it waited — otherwise a late refresh would sign the user back in after logout.
+
+## A 401 must not churn tokens forever
+
+See [`mobile-auth-refresh-terminates`](/.cursor/rules/mobile-auth-refresh-terminates.mdc). Every
+authenticated 401 path ends in valid credentials or `clearSession`. Refreshed credentials that are
+still rejected are dead; writing them again and re-firing `accessToken`-keyed effects is how a
+request loop starts.
+
+## Identity has one source per moment
+
+The token, the account snapshot, and cached ids briefly disagree during a switch. Do not combine
+an account id from one source with a token from another (for example the outbox drain reading
+`accountRepository.getSnapshot()` while calling the API with the context's token) unless a session
+end always clears both.
+
+## Related
+
+- [mobile-anonymous-vs-account-features](/.cursor/rules/mobile-anonymous-vs-account-features.mdc) —
+  what a signed-out user keeps (queue and history are signed-in only)
+- [mobile-sync-orchestration](/.cursor/rules/mobile-sync-orchestration.mdc) — the serial queue and
+  its reset
+- [dto-changes-are-device-data-migrations](/.cursor/rules/dto-changes-are-device-data-migrations.mdc)

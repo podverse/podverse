@@ -211,6 +211,9 @@ export type FeedObject = {
   link: string;
   itunesType?: string | null;
   items: Episode[];
+  lastPubDate?: Date;
+  pubDate?: Date;
+  lastBuildDate?: Date;
   itunesCategory?: string[];
   chat?: Phase7Chat;
   description?: string | null;

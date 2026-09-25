@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, RefreshControl, StyleSheet, Switch, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import {
@@ -9,10 +9,13 @@ import {
   primaryChannelListArtworkUrl,
   primaryListArtworkUrl,
 } from '@podverse/helpers';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
+import { ChannelDetailShell, ChannelHeader, ChannelSettingsPane } from '../../components/channel';
+import { ChannelAboutSection, FundingLinksSection } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip } from '../../components/form';
 import { FillList, ListRow } from '../../components/primitives';
@@ -26,6 +29,7 @@ import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChr
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
+import { resolveInitialSubscribed } from '../../lib/channelActionChrome';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
@@ -33,7 +37,13 @@ import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowP
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import type { ChannelBrowseStackParamList } from '../../navigation';
-import { buildPodcastDetailParams, CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
+import {
+  buildAlbumDetailParams,
+  buildArtistDetailParams,
+  buildPodcastDetailParams,
+  buildTrackDetailParams,
+  CHANNEL_BROWSE_STACK_ROUTES,
+} from '../../navigation';
 import type { AlbumDetailRange, AlbumTab, AlbumTrackSort } from '../../prefs/detailListPrefs';
 import {
   ALBUM_DETAIL_RANGE_OPTIONS,
@@ -45,7 +55,6 @@ import {
   readAlbumDetailPrefs,
   writeAlbumDetailRange,
   writeAlbumDetailSort,
-  writeAlbumDetailTab,
 } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
@@ -53,8 +62,9 @@ import type { HomeFeedRowData } from '../home/homeFeedData';
 import { mapItemToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { HomeRowMetadata } from '../home/homeRowMetadata';
+import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
-import { channelHasPodroll } from '../podcast/podcastSections';
+import { channelHasFunding, channelHasPodroll } from '../podcast/podcastSections';
 
 type AlbumDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'AlbumDetail'>;
 
@@ -75,8 +85,72 @@ const LIVE_ROW_METADATA: HomeRowMetadata = {
 
 const FIRST_PAGE = 1;
 
+const albumTrackKeyExtractor = (row: HomeFeedRowData): string => row.id;
+const albumPodrollKeyExtractor = (row: PodrollEntry): string => row.id;
+
+function AlbumTrackRow({
+  index,
+  isLast,
+  onGoToChannel,
+  onGoToTrack,
+  onPlay,
+  onQueue,
+  row,
+  track,
+}: {
+  index: number;
+  isLast: boolean;
+  onGoToChannel: (row: HomeFeedRowData) => void;
+  onGoToTrack: (row: HomeFeedRowData) => void;
+  onPlay: (row: HomeFeedRowData) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+  row: HomeFeedRowData;
+  track: DTOItem | undefined;
+}) {
+  return (
+    <HomeFeedRow
+      downloadItem={track}
+      downloadTestID={`album-track-download-${index}`}
+      isLast={isLast}
+      mediaType="tracks"
+      onGoToChannelPress={onGoToChannel}
+      onGoToTrackPress={onGoToTrack}
+      onPlayPress={onPlay}
+      onPress={onPlay}
+      onQueuePress={onQueue}
+      row={row}
+      showChannelContext={false}
+      testID={`album-track-row-${index}`}
+    />
+  );
+}
+
+function AlbumPodrollRow({
+  index,
+  item,
+  onPress,
+}: {
+  index: number;
+  item: PodrollEntry;
+  onPress: (item: PodrollEntry) => void;
+}) {
+  const handlePress = useCallback(() => {
+    onPress(item);
+  }, [item, onPress]);
+
+  return (
+    <ListRow
+      onPress={handlePress}
+      subtitle={item.subtitle ?? undefined}
+      testID={`album-detail-podroll-row-${index}`}
+      title={item.title}
+    />
+  );
+}
+
 const SECTION_LABEL_KEYS: Record<AlbumTab, string> = {
   about: 'info.about',
+  funding: 'info.funding',
   podroll: 'info.podroll',
   settings: 'settings.settings',
   tracks: 'media.music.tracks',
@@ -95,13 +169,22 @@ const RANGE_LABEL_KEYS: Record<AlbumDetailRange, string> = {
   week: 'filters.range.week',
 };
 
-const toTrackRows = (items: DTOItem[], albumTitle: string | null): HomeFeedRowData[] => {
+const toTrackRows = (
+  items: DTOItem[],
+  albumId: string,
+  albumTitle: string | null
+): HomeFeedRowData[] => {
   return items
-    .map((item) => ({
-      ...mapItemToHomeFeedRow(item),
-      metadata: item.live_item ? LIVE_ROW_METADATA : undefined,
-      subtitle: albumTitle,
-    }))
+    .map((item) => {
+      const compact = mapItemToHomeFeedRow(item, { compact: true });
+      return {
+        ...compact,
+        channelId: compact.channelId ?? albumId,
+        channelKind: compact.channelKind ?? 'albums',
+        metadata: item.live_item ? LIVE_ROW_METADATA : undefined,
+        subtitle: albumTitle,
+      };
+    })
     .filter((row) => row.id.length > 0);
 };
 
@@ -152,9 +235,16 @@ const removeDuplicateItems = (items: DTOItem[]): DTOItem[] => {
 export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { albumId, previewImageUrl, previewTitle } = route.params;
+  const {
+    albumId,
+    previewImageUrl,
+    previewIsSubscribed,
+    previewNotificationsEnabled,
+    previewTitle,
+  } = route.params;
   const { evaluateFeature, isTierKnown } = useAccessTier();
   const { handleGateError, openGate } = useMembershipGate();
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
@@ -164,6 +254,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
     cachedChrome?.hasPodroll === true
   );
+  const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
+    cachedChrome?.hasFunding === true
+  );
   const [previewHeaderTitle, setPreviewHeaderTitle] = useState<string | null>(
     previewTitle !== undefined && previewTitle.length > 0 ? previewTitle : null
   );
@@ -172,7 +265,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       ? previewImageUrl
       : null
   );
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(() =>
+    resolveInitialSubscribed(albumId, previewIsSubscribed)
+  );
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const [isSectionHydrated, setIsSectionHydrated] = useState<boolean>(false);
@@ -194,6 +289,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const notifications = useChannelNotifications({
     channelId: channel?.id ?? null,
     channelIdText: albumId,
+    previewNotificationsEnabled,
   });
 
   const authContext = useMemo(
@@ -205,21 +301,12 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        aboutText: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          lineHeight: 24,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingTop: tokens.spacing.md,
-        },
         channelActions: {
           gap: tokens.spacing.sm,
         },
-        channelActionRow: {
+        headerActions: {
           alignItems: 'center',
           flexDirection: 'row',
-          flexWrap: 'wrap',
-          marginHorizontal: -tokens.spacing.sm,
         },
         notice: {
           color: themeStyles.textSecondary.color,
@@ -227,18 +314,12 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.lg,
         },
-        settingsCard: {
-          marginHorizontal: tokens.spacing.lg,
-          marginTop: tokens.spacing.md,
-          paddingBottom: tokens.spacing.md,
+        list: {
+          backgroundColor: themeStyles.screen.backgroundColor,
         },
-        settingsHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.sm,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
+        listContent: {
+          paddingHorizontal: tokens.spacing.lg,
+          paddingTop: tokens.spacing.md,
         },
         subscribeButtonRow: {
           alignItems: 'flex-start',
@@ -263,17 +344,19 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     setChannel(null);
     setIsChannelLoading(true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
-  }, [albumId]);
+    setPreviewHasFunding(nextChrome?.hasFunding === true);
+    setIsSubscribed(resolveInitialSubscribed(albumId, previewIsSubscribed));
+  }, [albumId, previewIsSubscribed]);
 
   useEffect(() => {
     let isMounted = true;
     setIsSectionHydrated(false);
+    setSection(DEFAULT_ALBUM_TAB);
     void (async () => {
       const prefs = await readAlbumDetailPrefs(albumId);
       if (!isMounted) {
         return;
       }
-      setSection(prefs.tab);
       setSort(prefs.sort);
       setRange(prefs.range);
       setIsSectionHydrated(true);
@@ -331,8 +414,10 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         );
         setChannel(response);
         const hasPodroll = channelHasPodroll(response);
+        const hasFunding = channelHasFunding(response);
         setPreviewHasPodroll(hasPodroll);
-        void sectionChromeFlagsRepository.mergeChannel(albumId, { hasPodroll });
+        setPreviewHasFunding(hasFunding);
+        void sectionChromeFlagsRepository.mergeChannel(albumId, { hasFunding, hasPodroll });
       } catch {
         // Channel and list panes surface their own states.
       }
@@ -362,7 +447,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       try {
         const storedItems = await readStoredTracks();
         if (offlineModeEnabled) {
-          setTrackRows(toTrackRows(storedItems, channelTitleRef.current));
+          setTrackRows(toTrackRows(storedItems, albumId, channelTitleRef.current));
           setTracksById(new Map(storedItems.map((item) => [item.id_text, item])));
           return;
         }
@@ -379,7 +464,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           api.reqLiveItemGetManyByChannel(albumId)
         );
         const merged = removeDuplicateItems([...liveItems, ...seasonResponse.data]);
-        setTrackRows(toTrackRows(merged, channelTitleRef.current));
+        setTrackRows(toTrackRows(merged, albumId, channelTitleRef.current));
         setTracksById(new Map(merged.map((item) => [item.id_text, item])));
       } catch {
         setTrackErrorKey('errors.generic');
@@ -433,6 +518,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
 
   const availableSections = useMemo<AlbumTab[]>(() => {
     const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll;
+    const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding;
     return ALBUM_TABS.filter((tab) => {
       if (tab === 'settings') {
         return isSignedIn;
@@ -440,9 +526,12 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       if (tab === 'podroll') {
         return hasPodroll;
       }
+      if (tab === 'funding') {
+        return hasFunding;
+      }
       return true;
     });
-  }, [channel, isSignedIn, previewHasPodroll]);
+  }, [channel, isSignedIn, previewHasFunding, previewHasPodroll]);
 
   useEffect(() => {
     if (availableSections.includes(section)) {
@@ -482,13 +571,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     [t]
   );
 
-  const handleSectionSelect = useCallback(
-    (next: AlbumTab) => {
-      setSection(next);
-      void writeAlbumDetailTab(albumId, next);
-    },
-    [albumId]
-  );
+  const handleSectionSelect = useCallback((next: AlbumTab) => {
+    setSection(next);
+  }, []);
 
   const handleSortSelect = useCallback(
     (next: AlbumTrackSort) => {
@@ -588,21 +673,245 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     shareResolvedUrl(buildPublicShareUrl('album', albumId));
   }, [albumId]);
 
-  const openExternalUrl = useCallback(async (url: string) => {
-    try {
-      await Linking.openURL(url);
-    } catch {
-      // Optional convenience links only.
-    }
-  }, []);
+  const notificationsEnabled = notifications.isEnabled;
+  const toggleNotifications = notifications.toggleEnabled;
+  const canShowBoost = getBoostEligibilityForContent({ channel }).canShowBoostAction;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          {canShowBoost && channel !== null ? (
+            <HeaderBarAction
+              accessibilityLabel={t('value.boost')}
+              icon="cash-outline"
+              iconColor={tokens.text.warning}
+              onPress={() => {
+                openBoost({ channel, item: null });
+              }}
+              testID="album-detail-boost"
+            />
+          ) : null}
+          <HeaderBarAction
+            accessibilityLabel={t(
+              notificationsEnabled
+                ? 'features.notifications.disable_notifications_for_this_album'
+                : 'features.notifications.enable_notifications_for_this_album'
+            )}
+            icon={notificationsEnabled ? 'notifications' : 'notifications-off-outline'}
+            onPress={() => {
+              void toggleNotifications();
+            }}
+            testID="album-detail-notifications-toggle"
+          />
+          <HeaderBarAction
+            accessibilityLabel={t('features.share')}
+            icon="share-outline"
+            onPress={handleShare}
+            testID="album-detail-share"
+          />
+        </View>
+      ),
+    });
+  }, [
+    canShowBoost,
+    channel,
+    handleShare,
+    navigation,
+    notificationsEnabled,
+    openBoost,
+    styles.headerActions,
+    t,
+    tokens.text.warning,
+    toggleNotifications,
+  ]);
+
+  const handleGoToChannel = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      if (nextRow.channelId === undefined) {
+        return;
+      }
+      if (nextRow.channelKind === 'artists') {
+        navigation.navigate(
+          CHANNEL_BROWSE_STACK_ROUTES.ArtistDetail,
+          buildArtistDetailParams({
+            artistId: nextRow.channelId,
+            previewTitle: nextRow.subtitle,
+          })
+        );
+        return;
+      }
+      navigation.navigate(
+        CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
+        buildAlbumDetailParams({
+          albumId: nextRow.channelId,
+          previewTitle: nextRow.subtitle,
+        })
+      );
+    },
+    [navigation]
+  );
+
+  const handleGoToTrack = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      navigation.navigate(
+        CHANNEL_BROWSE_STACK_ROUTES.TrackDetail,
+        buildTrackDetailParams({
+          previewImageUrl: nextRow.imageUrl,
+          previewTitle: nextRow.title,
+          trackId: nextRow.id,
+        })
+      );
+    },
+    [navigation]
+  );
+
+  const handlePlayTrack = useCallback(
+    (nextRow: HomeFeedRowData) => {
+      runPlayAction(nextRow, 'tracks');
+    },
+    [runPlayAction]
+  );
+
+  const handleQueueTrack = useCallback(
+    (nextRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(nextRow, 'tracks', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleRetryTracks = useCallback(() => {
+    void loadTracks({ source: 'retry' });
+  }, [loadTracks]);
+
+  const handleRefreshTracks = useCallback(() => {
+    void loadChannel();
+    void loadTracks({ source: 'refresh' });
+  }, [loadChannel, loadTracks]);
+
+  const handleRetryPodroll = useCallback(() => {
+    void loadPodroll({ source: 'retry' });
+  }, [loadPodroll]);
+
+  const handleRefreshPodroll = useCallback(() => {
+    void loadChannel();
+    void loadPodroll({ source: 'refresh' });
+  }, [loadChannel, loadPodroll]);
+
+  const handlePodrollPress = useCallback(
+    (item: PodrollEntry) => {
+      if (item.target.kind === 'channel') {
+        navigation.navigate(
+          CHANNEL_BROWSE_STACK_ROUTES.PodcastDetail,
+          buildPodcastDetailParams({
+            podcastId: item.target.idText,
+            previewImageUrl: item.imageUrl,
+            previewTitle: item.title,
+          })
+        );
+        return;
+      }
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
+        episodeId: item.target.idText,
+      });
+    },
+    [navigation]
+  );
+
+  const handleSubscriptionTogglePress = useCallback(() => {
+    void handleSubscriptionToggle();
+  }, [handleSubscriptionToggle]);
+
+  const trackCount = trackRows.length;
+
+  const tracksEmpty = useMemo(
+    () =>
+      isTracksLoading ? (
+        <LoadingSection testID="album-detail-loading" />
+      ) : trackErrorKey !== null ? (
+        <ListError
+          messageKey={trackErrorKey}
+          onRetry={handleRetryTracks}
+          testID="album-detail-error"
+        />
+      ) : (
+        <ListEmpty messageKey="media.music.no_tracks_found" testID="album-detail-empty" />
+      ),
+    [handleRetryTracks, isTracksLoading, trackErrorKey]
+  );
+
+  const tracksFooter = useMemo(
+    () =>
+      playbackNoticeKey !== null ? <Text style={styles.notice}>{t(playbackNoticeKey)}</Text> : null,
+    [playbackNoticeKey, styles.notice, t]
+  );
+
+  const tracksRefreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRefreshTracks}
+        refreshing={isTracksRefreshing}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
+      />
+    ),
+    [handleRefreshTracks, isTracksRefreshing, themeStyles.buttonPrimary.backgroundColor]
+  );
+
+  const renderTrackItem = useCallback(
+    ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
+      <AlbumTrackRow
+        index={index}
+        isLast={index === trackCount - 1}
+        onGoToChannel={handleGoToChannel}
+        onGoToTrack={handleGoToTrack}
+        onPlay={handlePlayTrack}
+        onQueue={handleQueueTrack}
+        row={row}
+        track={tracksById.get(row.id)}
+      />
+    ),
+    [handleGoToChannel, handleGoToTrack, handlePlayTrack, handleQueueTrack, trackCount, tracksById]
+  );
+
+  const podrollEmpty = useMemo(
+    () =>
+      isPodrollLoading ? (
+        <LoadingSection testID="album-detail-podroll-loading" />
+      ) : podrollErrorKey !== null ? (
+        <ListError
+          messageKey={podrollErrorKey}
+          onRetry={handleRetryPodroll}
+          testID="album-detail-podroll-error"
+        />
+      ) : (
+        <ListEmpty messageKey="info.no_podroll_found" testID="album-detail-podroll-empty" />
+      ),
+    [handleRetryPodroll, isPodrollLoading, podrollErrorKey]
+  );
+
+  const podrollRefreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRefreshPodroll}
+        refreshing={isPodrollRefreshing}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
+      />
+    ),
+    [handleRefreshPodroll, isPodrollRefreshing, themeStyles.buttonPrimary.backgroundColor]
+  );
+
+  const renderPodrollItem = useCallback(
+    ({ index, item }: { index: number; item: PodrollEntry }) => (
+      <AlbumPodrollRow index={index} item={item} onPress={handlePodrollPress} />
+    ),
+    [handlePodrollPress]
+  );
 
   const channelArtworkUri =
     primaryChannelListArtworkUrl(channel?.channel_images) ?? previewArtworkUri;
   const channelViewerUri =
     primaryChannelLightboxArtworkUrl(channel?.channel_images) ?? channelArtworkUri;
   const title = channel?.title ?? previewHeaderTitle ?? t('media.music.album');
-  const feedUrl = channel?.feed?.url ?? null;
-  const websiteUrl = channel?.channel_about?.website_link_url ?? null;
 
   const channelHeader = (
     <ChannelHeader
@@ -612,53 +921,11 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
             <Button
               label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
               loading={isSavingSubscription}
-              onPress={() => {
-                void handleSubscriptionToggle();
-              }}
+              onPress={handleSubscriptionTogglePress}
               size="sm"
               testID="album-detail-subscribe-toggle"
               variant="outline"
             />
-          </View>
-          <View style={styles.channelActionRow}>
-            <HeaderBarAction
-              accessibilityLabel={t(
-                notifications.isEnabled
-                  ? 'features.notifications.disable_notifications_for_this_album'
-                  : 'features.notifications.enable_notifications_for_this_album'
-              )}
-              icon={notifications.isEnabled ? 'notifications' : 'notifications-off-outline'}
-              onPress={() => {
-                void notifications.toggleEnabled();
-              }}
-              testID="album-detail-notifications-toggle"
-            />
-            <HeaderBarAction
-              accessibilityLabel={t('features.share')}
-              icon="share-outline"
-              onPress={handleShare}
-              testID="album-detail-share"
-            />
-            {feedUrl !== null && feedUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.rss_feed')}
-                icon="logo-rss"
-                onPress={() => {
-                  void openExternalUrl(feedUrl);
-                }}
-                testID="album-detail-rss"
-              />
-            ) : null}
-            {websiteUrl !== null && websiteUrl.length > 0 ? (
-              <HeaderBarAction
-                accessibilityLabel={t('info.website')}
-                icon="globe-outline"
-                onPress={() => {
-                  void openExternalUrl(websiteUrl);
-                }}
-                testID="album-detail-website"
-              />
-            ) : null}
           </View>
         </View>
       }
@@ -672,174 +939,55 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
 
   const tracksBody = (
     <FillList
-      ListEmptyComponent={
-        isTracksLoading ? (
-          <LoadingSection testID="album-detail-loading" />
-        ) : trackErrorKey !== null ? (
-          <ListError
-            messageKey={trackErrorKey}
-            onRetry={() => {
-              void loadTracks({ source: 'retry' });
-            }}
-            testID="album-detail-error"
-          />
-        ) : (
-          <ListEmpty messageKey="misc.info" testID="album-detail-empty" />
-        )
-      }
-      ListFooterComponent={
-        playbackNoticeKey !== null ? (
-          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
-        ) : null
-      }
-      contentContainerStyle={{
-        paddingHorizontal: tokens.spacing.lg,
-        paddingTop: tokens.spacing.md,
-      }}
+      ListEmptyComponent={tracksEmpty}
+      ListFooterComponent={tracksFooter}
+      contentContainerStyle={styles.listContent}
       data={trackRows}
-      keyExtractor={(row) => row.id}
-      refreshControl={
-        <RefreshControl
-          onRefresh={() => {
-            void loadChannel();
-            void loadTracks({ source: 'refresh' });
-          }}
-          refreshing={isTracksRefreshing}
-          tintColor={themeStyles.buttonPrimary.backgroundColor}
-        />
-      }
-      renderItem={({ index, item: row }) => {
-        const track = tracksById.get(row.id);
-        return (
-          <HomeFeedRow
-            download={
-              track === undefined
-                ? undefined
-                : { item: track, testID: `album-track-download-${index}` }
-            }
-            isLast={index === trackRows.length - 1}
-            mediaType="tracks"
-            onPlayPress={(nextRow) => {
-              runPlayAction(nextRow, 'tracks');
-            }}
-            onPress={(nextRow) => {
-              navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.TrackDetail, { trackId: nextRow.id });
-            }}
-            onQueuePress={(nextRow, position) => {
-              runQueueAction(nextRow, 'tracks', position);
-            }}
-            row={row}
-            showChannelContext={false}
-            testID={`album-track-row-${index}`}
-          />
-        );
-      }}
-      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
+      keyExtractor={albumTrackKeyExtractor}
+      refreshControl={tracksRefreshControl}
+      renderItem={renderTrackItem}
+      style={styles.list}
       testID="album-detail-track-list"
     />
   );
 
-  const aboutDescription = channel?.channel_description?.value?.trim() ?? '';
-  const aboutBody =
-    isChannelLoading && channel === null ? (
-      <LoadingSection testID="album-detail-about-loading" />
-    ) : aboutDescription.length > 0 ? (
-      <Text style={styles.aboutText} testID="album-detail-about">
-        {aboutDescription}
-      </Text>
-    ) : (
-      <ListEmpty messageKey="misc.info" testID="album-detail-about-empty" />
-    );
+  const aboutBody = (
+    <ChannelAboutSection
+      channel={channel}
+      isChannelLoading={isChannelLoading}
+      testIDPrefix="album-detail"
+    />
+  );
+
+  const fundingBody = (
+    <FundingLinksSection
+      fundings={channel?.channel_fundings ?? []}
+      isLoading={isChannelLoading && channel === null}
+      testIDPrefix="album-detail"
+    />
+  );
 
   const podrollBody = offlineModeEnabled ? (
     <ListEmpty messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY} testID="album-detail-podroll-offline" />
   ) : (
     <FillList
-      ListEmptyComponent={
-        isPodrollLoading ? (
-          <LoadingSection testID="album-detail-podroll-loading" />
-        ) : podrollErrorKey !== null ? (
-          <ListError
-            messageKey={podrollErrorKey}
-            onRetry={() => {
-              void loadPodroll({ source: 'retry' });
-            }}
-            testID="album-detail-podroll-error"
-          />
-        ) : (
-          <ListEmpty messageKey="info.no_podroll_found" testID="album-detail-podroll-empty" />
-        )
-      }
-      contentContainerStyle={{
-        paddingHorizontal: tokens.spacing.lg,
-        paddingTop: tokens.spacing.md,
-      }}
+      ListEmptyComponent={podrollEmpty}
+      contentContainerStyle={styles.listContent}
       data={podrollRows}
-      keyExtractor={(row) => row.id}
-      refreshControl={
-        <RefreshControl
-          onRefresh={() => {
-            void loadChannel();
-            void loadPodroll({ source: 'refresh' });
-          }}
-          refreshing={isPodrollRefreshing}
-          tintColor={themeStyles.buttonPrimary.backgroundColor}
-        />
-      }
-      renderItem={({ index, item }) => (
-        <ListRow
-          onPress={() => {
-            if (item.target.kind === 'channel') {
-              navigation.navigate(
-                CHANNEL_BROWSE_STACK_ROUTES.PodcastDetail,
-                buildPodcastDetailParams({
-                  podcastId: item.target.idText,
-                  previewImageUrl: item.imageUrl,
-                  previewTitle: item.title,
-                })
-              );
-              return;
-            }
-            navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
-              episodeId: item.target.idText,
-            });
-          }}
-          subtitle={item.subtitle ?? undefined}
-          testID={`album-detail-podroll-row-${index}`}
-          title={item.title}
-        />
-      )}
-      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
+      keyExtractor={albumPodrollKeyExtractor}
+      refreshControl={podrollRefreshControl}
+      renderItem={renderPodrollItem}
+      style={styles.list}
       testID="album-detail-podroll-list"
     />
   );
 
   const settingsBody = (
-    <View style={styles.settingsCard} testID="album-detail-settings">
-      <Text style={styles.settingsHeading}>{t('settings.notifications.notifications')}</Text>
-      <ListRow
-        testID="album-detail-settings-notifications"
-        title={t('features.notifications.enable_notifications_for_this_album')}
-        trailing={
-          <Switch
-            accessibilityLabel={t('features.notifications.enable_notifications_for_this_album')}
-            accessibilityRole="switch"
-            accessibilityState={{ checked: notifications.isEnabled }}
-            disabled={notifications.isSaving}
-            onValueChange={(nextValue) => {
-              void notifications.setEnabled(nextValue);
-            }}
-            value={notifications.isEnabled}
-          />
-        }
-      />
-      {notifications.errorKey !== null ? (
-        <Text style={styles.notice}>{t(notifications.errorKey)}</Text>
-      ) : null}
-      <Text style={styles.notice} testID="album-detail-settings-auto-download-notice">
-        {t('features.download.auto_download_unavailable')}
-      </Text>
-    </View>
+    <ChannelSettingsPane
+      channel={channel}
+      notifications={notifications}
+      testIDPrefix="album-detail"
+    />
   );
 
   const sectionBody =
@@ -849,9 +997,11 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         ? aboutBody
         : section === 'podroll'
           ? podrollBody
-          : settingsBody;
+          : section === 'funding'
+            ? fundingBody
+            : settingsBody;
 
-  const chipLeading =
+  const chipTrailing =
     section === 'tracks' ? (
       <>
         <MenuSelectChip
@@ -874,17 +1024,20 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     ) : undefined;
 
   return (
-    <ChannelDetailShell
-      channelHeader={channelHeader}
-      chipLeading={chipLeading}
-      isSectionHydrated={isSectionHydrated}
-      loadingTestID="album-detail-section-loading"
-      onSelectSection={handleSectionSelect}
-      sectionBody={sectionBody}
-      sectionChips={sectionChips}
-      sectionsTestID="album-detail-sections"
-      selectedSection={section}
-      testID="album-detail-screen"
-    />
+    <>
+      <ChannelDetailShell
+        channelHeader={channelHeader}
+        chipTrailing={chipTrailing}
+        isSectionHydrated={isSectionHydrated}
+        loadingTestID="album-detail-section-loading"
+        onSelectSection={handleSectionSelect}
+        sectionBody={sectionBody}
+        sectionChips={sectionChips}
+        sectionsTestID="album-detail-sections"
+        selectedSection={section}
+        testID="album-detail-screen"
+      />
+      {boostSheet}
+    </>
   );
 }

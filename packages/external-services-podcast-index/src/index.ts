@@ -39,7 +39,38 @@ export type PodcastIndexAPIRequestExtraParams = {
     controller: AbortController;
     timeoutMs: number;
   };
+  /**
+   * HTTP statuses the caller treats as a normal miss (e.g. byfeedurl 400/404).
+   * Rethrown without `logError`; other failures still log.
+   */
+  expectedMissStatuses?: readonly number[];
 };
+
+function httpStatusFromUpstreamError(error: unknown): number | null {
+  if (typeof error !== 'object' || error === null) {
+    return null;
+  }
+  if (!('response' in error)) {
+    return null;
+  }
+  const response = error.response;
+  if (typeof response !== 'object' || response === null || !('status' in response)) {
+    return null;
+  }
+  const status = response.status;
+  return typeof status === 'number' && Number.isFinite(status) ? status : null;
+}
+
+function isExpectedMissStatus(
+  error: unknown,
+  expectedMissStatuses: readonly number[] | undefined
+): boolean {
+  if (expectedMissStatuses === undefined || expectedMissStatuses.length === 0) {
+    return false;
+  }
+  const status = httpStatusFromUpstreamError(error);
+  return status !== null && expectedMissStatuses.includes(status);
+}
 
 type Constructor = {
   userAgent: string;
@@ -160,7 +191,9 @@ export class PodcastIndexService {
           continue;
         }
 
-        this.loggerService.logError(`[PodcastIndex] Request failed: ${JSON.stringify(summary)}`);
+        if (!isExpectedMissStatus(error, extraParams?.expectedMissStatuses)) {
+          this.loggerService.logError(`[PodcastIndex] Request failed: ${JSON.stringify(summary)}`);
+        }
         throw error;
       }
     }
@@ -403,13 +436,16 @@ export class PodcastIndexService {
     for (const lookupUrl of lookupUrls) {
       const url = `${this.baseUrl}/podcasts/byfeedurl?url=${encodeURIComponent(lookupUrl)}`;
       try {
-        const response = await this.podcastIndexAPIRequest(url);
+        const response = await this.podcastIndexAPIRequest(url, undefined, {
+          // Podcast Index returns 400 (and sometimes 404) when the URL is unknown.
+          expectedMissStatuses: [400, 404],
+        });
         const normalizedFeed = this.normalizePodcastFeed(response?.feed);
         if (normalizedFeed !== null) {
           return normalizedFeed;
         }
       } catch {
-        // assume a 404 / not found; fallback to the next scheme variant.
+        // assume a miss; fallback to the next scheme variant.
       }
     }
 

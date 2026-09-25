@@ -3,6 +3,19 @@ import { describe, expect, it } from 'vitest';
 import { MIGRATIONS } from './migrations';
 import { safeJsonParse } from './serialization';
 
+describe('migration 20 add-by-RSS credentials', () => {
+  it('adds the credential flag and index without a column for secrets', () => {
+    const migration20 = MIGRATIONS.find((migration) => migration.version === 20);
+    const sql = (migration20?.statements ?? []).join('\n').toLowerCase();
+
+    expect(sql).toContain('requires_credentials integer not null default 0');
+    expect(sql).toContain('last_auth_failure text');
+    expect(sql).toContain('create table if not exists add_by_rss_credential_index');
+    expect(sql.includes('password')).toBe(false);
+    expect(sql.includes('username')).toBe(false);
+  });
+});
+
 describe('migration 16 playback tables', () => {
   it('adds playback_outbox and playback_local_state without editing prior migrations', () => {
     const migration16 = MIGRATIONS.find((migration) => migration.version === 16);

@@ -1,0 +1,67 @@
+---
+description: Global defaults that seed per-entity settings must offer apply-to-existing when toggled
+globs:
+  - "apps/mobile/src/screens/more/**"
+  - "apps/web/src/components/Settings/**"
+alwaysApply: false
+---
+
+# Global default change → offer apply to existing
+
+Some settings are **global defaults** that new entities inherit (new subscriptions, new notification
+rows). Changing that default must not silently rewrite every existing entity — and must not leave
+the user without a way to do that rewrite when they want it.
+
+## When this applies
+
+A toggle (or similar control) is in this category when **both** are true:
+
+1. It sets a **default for future** entities (subscribe, enable notifications, enable auto download).
+2. Existing entities already hold their **own** copy of that value (per-channel notification row,
+   per-channel auto-download row, per-channel cellular override).
+
+Examples today:
+
+| Surface | Setting |
+| ------- | ------- |
+| Web + mobile Notifications | Auto-enable notifications when I subscribe |
+| Web + mobile Notifications | Default notification types (`new-item`, …) |
+| Mobile Downloads | Auto download new subscriptions |
+| Mobile Downloads | Download over cellular (global default) |
+
+## Required UX
+
+When the user changes such a default and the **affected existing count is greater than zero**, show a
+confirm dialog **before** (or immediately after saving the default, with the bulk apply as the
+optional second step — either order is fine as long as the choice is explicit):
+
+- **Apply to all** — update every matching existing entity to the new value.
+- **Only new** (cancel / secondary) — keep existing entities as they are; only future entities
+  inherit the new default.
+
+Skip the dialog when the affected count is **0** (nothing to apply).
+
+### Components
+
+| Surface | Dialog |
+| ------- | ------ |
+| Mobile | `ConfirmDialog` (`apps/mobile/src/components/feedback/ConfirmDialog.tsx`) |
+| Web | `Modal` + `Modal.Actions` |
+
+Copy is sentence case and goes through i18n. Prefer a shared shape: title naming the setting, body
+with `{count}`, confirm = apply to all, cancel = only new / keep existing.
+
+## Don't
+
+- Don't silently bulk-update every podcast when the global flips.
+- Don't omit the dialog because "most users have few subscriptions".
+- Don't invent a toast or snackbar for this choice — it needs an explicit decision.
+- Don't apply this pattern to prefs that are **not** inherited per entity (theme, language, quota
+  size, Wi‑Fi-only as a single device-wide gate with no per-channel copy).
+
+## Related
+
+- [`ui-copy-sentence-case`](/.cursor/rules/ui-copy-sentence-case.mdc)
+- [`mobile-anonymous-vs-account-features`](/.cursor/rules/mobile-anonymous-vs-account-features.mdc) —
+  auto download is Membership-tier
+- Detail: [728-defer-channel-auto-download](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md)

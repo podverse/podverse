@@ -38,3 +38,45 @@ checkout **`../podverse-rn`** relative to this monorepo root (typically
 `apps/mobile`.
 
 See **legacy-app-reference** for when and how to open that checkout.
+
+## description / about / summary
+
+These three get used interchangeably in conversation. In code they are not the same thing.
+
+- **description** is the **RSS-spec term** and the DTO field that holds that prose
+  (`<description>`, `channel_description`, `item_description`). Use this name for the field,
+  the DTO, and internal cell/kind identifiers that hold that text — not for the user-facing
+  section label.
+- **About** is the **channel-level** user-facing presentation (`info.about`) of that description
+  plus the extras that stay aligned with web (people; on mobile also RSS and website). Funding
+  is its own chip, not an About body link. Podcast, album, and artist About chips use this name.
+- **Summary** is the **item-level** user-facing presentation (`info.summary.*`) of that
+  description plus item people. Episode, track, livestream, and full-player Summary tabs use
+  this name.
+
+Do not rename a channel About cell or section to `summary`, or an item Summary tab to
+`description` / `about`, just because the spoken terms overlap. Leave catalog keys on their
+surface (`info.about` vs `info.summary.*`). Do not swap those labels in UI copy, section chips,
+or testIDs.
+
+`channel_about` / `item_about` are a different DTO: structured metadata (author, duration,
+website URL), not the description prose. Do not treat those as the About/Summary body.
+
+Cross-surface field contract: **about-summary-web-mobile-alignment**.
+
+## playlist / HLS playlist
+
+**playlist** is a Podverse schema playlist: the `playlist` table, `playlist_id`, playlist screens,
+and catalog keys under `playlist.*`.
+
+An m3u8 media manifest is an **HLS playlist**. Write "HLS playlist" or "m3u8" in prose. In
+identifiers use `hlsPlaylist` (camelCase) or `hls_playlist` (snake_case reason codes and
+`HLS_PLAYLIST_*` constants). Do not write the one-word form `hlsplaylist`.
+
+A search for `playlist` still matches `hlsPlaylist` and `hls_playlist`, because those names
+contain that substring. Search `hlsPlaylist`, `hls_playlist`, or "HLS playlist" for manifests.
+Search whole-word `playlist` for the schema entity, and skip the qualified HLS names.
+
+Leave ffmpeg's `-hls_playlist_type` as ffmpeg spells it. Leave test URIs whose query parameter
+is literally `playlist=` (for example `ep.mp3?playlist=stream.m3u8`). Those fixtures show a query
+parameter, not an HLS playlist.

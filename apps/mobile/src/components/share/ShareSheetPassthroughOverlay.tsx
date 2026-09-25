@@ -2,47 +2,33 @@ import { useEffect, useState } from 'react';
 import { AppState, Pressable, StyleSheet } from 'react-native';
 
 import {
+  consumeShareSheetPassthroughTap,
   isShareSheetPassthroughWindow,
-  SHARE_DISMISS_TAP_GUARD_MS,
   subscribeShareSheetPassthrough,
 } from '../../lib/share/shareSheetPassthrough';
 
 /**
- * Full-window swallow layer while a system share sheet is up and for a beat after the app is
- * interactive again. The OS sheet is another window, so this only eats the tap that would
- * otherwise land on the app (artwork, transport, chips) on iOS and Android.
+ * Full-window swallow layer while a system share sheet is up. The OS sheet is another window,
+ * so the tap that dismisses it would otherwise land on the app. That tap hides this layer in
+ * the same press; the next tap reaches the title bar and the rest of the chrome.
  */
 export function ShareSheetPassthroughOverlay() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    let releaseTimer: ReturnType<typeof setTimeout> | null = null;
     let showing = false;
 
-    const clearReleaseTimer = () => {
-      if (releaseTimer !== null) {
-        clearTimeout(releaseTimer);
-        releaseTimer = null;
-      }
-    };
-
     const show = () => {
-      clearReleaseTimer();
-      if (!showing) {
-        showing = true;
-        setVisible(true);
-      }
+      showing = true;
+      setVisible(true);
     };
 
-    const scheduleHide = () => {
-      if (releaseTimer !== null) {
+    const hide = () => {
+      if (!showing) {
         return;
       }
-      releaseTimer = setTimeout(() => {
-        releaseTimer = null;
-        showing = false;
-        setVisible(false);
-      }, SHARE_DISMISS_TAP_GUARD_MS);
+      showing = false;
+      setVisible(false);
     };
 
     const sync = () => {
@@ -54,17 +40,16 @@ export function ShareSheetPassthroughOverlay() {
         return;
       }
       // Android's chooser often backgrounds the activity and resolves Share.share() early.
-      // Stay up until the app is active again so the resume/dismiss tap hits this layer.
+      // Stay up until the app is active so the resume tap hits this layer, then hide.
       if (AppState.currentState !== 'active') {
         return;
       }
-      scheduleHide();
+      hide();
     };
 
     const unsubSession = subscribeShareSheetPassthrough(sync);
     const appSub = AppState.addEventListener('change', sync);
     return () => {
-      clearReleaseTimer();
       unsubSession();
       appSub.remove();
     };
@@ -79,7 +64,8 @@ export function ShareSheetPassthroughOverlay() {
       accessible={false}
       importantForAccessibility="no"
       onPress={() => {
-        // Swallow the dismiss-backdrop tap.
+        consumeShareSheetPassthroughTap();
+        setVisible(false);
       }}
       style={styles.overlay}
       testID="share-sheet-passthrough-overlay"

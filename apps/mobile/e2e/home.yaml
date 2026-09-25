@@ -18,6 +18,8 @@ name: Home Media Types
 - assertVisible:
     id: home-screen
 - assertNotVisible:
+    id: home-list-loading
+- assertNotVisible:
     id: home-subscription-filter
 
 # Podcasts (default)
@@ -26,10 +28,16 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# Home's sort chip leads the media-type row when the type can sort. The selected type sits first
-# after it. The face shows the current order; the caret opens
+# Home's sort chip trails the media-type row when the type can sort. Type chips stay in place.
+# The face shows the current order; the caret opens
 # A-Z, Recent, and Popularity. Popularity opens a second sheet for the listen-count window, and
 # the chip then shows that window. A-Z is the default. There is no Categories chip here.
+# The chip starts past the trailing edge of the phone row, so scroll it into view first.
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
+      TRAILING_ID: home-sort-button
 - assertVisible:
     id: home-sort-button
 # The chip face is "A-Z"; iOS exposes the paired accessible name, not the raw text node.
@@ -117,6 +125,12 @@ name: Home Media Types
     id: home-sort-button
 - assertVisible: "Sort: A-Z"
 
+# Back to the leading edge so Episodes and the later type swipes start from the same row.
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
+
 # The title-bar overflow menu holds the view toggle and Mark all as seen. The view is two checkable
 # rows rather than one label that flips, so the menu states which mode is in effect.
 - assertVisible:
@@ -190,6 +204,11 @@ name: Home Media Types
 # title list Home can honestly narrow.
 - assertNotVisible:
     id: home-subscription-filter
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
+      TRAILING_ID: home-sort-button
 - assertVisible:
     id: home-sort-button
 - assertVisible: "Sort: A-Z"
@@ -200,6 +219,10 @@ name: Home Media Types
 - takeScreenshot: home-sort-episodes
 - tapOn:
     id: home-sort-menu-cancel
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
 
 # Artists — subscribed-only; empty for the seeded account, so Browse (and Search for music) appear.
 - tapOn:
@@ -226,9 +249,18 @@ name: Home Media Types
 - assertVisible:
     id: home-screen
 
-# Artists, albums, tracks, and clips share the same leading sort chip.
+# Artists, albums, tracks, and clips share the same trailing sort chip.
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
+      TRAILING_ID: home-sort-button
 - assertVisible:
     id: home-sort-button
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
 
 # Swipe the selector row itself — a %-of-screen start Y can miss the pills.
 # The selected type moves first, so each pick can push later types off the trailing
@@ -288,6 +320,8 @@ name: Home Media Types
 - assertNotVisible: "Dummy clip"
 - assertVisible:
     id: home-feed-row-e2eClip00000001
+- assertVisible:
+    id: home-feed-row-subtitle-e2eClip00000001
 - assertVisible:
     id: home-feed-row-e2eClipNav0001
 - assertNotVisible:

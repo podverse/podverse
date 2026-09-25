@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { getErrorResponseStatus } from '@podverse/helpers/error';
-
-import { loginWithMobileToken, useAuth } from '../../auth';
+import {
+  completeMobilePasswordLogin,
+  completeMobilePasswordLoginMessageKey,
+  useAuth,
+} from '../../auth';
 import { resolveLocalDevLoginPrefill } from '../../auth/localDevLoginPrefill';
-import { reconcileAccountPrefsFromAccount } from '../../auth/syncAccountPrefs';
 import { TextField } from '../../components/form';
 import { Button } from '../../components/primitives';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
-import { accountRepository } from '../../data';
-import { runSignupSubscriptionMerge } from '../../data/repositories/subscriptionsSignupMerge';
+import { formActionsTopGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
@@ -57,7 +57,7 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
       flex: 1,
     },
     submit: {
-      marginTop: tokens.spacing.xl,
+      marginTop: formActionsTopGap(tokens.spacing),
     },
   });
 
@@ -69,52 +69,17 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await loginWithMobileToken({ email, password, setTokens });
-      if (!result.ok) {
-        if (result.error === 'invalid_credentials') {
-          setError(t('authentication.invalid_email_or_password'));
-        } else {
-          setError(t('authentication.mobile_api_not_configured'));
-        }
-        return;
-      }
-
-      const authContext = {
-        accessToken: result.accessToken,
+      const result = await completeMobilePasswordLogin({
         clearSession,
-        refreshToken: result.refreshToken,
+        email,
+        password,
+        setAccount,
+        setAuthError,
         setTokens,
-      };
-
-      // Before the refresh below, which makes the account authoritative over local subscriptions.
-      // Only does anything when this device just created this account; never throws.
-      await runSignupSubscriptionMerge(email, authContext);
-
-      try {
-        // Someone is watching the sign-in spinner, so the account itself is fetched inline. What it
-        // implies — the directory walk, playlists, the car index, device registration — is queued
-        // by the sign-in trigger, because none of it is worth holding this button for.
-        const account = await accountRepository.refreshSnapshot(authContext);
-        setAccount(account);
-        try {
-          await reconcileAccountPrefsFromAccount(account);
-        } catch (error) {
-          console.warn('Failed to reconcile account prefs after login hydrate', error);
-        }
-        setAuthError(null);
-      } catch (error) {
-        if (getErrorResponseStatus(error) === 401) {
-          setError(t('authentication.session_expired'));
-          return;
-        }
-
-        setAuthError('auth_bootstrap_failed');
-        setError(t('authentication.signed_in_account_load_failed'));
+      });
+      if (!result.ok) {
+        setError(t(completeMobilePasswordLoginMessageKey(result.error)));
       }
-    } catch {
-      // Network/unexpected errors must surface: a silent failure looks identical to
-      // "nothing happened" and is very hard to diagnose (especially in E2E).
-      setError(t('authentication.could_not_sign_in'));
     } finally {
       setIsLoading(false);
     }

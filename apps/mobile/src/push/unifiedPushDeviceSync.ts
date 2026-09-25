@@ -1,5 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
+import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
+import { requestWithMobileAuthRefreshIfSignedIn } from '../auth/authRequestWithRefresh';
 import { createMobileApiRequestService } from '../auth/mobileApi';
 import { getUnifiedPushRegistrationPayload } from './unifiedPushTransport';
 
@@ -18,13 +20,13 @@ const deleteSecureValue = async (key: string): Promise<void> => {
 };
 
 export const registerUnifiedPushDeviceForAccount = async ({
-  accessToken,
+  auth,
   locale,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
 }): Promise<void> => {
-  if (accessToken === null) {
+  if (auth.accessToken === null) {
     return;
   }
 
@@ -33,19 +35,25 @@ export const registerUnifiedPushDeviceForAccount = async ({
     return;
   }
 
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
+  const previousEndpoint = await readSecureValue(REGISTERED_UP_ENDPOINT_KEY);
+  const registered =
+    previousEndpoint === null || previousEndpoint === ''
+      ? await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+          api.reqAccountUPDeviceCreate(payload)
+        )
+      : await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+          api.reqAccountUPDeviceUpdate(payload)
+        );
+  if (registered === null) {
     return;
   }
 
-  const previousEndpoint = await readSecureValue(REGISTERED_UP_ENDPOINT_KEY);
-  if (previousEndpoint === null || previousEndpoint === '') {
-    await api.reqAccountUPDeviceCreate(payload);
-  } else {
-    await api.reqAccountUPDeviceUpdate(payload);
+  const localeUpdated = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+    api.reqAccountUPDeviceUpdateLocale({ locale })
+  );
+  if (localeUpdated === null) {
+    return;
   }
-
-  await api.reqAccountUPDeviceUpdateLocale({ locale });
   await writeSecureValue(REGISTERED_UP_ENDPOINT_KEY, payload.up_endpoint);
 };
 
@@ -69,13 +77,13 @@ export const unregisterUnifiedPushDeviceForAccount = async ({
 };
 
 export const syncUnifiedPushDeviceLocaleIfRegistered = async ({
-  accessToken,
+  auth,
   locale,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
 }): Promise<void> => {
-  if (accessToken === null) {
+  if (auth.accessToken === null) {
     return;
   }
 
@@ -84,10 +92,7 @@ export const syncUnifiedPushDeviceLocaleIfRegistered = async ({
     return;
   }
 
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
-  await api.reqAccountUPDeviceUpdateLocale({ locale });
+  await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+    api.reqAccountUPDeviceUpdateLocale({ locale })
+  );
 };

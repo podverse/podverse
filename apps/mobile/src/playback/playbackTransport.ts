@@ -21,22 +21,30 @@ export const isEnginePlayableState = (state: PlaybackStateValue): boolean => {
 /**
  * Transport glyph for an engine state, or `null` when the state must not change the glyph.
  *
- * The spinner means "this source cannot start yet". Once the engine has reported the source
- * playable, later buffering keeps the play/pause mark: there is already enough media to play, and a
- * spinner appearing on every re-buffer would flicker over the control the listener is aiming at.
+ * The spinner means "this source cannot start yet". A start-play load (`pendingStart`) owns the
+ * glyph itself: spinner until the load is issued, pause once the engine accepts the source.
+ * `ready`, `paused`, `loading`, `stalled`, `idle`, and `ended` during that load are startup beats
+ * and must not move the glyph. `playing` confirms pause, and `error` is the only failure glyph.
+ * Once the source is playable, later buffering keeps the current glyph.
  */
 export const playbackTransportForEngineState = (
   state: PlaybackStateValue,
-  sourcePlayable: boolean
+  sourcePlayable: boolean,
+  pendingStart = false
 ): PlaybackTransportState | null => {
   if (state === 'error') {
     return 'error';
   }
-  if (isEngineBufferingState(state)) {
-    return sourcePlayable ? null : 'loading';
-  }
   if (state === 'playing') {
     return 'playing';
+  }
+  // A start-play load owns the glyph: spinner until the load is issued, pause once it is.
+  // ready / paused / stalled / loading / idle during startup are beats, not a transport change.
+  if (pendingStart) {
+    return null;
+  }
+  if (isEngineBufferingState(state)) {
+    return sourcePlayable ? null : 'loading';
   }
   if (state === 'idle') {
     return null;

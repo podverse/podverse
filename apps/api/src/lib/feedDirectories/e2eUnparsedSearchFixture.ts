@@ -23,8 +23,10 @@ export const buildE2eUnparsedSearchFeed = (): SearchPodcastsFeed => {
     description: 'Synthetic feed for mobile search not-parsed-ready smoke coverage.',
     author: 'E2E Fixture Author',
     ownerName: 'E2E Fixture Author',
-    image: 'https://example.invalid/e2e-unparsed-cover.jpg',
-    artwork: 'https://example.invalid/e2e-unparsed-cover.jpg',
+    // A URL the device can fetch. A failed load shows the placeholder, and the placeholder does
+    // not open the image viewer.
+    image: 'http://localhost:2111/e2e/images/e2e-embed-channel-art-1400.png',
+    artwork: 'http://localhost:2111/e2e/images/e2e-embed-channel-art-1400.png',
     lastUpdateTime: 0,
     lastCrawlTime: 0,
     lastParseTime: 0,

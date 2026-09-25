@@ -29,7 +29,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                                                                                                            |
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                                                                                                                 |
 | Base + ORM + MQ + KeyValDB + PI     | Base, ORM, MQ, KeyValDB, PodcastIndex    | mqOpmlImportRun                                                                                                                                     |
-| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParsePodcasting20Feeds                                                              |
+| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParseMusicMediumFeeds, devParserRSSParsePodcasting20Feeds                           |
 | Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                                                                                                         |
 | Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkResetShrunken, imageShrinkResetShrunkenDryRun, imageShrinkSourcePrune                                         |
 | Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                                                                                                            |
@@ -79,10 +79,10 @@ examples if needed. For the full checklist (including index.ts and new categorie
 
 ## Add-by-RSS
 
-Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Auth credentials stored per-feed in the database (`account_following_add_by_rss_channel`).
+Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) receives optional HTTP Basic Auth credentials in a sealed envelope on each queue message. Credentials are opened in memory for that fetch only and are never stored.
 
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md) for key-rotation procedure.
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key. Remove after running the re-encryption script.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Transit key used to open the AES-256-GCM envelope the API seals. Must be 64 hex characters (32 bytes) and match the API value. Generate with: `openssl rand -hex 32`. See [docs/features/ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md).
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. Envelopes that fail with the current key are retried with this one. Remove once messages sealed with the old key have expired (15 minutes).
 
 ## General Configuration (Base — every command)
 
@@ -119,9 +119,9 @@ These variables are required only for commands that include the Podcast Index ca
 - **`PODCAST_INDEX_SECRET_KEY`** (Required) - Podcast Index API secret key
 - **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for
   Podcast Index API requests. Default is `200`. Set to `0` to disable. For
-  **`devParserRSSParseTrendingFeeds`**, the same delay is also applied between trending fetches
-  and between per-feed parse steps, so long runs (many feeds) stay within polite bounds when set
-  to a non-zero value.
+  **`devParserRSSParseTrendingFeeds`** and **`devParserRSSParseMusicMediumFeeds`**, the same
+  delay is also applied between Podcast Index list fetches and between per-feed parse steps, so
+  long runs (many feeds) stay within polite bounds when set to a non-zero value.
 - **`PODCAST_INDEX_API_MAX_RETRIES`** (Optional) - Retries after the first failed Podcast Index
   API request. Default is `3` (four total attempts including the initial request).
 - **`PODCAST_INDEX_API_RETRY_BASE_DELAY_MS`** (Optional) - Base delay in milliseconds for

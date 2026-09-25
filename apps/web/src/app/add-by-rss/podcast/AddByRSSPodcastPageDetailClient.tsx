@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type { AddByRSSParseStatus } from '@podverse/helpers';
 import {
   DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
   getTotalPages,
@@ -34,8 +35,12 @@ import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { useAddByRSSFeedParseStatusLines } from '../../../hooks/useAddByRSSFeedParseStatusLines';
-import { applyAddByRSSParseStatus, pollAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
-import { enqueueAddByRSSParse } from '../../../utils/addByRSS/api';
+import type { AddByRSSParseOutcome } from '../../../utils/addByRSS/actions';
+import {
+  applyAddByRSSParseStatus,
+  enqueueAddByRSSParseWithStoredCredentials,
+  pollAddByRSSParseStatus,
+} from '../../../utils/addByRSS/actions';
 import {
   buildAddByRSSItemsIndex,
   buildAddByRSSLivestreamIndex,
@@ -188,14 +193,16 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
     async (
       feedUrl: string,
       parsedFeed: AddByRSSParsedFeed | undefined,
-      status: AddByRSSFeedRecord['status'],
-      cache?: AddByRSSFeedRecord['cache']
+      status: AddByRSSParseStatus,
+      cache?: AddByRSSFeedRecord['cache'],
+      outcome?: AddByRSSParseOutcome
     ) => {
       await applyAddByRSSParseStatus({
         feedUrl,
         parsedFeed,
         status,
         cache,
+        outcome,
         fallbackRecord: localFeed,
         onUpdated: (record) => {
           setLocalFeed(record);
@@ -215,7 +222,8 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
               feedUrl,
               statusResponse.payload,
               statusResponse.status,
-              statusResponse.cache
+              statusResponse.cache,
+              statusResponse
             );
           },
         });
@@ -241,7 +249,10 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
     setErrorMessage(null);
 
     try {
-      const response = await enqueueAddByRSSParse({ feedUrl: localFeed.feedUrl });
+      const response = await enqueueAddByRSSParseWithStoredCredentials({
+        accountId: loggedInAccount.id_text,
+        feedUrl: localFeed.feedUrl,
+      });
       await handleParseStatus(localFeed.feedUrl, undefined, 'queued');
       await pollRequest(response.request_id, localFeed.feedUrl);
       const refreshed = await getAddByRSSFeedByUrl(localFeed.feedUrl);

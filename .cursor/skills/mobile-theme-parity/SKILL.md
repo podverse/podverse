@@ -49,6 +49,7 @@ Default when unset: **`dark`** (matches web `:root` / `[data-ui-theme='dark']`).
 apps/mobile/src/theme/
 ├── ThemeProvider.tsx   # Context: uiTheme, setUITheme, token map
 ├── useTheme.ts         # Hook for screens
+├── useThemedStyles.ts  # Cache a StyleSheet per factory + theme, shared across instances
 └── createStyles.ts     # Map design-tokens → StyleSheet factories
 ```
 
@@ -89,7 +90,9 @@ and mirror its **information architecture and actions**, adapted to React Native
    feed). See [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md §4](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
    and master-plan **Track 9c**. **Which buttons exist** matters; pixel polish waits for Track 23.
 4. **Adapt, don't port** — use RN primitives (`View`, `FlatList`, `Pressable`, `Image`) and
-   `StyleSheet` factories from `createStyles.ts`; never import `@podverse/ui` or SCSS.
+   `StyleSheet` factories from `createStyles.ts`; never import `@podverse/ui` or SCSS. Components
+   that can mount once per list row read their styles through `useThemedStyles` with a module-scope
+   factory rather than `useMemo(() => StyleSheet.create(…))` — see **mobile-row-render-cost**.
 5. **Tokens only** — all colors, spacing, and radii come from `@podverse/design-tokens` via the
    theme. **No hardcoded hex** in screens (enforced by this skill + `mobile-react-native` rule).
 6. **Diverge only with reason** — platform conventions (native back, pull-to-refresh, bottom sheets,

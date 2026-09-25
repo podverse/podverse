@@ -12,6 +12,8 @@ import { queueRepository } from '../data';
 
 export type QueueResourcesLoadActiveResult = {
   activeQueue: DTOQueue | null;
+  /** Account queues from the same fetch used to resolve the active queue. */
+  queues: DTOQueue[];
   /** now-playing + upcoming combined (now-playing first), mirroring web semantics. */
   upcomingResources: DTOQueueResource[];
   /** The resource callers may synchronously translate into a PlaybackLoadRequest. */
@@ -21,6 +23,7 @@ export type QueueResourcesLoadActiveResult = {
 const emptyLoadActiveResult: QueueResourcesLoadActiveResult = {
   activeQueue: null,
   activeResource: null,
+  queues: [],
   upcomingResources: [],
 };
 
@@ -109,7 +112,10 @@ export function useQueueResourcesLoadActive() {
           setActiveQueue(null);
           setActiveQueueUpcomingResources([]);
         }
-        return emptyLoadActiveResult;
+        return {
+          ...emptyLoadActiveResult,
+          queues,
+        };
       }
 
       if (nowPlayingResource === null) {
@@ -126,6 +132,7 @@ export function useQueueResourcesLoadActive() {
       return {
         activeQueue,
         activeResource: combined[0] ?? null,
+        queues,
         upcomingResources: combined,
       };
     },

@@ -14,7 +14,7 @@ type BrowseOverflowMenuProps = {
 
 /**
  * Browse title-bar overflow for list vs grid. Layout is Browse-wide and only drawn on media chips
- * where artwork identifies the row (podcasts, videos, artists, albums).
+ * where artwork identifies the row (podcasts, artists, albums).
  */
 export function BrowseOverflowMenu({ onViewModeChange, viewMode }: BrowseOverflowMenuProps) {
   const { t } = useTranslation();

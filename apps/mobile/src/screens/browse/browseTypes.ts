@@ -15,7 +15,6 @@ export const HOME_MEDIA_TYPE_ORDER: HomeMediaType[] = [
 export const BROWSE_MEDIA_TYPE_ORDER = [
   'podcasts',
   'episodes',
-  'videos',
   'artists',
   'albums',
   'tracks',
@@ -37,15 +36,13 @@ export const MEDIA_TYPE_LABEL_KEYS: Record<BrowseMediaType, string> = {
   podcasts: 'media.podcast.podcasts',
   tracks: 'media.music.tracks',
   users: 'features.browse.users',
-  videos: 'media.video.videos',
 };
 
-/** Podcasts, episodes, clips, and video channels carry directory categories. Music does not. */
+/** Podcasts, episodes, and clips carry directory categories. Music does not. */
 export const BROWSE_CATEGORY_MEDIA_TYPES: readonly BrowseMediaType[] = [
   'podcasts',
   'episodes',
   'clips',
-  'videos',
 ];
 
 export const isBrowseCategoryMediaType = (mediaType: BrowseMediaType): boolean => {

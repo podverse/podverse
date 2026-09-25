@@ -1,16 +1,49 @@
-import { useMemo } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Badge, CountBadge, CoverImage, UnseenIndicator } from '../../components/primitives';
-import { useTheme } from '../../theme/useTheme';
+import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
+import { useThemedStyles } from '../../theme/useThemedStyles';
 import type { HomeFeedRowData } from './homeFeedData';
 
 type HomeFeedGridCellProps = {
+  artworkEdge?: number;
   onPress: (row: HomeFeedRowData) => void;
   row: HomeFeedRowData;
   testID?: string;
 };
+
+const createStyles = ({ tokens }: ThemedStylesTheme) =>
+  StyleSheet.create({
+    artwork: {
+      // Square so tiles line up on a row whatever each feed's artwork happens to be.
+      aspectRatio: 1,
+      width: '100%',
+    },
+    cell: {
+      marginBottom: tokens.spacing.md,
+    },
+    downloadedBadge: {
+      bottom: tokens.spacing.xs,
+      left: tokens.spacing.xs,
+      position: 'absolute',
+    },
+    liveBadge: {
+      position: 'absolute',
+      right: tokens.spacing.xs,
+      top: tokens.spacing.xs,
+    },
+    tile: {
+      position: 'relative',
+      width: '100%',
+    },
+    unseenIndicator: {
+      bottom: tokens.spacing.xs,
+      position: 'absolute',
+      right: tokens.spacing.xs,
+    },
+  });
 
 /**
  * One artwork tile in the Home grid.
@@ -20,9 +53,14 @@ type HomeFeedGridCellProps = {
  * list view is where full metadata lives — but each marker folds into the accessible name so a
  * screen reader is not left with blank squares.
  */
-export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps) {
+export const HomeFeedGridCell = memo(function HomeFeedGridCell({
+  artworkEdge,
+  onPress,
+  row,
+  testID,
+}: HomeFeedGridCellProps) {
   const { t } = useTranslation();
-  const { tokens } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const liveLabel = row.metadata?.isLive === true ? t('media.livestream.live') : null;
   const unseenBadge = row.metadata?.unseenBadge ?? null;
@@ -38,40 +76,6 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
     .filter((part) => part !== null)
     .join(', ');
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        artwork: {
-          // Square so tiles line up on a row whatever each feed's artwork happens to be.
-          aspectRatio: 1,
-          width: '100%',
-        },
-        cell: {
-          marginBottom: tokens.spacing.md,
-        },
-        downloadedBadge: {
-          bottom: tokens.spacing.xs,
-          left: tokens.spacing.xs,
-          position: 'absolute',
-        },
-        liveBadge: {
-          position: 'absolute',
-          right: tokens.spacing.xs,
-          top: tokens.spacing.xs,
-        },
-        tile: {
-          position: 'relative',
-          width: '100%',
-        },
-        unseenIndicator: {
-          bottom: tokens.spacing.xs,
-          position: 'absolute',
-          right: tokens.spacing.xs,
-        },
-      }),
-    [tokens]
-  );
-
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}
@@ -86,7 +90,7 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
       <View style={styles.tile}>
         {/* Artwork is decorative here: the Pressable owns the accessible name (title + badges). */}
         <CoverImage
-          fallbackLabel={row.title}
+          decodeEdge={artworkEdge}
           opensViewer={false}
           style={styles.artwork}
           uri={row.imageUrl}
@@ -116,4 +120,4 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
       </View>
     </Pressable>
   );
-}
+});

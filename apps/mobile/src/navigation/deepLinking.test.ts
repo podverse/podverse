@@ -91,6 +91,12 @@ describe('mapIncomingPathToScopedPath', () => {
     expect(mapIncomingPathToScopedPath(APP_ROUTES.SETTINGS)).toBe(`/more${APP_ROUTES.SETTINGS}`);
   });
 
+  it('falls back to home for podcast settings paths', () => {
+    expect(mapIncomingPathToScopedPath(`${APP_ROUTES.PODCAST}/pod123/settings`)).toBe(
+      MOBILE_HOME_TAB_PATH
+    );
+  });
+
   it('handles full web URLs and strips query/hash', () => {
     expect(
       mapIncomingPathToScopedPath(`https://podverse.fm${buildPodcastPath('pod123')}?foo=1#bar`)

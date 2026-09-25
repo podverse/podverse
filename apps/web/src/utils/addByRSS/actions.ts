@@ -1,5 +1,6 @@
-import type { DTOAccount } from '@podverse/helpers';
+import type { AddByRSSParseStatus, DTOAccount } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText, sleep } from '@podverse/helpers';
+import type { AddByRSSBasicAuthCredentials } from '@podverse/helpers-validation/client';
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
 
 import type { AddByRSSParseStatusResponse } from './api';
@@ -9,17 +10,26 @@ import {
   getAddByRSSParseStatus,
   unfollowAddByRSSChannel,
 } from './api';
+import { nextLocalRequiresCredentials } from './credentialsStatus';
+import { deleteCredentials, getCredentials, setCredentials } from './credentialStore';
 import { getAddByRSSFeedByUrl, removeAddByRSSFeed, upsertAddByRSSFeed } from './storage';
 import type { AddByRSSFeedRecord, AddByRSSParsedFeed, AddByRSSResourceType } from './types';
 
 const STATUS_POLL_DELAY_MS = 3000;
 const STATUS_POLL_MAX_ATTEMPTS = 30;
 
+/** The credential-related parts of a parse status response. */
+export type AddByRSSParseOutcome = Pick<
+  AddByRSSParseStatusResponse,
+  'failureReason' | 'credentialsState'
+>;
+
 type ApplyAddByRSSParseStatusParams = {
   feedUrl: string;
   parsedFeed: AddByRSSParsedFeed | undefined;
-  status: AddByRSSFeedRecord['status'];
+  status: AddByRSSParseStatus;
   cache?: AddByRSSFeedRecord['cache'];
+  outcome?: AddByRSSParseOutcome;
   fallbackRecord?: AddByRSSFeedRecord | null;
   onUpdated?: (record: AddByRSSFeedRecord) => void;
 };
@@ -29,30 +39,85 @@ type PollAddByRSSParseStatusParams = {
   onStatusUpdate: (response: AddByRSSParseStatusResponse) => Promise<void>;
 };
 
+/**
+ * A credential-store failure must never block the feed operation around it; the feed then
+ * behaves as if this browser had no credentials for it.
+ */
+const readStoredCredentials = async (
+  accountId: string,
+  feedUrl: string
+): Promise<AddByRSSBasicAuthCredentials | null> => {
+  try {
+    return await getCredentials(accountId, feedUrl);
+  } catch (error) {
+    console.error('Could not read add-by-RSS credentials on this browser', error);
+    return null;
+  }
+};
+
+const storeCredentials = async (
+  accountId: string,
+  feedUrl: string,
+  credentials: AddByRSSBasicAuthCredentials
+): Promise<boolean> => {
+  try {
+    return await setCredentials(accountId, feedUrl, credentials);
+  } catch (error) {
+    console.error('Could not save add-by-RSS credentials on this browser', error);
+    return false;
+  }
+};
+
 export const unfollowAddByRSSChannelAndClear = async (params: {
+  accountId: string;
   feedUrl: string;
   channelIdText: string;
 }): Promise<DTOAccount> => {
   const account = await unfollowAddByRSSChannel(params.feedUrl);
   await removeAddByRSSFeed(params.channelIdText);
+  try {
+    await deleteCredentials(params.accountId, params.feedUrl);
+  } catch (error) {
+    console.error('Could not delete add-by-RSS credentials on this browser', error);
+  }
   return account;
 };
 
+/** Enqueues a single-feed parse, attaching this browser's credentials for the feed when it has any. */
+export const enqueueAddByRSSParseWithStoredCredentials = async (params: {
+  accountId: string;
+  feedUrl: string;
+  cache?: AddByRSSFeedRecord['cache'];
+}): Promise<{ request_id: string }> => {
+  const credentials = await readStoredCredentials(params.accountId, params.feedUrl);
+  return enqueueAddByRSSParse({ feedUrl: params.feedUrl, cache: params.cache, credentials });
+};
+
+/**
+ * Follows a feed and queues its first parse. Credentials (explicit, else already stored on this
+ * browser) are saved locally and sent only in the parse body; the follow carries just the flag.
+ */
 export const followAddByRSSChannelAndQueue = async (params: {
+  accountId: string;
   feedUrl: string;
   resourceType: AddByRSSResourceType;
   title?: string | null;
   imageUrl?: string | null;
-  basic_auth_username?: string | null;
-  basic_auth_password?: string | null;
+  credentials?: AddByRSSBasicAuthCredentials | null;
 }): Promise<{ requestId: string; record: AddByRSSFeedRecord; account: DTOAccount }> => {
+  const credentials =
+    params.credentials ?? (await readStoredCredentials(params.accountId, params.feedUrl));
+
   const account = await followAddByRSSChannel({
     feedUrl: params.feedUrl,
     title: params.title ?? null,
     imageUrl: params.imageUrl ?? null,
-    basic_auth_username: params.basic_auth_username ?? null,
-    basic_auth_password: params.basic_auth_password ?? null,
+    ...(credentials ? { requiresCredentials: true } : {}),
   });
+
+  if (params.credentials) {
+    await storeCredentials(params.accountId, params.feedUrl, params.credentials);
+  }
 
   const idText = createAddByRSSIdText();
   const record: AddByRSSFeedRecord = {
@@ -64,11 +129,35 @@ export const followAddByRSSChannelAndQueue = async (params: {
     imageUrl: params.imageUrl ?? null,
     status: 'queued',
     updatedAt: new Date().toISOString(),
+    ...(credentials ? { requiresCredentials: true } : {}),
   };
   await upsertAddByRSSFeed(record);
 
-  const parseResponse = await enqueueAddByRSSParse({ feedUrl: params.feedUrl });
+  const parseResponse = await enqueueAddByRSSParse({ feedUrl: params.feedUrl, credentials });
   return { requestId: parseResponse.request_id, record, account };
+};
+
+/**
+ * Saves credentials for an already-followed feed on this browser and queues a parse to check
+ * them. The saved credentials are kept even if the parse rejects them, so the user can edit
+ * rather than retype.
+ */
+export const saveAddByRSSCredentialsAndQueue = async (params: {
+  accountId: string;
+  feed: AddByRSSFeedRecord;
+  credentials: AddByRSSBasicAuthCredentials;
+}): Promise<{ requestId: string; savedOnDevice: boolean }> => {
+  const savedOnDevice = await storeCredentials(
+    params.accountId,
+    params.feed.feedUrl,
+    params.credentials
+  );
+  const parseResponse = await enqueueAddByRSSParse({
+    feedUrl: params.feed.feedUrl,
+    cache: params.feed.cache,
+    credentials: params.credentials,
+  });
+  return { requestId: parseResponse.request_id, savedOnDevice };
 };
 
 export const applyAddByRSSParseStatus = async ({
@@ -76,6 +165,7 @@ export const applyAddByRSSParseStatus = async ({
   parsedFeed,
   status,
   cache,
+  outcome,
   fallbackRecord,
   onUpdated,
 }: ApplyAddByRSSParseStatusParams): Promise<AddByRSSFeedRecord | null> => {
@@ -86,14 +176,25 @@ export const applyAddByRSSParseStatus = async ({
   }
 
   const nowIso = new Date().toISOString();
-  const nextBase = {
+  const isSuccess = status === 'parsed' || status === 'not_modified';
+  const nextBase: AddByRSSFeedRecord = {
     ...base,
     status,
     cache: cache ?? base.cache,
     updatedAt: nowIso,
-    lastParsedAt:
-      status === 'parsed' || status === 'not_modified' ? nowIso : (base.lastParsedAt ?? null),
+    lastParsedAt: isSuccess ? nowIso : (base.lastParsedAt ?? null),
     lastFailedParseAt: status === 'failed' ? nowIso : (base.lastFailedParseAt ?? null),
+    lastFailureReason: isSuccess
+      ? null
+      : status === 'failed'
+        ? (outcome?.failureReason ?? null)
+        : base.lastFailureReason,
+    requiresCredentials: nextLocalRequiresCredentials({
+      current: base.requiresCredentials,
+      status,
+      failureReason: outcome?.failureReason,
+      credentialsState: outcome?.credentialsState,
+    }),
   };
 
   if (!parsedFeed) {

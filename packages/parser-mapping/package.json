@@ -13,6 +13,7 @@
     "build:watch": "tsc --build --watch --preserveWatchOutput",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
   },
@@ -24,6 +25,9 @@
     "@podverse/helpers": "*",
     "@podverse/v4v-metaboost": "*",
     "@podverse/helpers-validation": "*"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.0"
   },
   "type": "module",
   "sideEffects": false

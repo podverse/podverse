@@ -38,9 +38,10 @@ TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
 # API-backed apps/mobile/e2e/<area>.yaml — full suite (`all`) always requires the API.
 flow_needs_e2e_api() {
   case "$1" in
-  add-by-rss | album | api-health | artist | auth-login | auth-logout | auto-queue-advance | browse | deep-link | \
-  detail-sort-prefs | engine-audio-spike | home | library-downloads | library-playlists | \
-  make-clip | membership-gate | notifications-inbox | offline-mode | opml | play-mini-player | \
+  add-by-rss | add-by-rss-credentials | album | api-health | artist | auth-login | auth-logout | auto-queue-advance | browse | deep-link | \
+  detail-sort-prefs | engine-audio-spike | hls-playback | home | history-screen | library-downloads | library-playlists | \
+  make-clip | membership-gate | notifications-inbox | offline-mode | opml | perf-chip-switch | \
+  perf-scroll | play-mini-player | \
   playback-multi-device-handoff | playback-offline-reconciliation | playback-resume-on-relaunch | \
   player-screen | podcast-episode | track | \
   popularity-tracking | push | queue-add | queue-screen | search | search-unparsed | settings-downloads | \
@@ -65,10 +66,22 @@ flow_needs_tablet() {
   esac
 }
 
+# Diagnostic captures. Runnable by name; left out of the auto-discovered suite.
+flow_is_perf() {
+  case "$1" in
+  perf-chip-switch | perf-scroll)
+    return 0
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+}
+
 # Basename list of flows that need tools/test-assets on :2111 (real media / play asserts).
 flow_needs_test_assets() {
   case "$1" in
-  add-by-rss | auto-queue-advance | engine-audio-spike | library-downloads | make-clip | \
+  add-by-rss | add-by-rss-credentials | auto-queue-advance | engine-audio-spike | hls-playback | library-downloads | make-clip | \
   membership-gate | play-mini-player | playback-offline-reconciliation | playback-resume-on-relaunch | player-screen | \
   tab-switch-playback | tablet | v4v | video-transition)
     return 0
@@ -300,7 +313,8 @@ fi
 
 if ! lsof -nP -iTCP:"$MOBILE_METRO_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
   echo "Error: Metro is not listening on port ${MOBILE_METRO_PORT}." >&2
-  echo "Start it in another terminal: npm run mobile:dev:e2e (full suite) or npm run mobile:dev" >&2
+  echo "Start it in Mobile E2E Metro (API-backed / full suite): npm run mobile:dev:e2e" >&2
+  echo "Or in Mobile Metro (UI-only): npm run mobile:dev" >&2
   exit 1
 fi
 
@@ -308,13 +322,15 @@ FLOWS=()
 NEEDS_E2E_API=0
 NEEDS_TEST_ASSETS=0
 NEEDS_TABLET=0
+NEEDS_PERF_VOLUME=0
 
 if [[ "$SPEC_RAW" == "all" ]]; then
   # Auto-discover top-level flows so new apps/mobile/e2e/<area>.yaml joins the suite.
   # Exclude tablet-only flows — they need opt-in tablet devices (`npm run mobile:e2e:test -- tablet`).
+  # Exclude perf diagnostics — runnable by name (`npm run mobile:e2e:test -- perf-chip-switch`).
   while IFS= read -r flow_path; do
     base="$(basename "$flow_path" .yaml)"
-    if flow_needs_tablet "$base"; then
+    if flow_needs_tablet "$base" || flow_is_perf "$base"; then
       continue
     fi
     FLOWS+=("$flow_path")
@@ -344,6 +360,9 @@ else
     fi
     if flow_needs_tablet "$spec"; then
       NEEDS_TABLET=1
+    fi
+    if flow_is_perf "$spec"; then
+      NEEDS_PERF_VOLUME=1
     fi
   done
 fi
@@ -810,6 +829,19 @@ if [[ "$NEEDS_E2E_API" -eq 1 ]]; then
   if [[ "$MOBILE_E2E_SKIP_SEED" == '1' ]]; then
     echo "Skipping mobile E2E DB reseed (--skip-seed). Results depend on the database as it stands."
   else
+    # Perf flows sign in as the perf account. Its follows are inserted only when this flag is
+    # set, and this reseed deletes them first, so a perf run has to turn the flag on itself.
+    if [[ "$NEEDS_PERF_VOLUME" -eq 1 ]]; then
+      export PODVERSE_E2E_PERF_VOLUME=1
+      echo "Perf flow in this run: PODVERSE_E2E_PERF_VOLUME=1 for the reseed."
+      if [[ "${PODVERSE_E2E_PERF_REMOTE_IMAGES:-}" == '1' ]]; then
+        echo "Perf remote images: PODVERSE_E2E_PERF_REMOTE_IMAGES=1 (third-party artwork, perf seed only)."
+      fi
+    elif [[ "${PODVERSE_E2E_PERF_REMOTE_IMAGES:-}" == '1' ]]; then
+      echo "Error: PODVERSE_E2E_PERF_REMOTE_IMAGES=1 is only valid on a perf flow." >&2
+      echo "Unset it before a regression run. It never applies to the normal E2E seed." >&2
+      exit 1
+    fi
     echo "Seeding mobile E2E DB (make mobile_e2e_seed — reuses web seed)..."
     seed_mobile_e2e_db_safely
 
@@ -831,7 +863,7 @@ if [[ "$NEEDS_E2E_API" -eq 1 ]]; then
   if printf '%s' "$METRO_ENV" | grep -q 'EXPO_PUBLIC_'; then
     if ! printf '%s' "$METRO_ENV" | grep -q 'EXPO_PUBLIC_MOBILE_E2E=1'; then
       echo "Error: Metro on :${MOBILE_METRO_PORT} is UI-only (mobile:dev)." >&2
-      echo "API-backed / full-suite flows need E2E Metro. Restart it in Mobile Metro:" >&2
+      echo "API-backed / full-suite flows need E2E Metro. Stop Mobile Metro, then in Mobile E2E Metro:" >&2
       echo "  npm run mobile:dev:e2e" >&2
       echo "Then reload/reinstall the app so it targets :${MOBILE_E2E_API_PORT}." >&2
       exit 1

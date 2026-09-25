@@ -95,6 +95,61 @@ describe('applyAddByRSSParseStatus', () => {
     );
   });
 
+  it('records a credential failure and flags the feed so the list asks for credentials', async () => {
+    await applyAddByRSSParseStatus({
+      feedUrl: baseRecord.feedUrl,
+      parsedFeed: undefined,
+      status: 'failed',
+      outcome: { failureReason: 'credentials_rejected', credentialsState: 'sent' },
+    });
+
+    expect(upsertAddByRSSFeedMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lastFailureReason: 'credentials_rejected',
+        requiresCredentials: true,
+      })
+    );
+  });
+
+  it('clears the last failure reason when a parse succeeds', async () => {
+    getAddByRSSFeedByUrlMock.mockResolvedValue({
+      ...baseRecord,
+      requiresCredentials: true,
+      lastFailureReason: 'credentials_rejected',
+    });
+
+    await applyAddByRSSParseStatus({
+      feedUrl: baseRecord.feedUrl,
+      parsedFeed: undefined,
+      status: 'parsed',
+      outcome: { credentialsState: 'sent' },
+    });
+
+    expect(upsertAddByRSSFeedMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lastFailureReason: null,
+        requiresCredentials: true,
+      })
+    );
+  });
+
+  it('keeps the last failure reason while a new parse is in progress', async () => {
+    getAddByRSSFeedByUrlMock.mockResolvedValue({
+      ...baseRecord,
+      lastFailureReason: 'credentials_required',
+    });
+
+    await applyAddByRSSParseStatus({
+      feedUrl: baseRecord.feedUrl,
+      parsedFeed: undefined,
+      status: 'queued',
+    });
+
+    expect(upsertAddByRSSFeedMock).toHaveBeenCalledWith(
+      expect.objectContaining({ lastFailureReason: 'credentials_required' })
+    );
+  });
+
   it('preserves lastFailedParseAt on non-failure statuses', async () => {
     getAddByRSSFeedByUrlMock.mockResolvedValue({
       ...baseRecord,

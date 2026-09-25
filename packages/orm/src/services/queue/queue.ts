@@ -1,4 +1,5 @@
 import { Queue } from '@orm/entities/queue/queue.js';
+import { isPostgresUniqueViolation } from '@orm/lib/postgresUniqueViolation.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
@@ -56,7 +57,14 @@ export class QueueService extends BaseManyService<Queue, 'account'> {
 
     if (missingMediums.length > 0) {
       for (const medium_id of missingMediums) {
-        await this.create(account_id, { medium_id });
+        try {
+          await this.create(account_id, { medium_id });
+        } catch (error) {
+          // Another caller can insert the same account+medium row between the read and this write.
+          if (!isPostgresUniqueViolation(error)) {
+            throw error;
+          }
+        }
       }
       results = await this._getAll(account, config);
     }

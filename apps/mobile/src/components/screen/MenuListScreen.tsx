@@ -2,10 +2,10 @@ import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { Card } from '../primitives/Card';
 import { ListRow } from '../primitives/ListRow';
+import { SectionHeading } from '../section/SectionHeading';
 import { MobileScreenContainer } from './MobileScreenContainer';
 
 export type MenuListItem = {
@@ -102,11 +102,6 @@ export function MenuListScreen({ sections, testID }: MenuListScreenProps) {
         sectionSpaced: {
           marginTop: tokens.spacing.xl,
         },
-        sectionTitle: {
-          ...typography.heading,
-          color: tokens.text.accent,
-          fontWeight: '700',
-        },
       }),
     [themeStyles, tokens]
   );
@@ -115,11 +110,7 @@ export function MenuListScreen({ sections, testID }: MenuListScreenProps) {
     <MobileScreenContainer testID={testID}>
       {visibleSections.map((section, index) => (
         <View key={section.key} style={[styles.section, index > 0 ? styles.sectionSpaced : null]}>
-          {section.title !== undefined ? (
-            <Text accessibilityRole="header" style={styles.sectionTitle}>
-              {section.title}
-            </Text>
-          ) : null}
+          {section.title !== undefined ? <SectionHeading>{section.title}</SectionHeading> : null}
           <Card padded={false}>
             {section.header !== undefined ? (
               <View style={section.items.length > 0 ? styles.headerDivider : undefined}>

@@ -1,10 +1,13 @@
-import type { QueryParamsMedium } from '@podverse/helpers';
-import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
+import type { DTOAccount, DTOPlaylist, QueryParamsMedium } from '@podverse/helpers';
 
 import { createMobileApiRequestService, requestWithMobileAuthRefresh } from '../../auth';
 import type { MobileAuthRequestContext } from '../../data/repositories';
 import type { HomeFeedRowData } from '../home/homeFeedData';
-import { normalizeChannelRows, normalizeClipRows, normalizeItemRows } from '../home/homeFeedData';
+import {
+  mapItemsToHomeFeedRows,
+  normalizeChannelRows,
+  normalizeClipRows,
+} from '../home/homeFeedData';
 import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
 import { isBrowseCategoryMediaType } from './browseTypes';
 
@@ -17,104 +20,55 @@ export type BrowseFeedOptions = {
   range: BrowseRangeOption;
 };
 
+export type BrowseFeedResult =
+  | { kind: 'media'; rows: HomeFeedRowData[] }
+  | { kind: 'playlists'; playlists: DTOPlaylist[] }
+  | { kind: 'users'; accounts: DTOAccount[] };
+
+export const emptyBrowseFeed = (mediaType: BrowseMediaType): BrowseFeedResult => {
+  if (mediaType === 'playlists') {
+    return { kind: 'playlists', playlists: [] };
+  }
+  if (mediaType === 'users') {
+    return { kind: 'users', accounts: [] };
+  }
+  return { kind: 'media', rows: [] };
+};
+
 const listType = (category: string | null): 'global' | 'category' => {
   return category !== null ? 'category' : 'global';
 };
 
+/** Match web Podcasts / Episodes / Clips: `av` folds podcast- and video-medium channels together. */
 const channelMedium = (mediaType: BrowseMediaType): QueryParamsMedium => {
-  if (mediaType === 'videos') {
-    return 'videos';
-  }
   if (mediaType === 'artists') {
     return 'publisher-music';
   }
   if (mediaType === 'albums') {
     return 'music';
   }
-  return 'podcasts';
+  return 'av';
 };
 
 const itemMedium = (mediaType: BrowseMediaType): QueryParamsMedium => {
-  return mediaType === 'videos' ? 'videos' : mediaType === 'tracks' ? 'music' : 'podcasts';
-};
-
-const nestedDisplayName = (record: Record<string, unknown>, ownerKey: string): string | null => {
-  const owner = record[ownerKey];
-  if (!isObjectLike(owner)) {
-    return null;
-  }
-  const profile = owner.account_profile;
-  if (isObjectLike(profile)) {
-    return getNonEmptyTrimmedStringProperty(profile, 'display_name');
-  }
-  return getNonEmptyTrimmedStringProperty(owner, 'display_name');
-};
-
-const normalizePlaylistRows = (items: unknown[]): HomeFeedRowData[] => {
-  const rows: HomeFeedRowData[] = [];
-
-  for (const item of items) {
-    if (!isObjectLike(item)) {
-      continue;
-    }
-
-    const id = getNonEmptyTrimmedStringProperty(item, 'id_text');
-    const title = getNonEmptyTrimmedStringProperty(item, 'title') ?? id;
-    if (id === null || title === null) {
-      continue;
-    }
-
-    rows.push({
-      id,
-      imageUrl: null,
-      subtitle: nestedDisplayName(item, 'account'),
-      title,
-    });
-  }
-
-  return rows;
-};
-
-const normalizeUserRows = (items: unknown[]): HomeFeedRowData[] => {
-  const rows: HomeFeedRowData[] = [];
-
-  for (const item of items) {
-    if (!isObjectLike(item)) {
-      continue;
-    }
-
-    const id = getNonEmptyTrimmedStringProperty(item, 'id_text');
-    const profile = item.account_profile;
-    const title =
-      (isObjectLike(profile) ? getNonEmptyTrimmedStringProperty(profile, 'display_name') : null) ??
-      id;
-    if (id === null || title === null) {
-      continue;
-    }
-
-    rows.push({
-      id,
-      imageUrl: null,
-      subtitle: null,
-      title,
-    });
-  }
-
-  return rows;
+  return mediaType === 'tracks' ? 'music' : 'av';
 };
 
 /**
  * Directory lists are online-only. Home reads subscriptions from the device; Browse asks the
  * global (or category) endpoints instead.
+ *
+ * Playlists and users stay as their DTOs so the catalog rows can show item count, description,
+ * creator, and bio. Those types have no artwork.
  */
 export const fetchBrowseFeedRows = async (
   mediaType: BrowseMediaType,
   authDeps: BrowseFeedAuthDeps,
   options: BrowseFeedOptions
-): Promise<HomeFeedRowData[]> => {
+): Promise<BrowseFeedResult> => {
   const apiRequestService = createMobileApiRequestService(authDeps.accessToken);
   if (apiRequestService === null) {
-    return [];
+    return emptyBrowseFeed(mediaType);
   }
 
   const category =
@@ -132,7 +86,7 @@ export const fetchBrowseFeedRows = async (
         type: 'public',
       })
     );
-    return normalizePlaylistRows(response.data);
+    return { kind: 'playlists', playlists: response.data };
   }
 
   if (mediaType === 'users') {
@@ -144,21 +98,21 @@ export const fetchBrowseFeedRows = async (
         type: 'global',
       })
     );
-    return normalizeUserRows(response.data);
+    return { kind: 'users', accounts: response.data };
   }
 
   if (mediaType === 'clips') {
     const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
       api.reqClipGetManyPublic({
         category,
-        medium: 'podcasts',
+        medium: 'av',
         page: BROWSE_FEED_PAGE,
         range,
         sort: 'top',
         type,
       })
     );
-    return normalizeClipRows(response.data);
+    return { kind: 'media', rows: normalizeClipRows(response.data) };
   }
 
   if (mediaType === 'episodes' || mediaType === 'tracks') {
@@ -172,7 +126,10 @@ export const fetchBrowseFeedRows = async (
         type,
       })
     );
-    return normalizeItemRows(response.data);
+    if (mediaType === 'episodes') {
+      return { kind: 'media', rows: mapItemsToHomeFeedRows(response.data) };
+    }
+    return { kind: 'media', rows: mapItemsToHomeFeedRows(response.data, { compact: true }) };
   }
 
   const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
@@ -185,7 +142,10 @@ export const fetchBrowseFeedRows = async (
       type,
     })
   );
-  return normalizeChannelRows(response.data, {
-    includeAuthor: mediaType === 'podcasts',
-  });
+  return {
+    kind: 'media',
+    rows: normalizeChannelRows(response.data, {
+      includeAuthor: mediaType === 'podcasts' || mediaType === 'albums',
+    }),
+  };
 };

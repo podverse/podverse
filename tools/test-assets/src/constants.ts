@@ -22,6 +22,37 @@ export const BASIC_AUTH_TEST_USERNAME = 'username';
 export const BASIC_AUTH_TEST_PASSWORD = 'password';
 
 /**
+ * Loopback base URL that is a different host from `localhost` as far as credential scope is
+ * concerned (IP and `localhost` scope by exact host). The server must listen on IPv4 for it to
+ * answer; start it with `BIND_ADDRESS=0.0.0.0` when `localhost` resolves to `::1` only.
+ */
+export const OTHER_HOST_ASSETS_BASE_URL = 'http://127.0.0.1:2111';
+
+/** Unauthenticated mirror of `/basic-auth/` media (everything except `feeds/`). */
+export const BASIC_AUTH_PUBLIC_MEDIA_SUBDIR = 'basic-auth-public-media';
+
+/**
+ * Feed variants built from `feed-basic-auth.rss` on each request. They sit under `/basic-auth/`,
+ * so the feed itself is gated like the base feed; only their resource URLs differ.
+ */
+export const BASIC_AUTH_VARIANTS_SUBPATH = 'variants';
+
+/** Feed gated, enclosures / images / chapters / transcripts on the public mirror. */
+export const BASIC_AUTH_PUBLIC_MEDIA_FEED_URL = `${BASIC_AUTH_BASE_URL}/${BASIC_AUTH_VARIANTS_SUBPATH}/feed-public-media.rss`;
+
+/** Feed gated on `localhost`; its resources gated on `127.0.0.1`, a host credentials must not reach. */
+export const BASIC_AUTH_OTHER_HOST_MEDIA_FEED_URL = `${BASIC_AUTH_BASE_URL}/${BASIC_AUTH_VARIANTS_SUBPATH}/feed-other-host-media.rss`;
+
+/**
+ * `GET /redirect/other-host/<path>` answers 302 to `<path>` on the other loopback host
+ * (`localhost` ↔ `127.0.0.1`, or `REDIRECT_OTHER_HOST` when set).
+ */
+export const REDIRECT_OTHER_HOST_PREFIX = 'redirect/other-host';
+
+/** Reports whether the request carried an `Authorization` header. Never echoes its value. */
+export const AUTHORIZATION_PROBE_PATH = 'debug/authorization';
+
+/**
  * Channel and item IDs for the first feed (feed-podcast-1) after populate.
  * Lighthouse uses these so asset mapping aligns with feed-1-based assets.
  */

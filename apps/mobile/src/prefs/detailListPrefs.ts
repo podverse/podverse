@@ -19,18 +19,19 @@ import { readSortPref, writeSortPref } from './sortPrefs';
  *
  * The stored tokens are the ones the queries already take, so a remembered selection reaches a
  * request or a SQLite ordering with no translation table in between.
+ *
+ * Section chips on channel and item detail are not stored. Those screens always open on their
+ * documented default (Episodes, Tracks, Albums, Summary). Home and Browse media-type chips use a
+ * different store and stay remembered between visits.
  */
 
 /**
- * Which pane of a podcast is showing.
+ * Which pane of a podcast can show.
  *
- * Remembered because it decides what the screen loads. Restoring it after the screen had already
- * loaded Episodes would mean fetching twice and showing the wrong pane in between.
- *
- * Always-on panes come first in the available set; evidence panes (Official clips, Podroll) stay
- * last so a first-visit insert is at the end. The painted row then puts the selected pane first.
- * A remembered evidence pane is still subject to what this channel actually carries — the caller
- * reconciles that.
+ * Always-on panes come first in the available set; evidence panes (Official clips, Podroll) and
+ * Funding follow. Settings (signed-in) is the last section chip — only the optional trailing
+ * sort / category filter chip may sit after it. A selected evidence pane is still subject to what
+ * this channel actually carries — the caller reconciles that.
  */
 export const PODCAST_TABS = [
   'episodes',
@@ -39,6 +40,8 @@ export const PODCAST_TABS = [
   'clips',
   'soundbites',
   'podroll',
+  'funding',
+  'settings',
 ] as const;
 
 export type PodcastTab = (typeof PODCAST_TABS)[number];
@@ -79,7 +82,7 @@ export type AddByRssEpisodeSort = (typeof ADD_BY_RSS_EPISODE_SORT_OPTIONS)[numbe
 
 export const DEFAULT_ADD_BY_RSS_EPISODE_SORT: AddByRssEpisodeSort = 'recent';
 
-export const ALBUM_TABS = ['tracks', 'about', 'podroll', 'settings'] as const;
+export const ALBUM_TABS = ['tracks', 'about', 'podroll', 'funding', 'settings'] as const;
 
 export type AlbumTab = (typeof ALBUM_TABS)[number];
 
@@ -100,10 +103,11 @@ export type AlbumDetailRange = QueryParamsStatsRange;
 
 export const DEFAULT_ALBUM_DETAIL_RANGE: AlbumDetailRange = 'week';
 
-export const ARTIST_TABS = ['albums', 'tracks', 'about', 'podroll', 'settings'] as const;
+export const ARTIST_TABS = ['albums', 'tracks', 'about', 'podroll', 'funding', 'settings'] as const;
 
 export type ArtistTab = (typeof ARTIST_TABS)[number];
 
+/** Albums first — the artist screen opens on its album list, same role Episodes has on a podcast. */
 export const DEFAULT_ARTIST_TAB: ArtistTab = 'albums';
 
 /**
@@ -120,13 +124,20 @@ export type EpisodeClipSort = (typeof EPISODE_CLIP_SORT_OPTIONS)[number];
 export const DEFAULT_EPISODE_CLIP_SORT: EpisodeClipSort = 'recent';
 
 /** Every tab an episode can offer. Which are actually shown depends on what the episode carries. */
-export const EPISODE_TABS = ['summary', 'clips', 'chapters', 'soundbites', 'transcript'] as const;
+export const EPISODE_TABS = [
+  'summary',
+  'clips',
+  'chapters',
+  'soundbites',
+  'transcript',
+  'funding',
+] as const;
 
 export type EpisodeTab = (typeof EPISODE_TABS)[number];
 
 export const DEFAULT_EPISODE_TAB: EpisodeTab = 'summary';
 
-export const TRACK_TABS = ['summary', 'transcript'] as const;
+export const TRACK_TABS = ['summary', 'transcript', 'funding'] as const;
 
 export type TrackTab = (typeof TRACK_TABS)[number];
 
@@ -143,15 +154,15 @@ const itemScope = (itemIdText: string): SortPrefScope => {
 export type PodcastDetailPrefs = {
   range: PodcastDetailRange;
   sort: PodcastDetailSort;
-  tab: PodcastTab;
 };
 
 /**
- * How this podcast should open: which pane, in which order, over which popularity window.
+ * How this podcast's lists should be ordered, and over which popularity window.
  *
  * Read before the first query rather than after it, so the list arrives the way the user left it. A
  * screen that renders the default and then re-sorts has shown the user a list they did not ask for,
- * however briefly.
+ * however briefly. The section chip is not stored — the screen always opens on Episodes (or
+ * Downloaded while Offline Mode is on).
  */
 export const readPodcastDetailPrefs = async (
   channelIdText: string
@@ -164,15 +175,7 @@ export const readPodcastDetailPrefs = async (
       DEFAULT_PODCAST_DETAIL_RANGE
     ),
     sort: pickSortPrefToken(stored?.sort, PODCAST_DETAIL_SORT_OPTIONS, DEFAULT_PODCAST_DETAIL_SORT),
-    tab: pickSortPrefToken(stored?.tab, PODCAST_TABS, DEFAULT_PODCAST_TAB),
   };
-};
-
-export const writePodcastDetailTab = async (
-  channelIdText: string,
-  tab: PodcastTab
-): Promise<void> => {
-  await writeSortPref(channelScope(channelIdText), { tab });
 };
 
 export const writePodcastDetailSort = async (
@@ -215,7 +218,6 @@ export const writeAddByRssDetailSort = async (
 export type AlbumDetailPrefs = {
   range: AlbumDetailRange;
   sort: AlbumTrackSort;
-  tab: AlbumTab;
 };
 
 export const readAlbumDetailPrefs = async (channelIdText: string): Promise<AlbumDetailPrefs> => {
@@ -223,12 +225,7 @@ export const readAlbumDetailPrefs = async (channelIdText: string): Promise<Album
   return {
     range: pickSortPrefToken(stored?.range, ALBUM_DETAIL_RANGE_OPTIONS, DEFAULT_ALBUM_DETAIL_RANGE),
     sort: pickSortPrefToken(stored?.sort, ALBUM_TRACK_SORT_OPTIONS, DEFAULT_ALBUM_TRACK_SORT),
-    tab: pickSortPrefToken(stored?.tab, ALBUM_TABS, DEFAULT_ALBUM_TAB),
   };
-};
-
-export const writeAlbumDetailTab = async (channelIdText: string, tab: AlbumTab): Promise<void> => {
-  await writeSortPref(channelScope(channelIdText), { tab });
 };
 
 export const writeAlbumDetailSort = async (
@@ -245,49 +242,21 @@ export const writeAlbumDetailRange = async (
   await writeSortPref(channelScope(channelIdText), { range });
 };
 
-export type ArtistDetailPrefs = {
-  tab: ArtistTab;
-};
-
-export const readArtistDetailPrefs = async (channelIdText: string): Promise<ArtistDetailPrefs> => {
-  const stored = await readSortPref(channelScope(channelIdText));
-  return {
-    tab: pickSortPrefToken(stored?.tab, ARTIST_TABS, DEFAULT_ARTIST_TAB),
-  };
-};
-
-export const writeArtistDetailTab = async (
-  channelIdText: string,
-  tab: ArtistTab
-): Promise<void> => {
-  await writeSortPref(channelScope(channelIdText), { tab });
-};
-
 export type EpisodeDetailPrefs = {
   clipSort: EpisodeClipSort;
-  tab: EpisodeTab;
 };
 
 /**
- * Which tab this episode should open on, and how its clips should be ordered.
+ * How this episode's clips should be ordered.
  *
- * The tab is remembered because it decides which request the screen makes. Restoring it after the
- * screen had already loaded Summary would mean fetching twice and showing the wrong pane in
- * between.
- *
- * A remembered tab is still subject to what the episode actually has: an episode with no transcript
- * cannot open on one. The caller reconciles that, because only it knows what this episode carries.
+ * The section chip is not stored — the screen always opens on Summary. Clip order is remembered so
+ * returning to Clips keeps the list the way the user left it.
  */
 export const readEpisodeDetailPrefs = async (itemIdText: string): Promise<EpisodeDetailPrefs> => {
   const stored = await readSortPref(itemScope(itemIdText));
   return {
     clipSort: pickSortPrefToken(stored?.sort, EPISODE_CLIP_SORT_OPTIONS, DEFAULT_EPISODE_CLIP_SORT),
-    tab: pickSortPrefToken(stored?.tab, EPISODE_TABS, DEFAULT_EPISODE_TAB),
   };
-};
-
-export const writeEpisodeDetailTab = async (itemIdText: string, tab: EpisodeTab): Promise<void> => {
-  await writeSortPref(itemScope(itemIdText), { tab });
 };
 
 export const writeEpisodeDetailClipSort = async (
@@ -295,19 +264,4 @@ export const writeEpisodeDetailClipSort = async (
   sort: EpisodeClipSort
 ): Promise<void> => {
   await writeSortPref(itemScope(itemIdText), { sort });
-};
-
-export type TrackDetailPrefs = {
-  tab: TrackTab;
-};
-
-export const readTrackDetailPrefs = async (itemIdText: string): Promise<TrackDetailPrefs> => {
-  const stored = await readSortPref(itemScope(itemIdText));
-  return {
-    tab: pickSortPrefToken(stored?.tab, TRACK_TABS, DEFAULT_TRACK_TAB),
-  };
-};
-
-export const writeTrackDetailTab = async (itemIdText: string, tab: TrackTab): Promise<void> => {
-  await writeSortPref(itemScope(itemIdText), { tab });
 };

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { readBrowseListPrefs } from '../screens/browse/browseListPrefs';
 import {
   DEFAULT_HOME_RANGE,
   DEFAULT_HOME_SORT,
@@ -50,17 +51,45 @@ describe('homeListPrefs', () => {
     expect(DEFAULT_HOME_VIEW_MODE).toBe('list');
   });
 
-  it('remembers the grid across a relaunch for every Home media type', async () => {
-    await writeHomeViewMode('grid');
+  it('remembers grid on artists without changing podcasts', async () => {
+    await writeHomeViewMode('artists', 'grid');
+
+    await expect(readHomeListPrefs('artists')).resolves.toMatchObject({ viewMode: 'grid' });
+    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({
+      viewMode: DEFAULT_HOME_VIEW_MODE,
+    });
+    await expect(readHomeListPrefs('albums')).resolves.toMatchObject({
+      viewMode: DEFAULT_HOME_VIEW_MODE,
+    });
+  });
+
+  it('leaves Browse podcasts on list when Home podcasts is grid', async () => {
+    await writeHomeViewMode('podcasts', 'grid');
 
     await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({ viewMode: 'grid' });
-    await expect(readHomeListPrefs('episodes')).resolves.toMatchObject({ viewMode: 'grid' });
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      viewMode: DEFAULT_HOME_VIEW_MODE,
+    });
+  });
+
+  it('uses a stored home-layout grid when the media type has no viewMode of its own', async () => {
+    inMemoryStore.set('sort.home-layout', JSON.stringify({ viewMode: 'grid' }));
+
+    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({ viewMode: 'grid' });
     await expect(readHomeListPrefs('artists')).resolves.toMatchObject({ viewMode: 'grid' });
+  });
+
+  it('lets a per-type viewMode override home-layout', async () => {
+    inMemoryStore.set('sort.home-layout', JSON.stringify({ viewMode: 'grid' }));
+    await writeHomeViewMode('artists', 'list');
+
+    await expect(readHomeListPrefs('artists')).resolves.toMatchObject({ viewMode: 'list' });
+    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({ viewMode: 'grid' });
   });
 
   it('leaves the sort alone when the view changes, and the view alone when the sort does', async () => {
     await writeHomeSort('podcasts', 'recent');
-    await writeHomeViewMode('grid');
+    await writeHomeViewMode('podcasts', 'grid');
 
     await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({
       sort: 'recent',
@@ -144,6 +173,16 @@ describe('homeListPrefs', () => {
     expect(homeSortToApiRange('recent', 'day')).toBeNull();
     expect(homeSortToApiRange('popularity', 'all-time')).toBe('all-time');
     expect(homeSortToApiRange('popularity')).toBe(DEFAULT_HOME_RANGE);
+  });
+
+  it('does not notify a podcasts watcher when artists view mode changes', async () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeHomeListPrefs('podcasts', listener);
+
+    await writeHomeViewMode('artists', 'grid');
+    expect(listener).not.toHaveBeenCalled();
+
+    unsubscribe();
   });
 
   it('notifies a watcher when the list it is watching changes', async () => {

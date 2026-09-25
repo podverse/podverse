@@ -12,7 +12,8 @@
       "episode": "Επεισόδιο",
       "episodes": "Επεισόδια",
       "episode_image": "Εικόνα επεισοδίου",
-      "no_episodes_found": "Δεν βρέθηκαν επεισόδια"
+      "no_episodes_found": "Δεν βρέθηκαν επεισόδια",
+      "no_podcasts_found": "Δεν βρέθηκαν podcast"
     },
     "music": {
       "music": "Μουσική",
@@ -25,7 +26,11 @@
       "track": "Τραγούδι",
       "tracks": "Τραγούδια",
       "track_image": "Εικόνα τραγουδιού",
-      "track_go_to": "Μετάβαση στο τραγούδι"
+      "track_go_to": "Μετάβαση στο τραγούδι",
+      "album_go_to": "Μετάβαση στο άλμπουμ",
+      "artist_go_to": "Μετάβαση στον καλλιτέχνη",
+      "no_tracks_found": "Δεν βρέθηκαν τραγούδια",
+      "no_albums_found": "Δεν βρέθηκαν άλμπουμ"
     },
     "video": {
       "channel": "Κανάλι",
@@ -57,7 +62,8 @@
     "search": {
       "search": "Αναζήτηση",
       "search_by_title": "Αναζήτηση με τίτλο...",
-      "empty_prompt": "Αναζητήστε στο Podcast Index με τίτλο. Τα αποτελέσματα θα εμφανιστούν εδώ."
+      "empty_prompt": "Αναζητήστε στο Podcast Index με τίτλο. Τα αποτελέσματα θα εμφανιστούν εδώ.",
+      "no_results": "Δεν βρέθηκαν αποτελέσματα"
     },
     "add_feed": {
       "add_feed": "Προσθήκη ροής",
@@ -93,11 +99,11 @@
       "last_parsed": "Τελευταία ανάλυση: {date}",
       "wait_to_retry_minutes": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτά για να το ξανακάνετε.",
       "wait_to_retry_minute": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτό για να το ξανακάνετε.",
-      "basic_auth_use": "Use Basic Auth",
-      "basic_auth_requires": "This feed requires username and password",
-      "basic_auth_username": "Username",
-      "basic_auth_password": "Password",
-      "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "basic_auth_use": "Χρήση βασικού ελέγχου ταυτότητας",
+      "basic_auth_requires": "Αυτή η ροή απαιτεί όνομα χρήστη και κωδικό πρόσβασης",
+      "basic_auth_username": "Όνομα χρήστη",
+      "basic_auth_password": "Κωδικός πρόσβασης",
+      "basic_auth_required_both": "Ο βασικός έλεγχος ταυτότητας απαιτεί όνομα χρήστη και κωδικό πρόσβασης.",
       "login_prompt": "Συνδεθείτε για να χρησιμοποιήσετε αυτή τη λειτουργία."
     },
     "my_library": "Η βιβλιοθήκη μου",
@@ -111,6 +117,8 @@
       "remove_error": "Σφάλμα κατά την αφαίρεση από την ουρά",
       "remove_from_queue": "Αφαίρεση από την ουρά",
       "removed_from_queue": "Αφαιρέθηκε από την ουρά",
+      "empty_podcasts": "Δεν υπάρχει τίποτα στην ουρά podcasts ακόμα",
+      "empty_music": "Δεν υπάρχει τίποτα στην ουρά μουσικής ακόμα",
       "login_prompt": "Συνδεθείτε για να χρησιμοποιήσετε αυτή τη λειτουργία."
     },
     "history": {
@@ -121,6 +129,7 @@
       "mark_as_unplayed": "Σημείωση ως μη αναπαραγωγή",
       "marked_as_unplayed": "Σημειώθηκε ως μη αναπαραγωγή",
       "mark_as_played_error": "Σφάλμα κατά την επισήμανση ως αναπαραγωγή",
+      "empty": "Δεν υπάρχει τίποτα στο ιστορικό σας ακόμα",
       "login_prompt": "Συνδεθείτε για να χρησιμοποιήσετε αυτή τη λειτουργία."
     },
     "playlist": {
@@ -142,12 +151,14 @@
       "playlist_type": "Τύπος λίστας αναπαραγωγής",
       "add_to_liked": "Προσθήκη στα αγαπημένα",
       "remove_from_liked": "Αφαίρεση από αγαπημένα",
+      "no_playlists_found": "Δεν βρέθηκαν λίστες αναπαραγωγής",
       "login_prompt": "Συνδεθείτε για να χρησιμοποιήσετε αυτή τη λειτουργία."
     },
     "clip": {
       "clip": "Αποσπασμα",
       "clips": "Αποσπάσματα",
       "no_clips_found": "Δεν βρέθηκαν αποσπάσματα",
+      "empty": "Δεν υπάρχουν αποσπάσματα ακόμα",
       "create_clip": "Δημιουργία αποσπάσματος",
       "edit_clip": "Επεξεργασία αποσπάσματος",
       "delete_clip": "Διαγραφή αποσπάσματος",
@@ -324,7 +335,9 @@
   },
   "info": {
     "funding": "Χρηματοδότηση",
+    "funding_support": "Αυτοί οι σύνδεσμοι είναι ο τρόπος με τον οποίο ο εκδότης ζητά υποστήριξη.",
     "website": "Ιστοσελίδα",
+    "rss": "RSS",
     "rss_feed": "RSS feed",
     "about": "Σχετικά",
     "summary": {
@@ -338,7 +351,8 @@
     "transcript": {
       "transcript": "Μεταγραφή",
       "search_transcript": "Αναζήτηση μεταγραφής...",
-      "lyrics": "Στίχοι"
+      "lyrics": "Στίχοι",
+      "no_transcript": "Δεν διατίθεται μεταγραφή"
     },
     "credits": "Δημιουργοί",
     "people": {
@@ -349,7 +363,8 @@
     "chapter": {
       "chapter": "Κεφάλαιο",
       "chapters": "Κεφάλαια",
-      "chapter_image": "Εικόνα κεφαλαίου"
+      "chapter_image": "Εικόνα κεφαλαίου",
+      "no_chapters": "Δεν διατίθενται κεφάλαια"
     },
     "soundbite": {
       "official_clip": "Επίσημο απόσπασμα",
@@ -371,6 +386,7 @@
     "now_playing_clip": "Αναπαράγεται απόσπασμα",
     "now_playing_chapter": "Αναπαράγεται κεφάλαιο",
     "now_playing_official_clip": "Αναπαράγεται επίσημο απόσπασμα",
+    "open_chapter_link": "Άνοιγμα συνδέσμου κεφαλαίου",
     "no_media": "Δεν βρέθηκε αναπαίξιμο μέσο",
     "livestream_unavailable": "Η ζωντανή μετάδοση δεν είναι διαθέσιμη ακόμη",
     "show_fullscreen_media_player": "Εμφάνιση σε πλήρη οθόνη του μέσου αναπαραγωγής",
@@ -876,7 +892,7 @@
       "livestreams": "Ζωντανές μεταδόσεις",
       "carplay": "CarPlay",
       "android_auto": "Android Auto",
-      "boostagrams": "Boostagrams (Value for Value)",
+      "boostagrams": "Boostagrams (αξία για αξία)",
       "chapters": "Κεφάλαια",
       "comments": "Σχόλια μεταξύ εφαρμογών",
       "transcripts": "Απομαγνητοφωνήσεις",
@@ -999,8 +1015,8 @@
       "download_my_data_loading": "Για την προετοιμασία των δεδομένων σας...",
       "download_my_data_success": "Τα δεδομένα κατέβηκαν με επιτυχία",
       "download_my_data_error": "Αποτυχία λήψης δεδομένων",
-      "listen_stats_toggle": "Στατιστικά ακρόασης",
-      "listen_stats_toggle_help": "Να επιτρέπονται ψευδώνυμα γεγονότα ακρόασης για δημοφιλές περιεχόμενο. Τα γεγονότα διατηρούνται {retention_days} ημέρες.",
+      "listen_stats_toggle": "Παρακολούθηση δημοτικότητας",
+      "listen_stats_toggle_help": "Να επιτρέπονται κατατάξεις μοναδικών ακροατών που βοηθούν τους ανθρώπους να βρίσκουν δημοφιλείς εκπομπές. Μπορείτε να το αλλάξετε ανά πάσα στιγμή.",
       "listen_stats_toggle_error": "Δεν ήταν δυνατή η ενημέρωση της προτίμησης στατιστικών ακρόασης. Δοκιμάστε ξανά.",
       "listen_stats_terms_link": "Μάθετε περισσότερα στους <termsLink>Όρους χρήσης</termsLink> μας."
     },
@@ -1052,44 +1068,53 @@
       "category_terms_of_service_description": "Υποχρεωτικές νομικές ανακοινώσεις και ανακοινώσεις πολιτικής.",
       "category_general": "Γενικά",
       "category_general_description": "Σημαντικές ειδοποιήσεις σε επίπεδο λογαριασμού.",
+      "allow": "Να επιτρέπονται οι ειδοποιήσεις",
       "new_item": "Νέο στοιχείο",
       "livestream_scheduled": "Προγραμματισμένη ζωντανή μετάδοση",
       "livestream_started": "Η ζωντανή μετάδοση ξεκίνησε",
       "auto_enable_on_subscribe": "Ενεργοποίηση ειδοποιήσεων όταν κάνω εγγραφή",
       "auto_enable_on_subscribe_help": "Όταν είναι ενεργό, η εγγραφή σε ένα podcast ενεργοποιεί και τις ειδοποιήσεις του, με τους τύπους που επιλέγονται παρακάτω.",
+      "auto_enable_apply_title": "Ενημέρωση ακολουθούμενων podcast;",
+      "auto_enable_apply_body": "Να εφαρμοστεί σε όλα τα {count} ακολουθούμενα podcast, ή μόνο σε podcast στα οποία θα εγγραφείτε αργότερα;",
+      "auto_enable_apply_all": "Εφαρμογή σε όλα",
+      "auto_enable_apply_new_only": "Μόνο νέες εγγραφές",
+      "type_default_apply_title": "Ενημέρωση podcast με ειδοποιήσεις;",
+      "type_default_apply_body": "Να εφαρμοστεί σε όλα τα {count} podcast με ενεργές ειδοποιήσεις, ή μόνο όταν ενεργοποιηθούν αργότερα;",
+      "type_default_apply_all": "Εφαρμογή σε όλα",
+      "type_default_apply_new_only": "Μόνο νέα",
       "type_defaults_section": "Τύποι ειδοποιήσεων",
       "type_defaults_section_help": "Επιλέξτε ποιοι τύποι ειδοποιήσεων ισχύουν όταν οι ειδοποιήσεις είναι ενεργές για ένα podcast."
     },
     "opml": {
       "opml": "OPML",
-      "export_title": "Export OPML",
-      "export_description": "Export your subscribed and Add by RSS channels as an OPML file.",
-      "export_button": "Export OPML",
-      "export_loading": "Preparing OPML export...",
-      "export_success": "OPML export downloaded successfully.",
-      "export_error": "Failed to export OPML.",
-      "import_title": "Import OPML",
-      "import_description": "Upload an OPML file to restore podcast subscriptions. Feeds already in Podverse are subscribed immediately; others are looked up or added by RSS.",
-      "import_button": "Import OPML",
-      "import_loading": "Importing OPML...",
-      "import_in_progress": "Importing feeds… {processed} of {total} processed.",
-      "import_success": "OPML import finished.",
-      "import_error": "Failed to import OPML.",
+      "export_title": "Εξαγωγή OPML",
+      "export_description": "Εξάγετε τις συνδρομημένες και τις Προσθήκη μέσω RSS ροές σας ως αρχείο OPML.",
+      "export_button": "Εξαγωγή OPML",
+      "export_loading": "Προετοιμασία εξαγωγής OPML...",
+      "export_success": "Η εξαγωγή OPML λήφθηκε με επιτυχία.",
+      "export_error": "Αποτυχία εξαγωγής OPML.",
+      "import_title": "Εισαγωγή OPML",
+      "import_description": "Ανεβάστε ένα αρχείο OPML για να επαναφέρετε τις συνδρομές podcast. Οι ροές που υπάρχουν ήδη στο Podverse εγγράφονται αμέσως· οι υπόλοιπες αναζητούνται ή προστίθενται μέσω RSS.",
+      "import_button": "Εισαγωγή OPML",
+      "import_loading": "Εισαγωγή OPML...",
+      "import_in_progress": "Εισαγωγή ροών… {processed} από {total} επεξεργάστηκαν.",
+      "import_success": "Η εισαγωγή OPML ολοκληρώθηκε.",
+      "import_error": "Αποτυχία εισαγωγής OPML.",
       "import_error_body_required": "Το περιεχόμενο OPML είναι υποχρεωτικό.",
       "import_error_no_valid_feeds": "Δεν βρέθηκαν έγκυρες διευθύνσεις URL ροών στο αρχείο OPML.",
       "import_error_too_large": "Το περιεχόμενο OPML είναι πολύ μεγάλο. Μέγιστος επιτρεπόμενος αριθμός χαρακτήρων: {maxChars}. Χρησιμοποιήστε ένα μικρότερο αρχείο ή χωρίστε το σε πολλαπλές εισαγωγές.",
       "import_error_too_many_feeds": "Το OPML περιέχει πάρα πολλές ροές. Μέγιστος επιτρεπόμενος αριθμός ροών: {maxFeeds}. Χωρίστε το αρχείο σε μικρότερες παρτίδες και προσπαθήστε ξανά.",
       "import_error_request_not_found": "Η αίτηση εισαγωγής OPML δεν βρέθηκε.",
-      "import_result_summary": "{total} feeds: {subscribed} subscribed, {enqueued} queued from Podcast Index, {addedByRss} added by RSS, {alreadySubscribed} already subscribed, {failed} failed, {rateLimited} rate limited.",
-      "outcome_subscribed": "Subscribed",
-      "outcome_enqueued": "Queued (Podcast Index)",
-      "outcome_added_by_rss": "Added by RSS",
-      "outcome_already_subscribed": "Already subscribed",
-      "outcome_rate_limited": "Rate limited",
-      "outcome_failed": "Failed",
-      "import_rate_limited_title": "OPML import limit reached",
-      "import_rate_limited": "You can add up to {limit} feeds per hour. To finish importing the rest, try again after {time}.",
-      "import_rate_limited_time": "{minutes, plural, one {# minute} other {# minutes}}"
+      "import_result_summary": "{total} ροές: {subscribed} εγγεγραμμένες, {enqueued} σε ουρά από το Podcast Index, {addedByRss} προστέθηκαν μέσω RSS, {alreadySubscribed} ήδη εγγεγραμμένες, {failed} απέτυχαν, {rateLimited} περιορισμός ρυθμού.",
+      "outcome_subscribed": "Εγγεγραμμένος",
+      "outcome_enqueued": "Σε ουρά (Podcast Index)",
+      "outcome_added_by_rss": "Προστέθηκε μέσω RSS",
+      "outcome_already_subscribed": "Ήδη εγγεγραμμένος",
+      "outcome_rate_limited": "Περιορισμός ρυθμού",
+      "outcome_failed": "Απέτυχε",
+      "import_rate_limited_title": "Έφτασε το όριο εισαγωγής OPML",
+      "import_rate_limited": "Μπορείτε να προσθέσετε έως {limit} ροές ανά ώρα. Για να ολοκληρώσετε την εισαγωγή των υπολοίπων, δοκιμάστε ξανά μετά από {time}.",
+      "import_rate_limited_time": "{minutes, plural, one {# λεπτό} other {# λεπτά}}"
     },
     "keyboard": {
       "keyboard": "Πληκτρολόγιο",
@@ -1337,11 +1362,11 @@
         "description": "Ανακαλύψτε μουσικά τραγούδια στο {brand_name}"
       },
       "podcastsLivestreams": {
-        "title": "Podcast livestreams",
+        "title": "Ζωντανές μεταδόσεις podcast",
         "description": "Δείτε ζωντανά podcasts στο {brand_name}"
       },
       "musicLivestreams": {
-        "title": "Music livestreams",
+        "title": "Ζωντανές μουσικές μεταδόσεις",
         "description": "Δείτε ζωντανές μουσικές εκπομπές στο {brand_name}"
       },
       "playlists": {

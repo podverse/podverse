@@ -16,12 +16,12 @@ export const HistoryPageListHeader: React.FC = () => {
     {
       key: 'av',
       label: tMedia('podcast.podcasts'),
-      onClick: () => setFilterParams({ ...filterParams, medium: 'av' }),
+      onClick: () => setFilterParams({ ...filterParams, medium: 'av', page: 1 }),
     },
     {
       key: 'music',
       label: tMedia('music.music'),
-      onClick: () => setFilterParams({ ...filterParams, medium: 'music' }),
+      onClick: () => setFilterParams({ ...filterParams, medium: 'music', page: 1 }),
     },
   ];
 

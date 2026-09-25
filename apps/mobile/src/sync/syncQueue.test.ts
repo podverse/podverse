@@ -292,6 +292,7 @@ describe('planSyncRun', () => {
     expect(kinds).toContain('playback-replay');
     expect(kinds).toContain('queue-hydrate');
     expect(kinds).toContain('add-by-rss-refresh');
+    expect(kinds).toContain('home-clips');
   });
 
   it('registers the push device on start and sign-in but not on every foreground', () => {
@@ -300,7 +301,10 @@ describe('planSyncRun', () => {
 
     expect(kindsFor('app-start')).toContain('push-device-registration');
     expect(kindsFor('sign-in')).toContain('push-device-registration');
+    expect(kindsFor('app-start')).toContain('auto-download-registration');
+    expect(kindsFor('sign-in')).toContain('auto-download-registration');
     expect(kindsFor('app-foreground')).not.toContain('push-device-registration');
+    expect(kindsFor('app-foreground')).not.toContain('auto-download-registration');
   });
 
   it('marks a pull-to-refresh as user work so it overtakes an opportunistic pass', () => {

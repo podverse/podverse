@@ -1,0 +1,247 @@
+@@ edit include
+@@ file apps/mobile/vitest.config.ts
+@@ find
+      'src/lib/home/homeFeedRefresh.test.ts',
+@@ replace
+      'src/lib/home/homeFeedRefresh.test.ts',
+      'src/lib/lists/keptLists.test.ts',
+@@ end
+
+@@ edit react memo import
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+  forwardRef,
+@@ replace
+  forwardRef,
+  memo,
+@@ end
+
+@@ edit prop type
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+  arePrefsHydrated: boolean;
+@@ replace
+  arePrefsHydrated: boolean;
+  /** False while the list stays mounted behind another chip's list. */
+  isActive: boolean;
+@@ end
+
+@@ edit destructure
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+    arePrefsHydrated,
+    mediaType: selectedMediaType,
+@@ replace
+    arePrefsHydrated,
+    isActive,
+    mediaType: selectedMediaType,
+@@ end
+
+@@ edit refs
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+  loadFeedRef.current = loadFeed;
+@@ replace
+  loadFeedRef.current = loadFeed;
+
+  // A hidden list never reads. Anything that would reload it marks it stale instead, and it reloads
+  // quietly when shown again.
+  const isActiveRef = useRef(isActive);
+  isActiveRef.current = isActive;
+  const isStaleRef = useRef(false);
+@@ end
+
+@@ edit initial load
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+    if (hasLoadedFeedOnceRef.current && !arePrefsHydrated) {
+      return;
+    }
+@@ replace
+    if (hasLoadedFeedOnceRef.current && !arePrefsHydrated) {
+      return;
+    }
+    if (!isActiveRef.current) {
+      isStaleRef.current = true;
+      return;
+    }
+@@ end
+
+@@ edit paint comment
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+  // One animation frame after the new rows commit, not a true paint callback. Closes the chip
+  // frame sample for that switch.
+  useEffect(() => {
+    if (feedRows.length === 0) {
+@@ replace
+  // One animation frame after new rows commit or a kept list is shown, not a true paint callback.
+  // Closes the chip frame sample for that switch.
+  useEffect(() => {
+    if (!isActive || feedRows.length === 0) {
+@@ end
+
+@@ edit paint deps
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+  }, [feedRows, selectedMediaType]);
+@@ replace
+  }, [feedRows, isActive, selectedMediaType]);
+@@ end
+
+@@ edit refresh
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+    return homeFeedRefresh.subscribe(() => {
+      void loadFeed('refresh');
+@@ replace
+    return homeFeedRefresh.subscribe(() => {
+      if (!isActiveRef.current) {
+        isStaleRef.current = true;
+        return;
+      }
+      void loadFeed('refresh');
+@@ end
+
+@@ edit downloads
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+    const refreshDownloadDerived = (): void => {
+      if (timeoutId !== null) {
+@@ replace
+    const refreshDownloadDerived = (): void => {
+      if (!isActiveRef.current) {
+        isStaleRef.current = true;
+        return;
+      }
+      if (timeoutId !== null) {
+@@ end
+
+@@ edit sync
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+    if (previousStatus === 'running' && syncState.status === 'idle') {
+      void loadFeed('synced');
+    }
+@@ replace
+    if (previousStatus === 'running' && syncState.status === 'idle') {
+      if (isActiveRef.current) {
+        void loadFeed('synced');
+      } else {
+        isStaleRef.current = true;
+      }
+    }
+@@ end
+
+@@ edit feedList comment
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+  // Memoized so a pending chip tap re-renders only the chip row and the overlay; the list props
+  // do not depend on `pendingMediaType`, and FillList itself is not memoized.
+@@ replace
+  // Memoized so a render that changes none of these values leaves the list alone; FillList itself
+  // is not memoized.
+@@ end
+
+@@ edit scrollsToTop
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+        renderItem={renderItem}
+        testID="home-feed-list"
+@@ replace
+        renderItem={renderItem}
+        scrollsToTop={isActive}
+        testID="home-feed-list"
+@@ end
+
+@@ edit feedList deps
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+      gridViewLabel,
+@@ replace
+      gridViewLabel,
+      isActive,
+@@ end
+
+@@ edit can mark all seen + reveal
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+  useEffect(() => {
+    onCanMarkAllSeenChange(canMarkAllSeen);
+  }, [canMarkAllSeen, onCanMarkAllSeenChange]);
+@@ replace
+  useEffect(() => {
+    if (isActive) {
+      onCanMarkAllSeenChange(canMarkAllSeen);
+    }
+  }, [canMarkAllSeen, isActive, onCanMarkAllSeenChange]);
+
+  // Leaving a list before its first read lands abandons that read, the same way a newer read does;
+  // the list reads again when it is shown.
+  useEffect(() => {
+    if (isActive || hasCompletedFeedRead) {
+      return;
+    }
+    feedRequestIdRef.current += 1;
+    isStaleRef.current = true;
+  }, [hasCompletedFeedRead, isActive]);
+
+  // Showing a kept list picks up a filter typed on another chip's list, and reloads it quietly if
+  // anything changed while it was hidden.
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+    setFilterTerm(readHomeFilterTerm());
+    if (isStaleRef.current) {
+      isStaleRef.current = false;
+      void loadFeed(hasCompletedFeedRead ? 'synced' : 'initial');
+    }
+  }, [isActive]);
+@@ end
+
+@@ edit showsLoading
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+  const showsLoading = isFeedBusy && feedRows.length === 0;
+@@ replace
+  const showsLoading = isActive && isFeedBusy && feedRows.length === 0;
+@@ end
+
+@@ edit list visible
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+    if (hasCompletedFeedRead) {
+      stampPerfFrame('list.visible');
+    }
+  }, [feedRows, hasCompletedFeedRead]);
+@@ replace
+    if (isActive && hasCompletedFeedRead) {
+      stampPerfFrame('list.visible');
+    }
+  }, [feedRows, hasCompletedFeedRead, isActive]);
+@@ end
+
+@@ edit export
+@@ file apps/mobile/src/screens/home/HomeMediaTypeList.tsx
+@@ find
+ * the chip row, the remembered list choices, and the title-bar menu.
+ */
+export const HomeMediaTypeList = forwardRef(HomeMediaTypeListInner);
+@@ replace
+ * the chip row, the remembered list choices, and the title-bar menu, and may keep this list mounted
+ * but hidden so returning to its chip shows it at once.
+ */
+export const HomeMediaTypeList = memo(forwardRef(HomeMediaTypeListInner));
+@@ end
+
+@@ edit isActive prop
+@@ file apps/mobile/src/screens/home/HomeScreen.tsx
+@@ find
+            arePrefsHydrated={arePrefsHydrated}
+            key={selectedMediaType}
+@@ replace
+            arePrefsHydrated={arePrefsHydrated}
+            isActive
+            key={selectedMediaType}
+@@ end

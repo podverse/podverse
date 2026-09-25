@@ -16,7 +16,8 @@ type Props = NativeStackScreenProps<MoreStackParamList, 'MoreSettingsLocale'>;
 
 export function MoreSettingsLocaleScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
-  const { accessToken, setAccount, status, account } = useAuth();
+  const { accessToken, account, clearSession, refreshToken, setAccount, setTokens, status } =
+    useAuth();
   const [selectedLocale, setSelectedLocale] = useState<SettingsLocaleOption>(
     resolveSupportedLocale(i18n.language) as SettingsLocaleOption
   );
@@ -59,7 +60,7 @@ export function MoreSettingsLocaleScreen({ navigation }: Props) {
         await setPref('locale', locale);
         await applyAccountLocaleOverride(locale);
         await syncLocaleToAccountSettings({
-          accessToken,
+          auth: { accessToken, clearSession, refreshToken, setTokens },
           locale,
           setAccount,
         });
@@ -68,7 +69,7 @@ export function MoreSettingsLocaleScreen({ navigation }: Props) {
       }
       navigation.goBack();
     },
-    [accessToken, navigation, setAccount]
+    [accessToken, clearSession, navigation, refreshToken, setAccount, setTokens]
   );
 
   return (

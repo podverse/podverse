@@ -90,5 +90,6 @@ number on forty rows is as unusable as it is expensive. See **screen-reader-acce
 
 - **mobile-sync-orchestration** — nothing network-bound blocks first paint; background sync is serial
 - **mobile-list-virtualization** — lists own their scroll and render lazily
+- **mobile-row-render-cost** — the same multiplier applied to everything else a row does
 - **mobile-carplay-android-auto** — what the native cache is for and when to project it
 - **dto-changes-are-device-data-migrations** — the persisted shape is on installed phones

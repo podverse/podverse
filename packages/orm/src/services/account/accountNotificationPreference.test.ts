@@ -40,6 +40,35 @@ vi.mock('@orm/entities/account/accountNotificationPreference.js', () => ({
 
 import { AccountNotificationPreferenceService } from './accountNotificationPreference.js';
 
+const readPreferenceFindWhere = (
+  findOptions: unknown
+): { account_id: { type: string; value: unknown }; category: string } => {
+  if (typeof findOptions !== 'object' || findOptions === null || !('where' in findOptions)) {
+    throw new Error('Expected a find options object');
+  }
+  const where = findOptions.where;
+  if (typeof where !== 'object' || where === null) {
+    throw new Error('Expected a find where clause');
+  }
+  if (!('account_id' in where) || !('category' in where) || typeof where.category !== 'string') {
+    throw new Error('Expected account_id and category in the where clause');
+  }
+  const accountId = where.account_id;
+  if (
+    typeof accountId !== 'object' ||
+    accountId === null ||
+    !('type' in accountId) ||
+    !('value' in accountId) ||
+    typeof accountId.type !== 'string'
+  ) {
+    throw new Error('Expected an In() operator for account_id');
+  }
+  return {
+    account_id: { type: accountId.type, value: accountId.value },
+    category: where.category,
+  };
+};
+
 describe('AccountNotificationPreferenceService', () => {
   beforeEach(() => {
     createMock.mockReset();
@@ -112,5 +141,44 @@ describe('AccountNotificationPreferenceService', () => {
       ])
     );
     expect(seeded).toHaveLength(NOTIFICATION_CATEGORY_VALUES.length);
+  });
+
+  it('loads one category for many accounts in a single read', async () => {
+    const rows = [
+      {
+        account_id: 1,
+        category: NotificationCategoryEnum.Livestream,
+        in_app_enabled: true,
+        push_enabled: false,
+      },
+      {
+        account_id: 2,
+        category: NotificationCategoryEnum.Livestream,
+        in_app_enabled: false,
+        push_enabled: true,
+      },
+    ];
+    findReadMock.mockResolvedValue(rows);
+
+    const service = new AccountNotificationPreferenceService();
+    const result = await service.getForAccountsAndCategory(
+      [1, 2],
+      NotificationCategoryEnum.Livestream
+    );
+
+    expect(findReadMock).toHaveBeenCalledTimes(1);
+    const where = readPreferenceFindWhere(findReadMock.mock.calls[0]?.[0]);
+    expect(where.category).toBe(NotificationCategoryEnum.Livestream);
+    expect(where.account_id.type).toBe('in');
+    expect(where.account_id.value).toEqual([1, 2]);
+    expect(result).toEqual(rows);
+  });
+
+  it('skips the preference read when no account ids are provided', async () => {
+    const service = new AccountNotificationPreferenceService();
+    const result = await service.getForAccountsAndCategory([], NotificationCategoryEnum.NewContent);
+
+    expect(result).toEqual([]);
+    expect(findReadMock).not.toHaveBeenCalled();
   });
 });

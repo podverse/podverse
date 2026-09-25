@@ -864,32 +864,141 @@ components:
           $ref: "#/components/schemas/AccountSettingsNotificationType"
     ApiPostAccountAddByRssChaptersTranscriptRequest:
       type: object
-      description: Operation-specific request payload for POST /account/add-by-rss/chapters-transcript.
-      additionalProperties: true
+      description: >-
+        Request payload for POST /account/add-by-rss/chapters-transcript. Private feeds send
+        device-held Basic Auth with `feedUrl`; the server uses it for this request only and
+        attaches it to a chapters or transcript URL only when that URL is HTTPS on the feed's
+        registrable domain.
+      required:
+        - itemIdText
+      properties:
+        itemIdText:
+          type: string
+        chaptersFeedUrl:
+          type: string
+          format: uri
+        transcriptUrl:
+          type: string
+          format: uri
+        feedUrl:
+          type: string
+          format: uri
+          description: Required when basic_auth_username / basic_auth_password are sent.
+        basic_auth_username:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Send together with basic_auth_password, or omit both.
+        basic_auth_password:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Send together with basic_auth_username, or omit both.
     ApiPostAccountAddByRssChaptersTranscriptResponse200:
       type: object
       description: Operation-specific response payload for POST /account/add-by-rss/chapters-transcript (200).
       additionalProperties: true
     ApiPostAccountAddByRssParseRequest:
       type: object
-      description: Operation-specific request payload for POST /account/add-by-rss/parse.
-      additionalProperties: true
+      description: >-
+        Request payload for POST /account/add-by-rss/parse. Credentials are never stored: the API
+        seals them into a short-lived envelope for the parse worker. `user:pass@` userinfo on
+        `feed_url` is split off and treated as the credentials when the body omits them.
+      required:
+        - feed_url
+      properties:
+        feed_url:
+          type: string
+          format: uri
+        feed_hash:
+          type: string
+        etag:
+          type: string
+        last_modified:
+          type: string
+        basic_auth_username:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Send together with basic_auth_password, or omit both.
+        basic_auth_password:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Send together with basic_auth_username, or omit both.
     ApiPostAccountAddByRssParseResponse200:
       type: object
       description: Operation-specific response payload for POST /account/add-by-rss/parse (200).
       additionalProperties: true
     ApiPostAccountAddByRssParseAllRequest:
       type: object
-      description: Operation-specific request payload for POST /account/add-by-rss/parse/all.
-      additionalProperties: true
+      description: >-
+        Request payload for POST /account/add-by-rss/parse/all. A followed feed flagged
+        `requires_credentials` with no entry in `credentials_by_url` is not queued; its request id
+        resolves immediately to `failed` with `failureReason: credentials_required`.
+      properties:
+        feed_hashes_by_url:
+          type: object
+          additionalProperties:
+            type: string
+        etags_by_url:
+          type: object
+          additionalProperties:
+            type: string
+        last_modified_by_url:
+          type: object
+          additionalProperties:
+            type: string
+        credentials_by_url:
+          type: object
+          description: Feed URL to device-held Basic Auth credentials.
+          additionalProperties:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+                minLength: 1
+                maxLength: 255
+              password:
+                type: string
+                minLength: 1
+                maxLength: 255
     ApiPostAccountAddByRssParseAllResponse200:
       type: object
       description: Operation-specific response payload for POST /account/add-by-rss/parse/all (200).
       additionalProperties: true
     ApiGetAccountAddByRssParseStatusRequestIdResponse200:
       type: object
-      description: Operation-specific response payload for GET /account/add-by-rss/parse/status/{request_id} (200).
+      description: >-
+        Response payload for GET /account/add-by-rss/parse/status/{request_id} (200). Never
+        contains credentials; failed entries carry machine-readable auth metadata.
       additionalProperties: true
+      properties:
+        status:
+          type: string
+          enum: [queued, processing, parsed, not_modified, failed]
+        failureReason:
+          type: string
+          enum:
+            - credentials_required
+            - credentials_rejected
+            - credentials_withheld_other_domain
+            - credentials_withheld_insecure
+            - credentials_envelope_invalid
+            - http_error
+            - network
+            - parse
+        httpStatus:
+          type: integer
+        authChallenge:
+          type: string
+          enum: [basic, other, none]
+        credentialsState:
+          type: string
+          enum: [sent, not_provided, withheld_other_domain, withheld_insecure, decrypt_failed]
     ApiGetAccountDownloadDataResponse200:
       type: object
       description: Operation-specific response payload for GET /account/download-data (200).
@@ -921,6 +1030,30 @@ components:
       type: object
       description: Operation-specific response payload for GET /account/opml/import/status/{request_id} (200).
       additionalProperties: true
+    ApiPutAccountAutoDownloadChannelsRequest:
+      type: object
+      description: Operation-specific request payload for PUT /account/auto-download/channels.
+      required:
+        - installation_id
+        - channel_id_texts
+      properties:
+        installation_id:
+          type: string
+          maxLength: 36
+        channel_id_texts:
+          type: array
+          items:
+            type: string
+    ApiPutAccountAutoDownloadChannelsResponse200:
+      type: object
+      description: Operation-specific response payload for PUT /account/auto-download/channels (200).
+      required:
+        - channel_id_texts
+      properties:
+        channel_id_texts:
+          type: array
+          items:
+            type: string
     ApiGetAccountFcmDeviceAllForAccountResponse200:
       type: object
       description: Operation-specific response payload for GET /account/fcm-device/all-for-account (200).
@@ -965,6 +1098,9 @@ components:
         - $ref: "#/components/schemas/MessageResponse"
     ApiPostAccountFollowAddByRssChannelRequest:
       type: object
+      description: >-
+        Credentials are not accepted here; unknown keys such as `basic_auth_*` are ignored. A
+        `user:pass@` in `feed_url` is removed before storage and sets `requires_credentials`.
       required:
         - feed_url
       properties:
@@ -978,14 +1114,9 @@ components:
           type: string
           format: uri
           nullable: true
-        basic_auth_username:
-          type: string
-          nullable: true
-          maxLength: 255
-        basic_auth_password:
-          type: string
-          nullable: true
-          maxLength: 255
+        requires_credentials:
+          type: boolean
+          description: Omit to leave the stored flag unchanged.
     ApiPostAccountFollowAddByRssChannelResponse200:
       allOf:
         - $ref: "#/components/schemas/MessageResponse"
@@ -2167,6 +2298,9 @@ components:
     ApiGetQueueQueueIdTextResourcesNowPlayingResponse200:
       allOf:
         - $ref: "#/components/schemas/QueueResourceNullableResponse"
+    ApiPostQueueQueueIdTextResourcesPromoteUpcomingResponse200:
+      allOf:
+        - $ref: "#/components/schemas/QueueResourceNullableResponse"
     ApiGetQueueQueueIdTextResourcesUpcomingAllResponse200:
       allOf:
         - $ref: "#/components/schemas/QueueResourceArrayResponse"
@@ -3047,10 +3181,11 @@ components:
           type: string
           format: uri
           nullable: true
-        basic_auth_username:
-          type: string
-          nullable: true
-          description: Present as "[saved]" when credentials are configured for the feed.
+        requires_credentials:
+          type: boolean
+          description: >-
+            The feed needs Basic Auth. Credentials are never stored or returned; devices send them
+            with each parse or chapters request.
     PayPalOrder:
       type: object
       required:
@@ -4161,6 +4296,193 @@ paths:
           description: >
             Not found. Unknown or unauthorized request ids return
             `code` `OPML_REQUEST_NOT_FOUND` with an English `message`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notification/channels/bulk-enable:
+    post:
+      operationId: apiPostAccountNotificationChannelsBulkEnable
+      tags:
+        - account
+      summary: POST /account/notification/channels/bulk-enable
+      description: Enable notifications for every followed channel that does not already have a row. Authenticated.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - created
+                properties:
+                  created:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notification/channels/bulk-disable:
+    post:
+      operationId: apiPostAccountNotificationChannelsBulkDisable
+      tags:
+        - account
+      summary: POST /account/notification/channels/bulk-disable
+      description: Remove every per-channel notification row for the account. Authenticated.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - deleted
+                properties:
+                  deleted:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notification/channels/bulk-type:
+    post:
+      operationId: apiPostAccountNotificationChannelsBulkType
+      tags:
+        - account
+      summary: POST /account/notification/channels/bulk-type
+      description: Add or remove one notification type across every channel with notifications. Authenticated.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - enabled
+              properties:
+                type:
+                  type: string
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - updated
+                properties:
+                  updated:
+                    type: integer
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/auto-download/channels:
+    put:
+      operationId: apiPutAccountAutoDownloadChannels
+      tags:
+        - account
+      summary: PUT /account/auto-download/channels
+      description: Replace the full set of auto-download channel registrations for one installation. Authenticated endpoint (cookieAuth or bearerAuth). Requires valid membership.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPutAccountAutoDownloadChannelsRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPutAccountAutoDownloadChannelsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
           content:
             application/json:
               schema:
@@ -7043,7 +7365,11 @@ paths:
       tags:
         - auth
       summary: POST /auth/mobile/refresh
-      description: Auto-generated from route matrix. Public endpoint.
+      description: >
+        Exchange a still-valid mobile refresh JWT for a new access/refresh pair. Public endpoint.
+        Returns 401 when the refresh JWT is invalid, expired, not a refresh token, or the account
+        named in the JWT no longer exists or no longer matches id_text (for example after a reseed
+        that replaced the account row).
       security: []
       requestBody:
         required: true
@@ -7065,7 +7391,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ValidationErrorResponse"
         "401":
-          description: Unauthorized
+          description: >
+            Unauthorized — invalid/expired refresh JWT, wrong token_use, missing account, or
+            id_text mismatch for the account named in the JWT
           content:
             application/json:
               schema:
@@ -15262,6 +15590,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiGetQueueQueueIdTextResourcesNowPlayingResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /queue/{queue_id_text}/resources/promote-upcoming:
+    post:
+      operationId: apiPostQueueQueueIdTextResourcesPromoteUpcoming
+      tags:
+        - queue
+      summary: POST /queue/{queue_id_text}/resources/promote-upcoming
+      description: >
+        When the queue has no now-playing row, move the first upcoming row to now-playing
+        (`list_position` 0) without changing last_played_at, playback position, or completed.
+        When now-playing already exists, return it unchanged. Returns null when both are empty.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: queue_id_text
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Now-playing resource after promotion, existing now-playing, or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostQueueQueueIdTextResourcesPromoteUpcomingResponse200"
+              examples:
+                promoted:
+                  summary: First upcoming moved to now-playing
+                  value:
+                    id: 42
+                    list_position: "0"
+                alreadyNowPlaying:
+                  summary: Existing now-playing left alone
+                  value:
+                    id: 7
+                    list_position: "0"
+                empty:
+                  summary: No now-playing and no upcoming
+                  value: null
         "400":
           description: Bad request
           content:

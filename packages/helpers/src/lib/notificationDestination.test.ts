@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
   APP_ROUTES,
+  buildAlbumPath,
   buildEpisodePath,
   buildMobileHomeAlbumTrackPath,
   buildMobileHomePodcastEpisodePath,
   buildMobileHomeScopedPath,
+  buildMobileSearchResultPath,
   buildMusicLivestreamPath,
+  buildPodcastIndexFeedPath,
   buildPodcastLivestreamPath,
   buildPodcastPath,
   buildTrackPath,
@@ -92,6 +95,37 @@ describe('resolveNotificationDestination', () => {
     });
   });
 
+  it('opens the local album for new-album', () => {
+    expect(
+      resolveNotificationDestination({
+        channelIdText: 'artist-1',
+        itemIdText: 'album-1',
+        mediumId: MediumEnum.PublisherMusic,
+        messageType: 'new-album',
+      })
+    ).toMatchObject({
+      kind: 'album',
+      mobileStackPath: buildMobileHomeScopedPath(APP_ROUTES.ALBUM, 'album-1'),
+      webPath: buildAlbumPath('album-1'),
+    });
+  });
+
+  it('opens the Podcast Index preview for a podcast-index-feed notification', () => {
+    expect(
+      resolveNotificationDestination({
+        channelIdText: 'artist-1',
+        itemIdText: '42',
+        messageType: 'podcast-index-feed',
+      })
+    ).toEqual({
+      channelIdText: 'artist-1',
+      itemIdText: '42',
+      kind: 'path',
+      mobileStackPath: buildMobileSearchResultPath('42'),
+      webPath: buildPodcastIndexFeedPath('42'),
+    });
+  });
+
   it('keeps an explicit campaign path when no content type applies', () => {
     expect(
       resolveNotificationDestination({
@@ -152,6 +186,18 @@ describe('resolveNotificationDestinationFromPayload', () => {
       kind: 'podcast',
       mobileStackPath: buildMobileHomeScopedPath(APP_ROUTES.PODCAST, 'pod123'),
       webPath: buildPodcastPath('pod123'),
+    });
+  });
+
+  it('maps a Podcast Index link path on its own', () => {
+    expect(
+      resolveNotificationDestinationFromPayload({
+        link_path: buildPodcastIndexFeedPath('42'),
+      })
+    ).toMatchObject({
+      kind: 'path',
+      mobileStackPath: buildMobileSearchResultPath('42'),
+      webPath: buildPodcastIndexFeedPath('42'),
     });
   });
 

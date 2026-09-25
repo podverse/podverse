@@ -74,9 +74,9 @@ unit-testable in node.
 ## Screen behavior
 
 - Screens that can work offline **default** to their offline-compatible view (usually
-  **Downloaded**) **while the toggle is on**. It overrides the remembered section/tab on navigate;
-  do not overwrite the stored pref. About and other local panes stay selectable after an explicit
-  tap.
+  **Downloaded**) **while the toggle is on**. Podcast detail always opens on Downloaded while the
+  toggle is on (the section chip is visit-local and is not stored). About and other local panes
+  stay selectable after an explicit tap.
 - A slim warning strip sits in persistent bottom chrome above the tab bar, in order: sync progress
   → offline strip → mini player. It does not slide away on stack push. One strip covers all three
   causes, with copy chosen by cause and a per-cause `testID`.

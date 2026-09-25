@@ -2,7 +2,7 @@ import { useTranslations } from 'next-intl';
 import { Fragment } from 'react';
 
 import type { EnclosureSelectedParams, LabeledItemEnclosure } from '@podverse/helpers';
-import { getDownloadFilenameFromSource } from '@podverse/helpers';
+import { labeledItemEnclosuresForDirectDownload } from '@podverse/helpers';
 import { Divider } from '@podverse/ui';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
@@ -13,6 +13,7 @@ import {
   buildEnclosureSwitchPlaybackDecisionIfChanged,
   resolveResumeAtSecondsForEnclosureSwitch,
 } from '../../lib/playback';
+import { startProgressiveDownload } from '../../utils/downloadModal/startProgressiveDownload';
 import { downloadAndSaveFile } from '../../utils/fileDownloader';
 import { showToast, showToastPromiseWithLoading } from '../Toast/Toast';
 import { SourceSelectorRow } from './SourceSelectorRow';
@@ -53,9 +54,13 @@ export const SourceSelectors = ({
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const { readCurrentTimeSeconds } = useMediaPlayerControls();
   const { setModalSourceSelector } = useModals();
+  const isDownloadAction = actionType === 'download-episode' || actionType === 'download-track';
+  const rows = isDownloadAction
+    ? labeledItemEnclosuresForDirectDownload(labeledItemEnclosures)
+    : labeledItemEnclosures;
 
   const onClick = (enclosureIndex: number, sourceIndex: number) => {
-    const labeledItemEnclosure = labeledItemEnclosures[enclosureIndex];
+    const labeledItemEnclosure = rows[enclosureIndex];
     if (!labeledItemEnclosure) {
       return;
     }
@@ -91,38 +96,35 @@ export const SourceSelectors = ({
           }
           setMPEnclosureSelectedParams(nextEnclosureSelectedParams);
         }
-      } else if (actionType === 'download-episode') {
+      } else if (actionType === 'download-episode' || actionType === 'download-track') {
+        const isEpisode = actionType === 'download-episode';
+        const errorKey = isEpisode
+          ? 'download.episode_download_error'
+          : 'download.track_download_error';
         if (!source.uri) {
-          showToast(tFeatures('download.episode_download_error'), 'error');
+          showToast(tFeatures(errorKey), 'error');
           return;
         }
-        const filename = getDownloadFilenameFromSource({
+        const resolution = startProgressiveDownload({
+          uri: source.uri,
+          mime: labeledItemEnclosure.enclosure.type,
           itemTitle,
-          sourceUri: source.uri,
-          fallbackFilename: 'episode.mp3',
+          fallbackFilename: isEpisode ? 'episode.mp3' : 'track.mp3',
+          downloadAndSaveFile,
+          showToastPromiseWithLoading,
+          messages: {
+            loading: tFeatures(
+              isEpisode ? 'download.downloading_episode' : 'download.downloading_track'
+            ),
+            success: tFeatures(
+              isEpisode ? 'download.episode_downloaded' : 'download.track_downloaded'
+            ),
+            error: tFeatures(errorKey),
+          },
         });
-
-        showToastPromiseWithLoading(downloadAndSaveFile(source.uri, filename), {
-          loading: tFeatures('download.downloading_episode'),
-          success: tFeatures('download.episode_downloaded'),
-          error: tFeatures('download.episode_download_error'),
-        });
-      } else if (actionType === 'download-track') {
-        if (!source.uri) {
-          showToast(tFeatures('download.track_download_error'), 'error');
-          return;
+        if (!resolution.ok && resolution.reason !== 'missing_uri') {
+          showToast(tFeatures(errorKey), 'error');
         }
-        const filename = getDownloadFilenameFromSource({
-          itemTitle,
-          sourceUri: source.uri,
-          fallbackFilename: 'track.mp3',
-        });
-
-        showToastPromiseWithLoading(downloadAndSaveFile(source.uri, filename), {
-          loading: tFeatures('download.downloading_track'),
-          success: tFeatures('download.track_downloaded'),
-          error: tFeatures('download.track_download_error'),
-        });
       }
     }
 
@@ -135,14 +137,14 @@ export const SourceSelectors = ({
 
   return (
     <div className={styles.sourceSelectors}>
-      {labeledItemEnclosures.map((labeledItemEnclosure, idx) => (
+      {rows.map((labeledItemEnclosure, idx) => (
         <Fragment key={idx}>
           <SourceSelectorRow
             labeledItemEnclosure={labeledItemEnclosure}
             labeledItemEnclosureIndex={idx}
             onClick={onClick}
           />
-          {idx < labeledItemEnclosures.length - 1 && <Divider className={styles.divider} />}
+          {idx < rows.length - 1 && <Divider className={styles.divider} />}
         </Fragment>
       ))}
     </div>

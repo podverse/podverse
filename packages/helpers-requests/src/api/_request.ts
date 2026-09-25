@@ -45,6 +45,10 @@ import {
   type ReqAccountAddByRSSChaptersTranscriptParams,
 } from './account/addByRSSChaptersTranscript.js';
 import {
+  type PutAccountAutoDownloadChannelsParams,
+  reqAccountAutoDownloadChannelsPut,
+} from './account/autoDownload/autoDownload.js';
+import {
   reqAccountChannelSeenList,
   reqAccountChannelSeenListAddByRss,
   reqAccountChannelSeenMark,
@@ -74,6 +78,12 @@ import {
   reqAccountNotificationChannelCreate,
   reqAccountNotificationChannelDelete,
 } from './account/notification/channel.js';
+import {
+  reqAccountNotificationChannelsBulkDisable,
+  reqAccountNotificationChannelsBulkEnable,
+  reqAccountNotificationChannelsBulkType,
+} from './account/notification/channelBulk.js';
+import { reqAccountNotificationChannelsGetAll } from './account/notification/channelsList.js';
 import {
   reqAccountNotificationChannelTypeCreate,
   reqAccountNotificationChannelTypeDelete,
@@ -245,6 +255,7 @@ import {
   reqQueueResourcesGetAllUpcomingByQueueIdText,
   reqQueueResourcesGetHistoryByQueueIdTextPaginated,
   reqQueueResourcesGetNowPlayingByQueueIdText,
+  reqQueueResourcesPromoteUpcomingToNowPlaying,
 } from './queue/queueResource/queueResource.js';
 import {
   reqQueueResourceClipAddBetween,
@@ -636,6 +647,10 @@ export class ApiRequestService {
     return reqAccountFCMDeviceUpdateLocale(this, params);
   }
 
+  reqAccountAutoDownloadChannelsPut(params: PutAccountAutoDownloadChannelsParams) {
+    return reqAccountAutoDownloadChannelsPut(this, params);
+  }
+
   /* ACCOUNT > WEBPUSH DEVICE */
 
   reqAccountWebPushDeviceCreate(params: CreateAccountWebPushDeviceParams) {
@@ -722,8 +737,7 @@ export class ApiRequestService {
     feed_url: string;
     title?: string | null;
     image_url?: string | null;
-    basic_auth_username?: string | null;
-    basic_auth_password?: string | null;
+    requires_credentials?: boolean;
   }) {
     return reqAccountFollowAddByRSSChannel(this, params);
   }
@@ -768,6 +782,22 @@ export class ApiRequestService {
 
   reqAccountNotificationChannelDelete(params: { channel_id_text: string }) {
     return reqAccountNotificationChannelDelete(this, params);
+  }
+
+  reqAccountNotificationChannelsBulkEnable() {
+    return reqAccountNotificationChannelsBulkEnable(this);
+  }
+
+  reqAccountNotificationChannelsBulkDisable() {
+    return reqAccountNotificationChannelsBulkDisable(this);
+  }
+
+  reqAccountNotificationChannelsBulkType(params: { type: string; enabled: boolean }) {
+    return reqAccountNotificationChannelsBulkType(this, params);
+  }
+
+  reqAccountNotificationChannelsGetAll() {
+    return reqAccountNotificationChannelsGetAll(this);
   }
 
   /* ACCOUNT > NOTIFICATION > CHANNEL TYPE */
@@ -1240,6 +1270,10 @@ export class ApiRequestService {
 
   reqQueueResourcesGetNowPlayingByQueueIdText(queue_id_text: string) {
     return reqQueueResourcesGetNowPlayingByQueueIdText(this, { queue_id_text });
+  }
+
+  reqQueueResourcesPromoteUpcomingToNowPlaying(queue_id_text: string) {
+    return reqQueueResourcesPromoteUpcomingToNowPlaying(this, { queue_id_text });
   }
 
   reqQueueResourcesGetAllUpcomingByQueueIdText(queue_id_text: string) {

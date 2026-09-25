@@ -1,0 +1,60 @@
+---
+description: Channel About and item Summary carry the same information on web and mobile
+alwaysApply: true
+---
+
+# About / Summary web–mobile alignment
+
+Channel **About** and item **Summary** must carry the **same information** on web and mobile.
+Vocabulary for description / About / Summary lives in **abcmemory-vocabulary**.
+
+## Required content
+
+| Surface | Always includes | Never |
+| ------- | --------------- | ----- |
+| Channel About (podcast, album, artist) | `channel_description` + `channel_persons` | Falling back to item people |
+| Item Summary (episode, track, livestream, full player) | `item_description` + `item_persons` | Falling back to `channel_persons` |
+
+People render whenever the matching person array is non-empty, even if description prose is
+empty. Do not hide people behind an empty-description gate.
+
+## Length (mobile)
+
+Feed authors can paste unbounded HTML into channel description and item summary. On mobile,
+**About** and **Summary** prose (podcast / album / artist About; episode / track / livestream /
+full-player Summary) must **truncate by default** with **Show more** / **Show less**
+(`info.show_more` / `info.show_less`), matching the existing **360**-character collapse used on
+episode and track detail. A scrolling pane or height-locked sheet does **not** replace this —
+do not render the full string until the user expands it. Reset expanded state when the entity
+changes.
+
+## Placement divergence (intentional)
+
+Web has more screen width and keeps RSS, website, and funding as **always-visible header
+icons**. Mobile tucks RSS and website into **About** so the identity block does not grow an
+icon row. Funding is **not** an About body link on mobile: it is its own chip after the other
+content chips, and only when that surface has funding rows (channel screens use
+`channel_fundings`; item screens use `item_fundings` with no channel fallback). On channel
+detail (podcast, album, artist), Settings — when present — is the last section chip, so Funding
+sits just before it; only the optional sort / category trailing chip may follow Settings.
+
+| Field | Web | Mobile |
+| ----- | --- | ------ |
+| Description + people | About / Summary body | About / Summary body |
+| RSS, website | Header icons | About body links |
+| Funding | Header icon | Funding chip (before Settings when that chip is present) |
+| Share, subscribe, notifications, boost | Header / actions | Header / actions — not About body |
+
+Do **not** “fix” mobile by copying web header icons for RSS or website, and do **not** drop
+those links from mobile About. Do **not** put funding links back into About.
+
+## Adding fields
+
+Adding a new About or Summary field on one surface requires the matching field on the other,
+unless the plan records an intentional divergence (same pattern as the RSS/website/funding
+placement above).
+
+## Out of scope for this rule
+
+Location, social interact, license, trailer, and other podcast-namespace tags are stored but
+not part of the About/Summary body contract until both surfaces adopt them together.

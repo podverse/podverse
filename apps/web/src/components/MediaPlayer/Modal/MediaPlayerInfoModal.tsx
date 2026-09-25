@@ -19,6 +19,7 @@ import {
 import { getMediaPlayerInfoResolution } from '../../../utils/mediaPlayer/mediaPlayerInfoResolution';
 import { Link } from '../../Link/Link';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
+import { ChapterLinkButton } from './ChapterLinkButton';
 import { MediaPlayerVtsOverrideLikeButton } from './MediaPlayerVtsOverrideLikeButton';
 
 import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerInfoModal.module.scss';
@@ -146,20 +147,25 @@ export const MediaPlayerInfoModal: React.FC = () => {
     <div className={styles.subtitleSection} ref={subtitleRef}>
       {infoResolution.subsectionTitle && infoResolution.subsectionUrl && (
         <>
-          <ClickableTitle
-            title={infoResolution.subsectionTitle}
-            className={styles.subtitle}
-            onClick={() => router.push(infoResolution.subsectionUrl)}
-            setPlayerModalIsOpen={setPlayerModalIsOpen}
-          />
-          {infoResolution.subsectionStartTime && infoResolution.subsectionEndTime && (
-            <div className={styles.timeRange}>
-              <ReadableTimeRange
-                startTime={infoResolution.subsectionStartTime}
-                endTime={infoResolution.subsectionEndTime}
-              />
-            </div>
-          )}
+          <div className={styles.subtitleCopy}>
+            <ClickableTitle
+              title={infoResolution.subsectionTitle}
+              className={styles.subtitle}
+              onClick={() => router.push(infoResolution.subsectionUrl)}
+              setPlayerModalIsOpen={setPlayerModalIsOpen}
+            />
+            {infoResolution.subsectionStartTime && infoResolution.subsectionEndTime && (
+              <div className={styles.timeRange}>
+                <ReadableTimeRange
+                  startTime={infoResolution.subsectionStartTime}
+                  endTime={infoResolution.subsectionEndTime}
+                />
+              </div>
+            )}
+          </div>
+          {infoResolution.chapterWebUrl !== null ? (
+            <ChapterLinkButton className={styles.chapterLink} href={infoResolution.chapterWebUrl} />
+          ) : null}
         </>
       )}
     </div>

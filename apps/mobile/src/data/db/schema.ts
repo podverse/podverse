@@ -116,10 +116,31 @@ export const addByRssFeed = sqliteTable('add_by_rss_feed', {
   latestItemPubDateMs: integer('latest_item_pub_date_ms'),
   mappedFeedJson: text('mapped_feed_json'),
   updatedAt: text('updated_at').notNull(),
+  requiresCredentials: integer('requires_credentials').notNull().default(0),
+  lastAuthFailure: text('last_auth_failure'),
 });
 
 export type AddByRssFeedRow = typeof addByRssFeed.$inferSelect;
 export type AddByRssFeedInsert = typeof addByRssFeed.$inferInsert;
+
+/**
+ * Which add-by-RSS feeds hold device-local Basic Auth credentials, per account. The secrets live in
+ * SecureStore under a key derived from both columns; this table holds no secret and exists because
+ * SecureStore cannot list its keys.
+ */
+export const addByRssCredentialIndex = sqliteTable(
+  'add_by_rss_credential_index',
+  {
+    accountIdText: text('account_id_text').notNull(),
+    feedUrl: text('feed_url').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.accountIdText, table.feedUrl] }),
+  })
+);
+
+export type AddByRssCredentialIndexRow = typeof addByRssCredentialIndex.$inferSelect;
 
 /**
  * Offline downloads index. Source of truth for the phone Downloads library and
@@ -224,12 +245,14 @@ export type ChannelItemWindowRow = typeof channelItemWindow.$inferSelect;
 export type ChannelItemWindowInsert = typeof channelItemWindow.$inferInsert;
 
 /**
- * Diagnostic record of background sync outcomes, capped so it stays invisible in device storage.
+ * The on-device error log: sync, Home cache, playback, and add-by-RSS failures, capped so it stays
+ * invisible in device storage.
  *
- * The sync indicator deliberately says nothing when a job fails, so this is the only place a user
- * reporting "my podcasts aren't updating" can point at. `error_code` is the load-bearing column:
- * `message` is whatever the failure carried and may be in any language, while the code is stable
- * enough to read aloud to support.
+ * The sync indicator deliberately says nothing when a job fails, and playback errors show in a
+ * dialog that closes, so this is the only place a user reporting a problem can point at.
+ * `error_code` is the load-bearing column: `message` is whatever the failure carried and may be in
+ * any language, while the code is stable enough to read aloud to support. `details_json` holds the
+ * structured context (media URL, host HTTP status, ids) the detail screen shows and copies.
  *
  * The autoincrement id is also the tiebreaker for ordering — two entries can share a millisecond,
  * and both newest-first display and oldest-first eviction need a total order.
@@ -241,6 +264,7 @@ export const syncEventLog = sqliteTable('sync_event_log', {
   outcome: text('outcome').notNull(),
   errorCode: text('error_code'),
   message: text('message'),
+  detailsJson: text('details_json'),
 });
 
 export type SyncEventLogRow = typeof syncEventLog.$inferSelect;
@@ -356,3 +380,33 @@ export const playlistResource = sqliteTable('playlist_resource', {
 
 export type PlaylistResourceRow = typeof playlistResource.$inferSelect;
 export type PlaylistResourceInsert = typeof playlistResource.$inferInsert;
+
+/**
+ * Per-channel auto-download settings. Device-local; the server only mirrors enabled channel ids
+ * per installation for silent-push wakeups. `enabled_at` is the no-backfill watermark.
+ */
+export const channelAutoDownload = sqliteTable('channel_auto_download', {
+  channelIdText: text('channel_id_text').primaryKey(),
+  source: text('source').notNull(),
+  enabled: integer('enabled').notNull(),
+  allowCellular: integer('allow_cellular').notNull(),
+  enabledAt: integer('enabled_at'),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type ChannelAutoDownloadRow = typeof channelAutoDownload.$inferSelect;
+export type ChannelAutoDownloadInsert = typeof channelAutoDownload.$inferInsert;
+
+/**
+ * Idempotent auto-download ledger. An item is decided once so sync/push retries and user deletes
+ * do not re-enqueue the same episode.
+ */
+export const autoDownloadCandidate = sqliteTable('auto_download_candidate', {
+  itemIdText: text('item_id_text').primaryKey(),
+  channelIdText: text('channel_id_text').notNull(),
+  status: text('status').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type AutoDownloadCandidateRow = typeof autoDownloadCandidate.$inferSelect;
+export type AutoDownloadCandidateInsert = typeof autoDownloadCandidate.$inferInsert;

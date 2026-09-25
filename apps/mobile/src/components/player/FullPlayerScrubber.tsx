@@ -14,10 +14,18 @@ import {
 } from '@podverse/playback-core/chapterProgressMarkers';
 
 import {
+  getPlaybackProgressRatio,
+  subscribePlaybackProgress,
+} from '../../playback/playbackProgressStore';
+import {
+  usePlaybackDuration,
   usePlaybackPositionClock,
-  usePlaybackProgress,
   usePlaybackSession,
 } from '../../playback/PlaybackProvider';
+import {
+  setPlaybackScrubPreviewSeconds,
+  usePlaybackScrubPreview,
+} from '../../playback/playbackScrubPreviewStore';
 import { useActiveNowPlayingChapter } from '../../playback/useNowPlayingChapters';
 import { FULL_PLAYER_PROGRESS_BLOCK_HEIGHT } from '../../screens/player/fullPlayerLayout';
 import { useTheme } from '../../theme/useTheme';
@@ -93,40 +101,51 @@ const resolveHighlightBounds = ({
 /**
  * Full-player scrubber: drag/tap seek on the line (no thumb), chapter markers, active-segment
  * highlight, and a long-press chapter tooltip. The visible track is thin; the hit target is 44pt.
- * While dragging, the left clock follows the pending seek so it matches the fill. Clocks and fill
- * subscribe to the progress store so the parent screen does not re-render on every tick.
+ * While dragging, the left clock and chapter chrome follow the pending seek so they match the
+ * fill. The engine playhead stays put until the finger lifts. Clocks and fill subscribe to the
+ * progress store so the parent screen does not re-render on every tick.
+ *
+ * Gesture objects are memoized and the worklet-to-JS preview hop only fires when the whole-second
+ * label would change — rebuilding a Gesture mid-drag re-attaches the recognizer and floods JS.
  */
 export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { activeTarget, seekTo } = usePlaybackSession();
-  const { durationSeconds, positionSeconds } = usePlaybackProgress();
+  const durationSeconds = usePlaybackDuration();
   const clockSeconds = usePlaybackPositionClock();
   const activeChapter = useActiveNowPlayingChapter(chapters);
 
   const [trackWidth, setTrackWidth] = useState(0);
   const [tooltipTitle, setTooltipTitle] = useState<string | null>(null);
   const [tooltipPercent, setTooltipPercent] = useState(0);
-  const [scrubPreviewSeconds, setScrubPreviewSeconds] = useState<number | null>(null);
+  const scrubPreviewSeconds = usePlaybackScrubPreview();
   const ignoreTapRef = useRef(false);
   const chapterTooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isScrubbing = useSharedValue(false);
   const scrubRatio = useSharedValue(0);
   const trackWidthShared = useSharedValue(0);
-  const liveRatio = durationSeconds > 0 ? clampRatio(positionSeconds / durationSeconds) : 0;
-  const liveRatioShared = useSharedValue(liveRatio);
+  const durationShared = useSharedValue(durationSeconds);
+  const lastPreviewSecondShared = useSharedValue(-1);
+  const liveRatioShared = useSharedValue(getPlaybackProgressRatio());
 
   useEffect(() => {
     trackWidthShared.value = trackWidth;
   }, [trackWidth, trackWidthShared]);
 
   useEffect(() => {
-    if (isScrubbing.value) {
-      return;
-    }
-    liveRatioShared.value = liveRatio;
-  }, [isScrubbing, liveRatio, liveRatioShared]);
+    durationShared.value = durationSeconds;
+  }, [durationSeconds, durationShared]);
+
+  useEffect(() => {
+    return subscribePlaybackProgress(() => {
+      if (isScrubbing.value) {
+        return;
+      }
+      liveRatioShared.value = getPlaybackProgressRatio();
+    });
+  }, [isScrubbing, liveRatioShared]);
 
   const clip = activeTarget?.kind === 'clip' ? activeTarget.clip : null;
   const soundbite = activeTarget?.kind === 'soundbite' ? activeTarget.soundbite : null;
@@ -171,6 +190,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
   useEffect(() => {
     return () => {
       clearChapterTooltipTimer();
+      setPlaybackScrubPreviewSeconds(null);
     };
   }, [clearChapterTooltipTimer]);
 
@@ -203,20 +223,14 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
     [durationSeconds, seekTo]
   );
 
-  const updateScrubPreview = useCallback(
-    (ratio: number) => {
-      if (durationSeconds <= 0) {
-        return;
-      }
-      const next = Math.floor(clampRatio(ratio) * durationSeconds);
-      setScrubPreviewSeconds((current) => (current === next ? current : next));
-    },
-    [durationSeconds]
-  );
+  const updateScrubPreviewSeconds = useCallback((seconds: number) => {
+    setPlaybackScrubPreviewSeconds(seconds);
+  }, []);
 
   const clearScrubPreview = useCallback(() => {
-    setScrubPreviewSeconds(null);
-  }, []);
+    lastPreviewSecondShared.value = -1;
+    setPlaybackScrubPreviewSeconds(null);
+  }, [lastPreviewSecondShared]);
 
   const markIgnoreTap = useCallback(() => {
     ignoreTapRef.current = true;
@@ -244,72 +258,111 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
     setTrackWidth(event.nativeEvent.layout.width);
   };
 
-  const pan = Gesture.Pan()
-    .enabled(durationSeconds > 0 && trackWidth > 0)
-    .onBegin((event) => {
-      'worklet';
-      const width = trackWidthShared.value;
-      if (width <= 0) {
-        return;
-      }
-      const next = Math.min(1, Math.max(0, event.x / width));
-      isScrubbing.value = true;
-      scrubRatio.value = next;
-      runOnJS(updateScrubPreview)(next);
-      // Every touch on the track begins here, tap and long press included, so a chapter name left
-      // over from an earlier press clears the moment the listener touches the scrubber again.
-      runOnJS(hideChapterTooltip)();
-    })
-    .onUpdate((event) => {
-      'worklet';
-      const width = trackWidthShared.value;
-      if (width <= 0) {
-        return;
-      }
-      const next = Math.min(1, Math.max(0, event.x / width));
-      scrubRatio.value = next;
-      runOnJS(updateScrubPreview)(next);
-    })
-    .onEnd(() => {
-      'worklet';
-      const next = scrubRatio.value;
-      isScrubbing.value = false;
-      liveRatioShared.value = next;
-      runOnJS(commitSeek)(next);
-    })
-    .onFinalize(() => {
-      'worklet';
-      isScrubbing.value = false;
-      runOnJS(clearScrubPreview)();
-    });
+  const gesturesEnabled = durationSeconds > 0 && trackWidth > 0;
+  const longPressEnabled = gesturesEnabled && chapters.length > 0;
 
-  const tap = Gesture.Tap()
-    .enabled(durationSeconds > 0 && trackWidth > 0)
-    .onEnd((event) => {
-      'worklet';
-      const width = trackWidthShared.value;
-      if (width <= 0) {
-        return;
-      }
-      const ratio = Math.min(1, Math.max(0, event.x / width));
-      runOnJS(handleTapSeek)(ratio);
-    });
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(gesturesEnabled)
+        .onBegin((event) => {
+          'worklet';
+          const width = trackWidthShared.value;
+          const duration = durationShared.value;
+          if (width <= 0 || duration <= 0) {
+            return;
+          }
+          const next = Math.min(1, Math.max(0, event.x / width));
+          isScrubbing.value = true;
+          scrubRatio.value = next;
+          const nextSecond = Math.floor(next * duration);
+          lastPreviewSecondShared.value = nextSecond;
+          runOnJS(updateScrubPreviewSeconds)(nextSecond);
+          // Every touch on the track begins here, tap and long press included, so a chapter name left
+          // over from an earlier press clears the moment the listener touches the scrubber again.
+          runOnJS(hideChapterTooltip)();
+        })
+        .onUpdate((event) => {
+          'worklet';
+          const width = trackWidthShared.value;
+          const duration = durationShared.value;
+          if (width <= 0 || duration <= 0) {
+            return;
+          }
+          const next = Math.min(1, Math.max(0, event.x / width));
+          scrubRatio.value = next;
+          const nextSecond = Math.floor(next * duration);
+          if (nextSecond === lastPreviewSecondShared.value) {
+            return;
+          }
+          lastPreviewSecondShared.value = nextSecond;
+          runOnJS(updateScrubPreviewSeconds)(nextSecond);
+        })
+        .onEnd(() => {
+          'worklet';
+          const next = scrubRatio.value;
+          isScrubbing.value = false;
+          liveRatioShared.value = next;
+          runOnJS(commitSeek)(next);
+        })
+        .onFinalize(() => {
+          'worklet';
+          isScrubbing.value = false;
+          runOnJS(clearScrubPreview)();
+        }),
+    [
+      clearScrubPreview,
+      commitSeek,
+      durationShared,
+      gesturesEnabled,
+      hideChapterTooltip,
+      isScrubbing,
+      lastPreviewSecondShared,
+      liveRatioShared,
+      scrubRatio,
+      trackWidthShared,
+      updateScrubPreviewSeconds,
+    ]
+  );
 
-  const longPress = Gesture.LongPress()
-    .enabled(durationSeconds > 0 && trackWidth > 0 && chapters.length > 0)
-    .minDuration(LONG_PRESS_MS)
-    .onStart((event) => {
-      'worklet';
-      const width = trackWidthShared.value;
-      if (width <= 0) {
-        return;
-      }
-      const ratio = Math.min(1, Math.max(0, event.x / width));
-      runOnJS(markIgnoreTap)();
-      runOnJS(showChapterTooltip)(ratio);
-    });
+  const tap = useMemo(
+    () =>
+      Gesture.Tap()
+        .enabled(gesturesEnabled)
+        .onEnd((event) => {
+          'worklet';
+          const width = trackWidthShared.value;
+          if (width <= 0) {
+            return;
+          }
+          const ratio = Math.min(1, Math.max(0, event.x / width));
+          runOnJS(handleTapSeek)(ratio);
+        }),
+    [gesturesEnabled, handleTapSeek, trackWidthShared]
+  );
 
-  const composed = Gesture.Race(pan, Gesture.Exclusive(longPress, tap));
+  const longPress = useMemo(
+    () =>
+      Gesture.LongPress()
+        .enabled(longPressEnabled)
+        .minDuration(LONG_PRESS_MS)
+        .onStart((event) => {
+          'worklet';
+          const width = trackWidthShared.value;
+          if (width <= 0) {
+            return;
+          }
+          const ratio = Math.min(1, Math.max(0, event.x / width));
+          runOnJS(markIgnoreTap)();
+          runOnJS(showChapterTooltip)(ratio);
+        }),
+    [longPressEnabled, markIgnoreTap, showChapterTooltip, trackWidthShared]
+  );
+
+  const composed = useMemo(
+    () => Gesture.Race(pan, Gesture.Exclusive(longPress, tap)),
+    [longPress, pan, tap]
+  );
 
   const fillStyle = useAnimatedStyle(() => {
     const ratio = isScrubbing.value ? scrubRatio.value : liveRatioShared.value;
@@ -322,8 +375,8 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
     () =>
       StyleSheet.create({
         block: {
+          height: FULL_PLAYER_PROGRESS_BLOCK_HEIGHT,
           justifyContent: 'center',
-          minHeight: FULL_PLAYER_PROGRESS_BLOCK_HEIGHT,
           position: 'relative',
         },
         highlight: {
@@ -424,7 +477,7 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
           accessibilityValue={{
             max: Math.round(durationSeconds),
             min: 0,
-            now: Math.round(scrubPreviewSeconds ?? positionSeconds),
+            now: Math.round(scrubPreviewSeconds ?? clockSeconds),
             text: t('media_player.position_of_duration', {
               duration: displayDuration,
               position: displayPosition,

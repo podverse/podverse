@@ -3,6 +3,8 @@
 import type { RefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { MediaSourceDelivery } from '@podverse/helpers';
+
 import type { PlaybackLoadDecision } from '../lib/playback';
 import { playMediaWhenReady } from '../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
 import type {
@@ -11,6 +13,8 @@ import type {
 } from './mediaElementBridgeSurface';
 import {
   applyItemEnclosureSurfaceChangeFromRef,
+  attachNonLiveHlsPlayback,
+  detachNonLiveHlsPlayback,
   syncHttpFileUrlRestoreSeekAndPlayFromRef,
   waitForLoadedMetadataOnce,
 } from './mediaElementBridgeSurface';
@@ -20,10 +24,19 @@ export type {
   SyncHttpFileUrlRestoreSeekAndPlayInput,
 } from './mediaElementBridgeSurface';
 
-export type MediaElementSource = { kind: 'file'; src: string; mimeType?: string };
+export type MediaElementSource = {
+  kind: 'file';
+  src: string;
+  mimeType?: string;
+  /** `hls` is an HLS playlist. `file` is every other URI. */
+  delivery?: MediaSourceDelivery;
+};
 
 export type MediaElementBridge = {
-  /** Imperative load: sets `src`, waits for `loadedmetadata`, then applies the decision. */
+  /**
+   * Imperative load: attaches the file or HLS playlist, waits for `loadedmetadata`, then applies
+   * the decision.
+   */
   loadAndStart: (source: MediaElementSource, decision: PlaybackLoadDecision) => Promise<void>;
   play: () => Promise<void>;
   pause: () => void;
@@ -47,7 +60,7 @@ export type MediaElementBridge = {
   /** `file` after first successful `loadAndStart`; `null` before. */
   currentSourceKind: 'file' | null;
   /**
-   * Add-by-RSS URL effect: set `src`+`load` when URL changes, optional persisted seek after
+   * Add-by-RSS URL effect: attach the URL when it changes, optional persisted seek after
    * metadata, optional `playMediaWhenReady`.
    */
   syncHttpFileUrlRestoreSeekAndPlay: (input: SyncHttpFileUrlRestoreSeekAndPlayInput) => void;
@@ -144,9 +157,17 @@ export function useMediaElementBridge(
       if (!media) {
         throw new Error('useMediaElementBridge: media element not mounted');
       }
-      if (media.src !== source.src) {
-        media.src = source.src;
-        media.load();
+      if (source.delivery === 'hls') {
+        await attachNonLiveHlsPlayback(media, source.src);
+      } else {
+        detachNonLiveHlsPlayback(media);
+        if (media.src !== source.src) {
+          media.src = source.src;
+          media.load();
+        }
+      }
+      if (!isTokenCurrent(myToken, loadGenRef)) {
+        return;
       }
       await waitForLoadedMetadataOnce(media, () => isTokenCurrent(myToken, loadGenRef));
       if (!isTokenCurrent(myToken, loadGenRef)) {

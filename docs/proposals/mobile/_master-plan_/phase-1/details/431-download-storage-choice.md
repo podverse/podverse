@@ -24,7 +24,7 @@
 - Dependency added via `npm --prefix apps/mobile exec -- expo install …` when implementing
   (not bare root `npx expo`)
 - No Google Play Services–only download stack for the default path
-- Document that HLS playlists are never written as the “media file”
+- Document that an HLS playlist is never written as the “media file”
 
 ## Web parity references
 

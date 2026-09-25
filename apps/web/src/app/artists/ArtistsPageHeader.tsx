@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { DIRECTORY_LIST_VIEW_MODE_SCOPE_ARTISTS } from '@podverse/helpers';
 import type {
   QueryParamsStatsRange,
   QueryParamsSubscribedFullSort,
@@ -16,13 +17,13 @@ import {
 import { Dropdown, MainHeader } from '@podverse/ui';
 
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
-import { useLocalSettings } from '../../contexts/LocalSettings';
+import { useListViewMode } from '../../hooks/useListViewMode';
 import { useArtistsPageContext } from './ArtistsPageContext';
 import { getArtistsPageDropdownConfig } from './ArtistsPageDropdownConfig';
 
 export const ArtistsPageHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useArtistsPageContext();
-  const { viewSelected, setViewSelected } = useLocalSettings();
+  const { viewSelected, setViewSelected } = useListViewMode(DIRECTORY_LIST_VIEW_MODE_SCOPE_ARTISTS);
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');

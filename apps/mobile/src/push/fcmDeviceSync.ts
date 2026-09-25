@@ -1,15 +1,16 @@
 import * as SecureStore from 'expo-secure-store';
 
+import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
+import { requestWithMobileAuthRefreshIfSignedIn } from '../auth/authRequestWithRefresh';
 import { createMobileApiRequestService } from '../auth/mobileApi';
-import { createUuid } from '../lib/createUuid';
 import {
   getFcmDeviceToken,
   getFcmPermissionStatus,
   getFcmTransportPlatform,
   onFcmDeviceTokenRefresh,
 } from './fcmTransport';
+import { getOrCreateInstallationId, readInstallationId } from './installationId';
 
-const INSTALLATION_ID_KEY = 'push.installationId';
 const REGISTERED_FCM_TOKEN_KEY = 'push.fcm.registeredToken';
 
 let stopTokenRefreshSubscription: (() => void) | null = null;
@@ -26,33 +27,21 @@ const deleteSecureValue = async (key: string): Promise<void> => {
   await SecureStore.deleteItemAsync(key);
 };
 
-const getOrCreateInstallationId = async (): Promise<string> => {
-  const existingId = await readSecureValue(INSTALLATION_ID_KEY);
-  if (existingId !== null && existingId !== '') {
-    return existingId;
-  }
-
-  const generatedId = createUuid();
-  await writeSecureValue(INSTALLATION_ID_KEY, generatedId);
-  return generatedId;
-};
-
 const syncDeviceTokenWithServer = async ({
-  accessToken,
+  auth,
   locale,
   nextToken,
 }: {
-  accessToken: string;
+  auth: AuthRequestDeps;
   locale: string;
   nextToken: string;
 }): Promise<void> => {
-  const platform = getFcmTransportPlatform();
-  if (platform === null) {
+  if (auth.accessToken === null) {
     return;
   }
 
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
+  const platform = getFcmTransportPlatform();
+  if (platform === null) {
     return;
   }
 
@@ -63,33 +52,44 @@ const syncDeviceTokenWithServer = async ({
     return;
   }
 
-  if (previousToken === null || previousToken === '') {
-    await api.reqAccountFCMDeviceCreate({
-      fcm_token: nextToken,
-      installation_id: installationId,
-      platform,
-    });
-  } else {
-    await api.reqAccountFCMDeviceUpdate({
-      installation_id: installationId,
-      new_fcm_token: nextToken,
-      platform,
-      previous_fcm_token: previousToken,
-    });
+  const registered =
+    previousToken === null || previousToken === ''
+      ? await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+          api.reqAccountFCMDeviceCreate({
+            fcm_token: nextToken,
+            installation_id: installationId,
+            platform,
+          })
+        )
+      : await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+          api.reqAccountFCMDeviceUpdate({
+            installation_id: installationId,
+            new_fcm_token: nextToken,
+            platform,
+            previous_fcm_token: previousToken,
+          })
+        );
+  if (registered === null) {
+    return;
   }
 
-  await api.reqAccountFCMDeviceUpdateLocale({ locale });
+  const localeUpdated = await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+    api.reqAccountFCMDeviceUpdateLocale({ locale })
+  );
+  if (localeUpdated === null) {
+    return;
+  }
   await writeSecureValue(REGISTERED_FCM_TOKEN_KEY, nextToken);
 };
 
 export const registerFcmDeviceForAccount = async ({
-  accessToken,
+  auth,
   locale,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
 }): Promise<void> => {
-  if (accessToken === null) {
+  if (auth.accessToken === null) {
     return;
   }
 
@@ -104,30 +104,30 @@ export const registerFcmDeviceForAccount = async ({
   }
 
   await syncDeviceTokenWithServer({
-    accessToken,
+    auth,
     locale,
     nextToken,
   });
 };
 
 export const startFcmTokenRefreshSync = ({
-  accessToken,
+  auth,
   locale,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
 }): void => {
   if (stopTokenRefreshSubscription !== null) {
     stopTokenRefreshSubscription();
   }
 
-  if (accessToken === null) {
+  if (auth.accessToken === null) {
     stopTokenRefreshSubscription = null;
     return;
   }
 
   stopTokenRefreshSubscription = onFcmDeviceTokenRefresh((nextToken) => {
-    void syncDeviceTokenWithServer({ accessToken, locale, nextToken }).catch((error) => {
+    void syncDeviceTokenWithServer({ auth, locale, nextToken }).catch((error: unknown) => {
       console.warn('Failed to sync refreshed FCM token to account', error);
     });
   });
@@ -158,25 +158,29 @@ export const unregisterFcmDeviceForAccount = async ({
   }
 
   const [installationId, fcmToken] = await Promise.all([
-    readSecureValue(INSTALLATION_ID_KEY),
+    readInstallationId(),
     readSecureValue(REGISTERED_FCM_TOKEN_KEY),
   ]);
 
-  await api.reqAccountFCMDeviceDelete({
-    fcm_token: fcmToken,
-    installation_id: installationId,
-  });
+  const hasInstallationId = installationId !== null && installationId !== '';
+  const hasFcmToken = fcmToken !== null && fcmToken !== '';
+  if (hasInstallationId || hasFcmToken) {
+    await api.reqAccountFCMDeviceDelete({
+      fcm_token: fcmToken,
+      installation_id: installationId,
+    });
+  }
   await deleteSecureValue(REGISTERED_FCM_TOKEN_KEY);
 };
 
 export const syncFcmDeviceLocaleIfRegistered = async ({
-  accessToken,
+  auth,
   locale,
 }: {
-  accessToken: string | null;
+  auth: AuthRequestDeps;
   locale: string;
 }): Promise<void> => {
-  if (accessToken === null) {
+  if (auth.accessToken === null) {
     return;
   }
 
@@ -185,10 +189,7 @@ export const syncFcmDeviceLocaleIfRegistered = async ({
     return;
   }
 
-  const api = createMobileApiRequestService(accessToken);
-  if (api === null) {
-    return;
-  }
-
-  await api.reqAccountFCMDeviceUpdateLocale({ locale });
+  await requestWithMobileAuthRefreshIfSignedIn(auth, (api) =>
+    api.reqAccountFCMDeviceUpdateLocale({ locale })
+  );
 };

@@ -8,7 +8,7 @@ import {
 } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
 
-import type { FeedObject, Phase4PodcastImage } from '../../types/partytime.js';
+import type { Episode, FeedObject, Phase4PodcastImage } from '../../types/partytime.js';
 import { Phase4Medium } from '../../types/partytime.js';
 import { detectDuckTypedPublisherMediumId } from './publisher.js';
 import { compatChannelValue, compatChannelValueWithMethodAndRecipients } from './value.js';
@@ -33,6 +33,28 @@ export const compatChannelDto = (parsedFeed: FeedObject) => {
   };
 };
 
+function isValidDate(value: Date | undefined): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime());
+}
+
+function latestValidItemPubDate(items: Episode[] | undefined): Date | null {
+  const itemsWithPubDate = items?.filter((item) => !!item.pubDate) ?? [];
+  const firstItem = itemsWithPubDate[0];
+  if (!firstItem?.pubDate) {
+    return null;
+  }
+  const latestDate = itemsWithPubDate.reduce((latest, item) => {
+    const itemDate = new Date(item.pubDate ?? '');
+    return itemDate > latest ? itemDate : latest;
+  }, new Date(firstItem.pubDate));
+  return isValidDate(latestDate) ? latestDate : null;
+}
+
+function firstValidFeedDate(parsedFeed: FeedObject): Date | null {
+  const candidates = [parsedFeed.lastPubDate, parsedFeed.pubDate, parsedFeed.lastBuildDate];
+  return candidates.find(isValidDate) ?? null;
+}
+
 export const compatChannelAboutDto = (parsedFeed: FeedObject) => ({
   author:
     (Array.isArray(parsedFeed.author)
@@ -51,18 +73,7 @@ export const compatChannelAboutDto = (parsedFeed: FeedObject) => ({
     null,
   itunes_type: getChannelItunesTypeItunesTypeEnumValue(parsedFeed.itunesType || 'episodic'),
   episode_count: parsedFeed.items?.length || 0,
-  last_pub_date: (() => {
-    const itemsWithPubDate = parsedFeed.items?.filter((item) => !!item.pubDate) || [];
-    const firstItem = itemsWithPubDate[0];
-    if (itemsWithPubDate.length === 0 || !firstItem || !firstItem.pubDate) {
-      return null;
-    }
-    const latestDate = itemsWithPubDate.reduce((latest, item) => {
-      const itemDate = new Date(item.pubDate ?? '');
-      return itemDate > latest ? itemDate : latest;
-    }, new Date(firstItem.pubDate));
-    return isNaN(latestDate.getTime()) ? null : latestDate;
-  })(),
+  last_pub_date: latestValidItemPubDate(parsedFeed.items) ?? firstValidFeedDate(parsedFeed),
 });
 
 export const compatChannelCategoryDtos = (parsedFeed: FeedObject) => {

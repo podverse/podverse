@@ -1,12 +1,15 @@
 import type { DTOItemEnclosure, DTOItemEnclosureIntegrity } from '@podverse/helpers';
-import {
-  buildLabeledItemEnclosures,
-  getDownloadFilenameFromSource,
-  getSelectedLabeledItemEnclosureAndSource,
-} from '@podverse/helpers';
 
+import { showToast } from '../../components/Toast/Toast';
 import type { ModalSourceSelector } from '../../contexts/Modals';
-import type { AddByRSSItemIndexItem } from '../addByRSS/types';
+import {
+  addByRSSProtectedMediaMessageKey,
+  classifyAddByRSSProtectedMediaFailure,
+  findAddByRSSFeedForItem,
+  logAddByRSSProtectedMediaFailure,
+} from '../addByRSS/protectedMedia';
+import type { AddByRSSFeedRecord, AddByRSSItemIndexItem } from '../addByRSS/types';
+import { beginDirectDownload } from './beginDirectDownload';
 
 type AddByRSSBundleEnclosure = AddByRSSItemIndexItem['bundle']['enclosures'][number];
 
@@ -61,59 +64,79 @@ type DownloadAddByRSSMediaParams = {
   variant: 'episode' | 'track';
 };
 
-export function downloadAddByRSSMediaWithModal({
-  indexItem,
-  setModalSourceSelector,
-  showToastPromiseWithLoading,
-  downloadAndSaveFile,
-  tFeatures,
-  variant,
-}: DownloadAddByRSSMediaParams): void {
-  const enclosures = indexItem?.bundle?.enclosures;
+const findFeedQuietly = async (channelIdText: string): Promise<AddByRSSFeedRecord | null> => {
+  try {
+    return await findAddByRSSFeedForItem({ channelIdText });
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+/**
+ * Downloads always request the plain file URL. For a password-protected feed the failure
+ * message explains why the download may not work on web instead of reading as a network error.
+ */
+export function downloadAddByRSSMediaWithModal(params: DownloadAddByRSSMediaParams): void {
+  const enclosures = params.indexItem?.bundle?.enclosures;
   if (!enclosures || enclosures.length === 0) {
     return;
   }
 
-  const dtoLike = compatEnclosuresToDTOLike(enclosures);
-  const labeledItemEnclosures = buildLabeledItemEnclosures(dtoLike);
-  const hasMultipleEnclosures = labeledItemEnclosures && labeledItemEnclosures.length > 1;
-
-  const itemTitle = indexItem?.bundle?.item?.title ?? (variant === 'episode' ? 'episode' : 'track');
-  const defaultFilename = variant === 'episode' ? 'episode.mp3' : 'track.mp3';
-
-  if (hasMultipleEnclosures) {
-    setModalSourceSelector({
-      labeledItemEnclosures,
-      actionType: variant === 'episode' ? 'download-episode' : 'download-track',
-      itemTitle: itemTitle || null,
-    });
-    return;
-  }
-
-  const selected = getSelectedLabeledItemEnclosureAndSource({
-    labeledItemEnclosures,
-    type: 'default',
-    enclosureRowIndex: null,
-    sourceRowIndex: null,
+  void findFeedQuietly(params.indexItem.channelIdText).then((feed) => {
+    startAddByRSSDownload(params, enclosures, feed);
   });
+}
 
-  if (selected?.source?.uri) {
-    const loadingKey =
-      variant === 'episode' ? 'download.downloading_episode' : 'download.downloading_track';
-    const successKey =
-      variant === 'episode' ? 'download.episode_downloaded' : 'download.track_downloaded';
-    const errorKey =
-      variant === 'episode' ? 'download.episode_download_error' : 'download.track_download_error';
-    const filename = getDownloadFilenameFromSource({
-      itemTitle,
-      sourceUri: selected.source.uri,
-      fallbackFilename: defaultFilename,
-    });
+function startAddByRSSDownload(
+  {
+    indexItem,
+    setModalSourceSelector,
+    showToastPromiseWithLoading,
+    downloadAndSaveFile,
+    tFeatures,
+    variant,
+  }: DownloadAddByRSSMediaParams,
+  enclosures: AddByRSSBundleEnclosure[],
+  feed: AddByRSSFeedRecord | null
+): void {
+  const itemTitle = indexItem?.bundle?.item?.title ?? (variant === 'episode' ? 'episode' : 'track');
+  const errorKey =
+    variant === 'episode' ? 'download.episode_download_error' : 'download.track_download_error';
 
-    showToastPromiseWithLoading(downloadAndSaveFile(selected.source.uri, filename), {
-      loading: tFeatures(loadingKey),
-      success: tFeatures(successKey),
+  beginDirectDownload({
+    enclosures: compatEnclosuresToDTOLike(enclosures),
+    actionType: variant === 'episode' ? 'download-episode' : 'download-track',
+    itemTitle: itemTitle || null,
+    fallbackFilename: variant === 'episode' ? 'episode.mp3' : 'track.mp3',
+    setModalSourceSelector,
+    showToastPromiseWithLoading,
+    downloadAndSaveFile: async (url, filename) => {
+      try {
+        await downloadAndSaveFile(url, filename);
+      } catch (error) {
+        const failure = classifyAddByRSSProtectedMediaFailure(feed, url);
+        if (feed && failure) {
+          logAddByRSSProtectedMediaFailure({ surface: 'download', failure, feed, mediaUrl: url });
+        }
+        throw error;
+      }
+    },
+    errorMessageForUri: (uri) => {
+      const failure = classifyAddByRSSProtectedMediaFailure(feed, uri);
+      return failure ? tFeatures(addByRSSProtectedMediaMessageKey(failure)) : null;
+    },
+    messages: {
+      loading: tFeatures(
+        variant === 'episode' ? 'download.downloading_episode' : 'download.downloading_track'
+      ),
+      success: tFeatures(
+        variant === 'episode' ? 'download.episode_downloaded' : 'download.track_downloaded'
+      ),
       error: tFeatures(errorKey),
-    });
-  }
+    },
+    onIneligible: () => {
+      showToast(tFeatures(errorKey), 'error');
+    },
+  });
 }

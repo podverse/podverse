@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
+import { SectionHeading } from './SectionHeading';
 
 type SectionCardProps = {
   children: ReactNode;
@@ -25,9 +26,6 @@ export function SectionCard({ children, heading, testID }: SectionCardProps) {
           padding: tokens.spacing.lg,
         },
         heading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 20,
-          fontWeight: '700',
           marginBottom: tokens.spacing.sm,
         },
       }),
@@ -36,7 +34,9 @@ export function SectionCard({ children, heading, testID }: SectionCardProps) {
 
   return (
     <View style={styles.card} testID={testID}>
-      {heading ? <Text style={styles.heading}>{heading}</Text> : null}
+      {heading !== undefined && heading.length > 0 ? (
+        <SectionHeading style={styles.heading}>{heading}</SectionHeading>
+      ) : null}
       {children}
     </View>
   );

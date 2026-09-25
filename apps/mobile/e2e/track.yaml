@@ -1,8 +1,8 @@
 appId: com.podverse.app.next
 name: Track flow
 ---
-# Music detail and transport parity: album rows open track detail, then full player
-# shows music controls and skip-next advances to the next seeded track.
+# Music detail and transport parity: album More opens track detail (row press plays),
+# then full player shows music controls and skip-next advances to the next seeded track.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -18,7 +18,13 @@ name: Track flow
       id: album-track-row-0
     timeout: ${TIMEOUT_SLOW}
 - tapOn:
-    id: album-track-row-0
+    id: "home-row-more-.*"
+- extendedWaitUntil:
+    visible:
+      id: "media-row-menu-.*"
+    timeout: ${TIMEOUT_FASTER}
+- tapOn:
+    id: "media-row-action-go-to-track-.*"
 - extendedWaitUntil:
     visible:
       id: track-detail-screen

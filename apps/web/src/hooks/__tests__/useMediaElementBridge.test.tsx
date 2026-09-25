@@ -1,6 +1,32 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import type { MutableRefObject } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+const hlsJs = vi.hoisted(() => ({
+  attachMedia: vi.fn(),
+  isSupported: vi.fn(() => true),
+  loadSource: vi.fn(),
+}));
+
+vi.mock('hls.js', () => ({
+  default: class Hls {
+    static isSupported(): boolean {
+      return hlsJs.isSupported();
+    }
+
+    loadSource(url: string): void {
+      hlsJs.loadSource(url);
+    }
+
+    attachMedia(element: HTMLMediaElement): void {
+      hlsJs.attachMedia(element);
+    }
+
+    destroy(): void {
+      return undefined;
+    }
+  },
+}));
 
 import type { PlaybackLoadDecision } from '../../lib/playback';
 import { createMediaElementFakeRef } from '../../test/mediaElementFake';
@@ -31,6 +57,7 @@ describe('useMediaElementBridge', () => {
     );
 
     expect(fake.src).toContain('a.mp3');
+    expect(hlsJs.loadSource).not.toHaveBeenCalled();
     fake.fireLoadedMetadata(120);
     await p;
 
@@ -166,5 +193,25 @@ describe('useMediaElementBridge', () => {
     const { result } = renderHook(() => useMediaElementBridge(mediaRef, {}));
 
     expect(result.current.readCurrentTimeSeconds()).toBeUndefined();
+  });
+
+  it('loadAndStart uses hls.js for an HLS playlist the element cannot play natively', async () => {
+    const { current, fake } = createMediaElementFakeRef({ readyState: 0 });
+    const mediaRef: MutableRefObject<HTMLMediaElement | null> = { current };
+
+    const { result } = renderHook(() => useMediaElementBridge(mediaRef, {}));
+    const bridge = result.current;
+
+    const pending = bridge.loadAndStart(
+      { delivery: 'hls', kind: 'file', src: 'https://example.com/live.m3u8?token=1' },
+      decision({ initialSeekSeconds: 0, shouldAutoPlay: false })
+    );
+
+    await waitFor(() => {
+      expect(hlsJs.loadSource).toHaveBeenCalledWith('https://example.com/live.m3u8?token=1');
+    });
+    expect(fake.src).toBe('');
+    fake.fireLoadedMetadata(0);
+    await pending;
   });
 });

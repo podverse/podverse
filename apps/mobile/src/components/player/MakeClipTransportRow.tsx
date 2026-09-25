@@ -19,7 +19,7 @@ type MakeClipTransportRowProps = {
   onJumpForwardSmall: () => void;
   onPause: () => void;
   onPlay: () => void;
-  onRetry: () => void;
+  onErrorPress: () => void;
   state: PlaybackTransportState;
 };
 
@@ -30,7 +30,7 @@ export function MakeClipTransportRow({
   onJumpForwardSmall,
   onPause,
   onPlay,
-  onRetry,
+  onErrorPress,
   state,
 }: MakeClipTransportRowProps) {
   const styles = useMemo(
@@ -78,8 +78,8 @@ export function MakeClipTransportRow({
           onPlay={() => {
             onPlay();
           }}
-          onRetry={() => {
-            onRetry();
+          onErrorPress={() => {
+            onErrorPress();
           }}
           size="xl"
           state={state}

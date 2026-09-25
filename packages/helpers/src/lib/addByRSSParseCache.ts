@@ -1,5 +1,25 @@
 export type AddByRSSParseStatus = 'queued' | 'processing' | 'parsed' | 'not_modified' | 'failed';
 
+export type AddByRSSParseFailureReason =
+  | 'credentials_required'
+  | 'credentials_rejected'
+  | 'credentials_withheld_other_domain'
+  | 'credentials_withheld_insecure'
+  | 'credentials_envelope_invalid'
+  | 'http_error'
+  | 'network'
+  | 'parse';
+
+export type AddByRSSParseAuthChallenge = 'basic' | 'other' | 'none';
+
+export type AddByRSSParseCredentialsState =
+  'sent' | 'not_provided' | 'withheld_other_domain' | 'withheld_insecure' | 'decrypt_failed';
+
+/**
+ * Parse status stored in Valkey and returned to clients. Never carries username or password —
+ * only machine-readable metadata about whether credentials were sent and how the origin answered.
+ * Metadata fields are optional so entries written before they existed still read.
+ */
 export type AddByRSSParseCacheEntry<TParsedFeed> = {
   requestId: string;
   accountId: number;
@@ -12,6 +32,10 @@ export type AddByRSSParseCacheEntry<TParsedFeed> = {
   };
   payload?: TParsedFeed;
   error?: string;
+  failureReason?: AddByRSSParseFailureReason;
+  httpStatus?: number;
+  authChallenge?: AddByRSSParseAuthChallenge;
+  credentialsState?: AddByRSSParseCredentialsState;
   updatedAt: string;
 };
 

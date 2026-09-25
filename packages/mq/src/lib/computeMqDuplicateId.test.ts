@@ -58,6 +58,33 @@ describe('computeMqDuplicateId', () => {
     expect(first).not.toBe(second);
   });
 
+  it('ignores the add-by-RSS credentials envelope so fresh envelopes do not bust dedupe', () => {
+    const now = 1_000_000;
+    const feedUrl = 'https://feeds.example.com/private.xml';
+    const plain = computeMqDuplicateId(
+      'add-by-rss-on-demand',
+      addByRssMessage(feedUrl),
+      60_000,
+      now
+    );
+    const withEnvelopeA = computeMqDuplicateId(
+      'add-by-rss-on-demand',
+      { ...addByRssMessage(feedUrl), credentialsEnvelope: 't1:first' },
+      60_000,
+      now
+    );
+    const withEnvelopeB = computeMqDuplicateId(
+      'add-by-rss-on-demand',
+      { ...addByRssMessage(feedUrl), credentialsEnvelope: 't1:second' },
+      60_000,
+      now
+    );
+
+    expect(withEnvelopeA).toBe(plain);
+    expect(withEnvelopeB).toBe(plain);
+    expect(plain).not.toContain('t1:');
+  });
+
   it('same requestId within a window collapses to the same id', () => {
     const idEarly = computeMqDuplicateId('opml-import', opmlMessage('same'), 60_000, 1_000);
     const idLate = computeMqDuplicateId('opml-import', opmlMessage('same'), 60_000, 30_000);

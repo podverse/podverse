@@ -71,6 +71,31 @@ class QueueResourceController {
     });
   }
 
+  static async promoteFirstUpcomingToNowPlaying(req: Request, res: Response): Promise<void> {
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyQueueOwnership()(req, res, async () => {
+            const queue_id_text = getParamRequired(req, 'queue_id_text');
+
+            try {
+              const queueResource =
+                await QueueResourceController.queueResourceService.promoteFirstUpcomingToNowPlaying(
+                  queue_id_text
+                );
+              res.status(200).json(queueResource);
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          });
+        },
+        { skipMembershipStatus: true }
+      );
+    });
+  }
+
   static async getAllUpcomingByQueueIdText(req: Request, res: Response): Promise<void> {
     validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(

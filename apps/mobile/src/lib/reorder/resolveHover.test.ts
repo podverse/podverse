@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeItemShift, flattenReorderSections, resolveHover } from './resolveHover';
+import {
+  computeItemShift,
+  flattenReorderSections,
+  isSameHoverTarget,
+  resolveHover,
+} from './resolveHover';
 
 const items = flattenReorderSections(
   [
@@ -45,6 +50,28 @@ describe('resolveHover', () => {
       sectionId: 'overflow',
       toIndex: 0,
     });
+  });
+});
+
+describe('isSameHoverTarget', () => {
+  it('treats matching slot fields as the same target', () => {
+    const a = { flatIndex: 1, sectionId: 'visible', toIndex: 1 };
+    const b = { flatIndex: 1, sectionId: 'visible', toIndex: 1 };
+    expect(isSameHoverTarget(a, b)).toBe(true);
+  });
+
+  it('treats a different insertion index as a change', () => {
+    expect(
+      isSameHoverTarget(
+        { flatIndex: 1, sectionId: 'visible', toIndex: 1 },
+        { flatIndex: 2, sectionId: 'visible', toIndex: 2 }
+      )
+    ).toBe(false);
+  });
+
+  it('treats null pairs as equal only when both are null', () => {
+    expect(isSameHoverTarget(null, null)).toBe(true);
+    expect(isSameHoverTarget(null, { flatIndex: 0, sectionId: 'visible', toIndex: 0 })).toBe(false);
   });
 });
 

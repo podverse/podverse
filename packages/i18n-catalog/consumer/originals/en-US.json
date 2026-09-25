@@ -12,7 +12,8 @@
       "episode": "Episode",
       "episodes": "Episodes",
       "episode_image": "Episode image",
-      "no_episodes_found": "No episodes found"
+      "no_episodes_found": "No episodes found",
+      "no_podcasts_found": "No podcasts found"
     },
     "music": {
       "music": "Music",
@@ -25,7 +26,11 @@
       "track": "Track",
       "tracks": "Tracks",
       "track_image": "Track image",
-      "track_go_to": "Go to track"
+      "track_go_to": "Go to track",
+      "album_go_to": "Go to album",
+      "artist_go_to": "Go to artist",
+      "no_tracks_found": "No tracks found",
+      "no_albums_found": "No albums found"
     },
     "video": {
       "channel": "Channel",
@@ -57,7 +62,8 @@
     "search": {
       "search": "Search",
       "search_by_title": "Search by title...",
-      "empty_prompt": "Search the Podcast Index by title."
+      "empty_prompt": "Search the Podcast Index by title.",
+      "no_results": "No results found"
     },
     "add_feed": {
       "add_feed": "Add feed",
@@ -98,6 +104,22 @@
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
       "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "needs_credentials_section_title": "Needs username and password",
+      "needs_credentials_missing": "Enter username and password",
+      "needs_credentials_rejected": "Username or password was rejected",
+      "credentials_page_title": "Feed username and password",
+      "credentials_page_intro": "The publisher protects this feed with a username and password. Enter the ones they gave you.",
+      "credentials_page_device_note": "Your username and password stay on this device, so you need to enter them again on each device you use. Podverse receives them over HTTPS only to read this feed and does not keep them.",
+      "credentials_page_media_note": "On the web, audio and video from this feed play without your username and password, so some episodes may not play here.",
+      "credentials_save_and_check": "Save and check",
+      "credentials_remove_feed": "Remove feed",
+      "credentials_back_to_list": "Back to Add by RSS",
+      "credentials_rejected": "The feed rejected this username and password. Check them and try again.",
+      "credentials_withheld": "The feed redirected to another address, so your username and password were not sent.",
+      "credentials_check_failed": "We could not check this feed. Try again later.",
+      "credentials_not_saved_on_device": "This browser could not save your username and password, so they were used for this check only.",
+      "media_other_domain": "This media is hosted on a different domain than its password-protected feed, which is not supported.",
+      "media_needs_credentials": "This media may require a username and password, which browsers cannot send to audio and video files. Try our mobile app instead. The feed itself still updates on the web.",
       "login_prompt": "Log in to use this feature."
     },
     "my_library": "My library",
@@ -111,6 +133,8 @@
       "remove_error": "Error removing from queue",
       "remove_from_queue": "Remove from queue",
       "removed_from_queue": "Removed from queue",
+      "empty_podcasts": "Nothing in your podcast queue yet",
+      "empty_music": "Nothing in your music queue yet",
       "login_prompt": "Log in to use this feature."
     },
     "history": {
@@ -121,6 +145,7 @@
       "mark_as_unplayed": "Mark as unplayed",
       "marked_as_unplayed": "Marked as unplayed",
       "mark_as_played_error": "Error marking as played",
+      "empty": "Nothing in your history yet",
       "login_prompt": "Log in to use this feature."
     },
     "playlist": {
@@ -142,12 +167,14 @@
       "playlist_type": "Playlist type",
       "add_to_liked": "Add to Liked",
       "remove_from_liked": "Remove from Liked",
+      "no_playlists_found": "No playlists found",
       "login_prompt": "Log in to use this feature."
     },
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
       "no_clips_found": "No clips found",
+      "empty": "No clips yet",
       "create_clip": "Create clip",
       "edit_clip": "Edit clip",
       "delete_clip": "Delete clip",
@@ -324,7 +351,9 @@
   },
   "info": {
     "funding": "Funding",
+    "funding_support": "These links are how the publisher asks for support.",
     "website": "Website",
+    "rss": "RSS",
     "rss_feed": "RSS feed",
     "about": "About",
     "summary": {
@@ -338,7 +367,8 @@
     "transcript": {
       "transcript": "Transcript",
       "search_transcript": "Search transcript...",
-      "lyrics": "Lyrics"
+      "lyrics": "Lyrics",
+      "no_transcript": "No transcript available"
     },
     "credits": "Credits",
     "people": {
@@ -349,7 +379,8 @@
     "chapter": {
       "chapter": "Chapter",
       "chapters": "Chapters",
-      "chapter_image": "Chapter image"
+      "chapter_image": "Chapter image",
+      "no_chapters": "No chapters available"
     },
     "soundbite": {
       "official_clip": "Official clip",
@@ -371,6 +402,7 @@
     "now_playing_clip": "Now playing clip",
     "now_playing_chapter": "Now playing chapter",
     "now_playing_official_clip": "Now playing official clip",
+    "open_chapter_link": "Open chapter link",
     "no_media": "No playable media found",
     "livestream_unavailable": "Livestream playback is not available yet",
     "show_fullscreen_media_player": "Show the fullscreen media player",
@@ -1052,11 +1084,20 @@
       "category_terms_of_service_description": "Required legal and policy announcements.",
       "category_general": "General",
       "category_general_description": "Important account-level notifications.",
+      "allow": "Allow notifications",
       "new_item": "New item",
       "livestream_scheduled": "Livestream scheduled",
       "livestream_started": "Livestream started",
       "auto_enable_on_subscribe": "Enable notifications when I subscribe",
       "auto_enable_on_subscribe_help": "When on, subscribing to a podcast also turns on notifications for it, using the notification types selected below.",
+      "auto_enable_apply_title": "Update followed podcasts?",
+      "auto_enable_apply_body": "Apply this to all {count} followed podcasts, or only to podcasts you subscribe to later?",
+      "auto_enable_apply_all": "Apply to all",
+      "auto_enable_apply_new_only": "Only new subscriptions",
+      "type_default_apply_title": "Update podcasts with notifications?",
+      "type_default_apply_body": "Apply this to all {count} podcasts with notifications on, or only when notifications are turned on later?",
+      "type_default_apply_all": "Apply to all",
+      "type_default_apply_new_only": "Only new",
       "type_defaults_section": "Notification types",
       "type_defaults_section_help": "Choose which notification types apply when notifications are turned on for a podcast."
     },

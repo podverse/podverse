@@ -1,11 +1,15 @@
+import type { AddByRSSBasicAuthCredentials } from '@podverse/helpers-validation/client';
+import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation/client';
 import { buildCacheMaps } from '@podverse/parser-mapping';
 
 import { pollAddByRSSParseStatus } from './actions';
 import type { AddByRSSParseStatusResponse } from './api';
 import { enqueueAddByRSSParseAll } from './api';
+import { getCredentialsByFeedUrl } from './credentialStore';
 import type { AddByRSSFeedRecord } from './types';
 
 type RunAddByRSSParseAllParams = {
+  accountId: string;
   feeds: AddByRSSFeedRecord[];
   onQueued?: (feedUrl: string) => Promise<void>;
   onStatusUpdate: (feedUrl: string, statusResponse: AddByRSSParseStatusResponse) => Promise<void>;
@@ -17,16 +21,46 @@ type RunAddByRSSParseAllResult = {
   dedupeTtlSeconds: number | null;
 };
 
+/**
+ * Credentials for the feeds being refreshed only. Feeds the server flags as needing credentials
+ * but that have none here are skipped server-side and come back as `credentials_required`.
+ */
+const buildCredentialsByUrl = async (
+  accountId: string,
+  feeds: AddByRSSFeedRecord[]
+): Promise<Record<string, AddByRSSBasicAuthCredentials>> => {
+  let stored: Record<string, AddByRSSBasicAuthCredentials>;
+  try {
+    stored = await getCredentialsByFeedUrl(accountId);
+  } catch (error) {
+    console.error('Could not read add-by-RSS credentials on this browser', error);
+    return {};
+  }
+
+  const result: Record<string, AddByRSSBasicAuthCredentials> = {};
+  for (const feed of feeds) {
+    const canonical = canonicalAddByRSSFeedUrl(feed.feedUrl);
+    const credentials = canonical ? stored[canonical] : undefined;
+    if (canonical && credentials) {
+      result[canonical] = credentials;
+    }
+  }
+  return result;
+};
+
 export const runAddByRSSParseAll = async ({
+  accountId,
   feeds,
   onQueued,
   onStatusUpdate,
 }: RunAddByRSSParseAllParams): Promise<RunAddByRSSParseAllResult> => {
   const { feedHashesByUrl, etagsByUrl, lastModifiedByUrl } = buildCacheMaps(feeds);
+  const credentialsByUrl = await buildCredentialsByUrl(accountId, feeds);
   const response = await enqueueAddByRSSParseAll({
     feedHashesByUrl,
     etagsByUrl,
     lastModifiedByUrl,
+    credentialsByUrl,
   });
 
   const requestIds = response.request_ids.map(({ request_id, feed_url }) => ({

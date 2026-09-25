@@ -9,29 +9,47 @@ export type FullPlayerLayoutInput = {
   maxContentWidth: number;
   safeAreaBottom: number;
   safeAreaTop: number;
+  /**
+   * Gap under the pane sheet (matches the sheet's horizontal margin token) so the bottom radius
+   * sits above the home indicator instead of flush to the screen edge.
+   */
+  sheetBottomInset: number;
   viewportHeight: number;
   viewportWidth: number;
 };
 
 export type FullPlayerLayout = {
   artworkSize: number;
+  /**
+   * Viewport-derived slot for the ink pane sheet: chips at the top of the fold, bottom radius on
+   * screen. The wrapper uses this as minHeight and matching height/maxHeight so every tab paints
+   * the same card and long content cannot grow the outer column.
+   */
+  paneSheetHeight: number;
   peekHeight: number;
   playerRegionHeight: number;
   /** Space left for the artwork band after every fixed band and seam is reserved. */
   viewerHeight: number;
 };
 
-export type CondensedStateInput = {
-  isCondensed: boolean;
-  playerRegionHeight: number;
-  scrollOffset: number;
+export type FullPlayerViewportInput = {
+  headerBarHeight: number;
+  safeAreaTop: number;
+  windowHeight: number;
+  windowWidth: number;
+};
+
+export type FullPlayerViewport = {
+  height: number;
+  width: number;
 };
 
 /**
- * Row under the artwork that names the clip, official clip, or chapter. Always reserved, whether or
- * not there is a name to show, so a chapter arriving cannot move the artwork or the transport.
+ * Row under the artwork that names the clip, official clip, or chapter and its start–end clock.
+ * Always reserved, whether or not there is a name to show, so a chapter arriving cannot move the
+ * artwork or the transport.
  */
-export const FULL_PLAYER_SEGMENT_BAND_HEIGHT = 24;
+export const FULL_PLAYER_SEGMENT_BAND_HEIGHT = 56;
 /** Episode title + channel title share one band with a tight internal gap. */
 export const FULL_PLAYER_TITLE_BLOCK_HEIGHT = 48;
 export const FULL_PLAYER_PROGRESS_BLOCK_HEIGHT = 52;
@@ -78,25 +96,36 @@ export const FULL_PLAYER_ARTWORK_MAX_PHONE = 420;
 export const FULL_PLAYER_ARTWORK_MAX_TABLET = 520;
 
 /**
- * Chip strip at default text size. A floor for the rendered header and the fallback reserve until
+ * Chip strip at default text size. A floor for the rendered strip and the fallback reserve until
  * the strip reports its measured height.
  */
 export const FULL_PLAYER_CHIP_HEADER_HEIGHT = 52;
-
-export const FULL_PLAYER_CONDENSE_ENTER_RATIO = 1;
-export const FULL_PLAYER_CONDENSE_EXIT_RATIO = 0.9;
-
-/**
- * Scroll left past the condense threshold once the pane is scrolled to its end, so reaching the
- * condensed bar never depends on landing on the exact final pixel.
- */
-export const FULL_PLAYER_CONDENSE_OVERSHOOT = 24;
 
 const asNonNegative = (value: number): number => {
   if (!Number.isFinite(value)) {
     return 0;
   }
   return Math.max(0, value);
+};
+
+/**
+ * Body under the action row, known on the first commit. The action row already owns the status
+ * inset, so this is the window minus that bar — the same box the flex viewport reports later.
+ */
+export const resolveFullPlayerViewport = (input: FullPlayerViewportInput): FullPlayerViewport => {
+  return {
+    height: Math.max(
+      0,
+      asNonNegative(input.windowHeight) -
+        asNonNegative(input.headerBarHeight) -
+        asNonNegative(input.safeAreaTop)
+    ),
+    width: asNonNegative(input.windowWidth),
+  };
+};
+
+export const resolveFullPlayerChipStripHeight = (chipStripHeight?: number): number => {
+  return Math.max(FULL_PLAYER_CHIP_HEADER_HEIGHT, asNonNegative(chipStripHeight ?? 0));
 };
 
 export const resolveFullPlayerPeekHeight = (
@@ -107,8 +136,7 @@ export const resolveFullPlayerPeekHeight = (
   if (!hasSections) {
     return 0;
   }
-  const stripHeight = Math.max(FULL_PLAYER_CHIP_HEADER_HEIGHT, asNonNegative(chipStripHeight ?? 0));
-  return stripHeight + asNonNegative(safeAreaBottom);
+  return resolveFullPlayerChipStripHeight(chipStripHeight) + asNonNegative(safeAreaBottom);
 };
 
 const fixedChromeHeight =
@@ -128,6 +156,7 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
   if (viewportHeight <= 0 || viewportWidth <= 0) {
     return {
       artworkSize: 0,
+      paneSheetHeight: 0,
       peekHeight: 0,
       playerRegionHeight: 0,
       viewerHeight: 0,
@@ -136,6 +165,10 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
 
   const safeAreaTop = asNonNegative(input.safeAreaTop);
   const safeAreaBottom = asNonNegative(input.safeAreaBottom);
+  const sheetBottomInset = asNonNegative(input.sheetBottomInset);
+  const stripHeight = input.hasSections
+    ? resolveFullPlayerChipStripHeight(input.chipStripHeight)
+    : 0;
   const peekHeight = Math.min(
     resolveFullPlayerPeekHeight(input.hasSections, safeAreaBottom, input.chipStripHeight),
     Math.max(0, viewportHeight - safeAreaTop)
@@ -148,6 +181,13 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
 
   const viewerHeight = Math.max(0, playerRegionHeight - fixedChromeHeight);
 
+  // Locked frame when scrolled to the sheet: chips + sheet + bottom gap fill the viewport.
+  // Outer content is that frame plus the player region, so max scroll equals playerRegionHeight.
+  const bottomGap = input.hasSections ? safeAreaBottom + sheetBottomInset : 0;
+  const paneSheetHeight = input.hasSections
+    ? Math.max(0, viewportHeight - stripHeight - bottomGap)
+    : 0;
+
   const contentWidth = Math.max(0, Math.min(viewportWidth, asNonNegative(input.maxContentWidth)));
   const artworkCap = input.isTablet
     ? FULL_PLAYER_ARTWORK_MAX_TABLET
@@ -157,51 +197,9 @@ export const resolveFullPlayerLayout = (input: FullPlayerLayoutInput): FullPlaye
 
   return {
     artworkSize,
+    paneSheetHeight,
     peekHeight,
     playerRegionHeight,
     viewerHeight,
   };
-};
-
-/**
- * Shortest the pane list's content may be for the region to still condense.
- *
- * Condensing is driven by scroll offset, and the region fills the viewport, so a pane shorter than
- * the region has nothing to scroll and the condensed bar is unreachable. Applied as a `minHeight` on
- * the list's content container, this guarantees the affordance without padding a pane that is
- * already long enough: the player's transport stays where the listener left it from one episode to
- * the next instead of moving with the length of the description.
- */
-export const resolveMinPaneContentHeight = (input: {
-  hasSections: boolean;
-  playerRegionHeight: number;
-  viewportHeight: number;
-}): number => {
-  const viewportHeight = asNonNegative(input.viewportHeight);
-  const playerRegionHeight = asNonNegative(input.playerRegionHeight);
-  if (!input.hasSections || viewportHeight <= 0 || playerRegionHeight <= 0) {
-    return 0;
-  }
-  const requiredOffset =
-    playerRegionHeight * FULL_PLAYER_CONDENSE_ENTER_RATIO + FULL_PLAYER_CONDENSE_OVERSHOOT;
-  return viewportHeight + requiredOffset;
-};
-
-export const resolveCondensedState = (input: CondensedStateInput): boolean => {
-  const playerRegionHeight = asNonNegative(input.playerRegionHeight);
-  if (playerRegionHeight <= 0) {
-    return false;
-  }
-
-  const offset = asNonNegative(input.scrollOffset);
-  const enterThreshold = playerRegionHeight * FULL_PLAYER_CONDENSE_ENTER_RATIO;
-  const exitThreshold = playerRegionHeight * FULL_PLAYER_CONDENSE_EXIT_RATIO;
-
-  if (!input.isCondensed && offset >= enterThreshold) {
-    return true;
-  }
-  if (input.isCondensed && offset <= exitThreshold) {
-    return false;
-  }
-  return input.isCondensed;
 };

@@ -54,4 +54,35 @@ describe('normalizePlaybackError', () => {
       message: 'boom',
     });
   });
+
+  it('attributes a host HTTP status to the host, with the URL and cause', () => {
+    expect(
+      normalizePlaybackError({
+        code: 'ERROR_CODE_IO_BAD_HTTP_STATUS',
+        detail: ' InvalidResponseCodeException: Response code: 403 ',
+        httpStatus: 403,
+        message: 'Source error',
+        url: 'https://host.example/ep.mp3',
+      })
+    ).toEqual({
+      code: 'ERROR_CODE_IO_BAD_HTTP_STATUS',
+      detail: 'InvalidResponseCodeException: Response code: 403',
+      httpStatus: 403,
+      kind: 'host-http',
+      message: 'Source error',
+      url: 'https://host.example/ep.mp3',
+    });
+  });
+
+  it('drops malformed optional fields instead of trusting the bridge', () => {
+    expect(
+      normalizePlaybackError({
+        code: 'item_failed',
+        detail: '   ',
+        httpStatus: 0,
+        message: 'boom',
+        url: '',
+      })
+    ).toEqual({ code: 'item_failed', kind: 'unknown', message: 'boom' });
+  });
 });

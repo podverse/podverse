@@ -11,6 +11,7 @@ import {
 } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import { Button, ImageLightboxModal, SkeletonFlashImage } from '@podverse/ui';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
@@ -21,7 +22,6 @@ import {
 } from '../../../utils/addByRSS/actions';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import { addByRSSChannelHeaderTriple } from '../../../utils/image/addByRSSChannelHeaderCandidates';
-import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
 import { CommonArtistHeaderViewTablet } from '../../Common/Artist/CommonArtistHeaderViewTablet';
@@ -88,12 +88,14 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
     try {
       if (isSubscribed) {
         const nextAccount = await unfollowAddByRSSChannelAndClear({
+          accountId: loggedInAccount.id_text,
           feedUrl,
           channelIdText: feed.idText,
         });
         setLoggedInAccount(nextAccount);
       } else {
         const { account: nextAccount } = await followAddByRSSChannelAndQueue({
+          accountId: loggedInAccount.id_text,
           feedUrl,
           resourceType: 'artists',
           title: title ?? null,

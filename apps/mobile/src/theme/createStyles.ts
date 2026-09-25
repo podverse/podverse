@@ -20,6 +20,13 @@ export type MobileThemeStyles = {
   screen: {
     backgroundColor: string;
   };
+  /**
+   * Raised sheet on the page wash. Dark uses page ink (`background.primary`) so a card can sit on
+   * the black screen; other themes use the card surface (`background.secondary`).
+   */
+  paneSheet: {
+    backgroundColor: string;
+  };
   textPrimary: {
     color: string;
   };
@@ -51,6 +58,9 @@ export const createStyles = (theme: UITheme): MobileThemeStyles => {
     // keep `background.primary` so cards (`background.secondary`) sit on a distinct page.
     screen: {
       backgroundColor: theme === 'dark' ? tokens.background.secondary : tokens.background.primary,
+    },
+    paneSheet: {
+      backgroundColor: theme === 'dark' ? tokens.background.primary : tokens.background.secondary,
     },
     textPrimary: {
       color: tokens.text.primary,

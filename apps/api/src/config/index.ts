@@ -3,6 +3,8 @@
 import type { AccountSignupMode } from '@podverse/helpers';
 import {
   DEFAULT_AUTH_JWT_EXPIRATION,
+  DEFAULT_AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION,
+  DEFAULT_AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION,
   DEFAULT_FREE_TRIAL_EXPIRATION,
   DEFAULT_RESET_PASSWORD_TOKEN_EXPIRATION,
   DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION,
@@ -66,6 +68,10 @@ type Config = {
     /** From AUTH_JWT_EXPIRATION. */
     jwtExpiration: number;
     sessionCookieMaxAgeMs: number;
+    /** From AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION. */
+    mobileAccessTokenExpiration: number;
+    /** From AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION. */
+    mobileRefreshTokenExpiration: number;
     /** When true, login may include JWT in JSON if the client sends includeTokenInResponseBody (non-cookie clients only). */
     allowTokenInResponseBody: boolean;
   };
@@ -157,6 +163,14 @@ type Config = {
   opmlImport: {
     /** Max new (PI enqueue / add-by-RSS) feeds per account per hour. */
     maxFeedsPerHour: number;
+  };
+  addByRss: {
+    /** 64-hex AES-256 key that seals Basic Auth credentials for the parse queue (transit only). */
+    credentialsEncryptionKey: string;
+    /** Previous key during rotation; the worker tries it after the current key. */
+    credentialsEncryptionKeyOld: string | undefined;
+    /** Permit credentials over plain http — local development and E2E fixtures only. */
+    allowInsecureCredentials: boolean;
   };
 };
 
@@ -275,6 +289,14 @@ export const config: Config = {
       jwtSecret: process.env.AUTH_JWT_SECRET!,
       jwtExpiration,
       sessionCookieMaxAgeMs: jwtExpiration * MS_PER_SECOND,
+      mobileAccessTokenExpiration: readOptionalPositiveExpirationEnv(
+        'AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION',
+        DEFAULT_AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION
+      ),
+      mobileRefreshTokenExpiration: readOptionalPositiveExpirationEnv(
+        'AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION',
+        DEFAULT_AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION
+      ),
       allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
     };
   })(),
@@ -405,5 +427,11 @@ export const config: Config = {
       const parsed = Number.parseInt(raw, 10);
       return Number.isFinite(parsed) && parsed >= 1 ? parsed : 50;
     })(),
+  },
+  addByRss: {
+    credentialsEncryptionKey: process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY!,
+    credentialsEncryptionKeyOld: process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD,
+    allowInsecureCredentials:
+      process.env.NODE_ENV === 'development' || process.env.PODVERSE_E2E_FIXTURES === '1',
   },
 };

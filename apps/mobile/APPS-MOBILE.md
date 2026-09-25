@@ -50,12 +50,17 @@ Mobile auth is bearer-first:
 - **Local-dev only:** when Metro `__DEV__` is on and `EXPO_PUBLIC_MOBILE_E2E` is not `1`, the login
   screen prefills `local-premium@example.com` / `Test!1Aa` (see
   `infra/development/seeds/local-dev-accounts.sql`). E2E and production builds leave fields empty.
+- **E2E only:** when Metro `__DEV__` is on and `EXPO_PUBLIC_MOBILE_E2E` is `1`, a transparent
+  `e2e-quick-login` control signs in as the seeded E2E user without opening the login form.
+  Store builds and a normal Metro session do not render it. The login screen itself stays covered
+  by the `auth-login` Maestro flow.
 
 ## Home feed (subscribed)
 
-Authenticated Home loads `type: 'subscribed'` via `fetchHomeFeedRows`. After any successful channel
-follow/unfollow, call `homeFeedRefresh.notify()` (`src/lib/home/homeFeedRefresh.ts`) so Home
-reloads without pull-to-refresh. Same pattern as `downloadManager.subscribe`.
+Home paints subscribed lists from SQLite (`fetchHomeFeedRows`). Network catch-up is the serial
+sync queue (indicator bar + More › Advanced › Error log). After any successful channel follow/unfollow, call
+`homeFeedRefresh.notify()` (`src/lib/home/homeFeedRefresh.ts`) so Home rereads locally without
+pull-to-refresh. Same pattern as `downloadManager.subscribe`.
 
 ## Podcast Index search → preview/add
 
@@ -322,14 +327,18 @@ This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **
 
 ### Two terminals (typical session)
 
-| Terminal             | Command                                                                                      | Role                                                                     |
-| -------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Mobile Metro         | `npm run mobile:dev` (emulator) / `mobile:dev:device` (USB phone LAN API) / `mobile:dev:e2e` | Keep running — Expo + Metro on `:8081`                                   |
-| Mobile iOS / Android | `npm run mobile:ios` / `mobile:android` / `mobile:android:device`                            | Install/launch only (`--no-bundler` always); Metro stays in Mobile Metro |
+| Terminal             | Command                                                                   | Role                                                                            |
+| -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Mobile Metro         | `npm run mobile:dev` (emulator) / `mobile:dev:device` (USB phone LAN API) | Keep running — local Expo + Metro on `:8081` (API `:3000`)                      |
+| Mobile E2E Metro     | `npm run mobile:dev:e2e`                                                  | Keep running — Maestro Metro on `:8081` (API `:4230`). Stop Mobile Metro first. |
+| Mobile iOS / Android | `npm run mobile:ios` / `mobile:android` / `mobile:android:device`         | Install/launch only (`--no-bundler` always); local Metro in Mobile Metro        |
 
 VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) — `Mobile` (one-shots:
-`build:packages`, `mobile_e2e_deps` / seed / health), `Mobile Metro` (`mobile:dev` or
-`mobile:dev:e2e`), `Mobile iOS`, `Mobile Android`, `Mobile E2E API`, `Mobile Maestro`.
+`build:packages`, `mobile_e2e_deps` / seed / health), `Mobile Metro` (`mobile:dev`),
+`Mobile E2E Metro` (`mobile:dev:e2e`), `Mobile E2E iOS`, `Mobile E2E Android`,
+`Mobile E2E API`, `Mobile Maestro`. Pause/resume:
+[HOW-TO-RUN.md § Cold start](/apps/mobile/e2e/HOW-TO-RUN.md#cold-start-nothing-running)
+/ [Pause local for Maestro](/apps/mobile/e2e/HOW-TO-RUN.md#pause-local-for-maestro).
 
 ### First-time / after prebuild order
 
@@ -886,8 +895,8 @@ API-backed (five terminals; Track 5 harness; no auth login/logout yet):
 make mobile_e2e_deps
 make mobile_e2e_seed
 
-# T1 — leave running: npm run mobile:dev:e2e
-# T2 / T3 — exits: npm run mobile:e2e:ios / mobile:e2e:android
+# T1 — Mobile E2E Metro, leave running: npm run mobile:dev:e2e
+# T2 / T3 — Mobile E2E iOS / Mobile E2E Android, exits: npm run mobile:e2e:ios / mobile:e2e:android
 # T4 — leave running: npm run mobile:e2e:api
 # T5 — exits:
 npm run mobile:e2e:test -- api-health
@@ -1069,6 +1078,8 @@ Store metadata as code:
   closed, Phase 2 active)
 - [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md) — Phase 1
   (historical)
+- [MOBILE-PERF-BASELINES.md](/docs/development/mobile/MOBILE-PERF-BASELINES.md) — measured chip-switch
+  and scroll numbers, rejected candidates, and known-bad measurements; read before running a capture
 - [MOBILE-RELEASE-RUNBOOK.md](/docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md)
 - [MOBILE-BETA-TESTER-ONBOARDING.md](/docs/operations/mobile/MOBILE-BETA-TESTER-ONBOARDING.md)
 - [podverse-media-engine README](modules/podverse-media-engine/README.md) — bridge contract + cache hooks

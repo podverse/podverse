@@ -6,6 +6,10 @@ import type { FormEvent } from 'react';
 import React, { useMemo, useState } from 'react';
 
 import {
+  ADD_BY_RSS_CREDENTIAL_MAX_LENGTH,
+  resolveAddByRSSFeedUrlCredentials,
+} from '@podverse/helpers-validation/client';
+import {
   getAddByRSSDetailRouteSegment,
   getAddByRSSResourceTypeFromMappedFeed,
 } from '@podverse/parser-mapping';
@@ -21,16 +25,17 @@ import {
 } from '@podverse/ui';
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { ROUTES } from '../../../constants/routes';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { useMembershipGate } from '../../../hooks/useMembershipGate';
 import {
   applyAddByRSSParseStatus,
+  enqueueAddByRSSParseWithStoredCredentials,
   followAddByRSSChannelAndQueue,
   pollAddByRSSParseStatus,
   unfollowAddByRSSChannelAndClear,
 } from '../../../utils/addByRSS/actions';
-import { enqueueAddByRSSParse } from '../../../utils/addByRSS/api';
 import { getAddByRSSFeedByUrl, upsertAddByRSSFeed } from '../../../utils/addByRSS/storage';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import { handleRateLimitAlert } from '../../../utils/rateLimit/rateLimitAlert';
@@ -42,6 +47,10 @@ type ParsedStatus = Extract<AddByRSSFeedRecord['status'], 'parsed' | 'not_modifi
 
 const isParsedStatus = (status?: AddByRSSFeedRecord['status']): status is ParsedStatus =>
   status === 'parsed' || status === 'not_modified';
+
+const isCredentialsFailure = (record: AddByRSSFeedRecord): boolean =>
+  record.lastFailureReason === 'credentials_rejected' ||
+  record.lastFailureReason === 'credentials_required';
 
 export const AddByRSSAddFeedPageClient: React.FC = () => {
   const tFeatures = useTranslations('features');
@@ -83,7 +92,13 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
     }
   }, [status, tFeatures]);
 
+  /**
+   * A first parse that fails on credentials keeps the follow and the credentials saved on this
+   * browser, and sends the user to the credentials page to correct them. Any other first-parse
+   * failure unfollows so a broken URL does not linger in the library.
+   */
   const runParseAndRedirect = async (
+    accountId: string,
     requestId: string,
     feedUrl: string,
     seedRecord: AddByRSSFeedRecord
@@ -104,6 +119,7 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
           parsedFeed: statusResponse.payload,
           status: statusResponse.status,
           cache: statusResponse.cache,
+          outcome: statusResponse,
           fallbackRecord: latestRecord,
           onUpdated: (nextRecord) => {
             latestRecord = nextRecord;
@@ -123,8 +139,11 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
       }
       const routeSegment = getAddByRSSDetailRouteSegment(resourceType);
       router.push(`/add-by-rss/${routeSegment}/${latestRecord.idText}`);
+    } else if (finalStatus === 'failed' && isCredentialsFailure(latestRecord)) {
+      router.push(`${ROUTES.ADD_BY_RSS_CREDENTIALS}/${latestRecord.idText}`);
     } else if (finalStatus === 'failed' && !isParsedStatus(seedRecord.status)) {
       await unfollowAddByRSSChannelAndClear({
+        accountId,
         feedUrl,
         channelIdText: seedRecord.idText,
       });
@@ -141,10 +160,11 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
       return;
     }
 
-    const feedUrl = newFeedUrl.trim();
-    if (!feedUrl) {
+    const rawFeedUrl = newFeedUrl.trim();
+    if (!rawFeedUrl) {
       return;
     }
+    let feedUrl = rawFeedUrl;
 
     setIsAddingFeed(true);
     setStatus('idle');
@@ -154,36 +174,32 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
     setBasicAuthError(null);
 
     try {
-      try {
-        new URL(feedUrl);
-      } catch {
+      if (useBasicAuth && (!basicAuthUsername.trim() || !basicAuthPassword)) {
+        setBasicAuthError(tFeatures('add_by_rss.basic_auth_required_both'));
+        setIsAddingFeed(false);
+        return;
+      }
+
+      const resolved = resolveAddByRSSFeedUrlCredentials(
+        rawFeedUrl,
+        useBasicAuth ? basicAuthUsername.trim() : null,
+        useBasicAuth ? basicAuthPassword : null
+      );
+      if (!resolved) {
         setStatus('error');
         setInputError(tFeatures('add_by_rss.invalid_url'));
         setIsAddingFeed(false);
         return;
       }
-
-      if (useBasicAuth) {
-        const username = basicAuthUsername.trim();
-        const password = basicAuthPassword;
-        if (!username || !password) {
-          setBasicAuthError(tFeatures('add_by_rss.basic_auth_required_both'));
-          setIsAddingFeed(false);
-          return;
-        }
-      }
+      feedUrl = resolved.feedUrl;
 
       const { requestId, record, account } = await followAddByRSSChannelAndQueue({
+        accountId: loggedInAccount.id_text,
         feedUrl,
         resourceType: 'podcasts',
         title: feedUrl,
         imageUrl: null,
-        ...(useBasicAuth && basicAuthUsername.trim() && basicAuthPassword
-          ? {
-              basic_auth_username: basicAuthUsername.trim(),
-              basic_auth_password: basicAuthPassword,
-            }
-          : {}),
+        credentials: resolved.credentials,
       });
 
       if (account) {
@@ -196,7 +212,7 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
         setUseBasicAuth(false);
       }
 
-      await runParseAndRedirect(requestId, feedUrl, record);
+      await runParseAndRedirect(loggedInAccount.id_text, requestId, feedUrl, record);
     } catch (error) {
       setStatus('error');
       const message = (error as Error)?.message ?? '';
@@ -216,8 +232,16 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
             router.push(`/add-by-rss/${routeSegment}/${existing.idText}`);
             return;
           }
-          const response = await enqueueAddByRSSParse({ feedUrl });
-          await runParseAndRedirect(response.request_id, feedUrl, existing);
+          const response = await enqueueAddByRSSParseWithStoredCredentials({
+            accountId: loggedInAccount.id_text,
+            feedUrl,
+          });
+          await runParseAndRedirect(
+            loggedInAccount.id_text,
+            response.request_id,
+            feedUrl,
+            existing
+          );
           return;
         }
       }
@@ -294,6 +318,11 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                           placeholder={tFeatures('add_by_rss.basic_auth_username')}
                           aria-label={tFeatures('add_by_rss.basic_auth_username')}
                           type="text"
+                          autoComplete="username"
+                          maxLength={ADD_BY_RSS_CREDENTIAL_MAX_LENGTH}
+                          aria-invalid={
+                            basicAuthError && !basicAuthUsername.trim() ? true : undefined
+                          }
                           disabled={isAddingFeed}
                         />
                         <TextInput
@@ -302,7 +331,10 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                           placeholder={tFeatures('add_by_rss.basic_auth_password')}
                           aria-label={tFeatures('add_by_rss.basic_auth_password')}
                           type="password"
+                          autoComplete="current-password"
+                          maxLength={ADD_BY_RSS_CREDENTIAL_MAX_LENGTH}
                           infoError={basicAuthError ?? undefined}
+                          aria-invalid={basicAuthError && !basicAuthPassword ? true : undefined}
                           disabled={isAddingFeed}
                         />
                       </div>

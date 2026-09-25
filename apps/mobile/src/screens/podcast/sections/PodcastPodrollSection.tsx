@@ -136,14 +136,7 @@ export function PodcastPodrollSection({
       onRetry={retry}
       renderRow={({ index, row: entry }) => (
         <ListRow
-          leading={
-            <CoverImage
-              fallbackLabel={t('media.image')}
-              opensViewer={false}
-              style={styles.image}
-              uri={entry.imageUrl}
-            />
-          }
+          leading={<CoverImage opensViewer={false} style={styles.image} uri={entry.imageUrl} />}
           onPress={() => {
             openEntry(entry);
           }}

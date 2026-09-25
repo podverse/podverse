@@ -2,7 +2,8 @@ appId: com.podverse.app.next
 name: Detail Sort Prefs
 ---
 # Sort on the detail screens is remembered per instance: one podcast ordered oldest-first says
-# nothing about the next podcast, and the choice survives leaving the screen.
+# nothing about the next podcast, and the choice survives leaving the screen. Section chips are
+# visit-local — every open starts on Episodes / Tracks / Summary.
 #
 # Instances are reached by deep link rather than search, because the two podcasts have to be
 # specific, known channels for "these two hold different sorts" to mean anything. Search results
@@ -20,6 +21,11 @@ name: Detail Sort Prefs
     visible:
       id: podcast-detail-screen
     timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
+      TRAILING_ID: podcast-detail-sort-button
 - extendedWaitUntil:
     visible:
       id: podcast-detail-sort-button
@@ -54,6 +60,12 @@ name: Detail Sort Prefs
     visible:
       id: podcast-detail-range-button
     timeout: ${TIMEOUT_FASTER}
+# The range chip mounts already counted as visible while its center is still past the
+# trailing edge of the phone, so a tap there never opens the sheet.
+- swipe:
+    from:
+      id: podcast-detail-sections
+    direction: LEFT
 - tapOn:
     id: podcast-detail-range-button
 - tapOn:
@@ -62,7 +74,11 @@ name: Detail Sort Prefs
     id: podcast-detail-range-button
 - takeScreenshot: detail-sort-podcast-a-top-month
 
-# --- Podcast A: the section is remembered too, because it decides what the screen loads ---
+# --- Podcast A: About is visit-local; leaving and reopening returns to Episodes ---
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
 - tapOn:
     id: podcast-detail-section-about
 - extendedWaitUntil:
@@ -80,13 +96,18 @@ name: Detail Sort Prefs
     id: podcast-detail-filter-input
 - takeScreenshot: detail-sort-podcast-a-about
 
-# --- Podcast B: unaffected by A ---
+# --- Podcast B: unaffected by A's sort ---
 - openLink: podverse-next://podcast/v5fCrIj9Io
 - runFlow: shared/confirm-ios-open-dialog.yaml
 - extendedWaitUntil:
     visible:
       id: podcast-detail-screen
     timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
+      TRAILING_ID: podcast-detail-sort-button
 - extendedWaitUntil:
     visible:
       id: podcast-detail-sort-button
@@ -95,7 +116,7 @@ name: Detail Sort Prefs
     id: podcast-detail-filter-input
 - takeScreenshot: detail-sort-podcast-b-default
 
-# --- Back to A: its own section, order, and window are all still in effect ---
+# --- Back to A: Episodes again, with the remembered order and window ---
 - openLink: podverse-next://podcast/e2ePodChnl001
 - runFlow: shared/confirm-ios-open-dialog.yaml
 - extendedWaitUntil:
@@ -104,17 +125,13 @@ name: Detail Sort Prefs
     timeout: ${TIMEOUT_SLOWEST}
 - extendedWaitUntil:
     visible:
-      id: podcast-detail-about
-    timeout: ${TIMEOUT_FAST}
-- extendedWaitUntil:
-    notVisible:
-      id: podcast-detail-about-loading
-    timeout: ${TIMEOUT_SLOWER}
-- takeScreenshot: detail-sort-podcast-a-section-restored
-
-# Back to Episodes brings the remembered order and window with it.
-- tapOn:
-    id: podcast-detail-section-episodes
+      id: podcast-detail-episode-list
+    timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: podcast-detail-sections
+      TRAILING_ID: podcast-detail-range-button
 - extendedWaitUntil:
     visible:
       id: podcast-detail-range-button
@@ -128,6 +145,11 @@ name: Detail Sort Prefs
     visible:
       id: album-detail-screen
     timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: album-detail-sections
+      TRAILING_ID: album-detail-sort-pill-button
 - extendedWaitUntil:
     visible:
       id: album-detail-sort-pill-button
@@ -148,11 +170,20 @@ name: Detail Sort Prefs
 - runFlow: shared/confirm-ios-open-dialog.yaml
 - extendedWaitUntil:
     visible:
+      id: album-detail-sections
+    timeout: ${TIMEOUT_SLOWEST}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: album-detail-sections
+      TRAILING_ID: album-detail-sort-pill-button
+- extendedWaitUntil:
+    visible:
       id: album-detail-sort-pill-button
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-album-restored
 
-# --- Episode: the tab is remembered too, because it decides which request the screen makes ---
+# --- Episode: clip order is remembered; the section chip is not ---
 - openLink: podverse-next://episode/e2ePodChap0001
 - runFlow: shared/confirm-ios-open-dialog.yaml
 - extendedWaitUntil:
@@ -165,6 +196,11 @@ name: Detail Sort Prefs
     timeout: ${TIMEOUT_SLOW}
 - tapOn:
     id: episode-detail-tab-clips
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: episode-detail-sections
+      TRAILING_ID: episode-detail-clip-sort-button
 - extendedWaitUntil:
     visible:
       id: episode-detail-clip-sort-button
@@ -183,9 +219,25 @@ name: Detail Sort Prefs
     timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: detail-sort-episode-clips-oldest
 
-# Reopening lands on Clips with the same order, without passing through Summary first.
+# Reopening lands on Summary. Opening Clips again keeps the remembered clip order.
 - openLink: podverse-next://episode/e2ePodChap0001
 - runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-sections
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-summary
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: detail-sort-episode-summary-default
+- tapOn:
+    id: episode-detail-tab-clips
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: episode-detail-sections
+      TRAILING_ID: episode-detail-clip-sort-button
 - extendedWaitUntil:
     visible:
       id: episode-detail-clip-sort-button

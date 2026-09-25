@@ -1,0 +1,12 @@
+appId: com.podverse.app.next
+---
+# Programmatic perf-account login. The control renders only when Metro __DEV__ is on and
+# EXPO_PUBLIC_MOBILE_E2E=1. The account owns the perf-volume library; the primary seeded
+# user stays on the two-follow library the regression flows navigate through.
+
+- tapOn:
+    id: e2e-quick-login-perf
+- extendedWaitUntil:
+    visible:
+      id: e2e-session-authenticated
+    timeout: ${TIMEOUT_SLOW}

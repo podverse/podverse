@@ -1,0 +1,34 @@
+---
+description: Describe designs by behavior, never as in the style of another media player
+alwaysApply: true
+---
+
+# No third-party media-player style
+
+Committed files must not use another media player as a design shorthand. Explain the behavior;
+do not say a design is "in the style of", "like", or "similar to" another product.
+
+## Don't
+
+- `<product>-style` handoff, player chrome, or queue behavior
+- `like <product>` or `similar to <product>` as a design label
+- Any other comparison that names another media player to stand in for a design
+
+## Do
+
+Name the behavior in Podverse terms:
+
+- Exclusive active-device handoff (opening device 2 pauses device 1)
+- A first-class media-app contract (background audio and car menus from a long-lived native
+  service)
+
+## Still fine
+
+Protocol and platform names that are the actual subject — RSS `itunes:*` tags, CarPlay, Android
+Auto, Apple as a platform vendor — are not style comparisons. Generated or ingested feed text that
+happens to mention another app is also out of scope.
+
+## Related
+
+- **comments-future-forward** — comments describe the code as it stands
+- **ui-copy-sentence-case** — user-facing copy, not design shorthand

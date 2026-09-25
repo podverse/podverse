@@ -1,9 +1,10 @@
 /**
  * Sessions: JWT TTL/cookie max-age use AUTH_JWT_EXPIRATION (seconds). Login JSON includes `token`
  * only when AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
+ * Mobile access and refresh lifetimes come from AUTH_MOBILE_ACCESS_TOKEN_EXPIRATION and
+ * AUTH_MOBILE_REFRESH_TOKEN_EXPIRATION. A refresh JWT is accepted when it verifies with
+ * AUTH_JWT_SECRET and carries token_use=refresh.
  */
-import { createHash, randomUUID } from 'node:crypto';
-
 import type { AuthenticatedAdmin } from '@management-api/@types/express.js';
 import { config } from '@management-api/config/index.js';
 import type { AdminAccount } from '@management-api/orm/entities/adminAccount.js';
@@ -14,49 +15,15 @@ import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
-import {
-  MOBILE_ACCESS_TOKEN_TTL_SECONDS,
-  MOBILE_REFRESH_TOKEN_TTL_SECONDS,
-} from '@podverse/helpers';
+import { isMobileRefreshJwtPayload } from '@podverse/helpers';
 import { isValidNanoIdV2IdText } from '@podverse/orm';
 
 const isProduction = config.nodeEnv === 'production';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 
-type MobileRefreshRecord = {
-  adminId: number;
-  adminIdText: string;
-  familyId: string;
-  used: boolean;
-  revoked: boolean;
-  expiresAtMs: number;
-};
-
-const mobileRefreshStore = new Map<string, MobileRefreshRecord>();
-
-type RefreshPayload = {
-  id: number;
-  id_text: string;
-  token_use: 'refresh';
-  family_id: string;
-  jti: string;
-};
-
-const hashRefreshToken = (token: string): string =>
-  createHash('sha256').update(token).digest('hex');
-
-const revokeRefreshFamily = (familyId: string): void => {
-  for (const [tokenHash, record] of mobileRefreshStore.entries()) {
-    if (record.familyId === familyId) {
-      mobileRefreshStore.set(tokenHash, { ...record, revoked: true });
-    }
-  }
-};
-
 const issueMobileTokenPair = (params: {
   adminId: number;
   adminIdText: string;
-  familyId?: string;
 }): {
   token_type: 'Bearer';
   access_token: string;
@@ -64,8 +31,8 @@ const issueMobileTokenPair = (params: {
   refresh_token: string;
   refresh_token_expires_in: number;
 } => {
-  const familyId = params.familyId ?? randomUUID();
-  const refreshJti = randomUUID();
+  const accessExpiresIn = config.auth.mobileAccessTokenExpiration;
+  const refreshExpiresIn = config.auth.mobileRefreshTokenExpiration;
 
   const accessToken = jwt.sign(
     {
@@ -76,7 +43,7 @@ const issueMobileTokenPair = (params: {
     },
     config.auth.jwtSecret,
     {
-      expiresIn: MOBILE_ACCESS_TOKEN_TTL_SECONDS,
+      expiresIn: accessExpiresIn,
     } as SignOptions
   );
 
@@ -86,30 +53,19 @@ const issueMobileTokenPair = (params: {
       id_text: params.adminIdText,
       scope: 'podverse_management_mobile',
       token_use: 'refresh',
-      family_id: familyId,
-      jti: refreshJti,
     },
     config.auth.jwtSecret,
     {
-      expiresIn: MOBILE_REFRESH_TOKEN_TTL_SECONDS,
+      expiresIn: refreshExpiresIn,
     } as SignOptions
   );
-
-  mobileRefreshStore.set(hashRefreshToken(refreshToken), {
-    adminId: params.adminId,
-    adminIdText: params.adminIdText,
-    familyId,
-    used: false,
-    revoked: false,
-    expiresAtMs: Date.now() + MOBILE_REFRESH_TOKEN_TTL_SECONDS * 1000,
-  });
 
   return {
     token_type: 'Bearer',
     access_token: accessToken,
-    access_token_expires_in: MOBILE_ACCESS_TOKEN_TTL_SECONDS,
+    access_token_expires_in: accessExpiresIn,
     refresh_token: refreshToken,
-    refresh_token_expires_in: MOBILE_REFRESH_TOKEN_TTL_SECONDS,
+    refresh_token_expires_in: refreshExpiresIn,
   };
 };
 
@@ -431,64 +387,28 @@ export const refreshMobileToken = (req: Request, res: Response): void => {
     return;
   }
 
-  let payload: RefreshPayload;
+  let decoded: unknown;
   try {
-    payload = jwt.verify(refreshToken, config.auth.jwtSecret) as RefreshPayload;
+    decoded = jwt.verify(refreshToken, config.auth.jwtSecret);
   } catch {
     res.status(401).json({ message: 'Invalid refresh token' });
     return;
   }
 
-  if (
-    payload.token_use !== 'refresh' ||
-    typeof payload.family_id !== 'string' ||
-    typeof payload.jti !== 'string' ||
-    typeof payload.id !== 'number' ||
-    typeof payload.id_text !== 'string'
-  ) {
+  if (!isMobileRefreshJwtPayload(decoded) || !isValidNanoIdV2IdText(decoded.id_text)) {
     res.status(401).json({ message: 'Invalid refresh token' });
     return;
   }
 
-  const hashed = hashRefreshToken(refreshToken);
-  const record = mobileRefreshStore.get(hashed);
-  if (!record || record.revoked || record.expiresAtMs < Date.now()) {
-    res.status(401).json({ message: 'Refresh token is invalid or expired' });
-    return;
-  }
-
-  if (record.used) {
-    revokeRefreshFamily(record.familyId);
-    res.status(401).json({
-      message: 'Refresh token reuse detected',
-      code: 'refresh_token_reuse_detected',
-    });
-    return;
-  }
-
-  mobileRefreshStore.set(hashed, { ...record, used: true });
   res.json(
     issueMobileTokenPair({
-      adminId: record.adminId,
-      adminIdText: record.adminIdText,
-      familyId: record.familyId,
+      adminId: decoded.id,
+      adminIdText: decoded.id_text,
     })
   );
 };
 
-export const revokeMobileToken = (req: Request, res: Response): void => {
-  const body = req.body as { refresh_token?: string } | undefined;
-  const refreshToken = body?.refresh_token ?? '';
-  if (refreshToken !== '') {
-    try {
-      const payload = jwt.verify(refreshToken, config.auth.jwtSecret) as Partial<RefreshPayload>;
-      if (typeof payload.family_id === 'string' && payload.family_id !== '') {
-        revokeRefreshFamily(payload.family_id);
-      }
-    } catch {
-      // Return success for idempotent revocation requests.
-    }
-  }
-
+export const revokeMobileToken = (_req: Request, res: Response): void => {
+  // Client logout acknowledgment. Refresh JWTs stay valid until they expire or AUTH_JWT_SECRET is rotated.
   res.json({ message: 'Mobile token family revoked' });
 };

@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
@@ -11,10 +12,11 @@ import type {
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
-import type { MenuSelectChipOption, OptionChipOption } from '../../components/form';
-import { MenuSelectChip, OptionChipGroup } from '../../components/form';
-import { Button, Card, FillList, ListRow, VerticalCenter } from '../../components/primitives';
-import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
+import { PlaylistListRow } from '../../components/content';
+import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
+import { MenuSelectChip, SectionChipRow } from '../../components/form';
+import { FillList, VerticalCenter } from '../../components/primitives';
+import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -37,6 +39,7 @@ import {
   writePlaylistListSort,
   writePlaylistListType,
 } from '../../prefs/playlistListPrefs';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type LibraryPlaylistsScreenProps = NativeStackScreenProps<
@@ -61,6 +64,31 @@ const RANGE_LABEL_KEYS: Record<QueryParamsStatsRange, string> = {
 };
 
 const FIRST_PAGE = 1;
+
+const playlistKeyExtractor = (playlist: DTOPlaylist): string => playlist.id_text;
+
+type LibraryPlaylistRowProps = {
+  isLast: boolean;
+  onPress: (playlist: DTOPlaylist) => void;
+  playlist: DTOPlaylist;
+  showCreator: boolean;
+};
+
+function LibraryPlaylistRow({ isLast, onPress, playlist, showCreator }: LibraryPlaylistRowProps) {
+  const handlePress = useCallback(() => {
+    onPress(playlist);
+  }, [onPress, playlist]);
+
+  return (
+    <PlaylistListRow
+      isLast={isLast}
+      onPress={handlePress}
+      playlist={playlist}
+      showCreator={showCreator}
+      testID={`library-playlist-row-${playlist.id_text}`}
+    />
+  );
+}
 
 export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenProps) {
   const { t } = useTranslation();
@@ -87,26 +115,26 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
   const [hasCachedList, setHasCachedList] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        createButton: {
-          marginBottom: tokens.spacing.md,
-        },
-        rowSpacing: {
-          marginTop: tokens.spacing.sm,
-        },
-        sortRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-        },
-        stateFill: {
-          flex: 1,
-        },
-      }),
-    [themeStyles, tokens]
-  );
+  const styles = useMemo(() => {
+    const insets = screenBodyInsets(tokens.spacing);
+    return StyleSheet.create({
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+      listArea: {
+        flex: 1,
+      },
+      listContent: {
+        flexGrow: 1,
+        paddingBottom: tokens.spacing['2xl'],
+        paddingHorizontal: insets.paddingHorizontal,
+      },
+      selectorSection: {
+        ...insets,
+      },
+    });
+  }, [themeStyles, tokens]);
 
   const authContext = useMemo(
     () => ({
@@ -120,17 +148,17 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
 
   const listKind = selectedType === 'private' ? 'owned' : 'followed';
 
-  const listTypeOptions = useMemo<readonly OptionChipOption<PlaylistListType>[]>(
+  const listTypeChips = useMemo<readonly SectionChipItem<PlaylistListType>[]>(
     () => [
       {
+        key: 'private',
         label: t('features.playlist.my_playlists'),
         testID: 'library-playlists-type-private',
-        value: 'private',
       },
       {
+        key: 'private_followed',
         label: t('filters.type.subscribed'),
         testID: 'library-playlists-type-followed',
-        value: 'private_followed',
       },
     ],
     [t]
@@ -275,6 +303,16 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     void reloadFirstPage(false);
   }, [isPrefsReady, reloadFirstPage, selectedRange, selectedSort, selectedType, status]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!isPrefsReady) {
+        return () => undefined;
+      }
+      void reloadFirstPage(true);
+      return () => undefined;
+    }, [isPrefsReady, reloadFirstPage])
+  );
+
   const handleLoadMore = useCallback(() => {
     if (
       status !== 'authenticated' ||
@@ -300,16 +338,19 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
 
   const handleTypeChange = useCallback((type: PlaylistListType) => {
     setSelectedType(type);
+    setIsLoading(true);
     void writePlaylistListType(type);
   }, []);
 
   const handleSortChange = useCallback((sort: QueryParamsSubscribedFullSort) => {
     setSelectedSort(sort);
+    setIsLoading(true);
     void writePlaylistListSort(sort);
   }, []);
 
   const handleRangeChange = useCallback((range: QueryParamsStatsRange) => {
     setSelectedRange(range);
+    setIsLoading(true);
     void writePlaylistListRange(range);
   }, []);
 
@@ -323,6 +364,31 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     }
     navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistCreate);
   }, [evaluateFeature, isTierKnown, navigation, openGate]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight:
+        status === 'authenticated'
+          ? () => (
+              <HeaderBarAction
+                accessibilityLabel={t('features.playlist.create_playlist')}
+                icon="add"
+                onPress={handleCreatePress}
+                testID="library-playlists-create"
+              />
+            )
+          : undefined,
+    });
+  }, [handleCreatePress, navigation, status, t]);
+
+  const handlePlaylistPress = useCallback(
+    (playlist: DTOPlaylist) => {
+      navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistDetail, {
+        playlistId: playlist.id_text,
+      });
+    },
+    [navigation]
+  );
 
   const listRows = status === 'authenticated' ? playlists : [];
   const showSignedOut = status !== 'authenticated';
@@ -342,91 +408,93 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     !showOfflineUnavailable &&
     listRows.length === 0;
 
-  const listEmpty = showLoading ? (
-    <LoadingSection testID="library-playlists-loading" />
-  ) : showError ? (
-    <VerticalCenter>
-      <ListError
-        messageKey={errorKey ?? 'errors.generic'}
-        onRetry={() => {
-          void reloadFirstPage(false);
-        }}
-        testID="library-playlists-error"
-      />
-    </VerticalCenter>
-  ) : showSignedOut ? (
-    <CallToActionSection
-      actionLabelKey="authentication.login"
-      messageKey="authentication.login_required"
-      onAction={onRequestLogin}
-      testID="library-playlists-auth-required"
-    />
-  ) : showOfflineUnavailable ? (
-    <ListEmpty
-      messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
-      testID="library-playlists-offline-unavailable"
-    />
-  ) : showEmpty ? (
-    <ListEmpty
-      messageKey={
-        selectedType === 'private'
-          ? 'instructions.no_playlists_created'
-          : 'instructions.no_followed_playlists'
-      }
-      testID="library-playlists-empty"
-    />
-  ) : null;
+  const handleRetry = useCallback(() => {
+    void reloadFirstPage(false);
+  }, [reloadFirstPage]);
 
-  const renderSubtitle = (playlist: DTOPlaylist): string => {
-    const itemCountLabel = t('features.playlist.item_count', {
-      count: playlist.item_count,
-    });
-    if (selectedType !== 'private_followed') {
-      return itemCountLabel;
+  const listEmpty = useMemo(() => {
+    if (showLoading) {
+      return <LoadingSection testID="library-playlists-loading" />;
     }
-
-    const displayName = playlist.account?.account_profile?.display_name?.trim() ?? '';
-    return displayName.length > 0 ? `${itemCountLabel} · ${displayName}` : itemCountLabel;
-  };
-
-  const listHeader =
-    status === 'authenticated' ? (
-      <View>
-        <View style={styles.createButton}>
-          <Button
-            label={t('features.playlist.create_playlist')}
-            onPress={handleCreatePress}
-            testID="library-playlists-create"
+    if (showError) {
+      return (
+        <VerticalCenter>
+          <ListError
+            messageKey={errorKey ?? 'errors.generic'}
+            onRetry={handleRetry}
+            testID="library-playlists-error"
           />
-        </View>
-        <OptionChipGroup
-          onChange={handleTypeChange}
-          options={listTypeOptions}
-          testID="library-playlists-type-chips"
-          value={selectedType}
+        </VerticalCenter>
+      );
+    }
+    if (showSignedOut) {
+      return (
+        <CallToActionSection
+          actionLabelKey="authentication.login"
+          messageKey="authentication.login_required"
+          onAction={onRequestLogin}
+          testID="library-playlists-auth-required"
         />
-        <View style={[styles.rowSpacing, styles.sortRow]}>
+      );
+    }
+    if (showOfflineUnavailable) {
+      return (
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="library-playlists-offline-unavailable"
+        />
+      );
+    }
+    if (showEmpty) {
+      return (
+        <ListEmpty
+          messageKey={
+            selectedType === 'private'
+              ? 'instructions.no_playlists_created'
+              : 'instructions.no_followed_playlists'
+          }
+          testID="library-playlists-empty"
+        />
+      );
+    }
+    return null;
+  }, [
+    errorKey,
+    handleRetry,
+    onRequestLogin,
+    selectedType,
+    showEmpty,
+    showError,
+    showLoading,
+    showOfflineUnavailable,
+    showSignedOut,
+  ]);
+
+  const chipTrailing = useMemo(
+    () => (
+      <>
+        <MenuSelectChip
+          heading={t('filters.screen.sort_heading')}
+          menuTitle={t('filters.screen.sort_heading')}
+          onSelect={handleSortChange}
+          options={sortOptions}
+          testID="library-playlists-sort"
+          value={selectedSort}
+        />
+        {selectedSort === 'top' ? (
           <MenuSelectChip
-            heading={t('filters.screen.sort_heading')}
-            menuTitle={t('filters.screen.sort_heading')}
-            onSelect={handleSortChange}
-            options={sortOptions}
-            testID="library-playlists-sort"
-            value={selectedSort}
+            heading={t('filters.screen.range_heading')}
+            menuTitle={t('filters.screen.range_heading')}
+            onSelect={handleRangeChange}
+            options={rangeOptions}
+            testID="library-playlists-range"
+            value={selectedRange}
           />
-          {selectedSort === 'top' ? (
-            <MenuSelectChip
-              heading={t('filters.screen.range_heading')}
-              menuTitle={t('filters.screen.range_heading')}
-              onSelect={handleRangeChange}
-              options={rangeOptions}
-              testID="library-playlists-range"
-              value={selectedRange}
-            />
-          ) : null}
-        </View>
-      </View>
-    ) : null;
+        ) : null}
+      </>
+    ),
+    [handleRangeChange, handleSortChange, rangeOptions, selectedRange, selectedSort, sortOptions, t]
+  );
 
   const loadPlaylists = useCallback(async () => {
     if (status !== 'authenticated') {
@@ -436,46 +504,61 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     await reloadFirstPage(true);
   }, [reloadFirstPage, status]);
 
-  return (
-    <MobileScreenContainer
-      heading={t('features.playlist.playlists')}
-      testID="library-playlists-screen"
-    >
-      <FillList
-        ListEmptyComponent={listEmpty}
-        ListHeaderComponent={listHeader}
-        contentContainerStyle={styles.stateFill}
-        data={showLoading || showSignedOut || showError || showOfflineUnavailable ? [] : listRows}
-        keyExtractor={(playlist) => playlist.id_text}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        refreshControl={
-          <RefreshControl
-            onRefresh={() => {
-              void loadPlaylists();
-            }}
-            refreshing={isRefreshing}
-            tintColor={themeStyles.buttonPrimary.backgroundColor}
-          />
-        }
-        renderItem={({ item: playlist }) => (
-          <View style={styles.rowSpacing}>
-            <Card>
-              <ListRow
-                onPress={() => {
-                  navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistDetail, {
-                    playlistId: playlist.id_text,
-                  });
-                }}
-                subtitle={renderSubtitle(playlist)}
-                testID={`library-playlist-row-${playlist.id_text}`}
-                title={playlist.title ?? playlist.id_text}
-              />
-            </Card>
-          </View>
-        )}
-        testID="library-playlists-list"
+  const handleRefresh = useCallback(() => {
+    void loadPlaylists();
+  }, [loadPlaylists]);
+
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
       />
-    </MobileScreenContainer>
+    ),
+    [handleRefresh, isRefreshing, themeStyles.buttonPrimary.backgroundColor]
+  );
+
+  const listRowCount = listRows.length;
+  const showCreator = selectedType === 'private_followed';
+  const renderItem = useCallback(
+    ({ index, item: playlist }: { index: number; item: DTOPlaylist }) => (
+      <LibraryPlaylistRow
+        isLast={index === listRowCount - 1}
+        onPress={handlePlaylistPress}
+        playlist={playlist}
+        showCreator={showCreator}
+      />
+    ),
+    [handlePlaylistPress, listRowCount, showCreator]
+  );
+
+  return (
+    <View style={styles.container} testID="library-playlists-screen">
+      {status === 'authenticated' ? (
+        <View style={styles.selectorSection}>
+          <SectionChipRow
+            items={listTypeChips}
+            onSelect={handleTypeChange}
+            selectedKey={selectedType}
+            testID="library-playlists-type-chips"
+            trailing={chipTrailing}
+          />
+        </View>
+      ) : null}
+      <View style={styles.listArea}>
+        <FillList
+          ListEmptyComponent={listEmpty}
+          contentContainerStyle={styles.listContent}
+          data={showLoading || showSignedOut || showError || showOfflineUnavailable ? [] : listRows}
+          keyExtractor={playlistKeyExtractor}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          refreshControl={refreshControl}
+          renderItem={renderItem}
+          testID="library-playlists-list"
+        />
+      </View>
+    </View>
   );
 }

@@ -30,13 +30,21 @@ per-screen inset under the title bar.
   divider, hairline, or shadow under the title.
 - Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar` via
   **`HeaderBarChrome`**). Trailing header actions use **`HeaderBarAction`** in `headerRight` —
-  do not invent a one-off top-right `Pressable`. **Header icons and header action labels use
-  `tokens.text.primary`** (same as the title) — never `tokens.text.accent` / link blue. That
-  color lives in **`HeaderBarAction`**; do not reintroduce accent tint on back, overflow, or
-  trailing header controls. A header More opens **`MoreMenu`** — a bottom
-  sheet that appears instantly: tertiary action group with centered bold rows, then a
-  separate opaque quaternary Cancel block (same bold weight). Do not slide or fade, do
-  not use a translucent Cancel fill, do not use a centered card, and do not style Cancel
+  do not invent a one-off top-right `Pressable`. **Share and the notification (bell)** on
+  podcast, album, artist, episode, and track detail belong in that title-bar slot. **Channel
+  settings** are the Settings section chip on podcast, album, and artist — not a gear in the
+  title bar, and not a `ChannelHeader` action. When the Settings chip is present, it is the
+  **last section chip** in the row (after Funding and every other content chip); only the
+  optional trailing sort / category filter chip may sit after it. Do **not** place share or
+  the bell in **`ChannelHeader`** to match web `HeaderButtons` — web has no stack title bar;
+  mobile does.
+  `ChannelHeader` `actions` is subscribe plus optional outbound links (RSS, website). **Header
+  icons and header action labels use `tokens.text.primary`** (same as the title) — never
+  `tokens.text.accent` / link blue. That color lives in **`HeaderBarAction`**; do not
+  reintroduce accent tint on back, overflow, or trailing header controls. A header More opens
+  **`MoreMenu`** — a bottom sheet that appears instantly: tertiary action group with centered
+  bold rows, then a separate opaque quaternary Cancel block (same bold weight). Do not slide or
+  fade, do not use a translucent Cancel fill, do not use a centered card, and do not style Cancel
   as a pill.
 - Tab roots use the same title slot (Home, Search, …). Page controls such as Home's media-type
   pills and Search's field and chips sit in the body under that bar, not inside it.
@@ -94,9 +102,11 @@ app stays portrait; the viewer does not unlock landscape.
 
 ## Hub menus
 
-More, Library, and Browse use **`MenuListScreen`**. A section title sits **above** its `Card`
-(`tokens.text.accent`, heading weight) with `spacing.lg` before the card and `spacing.xl`
-between groups. Rows that push a screen show a `›`. In-place actions (Log out) set
+More, Library, and Browse use **`MenuListScreen`**. A **`SectionHeading`** sits **above** its
+`Card` (`typography.heading`, `tokens.text.accent` — same as About People / channel Settings
+groups) with `spacing.lg` before the card and `spacing.xl` between groups. In-content section
+labels use accent so they read as structure against primary body copy; do not invent a second
+section-heading color. Rows that push a screen show a `›`. In-place actions (Log out) set
 `showsChevron: false`. Skip empty sections. More Account includes Login / Sign up or Log out.
 
 ## List rows
@@ -132,7 +142,7 @@ header stack.
 ## Chip row → next block
 
 Space **below** a **`SectionChipRow`** (Home / Browse media types, podcast sections) is
-**`listChipRowBottomGap(tokens.spacing)`** (`spacing.base`). It is applied as the row's own
+**`listChipRowBottomGap(tokens.spacing)`** (three-quarters of `spacing.base`). It is applied as the row's own
 `paddingBottom` inside `SectionChipRow` — do **not** add a second `paddingBottom` /
 `marginTop` on the screen wrapper (Home/Browse `selectorSection`, podcast filter `marginTop`,
 About surface `marginTop`) or the seam doubles or disappears when the next sibling changes.
@@ -191,7 +201,9 @@ Podcast section lists use **`PodcastSectionList`**, which already composes **`Fi
 **`ChannelHeader`** and the section chip row stay **outside** the section list so they remain
 visible while the rows scroll. **`ListFilterField`** stays in that list's `ListHeaderComponent` —
 it is not pinned. Pull-to-refresh belongs on **`PodcastSectionList`** (the list below the chips),
-so the spinner appears above the filter.
+so the spinner appears above the filter. Share and the notification bell stay in
+the stack `headerRight`. Channel settings are the Settings chip, not in this pinned
+identity block.
 
 ## Podcast detail filter visibility
 
@@ -204,20 +216,28 @@ podroll is a short publisher list without title filtering. Episodes, official so
 episodes for this channel from `downloadsRepository.listCompleteByChannel`. An empty list is a
 real answer. Evidence chips (Official Clips, Podroll, …) sit **after** that always-on set so a
 first-visit insert is at the end of the row — **mobile-section-chrome-cache**. While **Offline
-Mode** is on, podcast detail defaults to Downloaded (override only; do not overwrite the stored
-tab pref) — **mobile-offline-mode**.
+Mode** is on, podcast detail opens on Downloaded — **mobile-offline-mode**. The section chip is
+visit-local; every open starts on Episodes (or Downloaded while Offline Mode is on).
 
-Sort and category controls sit in the chip-row **leading** slot and use **filter** chrome (square
+Sort and category controls sit in the chip-row **trailing** slot and use **filter** chrome (square
 radius, accent outline) so they read as list narrows, not as sibling section pills. Mount them
 **only when the current chip can use them** — `isSortableSection` / `isHomeSortableMediaType` /
 `shouldShowBrowseSortChip` for sort, `shouldShowBrowseCategoryChip` for Categories. Unmount when
 the filter cannot sort or pick a category (About, Podroll, Official Clips, music Browse types,
 the category picker). Do not leave a disabled sort chip in the row to hold layout.
 
-The **selected section / media-type chip is first** after that leading slot. `SectionChipRow`
-reorders with `placeSelectedFirst` and scrolls to `x = 0` on select. Evidence chips still resolve
-last in `PODCAST_TABS` so a first-visit insert is at the end of the available set; once a chip is
-selected it moves to the front.
+Section and media-type chips keep the order the caller handed in. Selecting one does not move it
+to the front. Evidence chips resolve before Funding; Settings (when signed in) is last among
+section chips so a first-visit insert stays at the end of the available set, still before the
+optional sort / category trailing chip.
+
+## Action error icons
+
+An error glyph, or a failed download row that has no glyph, does not retry or toast on its own.
+The next press opens `ConfirmDialog` through `useActionError` (`openPlaybackError` /
+`openDownloadError`): a kind-specific explanation, a reportable detail line when one exists,
+Cancel, and a retry action. The dialog does not open until that press. List-row play buttons stay
+play/pause; pre-play `noticeKey` text stays inline.
 
 ## Action-gated account / membership
 
@@ -244,6 +264,27 @@ child).
 The body is the generic login-required sentence — see **generic-login-required-copy**. Hide the
 in-body heading on that fill — the `HeaderBar` title is enough.
 
+## Static form-style screens (body + CTAs)
+
+Consent prompts, login / sign-up, and other **static** screens (prose or fields, then a decision)
+are not lists. Do not use one column `gap` for both the body and the buttons — that makes the
+first CTA look like another paragraph.
+
+- **Body** (copy, dates, fields) keeps a tight internal gap (`spacing.md` or `spacing.base`).
+- Choice chips on a form use **`FormField`**. The label names the field and must not repeat an
+  option. It sits `spacing.md` above `OptionChipGroup` or a locked value.
+- **Actions** use **`FormActions`**, in their own block. Do not share the body's `gap` with them.
+  `formActionsTopGap` (`spacing.xl`) sits above that block. One action is full width. Two or more
+  share the row in equal slots: dismiss or secondary first, confirm or primary last (on the
+  right). A destructive action is its own full-width `FormActions` under the row, separated by
+  `formActionsGap` (`spacing.lg`). Helpers live in `screenLayout.ts`.
+- Do not hug a form button to its label, and do not put the confirm action on the left.
+- Do not add a second display heading when the stack title already names the screen.
+- Full-screen Modal variants also use **`ModalSafeArea`**.
+
+Login and Sign up already use this seam above Submit. Popularity tracking uses the same helpers
+for Yes / No / Learn more.
+
 ## Login / Sign up overlay
 
 Login and Sign up slide up as a full-screen `Modal` over the tab shell — they must not replace
@@ -252,6 +293,14 @@ the navigator. Dismiss with a down chevron (`HeaderBarChrome` `backIcon="chevron
 link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`). Fields use
 **`TextField`** with the same `eyebrow` + `placeholder` pairing as web (`email_or_username` on
 login; confirm-password eyebrow with password placeholder on sign-up).
+
+## Full-screen Modal safe area
+
+A React Native `Modal` is a new native window. Insets from the app-root `SafeAreaProvider` do
+not apply inside it, so a bare `SafeAreaView` reports 0 and content sits under the status bar.
+Wrap Modal bodies in **`ModalSafeArea`** (`components/screen/ModalSafeArea`), which remounts
+`SafeAreaProvider` and insets all four edges. The auth sheet already remounts the provider for
+the same reason. Do not rely on the root provider alone for full-screen Modals.
 
 ## Do not
 

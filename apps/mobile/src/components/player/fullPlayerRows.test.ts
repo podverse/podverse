@@ -5,11 +5,15 @@ import type { DTOItemSoundbite } from '@podverse/helpers/dto';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import {
+  canAdvanceToNextQueueItem,
   FULL_PLAYER_JUMP_BACK_SECONDS,
   FULL_PLAYER_JUMP_FORWARD_SECONDS,
   hasNextQueueItem,
   resolveAddToPlaylistTarget,
+  shouldClearNowPlayingAfterAdvance,
+  shouldDismissFullPlayerOnEmptySession,
   shouldShowV4vAction,
+  upcomingManualCountFromCombined,
 } from './fullPlayerRows';
 
 const channel = (idText: string): DTOChannel => ({
@@ -112,6 +116,57 @@ describe('fullPlayerRows', () => {
     expect(hasNextQueueItem(0, 0)).toBe(false);
     expect(hasNextQueueItem(1, 0)).toBe(true);
     expect(hasNextQueueItem(0, 1)).toBe(true);
+  });
+
+  it('counts only items ahead of now-playing in a combined queue load', () => {
+    expect(upcomingManualCountFromCombined(3, true)).toBe(2);
+    expect(upcomingManualCountFromCombined(1, true)).toBe(0);
+    expect(upcomingManualCountFromCombined(0, false)).toBe(0);
+    expect(upcomingManualCountFromCombined(2, false)).toBe(2);
+  });
+
+  it('advances only when manual upcoming or auto-queue has a next item', () => {
+    expect(canAdvanceToNextQueueItem(0, false)).toBe(false);
+    expect(canAdvanceToNextQueueItem(1, false)).toBe(true);
+    expect(canAdvanceToNextQueueItem(0, true)).toBe(true);
+  });
+
+  it('never clears now-playing on a skip that found nothing ahead', () => {
+    expect(shouldClearNowPlayingAfterAdvance('skip', false)).toBe(false);
+    expect(shouldClearNowPlayingAfterAdvance('skip', true)).toBe(false);
+    expect(shouldClearNowPlayingAfterAdvance('complete', false)).toBe(true);
+    expect(shouldClearNowPlayingAfterAdvance('complete', true)).toBe(false);
+  });
+
+  it('dismisses the focused full player when the session is gone, not make clip', () => {
+    expect(
+      shouldDismissFullPlayerOnEmptySession({
+        hasPlaybackSession: false,
+        isAuthoringHold: false,
+        isFocused: true,
+      })
+    ).toBe(true);
+    expect(
+      shouldDismissFullPlayerOnEmptySession({
+        hasPlaybackSession: true,
+        isAuthoringHold: false,
+        isFocused: true,
+      })
+    ).toBe(false);
+    expect(
+      shouldDismissFullPlayerOnEmptySession({
+        hasPlaybackSession: false,
+        isAuthoringHold: true,
+        isFocused: true,
+      })
+    ).toBe(false);
+    expect(
+      shouldDismissFullPlayerOnEmptySession({
+        hasPlaybackSession: false,
+        isAuthoringHold: false,
+        isFocused: false,
+      })
+    ).toBe(false);
   });
 
   it('shows V4V only when gate and value tags are both present', () => {

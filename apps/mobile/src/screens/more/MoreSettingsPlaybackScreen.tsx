@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { MediaTypePreference } from '@podverse/helpers';
 
@@ -9,6 +9,7 @@ import { syncPlaybackPreferenceToAccount } from '../../auth/syncAccountPrefs';
 import { OptionChipGroup } from '../../components/form';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
+import { ToggleSwitch } from '../../components/primitives/ToggleSwitch';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import {
   readAutoQueuePrefs,
@@ -26,7 +27,7 @@ const PLAYBACK_MEDIA_OPTIONS: readonly MediaTypePreference[] = ['video', 'audio'
 
 export function MoreSettingsPlaybackScreen() {
   const { t } = useTranslation();
-  const { accessToken, setAccount } = useAuth();
+  const { accessToken, clearSession, refreshToken, setAccount, setTokens } = useAuth();
   const { styles: themeStyles, tokens } = useTheme();
   const [playbackMediaType, setPlaybackMediaType] = useState<MediaTypePreference>(
     DEFAULT_PLAYBACK_MEDIA_TYPE
@@ -64,7 +65,7 @@ export function MoreSettingsPlaybackScreen() {
       try {
         await writePlaybackMediaTypePref(mediaType);
         await syncPlaybackPreferenceToAccount({
-          accessToken,
+          auth: { accessToken, clearSession, refreshToken, setTokens },
           preferredMediaType: mediaType,
           setAccount,
         });
@@ -72,7 +73,7 @@ export function MoreSettingsPlaybackScreen() {
         setErrorMessageKey('errors.generic');
       }
     },
-    [accessToken, setAccount]
+    [accessToken, clearSession, refreshToken, setAccount, setTokens]
   );
 
   const handleAutoQueueRandomToggle = useCallback(async (enabled: boolean) => {
@@ -160,7 +161,7 @@ export function MoreSettingsPlaybackScreen() {
                 testID="more-settings-auto-queue-random"
                 title={t('media_player.shuffle.toggle_shuffle')}
                 trailing={
-                  <Switch
+                  <ToggleSwitch
                     onValueChange={(nextValue) => {
                       void handleAutoQueueRandomToggle(nextValue);
                     }}
@@ -174,7 +175,7 @@ export function MoreSettingsPlaybackScreen() {
                 testID="more-settings-auto-queue-repeat"
                 title={t('media_player.repeat.toggle_repeat')}
                 trailing={
-                  <Switch
+                  <ToggleSwitch
                     onValueChange={(nextValue) => {
                       void handleAutoQueueRepeatToggle(nextValue);
                     }}

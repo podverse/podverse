@@ -177,6 +177,7 @@ name: Make clip
     id: library-nav-my-clips
 - assertVisible:
     id: library-my-clips-screen
+- assertVisible: My clips
 - tapOn:
     id: "home-row-more-.*"
 - tapOn:

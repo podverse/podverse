@@ -7,9 +7,12 @@ description: Ensures client-side time displays use formatDateTimeAbbrev for loca
 
 ## Instructions
 
-- For client-side UI that displays a time to users, use `formatDateTimeAbbrev` from `@podverse/helpers`.
+- For client-side UI that displays a **calendar or wall-clock** time to users, use
+  `formatDateTimeAbbrev` from `@podverse/helpers`.
 - Pass the active locale (typically from `useLocale()` / `next-intl`) to keep i18n consistent.
 - This ensures readable timestamps rendered in the user’s local timezone.
+- **Not this skill:** playhead, duration, clip, chapter, and transcript clocks. Those use
+  `formatHHMMSS` — see **playback-timestamp-format**.
 
 ## Example
 

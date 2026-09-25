@@ -8,6 +8,7 @@ import { Button, Modal, ModalActions, TextInput } from '@podverse/ui';
 
 import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { clearAddByRSSCredentialsForSignOut } from '../../../../utils/addByRSS/credentialStore';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 
 import styles from '../../../../styles/components/Modal/ModalDeleteAccount.module.scss';
@@ -27,7 +28,7 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
   const locale = useLocale();
-  const { setLoggedInAccount } = useAccount();
+  const { loggedInAccount, setLoggedInAccount } = useAccount();
   const [emailInput, setEmailInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
@@ -67,6 +68,7 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
 
     try {
       await getApiRequestService().reqAccountDelete();
+      await clearAddByRSSCredentialsForSignOut(loggedInAccount?.id_text);
       // Clear account context
       setLoggedInAccount(null);
       // Logout to clear server session

@@ -1,4 +1,9 @@
-import type { SortPrefScope } from '@podverse/helpers';
+import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
+import {
+  browseListViewModeScope,
+  CHANNEL_LIST_VIEW_MODE_TYPES,
+  isChannelListViewModeType,
+} from '@podverse/helpers';
 
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE, HOME_VIEW_MODES } from '../../prefs/homeListPrefs';
@@ -26,16 +31,29 @@ export type BrowseListPrefs = {
  * Episodes, tracks, clips, playlists, and users are list-only — a tile cannot name the row.
  */
 export const isBrowseViewModeMediaType = (mediaType: BrowseMediaType): boolean => {
-  return (
-    mediaType === 'podcasts' ||
-    mediaType === 'videos' ||
-    mediaType === 'artists' ||
-    mediaType === 'albums'
-  );
+  return isChannelListViewModeType(mediaType);
 };
 
 const isHomeViewMode = (value: string): value is HomeViewMode => {
   return HOME_VIEW_MODES.some((mode) => mode === value);
+};
+
+const readBrowseViewMode = async (
+  mediaType: BrowseMediaType,
+  root: SortPrefValue | null
+): Promise<HomeViewMode> => {
+  if (isChannelListViewModeType(mediaType)) {
+    const stored = await readSortPref(browseListViewModeScope(mediaType));
+    if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
+      return stored.viewMode;
+    }
+  }
+
+  if (root?.viewMode !== undefined && isHomeViewMode(root.viewMode)) {
+    return root.viewMode;
+  }
+
+  return DEFAULT_HOME_VIEW_MODE;
 };
 
 export const readBrowseListPrefs = async (): Promise<BrowseListPrefs> => {
@@ -49,10 +67,7 @@ export const readBrowseListPrefs = async (): Promise<BrowseListPrefs> => {
       ? stored.range
       : DEFAULT_BROWSE_RANGE;
   const category = stored?.category !== undefined ? stored.category : null;
-  const viewMode =
-    stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)
-      ? stored.viewMode
-      : DEFAULT_HOME_VIEW_MODE;
+  const viewMode = await readBrowseViewMode(mediaType, stored);
 
   return {
     category,
@@ -76,10 +91,27 @@ export const writeBrowseCategory = async (category: string | null): Promise<void
   });
 };
 
-export const writeBrowseViewMode = async (viewMode: HomeViewMode): Promise<void> => {
-  await writeSortPref(BROWSE_ROOT_SCOPE, { viewMode });
+export const writeBrowseViewMode = async (
+  mediaType: BrowseMediaType,
+  viewMode: HomeViewMode
+): Promise<void> => {
+  if (!isChannelListViewModeType(mediaType)) {
+    return;
+  }
+
+  await writeSortPref(browseListViewModeScope(mediaType), { viewMode });
 };
 
 export const subscribeBrowseListPrefs = (listener: () => void): (() => void) => {
-  return subscribeSortPref(BROWSE_ROOT_SCOPE, listener);
+  const unsubscribeRoot = subscribeSortPref(BROWSE_ROOT_SCOPE, listener);
+  const unsubscribeViewModes = CHANNEL_LIST_VIEW_MODE_TYPES.map((mediaType) =>
+    subscribeSortPref(browseListViewModeScope(mediaType), listener)
+  );
+
+  return () => {
+    unsubscribeRoot();
+    for (const unsubscribe of unsubscribeViewModes) {
+      unsubscribe();
+    }
+  };
 };

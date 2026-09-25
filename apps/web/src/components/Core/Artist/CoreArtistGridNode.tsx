@@ -27,7 +27,7 @@ export const CoreArtistGridNode: React.FC<Props> = ({ channel }) => {
     title: channel.title ?? '',
     imageCandidates,
     href: url,
-    subtitle: channel.channel_about?.author ?? null,
+    lastPubDate: channel.channel_about?.last_pub_date ?? null,
     showSubtitle: Boolean(channel.channel_about?.last_pub_date),
   };
 

@@ -3,6 +3,7 @@ import { fetchWithTimeout } from '@podverse/helpers-backend';
 
 import type { NotificationsContext } from '../../factory.js';
 import type { UPSubscription } from './unifiedpushHelpers.js';
+import { UNIFIED_PUSH_SEND_TIMEOUT_MS } from './unifiedpushHelpers.js';
 
 type UPPayload = {
   title: string;
@@ -65,6 +66,7 @@ export async function sendUPNotificationBatch(
             body: messageBody,
             headers,
             method: 'POST',
+            timeoutMs: UNIFIED_PUSH_SEND_TIMEOUT_MS,
           });
 
           if (!response.ok) {

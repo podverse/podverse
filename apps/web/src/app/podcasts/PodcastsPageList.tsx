@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import type { DTOCategory } from '@podverse/helpers';
-import { PAGINATION } from '@podverse/helpers';
+import { DIRECTORY_LIST_VIEW_MODE_SCOPE_PODCASTS, PAGINATION } from '@podverse/helpers';
 import { InfoWrapper } from '@podverse/ui';
 
 import { CorePodcasts } from '../../components/Core/Podcast/CorePodcasts';
@@ -11,9 +11,9 @@ import { HowToStartInfo } from '../../components/HowToStartInfo/HowToStartInfo';
 import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
 import { ROUTES } from '../../constants/routes';
-import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useChannelUnseenBadges } from '../../hooks/useChannelUnseenBadges';
 import { useFullSubscribedChannels } from '../../hooks/useFullSubscribedChannels';
+import { useListViewMode } from '../../hooks/useListViewMode';
 import { onClickCategory } from '../../utils/categories';
 import { selectFilteredSubscribedPage } from './podcastsFilter';
 import { usePodcastsPageContext } from './PodcastsPageContext';
@@ -32,7 +32,7 @@ export const PodcastsPageList: React.FC = () => {
     showCategoriesModal,
     setShowCategoriesModal,
   } = usePodcastsPageContext();
-  const { viewSelected } = useLocalSettings();
+  const { viewSelected } = useListViewMode(DIRECTORY_LIST_VIEW_MODE_SCOPE_PODCASTS);
   const { medium, page, range, sort, type, category } = filterParams;
   const router = useRouter();
   const tSubscriptions = useTranslations('subscriptions');

@@ -57,20 +57,20 @@ Areas are ordered by suggested sequence, but the **operator chooses** what to wo
 is detailed only when its screenshots arrive. `Status`: `not started` → `questions asked` →
 `planned` → `done`.
 
-| Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status                                                 |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips)                                |
-| P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast + music detail); episode later           |
-| P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                                   |
-| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | done (player + enclosures + medium player + Make Clip) |
-| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | done (Downloads, queue); history pending               |
-| P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | done                                                   |
-| P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                                            |
-| P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | in progress (popularity-tracking consent)              |
-| P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started                                            |
-| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (consent)                                  |
-| P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started                                            |
-| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | in progress (FAQ only)                                 |
+| Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status                                                      |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips; artist dates + per-type view prefs) |
+| P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast + music detail); episode later                |
+| P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                                        |
+| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | done (player + enclosures + medium player + Make Clip)      |
+| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | done (Downloads, queue); history pending                    |
+| P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | done                                                        |
+| P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                                                 |
+| P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | in progress (popularity-tracking consent)                   |
+| P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started                                                 |
+| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (consent)                                       |
+| P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started                                                 |
+| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | in progress (FAQ only)                                      |
 
 **Not in Phase 2:** the legacy `V4V*` screens (`V4VBoostagramScreen`, `V4VConsentScreen`,
 `V4VInfoStreamingSatsScreen`, `V4VPreviewScreen`, `V4VProvidersScreen`, `V4VProvidersAlbyScreen`,
@@ -99,11 +99,15 @@ that web also reads and writes.
 | P2.1.1 | [739-home-subscribed-channel-kind-and-loaders](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)     | Codex 5.3 | done   |
 | P2.1.1 | [740-home-empty-discovery-ctas](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md)                                   | Codex 5.3 | done   |
 | P2.1.1 | [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | Codex 5.3 | done   |
+| P2.1.1 | [780-artist-feed-last-pub-date](/docs/proposals/mobile/_master-plan_/phase-2/details/780-artist-feed-last-pub-date.md)                                   | Codex 5.3 | done   |
+| P2.1.1 | [782-per-type-channel-list-grid-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/782-per-type-channel-list-grid-prefs.md)                     | Codex 5.3 | done   |
+| P2.1.1 | [783-playlist-and-user-directory-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/783-playlist-and-user-directory-rows.md)                     | Codex 5.3 | done   |
 | P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done   |
 | P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | Codex 5.3 | done   |
 
 The original steps above are implemented and their plans are archived. The focused P2.1.1 follow-ups
-in details 721, 738, and 739–741 are implemented and complete.
+in details 721, 738, 739–741, and 780–783 are implemented and complete (COPY-PASTA archive:
+`.llm/plans/completed/12-mobile-p2-artist-rows-and-view-prefs/`).
 Focused device review remains recommended follow-up verification, not a prerequisite for completion.
 
 Locked decisions for this area live in `.llm/plans/completed/mobile-p2-home-podcasts/00-SUMMARY.md`,
@@ -156,7 +160,7 @@ screenshots). Medium foundations (P2.4.13) remain the prerequisite. Completed pl
 | P2.1.2 | [764-track-detail-and-library-routes](/docs/proposals/mobile/_master-plan_/phase-2/details/764-track-detail-and-library-routes.md) | Codex 5.3 | done   |
 
 Locked decisions: `.llm/plans/completed/04-mobile-p2-music-detail/00-SUMMARY.md`. Boosts stay Phase 3;
-video stays on podcast/episode routes; no Home `videos` chip.
+video stays on podcast/episode routes; no Home or Browse `videos` chip.
 
 ### Planned steps — P2.1.5 Library (Downloads) + Settings storage
 
@@ -287,6 +291,7 @@ resolver.
 | P2.1.6 | [774-playlist-edit-items-reorder-and-remove](/docs/proposals/mobile/_master-plan_/phase-2/details/774-playlist-edit-items-reorder-and-remove.md) | Opus 5    | done   |
 | P2.1.6 | [775-playlist-form-parity-and-delete](/docs/proposals/mobile/_master-plan_/phase-2/details/775-playlist-form-parity-and-delete.md)               | Codex 5.3 | done   |
 | P2.1.6 | [776-add-to-playlist-sheet-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/776-add-to-playlist-sheet-parity.md)                     | Codex 5.3 | done   |
+| P2.1.6 | [783-playlist-and-user-directory-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/783-playlist-and-user-directory-rows.md)             | Codex 5.3 | done   |
 
 Locked decisions: `.llm/plans/completed/06-mobile-p2-playlists/00-SUMMARY.md`. Library = My / Followed
 chips (existing endpoints); Browse keeps public discovery; membership for mutations; offline-first
@@ -386,7 +391,7 @@ screen work depends on, and they change contracts beyond `apps/mobile` (API, ORM
 
 **P2.4.13 (medium foundations)** is complete and shares route-kind vocabulary across web and mobile.
 It remains the prerequisite for music detail.
-No Home `videos` chip; subscribed video channels stay under `podcasts` (web `av`).
+No Home or Browse `videos` chip; video channels stay under `podcasts` via `av` (same as web).
 
 **P2.4.11 and P2.4.12 are complete, and they are foundational correctness work.** Playback
 reconciliation now records meaningful-event timestamps across writes, persists offline playback in a
@@ -465,6 +470,8 @@ deliberate parity choice rather than a correctness requirement.
 | P2.5.3 | [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)             | Opus 5    | done   | P2.4.6     |
 | P2.5.4 | [756-web-faq-and-clip-preview-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/756-web-faq-and-clip-preview-parity.md)     | Codex 5.3 | done   | P2.1.12    |
 | P2.5.5 | [770-web-medium-route-kind-counterpart](/docs/proposals/mobile/_master-plan_/phase-2/details/770-web-medium-route-kind-counterpart.md) | Codex 5.3 | done   | P2.4.13    |
+| P2.5.6 | [781-artist-list-row-dates](/docs/proposals/mobile/_master-plan_/phase-2/details/781-artist-list-row-dates.md)                         | Codex 5.3 | done   | P2.1.1     |
+| P2.5.7 | [782-per-type-channel-list-grid-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/782-per-type-channel-list-grid-prefs.md)   | Codex 5.3 | done   | P2.4.6     |
 
 Web changes also live inside two P2.4 steps rather than as separate entries: the shared tier resolver
 in P2.4.1 refactors web's `useMembershipGate`, and the notifications rename in P2.4.5 touches web's
@@ -472,9 +479,9 @@ inbox, bell badge, and hooks.
 
 **Intentional divergences — recorded, not accidental.** Mobile subscriptions are local-first and work
 signed out; web's stay account-backed. Mobile's Home is subscribed-only with media-type chips; web
-keeps its type selector and server pagination. Mobile Browse has a `videos` chip while web's
-`/videos` stays "Coming soon" and Home on both lumps video under podcasts / `av`. Neither is a
-parity gap for this phase.
+keeps its type selector and server pagination. Browse and Home on both surfaces lump video under
+podcasts / `av` (no Videos chip); web's `/videos` page stays "Coming soon" until a video browse tree
+is decided.
 
 ## Appendix — Phase 2 detail index
 
@@ -572,6 +579,10 @@ above whenever status changes, per
 | [776-add-to-playlist-sheet-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/776-add-to-playlist-sheet-parity.md)                             | P2.1.6  | Codex 5.3 | done                                                 |
 | [777-defer-liked-playlist-and-row-likes](/docs/proposals/mobile/_master-plan_/phase-2/details/777-defer-liked-playlist-and-row-likes.md)                 | P2.3.20 | Codex 5.3 | deferred                                             |
 | [778-defer-playlist-medium-and-public-sort](/docs/proposals/mobile/_master-plan_/phase-2/details/778-defer-playlist-medium-and-public-sort.md)           | P2.3.21 | Codex 5.3 | deferred                                             |
+| [780-artist-feed-last-pub-date](/docs/proposals/mobile/_master-plan_/phase-2/details/780-artist-feed-last-pub-date.md)                                   | P2.1.1  | Codex 5.3 | done                                                 |
+| [781-artist-list-row-dates](/docs/proposals/mobile/_master-plan_/phase-2/details/781-artist-list-row-dates.md)                                           | P2.5.6  | Codex 5.3 | done                                                 |
+| [782-per-type-channel-list-grid-prefs](/docs/proposals/mobile/_master-plan_/phase-2/details/782-per-type-channel-list-grid-prefs.md)                     | P2.1.1  | Codex 5.3 | done                                                 |
+| [783-playlist-and-user-directory-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/783-playlist-and-user-directory-rows.md)                     | P2.1.1  | Codex 5.3 | done                                                 |
 
 New Phase 2 detail docs use the **700–899** ID band (see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) § Detail ID bands).

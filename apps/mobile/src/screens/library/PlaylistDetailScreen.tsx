@@ -31,6 +31,7 @@ import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
+import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
 const FIRST_PAGE = 1;
@@ -86,6 +87,104 @@ type PlaylistRowEntry = {
   row: PlaylistResourceRow;
   resource: DTOPlaylistResource;
 };
+
+const playlistDetailRowKeyExtractor = (row: PlaylistResourceRow): string => row.id;
+const playlistReorderKeyExtractor = (entry: PlaylistRowEntry): string => entry.id;
+const noopQueuePress = (): void => undefined;
+
+type PlaylistDetailResourceRowProps = {
+  isLast: boolean;
+  onPlay: (resource: DTOPlaylistResource, row: PlaylistResourceRow) => void;
+  onQueue: (
+    nextRow: HomeFeedRowData,
+    position: QueueActionPosition,
+    mediaType: PlaylistResourceRow['mediaType']
+  ) => void;
+  resource: DTOPlaylistResource;
+  row: PlaylistResourceRow;
+  shareUrl: string | null;
+};
+
+function PlaylistDetailResourceRow({
+  isLast,
+  onPlay,
+  onQueue,
+  resource,
+  row,
+  shareUrl,
+}: PlaylistDetailResourceRowProps) {
+  const handlePlay = useCallback(() => {
+    onPlay(resource, row);
+  }, [onPlay, resource, row]);
+  const handleQueue = useCallback(
+    (nextRow: HomeFeedRowData, position: QueueActionPosition) => {
+      onQueue(nextRow, position, row.mediaType);
+    },
+    [onQueue, row.mediaType]
+  );
+  const handleShare = useMemo(
+    () =>
+      shareUrl === null
+        ? undefined
+        : () => {
+            shareResolvedUrl(shareUrl);
+          },
+    [shareUrl]
+  );
+
+  return (
+    <HomeFeedRow
+      isLast={isLast}
+      mediaType={row.mediaType}
+      onPlayPress={handlePlay}
+      onPress={handlePlay}
+      onQueuePress={handleQueue}
+      onSharePress={handleShare}
+      row={row}
+    />
+  );
+}
+
+type PlaylistDetailReorderRowProps = {
+  entry: PlaylistRowEntry;
+  isLast: boolean;
+  onPlay: (resource: DTOPlaylistResource, row: PlaylistResourceRow) => void;
+  onSwipeRemove: (resource: DTOPlaylistResource) => Promise<void>;
+  removeLabel: string;
+};
+
+function PlaylistDetailReorderRow({
+  entry,
+  isLast,
+  onPlay,
+  onSwipeRemove,
+  removeLabel,
+}: PlaylistDetailReorderRowProps) {
+  const handlePlay = useCallback(() => {
+    onPlay(entry.resource, entry.row);
+  }, [entry.resource, entry.row, onPlay]);
+  const handleRemove = useCallback(() => {
+    return onSwipeRemove(entry.resource);
+  }, [entry.resource, onSwipeRemove]);
+
+  return (
+    <SwipeActionRow
+      onRemove={handleRemove}
+      removeLabel={removeLabel}
+      testID={`playlist-row-${entry.resource.id}-swipe`}
+    >
+      <HomeFeedRow
+        customActions={null}
+        isLast={isLast}
+        mediaType={entry.row.mediaType}
+        onPlayPress={handlePlay}
+        onPress={handlePlay}
+        onQueuePress={noopQueuePress}
+        row={entry.row}
+      />
+    </SwipeActionRow>
+  );
+}
 
 export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreenProps) {
   const { i18n, t } = useTranslation();
@@ -270,7 +369,8 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     }
     return entries;
   }, [resources, t]);
-  const resourceRows = rowEntries.map((entry) => entry.row);
+  const resourceRows = useMemo(() => rowEntries.map((entry) => entry.row), [rowEntries]);
+  const resourceRowCount = resourceRows.length;
 
   const loadNextPage = useCallback(async () => {
     if (isLoading || isRefreshing || isLoadingMore || isReordering || !hasMorePages) {
@@ -615,65 +715,49 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     ]
   );
 
+  const handleQueuePress = useCallback(
+    (
+      nextRow: HomeFeedRowData,
+      position: QueueActionPosition,
+      mediaType: PlaylistResourceRow['mediaType']
+    ) => {
+      runQueueAction(nextRow, mediaType, position);
+    },
+    [runQueueAction]
+  );
+
   const renderResourceRow = useCallback(
     ({ index, item }: { index: number; item: PlaylistResourceRow }) => {
       const entry = rowEntries[index];
       if (entry === undefined) {
         return null;
       }
-      const shareUrl = shareUrlFromResource(entry.resource);
       return (
-        <HomeFeedRow
-          isLast={index === resourceRows.length - 1}
-          mediaType={item.mediaType}
-          onPlayPress={() => {
-            handleResourcePlay(entry.resource, item);
-          }}
-          onPress={() => {
-            handleResourcePlay(entry.resource, item);
-          }}
-          onQueuePress={(nextRow, position) => {
-            runQueueAction(nextRow, item.mediaType, position);
-          }}
-          onSharePress={
-            shareUrl === null
-              ? undefined
-              : () => {
-                  shareResolvedUrl(shareUrl);
-                }
-          }
+        <PlaylistDetailResourceRow
+          isLast={index === resourceRowCount - 1}
+          onPlay={handleResourcePlay}
+          onQueue={handleQueuePress}
+          resource={entry.resource}
           row={item}
+          shareUrl={shareUrlFromResource(entry.resource)}
         />
       );
     },
-    [handleResourcePlay, resourceRows.length, rowEntries, runQueueAction]
+    [handleQueuePress, handleResourcePlay, resourceRowCount, rowEntries]
   );
 
+  const reorderRemoveLabel = t('features.playlist.remove_from_playlist');
   const renderReorderRow = useCallback(
-    (entry: PlaylistRowEntry) => {
-      return (
-        <SwipeActionRow
-          onRemove={() => handleSwipeRemove(entry.resource)}
-          removeLabel={t('features.playlist.remove_from_playlist')}
-          testID={`playlist-row-${entry.resource.id}-swipe`}
-        >
-          <HomeFeedRow
-            customActions={null}
-            isLast={entry.index === rowEntries.length - 1}
-            mediaType={entry.row.mediaType}
-            onPlayPress={() => {
-              handleResourcePlay(entry.resource, entry.row);
-            }}
-            onPress={() => {
-              handleResourcePlay(entry.resource, entry.row);
-            }}
-            onQueuePress={() => {}}
-            row={entry.row}
-          />
-        </SwipeActionRow>
-      );
-    },
-    [handleResourcePlay, handleSwipeRemove, rowEntries.length, t]
+    (entry: PlaylistRowEntry) => (
+      <PlaylistDetailReorderRow
+        entry={entry}
+        isLast={entry.index === rowEntries.length - 1}
+        onPlay={handleResourcePlay}
+        onSwipeRemove={handleSwipeRemove}
+        removeLabel={reorderRemoveLabel}
+      />
+    ),
+    [handleResourcePlay, handleSwipeRemove, reorderRemoveLabel, rowEntries.length]
   );
 
   const reorderList = useMemo(
@@ -681,10 +765,10 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
       <SectionCard>
         <ReorderableSections
           dragActivation="row-long-press"
-          keyExtractor={(entry) => entry.id}
+          keyExtractor={playlistReorderKeyExtractor}
           onDragActiveChange={handleDragActiveChange}
           onDrop={handleDrop}
-          renderItem={(entry) => renderReorderRow(entry)}
+          renderItem={renderReorderRow}
           renderSection={(_sectionId, children) => <View>{children}</View>}
           rowAccessibility={
             rowEntries.length > 1
@@ -722,6 +806,30 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     [handleDragActiveChange, handleDrop, handleReorder, renderReorderRow, rowEntries, t]
   );
 
+  const handleFollowPress = useCallback(() => {
+    void handleFollowToggle();
+  }, [handleFollowToggle]);
+
+  const handleEditPress = useCallback(() => {
+    navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistEdit, { playlistId });
+  }, [navigation, playlistId]);
+
+  const handleReorderTogglePress = useCallback(() => {
+    void toggleReorder();
+  }, [toggleReorder]);
+
+  const handleRetry = useCallback(() => {
+    void loadPlaylist();
+  }, [loadPlaylist]);
+
+  const handleRefresh = useCallback(() => {
+    void loadPlaylist({ refresh: true });
+  }, [loadPlaylist]);
+
+  const handleEndReached = useCallback(() => {
+    void loadNextPage();
+  }, [loadNextPage]);
+
   const creator = playlist?.account?.account_profile?.display_name ?? t('misc.anonymous');
   const mediumLabel = mediumLabelFromId(playlist?.medium_id, t);
   const updatedLabel =
@@ -730,87 +838,127 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
           date: formatDateAbbrev(playlist.last_updated, i18n.language),
         })
       : null;
+  const playlistTitle = playlist?.title ?? t('features.playlist.playlist');
+  const itemCount = playlist?.item_count ?? resourceRowCount;
+  const canReorder = rowEntries.length > 1;
 
-  const listHeader = (
-    <>
-      <Text style={styles.heading}>{playlist?.title ?? t('features.playlist.playlist')}</Text>
-      <SectionCard heading={playlist?.title ?? t('features.playlist.playlist')}>
-        {playlist?.description ? <Text style={styles.cardText}>{playlist.description}</Text> : null}
-        <Text style={styles.cardText}>
-          {t('features.playlist.item_count', {
-            count: playlist?.item_count ?? resourceRows.length,
-          })}
-        </Text>
-        {updatedLabel !== null ? <Text style={styles.cardText}>{updatedLabel}</Text> : null}
-        <Text style={styles.cardText}>{mediumLabel}</Text>
-        <Text style={styles.cardText}>{creator}</Text>
-        <View style={styles.headerActions}>
-          <Button
-            label={t('features.share')}
-            onPress={handleShare}
-            size="sm"
-            testID="library-playlist-detail-share"
-            variant="secondary"
-          />
-          {!isOwner && status === 'authenticated' ? (
-            <Button
-              disabled={isFollowSaving}
-              label={isFollowing ? t('features.unsubscribe') : t('features.subscribe')}
-              onPress={() => {
-                void handleFollowToggle();
-              }}
-              size="sm"
-              testID="library-playlist-detail-follow-toggle"
-              variant="secondary"
-            />
+  const listHeader = useMemo(
+    () => (
+      <>
+        <Text style={styles.heading}>{playlistTitle}</Text>
+        <SectionCard heading={playlistTitle}>
+          {playlist?.description ? (
+            <Text style={styles.cardText}>{playlist.description}</Text>
           ) : null}
-        </View>
-        {isOwner ? (
+          <Text style={styles.cardText}>
+            {t('features.playlist.item_count', {
+              count: itemCount,
+            })}
+          </Text>
+          {updatedLabel !== null ? <Text style={styles.cardText}>{updatedLabel}</Text> : null}
+          <Text style={styles.cardText}>{mediumLabel}</Text>
+          <Text style={styles.cardText}>{creator}</Text>
           <View style={styles.headerActions}>
             <Button
-              disabled={isReordering}
-              label={t('features.playlist.edit_playlist')}
-              onPress={() => {
-                navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistEdit, { playlistId });
-              }}
+              label={t('features.share')}
+              onPress={handleShare}
               size="sm"
-              testID="library-playlist-detail-edit"
+              testID="library-playlist-detail-share"
               variant="secondary"
             />
-            {rowEntries.length > 1 ? (
+            {!isOwner && status === 'authenticated' ? (
               <Button
-                label={isReordering ? t('misc.done') : t('features.playlist.reorder')}
-                onPress={() => {
-                  void toggleReorder();
-                }}
+                disabled={isFollowSaving}
+                label={isFollowing ? t('features.unsubscribe') : t('features.subscribe')}
+                onPress={handleFollowPress}
                 size="sm"
-                testID="library-playlist-detail-reorder-toggle"
+                testID="library-playlist-detail-follow-toggle"
                 variant="secondary"
               />
             ) : null}
           </View>
+          {isOwner ? (
+            <View style={styles.headerActions}>
+              <Button
+                disabled={isReordering}
+                label={t('features.playlist.edit_playlist')}
+                onPress={handleEditPress}
+                size="sm"
+                testID="library-playlist-detail-edit"
+                variant="secondary"
+              />
+              {canReorder ? (
+                <Button
+                  label={isReordering ? t('misc.done') : t('features.playlist.reorder')}
+                  onPress={handleReorderTogglePress}
+                  size="sm"
+                  testID="library-playlist-detail-reorder-toggle"
+                  variant="secondary"
+                />
+              ) : null}
+            </View>
+          ) : null}
+        </SectionCard>
+        {isReordering && isOwner ? (
+          <View testID="library-playlist-reorder-list">{reorderList}</View>
         ) : null}
-      </SectionCard>
-      {isReordering && isOwner ? (
-        <View testID="library-playlist-reorder-list">{reorderList}</View>
-      ) : null}
-      {isReordering && reorderErrorKey !== null ? (
-        <Text style={styles.notice} testID="library-playlist-reorder-error">
-          {t(reorderErrorKey)}
-        </Text>
-      ) : null}
-    </>
+        {isReordering && reorderErrorKey !== null ? (
+          <Text style={styles.notice} testID="library-playlist-reorder-error">
+            {t(reorderErrorKey)}
+          </Text>
+        ) : null}
+      </>
+    ),
+    [
+      canReorder,
+      creator,
+      handleEditPress,
+      handleFollowPress,
+      handleReorderTogglePress,
+      handleShare,
+      isFollowSaving,
+      isFollowing,
+      isOwner,
+      isReordering,
+      itemCount,
+      mediumLabel,
+      playlist?.description,
+      playlistTitle,
+      reorderErrorKey,
+      reorderList,
+      status,
+      styles.cardText,
+      styles.headerActions,
+      styles.heading,
+      styles.notice,
+      t,
+      updatedLabel,
+    ]
   );
 
-  const listFooter =
-    !isReordering && (playbackNoticeKey !== null || isLoadingMore) ? (
-      <View>
-        {playbackNoticeKey !== null ? (
-          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
-        ) : null}
-        {isLoadingMore ? <ActivityIndicator size="small" /> : null}
-      </View>
-    ) : null;
+  const listFooter = useMemo(
+    () =>
+      !isReordering && (playbackNoticeKey !== null || isLoadingMore) ? (
+        <View>
+          {playbackNoticeKey !== null ? (
+            <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
+          ) : null}
+          {isLoadingMore ? <ActivityIndicator size="small" /> : null}
+        </View>
+      ) : null,
+    [isLoadingMore, isReordering, playbackNoticeKey, styles.notice, t]
+  );
+
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+        tintColor={tokens.text.accent}
+      />
+    ),
+    [handleRefresh, isRefreshing, tokens.text.accent]
+  );
 
   if (showOfflineUnavailable) {
     return (
@@ -831,9 +979,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         errorTestID="library-playlist-detail-error"
         isLoading={isLoading}
         loadingTestID="library-playlist-detail-loading"
-        onRetry={() => {
-          void loadPlaylist();
-        }}
+        onRetry={handleRetry}
         showAuthRequired={showAuthRequired}
       >
         <FillList
@@ -842,20 +988,10 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.content}
           data={isReordering ? [] : resourceRows}
-          onEndReached={() => {
-            void loadNextPage();
-          }}
+          onEndReached={handleEndReached}
           onEndReachedThreshold={0.6}
-          keyExtractor={(row) => row.id}
-          refreshControl={
-            <RefreshControl
-              onRefresh={() => {
-                void loadPlaylist({ refresh: true });
-              }}
-              refreshing={isRefreshing}
-              tintColor={tokens.text.accent}
-            />
-          }
+          keyExtractor={playlistDetailRowKeyExtractor}
+          refreshControl={refreshControl}
           renderItem={renderResourceRow}
         />
       </AuthAwareLoadState>

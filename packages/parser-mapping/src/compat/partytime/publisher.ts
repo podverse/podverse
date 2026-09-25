@@ -1,9 +1,16 @@
 import { getMediumEnumValue } from '@podverse/helpers';
 
-import type { FeedObject } from '../../types/partytime.js';
+/**
+ * Minimum feed shape for duck-typing a publisher into podcast/video/music.
+ * Full `FeedObject` satisfies this; seed collectors may pass a partial.
+ */
+export type PublisherMediumDetectInput = {
+  medium?: string | null;
+  podcastRemoteItems?: Array<{ medium?: string | null } | null> | null;
+};
 
 // Determine the most-appropriate publisher medium based on podcastRemoteItems
-export const detectDuckTypedPublisherMediumId = (parsedFeed: FeedObject) => {
+export const detectDuckTypedPublisherMediumId = (parsedFeed: PublisherMediumDetectInput) => {
   const mediumRaw = parsedFeed.medium;
   const isPublisher = typeof mediumRaw === 'string' && mediumRaw.toLowerCase() === 'publisher';
 

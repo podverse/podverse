@@ -9,7 +9,7 @@
  * so eligibility/naming logic is unit-testable.
  *
  * Files are stored **with their progressive extension** (`.mp3`, `.m4a`, `.mp4`, …). We never store
- * an HLS `.m3u8` playlist as a media file — HLS items are rejected upstream by `isItemDownloadable`.
+ * an HLS playlist (`.m3u8`) as a media file — those items are rejected upstream by `isItemDownloadable`.
  */
 export const DOWNLOADS_SUBDIRECTORY = 'downloads';
 

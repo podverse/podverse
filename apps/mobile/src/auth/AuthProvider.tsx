@@ -1,5 +1,13 @@
 import type { PropsWithChildren } from 'react';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type { DTOAccount } from '@podverse/helpers/dto';
 
@@ -7,9 +15,18 @@ import { getMobileConfig } from '../config';
 // Import the repository from its module (not the data barrel) to avoid an import cycle through
 // the auth barrel.
 import { accountRepository } from '../data/repositories/accountRepository';
+import { addByRssCredentialStore } from '../data/repositories/addByRssCredentialStore';
+import { playlistRepository } from '../data/repositories/playlistRepository';
+import { queueRepository } from '../data/repositories/queueRepository';
 import { resolveSupportedLocale } from '../i18n/locale';
 import { startFcmTokenRefreshSync, stopFcmTokenRefreshSync } from '../push/fcmDeviceSync';
-import { refreshAccessTokenSingleFlight } from './authRequestWithRefresh';
+import {
+  advanceAuthSessionGeneration,
+  getAuthSessionGeneration,
+  primeAccessTokenRefresh,
+  refreshAccessTokenSingleFlight,
+  rememberAuthCredentials,
+} from './authRequestWithRefresh';
 import { shouldResetLeakedE2eSession } from './e2eSessionReset';
 import type { SessionEndReason } from './forcedLogoutNotice';
 import {
@@ -51,8 +68,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [account, setAccount] = useState<DTOAccount | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<AuthStatus>('unknown');
+  // Concurrent 401s all race into clearSession; they share one wipe rather than each re-clearing
+  // storage, re-marking the notice, and re-running repository clears.
+  const clearSessionInFlightRef = useRef<Promise<void> | null>(null);
 
   const setTokens = useCallback(async ({ accessToken, refreshToken }: SetTokensInput) => {
+    const generationAtStart = getAuthSessionGeneration();
+    // Publish before the keychain write so a request already in flight sees this pair.
+    rememberAuthCredentials(accessToken, refreshToken);
     await Promise.all([
       writeSecureToken('accessToken', accessToken),
       writeSecureToken('refreshToken', refreshToken),
@@ -61,6 +84,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
       clearForcedLogoutNotice(),
     ]);
 
+    // Sign-out during the keychain write already cleared the published pair.
+    if (generationAtStart !== getAuthSessionGeneration()) {
+      return;
+    }
+
     setAccessToken(accessToken);
     setRefreshToken(refreshToken);
     setStatus('authenticated');
@@ -68,29 +96,59 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const clearSession = useCallback(async (reason: SessionEndReason) => {
-    await clearAllSecureTokens();
+    if (clearSessionInFlightRef.current !== null) {
+      return clearSessionInFlightRef.current;
+    }
 
-    if (shouldNotifyForcedLogout(reason)) {
+    const clearPromise = (async () => {
+      // Bump before any await so an in-flight refresh cannot write tokens after this clear starts.
+      advanceAuthSessionGeneration();
+
+      await clearAllSecureTokens();
+
+      // Add-by-RSS feed credentials belong to the account that saved them. The feeds stay; the
+      // username and password do not outlive the session.
       try {
-        await markForcedLogout();
-      } catch (markError) {
-        console.warn('Failed to record the forced-logout notice', markError);
+        await addByRssCredentialStore.clearAll();
+      } catch (credentialError) {
+        console.warn(
+          'Failed to clear add-by-RSS credentials during session reset',
+          credentialError
+        );
       }
-    }
 
+      if (shouldNotifyForcedLogout(reason)) {
+        try {
+          await markForcedLogout();
+        } catch (markError) {
+          console.warn('Failed to record the forced-logout notice', markError);
+        }
+      }
+
+      try {
+        // Account data goes with the session: the account snapshot, queue data, and playlists.
+        // Subscriptions and add-by-RSS feeds are the device's data; a signed-out user keeps browsing and
+        // playing them.
+        await accountRepository.clearSnapshot();
+        await queueRepository.clearAll();
+        await playlistRepository.clearAll();
+      } catch (snapshotError) {
+        console.warn('Failed to clear cached account data during session reset', snapshotError);
+      }
+
+      setAccessToken(null);
+      setRefreshToken(null);
+      setAccount(null);
+      setError(null);
+      setStatus('anonymous');
+    })();
+
+    clearSessionInFlightRef.current = clearPromise;
     try {
-      // Only the account snapshot goes. Subscriptions and add-by-RSS feeds are retained —
-      // they are the device's data, and a signed-out user keeps browsing and playing them.
-      await accountRepository.clearSnapshot();
-    } catch (snapshotError) {
-      console.warn('Failed to clear cached account data during session reset', snapshotError);
+      await clearPromise;
+    } finally {
+      clearSessionInFlightRef.current = null;
     }
-
-    setAccessToken(null);
-    setRefreshToken(null);
-    setAccount(null);
-    setError(null);
-    setStatus('anonymous');
   }, []);
 
   const hydrateFromSecureStorage = useCallback(async () => {
@@ -111,6 +169,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return;
     }
 
+    if (storedRefreshToken !== null) {
+      rememberAuthCredentials(storedAccessToken, storedRefreshToken);
+    }
+
     // Both sources here are local — SecureStore for the tokens, SQLite for the account — so the
     // shell renders at the correct signed-in state without a single request. `SyncProvider` sees
     // the resolved status and queues the refresh behind the app being usable.
@@ -129,7 +191,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
     // arrive behind the sync indicator.
     setStatus('authenticated');
     setError(null);
-  }, [clearSession]);
+
+    if (storedRefreshToken !== null) {
+      primeAccessTokenRefresh({
+        accessToken: storedAccessToken,
+        clearSession,
+        refreshToken: storedRefreshToken,
+        setTokens,
+      });
+    }
+  }, [clearSession, setTokens]);
 
   const refreshWithStoredToken = useCallback(async () => {
     return refreshAccessTokenSingleFlight({
@@ -165,12 +236,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const locale = resolveSupportedLocale(
       account?.account_settings?.account_settings_locale?.locale
     );
-    startFcmTokenRefreshSync({ accessToken, locale });
+    startFcmTokenRefreshSync({
+      auth: { accessToken, clearSession, refreshToken, setTokens },
+      locale,
+    });
 
     return () => {
       stopFcmTokenRefreshSync();
     };
-  }, [accessToken, account, status]);
+  }, [accessToken, account, clearSession, refreshToken, setTokens, status]);
 
   const value = useMemo<AuthContextValue>(() => {
     return {

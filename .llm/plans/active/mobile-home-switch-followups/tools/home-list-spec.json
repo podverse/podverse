@@ -1,0 +1,39 @@
+{
+  "source": "apps/mobile/src/screens/home/HomeScreen.tsx",
+  "target": "apps/mobile/src/screens/home/HomeMediaTypeList.tsx",
+  "slots": {
+    "MODULE": [
+      {
+        "from": " * The remembered choices, tagged with the list they were read for.",
+        "fromOffset": -1,
+        "to": "export function HomeScreen() {"
+      }
+    ],
+    "BODY": [
+      {
+        "from": "  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();",
+        "to": "  const { styles: themeStyles, tokens } = useTheme();"
+      },
+      {
+        "from": "  const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);",
+        "to": "  const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();"
+      },
+      {
+        "from": "  // Layout applies only on eligible chips; the overflow trigger always sits in the title bar.",
+        "to": "  const showMarkAllSeen = selectedMediaType === 'podcasts';"
+      },
+      {
+        "from": "  // Only episodes/tracks (item) and clips (clip) are playlist resources; null means the row gets no",
+        "to": "  useEffect(() => {"
+      },
+      {
+        "from": "  const handleFilterTermChange = useCallback((term: string) => {",
+        "to": "  useLayoutEffect(() => {"
+      },
+      {
+        "from": "  const handleRowPress = useCallback(",
+        "to": "  const displayedMediaType = pendingMediaType ?? selectedMediaType;"
+      }
+    ]
+  }
+}

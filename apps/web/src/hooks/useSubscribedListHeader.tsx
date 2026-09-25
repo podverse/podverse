@@ -3,14 +3,14 @@
 import type { ReactNode } from 'react';
 import { useCallback, useMemo } from 'react';
 
-import type { QueryParamsMedium } from '@podverse/helpers';
+import type { QueryParamsMedium, SortPrefScope } from '@podverse/helpers';
 import type { QueryParamsStatsRange, QueryParamsSubscribedType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 import type { DropdownOption } from '@podverse/ui';
 import { Dropdown } from '@podverse/ui';
 
 import { ViewSelector } from '../components/ViewSelector/ViewSelector';
-import { useLocalSettings } from '../contexts/LocalSettings';
+import { useListViewMode } from './useListViewMode';
 
 /** Fields every subscribed list filter update touches via this hook. */
 type SubscribedListFilterCore = {
@@ -54,6 +54,8 @@ export type UseSubscribedListHeaderArgs<
    * Merged into each `setFilterParams` payload (e.g. livestreams preserve `liveItemType`).
    */
   preserveAcrossUpdates?: (current: TFilter) => Partial<TFilter>;
+  /** When set, list vs grid is remembered for this list only. Omitted pages keep global `vs`. */
+  viewModeScope?: SortPrefScope;
 };
 
 export function useSubscribedListHeader<
@@ -77,9 +79,10 @@ export function useSubscribedListHeader<
     typeMenuItems,
     typeValues,
     preserveAcrossUpdates,
+    viewModeScope,
   } = args;
 
-  const { viewSelected, setViewSelected } = useLocalSettings();
+  const { viewSelected, setViewSelected } = useListViewMode(viewModeScope ?? null);
 
   function isSubscribedType(val: string): val is QueryParamsSubscribedType {
     return typeValues.includes(val as QueryParamsSubscribedType);

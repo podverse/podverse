@@ -24,7 +24,8 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
   `ApiRequestService` / `req*` directly for product data. Repositories own background sync.
   See [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
   and the **mobile-data-layer** skill.
-- **Storage boundaries:** SecureStore = auth tokens only; AsyncStorage/MMKV = tiny prefs (`uit`,
+- **Storage boundaries:** SecureStore = secrets only (auth tokens, and add-by-RSS feed Basic Auth
+  credentials via `addByRssCredentialStore`); AsyncStorage/MMKV = tiny prefs (`uit`,
   media type); SQLite = app entities (queue, history, add-by-RSS, downloads index); filesystem =
   downloaded media files; **native cache** = CarPlay / Android Auto / watch projections (not
   SQLite — see data-layer doc §7.1).

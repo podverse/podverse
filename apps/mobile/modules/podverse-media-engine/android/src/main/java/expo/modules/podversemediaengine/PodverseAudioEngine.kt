@@ -12,10 +12,17 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.HttpDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
 import android.view.TextureView
 import java.io.File
 import java.util.concurrent.CountDownLatch
+import okhttp3.OkHttpClient
 
 // This is the single, process-wide audio engine. It owns the one Media3 ExoPlayer for phone, lock
 // screen, and Android Auto now-playing. The MediaLibraryService (PodverseMediaLibraryService) wraps
@@ -33,6 +40,9 @@ object PodverseAudioEngine {
    */
   private var eventSink: ((String, Map<String, Any?>) -> Unit)? = null
   private var eventSinkOwner: Any? = null
+
+  /** Bound on the cause walk in [playbackErrorPayload], in case a chain is cyclic. */
+  private const val MAX_ERROR_CAUSE_DEPTH = 8
 
   /** Install [sink] for [owner]. A later [clearEventSink] from a different owner is a no-op. */
   fun setEventSink(sink: (String, Map<String, Any?>) -> Unit, owner: Any) {
@@ -62,9 +72,15 @@ object PodverseAudioEngine {
 
   private var player: ExoPlayer? = null
   private var appContext: Context? = null
+  /** Shared pool for protected-media loads; each load derives a client with its own authenticator. */
+  private var authBaseHttpClient: OkHttpClient? = null
   private val mainHandler = Handler(Looper.getMainLooper())
   private var progressPosting = false
   private var lastState: String = PlaybackState.IDLE
+  /** Bumped on every load so a ready callback from a replaced item cannot start playback. */
+  private var loadGeneration: Int = 0
+  /** When this equals [loadGeneration], start playback once the item reports ready (after a seek). */
+  private var playWhenReadyGeneration: Int = -1
 
   private object PlaybackState {
     const val IDLE = "idle"
@@ -133,45 +149,104 @@ object PodverseAudioEngine {
    * sources (offline playback) — Media3 [MediaItem.fromUri] handles all three; there is never
    * a second player for local files. Missing `file://` targets fail fast with a `file_not_found`
    * error instead of surfacing a late/opaque decode failure.
+   *
+   * A positive [initialSeekSeconds] is the media item's start position, and playback waits until
+   * the player is ready so audio does not begin at the start of the file and then jump.
+   *
+   * [basicAuth] (protected add-by-RSS media) routes the remote load through OkHttp with a
+   * [ScopedBasicAuthenticator]; without it the player's default data source is used unchanged.
    */
-  fun load(context: Context, url: String, initialSeekSeconds: Double?) {
+  fun load(
+    context: Context,
+    url: String,
+    initialSeekSeconds: Double?,
+    basicAuth: ScopedBasicAuth? = null,
+  ) {
+    prepareSource(context, url, initialSeekSeconds, basicAuth, playWhenPrepared = false)
+  }
+
+  /**
+   * Atomic load + play. When [initialSeekSeconds] is positive, play starts from the ready callback
+   * after the start position is applied. Otherwise play is issued on the same main-thread turn as
+   * prepare.
+   */
+  fun loadAndStart(
+    context: Context,
+    url: String,
+    initialSeekSeconds: Double?,
+    basicAuth: ScopedBasicAuth? = null,
+  ) {
+    prepareSource(context, url, initialSeekSeconds, basicAuth, playWhenPrepared = true)
+  }
+
+  @androidx.annotation.OptIn(UnstableApi::class)
+  private fun authenticatedMediaSource(
+    context: Context,
+    item: MediaItem,
+    auth: ScopedBasicAuth,
+  ): MediaSource {
+    val base = authBaseHttpClient ?: OkHttpClient().also { authBaseHttpClient = it }
+    val client = base.newBuilder().authenticator(ScopedBasicAuthenticator(auth)).build()
+    val dataSourceFactory =
+      DefaultDataSource.Factory(context.applicationContext, OkHttpDataSource.Factory(client))
+    return DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(item)
+  }
+
+  @androidx.annotation.OptIn(UnstableApi::class)
+  private fun prepareSource(
+    context: Context,
+    url: String,
+    initialSeekSeconds: Double?,
+    basicAuth: ScopedBasicAuth?,
+    playWhenPrepared: Boolean,
+  ) {
     onMain {
       if (isMissingLocalFile(url)) {
+        playWhenReadyGeneration = -1
         publish(PlaybackState.ERROR)
         emit("error", mapOf("code" to "file_not_found", "message" to "File not found: $url"))
         return@onMain
       }
+      val generation = ++loadGeneration
+      val seekSeconds = initialSeekSeconds ?: 0.0
+      val hasSeek = seekSeconds > 0
+      playWhenReadyGeneration = if (playWhenPrepared && hasSeek) generation else -1
       val p = getOrCreatePlayer(context)
       publish(PlaybackState.LOADING)
-      p.setMediaItem(MediaItem.fromUri(url))
+      val item = MediaItem.fromUri(url)
+      val startMs = (seekSeconds * 1000).toLong()
+      val isRemote = url.startsWith("https://") || url.startsWith("http://")
+      if (basicAuth != null && isRemote) {
+        val source = authenticatedMediaSource(context, item, basicAuth)
+        if (hasSeek) p.setMediaSource(source, startMs) else p.setMediaSource(source)
+      } else if (hasSeek) {
+        p.setMediaItem(item, startMs)
+      } else {
+        p.setMediaItem(item)
+      }
       p.prepare()
-      if (initialSeekSeconds != null && initialSeekSeconds > 0) {
-        p.seekTo((initialSeekSeconds * 1000).toLong())
+      if (playWhenPrepared && !hasSeek) {
+        startPlayback(context, p)
       }
     }
   }
 
-  /**
-   * Atomic load + play. Both hops run on the main thread in order on the
-   * single player, so the item is prepared before playback starts. Used by the primary autoplay path.
-   */
-  fun loadAndStart(context: Context, url: String, initialSeekSeconds: Double?) {
-    load(context, url, initialSeekSeconds)
-    play(context)
+  private fun startPlayback(context: Context, p: ExoPlayer) {
+    // Start playback first, then bring up MediaLibraryService as a *regular* service.
+    // Do NOT use startForegroundService here: Media3 only calls Service.startForeground() once
+    // playback is ongoing / the media notification is posted. Calling startForegroundService
+    // before that races the OS timeout and crashes with
+    // ForegroundServiceDidNotStartInTimeException (and can leave audio silent after restart).
+    p.playWhenReady = true
+    p.play()
+    val app = context.applicationContext
+    app.startService(Intent(app, PodverseMediaLibraryService::class.java))
   }
 
   fun play(context: Context) {
     onMain {
       val p = getOrCreatePlayer(context)
-      // Start playback first, then bring up MediaLibraryService as a *regular* service.
-      // Do NOT use startForegroundService here: Media3 only calls Service.startForeground() once
-      // playback is ongoing / the media notification is posted. Calling startForegroundService
-      // before that races the OS timeout and crashes with
-      // ForegroundServiceDidNotStartInTimeException (and can leave audio silent after restart).
-      p.playWhenReady = true
-      p.play()
-      val app = context.applicationContext
-      app.startService(Intent(app, PodverseMediaLibraryService::class.java))
+      startPlayback(context, p)
     }
   }
 
@@ -242,6 +317,14 @@ object PodverseAudioEngine {
               "positionSeconds" to getPositionUnsafe(),
               "durationSeconds" to getDurationUnsafe(),
             ))
+          if (playWhenReadyGeneration == loadGeneration && playWhenReadyGeneration >= 0) {
+            playWhenReadyGeneration = -1
+            val readyPlayer = player
+            val readyContext = appContext
+            if (readyPlayer != null && readyContext != null) {
+              startPlayback(readyContext, readyPlayer)
+            }
+          }
         }
         Player.STATE_ENDED -> {
           publish(PlaybackState.ENDED)
@@ -265,10 +348,9 @@ object PodverseAudioEngine {
     }
 
     override fun onPlayerError(error: PlaybackException) {
+      playWhenReadyGeneration = -1
       publish(PlaybackState.ERROR)
-      emit(
-        "error",
-        mapOf("code" to error.errorCodeName, "message" to (error.message ?: "Playback error")))
+      emit("error", playbackErrorPayload(error))
     }
 
     override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -276,6 +358,43 @@ object PodverseAudioEngine {
       val hasVideo = videoSize != VideoSize.UNKNOWN && videoSize.width > 0 && videoSize.height > 0
       onMain { onVideoCapabilityChanged?.invoke(hasVideo) }
     }
+  }
+
+  /**
+   * Error payload plus, when the cause chain carries them, the host's HTTP status (`httpStatus`),
+   * the URL that failed (`url`, after redirects), and the underlying cause (`detail`). Media is
+   * fetched from the creator's own server, so the status is what tells support whose side failed.
+   */
+  private fun playbackErrorPayload(error: PlaybackException): Map<String, Any?> {
+    val payload = mutableMapOf<String, Any?>(
+      "code" to error.errorCodeName,
+      "message" to (error.message ?: "Playback error"),
+    )
+    var cause: Throwable? = error.cause
+    var depth = 0
+    while (cause != null && depth < MAX_ERROR_CAUSE_DEPTH) {
+      if (cause is HttpDataSource.InvalidResponseCodeException) {
+        payload["httpStatus"] = cause.responseCode
+        payload["url"] = cause.dataSpec.uri.toString()
+        payload["detail"] = describeCause(cause)
+        return payload
+      }
+      if (cause is HttpDataSource.HttpDataSourceException) {
+        payload["url"] = cause.dataSpec.uri.toString()
+      }
+      if (payload["detail"] == null) {
+        payload["detail"] = describeCause(cause)
+      }
+      cause = cause.cause
+      depth += 1
+    }
+    return payload
+  }
+
+  private fun describeCause(cause: Throwable): String {
+    val message = cause.message?.trim().orEmpty()
+    val name = cause.javaClass.simpleName
+    return if (message.isEmpty()) name else "$name: $message"
   }
 
   private fun emit(event: String, payload: Map<String, Any?>) {

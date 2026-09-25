@@ -93,6 +93,13 @@ export function resolveHover(
   };
 }
 
+export function isSameHoverTarget(a: HoverTarget | null, b: HoverTarget | null): boolean {
+  if (a === null || b === null) {
+    return a === b;
+  }
+  return a.flatIndex === b.flatIndex && a.sectionId === b.sectionId && a.toIndex === b.toIndex;
+}
+
 export function computeItemShift(
   itemFlatIndex: number,
   fromFlatIndex: number,

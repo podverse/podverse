@@ -1,11 +1,11 @@
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
 import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { AlbumPageContextProvider } from './AlbumPageContext';
 import { AlbumPageList } from './AlbumPageList';
 import { AlbumPageListHeader } from './AlbumPageListHeader';

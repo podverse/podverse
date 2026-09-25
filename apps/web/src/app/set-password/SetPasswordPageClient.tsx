@@ -23,6 +23,7 @@ import {
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { useAccount } from '../../contexts/Account';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { clearAddByRSSCredentialsForSignOut } from '../../utils/addByRSS/credentialStore';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 
 import styles from '../../styles/components/Auth/AuthResetPasswordForm.module.scss';
@@ -84,6 +85,7 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
     if (!token) return;
     setIsSigningOut(true);
     try {
+      await clearAddByRSSCredentialsForSignOut(loggedInAccount?.id_text);
       await getApiRequestService().reqAuthLogout();
       window.location.assign(`/set-password?token=${encodeURIComponent(token)}`);
     } catch {

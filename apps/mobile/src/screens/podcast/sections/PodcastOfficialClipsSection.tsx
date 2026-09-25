@@ -9,6 +9,7 @@ import { getItemPrimaryImageUrl } from '../../../data/repositories/channelItemWi
 import { usePlaybackSession } from '../../../playback/PlaybackProvider';
 import type { HomeFeedRowData } from '../../home/homeFeedData';
 import { HomeFeedRow } from '../../home/HomeFeedRow';
+import type { QueueActionPosition } from '../../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../../home/useHomeRowPlayback';
 import { PodcastSectionList } from './PodcastSectionList';
 import type { PodcastSectionPaneProps } from './podcastSectionPane';
@@ -25,6 +26,36 @@ type SoundbiteEntry = {
  * Official clips are the publisher's own highlights, so the episode they came from is the context
  * worth naming — where an episode row would name the podcast.
  */
+const officialClipKeyExtractor = (entry: SoundbiteEntry): string => entry.soundbite.id_text;
+
+type OfficialClipRowProps = {
+  entry: SoundbiteEntry;
+  index: number;
+  isLast: boolean;
+  onPlay: (entry: SoundbiteEntry) => void;
+  onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
+};
+
+function OfficialClipRow({ entry, index, isLast, onPlay, onQueue }: OfficialClipRowProps) {
+  const handlePlay = useCallback(() => {
+    onPlay(entry);
+  }, [entry, onPlay]);
+
+  return (
+    <HomeFeedRow
+      isLast={isLast}
+      mediaType="clips"
+      onPlayPress={handlePlay}
+      onPress={handlePlay}
+      onQueuePress={onQueue}
+      row={entry.row}
+      showChannelContext={false}
+      showContextLine
+      testID={`podcast-soundbite-row-${index}`}
+    />
+  );
+}
+
 const toSoundbiteRow = (soundbite: DTOItemSoundbite, fallbackTitle: string): HomeFeedRowData => {
   const item = soundbite.item ?? null;
   const title = soundbite.title ?? '';
@@ -122,6 +153,31 @@ export function PodcastOfficialClipsSection({
     [channel, playSoundbite]
   );
 
+  const handleQueuePress = useCallback(
+    (queueRow: HomeFeedRowData, position: QueueActionPosition) => {
+      runQueueAction(queueRow, 'clips', position);
+    },
+    [runQueueAction]
+  );
+
+  const handleRefresh = useCallback(() => {
+    void onRefreshChannel();
+    refresh();
+  }, [onRefreshChannel, refresh]);
+
+  const renderRow = useCallback(
+    ({ index, isLast, row: entry }: { index: number; isLast: boolean; row: SoundbiteEntry }) => (
+      <OfficialClipRow
+        entry={entry}
+        index={index}
+        isLast={isLast}
+        onPlay={playEntry}
+        onQueue={handleQueuePress}
+      />
+    ),
+    [handleQueuePress, playEntry]
+  );
+
   return (
     <PodcastSectionList
       emptyMessageKey="info.soundbite.no_official_clips_found"
@@ -131,33 +187,13 @@ export function PodcastOfficialClipsSection({
       isInitialLoading={isInitialLoading}
       isLoadingMore={isLoadingMore}
       isRefreshing={isRefreshing}
-      keyExtractor={(entry) => entry.soundbite.id_text}
+      keyExtractor={officialClipKeyExtractor}
       listHeader={listHeader}
       noticeKey={playbackNoticeKey}
       onLoadMore={loadMore}
-      onRefresh={() => {
-        void onRefreshChannel();
-        refresh();
-      }}
+      onRefresh={handleRefresh}
       onRetry={retry}
-      renderRow={({ index, isLast, row: entry }) => (
-        <HomeFeedRow
-          isLast={isLast}
-          mediaType="clips"
-          onPlayPress={() => {
-            playEntry(entry);
-          }}
-          onPress={() => {
-            playEntry(entry);
-          }}
-          onQueuePress={(queueRow, position) => {
-            runQueueAction(queueRow, 'clips', position);
-          }}
-          row={entry.row}
-          showChannelContext={false}
-          testID={`podcast-soundbite-row-${index}`}
-        />
-      )}
+      renderRow={renderRow}
       rows={visibleEntries}
       testID="podcast-detail-soundbite-list"
     />

@@ -28,7 +28,6 @@ const BASE_ORM_COMMANDS = [
   'scheduledJobsRunDue',
   'notificationsPlatformPurge',
   'archiveAll',
-  'reencryptAddByRSSCredentials',
   'devSeedLocalUserContent',
   'devStatsSeedSimulatedAggregated',
   'statsUpdateAggregated',
@@ -42,6 +41,7 @@ const BASE_ONLY_COMMANDS = ['podcastIndexDeadFeedsDeleteCache'] as const;
 const BASE_PODCAST_INDEX_COMMANDS = [
   'podcastIndexTrendingPodcastsGet',
   'podcastIndexValueUpdateAll',
+  'devDiscoverArtistPublisherFeeds',
 ] as const;
 
 const BASE_ORM_PODCAST_INDEX_COMMANDS = ['podcastIndexDeadFeedsFlagAndMerge'] as const;
@@ -69,6 +69,8 @@ const BASE_ORM_IMAGE_SHRINK_COMMANDS = [
 
 const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = [
   'parserRSSParseFeed',
+  'devParserRSSParseArtistPublisherFeeds',
+  'devParserRSSParseMusicMediumFeeds',
   'devParserRSSParsePodcasting20Feeds',
   'devParserRSSParseTrendingFeeds',
   'seedEmbedDemoShowcaseFeeds',

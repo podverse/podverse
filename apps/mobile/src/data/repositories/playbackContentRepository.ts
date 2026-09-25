@@ -18,11 +18,38 @@ import type { MobileAuthRequestContext } from './types';
 export const playbackContentRepository = {
   getItemByIdText: async (context: MobileAuthRequestContext, idText: string): Promise<DTOItem> => {
     const stored = await channelItemsRepository.getByIdText(idText);
-    if (stored !== null) {
+    // A channel-list cache omits item_values. Playback reads that array to decide whether
+    // value-for-value is available, so a missing array is filled from the single-item request.
+    if (stored !== null && Array.isArray(stored.item_values)) {
       return stored;
     }
 
-    return requestWithMobileAuthRefresh(context, async (api) => api.reqItemGetByIdOrIdText(idText));
+    try {
+      return await requestWithMobileAuthRefresh(context, async (api) =>
+        api.reqItemGetByIdOrIdText(idText)
+      );
+    } catch (error) {
+      if (stored !== null) {
+        return stored;
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Queue and list copies omit `item_values`. Playback still needs that array to show
+   * value-for-value, so a copy that never loaded it is replaced with the single-item payload.
+   * A present array, including an empty one, is already an answer and is left alone.
+   */
+  ensureItemValues: async (context: MobileAuthRequestContext, item: DTOItem): Promise<DTOItem> => {
+    if (Array.isArray(item.item_values)) {
+      return item;
+    }
+    try {
+      return await playbackContentRepository.getItemByIdText(context, item.id_text);
+    } catch {
+      return item;
+    }
   },
 
   getClipByIdText: async (context: MobileAuthRequestContext, idText: string): Promise<DTOClip> => {

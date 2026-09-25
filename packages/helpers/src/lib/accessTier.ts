@@ -29,6 +29,7 @@ export type GatedFeature =
   | 'clip_authoring'
   | 'directory_add_by_rss'
   | 'downloads'
+  | 'auto_download'
   | 'notifications'
   | 'offline_playback'
   | 'queue_history_local'
@@ -60,6 +61,8 @@ export const FEATURE_REQUIRED_TIER: Readonly<Record<GatedFeature, AccessTier>> =
   add_by_rss_add: 'membership',
   add_by_rss_refresh: 'membership',
   notifications: 'membership',
+  // Silent push / background wake for new episodes; settings stay device-local.
+  auto_download: 'membership',
   // Adding a feed to the public directory triggers server-side parsing. Membership tier is the
   // floor, not the whole answer: the server also applies per-tier capability flags a client cannot
   // predict (Trial cannot add to the directory), so a 403 is still possible after this allows.

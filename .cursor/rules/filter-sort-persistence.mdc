@@ -18,14 +18,17 @@ restore it on the next load, without the user re-applying it. This applies to **
 A user may want one sort for one podcast and a different sort for another. Persistence is keyed by
 the **specific instance**, not the route shape.
 
-| Correct                                    | Wrong                                              |
-| ------------------------------------------ | -------------------------------------------------- |
-| `/podcast/abc` and `/podcast/xyz` differ    | One remembered sort shared by all podcast pages    |
-| Each episode page keeps its own tab + sort  | One bucket for "episode detail"                    |
-| Global lists keyed by list (`podcasts`)     | —                                                  |
+| Correct                                         | Wrong                                              |
+| ----------------------------------------------- | -------------------------------------------------- |
+| `/podcast/abc` and `/podcast/xyz` differ         | One remembered sort shared by all podcast pages    |
+| Each episode page keeps its own clip sort        | One bucket for "episode detail"                    |
+| Home podcasts and Browse podcasts differ         | One list/grid for every "podcasts" list            |
+| Search / `/episodes` keyed by that list          | —                                                  |
 
-Global list routes (`/podcasts`, `/episodes`, `/clips`, …) have exactly one instance, so their list
-name **is** the scope. Detail routes must include the channel or item identifier.
+A list name is the scope only when that surface has exactly one instance (`/episodes`, Search).
+Home and Browse/directory of the same media type are two instances and need two list names —
+`podcasts` on Home must not share list/grid with `podcasts` on Browse (web: `/` vs `/podcasts`).
+Detail routes must include the channel or item identifier.
 
 ## Local to the device, never the server
 
@@ -65,8 +68,14 @@ drops all of it rather than one entry.
 | --------------------------------------------------------- | -------------------------------------------- |
 | Sort selection                                            | **Free-text filter or search input**         |
 | Structured filters — type, range, category, media type    | Page number / pagination offset              |
-| Tab selection on detail screens                           | Scroll position (separate concern)           |
-| View mode (grid / list)                                   | Transient loading or error state             |
+| Home and Browse media-type chips                          | **Section chips on channel / item detail**   |
+| View mode (grid / list)                                   | Scroll position (separate concern)           |
+| Episode clip list sort                                    | Transient loading or error state             |
+
+**Detail section chips are visit-local.** Podcast, album, artist, episode, track, and full-player
+detail always open on their documented default (Episodes, Tracks, Albums, Summary). A chip chosen
+during the visit stays until that screen is left; opening the entity again starts on the default.
+Home and Browse media-type chips stay remembered between visits.
 
 **Free text is deliberately excluded.** A restored text filter hides most of the list and reads as
 missing data rather than as a remembered preference. Text filters clear on reload and restart.
@@ -74,10 +83,15 @@ missing data rather than as a remembered preference. Text filters clear on reloa
 ## URL parameters win, and they update the stored preference
 
 On web, an explicit query parameter is a deliberate act — a shared link, a bookmark, a back
-navigation. It takes precedence over the stored preference **and overwrites it** for that instance,
-so a subsequent visit to the clean URL keeps what the user just saw.
+navigation. For **sort, range, and other remembered controls** it takes precedence over the stored
+preference **and overwrites it** for that instance, so a subsequent visit to the clean URL keeps
+what the user just saw.
 
-Resolution order on load:
+Detail **`type`** (section chip) is different: an explicit `?type=` selects that chip for the
+request only and is **not** written back. A later visit to the clean URL opens on the documented
+default.
+
+Resolution order on load (sort, range, and other remembered controls):
 
 1. Explicit URL parameter, if present — and write it to the store
 2. Stored preference for this instance

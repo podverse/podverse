@@ -9,6 +9,7 @@ import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
 import type { MobileAuthRequestContext } from '../data';
 import { queueRepository } from '../data';
 import { EMPTY_ABRIDGED_INDEX } from '../lib/addByRss/domain';
+import { withAddByRssPlaybackAuth } from './addByRssMediaAuth';
 
 /**
  * RN equivalent of web `useMediaPlayerResourceUpdate`: apply a playback-core load decision to the
@@ -57,7 +58,10 @@ export function useMediaPlayerResourceUpdate() {
       const decision =
         playbackDecisionOverride ?? resolvePlaybackLoadDecision(request, { abridged });
       const shouldAutoPlay = autoPlayOverride ?? decision.shouldAutoPlay;
-      const source = { initialSeekSeconds: decision.initialSeekSeconds, url };
+      const source = await withAddByRssPlaybackAuth(request.target, {
+        initialSeekSeconds: decision.initialSeekSeconds,
+        url,
+      });
       // Autoplay uses the atomic `loadAndStart` (2.25); session restore stays load-only (paused) so a
       // cold start never surprises with audio. Rate is applied right after the item is prepared.
       if (shouldAutoPlay) {

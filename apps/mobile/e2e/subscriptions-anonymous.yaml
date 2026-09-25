@@ -22,6 +22,11 @@ name: Anonymous Subscriptions Persist
     id: home-list-empty-search
 - assertVisible:
     id: home-list-empty-browse
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
+      TRAILING_ID: home-sort-button
 - assertVisible:
     id: home-sort-button
 - assertVisible:
@@ -52,14 +57,14 @@ name: Anonymous Subscriptions Persist
 - takeScreenshot: subscriptions-anonymous-detail-before
 
 # Header actions, signed out: share and the bell are unconditional, so a visitor can pass the show
-# on and can find out what following it would give them. The gear is absent because there is no
-# account to hold per-podcast settings.
+# on and can find out what following it would give them. The Settings chip is absent because there
+# is no account to hold per-podcast settings.
 - assertVisible:
     id: podcast-detail-share
 - assertVisible:
     id: podcast-detail-notifications-toggle
 - assertNotVisible:
-    id: podcast-detail-settings
+    id: podcast-detail-section-settings
 
 # Notifications need an account, so the bell explains that rather than failing silently or hiding.
 - tapOn:
@@ -82,9 +87,9 @@ name: Anonymous Subscriptions Persist
 # Flipping to "Unsubscribe" is the proof the local write landed; signed out there is no server
 # round trip behind it.
 - assertVisible: "Unsubscribe"
-# Subscribed but still signed out: the gear needs both, so it stays away.
+# Subscribed but still signed out: Settings needs an account, so the chip stays away.
 - assertNotVisible:
-    id: podcast-detail-settings
+    id: podcast-detail-section-settings
 - takeScreenshot: subscriptions-anonymous-detail-after
 
 # Home now has the subscription, so the empty state is gone and the filter has something to narrow.
@@ -206,7 +211,12 @@ name: Anonymous Subscriptions Persist
 - takeScreenshot: home-clips-login-required
 
 # Swipe left on the subscribed channel to reveal Unsubscribe. The row is gone when it completes,
-# so Home returns to the empty discovery state this flow opened on.
+# so Home returns to the empty discovery state this flow opened on. Clips sits at the trailing
+# edge, so the podcasts chip is off the leading edge until the row scrolls back.
+- runFlow:
+    file: shared/restore-chip-row-start.yaml
+    env:
+      CHIP_ROW_ID: home-media-type-selector
 - tapOn:
     id: home-media-type-podcasts
 - assertVisible:

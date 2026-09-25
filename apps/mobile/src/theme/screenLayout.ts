@@ -94,10 +94,10 @@ export function listFilterContentGap(spacing: ThemeTokens['spacing']): number {
 /**
  * Space below a `SectionChipRow` / `MediaTypeSelector` before the next block (filter, list, about
  * prose). Applied as the row's own `paddingBottom` so every chip surface shares one seam and
- * screens cannot omit it. Same token as `listFilterContentGap`.
+ * screens cannot omit it. Three-quarters of `listFilterContentGap`.
  */
 export function listChipRowBottomGap(spacing: ThemeTokens['spacing']): number {
-  return listFilterContentGap(spacing);
+  return Math.round(listFilterContentGap(spacing) * 0.75);
 }
 
 /**
@@ -127,4 +127,20 @@ export function screenBodyInsets(
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
   };
+}
+
+/**
+ * Space from the last body line (prose, field, date) to the first full-width CTA on a static
+ * form-style screen. Wider than in-body gaps so the actions read as a separate decision block.
+ */
+export function formActionsTopGap(spacing: ThemeTokens['spacing']): number {
+  return spacing.xl;
+}
+
+/**
+ * Space between stacked full-width CTAs on a static form-style screen. Tighter than the
+ * content→actions seam; wider than in-body prose gaps.
+ */
+export function formActionsGap(spacing: ThemeTokens['spacing']): number {
+  return spacing.lg;
 }

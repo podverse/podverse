@@ -1,5 +1,9 @@
 import type { SortPrefScope } from '@podverse/helpers';
-import { pickSortPrefToken } from '@podverse/helpers';
+import {
+  directoryListViewModeScope,
+  isChannelListViewModeType,
+  pickSortPrefToken,
+} from '@podverse/helpers';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 
@@ -9,9 +13,9 @@ import { readSortPref, subscribeSortPref, writeSortPref } from './sortPrefs';
 /**
  * Home's remembered list selections, held under the shared scope-keyed contract.
  *
- * Each media type is its own scope for sort and range, because ordering podcasts by title and
- * ordering episodes by title are separate opinions. Layout (list vs grid) is one Home-wide choice
- * shared by every media type that can show a grid.
+ * Each media type is its own scope for sort, range, and list vs grid. Ordering podcasts by title
+ * and ordering episodes by title are separate opinions; so is drawing artists as a grid while
+ * podcasts stay a list.
  */
 
 /**
@@ -66,7 +70,7 @@ export type HomeViewMode = (typeof HOME_VIEW_MODES)[number];
  */
 export const DEFAULT_HOME_VIEW_MODE: HomeViewMode = 'list';
 
-/** Scope for the one Home-wide list/grid preference. */
+/** Screen-wide list/grid value used when a media type has no viewMode of its own. */
 const HOME_VIEW_MODE_SCOPE: SortPrefScope = { kind: 'list', name: 'home-layout' };
 
 /** Every Home list offers the same three orders. */
@@ -81,7 +85,7 @@ export const isHomeSortableMediaType = (_mediaType: HomeMediaType): boolean => {
  * episode, track, or clip — those share covers across many rows.
  */
 export const isHomeViewModeMediaType = (mediaType: HomeMediaType): boolean => {
-  return mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums';
+  return isChannelListViewModeType(mediaType);
 };
 
 /**
@@ -111,20 +115,27 @@ export type HomeListPrefs = {
 };
 
 /**
- * The Home-wide list/grid choice.
+ * List vs grid for one Home media type.
  *
- * Falls back to a previously stored podcasts-scoped `viewMode` so upgrades keep the layout the
- * user already picked before layout became global.
+ * Read order: this type's stored `viewMode`, then `home-layout`, then the podcasts-scoped
+ * `viewMode`, then the default list.
  */
-export const readHomeViewMode = async (): Promise<HomeViewMode> => {
-  const stored = await readSortPref(HOME_VIEW_MODE_SCOPE);
-  if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
-    return stored.viewMode;
+export const readHomeViewMode = async (mediaType: HomeMediaType): Promise<HomeViewMode> => {
+  if (isChannelListViewModeType(mediaType)) {
+    const stored = await readSortPref(directoryListViewModeScope(mediaType));
+    if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
+      return stored.viewMode;
+    }
   }
 
-  const legacy = await readSortPref(buildScope('podcasts'));
-  if (legacy?.viewMode !== undefined && isHomeViewMode(legacy.viewMode)) {
-    return legacy.viewMode;
+  const homeLayout = await readSortPref(HOME_VIEW_MODE_SCOPE);
+  if (homeLayout?.viewMode !== undefined && isHomeViewMode(homeLayout.viewMode)) {
+    return homeLayout.viewMode;
+  }
+
+  const podcasts = await readSortPref(directoryListViewModeScope('podcasts'));
+  if (podcasts?.viewMode !== undefined && isHomeViewMode(podcasts.viewMode)) {
+    return podcasts.viewMode;
   }
 
   return DEFAULT_HOME_VIEW_MODE;
@@ -135,13 +146,10 @@ export const readHomeViewMode = async (): Promise<HomeViewMode> => {
  *
  * Read before the first data query rather than after it, so the list arrives in the order the user
  * left it in instead of appearing in the default order and rearranging itself a moment later.
- * `viewMode` is Home-wide; sort and range stay per media type.
  */
 export const readHomeListPrefs = async (mediaType: HomeMediaType): Promise<HomeListPrefs> => {
-  const [stored, viewMode] = await Promise.all([
-    readSortPref(buildScope(mediaType)),
-    readHomeViewMode(),
-  ]);
+  const stored = await readSortPref(buildScope(mediaType));
+  const viewMode = await readHomeViewMode(mediaType);
 
   const sort =
     stored?.sort !== undefined && isHomeSortOption(stored.sort) ? stored.sort : DEFAULT_HOME_SORT;
@@ -164,25 +172,27 @@ export const writeHomeRange = async (
   await writeSortPref(buildScope(mediaType), { range, sort: 'popularity' });
 };
 
-export const writeHomeViewMode = async (viewMode: HomeViewMode): Promise<void> => {
-  await writeSortPref(HOME_VIEW_MODE_SCOPE, { viewMode });
+export const writeHomeViewMode = async (
+  mediaType: HomeMediaType,
+  viewMode: HomeViewMode
+): Promise<void> => {
+  if (!isChannelListViewModeType(mediaType)) {
+    return;
+  }
+
+  await writeSortPref(directoryListViewModeScope(mediaType), { viewMode });
 };
 
 /**
- * Watch this media type's preferences and the Home-wide layout.
+ * Watch this media type's preferences.
  *
  * The sort screen writes the preference and Home reads it back, so neither has to hand the other a
- * value and the two cannot disagree about what is selected. Layout changes notify every Home list
- * watcher because one choice covers all eligible chips.
+ * value and the two cannot disagree about what is selected. `home-layout` is a read-only fallback
+ * for types without their own viewMode.
  */
 export const subscribeHomeListPrefs = (
   mediaType: HomeMediaType,
   listener: () => void
 ): (() => void) => {
-  const unsubscribeSort = subscribeSortPref(buildScope(mediaType), listener);
-  const unsubscribeView = subscribeSortPref(HOME_VIEW_MODE_SCOPE, listener);
-  return () => {
-    unsubscribeSort();
-    unsubscribeView();
-  };
+  return subscribeSortPref(buildScope(mediaType), listener);
 };

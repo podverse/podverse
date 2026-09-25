@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { ListRow } from '../primitives/ListRow';
+import { ToggleSwitch } from '../primitives/ToggleSwitch';
 
 /**
  * Offline Mode switch for More → Features. Sits at the top of the Features card; when on, the
@@ -44,7 +45,7 @@ export function OfflineModeFeaturesHeader() {
           testID="more-offline-mode-row"
           title={t('settings.offline_mode.title')}
           trailing={
-            <Switch
+            <ToggleSwitch
               accessibilityLabel={t('settings.offline_mode.title')}
               accessibilityRole="switch"
               accessibilityState={{ checked: enabled }}

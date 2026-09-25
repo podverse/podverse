@@ -6,6 +6,7 @@ import type { NotificationMessageType } from '@podverse/notifications';
 import type { Channel, ChannelImage } from '@podverse/orm';
 import { ItemService } from '@podverse/orm';
 
+import { limitNotificationsPerParse } from './notificationParseLimit.js';
 import type { ItemNotificationData } from './sharedNotificationHelpers.js';
 import {
   createInAppNotificationsForAccounts,
@@ -103,10 +104,9 @@ async function sendLiveItemNotificationsForStatus(
     return;
   }
 
-  // Sort items by start_time (for live items) or pub_date descending and limit to 3 most recent
-  const sortedItems = [...items]
-    .sort((a, b) => {
-      // Use live_item start_time if available, otherwise fall back to pub_date
+  // One notification for this status: latest live start time, then publish date.
+  const sortedItems = limitNotificationsPerParse(
+    [...items].sort((a, b) => {
       const dateA = a.live_item?.start_time
         ? new Date(a.live_item.start_time).getTime()
         : a.pub_date
@@ -119,9 +119,9 @@ async function sendLiveItemNotificationsForStatus(
           : 0;
       return dateB - dateA;
     })
-    .slice(0, 3);
+  );
 
-  // Prepare notification data for each item (limited to 3 most recent)
+  // Prepare notification data for the one live item this status may announce.
   const itemNotifications: ItemNotificationData[] = sortedItems.map((item) => ({
     itemTitle: item.title || '',
     channelTitle: channel.title || '',

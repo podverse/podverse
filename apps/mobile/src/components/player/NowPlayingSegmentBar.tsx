@@ -1,46 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
 
-import type { NowPlayingSegmentKind } from '../../playback/nowPlayingSegment';
-import { resolveNowPlayingSegment } from '../../playback/nowPlayingSegment';
+import {
+  nowPlayingSegmentLabelKey,
+  resolveNowPlayingSegment,
+} from '../../playback/nowPlayingSegment';
 import { usePlaybackProgress, usePlaybackSession } from '../../playback/PlaybackProvider';
+import { usePlaybackScrubPreview } from '../../playback/playbackScrubPreviewStore';
 import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
-import { typography } from '../../theme/typography';
+import {
+  BOTTOM_CHROME_STRIP_ICON_SIZE,
+  bottomChromeStripContainerLayout,
+  bottomChromeStripTextStyle,
+} from '../../theme/bottomChromeStrip';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
-
-const SEGMENT_ICON_SIZE = 14;
-
-const segmentIcon = (kind: NowPlayingSegmentKind): ComponentProps<typeof Ionicons>['name'] => {
-  switch (kind) {
-    case 'chapter':
-      return 'bookmark-outline';
-    case 'clip':
-      return 'cut-outline';
-    case 'official-clip':
-      return 'mic-outline';
-  }
-};
-
-const segmentLabelKey = (kind: NowPlayingSegmentKind): string => {
-  switch (kind) {
-    case 'chapter':
-      return 'media_player.now_playing_chapter';
-    case 'clip':
-      return 'media_player.now_playing_clip';
-    case 'official-clip':
-      return 'media_player.now_playing_official_clip';
-  }
-};
+import { nowPlayingSegmentLeadingIcon } from './nowPlayingSegmentIcon';
 
 /**
  * Slim strip naming the clip, official clip, or chapter playing inside the current episode.
  * Chapters come from {@link useNowPlayingChapters}; the playhead drives which chapter is named.
+ * Height and type match the other bottom-chrome strips ({@link bottomChromeStripContainerLayout}).
  */
 export function NowPlayingSegmentBar() {
   const { t } = useTranslation();
@@ -48,6 +32,7 @@ export function NowPlayingSegmentBar() {
   const { styles: themeStyles, tokens } = useTheme();
   const { activeTarget } = usePlaybackSession();
   const { positionSeconds } = usePlaybackProgress();
+  const previewPositionSeconds = usePlaybackScrubPreview();
   const { chapters } = useNowPlayingChapters();
 
   const styles = useMemo(
@@ -60,8 +45,7 @@ export function NowPlayingSegmentBar() {
           borderTopWidth: StyleSheet.hairlineWidth,
           flexDirection: 'row',
           gap: tokens.spacing.md,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.sm,
+          ...bottomChromeStripContainerLayout(tokens.spacing),
         },
         containerTablet: {
           alignSelf: 'center',
@@ -69,34 +53,50 @@ export function NowPlayingSegmentBar() {
           width: '100%',
         },
         label: {
-          ...typography.caption,
+          ...bottomChromeStripTextStyle(),
           color: themeStyles.textSecondary.color,
           flex: 1,
+        },
+        labelCentered: {
+          textAlign: 'center',
         },
       }),
     [themeStyles, tokens]
   );
 
-  const segment = resolveNowPlayingSegment({ chapters, positionSeconds, target: activeTarget });
+  const segment = resolveNowPlayingSegment({
+    chapters,
+    positionSeconds,
+    previewPositionSeconds,
+    target: activeTarget,
+  });
 
   if (segment === null) {
     return null;
   }
 
+  const iconName = nowPlayingSegmentLeadingIcon(segment.kind);
+
   return (
     <View
-      accessibilityLabel={`${t(segmentLabelKey(segment.kind))}: ${segment.title}`}
+      accessibilityLabel={`${t(nowPlayingSegmentLabelKey(segment.kind))}: ${segment.title}`}
       accessibilityRole="text"
       accessible
       style={[styles.container, isTablet ? styles.containerTablet : undefined]}
       testID="now-playing-segment-bar"
     >
-      <Ionicons
-        color={themeStyles.textSecondary.color}
-        name={segmentIcon(segment.kind)}
-        size={SEGMENT_ICON_SIZE}
-      />
-      <Text numberOfLines={1} style={styles.label} testID="now-playing-segment-title">
+      {iconName !== null ? (
+        <Ionicons
+          color={themeStyles.textSecondary.color}
+          name={iconName}
+          size={BOTTOM_CHROME_STRIP_ICON_SIZE}
+        />
+      ) : null}
+      <Text
+        numberOfLines={1}
+        style={[styles.label, iconName === null ? styles.labelCentered : null]}
+        testID="now-playing-segment-title"
+      >
         {segment.title}
       </Text>
     </View>

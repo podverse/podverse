@@ -1,5 +1,6 @@
 import { getErrorMessage } from '@podverse/helpers/error';
 
+import type { SyncEventLogDetails } from '../data/repositories/syncEventLog';
 import { classifySyncError, SyncJobTimeoutError } from './syncErrorClassification';
 import type { SyncJobKind } from './syncJobKinds';
 
@@ -37,6 +38,8 @@ export type SyncJob = {
   dedupeKey: string;
   kind: SyncJobKind;
   labelKey: string;
+  /** Context copied onto the error-log entry if this job fails (for example the feed URL). */
+  logDetails?: SyncEventLogDetails;
   priority?: SyncJobPriority;
   run: (context: SyncJobContext) => Promise<void>;
   timeoutMs?: number;
@@ -60,6 +63,7 @@ export type SyncQueueState = {
 };
 
 export type SyncJobFailure = {
+  details?: SyncEventLogDetails;
   /** Stable and untranslated, so it survives being read aloud to support. */
   errorCode: string;
   isOffline: boolean;
@@ -151,6 +155,7 @@ export const createSyncQueue = (options: CreateSyncQueueOptions = {}): SyncQueue
     }
 
     const failure: SyncJobFailure = {
+      details: job.logDetails,
       errorCode: code,
       isOffline,
       kind: job.kind,

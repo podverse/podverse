@@ -1,11 +1,11 @@
 import type { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
 import type { QueryParamsLiveItem } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { CorePodcastHeader } from '../../../../components/Core/Podcast/CorePodcastHeader';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { LivestreamHeader } from '../../../../components/Media/Livestream/LivestreamHeader';
-import { getBoostEligibilityForContent } from '../../../../utils/value/boostEligibility';
 import { LivestreamPageContextProvider } from './LivestreamPageContext';
 import { LivestreamPageList } from './LivestreamPageList';
 import { LivestreamPageListHeader } from './LivestreamPageListHeader';

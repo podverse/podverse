@@ -7,18 +7,17 @@ import type {
 } from '@podverse/helpers';
 import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
 import { CoreArtistHeader } from '../../../components/Core/Artist/CoreArtistHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { ArtistPageContextProvider } from './ArtistPageContext';
 import { ArtistPageList } from './ArtistPageList';
 import { ArtistPageListHeader } from './ArtistPageListHeader';
 import { ArtistPageSideContent } from './ArtistPageSideContent';
 
 interface ArtistPageClientProps {
-  hasExplicitUrlParams: boolean;
   initialQueryParams: QueryParamsChannelMusicArtist;
   ssrChannel: DTOChannel;
   ssrChannelsAdded: DTOChannel[];
@@ -30,7 +29,6 @@ interface ArtistPageClientProps {
 
 export function ArtistPageClient(props: ArtistPageClientProps) {
   const {
-    hasExplicitUrlParams,
     initialQueryParams,
     ssrChannel,
     ssrChannelsAdded,
@@ -49,11 +47,7 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
   });
 
   return (
-    <ArtistPageContextProvider
-      hasExplicitUrlParams={hasExplicitUrlParams}
-      initialQueryParams={initialQueryParams}
-      ssrChannelIdText={ssrChannel.id_text}
-    >
+    <ArtistPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
         <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
         <CoreArtistHeader channel={ssrChannel} />

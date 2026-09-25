@@ -43,8 +43,11 @@ Signed-out users get this too; see
 - Put schema, migrations, and DB client under `apps/mobile/src/data/db/`.
 - Put domain access under `apps/mobile/src/data/repositories/` (queue, account, add-by-rss, …).
 - Call repositories from screens/hooks; keep the same DTO shapes as web (`@podverse/helpers`).
-- Use **SecureStore** for auth tokens only; **AsyncStorage/MMKV** for tiny prefs (`uit`, media
-  type); **SQLite** for app entities; **filesystem** for downloaded media files.
+- Use **SecureStore** for secrets only — auth tokens, and add-by-RSS feed Basic Auth credentials
+  (`addByRssCredentialStore`, keyed by account + feed URL, with a non-secret SQLite index since
+  SecureStore cannot list keys); **AsyncStorage/MMKV** for tiny prefs (`uit`, media type);
+  **SQLite** for app entities; **filesystem** for downloaded media files. Never put a feed
+  username or password in SQLite, AsyncStorage, the error log, or a follow request.
 - After add-by-RSS parse + poll succeeds, run `@podverse/parser-mapping` and upsert into SQLite.
 - On queue/download/library-index mutations, call **native cache projection** hooks (stubs OK until
   Track 12). Car / watch / Auto read that cache — **not** SQLite. See decision doc §7.1.

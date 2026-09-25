@@ -2,7 +2,12 @@
 
 import React from 'react';
 
-import type { DTOItem, EpisodeByGuidResponse } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, EpisodeByGuidResponse } from '@podverse/helpers';
+import {
+  buildAlbumPath,
+  buildPodcastIndexFeedPath,
+  resolveUnaddedTrackParentAlbum,
+} from '@podverse/helpers';
 import { Divider } from '@podverse/ui';
 
 import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
@@ -15,13 +20,45 @@ import { ListTrackRowRemoteItemUnadded } from './ListTrackRowRemoteItemUnadded';
 import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 
 interface Params {
+  channelsAdded: DTOChannel[];
   itemsAdded: DTOItem[];
   itemsUnadded: NonNullable<EpisodeByGuidResponse['episode']>[];
   viewSelected: ViewSelectedOption;
   showChannelInfo?: boolean;
 }
 
+type VisibleUnaddedTrack = {
+  href: string;
+  item: NonNullable<EpisodeByGuidResponse['episode']>;
+};
+
+function visibleUnaddedTracks(
+  itemsUnadded: NonNullable<EpisodeByGuidResponse['episode']>[],
+  channelsAdded: DTOChannel[]
+): VisibleUnaddedTrack[] {
+  const visible: VisibleUnaddedTrack[] = [];
+  for (const item of itemsUnadded) {
+    const target = resolveUnaddedTrackParentAlbum({
+      albums: channelsAdded,
+      feedGuid: item.feedGuid,
+      feedId: item.feedId,
+    });
+    if (target === null) {
+      continue;
+    }
+    visible.push({
+      href:
+        target.kind === 'album'
+          ? buildAlbumPath(target.albumIdText)
+          : buildPodcastIndexFeedPath(target.podcastIndexId),
+      item,
+    });
+  }
+  return visible;
+}
+
 export function ListTrackRemoteItemNodes({
+  channelsAdded,
   itemsAdded,
   itemsUnadded,
   viewSelected,
@@ -31,6 +68,8 @@ export function ListTrackRemoteItemNodes({
   const itemsWithChannels = itemsAdded.filter(
     (item) => item.channel !== null && item.channel !== undefined
   );
+
+  const unaddedTracks = visibleUnaddedTracks(itemsUnadded, channelsAdded);
 
   if (viewSelected === 'rows') {
     return (
@@ -62,13 +101,14 @@ export function ListTrackRemoteItemNodes({
             </React.Fragment>
           );
         })}
-        {itemsUnadded.map((itemUnadded, idx) => (
-          <React.Fragment key={itemUnadded.guid}>
+        {unaddedTracks.map((unadded, idx) => (
+          <React.Fragment key={unadded.item.guid}>
             <ListTrackRowRemoteItemUnadded
-              itemUnadded={itemUnadded}
+              href={unadded.href}
+              itemUnadded={unadded.item}
               showChannelInfo={showChannelInfo}
             />
-            {idx < itemsUnadded.length - 1 && <Divider />}
+            {idx < unaddedTracks.length - 1 && <Divider />}
           </React.Fragment>
         ))}
       </div>
@@ -92,11 +132,12 @@ export function ListTrackRemoteItemNodes({
             />
           );
         })}
-        {itemsUnadded.map((itemUnadded) => {
+        {unaddedTracks.map((unadded) => {
           return (
             <ListTrackGridNodeUnadded
-              key={itemUnadded.guid}
-              itemUnadded={itemUnadded}
+              key={unadded.item.guid}
+              href={unadded.href}
+              itemUnadded={unadded.item}
               showChannelInfo={showChannelInfo}
             />
           );

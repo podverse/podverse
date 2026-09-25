@@ -165,6 +165,20 @@ export const subscribePlaybackPositionClock = (listener: Listener): (() => void)
   });
 };
 
+/** Duration only — re-renders when the media length changes, not on every playhead tick. */
+export const getPlaybackDurationSeconds = (): number => snapshot.durationSeconds;
+
+export const subscribePlaybackDuration = (listener: Listener): (() => void) => {
+  let lastDuration = getPlaybackDurationSeconds();
+  return subscribePlaybackProgress(() => {
+    const nextDuration = getPlaybackDurationSeconds();
+    if (nextDuration !== lastDuration) {
+      lastDuration = nextDuration;
+      listener();
+    }
+  });
+};
+
 export const getPlaybackProgressRatio = (): number => {
   if (snapshot.durationSeconds <= 0) {
     return 0;

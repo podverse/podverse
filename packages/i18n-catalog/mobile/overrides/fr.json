@@ -83,6 +83,7 @@
     }
   },
   "settings": {
+    "dependent_of": "",
     "groups": {
       "appearance": "",
       "appearance_description": "",
@@ -107,6 +108,9 @@
       "cache": "",
       "limit_label": "",
       "unlimited": "",
+      "auto_download_catch_up_label": "",
+      "auto_download_catch_up_description": "",
+      "auto_download_catch_up_count": "",
       "auto_free_heading": "",
       "auto_delete_on_limit": "",
       "auto_delete_on_limit_description": "",
@@ -142,8 +146,13 @@
     "playback": "",
     "playback_intro": "",
     "play_video": "",
+    "play_hls": "",
     "skip_next": "",
-    "complete_now_playing": ""
+    "complete_now_playing": "",
+    "quick_login": "",
+    "quick_login_popularity": "",
+    "quick_login_perf": "",
+    "session_ready": ""
   },
   "subscriptions": {
     "downloaded_only": ""
@@ -160,7 +169,9 @@
       "episodes": "",
       "rss_feeds": "",
       "seen_state": "",
-      "live_status": ""
+      "live_status": "",
+      "clips": "",
+      "home_feed": ""
     },
     "progress": "",
     "log": {
@@ -172,8 +183,10 @@
       "clear_confirm_title": "",
       "clear_confirm_body": "",
       "outcome_failure": "",
+      "outcome_reconciled": "",
       "outcome_skipped": "",
-      "outcome_success": ""
+      "outcome_success": "",
+      "directory_channel_gone": ""
     }
   },
   "media_player": {
@@ -181,5 +194,23 @@
   },
   "misc": {
     "clear": ""
+  },
+  "action_error": {
+    "playback_title": "",
+    "download_title": "",
+    "playback_a11y": "",
+    "download_a11y": "",
+    "report": "",
+    "playback_network": "",
+    "playback_unsupported": "",
+    "playback_file_not_found": "",
+    "playback_decode": "",
+    "playback_audio_session": "",
+    "playback_invalid_source": "",
+    "playback_unknown": "",
+    "download_no_storage": "",
+    "download_transfer_failed": "",
+    "download_file_missing": "",
+    "download_unknown": ""
   }
 }

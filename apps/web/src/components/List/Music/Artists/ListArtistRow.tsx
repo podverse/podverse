@@ -1,15 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
-import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
+import { buildDTOChannelImageLoadCandidates, formatDateAbbrev } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
+import { ARTIST_ROW_UPDATED_TEST_ID } from '../../../Common/Artist/types';
 
 import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
 
@@ -25,7 +26,8 @@ export const ListArtistRow: React.FC<Props> = ({ channel }) => {
     'lesser'
   );
   const tMedia = useTranslations('media');
-  const tMisc = useTranslations('misc');
+  const locale = useLocale();
+  const lastPubDate = channel.channel_about?.last_pub_date;
 
   return (
     <Link href={url} className={styles.link}>
@@ -39,11 +41,11 @@ export const ListArtistRow: React.FC<Props> = ({ channel }) => {
         />
         <div className={styles.content}>
           <h3 className={styles.title}>{channel.title}</h3>
-          {channel.channel_about?.last_pub_date && (
-            <span className={styles.lastPubDate}>
-              {channel.channel_about?.author || tMisc('untitled')}
+          {lastPubDate ? (
+            <span className={styles.lastPubDate} data-testid={ARTIST_ROW_UPDATED_TEST_ID}>
+              {formatDateAbbrev(lastPubDate, locale)}
             </span>
-          )}
+          ) : null}
         </div>
       </div>
     </Link>

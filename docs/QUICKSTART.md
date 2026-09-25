@@ -28,8 +28,14 @@ All commands are from the **monorepo root**. Use the named tabs in
 | **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"`               | No (exits; app stays) |
 | **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`        | No (exits; app stays) |
 
-Do **not** start **Mobile E2E API** or `mobile:dev:e2e` for this flow. Those point
-the app at the E2E API on `:4230`, not your local Docker Postgres.
+Do **not** start **Mobile E2E Metro** or **Mobile E2E API** for this flow. Those
+point the app at the E2E API on `:4230`, not your local Docker Postgres.
+
+To pause for Maestro: stop **Dev** and **Mobile Metro** (leave **Workers**). Then
+**Mobile E2E Metro**, **Mobile E2E API**, **Mobile E2E test-assets**, health, and
+**Mobile E2E iOS**. Do not reuse **Dev**’s `:2111`. From a cold start (nothing
+running): [HOW-TO-RUN.md § Cold start](/apps/mobile/e2e/HOW-TO-RUN.md#cold-start-nothing-running).
+Switch back: [HOW-TO-RUN.md § Pause local for Maestro](/apps/mobile/e2e/HOW-TO-RUN.md#pause-local-for-maestro).
 
 `npm run dev:workers` and the `workers` lane inside `dev:all:watch` only
 **recompile** `apps/workers`. They do **not** consume message-queue jobs.
@@ -271,6 +277,8 @@ Stop those containers with `make local_stop_parsers`.
 ```bash
 npm run workers:parse_podcasting20_feeds
 npm run workers:parse_trending_feeds -- -max 50
+npm run workers:parse_music_medium_feeds -- -max 50
+npm run workers:parse_artist_publisher_feeds -- -max 20
 npm run workers:seed_local_user_content
 npm run workers:seed_simulated_stats
 ```
@@ -278,6 +286,14 @@ npm run workers:seed_simulated_stats
 These write straight to Postgres (no running consumer required). Directory
 **search** in the app still needs the PI keys. **Add podcast** / add-by-RSS then
 need the **Workers** consumers from step 6.
+
+`workers:parse_music_medium_feeds` pulls Podcast Index feeds tagged
+`podcast:medium` music (`/podcasts/bymedium`) and parses them so **album** and
+track surfaces have rows. `workers:parse_artist_publisher_feeds` seeds **artist**
+channels (`publisher-music`) from a committed Podcast Index id list (no live
+crawl). Refresh that list with the maintainer-only
+`workers:discover_artist_publisher_feeds` when needed, then commit the updated
+file. Trending and the Podcasting 2.0 helper set are spoken-word only.
 
 `workers:seed_local_user_content` gives the operator login accounts and
 `dummy01`–`dummy06` overlapping follows, public AV clips (15–30s in the first
@@ -297,7 +313,8 @@ Generated local RSS (no PI keys):
 
 ## 7. Mobile Metro (leave running)
 
-Pick **one** command in **Mobile Metro**. Run only one Metro.
+Pick **one** command in **Mobile Metro**. Only one Metro on `:8081` — stop this
+tab before **Mobile E2E Metro**.
 
 **Simulator or emulator (this walkthrough):**
 
@@ -518,12 +535,14 @@ make local_setup
 Error: listen EADDRINUSE: address already in use :::3000
 ```
 
-**Solution**: Find and stop the process using the port:
+**Solution** (**Root**): stop whatever is still listening on the local API port
+(default `:3000`; uses `API_PORT` or `apps/api/.env` when set):
 
 ```bash
-lsof -i :3000
-kill -9 <PID>
+npm run dev:api:stop
 ```
+
+That is not `npm run mobile:e2e:api:stop` (E2E API on `:4230`).
 
 ### Database Not Initialized
 

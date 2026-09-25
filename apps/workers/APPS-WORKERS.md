@@ -58,6 +58,9 @@ npm run build -w apps/workers
 | `npm run dev_parser_rss_parse_podcasting20_feeds`         | Parse fixed Podcasting 2.0 helper feeds to DB                                        |
 | `npm run parser_rss_parse_feed`                           | Parse single feed by `podcast_index_id` (`-p`)                                       |
 | `npm run dev_parser_rss_parse_trending_feeds`             | Trending PI feeds → parse/save to DB (default 50, cap 1000)                          |
+| `npm run dev_parser_rss_parse_music_medium_feeds`         | Music-medium PI feeds → parse/save to DB (default 20, cap 1000)                      |
+| `npm run dev_parser_rss_parse_artist_publisher_feeds`     | Committed artist publisher-music PI feeds → parse/save to DB                         |
+| `npm run dev_discover_artist_publisher_feeds`             | Maintainer: crawl PI for artist feeds and rewrite committed list (default -max 50)   |
 | `npm run podcast_index_trending_podcasts_get`             | Get trending podcasts (list only)                                                    |
 | `npm run podcast_index_value_update_all`                  | Update all value blocks                                                              |
 | `npm run scheduled_jobs_run_due`                          | Run due rows from `scheduled_job` (`-dry-run`, `-limit N`)                           |
@@ -78,13 +81,24 @@ live-item listener). It does not start crons, image shrink, or the DLQ
 consumer. `npm run dev:workers` only recompiles. Full walkthrough:
 [QUICKSTART.md](/docs/QUICKSTART.md).
 
-**Trending → DB (dev seed):** from the monorepo root, after a workers build, you can also use the root script (passes CLI args after `--`):
+**Trending / music → DB (dev seed):** from the monorepo root, after a workers
+build, you can also use the root script (passes CLI args after `--`):
 
 ```bash
 npm run workers:parse_podcasting20_feeds
 npm run workers:parse_podcasting20_feeds -- -f
 npm run workers:parse_trending_feeds
 npm run workers:parse_trending_feeds -- -max 100
+npm run workers:parse_music_medium_feeds
+npm run workers:parse_music_medium_feeds -- -max 20
+npm run workers:parse_artist_publisher_feeds
+npm run workers:parse_artist_publisher_feeds -- -max 10
+```
+
+Maintainer-only (refresh the committed artist list, then commit the file):
+
+```bash
+npm run workers:discover_artist_publisher_feeds -- -max 50
 ```
 
 Or from the workers package:
@@ -94,6 +108,10 @@ npm run dev_parser_rss_parse_podcasting20_feeds -w apps/workers
 npm run dev_parser_rss_parse_podcasting20_feeds -w apps/workers -- -f
 npm run dev_parser_rss_parse_trending_feeds -w apps/workers
 npm run dev_parser_rss_parse_trending_feeds -w apps/workers -- -max 100
+npm run dev_parser_rss_parse_music_medium_feeds -w apps/workers
+npm run dev_parser_rss_parse_music_medium_feeds -w apps/workers -- -max 20
+npm run dev_parser_rss_parse_artist_publisher_feeds -w apps/workers
+npm run dev_discover_artist_publisher_feeds -w apps/workers -- -max 50
 ```
 
 Or from the workers directory:

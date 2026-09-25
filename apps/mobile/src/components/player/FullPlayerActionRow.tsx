@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { useTheme } from '../../theme/useTheme';
 import { HeaderBarAction } from '../screen/HeaderBarAction';
 import { HeaderBarChrome } from '../screen/HeaderBarChrome';
 
@@ -11,9 +12,11 @@ type FullPlayerActionRowProps = {
   onAddToPlaylist: () => void;
   onClose: () => void;
   onCreateClip: () => void;
+  onOpenBoost: () => void;
   onOpenQueue: () => void;
   onOpenV4v: () => void;
   onShare: () => void;
+  showBoost: boolean;
   showV4v: boolean;
 };
 
@@ -23,12 +26,15 @@ export function FullPlayerActionRow({
   onAddToPlaylist,
   onClose,
   onCreateClip,
+  onOpenBoost,
   onOpenQueue,
   onOpenV4v,
   onShare,
+  showBoost,
   showV4v,
 }: FullPlayerActionRowProps) {
   const { t } = useTranslation();
+  const { tokens } = useTheme();
 
   const styles = useMemo(
     () =>
@@ -49,6 +55,15 @@ export function FullPlayerActionRow({
       onBack={onClose}
       right={
         <View style={styles.actions}>
+          {showBoost ? (
+            <HeaderBarAction
+              accessibilityLabel={t('value.boost')}
+              icon="cash-outline"
+              iconColor={tokens.text.warning}
+              onPress={onOpenBoost}
+              testID="full-player-boost"
+            />
+          ) : null}
           <HeaderBarAction
             accessibilityLabel={t('features.clip.create_clip')}
             icon="cut-outline"

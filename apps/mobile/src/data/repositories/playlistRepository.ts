@@ -39,6 +39,12 @@ import type { MobileAuthRequestContext } from './types';
  */
 
 const PLAYLIST_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * Advances when playlist data is cleared. A response that started under an older generation
+ * belongs to a session that has ended, so its write is dropped.
+ */
+let playlistCacheGeneration = 0;
 const PLAYLIST_PAGE_LIMIT = 20;
 const RESOURCE_PAGE_LIMIT = 20;
 
@@ -206,9 +212,10 @@ const playlistResourceFromRow = (
 
 const upsertPlaylists = async (
   playlists: DTOPlaylist[],
-  updates: { markFollowed?: boolean; markOwned?: boolean }
+  updates: { markFollowed?: boolean; markOwned?: boolean },
+  generation: number
 ): Promise<void> => {
-  if (playlists.length === 0) {
+  if (generation !== playlistCacheGeneration || playlists.length === 0) {
     return;
   }
 
@@ -299,8 +306,12 @@ const upsertPlaylists = async (
 
 const replacePlaylistResources = async (
   playlistIdText: string,
-  resources: DTOPlaylistResource[]
+  resources: DTOPlaylistResource[],
+  generation: number
 ): Promise<void> => {
+  if (generation !== playlistCacheGeneration) {
+    return;
+  }
   await getDb().transaction(async (transaction) => {
     await transaction
       .delete(schema.playlistResource)
@@ -330,9 +341,10 @@ const replacePlaylistResources = async (
 
 const upsertPlaylistResources = async (
   playlistIdText: string,
-  resources: DTOPlaylistResource[]
+  resources: DTOPlaylistResource[],
+  generation: number
 ): Promise<void> => {
-  if (resources.length === 0) {
+  if (generation !== playlistCacheGeneration || resources.length === 0) {
     return;
   }
   const updatedAt = Date.now();
@@ -393,7 +405,8 @@ const listResponseFromCache = async (
 const fetchRemoteList = async (
   context: MobileAuthRequestContext,
   kind: PlaylistListKind,
-  params: PlaylistListParams
+  params: PlaylistListParams,
+  generation: number
 ): Promise<ApiListResponse<DTOPlaylist>> => {
   const response = await requestWithMobileAuthRefresh(context, async (api) =>
     api.reqPlaylistGetMany({
@@ -404,23 +417,32 @@ const fetchRemoteList = async (
       range: params.range,
     })
   );
-  await upsertPlaylists(response.data, {
-    markOwned: kind === 'owned' ? true : undefined,
-    markFollowed: kind === 'followed' ? true : undefined,
-  });
-  await writeSyncWatermark(playlistListWatermarkKey(kind), Date.now());
+  await upsertPlaylists(
+    response.data,
+    {
+      markOwned: kind === 'owned' ? true : undefined,
+      markFollowed: kind === 'followed' ? true : undefined,
+    },
+    generation
+  );
+  if (generation === playlistCacheGeneration) {
+    await writeSyncWatermark(playlistListWatermarkKey(kind), Date.now());
+  }
   return response;
 };
 
 const fetchRemotePlaylistByIdText = async (
   context: MobileAuthRequestContext,
-  playlistIdText: string
+  playlistIdText: string,
+  generation: number
 ): Promise<DTOPlaylist> => {
   const playlist = await requestWithMobileAuthRefresh(context, async (api) =>
     api.reqPlaylistGet(playlistIdText)
   );
-  await upsertPlaylists([playlist], {});
-  await writeSyncWatermark(playlistDetailWatermarkKey(playlistIdText), Date.now());
+  await upsertPlaylists([playlist], {}, generation);
+  if (generation === playlistCacheGeneration) {
+    await writeSyncWatermark(playlistDetailWatermarkKey(playlistIdText), Date.now());
+  }
   return playlist;
 };
 
@@ -441,28 +463,44 @@ const readPlaylistResourcesCached = async (
 
 const fetchAndReplaceResourcesPrivateAll = async (
   context: MobileAuthRequestContext,
-  playlistIdText: string
+  playlistIdText: string,
+  generation: number
 ): Promise<DTOPlaylistResource[]> => {
   const resources = await requestWithMobileAuthRefresh(context, async (api) =>
     api.reqPlaylistResourceGetAllByPlaylistIdTextPrivate(playlistIdText)
   );
-  await replacePlaylistResources(playlistIdText, resources);
-  const now = Date.now();
-  await Promise.all([
-    writeSyncWatermark(playlistResourceAllWatermarkKey(playlistIdText), now),
-    writeSyncWatermark(playlistResourcePageWatermarkKey(playlistIdText, 1), now),
-  ]);
+  await replacePlaylistResources(playlistIdText, resources, generation);
+  if (generation === playlistCacheGeneration) {
+    const now = Date.now();
+    await Promise.all([
+      writeSyncWatermark(playlistResourceAllWatermarkKey(playlistIdText), now),
+      writeSyncWatermark(playlistResourcePageWatermarkKey(playlistIdText, 1), now),
+    ]);
+  }
   return resources;
 };
 
-const updateFollowState = async (playlistIdText: string, isFollowed: boolean): Promise<void> => {
+const updateFollowState = async (
+  playlistIdText: string,
+  isFollowed: boolean,
+  generation: number
+): Promise<void> => {
+  if (generation !== playlistCacheGeneration) {
+    return;
+  }
   await getDb()
     .update(schema.playlist)
     .set({ isFollowed: isFollowed ? 1 : 0, updatedAt: Date.now() })
     .where(eq(schema.playlist.idText, playlistIdText));
 };
 
-const removePlaylistIfUnownedAndUnfollowed = async (playlistIdText: string): Promise<void> => {
+const removePlaylistIfUnownedAndUnfollowed = async (
+  playlistIdText: string,
+  generation: number
+): Promise<void> => {
+  if (generation !== playlistCacheGeneration) {
+    return;
+  }
   const rows = await getDb()
     .select({
       isOwned: schema.playlist.isOwned,
@@ -494,15 +532,16 @@ export const playlistRepository = {
     params: PlaylistListParams,
     options: PlaylistListReadOptions = {}
   ): Promise<ApiListResponse<DTOPlaylist>> => {
+    const generation = playlistCacheGeneration;
     await initializeDatabase();
     if (options.refresh === true) {
-      return fetchRemoteList(context, 'owned', params);
+      return fetchRemoteList(context, 'owned', params, generation);
     }
     return (
       (await readThroughOrFetch<ApiListResponse<DTOPlaylist>>({
         readLocal: async () => listResponseFromCache('owned', params),
         isStale: async () => isWatermarkStale(playlistListWatermarkKey('owned'), PLAYLIST_TTL_MS),
-        fetchRemote: async () => fetchRemoteList(context, 'owned', params),
+        fetchRemote: async () => fetchRemoteList(context, 'owned', params, generation),
       })) ?? paginateList([], params.page, PLAYLIST_PAGE_LIMIT)
     );
   },
@@ -512,16 +551,17 @@ export const playlistRepository = {
     params: PlaylistListParams,
     options: PlaylistListReadOptions = {}
   ): Promise<ApiListResponse<DTOPlaylist>> => {
+    const generation = playlistCacheGeneration;
     await initializeDatabase();
     if (options.refresh === true) {
-      return fetchRemoteList(context, 'followed', params);
+      return fetchRemoteList(context, 'followed', params, generation);
     }
     return (
       (await readThroughOrFetch<ApiListResponse<DTOPlaylist>>({
         readLocal: async () => listResponseFromCache('followed', params),
         isStale: async () =>
           isWatermarkStale(playlistListWatermarkKey('followed'), PLAYLIST_TTL_MS),
-        fetchRemote: async () => fetchRemoteList(context, 'followed', params),
+        fetchRemote: async () => fetchRemoteList(context, 'followed', params, generation),
       })) ?? paginateList([], params.page, PLAYLIST_PAGE_LIMIT)
     );
   },
@@ -540,9 +580,10 @@ export const playlistRepository = {
     playlistIdText: string,
     options: PlaylistDetailReadOptions = {}
   ): Promise<DTOPlaylist> => {
+    const generation = playlistCacheGeneration;
     await initializeDatabase();
     if (options.refresh === true) {
-      return fetchRemotePlaylistByIdText(context, playlistIdText);
+      return fetchRemotePlaylistByIdText(context, playlistIdText, generation);
     }
 
     const localOrRemote = await readThroughOrFetch<DTOPlaylist>({
@@ -557,10 +598,10 @@ export const playlistRepository = {
       },
       isStale: async () =>
         isWatermarkStale(playlistDetailWatermarkKey(playlistIdText), PLAYLIST_TTL_MS),
-      fetchRemote: async () => fetchRemotePlaylistByIdText(context, playlistIdText),
+      fetchRemote: async () => fetchRemotePlaylistByIdText(context, playlistIdText, generation),
     });
     if (localOrRemote === null) {
-      return fetchRemotePlaylistByIdText(context, playlistIdText);
+      return fetchRemotePlaylistByIdText(context, playlistIdText, generation);
     }
     return localOrRemote;
   },
@@ -574,14 +615,17 @@ export const playlistRepository = {
       sharable_status_id: number;
     }
   ): Promise<DTOPlaylist> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await initializeDatabase();
     const playlist = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistCreate(params)
     );
-    await upsertPlaylists([playlist], { markOwned: true });
-    await writeSyncWatermark(playlistListWatermarkKey('owned'), Date.now());
-    await projectLibraryBrowseFromCache();
+    await upsertPlaylists([playlist], { markOwned: true }, generation);
+    if (generation === playlistCacheGeneration) {
+      await writeSyncWatermark(playlistListWatermarkKey('owned'), Date.now());
+      await projectLibraryBrowseFromCache();
+    }
     return playlist;
   },
 
@@ -594,22 +638,29 @@ export const playlistRepository = {
       sharable_status_id: number;
     }
   ): Promise<DTOPlaylist> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await initializeDatabase();
     const playlist = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistEdit(params)
     );
-    await upsertPlaylists([playlist], { markOwned: true });
-    await projectLibraryBrowseFromCache();
+    await upsertPlaylists([playlist], { markOwned: true }, generation);
+    if (generation === playlistCacheGeneration) {
+      await projectLibraryBrowseFromCache();
+    }
     return playlist;
   },
 
   delete: async (context: MobileAuthRequestContext, playlistIdText: string): Promise<void> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await initializeDatabase();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistDelete(playlistIdText)
     );
+    if (generation !== playlistCacheGeneration) {
+      return;
+    }
     await getDb().transaction(async (transaction) => {
       await transaction.delete(schema.playlist).where(eq(schema.playlist.idText, playlistIdText));
       await transaction
@@ -621,6 +672,7 @@ export const playlistRepository = {
   },
 
   follow: async (context: MobileAuthRequestContext, playlistIdText: string): Promise<void> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await initializeDatabase();
     await requestWithMobileAuthRefresh(context, async (api) =>
@@ -629,21 +681,26 @@ export const playlistRepository = {
     const playlist = await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistGet(playlistIdText)
     );
-    await upsertPlaylists([playlist], { markFollowed: true });
-    await writeSyncWatermark(playlistListWatermarkKey('followed'), Date.now());
-    await projectLibraryBrowseFromCache();
+    await upsertPlaylists([playlist], { markFollowed: true }, generation);
+    if (generation === playlistCacheGeneration) {
+      await writeSyncWatermark(playlistListWatermarkKey('followed'), Date.now());
+      await projectLibraryBrowseFromCache();
+    }
   },
 
   unfollow: async (context: MobileAuthRequestContext, playlistIdText: string): Promise<void> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await initializeDatabase();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqAccountUnfollowPlaylist({ playlist_id_text: playlistIdText })
     );
-    await updateFollowState(playlistIdText, false);
-    await removePlaylistIfUnownedAndUnfollowed(playlistIdText);
-    await writeSyncWatermark(playlistListWatermarkKey('followed'), Date.now());
-    await projectLibraryBrowseFromCache();
+    await updateFollowState(playlistIdText, false, generation);
+    await removePlaylistIfUnownedAndUnfollowed(playlistIdText, generation);
+    if (generation === playlistCacheGeneration) {
+      await writeSyncWatermark(playlistListWatermarkKey('followed'), Date.now());
+      await projectLibraryBrowseFromCache();
+    }
   },
 
   getResourcesPrivateAll: async (
@@ -651,9 +708,10 @@ export const playlistRepository = {
     playlistIdText: string,
     options: PlaylistResourceReadOptions = {}
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     await initializeDatabase();
     if (options.refresh === true) {
-      return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+      return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
     }
     return (
       (await readThroughOrFetch<DTOPlaylistResource[]>({
@@ -669,7 +727,8 @@ export const playlistRepository = {
         },
         isStale: async () =>
           isWatermarkStale(playlistResourceAllWatermarkKey(playlistIdText), PLAYLIST_TTL_MS),
-        fetchRemote: async () => fetchAndReplaceResourcesPrivateAll(context, playlistIdText),
+        fetchRemote: async () =>
+          fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation),
       })) ?? []
     );
   },
@@ -680,17 +739,20 @@ export const playlistRepository = {
     page: number,
     options: PlaylistResourceReadOptions = {}
   ): Promise<ApiListResponse<DTOPlaylistResource>> => {
+    const generation = playlistCacheGeneration;
     await initializeDatabase();
     const safePage = page > 0 ? page : 1;
     if (options.refresh === true) {
       const response = await requestWithMobileAuthRefresh(context, async (api) =>
         api.reqPlaylistResourceGetManyByPlaylistIdText(playlistIdText, { page: safePage })
       );
-      await upsertPlaylistResources(playlistIdText, response.data);
-      await writeSyncWatermark(
-        playlistResourcePageWatermarkKey(playlistIdText, safePage),
-        Date.now()
-      );
+      await upsertPlaylistResources(playlistIdText, response.data, generation);
+      if (generation === playlistCacheGeneration) {
+        await writeSyncWatermark(
+          playlistResourcePageWatermarkKey(playlistIdText, safePage),
+          Date.now()
+        );
+      }
       return response;
     }
     return (
@@ -715,11 +777,13 @@ export const playlistRepository = {
           const response = await requestWithMobileAuthRefresh(context, async (api) =>
             api.reqPlaylistResourceGetManyByPlaylistIdText(playlistIdText, { page: safePage })
           );
-          await upsertPlaylistResources(playlistIdText, response.data);
-          await writeSyncWatermark(
-            playlistResourcePageWatermarkKey(playlistIdText, safePage),
-            Date.now()
-          );
+          await upsertPlaylistResources(playlistIdText, response.data, generation);
+          if (generation === playlistCacheGeneration) {
+            await writeSyncWatermark(
+              playlistResourcePageWatermarkKey(playlistIdText, safePage),
+              Date.now()
+            );
+          }
           return response;
         },
       })) ?? paginateList([], safePage, RESOURCE_PAGE_LIMIT)
@@ -731,11 +795,12 @@ export const playlistRepository = {
     playlistIdText: string,
     itemIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemAddFirst(playlistIdText, itemIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addItemLast: async (
@@ -743,11 +808,12 @@ export const playlistRepository = {
     playlistIdText: string,
     itemIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemAddLast(playlistIdText, itemIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addItemBetween: async (
@@ -757,6 +823,7 @@ export const playlistRepository = {
     position1: number,
     position2: number
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemAddBetween(
@@ -765,7 +832,7 @@ export const playlistRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   deleteItem: async (
@@ -773,11 +840,12 @@ export const playlistRepository = {
     playlistIdText: string,
     itemIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemDelete(playlistIdText, itemIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addClipFirst: async (
@@ -785,11 +853,12 @@ export const playlistRepository = {
     playlistIdText: string,
     clipIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceClipAddFirst(playlistIdText, clipIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addClipLast: async (
@@ -797,11 +866,12 @@ export const playlistRepository = {
     playlistIdText: string,
     clipIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceClipAddLast(playlistIdText, clipIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addClipBetween: async (
@@ -811,6 +881,7 @@ export const playlistRepository = {
     position1: number,
     position2: number
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceClipAddBetween(
@@ -819,7 +890,7 @@ export const playlistRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   deleteClip: async (
@@ -827,11 +898,12 @@ export const playlistRepository = {
     playlistIdText: string,
     clipIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceClipDelete(playlistIdText, clipIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addSoundbiteFirst: async (
@@ -839,11 +911,12 @@ export const playlistRepository = {
     playlistIdText: string,
     soundbiteIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemSoundbiteAddFirst(playlistIdText, soundbiteIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addSoundbiteLast: async (
@@ -851,11 +924,12 @@ export const playlistRepository = {
     playlistIdText: string,
     soundbiteIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemSoundbiteAddLast(playlistIdText, soundbiteIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addSoundbiteBetween: async (
@@ -865,6 +939,7 @@ export const playlistRepository = {
     position1: number,
     position2: number
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemSoundbiteAddBetween(
@@ -873,7 +948,7 @@ export const playlistRepository = {
         toBetweenParams(position1, position2)
       )
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   deleteSoundbite: async (
@@ -881,11 +956,12 @@ export const playlistRepository = {
     playlistIdText: string,
     soundbiteIdText: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemSoundbiteDelete(playlistIdText, soundbiteIdText)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addAddByRssFirst: async (
@@ -893,13 +969,14 @@ export const playlistRepository = {
     playlistIdText: string,
     addByRssResourceData: AddByRSSResourceData
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemAddByRSSAddFirst(playlistIdText, {
         add_by_rss_resource_data: addByRssResourceData,
       })
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addAddByRssLast: async (
@@ -907,13 +984,14 @@ export const playlistRepository = {
     playlistIdText: string,
     addByRssResourceData: AddByRSSResourceData
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemAddByRSSAddLast(playlistIdText, {
         add_by_rss_resource_data: addByRssResourceData,
       })
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   addAddByRssBetween: async (
@@ -923,6 +1001,7 @@ export const playlistRepository = {
     position1: number,
     position2: number
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemAddByRSSAddBetween(playlistIdText, {
@@ -930,7 +1009,7 @@ export const playlistRepository = {
         ...toBetweenParams(position1, position2),
       })
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
   deleteAddByRss: async (
@@ -938,10 +1017,22 @@ export const playlistRepository = {
     playlistIdText: string,
     addByRssHashId: string
   ): Promise<DTOPlaylistResource[]> => {
+    const generation = playlistCacheGeneration;
     assertOnlineWrite();
     await requestWithMobileAuthRefresh(context, async (api) =>
       api.reqPlaylistResourceItemAddByRSSDelete(playlistIdText, addByRssHashId)
     );
-    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText);
+    return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
+  },
+
+  /** Drop every cached playlist and its resources, then refresh the car browse index. */
+  clearAll: async (): Promise<void> => {
+    playlistCacheGeneration += 1;
+    await initializeDatabase();
+    await getDb().transaction(async (transaction) => {
+      await transaction.delete(schema.playlist);
+      await transaction.delete(schema.playlistResource);
+    });
+    await projectLibraryBrowseFromCache();
   },
 };
