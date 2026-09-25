@@ -79,10 +79,10 @@ examples if needed. For the full checklist (including index.ts and new categorie
 
 ## Add-by-RSS
 
-Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Auth credentials stored per-feed in the database (`account_following_add_by_rss_channel`).
+Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) receives optional HTTP Basic Auth credentials in a sealed envelope on each queue message. Credentials are opened in memory for that fetch only and are never stored.
 
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md) for key-rotation procedure.
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key. Remove after running the re-encryption script.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Transit key used to open the AES-256-GCM envelope the API seals. Must be 64 hex characters (32 bytes) and match the API value. Generate with: `openssl rand -hex 32`. See [docs/features/ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md).
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. Envelopes that fail with the current key are retried with this one. Remove once messages sealed with the old key have expired (15 minutes).
 
 ## General Configuration (Base — every command)
 

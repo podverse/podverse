@@ -5,25 +5,37 @@ import { parseFeed } from 'podverse-partytime';
 import { DEFAULT_HTTP_TIMEOUT_MS, resolveParserMaxFeedBodyBytes, sleep } from '@podverse/helpers';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
+import type { CredentialsWithheldDecision } from './addByRSSRedirectAuth.js';
+import { buildCredentialScopedBeforeRedirect } from './addByRSSRedirectAuth.js';
 import { getRawFeedMd5Hash } from './hash/rawFeed.js';
 
-export type ParseRSSFeedForAddByRSSOptions = {
+export type AddByRSSConditionalCache = {
   feedHash?: string;
   etag?: string;
   lastModified?: string;
-  /** When provided, set Authorization: Basic on the feed request (for private add-by-RSS feeds). */
+};
+
+export type ParseRSSFeedForAddByRSSOptions = AddByRSSConditionalCache & {
+  /**
+   * When provided, set Authorization: Basic on the feed request (for private add-by-RSS feeds).
+   * The caller decides whether the feed URL itself is in scope; redirects are scoped here.
+   */
   basicAuth?: { username: string; password: string };
+  /** Permit credentials over plain http (local development and fixtures only). */
+  allowInsecureCredentials?: boolean;
+  /** Called when a redirect hop left credential scope and Authorization was removed. */
+  onCredentialsWithheld?: (decision: CredentialsWithheldDecision) => void;
 };
 
 export type ParseRSSFeedForAddByRSSResult =
   | {
       status: 'not_modified';
-      cache: ParseRSSFeedForAddByRSSOptions;
+      cache: AddByRSSConditionalCache;
     }
   | {
       status: 'parsed';
       parsedFeed: FeedObject;
-      cache: ParseRSSFeedForAddByRSSOptions & { feedHash: string };
+      cache: AddByRSSConditionalCache & { feedHash: string };
     }
   | {
       status: 'failed';
@@ -81,22 +93,24 @@ export const parseRSSFeedForAddByRSS = async (
   if (options.lastModified) {
     conditionalHeaders['If-Modified-Since'] = options.lastModified;
   }
-  if (
-    options.basicAuth?.username !== undefined &&
-    options.basicAuth?.username !== null &&
-    options.basicAuth?.password !== undefined &&
-    options.basicAuth?.password !== null
-  ) {
-    const encoded = Buffer.from(
-      `${options.basicAuth.username}:${options.basicAuth.password}`,
-      'utf8'
-    ).toString('base64');
+  const basicAuth = options.basicAuth;
+  const credentialsAttached = Boolean(basicAuth?.username && basicAuth.password);
+  if (basicAuth && credentialsAttached) {
+    const encoded = Buffer.from(`${basicAuth.username}:${basicAuth.password}`, 'utf8').toString(
+      'base64'
+    );
     conditionalHeaders['Authorization'] = `Basic ${encoded}`;
   }
 
   const response = await _requestWithHeaders<string>(canonicalUrl, {
     headers: conditionalHeaders,
     validateStatus: (status) => (status >= 200 && status < 300) || status === 304,
+    beforeRedirect: buildCredentialScopedBeforeRedirect({
+      feedUrl: canonicalUrl,
+      credentialsAttached,
+      allowInsecure: options.allowInsecureCredentials,
+      onCredentialsWithheld: options.onCredentialsWithheld,
+    }),
   });
 
   if (response.status === 304) {

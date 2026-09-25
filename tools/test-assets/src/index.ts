@@ -2,15 +2,22 @@ export { AssetGenerator } from './asset-generator.js';
 export { AssetServer } from './asset-server.js';
 
 export {
+  AUTHORIZATION_PROBE_PATH,
   BASIC_AUTH_BASE_URL,
+  BASIC_AUTH_OTHER_HOST_MEDIA_FEED_URL,
+  BASIC_AUTH_PUBLIC_MEDIA_FEED_URL,
+  BASIC_AUTH_PUBLIC_MEDIA_SUBDIR,
   BASIC_AUTH_SUBDIR,
   BASIC_AUTH_TEST_PASSWORD,
   BASIC_AUTH_TEST_USERNAME,
+  BASIC_AUTH_VARIANTS_SUBPATH,
   DEFAULT_ASSETS_BASE_URL,
   DEFAULT_BASIC_AUTH_FEED_URL,
   DEFAULT_TEST_FEED_URL,
   LIGHTHOUSE_CHANNEL_ID_FEED_1,
   LIGHTHOUSE_ITEM_ID_FEED_1,
+  OTHER_HOST_ASSETS_BASE_URL,
+  REDIRECT_OTHER_HOST_PREFIX,
 } from './constants.js';
 export { generateFeedAndAssets } from './generate-feed.js';
 export type { GenerateFeedAndAssetsOptions } from './generate-feed.js';

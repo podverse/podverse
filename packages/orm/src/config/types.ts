@@ -34,8 +34,11 @@ export type ORMConfig = {
   database: DatabaseConfig;
   log: LogConfig;
   defaults: DefaultsConfig;
-  /** 32-byte key (64 hex chars) for encrypting add-by-RSS Basic Auth credentials at rest. Required. */
+  /**
+   * Add-by-RSS transit key (64 hex chars). The ORM stores no credentials and does not read this;
+   * API and workers seal and open queue envelopes with it through `@podverse/helpers-backend`.
+   */
   addByRssCredentialsEncryptionKey?: string;
-  /** Optional: previous key (64 hex chars) for key rotation. When set, decryptCredentials will try this key if decryption with the current key fails, so existing ciphertext remains readable until re-encryption script has run. */
+  /** Previous transit key during rotation; see `addByRssCredentialsEncryptionKey`. */
   addByRssCredentialsEncryptionKeyOld?: string;
 };

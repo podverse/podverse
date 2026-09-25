@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ADD_BY_RSS_CREDENTIALS_REJECTED_CODE,
+  ADD_BY_RSS_CREDENTIALS_REQUIRED_CODE,
   ADD_BY_RSS_PARSE_FAILED_CODE,
   ADD_BY_RSS_PARSE_PENDING_CODE,
   ADD_BY_RSS_PAYLOAD_UNMAPPED_CODE,
@@ -54,6 +56,35 @@ describe('buildAddByRssParseFailureLog', () => {
     expect(buildAddByRssParseFailureLog(parseInput('parsed'))?.errorCode).toBe(
       ADD_BY_RSS_PAYLOAD_UNMAPPED_CODE
     );
+  });
+
+  it('names missing and rejected credentials and records what was sent', () => {
+    const required = buildAddByRssParseFailureLog({
+      ...parseInput('failed'),
+      result: {
+        credentialsState: 'not_provided',
+        failureReason: 'credentials_required',
+        mappedFeed: null,
+        serverError: null,
+        status: 'failed',
+      },
+    });
+    expect(required?.errorCode).toBe(ADD_BY_RSS_CREDENTIALS_REQUIRED_CODE);
+    expect(required?.details?.basic_auth).toBe('not_provided');
+    expect(required?.message).toBe('credentials_required');
+
+    const rejected = buildAddByRssParseFailureLog({
+      ...parseInput('failed'),
+      result: {
+        credentialsState: 'sent',
+        failureReason: 'credentials_rejected',
+        mappedFeed: null,
+        serverError: null,
+        status: 'failed',
+      },
+    });
+    expect(rejected?.errorCode).toBe(ADD_BY_RSS_CREDENTIALS_REJECTED_CODE);
+    expect(rejected?.details?.basic_auth).toBe('sent');
   });
 
   it('writes nothing for an unchanged feed', () => {

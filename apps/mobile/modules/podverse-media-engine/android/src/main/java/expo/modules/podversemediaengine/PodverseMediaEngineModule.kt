@@ -35,13 +35,14 @@ class PodverseMediaEngineModule : Module() {
 
     // --- Playback transport ---
 
-    AsyncFunction("load") { url: String, initialSeekSeconds: Double? ->
-      PodverseAudioEngine.load(reactContext(), url, initialSeekSeconds)
+    AsyncFunction("load") { url: String, initialSeekSeconds: Double?, basicAuth: MediaBasicAuthRecord? ->
+      PodverseAudioEngine.load(reactContext(), url, initialSeekSeconds, basicAuth?.toScopedBasicAuth())
     }
 
     // Atomic load + play. Used by the primary autoplay path.
-    AsyncFunction("loadAndStart") { url: String, initialSeekSeconds: Double? ->
-      PodverseAudioEngine.loadAndStart(reactContext(), url, initialSeekSeconds)
+    AsyncFunction("loadAndStart") { url: String, initialSeekSeconds: Double?, basicAuth: MediaBasicAuthRecord? ->
+      PodverseAudioEngine.loadAndStart(
+        reactContext(), url, initialSeekSeconds, basicAuth?.toScopedBasicAuth())
     }
 
     AsyncFunction("play") {

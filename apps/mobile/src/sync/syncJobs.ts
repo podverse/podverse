@@ -230,12 +230,18 @@ const createAddByRssRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority):
       return;
     }
 
+    // Local only, and needed whatever the membership: credentials must not sit in a stored URL.
+    await addByRssRepository.splitStoredUserinfo(account.id_text);
+
     const access = evaluateFeatureAccess('add_by_rss_refresh', deriveMembershipState(account));
     if (!access.allowed) {
       return;
     }
 
-    const tickets = await addByRssRepository.requestRefreshAll(deps.getAuthContext());
+    const tickets = await addByRssRepository.requestRefreshAll(
+      deps.getAuthContext(),
+      account.id_text
+    );
     context.enqueue(tickets.map((ticket) => createAddByRssParseJob(deps, priority, ticket)));
   });
 };

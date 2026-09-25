@@ -188,14 +188,6 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run mq_opml_import_run -w apps/workers -- -q opml-import',
   },
   {
-    name: 'reencryptAddByRSSCredentials',
-    label: 'ORM: re-encrypt Add-by-RSS credentials',
-    description: 'Re-encrypt stored Add-by-RSS credentials (maintenance / rotation).',
-    category: 'orm',
-    risk: 'normal',
-    example_cli: 'npm run reencrypt_add_by_rss_credentials -w apps/workers',
-  },
-  {
     name: 'parserRSSParseFeed',
     label: 'Parser: single feed by Podcast Index id',
     description: 'One-off: parse a single feed by -p (podcast_index_id).',

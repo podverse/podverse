@@ -737,8 +737,7 @@ export class ApiRequestService {
     feed_url: string;
     title?: string | null;
     image_url?: string | null;
-    basic_auth_username?: string | null;
-    basic_auth_password?: string | null;
+    requires_credentials?: boolean;
   }) {
     return reqAccountFollowAddByRSSChannel(this, params);
   }

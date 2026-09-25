@@ -17,6 +17,10 @@ export const ADD_BY_RSS_PARSE_FAILED_CODE = 'add_by_rss_parse_failed';
 export const ADD_BY_RSS_PARSE_PENDING_CODE = 'add_by_rss_parse_pending';
 /** The server said parsed, but the payload could not be read into episodes on this device. */
 export const ADD_BY_RSS_PAYLOAD_UNMAPPED_CODE = 'add_by_rss_payload_unmapped';
+/** The feed host asked for a username and password and none were sent. */
+export const ADD_BY_RSS_CREDENTIALS_REQUIRED_CODE = 'add_by_rss_credentials_required';
+/** The feed host refused the username and password that were sent. */
+export const ADD_BY_RSS_CREDENTIALS_REJECTED_CODE = 'add_by_rss_credentials_rejected';
 
 /** The worker records the feed host's HTTP client message, which names the status it answered. */
 const HOST_STATUS_PATTERN = /status code (\d{3})/i;
@@ -30,14 +34,23 @@ type ParseFailureInput = {
   jobKind: string;
   occurredAt: number;
   requestId: string;
-  result: Pick<AddByRssPollResult, 'mappedFeed' | 'serverError' | 'status'>;
+  result: Pick<
+    AddByRssPollResult,
+    'credentialsState' | 'failureReason' | 'mappedFeed' | 'serverError' | 'status'
+  >;
 };
 
 const parseFailureCode = (
-  result: Pick<AddByRssPollResult, 'mappedFeed' | 'status'>
+  result: Pick<AddByRssPollResult, 'failureReason' | 'mappedFeed' | 'status'>
 ): string | null => {
   switch (result.status) {
     case 'failed':
+      if (result.failureReason === 'credentials_required') {
+        return ADD_BY_RSS_CREDENTIALS_REQUIRED_CODE;
+      }
+      if (result.failureReason === 'credentials_rejected') {
+        return ADD_BY_RSS_CREDENTIALS_REJECTED_CODE;
+      }
       return ADD_BY_RSS_PARSE_FAILED_CODE;
     case 'parsed':
       return result.mappedFeed === null ? ADD_BY_RSS_PAYLOAD_UNMAPPED_CODE : null;
@@ -64,6 +77,8 @@ export const buildAddByRssParseFailureLog = ({
 
   return {
     details: {
+      // Whether credentials went with the feed request, or why not. Never the credentials.
+      basic_auth: result.credentialsState,
       feed_url: feedUrl,
       http_status: hostStatusFromServerError(result.serverError),
       parse_status: result.status,
@@ -71,7 +86,9 @@ export const buildAddByRssParseFailureLog = ({
     },
     errorCode,
     jobKind,
-    message: result.serverError,
+    // The worker's classified reason stands in when the host gave no message. Neither ever carries
+    // the username or password.
+    message: result.serverError ?? result.failureReason ?? null,
     occurredAt,
     outcome: 'failure',
   };

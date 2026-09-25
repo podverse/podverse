@@ -5,6 +5,7 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 
 import {
   buildPlaybackErrorLog,
+  PLAYBACK_CREDENTIALS_WITHHELD_OTHER_DOMAIN_CODE,
   PLAYBACK_LOAD_FAILED_CODE,
   playbackErrorLogCode,
   playbackErrorLogSignature,
@@ -128,6 +129,43 @@ describe('buildPlaybackErrorLog', () => {
       resource_kind: 'add-by-rss',
     });
     expect(entry.details?.source).toBeUndefined();
+  });
+
+  it('names the credential outcome when a protected add-by-RSS host refuses the file', () => {
+    const base = {
+      error: { code: 'item_failed', httpStatus: 401, kind: 'host-http' as const, message: 'x' },
+      isLocalFile: false,
+      mediaUrl: 'https://cdn.other.example/ep.mp3',
+      occurredAt: 1,
+      positionSeconds: null,
+      target: {
+        kind: 'add-by-rss' as const,
+        resourceData: { feed_url: 'https://host.example/feed.xml', id_text: 'abr1' },
+      },
+    };
+    const withheld = buildPlaybackErrorLog({
+      ...base,
+      credentialsState: 'withheld_other_domain',
+    });
+    expect(withheld.errorCode).toBe(PLAYBACK_CREDENTIALS_WITHHELD_OTHER_DOMAIN_CODE);
+    expect(withheld.details).toMatchObject({
+      basic_auth: 'withheld_other_domain',
+      feed_url: 'https://host.example/feed.xml',
+      http_status: '401',
+    });
+    expect(buildPlaybackErrorLog({ ...base, credentialsState: 'sent' }).errorCode).toBe(
+      'add_by_rss_credentials_rejected'
+    );
+    expect(buildPlaybackErrorLog({ ...base, credentialsState: 'not_stored' }).errorCode).toBe(
+      'add_by_rss_credentials_required'
+    );
+    const notFound = buildPlaybackErrorLog({
+      ...base,
+      credentialsState: 'withheld_other_domain',
+      error: { ...base.error, httpStatus: 404 },
+    });
+    expect(notFound.errorCode).toBe('http_404:item_failed');
+    expect(notFound.details?.basic_auth).toBe('withheld_other_domain');
   });
 });
 

@@ -46,7 +46,8 @@ alwaysApply: false
 - **Data layer (offline-first):** after Track 9b, screens/hooks **read through repositories** under
   `apps/mobile/src/data/` — do not call `ApiRequestService` / `req*` directly for product data.
   See [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
-  and **mobile-data-layer** skill. Storage: SecureStore = tokens; AsyncStorage = tiny prefs;
+  and **mobile-data-layer** skill. Storage: SecureStore = tokens and add-by-RSS feed
+  credentials; AsyncStorage = tiny prefs;
   SQLite = entities; filesystem = downloaded media.
 - **Progress and other high-frequency state:** a tap mutates an in-memory store before any await, and
   fine-grained ticks (bytes, position) get their own opt-in notification channel at ~2 Hz — never a

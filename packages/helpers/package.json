@@ -112,6 +112,7 @@
   "dependencies": {
     "date-fns": "^4.4.0",
     "he": "^1.2.0",
+    "tldts": "^7.4.15",
     "uuid": "^14.0.2"
   },
   "devDependencies": {

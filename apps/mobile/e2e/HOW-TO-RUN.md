@@ -222,6 +222,7 @@ Every phone `<area>` you can pass. Each line is one top-level file under
 
 ```bash
 npm run mobile:e2e:test -- --platform ios add-by-rss
+npm run mobile:e2e:test -- --platform ios add-by-rss-credentials
 npm run mobile:e2e:test -- --platform ios album
 npm run mobile:e2e:test -- --platform ios api-health
 npm run mobile:e2e:test -- --platform ios artist
@@ -272,6 +273,7 @@ npm run mobile:e2e:test -- --platform ios video-transition
 
 ```bash
 npm run mobile:e2e:test -- --platform android add-by-rss
+npm run mobile:e2e:test -- --platform android add-by-rss-credentials
 npm run mobile:e2e:test -- --platform android album
 npm run mobile:e2e:test -- --platform android api-health
 npm run mobile:e2e:test -- --platform android artist
@@ -460,12 +462,19 @@ After changing `PodverseVideoSurfaceView`, play the video item on an iOS simulat
 Android emulator, and a physical device and confirm live frames (not static artwork) with
 no reload or playhead jump on expand and collapse.
 
+`add-by-rss-credentials` adds the test-assets `/basic-auth/` feed with a username and password,
+signs out (which clears device-held credentials but keeps the feed), re-enters them from the
+**Needs username and password** section, then plays. The E2E API resolves parses to its fixture
+channel without fetching the feed, so the Basic challenge itself is checked by hand; see
+[TOOLS-TEST-ASSETS.md § Credential fixtures](/tools/test-assets/TOOLS-TEST-ASSETS.md#credential-fixtures).
+
 `hls-playback` uses **Play E2E HLS** on the same page (`testID=e2e-play-hls-item`). It plays
 the seeded VOD HLS playlist `e2e-hls-vod.m3u8` from `tools/test-assets/assets/e2e/hls/`. If those
 files are missing, regenerate E2E media (same command as the video fixture) and reseed.
 
 ```bash
 npm run mobile:e2e:test -- add-by-rss
+npm run mobile:e2e:test -- add-by-rss-credentials
 npm run mobile:e2e:test -- auto-queue-advance
 npm run mobile:e2e:test -- engine-audio-spike
 npm run mobile:e2e:test -- hls-playback

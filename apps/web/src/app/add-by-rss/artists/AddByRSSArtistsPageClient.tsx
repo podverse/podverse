@@ -18,6 +18,7 @@ import { dismissToast, showToast, showToastLoading } from '../../../components/T
 import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { useModals } from '../../../contexts/Modals';
+import type { AddByRSSParseOutcome } from '../../../utils/addByRSS/actions';
 import { applyAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import { runAddByRSSParseAll } from '../../../utils/addByRSS/parseAll';
 import {
@@ -162,13 +163,15 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
       feedUrl: string,
       parsedFeed: AddByRSSParsedFeed | undefined,
       status: AddByRSSFeedRecord['status'],
-      cache?: AddByRSSFeedRecord['cache']
+      cache?: AddByRSSFeedRecord['cache'],
+      outcome?: AddByRSSParseOutcome
     ) => {
       await applyAddByRSSParseStatus({
         feedUrl,
         parsedFeed,
         status,
         cache,
+        outcome,
       });
     },
     []
@@ -186,6 +189,7 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
     const runUpdates = async () => {
       const allFeeds = await getAllAddByRSSFeeds();
       const result = await runAddByRSSParseAll({
+        accountId: loggedInAccount.id_text,
         feeds: allFeeds,
         onQueued: async (feedUrl) => handleParseStatus(feedUrl, undefined, 'queued'),
         onStatusUpdate: async (feedUrl, statusResponse) =>
@@ -193,7 +197,8 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
             feedUrl,
             statusResponse.payload,
             statusResponse.status,
-            statusResponse.cache
+            statusResponse.cache,
+            statusResponse
           ),
       });
 

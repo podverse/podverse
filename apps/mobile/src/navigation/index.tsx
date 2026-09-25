@@ -83,6 +83,7 @@ import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
+import { AddByRssCredentialsScreen } from '../screens/rss/AddByRssCredentialsScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
@@ -150,6 +151,7 @@ function PlaceholderScreen({ testID, title }: PlaceholderScreenProps) {
 }
 
 export const HOME_STACK_ROUTES = {
+  AddByRssCredentials: 'AddByRssCredentials',
   AddByRssPodcastDetail: 'AddByRssPodcastDetail',
   AlbumDetail: 'AlbumDetail',
   ArtistDetail: 'ArtistDetail',
@@ -180,6 +182,7 @@ export const SEARCH_STACK_ROUTES = {
 } as const;
 
 export const LIBRARY_STACK_ROUTES = {
+  AddByRssCredentials: 'AddByRssCredentials',
   AddByRssRoot: 'AddByRssRoot',
   AlbumDetail: 'AlbumDetail',
   ArtistDetail: 'ArtistDetail',
@@ -407,6 +410,7 @@ export type ChannelBrowseStackParamList = {
 };
 
 export type HomeStackParamList = ChannelBrowseStackParamList & {
+  AddByRssCredentials: { feedIdText: string };
   AddByRssPodcastDetail: { feedIdText: string };
   HomeRoot: undefined;
 };
@@ -422,6 +426,7 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
 };
 
 export type LibraryStackParamList = {
+  AddByRssCredentials: { feedIdText: string };
   AddByRssRoot: undefined;
   AlbumDetail: AlbumDetailRouteParams;
   ArtistDetail: ArtistDetailRouteParams;
@@ -550,6 +555,11 @@ function HomeStackNavigator() {
         options={{ title: t('media.podcast.podcast') }}
       />
       <HomeStack.Screen
+        component={AddByRssCredentialsScreen}
+        name={HOME_STACK_ROUTES.AddByRssCredentials}
+        options={{ title: t('features.add_by_rss.credentials_page_title') }}
+      />
+      <HomeStack.Screen
         component={PodcastDetailScreen}
         name={HOME_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
@@ -663,6 +673,11 @@ function LibraryStackNavigator() {
         component={AddByRssRootScreen}
         name={LIBRARY_STACK_ROUTES.AddByRssRoot}
         options={{ title: t('features.add_by_rss.label') }}
+      />
+      <LibraryStack.Screen
+        component={AddByRssCredentialsScreen}
+        name={LIBRARY_STACK_ROUTES.AddByRssCredentials}
+        options={{ title: t('features.add_by_rss.credentials_page_title') }}
       />
       <LibraryStack.Screen
         component={PodcastDetailScreen}

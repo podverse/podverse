@@ -171,9 +171,6 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     removeRSSChannel = removeRSSChannelMock;
     hasFollowedAddByRSSChannel = hasFollowedAddByRSSChannelMock;
     getFollowedAddByRSSChannelCount = getFollowedAddByRSSChannelCountMock;
-    async getCredentialsForFeed(): Promise<{ username: string; password: string } | null> {
-      return null;
-    }
   }
 
   class MockAccountNotificationChannelService {
@@ -621,6 +618,10 @@ describe('account follows and notification routes', () => {
   // ─── Follow/Unfollow Add-by-RSS Channel ─────────────────────────────
 
   describe('POST /follow/add-by-rss-channel', () => {
+    beforeEach(() => {
+      addOrUpdateRSSChannelMock.mockClear();
+    });
+
     it('returns 201 when adding an RSS channel with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/follow/add-by-rss-channel`)
@@ -632,6 +633,53 @@ describe('account follows and notification routes', () => {
       expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(
         TEST_USER_ID,
         expect.objectContaining({ feed_url: 'https://example.com/feed.xml' })
+      );
+    });
+
+    it('drops basic_auth fields so no credential reaches storage', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/add-by-rss-channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({
+          feed_url: 'https://example.com/private.xml',
+          basic_auth_username: 'alice',
+          basic_auth_password: 'follow-secret',
+        });
+
+      expect(res.status).toBe(201);
+      expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(TEST_USER_ID, {
+        feed_url: 'https://example.com/private.xml',
+        title: undefined,
+        image_url: undefined,
+      });
+    });
+
+    it('strips userinfo from feed_url and flags the feed as requiring credentials', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/add-by-rss-channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ feed_url: 'https://alice:follow-secret@example.com/private.xml' });
+
+      expect(res.status).toBe(201);
+      expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(TEST_USER_ID, {
+        feed_url: 'https://example.com/private.xml',
+        title: undefined,
+        image_url: undefined,
+        requires_credentials: true,
+      });
+      expect(JSON.stringify(res.body)).not.toContain('follow-secret');
+    });
+
+    it('stores an explicit requires_credentials flag', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/add-by-rss-channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ feed_url: 'https://example.com/private.xml', requires_credentials: true });
+
+      expect(res.status).toBe(201);
+      expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(
+        TEST_USER_ID,
+        expect.objectContaining({ requires_credentials: true })
       );
     });
 

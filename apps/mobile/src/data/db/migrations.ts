@@ -328,6 +328,23 @@ export const MIGRATIONS: Migration[] = [
       `ALTER TABLE sync_event_log ADD COLUMN details_json TEXT;`,
     ],
   },
+  {
+    version: 20,
+    statements: [
+      // Whether a feed needs Basic Auth, and the last credential failure a parse reported. The
+      // username and password themselves live in SecureStore, never in SQLite.
+      `ALTER TABLE add_by_rss_feed ADD COLUMN requires_credentials INTEGER NOT NULL DEFAULT 0;`,
+      `ALTER TABLE add_by_rss_feed ADD COLUMN last_auth_failure TEXT;`,
+      // Non-secret index of which feeds hold SecureStore credentials per account. SecureStore
+      // cannot enumerate its keys, so sign-out and list partitioning read this table instead.
+      `CREATE TABLE IF NOT EXISTS add_by_rss_credential_index (
+        account_id_text TEXT NOT NULL,
+        feed_url TEXT NOT NULL,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (account_id_text, feed_url)
+      );`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

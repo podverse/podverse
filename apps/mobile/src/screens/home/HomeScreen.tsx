@@ -10,6 +10,8 @@ import { matchesTitleFilter } from '@podverse/helpers';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
+import type { AddByRssNeedsCredentialsItem } from '../../components/content/AddByRssNeedsCredentialsSection';
+import { AddByRssNeedsCredentialsSection } from '../../components/content/AddByRssNeedsCredentialsSection';
 import { ListFilterField, ListFilterHeader } from '../../components/form';
 import { FillList, SwipeActionRow, VerticalCenter } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
@@ -24,6 +26,7 @@ import {
 import { downloadManager } from '../../downloads/downloadManager';
 import { downloadStore } from '../../downloads/downloadStore';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import {
   isHomeClipsUnavailableOffline,
   isHomeDownloadedItemsOnly,
@@ -75,6 +78,7 @@ import type { HomeFeedRowData } from './homeFeedData';
 import {
   fetchDownloadedHomeFeedRows,
   fetchHomeFeedRows,
+  fetchNeedsCredentialsHomeFeeds,
   fetchUnsubscribedDownloadHomeRows,
   isHomeFeedStaleRead,
 } from './homeFeedData';
@@ -241,6 +245,9 @@ export function HomeScreen() {
   const [listPrefs, setListPrefs] = useState<HomeListPrefsState | null>(null);
   const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
   const [unsubscribedDownloadRows, setUnsubscribedDownloadRows] = useState<HomeFeedRowData[]>([]);
+  const [needsCredentialsFeeds, setNeedsCredentialsFeeds] = useState<
+    AddByRssNeedsCredentialsItem[]
+  >([]);
   const [hasPodcastSubscriptions, setHasPodcastSubscriptions] = useState<boolean>(false);
   const [filterTerm, setFilterTerm] = useState<string>(readHomeFilterTerm);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
@@ -421,6 +428,7 @@ export function HomeScreen() {
     setSelectedMediaType(mediaType);
     setFeedRows([]);
     setUnsubscribedDownloadRows([]);
+    setNeedsCredentialsFeeds([]);
     setFeedErrorKey(null);
     setHasCompletedFeedRead(false);
     void writePreferredMediaType(mediaType);
@@ -533,6 +541,7 @@ export function HomeScreen() {
           }
           setFeedRows([]);
           setUnsubscribedDownloadRows([]);
+          setNeedsCredentialsFeeds([]);
           setHasCompletedFeedRead(true);
         } else {
           const rows = await withHomeFeedReadBudget(
@@ -553,6 +562,14 @@ export function HomeScreen() {
           perfMark('home.rows.set', selectedMediaType);
           setFeedRows(rows);
           setHasCompletedFeedRead(true);
+          // A local read of a handful of rows; a failure only hides the section, never the list.
+          const needsCredentials = await fetchNeedsCredentialsHomeFeeds(selectedMediaType).catch(
+            (): AddByRssNeedsCredentialsItem[] => []
+          );
+          if (requestId !== feedRequestIdRef.current) {
+            return;
+          }
+          setNeedsCredentialsFeeds(needsCredentials);
           if (selectedMediaType === 'podcasts') {
             const unsubscribed = await withHomeFeedReadBudget(
               fetchUnsubscribedDownloadHomeRows(),
@@ -597,6 +614,7 @@ export function HomeScreen() {
         }
         setFeedRows([]);
         setUnsubscribedDownloadRows([]);
+        setNeedsCredentialsFeeds([]);
         setFeedErrorKey('errors.generic');
       } finally {
         if (homeFeedShowsRefreshControl(source)) {
@@ -802,6 +820,13 @@ export function HomeScreen() {
     navigation,
     showMarkAllSeen,
   ]);
+
+  const handleNeedsCredentialsPress = useCallback(
+    (feed: MobileAddByRSSFeedRecord) => {
+      navigation.navigate(HOME_STACK_ROUTES.AddByRssCredentials, { feedIdText: feed.idText });
+    },
+    [navigation]
+  );
 
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
@@ -1092,6 +1117,7 @@ export function HomeScreen() {
     !showClipsOfflineUnavailable &&
     showFeedRows &&
     feedRows.length === 0 &&
+    needsCredentialsFeeds.length === 0 &&
     (selectedMediaType !== 'podcasts' || unsubscribedDownloadRows.length === 0);
   const showNoFilterMatches = showFeedRows && feedRows.length > 0 && visibleRows.length === 0;
 
@@ -1262,6 +1288,14 @@ export function HomeScreen() {
             )}
           </View>
         ) : null}
+        {showFeedRows ? (
+          <AddByRssNeedsCredentialsSection
+            items={needsCredentialsFeeds}
+            onPressFeed={handleNeedsCredentialsPress}
+            showDivider={feedRows.length > 0 || unsubscribedDownloadCount > 0}
+            testIDPrefix="home"
+          />
+        ) : null}
         {playbackNoticeKey !== null ? (
           <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
         ) : null}
@@ -1270,10 +1304,12 @@ export function HomeScreen() {
     [
       feedRows.length,
       handleDeleteUnsubscribedDownloads,
+      handleNeedsCredentialsPress,
       handlePodcastPlayPress,
       handlePodcastQueuePress,
       handleRowPress,
       isGridView,
+      needsCredentialsFeeds,
       playbackNoticeKey,
       selectedMediaType,
       showFeedRows,

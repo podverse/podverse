@@ -28,7 +28,6 @@ const BASE_ORM_COMMANDS = [
   'scheduledJobsRunDue',
   'notificationsPlatformPurge',
   'archiveAll',
-  'reencryptAddByRSSCredentials',
   'devSeedLocalUserContent',
   'devStatsSeedSimulatedAggregated',
   'statsUpdateAggregated',

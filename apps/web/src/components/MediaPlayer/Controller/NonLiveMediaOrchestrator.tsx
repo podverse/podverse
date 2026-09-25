@@ -25,6 +25,7 @@ import { useEmbedPlaybackGuardrails } from '../../../contexts/EmbedPlaybackMode'
 import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useRegisterMediaPlayerControlsBridge } from '../../../contexts/MediaPlayerControls';
+import type { AddByRSSMediaFailureParams } from '../../../hooks/useAddByRSSMediaFailureNotice';
 import type { MediaElementBridge, MediaElementSource } from '../../../hooks/useMediaElementBridge';
 import { useMediaElementBridge } from '../../../hooks/useMediaElementBridge';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
@@ -51,6 +52,9 @@ import {
 } from '../../../utils/statsTracking/statsTracking';
 import { MediaElement } from '../MediaElement/MediaElement';
 import { toFileMediaElementSource } from '../MediaElement/mediaElementSourceFromTarget';
+
+/** `MediaError.MEDIA_ERR_ABORTED`: the load was cancelled (source switch), not a failure. */
+const MEDIA_ERR_ABORTED = 1;
 
 export interface NonLiveMediaOrchestratorProps {
   mediaType: 'audio' | 'video';
@@ -100,6 +104,11 @@ export interface NonLiveMediaOrchestratorProps {
   onAddByRSSEnded?: (positionSeconds: number) => Promise<void>;
   /** When add-by-RSS playback ends and queue is empty, try to play next from list context. Returns true if playback started. */
   onAddByRSSPlayNext?: () => Promise<boolean>;
+  /**
+   * When an add-by-RSS media load fails. Media always loads the plain URL, so a
+   * password-protected feed's media fails here rather than prompting for credentials.
+   */
+  onAddByRSSMediaError?: (params: AddByRSSMediaFailureParams) => void;
   clearNowPlaying: () => void;
   /** Set to `fresh_transition` before skip/ended queue loads so music advances start at 0. */
   pendingMusicQueueLoadIntentRef: React.RefObject<MusicItemPlaybackIntent | null>;
@@ -156,6 +165,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     onAddByRSSPositionSave,
     onAddByRSSEnded,
     onAddByRSSPlayNext,
+    onAddByRSSMediaError,
     clearNowPlaying,
     pendingMusicQueueLoadIntentRef,
     onVideoAspectRatioChange,
@@ -181,6 +191,10 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
   useEffect(() => {
     onAddByRSSPlayNextRef.current = onAddByRSSPlayNext;
   }, [onAddByRSSPlayNext]);
+  const onAddByRSSMediaErrorRef = useRef(onAddByRSSMediaError);
+  useEffect(() => {
+    onAddByRSSMediaErrorRef.current = onAddByRSSMediaError;
+  }, [onAddByRSSMediaError]);
   const clearNowPlayingRef = useRef(clearNowPlaying);
   useEffect(() => {
     clearNowPlayingRef.current = clearNowPlaying;
@@ -296,6 +310,19 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
   }, [seekInternally, setMPIsPlaying, setMPShouldPlay, setMPCurrentTime]);
 
   const bridge = useMediaElementBridge(mediaRef, {
+    onError(error) {
+      const addByRSS = mpAddByRSSRef.current;
+      if (!addByRSS || !error || error.code === MEDIA_ERR_ABORTED) {
+        return;
+      }
+      const channelIdText = addByRSS.resourceData.channel_id_text;
+      onAddByRSSMediaErrorRef.current?.({
+        channelIdText: typeof channelIdText === 'string' ? channelIdText : null,
+        itemIdText: addByRSS.idText,
+        mediaUrl: mediaRef.current?.currentSrc || mediaRef.current?.src || null,
+        mediaErrorCode: error.code,
+      });
+    },
     onLoadedMetadata(newDuration) {
       if (!mediaRef.current) {
         return;

@@ -7,8 +7,8 @@ type ReqAccountFollowAddByRSSChannelParams = {
   feed_url: string;
   title?: string | null;
   image_url?: string | null;
-  basic_auth_username?: string | null;
-  basic_auth_password?: string | null;
+  /** Mark the feed as needing Basic Auth. Credentials themselves never go to this endpoint. */
+  requires_credentials?: boolean;
 };
 
 type ReqAccountUnfollowAddByRSSChannelParams = {
@@ -30,13 +30,8 @@ export async function reqAccountFollowAddByRSSChannel(
       feed_url: params.feed_url,
       title: params.title ?? null,
       image_url: params.image_url ?? null,
-      ...(params.basic_auth_username !== undefined &&
-      params.basic_auth_username !== null &&
-      params.basic_auth_username !== ''
-        ? {
-            basic_auth_username: params.basic_auth_username,
-            basic_auth_password: params.basic_auth_password ?? null,
-          }
+      ...(params.requires_credentials !== undefined
+        ? { requires_credentials: params.requires_credentials }
         : {}),
     },
     config: { withCredentials: true },

@@ -15,6 +15,7 @@ import { getMobileConfig } from '../config';
 // Import the repository from its module (not the data barrel) to avoid an import cycle through
 // the auth barrel.
 import { accountRepository } from '../data/repositories/accountRepository';
+import { addByRssCredentialStore } from '../data/repositories/addByRssCredentialStore';
 import { playlistRepository } from '../data/repositories/playlistRepository';
 import { queueRepository } from '../data/repositories/queueRepository';
 import { resolveSupportedLocale } from '../i18n/locale';
@@ -104,6 +105,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
       advanceAuthSessionGeneration();
 
       await clearAllSecureTokens();
+
+      // Add-by-RSS feed credentials belong to the account that saved them. The feeds stay; the
+      // username and password do not outlive the session.
+      try {
+        await addByRssCredentialStore.clearAll();
+      } catch (credentialError) {
+        console.warn(
+          'Failed to clear add-by-RSS credentials during session reset',
+          credentialError
+        );
+      }
 
       if (shouldNotifyForcedLogout(reason)) {
         try {

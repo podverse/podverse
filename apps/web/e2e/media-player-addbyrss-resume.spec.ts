@@ -189,11 +189,9 @@ async function promoteAddByRssResourceToNowPlaying(
  * 4 (fresh, `playback_position = 0`). Each test promotes the relevant
  * resource to now-playing via the queue API in `beforeEach`, then waits
  * for the QueueController auto-load on `/` to drive playback through
- * `MediaPlayerController.handleLoadQueueItemAddByRSS`. Server-side
- * `add_by_rss_credentials` encryption is configured via
- * `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY` in
- * `apps/web/playwright.e2e-server-env.ts` (already pinned to a test
- * sentinel).
+ * `MediaPlayerController.handleLoadQueueItemAddByRSS`. The add-by-RSS
+ * credentials transit key (`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`) comes
+ * from the shared test env profile and is a valid 64-hex test key.
  */
 test.describe('Media player add-by-RSS resume position', () => {
   test.beforeEach(() => {

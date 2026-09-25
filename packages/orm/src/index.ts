@@ -176,7 +176,6 @@ export * from './lib/feedTableLimits.js';
 export * from './lib/feedLifecycleState.js';
 export * from './lib/feedLifecycleTransitionValidation.js';
 export * from './lib/feedSpamThresholds.js';
-export { decryptWithKey, encryptCredentials } from './lib/credentialsEncryption.js';
 export { hashPassword } from './lib/password.js';
 
 export * from './services/category.js';

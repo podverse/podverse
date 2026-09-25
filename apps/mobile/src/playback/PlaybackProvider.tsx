@@ -138,6 +138,7 @@ import {
   readPlaybackReconcileConflicts,
   subscribePlaybackReconcileConflicts,
 } from '../sync/playbackReconcileConflict';
+import { addByRssCredentialsStateForUrl, withAddByRssPlaybackAuth } from './addByRssMediaAuth';
 import { buildPlaybackErrorLog, playbackErrorLogSignature } from './playbackErrorLog';
 import {
   nowPlayingResourceFromTarget,
@@ -625,6 +626,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const recordPlaybackError = useCallback(
     (error: PlaybackErrorEvent, target: PlaybackTarget | null, url: string | null) => {
       const entry = buildPlaybackErrorLog({
+        credentialsState: addByRssCredentialsStateForUrl(url),
         error,
         isLocalFile: playbackSourceMarkerFromUrl(url) === 'local',
         mediaUrl: url,
@@ -2693,8 +2695,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     armPendingStart();
     setTransportState('loading');
     try {
+      const target = activeTargetRef.current;
       await nativePlaybackBridge.loadAndStart(
-        playbackReloadSource(activeTargetRef.current, url, positionRef.current)
+        await withAddByRssPlaybackAuth(
+          target,
+          playbackReloadSource(target, url, positionRef.current)
+        )
       );
       nativePlaybackBridge.setRate(playbackRateRef.current);
       if (pendingStartRef.current) {

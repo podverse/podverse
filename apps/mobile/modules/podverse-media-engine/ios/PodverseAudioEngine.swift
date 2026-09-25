@@ -86,6 +86,10 @@ public final class PodverseAudioEngine: NSObject {
 
   private var currentItem: AVPlayerItem?
   private var nowPlaying = PodverseNowPlayingInfo()
+  /// `AVAssetResourceLoader` holds its delegate weakly, so the current protected item's delegate is
+  /// retained here for as long as that item is loaded. `nil` for items without credentials.
+  private var authLoaderDelegate: PodverseMediaAuthLoaderDelegate?
+  private let authLoaderQueue = DispatchQueue(label: "com.podverse.media-engine.auth-loader")
 
   private var timeObserverToken: Any?
   private var statusObservation: NSKeyValueObservation?
@@ -140,18 +144,29 @@ public final class PodverseAudioEngine: NSObject {
   /// Accepts remote http(s) URLs, `file://` URLs, and absolute filesystem paths (offline playback) —
   /// all play through this one shared player, never a second player or RN `<Video>`. Missing local
   /// files fail fast with a `file_not_found` error instead of hanging.
-  func load(url: String, initialSeekSeconds: Double?) throws {
-    try load(url: url, initialSeekSeconds: initialSeekSeconds, playWhenPrepared: false)
+  ///
+  /// `basicAuth` (protected add-by-RSS media) is answered only to in-scope 401 challenges through
+  /// `PodverseMediaAuthLoaderDelegate`; it is ignored for local files.
+  func load(url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth? = nil) throws {
+    try load(
+      url: url, initialSeekSeconds: initialSeekSeconds, basicAuth: basicAuth,
+      playWhenPrepared: false)
   }
 
   /// Convenience combining `load` + `play`. If `load` throws (invalid URL / missing file), the error
   /// is already emitted and playback does not start. When `initialSeekSeconds` is positive, `play`
   /// waits until that seek completes.
-  func loadAndStart(url: String, initialSeekSeconds: Double?) throws {
-    try load(url: url, initialSeekSeconds: initialSeekSeconds, playWhenPrepared: true)
+  func loadAndStart(
+    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth? = nil
+  ) throws {
+    try load(
+      url: url, initialSeekSeconds: initialSeekSeconds, basicAuth: basicAuth,
+      playWhenPrepared: true)
   }
 
-  private func load(url: String, initialSeekSeconds: Double?, playWhenPrepared: Bool) throws {
+  private func load(
+    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth?, playWhenPrepared: Bool
+  ) throws {
     guard let parsed = resolveSourceURL(url) else {
       let payload: [String: Any] = ["code": "invalid_url", "message": "Invalid URL: \(url)"]
       emit(.error, payload)
@@ -185,7 +200,17 @@ public final class PodverseAudioEngine: NSObject {
         self, name: .AVPlayerItemPlaybackStalled, object: previous)
     }
 
-    let item = AVPlayerItem(url: parsed)
+    let item: AVPlayerItem
+    if let auth = basicAuth, !parsed.isFileURL {
+      let asset = AVURLAsset(url: parsed)
+      let delegate = PodverseMediaAuthLoaderDelegate(auth: auth)
+      asset.resourceLoader.setDelegate(delegate, queue: authLoaderQueue)
+      authLoaderDelegate = delegate
+      item = AVPlayerItem(asset: asset)
+    } else {
+      authLoaderDelegate = nil
+      item = AVPlayerItem(url: parsed)
+    }
     observeItemStatus(item)
     observeItemEnd(item)
     observeItemStalled(item)
@@ -319,6 +344,7 @@ public final class PodverseAudioEngine: NSObject {
       self.player.replaceCurrentItem(with: nil)
       self.statusObservation = nil
       self.currentItem = nil
+      self.authLoaderDelegate = nil
       self.clearNowPlayingInfo()
       self.deactivateAudioSession()
       self.publish(state: .idle)

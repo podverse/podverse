@@ -50,6 +50,17 @@ export function getPasswordRequirementsInfoKey(): string {
 }
 
 export {
+  ADD_BY_RSS_CREDENTIAL_MAX_LENGTH,
+  canonicalAddByRSSFeedUrl,
+  resolveAddByRSSFeedUrlCredentials,
+} from './addByRSSFeedUrl.js';
+export type {
+  AddByRSSBasicAuthCredentials,
+  ResolvedAddByRSSFeedUrlCredentials,
+} from './addByRSSFeedUrl.js';
+
+export {
+  canonicalHttpOrHttpsUrl,
   validateHttpsUrl,
   validateHttpOrHttpsUrl,
   validateUrlForSSRF,

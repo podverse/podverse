@@ -14,6 +14,9 @@ export type {
 } from './lib/rss/parser.js';
 export { parseRSSFeedForAddByRSS } from './lib/rss/addByRSS.js';
 export type {
+  AddByRSSConditionalCache,
   ParseRSSFeedForAddByRSSOptions,
   ParseRSSFeedForAddByRSSResult,
 } from './lib/rss/addByRSS.js';
+export { buildCredentialScopedBeforeRedirect } from './lib/rss/addByRSSRedirectAuth.js';
+export type { CredentialsWithheldDecision } from './lib/rss/addByRSSRedirectAuth.js';

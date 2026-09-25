@@ -65,6 +65,11 @@ export type CoverImageProps = {
    * expo-image as the source width/height. Omit on full-size surfaces.
    */
   decodeEdge?: number;
+  /**
+   * Request headers for the artwork fetch — the `Authorization` of a protected add-by-RSS feed,
+   * from `useAddByRssArtworkHeaders`. A failure without headers does not stick once they arrive.
+   */
+  headers?: Record<string, string>;
   style?: StyleProp<CoverImageStyle>;
   testID?: string;
 };
@@ -106,6 +111,7 @@ const noteImageLoad = (width: number, height: number): void => {
 export const CoverImage = memo(function CoverImage({
   accessibilityLabel,
   decodeEdge,
+  headers,
   opensViewer = true,
   style,
   testID,
@@ -144,6 +150,8 @@ export const CoverImage = memo(function CoverImage({
   const displayUri =
     skipRemoteImages || uri === null || uri === undefined || uri.length === 0 ? null : uri;
   const thumbnail = useCoverThumbnail(displayUri, decodeEdge);
+  const failureKey =
+    displayUri !== null && headers !== undefined ? `${displayUri}\u0000auth` : displayUri;
   const resolvedViewerUri =
     viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : displayUri;
 
@@ -159,7 +167,7 @@ export const CoverImage = memo(function CoverImage({
       />
     ) : null;
 
-  if (displayUri === null || failedUri === displayUri || thumbnail.status === 'failed') {
+  if (displayUri === null || failedUri === failureKey || thumbnail.status === 'failed') {
     return (
       <>
         <View
@@ -188,13 +196,13 @@ export const CoverImage = memo(function CoverImage({
   // accessible name. Standalone covers hide the Image too — the outer Pressable speaks for it.
   // No placeholder behind a known URI — that flashes the fallback icon while the bitmap paints
   // (worse on slow Android decode).
-  let imageSource: ImageRef | ImageSource | null = { uri: displayUri };
+  let imageSource: ImageRef | ImageSource | null = { headers, uri: displayUri };
   if (thumbnail.status === 'ready') {
     imageSource = thumbnail.ref;
   } else if (thumbnail.status === 'loading') {
     imageSource = null;
   } else if (decodeEdge !== undefined && Number.isFinite(decodeEdge) && decodeEdge > 0) {
-    imageSource = { height: decodeEdge, uri: displayUri, width: decodeEdge };
+    imageSource = { headers, height: decodeEdge, uri: displayUri, width: decodeEdge };
   }
 
   const image = (imageStyle: StyleProp<CoverImageStyle>) => (
@@ -206,7 +214,7 @@ export const CoverImage = memo(function CoverImage({
       contentFit="cover"
       importantForAccessibility="no"
       onError={() => {
-        setFailedUri(displayUri);
+        setFailedUri(failureKey);
       }}
       onLoad={(event) => {
         noteImageLoad(event.source.width, event.source.height);

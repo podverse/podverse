@@ -6,6 +6,7 @@ export const ROUTES = {
   ADD_BY_RSS_ADD: '/add-by-rss/add',
   ADD_BY_RSS_ALBUMS: '/add-by-rss/albums',
   ADD_BY_RSS_ARTISTS: '/add-by-rss/artists',
+  ADD_BY_RSS_CREDENTIALS: '/add-by-rss/credentials',
   ADD_BY_RSS_EPISODES: '/add-by-rss/episodes',
   ADD_BY_RSS_LIVESTREAMS: '/add-by-rss/livestreams',
   ADD_BY_RSS_PODCASTS: '/add-by-rss/podcasts',

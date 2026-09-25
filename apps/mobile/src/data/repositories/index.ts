@@ -1,4 +1,5 @@
 export { accountRepository } from './accountRepository';
+export { addByRssCredentialStore } from './addByRssCredentialStore';
 export { addByRssRepository } from './addByRssRepository';
 export { autoQueueRepository } from './autoQueueRepository';
 export {

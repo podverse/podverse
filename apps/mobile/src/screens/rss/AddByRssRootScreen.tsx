@@ -1,8 +1,9 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { AddByRssNeedsCredentialsSection } from '../../components/content/AddByRssNeedsCredentialsSection';
 import { FormActions, TextField } from '../../components/form';
 import { LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -13,6 +14,7 @@ import { useAddByRssAddFlow } from '../../hooks/useAddByRssAddFlow';
 import { useAddByRssFeeds } from '../../hooks/useAddByRssFeeds';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { LibraryStackParamList } from '../../navigation';
+import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { formActionsTopGap, screenBodyInsets } from '../../theme/screenLayout';
@@ -20,19 +22,35 @@ import { useTheme } from '../../theme/useTheme';
 
 type AddByRssRootScreenProps = NativeStackScreenProps<LibraryStackParamList, 'AddByRssRoot'>;
 
-export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
+export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const [inputValue, setInputValue] = useState<string>('');
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const [parsedFeedUrls, setParsedFeedUrls] = useState<ReadonlySet<string>>(new Set());
-  const { errorKey, feeds, isLoading, reloadFeeds, removeFeed, removingFeedUrl } = useAddByRssFeeds(
-    {
-      onNotice: setNoticeKey,
-    }
-  );
-  const { addErrorKey, addFeed, isAdding } = useAddByRssAddFlow({
+  const {
+    errorKey,
+    feeds,
+    isLoading,
+    needsCredentials,
+    refreshLocal,
+    reloadFeeds,
+    removeFeed,
+    removingFeedUrl,
+  } = useAddByRssFeeds({
+    onNotice: setNoticeKey,
+  });
+  const {
+    addErrorKey,
+    addFeed,
+    handleFeedUrlChange,
+    isAdding,
+    password,
+    setPassword,
+    setUsername,
+    username,
+  } = useAddByRssAddFlow({
     inputValue,
     onAfterAdd: reloadFeeds,
     onNotice: setNoticeKey,
@@ -57,6 +75,10 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
           ...screenBodyInsets(tokens.spacing),
           flexGrow: 1,
           paddingBottom: tokens.spacing['2xl'],
+        },
+        credentialFields: {
+          gap: tokens.spacing.md,
+          marginTop: tokens.spacing.md,
         },
         feedButton: {
           borderColor: themeStyles.border.borderColor,
@@ -125,6 +147,28 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
     void refreshParsedFeedUrls();
   }, [feeds, refreshParsedFeedUrls]);
 
+  // The credentials screen saves or removes feeds; returning here rereads the device's list. The
+  // first focus is skipped because the initial reload is already reading it.
+  const hasFocusedRef = useRef(false);
+  useEffect(
+    () =>
+      navigation.addListener('focus', () => {
+        if (!hasFocusedRef.current) {
+          hasFocusedRef.current = true;
+          return;
+        }
+        void refreshLocal();
+      }),
+    [navigation, refreshLocal]
+  );
+
+  const handleNeedsCredentialsPress = useCallback(
+    (feed: MobileAddByRSSFeedRecord) => {
+      navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssCredentials, { feedIdText: feed.idText });
+    },
+    [navigation]
+  );
+
   const handleReload = useCallback(() => {
     void (async () => {
       await reloadFeeds();
@@ -149,11 +193,34 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
             autoCorrect={false}
             eyebrow={t('features.add_by_rss.feed_url')}
             keyboardType="url"
-            onChangeText={setInputValue}
+            onChangeText={handleFeedUrlChange}
             placeholder={t('features.add_by_rss.feed_url')}
             testID="rss-url-input"
             value={inputValue}
           />
+          <View style={styles.credentialFields}>
+            <TextField
+              accessibilityLabel={t('features.add_by_rss.basic_auth_username')}
+              autoCapitalize="none"
+              autoCorrect={false}
+              eyebrow={t('features.add_by_rss.basic_auth_username')}
+              onChangeText={setUsername}
+              placeholder={t('misc.optional')}
+              testID="rss-username-input"
+              value={username}
+            />
+            <TextField
+              accessibilityLabel={t('features.add_by_rss.basic_auth_password')}
+              autoCapitalize="none"
+              autoCorrect={false}
+              eyebrow={t('features.add_by_rss.basic_auth_password')}
+              onChangeText={setPassword}
+              placeholder={t('misc.optional')}
+              secureTextEntry
+              testID="rss-password-input"
+              value={password}
+            />
+          </View>
           <FormActions
             actions={[
               {
@@ -206,6 +273,9 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
             {t(statusKey)}
           </Text>
           <Pressable
+            accessibilityLabel={t('features.unsubscribe')}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: isRemoving }}
             disabled={isRemoving}
             onPress={() => {
               void removeFeed(feed.feedUrl);
@@ -221,17 +291,29 @@ export function AddByRssRootScreen(_props: AddByRssRootScreenProps) {
     [parsedFeedUrls, removeFeed, removingFeedUrl, styles, t]
   );
 
+  const showFeeds = !isLoading && errorKey === null;
+
   return (
     <View style={styles.screen} testID="rss-root-screen">
       <FlatList
         ListEmptyComponent={
-          !isLoading && errorKey === null ? (
+          showFeeds && needsCredentials.length === 0 ? (
             <ListEmpty messageKey="features.add_by_rss.no_feeds_podcast" testID="rss-feeds-empty" />
+          ) : null
+        }
+        ListFooterComponent={
+          showFeeds ? (
+            <AddByRssNeedsCredentialsSection
+              items={needsCredentials}
+              onPressFeed={handleNeedsCredentialsPress}
+              showDivider={feeds.length > 0}
+              testIDPrefix="rss"
+            />
           ) : null
         }
         ListHeaderComponent={listHeader}
         contentContainerStyle={styles.content}
-        data={isLoading || errorKey !== null ? [] : feeds}
+        data={showFeeds ? feeds : []}
         keyExtractor={(feed) => feed.idText}
         keyboardShouldPersistTaps="handled"
         removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}

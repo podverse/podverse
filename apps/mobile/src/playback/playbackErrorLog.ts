@@ -5,6 +5,11 @@ import type { PlaybackErrorEvent } from '../../modules/podverse-media-engine';
 import { redactUrlCredentials } from '../data/repositories/syncEventLog';
 import type { SyncEventLogDetails } from '../data/repositories/syncEventLog';
 import type { SyncEventLogAppend } from '../data/repositories/syncEventLogRepository';
+import {
+  ADD_BY_RSS_CREDENTIALS_REJECTED_CODE,
+  ADD_BY_RSS_CREDENTIALS_REQUIRED_CODE,
+} from '../lib/addByRss/addByRssErrorLog';
+import type { AddByRssMediaCredentialsState } from '../lib/addByRss/mediaAuth';
 import { PLAYBACK_LOG_KIND } from '../sync/syncJobKinds';
 
 /**
@@ -18,6 +23,11 @@ import { PLAYBACK_LOG_KIND } from '../sync/syncJobKinds';
 
 /** Code for a load that failed before the engine reported an error of its own. */
 export const PLAYBACK_LOAD_FAILED_CODE = 'playback_load_failed';
+/** A protected feed's media is on another domain, so its credentials were not sent. */
+export const PLAYBACK_CREDENTIALS_WITHHELD_OTHER_DOMAIN_CODE =
+  'playback_credentials_withheld_other_domain';
+/** A protected feed's media is on plain http, so its credentials were not sent. */
+export const PLAYBACK_CREDENTIALS_WITHHELD_INSECURE_CODE = 'playback_credentials_withheld_insecure';
 
 const optionalUrl = (url: string | null | undefined): string | undefined => {
   const trimmed = toNonEmptyTrimmedString(url);
@@ -35,12 +45,11 @@ const targetDetails = (target: PlaybackTarget | null): SyncEventLogDetails => {
   switch (target.kind) {
     case 'add-by-rss': {
       const data = target.resourceData;
-      const channelIdText = optionalText(data.channel_id_text);
+      const feedUrl = optionalText(data.feed_url) ?? optionalText(data.channel_id_text);
       return {
         add_by_rss_id_text: optionalText(data.id_text),
         channel_title: optionalText(data.channel_title),
-        // An add-by-RSS channel is identified by its feed URL.
-        feed_url: optionalUrl(channelIdText),
+        feed_url: optionalUrl(feedUrl),
         item_guid: optionalText(data.guid),
         item_title: optionalText(data.title),
         resource_kind: target.kind,
@@ -77,6 +86,11 @@ const targetDetails = (target: PlaybackTarget | null): SyncEventLogDetails => {
 };
 
 export type PlaybackErrorLogInput = {
+  /**
+   * Add-by-RSS items only: whether the feed's credentials went with this load, or why not. `null`
+   * (or omitted) for every other target.
+   */
+  credentialsState?: AddByRssMediaCredentialsState | null;
   error: PlaybackErrorEvent;
   /** True when the source was a downloaded file on this device rather than the host's URL. */
   isLocalFile: boolean;
@@ -101,7 +115,34 @@ export const playbackErrorLogCode = (error: PlaybackErrorEvent): string => {
   return nativeCode.length > 0 ? nativeCode : PLAYBACK_LOAD_FAILED_CODE;
 };
 
+/**
+ * When a protected add-by-RSS host refuses the file (401 / 403), the credential outcome explains
+ * it better than the HTTP code: nothing stored, stored but refused, or held back because the media
+ * lives on another domain or plain http. `null` when credentials do not explain the failure.
+ */
+export const playbackCredentialsErrorCode = (
+  credentialsState: AddByRssMediaCredentialsState | null | undefined,
+  httpStatus: number | undefined
+): string | null => {
+  if (httpStatus !== 401 && httpStatus !== 403) {
+    return null;
+  }
+  switch (credentialsState) {
+    case 'not_stored':
+      return ADD_BY_RSS_CREDENTIALS_REQUIRED_CODE;
+    case 'sent':
+      return ADD_BY_RSS_CREDENTIALS_REJECTED_CODE;
+    case 'withheld_other_domain':
+      return PLAYBACK_CREDENTIALS_WITHHELD_OTHER_DOMAIN_CODE;
+    case 'withheld_insecure':
+      return PLAYBACK_CREDENTIALS_WITHHELD_INSECURE_CODE;
+    default:
+      return null;
+  }
+};
+
 export const buildPlaybackErrorLog = ({
+  credentialsState,
   error,
   isLocalFile,
   mediaUrl,
@@ -109,7 +150,8 @@ export const buildPlaybackErrorLog = ({
   positionSeconds,
   target,
 }: PlaybackErrorLogInput): SyncEventLogAppend => {
-  const errorCode = playbackErrorLogCode(error);
+  const errorCode =
+    playbackCredentialsErrorCode(credentialsState, error.httpStatus) ?? playbackErrorLogCode(error);
   const message = optionalText(error.message) ?? null;
   const media = optionalUrl(mediaUrl);
   const engineUrl = optionalUrl(error.url);
@@ -125,6 +167,7 @@ export const buildPlaybackErrorLog = ({
   return {
     details: {
       ...targetDetails(target),
+      basic_auth: credentialsState ?? undefined,
       engine_url: engineUrl === media ? undefined : engineUrl,
       error_kind: error.kind,
       http_status: error.httpStatus === undefined ? undefined : String(error.httpStatus),

@@ -2,7 +2,13 @@ import type { DTOItemEnclosure, DTOItemEnclosureIntegrity } from '@podverse/help
 
 import { showToast } from '../../components/Toast/Toast';
 import type { ModalSourceSelector } from '../../contexts/Modals';
-import type { AddByRSSItemIndexItem } from '../addByRSS/types';
+import {
+  addByRSSProtectedMediaMessageKey,
+  classifyAddByRSSProtectedMediaFailure,
+  findAddByRSSFeedForItem,
+  logAddByRSSProtectedMediaFailure,
+} from '../addByRSS/protectedMedia';
+import type { AddByRSSFeedRecord, AddByRSSItemIndexItem } from '../addByRSS/types';
 import { beginDirectDownload } from './beginDirectDownload';
 
 type AddByRSSBundleEnclosure = AddByRSSItemIndexItem['bundle']['enclosures'][number];
@@ -58,19 +64,42 @@ type DownloadAddByRSSMediaParams = {
   variant: 'episode' | 'track';
 };
 
-export function downloadAddByRSSMediaWithModal({
-  indexItem,
-  setModalSourceSelector,
-  showToastPromiseWithLoading,
-  downloadAndSaveFile,
-  tFeatures,
-  variant,
-}: DownloadAddByRSSMediaParams): void {
-  const enclosures = indexItem?.bundle?.enclosures;
+const findFeedQuietly = async (channelIdText: string): Promise<AddByRSSFeedRecord | null> => {
+  try {
+    return await findAddByRSSFeedForItem({ channelIdText });
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+/**
+ * Downloads always request the plain file URL. For a password-protected feed the failure
+ * message explains why the download may not work on web instead of reading as a network error.
+ */
+export function downloadAddByRSSMediaWithModal(params: DownloadAddByRSSMediaParams): void {
+  const enclosures = params.indexItem?.bundle?.enclosures;
   if (!enclosures || enclosures.length === 0) {
     return;
   }
 
+  void findFeedQuietly(params.indexItem.channelIdText).then((feed) => {
+    startAddByRSSDownload(params, enclosures, feed);
+  });
+}
+
+function startAddByRSSDownload(
+  {
+    indexItem,
+    setModalSourceSelector,
+    showToastPromiseWithLoading,
+    downloadAndSaveFile,
+    tFeatures,
+    variant,
+  }: DownloadAddByRSSMediaParams,
+  enclosures: AddByRSSBundleEnclosure[],
+  feed: AddByRSSFeedRecord | null
+): void {
   const itemTitle = indexItem?.bundle?.item?.title ?? (variant === 'episode' ? 'episode' : 'track');
   const errorKey =
     variant === 'episode' ? 'download.episode_download_error' : 'download.track_download_error';
@@ -82,7 +111,21 @@ export function downloadAddByRSSMediaWithModal({
     fallbackFilename: variant === 'episode' ? 'episode.mp3' : 'track.mp3',
     setModalSourceSelector,
     showToastPromiseWithLoading,
-    downloadAndSaveFile,
+    downloadAndSaveFile: async (url, filename) => {
+      try {
+        await downloadAndSaveFile(url, filename);
+      } catch (error) {
+        const failure = classifyAddByRSSProtectedMediaFailure(feed, url);
+        if (feed && failure) {
+          logAddByRSSProtectedMediaFailure({ surface: 'download', failure, feed, mediaUrl: url });
+        }
+        throw error;
+      }
+    },
+    errorMessageForUri: (uri) => {
+      const failure = classifyAddByRSSProtectedMediaFailure(feed, uri);
+      return failure ? tFeatures(addByRSSProtectedMediaMessageKey(failure)) : null;
+    },
     messages: {
       loading: tFeatures(
         variant === 'episode' ? 'download.downloading_episode' : 'download.downloading_track'

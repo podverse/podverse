@@ -9,7 +9,7 @@ import rhea from 'rhea';
 
 import { MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME } from '@podverse/helpers';
 import type { ILoggerLike } from '@podverse/helpers-backend';
-import { getContainerIpPart } from '@podverse/helpers-backend';
+import { getContainerIpPart, redactForLog } from '@podverse/helpers-backend';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
 import { computeMqDuplicateId } from '../../lib/computeMqDuplicateId.js';
@@ -42,6 +42,8 @@ type SendMessageParams = {
   dedupeCacheTimeMS: number | null;
   /** When set (0–9), used as the AMQP message priority instead of mapping `priority`. */
   amqpPriority?: number;
+  /** AMQP header TTL in ms; the broker expires the message when it is not consumed in time. */
+  ttlMs?: number;
 };
 
 export interface ActiveMQArtemisServiceParams {
@@ -322,11 +324,12 @@ export class ActiveMQArtemisService {
   }
 
   async sendMessage(params: SendMessageParams): Promise<void> {
-    const { queueName, message, priority, dedupeCacheTimeMS, amqpPriority } = params;
+    const { queueName, message, priority, dedupeCacheTimeMS, amqpPriority, ttlMs } = params;
     try {
       const sender = await this.ensureSender(queueName);
       const messageWithTrace = attachMqTraceContext(message);
       const bodyString = JSON.stringify(messageWithTrace);
+      const logBodyString = JSON.stringify(redactForLog(messageWithTrace));
       const duplicateId = computeMqDuplicateId(queueName, message, dedupeCacheTimeMS);
       if (process.env.MQ_DEBUG === 'true') {
         this.logger.info('MQ send debug', {
@@ -349,11 +352,12 @@ export class ActiveMQArtemisService {
           durable: true,
           priority: priorityValue,
           content_type: 'application/json',
+          ...(ttlMs !== undefined && ttlMs > 0 ? { ttl: ttlMs } : {}),
           ...(duplicateId ? { application_properties: { _AMQ_DUPL_ID: duplicateId } } : {}), // omit property when no dedupe
         });
         const onAccepted = (context: EventContext) => {
           if (context.delivery === delivery) {
-            const message = `Message sent to queue ${queueName}: ${bodyString}`;
+            const message = `Message sent to queue ${queueName}: ${logBodyString}`;
             if (queueName === MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME) {
               this.logger.debug(message);
             } else {
@@ -366,7 +370,7 @@ export class ActiveMQArtemisService {
         };
         const onRejected = (context: EventContext) => {
           if (context.delivery === delivery) {
-            this.logger.logError(`sendMessage: Rejected by broker ${queueName}: ${bodyString}`);
+            this.logger.logError(`sendMessage: Rejected by broker ${queueName}: ${logBodyString}`);
             sender.removeListener('accepted', onAccepted);
             sender.removeListener('rejected', onRejected);
             reject(new Error('Message rejected'));

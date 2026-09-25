@@ -33,6 +33,7 @@ export * from './lib/addByRSSHash.js';
 export * from './lib/addByRSSParseCache.js';
 export * from './lib/opmlImportCache.js';
 export * from './lib/opml/opmlImportErrors.js';
+export * from './lib/addByRSS/credentialScope.js';
 export * from './lib/addByRSS/enclosure.js';
 export * from './lib/addByRSS/ids.js';
 export * from './lib/addByRSS/types.js';

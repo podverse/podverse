@@ -30,6 +30,7 @@ import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import {
+  getAddByRSSChaptersTranscriptCredentials,
   getCachedChaptersTranscript,
   getChaptersAndTranscriptUrls,
   mapAddByRSSChaptersToDTOItemChapters,
@@ -72,6 +73,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loggedInAccount } = useAccount();
+  const accountId = loggedInAccount?.id_text ?? null;
   const { mpAddByRSS, setMPItemChapter, setMPItemChapterShouldSeek } = useMediaPlayer();
   const { seek } = useMediaPlayerControls();
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
@@ -202,11 +204,18 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
         return;
       }
       try {
+        const credentials = await getAddByRSSChaptersTranscriptCredentials({
+          accountId,
+          feedUrl: feed?.feedUrl,
+          resourceUrls: [cf, tu],
+        });
+        if (cancelled) return;
         const res = await getApiRequestService().reqAccountAddByRSSChaptersTranscript({
           itemIdText: episode.idText,
           chaptersFeedUrl: cf,
           transcriptUrl: tu,
           feedUrl: feed?.feedUrl,
+          ...credentials,
         });
         if (cancelled) return;
         setCachedChaptersTranscript(episode.idText, {
@@ -243,7 +252,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     return () => {
       cancelled = true;
     };
-  }, [episode, feed, selectedTab, hasChaptersOrTranscript, tMisc]);
+  }, [episode, feed, selectedTab, hasChaptersOrTranscript, tMisc, accountId]);
 
   React.useEffect(() => {
     let cancelled = false;

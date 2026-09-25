@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next';
 
 import type { PlaybackErrorEvent } from '../../modules/podverse-media-engine';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
+import { addByRssCredentialsStateForLastLoad } from '../playback/addByRssMediaAuth';
 import {
   actionErrorDetailLine,
   downloadErrorMessageKeys,
+  playbackCredentialsMessageKeys,
   playbackErrorMessageKeys,
 } from './actionErrorCopy';
 
@@ -70,7 +72,10 @@ export function ActionErrorProvider({ children }: PropsWithChildren) {
     (event: PlaybackErrorEvent | null, onConfirm: () => void) => {
       const kind = event?.kind ?? 'unknown';
       openWithKeys(
-        playbackErrorMessageKeys(kind),
+        playbackCredentialsMessageKeys(
+          addByRssCredentialsStateForLastLoad(),
+          event?.httpStatus
+        ) ?? playbackErrorMessageKeys(kind),
         actionErrorDetailLine({
           code: event?.code ?? '',
           httpStatus: event?.httpStatus,

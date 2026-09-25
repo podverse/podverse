@@ -17,6 +17,7 @@ import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import { isMobileE2eFromEnv } from '../../config/env';
 import { addByRssRepository, channelSeenRepository } from '../../data/repositories';
+import { useAddByRssArtworkHeaders } from '../../hooks/useAddByRssArtworkHeaders';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList } from '../../navigation';
@@ -254,6 +255,11 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     };
   }, [detail]);
 
+  const headerArtworkHeaders = useAddByRssArtworkHeaders(
+    detail?.feed.feedUrl ?? null,
+    headerArtwork.listUrl
+  );
+
   const handleRemovePress = useCallback(() => {
     void handleRemove();
   }, [handleRemove]);
@@ -284,6 +290,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
               detail.feed.title ??
               t('features.add_by_rss.label')
             }
+            headers={headerArtworkHeaders}
             style={styles.headerImage}
             uri={headerArtwork.listUrl}
             viewerUri={headerArtwork.viewerUrl}
@@ -313,6 +320,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       handleRemovePress,
       headerArtwork.listUrl,
       headerArtwork.viewerUrl,
+      headerArtworkHeaders,
       isRemoving,
       styles.header,
       styles.headerImage,

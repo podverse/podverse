@@ -88,12 +88,14 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
     try {
       if (isSubscribed) {
         const nextAccount = await unfollowAddByRSSChannelAndClear({
+          accountId: loggedInAccount.id_text,
           feedUrl,
           channelIdText: feed.idText,
         });
         setLoggedInAccount(nextAccount);
       } else {
         const { account: nextAccount } = await followAddByRSSChannelAndQueue({
+          accountId: loggedInAccount.id_text,
           feedUrl,
           resourceType: 'albums',
           title: title ?? null,

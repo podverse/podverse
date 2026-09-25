@@ -22,6 +22,27 @@ export type MediaEngineSource = {
   url: string;
   /** Seconds to seek to once the item is ready. Omit or `0` to start at the beginning. */
   initialSeekSeconds?: number;
+  /**
+   * Basic Auth for a protected add-by-RSS feed. Native answers a host's 401 challenge with these
+   * credentials only when the challenging host is inside the scope; it never puts them in the URL
+   * or on a request up front, so a redirect to another host cannot carry them.
+   */
+  basicAuth?: MediaEngineBasicAuth;
+};
+
+/**
+ * Credentials plus the hosts they may be answered to.
+ *
+ * `scopeMatch: 'domain'` accepts `scopeHost` and any subdomain of it; `'exact'` (IP literals,
+ * `localhost`) accepts only `scopeHost`. Challenges over plain http are refused unless
+ * `allowInsecure` is set (dev / E2E test-assets only).
+ */
+export type MediaEngineBasicAuth = {
+  username: string;
+  password: string;
+  scopeHost: string;
+  scopeMatch: 'domain' | 'exact';
+  allowInsecure: boolean;
 };
 
 export type PlaybackStateEvent = {

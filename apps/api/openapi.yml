@@ -864,32 +864,141 @@ components:
           $ref: "#/components/schemas/AccountSettingsNotificationType"
     ApiPostAccountAddByRssChaptersTranscriptRequest:
       type: object
-      description: Operation-specific request payload for POST /account/add-by-rss/chapters-transcript.
-      additionalProperties: true
+      description: >-
+        Request payload for POST /account/add-by-rss/chapters-transcript. Private feeds send
+        device-held Basic Auth with `feedUrl`; the server uses it for this request only and
+        attaches it to a chapters or transcript URL only when that URL is HTTPS on the feed's
+        registrable domain.
+      required:
+        - itemIdText
+      properties:
+        itemIdText:
+          type: string
+        chaptersFeedUrl:
+          type: string
+          format: uri
+        transcriptUrl:
+          type: string
+          format: uri
+        feedUrl:
+          type: string
+          format: uri
+          description: Required when basic_auth_username / basic_auth_password are sent.
+        basic_auth_username:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Send together with basic_auth_password, or omit both.
+        basic_auth_password:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Send together with basic_auth_username, or omit both.
     ApiPostAccountAddByRssChaptersTranscriptResponse200:
       type: object
       description: Operation-specific response payload for POST /account/add-by-rss/chapters-transcript (200).
       additionalProperties: true
     ApiPostAccountAddByRssParseRequest:
       type: object
-      description: Operation-specific request payload for POST /account/add-by-rss/parse.
-      additionalProperties: true
+      description: >-
+        Request payload for POST /account/add-by-rss/parse. Credentials are never stored: the API
+        seals them into a short-lived envelope for the parse worker. `user:pass@` userinfo on
+        `feed_url` is split off and treated as the credentials when the body omits them.
+      required:
+        - feed_url
+      properties:
+        feed_url:
+          type: string
+          format: uri
+        feed_hash:
+          type: string
+        etag:
+          type: string
+        last_modified:
+          type: string
+        basic_auth_username:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Send together with basic_auth_password, or omit both.
+        basic_auth_password:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Send together with basic_auth_username, or omit both.
     ApiPostAccountAddByRssParseResponse200:
       type: object
       description: Operation-specific response payload for POST /account/add-by-rss/parse (200).
       additionalProperties: true
     ApiPostAccountAddByRssParseAllRequest:
       type: object
-      description: Operation-specific request payload for POST /account/add-by-rss/parse/all.
-      additionalProperties: true
+      description: >-
+        Request payload for POST /account/add-by-rss/parse/all. A followed feed flagged
+        `requires_credentials` with no entry in `credentials_by_url` is not queued; its request id
+        resolves immediately to `failed` with `failureReason: credentials_required`.
+      properties:
+        feed_hashes_by_url:
+          type: object
+          additionalProperties:
+            type: string
+        etags_by_url:
+          type: object
+          additionalProperties:
+            type: string
+        last_modified_by_url:
+          type: object
+          additionalProperties:
+            type: string
+        credentials_by_url:
+          type: object
+          description: Feed URL to device-held Basic Auth credentials.
+          additionalProperties:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+                minLength: 1
+                maxLength: 255
+              password:
+                type: string
+                minLength: 1
+                maxLength: 255
     ApiPostAccountAddByRssParseAllResponse200:
       type: object
       description: Operation-specific response payload for POST /account/add-by-rss/parse/all (200).
       additionalProperties: true
     ApiGetAccountAddByRssParseStatusRequestIdResponse200:
       type: object
-      description: Operation-specific response payload for GET /account/add-by-rss/parse/status/{request_id} (200).
+      description: >-
+        Response payload for GET /account/add-by-rss/parse/status/{request_id} (200). Never
+        contains credentials; failed entries carry machine-readable auth metadata.
       additionalProperties: true
+      properties:
+        status:
+          type: string
+          enum: [queued, processing, parsed, not_modified, failed]
+        failureReason:
+          type: string
+          enum:
+            - credentials_required
+            - credentials_rejected
+            - credentials_withheld_other_domain
+            - credentials_withheld_insecure
+            - credentials_envelope_invalid
+            - http_error
+            - network
+            - parse
+        httpStatus:
+          type: integer
+        authChallenge:
+          type: string
+          enum: [basic, other, none]
+        credentialsState:
+          type: string
+          enum: [sent, not_provided, withheld_other_domain, withheld_insecure, decrypt_failed]
     ApiGetAccountDownloadDataResponse200:
       type: object
       description: Operation-specific response payload for GET /account/download-data (200).
@@ -989,6 +1098,9 @@ components:
         - $ref: "#/components/schemas/MessageResponse"
     ApiPostAccountFollowAddByRssChannelRequest:
       type: object
+      description: >-
+        Credentials are not accepted here; unknown keys such as `basic_auth_*` are ignored. A
+        `user:pass@` in `feed_url` is removed before storage and sets `requires_credentials`.
       required:
         - feed_url
       properties:
@@ -1002,14 +1114,9 @@ components:
           type: string
           format: uri
           nullable: true
-        basic_auth_username:
-          type: string
-          nullable: true
-          maxLength: 255
-        basic_auth_password:
-          type: string
-          nullable: true
-          maxLength: 255
+        requires_credentials:
+          type: boolean
+          description: Omit to leave the stored flag unchanged.
     ApiPostAccountFollowAddByRssChannelResponse200:
       allOf:
         - $ref: "#/components/schemas/MessageResponse"
@@ -3074,10 +3181,11 @@ components:
           type: string
           format: uri
           nullable: true
-        basic_auth_username:
-          type: string
-          nullable: true
-          description: Present as "[saved]" when credentials are configured for the feed.
+        requires_credentials:
+          type: boolean
+          description: >-
+            The feed needs Basic Auth. Credentials are never stored or returned; devices send them
+            with each parse or chapters request.
     PayPalOrder:
       type: object
       required:

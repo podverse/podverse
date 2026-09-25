@@ -5,10 +5,18 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 import {
+  AUTHORIZATION_PROBE_PATH,
+  BASIC_AUTH_BASE_URL,
+  BASIC_AUTH_PUBLIC_MEDIA_SUBDIR,
   BASIC_AUTH_SUBDIR,
   BASIC_AUTH_TEST_PASSWORD,
   BASIC_AUTH_TEST_USERNAME,
+  BASIC_AUTH_VARIANTS_SUBPATH,
+  DEFAULT_ASSETS_BASE_URL,
+  OTHER_HOST_ASSETS_BASE_URL,
+  REDIRECT_OTHER_HOST_PREFIX,
 } from './constants.js';
+import { BASIC_AUTH_FEED_FILENAME } from './generate-feed-constants.js';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -36,6 +44,48 @@ function parseBasicAuth(
   } catch {
     return null;
   }
+}
+
+const BASIC_AUTH_FEED_VARIANTS = {
+  'feed-public-media.rss': {
+    label: 'public media',
+    resourceBaseUrl: `${DEFAULT_ASSETS_BASE_URL}/${BASIC_AUTH_PUBLIC_MEDIA_SUBDIR}/`,
+  },
+  'feed-other-host-media.rss': {
+    label: 'other-host media',
+    resourceBaseUrl: `${OTHER_HOST_ASSETS_BASE_URL}/${BASIC_AUTH_SUBDIR}/`,
+  },
+} as const;
+
+type BasicAuthFeedVariantName = keyof typeof BASIC_AUTH_FEED_VARIANTS;
+
+const isBasicAuthFeedVariantName = (value: string): value is BasicAuthFeedVariantName =>
+  Object.prototype.hasOwnProperty.call(BASIC_AUTH_FEED_VARIANTS, value);
+
+/**
+ * Rewrites the base basic-auth feed so every resource URL points at `resourceBaseUrl`, and tags
+ * the channel title so the variant is recognizable in a feed list.
+ */
+function buildBasicAuthFeedVariant(xml: string, variant: BasicAuthFeedVariantName): string {
+  const { label, resourceBaseUrl } = BASIC_AUTH_FEED_VARIANTS[variant];
+  const rewritten = xml.split(`${BASIC_AUTH_BASE_URL}/`).join(resourceBaseUrl);
+  const channelTitle = /<title>([^<]*)<\/title>/.exec(rewritten)?.[1];
+  if (channelTitle === undefined) {
+    return rewritten;
+  }
+  return rewritten
+    .split(`<title>${channelTitle}</title>`)
+    .join(`<title>${channelTitle} (${label})</title>`);
+}
+
+/** The loopback host a redirect should move to: the one the request did not use. */
+function otherLoopbackHost(hostHeader: string | undefined): string {
+  const override = process.env.REDIRECT_OTHER_HOST;
+  if (override !== undefined && override !== '') {
+    return override;
+  }
+  const requestHost = (hostHeader ?? '').replace(/:\d+$/, '');
+  return requestHost === '127.0.0.1' ? 'localhost' : '127.0.0.1';
 }
 
 export class AssetServer {
@@ -120,6 +170,29 @@ export class AssetServer {
             )
           )
           .replace(/^\/+/, '');
+
+        if (pathname === AUTHORIZATION_PROBE_PATH) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              authorization: req.headers.authorization === undefined ? 'absent' : 'present',
+              host: req.headers.host ?? null,
+            })
+          );
+          return;
+        }
+
+        const redirectPrefix = `${REDIRECT_OTHER_HOST_PREFIX}/`;
+        if (pathname.startsWith(redirectPrefix)) {
+          const query = rawPath.includes('?') ? rawPath.slice(rawPath.indexOf('?')) : '';
+          const targetHost = otherLoopbackHost(req.headers.host);
+          const targetPath = pathname.slice(redirectPrefix.length);
+          const target = `http://${targetHost}:${ASSET_PORT}/${targetPath}${query}`;
+          res.writeHead(302, { Location: target, 'Content-Type': 'text/plain' });
+          res.end(`Redirecting to ${target}`);
+          return;
+        }
+
         const filePath = path.join(this.assetsDir, pathname);
 
         // Security: prevent directory traversal
@@ -134,6 +207,23 @@ export class AssetServer {
         const basicAuthDir = path.join(this.assetsDir, BASIC_AUTH_SUBDIR);
         const isBasicAuthPath =
           normalizedPath === basicAuthDir || normalizedPath.startsWith(basicAuthDir + path.sep);
+        let servedPath = normalizedPath;
+
+        // The public mirror serves basic-auth resources without auth, but never its feeds.
+        const publicMediaPrefix = `${BASIC_AUTH_PUBLIC_MEDIA_SUBDIR}/`;
+        if (pathname.startsWith(publicMediaPrefix)) {
+          const mirrored = path.normalize(
+            path.join(basicAuthDir, pathname.slice(publicMediaPrefix.length))
+          );
+          const isFeedPath = mirrored.startsWith(path.join(basicAuthDir, 'feeds') + path.sep);
+          if (!mirrored.startsWith(basicAuthDir + path.sep) || isFeedPath) {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('File not found');
+            return;
+          }
+          servedPath = mirrored;
+        }
+
         if (isBasicAuthPath) {
           const creds = parseBasicAuth(req.headers.authorization);
           if (
@@ -150,15 +240,39 @@ export class AssetServer {
           }
         }
 
-        fs.stat(normalizedPath, (err, stats) => {
+        const variantPrefix = `${BASIC_AUTH_SUBDIR}/${BASIC_AUTH_VARIANTS_SUBPATH}/`;
+        if (pathname.startsWith(variantPrefix)) {
+          const variant = pathname.slice(variantPrefix.length);
+          if (!isBasicAuthFeedVariantName(variant)) {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('File not found');
+            return;
+          }
+          const baseFeedPath = path.join(basicAuthDir, 'feeds', BASIC_AUTH_FEED_FILENAME);
+          fs.readFile(baseFeedPath, 'utf8', (err, xml) => {
+            if (err) {
+              res.writeHead(404, { 'Content-Type': 'text/plain' });
+              res.end(`Base feed missing; run generate to create ${BASIC_AUTH_FEED_FILENAME}`);
+              return;
+            }
+            res.writeHead(200, {
+              'Content-Type': 'application/xml',
+              'Content-Disposition': 'inline',
+            });
+            res.end(buildBasicAuthFeedVariant(xml, variant));
+          });
+          return;
+        }
+
+        fs.stat(servedPath, (err, stats) => {
           if (err || !stats.isFile()) {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
             res.end('File not found');
             return;
           }
 
-          const mimeType = this.getMimeType(normalizedPath, normalizedPath);
-          const ext = path.extname(normalizedPath).toLowerCase();
+          const mimeType = this.getMimeType(servedPath, servedPath);
+          const ext = path.extname(servedPath).toLowerCase();
           const totalSize = stats.size;
           const rangeHeader = req.headers.range;
 
@@ -235,7 +349,7 @@ export class AssetServer {
               'Content-Range': `bytes ${start}-${end}/${totalSize}`,
               'Content-Length': String(chunkSize),
             });
-            const stream = fs.createReadStream(normalizedPath, { start, end });
+            const stream = fs.createReadStream(servedPath, { start, end });
             stream.on('error', () => {
               res.end();
             });
@@ -247,7 +361,7 @@ export class AssetServer {
             ...baseHeaders,
             'Content-Length': String(totalSize),
           });
-          const stream = fs.createReadStream(normalizedPath);
+          const stream = fs.createReadStream(servedPath);
           stream.on('error', () => {
             res.end();
           });

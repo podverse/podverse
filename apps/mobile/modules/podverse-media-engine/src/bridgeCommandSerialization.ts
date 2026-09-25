@@ -7,10 +7,19 @@
  * hands malformed payloads (missing url, `NaN`/negative rect) to native. Kept free of native/`expo`
  * imports so Vitest can cover the arg order + validation without a device.
  */
-import type { MediaEngineSource, VideoSurfaceRect, VideoSurfaceTargetId } from './types';
+import type {
+  MediaEngineBasicAuth,
+  MediaEngineSource,
+  VideoSurfaceRect,
+  VideoSurfaceTargetId,
+} from './types';
 
 /** Positional args for the native `load` / `loadAndStart` functions. */
-export type LoadCommandArgs = readonly [url: string, initialSeekSeconds?: number];
+export type LoadCommandArgs = readonly [
+  url: string,
+  initialSeekSeconds?: number | null,
+  basicAuth?: MediaEngineBasicAuth,
+];
 
 /** Positional args for the native `attachVideoSurface` function (iOS + Android agree on this order). */
 export type AttachVideoSurfaceCommandArgs = readonly [
@@ -40,10 +49,28 @@ function assertNonNegativeFiniteNumber(value: number, label: string): void {
   }
 }
 
+function assertBasicAuth(auth: MediaEngineBasicAuth): MediaEngineBasicAuth {
+  const scopeHost = auth.scopeHost.trim().toLowerCase();
+  if (scopeHost.length === 0) {
+    throw new Error('serializeLoadCommand: `basicAuth.scopeHost` is required');
+  }
+  if (auth.username.length === 0) {
+    throw new Error('serializeLoadCommand: `basicAuth.username` is required');
+  }
+  return {
+    allowInsecure: auth.allowInsecure,
+    password: auth.password,
+    scopeHost,
+    scopeMatch: auth.scopeMatch,
+    username: auth.username,
+  };
+}
+
 /**
  * Serialize a {@link MediaEngineSource} into positional `load` / `loadAndStart` args. Throws when
- * `url` is empty/whitespace or `initialSeekSeconds` is not a finite number `>= 0`. When
- * `initialSeekSeconds` is omitted the tuple is one element so the native optional arg stays unset.
+ * `url` is empty/whitespace, `initialSeekSeconds` is not a finite number `>= 0`, or `basicAuth`
+ * lacks a scope host or username. Trailing optional args are left off so native sees them unset;
+ * with `basicAuth` present an omitted seek travels as `null` to keep the positions aligned.
  */
 export function serializeLoadCommand(source: MediaEngineSource): LoadCommandArgs {
   const url = source.url.trim();
@@ -52,11 +79,14 @@ export function serializeLoadCommand(source: MediaEngineSource): LoadCommandArgs
   }
 
   const seek = source.initialSeekSeconds;
-  if (seek === undefined) {
-    return [url];
+  if (seek !== undefined) {
+    assertNonNegativeFiniteNumber(seek, 'serializeLoadCommand: `initialSeekSeconds`');
   }
-  assertNonNegativeFiniteNumber(seek, 'serializeLoadCommand: `initialSeekSeconds`');
-  return [url, seek];
+
+  if (source.basicAuth !== undefined) {
+    return [url, seek ?? null, assertBasicAuth(source.basicAuth)];
+  }
+  return seek === undefined ? [url] : [url, seek];
 }
 
 /**

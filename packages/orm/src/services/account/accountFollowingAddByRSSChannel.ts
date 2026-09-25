@@ -1,9 +1,4 @@
 import { AccountFollowingAddByRSSChannel } from '@orm/entities/account/accountFollowingAddByRSSChannel.js';
-import {
-  decryptCredentials,
-  encryptCredentials,
-  isEncryptionConfigured,
-} from '@orm/lib/credentialsEncryption.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager, FindManyOptions, FindOptionsSelect } from 'typeorm';
@@ -12,13 +7,8 @@ export type AccountFollowingAddByRSSChannelDto = {
   feed_url: string;
   title?: string | null;
   image_url?: string | null;
-  basic_auth_username?: string | null;
-  basic_auth_password?: string | null;
-};
-
-export type AddByRSSFeedCredentials = {
-  username: string;
-  password: string;
+  /** Omitted on update leaves the stored flag unchanged. */
+  requires_credentials?: boolean;
 };
 
 export type MarkAddByRSSChannelSeenEntry = {
@@ -52,20 +42,14 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
       feed_url: true,
       title: true,
       image_url: true,
-      basic_auth_username: true,
+      requires_credentials: true,
       last_seen_at: true,
     };
     const mergedConfig: FindManyOptions<AccountFollowingAddByRSSChannel> = {
       select: safeSelect,
       ...config,
     };
-    const rows = await this._getAll(account, mergedConfig);
-    return rows.map((row) => {
-      if (row.basic_auth_username?.startsWith('v1:')) {
-        return { ...row, basic_auth_username: '[saved]' as string | null };
-      }
-      return row;
-    });
+    return this._getAll(account, mergedConfig);
   }
 
   async getFollowedAddByRSSChannelCount(account_id: number): Promise<number> {
@@ -91,26 +75,6 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
     return !!existing;
   }
 
-  async getCredentialsForFeed(
-    account_id: number,
-    feed_url: string
-  ): Promise<AddByRSSFeedCredentials | null> {
-    const account = await this.accountService.get(account_id);
-    if (!account) {
-      return null;
-    }
-    const row = await this._get(account, { feed_url });
-    if (!row?.basic_auth_username || !row?.basic_auth_password) {
-      return null;
-    }
-    const username = decryptCredentials(row.basic_auth_username);
-    const password = decryptCredentials(row.basic_auth_password);
-    if (username === null || password === null) {
-      return null;
-    }
-    return { username, password };
-  }
-
   async addOrUpdateRSSChannel(
     account_id: number,
     dto: AccountFollowingAddByRSSChannelDto
@@ -120,24 +84,19 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
       throw new Error('Account not found.');
     }
 
-    let payload = dto;
-    if (
-      isEncryptionConfigured() &&
-      dto.basic_auth_username !== undefined &&
-      dto.basic_auth_username !== null &&
-      dto.basic_auth_username !== '' &&
-      dto.basic_auth_password !== undefined &&
-      dto.basic_auth_password !== null &&
-      dto.basic_auth_password !== ''
-    ) {
-      payload = {
-        ...dto,
-        basic_auth_username: encryptCredentials(dto.basic_auth_username),
-        basic_auth_password: encryptCredentials(dto.basic_auth_password),
-      };
-    }
+    return this._update(account, ['account_id', 'feed_url'], dto);
+  }
 
-    return this._update(account, ['account_id', 'feed_url'], payload);
+  /**
+   * Records what a parse learned about whether the feed needs credentials. A no-op when the
+   * account does not follow the feed (a one-off parse before saving it).
+   */
+  async setRequiresCredentials(
+    account_id: number,
+    feed_url: string,
+    requires_credentials: boolean
+  ): Promise<void> {
+    await this.repositoryReadWrite.update({ account_id, feed_url }, { requires_credentials });
   }
 
   async removeRSSChannel(account_id: number, feed_url: string): Promise<void> {

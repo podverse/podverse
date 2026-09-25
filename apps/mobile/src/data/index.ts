@@ -22,6 +22,7 @@ export type {
 
 export {
   accountRepository,
+  addByRssCredentialStore,
   addByRssRepository,
   autoQueueRepository,
   clipRepository,

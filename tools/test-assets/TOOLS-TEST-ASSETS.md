@@ -25,7 +25,24 @@ A single **Basic-Auth-protected** feed is generated every time you run generate 
 - **Location:** `assets/basic-auth/` (feeds, audio, images, videos, chapters, transcripts). Feed URL: `http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss`.
 - **Count:** Exactly one feed, 10 items, regardless of `<count>` or `--items`.
 - **Server:** Any request to a path under `/basic-auth/` (e.g. the feed, enclosures, images) requires HTTP Basic Auth. Use username **`username`** and password **`password`** (test-only; not secure).
-- **Parsing:** generate_and_parse creates the basic-auth assets but does **not** parse this feed (the parser does not send credentials). Add the feed manually in the web app with the credentials above to test add-by-RSS.
+- **Parsing:** generate_and_parse creates the basic-auth assets but does **not** parse this feed (it has no device-held credentials to send). Add the feed in the web or mobile app with the credentials above to test add-by-RSS; the client sends them with the parse request (see [ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md)).
+
+### Credential fixtures
+
+The server derives these from `feed-basic-auth.rss` on each request, so they need no extra generation. Each exercises one credential-scope rule. The feed variants are served under `/basic-auth/` and gated like the base feed.
+
+| Fixture | URL | Without auth | With `username:password` |
+| --- | --- | --- | --- |
+| Feed and media gated | `http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss` | 401 + `WWW-Authenticate: Basic` | 200 |
+| Feed gated, media public | `http://localhost:2111/basic-auth/variants/feed-public-media.rss` | 401 | 200; resources on `/basic-auth-public-media/…` |
+| Public media mirror | `http://localhost:2111/basic-auth-public-media/audio/audio-001.mp3` | 200 (`feeds/` is always 404) | 200 |
+| Feed gated, media on another host | `http://localhost:2111/basic-auth/variants/feed-other-host-media.rss` | 401 | 200; resources on `http://127.0.0.1:2111/basic-auth/…` (still gated) |
+| Redirect to another host | `http://localhost:2111/redirect/other-host/<path>` | 302 to `<path>` on the other loopback host | 302; a client that follows it must not resend the credentials |
+| Authorization probe | `http://localhost:2111/debug/authorization` | `{"authorization":"absent"}` | `{"authorization":"present"}` (the value is never echoed) |
+
+- **Other host:** `localhost` and `127.0.0.1` count as different hosts, because credentials for IPs and `localhost` are scoped by exact host. A client given the other-host feed must play or fetch its media **without** credentials, get 401, and log the withheld reason (`credentials_withheld_other_domain`). The server has to answer on IPv4 for these checks: start it with `BIND_ADDRESS=0.0.0.0` if `localhost` resolves to `::1` only (`npm run mobile:e2e:test-assets` already does).
+- **Redirect:** `/redirect/other-host/` flips `localhost` ↔ `127.0.0.1` based on the request's `Host` header. Set `REDIRECT_OTHER_HOST` to redirect elsewhere (for example a LAN address when checking from a device). Pair it with the probe, `/redirect/other-host/debug/authorization`, to see whether a client carried `Authorization` across the redirect.
+- **Mobile E2E:** the E2E build rewrites loopback `:2111` URLs to `127.0.0.1` (iOS) or `10.0.2.2` (Android), so the feed and its other-host resources land on the same host there. Check the other-host fixture on the web or a manual (non-E2E) mobile build.
 
 **Verifying Basic Auth:** With the asset server running on port 2111:
 
@@ -38,13 +55,13 @@ A single **Basic-Auth-protected** feed is generated every time you run generate 
   curl -i -u username:password http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss
   ```
 
-Optional: run the verification script (server must be running): `bash tools/test-assets/scripts/verify-basic-auth.sh`. Use `BASE_URL` to override the base URL (default `http://localhost:2111`).
+Optional: run the verification script (server must be running): `bash tools/test-assets/scripts/verify-basic-auth.sh`. It checks every row of the credential fixtures table above. Use `BASE_URL` to override the base URL (default `http://localhost:2111`).
 
 **Operational notes:**
 
 - The HTTP server on port **2111** must be the one from **tools/test-assets** (e.g. `npm run start -w podverse-test-assets`). If another process is bound to 2111, Basic Auth will not be applied.
 - After pulling or changing Basic Auth code, **restart** the test-assets server so the running process has the latest logic.
-- Add-by-RSS “success” (redirect to feed detail) means the **worker** successfully fetched and parsed the feed. If the feed URL is under `/basic-auth/` and no credentials are provided, the worker’s request gets 401 and the parse fails; the add-feed UI should show a failed status and not redirect.
+- Add-by-RSS “success” (redirect to feed detail) means the **worker** successfully fetched and parsed the feed. If the feed URL is under `/basic-auth/` and no credentials are provided, the worker’s request gets 401 and the parse fails with `credentials_required`; the add-feed UI asks for a username and password and does not redirect.
 
 ## Docker
 

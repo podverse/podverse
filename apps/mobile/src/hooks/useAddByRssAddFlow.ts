@@ -1,21 +1,23 @@
 import { useCallback, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
-import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
+import { resolveAddByRSSFeedUrlCredentials } from '@podverse/helpers-validation/client';
 
 import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
-import { addByRssRepository } from '../data';
+import { addByRssCredentialStore, addByRssRepository } from '../data';
 import { syncEventLogRepository } from '../data/repositories';
 import {
   buildAddByRssAddErrorLog,
   buildAddByRssParseFailureLog,
 } from '../lib/addByRss/addByRssErrorLog';
+import type { AddByRssCredentials } from '../lib/addByRss/credentials';
 import {
-  buildAddByRssFeedRecord,
-  isValidAddByRssFeedUrl,
-  pollAddByRssParseStatus,
-} from '../lib/addByRss/domain';
+  credentialNoticeKeyForParse,
+  splitAddByRssPastedUrl,
+  toAddByRssCredentials,
+} from '../lib/addByRss/credentials';
+import { isValidAddByRssFeedUrl } from '../lib/addByRss/domain';
 import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import { useMembershipGate } from '../membership/MembershipGateProvider';
 import { useAccessTier } from '../membership/useAccessTier';
@@ -28,22 +30,61 @@ type UseAddByRssAddFlowOptions = {
   setInputValue: (value: string) => void;
 };
 
+/**
+ * Resolves the typed username and password. Both empty means the feed is public; one without the
+ * other is an input error rather than a silent public add.
+ */
+const resolveTypedCredentials = (
+  username: string,
+  password: string
+): { credentials: AddByRssCredentials | null; errorKey: string | null } => {
+  if (username.trim() === '' && password === '') {
+    return { credentials: null, errorKey: null };
+  }
+  const credentials = toAddByRssCredentials(username, password);
+  return credentials === null
+    ? { credentials: null, errorKey: 'features.add_by_rss.basic_auth_required_both' }
+    : { credentials, errorKey: null };
+};
+
 export function useAddByRssAddFlow({
   inputValue,
   onAfterAdd,
   onNotice,
   setInputValue,
 }: UseAddByRssAddFlowOptions) {
-  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { accessToken, account, clearSession, refreshToken, setTokens } = useAuth();
   const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [addErrorKey, setAddErrorKey] = useState<string | null>(null);
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const isAddingRef = useRef(false);
 
   // Adding requires server-side feed parsing, so it is membership-tier. Feeds already added stay
   // visible and playable when a membership lapses — only adding stops.
   const addAccess = evaluateFeature('add_by_rss_add');
+
+  /**
+   * A pasted `https://user:pass@host/feed` moves its username and password into their own fields.
+   * Only a change of more than one character counts as a paste, so a URL typed by hand is never
+   * rewritten under the cursor; the add itself splits any userinfo still in the field.
+   */
+  const handleFeedUrlChange = useCallback(
+    (value: string) => {
+      const isPaste = value.length - inputValue.length > 1;
+      const split = isPaste ? splitAddByRssPastedUrl(value) : null;
+      if (split === null || split.credentials === null) {
+        setInputValue(value);
+        return;
+      }
+      setInputValue(split.feedUrl);
+      setUsername(split.credentials.username);
+      setPassword(split.credentials.password);
+    },
+    [inputValue, setInputValue]
+  );
 
   const addFeed = useCallback(async () => {
     if (isAddingRef.current) {
@@ -55,11 +96,24 @@ export function useAddByRssAddFlow({
       return;
     }
 
-    const feedUrl = inputValue.trim();
-    if (!isValidAddByRssFeedUrl(feedUrl)) {
+    const typed = resolveTypedCredentials(username, password);
+    if (typed.errorKey !== null) {
+      setAddErrorKey(typed.errorKey);
+      return;
+    }
+
+    const resolved = resolveAddByRSSFeedUrlCredentials(
+      inputValue,
+      typed.credentials?.username,
+      typed.credentials?.password
+    );
+    if (resolved === null || !isValidAddByRssFeedUrl(resolved.feedUrl)) {
       setAddErrorKey('features.add_by_rss.invalid_url');
       return;
     }
+    const feedUrl = resolved.feedUrl;
+    const credentials = resolved.credentials;
+    const authContext = { accessToken, clearSession, refreshToken, setTokens };
 
     // The keyboard covers the tab bar. Dismiss now so the list and tabs are reachable while parse runs.
     Keyboard.dismiss();
@@ -68,85 +122,49 @@ export function useAddByRssAddFlow({
     setAddErrorKey(null);
     onNotice(null);
     try {
-      await requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) =>
-          api.reqAccountFollowAddByRSSChannel({
-            feed_url: feedUrl,
-            image_url: null,
-            title: feedUrl,
-          })
+      // The follow only flags the feed; the username and password never leave in it.
+      await requestWithMobileAuthRefresh(authContext, async (api) =>
+        api.reqAccountFollowAddByRSSChannel({
+          feed_url: feedUrl,
+          image_url: null,
+          ...(credentials !== null ? { requires_credentials: true } : {}),
+          title: feedUrl,
+        })
       );
 
-      const parseRequest = await requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) =>
-          api.apiRequest<{ request_id: string }>({
-            path: '/account/add-by-rss/parse',
-            method: 'POST',
-            config: {
-              withCredentials: true,
-            },
-            data: {
-              feed_url: feedUrl,
-            },
-          })
-      );
+      // Saved before the parse so a rejected pair stays available to correct on the credentials
+      // screen rather than having to be typed again.
+      const accountIdText = account?.id_text;
+      if (credentials !== null && accountIdText !== undefined) {
+        await addByRssCredentialStore.set(accountIdText, feedUrl, credentials);
+      }
 
-      const parseResult = await pollAddByRssParseStatus(
-        parseRequest.request_id,
-        async (requestId) =>
-          requestWithMobileAuthRefresh(
-            {
-              accessToken,
-              clearSession,
-              refreshToken,
-              setTokens,
-            },
-            async (api) =>
-              api.apiRequest<AddByRSSParseCacheEntry<unknown>>({
-                path: `/account/add-by-rss/parse/status/${requestId}`,
-                method: 'GET',
-                config: {
-                  withCredentials: true,
-                },
-              })
-          )
+      const { requestId, result } = await addByRssRepository.parseNow(
+        authContext,
+        feedUrl,
+        credentials
       );
-      const { mappedFeed, preview } = parseResult;
-
-      // The follow already exists server-side, so the feed row is kept either way. A background
-      // refresh picks up a feed whose host recovers.
-      const existingFeed = await addByRssRepository.getFeedByUrl(feedUrl);
-      const nextRecord = buildAddByRssFeedRecord(feedUrl, existingFeed ?? undefined, preview);
-      await addByRssRepository.upsertFeed(nextRecord, mappedFeed);
       setInputValue('');
+      setUsername('');
+      setPassword('');
 
       const failureLog = buildAddByRssParseFailureLog({
         feedUrl,
         jobKind: ADD_BY_RSS_ADD_LOG_KIND,
         occurredAt: Date.now(),
-        requestId: parseRequest.request_id,
-        result: parseResult,
+        requestId,
+        result,
       });
+      const credentialNoticeKey = credentialNoticeKeyForParse(result);
       if (failureLog === null) {
         onNotice('features.add_by_rss.status_parsed');
       } else {
         void syncEventLogRepository.append(failureLog);
         onNotice(
-          parseResult.status === 'failed' || parseResult.status === 'parsed'
-            ? 'error_log.add_by_rss.parse_failed_notice'
-            : 'error_log.add_by_rss.parse_pending_notice'
+          credentialNoticeKey ??
+            (result.status === 'failed' || result.status === 'parsed'
+              ? 'error_log.add_by_rss.parse_failed_notice'
+              : 'error_log.add_by_rss.parse_pending_notice')
         );
       }
       await onAfterAdd();
@@ -164,6 +182,7 @@ export function useAddByRssAddFlow({
     }
   }, [
     accessToken,
+    account?.id_text,
     addAccess,
     clearSession,
     handleGateError,
@@ -171,15 +190,22 @@ export function useAddByRssAddFlow({
     onAfterAdd,
     onNotice,
     openGate,
+    password,
     refreshToken,
     setInputValue,
     setTokens,
+    username,
   ]);
 
   return {
     addAccess,
     addErrorKey,
     addFeed,
+    handleFeedUrlChange,
     isAdding,
+    password,
+    setPassword,
+    setUsername,
+    username,
   };
 }

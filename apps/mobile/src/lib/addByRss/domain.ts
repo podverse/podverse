@@ -40,6 +40,7 @@ const EMPTY_PREVIEW: AddByRssParsePreview = {
 type FollowedAddByRssFeed = {
   feed_url: string;
   image_url: string | null;
+  requires_credentials?: boolean;
   title: string | null;
 };
 
@@ -146,6 +147,10 @@ export function mapParsedFeedToPreview(mappedFeed: AddByRSSMappedFeed): AddByRss
 }
 
 export type AddByRssPollResult = {
+  /** Whether the worker sent device-held credentials to the feed host. Never the values. */
+  credentialsState?: ParseStatusPayload['credentialsState'];
+  /** Machine-readable reason for a `failed` parse, when the worker classified one. */
+  failureReason?: ParseStatusPayload['failureReason'];
   mappedFeed: AddByRSSMappedFeed | null;
   preview: AddByRssParsePreview;
   /**
@@ -195,6 +200,8 @@ export async function pollAddByRssParseStatus(
     ) {
       return {
         ...resolveParseResult(statusResponse),
+        credentialsState: statusResponse.credentialsState,
+        failureReason: statusResponse.failureReason,
         serverError: toNonEmptyTrimmedString(statusResponse.error),
         status: statusResponse.status,
       };
@@ -260,10 +267,15 @@ export function mergeLocalAndRemoteAddByRssFeeds(
       id: localFeed?.id ?? createAddByRSSId(localFeed?.idText ?? createAddByRSSIdText()),
       idText: localFeed?.idText ?? createAddByRSSIdText(),
       imageUrl: remoteFeed.image_url ?? localFeed?.imageUrl ?? null,
+      // The last credential failure is what this device saw; the follow list does not carry one.
+      lastAuthFailure: localFeed?.lastAuthFailure ?? null,
       // The followed list carries no items, so the date can only come from a parse this device
       // already stored. A feed followed on another device keeps an unknown date until it is parsed.
       latestItemPubDateMs: localFeed?.latestItemPubDateMs ?? null,
       playbackPosition: localFeed?.playbackPosition ?? null,
+      // The account's flag is what tells a second device that this feed needs credentials.
+      requiresCredentials:
+        remoteFeed.requires_credentials ?? localFeed?.requiresCredentials ?? false,
       resourceType: 'podcasts' as const,
       // Follow metadata is written at add time, often as the URL, before parse fills the title.
       // A later list fetch must not replace a parsed local title with that placeholder.

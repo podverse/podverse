@@ -218,10 +218,10 @@ Clients must send an **authenticated Podverse session** (cookie or `Authorizatio
 
 ### Add-by-RSS
 
-Add-by-RSS allows users to follow RSS feeds (podcasts, music) not in the main directory. Optional HTTP Basic Auth credentials (username/password) can be provided when adding a feed; they are stored per-feed in the database (`account_following_add_by_rss_channel`).
+Add-by-RSS allows users to follow RSS feeds (podcasts, music) not in the main directory. Private feeds use HTTP Basic Auth credentials that devices hold and send with each parse or chapters request; the server never stores them.
 
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest using AES-256-GCM. Must be exactly 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. The value is passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md) and key-rotation procedure there.
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key, so existing ciphertext remains readable until the re-encryption script has run. Remove after rotation.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Transit key. The API seals device-sent credentials into a short-lived AES-256-GCM envelope on the add-by-RSS parse queue message; workers open it. Must be exactly 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Must match the workers value. See [docs/features/ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md).
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. Envelopes expire after 15 minutes, so remove it once queued messages sealed with the old key have drained.
 
 ### General
 

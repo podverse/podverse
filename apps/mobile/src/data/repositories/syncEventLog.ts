@@ -53,6 +53,7 @@ export const SYNC_EVENT_DETAIL_KEYS = [
   'native_detail',
   'parse_status',
   'request_id',
+  'basic_auth',
 ] as const;
 
 export type SyncEventDetailKey = (typeof SYNC_EVENT_DETAIL_KEYS)[number];

@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 import { parseMobileDeepLinkSchemes } from './deepLinkSchemes';
 
-export { isMobileE2eFromEnv } from './e2eEnv';
+export { isAddByRssInsecureCredentialsAllowedFromEnv, isMobileE2eFromEnv } from './e2eEnv';
 
 /**
  * Literal `process.env.EXPO_PUBLIC_*` reads for mobile app settings live in this file,

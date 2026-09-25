@@ -12,11 +12,17 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.HttpDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
 import android.view.TextureView
 import java.io.File
 import java.util.concurrent.CountDownLatch
+import okhttp3.OkHttpClient
 
 // This is the single, process-wide audio engine. It owns the one Media3 ExoPlayer for phone, lock
 // screen, and Android Auto now-playing. The MediaLibraryService (PodverseMediaLibraryService) wraps
@@ -66,6 +72,8 @@ object PodverseAudioEngine {
 
   private var player: ExoPlayer? = null
   private var appContext: Context? = null
+  /** Shared pool for protected-media loads; each load derives a client with its own authenticator. */
+  private var authBaseHttpClient: OkHttpClient? = null
   private val mainHandler = Handler(Looper.getMainLooper())
   private var progressPosting = false
   private var lastState: String = PlaybackState.IDLE
@@ -144,9 +152,17 @@ object PodverseAudioEngine {
    *
    * A positive [initialSeekSeconds] is the media item's start position, and playback waits until
    * the player is ready so audio does not begin at the start of the file and then jump.
+   *
+   * [basicAuth] (protected add-by-RSS media) routes the remote load through OkHttp with a
+   * [ScopedBasicAuthenticator]; without it the player's default data source is used unchanged.
    */
-  fun load(context: Context, url: String, initialSeekSeconds: Double?) {
-    prepareSource(context, url, initialSeekSeconds, playWhenPrepared = false)
+  fun load(
+    context: Context,
+    url: String,
+    initialSeekSeconds: Double?,
+    basicAuth: ScopedBasicAuth? = null,
+  ) {
+    prepareSource(context, url, initialSeekSeconds, basicAuth, playWhenPrepared = false)
   }
 
   /**
@@ -154,14 +170,34 @@ object PodverseAudioEngine {
    * after the start position is applied. Otherwise play is issued on the same main-thread turn as
    * prepare.
    */
-  fun loadAndStart(context: Context, url: String, initialSeekSeconds: Double?) {
-    prepareSource(context, url, initialSeekSeconds, playWhenPrepared = true)
+  fun loadAndStart(
+    context: Context,
+    url: String,
+    initialSeekSeconds: Double?,
+    basicAuth: ScopedBasicAuth? = null,
+  ) {
+    prepareSource(context, url, initialSeekSeconds, basicAuth, playWhenPrepared = true)
   }
 
+  @androidx.annotation.OptIn(UnstableApi::class)
+  private fun authenticatedMediaSource(
+    context: Context,
+    item: MediaItem,
+    auth: ScopedBasicAuth,
+  ): MediaSource {
+    val base = authBaseHttpClient ?: OkHttpClient().also { authBaseHttpClient = it }
+    val client = base.newBuilder().authenticator(ScopedBasicAuthenticator(auth)).build()
+    val dataSourceFactory =
+      DefaultDataSource.Factory(context.applicationContext, OkHttpDataSource.Factory(client))
+    return DefaultMediaSourceFactory(dataSourceFactory).createMediaSource(item)
+  }
+
+  @androidx.annotation.OptIn(UnstableApi::class)
   private fun prepareSource(
     context: Context,
     url: String,
     initialSeekSeconds: Double?,
+    basicAuth: ScopedBasicAuth?,
     playWhenPrepared: Boolean,
   ) {
     onMain {
@@ -177,10 +213,16 @@ object PodverseAudioEngine {
       playWhenReadyGeneration = if (playWhenPrepared && hasSeek) generation else -1
       val p = getOrCreatePlayer(context)
       publish(PlaybackState.LOADING)
-      if (hasSeek) {
-        p.setMediaItem(MediaItem.fromUri(url), (seekSeconds * 1000).toLong())
+      val item = MediaItem.fromUri(url)
+      val startMs = (seekSeconds * 1000).toLong()
+      val isRemote = url.startsWith("https://") || url.startsWith("http://")
+      if (basicAuth != null && isRemote) {
+        val source = authenticatedMediaSource(context, item, basicAuth)
+        if (hasSeek) p.setMediaSource(source, startMs) else p.setMediaSource(source)
+      } else if (hasSeek) {
+        p.setMediaItem(item, startMs)
       } else {
-        p.setMediaItem(MediaItem.fromUri(url))
+        p.setMediaItem(item)
       }
       p.prepare()
       if (playWhenPrepared && !hasSeek) {

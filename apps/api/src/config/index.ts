@@ -164,6 +164,14 @@ type Config = {
     /** Max new (PI enqueue / add-by-RSS) feeds per account per hour. */
     maxFeedsPerHour: number;
   };
+  addByRss: {
+    /** 64-hex AES-256 key that seals Basic Auth credentials for the parse queue (transit only). */
+    credentialsEncryptionKey: string;
+    /** Previous key during rotation; the worker tries it after the current key. */
+    credentialsEncryptionKeyOld: string | undefined;
+    /** Permit credentials over plain http — local development and E2E fixtures only. */
+    allowInsecureCredentials: boolean;
+  };
 };
 
 export const config: Config = {
@@ -419,5 +427,11 @@ export const config: Config = {
       const parsed = Number.parseInt(raw, 10);
       return Number.isFinite(parsed) && parsed >= 1 ? parsed : 50;
     })(),
+  },
+  addByRss: {
+    credentialsEncryptionKey: process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY!,
+    credentialsEncryptionKeyOld: process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD,
+    allowInsecureCredentials:
+      process.env.NODE_ENV === 'development' || process.env.PODVERSE_E2E_FIXTURES === '1',
   },
 };

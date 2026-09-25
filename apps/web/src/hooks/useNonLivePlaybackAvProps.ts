@@ -8,6 +8,7 @@ import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
 import { resolveAddByRSSListContextFromCurrentItem } from '../utils/addByRSS/resolveListContextFromCurrentItem';
+import { useAddByRSSMediaFailureNotice } from './useAddByRSSMediaFailureNotice';
 import { useAddByRSSPlayNext } from './useAddByRSSPlayNext';
 import { useAddByRSSPositionSave } from './useAddByRSSPositionSave';
 import { useMediaPlayerClearNowPlaying } from './useMediaPlayerClearNowPlaying';
@@ -34,6 +35,7 @@ export function useNonLivePlaybackAvProps(): Omit<
   const { savePosition: onAddByRSSPositionSave, handleEnded: onAddByRSSEnded } =
     useAddByRSSPositionSave();
   const playNextRaw = useAddByRSSPlayNext();
+  const onAddByRSSMediaError = useAddByRSSMediaFailureNotice();
   const onAddByRSSPlayNext = useCallback(async (): Promise<boolean> => {
     const hasListContext = listContext && listContext.itemIdTexts.length > 0;
     if (!hasListContext && mediaPlayer.mpAddByRSS) {
@@ -83,6 +85,7 @@ export function useNonLivePlaybackAvProps(): Omit<
     onAddByRSSPositionSave,
     onAddByRSSEnded,
     onAddByRSSPlayNext,
+    onAddByRSSMediaError,
     clearNowPlaying,
     pendingMusicQueueLoadIntentRef: mediaPlayer.pendingMusicQueueLoadIntentRef,
   };

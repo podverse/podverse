@@ -23,7 +23,7 @@ variables, React context state, refs, the native CarPlay / Android Auto cache â€
 | Kind | Examples | On session end |
 | ---- | ---- | ---- |
 | **Device data** | subscriptions, add-by-RSS feeds, downloads, `channel_seen`, public directory caches, the last-playback snapshot | **Kept.** Documented in `clearSession` |
-| **Account data** | account snapshot, `queue_cache`, playlists and their owned / followed flags, reconcile conflicts, anything fetched from a `*Private` / `/account/*` / `/queue/*` route | **Cleared** |
+| **Account data** | account snapshot, `queue_cache`, playlists and their owned / followed flags, reconcile conflicts, add-by-RSS feed credentials (SecureStore + `add_by_rss_credential_index`), anything fetched from a `*Private` / `/account/*` / `/queue/*` route | **Cleared** |
 | **Keyed by account** | `playback_outbox`, `playback_local_state` (`account_id_text` column) | Kept; every read filters on the current account |
 
 A new store is account data unless you can say why a different person on the same phone should

@@ -17,7 +17,8 @@ export type MQDedupeMessage =
 /**
  * Resolve the value for deduping an MQ message. Each message shape has a
  * different stable identity: RSS parse jobs dedupe on the Podcast Index id (or
- * feed url), add-by-rss jobs on the feed url, OPML import jobs on the per-batch
+ * feed url), add-by-rss jobs on the feed url (never the credentials envelope, which is
+ * re-sealed per request), OPML import jobs on the per-batch
  * requestId, and everything else on the url. OPML import batches contain many
  * feeds and no single feedUrl/url, so requestId is the only stable identity.
  */

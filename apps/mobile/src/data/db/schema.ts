@@ -116,10 +116,31 @@ export const addByRssFeed = sqliteTable('add_by_rss_feed', {
   latestItemPubDateMs: integer('latest_item_pub_date_ms'),
   mappedFeedJson: text('mapped_feed_json'),
   updatedAt: text('updated_at').notNull(),
+  requiresCredentials: integer('requires_credentials').notNull().default(0),
+  lastAuthFailure: text('last_auth_failure'),
 });
 
 export type AddByRssFeedRow = typeof addByRssFeed.$inferSelect;
 export type AddByRssFeedInsert = typeof addByRssFeed.$inferInsert;
+
+/**
+ * Which add-by-RSS feeds hold device-local Basic Auth credentials, per account. The secrets live in
+ * SecureStore under a key derived from both columns; this table holds no secret and exists because
+ * SecureStore cannot list its keys.
+ */
+export const addByRssCredentialIndex = sqliteTable(
+  'add_by_rss_credential_index',
+  {
+    accountIdText: text('account_id_text').notNull(),
+    feedUrl: text('feed_url').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.accountIdText, table.feedUrl] }),
+  })
+);
+
+export type AddByRssCredentialIndexRow = typeof addByRssCredentialIndex.$inferSelect;
 
 /**
  * Offline downloads index. Source of truth for the phone Downloads library and

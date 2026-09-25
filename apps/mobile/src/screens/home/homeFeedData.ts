@@ -5,20 +5,24 @@ import { htmlToPlainTextPreview } from '@podverse/helpers/html';
 
 import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
 import {
+  addByRssRepository,
   channelItemsRepository,
   channelLiveStatusRepository,
   channelSeenRepository,
   downloadsRepository,
   homeClipsCacheRepository,
   subscriptionChannelKindFromMediumId,
+  subscriptionChannelKindFromResourceType,
   subscriptionsRepository,
 } from '../../data/repositories';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
+import type { AddByRssNeedsCredentialsFeed } from '../../lib/addByRss/credentials';
 import {
   clipHomeRowSourceFromUnknown,
   clipToHomeRow,
   MIXED_SOURCE_CLIP_ROW_OPTIONS,
 } from '../../lib/rows/homeRowMappers';
+import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import type { HomeRangeOption, HomeSortOption } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
@@ -547,6 +551,22 @@ export const fetchUnsubscribedDownloadHomeRows = async (): Promise<HomeFeedRowDa
 };
 
 /**
+ * Add-by-RSS feeds of this channel chip's kind that need a username and password on this device.
+ * Home lists them in a section after its rows; `fetchHomeFeedRows` leaves them out of the rows.
+ */
+export const fetchNeedsCredentialsHomeFeeds = async (
+  mediaType: HomeMediaType
+): Promise<AddByRssNeedsCredentialsFeed<MobileAddByRSSFeedRecord>[]> => {
+  if (mediaType !== 'podcasts' && mediaType !== 'artists' && mediaType !== 'albums') {
+    return [];
+  }
+  const { needsCredentials } = await addByRssRepository.listFeedsByCredentials();
+  return needsCredentials.filter(
+    (item) => subscriptionChannelKindFromResourceType(item.feed.resourceType) === mediaType
+  );
+};
+
+/**
  * Completed downloads as Home Episodes / Tracks rows. Used while Offline Mode is on so those
  * chips list only playable local files rather than the full stored window.
  */
@@ -586,10 +606,11 @@ export const fetchHomeFeedRows = async (
   if (mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums') {
     // Channel chips read local follows only. Kind splits podcasts / artists / albums so a music
     // follow never appears under Podcasts and the reverse. Popularity ranks arrive from the sync
-    // queue; this path never waits on the network to paint.
+    // queue; this path never waits on the network to paint. Add-by-RSS feeds still waiting on a
+    // username and password belong to the section after the rows, not the rows.
     const kind =
       mediaType === 'podcasts' ? 'podcasts' : mediaType === 'artists' ? 'artists' : 'albums';
-    const subscribed = await subscriptionsRepository.list({ kind, sort });
+    const subscribed = await subscriptionsRepository.list({ credentials: 'ready', kind, sort });
     ensureCurrent();
     return attachSubscriptionMetadataOrBare(subscribed, mediaType);
   }

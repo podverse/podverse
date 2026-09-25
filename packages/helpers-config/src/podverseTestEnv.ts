@@ -63,7 +63,7 @@ const apiTestEnvBase = (): Record<string, string> => ({
   MAILER_FROM: 'test@localhost',
   BRAND_COLOR_PRIMARY: '#000000',
   BRAND_BANNER_IMAGE_3X1_URL: 'https://example.test/brand-banner-3x1.png',
-  ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: 'test-e2e-encryption-key',
+  ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: '0123456789abcdef'.repeat(4),
   OPML_IMPORT_MAX_FEEDS_PER_HOUR: '50',
   EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: exp,
   LEGAL_NAME: 'Test Legal',

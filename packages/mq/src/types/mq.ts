@@ -22,6 +22,12 @@ export type MQAddByRSSMessage = {
   feedHash?: string;
   etag?: string;
   lastModified?: string;
+  /**
+   * Sealed Basic Auth credentials (`sealAddByRssCredentials`, `@podverse/helpers-backend`), bound
+   * to this message's accountId, requestId, and feedUrl. Plaintext credentials never ride the
+   * queue; this field is excluded from the dedupe id.
+   */
+  credentialsEnvelope?: string;
 } & MQTraceEnvelopeFields;
 
 export type MQOpmlImportFeed = {

@@ -52,6 +52,23 @@ describe('mergeLocalAndRemoteAddByRssFeeds', () => {
     expect(merged).toHaveLength(1);
     expect(merged[0]?.title).toBe('Remote Title');
   });
+
+  it('takes the credential flag from the account and keeps this device’s last auth failure', () => {
+    const feedUrl = 'https://example.com/private.xml';
+    const [flaggedElsewhere] = mergeLocalAndRemoteAddByRssFeeds(
+      [],
+      [{ feed_url: feedUrl, image_url: null, requires_credentials: true, title: null }]
+    );
+    expect(flaggedElsewhere?.requiresCredentials).toBe(true);
+    expect(flaggedElsewhere?.lastAuthFailure).toBeNull();
+
+    const [rejectedHere] = mergeLocalAndRemoteAddByRssFeeds(
+      [localFeed({ feedUrl, lastAuthFailure: 'credentials_rejected', requiresCredentials: true })],
+      [{ feed_url: feedUrl, image_url: null, title: null }]
+    );
+    expect(rejectedHere?.requiresCredentials).toBe(true);
+    expect(rejectedHere?.lastAuthFailure).toBe('credentials_rejected');
+  });
 });
 
 const rawParsePayload = {

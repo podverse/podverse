@@ -26,6 +26,8 @@ type BeginDirectDownloadParams = {
   ) => void;
   downloadAndSaveFile: (url: string, filename: string) => Promise<void>;
   messages: DirectDownloadMessages;
+  /** Replaces the failure message for the chosen source, e.g. to explain a protected feed. */
+  errorMessageForUri?: (uri: string) => string | null;
   onIneligible: () => void;
 };
 
@@ -49,6 +51,7 @@ export function beginDirectDownload({
   showToastPromiseWithLoading,
   downloadAndSaveFile,
   messages,
+  errorMessageForUri,
   onIneligible,
 }: BeginDirectDownloadParams): void {
   const labeledItemEnclosures = buildLabeledItemEnclosures(enclosures);
@@ -75,6 +78,7 @@ export function beginDirectDownload({
     return;
   }
 
+  const errorOverride = errorMessageForUri?.(selected.uri) ?? null;
   const resolution = startProgressiveDownload({
     uri: selected.uri,
     mime: selected.mime,
@@ -82,7 +86,7 @@ export function beginDirectDownload({
     fallbackFilename,
     downloadAndSaveFile,
     showToastPromiseWithLoading,
-    messages,
+    messages: errorOverride ? { ...messages, error: errorOverride } : messages,
   });
   if (!resolution.ok && resolution.reason !== 'missing_uri') {
     onIneligible();

@@ -7,11 +7,24 @@ import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { buildAddByRssParseFailureLog } from '../../lib/addByRss/addByRssErrorLog';
+import type {
+  AddByRssCredentialStatus,
+  AddByRssCredentials,
+  AddByRssNeedsCredentialsFeed,
+} from '../../lib/addByRss/credentials';
+import {
+  isAddByRssAuthFailure,
+  partitionAddByRssFeedsByCredentials,
+  resolveAddByRssCredentialStatus,
+  splitAddByRssPastedUrl,
+  toAddByRssCredentialFeedUrl,
+} from '../../lib/addByRss/credentials';
 import type { AddByRssPollResult } from '../../lib/addByRss/domain';
 import { buildAddByRssFeedRecord, pollAddByRssParseStatus } from '../../lib/addByRss/domain';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { AddByRssFeedRow } from '../db/schema';
+import { addByRssCredentialStore } from './addByRssCredentialStore';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
 import { channelSeenRepository } from './channelSeenRepository';
 import { autoDownloadRepository } from './autoDownloadRepository';
@@ -41,8 +54,28 @@ const rowToRecord = (row: AddByRssFeedRow): MobileAddByRSSFeedRecord => {
     enclosureUrl: row.enclosureUrl,
     latestItemPubDateMs: row.latestItemPubDateMs,
     playbackPosition: row.playbackPosition,
+    requiresCredentials: row.requiresCredentials === 1,
+    lastAuthFailure: isAddByRssAuthFailure(row.lastAuthFailure) ? row.lastAuthFailure : null,
   };
 };
+
+/** Only the credential fields a record actually sets, so an omitted one keeps its stored value. */
+const credentialColumnValues = (
+  record: Pick<MobileAddByRSSFeedRecord, 'lastAuthFailure' | 'requiresCredentials'>
+): { lastAuthFailure?: string | null; requiresCredentials?: number } => ({
+  ...(record.requiresCredentials !== undefined
+    ? { requiresCredentials: record.requiresCredentials ? 1 : 0 }
+    : {}),
+  ...(record.lastAuthFailure !== undefined ? { lastAuthFailure: record.lastAuthFailure } : {}),
+});
+
+/**
+ * A credential failure the user already sees in the needs-credentials section. The server answers
+ * a flagged feed that arrived without credentials this way on every refresh, so logging it would
+ * fill the error log with rows that explain nothing new.
+ */
+const isExpectedMissingCredentials = (result: AddByRssPollResult): boolean =>
+  result.failureReason === 'credentials_required' && result.credentialsState === 'not_provided';
 
 /**
  * Refresh failures already logged this session, keyed by feed, code, and server reason. Every
@@ -80,6 +113,23 @@ type ParseAllResponse = {
   request_ids: { feed_url: string; request_id: string }[];
 };
 
+type CredentialPair = { password: string; username: string };
+
+const toCredentialsByUrl = (
+  credentials: ReadonlyMap<string, AddByRssCredentials>
+): Record<string, CredentialPair> => {
+  const byUrl: Record<string, CredentialPair> = {};
+  for (const [feedUrl, value] of credentials) {
+    byUrl[feedUrl] = { password: value.password, username: value.username };
+  }
+  return byUrl;
+};
+
+export type AddByRssFeedsByCredentials = {
+  needsCredentials: AddByRssNeedsCredentialsFeed<MobileAddByRSSFeedRecord>[];
+  ready: MobileAddByRSSFeedRecord[];
+};
+
 /**
  * Add-by-RSS feed repository — the source of truth for the mobile RSS list and add-by-RSS playback.
  *
@@ -102,6 +152,19 @@ export const addByRssRepository = {
       .orderBy(desc(schema.addByRssFeed.updatedAt));
 
     return rows.map(rowToRecord);
+  },
+
+  /**
+   * Feeds split into the normal list and the needs-credentials section. A feed lands in the
+   * section when it needs Basic Auth and this device holds no credentials for the signed-in
+   * account, or when the last parse rejected the ones it holds.
+   */
+  listFeedsByCredentials: async (): Promise<AddByRssFeedsByCredentials> => {
+    const [feeds, feedUrlsWithCredentials] = await Promise.all([
+      addByRssRepository.listFeeds(),
+      addByRssCredentialStore.listFeedUrlsForCurrentAccount(),
+    ]);
+    return partitionAddByRssFeedsByCredentials(feeds, feedUrlsWithCredentials);
   },
 
   getFeedByUrl: async (feedUrl: string): Promise<MobileAddByRSSFeedRecord | null> => {
@@ -186,6 +249,7 @@ export const addByRssRepository = {
       enclosureUrl: record.enclosureUrl,
       playbackPosition: record.playbackPosition,
       updatedAt: record.updatedAt,
+      ...credentialColumnValues(record),
     };
 
     if (mappedFeed !== undefined) {
@@ -233,6 +297,50 @@ export const addByRssRepository = {
     }
   },
 
+  /** Record what a parse said about credentials without touching the rest of the row. */
+  setCredentialStatus: async (feedUrl: string, status: AddByRssCredentialStatus): Promise<void> => {
+    await initializeDatabase();
+    await getDb()
+      .update(schema.addByRssFeed)
+      .set(credentialColumnValues(status))
+      .where(eq(schema.addByRssFeed.feedUrl, feedUrl));
+  },
+
+  /**
+   * Move `user:pass@` out of stored feed URLs and into SecureStore. Rows only carry userinfo when
+   * they were added before credentials moved to the device, so once rewritten the scan finds
+   * nothing and costs one small read. The account's follow row already uses the clean URL.
+   */
+  splitStoredUserinfo: async (accountIdText: string): Promise<void> => {
+    const feeds = await addByRssRepository.listFeeds();
+    for (const feed of feeds) {
+      const split = splitAddByRssPastedUrl(feed.feedUrl);
+      if (split === null) {
+        continue;
+      }
+      const cleanUrl = toAddByRssCredentialFeedUrl(split.feedUrl);
+      if (split.credentials !== null) {
+        await addByRssCredentialStore.set(accountIdText, cleanUrl, split.credentials);
+      }
+
+      const existingClean = await addByRssRepository.getFeedByUrl(cleanUrl);
+      if (existingClean === null) {
+        await getDb()
+          .update(schema.addByRssFeed)
+          .set({ feedUrl: cleanUrl, requiresCredentials: 1 })
+          .where(eq(schema.addByRssFeed.feedUrl, feed.feedUrl));
+      } else {
+        await getDb()
+          .delete(schema.addByRssFeed)
+          .where(eq(schema.addByRssFeed.feedUrl, feed.feedUrl));
+        await addByRssRepository.setCredentialStatus(cleanUrl, {
+          lastAuthFailure: existingClean.lastAuthFailure ?? null,
+          requiresCredentials: true,
+        });
+      }
+    }
+  },
+
   /**
    * Ask the server to re-parse every feed the account follows, and return a ticket per feed.
    *
@@ -240,12 +348,22 @@ export const addByRssRepository = {
    * parsed recently, so a device that foregrounds often does not repeatedly ask for the same work.
    * Feeds the server deduped come back with no ticket and are simply left as they are.
    *
+   * Credentials this device holds for the account ride along in `credentials_by_url`; the API seals
+   * them for the worker and never stores them. A feed that needs credentials this device lacks
+   * gets no ticket back to poll: the server skips it, and the needs-credentials section already
+   * says why.
+   *
    * The caller is responsible for checking that the account may refresh at all — a lapsed
    * membership keeps its feeds readable and playable, and only stops them updating.
    */
   requestRefreshAll: async (
-    context: MobileAuthRequestContext
+    context: MobileAuthRequestContext,
+    accountIdText: string
   ): Promise<AddByRssRefreshTicket[]> => {
+    const [credentials, feeds] = await Promise.all([
+      addByRssCredentialStore.readAllForAccount(accountIdText),
+      addByRssRepository.listFeeds(),
+    ]);
     const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
       apiRequestService.apiRequest<ParseAllResponse>({
         path: '/account/add-by-rss/parse/all',
@@ -253,14 +371,87 @@ export const addByRssRepository = {
         config: {
           withCredentials: true,
         },
-        data: {},
+        data: credentials.size > 0 ? { credentials_by_url: toCredentialsByUrl(credentials) } : {},
       })
     );
 
-    return response.request_ids.map((entry) => ({
-      feedUrl: entry.feed_url,
-      requestId: entry.request_id,
-    }));
+    const feedsByUrl = new Map(feeds.map((feed) => [feed.feedUrl, feed]));
+    return response.request_ids
+      .filter((entry) => {
+        const feed = feedsByUrl.get(entry.feed_url);
+        if (feed === undefined || feed.requiresCredentials !== true) {
+          return true;
+        }
+        return credentials.has(toAddByRssCredentialFeedUrl(entry.feed_url));
+      })
+      .map((entry) => ({
+        feedUrl: entry.feed_url,
+        requestId: entry.request_id,
+      }));
+  },
+
+  /**
+   * Parse one feed now and store what came back: the interactive add, and save-and-check on the
+   * credentials screen. Credentials go only in this request body, which the API seals for the
+   * worker; they are never part of the follow.
+   *
+   * A feed already on the device keeps its stored episodes when this parse yields none, the same
+   * rule a background refresh follows. A new feed is written either way so the add lands.
+   */
+  parseNow: async (
+    context: MobileAuthRequestContext,
+    feedUrl: string,
+    credentials: AddByRssCredentials | null
+  ): Promise<{ requestId: string; result: AddByRssPollResult }> => {
+    const parseRequest = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+      apiRequestService.apiRequest<{ request_id: string }>({
+        path: '/account/add-by-rss/parse',
+        method: 'POST',
+        config: {
+          withCredentials: true,
+        },
+        data: {
+          feed_url: feedUrl,
+          ...(credentials !== null
+            ? {
+                basic_auth_password: credentials.password,
+                basic_auth_username: credentials.username,
+              }
+            : {}),
+        },
+      })
+    );
+
+    const result = await pollAddByRssParseStatus(parseRequest.request_id, async (requestId) =>
+      requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+        apiRequestService.apiRequest<AddByRSSParseCacheEntry<unknown>>({
+          path: `/account/add-by-rss/parse/status/${requestId}`,
+          method: 'GET',
+          config: {
+            withCredentials: true,
+          },
+        })
+      )
+    );
+
+    const existingFeed = await addByRssRepository.getFeedByUrl(feedUrl);
+    const credentialStatus = resolveAddByRssCredentialStatus({
+      credentialsState: result.credentialsState,
+      current: credentials !== null || existingFeed?.requiresCredentials === true,
+      failureReason: result.failureReason,
+      status: result.status,
+    });
+    const record = buildAddByRssFeedRecord(feedUrl, existingFeed ?? undefined, result.preview);
+    await addByRssRepository.upsertFeed(
+      {
+        ...record,
+        ...(credentials !== null ? { requiresCredentials: true } : {}),
+        ...credentialStatus,
+      },
+      existingFeed === null ? result.mappedFeed : (result.mappedFeed ?? undefined)
+    );
+
+    return { requestId: parseRequest.request_id, result };
   },
 
   /**
@@ -288,21 +479,33 @@ export const addByRssRepository = {
       )
     );
     const { mappedFeed, preview } = result;
+    const existingFeed = await addByRssRepository.getFeedByUrl(ticket.feedUrl);
+    const credentialStatus = resolveAddByRssCredentialStatus({
+      credentialsState: result.credentialsState,
+      current: existingFeed?.requiresCredentials === true,
+      failureReason: result.failureReason,
+      status: result.status,
+    });
 
     if (mappedFeed === null) {
-      recordRefreshFailure(ticket, result);
+      if (credentialStatus !== null && existingFeed !== null) {
+        await addByRssRepository.setCredentialStatus(ticket.feedUrl, credentialStatus);
+      }
+      if (!isExpectedMissingCredentials(result)) {
+        recordRefreshFailure(ticket, result);
+      }
       return false;
     }
 
-    const existingFeed = await addByRssRepository.getFeedByUrl(ticket.feedUrl);
     const record = buildAddByRssFeedRecord(ticket.feedUrl, existingFeed ?? undefined, preview);
-    await addByRssRepository.upsertFeed(record, mappedFeed);
+    await addByRssRepository.upsertFeed({ ...record, ...credentialStatus }, mappedFeed);
     return true;
   },
 
   removeFeed: async (feedUrl: string): Promise<void> => {
     await initializeDatabase();
     await getDb().delete(schema.addByRssFeed).where(eq(schema.addByRssFeed.feedUrl, feedUrl));
+    await addByRssCredentialStore.deleteForCurrentAccount(feedUrl);
     await channelLiveStatusRepository.remove(feedUrl);
     await channelSeenRepository.remove(feedUrl);
     await autoDownloadRepository.removeChannel(feedUrl);

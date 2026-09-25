@@ -88,12 +88,14 @@ export const AddByRSSPodcastHeader: React.FC<AddByRSSPodcastHeaderProps> = ({ fe
     try {
       if (isSubscribed) {
         const nextAccount = await unfollowAddByRSSChannelAndClear({
+          accountId: loggedInAccount.id_text,
           feedUrl,
           channelIdText: feed.idText,
         });
         setLoggedInAccount(nextAccount);
       } else {
         const { account: nextAccount } = await followAddByRSSChannelAndQueue({
+          accountId: loggedInAccount.id_text,
           feedUrl,
           resourceType: 'podcasts',
           title: title ?? null,

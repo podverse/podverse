@@ -1,6 +1,7 @@
 import { getErrorCode, getErrorMessage } from '@podverse/helpers/error';
 
 import type { PlaybackErrorEvent, PlaybackErrorKind } from '../../modules/podverse-media-engine';
+import type { AddByRssMediaCredentialsState } from '../lib/addByRss/mediaAuth';
 
 /**
  * Catalog keys for an action-error dialog. Confirm is always retry; the body explains the kind.
@@ -72,7 +73,38 @@ export const playbackErrorMessageKeys = (kind: PlaybackErrorKind): ActionErrorMe
   }
 };
 
-const DOWNLOAD_ERROR_REASONS = ['file_missing', 'no_storage', 'transfer_failed'] as const;
+const PLAYBACK_CREDENTIALS_BODY_KEYS: Partial<Record<AddByRssMediaCredentialsState, string>> = {
+  not_stored: 'action_error.playback_credentials_required',
+  sent: 'action_error.playback_credentials_rejected',
+  withheld_insecure: 'action_error.playback_credentials_withheld_insecure',
+  withheld_other_domain: 'action_error.playback_credentials_withheld_other_domain',
+};
+
+/**
+ * Body for a protected add-by-RSS host refusing the file (401 / 403), keyed by whether the feed's
+ * credentials went with the load. `null` when credentials do not explain the failure, so the
+ * caller falls back to {@link playbackErrorMessageKeys}.
+ */
+export const playbackCredentialsMessageKeys = (
+  credentialsState: AddByRssMediaCredentialsState | null,
+  httpStatus: number | undefined
+): ActionErrorMessageKeys | null => {
+  if ((httpStatus !== 401 && httpStatus !== 403) || credentialsState === null) {
+    return null;
+  }
+  const bodyKey = PLAYBACK_CREDENTIALS_BODY_KEYS[credentialsState];
+  if (bodyKey === undefined) {
+    return null;
+  }
+  return { bodyKey, confirmLabelKey: RETRY_LABEL_KEY, titleKey: playbackTitleKey };
+};
+
+const DOWNLOAD_ERROR_REASONS = [
+  'credentials_withheld',
+  'file_missing',
+  'no_storage',
+  'transfer_failed',
+] as const;
 
 export type KnownDownloadErrorReason = (typeof DOWNLOAD_ERROR_REASONS)[number];
 
@@ -94,6 +126,12 @@ export const downloadErrorReasonKey = (reason: string | null): DownloadErrorReas
  */
 export const downloadErrorMessageKeys = (reason: string | null): ActionErrorMessageKeys => {
   switch (downloadErrorReasonKey(reason)) {
+    case 'credentials_withheld':
+      return {
+        bodyKey: 'action_error.download_credentials_withheld',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: downloadTitleKey,
+      };
     case 'no_storage':
       return {
         bodyKey: 'action_error.download_no_storage',

@@ -146,20 +146,27 @@ export const subscriptionsRepository = {
   /** Merged directory + add-by-RSS follows (default: all, alphabetical). Offline-capable. */
   list: async (
     params: {
+      /**
+       * `ready` leaves out add-by-RSS feeds waiting on a username and password, which Home lists
+       * in their own section at the end. Everything else still counts them as followed.
+       */
+      credentials?: 'all' | 'ready';
       filter?: SubscriptionFilter;
       kind?: SubscriptionChannelKind | null;
       sort?: SubscriptionSort;
     } = {}
   ): Promise<SubscribedChannel[]> => {
     await initializeDatabase();
-    const { filter = 'all', kind = null, sort = 'alphabetical' } = params;
+    const { credentials = 'all', filter = 'all', kind = null, sort = 'alphabetical' } = params;
 
     // The publish dates come from the item store for directory channels and from a column on the
     // feed row for add-by-RSS, so both are read here and attached before the two sets are merged.
     // Always read, not only when ordering by recency: a subscription row states when its channel
     // last published, so the date is part of the answer whichever order it comes back in.
     const [addByRssRecords, directory, latestPubDateByChannel] = await Promise.all([
-      addByRssRepository.listFeeds(),
+      credentials === 'ready'
+        ? addByRssRepository.listFeedsByCredentials().then((split) => split.ready)
+        : addByRssRepository.listFeeds(),
       readDirectoryCache(),
       channelItemsRepository.latestPubDateByChannel(),
     ]);

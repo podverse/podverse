@@ -1,4 +1,5 @@
 export * from './addByRSSParseCacheKey.js';
+export * from './addByRssCredentialsTransit.js';
 export * from './fetchWithTimeout.js';
 export * from './params.js';
 export * from './httpCacheHeaders.js';

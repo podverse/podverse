@@ -4,6 +4,7 @@ import type { PlaybackErrorKind } from '../../modules/podverse-media-engine';
 import {
   actionErrorDetailLine,
   downloadErrorMessageKeys,
+  playbackCredentialsMessageKeys,
   playbackErrorFromLoadFailure,
   playbackErrorMessageKeys,
 } from './actionErrorCopy';
@@ -33,6 +34,26 @@ describe('playbackErrorMessageKeys', () => {
   });
 });
 
+describe('playbackCredentialsMessageKeys', () => {
+  it('explains a 401 or 403 by the credential outcome', () => {
+    expect(playbackCredentialsMessageKeys('sent', 401)?.bodyKey).toBe(
+      'action_error.playback_credentials_rejected'
+    );
+    expect(playbackCredentialsMessageKeys('not_stored', 403)?.bodyKey).toBe(
+      'action_error.playback_credentials_required'
+    );
+    expect(playbackCredentialsMessageKeys('withheld_other_domain', 401)?.bodyKey).toBe(
+      'action_error.playback_credentials_withheld_other_domain'
+    );
+  });
+
+  it('defers to the kind copy for other statuses and non-add-by-RSS loads', () => {
+    expect(playbackCredentialsMessageKeys('sent', 404)).toBeNull();
+    expect(playbackCredentialsMessageKeys(null, 401)).toBeNull();
+    expect(playbackCredentialsMessageKeys('not_remote', 401)).toBeNull();
+  });
+});
+
 describe('downloadErrorMessageKeys', () => {
   it('maps each stored reason and falls back when the reason is missing or unknown', () => {
     expect(downloadErrorMessageKeys('no_storage').bodyKey).toBe('action_error.download_no_storage');
@@ -41,6 +62,9 @@ describe('downloadErrorMessageKeys', () => {
     );
     expect(downloadErrorMessageKeys('file_missing').bodyKey).toBe(
       'action_error.download_file_missing'
+    );
+    expect(downloadErrorMessageKeys('credentials_withheld').bodyKey).toBe(
+      'action_error.download_credentials_withheld'
     );
     expect(downloadErrorMessageKeys(null).bodyKey).toBe('action_error.download_unknown');
     expect(downloadErrorMessageKeys('something_else').bodyKey).toBe(

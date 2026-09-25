@@ -164,8 +164,8 @@ player instance.
 
 | Method                 | Args                                           | Returns           | Errors / notes                                                                                                           |
 | ---------------------- | ---------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `load(source)`         | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure.                                       |
-| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Atomic `load` + `play` (2.25). Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore). |
+| `load(source)`         | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure. `basicAuth`: see below.              |
+| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Atomic `load` + `play`. Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore).        |
 | `play()`               | —                                              | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.                                         |
 | `pause()`              | —                                              | `void`            | Keeps current item and position.                                                                                         |
 | `seek(seconds)`        | `number` (seconds)                             | `void`            | Absolute seek. Clamping owned by native.                                                                                 |
@@ -184,6 +184,26 @@ files play through the **same single engine** — never a second player or RN `<
 
 A missing `file://` target fails fast with a `file-not-found` error (see taxonomy below) instead of
 hanging. Local files emit the same `progress` / `ended` / `error` events as remote sources.
+
+### Protected media (`source.basicAuth`)
+
+`source.basicAuth` (`{ username, password, scopeHost, scopeMatch: 'domain' | 'exact', allowInsecure }`)
+answers an HTTP Basic challenge from a protected add-by-RSS feed's media host. It is never sent
+up front: the credential goes out only in reply to a `401` challenge from a host inside the scope,
+so a redirect to another host gets no credential.
+
+- **iOS:** the item is an `AVURLAsset` whose `resourceLoader` delegate
+  (`PodverseMediaAuthLoaderDelegate`) answers `NSURLAuthenticationMethodHTTPBasic` / `Default`
+  challenges. It declines proxy challenges, retries (`previousFailureCount > 0`), and out-of-scope
+  hosts.
+- **Android:** the item is built through `OkHttpDataSource` with a `ScopedBasicAuthenticator`
+  (`PodverseScopedBasicAuth.kt`), which applies the same checks. Sources without `basicAuth` keep
+  the default data source.
+- **Scope:** `scopeMatch: 'domain'` accepts `scopeHost` and its subdomains; `'exact'` accepts only
+  `scopeHost` (IPs, `localhost`). HTTPS only unless `allowInsecure`. JS resolves `scopeHost` from the
+  feed URL with the public suffix list (`resolveCredentialScopeHost` in `@podverse/helpers`); native
+  applies a suffix match to each challenging host.
+- The password never reaches a native log: both `ScopedBasicAuth` types print without it.
 
 ## Native → JS events (step 2.10 / detail 089)
 

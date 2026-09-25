@@ -25,6 +25,10 @@
     }
   },
   "features": {
+    "add_by_rss": {
+      "credentials_mobile_media_note": "This app sends them with audio, video, and artwork only when those files are on the same site as the feed.",
+      "credentials_remove_feed_confirm": "Remove this feed? Its username and password are deleted from this device too."
+    },
     "opml": {
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
@@ -253,7 +257,8 @@
         "native_code": "Player error code",
         "native_detail": "Player error detail",
         "parse_status": "Parse status",
-        "request_id": "Request ID"
+        "request_id": "Request ID",
+        "basic_auth": "Feed username and password"
       }
     }
   },
@@ -277,6 +282,11 @@
     "playback_audio_session": "Audio could not start. Close other apps that are playing sound, then try again.",
     "playback_invalid_source": "The media address is not valid.",
     "playback_unknown": "Something went wrong while playing. Try again.",
+    "playback_credentials_required": "This feed's host asked for a username and password. Add them to the feed under Add by RSS, then try again.",
+    "playback_credentials_rejected": "This feed's host did not accept the saved username and password. Update them under Add by RSS, then try again.",
+    "playback_credentials_withheld_other_domain": "This media is on a different site than the feed, so the feed's username and password were not sent to it.",
+    "playback_credentials_withheld_insecure": "This media uses an unencrypted address, so the feed's username and password were not sent to it.",
+    "download_credentials_withheld": "This file needs the feed's username and password, and downloads on this device do not send them. You can still play it without downloading.",
     "download_no_storage": "There is not enough free space on this device. Free some space, then try again.",
     "download_transfer_failed": "The download did not finish. Check your connection, then try again.",
     "download_file_missing": "The downloaded file is missing from this device.",

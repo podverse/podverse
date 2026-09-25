@@ -3,6 +3,13 @@ import { randomUUID } from 'node:crypto';
 import { config } from '@api/config/index.js';
 import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js';
 import { loggerService } from '@api/factories/loggerService.js';
+import {
+  canonicalizeCredentialsByUrl,
+  joiAddByRssCredentialField,
+  joiAddByRssCredentialPair,
+  sealAddByRssCredentialsForParse,
+  shouldSkipParseAllEnqueue,
+} from '@api/lib/addByRSSCredentials.js';
 import type { AddByRSSParseCacheEntry } from '@api/lib/addByRSSParseCache.js';
 import {
   getAddByRSSParseCacheEntry,
@@ -25,6 +32,7 @@ import {
   getRecordValue,
   MQ_QUEUES,
 } from '@podverse/helpers';
+import { resolveAddByRSSFeedUrlCredentials } from '@podverse/helpers-validation';
 import { mqAddByRSSAdd } from '@podverse/mq';
 import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
 
@@ -88,20 +96,42 @@ class AccountAddByRSSParseController {
             feed_hash: Joi.string().optional(),
             etag: Joi.string().optional(),
             last_modified: Joi.string().optional(),
-          });
+            basic_auth_username: joiAddByRssCredentialField().optional(),
+            basic_auth_password: joiAddByRssCredentialField().optional(),
+          }).and('basic_auth_username', 'basic_auth_password');
 
           validateBodyObject(bodySchema, req, res, async () => {
             const account = getAuthenticatedUser(req);
             const requestId = randomUUID();
-            const { feed_url, feed_hash, etag, last_modified } = req.body;
+            const { feed_hash, etag, last_modified } = req.body;
+            const resolved = resolveAddByRSSFeedUrlCredentials(
+              req.body.feed_url,
+              req.body.basic_auth_username,
+              req.body.basic_auth_password
+            );
+            if (resolved === null) {
+              res.status(400).json({ message: '"feed_url" must be a valid uri' });
+              return;
+            }
+            const feedUrl = resolved.feedUrl;
             const mqConstantMessageOptions = MQ_QUEUES['add-by-rss-on-demand'];
             const dedupeTTLSeconds = getDedupeTTLSeconds(
               mqConstantMessageOptions.dedupeCacheTimeMS
             );
 
             try {
+              const credentialsEnvelope =
+                resolved.credentials && !config.e2e.fixturesEnabled
+                  ? sealAddByRssCredentialsForParse({
+                      credentials: resolved.credentials,
+                      accountId: account.id,
+                      requestId,
+                      feedUrl,
+                    })
+                  : undefined;
+
               if (dedupeTTLSeconds) {
-                const existing = await getAddByRSSParseDedupeEntry(account.id, feed_url);
+                const existing = await getAddByRSSParseDedupeEntry(account.id, feedUrl);
                 if (existing) {
                   res.status(429).json({
                     message: 'Duplicate request. Please wait before retrying.',
@@ -110,7 +140,7 @@ class AccountAddByRSSParseController {
                   return;
                 }
 
-                await setAddByRSSParseDedupeEntry(account.id, feed_url, dedupeTTLSeconds);
+                await setAddByRSSParseDedupeEntry(account.id, feedUrl, dedupeTTLSeconds);
               }
 
               if (process.env.MQ_DEBUG === 'true') {
@@ -120,8 +150,9 @@ class AccountAddByRSSParseController {
                   port: config.activeMQArtemis.port,
                   protocol: config.activeMQArtemis.protocol,
                   requestId,
-                  feedUrl: feed_url,
+                  feedUrl,
                   dedupeTTLSeconds,
+                  hasCredentials: credentialsEnvelope !== undefined,
                 });
               }
 
@@ -130,7 +161,7 @@ class AccountAddByRSSParseController {
                 await setAddByRSSParseCacheEntry({
                   requestId,
                   accountId: account.id,
-                  feedUrl: feed_url,
+                  feedUrl,
                   status: 'parsed',
                   cache: {
                     feedHash: feed_hash || undefined,
@@ -147,18 +178,19 @@ class AccountAddByRSSParseController {
               await mqAddByRSSAdd(activeMQArtemisService, {
                 ...mqConstantMessageOptions,
                 accountId: account.id,
-                feedUrl: feed_url,
+                feedUrl,
                 requestId,
                 feedHash: feed_hash || undefined,
                 etag: etag || undefined,
                 lastModified: last_modified || undefined,
+                credentialsEnvelope,
                 closeAfterSend: false,
               });
 
               await setAddByRSSParseCacheEntry({
                 requestId,
                 accountId: account.id,
-                feedUrl: feed_url,
+                feedUrl,
                 status: 'queued',
                 cache: {
                   feedHash: feed_hash || undefined,
@@ -196,6 +228,9 @@ class AccountAddByRSSParseController {
             feed_hashes_by_url: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
             etags_by_url: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
             last_modified_by_url: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
+            credentials_by_url: Joi.object()
+              .pattern(Joi.string(), joiAddByRssCredentialPair())
+              .optional(),
           });
 
           validateBodyObject(bodySchema, req, res, async () => {
@@ -206,6 +241,7 @@ class AccountAddByRSSParseController {
             const feedHashesByUrl = req.body.feed_hashes_by_url as FeedHashMap | undefined;
             const etagsByUrl = req.body.etags_by_url as FeedHashMap | undefined;
             const lastModifiedByUrl = req.body.last_modified_by_url as FeedHashMap | undefined;
+            const credentialsByUrl = canonicalizeCredentialsByUrl(req.body.credentials_by_url);
             const dedupeTTLSeconds = getDedupeTTLSeconds(
               mqConstantMessageOptions.dedupeCacheTimeMS
             );
@@ -216,6 +252,39 @@ class AccountAddByRSSParseController {
 
               for (const feed of feeds) {
                 const feedUrl = feed.feed_url;
+                const credentials = credentialsByUrl.get(feedUrl) ?? null;
+
+                if (
+                  shouldSkipParseAllEnqueue({
+                    requiresCredentials: feed.requires_credentials === true,
+                    hasCredentials: credentials !== null,
+                  })
+                ) {
+                  const requestId = randomUUID();
+                  requestIds.push({ request_id: requestId, feed_url: feedUrl });
+                  await setAddByRSSParseCacheEntry({
+                    requestId,
+                    accountId: account.id,
+                    feedUrl,
+                    status: 'failed',
+                    error: 'Credentials are required to refresh this feed.',
+                    failureReason: 'credentials_required',
+                    credentialsState: 'not_provided',
+                    updatedAt: new Date().toISOString(),
+                  });
+                  continue;
+                }
+
+                const requestId = randomUUID();
+                const credentialsEnvelope =
+                  credentials && !config.e2e.fixturesEnabled
+                    ? sealAddByRssCredentialsForParse({
+                        credentials,
+                        accountId: account.id,
+                        requestId,
+                        feedUrl,
+                      })
+                    : undefined;
 
                 if (dedupeTTLSeconds) {
                   const existing = await getAddByRSSParseDedupeEntry(account.id, feedUrl);
@@ -226,7 +295,6 @@ class AccountAddByRSSParseController {
                   await setAddByRSSParseDedupeEntry(account.id, feedUrl, dedupeTTLSeconds);
                 }
 
-                const requestId = randomUUID();
                 requestIds.push({ request_id: requestId, feed_url: feedUrl });
                 const feedHash = getRecordValue(feedHashesByUrl, feedUrl);
                 const etag = getRecordValue(etagsByUrl, feedUrl);
@@ -257,6 +325,7 @@ class AccountAddByRSSParseController {
                   feedHash,
                   etag,
                   lastModified,
+                  credentialsEnvelope,
                   closeAfterSend: false,
                 });
 

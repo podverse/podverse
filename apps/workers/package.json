@@ -52,8 +52,7 @@
     "podcast_index_trending_podcasts_get": "node ./dist/index.js podcastIndexTrendingPodcastsGet",
     "podcast_index_value_update_all": "node ./dist/index.js podcastIndexValueUpdateAll",
     "stats_update_aggregated": "node ./dist/index.js statsUpdateAggregated",
-    "stats_update_aggregated_rolling": "node ./dist/index.js statsUpdateAggregatedRolling",
-    "reencrypt_add_by_rss_credentials": "node ./dist/index.js reencryptAddByRSSCredentials"
+    "stats_update_aggregated_rolling": "node ./dist/index.js statsUpdateAggregatedRolling"
   },
   "license": "AGPL-3.0",
   "dependencies": {

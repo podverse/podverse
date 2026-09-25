@@ -216,6 +216,24 @@ export function getKeyvaldbConfig(): KeyvaldbConfig {
   };
 }
 
+export type AddByRSSConfig = {
+  /** 64-hex AES-256 key that opens Basic Auth transit envelopes from the API. */
+  credentialsEncryptionKey: string;
+  /** Previous key during rotation; tried after the current key. */
+  credentialsEncryptionKeyOld: string | undefined;
+  /** Permit credentials over plain http — local development and E2E fixtures only. */
+  allowInsecureCredentials: boolean;
+};
+
+export function getAddByRSSConfig(): AddByRSSConfig {
+  return {
+    credentialsEncryptionKey: process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY!,
+    credentialsEncryptionKeyOld: process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD,
+    allowInsecureCredentials:
+      process.env.NODE_ENV === 'development' || process.env.PODVERSE_E2E_FIXTURES === '1',
+  };
+}
+
 export type OpmlImportConfig = {
   maxFeedsPerHour: number;
 };
