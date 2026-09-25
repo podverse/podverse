@@ -1,5 +1,6 @@
 /**
- * Parser failure timestamp and hash-on-success coverage for parseRSSFeedAndSaveToDatabase.
+ * Parser post-save coverage for parseRSSFeedAndSaveToDatabase: failure timestamps,
+ * hash-on-success, and notification call order.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -15,6 +16,7 @@ const conditionMocks = vi.hoisted(() => ({
 const {
   handleAllRemoteItemsFeedParsingMock,
   handleGetRSSFeedMock,
+  handleNewItemAutoDownloadPushesMock,
   handleNewItemNotificationsMock,
   handleNewLiveItemNotificationsMock,
   handleParsedChannelMock,
@@ -36,6 +38,7 @@ const {
 } = vi.hoisted(() => ({
   handleAllRemoteItemsFeedParsingMock: vi.fn(),
   handleGetRSSFeedMock: vi.fn(),
+  handleNewItemAutoDownloadPushesMock: vi.fn(),
   handleNewItemNotificationsMock: vi.fn(),
   handleNewLiveItemNotificationsMock: vi.fn(),
   handleParsedChannelMock: vi.fn(),
@@ -118,7 +121,7 @@ vi.mock('../notifications/handleNewItemNotifications.js', () => ({
 }));
 
 vi.mock('../notifications/handleNewItemAutoDownloadPushes.js', () => ({
-  handleNewItemAutoDownloadPushes: vi.fn(),
+  handleNewItemAutoDownloadPushes: handleNewItemAutoDownloadPushesMock,
 }));
 
 vi.mock('../notifications/handleNewLiveItemNotifications.js', () => ({
@@ -246,6 +249,16 @@ const parseOptions = {
   },
 } as const;
 
+const firstInvocationOrder = (mock: {
+  mock: { invocationCallOrder: readonly number[] };
+}): number => {
+  const order = mock.mock.invocationCallOrder[0];
+  if (order === undefined) {
+    throw new Error('Expected the mock to have been called');
+  }
+  return order;
+};
+
 describe('parseRSSFeedAndSaveToDatabase failure timestamp and hash-on-success', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -357,5 +370,83 @@ describe('parseRSSFeedAndSaveToDatabase failure timestamp and hash-on-success', 
         dto.last_parsed_file_hash !== undefined
     );
     expect(hashUpdateCall).toBeUndefined();
+  });
+
+  it('sends livestream notifications before new-content and auto-download pushes', async () => {
+    const newItemIdentifiers = {
+      newItemGuids: ['item-1'],
+      newItemGuidEnclosureUrls: [],
+    };
+    const newLiveItemIdentifiers = {
+      pendingItemGuids: ['pending-1'],
+      liveItemGuids: ['live-1'],
+    };
+    handleParsedItemsMock.mockResolvedValue(newItemIdentifiers);
+    handleParsedLiveItemsMock.mockResolvedValue(newLiveItemIdentifiers);
+
+    await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, parseOptions);
+
+    expect(handleNewLiveItemNotificationsMock).toHaveBeenCalledWith(
+      { id: 1, id_text: 'c1' },
+      newLiveItemIdentifiers
+    );
+    expect(handleNewItemNotificationsMock).toHaveBeenCalledWith(
+      { id: 1, id_text: 'c1' },
+      newItemIdentifiers
+    );
+    expect(handleNewItemAutoDownloadPushesMock).toHaveBeenCalledWith(
+      { id: 1, id_text: 'c1' },
+      newItemIdentifiers
+    );
+    expect(firstInvocationOrder(handleNewLiveItemNotificationsMock)).toBeLessThan(
+      firstInvocationOrder(handleNewItemNotificationsMock)
+    );
+    expect(firstInvocationOrder(handleNewItemNotificationsMock)).toBeLessThan(
+      firstInvocationOrder(handleNewItemAutoDownloadPushesMock)
+    );
+  });
+
+  it('sends new-content then auto-download pushes when no livestream identifiers are new', async () => {
+    const newItemIdentifiers = {
+      newItemGuids: [],
+      newItemGuidEnclosureUrls: ['https://example.com/ep.mp3'],
+    };
+    handleParsedItemsMock.mockResolvedValue(newItemIdentifiers);
+    handleParsedLiveItemsMock.mockResolvedValue({
+      pendingItemGuids: [],
+      liveItemGuids: [],
+    });
+
+    await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, parseOptions);
+
+    expect(handleNewLiveItemNotificationsMock).not.toHaveBeenCalled();
+    expect(handleNewItemNotificationsMock).toHaveBeenCalledWith(
+      { id: 1, id_text: 'c1' },
+      newItemIdentifiers
+    );
+    expect(handleNewItemAutoDownloadPushesMock).toHaveBeenCalledWith(
+      { id: 1, id_text: 'c1' },
+      newItemIdentifiers
+    );
+    expect(firstInvocationOrder(handleNewItemNotificationsMock)).toBeLessThan(
+      firstInvocationOrder(handleNewItemAutoDownloadPushesMock)
+    );
+  });
+
+  it('does not send new-content or auto-download pushes for a livestream-only parse', async () => {
+    handleParsedItemsMock.mockResolvedValue({
+      newItemGuids: [],
+      newItemGuidEnclosureUrls: [],
+    });
+    handleParsedLiveItemsMock.mockResolvedValue({
+      pendingItemGuids: [],
+      liveItemGuids: ['live-1'],
+    });
+
+    await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, parseOptions);
+
+    expect(handleNewLiveItemNotificationsMock).toHaveBeenCalledTimes(1);
+    expect(handleNewItemNotificationsMock).not.toHaveBeenCalled();
+    expect(handleNewItemAutoDownloadPushesMock).not.toHaveBeenCalled();
   });
 });

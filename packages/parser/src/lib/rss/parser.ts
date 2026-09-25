@@ -405,19 +405,21 @@ export const parseRSSFeedAndSaveToDatabase = async (
       );
     }
 
+    // Livestream notifications run before new-content and auto-download pushes so a live
+    // start is not delayed by those sends.
+    if (
+      newLiveItemIdentifiers.pendingItemGuids.length > 0 ||
+      newLiveItemIdentifiers.liveItemGuids.length > 0
+    ) {
+      await handleNewLiveItemNotifications(channel, newLiveItemIdentifiers);
+    }
+
     if (
       newItemIdentifiers.newItemGuids.length > 0 ||
       newItemIdentifiers.newItemGuidEnclosureUrls.length > 0
     ) {
       await handleNewItemNotifications(channel, newItemIdentifiers);
       await handleNewItemAutoDownloadPushes(channel, newItemIdentifiers);
-    }
-
-    if (
-      newLiveItemIdentifiers.pendingItemGuids.length > 0 ||
-      newLiveItemIdentifiers.liveItemGuids.length > 0
-    ) {
-      await handleNewLiveItemNotifications(channel, newLiveItemIdentifiers);
     }
 
     if (newRemoteItems.length > 0) {

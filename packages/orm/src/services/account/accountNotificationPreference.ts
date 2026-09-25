@@ -1,6 +1,7 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { AccountNotificationPreference } from '@orm/entities/account/accountNotificationPreference.js';
 import type { FindOptionsWhere, Repository } from 'typeorm';
+import { In } from 'typeorm';
 
 import type { NotificationCategoryValues } from '@podverse/helpers';
 import {
@@ -35,6 +36,22 @@ export class AccountNotificationPreferenceService {
     });
 
     return rows;
+  }
+
+  async getForAccountsAndCategory(
+    accountIds: number[],
+    category: NotificationCategoryValues
+  ): Promise<AccountNotificationPreference[]> {
+    if (accountIds.length === 0) {
+      return [];
+    }
+
+    return this.repositoryRead.find({
+      where: {
+        account_id: In(accountIds),
+        category,
+      },
+    });
   }
 
   async upsert(
