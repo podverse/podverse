@@ -90,15 +90,21 @@ export { writeSignupMergeEmail } from './subscriptionsSignupMarker';
 export { runSignupSubscriptionMerge } from './subscriptionsSignupMerge';
 export type { SignupMergeOutcome } from './subscriptionsSignupMerge';
 export {
+  formatSyncEventLogEntryReport,
   formatSyncEventLogExport,
   isSyncEventOutcome,
+  listSyncEventLogDetails,
   selectSyncEventEvictions,
+  SYNC_EVENT_DETAIL_KEYS,
   SYNC_EVENT_LOG_CAP,
 } from './syncEventLog';
 export type {
+  SyncEventDetailKey,
   SyncEventEvictionCandidate,
+  SyncEventLogDetails,
   SyncEventLogEntry,
   SyncEventOutcome,
+  SyncEventReportEnvironment,
 } from './syncEventLog';
 export { syncEventLogRepository } from './syncEventLogRepository';
 export type { SyncEventLogAppend } from './syncEventLogRepository';

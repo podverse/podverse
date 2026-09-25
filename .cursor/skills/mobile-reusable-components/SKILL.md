@@ -101,7 +101,7 @@ title + body + one confirm.
 **Hub menus:** `MenuListScreen` takes `sections` — a title above each `Card` (`text.accent`,
 heading weight), hairlines between rows. Chevron (`›`) only on rows that push a screen. Log out
 is an in-place action: `showsChevron: false`. More groups Account (Profile, Membership, renewal,
-Login / Sign up or Log out), Features (overflow tabs, Settings, OPML), Other (About, Sync log).
+Login / Sign up or Log out), Features (overflow tabs, Settings, OPML), Other (About, Advanced).
 An **E2E** section appears in local Metro and E2E builds (never in release): Smoke always in
 that section; Playback (`Play E2E video`, skip-next) only when `EXPO_PUBLIC_MOBILE_E2E=1`.
 Header-to-card gap is `spacing.lg`; space between groups is `spacing.xl`.

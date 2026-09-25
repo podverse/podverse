@@ -2,7 +2,7 @@
  * When Home rereads its list, and what that reread is allowed to do to the screen.
  *
  * Home paints from the device. A blocking list spinner is never a valid first-paint or relaunch
- * state — empty cache is an empty CTA, and a hung read is a sync-log row, not a spinner that never
+ * state — empty cache is an empty CTA, and a hung read is an error log row, not a spinner that never
  * ends.
  */
 

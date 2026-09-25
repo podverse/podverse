@@ -196,7 +196,7 @@ to ~500 ms (within the 250–1000 ms guidance) on both platforms. Subscribe via 
 | `playbackState` | `{ state: PlaybackStateValue }`                              | Lifecycle transitions (idle…error).                         |
 | `progress`      | `{ positionSeconds: number; durationSeconds: number }`       | ~500 ms while playing.                                      |
 | `ended`         | `{ positionSeconds: number }`                                | Item played to natural end.                                 |
-| `error`         | `{ code: string; message: string; kind: PlaybackErrorKind }` | Playback/load failure. `kind` is normalized (see taxonomy). |
+| `error`         | `{ code: string; message: string; kind: PlaybackErrorKind; httpStatus?: number; url?: string; detail?: string }` | Playback/load failure. `kind` is normalized (see taxonomy). `httpStatus` is the media host's response status, `url` the request that failed, `detail` the platform cause. |
 | `stalled`       | `{ positionSeconds: number }`                                | Buffer underrun / rebuffering.                              |
 
 ### Error taxonomy (step 2.27 / detail 106)
@@ -211,6 +211,7 @@ themselves. Mapper is native-free so Vitest covers the table without a device (p
 
 | `kind`           | Example native codes                                                                      |
 | ---------------- | ----------------------------------------------------------------------------------------- |
+| `host-http`      | any code arriving with `httpStatus` (the creator's host answered with an error status)    |
 | `network`        | Android `ERROR_CODE_IO_NETWORK_CONNECTION_FAILED`, `…_TIMEOUT`, `…_BAD_HTTP_STATUS`       |
 | `file-not-found` | iOS `file_not_found`, Android `ERROR_CODE_IO_FILE_NOT_FOUND`                              |
 | `decode`         | Android `ERROR_CODE_DECODING_FAILED`, `ERROR_CODE_DECODER_INIT_FAILED`                    |

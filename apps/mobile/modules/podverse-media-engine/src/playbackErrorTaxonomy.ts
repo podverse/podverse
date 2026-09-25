@@ -48,14 +48,34 @@ export function mapPlaybackErrorKind(code: string): PlaybackErrorKind {
   return 'unknown';
 }
 
+const nonEmpty = (value: unknown): string | undefined => {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+};
+
+const httpStatusOrUndefined = (value: unknown): number | undefined => {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 100 && value <= 599
+    ? value
+    : undefined;
+};
+
 /**
  * Normalize a raw native error payload into a {@link PlaybackErrorEvent} by attaching `kind`. The
  * raw `code` and `message` are preserved so logs keep the native detail even for `'unknown'`.
+ * Optional diagnostics cross the bridge untyped, so each is kept only when well-formed and omitted
+ * otherwise.
  */
 export function normalizePlaybackError(payload: NativePlaybackErrorPayload): PlaybackErrorEvent {
+  const httpStatus = httpStatusOrUndefined(payload.httpStatus);
+  const url = nonEmpty(payload.url);
+  const detail = nonEmpty(payload.detail);
   return {
     code: payload.code,
-    kind: mapPlaybackErrorKind(payload.code),
+    // The host answered, so the network worked. Blaming the connection would send the listener to
+    // fix their Wi-Fi when the fault is on the creator's server.
+    kind: httpStatus === undefined ? mapPlaybackErrorKind(payload.code) : 'host-http',
     message: payload.message,
+    ...(httpStatus === undefined ? {} : { httpStatus }),
+    ...(url === undefined ? {} : { url }),
+    ...(detail === undefined ? {} : { detail }),
   };
 }

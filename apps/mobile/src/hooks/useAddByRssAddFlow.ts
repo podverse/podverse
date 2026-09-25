@@ -6,6 +6,11 @@ import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
 import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
 import { addByRssRepository } from '../data';
+import { syncEventLogRepository } from '../data/repositories';
+import {
+  buildAddByRssAddErrorLog,
+  buildAddByRssParseFailureLog,
+} from '../lib/addByRss/addByRssErrorLog';
 import {
   buildAddByRssFeedRecord,
   isValidAddByRssFeedUrl,
@@ -14,6 +19,7 @@ import {
 import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import { useMembershipGate } from '../membership/MembershipGateProvider';
 import { useAccessTier } from '../membership/useAccessTier';
+import { ADD_BY_RSS_ADD_LOG_KIND } from '../sync/syncJobKinds';
 
 type UseAddByRssAddFlowOptions = {
   inputValue: string;
@@ -97,7 +103,7 @@ export function useAddByRssAddFlow({
           })
       );
 
-      const { mappedFeed, preview } = await pollAddByRssParseStatus(
+      const parseResult = await pollAddByRssParseStatus(
         parseRequest.request_id,
         async (requestId) =>
           requestWithMobileAuthRefresh(
@@ -117,12 +123,32 @@ export function useAddByRssAddFlow({
               })
           )
       );
+      const { mappedFeed, preview } = parseResult;
 
+      // The follow already exists server-side, so the feed row is kept either way. A background
+      // refresh picks up a feed whose host recovers.
       const existingFeed = await addByRssRepository.getFeedByUrl(feedUrl);
       const nextRecord = buildAddByRssFeedRecord(feedUrl, existingFeed ?? undefined, preview);
       await addByRssRepository.upsertFeed(nextRecord, mappedFeed);
       setInputValue('');
-      onNotice('features.add_by_rss.status_parsed');
+
+      const failureLog = buildAddByRssParseFailureLog({
+        feedUrl,
+        jobKind: ADD_BY_RSS_ADD_LOG_KIND,
+        occurredAt: Date.now(),
+        requestId: parseRequest.request_id,
+        result: parseResult,
+      });
+      if (failureLog === null) {
+        onNotice('features.add_by_rss.status_parsed');
+      } else {
+        void syncEventLogRepository.append(failureLog);
+        onNotice(
+          parseResult.status === 'failed' || parseResult.status === 'parsed'
+            ? 'error_log.add_by_rss.parse_failed_notice'
+            : 'error_log.add_by_rss.parse_pending_notice'
+        );
+      }
       await onAfterAdd();
       // Home stays mounted under the tab, so it will not reload on its own.
       homeFeedRefresh.notify();
@@ -130,7 +156,8 @@ export function useAddByRssAddFlow({
       if (handleGateError(error)) {
         return;
       }
-      setAddErrorKey('errors.generic');
+      void syncEventLogRepository.append(buildAddByRssAddErrorLog(error, feedUrl, Date.now()));
+      setAddErrorKey('error_log.add_by_rss.add_failed');
     } finally {
       isAddingRef.current = false;
       setIsAdding(false);

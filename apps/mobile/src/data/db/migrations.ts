@@ -320,6 +320,14 @@ export const MIGRATIONS: Migration[] = [
         ON auto_download_candidate (status);`,
     ],
   },
+  {
+    version: 19,
+    statements: [
+      // Structured diagnostics for one error-log entry (media URL, host HTTP status, ids). Rows
+      // written before this column exist keep a null and render with code and message only.
+      `ALTER TABLE sync_event_log ADD COLUMN details_json TEXT;`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

@@ -6,6 +6,8 @@ import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import { buildAddByRssParseFailureLog } from '../../lib/addByRss/addByRssErrorLog';
+import type { AddByRssPollResult } from '../../lib/addByRss/domain';
 import { buildAddByRssFeedRecord, pollAddByRssParseStatus } from '../../lib/addByRss/domain';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
@@ -13,6 +15,7 @@ import type { AddByRssFeedRow } from '../db/schema';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
 import { channelSeenRepository } from './channelSeenRepository';
 import { autoDownloadRepository } from './autoDownloadRepository';
+import { syncEventLogRepository } from './syncEventLogRepository';
 import type { MobileAuthRequestContext } from './types';
 
 const isResourceType = (value: string): value is MobileAddByRSSFeedRecord['resourceType'] => {
@@ -39,6 +42,32 @@ const rowToRecord = (row: AddByRssFeedRow): MobileAddByRSSFeedRecord => {
     latestItemPubDateMs: row.latestItemPubDateMs,
     playbackPosition: row.playbackPosition,
   };
+};
+
+/**
+ * Refresh failures already logged this session, keyed by feed, code, and server reason. Every
+ * foreground re-parses every feed, so a feed whose host stays down would otherwise add a row per
+ * foreground and push everything else out of the capped log.
+ */
+const loggedRefreshFailures = new Set<string>();
+
+const recordRefreshFailure = (ticket: AddByRssRefreshTicket, result: AddByRssPollResult): void => {
+  const entry = buildAddByRssParseFailureLog({
+    feedUrl: ticket.feedUrl,
+    jobKind: 'add-by-rss-parse',
+    occurredAt: Date.now(),
+    requestId: ticket.requestId,
+    result,
+  });
+  if (entry === null) {
+    return;
+  }
+  const key = `${ticket.feedUrl}\u0000${entry.errorCode ?? ''}\u0000${entry.message ?? ''}`;
+  if (loggedRefreshFailures.has(key)) {
+    return;
+  }
+  loggedRefreshFailures.add(key);
+  void syncEventLogRepository.append(entry);
 };
 
 /** What a refresh request returns per feed: the ticket to poll for that feed's parse result. */
@@ -240,26 +269,28 @@ export const addByRssRepository = {
    * A parse that has not resolved yet, or resolved without a usable payload, leaves the stored
    * bundle untouched. Overwriting it with nothing would take a feed that reads and plays offline
    * today and leave the user with a title and no episodes, which is strictly worse than stale.
+   * The failure is still recorded in the error log so a feed that silently stopped updating has
+   * an explanation.
    */
   applyRefreshResult: async (
     context: MobileAuthRequestContext,
     ticket: AddByRssRefreshTicket
   ): Promise<boolean> => {
-    const { mappedFeed, preview } = await pollAddByRssParseStatus(
-      ticket.requestId,
-      async (requestId) =>
-        requestWithMobileAuthRefresh(context, async (apiRequestService) =>
-          apiRequestService.apiRequest<AddByRSSParseCacheEntry<unknown>>({
-            path: `/account/add-by-rss/parse/status/${requestId}`,
-            method: 'GET',
-            config: {
-              withCredentials: true,
-            },
-          })
-        )
+    const result = await pollAddByRssParseStatus(ticket.requestId, async (requestId) =>
+      requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+        apiRequestService.apiRequest<AddByRSSParseCacheEntry<unknown>>({
+          path: `/account/add-by-rss/parse/status/${requestId}`,
+          method: 'GET',
+          config: {
+            withCredentials: true,
+          },
+        })
+      )
     );
+    const { mappedFeed, preview } = result;
 
     if (mappedFeed === null) {
+      recordRefreshFailure(ticket, result);
       return false;
     }
 

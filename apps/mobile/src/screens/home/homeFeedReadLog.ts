@@ -6,7 +6,7 @@ import { syncEventLogRepository } from '../../data/repositories';
  * Diagnostic kind written when Home's local read fails or outlives its budget.
  *
  * Not a queue job: the list is interactive cache. A hang or throw here is recorded so
- * More → Sync log can explain an empty or stale Home list.
+ * More → Advanced → Error log can explain an empty or stale Home list.
  */
 export const HOME_FEED_READ_LOG_KIND = 'home-feed-read';
 

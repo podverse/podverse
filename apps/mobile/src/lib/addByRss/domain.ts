@@ -148,9 +148,18 @@ export function mapParsedFeedToPreview(mappedFeed: AddByRSSMappedFeed): AddByRss
 export type AddByRssPollResult = {
   mappedFeed: AddByRSSMappedFeed | null;
   preview: AddByRssParsePreview;
+  /**
+   * Where the server parse ended up. `pending` means it had not resolved when polling gave up. A
+   * `failed` parse is usually the feed host (unreachable, an HTTP error, or XML that is not a feed),
+   * and `serverError` carries the reason the server recorded so the error log can show it.
+   */
+  serverError: string | null;
+  status: ParseStatusPayload['status'] | 'pending';
 };
 
-function resolveParseResult(statusResponse: ParseStatusPayload): AddByRssPollResult {
+function resolveParseResult(
+  statusResponse: ParseStatusPayload
+): Omit<AddByRssPollResult, 'serverError' | 'status'> {
   const payload = statusResponse.payload;
   if (
     (statusResponse.status === 'parsed' || statusResponse.status === 'not_modified') &&
@@ -184,13 +193,17 @@ export async function pollAddByRssParseStatus(
       statusResponse.status === 'not_modified' ||
       statusResponse.status === 'failed'
     ) {
-      return resolveParseResult(statusResponse);
+      return {
+        ...resolveParseResult(statusResponse),
+        serverError: toNonEmptyTrimmedString(statusResponse.error),
+        status: statusResponse.status,
+      };
     }
 
     await sleep(STATUS_POLL_DELAY_MS);
   }
 
-  return { mappedFeed: null, preview: { ...EMPTY_PREVIEW } };
+  return { mappedFeed: null, preview: { ...EMPTY_PREVIEW }, serverError: null, status: 'pending' };
 }
 
 export function isValidAddByRssFeedUrl(value: string): boolean {

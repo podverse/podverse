@@ -224,12 +224,14 @@ export type ChannelItemWindowRow = typeof channelItemWindow.$inferSelect;
 export type ChannelItemWindowInsert = typeof channelItemWindow.$inferInsert;
 
 /**
- * Diagnostic record of background sync outcomes, capped so it stays invisible in device storage.
+ * The on-device error log: sync, Home cache, playback, and add-by-RSS failures, capped so it stays
+ * invisible in device storage.
  *
- * The sync indicator deliberately says nothing when a job fails, so this is the only place a user
- * reporting "my podcasts aren't updating" can point at. `error_code` is the load-bearing column:
- * `message` is whatever the failure carried and may be in any language, while the code is stable
- * enough to read aloud to support.
+ * The sync indicator deliberately says nothing when a job fails, and playback errors show in a
+ * dialog that closes, so this is the only place a user reporting a problem can point at.
+ * `error_code` is the load-bearing column: `message` is whatever the failure carried and may be in
+ * any language, while the code is stable enough to read aloud to support. `details_json` holds the
+ * structured context (media URL, host HTTP status, ids) the detail screen shows and copies.
  *
  * The autoincrement id is also the tiebreaker for ordering — two entries can share a millisecond,
  * and both newest-first display and oldest-first eviction need a total order.
@@ -241,6 +243,7 @@ export const syncEventLog = sqliteTable('sync_event_log', {
   outcome: text('outcome').notNull(),
   errorCode: text('error_code'),
   message: text('message'),
+  detailsJson: text('details_json'),
 });
 
 export type SyncEventLogRow = typeof syncEventLog.$inferSelect;

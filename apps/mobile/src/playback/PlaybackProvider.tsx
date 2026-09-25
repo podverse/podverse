@@ -74,6 +74,7 @@ import {
   queueRepository,
   statsRepository,
 } from '../data';
+import { syncEventLogRepository } from '../data/repositories';
 import type {
   PlaybackReconcileDifferentNowPlayingConflict,
   PlaybackReconcileResourceState,
@@ -137,6 +138,7 @@ import {
   readPlaybackReconcileConflicts,
   subscribePlaybackReconcileConflicts,
 } from '../sync/playbackReconcileConflict';
+import { buildPlaybackErrorLog, playbackErrorLogSignature } from './playbackErrorLog';
 import {
   nowPlayingResourceFromTarget,
   playbackEventFromBackgroundTransition,
@@ -164,7 +166,7 @@ import {
   subscribePlaybackPositionClock,
   subscribePlaybackProgress,
 } from './playbackProgressStore';
-import { setPlaybackSourceMarker } from './playbackSourceMarker';
+import { playbackSourceMarkerFromUrl, setPlaybackSourceMarker } from './playbackSourceMarker';
 import { writeIsPlayingLocallyForSync } from './playbackSyncState';
 import type { PlaybackTransportState } from './playbackTransport';
 import { isEnginePlayableState, playbackTransportForEngineState } from './playbackTransport';
@@ -579,6 +581,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const advancingRef = useRef<boolean>(false);
   const isPlayingRef = useRef<boolean>(false);
   const lastSourceUrlRef = useRef<string | null>(null);
+  /** Last failure written to the error log. Cleared once playback actually runs again. */
+  const lastLoggedPlaybackErrorRef = useRef<string | null>(null);
   /** Claimed while a download-complete source swap is in flight, including the file-exists check. */
   const downloadSourceSwapLockRef = useRef(false);
   /** Drop playhead samples until the replacement item has seeked near the captured position. */
@@ -613,6 +617,30 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const accountIdTextRef = useRef<string | null>(account?.id_text ?? null);
   const playbackHandoffPromptRef = useRef<PlaybackHandoffPromptState | null>(null);
   const playbackHandoffDismissedStateKeyRef = useRef<string | null>(null);
+
+  /**
+   * Write a playback failure to the error log. The dialog that shows it closes, and the media comes
+   * from the creator's host, so this row is what lets support say whose server failed.
+   */
+  const recordPlaybackError = useCallback(
+    (error: PlaybackErrorEvent, target: PlaybackTarget | null, url: string | null) => {
+      const entry = buildPlaybackErrorLog({
+        error,
+        isLocalFile: playbackSourceMarkerFromUrl(url) === 'local',
+        mediaUrl: url,
+        occurredAt: Date.now(),
+        positionSeconds: positionRef.current,
+        target,
+      });
+      const signature = playbackErrorLogSignature(entry);
+      if (lastLoggedPlaybackErrorRef.current === signature) {
+        return;
+      }
+      lastLoggedPlaybackErrorRef.current = signature;
+      void syncEventLogRepository.append(entry);
+    },
+    []
+  );
 
   const activeQueueRef = useRef(activeQueue);
   useEffect(() => {
@@ -1106,9 +1134,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           params.autoPlayOverride,
           params.playbackDecisionOverride
         );
-      } catch {
+      } catch (error) {
         releasePendingStart();
-        setLastPlaybackError(playbackErrorFromLoadFailure());
+        const failure = playbackErrorFromLoadFailure(error);
+        recordPlaybackError(failure, target, params.url);
+        setLastPlaybackError(failure);
         setTransportState('error');
         activeTargetRef.current = target;
         setActiveTarget(target);
@@ -1169,6 +1199,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       applyLoad,
       armPendingStart,
       clearDownloadSourceSwap,
+      recordPlaybackError,
       releasePendingStart,
       resetEnclosureSelectionSession,
       resolvePlaybackStatsTargets,
@@ -1478,15 +1509,23 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           nativePlaybackBridge.pause();
         }
         nativePlaybackBridge.setRate(playbackRateRef.current);
-      } catch {
+      } catch (error) {
         releasePendingStart();
         clearDownloadSourceSwap();
-        setLastPlaybackError(playbackErrorFromLoadFailure());
+        const failure = playbackErrorFromLoadFailure(error);
+        recordPlaybackError(failure, activeTargetRef.current, localUrl);
+        setLastPlaybackError(failure);
         setPlaybackPlaying(false);
         setTransportState('error');
       }
     },
-    [armPendingStart, clearDownloadSourceSwap, releasePendingStart, setPlaybackPlaying]
+    [
+      armPendingStart,
+      clearDownloadSourceSwap,
+      recordPlaybackError,
+      releasePendingStart,
+      setPlaybackPlaying,
+    ]
   );
 
   const adoptCompletedDownloadIfStreaming = useCallback(async (): Promise<void> => {
@@ -2450,6 +2489,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       clearDownloadSourceSwap();
       releasePendingStart();
       setPlaybackPlaying(false);
+      recordPlaybackError(event, activeTargetRef.current, lastSourceUrlRef.current);
       setLastPlaybackError(event);
       setTransportState('error');
     },
@@ -2489,6 +2529,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         setTransportState(nextTransport);
       }
       if (event.state === 'playing') {
+        lastLoggedPlaybackErrorRef.current = null;
         setLastPlaybackError(null);
         setPlaybackPlaying(true);
       } else if (event.state === 'error') {
@@ -2662,12 +2703,14 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         setPlaybackPlaying(true);
         setTransportState('playing');
       }
-    } catch {
+    } catch (error) {
       releasePendingStart();
-      setLastPlaybackError(playbackErrorFromLoadFailure());
+      const failure = playbackErrorFromLoadFailure(error);
+      recordPlaybackError(failure, activeTargetRef.current, url);
+      setLastPlaybackError(failure);
       setTransportState('error');
     }
-  }, [armPendingStart, releasePendingStart, setPlaybackPlaying]);
+  }, [armPendingStart, recordPlaybackError, releasePendingStart, setPlaybackPlaying]);
 
   const resume = useCallback(async () => {
     await nativePlaybackBridge.play();

@@ -1,0 +1,32 @@
+appId: com.podverse.app.next
+name: Error Log
+---
+# Diagnostics surface reached from More › Advanced. A healthy run records nothing, so the empty
+# state is the expected result here — entry rows, details, and the copy report are covered by unit
+# tests over the cap, eviction, and report formatting rules.
+# UI-only: the screen reads local SQLite and never calls the API.
+# More is two pages on phone; iOS XCUITest omits off-screen testIDs until this row is scrolled in.
+
+- runFlow: shared/launch-and-connect.yaml
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- scrollUntilVisible:
+    element:
+      id: more-nav-advanced
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    centerElement: true
+- tapOn:
+    id: more-nav-advanced
+- assertVisible:
+    id: more-advanced-screen
+- takeScreenshot: more-advanced
+- tapOn:
+    id: more-advanced-error-log
+- assertVisible:
+    id: error-log-screen
+- assertVisible:
+    id: error-log-empty
+- takeScreenshot: error-log-empty

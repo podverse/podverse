@@ -232,6 +232,7 @@ npm run mobile:e2e:test -- --platform ios browse
 npm run mobile:e2e:test -- --platform ios deep-link
 npm run mobile:e2e:test -- --platform ios detail-sort-prefs
 npm run mobile:e2e:test -- --platform ios engine-audio-spike
+npm run mobile:e2e:test -- --platform ios error-log
 npm run mobile:e2e:test -- --platform ios hello-world
 npm run mobile:e2e:test -- --platform ios history-screen
 npm run mobile:e2e:test -- --platform ios hls-playback
@@ -261,7 +262,6 @@ npm run mobile:e2e:test -- --platform ios search-unparsed
 npm run mobile:e2e:test -- --platform ios settings-downloads
 npm run mobile:e2e:test -- --platform ios settings-select
 npm run mobile:e2e:test -- --platform ios subscriptions-anonymous
-npm run mobile:e2e:test -- --platform ios sync-log
 npm run mobile:e2e:test -- --platform ios tab-switch-playback
 npm run mobile:e2e:test -- --platform ios track
 npm run mobile:e2e:test -- --platform ios v4v
@@ -282,6 +282,7 @@ npm run mobile:e2e:test -- --platform android browse
 npm run mobile:e2e:test -- --platform android deep-link
 npm run mobile:e2e:test -- --platform android detail-sort-prefs
 npm run mobile:e2e:test -- --platform android engine-audio-spike
+npm run mobile:e2e:test -- --platform android error-log
 npm run mobile:e2e:test -- --platform android hello-world
 npm run mobile:e2e:test -- --platform android history-screen
 npm run mobile:e2e:test -- --platform android hls-playback
@@ -311,7 +312,6 @@ npm run mobile:e2e:test -- --platform android search-unparsed
 npm run mobile:e2e:test -- --platform android settings-downloads
 npm run mobile:e2e:test -- --platform android settings-select
 npm run mobile:e2e:test -- --platform android subscriptions-anonymous
-npm run mobile:e2e:test -- --platform android sync-log
 npm run mobile:e2e:test -- --platform android tab-switch-playback
 npm run mobile:e2e:test -- --platform android track
 npm run mobile:e2e:test -- --platform android v4v
@@ -387,7 +387,7 @@ areas. API and test-assets are optional. Still install from **Mobile E2E iOS** /
 npm run mobile:e2e:test -- hello-world
 npm run mobile:e2e:test -- locale-switch-home-smoke
 npm run mobile:e2e:test -- settings-select
-npm run mobile:e2e:test -- sync-log
+npm run mobile:e2e:test -- error-log
 ```
 
 ### API-backed areas

@@ -13,6 +13,7 @@ import { syncQueue } from './syncQueue';
 
 export const toSyncEventLogAppend = (failure: SyncJobFailure): SyncEventLogAppend => {
   return {
+    details: failure.details,
     errorCode: failure.errorCode,
     jobKind: failure.kind,
     // The message falls back to the code when the failure carried no text of its own, and a row

@@ -60,7 +60,10 @@ import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScree
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
+import { MoreAdvancedScreen } from '../screens/more/MoreAdvancedScreen';
 import { MoreE2ePlaybackScreen } from '../screens/more/MoreE2ePlaybackScreen';
+import { MoreErrorLogDetailScreen } from '../screens/more/MoreErrorLogDetailScreen';
+import { MoreErrorLogScreen } from '../screens/more/MoreErrorLogScreen';
 import { MoreFaqScreen } from '../screens/more/MoreFaqScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
@@ -75,7 +78,6 @@ import { MoreSettingsPopularityTrackingScreen } from '../screens/more/MoreSettin
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { MoreSettingsTabBarScreen } from '../screens/more/MoreSettingsTabBarScreen';
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
-import { MoreSyncLogScreen } from '../screens/more/MoreSyncLogScreen';
 import { NotificationsInboxScreen } from '../screens/notifications/NotificationsInboxScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
@@ -230,7 +232,9 @@ export const MORE_STACK_ROUTES = {
   MoreSettingsTabBar: 'MoreSettingsTabBar',
   MoreSettingsTheme: 'MoreSettingsTheme',
   MoreSmoke: 'MoreSmoke',
-  MoreSyncLog: 'MoreSyncLog',
+  MoreAdvanced: 'MoreAdvanced',
+  MoreErrorLog: 'MoreErrorLog',
+  MoreErrorLogDetail: 'MoreErrorLogDetail',
 } as const;
 
 export const ROOT_STACK_ROUTES = {
@@ -267,7 +271,9 @@ const mobileNavigationScreens = {
       More: {
         screens: {
           MoreAbout: 'more/about',
+          MoreAdvanced: 'more/advanced',
           MoreE2ePlayback: 'more/e2e/playback',
+          MoreErrorLog: 'more/advanced/error-log',
           MoreFaq: 'more/faq',
           MoreMembership: `more${APP_ROUTES.MEMBERSHIP}`,
           MoreOpml: 'more/opml',
@@ -285,7 +291,6 @@ const mobileNavigationScreens = {
           MoreSettingsTabBar: `more${APP_ROUTES.SETTINGS}/tab-bar`,
           MoreSettingsTheme: `more${APP_ROUTES.SETTINGS}/theme`,
           MoreSmoke: 'more/e2e/smoke',
-          MoreSyncLog: 'more/sync-log',
         },
       },
       'My Library': {
@@ -473,7 +478,9 @@ export type MoreStackParamList = {
   MoreSettingsTabBar: undefined;
   MoreSettingsTheme: undefined;
   MoreSmoke: undefined;
-  MoreSyncLog: undefined;
+  MoreAdvanced: undefined;
+  MoreErrorLog: undefined;
+  MoreErrorLogDetail: { entryId: number };
 };
 
 export type RootStackParamList = {
@@ -933,9 +940,19 @@ function MoreStackNavigator({
         options={{ title: t('nav.stack.opml') }}
       />
       <MoreStack.Screen
-        component={MoreSyncLogScreen}
-        name={MORE_STACK_ROUTES.MoreSyncLog}
-        options={{ title: t('sync.log.title') }}
+        component={MoreAdvancedScreen}
+        name={MORE_STACK_ROUTES.MoreAdvanced}
+        options={{ title: t('more_advanced.title') }}
+      />
+      <MoreStack.Screen
+        component={MoreErrorLogScreen}
+        name={MORE_STACK_ROUTES.MoreErrorLog}
+        options={{ title: t('error_log.title') }}
+      />
+      <MoreStack.Screen
+        component={MoreErrorLogDetailScreen}
+        name={MORE_STACK_ROUTES.MoreErrorLogDetail}
+        options={{ title: t('error_log.detail.title') }}
       />
       {isMobileE2eHarnessEnabled() ? (
         <MoreStack.Screen name={MORE_STACK_ROUTES.MoreSmoke} options={{ title: t('e2e.smoke') }}>
@@ -1158,10 +1175,10 @@ function MoreRootScreen({
         },
         {
           onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreSyncLog);
+            navigation.navigate(MORE_STACK_ROUTES.MoreAdvanced);
           },
-          testID: 'more-nav-sync-log',
-          title: t('sync.log.title'),
+          testID: 'more-nav-advanced',
+          title: t('more_advanced.title'),
         },
       ],
       key: 'other',

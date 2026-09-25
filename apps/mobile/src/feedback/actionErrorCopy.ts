@@ -1,3 +1,5 @@
+import { getErrorCode, getErrorMessage } from '@podverse/helpers/error';
+
 import type { PlaybackErrorEvent, PlaybackErrorKind } from '../../modules/podverse-media-engine';
 
 /**
@@ -19,6 +21,12 @@ const downloadTitleKey = 'action_error.download_title';
  */
 export const playbackErrorMessageKeys = (kind: PlaybackErrorKind): ActionErrorMessageKeys => {
   switch (kind) {
+    case 'host-http':
+      return {
+        bodyKey: 'action_error.playback_host_http',
+        confirmLabelKey: RETRY_LABEL_KEY,
+        titleKey: playbackTitleKey,
+      };
     case 'network':
       return {
         bodyKey: 'action_error.playback_network',
@@ -118,18 +126,23 @@ export const downloadErrorMessageKeys = (reason: string | null): ActionErrorMess
  */
 export const actionErrorDetailLine = (parts: {
   code: string;
+  httpStatus?: number;
   message: string;
   reason: string;
 }): string => {
-  return [parts.reason, parts.code, parts.message]
+  const status = parts.httpStatus === undefined ? '' : `HTTP ${parts.httpStatus}`;
+  return [parts.reason, status, parts.code, parts.message]
     .map((part) => part.trim())
     .filter((part) => part.length > 0)
     .join(' · ');
 };
 
-/** Load and retry failures that never received a native error payload. */
-export const playbackErrorFromLoadFailure = (): PlaybackErrorEvent => ({
-  code: '',
+/**
+ * Load and retry failures that never received a native error payload. A rejected native call may
+ * still carry a code and message, which are kept for the dialog detail and the error log.
+ */
+export const playbackErrorFromLoadFailure = (error?: unknown): PlaybackErrorEvent => ({
+  code: error === undefined ? '' : (getErrorCode(error) ?? ''),
   kind: 'unknown',
-  message: '',
+  message: error === undefined ? '' : getErrorMessage(error, ''),
 });

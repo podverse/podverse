@@ -49,9 +49,11 @@ import { defineConfig } from 'vitest/config';
  * clock-injected, so no timer ever has to elapse in a test; the NetInfo subscription, timers, and
  * health probe stay in `src/net/connectivity.ts` and `src/net/connectivityProbe.ts`), the sync
  * failure taxonomy that
- * produces the quotable error code (`src/sync/syncErrorClassification.ts`), and the sync event log's
- * cap / eviction rule and export format (`src/data/repositories/syncEventLog.ts` — pure; the
- * SQLite half stays in `syncEventLogRepository.ts`). Playback reconciliation is here on the same
+ * produces the quotable error code (`src/sync/syncErrorClassification.ts`), and the error log's
+ * cap / eviction rule, detail storage, and copy/export format (`src/data/repositories/syncEventLog.ts`
+ * — pure; the SQLite half stays in `syncEventLogRepository.ts`) along with the rows playback and
+ * add-by-RSS write into it (`src/playback/playbackErrorLog.ts`,
+ * `src/lib/addByRss/addByRssErrorLog.ts`). Playback reconciliation is here on the same
  * split: the bounded offline outbox ordering and drain batching
  * (`src/data/repositories/playbackOutbox.ts`), the later-wins merge that decides adopt / ignore /
  * report-a-conflict (`src/data/repositories/playbackReconcile.ts`), the meaningful-event gate that
@@ -108,7 +110,9 @@ export default defineConfig({
       'src/data/repositories/subscriptionsSignupPlan.test.ts',
       'src/data/repositories/syncEventLog.test.ts',
       'src/downloads/**/*.test.ts',
+      'src/feedback/actionErrorCopy.test.ts',
       'src/hooks/useReduceMotion.test.ts',
+      'src/lib/addByRss/addByRssErrorLog.test.ts',
       'src/lib/addByRss/domain.test.ts',
       'src/lib/apiErrorStatus.test.ts',
       'src/lib/cachedValue.test.ts',
@@ -126,6 +130,7 @@ export default defineConfig({
       'src/navigation/deepLinking.test.ts',
       'src/net/connectivityMachine.test.ts',
       'src/playback/nowPlayingSegment.test.ts',
+      'src/playback/playbackErrorLog.test.ts',
       'src/playback/playbackEventSource.test.ts',
       'src/playback/playbackHandoff.test.ts',
       'src/playback/previousAction.test.ts',

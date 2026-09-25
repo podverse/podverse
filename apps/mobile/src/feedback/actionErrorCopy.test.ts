@@ -12,6 +12,7 @@ const PLAYBACK_KINDS: PlaybackErrorKind[] = [
   'audio-session',
   'decode',
   'file-not-found',
+  'host-http',
   'invalid-source',
   'network',
   'unknown',
@@ -66,6 +67,17 @@ describe('actionErrorDetailLine', () => {
     expect(actionErrorDetailLine({ code: '  ', message: '', reason: 'unknown' })).toBe('unknown');
     expect(actionErrorDetailLine({ code: '', message: '', reason: '' })).toBe('');
   });
+
+  it('names the host HTTP status right after the reason', () => {
+    expect(
+      actionErrorDetailLine({
+        code: 'item_failed',
+        httpStatus: 404,
+        message: '',
+        reason: 'host-http',
+      })
+    ).toBe('host-http · HTTP 404 · item_failed');
+  });
 });
 
 describe('playbackErrorFromLoadFailure', () => {
@@ -74,6 +86,15 @@ describe('playbackErrorFromLoadFailure', () => {
       code: '',
       kind: 'unknown',
       message: '',
+    });
+  });
+
+  it('keeps the code and message a rejected native call carried', () => {
+    const rejection = Object.assign(new Error('Source unreachable'), { code: 'ERR_LOAD' });
+    expect(playbackErrorFromLoadFailure(rejection)).toEqual({
+      code: 'ERR_LOAD',
+      kind: 'unknown',
+      message: 'Source unreachable',
     });
   });
 });

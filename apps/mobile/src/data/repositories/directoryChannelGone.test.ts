@@ -22,7 +22,7 @@ describe('isDirectoryChannelGoneError', () => {
 });
 
 describe('formatDirectoryChannelGoneDetail', () => {
-  it('names the channel so More → Sync log can quote which follow was removed', () => {
+  it('names the channel so the error log can quote which follow was removed', () => {
     expect(formatDirectoryChannelGoneDetail('abc123', 'Podcasting 2.0')).toBe(
       'Podcasting 2.0 (abc123)'
     );

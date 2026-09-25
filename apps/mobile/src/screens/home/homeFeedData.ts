@@ -498,7 +498,7 @@ const mapSubscribedChannelsBare = (subscribed: readonly SubscribedChannel[]): Ho
 
 /**
  * Titles and art come from the follow list. Badges wait on three extra local queries; if those
- * hang, Home still paints the follows and the More-tab sync log records why the badges are late.
+ * hang, Home still paints the follows and the error log records why the badges are late.
  */
 const attachSubscriptionMetadataOrBare = async (
   subscribed: readonly SubscribedChannel[],

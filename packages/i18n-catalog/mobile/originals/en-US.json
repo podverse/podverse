@@ -193,20 +193,68 @@
       "clips": "Updating your clips",
       "home_feed": "Reading Home from this device"
     },
-    "progress": "{completed} of {total}",
-    "log": {
-      "title": "Sync log",
-      "intro": "Problems recorded on this device while syncing or reading Home from cache. Share this with support if your podcasts, playlists, queue, or Home list stop updating.",
-      "empty": "No sync problems recorded",
-      "export": "Share",
-      "clear": "Clear",
-      "clear_confirm_title": "Clear sync log?",
-      "clear_confirm_body": "This removes every recorded entry from this device.",
-      "outcome_failure": "Failed",
-      "outcome_reconciled": "Removed",
-      "outcome_skipped": "Skipped — offline",
-      "outcome_success": "Succeeded",
-      "directory_channel_gone": "Removed {channel} from this device. It is no longer in the directory."
+    "progress": "{completed} of {total}"
+  },
+  "more_advanced": {
+    "title": "Advanced"
+  },
+  "error_log": {
+    "title": "Error log",
+    "menu_subtitle": "Playback, RSS feed, and sync problems recorded on this device",
+    "intro": "Problems recorded on this device while playing media, adding RSS feeds, syncing, or reading Home from cache. Tap an entry for full details you can copy and send to support.",
+    "empty": "No errors recorded",
+    "export": "Share all",
+    "clear": "Clear",
+    "clear_confirm_title": "Clear error log?",
+    "clear_confirm_body": "This removes every recorded entry from this device.",
+    "outcome_failure": "Failed",
+    "outcome_reconciled": "Removed",
+    "outcome_skipped": "Skipped — offline",
+    "outcome_success": "Succeeded",
+    "directory_channel_gone": "Removed {channel} from this device. It is no longer in the directory.",
+    "row_a11y_hint": "Opens full details",
+    "saved_footnote": "Full details are saved in More › Advanced › Error log.",
+    "kind": {
+      "playback": "Playback"
+    },
+    "add_by_rss": {
+      "parse_failed_notice": "The feed was saved, but it could not be read. Details are in More › Advanced › Error log.",
+      "parse_pending_notice": "The feed was saved and is still being read. Check back soon.",
+      "add_failed": "The feed could not be added. Details are in More › Advanced › Error log."
+    },
+    "detail": {
+      "title": "Error details",
+      "not_found": "This entry is no longer in the error log",
+      "copy": "Copy details",
+      "copied": "Copied",
+      "copy_failed": "Could not copy",
+      "time": "Time (UTC)",
+      "code": "Code",
+      "message": "Message",
+      "hosted_media_note": "Podverse does not host media. Podcasters and artists host their own files and RSS feeds, so an error from their server may need to be fixed by them.",
+      "field": {
+        "http_status": "HTTP status",
+        "media_url": "Media URL",
+        "engine_url": "Player URL",
+        "feed_url": "RSS feed URL",
+        "item_title": "Episode or track",
+        "channel_title": "Podcast, album, or artist",
+        "item_id_text": "Item ID",
+        "channel_id_text": "Channel ID",
+        "clip_id_text": "Clip ID",
+        "soundbite_id_text": "Soundbite ID",
+        "chapter_id_text": "Chapter ID",
+        "add_by_rss_id_text": "Add by RSS item ID",
+        "item_guid": "Item GUID",
+        "resource_kind": "Resource type",
+        "source": "Source",
+        "position_seconds": "Position (seconds)",
+        "error_kind": "Error type",
+        "native_code": "Player error code",
+        "native_detail": "Player error detail",
+        "parse_status": "Parse status",
+        "request_id": "Request ID"
+      }
     }
   },
   "media_player": {
@@ -221,6 +269,7 @@
     "playback_a11y": "Playback error",
     "download_a11y": "Download error",
     "report": "Details: {detail}",
+    "playback_host_http": "The server hosting this media returned an error. Podcasters and artists host their own files, so they may need to fix it.",
     "playback_network": "The connection failed while loading this media. Check your network, then try again.",
     "playback_unsupported": "This file uses a format this device cannot play. The podcast host may need to offer a different file.",
     "playback_file_not_found": "The media file could not be found. It may have been removed from the host.",

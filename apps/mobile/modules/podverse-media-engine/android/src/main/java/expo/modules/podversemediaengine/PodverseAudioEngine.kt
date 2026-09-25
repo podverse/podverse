@@ -12,6 +12,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import android.view.TextureView
 import java.io.File
@@ -33,6 +34,9 @@ object PodverseAudioEngine {
    */
   private var eventSink: ((String, Map<String, Any?>) -> Unit)? = null
   private var eventSinkOwner: Any? = null
+
+  /** Bound on the cause walk in [playbackErrorPayload], in case a chain is cyclic. */
+  private const val MAX_ERROR_CAUSE_DEPTH = 8
 
   /** Install [sink] for [owner]. A later [clearEventSink] from a different owner is a no-op. */
   fun setEventSink(sink: (String, Map<String, Any?>) -> Unit, owner: Any) {
@@ -304,9 +308,7 @@ object PodverseAudioEngine {
     override fun onPlayerError(error: PlaybackException) {
       playWhenReadyGeneration = -1
       publish(PlaybackState.ERROR)
-      emit(
-        "error",
-        mapOf("code" to error.errorCodeName, "message" to (error.message ?: "Playback error")))
+      emit("error", playbackErrorPayload(error))
     }
 
     override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -314,6 +316,43 @@ object PodverseAudioEngine {
       val hasVideo = videoSize != VideoSize.UNKNOWN && videoSize.width > 0 && videoSize.height > 0
       onMain { onVideoCapabilityChanged?.invoke(hasVideo) }
     }
+  }
+
+  /**
+   * Error payload plus, when the cause chain carries them, the host's HTTP status (`httpStatus`),
+   * the URL that failed (`url`, after redirects), and the underlying cause (`detail`). Media is
+   * fetched from the creator's own server, so the status is what tells support whose side failed.
+   */
+  private fun playbackErrorPayload(error: PlaybackException): Map<String, Any?> {
+    val payload = mutableMapOf<String, Any?>(
+      "code" to error.errorCodeName,
+      "message" to (error.message ?: "Playback error"),
+    )
+    var cause: Throwable? = error.cause
+    var depth = 0
+    while (cause != null && depth < MAX_ERROR_CAUSE_DEPTH) {
+      if (cause is HttpDataSource.InvalidResponseCodeException) {
+        payload["httpStatus"] = cause.responseCode
+        payload["url"] = cause.dataSpec.uri.toString()
+        payload["detail"] = describeCause(cause)
+        return payload
+      }
+      if (cause is HttpDataSource.HttpDataSourceException) {
+        payload["url"] = cause.dataSpec.uri.toString()
+      }
+      if (payload["detail"] == null) {
+        payload["detail"] = describeCause(cause)
+      }
+      cause = cause.cause
+      depth += 1
+    }
+    return payload
+  }
+
+  private fun describeCause(cause: Throwable): String {
+    val message = cause.message?.trim().orEmpty()
+    val name = cause.javaClass.simpleName
+    return if (message.isEmpty()) name else "$name: $message"
   }
 
   private fun emit(event: String, payload: Map<String, Any?>) {

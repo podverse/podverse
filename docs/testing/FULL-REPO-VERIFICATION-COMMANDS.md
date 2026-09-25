@@ -204,7 +204,7 @@ npm run mobile:e2e:test -- search
 npm run mobile:e2e:test -- settings-downloads
 npm run mobile:e2e:test -- settings-select
 npm run mobile:e2e:test -- subscriptions-anonymous
-npm run mobile:e2e:test -- sync-log
+npm run mobile:e2e:test -- error-log
 npm run mobile:e2e:test -- tab-switch-playback
 npm run mobile:e2e:test -- track
 npm run mobile:e2e:test -- v4v

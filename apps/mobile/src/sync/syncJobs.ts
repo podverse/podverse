@@ -197,7 +197,7 @@ const createAddByRssParseJob = (
   priority: SyncJobPriority,
   ticket: AddByRssRefreshTicket
 ): SyncJob => {
-  return buildJob(
+  const job = buildJob(
     'add-by-rss-parse',
     priority,
     `add-by-rss-parse:${ticket.feedUrl}`,
@@ -209,6 +209,10 @@ const createAddByRssParseJob = (
       }
     }
   );
+  return {
+    ...job,
+    logDetails: { feed_url: ticket.feedUrl, request_id: ticket.requestId },
+  };
 };
 
 /**
@@ -217,7 +221,7 @@ const createAddByRssParseJob = (
  * Refreshing a feed is server-side parsing work, so it is membership-tier. Checking before asking
  * is what makes a lapsed membership *degrade* rather than fail: those feeds stay readable and
  * playable from what is already stored, and the device does not spend every foreground transition
- * collecting denials in the sync event log.
+ * collecting denials in the error log.
  */
 const createAddByRssRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('add-by-rss-refresh', priority, 'add-by-rss-refresh', async (context) => {

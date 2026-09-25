@@ -86,8 +86,9 @@ Screen / hook  →  repository  →  SQLite (source of truth for phone UI)
   (last subscribed-clips page in `kv_meta` so Home Clips can paint without waiting on the network).
   `syncEventLogRepository`
   (capped diagnostic record of sync-job failures, Home cache-read
-  failures, and directory follows dropped after an item-list 404, in `sync_event_log`, surfaced at
-  More ▸ Sync log; local-only, with the cap and eviction rule in the pure sibling `syncEventLog.ts`). `playbackOutboxRepository` (durable replay rows in
+  failures, playback failures, add-by-RSS failures, and directory follows dropped after an
+  item-list 404, in `sync_event_log` with a per-entry `details_json` map, surfaced at
+  More ▸ Advanced ▸ Error log; local-only, with the cap and eviction rule in the pure sibling `syncEventLog.ts`). `playbackOutboxRepository` (durable replay rows in
   `playback_outbox` plus signed-in local playback state in `playback_local_state`, with meaningful
   event filtering, collapse rules, and bounded retention). `exampleRepository` is a scaffold proving
   the pattern.

@@ -1,8 +1,8 @@
 /**
  * Every kind of background sync work, and the string the indicator shows while it runs.
  *
- * A kind is stable and machine-readable: it identifies the job in the dedupe key and in the sync
- * event log, where a user may end up quoting it to support. The label is the human half and is
+ * A kind is stable and machine-readable: it identifies the job in the dedupe key and in the error
+ * log, where a user may end up quoting it to support. The label is the human half and is
  * translated, so the two are never interchangeable.
  *
  * Adding a background fetch means adding it here as well. Work that runs outside this table is
@@ -60,12 +60,19 @@ export const SYNC_JOB_LABEL_KEYS: Record<SyncJobKind, string> = {
 };
 
 /**
- * Log rows that are not queue jobs. Home's local read is interactive cache; a hang or throw
- * there is recorded so More → Sync log can explain an empty or stale list.
+ * Error-log rows that are not queue jobs. Home's local read is interactive cache; a hang or throw
+ * there is recorded so the error log can explain an empty or stale list. Playback and the
+ * interactive add-by-RSS flow report failures from media and feeds that creators host themselves,
+ * so the entry is what lets support say where the fault lies.
  */
 export const SYNC_DIAGNOSTIC_LOG_KIND_LABEL_KEYS = {
+  'add-by-rss-add': 'sync.job.rss_feeds',
   'home-feed-read': 'sync.job.home_feed',
+  playback: 'error_log.kind.playback',
 } as const;
+
+export const PLAYBACK_LOG_KIND = 'playback';
+export const ADD_BY_RSS_ADD_LOG_KIND = 'add-by-rss-add';
 
 const isSyncJobKind = (value: string): value is SyncJobKind => {
   return SYNC_JOB_KINDS.some((kind) => kind === value);
@@ -77,7 +84,7 @@ const isSyncDiagnosticLogKind = (
   return value in SYNC_DIAGNOSTIC_LOG_KIND_LABEL_KEYS;
 };
 
-/** Label key for a sync-log row, or null when the kind is unknown and should be shown raw. */
+/** Label key for an error-log row, or null when the kind is unknown and should be shown raw. */
 export const getSyncLogLabelKey = (jobKind: string): string | null => {
   if (isSyncJobKind(jobKind)) {
     return SYNC_JOB_LABEL_KEYS[jobKind];

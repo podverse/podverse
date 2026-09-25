@@ -44,14 +44,18 @@ export function ActionErrorProvider({ children }: PropsWithChildren) {
     (
       keys: { bodyKey: string; confirmLabelKey: string; titleKey: string },
       detail: string,
-      onConfirm: () => void
+      onConfirm: () => void,
+      footnoteKey?: string
     ) => {
       onConfirmRef.current = onConfirm;
-      const explanation = t(keys.bodyKey);
-      const body =
-        detail.length > 0
-          ? `${explanation}\n\n${t('action_error.report', { detail })}`
-          : explanation;
+      const paragraphs = [t(keys.bodyKey)];
+      if (detail.length > 0) {
+        paragraphs.push(t('action_error.report', { detail }));
+      }
+      if (footnoteKey !== undefined) {
+        paragraphs.push(t(footnoteKey));
+      }
+      const body = paragraphs.join('\n\n');
       setPresentation({
         body,
         confirmLabel: t(keys.confirmLabelKey),
@@ -69,10 +73,14 @@ export function ActionErrorProvider({ children }: PropsWithChildren) {
         playbackErrorMessageKeys(kind),
         actionErrorDetailLine({
           code: event?.code ?? '',
+          httpStatus: event?.httpStatus,
           message: event?.message ?? '',
           reason: kind,
         }),
-        onConfirm
+        onConfirm,
+        // Every playback failure is written to the error log, which keeps the media URL and ids
+        // this dialog has no room for.
+        'error_log.saved_footnote'
       );
     },
     [openWithKeys]

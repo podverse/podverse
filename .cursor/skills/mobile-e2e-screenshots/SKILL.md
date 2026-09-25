@@ -207,7 +207,7 @@ assertion. Check them before blaming locators or timeouts:
    remembered screen, and do not add a reset to make a root assertion pass.
 
 6. **More rows below the first page are missing from the iOS hierarchy, not from the app.** Phone
-   More is two pages (Offline Mode, overflow tabs, Settings, OPML, About, Sync log, then E2E).
+   More is two pages (Offline Mode, overflow tabs, Settings, OPML, About, Advanced, then E2E).
    XCUITest omits those off-screen `testID`s, so `tapOn: more-nav-smoke` fails with "Element not
    found" while the screenshot still shows More. Scroll first
    (`shared/open-more-smoke.yaml` / `scrollUntilVisible`). A live `maestro --device <udid>

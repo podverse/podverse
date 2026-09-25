@@ -58,7 +58,7 @@ Mobile auth is bearer-first:
 ## Home feed (subscribed)
 
 Home paints subscribed lists from SQLite (`fetchHomeFeedRows`). Network catch-up is the serial
-sync queue (indicator bar + More-tab sync log). After any successful channel follow/unfollow, call
+sync queue (indicator bar + More › Advanced › Error log). After any successful channel follow/unfollow, call
 `homeFeedRefresh.notify()` (`src/lib/home/homeFeedRefresh.ts`) so Home rereads locally without
 pull-to-refresh. Same pattern as `downloadManager.subscribe`.
 

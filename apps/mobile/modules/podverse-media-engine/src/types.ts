@@ -44,6 +44,7 @@ export type EndedEvent = {
  * an i18n message off a small enum instead of raw native text.
  */
 export type PlaybackErrorKind =
+  | 'host-http'
   | 'network'
   | 'unsupported'
   | 'file-not-found'
@@ -56,7 +57,19 @@ export type PlaybackErrorKind =
 export type NativePlaybackErrorPayload = {
   /** Stable native machine code (iOS custom, or Android Media3 `errorCodeName`). */
   code: string;
+  /**
+   * Underlying cause as the platform reported it (exception class and message on Android; NSError
+   * domain, code, and the item error-log comment on iOS). Present only when native found one.
+   */
+  detail?: string;
+  /**
+   * HTTP status the media host answered with, when the failure was a bad response. This is the
+   * creator's server, not Podverse, which is what makes it worth showing to support.
+   */
+  httpStatus?: number;
   message: string;
+  /** The URL the engine was requesting when it failed. May differ from the source after redirects. */
+  url?: string;
 };
 
 /**

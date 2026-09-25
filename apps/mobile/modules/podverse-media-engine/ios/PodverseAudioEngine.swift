@@ -551,13 +551,70 @@ public final class PodverseAudioEngine: NSObject {
       case .failed:
         self.pendingInitialSeekSeconds = nil
         self.playAfterPendingSeek = false
-        let message = item.error?.localizedDescription ?? "Playback item failed"
         self.publish(state: .error)
-        self.emit(.error, ["code": "item_failed", "message": message])
+        self.emit(.error, self.itemFailurePayload(item))
       default:
         break
       }
     }
+  }
+
+  /// Bound on the underlying-error walk, in case a chain is cyclic.
+  private static let maxErrorCauseDepth = 8
+
+  /// `item_failed` plus, when available, the host's HTTP status (`httpStatus`), the URL that
+  /// failed (`url`), and the NSError chain and last error-log entry (`detail`). Media is fetched
+  /// from the creator's own server, so the status is what tells support whose side failed.
+  private func itemFailurePayload(_ item: AVPlayerItem) -> [String: Any] {
+    let message = item.error?.localizedDescription ?? "Playback item failed"
+    var payload: [String: Any] = ["code": "item_failed", "message": message]
+    var detailParts: [String] = []
+
+    var nsError = item.error.map { $0 as NSError }
+    var depth = 0
+    while let current = nsError, depth < Self.maxErrorCauseDepth {
+      detailParts.append("\(current.domain) \(current.code)")
+      if payload["httpStatus"] == nil, let reason = current.localizedFailureReason,
+        let status = Self.httpStatus(in: reason)
+      {
+        payload["httpStatus"] = status
+      }
+      if let failingUrl = current.userInfo[NSURLErrorFailingURLStringErrorKey] as? String {
+        payload["url"] = failingUrl
+      }
+      nsError = current.userInfo[NSUnderlyingErrorKey] as? NSError
+      depth += 1
+    }
+
+    if let event = item.errorLog()?.events.last {
+      var eventParts = ["\(event.errorDomain) \(event.errorStatusCode)"]
+      if let comment = event.errorComment, !comment.isEmpty {
+        eventParts.append(comment)
+        if payload["httpStatus"] == nil, let status = Self.httpStatus(in: comment) {
+          payload["httpStatus"] = status
+        }
+      }
+      if payload["httpStatus"] == nil, (100...599).contains(event.errorStatusCode) {
+        payload["httpStatus"] = event.errorStatusCode
+      }
+      if let uri = event.uri, !uri.isEmpty {
+        payload["url"] = uri
+      }
+      detailParts.append(eventParts.joined(separator: ": "))
+    }
+
+    if !detailParts.isEmpty {
+      payload["detail"] = detailParts.joined(separator: " · ")
+    }
+    return payload
+  }
+
+  /// Reads `HTTP 404` style text from an error-log comment or failure reason.
+  private static func httpStatus(in text: String) -> Int? {
+    guard let range = text.range(of: #"HTTP (\d{3})"#, options: .regularExpression) else {
+      return nil
+    }
+    return Int(text[range].dropFirst("HTTP ".count))
   }
 
   private func observeItemEnd(_ item: AVPlayerItem) {
