@@ -73,7 +73,7 @@
     "@types/video.js": "^7.3.58",
     "@vitejs/plugin-react": "^5.1.1",
     "axios": "^1.19.0",
-    "dotenv": "^17.2.2",
+    "dotenv": "^18.0.3",
     "jsdom": "^26.1.0",
     "nodemon": "^3.1.14",
     "openai": "^6.27.0",
