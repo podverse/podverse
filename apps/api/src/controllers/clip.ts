@@ -711,6 +711,7 @@ class ClipController {
             if (!channel_ids.length) {
               const response: ApiListResponse<Clip> = emptyApiListResponse;
               res.json(response);
+              return;
             }
 
             const config: FindManyOptions<Clip> = {
@@ -761,6 +762,7 @@ class ClipController {
               if (!channel_ids.length) {
                 const response: ApiListResponse<Clip> = emptyApiListResponse;
                 res.json(response);
+                return;
               }
 
               const order = getStatsOrder(range);

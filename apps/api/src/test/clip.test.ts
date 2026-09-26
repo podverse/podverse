@@ -582,6 +582,19 @@ describe('clip routes', () => {
 
       expect(res.status).toBe(401);
     });
+
+    it('returns an empty page and does not query clips when the account follows nothing', async () => {
+      followingChannelGetFollowedChannelsWithCountMock.mockResolvedValueOnce({ results: [] });
+      clipGetManyByChannelsMock.mockClear();
+
+      const res = await request(app)
+        .get(`${clipBase}/public/subscribed/recent?medium=all&page=1`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+      expect(clipGetManyByChannelsMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('GET /public/subscribed/top', () => {
@@ -602,6 +615,19 @@ describe('clip routes', () => {
       );
 
       expect(res.status).toBe(401);
+    });
+
+    it('returns an empty page and does not query clips when the account follows nothing', async () => {
+      followingChannelGetFollowedChannelsWithCountMock.mockResolvedValueOnce({ results: [] });
+      statsAggregatedClipGetManyByChannelsAndCountPublicMock.mockClear();
+
+      const res = await request(app)
+        .get(`${clipBase}/public/subscribed/top?medium=all&page=1&range=day`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+      expect(statsAggregatedClipGetManyByChannelsAndCountPublicMock).not.toHaveBeenCalled();
     });
   });
 });

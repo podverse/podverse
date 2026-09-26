@@ -32,7 +32,7 @@ is_patched() {
 
 # bash 3.2 (macOS native, and what run-expo-macos.sh leaves on PATH) cannot parse a here-document
 # inside a command substitution, so changes are reported through a flag file.
-CHANGE_FLAG="$(mktemp -t expo-cli-xcode27)"
+CHANGE_FLAG="$(mktemp "${TMPDIR:-/tmp}/expo-cli-xcode27.XXXXXX")"
 trap 'rm -f "$CHANGE_FLAG"' EXIT
 
 python3 - "$PREREQ" "$ENSURE" "$MANAGER" "$DEVICECTL" "$CHANGE_FLAG" <<'PY'
