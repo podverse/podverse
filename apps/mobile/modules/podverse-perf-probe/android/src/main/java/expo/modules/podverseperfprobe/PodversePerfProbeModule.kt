@@ -98,6 +98,7 @@ class PodversePerfProbeModule : Module() {
         over33Ms = 0
         maxGapMs = 0.0
         lastFrameTimeNanos = 0L
+        null
       }
 
       Function("snapshot") {

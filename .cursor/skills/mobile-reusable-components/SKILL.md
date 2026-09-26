@@ -170,6 +170,9 @@ link switch under Submit. See **mobile-screen-layout**.
       **`CallToActionSection`** (via `AuthAwareLoadState` `showAuthRequired`, or as a `FillList`
       empty) with `authentication.login_required` and `authentication.login` — not `ListEmpty`.
       See **mobile-screen-layout** and **generic-login-required-copy**.
+- [ ] Button loading uses `Button` `loading`. A spinner or other content that appears inside a
+      button stays in the resting face and does not change the button's size
+      (**button-stable-bounds**).
 - [ ] Hub menus (More, Library) use `MenuListScreen` `sections`. Named headers sit
       above the card. Chevron only on rows that push a screen — not on Log out.
 - [ ] List/media rows use `ListRow` / `HomeFeedRow` / `MediaRowActions` (or a shared row wrapper)
@@ -204,6 +207,8 @@ link switch under Submit. See **mobile-screen-layout**.
 - Rule: **reuse-beyond-components** — the same habit for hooks and pure functions, including logic
   mobile shares with web through `@podverse/helpers`
 - Rule: **mobile-pending-content-spinner** — spinner until load settles; never an empty flash
+- Rule: **button-stable-bounds** — a button does not change size when a spinner or other content
+  appears inside it
 - Rule: **mobile-react-native** (boundaries + DRY bullet)
 - Theme: **mobile-theme-parity**
 - Web counterpart (not for mobile imports): **reusable-components**

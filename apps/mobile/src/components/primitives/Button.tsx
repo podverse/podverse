@@ -32,6 +32,32 @@ export type ButtonProps = {
   testID?: string;
 };
 
+/**
+ * React Native lays out `ActivityIndicator` size `small` at 20×20. Labeled buttons scale that
+ * indicator into the label line and center it over the resting face. See **button-stable-bounds**.
+ */
+const ACTIVITY_INDICATOR_SMALL_SIZE = 20;
+
+const metricNumber = (value: number | undefined, fallback: number): number =>
+  typeof value === 'number' ? value : fallback;
+
+/** Label type for each size. `sm` is a step under `typography.label`; `lg` / `xl` use subheading. */
+const labelMetrics = (size: ButtonSize): { fontSize: number; lineHeight: number } => {
+  if (size === 'sm') {
+    return { fontSize: 12, lineHeight: 16 };
+  }
+  if (size === 'lg' || size === 'xl') {
+    return {
+      fontSize: metricNumber(typography.subheading.fontSize, 16),
+      lineHeight: metricNumber(typography.subheading.lineHeight, 22),
+    };
+  }
+  return {
+    fontSize: metricNumber(typography.label.fontSize, 13),
+    lineHeight: metricNumber(typography.label.lineHeight, 18),
+  };
+};
+
 const createStyles = ({ tokens }: ThemedStylesTheme) =>
   StyleSheet.create({
     container: {
@@ -43,11 +69,24 @@ const createStyles = ({ tokens }: ThemedStylesTheme) =>
     disabled: {
       opacity: 0.5,
     },
+    hiddenFace: {
+      opacity: 0,
+    },
     icon: {
       marginRight: tokens.spacing.sm,
     },
     pressed: {
       opacity: 0.7,
+    },
+    spinnerHost: {
+      alignItems: 'center',
+      bottom: 0,
+      justifyContent: 'center',
+      left: 0,
+      overflow: 'hidden',
+      position: 'absolute',
+      right: 0,
+      top: 0,
     },
   });
 
@@ -64,6 +103,9 @@ const createStyles = ({ tokens }: ThemedStylesTheme) =>
  *
  * Sizes `sm`–`lg` cover rows, forms, and detail chrome. `xl` is for the player's play circle
  * (`PLAYER_TRANSPORT_CIRCLE_SIZE`) — the one control sized to be hit without looking.
+ *
+ * `loading` does not change the button's size. The label and icon stay in the layout (hidden) and
+ * the spinner is centered over that face, scaled into the content slot. See **button-stable-bounds**.
  */
 export const Button = memo(function Button({
   icon,
@@ -107,6 +149,7 @@ export const Button = memo(function Button({
   const isDisabled = disabled || loading;
   const isOutline = variant === 'outline' || variant === 'play';
   const isLarge = size === 'lg' || size === 'xl';
+  const metrics = labelMetrics(size);
   const iconOnlySize =
     size === 'sm'
       ? LIST_ROW_ACTION_SIZE
@@ -115,6 +158,8 @@ export const Button = memo(function Button({
         : size === 'lg'
           ? 48
           : PLAYER_TRANSPORT_CIRCLE_SIZE;
+  const contentSlot = iconOnly ? iconOnlySize : metrics.lineHeight;
+  const spinnerScale = Math.min(1, contentSlot / ACTIVITY_INDICATOR_SMALL_SIZE);
 
   const variantStyles = useMemo(
     () =>
@@ -142,16 +187,13 @@ export const Button = memo(function Button({
                 : tokens.spacing.md,
         },
         label: {
-          ...typography.label,
-          ...(size === 'sm'
-            ? { fontSize: 12, lineHeight: 16 }
-            : isLarge
-              ? typography.subheading
-              : null),
+          ...(isLarge ? typography.subheading : typography.label),
           color: palette.color,
+          fontSize: metrics.fontSize,
+          lineHeight: metrics.lineHeight,
         },
         spinner: {
-          marginRight: iconOnly ? 0 : tokens.spacing.sm,
+          transform: [{ scale: spinnerScale }],
         },
       }),
     [
@@ -160,9 +202,12 @@ export const Button = memo(function Button({
       iconOnlySize,
       isLarge,
       isOutline,
+      metrics.fontSize,
+      metrics.lineHeight,
       palette.backgroundColor,
       palette.color,
       size,
+      spinnerScale,
       tokens,
     ]
   );
@@ -171,7 +216,7 @@ export const Button = memo(function Button({
     <Pressable
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled }}
+      accessibilityState={{ busy: loading, disabled: isDisabled }}
       delayLongPress={delayLongPress}
       disabled={isDisabled}
       onLongPress={onLongPress}
@@ -184,13 +229,24 @@ export const Button = memo(function Button({
       ]}
       testID={testID}
     >
+      {icon !== undefined ? (
+        <View style={[iconOnly ? undefined : styles.icon, loading ? styles.hiddenFace : null]}>
+          {icon}
+        </View>
+      ) : null}
+      {!iconOnly ? (
+        <Text style={[variantStyles.label, loading ? styles.hiddenFace : null]}>{label}</Text>
+      ) : null}
       {loading ? (
-        <ActivityIndicator color={palette.color} size="small" style={variantStyles.spinner} />
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          style={styles.spinnerHost}
+        >
+          <ActivityIndicator color={palette.color} size="small" style={variantStyles.spinner} />
+        </View>
       ) : null}
-      {!loading && icon !== undefined ? (
-        <View style={iconOnly ? undefined : styles.icon}>{icon}</View>
-      ) : null}
-      {!iconOnly ? <Text style={variantStyles.label}>{label}</Text> : null}
     </Pressable>
   );
 });

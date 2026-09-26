@@ -1,0 +1,49 @@
+---
+description: A button keeps its resting size when a spinner or other content appears inside it
+globs:
+  - "apps/mobile/**/*.tsx"
+  - "packages/ui/src/components/button/**/*"
+alwaysApply: false
+---
+
+# Button bounds stay put
+
+A button's width and height come from its resting face: the label, the icon, and the padding.
+Icon-only controls use their fixed box. A loading spinner, or any other content that appears in
+that button, is drawn inside the resting box. The button does not grow or shrink to fit it.
+
+## Why
+
+React Native's small `ActivityIndicator` lays out at 20×20. The `sm` label line is 16, and `md`
+is 18. An in-flow spinner beside the label is taller than the text and adds its own width, so a
+control such as Subscribe / Unsubscribe stretches while the request runs.
+
+Web `Button` already holds its size: the label stays in the layout (invisible) and the spinner is
+absolutely centered inside a fixed-height control.
+
+## Do
+
+- Keep the resting label and icon mounted while a spinner or other stand-in is showing. Hide them
+  visually. Their layout is what holds the width and height.
+- Center the stand-in on that face (`position: 'absolute'`). It is not a flex sibling of the label.
+- Fit the spinner in the resting content slot — the label's line height, or the icon-only box.
+  Scale it down when 20×20 is taller than that slot, and clip paint to the button interior so a
+  native indicator cannot draw outside the pill.
+- Set `accessibilityState.busy` (mobile) or `aria-busy` (web) while loading. The accessible name
+  stays the resting label.
+- When one control swaps between resting labels of different lengths (Subscribe / Unsubscribe),
+  size it to the wider label so that swap does not jump either. Keep the inactive string in the
+  layout and hide it without adding height.
+- Use shared `Button` `loading` for this. A one-off pressable follows the same overlay contract.
+
+## Don't
+
+- Don't render `ActivityIndicator` (or any status glyph) as a flex sibling of the label.
+- Don't unmount the label or icon for the loading state.
+- Don't size the spinner larger than the content slot and let the button expand around it.
+- Don't build a control that grows when an icon, count, or status glyph appears inside it.
+
+## Related
+
+- **mobile-reusable-components** — mobile `Button` is the shared control
+- **screen-reader-accessibility** — `busy` while the spinner shows
