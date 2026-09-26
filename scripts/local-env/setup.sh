@@ -554,7 +554,7 @@ done
 
 # From notifications.env (VAPID keys filled manually by dev; not auto-generated)
 for v in GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH WEBPUSH_ENABLED WEBPUSH_VAPID_SUBJECT WEBPUSH_VAPID_PUBLIC_KEY WEBPUSH_VAPID_PRIVATE_KEY; do
-	apply_override "$v" "${WORKERS_ENV_FILES[@]}"
+	apply_override "$v" "${API_ENV_FILES[@]}" "${WORKERS_ENV_FILES[@]}"
 done
 if [ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
@@ -609,11 +609,13 @@ if [ -n "${MANAGEMENT_BRAND_NAME:-}" ]; then
 	done
 fi
 
-# From brand.env: BRAND_DOMAIN -> NEXT_PUBLIC_BRAND_DOMAIN for web and management-web sidecars.
+# From brand.env: BRAND_DOMAIN -> NEXT_PUBLIC_BRAND_DOMAIN for web and management-web sidecars,
+# and EXPO_PUBLIC_MOBILE_WEB_BASE_URL for mobile (public site for share links / universal links).
 if [ -n "${BRAND_DOMAIN:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_BRAND_DOMAIN" "$BRAND_DOMAIN"
 	done
+	upsert_var "$MOBILE_APP_ENV" "EXPO_PUBLIC_MOBILE_WEB_BASE_URL" "https://${BRAND_DOMAIN}"
 fi
 
 # From brand.env: BRAND_LOGO_DARK/LIGHT -> NEXT_PUBLIC_BRAND_LOGO_DARK/LIGHT for web sidecars.

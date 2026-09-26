@@ -201,9 +201,15 @@ For local setup, these can be customized via `dev/env-overrides/local/socials.en
 - **`PAYPAL_CLIENT_ID`** (Optional) - PayPal client ID for payment processing
 - **`PAYPAL_CLIENT_SECRET`** (Optional) - PayPal client secret for payment processing
 
+### Firebase (optional)
+
+When **`GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED`** is `true`, set **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH`** to the Firebase admin JSON key file (same contract as workers — see [`apps/workers/ENV.md`](/apps/workers/ENV.md)). Customize via `dev/env-overrides/local/notifications.env`; run `make local_env_setup` to apply to API and workers.
+
+On **Kubernetes**, mount the key via Secret **`podverse-workers-firebase-opaque`** (see `infra/k8s/base/api/deployment.yaml`); keep **`GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED`** in the API ConfigMap source.
+
 ### WebPush (optional)
 
-When **`WEBPUSH_ENABLED`** is `true`, the API uses **`WEBPUSH_VAPID_PUBLIC_KEY`**, **`WEBPUSH_VAPID_PRIVATE_KEY`**, and **`WEBPUSH_VAPID_SUBJECT`** (see [`apps/workers/ENV.md`](/apps/workers/ENV.md) for semantics). Set **`WEBPUSH_VAPID_SUBJECT` and the public key** in **`apps/api/.env`** (local) or the K8s ConfigMap source `infra/k8s/base/api/source/api.env` (or your `apps/.../api/source/api.env` GitOps overlay).
+When **`WEBPUSH_ENABLED`** is `true`, the API uses **`WEBPUSH_VAPID_PUBLIC_KEY`**, **`WEBPUSH_VAPID_PRIVATE_KEY`**, and **`WEBPUSH_VAPID_SUBJECT`** (see [`apps/workers/ENV.md`](/apps/workers/ENV.md) for semantics). Set **`WEBPUSH_VAPID_SUBJECT` and the public key** in **`apps/api/.env`** (local) or the K8s ConfigMap source `infra/k8s/base/api/source/api.env` (or your `apps/.../api/source/api.env` GitOps overlay). Customize via `dev/env-overrides/local/notifications.env`; run `make local_env_setup` to apply to API and workers.
 
 On **Kubernetes**, do not put **`WEBPUSH_VAPID_PRIVATE_KEY`** in the API ConfigMap: use the same Secret as workers, **`podverse-workers-webpush-opaque`**, which is mounted on the API deployment via `envFrom` (see `infra/k8s/base/api/deployment.yaml`).
 

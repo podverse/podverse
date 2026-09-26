@@ -200,6 +200,8 @@ Mobile now participates in the same local env pipeline as other apps:
   vars and mobile `EXPO_PUBLIC_MOBILE_API_BASE_URL_{IOS,ANDROID}` (must include `/api/v2`).
 - `NEXT_PUBLIC_CONTACT_EMAIL` from `socials.env` is copied to mobile
   `EXPO_PUBLIC_CONTACT_EMAIL` for the error-log email action.
+- `BRAND_DOMAIN` from `brand.env` is written as `EXPO_PUBLIC_MOBILE_WEB_BASE_URL`
+  (`https://<BRAND_DOMAIN>`) for share links and universal-link host registration.
 - At runtime, the app reads those vars only via `getMobileConfig()` in
   [`apps/mobile/src/config/`](src/config/) (same single-config idea as web/API `config/index.ts`).
 - Android URL derives emulator host `10.0.2.2` automatically when local host is
