@@ -31,7 +31,7 @@
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "@podverse/v4v-btc-ln": "*",
-    "dotenv": "^17.2.2"
+    "dotenv": "^18.0.3"
   },
   "devDependencies": {
     "@types/node": "^24.12.0",

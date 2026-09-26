@@ -10,7 +10,7 @@
     "i18n:validate": "ts-node --project tsconfig.scripts.json scripts/i18n-validate.ts"
   },
   "devDependencies": {
-    "dotenv": "^17.2.2",
+    "dotenv": "^18.0.3",
     "openai": "^6.27.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
