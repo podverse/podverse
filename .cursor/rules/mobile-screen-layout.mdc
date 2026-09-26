@@ -143,13 +143,15 @@ header stack.
 ## Chip row → next block
 
 Space **below** a **`SectionChipRow`** (Home / Browse media types, podcast sections) is
-**`listChipRowBottomGap(tokens.spacing)`** (three-quarters of `spacing.base`). It is applied as the row's own
-`paddingBottom` inside `SectionChipRow` — do **not** add a second `paddingBottom` /
-`marginTop` on the screen wrapper (Home/Browse `selectorSection`, podcast filter `marginTop`,
-About surface `marginTop`) or the seam doubles or disappears when the next sibling changes.
+**`listChipRowBottomGap(tokens.spacing)`** (`spacing.base`, the same value as
+`listFilterContentGap`). It is applied as the row's own `paddingBottom` inside `SectionChipRow` —
+do **not** add a second `paddingBottom` / `marginTop` on the screen wrapper (Home/Browse
+`selectorSection`, podcast filter `marginTop`, About surface `marginTop`) or the seam doubles or
+disappears when the next sibling changes.
 
 Whatever follows the chips (filter field, episode list, about prose, podroll) inherits that same
-gap. Filter fields then use **`listFilterFieldBottomMargin`** for the filter→row seam only.
+gap. A filter between the chips and the hairline then has equal space above the field and below
+it. Filter fields use **`listFilterFieldBottomMargin`** for the filter→row seam only.
 
 ## Filter field → content seam
 

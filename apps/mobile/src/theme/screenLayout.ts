@@ -94,10 +94,11 @@ export function listFilterContentGap(spacing: ThemeTokens['spacing']): number {
 /**
  * Space below a `SectionChipRow` / `MediaTypeSelector` before the next block (filter, list, about
  * prose). Applied as the row's own `paddingBottom` so every chip surface shares one seam and
- * screens cannot omit it. Three-quarters of `listFilterContentGap`.
+ * screens cannot omit it. Same distance as `listFilterContentGap`, which is the space from a
+ * filter field down to its hairline, so the field sits equally between the chips and that line.
  */
 export function listChipRowBottomGap(spacing: ThemeTokens['spacing']): number {
-  return Math.round(listFilterContentGap(spacing) * 0.75);
+  return listFilterContentGap(spacing);
 }
 
 /**
