@@ -225,7 +225,7 @@ export function MediaPlayerFoundationPageClient() {
       <div data-testid="current-time">{currentTimeSeconds}</div>
 
       {showLoginModal && (
-        <div data-testid="login-required-modal" role="dialog" aria-label="Login required">
+        <div data-testid="login-required-modal" role="dialog" aria-label="Login Required">
           login_to_like
         </div>
       )}

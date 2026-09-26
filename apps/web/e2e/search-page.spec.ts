@@ -10,7 +10,7 @@ test.describe('Search page', () => {
     await expect(page).toHaveURL(/\/search\/?$/);
 
     const heading = page.getByRole('heading', { name: 'Search' });
-    const searchField = page.getByLabel('Search by title...');
+    const searchField = page.getByLabel('Search by Title...');
     const allChip = page.getByRole('button', { name: 'All' });
     const musicChip = page.getByRole('button', { name: 'Music' });
 

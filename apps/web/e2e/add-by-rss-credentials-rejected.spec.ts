@@ -42,13 +42,13 @@ test.describe('Add by RSS with a rejected password', () => {
     await page.goto('/add-by-rss/add');
 
     await test.step('Adding the feed with a wrong password opens the credentials page', async () => {
-      await page.getByRole('textbox', { name: 'RSS feed URL' }).fill(FEED_URL);
+      await page.getByRole('textbox', { name: 'RSS Feed URL' }).fill(FEED_URL);
       await page.getByLabel('This feed requires username and password').check();
       await page
         .getByRole('textbox', { name: 'Username', exact: true })
         .fill(E2E_BASIC_AUTH_USERNAME);
       await page.getByLabel('Password', { exact: true }).fill(WRONG_PASSWORD);
-      await page.getByRole('button', { name: 'Add feed' }).click();
+      await page.getByRole('button', { name: 'Add Feed' }).click();
 
       await expect(page).toHaveURL(/\/add-by-rss\/credentials\/[^/]+$/, { timeout: 20_000 });
       const rejectedAlert = page.getByRole('alert').filter({ hasText: REJECTED_MESSAGE });
@@ -85,7 +85,7 @@ test.describe('Add by RSS with a rejected password', () => {
       await page.getByTestId('add-by-rss-needs-credentials-section').getByRole('link').click();
       await expect(page).toHaveURL(credentialsUrl);
       await page.getByLabel('Password', { exact: true }).fill(E2E_BASIC_AUTH_PASSWORD);
-      await page.getByRole('button', { name: 'Save and check' }).click();
+      await page.getByRole('button', { name: 'Save and Check' }).click();
 
       await expect(page).toHaveURL(/\/add-by-rss\/podcast\/[^/]+$/, { timeout: 20_000 });
       expect(parse.enqueueBodies[1]).toMatchObject({

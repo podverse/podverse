@@ -121,7 +121,6 @@ function HomeFeedListItem({
   goToChannel,
   goToTrack,
   isGridView,
-  isLast,
   mediaType,
   onPlay,
   onPress,
@@ -136,7 +135,6 @@ function HomeFeedListItem({
   goToChannel?: (row: HomeFeedRowData) => void;
   goToTrack?: (row: HomeFeedRowData) => void;
   isGridView: boolean;
-  isLast: boolean;
   mediaType: HomeMediaType;
   onPlay: (row: HomeFeedRowData) => void;
   onPress: (row: HomeFeedRowData) => void;
@@ -153,7 +151,6 @@ function HomeFeedListItem({
     <HomeFeedGridCell artworkEdge={artworkEdge} onPress={onPress} row={row} />
   ) : (
     <HomeFeedRow
-      isLast={isLast}
       mediaType={mediaType}
       onAddToPlaylistPress={addToPlaylistPress}
       onGoToChannelPress={goToChannel}
@@ -184,14 +181,12 @@ function HomeFeedListItem({
 }
 
 function HomeUnsubscribedDownloadRow({
-  isLast,
   onDelete,
   onPlay,
   onPress,
   onQueue,
   row,
 }: {
-  isLast: boolean;
   onDelete: (row: HomeFeedRowData) => void;
   onPlay: (row: HomeFeedRowData) => void;
   onPress: (row: HomeFeedRowData) => void;
@@ -211,7 +206,6 @@ function HomeUnsubscribedDownloadRow({
       testID={`home-unsubscribed-download-row-${row.id}-swipe`}
     >
       <HomeFeedRow
-        isLast={isLast}
         mediaType="podcasts"
         onPlayPress={onPlay}
         onPress={onPress}
@@ -1255,9 +1249,8 @@ export function HomeScreen() {
                 ))}
               </View>
             ) : (
-              unsubscribedDownloadRows.map((row, index) => (
+              unsubscribedDownloadRows.map((row) => (
                 <HomeUnsubscribedDownloadRow
-                  isLast={index === unsubscribedDownloadCount - 1}
                   key={row.id}
                   onDelete={handleDeleteUnsubscribedDownloads}
                   onPlay={handlePodcastPlayPress}
@@ -1308,7 +1301,6 @@ export function HomeScreen() {
     [handleRefreshFeed, isFeedRefreshing, themeStyles.buttonPrimary.backgroundColor]
   );
 
-  const visibleRowCount = visibleRows.length;
   const rowAddToPlaylistPress =
     status === 'authenticated' && addToPlaylistTarget !== null
       ? handleAddToPlaylistPress
@@ -1319,7 +1311,7 @@ export function HomeScreen() {
   const feedCellStyle = columns > 1 ? styles.columnCell : undefined;
 
   const renderItem = useCallback(
-    ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
+    ({ item: row }: { item: HomeFeedRowData }) => (
       <HomeFeedListItem
         addToPlaylistPress={rowAddToPlaylistPress}
         artworkEdge={gridCellWidth}
@@ -1327,7 +1319,6 @@ export function HomeScreen() {
         goToChannel={rowGoToChannel}
         goToTrack={rowGoToTrack}
         isGridView={isGridView}
-        isLast={index === visibleRowCount - 1}
         mediaType={selectedMediaType}
         onPlay={handlePlayPress}
         onPress={handleRowPress}
@@ -1350,7 +1341,6 @@ export function HomeScreen() {
       rowGoToTrack,
       selectedMediaType,
       unsubscribeLabel,
-      visibleRowCount,
     ]
   );
 

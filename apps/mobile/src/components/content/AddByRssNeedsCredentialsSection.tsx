@@ -30,13 +30,12 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       paddingTop: tokens.spacing.lg,
     },
     rowDivider: {
-      borderBottomColor: themeStyles.border.borderColor,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: themeStyles.border.borderColor,
+      borderTopWidth: StyleSheet.hairlineWidth,
     },
   });
 
 type AddByRssNeedsCredentialsRowProps = {
-  isLast: boolean;
   item: AddByRssNeedsCredentialsItem;
   onPress: (feed: MobileAddByRSSFeedRecord) => void;
   testIDPrefix: string;
@@ -44,7 +43,6 @@ type AddByRssNeedsCredentialsRowProps = {
 
 /** One feed waiting on a username and password. Tapping it opens the credentials screen. */
 export const AddByRssNeedsCredentialsRow = memo(function AddByRssNeedsCredentialsRow({
-  isLast,
   item,
   onPress,
   testIDPrefix,
@@ -57,7 +55,7 @@ export const AddByRssNeedsCredentialsRow = memo(function AddByRssNeedsCredential
   }, [feed, onPress]);
 
   return (
-    <View style={isLast ? undefined : styles.rowDivider}>
+    <View style={styles.rowDivider}>
       <ListRow
         onPress={handlePress}
         subtitle={t(NEED_SUBTITLE_KEYS[need])}
@@ -113,9 +111,8 @@ export function AddByRssNeedsCredentialsSection({
     <View testID={`${testIDPrefix}-needs-credentials`}>
       {showDivider ? <View style={styles.divider} /> : null}
       <AddByRssNeedsCredentialsHeading testIDPrefix={testIDPrefix} />
-      {items.map((item, index) => (
+      {items.map((item) => (
         <AddByRssNeedsCredentialsRow
-          isLast={index === items.length - 1}
           item={item}
           key={item.feed.idText}
           onPress={onPressFeed}

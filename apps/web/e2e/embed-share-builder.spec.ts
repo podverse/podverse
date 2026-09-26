@@ -47,7 +47,7 @@ async function openShareModal(page: Page) {
 
 async function openShareModalFromPlaylistItemMoreMenu(page: Page) {
   await page.goto(`/playlist/${E2E_EMBED_PLAYLIST_ID_TEXT}`);
-  const moreButton = page.getByRole('button', { name: 'More options' }).first();
+  const moreButton = page.getByRole('button', { name: 'More Options' }).first();
   await expect(moreButton).toBeVisible();
   await moreButton.click();
   await page.getByRole('menuitem', { name: 'Share' }).click();
@@ -372,7 +372,7 @@ test.describe('Embed share builder handoff', () => {
 
     await page
       .getByTestId('embed-builder-list-sort-selector')
-      .getByRole('radio', { name: 'Last to first' })
+      .getByRole('radio', { name: 'Last to First' })
       .check();
 
     await expectBuilderEmbedPaths(
@@ -401,7 +401,7 @@ test.describe('Embed share builder handoff', () => {
 
     await page
       .getByTestId('embed-builder-list-sort-selector')
-      .getByRole('radio', { name: 'Last to first' })
+      .getByRole('radio', { name: 'Last to First' })
       .check();
 
     await expectBuilderEmbedPaths(

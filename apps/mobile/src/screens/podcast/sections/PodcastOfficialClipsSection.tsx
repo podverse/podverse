@@ -31,19 +31,17 @@ const officialClipKeyExtractor = (entry: SoundbiteEntry): string => entry.soundb
 type OfficialClipRowProps = {
   entry: SoundbiteEntry;
   index: number;
-  isLast: boolean;
   onPlay: (entry: SoundbiteEntry) => void;
   onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
 };
 
-function OfficialClipRow({ entry, index, isLast, onPlay, onQueue }: OfficialClipRowProps) {
+function OfficialClipRow({ entry, index, onPlay, onQueue }: OfficialClipRowProps) {
   const handlePlay = useCallback(() => {
     onPlay(entry);
   }, [entry, onPlay]);
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType="clips"
       onPlayPress={handlePlay}
       onPress={handlePlay}
@@ -166,11 +164,10 @@ export function PodcastOfficialClipsSection({
   }, [onRefreshChannel, refresh]);
 
   const renderRow = useCallback(
-    ({ index, isLast, row: entry }: { index: number; isLast: boolean; row: SoundbiteEntry }) => (
+    ({ index, row: entry }: { index: number; row: SoundbiteEntry }) => (
       <OfficialClipRow
         entry={entry}
         index={index}
-        isLast={isLast}
         onPlay={playEntry}
         onQueue={handleQueuePress}
       />

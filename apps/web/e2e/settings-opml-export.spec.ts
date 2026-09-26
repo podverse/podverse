@@ -183,12 +183,12 @@ test.describe('Settings OPML', () => {
       testInfo,
       'The OPML import rate-limit modal explains the hourly feed limit.',
       async () => {
-        const dialog = page.getByRole('dialog', { name: 'OPML import limit reached' });
+        const dialog = page.getByRole('dialog', { name: 'OPML Import Limit Reached' });
         await expect(dialog).toBeVisible();
         await expect(dialog).toContainText('You can add up to 50 feeds per hour');
         await expect(dialog).toContainText('30 minutes');
       },
-      page.getByRole('dialog', { name: 'OPML import limit reached' })
+      page.getByRole('dialog', { name: 'OPML Import Limit Reached' })
     );
   });
 });

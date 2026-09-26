@@ -5,7 +5,7 @@ import { FeatureComparison } from './FeatureComparison';
 
 const labels = {
   available: 'Available',
-  comingSoon: 'Coming soon',
+  comingSoon: 'Coming Soon',
   feature: 'Feature',
   mobileOnlyLegend: 'Feature is only available in the mobile app',
 };

@@ -49,9 +49,9 @@ test.describe('Podcast Index add feed when directory add is blocked for Trial', 
 
     await test.step('Clicking Add feed opens the Premium required modal with descriptive copy', async () => {
       await page.getByRole('button', { name: /add feed/i }).click();
-      const dialog = page.getByRole('dialog', { name: 'Premium required' });
+      const dialog = page.getByRole('dialog', { name: 'Premium Required' });
       await expect(dialog).toBeVisible();
-      await expect(page.getByRole('dialog', { name: 'Login required' })).toHaveCount(0);
+      await expect(page.getByRole('dialog', { name: 'Login Required' })).toHaveCount(0);
       await expect(dialog.getByText(/Trial accounts.*add feeds.*public directory/i)).toBeVisible();
       const mailLink = dialog.locator('a[href^="mailto:"]');
       await expect(mailLink.first()).toBeVisible();
@@ -66,7 +66,7 @@ test.describe('Podcast Index add feed when directory add is blocked for Trial', 
 
     await test.step('Get Premium navigates to the membership page', async () => {
       await page
-        .getByRole('dialog', { name: 'Premium required' })
+        .getByRole('dialog', { name: 'Premium Required' })
         .getByRole('button', { name: 'Get Premium' })
         .click();
       await expect(page).toHaveURL(/\/membership/);

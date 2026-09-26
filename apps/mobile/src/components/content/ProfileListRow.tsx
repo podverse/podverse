@@ -11,18 +11,14 @@ import { ListRow } from '../primitives/ListRow';
 
 export type ProfileListRowProps = {
   account: DTOAccount;
-  isLast: boolean;
   onPress?: () => void;
   testID?: string;
 };
 
 const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
   row: {
-    borderBottomColor: themeStyles.border.borderColor,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowLast: {
-    borderBottomWidth: 0,
+    borderTopColor: themeStyles.border.borderColor,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });
 
@@ -32,7 +28,6 @@ const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
  */
 export const ProfileListRow = memo(function ProfileListRow({
   account,
-  isLast,
   onPress,
   testID,
 }: ProfileListRowProps) {
@@ -41,7 +36,7 @@ export const ProfileListRow = memo(function ProfileListRow({
   const bio = profileBio(account);
 
   return (
-    <View style={[styles.row, isLast ? styles.rowLast : null]}>
+    <View style={styles.row}>
       <ListRow
         onPress={onPress}
         subtitle={bio ?? undefined}

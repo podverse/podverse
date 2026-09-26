@@ -64,7 +64,7 @@ describe('DropdownMenu', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete all' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete All' }));
     expect(onItem).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('menu')).toBeNull();
   });

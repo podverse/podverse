@@ -72,7 +72,6 @@ function LibraryFeedListItem({
   artworkEdge,
   cellStyle,
   isGridView,
-  isLast,
   mediaType,
   onPlay,
   onPress,
@@ -81,7 +80,6 @@ function LibraryFeedListItem({
   artworkEdge: number;
   cellStyle: StyleProp<ViewStyle>;
   isGridView: boolean;
-  isLast: boolean;
   mediaType: AddByRssLibraryMediaType;
   onPlay?: (row: HomeFeedRowData) => void;
   onPress: (row: HomeFeedRowData) => void;
@@ -98,7 +96,6 @@ function LibraryFeedListItem({
   return (
     <View style={cellStyle}>
       <HomeFeedRow
-        isLast={isLast}
         mediaType={mediaType}
         onPlayPress={onPlay}
         onPress={onPress}
@@ -487,14 +484,13 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   );
 
   const renderItem = useCallback(
-    ({ index, item: row }: { index: number; item: HomeFeedRowData }) => {
+    ({ item: row }: { item: HomeFeedRowData }) => {
       const isItemChip = selectedMediaType === 'episodes' || selectedMediaType === 'tracks';
       return (
         <LibraryFeedListItem
           artworkEdge={gridCellWidth}
           cellStyle={isGridView ? styles.columnCell : undefined}
           isGridView={isGridView}
-          isLast={index === visibleRows.length - 1}
           mediaType={selectedMediaType}
           onPlay={isItemChip ? handlePlayPress : undefined}
           onPress={handleRowPress}
@@ -509,7 +505,6 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
       isGridView,
       selectedMediaType,
       styles.columnCell,
-      visibleRows.length,
     ]
   );
 

@@ -35,7 +35,7 @@ test.describe('Focus state consistency', () => {
     });
 
     await test.step('Dismiss source-selector or any modal that may auto-open', async () => {
-      const closeBtn = page.getByRole('button', { name: 'Close modal' });
+      const closeBtn = page.getByRole('button', { name: 'Close Modal' });
       const isVisible = await closeBtn.isVisible();
       if (isVisible) {
         await closeBtn.click();

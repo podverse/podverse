@@ -78,7 +78,7 @@ export type ClipHomeRowOptions = {
   showItemInfo?: boolean;
 };
 
-/** Home, Browse, My clips, profile, and playlists mix podcasts and episodes. */
+/** Home, Browse, My Clips, profile, and playlists mix podcasts and episodes. */
 export const MIXED_SOURCE_CLIP_ROW_OPTIONS: ClipHomeRowOptions = {
   showChannelInfo: true,
   showItemInfo: true,

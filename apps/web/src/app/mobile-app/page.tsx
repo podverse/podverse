@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server';
+
 import { MainHeader } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
@@ -7,12 +9,15 @@ export async function generateMetadata() {
   return getCuratedStaticPageMetadata('mobileApp');
 }
 
-export default function MobileAppPage() {
+export default async function MobileAppPage() {
+  const tSeo = await getTranslations('seo');
+  const tPlayer = await getTranslations('media_player');
+
   return (
     <>
-      <MainHeader title="Mobile app" />
+      <MainHeader title={tSeo('pages.mobileApp.title')} />
       <MainWrapper>
-        <p>Coming soon</p>
+        <p>{tPlayer('coming_soon')}</p>
       </MainWrapper>
     </>
   );

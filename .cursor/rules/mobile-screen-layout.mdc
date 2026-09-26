@@ -164,24 +164,31 @@ on that wrapper's `style` (`marginBottom`):
   does not double the row's top padding.
 - **Grid** tiles with no top padding: pass `0`.
 
-`ListFilterHeader` paints a hairline (`StyleSheet.hairlineWidth` + `themeStyles.border.borderColor`)
-on its bottom edge when **`hasItemsBelow`** is true. Pass that when the list has at least one row or
-tile after the field. Omit it when the list is empty or the term hid every row. The header's
-`paddingBottom` is `listFilterContentGap` so the line sits below the field, not on the field's
-own border. Do not put the margin on the field itself — that gap sits *below* the hairline.
+`ListFilterHeader` does not paint a line. When **`hasItemsBelow`** is true, its `paddingBottom`
+is `listFilterContentGap` so the field does not sit on the first row. Pass that when the list
+has at least one row or tile after the field. Omit it when the list is empty or the term hid
+every row. Do not put that padding on the field itself.
 
 Do not use a raw `marginBottom: spacing.md` on the filter (too tight on grid once list padding is
 added elsewhere, too loose on list when stacked with row padding). Home switches the second
 argument with `isGridView` so both view modes share one seam.
 
-Row dividers are `StyleSheet.hairlineWidth` + `themeStyles.border.borderColor`. The **last row
-omits the bottom border** so a hairline does not sit on the list edge. Pass `isLast` on
-`HomeFeedRow`. `ListSection` already supplies it as the third `renderItem` argument
-`(item, index, isLast)`. `ReorderableSections` uses the same last-row rule.
+Content rows (`HomeFeedRow` and the same catalog: playlist, profile, chapter, category, download)
+draw one top hairline (`StyleSheet.hairlineWidth` + `themeStyles.border.borderColor`), including
+the first row. There is no bottom hairline, so the last row does not leave a line on the list
+edge. An empty list has no row and no line. Grid tiles have no row hairline, so nothing draws a
+line above a grid.
 
-The rule between **chips** and the first row is one step stronger than a row hairline:
-`height: 1`, the same `themeStyles.border.borderColor`, and horizontal inset from
-`screenBodyInsets().paddingHorizontal` (Search's `listRule`). Do not invent a second color.
+Do not place a standalone divider under chips, under a filter, or between chips and the list.
+Search, Queue, and History do not render a `listRule`. The first row's top border is the only
+line, and only when that row exists.
+
+Settings and menu cards keep their own separators (a line between rows after the first, or under
+an in-card header). Do not give the first row inside those cards a top hairline.
+`ReorderableSections` default rows follow that card rule (bottom hairline, omitted on the last
+row). Content lists that wrap `HomeFeedRow` use `rowContainerVariant="plain"`. A single
+`HomeFeedRow` embedded in a bordered card (clip detail) also omits the hairline; the card border
+is the edge.
 
 ## Fill empty lists do not scroll
 
@@ -314,7 +321,7 @@ the same reason. Do not rely on the root provider alone for full-screen Modals.
 - Put a second in-body display heading on a screen that already has a `HeaderBar` title.
 - Use raw `FlatList` for a screen list that shows a `VerticalCenter` fill empty, then hand-toggle
   `scrollEnabled` / `bounces` at the screen.
-- Leave a bottom hairline on the last list row, or drop media-row vertical padding back to
+- Add a standalone divider under chips or a filter, or drop media-row vertical padding back to
   `spacing.md`.
 
 ## Related

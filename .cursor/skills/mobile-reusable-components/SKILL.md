@@ -119,14 +119,14 @@ field and no item count — Search covers directory lookup. Home keeps its filte
 subscriptions) and has no item count either. Search stays Podcast Index full-text; do not send
 Browse rows there.
 
-**List rows:** `HomeFeedRow` for media/results (`isLast` drops the bottom hairline; vertical
-padding is `spacing.base`; artwork is 60×60). Title / subtitle / metadata use a column `gap`
-(`spacing.sm`), not per-line margins, and the text stack is vertically centered. Track rows
-(`mediaType="tracks"`) omit the list play/pause band and put More in `identityRow`, vertically
-centered with the artwork and text; the row press still starts playback. `ListSection`
-passes `(item, index, isLast)`. `ListRow` is the title/subtitle primitive with the same gap and
-padding. A numeric `badgeCount` renders `CountBadge` left of `trailing` (chevron) and hides at 0;
-do not invent a second count chip. See **mobile-screen-layout**.
+**List rows:** `HomeFeedRow` for media/results (a top hairline on every row, including the first;
+no bottom hairline; vertical padding is `spacing.base`; artwork is 60×60). Title / subtitle /
+metadata use a column `gap` (`spacing.sm`), not per-line margins, and the text stack is vertically
+centered. Track rows (`mediaType="tracks"`) omit the list play/pause band and put More in
+`identityRow`, vertically centered with the artwork and text; the row press still starts playback.
+`ListRow` is the title/subtitle primitive with the same gap and padding. A numeric `badgeCount`
+renders `CountBadge` left of `trailing` (chevron) and hides at 0; do not invent a second count
+chip. See **mobile-screen-layout**.
 
 **Home subscription markers:** live, unseen, and downloaded each have one home. Do not reuse the
 count chip for unseen presence.
@@ -179,7 +179,8 @@ link switch under Submit. See **mobile-screen-layout**.
       above the card. Chevron only on rows that push a screen — not on Log out.
 - [ ] List/media rows use `ListRow` / `HomeFeedRow` / `MediaRowActions` (or a shared row wrapper)
       when the layout matches existing screens. Do **not** add a media-type pill on those rows.
-      Last row: `isLast` (no bottom hairline). Vertical padding: `spacing.base`.
+      Top hairline on every content row, including the first. No bottom hairline. Vertical
+      padding: `spacing.base`. No standalone divider under chips or a filter.
 - [ ] Cover / artwork images use `CoverImage` (square corners). Do not round podcast or episode art.
       Standalone art opens the full-screen viewer by default. Pass `opensViewer={false}` when the
       image sits inside a pressable row, cell, or header (the parent is the control).

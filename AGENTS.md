@@ -268,7 +268,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 ### i18n / Translations
 
 - ❌ Hardcode user-facing UI strings in `apps/web`, `apps/management-web`, or `apps/mobile` (use catalog + `t()`; see [`i18n-user-facing-strings`](.cursor/rules/i18n-user-facing-strings.mdc))
-- ❌ Write UI copy in Title Case — every surface is sentence case (`Add feed`, not `Add Feed`); see [`ui-copy-sentence-case`](.cursor/rules/ui-copy-sentence-case.mdc)
+- ❌ Write English chrome in sentence case — labels, titles, and buttons are title case (`Add Feed`, not `Add feed`); sentences stay sentence case. See [`ui-copy-casing`](.cursor/rules/ui-copy-casing.mdc)
 - ❌ Modify files in `i18n/compiled/` (generated at build time, not committed)
 - ❌ Add locales without updating all sync points (see `docs/localization/I18N.md`)
 - ❌ Use empty strings in catalog `originals/` (use override files for blanks)

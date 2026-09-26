@@ -91,18 +91,18 @@ describe('formatSyncEventLogExport', () => {
     ]);
 
     expect(text.split('\n')).toEqual([
-      'Error log (1)',
+      'Error Log (1)',
       '2026-08-29T06:00:00.000Z  failure  subscriptions-page  http_403:membership_required — Membership required',
     ]);
   });
 
   it('renders a missing code and message without leaving a ragged line', () => {
     const text = formatSyncEventLogExport([entry({ outcome: 'skipped' })]);
-    expect(text).toBe('Error log (1)\n2026-08-29T06:00:00.000Z  skipped  account-refresh  -');
+    expect(text).toBe('Error Log (1)\n2026-08-29T06:00:00.000Z  skipped  account-refresh  -');
   });
 
   it('exports a header on its own when there is nothing to report', () => {
-    expect(formatSyncEventLogExport([])).toBe('Error log (0)');
+    expect(formatSyncEventLogExport([])).toBe('Error Log (0)');
   });
 
   it('writes device facts once under the header', () => {
@@ -114,7 +114,7 @@ describe('formatSyncEventLogExport', () => {
       ]
     );
     expect(text.split('\n')).toEqual([
-      'Error log (0)',
+      'Error Log (0)',
       '',
       'Device',
       'os: iOS 26.5',
@@ -131,7 +131,7 @@ describe('formatSyncEventLogExport', () => {
       }),
     ]);
     expect(text.split('\n')).toEqual([
-      'Error log (1)',
+      'Error Log (1)',
       '2026-08-29T06:00:00.000Z  failure  playback  http_404:ERROR_CODE_IO_BAD_HTTP_STATUS',
       '    http_status: 404',
       '    item_id_text: ep1',

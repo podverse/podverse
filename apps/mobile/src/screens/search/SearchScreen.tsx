@@ -53,12 +53,11 @@ const noopQueuePress = (_row: HomeFeedRowData): void => undefined;
 
 type SearchResultRowProps = {
   feed: SearchPodcastsFeed;
-  isLast: boolean;
   onPress: (feed: SearchPodcastsFeed) => void;
   testID: string;
 };
 
-function SearchResultRow({ feed, isLast, onPress, testID }: SearchResultRowProps) {
+function SearchResultRow({ feed, onPress, testID }: SearchResultRowProps) {
   const row = useMemo(() => feedToRow(feed), [feed]);
   const handlePress = useCallback(() => {
     onPress(feed);
@@ -66,7 +65,6 @@ function SearchResultRow({ feed, isLast, onPress, testID }: SearchResultRowProps
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType="podcasts"
       onPlayPress={noopPlayPress}
       onPress={handlePress}
@@ -254,10 +252,6 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
         ...bodyInsets,
         gap: tokens.spacing.base,
       },
-      listRule: {
-        backgroundColor: themeStyles.border.borderColor,
-        height: 1,
-      },
       notice: {
         color: themeStyles.textSecondary.color,
         fontSize: 13,
@@ -410,17 +404,15 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     [t]
   );
 
-  const feedCount = feeds.length;
   const renderItem = useCallback(
     ({ index, item: feed }: { index: number; item: SearchPodcastsFeed }) => (
       <SearchResultRow
         feed={feed}
-        isLast={index === feedCount - 1}
         onPress={handleResultPress}
         testID={`search-result-row-${index}`}
       />
     ),
-    [feedCount, handleResultPress]
+    [handleResultPress]
   );
 
   if (offlineModeEnabled) {
@@ -452,7 +444,6 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           testID="search-medium-chips"
           value={medium}
         />
-        <View style={styles.listRule} />
       </View>
       <FillList
         ListEmptyComponent={listEmpty}

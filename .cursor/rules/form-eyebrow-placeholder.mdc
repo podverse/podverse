@@ -37,4 +37,4 @@ catalog key, or the same user-facing words with only punctuation changed (`Filte
 - **management-web-form-eyebrow** — use `eyebrow` instead of a freestanding `Label`
 - **mobile-screen-layout** / **mobile-reusable-components** — forms pass both props;
   search and list filters omit `eyebrow`
-- **ui-copy-sentence-case** — placeholders are user-facing copy
+- **ui-copy-casing** — instructional placeholders stay sentence case; labels are title case

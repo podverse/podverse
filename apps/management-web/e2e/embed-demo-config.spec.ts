@@ -31,10 +31,10 @@ test.describe('Management-web embed demo config', () => {
       )
     ).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: 'Single episodes, tracks, and clips' })
+      page.getByRole('heading', { name: 'Single Episodes, Tracks, and Clips' })
     ).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: 'Podcasts, albums, and playlists' })
+      page.getByRole('heading', { name: 'Podcasts, Albums, and Playlists' })
     ).toBeVisible();
 
     await capturePageLoad(

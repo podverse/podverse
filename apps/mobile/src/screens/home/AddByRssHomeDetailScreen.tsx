@@ -56,12 +56,10 @@ const noopQueuePress = (_row: HomeFeedRowData, _position: QueueActionPosition): 
 
 function AddByRssEpisodeRow({
   index,
-  isLast,
   onPlay,
   row,
 }: {
   index: number;
-  isLast: boolean;
   onPlay: (row: HomeFeedRowData) => void;
   row: HomeFeedRowData;
 }) {
@@ -87,7 +85,6 @@ function AddByRssEpisodeRow({
   return (
     <HomeFeedRow
       customActions={customActions}
-      isLast={isLast}
       mediaType="episodes"
       onPlayPress={handlePlay}
       onPress={onPlay}
@@ -441,12 +438,11 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
       <AddByRssEpisodeRow
         index={index}
-        isLast={index === episodeCount - 1}
         onPlay={handlePlay}
         row={row}
       />
     ),
-    [episodeCount, handlePlay]
+    [handlePlay]
   );
 
   return (

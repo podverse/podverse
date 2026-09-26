@@ -20,10 +20,10 @@ const DESKTOP_VIEWPORT = { width: 1200, height: 900 };
 
 // Second seeded video episode on the embed video channel (see tools/web/seed-embed-fixtures.mjs:
 // EMBED_FIXTURE_VIDEO_ITEM_TWO_ID_TEXT). It has the same audio+video alternate enclosures as
-// episode one, so its row shows the "Select media source" icon.
+// episode one, so its row shows the "Select Media Source" icon.
 const EMBED_SAMPLE_EPISODE_VIDEO_TWO_TITLE = 'Episode Two (video)';
 const E2E_PODCAST_RESUME_NONE_TITLE = 'E2E Podcast No Stored Position';
-const SELECT_SOURCE_LABEL = 'Select media source';
+const SELECT_SOURCE_LABEL = 'Select Media Source';
 const AUDIO_SOURCE_LABEL = 'OGG Opus';
 
 async function loginSeedUser(page: Page): Promise<void> {
@@ -57,11 +57,11 @@ async function promotePodcastItemToNowPlaying(
 }
 
 function fullscreenModalLocator(page: Page): Locator {
-  return page.getByRole('dialog', { name: 'Fullscreen media player' });
+  return page.getByRole('dialog', { name: 'Fullscreen Media Player' });
 }
 
 function sourceSelectorModalLocator(page: Page): Locator {
-  return page.getByRole('dialog', { name: 'Select media source' });
+  return page.getByRole('dialog', { name: 'Select Media Source' });
 }
 
 /** The episode row (CommonEpisodeRow) that contains the given title heading and its row actions. */
@@ -111,7 +111,7 @@ test.describe('Alt-enclosure icon loads the row item', () => {
         await expect(
           modal.getByRole('button', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE, exact: true })
         ).toBeVisible();
-        await modal.getByRole('button', { name: 'Close modal' }).click();
+        await modal.getByRole('button', { name: 'Close Modal' }).click();
         await expect(fullscreenModalLocator(page)).toHaveCount(0);
       }
     );

@@ -23,7 +23,7 @@ test.describe('Artists list date and view', () => {
     const artistDate = page
       .getByTestId('artist-row-updated')
       .filter({ hasText: DIRECTORY_ARTIST_DATE });
-    const layoutButton = page.getByRole('button', { name: 'Change layout view' });
+    const layoutButton = page.getByRole('button', { name: 'Change Layout View' });
     const gridViewItem = page.getByRole('menuitem', { name: '✓ Grid view' });
 
     await test.step('The public Artists directory shows the seeded title and formatted date', async () => {
@@ -51,7 +51,7 @@ test.describe('Artists list date and view', () => {
         await expect(page.getByRole('heading', { name: 'Podcasts', exact: true })).toBeVisible();
 
         await layoutButton.click();
-        await page.getByRole('menuitem', { name: 'Grid view' }).click();
+        await page.getByRole('menuitem', { name: 'Grid View' }).click();
         await layoutButton.click();
         await expect(gridViewItem).toBeVisible();
       },
@@ -69,7 +69,7 @@ test.describe('Artists list date and view', () => {
         await expect(artistDate).toBeVisible();
 
         await layoutButton.click();
-        await page.getByRole('menuitem', { name: 'List view' }).click();
+        await page.getByRole('menuitem', { name: 'List View' }).click();
         await expect(artistTitle).toBeVisible();
         await expect(artistDate).toBeVisible();
         await expect(page).toHaveURL(/\/artists\/?$/);

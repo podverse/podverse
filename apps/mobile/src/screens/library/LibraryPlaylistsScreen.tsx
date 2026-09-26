@@ -68,20 +68,18 @@ const FIRST_PAGE = 1;
 const playlistKeyExtractor = (playlist: DTOPlaylist): string => playlist.id_text;
 
 type LibraryPlaylistRowProps = {
-  isLast: boolean;
   onPress: (playlist: DTOPlaylist) => void;
   playlist: DTOPlaylist;
   showCreator: boolean;
 };
 
-function LibraryPlaylistRow({ isLast, onPress, playlist, showCreator }: LibraryPlaylistRowProps) {
+function LibraryPlaylistRow({ onPress, playlist, showCreator }: LibraryPlaylistRowProps) {
   const handlePress = useCallback(() => {
     onPress(playlist);
   }, [onPress, playlist]);
 
   return (
     <PlaylistListRow
-      isLast={isLast}
       onPress={handlePress}
       playlist={playlist}
       showCreator={showCreator}
@@ -519,18 +517,16 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     [handleRefresh, isRefreshing, themeStyles.buttonPrimary.backgroundColor]
   );
 
-  const listRowCount = listRows.length;
   const showCreator = selectedType === 'private_followed';
   const renderItem = useCallback(
-    ({ index, item: playlist }: { index: number; item: DTOPlaylist }) => (
+    ({ item: playlist }: { item: DTOPlaylist }) => (
       <LibraryPlaylistRow
-        isLast={index === listRowCount - 1}
         onPress={handlePlaylistPress}
         playlist={playlist}
         showCreator={showCreator}
       />
     ),
-    [handlePlaylistPress, listRowCount, showCreator]
+    [handlePlaylistPress, showCreator]
   );
 
   return (

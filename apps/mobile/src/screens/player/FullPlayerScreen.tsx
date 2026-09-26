@@ -1226,7 +1226,7 @@ export function FullPlayerScreen({
                 overScrollMode="never"
                 ref={paneListRef}
                 removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
-                renderItem={({ item: row, index }) => {
+                renderItem={({ item: row }) => {
                   if (row.type === 'chapter') {
                     const artwork = resolveChapterRowArtwork(
                       row.chapter,
@@ -1237,7 +1237,6 @@ export function FullPlayerScreen({
                       <ChapterListRow
                         artworkAccessibilityLabel={t('info.chapter.chapter_image')}
                         artworkUri={artwork.show ? artwork.uri : null}
-                        isLast={index === listRows.length - 1}
                         onPress={() => {
                           handleChapterPress(row.chapter);
                         }}
@@ -1257,7 +1256,6 @@ export function FullPlayerScreen({
                     return (
                       <View style={styles.column}>
                         <HomeFeedRow
-                          isLast={index === listRows.length - 1}
                           mediaType="clips"
                           onPlayPress={() => {
                             if (currentItem !== null && channel !== null) {
@@ -1286,7 +1284,6 @@ export function FullPlayerScreen({
                   return (
                     <View style={styles.column}>
                       <HomeFeedRow
-                        isLast={index === listRows.length - 1}
                         mediaType="clips"
                         onPlayPress={(feedRow) => {
                           runPlayAction(feedRow, 'clips');

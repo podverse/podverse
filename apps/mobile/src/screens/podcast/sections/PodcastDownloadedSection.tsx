@@ -165,11 +165,10 @@ export function PodcastDownloadedSection({
   }, [loadDownloads]);
 
   const renderRow = useCallback(
-    ({ index, isLast, row: entry }: { index: number; isLast: boolean; row: DownloadedRow }) => (
+    ({ index, row: entry }: { index: number; row: DownloadedRow }) => (
       <HomeFeedRow
         downloadItem={entry.item === null ? undefined : entry.item}
         downloadTestID={`podcast-downloaded-download-${index}`}
-        isLast={isLast}
         mediaType="episodes"
         onAddToPlaylistPress={handleAddToPlaylist}
         onMarkAsPlayedPress={handleMarkAsPlayed}

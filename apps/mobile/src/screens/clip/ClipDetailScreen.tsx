@@ -86,6 +86,9 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
           marginTop: tokens.spacing.md,
           padding: tokens.spacing.lg,
         },
+        cardRow: {
+          borderTopWidth: 0,
+        },
         cardHeading: {
           color: themeStyles.textPrimary.color,
           fontSize: 20,
@@ -317,8 +320,8 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
 
           <View style={styles.card}>
             <HomeFeedRow
-              isLast
               mediaType="clips"
+              style={styles.cardRow}
               onPlayPress={() => {
                 runBoundedClipPlay({
                   clipId: clip.id_text,

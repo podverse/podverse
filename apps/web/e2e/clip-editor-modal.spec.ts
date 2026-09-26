@@ -51,7 +51,7 @@ test.describe('Clip editor progress bar', () => {
 
     await page.getByTestId('media-player-clip-button').click();
 
-    const createClipDialog = page.getByRole('dialog', { name: 'Create clip' });
+    const createClipDialog = page.getByRole('dialog', { name: 'Create Clip' });
     await expect(createClipDialog).toBeVisible();
 
     const clipEditorSection = clipEditorSectionLocator(createClipDialog);
@@ -70,7 +70,7 @@ test.describe('Clip editor progress bar', () => {
     page,
   }, testInfo) => {
     await page.goto(`/clip/edit/${E2E_CLIP_ID_TEXT}`);
-    await expect(page.getByRole('heading', { name: 'Edit clip' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Edit Clip' })).toBeVisible();
 
     const clipEditorSection = clipEditorSectionLocator(page);
     await expect(clipEditorSection).toBeVisible();

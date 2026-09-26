@@ -89,7 +89,7 @@ describe('RadioButton', () => {
       <RadioButton
         eyebrow="Plan"
         help="Choose one option."
-        helpAriaLabel="More info"
+        helpAriaLabel="More Info"
         name="with-help"
         onChange={vi.fn()}
         options={[{ label: 'One', value: 'one' }]}
@@ -98,7 +98,7 @@ describe('RadioButton', () => {
     );
 
     expect(screen.queryByText('Choose one option.')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'More info' }));
+    fireEvent.click(screen.getByRole('button', { name: 'More Info' }));
     await waitFor(() => {
       expect(screen.getByText('Choose one option.')).toBeTruthy();
     });

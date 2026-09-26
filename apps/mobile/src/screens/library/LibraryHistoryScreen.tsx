@@ -40,7 +40,6 @@ const noopPress = (): void => undefined;
 const historyRowKeyExtractor = (row: HistoryRow): string => row.id;
 
 type HistoryFeedRowProps = {
-  isLast: boolean;
   onPlay: (nextRow: HomeFeedRowData, mediaType: HistoryRow['mediaType']) => void;
   onQueue: (
     nextRow: HomeFeedRowData,
@@ -50,7 +49,7 @@ type HistoryFeedRowProps = {
   row: HistoryRow;
 };
 
-function HistoryFeedRow({ isLast, onPlay, onQueue, row }: HistoryFeedRowProps) {
+function HistoryFeedRow({ onPlay, onQueue, row }: HistoryFeedRowProps) {
   const handlePlayPress = useCallback(
     (nextRow: HomeFeedRowData) => {
       onPlay(nextRow, row.mediaType);
@@ -66,7 +65,6 @@ function HistoryFeedRow({ isLast, onPlay, onQueue, row }: HistoryFeedRowProps) {
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType={row.mediaType}
       onPlayPress={handlePlayPress}
       onPress={noopPress}
@@ -137,10 +135,6 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
         flexGrow: 1,
         paddingBottom: tokens.spacing['2xl'],
         paddingHorizontal: bodyInsets.paddingHorizontal,
-      },
-      listRule: {
-        backgroundColor: themeStyles.border.borderColor,
-        height: 1,
       },
       notice: {
         color: themeStyles.textSecondary.color,
@@ -327,23 +321,16 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
           testID="library-history-medium-chips"
           value={selectedMedium}
         />
-        <View style={styles.listRule} />
       </View>
     ),
-    [handleMediumChange, mediumOptions, selectedMedium, styles.headerSection, styles.listRule]
+    [handleMediumChange, mediumOptions, selectedMedium, styles.headerSection]
   );
 
-  const historyRowCount = historyRows.length;
   const renderItem = useCallback(
-    ({ index, item: row }: { index: number; item: HistoryRow }) => (
-      <HistoryFeedRow
-        isLast={index === historyRowCount - 1}
-        onPlay={handlePlayPress}
-        onQueue={handleQueuePress}
-        row={row}
-      />
+    ({ item: row }: { item: HistoryRow }) => (
+      <HistoryFeedRow onPlay={handlePlayPress} onQueue={handleQueuePress} row={row} />
     ),
-    [handlePlayPress, handleQueuePress, historyRowCount]
+    [handlePlayPress, handleQueuePress]
   );
 
   const showHistoryRows = historyFill === 'ready';

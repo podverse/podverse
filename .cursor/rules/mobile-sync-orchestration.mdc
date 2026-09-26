@@ -92,7 +92,7 @@ records `directory_channel_gone` once. Add-by-RSS feeds are not on this path. Do
 directory follow in place that will 404 on every launch.
 
 Failures are instead appended to the **error log** (`sync_event_log`, capped at 200 entries) at
-More › Advanced › Error log, so a support conversation has something concrete in it. The same log
+More › Advanced › Error Log, so a support conversation has something concrete in it. The same log
 also records playback and add-by-RSS failures. Those surface in the UI, and they are logged anyway
 because the dialog is gone by the time the listener contacts support.
 

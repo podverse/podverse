@@ -200,8 +200,8 @@ export function LibraryDownloadsScreen() {
           marginTop: tokens.spacing.sm,
         },
         row: {
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderTopColor: themeStyles.border.borderColor,
+          borderTopWidth: StyleSheet.hairlineWidth,
           ...listRowVerticalPadding(tokens.spacing.base),
         },
         rowStatus: {

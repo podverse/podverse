@@ -12,7 +12,7 @@ describe('TextInputHHMMSS', () => {
     const onChange = vi.fn();
     render(
       <TextInputHHMMSS
-        aria-label="Start time"
+        aria-label="Start Time"
         buttonAriaLabel="Play clip"
         name="clip-start"
         placeholder="00:00:00"
@@ -22,7 +22,7 @@ describe('TextInputHHMMSS', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText('Start time'), { target: { value: '12' } });
+    fireEvent.change(screen.getByLabelText('Start Time'), { target: { value: '12' } });
     expect(onChange).toHaveBeenCalled();
   });
 
@@ -30,7 +30,7 @@ describe('TextInputHHMMSS', () => {
     const onButtonClick = vi.fn();
     render(
       <TextInputHHMMSS
-        aria-label="Start time"
+        aria-label="Start Time"
         buttonAriaLabel="Play preview"
         name="clip-start"
         placeholder="00:00:00"

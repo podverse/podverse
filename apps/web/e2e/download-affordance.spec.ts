@@ -11,8 +11,8 @@ import {
 } from './helpers/seedConstants';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
-const DOWNLOAD_EPISODE = 'Download episode';
-const DOWNLOAD_ERROR = 'Error downloading episode';
+const DOWNLOAD_EPISODE = 'Download Episode';
+const DOWNLOAD_ERROR = 'Error Downloading Episode';
 
 async function openEpisode(page: Page, itemIdText: string, title: string): Promise<void> {
   await page.goto(`/episode/${itemIdText}`);
@@ -21,7 +21,7 @@ async function openEpisode(page: Page, itemIdText: string, title: string): Promi
 }
 
 async function openDownloadEpisodeItem(page: Page) {
-  await page.getByRole('button', { name: 'More options' }).first().click();
+  await page.getByRole('button', { name: 'More Options' }).first().click();
   const downloadItem = page.getByRole('menuitem', { name: DOWNLOAD_EPISODE });
   await expect(downloadItem).toBeVisible();
   return downloadItem;
@@ -117,7 +117,7 @@ test.describe('Direct download affordance', () => {
     });
 
     await test.step('No open menu offers Download episode', async () => {
-      const moreButtons = page.getByRole('button', { name: 'More options' });
+      const moreButtons = page.getByRole('button', { name: 'More Options' });
       const moreCount = await moreButtons.count();
       for (let index = 0; index < moreCount; index += 1) {
         await moreButtons.nth(index).click();

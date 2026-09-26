@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server';
+
 import { MainHeader } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
@@ -7,12 +9,15 @@ export async function generateMetadata() {
   return getCuratedStaticPageMetadata('videos');
 }
 
-export default function VideosPage() {
+export default async function VideosPage() {
+  const tMedia = await getTranslations('media');
+  const tPlayer = await getTranslations('media_player');
+
   return (
     <>
-      <MainHeader title="Videos" />
+      <MainHeader title={tMedia('video.videos')} />
       <MainWrapper>
-        <p>Coming soon</p>
+        <p>{tPlayer('coming_soon')}</p>
       </MainWrapper>
     </>
   );

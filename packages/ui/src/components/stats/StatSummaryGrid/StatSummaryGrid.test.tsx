@@ -9,14 +9,14 @@ describe('StatSummaryGrid', () => {
       <StatSummaryGrid
         items={[
           { label: 'Today', value: '42' },
-          { label: 'All-time', value: '9001' },
+          { label: 'All-Time', value: '9001' },
         ]}
       />
     );
 
     expect(screen.getByText('Today')).toBeTruthy();
     expect(screen.getByText('42')).toBeTruthy();
-    expect(screen.getByText('All-time')).toBeTruthy();
+    expect(screen.getByText('All-Time')).toBeTruthy();
     expect(screen.getByText('9001')).toBeTruthy();
   });
 });

@@ -48,9 +48,9 @@ type HomeFeedRowProps = {
   onPlayPress: (row: HomeFeedRowData) => void;
   /** Optional action controls for locally-backed resources with a different playback path. */
   customActions?: ReactNode;
-  /** When provided, adds an "Add to playlist" more-action. Omit for unsupported kinds. */
+  /** When provided, adds an "Add to Playlist" more-action. Omit for unsupported kinds. */
   onAddToPlaylistPress?: (row: HomeFeedRowData) => void;
-  /** When provided, adds a "Mark as played" more-action. */
+  /** When provided, adds a "Mark as Played" more-action. */
   onMarkAsPlayedPress?: (row: HomeFeedRowData) => void;
   /** When provided, adds a "Share" more-action. */
   onSharePress?: (row: HomeFeedRowData) => void;
@@ -68,8 +68,6 @@ type HomeFeedRowProps = {
   downloadItem?: DTOItem;
   downloadTestID?: string;
   row: HomeFeedRowData;
-  /** Last row in a list: no bottom hairline so it does not sit on the list edge. */
-  isLast?: boolean;
   testID?: string;
   /**
    * When true (default), show list artwork and, unless `showContextLine` says otherwise, the
@@ -140,8 +138,8 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
     row: {
       alignItems: 'stretch',
       backgroundColor: themeStyles.screen.backgroundColor,
-      borderBottomColor: themeStyles.border.borderColor,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: themeStyles.border.borderColor,
+      borderTopWidth: StyleSheet.hairlineWidth,
       flexDirection: 'row',
       gap: tokens.spacing.sm,
     },
@@ -153,9 +151,6 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       gap: tokens.spacing.md,
       minWidth: 0,
       ...listRowVerticalPadding(tokens.spacing.base),
-    },
-    rowLast: {
-      borderBottomWidth: 0,
     },
     unseenRail: {
       alignItems: 'center',
@@ -274,7 +269,6 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   customActions,
   downloadItem,
   downloadTestID,
-  isLast = false,
   row,
   testID,
   showChannelContext = true,
@@ -437,7 +431,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
       onPress={() => {
         onPress(row);
       }}
-      style={isLast ? [styles.row, styles.rowLast, style] : [styles.row, style]}
+      style={[styles.row, style]}
       testID={testID ?? `home-feed-row-${row.id}`}
     >
       <View style={styles.rowBody}>

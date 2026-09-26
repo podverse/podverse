@@ -12,10 +12,10 @@ test.describe('Header image full-size preview', () => {
     await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });
 
     await test.step('Clicking the feed artwork opens the Image preview dialog', async () => {
-      const openTrigger = page.getByRole('button', { name: 'Image preview' });
+      const openTrigger = page.getByRole('button', { name: 'Image Preview' });
       await expect(openTrigger).toBeVisible({ timeout: 15_000 });
       await openTrigger.click();
-      const preview = page.getByRole('dialog', { name: 'Image preview' });
+      const preview = page.getByRole('dialog', { name: 'Image Preview' });
       await expect(preview).toBeVisible();
 
       await capturePageLoad(
@@ -27,8 +27,8 @@ test.describe('Header image full-size preview', () => {
     });
 
     await test.step('The close button dismisses the preview overlay', async () => {
-      await page.getByRole('button', { name: 'Close modal' }).click();
-      await expect(page.getByRole('dialog', { name: 'Image preview' })).toHaveCount(0);
+      await page.getByRole('button', { name: 'Close Modal' }).click();
+      await expect(page.getByRole('dialog', { name: 'Image Preview' })).toHaveCount(0);
 
       await capturePageLoad(
         page,

@@ -40,7 +40,7 @@ test.describe('Item enclosure modality icon', () => {
 
     await test.step('Clicking the modality icon opens the source selector modal', async () => {
       await page.getByTestId('item-enclosure-modality-icon').first().click();
-      const modal = page.getByRole('dialog', { name: 'Select media source' });
+      const modal = page.getByRole('dialog', { name: 'Select Media Source' });
       await expect(modal).toBeVisible();
 
       await actionAndCapture(

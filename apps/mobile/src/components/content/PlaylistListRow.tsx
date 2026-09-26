@@ -10,7 +10,6 @@ import { useThemedStyles } from '../../theme/useThemedStyles';
 import { ListRow } from '../primitives/ListRow';
 
 export type PlaylistListRowProps = {
-  isLast: boolean;
   onPress?: () => void;
   playlist: DTOPlaylist;
   /** Public and followed lists name the owner. Owned lists do not. */
@@ -20,11 +19,8 @@ export type PlaylistListRowProps = {
 
 const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
   row: {
-    borderBottomColor: themeStyles.border.borderColor,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowLast: {
-    borderBottomWidth: 0,
+    borderTopColor: themeStyles.border.borderColor,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });
 
@@ -33,7 +29,6 @@ const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
  * description, and an optional creator line. Playlist DTOs have no artwork.
  */
 export const PlaylistListRow = memo(function PlaylistListRow({
-  isLast,
   onPress,
   playlist,
   showCreator,
@@ -46,7 +41,7 @@ export const PlaylistListRow = memo(function PlaylistListRow({
   const creator = showCreator ? playlistCreatorLabel(playlist, t) : undefined;
 
   return (
-    <View style={[styles.row, isLast ? styles.rowLast : null]}>
+    <View style={styles.row}>
       <ListRow
         meta={creator}
         metaTestID={testID === undefined ? undefined : `${testID}-creator`}

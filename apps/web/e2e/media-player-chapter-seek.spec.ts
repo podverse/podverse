@@ -150,7 +150,7 @@ test.describe('Media player chapter seek', () => {
     await expectMediaPlayerTitleVisible(page, 'Intro');
 
     const chapterLink = page
-      .getByRole('dialog', { name: 'Fullscreen media player' })
+      .getByRole('dialog', { name: 'Fullscreen Media Player' })
       .getByTestId('media-player-chapter-link');
 
     await actionAndCapture(
@@ -159,7 +159,7 @@ test.describe('Media player chapter seek', () => {
       'Opening the fullscreen media player shows the chapter link beside the chapter title and time.',
       async () => {
         await page.locator('#media-player').getByRole('button').first().click();
-        await expect(page.getByRole('dialog', { name: 'Fullscreen media player' })).toBeVisible();
+        await expect(page.getByRole('dialog', { name: 'Fullscreen Media Player' })).toBeVisible();
         await expect(chapterLink).toBeVisible();
         await expect(chapterLink.locator(`[href="${E2E_CHAPTER_ONE_WEB_URL}"]`)).toBeVisible();
       },

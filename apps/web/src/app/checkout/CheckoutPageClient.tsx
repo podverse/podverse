@@ -42,7 +42,7 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
   const handleCompletePurchase = () => {
     const autoRenewText = autoRenew ? 'yes' : 'no';
     alert(
-      `Payment plan: ${paymentPlan}, Auto-renew: ${autoRenewText}, Processor: ${paymentProcessor}`
+      `${t('payment_plan')}: ${paymentPlan}, ${t('auto_renew')}: ${autoRenewText}, ${t('payment_processor')}: ${paymentProcessor}`
     );
   };
 

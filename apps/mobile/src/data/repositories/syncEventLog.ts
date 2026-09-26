@@ -238,7 +238,7 @@ export const formatSyncEventLogExport = (
   entries: readonly SyncEventLogEntry[],
   device: readonly SyncEventReportDeviceField[] = []
 ): string => {
-  const header = [`Error log (${entries.length})`, ...formatDeviceSection(device)];
+  const header = [`Error Log (${entries.length})`, ...formatDeviceSection(device)];
 
   const lines = entries.flatMap((entry) => {
     const timestamp = new Date(entry.occurredAt).toISOString();

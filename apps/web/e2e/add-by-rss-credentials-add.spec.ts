@@ -41,10 +41,10 @@ test.describe('Add by RSS with a username and password', () => {
     await page.goto('/add-by-rss/add');
 
     await test.step('Add stays disabled until the URL and credentials are valid', async () => {
-      const addButton = page.getByRole('button', { name: 'Add feed' });
+      const addButton = page.getByRole('button', { name: 'Add Feed' });
       await expect(addButton).toBeDisabled();
 
-      await page.getByRole('textbox', { name: 'RSS feed URL' }).fill(FEED_URL);
+      await page.getByRole('textbox', { name: 'RSS Feed URL' }).fill(FEED_URL);
       await expect(addButton).toBeEnabled();
 
       await page.getByLabel('This feed requires username and password').check();
@@ -66,13 +66,13 @@ test.describe('Add by RSS with a username and password', () => {
         page,
         testInfo,
         'The add form has the feed URL, username, and password filled in.',
-        page.getByRole('textbox', { name: 'RSS feed URL' })
+        page.getByRole('textbox', { name: 'RSS Feed URL' })
       );
     });
 
     let idText = '';
     await test.step('Adding the feed opens its detail page after the parse succeeds', async () => {
-      await page.getByRole('button', { name: 'Add feed' }).click();
+      await page.getByRole('button', { name: 'Add Feed' }).click();
       await expect(page).toHaveURL(/\/add-by-rss\/podcast\/[^/]+$/, { timeout: 20_000 });
       idText = new URL(page.url()).pathname.split('/').pop() ?? '';
       expect(idText).not.toBe('');

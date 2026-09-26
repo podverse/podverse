@@ -77,18 +77,15 @@ function profileSectionItemKeyExtractor(item: ProfileSectionItem): string {
 
 function ProfileChannelRow({
   channel,
-  isLast,
   mediaType,
 }: {
   channel: DTOChannel;
-  isLast: boolean;
   mediaType: 'albums' | 'podcasts';
 }) {
   const row = useMemo(() => channelToHomeRow(channel), [channel]);
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType={mediaType}
       onPlayPress={noopPlayPress}
       onPress={noopPress}
@@ -100,12 +97,10 @@ function ProfileChannelRow({
 
 function ProfilePlaylistRow({
   emptyTestIdPrefix,
-  isLast,
   onPlaylistPress,
   playlist,
 }: {
   emptyTestIdPrefix: 'my-profile' | 'profile';
-  isLast: boolean;
   onPlaylistPress: (playlistId: string) => void;
   playlist: DTOPlaylist;
 }) {
@@ -115,7 +110,6 @@ function ProfilePlaylistRow({
 
   return (
     <PlaylistListRow
-      isLast={isLast}
       onPress={handlePress}
       playlist={playlist}
       showCreator={false}
@@ -124,12 +118,11 @@ function ProfilePlaylistRow({
   );
 }
 
-function ProfileClipRow({ clip, isLast }: { clip: DTOClip; isLast: boolean }) {
+function ProfileClipRow({ clip }: { clip: DTOClip }) {
   const row = useMemo(() => clipToHomeRow(clip, MIXED_SOURCE_CLIP_ROW_OPTIONS), [clip]);
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType="clips"
       onPlayPress={noopPlayPress}
       onPress={noopPress}
@@ -240,36 +233,26 @@ export function ProfileContentSections({
   );
 
   const renderItem = useCallback(
-    ({
-      index,
-      item,
-      section,
-    }: {
-      index: number;
-      item: ProfileSectionItem;
-      section: ProfileSection;
-    }) => {
-      const isLast = index === section.data.length - 1;
+    ({ item }: { item: ProfileSectionItem }) => {
       if (item.kind === 'empty') {
         return <ListEmpty messageKey={item.messageKey} testID={item.emptyTestID} />;
       }
       if (item.kind === 'podcast') {
-        return <ProfileChannelRow channel={item.channel} isLast={isLast} mediaType="podcasts" />;
+        return <ProfileChannelRow channel={item.channel} mediaType="podcasts" />;
       }
       if (item.kind === 'album') {
-        return <ProfileChannelRow channel={item.channel} isLast={isLast} mediaType="albums" />;
+        return <ProfileChannelRow channel={item.channel} mediaType="albums" />;
       }
       if (item.kind === 'playlist') {
         return (
           <ProfilePlaylistRow
             emptyTestIdPrefix={emptyTestIdPrefix}
-            isLast={isLast}
             onPlaylistPress={onPlaylistPress}
             playlist={item.playlist}
           />
         );
       }
-      return <ProfileClipRow clip={item.clip} isLast={isLast} />;
+      return <ProfileClipRow clip={item.clip} />;
     },
     [emptyTestIdPrefix, onPlaylistPress]
   );

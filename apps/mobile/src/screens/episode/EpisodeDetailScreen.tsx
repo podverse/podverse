@@ -103,12 +103,10 @@ const episodePaneRowKeyExtractor = (row: EpisodePaneRow): string => row.id;
 function EpisodeChapterRow({
   chapter,
   fallbackImageUrl,
-  isLast,
   showImages,
 }: {
   chapter: DTOItemChapter;
   fallbackImageUrl: string | null;
-  isLast: boolean;
   showImages: boolean;
 }) {
   const { t } = useTranslation();
@@ -118,7 +116,6 @@ function EpisodeChapterRow({
     <ChapterListRow
       artworkAccessibilityLabel={t('info.chapter.chapter_image')}
       artworkUri={artwork.show ? artwork.uri : null}
-      isLast={isLast}
       showArtwork={artwork.show}
       testID="episode-detail-chapter-row"
       timeRange={t('info.time.start_end', {
@@ -131,13 +128,11 @@ function EpisodeChapterRow({
 }
 
 function EpisodeSoundbiteRow({
-  isLast,
   onPlay,
   onQueue,
   soundbite,
   soundbiteIndex,
 }: {
-  isLast: boolean;
   onPlay: (soundbite: DTOItemSoundbite) => void;
   onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
   soundbite: DTOItemSoundbite;
@@ -154,7 +149,6 @@ function EpisodeSoundbiteRow({
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType="clips"
       onPlayPress={handlePlay}
       onPress={handlePlay}
@@ -166,13 +160,11 @@ function EpisodeSoundbiteRow({
 
 function EpisodeClipRow({
   clip,
-  isLast,
   onPlay,
   onPress,
   onQueue,
 }: {
   clip: DTOClip;
-  isLast: boolean;
   onPlay: (row: HomeFeedRowData) => void;
   onPress: (clipId: string) => void;
   onQueue: (row: HomeFeedRowData, position: QueueActionPosition) => void;
@@ -184,7 +176,6 @@ function EpisodeClipRow({
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType="clips"
       onPlayPress={onPlay}
       onPress={handlePress}
@@ -601,8 +592,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     void handleLoadMoreClips();
   }, [handleLoadMoreClips]);
 
-  const listRowCount = listRows.length;
-
   const listHeader = useMemo(
     () =>
       downloadableEpisode !== null && episodeRow !== null ? (
@@ -810,14 +799,12 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   ]);
 
   const renderItem = useCallback(
-    ({ item: row, index }: { item: EpisodePaneRow; index: number }) => {
-      const isLast = index === listRowCount - 1;
+    ({ item: row }: { item: EpisodePaneRow }) => {
       if (row.type === 'chapter') {
         return (
           <EpisodeChapterRow
             chapter={row.chapter}
             fallbackImageUrl={chapterFallbackImageUrl}
-            isLast={isLast}
             showImages={chapterListShowsImages}
           />
         );
@@ -826,7 +813,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       if (row.type === 'soundbite') {
         return (
           <EpisodeSoundbiteRow
-            isLast={isLast}
             onPlay={handleSoundbitePlay}
             onQueue={handleClipQueue}
             soundbite={row.soundbite}
@@ -838,7 +824,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       return (
         <EpisodeClipRow
           clip={row.clip}
-          isLast={isLast}
           onPlay={handleClipPlay}
           onPress={handleClipRowPress}
           onQueue={handleClipQueue}
@@ -852,7 +837,6 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       handleClipQueue,
       handleClipRowPress,
       handleSoundbitePlay,
-      listRowCount,
     ]
   );
 

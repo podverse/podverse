@@ -57,7 +57,6 @@ const queueRowKeyExtractor = (row: QueueRow): string => row.id;
 const noopQueuePress = (): void => undefined;
 
 type LibraryQueueRowProps = {
-  isLast: boolean;
   onPlayAndRemove: (resource: DTOQueueResource) => void;
   onSwipeRemove: (resource: DTOQueueResource) => Promise<void>;
   removeLabel: string;
@@ -66,7 +65,6 @@ type LibraryQueueRowProps = {
 };
 
 function LibraryQueueRow({
-  isLast,
   onPlayAndRemove,
   onSwipeRemove,
   removeLabel,
@@ -88,7 +86,6 @@ function LibraryQueueRow({
     >
       <HomeFeedRow
         customActions={null}
-        isLast={isLast}
         mediaType={row.mediaType}
         onPlayPress={handlePlay}
         onPress={handlePlay}
@@ -186,10 +183,6 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         flexGrow: 1,
         paddingBottom: tokens.spacing['2xl'],
         paddingHorizontal: bodyInsets.paddingHorizontal,
-      },
-      listRule: {
-        backgroundColor: themeStyles.border.borderColor,
-        height: 1,
       },
       notice: {
         color: themeStyles.textSecondary.color,
@@ -682,15 +675,14 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
           testID="library-queue-medium-chips"
           value={selectedMedium}
         />
-        <View style={styles.listRule} />
       </View>
     ),
-    [handleMediumChange, mediumOptions, selectedMedium, styles.headerSection, styles.listRule]
+    [handleMediumChange, mediumOptions, selectedMedium, styles.headerSection]
   );
 
   const removeLabel = t('features.queue.remove_from_queue');
   const renderQueueRow = useCallback(
-    (row: QueueRow, context: { isLast: boolean }) => {
+    (row: QueueRow) => {
       const resource = queueResourcesById.get(row.queueResourceId);
       if (resource === undefined) {
         return null;
@@ -698,7 +690,6 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
 
       return (
         <LibraryQueueRow
-          isLast={context.isLast}
           onPlayAndRemove={handlePlayAndRemove}
           onSwipeRemove={handleSwipeRemove}
           removeLabel={removeLabel}

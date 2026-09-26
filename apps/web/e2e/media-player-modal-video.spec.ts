@@ -31,7 +31,7 @@ function floatingVideoPortalLocator(page: Page): Locator {
 }
 
 function fullscreenModalLocator(page: Page): Locator {
-  return page.getByRole('dialog', { name: 'Fullscreen media player' });
+  return page.getByRole('dialog', { name: 'Fullscreen Media Player' });
 }
 
 async function openFullscreenMediaPlayerModal(page: Page): Promise<Locator> {
@@ -96,7 +96,7 @@ test.describe('Modal video desktop', () => {
     const videoTarget = modal.getByTestId('modal-video-target');
     await expect(videoTarget).toBeVisible();
     await expect(videoTarget.locator('video')).toBeVisible();
-    await expect(modal.getByRole('img', { name: 'Media player image' })).toHaveCount(0);
+    await expect(modal.getByRole('img', { name: 'Media Player Image' })).toHaveCount(0);
     await expect(floatingVideoPortalLocator(page)).toHaveCount(0);
     await expect(
       modal.getByRole('button', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE })
@@ -114,7 +114,7 @@ test.describe('Modal video desktop', () => {
       testInfo,
       'Closing the modal returns the video to the floating portal.',
       async () => {
-        await modal.getByRole('button', { name: 'Close modal' }).click();
+        await modal.getByRole('button', { name: 'Close Modal' }).click();
         await expect(fullscreenModalLocator(page)).toHaveCount(0);
         await expect(floatingVideoPortalLocator(page)).toBeVisible();
         await expect(floatingVideoPortalLocator(page).locator('video')).toBeVisible();
@@ -171,7 +171,7 @@ test.describe('Modal video desktop', () => {
     );
 
     // Closing returns the same element to the floating portal, still stamped and still in sync.
-    await modal.getByRole('button', { name: 'Close modal' }).click();
+    await modal.getByRole('button', { name: 'Close Modal' }).click();
     await expect(fullscreenModalLocator(page)).toHaveCount(0);
     const floatingAgain = floatingVideoPortalLocator(page).locator('video');
     await expect(floatingAgain).toBeVisible();
@@ -319,7 +319,7 @@ test.describe('Modal video audio regression', () => {
 
     const modal = await openFullscreenMediaPlayerModal(page);
     await expect(modal.getByTestId('modal-video-target')).toHaveCount(0);
-    await expect(modal.getByRole('img', { name: 'Media player image' })).toBeVisible();
+    await expect(modal.getByRole('img', { name: 'Media Player Image' })).toBeVisible();
     await expect(modal.getByRole('button', { name: PODCAST_AUDIO_EPISODE_TITLE })).toBeVisible();
 
     // The subtitle band reserves constant space even when there is no chapter/clip,
@@ -367,7 +367,7 @@ test.describe('Modal video audio regression', () => {
     await captureVerifiedElement(
       page,
       testInfo,
-      modal.getByRole('img', { name: 'Media player image' }),
+      modal.getByRole('img', { name: 'Media Player Image' }),
       'Audio playback still shows square artwork in the fullscreen media player modal.'
     );
   });
@@ -384,7 +384,7 @@ test.describe('Modal video audio regression', () => {
     );
 
     const modal = await openFullscreenMediaPlayerModal(page);
-    await expect(modal.getByRole('img', { name: 'Media player image' })).toBeVisible();
+    await expect(modal.getByRole('img', { name: 'Media Player Image' })).toBeVisible();
 
     // In a tall, narrow window the square is width-limited, so the wrapper must hug it and keep the
     // title/subtitle a consistent gap away instead of spreading them apart.
@@ -432,7 +432,7 @@ test.describe('Modal video audio regression', () => {
     await captureVerifiedElement(
       page,
       testInfo,
-      modal.getByRole('img', { name: 'Media player image' }),
+      modal.getByRole('img', { name: 'Media Player Image' }),
       'In a tall narrow window the audio art stays square with the text a consistent gap away.'
     );
   });

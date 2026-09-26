@@ -93,7 +93,6 @@ const playlistReorderKeyExtractor = (entry: PlaylistRowEntry): string => entry.i
 const noopQueuePress = (): void => undefined;
 
 type PlaylistDetailResourceRowProps = {
-  isLast: boolean;
   onPlay: (resource: DTOPlaylistResource, row: PlaylistResourceRow) => void;
   onQueue: (
     nextRow: HomeFeedRowData,
@@ -106,7 +105,6 @@ type PlaylistDetailResourceRowProps = {
 };
 
 function PlaylistDetailResourceRow({
-  isLast,
   onPlay,
   onQueue,
   resource,
@@ -134,7 +132,6 @@ function PlaylistDetailResourceRow({
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType={row.mediaType}
       onPlayPress={handlePlay}
       onPress={handlePlay}
@@ -147,7 +144,6 @@ function PlaylistDetailResourceRow({
 
 type PlaylistDetailReorderRowProps = {
   entry: PlaylistRowEntry;
-  isLast: boolean;
   onPlay: (resource: DTOPlaylistResource, row: PlaylistResourceRow) => void;
   onSwipeRemove: (resource: DTOPlaylistResource) => Promise<void>;
   removeLabel: string;
@@ -155,7 +151,6 @@ type PlaylistDetailReorderRowProps = {
 
 function PlaylistDetailReorderRow({
   entry,
-  isLast,
   onPlay,
   onSwipeRemove,
   removeLabel,
@@ -175,7 +170,6 @@ function PlaylistDetailReorderRow({
     >
       <HomeFeedRow
         customActions={null}
-        isLast={isLast}
         mediaType={entry.row.mediaType}
         onPlayPress={handlePlay}
         onPress={handlePlay}
@@ -734,7 +728,6 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
       }
       return (
         <PlaylistDetailResourceRow
-          isLast={index === resourceRowCount - 1}
           onPlay={handleResourcePlay}
           onQueue={handleQueuePress}
           resource={entry.resource}
@@ -743,7 +736,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         />
       );
     },
-    [handleQueuePress, handleResourcePlay, resourceRowCount, rowEntries]
+    [handleQueuePress, handleResourcePlay, rowEntries]
   );
 
   const reorderRemoveLabel = t('features.playlist.remove_from_playlist');
@@ -751,13 +744,12 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     (entry: PlaylistRowEntry) => (
       <PlaylistDetailReorderRow
         entry={entry}
-        isLast={entry.index === rowEntries.length - 1}
         onPlay={handleResourcePlay}
         onSwipeRemove={handleSwipeRemove}
         removeLabel={reorderRemoveLabel}
       />
     ),
-    [handleResourcePlay, handleSwipeRemove, reorderRemoveLabel, rowEntries.length]
+    [handleResourcePlay, handleSwipeRemove, reorderRemoveLabel]
   );
 
   const reorderList = useMemo(

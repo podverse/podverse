@@ -2,7 +2,7 @@ appId: com.podverse.app.next
 name: Search Unparsed Feed Preview
 ---
 # Smoke: Podcast Index search result that is NOT parsed-ready must open the
-# preview/add screen (not the generic search-error "Try again" dead-end).
+# preview/add screen (not the generic search-error "Try Again" dead-end).
 # Uses fixtures sentinel query `unparsedfixture` (see e2eUnparsedSearchFixture.ts).
 # All / Music chips and the unboxed list chrome are asserted in search.yaml.
 

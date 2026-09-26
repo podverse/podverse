@@ -1,0 +1,76 @@
+---
+description: English UI chrome is title case; sentences stay sentence case
+alwaysApply: true
+---
+
+# UI copy casing
+
+English labels, headers, titles, buttons, and similar chrome use **title case**. Running prose
+stays **sentence case**. Spanish, French, and Greek follow each language's own capitalization.
+Do not copy English title case into those catalogs.
+
+## Title case
+
+Capitalize the first word, the last word, and the other words. In the middle of the phrase,
+lowercase articles, coordinating conjunctions, and prepositions:
+
+`a`, `an`, `the`, `and`, `but`, `or`, `nor`, `as`, `at`, `by`, `for`, `from`, `in`, `into`,
+`of`, `off`, `on`, `onto`, `over`, `to`, `with`, `via`, `per`
+
+```text
+GOOD  My Clips · Add Feed · Mark as Played · Add by RSS · Go to Track · Sign Up · On the Tab Bar
+BAD   My clips · Add feed · Mark as played · Add By RSS · Go To Track · On The Tab Bar
+```
+
+This applies to buttons, screen and section titles, navigation and tab labels, menu rows, table
+headers, form labels, modal titles, chips, short status labels, empty-state headings, page
+titles, SEO titles, and accessibility names that name a control.
+
+Search and filter placeholders that name the field follow the same rule (`Search by Title...`).
+
+## Sentence case
+
+Full sentences, help text, descriptions, confirmation questions, error paragraphs, SEO
+descriptions, and instructional placeholders stay sentence case. Capitalize the first character
+and proper nouns only.
+
+```text
+GOOD  Log in to use this feature. · Type your email · At least 8 characters
+BAD   Log In to Use This Feature. · Type Your Email
+```
+
+## What stays capitalized
+
+Proper nouns keep their own capitalization wherever they appear:
+
+- **Brands and products:** Podverse, Podcast Index, Metaboost, Lightning, Bitcoin, Alby, Nostr,
+  PayPal, Stripe, Apple, Google, F-Droid, CarPlay, Android Auto, Discord, Mastodon, Matrix,
+  Next.js, Buy Me a Coffee, Unified Push, Web Push.
+- **Acronyms and initialisms:** RSS, OPML, URL, ID, API, HTML, V4V, LNURL, FOSS, GB, USD.
+- **Membership tier names:** Premium, Trial (`Buy Premium Membership`, `Your Trial status has …`).
+- **Taxonomy category names** (`categories.*`): keep the directory spelling, including `How To`
+  and `Education for Kids`.
+- **Keyboard key names** (`settings.keyboard.*`): Space, Arrow Left, Enter, Escape.
+- **A control named inside a sentence** uses the same title case as the control:
+  `press the "Add Feed" button`.
+
+Legal documents under `apps/api/legal/**` are authored prose, not UI chrome.
+
+## Where this applies
+
+- `packages/i18n-catalog/*/originals/en-US.json` — the authoring source. Web, mobile, and
+  management-web inherit it. Get chrome right here.
+- `packages/i18n-catalog/*/originals/{es,fr,el-GR}.json` and `overrides/*` — each language's own
+  capitalization. Do not mirror English title case.
+- Hardcoded copy that has not moved into the catalog yet. See **i18n-user-facing-strings**.
+- E2E text assertions (`getByRole({ name })`, `getByText`, Maestro `text:`) must match the
+  shipped copy exactly. Playwright's default name matching is case-insensitive, so a stale
+  assertion can pass while lying about the product — update it anyway.
+
+Route and tab **identifiers** (`'My Library'` in `tabLayout.ts` / navigation param lists) are
+code, not copy. Leave them; the visible label comes from the catalog.
+
+## This is the standard
+
+Write new English chrome in title case. Do not stop to ask, and do not file a button, title, or
+label as sentence case. A one-off sentence-case label is something the operator has to ask for.

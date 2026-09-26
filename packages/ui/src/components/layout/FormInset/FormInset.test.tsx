@@ -29,7 +29,7 @@ describe('FormInset', () => {
 
   it('renders headingAccessory beside the heading', () => {
     render(
-      <FormInset heading="Embed code" headingAccessory={<button type="button">Help</button>}>
+      <FormInset heading="Embed Code" headingAccessory={<button type="button">Help</button>}>
         Controls
       </FormInset>
     );
