@@ -5,8 +5,10 @@ import { useTranslations } from 'next-intl';
 import type { FormEvent } from 'react';
 import React, { useMemo, useState } from 'react';
 
+import { splitFeedUrlUserinfo } from '@podverse/helpers';
 import {
   ADD_BY_RSS_CREDENTIAL_MAX_LENGTH,
+  canSubmitAddByRssFeed,
   resolveAddByRSSFeedUrlCredentials,
 } from '@podverse/helpers-validation/client';
 import {
@@ -68,10 +70,40 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [inputError, setInputError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
-  const [useBasicAuth, setUseBasicAuth] = useState(false);
+  const [useBasicAuth, setUseBasicAuthState] = useState(false);
   const [basicAuthUsername, setBasicAuthUsername] = useState('');
   const [basicAuthPassword, setBasicAuthPassword] = useState('');
   const [basicAuthError, setBasicAuthError] = useState<string | null>(null);
+
+  const setUseBasicAuth = (next: boolean) => {
+    setUseBasicAuthState(next);
+    if (!next) {
+      setBasicAuthUsername('');
+      setBasicAuthPassword('');
+      setBasicAuthError(null);
+    }
+  };
+
+  const handleFeedUrlChange = (value: string) => {
+    const isPaste = value.length - newFeedUrl.length > 1;
+    if (isPaste) {
+      const split = splitFeedUrlUserinfo(value);
+      if (
+        typeof split.username === 'string' &&
+        split.username.length > 0 &&
+        typeof split.password === 'string' &&
+        split.password.length > 0
+      ) {
+        setNewFeedUrl(split.feedUrl);
+        setUseBasicAuthState(true);
+        setBasicAuthUsername(split.username);
+        setBasicAuthPassword(split.password);
+        setBasicAuthError(null);
+        return;
+      }
+    }
+    setNewFeedUrl(value);
+  };
 
   const statusLabel = useMemo(() => {
     switch (status) {
@@ -91,6 +123,17 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
         return null;
     }
   }, [status, tFeatures]);
+
+  const canSubmit = useMemo(
+    () =>
+      canSubmitAddByRssFeed({
+        feedUrl: newFeedUrl,
+        password: basicAuthPassword,
+        requireCredentials: useBasicAuth,
+        username: basicAuthUsername,
+      }),
+    [basicAuthPassword, basicAuthUsername, newFeedUrl, useBasicAuth]
+  );
 
   /**
    * A first parse that fails on credentials keeps the follow and the credentials saved on this
@@ -160,10 +203,18 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
       return;
     }
 
-    const rawFeedUrl = newFeedUrl.trim();
-    if (!rawFeedUrl) {
+    if (
+      !canSubmitAddByRssFeed({
+        feedUrl: newFeedUrl,
+        password: basicAuthPassword,
+        requireCredentials: useBasicAuth,
+        username: basicAuthUsername,
+      })
+    ) {
       return;
     }
+
+    const rawFeedUrl = newFeedUrl.trim();
     let feedUrl = rawFeedUrl;
 
     setIsAddingFeed(true);
@@ -286,14 +337,15 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                 <StackForm onSubmit={(e) => handleAddFeed(e)} className={styles.form}>
                   <TextInput
                     value={newFeedUrl}
-                    onChange={(event) => setNewFeedUrl(event.target.value)}
-                    placeholder={tFeatures('add_by_rss.feed_url')}
+                    onChange={(event) => handleFeedUrlChange(event.target.value)}
+                    eyebrow={tFeatures('add_by_rss.feed_url')}
+                    placeholder={tFeatures('add_by_rss.feed_url_example')}
                     aria-label={tFeatures('add_by_rss.feed_url')}
                     infoError={inputError ?? undefined}
                     aria-invalid={inputError ? true : undefined}
                     button={{
                       label: tFeatures('add_feed.add_feed'),
-                      disabled: isAddingFeed,
+                      disabled: isAddingFeed || !canSubmit,
                       isLoading: isAddingFeed,
                       onClick: () => {
                         void handleAddFeed();
@@ -312,10 +364,17 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                     />
                     {useBasicAuth && (
                       <div className={styles.basicAuthFields}>
+                        <p
+                          className={styles.basicAuthDescription}
+                          data-testid="add-by-rss-basic-auth-description"
+                        >
+                          {tFeatures('add_by_rss.basic_auth_description')}
+                        </p>
                         <TextInput
                           value={basicAuthUsername}
                           onChange={(event) => setBasicAuthUsername(event.target.value)}
-                          placeholder={tFeatures('add_by_rss.basic_auth_username')}
+                          eyebrow={tFeatures('add_by_rss.basic_auth_username')}
+                          placeholder={tMisc('required')}
                           aria-label={tFeatures('add_by_rss.basic_auth_username')}
                           type="text"
                           autoComplete="username"
@@ -328,7 +387,8 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                         <TextInput
                           value={basicAuthPassword}
                           onChange={(event) => setBasicAuthPassword(event.target.value)}
-                          placeholder={tFeatures('add_by_rss.basic_auth_password')}
+                          eyebrow={tFeatures('add_by_rss.basic_auth_password')}
+                          placeholder={tMisc('required')}
                           aria-label={tFeatures('add_by_rss.basic_auth_password')}
                           type="password"
                           autoComplete="current-password"

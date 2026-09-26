@@ -1,7 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
-import { resolveAddByRSSFeedUrlCredentials } from '@podverse/helpers-validation/client';
+import {
+  canSubmitAddByRssFeed,
+  resolveAddByRSSFeedUrlCredentials,
+} from '@podverse/helpers-validation/client';
 
 import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
@@ -31,14 +34,15 @@ type UseAddByRssAddFlowOptions = {
 };
 
 /**
- * Resolves the typed username and password. Both empty means the feed is public; one without the
- * other is an input error rather than a silent public add.
+ * When the username/password toggle is on, both fields need at least one character. When it is
+ * off, typed fields are ignored; a pasted `user:pass@` URL can still supply credentials at submit.
  */
 const resolveTypedCredentials = (
+  useBasicAuth: boolean,
   username: string,
   password: string
 ): { credentials: AddByRssCredentials | null; errorKey: string | null } => {
-  if (username.trim() === '' && password === '') {
+  if (!useBasicAuth) {
     return { credentials: null, errorKey: null };
   }
   const credentials = toAddByRssCredentials(username, password);
@@ -58,6 +62,7 @@ export function useAddByRssAddFlow({
   const { evaluateFeature } = useAccessTier();
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [addErrorKey, setAddErrorKey] = useState<string | null>(null);
+  const [useBasicAuth, setUseBasicAuthState] = useState<boolean>(false);
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const isAddingRef = useRef(false);
@@ -66,10 +71,19 @@ export function useAddByRssAddFlow({
   // visible and playable when a membership lapses — only adding stops.
   const addAccess = evaluateFeature('add_by_rss_add');
 
+  const setUseBasicAuth = useCallback((next: boolean) => {
+    setUseBasicAuthState(next);
+    if (!next) {
+      setUsername('');
+      setPassword('');
+    }
+  }, []);
+
   /**
-   * A pasted `https://user:pass@host/feed` moves its username and password into their own fields.
-   * Only a change of more than one character counts as a paste, so a URL typed by hand is never
-   * rewritten under the cursor; the add itself splits any userinfo still in the field.
+   * A pasted `https://user:pass@host/feed` moves its username and password into their own fields
+   * and turns the Basic Auth toggle on. Only a change of more than one character counts as a paste,
+   * so a URL typed by hand is never rewritten under the cursor; the add itself splits any userinfo
+   * still in the field.
    */
   const handleFeedUrlChange = useCallback(
     (value: string) => {
@@ -80,6 +94,7 @@ export function useAddByRssAddFlow({
         return;
       }
       setInputValue(split.feedUrl);
+      setUseBasicAuthState(true);
       setUsername(split.credentials.username);
       setPassword(split.credentials.password);
     },
@@ -96,7 +111,18 @@ export function useAddByRssAddFlow({
       return;
     }
 
-    const typed = resolveTypedCredentials(username, password);
+    if (
+      !canSubmitAddByRssFeed({
+        feedUrl: inputValue,
+        password,
+        requireCredentials: useBasicAuth,
+        username,
+      })
+    ) {
+      return;
+    }
+
+    const typed = resolveTypedCredentials(useBasicAuth, username, password);
     if (typed.errorKey !== null) {
       setAddErrorKey(typed.errorKey);
       return;
@@ -147,6 +173,7 @@ export function useAddByRssAddFlow({
       setInputValue('');
       setUsername('');
       setPassword('');
+      setUseBasicAuthState(false);
 
       const failureLog = buildAddByRssParseFailureLog({
         feedUrl,
@@ -194,18 +221,33 @@ export function useAddByRssAddFlow({
     refreshToken,
     setInputValue,
     setTokens,
+    useBasicAuth,
     username,
   ]);
+
+  const canSubmit = useMemo(
+    () =>
+      canSubmitAddByRssFeed({
+        feedUrl: inputValue,
+        password,
+        requireCredentials: useBasicAuth,
+        username,
+      }),
+    [inputValue, password, useBasicAuth, username]
+  );
 
   return {
     addAccess,
     addErrorKey,
     addFeed,
+    canSubmit,
     handleFeedUrlChange,
     isAdding,
     password,
     setPassword,
+    setUseBasicAuth,
     setUsername,
+    useBasicAuth,
     username,
   };
 }

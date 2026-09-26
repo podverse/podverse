@@ -74,11 +74,12 @@ and below chips, around a divider, between paired labels), use the same token �
 ## Search field and chips
 
 **`TextField`** owns the painted pill: tertiary fill, no resting outline, a 2px transparent
-border that becomes `tokens.border.primary` on focus. Form fields pass **`eyebrow` +
-`placeholder`** (web inset caption; taller pill). **`SearchField`** and **`ListFilterField`**
-omit `eyebrow` and stay compact — search adds the leading magnifying-glass and a search return
-key; filter adds a clear `Button`. Do not restyle a bare `TextInput` with a perimeter stroke,
-and do not put a second label above an eyebrow field.
+border that becomes `tokens.border.primary` on focus. Form fields pass **`eyebrow` + a
+distinct `placeholder`** (web inset caption; taller pill) —
+**form-eyebrow-placeholder**. **`SearchField`** and **`ListFilterField`** omit `eyebrow` and
+stay compact — search adds the leading magnifying-glass and a search return key; filter adds a
+clear `Button`. Do not restyle a bare `TextInput` with a perimeter stroke, and do not put a
+second label above an eyebrow field.
 
 The painted pill is the hit target. A tap anywhere inside it — padding, empty space, or the
 leading glass — focuses the input. `TextField` implements that; do not rebuild it per screen.
@@ -291,8 +292,9 @@ Login and Sign up slide up as a full-screen `Modal` over the tab shell — they 
 the navigator. Dismiss with a down chevron (`HeaderBarChrome` `backIcon="chevron-down"`,
 `testID="auth-dismiss"`). Do not add a Cancel button. The account switch is body text plus a
 link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`). Fields use
-**`TextField`** with the same `eyebrow` + `placeholder` pairing as web (`email_or_username` on
-login; confirm-password eyebrow with password placeholder on sign-up).
+**`TextField`** with an inset **`eyebrow`** and a **distinct** **`placeholder`** (example or
+hint — never the same string as the eyebrow; see **form-eyebrow-placeholder**). Confirm-password
+keeps a password-hint placeholder while its eyebrow stays `Confirm password`.
 
 ## Full-screen Modal safe area
 

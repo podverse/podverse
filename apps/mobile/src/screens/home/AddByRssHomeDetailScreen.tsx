@@ -9,7 +9,7 @@ import {
   primaryChannelLightboxArtworkUrl,
 } from '@podverse/helpers';
 
-import { SortSelectRow } from '../../components/form/SortSelectRow';
+import { SettingsOptionNavRow, SortSelectRow } from '../../components/form';
 import { MediaRowActions } from '../../components/player/MediaRowActions';
 import { Button, CoverImage, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -20,7 +20,6 @@ import { addByRssRepository, channelSeenRepository } from '../../data/repositori
 import { useAddByRssArtworkHeaders } from '../../hooks/useAddByRssArtworkHeaders';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
-import type { HomeStackParamList } from '../../navigation';
 import type { AddByRssEpisodeSort } from '../../prefs/detailListPrefs';
 import {
   ADD_BY_RSS_EPISODE_SORT_OPTIONS,
@@ -35,8 +34,14 @@ import type { HomeFeedRowData } from './homeFeedData';
 import { HomeFeedRow } from './HomeFeedRow';
 import type { QueueActionPosition } from './useHomeRowPlayback';
 
+/** Home and Library stacks both register this screen with the same param shape. */
+type AddByRssDetailStackParamList = {
+  AddByRssCredentials: { feedIdText: string };
+  AddByRssPodcastDetail: { feedIdText: string };
+};
+
 type AddByRssHomeDetailScreenProps = NativeStackScreenProps<
-  HomeStackParamList,
+  AddByRssDetailStackParamList,
   'AddByRssPodcastDetail'
 >;
 
@@ -139,6 +144,9 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
           color: themeStyles.textSecondary.color,
           fontSize: 13,
           marginBottom: tokens.spacing.sm,
+        },
+        credentialsButton: {
+          marginTop: tokens.spacing.md,
         },
         removeButton: {
           marginTop: tokens.spacing.md,
@@ -278,7 +286,20 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     [detail]
   );
 
+  const handleCredentialsPress = useCallback(() => {
+    if (detail === null) {
+      return;
+    }
+    navigation.navigate('AddByRssCredentials', { feedIdText: detail.feed.idText });
+  }, [detail, navigation]);
+
   const episodeCount = sortedEpisodes.length;
+  const isMusicFeed =
+    detail !== null &&
+    (detail.feed.resourceType === 'artists' ||
+      detail.feed.resourceType === 'albums' ||
+      detail.feed.resourceType === 'tracks');
+  const itemsSectionTitle = isMusicFeed ? t('media.music.tracks') : t('media.podcast.episodes');
 
   const listHeader = useMemo(
     () =>
@@ -302,6 +323,15 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
           <Text style={styles.headerUrl}>
             {t('misc.items')}: {episodeCount}
           </Text>
+          <View style={styles.credentialsButton}>
+            <SettingsOptionNavRow
+              description={t('features.add_by_rss.credentials_page_device_note')}
+              onPress={handleCredentialsPress}
+              testID="add-by-rss-home-credentials"
+              title={t('features.add_by_rss.credentials_page_title')}
+              valueLabel={t('features.add_by_rss.needs_credentials_missing')}
+            />
+          </View>
           <View style={styles.removeButton}>
             <Button
               disabled={isRemoving}
@@ -317,11 +347,13 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     [
       detail,
       episodeCount,
+      handleCredentialsPress,
       handleRemovePress,
       headerArtwork.listUrl,
       headerArtwork.viewerUrl,
       headerArtworkHeaders,
       isRemoving,
+      styles.credentialsButton,
       styles.header,
       styles.headerImage,
       styles.headerTitle,
@@ -379,7 +411,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         {listHeader}
         {detail !== null && errorKey === null ? (
           <>
-            <Text style={styles.sectionTitle}>{t('media.podcast.episodes')}</Text>
+            <Text style={styles.sectionTitle}>{itemsSectionTitle}</Text>
             <SortSelectRow
               heading={t('filters.screen.sort_heading')}
               onSelect={handleSortSelect}
@@ -396,6 +428,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       errorKey,
       handleSortSelect,
       isLoading,
+      itemsSectionTitle,
       listHeader,
       sort,
       sortOptions,

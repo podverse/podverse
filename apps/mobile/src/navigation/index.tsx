@@ -85,6 +85,7 @@ import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { AddByRssCredentialsScreen } from '../screens/rss/AddByRssCredentialsScreen';
+import { AddByRssAddScreen } from '../screens/rss/AddByRssAddScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
@@ -183,7 +184,9 @@ export const SEARCH_STACK_ROUTES = {
 } as const;
 
 export const LIBRARY_STACK_ROUTES = {
+  AddByRssAdd: 'AddByRssAdd',
   AddByRssCredentials: 'AddByRssCredentials',
+  AddByRssPodcastDetail: 'AddByRssPodcastDetail',
   AddByRssRoot: 'AddByRssRoot',
   AlbumDetail: 'AlbumDetail',
   ArtistDetail: 'ArtistDetail',
@@ -299,6 +302,9 @@ const mobileNavigationScreens = {
       },
       'My Library': {
         screens: {
+          AddByRssAdd: 'my-library/add-by-rss/add',
+          AddByRssCredentials: 'my-library/add-by-rss/credentials/:feedIdText',
+          AddByRssPodcastDetail: 'my-library/add-by-rss/:feedIdText',
           AddByRssRoot: 'my-library/add-by-rss',
           AlbumDetail: `my-library${APP_ROUTES.ALBUM}/:albumId`,
           ArtistDetail: `my-library${APP_ROUTES.ARTIST}/:artistId`,
@@ -427,7 +433,9 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
 };
 
 export type LibraryStackParamList = {
+  AddByRssAdd: undefined;
   AddByRssCredentials: { feedIdText: string };
+  AddByRssPodcastDetail: { feedIdText: string };
   AddByRssRoot: undefined;
   AlbumDetail: AlbumDetailRouteParams;
   ArtistDetail: ArtistDetailRouteParams;
@@ -674,6 +682,16 @@ function LibraryStackNavigator() {
         component={AddByRssRootScreen}
         name={LIBRARY_STACK_ROUTES.AddByRssRoot}
         options={{ title: t('features.add_by_rss.label') }}
+      />
+      <LibraryStack.Screen
+        component={AddByRssAddScreen}
+        name={LIBRARY_STACK_ROUTES.AddByRssAdd}
+        options={{ title: t('features.add_feed.add_feed') }}
+      />
+      <LibraryStack.Screen
+        component={AddByRssHomeDetailScreen}
+        name={LIBRARY_STACK_ROUTES.AddByRssPodcastDetail}
+        options={{ title: t('media.podcast.podcast') }}
       />
       <LibraryStack.Screen
         component={AddByRssCredentialsScreen}

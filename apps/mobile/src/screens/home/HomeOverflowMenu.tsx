@@ -81,7 +81,7 @@ export function HomeOverflowMenu({
   return (
     <View>
       <HeaderBarAction
-        accessibilityLabel={t('media.more_options')}
+        accessibilityLabel={t('layouts.change_layout_view')}
         icon="ellipsis-horizontal"
         onPress={() => {
           setIsOpen(true);

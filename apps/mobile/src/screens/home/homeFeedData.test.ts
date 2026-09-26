@@ -460,6 +460,30 @@ describe('fetchHomeFeedRows isCurrent', () => {
     expect(withCurrent).toEqual(withoutOption);
     expect(withCurrent).toEqual(mapItemsToHomeFeedRows([storedEpisode]));
   });
+
+  it('requests directory follows only for channel chips and item channel ids', async () => {
+    await fetchHomeFeedRows('podcasts');
+    expect(subscriptionsRepository.list).toHaveBeenCalledWith({
+      filter: 'directory',
+      kind: 'podcasts',
+      sort: 'alphabetical',
+    });
+
+    vi.mocked(subscriptionsRepository.list).mockClear();
+    await fetchHomeFeedRows('episodes');
+    expect(subscriptionsRepository.list).toHaveBeenCalledWith({
+      filter: 'directory',
+      kind: 'podcasts',
+      sort: 'alphabetical',
+    });
+
+    vi.mocked(subscriptionsRepository.list).mockClear();
+    await fetchHomeFeedRows('tracks');
+    expect(subscriptionsRepository.list).toHaveBeenCalledWith({
+      filter: 'directory',
+      sort: 'alphabetical',
+    });
+  });
 });
 
 describe('isHomeFeedStaleRead', () => {

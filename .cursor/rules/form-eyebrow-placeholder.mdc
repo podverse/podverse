@@ -1,0 +1,40 @@
+---
+description: Form field eyebrow and placeholder must never be the same string
+globs:
+  - "apps/web/src/**/*.tsx"
+  - "apps/management-web/src/**/*.tsx"
+  - "apps/mobile/src/**/*.tsx"
+  - "packages/ui/src/components/form/**/*.tsx"
+alwaysApply: false
+---
+
+# Form eyebrow ≠ placeholder
+
+An inset **`eyebrow`** is the field name that stays visible after the user types. The
+**`placeholder`** is empty-state hint text. They must never be the same string, the same
+catalog key, or the same user-facing words with only punctuation changed (`Filter` /
+`Filter...`).
+
+## Do
+
+- Keep the eyebrow as the field title (`Email`, `RSS feed URL`, `Username`).
+- Give the placeholder a different role:
+  - an obvious **example** (`you@example.com`, `https://example.com/feed.xml`)
+  - **`Optional`** / **`Required`** (`misc.optional` / `misc.required`)
+  - the **default if left blank** (`Anonymous`)
+  - a short **instruction** (`At least 8 characters`, `Type your email`, `Type a title`)
+- Confirm-password may reuse the password placeholder while keeping a distinct eyebrow
+  (`Confirm password` + `Password` / password hint).
+
+## Don't
+
+- Don't pass the same `t(...)` key (or the same literal) to both `eyebrow` and
+  `placeholder`.
+- Don't invent a near-duplicate of the eyebrow (`Filter` / `Filter...`).
+
+## Related
+
+- **management-web-form-eyebrow** — use `eyebrow` instead of a freestanding `Label`
+- **mobile-screen-layout** / **mobile-reusable-components** — forms pass both props;
+  search and list filters omit `eyebrow`
+- **ui-copy-sentence-case** — placeholders are user-facing copy

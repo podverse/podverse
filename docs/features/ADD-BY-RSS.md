@@ -1,6 +1,6 @@
 # Add-by-RSS
 
-Add-by-RSS lets users follow RSS feeds (podcasts, music) that are not in the main directory. Feeds are parsed by workers and kept in each device's add-by-RSS library; the account's follow list syncs which feeds a user follows across devices.
+Add-by-RSS lets users follow RSS feeds (podcasts, music) that are not in the main directory. Feeds are parsed by workers and kept in each device's add-by-RSS library; the account's follow list syncs which feeds a user follows across devices. On mobile, that library is My Library → Add by RSS (chips for podcasts, episodes, artists, albums, and tracks; plus to add). Home lists directory follows only. On web, the add-by-RSS sidebar routes keep the same separation from Home. CarPlay and Android Auto keep add-by-RSS follows in the native library index.
 
 ## Basic Auth (private feeds)
 
@@ -19,6 +19,8 @@ The durable constraints live in [`add-by-rss-client-held-credentials`](/.cursor/
 Signing out (and deleting the account) clears that account's credentials on the device. The feeds themselves stay; they are device data.
 
 A `user:pass@` pasted into a feed URL is split into the username and password fields on the client and again in the API. Stored feed URLs never carry userinfo, and credentials are keyed by the canonical URL (`canonicalAddByRSSFeedUrl` in `@podverse/helpers-validation`).
+
+The Add control stays disabled until the URL is a valid http(s) feed URL. When the username and password toggle is on, it also requires both fields non-empty (`canSubmitAddByRssFeed` in `@podverse/helpers-validation`). The credentials save screen uses the same length rules (`canSubmitAddByRssCredentials`).
 
 ### Parse path (transit envelope)
 
@@ -59,7 +61,7 @@ Every surface uses `resolveCredentialScope` from `@podverse/helpers`:
 
 ### Feeds that need credentials on this device
 
-A followed feed that has `requires_credentials` and no stored credentials on this device (or whose stored credentials were last rejected) appears as a **partial row** in a **Needs username and password** section at the end of each add-by-RSS list, on web and mobile. Its subtitle says whether credentials are missing or were rejected. The row opens a credentials screen (web `/add-by-rss/credentials/<idText>`, mobile `AddByRssCredentials`) that explains the credentials stay on this device, saves them, and checks the feed right away.
+A followed feed that has `requires_credentials` and no stored credentials on this device (or whose stored credentials were last rejected) appears as a **partial row** in a **Needs username and password** section at the end of the Add by RSS library list (mobile Library → Add by RSS, and the web add-by-RSS library routes). Home does not include that section. Its subtitle says whether credentials are missing or were rejected. The row opens a credentials screen (web `/add-by-rss/credentials/<idText>` or channel Settings; mobile `AddByRssCredentials`) that explains the credentials stay on this device, saves them, and checks the feed right away.
 
 ### Environment
 

@@ -6,7 +6,12 @@ import type { SyncJobPriority } from './syncQueue';
  * fired from (a foreground transition, a pull gesture) ends up waiting on the network.
  */
 export type SyncTrigger =
-  'app-foreground' | 'app-start' | 'connectivity-restored' | 'pull-to-refresh' | 'sign-in';
+  | 'add-by-rss-pull-to-refresh'
+  | 'app-foreground'
+  | 'app-start'
+  | 'connectivity-restored'
+  | 'pull-to-refresh'
+  | 'sign-in';
 
 export type PlannedSyncJob = {
   kind: SyncJobKind;
@@ -30,6 +35,14 @@ export type SyncPlanInput = {
  * episodes even though it has no account state to reconcile.
  */
 export const planSyncRun = ({ isAuthenticated, trigger }: SyncPlanInput): PlannedSyncJob[] => {
+  // Pull on the Add by RSS library only refreshes those feeds. Home pull stays the full plan.
+  if (trigger === 'add-by-rss-pull-to-refresh') {
+    if (!isAuthenticated) {
+      return [];
+    }
+    return [{ kind: 'add-by-rss-refresh', priority: 'user' }];
+  }
+
   // A pull gesture is the one case where somebody is watching, so it goes ahead of whatever
   // opportunistic pass may already be queued.
   const priority: SyncJobPriority = trigger === 'pull-to-refresh' ? 'user' : 'background';

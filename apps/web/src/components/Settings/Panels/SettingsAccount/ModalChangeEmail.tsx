@@ -124,7 +124,7 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({ isOpen, onCl
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
               onBlur={handleEmailBlur}
-              placeholder={tAuthentication('email')}
+              placeholder={tAuthentication('email_example')}
               eyebrow={tAuthentication('email')}
               infoError={errorMessageToShow}
               aria-invalid={!!errorMessageToShow}

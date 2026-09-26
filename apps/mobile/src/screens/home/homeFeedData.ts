@@ -5,24 +5,20 @@ import { htmlToPlainTextPreview } from '@podverse/helpers/html';
 
 import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
 import {
-  addByRssRepository,
   channelItemsRepository,
   channelLiveStatusRepository,
   channelSeenRepository,
   downloadsRepository,
   homeClipsCacheRepository,
   subscriptionChannelKindFromMediumId,
-  subscriptionChannelKindFromResourceType,
   subscriptionsRepository,
 } from '../../data/repositories';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
-import type { AddByRssNeedsCredentialsFeed } from '../../lib/addByRss/credentials';
 import {
   clipHomeRowSourceFromUnknown,
   clipToHomeRow,
   MIXED_SOURCE_CLIP_ROW_OPTIONS,
 } from '../../lib/rows/homeRowMappers';
-import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import type { HomeRangeOption, HomeSortOption } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
@@ -504,7 +500,7 @@ const mapSubscribedChannelsBare = (subscribed: readonly SubscribedChannel[]): Ho
  * Titles and art come from the follow list. Badges wait on three extra local queries; if those
  * hang, Home still paints the follows and the error log records why the badges are late.
  */
-const attachSubscriptionMetadataOrBare = async (
+export const attachSubscriptionMetadataOrBare = async (
   subscribed: readonly SubscribedChannel[],
   mediaType: HomeMediaType
 ): Promise<HomeFeedRowData[]> => {
@@ -551,22 +547,6 @@ export const fetchUnsubscribedDownloadHomeRows = async (): Promise<HomeFeedRowDa
 };
 
 /**
- * Add-by-RSS feeds of this channel chip's kind that need a username and password on this device.
- * Home lists them in a section after its rows; `fetchHomeFeedRows` leaves them out of the rows.
- */
-export const fetchNeedsCredentialsHomeFeeds = async (
-  mediaType: HomeMediaType
-): Promise<AddByRssNeedsCredentialsFeed<MobileAddByRSSFeedRecord>[]> => {
-  if (mediaType !== 'podcasts' && mediaType !== 'artists' && mediaType !== 'albums') {
-    return [];
-  }
-  const { needsCredentials } = await addByRssRepository.listFeedsByCredentials();
-  return needsCredentials.filter(
-    (item) => subscriptionChannelKindFromResourceType(item.feed.resourceType) === mediaType
-  );
-};
-
-/**
  * Completed downloads as Home Episodes / Tracks rows. Used while Offline Mode is on so those
  * chips list only playable local files rather than the full stored window.
  */
@@ -604,21 +584,29 @@ export const fetchHomeFeedRows = async (
   };
 
   if (mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums') {
-    // Channel chips read local follows only. Kind splits podcasts / artists / albums so a music
-    // follow never appears under Podcasts and the reverse. Popularity ranks arrive from the sync
-    // queue; this path never waits on the network to paint. Add-by-RSS feeds still waiting on a
-    // username and password belong to the section after the rows, not the rows.
+    // Channel chips read local directory follows only. Kind splits podcasts / artists / albums so a
+    // music follow never appears under Podcasts and the reverse. Popularity ranks arrive from the
+    // sync queue; this path never waits on the network to paint. Add by RSS feeds live on the Add
+    // by RSS library screen.
     const kind =
       mediaType === 'podcasts' ? 'podcasts' : mediaType === 'artists' ? 'artists' : 'albums';
-    const subscribed = await subscriptionsRepository.list({ credentials: 'ready', kind, sort });
+    const subscribed = await subscriptionsRepository.list({
+      filter: 'directory',
+      kind,
+      sort,
+    });
     ensureCurrent();
     return attachSubscriptionMetadataOrBare(subscribed, mediaType);
   }
 
   if (mediaType === 'episodes') {
-    // Episodes for subscribed channels come from the device. An empty window stays empty until
-    // the channel-items job writes rows — Home does not fill the gap over the network.
-    const podcastChannels = await subscriptionsRepository.list({ kind: 'podcasts', sort });
+    // Episodes for subscribed directory channels come from the device. An empty window stays empty
+    // until the channel-items job writes rows — Home does not fill the gap over the network.
+    const podcastChannels = await subscriptionsRepository.list({
+      filter: 'directory',
+      kind: 'podcasts',
+      sort,
+    });
     ensureCurrent();
     const podcastChannelIds = podcastChannels.map((channel) => channel.idText);
     const stored = await channelItemsRepository.listSubscribed({
@@ -630,7 +618,7 @@ export const fetchHomeFeedRows = async (
   }
 
   if (mediaType === 'tracks') {
-    const musicChannels = await subscriptionsRepository.list({ sort });
+    const musicChannels = await subscriptionsRepository.list({ filter: 'directory', sort });
     ensureCurrent();
     const musicChannelIds = musicChannels
       .filter((channel) => channel.kind === 'artists' || channel.kind === 'albums')

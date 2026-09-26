@@ -13,6 +13,8 @@ When labeling inputs, selects, and grouped checkbox lists on **`apps/management-
 
 - Use **`eyebrow`** on **`TextInput`**, **`FormDropdown`**, and **`CheckboxFieldList`** from **`@podverse/ui`** so the title sits inside the shared field chrome (same pattern as web login and management settings).
 - For lookup rows with **`LookupFieldGrid`**, use **`variant="inlineEyebrow"`** when each column uses in-field eyebrows so the primary action column aligns to the control baseline.
+- When a control also has a **`placeholder`**, keep it distinct from the eyebrow — see
+  **form-eyebrow-placeholder**.
 
 ## Do not
 

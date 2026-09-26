@@ -40,13 +40,27 @@ test.describe('Add by RSS with a username and password', () => {
 
     await page.goto('/add-by-rss/add');
 
-    await test.step('The add form accepts a feed URL with a username and password', async () => {
+    await test.step('Add stays disabled until the URL and credentials are valid', async () => {
+      const addButton = page.getByRole('button', { name: 'Add feed' });
+      await expect(addButton).toBeDisabled();
+
       await page.getByRole('textbox', { name: 'RSS feed URL' }).fill(FEED_URL);
+      await expect(addButton).toBeEnabled();
+
       await page.getByLabel('This feed requires username and password').check();
+      await expect(addButton).toBeDisabled();
+
       await page
         .getByRole('textbox', { name: 'Username', exact: true })
         .fill(E2E_BASIC_AUTH_USERNAME);
+      await expect(addButton).toBeDisabled();
+
       await page.getByLabel('Password', { exact: true }).fill(E2E_BASIC_AUTH_PASSWORD);
+      await expect(addButton).toBeEnabled();
+    });
+
+    await test.step('The add form accepts a feed URL with a username and password', async () => {
+      await expect(page.getByTestId('add-by-rss-basic-auth-description')).toBeVisible();
 
       await capturePageLoad(
         page,

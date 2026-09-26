@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ADD_BY_RSS_CREDENTIAL_MAX_LENGTH,
+  canSubmitAddByRssCredentials,
+  canSubmitAddByRssFeed,
   canonicalAddByRSSFeedUrl,
   resolveAddByRSSFeedUrlCredentials,
 } from './addByRSSFeedUrl.js';
@@ -51,5 +53,59 @@ describe('canonicalAddByRSSFeedUrl', () => {
     expect(canonicalAddByRSSFeedUrl('  HTTPS://alice:pw@Example.com/feed.xml ')).toBe(
       'https://example.com/feed.xml'
     );
+  });
+});
+
+describe('canSubmitAddByRssFeed', () => {
+  it('allows a valid URL with credentials off', () => {
+    expect(
+      canSubmitAddByRssFeed({
+        feedUrl: 'https://example.com/feed.xml',
+        password: '',
+        requireCredentials: false,
+        username: '',
+      })
+    ).toBe(true);
+  });
+
+  it('rejects an invalid URL', () => {
+    expect(
+      canSubmitAddByRssFeed({
+        feedUrl: 'not-a-url',
+        password: '',
+        requireCredentials: false,
+        username: '',
+      })
+    ).toBe(false);
+  });
+
+  it('requires both credential fields when the toggle is on', () => {
+    expect(
+      canSubmitAddByRssFeed({
+        feedUrl: 'https://example.com/feed.xml',
+        password: '',
+        requireCredentials: true,
+        username: 'alice',
+      })
+    ).toBe(false);
+    expect(
+      canSubmitAddByRssFeed({
+        feedUrl: 'https://example.com/feed.xml',
+        password: 'secret',
+        requireCredentials: true,
+        username: 'alice',
+      })
+    ).toBe(true);
+  });
+});
+
+describe('canSubmitAddByRssCredentials', () => {
+  it('requires a trimmed username and a non-empty password within length', () => {
+    expect(canSubmitAddByRssCredentials('  alice  ', 'secret')).toBe(true);
+    expect(canSubmitAddByRssCredentials('   ', 'secret')).toBe(false);
+    expect(canSubmitAddByRssCredentials('alice', '')).toBe(false);
+    expect(
+      canSubmitAddByRssCredentials('alice', 'x'.repeat(ADD_BY_RSS_CREDENTIAL_MAX_LENGTH + 1))
+    ).toBe(false);
   });
 });

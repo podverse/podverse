@@ -1,167 +1,348 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+
+import { matchesTitleFilter } from '@podverse/helpers';
 
 import { AddByRssNeedsCredentialsSection } from '../../components/content/AddByRssNeedsCredentialsSection';
-import { FormActions, TextField } from '../../components/form';
-import { LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
+import { ListFilterField, ListFilterHeader, MenuSelectChip } from '../../components/form';
+import type { MenuSelectChipOption } from '../../components/form';
+import { FillList, VerticalCenter } from '../../components/primitives';
+import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import { getMobileConfig } from '../../config';
-import { addByRssRepository } from '../../data/repositories';
-import { useAddByRssAddFlow } from '../../hooks/useAddByRssAddFlow';
-import { useAddByRssFeeds } from '../../hooks/useAddByRssFeeds';
-import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
+import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
-import { useOfflineMode } from '../../prefs/offlineMode';
-import { formActionsTopGap, screenBodyInsets } from '../../theme/screenLayout';
+import type {
+  AddByRssLibraryMediaType,
+  AddByRssLibrarySortOption,
+  AddByRssLibraryViewMode,
+} from '../../prefs/addByRssListPrefs';
+import {
+  ADD_BY_RSS_LIBRARY_MEDIA_TYPES,
+  ADD_BY_RSS_LIBRARY_SORT_OPTIONS,
+  DEFAULT_ADD_BY_RSS_LIBRARY_MEDIA_TYPE,
+  DEFAULT_ADD_BY_RSS_LIBRARY_SORT,
+  DEFAULT_ADD_BY_RSS_LIBRARY_VIEW_MODE,
+  isAddByRssLibraryFilterMediaType,
+  isAddByRssLibraryViewModeMediaType,
+  readAddByRssLibraryListPrefs,
+  subscribeAddByRssLibraryListPrefs,
+  writeAddByRssLibrarySort,
+  writeAddByRssLibraryViewMode,
+} from '../../prefs/addByRssListPrefs';
+import { useSync } from '../../sync';
+import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
+import { listFilterFieldBottomMargin, screenBodyInsets } from '../../theme/screenLayout';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
+import { MEDIA_TYPE_LABEL_KEYS } from '../browse/browseTypes';
+import type { HomeFeedRowData } from '../home/homeFeedData';
+import { HomeFeedGridCell } from '../home/HomeFeedGridCell';
+import { HomeFeedRow } from '../home/HomeFeedRow';
+import { HomeOverflowMenu } from '../home/HomeOverflowMenu';
+import { MediaTypeSelector } from '../home/MediaTypeSelector';
+import type { AddByRssLibraryItemRow } from './addByRssLibraryFeedData';
+import { fetchAddByRssLibraryFeed } from './addByRssLibraryFeedData';
 
 type AddByRssRootScreenProps = NativeStackScreenProps<LibraryStackParamList, 'AddByRssRoot'>;
 
+type ListPrefsState = {
+  mediaType: AddByRssLibraryMediaType;
+  sort: AddByRssLibrarySortOption;
+  viewMode: AddByRssLibraryViewMode;
+};
+
+const SORT_LABEL_KEYS: Record<AddByRssLibrarySortOption, string> = {
+  alphabetical: 'filters.sort.a_z',
+  recent: 'filters.sort.recent',
+};
+
+const EMPTY_ROWS: readonly HomeFeedRowData[] = [];
+const feedRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
+
+function LibraryFeedListItem({
+  artworkEdge,
+  cellStyle,
+  isGridView,
+  isLast,
+  mediaType,
+  onPlay,
+  onPress,
+  row,
+}: {
+  artworkEdge: number;
+  cellStyle: StyleProp<ViewStyle>;
+  isGridView: boolean;
+  isLast: boolean;
+  mediaType: AddByRssLibraryMediaType;
+  onPlay?: (row: HomeFeedRowData) => void;
+  onPress: (row: HomeFeedRowData) => void;
+  row: HomeFeedRowData;
+}) {
+  if (isGridView) {
+    return (
+      <View style={cellStyle}>
+        <HomeFeedGridCell artworkEdge={artworkEdge} onPress={onPress} row={row} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={cellStyle}>
+      <HomeFeedRow
+        isLast={isLast}
+        mediaType={mediaType}
+        onPlayPress={onPlay}
+        onPress={onPress}
+        row={row}
+      />
+    </View>
+  );
+}
+
+/**
+ * Add by RSS library: Home-style chips for followed feeds only. Adding a feed is a plus in the
+ * title bar. Pull-to-refresh refreshes these feeds alone; Home pull still refreshes everything.
+ */
 export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const { t } = useTranslation();
-  const { isE2e } = getMobileConfig();
+  const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
-  const { enabled: offlineModeEnabled } = useOfflineMode();
-  const [inputValue, setInputValue] = useState<string>('');
-  const [noticeKey, setNoticeKey] = useState<string | null>(null);
-  const [parsedFeedUrls, setParsedFeedUrls] = useState<ReadonlySet<string>>(new Set());
-  const {
-    errorKey,
-    feeds,
-    isLoading,
-    needsCredentials,
-    refreshLocal,
-    reloadFeeds,
-    removeFeed,
-    removingFeedUrl,
-  } = useAddByRssFeeds({
-    onNotice: setNoticeKey,
-  });
-  const {
-    addErrorKey,
-    addFeed,
-    handleFeedUrlChange,
-    isAdding,
-    password,
-    setPassword,
-    setUsername,
-    username,
-  } = useAddByRssAddFlow({
-    inputValue,
-    onAfterAdd: reloadFeeds,
-    onNotice: setNoticeKey,
-    setInputValue,
-  });
+  const { requestSync, state: syncState } = useSync();
+  const { openGate } = useMembershipGate();
+  const { evaluateFeature } = useAccessTier();
+  const addAccess = evaluateFeature('add_by_rss_add');
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        addButtonDisabled: {
-          opacity: 0.6,
-        },
-        card: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          marginBottom: tokens.spacing.md,
-          padding: tokens.spacing.lg,
-        },
-        content: {
-          ...screenBodyInsets(tokens.spacing),
-          flexGrow: 1,
-          paddingBottom: tokens.spacing['2xl'],
-        },
-        credentialFields: {
-          gap: tokens.spacing.md,
-          marginTop: tokens.spacing.md,
-        },
-        feedButton: {
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.sm,
-          paddingVertical: tokens.spacing.xs,
-          alignSelf: 'flex-start',
-        },
-        feedButtonLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 12,
-          fontWeight: '600',
-        },
-        feedRow: {
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          marginBottom: tokens.spacing.sm,
-          padding: tokens.spacing.md,
-        },
-        feedStatus: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.xs,
-        },
-        feedSubtitle: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.xs,
-        },
-        feedTitle: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '600',
-        },
-        notice: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
-        },
-        screen: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          flex: 1,
-        },
-        sectionTitle: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '600',
-          marginBottom: tokens.spacing.sm,
-        },
-        submit: {
-          marginTop: formActionsTopGap(tokens.spacing),
-        },
-      }),
-    [themeStyles, tokens]
+  const [selectedMediaType, setSelectedMediaType] = useState<AddByRssLibraryMediaType>(
+    DEFAULT_ADD_BY_RSS_LIBRARY_MEDIA_TYPE
   );
+  const [listPrefs, setListPrefs] = useState<ListPrefsState | null>(null);
+  const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
+  const [itemRowsById, setItemRowsById] = useState<ReadonlyMap<string, AddByRssLibraryItemRow>>(
+    () => new Map()
+  );
+  const [needsCredentials, setNeedsCredentials] = useState<
+    { feed: MobileAddByRSSFeedRecord; need: 'missing' | 'rejected' }[]
+  >([]);
+  const [filterTerm, setFilterTerm] = useState<string>('');
+  const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
+  const [hasCompletedFeedRead, setHasCompletedFeedRead] = useState<boolean>(false);
+  const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
+  const [playbackNoticeKey, setPlaybackNoticeKey] = useState<string | null>(null);
+  const feedRequestIdRef = useRef(0);
+  const isFeedRefreshingRef = useRef(false);
 
-  const refreshParsedFeedUrls = useCallback(async () => {
-    const urls = await addByRssRepository.listParsedFeedUrls();
-    setParsedFeedUrls(new Set(urls));
-  }, []);
+  const { playItem } = useAddByRssPlayback({ onNotice: setPlaybackNoticeKey });
+
+  const resolvedPrefs: ListPrefsState =
+    listPrefs !== null && listPrefs.mediaType === selectedMediaType
+      ? listPrefs
+      : {
+          mediaType: selectedMediaType,
+          sort: DEFAULT_ADD_BY_RSS_LIBRARY_SORT,
+          viewMode: DEFAULT_ADD_BY_RSS_LIBRARY_VIEW_MODE,
+        };
+
+  const arePrefsHydrated = listPrefs !== null && listPrefs.mediaType === selectedMediaType;
+  const viewModeEligible = isAddByRssLibraryViewModeMediaType(selectedMediaType);
 
   useEffect(() => {
-    void refreshParsedFeedUrls();
-  }, [feeds, refreshParsedFeedUrls]);
+    let cancelled = false;
+    void (async () => {
+      const stored = await readAddByRssLibraryListPrefs(selectedMediaType);
+      if (cancelled) {
+        return;
+      }
+      setListPrefs({ ...stored, mediaType: selectedMediaType });
+    })();
+    const unsubscribe = subscribeAddByRssLibraryListPrefs(selectedMediaType, () => {
+      void readAddByRssLibraryListPrefs(selectedMediaType).then((stored) => {
+        setListPrefs({ ...stored, mediaType: selectedMediaType });
+      });
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [selectedMediaType]);
 
-  // The credentials screen saves or removes feeds; returning here rereads the device's list. The
-  // first focus is skipped because the initial reload is already reading it.
-  const hasFocusedRef = useRef(false);
-  useEffect(
-    () =>
-      navigation.addListener('focus', () => {
-        if (!hasFocusedRef.current) {
-          hasFocusedRef.current = true;
+  const loadFeed = useCallback(
+    async (source: 'initial' | 'refresh' | 'retry' | 'synced') => {
+      const requestId = feedRequestIdRef.current + 1;
+      feedRequestIdRef.current = requestId;
+
+      if (source === 'refresh') {
+        if (isFeedRefreshingRef.current) {
           return;
         }
-        void refreshLocal();
-      }),
-    [navigation, refreshLocal]
+        isFeedRefreshingRef.current = true;
+        setIsFeedRefreshing(true);
+        requestSync('add-by-rss-pull-to-refresh');
+      }
+
+      if (requestId === feedRequestIdRef.current) {
+        setFeedErrorKey(null);
+      }
+
+      try {
+        const result = await fetchAddByRssLibraryFeed(selectedMediaType, resolvedPrefs.sort);
+        if (requestId !== feedRequestIdRef.current) {
+          return;
+        }
+        setFeedRows(result.rows);
+        setItemRowsById(result.itemRowsById);
+        setNeedsCredentials(result.needsCredentials);
+        setHasCompletedFeedRead(true);
+      } catch {
+        if (requestId !== feedRequestIdRef.current) {
+          return;
+        }
+        setFeedErrorKey('errors.generic');
+        setHasCompletedFeedRead(true);
+      } finally {
+        if (source === 'refresh') {
+          isFeedRefreshingRef.current = false;
+          setIsFeedRefreshing(false);
+        }
+      }
+    },
+    [requestSync, resolvedPrefs.sort, selectedMediaType]
+  );
+
+  useEffect(() => {
+    if (!arePrefsHydrated) {
+      return;
+    }
+    setHasCompletedFeedRead(false);
+    setFeedRows([]);
+    setItemRowsById(new Map());
+    setNeedsCredentials([]);
+    void loadFeed('initial');
+  }, [arePrefsHydrated, loadFeed, selectedMediaType]);
+
+  // After sync finishes a refresh, reread the local list so new titles appear.
+  const previousSyncStatusRef = useRef(syncState.status);
+  useEffect(() => {
+    const previous = previousSyncStatusRef.current;
+    previousSyncStatusRef.current = syncState.status;
+    if (previous === 'running' && syncState.status === 'idle' && arePrefsHydrated) {
+      void loadFeed('synced');
+    }
+  }, [arePrefsHydrated, loadFeed, syncState.status]);
+
+  const handleMediaTypeChange = useCallback((next: AddByRssLibraryMediaType) => {
+    setSelectedMediaType(next);
+    setFilterTerm('');
+    setListPrefs(null);
+    setHasCompletedFeedRead(false);
+  }, []);
+
+  const handleSortChange = useCallback(
+    (sort: AddByRssLibrarySortOption) => {
+      setListPrefs((current) =>
+        current === null || current.mediaType !== selectedMediaType
+          ? { mediaType: selectedMediaType, sort, viewMode: DEFAULT_ADD_BY_RSS_LIBRARY_VIEW_MODE }
+          : { ...current, sort }
+      );
+      void writeAddByRssLibrarySort(selectedMediaType, sort);
+    },
+    [selectedMediaType]
+  );
+
+  const handleViewModeChange = useCallback(
+    (viewMode: AddByRssLibraryViewMode) => {
+      setListPrefs((current) =>
+        current === null || current.mediaType !== selectedMediaType
+          ? {
+              mediaType: selectedMediaType,
+              sort: DEFAULT_ADD_BY_RSS_LIBRARY_SORT,
+              viewMode,
+            }
+          : { ...current, viewMode }
+      );
+      void writeAddByRssLibraryViewMode(selectedMediaType, viewMode);
+    },
+    [selectedMediaType]
+  );
+
+  const handleAddPress = useCallback(() => {
+    if (!addAccess.allowed) {
+      openGate(addAccess.reason);
+      return;
+    }
+    navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssAdd);
+  }, [addAccess, navigation, openGate]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ alignItems: 'center', flexDirection: 'row', gap: 4 }}>
+          <HeaderBarAction
+            accessibilityLabel={t('features.add_feed.add_feed')}
+            icon="add"
+            onPress={handleAddPress}
+            testID="rss-add-button"
+          />
+          {viewModeEligible ? (
+            <HomeOverflowMenu
+              canMarkAllSeen={false}
+              onMarkAllSeen={() => undefined}
+              onViewModeChange={handleViewModeChange}
+              showMarkAllSeen={false}
+              viewMode={resolvedPrefs.viewMode}
+            />
+          ) : null}
+        </View>
+      ),
+    });
+  }, [
+    handleAddPress,
+    handleViewModeChange,
+    navigation,
+    resolvedPrefs.viewMode,
+    t,
+    viewModeEligible,
+  ]);
+
+  const handleRowPress = useCallback(
+    (row: HomeFeedRowData) => {
+      if (
+        selectedMediaType === 'podcasts' ||
+        selectedMediaType === 'artists' ||
+        selectedMediaType === 'albums'
+      ) {
+        navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssPodcastDetail, {
+          feedIdText: row.sourceId ?? row.id,
+        });
+        return;
+      }
+
+      const item = itemRowsById.get(row.id);
+      if (item === undefined) {
+        return;
+      }
+      void playItem(item.feed, item.mappedFeed, item.itemBundle, item.itemIndex);
+    },
+    [itemRowsById, navigation, playItem, selectedMediaType]
+  );
+
+  const handlePlayPress = useCallback(
+    (row: HomeFeedRowData) => {
+      const item = itemRowsById.get(row.id);
+      if (item === undefined) {
+        return;
+      }
+      void playItem(item.feed, item.mappedFeed, item.itemBundle, item.itemIndex);
+    },
+    [itemRowsById, playItem]
   );
 
   const handleNeedsCredentialsPress = useCallback(
@@ -171,156 +352,229 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
     [navigation]
   );
 
-  const handleReload = useCallback(() => {
-    void (async () => {
-      await reloadFeeds();
-      await refreshParsedFeedUrls();
-    })();
-  }, [refreshParsedFeedUrls, reloadFeeds]);
+  const visibleRows = useMemo(() => {
+    if (!isAddByRssLibraryFilterMediaType(selectedMediaType) || filterTerm.trim().length === 0) {
+      return feedRows;
+    }
+    return feedRows.filter((row) => matchesTitleFilter(row.title, filterTerm));
+  }, [feedRows, filterTerm, selectedMediaType]);
 
-  const listHeader = (
-    <View>
-      {offlineModeEnabled ? (
-        <View style={styles.card} testID="rss-add-offline-unavailable">
-          <ListEmpty
-            messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
-            testID="rss-add-offline-unavailable-message"
-          />
-        </View>
-      ) : (
-        <View style={styles.card}>
-          <TextField
-            accessibilityLabel={t('features.add_by_rss.feed_url')}
-            autoCapitalize="none"
-            autoCorrect={false}
-            eyebrow={t('features.add_by_rss.feed_url')}
-            keyboardType="url"
-            onChangeText={handleFeedUrlChange}
-            placeholder={t('features.add_by_rss.feed_url')}
-            testID="rss-url-input"
-            value={inputValue}
-          />
-          <View style={styles.credentialFields}>
-            <TextField
-              accessibilityLabel={t('features.add_by_rss.basic_auth_username')}
-              autoCapitalize="none"
-              autoCorrect={false}
-              eyebrow={t('features.add_by_rss.basic_auth_username')}
-              onChangeText={setUsername}
-              placeholder={t('misc.optional')}
-              testID="rss-username-input"
-              value={username}
-            />
-            <TextField
-              accessibilityLabel={t('features.add_by_rss.basic_auth_password')}
-              autoCapitalize="none"
-              autoCorrect={false}
-              eyebrow={t('features.add_by_rss.basic_auth_password')}
-              onChangeText={setPassword}
-              placeholder={t('misc.optional')}
-              // iOS Autofill plus a secure field blocks Maestro inputText. E2E shows the password in plaintext.
-              secureTextEntry={!isE2e}
-              testID="rss-password-input"
-              value={password}
-            />
-          </View>
-          <FormActions
-            actions={[
-              {
-                disabled: isAdding,
-                label: t('features.add_by_rss.label'),
-                loading: isAdding,
-                onPress: () => {
-                  void addFeed();
-                },
-                testID: 'rss-add-submit',
-              },
-            ]}
-            style={styles.submit}
-          />
-          {addErrorKey !== null ? (
-            <Text style={styles.notice} testID="rss-add-error">
-              {t(addErrorKey)}
-            </Text>
-          ) : null}
-        </View>
-      )}
-      <Text style={styles.sectionTitle}>{t('nav.menu.view_rss_feeds')}</Text>
-      {isLoading ? <ListLoading testID="rss-feeds-loading" /> : null}
-      {errorKey !== null ? (
-        <ListError messageKey={errorKey} onRetry={handleReload} testID="rss-feeds-error" />
-      ) : null}
-      {noticeKey !== null ? <Text style={styles.notice}>{t(noticeKey)}</Text> : null}
-    </View>
+  const isGridView = viewModeEligible && resolvedPrefs.viewMode === 'grid';
+  const columns = isGridView ? resolveGridColumns(width) : rowColumns;
+  const horizontalInset = tokens.spacing.lg;
+  const gridGap = tokens.spacing.md;
+  const gridCellWidth = isGridView
+    ? resolveGridCellWidth({
+        columns,
+        contentWidth: width - 2 * horizontalInset,
+        gap: gridGap,
+      })
+    : 0;
+
+  const sortOptions = useMemo<MenuSelectChipOption<AddByRssLibrarySortOption>[]>(
+    () =>
+      ADD_BY_RSS_LIBRARY_SORT_OPTIONS.map((option) => ({
+        label: t(SORT_LABEL_KEYS[option]),
+        testID: `rss-sort-${option}`,
+        value: option,
+      })),
+    [t]
   );
 
-  const renderFeed = useCallback(
-    ({ item: feed, index }: { item: MobileAddByRSSFeedRecord; index: number }) => {
-      const isParsed = parsedFeedUrls.has(feed.feedUrl);
-      const statusKey = isParsed
-        ? 'features.add_by_rss.status_parsed'
-        : 'features.add_by_rss.status_processing';
-      const isRemoving = removingFeedUrl === feed.feedUrl;
+  const styles = useMemo(() => {
+    const insets = screenBodyInsets(tokens.spacing);
+    const filterBottomMargin = listFilterFieldBottomMargin(
+      tokens.spacing,
+      isGridView ? 0 : tokens.spacing.base
+    );
 
-      return (
-        <View
-          style={styles.feedRow}
-          testID={index === 0 ? 'rss-feed-row-first' : `rss-feed-row-${feed.idText}`}
-        >
-          <Text style={styles.feedTitle}>{feed.title ?? feed.feedUrl}</Text>
-          <Text style={styles.feedSubtitle}>{feed.feedUrl}</Text>
-          <Text
-            style={styles.feedStatus}
-            testID={index === 0 ? 'rss-feed-status-first' : `rss-feed-status-${feed.idText}`}
-          >
-            {t(statusKey)}
-          </Text>
-          <Pressable
-            accessibilityLabel={t('features.unsubscribe')}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: isRemoving }}
-            disabled={isRemoving}
-            onPress={() => {
-              void removeFeed(feed.feedUrl);
+    return StyleSheet.create({
+      columnCell: {
+        width: gridCellWidth,
+      },
+      columnWrapper: {
+        gap: tokens.spacing.md,
+      },
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+      content: {
+        flexGrow: 1,
+        paddingBottom: tokens.spacing.lg,
+        paddingHorizontal: insets.paddingHorizontal,
+      },
+      filterRow: {
+        marginBottom: filterBottomMargin,
+      },
+      notice: {
+        color: themeStyles.textSecondary.color,
+        fontSize: 13,
+        marginTop: tokens.spacing.sm,
+      },
+      selectorSection: {
+        paddingTop: insets.paddingTop,
+      },
+    });
+  }, [gridCellWidth, isGridView, themeStyles, tokens]);
+
+  const showFeedRows = feedErrorKey === null;
+  const isFeedBusy = !hasCompletedFeedRead;
+  const showFilterField =
+    showFeedRows && feedRows.length > 0 && isAddByRssLibraryFilterMediaType(selectedMediaType);
+  const showEmpty =
+    !isFeedBusy &&
+    showFeedRows &&
+    visibleRows.length === 0 &&
+    needsCredentials.length === 0 &&
+    filterTerm.trim().length === 0;
+  const showNoFilterMatches = showFeedRows && feedRows.length > 0 && visibleRows.length === 0;
+
+  const listHeader = useMemo(
+    () => (
+      <>
+        {showFilterField ? (
+          <ListFilterHeader hasItemsBelow={visibleRows.length > 0} style={styles.filterRow}>
+            <ListFilterField
+              clearLabel={t('subscriptions.filter.clear')}
+              label={t('subscriptions.filter.placeholder')}
+              onChangeTerm={setFilterTerm}
+              term={filterTerm}
+              testID="rss-filter"
+            />
+          </ListFilterHeader>
+        ) : null}
+        {feedErrorKey !== null ? (
+          <ListError
+            messageKey={feedErrorKey}
+            onRetry={() => {
+              void loadFeed('retry');
             }}
-            style={[styles.feedButton, isRemoving ? styles.addButtonDisabled : null]}
-            testID={index === 0 ? 'rss-feed-remove-first' : `rss-feed-remove-${feed.idText}`}
-          >
-            <Text style={styles.feedButtonLabel}>{t('features.unsubscribe')}</Text>
-          </Pressable>
-        </View>
+            testID="rss-feeds-error"
+          />
+        ) : null}
+        {playbackNoticeKey !== null ? (
+          <Text style={styles.notice} testID="rss-playback-notice">
+            {t(playbackNoticeKey)}
+          </Text>
+        ) : null}
+      </>
+    ),
+    [
+      feedErrorKey,
+      filterTerm,
+      loadFeed,
+      playbackNoticeKey,
+      showFilterField,
+      styles.filterRow,
+      styles.notice,
+      t,
+      visibleRows.length,
+    ]
+  );
+
+  const listFooter = useMemo(
+    () =>
+      showFeedRows ? (
+        <AddByRssNeedsCredentialsSection
+          items={needsCredentials}
+          onPressFeed={handleNeedsCredentialsPress}
+          showDivider={visibleRows.length > 0}
+          testIDPrefix="rss"
+        />
+      ) : null,
+    [handleNeedsCredentialsPress, needsCredentials, showFeedRows, visibleRows.length]
+  );
+
+  const renderItem = useCallback(
+    ({ index, item: row }: { index: number; item: HomeFeedRowData }) => {
+      const isItemChip = selectedMediaType === 'episodes' || selectedMediaType === 'tracks';
+      return (
+        <LibraryFeedListItem
+          artworkEdge={gridCellWidth}
+          cellStyle={isGridView ? styles.columnCell : undefined}
+          isGridView={isGridView}
+          isLast={index === visibleRows.length - 1}
+          mediaType={selectedMediaType}
+          onPlay={isItemChip ? handlePlayPress : undefined}
+          onPress={handleRowPress}
+          row={row}
+        />
       );
     },
-    [parsedFeedUrls, removeFeed, removingFeedUrl, styles, t]
+    [
+      gridCellWidth,
+      handlePlayPress,
+      handleRowPress,
+      isGridView,
+      selectedMediaType,
+      styles.columnCell,
+      visibleRows.length,
+    ]
   );
 
-  const showFeeds = !isLoading && errorKey === null;
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        onRefresh={() => {
+          void loadFeed('refresh');
+        }}
+        refreshing={isFeedRefreshing}
+        tintColor={themeStyles.buttonPrimary.backgroundColor}
+      />
+    ),
+    [isFeedRefreshing, loadFeed, themeStyles.buttonPrimary.backgroundColor]
+  );
 
   return (
-    <View style={styles.screen} testID="rss-root-screen">
-      <FlatList
+    <View style={styles.container} testID="rss-root-screen">
+      <View style={styles.selectorSection}>
+        <MediaTypeSelector
+          labelKeys={MEDIA_TYPE_LABEL_KEYS}
+          onChange={handleMediaTypeChange}
+          selectedMediaType={selectedMediaType}
+          testIDPrefix="rss"
+          trailing={
+            <MenuSelectChip
+              heading={t('filters.screen.sort_heading')}
+              menuTitle={t('filters.screen.sort_heading')}
+              onSelect={handleSortChange}
+              options={sortOptions}
+              testID="rss-sort"
+              value={resolvedPrefs.sort}
+            />
+          }
+          types={ADD_BY_RSS_LIBRARY_MEDIA_TYPES}
+        />
+      </View>
+      <FillList
         ListEmptyComponent={
-          showFeeds && needsCredentials.length === 0 ? (
-            <ListEmpty messageKey="features.add_by_rss.no_feeds_podcast" testID="rss-feeds-empty" />
-          ) : null
-        }
-        ListFooterComponent={
-          showFeeds ? (
-            <AddByRssNeedsCredentialsSection
-              items={needsCredentials}
-              onPressFeed={handleNeedsCredentialsPress}
-              showDivider={feeds.length > 0}
-              testIDPrefix="rss"
+          isFeedBusy ? (
+            <VerticalCenter>
+              <ListLoading testID="rss-feeds-loading" />
+            </VerticalCenter>
+          ) : showNoFilterMatches ? (
+            <ListEmpty messageKey="subscriptions.filter.no_matches" testID="rss-filter-empty" />
+          ) : showEmpty ? (
+            <ListEmpty
+              actionLabelKey="features.add_feed.add_feed"
+              messageKey="features.add_by_rss.no_feeds"
+              onAction={handleAddPress}
+              testID="rss-feeds-empty"
             />
           ) : null
         }
+        ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}
+        columnWrapperStyle={isGridView ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
-        data={showFeeds ? feeds : []}
-        keyExtractor={(feed) => feed.idText}
+        data={showFeedRows ? visibleRows : EMPTY_ROWS}
+        keyExtractor={feedRowKeyExtractor}
         keyboardShouldPersistTaps="handled"
-        removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
-        renderItem={renderFeed}
+        numColumns={isGridView ? columns : 1}
+        refreshControl={refreshControl}
+        renderItem={renderItem}
+        testID="rss-feed-list"
       />
     </View>
   );

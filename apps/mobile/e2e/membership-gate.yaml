@@ -58,9 +58,9 @@ name: Membership Gate
 - assertVisible:
     id: more-screen
 
-# Anonymous tier: Add by RSS is membership-tier. The add control stays enabled; tapping it opens
-# the shared gate modal (Account required → Login). Search stays at its root for the Trial 403
-# check below.
+# Anonymous tier: Add by RSS is membership-tier. The library list stays readable; tapping plus
+# opens the shared gate modal (Account required → Login). Search stays at its root for the Trial
+# 403 check below.
 - tapOn:
     id: tab-my-library
 - assertVisible:
@@ -70,7 +70,7 @@ name: Membership Gate
 - assertVisible:
     id: rss-root-screen
 - tapOn:
-    id: rss-add-submit
+    id: rss-add-button
 - assertVisible:
     id: premium-gate-modal
 - takeScreenshot: membership-gate-anonymous-add-by-rss

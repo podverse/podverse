@@ -7,7 +7,7 @@ import { Tabs } from '@podverse/ui';
 
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
-export type AddByRSSArtistPageTabKey = 'albums' | 'tracks' | 'boosts' | 'about';
+export type AddByRSSArtistPageTabKey = 'albums' | 'tracks' | 'boosts' | 'about' | 'settings';
 
 type AddByRSSArtistPageListHeaderProps = {
   selectedKey: AddByRSSArtistPageTabKey;
@@ -30,6 +30,7 @@ export const AddByRSSArtistPageListHeader: React.FC<AddByRSSArtistPageListHeader
 }) => {
   const tMedia = useTranslations('media');
   const tInfo = useTranslations('info');
+  const tSettings = useTranslations('settings');
   const tValue = useTranslations('value');
 
   const tabData = [];
@@ -73,6 +74,14 @@ export const AddByRSSArtistPageListHeader: React.FC<AddByRSSArtistPageListHeader
       zIndex: 3,
     });
   }
+
+  tabData.push({
+    key: 'settings',
+    label: tSettings('settings'),
+    onClick: () => onSelect('settings'),
+    hideDesktop: false,
+    zIndex: 2,
+  });
 
   return (
     <CommonDetailListHeader

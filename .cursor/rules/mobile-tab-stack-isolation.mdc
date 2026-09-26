@@ -40,12 +40,13 @@ lands on Search root instead of the channel they just opened).
 
 ## Add-by-RSS surface ownership
 
-My Library's Add by RSS screen **adds, lists, and unsubscribes** feeds. Browsing episodes and
-playing a followed feed happen on the **Home** stack (unified Podcasts list →
-`AddByRssPodcastDetail`).
+My Library's Add by RSS screen is the **library for those feeds**: chips for podcasts, episodes,
+artists, albums, and tracks; a plus that opens the add form; pull-to-refresh that refreshes only
+add-by-RSS feeds. Channel detail and credentials editing stay on the **Library** stack
+(`AddByRssPodcastDetail`, `AddByRssCredentials`, `AddByRssAdd`).
 
-- Do **not** add a Library affordance that opens feed contents (episode lists, Play, or a detail
-  push on the Library stack).
-- Do **not** cross-tab jump to Home's detail to provide that browsing surface from Library.
-- Home already merges directory follows with add-by-RSS feeds; keep that as the seamless browse
-  path.
+- Do **not** merge add-by-RSS follows into Home. Home lists directory follows only.
+- Do **not** jump to the Home stack to open an add-by-RSS feed's detail from Library.
+- CarPlay and Android Auto keep add-by-RSS follows in the native library index (no separate Add by
+  RSS screen there).
+- Web keeps add-by-RSS on its own sidebar library routes; those pages stay separate from Home.

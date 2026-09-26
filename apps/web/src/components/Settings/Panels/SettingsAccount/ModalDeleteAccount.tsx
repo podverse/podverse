@@ -117,7 +117,7 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
           value={emailInput}
           onChange={(e) => setEmailInput(e.target.value)}
           onBlur={() => setHasBlurred(true)}
-          placeholder={tAuthentication('email')}
+          placeholder={tAuthentication('type_your_email')}
           eyebrow={tAuthentication('email')}
           infoError={errorMessageToShow}
           aria-invalid={!!errorMessageToShow}

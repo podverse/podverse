@@ -12,6 +12,8 @@ import type {
 } from '../../../components/Boost/messages/types';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
+import { AddByRSSCredentialsSettingsSection } from '../../../components/Settings/AddByRSSCredentialsSettingsSection';
+import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
 import type { ViewSelectedOption } from '../../../components/ViewSelector/ViewSelector';
 import type {
   AddByRSSFeedRecord,
@@ -31,6 +33,10 @@ type AddByRSSArtistPageListProps = {
   breadcrumbLinkResolver?: BoostBreadcrumbLinkResolver;
   refreshTrigger: number;
   boostsHeading: string;
+  accountIdText: string | null;
+  settingsFeed: AddByRSSFeedRecord | null;
+  onSettingsFeedUpdated?: (feed: AddByRSSFeedRecord) => void;
+  loginPrompt?: React.ReactNode;
 };
 
 export const AddByRSSArtistPageList: React.FC<AddByRSSArtistPageListProps> = ({
@@ -44,6 +50,10 @@ export const AddByRSSArtistPageList: React.FC<AddByRSSArtistPageListProps> = ({
   breadcrumbLinkResolver,
   refreshTrigger,
   boostsHeading,
+  accountIdText,
+  settingsFeed,
+  onSettingsFeedUpdated,
+  loginPrompt,
 }) => {
   return (
     <DetailListWrapper>
@@ -70,6 +80,18 @@ export const AddByRSSArtistPageList: React.FC<AddByRSSArtistPageListProps> = ({
           breadcrumbLinkResolver={breadcrumbLinkResolver}
           refreshTrigger={refreshTrigger}
         />
+      )}
+      {activeTab === 'settings' && (
+        <SettingsWrapper removeWrapperMargin>
+          {loginPrompt}
+          {accountIdText !== null && settingsFeed !== null ? (
+            <AddByRSSCredentialsSettingsSection
+              accountIdText={accountIdText}
+              feed={settingsFeed}
+              onFeedUpdated={onSettingsFeedUpdated}
+            />
+          ) : null}
+        </SettingsWrapper>
       )}
     </DetailListWrapper>
   );

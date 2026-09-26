@@ -54,3 +54,30 @@ export function resolveAddByRSSFeedUrlCredentials(
   }
   return { feedUrl: canonicalUrl, credentials: null };
 }
+
+/**
+ * Both Basic Auth fields are present and within length limits (username trimmed). Used by the
+ * credentials screen and by add-feed when the username/password toggle is on.
+ */
+export function canSubmitAddByRssCredentials(username: string, password: string): boolean {
+  return isUsableCredential(username.trim()) && isUsableCredential(password);
+}
+
+/**
+ * Whether the Add by RSS form may submit: a valid http(s) feed URL, and when credentials are
+ * required both username and password have at least one character (within the length limit).
+ */
+export function canSubmitAddByRssFeed(params: {
+  feedUrl: string;
+  password: string;
+  requireCredentials: boolean;
+  username: string;
+}): boolean {
+  if (resolveAddByRSSFeedUrlCredentials(params.feedUrl) === null) {
+    return false;
+  }
+  if (!params.requireCredentials) {
+    return true;
+  }
+  return canSubmitAddByRssCredentials(params.username, params.password);
+}

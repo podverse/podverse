@@ -58,7 +58,9 @@ stack title as an in-body heading. See **mobile-screen-layout**.
 **Text fields:** `TextField` is the only painted input (tertiary fill, focus ring — never a
 stroked `TextInput`). Pass **`eyebrow` + `placeholder`** for forms (login, sign-up, playlist,
 add-by-RSS), matching web `TextInput` inset eyebrow. The caption lives _inside_ the pill; do
-not add a second `<Text>` label above it. Eyebrow fields are taller than the compact pill.
+not add a second `<Text>` label above it. The placeholder must **differ** from the eyebrow
+(example, `Optional` / `Required`, default-if-blank, or a short instruction) —
+**form-eyebrow-placeholder**. Eyebrow fields are taller than the compact pill.
 **Omit `eyebrow` only** for directory search and on-screen list filters (`SearchField`,
 `ListFilterField`). Search adds the leading glass; filter adds a clear `Button`. `TextField`
 owns the hit-target contract and blurs when the host screen loses focus. Do not wrap a thin
@@ -190,9 +192,10 @@ link switch under Submit. See **mobile-screen-layout**.
 - [ ] User-facing strings go through i18n (`t()`), including `accessibilityLabel` (**i18n-user-facing-strings**).
 - [ ] New shared UI gets a stable `testID` where E2E will assert it.
 - [ ] Boxed fields use `TextField` / `SearchField` / `ListFilterField` so the painted chrome
-      is the hit target. Forms pass `eyebrow` + `placeholder`; search and list filters omit
-      `eyebrow`. Do not wrap a `TextInput` in a padded `View`, and do not grow `TextInput`
-      padding to enlarge the target.
+      is the hit target. Forms pass `eyebrow` + a **distinct** `placeholder`
+      (**form-eyebrow-placeholder**); search and list filters omit `eyebrow`. Do not wrap a
+      `TextInput` in a padded `View`, and do not grow `TextInput` padding to enlarge the
+      target.
 - [ ] If you duplicated JSX that already exists on another screen, stop and extract.
 
 ## Avoid
