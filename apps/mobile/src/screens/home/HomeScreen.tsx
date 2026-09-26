@@ -1,4 +1,3 @@
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -31,7 +30,7 @@ import {
 } from '../../lib/offlineModeViews';
 import { beginPerfChipSample, endPerfChipSample, stampPerfFrame } from '../../lib/perf/perfFrames';
 import { perfMark } from '../../lib/perf/perfSpans';
-import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
+import type { HomeStackParamList } from '../../navigation';
 import {
   BROWSE_STACK_ROUTES,
   buildAlbumDetailParams,
@@ -39,8 +38,10 @@ import {
   buildPodcastDetailParams,
   buildTrackDetailParams,
   HOME_STACK_ROUTES,
+  navigateToContentTab,
   SEARCH_STACK_ROUTES,
 } from '../../navigation';
+import { useTabLayout } from '../../navigation/TabLayoutProvider';
 import type { HomeRangeOption, HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
 import {
   DEFAULT_HOME_RANGE,
@@ -225,6 +226,7 @@ function HomeUnsubscribedDownloadRow({
 export function HomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const { visibleTabIds } = useTabLayout();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
   const { enabled: offlineModeEnabled } = useOfflineMode();
@@ -486,25 +488,30 @@ export function HomeScreen() {
 
   const handleSearchPress = useCallback(
     (medium: 'all' | 'music' = 'all') => {
-      // Through the tab navigator rather than resetting a stack, so Home keeps its own history. The
-      // user pressed this because they have nothing subscribed, so Search opens at its root with an
-      // empty, focused field rather than whatever they last looked at there.
-      navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('Search', {
-        params: { autoFocus: true, medium },
-        screen: SEARCH_STACK_ROUTES.SearchRoot,
+      // Search opens at its root with an empty, focused field. A visible Search tab switches in
+      // the tab bar; when Search is listed on More, it is pushed on that stack.
+      navigateToContentTab(navigation, visibleTabIds, {
+        params: {
+          params: { autoFocus: true, medium },
+          screen: SEARCH_STACK_ROUTES.SearchRoot,
+        },
+        tabId: 'Search',
       });
     },
-    [navigation]
+    [navigation, visibleTabIds]
   );
 
   const handleBrowsePress = useCallback(
     (mediaType: BrowseMediaType) => {
-      navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('Browse', {
-        params: { mediaType },
-        screen: BROWSE_STACK_ROUTES.BrowseRoot,
+      navigateToContentTab(navigation, visibleTabIds, {
+        params: {
+          params: { mediaType },
+          screen: BROWSE_STACK_ROUTES.BrowseRoot,
+        },
+        tabId: 'Browse',
       });
     },
-    [navigation]
+    [navigation, visibleTabIds]
   );
   const loadFeed = useCallback(
     async (source: HomeFeedLoadSource) => {

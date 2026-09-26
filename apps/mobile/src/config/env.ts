@@ -90,6 +90,27 @@ export const getMobileDeepLinkSchemesFromEnv = (): string[] => {
 
 const FALLBACK_PUBLIC_WEB_BASE_URL = 'https://podverse.fm';
 
+/** Same address the web contact page uses when a fork has not set its own. */
+const FALLBACK_CONTACT_EMAIL = 'contact@podverse.fm';
+
+/**
+ * An address is one mailbox: no spaces, and no characters that would add query parameters
+ * to the mailto URL.
+ */
+const CONTACT_EMAIL_PATTERN = /^[^\s@/?#&]+@[^\s@/?#&]+$/;
+
+/**
+ * Address for the error-log email action. Forks set `EXPO_PUBLIC_CONTACT_EMAIL`.
+ * Unset or invalid uses the Podverse contact address, same idea as the public web base URL.
+ */
+export const getMobileContactEmailFromEnv = (): string => {
+  const configured = trimToNull(process.env.EXPO_PUBLIC_CONTACT_EMAIL);
+  if (configured !== null && CONTACT_EMAIL_PATTERN.test(configured)) {
+    return configured;
+  }
+  return FALLBACK_CONTACT_EMAIL;
+};
+
 const normalizeBaseUrl = (value: string): string => {
   return value.endsWith('/') ? value.slice(0, -1) : value;
 };

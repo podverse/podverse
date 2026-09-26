@@ -189,6 +189,27 @@
       "directory_channel_gone": "Se eliminó {channel} de este dispositivo. Ya no está en el directorio."
     }
   },
+  "error_log": {
+    "intro": "Abre una entrada y toca Enviar detalles por correo para enviar el informe a {email}. Copiar detalles copia el mismo informe.",
+    "detail": {
+      "copy": "Copiar detalles",
+      "email": "Enviar detalles por correo",
+      "email_failed": "No se pudo abrir el correo",
+      "email_subject": "Informe de error: {code}",
+      "email_overflow": "El informe completo está en el portapapeles. Pégalo aquí.",
+      "device_heading": "Dispositivo",
+      "device": {
+        "os": "OS",
+        "device_type": "Tipo de dispositivo",
+        "model": "Modelo",
+        "app_version": "Versión de la app",
+        "app_build": "Compilación de la app",
+        "runtime": "Entorno",
+        "locale": "Configuración regional",
+        "screen": "Pantalla"
+      }
+    }
+  },
   "media_player": {
     "chapter_tooltip": "Capítulo: {title}"
   },

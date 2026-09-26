@@ -189,6 +189,27 @@
       "directory_channel_gone": "Retiré {channel} de cet appareil. Il n'est plus dans le répertoire."
     }
   },
+  "error_log": {
+    "intro": "Ouvrez une entrée, puis touchez Envoyer les détails par e-mail pour envoyer le rapport à {email}. Copier les détails copie le même rapport.",
+    "detail": {
+      "copy": "Copier les détails",
+      "email": "Envoyer les détails par e-mail",
+      "email_failed": "Impossible d'ouvrir l'e-mail",
+      "email_subject": "Rapport d'erreur : {code}",
+      "email_overflow": "Le rapport complet est dans le presse-papiers. Collez-le ici.",
+      "device_heading": "Appareil",
+      "device": {
+        "os": "OS",
+        "device_type": "Type d'appareil",
+        "model": "Modèle",
+        "app_version": "Version de l'app",
+        "app_build": "Compilation de l'app",
+        "runtime": "Environnement",
+        "locale": "Paramètres régionaux",
+        "screen": "Écran"
+      }
+    }
+  },
   "media_player": {
     "chapter_tooltip": "Chapitre : {title}"
   },

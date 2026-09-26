@@ -4,7 +4,8 @@ import { moveItem } from '../lib/reorder/moveItem';
 
 /**
  * Device-local tab bar layout. More is always last and is not stored. Hidden content tabs stay
- * registered in the navigator and appear as rows on More.
+ * registered in the navigator so deep links still resolve, and they appear as rows on More.
+ * Opening a row pushes that tab's stack on the More navigator.
  */
 export const CONTENT_TAB_IDS = ['Home', 'Browse', 'Search', 'My Library', 'Notifications'] as const;
 

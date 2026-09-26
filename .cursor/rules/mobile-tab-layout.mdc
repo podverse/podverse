@@ -27,11 +27,16 @@ standing exception to **ui-copy-sentence-case**; keep other surfaces (web sideba
 - Persist with `writeVisibleTabs` / `prefs/tabLayout.ts` (AsyncStorage). Do not sync this to the
   server.
 - Cap visible content tabs at `MAX_VISIBLE_CONTENT_TABS` (4). Adding a fifth replaces the last slot.
-- Send overflow tabs to More (`more-nav-<slug>`).
+- List overflow tabs on More (`more-nav-<slug>`). Opening a row pushes that tab's stack on the
+  More stack (`MoreOverflowHome`, `MoreOverflowSearch`, `MoreOverflowLibrary`,
+  `MoreOverflowBrowse`, `MoreOverflowNotifications`). More stays selected and Back returns to
+  More.
 
 ## Do not
 
 - Unmount a tab to hide it (breaks `navigate('Notifications')` and deep links).
+- Open an overflow row with `tabNavigation.navigate(tabId)`. That focuses a tab whose button is
+  hidden, highlights Home, and shows no Back control.
 - Paint the default bar and then swap after AsyncStorage (FOUC).
 - Reorder by changing `Tab.Screen` children order (remounts stacks).
 - Use the default tab press highlight (ripple / opacity). Visible tabs use `QuietTabBarButton`

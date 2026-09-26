@@ -4,7 +4,12 @@ import type {
 } from '@react-navigation/bottom-tabs';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
-import type { LinkingOptions, NavigatorScreenParams } from '@react-navigation/native';
+import type {
+  LinkingOptions,
+  NavigationProp,
+  NavigatorScreenParams,
+  ParamListBase,
+} from '@react-navigation/native';
 import {
   createNavigationContainerRef,
   getPathFromState as getDefaultPathFromState,
@@ -43,6 +48,7 @@ import { isMobileE2eHarnessEnabled } from '../lib/e2e/e2eHarness';
 import { PerfE2eReport } from '../lib/perf/PerfE2eReport';
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
+import type { ContentTabId } from '../prefs/tabLayout';
 import { isContentTabId, TAB_TEST_ID_SLUG, tabLabelKey } from '../prefs/tabLayout';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
@@ -84,8 +90,8 @@ import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
-import { AddByRssCredentialsScreen } from '../screens/rss/AddByRssCredentialsScreen';
 import { AddByRssAddScreen } from '../screens/rss/AddByRssAddScreen';
+import { AddByRssCredentialsScreen } from '../screens/rss/AddByRssCredentialsScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
@@ -223,6 +229,11 @@ export const MORE_STACK_ROUTES = {
   MoreFaq: 'MoreFaq',
   MoreMembership: 'MoreMembership',
   MoreOpml: 'MoreOpml',
+  MoreOverflowBrowse: 'MoreOverflowBrowse',
+  MoreOverflowHome: 'MoreOverflowHome',
+  MoreOverflowLibrary: 'MoreOverflowLibrary',
+  MoreOverflowNotifications: 'MoreOverflowNotifications',
+  MoreOverflowSearch: 'MoreOverflowSearch',
   MorePublicProfile: 'MorePublicProfile',
   MoreProfile: 'MoreProfile',
   PlaylistDetail: 'PlaylistDetail',
@@ -254,6 +265,106 @@ export const ROOT_STACK_ROUTES = {
 // Tablet breakpoint for adaptive tab rail — same `lg` token as useResponsive.
 export const MOBILE_TABLET_NAV_MIN_WIDTH = breakpoints.lg;
 
+/** Prefix used by the More-hosted copy of a content tab's linking paths. */
+const OVERFLOW_LINK_PREFIX = 'more/overflow';
+
+/**
+ * `Object.fromEntries` widens keys to `string`. The assertion restores the source key union so the
+ * result still matches `PathConfigMap` for that tab.
+ */
+const prefixScreenPaths = <Screens extends Record<string, string>>(
+  screens: Screens,
+  prefix: string
+): { [Key in keyof Screens]: string } => {
+  return Object.fromEntries(
+    Object.entries(screens).map(([name, path]) => [name, `${prefix}/${path}`])
+  ) as { [Key in keyof Screens]: string };
+};
+
+const homeTabLinkScreens = {
+  AddByRssPodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}/add-by-rss/:feedIdText`,
+  AlbumDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.ALBUM}/:albumId`,
+  ArtistDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.ARTIST}/:artistId`,
+  ClipDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.CLIP}/:clipId`,
+  EpisodeDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.EPISODE}/:episodeId`,
+  HomeRoot: MOBILE_HOME_TAB_SEGMENT,
+  PodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PODCAST}/:podcastId`,
+  TrackDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.TRACK}/:trackId`,
+} as const;
+
+const moreTabLinkScreens = {
+  MoreAbout: 'more/about',
+  MoreAdvanced: 'more/advanced',
+  MoreE2ePlayback: 'more/e2e/playback',
+  MoreErrorLog: 'more/advanced/error-log',
+  MoreFaq: 'more/faq',
+  MoreMembership: `more${APP_ROUTES.MEMBERSHIP}`,
+  MoreOpml: 'more/opml',
+  MorePublicProfile: `more${APP_ROUTES.PROFILE}/:accountIdText`,
+  MoreProfile: `more${APP_ROUTES.PROFILE}`,
+  MoreRoot: 'more',
+  MoreSettings: `more${APP_ROUTES.SETTINGS}`,
+  MoreSettingsAppearance: `more${APP_ROUTES.SETTINGS}/appearance`,
+  MoreSettingsAutoDownloadCatchUp: `more${APP_ROUTES.SETTINGS}/downloads/catch-up`,
+  MoreSettingsDownloadLimit: `more${APP_ROUTES.SETTINGS}/downloads/limit`,
+  MoreSettingsDownloads: `more${APP_ROUTES.SETTINGS}/downloads`,
+  MoreSettingsLocale: `more${APP_ROUTES.SETTINGS}/locale`,
+  MoreSettingsNotifications: `more${APP_ROUTES.SETTINGS}/notifications`,
+  MoreSettingsPlayback: `more${APP_ROUTES.SETTINGS}/playback`,
+  MoreSettingsTabBar: `more${APP_ROUTES.SETTINGS}/tab-bar`,
+  MoreSettingsTheme: `more${APP_ROUTES.SETTINGS}/theme`,
+  MoreSmoke: 'more/e2e/smoke',
+} as const;
+
+const libraryTabLinkScreens = {
+  AddByRssAdd: 'my-library/add-by-rss/add',
+  AddByRssCredentials: 'my-library/add-by-rss/credentials/:feedIdText',
+  AddByRssPodcastDetail: 'my-library/add-by-rss/:feedIdText',
+  AddByRssRoot: 'my-library/add-by-rss',
+  AlbumDetail: `my-library${APP_ROUTES.ALBUM}/:albumId`,
+  ArtistDetail: `my-library${APP_ROUTES.ARTIST}/:artistId`,
+  EpisodeDetail: `my-library${APP_ROUTES.EPISODE}/:episodeId`,
+  LibraryClipDetail: `my-library${APP_ROUTES.CLIP}/:clipId`,
+  LibraryDownloads: 'my-library/downloads',
+  LibraryHistory: 'my-library/history',
+  LibraryHub: 'my-library',
+  LibraryMyClips: 'my-library/my-clips',
+  PlaylistCreate: `my-library${APP_ROUTES.PLAYLIST}/create`,
+  PlaylistDetail: `my-library${APP_ROUTES.PLAYLIST}/:playlistId`,
+  PlaylistEdit: `my-library${APP_ROUTES.PLAYLIST}/:playlistId/edit`,
+  LibraryPlaylists: 'my-library/playlists',
+  LibraryQueue: 'my-library/queue',
+  PodcastDetail: `my-library${APP_ROUTES.PODCAST}/:podcastId`,
+  TrackDetail: `my-library${APP_ROUTES.TRACK}/:trackId`,
+} as const;
+
+const browseTabLinkScreens = {
+  AlbumDetail: `browse${APP_ROUTES.ALBUM}/:albumId`,
+  ArtistDetail: `browse${APP_ROUTES.ARTIST}/:artistId`,
+  BrowseRoot: 'browse',
+  ClipDetail: `browse${APP_ROUTES.CLIP}/:clipId`,
+  EpisodeDetail: `browse${APP_ROUTES.EPISODE}/:episodeId`,
+  PlaylistDetail: `browse${APP_ROUTES.PLAYLIST}/:playlistId`,
+  PodcastDetail: `browse${APP_ROUTES.PODCAST}/:podcastId`,
+  Profile: `browse${APP_ROUTES.PROFILE}/:accountIdText`,
+  TrackDetail: `browse${APP_ROUTES.TRACK}/:trackId`,
+} as const;
+
+const notificationsTabLinkScreens = {
+  NotificationsInbox: 'notifications',
+} as const;
+
+const searchTabLinkScreens = {
+  AlbumDetail: `search${APP_ROUTES.ALBUM}/:albumId`,
+  ArtistDetail: `search${APP_ROUTES.ARTIST}/:artistId`,
+  ClipDetail: `search${APP_ROUTES.CLIP}/:clipId`,
+  EpisodeDetail: `search${APP_ROUTES.EPISODE}/:episodeId`,
+  PodcastDetail: `search${APP_ROUTES.PODCAST}/:podcastId`,
+  SearchResultDetail: 'search/result/:resultId',
+  SearchRoot: 'search',
+  TrackDetail: `search${APP_ROUTES.TRACK}/:trackId`,
+} as const;
+
 const mobileNavigationScreens = {
   FullPlayer: 'player',
   V4vInfo: 'v4v',
@@ -264,94 +375,41 @@ const mobileNavigationScreens = {
         // `mapIncomingPathToScopedPath` (and consumed back by `mapScopedPathToFlatPath`). Without
         // it, `getStateFromPath('/home/podcast/:id')` returns undefined and deep links fall back
         // to Home. HomeRoot stays the bare `home` segment.
-        screens: {
-          AddByRssPodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}/add-by-rss/:feedIdText`,
-          AlbumDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.ALBUM}/:albumId`,
-          ArtistDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.ARTIST}/:artistId`,
-          ClipDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.CLIP}/:clipId`,
-          EpisodeDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.EPISODE}/:episodeId`,
-          HomeRoot: MOBILE_HOME_TAB_SEGMENT,
-          PodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PODCAST}/:podcastId`,
-          TrackDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.TRACK}/:trackId`,
-        },
+        screens: homeTabLinkScreens,
       },
       More: {
         screens: {
-          MoreAbout: 'more/about',
-          MoreAdvanced: 'more/advanced',
-          MoreE2ePlayback: 'more/e2e/playback',
-          MoreErrorLog: 'more/advanced/error-log',
-          MoreFaq: 'more/faq',
-          MoreMembership: `more${APP_ROUTES.MEMBERSHIP}`,
-          MoreOpml: 'more/opml',
-          MorePublicProfile: `more${APP_ROUTES.PROFILE}/:accountIdText`,
-          MoreProfile: `more${APP_ROUTES.PROFILE}`,
-          MoreRoot: 'more',
-          MoreSettings: `more${APP_ROUTES.SETTINGS}`,
-          MoreSettingsAppearance: `more${APP_ROUTES.SETTINGS}/appearance`,
-          MoreSettingsAutoDownloadCatchUp: `more${APP_ROUTES.SETTINGS}/downloads/catch-up`,
-          MoreSettingsDownloadLimit: `more${APP_ROUTES.SETTINGS}/downloads/limit`,
-          MoreSettingsDownloads: `more${APP_ROUTES.SETTINGS}/downloads`,
-          MoreSettingsLocale: `more${APP_ROUTES.SETTINGS}/locale`,
-          MoreSettingsNotifications: `more${APP_ROUTES.SETTINGS}/notifications`,
-          MoreSettingsPlayback: `more${APP_ROUTES.SETTINGS}/playback`,
-          MoreSettingsTabBar: `more${APP_ROUTES.SETTINGS}/tab-bar`,
-          MoreSettingsTheme: `more${APP_ROUTES.SETTINGS}/theme`,
-          MoreSmoke: 'more/e2e/smoke',
+          ...moreTabLinkScreens,
+          // Overflow copies of each content-tab stack. `/notifications` still targets the
+          // Notifications tab.
+          MoreOverflowBrowse: {
+            screens: prefixScreenPaths(browseTabLinkScreens, OVERFLOW_LINK_PREFIX),
+          },
+          MoreOverflowHome: {
+            screens: prefixScreenPaths(homeTabLinkScreens, OVERFLOW_LINK_PREFIX),
+          },
+          MoreOverflowLibrary: {
+            screens: prefixScreenPaths(libraryTabLinkScreens, OVERFLOW_LINK_PREFIX),
+          },
+          MoreOverflowNotifications: {
+            screens: prefixScreenPaths(notificationsTabLinkScreens, OVERFLOW_LINK_PREFIX),
+          },
+          MoreOverflowSearch: {
+            screens: prefixScreenPaths(searchTabLinkScreens, OVERFLOW_LINK_PREFIX),
+          },
         },
       },
       'My Library': {
-        screens: {
-          AddByRssAdd: 'my-library/add-by-rss/add',
-          AddByRssCredentials: 'my-library/add-by-rss/credentials/:feedIdText',
-          AddByRssPodcastDetail: 'my-library/add-by-rss/:feedIdText',
-          AddByRssRoot: 'my-library/add-by-rss',
-          AlbumDetail: `my-library${APP_ROUTES.ALBUM}/:albumId`,
-          ArtistDetail: `my-library${APP_ROUTES.ARTIST}/:artistId`,
-          EpisodeDetail: `my-library${APP_ROUTES.EPISODE}/:episodeId`,
-          LibraryClipDetail: `my-library${APP_ROUTES.CLIP}/:clipId`,
-          LibraryDownloads: 'my-library/downloads',
-          LibraryHistory: 'my-library/history',
-          LibraryHub: 'my-library',
-          LibraryMyClips: 'my-library/my-clips',
-          PlaylistCreate: `my-library${APP_ROUTES.PLAYLIST}/create`,
-          PlaylistDetail: `my-library${APP_ROUTES.PLAYLIST}/:playlistId`,
-          PlaylistEdit: `my-library${APP_ROUTES.PLAYLIST}/:playlistId/edit`,
-          LibraryPlaylists: 'my-library/playlists',
-          LibraryQueue: 'my-library/queue',
-          PodcastDetail: `my-library${APP_ROUTES.PODCAST}/:podcastId`,
-          TrackDetail: `my-library${APP_ROUTES.TRACK}/:trackId`,
-        },
+        screens: libraryTabLinkScreens,
       },
       Browse: {
-        screens: {
-          AlbumDetail: `browse${APP_ROUTES.ALBUM}/:albumId`,
-          ArtistDetail: `browse${APP_ROUTES.ARTIST}/:artistId`,
-          BrowseRoot: 'browse',
-          ClipDetail: `browse${APP_ROUTES.CLIP}/:clipId`,
-          EpisodeDetail: `browse${APP_ROUTES.EPISODE}/:episodeId`,
-          PlaylistDetail: `browse${APP_ROUTES.PLAYLIST}/:playlistId`,
-          PodcastDetail: `browse${APP_ROUTES.PODCAST}/:podcastId`,
-          Profile: `browse${APP_ROUTES.PROFILE}/:accountIdText`,
-          TrackDetail: `browse${APP_ROUTES.TRACK}/:trackId`,
-        },
+        screens: browseTabLinkScreens,
       },
       Notifications: {
-        screens: {
-          NotificationsInbox: 'notifications',
-        },
+        screens: notificationsTabLinkScreens,
       },
       Search: {
-        screens: {
-          AlbumDetail: `search${APP_ROUTES.ALBUM}/:albumId`,
-          ArtistDetail: `search${APP_ROUTES.ARTIST}/:artistId`,
-          ClipDetail: `search${APP_ROUTES.CLIP}/:clipId`,
-          EpisodeDetail: `search${APP_ROUTES.EPISODE}/:episodeId`,
-          PodcastDetail: `search${APP_ROUTES.PODCAST}/:podcastId`,
-          SearchResultDetail: 'search/result/:resultId',
-          SearchRoot: 'search',
-          TrackDetail: `search${APP_ROUTES.TRACK}/:trackId`,
-        },
+        screens: searchTabLinkScreens,
       },
     },
   },
@@ -476,6 +534,11 @@ export type MoreStackParamList = {
   MoreFaq: undefined;
   MoreMembership: undefined;
   MoreOpml: undefined;
+  MoreOverflowBrowse: NavigatorScreenParams<BrowseStackParamList> | undefined;
+  MoreOverflowHome: NavigatorScreenParams<HomeStackParamList> | undefined;
+  MoreOverflowLibrary: NavigatorScreenParams<LibraryStackParamList> | undefined;
+  MoreOverflowNotifications: NavigatorScreenParams<NotificationsStackParamList> | undefined;
+  MoreOverflowSearch: NavigatorScreenParams<SearchStackParamList> | undefined;
   MorePublicProfile: { accountIdText: string };
   MoreProfile: undefined;
   PlaylistDetail: { playlistId: string };
@@ -515,6 +578,77 @@ export type MobileTabParamList = {
   'My Library': NavigatorScreenParams<LibraryStackParamList> | undefined;
   More: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
+
+function isMobileTabNavigation(
+  navigation: NavigationProp<ParamListBase>
+): navigation is BottomTabNavigationProp<MobileTabParamList> {
+  return navigation.getState().type === 'tab';
+}
+
+/** Walk up until the bottom-tab navigator. A stack pushed onto More is not a direct child of it. */
+export function getEnclosingTabNavigation(
+  navigation: NavigationProp<ParamListBase>
+): BottomTabNavigationProp<MobileTabParamList> | undefined {
+  let current: NavigationProp<ParamListBase> | undefined = navigation;
+  while (current !== undefined) {
+    const parent: NavigationProp<ParamListBase> | undefined = current.getParent();
+    if (parent === undefined) {
+      return undefined;
+    }
+    if (isMobileTabNavigation(parent)) {
+      return parent;
+    }
+    current = parent;
+  }
+  return undefined;
+}
+
+type ContentTabOpenTarget =
+  | {
+      tabId: 'Browse';
+      params: NonNullable<NavigatorScreenParams<BrowseStackParamList>>;
+    }
+  | {
+      tabId: 'Search';
+      params: NonNullable<NavigatorScreenParams<SearchStackParamList>>;
+    };
+
+/**
+ * Open Search or Browse. A visible tab switches in the tab bar. A tab listed on More is pushed
+ * on the More stack so Back returns there.
+ */
+export function navigateToContentTab(
+  navigation: NavigationProp<ParamListBase>,
+  visibleTabIds: readonly ContentTabId[],
+  target: ContentTabOpenTarget
+): void {
+  const tabNavigation = getEnclosingTabNavigation(navigation);
+  if (tabNavigation === undefined) {
+    return;
+  }
+
+  if (visibleTabIds.includes(target.tabId)) {
+    if (target.tabId === 'Search') {
+      tabNavigation.navigate('Search', target.params);
+      return;
+    }
+    tabNavigation.navigate('Browse', target.params);
+    return;
+  }
+
+  if (target.tabId === 'Search') {
+    tabNavigation.navigate('More', {
+      params: target.params,
+      screen: MORE_STACK_ROUTES.MoreOverflowSearch,
+    });
+    return;
+  }
+
+  tabNavigation.navigate('More', {
+    params: target.params,
+    screen: MORE_STACK_ROUTES.MoreOverflowBrowse,
+  });
+}
 
 function HiddenTabBarButton() {
   return null;
@@ -863,6 +997,11 @@ type MoreStackNavigatorProps = {
   onRequestSignUp: () => void;
 };
 
+const moreOverflowScreenOptions = {
+  gestureEnabled: false,
+  headerShown: false,
+} as const;
+
 function MoreStackNavigator({
   onRequestLogin,
   onRequestLogout,
@@ -883,6 +1022,31 @@ function MoreStackNavigator({
           />
         )}
       </MoreStack.Screen>
+      <MoreStack.Screen
+        component={HomeStackNavigator}
+        name={MORE_STACK_ROUTES.MoreOverflowHome}
+        options={moreOverflowScreenOptions}
+      />
+      <MoreStack.Screen
+        component={SearchStackNavigator}
+        name={MORE_STACK_ROUTES.MoreOverflowSearch}
+        options={moreOverflowScreenOptions}
+      />
+      <MoreStack.Screen
+        component={LibraryStackNavigator}
+        name={MORE_STACK_ROUTES.MoreOverflowLibrary}
+        options={moreOverflowScreenOptions}
+      />
+      <MoreStack.Screen
+        component={BrowseStackNavigator}
+        name={MORE_STACK_ROUTES.MoreOverflowBrowse}
+        options={moreOverflowScreenOptions}
+      />
+      <MoreStack.Screen
+        component={NotificationsStackNavigator}
+        name={MORE_STACK_ROUTES.MoreOverflowNotifications}
+        options={moreOverflowScreenOptions}
+      />
       <MoreStack.Screen
         component={MoreFaqScreen}
         name={MORE_STACK_ROUTES.MoreFaq}
@@ -1096,11 +1260,30 @@ function MoreRootScreen({
   const { isExpired } = useMembership();
   const { overflowTabIds } = useTabLayout();
   const isAuthenticated = status === 'authenticated';
-  const tabNavigation = navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>();
+
+  const openOverflowTab = (tabId: ContentTabId): void => {
+    switch (tabId) {
+      case 'Browse':
+        navigation.navigate(MORE_STACK_ROUTES.MoreOverflowBrowse);
+        return;
+      case 'Home':
+        navigation.navigate(MORE_STACK_ROUTES.MoreOverflowHome);
+        return;
+      case 'My Library':
+        navigation.navigate(MORE_STACK_ROUTES.MoreOverflowLibrary);
+        return;
+      case 'Notifications':
+        navigation.navigate(MORE_STACK_ROUTES.MoreOverflowNotifications);
+        return;
+      case 'Search':
+        navigation.navigate(MORE_STACK_ROUTES.MoreOverflowSearch);
+        return;
+    }
+  };
 
   const overflowItems: MenuListItem[] = overflowTabIds.map((tabId) => ({
     onPress: () => {
-      tabNavigation?.navigate(tabId);
+      openOverflowTab(tabId);
     },
     testID: `more-nav-${TAB_TEST_ID_SLUG[tabId]}`,
     title: t(tabLabelKey(tabId)),

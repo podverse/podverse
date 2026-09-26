@@ -51,7 +51,9 @@ import { defineConfig } from 'vitest/config';
  * failure taxonomy that
  * produces the quotable error code (`src/sync/syncErrorClassification.ts`), and the error log's
  * cap / eviction rule, detail storage, and copy/export format (`src/data/repositories/syncEventLog.ts`
- * — pure; the SQLite half stays in `syncEventLogRepository.ts`) along with the rows playback and
+ * — pure; the SQLite half stays in `syncEventLogRepository.ts`), the mailto URL builder and device
+ * report lines (`src/screens/more/errorLogMailto.ts`, `src/screens/more/errorLogDeviceContext.ts` —
+ * pure; the platform reader stays in `errorLogDeviceContext.read.ts`) along with the rows playback and
  * add-by-RSS write into it (`src/playback/playbackErrorLog.ts`,
  * `src/lib/addByRss/addByRssErrorLog.ts`). Playback reconciliation is here on the same
  * split: the bounded offline outbox ordering and drain batching
@@ -147,6 +149,8 @@ export default defineConfig({
       'src/screens/episode/episodeTabs.test.ts',
       'src/screens/player/fullPlayerLayout.test.ts',
       'src/screens/search/podcastIndexFeedPreview.test.ts',
+      'src/screens/more/errorLogDeviceContext.test.ts',
+      'src/screens/more/errorLogMailto.test.ts',
       'src/sync/syncErrorClassification.test.ts',
       'src/sync/syncQueue.test.ts',
       'src/theme/resolveColumns.test.ts',

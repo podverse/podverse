@@ -198,6 +198,8 @@ Mobile now participates in the same local env pipeline as other apps:
   `~/.config/podverse/local-env-overrides/api.env` (seeded by `make local_env_prepare`,
   linked by `make local_env_link`) and are applied to both web sidecar `NEXT_PUBLIC_API_*`
   vars and mobile `EXPO_PUBLIC_MOBILE_API_BASE_URL_{IOS,ANDROID}` (must include `/api/v2`).
+- `NEXT_PUBLIC_CONTACT_EMAIL` from `socials.env` is copied to mobile
+  `EXPO_PUBLIC_CONTACT_EMAIL` for the error-log email action.
 - At runtime, the app reads those vars only via `getMobileConfig()` in
   [`apps/mobile/src/config/`](src/config/) (same single-config idea as web/API `config/index.ts`).
 - Android URL derives emulator host `10.0.2.2` automatically when local host is

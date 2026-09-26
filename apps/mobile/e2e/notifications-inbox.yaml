@@ -12,6 +12,8 @@ name: Notifications Inbox
 - assertVisible:
     id: notifications-inbox-screen
 - assertVisible:
+    id: stack-header-back
+- assertVisible:
     id: notifications-inbox-auth-required
 - assertVisible:
     id: notifications-inbox-auth-required-action
@@ -21,6 +23,16 @@ name: Notifications Inbox
 
 - tapOn:
     id: tab-more
+- tapOn:
+    id: more-nav-notifications
+- assertVisible:
+    id: notifications-inbox-screen
+- assertVisible:
+    id: stack-header-back
+- tapOn:
+    id: stack-header-back
+- assertVisible:
+    id: more-screen
 - tapOn:
     id: more-nav-notifications
 - assertVisible:

@@ -189,6 +189,27 @@
       "directory_channel_gone": ""
     }
   },
+  "error_log": {
+    "intro": "",
+    "detail": {
+      "copy": "",
+      "email": "",
+      "email_failed": "",
+      "email_subject": "",
+      "email_overflow": "",
+      "device_heading": "",
+      "device": {
+        "os": "",
+        "device_type": "",
+        "model": "",
+        "app_version": "",
+        "app_build": "",
+        "runtime": "",
+        "locale": "",
+        "screen": ""
+      }
+    }
+  },
   "media_player": {
     "chapter_tooltip": ""
   },

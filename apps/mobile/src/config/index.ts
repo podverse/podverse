@@ -1,4 +1,5 @@
 import {
+  getMobileContactEmailFromEnv,
   getMobileDeepLinkSchemesFromEnv,
   getMobilePublicWebBaseUrlFromEnv,
   getMobilePushProviderFromEnv,
@@ -19,6 +20,8 @@ export { validateMobileApiEnv, assertMobileApiEnvOrWarn } from './validateMobile
 export type MobileConfig = {
   /** Parsed API connection, or null when unset (UI-only) or invalid. */
   api: MobileApiConnection | null;
+  /** Address opened by the error-log email action. */
+  contactEmail: string;
   /** Custom URL schemes registered for deep links (e.g. `['podverse-next', 'podverse']`). */
   deepLinkSchemes: string[];
   isE2e: boolean;
@@ -43,10 +46,12 @@ export const getMobileConfig = (): MobileConfig => {
   const unifiedPushAuthKey = getMobileUnifiedPushAuthKeyFromEnv();
   const isV4vEnabled = isMobileV4vEnabledFromEnv();
   const webBaseUrl = getMobilePublicWebBaseUrlFromEnv();
+  const contactEmail = getMobileContactEmailFromEnv();
 
   if (selectedBaseUrl.value === null) {
     return {
       api: null,
+      contactEmail,
       deepLinkSchemes,
       isE2e,
       isV4vEnabled,
@@ -60,6 +65,7 @@ export const getMobileConfig = (): MobileConfig => {
   if (!assertMobileApiEnvOrWarn(selectedBaseUrl.sourceEnvVarName)) {
     return {
       api: null,
+      contactEmail,
       deepLinkSchemes,
       isE2e,
       isV4vEnabled,
@@ -73,6 +79,7 @@ export const getMobileConfig = (): MobileConfig => {
   const api = parseMobileApiConnection(selectedBaseUrl.value);
   return {
     api,
+    contactEmail,
     deepLinkSchemes,
     isE2e,
     isV4vEnabled,

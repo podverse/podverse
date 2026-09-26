@@ -576,6 +576,10 @@ done
 for v in NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB NEXT_PUBLIC_SOCIAL_DISCORD NEXT_PUBLIC_SOCIAL_GITHUB NEXT_PUBLIC_SOCIAL_MATRIX NEXT_PUBLIC_SOCIAL_X; do
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
+# Same contact address, for the mobile error-log email action.
+if [ -n "${NEXT_PUBLIC_CONTACT_EMAIL:-}" ]; then
+	upsert_var "$MOBILE_APP_ENV" "EXPO_PUBLIC_CONTACT_EMAIL" "$NEXT_PUBLIC_CONTACT_EMAIL"
+fi
 
 # From web-image.env (optional image proxy + Next.js image optimizer toggles for web sidecars)
 for v in NEXT_PUBLIC_IMAGE_PROXY_ENABLED NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED; do

@@ -105,6 +105,7 @@ export type {
   SyncEventLogDetails,
   SyncEventLogEntry,
   SyncEventOutcome,
+  SyncEventReportDeviceField,
   SyncEventReportEnvironment,
 } from './syncEventLog';
 export { syncEventLogRepository } from './syncEventLogRepository';

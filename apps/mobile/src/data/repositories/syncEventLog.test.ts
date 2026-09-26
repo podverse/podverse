@@ -105,6 +105,23 @@ describe('formatSyncEventLogExport', () => {
     expect(formatSyncEventLogExport([])).toBe('Error log (0)');
   });
 
+  it('writes device facts once under the header', () => {
+    const text = formatSyncEventLogExport(
+      [],
+      [
+        { key: 'os', value: 'iOS 26.5' },
+        { key: 'device_type', value: 'phone' },
+      ]
+    );
+    expect(text.split('\n')).toEqual([
+      'Error log (0)',
+      '',
+      'Device',
+      'os: iOS 26.5',
+      'device_type: phone',
+    ]);
+  });
+
   it('indents each entry’s details beneath it in display order', () => {
     const text = formatSyncEventLogExport([
       entry({
@@ -171,7 +188,13 @@ describe('formatSyncEventLogEntryReport', () => {
         jobKind: 'playback',
         message: 'Forbidden',
       }),
-      { appVersion: '5.0.0', platform: 'ios 18.2' }
+      {
+        device: [
+          { key: 'os', value: 'iOS 18.2' },
+          { key: 'device_type', value: 'phone' },
+          { key: 'app_version', value: '5.0.0' },
+        ],
+      }
     );
     expect(text.split('\n')).toEqual([
       'Error report',
@@ -183,15 +206,17 @@ describe('formatSyncEventLogEntryReport', () => {
       'http_status: 403',
       'media_url: https://host.example/ep.mp3?token=abc',
       'channel_title: Some show',
+      '',
+      'Device',
+      'os: iOS 18.2',
+      'device_type: phone',
       'app_version: 5.0.0',
-      'platform: ios 18.2',
     ]);
   });
 
   it('marks a missing code and omits a missing message', () => {
     const text = formatSyncEventLogEntryReport(entry({ outcome: 'skipped' }), {
-      appVersion: '5.0.0',
-      platform: 'android 33',
+      device: [{ key: 'os', value: 'Android 13 (API 33)' }],
     });
     expect(text).toContain('code: -');
     expect(text).not.toContain('message:');
