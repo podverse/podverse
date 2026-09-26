@@ -976,12 +976,9 @@
   },
   "about": {
     "title": "About",
-    "intro_text": "{brand_name} is a FOSS podcast manager for iOS, Android, F-Droid, and web.",
     "download_app_store": "Download on the App Store",
     "download_google_play": "GET IT ON Google Play",
-    "download_f_droid": "GET IT ON F-Droid",
-    "licensing_text": "All {brand_name} software is provided under a free and open source (FOSS) licence. Features that require updating our servers are available only with membership. Sign up today and start with Trial status. 🥳",
-    "features_title": "Features"
+    "download_f_droid": "GET IT ON F-Droid"
   },
   "checkout": {
     "checkout": "Checkout",

@@ -849,8 +849,8 @@ export class ApiRequestService {
     return reqLegalPopularityTracking(this);
   }
 
-  reqManagedCopyGet(slug: ManagedCopySlug) {
-    return reqManagedCopyGet(this, slug);
+  reqManagedCopyGet(slug: ManagedCopySlug, options?: { locale?: string }) {
+    return reqManagedCopyGet(this, slug, options);
   }
 
   reqAccountSettingsPlaybackUpdate(params: { preferred_media_type: MediaTypePreference }) {

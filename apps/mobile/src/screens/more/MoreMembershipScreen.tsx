@@ -4,7 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { createMobileApiRequestService } from '../../auth/mobileApi';
 import { MembershipFeatureTable } from '../../components/membership/MembershipFeatureTable';
-import { Accordion, Button, Card } from '../../components/primitives';
+import { TrialLimitationsAccordion } from '../../components/membership/TrialLimitationsAccordion';
+import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { SectionHeading } from '../../components/section/SectionHeading';
 import { openCheckout } from '../../membership/checkoutEntry';
@@ -26,13 +27,6 @@ type MembershipPricing = {
   costAnnually: number;
   annuallySavingsPercent: number;
 };
-
-const TRIAL_LIMITATION_KEYS = [
-  'membership.trial_limitations_directory_add_by_rss',
-  'membership.trial_limitations_add_by_rss_feed_limit',
-  'membership.trial_limitations_manual_refresh_limit',
-  'membership.trial_limitations_stats_tracking',
-] as const;
 
 export function MoreMembershipScreen() {
   const { t } = useTranslation();
@@ -98,10 +92,6 @@ export function MoreMembershipScreen() {
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        bullet: {
-          ...typography.prose,
-          color: themeStyles.textPrimary.color,
-        },
         cardBody: {
           gap: tokens.spacing.base,
           padding: tokens.spacing.lg,
@@ -112,16 +102,6 @@ export function MoreMembershipScreen() {
         },
         featureSection: {
           marginBottom: tokens.spacing['4xl'],
-        },
-        limitationIntro: {
-          ...typography.prose,
-          color: themeStyles.textPrimary.color,
-        },
-        limitationList: {
-          gap: tokens.spacing.sm,
-        },
-        limitationPanel: {
-          gap: tokens.spacing.base,
         },
         priceRow: {
           ...typography.prose,
@@ -189,21 +169,7 @@ export function MoreMembershipScreen() {
         <MembershipFeatureTable />
       </View>
 
-      <Accordion
-        testID="more-membership-trial-limitations"
-        title={t('membership.trial_limitations_title')}
-      >
-        <View style={styles.limitationPanel}>
-          <Text style={styles.limitationIntro}>{t('membership.trial_limitations_summary')}</Text>
-          <View style={styles.limitationList}>
-            {TRIAL_LIMITATION_KEYS.map((key) => (
-              <Text key={key} style={styles.bullet}>
-                {`• ${t(key)}`}
-              </Text>
-            ))}
-          </View>
-        </View>
-      </Accordion>
+      <TrialLimitationsAccordion testID="more-membership-trial-limitations" />
     </MobileScreenContainer>
   );
 }

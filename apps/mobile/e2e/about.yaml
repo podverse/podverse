@@ -1,0 +1,30 @@
+appId: com.podverse.app.next
+name: More About
+---
+# About is managed-copy from the API. Mobile skips the store-badge region.
+# Requires flow_needs_e2e_api so GET /managed-copy/about is reachable.
+
+- runFlow: shared/launch-and-connect.yaml
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-nav-about
+- assertVisible:
+    id: more-about-screen
+- extendedWaitUntil:
+    notVisible:
+      id: more-about-loading
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    text: ".*FOSS podcast manager.*"
+- assertVisible:
+    id: more-membership-feature-table
+- assertNotVisible:
+    text: "Download on the App Store"
+- assertNotVisible:
+    text: "GET IT ON Google Play"
+- assertNotVisible:
+    text: "GET IT ON F-Droid"
+- takeScreenshot: more-about-screen

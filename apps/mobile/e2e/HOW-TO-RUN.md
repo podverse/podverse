@@ -223,6 +223,7 @@ Every phone `<area>` you can pass. Each line is one top-level file under
 ```bash
 npm run mobile:e2e:test -- --platform ios add-by-rss
 npm run mobile:e2e:test -- --platform ios add-by-rss-credentials
+npm run mobile:e2e:test -- --platform ios about
 npm run mobile:e2e:test -- --platform ios album
 npm run mobile:e2e:test -- --platform ios api-health
 npm run mobile:e2e:test -- --platform ios artist
@@ -274,6 +275,7 @@ npm run mobile:e2e:test -- --platform ios video-transition
 ```bash
 npm run mobile:e2e:test -- --platform android add-by-rss
 npm run mobile:e2e:test -- --platform android add-by-rss-credentials
+npm run mobile:e2e:test -- --platform android about
 npm run mobile:e2e:test -- --platform android album
 npm run mobile:e2e:test -- --platform android api-health
 npm run mobile:e2e:test -- --platform android artist
@@ -403,6 +405,7 @@ Seeded login: `e2e-user@example.com` / `Test!1Aa`. Authenticated flows sign in t
 that still walks the form (`shared/login-seeded-user-ui.yaml`).
 
 ```bash
+npm run mobile:e2e:test -- about
 npm run mobile:e2e:test -- album
 npm run mobile:e2e:test -- api-health
 npm run mobile:e2e:test -- artist

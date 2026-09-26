@@ -67,6 +67,7 @@ import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScree
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
+import { MoreAboutScreen } from '../screens/more/MoreAboutScreen';
 import { MoreAdvancedScreen } from '../screens/more/MoreAdvancedScreen';
 import { MoreE2ePlaybackScreen } from '../screens/more/MoreE2ePlaybackScreen';
 import { MoreErrorLogDetailScreen } from '../screens/more/MoreErrorLogDetailScreen';
@@ -1430,10 +1431,6 @@ function MoreRootScreen({
   }
 
   return <MenuListScreen sections={sections} testID="more-screen" />;
-}
-
-function MoreAboutScreen() {
-  return <PlaceholderScreen testID="more-about-screen" title="About Placeholder" />;
 }
 
 type TabScaffoldProps = {

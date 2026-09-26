@@ -960,12 +960,9 @@
   },
   "about": {
     "title": "Σχετικά",
-    "intro_text": "Η {brand_name} είναι ένα διαχειριστής podcast FOSS για iOS, Android, F-Droid και ιστοσελίδα.",
     "download_app_store": "Λήψη από το App Store",
     "download_google_play": "ΛΑΒΕ ΤΟ ΣΤΟ Google Play",
-    "download_f_droid": "ΛΑΒΕ ΤΟ ΣΤΟ F-Droid",
-    "licensing_text": "Όλο το λογισμικό {brand_name} παρέχεται υπό άδεια δωρεάν και ανοικτού κώδικα (FOSS). Δυνατότητες που απαιτούν ενημέρωση των διακομιστών μας είναι διαθέσιμες μόνο με μια ακριβή συνδρομή. Εγγραφείτε σήμερα και αποκτήστε μια δωρεάν δοκιμή 3 μηνών. 🥳",
-    "features_title": "Δυνατότητες"
+    "download_f_droid": "ΛΑΒΕ ΤΟ ΣΤΟ F-Droid"
   },
   "checkout": {
     "checkout": "Ολοκλήρωση παραγγελίας",

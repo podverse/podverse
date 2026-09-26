@@ -769,6 +769,7 @@ components:
         slug:
           type: string
           enum:
+            - about
             - faq
             - clip-how-to
           example: faq
@@ -3514,6 +3515,7 @@ paths:
           schema:
             type: string
             enum:
+              - about
               - faq
               - clip-how-to
       responses:

@@ -960,12 +960,9 @@
   },
   "about": {
     "title": "À propos",
-    "intro_text": "{brand_name} est un gestionnaire de podcasts FOSS pour iOS, Android, F-Droid et le web.",
     "download_app_store": "Télécharger sur l'App Store",
     "download_google_play": "OBTENEZ-LE SUR Google Play",
-    "download_f_droid": "OBTENEZ-LE SUR F-Droid",
-    "licensing_text": "Tous les logiciels {brand_name} sont fournis sous une licence libre et open source (FOSS). Les fonctionnalités nécessitant la mise à jour de nos serveurs ne sont disponibles qu'avec un abonnement Premium. Inscrivez-vous aujourd'hui et profitez d'un essai gratuit de 3 mois. 🥳",
-    "features_title": "Fonctionnalités"
+    "download_f_droid": "OBTENEZ-LE SUR F-Droid"
   },
   "checkout": {
     "checkout": "Passer à la caisse",

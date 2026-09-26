@@ -955,12 +955,9 @@
   },
   "about": {
     "title": "",
-    "intro_text": "",
     "download_app_store": "",
     "download_google_play": "",
-    "download_f_droid": "",
-    "licensing_text": "",
-    "features_title": ""
+    "download_f_droid": ""
   },
   "checkout": {
     "checkout": "",

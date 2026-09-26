@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { ManagedCopySlug } from '@podverse/helpers';
 
@@ -20,11 +21,13 @@ export function useManagedCopy({
   enabled = true,
   slug,
 }: UseManagedCopyOptions): UseManagedCopyResult {
+  const { i18n } = useTranslation();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const [markdown, setMarkdown] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(enabled);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [retryCounter, setRetryCounter] = useState<number>(0);
+  const locale = i18n.language;
 
   const retry = useCallback(() => {
     setRetryCounter((current) => current + 1);
@@ -42,7 +45,7 @@ export function useManagedCopy({
 
     void requestWithMobileAuthRefresh(
       { accessToken, clearSession, refreshToken, setTokens },
-      (api) => api.reqManagedCopyGet(slug)
+      (api) => api.reqManagedCopyGet(slug, { locale })
     )
       .then((response) => {
         if (!cancelled) {
@@ -65,7 +68,7 @@ export function useManagedCopy({
     return () => {
       cancelled = true;
     };
-  }, [accessToken, clearSession, enabled, refreshToken, retryCounter, setTokens, slug]);
+  }, [accessToken, clearSession, enabled, locale, refreshToken, retryCounter, setTokens, slug]);
 
   return { errorKey, isLoading, markdown, retry };
 }

@@ -1,12 +1,28 @@
 @use '../../mixins/media-queries' as *;
 
-.intro {
+.managedCopy {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-primary);
+}
+
+.managedCopy p {
   margin-bottom: var(--spacing-4xl);
 }
 
-.intro p {
-  font-size: var(--font-size-lg);
+.managedCopy h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-light);
+  margin-bottom: var(--spacing-2xl);
   color: var(--text-color-primary);
+}
+
+.managedCopy ul {
+  margin-bottom: var(--spacing-4xl);
+  padding-left: var(--spacing-2xl);
+}
+
+.managedCopy li {
+  margin-bottom: var(--spacing-sm);
 }
 
 .downloadButtons {
@@ -49,30 +65,8 @@
   object-fit: contain;
 }
 
-.licensing {
-  margin-bottom: var(--spacing-4xl);
-}
-
-.licensing p {
-  font-size: var(--font-size-lg);
-  color: var(--text-color-primary);
-}
-
 .featuresSection {
   margin-bottom: var(--spacing-4xl);
-}
-
-.comparisonTitle {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-light);
-  margin-bottom: var(--spacing-2xl);
-  color: var(--text-color-primary);
-}
-
-.featuresIntro {
-  font-size: var(--font-size-lg);
-  color: var(--text-color-primary);
-  margin: var(--spacing-none) var(--spacing-none) var(--spacing-2xl);
 }
 
 @include mobile('xs-max') {

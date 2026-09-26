@@ -9,7 +9,9 @@ import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoa
 import { CopyMarkdown } from '../../components/Markdown/CopyMarkdown';
 import { getApiRequestService } from '../../factories/apiRequestService';
 
-export function FaqPageClient() {
+import styles from '../../styles/app/about/About.module.scss';
+
+export function AboutPageClient() {
   const t = useTranslations('misc');
   const locale = useLocale();
   const [markdown, setMarkdown] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export function FaqPageClient() {
     setIsLoading(true);
     setHasError(false);
     void getApiRequestService()
-      .reqManagedCopyGet('faq', { locale })
+      .reqManagedCopyGet('about', { locale })
       .then((response) => {
         if (!cancelled) {
           setMarkdown(response.markdown);
@@ -34,7 +36,7 @@ export function FaqPageClient() {
         }
       })
       .catch((error: unknown) => {
-        console.error('[FaqPageClient] load failed', error);
+        console.error('[AboutPageClient] load failed', error);
         if (!cancelled) {
           setHasError(true);
         }
@@ -52,8 +54,8 @@ export function FaqPageClient() {
   const showError = hasError || (!isLoading && markdown === null);
 
   return (
-    <section style={{ minHeight: 240, position: 'relative' }}>
-      {!showError && markdown !== null ? <CopyMarkdown markdown={markdown} /> : null}
+    <section className={styles.managedCopy} style={{ minHeight: 240, position: 'relative' }}>
+      {!showError && markdown !== null ? <CopyMarkdown markdown={markdown} surface="web" /> : null}
       {showError ? (
         <div style={{ display: 'grid', gap: 12 }}>
           <p>{t('errors.generic')}</p>
