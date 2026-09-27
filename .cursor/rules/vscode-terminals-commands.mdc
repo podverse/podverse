@@ -90,7 +90,8 @@ npm run mobile:install
 Full SDK peer pins and troubleshooting: **mobile-expo-monorepo**.
 
 Other common tabs: **Root** (general/git/make), **Docker** (compose/infra), **Dev**
-(`dev:main:all`), **Workers**, **Tools**.
+(`dev:main:all`), **Workers**, **Tools**, **Billing Tunnel** (leave running:
+`cloudflared tunnel run podverse-local`; local API on `:3000` must already be up).
 
 If `terminals.json` is updated, match the file’s current `name` / `description` values — do not
 invent tab names that are not listed there.

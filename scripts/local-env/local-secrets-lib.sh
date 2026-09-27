@@ -76,7 +76,7 @@ local_secrets_override_value() {
 	local value="${!var_name:-}"
 
 	if [ -n "$value" ] && ! local_secrets_is_placeholder "$value"; then
-		printf '%s' "$value"
+		printf -v "$var_name" '%s' "$value"
 		return 0
 	fi
 	return 1

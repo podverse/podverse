@@ -563,12 +563,30 @@ if [ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]; then
 fi
 
 # From mailer.env + paypal.env
-for v in MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD MAILER_FROM PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET; do
+for v in MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD MAILER_FROM; do
 	apply_override "$v" "${API_ENV_FILES[@]}"
 done
+for v in PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET PAYPAL_ENVIRONMENT PAYPAL_WEBHOOK_ID; do
+	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}"
+done
+if [ -n "${PAYPAL_CLIENT_ID:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_PAYPAL_CLIENT_ID" "$PAYPAL_CLIENT_ID"
+	done
+fi
 
 # From billing.env (API webhooks + workers reconciliation share entitlement policy)
 for v in BILLING_WEBHOOK_PUBLIC_BASE_URL BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS; do
+	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}"
+done
+
+# From billing-apple.env (Apple App Store Server API credentials)
+for v in APPLE_IAP_ISSUER_ID APPLE_IAP_KEY_ID APPLE_IAP_PRIVATE_KEY_PATH APPLE_IAP_BUNDLE_ID APPLE_IAP_APP_APPLE_ID APPLE_IAP_ENVIRONMENT; do
+	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}"
+done
+
+# From billing-google-play.env (Google Play Developer API + RTDN credentials)
+for v in GOOGLE_PLAY_PACKAGE_NAME GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH GOOGLE_PLAY_RTDN_PUSH_AUDIENCE GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL; do
 	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}"
 done
 

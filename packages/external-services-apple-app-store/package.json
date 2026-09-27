@@ -1,7 +1,7 @@
 {
-  "name": "@podverse/external-services-paypal",
+  "name": "@podverse/external-services-apple-app-store",
   "version": "5.5.3",
-  "description": "PayPal integration for Podverse",
+  "description": "Apple App Store Server integration for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -14,7 +14,6 @@
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "test": "vitest run",
-    "sync-sandbox-plans": "node scripts/syncSandboxPlans.mjs",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
   },
@@ -23,8 +22,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@podverse/helpers": "*",
-    "@paypal/paypal-server-sdk": "^2.2.0"
+    "@apple/app-store-server-library": "^1.6.0",
+    "@podverse/helpers": "*"
   },
   "devDependencies": {
     "vitest": "^5.0.1"

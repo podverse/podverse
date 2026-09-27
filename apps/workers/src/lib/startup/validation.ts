@@ -197,6 +197,18 @@ function validateBase(): ValidationResult[] {
     validateOptional('BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 'Billing', 'Use Default (604800)')
   );
   results.push(validateOptional('BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS', 'Billing', 'Skipped'));
+  results.push(validateOptional('APPLE_IAP_ISSUER_ID', 'Billing / Apple IAP', 'Skipped'));
+  results.push(validateOptional('APPLE_IAP_KEY_ID', 'Billing / Apple IAP', 'Skipped'));
+  results.push(validateOptional('APPLE_IAP_PRIVATE_KEY_PATH', 'Billing / Apple IAP', 'Skipped'));
+  results.push(
+    validateOptional(
+      'APPLE_IAP_BUNDLE_ID',
+      'Billing / Apple IAP',
+      'Skipped (defaults to com.podverse.app.next when adapter config supplies it)'
+    )
+  );
+  results.push(validateOptional('APPLE_IAP_APP_APPLE_ID', 'Billing / Apple IAP', 'Skipped'));
+  results.push(validateOptional('APPLE_IAP_ENVIRONMENT', 'Billing / Apple IAP', 'Skipped'));
   return results;
 }
 

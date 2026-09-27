@@ -211,6 +211,7 @@ export * from './services/account/accountFollowingChannel.js';
 export * from './services/account/accountFollowingPlaylist.js';
 export * from './services/account/accountPendingFollowingChannel.js';
 export * from './services/account/accountMembership.js';
+export * from './services/account/accountPayPalOrder.js';
 export * from './services/account/accountMembershipStatus.js';
 export * from './services/account/accountMetaboost.js';
 export * from './services/account/accountNotification.js';

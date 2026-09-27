@@ -6,7 +6,7 @@
 | ---- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
 | 1    | helpers, helpers-v4v, playback-core                                                                                | playback-core → helpers; helpers-v4v → (none)                             |
 | 2    | external-services-alby, external-services-firebase, external-services-paypal, external-services-podcast-index, orm | helpers, helpers-\*                                                       |
-| 3    | notifications, parser                                                                                              | helpers, external-services-firebase, external-services-podcast-index, orm |
+| 3    | notifications, billing, parser                                                                                     | helpers, external-services-firebase, external-services-podcast-index, orm |
 | 4    | mq                                                                                                                 | helpers, external-services-podcast-index, orm, parser                     |
 | 5    | api, web, workers, management-\*                                                                                   | various                                                                   |
 | 6    | qa                                                                                                                 | helpers, external-services-\*, orm, parser                                |

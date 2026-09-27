@@ -63,7 +63,7 @@ Build packages in this order (dependencies must be built first):
    - `helpers-config` (configuration validation)
 4. `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` (parallel)
 5. `orm`
-6. `notifications`
+6. `notifications`, `billing` (parallel)
 7. `parser`
 8. `mq`
 
@@ -164,6 +164,7 @@ packages/           # Publishable npm packages (@podverse/*)
   external-services/# Third-party API integrations
   orm/              # Database entities, services, migrations
   notifications/    # Push notification services
+  billing/          # Payment processor registry, billing event processing
   parser/           # RSS/Podcast feed parsing
   mq/               # Message queue operations
 

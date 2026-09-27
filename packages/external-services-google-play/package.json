@@ -1,7 +1,7 @@
 {
-  "name": "@podverse/external-services-paypal",
+  "name": "@podverse/external-services-google-play",
   "version": "5.5.3",
-  "description": "PayPal integration for Podverse",
+  "description": "Google Play billing integration for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -14,7 +14,6 @@
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "test": "vitest run",
-    "sync-sandbox-plans": "node scripts/syncSandboxPlans.mjs",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
   },
@@ -23,8 +22,9 @@
     "access": "public"
   },
   "dependencies": {
+    "@googleapis/androidpublisher": "^14.0.0",
     "@podverse/helpers": "*",
-    "@paypal/paypal-server-sdk": "^2.2.0"
+    "google-auth-library": "^10.9.1"
   },
   "devDependencies": {
     "vitest": "^5.0.1"
