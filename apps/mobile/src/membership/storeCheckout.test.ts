@@ -7,6 +7,7 @@ import {
   mapCheckoutProcessors,
   offersProcessor,
   PLAY_PACKAGE_NAME,
+  resolveStoreCheckoutMode,
   showsStackingNotice,
   storeListingUrl,
   storeProcessorId,
@@ -71,6 +72,27 @@ describe('store checkout selection', () => {
   it('shows PayPal only when checkout options include that processor', () => {
     expect(offersProcessor(options, 'paypal')).toBe(true);
     expect(offersProcessor(options, 'apple')).toBe(false);
+  });
+
+  it('uses contact mode only when this platform has no store processor and no PayPal', () => {
+    const none = mapCheckoutProcessors({ processors: [] });
+    const storeOnly = mapCheckoutProcessors({
+      processors: [{ processor_id: 'test', products: [] }],
+    });
+    const paypalOnly = mapCheckoutProcessors({
+      processors: [{ processor_id: 'paypal', products: [] }],
+    });
+    const both = mapCheckoutProcessors({
+      processors: [
+        { processor_id: 'test', products: [] },
+        { processor_id: 'paypal', products: [] },
+      ],
+    });
+
+    expect(resolveStoreCheckoutMode({ backend: 'fake', processors: none })).toBe('contact');
+    expect(resolveStoreCheckoutMode({ backend: 'fake', processors: storeOnly })).toBe('purchase');
+    expect(resolveStoreCheckoutMode({ backend: 'fake', processors: paypalOnly })).toBe('purchase');
+    expect(resolveStoreCheckoutMode({ backend: 'fake', processors: both })).toBe('purchase');
   });
 
   it('shows the stacking notice only while membership time is still ahead', () => {

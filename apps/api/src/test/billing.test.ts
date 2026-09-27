@@ -108,7 +108,7 @@ describe('Billing routes', () => {
   };
 
   let accountCount = 0;
-  const createAccount = async (): Promise<TestAccount> => {
+  const createSignedUpAccount = async () => {
     const { AccountService } = await import('@podverse/orm');
     const accountService = new AccountService();
     accountCount += 1;
@@ -118,6 +118,17 @@ describe('Billing routes', () => {
     if (!account) {
       throw new Error('Failed to load account after create');
     }
+    return account;
+  };
+
+  /** A signed-up account whose free trial has ended, so access comes only from what a test pays. */
+  const createAccount = async (): Promise<TestAccount> => {
+    const { BillingMembershipExtensionService } = await import('@podverse/orm');
+    const account = await createSignedUpAccount();
+    await new BillingMembershipExtensionService().endAccess({
+      accountId: account.id,
+      endsAt: new Date(),
+    });
     return {
       id: account.id,
       headers: authHeaders(account.id, account.id_text),
@@ -595,6 +606,27 @@ describe('Billing routes', () => {
         );
         await clearChannelCache();
       }
+    });
+  });
+
+  describe('signup', () => {
+    it('starts a new account on a trial grant that sets its expiry', async () => {
+      const { BillingMembershipGrantService } = await import('@podverse/orm');
+      const account = await createSignedUpAccount();
+      const grants = await new BillingMembershipGrantService().listForAccount(account.id);
+
+      expect(grants).toHaveLength(1);
+      const [trialGrant] = grants;
+      expect(trialGrant?.source).toBe('trial');
+      expect(trialGrant?.revoked_at).toBeNull();
+
+      const status = await getStatus({
+        id: account.id,
+        headers: authHeaders(account.id, account.id_text),
+        billingCustomerRef: account.billing_customer_ref,
+      });
+      expect(status.is_entitled).toBe(true);
+      expect(status.membership_expires_at).toBe(trialGrant?.ends_at.toISOString());
     });
   });
 

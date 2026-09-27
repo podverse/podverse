@@ -30,6 +30,7 @@ import { useConfig } from '../../contexts/Config';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { CheckoutPayPalButtons } from './CheckoutPayPalButtons';
 import { checkoutProduct, isBillingCadence, offersProcessor } from './checkoutProducts';
+import { hasWebPurchasableProcessor } from './purchaseAvailability';
 
 import styles from '../../styles/app/checkout/Checkout.module.scss';
 
@@ -45,9 +46,14 @@ type MembershipPricingData = {
 type CheckoutPageClientProps = {
   pricingData: MembershipPricingData | null;
   isContactOnlyMode: boolean;
+  contactEmail: string;
 };
 
-export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutPageClientProps) {
+export function CheckoutPageClient({
+  pricingData,
+  isContactOnlyMode,
+  contactEmail,
+}: CheckoutPageClientProps) {
   const t = useTranslations('checkout');
   const tMembership = useTranslations('membership');
   const tAuth = useTranslations('authentication');
@@ -75,18 +81,26 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
     const load = async () => {
       setLoading(true);
       setError(null);
+      const optionsRequest = getApiRequestService().reqBillingGetCheckoutOptions();
+      const statusRequest = getApiRequestService().reqBillingGetStatus();
       try {
-        const [nextOptions, nextStatus] = await Promise.all([
-          getApiRequestService().reqBillingGetCheckoutOptions(),
-          getApiRequestService().reqBillingGetStatus(),
-        ]);
+        const nextOptions = await optionsRequest;
         if (!cancelled) {
           setOptions(nextOptions);
+        }
+      } catch {
+        if (!cancelled) {
+          setOptions(null);
+        }
+      }
+      try {
+        const nextStatus = await statusRequest;
+        if (!cancelled) {
           setStatus(nextStatus);
         }
       } catch {
         if (!cancelled) {
-          setError(t('purchase_failed'));
+          setStatus(null);
         }
       } finally {
         if (!cancelled) {
@@ -98,14 +112,24 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
     return () => {
       cancelled = true;
     };
-  }, [signedIn, t]);
+  }, [signedIn]);
 
   const purchaseKind = autoRenew ? 'auto_renew' : 'one_time';
   const paypalProduct =
     options === null ? null : checkoutProduct(options, 'paypal', cadence, purchaseKind);
   const testProduct =
     options === null ? null : checkoutProduct(options, 'test', cadence, purchaseKind);
+  const canPurchase =
+    options !== null &&
+    hasWebPurchasableProcessor({
+      paypalClientId,
+      processorIds: options.processors.map((processor) => processor.processor_id),
+    });
+  const paypalPurchasable =
+    options !== null && offersProcessor(options, 'paypal') && paypalClientId !== '';
   const showTestPurchase = options !== null && offersProcessor(options, 'test');
+  const cadenceHasProduct =
+    (paypalPurchasable && paypalProduct !== null) || (showTestPurchase && testProduct !== null);
   const alreadyRenewing = status?.active_auto_renew === true;
   const startsLater =
     autoRenew &&
@@ -162,7 +186,29 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
               </section>
             ) : null}
             {!isContactOnlyMode && !signedIn ? <Alert>{tAuth('login_required')}</Alert> : null}
-            {signedIn && !loading ? (
+            {signedIn && !loading && !canPurchase ? (
+              <>
+                <Alert testId="checkout-contact" variant="default">
+                  {contactEmail !== '' ? (
+                    <>
+                      {tMembership('contact_mode_text_before')}{' '}
+                      <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+                    </>
+                  ) : (
+                    t('purchase_unavailable')
+                  )}
+                </Alert>
+                {alreadyRenewing ? (
+                  <section className={styles.formSection}>
+                    <p>{t('already_renewing')}</p>
+                    <ActionLink href={`${ROUTES.SETTINGS}?tab=account`} LinkComponent={Link}>
+                      {t('manage_membership')}
+                    </ActionLink>
+                  </section>
+                ) : null}
+              </>
+            ) : null}
+            {signedIn && !loading && canPurchase ? (
               <>
                 <MembershipPlanSelector
                   name="payment-plan"
@@ -221,11 +267,7 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
                       disclosure={t('auto_renew_disclosure')}
                     />
                     <div className={styles.buttonSection}>
-                      {paypalClientId === '' ? (
-                        <p>{t('paypal_unavailable')}</p>
-                      ) : paypalProduct === null ? (
-                        <p>{t('plan_unavailable')}</p>
-                      ) : (
+                      {paypalPurchasable && paypalProduct !== null ? (
                         <CheckoutPayPalButtons
                           clientId={paypalClientId}
                           processorProductId={paypalProduct.id}
@@ -234,7 +276,7 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
                             setError(t('purchase_failed'));
                           }}
                         />
-                      )}
+                      ) : null}
                       {showTestPurchase ? (
                         <Button
                           disabled={submitting || testProduct === null}
@@ -247,6 +289,7 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
                           {t('complete_test_purchase')}
                         </Button>
                       ) : null}
+                      {cadenceHasProduct ? null : <p>{t('plan_unavailable')}</p>}
                     </div>
                   </section>
                 )}

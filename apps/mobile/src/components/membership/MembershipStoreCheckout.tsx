@@ -12,7 +12,7 @@ import {
 
 import { useAuth } from '../../auth/AuthProvider';
 import type { AuthRequestDeps } from '../../auth/authRequestWithRefresh';
-import type { BillingMembershipStatus } from '../../billing/billingApi';
+import type { BillingCheckoutCatalog, BillingMembershipStatus } from '../../billing/billingApi';
 import { createBillingApi } from '../../billing/billingApi';
 import type {
   BillingClient,
@@ -20,6 +20,7 @@ import type {
   BillingPurchaseOutcome,
 } from '../../billing/BillingClient';
 import { createBillingClient } from '../../billing/createBillingClient';
+import { getMobileConfig } from '../../config';
 import { accountRepository } from '../../data/repositories/accountRepository';
 import { openCheckout, openWebPath } from '../../membership/checkoutEntry';
 import type { CheckoutProcessorOffer, StoreCheckoutCadence } from '../../membership/storeCheckout';
@@ -29,6 +30,7 @@ import {
   isClientUpdateRequired,
   mapCheckoutProcessors,
   offersProcessor,
+  resolveStoreCheckoutMode,
   showsStackingNotice,
   storeListingUrl,
   storeProcessorId,
@@ -76,7 +78,8 @@ const checkoutPlatform = (): 'android' | 'ios' | null => {
 
 /**
  * Store checkout for a signed-in member. Prices come from the billing client. PayPal, when the
- * server includes it for this platform, opens web checkout. The terms page is the legal document
+ * server includes it for this platform, opens web checkout. When nothing on this platform can be
+ * bought, the screen tells the member how to reach the team. The terms page is the legal document
  * that describes how the service handles data, so Privacy opens that page too.
  */
 export function MembershipStoreCheckout() {
@@ -95,7 +98,6 @@ export function MembershipStoreCheckout() {
   const processorId = storeProcessorId(client.backend);
 
   const [loading, setLoading] = useState(platform !== null);
-  const [loadFailed, setLoadFailed] = useState(false);
   const [processors, setProcessors] = useState<readonly CheckoutProcessorOffer[]>([]);
   const [prices, setPrices] = useState<readonly BillingLocalizedPrice[]>([]);
   const [status, setStatus] = useState<BillingMembershipStatus | null>(null);
@@ -116,7 +118,6 @@ export function MembershipStoreCheckout() {
 
     const load = async () => {
       setLoading(true);
-      setLoadFailed(false);
       try {
         if (client.backend !== 'unavailable') {
           await client.syncUnfinishedTransactions().catch(() => undefined);
@@ -130,10 +131,20 @@ export function MembershipStoreCheckout() {
           }
         }
         const billingApi = createBillingApi(screenAuthDeps);
-        const [nextOptions, nextStatus] = await Promise.all([
-          billingApi.getCheckoutOptions({ platform, storefront }),
-          billingApi.getMembershipStatus(),
-        ]);
+        const optionsRequest = billingApi.getCheckoutOptions({ platform, storefront });
+        const statusRequest = billingApi.getMembershipStatus();
+        let nextOptions: BillingCheckoutCatalog = { processors: [] };
+        try {
+          nextOptions = await optionsRequest;
+        } catch {
+          nextOptions = { processors: [] };
+        }
+        let nextStatus: BillingMembershipStatus | null = null;
+        try {
+          nextStatus = await statusRequest;
+        } catch {
+          nextStatus = null;
+        }
         if (!active) {
           return;
         }
@@ -161,7 +172,7 @@ export function MembershipStoreCheckout() {
         }
       } catch {
         if (active) {
-          setLoadFailed(true);
+          setProcessors([]);
         }
       } finally {
         if (active) {
@@ -187,6 +198,14 @@ export function MembershipStoreCheckout() {
       : checkoutProduct(processors, processorId, selectedCadence, purchaseKind);
   const alreadyRenewing = status?.active_auto_renew === true;
   const showPayPal = offersProcessor(processors, 'paypal');
+  const storeOffered = processorId !== null && offersProcessor(processors, processorId);
+  const showStorePurchase = storeOffered && !alreadyRenewing;
+  const showCadence =
+    showStorePurchase && selectedCadence !== undefined && cadences.length > 0;
+  const checkoutMode = resolveStoreCheckoutMode({
+    backend: client.backend,
+    processors,
+  });
   const manageUrl = subscriptionManagementUrl(client.backend);
   const ready = !loading && product !== null && !alreadyRenewing;
 
@@ -412,6 +431,28 @@ export function MembershipStoreCheckout() {
     </>
   );
 
+  const contactEmail = getMobileConfig().contactEmail;
+  const contactBlock = (
+    <View testID="membership-checkout-contact">
+      {contactEmail !== '' ? (
+        <>
+          <Text style={styles.status}>{t('membership.contact_mode_text_before')}</Text>
+          <Pressable
+            accessibilityLabel={contactEmail}
+            accessibilityRole="link"
+            onPress={() => {
+              void Linking.openURL(`mailto:${contactEmail}`);
+            }}
+          >
+            <Text style={styles.link}>{contactEmail}</Text>
+          </Pressable>
+        </>
+      ) : (
+        <Text style={styles.status}>{t('checkout.purchase_unavailable')}</Text>
+      )}
+    </View>
+  );
+
   if (!storePurchases) {
     return (
       <View style={styles.block} testID="membership-checkout-foss">
@@ -422,10 +463,7 @@ export function MembershipStoreCheckout() {
             testID="membership-checkout-loading"
           />
         ) : null}
-        {loadFailed ? (
-          <Text style={styles.status}>{t('settings.membership.load_failed')}</Text>
-        ) : null}
-        {!loading && !loadFailed && showPayPal ? (
+        {!loading && showPayPal ? (
           <Button
             fullWidth
             label={t('membership.checkout.pay_with_paypal_on_the_web')}
@@ -436,11 +474,7 @@ export function MembershipStoreCheckout() {
             variant="outline"
           />
         ) : null}
-        {!loading && !loadFailed && !showPayPal ? (
-          <Text style={styles.status} testID="membership-checkout-unavailable">
-            {t('membership.checkout.unavailable')}
-          </Text>
-        ) : null}
+        {!loading && !showPayPal ? contactBlock : null}
         {notices}
       </View>
     );
@@ -460,9 +494,6 @@ export function MembershipStoreCheckout() {
               testID="membership-checkout-loading"
             />
           ) : null}
-          {loadFailed ? (
-            <Text style={styles.status}>{t('settings.membership.load_failed')}</Text>
-          ) : null}
           {status?.in_grace_period === true ? (
             <Text style={styles.disclosure}>{t('membership.manage.grace_banner')}</Text>
           ) : null}
@@ -476,7 +507,7 @@ export function MembershipStoreCheckout() {
               {t('membership.checkout.stacking_notice')}
             </Text>
           ) : null}
-          {!alreadyRenewing && selectedCadence !== undefined && cadences.length > 0 ? (
+          {showCadence && selectedCadence !== undefined ? (
             <OptionChipGroup
               onChange={setCadence}
               options={cadences.map((value) => ({
@@ -488,7 +519,7 @@ export function MembershipStoreCheckout() {
               value={selectedCadence}
             />
           ) : null}
-          {!alreadyRenewing ? (
+          {showStorePurchase ? (
             <>
               <Text style={styles.disclosure}>
                 {t('membership.checkout.auto_renew_disclosure')}
@@ -548,14 +579,16 @@ export function MembershipStoreCheckout() {
               variant="primary"
             />
           ) : null}
-          <Button
-            disabled={submitting || updateRequired}
-            fullWidth
-            label={t('membership.checkout.restore_purchases')}
-            onPress={onRestore}
-            testID="membership-checkout-restore"
-            variant="secondary"
-          />
+          {storeOffered ? (
+            <Button
+              disabled={submitting || updateRequired}
+              fullWidth
+              label={t('membership.checkout.restore_purchases')}
+              onPress={onRestore}
+              testID="membership-checkout-restore"
+              variant="secondary"
+            />
+          ) : null}
           {!alreadyRenewing && showPayPal ? (
             <Button
               fullWidth
@@ -567,7 +600,8 @@ export function MembershipStoreCheckout() {
               variant="outline"
             />
           ) : null}
-          {!loading && product === null && !loadFailed && !alreadyRenewing ? (
+          {!loading && checkoutMode === 'contact' ? contactBlock : null}
+          {storeOffered && !loading && product === null && !alreadyRenewing ? (
             <Text style={styles.disclosure}>{t('checkout.plan_unavailable')}</Text>
           ) : null}
           {notices}

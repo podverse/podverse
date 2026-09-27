@@ -971,7 +971,8 @@
     "payment_processor": "",
     "paypal": "",
     "complete_purchase": "",
-    "disabled_message": ""
+    "disabled_message": "",
+    "purchase_unavailable": ""
   },
   "layouts": {
     "change_layout_view": "",

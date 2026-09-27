@@ -971,7 +971,8 @@
     "payment_processor": "Processeur de paiement",
     "paypal": "PayPal",
     "complete_purchase": "Finaliser l'achat",
-    "disabled_message": "La page de paiement est désactivée."
+    "disabled_message": "La page de paiement est désactivée.",
+    "purchase_unavailable": "Les abonnements ne peuvent pas être achetés ici pour le moment. Votre abonnement actuel et sa date d'expiration restent les mêmes."
   },
   "layouts": {
     "change_layout_view": "Changer l'affichage",

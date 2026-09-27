@@ -971,7 +971,8 @@
     "payment_processor": "Procesador de pagos",
     "paypal": "PayPal",
     "complete_purchase": "Completar compra",
-    "disabled_message": "La página de pago está deshabilitada."
+    "disabled_message": "La página de pago está deshabilitada.",
+    "purchase_unavailable": "Las membresías no se pueden comprar aquí en este momento. Tu membresía actual y su fecha de vencimiento siguen igual."
   },
   "layouts": {
     "change_layout_view": "Cambiar vista de diseño",

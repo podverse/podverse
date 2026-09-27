@@ -15,6 +15,7 @@ import { getConfig } from '../../config';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { getSSRLoggedInAccount } from '../../utils/auth/ssrAuth';
+import { hasWebPurchasableProcessor } from '../checkout/purchaseAvailability';
 import { MembershipCTA } from './MembershipCTA';
 import { TrialLimitationsCollapsible } from './TrialLimitationsCollapsible';
 
@@ -51,9 +52,24 @@ export async function generateMetadata() {
   return buildNoindexMetadata();
 }
 
+function MembershipContactMailto({
+  className,
+  contactEmail,
+}: {
+  className: string;
+  contactEmail: string;
+}) {
+  return (
+    <a className={className} href={`mailto:${contactEmail}`}>
+      {contactEmail}
+    </a>
+  );
+}
+
 export default async function MembershipPage() {
   const config = getConfig();
   const t = await getTranslations('membership');
+  const tCheckout = await getTranslations('checkout');
   const ssrLoggedInAccount = await getSSRLoggedInAccount();
   const ssrApiRequestService = getSSRApiRequestService();
   const signupMode = config.public.account.signupMode;
@@ -74,6 +90,23 @@ export default async function MembershipPage() {
       // Handle error - pricing data is optional
     }
   }
+
+  let nothingToBuy = false;
+  if (!isContactOnlyMode && ssrLoggedInAccount !== null) {
+    try {
+      const checkoutOptions = await ssrApiRequestService.reqBillingGetCheckoutOptions({
+        platform: 'web',
+      });
+      nothingToBuy = !hasWebPurchasableProcessor({
+        paypalClientId: config.public.paypal.clientId,
+        processorIds: checkoutOptions.processors.map((processor) => processor.processor_id),
+      });
+    } catch {
+      nothingToBuy = true;
+    }
+  }
+
+  const showPurchaseOffers = !isContactOnlyMode && !nothingToBuy;
 
   // Determine user status (shared derivation — tolerant of both the DTO `account_membership_id` and a
   // populated `account_membership.id`).
@@ -96,7 +129,7 @@ export default async function MembershipPage() {
         <MainSidebarLayout>
           <SideContent />
           <MainColumnStack>
-            {!isContactOnlyMode && errorMessage && (
+            {showPurchaseOffers && errorMessage && (
               <section className={styles.errorSection}>
                 <p>{errorMessage}</p>
               </section>
@@ -122,7 +155,25 @@ export default async function MembershipPage() {
               </p>
             </section>
 
-            {!isContactOnlyMode && pricingData && (
+            {nothingToBuy ? (
+              <section className={styles.intro} data-testid="membership-contact">
+                <p>
+                  {contactEmail !== '' ? (
+                    <>
+                      {t('contact_mode_text_before')}{' '}
+                      <MembershipContactMailto
+                        className={styles.contactLink ?? ''}
+                        contactEmail={contactEmail}
+                      />
+                    </>
+                  ) : (
+                    tCheckout('purchase_unavailable')
+                  )}
+                </p>
+              </section>
+            ) : null}
+
+            {showPurchaseOffers && pricingData && (
               <section className={styles.pricingSection}>
                 <div className={styles.pricingPlan}>
                   <h3 className={styles.planTitle}>{t('pricing_monthly')}</h3>
@@ -148,7 +199,7 @@ export default async function MembershipPage() {
               </section>
             )}
 
-            {!isContactOnlyMode && (
+            {showPurchaseOffers && (
               <MembershipCTA
                 ssrLoggedInAccount={!!ssrLoggedInAccount}
                 isMembershipExpired={isMembershipExpired}
@@ -186,13 +237,11 @@ function renderIntroText({
   pricingData,
   contactLinkClassName,
 }: RenderIntroTextParams): string | React.ReactElement {
-  if (isContactOnlyMode && contactEmail) {
+  if (isContactOnlyMode && contactEmail !== undefined && contactEmail !== '') {
     return (
       <>
         {t('contact_mode_text_before')}{' '}
-        <a href={`mailto:${contactEmail}`} className={contactLinkClassName}>
-          {contactEmail}
-        </a>
+        <MembershipContactMailto className={contactLinkClassName} contactEmail={contactEmail} />
       </>
     );
   }

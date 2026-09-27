@@ -1,5 +1,6 @@
 import Joi from 'joi';
 
+import type { BillingCadence } from '@podverse/helpers';
 import { PAYMENT_PROCESSOR_IDS } from '@podverse/helpers';
 
 const processorId = Joi.string().valid(...PAYMENT_PROCESSOR_IDS);
@@ -44,6 +45,42 @@ export const listBillingWebhookEventsQuerySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(200),
 });
 
-export const grantBillingMembershipSchema = Joi.object({
-  cadence: Joi.string().valid('monthly', 'annual').required(),
+export const BILLING_MEMBERSHIP_NOTE_MAX_LENGTH = 500;
+export const BILLING_MEMBERSHIP_EXTEND_DAYS_MAX = 3660;
+
+const membershipNote = Joi.string().trim().max(BILLING_MEMBERSHIP_NOTE_MAX_LENGTH).allow('');
+
+export type GrantBillingMembershipBody = {
+  cadence?: BillingCadence;
+  days?: number;
+  ends_at?: Date;
+  note?: string;
+};
+
+/** Exactly one length: a plan cadence, a number of days, or an end date. */
+export const grantBillingMembershipSchema = Joi.object<GrantBillingMembershipBody>({
+  cadence: Joi.string().valid('monthly', 'annual'),
+  days: Joi.number().integer().min(1).max(BILLING_MEMBERSHIP_EXTEND_DAYS_MAX),
+  ends_at: Joi.date().iso(),
+  note: membershipNote,
+})
+  .xor('cadence', 'days', 'ends_at')
+  .required();
+
+export type EndBillingMembershipBody = {
+  ends_at: Date;
+  note?: string;
+};
+
+export const endBillingMembershipSchema = Joi.object<EndBillingMembershipBody>({
+  ends_at: Joi.date().iso().required(),
+  note: membershipNote,
 }).required();
+
+export type RevokeBillingMembershipGrantBody = {
+  note?: string;
+};
+
+export const revokeBillingMembershipGrantSchema = Joi.object<RevokeBillingMembershipGrantBody>({
+  note: membershipNote,
+});

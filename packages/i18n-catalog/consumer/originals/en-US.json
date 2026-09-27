@@ -1013,6 +1013,7 @@
     "billing_starts_on": "Billing starts on {date}.",
     "purchase_failed": "The purchase could not be completed. Try again.",
     "plan_unavailable": "This plan is not available.",
+    "purchase_unavailable": "Memberships can't be purchased here right now. Your current membership and its expiration date stay the same.",
     "disabled_message": "Checkout page is disabled.",
     "success_waiting": "Confirming your membership.",
     "success_active": "Your membership is active.",

@@ -1595,6 +1595,7 @@ components:
           type: string
           format: date-time
           nullable: true
+          description: "Applied through the grant ledger. Later than the current expiry extends; earlier ends access then; null ends access now; within a minute of the current expiry changes nothing."
         allow_directory_add_by_rss:
           type: boolean
           nullable: true
@@ -1940,7 +1941,7 @@ components:
         is_sandbox: { type: boolean }
     BillingAccountGrant:
       type: object
-      required: [id, source, starts_at, ends_at]
+      required: [id, source, starts_at, ends_at, admin_editable]
       properties:
         id: { type: integer }
         source: { type: string }
@@ -1949,6 +1950,9 @@ components:
         revoked_at: { type: string, format: date-time, nullable: true }
         billing_subscription_id: { type: integer, nullable: true }
         billing_transaction_id: { type: integer, nullable: true }
+        admin_editable:
+          type: boolean
+          description: "Admin, trial, legacy import, or migration baseline grant with no processor or claim-token link; end access and revoke may change it."
     BillingWebhookEvent:
       type: object
       required: [id, processor_id, external_event_id, schema_version, status, attempts, received_at]
@@ -2007,9 +2011,22 @@ components:
           { type: array, items: { $ref: "#/components/schemas/BillingWebhookEventReplayResult" } }
     BillingGrantRequest:
       type: object
-      required: [cadence]
+      description: "Exactly one of cadence, days, or ends_at."
       properties:
         cadence: { type: string, enum: [monthly, annual] }
+        days: { type: integer, minimum: 1, maximum: 3660 }
+        ends_at:
+          type: string
+          format: date-time
+          description: "Must be later than both now and the current expiry."
+        note: { type: string, maxLength: 500, description: "Stored in the audit entry only." }
+      oneOf:
+        - required: [cadence]
+        - required: [days]
+        - required: [ends_at]
+      example:
+        days: 30
+        note: "Support credit"
     BillingGrantResult:
       type: object
       required: [account_id, applied, membership_expires_at]
@@ -2017,6 +2034,44 @@ components:
         account_id: { type: integer }
         applied: { type: boolean }
         membership_expires_at: { type: string, format: date-time, nullable: true }
+    BillingMembershipEndRequest:
+      type: object
+      required: [ends_at]
+      properties:
+        ends_at:
+          type: string
+          format: date-time
+          description: "Now or a past date ends access then. Must not be later than current access."
+        note: { type: string, maxLength: 500, description: "Stored in the audit entry only." }
+      example:
+        ends_at: "2026-10-01T00:00:00.000Z"
+        note: "Refunded off-platform"
+    BillingGrantRevokeRequest:
+      type: object
+      properties:
+        note: { type: string, maxLength: 500, description: "Stored in the audit entry only." }
+      example:
+        note: "Granted in error"
+    BillingMembershipChangeResult:
+      type: object
+      required: [account_id, membership_expires_at]
+      properties:
+        account_id: { type: integer }
+        membership_expires_at: { type: string, format: date-time, nullable: true }
+    BillingProtectedAccessErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          required: [access_ends_at]
+          properties:
+            access_ends_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: "When processor or claim-token access ends; null when the targeted grant itself is protected."
+      example:
+        message: "Paid access continues past the requested end. Cancel or refund it with the processor."
+        access_ends_at: "2026-11-01T00:00:00.000Z"
 security:
   - bearerAuth: []
   - cookieAuth: []
@@ -2458,7 +2513,7 @@ paths:
       tags:
         - billing
       summary: POST /billing/accounts/{accountId}/grants
-      description: "Grants one period of membership. Permission: billing_account create."
+      description: "Extends membership through an admin grant by one cadence period, a number of days, or to an end date. Time runs from the later of now and the current expiry. Permission: billing_account create."
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -2510,6 +2565,181 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "422":
+          description: "ends_at would not lengthen access; use membership-end to shorten it."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Use End Access to shorten a membership."
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/accounts/{accountId}/membership-end:
+    post:
+      operationId: managementPostBillingAccountMembershipEnd
+      tags:
+        - billing
+      summary: POST /billing/accounts/{accountId}/membership-end
+      description: "Ends admin-editable access at ends_at. Grants starting at or after it are revoked; grants running past it are cut back. Rolls back with 409 when processor or claim-token access runs past ends_at. Permission: billing_account delete."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingMembershipEndRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingMembershipChangeResult"
+              example:
+                data:
+                  account_id: 42
+                  membership_expires_at: "2026-10-01T00:00:00.000Z"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "409":
+          description: "Processor or claim-token access runs past ends_at; nothing changed."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingProtectedAccessErrorResponse"
+        "422":
+          description: "ends_at is later than current access; use grants to lengthen it."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Use Extend to lengthen a membership."
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/accounts/{accountId}/grants/{grantId}/revoke:
+    post:
+      operationId: managementPostBillingAccountGrantRevoke
+      tags:
+        - billing
+      summary: POST /billing/accounts/{accountId}/grants/{grantId}/revoke
+      description: "Revokes one admin-editable grant and recomputes the expiry. Revoking an already-revoked grant changes nothing. Permission: billing_account delete."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: path
+          name: grantId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingGrantRevokeRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingMembershipChangeResult"
+              example:
+                data:
+                  account_id: 42
+                  membership_expires_at: null
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: "Account not found, or the grant does not belong to it."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "409":
+          description: "The grant was paid through a processor or claim token."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingProtectedAccessErrorResponse"
+              example:
+                message: "This grant was paid through a processor or claim token and cannot be changed here."
+                access_ends_at: null
         "500":
           description: Error
           content:
@@ -5583,6 +5813,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "409":
+          description: "Email or username already in use, or an earlier membership_expires_at would cut processor-paid access (the body then carries access_ends_at and nothing changed)."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorResponse"
+                  - $ref: "#/components/schemas/BillingProtectedAccessErrorResponse"
         "500":
           description: Internal server error
           content:

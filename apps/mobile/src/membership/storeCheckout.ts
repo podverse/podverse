@@ -88,6 +88,24 @@ export const offersProcessor = (
   processorId: string
 ): boolean => processors.some((processor) => processor.processorId === processorId);
 
+export type StoreCheckoutMode = 'purchase' | 'contact';
+
+/**
+ * Purchase when this platform's store or PayPal is offered. Otherwise ask the member to contact
+ * the team.
+ */
+export const resolveStoreCheckoutMode = (params: {
+  processors: readonly CheckoutProcessorOffer[];
+  backend: BillingBackend;
+}): StoreCheckoutMode => {
+  const storeId = storeProcessorId(params.backend);
+  const storeOffered = storeId !== null && offersProcessor(params.processors, storeId);
+  if (storeOffered || offersProcessor(params.processors, 'paypal')) {
+    return 'purchase';
+  }
+  return 'contact';
+};
+
 export const checkoutProduct = (
   processors: readonly CheckoutProcessorOffer[],
   processorId: string,

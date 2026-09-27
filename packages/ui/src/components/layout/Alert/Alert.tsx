@@ -7,6 +7,7 @@ export type AlertProps = {
   children: ReactNode;
   variant?: 'error' | 'success' | 'default';
   className?: string;
+  testId?: string;
   /** When true, renders the alert shell even if `children` is null, undefined, or `''`. */
   renderWhenEmpty?: boolean;
 };
@@ -15,6 +16,7 @@ export function Alert({
   children,
   variant = 'error',
   className,
+  testId,
   renderWhenEmpty = false,
 }: AlertProps) {
   if (!renderWhenEmpty && (children === null || children === undefined || children === '')) {
@@ -23,6 +25,7 @@ export function Alert({
 
   return (
     <div
+      data-testid={testId}
       className={classNames(
         styles.alert,
         variant === 'error' && styles.alertError,

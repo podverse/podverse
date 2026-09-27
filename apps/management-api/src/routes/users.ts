@@ -11,8 +11,8 @@ import {
   AccountMembershipEnum,
   type AccountSignupMode,
   type BillingCadence,
-  extendMembershipPeriodByCadence,
   getAccountSignupModeCapabilities,
+  ONE_MINUTE_MS,
   type PremiumBillingCadence,
   SharableStatusEnum,
 } from '@podverse/helpers';
@@ -22,6 +22,7 @@ import {
   BillingPriceCatalogService,
   generateRandomIdText,
   hashPassword,
+  ProtectedMembershipAccessError,
 } from '@podverse/orm';
 
 const router = express.Router();
@@ -45,6 +46,72 @@ function parseIdParam(raw: string | string[] | undefined): number | null {
 
 function getSetPasswordTtlMs(): number {
   return config.setUserPasswordExpiration * 1000;
+}
+
+/**
+ * The edit form submits the expiry at minute precision on every save, so a value within a minute
+ * of the current expiry is the current expiry resent, not a request to change access.
+ */
+function isUnchangedMembershipExpiry(requested: Date | null, existing: Date | null): boolean {
+  if (requested === null || existing === null) {
+    return requested === existing;
+  }
+  return Math.abs(requested.getTime() - existing.getTime()) < ONE_MINUTE_MS;
+}
+
+/**
+ * Seeds a new account's access through the grant ledger. An explicit date wins; otherwise
+ * Premium gets one period of its cadence and Trial gets the catalog's free trial length.
+ */
+async function grantInitialMembership(params: {
+  accountId: number;
+  membershipId: AccountMembershipEnum;
+  membershipExpiresAt: Date | null;
+  premiumBillingCadence: PremiumBillingCadence | undefined;
+}): Promise<void> {
+  const { accountId, membershipId, membershipExpiresAt, premiumBillingCadence } = params;
+  const now = new Date();
+  const idempotencyKey = `management_create:${accountId}`;
+
+  if (membershipExpiresAt !== null) {
+    if (membershipExpiresAt > now) {
+      await billingMembershipExtensionService.extendToDate({
+        accountId,
+        expiresAt: membershipExpiresAt,
+        idempotencyKey,
+        source: 'admin',
+        accountMembershipId: membershipId,
+        now,
+      });
+    } else {
+      await billingMembershipExtensionService.recordPastExpiry({
+        accountId,
+        expiresAt: membershipExpiresAt,
+        now,
+      });
+    }
+    return;
+  }
+
+  if (membershipId === AccountMembershipEnum.Premium) {
+    const cadence: BillingCadence = premiumBillingCadence === 'monthly' ? 'monthly' : 'annual';
+    await billingMembershipExtensionService.extendByCadence({
+      accountId,
+      cadence,
+      idempotencyKey,
+      source: 'admin',
+      accountMembershipId: AccountMembershipEnum.Premium,
+      now,
+    });
+    return;
+  }
+
+  const resolvedMembership = await billingPriceCatalogService.resolveProductMembership(now);
+  await billingMembershipExtensionService.startTrial({
+    accountId,
+    trialSeconds: resolvedMembership.freeTrialExpirationSeconds,
+    now,
+  });
 }
 
 function userRowToJson(row: Record<string, unknown>) {
@@ -289,26 +356,8 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
       [settingsId]
     );
 
-    // 5. Insert into account_membership_status
+    // 5. Insert into account_membership_status; the expiry comes from the grant ledger below
     const membershipId = account_membership_id ?? AccountMembershipEnum.Trial;
-    const membershipExpiresAt =
-      membership_expires_at !== undefined && membership_expires_at !== null
-        ? new Date(membership_expires_at)
-        : await (async () => {
-            const now = new Date();
-            if (membershipId === AccountMembershipEnum.Premium) {
-              const cadence: BillingCadence =
-                premium_billing_cadence === 'monthly' ? 'monthly' : 'annual';
-              return extendMembershipPeriodByCadence({
-                membershipExpiresAt: null,
-                cadence,
-                now,
-              });
-            }
-            const resolvedMembership =
-              await billingPriceCatalogService.resolveProductMembership(now);
-            return new Date(now.getTime() + resolvedMembership.freeTrialExpirationSeconds * 1000);
-          })();
     await AppDbDataSourceReadWrite.query(
       `INSERT INTO account_membership_status (
         account_id,
@@ -319,11 +368,10 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
         max_manual_refreshes_per_hour,
         track_stats,
         allow_notifications
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      ) VALUES ($1, $2, NULL, $3, $4, $5, $6, $7)`,
       [
         accountId,
         membershipId,
-        membershipExpiresAt,
         allow_directory_add_by_rss ?? null,
         max_add_by_rss_feeds ?? null,
         max_manual_refreshes_per_hour ?? null,
@@ -331,6 +379,15 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
         allow_notifications ?? null,
       ]
     );
+    await grantInitialMembership({
+      accountId,
+      membershipId,
+      membershipExpiresAt:
+        membership_expires_at !== undefined && membership_expires_at !== null
+          ? new Date(membership_expires_at)
+          : null,
+      premiumBillingCadence: premium_billing_cadence,
+    });
 
     // 6. Insert into account_metaboost
     await AppDbDataSourceReadWrite.query(
@@ -498,52 +555,81 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
       track_stats !== undefined ||
       allow_notifications !== undefined
     ) {
-      let handledByExtension = false;
-      let membershipExpiresAtDirectUpdate: Date | null | undefined = undefined;
+      let tierSetByExtension = false;
 
-      if (membership_expires_at !== undefined) {
-        if (membership_expires_at === null) {
-          membershipExpiresAtDirectUpdate = null;
-        } else {
-          const requestedMembershipExpiresAt = new Date(membership_expires_at);
-          const existingMembershipExpiresAt =
-            existingMembershipStatus.membership_expires_at === null
-              ? null
-              : new Date(existingMembershipStatus.membership_expires_at);
+      const existingMembershipExpiresAt =
+        existingMembershipStatus.membership_expires_at === null
+          ? null
+          : new Date(existingMembershipStatus.membership_expires_at);
+      const requestedMembershipExpiresAt =
+        membership_expires_at === undefined || membership_expires_at === null
+          ? null
+          : new Date(membership_expires_at);
 
-          const shouldUseExtension =
-            existingMembershipExpiresAt === null ||
-            requestedMembershipExpiresAt.getTime() > existingMembershipExpiresAt.getTime();
-
-          if (shouldUseExtension) {
+      if (
+        membership_expires_at !== undefined &&
+        !isUnchangedMembershipExpiry(requestedMembershipExpiresAt, existingMembershipExpiresAt)
+      ) {
+        const now = new Date();
+        const isLaterThanExisting =
+          requestedMembershipExpiresAt !== null &&
+          (existingMembershipExpiresAt === null ||
+            requestedMembershipExpiresAt > existingMembershipExpiresAt);
+        try {
+          if (
+            isLaterThanExisting &&
+            requestedMembershipExpiresAt !== null &&
+            requestedMembershipExpiresAt <= now
+          ) {
+            await billingMembershipExtensionService.recordPastExpiry({
+              accountId: id,
+              expiresAt: requestedMembershipExpiresAt,
+              now,
+            });
+          } else if (isLaterThanExisting && requestedMembershipExpiresAt !== null) {
             await billingMembershipExtensionService.extendToDate({
               accountId: id,
               expiresAt: requestedMembershipExpiresAt,
-              idempotencyKey: `management_admin:${id}:${requestedMembershipExpiresAt.toISOString()}`,
+              idempotencyKey: `management_admin:${id}:${
+                existingMembershipExpiresAt?.toISOString() ?? 'none'
+              }:${requestedMembershipExpiresAt.toISOString()}`,
               source: 'admin',
               accountMembershipId:
                 account_membership_id ??
                 existingMembershipStatus.account_membership_id ??
                 AccountMembershipEnum.Premium,
+              now,
             });
-            handledByExtension = true;
+            tierSetByExtension = true;
           } else {
-            membershipExpiresAtDirectUpdate = requestedMembershipExpiresAt;
+            await billingMembershipExtensionService.endAccess({
+              accountId: id,
+              endsAt: requestedMembershipExpiresAt ?? now,
+              now,
+            });
           }
+        } catch (membershipError) {
+          if (membershipError instanceof ProtectedMembershipAccessError) {
+            res.status(409).json({
+              message: membershipError.message,
+              access_ends_at: membershipError.accessEndsAt?.toISOString() ?? null,
+            });
+            return;
+          }
+          throw membershipError;
         }
+      }
+
+      if (account_membership_id !== undefined && !tierSetByExtension) {
+        await billingMembershipExtensionService.setAccountMembership({
+          accountId: id,
+          accountMembershipId: account_membership_id,
+        });
       }
 
       const membershipSets: string[] = [];
       const membershipParams: unknown[] = [];
 
-      if (account_membership_id !== undefined && !handledByExtension) {
-        membershipParams.push(account_membership_id);
-        membershipSets.push(`account_membership_id = $${membershipParams.length}`);
-      }
-      if (membershipExpiresAtDirectUpdate !== undefined) {
-        membershipParams.push(membershipExpiresAtDirectUpdate);
-        membershipSets.push(`membership_expires_at = $${membershipParams.length}`);
-      }
       if (allow_directory_add_by_rss !== undefined) {
         membershipParams.push(allow_directory_add_by_rss);
         membershipSets.push(`allow_directory_add_by_rss = $${membershipParams.length}`);

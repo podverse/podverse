@@ -10,18 +10,22 @@ import { getParam } from '@management-api/lib/params.js';
 import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@management-api/orm/db/appDb.js';
 import {
   createBillingProcessorProductSchema,
+  endBillingMembershipSchema,
   grantBillingMembershipSchema,
   listBillingWebhookEventsQuerySchema,
+  revokeBillingMembershipGrantSchema,
   updateBillingCheckoutChannelSchema,
   updateBillingProcessorProductSchema,
 } from '@management-api/schemas/billing.js';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import express from 'express';
 
 import type { BillingEventOutcome, BillingSnapshotOutcome } from '@podverse/billing';
 import type { PaymentProcessorId } from '@podverse/helpers';
 import {
+  AccountMembershipEnum,
   BillingProcessorRecordNotFoundError,
+  isAdminEditableGrant,
   isPaymentProcessorId,
   PAYMENT_PROCESSOR_IDS,
 } from '@podverse/helpers';
@@ -42,6 +46,8 @@ import {
   BillingSubscriptionService,
   BillingTransactionService,
   BillingWebhookEventService,
+  MembershipGrantNotFoundError,
+  ProtectedMembershipAccessError,
 } from '@podverse/orm';
 
 const ACCOUNT_LIST_LIMIT = 100;
@@ -159,6 +165,7 @@ function grantToJson(grant: BillingMembershipGrant) {
     revoked_at: grant.revoked_at?.toISOString() ?? null,
     billing_subscription_id: grant.billing_subscription_id,
     billing_transaction_id: grant.billing_transaction_id,
+    admin_editable: isAdminEditableGrant(grant),
   };
 }
 
@@ -528,21 +535,191 @@ router.post(
         res.status(404).json({ message: 'Account not found' });
         return;
       }
-      const result = await membershipExtensionService.extendByCadence({
+
+      const now = new Date();
+      const membershipExpiresAtBefore = await getCachedMembershipExpiresAt(accountId);
+      const endsAt = value.ends_at;
+      if (endsAt !== undefined && !isLaterThanCurrentAccess(endsAt, membershipExpiresAtBefore, now)) {
+        res.status(422).json({ message: 'Use End Access to shorten a membership.' });
+        return;
+      }
+
+      const extensionParams = {
         accountId,
-        cadence: value.cadence,
         idempotencyKey: `management_grant:${accountId}:${randomUUID()}`,
-        source: 'admin',
-      });
+        source: 'admin' as const,
+        accountMembershipId: AccountMembershipEnum.Premium,
+        now,
+      };
+      let mode: 'cadence' | 'days' | 'ends_at';
+      let modeValue: string | number;
+      let result: { applied: boolean; membershipExpiresAt: Date | null };
+      if (value.cadence !== undefined) {
+        mode = 'cadence';
+        modeValue = value.cadence;
+        result = await membershipExtensionService.extendByCadence({
+          ...extensionParams,
+          cadence: value.cadence,
+        });
+      } else if (value.days !== undefined) {
+        mode = 'days';
+        modeValue = value.days;
+        result = await membershipExtensionService.extendByDays({
+          ...extensionParams,
+          days: value.days,
+        });
+      } else if (endsAt !== undefined) {
+        mode = 'ends_at';
+        modeValue = endsAt.toISOString();
+        result = await membershipExtensionService.extendToDate({
+          ...extensionParams,
+          expiresAt: endsAt,
+        });
+        if (!result.applied) {
+          res.status(422).json({ message: 'Use End Access to shorten a membership.' });
+          return;
+        }
+      } else {
+        res.status(400).json({ message: 'One of cadence, days, or ends_at is required' });
+        return;
+      }
+
       await recordAudit(req, 'create', 'billing_membership_grant', accountId, {
-        cadence: value.cadence,
+        mode,
+        value: modeValue,
+        note: normalizeNote(value.note),
         applied: result.applied,
+        membership_expires_at_before: membershipExpiresAtBefore?.toISOString() ?? null,
+        membership_expires_at_after: result.membershipExpiresAt?.toISOString() ?? null,
       });
       res.status(201).json({
         data: {
           account_id: accountId,
           applied: result.applied,
           membership_expires_at: result.membershipExpiresAt?.toISOString() ?? null,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  '/accounts/:accountId/membership-end',
+  ensureAuthenticated,
+  requireCrud('billing_account', 'delete'),
+  async (req, res, next) => {
+    try {
+      const accountId = parsePositiveInt(getParam(req, 'accountId'));
+      if (accountId === null) {
+        res.status(400).json({ message: 'Invalid account id' });
+        return;
+      }
+      const { error, value } = endBillingMembershipSchema.validate(req.body);
+      if (error) {
+        res.status(400).json({ message: error.message });
+        return;
+      }
+      const account = await getAccountService().getBillingIdentityById(accountId);
+      if (account === null) {
+        res.status(404).json({ message: 'Account not found' });
+        return;
+      }
+
+      const membershipExpiresAtBefore = await getCachedMembershipExpiresAt(accountId);
+      if (isLaterThanCurrentAccess(value.ends_at, membershipExpiresAtBefore, new Date())) {
+        res.status(422).json({ message: 'Use Extend to lengthen a membership.' });
+        return;
+      }
+
+      let membershipExpiresAtAfter: Date | null;
+      try {
+        const result = await membershipExtensionService.endAccess({
+          accountId,
+          endsAt: value.ends_at,
+        });
+        membershipExpiresAtAfter = result.membershipExpiresAt;
+      } catch (endError) {
+        if (endError instanceof ProtectedMembershipAccessError) {
+          sendProtectedMembershipAccess(res, endError);
+          return;
+        }
+        throw endError;
+      }
+
+      await recordAudit(req, 'update', 'billing_membership_end', accountId, {
+        ends_at: value.ends_at.toISOString(),
+        note: normalizeNote(value.note),
+        membership_expires_at_before: membershipExpiresAtBefore?.toISOString() ?? null,
+        membership_expires_at_after: membershipExpiresAtAfter?.toISOString() ?? null,
+      });
+      res.json({
+        data: {
+          account_id: accountId,
+          membership_expires_at: membershipExpiresAtAfter?.toISOString() ?? null,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  '/accounts/:accountId/grants/:grantId/revoke',
+  ensureAuthenticated,
+  requireCrud('billing_account', 'delete'),
+  async (req, res, next) => {
+    try {
+      const accountId = parsePositiveInt(getParam(req, 'accountId'));
+      if (accountId === null) {
+        res.status(400).json({ message: 'Invalid account id' });
+        return;
+      }
+      const grantId = parsePositiveInt(getParam(req, 'grantId'));
+      if (grantId === null) {
+        res.status(400).json({ message: 'Invalid grant id' });
+        return;
+      }
+      const { error, value } = revokeBillingMembershipGrantSchema.validate(req.body);
+      if (error) {
+        res.status(400).json({ message: error.message });
+        return;
+      }
+      const account = await getAccountService().getBillingIdentityById(accountId);
+      if (account === null) {
+        res.status(404).json({ message: 'Account not found' });
+        return;
+      }
+
+      const membershipExpiresAtBefore = await getCachedMembershipExpiresAt(accountId);
+      let membershipExpiresAtAfter: Date | null;
+      try {
+        const result = await membershipExtensionService.revokeGrant({ accountId, grantId });
+        membershipExpiresAtAfter = result.membershipExpiresAt;
+      } catch (revokeError) {
+        if (revokeError instanceof MembershipGrantNotFoundError) {
+          res.status(404).json({ message: 'Membership grant not found' });
+          return;
+        }
+        if (revokeError instanceof ProtectedMembershipAccessError) {
+          sendProtectedMembershipAccess(res, revokeError);
+          return;
+        }
+        throw revokeError;
+      }
+
+      await recordAudit(req, 'delete', 'billing_membership_grant', grantId, {
+        account_id: accountId,
+        note: normalizeNote(value?.note),
+        membership_expires_at_before: membershipExpiresAtBefore?.toISOString() ?? null,
+        membership_expires_at_after: membershipExpiresAtAfter?.toISOString() ?? null,
+      });
+      res.json({
+        data: {
+          account_id: accountId,
+          membership_expires_at: membershipExpiresAtAfter?.toISOString() ?? null,
         },
       });
     } catch (error) {
@@ -604,9 +781,39 @@ router.post(
   }
 );
 
+async function getCachedMembershipExpiresAt(accountId: number): Promise<Date | null> {
+  const accountWithStatus = await getAccountService().getWithMembershipStatusFromPrimary(accountId);
+  return accountWithStatus?.account_membership_status?.membership_expires_at ?? null;
+}
+
+/**
+ * Current access ends at the later of now and the cached expiry. Extending has to reach past it;
+ * ending access has to land on or before it.
+ */
+function isLaterThanCurrentAccess(
+  endsAt: Date,
+  membershipExpiresAt: Date | null,
+  now: Date
+): boolean {
+  const currentAccessEnd =
+    membershipExpiresAt !== null && membershipExpiresAt > now ? membershipExpiresAt : now;
+  return endsAt > currentAccessEnd;
+}
+
+function normalizeNote(note: string | undefined): string | null {
+  return note === undefined || note === '' ? null : note;
+}
+
+function sendProtectedMembershipAccess(res: Response, error: ProtectedMembershipAccessError): void {
+  res.status(409).json({
+    message: error.message,
+    access_ends_at: error.accessEndsAt?.toISOString() ?? null,
+  });
+}
+
 async function recordAudit(
   req: Request,
-  operation: 'create' | 'update',
+  operation: 'create' | 'update' | 'delete',
   tableName: string,
   rowId: number,
   afterSnapshot: Record<string, unknown>

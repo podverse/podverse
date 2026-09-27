@@ -62,13 +62,13 @@ export class BillingEntitlementService {
     );
   }
 
-  async recomputeWithManager(
+  /** Takes the account's membership status row lock for the rest of the transaction. */
+  async lockStatusWithManager(
     transactionalEntityManager: EntityManager,
-    accountId: number,
-    now = new Date()
-  ): Promise<BillingEntitlementRecomputeResult> {
-    const statusRepository = transactionalEntityManager.getRepository(AccountMembershipStatus);
-    const lockedStatus = await statusRepository
+    accountId: number
+  ): Promise<AccountMembershipStatus> {
+    const lockedStatus = await transactionalEntityManager
+      .getRepository(AccountMembershipStatus)
       .createQueryBuilder('status')
       .setLock('pessimistic_write')
       .where('status.account_id = :accountId', { accountId })
@@ -76,7 +76,13 @@ export class BillingEntitlementService {
     if (!lockedStatus) {
       throw new Error('AccountMembershipStatus not found');
     }
+    return lockedStatus;
+  }
 
+  private async loadLedgerWithManager(
+    transactionalEntityManager: EntityManager,
+    accountId: number
+  ): Promise<{ grants: BillingMembershipGrant[]; subscriptions: BillingSubscription[] }> {
     const grants = await transactionalEntityManager.getRepository(BillingMembershipGrant).find({
       where: { account_id: accountId },
     });
@@ -87,15 +93,22 @@ export class BillingEntitlementService {
       order: { current_period_end: 'DESC', id: 'DESC' },
     });
 
-    const access = computeMembershipAccess({
+    return { grants, subscriptions };
+  }
+
+  private computeAccess(
+    ledger: { grants: BillingMembershipGrant[]; subscriptions: BillingSubscription[] },
+    now: Date
+  ): MembershipAccess {
+    return computeMembershipAccess({
       now,
-      grants: grants.map((grant) => ({
+      grants: ledger.grants.map((grant) => ({
         source: grant.source,
         startsAt: grant.starts_at,
         endsAt: grant.ends_at,
         revokedAt: grant.revoked_at,
       })),
-      subscriptions: subscriptions.map((subscription) => ({
+      subscriptions: ledger.subscriptions.map((subscription) => ({
         status: subscription.status,
         purchaseKind: subscription.purchase_kind,
         currentPeriodStart: subscription.current_period_start,
@@ -105,6 +118,33 @@ export class BillingEntitlementService {
       renewalEntitlementBufferExpiration: this.renewalEntitlementBufferExpiration,
       paymentFailureGraceExpiration: this.paymentFailureGraceExpiration,
     });
+  }
+
+  /**
+   * The access the ledger grants right now, without writing the cache. Callers that need to
+   * decide something before committing (for example, whether shortening a membership stuck) read
+   * this under the account lock; the cache is still written only by `recomputeWithManager`.
+   */
+  async computeAccessWithManager(
+    transactionalEntityManager: EntityManager,
+    accountId: number,
+    now = new Date()
+  ): Promise<MembershipAccess> {
+    const ledger = await this.loadLedgerWithManager(transactionalEntityManager, accountId);
+    return this.computeAccess(ledger, now);
+  }
+
+  async recomputeWithManager(
+    transactionalEntityManager: EntityManager,
+    accountId: number,
+    now = new Date()
+  ): Promise<BillingEntitlementRecomputeResult> {
+    const statusRepository = transactionalEntityManager.getRepository(AccountMembershipStatus);
+    const lockedStatus = await this.lockStatusWithManager(transactionalEntityManager, accountId);
+
+    const ledger = await this.loadLedgerWithManager(transactionalEntityManager, accountId);
+    const { subscriptions } = ledger;
+    const access = this.computeAccess(ledger, now);
 
     const activeSubscription = subscriptions.find((subscription) => {
       if (
@@ -152,15 +192,7 @@ export class BillingEntitlementService {
     now = new Date()
   ): Promise<{ result: T; entitlement: BillingEntitlementRecomputeResult }> {
     return this.dataSourceReadWrite.transaction(async (transactionalEntityManager) => {
-      const lockedStatus = await transactionalEntityManager
-        .getRepository(AccountMembershipStatus)
-        .createQueryBuilder('status')
-        .setLock('pessimistic_write')
-        .where('status.account_id = :accountId', { accountId })
-        .getOne();
-      if (!lockedStatus) {
-        throw new Error('AccountMembershipStatus not found');
-      }
+      await this.lockStatusWithManager(transactionalEntityManager, accountId);
 
       const result = await work(transactionalEntityManager);
       const entitlement = await this.recomputeWithManager(
