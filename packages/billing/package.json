@@ -1,0 +1,32 @@
+{
+  "name": "@podverse/billing",
+  "version": "5.5.3",
+  "description": "Payment processor registry and billing event processing for Podverse",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:prod": "tsc",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json"
+  },
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@podverse/helpers": "*",
+    "@podverse/orm": "*"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.1"
+  },
+  "type": "module"
+}

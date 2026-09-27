@@ -34,6 +34,7 @@ import {
   PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
 } from '@podverse/external-services-podcast-index';
 import {
+  BILLING_PROCESSOR_PRODUCT_ENV_KEYS,
   DEFAULT_NOTIFICATION_RETENTION_DAYS,
   DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS,
   DEFAULT_SCHEDULED_JOB_RETENTION_DAYS,
@@ -184,7 +185,26 @@ function validateBase(): ValidationResult[] {
       'Use Default (false - adapter_not_configured)'
     )
   );
+  results.push(validateOptional('BILLING_WEBHOOK_PUBLIC_BASE_URL', 'Billing', 'Skipped'));
+  results.push(
+    validateOptional(
+      'BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION',
+      'Billing',
+      'Use Default (172800)'
+    )
+  );
+  results.push(
+    validateOptional('BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 'Billing', 'Use Default (604800)')
+  );
+  results.push(validateOptional('BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS', 'Billing', 'Skipped'));
   return results;
+}
+
+/** Billing products — only the product seed command reads the `BILLING_PRODUCT_*` keys. */
+function validateBillingProducts(): ValidationResult[] {
+  return BILLING_PROCESSOR_PRODUCT_ENV_KEYS.map((key) =>
+    validateOptional(key, 'Billing products', 'Skipped - processor left unmapped')
+  );
 }
 
 /** Category: ORM/Database */
@@ -620,6 +640,9 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   }
   if (categories.has(CATEGORY_IMAGE_SHRINK)) {
     results.push(...validateImageShrink());
+  }
+  if (commandName === 'billingSeedProcessorProductsFromEnv') {
+    results.push(...validateBillingProducts());
   }
 
   results.push(...validateObservability());

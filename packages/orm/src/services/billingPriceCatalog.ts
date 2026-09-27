@@ -22,7 +22,7 @@ type ProductMembershipSettingsRow = {
   premium_max_manual_refreshes_per_hour: number;
 };
 
-const PREMIUM_PRODUCT_CODE = 'membership_premium';
+export const PREMIUM_BILLING_PRODUCT_CODE = 'membership_premium';
 const USD_CURRENCY_CODE = 'USD';
 
 function isPostgresUniqueViolation(err: unknown): boolean {
@@ -64,7 +64,7 @@ export class BillingPriceCatalogService {
         AND (p.effective_to IS NULL OR p.effective_to > $3)
       ORDER BY p.billing_cadence, p.effective_from DESC
       `,
-      [PREMIUM_PRODUCT_CODE, USD_CURRENCY_CODE, now]
+      [PREMIUM_BILLING_PRODUCT_CODE, USD_CURRENCY_CODE, now]
     );
 
     return rows as ActivePricingRow[];
@@ -234,7 +234,7 @@ export class BillingPriceCatalogService {
           WHERE product_code = $1
         )
         `,
-        [PREMIUM_PRODUCT_CODE, 'Premium Membership']
+        [PREMIUM_BILLING_PRODUCT_CODE, 'Premium Membership']
       );
 
       await transactionalEntityManager.query('SAVEPOINT billing_seed_monthly');
@@ -259,7 +259,7 @@ export class BillingPriceCatalogService {
             LIMIT 1
           ) bp
           `,
-          [USD_CURRENCY_CODE, monthlyAmountCents, now, PREMIUM_PRODUCT_CODE]
+          [USD_CURRENCY_CODE, monthlyAmountCents, now, PREMIUM_BILLING_PRODUCT_CODE]
         );
         await transactionalEntityManager.query('RELEASE SAVEPOINT billing_seed_monthly');
       } catch (err) {
@@ -291,7 +291,7 @@ export class BillingPriceCatalogService {
             LIMIT 1
           ) bp
           `,
-          [USD_CURRENCY_CODE, annualAmountCents, now, PREMIUM_PRODUCT_CODE]
+          [USD_CURRENCY_CODE, annualAmountCents, now, PREMIUM_BILLING_PRODUCT_CODE]
         );
         await transactionalEntityManager.query('RELEASE SAVEPOINT billing_seed_annual');
       } catch (err) {

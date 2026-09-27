@@ -1,6 +1,6 @@
 import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 import { BillingTransaction } from '@orm/entities/billingTransaction.js';
-import type { DataSource } from 'typeorm';
+import type { DataSource, EntityManager } from 'typeorm';
 
 import type { BillingRevocationReason, PurchaseKind } from '@podverse/helpers';
 
@@ -9,6 +9,7 @@ type BillingTransactionServiceParams = {
   dataSourceReadWrite?: DataSource;
 };
 
+/** Omitted fields are written as their defaults, so pass the full state of the row. */
 type BillingTransactionUpsertParams = {
   accountId: number;
   processorId: string;
@@ -36,7 +37,19 @@ export class BillingTransactionService {
     processorId: string,
     externalTransactionId: string
   ): Promise<BillingTransaction | null> {
-    return this.dataSourceRead.getRepository(BillingTransaction).findOne({
+    return this.getByExternalIdWithManager(
+      this.dataSourceRead.manager,
+      processorId,
+      externalTransactionId
+    );
+  }
+
+  async getByExternalIdWithManager(
+    transactionalEntityManager: EntityManager,
+    processorId: string,
+    externalTransactionId: string
+  ): Promise<BillingTransaction | null> {
+    return transactionalEntityManager.getRepository(BillingTransaction).findOne({
       where: {
         processor_id: processorId,
         external_transaction_id: externalTransactionId,
@@ -44,8 +57,24 @@ export class BillingTransactionService {
     });
   }
 
+  async listBySubscriptionIdWithManager(
+    transactionalEntityManager: EntityManager,
+    billingSubscriptionId: number
+  ): Promise<BillingTransaction[]> {
+    return transactionalEntityManager.getRepository(BillingTransaction).find({
+      where: { billing_subscription_id: billingSubscriptionId },
+    });
+  }
+
   async upsertByExternalId(params: BillingTransactionUpsertParams): Promise<BillingTransaction> {
-    const repository = this.dataSourceReadWrite.getRepository(BillingTransaction);
+    return this.upsertByExternalIdWithManager(this.dataSourceReadWrite.manager, params);
+  }
+
+  async upsertByExternalIdWithManager(
+    transactionalEntityManager: EntityManager,
+    params: BillingTransactionUpsertParams
+  ): Promise<BillingTransaction> {
+    const repository = transactionalEntityManager.getRepository(BillingTransaction);
     const existing = await repository.findOne({
       where: {
         processor_id: params.processorId,

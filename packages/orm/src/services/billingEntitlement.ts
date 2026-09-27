@@ -4,8 +4,8 @@ import { BillingMembershipGrant } from '@orm/entities/billingMembershipGrant.js'
 import { BillingSubscription } from '@orm/entities/billingSubscription.js';
 import type { DataSource, EntityManager } from 'typeorm';
 
+import type { AccountMembershipEnum, BillingCadence, MembershipAccess } from '@podverse/helpers';
 import { computeMembershipAccess, parseExpirationEnvValue } from '@podverse/helpers';
-import type { BillingCadence, MembershipAccess } from '@podverse/helpers';
 
 const DEFAULT_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION = 172800;
 const DEFAULT_PAYMENT_FAILURE_GRACE_EXPIRATION = 604800;
@@ -123,7 +123,7 @@ export class BillingEntitlementService {
       null;
 
     await statusRepository.update(
-      { account_id: accountId },
+      { account: { id: accountId } },
       {
         membership_expires_at: access.membershipExpiresAt,
         auto_renew_mode: access.activeAutoRenew ? 'on' : 'off',
@@ -135,6 +135,76 @@ export class BillingEntitlementService {
       ...access,
       billingCadence,
     };
+  }
+
+  getPaymentFailureGraceExpiration(): number {
+    return this.paymentFailureGraceExpiration;
+  }
+
+  /**
+   * Runs `work` in one transaction that holds the account's membership status row lock, then
+   * recomputes the entitlement cache before committing. Every ledger write for an account goes
+   * through here, so two events for the same account cannot interleave their reads and writes.
+   */
+  async withAccountLock<T>(
+    accountId: number,
+    work: (transactionalEntityManager: EntityManager) => Promise<T>,
+    now = new Date()
+  ): Promise<{ result: T; entitlement: BillingEntitlementRecomputeResult }> {
+    return this.dataSourceReadWrite.transaction(async (transactionalEntityManager) => {
+      const lockedStatus = await transactionalEntityManager
+        .getRepository(AccountMembershipStatus)
+        .createQueryBuilder('status')
+        .setLock('pessimistic_write')
+        .where('status.account_id = :accountId', { accountId })
+        .getOne();
+      if (!lockedStatus) {
+        throw new Error('AccountMembershipStatus not found');
+      }
+
+      const result = await work(transactionalEntityManager);
+      const entitlement = await this.recomputeWithManager(
+        transactionalEntityManager,
+        accountId,
+        now
+      );
+      return { result, entitlement };
+    });
+  }
+
+  /**
+   * Moves the account to `accountMembershipId`. Changing tier clears the per-account overrides,
+   * which were set against the previous tier's limits.
+   */
+  async setAccountMembershipWithManager(
+    transactionalEntityManager: EntityManager,
+    accountId: number,
+    accountMembershipId: AccountMembershipEnum
+  ): Promise<void> {
+    const statusRepository = transactionalEntityManager.getRepository(AccountMembershipStatus);
+    const status = await statusRepository
+      .createQueryBuilder('status')
+      .leftJoinAndSelect('status.account_membership', 'account_membership')
+      .where('status.account_id = :accountId', { accountId })
+      .getOne();
+    if (!status) {
+      throw new Error('AccountMembershipStatus not found');
+    }
+    if (status.account_membership?.id === accountMembershipId) {
+      return;
+    }
+
+    await statusRepository.update(
+      { account: { id: accountId } },
+      {
+        account_membership: { id: accountMembershipId },
+        allow_directory_add_by_rss: null,
+        max_add_by_rss_feeds: null,
+        max_manual_refreshes_per_hour: null,
+        track_stats: null,
+        allow_notifications: null,
+      }
+    );
   }
 }
 

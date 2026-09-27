@@ -1,12 +1,12 @@
 import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 import { BillingMembershipGrant } from '@orm/entities/billingMembershipGrant.js';
-import type { DataSource } from 'typeorm';
-import { QueryFailedError } from 'typeorm';
+import type { DataSource, EntityManager } from 'typeorm';
+import { In, IsNull, QueryFailedError } from 'typeorm';
 
 import type { MembershipGrantSource } from '@podverse/helpers';
 
-import { BillingEntitlementService } from './billingEntitlement.js';
 import type { BillingEntitlementRecomputeResult } from './billingEntitlement.js';
+import { BillingEntitlementService } from './billingEntitlement.js';
 
 type BillingMembershipGrantServiceParams = {
   dataSourceRead?: DataSource;
@@ -108,6 +108,73 @@ export class BillingMembershipGrantService {
 
     const entitlement = await this.billingEntitlementService.recompute(params.accountId, now);
     return { grant, created, entitlement };
+  }
+
+  async listByAccountWithManager(
+    transactionalEntityManager: EntityManager,
+    accountId: number
+  ): Promise<BillingMembershipGrant[]> {
+    return transactionalEntityManager.getRepository(BillingMembershipGrant).find({
+      where: { account_id: accountId },
+      order: { starts_at: 'ASC', id: 'ASC' },
+    });
+  }
+
+  async getByTransactionIdWithManager(
+    transactionalEntityManager: EntityManager,
+    billingTransactionId: number
+  ): Promise<BillingMembershipGrant | null> {
+    return transactionalEntityManager.getRepository(BillingMembershipGrant).findOne({
+      where: { billing_transaction_id: billingTransactionId },
+    });
+  }
+
+  /**
+   * Inserts without recomputing. The caller holds the account lock (see
+   * `BillingEntitlementService.withAccountLock`), checks unique references first, and recomputes
+   * once for the whole unit of work. A unique violation here aborts the transaction.
+   */
+  async insertWithManager(
+    transactionalEntityManager: EntityManager,
+    params: Omit<CreateBillingMembershipGrantParams, 'now'>
+  ): Promise<BillingMembershipGrant> {
+    const repository = transactionalEntityManager.getRepository(BillingMembershipGrant);
+    return repository.save(
+      repository.create({
+        account_id: params.accountId,
+        source: params.source,
+        starts_at: params.startsAt,
+        ends_at: params.endsAt,
+        revoked_at: params.revokedAt ?? null,
+        billing_subscription_id: params.billingSubscriptionId ?? null,
+        billing_transaction_id: params.billingTransactionId ?? null,
+        membership_claim_token_id: params.membershipClaimTokenId ?? null,
+      })
+    );
+  }
+
+  async updateEndsAtWithManager(
+    transactionalEntityManager: EntityManager,
+    grantId: number,
+    endsAt: Date
+  ): Promise<void> {
+    await transactionalEntityManager
+      .getRepository(BillingMembershipGrant)
+      .update({ id: grantId }, { ends_at: endsAt });
+  }
+
+  /** Grants already revoked keep their original `revoked_at`. */
+  async revokeWithManager(
+    transactionalEntityManager: EntityManager,
+    grantIds: number[],
+    revokedAt: Date
+  ): Promise<void> {
+    if (grantIds.length === 0) {
+      return;
+    }
+    await transactionalEntityManager
+      .getRepository(BillingMembershipGrant)
+      .update({ id: In(grantIds), revoked_at: IsNull() }, { revoked_at: revokedAt });
   }
 }
 

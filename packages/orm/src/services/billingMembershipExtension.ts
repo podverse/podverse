@@ -3,14 +3,14 @@ import { Account } from '@orm/entities/account/account.js';
 import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus.js';
 import { BillingEntitlementService } from '@orm/services/billingEntitlement.js';
 import { BillingMembershipGrantService } from '@orm/services/billingMembershipGrant.js';
-import type { DataSource } from 'typeorm';
+import type { DataSource, QueryDeepPartialEntity } from 'typeorm';
 
+import type { BillingCadence, MembershipGrantSource } from '@podverse/helpers';
 import {
   AccountMembershipEnum,
   extendMembershipPeriodByCadence,
   extendMembershipPeriodByMonths,
 } from '@podverse/helpers';
-import type { BillingCadence, MembershipGrantSource } from '@podverse/helpers';
 
 type ExtendMembershipByCadenceParams = {
   accountId: number;
@@ -96,7 +96,10 @@ export class BillingMembershipExtensionService {
     if (account === null) {
       throw new Error('Account not found');
     }
-    if (account.account_membership_status === null || account.account_membership_status === undefined) {
+    if (
+      account.account_membership_status === null ||
+      account.account_membership_status === undefined
+    ) {
       throw new Error('AccountMembershipStatus not found');
     }
     return { account, currentStatus: account.account_membership_status };
@@ -108,13 +111,15 @@ export class BillingMembershipExtensionService {
     idempotencyKey: string;
     source: MembershipGrantSource;
     accountMembershipId: AccountMembershipEnum;
-    billingCadence?: BillingCadence;
+    billingCadence?: BillingCadence | null;
     billingSubscriptionId?: number | null;
     billingTransactionId?: number | null;
     membershipClaimTokenId?: string | null;
     now: Date;
   }): Promise<{ applied: boolean; membershipExpiresAt: Date | null }> {
-    const { account, currentStatus } = await this.getAccountMembershipStatusContext(params.accountId);
+    const { account, currentStatus } = await this.getAccountMembershipStatusContext(
+      params.accountId
+    );
     if (currentStatus.last_extension_idempotency_key === params.idempotencyKey) {
       return { applied: false, membershipExpiresAt: currentStatus.membership_expires_at ?? null };
     }
@@ -136,9 +141,9 @@ export class BillingMembershipExtensionService {
     });
 
     const membershipChanged = currentStatus.account_membership?.id !== params.accountMembershipId;
-    const updatePayload: Partial<AccountMembershipStatus> = {
+    const updatePayload: QueryDeepPartialEntity<AccountMembershipStatus> = {
       last_extension_idempotency_key: params.idempotencyKey,
-      account_membership_id: params.accountMembershipId,
+      account_membership: { id: params.accountMembershipId },
       billing_cadence: params.billingCadence ?? null,
     };
     if (membershipChanged) {
@@ -151,7 +156,7 @@ export class BillingMembershipExtensionService {
 
     await this.dataSourceReadWrite
       .getRepository(AccountMembershipStatus)
-      .update({ account_id: account.id }, updatePayload);
+      .update({ account: { id: account.id } }, updatePayload);
 
     return {
       applied: true,

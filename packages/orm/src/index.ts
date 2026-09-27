@@ -189,6 +189,7 @@ export * from './services/billingDomainEventLog.js';
 export * from './services/billingEntitlement.js';
 export * from './services/billingMembershipExtension.js';
 export * from './services/billingMembershipGrant.js';
+export * from './services/billingProcessorProduct.js';
 export * from './services/billingRenewalOrchestrator.js';
 export * from './services/billingSubscription.js';
 export * from './services/billingTransaction.js';

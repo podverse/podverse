@@ -427,6 +427,20 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateOptional('PAYPAL_CLIENT_ID', 'PayPal'));
   results.push(validateOptional('PAYPAL_CLIENT_SECRET', 'PayPal'));
 
+  // Billing (optional; entitlement policy falls back to its documented defaults)
+  results.push(validateOptional('BILLING_WEBHOOK_PUBLIC_BASE_URL', 'Billing', 'Skipped'));
+  results.push(
+    validateOptional(
+      'BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION',
+      'Billing',
+      'Use Default (172800)'
+    )
+  );
+  results.push(
+    validateOptional('BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 'Billing', 'Use Default (604800)')
+  );
+  results.push(validateOptional('BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS', 'Billing', 'Skipped'));
+
   // MetaBoost AppAssertion (optional pair)
   results.push(...validateMetaboostAppAssertionPair());
 

@@ -25,6 +25,7 @@ export type ConfigCategory =
 
 const BASE_ORM_COMMANDS = [
   'billingProcessDueRenewals',
+  'billingSeedProcessorProductsFromEnv',
   'scheduledJobsRunDue',
   'notificationsPlatformPurge',
   'archiveAll',

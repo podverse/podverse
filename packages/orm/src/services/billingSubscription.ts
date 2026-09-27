@@ -1,6 +1,6 @@
 import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 import { BillingSubscription } from '@orm/entities/billingSubscription.js';
-import type { DataSource } from 'typeorm';
+import type { DataSource, EntityManager } from 'typeorm';
 
 import type { BillingSubscriptionStatus, PurchaseKind } from '@podverse/helpers';
 
@@ -9,6 +9,7 @@ type BillingSubscriptionServiceParams = {
   dataSourceReadWrite?: DataSource;
 };
 
+/** Omitted fields are written as their defaults, so pass the full state of the row. */
 type BillingSubscriptionUpsertParams = {
   accountId: number;
   processorId: string;
@@ -38,7 +39,19 @@ export class BillingSubscriptionService {
     processorId: string,
     externalSubscriptionId: string
   ): Promise<BillingSubscription | null> {
-    return this.dataSourceRead.getRepository(BillingSubscription).findOne({
+    return this.getByExternalIdWithManager(
+      this.dataSourceRead.manager,
+      processorId,
+      externalSubscriptionId
+    );
+  }
+
+  async getByExternalIdWithManager(
+    transactionalEntityManager: EntityManager,
+    processorId: string,
+    externalSubscriptionId: string
+  ): Promise<BillingSubscription | null> {
+    return transactionalEntityManager.getRepository(BillingSubscription).findOne({
       where: {
         processor_id: processorId,
         external_subscription_id: externalSubscriptionId,
@@ -47,7 +60,14 @@ export class BillingSubscriptionService {
   }
 
   async upsertByExternalId(params: BillingSubscriptionUpsertParams): Promise<BillingSubscription> {
-    const repository = this.dataSourceReadWrite.getRepository(BillingSubscription);
+    return this.upsertByExternalIdWithManager(this.dataSourceReadWrite.manager, params);
+  }
+
+  async upsertByExternalIdWithManager(
+    transactionalEntityManager: EntityManager,
+    params: BillingSubscriptionUpsertParams
+  ): Promise<BillingSubscription> {
+    const repository = transactionalEntityManager.getRepository(BillingSubscription);
     const existing = await repository.findOne({
       where: {
         processor_id: params.processorId,

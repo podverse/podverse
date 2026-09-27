@@ -26,6 +26,7 @@ import { statsUpdateAggregated } from '@workers/commands/stats/statsUpdateAggreg
 import { statsUpdateAggregatedRolling } from '@workers/commands/stats/statsUpdateAggregatedRolling.js';
 
 import { billingProcessDueRenewals } from './billing/processDueRenewals.js';
+import { billingSeedProcessorProductsFromEnv } from './billing/seedProcessorProductsFromEnv.js';
 import { imageShrinkBackfill } from './imageShrink/backfill.js';
 import { imageShrinkCleanupOrphans } from './imageShrink/cleanupOrphans.js';
 import { imageShrinkSourcePrune } from './imageShrink/pruneSources.js';
@@ -71,6 +72,7 @@ export default {
   statsUpdateAggregated,
   statsUpdateAggregatedRolling,
   billingProcessDueRenewals,
+  billingSeedProcessorProductsFromEnv,
   scheduledJobsRunDue,
   notificationsPlatformPurge,
   generateOnDemandParserEventReports,

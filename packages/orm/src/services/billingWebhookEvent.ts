@@ -44,7 +44,9 @@ export class BillingWebhookEventService {
     this.dataSourceReadWrite = params?.dataSourceReadWrite ?? getDataSourceReadWrite();
   }
 
-  async insertIfNew(params: InsertBillingWebhookEventParams): Promise<InsertBillingWebhookEventResult> {
+  async insertIfNew(
+    params: InsertBillingWebhookEventParams
+  ): Promise<InsertBillingWebhookEventResult> {
     const repository = this.dataSourceReadWrite.getRepository(BillingWebhookEvent);
     const event = repository.create({
       processor_id: params.processorId,
@@ -62,7 +64,7 @@ export class BillingWebhookEventService {
       if (!isPostgresUniqueViolation(error)) {
         throw error;
       }
-      const existing = await this.dataSourceRead.getRepository(BillingWebhookEvent).findOne({
+      const existing = await repository.findOne({
         where: {
           processor_id: params.processorId,
           external_event_id: params.externalEventId,
@@ -73,6 +75,10 @@ export class BillingWebhookEventService {
       }
       return { event: existing, inserted: false };
     }
+  }
+
+  async getById(id: string): Promise<BillingWebhookEvent | null> {
+    return this.dataSourceRead.getRepository(BillingWebhookEvent).findOne({ where: { id } });
   }
 
   async markProcessed(id: string, processedAt = new Date()): Promise<BillingWebhookEvent> {

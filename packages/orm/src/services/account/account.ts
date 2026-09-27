@@ -46,6 +46,10 @@ type CreateAccountDto = {
   allow_listen_stats?: boolean;
 };
 
+export type AccountBillingIdentity = Pick<Account, 'id' | 'id_text'>;
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 type UpdateAccountDto = {
   display_name: string | null;
   bio: string | null;
@@ -120,6 +124,29 @@ export class AccountService {
 
   async getMany(config: FindManyOptions<Account>): Promise<Account[]> {
     return this.repositoryRead.find(config);
+  }
+
+  /**
+   * Billing reads the primary: a payment can arrive seconds after signup, before a replica has
+   * the account. A ref that is not a UUID matches nothing rather than failing the query.
+   */
+  async getBillingIdentityByCustomerRef(
+    billing_customer_ref: string
+  ): Promise<AccountBillingIdentity | null> {
+    if (!UUID_PATTERN.test(billing_customer_ref)) {
+      return null;
+    }
+    return this.repositoryReadWrite.findOne({
+      where: { billing_customer_ref },
+      select: { id: true, id_text: true },
+    });
+  }
+
+  async getBillingIdentityById(id: number): Promise<AccountBillingIdentity | null> {
+    return this.repositoryReadWrite.findOne({
+      where: { id },
+      select: { id: true, id_text: true },
+    });
   }
 
   async getManyPublic(config: FindManyOptions<Account>): Promise<Account[]> {

@@ -22,6 +22,15 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run billing_process_due_renewals -w apps/workers',
   },
   {
+    name: 'billingSeedProcessorProductsFromEnv',
+    label: 'Billing: seed processor products from env',
+    description:
+      'Non-production only. Map the Premium product to PayPal, Apple, and Google Play store ids from BILLING_PRODUCT_* env; empty keys are skipped.',
+    category: 'billing',
+    risk: 'dev_only',
+    example_cli: 'npm run billing_seed_processor_products_from_env -w apps/workers',
+  },
+  {
     name: 'scheduledJobsRunDue',
     label: 'Scheduled jobs: run due batch',
     description:
