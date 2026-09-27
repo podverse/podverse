@@ -1,18 +1,26 @@
-import { AccountService } from '@orm/services/account/account.js';
-import { AccountMembershipStatusService } from '@orm/services/account/accountMembershipStatus.js';
+import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
+import { Account } from '@orm/entities/account/account.js';
+import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus.js';
+import { BillingEntitlementService } from '@orm/services/billingEntitlement.js';
+import { BillingMembershipGrantService } from '@orm/services/billingMembershipGrant.js';
+import type { DataSource } from 'typeorm';
 
 import {
   AccountMembershipEnum,
-  type BillingCadence,
   extendMembershipPeriodByCadence,
   extendMembershipPeriodByMonths,
 } from '@podverse/helpers';
+import type { BillingCadence, MembershipGrantSource } from '@podverse/helpers';
 
 type ExtendMembershipByCadenceParams = {
   accountId: number;
   cadence: BillingCadence;
   idempotencyKey: string;
-  reason: string;
+  source?: MembershipGrantSource;
+  accountMembershipId?: AccountMembershipEnum;
+  billingSubscriptionId?: number | null;
+  billingTransactionId?: number | null;
+  membershipClaimTokenId?: string | null;
   now?: Date;
 };
 
@@ -20,107 +28,215 @@ type ExtendMembershipByMonthsParams = {
   accountId: number;
   monthsToAdd: number;
   idempotencyKey: string;
-  reason: string;
+  source?: MembershipGrantSource;
+  accountMembershipId?: AccountMembershipEnum;
+  billingSubscriptionId?: number | null;
+  billingTransactionId?: number | null;
+  membershipClaimTokenId?: string | null;
   now?: Date;
 };
 
-export class BillingMembershipExtensionService {
-  private accountService: AccountService;
-  private accountMembershipStatusService: AccountMembershipStatusService;
+type ExtendMembershipToDateParams = {
+  accountId: number;
+  expiresAt: Date;
+  idempotencyKey: string;
+  source?: MembershipGrantSource;
+  accountMembershipId?: AccountMembershipEnum;
+  billingSubscriptionId?: number | null;
+  billingTransactionId?: number | null;
+  membershipClaimTokenId?: string | null;
+  now?: Date;
+};
 
-  constructor() {
-    this.accountService = new AccountService();
-    this.accountMembershipStatusService = new AccountMembershipStatusService();
+type BillingMembershipExtensionServiceParams = {
+  dataSourceRead?: DataSource;
+  dataSourceReadWrite?: DataSource;
+};
+
+function resolveMembershipGrantStart(
+  membershipExpiresAt: Date | null | undefined,
+  now: Date
+): Date {
+  if (
+    membershipExpiresAt !== null &&
+    membershipExpiresAt !== undefined &&
+    membershipExpiresAt > now
+  ) {
+    return membershipExpiresAt;
+  }
+  return now;
+}
+
+export class BillingMembershipExtensionService {
+  private dataSourceRead: DataSource;
+  private dataSourceReadWrite: DataSource;
+  private billingMembershipGrantService: BillingMembershipGrantService;
+
+  constructor(params?: BillingMembershipExtensionServiceParams) {
+    this.dataSourceRead = params?.dataSourceRead ?? getDataSourceRead();
+    this.dataSourceReadWrite = params?.dataSourceReadWrite ?? getDataSourceReadWrite();
+    const billingEntitlementService = new BillingEntitlementService({
+      dataSourceReadWrite: this.dataSourceReadWrite,
+    });
+    this.billingMembershipGrantService = new BillingMembershipGrantService({
+      dataSourceRead: this.dataSourceRead,
+      dataSourceReadWrite: this.dataSourceReadWrite,
+      billingEntitlementService,
+    });
+  }
+
+  private async getAccountMembershipStatusContext(accountId: number) {
+    const accountRepository = this.dataSourceReadWrite.getRepository(Account);
+    const account = await accountRepository.findOne({
+      where: { id: accountId },
+      relations: {
+        account_membership_status: { account_membership: true },
+      },
+    });
+    if (account === null) {
+      throw new Error('Account not found');
+    }
+    if (account.account_membership_status === null || account.account_membership_status === undefined) {
+      throw new Error('AccountMembershipStatus not found');
+    }
+    return { account, currentStatus: account.account_membership_status };
+  }
+
+  private async applyGrant(params: {
+    accountId: number;
+    endsAt: Date;
+    idempotencyKey: string;
+    source: MembershipGrantSource;
+    accountMembershipId: AccountMembershipEnum;
+    billingCadence?: BillingCadence;
+    billingSubscriptionId?: number | null;
+    billingTransactionId?: number | null;
+    membershipClaimTokenId?: string | null;
+    now: Date;
+  }): Promise<{ applied: boolean; membershipExpiresAt: Date | null }> {
+    const { account, currentStatus } = await this.getAccountMembershipStatusContext(params.accountId);
+    if (currentStatus.last_extension_idempotency_key === params.idempotencyKey) {
+      return { applied: false, membershipExpiresAt: currentStatus.membership_expires_at ?? null };
+    }
+
+    const startsAt = resolveMembershipGrantStart(currentStatus.membership_expires_at, params.now);
+    if (params.endsAt < startsAt) {
+      return { applied: false, membershipExpiresAt: currentStatus.membership_expires_at ?? null };
+    }
+
+    const grantResult = await this.billingMembershipGrantService.createGrant({
+      accountId: params.accountId,
+      source: params.source,
+      startsAt,
+      endsAt: params.endsAt,
+      billingSubscriptionId: params.billingSubscriptionId,
+      billingTransactionId: params.billingTransactionId,
+      membershipClaimTokenId: params.membershipClaimTokenId,
+      now: params.now,
+    });
+
+    const membershipChanged = currentStatus.account_membership?.id !== params.accountMembershipId;
+    const updatePayload: Partial<AccountMembershipStatus> = {
+      last_extension_idempotency_key: params.idempotencyKey,
+      account_membership_id: params.accountMembershipId,
+      billing_cadence: params.billingCadence ?? null,
+    };
+    if (membershipChanged) {
+      updatePayload.allow_directory_add_by_rss = null;
+      updatePayload.max_add_by_rss_feeds = null;
+      updatePayload.max_manual_refreshes_per_hour = null;
+      updatePayload.track_stats = null;
+      updatePayload.allow_notifications = null;
+    }
+
+    await this.dataSourceReadWrite
+      .getRepository(AccountMembershipStatus)
+      .update({ account_id: account.id }, updatePayload);
+
+    return {
+      applied: true,
+      membershipExpiresAt: grantResult.entitlement.membershipExpiresAt,
+    };
   }
 
   async extendByCadence(params: ExtendMembershipByCadenceParams): Promise<{
     applied: boolean;
     membershipExpiresAt: Date | null;
   }> {
-    const account = await this.accountService.get(params.accountId, {
-      relations: {
-        account_membership_status: { account_membership: true },
-      },
-    });
-    if (!account) {
-      throw new Error('Account not found');
-    }
-
-    const currentStatus = account.account_membership_status;
-    if (currentStatus?.last_extension_idempotency_key === params.idempotencyKey) {
-      return {
-        applied: false,
-        membershipExpiresAt: currentStatus.membership_expires_at ?? null,
-      };
-    }
-
-    const newExpirationDate = extendMembershipPeriodByCadence({
-      membershipExpiresAt: currentStatus?.membership_expires_at,
+    const now = params.now ?? new Date();
+    const { currentStatus } = await this.getAccountMembershipStatusContext(params.accountId);
+    const endsAt = extendMembershipPeriodByCadence({
+      membershipExpiresAt: currentStatus.membership_expires_at,
       cadence: params.cadence,
-      now: params.now,
+      now,
     });
 
-    await this.accountMembershipStatusService.update(account, {
-      account_membership_id: currentStatus?.account_membership?.id ?? AccountMembershipEnum.Premium,
-      membership_expires_at: newExpirationDate,
-      billing_cadence: params.cadence,
-      last_extension_idempotency_key: params.idempotencyKey,
-      last_renewal_idempotency_key:
-        currentStatus?.last_renewal_idempotency_key ??
-        currentStatus?.last_extension_idempotency_key,
-      last_renewal_status: currentStatus?.last_renewal_status ?? 'none',
-      next_renewal_attempt_at: currentStatus?.next_renewal_attempt_at ?? null,
-      last_renewal_attempt_at: currentStatus?.last_renewal_attempt_at ?? null,
-      auto_renew_mode: currentStatus?.auto_renew_mode ?? 'off',
-      renewal_retry_count: currentStatus?.renewal_retry_count ?? 0,
-      renewal_retry_backoff_until: currentStatus?.renewal_retry_backoff_until ?? null,
+    return this.applyGrant({
+      accountId: params.accountId,
+      endsAt,
+      idempotencyKey: params.idempotencyKey,
+      source: params.source ?? 'admin',
+      accountMembershipId:
+        params.accountMembershipId ??
+        currentStatus.account_membership?.id ??
+        AccountMembershipEnum.Premium,
+      billingCadence: params.cadence,
+      billingSubscriptionId: params.billingSubscriptionId,
+      billingTransactionId: params.billingTransactionId,
+      membershipClaimTokenId: params.membershipClaimTokenId,
+      now,
     });
-
-    return { applied: true, membershipExpiresAt: newExpirationDate };
   }
 
   async extendByMonths(params: ExtendMembershipByMonthsParams): Promise<{
     applied: boolean;
     membershipExpiresAt: Date | null;
   }> {
-    const account = await this.accountService.get(params.accountId, {
-      relations: {
-        account_membership_status: { account_membership: true },
-      },
-    });
-    if (!account) {
-      throw new Error('Account not found');
-    }
-
-    const currentStatus = account.account_membership_status;
-    if (currentStatus?.last_extension_idempotency_key === params.idempotencyKey) {
-      return {
-        applied: false,
-        membershipExpiresAt: currentStatus.membership_expires_at ?? null,
-      };
-    }
-
-    const newExpirationDate = extendMembershipPeriodByMonths({
-      membershipExpiresAt: currentStatus?.membership_expires_at,
+    const now = params.now ?? new Date();
+    const { currentStatus } = await this.getAccountMembershipStatusContext(params.accountId);
+    const endsAt = extendMembershipPeriodByMonths({
+      membershipExpiresAt: currentStatus.membership_expires_at,
       monthsToAdd: params.monthsToAdd,
-      now: params.now,
+      now,
     });
 
-    await this.accountMembershipStatusService.update(account, {
-      account_membership_id: currentStatus?.account_membership?.id ?? AccountMembershipEnum.Premium,
-      membership_expires_at: newExpirationDate,
-      last_extension_idempotency_key: params.idempotencyKey,
-      last_renewal_idempotency_key:
-        currentStatus?.last_renewal_idempotency_key ??
-        currentStatus?.last_extension_idempotency_key,
-      last_renewal_status: currentStatus?.last_renewal_status ?? 'none',
-      next_renewal_attempt_at: currentStatus?.next_renewal_attempt_at ?? null,
-      last_renewal_attempt_at: currentStatus?.last_renewal_attempt_at ?? null,
-      auto_renew_mode: currentStatus?.auto_renew_mode ?? 'off',
-      renewal_retry_count: currentStatus?.renewal_retry_count ?? 0,
-      renewal_retry_backoff_until: currentStatus?.renewal_retry_backoff_until ?? null,
+    return this.applyGrant({
+      accountId: params.accountId,
+      endsAt,
+      idempotencyKey: params.idempotencyKey,
+      source: params.source ?? 'admin',
+      accountMembershipId:
+        params.accountMembershipId ??
+        currentStatus.account_membership?.id ??
+        AccountMembershipEnum.Premium,
+      billingCadence: currentStatus.billing_cadence ?? null,
+      billingSubscriptionId: params.billingSubscriptionId,
+      billingTransactionId: params.billingTransactionId,
+      membershipClaimTokenId: params.membershipClaimTokenId,
+      now,
     });
+  }
 
-    return { applied: true, membershipExpiresAt: newExpirationDate };
+  async extendToDate(params: ExtendMembershipToDateParams): Promise<{
+    applied: boolean;
+    membershipExpiresAt: Date | null;
+  }> {
+    const now = params.now ?? new Date();
+    const { currentStatus } = await this.getAccountMembershipStatusContext(params.accountId);
+    return this.applyGrant({
+      accountId: params.accountId,
+      endsAt: params.expiresAt,
+      idempotencyKey: params.idempotencyKey,
+      source: params.source ?? 'admin',
+      accountMembershipId:
+        params.accountMembershipId ??
+        currentStatus.account_membership?.id ??
+        AccountMembershipEnum.Premium,
+      billingCadence: currentStatus.billing_cadence ?? null,
+      billingSubscriptionId: params.billingSubscriptionId,
+      billingTransactionId: params.billingTransactionId,
+      membershipClaimTokenId: params.membershipClaimTokenId,
+      now,
+    });
   }
 }

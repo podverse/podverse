@@ -93,7 +93,7 @@ export class MembershipController {
           const pricing = await billingPriceCatalogService.resolveProductMembership();
           const status = account.account_membership_status;
           const cadence = status.billing_cadence;
-          const autoRenewMode = status.auto_renew_mode ?? (status.auto_renew ? 'on' : 'off');
+          const autoRenewMode = status.auto_renew_mode;
 
           res.json({
             data: {
@@ -103,9 +103,9 @@ export class MembershipController {
               autoRenewMode,
               autoRenewEnabled: autoRenewMode === 'on',
               renewal: {
-                nextAttemptAt: status.next_renewal_attempt_at ?? null,
-                lastAttemptAt: status.last_renewal_attempt_at ?? null,
-                lastStatus: status.last_renewal_status ?? 'none',
+                nextAttemptAt: null,
+                lastAttemptAt: null,
+                lastStatus: 'none',
               },
               pricing: {
                 currencyCode: 'USD',

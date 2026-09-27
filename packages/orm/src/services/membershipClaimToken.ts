@@ -2,12 +2,8 @@ import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { MembershipClaimToken } from '@orm/entities/membershipClaimToken.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { AccountMembershipService } from '@orm/services/account/accountMembership.js';
-import { AccountMembershipStatusService } from '@orm/services/account/accountMembershipStatus.js';
-import { BillingRenewalOrchestratorService } from '@orm/services/billingRenewalOrchestrator.js';
-import {
-  assertValidMonthsToAdd,
-  calculateMembershipExpirationDate,
-} from '@orm/services/membershipClaimToken.helpers.js';
+import { BillingMembershipExtensionService } from '@orm/services/billingMembershipExtension.js';
+import { assertValidMonthsToAdd } from '@orm/services/membershipClaimToken.helpers.js';
 import type { Repository } from 'typeorm';
 
 import type { AccountMembershipEnum } from '@podverse/helpers';
@@ -17,16 +13,14 @@ export class MembershipClaimTokenService {
   protected repositoryReadWrite: Repository<MembershipClaimToken>;
   protected accountMembershipService: AccountMembershipService;
   protected accountService: AccountService;
-  protected accountMembershipStatusService: AccountMembershipStatusService;
-  protected billingRenewalOrchestratorService: BillingRenewalOrchestratorService;
+  protected billingMembershipExtensionService: BillingMembershipExtensionService;
 
   constructor() {
     this.repositoryRead = AppDataSourceRead.getRepository(MembershipClaimToken);
     this.repositoryReadWrite = AppDataSourceReadWrite.getRepository(MembershipClaimToken);
     this.accountMembershipService = new AccountMembershipService();
     this.accountService = new AccountService();
-    this.accountMembershipStatusService = new AccountMembershipStatusService();
-    this.billingRenewalOrchestratorService = new BillingRenewalOrchestratorService();
+    this.billingMembershipExtensionService = new BillingMembershipExtensionService();
   }
 
   async create(
@@ -67,26 +61,13 @@ export class MembershipClaimTokenService {
       throw new Error('MembershipClaimToken has already been claimed');
     }
 
-    const accountMembershipStatus = await this.accountMembershipStatusService._get(account);
-    if (!accountMembershipStatus) {
-      throw new Error('AccountMembershipStatus not found');
-    }
-
-    const newExpirationDate = calculateMembershipExpirationDate(
-      accountMembershipStatus.membership_expires_at,
-      membershipClaimToken.months_to_add
-    );
-
-    await this.accountMembershipStatusService.update(account, {
-      account_membership_id: membershipClaimToken.account_membership_id,
-      membership_expires_at: newExpirationDate,
-    });
-
-    await this.billingRenewalOrchestratorService.handlePayOnDemandExtensionRequested({
+    await this.billingMembershipExtensionService.extendByMonths({
       accountId: account.id,
-      monthsToAdd: 0,
+      monthsToAdd: membershipClaimToken.months_to_add,
+      accountMembershipId: membershipClaimToken.account_membership_id,
       idempotencyKey: `claim:${membershipClaimToken.id}`,
-      source: 'membership_claim_token',
+      source: 'claim_token',
+      membershipClaimTokenId: membershipClaimToken.id,
     });
 
     membershipClaimToken.claimed = true;

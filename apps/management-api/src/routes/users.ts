@@ -17,10 +17,19 @@ import {
   SharableStatusEnum,
 } from '@podverse/helpers';
 import { validateEmail, validatePassword, validateUsername } from '@podverse/helpers-validation';
-import { BillingPriceCatalogService, generateRandomIdText, hashPassword } from '@podverse/orm';
+import {
+  BillingMembershipExtensionService,
+  BillingPriceCatalogService,
+  generateRandomIdText,
+  hashPassword,
+} from '@podverse/orm';
 
 const router = express.Router();
 const billingPriceCatalogService = new BillingPriceCatalogService({
+  dataSourceRead: AppDbDataSourceRead,
+  dataSourceReadWrite: AppDbDataSourceReadWrite,
+});
+const billingMembershipExtensionService = new BillingMembershipExtensionService({
   dataSourceRead: AppDbDataSourceRead,
   dataSourceReadWrite: AppDbDataSourceReadWrite,
 });
@@ -453,6 +462,20 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
       res.status(404).json({ message: 'User not found' });
       return;
     }
+    const existingMembershipRows = await AppDbDataSourceRead.query(
+      `SELECT account_membership_id, membership_expires_at
+       FROM account_membership_status
+       WHERE account_id = $1`,
+      [id]
+    );
+    if (existingMembershipRows.length === 0) {
+      res.status(404).json({ message: 'User membership status not found' });
+      return;
+    }
+    const existingMembershipStatus = existingMembershipRows[0] as {
+      account_membership_id: number;
+      membership_expires_at: Date | null;
+    };
 
     // Check for duplicate email/username if being changed
     if (email !== undefined || username !== undefined) {
@@ -475,17 +498,50 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
       track_stats !== undefined ||
       allow_notifications !== undefined
     ) {
+      let handledByExtension = false;
+      let membershipExpiresAtDirectUpdate: Date | null | undefined = undefined;
+
+      if (membership_expires_at !== undefined) {
+        if (membership_expires_at === null) {
+          membershipExpiresAtDirectUpdate = null;
+        } else {
+          const requestedMembershipExpiresAt = new Date(membership_expires_at);
+          const existingMembershipExpiresAt =
+            existingMembershipStatus.membership_expires_at === null
+              ? null
+              : new Date(existingMembershipStatus.membership_expires_at);
+
+          const shouldUseExtension =
+            existingMembershipExpiresAt === null ||
+            requestedMembershipExpiresAt.getTime() > existingMembershipExpiresAt.getTime();
+
+          if (shouldUseExtension) {
+            await billingMembershipExtensionService.extendToDate({
+              accountId: id,
+              expiresAt: requestedMembershipExpiresAt,
+              idempotencyKey: `management_admin:${id}:${requestedMembershipExpiresAt.toISOString()}`,
+              source: 'admin',
+              accountMembershipId:
+                account_membership_id ??
+                existingMembershipStatus.account_membership_id ??
+                AccountMembershipEnum.Premium,
+            });
+            handledByExtension = true;
+          } else {
+            membershipExpiresAtDirectUpdate = requestedMembershipExpiresAt;
+          }
+        }
+      }
+
       const membershipSets: string[] = [];
       const membershipParams: unknown[] = [];
 
-      if (account_membership_id !== undefined) {
+      if (account_membership_id !== undefined && !handledByExtension) {
         membershipParams.push(account_membership_id);
         membershipSets.push(`account_membership_id = $${membershipParams.length}`);
       }
-      if (membership_expires_at !== undefined) {
-        membershipParams.push(
-          membership_expires_at === null ? null : new Date(membership_expires_at)
-        );
+      if (membershipExpiresAtDirectUpdate !== undefined) {
+        membershipParams.push(membershipExpiresAtDirectUpdate);
         membershipSets.push(`membership_expires_at = $${membershipParams.length}`);
       }
       if (allow_directory_add_by_rss !== undefined) {
@@ -509,11 +565,13 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
         membershipSets.push(`allow_notifications = $${membershipParams.length}`);
       }
 
-      membershipParams.push(id);
-      await AppDbDataSourceReadWrite.query(
-        `UPDATE account_membership_status SET ${membershipSets.join(', ')} WHERE account_id = $${membershipParams.length}`,
-        membershipParams
-      );
+      if (membershipSets.length > 0) {
+        membershipParams.push(id);
+        await AppDbDataSourceReadWrite.query(
+          `UPDATE account_membership_status SET ${membershipSets.join(', ')} WHERE account_id = $${membershipParams.length}`,
+          membershipParams
+        );
+      }
     }
 
     // Update account table
