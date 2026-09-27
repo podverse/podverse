@@ -2,7 +2,7 @@ import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 import { BillingProcessorProduct } from '@orm/entities/billingProcessorProduct.js';
 import { BillingProduct } from '@orm/entities/billingProduct.js';
 import type { DataSource, EntityManager } from 'typeorm';
-import { IsNull } from 'typeorm';
+import { In, IsNull } from 'typeorm';
 
 import type { BillingCadence, PaymentProcessorId, PurchaseKind } from '@podverse/helpers';
 
@@ -34,6 +34,66 @@ export class BillingProcessorProductService {
   constructor(params?: BillingProcessorProductServiceParams) {
     this.dataSourceRead = params?.dataSourceRead ?? getDataSourceRead();
     this.dataSourceReadWrite = params?.dataSourceReadWrite ?? getDataSourceReadWrite();
+  }
+
+  async listAll(): Promise<BillingProcessorProduct[]> {
+    return this.dataSourceRead.getRepository(BillingProcessorProduct).find({
+      relations: { billing_product: true },
+      order: { processor_id: 'ASC', id: 'ASC' },
+    });
+  }
+
+  async getById(id: number): Promise<BillingProcessorProduct | null> {
+    return this.dataSourceRead.getRepository(BillingProcessorProduct).findOne({
+      where: { id },
+      relations: { billing_product: true },
+    });
+  }
+
+  /** Null when no product has this id. Omitted fields keep their stored value. */
+  async updateById(
+    id: number,
+    params: {
+      isActive?: boolean;
+      externalProductId?: string;
+      externalBasePlanId?: string | null;
+    }
+  ): Promise<BillingProcessorProduct | null> {
+    const repository = this.dataSourceReadWrite.getRepository(BillingProcessorProduct);
+    const product = await repository.findOne({ where: { id } });
+    if (product === null) {
+      return null;
+    }
+    if (params.isActive !== undefined) {
+      product.is_active = params.isActive;
+    }
+    if (params.externalProductId !== undefined) {
+      product.external_product_id = params.externalProductId;
+    }
+    if (params.externalBasePlanId !== undefined) {
+      product.external_base_plan_id = params.externalBasePlanId;
+    }
+    return repository.save(product);
+  }
+
+  /** Active products of the given processors with their catalog product, for checkout options. */
+  async listActiveForProcessors(processorIds: string[]): Promise<BillingProcessorProduct[]> {
+    if (processorIds.length === 0) {
+      return [];
+    }
+    return this.dataSourceRead.getRepository(BillingProcessorProduct).find({
+      where: { processor_id: In(processorIds), is_active: true },
+      relations: { billing_product: true },
+      order: { processor_id: 'ASC', id: 'ASC' },
+    });
+  }
+
+  /** The active product a client picked at checkout; null when it is unknown or retired. */
+  async getActiveById(id: number): Promise<BillingProcessorProduct | null> {
+    return this.dataSourceRead.getRepository(BillingProcessorProduct).findOne({
+      where: { id, is_active: true },
+      relations: { billing_product: true },
+    });
   }
 
   async getByExternalIds(

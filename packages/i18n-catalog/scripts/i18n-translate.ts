@@ -123,7 +123,7 @@ async function translateBatch(
       {
         role: 'system',
         content:
-          'You are a professional software localization translator. Keep placeholders like {name} unchanged and return only valid JSON. Follow the target language\'s own capitalization. Do not copy English title case into Spanish, French, or Greek.',
+          "You are a professional software localization translator. Keep placeholders like {name} unchanged and return only valid JSON. Follow the target language's own capitalization. Do not copy English title case into Spanish, French, or Greek.",
       },
       {
         role: 'user',

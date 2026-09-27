@@ -9,6 +9,10 @@ export const ADMIN_PERMISSION_RESOURCE_KEYS = [
   'bucket_crud',
   'embed_demo_crud',
   'notifications_crud',
+  'billing_channels_crud',
+  'billing_processor_products_crud',
+  'billing_account_crud',
+  'billing_webhook_events_crud',
 ] as const;
 
 export type PermissionState = {
@@ -20,6 +24,10 @@ export type PermissionState = {
   bucket_crud: number;
   embed_demo_crud: number;
   notifications_crud: number;
+  billing_channels_crud: number;
+  billing_processor_products_crud: number;
+  billing_account_crud: number;
+  billing_webhook_events_crud: number;
 };
 
 /** User cleared template or edited checkboxes manually — submit explicit permissions only. */
@@ -38,6 +46,10 @@ export function emptyPermissionState(): PermissionState {
     bucket_crud: 0,
     embed_demo_crud: 0,
     notifications_crud: 0,
+    billing_channels_crud: 0,
+    billing_processor_products_crud: 0,
+    billing_account_crud: 0,
+    billing_webhook_events_crud: 0,
   };
 }
 
@@ -51,6 +63,10 @@ export function permissionStateFromRoleItem(item: ManagementAdminRoleItem): Perm
     bucket_crud: item.bucket_crud,
     embed_demo_crud: item.embed_demo_crud,
     notifications_crud: item.notifications_crud ?? 0,
+    billing_channels_crud: item.billing_channels_crud ?? 0,
+    billing_processor_products_crud: item.billing_processor_products_crud ?? 0,
+    billing_account_crud: item.billing_account_crud ?? 0,
+    billing_webhook_events_crud: item.billing_webhook_events_crud ?? 0,
   };
 }
 
@@ -67,7 +83,11 @@ export function rolePermissionScore(item: ManagementAdminRoleItem): number {
     item.billing_prices_crud +
     item.bucket_crud +
     item.embed_demo_crud +
-    (item.notifications_crud ?? 0)
+    (item.notifications_crud ?? 0) +
+    (item.billing_channels_crud ?? 0) +
+    (item.billing_processor_products_crud ?? 0) +
+    (item.billing_account_crud ?? 0) +
+    (item.billing_webhook_events_crud ?? 0)
   );
 }
 

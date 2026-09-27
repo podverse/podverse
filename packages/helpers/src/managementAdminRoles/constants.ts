@@ -2,6 +2,8 @@
  * Predefined Podverse management-admin roles (templates). Custom roles are stored in
  * `management_admin_role` (management DB).
  * CRUD bits: create=1, read=2, update=4, delete=8 (sum 0–15).
+ * Billing actions reuse those bits: account resync and webhook replay need update; a manual
+ * membership grant needs `billingAccountCrud` create.
  */
 export const PREDEFINED_MANAGEMENT_ADMIN_ROLE_IDS = [
   'everything',
@@ -24,6 +26,10 @@ export type PredefinedManagementAdminRole = {
   bucketCrud: number;
   embedDemoCrud: number;
   notificationsCrud: number;
+  billingChannelsCrud: number;
+  billingProcessorProductsCrud: number;
+  billingAccountCrud: number;
+  billingWebhookEventsCrud: number;
 };
 
 export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] = [
@@ -38,6 +44,10 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     bucketCrud: 15,
     embedDemoCrud: 15,
     notificationsCrud: 15,
+    billingChannelsCrud: 15,
+    billingProcessorProductsCrud: 15,
+    billingAccountCrud: 15,
+    billingWebhookEventsCrud: 15,
   },
   {
     id: 'read_everything',
@@ -50,6 +60,10 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     bucketCrud: 2,
     embedDemoCrud: 2,
     notificationsCrud: 2,
+    billingChannelsCrud: 2,
+    billingProcessorProductsCrud: 2,
+    billingAccountCrud: 2,
+    billingWebhookEventsCrud: 2,
   },
   {
     id: 'feeds_moderation',
@@ -62,6 +76,10 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     bucketCrud: 0,
     embedDemoCrud: 0,
     notificationsCrud: 0,
+    billingChannelsCrud: 0,
+    billingProcessorProductsCrud: 0,
+    billingAccountCrud: 0,
+    billingWebhookEventsCrud: 0,
   },
   {
     id: 'admins_stats_read',
@@ -74,6 +92,10 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     bucketCrud: 2,
     embedDemoCrud: 2,
     notificationsCrud: 2,
+    billingChannelsCrud: 2,
+    billingProcessorProductsCrud: 2,
+    billingAccountCrud: 2,
+    billingWebhookEventsCrud: 2,
   },
   {
     id: 'storage_full',
@@ -86,6 +108,10 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     bucketCrud: 15,
     embedDemoCrud: 0,
     notificationsCrud: 0,
+    billingChannelsCrud: 0,
+    billingProcessorProductsCrud: 0,
+    billingAccountCrud: 0,
+    billingWebhookEventsCrud: 0,
   },
 ];
 

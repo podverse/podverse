@@ -41,6 +41,7 @@ export * from './lib/bitrate.js';
 export * from './lib/boostAction.js';
 export * from './lib/billingEvents.js';
 export * from './lib/billingDomain.js';
+export * from './lib/billing/billingApi.js';
 export * from './lib/billing/billingPlatform.js';
 export * from './lib/billing/compareClientVersion.js';
 export * from './lib/billing/grantLedger.js';

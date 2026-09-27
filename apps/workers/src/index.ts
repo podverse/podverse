@@ -56,6 +56,7 @@ const run = async () => {
     CATEGORY_WEB_NOTIFICATIONS,
     CATEGORY_KEYVALDB,
     CATEGORY_IMAGE_SHRINK,
+    CATEGORY_BILLING,
   } = await import('./lib/startup/categoriesForCommand.js');
 
   /**
@@ -218,6 +219,17 @@ const run = async () => {
             })
           );
         }
+      }
+
+      if (categories.has(CATEGORY_BILLING)) {
+        const { readBillingProcessorEnv } = await import('@podverse/helpers-config');
+        const { initBillingContext } = await import('./lib/billing/billingContext.js');
+        initBillingContext({
+          nodeEnv: process.env.NODE_ENV ?? 'development',
+          allowTestAdapter: process.env.BILLING_ALLOW_TEST_ADAPTER === 'true',
+          sandboxAllowedAccountIds: process.env.BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS,
+          processors: readBillingProcessorEnv(process.env),
+        });
       }
 
       if (categories.has(CATEGORY_KEYVALDB)) {

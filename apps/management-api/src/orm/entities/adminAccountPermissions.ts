@@ -46,6 +46,18 @@ export class AdminAccountPermissions {
   @Column({ name: 'notifications_crud', type: 'integer', default: 0 })
   notificationsCrud!: number;
 
+  @Column({ name: 'billing_channels_crud', type: 'integer', default: 0 })
+  billingChannelsCrud!: number;
+
+  @Column({ name: 'billing_processor_products_crud', type: 'integer', default: 0 })
+  billingProcessorProductsCrud!: number;
+
+  @Column({ name: 'billing_account_crud', type: 'integer', default: 0 })
+  billingAccountCrud!: number;
+
+  @Column({ name: 'billing_webhook_events_crud', type: 'integer', default: 0 })
+  billingWebhookEventsCrud!: number;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'NOW()' })
   created_at!: Date;
 

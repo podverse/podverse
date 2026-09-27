@@ -149,6 +149,17 @@ export class AccountService {
     });
   }
 
+  /**
+   * The account with its membership cache, read from the primary so a status poll right after a
+   * purchase sees the entitlement that purchase wrote.
+   */
+  async getWithMembershipStatusFromPrimary(id: number): Promise<Account | null> {
+    return this.repositoryReadWrite.findOne({
+      where: { id },
+      relations: { account_membership_status: { account_membership: true } },
+    });
+  }
+
   async getManyPublic(config: FindManyOptions<Account>): Promise<Account[]> {
     const sharableStatusIds = getSharableStatusIdsForProfileType('global');
     return this.repositoryRead.find({

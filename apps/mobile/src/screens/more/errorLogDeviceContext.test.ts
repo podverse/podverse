@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
+import type { ErrorLogDeviceSnapshot } from './errorLogDeviceContext';
 import {
   androidDeviceType,
   errorLogDeviceFields,
   iosDeviceType,
   joinDeviceModel,
 } from './errorLogDeviceContext';
-import type { ErrorLogDeviceSnapshot } from './errorLogDeviceContext';
 
 const snapshot = (overrides: Partial<ErrorLogDeviceSnapshot> = {}): ErrorLogDeviceSnapshot => ({
   androidApiLevel: null,

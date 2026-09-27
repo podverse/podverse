@@ -309,11 +309,11 @@ Use Appendix D template from master plan:
 
 **Depth by Model tier:**
 
-| Model           | Minimum content                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------- |
-| Cursor Grok 4.7 | Scope + acceptance bullets + exact file paths + verification commands; every either/or resolved   |
-| Codex 5.3       | Above + web parity links + the vendor / security contract the code must satisfy                   |
-| Opus 5.5        | Above + architecture notes, edge cases, spike outcomes, cross-track deps                          |
+| Model           | Minimum content                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| Cursor Grok 4.7 | Scope + acceptance bullets + exact file paths + verification commands; every either/or resolved |
+| Codex 5.3       | Above + web parity links + the vendor / security contract the code must satisfy                 |
+| Opus 5.5        | Above + architecture notes, edge cases, spike outcomes, cross-track deps                        |
 
 Cheaper models get **more explicit** plans, not thinner ones: a Cursor Grok 4.7 plan transcribes
 decisions instead of making them.

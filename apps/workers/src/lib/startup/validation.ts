@@ -43,8 +43,14 @@ import {
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
+  validateAppleProcessorEnv,
+  validateBillingExpirationEnv,
+  validateBillingSandboxAllowlistEnv,
+  validateBoolean,
+  validateGooglePlayProcessorEnv,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
+  validatePayPalProcessorEnv,
   validatePositiveNumber,
   validateRequired,
 } from '@podverse/helpers-config';
@@ -53,6 +59,7 @@ import { buildObservabilityValidationResults } from '@podverse/observability/con
 import { isLongRunningCommand } from '../extensions/longRunningCommands.js';
 import {
   CATEGORY_BASE,
+  CATEGORY_BILLING,
   CATEGORY_IMAGE_SHRINK,
   CATEGORY_KEYVALDB,
   CATEGORY_MQ,
@@ -175,41 +182,32 @@ function validateBase(): ValidationResult[] {
       DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS
     )
   );
-  results.push(
-    validateOptional('BILLING_RENEWAL_RETRY_DELAY_MINUTES', 'Billing', 'Use Default (60 minutes)')
-  );
-  results.push(
-    validateOptional(
-      'BILLING_RENEWAL_DRY_RUN_SUCCESS',
-      'Billing',
-      'Use Default (false - adapter_not_configured)'
-    )
-  );
   results.push(validateOptional('BILLING_WEBHOOK_PUBLIC_BASE_URL', 'Billing', 'Skipped'));
   results.push(
-    validateOptional(
+    validateBillingExpirationEnv(
+      process.env,
       'BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION',
-      'Billing',
-      'Use Default (172800)'
+      172800
     )
   );
   results.push(
-    validateOptional('BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 'Billing', 'Use Default (604800)')
+    validateBillingExpirationEnv(process.env, 'BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 604800)
   );
-  results.push(validateOptional('BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS', 'Billing', 'Skipped'));
-  results.push(validateOptional('APPLE_IAP_ISSUER_ID', 'Billing / Apple IAP', 'Skipped'));
-  results.push(validateOptional('APPLE_IAP_KEY_ID', 'Billing / Apple IAP', 'Skipped'));
-  results.push(validateOptional('APPLE_IAP_PRIVATE_KEY_PATH', 'Billing / Apple IAP', 'Skipped'));
-  results.push(
-    validateOptional(
-      'APPLE_IAP_BUNDLE_ID',
-      'Billing / Apple IAP',
-      'Skipped (defaults to com.podverse.app.next when adapter config supplies it)'
-    )
-  );
-  results.push(validateOptional('APPLE_IAP_APP_APPLE_ID', 'Billing / Apple IAP', 'Skipped'));
-  results.push(validateOptional('APPLE_IAP_ENVIRONMENT', 'Billing / Apple IAP', 'Skipped'));
+  results.push(validateBillingSandboxAllowlistEnv(process.env));
   return results;
+}
+
+/**
+ * Category: Billing — commands that talk to payment processors. A processor is enabled once any of
+ * its credentials is set, and then every key it needs is required.
+ */
+function validateBillingProcessors(): ValidationResult[] {
+  return [
+    validateBoolean('BILLING_ALLOW_TEST_ADAPTER', 'Billing'),
+    ...validatePayPalProcessorEnv(process.env),
+    ...validateAppleProcessorEnv(process.env),
+    ...validateGooglePlayProcessorEnv(process.env),
+  ];
 }
 
 /** Billing products — only the product seed command reads the `BILLING_PRODUCT_*` keys. */
@@ -652,6 +650,9 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   }
   if (categories.has(CATEGORY_IMAGE_SHRINK)) {
     results.push(...validateImageShrink());
+  }
+  if (categories.has(CATEGORY_BILLING)) {
+    results.push(...validateBillingProcessors());
   }
   if (commandName === 'billingSeedProcessorProductsFromEnv') {
     results.push(...validateBillingProducts());

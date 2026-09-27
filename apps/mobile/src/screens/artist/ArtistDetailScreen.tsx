@@ -1022,13 +1022,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         />
       );
     },
-    [
-      handleGoToChannel,
-      handleGoToTrack,
-      handleOpenUnaddedTrack,
-      handlePlayTrack,
-      handleQueueTrack,
-    ]
+    [handleGoToChannel, handleGoToTrack, handleOpenUnaddedTrack, handlePlayTrack, handleQueueTrack]
   );
 
   const albumsEmpty = useMemo(

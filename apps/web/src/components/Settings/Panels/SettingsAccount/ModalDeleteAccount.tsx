@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import React, { useState } from 'react';
 
-import { Button, Modal, ModalActions, TextInput } from '@podverse/ui';
+import { Alert, Button, Modal, ModalActions, TextInput } from '@podverse/ui';
 
 import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
@@ -17,12 +17,14 @@ type ModalDeleteAccountProps = {
   isOpen: boolean;
   onClose: () => void;
   userEmail: string;
+  warnActiveBilling: boolean;
 };
 
 export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
   isOpen,
   onClose,
   userEmail,
+  warnActiveBilling,
 }) => {
   const tSettings = useTranslations('settings');
   const tAuthentication = useTranslations('authentication');
@@ -110,6 +112,9 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
       ariaLabel={tSettings('account.delete_account_modal.title')}
     >
       <div className={styles.content}>
+        {warnActiveBilling ? (
+          <Alert variant="default">{tSettings('membership.delete_billing_warning')}</Alert>
+        ) : null}
         <p className={styles.message}>{tSettings('account.delete_account_modal.message')}</p>
         <TextInput
           type="email"

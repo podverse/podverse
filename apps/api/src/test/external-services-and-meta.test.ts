@@ -415,31 +415,6 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
       });
       expect(res.body.data.freeTrialExpirationSeconds).toBeGreaterThan(0);
     });
-
-    it('GET /billing-read-model returns pricing + renewal visibility for authenticated user', async () => {
-      const res = await request(app)
-        .get(`${productMembershipBase}/billing-read-model`)
-        .set(auth(TEST_USER_ID))
-        .expect(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toMatchObject({
-        tier: expect.any(String),
-        membershipExpiresAt: expect.any(String),
-        cadence: expect.any(String),
-        autoRenewMode: expect.any(String),
-        autoRenewEnabled: expect.any(Boolean),
-        renewal: {
-          nextAttemptAt: null,
-          lastAttemptAt: null,
-          lastStatus: expect.any(String),
-        },
-        pricing: {
-          currencyCode: 'USD',
-          premiumMonthly: expect.any(Number),
-          premiumAnnual: expect.any(Number),
-        },
-      });
-    });
   });
 
   describe('Membership claim token', () => {

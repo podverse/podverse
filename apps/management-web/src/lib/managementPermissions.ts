@@ -130,6 +130,53 @@ export function canCreateNotifications(user: CurrentUser): boolean {
   return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_CREATE) !== 0;
 }
 
+function hasCrud(user: CurrentUser, crud: number | undefined, bit: number): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  return user.permissions !== null && user.permissions !== undefined && ((crud ?? 0) & bit) !== 0;
+}
+
+export function canReadBillingChannels(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_channels_crud, CRUD_READ);
+}
+
+export function canUpdateBillingChannels(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_channels_crud, CRUD_UPDATE);
+}
+
+export function canReadBillingProcessorProducts(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_processor_products_crud, CRUD_READ);
+}
+
+export function canCreateBillingProcessorProducts(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_processor_products_crud, CRUD_CREATE);
+}
+
+export function canUpdateBillingProcessorProducts(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_processor_products_crud, CRUD_UPDATE);
+}
+
+export function canReadBillingAccount(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_account_crud, CRUD_READ);
+}
+
+export function canResyncBillingAccount(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_account_crud, CRUD_UPDATE);
+}
+
+export function canGrantBillingMembership(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_account_crud, CRUD_CREATE);
+}
+
+export function canReadBillingWebhookEvents(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_webhook_events_crud, CRUD_READ);
+}
+
+export function canReplayBillingWebhookEvents(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_webhook_events_crud, CRUD_UPDATE);
+}
+
 export function canUpdateNotifications(user: CurrentUser): boolean {
   if (user.role === 'superuser') {
     return true;

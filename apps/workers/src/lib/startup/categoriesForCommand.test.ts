@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CATEGORY_BASE,
+  CATEGORY_BILLING,
   CATEGORY_MQ,
   CATEGORY_ORM,
   CATEGORY_PARSER,
@@ -17,6 +18,18 @@ function sortCategories(set: ReadonlySet<string>): string[] {
 describe('getCategoriesForCommand', () => {
   it('maps scheduledJobsRunDue to Base and ORM', () => {
     expect(sortCategories(getCategoriesForCommand('scheduledJobsRunDue'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
+  it('maps billingReconcileSubscriptions to Base, ORM, and Billing', () => {
+    expect(sortCategories(getCategoriesForCommand('billingReconcileSubscriptions'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM, CATEGORY_BILLING]))
+    );
+  });
+
+  it('maps billingSeedProcessorProductsFromEnv to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('billingSeedProcessorProductsFromEnv'))).toEqual(
       sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
     );
   });

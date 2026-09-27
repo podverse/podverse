@@ -22,7 +22,11 @@
     "access": "public"
   },
   "dependencies": {
+    "@podverse/external-services-apple-app-store": "*",
+    "@podverse/external-services-google-play": "*",
+    "@podverse/external-services-paypal": "*",
     "@podverse/helpers": "*",
+    "@podverse/helpers-config": "*",
     "@podverse/orm": "*"
   },
   "devDependencies": {

@@ -1,6 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-
 import type { Order } from '@paypal/paypal-server-sdk';
+import { describe, expect, it, vi } from 'vitest';
 
 import { PAYPAL_ONE_TIME_PRODUCT_IDS } from '@podverse/helpers';
 

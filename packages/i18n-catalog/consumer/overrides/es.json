@@ -970,7 +970,6 @@
     "auto_renew": "",
     "payment_processor": "",
     "paypal": "",
-    "stripe": "",
     "complete_purchase": "",
     "disabled_message": ""
   },

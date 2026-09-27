@@ -47,6 +47,10 @@ const RESOURCE_LABEL_KEYS: Record<(typeof ADMIN_PERMISSION_RESOURCE_KEYS)[number
   bucket_crud: 'bucket',
   embed_demo_crud: 'embedDemo',
   notifications_crud: 'notifications',
+  billing_channels_crud: 'billingChannels',
+  billing_processor_products_crud: 'billingProcessorProducts',
+  billing_account_crud: 'billingAccount',
+  billing_webhook_events_crud: 'billingWebhookEvents',
 };
 
 export type AdminPermissionsSectionProps = {
@@ -186,6 +190,10 @@ export function AdminPermissionsSection({
       bucket_crud: 15,
       embed_demo_crud: 15,
       notifications_crud: 15,
+      billing_channels_crud: 15,
+      billing_processor_products_crud: 15,
+      billing_account_crud: 15,
+      billing_webhook_events_crud: 15,
     });
   }, [onPermissionsChange, onSelectedRoleIdChange]);
 

@@ -12,6 +12,10 @@ export type CreateManagementAdminRoleData = {
   bucketCrud: number;
   embedDemoCrud: number;
   notificationsCrud: number;
+  billingChannelsCrud: number;
+  billingProcessorProductsCrud: number;
+  billingAccountCrud: number;
+  billingWebhookEventsCrud: number;
 };
 
 export type UpdateManagementAdminRoleData = Partial<CreateManagementAdminRoleData>;
@@ -47,6 +51,10 @@ export class ManagementAdminRoleService {
       bucketCrud: data.bucketCrud,
       embedDemoCrud: data.embedDemoCrud,
       notificationsCrud: data.notificationsCrud,
+      billingChannelsCrud: data.billingChannelsCrud,
+      billingProcessorProductsCrud: data.billingProcessorProductsCrud,
+      billingAccountCrud: data.billingAccountCrud,
+      billingWebhookEventsCrud: data.billingWebhookEventsCrud,
     });
     return this.repositoryReadWrite.save(row);
   }
@@ -85,6 +93,18 @@ export class ManagementAdminRoleService {
     }
     if (data.notificationsCrud !== undefined) {
       existing.notificationsCrud = data.notificationsCrud;
+    }
+    if (data.billingChannelsCrud !== undefined) {
+      existing.billingChannelsCrud = data.billingChannelsCrud;
+    }
+    if (data.billingProcessorProductsCrud !== undefined) {
+      existing.billingProcessorProductsCrud = data.billingProcessorProductsCrud;
+    }
+    if (data.billingAccountCrud !== undefined) {
+      existing.billingAccountCrud = data.billingAccountCrud;
+    }
+    if (data.billingWebhookEventsCrud !== undefined) {
+      existing.billingWebhookEventsCrud = data.billingWebhookEventsCrud;
     }
     return this.repositoryReadWrite.save(existing);
   }

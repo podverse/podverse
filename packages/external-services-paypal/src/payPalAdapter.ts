@@ -1,20 +1,20 @@
-import {
-  PAYPAL_ONE_TIME_PRODUCT_IDS,
-  BillingProcessorRecordNotFoundError,
-  BillingWebhookVerificationError,
-} from '@podverse/helpers';
 import type {
   BillingAmount,
-  BillingWebhookRequest,
   BillingWebhookParseResult,
+  BillingWebhookRequest,
   NormalizedBillingEvent,
   NormalizedSubscriptionSnapshot,
   NormalizedTransactionSnapshot,
   PaymentProcessorAdapter,
 } from '@podverse/helpers';
+import {
+  BillingProcessorRecordNotFoundError,
+  BillingWebhookVerificationError,
+  PAYPAL_ONE_TIME_PRODUCT_IDS,
+} from '@podverse/helpers';
 
-import { PayPalService } from './payPalService.js';
 import type { PayPalEnvironment, PayPalServiceParams } from './payPalService.js';
+import { PayPalService } from './payPalService.js';
 
 interface PayPalAdapterConfig extends PayPalServiceParams {
   webhookId: string;
@@ -483,31 +483,44 @@ async function mapWebhookPayloadToEvents(
   return [];
 }
 
+/** SDK records use camelCase keys where webhook resources use snake_case. */
+function readSdkMoney(record: Record<string, unknown>): BillingAmount | null {
+  const amount = readRecord(record, 'amount');
+  if (amount === null) {
+    return null;
+  }
+  const value = readString(amount, 'value');
+  const currencyCode = readString(amount, 'currencyCode');
+  return value === null || currencyCode === null ? null : { value, currencyCode };
+}
+
+/** Reads a `CapturedPayment` from the Payments API, which the SDK returns in camelCase. */
 function mapCaptureToSnapshot(
   capture: Record<string, unknown>,
   ref: { externalId: string; externalProductId: string | null },
   isSandbox: boolean,
   fetchedAt: string
 ): NormalizedTransactionSnapshot {
-  const externalProductId = ref.externalProductId;
-  const externalSubscriptionId = readString(capture, 'billing_agreement_id');
+  const externalProductId = ref.externalProductId ?? readString(capture, 'invoiceId');
+  const externalSubscriptionId = readString(capture, 'billingAgreementId');
   const status = readString(capture, 'status');
+  const createTime = readString(capture, 'createTime');
 
   return {
     processor: 'paypal',
     externalTransactionId: readString(capture, 'id') ?? ref.externalId,
     externalSubscriptionId,
-    accountBillingCustomerRef: readString(capture, 'custom_id'),
+    accountBillingCustomerRef: readString(capture, 'customId'),
     externalProductId,
     externalBasePlanId: null,
     purchaseKind: inferPurchaseKind(externalProductId, externalSubscriptionId),
-    settledAt: readString(capture, 'create_time') ?? fetchedAt,
+    settledAt: createTime ?? fetchedAt,
     periodStart: null,
     periodEnd: null,
-    amount: readAmount(capture),
+    amount: readSdkMoney(capture),
     revokedAt:
       status === 'REFUNDED' || status === 'REVERSED'
-        ? (readString(capture, 'update_time') ?? readString(capture, 'create_time') ?? fetchedAt)
+        ? (readString(capture, 'updateTime') ?? createTime ?? fetchedAt)
         : null,
     revocationReason:
       status === 'REFUNDED' ? 'refund' : status === 'REVERSED' ? 'chargeback' : null,

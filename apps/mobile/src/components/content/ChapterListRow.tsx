@@ -47,9 +47,7 @@ export const ChapterListRow = memo(function ChapterListRow({
   const styles = useThemedStyles(createStyles);
 
   return (
-    <View
-      style={[styles.row, { paddingHorizontal: paddingHorizontal ?? 0 }]}
-    >
+    <View style={[styles.row, { paddingHorizontal: paddingHorizontal ?? 0 }]}>
       <ListRow
         leading={
           showArtwork ? (

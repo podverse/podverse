@@ -1,15 +1,11 @@
-import { Environment } from '@apple/app-store-server-library';
-import { AutoRenewStatus } from '@apple/app-store-server-library';
 import type {
   LastTransactionsItem,
   StatusResponse,
   TransactionInfoResponse,
 } from '@apple/app-store-server-library';
+import { Environment } from '@apple/app-store-server-library';
+import { AutoRenewStatus } from '@apple/app-store-server-library';
 
-import {
-  BillingProcessorRecordNotFoundError,
-  BillingWebhookVerificationError,
-} from '@podverse/helpers';
 import type {
   BillingCancelAutoRenewResult,
   BillingWebhookParseResult,
@@ -18,10 +14,17 @@ import type {
   NormalizedTransactionSnapshot,
   PaymentProcessorAdapter,
 } from '@podverse/helpers';
+import {
+  BillingProcessorRecordNotFoundError,
+  BillingWebhookVerificationError,
+} from '@podverse/helpers';
 
-import { AppStoreServerClient } from './AppStoreServerClient.js';
 import type { CreateAppleClientConfig } from './AppStoreServerClient.js';
-import { mapAppleStatusToBillingStatus, mapVerifiedNotificationToEvents } from './verifyNotification.js';
+import { AppStoreServerClient } from './AppStoreServerClient.js';
+import {
+  mapAppleStatusToBillingStatus,
+  mapVerifiedNotificationToEvents,
+} from './verifyNotification.js';
 
 export interface AppleAdapterConfig extends CreateAppleClientConfig {
   client?: AppStoreServerClient;
@@ -97,7 +100,9 @@ function resolveTransactionAmount(
   const sign = transaction.price < 0 ? '-' : '';
   const absolute = Math.abs(Math.trunc(transaction.price));
   const whole = Math.floor(absolute / 1000);
-  const fractional = String(absolute % 1000).padStart(3, '0').replace(/0+$/, '');
+  const fractional = String(absolute % 1000)
+    .padStart(3, '0')
+    .replace(/0+$/, '');
   const value = fractional.length > 0 ? `${sign}${whole}.${fractional}` : `${sign}${whole}`;
   return {
     value,
@@ -164,7 +169,10 @@ async function decodeSubscriptionStatuses(
       const transaction =
         lastTransaction.signedTransactionInfo === undefined
           ? null
-          : await client.verifyAndDecodeTransaction(lastTransaction.signedTransactionInfo, environment);
+          : await client.verifyAndDecodeTransaction(
+              lastTransaction.signedTransactionInfo,
+              environment
+            );
       const renewalInfo =
         lastTransaction.signedRenewalInfo === undefined
           ? null
@@ -262,8 +270,9 @@ function mapSubscriptionSnapshot(
     currentPeriodStart,
     currentPeriodEnd,
     cancelAtPeriodEnd: autoRenewStatus === AutoRenewStatus.OFF,
-    isSandbox:
-      isSandboxEnvironment(transaction?.environment ?? renewalInfo?.environment ?? environment),
+    isSandbox: isSandboxEnvironment(
+      transaction?.environment ?? renewalInfo?.environment ?? environment
+    ),
     fetchedAt,
     schemaVersion: 'apple-subscription-status-v1',
     rawPayload,
@@ -277,7 +286,9 @@ export function createAppleAdapter(config: AppleAdapterConfig): PaymentProcessor
   return {
     id: 'apple',
 
-    async verifyAndParseWebhook(request: BillingWebhookRequest): Promise<BillingWebhookParseResult> {
+    async verifyAndParseWebhook(
+      request: BillingWebhookRequest
+    ): Promise<BillingWebhookParseResult> {
       const { signedPayload } = parseWebhookPayload(request.rawBody);
       const verified = await client.verifyAndDecodeNotification(signedPayload);
       const now = nowIso();
@@ -312,7 +323,10 @@ export function createAppleAdapter(config: AppleAdapterConfig): PaymentProcessor
       const fetchedAt = nowIso();
       const { response, environment } = await client.getTransactionInfoWithFallback(ref.externalId);
       const signedTransactionInfo = ensureSignedTransactionInfo(response, ref.externalId);
-      const transaction = await client.verifyAndDecodeTransaction(signedTransactionInfo, environment);
+      const transaction = await client.verifyAndDecodeTransaction(
+        signedTransactionInfo,
+        environment
+      );
       return mapTransactionSnapshot(
         ref.externalId,
         ref.externalProductId,

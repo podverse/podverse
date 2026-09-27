@@ -972,6 +972,24 @@
       "banner_dismiss": "Dismiss",
       "settings_row_title": "Membership Expired",
       "settings_row_subtitle": "Renew to use Premium features again."
+    },
+    "manage": {
+      "grace_banner": "A renewal charge failed. Access continues while the payment is retried.",
+      "grace_renew_body": "A renewal charge failed. Access continues for now. Cancel the subscription with the processor, or start a new membership.",
+      "manage_membership": "Manage Membership"
+    },
+    "checkout": {
+      "auto_renew_disclosure": "Membership renews until you cancel. Your store account is charged at confirmation and again before each renewal unless you cancel at least 24 hours before the period ends.",
+      "stacking_notice": "Time already on this account is kept and starts after the subscription period.",
+      "pay_with_paypal_on_the_web": "Pay with PayPal on the Web",
+      "restore_purchases": "Restore Purchases",
+      "privacy": "Privacy",
+      "update_required_title": "Update Required",
+      "update_required_body": "Update the app before buying a membership.",
+      "update_app": "Update the App",
+      "purchase_waiting": "The store is still confirming this purchase.",
+      "unavailable": "Membership checkout is not available in this build.",
+      "plan_price": "{plan} · {price}"
     }
   },
   "about": {
@@ -984,11 +1002,21 @@
     "checkout": "Checkout",
     "payment_plan": "Payment Plan",
     "auto_renew": "Auto-Renew",
+    "auto_renew_disclosure": "Membership renews until you cancel it. You can manage it in Settings. PayPal charges each renewal.",
     "payment_processor": "Payment Processor",
     "paypal": "PayPal",
-    "stripe": "Stripe",
+    "paypal_unavailable": "PayPal is unavailable right now.",
     "complete_purchase": "Complete Purchase",
-    "disabled_message": "Checkout page is disabled."
+    "complete_test_purchase": "Complete Test Purchase",
+    "already_renewing": "This account already has a membership that renews.",
+    "manage_membership": "Manage Membership",
+    "billing_starts_on": "Billing starts on {date}.",
+    "purchase_failed": "The purchase could not be completed. Try again.",
+    "plan_unavailable": "This plan is not available.",
+    "disabled_message": "Checkout page is disabled.",
+    "success_waiting": "Confirming your membership.",
+    "success_active": "Your membership is active.",
+    "success_timeout": "The membership is not confirmed yet. Contact support if it does not appear soon."
   },
   "layouts": {
     "change_layout_view": "Change Layout View",
@@ -1038,6 +1066,34 @@
       "listen_stats_toggle_help": "Allow unique-listener rankings that help people find popular shows. You can change this anytime.",
       "listen_stats_toggle_error": "Could not update listen statistics preference. Please try again.",
       "listen_stats_terms_link": "Learn more in our <termsLink>Terms of Service</termsLink>."
+    },
+    "membership": {
+      "heading": "Membership",
+      "tier": "Status",
+      "tier_premium": "Premium",
+      "tier_trial": "Trial",
+      "tier_expired": "Expired",
+      "tier_none": "None",
+      "processor": "Processor",
+      "processor_paypal": "PayPal",
+      "processor_apple": "Apple",
+      "processor_google": "Google",
+      "processor_test": "Test",
+      "processor_none": "None",
+      "renews_on": "Renews On",
+      "expires_on": "Expires On",
+      "auto_renew_off": "Auto-renew is off. Access continues until it expires.",
+      "cancel_auto_renew": "Cancel Auto-Renew",
+      "resubscribe": "Resubscribe",
+      "resubscribe_paypal_notice": "A PayPal subscription starts billing when this membership ends.",
+      "compare_plans": "Compare Plans",
+      "grace": "A renewal charge failed. Access continues while the payment is retried.",
+      "manage_in_app_store": "Manage in the App Store",
+      "manage_in_play": "Manage in Google Play",
+      "store_instructions": "Cancel this subscription in the store. Podverse cannot turn off store billing.",
+      "cancel_failed": "Could not turn off auto-renew. Try again.",
+      "load_failed": "Membership billing could not be loaded.",
+      "delete_billing_warning": "Deleting your Podverse account does not stop PayPal, Apple, or Google billing. Cancel the subscription with the processor first."
     },
     "profile": {
       "profile": "Profile",

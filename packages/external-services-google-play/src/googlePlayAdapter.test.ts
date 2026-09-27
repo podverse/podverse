@@ -104,7 +104,8 @@ describe('createGooglePlayAdapter', () => {
       packageName: 'com.podverse.app.next',
       serviceAccountJsonPath: '/tmp/not-used-in-test.json',
       rtdnPushAudience: 'podverse-local-rtdn',
-      rtdnPushServiceAccountEmail: 'podverse-google-play-billing@podverse-app.iam.gserviceaccount.com',
+      rtdnPushServiceAccountEmail:
+        'podverse-google-play-billing@podverse-app.iam.gserviceaccount.com',
       client: createClient({
         getSubscriptionPurchase: async (token) =>
           token === 'new-token-1' ? subscriptionPurchase : null,
@@ -169,7 +170,8 @@ describe('createGooglePlayAdapter', () => {
       packageName: 'com.podverse.app.next',
       serviceAccountJsonPath: '/tmp/not-used-in-test.json',
       rtdnPushAudience: 'podverse-local-rtdn',
-      rtdnPushServiceAccountEmail: 'podverse-google-play-billing@podverse-app.iam.gserviceaccount.com',
+      rtdnPushServiceAccountEmail:
+        'podverse-google-play-billing@podverse-app.iam.gserviceaccount.com',
       client: createClient({
         acknowledgeProductPurchase,
         acknowledgeSubscriptionPurchase,

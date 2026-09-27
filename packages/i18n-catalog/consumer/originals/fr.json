@@ -970,7 +970,6 @@
     "auto_renew": "Renouvellement automatique",
     "payment_processor": "Processeur de paiement",
     "paypal": "PayPal",
-    "stripe": "Stripe",
     "complete_purchase": "Finaliser l'achat",
     "disabled_message": "La page de paiement est désactivée."
   },

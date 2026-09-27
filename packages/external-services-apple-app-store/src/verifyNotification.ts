@@ -1,3 +1,7 @@
+import type {
+  JWSRenewalInfoDecodedPayload,
+  JWSTransactionDecodedPayload,
+} from '@apple/app-store-server-library';
 import {
   AutoRenewStatus,
   Environment,
@@ -6,10 +10,10 @@ import {
   Subtype,
   Type,
 } from '@apple/app-store-server-library';
-import type { JWSRenewalInfoDecodedPayload, JWSTransactionDecodedPayload } from '@apple/app-store-server-library';
 
 import type {
   BillingAmount,
+  BillingRevocationReason,
   BillingSubscriptionStatus,
   NormalizedBillingEvent,
 } from '@podverse/helpers';
@@ -62,7 +66,9 @@ function resolveProductId(
   transaction: JWSTransactionDecodedPayload | null,
   renewalInfo: JWSRenewalInfoDecodedPayload | null
 ): string | null {
-  return transaction?.productId ?? renewalInfo?.autoRenewProductId ?? renewalInfo?.productId ?? null;
+  return (
+    transaction?.productId ?? renewalInfo?.autoRenewProductId ?? renewalInfo?.productId ?? null
+  );
 }
 
 function resolveAmount(transaction: JWSTransactionDecodedPayload | null): BillingAmount | null {
@@ -81,7 +87,9 @@ function resolveAmount(transaction: JWSTransactionDecodedPayload | null): Billin
   const sign = transaction.price < 0 ? '-' : '';
   const absolute = Math.abs(Math.trunc(transaction.price));
   const whole = Math.floor(absolute / 1000);
-  const fractional = String(absolute % 1000).padStart(3, '0').replace(/0+$/, '');
+  const fractional = String(absolute % 1000)
+    .padStart(3, '0')
+    .replace(/0+$/, '');
   const value = fractional.length > 0 ? `${sign}${whole}.${fractional}` : `${sign}${whole}`;
   return {
     currencyCode: transaction.currency,
@@ -105,6 +113,49 @@ function resolveOccurredAt(notification: VerifiedNotificationPayload, fallback: 
     toIsoTimestamp(notification.renewalInfo?.signedDate) ??
     fallback
   );
+}
+
+function appleRefundOrRevokeEvents(input: {
+  notificationUuid: string | undefined;
+  eventSuffix: 'refund' | 'revoke';
+  reason: BillingRevocationReason;
+  accountBillingCustomerRef: string | null;
+  occurredAt: string;
+  isSandbox: boolean;
+  externalTransactionId: string | null;
+  externalSubscriptionId: string | null;
+}): NormalizedBillingEvent[] {
+  const shared = {
+    type: 'refund_or_revoke' as const,
+    processor: 'apple' as const,
+    processorEventId: buildProcessorEventId(input.notificationUuid, input.eventSuffix),
+    accountBillingCustomerRef: input.accountBillingCustomerRef,
+    accountId: null,
+    occurredAt: input.occurredAt,
+    isSandbox: input.isSandbox,
+    reason: input.reason,
+    revokedAt: input.occurredAt,
+  };
+
+  if (input.externalTransactionId !== null) {
+    return [
+      {
+        ...shared,
+        externalTransactionId: input.externalTransactionId,
+        externalSubscriptionId: input.externalSubscriptionId,
+      },
+    ];
+  }
+  if (input.externalSubscriptionId === null) {
+    return [];
+  }
+  return [
+    {
+      ...shared,
+      externalTransactionId: null,
+      externalSubscriptionId: input.externalSubscriptionId,
+    },
+  ];
 }
 
 export function mapAppleStatusToBillingStatus(
@@ -164,41 +215,36 @@ export function mapVerifiedNotificationToEvents(
   const amount = resolveAmount(notification.transaction);
   const notificationUuid = notification.notification.notificationUUID;
 
-  if (
-    notificationType === NotificationTypeV2.REFUND ||
-    notificationType === 'REFUND' ||
-    notificationType === NotificationTypeV2.REVOKE ||
-    notificationType === 'REVOKE'
-  ) {
-    if (externalTransactionId === null && externalSubscriptionId === null) {
-      return [];
-    }
-    return [
-      {
-        type: 'refund_or_revoke',
-        processor: 'apple',
-        processorEventId: buildProcessorEventId(
-          notificationUuid,
-          notificationType === NotificationTypeV2.REVOKE || notificationType === 'REVOKE'
-            ? 'revoke'
-            : 'refund'
-        ),
-        accountBillingCustomerRef,
-        accountId: null,
-        occurredAt,
-        isSandbox,
-        reason:
-          notificationType === NotificationTypeV2.REVOKE || notificationType === 'REVOKE'
-            ? 'store_revoke'
-            : 'refund',
-        revokedAt: occurredAt,
-        externalTransactionId,
-        externalSubscriptionId,
-      },
-    ];
+  if (notificationType === NotificationTypeV2.REVOKE || notificationType === 'REVOKE') {
+    return appleRefundOrRevokeEvents({
+      notificationUuid,
+      eventSuffix: 'revoke',
+      reason: 'store_revoke',
+      accountBillingCustomerRef,
+      occurredAt,
+      isSandbox,
+      externalTransactionId,
+      externalSubscriptionId,
+    });
   }
 
-  if (notificationType === NotificationTypeV2.GRACE_PERIOD_EXPIRED || notificationType === 'GRACE_PERIOD_EXPIRED') {
+  if (notificationType === NotificationTypeV2.REFUND || notificationType === 'REFUND') {
+    return appleRefundOrRevokeEvents({
+      notificationUuid,
+      eventSuffix: 'refund',
+      reason: 'refund',
+      accountBillingCustomerRef,
+      occurredAt,
+      isSandbox,
+      externalTransactionId,
+      externalSubscriptionId,
+    });
+  }
+
+  if (
+    notificationType === NotificationTypeV2.GRACE_PERIOD_EXPIRED ||
+    notificationType === 'GRACE_PERIOD_EXPIRED'
+  ) {
     if (externalSubscriptionId === null) {
       return [];
     }
@@ -217,7 +263,10 @@ export function mapVerifiedNotificationToEvents(
     ];
   }
 
-  if (notificationType === NotificationTypeV2.DID_FAIL_TO_RENEW || notificationType === 'DID_FAIL_TO_RENEW') {
+  if (
+    notificationType === NotificationTypeV2.DID_FAIL_TO_RENEW ||
+    notificationType === 'DID_FAIL_TO_RENEW'
+  ) {
     if (externalSubscriptionId === null) {
       return [];
     }

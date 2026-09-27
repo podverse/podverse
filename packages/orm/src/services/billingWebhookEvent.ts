@@ -1,7 +1,7 @@
 import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 import { BillingWebhookEvent } from '@orm/entities/billingWebhookEvent.js';
 import type { DataSource } from 'typeorm';
-import { QueryFailedError } from 'typeorm';
+import { LessThan, QueryFailedError } from 'typeorm';
 
 type BillingWebhookEventServiceParams = {
   dataSourceRead?: DataSource;
@@ -20,6 +20,8 @@ type InsertBillingWebhookEventResult = {
   event: BillingWebhookEvent;
   inserted: boolean;
 };
+
+type BillingWebhookEventStatus = 'pending' | 'processed' | 'failed';
 
 function isPostgresUniqueViolation(error: unknown): boolean {
   if (!(error instanceof QueryFailedError)) {
@@ -75,6 +77,47 @@ export class BillingWebhookEventService {
       }
       return { event: existing, inserted: false };
     }
+  }
+
+  /**
+   * Failed rows received before `receivedBefore`, least recently attempted first, so a row that
+   * keeps failing moves behind the others instead of holding back the batch.
+   */
+  async listForAdmin(params: {
+    status?: BillingWebhookEventStatus;
+    processorId?: string;
+    accountId?: number;
+    limit: number;
+  }): Promise<BillingWebhookEvent[]> {
+    const query = this.dataSourceRead
+      .getRepository(BillingWebhookEvent)
+      .createQueryBuilder('event')
+      .orderBy('event.received_at', 'DESC')
+      .addOrderBy('event.id', 'DESC')
+      .limit(params.limit);
+    if (params.status !== undefined) {
+      query.andWhere('event.status = :status', { status: params.status });
+    }
+    if (params.processorId !== undefined) {
+      query.andWhere('event.processor_id = :processorId', { processorId: params.processorId });
+    }
+    if (params.accountId !== undefined) {
+      query.andWhere(`(event.payload -> 'event' ->> 'accountId')::bigint = :accountId`, {
+        accountId: params.accountId,
+      });
+    }
+    return query.getMany();
+  }
+
+  async listRetryableFailed(params: {
+    receivedBefore: Date;
+    limit: number;
+  }): Promise<BillingWebhookEvent[]> {
+    return this.dataSourceRead.getRepository(BillingWebhookEvent).find({
+      where: { status: 'failed', received_at: LessThan(params.receivedBefore) },
+      order: { processed_at: { direction: 'ASC', nulls: 'FIRST' }, received_at: 'ASC', id: 'ASC' },
+      take: params.limit,
+    });
   }
 
   async getById(id: string): Promise<BillingWebhookEvent | null> {

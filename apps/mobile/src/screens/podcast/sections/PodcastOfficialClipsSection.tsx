@@ -165,12 +165,7 @@ export function PodcastOfficialClipsSection({
 
   const renderRow = useCallback(
     ({ index, row: entry }: { index: number; row: SoundbiteEntry }) => (
-      <OfficialClipRow
-        entry={entry}
-        index={index}
-        onPlay={playEntry}
-        onQueue={handleQueuePress}
-      />
+      <OfficialClipRow entry={entry} index={index} onPlay={playEntry} onQueue={handleQueuePress} />
     ),
     [handleQueuePress, playEntry]
   );

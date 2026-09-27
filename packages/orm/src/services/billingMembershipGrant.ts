@@ -110,6 +110,13 @@ export class BillingMembershipGrantService {
     return { grant, created, entitlement };
   }
 
+  async listForAccount(accountId: number): Promise<BillingMembershipGrant[]> {
+    return this.dataSourceRead.getRepository(BillingMembershipGrant).find({
+      where: { account_id: accountId },
+      order: { starts_at: 'DESC', id: 'DESC' },
+    });
+  }
+
   async listByAccountWithManager(
     transactionalEntityManager: EntityManager,
     accountId: number

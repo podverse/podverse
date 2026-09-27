@@ -1,8 +1,13 @@
-import { APIException, Environment, NotificationTypeV2, Type } from '@apple/app-store-server-library';
+import {
+  APIException,
+  Environment,
+  NotificationTypeV2,
+  Type,
+} from '@apple/app-store-server-library';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AppStoreServerClient } from './AppStoreServerClient.js';
 import { createAppleAdapter } from './appleAdapter.js';
+import { AppStoreServerClient } from './AppStoreServerClient.js';
 
 describe('createAppleAdapter', () => {
   it('maps DID_RENEW notifications to subscription_renewed events', async () => {

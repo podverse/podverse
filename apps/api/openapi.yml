@@ -12,6 +12,7 @@ tags:
   - name: account
   - name: account-settings
   - name: auth
+  - name: billing
   - name: category
   - name: channel
   - name: clip
@@ -28,9 +29,9 @@ tags:
   - name: membership-claim-token
   - name: metaboost
   - name: mq
-  - name: paypal
   - name: playlist
   - name: podroll
+  - name: product
   - name: profile
   - name: publisher-feed
   - name: queue
@@ -46,6 +47,28 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    BillingClientVersionHeader:
+      in: header
+      name: X-Podverse-Client-Version
+      required: false
+      description: >-
+        Installed app version. Store purchases from a version below the channel's
+        `min_client_version` are refused with 426.
+      schema:
+        type: string
+        example: 5.2.0
+    BillingClientPlatformHeader:
+      in: header
+      name: X-Podverse-Client-Platform
+      required: false
+      description: Billing platform of the client (web, ios, android, foss). Web has no version floor.
+      schema:
+        type: string
+        enum:
+          - web
+          - ios
+          - android
+          - foss
     PageQueryRequired:
       in: query
       name: page
@@ -533,16 +556,15 @@ components:
           nullable: true
           description: When current membership subscription expires
           example: "2024-12-31T23:59:59Z"
-        auto_renew:
-          type: boolean
-          description: Whether subscription auto-renews
-          example: true
         auto_renew_mode:
-          type: boolean
+          type: string
+          description: >-
+            Whether a subscription in good standing will charge again on its own. Clients read
+            expiring-soon suppression from this through the shared helper.
           enum:
-            - false
-            - true
-          example: true
+            - "off"
+            - "on"
+          example: "on"
         billing_cadence:
           type: string
           nullable: true
@@ -1913,44 +1935,6 @@ components:
       type: object
       description: Operation-specific response payload for POST /mq/rss/refresh/on-demand (200).
       additionalProperties: true
-    ApiGetPaypalPaymentIdResponse200:
-      allOf:
-        - $ref: "#/components/schemas/PayPalOrder"
-    ApiPostPaypalCreateRequest:
-      type: object
-      required:
-        - payment_id
-        - state
-      properties:
-        payment_id:
-          type: string
-        state:
-          type: string
-    ApiPostPaypalCreateResponse200:
-      allOf:
-        - $ref: "#/components/schemas/PayPalOrder"
-    ApiPostPaypalWebhooksPaymentCompletedRequest:
-      type: object
-      required:
-        - resource
-        - resource_version
-      properties:
-        event_version:
-          type: string
-        resource_version:
-          type: string
-        resource:
-          type: object
-          required:
-            - id
-          properties:
-            id:
-              type: string
-            parent_payment:
-              type: string
-    ApiPostPaypalWebhooksPaymentCompletedResponse200:
-      allOf:
-        - $ref: "#/components/schemas/MessageResponse"
     ApiPostPlaylistResponse200:
       type: object
       description: Operation-specific response payload for POST /playlist (200).
@@ -3187,20 +3171,488 @@ components:
           description: >-
             The feed needs Basic Auth. Credentials are never stored or returned; devices send them
             with each parse or chapters request.
-    PayPalOrder:
+    BillingApiError:
+      type: object
+      description: >-
+        Billing error body. `code` doubles as the i18n key clients translate; `min_client_version`
+        is present only on 426.
+      required:
+        - message
+        - code
+        - i18nKey
+      properties:
+        message:
+          type: string
+          example: Update the app to purchase
+        code:
+          type: string
+          enum:
+            - billing.account_unresolved
+            - billing.client_update_required
+            - billing.event_rejected
+            - billing.processor_unavailable
+            - billing.product_unavailable
+            - billing.purchase_not_found
+            - billing.subscription_already_active
+            - billing.subscription_not_found
+            - billing.test_adapter_unavailable
+            - billing.webhook_verification_failed
+          example: billing.client_update_required
+        i18nKey:
+          type: string
+          example: billing.client_update_required
+        min_client_version:
+          type: string
+          example: 5.2.0
+    BillingSubscription:
       type: object
       required:
-        - payment_id
-        - state
-        - account_id
+        - id
+        - processor_id
+        - status
+        - purchase_kind
+        - external_subscription_id
+        - cancel_at_period_end
+        - banked_seconds
       properties:
-        payment_id:
-          type: string
-        state:
-          type: string
-        account_id:
+        id:
           type: integer
           format: int64
+          example: 12
+        processor_id:
+          type: string
+          description: A payment processor id; clients skip ids they do not know.
+          example: paypal
+        status:
+          type: string
+          enum:
+            - pending
+            - active
+            - in_grace_period
+            - past_due
+            - cancelled_active
+            - expired
+            - revoked
+          example: active
+        purchase_kind:
+          type: string
+          enum:
+            - auto_renew
+            - one_time
+          example: auto_renew
+        cadence:
+          type: string
+          nullable: true
+          enum:
+            - monthly
+            - annual
+          example: monthly
+        external_subscription_id:
+          type: string
+          example: I-BW452GLLEP1G
+        current_period_start:
+          type: string
+          format: date-time
+          nullable: true
+        current_period_end:
+          type: string
+          format: date-time
+          nullable: true
+          description: End of the paid period, shown as "Renews on" or "Expires on".
+        cancel_at_period_end:
+          type: boolean
+        grace_period_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        banked_seconds:
+          type: integer
+          description: Membership time the account already held when this subscription started.
+          example: 0
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    BillingStatus:
+      type: object
+      required:
+        - is_entitled
+        - in_grace_period
+        - active_auto_renew
+        - billing_customer_ref
+      properties:
+        tier:
+          type: string
+          nullable: true
+          example: premium
+        is_entitled:
+          type: boolean
+          example: true
+        membership_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When access ends, including any renewal buffer or grace.
+          example: "2026-11-01T00:00:00.000Z"
+        in_grace_period:
+          type: boolean
+          example: false
+        active_auto_renew:
+          type: boolean
+          example: true
+        billing_cadence:
+          type: string
+          nullable: true
+          enum:
+            - monthly
+            - annual
+          example: monthly
+        billing_customer_ref:
+          type: string
+          description: Opaque id attached to store purchases so notifications resolve to this account.
+          example: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
+        active_subscription:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/BillingSubscription"
+    BillingCheckoutProduct:
+      type: object
+      required:
+        - id
+        - product_code
+        - cadence
+        - purchase_kind
+        - external_product_id
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Processor product id; send it back to start checkout.
+          example: 3
+        product_code:
+          type: string
+          example: premium
+        cadence:
+          type: string
+          enum:
+            - monthly
+            - annual
+          example: annual
+        purchase_kind:
+          type: string
+          enum:
+            - auto_renew
+            - one_time
+          example: auto_renew
+        external_product_id:
+          type: string
+          example: P-5ML4271244454362WXNWU5NQ
+        external_base_plan_id:
+          type: string
+          nullable: true
+          example: null
+    BillingCheckoutProcessor:
+      type: object
+      required:
+        - processor_id
+        - products
+      properties:
+        processor_id:
+          type: string
+          example: paypal
+        min_client_version:
+          type: string
+          nullable: true
+          example: null
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/BillingCheckoutProduct"
+    BillingCheckoutOptions:
+      type: object
+      required:
+        - platform
+        - processors
+      properties:
+        platform:
+          type: string
+          enum:
+            - web
+            - ios
+            - android
+            - foss
+          example: web
+        storefront:
+          type: string
+          nullable: true
+          example: null
+        processors:
+          type: array
+          items:
+            $ref: "#/components/schemas/BillingCheckoutProcessor"
+    BillingEventOutcome:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - processed
+            - duplicate
+            - ignored_sandbox
+            - failed
+          example: processed
+        error_code:
+          type: string
+          nullable: true
+          example: null
+    BillingPurchaseResult:
+      type: object
+      required:
+        - confirmed
+        - outcomes
+        - status
+      properties:
+        confirmed:
+          type: boolean
+          description: >-
+            Every event was recorded, so the client may finish the store transaction. When false,
+            keep it unfinished and retry.
+          example: true
+        outcomes:
+          type: array
+          items:
+            $ref: "#/components/schemas/BillingEventOutcome"
+        status:
+          $ref: "#/components/schemas/BillingStatus"
+    BillingPayPalCheckoutRequest:
+      type: object
+      required:
+        - processor_product_id
+      properties:
+        processor_product_id:
+          type: integer
+          format: int64
+          example: 1
+        return_url:
+          type: string
+          format: uri
+          example: https://podverse.fm/membership/paypal/return
+        cancel_url:
+          type: string
+          format: uri
+          example: https://podverse.fm/membership
+    BillingPayPalOrder:
+      type: object
+      required:
+        - order_id
+      properties:
+        order_id:
+          type: string
+          example: 5O190127TN364715T
+        status:
+          type: string
+          nullable: true
+          example: PAYER_ACTION_REQUIRED
+        approve_url:
+          type: string
+          nullable: true
+          example: https://www.sandbox.paypal.com/checkoutnow?token=5O190127TN364715T
+    BillingPayPalSubscription:
+      type: object
+      required:
+        - subscription_id
+      properties:
+        subscription_id:
+          type: string
+          example: I-BW452GLLEP1G
+        status:
+          type: string
+          nullable: true
+          example: APPROVAL_PENDING
+        approve_url:
+          type: string
+          nullable: true
+          example: https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-2M539689T3856352J
+        start_time:
+          type: string
+          format: date-time
+          nullable: true
+          description: First charge, set to the current expiry when the account still has time.
+          example: "2026-11-01T00:00:00.000Z"
+    BillingCancelSubscriptionResult:
+      type: object
+      required:
+        - outcome
+        - status
+      properties:
+        outcome:
+          type: string
+          enum:
+            - cancelled
+            - manage_in_store
+          description: "`manage_in_store`: send the member to the store's subscription settings."
+          example: cancelled
+        status:
+          $ref: "#/components/schemas/BillingStatus"
+    BillingAppleTransactionRequest:
+      type: object
+      required:
+        - transaction_id
+      properties:
+        transaction_id:
+          type: string
+          example: "2000000456789012"
+        product_id:
+          type: string
+          example: fm.podverse.premium.monthly
+    BillingGooglePurchaseRequest:
+      type: object
+      required:
+        - purchase_token
+        - product_id
+        - purchase_kind
+      properties:
+        purchase_token:
+          type: string
+          example: opaque-token-up-to-1024-chars
+        product_id:
+          type: string
+          example: podverse_premium
+        purchase_kind:
+          type: string
+          enum:
+            - auto_renew
+            - one_time
+          example: auto_renew
+    BillingRestoreRequest:
+      type: object
+      required:
+        - processor
+        - purchases
+      properties:
+        processor:
+          type: string
+          enum:
+            - apple
+            - google_play
+          example: apple
+        purchases:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            type: object
+            required:
+              - external_id
+              - purchase_kind
+            properties:
+              external_id:
+                type: string
+                description: Apple transaction id or Google Play purchase token.
+              external_product_id:
+                type: string
+                nullable: true
+              purchase_kind:
+                type: string
+                enum:
+                  - auto_renew
+                  - one_time
+    BillingSimulateRequest:
+      type: object
+      required:
+        - event
+      properties:
+        event:
+          type: object
+          description: >-
+            A normalized billing event without its processor. The account is always the caller;
+            the event id, time, and sandbox flag are optional.
+          required:
+            - type
+          properties:
+            type:
+              type: string
+              enum:
+                - payment_settled
+                - subscription_activated
+                - subscription_renewed
+                - subscription_renewal_failed
+                - subscription_cancelled
+                - grace_entered
+                - grace_exited
+                - subscription_expired
+                - refund_or_revoke
+          additionalProperties: true
+    BillingSimulationResult:
+      type: object
+      required:
+        - outcome
+        - status
+      properties:
+        outcome:
+          $ref: "#/components/schemas/BillingEventOutcome"
+        status:
+          $ref: "#/components/schemas/BillingStatus"
+    BillingWebhookReceived:
+      type: object
+      properties:
+        received:
+          type: boolean
+          example: true
+    ProductMembershipResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Resolved membership product settings, prices in USD.
+          additionalProperties: true
+          properties:
+            freeTrialExpirationSeconds:
+              type: integer
+              example: 2678400
+            freeTrialDays:
+              type: integer
+              example: 31
+            premiumMembershipCostMonthly:
+              type: number
+              example: 3
+            premiumMembershipCostAnnually:
+              type: number
+              example: 30
+            annuallySavingsPercent:
+              type: integer
+              example: 16
+            monthlyEquivalentAnnually:
+              type: number
+              example: 36
+    ProductMembershipPricingResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            costMonthly:
+              type: number
+              example: 3
+            costAnnually:
+              type: number
+              example: 30
+            freeTrialExpiration:
+              type: integer
+              example: 2678400
+            freeTrialDays:
+              type: integer
+              example: 31
+            annuallySavingsPercent:
+              type: integer
+              example: 16
+            monthlyEquivalentAnnually:
+              type: number
+              example: 36
     RemoteItemGeneric:
       type: object
       additionalProperties: true
@@ -7496,6 +7948,990 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/checkout-options:
+    get:
+      operationId: apiGetBillingCheckoutOptions
+      tags:
+        - billing
+      summary: GET /billing/checkout-options
+      description: >-
+        Processors and products the client may offer for its platform and storefront. Auth optional.
+        Enabled channels are cached for up to 60 seconds.
+      security: []
+      parameters:
+        - in: query
+          name: platform
+          required: false
+          schema:
+            type: string
+            enum: [web, ios, android, foss]
+            default: web
+        - in: query
+          name: storefront
+          required: false
+          description: Two-letter App Store or Play country.
+          schema:
+            type: string
+            example: US
+      responses:
+        "200":
+          description: Checkout options
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingCheckoutOptions"
+              example:
+                platform: web
+                storefront: null
+                processors:
+                  - processor_id: paypal
+                    min_client_version: null
+                    products:
+                      - id: 1
+                        product_code: premium
+                        cadence: monthly
+                        purchase_kind: one_time
+                        external_product_id: podverse_premium_one_time_monthly
+                        external_base_plan_id: null
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/status:
+    get:
+      operationId: apiGetBillingStatus
+      tags:
+        - billing
+      summary: GET /billing/status
+      description: >-
+        The signed-in account's membership and billing standing.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Billing status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingStatus"
+              example:
+                tier: premium
+                is_entitled: true
+                membership_expires_at: "2026-11-03T00:00:00.000Z"
+                in_grace_period: false
+                active_auto_renew: false
+                billing_cadence: monthly
+                billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
+                active_subscription: null
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/paypal/orders:
+    post:
+      operationId: apiPostBillingPaypalOrders
+      tags:
+        - billing
+      summary: POST /billing/paypal/orders
+      description: >-
+        Creates a PayPal order for a one-time membership product at the catalog price.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/BillingClientVersionHeader"
+        - $ref: "#/components/parameters/BillingClientPlatformHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingPayPalCheckoutRequest"
+            example:
+              processor_product_id: 1
+              return_url: https://podverse.fm/membership/paypal/return
+              cancel_url: https://podverse.fm/membership
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingPayPalOrder"
+              example:
+                order_id: 5O190127TN364715T
+                status: PAYER_ACTION_REQUIRED
+                approve_url: https://www.sandbox.paypal.com/checkoutnow?token=5O190127TN364715T
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: PayPal or the product is not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: This product is not sold through PayPal one-time checkout
+                code: billing.product_unavailable
+                i18nKey: billing.product_unavailable
+        "426":
+          description: The installed app is below the minimum version for this processor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Update the app to purchase
+                code: billing.client_update_required
+                i18nKey: billing.client_update_required
+                min_client_version: 5.2.0
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/paypal/orders/{id}/capture:
+    post:
+      operationId: apiPostBillingPaypalOrdersIdCapture
+      tags:
+        - billing
+      summary: POST /billing/paypal/orders/{id}/capture
+      description: >-
+        Captures an approved PayPal order and records the payment as a membership grant.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: 5O190127TN364715T
+        - $ref: "#/components/parameters/BillingClientVersionHeader"
+        - $ref: "#/components/parameters/BillingClientPlatformHeader"
+      responses:
+        "200":
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingPurchaseResult"
+              example:
+                confirmed: true
+                outcomes:
+                  - status: processed
+                    error_code: null
+                status:
+                  tier: premium
+                  is_entitled: true
+                  membership_expires_at: "2026-11-03T00:00:00.000Z"
+                  in_grace_period: false
+                  active_auto_renew: false
+                  billing_cadence: monthly
+                  billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
+                  active_subscription: null
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: Processor not enabled on this server
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: paypal is not available
+                code: billing.processor_unavailable
+                i18nKey: billing.processor_unavailable
+        "409":
+          description: The order has no completed capture, or the event was rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: The order has no completed capture
+                code: billing.event_rejected
+                i18nKey: billing.event_rejected
+        "426":
+          description: The installed app is below the minimum version for this processor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Update the app to purchase
+                code: billing.client_update_required
+                i18nKey: billing.client_update_required
+                min_client_version: 5.2.0
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/paypal/subscriptions:
+    post:
+      operationId: apiPostBillingPaypalSubscriptions
+      tags:
+        - billing
+      summary: POST /billing/paypal/subscriptions
+      description: >-
+        Creates a PayPal subscription. When the account still has membership time, the first charge
+        starts at the current expiry so no paid day is overlapped.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/BillingClientVersionHeader"
+        - $ref: "#/components/parameters/BillingClientPlatformHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingPayPalCheckoutRequest"
+            example:
+              processor_product_id: 3
+              return_url: https://podverse.fm/membership/paypal/return
+              cancel_url: https://podverse.fm/membership
+      responses:
+        "201":
+          description: Subscription created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingPayPalSubscription"
+              example:
+                subscription_id: I-BW452GLLEP1G
+                status: APPROVAL_PENDING
+                approve_url: https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-2M539689T3856352J
+                start_time: "2026-11-01T00:00:00.000Z"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: PayPal or the product is not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: This product is not sold as a PayPal subscription
+                code: billing.product_unavailable
+                i18nKey: billing.product_unavailable
+        "409":
+          description: A subscription that renews already covers the account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: The account already has a subscription that renews
+                code: billing.subscription_already_active
+                i18nKey: billing.subscription_already_active
+        "426":
+          description: The installed app is below the minimum version for this processor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Update the app to purchase
+                code: billing.client_update_required
+                i18nKey: billing.client_update_required
+                min_client_version: 5.2.0
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/subscriptions/{id}/cancel:
+    post:
+      operationId: apiPostBillingSubscriptionsIdCancel
+      tags:
+        - billing
+      summary: POST /billing/subscriptions/{id}/cancel
+      description: >-
+        Turns off auto-renew. Access continues to the end of the paid period. Store subscriptions
+        answer `manage_in_store`, and the client opens the store subscription settings.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 12
+      responses:
+        "200":
+          description: Cancelled, or managed in the store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingCancelSubscriptionResult"
+              example:
+                outcome: cancelled
+                status:
+                  tier: premium
+                  is_entitled: true
+                  membership_expires_at: "2026-11-03T00:00:00.000Z"
+                  in_grace_period: false
+                  active_auto_renew: false
+                  billing_cadence: monthly
+                  billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
+                  active_subscription: null
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: No such subscription on this account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Subscription not found
+                code: billing.subscription_not_found
+                i18nKey: billing.subscription_not_found
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/apple/transactions:
+    post:
+      operationId: apiPostBillingAppleTransactions
+      tags:
+        - billing
+      summary: POST /billing/apple/transactions
+      description: >-
+        Verifies an App Store transaction with Apple and records it against the signed-in account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/BillingClientVersionHeader"
+        - $ref: "#/components/parameters/BillingClientPlatformHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingAppleTransactionRequest"
+            example:
+              transaction_id: "2000000456789012"
+              product_id: fm.podverse.premium.monthly
+      responses:
+        "200":
+          description: Purchase recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingPurchaseResult"
+              example:
+                confirmed: true
+                outcomes:
+                  - status: processed
+                    error_code: null
+                status:
+                  tier: premium
+                  is_entitled: true
+                  membership_expires_at: "2026-11-03T00:00:00.000Z"
+                  in_grace_period: false
+                  active_auto_renew: false
+                  billing_cadence: monthly
+                  billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
+                  active_subscription: null
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: Apple is not enabled, or has no such transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: The processor has no record of this purchase
+                code: billing.purchase_not_found
+                i18nKey: billing.purchase_not_found
+        "409":
+          description: The transaction belongs to another account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Transaction belongs to another account
+                code: billing.event_rejected
+                i18nKey: billing.event_rejected
+        "426":
+          description: The installed app is below the minimum version for this processor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Update the app to purchase
+                code: billing.client_update_required
+                i18nKey: billing.client_update_required
+                min_client_version: 5.2.0
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/google/purchases:
+    post:
+      operationId: apiPostBillingGooglePurchases
+      tags:
+        - billing
+      summary: POST /billing/google/purchases
+      description: >-
+        Verifies a Google Play purchase, records it, then acknowledges it so Play does not refund it.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/BillingClientVersionHeader"
+        - $ref: "#/components/parameters/BillingClientPlatformHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingGooglePurchaseRequest"
+            example:
+              purchase_token: opaque-token
+              product_id: podverse_premium
+              purchase_kind: auto_renew
+      responses:
+        "200":
+          description: Purchase recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingPurchaseResult"
+              example:
+                confirmed: true
+                outcomes:
+                  - status: processed
+                    error_code: null
+                status:
+                  tier: premium
+                  is_entitled: true
+                  membership_expires_at: "2026-11-03T00:00:00.000Z"
+                  in_grace_period: false
+                  active_auto_renew: false
+                  billing_cadence: monthly
+                  billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
+                  active_subscription: null
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: Google Play is not enabled, or has no such purchase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: The processor has no record of this purchase
+                code: billing.purchase_not_found
+                i18nKey: billing.purchase_not_found
+        "409":
+          description: The purchase belongs to another account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Transaction belongs to another account
+                code: billing.event_rejected
+                i18nKey: billing.event_rejected
+        "426":
+          description: The installed app is below the minimum version for this processor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Update the app to purchase
+                code: billing.client_update_required
+                i18nKey: billing.client_update_required
+                min_client_version: 5.2.0
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/restore:
+    post:
+      operationId: apiPostBillingRestore
+      tags:
+        - billing
+      summary: POST /billing/restore
+      description: >-
+        Re-reads store purchases from the processor and records any that are missing. Each purchase
+        is restored on its own; one the store no longer knows comes back as a failed outcome.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingRestoreRequest"
+            example:
+              processor: apple
+              purchases:
+                - external_id: "2000000456789012"
+                  external_product_id: fm.podverse.premium.monthly
+                  purchase_kind: auto_renew
+      responses:
+        "200":
+          description: Restore finished
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingPurchaseResult"
+              example:
+                confirmed: true
+                outcomes:
+                  - status: processed
+                    error_code: null
+                status:
+                  tier: premium
+                  is_entitled: true
+                  membership_expires_at: "2026-11-03T00:00:00.000Z"
+                  in_grace_period: false
+                  active_auto_renew: false
+                  billing_cadence: monthly
+                  billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
+                  active_subscription: null
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: Processor not enabled on this server
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: apple is not available
+                code: billing.processor_unavailable
+                i18nKey: billing.processor_unavailable
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/webhooks/paypal:
+    post:
+      operationId: apiPostBillingWebhooksPaypal
+      tags:
+        - billing
+      summary: POST /billing/webhooks/paypal
+      description: >-
+        Receives PayPal deliveries. No auth: the raw body is verified against the
+        processor signature. 400 only when the request is not authentic; once verified every
+        event is recorded and the answer is 200, even when applying one failed. 404 when the
+        processor is not enabled. 500 means nothing was recorded and asks for redelivery.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The processor payload exactly as delivered.
+              additionalProperties: true
+      responses:
+        "200":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingWebhookReceived"
+              example:
+                received: true
+        "400":
+          description: Verification failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Webhook verification failed
+                code: billing.webhook_verification_failed
+                i18nKey: billing.webhook_verification_failed
+        "404":
+          description: Processor not enabled on this server
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: paypal is not available
+                code: billing.processor_unavailable
+                i18nKey: billing.processor_unavailable
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/webhooks/apple:
+    post:
+      operationId: apiPostBillingWebhooksApple
+      tags:
+        - billing
+      summary: POST /billing/webhooks/apple
+      description: >-
+        Receives App Store Server Notifications V2 deliveries. No auth: the raw body is verified against the
+        processor signature. 400 only when the request is not authentic; once verified every
+        event is recorded and the answer is 200, even when applying one failed. 404 when the
+        processor is not enabled. 500 means nothing was recorded and asks for redelivery.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The processor payload exactly as delivered.
+              additionalProperties: true
+      responses:
+        "200":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingWebhookReceived"
+              example:
+                received: true
+        "400":
+          description: Verification failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Webhook verification failed
+                code: billing.webhook_verification_failed
+                i18nKey: billing.webhook_verification_failed
+        "404":
+          description: Processor not enabled on this server
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: apple is not available
+                code: billing.processor_unavailable
+                i18nKey: billing.processor_unavailable
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/webhooks/google:
+    post:
+      operationId: apiPostBillingWebhooksGoogle
+      tags:
+        - billing
+      summary: POST /billing/webhooks/google
+      description: >-
+        Receives Google Play RTDN (Pub/Sub push) deliveries. No auth: the raw body is verified against the
+        processor signature. 400 only when the request is not authentic; once verified every
+        event is recorded and the answer is 200, even when applying one failed. 404 when the
+        processor is not enabled. 500 means nothing was recorded and asks for redelivery.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The processor payload exactly as delivered.
+              additionalProperties: true
+      responses:
+        "200":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingWebhookReceived"
+              example:
+                received: true
+        "400":
+          description: Verification failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Webhook verification failed
+                code: billing.webhook_verification_failed
+                i18nKey: billing.webhook_verification_failed
+        "404":
+          description: Processor not enabled on this server
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: google is not available
+                code: billing.processor_unavailable
+                i18nKey: billing.processor_unavailable
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /billing/test/simulate:
+    post:
+      operationId: apiPostBillingTestSimulate
+      tags:
+        - billing
+      summary: POST /billing/test/simulate
+      description: >-
+        Runs a billing event through the test processor for the signed-in account. Refused with 403
+        wherever the test processor is not registered, which is production unless explicitly allowed.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingSimulateRequest"
+            example:
+              event:
+                type: payment_settled
+                purchaseKind: one_time
+                externalTransactionId: sim-tx-1
+                externalSubscriptionId: null
+                externalProductId: test_premium_one_time_monthly
+                externalBasePlanId: null
+                periodStart: null
+                periodEnd: null
+                amount: null
+      responses:
+        "200":
+          description: Event processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingSimulationResult"
+              example:
+                outcome:
+                  status: processed
+                  error_code: null
+                status:
+                  tier: premium
+                  is_entitled: true
+                  membership_expires_at: "2026-11-03T00:00:00.000Z"
+                  in_grace_period: false
+                  active_auto_renew: false
+                  billing_cadence: monthly
+                  billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
+                  active_subscription: null
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: The test processor is not available here
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: The test processor is not available in this environment
+                code: billing.test_adapter_unavailable
+                i18nKey: billing.test_adapter_unavailable
+        "409":
+          description: The event was rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingApiError"
+              example:
+                message: Product is not mapped
+                code: billing.event_rejected
+                i18nKey: billing.event_rejected
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /category:
     get:
       operationId: apiGetCategory
@@ -11374,165 +12810,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
-  /paypal/{payment_id}:
-    get:
-      operationId: apiGetPaypalPaymentId
-      tags:
-        - paypal
-      summary: GET /paypal/{payment_id}
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
-      security:
-        - bearerAuth: []
-        - cookieAuth: []
-      parameters:
-        - in: path
-          name: payment_id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiGetPaypalPaymentIdResponse200"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthenticationErrorResponse"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthorizationErrorResponse"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotFoundErrorResponse"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InternalServerErrorResponse"
-  /paypal/create:
-    post:
-      operationId: apiPostPaypalCreate
-      tags:
-        - paypal
-      summary: POST /paypal/create
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
-      security:
-        - bearerAuth: []
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ApiPostPaypalCreateRequest"
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiPostPaypalCreateResponse200"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthenticationErrorResponse"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthorizationErrorResponse"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotFoundErrorResponse"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InternalServerErrorResponse"
-  /paypal/webhooks/payment-completed:
-    post:
-      operationId: apiPostPaypalWebhooksPaymentCompleted
-      tags:
-        - paypal
-      summary: POST /paypal/webhooks/payment-completed
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
-      security:
-        - bearerAuth: []
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ApiPostPaypalWebhooksPaymentCompletedRequest"
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiPostPaypalWebhooksPaymentCompletedResponse200"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthenticationErrorResponse"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthorizationErrorResponse"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotFoundErrorResponse"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InternalServerErrorResponse"
   /playlist:
     post:
       operationId: apiPostPlaylist
@@ -13683,6 +14960,74 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /product/membership:
+    get:
+      operationId: apiGetProductMembership
+      tags:
+        - product
+      summary: GET /product/membership
+      description: >-
+        Resolved membership product settings: prices, trial length, and tier capabilities.
+      security: []
+      responses:
+        "200":
+          description: Membership product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductMembershipResponse"
+              example:
+                data:
+                  freeTrialExpirationSeconds: 2678400
+                  freeTrialDays: 31
+                  premiumMembershipCostMonthly: 3
+                  premiumMembershipCostAnnually: 30
+                  annuallySavingsPercent: 16
+                  monthlyEquivalentAnnually: 36
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /product/membership/pricing:
+    get:
+      operationId: apiGetProductMembershipPricing
+      tags:
+        - product
+      summary: GET /product/membership/pricing
+      description: >-
+        Premium prices for the signup and membership pages. 400 when paid memberships are off.
+      security: []
+      responses:
+        "200":
+          description: Membership pricing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductMembershipPricingResponse"
+              example:
+                data:
+                  costMonthly: 3
+                  costAnnually: 30
+                  freeTrialExpiration: 2678400
+                  freeTrialDays: 31
+                  annuallySavingsPercent: 16
+                  monthlyEquivalentAnnually: 36
+        "400":
+          description: Paid memberships are not enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: Paid premium memberships are not enabled for this server
         "500":
           description: Internal server error
           content:

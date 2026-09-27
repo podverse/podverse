@@ -7,8 +7,8 @@ import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { matchesTitleFilter } from '@podverse/helpers';
 
 import { AddByRssNeedsCredentialsSection } from '../../components/content/AddByRssNeedsCredentialsSection';
-import { ListFilterField, ListFilterHeader, MenuSelectChip } from '../../components/form';
 import type { MenuSelectChipOption } from '../../components/form';
+import { ListFilterField, ListFilterHeader, MenuSelectChip } from '../../components/form';
 import { FillList, VerticalCenter } from '../../components/primitives';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -95,12 +95,7 @@ function LibraryFeedListItem({
 
   return (
     <View style={cellStyle}>
-      <HomeFeedRow
-        mediaType={mediaType}
-        onPlayPress={onPlay}
-        onPress={onPress}
-        row={row}
-      />
+      <HomeFeedRow mediaType={mediaType} onPlayPress={onPlay} onPress={onPress} row={row} />
     </View>
   );
 }

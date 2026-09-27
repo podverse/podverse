@@ -1,7 +1,7 @@
 import { config } from '@management-api/config/index.js';
 import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
-import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
-import { type PermissionResource } from '@management-api/lib/authz/requireCrud.js';
+import type { PermissionResource } from '@management-api/lib/authz/requireCrud.js';
+import { getCrudForResource, requireCrud } from '@management-api/lib/authz/requireCrud.js';
 import { CrudMask } from '@management-api/lib/crud.js';
 import { AuditLogService } from '@management-api/lib/database/auditLog.js';
 import {
@@ -413,30 +413,6 @@ router.delete('/:table/:id', ensureAuthenticated, async (req, res) => {
     sendMutationError(res, err);
   }
 });
-
-function getCrudForResource(
-  permissions: NonNullable<Express.User['permissions']>,
-  resource: PermissionResource
-): number {
-  switch (resource) {
-    case 'feeds':
-      return permissions.feeds_crud;
-    case 'feed_takedown_reasons':
-      return permissions.feed_takedown_reasons_crud;
-    case 'admins':
-      return permissions.admins_crud;
-    case 'stats':
-      return permissions.stats_crud;
-    case 'billing_prices':
-      return permissions.billing_prices_crud ?? 0;
-    case 'bucket':
-      return permissions.bucket_crud ?? 0;
-    case 'embed_demo':
-      return permissions.embed_demo_crud ?? 0;
-    case 'notifications':
-      return permissions.notifications_crud ?? 0;
-  }
-}
 
 const databaseRoot = express.Router();
 databaseRoot.use(`${config.api.prefix}${config.api.version}/database`, router);

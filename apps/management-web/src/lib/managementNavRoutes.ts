@@ -1,4 +1,8 @@
 import {
+  canReadBillingAccount,
+  canReadBillingChannels,
+  canReadBillingProcessorProducts,
+  canReadBillingWebhookEvents,
   canReadEmbedDemo,
   canReadFeeds,
   canReadNotifications,
@@ -13,6 +17,7 @@ export type ManagementNavSection =
   | 'stats'
   | 'database'
   | 'products'
+  | 'billing'
   | 'web'
   | 'notifications'
   | 'admins'
@@ -57,6 +62,15 @@ const ROUTES_LIST: ManagementNavRoute[] = [
   { section: 'stats', href: ROUTES.STATS, visible: (user) => canReadStats(user) },
   { section: 'database', href: ROUTES.DATABASE, visible: (user) => isDatabaseReadable(user) },
   { section: 'products', href: ROUTES.PRODUCTS, visible: (user) => isProductsReadable(user) },
+  {
+    section: 'billing',
+    href: ROUTES.BILLING,
+    visible: (user) =>
+      canReadBillingChannels(user) ||
+      canReadBillingProcessorProducts(user) ||
+      canReadBillingWebhookEvents(user) ||
+      canReadBillingAccount(user),
+  },
   { section: 'web', href: ROUTES.WEB, visible: (user) => canReadEmbedDemo(user) },
   {
     section: 'notifications',
@@ -85,6 +99,7 @@ export type DashboardI18nTitleKey =
   | 'stats.title'
   | 'database.title'
   | 'products.title'
+  | 'billing.title'
   | 'web.title'
   | 'notifications.title'
   | 'admins.title'
@@ -97,6 +112,7 @@ export type DashboardI18nDescriptionKey =
   | 'stats.description'
   | 'database.description'
   | 'products.description'
+  | 'billing.description'
   | 'web.description'
   | 'notifications.description'
   | 'admins.description'
@@ -109,6 +125,7 @@ const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   stats: 'stats.title',
   database: 'database.title',
   products: 'products.title',
+  billing: 'billing.title',
   web: 'web.title',
   notifications: 'notifications.title',
   admins: 'admins.title',
@@ -122,6 +139,7 @@ const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey>
   stats: 'stats.description',
   database: 'database.description',
   products: 'products.description',
+  billing: 'billing.description',
   web: 'web.description',
   notifications: 'notifications.description',
   admins: 'admins.description',

@@ -75,9 +75,7 @@ export interface PaymentSettledEvent extends NormalizedBillingEventBase, Billing
  * whose first charge is scheduled later, or auto-renew switched back on.
  */
 export interface SubscriptionActivatedEvent
-  extends NormalizedBillingEventBase,
-    BillingProductRefs,
-    BillingSubscriptionRef {
+  extends NormalizedBillingEventBase, BillingProductRefs, BillingSubscriptionRef {
   type: 'subscription_activated';
   periodStart: string | null;
   periodEnd: string | null;
@@ -85,9 +83,7 @@ export interface SubscriptionActivatedEvent
 
 /** A renewal charge succeeded, including a retry that recovers a failed renewal. */
 export interface SubscriptionRenewedEvent
-  extends NormalizedBillingEventBase,
-    BillingProductRefs,
-    BillingSubscriptionRef {
+  extends NormalizedBillingEventBase, BillingProductRefs, BillingSubscriptionRef {
   type: 'subscription_renewed';
   externalTransactionId: string;
   periodStart: string;
@@ -100,8 +96,7 @@ export interface SubscriptionRenewedEvent
  * the payment-failure grace window while the charge is retried.
  */
 export interface SubscriptionRenewalFailedEvent
-  extends NormalizedBillingEventBase,
-    BillingSubscriptionRef {
+  extends NormalizedBillingEventBase, BillingSubscriptionRef {
   type: 'subscription_renewal_failed';
   /** End of the period that failed to renew, when the processor reports it. */
   periodEnd: string | null;
@@ -129,8 +124,7 @@ export interface GraceExitedEvent extends NormalizedBillingEventBase, BillingSub
 
 /** Auto-renew was turned off. The paid period still runs to its end (`cancelled_active`). */
 export interface SubscriptionCancelledEvent
-  extends NormalizedBillingEventBase,
-    BillingSubscriptionRef {
+  extends NormalizedBillingEventBase, BillingSubscriptionRef {
   type: 'subscription_cancelled';
   /** End of the paid period, when the processor reports it. */
   periodEnd: string | null;
@@ -138,8 +132,7 @@ export interface SubscriptionCancelledEvent
 
 /** The subscription ended without renewing (`expired`). */
 export interface SubscriptionExpiredEvent
-  extends NormalizedBillingEventBase,
-    BillingSubscriptionRef {
+  extends NormalizedBillingEventBase, BillingSubscriptionRef {
   type: 'subscription_expired';
   expiredAt: string | null;
 }

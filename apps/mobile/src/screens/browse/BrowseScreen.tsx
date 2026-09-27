@@ -1001,15 +1001,11 @@ export function BrowseScreen() {
       }
 
       if (item.kind === 'playlist') {
-        return (
-          <BrowsePlaylistItem onPress={handlePlaylistPress} playlist={item.playlist} />
-        );
+        return <BrowsePlaylistItem onPress={handlePlaylistPress} playlist={item.playlist} />;
       }
 
       if (item.kind === 'user') {
-        return (
-          <BrowseUserItem account={item.account} onPress={handleUserPress} />
-        );
+        return <BrowseUserItem account={item.account} onPress={handleUserPress} />;
       }
 
       return (

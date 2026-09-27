@@ -1,11 +1,5 @@
 import { readFileSync } from 'node:fs';
 
-import {
-  APIException,
-  AppStoreServerAPIClient,
-  Environment,
-  SignedDataVerifier,
-} from '@apple/app-store-server-library';
 import type {
   JWSRenewalInfoDecodedPayload,
   JWSTransactionDecodedPayload,
@@ -13,6 +7,12 @@ import type {
   SendTestNotificationResponse,
   StatusResponse,
   TransactionInfoResponse,
+} from '@apple/app-store-server-library';
+import {
+  APIException,
+  AppStoreServerAPIClient,
+  Environment,
+  SignedDataVerifier,
 } from '@apple/app-store-server-library';
 
 import { getDefaultAppleRootCertificates } from './appleRootCertificates.js';
@@ -30,9 +30,7 @@ export interface AppleApiClient {
 export interface AppleSignedPayloadVerifier {
   verifyAndDecodeNotification(signedPayload: string): Promise<ResponseBodyV2DecodedPayload>;
   verifyAndDecodeRenewalInfo(signedRenewalInfo: string): Promise<JWSRenewalInfoDecodedPayload>;
-  verifyAndDecodeTransaction(
-    signedTransactionInfo: string
-  ): Promise<JWSTransactionDecodedPayload>;
+  verifyAndDecodeTransaction(signedTransactionInfo: string): Promise<JWSTransactionDecodedPayload>;
 }
 
 export interface AppleClientConfig {
@@ -96,10 +94,6 @@ export function resolveAppleRuntimeEnvironment(
     return configured;
   }
   return nodeEnv === 'production' ? 'production' : 'sandbox';
-}
-
-function toSdkEnvironment(environment: AppleRuntimeEnvironment): Environment {
-  return environment === 'production' ? Environment.PRODUCTION : Environment.SANDBOX;
 }
 
 function parseAppAppleId(value: number | undefined): number | undefined {
@@ -394,7 +388,9 @@ export class AppStoreServerClient {
     signedTransactionInfo: string,
     environment: Environment
   ): Promise<JWSTransactionDecodedPayload> {
-    return this.verifierForEnvironment(environment).verifyAndDecodeTransaction(signedTransactionInfo);
+    return this.verifierForEnvironment(environment).verifyAndDecodeTransaction(
+      signedTransactionInfo
+    );
   }
 
   private async verifyRenewalInfo(

@@ -130,7 +130,10 @@ function amountFromPriceRecord(price: Record<string, unknown> | null): BillingAm
   return { value, currencyCode };
 }
 
-function amountFromMicros(priceMicros: string | null, currencyCode: string | null): BillingAmount | null {
+function amountFromMicros(
+  priceMicros: string | null,
+  currencyCode: string | null
+): BillingAmount | null {
   if (priceMicros === null || currencyCode === null) {
     return null;
   }
@@ -141,7 +144,9 @@ function amountFromMicros(priceMicros: string | null, currencyCode: string | nul
   const sign = micros < 0 ? '-' : '';
   const absolute = Math.abs(Math.trunc(micros));
   const whole = Math.floor(absolute / 1_000_000);
-  const fractional = String(absolute % 1_000_000).padStart(6, '0').replace(/0+$/, '');
+  const fractional = String(absolute % 1_000_000)
+    .padStart(6, '0')
+    .replace(/0+$/, '');
   const value = fractional.length > 0 ? `${sign}${whole}.${fractional}` : `${sign}${whole}`;
   return { value, currencyCode };
 }
@@ -182,16 +187,14 @@ function isSandboxProductPurchase(productPurchase: Record<string, unknown>): boo
 }
 
 function selectLatestLineItem(purchase: Record<string, unknown>): Record<string, unknown> | null {
-  const lineItems = readArray(purchase, 'lineItems').filter((item): item is Record<string, unknown> =>
-    isRecord(item)
+  const lineItems = readArray(purchase, 'lineItems').filter(
+    (item): item is Record<string, unknown> => isRecord(item)
   );
   if (lineItems.length === 0) {
     return null;
   }
   return (
-    lineItems
-    .slice()
-    .sort((left, right) => {
+    lineItems.slice().sort((left, right) => {
       const leftExpiry = Date.parse(readString(left, 'expiryTime') ?? '');
       const rightExpiry = Date.parse(readString(right, 'expiryTime') ?? '');
       if (Number.isNaN(leftExpiry) && Number.isNaN(rightExpiry)) {
@@ -233,7 +236,9 @@ function readSubscriptionContext(
   const prepaidPlan = lineItem === null ? null : readRecord(lineItem, 'prepaidPlan');
   return {
     accountBillingCustomerRef:
-      (accountIdentifiers === null ? null : readString(accountIdentifiers, 'obfuscatedExternalAccountId')) ??
+      (accountIdentifiers === null
+        ? null
+        : readString(accountIdentifiers, 'obfuscatedExternalAccountId')) ??
       readString(purchase, 'obfuscatedExternalAccountId'),
     externalProductId:
       (lineItem === null ? null : readString(lineItem, 'productId')) ?? fallbackProductId,
@@ -751,7 +756,9 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
   return {
     id: 'google_play',
 
-    async verifyAndParseWebhook(request: BillingWebhookRequest): Promise<BillingWebhookParseResult> {
+    async verifyAndParseWebhook(
+      request: BillingWebhookRequest
+    ): Promise<BillingWebhookParseResult> {
       let parsedPush;
       try {
         parsedPush = await verifyAndParseRtdnPush({
@@ -850,7 +857,10 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
       if (ref.externalProductId === null) {
         throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
       }
-      const productPurchase = await client.getProductPurchase(ref.externalProductId, ref.externalId);
+      const productPurchase = await client.getProductPurchase(
+        ref.externalProductId,
+        ref.externalId
+      );
       if (productPurchase === null) {
         throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
       }
@@ -863,7 +873,9 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
     },
 
     async acknowledgePurchase(acknowledgement: BillingPurchaseAcknowledgement): Promise<void> {
-      const subscriptionPurchase = await client.getSubscriptionPurchase(acknowledgement.purchaseToken);
+      const subscriptionPurchase = await client.getSubscriptionPurchase(
+        acknowledgement.purchaseToken
+      );
       if (subscriptionPurchase !== null) {
         if (isSubscriptionAcknowledgementPending(subscriptionPurchase)) {
           const subscriptionId = resolveSubscriptionProductId(

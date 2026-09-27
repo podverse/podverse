@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { createMobileApiRequestService } from '../../auth/mobileApi';
 import { MembershipFeatureTable } from '../../components/membership/MembershipFeatureTable';
+import { MembershipStoreCheckout } from '../../components/membership/MembershipStoreCheckout';
 import { TrialLimitationsAccordion } from '../../components/membership/TrialLimitationsAccordion';
 import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
@@ -14,11 +15,9 @@ import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Membership screen. Mirrors the web membership page's
- * intent (tiers, pricing, expired/trial messaging, single primary CTA) without pixel-copying. The CTA
- * is auth-based binary per plan: logged-out → Sign up, logged-in → Extend membership (same logged-in
- * path the gate modal labels "Renew"). Purchase itself is the web hand-off in `checkoutEntry` until
- * native IAP. All copy resolves through the shared `membership.*` catalog.
+ * Membership screen. Tiers, trial limits, and expired messaging sit above one primary action.
+ * Logged out, that action opens web sign-up. Logged in, store builds purchase on this screen.
+ * PayPal opens web checkout when checkout options include it. Copy uses the membership catalog.
  */
 
 /** The pricing fields this screen renders (subset of the API's `MembershipPricingData`). */
@@ -87,8 +86,6 @@ export function MoreMembershipScreen() {
     return [];
   }, [expiresAt, isExpired, isLoggedIn, isMember, t, tier]);
 
-  const ctaLabel = isLoggedIn ? t('membership.extend_my_membership') : t('authentication.sign_up');
-
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -134,36 +131,44 @@ export function MoreMembershipScreen() {
         </View>
       ) : null}
 
-      {pricing !== null ? (
-        <View style={styles.section}>
-          <Card padded={false} testID="more-membership-pricing">
-            <View style={styles.cardBody}>
-              <SectionHeading>{t('membership.premium_membership')}</SectionHeading>
-              <Text style={styles.priceRow}>
-                {`$${pricing.costMonthly}${t('membership.pricing_per_month')}`}
-              </Text>
-              <Text style={styles.priceRow}>
-                {`$${pricing.costAnnually}${t('membership.pricing_per_year')}`}
-              </Text>
-              <Text style={styles.savings}>
-                {t('membership.pricing_save_percent', { percent: pricing.annuallySavingsPercent })}
-              </Text>
+      {isLoggedIn ? (
+        <MembershipStoreCheckout />
+      ) : (
+        <>
+          {pricing !== null ? (
+            <View style={styles.section}>
+              <Card padded={false} testID="more-membership-pricing">
+                <View style={styles.cardBody}>
+                  <SectionHeading>{t('membership.premium_membership')}</SectionHeading>
+                  <Text style={styles.priceRow}>
+                    {`$${pricing.costMonthly}${t('membership.pricing_per_month')}`}
+                  </Text>
+                  <Text style={styles.priceRow}>
+                    {`$${pricing.costAnnually}${t('membership.pricing_per_year')}`}
+                  </Text>
+                  <Text style={styles.savings}>
+                    {t('membership.pricing_save_percent', {
+                      percent: pricing.annuallySavingsPercent,
+                    })}
+                  </Text>
+                </View>
+              </Card>
             </View>
-          </Card>
-        </View>
-      ) : null}
+          ) : null}
 
-      <View style={styles.cta}>
-        <Button
-          fullWidth
-          label={ctaLabel}
-          onPress={() => {
-            void openCheckout({ mode: isLoggedIn ? 'extend' : 'sign_up' });
-          }}
-          testID="more-membership-cta"
-          variant="primary"
-        />
-      </View>
+          <View style={styles.cta}>
+            <Button
+              fullWidth
+              label={t('authentication.sign_up')}
+              onPress={() => {
+                void openCheckout({ mode: 'sign_up' });
+              }}
+              testID="more-membership-cta"
+              variant="primary"
+            />
+          </View>
+        </>
+      )}
 
       <View style={styles.featureSection}>
         <MembershipFeatureTable />

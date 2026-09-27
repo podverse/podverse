@@ -6,5 +6,6 @@ export * from './errors.js';
 export * from './isNormalizedBillingEvent.js';
 export * from './ledgerStore.js';
 export * from './ormBillingLedgerStore.js';
+export * from './registerConfiguredBillingAdapters.js';
 export * from './sandboxPolicy.js';
 export * from './snapshotEvents.js';

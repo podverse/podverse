@@ -1,7 +1,7 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 
 import type {
   CopyMarkdownComponentKey,
@@ -9,8 +9,8 @@ import type {
   CopyMarkdownInlineSpan,
 } from '@podverse/helpers';
 import {
-  MEMBERSHIP_COMPARISON_FEATURES,
   getSafeLinkHref,
+  MEMBERSHIP_COMPARISON_FEATURES,
   parseCopyMarkdown,
 } from '@podverse/helpers';
 import { Image } from '@podverse/ui';

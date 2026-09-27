@@ -15,6 +15,9 @@ const {
   parseMobileDeepLinkSchemes,
   MOBILE_UNIVERSAL_LINK_PATH_PREFIXES,
 }: typeof import('./src/config/deepLinkSchemes') = require('./src/config/deepLinkSchemes');
+const {
+  getMobileBillingModeFromEnv,
+}: typeof import('./src/config/billingEnv') = require('./src/config/billingEnv');
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 const DEFAULT_UNIVERSAL_LINK_HOST = 'podverse.fm';
@@ -159,6 +162,10 @@ const config: ExpoConfig = {
     './plugins/withPodverseIosPodBuildSettings',
     './plugins/withPodverseCarPlay',
     ['./plugins/withPodverseAssociatedDomains', { host: universalLinkHost }],
+    // Adds the Play Billing permission and billing-ktx. Omitted when this build's billing mode is
+    // unavailable. A FOSS prebuild must also exclude `expo-iap` from autolinking so the native
+    // module is not compiled into the binary.
+    ...(getMobileBillingModeFromEnv() === 'store' ? ['expo-iap'] : []),
   ],
 };
 

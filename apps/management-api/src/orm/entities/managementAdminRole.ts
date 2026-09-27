@@ -32,6 +32,18 @@ export class ManagementAdminRole {
   @Column({ name: 'notifications_crud', type: 'integer' })
   notificationsCrud!: number;
 
+  @Column({ name: 'billing_channels_crud', type: 'integer' })
+  billingChannelsCrud!: number;
+
+  @Column({ name: 'billing_processor_products_crud', type: 'integer' })
+  billingProcessorProductsCrud!: number;
+
+  @Column({ name: 'billing_account_crud', type: 'integer' })
+  billingAccountCrud!: number;
+
+  @Column({ name: 'billing_webhook_events_crud', type: 'integer' })
+  billingWebhookEventsCrud!: number;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at!: Date;
 }

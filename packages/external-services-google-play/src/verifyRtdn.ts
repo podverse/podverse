@@ -66,7 +66,10 @@ function extractBearerToken(
     throw new BillingWebhookVerificationError('google_play', 'Missing Authorization header');
   }
   if (!authorization.startsWith('Bearer ')) {
-    throw new BillingWebhookVerificationError('google_play', 'Authorization header must use Bearer');
+    throw new BillingWebhookVerificationError(
+      'google_play',
+      'Authorization header must use Bearer'
+    );
   }
   const token = authorization.slice('Bearer '.length).trim();
   if (token.length === 0) {
@@ -75,7 +78,10 @@ function extractBearerToken(
   return token;
 }
 
-function verifyTokenPayloadEmail(payload: GoogleIdTokenPayload, expectedServiceAccount: string): void {
+function verifyTokenPayloadEmail(
+  payload: GoogleIdTokenPayload,
+  expectedServiceAccount: string
+): void {
   if (payload.email !== expectedServiceAccount) {
     throw new BillingWebhookVerificationError(
       'google_play',
@@ -120,7 +126,10 @@ export async function verifyAndParseRtdnPush(options: VerifyRtdnOptions): Promis
   const requestEnvelope = decodeRawBody(options.request.rawBody);
   const messageEnvelope = readRecord(requestEnvelope, 'message');
   if (messageEnvelope === null) {
-    throw new BillingWebhookVerificationError('google_play', 'RTDN request body is missing message');
+    throw new BillingWebhookVerificationError(
+      'google_play',
+      'RTDN request body is missing message'
+    );
   }
   const messageId = readString(messageEnvelope, 'messageId') ?? 'unknown-message';
   const encodedData = readString(messageEnvelope, 'data');

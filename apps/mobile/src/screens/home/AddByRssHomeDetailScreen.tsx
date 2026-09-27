@@ -436,11 +436,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
 
   const renderItem = useCallback(
     ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
-      <AddByRssEpisodeRow
-        index={index}
-        onPlay={handlePlay}
-        row={row}
-      />
+      <AddByRssEpisodeRow index={index} onPlay={handlePlay} row={row} />
     ),
     [handlePlay]
   );

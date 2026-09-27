@@ -21,10 +21,14 @@
   "references": [
     { "path": "../../packages/helpers" },
     { "path": "../../packages/external-services-firebase" },
+    { "path": "../../packages/external-services-paypal" },
+    { "path": "../../packages/external-services-apple-app-store" },
+    { "path": "../../packages/external-services-google-play" },
     { "path": "../../packages/external-services-podcast-index" },
     { "path": "../../packages/orm" },
     { "path": "../../packages/mq" },
     { "path": "../../packages/notifications" },
+    { "path": "../../packages/billing" },
     { "path": "../../packages/parser" }
   ]
 }

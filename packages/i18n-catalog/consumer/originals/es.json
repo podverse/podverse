@@ -970,7 +970,6 @@
     "auto_renew": "Renovación automática",
     "payment_processor": "Procesador de pagos",
     "paypal": "PayPal",
-    "stripe": "Stripe",
     "complete_purchase": "Completar compra",
     "disabled_message": "La página de pago está deshabilitada."
   },

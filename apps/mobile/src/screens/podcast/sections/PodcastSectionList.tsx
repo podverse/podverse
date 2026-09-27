@@ -181,9 +181,7 @@ export function PodcastSectionList<TRow>({
       keyboardShouldPersistTaps="handled"
       keyExtractor={keyExtractor}
       refreshControl={refreshControl}
-      renderItem={({ index, item: row }) =>
-        renderRow({ index, row })
-      }
+      renderItem={({ index, item: row }) => renderRow({ index, row })}
       style={styles.list}
       testID={testID}
     />

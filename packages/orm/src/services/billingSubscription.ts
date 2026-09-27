@@ -1,8 +1,17 @@
 import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 import { BillingSubscription } from '@orm/entities/billingSubscription.js';
 import type { DataSource, EntityManager } from 'typeorm';
+import { Brackets } from 'typeorm';
 
 import type { BillingSubscriptionStatus, PurchaseKind } from '@podverse/helpers';
+
+/** Statuses whose access still depends on the processor's next renewal, recovery, or expiry. */
+const RECONCILABLE_SUBSCRIPTION_STATUSES: readonly BillingSubscriptionStatus[] = [
+  'active',
+  'in_grace_period',
+  'past_due',
+  'cancelled_active',
+];
 
 type BillingSubscriptionServiceParams = {
   dataSourceRead?: DataSource;
@@ -33,6 +42,57 @@ export class BillingSubscriptionService {
   constructor(params?: BillingSubscriptionServiceParams) {
     this.dataSourceRead = params?.dataSourceRead ?? getDataSourceRead();
     this.dataSourceReadWrite = params?.dataSourceReadWrite ?? getDataSourceReadWrite();
+  }
+
+  /**
+   * The account's subscriptions, latest period first, with their processor product. Reads the
+   * primary so a status poll right after a purchase sees the subscription it created.
+   */
+  async listForAccount(accountId: number): Promise<BillingSubscription[]> {
+    return this.dataSourceReadWrite.getRepository(BillingSubscription).find({
+      where: { account_id: accountId },
+      relations: { billing_processor_product: true },
+      order: { current_period_end: { direction: 'DESC', nulls: 'LAST' }, id: 'DESC' },
+    });
+  }
+
+  /** Null when the subscription does not exist or belongs to another account. */
+  async getForAccountById(accountId: number, id: number): Promise<BillingSubscription | null> {
+    return this.dataSourceReadWrite.getRepository(BillingSubscription).findOne({
+      where: { id, account_id: accountId },
+      relations: { billing_processor_product: true },
+    });
+  }
+
+  /**
+   * Live subscriptions whose period end or grace end falls inside the window, in id order with
+   * their processor product. Page by passing the last id of the previous batch as `afterId`.
+   */
+  async listDueForReconcile(params: {
+    windowStart: Date;
+    windowEnd: Date;
+    afterId: number;
+    limit: number;
+  }): Promise<BillingSubscription[]> {
+    return this.dataSourceRead
+      .getRepository(BillingSubscription)
+      .createQueryBuilder('subscription')
+      .leftJoinAndSelect('subscription.billing_processor_product', 'product')
+      .where('subscription.status IN (:...statuses)', {
+        statuses: [...RECONCILABLE_SUBSCRIPTION_STATUSES],
+      })
+      .andWhere('subscription.id > :afterId', { afterId: params.afterId })
+      .andWhere(
+        new Brackets((window) => {
+          window
+            .where('subscription.current_period_end BETWEEN :windowStart AND :windowEnd')
+            .orWhere('subscription.grace_period_ends_at BETWEEN :windowStart AND :windowEnd');
+        })
+      )
+      .setParameters({ windowStart: params.windowStart, windowEnd: params.windowEnd })
+      .orderBy('subscription.id', 'ASC')
+      .limit(params.limit)
+      .getMany();
   }
 
   async getByExternalId(

@@ -128,6 +128,9 @@ const buildConfig = () => {
         signupMode: env.NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE! as AccountSignupMode,
         contactEmail: env.NEXT_PUBLIC_CONTACT_EMAIL!,
       },
+      paypal: {
+        clientId: optionalEnvString(env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) ?? '',
+      },
       server_env: env.NEXT_PUBLIC_SERVER_ENV!,
       imageProxy: {
         enabled: env.NEXT_PUBLIC_IMAGE_PROXY_ENABLED === 'true',

@@ -970,7 +970,6 @@
     "auto_renew": "Αυτόματη ανανέωση",
     "payment_processor": "Επεξεργαστής πληρωμών",
     "paypal": "PayPal",
-    "stripe": "Stripe",
     "complete_purchase": "Ολοκλήρωση αγοράς",
     "disabled_message": "Η σελίδα ολοκλήρωσης παραγγελίας είναι απενεργοποιημένη."
   },

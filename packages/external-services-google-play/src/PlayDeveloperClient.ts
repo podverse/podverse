@@ -134,7 +134,11 @@ interface SubscriptionsApi {
 }
 
 interface ProductsApi {
-  get(params: { packageName: string; productId: string; token: string }): Promise<{ data: unknown }>;
+  get(params: {
+    packageName: string;
+    productId: string;
+    token: string;
+  }): Promise<{ data: unknown }>;
   acknowledge(params: {
     packageName: string;
     productId: string;
@@ -300,8 +304,11 @@ export class PlayDeveloperClient implements GooglePlayClient {
     const response = await this.publisher.purchases.voidedpurchases.list({
       packageName: this.packageName,
       startTime:
-        params.startTimeMillis === undefined ? undefined : String(Math.trunc(params.startTimeMillis)),
-      endTime: params.endTimeMillis === undefined ? undefined : String(Math.trunc(params.endTimeMillis)),
+        params.startTimeMillis === undefined
+          ? undefined
+          : String(Math.trunc(params.startTimeMillis)),
+      endTime:
+        params.endTimeMillis === undefined ? undefined : String(Math.trunc(params.endTimeMillis)),
       pageToken: params.pageToken,
       maxResults: params.maxResults,
       type: params.type,

@@ -128,6 +128,26 @@ import {
   reqAuthMobileRevoke,
   reqAuthMobileToken,
 } from './auth/auth.js';
+import type {
+  ReqBillingAppleTransactionParams,
+  ReqBillingCheckoutOptionsParams,
+  ReqBillingGooglePurchaseParams,
+  ReqBillingPayPalCheckoutParams,
+  ReqBillingRestorePurchasesParams,
+  ReqBillingSimulatePaymentParams,
+} from './billing/billing.js';
+import {
+  reqBillingCancelSubscription,
+  reqBillingCapturePayPalOrder,
+  reqBillingCreatePayPalOrder,
+  reqBillingCreatePayPalSubscription,
+  reqBillingGetCheckoutOptions,
+  reqBillingGetStatus,
+  reqBillingPostAppleTransaction,
+  reqBillingPostGooglePurchase,
+  reqBillingRestorePurchases,
+  reqBillingSimulatePayment,
+} from './billing/billing.js';
 import { reqCategoryGetAll } from './category/category.js';
 import {
   reqChannelGetByIdOrIdText,
@@ -1056,6 +1076,46 @@ export class ApiRequestService {
 
   reqMembershipGetPricing() {
     return reqMembershipGetPricing(this);
+  }
+
+  reqBillingGetCheckoutOptions(params?: ReqBillingCheckoutOptionsParams) {
+    return reqBillingGetCheckoutOptions(this, params);
+  }
+
+  reqBillingGetStatus() {
+    return reqBillingGetStatus(this);
+  }
+
+  reqBillingPostAppleTransaction(params: ReqBillingAppleTransactionParams) {
+    return reqBillingPostAppleTransaction(this, params);
+  }
+
+  reqBillingPostGooglePurchase(params: ReqBillingGooglePurchaseParams) {
+    return reqBillingPostGooglePurchase(this, params);
+  }
+
+  reqBillingRestorePurchases(params: ReqBillingRestorePurchasesParams) {
+    return reqBillingRestorePurchases(this, params);
+  }
+
+  reqBillingCreatePayPalOrder(params: ReqBillingPayPalCheckoutParams) {
+    return reqBillingCreatePayPalOrder(this, params);
+  }
+
+  reqBillingCancelSubscription(subscriptionId: number) {
+    return reqBillingCancelSubscription(this, subscriptionId);
+  }
+
+  reqBillingCapturePayPalOrder(orderId: string) {
+    return reqBillingCapturePayPalOrder(this, orderId);
+  }
+
+  reqBillingCreatePayPalSubscription(params: ReqBillingPayPalCheckoutParams) {
+    return reqBillingCreatePayPalSubscription(this, params);
+  }
+
+  reqBillingSimulatePayment(params: ReqBillingSimulatePaymentParams) {
+    return reqBillingSimulatePayment(this, params);
   }
 
   /* METABOOST */

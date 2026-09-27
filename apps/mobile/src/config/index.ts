@@ -1,4 +1,5 @@
 import {
+  getMobileBillingModeFromEnv,
   getMobileContactEmailFromEnv,
   getMobileDeepLinkSchemesFromEnv,
   getMobilePublicWebBaseUrlFromEnv,
@@ -15,11 +16,14 @@ import { assertMobileApiEnvOrWarn } from './validateMobileEnv';
 
 export type { MobileApiConnection } from './parseApiConnection';
 export type { MobileApiEnvVarName } from './env';
+export type { MobileBillingMode } from './billingEnv';
 export { validateMobileApiEnv, assertMobileApiEnvOrWarn } from './validateMobileEnv';
 
 export type MobileConfig = {
   /** Parsed API connection, or null when unset (UI-only) or invalid. */
   api: MobileApiConnection | null;
+  /** `store` opens a store sheet. `unavailable` is the FOSS build. */
+  billingMode: 'store' | 'unavailable';
   /** Address opened by the error-log email action. */
   contactEmail: string;
   /** Custom URL schemes registered for deep links (e.g. `['podverse-next', 'podverse']`). */
@@ -40,6 +44,7 @@ export type MobileConfig = {
 export const getMobileConfig = (): MobileConfig => {
   const selectedBaseUrl = selectMobileApiBaseUrl();
   const deepLinkSchemes = getMobileDeepLinkSchemesFromEnv();
+  const billingMode = getMobileBillingModeFromEnv();
   const isE2e = isMobileE2eFromEnv();
   const pushProvider = getMobilePushProviderFromEnv();
   const unifiedPushEndpoint = getMobileUnifiedPushEndpointFromEnv();
@@ -51,6 +56,7 @@ export const getMobileConfig = (): MobileConfig => {
   if (selectedBaseUrl.value === null) {
     return {
       api: null,
+      billingMode,
       contactEmail,
       deepLinkSchemes,
       isE2e,
@@ -65,6 +71,7 @@ export const getMobileConfig = (): MobileConfig => {
   if (!assertMobileApiEnvOrWarn(selectedBaseUrl.sourceEnvVarName)) {
     return {
       api: null,
+      billingMode,
       contactEmail,
       deepLinkSchemes,
       isE2e,
@@ -79,6 +86,7 @@ export const getMobileConfig = (): MobileConfig => {
   const api = parseMobileApiConnection(selectedBaseUrl.value);
   return {
     api,
+    billingMode,
     contactEmail,
     deepLinkSchemes,
     isE2e,

@@ -117,6 +117,14 @@ const run = async () => {
       loggerService,
     });
 
+    const { initManagementBillingContext } = await import('./lib/billing/billingContext.js');
+    initManagementBillingContext({
+      nodeEnv: config.nodeEnv,
+      allowTestAdapter: config.billing.allowTestAdapter,
+      processors: config.billing.processors,
+      sandboxAllowedAccountIds: config.billing.sandboxAllowedAccountIds,
+    });
+
     const { startApp } = await import('./app.js');
     const maybeServer = await startApp();
     if (maybeServer) {

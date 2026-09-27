@@ -128,9 +128,7 @@ describe('parseCopyMarkdown', () => {
   });
 
   it('drops unknown directive lines', () => {
-    const blocks = parseCopyMarkdown(
-      ['Before.', '', '{{future_widget}}', '', 'After.'].join('\n')
-    );
+    const blocks = parseCopyMarkdown(['Before.', '', '{{future_widget}}', '', 'After.'].join('\n'));
 
     expect(blocks).toEqual([
       { type: 'paragraph', spans: [{ type: 'text', text: 'Before.' }] },

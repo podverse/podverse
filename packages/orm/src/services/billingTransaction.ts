@@ -33,6 +33,14 @@ export class BillingTransactionService {
     this.dataSourceReadWrite = params?.dataSourceReadWrite ?? getDataSourceReadWrite();
   }
 
+  async listForAccount(accountId: number, limit: number): Promise<BillingTransaction[]> {
+    return this.dataSourceRead.getRepository(BillingTransaction).find({
+      where: { account_id: accountId },
+      order: { settled_at: 'DESC', id: 'DESC' },
+      take: limit,
+    });
+  }
+
   async getByExternalId(
     processorId: string,
     externalTransactionId: string

@@ -13,13 +13,13 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run archive_all -w apps/workers',
   },
   {
-    name: 'billingProcessDueRenewals',
-    label: 'Billing: process due renewals',
+    name: 'billingReconcileSubscriptions',
+    label: 'Billing: reconcile subscriptions',
     description:
-      'Scan memberships due within 24h and attempt renewals via provider-agnostic adapter boundary.',
+      'Re-read subscriptions within 48h of a period or grace end from their processor, retry failed webhook inbox rows, and apply Google Play voided purchases. Never charges a payment method.',
     category: 'billing',
     risk: 'normal',
-    example_cli: 'npm run billing_process_due_renewals -w apps/workers',
+    example_cli: 'npm run billing_reconcile_subscriptions -w apps/workers',
   },
   {
     name: 'billingSeedProcessorProductsFromEnv',

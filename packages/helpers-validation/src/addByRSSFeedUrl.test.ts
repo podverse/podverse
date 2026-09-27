@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ADD_BY_RSS_CREDENTIAL_MAX_LENGTH,
+  canonicalAddByRSSFeedUrl,
   canSubmitAddByRssCredentials,
   canSubmitAddByRssFeed,
-  canonicalAddByRSSFeedUrl,
   resolveAddByRSSFeedUrlCredentials,
 } from './addByRSSFeedUrl.js';
 

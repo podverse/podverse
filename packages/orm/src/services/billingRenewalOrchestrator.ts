@@ -1,25 +1,8 @@
 import { BillingDomainEventLogService } from '@orm/services/billingDomainEventLog.js';
 import { BillingMembershipExtensionService } from '@orm/services/billingMembershipExtension.js';
+
 import type { BillingCadence } from '@podverse/helpers';
 import { AccountMembershipEnum, BILLING_EVENT_TYPES } from '@podverse/helpers';
-
-type RenewalProviderAttemptResult =
-  | { status: 'succeeded'; providerAttemptId: string; payload?: Record<string, unknown> }
-  | {
-      status: 'failed';
-      providerAttemptId: string | null;
-      errorCode: string;
-      payload?: Record<string, unknown>;
-    };
-
-export interface BillingRenewalProviderAdapter {
-  attemptRenewal(params: {
-    accountId: number;
-    cadence: BillingCadence;
-    idempotencyKey: string;
-    now: Date;
-  }): Promise<RenewalProviderAttemptResult>;
-}
 
 export class BillingRenewalOrchestratorService {
   private billingDomainEventLogService: BillingDomainEventLogService;
@@ -78,14 +61,5 @@ export class BillingRenewalOrchestratorService {
         now,
       });
     }
-  }
-
-  async processDueRenewals(params: {
-    adapter: BillingRenewalProviderAdapter;
-    now?: Date;
-    retryDelayMinutes?: number;
-  }): Promise<{ attempted: number; succeeded: number; failed: number }> {
-    void params;
-    return { attempted: 0, succeeded: 0, failed: 0 };
   }
 }

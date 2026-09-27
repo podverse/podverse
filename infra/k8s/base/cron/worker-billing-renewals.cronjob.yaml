@@ -25,7 +25,7 @@ spec:
               command:
                 - "node"
                 - "apps/workers/dist/index.js"
-                - "billingProcessDueRenewals"
+                - "billingReconcileSubscriptions"
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

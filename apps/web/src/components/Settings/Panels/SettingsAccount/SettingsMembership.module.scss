@@ -1,0 +1,27 @@
+.fields {
+  display: grid;
+  grid-template-columns: minmax(8rem, max-content) 1fr;
+  column-gap: var(--spacing-lg);
+  row-gap: var(--spacing-sm);
+  margin: var(--spacing-lg) 0 var(--spacing-2xl);
+}
+
+.fields dt {
+  margin: 0;
+  color: var(--text-color-secondary);
+}
+
+.fields dd {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+}
+
+.notice {
+  margin: 0;
+}

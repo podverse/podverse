@@ -11,5 +11,11 @@
   },
   "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"],
-  "references": [{ "path": "../helpers" }, { "path": "../orm" }]
+  "references": [
+    { "path": "../helpers" },
+    { "path": "../external-services-paypal" },
+    { "path": "../external-services-apple-app-store" },
+    { "path": "../external-services-google-play" },
+    { "path": "../orm" }
+  ]
 }

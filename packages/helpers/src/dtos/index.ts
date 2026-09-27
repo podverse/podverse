@@ -39,6 +39,7 @@ export * from './account/accountWebPushDevice.js';
 
 export * from './billing/billingCheckoutOptions.js';
 export * from './billing/billingMembershipGrant.js';
+export * from './billing/billingPurchase.js';
 export * from './billing/billingStatus.js';
 export * from './billing/billingSubscription.js';
 export * from './billing/billingTransaction.js';

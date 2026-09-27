@@ -15,9 +15,15 @@ import type { ValidationResult, ValidationSummary } from '@podverse/helpers-conf
 import {
   displayValidationResultsSilent,
   isPodverseStartupValidationSilent,
+  validateAppleProcessorEnv,
+  validateBillingExpirationEnv,
+  validateBillingSandboxAllowlistEnv,
+  validateBoolean,
   validateConditionalOptional,
+  validateGooglePlayProcessorEnv,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
+  validatePayPalProcessorEnv,
   validatePositiveNumber,
   validateRequired,
 } from '@podverse/helpers-config';
@@ -307,6 +313,12 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     validateOptional('MQ_RSS_ON_DEMAND_MAX_PER_HOUR', 'Message Queue', 'Use Default (20)')
   );
 
+  // Billing rate limits (optional)
+  results.push(
+    validateOptional('BILLING_PURCHASE_MAX_PER_10_MINUTES', 'Billing', 'Use Default (20)')
+  );
+  results.push(validateOptional('BILLING_WEBHOOK_MAX_PER_MINUTE', 'Billing', 'Use Default (120)'));
+
   // Premium/Membership
   // Note: validateSignupMode() is called earlier to determine conditional requirements
   results.push(validateOptional('MEMBERSHIP_PREMIUM_COST_MONTHLY', 'Premium'));
@@ -423,35 +435,24 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     }
   }
 
-  // PayPal (optional, but validated)
-  results.push(validateOptional('PAYPAL_CLIENT_ID', 'PayPal'));
-  results.push(validateOptional('PAYPAL_CLIENT_SECRET', 'PayPal'));
-
-  // Billing (optional; entitlement policy falls back to its documented defaults)
+  // Billing (optional; a processor is enabled once any of its credentials is set, and then every
+  // key it needs is required)
   results.push(validateOptional('BILLING_WEBHOOK_PUBLIC_BASE_URL', 'Billing', 'Skipped'));
   results.push(
-    validateOptional(
+    validateBillingExpirationEnv(
+      process.env,
       'BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION',
-      'Billing',
-      'Use Default (172800)'
+      172800
     )
   );
   results.push(
-    validateOptional('BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 'Billing', 'Use Default (604800)')
+    validateBillingExpirationEnv(process.env, 'BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 604800)
   );
-  results.push(validateOptional('BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS', 'Billing', 'Skipped'));
-  results.push(validateOptional('APPLE_IAP_ISSUER_ID', 'Billing / Apple IAP', 'Skipped'));
-  results.push(validateOptional('APPLE_IAP_KEY_ID', 'Billing / Apple IAP', 'Skipped'));
-  results.push(validateOptional('APPLE_IAP_PRIVATE_KEY_PATH', 'Billing / Apple IAP', 'Skipped'));
-  results.push(
-    validateOptional(
-      'APPLE_IAP_BUNDLE_ID',
-      'Billing / Apple IAP',
-      'Skipped (defaults to com.podverse.app.next when adapter config supplies it)'
-    )
-  );
-  results.push(validateOptional('APPLE_IAP_APP_APPLE_ID', 'Billing / Apple IAP', 'Skipped'));
-  results.push(validateOptional('APPLE_IAP_ENVIRONMENT', 'Billing / Apple IAP', 'Skipped'));
+  results.push(validateBillingSandboxAllowlistEnv(process.env));
+  results.push(validateBoolean('BILLING_ALLOW_TEST_ADAPTER', 'Billing'));
+  results.push(...validatePayPalProcessorEnv(process.env));
+  results.push(...validateAppleProcessorEnv(process.env));
+  results.push(...validateGooglePlayProcessorEnv(process.env));
 
   // MetaBoost AppAssertion (optional pair)
   results.push(...validateMetaboostAppAssertionPair());

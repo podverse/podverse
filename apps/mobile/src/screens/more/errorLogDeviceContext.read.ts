@@ -2,13 +2,13 @@ import Constants from 'expo-constants';
 import { getLocales } from 'expo-localization';
 import { Dimensions, PixelRatio, Platform } from 'react-native';
 
+import type { ErrorLogDeviceField } from './errorLogDeviceContext';
 import {
   androidDeviceType,
   errorLogDeviceFields,
   iosDeviceType,
   joinDeviceModel,
 } from './errorLogDeviceContext';
-import type { ErrorLogDeviceField } from './errorLogDeviceContext';
 
 const emptyToNull = (value: string | null | undefined): string | null => {
   const trimmed = value?.trim();

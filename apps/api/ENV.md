@@ -116,6 +116,8 @@ When unset/invalid, each uses its code default listed below.
 - **`ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE`** (default `60`) — per account, covers both
   `/account/channel-seen` reads
 - **`MQ_RSS_ON_DEMAND_MAX_PER_HOUR`** (default `20`)
+- **`BILLING_PURCHASE_MAX_PER_10_MINUTES`** (default `20`) - per account, shared by every billing purchase, cancel, and restore post
+- **`BILLING_WEBHOOK_MAX_PER_MINUTE`** (default `120`) - per IP and processor for `/billing/webhooks/*`
 
 Related soft cap:
 
@@ -196,10 +198,26 @@ These variables are used when signup mode is 'user_signup_email' but are not req
 
 For local setup, these can be customized via `dev/env-overrides/local/socials.env`; run `make local_env_setup` to apply.
 
-### PayPal
+### Billing
 
-- **`PAYPAL_CLIENT_ID`** (Optional) - PayPal client ID for payment processing
-- **`PAYPAL_CLIENT_SECRET`** (Optional) - PayPal client secret for payment processing
+Every key is optional. A payment processor is enabled once any of its credential keys is set, and
+then every key it needs is required; startup fails naming the missing ones. A processor that is not
+enabled is left out of checkout options and its webhook answers 404. Routes and webhook contracts:
+[docs/billing/BILLING.md](/docs/billing/BILLING.md). Local overrides live in
+`dev/env-overrides/local/billing.env`, `paypal.env`, `billing-apple.env`, and
+`billing-google-play.env`; run `make local_env_setup` to apply them to the API and workers.
+
+- **`BILLING_WEBHOOK_PUBLIC_BASE_URL`** (Optional) - Public HTTPS base the processors deliver webhooks to
+- **`BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION`** (Optional, default `172800`) - Seconds access continues past an auto-renew period end
+- **`BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION`** (Optional, default `604800`) - Seconds access continues after a failed renewal charge
+- **`BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`** (Optional) - Comma-separated account ids or `id_text` values whose sandbox purchases count in production
+- **`BILLING_ALLOW_TEST_ADAPTER`** (Optional) - `true` registers the test processor even when `NODE_ENV` is `production`; non-production always registers it
+- **`PAYPAL_CLIENT_ID`**, **`PAYPAL_CLIENT_SECRET`**, **`PAYPAL_WEBHOOK_ID`** - PayPal credentials and the webhook id PayPal signs deliveries for
+- **`PAYPAL_ENVIRONMENT`** (Optional) - `sandbox` or `live`; empty uses live in production, sandbox otherwise
+- **`APPLE_IAP_ISSUER_ID`**, **`APPLE_IAP_KEY_ID`**, **`APPLE_IAP_PRIVATE_KEY_PATH`**, **`APPLE_IAP_BUNDLE_ID`** - App Store Server API credentials
+- **`APPLE_IAP_APP_APPLE_ID`** (Optional) - Numeric App Store app id
+- **`APPLE_IAP_ENVIRONMENT`** (Optional) - `sandbox` or `production`; empty follows `NODE_ENV`
+- **`GOOGLE_PLAY_PACKAGE_NAME`**, **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH`**, **`GOOGLE_PLAY_RTDN_PUSH_AUDIENCE`**, **`GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`** - Google Play Developer API credentials and the Pub/Sub push identity RTDN webhooks are checked against
 
 ### Firebase (optional)
 

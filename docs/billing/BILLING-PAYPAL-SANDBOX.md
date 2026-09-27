@@ -66,17 +66,17 @@ an older row belongs to that older URL.
 
 Tick individual event rows. The group checkbox selects every event in that group.
 
-| Dashboard label | Event the adapter reads |
-| --- | --- |
-| Payment capture completed | `PAYMENT.CAPTURE.COMPLETED` |
-| Payment capture refunded | `PAYMENT.CAPTURE.REFUNDED` |
-| Payment capture reversed | `PAYMENT.CAPTURE.REVERSED` |
-| Billing subscription activated | `BILLING.SUBSCRIPTION.ACTIVATED` |
-| Billing subscription updated | `BILLING.SUBSCRIPTION.UPDATED` |
-| Billing subscription cancelled | `BILLING.SUBSCRIPTION.CANCELLED` |
-| Billing subscription expired | `BILLING.SUBSCRIPTION.EXPIRED` |
+| Dashboard label                     | Event the adapter reads               |
+| ----------------------------------- | ------------------------------------- |
+| Payment capture completed           | `PAYMENT.CAPTURE.COMPLETED`           |
+| Payment capture refunded            | `PAYMENT.CAPTURE.REFUNDED`            |
+| Payment capture reversed            | `PAYMENT.CAPTURE.REVERSED`            |
+| Billing subscription activated      | `BILLING.SUBSCRIPTION.ACTIVATED`      |
+| Billing subscription updated        | `BILLING.SUBSCRIPTION.UPDATED`        |
+| Billing subscription cancelled      | `BILLING.SUBSCRIPTION.CANCELLED`      |
+| Billing subscription expired        | `BILLING.SUBSCRIPTION.EXPIRED`        |
 | Billing subscription payment failed | `BILLING.SUBSCRIPTION.PAYMENT.FAILED` |
-| Payment sale completed | `PAYMENT.SALE.COMPLETED` |
+| Payment sale completed              | `PAYMENT.SALE.COMPLETED`              |
 
 `BILLING.SUBSCRIPTION.UPDATED` covers a later status of `ACTIVE`, `CANCELLED`, `EXPIRED`, or
 `SUSPENDED`. PayPal lists a successful subscription charge as **Payment sale completed**
@@ -96,10 +96,10 @@ status is `SUSPENDED`.
 One-time purchases use Orders v2 and need no PayPal plan id. Auto-renew uses two sandbox billing
 plans on a catalog product named **Podverse Premium**:
 
-| Plan name | Price | Home override key |
-| --- | --- | --- |
+| Plan name                | Price            | Home override key                                   |
+| ------------------------ | ---------------- | --------------------------------------------------- |
 | Podverse Premium Monthly | 3.00 USD / month | `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_MONTHLY_PLAN_ID` |
-| Podverse Premium Annual | 30.00 USD / year | `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_ANNUAL_PLAN_ID` |
+| Podverse Premium Annual  | 30.00 USD / year | `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_ANNUAL_PLAN_ID`  |
 
 Those prices match the local membership defaults (`MEMBERSHIP_PREMIUM_COST_MONTHLY` 3 and
 `MEMBERSHIP_PREMIUM_COST_ANNUALLY` 30). The tool reads `PAYPAL_CLIENT_ID` and

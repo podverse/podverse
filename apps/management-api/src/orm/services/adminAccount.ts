@@ -17,6 +17,10 @@ type CrudPermissions = {
   bucket_crud?: number;
   embed_demo_crud?: number;
   notifications_crud?: number;
+  billing_channels_crud?: number;
+  billing_processor_products_crud?: number;
+  billing_account_crud?: number;
+  billing_webhook_events_crud?: number;
 };
 
 type CreateAdminAccountDto = {
@@ -175,6 +179,10 @@ export class AdminAccountService {
       bucketCrud: dto.permissions?.bucket_crud ?? 0,
       embedDemoCrud: dto.permissions?.embed_demo_crud ?? 0,
       notificationsCrud: dto.permissions?.notifications_crud ?? 0,
+      billingChannelsCrud: dto.permissions?.billing_channels_crud ?? 0,
+      billingProcessorProductsCrud: dto.permissions?.billing_processor_products_crud ?? 0,
+      billingAccountCrud: dto.permissions?.billing_account_crud ?? 0,
+      billingWebhookEventsCrud: dto.permissions?.billing_webhook_events_crud ?? 0,
     });
     await this.permissionsRepositoryReadWrite.save(permissions);
 
@@ -269,6 +277,20 @@ export class AdminAccountService {
         if (dto.permissions.notifications_crud !== undefined) {
           adminAccount.permissions.notificationsCrud = dto.permissions.notifications_crud;
         }
+        if (dto.permissions.billing_channels_crud !== undefined) {
+          adminAccount.permissions.billingChannelsCrud = dto.permissions.billing_channels_crud;
+        }
+        if (dto.permissions.billing_processor_products_crud !== undefined) {
+          adminAccount.permissions.billingProcessorProductsCrud =
+            dto.permissions.billing_processor_products_crud;
+        }
+        if (dto.permissions.billing_account_crud !== undefined) {
+          adminAccount.permissions.billingAccountCrud = dto.permissions.billing_account_crud;
+        }
+        if (dto.permissions.billing_webhook_events_crud !== undefined) {
+          adminAccount.permissions.billingWebhookEventsCrud =
+            dto.permissions.billing_webhook_events_crud;
+        }
         await this.permissionsRepositoryReadWrite.save(adminAccount.permissions);
       } else {
         const permissions = this.permissionsRepositoryReadWrite.create({
@@ -281,6 +303,10 @@ export class AdminAccountService {
           bucketCrud: dto.permissions.bucket_crud ?? 0,
           embedDemoCrud: dto.permissions.embed_demo_crud ?? 0,
           notificationsCrud: dto.permissions.notifications_crud ?? 0,
+          billingChannelsCrud: dto.permissions.billing_channels_crud ?? 0,
+          billingProcessorProductsCrud: dto.permissions.billing_processor_products_crud ?? 0,
+          billingAccountCrud: dto.permissions.billing_account_crud ?? 0,
+          billingWebhookEventsCrud: dto.permissions.billing_webhook_events_crud ?? 0,
         });
         await this.permissionsRepositoryReadWrite.save(permissions);
       }

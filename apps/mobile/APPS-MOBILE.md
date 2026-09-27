@@ -35,6 +35,34 @@ apps/mobile/
 Generated trees (`ios/Pods/`, Android `build/`, `.expo/`) are gitignored and listed in
 [`.cursorignore`](/.cursorignore).
 
+## Membership billing
+
+Store purchases use `expo-iap` **2.6.3** (`apps/mobile/src/billing`). It is an Expo module with
+StoreKit 2. `react-native-iap` 14+ needs React Native 0.79+ and does not support this dev client.
+2.6.3 links Play Billing `billing-ktx` 7.0.0, which compiles on Expo SDK 52 (Kotlin 1.9). Billing
+Library 8 needs Kotlin 2, and this SDK's Gradle plugin cannot load Kotlin 2. Play rejects new apps
+and updates built with Billing Library 7 or older after 31 Aug 2026 (an extension runs through
+1 Nov 2026 when requested). A Play upload of this binary needs that extension or a later Expo SDK.
+Do not set `kotlinVersion` to 2.x here.
+
+`npm run mobile:install` from the repo root installs the pin. The native module needs a dev-client
+rebuild after that:
+
+```bash
+npm run mobile:ios -- --device "iPhone 17 Pro"
+npm run mobile:android -- --device Pixel_6_Pro_API_33
+```
+
+`EXPO_PUBLIC_MOBILE_BILLING=unavailable`, and any UnifiedPush build, uses
+`unavailableBillingClient` (no store sheet). The Membership screen then offers PayPal on the web
+when checkout options include it. A FOSS prebuild must also exclude `expo-iap` from autolinking
+so Play Billing is not compiled into the binary.
+Maestro (`EXPO_PUBLIC_MOBILE_E2E=1`) uses the fake client and never opens a store sheet.
+
+Finish or acknowledge a store transaction only after `POST` billing returns `confirmed: true`.
+Call `syncUnfinishedTransactions()` once a session exists so a purchase that was interrupted can
+finish. Pending and Ask to Buy stay unfinished.
+
 ## Auth storage (Track 6)
 
 Mobile auth is bearer-first:

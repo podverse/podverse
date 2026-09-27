@@ -2,11 +2,14 @@ import { Platform } from 'react-native';
 
 import { parseMobileDeepLinkSchemes } from './deepLinkSchemes';
 
+export { getMobileBillingModeFromEnv } from './billingEnv';
+export type { MobileBillingMode } from './billingEnv';
+
 export { isAddByRssInsecureCredentialsAllowedFromEnv, isMobileE2eFromEnv } from './e2eEnv';
 
 /**
  * Literal `process.env.EXPO_PUBLIC_*` reads for mobile app settings live in this file,
- * `e2eEnv.ts`, and `perfEnv.ts`. Expo only inlines literal member access — never use dynamic
+ * `billingEnv.ts`, `e2eEnv.ts`, and `perfEnv.ts`. Expo only inlines literal member access — never use dynamic
  * `process.env[name]`.
  */
 

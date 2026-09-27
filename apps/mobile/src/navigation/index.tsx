@@ -20,7 +20,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints } from '@podverse/design-tokens';
@@ -129,35 +129,6 @@ const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const rootNavigationRef = createNavigationContainerRef<RootStackParamList>();
-
-type PlaceholderScreenProps = {
-  testID: string;
-  title: string;
-};
-
-function PlaceholderScreen({ testID, title }: PlaceholderScreenProps) {
-  const { styles: themeStyles, tokens } = useTheme();
-  const styles = StyleSheet.create({
-    container: {
-      alignItems: 'center',
-      backgroundColor: themeStyles.screen.backgroundColor,
-      flex: 1,
-      justifyContent: 'center',
-      padding: tokens.spacing.xl,
-    },
-    title: {
-      color: themeStyles.textPrimary.color,
-      fontSize: 20,
-      fontWeight: '600',
-    },
-  });
-
-  return (
-    <View style={styles.container} testID={testID}>
-      <Text style={styles.title}>{title}</Text>
-    </View>
-  );
-}
 
 export const HOME_STACK_ROUTES = {
   AddByRssCredentials: 'AddByRssCredentials',

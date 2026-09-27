@@ -26,6 +26,10 @@ export type ResolvedManagementAdminPermissions = {
   bucket_crud: number;
   embed_demo_crud: number;
   notifications_crud: number;
+  billing_channels_crud: number;
+  billing_processor_products_crud: number;
+  billing_account_crud: number;
+  billing_webhook_events_crud: number;
 };
 
 function predefinedRoleToJson(role: (typeof PREDEFINED_MANAGEMENT_ADMIN_ROLES)[number]) {
@@ -42,6 +46,10 @@ function predefinedRoleToJson(role: (typeof PREDEFINED_MANAGEMENT_ADMIN_ROLES)[n
     bucket_crud: role.bucketCrud,
     embed_demo_crud: role.embedDemoCrud,
     notifications_crud: role.notificationsCrud,
+    billing_channels_crud: role.billingChannelsCrud,
+    billing_processor_products_crud: role.billingProcessorProductsCrud,
+    billing_account_crud: role.billingAccountCrud,
+    billing_webhook_events_crud: role.billingWebhookEventsCrud,
     created_at: null as string | null,
   };
 }
@@ -60,6 +68,10 @@ function customRoleToJson(role: ManagementAdminRole) {
     bucket_crud: role.bucketCrud,
     embed_demo_crud: role.embedDemoCrud,
     notifications_crud: role.notificationsCrud,
+    billing_channels_crud: role.billingChannelsCrud,
+    billing_processor_products_crud: role.billingProcessorProductsCrud,
+    billing_account_crud: role.billingAccountCrud,
+    billing_webhook_events_crud: role.billingWebhookEventsCrud,
     created_at: role.created_at.toISOString(),
   };
 }
@@ -78,6 +90,10 @@ export async function resolvePodverseManagementAdminRole(
       bucket_crud: predefined.bucketCrud,
       embed_demo_crud: predefined.embedDemoCrud,
       notifications_crud: predefined.notificationsCrud,
+      billing_channels_crud: predefined.billingChannelsCrud,
+      billing_processor_products_crud: predefined.billingProcessorProductsCrud,
+      billing_account_crud: predefined.billingAccountCrud,
+      billing_webhook_events_crud: predefined.billingWebhookEventsCrud,
     };
   }
   const roleService = new ManagementAdminRoleService();
@@ -94,6 +110,10 @@ export async function resolvePodverseManagementAdminRole(
     bucket_crud: custom.bucketCrud,
     embed_demo_crud: custom.embedDemoCrud,
     notifications_crud: custom.notificationsCrud,
+    billing_channels_crud: custom.billingChannelsCrud,
+    billing_processor_products_crud: custom.billingProcessorProductsCrud,
+    billing_account_crud: custom.billingAccountCrud,
+    billing_webhook_events_crud: custom.billingWebhookEventsCrud,
   };
 }
 
@@ -120,6 +140,10 @@ export async function handleCreateManagementAdminRole(req: Request, res: Respons
     bucketCrud: value.bucket_crud,
     embedDemoCrud: value.embed_demo_crud,
     notificationsCrud: value.notifications_crud,
+    billingChannelsCrud: value.billing_channels_crud,
+    billingProcessorProductsCrud: value.billing_processor_products_crud,
+    billingAccountCrud: value.billing_account_crud,
+    billingWebhookEventsCrud: value.billing_webhook_events_crud,
   };
   const roleService = new ManagementAdminRoleService();
   const role = await roleService.create(data);
@@ -174,6 +198,18 @@ export async function handleUpdateManagementAdminRole(req: Request, res: Respons
   }
   if (value.notifications_crud !== undefined) {
     updates.notificationsCrud = value.notifications_crud;
+  }
+  if (value.billing_channels_crud !== undefined) {
+    updates.billingChannelsCrud = value.billing_channels_crud;
+  }
+  if (value.billing_processor_products_crud !== undefined) {
+    updates.billingProcessorProductsCrud = value.billing_processor_products_crud;
+  }
+  if (value.billing_account_crud !== undefined) {
+    updates.billingAccountCrud = value.billing_account_crud;
+  }
+  if (value.billing_webhook_events_crud !== undefined) {
+    updates.billingWebhookEventsCrud = value.billing_webhook_events_crud;
   }
   const updated = await roleService.update(roleId, updates);
   if (updated === null) {

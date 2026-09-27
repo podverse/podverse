@@ -10,6 +10,10 @@ export const ROUTES = {
   DATABASE: '/database',
   PRODUCTS: '/products',
   PRODUCTS_MEMBERSHIPS: '/products/memberships',
+  BILLING: '/billing',
+  BILLING_CHECKOUT_CHANNELS: '/billing/checkout-channels',
+  BILLING_PROCESSOR_PRODUCTS: '/billing/processor-products',
+  BILLING_WEBHOOK_EVENTS: '/billing/webhook-events',
   WEB: '/web',
   WEB_EMBED_DEMO: '/web/embed-demo',
   NOTIFICATIONS: '/notifications',
@@ -36,6 +40,9 @@ export const buildAdminRoleNewPath = (returnUrl: string): string =>
   `${ROUTES.ADMINS_ROLES_NEW}?returnUrl=${encodeURIComponent(returnUrl)}`;
 
 export const buildUserPath = (userId: number | string): string => `${ROUTES.USERS}/${userId}`;
+
+export const buildUserBillingPath = (userId: number | string): string =>
+  `${ROUTES.USERS}/${userId}/billing`;
 
 export type UserEditTab = 'profile' | 'password';
 

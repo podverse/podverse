@@ -1,7 +1,7 @@
+import type { CapturedPayment, Subscription } from '@paypal/paypal-server-sdk';
 import { describe, expect, it } from 'vitest';
 
-import { PAYPAL_ONE_TIME_PRODUCT_IDS, BillingWebhookVerificationError } from '@podverse/helpers';
-import type { CapturedPayment, Subscription } from '@paypal/paypal-server-sdk';
+import { BillingWebhookVerificationError, PAYPAL_ONE_TIME_PRODUCT_IDS } from '@podverse/helpers';
 
 import { createPayPalAdapter } from './payPalAdapter.js';
 import { PayPalService } from './payPalService.js';
@@ -181,5 +181,40 @@ describe('createPayPalAdapter', () => {
         },
       },
     ]);
+  });
+
+  it('reads a captured payment from the SDK record', async () => {
+    const adapter = createPayPalAdapter({
+      clientId: 'client-id',
+      clientSecret: 'client-secret',
+      paypalEnvironment: 'sandbox',
+      webhookId: 'WH-1234567890ABCDE',
+      service: createMockService({
+        isValidSignature: true,
+        capture: {
+          id: 'CAPTURE-9',
+          customId: 'customer-ref-9',
+          invoiceId: PAYPAL_ONE_TIME_PRODUCT_IDS.annual,
+          amount: { currencyCode: 'USD', value: '30.00' },
+          createTime: '2026-04-01T00:00:00Z',
+        },
+      }),
+    });
+
+    const snapshot = await adapter.fetchTransaction({
+      externalId: 'CAPTURE-9',
+      externalProductId: null,
+    });
+
+    expect(snapshot).toMatchObject({
+      externalTransactionId: 'CAPTURE-9',
+      accountBillingCustomerRef: 'customer-ref-9',
+      externalProductId: PAYPAL_ONE_TIME_PRODUCT_IDS.annual,
+      purchaseKind: 'one_time',
+      settledAt: '2026-04-01T00:00:00Z',
+      amount: { value: '30.00', currencyCode: 'USD' },
+      revokedAt: null,
+      isSandbox: true,
+    });
   });
 });

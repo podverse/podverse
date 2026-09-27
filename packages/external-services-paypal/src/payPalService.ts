@@ -1,3 +1,11 @@
+import type {
+  CapturedPayment,
+  CreateSubscriptionRequest,
+  Order,
+  OrderRequest,
+  PaymentAuthorization,
+  Subscription,
+} from '@paypal/paypal-server-sdk';
 import {
   CheckoutPaymentIntent,
   Client,
@@ -7,17 +15,9 @@ import {
   PaymentsController,
   SubscriptionsController,
 } from '@paypal/paypal-server-sdk';
-import type {
-  CapturedPayment,
-  CreateSubscriptionRequest,
-  Order,
-  OrderRequest,
-  PaymentAuthorization,
-  Subscription,
-} from '@paypal/paypal-server-sdk';
 
-import { PAYPAL_ONE_TIME_PRODUCT_IDS } from '@podverse/helpers';
 import type { BillingCadence } from '@podverse/helpers';
+import { PAYPAL_ONE_TIME_PRODUCT_IDS } from '@podverse/helpers';
 
 export type PayPalEnvironment = 'sandbox' | 'live';
 
@@ -85,6 +85,9 @@ export interface CreatePayPalSubscriptionParams {
   planId: string;
   paypalRequestId?: string;
   startTime?: string;
+  /** PayPal needs both URLs to send the buyer back; either alone is ignored. */
+  returnUrl?: string;
+  cancelUrl?: string;
 }
 
 export interface PayPalWebhookVerificationPayload {
@@ -239,6 +242,12 @@ export class PayPalService {
       planId: params.planId,
       startTime: params.startTime,
     };
+    if (params.returnUrl !== undefined && params.cancelUrl !== undefined) {
+      body.applicationContext = {
+        returnUrl: params.returnUrl,
+        cancelUrl: params.cancelUrl,
+      };
+    }
 
     const response = await this.subscriptionsController.createSubscription({
       body,

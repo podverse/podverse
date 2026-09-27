@@ -43,6 +43,10 @@ const createAdminSchema = Joi.object({
     bucket_crud: crudSchema,
     embed_demo_crud: crudSchema,
     notifications_crud: crudSchema,
+    billing_channels_crud: crudSchema,
+    billing_processor_products_crud: crudSchema,
+    billing_account_crud: crudSchema,
+    billing_webhook_events_crud: crudSchema,
   }).optional(),
 }).required();
 
@@ -60,6 +64,10 @@ const updateAdminSchema = Joi.object({
     bucket_crud: crudSchema,
     embed_demo_crud: crudSchema,
     notifications_crud: crudSchema,
+    billing_channels_crud: crudSchema,
+    billing_processor_products_crud: crudSchema,
+    billing_account_crud: crudSchema,
+    billing_webhook_events_crud: crudSchema,
   }),
 })
   .min(1)
@@ -80,6 +88,10 @@ function adminAccountToJson(admin: {
     bucketCrud: number;
     embedDemoCrud: number;
     notificationsCrud: number;
+    billingChannelsCrud: number;
+    billingProcessorProductsCrud: number;
+    billingAccountCrud: number;
+    billingWebhookEventsCrud: number;
   } | null;
   created_at: Date;
 }) {
@@ -99,6 +111,10 @@ function adminAccountToJson(admin: {
           bucket_crud: admin.permissions.bucketCrud,
           embed_demo_crud: admin.permissions.embedDemoCrud,
           notifications_crud: admin.permissions.notificationsCrud,
+          billing_channels_crud: admin.permissions.billingChannelsCrud,
+          billing_processor_products_crud: admin.permissions.billingProcessorProductsCrud,
+          billing_account_crud: admin.permissions.billingAccountCrud,
+          billing_webhook_events_crud: admin.permissions.billingWebhookEventsCrud,
         }
       : null,
     created_at: admin.created_at,
@@ -361,6 +377,10 @@ router.patch(
           bucket_crud?: number;
           embed_demo_crud?: number;
           notifications_crud?: number;
+          billing_channels_crud?: number;
+          billing_processor_products_crud?: number;
+          billing_account_crud?: number;
+          billing_webhook_events_crud?: number;
         };
       } = {};
 
