@@ -49,6 +49,7 @@ import { HomeFeedGridCell } from '../home/HomeFeedGridCell';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { HomeOverflowMenu } from '../home/HomeOverflowMenu';
 import { MediaTypeSelector } from '../home/MediaTypeSelector';
+import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import type { AddByRssLibraryItemRow } from './addByRssLibraryFeedData';
 import { fetchAddByRssLibraryFeed } from './addByRssLibraryFeedData';
 
@@ -67,6 +68,8 @@ const SORT_LABEL_KEYS: Record<AddByRssLibrarySortOption, string> = {
 
 const EMPTY_ROWS: readonly HomeFeedRowData[] = [];
 const feedRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
+const noopPlayPress = (_row: HomeFeedRowData): void => undefined;
+const noopQueuePress = (_row: HomeFeedRowData, _position: QueueActionPosition): void => undefined;
 
 function LibraryFeedListItem({
   artworkEdge,
@@ -95,7 +98,13 @@ function LibraryFeedListItem({
 
   return (
     <View style={cellStyle}>
-      <HomeFeedRow mediaType={mediaType} onPlayPress={onPlay} onPress={onPress} row={row} />
+      <HomeFeedRow
+        mediaType={mediaType}
+        onPlayPress={onPlay ?? noopPlayPress}
+        onPress={onPress}
+        onQueuePress={noopQueuePress}
+        row={row}
+      />
     </View>
   );
 }

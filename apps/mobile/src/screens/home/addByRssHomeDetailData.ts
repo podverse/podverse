@@ -72,10 +72,10 @@ export const buildAddByRssHomeDetailData = (
   return { episodeRows, feed, mappedFeed };
 };
 
-export const sortAddByRssHomeEpisodes = (
-  rows: AddByRssHomeEpisode[],
+export const sortAddByRssHomeEpisodes = <T extends AddByRssHomeEpisode>(
+  rows: readonly T[],
   sort: 'alphabetical' | 'recent'
-): AddByRssHomeEpisode[] => {
+): T[] => {
   return [...rows].sort((a, b) => {
     if (sort === 'alphabetical') {
       return articleStrippedTitle(a.title).localeCompare(articleStrippedTitle(b.title));

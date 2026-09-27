@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import type { DTOChannel, DTOItem, DTOItemEnclosure, DTOLiveItem } from '@podverse/helpers/dto';
+import type {
+  DTOChannel,
+  DTOItem,
+  DTOItemEnclosure,
+  DTOLiveItem,
+  QueueResourcesAbridgedIndex,
+} from '@podverse/helpers/dto';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
 import { MediumEnum } from '@podverse/helpers/medium';
-import type { QueueResourcesAbridgedIndex } from '@podverse/helpers/queue/abridged';
 import { resolvePlaybackLoadDecision } from '@podverse/playback-core/resolvePlaybackLoadDecision';
 
 import { playbackReloadSource, resolveItemPlaybackStart } from './buildPlaybackTarget';

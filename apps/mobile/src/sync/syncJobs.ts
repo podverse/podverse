@@ -108,7 +108,6 @@ const channelItemsTimeoutMs = (depth: number): number => {
 };
 
 const createAutoDownloadEvaluateJob = (
-  deps: SyncJobDeps,
   priority: SyncJobPriority,
   channelIdTexts?: readonly string[]
 ): SyncJob => {
@@ -131,14 +130,13 @@ const createAutoDownloadEvaluateJob = (
 
 const enqueueAutoDownloadEvaluateIfReady = (
   context: SyncJobContext,
-  deps: SyncJobDeps,
   priority: SyncJobPriority,
   channelIdTexts: readonly string[]
 ): void => {
   if (shouldDeferAutoDownloadEvaluateToCatchUp()) {
     return;
   }
-  context.enqueue(createAutoDownloadEvaluateJob(deps, priority, channelIdTexts));
+  context.enqueue(createAutoDownloadEvaluateJob(priority, channelIdTexts));
 };
 
 const createChannelItemsJob = (
@@ -154,7 +152,7 @@ const createChannelItemsJob = (
       await syncDirectoryChannelOrDropGone(deps.getAuthContext(), window.channelIdText);
       const settings = await autoDownloadRepository.getByChannelIdText(window.channelIdText);
       if (settings?.enabled === true) {
-        enqueueAutoDownloadEvaluateIfReady(context, deps, priority, [window.channelIdText]);
+        enqueueAutoDownloadEvaluateIfReady(context, priority, [window.channelIdText]);
       }
     },
     channelItemsTimeoutMs(window.depth)
@@ -205,7 +203,7 @@ const createAddByRssParseJob = (
       await addByRssRepository.applyRefreshResult(deps.getAuthContext(), ticket);
       const settings = await autoDownloadRepository.getByChannelIdText(ticket.feedUrl);
       if (settings?.enabled === true) {
-        enqueueAutoDownloadEvaluateIfReady(context, deps, priority, [ticket.feedUrl]);
+        enqueueAutoDownloadEvaluateIfReady(context, priority, [ticket.feedUrl]);
       }
     }
   );
@@ -508,7 +506,7 @@ export const buildSyncJobs = (planned: PlannedSyncJob[], deps: SyncJobDeps): Syn
       case 'home-clips':
         return createHomeClipsJob(deps, priority);
       case 'auto-download-evaluate':
-        return createAutoDownloadEvaluateJob(deps, priority);
+        return createAutoDownloadEvaluateJob(priority);
       default:
         // The remaining kinds are only ever reached through the job that discovers them, so a plan
         // asking for one directly is a programming error rather than a runtime condition.

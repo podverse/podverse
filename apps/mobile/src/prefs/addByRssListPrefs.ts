@@ -78,7 +78,7 @@ export const readAddByRssLibraryListPrefs = async (
       ? stored.sort
       : DEFAULT_ADD_BY_RSS_LIBRARY_SORT;
 
-  let viewMode = DEFAULT_ADD_BY_RSS_LIBRARY_VIEW_MODE;
+  let viewMode: AddByRssLibraryViewMode = DEFAULT_ADD_BY_RSS_LIBRARY_VIEW_MODE;
   if (isAddByRssLibraryViewModeMediaType(mediaType)) {
     const layout = await readSortPref(buildViewModeScope(mediaType));
     if (layout?.viewMode !== undefined && isViewMode(layout.viewMode)) {
