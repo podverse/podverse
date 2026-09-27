@@ -29,8 +29,10 @@ the app can work out for free the moment a screen renders.
   `MEMBERSHIP_EXPIRY_WARNING_DAYS` window so surfaces cannot drift.
 - Present it **in-app**: web's `MembershipExpirationToast`, mobile's `MembershipExpiredBanner`, the
   persistent More row, and the blocked-action `ConfirmDialog` (`openGate`).
-- Consult **`shouldSuppressExpiryReminder`** (`@podverse/helpers`) on every surface, so auto-renew
-  suppression stays a one-function change (detail 711).
+- Consult **`shouldSuppressExpiryReminder(membership)`** (`@podverse/helpers`) on every surface,
+  passing the `MembershipState` the surface already holds. It holds back expiring-soon messaging
+  for a member whose subscription auto-renews, never the expired messaging, and keeps that rule in
+  one function. Do not read `auto_renew` / `auto_renew_mode` at a call site.
 - Keep the presentation dismissible where it is intrusive, and remember the dismissal against the
   expiry it was dismissed for so a later lapse shows it again.
 

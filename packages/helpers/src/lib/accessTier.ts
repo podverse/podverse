@@ -131,13 +131,19 @@ export function evaluateFeatureAccess(
 }
 
 /**
- * Suppression of "membership expiring soon" reminders for auto-renewing users waits on payment
- * functionality. Every reminder surface calls this, so enabling it later is a change here and
- * nowhere else.
- *
- * Enabling it also has to settle which field is authoritative: the account membership status
- * carries both `auto_renew` and `auto_renew_mode`.
+ * What an expiry-reminder surface already holds: web and mobile pass the `MembershipState` from
+ * `deriveMembershipState`, and `computeMembershipAccess` passes its own result.
  */
-export function shouldSuppressExpiryReminder(): boolean {
-  return false;
+export type ExpiryReminderSuppressionInput = Pick<MembershipState, 'activeAutoRenew' | 'isMember'>;
+
+/**
+ * Whether to hold back "membership expiring soon" messaging. A member whose subscription renews on
+ * its own is not about to lapse, so a countdown would only be noise.
+ *
+ * Never true once the membership has lapsed: enrollment does not guarantee payment, and a member
+ * whose renewal failed still needs the expired messaging. Every reminder surface asks this rather
+ * than reading auto-renew fields itself, so the rule changes in one place.
+ */
+export function shouldSuppressExpiryReminder(membership: ExpiryReminderSuppressionInput): boolean {
+  return membership.isMember && membership.activeAutoRenew;
 }

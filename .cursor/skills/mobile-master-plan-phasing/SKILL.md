@@ -263,8 +263,8 @@ Respond with:
 - **Recommended PG** and human-readable phase name (e.g. `PG-0 — foundation / abcmemory`).
 - **Tracks and step ranges** (e.g. 0.1–0.19, detail IDs 001–019).
 - **Prerequisites** satisfied / outstanding.
-- **Model mix** (count of cursor-grok-4.6-high-fast / Codex 5.3 / Opus 5 steps; include Auto only
-  when intentionally chosen).
+- **Model mix** (count of Cursor Grok 4.7 / Codex 5.3 / Opus 5.5 steps; eligible models and
+  selection rules live in **copy-pasta-recommend-model**).
 - **Risk notes** (spike gates, open decisions).
 - **Do not** create files until operator confirms (unless they already asked to detail this phase).
 
@@ -309,11 +309,14 @@ Use Appendix D template from master plan:
 
 **Depth by Model tier:**
 
-| Model                     | Minimum content                                                          |
-| ------------------------- | ------------------------------------------------------------------------ |
-| cursor-grok-4.6-high-fast | Scope + acceptance bullets + operator-only notes                         |
-| Codex 5.3                 | Above + web parity links + file paths + verification commands            |
-| Opus 5                    | Above + architecture notes, edge cases, spike outcomes, cross-track deps |
+| Model           | Minimum content                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| Cursor Grok 4.7 | Scope + acceptance bullets + exact file paths + verification commands; every either/or resolved   |
+| Codex 5.3       | Above + web parity links + the vendor / security contract the code must satisfy                   |
+| Opus 5.5        | Above + architecture notes, edge cases, spike outcomes, cross-track deps                          |
+
+Cheaper models get **more explicit** plans, not thinner ones: a Cursor Grok 4.7 plan transcribes
+decisions instead of making them.
 
 Pull parity context from `docs/proposals/mobile/` and existing web code paths when known.
 
@@ -336,7 +339,7 @@ COPY-PASTA prompts are 3–8 lines; full instructions live in numbered plan file
 Each COPY-PASTA prompt must include:
 
 - Outside the paste fence (operator reads these; selects them in the Cursor UI):
-  **Cursor model:** cursor-grok-4.6-high-fast | Codex 5.3 | Opus 5 (Auto only when intentionally chosen)
+  **Cursor model:** Cursor Grok 4.7 | Codex 5.3 | Opus 5.5 (per **copy-pasta-recommend-model**)
   and **Reasoning:** low | medium | high | extra high
   (see **copy-pasta-recommend-model** — never put these lines inside the fence)
 - Inside the paste fence: `Read and execute .llm/plans/active/mobile-<phase-slug>/<NN-plan>.md`

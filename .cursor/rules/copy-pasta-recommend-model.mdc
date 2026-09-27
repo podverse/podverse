@@ -23,8 +23,7 @@ nothing useful for the agent.
 ```markdown
 - [ ] **01 — Example step**
 
-**Cursor model:** Codex 5.3
-**Reasoning:** high
+**Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
 \`\`\`
 Read and execute .llm/plans/active/feature/01-example.md
@@ -60,26 +59,44 @@ span later turns only when it states that each reply continues the same prompt.
   Model + Reasoning columns) **above** the paste fence.
 - Keep operator actions above the fence. A wait inside the fence is an explicit stop-this-turn
   instruction. See **Operator steps stay outside the fence** above.
-- In Cursor, prefer models: **cursor-grok-4.6-high-fast** (default low-cost), **Codex 5.3**
-  (medium), **Opus 5** (premium). **Auto** remains available; use it only when there is a clear
-  reason to prefer Auto over cursor-grok-4.6-high-fast for that prompt.
-- When a newer, higher comparable model is available, prefer it over the older model tier for
-  new recommendations, even when the cost is modestly higher. Do not switch to an unrelated
-  specialized model solely because it is newer.
-- Prefer reasoning: **low**, **medium**, **high**, **extra high** (Cursor thinking depth for that
-  model — independent of model choice; e.g. Codex 5.3 + high, Opus 5 + medium).
-- Match tier to risk: mechanical/docs → cursor-grok-4.6-high-fast + low (or Auto + low when you
-  intentionally choose Auto); standard features → Codex 5.3 + medium; schema / workers /
-  cross-package → Codex 5.3 + high; native/engine/assembly → Opus 5 + high (or extra high when
-  concurrency or safety-critical).
+- Recommend only an **eligible model** (below), written exactly as listed.
+- **Reasoning:** **low**, **medium**, **high**, or **extra high** — Cursor thinking depth for that
+  model, chosen independently of the model.
 
-Numbered plan files (`01-*.md`, …) in the same plan set should repeat the same **Cursor model** and
-**Reasoning** lines at the top so operators see them when opening the plan directly (those files
-are not pasted into chat as a whole).
+Numbered plan files (`01-*.md`, …) in the same plan set repeat the same **Cursor model** and
+**Reasoning** line at the top so operators see it when opening the plan directly (those files are
+not pasted into chat as a whole). `00-*` meta files point to COPY-PASTA instead of naming a model.
 
-## When none of the preferred models fit
+## Eligible models
 
-Name the alternative model explicitly and add one sentence explaining why (rare).
+Most to least expensive:
+
+| Model | Cost | Use for |
+| ----- | ---- | ------- |
+| **Opus 5.5** | highest | Design the plan leaves open; money, entitlement, or auth correctness logic; destructive schema or data migrations; native / engine work; concurrency and idempotency; architecture other prompts build on |
+| **Codex 5.3** | middle | Security-sensitive integration code with a clear spec (signature verification, webhook auth); exact third-party SDK / API usage; multi-package changes with precise contracts; test suites that must encode tricky edge cases |
+| **Cursor Grok 4.7** | lowest — **default** | Pattern-following features, UI, CRUD and admin screens, E2E and test scaffolding, config, docs, mechanical edits, archiving |
+
+**Pick the least expensive model that can reliably complete the prompt.** Start from Cursor Grok
+4.7 and move up only for a reason from the table. A prompt that is merely long is not a reason;
+split it instead. The relative strengths of Codex 5.3 and Cursor Grok 4.7 are not measured here,
+so do not route routine work to Codex 5.3 on a hunch.
+
+Reasoning defaults: Cursor Grok 4.7 → **high** for feature work, **extra high** when it takes a
+moderately tricky prompt, **medium** for docs and mechanical edits. Codex 5.3 → **high**.
+Opus 5.5 → **high**, **extra high** only for billing, concurrency, or safety-critical design.
+
+**Plans written for a cheaper model are more explicit.** When a prompt goes to Cursor Grok 4.7,
+its numbered plan resolves every either/or choice and names exact paths, so the model transcribes
+decisions instead of making them.
+
+**Escalation:** if a Cursor Grok 4.7 prompt stalls or produces the same wrong result twice, rerun
+it on Codex 5.3; escalate to Opus 5.5 only when the failure is a design question. Record the
+change on the prompt in COPY-PASTA.
+
+Do not recommend Auto or any model outside this table. When the operator changes the eligible
+list, update this table and the pointers in **parallel-plan-execution** and
+**mobile-master-plan-phasing**.
 
 ## Reference
 

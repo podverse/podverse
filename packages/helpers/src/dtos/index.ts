@@ -40,6 +40,12 @@ export * from './account/accountUPDevice.js';
 export * from './account/accountVerification.js';
 export * from './account/accountWebPushDevice.js';
 
+export * from './billing/billingCheckoutOptions.js';
+export * from './billing/billingMembershipGrant.js';
+export * from './billing/billingStatus.js';
+export * from './billing/billingSubscription.js';
+export * from './billing/billingTransaction.js';
+
 export * from './channel/channel.js';
 export * from './channel/channelAbout.js';
 export * from './channel/channelCategory.js';

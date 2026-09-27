@@ -85,6 +85,7 @@ describe('deriveMembershipState', () => {
       isExpired: false,
       tier: null,
       expiresAt: null,
+      activeAutoRenew: false,
     });
   });
 
@@ -104,7 +105,20 @@ describe('deriveMembershipState', () => {
       isExpired: false,
       tier: 'premium',
       expiresAt: FUTURE,
+      activeAutoRenew: false,
     });
+  });
+
+  it('reads auto-renew from auto_renew_mode, not the legacy auto_renew flag', () => {
+    const enrolled = deriveMembershipState(
+      makeAccount(makeStatus({ membership_expires_at: FUTURE, auto_renew_mode: 'on' }))
+    );
+    const legacyFlagOnly = deriveMembershipState(
+      makeAccount(makeStatus({ membership_expires_at: FUTURE, auto_renew: true }))
+    );
+
+    expect(enrolled.activeAutoRenew).toBe(true);
+    expect(legacyFlagOnly.activeAutoRenew).toBe(false);
   });
 
   it('reports an expired premium membership', () => {
@@ -164,6 +178,7 @@ describe('deriveMembershipState', () => {
       isExpired: false,
       tier: null,
       expiresAt: null,
+      activeAutoRenew: false,
     });
   });
 
@@ -190,6 +205,7 @@ describe('getMembershipExpiryNotice', () => {
     isExpired: false,
     tier: 'premium',
     expiresAt,
+    activeAutoRenew: false,
   });
 
   it('says nothing for a signed-out user', () => {
@@ -199,6 +215,7 @@ describe('getMembershipExpiryNotice', () => {
       isExpired: false,
       tier: null,
       expiresAt: null,
+      activeAutoRenew: false,
     };
 
     expect(getMembershipExpiryNotice(state, NOW)).toEqual({ status: 'none', daysRemaining: null });

@@ -1258,7 +1258,7 @@ function MoreRootScreen({
 }: MoreRootScreenProps) {
   const { t } = useTranslation();
   const { status } = useAuth();
-  const { isExpired } = useMembership();
+  const membership = useMembership();
   const { overflowTabIds } = useTabLayout();
   const isAuthenticated = status === 'authenticated';
 
@@ -1293,7 +1293,7 @@ function MoreRootScreen({
   // One of the four renewal reminder surfaces: a persistent row a lapsed member can always find,
   // as opposed to the dismissible banner and the at-the-feature notice.
   const renewalItems: MenuListItem[] =
-    isExpired && !shouldSuppressExpiryReminder()
+    membership.isExpired && !shouldSuppressExpiryReminder(membership)
       ? [
           {
             onPress: () => {
