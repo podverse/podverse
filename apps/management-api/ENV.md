@@ -97,21 +97,32 @@ When **`BUCKET_PROVIDER`** is set, startup validates the same **`BUCKET_*`** con
 ### Billing (optional)
 
 Account resync fetches each subscription from its processor, so this deployment reads the same
-processor credentials as the API and workers. A processor is enabled once any of its credential
-keys is set, and then every key it needs is required. A processor that is not enabled is reported
-as skipped on resync rather than failing it. The entitlement buffer and grace windows feed the
-same ledger the API uses.
+processor flags and credentials as the API and workers. A processor runs only when its
+`*_ENABLED` flag is `true`; credentials alone never turn it on. With the flag on, every key
+that processor needs is required. A processor that is not enabled is reported as skipped on
+resync rather than failing it. The entitlement buffer and grace windows feed the same ledger
+the API uses.
 
 - **`BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION`** (Optional, default `172800`) - Seconds access continues past an auto-renew period end
 - **`BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION`** (Optional, default `604800`) - Seconds access continues after a failed renewal charge
 - **`BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`** (Optional) - Comma-separated account ids or `id_text` values whose sandbox purchases count in production
 - **`BILLING_ALLOW_TEST_ADAPTER`** (Optional) - `true` registers the test processor even when `NODE_ENV` is `production`; non-production always registers it
+- **`BILLING_PAYPAL_ENABLED`** (Optional, default off) - `true` turns PayPal on; empty or unset keeps it off
 - **`PAYPAL_CLIENT_ID`**, **`PAYPAL_CLIENT_SECRET`**, **`PAYPAL_WEBHOOK_ID`** - PayPal credentials
 - **`PAYPAL_ENVIRONMENT`** (Optional) - `sandbox` or `live`; empty uses live in production, sandbox otherwise
+- **`BILLING_APPLE_IAP_ENABLED`** (Optional, default off) - `true` turns Apple In-App Purchase on; empty or unset keeps it off
 - **`APPLE_IAP_ISSUER_ID`**, **`APPLE_IAP_KEY_ID`**, **`APPLE_IAP_PRIVATE_KEY_PATH`**, **`APPLE_IAP_BUNDLE_ID`** - App Store Server API credentials
 - **`APPLE_IAP_APP_APPLE_ID`** (Optional) - Numeric App Store app id
 - **`APPLE_IAP_ENVIRONMENT`** (Optional) - `sandbox` or `production`; empty follows `NODE_ENV`
+- **`BILLING_GOOGLE_PLAY_ENABLED`** (Optional, default off) - `true` turns Google Play on; empty or unset keeps it off
 - **`GOOGLE_PLAY_PACKAGE_NAME`**, **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH`**, **`GOOGLE_PLAY_RTDN_PUSH_AUDIENCE`**, **`GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`** - Google Play Developer API credentials
+
+On **Kubernetes**, the management API deployment mounts the same Apple and Google key files
+as the API (`/var/secrets/apple-iap/AuthKey.p8`,
+`/var/secrets/google-play/service-account.json`) and reads PayPal from Secret
+**`podverse-billing-paypal-opaque`**. Keys are listed in
+`infra/k8s/base/management-api/source/management-api.env`. See
+[docs/billing/BILLING.md](/docs/billing/BILLING.md).
 
 ## Validation Rules
 

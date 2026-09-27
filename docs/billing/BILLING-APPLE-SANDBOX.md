@@ -69,4 +69,42 @@ Persist to `billing-products.env`:
 When a sandbox Apple transaction reaches a production Podverse deployment,
 membership access is granted only for accounts listed in
 `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`. Other accounts are logged and ignored
-after signature verification, and the webhook still returns HTTP 200.
+after signature verification, and the webhook still returns HTTP 200. The
+allowlist is not used for local development: outside production every sandbox
+purchase counts. Leave `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS` empty locally.
+
+## Sandbox testers
+
+Sandbox Apple Accounts sign in on the device. Podverse does not store their
+passwords.
+
+1. App Store Connect → **Users and Access** → **Sandbox** → **Test Accounts**
+2. Add a tester. Use an email that is not already an Apple Account.
+3. On the simulator or device, sign in as that Sandbox Apple Account when the
+   purchase sheet asks, or under **Settings** → **Developer** → **Sandbox Apple
+   Account**.
+
+## StoreKit Testing
+
+Accelerated renewal uses the StoreKit configuration
+`apps/mobile/storekit/PodverseMembership.storekit`. In Xcode, edit the app
+scheme → **Run** → **Options** → **StoreKit Configuration** and select that
+file. In the configuration, set the subscription renewal rate so a period
+elapses in minutes. Do not copy the file into the generated `apps/mobile/ios`
+project. The checklist is in
+[BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md).
+
+## Local env
+
+`APPLE_IAP_BUNDLE_ID` is `com.podverse.app.next`. `APPLE_IAP_ENVIRONMENT` is
+`sandbox` for local API runs. The `.p8` path points at a file under
+`~/.config/podverse/secrets/`. On Kubernetes the same file is a SOPS secret
+mounted at `/var/secrets/apple-iap/AuthKey.p8`
+([BILLING.md](BILLING.md#kubernetes)).
+
+## Related
+
+- [BILLING.md](BILLING.md)
+- [BILLING-PAYPAL-SANDBOX.md](BILLING-PAYPAL-SANDBOX.md) (shared tunnel)
+- [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md)
+- [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)

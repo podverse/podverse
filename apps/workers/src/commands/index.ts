@@ -25,6 +25,7 @@ import { devStatsSeedSimulatedAggregated } from '@workers/commands/stats/devStat
 import { statsUpdateAggregated } from '@workers/commands/stats/statsUpdateAggregated.js';
 import { statsUpdateAggregatedRolling } from '@workers/commands/stats/statsUpdateAggregatedRolling.js';
 
+import { billingImportLegacyMembershipExpiry } from './billing/importLegacyMembershipExpiry.js';
 import { billingReconcileSubscriptions } from './billing/reconcileSubscriptions.js';
 import { billingSeedProcessorProductsFromEnv } from './billing/seedProcessorProductsFromEnv.js';
 import { imageShrinkBackfill } from './imageShrink/backfill.js';
@@ -71,6 +72,7 @@ export default {
   devStatsSeedSimulatedAggregated,
   statsUpdateAggregated,
   statsUpdateAggregatedRolling,
+  billingImportLegacyMembershipExpiry,
   billingReconcileSubscriptions,
   billingSeedProcessorProductsFromEnv,
   scheduledJobsRunDue,

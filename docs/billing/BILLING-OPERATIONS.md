@@ -25,7 +25,7 @@ Each run does three things, and a failure in one step does not stop the others:
    it names. Voids for purchases this server never recorded are skipped. Re-reading the same void
    on a later run is recorded once.
 
-A processor with no credentials in the workers environment is skipped. The job exits non-zero
+A processor whose enable flag is off is skipped. The job exits non-zero
 when a whole step stops early (for example the database or a processor API is unreachable); a
 single subscription or inbox row that fails is logged and counted without failing the job.
 
@@ -63,5 +63,148 @@ The same **Billing** section maps processor product ids to a cadence and purchas
 account's subscriptions, transactions, grants, and webhook events (linked from the user detail
 page) with resync and a manual grant, and lists the webhook inbox with a replay for a stored
 event. Resync reads each subscription from its processor, so the management API needs the same
-processor credentials as the API and workers. A processor without credentials is reported as
-skipped rather than failing the resync.
+processor credentials as the API and workers. A processor that is not enabled (flag off or
+credentials missing) is reported as skipped rather than failing the resync.
+
+## Enabling a processor
+
+PayPal, Apple In-App Purchase, and Google Play each stay off until that flag is `"true"`:
+
+| Flag                          | Processor             |
+| ----------------------------- | --------------------- |
+| `BILLING_PAYPAL_ENABLED`      | PayPal                |
+| `BILLING_APPLE_IAP_ENABLED`   | Apple In-App Purchase |
+| `BILLING_GOOGLE_PLAY_ENABLED` | Google Play           |
+
+Empty or unset means off. `true` and `false` are case-insensitive. Any other value fails startup
+validation. With the flag on, every credential key that processor needs is required. With the
+flag off, credentials may be set and startup still passes; the processor is not registered.
+
+The API, workers, and management API read the same three flags. They must match, the same way
+their credentials already match. `make local_env_setup` copies each flag from its home override
+(`paypal.env`, `billing-apple.env`, `billing-google-play.env`) into all three. It copies
+`PAYPAL_CLIENT_ID` to the web sidecar as `NEXT_PUBLIC_PAYPAL_CLIENT_ID` only while
+`BILLING_PAYPAL_ENABLED` is `true`. Otherwise that sidecar key is cleared.
+
+Checkout channels are the sales kill switch. A flag is the deployment capability: credentials,
+webhooks, and reconcile. An enabled channel offers nothing while its processor's flag is off.
+
+**Do not turn a processor's flag off while it has live subscriptions.** Its webhooks start
+returning 404, and those members lapse at period end. To stop new sales, disable its checkout
+channels instead.
+
+## Buffer and grace
+
+Both durations are seconds (`_EXPIRATION`). They are read by the API, workers, and the
+management API so a webhook, a reconcile run, and an admin resync compute the same access
+window.
+
+| Key | Default | Effect |
+| --- | --- | --- |
+| `BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION` | `172800` (48 hours) | Access continues past an auto-renew period end while the renewal event arrives |
+| `BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION` | `604800` (7 days) | Access continues after a failed renewal charge while the processor retries |
+
+Local values come from `~/.config/podverse/local-env-overrides/billing.env`. Leave them at the
+defaults unless the policy changes. Enable the same grace in App Store Connect and Play
+Console. After grace, access from that subscription lapses until a later payment writes a new
+grant.
+
+## Resync one account
+
+On the user's **Billing** page in management web (`/users/<id>/billing`), **Resync** calls
+`POST /api/v2/billing/accounts/<accountId>/resync`. That fetches each subscription from its
+processor, applies it the same way a webhook does, and retries that account's failed inbox
+rows. A processor that is not configured on this server is reported as skipped.
+
+## Manual grant
+
+On that same page, choose **Monthly** or **Annual** and use **Grant Membership**. The management API
+`POST /api/v2/billing/accounts/<accountId>/grants` with `{ "cadence": "monthly" }` or
+`"annual"` writes an `admin` grant through the ledger and recomputes
+`membership_expires_at`. It does not set the expiry column by itself. A repeat of the same
+request can answer `applied: false` when the ledger already holds that time.
+
+The v4 expiry import is [v4 membership carryover](#v4-membership-carryover).
+
+## v4 membership carryover
+
+`billingImportLegacyMembershipExpiry` copies expiry from the previous Podverse app into
+`legacy_import` grants. It reads email and `membership_expires_at` only. It does not import
+payment transactions, create PayPal, Apple, or Google subscriptions, or email anyone.
+
+Run it only after v5 already has the migrated accounts, with the same emails. Until that
+account migration is underway, leave the v4 database alone. The steps below are the runbook
+for that later pass.
+
+Export those two columns from the v4 database (read-only). Join `account_credentials.email`
+to `account_membership_status.membership_expires_at`, drop null expirations, and format the
+timestamp as ISO-8601 UTC. Save the file outside this repo. It contains email addresses.
+
+```sql
+SELECT c.email,
+  to_char(
+    s.membership_expires_at AT TIME ZONE 'UTC',
+    'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+  ) AS membership_expires_at
+FROM account_credentials AS c
+INNER JOIN account_membership_status AS s ON s.account_id = c.account_id
+WHERE c.email IS NOT NULL
+  AND s.membership_expires_at IS NOT NULL
+ORDER BY c.email;
+```
+
+```bash
+psql "$V4_DATABASE_URL" <<'SQL'
+\copy (
+  SELECT c.email,
+    to_char(
+      s.membership_expires_at AT TIME ZONE 'UTC',
+      'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+    ) AS membership_expires_at
+  FROM account_credentials AS c
+  INNER JOIN account_membership_status AS s ON s.account_id = c.account_id
+  WHERE c.email IS NOT NULL
+    AND s.membership_expires_at IS NOT NULL
+  ORDER BY c.email
+) TO '/absolute/path/outside/the/repo/v4-membership-expiry.csv' WITH (FORMAT csv, HEADER true)
+SQL
+```
+
+CSV shape (JSON lines with the same two fields are also accepted, one object per line):
+
+```text
+email,membership_expires_at
+user@example.com,2027-01-15T00:00:00.000Z
+```
+
+`YYYY-MM-DD` is read as UTC midnight. Any other timestamp is invalid and reported.
+
+- Email match is case-insensitive.
+- A missing account, or more than one account for that email, is listed in the report and
+  skipped. The command does not create accounts.
+- A null expiry, or an expiry already in the past, is skipped.
+- A second run keeps the later `ends_at` when a `legacy_import` grant already exists.
+- A revoked `legacy_import` grant stays revoked. The import does not add a second grant for
+  that account.
+- Each create or update recomputes that account. The new grant starts at import time and ends
+  at the exported expiry.
+
+The log line is counts only. Emails are written only to the optional report. The workers npm
+script uses `apps/workers` as its working directory, so pass an absolute path. `--help` prints
+the input format. The command needs Base and ORM env only, not payment processor keys.
+
+Build workers, then run from the **Workers** tab. `--dry-run` prints counts and writes nothing.
+
+```bash
+npm run build -w apps/workers
+npm run billing_import_legacy_membership_expiry -w apps/workers -- \
+  --file /absolute/path/v4-membership-expiry.csv \
+  --dry-run \
+  --report /absolute/path/v4-membership-expiry-report.csv
+```
+
+## Related
+
+- [BILLING.md](BILLING.md)
+- [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)
+- [LOCAL-ENV-OVERRIDES.md](/docs/development/env/LOCAL-ENV-OVERRIDES.md)

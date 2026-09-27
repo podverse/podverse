@@ -51,12 +51,29 @@ spec:
                 - secretRef:
                     name: podverse-workers-webpush-opaque
                     optional: true
+                - secretRef:
+                    name: podverse-billing-paypal-opaque
+                    optional: true
               volumeMounts:
                 - name: logs-volume
                   mountPath: /logs
                 - name: logs-volume
                   mountPath: /opt/logs
+                - name: apple-iap-key
+                  mountPath: /var/secrets/apple-iap
+                  readOnly: true
+                - name: google-play-key
+                  mountPath: /var/secrets/google-play
+                  readOnly: true
           volumes:
             - name: logs-volume
               emptyDir: {}
+            - name: apple-iap-key
+              secret:
+                secretName: podverse-billing-apple-iap-opaque
+                optional: true
+            - name: google-play-key
+              secret:
+                secretName: podverse-billing-google-play-opaque
+                optional: true
           restartPolicy: Never

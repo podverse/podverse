@@ -66,22 +66,43 @@ describe('getMobileBillingModeFromEnv', () => {
 });
 
 describe('selectBillingBackend', () => {
-  it('prefers the fake client for E2E, then unavailable, then the platform store', () => {
-    expect(selectBillingBackend({ billingMode: 'store', isE2e: true, platform: 'ios' })).toBe(
-      'fake'
-    );
+  it('selects the fake client only for a dev E2E run, then the store or unavailable', () => {
     expect(
-      selectBillingBackend({ billingMode: 'unavailable', isE2e: false, platform: 'android' })
+      selectBillingBackend({ billingMode: 'store', isDev: true, isE2e: true, platform: 'ios' })
+    ).toBe('fake');
+    expect(
+      selectBillingBackend({
+        billingMode: 'unavailable',
+        isDev: true,
+        isE2e: true,
+        platform: 'android',
+      })
+    ).toBe('fake');
+    expect(
+      selectBillingBackend({ billingMode: 'store', isDev: false, isE2e: true, platform: 'ios' })
+    ).toBe('storekit');
+    expect(
+      selectBillingBackend({
+        billingMode: 'unavailable',
+        isDev: false,
+        isE2e: false,
+        platform: 'android',
+      })
     ).toBe('unavailable');
-    expect(selectBillingBackend({ billingMode: 'store', isE2e: false, platform: 'ios' })).toBe(
-      'storekit'
-    );
-    expect(selectBillingBackend({ billingMode: 'store', isE2e: false, platform: 'android' })).toBe(
-      'play'
-    );
-    expect(selectBillingBackend({ billingMode: 'store', isE2e: false, platform: 'other' })).toBe(
-      'unavailable'
-    );
+    expect(
+      selectBillingBackend({ billingMode: 'store', isDev: true, isE2e: false, platform: 'ios' })
+    ).toBe('storekit');
+    expect(
+      selectBillingBackend({
+        billingMode: 'store',
+        isDev: false,
+        isE2e: false,
+        platform: 'android',
+      })
+    ).toBe('play');
+    expect(
+      selectBillingBackend({ billingMode: 'store', isDev: false, isE2e: false, platform: 'other' })
+    ).toBe('unavailable');
   });
 });
 

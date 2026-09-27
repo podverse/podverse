@@ -40,6 +40,7 @@ Switch back: [HOW-TO-RUN.md § Pause local for Maestro](/apps/mobile/e2e/HOW-TO-
 Local billing webhooks use **Billing Tunnel** (`cloudflared tunnel run podverse-local`),
 which forwards `https://billing-local.podcastdj.com` to the API on `:3000`. **Dev** must
 already be up. Setup steps: [BILLING-PAYPAL-SANDBOX.md](/docs/billing/BILLING-PAYPAL-SANDBOX.md).
+Membership billing overview: [BILLING.md](/docs/billing/BILLING.md).
 
 `npm run dev:workers` and the `workers` lane inside `dev:all:watch` only
 **recompile** `apps/workers`. They do **not** consume message-queue jobs.

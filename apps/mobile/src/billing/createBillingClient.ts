@@ -59,11 +59,15 @@ const createLazyStoreClient = (api: BillingApi, backend: BillingBackend): Billin
   };
 };
 
-/** Fake under the E2E harness, unavailable on FOSS, otherwise the platform store. */
+/**
+ * Fake only while Metro `__DEV__` and the E2E flag are both on. Otherwise the store or
+ * unavailable.
+ */
 export const createBillingClient = (deps: AuthRequestDeps): BillingClient => {
   const config = getMobileConfig();
   const backend = selectBillingBackend({
     billingMode: config.billingMode,
+    isDev: __DEV__,
     isE2e: config.isE2e,
     platform: platformChoice(),
   });

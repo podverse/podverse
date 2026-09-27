@@ -4,15 +4,17 @@ import type { BillingBackend } from './BillingClient';
 export type BillingPlatformChoice = 'android' | 'ios' | 'other';
 
 /**
- * E2E uses the fake client so a Maestro run never opens a store sheet. FOSS / unavailable builds
- * never select StoreKit or Play. Any other platform has no store sheet.
+ * The fake client runs only in a Metro dev build with the E2E flag, so a release binary cannot
+ * post test-processor payments. FOSS / unavailable builds never select StoreKit or Play. Any
+ * other platform has no store sheet.
  */
 export const selectBillingBackend = (input: {
   billingMode: MobileBillingMode;
+  isDev: boolean;
   isE2e: boolean;
   platform: BillingPlatformChoice;
 }): BillingBackend => {
-  if (input.isE2e) {
+  if (input.isDev && input.isE2e) {
     return 'fake';
   }
   if (input.billingMode === 'unavailable') {

@@ -7,8 +7,8 @@
 {{/web}}
 
 All {brand_name} software is provided under a free and open source (FOSS) licence. Features that
-require updating our servers are available only with membership. Sign up today and start with Trial
-status. 🥳
+require updating our servers are available only with membership.
+Sign up today and start with Trial status. 🥳
 
 {{feature_comparison}}
 

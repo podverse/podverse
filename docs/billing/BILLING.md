@@ -5,11 +5,13 @@ App Store on iOS, and Google Play on Android. The processor charges the buyer. P
 what the processor reports in a grant ledger, and the account's `membership_expires_at` is
 recomputed from that ledger.
 
-Processor sandbox setup:
+Processor sandbox setup, operations, and renewal tests:
 
 - [BILLING-PAYPAL-SANDBOX.md](BILLING-PAYPAL-SANDBOX.md)
 - [BILLING-APPLE-SANDBOX.md](BILLING-APPLE-SANDBOX.md)
 - [BILLING-GOOGLE-PLAY-SANDBOX.md](BILLING-GOOGLE-PLAY-SANDBOX.md)
+- [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md)
+- [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)
 
 ## How a purchase is recorded
 
@@ -111,8 +113,9 @@ required keys mandatory at startup. The API reads them in `apps/api/.env.example
 | App Store   | `APPLE_*`                                                                                      |
 | Google Play | `GOOGLE_PLAY_*`                                                                                |
 
-`registerBillingAdapters` registers the configured processors once at startup, in both the API
-and workers (workers only for commands in the Billing category).
+The API registers adapters in `registerBillingAdapters`. Workers (Billing-category commands)
+and the management API register the same processors through
+`registerConfiguredBillingAdapters`. A processor with no credentials is left out.
 
 ### Test processor
 
@@ -125,4 +128,103 @@ deployment that runs with production settings. Otherwise `POST /test/simulate` a
 
 Every charge happens at the processor. Worker jobs never charge a card. They compare the ledger
 with the processor's own records and apply what the ledger missed, such as a renewal whose
-webhook never arrived.
+webhook never arrived. The schedule and the local command are in
+[BILLING-OPERATIONS.md](BILLING-OPERATIONS.md).
+
+## Grant ledger
+
+`account_membership_status.membership_expires_at` is a cache.
+`BillingEntitlementService` recomputes it under a row lock from the grant ledger
+(`computeMembershipAccess` in `@podverse/helpers`). No other code writes that timestamp.
+
+| Source | What it records |
+| --- | --- |
+| `subscription_period` | One paid period of a subscription |
+| `one_time_purchase` | A one-time purchase |
+| `claim_token` | A redeemed membership claim token |
+| `admin` | Time an operator granted |
+| `trial` | The free trial |
+| `legacy_import` | Expiry carried over from the previous Podverse app |
+| `migration_baseline` | Membership an account already had when grants were introduced |
+
+Access continues past an auto-renew period end for
+`BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION` seconds (default `172800`, 48 hours) while the
+renewal event arrives. A failed charge keeps access for
+`BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION` seconds (default `604800`, 7 days). After grace,
+access from that subscription lapses. Turn on the matching billing-retry grace in App Store
+Connect and Play Console so the store retries during the same window.
+
+Sandbox purchases grant membership for every account when `NODE_ENV` is not `production`. In
+production they grant only for accounts listed in `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`
+(account id or `id_text`, comma-separated). Other accounts are logged after signature
+verification, and the webhook still returns 200.
+
+## Adding or removing a processor
+
+Each vendor has one adapter factory that returns `PaymentProcessorAdapter`. Register it at
+startup in both places that build the registry:
+
+- `apps/api/src/lib/billing/registerBillingAdapters.ts` (the API keeps a `PayPalService` for
+  checkout)
+- `packages/billing/src/registerConfiguredBillingAdapters.ts` (workers and the management API)
+
+Add the processor's env group in `packages/helpers-config/src/billingProcessorEnv.ts`. A
+processor is registered only when its credential keys are set; setting any enable key makes
+every required key mandatory at startup. Map store product ids with
+`billingSeedProcessorProductsFromEnv` or in management web, and add a checkout channel for each
+platform that should offer it.
+
+To stop selling through a processor, turn its checkout channel off. That is the kill switch:
+clients stop offering it within the 60-second channel cache, and no app release is required.
+See [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md#kill-switch). Clearing the credential keys
+unregisters the adapter: checkout omits it and its webhook answers 404.
+
+## Maintenance calendar
+
+Renewals do not depend on the installed app version. Stored webhook rows keep a
+`schema_version` so a payload can be replayed after a vendor changes its format. Review the
+pinned libraries when the vendor retires that API generation.
+
+| Surface | Pinned in this repo | Schema versions |
+| --- | --- | --- |
+| PayPal Orders v2 and Subscriptions | `@paypal/paypal-server-sdk` 2.x | `paypal-webhook-v1`, `paypal-capture-v1`, `paypal-subscription-v1` |
+| App Store Server API and ASN V2 | `@apple/app-store-server-library` 1.x | `apple-asn-v2`, `apple-transaction-v1`, `apple-subscription-status-v1` |
+| StoreKit on device | `expo-iap` 2.6.3 | — |
+| Google Play Developer API | `@googleapis/androidpublisher` 14.x | `google-play-rtdn-v1`, `google-play-subscription-v2`, `google-play-product-v1` |
+| Play Billing on device | `expo-iap` 2.6.3 | — |
+
+## Membership email
+
+Podverse does not send membership-expiry or renewal-reminder email. Processor receipts are the
+only purchase emails. Do not add an expiry or renewal reminder until an operator confirms it
+with legal. In-app expiry copy is derived from `membership_expires_at` on the account the
+client already loaded; it is not a notification. See
+[no-membership-expiry-notifications](/.cursor/rules/no-membership-expiry-notifications.mdc).
+
+## Kubernetes
+
+Credential values stay out of ConfigMaps. The keys are listed in
+`infra/k8s/base/api/source/api.env`, `infra/k8s/base/workers/source/workers.env`, and
+`infra/k8s/base/management-api/source/management-api.env`. Buffer and grace defaults, the
+bundle id, and the package name are set there; they do not turn a processor on. PayPal,
+Apple, and Google credential values stay empty until the SOPS secrets below are applied.
+Generate them from the
+monorepo root (GitOps checkouts use their copy of the same scripts):
+
+```bash
+bash ./infra/k8s/scripts/secret-generators/create_billing_paypal_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_billing_apple_iap_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_billing_google_play_secret.sh
+```
+
+| Secret | Contents | Mount |
+| --- | --- | --- |
+| `podverse-billing-paypal-opaque` | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` | `envFrom` on the API, management API, and `worker-billing-renewals` |
+| `podverse-billing-apple-iap-opaque` | key `AuthKey.p8` | `/var/secrets/apple-iap` |
+| `podverse-billing-google-play-opaque` | key `service-account.json` | `/var/secrets/google-play` |
+
+Set `APPLE_IAP_PRIVATE_KEY_PATH` to `/var/secrets/apple-iap/AuthKey.p8` and
+`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH` to `/var/secrets/google-play/service-account.json` only
+together with the rest of that processor's credential keys. Either path alone enables the
+processor and startup then requires every other key. The public web client id is
+`NEXT_PUBLIC_PAYPAL_CLIENT_ID` on the web sidecar, never the client secret.

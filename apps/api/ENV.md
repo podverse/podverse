@@ -200,9 +200,10 @@ For local setup, these can be customized via `dev/env-overrides/local/socials.en
 
 ### Billing
 
-Every key is optional. A payment processor is enabled once any of its credential keys is set, and
-then every key it needs is required; startup fails naming the missing ones. A processor that is not
-enabled is left out of checkout options and its webhook answers 404. Routes and webhook contracts:
+Every key is optional until its processor's flag is `true`. A processor runs only when that flag
+is `true`; credentials alone never turn it on. With the flag on, every key that processor needs
+is required and startup fails naming the missing ones. A processor that is not enabled is left
+out of checkout options and its webhook answers 404. Routes and webhook contracts:
 [docs/billing/BILLING.md](/docs/billing/BILLING.md). Local overrides live in
 `dev/env-overrides/local/billing.env`, `paypal.env`, `billing-apple.env`, and
 `billing-google-play.env`; run `make local_env_setup` to apply them to the API and workers.
@@ -212,12 +213,26 @@ enabled is left out of checkout options and its webhook answers 404. Routes and 
 - **`BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION`** (Optional, default `604800`) - Seconds access continues after a failed renewal charge
 - **`BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`** (Optional) - Comma-separated account ids or `id_text` values whose sandbox purchases count in production
 - **`BILLING_ALLOW_TEST_ADAPTER`** (Optional) - `true` registers the test processor even when `NODE_ENV` is `production`; non-production always registers it
+- **`BILLING_PAYPAL_ENABLED`** (Optional, default off) - `true` turns PayPal on; empty or unset keeps it off. When it is `true`, the PayPal credential keys below are required
 - **`PAYPAL_CLIENT_ID`**, **`PAYPAL_CLIENT_SECRET`**, **`PAYPAL_WEBHOOK_ID`** - PayPal credentials and the webhook id PayPal signs deliveries for
 - **`PAYPAL_ENVIRONMENT`** (Optional) - `sandbox` or `live`; empty uses live in production, sandbox otherwise
+- **`BILLING_APPLE_IAP_ENABLED`** (Optional, default off) - `true` turns Apple In-App Purchase on; empty or unset keeps it off. When it is `true`, the Apple credential keys below are required
 - **`APPLE_IAP_ISSUER_ID`**, **`APPLE_IAP_KEY_ID`**, **`APPLE_IAP_PRIVATE_KEY_PATH`**, **`APPLE_IAP_BUNDLE_ID`** - App Store Server API credentials
 - **`APPLE_IAP_APP_APPLE_ID`** (Optional) - Numeric App Store app id
 - **`APPLE_IAP_ENVIRONMENT`** (Optional) - `sandbox` or `production`; empty follows `NODE_ENV`
+- **`BILLING_GOOGLE_PLAY_ENABLED`** (Optional, default off) - `true` turns Google Play on; empty or unset keeps it off. When it is `true`, the Google Play credential keys below are required
 - **`GOOGLE_PLAY_PACKAGE_NAME`**, **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH`**, **`GOOGLE_PLAY_RTDN_PUSH_AUDIENCE`**, **`GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`** - Google Play Developer API credentials and the Pub/Sub push identity RTDN webhooks are checked against
+
+On **Kubernetes**, credential values stay out of the API ConfigMap
+(`infra/k8s/base/api/source/api.env`). Secret **`podverse-billing-paypal-opaque`** supplies the
+PayPal client id, secret, and webhook id. Secret **`podverse-billing-apple-iap-opaque`** is
+mounted at **`/var/secrets/apple-iap/AuthKey.p8`**. Secret
+**`podverse-billing-google-play-opaque`** is mounted at
+**`/var/secrets/google-play/service-account.json`**. Set each `_PATH` to that mount only
+together with the rest of that processor's keys and its `*_ENABLED` flag set to `true`. The
+path alone does not enable the processor.
+Generators: `infra/k8s/scripts/secret-generators/create_billing_*.sh`. See
+[docs/billing/BILLING.md](/docs/billing/BILLING.md).
 
 ### Firebase (optional)
 

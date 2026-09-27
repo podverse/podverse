@@ -435,8 +435,8 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     }
   }
 
-  // Billing (optional; a processor is enabled once any of its credentials is set, and then every
-  // key it needs is required)
+  // Billing (optional; each processor runs only when its *_ENABLED flag is "true", and then
+  // every key it needs is required)
   results.push(validateOptional('BILLING_WEBHOOK_PUBLIC_BASE_URL', 'Billing', 'Skipped'));
   results.push(
     validateBillingExpirationEnv(

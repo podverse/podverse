@@ -7,6 +7,7 @@ import { getManagementBillingContext } from '@management-api/lib/billing/billing
 import { AuditLogService } from '@management-api/lib/database/auditLog.js';
 import { getAuditRequestId } from '@management-api/lib/getAuditRequestId.js';
 import { getParam } from '@management-api/lib/params.js';
+import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@management-api/orm/db/appDb.js';
 import {
   createBillingProcessorProductSchema,
   grantBillingMembershipSchema,
@@ -18,7 +19,12 @@ import type { Request } from 'express';
 import express from 'express';
 
 import type { BillingEventOutcome, BillingSnapshotOutcome } from '@podverse/billing';
-import { BillingProcessorRecordNotFoundError, isPaymentProcessorId } from '@podverse/helpers';
+import type { PaymentProcessorId } from '@podverse/helpers';
+import {
+  BillingProcessorRecordNotFoundError,
+  isPaymentProcessorId,
+  PAYMENT_PROCESSOR_IDS,
+} from '@podverse/helpers';
 import type {
   BillingCheckoutChannel,
   BillingMembershipGrant,
@@ -41,17 +47,41 @@ import {
 const ACCOUNT_LIST_LIMIT = 100;
 const WEBHOOK_EVENT_DEFAULT_LIMIT = 100;
 
+function isDeploymentProcessorId(
+  processorId: PaymentProcessorId
+): processorId is 'paypal' | 'apple' | 'google_play' {
+  return processorId !== 'test';
+}
+
+const DEPLOYMENT_PROCESSOR_IDS = PAYMENT_PROCESSOR_IDS.filter(isDeploymentProcessorId);
+
+type BillingProcessorStatusRow = {
+  processor_id: 'paypal' | 'apple' | 'google_play';
+  enabled: boolean;
+};
+
 const router = express.Router();
 const auditLog = new AuditLogService();
 
-const checkoutChannelService = new BillingCheckoutChannelService();
-const processorProductService = new BillingProcessorProductService();
-const subscriptionService = new BillingSubscriptionService();
-const transactionService = new BillingTransactionService();
-const grantService = new BillingMembershipGrantService();
-const webhookEventService = new BillingWebhookEventService();
-const membershipExtensionService = new BillingMembershipExtensionService();
-const accountService = new AccountService();
+const appDb = {
+  dataSourceRead: AppDbDataSourceRead,
+  dataSourceReadWrite: AppDbDataSourceReadWrite,
+};
+
+const checkoutChannelService = new BillingCheckoutChannelService(appDb);
+const processorProductService = new BillingProcessorProductService(appDb);
+const subscriptionService = new BillingSubscriptionService(appDb);
+const transactionService = new BillingTransactionService(appDb);
+const grantService = new BillingMembershipGrantService(appDb);
+const webhookEventService = new BillingWebhookEventService(appDb);
+const membershipExtensionService = new BillingMembershipExtensionService(appDb);
+
+let accountService: AccountService | undefined;
+
+function getAccountService(): AccountService {
+  accountService ??= new AccountService();
+  return accountService;
+}
 
 function parsePositiveInt(raw: string | undefined): number | null {
   if (raw === undefined || !/^\d+$/.test(raw)) {
@@ -236,6 +266,24 @@ router.patch(
 );
 
 router.get(
+  '/processors',
+  ensureAuthenticated,
+  requireCrud('billing_channels', 'read'),
+  async (_req, res, next) => {
+    try {
+      const { registry } = getManagementBillingContext();
+      const data: BillingProcessorStatusRow[] = DEPLOYMENT_PROCESSOR_IDS.map((processorId) => ({
+        processor_id: processorId,
+        enabled: registry.has(processorId),
+      }));
+      res.json({ data });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.get(
   '/processor-products',
   ensureAuthenticated,
   requireCrud('billing_processor_products', 'read'),
@@ -332,7 +380,7 @@ router.get(
         res.status(400).json({ message: 'Invalid account id' });
         return;
       }
-      const account = await accountService.getBillingIdentityById(accountId);
+      const account = await getAccountService().getBillingIdentityById(accountId);
       if (account === null) {
         res.status(404).json({ message: 'Account not found' });
         return;
@@ -343,7 +391,7 @@ router.get(
           transactionService.listForAccount(accountId, ACCOUNT_LIST_LIMIT),
           grantService.listForAccount(accountId),
           webhookEventService.listForAdmin({ accountId, limit: ACCOUNT_LIST_LIMIT }),
-          accountService.getWithMembershipStatusFromPrimary(accountId),
+          getAccountService().getWithMembershipStatusFromPrimary(accountId),
         ]);
       res.json({
         data: {
@@ -374,7 +422,7 @@ router.post(
         res.status(400).json({ message: 'Invalid account id' });
         return;
       }
-      const account = await accountService.getBillingIdentityById(accountId);
+      const account = await getAccountService().getBillingIdentityById(accountId);
       if (account === null) {
         res.status(404).json({ message: 'Account not found' });
         return;
@@ -437,7 +485,8 @@ router.post(
         inboxResults.push(eventOutcomeToJson(await processor.retryInboxEvent(event.id)));
       }
 
-      const accountWithStatus = await accountService.getWithMembershipStatusFromPrimary(accountId);
+      const accountWithStatus =
+        await getAccountService().getWithMembershipStatusFromPrimary(accountId);
       await recordAudit(req, 'update', 'billing_account_resync', accountId, {
         subscriptions: subscriptionResults.length,
         inbox_events: inboxResults.length,
@@ -474,7 +523,7 @@ router.post(
         res.status(400).json({ message: error.message });
         return;
       }
-      const account = await accountService.getBillingIdentityById(accountId);
+      const account = await getAccountService().getBillingIdentityById(accountId);
       if (account === null) {
         res.status(404).json({ message: 'Account not found' });
         return;

@@ -21,7 +21,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Command group                       | Categories validated                     | Commands (examples)                                                                                                                                                                      |
 | ----------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                                                                                                                                                         |
-| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, devStatsSeedSimulatedAggregated, devSeedLocalUserContent, scheduledJobsRunDue, notificationsPlatformPurge, billingSeedProcessorProductsFromEnv, orm\* |
+| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, devStatsSeedSimulatedAggregated, devSeedLocalUserContent, scheduledJobsRunDue, notificationsPlatformPurge, billingImportLegacyMembershipExpiry, billingSeedProcessorProductsFromEnv, orm\* |
 | Base + ORM + Billing                | Base, ORM, Billing                       | billingReconcileSubscriptions                                                                                                                                                            |
 | Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                                                                                              |
 | Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                                                                                                                                                        |
@@ -128,19 +128,39 @@ webhook and a reconciliation run compute the same access window. Local values co
 
 ### Billing processors (Billing category)
 
-Commands in the Billing category register an adapter for each payment processor this deployment
-holds credentials for, the same set the API registers. Every key is optional; a processor is
-enabled once any of its credential keys is set, and then every key it needs is required. Keys and
-meanings match [`apps/api/ENV.md`](/apps/api/ENV.md#billing).
+Commands in the Billing category register an adapter for each payment processor whose enable
+flag is `true`, the same set the API registers. Credentials alone never turn a processor on.
+With the flag on, every key that processor needs is required. Keys and meanings match
+[`apps/api/ENV.md`](/apps/api/ENV.md#billing).
 
 - **`BILLING_ALLOW_TEST_ADAPTER`** (Optional) - `true` registers the test processor even when
   `NODE_ENV` is `production`; non-production always registers it. `billingReconcileSubscriptions`
   skips test-processor subscriptions, whose records live only in the process that created them.
+- **`BILLING_PAYPAL_ENABLED`** (Optional, default off) - `true` turns PayPal on; empty keeps it off
 - **`PAYPAL_CLIENT_ID`**, **`PAYPAL_CLIENT_SECRET`**, **`PAYPAL_WEBHOOK_ID`**, **`PAYPAL_ENVIRONMENT`**
+- **`BILLING_APPLE_IAP_ENABLED`** (Optional, default off) - `true` turns Apple In-App Purchase on;
+  empty keeps it off
 - **`APPLE_IAP_ISSUER_ID`**, **`APPLE_IAP_KEY_ID`**, **`APPLE_IAP_PRIVATE_KEY_PATH`**,
   **`APPLE_IAP_BUNDLE_ID`**, **`APPLE_IAP_APP_APPLE_ID`**, **`APPLE_IAP_ENVIRONMENT`**
+- **`BILLING_GOOGLE_PLAY_ENABLED`** (Optional, default off) - `true` turns Google Play on; empty
+  keeps it off
 - **`GOOGLE_PLAY_PACKAGE_NAME`**, **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH`**,
   **`GOOGLE_PLAY_RTDN_PUSH_AUDIENCE`**, **`GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`**
+
+On **Kubernetes**, the same keys are listed in `infra/k8s/base/workers/source/workers.env`.
+CronJob `worker-billing-renewals` mounts **`podverse-billing-apple-iap-opaque`** at
+**`/var/secrets/apple-iap/AuthKey.p8`** and **`podverse-billing-google-play-opaque`** at
+**`/var/secrets/google-play/service-account.json`**, and reads PayPal from
+**`podverse-billing-paypal-opaque`**. Leave each `_PATH` empty until that secret is applied,
+and set the matching `*_ENABLED` flag to `true` before that processor registers.
+See [docs/billing/BILLING.md](/docs/billing/BILLING.md).
+
+### v4 membership expiry (`billingImportLegacyMembershipExpiry`)
+
+Base + ORM only. It does not read payment-processor credentials. Leave the v4 database
+alone until the v4 to v5 account migration is underway and v5 already has those emails.
+Input format and grant rules:
+[v4 membership carryover](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover).
 
 ### Billing products (`billingSeedProcessorProductsFromEnv` only)
 

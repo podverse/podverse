@@ -198,8 +198,8 @@ function validateBase(): ValidationResult[] {
 }
 
 /**
- * Category: Billing — commands that talk to payment processors. A processor is enabled once any of
- * its credentials is set, and then every key it needs is required.
+ * Category: Billing — commands that talk to payment processors. Each processor runs only when its
+ * *_ENABLED flag is "true", and then every key it needs is required.
  */
 function validateBillingProcessors(): ValidationResult[] {
   return [

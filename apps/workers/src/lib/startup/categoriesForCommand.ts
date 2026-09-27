@@ -27,6 +27,7 @@ export type ConfigCategory =
   | typeof CATEGORY_BILLING;
 
 const BASE_ORM_COMMANDS = [
+  'billingImportLegacyMembershipExpiry',
   'billingSeedProcessorProductsFromEnv',
   'scheduledJobsRunDue',
   'notificationsPlatformPurge',

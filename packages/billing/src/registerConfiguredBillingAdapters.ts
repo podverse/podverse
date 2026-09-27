@@ -22,9 +22,10 @@ export interface RegisteredBillingAdapters {
 }
 
 /**
- * Registers an adapter for each processor this deployment holds credentials for. The API,
- * workers, and management API register the same set, so checkout, reconciliation, and the admin
- * resync all read the same processors.
+ * Registers an adapter for each processor this deployment has enabled. A processor that is not
+ * enabled (flag off or credentials missing) is left out. The API, workers, and management API
+ * register the same set, so checkout, reconciliation, and the admin resync all read the same
+ * processors.
  */
 export function registerConfiguredBillingAdapters(
   registry: BillingAdapterRegistry,

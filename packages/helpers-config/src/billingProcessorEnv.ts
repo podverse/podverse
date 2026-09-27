@@ -1,5 +1,5 @@
 import type { ValidationResult } from '@podverse/helpers';
-import { parseExpirationEnvValue } from '@podverse/helpers';
+import { parseExpirationEnvValue, validateBooleanValue } from '@podverse/helpers';
 
 type EnvSource = Record<string, string | undefined>;
 
@@ -30,7 +30,7 @@ export interface BillingGooglePlayProcessorEnv {
   rtdnPushServiceAccountEmail: string;
 }
 
-/** Each processor is null unless every key it needs is set. */
+/** Each processor is null unless its enable flag is `true` and every key it needs is set. */
 export interface BillingProcessorEnv {
   paypal: BillingPayPalProcessorEnv | null;
   apple: BillingAppleProcessorEnv | null;
@@ -40,26 +40,24 @@ export interface BillingProcessorEnv {
 interface BillingProcessorEnvGroup {
   label: string;
   category: string;
-  /** Setting any of these turns the processor on, which makes every required key mandatory. */
-  enableKeys: readonly string[];
+  enabledFlagKey: string;
   requiredKeys: readonly string[];
 }
 
 /**
- * Package and bundle ids ship with defaults in the env templates, so only credentials count as
- * turning a processor on.
+ * A processor runs only when its flag is `true`. Credentials alone never turn it on.
  */
 export const BILLING_PROCESSOR_ENV_GROUPS = {
   paypal: {
     label: 'PayPal',
     category: 'Billing / PayPal',
-    enableKeys: ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID'],
+    enabledFlagKey: 'BILLING_PAYPAL_ENABLED',
     requiredKeys: ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID'],
   },
   apple: {
     label: 'Apple IAP',
     category: 'Billing / Apple IAP',
-    enableKeys: ['APPLE_IAP_ISSUER_ID', 'APPLE_IAP_KEY_ID', 'APPLE_IAP_PRIVATE_KEY_PATH'],
+    enabledFlagKey: 'BILLING_APPLE_IAP_ENABLED',
     requiredKeys: [
       'APPLE_IAP_ISSUER_ID',
       'APPLE_IAP_KEY_ID',
@@ -70,11 +68,7 @@ export const BILLING_PROCESSOR_ENV_GROUPS = {
   googlePlay: {
     label: 'Google Play',
     category: 'Billing / Google Play',
-    enableKeys: [
-      'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH',
-      'GOOGLE_PLAY_RTDN_PUSH_AUDIENCE',
-      'GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL',
-    ],
+    enabledFlagKey: 'BILLING_GOOGLE_PLAY_ENABLED',
     requiredKeys: [
       'GOOGLE_PLAY_PACKAGE_NAME',
       'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH',
@@ -89,16 +83,23 @@ function readTrimmed(env: EnvSource, key: string): string | undefined {
   return value === undefined || value === '' ? undefined : value;
 }
 
-function isProcessorEnabled(env: EnvSource, group: BillingProcessorEnvGroup): boolean {
-  return group.enableKeys.some((key) => readTrimmed(env, key) !== undefined);
+/** True only for the value `true`, compared case-insensitively. Empty, unset, and `false` are off. */
+export function isBillingProcessorFlagOn(
+  env: Record<string, string | undefined>,
+  group: { readonly enabledFlagKey: string }
+): boolean {
+  return readTrimmed(env, group.enabledFlagKey)?.toLowerCase() === 'true';
 }
 
-/** Calls `build` only when every required key is set, so `value` never returns an empty string. */
+/** Calls `build` only when the flag is on and every required key is set. */
 function readProcessor<T>(
   env: EnvSource,
   group: BillingProcessorEnvGroup,
   build: (value: (key: string) => string) => T
 ): T | null {
+  if (!isBillingProcessorFlagOn(env, group)) {
+    return null;
+  }
   if (!group.requiredKeys.every((key) => readTrimmed(env, key) !== undefined)) {
     return null;
   }
@@ -118,7 +119,7 @@ function parsePositiveInteger(value: string | undefined): number | undefined {
   return parsed > 0 ? parsed : undefined;
 }
 
-/** Reads each processor's settings; a processor with any required key missing comes back null. */
+/** Reads each processor's settings. A flag that is off, or a missing required key, comes back null. */
 export function readBillingProcessorEnv(env: EnvSource): BillingProcessorEnv {
   return {
     paypal: readProcessor(env, BILLING_PROCESSOR_ENV_GROUPS.paypal, (value) => ({
@@ -151,6 +152,16 @@ function validateProcessorKey(
   enabled: boolean
 ): ValidationResult {
   const isSet = readTrimmed(env, key) !== undefined;
+  if (!enabled && isSet) {
+    return {
+      name: key,
+      isSet,
+      isValid: true,
+      isRequired: false,
+      message: `Skipped - set ${group.enabledFlagKey}=true to enable ${group.label}`,
+      category: group.category,
+    };
+  }
   if (isSet) {
     return {
       name: key,
@@ -171,6 +182,14 @@ function validateProcessorKey(
       : `Skipped - ${group.label} not enabled`,
     category: group.category,
   };
+}
+
+/**
+ * Same messages as `validateBoolean`. That helper reads `process.env`; these checks take an env
+ * argument so a caller can validate a map that is not the process environment.
+ */
+function validateProcessorFlag(env: EnvSource, group: BillingProcessorEnvGroup): ValidationResult {
+  return validateBooleanValue(env[group.enabledFlagKey], group.enabledFlagKey, group.category);
 }
 
 function validateOptionalChoice(
@@ -205,8 +224,9 @@ function validateOptionalChoice(
 /** PayPal keys in `.env.example` order. */
 export function validatePayPalProcessorEnv(env: EnvSource): ValidationResult[] {
   const group = BILLING_PROCESSOR_ENV_GROUPS.paypal;
-  const enabled = isProcessorEnabled(env, group);
+  const enabled = isBillingProcessorFlagOn(env, group);
   return [
+    validateProcessorFlag(env, group),
     validateProcessorKey(env, 'PAYPAL_CLIENT_ID', group, enabled),
     validateProcessorKey(env, 'PAYPAL_CLIENT_SECRET', group, enabled),
     validateOptionalChoice(
@@ -223,11 +243,12 @@ export function validatePayPalProcessorEnv(env: EnvSource): ValidationResult[] {
 /** Apple IAP keys in `.env.example` order. */
 export function validateAppleProcessorEnv(env: EnvSource): ValidationResult[] {
   const group = BILLING_PROCESSOR_ENV_GROUPS.apple;
-  const enabled = isProcessorEnabled(env, group);
+  const enabled = isBillingProcessorFlagOn(env, group);
   const appAppleIdRaw = readTrimmed(env, 'APPLE_IAP_APP_APPLE_ID');
   const appAppleIdValid =
     appAppleIdRaw === undefined || parsePositiveInteger(appAppleIdRaw) !== undefined;
   return [
+    validateProcessorFlag(env, group),
     validateProcessorKey(env, 'APPLE_IAP_ISSUER_ID', group, enabled),
     validateProcessorKey(env, 'APPLE_IAP_KEY_ID', group, enabled),
     validateProcessorKey(env, 'APPLE_IAP_PRIVATE_KEY_PATH', group, enabled),
@@ -258,8 +279,11 @@ export function validateAppleProcessorEnv(env: EnvSource): ValidationResult[] {
 /** Google Play keys in `.env.example` order. */
 export function validateGooglePlayProcessorEnv(env: EnvSource): ValidationResult[] {
   const group = BILLING_PROCESSOR_ENV_GROUPS.googlePlay;
-  const enabled = isProcessorEnabled(env, group);
-  return group.requiredKeys.map((key) => validateProcessorKey(env, key, group, enabled));
+  const enabled = isBillingProcessorFlagOn(env, group);
+  return [
+    validateProcessorFlag(env, group),
+    ...group.requiredKeys.map((key) => validateProcessorKey(env, key, group, enabled)),
+  ];
 }
 
 /** Buffer and grace windows are seconds; the ledger rejects anything but a non-negative integer. */

@@ -1,8 +1,11 @@
 import { app } from '@management-api/app.js';
 import { config } from '@management-api/config/index.js';
+import { initManagementBillingContext } from '@management-api/lib/billing/billingContext.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { createORMContext } from '@podverse/orm';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 const basePath = `${config.api.prefix}${config.api.version}/billing`;
@@ -14,6 +17,29 @@ const superuser = {
   admin_account_role: { role: 'superuser' },
   admin_account_credentials: { email: 'super@example.com' },
   permissions: null,
+  created_at: new Date('2020-01-01T00:00:00.000Z'),
+};
+
+const noChannelRead = {
+  id: 3,
+  id_text: 'pvMgtAd003',
+  admin_account_role_id: 2,
+  admin_account_role: { role: 'admin' },
+  admin_account_credentials: { email: 'no-channels@example.com' },
+  permissions: {
+    feedsCrud: 0,
+    feedTakedownReasonsCrud: 0,
+    adminsCrud: 0,
+    statsCrud: 0,
+    billingPricesCrud: 0,
+    bucketCrud: 0,
+    embedDemoCrud: 0,
+    notificationsCrud: 0,
+    billingChannelsCrud: 0,
+    billingProcessorProductsCrud: 0,
+    billingAccountCrud: 0,
+    billingWebhookEventsCrud: 0,
+  },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
 
@@ -58,6 +84,9 @@ const { getWithRoleAndPermissionsMock, listChannelsMock, updateChannelMock, audi
       }
       if (id === 2) {
         return reader;
+      }
+      if (id === 3) {
+        return noChannelRead;
       }
       return null;
     }),
@@ -119,6 +148,8 @@ const superuserAuthHeaders = (): { Authorization: string } => bearerFor(1, 'pvMg
 
 const readerAuthHeaders = (): { Authorization: string } => bearerFor(2, 'pvMgtAd002');
 
+const noChannelReadAuthHeaders = (): { Authorization: string } => bearerFor(3, 'pvMgtAd003');
+
 describe('/billing/checkout-channels', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -168,5 +199,52 @@ describe('/billing/checkout-channels', () => {
       .expect(400);
     expect(typeof res.body.message).toBe('string');
     expect(updateChannelMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('/billing/processors', () => {
+  beforeAll(() => {
+    createORMContext({
+      nodeEnv: config.nodeEnv,
+      database: config.appDatabase,
+      log: config.log,
+      defaults: {
+        account: {
+          settings: {
+            locale: 'en-US',
+          },
+        },
+      },
+    });
+    initManagementBillingContext({
+      nodeEnv: config.nodeEnv,
+      allowTestAdapter: config.billing.allowTestAdapter,
+      processors: config.billing.processors,
+      sandboxAllowedAccountIds: config.billing.sandboxAllowedAccountIds,
+    });
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns three processors, each disabled, for a superuser', async () => {
+    const res = await request(app)
+      .get(`${basePath}/processors`)
+      .set(superuserAuthHeaders())
+      .expect(200);
+    expect(res.body.data).toEqual([
+      { processor_id: 'paypal', enabled: false },
+      { processor_id: 'apple', enabled: false },
+      { processor_id: 'google_play', enabled: false },
+    ]);
+  });
+
+  it('returns 403 for an admin without billing channel read', async () => {
+    const res = await request(app)
+      .get(`${basePath}/processors`)
+      .set(noChannelReadAuthHeaders())
+      .expect(403);
+    expect(res.body.message).toBe('Insufficient permissions');
   });
 });

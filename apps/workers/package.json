@@ -17,6 +17,7 @@
     "type-check": "tsc --noEmit",
     "start": "node ./dist/index.js",
     "archive_all": "node ./dist/index.js archiveAll",
+    "billing_import_legacy_membership_expiry": "node ./dist/index.js billingImportLegacyMembershipExpiry",
     "billing_reconcile_subscriptions": "node ./dist/index.js billingReconcileSubscriptions",
     "billing_seed_processor_products_from_env": "node ./dist/index.js billingSeedProcessorProductsFromEnv",
     "scheduled_jobs_run_due": "node ./dist/index.js scheduledJobsRunDue",

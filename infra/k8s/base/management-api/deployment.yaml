@@ -83,6 +83,9 @@ spec:
                 name: podverse-management-db-opaque
             - secretRef:
                 name: podverse-db-opaque
+            - secretRef:
+                name: podverse-billing-paypal-opaque
+                optional: true
             - configMapRef:
                 name: podverse-product-membership-config
             - configMapRef:
@@ -109,6 +112,12 @@ spec:
           volumeMounts:
             - name: logs-volume
               mountPath: /opt/logs
+            - name: apple-iap-key
+              mountPath: /var/secrets/apple-iap
+              readOnly: true
+            - name: google-play-key
+              mountPath: /var/secrets/google-play
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /api/v2/health/ready
@@ -132,6 +141,14 @@ spec:
       volumes:
         - name: logs-volume
           emptyDir: {}
+        - name: apple-iap-key
+          secret:
+            secretName: podverse-billing-apple-iap-opaque
+            optional: true
+        - name: google-play-key
+          secret:
+            secretName: podverse-billing-google-play-opaque
+            optional: true
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       terminationGracePeriodSeconds: 30

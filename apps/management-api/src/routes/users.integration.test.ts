@@ -271,6 +271,9 @@ describe('GET /users/:id', () => {
 describe('PATCH /users/:id', () => {
   it('updates user email and username', async () => {
     readQueryMock.mockResolvedValueOnce([{ id: 1 }]); // existence check
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 1, membership_expires_at: null },
+    ]); // membership status
     readQueryMock.mockResolvedValueOnce([]); // duplicate check
     readWriteQueryMock.mockResolvedValueOnce(undefined); // update account
     readWriteQueryMock.mockResolvedValueOnce(undefined); // update credentials
@@ -297,6 +300,9 @@ describe('PATCH /users/:id', () => {
 
   it('returns 409 for duplicate email', async () => {
     readQueryMock.mockResolvedValueOnce([{ id: 1 }]); // existence check
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 1, membership_expires_at: null },
+    ]); // membership status
     readQueryMock.mockResolvedValueOnce([{ id: 2 }]); // duplicate check
 
     const res = await request(app)

@@ -11,6 +11,7 @@ export default defineConfig({
     '**/custom-themes-native-only.spec.ts',
     '**/custom-themes-remote-only.spec.ts',
     '**/custom-themes-combo.spec.ts',
+    '**/checkout-paypal-sandbox.spec.ts',
   ],
   outputDir: '../../.artifacts/e2e-test-results/web',
   fullyParallel: false,

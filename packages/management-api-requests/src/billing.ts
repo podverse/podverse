@@ -254,6 +254,21 @@ export async function listBillingWebhookEvents(
   });
 }
 
+export type BillingProcessorStatusRow = {
+  processor_id: 'paypal' | 'apple' | 'google_play';
+  enabled: boolean;
+};
+
+/** Processors this deployment registered. The test processor is omitted. */
+export async function reqBillingGetProcessors(
+  jwt?: string
+): Promise<{ data: BillingProcessorStatusRow[] }> {
+  const service = new ManagementApiRequestService({ jwt });
+  return service.apiRequest<{ data: BillingProcessorStatusRow[] }>({
+    path: '/billing/processors',
+  });
+}
+
 export async function replayBillingWebhookEvent(
   id: string,
   jwt?: string

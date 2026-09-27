@@ -68,6 +68,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
 });
 
 const PAYPAL_ENV = {
+  BILLING_PAYPAL_ENABLED: 'true',
   PAYPAL_CLIENT_ID: 'vitest-client-id',
   PAYPAL_CLIENT_SECRET: 'vitest-client-secret',
   PAYPAL_WEBHOOK_ID: 'WH-VITEST',
@@ -263,6 +264,50 @@ describe('Billing routes', () => {
         await clearChannelCache();
       }
     });
+
+    it('omits PayPal and answers 404 on its webhook when the enable flag is off', async () => {
+      const { initBillingContext } = await import('../lib/billing/billingContext.js');
+      const { readBillingProcessorEnv } = await import('@podverse/helpers-config');
+      const { config } = await import('../config/index.js');
+      const savedFlag = process.env.BILLING_PAYPAL_ENABLED;
+      delete process.env.BILLING_PAYPAL_ENABLED;
+      const restore = (): void => {
+        if (savedFlag === undefined) {
+          delete process.env.BILLING_PAYPAL_ENABLED;
+        } else {
+          process.env.BILLING_PAYPAL_ENABLED = savedFlag;
+        }
+        initBillingContext({
+          nodeEnv: config.nodeEnv,
+          allowTestAdapter: config.billing.allowTestAdapter,
+          sandboxAllowedAccountIds: config.billing.sandboxAllowedAccountIds,
+          processors: readBillingProcessorEnv(process.env),
+        });
+      };
+
+      initBillingContext({
+        nodeEnv: config.nodeEnv,
+        allowTestAdapter: config.billing.allowTestAdapter,
+        sandboxAllowedAccountIds: config.billing.sandboxAllowedAccountIds,
+        processors: readBillingProcessorEnv(process.env),
+      });
+      await clearChannelCache();
+      try {
+        const web = await request(app)
+          .get(`${base}/billing/checkout-options?platform=web`)
+          .expect(200);
+        const webIds = web.body.processors.map((p: { processor_id: string }) => p.processor_id);
+        expect(webIds).not.toContain('paypal');
+        await request(app)
+          .post(`${base}/billing/webhooks/paypal`)
+          .set('Content-Type', 'application/json')
+          .send(JSON.stringify({ id: `WH-OFF-${runId}` }))
+          .expect(404);
+      } finally {
+        restore();
+        await clearChannelCache();
+      }
+    });
   });
 
   describe('POST /billing/webhooks/paypal', () => {
@@ -372,6 +417,56 @@ describe('Billing routes', () => {
       expect(new Date(status.membership_expires_at).getTime()).toBeGreaterThanOrEqual(
         new Date(periodEnd).getTime()
       );
+    });
+
+    it('keeps access through grace and drops it when grace lapses', async () => {
+      const account = await createAccount();
+      const now = Date.now();
+      const subscriptionId = `sim-grace-${runId}-${account.id}`;
+      // Past the 48h renewal buffer, so entitlement after grace starts comes from the grace window.
+      const periodEnd = new Date(now - 3 * DAY_MS).toISOString();
+
+      await simulate(account, {
+        type: 'subscription_renewed',
+        externalSubscriptionId: subscriptionId,
+        externalTransactionId: `sim-grace-pay-${runId}-${account.id}`,
+        externalProductId: TEST_AUTO_RENEW_PRODUCT_ID,
+        externalBasePlanId: null,
+        periodStart: new Date(now - 31 * DAY_MS).toISOString(),
+        periodEnd,
+        amount: { value: '3.00', currencyCode: 'USD' },
+        occurredAt: new Date(now - 31 * DAY_MS).toISOString(),
+      }).expect(200);
+
+      const entered = await simulate(account, {
+        type: 'grace_entered',
+        externalSubscriptionId: subscriptionId,
+        periodEnd,
+        processorGracePeriodEndsAt: new Date(now + 6 * DAY_MS).toISOString(),
+        occurredAt: new Date(now).toISOString(),
+      }).expect(200);
+      expect(entered.body.outcome.status).toBe('processed');
+      expect(entered.body.status.in_grace_period).toBe(true);
+      expect(entered.body.status.is_entitled).toBe(true);
+      expect(entered.body.status.active_subscription.status).toBe('in_grace_period');
+
+      const exited = await simulate(account, {
+        type: 'grace_exited',
+        externalSubscriptionId: subscriptionId,
+        outcome: 'lapsed',
+        occurredAt: new Date(now + 1000).toISOString(),
+      }).expect(200);
+      expect(exited.body.outcome.status).toBe('processed');
+      expect(exited.body.status.in_grace_period).toBe(false);
+      expect(exited.body.status.is_entitled).toBe(false);
+      expect(exited.body.status.active_subscription).toBeNull();
+
+      const rows = await query(
+        `SELECT status FROM billing_subscription
+         WHERE processor_id = 'test' AND external_subscription_id = $1`,
+        [subscriptionId]
+      );
+      expect(rows).toEqual([{ status: 'past_due' }]);
     });
 
     it('removes access when the payment is refunded', async () => {

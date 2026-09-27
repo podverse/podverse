@@ -22,6 +22,16 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run billing_reconcile_subscriptions -w apps/workers',
   },
   {
+    name: 'billingImportLegacyMembershipExpiry',
+    label: 'Billing: import legacy membership expiry',
+    description:
+      'Import email and membership_expires_at from a CSV or JSON-lines file as legacy_import grants. A dry run prints counts and writes nothing. Does not import payment transactions.',
+    category: 'billing',
+    risk: 'normal',
+    example_cli:
+      'npm run billing_import_legacy_membership_expiry -w apps/workers -- --file /absolute/path/legacy-membership.csv --dry-run',
+  },
+  {
     name: 'billingSeedProcessorProductsFromEnv',
     label: 'Billing: seed processor products from env',
     description:

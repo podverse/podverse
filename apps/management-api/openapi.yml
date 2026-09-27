@@ -1844,6 +1844,12 @@ components:
         enabled: { type: boolean }
         min_client_version: { type: string, nullable: true }
         updated_at: { type: string, format: date-time }
+    BillingProcessorStatus:
+      type: object
+      required: [processor_id, enabled]
+      properties:
+        processor_id: { type: string, enum: [paypal, apple, google_play] }
+        enabled: { type: boolean }
     BillingCheckoutChannelPatchRequest:
       type: object
       minProperties: 1
@@ -2038,6 +2044,48 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/BillingCheckoutChannel"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/processors:
+    get:
+      operationId: managementGetBillingProcessors
+      tags:
+        - billing
+      summary: GET /billing/processors
+      description: "Lists which payment processors this deployment registered, in paypal, apple, google_play order. The test processor is omitted. Permission: billing_channels read."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BillingProcessorStatus"
         "401":
           description: Error
           content:

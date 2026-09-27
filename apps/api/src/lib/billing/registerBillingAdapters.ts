@@ -19,8 +19,9 @@ export interface RegisteredBillingAdapters {
 }
 
 /**
- * Registers an adapter for each processor this deployment holds credentials for. A processor with
- * no credentials is left out, which removes it from checkout options and 404s its webhook.
+ * Registers an adapter for each processor this deployment has enabled. A processor that is not
+ * enabled (flag off or credentials missing) is left out, which removes it from checkout options
+ * and 404s its webhook.
  */
 export function registerBillingAdapters(
   registry: BillingAdapterRegistry,

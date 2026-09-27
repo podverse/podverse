@@ -61,3 +61,59 @@ Do not commit real values.
 
 Draft plans are fine while wiring local sandbox flows. Activation is only needed
 when you are ready to sell through Google Play.
+
+Auto-renew base plans (`monthly`, `annual`) renew on their own. Prepaid base
+plans (`prepaid-monthly`, `prepaid-annual`) are the one-time purchase: Play
+does not renew them, and Podverse records one grant for the prepaid period.
+
+## Play Console access for the service account
+
+1. Play Console → **Users and permissions** → **Invite new users**
+2. Invite the service account email from the JSON key
+3. Grant the app permission to view financial data and to manage orders and
+   subscriptions
+
+## Real-time developer notifications
+
+On the Pub/Sub topic, grant
+`google-play-developer-notifications@system.gserviceaccount.com` the **Pub/Sub
+Publisher** role so Play can publish. After **Send test notification** in Play
+Console monetization setup, confirm the push subscription delivers to the
+Google webhook URL.
+
+## License testers
+
+Play Console → **Settings** → **License testing**. Add the Google accounts that
+will buy on a device. Those accounts can complete a purchase with a Play test
+card. A declined test card is how a human exercises billing grace. Podverse
+does not store tester passwords. This path is manual; default CI does not call
+Play. See [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md).
+
+## Voided purchases
+
+A refund or chargeback shows up two ways:
+
+- Play sends a voided-purchase real-time developer notification to the Google
+  webhook. The adapter revokes the grants for that purchase.
+- `billingReconcileSubscriptions` reads Google's voided-purchase list for the
+  last 48 hours and revokes the same grants. A void for a purchase this server
+  never recorded is skipped. Seeing the same void on a later run is recorded
+  once.
+
+In Play Console, **Order management** is where a tester refund is issued.
+
+## Local env
+
+`GOOGLE_PLAY_PACKAGE_NAME` is `com.podverse.app.next`. The JSON key path points
+at a file under `~/.config/podverse/secrets/`. On Kubernetes that file is a
+SOPS secret mounted at `/var/secrets/google-play/service-account.json`
+([BILLING.md](BILLING.md#kubernetes)). `GOOGLE_PLAY_RTDN_PUSH_AUDIENCE` for a
+local tunnel is `podverse-local-rtdn` unless you chose another audience on the
+push subscription.
+
+## Related
+
+- [BILLING.md](BILLING.md)
+- [BILLING-PAYPAL-SANDBOX.md](BILLING-PAYPAL-SANDBOX.md) (shared tunnel)
+- [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md)
+- [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)

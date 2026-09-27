@@ -163,8 +163,8 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   results.push(...validateObjectStorageBucket());
 
-  // Billing (optional; a processor is enabled once any of its credentials is set, and then every
-  // key it needs is required). Account resync fetches live subscription state through these.
+  // Billing (optional; each processor runs only when its *_ENABLED flag is "true", and then
+  // every key it needs is required). Account resync fetches live subscription state through these.
   results.push(
     validateBillingExpirationEnv(
       process.env,

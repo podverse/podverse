@@ -4,7 +4,7 @@ import { BillingAdapterNotRegisteredError } from './errors.js';
 
 /**
  * The processors this deployment takes payment through. Apps register an adapter for each
- * processor they hold credentials for; a processor with no adapter is simply not offered, so a
+ * processor they have enabled; a processor with no adapter is simply not offered, so a
  * build can leave any vendor package out.
  */
 export class BillingAdapterRegistry {

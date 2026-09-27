@@ -94,6 +94,11 @@ const apiTestEnvBase = (): Record<string, string> => ({
   OTEL_SERVICE_NAME: 'podverse-api',
   OTEL_TRACES_EXPORT: 'none',
   DEFAULT_ACCOUNT_SETTINGS_LOCALE: 'en',
+  // Off in every test profile. These overwrite a developer .env, so local sandbox
+  // credentials cannot register PayPal, Apple, or Google Play during tests.
+  BILLING_PAYPAL_ENABLED: '',
+  BILLING_APPLE_IAP_ENABLED: '',
+  BILLING_GOOGLE_PLAY_ENABLED: '',
 });
 
 const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, string>> = {
@@ -183,6 +188,11 @@ const managementApiTestEnvBase = (): Record<string, string> => ({
   OTEL_SERVICE_NAME: 'podverse-management-api',
   OTEL_TRACES_EXPORT: 'none',
   OTEL_EXPORTER_OTLP_ENDPOINT: '',
+  // Off in every test profile. These overwrite a developer .env, so local sandbox
+  // credentials cannot register PayPal, Apple, or Google Play during tests.
+  BILLING_PAYPAL_ENABLED: '',
+  BILLING_APPLE_IAP_ENABLED: '',
+  BILLING_GOOGLE_PLAY_ENABLED: '',
 });
 
 const managementProfileOverrides: Record<

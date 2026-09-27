@@ -168,10 +168,11 @@ infra/              # Infrastructure
 - User authentication
 - Configured via `packages/notifications/`
 
-### PayPal
+### Billing
 
-- Premium subscription payments
-- Configured via `packages/external-services/`
+Premium membership is sold through PayPal (web), the App Store, and Google Play. The
+processor charges the buyer. Podverse records the result in a grant ledger. Overview,
+sandbox setup, and operations: [docs/billing/BILLING.md](/docs/billing/BILLING.md).
 
 ### Matomo
 

@@ -10,11 +10,18 @@ import {
 } from './billingProcessorEnv.js';
 
 const PAYPAL_ENV = {
+  BILLING_PAYPAL_ENABLED: 'true',
   PAYPAL_CLIENT_ID: 'client',
   PAYPAL_CLIENT_SECRET: 'secret',
   PAYPAL_WEBHOOK_ID: 'webhook',
   PAYPAL_ENVIRONMENT: 'sandbox',
 };
+
+function paypalWithoutFlag(): Record<string, string> {
+  const credentials: Record<string, string> = { ...PAYPAL_ENV };
+  delete credentials.BILLING_PAYPAL_ENABLED;
+  return credentials;
+}
 
 describe('readBillingProcessorEnv', () => {
   it('leaves every processor off when no credentials are set, despite template defaults', () => {
@@ -26,7 +33,7 @@ describe('readBillingProcessorEnv', () => {
     ).toEqual({ paypal: null, apple: null, googlePlay: null });
   });
 
-  it('reads a processor only when every required key is set', () => {
+  it('reads a processor only when the flag is on and every required key is set', () => {
     expect(readBillingProcessorEnv(PAYPAL_ENV).paypal).toEqual({
       clientId: 'client',
       clientSecret: 'secret',
@@ -34,6 +41,24 @@ describe('readBillingProcessorEnv', () => {
       environment: 'sandbox',
     });
     expect(readBillingProcessorEnv({ ...PAYPAL_ENV, PAYPAL_WEBHOOK_ID: '  ' }).paypal).toBeNull();
+  });
+
+  it('leaves a processor off when credentials are set and the flag is unset or false', () => {
+    expect(readBillingProcessorEnv(paypalWithoutFlag()).paypal).toBeNull();
+    expect(
+      readBillingProcessorEnv({ ...PAYPAL_ENV, BILLING_PAYPAL_ENABLED: 'false' }).paypal
+    ).toBeNull();
+  });
+
+  it('accepts an uppercase TRUE flag', () => {
+    expect(
+      readBillingProcessorEnv({ ...PAYPAL_ENV, BILLING_PAYPAL_ENABLED: 'TRUE' }).paypal
+    ).toEqual({
+      clientId: 'client',
+      clientSecret: 'secret',
+      webhookId: 'webhook',
+      environment: 'sandbox',
+    });
   });
 });
 
@@ -47,10 +72,27 @@ describe('processor validation', () => {
     expect(results.every((result) => result.isValid)).toBe(true);
   });
 
-  it('requires the remaining keys once one credential is set', () => {
-    const results = validatePayPalProcessorEnv({ PAYPAL_CLIENT_ID: 'client' });
+  it('names the missing keys when the flag is on and a secret is missing', () => {
+    const results = validatePayPalProcessorEnv({
+      BILLING_PAYPAL_ENABLED: 'true',
+      PAYPAL_CLIENT_ID: 'client',
+    });
     const invalid = results.filter((result) => !result.isValid).map((result) => result.name);
     expect(invalid).toEqual(['PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID']);
+  });
+
+  it('skips set credentials when the flag is off and mentions the flag', () => {
+    const results = validatePayPalProcessorEnv(paypalWithoutFlag());
+    expect(results.every((result) => result.isValid)).toBe(true);
+    const clientId = results.find((result) => result.name === 'PAYPAL_CLIENT_ID');
+    expect(clientId?.message).toContain('BILLING_PAYPAL_ENABLED');
+  });
+
+  it('rejects a flag value that is neither true nor false', () => {
+    const results = validatePayPalProcessorEnv({ BILLING_PAYPAL_ENABLED: 'yes' });
+    expect(results.find((result) => result.name === 'BILLING_PAYPAL_ENABLED')?.isValid).toBe(
+      false
+    );
   });
 
   it('rejects an unknown PayPal environment', () => {

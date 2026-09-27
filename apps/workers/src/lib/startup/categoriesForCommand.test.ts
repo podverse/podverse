@@ -28,6 +28,12 @@ describe('getCategoriesForCommand', () => {
     );
   });
 
+  it('maps billingImportLegacyMembershipExpiry to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('billingImportLegacyMembershipExpiry'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
   it('maps billingSeedProcessorProductsFromEnv to Base and ORM', () => {
     expect(sortCategories(getCategoriesForCommand('billingSeedProcessorProductsFromEnv'))).toEqual(
       sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
