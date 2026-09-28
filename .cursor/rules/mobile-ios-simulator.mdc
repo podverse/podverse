@@ -92,5 +92,8 @@ bash scripts/mobile/open-simulator-ui.sh
 - Do **not** suggest tablet AVDs (e.g. `Galaxy_Tab_*`) for day-to-day Android runs.
 - Do **not** recommend x86_64 Android system images on Apple Silicon.
 - Do not assume a simulator/emulator is already booted (`No devices are booted`).
+- Do **not** tell the operator that deleting the app icon signs them out. On the
+  iOS simulator the login stays in the Keychain. Use `npm run mobile:ios:uninstall`
+  and `npm run mobile:android:uninstall` (manual devices only).
 
 Contributor detail: [APPS-MOBILE.md § Dev client workflow](/apps/mobile/APPS-MOBILE.md).

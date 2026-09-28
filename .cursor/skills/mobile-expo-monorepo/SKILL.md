@@ -30,16 +30,17 @@ Prefer durable layout fixes. Do **not** recommend root-hoisting Expo, `ln -sf` i
 When telling the operator what to run for mobile deps / native setup, **prefer one root script**
 over multi-step recipes. Bundle steps that usually go together:
 
-| Goal                                         | Prefer                                  | Avoid listing by default                                              |
-| -------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------- |
-| Clean + root + packages + mobile JS install  | `npm run deps:init`                     | `clean:node_modules` → `npm ci` → `build:packages` → `mobile:install` |
-| Same + expo prebuild + CocoaPods             | `npm run deps:init:native`              | The above plus separate `mobile:prebuild` / `mobile:pod-install`      |
-| Failed prebuild / wiped ios+android recovery | `npm run mobile:reset`                  | Bare `prebuild:clean` then `mobile:pod-install`                       |
-| Metro only (deps already installed)          | `npm run mobile:dev`                    | `npm --prefix apps/mobile run start`                                  |
-| Native run (after prebuild exists)           | `npm run mobile:ios` / `mobile:android` | Long `expo run:*` / `cd apps/mobile` chains                           |
-| Re-run pods only                             | `npm run mobile:pod-install`            | Raw `pod install` under Nix/direnv                                    |
-| Re-generate native trees + pods              | `npm run mobile:prebuild`               | `expo prebuild` + separate pod step                                   |
-| Force clean native regen (deps already OK)   | `npm run mobile:prebuild -- --clean`    | `npm --prefix apps/mobile run prebuild:clean` alone                   |
+| Goal                                         | Prefer                                                      | Avoid listing by default                                              |
+| -------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------- |
+| Clean + root + packages + mobile JS install  | `npm run deps:init`                                         | `clean:node_modules` → `npm ci` → `build:packages` → `mobile:install` |
+| Same + expo prebuild + CocoaPods             | `npm run deps:init:native`                                  | The above plus separate `mobile:prebuild` / `mobile:pod-install`      |
+| Failed prebuild / wiped ios+android recovery | `npm run mobile:reset`                                      | Bare `prebuild:clean` then `mobile:pod-install`                       |
+| Metro only (deps already installed)          | `npm run mobile:dev`                                        | `npm --prefix apps/mobile run start`                                  |
+| Native run (after prebuild exists)           | `npm run mobile:ios` / `mobile:android`                     | Long `expo run:*` / `cd apps/mobile` chains                           |
+| Signed-out manual dev client                 | `npm run mobile:ios:uninstall` / `mobile:android:uninstall` | Deleting the home-screen icon (simulator Keychain survives)           |
+| Re-run pods only                             | `npm run mobile:pod-install`                                | Raw `pod install` under Nix/direnv                                    |
+| Re-generate native trees + pods              | `npm run mobile:prebuild`                                   | `expo prebuild` + separate pod step                                   |
+| Force clean native regen (deps already OK)   | `npm run mobile:prebuild -- --clean`                        | `npm --prefix apps/mobile run prebuild:clean` alone                   |
 
 Give the step-by-step breakdown only when debugging a specific failing stage. Wrap JS installs with
 `./scripts/nix/with-env` when the agent/sandbox needs the flake; do **not** wrap `mobile:ios` /

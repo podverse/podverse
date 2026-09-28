@@ -52,14 +52,14 @@
     },
     {
       "name": "Mobile iOS",
-      "description": "Manual install/run (exits when done; --no-bundler always). npm run mobile:ios -- --device \"iPhone 17 Pro\". Metro in Mobile Metro. E2E installs: Mobile E2E iOS.",
+      "description": "Manual install/run (exits when done; --no-bundler always). Signed-out reinstall: npm run mobile:ios:uninstall (Keychain survives deleting the icon). Then npm run mobile:ios -- --device \"iPhone 17 Pro\". Metro in Mobile Metro. E2E installs: Mobile E2E iOS.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Android",
-      "description": "Manual install/run (exits when done; --no-bundler always). Emulator: npm run mobile:android -- --device Pixel_6_Pro_API_33. USB: mobile:android:device. Metro in Mobile Metro. E2E installs: Mobile E2E Android.",
+      "description": "Manual install/run (exits when done; --no-bundler always). Signed-out reinstall: npm run mobile:android:uninstall. Then npm run mobile:android -- --device Pixel_6_Pro_API_33. USB: mobile:android:device. Metro in Mobile Metro. E2E installs: Mobile E2E Android.",
       "cwd": ".",
       "open": true,
       "split": "Mobile iOS",

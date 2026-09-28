@@ -340,7 +340,29 @@ npm run mobile:dev:device
 
 ## 8. Install and launch the mobile app
 
-**Mobile iOS** (exits when the install/launch finishes; leave Metro up):
+Remove any previous dev-client install first. On the iOS simulator, deleting the
+home-screen icon leaves the login in the Keychain, so the next launch is still
+signed in. These commands uninstall the app. The iOS command also deletes
+Keychain items that belong to `com.podverse.app.next` and leaves every other
+app on that simulator alone. If the simulator is booted, it shuts down for
+that step and boots again. A simulator or AVD that has never been created is
+a no-op.
+
+**Mobile iOS:**
+
+```bash
+npm run mobile:ios:uninstall
+```
+
+**Mobile Android** (boots `Pixel_6_Pro_API_33` when that AVD already exists
+and is stopped):
+
+```bash
+npm run mobile:android:uninstall
+```
+
+Then install. **Mobile iOS** (exits when the install/launch finishes; leave
+Metro up):
 
 ```bash
 npm run mobile:ios -- --device "iPhone 17 Pro"
@@ -395,6 +417,10 @@ Manual vs E2E device names:
 | **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed)              |
 | **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`                   |
 | **Root** (Android) | `adb reverse tcp:8081 tcp:8081` then emulator URL `http://localhost:8081` |
+
+Day-to-day keeps the installed app and its login. To start signed out, use the
+section 8 uninstall commands. Deleting the home-screen icon leaves the iOS
+simulator login in place.
 
 ## Verification Checklist
 

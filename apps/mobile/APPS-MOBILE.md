@@ -68,6 +68,11 @@ finish. Pending and Ask to Buy stay unfinished.
 Mobile auth is bearer-first:
 
 - Store access and refresh tokens in `expo-secure-store` (`src/auth/secureTokenStorage.ts`).
+- A signed-out dev install is `npm run mobile:ios:uninstall` /
+  `npm run mobile:android:uninstall` from the repo root. On the iOS simulator the
+  Keychain outlives deleting the app icon, and those commands remove this app's
+  Keychain items with the install. They target the manual devices (`"iPhone 17 Pro"`,
+  `Pixel_6_Pro_API_33`), not the E2E slots.
 - Never store auth tokens in AsyncStorage/MMKV.
 - Never use cookies or `withCredentials` for mobile auth requests; use `/auth/mobile/*` and bearer
   headers.
