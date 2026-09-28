@@ -88,6 +88,38 @@ export function toDatetimeLocalInputValue(
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/**
+ * Parse a `datetime-local` value (`YYYY-MM-DDTHH:mm`) as the user's local time.
+ * Returns null when the string is empty or not a real local date-time.
+ */
+export function fromDatetimeLocalInputValue(value: string): Date | null {
+  const trimmed = value.trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
+  if (match === null) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const hours = Number(match[4]);
+  const minutes = Number(match[5]);
+  const seconds = match[6] === undefined ? 0 : Number(match[6]);
+  const parsed = new Date(year, monthIndex, day, hours, minutes, seconds, 0);
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== monthIndex ||
+    parsed.getDate() !== day ||
+    parsed.getHours() !== hours ||
+    parsed.getMinutes() !== minutes ||
+    parsed.getSeconds() !== seconds
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
+
 export function getDateFnsLocale(appLocale: string): Locale {
   return dateFnsLocaleMap[appLocale] ?? enUS;
 }

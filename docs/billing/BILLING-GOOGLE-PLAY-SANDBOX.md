@@ -104,6 +104,16 @@ In Play Console, **Order management** is where a tester refund is issued.
 
 ## Local env
 
+To run Google Play locally, set `BILLING_GOOGLE_PLAY_ENABLED="true"` in
+`~/.config/podverse/local-env-overrides/billing-google-play.env`, then rerun setup from
+**Root**:
+
+```bash
+make local_env_prepare
+make local_env_link
+make local_env_setup
+```
+
 `GOOGLE_PLAY_PACKAGE_NAME` is `com.podverse.app.next`. The JSON key path points
 at a file under `~/.config/podverse/secrets/`. On Kubernetes that file is a
 SOPS secret mounted at `/var/secrets/google-play/service-account.json`

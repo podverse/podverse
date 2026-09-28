@@ -83,6 +83,8 @@ e2e_test: e2e_deps e2e_seed
 	@echo "=== Full E2E suite ==="
 	@exit_code=0; \
 	npm run test -w apps/api && npm run test -w apps/management-api || exit_code=$$?; \
+	echo "--- Reseed web E2E data after API tests ---"; \
+	EMBED_DEMO_WEB_ORIGIN=http://localhost:4032 node tools/web/seed-e2e.mjs || exit_code=$$?; \
 	npm run test:e2e -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
@@ -116,6 +118,8 @@ e2e_test_report: e2e_build_packages e2e_deps e2e_seed
 	exit_code=0; \
 	echo "--- API integration tests ---"; \
 	npm run test -w apps/api && npm run test -w apps/management-api || exit_code=$$?; \
+	echo "--- Reseed web E2E data after API tests ---"; \
+	EMBED_DEMO_WEB_ORIGIN=http://localhost:4032 node tools/web/seed-e2e.mjs || exit_code=$$?; \
 	echo "--- Web E2E report ---"; \
 	E2E_SPEC_ORDER="$(E2E_SPEC_ORDER_WEB)" \
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT" \

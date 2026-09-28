@@ -73,6 +73,11 @@ test.describe('Management-web billing checkout channels', () => {
     await page.locator('a[href="/billing"]').click();
     await page.waitForURL('**/billing');
     await expect(page.getByRole('heading', { name: 'Billing', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Payment Processors' })).toBeVisible();
+    await expect(page.getByText('PayPal', { exact: true })).toBeVisible();
+    await expect(page.getByText('Apple App Store', { exact: true })).toBeVisible();
+    await expect(page.getByText('Google Play', { exact: true })).toBeVisible();
+    await expect(page.getByText('Off', { exact: true })).toHaveCount(3);
 
     await page.locator('a[href="/billing/checkout-channels"]').click();
     await page.waitForURL('**/billing/checkout-channels');

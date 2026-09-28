@@ -29,7 +29,8 @@ import {
  *
  * The row sits in the header, inset past the back chevron. A column under the header covers
  * the leading play control on list rows, and sharing the chevron's slot makes a back tap
- * sign in again.
+ * sign in again. The session marker stays out of this row: a fourth 44pt box covers Create
+ * Clip once the full player shows its trailing actions.
  */
 const E2E_QUICK_LOGIN_HIT_SIZE = 44;
 
@@ -63,8 +64,12 @@ export function E2eQuickLogin() {
       zIndex: 2000,
     },
     marker: {
+      bottom: insets.bottom + tokens.spacing.sm,
       height: E2E_QUICK_LOGIN_HIT_SIZE,
+      left: tokens.spacing.sm,
+      position: 'absolute',
       width: E2E_QUICK_LOGIN_HIT_SIZE,
+      zIndex: 2000,
     },
   });
 
@@ -108,50 +113,53 @@ export function E2eQuickLogin() {
   const busy = isLoading || status === 'unknown';
 
   return (
-    <View pointerEvents="box-none" style={styles.host}>
-      <Pressable
-        accessibilityLabel={t('e2e.quick_login')}
-        accessibilityRole="button"
-        accessibilityState={{ busy: isLoading, disabled: busy }}
-        onPress={() => {
-          signIn(E2E_USER_EMAIL);
-        }}
-        style={styles.hit}
-        testID="e2e-quick-login"
-      />
-      <Pressable
-        accessibilityLabel={t('e2e.quick_login_popularity')}
-        accessibilityRole="button"
-        accessibilityState={{ busy: isLoading, disabled: busy }}
-        onPress={() => {
-          signIn(E2E_POPULARITY_UNDECIDED_EMAIL);
-        }}
-        style={styles.hit}
-        testID="e2e-quick-login-popularity"
-      />
-      <Pressable
-        accessibilityLabel={t('e2e.quick_login_perf')}
-        accessibilityRole="button"
-        accessibilityState={{ busy: isLoading, disabled: busy }}
-        onPress={() => {
-          signIn(E2E_PERF_EMAIL);
-        }}
-        style={styles.hit}
-        testID="e2e-quick-login-perf"
-      />
+    <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+      <View pointerEvents="box-none" style={styles.host}>
+        <Pressable
+          accessibilityLabel={t('e2e.quick_login')}
+          accessibilityRole="button"
+          accessibilityState={{ busy: isLoading, disabled: busy }}
+          onPress={() => {
+            signIn(E2E_USER_EMAIL);
+          }}
+          style={styles.hit}
+          testID="e2e-quick-login"
+        />
+        <Pressable
+          accessibilityLabel={t('e2e.quick_login_popularity')}
+          accessibilityRole="button"
+          accessibilityState={{ busy: isLoading, disabled: busy }}
+          onPress={() => {
+            signIn(E2E_POPULARITY_UNDECIDED_EMAIL);
+          }}
+          style={styles.hit}
+          testID="e2e-quick-login-popularity"
+        />
+        <Pressable
+          accessibilityLabel={t('e2e.quick_login_perf')}
+          accessibilityRole="button"
+          accessibilityState={{ busy: isLoading, disabled: busy }}
+          onPress={() => {
+            signIn(E2E_PERF_EMAIL);
+          }}
+          style={styles.hit}
+          testID="e2e-quick-login-perf"
+        />
+        {error !== null ? (
+          <Text style={styles.error} testID="e2e-quick-login-error">
+            {error}
+          </Text>
+        ) : null}
+      </View>
       {status === 'authenticated' ? (
         <View
           accessibilityLabel={t('e2e.session_ready')}
           accessible
           collapsable={false}
+          pointerEvents="none"
           style={styles.marker}
           testID="e2e-session-authenticated"
         />
-      ) : null}
-      {error !== null ? (
-        <Text style={styles.error} testID="e2e-quick-login-error">
-          {error}
-        </Text>
       ) : null}
     </View>
   );

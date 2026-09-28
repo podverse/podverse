@@ -454,7 +454,11 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       }
     },
     onPlay() {
-      if (!mediaRef.current) {
+      // Media events are queued, so a fast pause-then-play can deliver `pause` after the element
+      // is playing again (and the reverse). Acting on a stale event flips `mpIsPlaying` back, the
+      // `mpIsPlaying` effect drives the element the other way, and the two feed each other forever.
+      // `onPause` applies the same guard.
+      if (!mediaRef.current || mediaRef.current.paused) {
         return;
       }
       const newCurrentTime = mediaRef.current.currentTime;
@@ -511,7 +515,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       });
     },
     onPause() {
-      if (!mediaRef.current) {
+      if (!mediaRef.current || !mediaRef.current.paused) {
         return;
       }
       const newCurrentTime = mediaRef.current.currentTime;

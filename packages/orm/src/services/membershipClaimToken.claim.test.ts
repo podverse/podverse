@@ -44,6 +44,12 @@ vi.mock('@orm/services/account/accountMembershipStatus.js', () => ({
   },
 }));
 
+vi.mock('@orm/services/billingMembershipExtension.js', () => ({
+  BillingMembershipExtensionService: class {
+    extendByMonths = vi.fn().mockResolvedValue(undefined);
+  },
+}));
+
 vi.mock('@orm/services/billingRenewalOrchestrator.js', () => ({
   BillingRenewalOrchestratorService: class {
     handlePayOnDemandExtensionRequested = vi.fn().mockResolvedValue(undefined);

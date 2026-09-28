@@ -49,12 +49,14 @@ test.describe('Manage membership', () => {
     const activateResponse = await page.request.post(`${API_ORIGIN}/billing/test/simulate`, {
       data: {
         event: {
-          type: 'subscription_activated',
+          type: 'subscription_renewed',
           externalProductId: 'e2e-test-monthly-renew',
           externalBasePlanId: null,
           externalSubscriptionId: 'e2e-manage-monthly',
+          externalTransactionId: 'e2e-manage-monthly-charge',
           periodStart: periodStart.toISOString(),
           periodEnd: periodEnd.toISOString(),
+          amount: { value: '3.00', currencyCode: 'USD' },
         },
       },
     });

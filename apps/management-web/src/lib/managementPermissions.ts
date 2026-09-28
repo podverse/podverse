@@ -169,6 +169,10 @@ export function canGrantBillingMembership(user: CurrentUser): boolean {
   return hasCrud(user, user.permissions?.billing_account_crud, CRUD_CREATE);
 }
 
+export function canEndBillingMembership(user: CurrentUser): boolean {
+  return hasCrud(user, user.permissions?.billing_account_crud, CRUD_DELETE);
+}
+
 export function canReadBillingWebhookEvents(user: CurrentUser): boolean {
   return hasCrud(user, user.permissions?.billing_webhook_events_crud, CRUD_READ);
 }

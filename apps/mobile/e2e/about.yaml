@@ -9,6 +9,13 @@ name: More About
     id: tab-more
 - assertVisible:
     id: more-screen
+# About sits on the second page of More. A tap at the row's bottom edge hits the tab bar.
+- scrollUntilVisible:
+    element:
+      id: more-nav-about
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    centerElement: true
 - tapOn:
     id: more-nav-about
 - assertVisible:

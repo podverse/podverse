@@ -21,7 +21,7 @@ test.describe('Web membership page trial limitations and renew route', () => {
     await expect(page.getByText('CarPlay*', { exact: true })).toBeVisible();
     await expect(page.getByText('Android Auto*', { exact: true })).toBeVisible();
     await expect(page.getByText('Streaming (Value for Value)', { exact: true })).toHaveCount(0);
-    await expect(page.getByText('Sleep timer*', { exact: true })).toBeVisible();
+    await expect(page.getByText('Sleep Timer*', { exact: true })).toBeVisible();
     await expect(page.getByText('Coming Soon')).toHaveCount(0);
     await expect(
       page.getByText('* Feature is only available in the mobile app', { exact: true })

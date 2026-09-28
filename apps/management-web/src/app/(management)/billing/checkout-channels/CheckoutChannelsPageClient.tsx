@@ -14,12 +14,17 @@ import {
   TextInput,
 } from '@podverse/ui';
 
+import { BillingProcessorStatus } from '../../../../components/billing/BillingProcessorStatus';
 import { ManagementLoadingSpinnerOverlay } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { canUpdateBillingChannels } from '../../../../lib/managementPermissions';
 import type { CurrentUser } from '../../../../lib/requests/auth';
-import type { BillingCheckoutChannel } from '../../../../lib/requests/billing';
+import type {
+  BillingCheckoutChannel,
+  BillingProcessorStatusRow,
+} from '../../../../lib/requests/billing';
 import {
   listBillingCheckoutChannels,
+  reqBillingGetProcessors,
   updateBillingCheckoutChannel,
 } from '../../../../lib/requests/billing';
 import { ROUTES } from '../../../../lib/routes';
@@ -52,6 +57,7 @@ function parseStorefronts(value: string): string[] {
 export function CheckoutChannelsPageClient({ initialUser }: CheckoutChannelsPageClientProps) {
   const [user] = useState(initialUser);
   const [channels, setChannels] = useState<BillingCheckoutChannel[]>([]);
+  const [processors, setProcessors] = useState<BillingProcessorStatusRow[] | null>(null);
   const [drafts, setDrafts] = useState<Record<number, ChannelDraft>>({});
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -63,7 +69,13 @@ export function CheckoutChannelsPageClient({ initialUser }: CheckoutChannelsPage
   const canUpdate = canUpdateBillingChannels(user);
 
   const load = useCallback(async () => {
-    const result = await listBillingCheckoutChannels();
+    const [result, processorRows] = await Promise.all([
+      listBillingCheckoutChannels(),
+      reqBillingGetProcessors()
+        .then((processorResult) => processorResult.data)
+        .catch(() => null),
+    ]);
+    setProcessors(processorRows);
     setChannels(result.data);
     const next: Record<number, ChannelDraft> = {};
     for (const channel of result.data) {
@@ -149,6 +161,7 @@ export function CheckoutChannelsPageClient({ initialUser }: CheckoutChannelsPage
       {notice !== null ? <Alert variant="success">{notice}</Alert> : null}
       {!loading && error === null ? (
         <>
+          {processors !== null ? <BillingProcessorStatus rows={processors} /> : null}
           <p>{t('channels.cacheNote')}</p>
           <Table.ScrollContainer>
             <Table>

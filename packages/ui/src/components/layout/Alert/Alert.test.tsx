@@ -21,7 +21,7 @@ describe('Alert', () => {
 
   it('renders content when children is non-empty', () => {
     const { getByText } = render(<Alert>Something went wrong</Alert>);
-    expect(getByText('Something Went Wrong')).toBeTruthy();
+    expect(getByText('Something went wrong')).toBeTruthy();
   });
 
   it('renders an empty shell when renderWhenEmpty is true', () => {

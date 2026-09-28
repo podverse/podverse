@@ -48,13 +48,14 @@ test.describe('Set-password invite when another session is active', () => {
     });
 
     await test.step('Password fields are available', async () => {
-      await expect(page.getByPlaceholder('Password')).toHaveCount(2);
+      await expect(page.getByRole('textbox', { name: 'Password', exact: true })).toBeVisible();
+      await expect(page.getByRole('textbox', { name: 'Confirm Password', exact: true })).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
         'Password fields are available and no other-session banner is shown.',
-        page.getByPlaceholder('Password').first()
+        page.getByRole('textbox', { name: 'Password', exact: true })
       );
     });
   });
@@ -105,7 +106,8 @@ test.describe('Set-password invite when another session is active', () => {
       await expect(page.getByText(/You are signed in as/i)).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Sign Out and Continue' })).toHaveCount(0);
       await expect(page.getByRole('heading', { name: 'Set Password' })).toBeVisible();
-      await expect(page.getByPlaceholder('Password')).toHaveCount(2);
+      await expect(page.getByRole('textbox', { name: 'Password', exact: true })).toBeVisible();
+      await expect(page.getByRole('textbox', { name: 'Confirm Password', exact: true })).toBeVisible();
 
       await capturePageLoad(
         page,
@@ -137,7 +139,8 @@ test.describe('Set-password invite when another session is active', () => {
       await expect(page.getByText(/You are signed in as/i)).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Sign Out and Continue' })).toHaveCount(0);
       await expect(page.getByRole('heading', { name: 'Set Password' })).toBeVisible();
-      await expect(page.getByPlaceholder('Password')).toHaveCount(2);
+      await expect(page.getByRole('textbox', { name: 'Password', exact: true })).toBeVisible();
+      await expect(page.getByRole('textbox', { name: 'Confirm Password', exact: true })).toBeVisible();
 
       await capturePageLoad(
         page,

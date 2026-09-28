@@ -1,0 +1,45 @@
+---
+description: Payment processor adapters, grant ledger, and webhook rules for membership billing.
+globs: packages/billing/**,packages/external-services-paypal/**,packages/external-services-apple-app-store/**,packages/external-services-google-play/**,packages/helpers/src/lib/billing/**,packages/helpers-config/src/billingProcessorEnv.ts,apps/api/src/lib/billing/**,apps/workers/src/lib/billing/**,apps/workers/src/commands/billing/**,apps/management-api/src/lib/billing/**,apps/management-api/src/routes/billing.ts,docs/billing/**
+alwaysApply: false
+---
+
+# Billing processor adapters
+
+Membership billing goes through one adapter per vendor. The API registers them in
+`registerBillingAdapters`. Workers and the management API register the same set in
+`registerConfiguredBillingAdapters`.
+
+A processor registers only when its `BILLING_*_ENABLED` flag is `"true"` and its required
+credentials are set. Every committed template, K8s source env, and the test env leave the flag
+empty. Credentials alone never register a processor. Do not default a flag on.
+
+The flag is deployment capability (credentials, webhooks, reconcile). The checkout channel is
+the sales switch. Leave the two separate.
+
+## Do
+
+- Implement `PaymentProcessorAdapter` in the vendor package and register that factory at
+  startup. Do not call a vendor SDK from a route or a worker command.
+- Treat webhooks as idempotent. The client purchase post is a fast path; the webhook alone
+  must be enough to grant access. Both paths key off the processor transaction id.
+- Let workers reconcile. They read the processor and apply what the ledger missed.
+- Turn a checkout channel off to stop new sales. That does not need an app release. Leave the
+  flag on while live subscriptions still need webhooks.
+- Let `BillingEntitlementService` recompute `membership_expires_at` under a row lock. Trial,
+  admin, and import time are grants. Admin shortening goes through `endAccess` or
+  `revokeGrant`. Those never change processor or claim grants.
+- Have clients decide "nothing to buy" from `GET /billing/checkout-options` and show the
+  contact state. They never read processor env.
+- In production, grant sandbox purchases only for accounts in
+  `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`.
+
+## Don't
+
+- Don't charge a card, a PayPal agreement, or a store account from a worker. The processor
+  charges. Reconciliation only reads.
+- Don't write `membership_expires_at` outside that recompute.
+- Don't add a fourth payment processor beside PayPal, Apple, and Google Play.
+- Don't send membership-expiry or renewal-reminder email.
+
+Operator guide: [docs/billing/BILLING.md](/docs/billing/BILLING.md).

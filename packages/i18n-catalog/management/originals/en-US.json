@@ -614,6 +614,7 @@
       "hintTrialNew": "Trial starts users in the untrusted tier with tighter default limits.",
       "hintPremiumNew": "Premium starts users in the trusted tier with broader default access.",
       "membershipExpiresAt": "Membership expires at",
+      "membershipExpiresAtHelp": "Clearing the date ends membership access now. Use the Billing page to extend by plan length or days.",
       "membershipExpiresAtPickerAffix": "Open date and time picker",
       "premiumBillingCadence": "Premium billing period",
       "billingMonthly": "Monthly",
@@ -812,6 +813,42 @@
       "resync": "Resync",
       "grant": "Grant Membership",
       "grantCadenceLabel": "Cadence",
+      "extend": {
+        "title": "Extend Membership",
+        "mode": "Extend by",
+        "modePlan": "Plan Length",
+        "modeDays": "Number of Days",
+        "modeDate": "Until Date",
+        "days": "Days",
+        "daysInvalid": "Enter a whole number of days from 1 to 3660.",
+        "untilDate": "New Expiration Date",
+        "dateFuture": "Choose a date in the future.",
+        "note": "Note",
+        "noteHelp": "Saved to the audit log.",
+        "submit": "Extend Membership",
+        "success": "Membership extended to {date}."
+      },
+      "end": {
+        "title": "End Access",
+        "date": "End Date",
+        "dateRequired": "Choose an end date.",
+        "submitDate": "Set End Date",
+        "submitNow": "End Access Now",
+        "confirmTitle": "End Membership Access",
+        "confirmBody": "Access ends on {date}. Admin-issued and trial time after that date is removed.",
+        "success": "Membership access now ends on {date}.",
+        "failed": "Failed to end membership access."
+      },
+      "revoke": {
+        "action": "Revoke",
+        "actionName": "Revoke {source} Ending {date}",
+        "confirmTitle": "Revoke Grant",
+        "confirmBody": "This grant's time is removed and the membership expiration is recalculated.",
+        "success": "Grant revoked.",
+        "failed": "Failed to revoke the grant."
+      },
+      "protectedAccess": "Processor-paid access runs until {date}. Cancel or refund it with the processor.",
+      "datePickerAffix": "Open Date and Time Picker",
       "expires": "Membership Expires",
       "subscriptions": "Subscriptions",
       "transactions": "Transactions",
@@ -865,6 +902,15 @@
         "attempts": "Attempts",
         "error": "Error"
       }
+    },
+    "processors": {
+      "title": "Payment Processors",
+      "enabled": "Enabled",
+      "disabled": "Off",
+      "offNotice": "Processors marked Off are not enabled in this deployment. Their checkout channels offer nothing until an operator turns them on. Extend memberships manually from each user's Billing page.",
+      "paypal": "PayPal",
+      "apple": "Apple App Store",
+      "google_play": "Google Play"
     }
   }
 }

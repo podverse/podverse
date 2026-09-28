@@ -58,6 +58,27 @@ export async function expectMediaPlayerTitleVisible(
 }
 
 /**
+ * The persistent player renders play/pause controls in more than one layout at once; only the
+ * active viewport's control is visible. `data-media-player-playing="true"` marks the playing
+ * state on each of those buttons.
+ */
+export function persistentPlayerPlayingButtons(page: Page): Locator {
+  return page.locator('aside#media-player button[data-media-player-playing="true"]');
+}
+
+export async function expectPersistentPlayerPlaying(
+  page: Page,
+  playing: boolean
+): Promise<void> {
+  const playingButtons = persistentPlayerPlayingButtons(page);
+  if (playing) {
+    await expect(playingButtons.first()).toBeVisible();
+    return;
+  }
+  await expect(playingButtons).toHaveCount(0);
+}
+
+/**
  * Wait for the first `<audio>` element to reach at least the given
  * `HTMLMediaElement.readyState`. Used to gate `currentTime` assertions on
  * `loadedmetadata` actually having fired (readyState >= 1 = HAVE_METADATA).

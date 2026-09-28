@@ -15,10 +15,16 @@ export type ToggleSwitchProps = SwitchProps;
  * Settings and preference switch. Prefer this over a raw React Native `Switch` so iOS 26 layout
  * matches the drawn control and row padding stays even on both sides.
  */
-export function ToggleSwitch(props: ToggleSwitchProps) {
-  if (!usesIos26SwitchLayout) {
-    return <Switch {...props} />;
-  }
+export function ToggleSwitch({ accessibilityState, style, value, ...props }: ToggleSwitchProps) {
+  const switchProps: ToggleSwitchProps = {
+    ...props,
+    accessibilityState: {
+      ...accessibilityState,
+      checked: value === true,
+    },
+    style: usesIos26SwitchLayout ? [IOS_26_SWITCH_LAYOUT, style] : style,
+    value,
+  };
 
-  return <Switch {...props} style={[IOS_26_SWITCH_LAYOUT, props.style]} />;
+  return <Switch {...switchProps} />;
 }

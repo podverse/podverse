@@ -15,13 +15,20 @@ function createMockService(params: {
     clientId: 'client-id',
     clientSecret: 'client-secret',
     webhookId: 'WH-1234567890ABCDE',
-    fetchImpl: async () =>
-      new Response(
+    fetchImpl: async (url) => {
+      const href = typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+      if (href.endsWith('/v1/oauth2/token')) {
+        return new Response(JSON.stringify({ access_token: 'test-access-token' }), {
+          status: 200,
+        });
+      }
+      return new Response(
         JSON.stringify({
           verification_status: params.isValidSignature ? 'SUCCESS' : 'FAILURE',
         }),
         { status: 200 }
-      ),
+      );
+    },
     ordersController: {
       createOrder: async () => ({ result: { id: 'ORDER-1' } }),
       captureOrder: async () => ({ result: { id: 'ORDER-1' } }),

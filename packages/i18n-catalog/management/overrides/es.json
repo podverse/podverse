@@ -606,6 +606,7 @@
       "hintTrialNew": "",
       "hintPremiumNew": "",
       "membershipExpiresAt": "",
+      "membershipExpiresAtHelp": "",
       "membershipExpiresAtPickerAffix": "",
       "premiumBillingCadence": "",
       "billingMonthly": "",
@@ -724,6 +725,55 @@
     "subtitle": "",
     "language": {
       "label": ""
+    }
+  },
+  "billing": {
+    "account": {
+      "extend": {
+        "title": "",
+        "mode": "",
+        "modePlan": "",
+        "modeDays": "",
+        "modeDate": "",
+        "days": "",
+        "daysInvalid": "",
+        "untilDate": "",
+        "dateFuture": "",
+        "note": "",
+        "noteHelp": "",
+        "submit": "",
+        "success": ""
+      },
+      "end": {
+        "title": "",
+        "date": "",
+        "dateRequired": "",
+        "submitDate": "",
+        "submitNow": "",
+        "confirmTitle": "",
+        "confirmBody": "",
+        "success": "",
+        "failed": ""
+      },
+      "revoke": {
+        "action": "",
+        "actionName": "",
+        "confirmTitle": "",
+        "confirmBody": "",
+        "success": "",
+        "failed": ""
+      },
+      "protectedAccess": "",
+      "datePickerAffix": ""
+    },
+    "processors": {
+      "title": "",
+      "enabled": "",
+      "disabled": "",
+      "offNotice": "",
+      "paypal": "",
+      "apple": "",
+      "google_play": ""
     }
   }
 }

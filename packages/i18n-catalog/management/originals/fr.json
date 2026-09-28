@@ -606,6 +606,7 @@
       "hintTrialNew": "L'essai commence les utilisateurs dans la catégorie non fiable avec des limites par défaut plus strictes.",
       "hintPremiumNew": "Le premium commence les utilisateurs dans la catégorie fiable avec un accès par défaut plus large.",
       "membershipExpiresAt": "L'adhésion expire le",
+      "membershipExpiresAtHelp": "Effacer la date met fin à l'accès à l'adhésion maintenant. Utilisez la page de facturation pour prolonger selon la durée du forfait ou un nombre de jours.",
       "membershipExpiresAtPickerAffix": "Ouvrir le sélecteur de date et heure",
       "premiumBillingCadence": "Période de facturation Premium",
       "billingMonthly": "Mensuelle",
@@ -724,6 +725,55 @@
     "subtitle": "Choisissez votre langue et thème",
     "language": {
       "label": "Langue"
+    }
+  },
+  "billing": {
+    "account": {
+      "extend": {
+        "title": "Prolonger l'adhésion",
+        "mode": "Prolonger de",
+        "modePlan": "Durée du forfait",
+        "modeDays": "Nombre de jours",
+        "modeDate": "Jusqu'à une date",
+        "days": "Jours",
+        "daysInvalid": "Saisissez un nombre entier de jours entre 1 et 3660.",
+        "untilDate": "Nouvelle date d'expiration",
+        "dateFuture": "Choisissez une date dans le futur.",
+        "note": "Note",
+        "noteHelp": "Enregistrée dans le journal d'audit.",
+        "submit": "Prolonger l'adhésion",
+        "success": "Adhésion prolongée jusqu'au {date}."
+      },
+      "end": {
+        "title": "Mettre fin à l'accès",
+        "date": "Date de fin",
+        "dateRequired": "Choisissez une date de fin.",
+        "submitDate": "Définir la date de fin",
+        "submitNow": "Mettre fin à l'accès maintenant",
+        "confirmTitle": "Mettre fin à l'accès à l'adhésion",
+        "confirmBody": "L'accès prend fin le {date}. Le temps accordé par un administrateur et le temps d'essai après cette date sont retirés.",
+        "success": "L'accès à l'adhésion prend maintenant fin le {date}.",
+        "failed": "Impossible de mettre fin à l'accès à l'adhésion."
+      },
+      "revoke": {
+        "action": "Révoquer",
+        "actionName": "Révoquer {source} se terminant le {date}",
+        "confirmTitle": "Révoquer l'octroi",
+        "confirmBody": "Le temps de cet octroi est retiré et la date d'expiration de l'adhésion est recalculée.",
+        "success": "Octroi révoqué.",
+        "failed": "Impossible de révoquer l'octroi."
+      },
+      "protectedAccess": "L'accès payé via le processeur court jusqu'au {date}. Annulez-le ou demandez un remboursement auprès du processeur.",
+      "datePickerAffix": "Ouvrir le sélecteur de date et d'heure"
+    },
+    "processors": {
+      "title": "Processeurs de paiement",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "offNotice": "Les processeurs marqués comme désactivés ne sont pas activés dans ce déploiement. Leurs canaux de paiement ne proposent rien tant qu'un opérateur ne les active pas. Prolongez les adhésions manuellement depuis la page de facturation de chaque utilisateur.",
+      "paypal": "PayPal",
+      "apple": "App Store d'Apple",
+      "google_play": "Google Play"
     }
   }
 }

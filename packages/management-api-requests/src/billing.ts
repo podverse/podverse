@@ -79,6 +79,7 @@ export type BillingAccountGrant = {
   revoked_at: string | null;
   billing_subscription_id: number | null;
   billing_transaction_id: number | null;
+  admin_editable: boolean;
 };
 
 export type BillingWebhookEvent = {
@@ -217,16 +218,123 @@ export async function resyncBillingAccount(
   });
 }
 
+export const BILLING_MEMBERSHIP_NOTE_MAX_LENGTH = 500;
+export const BILLING_MEMBERSHIP_EXTEND_DAYS_MIN = 1;
+export const BILLING_MEMBERSHIP_EXTEND_DAYS_MAX = 3660;
+
+export type GrantBillingMembershipByCadence = {
+  cadence: 'monthly' | 'annual';
+  note?: string;
+};
+
+export type GrantBillingMembershipByDays = {
+  days: number;
+  note?: string;
+};
+
+export type GrantBillingMembershipByDate = {
+  ends_at: string;
+  note?: string;
+};
+
+/** Exactly one length: a plan cadence, a number of days, or an end instant. */
+export type GrantBillingMembershipBody =
+  | GrantBillingMembershipByCadence
+  | GrantBillingMembershipByDays
+  | GrantBillingMembershipByDate;
+
+export type EndBillingMembershipBody = {
+  ends_at: string;
+  note?: string;
+};
+
+export type RevokeBillingMembershipGrantBody = {
+  note?: string;
+};
+
+export type BillingMembershipChangeResult = {
+  account_id: number;
+  membership_expires_at: string | null;
+};
+
+export type BillingMembershipRequestError = {
+  status: number;
+  message: string;
+  accessEndsAt: string | null;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+/** Reads `message` and optional `access_ends_at` from a failed billing membership response. */
+export function readBillingMembershipRequestError(
+  error: unknown
+): BillingMembershipRequestError | null {
+  if (!isRecord(error)) {
+    return null;
+  }
+  const response = error.response;
+  if (!isRecord(response)) {
+    return null;
+  }
+  const status = response.status;
+  const data = response.data;
+  if (typeof status !== 'number' || !isRecord(data)) {
+    return null;
+  }
+  const message = data.message;
+  if (typeof message !== 'string' || message.trim() === '') {
+    return null;
+  }
+  const accessEndsAt = data.access_ends_at;
+  if (accessEndsAt !== undefined && accessEndsAt !== null && typeof accessEndsAt !== 'string') {
+    return null;
+  }
+  return {
+    status,
+    message,
+    accessEndsAt: typeof accessEndsAt === 'string' ? accessEndsAt : null,
+  };
+}
+
 export async function grantBillingMembership(
   accountId: number,
-  cadence: 'monthly' | 'annual',
+  body: GrantBillingMembershipBody,
   jwt?: string
 ): Promise<{ data: BillingGrantResult }> {
   const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ data: BillingGrantResult }>({
     path: `/billing/accounts/${accountId}/grants`,
     method: 'POST',
-    data: { cadence },
+    data: body,
+  });
+}
+
+export async function reqBillingEndMembership(
+  accountId: number,
+  body: EndBillingMembershipBody,
+  jwt?: string
+): Promise<{ data: BillingMembershipChangeResult }> {
+  const service = new ManagementApiRequestService({ jwt });
+  return service.apiRequest<{ data: BillingMembershipChangeResult }>({
+    path: `/billing/accounts/${accountId}/membership-end`,
+    method: 'POST',
+    data: body,
+  });
+}
+
+export async function reqBillingRevokeGrant(
+  accountId: number,
+  grantId: number,
+  body: RevokeBillingMembershipGrantBody,
+  jwt?: string
+): Promise<{ data: BillingMembershipChangeResult }> {
+  const service = new ManagementApiRequestService({ jwt });
+  return service.apiRequest<{ data: BillingMembershipChangeResult }>({
+    path: `/billing/accounts/${accountId}/grants/${grantId}/revoke`,
+    method: 'POST',
+    data: body,
   });
 }
 

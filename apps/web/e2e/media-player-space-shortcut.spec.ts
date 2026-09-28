@@ -1,7 +1,11 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
-import { waitForAudioReadyAtLeast } from './helpers/mediaPlayerAssertions';
+import {
+  clearSeededPodcastQueueResources,
+  expectPersistentPlayerPlaying,
+  waitForAudioReadyAtLeast,
+} from './helpers/mediaPlayerAssertions';
 import { E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT } from './helpers/seedConstants';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
@@ -17,21 +21,9 @@ async function loginSeedUser(page: Page): Promise<void> {
   expect(loginResponse.ok(), await loginResponse.text()).toBeTruthy();
 }
 
-function persistentPlayerPlayingButtons(page: Page) {
-  return page.locator('aside#media-player button[data-media-player-playing="true"]');
-}
-
-async function expectPersistentPlayerPlaying(page: Page, playing: boolean): Promise<void> {
-  const playingButtons = persistentPlayerPlayingButtons(page);
-  if (playing) {
-    await expect(playingButtons.first()).toBeVisible();
-    return;
-  }
-  await expect(playingButtons).toHaveCount(0);
-}
-
 async function loadPlayingNonLiveEpisode(page: Page): Promise<void> {
   await loginSeedUser(page);
+  await clearSeededPodcastQueueResources(page);
   await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT}`);
   await expect(page.getByRole('heading', { name: 'E2E Podcast No Stored Position' })).toBeVisible();
   await page.getByRole('button', { name: 'Play' }).first().click();

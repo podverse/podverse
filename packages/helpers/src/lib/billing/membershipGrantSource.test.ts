@@ -39,4 +39,14 @@ describe('isAdminEditableGrant', () => {
   it('protects a source it does not recognize', () => {
     expect(isAdminEditableGrant({ source: 'gift', ...unlinked })).toBe(false);
   });
+
+  it('protects a grant that is already revoked', () => {
+    expect(
+      isAdminEditableGrant({
+        source: 'admin',
+        ...unlinked,
+        revoked_at: new Date('2026-09-27T23:01:00.000Z'),
+      })
+    ).toBe(false);
+  });
 });

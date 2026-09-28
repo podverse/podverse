@@ -84,6 +84,11 @@ type MediaPlayerContextType = {
    * otherwise queue hydration defaults to `session_restore`.
    */
   pendingMusicQueueLoadIntentRef: RefObject<MusicItemPlaybackIntent | null>;
+  /**
+   * Monotonic counter bumped by every `applyPlaybackLoad`. Automatic queue hydration
+   * and queue-head loads compare against this so a load applied after they start wins.
+   */
+  playbackLoadGenerationRef: RefObject<number>;
 };
 
 export const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -124,9 +129,11 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
   const [pendingPlaybackDecision, setPendingPlaybackDecision] =
     useState<PlaybackLoadDecision | null>(null);
   const pendingMusicQueueLoadIntentRef = useRef<MusicItemPlaybackIntent | null>(null);
+  const playbackLoadGenerationRef = useRef(0);
 
   const applyPlaybackLoad = useCallback(
     (request: PlaybackLoadRequest): PlaybackLoadDecision => {
+      playbackLoadGenerationRef.current += 1;
       const decision = resolvePlaybackLoadDecision(request, {
         abridged: queueResourcesAbridgedIndex,
       });
@@ -184,6 +191,7 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
         setPendingPlaybackDecision,
         applyPlaybackLoad,
         pendingMusicQueueLoadIntentRef,
+        playbackLoadGenerationRef,
       }}
     >
       {children}

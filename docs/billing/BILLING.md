@@ -103,19 +103,25 @@ Purchase, cancel, and restore posts are rate limited per account
 
 ## Configuration
 
-Each processor is off until its keys are set. Setting any key of a processor makes all of its
-required keys mandatory at startup. The API reads them in `apps/api/.env.example` order (see
-[apps/api/ENV.md](/apps/api/ENV.md)):
+A processor runs only when its enable flag is `"true"`. Credentials alone never turn it on.
+Empty, unset, and `false` are off. `true` is case-insensitive. Any other value fails startup
+validation. With the flag on, every required key in the table is mandatory. With the flag off,
+those keys may be set and the processor stays unregistered. Committed templates, Kubernetes
+source env, and the test env leave each flag empty.
 
-| Processor   | Keys                                                                                           |
-| ----------- | ---------------------------------------------------------------------------------------------- |
-| PayPal      | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, optional `PAYPAL_ENVIRONMENT` |
-| App Store   | `APPLE_*`                                                                                      |
-| Google Play | `GOOGLE_PLAY_*`                                                                                |
+The API reads them in `apps/api/.env.example` order (see [apps/api/ENV.md](/apps/api/ENV.md)):
+
+| Processor   | Flag                          | Keys                                                                                           |
+| ----------- | ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| PayPal      | `BILLING_PAYPAL_ENABLED`      | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, optional `PAYPAL_ENVIRONMENT` |
+| App Store   | `BILLING_APPLE_IAP_ENABLED`   | `APPLE_*`                                                                                      |
+| Google Play | `BILLING_GOOGLE_PLAY_ENABLED` | `GOOGLE_PLAY_*`                                                                                |
 
 The API registers adapters in `registerBillingAdapters`. Workers (Billing-category commands)
 and the management API register the same processors through
-`registerConfiguredBillingAdapters`. A processor with no credentials is left out.
+`registerConfiguredBillingAdapters`. A processor whose flag is off, or whose required
+credentials are missing, is left unregistered. The API, workers, and management API must use
+the same flag values.
 
 ### Test processor
 
@@ -169,15 +175,26 @@ startup in both places that build the registry:
 - `packages/billing/src/registerConfiguredBillingAdapters.ts` (workers and the management API)
 
 Add the processor's env group in `packages/helpers-config/src/billingProcessorEnv.ts`. A
-processor is registered only when its credential keys are set; setting any enable key makes
-every required key mandatory at startup. Map store product ids with
-`billingSeedProcessorProductsFromEnv` or in management web, and add a checkout channel for each
-platform that should offer it.
+processor is registered only when its `BILLING_*_ENABLED` flag is `"true"` and its required
+credential keys are set. Map store product ids with `billingSeedProcessorProductsFromEnv` or
+in management web, and add a checkout channel for each platform that should offer it.
 
-To stop selling through a processor, turn its checkout channel off. That is the kill switch:
-clients stop offering it within the 60-second channel cache, and no app release is required.
-See [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md#kill-switch). Clearing the credential keys
-unregisters the adapter: checkout omits it and its webhook answers 404.
+Two switches, kept separate:
+
+| Switch | What it controls | How to change it |
+| --- | --- | --- |
+| Enable flag (`BILLING_PAYPAL_ENABLED`, `BILLING_APPLE_IAP_ENABLED`, `BILLING_GOOGLE_PLAY_ENABLED`) | Deployment capability: credentials, webhooks, and reconcile | Set the flag to `"true"` on the API, workers, and management API together |
+| Checkout channel | Sales on a platform and storefront | Turn `enabled` off under **Billing → Checkout Channels** |
+
+A fresh deployment leaves every flag empty, so it sells nothing. Admins extend memberships
+from each user's Billing page. See
+[BILLING-OPERATIONS.md](BILLING-OPERATIONS.md#manual-membership-management).
+
+To stop new sales while members still renew, turn the checkout channel off and leave the flag
+on. Clients stop offering that channel within the 60-second cache, and no app release is
+required. Turning the flag off makes that processor's webhooks answer 404. See
+[BILLING-OPERATIONS.md](BILLING-OPERATIONS.md#kill-switch) and
+[Enabling a processor](BILLING-OPERATIONS.md#enabling-a-processor).
 
 ## Maintenance calendar
 
@@ -225,6 +242,7 @@ bash ./infra/k8s/scripts/secret-generators/create_billing_google_play_secret.sh
 
 Set `APPLE_IAP_PRIVATE_KEY_PATH` to `/var/secrets/apple-iap/AuthKey.p8` and
 `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH` to `/var/secrets/google-play/service-account.json` only
-together with the rest of that processor's credential keys. Either path alone enables the
-processor and startup then requires every other key. The public web client id is
-`NEXT_PUBLIC_PAYPAL_CLIENT_ID` on the web sidecar, never the client secret.
+together with the rest of that processor's credential keys and its `BILLING_*_ENABLED` flag
+set to `"true"`. A credential path without the flag does not register the processor. The
+public web client id is `NEXT_PUBLIC_PAYPAL_CLIENT_ID` on the web sidecar, never the client
+secret.

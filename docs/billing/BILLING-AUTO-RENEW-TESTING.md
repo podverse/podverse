@@ -18,7 +18,9 @@ arrives afterward, a refund that clears entitlement, and grace: access while
 
 `tools/web/seed-e2e.mjs` enables the `test` checkout channel for web, iOS, and Android and
 inserts the `e2e-test-*` products. `NODE_ENV=test` registers the test adapter. Default runs
-do not set PayPal, Apple, or Google credentials.
+leave `BILLING_PAYPAL_ENABLED`, `BILLING_APPLE_IAP_ENABLED`, and `BILLING_GOOGLE_PLAY_ENABLED`
+empty, so every production processor is off. They do not require PayPal, Apple, or Google
+credentials.
 
 The mobile fake client is selected only when Metro `__DEV__` is on and
 `EXPO_PUBLIC_MOBILE_E2E=1`. A release build does not select it.
@@ -43,7 +45,8 @@ The web report hub is `.artifacts/e2e-reports/latest/index.html`.
 
 `make e2e_test_web_paypal_sandbox` is not part of `e2e_test` or `e2e_test_report`. It builds
 packages, sources `dev/env-overrides/local/billing-e2e.env` when that file exists, and sets
-`E2E_PAYPAL_SANDBOX=1`.
+`BILLING_PAYPAL_ENABLED=true` plus `E2E_PAYPAL_SANDBOX=1` for its own processes. That is the
+opt-in path that turns PayPal on.
 
 The spec `apps/web/e2e/checkout-paypal-sandbox.spec.ts` skips unless that flag is `1` and
 both `E2E_PAYPAL_SANDBOX_BUYER_EMAIL` and `E2E_PAYPAL_SANDBOX_BUYER_PASSWORD` are non-empty.

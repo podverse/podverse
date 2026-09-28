@@ -352,6 +352,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                 <TextInput
                   id="edit-user-expires"
                   eyebrow={t('membershipForm.membershipExpiresAt')}
+                  info={t('membershipForm.membershipExpiresAtHelp')}
                   nativePickerAffixAriaLabel={t('membershipForm.membershipExpiresAtPickerAffix')}
                   type="datetime-local"
                   value={membershipExpiresAt}

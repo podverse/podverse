@@ -61,8 +61,9 @@ minute. In development, restart the API to see it immediately.
 
 The same **Billing** section maps processor product ids to a cadence and purchase kind, shows one
 account's subscriptions, transactions, grants, and webhook events (linked from the user detail
-page) with resync and a manual grant, and lists the webhook inbox with a replay for a stored
-event. Resync reads each subscription from its processor, so the management API needs the same
+page) with resync and [manual membership management](#manual-membership-management), and lists
+the webhook inbox with a replay for a stored event. Resync reads each subscription from its
+processor, so the management API needs the same
 processor credentials as the API and workers. A processor that is not enabled (flag off or
 credentials missing) is reported as skipped rather than failing the resync.
 
@@ -93,6 +94,9 @@ webhooks, and reconcile. An enabled channel offers nothing while its processor's
 returning 404, and those members lapse at period end. To stop new sales, disable its checkout
 channels instead.
 
+With every flag off, the deployment sells nothing. Extend memberships from each user's Billing
+page. See [Manual membership management](#manual-membership-management).
+
 ## Buffer and grace
 
 Both durations are seconds (`_EXPIRATION`). They are read by the API, workers, and the
@@ -116,13 +120,51 @@ On the user's **Billing** page in management web (`/users/<id>/billing`), **Resy
 processor, applies it the same way a webhook does, and retries that account's failed inbox
 rows. A processor that is not configured on this server is reported as skipped.
 
-## Manual grant
+## Manual membership management
 
-On that same page, choose **Monthly** or **Annual** and use **Grant Membership**. The management API
-`POST /api/v2/billing/accounts/<accountId>/grants` with `{ "cadence": "monthly" }` or
-`"annual"` writes an `admin` grant through the ledger and recomputes
-`membership_expires_at`. It does not set the expiry column by itself. A repeat of the same
-request can answer `applied: false` when the ledger already holds that time.
+On that same Billing page, **Extend by** is shown when the admin's `billing_account` permission
+includes create:
+
+| Mode | What it sends |
+| --- | --- |
+| Plan Length | `{ "cadence": "monthly" }` or `"annual"` |
+| Number of Days | `{ "days": N }` for a whole number from 1 to 3660 |
+| Until Date | `{ "ends_at": "<ISO-8601>" }` in the future |
+
+`POST /api/v2/billing/accounts/<accountId>/grants` writes an `admin` grant and recomputes
+`membership_expires_at`. It does not set the expiry column by itself. When the ledger already
+holds that time, the response is `applied: false`. An end that is not later than current
+access answers 422: "Use End Access to shorten a membership."
+
+An optional note, at most 500 characters, is stored on the management audit log for the
+extend, the end, and the revoke. It is not stored on the grant.
+
+**End Access** needs the `billing_account` delete bit. **Set End Date** and **End Access Now**
+both confirm, then call `POST .../membership-end` with `ends_at`. That cuts or revokes
+admin-editable grants at that time and recomputes. Admin-editable grants are `admin`, `trial`,
+`legacy_import`, and `migration_baseline` rows with no subscription, transaction, or claim
+token. A date later than current access answers 422: "Use Extend to lengthen a membership."
+
+**Revoke** on a grant row with `admin_editable: true` uses the same delete bit.
+`POST .../grants/<grantId>/revoke` removes that grant's remaining time and recomputes.
+
+Processor-paid grants (`subscription_period`, `one_time_purchase`) and `claim_token` grants
+cannot be removed from the portal. End or revoke that would cut that access answers 409 and
+changes nothing. When paid access still runs past the requested end, the message is "Paid
+access continues past the requested end. Cancel or refund it with the processor." and the body
+includes `access_ends_at`. Revoking the protected grant itself answers "This grant was paid
+through a processor or claim token and cannot be changed here."
+
+| `billing_account` bit | Allows |
+| --- | --- |
+| read | The Billing page |
+| update | Resync |
+| create | Extend |
+| delete | End access and revoke |
+
+An account whose cached expiry has no grant is repaired the first time an admin or a processor
+writes to it: that uncovered time becomes a `migration_baseline` grant. No separate command is
+required. `make local_db_reset` gives a clean local database when you want one.
 
 The v4 expiry import is [v4 membership carryover](#v4-membership-carryover).
 

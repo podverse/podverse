@@ -41,14 +41,18 @@ function isAdminEditableGrantSource(source: string): source is AdminEditableGran
 
 /**
  * True when the portal may shorten or revoke this grant: an admin-editable source with no
- * subscription, transaction, or claim token behind it.
+ * subscription, transaction, or claim token behind it, and not already revoked.
  */
 export function isAdminEditableGrant(grant: {
   source: string;
   billing_subscription_id: number | null;
   billing_transaction_id: number | null;
   membership_claim_token_id: string | null;
+  revoked_at?: Date | string | null;
 }): boolean {
+  if (grant.revoked_at !== null && grant.revoked_at !== undefined) {
+    return false;
+  }
   return (
     isAdminEditableGrantSource(grant.source) &&
     grant.billing_subscription_id === null &&

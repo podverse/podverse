@@ -3,13 +3,17 @@ import { expect, test } from '@playwright/test';
 
 import {
   clearSeededPodcastQueueResources,
+  clickDetailPagePlayButton,
+  expectMediaPlayerTitleAbsent,
   expectMediaPlayerTitleVisible,
+  expectPersistentPlayerPlaying,
   waitForAudioReadyAtLeast,
 } from './helpers/mediaPlayerAssertions';
 import {
   E2E_MUSIC_QUEUE_ID_TEXT,
   E2E_MUSIC_TRACK_DURATION_SECONDS,
   E2E_MUSIC_TRACK_ONE_ID_TEXT,
+  E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT,
   E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
   E2E_PODCAST_QUEUE_ID_TEXT,
 } from './helpers/seedConstants';
@@ -22,6 +26,7 @@ const LOGIN_PASSWORD = 'Test!1Aa';
 const MUSIC_QUEUE_RESTORE_P_SECONDS = 15;
 const MUSIC_TRACK_ONE_TITLE = 'E2E Music Track One';
 const PODCAST_RESUME_TITLE = 'E2E Podcast Resume P > 0';
+const PODCAST_NO_STORED_POSITION_TITLE = 'E2E Podcast No Stored Position';
 
 async function loginSeedUser(page: Page): Promise<void> {
   const loginResponse = await page.request.post(API_LOGIN_URL, {
@@ -222,5 +227,71 @@ test.describe('Media player logged-in music queue restore', () => {
         return 'promoted';
       })
       .toBe('promoted');
+  });
+
+  test('An explicit Play during empty-player queue-head adoption keeps the clicked episode', async ({
+    page,
+  }) => {
+    await promoteMusicTrackToNowPlaying(page, MUSIC_QUEUE_RESTORE_P_SECONDS);
+
+    let releaseHeldItem!: () => void;
+    const heldItemReleased = new Promise<void>((resolve) => {
+      releaseHeldItem = resolve;
+    });
+    let markItemRequestSeen!: () => void;
+    const itemRequestSeen = new Promise<void>((resolve) => {
+      markItemRequestSeen = resolve;
+    });
+    let musicChannelId: number | string | null = null;
+
+    await page.route(`**/api/v2/item/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`, async (route) => {
+      markItemRequestSeen();
+      await heldItemReleased;
+      const response = await route.fetch();
+      const body: unknown = await response.json();
+      if (
+        typeof body === 'object' &&
+        body !== null &&
+        'channel_id' in body &&
+        (typeof body.channel_id === 'number' || typeof body.channel_id === 'string')
+      ) {
+        musicChannelId = body.channel_id;
+      }
+      await route.fulfill({
+        status: response.status(),
+        headers: response.headers(),
+        body: JSON.stringify(body),
+      });
+    });
+
+    await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT}`);
+    await expect(
+      page.getByRole('heading', { name: PODCAST_NO_STORED_POSITION_TITLE })
+    ).toBeVisible();
+    await itemRequestSeen;
+
+    await clickDetailPagePlayButton(page);
+    await expectPersistentPlayerPlaying(page, true);
+    await expectMediaPlayerTitleVisible(page, PODCAST_NO_STORED_POSITION_TITLE);
+
+    const channelResponsePromise = page.waitForResponse((response) => {
+      if (musicChannelId === null) {
+        return false;
+      }
+      return (
+        response.url().includes(`/api/v2/channel/${musicChannelId}`) &&
+        response.request().method() === 'GET' &&
+        response.ok()
+      );
+    });
+    releaseHeldItem();
+    await channelResponsePromise;
+    await page.evaluate(
+      () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    );
+
+    await expectMediaPlayerTitleVisible(page, PODCAST_NO_STORED_POSITION_TITLE);
+    await expectMediaPlayerTitleAbsent(page, MUSIC_TRACK_ONE_TITLE);
+    await expectPersistentPlayerPlaying(page, true);
   });
 });

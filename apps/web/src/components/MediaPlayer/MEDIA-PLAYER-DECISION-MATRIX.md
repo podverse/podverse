@@ -119,7 +119,9 @@ loads the other account queue (AV ↔ music) into the store so the queue-head
 effect can promote and load paused. Falling back does not flip
 `is_active_queue`. Auto-queue is not consulted at open — those rows are not
 persisted and only advance after skip / ended while something is already
-playing.
+playing. Hydration and automatic queue-head loads give way to any playback load
+applied after they start (for example an explicit Play on a detail page), so a
+slow adoption never replaces the item the user chose.
 
 | Resource shape                                         | `currentTime` after `loadedmetadata`                                                                                                                           | `mpIsPlaying`                                                            | Side effects                                                                                                                                           |
 | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |

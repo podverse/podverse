@@ -96,6 +96,15 @@ project. The checklist is in
 
 ## Local env
 
+To run Apple In-App Purchase locally, set `BILLING_APPLE_IAP_ENABLED="true"` in
+`~/.config/podverse/local-env-overrides/billing-apple.env`, then rerun setup from **Root**:
+
+```bash
+make local_env_prepare
+make local_env_link
+make local_env_setup
+```
+
 `APPLE_IAP_BUNDLE_ID` is `com.podverse.app.next`. `APPLE_IAP_ENVIRONMENT` is
 `sandbox` for local API runs. The `.p8` path points at a file under
 `~/.config/podverse/secrets/`. On Kubernetes the same file is a SOPS secret

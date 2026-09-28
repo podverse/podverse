@@ -138,10 +138,11 @@ Home overrides (empty in the repo examples; real values only under `~/.config/po
 | `local-env-overrides/billing.env` | `BILLING_WEBHOOK_PUBLIC_BASE_URL`, buffer and grace expirations, `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS` |
 | `local-env-overrides/billing-products.env` | `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_MONTHLY_PLAN_ID`, `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_ANNUAL_PLAN_ID` |
 
+To run PayPal locally, set `BILLING_PAYPAL_ENABLED="true"` in
+`~/.config/podverse/local-env-overrides/paypal.env`, then rerun setup from **Root**.
 `make local_env_setup` copies `PAYPAL_CLIENT_ID` to the web sidecar as
-`NEXT_PUBLIC_PAYPAL_CLIENT_ID` only while `BILLING_PAYPAL_ENABLED` is `true`. Otherwise that
-sidecar key is cleared. The client secret never goes in the sidecar. Apply from
-**Root**:
+`NEXT_PUBLIC_PAYPAL_CLIENT_ID` only while that flag is `true`. Otherwise that sidecar key is
+cleared. The client secret never goes in the sidecar.
 
 ```bash
 make local_env_prepare

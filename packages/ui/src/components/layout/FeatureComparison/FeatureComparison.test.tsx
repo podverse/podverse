@@ -75,7 +75,7 @@ describe('FeatureComparison', () => {
       />
     );
 
-    expect(screen.getByRole('cell', { name: 'Comments: Coming soon' })).toBeTruthy();
+    expect(screen.getByRole('cell', { name: 'Comments: Coming Soon' })).toBeTruthy();
     expect(screen.queryByLabelText('Available')).toBeNull();
   });
 
