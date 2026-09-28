@@ -36,10 +36,10 @@
     "@types/bcrypt": "^6.0.0",
     "@types/module-alias": "^2.0.4",
     "tsc-alias": "^1.8.16",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.2"
   },
   "type": "module",
   "optionalDependencies": {
-    "@rollup/rollup-darwin-arm64": "^4.63.4"
+    "@rollup/rollup-darwin-arm64": "^4.63.5"
   }
 }
