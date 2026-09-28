@@ -1,21 +1,42 @@
 import type { ImageRef } from 'expo-image';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
-import { PixelRatio, Platform } from 'react-native';
+import { Image as RNImage, PixelRatio, Platform } from 'react-native';
 
+import placeholderArtwork from '../../../assets/images/placeholder-image.png';
 import { perfCount } from '../../lib/perf/perfSpans';
 import {
   createThumbnailCache,
   isThumbnailEligibleUri,
   thumbnailEdgePx,
 } from './coverThumbnailCache';
+import { createImageLoaderInitGate } from './coverThumbnailLoaderGate';
+
+/** Local asset URI for the one-shot Image.loadAsync that initializes expo-image's ImageLoader. */
+const warmSourceUri = (() => {
+  if (typeof placeholderArtwork !== 'number') {
+    return null;
+  }
+  const resolved = RNImage.resolveAssetSource(placeholderArtwork);
+  return resolved?.uri ?? null;
+})();
+
+const imageLoaderInitGate = createImageLoaderInitGate(async () => {
+  if (warmSourceUri === null) {
+    return;
+  }
+  // Tiny edge: only the lazy SDWebImageManager init matters, not the decoded size.
+  await Image.loadAsync({ uri: warmSourceUri }, { maxHeight: 1, maxWidth: 1 });
+});
 
 const thumbnailCache = createThumbnailCache<ImageRef>(async (uri, edgePx) => {
   try {
     // Native ImageSource accepts `scale`; the public TS type omits it. A variable (not a fresh
     // literal) keeps the field without a type assertion.
     const source = { scale: PixelRatio.get(), uri };
-    const ref = await Image.loadAsync(source, { maxHeight: edgePx, maxWidth: edgePx });
+    const ref = await imageLoaderInitGate.afterReady(() =>
+      Image.loadAsync(source, { maxHeight: edgePx, maxWidth: edgePx })
+    );
     perfCount('image.thumb.load');
     return ref;
   } catch (error) {
