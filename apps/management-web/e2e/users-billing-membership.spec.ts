@@ -87,7 +87,9 @@ test.describe('User billing page manual membership', () => {
     );
   });
 
-  test('a superuser ends access now and the member reads as expired', async ({ page }, testInfo) => {
+  test('a superuser ends access now and the member reads as expired', async ({
+    page,
+  }, testInfo) => {
     await openBillingMemberPage(page);
     await page.getByRole('button', { name: 'End Access Now' }).click();
     const dialog = page.getByRole('dialog', { name: 'End Membership Access' });

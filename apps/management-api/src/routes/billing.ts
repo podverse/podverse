@@ -539,7 +539,10 @@ router.post(
       const now = new Date();
       const membershipExpiresAtBefore = await getCachedMembershipExpiresAt(accountId);
       const endsAt = value.ends_at;
-      if (endsAt !== undefined && !isLaterThanCurrentAccess(endsAt, membershipExpiresAtBefore, now)) {
+      if (
+        endsAt !== undefined &&
+        !isLaterThanCurrentAccess(endsAt, membershipExpiresAtBefore, now)
+      ) {
         res.status(422).json({ message: 'Use End Access to shorten a membership.' });
         return;
       }

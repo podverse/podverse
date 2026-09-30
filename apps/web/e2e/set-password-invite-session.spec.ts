@@ -49,7 +49,9 @@ test.describe('Set-password invite when another session is active', () => {
 
     await test.step('Password fields are available', async () => {
       await expect(page.getByRole('textbox', { name: 'Password', exact: true })).toBeVisible();
-      await expect(page.getByRole('textbox', { name: 'Confirm Password', exact: true })).toBeVisible();
+      await expect(
+        page.getByRole('textbox', { name: 'Confirm Password', exact: true })
+      ).toBeVisible();
 
       await capturePageLoad(
         page,
@@ -107,7 +109,9 @@ test.describe('Set-password invite when another session is active', () => {
       await expect(page.getByRole('button', { name: 'Sign Out and Continue' })).toHaveCount(0);
       await expect(page.getByRole('heading', { name: 'Set Password' })).toBeVisible();
       await expect(page.getByRole('textbox', { name: 'Password', exact: true })).toBeVisible();
-      await expect(page.getByRole('textbox', { name: 'Confirm Password', exact: true })).toBeVisible();
+      await expect(
+        page.getByRole('textbox', { name: 'Confirm Password', exact: true })
+      ).toBeVisible();
 
       await capturePageLoad(
         page,
@@ -140,7 +144,9 @@ test.describe('Set-password invite when another session is active', () => {
       await expect(page.getByRole('button', { name: 'Sign Out and Continue' })).toHaveCount(0);
       await expect(page.getByRole('heading', { name: 'Set Password' })).toBeVisible();
       await expect(page.getByRole('textbox', { name: 'Password', exact: true })).toBeVisible();
-      await expect(page.getByRole('textbox', { name: 'Confirm Password', exact: true })).toBeVisible();
+      await expect(
+        page.getByRole('textbox', { name: 'Confirm Password', exact: true })
+      ).toBeVisible();
 
       await capturePageLoad(
         page,

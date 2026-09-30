@@ -78,9 +78,9 @@ const runStep = (step) =>
       chunks.push(filtered);
       process.stdout.write(filtered);
     };
+    // PATH binaries (`npm`, `node`, `npx`). Arguments stay unexpanded.
     const child = spawn(step.cmd, step.args, {
       stdio: ['inherit', 'pipe', 'pipe'],
-      shell: true,
     });
     child.stdout.on('data', capture);
     child.stderr.on('data', capture);
@@ -110,7 +110,6 @@ function getPrettierDiff(filePath) {
   const prettierResult = spawnSync('npx', ['prettier', '--stdin-filepath', filePath], {
     input: current,
     encoding: 'utf8',
-    shell: true,
     cwd,
   });
   const formatted = prettierResult.stdout;

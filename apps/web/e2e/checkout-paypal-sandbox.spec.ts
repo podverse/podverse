@@ -76,9 +76,7 @@ function merchantCredentials(): { clientId: string; clientSecret: string } {
   const clientId = values.PAYPAL_CLIENT_ID ?? '';
   const clientSecret = values.PAYPAL_CLIENT_SECRET ?? '';
   if (clientId === '' || clientSecret === '') {
-    throw new Error(
-      'PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET must be set in the home paypal.env'
-    );
+    throw new Error('PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET must be set in the home paypal.env');
   }
   return { clientId, clientSecret };
 }

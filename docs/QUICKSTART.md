@@ -17,17 +17,17 @@ All commands are from the **monorepo root**. Use the named tabs in
 
 ## Terminals
 
-| Tab                 | Use in this walkthrough                                        | Leave running?        |
-| ------------------- | -------------------------------------------------------------- | --------------------- |
-| **Root**            | One-shot env, deps, package/worker builds, optional feed seed  | No                    |
-| **Docker**          | Teardown, `local_setup` / `local_infra_up`                     | No (containers stay)  |
-| **Dev**             | `npm run dev:all:watch` (main + management, packages, compile) | **Yes**               |
-| **Workers**         | Parser **consumers** (`npm run dev:workers:parsers`)           | **Yes**               |
-| **Billing Tunnel**  | Sandbox webhooks; [Sandbox checkout](#sandbox-checkout)        | **Yes** (checkout)    |
-| **Mobile**          | One-shot mobile install/prebuild/health                        | No                    |
-| **Mobile Metro**    | `npm run mobile:dev` (local API on `:3000`)                    | **Yes**               |
-| **Mobile iOS**      | `npm run mobile:ios -- --device "iPhone 17 Pro"`               | No (exits; app stays) |
-| **Mobile Android**  | `npm run mobile:android -- --device Pixel_6_Pro_API_33`        | No (exits; app stays) |
+| Tab                | Use in this walkthrough                                        | Leave running?        |
+| ------------------ | -------------------------------------------------------------- | --------------------- |
+| **Root**           | One-shot env, deps, package/worker builds, optional feed seed  | No                    |
+| **Docker**         | Teardown, `local_setup` / `local_infra_up`                     | No (containers stay)  |
+| **Dev**            | `npm run dev:all:watch` (main + management, packages, compile) | **Yes**               |
+| **Workers**        | Parser **consumers** (`npm run dev:workers:parsers`)           | **Yes**               |
+| **Billing Tunnel** | Sandbox webhooks; [Sandbox checkout](#sandbox-checkout)        | **Yes** (checkout)    |
+| **Mobile**         | One-shot mobile install/prebuild/health                        | No                    |
+| **Mobile Metro**   | `npm run mobile:dev` (local API on `:3000`)                    | **Yes**               |
+| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"`               | No (exits; app stays) |
+| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`        | No (exits; app stays) |
 
 Do **not** start **Mobile E2E Metro** or **Mobile E2E API** for this flow. Those
 point the app at the E2E API on `:4230`, not your local Docker Postgres.
@@ -493,16 +493,16 @@ Manual vs E2E device names:
 
 ## Day-to-day (already set up)
 
-| Tab                 | Command                                                                   |
-| ------------------- | ------------------------------------------------------------------------- |
-| **Docker**          | `make local_infra_up` then `npm run check:dev-deps`                       |
-| **Dev**             | `npm run dev:all:watch`                                                   |
-| **Workers**         | `npm run dev:workers:parsers`                                             |
-| **Billing Tunnel**  | `cloudflared tunnel run podverse-local`                                   |
-| **Mobile Metro**    | `npm run mobile:dev`                                                      |
-| **Mobile iOS**      | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed)              |
-| **Mobile Android**  | `npm run mobile:android -- --device Pixel_6_Pro_API_33`                   |
-| **Root** (Android)  | `adb reverse tcp:8081 tcp:8081` then emulator URL `http://localhost:8081` |
+| Tab                | Command                                                                   |
+| ------------------ | ------------------------------------------------------------------------- |
+| **Docker**         | `make local_infra_up` then `npm run check:dev-deps`                       |
+| **Dev**            | `npm run dev:all:watch`                                                   |
+| **Workers**        | `npm run dev:workers:parsers`                                             |
+| **Billing Tunnel** | `cloudflared tunnel run podverse-local`                                   |
+| **Mobile Metro**   | `npm run mobile:dev`                                                      |
+| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed)              |
+| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`                   |
+| **Root** (Android) | `adb reverse tcp:8081 tcp:8081` then emulator URL `http://localhost:8081` |
 
 Day-to-day keeps the installed app and its login. To start signed out, use the
 section 8 uninstall commands. Deleting the home-screen icon leaves the iOS

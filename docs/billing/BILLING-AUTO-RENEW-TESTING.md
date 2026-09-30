@@ -5,11 +5,11 @@ StoreKit Testing, and Google Play license testers are opt-in or manual.
 
 ## Default CI
 
-| Surface         | What runs                                      | Processor   |
-| --------------- | ---------------------------------------------- | ----------- |
-| API integration | `apps/api/src/test/billing.test.ts`            | `test`      |
-| Web E2E         | `apps/web/e2e/checkout-membership.spec.ts`     | `test`      |
-| Mobile Maestro  | `apps/mobile/e2e/membership-checkout.yaml`     | fake client |
+| Surface         | What runs                                  | Processor   |
+| --------------- | ------------------------------------------ | ----------- |
+| API integration | `apps/api/src/test/billing.test.ts`        | `test`      |
+| Web E2E         | `apps/web/e2e/checkout-membership.spec.ts` | `test`      |
+| Mobile Maestro  | `apps/mobile/e2e/membership-checkout.yaml` | fake client |
 
 The API tests post `POST /billing/test/simulate` for a signed-in account. They cover a
 redelivered PayPal webhook recorded once, a renewal that stays entitled when an older expiry

@@ -186,10 +186,7 @@ export class BillingMembershipExtensionService {
     references: GrantReferences
   ): Promise<BillingMembershipGrant | null> {
     const repository = transactionalEntityManager.getRepository(BillingMembershipGrant);
-    if (
-      references.billingTransactionId !== undefined &&
-      references.billingTransactionId !== null
-    ) {
+    if (references.billingTransactionId !== undefined && references.billingTransactionId !== null) {
       return repository.findOne({
         where: { billing_transaction_id: references.billingTransactionId },
       });
@@ -259,15 +256,13 @@ export class BillingMembershipExtensionService {
             status.account_membership?.id ??
             AccountMembershipEnum.Premium
         );
-        await transactionalEntityManager
-          .getRepository(AccountMembershipStatus)
-          .update(
-            { account: { id: params.accountId } },
-            {
-              last_extension_idempotency_key: params.idempotencyKey,
-              billing_cadence: params.billingCadence ?? status.billing_cadence ?? null,
-            }
-          );
+        await transactionalEntityManager.getRepository(AccountMembershipStatus).update(
+          { account: { id: params.accountId } },
+          {
+            last_extension_idempotency_key: params.idempotencyKey,
+            billing_cadence: params.billingCadence ?? status.billing_cadence ?? null,
+          }
+        );
         return true;
       },
       params.now

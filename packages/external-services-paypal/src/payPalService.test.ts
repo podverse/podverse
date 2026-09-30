@@ -135,9 +135,7 @@ describe('PayPalService.ensureDailyRenewalPlan', () => {
     const createPlan = fetchImpl.mock.calls.find((call) => {
       const [url, init] = call;
       return (
-        typeof url === 'string' &&
-        url.endsWith('/v1/billing/plans') &&
-        init?.method === 'POST'
+        typeof url === 'string' && url.endsWith('/v1/billing/plans') && init?.method === 'POST'
       );
     });
     expect(createPlan).toBeDefined();

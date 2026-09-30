@@ -90,9 +90,7 @@ describe('processor validation', () => {
 
   it('rejects a flag value that is neither true nor false', () => {
     const results = validatePayPalProcessorEnv({ BILLING_PAYPAL_ENABLED: 'yes' });
-    expect(results.find((result) => result.name === 'BILLING_PAYPAL_ENABLED')?.isValid).toBe(
-      false
-    );
+    expect(results.find((result) => result.name === 'BILLING_PAYPAL_ENABLED')?.isValid).toBe(false);
   });
 
   it('needs only the bundle id for Apple in xcode mode, and refuses that mode in production', () => {

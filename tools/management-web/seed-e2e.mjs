@@ -86,7 +86,9 @@ async function seedBillingMember(passwordHash) {
       [accountId, startsAt, endsAt]
     );
     await client.query('COMMIT');
-    console.log(`Seeded app user (Trial, ${BILLING_MEMBER_TRIAL_DAYS} days): ${BILLING_MEMBER_EMAIL}`);
+    console.log(
+      `Seeded app user (Trial, ${BILLING_MEMBER_TRIAL_DAYS} days): ${BILLING_MEMBER_EMAIL}`
+    );
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

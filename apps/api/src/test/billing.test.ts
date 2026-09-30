@@ -63,8 +63,7 @@ vi.mock('@podverse/external-services-paypal', async (importOriginal) => {
 });
 
 vi.mock('@podverse/external-services-google-play', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@podverse/external-services-google-play')>();
+  const actual = await importOriginal<typeof import('@podverse/external-services-google-play')>();
 
   return {
     ...actual,
@@ -101,10 +100,7 @@ vi.mock('@podverse/external-services-google-play', async (importOriginal) => {
             rawPayload: { purchaseToken: ref.externalId },
           };
         },
-        fetchTransaction: async (ref: {
-          externalId: string;
-          externalProductId: string | null;
-        }) => {
+        fetchTransaction: async (ref: { externalId: string; externalProductId: string | null }) => {
           const periodStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
           const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
           return {

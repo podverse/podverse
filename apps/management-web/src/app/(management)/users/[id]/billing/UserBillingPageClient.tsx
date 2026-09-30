@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatDateTimeAbbrev, fromDatetimeLocalInputValue } from '@podverse/helpers';
 import type { FormDropdownOption } from '@podverse/ui';
@@ -445,7 +445,11 @@ export function UserBillingPageClient({ initialUser, accountId }: UserBillingPag
                         }}
                       />
                       <FormPrimaryActions>
-                        <Button disabled={working} isLoading={workingKind === 'extend'} type="submit">
+                        <Button
+                          disabled={working}
+                          isLoading={workingKind === 'extend'}
+                          type="submit"
+                        >
                           {t('account.extend.submit')}
                         </Button>
                       </FormPrimaryActions>

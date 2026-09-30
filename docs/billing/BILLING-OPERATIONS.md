@@ -103,10 +103,10 @@ Both durations are seconds (`_EXPIRATION`). They are read by the API, workers, a
 management API so a webhook, a reconcile run, and an admin resync compute the same access
 window.
 
-| Key | Default | Effect |
-| --- | --- | --- |
+| Key                                             | Default             | Effect                                                                         |
+| ----------------------------------------------- | ------------------- | ------------------------------------------------------------------------------ |
 | `BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION` | `172800` (48 hours) | Access continues past an auto-renew period end while the renewal event arrives |
-| `BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION` | `604800` (7 days) | Access continues after a failed renewal charge while the processor retries |
+| `BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION`      | `604800` (7 days)   | Access continues after a failed renewal charge while the processor retries     |
 
 Local values come from `~/.config/podverse/local-env-overrides/billing.env`. Leave them at the
 defaults unless the policy changes. Enable the same grace in App Store Connect and Play
@@ -125,11 +125,11 @@ rows. A processor that is not configured on this server is reported as skipped.
 On that same Billing page, **Extend by** is shown when the admin's `billing_account` permission
 includes create:
 
-| Mode | What it sends |
-| --- | --- |
-| Plan Length | `{ "cadence": "monthly" }` or `"annual"` |
+| Mode           | What it sends                                     |
+| -------------- | ------------------------------------------------- |
+| Plan Length    | `{ "cadence": "monthly" }` or `"annual"`          |
 | Number of Days | `{ "days": N }` for a whole number from 1 to 3660 |
-| Until Date | `{ "ends_at": "<ISO-8601>" }` in the future |
+| Until Date     | `{ "ends_at": "<ISO-8601>" }` in the future       |
 
 `POST /api/v2/billing/accounts/<accountId>/grants` writes an `admin` grant and recomputes
 `membership_expires_at`. It does not set the expiry column by itself. When the ledger already
@@ -155,12 +155,12 @@ access continues past the requested end. Cancel or refund it with the processor.
 includes `access_ends_at`. Revoking the protected grant itself answers "This grant was paid
 through a processor or claim token and cannot be changed here."
 
-| `billing_account` bit | Allows |
-| --- | --- |
-| read | The Billing page |
-| update | Resync |
-| create | Extend |
-| delete | End access and revoke |
+| `billing_account` bit | Allows                |
+| --------------------- | --------------------- |
+| read                  | The Billing page      |
+| update                | Resync                |
+| create                | Extend                |
+| delete                | End access and revoke |
 
 An account whose cached expiry has no grant is repaired the first time an admin or a processor
 writes to it: that uncovered time becomes a `migration_baseline` grant. No separate command is

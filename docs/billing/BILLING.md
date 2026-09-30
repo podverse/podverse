@@ -143,15 +143,15 @@ webhook never arrived. The schedule and the local command are in
 `BillingEntitlementService` recomputes it under a row lock from the grant ledger
 (`computeMembershipAccess` in `@podverse/helpers`). No other code writes that timestamp.
 
-| Source | What it records |
-| --- | --- |
-| `subscription_period` | One paid period of a subscription |
-| `one_time_purchase` | A one-time purchase |
-| `claim_token` | A redeemed membership claim token |
-| `admin` | Time an operator granted |
-| `trial` | The free trial |
-| `legacy_import` | Expiry carried over from the previous Podverse app |
-| `migration_baseline` | Membership an account already had when grants were introduced |
+| Source                | What it records                                               |
+| --------------------- | ------------------------------------------------------------- |
+| `subscription_period` | One paid period of a subscription                             |
+| `one_time_purchase`   | A one-time purchase                                           |
+| `claim_token`         | A redeemed membership claim token                             |
+| `admin`               | Time an operator granted                                      |
+| `trial`               | The free trial                                                |
+| `legacy_import`       | Expiry carried over from the previous Podverse app            |
+| `migration_baseline`  | Membership an account already had when grants were introduced |
 
 One-time purchases stack: the new grant starts where the account's access already runs out
 (trial, admin, and paid grants all count), or at settlement when nothing is left. Store
@@ -188,10 +188,10 @@ in management web, and add a checkout channel for each platform that should offe
 
 Two switches, kept separate:
 
-| Switch | What it controls | How to change it |
-| --- | --- | --- |
+| Switch                                                                                             | What it controls                                            | How to change it                                                          |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------- |
 | Enable flag (`BILLING_PAYPAL_ENABLED`, `BILLING_APPLE_IAP_ENABLED`, `BILLING_GOOGLE_PLAY_ENABLED`) | Deployment capability: credentials, webhooks, and reconcile | Set the flag to `"true"` on the API, workers, and management API together |
-| Checkout channel | Sales on a platform and storefront | Turn `enabled` off under **Billing → Checkout Channels** |
+| Checkout channel                                                                                   | Sales on a platform and storefront                          | Turn `enabled` off under **Billing → Checkout Channels**                  |
 
 A fresh deployment leaves every flag empty, so it sells nothing. Admins extend memberships
 from each user's Billing page. See
@@ -209,13 +209,13 @@ Renewals do not depend on the installed app version. Stored webhook rows keep a
 `schema_version` so a payload can be replayed after a vendor changes its format. Review the
 pinned libraries when the vendor retires that API generation.
 
-| Surface | Pinned in this repo | Schema versions |
-| --- | --- | --- |
-| PayPal Orders v2 and Subscriptions | `@paypal/paypal-server-sdk` 2.x | `paypal-webhook-v1`, `paypal-capture-v1`, `paypal-subscription-v1` |
-| App Store Server API and ASN V2 | `@apple/app-store-server-library` 1.x | `apple-asn-v2`, `apple-transaction-v1`, `apple-subscription-status-v1` |
-| StoreKit on device | `expo-iap` 2.6.3 | — |
-| Google Play Developer API | `@googleapis/androidpublisher` 14.x | `google-play-rtdn-v1`, `google-play-subscription-v2`, `google-play-product-v1` |
-| Play Billing on device | `expo-iap` 2.6.3 | — |
+| Surface                            | Pinned in this repo                   | Schema versions                                                                |
+| ---------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
+| PayPal Orders v2 and Subscriptions | `@paypal/paypal-server-sdk` 2.x       | `paypal-webhook-v1`, `paypal-capture-v1`, `paypal-subscription-v1`             |
+| App Store Server API and ASN V2    | `@apple/app-store-server-library` 1.x | `apple-asn-v2`, `apple-transaction-v1`, `apple-subscription-status-v1`         |
+| StoreKit on device                 | `expo-iap` 2.6.3                      | —                                                                              |
+| Google Play Developer API          | `@googleapis/androidpublisher` 14.x   | `google-play-rtdn-v1`, `google-play-subscription-v2`, `google-play-product-v1` |
+| Play Billing on device             | `expo-iap` 2.6.3                      | —                                                                              |
 
 ## Membership email
 
@@ -241,11 +241,11 @@ bash ./infra/k8s/scripts/secret-generators/create_billing_apple_iap_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_billing_google_play_secret.sh
 ```
 
-| Secret | Contents | Mount |
-| --- | --- | --- |
-| `podverse-billing-paypal-opaque` | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` | `envFrom` on the API, management API, and `worker-billing-renewals` |
-| `podverse-billing-apple-iap-opaque` | key `AuthKey.p8` | `/var/secrets/apple-iap` |
-| `podverse-billing-google-play-opaque` | key `service-account.json` | `/var/secrets/google-play` |
+| Secret                                | Contents                                                        | Mount                                                               |
+| ------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `podverse-billing-paypal-opaque`      | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` | `envFrom` on the API, management API, and `worker-billing-renewals` |
+| `podverse-billing-apple-iap-opaque`   | key `AuthKey.p8`                                                | `/var/secrets/apple-iap`                                            |
+| `podverse-billing-google-play-opaque` | key `service-account.json`                                      | `/var/secrets/google-play`                                          |
 
 Set `APPLE_IAP_PRIVATE_KEY_PATH` to `/var/secrets/apple-iap/AuthKey.p8` and
 `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH` to `/var/secrets/google-play/service-account.json` only

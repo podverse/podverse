@@ -92,10 +92,10 @@ sandbox only on a physical device. In the simulator, use StoreKit Testing below.
 
 ## Two ways to test a purchase
 
-| Where           | Store                     | API setting                      | Apple credentials       |
-| --------------- | ------------------------- | -------------------------------- | ----------------------- |
-| iOS Simulator   | StoreKit Testing in Xcode | `APPLE_IAP_ENVIRONMENT="xcode"`   | Bundle id only          |
-| Physical iPhone | App Store sandbox         | `APPLE_IAP_ENVIRONMENT="sandbox"` | Issuer, key id, `.p8`   |
+| Where           | Store                     | API setting                       | Apple credentials     |
+| --------------- | ------------------------- | --------------------------------- | --------------------- |
+| iOS Simulator   | StoreKit Testing in Xcode | `APPLE_IAP_ENVIRONMENT="xcode"`   | Bundle id only        |
+| Physical iPhone | App Store sandbox         | `APPLE_IAP_ENVIRONMENT="sandbox"` | Issuer, key id, `.p8` |
 
 Both paths need the four product ids in `billing-products.env` and seeded, so
 the API can map a purchase to its cadence. From **Root**:

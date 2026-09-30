@@ -5,8 +5,8 @@
  * an endless play/pause loop.
  */
 import { act, cleanup, render } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
   DTOChannel,
@@ -18,8 +18,8 @@ import { MediumEnum } from '@podverse/helpers';
 
 import { AccountContext } from '../../../../contexts/Account';
 import type { UpdateNowPlayingParams } from '../../../../hooks/useQueueResourceUpdateNowPlaying';
-import { installMediaElementFake } from '../../../../test/mediaElementFake';
 import type { InstalledMediaElementFake } from '../../../../test/mediaElementFake';
+import { installMediaElementFake } from '../../../../test/mediaElementFake';
 import { NonLiveMediaOrchestrator } from '../NonLiveMediaOrchestrator';
 
 vi.mock('../../../../contexts/MediaPlayer', () => ({

@@ -66,10 +66,7 @@ export function persistentPlayerPlayingButtons(page: Page): Locator {
   return page.locator('aside#media-player button[data-media-player-playing="true"]');
 }
 
-export async function expectPersistentPlayerPlaying(
-  page: Page,
-  playing: boolean
-): Promise<void> {
+export async function expectPersistentPlayerPlaying(page: Page, playing: boolean): Promise<void> {
   const playingButtons = persistentPlayerPlayingButtons(page);
   if (playing) {
     await expect(playingButtons.first()).toBeVisible();

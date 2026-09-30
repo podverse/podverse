@@ -132,11 +132,11 @@ Steps and what default CI covers: [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-R
 
 Home overrides (empty in the repo examples; real values only under `~/.config/podverse/`):
 
-| File | Keys |
-| --- | --- |
-| `local-env-overrides/paypal.env` | `BILLING_PAYPAL_ENABLED` (empty until you are ready to sell), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENVIRONMENT` (`sandbox` locally), `PAYPAL_WEBHOOK_ID` |
-| `local-env-overrides/billing.env` | `BILLING_WEBHOOK_PUBLIC_BASE_URL`, buffer and grace expirations, `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS` |
-| `local-env-overrides/billing-products.env` | `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_MONTHLY_PLAN_ID`, `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_ANNUAL_PLAN_ID` |
+| File                                       | Keys                                                                                                                                                                    |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `local-env-overrides/paypal.env`           | `BILLING_PAYPAL_ENABLED` (empty until you are ready to sell), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENVIRONMENT` (`sandbox` locally), `PAYPAL_WEBHOOK_ID` |
+| `local-env-overrides/billing.env`          | `BILLING_WEBHOOK_PUBLIC_BASE_URL`, buffer and grace expirations, `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`                                                                  |
+| `local-env-overrides/billing-products.env` | `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_MONTHLY_PLAN_ID`, `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_ANNUAL_PLAN_ID`                                                                 |
 
 To run PayPal locally, set `BILLING_PAYPAL_ENABLED="true"` in
 `~/.config/podverse/local-env-overrides/paypal.env`, then rerun setup from **Root**.

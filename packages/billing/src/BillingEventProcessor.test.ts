@@ -359,7 +359,9 @@ describe('BillingEventProcessor', () => {
       oneTimePayment({ occurredAt: '2026-01-15T00:00:00.000Z' })
     );
 
-    const purchase = store.grantsFor(ALICE.id).find((grant) => grant.source === 'one_time_purchase');
+    const purchase = store
+      .grantsFor(ALICE.id)
+      .find((grant) => grant.source === 'one_time_purchase');
     expect(purchase?.startsAt.toISOString()).toBe('2026-02-01T00:00:00.000Z');
     expect(purchase?.endsAt.toISOString()).toBe('2026-03-01T00:00:00.000Z');
     expect(outcome.status === 'processed' && outcome.membershipExpiresAt?.toISOString()).toBe(
@@ -382,7 +384,9 @@ describe('BillingEventProcessor', () => {
 
     const outcome = await processor.ingestEvent(oneTimePayment());
 
-    const purchase = store.grantsFor(ALICE.id).find((grant) => grant.source === 'one_time_purchase');
+    const purchase = store
+      .grantsFor(ALICE.id)
+      .find((grant) => grant.source === 'one_time_purchase');
     expect(purchase?.startsAt.toISOString()).toBe('2026-01-01T00:00:00.000Z');
     expect(purchase?.endsAt.toISOString()).toBe('2026-02-01T00:00:00.000Z');
     expect(outcome.status === 'processed' && outcome.membershipExpiresAt?.toISOString()).toBe(

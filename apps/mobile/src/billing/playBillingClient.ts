@@ -109,10 +109,7 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
     return readPlayCountryCode();
   };
 
-  const offerTokenFor = async (
-    sku: string,
-    basePlanId: string | null
-  ): Promise<string | null> => {
+  const offerTokenFor = async (sku: string, basePlanId: string | null): Promise<string | null> => {
     const products = await getSubscriptions([sku]);
     for (const product of products) {
       if (product.platform !== 'android' || product.id !== sku) {

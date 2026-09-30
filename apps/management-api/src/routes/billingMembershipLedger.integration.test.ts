@@ -130,9 +130,9 @@ describe('Billing membership ledger routes (app database)', () => {
        VALUES ($1, 'one_time_purchase', $2, $3, $4) RETURNING id`,
       [accountId, new Date(), endsAt, transactionRows[0].id]
     );
-    await new BillingEntitlementService({ dataSourceReadWrite: AppDbDataSourceReadWrite }).recompute(
-      accountId
-    );
+    await new BillingEntitlementService({
+      dataSourceReadWrite: AppDbDataSourceReadWrite,
+    }).recompute(accountId);
     return Number(grantRows[0].id);
   };
 

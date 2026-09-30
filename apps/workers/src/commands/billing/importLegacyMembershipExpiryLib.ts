@@ -1,11 +1,7 @@
-export const LEGACY_MEMBERSHIP_IMPORT_REPORT_HEADER =
-  'line,email,reason,membership_expires_at';
+export const LEGACY_MEMBERSHIP_IMPORT_REPORT_HEADER = 'line,email,reason,membership_expires_at';
 
 export type LegacyMembershipImportReportReason =
-  | 'unmatched'
-  | 'ambiguous'
-  | 'skipped_expired'
-  | 'invalid';
+  'unmatched' | 'ambiguous' | 'skipped_expired' | 'invalid';
 
 export type LegacyMembershipImportReportRow = {
   line: number;
@@ -31,9 +27,7 @@ export type LegacyMembershipImportResult = {
 };
 
 export type LegacyMembershipAccountMatch =
-  | { status: 'matched'; accountId: number }
-  | { status: 'unmatched' }
-  | { status: 'ambiguous' };
+  { status: 'matched'; accountId: number } | { status: 'unmatched' } | { status: 'ambiguous' };
 
 export type LegacyImportGrant = {
   id: number;
@@ -77,13 +71,10 @@ type ParsedLegacyMembershipRow =
       rawExpiresAt: string;
     };
 
-type SeenLegacyImport =
-  | { state: 'none' }
-  | { state: 'grant'; id: number; endsAt: Date };
+type SeenLegacyImport = { state: 'none' } | { state: 'grant'; id: number; endsAt: Date };
 
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
-const DATE_TIME =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+const DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
 
 function emptyCounts(): LegacyMembershipImportCounts {
   return {
@@ -118,12 +109,9 @@ export function formatLegacyMembershipImportReport(
   const lines = [LEGACY_MEMBERSHIP_IMPORT_REPORT_HEADER];
   for (const row of rows) {
     lines.push(
-      [
-        String(row.line),
-        csvField(row.email),
-        row.reason,
-        csvField(row.membershipExpiresAt),
-      ].join(',')
+      [String(row.line), csvField(row.email), row.reason, csvField(row.membershipExpiresAt)].join(
+        ','
+      )
     );
   }
   return `${lines.join('\n')}\n`;
@@ -184,11 +172,7 @@ function invalidRow(line: number, email: string, rawExpiresAt: string): ParsedLe
   return { kind: 'invalid', line, email, rawExpiresAt };
 }
 
-function expiryRow(
-  line: number,
-  email: string,
-  rawExpiresAt: string
-): ParsedLegacyMembershipRow {
+function expiryRow(line: number, email: string, rawExpiresAt: string): ParsedLegacyMembershipRow {
   const expiresAt = parseLegacyMembershipExpiresAt(rawExpiresAt);
   if (expiresAt === 'invalid') {
     return invalidRow(line, email, rawExpiresAt.trim());
@@ -277,9 +261,7 @@ function parseCsv(lines: readonly string[]): ParsedLegacyMembershipRow[] {
   const emailIndex = header.indexOf('email');
   const expiresIndex = header.indexOf('membership_expires_at');
   if (emailIndex === -1 || expiresIndex === -1) {
-    throw new Error(
-      'Legacy membership CSV header must include email and membership_expires_at.'
-    );
+    throw new Error('Legacy membership CSV header must include email and membership_expires_at.');
   }
 
   const rows: ParsedLegacyMembershipRow[] = [];

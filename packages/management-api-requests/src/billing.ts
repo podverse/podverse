@@ -239,9 +239,7 @@ export type GrantBillingMembershipByDate = {
 
 /** Exactly one length: a plan cadence, a number of days, or an end instant. */
 export type GrantBillingMembershipBody =
-  | GrantBillingMembershipByCadence
-  | GrantBillingMembershipByDays
-  | GrantBillingMembershipByDate;
+  GrantBillingMembershipByCadence | GrantBillingMembershipByDays | GrantBillingMembershipByDate;
 
 export type EndBillingMembershipBody = {
   ends_at: string;

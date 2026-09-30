@@ -245,8 +245,7 @@ export function MembershipStoreCheckout() {
   const showPayPal = offersProcessor(processors, 'paypal');
   const storeOffered = processorId !== null && offersProcessor(processors, processorId);
   const showStorePurchase = storeOffered && !alreadyRenewing;
-  const showCadence =
-    showStorePurchase && selectedCadence !== undefined && cadences.length > 0;
+  const showCadence = showStorePurchase && selectedCadence !== undefined && cadences.length > 0;
   const checkoutMode = resolveStoreCheckoutMode({
     backend: client.backend,
     processors,
@@ -620,9 +619,7 @@ export function MembershipStoreCheckout() {
                 const priceLabel = price === null ? name : `${name}, ${price}${period}`;
                 return (
                   <Pressable
-                    accessibilityLabel={
-                      savings === null ? priceLabel : `${priceLabel}, ${savings}`
-                    }
+                    accessibilityLabel={savings === null ? priceLabel : `${priceLabel}, ${savings}`}
                     accessibilityRole="radio"
                     accessibilityState={{ selected }}
                     key={value}

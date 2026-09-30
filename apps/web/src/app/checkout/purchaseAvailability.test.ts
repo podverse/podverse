@@ -8,15 +8,15 @@ describe('hasWebPurchasableProcessor', () => {
   });
 
   it('is false when PayPal is listed and the client id is empty', () => {
-    expect(
-      hasWebPurchasableProcessor({ paypalClientId: '', processorIds: ['paypal'] })
-    ).toBe(false);
+    expect(hasWebPurchasableProcessor({ paypalClientId: '', processorIds: ['paypal'] })).toBe(
+      false
+    );
   });
 
   it('is true when PayPal is listed and a client id is set', () => {
-    expect(
-      hasWebPurchasableProcessor({ paypalClientId: 'client', processorIds: ['paypal'] })
-    ).toBe(true);
+    expect(hasWebPurchasableProcessor({ paypalClientId: 'client', processorIds: ['paypal'] })).toBe(
+      true
+    );
   });
 
   it('is true when only the test processor is listed', () => {

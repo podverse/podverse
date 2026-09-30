@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
-import { ROUTES } from '../../../constants/routes';
 import { getConfig } from '../../../config';
+import { ROUTES } from '../../../constants/routes';
 import { getSSRApiRequestService } from '../../../factories/apiRequestService';
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import { getSSRJwtFromCookies } from '../../../utils/auth/ssrAuth';
