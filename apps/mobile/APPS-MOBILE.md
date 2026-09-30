@@ -53,6 +53,13 @@ npm run mobile:ios -- --device "iPhone 17 Pro"
 npm run mobile:android -- --device Pixel_6_Pro_API_33
 ```
 
+Local Google Play purchases need a device with the Play Store (USB phone via
+`mobile:dev:device` / `mobile:android:device`, or a separate Play Store AVD such as
+`Pixel_6_Pro_API_33_Play`). The default `Pixel_6_Pro_API_33` Google APIs image cannot open
+Play Billing. Base plans must be Active, the package must be on a testing track, and the
+device must be signed into a license tester. Full checklist:
+[BILLING-GOOGLE-PLAY-SANDBOX.md](../../docs/billing/BILLING-GOOGLE-PLAY-SANDBOX.md).
+
 `EXPO_PUBLIC_MOBILE_BILLING=unavailable`, and any UnifiedPush build, uses
 `unavailableBillingClient` (no store sheet). Extend My Membership then offers PayPal on the web
 when checkout options include it. A FOSS prebuild must also exclude `expo-iap` from autolinking

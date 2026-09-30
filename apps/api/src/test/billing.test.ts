@@ -22,6 +22,11 @@ const paypalFake = vi.hoisted(() => ({
   subscriptionCalls: new Array<RecordedSubscriptionCall>(),
 }));
 
+/** Google Play stays in-process: prepaid tokens return purchaseKind one_time from subscriptionsv2. */
+const googleFake = vi.hoisted(() => ({
+  prepaidTokens: new Set<string>(),
+}));
+
 vi.mock('@podverse/external-services-paypal', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@podverse/external-services-paypal')>();
 
@@ -57,6 +62,76 @@ vi.mock('@podverse/external-services-paypal', async (importOriginal) => {
   return { ...actual, PayPalService: FakePayPalService };
 });
 
+vi.mock('@podverse/external-services-google-play', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@podverse/external-services-google-play')>();
+
+  return {
+    ...actual,
+    createGooglePlayAdapter: () => {
+      const fetchedAt = new Date().toISOString();
+      return {
+        id: 'google_play' as const,
+        verifyAndParseWebhook: async () => ({
+          schemaVersion: 'google-play-rtdn-v1',
+          rawPayload: {},
+          events: [],
+        }),
+        fetchSubscription: async (ref: {
+          externalId: string;
+          externalProductId: string | null;
+        }) => {
+          const isPrepaid = googleFake.prepaidTokens.has(ref.externalId);
+          const periodStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          return {
+            processor: 'google_play' as const,
+            externalSubscriptionId: ref.externalId,
+            accountBillingCustomerRef: null,
+            externalProductId: ref.externalProductId ?? 'premium',
+            externalBasePlanId: isPrepaid ? 'prepaid-monthly' : 'monthly',
+            status: 'active' as const,
+            purchaseKind: isPrepaid ? ('one_time' as const) : ('auto_renew' as const),
+            currentPeriodStart: periodStart,
+            currentPeriodEnd: periodEnd,
+            cancelAtPeriodEnd: false,
+            isSandbox: true,
+            fetchedAt,
+            schemaVersion: 'google-play-subscription-v2',
+            rawPayload: { purchaseToken: ref.externalId },
+          };
+        },
+        fetchTransaction: async (ref: {
+          externalId: string;
+          externalProductId: string | null;
+        }) => {
+          const periodStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          return {
+            processor: 'google_play' as const,
+            externalTransactionId: `GPA.${ref.externalId}`,
+            externalSubscriptionId: ref.externalId,
+            accountBillingCustomerRef: null,
+            externalProductId: ref.externalProductId ?? 'premium',
+            externalBasePlanId: 'prepaid-monthly',
+            purchaseKind: 'one_time' as const,
+            settledAt: periodStart,
+            periodStart,
+            periodEnd,
+            amount: { value: '3.00', currencyCode: 'USD' },
+            revokedAt: null,
+            revocationReason: null,
+            isSandbox: true,
+            fetchedAt,
+            schemaVersion: 'google-play-subscription-v2',
+            rawPayload: { purchaseToken: ref.externalId },
+          };
+        },
+      };
+    },
+  };
+});
+
 vi.mock('@podverse/orm', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@podverse/orm')>();
 
@@ -77,6 +152,15 @@ const PAYPAL_ENV = {
 const TEST_ONE_TIME_PRODUCT_ID = 'vitest_premium_one_time_monthly';
 const TEST_AUTO_RENEW_PRODUCT_ID = 'vitest_premium_auto_renew_monthly';
 const PAYPAL_VITEST_PLAN_ID = 'P-VITEST-BILLING-MONTHLY';
+const GOOGLE_PREPAID_PRODUCT_ID = 'premium';
+const GOOGLE_PREPAID_BASE_PLAN_ID = 'prepaid-monthly';
+
+const GOOGLE_PLAY_TEST_CONFIG = {
+  packageName: 'com.podverse.app.next',
+  serviceAccountJsonPath: '/tmp/vitest-google-play.json',
+  rtdnPushAudience: 'vitest-rtdn',
+  rtdnPushServiceAccountEmail: 'vitest-google@example.com',
+} as const;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -200,6 +284,13 @@ describe('Billing routes', () => {
       cadence: 'monthly',
       purchaseKind: 'one_time',
     });
+    await productService.upsertPremiumProcessorProduct({
+      processorId: 'google_play',
+      externalProductId: GOOGLE_PREPAID_PRODUCT_ID,
+      externalBasePlanId: GOOGLE_PREPAID_BASE_PLAN_ID,
+      cadence: 'monthly',
+      purchaseKind: 'one_time',
+    });
 
     await query(
       `INSERT INTO billing_checkout_channel (processor_id, platform, enabled)
@@ -218,7 +309,14 @@ describe('Billing routes', () => {
       );
       await query(
         `UPDATE billing_processor_product SET is_active = FALSE WHERE external_product_id = ANY($1)`,
-        [[TEST_ONE_TIME_PRODUCT_ID, TEST_AUTO_RENEW_PRODUCT_ID, PAYPAL_VITEST_PLAN_ID]]
+        [
+          [
+            TEST_ONE_TIME_PRODUCT_ID,
+            TEST_AUTO_RENEW_PRODUCT_ID,
+            PAYPAL_VITEST_PLAN_ID,
+            GOOGLE_PREPAID_PRODUCT_ID,
+          ],
+        ]
       );
     } finally {
       await stopTestApp(server, ormContext);
@@ -566,6 +664,63 @@ describe('Billing routes', () => {
 
       expect(res.body.start_time).toBeNull();
       expect(paypalFake.subscriptionCalls.at(-1)?.startTime).toBeUndefined();
+    });
+  });
+
+  describe('POST /billing/restore google prepaid', () => {
+    it('grants a one-time purchase when the client posts auto_renew for a prepaid token', async () => {
+      const { initBillingContext } = await import('../lib/billing/billingContext.js');
+      const { config } = await import('../config/index.js');
+      const account = await createAccount();
+      const purchaseToken = `google-prepaid-${runId}-${account.id}`;
+      googleFake.prepaidTokens.add(purchaseToken);
+
+      initBillingContext({
+        nodeEnv: config.nodeEnv,
+        allowTestAdapter: config.billing.allowTestAdapter,
+        sandboxAllowedAccountIds: config.billing.sandboxAllowedAccountIds,
+        processors: {
+          paypal: config.billing.processors.paypal,
+          apple: null,
+          googlePlay: GOOGLE_PLAY_TEST_CONFIG,
+        },
+      });
+      try {
+        const res = await request(app)
+          .post(`${base}/billing/restore`)
+          .set(account.headers)
+          .send({
+            processor: 'google_play',
+            purchases: [
+              {
+                external_id: purchaseToken,
+                external_product_id: GOOGLE_PREPAID_PRODUCT_ID,
+                purchase_kind: 'auto_renew',
+              },
+            ],
+          })
+          .expect(200);
+
+        expect(res.body.confirmed).toBe(true);
+        expect(res.body.status.is_entitled).toBe(true);
+
+        const rows = await query(
+          `SELECT t.purchase_kind, g.source
+           FROM billing_transaction t
+           JOIN billing_membership_grant g ON g.billing_transaction_id = t.id
+           WHERE t.processor_id = 'google_play' AND t.external_transaction_id = $1`,
+          [`GPA.${purchaseToken}`]
+        );
+        expect(rows).toEqual([{ purchase_kind: 'one_time', source: 'one_time_purchase' }]);
+      } finally {
+        googleFake.prepaidTokens.delete(purchaseToken);
+        initBillingContext({
+          nodeEnv: config.nodeEnv,
+          allowTestAdapter: config.billing.allowTestAdapter,
+          sandboxAllowedAccountIds: config.billing.sandboxAllowedAccountIds,
+          processors: config.billing.processors,
+        });
+      }
     });
   });
 

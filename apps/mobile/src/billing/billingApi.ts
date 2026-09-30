@@ -15,6 +15,7 @@ export type BillingCheckoutCatalog = {
       id: number;
       cadence: string;
       external_product_id: string;
+      external_base_plan_id?: string | null;
       purchase_kind: BillingPurchaseKind;
     }>;
   }>;

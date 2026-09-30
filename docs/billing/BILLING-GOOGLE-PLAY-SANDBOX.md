@@ -59,12 +59,14 @@ Do not commit real values.
    - `BILLING_PRODUCT_GOOGLE_PREPAID_MONTHLY_BASE_PLAN_ID`
    - `BILLING_PRODUCT_GOOGLE_PREPAID_ANNUAL_BASE_PLAN_ID`
 
-Draft plans are fine while wiring local sandbox flows. Activation is only needed
-when you are ready to sell through Google Play.
+Base plans must be **Active**. Inactive (draft) plans are not returned to the
+Play Billing client, so checkout cannot load an offer token for them.
 
 Auto-renew base plans (`monthly`, `annual`) renew on their own. Prepaid base
 plans (`prepaid-monthly`, `prepaid-annual`) are the one-time purchase: Play
 does not renew them, and Podverse records one grant for the prepaid period.
+The mobile client selects the offer by `external_base_plan_id` from checkout
+options so all four plans can share the subscription id `premium`.
 
 ## Play Console access for the service account
 
@@ -72,6 +74,36 @@ does not renew them, and Podverse records one grant for the prepaid period.
 2. Invite the service account email from the JSON key
 3. Grant the app permission to view financial data and to manage orders and
    subscriptions
+
+Without those permissions, purchase verification against the Play Developer API
+fails even when the device purchase sheet succeeds.
+
+## App on a testing track
+
+Upload `com.podverse.app.next` to an internal (or other) testing track at least
+once. License testers must opt into that track. If Play answers "item not
+available", check package name, signing certificate, and `versionCode` against
+the uploaded build. This binary links Billing Library 7; Play rejects new apps
+and updates built with Billing Library 7 or older after 31 Aug 2026 (extension
+through 1 Nov 2026 when requested). See
+[APPS-MOBILE.md](../../apps/mobile/APPS-MOBILE.md#membership-billing).
+
+## Device and emulator
+
+Play Billing needs the Play Store on the device:
+
+- **USB phone (recommended for first local run):** sign in with a license-tester
+  Google account, then from **Mobile Metro** / **Mobile Android**:
+  `npm run mobile:dev:device` and `npm run mobile:android:device`.
+- **Emulator:** the default `Pixel_6_Pro_API_33` AVD uses a Google APIs image
+  (`PlayStore.enabled = false`) and cannot open the Play Billing sheet. Create a
+  separate AVD (for example `Pixel_6_Pro_API_33_Play`) on
+  `system-images;android-33;google_apis_playstore;arm64-v8a`, sign into a
+  license-tester account in that emulator's Play Store, and install with
+  `npm run mobile:android -- --device Pixel_6_Pro_API_33_Play`.
+
+E2E AVDs stay on Google APIs images; Maestro uses the fake billing client and
+never calls Play.
 
 ## Real-time developer notifications
 
@@ -81,6 +113,10 @@ Publisher** role so Play can publish. After **Send test notification** in Play
 Console monetization setup, confirm the push subscription delivers to the
 Google webhook URL.
 
+RTDN is optional for the first local purchase: the app posts the purchase token
+to the API, which verifies it with the Play Developer API and grants membership.
+RTDN keeps renewals and refunds in sync when the app is not open.
+
 ## License testers
 
 Play Console → **Settings** → **License testing**. Add the Google accounts that
@@ -88,6 +124,18 @@ will buy on a device. Those accounts can complete a purchase with a Play test
 card. A declined test card is how a human exercises billing grace. Podverse
 does not store tester passwords. This path is manual; default CI does not call
 Play. See [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md).
+
+## Seed processor products
+
+After product and base plan ids are in `billing-products.env` and
+`make local_env_setup` has run, seed the ledger rows from **Root**:
+
+```bash
+npm run build -w apps/workers
+npm run billing_seed_processor_products_from_env -w apps/workers
+```
+
+Checkout options stay empty for Google until those rows exist.
 
 ## Voided purchases
 

@@ -11,10 +11,10 @@ import { bindAccountToken } from './bindAccountToken';
 
 /** Product ids the E2E harness purchases. The fake client also accepts any other id. */
 export const FAKE_BILLING_PRODUCTS: readonly BillingStoreProduct[] = [
-  { productId: 'e2e-test-monthly-renew', purchaseKind: 'auto_renew' },
-  { productId: 'e2e-test-annual-renew', purchaseKind: 'auto_renew' },
-  { productId: 'e2e-test-monthly-once', purchaseKind: 'one_time' },
-  { productId: 'e2e-test-annual-once', purchaseKind: 'one_time' },
+  { basePlanId: null, productId: 'e2e-test-monthly-renew', purchaseKind: 'auto_renew' },
+  { basePlanId: null, productId: 'e2e-test-annual-renew', purchaseKind: 'auto_renew' },
+  { basePlanId: null, productId: 'e2e-test-monthly-once', purchaseKind: 'one_time' },
+  { basePlanId: null, productId: 'e2e-test-annual-once', purchaseKind: 'one_time' },
 ];
 
 /** Storefront the fake client reports so checkout-options queries stay deterministic. */

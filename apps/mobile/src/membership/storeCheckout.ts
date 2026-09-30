@@ -22,6 +22,8 @@ export type CheckoutProductOffer = {
   cadence: StoreCheckoutCadence;
   purchaseKind: StoreCheckoutPurchaseKind;
   externalProductId: string;
+  /** Google Play base plan id; null for other processors. */
+  basePlanId: string | null;
 };
 
 export type CheckoutProcessorOffer = {
@@ -37,6 +39,7 @@ export type CheckoutOptionsShape = {
       cadence: string;
       purchase_kind: string;
       external_product_id: string;
+      external_base_plan_id?: string | null;
     }[];
   }[];
 };
@@ -74,6 +77,7 @@ export const mapCheckoutProcessors = (options: CheckoutOptionsShape): CheckoutPr
       }
       return [
         {
+          basePlanId: product.external_base_plan_id ?? null,
           cadence: product.cadence,
           externalProductId: product.external_product_id,
           id: product.id,

@@ -17,6 +17,7 @@ import { normalizeStorePurchase } from './normalizeStorePurchase';
 import { mergeCatalogKinds } from './purchaseKinds';
 import { restoreStorePurchases } from './restoreStorePurchases';
 import { selectBillingBackend } from './selectBillingBackend';
+import { selectPlayOfferToken } from './selectPlayOfferToken';
 import { settleStorePurchase } from './settleStorePurchase';
 import { createUnavailableBillingClient } from './unavailableBillingClient';
 
@@ -189,8 +190,31 @@ describe('settleStorePurchase', () => {
   });
 });
 
+describe('selectPlayOfferToken', () => {
+  const offers = [
+    { basePlanId: 'monthly', offerId: null, offerToken: 'token-monthly' },
+    { basePlanId: 'annual', offerId: 'intro', offerToken: 'token-annual-intro' },
+    { basePlanId: 'annual', offerId: null, offerToken: 'token-annual' },
+    { basePlanId: 'prepaid-annual', offerId: null, offerToken: 'token-prepaid-annual' },
+  ];
+
+  it('selects the base-plan offer for the requested annual and prepaid-annual plans', () => {
+    expect(selectPlayOfferToken(offers, 'annual')).toBe('token-annual');
+    expect(selectPlayOfferToken(offers, 'prepaid-annual')).toBe('token-prepaid-annual');
+  });
+
+  it('returns null when the base plan is unknown so purchase can fail closed', () => {
+    expect(selectPlayOfferToken(offers, 'missing-plan')).toBeNull();
+  });
+
+  it('falls back to the first token when no base plan is requested', () => {
+    expect(selectPlayOfferToken(offers, null)).toBe('token-monthly');
+  });
+});
+
 describe('restoreStorePurchases', () => {
   const product: BillingStoreProduct = {
+    basePlanId: null,
     productId: 'premium.monthly',
     purchaseKind: 'auto_renew',
   };
@@ -290,6 +314,7 @@ describe('createFakeBillingClient', () => {
     );
     await expect(client.getStorefront()).resolves.toBe(FAKE_BILLING_STOREFRONT);
     const outcome = await client.purchase({
+      basePlanId: null,
       productId: 'e2e-test-monthly-renew',
       purchaseKind: 'auto_renew',
     });
@@ -312,6 +337,7 @@ describe('createFakeBillingClient', () => {
       })
     );
     const outcome = await client.purchase({
+      basePlanId: null,
       productId: 'e2e-test-monthly-once',
       purchaseKind: 'one_time',
     });
@@ -324,7 +350,11 @@ describe('createUnavailableBillingClient', () => {
   it('rejects every store method', async () => {
     const client = createUnavailableBillingClient();
     await expect(
-      client.purchase({ productId: 'premium.monthly', purchaseKind: 'auto_renew' })
+      client.purchase({
+        basePlanId: null,
+        productId: 'premium.monthly',
+        purchaseKind: 'auto_renew',
+      })
     ).rejects.toBeInstanceOf(BillingUnavailableError);
     await expect(client.restore()).rejects.toBeInstanceOf(BillingUnavailableError);
     await expect(client.syncUnfinishedTransactions()).rejects.toBeInstanceOf(

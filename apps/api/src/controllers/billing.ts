@@ -251,6 +251,11 @@ async function restoreOne(
   try {
     if (purchase.purchase_kind === 'auto_renew') {
       const snapshot = await adapter.fetchSubscription(ref);
+      // Google prepaid base plans share the subscription product id. When the subscription
+      // snapshot reports one_time, ingest it as a transaction grant rather than a subscription.
+      if (snapshot.purchaseKind === 'one_time') {
+        return await ingestTransaction(await adapter.fetchTransaction(ref), accountId);
+      }
       const outcome = await getBillingContext().processor.applySubscriptionSnapshot(snapshot, {
         accountId,
       });

@@ -21,27 +21,38 @@ const options = mapCheckoutProcessors({
       products: [
         {
           cadence: 'monthly',
+          external_base_plan_id: null,
           external_product_id: 'e2e-test-monthly-renew',
           id: 1,
           purchase_kind: 'auto_renew',
         },
         {
           cadence: 'annual',
+          external_base_plan_id: null,
           external_product_id: 'e2e-test-annual-renew',
           id: 2,
           purchase_kind: 'auto_renew',
         },
         {
           cadence: 'monthly',
+          external_base_plan_id: null,
           external_product_id: 'e2e-test-monthly-once',
           id: 3,
           purchase_kind: 'one_time',
         },
         {
           cadence: 'weekly',
+          external_base_plan_id: null,
           external_product_id: 'ignored',
           id: 4,
           purchase_kind: 'auto_renew',
+        },
+        {
+          cadence: 'annual',
+          external_base_plan_id: 'prepaid-annual',
+          external_product_id: 'premium',
+          id: 5,
+          purchase_kind: 'one_time',
         },
       ],
     },
@@ -56,7 +67,11 @@ describe('store checkout selection', () => {
   it('maps the fake client onto the test processor and ignores an unknown cadence', () => {
     expect(storeProcessorId('fake')).toBe('test');
     expect(storeProcessorId('unavailable')).toBeNull();
-    expect(options[0]?.products).toHaveLength(3);
+    expect(options[0]?.products).toHaveLength(4);
+    expect(checkoutProduct(options, 'test', 'annual', 'one_time')).toMatchObject({
+      basePlanId: 'prepaid-annual',
+      externalProductId: 'premium',
+    });
   });
 
   it('selects auto-renew when the checkbox is on and one-time when it is off', () => {

@@ -432,7 +432,11 @@ export function MembershipStoreCheckout() {
     setNotice(null);
     setNoticeSource('purchase');
     void client
-      .purchase({ productId: product.externalProductId, purchaseKind: product.purchaseKind })
+      .purchase({
+        basePlanId: product.basePlanId,
+        productId: product.externalProductId,
+        purchaseKind: product.purchaseKind,
+      })
       .then((outcome) => applyOutcome(outcome, 'purchase'))
       .catch(() => {
         setNotice('failed');

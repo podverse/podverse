@@ -37,7 +37,11 @@ import { normalizeStorePurchase } from './normalizeStorePurchase';
 import { resolvePurchaseKind } from './purchaseKinds';
 import type { RestoreStoreRecord } from './restoreStorePurchases';
 import { restoreStorePurchases } from './restoreStorePurchases';
+import { selectPlayOfferToken } from './selectPlayOfferToken';
 import { settleStorePurchase } from './settleStorePurchase';
+
+/** Returned when checkout asks for a Google base plan Play does not offer to this client. */
+export const BILLING_PRODUCT_UNAVAILABLE = 'billing.product_unavailable';
 
 const isZeroArg = (value: unknown): value is () => unknown => typeof value === 'function';
 
@@ -105,15 +109,18 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
     return readPlayCountryCode();
   };
 
-  const offerTokenFor = async (sku: string): Promise<string | null> => {
+  const offerTokenFor = async (
+    sku: string,
+    basePlanId: string | null
+  ): Promise<string | null> => {
     const products = await getSubscriptions([sku]);
     for (const product of products) {
       if (product.platform !== 'android' || product.id !== sku) {
         continue;
       }
-      const offer = product.subscriptionOfferDetails[0];
-      if (offer !== undefined && offer.offerToken !== '') {
-        return offer.offerToken;
+      const token = selectPlayOfferToken(product.subscriptionOfferDetails, basePlanId);
+      if (token !== null) {
+        return token;
       }
     }
     return null;
@@ -178,7 +185,15 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
     kinds.set(product.productId, product.purchaseKind);
 
     try {
-      const offerToken = await offerTokenFor(product.productId);
+      const offerToken = await offerTokenFor(product.productId, product.basePlanId);
+      if (product.basePlanId !== null && offerToken === null) {
+        return billingPurchaseOutcome(
+          'failed',
+          product.productId,
+          null,
+          BILLING_PRODUCT_UNAVAILABLE
+        );
+      }
       const useSubscription = product.purchaseKind === 'auto_renew' || offerToken !== null;
       if (useSubscription && offerToken === null) {
         throw new BillingPurchaseError('missing_offer');
