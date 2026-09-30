@@ -51,6 +51,12 @@ export interface BillingWebhookParseResult {
 export interface BillingProcessorRecordRef {
   externalId: string;
   externalProductId: string | null;
+  /**
+   * The store-signed transaction the device holds. Only Apple's Xcode StoreKit Testing mode reads
+   * it, because Apple's servers have no record of those purchases. Every other mode looks the
+   * record up by id and ignores this.
+   */
+  signedTransaction?: string | null;
 }
 
 /** The processor's current view of a subscription, used by reconciliation and restore. */

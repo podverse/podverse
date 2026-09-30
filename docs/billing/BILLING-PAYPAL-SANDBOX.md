@@ -13,7 +13,7 @@ that owns the DNS zone:
 
 ```bash
 cloudflared tunnel create podverse-local
-cloudflared tunnel route dns podverse-local billing-local.podcastdj.com
+cloudflared tunnel route dns podverse-local billing-local.example.com
 ```
 
 `~/.cloudflared/config.yml` routes that hostname to the local API. The credentials file is
@@ -25,13 +25,13 @@ tunnel: podverse-local
 credentials-file: ~/.cloudflared/<tunnel-uuid>.json
 
 ingress:
-  - hostname: billing-local.podcastdj.com
+  - hostname: billing-local.example.com
     service: http://localhost:3000
   - service: http_status:404
 ```
 
-Another DNS zone uses the same steps with its own hostname. `cloudflared` needs the absolute
-path of the credentials file in `credentials-file`.
+`billing-local.example.com` stands in for a hostname on a DNS zone you control.
+`cloudflared` needs the absolute path of the credentials file in `credentials-file`.
 
 Start it in **Billing Tunnel** and leave it running while a processor delivers webhooks:
 
@@ -41,7 +41,7 @@ cloudflared tunnel run podverse-local
 
 ## Public base URL
 
-`BILLING_WEBHOOK_PUBLIC_BASE_URL` is `https://billing-local.podcastdj.com` with no trailing
+`BILLING_WEBHOOK_PUBLIC_BASE_URL` is `https://billing-local.example.com` with no trailing
 slash. It is stored in the home override `~/.config/podverse/local-env-overrides/billing.env`
 (see [LOCAL-ENV-OVERRIDES.md](/docs/development/env/LOCAL-ENV-OVERRIDES.md)). A named tunnel
 keeps that URL across restarts. A quick tunnel
@@ -49,9 +49,9 @@ keeps that URL across restarts. A quick tunnel
 
 Webhook URLs:
 
-- `https://billing-local.podcastdj.com/api/v2/billing/webhooks/paypal`
-- `https://billing-local.podcastdj.com/api/v2/billing/webhooks/apple`
-- `https://billing-local.podcastdj.com/api/v2/billing/webhooks/google`
+- `https://billing-local.example.com/api/v2/billing/webhooks/paypal`
+- `https://billing-local.example.com/api/v2/billing/webhooks/apple`
+- `https://billing-local.example.com/api/v2/billing/webhooks/google`
 
 ## Sandbox app webhook
 

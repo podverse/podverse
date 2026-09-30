@@ -11,6 +11,12 @@ const httpUrl = Joi.string()
 const isoTimestamp = Joi.string().isoDate();
 const nullableIsoTimestamp = isoTimestamp.allow(null);
 const nullableExternalId = externalId.allow(null);
+/** A StoreKit JWS runs a few kilobytes; only `APPLE_IAP_ENVIRONMENT=xcode` reads it. */
+const SIGNED_TRANSACTION_MAX_LENGTH = 16384;
+const signedTransaction = Joi.string()
+  .trim()
+  .max(SIGNED_TRANSACTION_MAX_LENGTH)
+  .pattern(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$/);
 
 export const billingCheckoutOptionsQuerySchema = Joi.object({
   platform: Joi.string()
@@ -39,6 +45,7 @@ export const billingSubscriptionParamsSchema = Joi.object({
 export const billingAppleTransactionBodySchema = Joi.object({
   transaction_id: externalId.required(),
   product_id: externalId.optional(),
+  signed_transaction: signedTransaction.optional(),
 });
 
 export const billingGooglePurchaseBodySchema = Joi.object({
@@ -61,6 +68,7 @@ export const billingRestoreBodySchema = Joi.object({
         purchase_kind: Joi.string()
           .valid(...PURCHASE_KINDS)
           .required(),
+        signed_transaction: signedTransaction.allow(null).optional(),
       })
     )
     .min(1)

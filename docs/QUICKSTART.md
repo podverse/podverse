@@ -17,16 +17,17 @@ All commands are from the **monorepo root**. Use the named tabs in
 
 ## Terminals
 
-| Tab                | Use in this walkthrough                                        | Leave running?        |
-| ------------------ | -------------------------------------------------------------- | --------------------- |
-| **Root**           | One-shot env, deps, package/worker builds, optional feed seed  | No                    |
-| **Docker**         | Teardown, `local_setup` / `local_infra_up`                     | No (containers stay)  |
-| **Dev**            | `npm run dev:all:watch` (main + management, packages, compile) | **Yes**               |
-| **Workers**        | Parser **consumers** (`npm run dev:workers:parsers`)           | **Yes**               |
-| **Mobile**         | One-shot mobile install/prebuild/health                        | No                    |
-| **Mobile Metro**   | `npm run mobile:dev` (local API on `:3000`)                    | **Yes**               |
-| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"`               | No (exits; app stays) |
-| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`        | No (exits; app stays) |
+| Tab                 | Use in this walkthrough                                        | Leave running?        |
+| ------------------- | -------------------------------------------------------------- | --------------------- |
+| **Root**            | One-shot env, deps, package/worker builds, optional feed seed  | No                    |
+| **Docker**          | Teardown, `local_setup` / `local_infra_up`                     | No (containers stay)  |
+| **Dev**             | `npm run dev:all:watch` (main + management, packages, compile) | **Yes**               |
+| **Workers**         | Parser **consumers** (`npm run dev:workers:parsers`)           | **Yes**               |
+| **Billing Tunnel**  | Sandbox webhooks; [Sandbox checkout](#sandbox-checkout)        | **Yes** (checkout)    |
+| **Mobile**          | One-shot mobile install/prebuild/health                        | No                    |
+| **Mobile Metro**    | `npm run mobile:dev` (local API on `:3000`)                    | **Yes**               |
+| **Mobile iOS**      | `npm run mobile:ios -- --device "iPhone 17 Pro"`               | No (exits; app stays) |
+| **Mobile Android**  | `npm run mobile:android -- --device Pixel_6_Pro_API_33`        | No (exits; app stays) |
 
 Do **not** start **Mobile E2E Metro** or **Mobile E2E API** for this flow. Those
 point the app at the E2E API on `:4230`, not your local Docker Postgres.
@@ -37,10 +38,8 @@ To pause for Maestro: stop **Dev** and **Mobile Metro** (leave **Workers**). The
 running): [HOW-TO-RUN.md § Cold start](/apps/mobile/e2e/HOW-TO-RUN.md#cold-start-nothing-running).
 Switch back: [HOW-TO-RUN.md § Pause local for Maestro](/apps/mobile/e2e/HOW-TO-RUN.md#pause-local-for-maestro).
 
-Local billing webhooks use **Billing Tunnel** (`cloudflared tunnel run podverse-local`),
-which forwards `https://billing-local.podcastdj.com` to the API on `:3000`. **Dev** must
-already be up. Setup steps: [BILLING-PAYPAL-SANDBOX.md](/docs/billing/BILLING-PAYPAL-SANDBOX.md).
-Membership billing overview: [BILLING.md](/docs/billing/BILLING.md).
+Sandbox checkout (PayPal, App Store, Google Play) is
+[Sandbox checkout](#sandbox-checkout), after the watch stack is up.
 
 `npm run dev:workers` and the `workers` lane inside `dev:all:watch` only
 **recompile** `apps/workers`. They do **not** consume message-queue jobs.
@@ -273,6 +272,92 @@ make local_run_parsers_all
 
 Stop those containers with `make local_stop_parsers`.
 
+## Sandbox checkout
+
+Run this after [step 5](#5-full-stack-with-watch-leave-running) to buy Premium locally:
+PayPal on web, the App Store on the iOS simulator, and Google Play on Android. Fill
+each processor's home overrides before these commands. The guides hold the keys,
+webhook URLs, and vendor-console steps:
+
+- PayPal: [BILLING-PAYPAL-SANDBOX.md](/docs/billing/BILLING-PAYPAL-SANDBOX.md)
+- Apple: [BILLING-APPLE-SANDBOX.md](/docs/billing/BILLING-APPLE-SANDBOX.md)
+- Google Play: [BILLING-GOOGLE-PLAY-SANDBOX.md](/docs/billing/BILLING-GOOGLE-PLAY-SANDBOX.md)
+
+How a purchase is recorded: [BILLING.md](/docs/billing/BILLING.md).
+
+### Tunnel (once per machine)
+
+**Root.** After `cloudflared tunnel login` on the Cloudflare account that owns the
+DNS zone:
+
+```bash
+cloudflared tunnel create podverse-local
+cloudflared tunnel route dns podverse-local billing-local.example.com
+```
+
+The ingress file that forwards `https://billing-local.example.com` to the API on
+`:3000` is in the PayPal guide. Apple and Google use that same hostname. Skip
+these two commands when that tunnel already exists.
+
+### Apply overrides and map products
+
+**Root.** After the override files for the processors you are turning on are filled:
+
+```bash
+make local_env_prepare
+make local_env_link
+make local_env_setup
+```
+
+PayPal auto-renew plans. Skip this command when you are not testing PayPal. It
+reads the home `paypal.env` and prints two `BILLING_PRODUCT_PAYPAL_*` lines:
+
+```bash
+npm run sync-sandbox-plans -w packages/external-services-paypal
+```
+
+Write those lines into `billing-products.env` as the PayPal guide describes, then
+apply them:
+
+```bash
+make local_env_setup
+```
+
+Stop and start **Dev** (`npm run dev:all:watch`) so the API loads the processor
+flags.
+
+Map product ids into local Postgres. **Root**, with Postgres from step 3 up:
+
+```bash
+npm run build -w apps/workers
+npm run billing_seed_processor_products_from_env -w apps/workers
+```
+
+Repeat `make local_env_setup` and the seed command after you add another
+processor's product ids. Empty ids stay unmapped.
+
+### While a checkout test is running
+
+**Billing Tunnel** (leave running). **Dev** must already be serving `:3000`:
+
+```bash
+cloudflared tunnel run podverse-local
+```
+
+The StoreKit file `apps/mobile/storekit/PodverseMembership.storekit` sells the
+local products, including a one-time purchase when **Auto-Renew** is off. Open
+`apps/mobile/ios/PodverseNext.xcworkspace` with **Mobile Metro** already
+running, set the scheme **Run** → **Options** → **StoreKit Configuration** to
+that file, and press **Run** on **iPhone 17 Pro**. A launch from **Mobile iOS**
+does not attach the file. Purchases from it are not on Apple's servers, so they
+grant membership only when `billing-apple.env` sets
+`APPLE_IAP_ENVIRONMENT="xcode"` (local only; needs just the bundle id). A
+Sandbox Apple Account works only on a physical iPhone, not the simulator
+([BILLING-APPLE-SANDBOX.md](billing/BILLING-APPLE-SANDBOX.md)). Android
+purchases use a Play license tester signed in on the emulator or phone (Google
+Play guide). Web checkout is http://localhost:3002. App logins are in the
+[seed table](#3-recreate-infra-and-seed-the-database).
+
 ## Optional podcast data
 
 `local_setup` seeds **users only**. To put real channels in the app DB:
@@ -408,15 +493,16 @@ Manual vs E2E device names:
 
 ## Day-to-day (already set up)
 
-| Tab                | Command                                                                   |
-| ------------------ | ------------------------------------------------------------------------- |
-| **Docker**         | `make local_infra_up` then `npm run check:dev-deps`                       |
-| **Dev**            | `npm run dev:all:watch`                                                   |
-| **Workers**        | `npm run dev:workers:parsers`                                             |
-| **Mobile Metro**   | `npm run mobile:dev`                                                      |
-| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed)              |
-| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`                   |
-| **Root** (Android) | `adb reverse tcp:8081 tcp:8081` then emulator URL `http://localhost:8081` |
+| Tab                 | Command                                                                   |
+| ------------------- | ------------------------------------------------------------------------- |
+| **Docker**          | `make local_infra_up` then `npm run check:dev-deps`                       |
+| **Dev**             | `npm run dev:all:watch`                                                   |
+| **Workers**         | `npm run dev:workers:parsers`                                             |
+| **Billing Tunnel**  | `cloudflared tunnel run podverse-local`                                   |
+| **Mobile Metro**    | `npm run mobile:dev`                                                      |
+| **Mobile iOS**      | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed)              |
+| **Mobile Android**  | `npm run mobile:android -- --device Pixel_6_Pro_API_33`                   |
+| **Root** (Android)  | `adb reverse tcp:8081 tcp:8081` then emulator URL `http://localhost:8081` |
 
 Day-to-day keeps the installed app and its login. To start signed out, use the
 section 8 uninstall commands. Deleting the home-screen icon leaves the iOS

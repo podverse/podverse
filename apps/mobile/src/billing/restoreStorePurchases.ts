@@ -9,6 +9,7 @@ export type RestoreStoreRecord = {
   externalId: string;
   externalProductId: string;
   purchaseKind: BillingPurchaseKind;
+  signedTransaction?: string | null;
   finish: () => Promise<void>;
 };
 
@@ -40,6 +41,7 @@ export const restoreStorePurchases = async (params: {
       externalId: string;
       externalProductId: string;
       purchaseKind: BillingPurchaseKind;
+      signedTransaction?: string | null;
     }>
   ) => Promise<{ confirmed: boolean }>;
 }): Promise<BillingPurchaseOutcome> => {
@@ -59,6 +61,9 @@ export const restoreStorePurchases = async (params: {
           externalId: record.externalId,
           externalProductId: record.externalProductId,
           purchaseKind: record.purchaseKind,
+          ...(record.signedTransaction !== undefined
+            ? { signedTransaction: record.signedTransaction }
+            : {}),
         }))
       );
       if (result.confirmed !== true) {

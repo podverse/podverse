@@ -6,6 +6,8 @@ import {
 } from '@apple/app-store-server-library';
 import { describe, expect, it, vi } from 'vitest';
 
+import { BillingProcessorRecordNotFoundError } from '@podverse/helpers';
+
 import { createAppleAdapter } from './appleAdapter.js';
 import { AppStoreServerClient } from './AppStoreServerClient.js';
 
@@ -164,6 +166,109 @@ describe('createAppleAdapter', () => {
         externalSubscriptionId: '1000000999999100',
       },
     ]);
+  });
+});
+
+describe('createAppleAdapter with APPLE_IAP_ENVIRONMENT=xcode', () => {
+  const BUNDLE_ID = 'com.podverse.app.next';
+  const DAY_MS = 86_400_000;
+
+  const unsignedJws = (payload: Record<string, unknown>): string => {
+    const encode = (value: Record<string, unknown>): string =>
+      Buffer.from(JSON.stringify(value)).toString('base64url');
+    return `${encode({ alg: 'ES256', typ: 'JWT' })}.${encode(payload)}.`;
+  };
+
+  const xcodeAdapter = () =>
+    createAppleAdapter({
+      issuerId: '',
+      keyId: '',
+      privateKeyPath: '/nonexistent/AuthKey.p8',
+      bundleId: BUNDLE_ID,
+      appleEnvironment: 'xcode',
+      nodeEnv: 'development',
+    });
+
+  const now = Date.now();
+  const oneTime = {
+    bundleId: BUNDLE_ID,
+    environment: Environment.XCODE,
+    expiresDate: now + 30 * DAY_MS,
+    productId: 'com.podverse.app.next.premium.onetime.monthly',
+    purchaseDate: now,
+    signedDate: now,
+    transactionId: '0',
+    type: Type.NON_RENEWING_SUBSCRIPTION,
+  };
+
+  it('reads a one-time purchase from the signed transaction without the key file', async () => {
+    const snapshot = await xcodeAdapter().fetchTransaction({
+      externalId: '0',
+      externalProductId: oneTime.productId,
+      signedTransaction: unsignedJws(oneTime),
+    });
+    expect(snapshot.purchaseKind).toBe('one_time');
+    expect(snapshot.isSandbox).toBe(true);
+    expect(snapshot.externalProductId).toBe(oneTime.productId);
+    expect(snapshot.periodEnd).toBe(new Date(oneTime.expiresDate).toISOString());
+  });
+
+  it('reports an unexpired subscription as active', async () => {
+    const snapshot = await xcodeAdapter().fetchSubscription({
+      externalId: '1',
+      externalProductId: 'com.podverse.app.next.premium.monthly',
+      signedTransaction: unsignedJws({
+        ...oneTime,
+        originalTransactionId: '1',
+        productId: 'com.podverse.app.next.premium.monthly',
+        transactionId: '1',
+        type: Type.AUTO_RENEWABLE_SUBSCRIPTION,
+      }),
+    });
+    expect(snapshot.status).toBe('active');
+    expect(snapshot.purchaseKind).toBe('auto_renew');
+    expect(snapshot.externalSubscriptionId).toBe('1');
+  });
+
+  it('finds no record without a signed transaction, for another id, or from another app', async () => {
+    const adapter = xcodeAdapter();
+    await expect(
+      adapter.fetchTransaction({ externalId: '0', externalProductId: null })
+    ).rejects.toThrow(BillingProcessorRecordNotFoundError);
+    await expect(
+      adapter.fetchTransaction({
+        externalId: '99',
+        externalProductId: null,
+        signedTransaction: unsignedJws(oneTime),
+      })
+    ).rejects.toThrow(BillingProcessorRecordNotFoundError);
+    await expect(
+      adapter.fetchTransaction({
+        externalId: '0',
+        externalProductId: null,
+        signedTransaction: unsignedJws({ ...oneTime, bundleId: 'com.example.other' }),
+      })
+    ).rejects.toThrow(BillingProcessorRecordNotFoundError);
+    await expect(
+      adapter.fetchTransaction({
+        externalId: '0',
+        externalProductId: null,
+        signedTransaction: unsignedJws({ ...oneTime, environment: Environment.SANDBOX }),
+      })
+    ).rejects.toThrow(BillingProcessorRecordNotFoundError);
+  });
+
+  it('is refused in production', () => {
+    expect(() =>
+      createAppleAdapter({
+        issuerId: '',
+        keyId: '',
+        privateKeyPath: '',
+        bundleId: BUNDLE_ID,
+        appleEnvironment: 'xcode',
+        nodeEnv: 'production',
+      })
+    ).toThrow('APPLE_IAP_ENVIRONMENT=xcode is refused when NODE_ENV is production');
   });
 });
 

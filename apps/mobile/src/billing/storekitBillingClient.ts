@@ -30,7 +30,7 @@ import { createFinishOnce } from './inflight';
 import { listStorePrices } from './localizedPrices';
 import { normalizeStorefrontCode } from './normalizeStorefront';
 import { normalizeStorePurchase } from './normalizeStorePurchase';
-import { resolvePurchaseKind } from './purchaseKinds';
+import { mergeCatalogKinds, resolvePurchaseKind } from './purchaseKinds';
 import type { RestoreStoreRecord } from './restoreStorePurchases';
 import { restoreStorePurchases } from './restoreStorePurchases';
 import { settleStorePurchase } from './settleStorePurchase';
@@ -90,6 +90,23 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
     return normalizeStorefrontCode(await getStorefrontIOS());
   };
 
+  /**
+   * expo-iap buys and restores only products its native store has already loaded, and checkout
+   * skips `listPrices` when the API supplies prices. Load failures surface from the purchase call.
+   */
+  const loadStoreProducts = async (productIds: readonly string[]): Promise<void> => {
+    await listStorePrices(productIds, getProducts, getSubscriptions);
+  };
+
+  const loadCatalogProducts = async (storefront: string | null): Promise<void> => {
+    const catalog = await api.getCheckoutOptions({ platform: 'ios', storefront });
+    mergeCatalogKinds(kinds, catalog);
+    const productIds = catalog.processors
+      .filter((processor) => processor.processor_id === 'apple')
+      .flatMap((processor) => processor.products.map((product) => product.external_product_id));
+    await loadStoreProducts(productIds);
+  };
+
   const finishPurchase = (purchase: Purchase, externalId: string): Promise<void> =>
     finishOnce(externalId, async () => {
       await finishTransaction({ isConsumable: false, purchase });
@@ -110,6 +127,7 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
       post: () =>
         api.postAppleTransaction({
           productId: normalized.productId,
+          signedTransaction: normalized.signedTransaction,
           transactionId: externalId,
         }),
     });
@@ -132,6 +150,7 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
     kinds.set(product.productId, product.purchaseKind);
 
     try {
+      await loadStoreProducts([product.productId]);
       const requested =
         product.purchaseKind === 'auto_renew'
           ? await requestPurchase({
@@ -178,6 +197,7 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
   const restore = async (): Promise<BillingPurchaseOutcome> => {
     await start();
     const storefront = await getStorefront();
+    await loadCatalogProducts(storefront).catch(() => undefined);
     const available = await getAvailablePurchases({ onlyIncludeActiveItems: true });
     const records: RestoreStoreRecord[] = [];
     let pendingCount = 0;
@@ -206,6 +226,7 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
         externalProductId: normalized.productId,
         finish: () => finishPurchase(purchaseRecord, externalId),
         purchaseKind,
+        signedTransaction: normalized.signedTransaction,
       });
     }
     return restoreStorePurchases({

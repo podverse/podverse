@@ -873,6 +873,7 @@
     "pricing_per_month": "/mes",
     "pricing_per_year": "/año",
     "pricing_save_percent": "Ahorra {percent}%",
+    "pricing_percent_off": "{percent}% de descuento",
     "contact_mode_text_before": "Para obtener una membresía, por favor contáctanos en",
     "cta_sign_up_text": "Regístrate para comenzar tu prueba gratuita",
     "cta_upgrade_text": "Mejorar a Premium",

@@ -1,17 +1,12 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Linking,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
 import type { AuthRequestDeps } from '../../auth/authRequestWithRefresh';
+import { createMobileApiRequestService } from '../../auth/mobileApi';
 import type { BillingCheckoutCatalog, BillingMembershipStatus } from '../../billing/billingApi';
 import { createBillingApi } from '../../billing/billingApi';
 import type {
@@ -36,14 +31,30 @@ import {
   storeProcessorId,
   subscriptionManagementUrl,
 } from '../../membership/storeCheckout';
+import type { MoreStackParamList } from '../../navigation';
+import { MORE_STACK_ROUTES } from '../../navigation';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { ConfirmDialog } from '../feedback/ConfirmDialog';
-import { OptionChipGroup } from '../form/OptionChipGroup';
-import { Button, Card } from '../primitives';
+import { Accordion, Badge, Button, Card } from '../primitives';
 import { ToggleSwitch } from '../primitives/ToggleSwitch';
+import { LoadingSection } from '../state/LoadingSection';
 
 type PurchaseNotice = 'failed' | 'success' | 'waiting';
+
+type NoticeSource = 'purchase' | 'restore';
+
+/** Public membership prices from `GET /product/membership/pricing`, the catalog web checkout uses. */
+type CatalogPricing = {
+  annuallySavingsPercent: number;
+  costAnnually: number;
+  costMonthly: number;
+};
+
+const formatCatalogUsd = (amount: number): string => {
+  const dollars = Math.round(amount * 100) / 100;
+  return Number.isInteger(dollars) ? `$${dollars}` : `$${dollars.toFixed(2)}`;
+};
 
 /**
  * One billing client for the signed-in membership screen. The store listener attaches when the
@@ -77,14 +88,20 @@ const checkoutPlatform = (): 'android' | 'ios' | null => {
 };
 
 /**
- * Store checkout for a signed-in member. Prices come from the billing client. PayPal, when the
+ * Store checkout for a signed-in member. Plan prices and the annual percent off come from
+ * `GET /product/membership`, the public catalog. PayPal, when the
  * server includes it for this platform, opens web checkout. When nothing on this platform can be
  * bought, the screen tells the member how to reach the team. The terms page is the legal document
  * that describes how the service handles data, so Privacy opens that page too.
+ *
+ * The card stays hidden until checkout options, membership status, and that pricing catalog
+ * have settled. A spinner is the only thing on screen until that frame, so rows do not appear
+ * and then shift.
  */
 export function MembershipStoreCheckout() {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { accessToken, clearSession, refreshToken, setAccount, setTokens } = useAuth();
   const platform = checkoutPlatform();
   screenAuthDeps.accessToken = accessToken;
@@ -100,11 +117,13 @@ export function MembershipStoreCheckout() {
   const [loading, setLoading] = useState(platform !== null);
   const [processors, setProcessors] = useState<readonly CheckoutProcessorOffer[]>([]);
   const [prices, setPrices] = useState<readonly BillingLocalizedPrice[]>([]);
+  const [catalogPricing, setCatalogPricing] = useState<CatalogPricing | null>(null);
   const [status, setStatus] = useState<BillingMembershipStatus | null>(null);
   const [autoRenew, setAutoRenew] = useState(true);
   const [cadence, setCadence] = useState<StoreCheckoutCadence>('monthly');
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState<PurchaseNotice | null>(null);
+  const [noticeSource, setNoticeSource] = useState<NoticeSource | null>(null);
   const [updateRequired, setUpdateRequired] = useState(false);
   const [updateDialogVisible, setUpdateDialogVisible] = useState(false);
 
@@ -118,6 +137,11 @@ export function MembershipStoreCheckout() {
 
     const load = async () => {
       setLoading(true);
+      const pricingApi = createMobileApiRequestService();
+      const pricingRequest =
+        pricingApi === null
+          ? Promise.resolve(null)
+          : pricingApi.reqProductMembershipGet().catch(() => null);
       try {
         if (client.backend !== 'unavailable') {
           await client.syncUnfinishedTransactions().catch(() => undefined);
@@ -145,13 +169,34 @@ export function MembershipStoreCheckout() {
         } catch {
           nextStatus = null;
         }
+        const pricingResponse = await pricingRequest;
         if (!active) {
           return;
         }
         const mapped = mapCheckoutProcessors(nextOptions);
+        const nextCatalog =
+          pricingResponse !== null && 'data' in pricingResponse
+            ? {
+                annuallySavingsPercent: pricingResponse.data.annuallySavingsPercent,
+                costAnnually: pricingResponse.data.premiumMembershipCostAnnually,
+                costMonthly: pricingResponse.data.premiumMembershipCostMonthly,
+              }
+            : null;
+        const catalogReady =
+          nextCatalog !== null &&
+          Number.isFinite(nextCatalog.costMonthly) &&
+          Number.isFinite(nextCatalog.costAnnually);
         setProcessors(mapped);
         setStatus(nextStatus);
-        if (client.backend === 'unavailable') {
+        setCatalogPricing(catalogReady ? nextCatalog : null);
+        if (processorId !== null) {
+          const renewCadences = availableCadences(mapped, processorId, 'auto_renew');
+          const onceCadences = availableCadences(mapped, processorId, 'one_time');
+          if (renewCadences.length === 0 && onceCadences.length > 0) {
+            setAutoRenew(false);
+          }
+        }
+        if (catalogReady || client.backend === 'unavailable') {
           return;
         }
         const productIds = mapped.flatMap((processor) =>
@@ -244,6 +289,37 @@ export function MembershipStoreCheckout() {
           ...typography.body,
           color: tokens.text.accent,
         },
+        loading: {
+          flex: 1,
+        },
+        plan: {
+          backgroundColor: tokens.background.secondary,
+          borderColor: themeStyles.border.borderColor,
+          borderRadius: tokens.radii.md,
+          borderWidth: 1,
+          flex: 1,
+          gap: tokens.spacing.sm,
+          padding: tokens.spacing.lg,
+        },
+        planName: {
+          ...typography.subheading,
+          color: themeStyles.textPrimary.color,
+        },
+        planPeriod: {
+          ...typography.body,
+          color: themeStyles.textSecondary.color,
+        },
+        planPrice: {
+          ...typography.title,
+          color: themeStyles.textPrimary.color,
+        },
+        planRow: {
+          flexDirection: 'row',
+          gap: tokens.spacing.sm,
+        },
+        planSelected: {
+          borderColor: themeStyles.buttonPrimary.backgroundColor,
+        },
         linkRow: {
           flexDirection: 'row',
           gap: tokens.spacing.lg,
@@ -271,19 +347,35 @@ export function MembershipStoreCheckout() {
     return match === undefined ? null : match.displayPrice;
   };
 
-  const cadenceLabel = (value: StoreCheckoutCadence): string => {
-    const plan =
-      value === 'monthly' ? t('membership.pricing_monthly') : t('membership.pricing_annually');
+  const planName = (value: StoreCheckoutCadence): string =>
+    value === 'monthly' ? t('membership.pricing_monthly') : t('membership.pricing_annually');
+
+  const planPeriod = (value: StoreCheckoutCadence): string =>
+    value === 'monthly' ? t('membership.pricing_per_month') : t('membership.pricing_per_year');
+
+  const planPrice = (value: StoreCheckoutCadence): string | null => {
+    const catalogAmount =
+      catalogPricing === null
+        ? null
+        : value === 'monthly'
+          ? catalogPricing.costMonthly
+          : catalogPricing.costAnnually;
+    if (catalogAmount !== null) {
+      return formatCatalogUsd(catalogAmount);
+    }
     if (processorId === null) {
-      return plan;
+      return null;
     }
     const offer = checkoutProduct(processors, processorId, value, purchaseKind);
-    if (offer === null) {
-      return plan;
-    }
-    const price = displayPriceFor(offer.externalProductId);
-    return price === null ? plan : t('membership.checkout.plan_price', { plan, price });
+    return offer === null ? null : displayPriceFor(offer.externalProductId);
   };
+
+  const percentOff =
+    catalogPricing !== null &&
+    Number.isFinite(catalogPricing.annuallySavingsPercent) &&
+    catalogPricing.annuallySavingsPercent > 0
+      ? catalogPricing.annuallySavingsPercent
+      : null;
 
   const refreshAccount = async () => {
     if (screenAuthDeps.accessToken === null) {
@@ -302,7 +394,10 @@ export function MembershipStoreCheckout() {
     setStatus(nextStatus);
   };
 
-  const applyOutcome = async (outcome: BillingPurchaseOutcome) => {
+  const applyOutcome = async (
+    outcome: BillingPurchaseOutcome,
+    source: NoticeSource
+  ): Promise<void> => {
     if (isClientUpdateRequired(outcome.errorCode)) {
       setUpdateRequired(true);
       setUpdateDialogVisible(true);
@@ -313,8 +408,12 @@ export function MembershipStoreCheckout() {
       return;
     }
     if (outcome.phase === 'confirmed') {
-      setNotice('success');
       await refreshAccount();
+      if (source === 'purchase') {
+        navigation.popTo(MORE_STACK_ROUTES.MoreMembership);
+        return;
+      }
+      setNotice('success');
       await reloadStatus().catch(() => undefined);
       return;
     }
@@ -331,9 +430,10 @@ export function MembershipStoreCheckout() {
     }
     setSubmitting(true);
     setNotice(null);
+    setNoticeSource('purchase');
     void client
       .purchase({ productId: product.externalProductId, purchaseKind: product.purchaseKind })
-      .then((outcome) => applyOutcome(outcome))
+      .then((outcome) => applyOutcome(outcome, 'purchase'))
       .catch(() => {
         setNotice('failed');
       })
@@ -348,9 +448,10 @@ export function MembershipStoreCheckout() {
     }
     setSubmitting(true);
     setNotice(null);
+    setNoticeSource('restore');
     void client
       .restore()
-      .then((outcome) => applyOutcome(outcome))
+      .then((outcome) => applyOutcome(outcome, 'restore'))
       .catch(() => {
         setNotice('failed');
       })
@@ -412,7 +513,7 @@ export function MembershipStoreCheckout() {
 
   const notices = (
     <>
-      {noticeText !== null ? (
+      {noticeText !== null && noticeSource !== 'restore' ? (
         <Text
           accessibilityLiveRegion="polite"
           style={styles.status}
@@ -453,17 +554,18 @@ export function MembershipStoreCheckout() {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loading} testID="membership-checkout-pending">
+        <LoadingSection testID="membership-checkout-loading" />
+      </View>
+    );
+  }
+
   if (!storePurchases) {
     return (
       <View style={styles.block} testID="membership-checkout-foss">
-        {loading ? (
-          <ActivityIndicator
-            accessibilityLabel={t('misc.loading_your_content')}
-            accessibilityRole="progressbar"
-            testID="membership-checkout-loading"
-          />
-        ) : null}
-        {!loading && showPayPal ? (
+        {showPayPal ? (
           <Button
             fullWidth
             label={t('membership.checkout.pay_with_paypal_on_the_web')}
@@ -474,7 +576,7 @@ export function MembershipStoreCheckout() {
             variant="outline"
           />
         ) : null}
-        {!loading && !showPayPal ? contactBlock : null}
+        {!showPayPal ? contactBlock : null}
         {notices}
       </View>
     );
@@ -487,13 +589,6 @@ export function MembershipStoreCheckout() {
     >
       <Card>
         <View style={styles.stack}>
-          {loading ? (
-            <ActivityIndicator
-              accessibilityLabel={t('misc.loading_your_content')}
-              accessibilityRole="progressbar"
-              testID="membership-checkout-loading"
-            />
-          ) : null}
           {status?.in_grace_period === true ? (
             <Text style={styles.disclosure}>{t('membership.manage.grace_banner')}</Text>
           ) : null}
@@ -508,16 +603,49 @@ export function MembershipStoreCheckout() {
             </Text>
           ) : null}
           {showCadence && selectedCadence !== undefined ? (
-            <OptionChipGroup
-              onChange={setCadence}
-              options={cadences.map((value) => ({
-                label: cadenceLabel(value),
-                testID: `membership-checkout-cadence-${value}`,
-                value,
-              }))}
-              testID="membership-checkout-cadence"
-              value={selectedCadence}
-            />
+            <View style={styles.planRow} testID="membership-checkout-cadence">
+              {cadences.map((value) => {
+                const selected = value === selectedCadence;
+                const name = planName(value);
+                const price = planPrice(value);
+                const period = planPeriod(value);
+                const savings =
+                  value === 'annual' && percentOff !== null
+                    ? t('membership.pricing_percent_off', { percent: percentOff })
+                    : null;
+                const priceLabel = price === null ? name : `${name}, ${price}${period}`;
+                return (
+                  <Pressable
+                    accessibilityLabel={
+                      savings === null ? priceLabel : `${priceLabel}, ${savings}`
+                    }
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    key={value}
+                    onPress={() => {
+                      setCadence(value);
+                    }}
+                    style={[styles.plan, selected ? styles.planSelected : null]}
+                    testID={`membership-checkout-cadence-${value}`}
+                  >
+                    <Text style={styles.planName}>{name}</Text>
+                    {price !== null ? (
+                      <Text style={styles.planPrice} testID={`membership-checkout-price-${value}`}>
+                        {price}
+                      </Text>
+                    ) : null}
+                    {price !== null ? <Text style={styles.planPeriod}>{period}</Text> : null}
+                    {savings !== null ? (
+                      <Badge
+                        label={savings}
+                        testID="membership-checkout-percent-off"
+                        tone="accent"
+                      />
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </View>
           ) : null}
           {showStorePurchase ? (
             <>
@@ -556,10 +684,10 @@ export function MembershipStoreCheckout() {
               <Button
                 disabled={product === null || submitting || updateRequired}
                 fullWidth
-                label={t('membership.extend_my_membership')}
-                loading={submitting}
+                label={t('checkout.complete_purchase')}
+                loading={submitting && noticeSource === 'purchase'}
                 onPress={onPurchase}
-                testID="more-membership-cta"
+                testID="membership-extend-purchase"
                 variant="primary"
               />
             </>
@@ -579,16 +707,6 @@ export function MembershipStoreCheckout() {
               variant="primary"
             />
           ) : null}
-          {storeOffered ? (
-            <Button
-              disabled={submitting || updateRequired}
-              fullWidth
-              label={t('membership.checkout.restore_purchases')}
-              onPress={onRestore}
-              testID="membership-checkout-restore"
-              variant="secondary"
-            />
-          ) : null}
           {!alreadyRenewing && showPayPal ? (
             <Button
               fullWidth
@@ -600,13 +718,49 @@ export function MembershipStoreCheckout() {
               variant="outline"
             />
           ) : null}
-          {!loading && checkoutMode === 'contact' ? contactBlock : null}
-          {storeOffered && !loading && product === null && !alreadyRenewing ? (
+          {checkoutMode === 'contact' ? contactBlock : null}
+          {storeOffered && product === null && !alreadyRenewing ? (
             <Text style={styles.disclosure}>{t('checkout.plan_unavailable')}</Text>
           ) : null}
           {notices}
         </View>
       </Card>
+      {storeOffered ? (
+        <Accordion
+          testID="membership-checkout-troubleshooting"
+          title={t('membership.checkout.troubleshooting')}
+        >
+          <View style={styles.stack}>
+            <Text style={styles.disclosure} testID="membership-checkout-restore-help">
+              {t('membership.checkout.restore_purchases_help')}
+            </Text>
+            <Button
+              disabled={submitting || updateRequired}
+              fullWidth
+              label={t('membership.checkout.restore_purchases')}
+              loading={submitting && noticeSource === 'restore'}
+              onPress={onRestore}
+              testID="membership-checkout-restore"
+              variant="secondary"
+            />
+            {noticeSource === 'restore' && noticeText !== null ? (
+              <Text
+                accessibilityLiveRegion="polite"
+                style={styles.status}
+                testID={
+                  notice === 'success'
+                    ? 'membership-checkout-success'
+                    : notice === 'waiting'
+                      ? 'membership-checkout-waiting'
+                      : 'membership-checkout-error'
+                }
+              >
+                {noticeText}
+              </Text>
+            ) : null}
+          </View>
+        </Accordion>
+      ) : null}
     </View>
   );
 }

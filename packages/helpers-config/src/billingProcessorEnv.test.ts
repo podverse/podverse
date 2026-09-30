@@ -95,6 +95,31 @@ describe('processor validation', () => {
     );
   });
 
+  it('needs only the bundle id for Apple in xcode mode, and refuses that mode in production', () => {
+    const xcodeEnv = {
+      BILLING_APPLE_IAP_ENABLED: 'true',
+      APPLE_IAP_BUNDLE_ID: 'com.podverse.app.next',
+      APPLE_IAP_ENVIRONMENT: 'xcode',
+    };
+    expect(readBillingProcessorEnv(xcodeEnv).apple).toMatchObject({
+      bundleId: 'com.podverse.app.next',
+      environment: 'xcode',
+    });
+    expect(validateAppleProcessorEnv(xcodeEnv).every((result) => result.isValid)).toBe(true);
+
+    const production = validateAppleProcessorEnv({ ...xcodeEnv, NODE_ENV: 'production' });
+    expect(production.find((result) => result.name === 'APPLE_IAP_ENVIRONMENT')?.isValid).toBe(
+      false
+    );
+
+    const sandbox = validateAppleProcessorEnv({ ...xcodeEnv, APPLE_IAP_ENVIRONMENT: 'sandbox' });
+    expect(sandbox.filter((result) => !result.isValid).map((result) => result.name)).toEqual([
+      'APPLE_IAP_ISSUER_ID',
+      'APPLE_IAP_KEY_ID',
+      'APPLE_IAP_PRIVATE_KEY_PATH',
+    ]);
+  });
+
   it('rejects an unknown PayPal environment', () => {
     const results = validatePayPalProcessorEnv({ ...PAYPAL_ENV, PAYPAL_ENVIRONMENT: 'staging' });
     expect(results.find((result) => result.name === 'PAYPAL_ENVIRONMENT')?.isValid).toBe(false);

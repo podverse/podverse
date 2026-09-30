@@ -346,11 +346,17 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
 
   const membershipExpiresAt = new Date();
   membershipExpiresAt.setUTCDate(membershipExpiresAt.getUTCDate() + 30);
+  const membershipStartsAt = new Date();
 
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [accountId, membershipExpiresAt.toISOString()]
+    [accountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [accountId, membershipStartsAt, membershipExpiresAt]
   );
 
   await client.query(
@@ -389,7 +395,12 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [staleTermsAccountId, membershipExpiresAt.toISOString()]
+    [staleTermsAccountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [staleTermsAccountId, membershipStartsAt, membershipExpiresAt]
   );
 
   await client.query(
@@ -427,11 +438,17 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
 
   const inviteMembershipExpiresAt = new Date();
   inviteMembershipExpiresAt.setUTCDate(inviteMembershipExpiresAt.getUTCDate() + 30);
+  const inviteMembershipStartsAt = new Date();
 
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [inviteAccountId, inviteMembershipExpiresAt.toISOString()]
+    [inviteAccountId, inviteMembershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [inviteAccountId, inviteMembershipStartsAt, inviteMembershipExpiresAt]
   );
 
   const setPasswordExpiresAt = new Date();
@@ -473,7 +490,12 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [undecidedAccountId, membershipExpiresAt.toISOString()]
+    [undecidedAccountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [undecidedAccountId, membershipStartsAt, membershipExpiresAt]
   );
 
   await client.query(
@@ -538,7 +560,12 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [perfAccountId, membershipExpiresAt.toISOString()]
+    [perfAccountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [perfAccountId, membershipStartsAt, membershipExpiresAt]
   );
 
   await client.query(

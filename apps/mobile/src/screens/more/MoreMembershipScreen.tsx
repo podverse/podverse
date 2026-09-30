@@ -1,23 +1,26 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { createMobileApiRequestService } from '../../auth/mobileApi';
 import { MembershipFeatureTable } from '../../components/membership/MembershipFeatureTable';
-import { MembershipStoreCheckout } from '../../components/membership/MembershipStoreCheckout';
 import { TrialLimitationsAccordion } from '../../components/membership/TrialLimitationsAccordion';
 import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { SectionHeading } from '../../components/section/SectionHeading';
 import { openCheckout } from '../../membership/checkoutEntry';
 import { useMembership } from '../../membership/useMembership';
+import type { MoreStackParamList } from '../../navigation';
+import { MORE_STACK_ROUTES } from '../../navigation';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Membership screen. Tiers, trial limits, and expired messaging sit above one primary action.
- * Logged out, that action opens web sign-up. Logged in, store builds purchase on this screen.
- * PayPal opens web checkout when checkout options include it. Copy uses the membership catalog.
+ * Membership screen. Shows how long access lasts, the feature table, and trial limits.
+ * Logged out, the action opens web sign-up. Logged in, Extend My Membership opens the
+ * screen where cadence, terms, privacy, and auto-renew are chosen.
  */
 
 /** The pricing fields this screen renders (subset of the API's `MembershipPricingData`). */
@@ -29,6 +32,7 @@ type MembershipPricing = {
 
 export function MoreMembershipScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { styles: themeStyles, tokens } = useTheme();
   const { expiresAt, isExpired, isLoggedIn, isMember, tier } = useMembership();
   const [pricing, setPricing] = useState<MembershipPricing | null>(null);
@@ -132,7 +136,17 @@ export function MoreMembershipScreen() {
       ) : null}
 
       {isLoggedIn ? (
-        <MembershipStoreCheckout />
+        <View style={styles.cta}>
+          <Button
+            fullWidth
+            label={t('membership.extend_my_membership')}
+            onPress={() => {
+              navigation.navigate(MORE_STACK_ROUTES.MoreMembershipExtend);
+            }}
+            testID="more-membership-cta"
+            variant="primary"
+          />
+        </View>
       ) : (
         <>
           {pricing !== null ? (

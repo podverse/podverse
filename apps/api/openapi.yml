@@ -3509,6 +3509,13 @@ components:
         product_id:
           type: string
           example: fm.podverse.premium.monthly
+        signed_transaction:
+          type: string
+          maxLength: 16384
+          description: >-
+            The StoreKit JWS for the transaction. Read only when the API runs with
+            APPLE_IAP_ENVIRONMENT=xcode, which is refused in production; every other mode looks the
+            transaction up with Apple.
     BillingGooglePurchaseRequest:
       type: object
       required:
@@ -3561,6 +3568,13 @@ components:
                 enum:
                   - auto_renew
                   - one_time
+              signed_transaction:
+                type: string
+                nullable: true
+                maxLength: 16384
+                description: >-
+                  The StoreKit JWS for an Apple purchase. Read only with
+                  APPLE_IAP_ENVIRONMENT=xcode.
     BillingSimulateRequest:
       type: object
       required:

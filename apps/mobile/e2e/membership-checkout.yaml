@@ -2,7 +2,7 @@ appId: com.podverse.app.next
 name: Membership Checkout
 ---
 # Signed-in store checkout uses the fake billing client. Auto-renew starts checked.
-# Purchase posts a test-processor payment, then the screen shows the membership as active.
+# Purchase posts a test-processor payment, then the screen returns to Membership.
 # API-backed. Re-seed so ios and android expose the test checkout channel.
 
 - runFlow: shared/launch-and-connect.yaml
@@ -14,17 +14,37 @@ name: Membership Checkout
     id: more-screen
 - tapOn:
     id: more-nav-membership
-- extendedWaitUntil:
-    visible:
-      id: membership-checkout-ready
-    timeout: ${TIMEOUT_SLOW}
 - assertVisible:
-    id: membership-checkout-auto-renew
-    checked: true
+    id: more-membership-screen
 - tapOn:
     id: more-membership-cta
 - extendedWaitUntil:
     visible:
-      id: membership-checkout-success
+      id: membership-extend-screen
+    timeout: ${TIMEOUT_FAST}
+- extendedWaitUntil:
+    visible:
+      id: membership-checkout-ready
     timeout: ${TIMEOUT_SLOW}
+# Restore stays collapsed under Troubleshooting until the row is opened.
+- assertVisible:
+    id: membership-checkout-troubleshooting-toggle
+- tapOn:
+    id: membership-checkout-troubleshooting-toggle
+- assertVisible:
+    id: membership-checkout-restore-help
+- assertVisible:
+    id: membership-checkout-restore
+- takeScreenshot: membership-checkout-troubleshooting
+- assertVisible:
+    id: membership-checkout-auto-renew
+    checked: true
+- tapOn:
+    id: membership-extend-purchase
+- extendedWaitUntil:
+    visible:
+      id: more-membership-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: more-membership-status
 - takeScreenshot: membership-checkout-active

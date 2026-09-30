@@ -54,7 +54,7 @@ npm run mobile:android -- --device Pixel_6_Pro_API_33
 ```
 
 `EXPO_PUBLIC_MOBILE_BILLING=unavailable`, and any UnifiedPush build, uses
-`unavailableBillingClient` (no store sheet). The Membership screen then offers PayPal on the web
+`unavailableBillingClient` (no store sheet). Extend My Membership then offers PayPal on the web
 when checkout options include it. A FOSS prebuild must also exclude `expo-iap` from autolinking
 so Play Billing is not compiled into the binary.
 Maestro (`EXPO_PUBLIC_MOBILE_E2E=1`) uses the fake client and never opens a store sheet.

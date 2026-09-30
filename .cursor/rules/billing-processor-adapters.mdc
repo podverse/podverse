@@ -38,7 +38,8 @@ the sales switch. Leave the two separate.
 
 - Don't charge a card, a PayPal agreement, or a store account from a worker. The processor
   charges. Reconciliation only reads.
-- Don't write `membership_expires_at` outside that recompute.
+- Don't write `membership_expires_at` outside that recompute. Seeds and fixtures that set the
+  cache must insert a covering grant in the same step (**membership-expiry-seeds-need-grant**).
 - Don't add a fourth payment processor beside PayPal, Apple, and Google Play.
 - Don't send membership-expiry or renewal-reminder email.
 

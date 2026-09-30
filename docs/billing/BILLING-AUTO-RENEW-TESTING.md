@@ -70,29 +70,47 @@ Sandbox app, webhook, and tunnel setup stay in
 
 ## StoreKit Testing
 
-`apps/mobile/storekit/PodverseMembership.storekit` holds the monthly and annual
-auto-renew products:
+`apps/mobile/storekit/PodverseMembership.storekit` holds the local store catalog:
 
-| Product         | Product ID                               | Period | Price |
-| --------------- | ---------------------------------------- | ------ | ----- |
-| Premium Monthly | `com.podverse.app.next.premium.monthly`  | `P1M`  | 3.00  |
-| Premium Annual  | `com.podverse.app.next.premium.annual`   | `P1Y`  | 30.00 |
+| Product                  | Product ID                                      | Period | Price |
+| ------------------------ | ----------------------------------------------- | ------ | ----- |
+| Premium Monthly          | `com.podverse.app.next.premium.monthly`         | `P1M`  | 3.00  |
+| Premium Annual           | `com.podverse.app.next.premium.annual`          | `P1Y`  | 30.00 |
+| Premium One-Time Monthly | `com.podverse.app.next.premium.onetime.monthly` | none   | 3.00  |
+| Premium One-Time Annual  | `com.podverse.app.next.premium.onetime.annual`  | none   | 30.00 |
 
 Those ids match the recommended App Store Connect ids in
 [BILLING-APPLE-SANDBOX.md](BILLING-APPLE-SANDBOX.md). Annual is subscription level 1 and
-monthly is level 2 in the `PODVERSE_PREMIUM` group.
+monthly is level 2 in the `PODVERSE_PREMIUM` group. The one-time rows are non-renewing
+subscriptions. Apple stores no period on them. The membership length is the cadence on the
+seeded product id. With **Auto-Renew** off, checkout buys the one-time id for the selected
+cadence.
 
 `_timeRate` is `1`, Xcode's accelerated renewal rate (a monthly period elapses in about 30
 seconds, an annual period in about 6 minutes). Do not copy the file into the generated
-`apps/mobile/ios` project.
+`apps/mobile/ios` project. The file is attached only when Xcode runs the scheme. Leave
+**Mobile Metro** running (`npm run mobile:dev`), then:
 
-1. Open the app scheme in Xcode → **Run** → **Options** → **StoreKit Configuration**
-2. Select `apps/mobile/storekit/PodverseMembership.storekit`
-3. If the configuration editor shows **Real Time**, set **Subscription Renewal Rate** to the
+1. Open `apps/mobile/ios/PodverseNext.xcworkspace`
+2. Scheme → **Run** → **Options** → **StoreKit Configuration**
+3. Select `apps/mobile/storekit/PodverseMembership.storekit`
+4. If the configuration editor shows **Real Time**, set **Subscription Renewal Rate** to the
    accelerated rate and save
+5. Press **Run** and choose **iPhone 17 Pro**
 
-Sandbox Apple Accounts are created in App Store Connect. Podverse does not store their
-passwords. See [BILLING-APPLE-SANDBOX.md](BILLING-APPLE-SANDBOX.md).
+A launch from **Mobile iOS**, or a tap on the home-screen icon, does not attach the file, so
+the store has no products to sell.
+
+A purchase from this file stays inside Xcode, and Apple's App Store Server API has no record of
+it. To have it grant membership, run the local API with `APPLE_IAP_ENVIRONMENT="xcode"`, which
+reads the signed transaction the app posts instead of asking Apple. That mode needs only
+`APPLE_IAP_BUNDLE_ID` and is refused in production. With `sandbox`, the API rejects these
+purchases. Setup and limits are in
+[BILLING-APPLE-SANDBOX.md § StoreKit Testing](BILLING-APPLE-SANDBOX.md#storekit-testing-simulator).
+
+The App Store sandbox (a Sandbox Apple Account against the App Store Connect products) works
+only on a physical iPhone, not in the simulator. See
+[BILLING-APPLE-SANDBOX.md § App Store sandbox](BILLING-APPLE-SANDBOX.md#app-store-sandbox-physical-iphone).
 
 ## Google Play license testers
 

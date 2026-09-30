@@ -15,3 +15,17 @@ export async function reqMembershipGetPricing(api: ApiRequestService) {
     method: 'GET',
   });
 }
+
+/** Prices and the annual savings percent from the public product catalog. */
+type ProductMembershipCatalog = {
+  annuallySavingsPercent: number;
+  premiumMembershipCostAnnually: number;
+  premiumMembershipCostMonthly: number;
+};
+
+export async function reqProductMembershipGet(api: ApiRequestService) {
+  return api.apiRequest<{ data: ProductMembershipCatalog }>({
+    path: '/product/membership',
+    method: 'GET',
+  });
+}

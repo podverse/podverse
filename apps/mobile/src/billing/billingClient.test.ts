@@ -135,9 +135,23 @@ describe('normalizeStorePurchase', () => {
       pending: true,
       productId: 'premium.monthly',
       purchaseToken: 'token-1',
+      signedTransaction: null,
       transactionId: null,
     });
     expect(normalizeStorePurchase({ id: '' })).toBeNull();
+  });
+
+  it('keeps the StoreKit JWS so the API can read an Xcode purchase', () => {
+    expect(
+      normalizeStorePurchase({
+        id: 'premium.monthly',
+        jwsRepresentationIos: 'header.payload.signature',
+        transactionId: '2000000000000001',
+      })
+    ).toMatchObject({
+      signedTransaction: 'header.payload.signature',
+      transactionId: '2000000000000001',
+    });
   });
 });
 
@@ -216,6 +230,31 @@ describe('restoreStorePurchases', () => {
         restore: () => Promise.resolve({ confirmed: true }),
       })
     ).resolves.toEqual(billingPurchaseOutcome('waiting'));
+  });
+
+  it('sends each signed transaction with its purchase', async () => {
+    const restore = vi.fn(() => Promise.resolve({ confirmed: true }));
+    await restoreStorePurchases({
+      pendingCount: 0,
+      records: [
+        {
+          externalId: 'tx-1',
+          externalProductId: product.productId,
+          finish: () => Promise.resolve(),
+          purchaseKind: product.purchaseKind,
+          signedTransaction: 'header.payload.signature',
+        },
+      ],
+      restore,
+    });
+    expect(restore).toHaveBeenCalledWith([
+      {
+        externalId: 'tx-1',
+        externalProductId: product.productId,
+        purchaseKind: product.purchaseKind,
+        signedTransaction: 'header.payload.signature',
+      },
+    ]);
   });
 });
 

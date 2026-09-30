@@ -7,6 +7,8 @@ export type NormalizedStorePurchase = {
   pending: boolean;
   productId: string;
   purchaseToken: string | null;
+  /** StoreKit JWS for an iOS transaction; null on Android. */
+  signedTransaction: string | null;
   transactionId: string | null;
 };
 
@@ -27,6 +29,7 @@ export const normalizeStorePurchase = (value: unknown): NormalizedStorePurchase 
     pending: value.purchaseStateAndroid === PLAY_PURCHASE_PENDING,
     productId,
     purchaseToken: readString(value, 'purchaseTokenAndroid'),
+    signedTransaction: readString(value, 'jwsRepresentationIos'),
     transactionId: readString(value, 'transactionId'),
   };
 };

@@ -153,6 +153,13 @@ webhook never arrived. The schedule and the local command are in
 | `legacy_import` | Expiry carried over from the previous Podverse app |
 | `migration_baseline` | Membership an account already had when grants were introduced |
 
+One-time purchases stack: the new grant starts where the account's access already runs out
+(trial, admin, and paid grants all count), or at settlement when nothing is left. Store
+subscriptions (Apple, Google Play) cannot start in the future, so remaining bankable time —
+one-time, admin, claim, trial, legacy, and migration grants — moves into the subscription's
+bank when it starts and is handed back when it ends. PayPal subscriptions start at the current
+`membership_expires_at` instead and never bank.
+
 Access continues past an auto-renew period end for
 `BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION` seconds (default `172800`, 48 hours) while the
 renewal event arrives. A failed charge keeps access for

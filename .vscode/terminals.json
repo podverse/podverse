@@ -125,7 +125,7 @@
     },
     {
       "name": "Billing Tunnel",
-      "description": "Leave running: cloudflared tunnel run podverse-local. Forwards https://billing-local.podcastdj.com to the local API on :3000. Dev must already be up. Setup: docs/billing/BILLING-PAYPAL-SANDBOX.md.",
+      "description": "Leave running: cloudflared tunnel run podverse-local. Forwards https://billing-local.example.com to the local API on :3000. Dev must already be up. Commands: docs/QUICKSTART.md#sandbox-checkout. Ingress file: docs/billing/BILLING-PAYPAL-SANDBOX.md.",
       "cwd": ".",
       "open": true,
       "command": "clear"

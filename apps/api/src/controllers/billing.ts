@@ -67,7 +67,11 @@ type PayPalCheckoutBody = {
 };
 type PayPalOrderParams = { id: string };
 type SubscriptionParams = { id: number };
-type AppleTransactionBody = { transaction_id: string; product_id?: string };
+type AppleTransactionBody = {
+  transaction_id: string;
+  product_id?: string;
+  signed_transaction?: string;
+};
 type GooglePurchaseBody = {
   purchase_token: string;
   product_id: string;
@@ -79,6 +83,7 @@ type RestoreBody = {
     external_id: string;
     external_product_id?: string | null;
     purchase_kind: PurchaseKind;
+    signed_transaction?: string | null;
   }[];
 };
 type SimulateBody = { event: TestBillingEventSimulation };
@@ -241,6 +246,7 @@ async function restoreOne(
   const ref = {
     externalId: purchase.external_id,
     externalProductId: purchase.external_product_id ?? null,
+    signedTransaction: purchase.signed_transaction ?? null,
   };
   try {
     if (purchase.purchase_kind === 'auto_renew') {
@@ -571,6 +577,7 @@ export class BillingController {
       const snapshot = await adapter.fetchTransaction({
         externalId: body.transaction_id,
         externalProductId: body.product_id ?? null,
+        signedTransaction: body.signed_transaction ?? null,
       });
       await sendPurchaseResult(res, user.id, await ingestTransaction(snapshot, user.id));
     } catch (error) {

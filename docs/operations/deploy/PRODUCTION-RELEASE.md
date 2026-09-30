@@ -118,6 +118,6 @@ See [scripts/publish/README.md](/scripts/publish/README.md).
 
 ## Cluster deploy (out of scope here)
 
-Updating `k.podcastdj.com` or other GitOps overlays to pin `X.Y.Z` instead of `X.Y.Z-staging.N` is
+Updating a GitOps overlay to pin `X.Y.Z` instead of `X.Y.Z-staging.N` is
 documented in [REMOTE-K8S-GITOPS](/docs/development/k8s/REMOTE-K8S-GITOPS.md). Alpha can continue
 using staging tags while GHCR carries RTM tags.

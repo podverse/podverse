@@ -37,7 +37,7 @@ Do not commit real values.
 4. In Play Console RTDN settings, select that topic.
 5. Create a push subscription on that topic:
    - Push endpoint:
-     `https://billing-local.podcastdj.com/api/v2/billing/webhooks/google`
+     `https://billing-local.example.com/api/v2/billing/webhooks/google`
    - Authentication: enable OIDC
    - Audience: `podverse-local-rtdn` (or your selected value)
    - Service account: the same billing RTDN service account email

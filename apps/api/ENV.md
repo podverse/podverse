@@ -219,7 +219,7 @@ out of checkout options and its webhook answers 404. Routes and webhook contract
 - **`BILLING_APPLE_IAP_ENABLED`** (Optional, default off) - `true` turns Apple In-App Purchase on; empty or unset keeps it off. When it is `true`, the Apple credential keys below are required
 - **`APPLE_IAP_ISSUER_ID`**, **`APPLE_IAP_KEY_ID`**, **`APPLE_IAP_PRIVATE_KEY_PATH`**, **`APPLE_IAP_BUNDLE_ID`** - App Store Server API credentials
 - **`APPLE_IAP_APP_APPLE_ID`** (Optional) - Numeric App Store app id
-- **`APPLE_IAP_ENVIRONMENT`** (Optional) - `sandbox` or `production`; empty follows `NODE_ENV`
+- **`APPLE_IAP_ENVIRONMENT`** (Optional) - `sandbox` or `production`; empty follows `NODE_ENV`. `xcode` (local only, refused when `NODE_ENV` is `production`) reads Xcode StoreKit Testing purchases from the signed transaction the app sends and needs only `APPLE_IAP_BUNDLE_ID`
 - **`BILLING_GOOGLE_PLAY_ENABLED`** (Optional, default off) - `true` turns Google Play on; empty or unset keeps it off. When it is `true`, the Google Play credential keys below are required
 - **`GOOGLE_PLAY_PACKAGE_NAME`**, **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH`**, **`GOOGLE_PLAY_RTDN_PUSH_AUDIENCE`**, **`GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`** - Google Play Developer API credentials and the Pub/Sub push identity RTDN webhooks are checked against
 

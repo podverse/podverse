@@ -1,6 +1,37 @@
 {
   "identifier": "PODVERSE_MEMBERSHIP",
-  "nonRenewingSubscriptions": [],
+  "nonRenewingSubscriptions": [
+    {
+      "displayPrice": "3.00",
+      "familyShareable": false,
+      "internalID": "PREMIUM_ONETIME_MONTHLY",
+      "localizations": [
+        {
+          "description": "Premium membership for one month.",
+          "displayName": "Premium One Month",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.podverse.app.next.premium.onetime.monthly",
+      "referenceName": "Premium One-Time Monthly",
+      "type": "NonRenewingSubscription"
+    },
+    {
+      "displayPrice": "30.00",
+      "familyShareable": false,
+      "internalID": "PREMIUM_ONETIME_ANNUAL",
+      "localizations": [
+        {
+          "description": "Premium membership for one year.",
+          "displayName": "Premium One Year",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.podverse.app.next.premium.onetime.annual",
+      "referenceName": "Premium One-Time Annual",
+      "type": "NonRenewingSubscription"
+    }
+  ],
   "products": [],
   "settings": {
     "_failTransactionsEnabled": false,

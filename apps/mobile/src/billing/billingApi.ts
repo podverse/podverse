@@ -40,6 +40,7 @@ export type BillingApi = {
   postAppleTransaction: (params: {
     transactionId: string;
     productId: string;
+    signedTransaction: string | null;
   }) => Promise<{ confirmed: boolean }>;
   postGooglePurchase: (params: {
     purchaseToken: string;
@@ -52,6 +53,7 @@ export type BillingApi = {
       externalId: string;
       externalProductId: string;
       purchaseKind: BillingPurchaseKind;
+      signedTransaction?: string | null;
     }>;
   }) => Promise<{ confirmed: boolean }>;
   simulatePayment: (params: {
@@ -85,6 +87,7 @@ export const createBillingApi = (deps: AuthRequestDeps): BillingApi => {
       run((api) =>
         api.reqBillingPostAppleTransaction({
           productId: params.productId,
+          signedTransaction: params.signedTransaction,
           transactionId: params.transactionId,
         })
       ),
@@ -104,6 +107,7 @@ export const createBillingApi = (deps: AuthRequestDeps): BillingApi => {
             externalId: purchase.externalId,
             externalProductId: purchase.externalProductId,
             purchaseKind: purchase.purchaseKind,
+            signedTransaction: purchase.signedTransaction,
           })),
         })
       ),

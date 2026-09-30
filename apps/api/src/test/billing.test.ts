@@ -569,6 +569,24 @@ describe('Billing routes', () => {
     });
   });
 
+  describe('Apple signed transaction body', () => {
+    it('accepts a compact JWS and rejects anything else', async () => {
+      const account = await createAccount();
+      const accepted = await request(app)
+        .post(`${base}/billing/apple/transactions`)
+        .set(account.headers)
+        .send({ transaction_id: `apple-tx-${runId}`, signed_transaction: 'aGVhZGVy.cGF5bG9hZA.' })
+        .expect(404);
+      expect(accepted.body.code).toBe('billing.processor_unavailable');
+
+      await request(app)
+        .post(`${base}/billing/apple/transactions`)
+        .set(account.headers)
+        .send({ transaction_id: `apple-tx-${runId}`, signed_transaction: 'not a jws' })
+        .expect(400);
+    });
+  });
+
   describe('client version floor', () => {
     it('answers 426 when the installed app is older than the channel minimum', async () => {
       const account = await createAccount();

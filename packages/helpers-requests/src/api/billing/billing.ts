@@ -37,6 +37,8 @@ export type ReqBillingCheckoutOptionsParams = {
 export type ReqBillingAppleTransactionParams = {
   transactionId: string;
   productId?: string;
+  /** StoreKit JWS. The API reads it only when it runs with `APPLE_IAP_ENVIRONMENT=xcode`. */
+  signedTransaction?: string | null;
 };
 
 export type ReqBillingGooglePurchaseParams = {
@@ -49,6 +51,8 @@ export type ReqBillingRestorePurchase = {
   externalId: string;
   externalProductId?: string | null;
   purchaseKind: PurchaseKind;
+  /** StoreKit JWS for an Apple purchase. */
+  signedTransaction?: string | null;
 };
 
 export type ReqBillingRestorePurchasesParams = {
@@ -89,6 +93,9 @@ export async function reqBillingPostAppleTransaction(
     data: {
       transaction_id: params.transactionId,
       ...(params.productId !== undefined ? { product_id: params.productId } : {}),
+      ...(typeof params.signedTransaction === 'string' && params.signedTransaction !== ''
+        ? { signed_transaction: params.signedTransaction }
+        : {}),
     },
     config: credentials,
   });
@@ -123,6 +130,9 @@ export async function reqBillingRestorePurchases(
         external_id: purchase.externalId,
         external_product_id: purchase.externalProductId ?? null,
         purchase_kind: purchase.purchaseKind,
+        ...(typeof purchase.signedTransaction === 'string' && purchase.signedTransaction !== ''
+          ? { signed_transaction: purchase.signedTransaction }
+          : {}),
       })),
     },
     config: credentials,

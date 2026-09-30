@@ -14,6 +14,7 @@ export interface BillingPayPalProcessorEnv {
 }
 
 export interface BillingAppleProcessorEnv {
+  /** Empty with `APPLE_IAP_ENVIRONMENT=xcode`, which never calls the App Store Server API. */
   issuerId: string;
   keyId: string;
   privateKeyPath: string;
@@ -83,6 +84,28 @@ function readTrimmed(env: EnvSource, key: string): string | undefined {
   return value === undefined || value === '' ? undefined : value;
 }
 
+/** Keys only the App Store Server API reads. StoreKit Testing in Xcode needs none of them. */
+const APPLE_SERVER_API_KEYS: readonly string[] = [
+  'APPLE_IAP_ISSUER_ID',
+  'APPLE_IAP_KEY_ID',
+  'APPLE_IAP_PRIVATE_KEY_PATH',
+];
+
+function isAppleXcodeEnvironment(env: EnvSource): boolean {
+  return readTrimmed(env, 'APPLE_IAP_ENVIRONMENT')?.toLowerCase() === 'xcode';
+}
+
+function appleEnvGroup(env: EnvSource): BillingProcessorEnvGroup {
+  const group = BILLING_PROCESSOR_ENV_GROUPS.apple;
+  if (!isAppleXcodeEnvironment(env)) {
+    return group;
+  }
+  return {
+    ...group,
+    requiredKeys: group.requiredKeys.filter((key) => !APPLE_SERVER_API_KEYS.includes(key)),
+  };
+}
+
 /** True only for the value `true`, compared case-insensitively. Empty, unset, and `false` are off. */
 export function isBillingProcessorFlagOn(
   env: Record<string, string | undefined>,
@@ -128,7 +151,7 @@ export function readBillingProcessorEnv(env: EnvSource): BillingProcessorEnv {
       webhookId: value('PAYPAL_WEBHOOK_ID'),
       environment: parsePayPalEnvironment(readTrimmed(env, 'PAYPAL_ENVIRONMENT')),
     })),
-    apple: readProcessor(env, BILLING_PROCESSOR_ENV_GROUPS.apple, (value) => ({
+    apple: readProcessor(env, appleEnvGroup(env), (value) => ({
       issuerId: value('APPLE_IAP_ISSUER_ID'),
       keyId: value('APPLE_IAP_KEY_ID'),
       privateKeyPath: value('APPLE_IAP_PRIVATE_KEY_PATH'),
@@ -240,6 +263,43 @@ export function validatePayPalProcessorEnv(env: EnvSource): ValidationResult[] {
   ];
 }
 
+function validateAppleServerApiKey(
+  env: EnvSource,
+  key: string,
+  group: BillingProcessorEnvGroup,
+  enabled: boolean
+): ValidationResult {
+  if (!isAppleXcodeEnvironment(env)) {
+    return validateProcessorKey(env, key, group, enabled);
+  }
+  return {
+    name: key,
+    isSet: readTrimmed(env, key) !== undefined,
+    isValid: true,
+    isRequired: false,
+    message: 'Skipped - not used with APPLE_IAP_ENVIRONMENT=xcode',
+    category: group.category,
+  };
+}
+
+function validateAppleEnvironment(env: EnvSource, category: string): ValidationResult {
+  const result = validateOptionalChoice(
+    env,
+    'APPLE_IAP_ENVIRONMENT',
+    category,
+    ['sandbox', 'production', 'prod', 'live', 'xcode'],
+    'Use Default (production in production, sandbox otherwise)'
+  );
+  if (isAppleXcodeEnvironment(env) && readTrimmed(env, 'NODE_ENV') === 'production') {
+    return {
+      ...result,
+      isValid: false,
+      message: 'Invalid value - xcode is local-only and refused when NODE_ENV is production',
+    };
+  }
+  return result;
+}
+
 /** Apple IAP keys in `.env.example` order. */
 export function validateAppleProcessorEnv(env: EnvSource): ValidationResult[] {
   const group = BILLING_PROCESSOR_ENV_GROUPS.apple;
@@ -249,9 +309,9 @@ export function validateAppleProcessorEnv(env: EnvSource): ValidationResult[] {
     appAppleIdRaw === undefined || parsePositiveInteger(appAppleIdRaw) !== undefined;
   return [
     validateProcessorFlag(env, group),
-    validateProcessorKey(env, 'APPLE_IAP_ISSUER_ID', group, enabled),
-    validateProcessorKey(env, 'APPLE_IAP_KEY_ID', group, enabled),
-    validateProcessorKey(env, 'APPLE_IAP_PRIVATE_KEY_PATH', group, enabled),
+    validateAppleServerApiKey(env, 'APPLE_IAP_ISSUER_ID', group, enabled),
+    validateAppleServerApiKey(env, 'APPLE_IAP_KEY_ID', group, enabled),
+    validateAppleServerApiKey(env, 'APPLE_IAP_PRIVATE_KEY_PATH', group, enabled),
     validateProcessorKey(env, 'APPLE_IAP_BUNDLE_ID', group, enabled),
     {
       name: 'APPLE_IAP_APP_APPLE_ID',
@@ -266,13 +326,7 @@ export function validateAppleProcessorEnv(env: EnvSource): ValidationResult[] {
             : 'Invalid value - use the numeric App Store app id',
       category: group.category,
     },
-    validateOptionalChoice(
-      env,
-      'APPLE_IAP_ENVIRONMENT',
-      group.category,
-      ['sandbox', 'production', 'prod', 'live'],
-      'Use Default (production in production, sandbox otherwise)'
-    ),
+    validateAppleEnvironment(env, group.category),
   ];
 }
 

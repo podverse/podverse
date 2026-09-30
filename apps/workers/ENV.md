@@ -142,6 +142,10 @@ With the flag on, every key that processor needs is required. Keys and meanings 
   empty keeps it off
 - **`APPLE_IAP_ISSUER_ID`**, **`APPLE_IAP_KEY_ID`**, **`APPLE_IAP_PRIVATE_KEY_PATH`**,
   **`APPLE_IAP_BUNDLE_ID`**, **`APPLE_IAP_APP_APPLE_ID`**, **`APPLE_IAP_ENVIRONMENT`**
+- **`APPLE_IAP_ENVIRONMENT`** - `sandbox` or `production`; empty follows `NODE_ENV`. `xcode`
+  (local only, refused when `NODE_ENV` is `production`) needs only `APPLE_IAP_BUNDLE_ID`. Xcode
+  purchases are not on Apple's servers, so `billingReconcileSubscriptions` finds no record for
+  them and leaves them as they are.
 - **`BILLING_GOOGLE_PLAY_ENABLED`** (Optional, default off) - `true` turns Google Play on; empty
   keeps it off
 - **`GOOGLE_PLAY_PACKAGE_NAME`**, **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH`**,
@@ -168,7 +172,8 @@ The seed command maps the Premium product to each processor's store ids and refu
 `NODE_ENV` is `production`. It always seeds the two PayPal one-time products, whose ids Podverse
 names, and skips any mapping whose keys are empty, so a processor that is not configured yet stays
 unmapped. Re-running it updates existing mappings. Local values come from
-`dev/env-overrides/local/billing-products.env`.
+`dev/env-overrides/local/billing-products.env`. Recommended Apple ids are in
+[BILLING-APPLE-SANDBOX.md](/docs/billing/BILLING-APPLE-SANDBOX.md).
 
 | Variable                                                 | Maps                                   |
 | -------------------------------------------------------- | -------------------------------------- |

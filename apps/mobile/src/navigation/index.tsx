@@ -73,6 +73,7 @@ import { MoreE2ePlaybackScreen } from '../screens/more/MoreE2ePlaybackScreen';
 import { MoreErrorLogDetailScreen } from '../screens/more/MoreErrorLogDetailScreen';
 import { MoreErrorLogScreen } from '../screens/more/MoreErrorLogScreen';
 import { MoreFaqScreen } from '../screens/more/MoreFaqScreen';
+import { MoreMembershipExtendScreen } from '../screens/more/MoreMembershipExtendScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsAppearanceScreen } from '../screens/more/MoreSettingsAppearanceScreen';
@@ -200,6 +201,7 @@ export const MORE_STACK_ROUTES = {
   MoreE2ePlayback: 'MoreE2ePlayback',
   MoreFaq: 'MoreFaq',
   MoreMembership: 'MoreMembership',
+  MoreMembershipExtend: 'MoreMembershipExtend',
   MoreOpml: 'MoreOpml',
   MoreOverflowBrowse: 'MoreOverflowBrowse',
   MoreOverflowHome: 'MoreOverflowHome',
@@ -271,6 +273,7 @@ const moreTabLinkScreens = {
   MoreErrorLog: 'more/advanced/error-log',
   MoreFaq: 'more/faq',
   MoreMembership: `more${APP_ROUTES.MEMBERSHIP}`,
+  MoreMembershipExtend: `more${APP_ROUTES.MEMBERSHIP_RENEW}`,
   MoreOpml: 'more/opml',
   MorePublicProfile: `more${APP_ROUTES.PROFILE}/:accountIdText`,
   MoreProfile: `more${APP_ROUTES.PROFILE}`,
@@ -505,6 +508,7 @@ export type MoreStackParamList = {
   MoreE2ePlayback: undefined;
   MoreFaq: undefined;
   MoreMembership: undefined;
+  MoreMembershipExtend: undefined;
   MoreOpml: undefined;
   MoreOverflowBrowse: NavigatorScreenParams<BrowseStackParamList> | undefined;
   MoreOverflowHome: NavigatorScreenParams<HomeStackParamList> | undefined;
@@ -1103,6 +1107,11 @@ function MoreStackNavigator({
         component={MoreMembershipScreen}
         name={MORE_STACK_ROUTES.MoreMembership}
         options={{ title: t('membership.membership') }}
+      />
+      <MoreStack.Screen
+        component={MoreMembershipExtendScreen}
+        name={MORE_STACK_ROUTES.MoreMembershipExtend}
+        options={{ title: t('membership.extend_my_membership') }}
       />
       <MoreStack.Screen
         component={MoreOpmlScreen}

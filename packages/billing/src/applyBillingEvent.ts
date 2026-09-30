@@ -38,13 +38,17 @@ import { readStatusChangedAt, stampStatusChange } from './statusStamp.js';
  */
 const BANKING_PROCESSORS: ReadonlySet<PaymentProcessorId> = new Set(['apple', 'google_play']);
 
-/** Paid time that moves into a bank. Trial time and subscription periods stay where they are. */
+/**
+ * Grant sources whose remaining time moves into a store subscription's bank. Subscription-period
+ * grants stay on the subscription; only time after the subscription starts is banked.
+ */
 const BANKABLE_GRANT_SOURCES: ReadonlySet<MembershipGrantSource> = new Set([
   'one_time_purchase',
   'claim_token',
   'admin',
   'legacy_import',
   'migration_baseline',
+  'trial',
 ]);
 
 function parseTimestamp(value: string, field: string): Date {

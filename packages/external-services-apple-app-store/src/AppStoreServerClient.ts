@@ -19,7 +19,14 @@ import { getDefaultAppleRootCertificates } from './appleRootCertificates.js';
 
 const APPLE_TRANSACTION_NOT_FOUND_API_ERROR = 4040010;
 
-export type AppleRuntimeEnvironment = 'sandbox' | 'production';
+/** Environments backed by Apple's App Store Server API. */
+export type AppleServerEnvironment = 'sandbox' | 'production';
+
+/**
+ * `xcode` reads the signed transactions Xcode's StoreKit Testing produces. Apple's servers never
+ * see those purchases, so the transaction the device sends is the only record there is.
+ */
+export type AppleRuntimeEnvironment = AppleServerEnvironment | 'xcode';
 
 export interface AppleApiClient {
   getAllSubscriptionStatuses(anyTransactionId: string): Promise<StatusResponse>;
@@ -39,7 +46,7 @@ export interface AppleClientConfig {
   privateKey: string;
   bundleId: string;
   appAppleId?: number;
-  runtimeEnvironment: AppleRuntimeEnvironment;
+  runtimeEnvironment: AppleServerEnvironment;
   rootCertificates?: Buffer[];
   enableOnlineChecks?: boolean;
   productionClient?: AppleApiClient;
@@ -82,18 +89,39 @@ function parseAppleEnvironment(value: string | undefined): AppleRuntimeEnvironme
   if (normalized === 'production' || normalized === 'prod' || normalized === 'live') {
     return 'production';
   }
+  if (normalized === 'xcode') {
+    return 'xcode';
+  }
   return null;
 }
 
+/**
+ * Throws for `xcode` in production: that mode trusts a transaction the device sends without
+ * Apple confirming it, so any caller could grant themselves membership.
+ */
 export function resolveAppleRuntimeEnvironment(
   appleEnvironment: string | undefined,
   nodeEnv: string | undefined
 ): AppleRuntimeEnvironment {
   const configured = parseAppleEnvironment(appleEnvironment);
+  if (configured === 'xcode' && nodeEnv === 'production') {
+    throw new Error('APPLE_IAP_ENVIRONMENT=xcode is refused when NODE_ENV is production');
+  }
   if (configured !== null) {
     return configured;
   }
   return nodeEnv === 'production' ? 'production' : 'sandbox';
+}
+
+function resolveAppleServerEnvironment(
+  appleEnvironment: string | undefined,
+  nodeEnv: string | undefined
+): AppleServerEnvironment {
+  const runtimeEnvironment = resolveAppleRuntimeEnvironment(appleEnvironment, nodeEnv);
+  if (runtimeEnvironment === 'xcode') {
+    throw new Error('The App Store Server API client is not used with APPLE_IAP_ENVIRONMENT=xcode');
+  }
+  return runtimeEnvironment;
 }
 
 function parseAppAppleId(value: number | undefined): number | undefined {
@@ -233,7 +261,7 @@ export class AppStoreServerClient {
       privateKey: readSigningKeyFromPath(config.privateKeyPath),
       bundleId: config.bundleId,
       appAppleId: config.appAppleId,
-      runtimeEnvironment: resolveAppleRuntimeEnvironment(config.appleEnvironment, config.nodeEnv),
+      runtimeEnvironment: resolveAppleServerEnvironment(config.appleEnvironment, config.nodeEnv),
       rootCertificates: config.rootCertificates,
       enableOnlineChecks: config.enableOnlineChecks,
       productionClient: config.productionClient,

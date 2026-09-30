@@ -342,6 +342,54 @@ describe('BillingEventProcessor', () => {
     );
   });
 
+  it('stacks a one-time purchase after a free trial that is still running', async () => {
+    const { store, processor } = createHarness();
+    store.state.grants.push({
+      id: store.state.nextId++,
+      accountId: ALICE.id,
+      source: 'trial',
+      startsAt: new Date('2025-12-01T00:00:00.000Z'),
+      endsAt: new Date('2026-02-01T00:00:00.000Z'),
+      revokedAt: null,
+      subscriptionId: null,
+      transactionId: null,
+    });
+
+    const outcome = await processor.ingestEvent(
+      oneTimePayment({ occurredAt: '2026-01-15T00:00:00.000Z' })
+    );
+
+    const purchase = store.grantsFor(ALICE.id).find((grant) => grant.source === 'one_time_purchase');
+    expect(purchase?.startsAt.toISOString()).toBe('2026-02-01T00:00:00.000Z');
+    expect(purchase?.endsAt.toISOString()).toBe('2026-03-01T00:00:00.000Z');
+    expect(outcome.status === 'processed' && outcome.membershipExpiresAt?.toISOString()).toBe(
+      '2026-03-01T00:00:00.000Z'
+    );
+  });
+
+  it('starts a one-time purchase at settlement when the account has already lapsed', async () => {
+    const { store, processor } = createHarness();
+    store.state.grants.push({
+      id: store.state.nextId++,
+      accountId: ALICE.id,
+      source: 'trial',
+      startsAt: new Date('2025-01-01T00:00:00.000Z'),
+      endsAt: new Date('2025-02-01T00:00:00.000Z'),
+      revokedAt: null,
+      subscriptionId: null,
+      transactionId: null,
+    });
+
+    const outcome = await processor.ingestEvent(oneTimePayment());
+
+    const purchase = store.grantsFor(ALICE.id).find((grant) => grant.source === 'one_time_purchase');
+    expect(purchase?.startsAt.toISOString()).toBe('2026-01-01T00:00:00.000Z');
+    expect(purchase?.endsAt.toISOString()).toBe('2026-02-01T00:00:00.000Z');
+    expect(outcome.status === 'processed' && outcome.membershipExpiresAt?.toISOString()).toBe(
+      '2026-02-01T00:00:00.000Z'
+    );
+  });
+
   it('prefers the account the processor echoed over one the caller supplies', async () => {
     const { store, processor } = createHarness();
 
@@ -451,6 +499,60 @@ describe('BillingEventProcessor', () => {
     expect(released?.startsAt.toISOString()).toBe('2026-02-11T00:00:00.000Z');
     expect(released?.endsAt.toISOString()).toBe('2026-03-04T00:00:00.000Z');
     expect(store.state.subscriptions[0]?.bankedSeconds).toBe(0);
+  });
+
+  it('banks remaining free-trial time when a store subscription starts', async () => {
+    const { store, processor } = createHarness();
+    store.state.grants.push({
+      id: store.state.nextId++,
+      accountId: ALICE.id,
+      source: 'trial',
+      startsAt: new Date('2025-12-01T00:00:00.000Z'),
+      endsAt: new Date('2026-02-01T00:00:00.000Z'),
+      revokedAt: null,
+      subscriptionId: null,
+      transactionId: null,
+    });
+
+    await processor.ingestEvent({
+      type: 'payment_settled',
+      processor: 'apple',
+      processorEventId: 'apple-start-during-trial',
+      accountBillingCustomerRef: ALICE.billingCustomerRef,
+      accountId: null,
+      occurredAt: '2026-01-11T00:00:00.000Z',
+      isSandbox: false,
+      purchaseKind: 'auto_renew',
+      externalTransactionId: 'apple-txn-trial',
+      externalSubscriptionId: 'orig-trial',
+      externalProductId: 'apple-monthly',
+      externalBasePlanId: null,
+      periodStart: '2026-01-11T00:00:00.000Z',
+      periodEnd: '2026-02-11T00:00:00.000Z',
+      amount: null,
+    });
+
+    const trialGrant = store.grantsFor(ALICE.id).find((grant) => grant.source === 'trial');
+    expect(trialGrant?.endsAt.toISOString()).toBe('2026-01-11T00:00:00.000Z');
+    expect(store.state.subscriptions[0]?.bankedSeconds).toBe(21 * 24 * 60 * 60);
+
+    await processor.ingestEvent({
+      type: 'subscription_expired',
+      processor: 'apple',
+      processorEventId: 'apple-trial-expired',
+      accountBillingCustomerRef: ALICE.billingCustomerRef,
+      accountId: null,
+      occurredAt: '2026-02-11T00:00:00.000Z',
+      isSandbox: false,
+      externalSubscriptionId: 'orig-trial',
+      expiredAt: '2026-02-11T00:00:00.000Z',
+    });
+
+    const released = store
+      .grantsFor(ALICE.id)
+      .find((grant) => grant.subscriptionId !== null && grant.transactionId === null);
+    expect(released?.startsAt.toISOString()).toBe('2026-02-11T00:00:00.000Z');
+    expect(released?.endsAt.toISOString()).toBe('2026-03-04T00:00:00.000Z');
   });
 
   it('keeps an event for a subscription it has not seen retryable', async () => {

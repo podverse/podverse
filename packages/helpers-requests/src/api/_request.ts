@@ -190,7 +190,7 @@ import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
 import { reqLegalPopularityTracking } from './legal/popularityTracking.js';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
 import { reqManagedCopyGet } from './managedCopy/managedCopy.js';
-import { reqMembershipGetPricing } from './membership/membership.js';
+import { reqMembershipGetPricing, reqProductMembershipGet } from './membership/membership.js';
 import {
   reqMetaboostMbrssV1MintAppAssertion,
   type ReqMetaboostMbrssV1MintAppAssertionParams,
@@ -1076,6 +1076,10 @@ export class ApiRequestService {
 
   reqMembershipGetPricing() {
     return reqMembershipGetPricing(this);
+  }
+
+  reqProductMembershipGet() {
+    return reqProductMembershipGet(this);
   }
 
   reqBillingGetCheckoutOptions(params?: ReqBillingCheckoutOptionsParams) {

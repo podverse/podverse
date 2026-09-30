@@ -1,13 +1,16 @@
 import type {
+  JWSTransactionDecodedPayload,
   LastTransactionsItem,
   StatusResponse,
   TransactionInfoResponse,
 } from '@apple/app-store-server-library';
-import { Environment } from '@apple/app-store-server-library';
+import { Environment, SignedDataVerifier } from '@apple/app-store-server-library';
 import { AutoRenewStatus } from '@apple/app-store-server-library';
 
 import type {
   BillingCancelAutoRenewResult,
+  BillingProcessorRecordRef,
+  BillingSubscriptionStatus,
   BillingWebhookParseResult,
   BillingWebhookRequest,
   NormalizedSubscriptionSnapshot,
@@ -19,8 +22,11 @@ import {
   BillingWebhookVerificationError,
 } from '@podverse/helpers';
 
-import type { CreateAppleClientConfig } from './AppStoreServerClient.js';
-import { AppStoreServerClient } from './AppStoreServerClient.js';
+import type {
+  AppleSignedPayloadVerifier,
+  CreateAppleClientConfig,
+} from './AppStoreServerClient.js';
+import { AppStoreServerClient, resolveAppleRuntimeEnvironment } from './AppStoreServerClient.js';
 import {
   mapAppleStatusToBillingStatus,
   mapVerifiedNotificationToEvents,
@@ -28,6 +34,8 @@ import {
 
 export interface AppleAdapterConfig extends CreateAppleClientConfig {
   client?: AppStoreServerClient;
+  /** Reads StoreKit Testing transactions when `appleEnvironment` is `xcode`. */
+  xcodeVerifier?: Pick<AppleSignedPayloadVerifier, 'verifyAndDecodeTransaction'>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -65,8 +73,14 @@ function toIsoTimestamp(value: number | undefined): string | null {
   return new Date(value).toISOString();
 }
 
+/** StoreKit Testing purchases charge nothing, so they count as sandbox. */
 function isSandboxEnvironment(value: Environment | string | undefined): boolean {
-  return value === Environment.SANDBOX || value === 'Sandbox';
+  return (
+    value === Environment.SANDBOX ||
+    value === 'Sandbox' ||
+    value === Environment.XCODE ||
+    value === Environment.LOCAL_TESTING
+  );
 }
 
 function resolvePurchaseKindFromTransaction(
@@ -279,7 +293,116 @@ function mapSubscriptionSnapshot(
   };
 }
 
+async function decodeXcodeTransaction(
+  verifier: Pick<AppleSignedPayloadVerifier, 'verifyAndDecodeTransaction'>,
+  ref: BillingProcessorRecordRef
+): Promise<JWSTransactionDecodedPayload> {
+  const signedTransaction = ref.signedTransaction ?? '';
+  if (signedTransaction === '') {
+    throw new BillingProcessorRecordNotFoundError('apple', ref.externalId);
+  }
+  let transaction: JWSTransactionDecodedPayload;
+  try {
+    transaction = await verifier.verifyAndDecodeTransaction(signedTransaction);
+  } catch {
+    throw new BillingProcessorRecordNotFoundError('apple', ref.externalId);
+  }
+  if (
+    transaction.transactionId !== ref.externalId &&
+    transaction.originalTransactionId !== ref.externalId
+  ) {
+    throw new BillingProcessorRecordNotFoundError('apple', ref.externalId);
+  }
+  return transaction;
+}
+
+/**
+ * A StoreKit Testing transaction carries no renewal info, so the status comes from its dates: a
+ * revoked transaction is revoked, one whose period has not ended is active, and any other is
+ * expired.
+ */
+function mapXcodeSubscriptionSnapshot(
+  ref: BillingProcessorRecordRef,
+  fetchedAt: string,
+  transaction: JWSTransactionDecodedPayload
+): NormalizedSubscriptionSnapshot {
+  const expiresDate = transaction.expiresDate;
+  const status: BillingSubscriptionStatus =
+    transaction.revocationDate !== undefined
+      ? 'revoked'
+      : expiresDate !== undefined && expiresDate > Date.parse(fetchedAt)
+        ? 'active'
+        : 'expired';
+  return {
+    processor: 'apple',
+    externalSubscriptionId: transaction.originalTransactionId ?? ref.externalId,
+    accountBillingCustomerRef: transaction.appAccountToken ?? null,
+    externalProductId: transaction.productId ?? ref.externalProductId,
+    externalBasePlanId: null,
+    status,
+    purchaseKind: resolvePurchaseKindFromTransaction(transaction),
+    currentPeriodStart:
+      toIsoTimestamp(transaction.purchaseDate) ?? toIsoTimestamp(transaction.originalPurchaseDate),
+    currentPeriodEnd: toIsoTimestamp(expiresDate),
+    cancelAtPeriodEnd: false,
+    isSandbox: true,
+    fetchedAt,
+    schemaVersion: 'apple-xcode-transaction-v1',
+    rawPayload: toRawPayload({ transaction }),
+  };
+}
+
+/**
+ * Reads the signed transaction the device posts, because Xcode's StoreKit Testing purchases never
+ * reach Apple's servers. Those transactions are signed by Xcode, not Apple, so nothing proves the
+ * device did not write one itself; `resolveAppleRuntimeEnvironment` refuses this mode in
+ * production. Reconciliation has no transaction to read and finds no record, and there are no
+ * server notifications.
+ */
+function createXcodeAppleAdapter(
+  config: Pick<AppleAdapterConfig, 'bundleId' | 'xcodeVerifier'>
+): PaymentProcessorAdapter {
+  const verifier =
+    config.xcodeVerifier ?? new SignedDataVerifier([], false, Environment.XCODE, config.bundleId);
+  const nowIso = (): string => new Date().toISOString();
+
+  return {
+    id: 'apple',
+
+    async verifyAndParseWebhook(): Promise<BillingWebhookParseResult> {
+      throw new BillingWebhookVerificationError(
+        'apple',
+        'StoreKit Testing in Xcode sends no App Store Server Notifications'
+      );
+    },
+
+    async fetchSubscription(ref): Promise<NormalizedSubscriptionSnapshot> {
+      const transaction = await decodeXcodeTransaction(verifier, ref);
+      return mapXcodeSubscriptionSnapshot(ref, nowIso(), transaction);
+    },
+
+    async fetchTransaction(ref): Promise<NormalizedTransactionSnapshot> {
+      const transaction = await decodeXcodeTransaction(verifier, ref);
+      return mapTransactionSnapshot(
+        ref.externalId,
+        ref.externalProductId,
+        Environment.XCODE,
+        nowIso(),
+        transaction,
+        toRawPayload({ transaction })
+      );
+    },
+
+    async cancelAutoRenew(_externalSubscriptionId): Promise<BillingCancelAutoRenewResult> {
+      return { outcome: 'manage_in_store' };
+    },
+  };
+}
+
 export function createAppleAdapter(config: AppleAdapterConfig): PaymentProcessorAdapter {
+  if (resolveAppleRuntimeEnvironment(config.appleEnvironment, config.nodeEnv) === 'xcode') {
+    return createXcodeAppleAdapter(config);
+  }
   const client = config.client ?? AppStoreServerClient.fromConfig(config);
   const nowIso = (): string => new Date().toISOString();
 
