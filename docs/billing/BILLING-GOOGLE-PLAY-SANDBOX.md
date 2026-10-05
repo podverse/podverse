@@ -90,7 +90,9 @@ through 1 Nov 2026 when requested). See
 
 ## Device and emulator
 
-Play Billing needs the Play Store on the device:
+Play Billing needs the Play Store on the device. Creating the tester Google
+account, signing the phone into it, and buying on USB is
+[BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md).
 
 - **USB phone (recommended for first local run):** sign in with a license-tester
   Google account, then from **Mobile Metro** / **Mobile Android**:
@@ -123,7 +125,9 @@ Play Console → **Settings** → **License testing**. Add the Google accounts t
 will buy on a device. Those accounts can complete a purchase with a Play test
 card. A declined test card is how a human exercises billing grace. Podverse
 does not store tester passwords. This path is manual; default CI does not call
-Play. See [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md).
+Play. Creating the account and signing the phone into it is
+[BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md). Renewal behavior
+is in [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md).
 
 ## Seed processor products
 
@@ -174,4 +178,5 @@ push subscription.
 - [BILLING.md](BILLING.md)
 - [BILLING-PAYPAL-SANDBOX.md](BILLING-PAYPAL-SANDBOX.md) (shared tunnel)
 - [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md)
+- [BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md)
 - [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)

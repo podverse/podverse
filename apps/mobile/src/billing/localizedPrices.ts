@@ -1,19 +1,26 @@
 import type { BillingLocalizedPrice } from './BillingClient';
 import { isRecord } from './billingGuards';
 
+type FetchProductsByType = (request: {
+  skus: string[];
+  type: 'in-app' | 'subs';
+}) => Promise<readonly unknown[] | null>;
+
 /** Loads product and subscription rows and keeps the first localized price for each id. */
 export const listStorePrices = async (
   productIds: readonly string[],
-  loadProducts: (skus: string[]) => Promise<readonly unknown[]>,
-  loadSubscriptions: (skus: string[]) => Promise<readonly unknown[]>
+  fetchProducts: FetchProductsByType
 ): Promise<readonly BillingLocalizedPrice[]> => {
   if (productIds.length === 0) {
     return [];
   }
   const skus = [...productIds];
-  const settled = await Promise.allSettled([loadProducts(skus), loadSubscriptions(skus)]);
+  const settled = await Promise.allSettled([
+    fetchProducts({ skus, type: 'in-app' }),
+    fetchProducts({ skus, type: 'subs' }),
+  ]);
   const products = settled.flatMap((result) =>
-    result.status === 'fulfilled' ? [...result.value] : []
+    result.status === 'fulfilled' && result.value !== null ? [...result.value] : []
   );
   return localizedPricesFromStoreProducts(products);
 };

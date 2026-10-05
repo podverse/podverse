@@ -85,8 +85,9 @@ bash scripts/mobile/open-simulator-ui.sh
 - Do **not** accept Xcode's **Update to recommended settings** on the generated `apps/mobile/ios`
   project (User Script Sandboxing and a raised deployment target break Expo/RN prebuild output).
 - Pod build settings Xcode 27 requires live in `withPodverseIosPodBuildSettings` /
-  `ensure-ios-pod-build-settings.sh`: `IPHONEOS_DEPLOYMENT_TARGET` **≥ 15.0** (simulator range
-  15.0–27.0) and `SWIFT_ENABLE_EXPLICIT_MODULES = NO` for pods (expo-sqlite's public `sqlite3.h`
+  `ensure-ios-pod-build-settings.sh`: pod targets clamp to `IPHONEOS_DEPLOYMENT_TARGET` **≥ 16.4**
+  (matching the app platform floor) and `SWIFT_ENABLE_EXPLICIT_MODULES = NO` for pods
+  (expo-sqlite's public `sqlite3.h`
   shadows the SDK header and breaks the explicit-module dependency scan). The app target keeps
   explicit modules — do not disable them project-wide.
 - Do **not** suggest tablet AVDs (e.g. `Galaxy_Tab_*`) for day-to-day Android runs.

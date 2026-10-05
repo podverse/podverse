@@ -1,6 +1,6 @@
 ---
 name: mobile-expo-monorepo
-description: Expo SDK 52 as a standalone install under apps/mobile — own lockfile, file: shared packages, Metro. Use when mobile npm install, prebuild, pod install, mobile:dev fails, or when telling the operator how to run expo install (never bare root npx expo).
+description: Expo SDK 57 as a standalone install under apps/mobile — own lockfile, file: shared packages, Metro. Use when mobile npm install, prebuild, pod install, mobile:dev fails, or when telling the operator how to run expo install (never bare root npx expo).
 ---
 
 # Mobile Expo (standalone install)
@@ -12,7 +12,7 @@ description: Expo SDK 52 as a standalone install under apps/mobile — own lockf
 
 | Piece                | Location                                                    | Purpose                                                                                         |
 | -------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Standalone package   | `apps/mobile/package.json`                                  | Expo SDK 52 / RN 0.76.9 runtime + `overrides`                                                   |
+| Standalone package   | `apps/mobile/package.json`                                  | Expo SDK 57 / RN 0.86.3 runtime + `overrides`                                                   |
 | Mobile lockfile      | `apps/mobile/package-lock.json`                             | Committed; install with `npm install --prefix apps/mobile` or `npm run mobile:install`          |
 | Peer-deps policy     | `apps/mobile/.npmrc` (`legacy-peer-deps=true`)              | Stop `expo@*` peers pulling expo@57 / RN 0.86                                                   |
 | Shared packages      | `"@podverse/helpers": "file:../../packages/helpers"` (etc.) | Symlink into `apps/mobile/node_modules/@podverse/*`                                             |
@@ -87,7 +87,7 @@ with a mobile-local wrapper (Expo requires literal `process.env.EXPO_PUBLIC_*` r
 
 Update **inside `apps/mobile` only**:
 
-1. `apps/mobile/package.json` deps + `overrides` (expo, react-native, expo-dev-*).
+1. `apps/mobile/package.json` deps + `overrides` (expo, react-native, iap/native peers).
 2. Keep `legacy-peer-deps=true` in `apps/mobile/.npmrc` unless a clean install proves otherwise.
 3. Regenerate `apps/mobile/package-lock.json` (`npm run mobile:install`).
 4. `npm run mobile:prebuild` then `npm run mobile:ios` / `mobile:android`.
@@ -102,13 +102,13 @@ Do **not** add Expo back to the root lockfile.
 | Metro cannot resolve package after shared edit                                                                                  | Stale `dist/`                                                                                                                                                                                 | `npm run build:packages` (or watch)                                                                                                                                                      |
 | `Unable to resolve "date-fns/…"` from helpers                                                                                   | Helpers dep not in mobile `node_modules`                                                                                                                                                      | Add the dep to `apps/mobile/package.json`; `npm run mobile:install`                                                                                                                      |
 | `Unable to resolve "@podverse/http-request-core"`                                                                               | Transitive `file:` not installed under standalone mobile                                                                                                                                      | Add explicit `file:` dep + commonly `axios` on mobile; `npm run mobile:install`                                                                                                          |
-| `Bundling failed` / Unknown prop type in `react-native-screens` fabric                                                          | Screens (or nav peers) newer than Expo SDK 52 / RN 0.76                                                                                                                                       | Pin SDK 52 peers (`screens ~4.4`, `gesture-handler ~2.20`, `safe-area ~4.12`); see below                                                                                                 |
+| `Bundling failed` / Unknown prop type in `react-native-screens` fabric                                                          | Screens (or nav peers) outside Expo SDK 57 / RN 0.86.3 peer range                                                                                                                             | Re-run `npm --prefix apps/mobile exec -- expo install --fix` and keep `screens ~4.26`, `gesture-handler ~2.32`, `safe-area ~5.7`; see below                                              |
 | Root `npx expo install …` → downloads `expo@57` / “expo is not installed”                                                       | Ran Expo CLI from monorepo root; no root `expo` package                                                                                                                                       | Use `npm --prefix apps/mobile exec -- expo install …` then `npm run mobile:install`                                                                                                      |
-| `expo/config-plugins` not found                                                                                                 | Incomplete mobile install / wrong expo version                                                                                                                                                | Reinstall under `apps/mobile`; check overrides pin SDK 52                                                                                                                                |
-| `Cannot read properties of undefined (reading 'extract')` during prebuild                                                       | `tar` v7 override breaks `@expo/cli` (SDK 52 expects tar 6 default export)                                                                                                                    | Keep `overrides.tar` at `6.2.1`; then `npm run mobile:reset`                                                                                                                             |
+| `expo/config-plugins` not found                                                                                                 | Incomplete mobile install / wrong expo version                                                                                                                                                | Reinstall under `apps/mobile`; check overrides pin SDK 57                                                                                                                                |
+| `Cannot read properties of undefined (reading 'extract')` during prebuild                                                       | Broken npm dependency tree / stale install                                                                                                                                                    | Keep no explicit `tar` override by default; if it recurs, capture versions and run `npm run mobile:reset`                                                                                |
 | glog / Nix SDK errors on pod install                                                                                            | direnv/Nix `DEVELOPER_DIR`                                                                                                                                                                    | Use `npm run mobile:prebuild` / `mobile:pod-install` (scripts unset Nix pollution)                                                                                                       |
-| `Can't determine id of Simulator app` on `mobile:ios`                                                                           | Expo SDK 52 CLI looks up Simulator.app; Xcode 27+ ships Device Hub                                                                                                                            | `patch-expo-cli-xcode27.sh` runs from `mobile:install` / `mobile:ios`. Do not bump Expo.                                                                                                 |
-| `Connecting to: <simulator>` then `Error: null` after `Build Succeeded`                                                         | Xcode 27 `devicectl list devices` includes simulators; SDK 52 installs them as physical hardware                                                                                              | Same `patch-expo-cli-xcode27.sh` filters `visibilityClass: simulators`, so `simctl` installs                                                                                             |
+| `Can't determine id of Simulator app` on `mobile:ios`                                                                           | Stale or globally-installed Expo CLI path, or Xcode runtime/tooling not initialized                                                                                                           | Use local Expo via `npm run mobile:ios` and complete `xcodebuild -runFirstLaunch` plus required runtimes in Xcode Settings                                                               |
+| `Connecting to: <simulator>` then `Error: null` after `Build Succeeded`                                                         | Stale simulator destination cache / unavailable runtime                                                                                                                                       | Re-run with an explicit named simulator (`"iPhone 17 Pro"`), confirm it exists in `simctl list`, then retry `npm run mobile:ios -- --device "iPhone 17 Pro"`                             |
 | `IPHONEOS_DEPLOYMENT_TARGET` 9.0 / 13.4 (supported range 15.0–27.0)                                                             | CocoaPods podspecs below Xcode's simulator floor                                                                                                                                              | `withPodverseIosPodBuildSettings` + `ensure-ios-pod-build-settings.sh` via `mobile:pod-install` / `mobile:ios`                                                                           |
 | `Build input file cannot be found: …/expo-sqlite/ios/sqlite3.c`                                                                 | Mobile npm install wiped the podspec's `vendor/` → `ios/` copy in `node_modules`                                                                                                              | `ensure-expo-sqlite-vendored-sources.sh` runs from `mobile:install` / `mobile:ios` / `mobile:pod-install`                                                                                |
 | `Build input file cannot be found: …RCTThirdPartyFabricComponentsProvider.mm`                                                   | Same wipe; RN codegen output missing at plan time                                                                                                                                             | Rerun the build — RN's `[RN]Check rncore` script phase regenerates it                                                                                                                    |
@@ -117,7 +117,7 @@ Do **not** add Expo back to the root lockfile.
 | `Unable to resolve react-native-web`                                                                                            | Expo auto web without RN-web                                                                                                                                                                  | `platforms: ['ios', 'android']` in `app.config.ts`                                                                                                                                       |
 | Root `npm ci` installs Expo                                                                                                     | Mobile re-added to root workspaces                                                                                                                                                            | Keep explicit server app list in root `workspaces`                                                                                                                                       |
 
-### Expo `install` for native peers (SDK 52)
+### Expo `install` for native peers (SDK 57)
 
 Do **not** run bare `npx expo install` from the monorepo root. Prefer:
 
@@ -127,12 +127,12 @@ npm --prefix apps/mobile exec -- expo install react-native-screens react-native-
 npm run mobile:install
 ```
 
-SDK 52 / RN 0.76 defaults to pin (avoid `^` that climbs to RN 0.81+ only packages):
+SDK 57 / RN 0.86 defaults to pin:
 
-- `react-native-screens`: `~4.4.0`
-- `react-native-gesture-handler`: `~2.20.2`
-- `react-native-safe-area-context`: `~4.12.0`
-- `expo-secure-store`: `~14.0.1`
+- `react-native-screens`: `~4.26.0`
+- `react-native-gesture-handler`: `~2.32.0`
+- `react-native-safe-area-context`: `~5.7.0`
+- `expo-secure-store`: `~57.0.4`
 
 After changing those native modules, rebuild E2E/manual apps (`mobile:e2e:ios` / `mobile:e2e:android`
 or `mobile:ios` / `mobile:android`).
@@ -160,9 +160,9 @@ npm run mobile:prebuild -- --clean
 npm run mobile:pod-install
 ```
 
-**`tar` override (Expo SDK 52):** keep `apps/mobile/package.json` `overrides.tar` on **`6.2.1`**.
-`tar@7` breaks `expo prebuild` (`reading 'extract'`). Revisit only when upgrading past SDK 52 /
-`@expo/cli` that supports tar 7's named exports.
+**`tar` override policy:** keep no explicit `tar` override in `apps/mobile/package.json` by
+default. Add a temporary pin only when `expo prebuild` fails with a reproducible `reading 'extract'`
+error, and remove it once the dependency chain no longer needs it.
 
 **Default devices (agents):**
 

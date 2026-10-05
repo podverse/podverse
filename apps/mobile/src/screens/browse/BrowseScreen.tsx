@@ -841,7 +841,7 @@ export function BrowseScreen() {
         opacity: 0,
       },
       pendingOverlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         backgroundColor: themeStyles.screen.backgroundColor,
       },
       selectorSection: {

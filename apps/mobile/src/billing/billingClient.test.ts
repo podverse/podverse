@@ -378,10 +378,10 @@ describe('localizedPricesFromStoreProducts', () => {
     ).toEqual([{ displayPrice: '$10.00', productId: 'monthly' }]);
 
     await expect(
-      listStorePrices(
-        ['monthly'],
-        () => Promise.reject(new Error('products unavailable')),
-        () => Promise.resolve([{ displayPrice: '$10.00', id: 'monthly' }])
+      listStorePrices(['monthly'], ({ type }) =>
+        type === 'in-app'
+          ? Promise.reject(new Error('products unavailable'))
+          : Promise.resolve([{ displayPrice: '$10.00', id: 'monthly' }])
       )
     ).resolves.toEqual([{ displayPrice: '$10.00', productId: 'monthly' }]);
   });

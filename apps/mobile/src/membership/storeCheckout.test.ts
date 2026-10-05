@@ -81,7 +81,7 @@ describe('store checkout selection', () => {
     expect(checkoutProduct(options, 'test', 'monthly', 'one_time')?.externalProductId).toBe(
       'e2e-test-monthly-once'
     );
-    expect(availableCadences(options, 'test', 'one_time')).toEqual(['monthly']);
+    expect(availableCadences(options, 'test', 'one_time')).toEqual(['monthly', 'annual']);
   });
 
   it('shows PayPal only when checkout options include that processor', () => {

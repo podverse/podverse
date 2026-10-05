@@ -354,8 +354,9 @@ grant membership only when `billing-apple.env` sets
 `APPLE_IAP_ENVIRONMENT="xcode"` (local only; needs just the bundle id). A
 Sandbox Apple Account works only on a physical iPhone, not the simulator
 ([BILLING-APPLE-SANDBOX.md](billing/BILLING-APPLE-SANDBOX.md)). Android
-purchases use a Play license tester signed in on the emulator or phone (Google
-Play guide). Web checkout is http://localhost:3002. App logins are in the
+purchases use a Play license tester signed in on the emulator or phone
+([BILLING-GOOGLE-PLAY-DEVICE.md](billing/BILLING-GOOGLE-PLAY-DEVICE.md)). Web
+checkout is http://localhost:3002. App logins are in the
 [seed table](#3-recreate-infra-and-seed-the-database).
 
 ## Optional podcast data
@@ -486,7 +487,9 @@ On later days, iOS usually attaches if you just open the sim. Android: re-run
 native dependency or prebuild changes.
 
 USB Android phone: **Mobile Android** `npm run mobile:android:device` (and Metro
-must be `mobile:dev:device`).
+must be `mobile:dev:device`). Play checkout on that phone, including the tester
+Google account, is
+[BILLING-GOOGLE-PLAY-DEVICE.md](billing/BILLING-GOOGLE-PLAY-DEVICE.md).
 
 Manual vs E2E device names:
 [APPS-MOBILE.md § Dev client workflow](/apps/mobile/APPS-MOBILE.md#dev-client-workflow).

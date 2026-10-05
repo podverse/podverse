@@ -99,10 +99,10 @@ export function OverlayA11yShield({ children }: PropsWithChildren) {
 
 const styles = StyleSheet.create({
   layer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   outlet: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   shield: {
     flex: 1,

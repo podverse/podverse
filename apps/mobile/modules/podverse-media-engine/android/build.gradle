@@ -1,40 +1,25 @@
-apply plugin: 'com.android.library'
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
 
 group = 'expo.modules.podversemediaengine'
 version = '1.0.0'
 
-def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
-apply from: expoModulesCorePlugin
-applyKotlinExpoModulesCorePlugin()
-// Required: pulls in expo-modules-core (Module / ModuleDefinition / Events / …). Without this,
-// Kotlin compile fails with "Unresolved reference: kotlin" / "Unresolved reference: Module".
-useCoreDependencies()
-
-// Manage the Android SDK versions locally instead of inheriting the expo-modules-core managed values,
-// so bumping the Expo SDK does not silently change this module's compile/target SDK.
-def useManagedAndroidSdkVersions = false
-if (useManagedAndroidSdkVersions) {
-  useDefaultAndroidSdkVersions()
-} else {
-  ext.safeExtGet = { prop, fallback ->
-    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
-  }
-  project.android {
-    compileSdkVersion safeExtGet("compileSdkVersion", 35)
-    defaultConfig {
-      minSdkVersion safeExtGet("minSdkVersion", 24)
-      targetSdkVersion safeExtGet("targetSdkVersion", 35)
-    }
-  }
+ext.safeExtGet = { prop, fallback ->
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
 android {
   namespace "expo.modules.podversemediaengine"
+  compileSdkVersion safeExtGet("compileSdkVersion", 36)
   defaultConfig {
+    minSdkVersion safeExtGet("minSdkVersion", 24)
+    targetSdkVersion safeExtGet("targetSdkVersion", 36)
     versionCode 1
     versionName "1.0.0"
   }
-  lintOptions {
+  lint {
     abortOnError false
   }
 }

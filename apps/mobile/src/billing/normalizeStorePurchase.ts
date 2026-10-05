@@ -21,15 +21,20 @@ export const normalizeStorePurchase = (value: unknown): NormalizedStorePurchase 
   if (!isRecord(value)) {
     return null;
   }
-  const productId = readString(value, 'id');
+  const productId = readString(value, 'productId') ?? readString(value, 'id');
   if (productId === null) {
     return null;
   }
+  const purchaseState = value.purchaseState;
   return {
-    pending: value.purchaseStateAndroid === PLAY_PURCHASE_PENDING,
+    pending:
+      purchaseState === 'pending' ||
+      purchaseState === PLAY_PURCHASE_PENDING ||
+      value.purchaseStateAndroid === PLAY_PURCHASE_PENDING,
     productId,
-    purchaseToken: readString(value, 'purchaseTokenAndroid'),
-    signedTransaction: readString(value, 'jwsRepresentationIos'),
+    purchaseToken: readString(value, 'purchaseToken') ?? readString(value, 'purchaseTokenAndroid'),
+    signedTransaction:
+      readString(value, 'purchaseToken') ?? readString(value, 'jwsRepresentationIos'),
     transactionId: readString(value, 'transactionId'),
   };
 };

@@ -74,7 +74,7 @@ The app process name is **`PodverseNext`** (bundle id `com.podverse.app.next`).
 
 ## Expo CLI (never bare root `npx expo`)
 
-Expo lives only under `apps/mobile` (SDK 52). **Do not** tell the operator to run `npx expo …`
+Expo lives only under `apps/mobile` (SDK 57). **Do not** tell the operator to run `npx expo …`
 from the monorepo root — that downloads a floating global Expo (e.g. 57) and fails with
 “module `expo` is not installed”.
 

@@ -1,10 +1,9 @@
 import type { Purchase } from 'expo-iap';
 import {
+  fetchProducts,
   finishTransaction,
   getAvailablePurchases,
-  getProducts,
-  getStorefrontIOS,
-  getSubscriptions,
+  getStorefront as getStorefrontFromStore,
   initConnection,
   purchaseUpdatedListener,
   requestPurchase,
@@ -87,7 +86,11 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
 
   const getStorefront = async (): Promise<string | null> => {
     await start();
-    return normalizeStorefrontCode(await getStorefrontIOS());
+    try {
+      return normalizeStorefrontCode(await getStorefrontFromStore());
+    } catch {
+      return null;
+    }
   };
 
   /**
@@ -95,7 +98,7 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
    * skips `listPrices` when the API supplies prices. Load failures surface from the purchase call.
    */
   const loadStoreProducts = async (productIds: readonly string[]): Promise<void> => {
-    await listStorePrices(productIds, getProducts, getSubscriptions);
+    await listStorePrices(productIds, fetchProducts);
   };
 
   const loadCatalogProducts = async (storefront: string | null): Promise<void> => {
@@ -155,19 +158,23 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
         product.purchaseKind === 'auto_renew'
           ? await requestPurchase({
               request: {
-                andDangerouslyFinishTransactionAutomaticallyIOS: false,
-                appAccountToken,
-                sku: product.productId,
+                apple: {
+                  andDangerouslyFinishTransactionAutomatically: false,
+                  appAccountToken,
+                  sku: product.productId,
+                },
               },
               type: 'subs',
             })
           : await requestPurchase({
               request: {
-                andDangerouslyFinishTransactionAutomaticallyIOS: false,
-                appAccountToken,
-                sku: product.productId,
+                apple: {
+                  andDangerouslyFinishTransactionAutomatically: false,
+                  appAccountToken,
+                  sku: product.productId,
+                },
               },
-              type: 'inapp',
+              type: 'in-app',
             });
       const purchases = (Array.isArray(requested) ? requested : [requested]).filter(
         isStorePurchase
@@ -198,7 +205,7 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
     await start();
     const storefront = await getStorefront();
     await loadCatalogProducts(storefront).catch(() => undefined);
-    const available = await getAvailablePurchases({ onlyIncludeActiveItems: true });
+    const available = await getAvailablePurchases({ onlyIncludeActiveItemsIOS: true });
     const records: RestoreStoreRecord[] = [];
     let pendingCount = 0;
     for (const purchaseRecord of available) {
@@ -242,8 +249,12 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
     backend: 'storekit',
     bindAccount,
     getStorefront,
-    listPrices: (productIds: readonly string[]): Promise<readonly BillingLocalizedPrice[]> =>
-      listStorePrices(productIds, getProducts, getSubscriptions),
+    listPrices: async (
+      productIds: readonly string[]
+    ): Promise<readonly BillingLocalizedPrice[]> => {
+      await start();
+      return listStorePrices(productIds, fetchProducts);
+    },
     purchase,
     restore,
     syncUnfinishedTransactions: async () => {

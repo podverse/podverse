@@ -1,15 +1,8 @@
 /**
  * Store billing for the mobile app.
  *
- * The native module is `expo-iap` 2.6.3: an Expo module with StoreKit 2 and
- * `billing-ktx` 7.0.0. `react-native-iap` 14+ is a Nitro module that needs React Native 0.79+,
- * and its docs do not support the Expo dev client. 2.6.3 is the last expo-iap release that
- * compiles with Expo SDK 52's Kotlin 1.9 Gradle plugin.
- *
- * Play rejects new apps and updates built with Billing Library 7 or older after 31 Aug 2026
- * (extension through 1 Nov 2026 when requested). Billing Library 8 needs Kotlin 2, which this
- * SDK's Gradle plugin cannot load. A Play upload of this binary needs that extension or a later
- * Expo SDK. Do not set `kotlinVersion` to 2.x on SDK 52.
+ * The native module is `expo-iap` 5.x (OpenIAP bridge). It provides StoreKit 2 and
+ * Google Play Billing 8+ wrappers for Expo SDK 57 / RN 0.86.
  *
  * Finish or acknowledge a store transaction only after the API returns `confirmed: true`.
  * Pending and Ask to Buy stay unfinished. `syncUnfinishedTransactions` is the cold-start pass;

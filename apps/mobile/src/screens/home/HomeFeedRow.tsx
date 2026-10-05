@@ -131,7 +131,7 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       alignSelf: 'center',
     },
     liveOnArtwork: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       alignItems: 'center',
       justifyContent: 'center',
     },

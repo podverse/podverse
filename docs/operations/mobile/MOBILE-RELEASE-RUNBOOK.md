@@ -28,7 +28,14 @@ This runbook covers Track 4 release operations for the next-gen mobile app (`com
 ## EAS profiles and versioning
 
 - Source of truth: `apps/mobile/eas.json`.
-- Required profiles: `internal`, `beta`, `production`.
+- Required profiles: `internal`, `beta`, `production`. Each extends `base`, which pins the build
+  server's Node to the repo's major version.
+- Run `eas` from `apps/mobile`; the CLI has no flag for another project directory.
+- The build server receives only committed-or-unignored files, so shared package `dist/` and
+  compiled i18n catalogs do not exist there. `apps/mobile/package.json` hooks rebuild them:
+  `eas-build-pre-install` runs `scripts/mobile/eas-build-pre-install.sh` (root `npm ci` plus the
+  shared packages mobile imports, which `app.config.ts` needs), and `eas-build-post-install` runs
+  `i18n-compile` before Gradle bundles the JS.
 - Build numbers (`CFBundleVersion` / `versionCode`) must be monotonic; do not reset sequences.
 - Marketing version (`X.Y.Z`) is synced from `apps/mobile/package.json` via
   `scripts/publish/bump-version.sh`.

@@ -110,9 +110,6 @@ const scheduleIdleFlush = (): void => {
     idleFlushTimer = undefined;
     writePerfLog();
   }, IDLE_FLUSH_MS);
-  if (typeof timer === 'object' && 'unref' in timer) {
-    timer.unref();
-  }
   idleFlushTimer = timer;
 };
 

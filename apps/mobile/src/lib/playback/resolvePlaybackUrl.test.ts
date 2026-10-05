@@ -8,7 +8,7 @@ const downloadStoreGet = vi.fn();
 const hydrate = vi.fn(async (..._args: unknown[]) => undefined);
 const markFileMissing = vi.fn(async (..._args: unknown[]) => undefined);
 
-vi.mock('expo-file-system', () => ({
+vi.mock('expo-file-system/legacy', () => ({
   getInfoAsync: (uri: string) => getInfoAsync(uri),
 }));
 

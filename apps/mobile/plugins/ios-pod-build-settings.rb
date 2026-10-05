@@ -1,7 +1,7 @@
 # @generated begin podverse-ios-pod-build-settings
 # Build settings every pod target needs on Xcode 27.
 #
-# IPHONEOS_DEPLOYMENT_TARGET: Xcode's supported simulator range is 15.0-27.0, and podspecs may
+# IPHONEOS_DEPLOYMENT_TARGET: Xcode's supported simulator range is 16.4-27.0, and podspecs may
 # declare a lower value; xcodebuild fails those targets.
 #
 # SWIFT_ENABLE_EXPLICIT_MODULES: expo-sqlite publishes a header named sqlite3.h, which shadows the
@@ -15,8 +15,8 @@ projects.compact.uniq.each do |project|
   configs = project.build_configurations + project.targets.flat_map(&:build_configurations)
   configs.each do |config|
     current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
-    if current.nil? || current.to_s.empty? || current.to_f < 15.0
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    if current.nil? || current.to_s.empty? || current.to_f < 16.4
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.4'
     end
     config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
   end

@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
@@ -66,7 +66,7 @@ export function MoreOpmlScreen() {
           justifyContent: 'flex-end',
         },
         scrim: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: 'rgba(0, 0, 0, 0.45)',
         },
         cardSpacing: {

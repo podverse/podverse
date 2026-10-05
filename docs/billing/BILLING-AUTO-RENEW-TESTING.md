@@ -115,7 +115,9 @@ only on a physical iPhone, not in the simulator. See
 ## Google Play license testers
 
 License testers buy on a device with a Play test card. A declined test card is how a human
-exercises billing grace. This path is manual. Default CI does not call Play. See
+exercises billing grace. This path is manual. Default CI does not call Play. Create the Google
+account and sign the phone into it with
+[BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md). Console setup is
 [BILLING-GOOGLE-PLAY-SANDBOX.md](BILLING-GOOGLE-PLAY-SANDBOX.md).
 
 ## Related
@@ -124,3 +126,4 @@ exercises billing grace. This path is manual. Default CI does not call Play. See
 - [BILLING-PAYPAL-SANDBOX.md](BILLING-PAYPAL-SANDBOX.md)
 - [BILLING-APPLE-SANDBOX.md](BILLING-APPLE-SANDBOX.md)
 - [BILLING-GOOGLE-PLAY-SANDBOX.md](BILLING-GOOGLE-PLAY-SANDBOX.md)
+- [BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md)

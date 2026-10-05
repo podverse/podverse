@@ -1,14 +1,13 @@
 import type { Purchase } from 'expo-iap';
 import {
+  fetchProducts,
   finishTransaction,
   getAvailablePurchases,
-  getProducts,
-  getSubscriptions,
+  getStorefront as getStorefrontFromStore,
   initConnection,
   purchaseUpdatedListener,
   requestPurchase,
 } from 'expo-iap';
-import ExpoIapModule from 'expo-iap/build/ExpoIapModule';
 
 import type { BillingApi } from './billingApi';
 import type {
@@ -43,20 +42,20 @@ import { settleStorePurchase } from './settleStorePurchase';
 /** Returned when checkout asks for a Google base plan Play does not offer to this client. */
 export const BILLING_PRODUCT_UNAVAILABLE = 'billing.product_unavailable';
 
-const isZeroArg = (value: unknown): value is () => unknown => typeof value === 'function';
-
 const isStorePurchase = (value: unknown): value is Purchase => {
   const normalized = normalizeStorePurchase(value);
   return normalized !== null && isRecord(value) && value.platform === 'android';
 };
 
-const readPlayCountryCode = async (): Promise<string | null> => {
-  const mod: unknown = ExpoIapModule;
-  if (!isRecord(mod) || !isZeroArg(mod.getStorefront)) {
-    return null;
-  }
-  const result: unknown = await mod.getStorefront();
-  return typeof result === 'string' ? normalizeStorefrontCode(result) : null;
+const isAndroidSubscriptionProduct = (
+  value: unknown
+): value is { id: string; platform: 'android'; subscriptionOffers?: readonly unknown[] | null } => {
+  return (
+    isRecord(value) &&
+    value.platform === 'android' &&
+    typeof value.id === 'string' &&
+    value.id !== ''
+  );
 };
 
 /**
@@ -106,16 +105,23 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
 
   const getStorefront = async (): Promise<string | null> => {
     await start();
-    return readPlayCountryCode();
+    try {
+      return normalizeStorefrontCode(await getStorefrontFromStore());
+    } catch {
+      return null;
+    }
   };
 
   const offerTokenFor = async (sku: string, basePlanId: string | null): Promise<string | null> => {
-    const products = await getSubscriptions([sku]);
+    const products = await fetchProducts({ skus: [sku], type: 'subs' });
+    if (products === null) {
+      return null;
+    }
     for (const product of products) {
-      if (product.platform !== 'android' || product.id !== sku) {
+      if (!isAndroidSubscriptionProduct(product) || product.id !== sku) {
         continue;
       }
-      const token = selectPlayOfferToken(product.subscriptionOfferDetails, basePlanId);
+      const token = selectPlayOfferToken(product.subscriptionOffers ?? [], basePlanId);
       if (token !== null) {
         return token;
       }
@@ -199,18 +205,22 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
         useSubscription && offerToken !== null
           ? await requestPurchase({
               request: {
-                obfuscatedAccountIdAndroid: obfuscatedAccountId,
-                skus: [product.productId],
-                subscriptionOffers: [{ offerToken, sku: product.productId }],
+                google: {
+                  obfuscatedAccountId,
+                  skus: [product.productId],
+                  subscriptionOffers: [{ offerToken, sku: product.productId }],
+                },
               },
               type: 'subs',
             })
           : await requestPurchase({
               request: {
-                obfuscatedAccountIdAndroid: obfuscatedAccountId,
-                skus: [product.productId],
+                google: {
+                  obfuscatedAccountId,
+                  skus: [product.productId],
+                },
               },
-              type: 'inapp',
+              type: 'in-app',
             });
       const purchases = (Array.isArray(requested) ? requested : [requested]).filter(
         isStorePurchase
@@ -240,7 +250,7 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
   const restore = async (): Promise<BillingPurchaseOutcome> => {
     await start();
     const storefront = await getStorefront();
-    const available = await getAvailablePurchases({ onlyIncludeActiveItems: true });
+    const available = await getAvailablePurchases();
     const records: RestoreStoreRecord[] = [];
     let pendingCount = 0;
     for (const purchaseRecord of available) {
@@ -283,8 +293,12 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
     backend: 'play',
     bindAccount,
     getStorefront,
-    listPrices: (productIds: readonly string[]): Promise<readonly BillingLocalizedPrice[]> =>
-      listStorePrices(productIds, getProducts, getSubscriptions),
+    listPrices: async (
+      productIds: readonly string[]
+    ): Promise<readonly BillingLocalizedPrice[]> => {
+      await start();
+      return listStorePrices(productIds, fetchProducts);
+    },
     purchase,
     restore,
     syncUnfinishedTransactions: async () => {

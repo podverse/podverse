@@ -1022,7 +1022,7 @@ export function HomeScreen() {
         opacity: 0,
       },
       pendingOverlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         backgroundColor: themeStyles.screen.backgroundColor,
       },
       feedNotice: {

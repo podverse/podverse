@@ -10,8 +10,9 @@ const nodeCryptoShim = path.resolve(projectRoot, 'src/shims/node-crypto.js');
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(projectRoot);
 
-// Watch shared package dist/ for hot reload after npm run build:packages.
-config.watchFolders = [packagesRoot];
+// Watch shared package dist/ plus the monorepo tsconfig base so export/build can resolve
+// `apps/mobile/tsconfig.json` extends during Metro's TypeScript path setup.
+config.watchFolders = [packagesRoot, monorepoRoot];
 config.resolver.nodeModulesPaths = [path.resolve(projectRoot, 'node_modules')];
 config.resolver.unstable_enableSymlinks = true;
 config.resolver.unstable_enablePackageExports = true;

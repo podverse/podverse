@@ -35,7 +35,7 @@ const createStyles = ({ tokens }: ThemedStylesTheme) =>
       opacity: 0,
     },
     spinnerOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       alignItems: 'center',
       justifyContent: 'center',
     },
