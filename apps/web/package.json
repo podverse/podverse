@@ -33,7 +33,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
-    "@paypal/react-paypal-js": "10.5.1",
+    "@paypal/react-paypal-js": "10.5.2",
     "@podverse/extension-metrics-sdk": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
@@ -51,14 +51,14 @@
     "@podverse/v4v-metaboost": "*",
     "classnames": "^2.5.1",
     "hls.js": "^1.7.3",
-    "next": "^16.3.5",
-    "next-intl": "^4.14.6",
+    "next": "^16.3.8",
+    "next-intl": "^4.14.8",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-icons": "^5.7.0",
-    "react-virtuoso": "^4.18.14",
-    "sass": "^1.104.1",
-    "sharp": "^0.35.4",
+    "react-virtuoso": "^4.18.16",
+    "sass": "^1.105.1",
+    "sharp": "^0.35.5",
     "transcriptator": "^1.1.4",
     "uuid": "^14.0.2",
     "video.js": "^8.24.1",
@@ -81,7 +81,7 @@
     "openai": "^6.27.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
-    "vitest": "^5.0.1",
+    "vitest": "^5.0.3",
     "webpack": "^5.105.4"
   }
 }

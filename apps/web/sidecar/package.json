@@ -11,6 +11,7 @@
     "bundle": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/server.js"
   },
   "dependencies": {
+    "@paypal/react-paypal-js": "^10.5.2",
     "@podverse/helpers": "*",
     "@podverse/helpers-config": "*",
     "@podverse/integrations-web": "*",
@@ -18,16 +19,16 @@
     "axios": "^1.19.0",
     "dotenv": "^18.0.3",
     "hls.js": "^1.7.3",
-    "next": "^16.3.5",
-    "next-intl": "^4.14.6",
+    "next": "^16.3.8",
+    "next-intl": "^4.14.8",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-virtuoso": "^4.18.14",
-    "sass": "^1.104.1",
-    "sharp": "^0.35.4",
+    "react-virtuoso": "^4.18.16",
+    "sass": "^1.105.1",
+    "sharp": "^0.35.5",
     "uuid": "^14.0.2",
     "video.js": "^8.24.1",
-    "vitest": "5.0.1",
+    "vitest": "5.0.3",
     "zod": "^4.6.5"
   },
   "devDependencies": {
