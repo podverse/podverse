@@ -76,11 +76,11 @@
     "@podverse/parser": "*",
     "@podverse/parser-mapping": "*",
     "@podverse/worker-commands": "*",
-    "amqplib": "^2.0.1",
+    "amqplib": "^2.2.0",
     "axios": "^1.19.0",
     "ioredis": "^6.0.0",
-    "pg": "^8.23.0",
-    "sharp": "^0.35.4",
+    "pg": "^8.23.1",
+    "sharp": "^0.35.5",
     "typeorm": "^1.1.0",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0"
@@ -92,6 +92,6 @@
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.3"
   }
 }
