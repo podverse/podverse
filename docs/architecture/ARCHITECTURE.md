@@ -71,7 +71,7 @@ sequenceDiagram
 | 1    | helpers, v4v-metaboost, v4v-helpers                                                                                            | (none)                                                                                |
 | 2    | helpers-validation, helpers-requests, helpers-backend, helpers-browser, helpers-config                                         | helpers                                                                               |
 | 3    | external-services-alby, external-services-firebase, external-services-paypal, external-services-podcast-index, orm, v4v-btc-ln | helpers, helpers-\*                                                                   |
-| 4    | notifications, parser                                                                                                          | helpers, helpers-\*, external-services-firebase, external-services-podcast-index, orm |
+| 4    | notifications, billing, parser                                                                                                 | helpers, helpers-\*, external-services-firebase, external-services-podcast-index, orm |
 | 5    | mq                                                                                                                             | helpers, helpers-\*, external-services-podcast-index, orm, parser                     |
 | 6    | api, web, workers, management-\*                                                                                               | various                                                                               |
 | 7    | qa                                                                                                                             | helpers, helpers-\*, external-services-\*, orm, parser                                |
@@ -83,7 +83,7 @@ sequenceDiagram
 2. helpers-validation, helpers-requests, helpers-backend, helpers-browser, helpers-config (parallel)
 3. external-services-alby, external-services-firebase, external-services-paypal, external-services-podcast-index (parallel)
 4. orm, parser-mapping (parallel)
-5. notifications
+5. notifications, billing
 6. parser
 7. mq
 8. apps (parallel)
@@ -112,6 +112,7 @@ packages/                 # Publishable npm packages (@podverse/*)
   orm/                    # Database entities, services, migrations
   parser-mapping/         # Partytime-to-Podverse mapping (compat)
   notifications/          # Push notification services (Firebase)
+  billing/                # Payment processor registry and billing event processing
   parser/                 # RSS/Podcast feed parsing
   mq/                     # Message queue operations
 
@@ -167,10 +168,11 @@ infra/              # Infrastructure
 - User authentication
 - Configured via `packages/notifications/`
 
-### PayPal
+### Billing
 
-- Premium subscription payments
-- Configured via `packages/external-services/`
+Premium membership is sold through PayPal (web), the App Store, and Google Play. The
+processor charges the buyer. Podverse records the result in a grant ledger. Overview,
+sandbox setup, and operations: [docs/billing/BILLING.md](/docs/billing/BILLING.md).
 
 ### Matomo
 

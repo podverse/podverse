@@ -100,6 +100,5 @@ bash "$SCRIPT_DIR/ensure-ios-pod-build-settings.sh" "$IOS_DIR"
 
 cd "$IOS_DIR"
 "$POD_BIN" install --repo-update "$@"
-bash "$SCRIPT_DIR/patch-fmt-xcode26.sh" "$IOS_DIR"
 bash "$SCRIPT_DIR/ensure-ios-pod-build-settings.sh" "$IOS_DIR"
 bash "$SCRIPT_DIR/ensure-expo-sqlite-vendored-sources.sh" "$REPO_ROOT/apps/mobile"

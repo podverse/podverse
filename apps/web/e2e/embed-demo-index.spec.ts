@@ -11,18 +11,18 @@ test.describe('Embed demo index', () => {
     test.setTimeout(120_000);
 
     await page.goto('/embed');
-    await expect(page.getByRole('heading', { name: 'Embed player' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Embed Player' })).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: 'Single episodes, tracks, and clips' })
+      page.getByRole('heading', { name: 'Single Episodes, Tracks, and Clips' })
     ).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: 'Podcasts, albums, and playlists' })
+      page.getByRole('heading', { name: 'Podcasts, Albums, and Playlists' })
     ).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: 'Table of contents', exact: true })
+      page.getByRole('heading', { name: 'Table of Contents', exact: true })
     ).toBeVisible();
     await expect(
-      page.getByRole('navigation', { name: 'Table of contents for embed examples' })
+      page.getByRole('navigation', { name: 'Table of Contents for Embed Examples' })
     ).toBeVisible();
 
     const embedPaths: string[] = [];
@@ -91,11 +91,11 @@ test.describe('Embed demo index', () => {
       page,
       testInfo,
       'The embed demo index lists deterministic fixture iframe previews for every showcase slot.',
-      page.getByRole('heading', { name: 'Embed player' })
+      page.getByRole('heading', { name: 'Embed Player' })
     );
 
     await test.step('Table of contents jumps to a demo anchor', async () => {
-      await page.getByRole('link', { name: 'Episode (compact)' }).click();
+      await page.getByRole('link', { name: 'Episode (Compact)' }).click();
       await expect(page).toHaveURL(/#embed-demo-episode-audio$/);
       await expect(page.locator('#embed-demo-episode-audio')).toBeVisible();
     });
@@ -118,6 +118,6 @@ test.describe('Embed demo index', () => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Embed' }).click();
     await expect(page).toHaveURL('/embed');
-    await expect(page.getByRole('heading', { name: 'Embed player' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Embed Player' })).toBeVisible();
   });
 });

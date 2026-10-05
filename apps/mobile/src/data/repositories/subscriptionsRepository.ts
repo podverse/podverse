@@ -147,8 +147,9 @@ export const subscriptionsRepository = {
   list: async (
     params: {
       /**
-       * `ready` leaves out add-by-RSS feeds waiting on a username and password, which Home lists
-       * in their own section at the end. Everything else still counts them as followed.
+       * `ready` leaves out add-by-RSS feeds waiting on a username and password. The Add by RSS
+       * library lists those in their own section at the end. Everything else still counts them as
+       * followed.
        */
       credentials?: 'all' | 'ready';
       filter?: SubscriptionFilter;

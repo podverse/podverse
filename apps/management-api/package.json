@@ -20,6 +20,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@podverse/billing": "*",
     "@podverse/extension-metrics-sdk": "*",
     "@podverse/external-services-object-storage": "*",
     "@podverse/helpers": "*",

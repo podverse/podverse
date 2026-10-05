@@ -10,37 +10,38 @@ import { TextField } from './TextField';
 
 export type ListFilterHeaderProps = {
   children: ReactNode;
-  /** Hairline on the bottom edge only when a row or tile follows this header. */
+  /**
+   * Extra space under the field only when a row or tile follows. The first list row draws its own
+   * top hairline; this header does not.
+   */
   hasItemsBelow: boolean;
   /**
-   * Put **`listFilterFieldBottomMargin`** here (not on the field) so that gap sits *below* the
-   * hairline. `listFilterContentGap` padding lives *above* the hairline so the line does not fuse
-   * with the field border. Spacing from chips / header above stays the caller's `marginTop`.
+   * Put **`listFilterFieldBottomMargin`** here (not on the field). The header's `paddingBottom`
+   * is the gap from the field down to the content below. Spacing from chips / header above stays
+   * the caller's `marginTop`.
    */
   style?: StyleProp<ViewStyle>;
 };
 
 /**
- * Wraps a `ListFilterField` so a hairline sits between the field and the first list row or grid
- * tile, with `listFilterContentGap` of space under the input. Omit the line when the list is empty
- * or the term hid every row.
+ * Wraps a `ListFilterField` so `listFilterContentGap` of space sits under the input when a row or
+ * tile follows. The line, when there is one, is that first row's top border — not a rule on this
+ * header. Omit the extra gap when the list is empty or the term hid every row.
  */
 export function ListFilterHeader({ children, hasItemsBelow, style }: ListFilterHeaderProps) {
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        divider: {
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
+        gap: {
           paddingBottom: listFilterContentGap(tokens.spacing),
         },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
-  return <View style={[hasItemsBelow ? styles.divider : null, style]}>{children}</View>;
+  return <View style={[hasItemsBelow ? styles.gap : null, style]}>{children}</View>;
 }
 
 export type ListFilterFieldProps = {
@@ -54,7 +55,7 @@ export type ListFilterFieldProps = {
   /**
    * Spacing from chips / header above is the caller's business (`marginTop`). Spacing to the first
    * list or grid content below belongs on **`ListFilterHeader`** via **`listFilterFieldBottomMargin`**
-   * so the hairline stays attached to the field and the gap sits below it.
+   * so the first row's top hairline is not stuck to the field.
    */
   style?: StyleProp<ViewStyle>;
   /** Input is `${testID}-input`, clear control is `${testID}-clear`. */

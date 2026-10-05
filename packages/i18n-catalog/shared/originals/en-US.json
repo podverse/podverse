@@ -2,7 +2,7 @@
   "language": {
     "language": "Language",
     "description": "Choose the language used throughout the app.",
-    "select_language": "Select language",
+    "select_language": "Select Language",
     "languages": {
       "en-US": "English",
       "es": "Spanish",
@@ -23,17 +23,17 @@
     }
   },
   "errors": {
-    "boundary_title": "Something went wrong",
+    "boundary_title": "Something Went Wrong",
     "boundary_message": "An unexpected error occurred. Please try again.",
-    "global_title": "Application error",
+    "global_title": "Application Error",
     "global_message": "A critical error occurred. Please refresh the page.",
-    "details_development_only": "Error details (development only)"
+    "details_development_only": "Error Details (Development Only)"
   },
   "misc": {
     "loading": "Loading…",
     "faq": "FAQ",
-    "try_again": "Try again",
-    "reload_page": "Reload page",
-    "return_to_home_page": "Return to home page"
+    "try_again": "Try Again",
+    "reload_page": "Reload Page",
+    "return_to_home_page": "Return to Home Page"
   }
 }

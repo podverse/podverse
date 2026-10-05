@@ -16,6 +16,7 @@ const ANONYMOUS: MembershipState = {
   isExpired: false,
   tier: null,
   expiresAt: null,
+  activeAutoRenew: false,
 };
 
 const ACCOUNT: MembershipState = {
@@ -24,6 +25,7 @@ const ACCOUNT: MembershipState = {
   isExpired: false,
   tier: null,
   expiresAt: null,
+  activeAutoRenew: false,
 };
 
 const MEMBER: MembershipState = {
@@ -32,6 +34,7 @@ const MEMBER: MembershipState = {
   isExpired: false,
   tier: 'premium',
   expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+  activeAutoRenew: false,
 };
 
 const LAPSED: MembershipState = {
@@ -40,6 +43,7 @@ const LAPSED: MembershipState = {
   isExpired: true,
   tier: 'premium',
   expiresAt: new Date(Date.now() - 86_400_000).toISOString(),
+  activeAutoRenew: false,
 };
 
 describe('accessTierFromMembership', () => {
@@ -177,7 +181,15 @@ describe('evaluateFeatureAccess', () => {
 });
 
 describe('shouldSuppressExpiryReminder', () => {
-  it('suppresses nothing until payment functionality exists', () => {
-    expect(shouldSuppressExpiryReminder()).toBe(false);
+  it('holds back the countdown for a member whose subscription renews on its own', () => {
+    expect(shouldSuppressExpiryReminder({ ...MEMBER, activeAutoRenew: true })).toBe(true);
+  });
+
+  it('keeps the countdown for a member who is not enrolled in auto-renew', () => {
+    expect(shouldSuppressExpiryReminder(MEMBER)).toBe(false);
+  });
+
+  it('keeps the expired messaging for an enrolled member whose renewal did not land', () => {
+    expect(shouldSuppressExpiryReminder({ ...LAPSED, activeAutoRenew: true })).toBe(false);
   });
 });

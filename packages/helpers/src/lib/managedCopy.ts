@@ -1,4 +1,4 @@
-export const MANAGED_COPY_SLUGS = ['faq', 'clip-how-to'] as const;
+export const MANAGED_COPY_SLUGS = ['about', 'faq', 'clip-how-to'] as const;
 
 export type ManagedCopySlug = (typeof MANAGED_COPY_SLUGS)[number];
 

@@ -32,15 +32,10 @@ generated_block = re.compile(
     re.DOTALL,
 )
 stripped = generated_block.sub('', text)
-anchor = (
-    "          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'\n"
-    '        end\n'
-    '      end\n'
-    '    end\n'
-)
+anchor = '  end\nend\n'
 if anchor not in stripped:
-    raise SystemExit(f'Error: {podfile_path} is missing the Expo resource-bundle post_install loop')
-next_text = stripped.replace(anchor, f'{anchor}\n    {snippet}\n', 1)
+    raise SystemExit(f'Error: {podfile_path} is missing the Expo post_install block')
+next_text = stripped.replace(anchor, f'\n    {snippet}\n  end\nend\n', 1)
 if next_text != text:
     podfile_path.write_text(next_text)
     print(f'Applied iOS pod build settings hook to {podfile_path}')
@@ -58,8 +53,8 @@ explicit_modules = re.compile(r'^SWIFT_ENABLE_EXPLICIT_MODULES\s*=.*$', re.MULTI
 
 
 def clamp(match):
-    if float(match.group(2)) < 15.0:
-        return f'{match.group(1)}15.0'
+    if float(match.group(2)) < 16.4:
+        return f'{match.group(1)}16.4'
     return match.group(0)
 
 

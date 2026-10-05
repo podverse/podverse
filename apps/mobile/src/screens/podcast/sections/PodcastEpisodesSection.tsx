@@ -56,7 +56,6 @@ const episodeRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
 type PodcastEpisodeRowProps = {
   channel: PodcastSectionPaneProps['channel'];
   index: number;
-  isLast: boolean;
   item: DTOItem | undefined;
   onAddToPlaylist: (row: HomeFeedRowData) => void;
   onMarkAsPlayed: (row: HomeFeedRowData) => void;
@@ -70,7 +69,6 @@ type PodcastEpisodeRowProps = {
 function PodcastEpisodeRow({
   channel,
   index,
-  isLast,
   item,
   onAddToPlaylist,
   onMarkAsPlayed,
@@ -94,7 +92,6 @@ function PodcastEpisodeRow({
     <HomeFeedRow
       downloadItem={downloadItem}
       downloadTestID={`podcast-episode-download-${index}`}
-      isLast={isLast}
       mediaType="episodes"
       onAddToPlaylistPress={onAddToPlaylist}
       onMarkAsPlayedPress={onMarkAsPlayed}
@@ -343,11 +340,10 @@ export function PodcastEpisodesSection({
   }, [loadEpisodes]);
 
   const renderRow = useCallback(
-    ({ index, isLast, row }: { index: number; isLast: boolean; row: HomeFeedRowData }) => (
+    ({ index, row }: { index: number; row: HomeFeedRowData }) => (
       <PodcastEpisodeRow
         channel={channel}
         index={index}
-        isLast={isLast}
         item={itemsById.get(row.id)}
         onAddToPlaylist={handleAddToPlaylist}
         onMarkAsPlayed={handleMarkAsPlayed}

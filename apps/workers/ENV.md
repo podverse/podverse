@@ -18,21 +18,22 @@ The workers app validates environment variables **per command**. Each job only v
 
 ### Command groups and env categories
 
-| Command group                       | Categories validated                     | Commands (examples)                                                                                                                                 |
-| ----------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                                                                                                                    |
-| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, devStatsSeedSimulatedAggregated, devSeedLocalUserContent, scheduledJobsRunDue, notificationsPlatformPurge, orm\* |
-| Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                                                         |
-| Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                                                                                                                   |
-| Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                                                                                                                    |
-| Base + MQ                           | Base, MQ                                 | devPiBulkFeedsAddFromFile                                                                                                                           |
-| Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                                                                                                            |
-| Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                                                                                                                 |
-| Base + ORM + MQ + KeyValDB + PI     | Base, ORM, MQ, KeyValDB, PodcastIndex    | mqOpmlImportRun                                                                                                                                     |
-| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParseMusicMediumFeeds, devParserRSSParsePodcasting20Feeds                           |
-| Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                                                                                                         |
-| Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkResetShrunken, imageShrinkResetShrunkenDryRun, imageShrinkSourcePrune                                         |
-| Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                                                                                                            |
+| Command group                       | Categories validated                     | Commands (examples)                                                                                                                                                                                                           |
+| ----------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                                                                                                                                                                                              |
+| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, devStatsSeedSimulatedAggregated, devSeedLocalUserContent, scheduledJobsRunDue, notificationsPlatformPurge, billingImportLegacyMembershipExpiry, billingSeedProcessorProductsFromEnv, orm\* |
+| Base + ORM + Billing                | Base, ORM, Billing                       | billingReconcileSubscriptions                                                                                                                                                                                                 |
+| Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                                                                                                                                   |
+| Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                                                                                                                                                                                             |
+| Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                                                                                                                                                                                              |
+| Base + MQ                           | Base, MQ                                 | devPiBulkFeedsAddFromFile                                                                                                                                                                                                     |
+| Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                                                                                                                                                                                      |
+| Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                                                                                                                                                                                           |
+| Base + ORM + MQ + KeyValDB + PI     | Base, ORM, MQ, KeyValDB, PodcastIndex    | mqOpmlImportRun                                                                                                                                                                                                               |
+| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParseMusicMediumFeeds, devParserRSSParsePodcasting20Feeds                                                                                                     |
+| Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                                                                                                                                                                                   |
+| Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkResetShrunken, imageShrinkResetShrunkenDryRun, imageShrinkSourcePrune                                                                                                                   |
+| Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                                                                                                                                                                                      |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
 
@@ -108,6 +109,87 @@ Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) receives optional HTTP Basi
   - Set to `"true"` to enable
 
 - **`NODE_ENV`** (Optional) - Node environment (`development`, `production`, etc.)
+
+## Billing
+
+Validated for every command (Base). All are optional; the API reads the same policy keys so a
+webhook and a reconciliation run compute the same access window. Local values come from
+`dev/env-overrides/local/billing.env`.
+
+- **`BILLING_WEBHOOK_PUBLIC_BASE_URL`** (Optional) - Public HTTPS base the processors deliver
+  webhooks to, with no trailing slash.
+- **`BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION`** (Optional) - Seconds access continues past an
+  auto-renew period end while the renewal event arrives. Default `172800` (48 hours).
+- **`BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION`** (Optional) - Seconds access continues after a
+  failed renewal charge while the processor retries. Default `604800` (7 days).
+- **`BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`** (Optional) - Comma-separated account ids or `id_text`
+  values whose sandbox purchases count when `NODE_ENV` is `production`. Outside production every
+  sandbox purchase counts.
+
+### Billing processors (Billing category)
+
+Commands in the Billing category register an adapter for each payment processor whose enable
+flag is `true`, the same set the API registers. Credentials alone never turn a processor on.
+With the flag on, every key that processor needs is required. Keys and meanings match
+[`apps/api/ENV.md`](/apps/api/ENV.md#billing).
+
+- **`BILLING_ALLOW_TEST_ADAPTER`** (Optional) - `true` registers the test processor even when
+  `NODE_ENV` is `production`; non-production always registers it. `billingReconcileSubscriptions`
+  skips test-processor subscriptions, whose records live only in the process that created them.
+- **`BILLING_PAYPAL_ENABLED`** (Optional, default off) - `true` turns PayPal on; empty keeps it off
+- **`PAYPAL_CLIENT_ID`**, **`PAYPAL_CLIENT_SECRET`**, **`PAYPAL_WEBHOOK_ID`**, **`PAYPAL_ENVIRONMENT`**
+- **`BILLING_APPLE_IAP_ENABLED`** (Optional, default off) - `true` turns Apple In-App Purchase on;
+  empty keeps it off
+- **`APPLE_IAP_ISSUER_ID`**, **`APPLE_IAP_KEY_ID`**, **`APPLE_IAP_PRIVATE_KEY_PATH`**,
+  **`APPLE_IAP_BUNDLE_ID`**, **`APPLE_IAP_APP_APPLE_ID`**, **`APPLE_IAP_ENVIRONMENT`**
+- **`APPLE_IAP_ENVIRONMENT`** - `sandbox` or `production`; empty follows `NODE_ENV`. `xcode`
+  (local only, refused when `NODE_ENV` is `production`) needs only `APPLE_IAP_BUNDLE_ID`. Xcode
+  purchases are not on Apple's servers, so `billingReconcileSubscriptions` finds no record for
+  them and leaves them as they are.
+- **`BILLING_GOOGLE_PLAY_ENABLED`** (Optional, default off) - `true` turns Google Play on; empty
+  keeps it off
+- **`GOOGLE_PLAY_PACKAGE_NAME`**, **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH`**,
+  **`GOOGLE_PLAY_RTDN_PUSH_AUDIENCE`**, **`GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL`**
+
+On **Kubernetes**, the same keys are listed in `infra/k8s/base/workers/source/workers.env`.
+CronJob `worker-billing-renewals` mounts **`podverse-billing-apple-iap-opaque`** at
+**`/var/secrets/apple-iap/AuthKey.p8`** and **`podverse-billing-google-play-opaque`** at
+**`/var/secrets/google-play/service-account.json`**, and reads PayPal from
+**`podverse-billing-paypal-opaque`**. Leave each `_PATH` empty until that secret is applied,
+and set the matching `*_ENABLED` flag to `true` before that processor registers.
+See [docs/billing/BILLING.md](/docs/billing/BILLING.md).
+
+### v4 membership expiry (`billingImportLegacyMembershipExpiry`)
+
+Base + ORM only. It does not read payment-processor credentials. Leave the v4 database
+alone until the v4 to v5 account migration is underway and v5 already has those emails.
+Input format and grant rules:
+[v4 membership carryover](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover).
+
+### Billing products (`billingSeedProcessorProductsFromEnv` only)
+
+The seed command maps the Premium product to each processor's store ids and refuses to run when
+`NODE_ENV` is `production`. It always seeds the two PayPal one-time products, whose ids Podverse
+names, and skips any mapping whose keys are empty, so a processor that is not configured yet stays
+unmapped. Re-running it updates existing mappings. Local values come from
+`dev/env-overrides/local/billing-products.env`. Recommended Apple ids are in
+[BILLING-APPLE-SANDBOX.md](/docs/billing/BILLING-APPLE-SANDBOX.md).
+
+| Variable                                                 | Maps                                   |
+| -------------------------------------------------------- | -------------------------------------- |
+| `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_MONTHLY_PLAN_ID`      | PayPal monthly subscription plan       |
+| `BILLING_PRODUCT_PAYPAL_AUTO_RENEW_ANNUAL_PLAN_ID`       | PayPal annual subscription plan        |
+| `BILLING_PRODUCT_APPLE_AUTO_RENEW_MONTHLY_ID`            | App Store monthly subscription product |
+| `BILLING_PRODUCT_APPLE_AUTO_RENEW_ANNUAL_ID`             | App Store annual subscription product  |
+| `BILLING_PRODUCT_APPLE_ONE_TIME_MONTHLY_ID`              | App Store one-month purchase           |
+| `BILLING_PRODUCT_APPLE_ONE_TIME_ANNUAL_ID`               | App Store one-year purchase            |
+| `BILLING_PRODUCT_GOOGLE_SUBSCRIPTION_ID`                 | Google Play subscription (all plans)   |
+| `BILLING_PRODUCT_GOOGLE_AUTO_RENEW_MONTHLY_BASE_PLAN_ID` | Google Play monthly auto-renew plan    |
+| `BILLING_PRODUCT_GOOGLE_AUTO_RENEW_ANNUAL_BASE_PLAN_ID`  | Google Play annual auto-renew plan     |
+| `BILLING_PRODUCT_GOOGLE_PREPAID_MONTHLY_BASE_PLAN_ID`    | Google Play monthly prepaid plan       |
+| `BILLING_PRODUCT_GOOGLE_PREPAID_ANNUAL_BASE_PLAN_ID`     | Google Play annual prepaid plan        |
+
+A Google Play base plan is mapped only when both the subscription id and that base plan id are set.
 
 ## Podcast Index
 

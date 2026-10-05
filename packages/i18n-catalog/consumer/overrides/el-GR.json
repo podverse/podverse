@@ -83,6 +83,7 @@
       "add_feed_instructions": "",
       "check_updates": "",
       "feed_url": "",
+      "feed_url_example": "",
       "invalid_url": "",
       "no_feeds": "",
       "no_feeds_podcast": "",
@@ -101,6 +102,7 @@
       "wait_to_retry_minute": "",
       "basic_auth_use": "",
       "basic_auth_requires": "",
+      "basic_auth_description": "",
       "basic_auth_username": "",
       "basic_auth_password": "",
       "basic_auth_required_both": "",
@@ -768,6 +770,7 @@
       "add_by_rss": "",
       "label": "",
       "placeholder": "",
+      "by_title": "",
       "clear": "",
       "results_count": ""
     },
@@ -797,8 +800,11 @@
     "reset_password": "",
     "reset_password_complete_message": "",
     "email": "",
+    "email_example": "",
     "password": "",
+    "password_hint": "",
     "confirm_password": "",
+    "type_your_email": "",
     "create_account": "",
     "invalid_email_or_password": "",
     "mobile_api_not_configured": "",
@@ -867,6 +873,7 @@
     "pricing_per_month": "",
     "pricing_per_year": "",
     "pricing_save_percent": "",
+    "pricing_percent_off": "",
     "contact_mode_text_before": "",
     "cta_sign_up_text": "",
     "cta_upgrade_text": "",
@@ -954,12 +961,9 @@
   },
   "about": {
     "title": "",
-    "intro_text": "",
     "download_app_store": "",
     "download_google_play": "",
-    "download_f_droid": "",
-    "licensing_text": "",
-    "features_title": ""
+    "download_f_droid": ""
   },
   "checkout": {
     "checkout": "",
@@ -967,9 +971,9 @@
     "auto_renew": "",
     "payment_processor": "",
     "paypal": "",
-    "stripe": "",
     "complete_purchase": "",
-    "disabled_message": ""
+    "disabled_message": "",
+    "purchase_unavailable": ""
   },
   "layouts": {
     "change_layout_view": "",

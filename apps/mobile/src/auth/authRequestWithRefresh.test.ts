@@ -27,6 +27,7 @@ import {
   refreshAccessTokenSingleFlight,
   requestWithMobileAuthRefresh,
 } from './authRequestWithRefresh';
+import type { SessionEndReason } from './forcedLogoutNotice';
 
 const httpError = (status: number): Error => {
   const error = new Error(`Request failed with status code ${status}`);
@@ -68,7 +69,7 @@ const sentAccessTokens = (): unknown[] =>
   createMobileApiRequestService.mock.calls.filter((call) => call.length > 0).map((call) => call[0]);
 
 describe('requestWithMobileAuthRefresh', () => {
-  const clearSession = vi.fn(async () => undefined);
+  const clearSession = vi.fn(async (_reason: SessionEndReason) => undefined);
   const setTokens = vi.fn(async () => undefined);
 
   beforeEach(() => {
@@ -479,7 +480,7 @@ describe('requestWithMobileAuthRefresh', () => {
 });
 
 describe('refreshAccessTokenSingleFlight', () => {
-  const clearSession = vi.fn(async () => undefined);
+  const clearSession = vi.fn(async (_reason: SessionEndReason) => undefined);
   const setTokens = vi.fn(async () => undefined);
 
   beforeEach(() => {

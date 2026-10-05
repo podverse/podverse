@@ -23,8 +23,8 @@ yet **at the moment they reach for it**, and change nothing.
 - **The message is a response, not a label.** It appears because of the interaction and goes away —
   a dialog, sheet, or notice. It is not permanent copy sitting under the control, and it is not a
   caption crowding an icon row.
-- **i18n like any other copy**, in sentence case
-  ([`ui-copy-sentence-case`](/.cursor/rules/ui-copy-sentence-case.mdc)). Prefer one shared "not
+- **i18n like any other copy.** The message is a sentence, so it stays sentence case. Chrome
+  around it follows [`ui-copy-casing`](/.cursor/rules/ui-copy-casing.mdc). Prefer one shared "not
   available yet" string per surface over a bespoke sentence per control.
 - **Nothing changes.** No state flips, nothing is written to storage, no request is sent, no spinner
   runs. A control that flips and forgets reads as a bug; a remembered setting the product cannot

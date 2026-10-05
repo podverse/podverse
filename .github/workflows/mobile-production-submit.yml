@@ -62,5 +62,6 @@ jobs:
             exit 0
           fi
           echo "Production submits should use staged rollout in App Store Connect / Play Console."
-          eas submit --non-interactive --profile production --platform ios --latest --cwd apps/mobile
-          eas submit --non-interactive --profile production --platform android --latest --cwd apps/mobile
+          cd apps/mobile
+          eas submit --non-interactive --profile production --platform ios --latest
+          eas submit --non-interactive --profile production --platform android --latest

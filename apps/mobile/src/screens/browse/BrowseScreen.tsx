@@ -103,19 +103,17 @@ function browsePlayMediaType(mediaType: BrowseMediaType): BrowsePlayMediaType {
 }
 
 function BrowseCategoryItem({
-  isLast,
   isSelected,
   onSelect,
   onToggleExpand,
   row,
   styles,
 }: {
-  isLast: boolean;
   isSelected: boolean;
   onSelect: (mappingKey: string | null) => void;
   onToggleExpand: (rootMappingKey: string) => void;
   row: CategoryListRow;
-  styles: { categoryRow: ViewStyle; categoryRowLast: ViewStyle };
+  styles: { categoryRow: ViewStyle };
 }) {
   const handleSelect = useCallback(() => {
     onSelect(row.mappingKey);
@@ -127,7 +125,7 @@ function BrowseCategoryItem({
   }, [onToggleExpand, row.mappingKey]);
 
   return (
-    <View style={[styles.categoryRow, isLast ? styles.categoryRowLast : null]}>
+    <View style={styles.categoryRow}>
       <BrowseCategoryRow
         expanded={row.expanded}
         hasChildren={row.hasChildren}
@@ -145,11 +143,9 @@ function BrowseCategoryItem({
 }
 
 function BrowsePlaylistItem({
-  isLast,
   onPress,
   playlist,
 }: {
-  isLast: boolean;
   onPress: (playlistId: string) => void;
   playlist: DTOPlaylist;
 }) {
@@ -159,7 +155,6 @@ function BrowsePlaylistItem({
 
   return (
     <PlaylistListRow
-      isLast={isLast}
       onPress={handlePress}
       playlist={playlist}
       showCreator
@@ -170,11 +165,9 @@ function BrowsePlaylistItem({
 
 function BrowseUserItem({
   account,
-  isLast,
   onPress,
 }: {
   account: DTOAccount;
-  isLast: boolean;
   onPress: (accountId: string) => void;
 }) {
   const handlePress = useCallback(() => {
@@ -184,7 +177,6 @@ function BrowseUserItem({
   return (
     <ProfileListRow
       account={account}
-      isLast={isLast}
       onPress={handlePress}
       testID={`browse-user-row-${account.id_text}`}
     />
@@ -198,7 +190,6 @@ function BrowseFeedItem({
   goToChannel,
   goToTrack,
   isGridView,
-  isLast,
   mediaType,
   onPlay,
   onPress,
@@ -211,7 +202,6 @@ function BrowseFeedItem({
   goToChannel?: (row: HomeFeedRowData) => void;
   goToTrack?: (row: HomeFeedRowData) => void;
   isGridView: boolean;
-  isLast: boolean;
   mediaType: BrowseMediaType;
   onPlay: (row: HomeFeedRowData) => void;
   onPress: (row: HomeFeedRowData) => void;
@@ -228,7 +218,6 @@ function BrowseFeedItem({
 
   return (
     <HomeFeedRow
-      isLast={isLast}
       mediaType={mediaType}
       onAddToPlaylistPress={addToPlaylistPress}
       onGoToChannelPress={goToChannel}
@@ -822,11 +811,8 @@ export function BrowseScreen() {
 
     return StyleSheet.create({
       categoryRow: {
-        borderBottomColor: themeStyles.border.borderColor,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-      },
-      categoryRowLast: {
-        borderBottomWidth: 0,
+        borderTopColor: themeStyles.border.borderColor,
+        borderTopWidth: StyleSheet.hairlineWidth,
       },
       columnCell: {
         width: gridCellWidth,
@@ -855,7 +841,7 @@ export function BrowseScreen() {
         opacity: 0,
       },
       pendingOverlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         backgroundColor: themeStyles.screen.backgroundColor,
       },
       selectorSection: {
@@ -982,8 +968,6 @@ export function BrowseScreen() {
     ]
   );
 
-  const listRowCount = listRows.length;
-  const categoryRowCount = categoryRows.length;
   const rowAddToPlaylistPress =
     status === 'authenticated' && addToPlaylistTarget !== null
       ? handleAddToPlaylistPress
@@ -994,13 +978,12 @@ export function BrowseScreen() {
   const categoryRowStyles = useMemo(
     () => ({
       categoryRow: styles.categoryRow,
-      categoryRowLast: styles.categoryRowLast,
     }),
-    [styles.categoryRow, styles.categoryRowLast]
+    [styles.categoryRow]
   );
 
   const renderItem = useCallback(
-    ({ index, item }: { index: number; item: BrowseListRow }) => {
+    ({ item }: { item: BrowseListRow }) => {
       if (item.kind === 'category') {
         const isSelected =
           item.row.mappingKey === null
@@ -1008,7 +991,6 @@ export function BrowseScreen() {
             : item.row.mappingKey === selectedCategory;
         return (
           <BrowseCategoryItem
-            isLast={index === categoryRowCount - 1}
             isSelected={isSelected}
             onSelect={handleCategorySelect}
             onToggleExpand={handleCategoryExpandToggle}
@@ -1019,23 +1001,11 @@ export function BrowseScreen() {
       }
 
       if (item.kind === 'playlist') {
-        return (
-          <BrowsePlaylistItem
-            isLast={index === listRowCount - 1}
-            onPress={handlePlaylistPress}
-            playlist={item.playlist}
-          />
-        );
+        return <BrowsePlaylistItem onPress={handlePlaylistPress} playlist={item.playlist} />;
       }
 
       if (item.kind === 'user') {
-        return (
-          <BrowseUserItem
-            account={item.account}
-            isLast={index === listRowCount - 1}
-            onPress={handleUserPress}
-          />
-        );
+        return <BrowseUserItem account={item.account} onPress={handleUserPress} />;
       }
 
       return (
@@ -1046,7 +1016,6 @@ export function BrowseScreen() {
           goToChannel={rowGoToChannel}
           goToTrack={rowGoToTrack}
           isGridView={isGridView}
-          isLast={index === listRowCount - 1}
           mediaType={selectedMediaType}
           onPlay={handlePlayPress}
           onPress={handleRowPress}
@@ -1056,7 +1025,6 @@ export function BrowseScreen() {
       );
     },
     [
-      categoryRowCount,
       categoryRowStyles,
       feedCellStyle,
       gridCellWidth,
@@ -1068,7 +1036,6 @@ export function BrowseScreen() {
       handleRowPress,
       handleUserPress,
       isGridView,
-      listRowCount,
       rowAddToPlaylistPress,
       rowGoToChannel,
       rowGoToTrack,

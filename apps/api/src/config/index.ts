@@ -13,6 +13,8 @@ import {
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
 } from '@podverse/helpers';
+import type { BillingProcessorEnv } from '@podverse/helpers-config';
+import { readBillingProcessorEnv } from '@podverse/helpers-config';
 import type { ObservabilityConfig } from '@podverse/observability/config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
@@ -39,6 +41,8 @@ type Config = {
     accountAddByRssChaptersTranscript: { windowMs: number; max: number };
     accountChannelSeenRead: { windowMs: number; max: number };
     mqRssOnDemand: { windowMs: number; max: number };
+    billingPurchase: { windowMs: number; max: number };
+    billingWebhook: { windowMs: number; max: number };
   };
   nodeEnv: string;
   serverEnv: string;
@@ -111,9 +115,12 @@ type Config = {
     password: string;
     from: string;
   };
-  paypal: {
-    clientId: string;
-    clientSecret: string;
+  billing: {
+    /** `BILLING_ALLOW_TEST_ADAPTER`, for staging deployments that run with production settings. */
+    allowTestAdapter: boolean;
+    /** Raw `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`. */
+    sandboxAllowedAccountIds: string | undefined;
+    processors: BillingProcessorEnv;
   };
   podcastIndex: {
     authKey: string;
@@ -256,6 +263,16 @@ export const config: Config = {
       key: 'MQ_RSS_ON_DEMAND_MAX_PER_HOUR',
       defaultMax: 20,
     }),
+    billingPurchase: parseCountPerWindowEnvFromKey({
+      envValue: process.env.BILLING_PURCHASE_MAX_PER_10_MINUTES,
+      key: 'BILLING_PURCHASE_MAX_PER_10_MINUTES',
+      defaultMax: 20,
+    }),
+    billingWebhook: parseCountPerWindowEnvFromKey({
+      envValue: process.env.BILLING_WEBHOOK_MAX_PER_MINUTE,
+      key: 'BILLING_WEBHOOK_MAX_PER_MINUTE',
+      defaultMax: 120,
+    }),
   },
   nodeEnv: process.env.NODE_ENV!,
   serverEnv: process.env.SERVER_ENV!,
@@ -347,9 +364,10 @@ export const config: Config = {
     password: process.env.MAILER_PASSWORD!,
     from: process.env.MAILER_FROM!,
   },
-  paypal: {
-    clientId: process.env.PAYPAL_CLIENT_ID!,
-    clientSecret: process.env.PAYPAL_CLIENT_SECRET!,
+  billing: {
+    allowTestAdapter: process.env.BILLING_ALLOW_TEST_ADAPTER === 'true',
+    sandboxAllowedAccountIds: process.env.BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS,
+    processors: readBillingProcessorEnv(process.env),
   },
   podcastIndex: {
     authKey: process.env.PODCAST_INDEX_AUTH_KEY!,

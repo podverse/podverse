@@ -1,4 +1,3 @@
-import type { DTOAccountAppStorePurchase } from './accountAppStorePurchase.js';
 import type { DTOAccountCredentials } from './accountCredentials.js';
 import type { DTOAccountEmailChangeVerification } from './accountEmailChangeVerification.js';
 import type { DTOAccountFCMDevice } from './accountFCMDevice.js';
@@ -6,10 +5,8 @@ import type { DTOAccountFollowingAccount } from './accountFollowingAccount.js';
 import type { DTOAccountFollowingAddByRSSChannel } from './accountFollowingAddByRSSChannel.js';
 import type { DTOAccountFollowingChannel } from './accountFollowingChannel.js';
 import type { DTOAccountFollowingPlaylist } from './accountFollowingPlaylist.js';
-import type { DTOAccountGooglePlayPurchase } from './accountGooglePlayPurchase.js';
 import type { DTOAccountMembershipStatus } from './accountMembershipStatus.js';
 import type { DTOAccountNotificationChannel } from './accountNotificationChannel.js';
-import type { DTOAccountPayPalOrder } from './accountPayPalOrder.js';
 import type { DTOAccountProfile } from './accountProfile.js';
 import type { DTOAccountResetPassword } from './accountResetPassword.js';
 import type { DTOAccountSettings } from './accountSettings/accountSettings.js';
@@ -25,7 +22,6 @@ export interface DTOAccount {
   sender_guid?: string;
   sharable_status_id?: number;
   notifications_last_read_at?: string | null;
-  account_app_store_purchases?: DTOAccountAppStorePurchase[];
   account_credentials?: DTOAccountCredentials;
   account_email_change_verification?: DTOAccountEmailChangeVerification;
   account_fcm_devices?: DTOAccountFCMDevice[];
@@ -33,10 +29,8 @@ export interface DTOAccount {
   account_following_add_by_rss_channels?: DTOAccountFollowingAddByRSSChannel[];
   account_following_channels?: DTOAccountFollowingChannel[];
   account_following_playlists?: DTOAccountFollowingPlaylist[];
-  account_google_play_purchases?: DTOAccountGooglePlayPurchase[];
   account_membership_status?: DTOAccountMembershipStatus;
   account_notification_channels?: DTOAccountNotificationChannel[];
-  account_paypal_orders?: DTOAccountPayPalOrder[];
   account_profile?: DTOAccountProfile;
   account_reset_password?: DTOAccountResetPassword;
   account_settings?: DTOAccountSettings;

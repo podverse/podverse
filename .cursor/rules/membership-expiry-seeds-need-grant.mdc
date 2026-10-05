@@ -1,0 +1,29 @@
+---
+description: Seeded membership expiry must include a covering grant ledger row.
+globs: infra/development/seeds/**,tools/**/seed*.mjs,tools/web-perf/**/*.ts,tools/management-web/seed*.mjs,tools/web/seed*.mjs
+alwaysApply: false
+---
+
+# Membership expiry seeds need a grant
+
+`account_membership_status.membership_expires_at` is a cache. Access comes from
+`billing_membership_grant` (and active subscriptions) via `BillingEntitlementService`.
+A purchase or entitlement recompute that finds no grant starts from the purchase time and
+overwrites the seeded cache.
+
+## Do
+
+- When a seed or fixture inserts or updates `membership_expires_at`, insert a covering
+  `billing_membership_grant` in the same step (`starts_at` / `ends_at` match the access
+  window).
+- Use `trial` for trial accounts, `admin` for seeded premium or system accounts.
+- Prefer `Date` objects (not ISO strings) for both the cache and the grant so
+  timestamp-without-time-zone and timestamptz store the same instant.
+
+## Don't
+
+- Don't write `membership_expires_at` alone in seed SQL or E2E fixtures.
+- Don't invent a new grant source for fixtures; use `trial` or `admin`.
+
+Reference: [tools/management-web/seed-e2e.mjs](/tools/management-web/seed-e2e.mjs) pairs a
+`trial` grant with the cache. Product path: `BillingEntitlementService` only.

@@ -7,7 +7,8 @@ import { useQueueResourcesLoadActive } from '../../hooks/useQueueResourcesLoadAc
 
 export const QueueController: React.FC = () => {
   const queueResourcesLoadActive = useQueueResourcesLoadActive();
-  const { mpAddByRSS, mpClip, mpItem, mpItemSoundbite } = useMediaPlayer();
+  const { mpAddByRSS, mpClip, mpItem, mpItemSoundbite, playbackLoadGenerationRef } =
+    useMediaPlayer();
 
   const mpAddByRSSRef = useRef(mpAddByRSS);
   const mpClipRef = useRef(mpClip);
@@ -30,18 +31,28 @@ export const QueueController: React.FC = () => {
     mpItemSoundbiteRef.current = mpItemSoundbite;
   }, [mpItemSoundbite]);
 
+  const isPlayerEmpty = (): boolean =>
+    mpItemRef.current === null &&
+    mpAddByRSSRef.current === null &&
+    mpClipRef.current === null &&
+    mpItemSoundbiteRef.current === null;
+
   const hydrateActiveQueue = useEffectEvent(async () => {
-    const loaded = await queueResourcesLoadActive();
+    const hydrationLoadGeneration = playbackLoadGenerationRef.current;
+    const shouldStopHydration = (): boolean =>
+      hydrationLoadGeneration !== playbackLoadGenerationRef.current || !isPlayerEmpty();
+
+    const loaded = await queueResourcesLoadActive(undefined, undefined, {
+      advanceAutoQueue: false,
+    });
+    if (shouldStopHydration()) {
+      return;
+    }
     if (loaded.activeResource !== null || loaded.activeQueue === null) {
       return;
     }
 
-    const playerEmpty =
-      mpItemRef.current === null &&
-      mpAddByRSSRef.current === null &&
-      mpClipRef.current === null &&
-      mpItemSoundbiteRef.current === null;
-    if (!playerEmpty) {
+    if (!isPlayerEmpty()) {
       return;
     }
 
@@ -49,15 +60,24 @@ export const QueueController: React.FC = () => {
       (queue) => queue.id_text !== loaded.activeQueue?.id_text
     );
     for (const otherQueue of otherQueues) {
+      if (shouldStopHydration()) {
+        return;
+      }
       const otherLoaded = await queueResourcesLoadActive(undefined, {
         queueIdText: otherQueue.id_text,
       });
+      if (shouldStopHydration()) {
+        return;
+      }
       if (otherLoaded.activeResource !== null) {
         return;
       }
     }
 
-    await queueResourcesLoadActive();
+    if (shouldStopHydration()) {
+      return;
+    }
+    await queueResourcesLoadActive(undefined, undefined, { advanceAutoQueue: false });
   });
 
   useEffect(() => {

@@ -22,35 +22,14 @@ export class AccountMembershipStatus {
   @Column({ type: 'timestamp', nullable: true })
   membership_expires_at?: Date | null;
 
-  @Column({ type: 'boolean', default: false })
-  auto_renew?: boolean;
-
   @Column({ type: 'text', nullable: true })
   billing_cadence?: BillingCadence | null;
 
   @Column({ type: 'text', default: 'off' })
-  auto_renew_mode?: 'off' | 'on';
-
-  @Column({ type: 'timestamp', nullable: true })
-  next_renewal_attempt_at?: Date | null;
-
-  @Column({ type: 'timestamp', nullable: true })
-  last_renewal_attempt_at?: Date | null;
-
-  @Column({ type: 'text', default: 'none' })
-  last_renewal_status?: 'none' | 'succeeded' | 'failed';
+  auto_renew_mode!: 'off' | 'on';
 
   @Column({ type: 'varchar', length: BILLING_IDEMPOTENCY_KEY_MAX_LENGTH, nullable: true })
   last_extension_idempotency_key?: string | null;
-
-  @Column({ type: 'varchar', length: BILLING_IDEMPOTENCY_KEY_MAX_LENGTH, nullable: true })
-  last_renewal_idempotency_key?: string | null;
-
-  @Column({ type: 'integer', default: 0 })
-  renewal_retry_count?: number;
-
-  @Column({ type: 'timestamp', nullable: true })
-  renewal_retry_backoff_until?: Date | null;
 
   @Column({ type: 'boolean', nullable: true })
   allow_directory_add_by_rss?: boolean | null;

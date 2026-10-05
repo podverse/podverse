@@ -5,5 +5,4 @@ import { Router } from 'express';
 export const membershipRouter = Router();
 
 membershipRouter.get('/pricing', asyncHandler(MembershipController.getPricing));
-membershipRouter.get('/billing-read-model', asyncHandler(MembershipController.getBillingReadModel));
 membershipRouter.get('/', asyncHandler(MembershipController.getResolvedProductMembership));

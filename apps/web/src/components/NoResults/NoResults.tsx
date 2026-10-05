@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { InfoWrapper } from '@podverse/ui';
@@ -11,7 +12,8 @@ type NoResultsProps = {
 };
 
 export const NoResults: React.FC<NoResultsProps> = ({ message }) => {
-  const displayMessage = message || 'No results found';
+  const t = useTranslations('features.search');
+  const displayMessage = message || t('no_results');
 
   return (
     <div>

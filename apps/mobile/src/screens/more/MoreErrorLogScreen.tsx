@@ -8,12 +8,14 @@ import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import { Badge, Button, LIST_REMOVE_CLIPPED_SUBVIEWS, ListRow } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { LoadingSection } from '../../components/state/LoadingSection';
+import { getMobileConfig } from '../../config';
 import { isMobileE2eFromEnv } from '../../config/env';
 import type { SyncEventLogEntry } from '../../data/repositories';
 import { formatSyncEventLogExport, syncEventLogRepository } from '../../data/repositories';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
+import { readErrorLogDeviceContext } from './errorLogDeviceContext.read';
 import {
   ERROR_LOG_OUTCOME_BADGE_TONES,
   ERROR_LOG_OUTCOME_LABEL_KEYS,
@@ -24,14 +26,15 @@ import {
 
 /**
  * Abridged error log: one tappable row per entry (outcome, category, time, code, and what it was
- * about). The detail screen holds everything else and the copy action.
+ * about). The detail screen holds everything else, plus copy and email.
  *
  * Plain and dense on purpose: the reason to open this screen is that something is not working and
  * somebody needs to be told what, so it optimizes for getting the contents out rather than for
  * looking like the rest of the app.
  */
 export function MoreErrorLogScreen() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const supportEmail = getMobileConfig().contactEmail;
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { styles: themeStyles, tokens } = useTheme();
   const timestampFormatter = useErrorLogTimestampFormatter();
@@ -59,11 +62,11 @@ export function MoreErrorLogScreen() {
     if (isMobileE2eFromEnv()) {
       return;
     }
-    const message = formatSyncEventLogExport(entries);
+    const message = formatSyncEventLogExport(entries, readErrorLogDeviceContext(i18n.language));
     void Share.share({ message }).catch(() => {
       // Dismissing the share sheet is not a failure worth reporting on a diagnostics screen.
     });
-  }, [entries]);
+  }, [entries, i18n.language]);
 
   const handleClear = useCallback(() => {
     setIsClearConfirmVisible(false);
@@ -143,7 +146,7 @@ export function MoreErrorLogScreen() {
 
   const renderHeader = () => (
     <View>
-      <Text style={styles.intro}>{t('error_log.intro')}</Text>
+      <Text style={styles.intro}>{t('error_log.intro', { email: supportEmail })}</Text>
       <View style={styles.actions}>
         <Button
           disabled={entries.length === 0}

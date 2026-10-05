@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
-import { deriveMembershipState, getMembershipExpiryNotice } from '@podverse/helpers';
+import {
+  deriveMembershipState,
+  getMembershipExpiryNotice,
+  shouldSuppressExpiryReminder,
+} from '@podverse/helpers';
 
 import { ROUTES } from '../../constants/routes';
 import { useAccount } from '../../contexts/Account';
@@ -41,7 +45,6 @@ export function MembershipExpirationToast() {
     }
 
     const isFreeTrial = membership.tier === 'trial';
-    const autoRenew = loggedInAccount.account_membership_status?.auto_renew || false;
 
     const expirationDate = new Date(membership.expiresAt);
     const now = new Date();
@@ -126,8 +129,7 @@ export function MembershipExpirationToast() {
       return;
     }
 
-    // Warning toast: Show if expiring soon, not auto-renew, and not dismissed within past 24 hours
-    if (isExpiringSoon && !autoRenew && !wasDismissedWithin24Hours) {
+    if (isExpiringSoon && !shouldSuppressExpiryReminder(membership) && !wasDismissedWithin24Hours) {
       if (toastIdRef.current) {
         dismissToast(toastIdRef.current);
       }

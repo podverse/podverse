@@ -1,8 +1,8 @@
 appId: com.podverse.app.next
 name: Add By RSS Flow
 ---
-# Add-by-RSS import/manage in My Library, browse/play on the Home stack.
-# Fixture URL matches web e2e seed constants / accountAddByRSSParse E2E payload.
+# Add-by-RSS library in My Library: plus opens the add form; the list is feeds only. Detail and
+# playback stay on the Library stack. Fixture URL matches web e2e seed constants.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -15,41 +15,46 @@ name: Add By RSS Flow
     id: library-nav-add-by-rss
 - assertVisible:
     id: rss-root-screen
-# Optional Basic Auth fields sit under the URL; a public feed leaves them empty.
+- takeScreenshot: add-by-rss-library-initial
+
+- tapOn:
+    id: rss-add-button
 - assertVisible:
+    id: rss-add-screen
+- assertVisible:
+    id: rss-url-input
+# Username and password stay behind the Basic Auth toggle (off by default).
+- assertNotVisible:
     id: rss-username-input
+# Add stays disabled until the URL is a valid http(s) feed URL.
 - assertVisible:
-    id: rss-password-input
-- takeScreenshot: add-by-rss-screen-initial
+    id: rss-add-submit
+    enabled: false
+- takeScreenshot: add-by-rss-add-screen
 
 - tapOn:
     id: rss-url-input
 - inputText: https://e2e-seed-addbyrss.example/podcast.xml
+- assertVisible:
+    id: rss-add-submit
+    enabled: true
 - tapOn:
     id: rss-add-submit
 - takeScreenshot: add-by-rss-after-submit
 
-# Library is import + manage only: the feed row and parse status, no Play.
-- assertVisible:
-    id: rss-feed-row-first
-- assertVisible:
-    id: rss-feed-status-first
-- assertVisible: Parsed
+# After a successful add, the form pops back to the library list with the feed among the rows.
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible: E2E Add-by-RSS Channel
 - takeScreenshot: add-by-rss-feed-listed
 
-# A followed add-by-RSS feed is part of the unified Podcasts Home list, while My Library remains
-# the place to add and manage feeds. Android can still have the keyboard over the tab bar if
-# dismiss did not land before this tap; iOS hideKeyboard is flaky, so the app dismisses there.
 - runFlow:
     when:
       platform: Android
     commands:
       - hideKeyboard
-- tapOn:
-    id: tab-home
-- assertVisible:
-    id: home-screen
-- assertVisible: E2E Add-by-RSS Channel
 - tapOn:
     text: E2E Add-by-RSS Channel
 - assertVisible:
@@ -57,11 +62,9 @@ name: Add By RSS Flow
 - assertVisible: E2E Add-by-RSS Channel
 - assertVisible:
     id: add-by-rss-home-play-first
-- takeScreenshot: add-by-rss-home-detail
+- takeScreenshot: add-by-rss-library-detail
 
 # Real media: enclosure localhost:2111 → 127.0.0.1 (iOS) / 10.0.2.2 (Android) in E2E.
-# Playback lives on the Home detail, not the Library manage list. Do not hideKeyboard
-# here — with the keyboard already gone, Android treats that as Back and pops this screen.
 - tapOn:
     id: add-by-rss-home-play-first
 - extendedWaitUntil:
@@ -72,5 +75,8 @@ name: Add By RSS Flow
 
 - tapOn:
     id: add-by-rss-home-remove
-- assertVisible:
-    id: home-screen
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertNotVisible: E2E Add-by-RSS Channel

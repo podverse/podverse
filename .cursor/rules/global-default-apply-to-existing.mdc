@@ -48,8 +48,9 @@ Skip the dialog when the affected count is **0** (nothing to apply).
 | Mobile | `ConfirmDialog` (`apps/mobile/src/components/feedback/ConfirmDialog.tsx`) |
 | Web | `Modal` + `Modal.Actions` |
 
-Copy is sentence case and goes through i18n. Prefer a shared shape: title naming the setting, body
-with `{count}`, confirm = apply to all, cancel = only new / keep existing.
+Copy goes through i18n. The dialog title is title case; the body is a sentence. Prefer a shared
+shape: title naming the setting, body with `{count}`, confirm = apply to all, cancel = only new /
+keep existing. See [`ui-copy-casing`](/.cursor/rules/ui-copy-casing.mdc).
 
 ## Don't
 
@@ -61,7 +62,7 @@ with `{count}`, confirm = apply to all, cancel = only new / keep existing.
 
 ## Related
 
-- [`ui-copy-sentence-case`](/.cursor/rules/ui-copy-sentence-case.mdc)
+- [`ui-copy-casing`](/.cursor/rules/ui-copy-casing.mdc)
 - [`mobile-anonymous-vs-account-features`](/.cursor/rules/mobile-anonymous-vs-account-features.mdc) —
   auto download is Membership-tier
 - Detail: [728-defer-channel-auto-download](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md)

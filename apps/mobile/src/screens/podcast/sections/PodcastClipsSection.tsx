@@ -101,9 +101,8 @@ export function PodcastClipsSection({
   }, [onRefreshChannel, refresh]);
 
   const renderRow = useCallback(
-    ({ index, isLast, row }: { index: number; isLast: boolean; row: HomeFeedRowData }) => (
+    ({ index, row }: { index: number; row: HomeFeedRowData }) => (
       <HomeFeedRow
-        isLast={isLast}
         mediaType="clips"
         onPlayPress={handlePlayPress}
         onPress={handleClipPress}

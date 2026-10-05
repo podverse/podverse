@@ -132,7 +132,7 @@ platform change, not our JS:
 
 - **iOS 26 makes the UIScene lifecycle mandatory.** Because `AppDelegate` implements
   `application:configurationForConnectingSceneSession:options:` (for CarPlay), iOS 26 also
-  routes the **phone** window through a `UIWindowScene`. Expo SDK 52 / `RCTAppDelegate`
+  routes the **phone** window through a `UIWindowScene`. The earlier Expo/RN baseline `RCTAppDelegate`
   still creates `self.window` in `didFinishLaunchingWithOptions` before any scene exists, so
   the window is never attached → `RCTKeyWindow()` nil → black screen. (Earlier this branch
   produced a `SIGABRT` from a `[super …]` scene-config dispatch; that was the same root cause
@@ -264,7 +264,7 @@ than flaky.
 
 The mobile E2E iOS install failed because `apps/mobile/ios/Pods/Pods.xcodeproj/project.pbxproj`
 referenced `React/Fabric/RCTThirdPartyFabricComponentsProvider.mm`, while the freshly installed
-React Native `0.76.9` package did not contain that path. The Pods project timestamp predated the
+The React Native package used during that run did not contain that path. The Pods project timestamp predated the
 React Native install, so the generated native project was stale relative to `apps/mobile/node_modules`.
 
 - **Fix.** The full verification guide now runs `npm run mobile:reset` after dependency/build

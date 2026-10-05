@@ -289,6 +289,13 @@ export type {
 } from './components/stats/StatSummaryGrid/index';
 export { Checkbox } from './components/form/Checkbox/index';
 export type { CheckboxProps } from './components/form/Checkbox/index';
+export { MembershipAutoRenewConsent } from './components/membership/MembershipAutoRenewConsent/MembershipAutoRenewConsent';
+export type { MembershipAutoRenewConsentProps } from './components/membership/MembershipAutoRenewConsent/MembershipAutoRenewConsent';
+export { MembershipPlanSelector } from './components/membership/MembershipPlanSelector/MembershipPlanSelector';
+export type {
+  MembershipPlanOption,
+  MembershipPlanSelectorProps,
+} from './components/membership/MembershipPlanSelector/MembershipPlanSelector';
 export { CheckboxField } from './components/form/CheckboxField/CheckboxField';
 export type { CheckboxFieldProps } from './components/form/CheckboxField/CheckboxField';
 export { CheckboxFieldList } from './components/form/CheckboxFieldList/CheckboxFieldList';

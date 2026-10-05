@@ -15,7 +15,7 @@ async function loginSeedUser(page: Page): Promise<void> {
 }
 
 function autoEnableSwitch(page: Page): Locator {
-  return page.getByRole('switch', { name: 'Enable notifications when I subscribe' });
+  return page.getByRole('switch', { name: 'Enable Notifications When I Subscribe' });
 }
 
 function typeDefaultSwitch(page: Page, label: string): Locator {
@@ -24,8 +24,8 @@ function typeDefaultSwitch(page: Page, label: string): Locator {
 
 /** Dismiss the apply-to-existing modal when the account has followed podcasts (count > 0). */
 async function dismissApplyDialogIfOpen(page: Page): Promise<void> {
-  const onlyNew = page.getByRole('button', { name: 'Only new subscriptions' });
-  const onlyNewType = page.getByRole('button', { name: 'Only new' });
+  const onlyNew = page.getByRole('button', { name: 'Only New Subscriptions' });
+  const onlyNewType = page.getByRole('button', { name: 'Only New' });
   if (await onlyNew.isVisible().catch(() => false)) {
     await onlyNew.click();
     return;
@@ -61,14 +61,14 @@ test.describe('Settings: notification subscribe defaults', () => {
     });
 
     const autoEnable = autoEnableSwitch(page);
-    const newItem = typeDefaultSwitch(page, 'New item');
-    const livestreamScheduled = typeDefaultSwitch(page, 'Livestream scheduled');
-    const livestreamStarted = typeDefaultSwitch(page, 'Livestream started');
+    const newItem = typeDefaultSwitch(page, 'New Item');
+    const livestreamScheduled = typeDefaultSwitch(page, 'Livestream Scheduled');
+    const livestreamStarted = typeDefaultSwitch(page, 'Livestream Started');
 
     await test.step('Open the notifications settings tab and verify subscribe-default controls.', async () => {
       await page.goto('/settings?tab=notifications');
       await expect(page).toHaveURL(/\/settings\?tab=notifications/);
-      await expect(page.getByRole('heading', { name: 'Notification types' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Notification Types' })).toBeVisible();
       await expect(autoEnable).toBeVisible();
       await expect(newItem).toBeVisible();
       await expect(livestreamScheduled).toBeVisible();

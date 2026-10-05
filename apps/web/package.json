@@ -20,6 +20,7 @@
     "test:e2e:custom-themes-native": "playwright test -c playwright.custom-themes-native.config.ts",
     "test:e2e:custom-themes-remote": "playwright test -c playwright.custom-themes-remote.config.ts",
     "test:e2e:custom-themes-combo": "playwright test -c playwright.custom-themes-combo.config.ts",
+    "test:e2e:paypal-sandbox": "playwright test -c playwright.paypal-sandbox.config.ts",
     "start": "next start",
     "postbuild:standalone": "mkdir -p .next/standalone/apps/web/.next && cp -r .next/static .next/standalone/apps/web/.next/static && cp -r public .next/standalone/apps/web/public",
     "start:standalone": "node .next/standalone/apps/web/server.js",
@@ -32,6 +33,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
+    "@paypal/react-paypal-js": "10.5.1",
     "@podverse/extension-metrics-sdk": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",

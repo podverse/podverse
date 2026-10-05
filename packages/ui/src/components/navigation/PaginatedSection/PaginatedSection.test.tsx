@@ -12,9 +12,9 @@ describe('PaginatedSection', () => {
     render(
       <PaginatedSection
         currentPage={1}
-        nextAriaLabel="Next page"
+        nextAriaLabel="Next Page"
         onPageChange={() => {}}
-        prevAriaLabel="Previous page"
+        prevAriaLabel="Previous Page"
         totalPages={1}
       >
         <span>List body</span>
@@ -22,8 +22,8 @@ describe('PaginatedSection', () => {
     );
 
     expect(screen.getByText('List body')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Previous page' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Next page' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Previous Page' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Next Page' })).toBeNull();
   });
 
   it('renders PaginationStrip when totalPages is greater than 1 and forwards aria labels', () => {
@@ -32,9 +32,9 @@ describe('PaginatedSection', () => {
     render(
       <PaginatedSection
         currentPage={2}
-        nextAriaLabel="Next page"
+        nextAriaLabel="Next Page"
         onPageChange={onPageChange}
-        prevAriaLabel="Previous page"
+        prevAriaLabel="Previous Page"
         totalPages={5}
       >
         <span>Items</span>
@@ -42,7 +42,7 @@ describe('PaginatedSection', () => {
     );
 
     expect(screen.getByText('Items')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Previous page' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Next page' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Previous Page' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Next Page' })).toBeTruthy();
   });
 });

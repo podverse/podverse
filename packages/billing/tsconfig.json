@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": "./"
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"],
+  "references": [
+    { "path": "../helpers" },
+    { "path": "../external-services-paypal" },
+    { "path": "../external-services-apple-app-store" },
+    { "path": "../external-services-google-play" },
+    { "path": "../orm" }
+  ]
+}

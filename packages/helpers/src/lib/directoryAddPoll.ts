@@ -1,7 +1,7 @@
 import { ONE_MINUTE_MS } from './timeConstants.js';
 
 /**
- * Max duration for client-side polling after directory "Add feed" / "Add podcast"
+ * Max duration for client-side polling after directory "Add Feed" / "Add Podcast"
  * (`POST /mq/rss/add/on-demand`) until `GET /channel/podcast-index/:id` is parsed-ready.
  * Shared by web and mobile so neither polls forever.
  */

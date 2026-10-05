@@ -86,7 +86,7 @@ export function MembershipExpiredBanner({ onRenew }: MembershipExpiredBannerProp
     notice.status === 'none' ||
     !isHydrated ||
     dismissedFor === dismissalKey ||
-    shouldSuppressExpiryReminder()
+    shouldSuppressExpiryReminder(membership)
   ) {
     return null;
   }

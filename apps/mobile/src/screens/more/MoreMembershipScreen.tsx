@@ -1,23 +1,26 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { createMobileApiRequestService } from '../../auth/mobileApi';
 import { MembershipFeatureTable } from '../../components/membership/MembershipFeatureTable';
-import { Accordion, Button, Card } from '../../components/primitives';
+import { TrialLimitationsAccordion } from '../../components/membership/TrialLimitationsAccordion';
+import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { SectionHeading } from '../../components/section/SectionHeading';
 import { openCheckout } from '../../membership/checkoutEntry';
 import { useMembership } from '../../membership/useMembership';
+import type { MoreStackParamList } from '../../navigation';
+import { MORE_STACK_ROUTES } from '../../navigation';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Membership screen. Mirrors the web membership page's
- * intent (tiers, pricing, expired/trial messaging, single primary CTA) without pixel-copying. The CTA
- * is auth-based binary per plan: logged-out → Sign up, logged-in → Extend membership (same logged-in
- * path the gate modal labels "Renew"). Purchase itself is the web hand-off in `checkoutEntry` until
- * native IAP. All copy resolves through the shared `membership.*` catalog.
+ * Membership screen. Shows how long access lasts, the feature table, and trial limits.
+ * Logged out, the action opens web sign-up. Logged in, Extend My Membership opens the
+ * screen where cadence, terms, privacy, and auto-renew are chosen.
  */
 
 /** The pricing fields this screen renders (subset of the API's `MembershipPricingData`). */
@@ -27,15 +30,9 @@ type MembershipPricing = {
   annuallySavingsPercent: number;
 };
 
-const TRIAL_LIMITATION_KEYS = [
-  'membership.trial_limitations_directory_add_by_rss',
-  'membership.trial_limitations_add_by_rss_feed_limit',
-  'membership.trial_limitations_manual_refresh_limit',
-  'membership.trial_limitations_stats_tracking',
-] as const;
-
 export function MoreMembershipScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { styles: themeStyles, tokens } = useTheme();
   const { expiresAt, isExpired, isLoggedIn, isMember, tier } = useMembership();
   const [pricing, setPricing] = useState<MembershipPricing | null>(null);
@@ -93,15 +90,9 @@ export function MoreMembershipScreen() {
     return [];
   }, [expiresAt, isExpired, isLoggedIn, isMember, t, tier]);
 
-  const ctaLabel = isLoggedIn ? t('membership.extend_my_membership') : t('authentication.sign_up');
-
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        bullet: {
-          ...typography.prose,
-          color: themeStyles.textPrimary.color,
-        },
         cardBody: {
           gap: tokens.spacing.base,
           padding: tokens.spacing.lg,
@@ -112,16 +103,6 @@ export function MoreMembershipScreen() {
         },
         featureSection: {
           marginBottom: tokens.spacing['4xl'],
-        },
-        limitationIntro: {
-          ...typography.prose,
-          color: themeStyles.textPrimary.color,
-        },
-        limitationList: {
-          gap: tokens.spacing.sm,
-        },
-        limitationPanel: {
-          gap: tokens.spacing.base,
         },
         priceRow: {
           ...typography.prose,
@@ -154,56 +135,60 @@ export function MoreMembershipScreen() {
         </View>
       ) : null}
 
-      {pricing !== null ? (
-        <View style={styles.section}>
-          <Card padded={false} testID="more-membership-pricing">
-            <View style={styles.cardBody}>
-              <SectionHeading>{t('membership.premium_membership')}</SectionHeading>
-              <Text style={styles.priceRow}>
-                {`$${pricing.costMonthly}${t('membership.pricing_per_month')}`}
-              </Text>
-              <Text style={styles.priceRow}>
-                {`$${pricing.costAnnually}${t('membership.pricing_per_year')}`}
-              </Text>
-              <Text style={styles.savings}>
-                {t('membership.pricing_save_percent', { percent: pricing.annuallySavingsPercent })}
-              </Text>
-            </View>
-          </Card>
+      {isLoggedIn ? (
+        <View style={styles.cta}>
+          <Button
+            fullWidth
+            label={t('membership.extend_my_membership')}
+            onPress={() => {
+              navigation.navigate(MORE_STACK_ROUTES.MoreMembershipExtend);
+            }}
+            testID="more-membership-cta"
+            variant="primary"
+          />
         </View>
-      ) : null}
+      ) : (
+        <>
+          {pricing !== null ? (
+            <View style={styles.section}>
+              <Card padded={false} testID="more-membership-pricing">
+                <View style={styles.cardBody}>
+                  <SectionHeading>{t('membership.premium_membership')}</SectionHeading>
+                  <Text style={styles.priceRow}>
+                    {`$${pricing.costMonthly}${t('membership.pricing_per_month')}`}
+                  </Text>
+                  <Text style={styles.priceRow}>
+                    {`$${pricing.costAnnually}${t('membership.pricing_per_year')}`}
+                  </Text>
+                  <Text style={styles.savings}>
+                    {t('membership.pricing_save_percent', {
+                      percent: pricing.annuallySavingsPercent,
+                    })}
+                  </Text>
+                </View>
+              </Card>
+            </View>
+          ) : null}
 
-      <View style={styles.cta}>
-        <Button
-          fullWidth
-          label={ctaLabel}
-          onPress={() => {
-            void openCheckout({ mode: isLoggedIn ? 'extend' : 'sign_up' });
-          }}
-          testID="more-membership-cta"
-          variant="primary"
-        />
-      </View>
+          <View style={styles.cta}>
+            <Button
+              fullWidth
+              label={t('authentication.sign_up')}
+              onPress={() => {
+                void openCheckout({ mode: 'sign_up' });
+              }}
+              testID="more-membership-cta"
+              variant="primary"
+            />
+          </View>
+        </>
+      )}
 
       <View style={styles.featureSection}>
         <MembershipFeatureTable />
       </View>
 
-      <Accordion
-        testID="more-membership-trial-limitations"
-        title={t('membership.trial_limitations_title')}
-      >
-        <View style={styles.limitationPanel}>
-          <Text style={styles.limitationIntro}>{t('membership.trial_limitations_summary')}</Text>
-          <View style={styles.limitationList}>
-            {TRIAL_LIMITATION_KEYS.map((key) => (
-              <Text key={key} style={styles.bullet}>
-                {`• ${t(key)}`}
-              </Text>
-            ))}
-          </View>
-        </View>
-      </Accordion>
+      <TrialLimitationsAccordion testID="more-membership-trial-limitations" />
     </MobileScreenContainer>
   );
 }

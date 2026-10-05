@@ -1,0 +1,99 @@
+{
+  "identifier": "PODVERSE_MEMBERSHIP",
+  "nonRenewingSubscriptions": [
+    {
+      "displayPrice": "3.00",
+      "familyShareable": false,
+      "internalID": "PREMIUM_ONETIME_MONTHLY",
+      "localizations": [
+        {
+          "description": "Premium membership for one month.",
+          "displayName": "Premium One Month",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.podverse.app.next.premium.onetime.monthly",
+      "referenceName": "Premium One-Time Monthly",
+      "type": "NonRenewingSubscription"
+    },
+    {
+      "displayPrice": "30.00",
+      "familyShareable": false,
+      "internalID": "PREMIUM_ONETIME_ANNUAL",
+      "localizations": [
+        {
+          "description": "Premium membership for one year.",
+          "displayName": "Premium One Year",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.podverse.app.next.premium.onetime.annual",
+      "referenceName": "Premium One-Time Annual",
+      "type": "NonRenewingSubscription"
+    }
+  ],
+  "products": [],
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_timeRate": 1
+  },
+  "subscriptionGroups": [
+    {
+      "id": "PODVERSE_PREMIUM",
+      "localizations": [],
+      "name": "Premium",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "30.00",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "PREMIUM_ANNUAL",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Premium membership billed every year.",
+              "displayName": "Premium Annual",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.podverse.app.next.premium.annual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Premium Annual",
+          "subscriptionGroupID": "PODVERSE_PREMIUM",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "3.00",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "PREMIUM_MONTHLY",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Premium membership billed every month.",
+              "displayName": "Premium Monthly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.podverse.app.next.premium.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Premium Monthly",
+          "subscriptionGroupID": "PODVERSE_PREMIUM",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

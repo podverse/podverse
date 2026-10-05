@@ -151,13 +151,19 @@ export class UserManager {
 
       // Insert account_membership_status (required by database constraints)
       // Set to Trial membership (account_membership_id = 1 for Trial)
-      const membershipExpires = new Date();
+      const membershipStarts = new Date();
+      const membershipExpires = new Date(membershipStarts.getTime());
       membershipExpires.setMonth(membershipExpires.getMonth() + 3);
 
       await manager.query(
         `INSERT INTO account_membership_status (account_id, account_membership_id, membership_expires_at)
          VALUES ($1, 1, $2)`,
         [accountId, membershipExpires]
+      );
+      await manager.query(
+        `INSERT INTO billing_membership_grant (account_id, source, starts_at, ends_at)
+         VALUES ($1, 'trial', $2, $3)`,
+        [accountId, membershipStarts, membershipExpires]
       );
 
       await manager.query(

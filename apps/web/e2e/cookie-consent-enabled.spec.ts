@@ -18,8 +18,8 @@ test.describe('Cookie consent banner (enabled)', () => {
 
     const bannerRegion = page.getByRole('region', { name: /cookie/i });
     await expect(bannerRegion).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Accept all' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Essential only' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Accept All' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Essential Only' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'None' })).toBeVisible();
 
     await capturePageLoad(
@@ -34,7 +34,7 @@ test.describe('Cookie consent banner (enabled)', () => {
       testInfo,
       'After choosing Accept all, the banner is hidden and Cloudflare analytics loads.',
       async () => {
-        await page.getByRole('button', { name: 'Accept all' }).click();
+        await page.getByRole('button', { name: 'Accept All' }).click();
         await expect(bannerRegion).toHaveCount(0);
         const beacon = page.locator('#cloudflare-web-analytics');
         await expect(beacon).toHaveAttribute(
@@ -99,7 +99,7 @@ test.describe('Cookie consent banner (enabled)', () => {
       testInfo,
       'After choosing Essential only, Cloudflare analytics stays absent and anonymous playback storage can be used.',
       async () => {
-        await page.getByRole('button', { name: 'Essential only' }).click();
+        await page.getByRole('button', { name: 'Essential Only' }).click();
         await expect(bannerRegion).toHaveCount(0);
         await expect(page.locator('#cloudflare-web-analytics')).toHaveCount(0);
 

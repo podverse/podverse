@@ -10,7 +10,6 @@ import { ListRow } from '../primitives/ListRow';
 export type ChapterListRowProps = {
   artworkAccessibilityLabel: string;
   artworkUri: string | null;
-  isLast: boolean;
   onPress?: () => void;
   paddingHorizontal?: number;
   showArtwork: boolean;
@@ -25,11 +24,8 @@ const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
     width: LIST_ROW_ARTWORK_SIZE,
   },
   row: {
-    borderBottomColor: themeStyles.border.borderColor,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowLast: {
-    borderBottomWidth: 0,
+    borderTopColor: themeStyles.border.borderColor,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });
 
@@ -41,7 +37,6 @@ const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
 export const ChapterListRow = memo(function ChapterListRow({
   artworkAccessibilityLabel,
   artworkUri,
-  isLast,
   onPress,
   paddingHorizontal,
   showArtwork,
@@ -52,13 +47,7 @@ export const ChapterListRow = memo(function ChapterListRow({
   const styles = useThemedStyles(createStyles);
 
   return (
-    <View
-      style={[
-        styles.row,
-        isLast ? styles.rowLast : null,
-        { paddingHorizontal: paddingHorizontal ?? 0 },
-      ]}
-    >
+    <View style={[styles.row, { paddingHorizontal: paddingHorizontal ?? 0 }]}>
       <ListRow
         leading={
           showArtwork ? (

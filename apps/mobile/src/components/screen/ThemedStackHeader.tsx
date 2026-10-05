@@ -11,22 +11,35 @@ import { HeaderBarChrome } from './HeaderBarChrome';
 export function ThemedStackHeader({ back, navigation, options }: NativeStackHeaderProps) {
   const { t } = useTranslation();
   const title = options.title ?? '';
+  const parent = navigation.getParent();
+  const parentState = parent?.getState();
+  // The root of a stack pushed onto another stack has no history of its own. Back pops the
+  // navigator that opened it (an overflow tab opened from More).
+  let onBack: (() => void) | undefined;
+  if (back !== undefined) {
+    onBack = () => {
+      navigation.goBack();
+    };
+  } else if (
+    parent !== undefined &&
+    parentState !== undefined &&
+    parentState.type === 'stack' &&
+    parentState.index > 0
+  ) {
+    onBack = () => {
+      parent.goBack();
+    };
+  }
 
   return (
     <HeaderBarChrome
       backAccessibilityLabel={t('misc.go_back')}
-      onBack={
-        back === undefined
-          ? undefined
-          : () => {
-              navigation.goBack();
-            }
-      }
+      onBack={onBack}
       right={
         options.headerRight === undefined
           ? undefined
           : options.headerRight({
-              canGoBack: back !== undefined,
+              canGoBack: onBack !== undefined,
               tintColor: options.headerTintColor,
             })
       }

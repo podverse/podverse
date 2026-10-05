@@ -30,13 +30,14 @@ audit Expo / React Native. Mobile shares marketing version `X.Y.Z` via `bump-ver
 and **mobile-expo-monorepo** skill.
 
 Root overrides also pin **`@xmldom/xmldom@0.9.10`** so video.js / mpd-parser transitive chains clear
-those HIGH findings without allowlisting. Mobile pins **`@xmldom/xmldom@0.8.10`** instead: Expo SDK 52
-`@expo/plist` calls `DOMParser.parseFromString(xml)` without a mimeType, which throws on xmldom
-**0.9.x** (`mimeType "undefined" is not valid`) and breaks `expo run:ios --device` usbmux listing.
+those HIGH findings without allowlisting. Mobile pins **`@xmldom/xmldom@0.8.10`** instead: older
+`@expo/plist` call paths can invoke `DOMParser.parseFromString(xml)` without a mimeType, which throws
+on xmldom **0.9.x** (`mimeType "undefined" is not valid`) and breaks `expo run:ios --device` usbmux
+listing.
 
 Mobile's remaining audit findings are in Expo CLI, Metro, prebuild, and development-client tooling;
-they are not included in the shipped application bundle. The Expo SDK 52 dependency set requires a
-coordinated SDK upgrade to replace those packages. The React Navigation `nanoid` resolution is
+they are not included in the shipped application bundle. The Expo SDK dependency set requires
+coordinated SDK upgrades to replace those packages. The React Navigation `nanoid` resolution is
 patched independently at `3.3.18`.
 
 The root **`ip-address`** override is kept because **express-rate-limit** declares a dependency on

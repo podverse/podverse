@@ -30,6 +30,7 @@ import { useBoostMessagesView } from '../../../components/Boost/messages/useBoos
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { Pagination } from '../../../components/Pagination/Pagination';
+import { AddByRSSCredentialsSettingsSection } from '../../../components/Settings/AddByRSSCredentialsSettingsSection';
 import { RSSFeedSettingsSection } from '../../../components/Settings/RSSFeedSettingsSection';
 import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
 import { useAccount } from '../../../contexts/Account';
@@ -400,6 +401,13 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                   statusLines={statusLines}
                   errorMessage={errorMessage}
                 />
+                {loggedInAccount ? (
+                  <AddByRSSCredentialsSettingsSection
+                    accountIdText={loggedInAccount.id_text}
+                    feed={localFeed}
+                    onFeedUpdated={setLocalFeed}
+                  />
+                ) : null}
               </SettingsWrapper>
             )}
           </DetailListWrapper>

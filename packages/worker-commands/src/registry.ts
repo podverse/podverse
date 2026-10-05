@@ -13,13 +13,32 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run archive_all -w apps/workers',
   },
   {
-    name: 'billingProcessDueRenewals',
-    label: 'Billing: process due renewals',
+    name: 'billingReconcileSubscriptions',
+    label: 'Billing: reconcile subscriptions',
     description:
-      'Scan memberships due within 24h and attempt renewals via provider-agnostic adapter boundary.',
+      'Re-read subscriptions within 48h of a period or grace end from their processor, retry failed webhook inbox rows, and apply Google Play voided purchases. Never charges a payment method.',
     category: 'billing',
     risk: 'normal',
-    example_cli: 'npm run billing_process_due_renewals -w apps/workers',
+    example_cli: 'npm run billing_reconcile_subscriptions -w apps/workers',
+  },
+  {
+    name: 'billingImportLegacyMembershipExpiry',
+    label: 'Billing: import legacy membership expiry',
+    description:
+      'Import email and membership_expires_at from a CSV or JSON-lines file as legacy_import grants. A dry run prints counts and writes nothing. Does not import payment transactions.',
+    category: 'billing',
+    risk: 'normal',
+    example_cli:
+      'npm run billing_import_legacy_membership_expiry -w apps/workers -- --file /absolute/path/legacy-membership.csv --dry-run',
+  },
+  {
+    name: 'billingSeedProcessorProductsFromEnv',
+    label: 'Billing: seed processor products from env',
+    description:
+      'Non-production only. Map the Premium product to PayPal, Apple, and Google Play store ids from BILLING_PRODUCT_* env; empty keys are skipped.',
+    category: 'billing',
+    risk: 'dev_only',
+    example_cli: 'npm run billing_seed_processor_products_from_env -w apps/workers',
   },
   {
     name: 'scheduledJobsRunDue',

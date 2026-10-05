@@ -71,27 +71,19 @@ const publicRelations: FindOptionsRelations<Account> = {
 };
 
 const privateRelations: FindOptionsRelations<Account> = findOptionsRelationsFromPaths<Account>([
-  // 'account_app_store_purchases',
   'account_credentials',
-  // 'account_fcm_devices',
   'account_following_accounts',
   'account_following_add_by_rss_channels',
   'account_following_playlists',
-  // 'account_google_play_purchases',
   'account_membership_status',
   'account_membership_status.account_membership',
   'account_notification_channels',
   'account_notification_channels.account_notification_channel_types',
-  // 'account_paypal_orders',
-  // 'account_reset_password',
   'account_settings',
   'account_terms_acceptance',
   'account_settings.account_settings_notification',
   'account_settings.account_settings_notification.account_settings_notification_types',
   'account_settings.account_settings_playback',
-  // 'account_up_device_tokens',
-  // 'account_up_devices',
-  // 'account_verification',
 ]);
 
 const accountPublicRelations = publicRelations;

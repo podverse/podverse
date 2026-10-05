@@ -13,7 +13,7 @@ describe('CompactNumericInput', () => {
   it('renders a compact numeric text input', () => {
     const { container } = render(
       <CompactNumericInput
-        eyebrow="Start time (seconds)"
+        eyebrow="Start Time (Seconds)"
         name="start_time"
         onChange={() => {}}
         value="0"

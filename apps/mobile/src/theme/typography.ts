@@ -10,7 +10,12 @@ import type { TextStyle } from 'react-native';
 export type TypographyRole =
   'display' | 'title' | 'heading' | 'subheading' | 'prose' | 'body' | 'label' | 'caption';
 
-export type TypographyStyle = Pick<TextStyle, 'fontSize' | 'fontWeight' | 'lineHeight'>;
+/** Font size, weight, and line height are set for every role. */
+export type TypographyStyle = {
+  fontSize: NonNullable<TextStyle['fontSize']>;
+  fontWeight: NonNullable<TextStyle['fontWeight']>;
+  lineHeight: NonNullable<TextStyle['lineHeight']>;
+};
 
 export const typography: Record<TypographyRole, TypographyStyle> = {
   display: { fontSize: 28, fontWeight: '700', lineHeight: 34 },

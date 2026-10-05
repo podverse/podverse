@@ -90,7 +90,6 @@ const albumPodrollKeyExtractor = (row: PodrollEntry): string => row.id;
 
 function AlbumTrackRow({
   index,
-  isLast,
   onGoToChannel,
   onGoToTrack,
   onPlay,
@@ -99,7 +98,6 @@ function AlbumTrackRow({
   track,
 }: {
   index: number;
-  isLast: boolean;
   onGoToChannel: (row: HomeFeedRowData) => void;
   onGoToTrack: (row: HomeFeedRowData) => void;
   onPlay: (row: HomeFeedRowData) => void;
@@ -111,7 +109,6 @@ function AlbumTrackRow({
     <HomeFeedRow
       downloadItem={track}
       downloadTestID={`album-track-download-${index}`}
-      isLast={isLast}
       mediaType="tracks"
       onGoToChannelPress={onGoToChannel}
       onGoToTrackPress={onGoToTrack}
@@ -822,8 +819,6 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     void handleSubscriptionToggle();
   }, [handleSubscriptionToggle]);
 
-  const trackCount = trackRows.length;
-
   const tracksEmpty = useMemo(
     () =>
       isTracksLoading ? (
@@ -861,7 +856,6 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
       <AlbumTrackRow
         index={index}
-        isLast={index === trackCount - 1}
         onGoToChannel={handleGoToChannel}
         onGoToTrack={handleGoToTrack}
         onPlay={handlePlayTrack}
@@ -870,7 +864,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         track={tracksById.get(row.id)}
       />
     ),
-    [handleGoToChannel, handleGoToTrack, handlePlayTrack, handleQueueTrack, trackCount, tracksById]
+    [handleGoToChannel, handleGoToTrack, handlePlayTrack, handleQueueTrack, tracksById]
   );
 
   const podrollEmpty = useMemo(

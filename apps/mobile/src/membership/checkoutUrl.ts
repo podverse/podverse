@@ -13,8 +13,14 @@ const CHECKOUT_WEB_PATHS: Record<CheckoutMode, string> = {
   sign_up: '/sign-up',
 };
 
+const webOrigin = (): string => getMobileConfig().webBaseUrl.replace(/\/+$/, '');
+
 /** Build the absolute web URL for a checkout mode from the configured public web base URL. */
-export const buildCheckoutUrl = (mode: CheckoutMode): string => {
-  const base = getMobileConfig().webBaseUrl.replace(/\/+$/, '');
-  return `${base}${CHECKOUT_WEB_PATHS[mode]}`;
+export const buildCheckoutUrl = (mode: CheckoutMode): string =>
+  `${webOrigin()}${CHECKOUT_WEB_PATHS[mode]}`;
+
+/** Absolute URL for a path on the public web origin, such as the terms page. */
+export const buildWebPathUrl = (path: string): string => {
+  const suffix = path.startsWith('/') ? path : `/${path}`;
+  return `${webOrigin()}${suffix}`;
 };

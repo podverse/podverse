@@ -11,12 +11,12 @@ describe('MoreButton', () => {
   it('renders trigger with aria-label when closed', () => {
     render(
       <MoreButton
-        ariaLabel="More options"
+        ariaLabel="More Options"
         moreButtonMenuItems={[{ label: 'One', onClick: () => {} }]}
       />
     );
 
-    expect(screen.getByRole('button', { name: 'More options' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'More Options' })).toBeTruthy();
     expect(screen.queryByRole('menu')).toBeNull();
   });
 

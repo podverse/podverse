@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 import { primaryListArtworkUrl } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';

@@ -103,7 +103,7 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
             eyebrow={t('authentication.email_or_username')}
             keyboardType="email-address"
             onChangeText={setEmail}
-            placeholder={t('authentication.email_or_username')}
+            placeholder={t('authentication.email_example')}
             testID="login-email"
             value={email}
           />
@@ -113,7 +113,7 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
             autoCorrect={false}
             eyebrow={t('authentication.password')}
             onChangeText={setPassword}
-            placeholder={t('authentication.password')}
+            placeholder={t('authentication.password_hint')}
             // E2E: iOS Autofill + secureTextEntry blocks Maestro inputText; plaintext when isE2e.
             secureTextEntry={!isE2e}
             testID="login-password"

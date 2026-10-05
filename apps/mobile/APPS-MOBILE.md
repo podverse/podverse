@@ -35,11 +35,49 @@ apps/mobile/
 Generated trees (`ios/Pods/`, Android `build/`, `.expo/`) are gitignored and listed in
 [`.cursorignore`](/.cursorignore).
 
+## Membership billing
+
+Store purchases use `expo-iap` **5.x** (`apps/mobile/src/billing`). It is an Expo module with
+StoreKit 2 and OpenIAP Google bindings that satisfy current Play Billing requirements on Expo SDK 57
+/ RN 0.86. `react-native-iap` is not used in this app.
+
+`npm run mobile:install` from the repo root installs the pin. The native module needs a dev-client
+rebuild after that:
+
+```bash
+npm run mobile:ios -- --device "iPhone 17 Pro"
+npm run mobile:android -- --device Pixel_6_Pro_API_33
+```
+
+Local Google Play purchases need a device with the Play Store (USB phone via
+`mobile:dev:device` / `mobile:android:device`, or a separate Play Store AVD such as
+`Pixel_6_Pro_API_33_Play`). The default `Pixel_6_Pro_API_33` Google APIs image cannot open
+Play Billing. Base plans must be Active, the package must be on a testing track, and the
+device must be signed into a license tester. Console setup:
+[BILLING-GOOGLE-PLAY-SANDBOX.md](../../docs/billing/BILLING-GOOGLE-PLAY-SANDBOX.md).
+The tester account and a USB purchase:
+[BILLING-GOOGLE-PLAY-DEVICE.md](../../docs/billing/BILLING-GOOGLE-PLAY-DEVICE.md).
+
+`EXPO_PUBLIC_MOBILE_BILLING=unavailable`, and any UnifiedPush build, uses
+`unavailableBillingClient` (no store sheet). Extend My Membership then offers PayPal on the web
+when checkout options include it. A FOSS prebuild must also exclude `expo-iap` from autolinking
+so Play Billing is not compiled into the binary.
+Maestro (`EXPO_PUBLIC_MOBILE_E2E=1`) uses the fake client and never opens a store sheet.
+
+Finish or acknowledge a store transaction only after `POST` billing returns `confirmed: true`.
+Call `syncUnfinishedTransactions()` once a session exists so a purchase that was interrupted can
+finish. Pending and Ask to Buy stay unfinished.
+
 ## Auth storage (Track 6)
 
 Mobile auth is bearer-first:
 
 - Store access and refresh tokens in `expo-secure-store` (`src/auth/secureTokenStorage.ts`).
+- A signed-out dev install is `npm run mobile:ios:uninstall` /
+  `npm run mobile:android:uninstall` from the repo root. On the iOS simulator the
+  Keychain outlives deleting the app icon, and those commands remove this app's
+  Keychain items with the install. They target the manual devices (`"iPhone 17 Pro"`,
+  `Pixel_6_Pro_API_33`), not the E2E slots.
 - Never store auth tokens in AsyncStorage/MMKV.
 - Never use cookies or `withCredentials` for mobile auth requests; use `/auth/mobile/*` and bearer
   headers.
@@ -198,6 +236,10 @@ Mobile now participates in the same local env pipeline as other apps:
   `~/.config/podverse/local-env-overrides/api.env` (seeded by `make local_env_prepare`,
   linked by `make local_env_link`) and are applied to both web sidecar `NEXT_PUBLIC_API_*`
   vars and mobile `EXPO_PUBLIC_MOBILE_API_BASE_URL_{IOS,ANDROID}` (must include `/api/v2`).
+- `NEXT_PUBLIC_CONTACT_EMAIL` from `socials.env` is copied to mobile
+  `EXPO_PUBLIC_CONTACT_EMAIL` for the error-log email action.
+- `BRAND_DOMAIN` from `brand.env` is written as `EXPO_PUBLIC_MOBILE_WEB_BASE_URL`
+  (`https://<BRAND_DOMAIN>`) for share links and universal-link host registration.
 - At runtime, the app reads those vars only via `getMobileConfig()` in
   [`apps/mobile/src/config/`](src/config/) (same single-config idea as web/API `config/index.ts`).
 - Android URL derives emulator host `10.0.2.2` automatically when local host is
@@ -357,7 +399,7 @@ Re-run `mobile:ios` / `mobile:android` when native deps, plugins, or prebuild ou
 Pressing **`i`** or **`a`** in the Metro terminal only works **after** the dev client is installed.
 Until then you get `No development build (com.podverse.app.next) for this project is installed`.
 
-### iOS simulator or device selection (Expo SDK 52)
+### iOS simulator or device selection (Expo SDK 57)
 
 Use **`--device` with a fixed name**, not `--simulator` (removed in current Expo CLI). Manual vs
 E2E use **different device slots** (same app id `com.podverse.app.next`):
@@ -423,7 +465,7 @@ pieces below; see **mobile-expo-monorepo** skill for failure modes.
 | ---------------- | ---------------------------------------------- | ----------------------------------------------------- |
 | Mobile lockfile  | `apps/mobile/package-lock.json`                | Committed; `npm run mobile:install`                   |
 | Peer-deps policy | `apps/mobile/.npmrc` (`legacy-peer-deps=true`) | Stop `expo@*` peers pulling expo@57                   |
-| Pins             | `apps/mobile/package.json` `overrides` + deps  | Expo SDK 52 / RN 0.76.9 + expo-dev-*                  |
+| Pins             | `apps/mobile/package.json` `overrides` + deps  | Expo SDK 57 / RN 0.86.3 + current native peers        |
 | Shared packages  | `file:../../packages/helpers` (etc.)           | Symlinks into `apps/mobile/node_modules/@podverse/*`  |
 | Metro            | `apps/mobile/metro.config.js`                  | Watch `packages/`; resolve from mobile `node_modules` |
 
@@ -448,19 +490,19 @@ global Expo and miss `apps/mobile/node_modules/expo`):
 ```bash
 # From monorepo root — prefer this over `cd apps/mobile && npx expo install …`
 npm --prefix apps/mobile exec -- expo install --fix
-# or pin specific peers to the SDK 52 set:
+# or pin specific peers to the SDK 57 set:
 npm --prefix apps/mobile exec -- expo install react-native-screens react-native-gesture-handler react-native-safe-area-context expo-secure-store
 ```
 
-Keep `overrides` aligned with Expo SDK 52.
+Keep `overrides` aligned with Expo SDK 57.
 
 ## Troubleshooting
 
 ### `Cannot read properties of undefined (reading 'extract')` during prebuild
 
-Expo SDK 52 `@expo/cli` expects **`tar` v6** (CJS default export with `.extract`). A `tar@7`
-override breaks clean prebuild after wiping `ios/` / `android/`. Keep
-`apps/mobile/package.json` `overrides.tar` at **`6.2.1`**, then recover with:
+Treat this as a broken dependency tree, not a default pin policy. Keep no explicit `tar` override
+in `apps/mobile/package.json` unless this exact failure is reproducible on current Expo SDK 57.
+Recover with:
 
 ```bash
 npm run mobile:reset
@@ -524,7 +566,7 @@ Restart `npm run mobile:dev` and reload the sim (`r`).
 
 ### `Cannot find module 'expo/config-plugins'` / wrong Expo major
 
-Reinstall under `apps/mobile` and confirm overrides pin SDK 52. Do **not** add Expo to the root
+Reinstall under `apps/mobile` and confirm overrides pin SDK 57. Do **not** add Expo to the root
 lockfile.
 
 ```bash
@@ -615,28 +657,12 @@ Workaround until an Expo/RN upgrade ships fmt ≥ 12.1.0 (see
 [fmtlib/fmt#4740](https://github.com/fmtlib/fmt/issues/4740),
 [react-native#56225](https://github.com/facebook/react-native/pull/56225)).
 
-### `switch must be exhaustive` in `expo-localization` / `LocalizationModule.swift` (Xcode 26)
-
-iOS 26 added `Calendar.Identifier` cases. Expo SDK 52's `expo-localization@16.0.1` switch has no
-`@unknown default`, so Swift fails with `switch must be exhaustive` (xcodebuild exit 65). The repo
-patches that file via
-[`patch-expo-localization-xcode26.sh`](/scripts/mobile/patch-expo-localization-xcode26.sh) after
-`mobile:install` and before `mobile:ios`. From **repo root**:
-
-```bash
-npm run mobile:install
-npm run mobile:ios -- --device "iPhone 17 Pro"
-```
-
-Upstream fix is in Expo SDK 53+; do not bump Expo solely for this while mobile stays on SDK 52.
-
 ### `Can't determine id of Simulator app` (Xcode 27+ / Device Hub)
 
 Xcode 27+ hosts the simulator UI in **Device Hub**
 (`/Applications/Xcode.app/Contents/Applications/DeviceHub.app`, bundle id `com.apple.dt.Devices`).
-Expo SDK 52's CLI still looks up an app named Simulator. The repo patches `@expo/cli` via
-[`patch-expo-cli-xcode27.sh`](/scripts/mobile/patch-expo-cli-xcode27.sh) after
-`mobile:install` and before `mobile:ios`. After a fresh App Store Xcode install, finish first
+Expo SDK 57's CLI supports Device Hub, but stale global installs and missing Xcode platform setup
+can still trigger simulator lookup failures. After a fresh App Store Xcode install, finish first
 launch (`sudo xcodebuild -runFirstLaunch`) and download the iOS platform in
 **Xcode → Settings → Platforms** if `simctl` cannot list devices.
 
@@ -649,23 +675,20 @@ npm run mobile:install
 npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
 
-Do not bump Expo solely for Device Hub while mobile stays on SDK 52.
+Use the local CLI through `npm run mobile:ios` so this repo's Expo version drives simulator
+selection.
 
 ### `Connecting to: iPhone 17 Pro` fails with `Error: null` after a successful build
 
-Xcode 27's `xcrun devicectl list devices` reports **simulators** alongside physical hardware. Expo
-SDK 52 treats everything from that source as hardware (`deviceType: "device"`), and its entry wins
-the merge against the `simctl` list, so `expo run:ios --device "iPhone 17 Pro"` installs the
-simulator build over devicectl and dies in `devicectl.ts` with `Error: null`.
-
-The same patch script filters those entries out (`visibilityClass: "simulators"` /
-`reality: "simulated"`) so simulators install through `simctl`, and accepts devicectl's current JSON
-version so the `Unexpected devicectl JSON version output` warning stops firing. Confirm which
-simulators devicectl claims:
+Xcode 27's `xcrun devicectl list devices` reports **simulators** alongside physical hardware.
+If a stale local CLI/tooling path chooses the wrong destination source, `expo run:ios --device
+"iPhone 17 Pro"` can fail in `devicectl.ts` with `Error: null`. Confirm which simulators
+devicectl claims, then retry with a known booted simulator:
 
 ```bash
 xcrun devicectl list devices
-bash scripts/mobile/patch-expo-cli-xcode27.sh
+xcrun simctl list devices available
+npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
 
 ### `IPHONEOS_DEPLOYMENT_TARGET` is set to 9.0 / 13.4 (Xcode 15.0–27.0 range)
@@ -674,8 +697,8 @@ Xcode's supported simulator deployment-target range is **15.0–27.0**. CocoaPod
 (RNCAsyncStorage resource bundles, SDWebImage, and others) may declare a lower value, and
 `xcodebuild` fails those targets (exit 65).
 
-The app platform is **15.1** (`expo-build-properties` `ios.deploymentTarget`). Every pod target
-is clamped to at least **15.0** by
+The app platform is **16.4** (`expo-build-properties` `ios.deploymentTarget`). Every pod target
+is clamped to at least **16.4** by
 [`withPodverseIosPodBuildSettings.js`](/apps/mobile/plugins/withPodverseIosPodBuildSettings.js)
 on prebuild and
 [`ensure-ios-pod-build-settings.sh`](/scripts/mobile/ensure-ios-pod-build-settings.sh)
@@ -797,10 +820,10 @@ destination, and Run (⌘R).
 
 ### `Unknown arguments: --simulator` (`expo run:ios`)
 
-Expo SDK 52 uses **`--device`** for simulators and physical devices, not `--simulator`:
+Expo SDK 57 uses **`--device`** for simulators and physical devices, not `--simulator`:
 
 ```bash
-npm run ios -w @podverse/mobile -- --device "iPhone 17 Pro"
+npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
 
 ### `Missing script: mobile:dev`

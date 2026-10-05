@@ -606,6 +606,7 @@
       "hintTrialNew": "La prueba inicia a los usuarios en el nivel no confiable con límites por defecto más estrictos.",
       "hintPremiumNew": "Premium inicia a los usuarios en el nivel confiable con un acceso por defecto más amplio.",
       "membershipExpiresAt": "La membresía expira el",
+      "membershipExpiresAtHelp": "Borrar la fecha finaliza el acceso a la membresía ahora. Usa la página de facturación para ampliar por la duración del plan o por días.",
       "membershipExpiresAtPickerAffix": "Abrir selector de fecha y hora",
       "premiumBillingCadence": "Periodo de facturación Premium",
       "billingMonthly": "Mensual",
@@ -724,6 +725,55 @@
     "subtitle": "Elige tu idioma y tema",
     "language": {
       "label": "Idioma"
+    }
+  },
+  "billing": {
+    "account": {
+      "extend": {
+        "title": "Ampliar membresía",
+        "mode": "Ampliar por",
+        "modePlan": "Duración del plan",
+        "modeDays": "Número de días",
+        "modeDate": "Hasta una fecha",
+        "days": "Días",
+        "daysInvalid": "Introduce un número entero de días entre 1 y 3660.",
+        "untilDate": "Nueva fecha de vencimiento",
+        "dateFuture": "Elige una fecha en el futuro.",
+        "note": "Nota",
+        "noteHelp": "Se guarda en el registro de auditoría.",
+        "submit": "Ampliar membresía",
+        "success": "Membresía ampliada hasta el {date}."
+      },
+      "end": {
+        "title": "Finalizar acceso",
+        "date": "Fecha de finalización",
+        "dateRequired": "Elige una fecha de finalización.",
+        "submitDate": "Establecer fecha de finalización",
+        "submitNow": "Finalizar acceso ahora",
+        "confirmTitle": "Finalizar el acceso a la membresía",
+        "confirmBody": "El acceso termina el {date}. Se elimina el tiempo otorgado por un administrador y el de prueba posterior a esa fecha.",
+        "success": "El acceso a la membresía ahora termina el {date}.",
+        "failed": "No se pudo finalizar el acceso a la membresía."
+      },
+      "revoke": {
+        "action": "Revocar",
+        "actionName": "Revocar {source} que termina el {date}",
+        "confirmTitle": "Revocar concesión",
+        "confirmBody": "Se elimina el tiempo de esta concesión y se recalcula el vencimiento de la membresía.",
+        "success": "Concesión revocada.",
+        "failed": "No se pudo revocar la concesión."
+      },
+      "protectedAccess": "El acceso pagado a través del procesador continúa hasta el {date}. Cancélalo o solicita un reembolso al procesador.",
+      "datePickerAffix": "Abrir selector de fecha y hora"
+    },
+    "processors": {
+      "title": "Procesadores de pago",
+      "enabled": "Activado",
+      "disabled": "Desactivado",
+      "offNotice": "Los procesadores marcados como desactivados no están habilitados en esta instalación. Sus canales de pago no ofrecen nada hasta que un operador los active. Amplía las membresías manualmente desde la página de facturación de cada usuario.",
+      "paypal": "PayPal",
+      "apple": "App Store de Apple",
+      "google_play": "Google Play"
     }
   }
 }

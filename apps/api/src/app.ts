@@ -14,6 +14,7 @@ import express from 'express';
 import { CategoryService } from '@podverse/orm';
 import { getObservabilityHttpMiddleware } from '@podverse/observability';
 
+import { initBillingContext } from './lib/billing/billingContext.js';
 import { bootstrapApiExtensions } from './lib/extensions/bootstrapExtensions.js';
 import { registerExtensionRoutes } from './lib/extensions/registerExtensionRoutes.js';
 import { registerHealthRoutes } from './lib/health/registerHealthRoutes.js';
@@ -34,6 +35,8 @@ if (config.nodeEnv === 'production') {
   app.set('trust proxy', 1);
 }
 
+const baseUrl = `${config.api.prefix}${config.api.version}`;
+
 // --- Global middleware
 app.use(
   cors({
@@ -41,6 +44,10 @@ app.use(
     credentials: true,
   })
 );
+
+// Processors sign the exact bytes they send, so webhook bodies must reach the handler unparsed.
+// This must stay ahead of the text and JSON parsers below.
+app.use(`${baseUrl}/billing/webhooks`, express.raw({ type: () => true, limit: '1mb' }));
 
 app.use(
   bodyParser.text({
@@ -56,8 +63,6 @@ app.use(cookieParser());
 app.use(initializePassport());
 
 app.use(getObservabilityHttpMiddleware());
-
-const baseUrl = `${config.api.prefix}${config.api.version}`;
 
 bootstrapApiExtensions(app);
 
@@ -76,9 +81,17 @@ export const startApp = async () => {
     const categoryService = new CategoryService();
     await categoryService.setCategoryCache();
 
+    initBillingContext({
+      nodeEnv: config.nodeEnv,
+      allowTestAdapter: config.billing.allowTestAdapter,
+      sandboxAllowedAccountIds: config.billing.sandboxAllowedAccountIds,
+      processors: config.billing.processors,
+    });
+
     // Import routes after ORM context is initialized
     const { accountRouter } = await import('@api/routes/account.js');
     const { authRouter } = await import('@api/routes/auth.js');
+    const { billingRouter } = await import('@api/routes/billing.js');
     const { categoryRouter } = await import('@api/routes/category.js');
     const { channelRouter } = await import('@api/routes/channel.js');
     const { clipRouter } = await import('@api/routes/clip.js');
@@ -91,7 +104,6 @@ export const startApp = async () => {
     const { membershipClaimTokenRouter } = await import('@api/routes/membershipClaimToken.js');
     const { productRouter } = await import('@api/routes/product/index.js');
     const { metaboostRouter } = await import('@api/routes/metaboost.js');
-    const { accountPayPalOrderRouter } = await import('@api/routes/paypal.js');
     const { playlistRouter } = await import('@api/routes/playlist.js');
     const { podrollRouter } = await import('@api/routes/podroll.js');
     const { queueRouter } = await import('@api/routes/queue.js');
@@ -122,9 +134,9 @@ export const startApp = async () => {
 
     // --- Feature routers
     app.use(accountRouter);
-    app.use(accountPayPalOrderRouter);
     app.use(accountSettingsRouter);
     app.use(authRouter);
+    app.use(billingRouter);
     app.use(categoryRouter);
     app.use(channelRouter);
     app.use(clipRouter);

@@ -11,6 +11,7 @@ servers:
 tags:
   - name: admins
   - name: auth
+  - name: billing
   - name: database
   - name: feeds
   - name: products
@@ -1594,6 +1595,7 @@ components:
           type: string
           format: date-time
           nullable: true
+          description: "Applied through the grant ledger. Later than the current expiry extends; earlier ends access then; null ends access now; within a minute of the current expiry changes nothing."
         allow_directory_add_by_rss:
           type: boolean
           nullable: true
@@ -1830,10 +1832,1049 @@ components:
             - monthly
             - annual
       additionalProperties: true
+
+    BillingCheckoutChannel:
+      type: object
+      required:
+        [id, processor_id, platform, storefront_allowlist, enabled, min_client_version, updated_at]
+      properties:
+        id: { type: integer }
+        processor_id: { type: string, enum: [paypal, apple, google_play, test] }
+        platform: { type: string, enum: [web, ios, android, foss] }
+        storefront_allowlist: { type: array, items: { type: string } }
+        enabled: { type: boolean }
+        min_client_version: { type: string, nullable: true }
+        updated_at: { type: string, format: date-time }
+    BillingProcessorStatus:
+      type: object
+      required: [processor_id, enabled]
+      properties:
+        processor_id: { type: string, enum: [paypal, apple, google_play] }
+        enabled: { type: boolean }
+    BillingCheckoutChannelPatchRequest:
+      type: object
+      minProperties: 1
+      properties:
+        enabled: { type: boolean }
+        min_client_version: { type: string, nullable: true }
+        storefront_allowlist: { type: array, items: { type: string } }
+    BillingProcessorProduct:
+      type: object
+      required:
+        [
+          id,
+          processor_id,
+          external_product_id,
+          external_base_plan_id,
+          billing_product_id,
+          billing_cadence,
+          purchase_kind,
+          is_active,
+          updated_at,
+        ]
+      properties:
+        id: { type: integer }
+        processor_id: { type: string }
+        external_product_id: { type: string }
+        external_base_plan_id: { type: string, nullable: true }
+        billing_product_id: { type: integer }
+        billing_cadence: { type: string, enum: [monthly, annual] }
+        purchase_kind: { type: string, enum: [auto_renew, one_time] }
+        is_active: { type: boolean }
+        updated_at: { type: string, format: date-time }
+    BillingProcessorProductCreateRequest:
+      type: object
+      required: [processor_id, external_product_id, billing_cadence, purchase_kind]
+      properties:
+        processor_id: { type: string, enum: [paypal, apple, google_play, test] }
+        external_product_id: { type: string }
+        external_base_plan_id: { type: string, nullable: true }
+        billing_cadence: { type: string, enum: [monthly, annual] }
+        purchase_kind: { type: string, enum: [auto_renew, one_time] }
+    BillingProcessorProductPatchRequest:
+      type: object
+      minProperties: 1
+      properties:
+        is_active: { type: boolean }
+        external_product_id: { type: string }
+        external_base_plan_id: { type: string, nullable: true }
+    BillingAccountSubscription:
+      type: object
+      required:
+        [
+          id,
+          processor_id,
+          external_subscription_id,
+          status,
+          purchase_kind,
+          cancel_at_period_end,
+          banked_seconds,
+          is_sandbox,
+        ]
+      properties:
+        id: { type: integer }
+        processor_id: { type: string }
+        external_subscription_id: { type: string }
+        external_product_id: { type: string, nullable: true }
+        status: { type: string }
+        purchase_kind: { type: string }
+        current_period_start: { type: string, format: date-time, nullable: true }
+        current_period_end: { type: string, format: date-time, nullable: true }
+        grace_period_ends_at: { type: string, format: date-time, nullable: true }
+        cancel_at_period_end: { type: boolean }
+        banked_seconds: { type: integer }
+        is_sandbox: { type: boolean }
+    BillingAccountTransaction:
+      type: object
+      required: [id, processor_id, external_transaction_id, purchase_kind, settled_at, is_sandbox]
+      properties:
+        id: { type: integer }
+        processor_id: { type: string }
+        external_transaction_id: { type: string }
+        billing_subscription_id: { type: integer, nullable: true }
+        purchase_kind: { type: string }
+        amount: { type: string, nullable: true }
+        currency_code: { type: string, nullable: true }
+        settled_at: { type: string, format: date-time }
+        revoked_at: { type: string, format: date-time, nullable: true }
+        revocation_reason: { type: string, nullable: true }
+        is_sandbox: { type: boolean }
+    BillingAccountGrant:
+      type: object
+      required: [id, source, starts_at, ends_at, admin_editable]
+      properties:
+        id: { type: integer }
+        source: { type: string }
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+        revoked_at: { type: string, format: date-time, nullable: true }
+        billing_subscription_id: { type: integer, nullable: true }
+        billing_transaction_id: { type: integer, nullable: true }
+        admin_editable:
+          type: boolean
+          description: "Admin, trial, legacy import, or migration baseline grant with no processor or claim-token link; end access and revoke may change it."
+    BillingWebhookEvent:
+      type: object
+      required: [id, processor_id, external_event_id, schema_version, status, attempts, received_at]
+      properties:
+        id: { type: string }
+        processor_id: { type: string }
+        external_event_id: { type: string }
+        schema_version: { type: string }
+        status: { type: string, enum: [pending, processed, failed] }
+        attempts: { type: integer }
+        received_at: { type: string, format: date-time }
+        processed_at: { type: string, format: date-time, nullable: true }
+        process_error: { type: string, nullable: true }
+    BillingAccountDetail:
+      type: object
+      required:
+        [account_id, membership_expires_at, subscriptions, transactions, grants, webhook_events]
+      properties:
+        account_id: { type: integer }
+        membership_expires_at: { type: string, format: date-time, nullable: true }
+        subscriptions:
+          { type: array, items: { $ref: "#/components/schemas/BillingAccountSubscription" } }
+        transactions:
+          { type: array, items: { $ref: "#/components/schemas/BillingAccountTransaction" } }
+        grants: { type: array, items: { $ref: "#/components/schemas/BillingAccountGrant" } }
+        webhook_events: { type: array, items: { $ref: "#/components/schemas/BillingWebhookEvent" } }
+    BillingResyncSubscriptionResult:
+      type: object
+      required: [subscription_id, processor_id, status]
+      properties:
+        subscription_id: { type: integer }
+        processor_id: { type: string }
+        status: { type: string }
+        reason: { type: string }
+        account_id: { type: integer }
+        membership_expires_at: { type: string, format: date-time, nullable: true }
+    BillingWebhookEventReplayResult:
+      type: object
+      required: [status, inbox_event_id]
+      properties:
+        status: { type: string, enum: [processed, duplicate, ignored_sandbox, failed] }
+        inbox_event_id: { type: string }
+        account_id: { type: integer }
+        membership_expires_at: { type: string, format: date-time, nullable: true }
+        error_code: { type: string }
+        message: { type: string }
+    BillingResyncResult:
+      type: object
+      required: [account_id, membership_expires_at, subscriptions, inbox_events]
+      properties:
+        account_id: { type: integer }
+        membership_expires_at: { type: string, format: date-time, nullable: true }
+        subscriptions:
+          { type: array, items: { $ref: "#/components/schemas/BillingResyncSubscriptionResult" } }
+        inbox_events:
+          { type: array, items: { $ref: "#/components/schemas/BillingWebhookEventReplayResult" } }
+    BillingGrantRequest:
+      type: object
+      description: "Exactly one of cadence, days, or ends_at."
+      properties:
+        cadence: { type: string, enum: [monthly, annual] }
+        days: { type: integer, minimum: 1, maximum: 3660 }
+        ends_at:
+          type: string
+          format: date-time
+          description: "Must be later than both now and the current expiry."
+        note: { type: string, maxLength: 500, description: "Stored in the audit entry only." }
+      oneOf:
+        - required: [cadence]
+        - required: [days]
+        - required: [ends_at]
+      example:
+        days: 30
+        note: "Support credit"
+    BillingGrantResult:
+      type: object
+      required: [account_id, applied, membership_expires_at]
+      properties:
+        account_id: { type: integer }
+        applied: { type: boolean }
+        membership_expires_at: { type: string, format: date-time, nullable: true }
+    BillingMembershipEndRequest:
+      type: object
+      required: [ends_at]
+      properties:
+        ends_at:
+          type: string
+          format: date-time
+          description: "Now or a past date ends access then. Must not be later than current access."
+        note: { type: string, maxLength: 500, description: "Stored in the audit entry only." }
+      example:
+        ends_at: "2026-10-01T00:00:00.000Z"
+        note: "Refunded off-platform"
+    BillingGrantRevokeRequest:
+      type: object
+      properties:
+        note: { type: string, maxLength: 500, description: "Stored in the audit entry only." }
+      example:
+        note: "Granted in error"
+    BillingMembershipChangeResult:
+      type: object
+      required: [account_id, membership_expires_at]
+      properties:
+        account_id: { type: integer }
+        membership_expires_at: { type: string, format: date-time, nullable: true }
+    BillingProtectedAccessErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          required: [access_ends_at]
+          properties:
+            access_ends_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: "When processor or claim-token access ends; null when the targeted grant itself is protected."
+      example:
+        message: "Paid access continues past the requested end. Cancel or refund it with the processor."
+        access_ends_at: "2026-11-01T00:00:00.000Z"
 security:
   - bearerAuth: []
   - cookieAuth: []
 paths:
+  /billing/checkout-channels:
+    get:
+      operationId: managementGetBillingCheckoutChannels
+      tags:
+        - billing
+      summary: GET /billing/checkout-channels
+      description: "Lists every checkout channel. Permission: billing_channels read."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BillingCheckoutChannel"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/processors:
+    get:
+      operationId: managementGetBillingProcessors
+      tags:
+        - billing
+      summary: GET /billing/processors
+      description: "Lists which payment processors this deployment registered, in paypal, apple, google_play order. The test processor is omitted. Permission: billing_channels read."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BillingProcessorStatus"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/checkout-channels/{id}:
+    patch:
+      operationId: managementPatchBillingCheckoutChannelId
+      tags:
+        - billing
+      summary: PATCH /billing/checkout-channels/{id}
+      description: "Updates enabled, the minimum client version, or the storefront allowlist. Permission: billing_channels update."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingCheckoutChannelPatchRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingCheckoutChannel"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/processor-products:
+    get:
+      operationId: managementGetBillingProcessorProducts
+      tags:
+        - billing
+      summary: GET /billing/processor-products
+      description: "Lists processor product mappings. Permission: billing_processor_products read."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BillingProcessorProduct"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+    post:
+      operationId: managementPostBillingProcessorProducts
+      tags:
+        - billing
+      summary: POST /billing/processor-products
+      description: "Maps a processor product id to the Premium product. Permission: billing_processor_products create."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingProcessorProductCreateRequest"
+      responses:
+        "201":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingProcessorProduct"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/processor-products/{id}:
+    patch:
+      operationId: managementPatchBillingProcessorProductId
+      tags:
+        - billing
+      summary: PATCH /billing/processor-products/{id}
+      description: "Updates is_active or the external ids. Permission: billing_processor_products update."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingProcessorProductPatchRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingProcessorProduct"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/accounts/{accountId}:
+    get:
+      operationId: managementGetBillingAccount
+      tags:
+        - billing
+      summary: GET /billing/accounts/{accountId}
+      description: "Subscriptions, transactions, grants, and recent webhook events for one account. Permission: billing_account read."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingAccountDetail"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/accounts/{accountId}/resync:
+    post:
+      operationId: managementPostBillingAccountResync
+      tags:
+        - billing
+      summary: POST /billing/accounts/{accountId}/resync
+      description: "Fetches each subscription from its processor and retries the account failed webhook events. Permission: billing_account update."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingResyncResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/accounts/{accountId}/grants:
+    post:
+      operationId: managementPostBillingAccountGrants
+      tags:
+        - billing
+      summary: POST /billing/accounts/{accountId}/grants
+      description: "Extends membership through an admin grant by one cadence period, a number of days, or to an end date. Time runs from the later of now and the current expiry. Permission: billing_account create."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingGrantRequest"
+      responses:
+        "201":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingGrantResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "422":
+          description: "ends_at would not lengthen access; use membership-end to shorten it."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Use End Access to shorten a membership."
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/accounts/{accountId}/membership-end:
+    post:
+      operationId: managementPostBillingAccountMembershipEnd
+      tags:
+        - billing
+      summary: POST /billing/accounts/{accountId}/membership-end
+      description: "Ends admin-editable access at ends_at. Grants starting at or after it are revoked; grants running past it are cut back. Rolls back with 409 when processor or claim-token access runs past ends_at. Permission: billing_account delete."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingMembershipEndRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingMembershipChangeResult"
+              example:
+                data:
+                  account_id: 42
+                  membership_expires_at: "2026-10-01T00:00:00.000Z"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "409":
+          description: "Processor or claim-token access runs past ends_at; nothing changed."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingProtectedAccessErrorResponse"
+        "422":
+          description: "ends_at is later than current access; use grants to lengthen it."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Use Extend to lengthen a membership."
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/accounts/{accountId}/grants/{grantId}/revoke:
+    post:
+      operationId: managementPostBillingAccountGrantRevoke
+      tags:
+        - billing
+      summary: POST /billing/accounts/{accountId}/grants/{grantId}/revoke
+      description: "Revokes one admin-editable grant and recomputes the expiry. Revoking an already-revoked grant changes nothing. Permission: billing_account delete."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: path
+          name: grantId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingGrantRevokeRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingMembershipChangeResult"
+              example:
+                data:
+                  account_id: 42
+                  membership_expires_at: null
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: "Account not found, or the grant does not belong to it."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "409":
+          description: "The grant was paid through a processor or claim token."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingProtectedAccessErrorResponse"
+              example:
+                message: "This grant was paid through a processor or claim token and cannot be changed here."
+                access_ends_at: null
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/webhook-events:
+    get:
+      operationId: managementGetBillingWebhookEvents
+      tags:
+        - billing
+      summary: GET /billing/webhook-events
+      description: "Lists webhook inbox events, filtered by status, processor, or account. Permission: billing_webhook_events read."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, processed, failed]
+        - in: query
+          name: processor_id
+          schema:
+            type: string
+            enum: [paypal, apple, google_play, test]
+        - in: query
+          name: account_id
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BillingWebhookEvent"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /billing/webhook-events/{id}/replay:
+    post:
+      operationId: managementPostBillingWebhookEventReplay
+      tags:
+        - billing
+      summary: POST /billing/webhook-events/{id}/replay
+      description: "Replays one stored webhook event. Permission: billing_webhook_events update."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BillingWebhookEventReplayResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+
   /meta:
     get:
       operationId: managementGetMeta
@@ -4772,6 +5813,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "409":
+          description: "Email or username already in use, or an earlier membership_expires_at would cut processor-paid access (the body then carries access_ends_at and nothing changed)."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorResponse"
+                  - $ref: "#/components/schemas/BillingProtectedAccessErrorResponse"
         "500":
           description: Internal server error
           content:

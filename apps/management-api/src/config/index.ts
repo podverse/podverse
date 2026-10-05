@@ -8,6 +8,8 @@ import {
   MS_PER_SECOND,
   readOptionalPositiveExpirationEnv,
 } from '@podverse/helpers';
+import type { BillingProcessorEnv } from '@podverse/helpers-config';
+import { readBillingProcessorEnv } from '@podverse/helpers-config';
 import type { ObservabilityConfig } from '@podverse/observability/config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
@@ -79,6 +81,13 @@ type Config = {
     domain: string;
   };
   setUserPasswordExpiration: number;
+  billing: {
+    /** `BILLING_ALLOW_TEST_ADAPTER`, for staging deployments that run with production settings. */
+    allowTestAdapter: boolean;
+    /** Raw `BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`. */
+    sandboxAllowedAccountIds: string | undefined;
+    processors: BillingProcessorEnv;
+  };
 };
 
 export const config: Config = {
@@ -164,4 +173,9 @@ export const config: Config = {
     'MANAGEMENT_API_SET_PASSWORD_EXPIRATION',
     DEFAULT_SET_PASSWORD_EXPIRATION
   ),
+  billing: {
+    allowTestAdapter: process.env.BILLING_ALLOW_TEST_ADAPTER === 'true',
+    sandboxAllowedAccountIds: process.env.BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS,
+    processors: readBillingProcessorEnv(process.env),
+  },
 };

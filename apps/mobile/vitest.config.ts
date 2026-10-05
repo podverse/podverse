@@ -30,6 +30,8 @@ import { defineConfig } from 'vitest/config';
  * (`src/theme/resolveColumns.ts`), the Podcast Index search preview poll helper
  * (`src/screens/search/podcastIndexFeedPreview.ts`), the client-version/platform header builder
  * (`src/auth/mobileClientHeaders.ts` — pure; the RN-coupled resolution stays in `mobileApi.ts`), the
+ * billing client selection, account-token binding, and finish-after-confirm rule (`src/billing` —
+ * the store SDK adapters stay out of this suite), the
  * forced-logout notice marker (`src/auth/forcedLogoutNotice.ts` — AsyncStorage-backed, and
  * AsyncStorage mocks cleanly in node; the RN modal that renders it stays untested here), the rule
  * that tells an E2E session left behind by a finished flow apart from one a relaunch should keep
@@ -39,7 +41,8 @@ import { defineConfig } from 'vitest/config';
  * membership denial mapping (`src/membership/membershipDenial.ts` — pure; note the membership-state
  * derivation now lives in `@podverse/helpers` `deriveMembershipState`, tested there, and the RN-coupled
  * `useMembership` hook is excluded), the membership checkout URL builder
- * (`src/membership/checkoutUrl.ts` — pure; the RN `Linking` opener stays in `checkoutEntry.ts`), and
+ * (`src/membership/checkoutUrl.ts` — pure; the RN `Linking` opener stays in `checkoutEntry.ts`), the
+ * store checkout product selection (`src/membership/storeCheckout.ts`), and
  * the serial background sync queue with its trigger planning (`src/sync/syncQueue.ts`,
  * `src/sync/syncJobPlan.ts` — kept free of RN/Expo imports so serialization, dedupe, growing totals,
  * and failure isolation are testable; the job bodies that reach repositories (`src/sync/syncJobs.ts`)
@@ -51,7 +54,9 @@ import { defineConfig } from 'vitest/config';
  * failure taxonomy that
  * produces the quotable error code (`src/sync/syncErrorClassification.ts`), and the error log's
  * cap / eviction rule, detail storage, and copy/export format (`src/data/repositories/syncEventLog.ts`
- * — pure; the SQLite half stays in `syncEventLogRepository.ts`) along with the rows playback and
+ * — pure; the SQLite half stays in `syncEventLogRepository.ts`), the mailto URL builder and device
+ * report lines (`src/screens/more/errorLogMailto.ts`, `src/screens/more/errorLogDeviceContext.ts` —
+ * pure; the platform reader stays in `errorLogDeviceContext.read.ts`) along with the rows playback and
  * add-by-RSS write into it (`src/playback/playbackErrorLog.ts`,
  * `src/lib/addByRss/addByRssErrorLog.ts`). Playback reconciliation is here on the same
  * split: the bounded offline outbox ordering and drain batching
@@ -91,6 +96,7 @@ export default defineConfig({
       'src/auth/forcedLogoutNotice.test.ts',
       'src/auth/localDevLoginPrefill.test.ts',
       'src/auth/mobileClientHeaders.test.ts',
+      'src/billing/**/*.test.ts',
       'src/components/overlay/overlayStore.test.ts',
       'src/components/overlay/overlayTransitions.test.ts',
       'src/components/player/MediaRowActions.test.ts',
@@ -129,6 +135,7 @@ export default defineConfig({
       'src/lib/text/marqueeScroll.test.ts',
       'src/membership/checkoutUrl.test.ts',
       'src/membership/membershipDenial.test.ts',
+      'src/membership/storeCheckout.test.ts',
       'src/navigation/deepLinking.test.ts',
       'src/net/connectivityMachine.test.ts',
       'src/playback/nowPlayingSegment.test.ts',
@@ -147,6 +154,8 @@ export default defineConfig({
       'src/screens/episode/episodeTabs.test.ts',
       'src/screens/player/fullPlayerLayout.test.ts',
       'src/screens/search/podcastIndexFeedPreview.test.ts',
+      'src/screens/more/errorLogDeviceContext.test.ts',
+      'src/screens/more/errorLogMailto.test.ts',
       'src/sync/syncErrorClassification.test.ts',
       'src/sync/syncQueue.test.ts',
       'src/theme/resolveColumns.test.ts',

@@ -96,7 +96,7 @@ export function buildEmbedIframeCode(
     borderColor?: string;
   }
 ): string {
-  const title = options?.title ?? 'Embed player';
+  const title = options?.title ?? 'Embed Player';
   const width = options?.width ?? '100%';
   const height = options?.height ?? DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT;
   const layout = options?.layout ?? 'single';

@@ -72,8 +72,6 @@ const apiTestEnvBase = (): Record<string, string> => ({
   POPULARITY_TRACKING_AGREEMENT_VERSION: '2026-09-11',
   POPULARITY_TRACKING_AGREEMENT_DATE: '2026-09-11',
   POPULARITY_TRACKING_CONTENT_DIR: '',
-  PAYPAL_CLIENT_ID: 'test',
-  PAYPAL_CLIENT_SECRET: 'test',
   PODCAST_INDEX_AUTH_KEY: 'test',
   PODCAST_INDEX_BASE_URL: 'https://api.podcastindex.org/api/1.8.1',
   PODCAST_INDEX_SECRET_KEY: 'test',
@@ -96,6 +94,11 @@ const apiTestEnvBase = (): Record<string, string> => ({
   OTEL_SERVICE_NAME: 'podverse-api',
   OTEL_TRACES_EXPORT: 'none',
   DEFAULT_ACCOUNT_SETTINGS_LOCALE: 'en',
+  // Off in every test profile. These overwrite a developer .env, so local sandbox
+  // credentials cannot register PayPal, Apple, or Google Play during tests.
+  BILLING_PAYPAL_ENABLED: '',
+  BILLING_APPLE_IAP_ENABLED: '',
+  BILLING_GOOGLE_PLAY_ENABLED: '',
 });
 
 const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, string>> = {
@@ -185,6 +188,11 @@ const managementApiTestEnvBase = (): Record<string, string> => ({
   OTEL_SERVICE_NAME: 'podverse-management-api',
   OTEL_TRACES_EXPORT: 'none',
   OTEL_EXPORTER_OTLP_ENDPOINT: '',
+  // Off in every test profile. These overwrite a developer .env, so local sandbox
+  // credentials cannot register PayPal, Apple, or Google Play during tests.
+  BILLING_PAYPAL_ENABLED: '',
+  BILLING_APPLE_IAP_ENABLED: '',
+  BILLING_GOOGLE_PLAY_ENABLED: '',
 });
 
 const managementProfileOverrides: Record<

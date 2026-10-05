@@ -98,7 +98,7 @@ export const ModalAuthLogin: React.FC = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoFocus
-          placeholder={inputLabel}
+          placeholder={tAuthentication('email_example')}
           eyebrow={inputLabel}
         />
         <TextInput
@@ -106,7 +106,7 @@ export const ModalAuthLogin: React.FC = () => {
           name="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder={tAuthentication('password')}
+          placeholder={tAuthentication('password_hint')}
           eyebrow={tAuthentication('password')}
         />
         {accountNotVerified && (

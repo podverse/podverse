@@ -121,7 +121,7 @@ source.
   - `plugins/withPodverseCarPlay.js` patches AppDelegate
     `configurationForConnectingSceneSession` → `PodverseCarPlaySceneDelegate` (do **not** put a
     CarPlay-only `UIApplicationSceneManifest` in Info.plist — that blacks out the phone UI on
-    Expo SDK 52 / RN New Arch by suppressing the phone `UIWindowScene` / `RCTKeyWindow`)
+    Expo SDK 57 / RN New Arch by suppressing the phone `UIWindowScene` / `RCTKeyWindow`)
   - `PodverseCarPlaySceneDelegate.swift` connects, builds Library/Downloads, plays via shared engine
 - **Known follow-up:** Apple’s CarPlay guide also shows an Info.plist scene manifest; adding that
   without a phone `UIWindowSceneDelegate` regresses the phone to a black screen. AppDelegate

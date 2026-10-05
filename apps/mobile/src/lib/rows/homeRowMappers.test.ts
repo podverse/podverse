@@ -167,11 +167,11 @@ describe('queueResourceToHomeRow', () => {
         item_id: null,
       }),
       'queue',
-      { addByRssPrivateTitle: 'Private add-by-RSS item' }
+      { addByRssPrivateTitle: 'Private Add-by-RSS Item' }
     );
 
     expect(row).not.toBeNull();
-    expect(row?.title).toBe('Private add-by-RSS item');
+    expect(row?.title).toBe('Private Add-by-RSS Item');
     expect(row?.imageUrl).toBeNull();
     expect(row?.subtitle).toBeNull();
   });
@@ -363,12 +363,12 @@ describe('playlistResourceToHomeRow', () => {
         item: null,
         item_id: null,
       }),
-      { addByRssPrivateTitle: 'Private add-by-RSS item' }
+      { addByRssPrivateTitle: 'Private Add-by-RSS Item' }
     );
 
     expect(row).not.toBeNull();
     expect(row?.id).toBe('add-by-rss-5');
-    expect(row?.title).toBe('Private add-by-RSS item');
+    expect(row?.title).toBe('Private Add-by-RSS Item');
     expect(row?.imageUrl).toBeNull();
   });
 

@@ -345,6 +345,15 @@ describe('planSyncRun', () => {
     expect(pullPlanned.some((job) => job.kind === 'playback-replay')).toBe(false);
   });
 
+  it('plans only add-by-rss-refresh for the Add by RSS pull-to-refresh trigger', () => {
+    const planned = planSyncRun({
+      isAuthenticated: true,
+      trigger: 'add-by-rss-pull-to-refresh',
+    });
+
+    expect(planned).toEqual([{ kind: 'add-by-rss-refresh', priority: 'user' }]);
+  });
+
   it('plans only roots, leaving discovered work to the job that finds it', () => {
     const kinds = planSyncRun({ isAuthenticated: true, trigger: 'app-start' }).map(
       (planned) => planned.kind

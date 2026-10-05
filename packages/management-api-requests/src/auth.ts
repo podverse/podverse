@@ -19,6 +19,10 @@ export type CrudPermissions = {
   bucket_crud: number;
   embed_demo_crud: number;
   notifications_crud?: number;
+  billing_channels_crud?: number;
+  billing_processor_products_crud?: number;
+  billing_account_crud?: number;
+  billing_webhook_events_crud?: number;
 };
 
 export type CurrentUser = {

@@ -96,7 +96,7 @@ export function BoostSheet({ onClose, target }: BoostSheetProps) {
           marginTop: tokens.spacing.xs,
         },
         scrim: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
         },
         scroll: {
           maxHeight: 480,

@@ -26,6 +26,15 @@ export type LoadActiveQueueSelection = {
   queueIdText: string;
 };
 
+/** Options for `queueResourcesLoadActive`. */
+export type LoadActiveQueueOptions = {
+  /**
+   * When false, an empty combined list does not advance the auto-queue.
+   * Hydration on signed-in mount passes false so open never consults auto-queue.
+   */
+  advanceAutoQueue?: boolean;
+};
+
 const emptyLoadActiveResult: QueueResourcesLoadActiveResult = {
   activeQueue: null,
   activeResource: null,
@@ -80,9 +89,11 @@ export function useQueueResourcesLoadActive() {
   return useCallback(
     async (
       medium_id?: number,
-      selection?: LoadActiveQueueSelection
+      selection?: LoadActiveQueueSelection,
+      options?: LoadActiveQueueOptions
     ): Promise<QueueResourcesLoadActiveResult> => {
       const apiRequestService = getApiRequestService();
+      const advanceAutoQueue = options?.advanceAutoQueue !== false;
 
       if (!loggedInAccountRef.current) {
         setQueues([]);
@@ -147,7 +158,7 @@ export function useQueueResourcesLoadActive() {
         setActiveQueueUpcomingResources(combinedQueueResources);
 
         let hasAutoQueueNext = false;
-        if (combinedQueueResources.length === 0 && selection === undefined) {
+        if (combinedQueueResources.length === 0 && selection === undefined && advanceAutoQueue) {
           const nextAutoQueueActiveRow = autoQueueIncrementActiveRow(autoQueueActiveRowRef.current);
           if (autoQueueResourcesRef.current[nextAutoQueueActiveRow]) {
             hasAutoQueueNext = true;

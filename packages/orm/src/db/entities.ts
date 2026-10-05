@@ -1,5 +1,4 @@
 import { Account } from '@orm/entities/account/account.js';
-import { AccountAppStorePurchase } from '@orm/entities/account/accountAppStorePurchase.js';
 import { AccountCredentials } from '@orm/entities/account/accountCredentials.js';
 import { AccountDeviceAutoDownloadChannel } from '@orm/entities/account/accountDeviceAutoDownloadChannel.js';
 import { AccountEmailChangeVerification } from '@orm/entities/account/accountEmailChangeVerification.js';
@@ -8,7 +7,6 @@ import { AccountFollowingAccount } from '@orm/entities/account/accountFollowingA
 import { AccountFollowingAddByRSSChannel } from '@orm/entities/account/accountFollowingAddByRSSChannel.js';
 import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel.js';
 import { AccountFollowingPlaylist } from '@orm/entities/account/accountFollowingPlaylist.js';
-import { AccountGooglePlayPurchase } from '@orm/entities/account/accountGooglePlayPurchase.js';
 import { AccountMembership } from '@orm/entities/account/accountMembership.js';
 import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus.js';
 import { AccountMetaboost } from '@orm/entities/account/accountMetaboost.js';
@@ -16,7 +14,6 @@ import { AccountNotification } from '@orm/entities/account/accountNotification.j
 import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel.js';
 import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
 import { AccountNotificationPreference } from '@orm/entities/account/accountNotificationPreference.js';
-import { AccountPayPalOrder } from '@orm/entities/account/accountPayPalOrder.js';
 import { AccountPendingFollowingChannel } from '@orm/entities/account/accountPendingFollowingChannel.js';
 import { AccountProfile } from '@orm/entities/account/accountProfile.js';
 import { AccountResetPassword } from '@orm/entities/account/accountResetPassword.js';
@@ -32,10 +29,17 @@ import { AccountVerification } from '@orm/entities/account/accountVerification.j
 import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice.js';
 import { AdminNotificationCampaign } from '@orm/entities/account/adminNotificationCampaign.js';
 import { ScheduledJob } from '@orm/entities/account/scheduledJob.js';
+import { BillingCheckoutChannel } from '@orm/entities/billingCheckoutChannel.js';
 import { BillingDomainEvent } from '@orm/entities/billingDomainEvent.js';
+import { BillingMembershipGrant } from '@orm/entities/billingMembershipGrant.js';
 import { BillingPrice } from '@orm/entities/billingPrice.js';
 import { BillingPriceChangeAudit } from '@orm/entities/billingPriceChangeAudit.js';
+import { BillingProcessor } from '@orm/entities/billingProcessor.js';
+import { BillingProcessorProduct } from '@orm/entities/billingProcessorProduct.js';
 import { BillingProduct } from '@orm/entities/billingProduct.js';
+import { BillingSubscription } from '@orm/entities/billingSubscription.js';
+import { BillingTransaction } from '@orm/entities/billingTransaction.js';
+import { BillingWebhookEvent } from '@orm/entities/billingWebhookEvent.js';
 import { Category } from '@orm/entities/category.js';
 import { Channel } from '@orm/entities/channel/channel.js';
 import { ChannelAbout } from '@orm/entities/channel/channelAbout.js';
@@ -131,7 +135,6 @@ import { ImageShrinkSource } from '../entities/imageShrinkSource.js';
 
 export const entities = [
   Account,
-  AccountAppStorePurchase,
   AccountCredentials,
   AccountEmailChangeVerification,
   AccountDeviceAutoDownloadChannel,
@@ -141,7 +144,6 @@ export const entities = [
   AccountFollowingChannel,
   AccountFollowingPlaylist,
   AccountPendingFollowingChannel,
-  AccountGooglePlayPurchase,
   AccountMembership,
   AccountMembershipStatus,
   AccountMetaboost,
@@ -151,7 +153,6 @@ export const entities = [
   AccountNotificationChannel,
   AccountNotificationChannelType,
   AccountNotificationPreference,
-  AccountPayPalOrder,
   AccountProfile,
   AccountResetPassword,
   AccountSetPassword,
@@ -163,10 +164,17 @@ export const entities = [
   AccountUPDevice,
   AccountWebPushDevice,
   AccountVerification,
+  BillingCheckoutChannel,
+  BillingMembershipGrant,
+  BillingProcessor,
+  BillingProcessorProduct,
   BillingPrice,
   BillingPriceChangeAudit,
   BillingDomainEvent,
   BillingProduct,
+  BillingSubscription,
+  BillingTransaction,
+  BillingWebhookEvent,
   Category,
   Channel,
   ChannelAbout,

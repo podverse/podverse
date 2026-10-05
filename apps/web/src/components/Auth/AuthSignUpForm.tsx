@@ -180,7 +180,7 @@ export const AuthSignUpForm = () => {
             onChange={(e) => onEmailChange(e.target.value)}
             onBlur={handleEmailBlur}
             autoFocus
-            placeholder={tAuthentication('email')}
+            placeholder={tAuthentication('email_example')}
             eyebrow={tAuthentication('email')}
             infoError={emailErrorKey ? tAuthentication(emailErrorKey) : undefined}
           />
@@ -190,7 +190,7 @@ export const AuthSignUpForm = () => {
             value={password1}
             onChange={(e) => onPassword1Change(e.target.value)}
             onBlur={handlePassword1Blur}
-            placeholder={tAuthentication('password')}
+            placeholder={tAuthentication('password_hint')}
             eyebrow={tAuthentication('password')}
             infoError={password1ErrorKey ? tAuthentication(password1ErrorKey) : undefined}
           />
@@ -200,7 +200,7 @@ export const AuthSignUpForm = () => {
             value={password2}
             onChange={(e) => onPassword2Change(e.target.value)}
             onBlur={handlePassword2Blur}
-            placeholder={tAuthentication('password')}
+            placeholder={tAuthentication('password_hint')}
             eyebrow={tAuthentication('confirm_password')}
             infoError={password2ErrorKey ? tAuthentication(password2ErrorKey) : undefined}
           />

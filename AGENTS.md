@@ -63,7 +63,7 @@ Build packages in this order (dependencies must be built first):
    - `helpers-config` (configuration validation)
 4. `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` (parallel)
 5. `orm`
-6. `notifications`
+6. `notifications`, `billing` (parallel)
 7. `parser`
 8. `mq`
 
@@ -164,6 +164,7 @@ packages/           # Publishable npm packages (@podverse/*)
   external-services/# Third-party API integrations
   orm/              # Database entities, services, migrations
   notifications/    # Push notification services
+  billing/          # Payment processor registry, billing event processing
   parser/           # RSS/Podcast feed parsing
   mq/               # Message queue operations
 
@@ -268,7 +269,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 ### i18n / Translations
 
 - ❌ Hardcode user-facing UI strings in `apps/web`, `apps/management-web`, or `apps/mobile` (use catalog + `t()`; see [`i18n-user-facing-strings`](.cursor/rules/i18n-user-facing-strings.mdc))
-- ❌ Write UI copy in Title Case — every surface is sentence case (`Add feed`, not `Add Feed`); see [`ui-copy-sentence-case`](.cursor/rules/ui-copy-sentence-case.mdc)
+- ❌ Write English chrome in sentence case — labels, titles, and buttons are title case (`Add Feed`, not `Add feed`); sentences stay sentence case. See [`ui-copy-casing`](.cursor/rules/ui-copy-casing.mdc)
 - ❌ Modify files in `i18n/compiled/` (generated at build time, not committed)
 - ❌ Add locales without updating all sync points (see `docs/localization/I18N.md`)
 - ❌ Use empty strings in catalog `originals/` (use override files for blanks)

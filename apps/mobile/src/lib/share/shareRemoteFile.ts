@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Share } from 'react-native';
 
 import { isMobileE2eFromEnv } from '../../config/env';

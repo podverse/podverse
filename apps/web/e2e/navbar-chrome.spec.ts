@@ -35,7 +35,7 @@ test.describe('Main layout navbar chrome', () => {
         await page.goto('/');
         const chrome = page.locator('[data-appearance="web"]');
         await expect(chrome.getByRole('link', { name: 'Search' })).toBeVisible();
-        await expect(chrome.getByRole('button', { name: 'Open menu' })).toBeVisible();
+        await expect(chrome.getByRole('button', { name: 'Open Menu' })).toBeVisible();
       },
       page.locator('[data-appearance="web"]')
     );

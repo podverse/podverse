@@ -56,7 +56,7 @@ describe('ImageLightboxModal', () => {
     renderLightbox(
       <ImageLightboxModal
         alt="Episode artwork"
-        ariaLabel="Image preview"
+        ariaLabel="Image Preview"
         candidates={['https://example.com/a.jpg']}
         closeButtonAriaLabel="Close preview"
         isOpen
@@ -64,7 +64,7 @@ describe('ImageLightboxModal', () => {
       />
     );
 
-    expect(screen.getByRole('dialog', { name: 'Image preview' })).toBeTruthy();
+    expect(screen.getByRole('dialog', { name: 'Image Preview' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Close preview' }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@podverse/ui';
@@ -11,6 +11,7 @@ import { getApiRequestService } from '../../factories/apiRequestService';
 
 export function FaqPageClient() {
   const t = useTranslations('misc');
+  const locale = useLocale();
   const [markdown, setMarkdown] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [hasError, setHasError] = useState<boolean>(false);
@@ -25,7 +26,7 @@ export function FaqPageClient() {
     setIsLoading(true);
     setHasError(false);
     void getApiRequestService()
-      .reqManagedCopyGet('faq')
+      .reqManagedCopyGet('faq', { locale })
       .then((response) => {
         if (!cancelled) {
           setMarkdown(response.markdown);
@@ -46,7 +47,7 @@ export function FaqPageClient() {
     return () => {
       cancelled = true;
     };
-  }, [retryCounter]);
+  }, [locale, retryCounter]);
 
   const showError = hasError || (!isLoading && markdown === null);
 

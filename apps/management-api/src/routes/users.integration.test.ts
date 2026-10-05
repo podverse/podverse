@@ -171,7 +171,34 @@ beforeEach(() => {
     PodverseOrm.BillingPriceCatalogService.prototype,
     'resolveProductMembership'
   ).mockImplementation(() => resolveProductMembershipMock());
+  mockMembershipLedger();
 });
+
+/**
+ * The app DB is mocked in this file, so the grant ledger is stubbed at the service boundary; the
+ * ledger's own behavior runs against the real test database in billing.integration.test.ts.
+ */
+const ledger = PodverseOrm.BillingMembershipExtensionService.prototype;
+
+function mockMembershipLedger(): void {
+  const extendResult = { applied: true, membershipExpiresAt: null };
+  const changeResult = { membershipExpiresAt: null };
+  vi.spyOn(ledger, 'startTrial').mockReset().mockResolvedValue(undefined);
+  vi.spyOn(ledger, 'extendByCadence').mockReset().mockResolvedValue(extendResult);
+  vi.spyOn(ledger, 'extendToDate').mockReset().mockResolvedValue(extendResult);
+  vi.spyOn(ledger, 'recordPastExpiry').mockReset().mockResolvedValue(changeResult);
+  vi.spyOn(ledger, 'endAccess').mockReset().mockResolvedValue(changeResult);
+  vi.spyOn(ledger, 'setAccountMembership').mockReset().mockResolvedValue(changeResult);
+}
+
+function expectNoLedgerWrites(): void {
+  expect(ledger.startTrial).not.toHaveBeenCalled();
+  expect(ledger.extendByCadence).not.toHaveBeenCalled();
+  expect(ledger.extendToDate).not.toHaveBeenCalled();
+  expect(ledger.recordPastExpiry).not.toHaveBeenCalled();
+  expect(ledger.endAccess).not.toHaveBeenCalled();
+  expect(ledger.setAccountMembership).not.toHaveBeenCalled();
+}
 
 describe('GET /users', () => {
   it('returns 401 without authentication', async () => {
@@ -271,6 +298,9 @@ describe('GET /users/:id', () => {
 describe('PATCH /users/:id', () => {
   it('updates user email and username', async () => {
     readQueryMock.mockResolvedValueOnce([{ id: 1 }]); // existence check
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 1, membership_expires_at: null },
+    ]); // membership status
     readQueryMock.mockResolvedValueOnce([]); // duplicate check
     readWriteQueryMock.mockResolvedValueOnce(undefined); // update account
     readWriteQueryMock.mockResolvedValueOnce(undefined); // update credentials
@@ -297,6 +327,9 @@ describe('PATCH /users/:id', () => {
 
   it('returns 409 for duplicate email', async () => {
     readQueryMock.mockResolvedValueOnce([{ id: 1 }]); // existence check
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 1, membership_expires_at: null },
+    ]); // membership status
     readQueryMock.mockResolvedValueOnce([{ id: 2 }]); // duplicate check
 
     const res = await request(app)
@@ -570,22 +603,214 @@ describe('POST /users', () => {
       premiumAllowNotifications: true,
     });
     mockCreateUserSqlSequence({ withSetPassword: true });
-    const before = Date.now();
 
     const res = await request(app)
       .post(usersBase)
       .set(superuserAuthHeaders())
       .send({ username: 'trial_defaults_user' });
-    const after = Date.now();
 
     expect(res.status).toBe(201);
     const membershipInsertCall = readWriteQueryMock.mock.calls[6];
-    expect(membershipInsertCall).toBeDefined();
-    const membershipParams = membershipInsertCall?.[1] as unknown[];
-    const membershipExpiresAt = membershipParams[2];
-    expect(membershipExpiresAt).toBeInstanceOf(Date);
-    const expiresMs = (membershipExpiresAt as Date).getTime();
-    expect(expiresMs).toBeGreaterThanOrEqual(before + 120_000 - 2_000);
-    expect(expiresMs).toBeLessThanOrEqual(after + 120_000 + 2_000);
+    expect(membershipInsertCall?.[0]).toContain('INSERT INTO account_membership_status');
+    expect(membershipInsertCall?.[0]).toContain('VALUES ($1, $2, NULL,');
+    expect(membershipInsertCall?.[1]).toEqual([42, 1, null, null, null, null, null]);
+    expect(ledger.startTrial).toHaveBeenCalledTimes(1);
+    expect(ledger.startTrial).toHaveBeenCalledWith(
+      expect.objectContaining({ accountId: 42, trialSeconds: 120 })
+    );
+    expect(ledger.extendByCadence).not.toHaveBeenCalled();
+  });
+
+  it('grants one Premium period through the ledger when Premium has no explicit expiry', async () => {
+    mockCreateUserSqlSequence({ withSetPassword: false });
+
+    const res = await request(app).post(usersBase).set(superuserAuthHeaders()).send({
+      username: 'premium_user',
+      password: 'password123',
+      account_membership_id: 2,
+      premium_billing_cadence: 'monthly',
+    });
+
+    expect(res.status).toBe(201);
+    expect(readWriteQueryMock.mock.calls[6]?.[1]?.[1]).toBe(2);
+    expect(ledger.extendByCadence).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accountId: 42,
+        cadence: 'monthly',
+        idempotencyKey: 'management_create:42',
+        source: 'admin',
+        accountMembershipId: 2,
+      })
+    );
+    expect(ledger.startTrial).not.toHaveBeenCalled();
+  });
+
+  it('grants access to an explicit future expiry through the ledger', async () => {
+    mockCreateUserSqlSequence({ withSetPassword: false });
+    const expiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+
+    const res = await request(app).post(usersBase).set(superuserAuthHeaders()).send({
+      username: 'dated_user',
+      password: 'password123',
+      account_membership_id: 2,
+      membership_expires_at: expiresAt.toISOString(),
+    });
+
+    expect(res.status).toBe(201);
+    expect(ledger.extendToDate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accountId: 42,
+        expiresAt,
+        idempotencyKey: 'management_create:42',
+        source: 'admin',
+        accountMembershipId: 2,
+      })
+    );
+  });
+
+  it('records an explicit past expiry as a lapse date without granting access', async () => {
+    mockCreateUserSqlSequence({ withSetPassword: false });
+    const expiresAt = new Date('2024-01-01T00:00:00.000Z');
+
+    const res = await request(app).post(usersBase).set(superuserAuthHeaders()).send({
+      username: 'lapsed_user',
+      password: 'password123',
+      membership_expires_at: expiresAt.toISOString(),
+    });
+
+    expect(res.status).toBe(201);
+    expect(ledger.recordPastExpiry).toHaveBeenCalledWith(
+      expect.objectContaining({ accountId: 42, expiresAt })
+    );
+    expect(ledger.extendToDate).not.toHaveBeenCalled();
+    expect(ledger.startTrial).not.toHaveBeenCalled();
+  });
+});
+
+describe('PATCH /users/:id membership expiry', () => {
+  const currentExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+  const mockPatchSqlSequence = () => {
+    readQueryMock.mockResolvedValueOnce([{ id: 1 }]); // existence check
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 2, membership_expires_at: currentExpiry },
+    ]); // membership status
+    readQueryMock.mockResolvedValueOnce([
+      {
+        id: 1,
+        id_text: 'abc123',
+        verified: true,
+        sharable_status_id: 3,
+        created_at: new Date(),
+        email: 'user@example.com',
+        username: 'user',
+        account_membership_id: 2,
+        membership_expires_at: currentExpiry,
+      },
+    ]); // updated user
+  };
+
+  it('ends access at an earlier requested date', async () => {
+    mockPatchSqlSequence();
+    const requested = new Date(currentExpiry.getTime() - 10 * 24 * 60 * 60 * 1000);
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ membership_expires_at: requested.toISOString() });
+
+    expect(res.status).toBe(200);
+    expect(ledger.endAccess).toHaveBeenCalledWith(
+      expect.objectContaining({ accountId: 1, endsAt: requested })
+    );
+    expect(ledger.extendToDate).not.toHaveBeenCalled();
+    expect(readWriteQueryMock).not.toHaveBeenCalled();
+  });
+
+  it('ends access now when the expiry is cleared', async () => {
+    mockPatchSqlSequence();
+    const before = Date.now();
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ membership_expires_at: null });
+
+    expect(res.status).toBe(200);
+    expect(ledger.endAccess).toHaveBeenCalledTimes(1);
+    const endsAt = vi.mocked(ledger.endAccess).mock.calls[0]?.[0].endsAt;
+    expect(endsAt?.getTime()).toBeGreaterThanOrEqual(before);
+    expect(endsAt?.getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
+  it('extends to a later requested date, keyed on the expiry it extends from', async () => {
+    mockPatchSqlSequence();
+    const requested = new Date(currentExpiry.getTime() + 10 * 24 * 60 * 60 * 1000);
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ membership_expires_at: requested.toISOString() });
+
+    expect(res.status).toBe(200);
+    expect(ledger.extendToDate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accountId: 1,
+        expiresAt: requested,
+        idempotencyKey: `management_admin:1:${currentExpiry.toISOString()}:${requested.toISOString()}`,
+        accountMembershipId: 2,
+      })
+    );
+    expect(ledger.endAccess).not.toHaveBeenCalled();
+    expect(ledger.setAccountMembership).not.toHaveBeenCalled();
+  });
+
+  it('leaves access alone when the form resends the current expiry at minute precision', async () => {
+    mockPatchSqlSequence();
+    const resent = new Date(currentExpiry);
+    resent.setSeconds(0, 0);
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ membership_expires_at: resent.toISOString() });
+
+    expect(res.status).toBe(200);
+    expectNoLedgerWrites();
+  });
+
+  it('moves the tier through the ledger when only the tier changes', async () => {
+    mockPatchSqlSequence();
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ account_membership_id: 1 });
+
+    expect(res.status).toBe(200);
+    expect(ledger.setAccountMembership).toHaveBeenCalledWith({
+      accountId: 1,
+      accountMembershipId: 1,
+    });
+    expect(ledger.endAccess).not.toHaveBeenCalled();
+  });
+
+  it('returns 409 with the protected end and writes nothing else when paid access runs past', async () => {
+    readQueryMock.mockResolvedValueOnce([{ id: 1 }]);
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 2, membership_expires_at: currentExpiry },
+    ]);
+    vi.mocked(ledger.endAccess).mockRejectedValueOnce(
+      new PodverseOrm.ProtectedMembershipAccessError(currentExpiry)
+    );
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ membership_expires_at: null, track_stats: true, verified: false });
+
+    expect(res.status).toBe(409);
+    expect(res.body.access_ends_at).toBe(currentExpiry.toISOString());
+    expect(readWriteQueryMock).not.toHaveBeenCalled();
   });
 });

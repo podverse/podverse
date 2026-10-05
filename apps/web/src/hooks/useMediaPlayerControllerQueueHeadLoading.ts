@@ -129,6 +129,7 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     mpDuration,
     mpIsPlaying,
     pendingMusicQueueLoadIntentRef,
+    playbackLoadGenerationRef,
     mpEnclosureSelectedParams,
     setMPEnclosureSelectedParams,
     setMPItemChapters,
@@ -150,6 +151,16 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
   const queueResourcesLoadActiveRef = useRef(queueResourcesLoadActive);
   const queueHeadAdoptInFlightRef = useRef(false);
   const queueHeadAdoptedWithoutListenRef = useRef<number | null>(null);
+  // Automatic queue loads give way to a load applied after they start, and to a newer
+  // automatic load from this hook (latest request id wins).
+  const queueHeadLoadRequestIdRef = useRef(0);
+
+  type AutomaticLoadToken = { requestId: number; loadGeneration: number };
+
+  const isStaleAutomaticLoad = (token: AutomaticLoadToken | undefined): boolean =>
+    token !== undefined &&
+    (token.requestId !== queueHeadLoadRequestIdRef.current ||
+      token.loadGeneration !== playbackLoadGenerationRef.current);
 
   useEffect(() => {
     activeQueueRef.current = activeQueue;
@@ -296,6 +307,8 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     skipNowPlayingWrite?: boolean;
     /** Empty-player hydration loads paused. */
     pauseOnLoad?: boolean;
+    /** Present on automatic loads; omitted for an explicit handoff "switch" choice. */
+    automaticLoad?: AutomaticLoadToken;
   };
 
   const rememberQueueResourceAsLocalState = (nextResource: DTOQueueResource): void => {
@@ -368,6 +381,9 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     if (fullItem) {
       const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
       if (fullChannel) {
+        if (isStaleAutomaticLoad(options?.automaticLoad)) {
+          return;
+        }
         rememberQueueResourceAsLocalState(nextResource);
         mediaPlayerResourceUpdate({
           target: playbackTargetFromStandardLoad({
@@ -414,6 +430,9 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
             fullItem.channel_id
           );
           if (fullChannel) {
+            if (isStaleAutomaticLoad(options?.automaticLoad)) {
+              return;
+            }
             rememberQueueResourceAsLocalState(nextResource);
             mediaPlayerResourceUpdate({
               target: playbackTargetFromStandardLoad({
@@ -477,6 +496,9 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
             fullItem.channel_id
           );
           if (fullChannel) {
+            if (isStaleAutomaticLoad(options?.automaticLoad)) {
+              return;
+            }
             rememberQueueResourceAsLocalState(nextResource);
             mediaPlayerResourceUpdate({
               target: playbackTargetFromStandardLoad({
@@ -527,6 +549,9 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     const resourceData = nextResource.add_by_rss_resource_data ?? null;
     const indexItem = await loadAddByRSSIndexItemFromResourceData(resourceData);
     if (indexItem) {
+      if (isStaleAutomaticLoad(options?.automaticLoad)) {
+        return;
+      }
       const playbackPosition = nextResource.playback_position
         ? parseFloat(String(nextResource.playback_position))
         : undefined;
@@ -618,25 +643,43 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     const playerEmpty =
       mpItem === null && mpAddByRSS === null && mpClip === null && mpItemSoundbite === null;
     const adoptedWithoutListen = queueHeadAdoptedWithoutListenRef.current === nextResource.id;
+    const effectLoadGeneration = playbackLoadGenerationRef.current;
 
     const dispatchLoad = (options?: QueueResourceLoadOptions) => {
+      queueHeadLoadRequestIdRef.current += 1;
+      const automaticLoad: AutomaticLoadToken = {
+        requestId: queueHeadLoadRequestIdRef.current,
+        loadGeneration: effectLoadGeneration,
+      };
+      const loadOptions: QueueResourceLoadOptions = { ...options, automaticLoad };
       const nextIdText =
         typeof nextResource.add_by_rss_resource_data?.id_text === 'string'
           ? nextResource.add_by_rss_resource_data.id_text
           : null;
       const isAlreadyPlayingThisAddByRSS = nextIdText !== null && mpAddByRSS?.idText === nextIdText;
+      // This effect re-runs on play/pause, and a track fires `pause` just before `ended`. Reloading
+      // the item already in the player writes it back to now-playing, which can land after `ended`
+      // moved it to history and keep the queue from advancing.
+      const isAlreadyLoadedThisItem =
+        !nextResource.clip &&
+        !nextResource.item_soundbite &&
+        mpClip === null &&
+        mpItemSoundbite === null &&
+        mpAddByRSS === null &&
+        nextResource.item?.id_text !== undefined &&
+        nextResource.item.id_text === mpItem?.id_text;
       if (
         nextResource.add_by_rss_resource_data &&
         !nextResource.is_add_by_rss_redacted &&
         !isAlreadyPlayingThisAddByRSS
       ) {
-        void handleLoadQueueItemAddByRSS(nextResource, options);
-      } else if (nextResource.item && !isAlreadyPlayingThisAddByRSS) {
-        void handleLoadQueueItem(nextResource, options);
+        void handleLoadQueueItemAddByRSS(nextResource, loadOptions);
+      } else if (nextResource.item && !isAlreadyPlayingThisAddByRSS && !isAlreadyLoadedThisItem) {
+        void handleLoadQueueItem(nextResource, loadOptions);
       } else if (nextResource.clip) {
-        void handleLoadQueueClip(nextResource, options);
+        void handleLoadQueueClip(nextResource, loadOptions);
       } else if (nextResource.item_soundbite) {
-        void handleLoadQueueItemSoundbite(nextResource, options);
+        void handleLoadQueueItemSoundbite(nextResource, loadOptions);
       }
     };
 
@@ -655,10 +698,14 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
         const queueIdText = activeQueueRef.current?.id_text;
         if (isUpcomingQueueListPosition(nextResource.list_position) && queueIdText) {
           await apiRequestService.reqQueueResourcesPromoteUpcomingToNowPlaying(queueIdText);
-          await queueResourcesLoadActiveRef.current();
+          await queueResourcesLoadActiveRef.current(undefined, { queueIdText });
         }
       } catch {
         // The row still loads. A full reload retries the promote; this pass does not loop.
+      }
+      if (effectLoadGeneration !== playbackLoadGenerationRef.current) {
+        queueHeadAdoptInFlightRef.current = false;
+        return;
       }
       queueHeadAdoptedWithoutListenRef.current = nextResource.id;
       queueHeadAdoptInFlightRef.current = false;

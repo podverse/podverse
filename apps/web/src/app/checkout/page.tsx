@@ -36,5 +36,11 @@ export default async function CheckoutPage() {
     }
   }
 
-  return <CheckoutPageClient pricingData={pricingData} isContactOnlyMode={isContactOnlyMode} />;
+  return (
+    <CheckoutPageClient
+      contactEmail={config.public.account.contactEmail}
+      isContactOnlyMode={isContactOnlyMode}
+      pricingData={pricingData}
+    />
+  );
 }

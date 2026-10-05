@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { buildCheckoutUrl } from './checkoutUrl';
+import { buildCheckoutUrl, buildWebPathUrl } from './checkoutUrl';
 
 const mocks = vi.hoisted(() => ({ webBaseUrl: 'https://example.test' }));
 
@@ -24,5 +24,10 @@ describe('buildCheckoutUrl', () => {
   it('trims a trailing slash on the base URL so the path is not doubled', () => {
     mocks.webBaseUrl = 'https://example.test/';
     expect(buildCheckoutUrl('extend')).toBe('https://example.test/checkout');
+  });
+
+  it('builds an absolute URL for a web path', () => {
+    expect(buildWebPathUrl('/terms')).toBe('https://example.test/terms');
+    expect(buildWebPathUrl('terms')).toBe('https://example.test/terms');
   });
 });

@@ -58,7 +58,9 @@ stack title as an in-body heading. See **mobile-screen-layout**.
 **Text fields:** `TextField` is the only painted input (tertiary fill, focus ring — never a
 stroked `TextInput`). Pass **`eyebrow` + `placeholder`** for forms (login, sign-up, playlist,
 add-by-RSS), matching web `TextInput` inset eyebrow. The caption lives _inside_ the pill; do
-not add a second `<Text>` label above it. Eyebrow fields are taller than the compact pill.
+not add a second `<Text>` label above it. The placeholder must **differ** from the eyebrow
+(example, `Optional` / `Required`, default-if-blank, or a short instruction) —
+**form-eyebrow-placeholder**. Eyebrow fields are taller than the compact pill.
 **Omit `eyebrow` only** for directory search and on-screen list filters (`SearchField`,
 `ListFilterField`). Search adds the leading glass; filter adds a clear `Button`. `TextField`
 owns the hit-target contract and blurs when the host screen loses focus. Do not wrap a thin
@@ -117,14 +119,14 @@ field and no item count — Search covers directory lookup. Home keeps its filte
 subscriptions) and has no item count either. Search stays Podcast Index full-text; do not send
 Browse rows there.
 
-**List rows:** `HomeFeedRow` for media/results (`isLast` drops the bottom hairline; vertical
-padding is `spacing.base`; artwork is 60×60). Title / subtitle / metadata use a column `gap`
-(`spacing.sm`), not per-line margins, and the text stack is vertically centered. Track rows
-(`mediaType="tracks"`) omit the list play/pause band and put More in `identityRow`, vertically
-centered with the artwork and text; the row press still starts playback. `ListSection`
-passes `(item, index, isLast)`. `ListRow` is the title/subtitle primitive with the same gap and
-padding. A numeric `badgeCount` renders `CountBadge` left of `trailing` (chevron) and hides at 0;
-do not invent a second count chip. See **mobile-screen-layout**.
+**List rows:** `HomeFeedRow` for media/results (a top hairline on every row, including the first;
+no bottom hairline; vertical padding is `spacing.base`; artwork is 60×60). Title / subtitle /
+metadata use a column `gap` (`spacing.sm`), not per-line margins, and the text stack is vertically
+centered. Track rows (`mediaType="tracks"`) omit the list play/pause band and put More in
+`identityRow`, vertically centered with the artwork and text; the row press still starts playback.
+`ListRow` is the title/subtitle primitive with the same gap and padding. A numeric `badgeCount`
+renders `CountBadge` left of `trailing` (chevron) and hides at 0; do not invent a second count
+chip. See **mobile-screen-layout**.
 
 **Home subscription markers:** live, unseen, and downloaded each have one home. Do not reuse the
 count chip for unseen presence.
@@ -170,11 +172,15 @@ link switch under Submit. See **mobile-screen-layout**.
       **`CallToActionSection`** (via `AuthAwareLoadState` `showAuthRequired`, or as a `FillList`
       empty) with `authentication.login_required` and `authentication.login` — not `ListEmpty`.
       See **mobile-screen-layout** and **generic-login-required-copy**.
+- [ ] Button loading uses `Button` `loading`. A spinner or other content that appears inside a
+      button stays in the resting face and does not change the button's size
+      (**button-stable-bounds**).
 - [ ] Hub menus (More, Library) use `MenuListScreen` `sections`. Named headers sit
       above the card. Chevron only on rows that push a screen — not on Log out.
 - [ ] List/media rows use `ListRow` / `HomeFeedRow` / `MediaRowActions` (or a shared row wrapper)
       when the layout matches existing screens. Do **not** add a media-type pill on those rows.
-      Last row: `isLast` (no bottom hairline). Vertical padding: `spacing.base`.
+      Top hairline on every content row, including the first. No bottom hairline. Vertical
+      padding: `spacing.base`. No standalone divider under chips or a filter.
 - [ ] Cover / artwork images use `CoverImage` (square corners). Do not round podcast or episode art.
       Standalone art opens the full-screen viewer by default. Pass `opensViewer={false}` when the
       image sits inside a pressable row, cell, or header (the parent is the control).
@@ -187,9 +193,10 @@ link switch under Submit. See **mobile-screen-layout**.
 - [ ] User-facing strings go through i18n (`t()`), including `accessibilityLabel` (**i18n-user-facing-strings**).
 - [ ] New shared UI gets a stable `testID` where E2E will assert it.
 - [ ] Boxed fields use `TextField` / `SearchField` / `ListFilterField` so the painted chrome
-      is the hit target. Forms pass `eyebrow` + `placeholder`; search and list filters omit
-      `eyebrow`. Do not wrap a `TextInput` in a padded `View`, and do not grow `TextInput`
-      padding to enlarge the target.
+      is the hit target. Forms pass `eyebrow` + a **distinct** `placeholder`
+      (**form-eyebrow-placeholder**); search and list filters omit `eyebrow`. Do not wrap a
+      `TextInput` in a padded `View`, and do not grow `TextInput` padding to enlarge the
+      target.
 - [ ] If you duplicated JSX that already exists on another screen, stop and extract.
 
 ## Avoid
@@ -204,6 +211,8 @@ link switch under Submit. See **mobile-screen-layout**.
 - Rule: **reuse-beyond-components** — the same habit for hooks and pure functions, including logic
   mobile shares with web through `@podverse/helpers`
 - Rule: **mobile-pending-content-spinner** — spinner until load settles; never an empty flash
+- Rule: **button-stable-bounds** — a button does not change size when a spinner or other content
+  appears inside it
 - Rule: **mobile-react-native** (boundaries + DRY bullet)
 - Theme: **mobile-theme-parity**
 - Web counterpart (not for mobile imports): **reusable-components**

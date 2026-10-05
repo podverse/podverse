@@ -91,18 +91,35 @@ describe('formatSyncEventLogExport', () => {
     ]);
 
     expect(text.split('\n')).toEqual([
-      'Error log (1)',
+      'Error Log (1)',
       '2026-08-29T06:00:00.000Z  failure  subscriptions-page  http_403:membership_required — Membership required',
     ]);
   });
 
   it('renders a missing code and message without leaving a ragged line', () => {
     const text = formatSyncEventLogExport([entry({ outcome: 'skipped' })]);
-    expect(text).toBe('Error log (1)\n2026-08-29T06:00:00.000Z  skipped  account-refresh  -');
+    expect(text).toBe('Error Log (1)\n2026-08-29T06:00:00.000Z  skipped  account-refresh  -');
   });
 
   it('exports a header on its own when there is nothing to report', () => {
-    expect(formatSyncEventLogExport([])).toBe('Error log (0)');
+    expect(formatSyncEventLogExport([])).toBe('Error Log (0)');
+  });
+
+  it('writes device facts once under the header', () => {
+    const text = formatSyncEventLogExport(
+      [],
+      [
+        { key: 'os', value: 'iOS 26.5' },
+        { key: 'device_type', value: 'phone' },
+      ]
+    );
+    expect(text.split('\n')).toEqual([
+      'Error Log (0)',
+      '',
+      'Device',
+      'os: iOS 26.5',
+      'device_type: phone',
+    ]);
   });
 
   it('indents each entry’s details beneath it in display order', () => {
@@ -114,7 +131,7 @@ describe('formatSyncEventLogExport', () => {
       }),
     ]);
     expect(text.split('\n')).toEqual([
-      'Error log (1)',
+      'Error Log (1)',
       '2026-08-29T06:00:00.000Z  failure  playback  http_404:ERROR_CODE_IO_BAD_HTTP_STATUS',
       '    http_status: 404',
       '    item_id_text: ep1',
@@ -171,7 +188,13 @@ describe('formatSyncEventLogEntryReport', () => {
         jobKind: 'playback',
         message: 'Forbidden',
       }),
-      { appVersion: '5.0.0', platform: 'ios 18.2' }
+      {
+        device: [
+          { key: 'os', value: 'iOS 18.2' },
+          { key: 'device_type', value: 'phone' },
+          { key: 'app_version', value: '5.0.0' },
+        ],
+      }
     );
     expect(text.split('\n')).toEqual([
       'Error report',
@@ -183,15 +206,17 @@ describe('formatSyncEventLogEntryReport', () => {
       'http_status: 403',
       'media_url: https://host.example/ep.mp3?token=abc',
       'channel_title: Some show',
+      '',
+      'Device',
+      'os: iOS 18.2',
+      'device_type: phone',
       'app_version: 5.0.0',
-      'platform: ios 18.2',
     ]);
   });
 
   it('marks a missing code and omits a missing message', () => {
     const text = formatSyncEventLogEntryReport(entry({ outcome: 'skipped' }), {
-      appVersion: '5.0.0',
-      platform: 'android 33',
+      device: [{ key: 'os', value: 'Android 13 (API 33)' }],
     });
     expect(text).toContain('code: -');
     expect(text).not.toContain('message:');

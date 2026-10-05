@@ -7,7 +7,10 @@ import type { FormEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 
 import type { AddByRSSParseFailureReason } from '@podverse/helpers';
-import { ADD_BY_RSS_CREDENTIAL_MAX_LENGTH } from '@podverse/helpers-validation/client';
+import {
+  ADD_BY_RSS_CREDENTIAL_MAX_LENGTH,
+  canSubmitAddByRssCredentials,
+} from '@podverse/helpers-validation/client';
 import {
   getAddByRSSDetailRouteSegment,
   getAddByRSSResourceTypeFromMappedFeed,
@@ -126,10 +129,11 @@ export const AddByRSSCredentialsPageClient: React.FC<AddByRSSCredentialsPageClie
   }, [idText, loggedInAccount, tFeatures]);
 
   const isBusy = isChecking || isRemoving;
+  const canSave = canSubmitAddByRssCredentials(username, password);
 
   const handleSaveAndCheck = async (event?: FormEvent) => {
     event?.preventDefault();
-    if (isBusy || !feed) {
+    if (isBusy || !feed || !canSave) {
       return;
     }
     if (!loggedInAccount) {
@@ -273,6 +277,7 @@ export const AddByRSSCredentialsPageClient: React.FC<AddByRSSCredentialsPageClie
             onChange={(event) => setUsername(event.target.value)}
             eyebrow={tFeatures('add_by_rss.basic_auth_username')}
             eyebrowPlacement="field"
+            placeholder={tMisc('required')}
             aria-label={tFeatures('add_by_rss.basic_auth_username')}
             autoComplete="username"
             maxLength={ADD_BY_RSS_CREDENTIAL_MAX_LENGTH}
@@ -285,6 +290,7 @@ export const AddByRSSCredentialsPageClient: React.FC<AddByRSSCredentialsPageClie
             onChange={(event) => setPassword(event.target.value)}
             eyebrow={tFeatures('add_by_rss.basic_auth_password')}
             eyebrowPlacement="field"
+            placeholder={tMisc('required')}
             aria-label={tFeatures('add_by_rss.basic_auth_password')}
             type="password"
             autoComplete="current-password"
@@ -305,7 +311,12 @@ export const AddByRSSCredentialsPageClient: React.FC<AddByRSSCredentialsPageClie
             >
               {tFeatures('add_by_rss.credentials_remove_feed')}
             </Button>
-            <Button type="submit" variant="primary" disabled={isBusy} isLoading={isChecking}>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isBusy || !canSave}
+              isLoading={isChecking}
+            >
               {tFeatures('add_by_rss.credentials_save_and_check')}
             </Button>
           </FormPrimaryActions>

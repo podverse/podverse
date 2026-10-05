@@ -10,7 +10,7 @@ afterEach(() => {
 const baseStrings = {
   title: 'Boundary title',
   message: 'Boundary message',
-  tryAgainLabel: 'Try again',
+  tryAgainLabel: 'Try Again',
   reloadLabel: 'Reload',
   goHomeLabel: 'Home',
   detailsSummaryLabel: 'Details',
@@ -65,7 +65,7 @@ describe('ErrorBoundaryShell', () => {
         showDetails={false}
       />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Try Again' }));
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 
@@ -97,7 +97,7 @@ describe('ErrorBoundaryShell', () => {
         showDetails={false}
       />
     );
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Try Again' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Reload' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Home' })).toBeNull();
   });

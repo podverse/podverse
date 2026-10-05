@@ -1,4 +1,3 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Switch, Text, View } from 'react-native';
@@ -20,25 +19,22 @@ import { NOTIFICATION_TYPE_ROWS } from '../../lib/notifications/notificationType
 import { handleRateLimitMessage } from '../../lib/rateLimit/handleRateLimitMessage';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
-import type { ChannelBrowseStackParamList } from '../../navigation';
 import { readAutoDownloadCellularDefaultEnabled } from '../../prefs/downloadPrefs';
 import { useTheme } from '../../theme/useTheme';
 
-type PodcastSettingsScreenProps = NativeStackScreenProps<
-  ChannelBrowseStackParamList,
-  'PodcastSettings'
->;
+type PodcastSettingsScreenProps = {
+  route: {
+    params: {
+      podcastId: string;
+    };
+  };
+};
 
 /**
- * Everything about a podcast that is a setting rather than an action.
+ * Settings for one podcast: feed parse status, notification switches, and auto-download.
  *
- * Reached from the podcast header's gear, which only appears to a signed-in subscriber — but the
- * screen still assumes nothing about who arrives. A lapsed member sees the same controls a current
- * one does and meets the gate on write, because hiding the screen would leave them unable to see
- * what they had configured.
- *
- * Unsubscribing is deliberately absent: it stays on the podcast itself, where a user who wants out
- * is already looking, and it is the one channel action no tier or membership state may block.
+ * A lapsed member sees the same controls a current member does and meets the gate on write.
+ * Unsubscribe stays on the podcast screen. No membership state blocks it.
  */
 export function PodcastSettingsScreen({ route }: PodcastSettingsScreenProps) {
   const { podcastId } = route.params;

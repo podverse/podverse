@@ -103,6 +103,7 @@ const SyncContext = createContext<SyncContextValue | undefined>(undefined);
  * it back would be a loop.
  */
 const NETWORK_INTENT_TRIGGERS = new Set<SyncTrigger>([
+  'add-by-rss-pull-to-refresh',
   'app-foreground',
   'app-start',
   'pull-to-refresh',

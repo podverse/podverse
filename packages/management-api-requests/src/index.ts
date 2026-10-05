@@ -2,6 +2,7 @@ export * from './adminRoles.js';
 export * from './admins.js';
 export * from './apiRequestService.js';
 export * from './auth.js';
+export * from './billing.js';
 export * from './database.js';
 export * from './embedDemo.js';
 export * from './feeds.js';

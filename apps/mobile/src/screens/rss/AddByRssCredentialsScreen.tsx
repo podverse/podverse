@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Keyboard, StyleSheet, Text, View } from 'react-native';
 
+import { canSubmitAddByRssCredentials } from '@podverse/helpers-validation/client';
+
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
@@ -235,6 +237,7 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
   }
 
   const isBusy = isSaving || isRemoving;
+  const canSave = canSubmitAddByRssCredentials(username, password);
 
   return (
     <MobileScreenContainer testID="rss-credentials-screen">
@@ -262,7 +265,7 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
           autoCorrect={false}
           eyebrow={t('features.add_by_rss.basic_auth_username')}
           onChangeText={setUsername}
-          placeholder={t('features.add_by_rss.basic_auth_username')}
+          placeholder={t('misc.required')}
           testID="rss-credentials-username"
           value={username}
         />
@@ -272,7 +275,7 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
           autoCorrect={false}
           eyebrow={t('features.add_by_rss.basic_auth_password')}
           onChangeText={setPassword}
-          placeholder={t('features.add_by_rss.basic_auth_password')}
+          placeholder={t('misc.required')}
           // iOS Autofill plus a secure field blocks Maestro inputText. E2E shows the password in plaintext.
           secureTextEntry={!isE2e}
           testID="rss-credentials-password"
@@ -293,7 +296,7 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
       <FormActions
         actions={[
           {
-            disabled: isBusy,
+            disabled: isBusy || !canSave,
             label: t('features.add_by_rss.credentials_save_and_check'),
             loading: isSaving,
             onPress: () => {

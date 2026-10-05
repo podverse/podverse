@@ -39,9 +39,9 @@ test.describe('Add by RSS protected feed followed on another device', () => {
       idText = await readNeedsCredentialsFeedIdText(page, FEED_TITLE);
       const section = page.getByTestId('add-by-rss-needs-credentials-section');
       await expect(
-        section.getByRole('heading', { name: 'Needs username and password' })
+        section.getByRole('heading', { name: 'Needs Username and Password' })
       ).toBeVisible();
-      await expect(section.getByText('Enter username and password')).toBeVisible();
+      await expect(section.getByText('Enter Username and Password')).toBeVisible();
       await expect(page.locator(`a[href$="/add-by-rss/podcast/${idText}"]`)).toHaveCount(0);
 
       await capturePageLoad(

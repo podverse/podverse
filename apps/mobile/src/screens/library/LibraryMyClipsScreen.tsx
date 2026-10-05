@@ -28,7 +28,6 @@ type LibraryMyClipsScreenProps = NativeStackScreenProps<LibraryStackParamList, '
 
 type LibraryMyClipRowProps = {
   clip: DTOClip;
-  isLast: boolean;
   onPlayPress: (row: HomeFeedRowData) => void;
   onPress: (clip: DTOClip) => void;
   onQueuePress: (row: HomeFeedRowData, position: QueueActionPosition) => void;
@@ -37,7 +36,6 @@ type LibraryMyClipRowProps = {
 
 const LibraryMyClipRow = memo(function LibraryMyClipRow({
   clip,
-  isLast,
   onPlayPress,
   onPress,
   onQueuePress,
@@ -65,7 +63,6 @@ const LibraryMyClipRow = memo(function LibraryMyClipRow({
   return (
     <HomeFeedRow
       extraMoreActions={extraMoreActions}
-      isLast={isLast}
       mediaType="clips"
       onPlayPress={onPlayPress}
       onPress={() => {
@@ -210,19 +207,17 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
     [playbackNoticeKey, styles.notice, t]
   );
 
-  const clipCount = clips.length;
   const renderItem = useCallback(
-    ({ index, item: clip }: { index: number; item: DTOClip }) => (
+    ({ item: clip }: { item: DTOClip }) => (
       <LibraryMyClipRow
         clip={clip}
-        isLast={index === clipCount - 1}
         onPlayPress={handlePlayPress}
         onPress={handleClipPress}
         onQueuePress={handleQueuePress}
         prepareClipForEdit={prepareClipForEdit}
       />
     ),
-    [clipCount, handleClipPress, handlePlayPress, handleQueuePress, prepareClipForEdit]
+    [handleClipPress, handlePlayPress, handleQueuePress, prepareClipForEdit]
   );
 
   const showList = status === 'authenticated' && !isLoading && errorKey === null;

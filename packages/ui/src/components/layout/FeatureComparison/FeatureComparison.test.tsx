@@ -5,7 +5,7 @@ import { FeatureComparison } from './FeatureComparison';
 
 const labels = {
   available: 'Available',
-  comingSoon: 'Coming soon',
+  comingSoon: 'Coming Soon',
   feature: 'Feature',
   mobileOnlyLegend: 'Feature is only available in the mobile app',
 };
@@ -75,7 +75,7 @@ describe('FeatureComparison', () => {
       />
     );
 
-    expect(screen.getByRole('cell', { name: 'Comments: Coming soon' })).toBeTruthy();
+    expect(screen.getByRole('cell', { name: 'Comments: Coming Soon' })).toBeTruthy();
     expect(screen.queryByLabelText('Available')).toBeNull();
   });
 

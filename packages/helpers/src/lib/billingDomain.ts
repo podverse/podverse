@@ -1,3 +1,6 @@
+// Catalog vocabulary: cadence, product codes, and the reasons a membership is extended. Processor,
+// subscription, grant, and event types live in `lib/billing/`.
+
 export type BillingCadence = 'monthly' | 'annual';
 
 export const BILLING_PRODUCT_CODES = {

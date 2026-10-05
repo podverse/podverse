@@ -128,6 +128,26 @@ import {
   reqAuthMobileRevoke,
   reqAuthMobileToken,
 } from './auth/auth.js';
+import type {
+  ReqBillingAppleTransactionParams,
+  ReqBillingCheckoutOptionsParams,
+  ReqBillingGooglePurchaseParams,
+  ReqBillingPayPalCheckoutParams,
+  ReqBillingRestorePurchasesParams,
+  ReqBillingSimulatePaymentParams,
+} from './billing/billing.js';
+import {
+  reqBillingCancelSubscription,
+  reqBillingCapturePayPalOrder,
+  reqBillingCreatePayPalOrder,
+  reqBillingCreatePayPalSubscription,
+  reqBillingGetCheckoutOptions,
+  reqBillingGetStatus,
+  reqBillingPostAppleTransaction,
+  reqBillingPostGooglePurchase,
+  reqBillingRestorePurchases,
+  reqBillingSimulatePayment,
+} from './billing/billing.js';
 import { reqCategoryGetAll } from './category/category.js';
 import {
   reqChannelGetByIdOrIdText,
@@ -170,7 +190,7 @@ import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
 import { reqLegalPopularityTracking } from './legal/popularityTracking.js';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
 import { reqManagedCopyGet } from './managedCopy/managedCopy.js';
-import { reqMembershipGetPricing } from './membership/membership.js';
+import { reqMembershipGetPricing, reqProductMembershipGet } from './membership/membership.js';
 import {
   reqMetaboostMbrssV1MintAppAssertion,
   type ReqMetaboostMbrssV1MintAppAssertionParams,
@@ -849,8 +869,8 @@ export class ApiRequestService {
     return reqLegalPopularityTracking(this);
   }
 
-  reqManagedCopyGet(slug: ManagedCopySlug) {
-    return reqManagedCopyGet(this, slug);
+  reqManagedCopyGet(slug: ManagedCopySlug, options?: { locale?: string }) {
+    return reqManagedCopyGet(this, slug, options);
   }
 
   reqAccountSettingsPlaybackUpdate(params: { preferred_media_type: MediaTypePreference }) {
@@ -1056,6 +1076,50 @@ export class ApiRequestService {
 
   reqMembershipGetPricing() {
     return reqMembershipGetPricing(this);
+  }
+
+  reqProductMembershipGet() {
+    return reqProductMembershipGet(this);
+  }
+
+  reqBillingGetCheckoutOptions(params?: ReqBillingCheckoutOptionsParams) {
+    return reqBillingGetCheckoutOptions(this, params);
+  }
+
+  reqBillingGetStatus() {
+    return reqBillingGetStatus(this);
+  }
+
+  reqBillingPostAppleTransaction(params: ReqBillingAppleTransactionParams) {
+    return reqBillingPostAppleTransaction(this, params);
+  }
+
+  reqBillingPostGooglePurchase(params: ReqBillingGooglePurchaseParams) {
+    return reqBillingPostGooglePurchase(this, params);
+  }
+
+  reqBillingRestorePurchases(params: ReqBillingRestorePurchasesParams) {
+    return reqBillingRestorePurchases(this, params);
+  }
+
+  reqBillingCreatePayPalOrder(params: ReqBillingPayPalCheckoutParams) {
+    return reqBillingCreatePayPalOrder(this, params);
+  }
+
+  reqBillingCancelSubscription(subscriptionId: number) {
+    return reqBillingCancelSubscription(this, subscriptionId);
+  }
+
+  reqBillingCapturePayPalOrder(orderId: string) {
+    return reqBillingCapturePayPalOrder(this, orderId);
+  }
+
+  reqBillingCreatePayPalSubscription(params: ReqBillingPayPalCheckoutParams) {
+    return reqBillingCreatePayPalSubscription(this, params);
+  }
+
+  reqBillingSimulatePayment(params: ReqBillingSimulatePaymentParams) {
+    return reqBillingSimulatePayment(this, params);
   }
 
   /* METABOOST */

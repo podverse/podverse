@@ -74,7 +74,7 @@ export const AuthEmailChangeForm: React.FC = () => {
             onChange={(e) => onEmailChange(e.target.value)}
             onBlur={handleEmailBlur}
             autoFocus
-            placeholder={tAuthentication('email')}
+            placeholder={tAuthentication('email_example')}
             eyebrow={tAuthentication('email')}
             infoError={emailErrorKey ? tAuthentication(emailErrorKey) : undefined}
           />

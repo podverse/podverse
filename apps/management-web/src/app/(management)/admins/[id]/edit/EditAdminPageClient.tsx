@@ -45,6 +45,10 @@ function permissionsFromAdmin(admin: AdminAccount): PermissionState {
     bucket_crud: p?.bucket_crud ?? 0,
     embed_demo_crud: p?.embed_demo_crud ?? 0,
     notifications_crud: p?.notifications_crud ?? 0,
+    billing_channels_crud: p?.billing_channels_crud ?? 0,
+    billing_processor_products_crud: p?.billing_processor_products_crud ?? 0,
+    billing_account_crud: p?.billing_account_crud ?? 0,
+    billing_webhook_events_crud: p?.billing_webhook_events_crud ?? 0,
   };
 }
 

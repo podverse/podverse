@@ -7,14 +7,22 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { isAlbumMediumId, parseMediumId } from '@podverse/helpers';
 import { createAddByRSSIdText } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Dropdown, MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import {
+  CallToActionMessage,
+  Dropdown,
+  MainColumnStack,
+  MainSidebarLayout,
+  SideContent,
+} from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { WebLoadingYourContentSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
+import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
+import { useModals } from '../../../contexts/Modals';
 import {
   buildAddByRSSItemsIndex,
   buildAddByRSSLivestreamIndex,
@@ -80,11 +88,15 @@ type AddByRSSArtistPageClientProps = {
 export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> = ({ idText }) => {
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
+  const tInstructions = useTranslations('instructions');
+  const tAuthentication = useTranslations('authentication');
   const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { viewSelected } = useLocalSettings();
+  const { loggedInAccount } = useAccount();
+  const { setModalAuthLogin } = useModals();
 
   const [feed, setFeed] = useState<AddByRSSFeedRecord | null>(null);
   const [albumFeeds, setAlbumFeeds] = useState<AddByRSSFeedRecord[]>([]);
@@ -92,7 +104,12 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
   const [liveItems, setLiveItems] = useState<AddByRSSLivestreamIndexItem[]>([]);
   const initialType = useMemo<AddByRSSArtistPageTabKey>(() => {
     const typeParam = searchParams.get('type');
-    if (typeParam === 'tracks' || typeParam === 'boosts' || typeParam === 'about') {
+    if (
+      typeParam === 'tracks' ||
+      typeParam === 'boosts' ||
+      typeParam === 'about' ||
+      typeParam === 'settings'
+    ) {
       return typeParam;
     }
     return 'albums';
@@ -282,6 +299,7 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     if (hasDescription) {
       availableTabs.push('about');
     }
+    availableTabs.push('settings');
     if (availableTabs.length === 0) {
       return;
     }
@@ -325,10 +343,11 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     ) : null;
 
   const isEmptyActiveTab =
-    (activeTab === 'albums' && !hasAlbums) ||
-    (activeTab === 'tracks' && !hasTracks) ||
-    (activeTab === 'boosts' && boostsPageFetcher === null) ||
-    (activeTab === 'about' && !hasDescription);
+    activeTab !== 'settings' &&
+    ((activeTab === 'albums' && !hasAlbums) ||
+      (activeTab === 'tracks' && !hasTracks) ||
+      (activeTab === 'boosts' && boostsPageFetcher === null) ||
+      (activeTab === 'about' && !hasDescription));
 
   return (
     <MainWrapper>
@@ -359,6 +378,18 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
               breadcrumbLinkResolver={breadcrumbLinkResolver}
               refreshTrigger={refreshTrigger}
               boostsHeading={tV4VBoostMessages('title')}
+              accountIdText={loggedInAccount?.id_text ?? null}
+              settingsFeed={feed}
+              onSettingsFeedUpdated={setFeed}
+              loginPrompt={
+                !loggedInAccount ? (
+                  <CallToActionMessage
+                    message={tInstructions('login_for_subscriptions')}
+                    buttonLabel={tAuthentication('login')}
+                    onButtonClick={() => setModalAuthLogin({ isOpen: true })}
+                  />
+                ) : null
+              }
             />
           )}
         </MainColumnStack>

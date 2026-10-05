@@ -13,6 +13,7 @@ const BUNDLED_FROM_MODULE = path.resolve(
 
 export const MANAGED_COPY_UPDATED_AT: Readonly<Record<ManagedCopySlug, string>> = {
   // Bump these dates whenever the markdown files for a slug are edited.
+  about: '2026-09-26',
   faq: '2026-09-17',
   'clip-how-to': '2026-09-17',
 };

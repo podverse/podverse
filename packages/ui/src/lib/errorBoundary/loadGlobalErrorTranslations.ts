@@ -11,14 +11,14 @@ export type LoadGlobalErrorTranslationsArgs = {
 
 /** Ultimate fallback when locale JSON imports fail (e.g. offline). Apps may reuse for `useState` initial value. */
 export const DEFAULT_GLOBAL_ERROR_FALLBACK_ERRORS: Record<string, string> = {
-  global_title: 'Application error',
+  global_title: 'Application Error',
   global_message: 'A critical error occurred. Please refresh the page.',
-  details_development_only: 'Error details (development only)',
+  details_development_only: 'Error Details (Development Only)',
 };
 
 export const DEFAULT_GLOBAL_ERROR_FALLBACK_MISC: MiscTranslations = {
-  try_again: 'Try again',
-  reload_page: 'Reload page',
+  try_again: 'Try Again',
+  reload_page: 'Reload Page',
 };
 
 function filterStrings(obj: Record<string, unknown> | undefined): Record<string, string> {

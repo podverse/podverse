@@ -12,6 +12,8 @@ export const CATEGORY_PODCAST_INDEX = 'PodcastIndex';
 export const CATEGORY_WEB_NOTIFICATIONS = 'WebNotifications';
 export const CATEGORY_KEYVALDB = 'KeyValDB';
 export const CATEGORY_IMAGE_SHRINK = 'ImageShrink';
+/** Payment processor adapters, registered once at startup. */
+export const CATEGORY_BILLING = 'Billing';
 
 export type ConfigCategory =
   | typeof CATEGORY_BASE
@@ -21,10 +23,12 @@ export type ConfigCategory =
   | typeof CATEGORY_PODCAST_INDEX
   | typeof CATEGORY_WEB_NOTIFICATIONS
   | typeof CATEGORY_KEYVALDB
-  | typeof CATEGORY_IMAGE_SHRINK;
+  | typeof CATEGORY_IMAGE_SHRINK
+  | typeof CATEGORY_BILLING;
 
 const BASE_ORM_COMMANDS = [
-  'billingProcessDueRenewals',
+  'billingImportLegacyMembershipExpiry',
+  'billingSeedProcessorProductsFromEnv',
   'scheduledJobsRunDue',
   'notificationsPlatformPurge',
   'archiveAll',
@@ -35,6 +39,8 @@ const BASE_ORM_COMMANDS = [
   'generateOnDemandParserEventReports',
   'deleteOutdatedOnDemandParserEvent',
 ] as const;
+
+const BASE_ORM_BILLING_COMMANDS = ['billingReconcileSubscriptions'] as const;
 
 const BASE_ONLY_COMMANDS = ['podcastIndexDeadFeedsDeleteCache'] as const;
 
@@ -97,6 +103,14 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
 
   if (BASE_ORM_COMMANDS.includes(commandName as (typeof BASE_ORM_COMMANDS)[number])) {
     categories.add(CATEGORY_ORM);
+    return categories;
+  }
+
+  if (
+    BASE_ORM_BILLING_COMMANDS.includes(commandName as (typeof BASE_ORM_BILLING_COMMANDS)[number])
+  ) {
+    categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_BILLING);
     return categories;
   }
 

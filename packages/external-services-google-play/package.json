@@ -1,0 +1,33 @@
+{
+  "name": "@podverse/external-services-google-play",
+  "version": "5.5.3",
+  "description": "Google Play billing integration for Podverse",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:prod": "tsc",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@googleapis/androidpublisher": "^14.0.0",
+    "@podverse/helpers": "*",
+    "google-auth-library": "^10.9.1"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.1"
+  },
+  "type": "module"
+}

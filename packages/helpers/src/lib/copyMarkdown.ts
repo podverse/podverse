@@ -1,12 +1,40 @@
+export type CopyMarkdownSurface = 'web' | 'mobile';
+
+export type CopyMarkdownImageKey = 'app_store' | 'google_play' | 'f_droid';
+
+export type CopyMarkdownComponentKey = 'feature_comparison';
+
 export type CopyMarkdownBlock =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; spans: CopyMarkdownInlineSpan[] }
-  | { type: 'list'; items: CopyMarkdownInlineSpan[][] };
+  | { type: 'list'; items: CopyMarkdownInlineSpan[][] }
+  | { type: 'image'; key: CopyMarkdownImageKey; href: string }
+  | { type: 'component'; key: CopyMarkdownComponentKey };
 
 export type CopyMarkdownInlineSpan =
   { type: 'text'; text: string } | { type: 'link'; text: string; href: string };
 
+export type ParseCopyMarkdownOptions = {
+  surface?: CopyMarkdownSurface;
+};
+
 const LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+const IMAGE_DIRECTIVE_PATTERN =
+  /^\{\{image:(app_store|google_play|f_droid)\}\}\((https?:\/\/[^)]+)\)$/;
+
+const SURFACE_OPEN_PATTERN = /^\{\{(web|mobile)\}\}$/;
+const SURFACE_CLOSE_PATTERN = /^\{\{\/(web|mobile)\}\}$/;
+const FEATURE_COMPARISON_DIRECTIVE = '{{feature_comparison}}';
+const DIRECTIVE_LINE_PATTERN = /^\{\{[^}]+\}\}(?:\([^)]*\))?$/;
+
+function isCopyMarkdownImageKey(value: string): value is CopyMarkdownImageKey {
+  return value === 'app_store' || value === 'google_play' || value === 'f_droid';
+}
+
+function isCopyMarkdownSurface(value: string): value is CopyMarkdownSurface {
+  return value === 'web' || value === 'mobile';
+}
 
 export function getCopyMarkdownIntro(markdown: string): string {
   const normalized = markdown.replace(/\r\n/g, '\n');
@@ -21,7 +49,10 @@ export function getCopyMarkdownIntro(markdown: string): string {
   return prefix;
 }
 
-export function parseCopyMarkdown(markdown: string): CopyMarkdownBlock[] {
+export function parseCopyMarkdown(
+  markdown: string,
+  options: ParseCopyMarkdownOptions = {}
+): CopyMarkdownBlock[] {
   const trimmed = markdown.replace(/\r\n/g, '\n').trim();
   if (trimmed === '') {
     return [];
@@ -31,6 +62,7 @@ export function parseCopyMarkdown(markdown: string): CopyMarkdownBlock[] {
   const blocks: CopyMarkdownBlock[] = [];
   let paragraphLines: string[] = [];
   let listItems: string[] = [];
+  let skipSurface: CopyMarkdownSurface | null = null;
 
   const flushParagraph = () => {
     if (paragraphLines.length === 0) {
@@ -57,7 +89,72 @@ export function parseCopyMarkdown(markdown: string): CopyMarkdownBlock[] {
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
+
+    const surfaceOpen = SURFACE_OPEN_PATTERN.exec(line);
+    if (surfaceOpen !== null) {
+      flushParagraph();
+      flushList();
+      const regionSurface = surfaceOpen[1];
+      if (
+        regionSurface !== undefined &&
+        isCopyMarkdownSurface(regionSurface) &&
+        options.surface !== undefined &&
+        options.surface !== regionSurface
+      ) {
+        skipSurface = regionSurface;
+      }
+      continue;
+    }
+
+    const surfaceClose = SURFACE_CLOSE_PATTERN.exec(line);
+    if (surfaceClose !== null) {
+      flushParagraph();
+      flushList();
+      const closedSurface = surfaceClose[1];
+      if (
+        closedSurface !== undefined &&
+        isCopyMarkdownSurface(closedSurface) &&
+        skipSurface === closedSurface
+      ) {
+        skipSurface = null;
+      }
+      continue;
+    }
+
+    if (skipSurface !== null) {
+      continue;
+    }
+
     if (line === '') {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    if (line === FEATURE_COMPARISON_DIRECTIVE) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: 'component', key: 'feature_comparison' });
+      continue;
+    }
+
+    const imageMatch = IMAGE_DIRECTIVE_PATTERN.exec(line);
+    if (imageMatch !== null) {
+      flushParagraph();
+      flushList();
+      const key = imageMatch[1];
+      const href = imageMatch[2];
+      if (key !== undefined && href !== undefined && isCopyMarkdownImageKey(key)) {
+        blocks.push({
+          type: 'image',
+          key,
+          href,
+        });
+      }
+      continue;
+    }
+
+    if (DIRECTIVE_LINE_PATTERN.test(line)) {
       flushParagraph();
       flushList();
       continue;

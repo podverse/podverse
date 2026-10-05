@@ -1,4 +1,3 @@
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -10,8 +9,6 @@ import { matchesTitleFilter } from '@podverse/helpers';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
-import type { AddByRssNeedsCredentialsItem } from '../../components/content/AddByRssNeedsCredentialsSection';
-import { AddByRssNeedsCredentialsSection } from '../../components/content/AddByRssNeedsCredentialsSection';
 import { ListFilterField, ListFilterHeader } from '../../components/form';
 import { FillList, SwipeActionRow, VerticalCenter } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
@@ -33,7 +30,7 @@ import {
 } from '../../lib/offlineModeViews';
 import { beginPerfChipSample, endPerfChipSample, stampPerfFrame } from '../../lib/perf/perfFrames';
 import { perfMark } from '../../lib/perf/perfSpans';
-import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
+import type { HomeStackParamList } from '../../navigation';
 import {
   BROWSE_STACK_ROUTES,
   buildAlbumDetailParams,
@@ -41,9 +38,10 @@ import {
   buildPodcastDetailParams,
   buildTrackDetailParams,
   HOME_STACK_ROUTES,
+  navigateToContentTab,
   SEARCH_STACK_ROUTES,
 } from '../../navigation';
-import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
+import { useTabLayout } from '../../navigation/TabLayoutProvider';
 import type { HomeRangeOption, HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
 import {
   DEFAULT_HOME_RANGE,
@@ -78,7 +76,6 @@ import type { HomeFeedRowData } from './homeFeedData';
 import {
   fetchDownloadedHomeFeedRows,
   fetchHomeFeedRows,
-  fetchNeedsCredentialsHomeFeeds,
   fetchUnsubscribedDownloadHomeRows,
   isHomeFeedStaleRead,
 } from './homeFeedData';
@@ -124,7 +121,6 @@ function HomeFeedListItem({
   goToChannel,
   goToTrack,
   isGridView,
-  isLast,
   mediaType,
   onPlay,
   onPress,
@@ -139,7 +135,6 @@ function HomeFeedListItem({
   goToChannel?: (row: HomeFeedRowData) => void;
   goToTrack?: (row: HomeFeedRowData) => void;
   isGridView: boolean;
-  isLast: boolean;
   mediaType: HomeMediaType;
   onPlay: (row: HomeFeedRowData) => void;
   onPress: (row: HomeFeedRowData) => void;
@@ -156,7 +151,6 @@ function HomeFeedListItem({
     <HomeFeedGridCell artworkEdge={artworkEdge} onPress={onPress} row={row} />
   ) : (
     <HomeFeedRow
-      isLast={isLast}
       mediaType={mediaType}
       onAddToPlaylistPress={addToPlaylistPress}
       onGoToChannelPress={goToChannel}
@@ -187,14 +181,12 @@ function HomeFeedListItem({
 }
 
 function HomeUnsubscribedDownloadRow({
-  isLast,
   onDelete,
   onPlay,
   onPress,
   onQueue,
   row,
 }: {
-  isLast: boolean;
   onDelete: (row: HomeFeedRowData) => void;
   onPlay: (row: HomeFeedRowData) => void;
   onPress: (row: HomeFeedRowData) => void;
@@ -214,7 +206,6 @@ function HomeUnsubscribedDownloadRow({
       testID={`home-unsubscribed-download-row-${row.id}-swipe`}
     >
       <HomeFeedRow
-        isLast={isLast}
         mediaType="podcasts"
         onPlayPress={onPlay}
         onPress={onPress}
@@ -229,6 +220,7 @@ function HomeUnsubscribedDownloadRow({
 export function HomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const { visibleTabIds } = useTabLayout();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
   const { enabled: offlineModeEnabled } = useOfflineMode();
@@ -245,9 +237,6 @@ export function HomeScreen() {
   const [listPrefs, setListPrefs] = useState<HomeListPrefsState | null>(null);
   const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
   const [unsubscribedDownloadRows, setUnsubscribedDownloadRows] = useState<HomeFeedRowData[]>([]);
-  const [needsCredentialsFeeds, setNeedsCredentialsFeeds] = useState<
-    AddByRssNeedsCredentialsItem[]
-  >([]);
   const [hasPodcastSubscriptions, setHasPodcastSubscriptions] = useState<boolean>(false);
   const [filterTerm, setFilterTerm] = useState<string>(readHomeFilterTerm);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
@@ -428,7 +417,6 @@ export function HomeScreen() {
     setSelectedMediaType(mediaType);
     setFeedRows([]);
     setUnsubscribedDownloadRows([]);
-    setNeedsCredentialsFeeds([]);
     setFeedErrorKey(null);
     setHasCompletedFeedRead(false);
     void writePreferredMediaType(mediaType);
@@ -494,25 +482,30 @@ export function HomeScreen() {
 
   const handleSearchPress = useCallback(
     (medium: 'all' | 'music' = 'all') => {
-      // Through the tab navigator rather than resetting a stack, so Home keeps its own history. The
-      // user pressed this because they have nothing subscribed, so Search opens at its root with an
-      // empty, focused field rather than whatever they last looked at there.
-      navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('Search', {
-        params: { autoFocus: true, medium },
-        screen: SEARCH_STACK_ROUTES.SearchRoot,
+      // Search opens at its root with an empty, focused field. A visible Search tab switches in
+      // the tab bar; when Search is listed on More, it is pushed on that stack.
+      navigateToContentTab(navigation, visibleTabIds, {
+        params: {
+          params: { autoFocus: true, medium },
+          screen: SEARCH_STACK_ROUTES.SearchRoot,
+        },
+        tabId: 'Search',
       });
     },
-    [navigation]
+    [navigation, visibleTabIds]
   );
 
   const handleBrowsePress = useCallback(
     (mediaType: BrowseMediaType) => {
-      navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('Browse', {
-        params: { mediaType },
-        screen: BROWSE_STACK_ROUTES.BrowseRoot,
+      navigateToContentTab(navigation, visibleTabIds, {
+        params: {
+          params: { mediaType },
+          screen: BROWSE_STACK_ROUTES.BrowseRoot,
+        },
+        tabId: 'Browse',
       });
     },
-    [navigation]
+    [navigation, visibleTabIds]
   );
   const loadFeed = useCallback(
     async (source: HomeFeedLoadSource) => {
@@ -541,7 +534,6 @@ export function HomeScreen() {
           }
           setFeedRows([]);
           setUnsubscribedDownloadRows([]);
-          setNeedsCredentialsFeeds([]);
           setHasCompletedFeedRead(true);
         } else {
           const rows = await withHomeFeedReadBudget(
@@ -562,14 +554,6 @@ export function HomeScreen() {
           perfMark('home.rows.set', selectedMediaType);
           setFeedRows(rows);
           setHasCompletedFeedRead(true);
-          // A local read of a handful of rows; a failure only hides the section, never the list.
-          const needsCredentials = await fetchNeedsCredentialsHomeFeeds(selectedMediaType).catch(
-            (): AddByRssNeedsCredentialsItem[] => []
-          );
-          if (requestId !== feedRequestIdRef.current) {
-            return;
-          }
-          setNeedsCredentialsFeeds(needsCredentials);
           if (selectedMediaType === 'podcasts') {
             const unsubscribed = await withHomeFeedReadBudget(
               fetchUnsubscribedDownloadHomeRows(),
@@ -614,7 +598,6 @@ export function HomeScreen() {
         }
         setFeedRows([]);
         setUnsubscribedDownloadRows([]);
-        setNeedsCredentialsFeeds([]);
         setFeedErrorKey('errors.generic');
       } finally {
         if (homeFeedShowsRefreshControl(source)) {
@@ -820,13 +803,6 @@ export function HomeScreen() {
     navigation,
     showMarkAllSeen,
   ]);
-
-  const handleNeedsCredentialsPress = useCallback(
-    (feed: MobileAddByRSSFeedRecord) => {
-      navigation.navigate(HOME_STACK_ROUTES.AddByRssCredentials, { feedIdText: feed.idText });
-    },
-    [navigation]
-  );
 
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
@@ -1046,7 +1022,7 @@ export function HomeScreen() {
         opacity: 0,
       },
       pendingOverlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         backgroundColor: themeStyles.screen.backgroundColor,
       },
       feedNotice: {
@@ -1117,7 +1093,6 @@ export function HomeScreen() {
     !showClipsOfflineUnavailable &&
     showFeedRows &&
     feedRows.length === 0 &&
-    needsCredentialsFeeds.length === 0 &&
     (selectedMediaType !== 'podcasts' || unsubscribedDownloadRows.length === 0);
   const showNoFilterMatches = showFeedRows && feedRows.length > 0 && visibleRows.length === 0;
 
@@ -1274,9 +1249,8 @@ export function HomeScreen() {
                 ))}
               </View>
             ) : (
-              unsubscribedDownloadRows.map((row, index) => (
+              unsubscribedDownloadRows.map((row) => (
                 <HomeUnsubscribedDownloadRow
-                  isLast={index === unsubscribedDownloadCount - 1}
                   key={row.id}
                   onDelete={handleDeleteUnsubscribedDownloads}
                   onPlay={handlePodcastPlayPress}
@@ -1288,14 +1262,6 @@ export function HomeScreen() {
             )}
           </View>
         ) : null}
-        {showFeedRows ? (
-          <AddByRssNeedsCredentialsSection
-            items={needsCredentialsFeeds}
-            onPressFeed={handleNeedsCredentialsPress}
-            showDivider={feedRows.length > 0 || unsubscribedDownloadCount > 0}
-            testIDPrefix="home"
-          />
-        ) : null}
         {playbackNoticeKey !== null ? (
           <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
         ) : null}
@@ -1304,12 +1270,10 @@ export function HomeScreen() {
     [
       feedRows.length,
       handleDeleteUnsubscribedDownloads,
-      handleNeedsCredentialsPress,
       handlePodcastPlayPress,
       handlePodcastQueuePress,
       handleRowPress,
       isGridView,
-      needsCredentialsFeeds,
       playbackNoticeKey,
       selectedMediaType,
       showFeedRows,
@@ -1337,7 +1301,6 @@ export function HomeScreen() {
     [handleRefreshFeed, isFeedRefreshing, themeStyles.buttonPrimary.backgroundColor]
   );
 
-  const visibleRowCount = visibleRows.length;
   const rowAddToPlaylistPress =
     status === 'authenticated' && addToPlaylistTarget !== null
       ? handleAddToPlaylistPress
@@ -1348,7 +1311,7 @@ export function HomeScreen() {
   const feedCellStyle = columns > 1 ? styles.columnCell : undefined;
 
   const renderItem = useCallback(
-    ({ index, item: row }: { index: number; item: HomeFeedRowData }) => (
+    ({ item: row }: { item: HomeFeedRowData }) => (
       <HomeFeedListItem
         addToPlaylistPress={rowAddToPlaylistPress}
         artworkEdge={gridCellWidth}
@@ -1356,7 +1319,6 @@ export function HomeScreen() {
         goToChannel={rowGoToChannel}
         goToTrack={rowGoToTrack}
         isGridView={isGridView}
-        isLast={index === visibleRowCount - 1}
         mediaType={selectedMediaType}
         onPlay={handlePlayPress}
         onPress={handleRowPress}
@@ -1379,7 +1341,6 @@ export function HomeScreen() {
       rowGoToTrack,
       selectedMediaType,
       unsubscribeLabel,
-      visibleRowCount,
     ]
   );
 

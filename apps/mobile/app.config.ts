@@ -1,21 +1,38 @@
 import type { ExpoConfig } from 'expo/config';
 
+import { APP_ROUTES } from '@podverse/helpers';
+
 import packageJson from './package.json';
+const DEFAULT_MOBILE_DEEP_LINK_SCHEMES = ['podverse-next', 'podverse'];
 
-// Expo reads this config by sucrase-transpiling ONLY this entry file and evaluating it via
-// `require-from-string`; nested imports then fall through to Node's plain CJS loader, which has no
-// `.ts` handler (Expo registers none). Register a lightweight TS require hook (sucrase is already an
-// Expo dependency) and load the shared scheme helper with `require` — not `import`, which sucrase
-// would hoist above this call — so native scheme registration stays a single source of truth with
-// the RN linking prefixes. See the `mobile-deep-links-and-prod-cutover` rule.
-/* eslint-disable @typescript-eslint/no-require-imports -- register must run before nested .ts require; ESM import would hoist above register */
-require('sucrase/register/ts');
+const stripSchemeSuffix = (value: string): string => {
+  return value.replace(/:\/\/$/, '').replace(/:$/, '');
+};
 
-const {
-  parseMobileDeepLinkSchemes,
-  MOBILE_UNIVERSAL_LINK_PATH_PREFIXES,
-}: typeof import('./src/config/deepLinkSchemes') = require('./src/config/deepLinkSchemes');
-/* eslint-enable @typescript-eslint/no-require-imports */
+const parseMobileDeepLinkSchemes = (raw: string | undefined): string[] => {
+  const parsed = (raw ?? '')
+    .split(/[\s,]+/)
+    .map((entry) => stripSchemeSuffix(entry.trim()))
+    .filter((entry) => entry.length > 0);
+  return parsed.length > 0 ? parsed : [...DEFAULT_MOBILE_DEEP_LINK_SCHEMES];
+};
+
+const getMobileBillingModeFromEnv = (): 'store' | 'unavailable' => {
+  const billing = process.env.EXPO_PUBLIC_MOBILE_BILLING?.trim();
+  const push = process.env.EXPO_PUBLIC_MOBILE_PUSH_PROVIDER?.trim();
+  if (billing === 'unavailable' || push === 'unifiedpush') {
+    return 'unavailable';
+  }
+  return 'store';
+};
+
+const MOBILE_UNIVERSAL_LINK_PATH_PREFIXES = [
+  `${APP_ROUTES.PODCAST}/`,
+  `${APP_ROUTES.EPISODE}/`,
+  `${APP_ROUTES.PLAYLIST}/`,
+  `${APP_ROUTES.CLIP}/`,
+  `${APP_ROUTES.PROFILE}/`,
+] as const;
 
 const DEFAULT_UNIVERSAL_LINK_HOST = 'podverse.fm';
 
@@ -54,25 +71,20 @@ const universalLinkPathPrefixes = [...MOBILE_UNIVERSAL_LINK_PATH_PREFIXES];
 const config: ExpoConfig = {
   name: 'Podverse Next',
   slug: 'podverse-next',
+  owner: 'podverse',
+  extra: {
+    eas: {
+      projectId: 'b6f9f8a2-ea16-44b1-b725-2942c35b6f33',
+    },
+  },
   version: packageJson.version,
   orientation: 'portrait',
   icon: './assets/app-icons/podverse-icon.png',
   userInterfaceStyle: 'automatic',
-  newArchEnabled: true,
   scheme: deepLinkSchemes,
   platforms: ['ios', 'android'],
   // Native cold-start splash. Kept visible in JS until i18n + auth bootstrap finish — see
-  // App.tsx SplashController. Top-level `splash` + plugin keep prebuild in sync. iOS can show
-  // the wide wordmark; Android 12+ only allows a circular icon (max ~200 dp).
-  splash: {
-    backgroundColor: '#000000',
-    image: './assets/splash/banner.png',
-    resizeMode: 'contain',
-  },
-  androidStatusBar: {
-    backgroundColor: '#000000',
-    barStyle: 'light-content',
-  },
+  // App.tsx SplashController. Splash assets are configured by the expo-splash-screen plugin below.
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.podverse.app.next',
@@ -90,8 +102,8 @@ const config: ExpoConfig = {
       NSAppTransportSecurity: {
         NSAllowsLocalNetworking: true,
       },
-      // Do NOT declare a CarPlay-only UIApplicationSceneManifest here. On Expo SDK 52 /
-      // RN New Arch that suppresses the phone UIWindowScene → RCTKeyWindow() nil →
+      // Do NOT declare a CarPlay-only UIApplicationSceneManifest here. On Expo SDK 57 this still
+      // suppresses the phone UIWindowScene → RCTKeyWindow() nil →
       // SafeAreaProvider `width` of undefined → black phone screen. CarPlay scene
       // connection is wired in AppDelegate via `./plugins/withPodverseCarPlay`
       // (`configurationForConnectingSceneSession` → PodverseCarPlaySceneDelegate).
@@ -99,11 +111,6 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.podverse.app.next',
-    splash: {
-      backgroundColor: '#000000',
-      image: './assets/splash/icon.png',
-      resizeMode: 'contain',
-    },
     permissions: [
       'android.permission.FOREGROUND_SERVICE',
       'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
@@ -123,7 +130,16 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
-    'expo-dev-client',
+    // The dev launcher only lists servers it discovers over Bonjour, so a cold launch from the
+    // icon falls back to this URL. Android reaches the host's Metro through `adb reverse tcp:8081`
+    // (set by `expo run:android` and `ensure-devices.sh`), so localhost works on both platforms.
+    [
+      'expo-dev-client',
+      {
+        launchMode: 'most-recent',
+        defaultLaunchURL: 'http://localhost:8081',
+      },
+    ],
     'expo-localization',
     'expo-notifications',
     'expo-background-fetch',
@@ -146,9 +162,9 @@ const config: ExpoConfig = {
       'expo-build-properties',
       {
         ios: {
-          // App platform floor (Expo SDK 52 / RN 0.76). Podspecs below 15.0 are clamped
-          // by withPodverseIosPodBuildSettings — Xcode's simulator range starts at 15.0.
-          deploymentTarget: '15.1',
+          // App platform floor (Expo SDK 57 / RN 0.86). Podspecs below 16.4 are clamped
+          // by withPodverseIosPodBuildSettings so every pod target matches this floor.
+          deploymentTarget: '16.4',
         },
         // ExoPlayer needs cleartext for E2E test-assets at http://10.0.2.2:2111 (and local API).
         android: {
@@ -159,6 +175,10 @@ const config: ExpoConfig = {
     './plugins/withPodverseIosPodBuildSettings',
     './plugins/withPodverseCarPlay',
     ['./plugins/withPodverseAssociatedDomains', { host: universalLinkHost }],
+    // Adds the Play Billing permission and billing-ktx. Omitted when this build's billing mode is
+    // unavailable. A FOSS prebuild must also exclude `expo-iap` from autolinking so the native
+    // module is not compiled into the binary.
+    ...(getMobileBillingModeFromEnv() === 'store' ? ['expo-iap'] : []),
   ],
 };
 

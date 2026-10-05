@@ -31,7 +31,7 @@ export type PodcastSectionListProps<TRow> = {
   onLoadMore?: () => void;
   onRefresh?: () => void;
   onRetry: () => void;
-  renderRow: (params: { index: number; isLast: boolean; row: TRow }) => ReactElement;
+  renderRow: (params: { index: number; row: TRow }) => ReactElement;
   /** Already filtered, in the order the section settled on. */
   rows: TRow[];
   /** Prefix for the loading / error / empty / load-more testIDs. Defaults to `testID`. */
@@ -181,9 +181,7 @@ export function PodcastSectionList<TRow>({
       keyboardShouldPersistTaps="handled"
       keyExtractor={keyExtractor}
       refreshControl={refreshControl}
-      renderItem={({ index, item: row }) =>
-        renderRow({ index, isLast: index === listData.length - 1, row })
-      }
+      renderItem={({ index, item: row }) => renderRow({ index, row })}
       style={styles.list}
       testID={testID}
     />

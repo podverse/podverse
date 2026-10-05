@@ -1,6 +1,7 @@
 -- Seed script for local development accounts
 -- Password for all email/username accounts below: Test!1Aa (bcrypt in this file)
--- Each membership expires 1 year from seed run time.
+-- Each membership lasts 1 year from seed run time. The grant ledger is the source of
+-- that time; `membership_expires_at` is the cache recomputed from it.
 --
 -- Naming (do not collide with tests or embed):
 --   Operator login: local-trial@ / local-premium@ on example.com
@@ -147,6 +148,17 @@ BEGIN
             NOW() + INTERVAL '1 year'
         );
 
+        INSERT INTO billing_membership_grant (account_id, source, starts_at, ends_at)
+        VALUES (
+            new_account_id,
+            CASE rec.tier
+                WHEN 'trial' THEN 'trial'
+                ELSE 'admin'
+            END,
+            NOW(),
+            NOW() + INTERVAL '1 year'
+        );
+
         INSERT INTO account_settings (account_id)
         VALUES (new_account_id)
         RETURNING id INTO new_account_settings_id;
@@ -218,6 +230,18 @@ BEGIN
             membership_expires_at = NOW() + INTERVAL '100 years'
         WHERE account_id = existing_account_id;
 
+        INSERT INTO billing_membership_grant (account_id, source, starts_at, ends_at)
+        SELECT
+            existing_account_id,
+            'admin',
+            NOW(),
+            NOW() + INTERVAL '100 years'
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM billing_membership_grant
+            WHERE account_id = existing_account_id
+        );
+
         RAISE NOTICE 'Local embed demo account already exists: demo (id: %)', existing_account_id;
         RETURN;
     END IF;
@@ -248,6 +272,14 @@ BEGIN
         NOW() + INTERVAL '100 years'
     );
 
+    INSERT INTO billing_membership_grant (account_id, source, starts_at, ends_at)
+    VALUES (
+        new_account_id,
+        'admin',
+        NOW(),
+        NOW() + INTERVAL '100 years'
+    );
+
     INSERT INTO account_settings (account_id)
     VALUES (new_account_id)
     RETURNING id INTO new_account_settings_id;
@@ -266,6 +298,28 @@ BEGIN
 
     RAISE NOTICE 'Local embed demo account created: demo (id: %)', new_account_id;
 END $$;
+
+-- Seed accounts created before grants existed: one covering grant so the cache and the ledger
+-- agree. Leaves accounts that already have any grant alone (including purchase history).
+INSERT INTO billing_membership_grant (account_id, source, starts_at, ends_at)
+SELECT
+    status.account_id,
+    CASE s.tier
+        WHEN 'trial' THEN 'trial'
+        ELSE 'admin'
+    END,
+    LEAST(account.created_at, status.membership_expires_at) AT TIME ZONE 'UTC',
+    status.membership_expires_at AT TIME ZONE 'UTC'
+FROM account_membership_status AS status
+JOIN account ON account.id = status.account_id
+JOIN account_credentials AS ac ON ac.account_id = status.account_id
+JOIN local_dev_account_seed AS s ON s.email = ac.email
+WHERE status.membership_expires_at IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM billing_membership_grant AS grant_row
+    WHERE grant_row.account_id = status.account_id
+  );
 
 -- Stable sender_guid for MetaBoost mbrss-v1 (matches signup). Idempotent: fixes rows created before
 -- account_metaboost existed, and runs after new-account creation above.

@@ -31,7 +31,7 @@ import {
   revokeInviteLink,
   type User,
 } from '../../../../lib/requests/users';
-import { buildUserEditPath, ROUTES } from '../../../../lib/routes';
+import { buildUserBillingPath, buildUserEditPath, ROUTES } from '../../../../lib/routes';
 
 import styles from './UserDetailPageClient.module.scss';
 
@@ -166,6 +166,9 @@ export function UserDetailPageClient({ userId }: Props) {
           <PageHeaderActions>
             <ActionLink href={buildUserEditPath(userId)} variant="primary" LinkComponent={Link}>
               {tc('edit')}
+            </ActionLink>
+            <ActionLink href={buildUserBillingPath(userId)} LinkComponent={Link}>
+              {t('billingLink')}
             </ActionLink>
             <Button
               onClick={() => {

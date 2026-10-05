@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
   addUtcMonthsClamped,
   formatDateTimeAbbrevOrFallback,
+  fromDatetimeLocalInputValue,
   getRelativeTimeParts,
   laterOfDates,
+  toDatetimeLocalInputValue,
   toEpochMsOrNull,
 } from './date.js';
 
@@ -120,5 +122,23 @@ describe('getRelativeTimeParts', () => {
 
   it('returns null for an unparseable date so no caller formats NaN', () => {
     expect(getRelativeTimeParts('not a date', nowMs)).toBeNull();
+  });
+});
+
+describe('fromDatetimeLocalInputValue', () => {
+  it('round-trips the local value toDatetimeLocalInputValue writes', () => {
+    const original = new Date(2026, 8, 27, 14, 5, 0, 0);
+    const parsed = fromDatetimeLocalInputValue(toDatetimeLocalInputValue(original));
+    expect(parsed).not.toBeNull();
+    if (parsed === null) {
+      return;
+    }
+    expect(parsed.getTime()).toBe(original.getTime());
+  });
+
+  it('returns null for an empty or impossible local date-time', () => {
+    expect(fromDatetimeLocalInputValue('')).toBeNull();
+    expect(fromDatetimeLocalInputValue('not-a-date')).toBeNull();
+    expect(fromDatetimeLocalInputValue('2026-02-31T00:00')).toBeNull();
   });
 });

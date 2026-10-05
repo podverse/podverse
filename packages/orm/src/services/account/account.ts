@@ -28,6 +28,7 @@ import {
 } from '@podverse/helpers';
 import { validateEmail, validatePassword, validateUsername } from '@podverse/helpers-validation';
 
+import { BillingMembershipExtensionService } from '../billingMembershipExtension.js';
 import { BillingPriceCatalogService } from '../billingPriceCatalog.js';
 import { AccountCredentialsService } from './accountCredentials.js';
 import { AccountMembershipStatusService } from './accountMembershipStatus.js';
@@ -45,6 +46,10 @@ type CreateAccountDto = {
   terms_version?: string;
   allow_listen_stats?: boolean;
 };
+
+export type AccountBillingIdentity = Pick<Account, 'id' | 'id_text'>;
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type UpdateAccountDto = {
   display_name: string | null;
@@ -120,6 +125,40 @@ export class AccountService {
 
   async getMany(config: FindManyOptions<Account>): Promise<Account[]> {
     return this.repositoryRead.find(config);
+  }
+
+  /**
+   * Billing reads the primary: a payment can arrive seconds after signup, before a replica has
+   * the account. A ref that is not a UUID matches nothing rather than failing the query.
+   */
+  async getBillingIdentityByCustomerRef(
+    billing_customer_ref: string
+  ): Promise<AccountBillingIdentity | null> {
+    if (!UUID_PATTERN.test(billing_customer_ref)) {
+      return null;
+    }
+    return this.repositoryReadWrite.findOne({
+      where: { billing_customer_ref },
+      select: { id: true, id_text: true },
+    });
+  }
+
+  async getBillingIdentityById(id: number): Promise<AccountBillingIdentity | null> {
+    return this.repositoryReadWrite.findOne({
+      where: { id },
+      select: { id: true, id_text: true },
+    });
+  }
+
+  /**
+   * The account with its membership cache, read from the primary so a status poll right after a
+   * purchase sees the entitlement that purchase wrote.
+   */
+  async getWithMembershipStatusFromPrimary(id: number): Promise<Account | null> {
+    return this.repositoryReadWrite.findOne({
+      where: { id },
+      relations: { account_membership_status: { account_membership: true } },
+    });
   }
 
   async getManyPublic(config: FindManyOptions<Account>): Promise<Account[]> {
@@ -223,13 +262,17 @@ export class AccountService {
     const resolvedMembership = await billingPriceCatalogService.resolveProductMembership();
     const now = new Date();
 
-    const accountMembershipStatusService = new AccountMembershipStatusService();
-    const membership_expires_at = new Date(
-      now.getTime() + resolvedMembership.freeTrialExpirationSeconds * 1000
-    );
-    await accountMembershipStatusService.update(account, {
-      account_membership_id: AccountMembershipEnum.Trial,
-      membership_expires_at,
+    const billingMembershipExtensionService = new BillingMembershipExtensionService();
+    await AppDataSourceReadWrite.transaction(async (transactionalEntityManager) => {
+      await new AccountMembershipStatusService(transactionalEntityManager).update(account, {
+        account_membership_id: AccountMembershipEnum.Trial,
+        membership_expires_at: null,
+      });
+      await billingMembershipExtensionService.startTrialWithManager(transactionalEntityManager, {
+        accountId: account.id,
+        trialSeconds: resolvedMembership.freeTrialExpirationSeconds,
+        now,
+      });
     });
 
     const accountMetaboostRepo = AppDataSourceReadWrite.getRepository(AccountMetaboost);

@@ -52,14 +52,14 @@
     },
     {
       "name": "Mobile iOS",
-      "description": "Manual install/run (exits when done; --no-bundler always). npm run mobile:ios -- --device \"iPhone 17 Pro\". Metro in Mobile Metro. E2E installs: Mobile E2E iOS.",
+      "description": "Manual install/run (exits when done; --no-bundler always). Signed-out reinstall: npm run mobile:ios:uninstall (Keychain survives deleting the icon). Then npm run mobile:ios -- --device \"iPhone 17 Pro\". Metro in Mobile Metro. E2E installs: Mobile E2E iOS.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Android",
-      "description": "Manual install/run (exits when done; --no-bundler always). Emulator: npm run mobile:android -- --device Pixel_6_Pro_API_33. USB: mobile:android:device. Metro in Mobile Metro. E2E installs: Mobile E2E Android.",
+      "description": "Manual install/run (exits when done; --no-bundler always). Signed-out reinstall: npm run mobile:android:uninstall. Then npm run mobile:android -- --device Pixel_6_Pro_API_33. USB: mobile:android:device. Metro in Mobile Metro. E2E installs: Mobile E2E Android.",
       "cwd": ".",
       "open": true,
       "split": "Mobile iOS",
@@ -119,6 +119,13 @@
     {
       "name": "Mobile Maestro",
       "description": "Run then exit: npm run mobile:e2e:test:all (full suite) or npm run mobile:e2e:test -- <area>. Needs Mobile E2E Metro + Mobile E2E iOS / Mobile E2E Android installs; + E2E API for API-backed / :all; + test-assets for playback flows.",
+      "cwd": ".",
+      "open": true,
+      "command": "clear"
+    },
+    {
+      "name": "Billing Tunnel",
+      "description": "Leave running: cloudflared tunnel run podverse-local. Forwards https://billing-local.example.com to the local API on :3000. Dev must already be up. Commands: docs/QUICKSTART.md#sandbox-checkout. Ingress file: docs/billing/BILLING-PAYPAL-SANDBOX.md.",
       "cwd": ".",
       "open": true,
       "command": "clear"

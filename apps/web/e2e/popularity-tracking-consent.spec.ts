@@ -32,7 +32,7 @@ test.describe('Popularity tracking consent', () => {
     await page.goto('/');
     await expect(page).toHaveURL(/\/popularity-tracking/);
     await expect(page.getByLabel('Loading…')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Popularity tracking' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Popularity Tracking' })).toBeVisible();
     await expect(page.getByLabel('Loading…')).toBeHidden();
   });
 
@@ -43,13 +43,13 @@ test.describe('Popularity tracking consent', () => {
     await page.goto('/');
 
     await expect(page).toHaveURL(/\/popularity-tracking/);
-    await expect(page.getByRole('heading', { name: 'Popularity tracking' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Popularity Tracking' })).toBeVisible();
 
     await capturePageLoad(
       page,
       testInfo,
       'After login, an undecided account lands on the Popularity tracking gate.',
-      page.getByRole('heading', { name: 'Popularity tracking' })
+      page.getByRole('heading', { name: 'Popularity Tracking' })
     );
 
     await actionAndCapture(
@@ -58,7 +58,7 @@ test.describe('Popularity tracking consent', () => {
       'Learn more reveals the detailed agreement on this page.',
       async () => {
         await expect(page.getByText('includes you in unique-listener rankings')).toBeVisible();
-        await page.getByRole('button', { name: 'Learn more' }).click();
+        await page.getByRole('button', { name: 'Learn More' }).click();
         await expect(page).toHaveURL(/\/popularity-tracking/);
         await expect(page.getByRole('heading', { name: 'What we do not do' })).toBeVisible();
       },
@@ -70,7 +70,7 @@ test.describe('Popularity tracking consent', () => {
       testInfo,
       'Yes records accept and leaves the Popularity tracking gate.',
       async () => {
-        await page.getByRole('button', { name: 'Yes, track me' }).click();
+        await page.getByRole('button', { name: 'Yes, Track Me' }).click();
         await expect(page).not.toHaveURL(/popularity-tracking/);
       }
     );
@@ -82,7 +82,7 @@ test.describe('Popularity tracking consent', () => {
     await loginViaApi(page, DECIDED_EMAIL);
     await page.goto('/settings?tab=account');
 
-    await expect(page.getByRole('heading', { name: 'Popularity tracking' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Popularity Tracking' })).toBeVisible();
     await expect(page.getByText('You already agreed to this version.')).toBeVisible();
 
     await capturePageLoad(

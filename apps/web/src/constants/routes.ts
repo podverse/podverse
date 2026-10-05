@@ -17,6 +17,7 @@ export const ROUTES = {
   CHAPTER: '/chapter',
   CLIPS: '/clips',
   CHECKOUT: '/checkout',
+  CHECKOUT_SUCCESS: '/checkout/success',
   CONTACT: '/contact',
   DONATE: '/donate',
   EMBED: '/embed',

@@ -33,7 +33,7 @@ describe('NavBar', () => {
     render(
       <NavBar
         backForward={{
-          backLabel: 'Go back',
+          backLabel: 'Go Back',
           forwardLabel: 'Go forward',
           onBack: vi.fn(),
           onForward: vi.fn(),
@@ -42,7 +42,7 @@ describe('NavBar', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: 'Go back' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Go Back' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Go forward' })).toBeTruthy();
   });
 

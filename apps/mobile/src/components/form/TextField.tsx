@@ -125,6 +125,7 @@ export function TextField({
           minHeight: multiline ? MULTILINE_INPUT_MIN_HEIGHT : COMPACT_INPUT_MIN_HEIGHT,
           padding: 0,
           textAlignVertical: multiline ? 'top' : 'center',
+          width: '100%',
         },
         leading: {
           alignItems: 'center',

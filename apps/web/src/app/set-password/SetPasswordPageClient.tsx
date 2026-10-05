@@ -223,7 +223,7 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
                     name="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={emailLabel}
+                    placeholder={tAuthentication('email_example')}
                     eyebrow={emailLabel}
                   />
                   <TextInput
@@ -232,7 +232,7 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
                     value={password1}
                     onChange={(e) => onPassword1Change(e.target.value)}
                     onBlur={handlePassword1Blur}
-                    placeholder={tAuthentication('password')}
+                    placeholder={tAuthentication('password_hint')}
                     eyebrow={tAuthentication('password')}
                     infoError={password1ErrorKey ? tAuthentication(password1ErrorKey) : undefined}
                   />
@@ -242,7 +242,7 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
                     value={password2}
                     onChange={(e) => onPassword2Change(e.target.value)}
                     onBlur={handlePassword2Blur}
-                    placeholder={tAuthentication('password')}
+                    placeholder={tAuthentication('password_hint')}
                     eyebrow={tAuthentication('confirm_password')}
                     infoError={password2ErrorKey ? tAuthentication(password2ErrorKey) : undefined}
                   />

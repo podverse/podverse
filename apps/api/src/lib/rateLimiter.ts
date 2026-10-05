@@ -1,6 +1,6 @@
 import { ensureAuthenticated } from '@api/lib/auth/index.js';
 import type { NextFunction, Request, Response } from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 import { buildRateLimit429Body, deriveRateLimitResetTimeMs } from './rateLimitPayload.js';
 
@@ -92,4 +92,18 @@ export function rateLimitAuthEndpoint(options: {
  */
 export function rateLimitEndpoint(options: { windowMs: number; max: number }) {
   return createLimiter(options);
+}
+
+/**
+ * IP-based limiting with a separate budget per scope, so a flood of one processor's webhooks
+ * cannot starve another processor delivering from the same address.
+ */
+export function rateLimitEndpointPerScope(
+  options: { windowMs: number; max: number },
+  scope: string
+) {
+  return createLimiter({
+    ...options,
+    keyGenerator: (req: Request) => `${ipKeyGenerator(req.ip ?? '')}:${scope}`,
+  });
 }

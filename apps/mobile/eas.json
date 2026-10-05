@@ -4,7 +4,11 @@
     "version": ">= 16.0.0"
   },
   "build": {
+    "base": {
+      "node": "24.15.0"
+    },
     "internal": {
+      "extends": "base",
       "android": {
         "autoIncrement": true,
         "buildType": "apk"
@@ -18,6 +22,7 @@
       }
     },
     "beta": {
+      "extends": "base",
       "android": {
         "autoIncrement": true
       },
@@ -28,6 +33,7 @@
       }
     },
     "production": {
+      "extends": "base",
       "android": {
         "autoIncrement": true
       },

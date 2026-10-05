@@ -554,7 +554,7 @@ done
 
 # From notifications.env (VAPID keys filled manually by dev; not auto-generated)
 for v in GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH WEBPUSH_ENABLED WEBPUSH_VAPID_SUBJECT WEBPUSH_VAPID_PUBLIC_KEY WEBPUSH_VAPID_PRIVATE_KEY; do
-	apply_override "$v" "${WORKERS_ENV_FILES[@]}"
+	apply_override "$v" "${API_ENV_FILES[@]}" "${WORKERS_ENV_FILES[@]}"
 done
 if [ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
@@ -563,8 +563,56 @@ if [ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]; then
 fi
 
 # From mailer.env + paypal.env
-for v in MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD MAILER_FROM PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET; do
+for v in MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD MAILER_FROM; do
 	apply_override "$v" "${API_ENV_FILES[@]}"
+done
+for v in BILLING_PAYPAL_ENABLED PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET PAYPAL_ENVIRONMENT PAYPAL_WEBHOOK_ID; do
+	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
+done
+paypal_enabled="$(printf '%s' "${BILLING_PAYPAL_ENABLED:-}" | tr '[:upper:]' '[:lower:]')"
+if [ -z "${BILLING_PAYPAL_ENABLED:-}" ]; then
+	for file in "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "BILLING_PAYPAL_ENABLED" ""
+	done
+fi
+if [ "$paypal_enabled" = "true" ] && [ -n "${PAYPAL_CLIENT_ID:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_PAYPAL_CLIENT_ID" "$PAYPAL_CLIENT_ID"
+	done
+else
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_PAYPAL_CLIENT_ID" ""
+	done
+fi
+
+# From billing.env (API webhooks, workers reconciliation, and management resync share entitlement policy)
+for v in BILLING_WEBHOOK_PUBLIC_BASE_URL BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS BILLING_ALLOW_TEST_ADAPTER; do
+	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
+done
+
+# From billing-apple.env (Apple App Store Server API credentials)
+for v in BILLING_APPLE_IAP_ENABLED APPLE_IAP_ISSUER_ID APPLE_IAP_KEY_ID APPLE_IAP_PRIVATE_KEY_PATH APPLE_IAP_BUNDLE_ID APPLE_IAP_APP_APPLE_ID APPLE_IAP_ENVIRONMENT; do
+	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
+done
+if [ -z "${BILLING_APPLE_IAP_ENABLED:-}" ]; then
+	for file in "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "BILLING_APPLE_IAP_ENABLED" ""
+	done
+fi
+
+# From billing-google-play.env (Google Play Developer API + RTDN credentials)
+for v in BILLING_GOOGLE_PLAY_ENABLED GOOGLE_PLAY_PACKAGE_NAME GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH GOOGLE_PLAY_RTDN_PUSH_AUDIENCE GOOGLE_PLAY_RTDN_PUSH_SERVICE_ACCOUNT_EMAIL; do
+	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
+done
+if [ -z "${BILLING_GOOGLE_PLAY_ENABLED:-}" ]; then
+	for file in "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "BILLING_GOOGLE_PLAY_ENABLED" ""
+	done
+fi
+
+# From billing-products.env (read only by the workers product seed command)
+for v in BILLING_PRODUCT_PAYPAL_AUTO_RENEW_MONTHLY_PLAN_ID BILLING_PRODUCT_PAYPAL_AUTO_RENEW_ANNUAL_PLAN_ID BILLING_PRODUCT_APPLE_AUTO_RENEW_MONTHLY_ID BILLING_PRODUCT_APPLE_AUTO_RENEW_ANNUAL_ID BILLING_PRODUCT_APPLE_ONE_TIME_MONTHLY_ID BILLING_PRODUCT_APPLE_ONE_TIME_ANNUAL_ID BILLING_PRODUCT_GOOGLE_SUBSCRIPTION_ID BILLING_PRODUCT_GOOGLE_AUTO_RENEW_MONTHLY_BASE_PLAN_ID BILLING_PRODUCT_GOOGLE_AUTO_RENEW_ANNUAL_BASE_PLAN_ID BILLING_PRODUCT_GOOGLE_PREPAID_MONTHLY_BASE_PLAN_ID BILLING_PRODUCT_GOOGLE_PREPAID_ANNUAL_BASE_PLAN_ID; do
+	apply_override "$v" "${WORKERS_ENV_FILES[@]}"
 done
 
 # From socials.env (API/email template social links)
@@ -576,6 +624,10 @@ done
 for v in NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB NEXT_PUBLIC_SOCIAL_DISCORD NEXT_PUBLIC_SOCIAL_GITHUB NEXT_PUBLIC_SOCIAL_MATRIX NEXT_PUBLIC_SOCIAL_X; do
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
+# Same contact address, for the mobile error-log email action.
+if [ -n "${NEXT_PUBLIC_CONTACT_EMAIL:-}" ]; then
+	upsert_var "$MOBILE_APP_ENV" "EXPO_PUBLIC_CONTACT_EMAIL" "$NEXT_PUBLIC_CONTACT_EMAIL"
+fi
 
 # From web-image.env (optional image proxy + Next.js image optimizer toggles for web sidecars)
 for v in NEXT_PUBLIC_IMAGE_PROXY_ENABLED NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED; do
@@ -605,11 +657,13 @@ if [ -n "${MANAGEMENT_BRAND_NAME:-}" ]; then
 	done
 fi
 
-# From brand.env: BRAND_DOMAIN -> NEXT_PUBLIC_BRAND_DOMAIN for web and management-web sidecars.
+# From brand.env: BRAND_DOMAIN -> NEXT_PUBLIC_BRAND_DOMAIN for web and management-web sidecars,
+# and EXPO_PUBLIC_MOBILE_WEB_BASE_URL for mobile (public site for share links / universal links).
 if [ -n "${BRAND_DOMAIN:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_BRAND_DOMAIN" "$BRAND_DOMAIN"
 	done
+	upsert_var "$MOBILE_APP_ENV" "EXPO_PUBLIC_MOBILE_WEB_BASE_URL" "https://${BRAND_DOMAIN}"
 fi
 
 # From brand.env: BRAND_LOGO_DARK/LIGHT -> NEXT_PUBLIC_BRAND_LOGO_DARK/LIGHT for web sidecars.

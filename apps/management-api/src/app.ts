@@ -10,6 +10,7 @@ import { bootstrapManagementApiExtensions } from '@management-api/lib/extensions
 import { registerExtensionRoutes } from '@management-api/lib/extensions/registerExtensionRoutes.js';
 import { registerHealthRoutes } from '@management-api/lib/health/registerHealthRoutes.js';
 import { adminsRouter } from '@management-api/routes/admins.js';
+import { billingRouter } from '@management-api/routes/billing.js';
 import { authRouter } from '@management-api/routes/auth.js';
 import { databaseRouter } from '@management-api/routes/database.js';
 import { feedsRouter } from '@management-api/routes/feeds.js';
@@ -83,6 +84,7 @@ app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
 // --- Feature routers
 app.use(authRouter);
 app.use(adminsRouter);
+app.use(billingRouter);
 app.use(databaseRouter);
 app.use(feedsRouter);
 app.use(notificationCampaignsRouter);

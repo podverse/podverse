@@ -22,8 +22,11 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@podverse/billing": "*",
     "@podverse/extension-metrics-sdk": "*",
+    "@podverse/external-services-apple-app-store": "*",
     "@podverse/external-services-firebase": "*",
+    "@podverse/external-services-google-play": "*",
     "@podverse/external-services-paypal": "*",
     "@podverse/external-services-podcast-index": "*",
     "@podverse/helpers": "*",

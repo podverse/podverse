@@ -346,11 +346,17 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
 
   const membershipExpiresAt = new Date();
   membershipExpiresAt.setUTCDate(membershipExpiresAt.getUTCDate() + 30);
+  const membershipStartsAt = new Date();
 
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [accountId, membershipExpiresAt.toISOString()]
+    [accountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [accountId, membershipStartsAt, membershipExpiresAt]
   );
 
   await client.query(
@@ -389,7 +395,12 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [staleTermsAccountId, membershipExpiresAt.toISOString()]
+    [staleTermsAccountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [staleTermsAccountId, membershipStartsAt, membershipExpiresAt]
   );
 
   await client.query(
@@ -427,11 +438,17 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
 
   const inviteMembershipExpiresAt = new Date();
   inviteMembershipExpiresAt.setUTCDate(inviteMembershipExpiresAt.getUTCDate() + 30);
+  const inviteMembershipStartsAt = new Date();
 
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [inviteAccountId, inviteMembershipExpiresAt.toISOString()]
+    [inviteAccountId, inviteMembershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [inviteAccountId, inviteMembershipStartsAt, inviteMembershipExpiresAt]
   );
 
   const setPasswordExpiresAt = new Date();
@@ -473,7 +490,12 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [undecidedAccountId, membershipExpiresAt.toISOString()]
+    [undecidedAccountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [undecidedAccountId, membershipStartsAt, membershipExpiresAt]
   );
 
   await client.query(
@@ -538,7 +560,12 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
   await client.query(
     `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
      VALUES ($1, 1, $2)`,
-    [perfAccountId, membershipExpiresAt.toISOString()]
+    [perfAccountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [perfAccountId, membershipStartsAt, membershipExpiresAt]
   );
 
   await client.query(
@@ -2065,6 +2092,26 @@ async function seedPerfVolumeFixtures(client) {
   );
 }
 
+async function seedBillingTestCheckout(client) {
+  await client.query(
+    `INSERT INTO billing_checkout_channel (processor_id, platform, enabled)
+     VALUES ('test', 'web', true),
+            ('test', 'ios', true),
+            ('test', 'android', true)
+     ON CONFLICT (processor_id, platform) DO UPDATE SET enabled = true`
+  );
+  await client.query(
+    `INSERT INTO billing_processor_product (
+       processor_id, external_product_id, billing_product_id, billing_cadence, purchase_kind, is_active
+     ) VALUES
+       ('test', 'e2e-test-monthly-renew', 1, 'monthly', 'auto_renew', true),
+       ('test', 'e2e-test-annual-renew', 1, 'annual', 'auto_renew', true),
+       ('test', 'e2e-test-monthly-once', 1, 'monthly', 'one_time', true),
+       ('test', 'e2e-test-annual-once', 1, 'annual', 'one_time', true)
+     ON CONFLICT ON CONSTRAINT billing_processor_product_external_key DO NOTHING`
+  );
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
   const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
@@ -2080,6 +2127,7 @@ async function main() {
   await client.connect();
   console.log(`Connected to ${DB_NAME} on ${DB_HOST}:${DB_PORT}`);
 
+  await seedBillingTestCheckout(client);
   const accountId = await resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash);
   await clearOpmlImportKeyvalState(accountId);
   await seedMediaPlayerAndEmbedFixtures(client, accountId);

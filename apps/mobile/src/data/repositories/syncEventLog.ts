@@ -182,17 +182,30 @@ export const selectSyncEventEvictions = (
   return [...expendable, ...failures.slice(0, excess - expendable.length)].map((entry) => entry.id);
 };
 
-/** Device context appended to a copied report. The caller reads it from the platform. */
+/** One device fact appended to a copied or emailed report. Keys stay stable English. */
+export type SyncEventReportDeviceField = {
+  key: string;
+  value: string;
+};
+
+/** Device context appended after the entry. The caller reads it from the platform. */
 export type SyncEventReportEnvironment = {
-  appVersion: string;
-  platform: string;
+  device: readonly SyncEventReportDeviceField[];
+};
+
+const formatDeviceSection = (device: readonly SyncEventReportDeviceField[]): string[] => {
+  if (device.length === 0) {
+    return [];
+  }
+  return ['', 'Device', ...device.map(({ key, value }) => `${key}: ${value}`)];
 };
 
 /**
- * Plain text for one entry, for the detail screen's copy action.
+ * Plain text for one entry, for the detail screen's copy and email actions.
  *
  * Labels are the stable keys rather than translated words, and the timestamp is ISO: the reader is
- * a support conversation, not the device owner, and an ambiguous `03/08` helps nobody.
+ * a support conversation, not the device owner, and an ambiguous `03/08` helps nobody. Device
+ * facts follow a blank line so they stay apart from the error itself.
  */
 export const formatSyncEventLogEntryReport = (
   entry: SyncEventLogEntry,
@@ -211,17 +224,21 @@ export const formatSyncEventLogEntryReport = (
   for (const { key, value } of listSyncEventLogDetails(entry.details)) {
     lines.push(`${key}: ${value}`);
   }
-  lines.push(`app_version: ${environment.appVersion}`, `platform: ${environment.platform}`);
+  lines.push(...formatDeviceSection(environment.device));
   return lines.join('\n');
 };
 
 /**
  * Plain text for the whole log, one entry per line with its details indented beneath it.
  *
- * Timestamps are ISO for the same reason as the single-entry report.
+ * Timestamps are ISO for the same reason as the single-entry report. Device facts are written
+ * once, under the header, because every entry on this phone shares them.
  */
-export const formatSyncEventLogExport = (entries: readonly SyncEventLogEntry[]): string => {
-  const header = `Error log (${entries.length})`;
+export const formatSyncEventLogExport = (
+  entries: readonly SyncEventLogEntry[],
+  device: readonly SyncEventReportDeviceField[] = []
+): string => {
+  const header = [`Error Log (${entries.length})`, ...formatDeviceSection(device)];
 
   const lines = entries.flatMap((entry) => {
     const timestamp = new Date(entry.occurredAt).toISOString();
@@ -234,5 +251,5 @@ export const formatSyncEventLogExport = (entries: readonly SyncEventLogEntry[]):
     return [summary, ...detailLines];
   });
 
-  return [header, ...lines].join('\n');
+  return [...header, ...lines].join('\n');
 };

@@ -353,6 +353,14 @@ async function ensureEmbedDemoSystemAccount(client) {
        WHERE account_id = $1`,
       [accountId, EMBED_DEMO_SYSTEM_MEMBERSHIP_YEARS]
     );
+    await client.query(
+      `INSERT INTO billing_membership_grant (account_id, source, starts_at, ends_at)
+       SELECT $1, 'admin', NOW(), NOW() + ($2::int * INTERVAL '1 year')
+       WHERE NOT EXISTS (
+         SELECT 1 FROM billing_membership_grant WHERE account_id = $1
+       )`,
+      [accountId, EMBED_DEMO_SYSTEM_MEMBERSHIP_YEARS]
+    );
     return accountId;
   }
 
@@ -379,6 +387,11 @@ async function ensureEmbedDemoSystemAccount(client) {
        (SELECT id FROM account_membership WHERE tier = 'premium' LIMIT 1),
        NOW() + ($2::int * INTERVAL '1 year')
      )`,
+    [accountId, EMBED_DEMO_SYSTEM_MEMBERSHIP_YEARS]
+  );
+  await client.query(
+    `INSERT INTO billing_membership_grant (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'admin', NOW(), NOW() + ($2::int * INTERVAL '1 year'))`,
     [accountId, EMBED_DEMO_SYSTEM_MEMBERSHIP_YEARS]
   );
 

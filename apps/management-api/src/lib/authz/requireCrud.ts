@@ -10,9 +10,13 @@ type PermissionResource =
   | 'billing_prices'
   | 'bucket'
   | 'embed_demo'
-  | 'notifications';
+  | 'notifications'
+  | 'billing_channels'
+  | 'billing_processor_products'
+  | 'billing_account'
+  | 'billing_webhook_events';
 
-function getCrudForResource(
+export function getCrudForResource(
   permissions: NonNullable<Express.User['permissions']>,
   resource: PermissionResource
 ): number {
@@ -33,6 +37,14 @@ function getCrudForResource(
       return permissions.embed_demo_crud ?? 0;
     case 'notifications':
       return permissions.notifications_crud ?? 0;
+    case 'billing_channels':
+      return permissions.billing_channels_crud ?? 0;
+    case 'billing_processor_products':
+      return permissions.billing_processor_products_crud ?? 0;
+    case 'billing_account':
+      return permissions.billing_account_crud ?? 0;
+    case 'billing_webhook_events':
+      return permissions.billing_webhook_events_crud ?? 0;
   }
 }
 

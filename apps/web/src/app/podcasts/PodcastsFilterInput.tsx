@@ -37,7 +37,7 @@ export const PodcastsFilterInput: React.FC<PodcastsFilterInputProps> = ({ onChan
       eyebrow={tSubscriptions('filter.label')}
       maxLength={PODCASTS_FILTER_MAX_LENGTH}
       name={FILTER_INPUT_ID}
-      placeholder={tSubscriptions('filter.placeholder')}
+      placeholder={tSubscriptions('filter.by_title')}
       type="text"
       value={value}
       onChange={(event) => onChange(event.target.value)}

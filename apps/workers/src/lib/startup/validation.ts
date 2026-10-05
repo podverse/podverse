@@ -34,6 +34,7 @@ import {
   PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
 } from '@podverse/external-services-podcast-index';
 import {
+  BILLING_PROCESSOR_PRODUCT_ENV_KEYS,
   DEFAULT_NOTIFICATION_RETENTION_DAYS,
   DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS,
   DEFAULT_SCHEDULED_JOB_RETENTION_DAYS,
@@ -42,8 +43,14 @@ import {
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
+  validateAppleProcessorEnv,
+  validateBillingExpirationEnv,
+  validateBillingSandboxAllowlistEnv,
+  validateBoolean,
+  validateGooglePlayProcessorEnv,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
+  validatePayPalProcessorEnv,
   validatePositiveNumber,
   validateRequired,
 } from '@podverse/helpers-config';
@@ -52,6 +59,7 @@ import { buildObservabilityValidationResults } from '@podverse/observability/con
 import { isLongRunningCommand } from '../extensions/longRunningCommands.js';
 import {
   CATEGORY_BASE,
+  CATEGORY_BILLING,
   CATEGORY_IMAGE_SHRINK,
   CATEGORY_KEYVALDB,
   CATEGORY_MQ,
@@ -174,17 +182,39 @@ function validateBase(): ValidationResult[] {
       DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS
     )
   );
+  results.push(validateOptional('BILLING_WEBHOOK_PUBLIC_BASE_URL', 'Billing', 'Skipped'));
   results.push(
-    validateOptional('BILLING_RENEWAL_RETRY_DELAY_MINUTES', 'Billing', 'Use Default (60 minutes)')
-  );
-  results.push(
-    validateOptional(
-      'BILLING_RENEWAL_DRY_RUN_SUCCESS',
-      'Billing',
-      'Use Default (false - adapter_not_configured)'
+    validateBillingExpirationEnv(
+      process.env,
+      'BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION',
+      172800
     )
   );
+  results.push(
+    validateBillingExpirationEnv(process.env, 'BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 604800)
+  );
+  results.push(validateBillingSandboxAllowlistEnv(process.env));
   return results;
+}
+
+/**
+ * Category: Billing — commands that talk to payment processors. Each processor runs only when its
+ * *_ENABLED flag is "true", and then every key it needs is required.
+ */
+function validateBillingProcessors(): ValidationResult[] {
+  return [
+    validateBoolean('BILLING_ALLOW_TEST_ADAPTER', 'Billing'),
+    ...validatePayPalProcessorEnv(process.env),
+    ...validateAppleProcessorEnv(process.env),
+    ...validateGooglePlayProcessorEnv(process.env),
+  ];
+}
+
+/** Billing products — only the product seed command reads the `BILLING_PRODUCT_*` keys. */
+function validateBillingProducts(): ValidationResult[] {
+  return BILLING_PROCESSOR_PRODUCT_ENV_KEYS.map((key) =>
+    validateOptional(key, 'Billing products', 'Skipped - processor left unmapped')
+  );
 }
 
 /** Category: ORM/Database */
@@ -620,6 +650,12 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   }
   if (categories.has(CATEGORY_IMAGE_SHRINK)) {
     results.push(...validateImageShrink());
+  }
+  if (categories.has(CATEGORY_BILLING)) {
+    results.push(...validateBillingProcessors());
+  }
+  if (commandName === 'billingSeedProcessorProductsFromEnv') {
+    results.push(...validateBillingProducts());
   }
 
   results.push(...validateObservability());

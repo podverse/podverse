@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.description    = 'Native playback transport for the Podverse next-generation mobile app. Owns the single process-wide AVPlayer for phone, lock screen, and future CarPlay now-playing. See ../README.md.'
   s.author         = 'Podverse'
   s.homepage       = 'https://podverse.fm'
-  s.platforms      = { :ios => '15.1' }
+  s.platforms      = { :ios => '16.4' }
   s.source         = { git: '' }
   s.static_framework = true
 

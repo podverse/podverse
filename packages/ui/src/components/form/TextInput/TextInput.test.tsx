@@ -94,7 +94,7 @@ describe('TextInput', () => {
   it('renders the eyebrow above the bordered control when eyebrowPlacement is field', () => {
     const { container } = render(
       <TextInput
-        eyebrow="Start time (seconds)"
+        eyebrow="Start Time (Seconds)"
         eyebrowPlacement="field"
         name="start_time"
         value="0"
@@ -110,7 +110,7 @@ describe('TextInput', () => {
 
     const root = container.querySelector(`.${rootClass}`) as HTMLElement | null;
     const wrapper = container.querySelector(`.${wrapperClass}`) as HTMLElement | null;
-    const label = screen.getByText('Start time (seconds)');
+    const label = screen.getByText('Start Time (Seconds)');
 
     expect(root).not.toBeNull();
     expect(wrapper).not.toBeNull();

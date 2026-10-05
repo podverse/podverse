@@ -155,7 +155,7 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
             eyebrow={t('authentication.email')}
             keyboardType="email-address"
             onChangeText={setEmail}
-            placeholder={t('authentication.email')}
+            placeholder={t('authentication.email_example')}
             testID="signup-email"
             value={email}
           />
@@ -165,7 +165,7 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
             autoCorrect={false}
             eyebrow={t('authentication.password')}
             onChangeText={setPassword}
-            placeholder={t('authentication.password')}
+            placeholder={t('authentication.password_hint')}
             secureTextEntry={!isE2e}
             testID="signup-password"
             value={password}
@@ -176,7 +176,7 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
             autoCorrect={false}
             eyebrow={t('authentication.confirm_password')}
             onChangeText={setPasswordConfirm}
-            placeholder={t('authentication.password')}
+            placeholder={t('authentication.password_hint')}
             secureTextEntry={!isE2e}
             testID="signup-password-confirm"
             value={passwordConfirm}

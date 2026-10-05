@@ -14,19 +14,16 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import type { AccountAppStorePurchase } from './accountAppStorePurchase.js';
 import type { AccountFCMDevice } from './accountFCMDevice.js';
 import type { AccountFollowingAccount } from './accountFollowingAccount.js';
 import type { AccountFollowingAddByRSSChannel } from './accountFollowingAddByRSSChannel.js';
 import type { AccountFollowingChannel } from './accountFollowingChannel.js';
 import type { AccountFollowingPlaylist } from './accountFollowingPlaylist.js';
-import type { AccountGooglePlayPurchase } from './accountGooglePlayPurchase.js';
 import type { AccountMembershipStatus } from './accountMembershipStatus.js';
 import type { AccountMetaboost } from './accountMetaboost.js';
 import type { AccountNotification } from './accountNotification.js';
 import type { AccountNotificationChannel } from './accountNotificationChannel.js';
 import type { AccountNotificationPreference } from './accountNotificationPreference.js';
-import type { AccountPayPalOrder } from './accountPayPalOrder.js';
 import type { AccountPendingFollowingChannel } from './accountPendingFollowingChannel.js';
 import type { AccountProfile } from './accountProfile.js';
 import type { AccountResetPassword } from './accountResetPassword.js';
@@ -63,12 +60,6 @@ export class Account {
   */
   @Column({ name: 'sharable_status_id', type: 'int', nullable: true })
   sharable_status_id?: number | null;
-
-  @OneToMany(
-    'AccountAppStorePurchase',
-    (accountAppStorePurchase: AccountAppStorePurchase) => accountAppStorePurchase.account
-  )
-  account_app_store_purchases!: AccountAppStorePurchase[];
 
   @OneToOne(
     'AccountCredentials',
@@ -111,12 +102,6 @@ export class Account {
   )
   account_pending_following_channels!: AccountPendingFollowingChannel[];
 
-  @OneToMany(
-    'AccountGooglePlayPurchase',
-    (accountGooglePlayPurchase: AccountGooglePlayPurchase) => accountGooglePlayPurchase.account
-  )
-  account_google_play_purchases!: AccountGooglePlayPurchase[];
-
   @OneToOne(
     'AccountMembershipStatus',
     (accountMembershipStatus: AccountMembershipStatus) => accountMembershipStatus.account
@@ -151,12 +136,6 @@ export class Account {
   )
   account_notification_preferences!: AccountNotificationPreference[];
 
-  @OneToMany(
-    'AccountPayPalOrder',
-    (accountPayPalOrder: AccountPayPalOrder) => accountPayPalOrder.account
-  )
-  account_paypal_orders!: AccountPayPalOrder[];
-
   @OneToOne('AccountProfile', (accountProfile: AccountProfile) => accountProfile.account)
   account_profile!: AccountProfile;
 
@@ -185,6 +164,9 @@ export class Account {
     (accountVerification: AccountVerification) => accountVerification.account
   )
   account_verification!: AccountVerification;
+
+  @Column({ type: 'uuid', unique: true })
+  billing_customer_ref!: string;
 
   @BeforeInsert()
   generateIdText() {

@@ -23,7 +23,7 @@ describe('buildEmbedIframeCode', () => {
     const code = buildEmbedIframeCode('https://example.test/embed/episode/demo-item');
 
     expect(code).toBe(
-      `<iframe width="100%" height="${DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT}" frameborder="0" allow="${EMBED_IFRAME_ALLOW}" title="Embed player" style="box-sizing:border-box;border:${EMBED_IFRAME_BORDER_STYLE}" src="https://example.test/embed/episode/demo-item"></iframe>`
+      `<iframe width="100%" height="${DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT}" frameborder="0" allow="${EMBED_IFRAME_ALLOW}" title="Embed Player" style="box-sizing:border-box;border:${EMBED_IFRAME_BORDER_STYLE}" src="https://example.test/embed/episode/demo-item"></iframe>`
     );
     expect(code).not.toContain('\n');
   });

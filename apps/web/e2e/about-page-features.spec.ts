@@ -12,14 +12,14 @@ test.describe('Web about page membership features', () => {
     await expect(page.getByRole('columnheader', { name: 'Free' })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: 'Premium' })).toBeVisible();
 
-    const videoPlayback = page.getByText('Video playback', { exact: true });
+    const videoPlayback = page.getByText('Video Playback', { exact: true });
     await expect(videoPlayback).toBeVisible();
     await expect(page.getByText('CarPlay*', { exact: true })).toBeVisible();
     await expect(page.getByText('Android Auto*', { exact: true })).toBeVisible();
     await expect(page.getByText('Streaming (Value for Value)', { exact: true })).toHaveCount(0);
-    await expect(page.getByText('Coming soon')).toHaveCount(0);
+    await expect(page.getByText('Coming Soon')).toHaveCount(0);
 
-    const trialLimitations = page.getByText('Trial limitations', { exact: true });
+    const trialLimitations = page.getByText('Trial Limitations', { exact: true });
     await expect(trialLimitations).toBeVisible();
 
     const trialSummary = page.getByText(

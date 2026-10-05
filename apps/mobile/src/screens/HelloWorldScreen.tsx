@@ -98,15 +98,16 @@ export function HelloWorldScreen({
     }
 
     let isCancelled = false;
-    const abortController = new AbortController();
     const timeoutId = setTimeout(() => {
-      abortController.abort();
+      if (!isCancelled) {
+        setApiHealthStatus('error');
+      }
     }, 5000);
 
     setApiHealthStatus('loading');
     // Intentional smoke probe: this endpoint is unauthenticated, and apiBaseUrl already includes
     // /api/<version> from getMobileConfig().api, so this screen can call fetch directly.
-    void fetch(`${apiBaseUrl}/health`, { signal: abortController.signal })
+    void fetch(`${apiBaseUrl}/health`)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Unexpected status ${response.status}`);
@@ -127,7 +128,6 @@ export function HelloWorldScreen({
     return () => {
       isCancelled = true;
       clearTimeout(timeoutId);
-      abortController.abort();
     };
   }, [apiBaseUrl]);
 

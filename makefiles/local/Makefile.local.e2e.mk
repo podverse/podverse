@@ -5,7 +5,7 @@
 .PHONY: e2e_deps e2e_seed e2e_seed_web e2e_seed_management_web e2e_build_packages
 .PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
 .PHONY: e2e_test_management_web_storage_enabled
-.PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_web_custom_themes_report e2e_test_management_web_report_spec e2e_test_report_scoped
+.PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_web_paypal_sandbox e2e_test_web_custom_themes_report e2e_test_management_web_report_spec e2e_test_report_scoped
 .PHONY: mobile_e2e_deps mobile_e2e_seed mobile_e2e_api mobile_e2e_api_bg mobile_e2e_api_stop mobile_e2e_api_health mobile_e2e_api_status mobile_e2e_test_assets mobile_e2e_test_assets_bg mobile_e2e_test_assets_stop mobile_e2e_test_assets_health mobile_e2e_test_assets_status mobile_e2e_test mobile_e2e_test_all mobile_e2e_test_report_spec
 .PHONY: e2e_teardown
 
@@ -83,6 +83,8 @@ e2e_test: e2e_deps e2e_seed
 	@echo "=== Full E2E suite ==="
 	@exit_code=0; \
 	npm run test -w apps/api && npm run test -w apps/management-api || exit_code=$$?; \
+	echo "--- Reseed web E2E data after API tests ---"; \
+	EMBED_DEMO_WEB_ORIGIN=http://localhost:4032 node tools/web/seed-e2e.mjs || exit_code=$$?; \
 	npm run test:e2e -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
@@ -116,6 +118,8 @@ e2e_test_report: e2e_build_packages e2e_deps e2e_seed
 	exit_code=0; \
 	echo "--- API integration tests ---"; \
 	npm run test -w apps/api && npm run test -w apps/management-api || exit_code=$$?; \
+	echo "--- Reseed web E2E data after API tests ---"; \
+	EMBED_DEMO_WEB_ORIGIN=http://localhost:4032 node tools/web/seed-e2e.mjs || exit_code=$$?; \
 	echo "--- Web E2E report ---"; \
 	E2E_SPEC_ORDER="$(E2E_SPEC_ORDER_WEB)" \
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT" \
@@ -225,6 +229,14 @@ e2e_test_web_report_spec: e2e_build_packages e2e_deps e2e_seed_web
 	fi; \
 	echo "E2E report hub: $$REPORT_BASE/index.html"; \
 	echo "E2E report: $$WEB_REPORT/index.html"
+
+# Opt-in PayPal sandbox renewal. Not a dependency of e2e_test or e2e_test_report.
+e2e_test_web_paypal_sandbox: e2e_build_packages
+	@BILLING_E2E_ENV="dev/env-overrides/local/billing-e2e.env"; \
+	if [ -f "$$BILLING_E2E_ENV" ]; then \
+		set -a; . "$$BILLING_E2E_ENV"; set +a; \
+	fi; \
+	BILLING_PAYPAL_ENABLED=true E2E_PAYPAL_SANDBOX=1 npm run test:e2e:paypal-sandbox -w @podverse/web -- --reporter=list
 
 # Custom themes E2E (native / remote / combo) with separate HTML reports
 e2e_test_web_custom_themes_report: e2e_build_packages e2e_deps e2e_seed_web

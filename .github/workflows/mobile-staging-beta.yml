@@ -55,4 +55,5 @@ jobs:
             echo "::warning::apps/mobile/eas.json not present yet; skipping until profiles land."
             exit 0
           fi
-          eas build --non-interactive --profile beta --platform all --no-wait --cwd apps/mobile
+          cd apps/mobile
+          eas build --non-interactive --profile beta --platform all --no-wait

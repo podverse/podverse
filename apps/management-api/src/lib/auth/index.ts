@@ -131,6 +131,10 @@ function mapAdminToAuthenticatedUser(admin: AdminAccount): AuthenticatedAdmin | 
           bucket_crud: admin.permissions.bucketCrud,
           embed_demo_crud: admin.permissions.embedDemoCrud,
           notifications_crud: admin.permissions.notificationsCrud,
+          billing_channels_crud: admin.permissions.billingChannelsCrud,
+          billing_processor_products_crud: admin.permissions.billingProcessorProductsCrud,
+          billing_account_crud: admin.permissions.billingAccountCrud,
+          billing_webhook_events_crud: admin.permissions.billingWebhookEventsCrud,
         }
       : null,
   };

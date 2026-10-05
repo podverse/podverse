@@ -168,30 +168,23 @@ File: `migration-COPY-PASTA.md` (or `COPY-PASTA.md` in a plan set)
 **`Reasoning:`** (`low` | `medium` | `high` | `extra high`) **outside** the fenced paste block —
 in the heading / checklist prose the operator reads before copying. The model and thinking depth
 are selected in the **Cursor UI**, not by text the agent reads; lines inside the paste fence do
-nothing useful. Reasoning is thinking depth for that model (not the model name); defaults like
-Codex 5.3 + medium or Opus 5 + high are fine — use lower when work is mechanical, higher when
-schema/workers/cross-package risk warrants it.
+nothing useful. Reasoning is thinking depth for that model (not the model name).
 
-Prefer these model tiers (cheapest → premium):
-
-| Model | Use when |
-| ----- | -------- |
-| **cursor-grok-4.6-high-fast** | Mechanical transcription, simple config/docs, operator-only steps, low-risk edits |
-| **Codex 5.3** | Standard feature work, mirroring existing patterns, CI/E2E scaffolding, most RN/web tasks |
-| **Opus 5** | Native/engine work, cross-cutting architecture, assembly, store safety, playback parity |
-
-Auto remains available in Cursor. Prefer cursor-grok-4.6-high-fast as the default low-cost choice,
-and use Auto only when there is a specific reason to do so.
+**Eligible models and how to choose:** the table in **copy-pasta-recommend-model** is the only
+source. In short: **Opus 5.5** > **Codex 5.3** > **Cursor Grok 4.7** by cost; default to Cursor
+Grok 4.7 and move up only for sensitive or complex work (open design, money / entitlement / auth
+correctness, destructive migrations, native work, concurrency). Do not recommend Auto or any
+other model.
 
 | Reasoning | Use when |
 | --------- | -------- |
-| **low** | Copy-paste docs, checkbox updates, trivial renames |
-| **medium** | Standard CRUD/UI following existing patterns |
-| **high** | New schema, workers, multi-package refactors, subtle auth/gating |
-| **extra high** | Rare: concurrency, billing/safety-critical, large ambiguous design |
+| **low** | Checkbox updates, trivial renames |
+| **medium** | Docs, mechanical edits, archiving |
+| **high** | Feature work; default for all three models |
+| **extra high** | Cursor Grok 4.7 on a moderately tricky prompt; Opus 5.5 on billing, concurrency, or safety-critical design |
 
-Use **one row per prompt** (or a summary table at phase top + per-prompt lines). If none of the
-three models fit, name the alternative model and one sentence why (e.g. a specialized subagent).
+Put a **phase-level summary table** (prompt, model, reasoning, why) at the top of COPY-PASTA so the
+operator sees the whole mix at once, plus the per-prompt line above each fence.
 
 **Operator steps stay outside the paste.** The fence is only work the agent can finish in that
 turn. A person switching Metro, installing a device, or tapping a screen is checklist prose above
@@ -204,8 +197,7 @@ Example per prompt (model/reasoning **outside** the fence):
 ```markdown
 - [ ] **Prompt 3** complete
 
-**Cursor model:** Codex 5.3
-**Reasoning:** high
+**Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
 \`\`\`
 Read and execute .llm/plans/active/feature/migration-03.md
@@ -240,8 +232,7 @@ Structure:
 
 ### Agent 1: Critical Fix
 
-**Cursor model:** Opus 5
-**Reasoning:** high
+**Cursor model:** Opus 5.5 · **Reasoning:** high
 
 \`\`\`
 Read and execute .llm/plans/active/feature/migration-06-critical.md
@@ -257,8 +248,7 @@ Verify: [quick verification command]
 
 ### Agent 2A: Group A
 
-**Cursor model:** cursor-grok-4.6-high-fast
-**Reasoning:** low
+**Cursor model:** Cursor Grok 4.7 · **Reasoning:** medium
 
 \`\`\`
 Read and execute .llm/plans/active/feature/migration-08-group-a.md
@@ -268,8 +258,7 @@ Read and execute .llm/plans/active/feature/migration-08-group-a.md
 
 ### Agent 2B: Group B
 
-**Cursor model:** Codex 5.3
-**Reasoning:** medium
+**Cursor model:** Codex 5.3 · **Reasoning:** high
 
 \`\`\`
 Read and execute .llm/plans/active/feature/migration-09-group-b.md
@@ -292,7 +281,7 @@ Read and execute .llm/plans/active/feature/migration-09-group-b.md
 - Agent labels: "Agent 2A", "Agent 2B" for easy reference
 - Parallel indicators: "(Execute in Parallel - 4 Agents)"
 - **Recommended Cursor model** and **Reasoning** on every prompt, **outside** the paste fence
-  (cursor-grok-4.6-high-fast, Codex 5.3, or Opus 5 preferred; selected in the Cursor UI)
+  (eligible models per **copy-pasta-recommend-model**; selected in the Cursor UI)
 
 ## Efficiency Metrics
 

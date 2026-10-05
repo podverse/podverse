@@ -223,6 +223,7 @@ Every phone `<area>` you can pass. Each line is one top-level file under
 ```bash
 npm run mobile:e2e:test -- --platform ios add-by-rss
 npm run mobile:e2e:test -- --platform ios add-by-rss-credentials
+npm run mobile:e2e:test -- --platform ios about
 npm run mobile:e2e:test -- --platform ios album
 npm run mobile:e2e:test -- --platform ios api-health
 npm run mobile:e2e:test -- --platform ios artist
@@ -242,6 +243,7 @@ npm run mobile:e2e:test -- --platform ios library-downloads
 npm run mobile:e2e:test -- --platform ios library-playlists
 npm run mobile:e2e:test -- --platform ios locale-switch-home-smoke
 npm run mobile:e2e:test -- --platform ios make-clip
+npm run mobile:e2e:test -- --platform ios membership-checkout
 npm run mobile:e2e:test -- --platform ios membership-gate
 npm run mobile:e2e:test -- --platform ios notifications-inbox
 npm run mobile:e2e:test -- --platform ios offline-mode
@@ -274,6 +276,7 @@ npm run mobile:e2e:test -- --platform ios video-transition
 ```bash
 npm run mobile:e2e:test -- --platform android add-by-rss
 npm run mobile:e2e:test -- --platform android add-by-rss-credentials
+npm run mobile:e2e:test -- --platform android about
 npm run mobile:e2e:test -- --platform android album
 npm run mobile:e2e:test -- --platform android api-health
 npm run mobile:e2e:test -- --platform android artist
@@ -293,6 +296,7 @@ npm run mobile:e2e:test -- --platform android library-downloads
 npm run mobile:e2e:test -- --platform android library-playlists
 npm run mobile:e2e:test -- --platform android locale-switch-home-smoke
 npm run mobile:e2e:test -- --platform android make-clip
+npm run mobile:e2e:test -- --platform android membership-checkout
 npm run mobile:e2e:test -- --platform android membership-gate
 npm run mobile:e2e:test -- --platform android notifications-inbox
 npm run mobile:e2e:test -- --platform android offline-mode
@@ -402,7 +406,11 @@ Seeded login: `e2e-user@example.com` / `Test!1Aa`. Authenticated flows sign in t
 (`__DEV__` and `EXPO_PUBLIC_MOBILE_E2E=1`) and skips the form. `auth-login` is the flow
 that still walks the form (`shared/login-seeded-user-ui.yaml`).
 
+`membership-checkout` signs in and buys through the fake billing client (`__DEV__` and
+`EXPO_PUBLIC_MOBILE_E2E=1`); a release build does not select that client.
+
 ```bash
+npm run mobile:e2e:test -- about
 npm run mobile:e2e:test -- album
 npm run mobile:e2e:test -- api-health
 npm run mobile:e2e:test -- artist
@@ -414,6 +422,7 @@ npm run mobile:e2e:test -- detail-sort-prefs
 npm run mobile:e2e:test -- home
 npm run mobile:e2e:test -- history-screen
 npm run mobile:e2e:test -- library-playlists
+npm run mobile:e2e:test -- membership-checkout
 npm run mobile:e2e:test -- notifications-inbox
 npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml

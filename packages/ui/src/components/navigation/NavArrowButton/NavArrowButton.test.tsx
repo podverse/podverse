@@ -10,8 +10,8 @@ afterEach(() => {
 describe('NavArrowButton', () => {
   it('renders with aria-label', () => {
     const onClick = vi.fn();
-    render(<NavArrowButton ariaLabel="Previous page" direction="left" onClick={onClick} />);
+    render(<NavArrowButton ariaLabel="Previous Page" direction="left" onClick={onClick} />);
 
-    expect(screen.getByRole('button', { name: 'Previous page' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Previous Page' })).toBeTruthy();
   });
 });
