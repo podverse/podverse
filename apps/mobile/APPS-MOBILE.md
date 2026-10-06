@@ -276,6 +276,24 @@ Do **not** wrap `mobile:ios` / `mobile:android` with `./scripts/nix/with-env`. T
 internally (see § Native builds and the `-index-store-path` clang error); they only need `node` on
 PATH, which direnv already provides.
 
+### Play Store bundle (EAS)
+
+The `.aab` for a Play Console testing track is built in the EAS cloud, not locally. The targets
+wrap [`scripts/mobile/eas-android.sh`](../../scripts/mobile/eas-android.sh) and default to the
+`beta` profile (`PROFILE=production` for the other store profile):
+
+```bash
+make mobile_eas_android_build     # build, wait, download to .artifacts/mobile-builds/
+make mobile_eas_android_download  # newest finished build (BUILD_ID=<id> for one build)
+make mobile_eas_android_submit    # upload it as a Play draft (ROLLOUT=1 publishes to the track)
+make mobile_eas_android_list      # recent builds: versionCode, SDK, commit
+make mobile_eas_android_version   # remote versionCode the next build increments
+```
+
+`build` and `submit` show what they will do and ask first; a rollout also asks you to type the
+versionCode. EAS must be logged in to the `podverse` account (`npx eas-cli@latest login` from `apps/mobile`).
+Play upload steps: [BILLING-GOOGLE-PLAY-SANDBOX.md](../../docs/billing/BILLING-GOOGLE-PLAY-SANDBOX.md#app-on-a-testing-track).
+
 ## Native toolchain prerequisites (outside Nix)
 
 Install on the host machine (not provided by the repo flake):

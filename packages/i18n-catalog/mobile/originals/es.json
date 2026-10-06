@@ -58,7 +58,6 @@
       "dismiss": "Descartar",
       "in_progress_count": "{count} en curso",
       "auto_download": "Descargar automáticamente los episodios nuevos",
-      "auto_download_unavailable": "La descarga automática aún no está disponible.",
       "paused": "En pausa",
       "pause_all": "Pausar todo",
       "resume_all": "Reanudar todo",
@@ -66,7 +65,16 @@
       "section_in_progress": "En curso",
       "section_failed": "Fallidas",
       "section_completed": "Completadas",
-      "activity_progress": "Descargando {active} de {total}"
+      "activity_progress": "Descargando {active} de {total}",
+      "auto_download_help": "Si está activada, los episodios nuevos de los podcasts con descarga automática se descargan en segundo plano.",
+      "auto_download_cellular": "Descargar por datos móviles",
+      "auto_download_cellular_help": "Si está desactivada, la descarga automática espera al Wi‑Fi. Activarla usa tu plan de datos.",
+      "auto_download_apply_title": "¿Actualizar los podcasts existentes?",
+      "auto_download_apply_body": "¿Aplicar esto a los {count} podcasts a los que estás suscrito o solo a los que te suscribas más adelante?",
+      "auto_download_apply_all": "Aplicar a todos",
+      "auto_download_apply_new_only": "Solo suscripciones nuevas",
+      "auto_download_cellular_apply_title": "¿Actualizar los podcasts con descarga automática?",
+      "auto_download_cellular_apply_body": "¿Aplicar este ajuste de datos móviles a los {count} podcasts con descarga automática o solo a los que actives más adelante?"
     },
     "search": {
       "add_podcast": "Añadir podcast",
@@ -74,6 +82,10 @@
       "not_available_yet": "Este podcast aún no está en nuestro directorio. Añádelo para que esté disponible.",
       "add_failed": "No se pudo añadir este podcast. Inténtalo de nuevo más tarde.",
       "add_timed_out": "Aún se está procesando tras varios minutos. Vuelve a buscar en breve para abrir este podcast — añadir no te suscribe automáticamente."
+    },
+    "add_by_rss": {
+      "credentials_mobile_media_note": "Esta app los envía con el audio, el vídeo y las portadas solo cuando esos archivos están en el mismo sitio que el feed.",
+      "credentials_remove_feed_confirm": "¿Quitar este feed? También se borran de este dispositivo el usuario y la contraseña."
     }
   },
   "notifications": {
@@ -108,10 +120,10 @@
       "cache": "Caché",
       "limit_label": "Límite de descargas",
       "unlimited": "Ilimitado",
+      "auto_free_heading": "Liberar espacio automáticamente",
       "auto_download_catch_up_label": "Límite de puesta al día",
       "auto_download_catch_up_description": "Tras cerrar la app, la descarga automática conserva solo los episodios más recientes de todos tus pódcasts y omite el resto de esa puesta al día. Los episodios que llegan con la app abierta no tienen este límite.",
       "auto_download_catch_up_count": "{count} episodios",
-      "auto_free_heading": "Liberar espacio automáticamente",
       "auto_delete_on_limit": "Cuando se alcanza mi límite de descargas",
       "auto_delete_on_limit_description": "Elimina primero las descargas finalizadas más antiguas hasta volver a estar por debajo del límite.",
       "auto_delete_on_device_low": "Cuando el teléfono tiene poco espacio libre",
@@ -120,7 +132,18 @@
       "delete_all_description": "Elimina de forma permanente los archivos multimedia locales y las entradas del índice de descargas en este dispositivo. No se puede deshacer.",
       "delete_all": "Eliminar todo",
       "delete_all_confirm_title": "¿Eliminar todas las descargas?",
-      "delete_all_confirm_body": "Esto elimina todos los archivos de descarga locales y los quita de la lista Descargas. Habrá que volver a descargar los episodios para reproducirlos sin conexión."
+      "delete_all_confirm_body": "Esto elimina todos los archivos de descarga locales y los quita de la lista Descargas. Habrá que volver a descargar los episodios para reproducirlos sin conexión.",
+      "auto_download_heading": "Descarga automática",
+      "auto_download_default": "Descarga automática en suscripciones nuevas",
+      "auto_download_default_description": "Si está activada, los podcasts a los que te suscribes empiezan con descarga automática. Puedes cambiarlo en los ajustes de cada podcast.",
+      "auto_download_cellular_default": "Descargar por datos móviles de forma predeterminada",
+      "auto_download_cellular_default_description": "Si está desactivada, la descarga automática espera al Wi‑Fi. Los podcasts nuevos con descarga automática heredan esta opción.",
+      "auto_download_apply_title": "¿Actualizar los podcasts existentes?",
+      "auto_download_apply_body": "¿Aplicar esto a los {count} podcasts a los que estás suscrito o solo a los que te suscribas más adelante?",
+      "auto_download_apply_all": "Aplicar a todos",
+      "auto_download_apply_new_only": "Solo suscripciones nuevas",
+      "auto_download_cellular_apply_title": "¿Actualizar los podcasts con descarga automática?",
+      "auto_download_cellular_apply_body": "¿Aplicar este ajuste de datos móviles a los {count} podcasts con descarga automática o solo a los que actives más adelante?"
     },
     "notifications": {
       "login_required_title": "Inicio de sesión necesario",
@@ -171,23 +194,10 @@
       "seen_state": "Actualizando las novedades",
       "live_status": "Comprobando qué está en directo",
       "clips": "Actualizando tus clips",
-      "home_feed": "Lectura de Inicio en este dispositivo"
+      "home_feed": "Lectura de Inicio en este dispositivo",
+      "auto_download": "Descargando episodios nuevos"
     },
-    "progress": "{completed} de {total}",
-    "log": {
-      "title": "Registro de sincronización",
-      "intro": "Problemas registrados en este dispositivo al sincronizar o al leer Inicio desde la caché. Compártelo con el soporte si tus podcasts, listas de reproducción, cola o lista de Inicio dejan de actualizarse.",
-      "empty": "No se han registrado problemas de sincronización",
-      "export": "Compartir",
-      "clear": "Borrar",
-      "clear_confirm_title": "¿Borrar el registro de sincronización?",
-      "clear_confirm_body": "Esto elimina todas las entradas registradas en este dispositivo.",
-      "outcome_failure": "Error",
-      "outcome_reconciled": "Eliminado",
-      "outcome_skipped": "Omitido: sin conexión",
-      "outcome_success": "Correcto",
-      "directory_channel_gone": "Se eliminó {channel} de este dispositivo. Ya no está en el directorio."
-    }
+    "progress": "{completed} de {total}"
   },
   "error_log": {
     "intro": "Abre una entrada y toca Enviar detalles por correo para enviar el informe a {email}. Copiar detalles copia el mismo informe.",
@@ -207,7 +217,61 @@
         "runtime": "Entorno",
         "locale": "Configuración regional",
         "screen": "Pantalla"
+      },
+      "title": "Detalles del error",
+      "not_found": "Esta entrada ya no está en el registro de errores",
+      "copied": "Copiado",
+      "copy_failed": "No se pudo copiar",
+      "time": "Hora (UTC)",
+      "code": "Código",
+      "message": "Mensaje",
+      "hosted_media_note": "Podverse no aloja el contenido. Los podcasters y artistas alojan sus propios archivos y feeds RSS, así que un error de su servidor puede tener que resolverlo ellos.",
+      "field": {
+        "http_status": "Estado HTTP",
+        "media_url": "URL del contenido",
+        "engine_url": "URL del reproductor",
+        "feed_url": "URL del feed RSS",
+        "item_title": "Episodio o pista",
+        "channel_title": "Podcast, álbum o artista",
+        "item_id_text": "ID del elemento",
+        "channel_id_text": "ID del canal",
+        "clip_id_text": "ID del clip",
+        "soundbite_id_text": "ID del fragmento",
+        "chapter_id_text": "ID del capítulo",
+        "add_by_rss_id_text": "ID de elemento añadido por RSS",
+        "item_guid": "GUID del elemento",
+        "resource_kind": "Tipo de recurso",
+        "source": "Origen",
+        "position_seconds": "Posición (segundos)",
+        "error_kind": "Tipo de error",
+        "native_code": "Código de error del reproductor",
+        "native_detail": "Detalle del error del reproductor",
+        "parse_status": "Estado del análisis",
+        "request_id": "ID de solicitud",
+        "basic_auth": "Usuario y contraseña del feed"
       }
+    },
+    "title": "Registro de errores",
+    "menu_subtitle": "Problemas de reproducción, feed RSS y sincronización registrados en este dispositivo",
+    "empty": "No hay errores registrados",
+    "export": "Compartir todo",
+    "clear": "Borrar",
+    "clear_confirm_title": "¿Borrar el registro de errores?",
+    "clear_confirm_body": "Esto elimina todas las entradas registradas en este dispositivo.",
+    "outcome_failure": "Error",
+    "outcome_reconciled": "Eliminado",
+    "outcome_skipped": "Omitido — sin conexión",
+    "outcome_success": "Correcto",
+    "directory_channel_gone": "Se eliminó {channel} de este dispositivo. Ya no está en el directorio.",
+    "row_a11y_hint": "Abre los detalles completos",
+    "saved_footnote": "Los detalles completos se guardan en Más › Avanzado › Registro de errores.",
+    "kind": {
+      "playback": "Reproducción"
+    },
+    "add_by_rss": {
+      "parse_failed_notice": "El feed se guardó, pero no se pudo leer. Los detalles están en Más › Avanzado › Registro de errores.",
+      "parse_pending_notice": "El feed se guardó y aún se está leyendo. Vuelve a comprobarlo pronto.",
+      "add_failed": "No se pudo añadir el feed. Los detalles están en Más › Avanzado › Registro de errores."
     }
   },
   "media_player": {
@@ -232,6 +296,18 @@
     "download_no_storage": "No hay suficiente espacio libre en este dispositivo. Libera espacio e inténtalo de nuevo.",
     "download_transfer_failed": "La descarga no terminó. Revisa tu conexión e inténtalo de nuevo.",
     "download_file_missing": "Falta el archivo descargado en este dispositivo.",
-    "download_unknown": "La descarga falló. Inténtalo de nuevo."
+    "download_unknown": "La descarga falló. Inténtalo de nuevo.",
+    "playback_host_http": "El servidor que aloja este contenido devolvió un error. Los podcasters y artistas alojan sus propios archivos, así que puede que tengan que arreglarlo.",
+    "playback_credentials_required": "El host de este feed pidió usuario y contraseña. Añádelos al feed en Añadir por RSS e inténtalo de nuevo.",
+    "playback_credentials_rejected": "El host de este feed no aceptó el usuario y la contraseña guardados. Actualízalos en Añadir por RSS e inténtalo de nuevo.",
+    "playback_credentials_withheld_other_domain": "Este contenido está en un sitio distinto al del feed, así que no se enviaron el usuario y la contraseña del feed.",
+    "playback_credentials_withheld_insecure": "Este contenido usa una dirección sin cifrar, así que no se enviaron el usuario y la contraseña del feed.",
+    "download_credentials_withheld": "Este archivo necesita el usuario y la contraseña del feed, y las descargas en este dispositivo no los envían. Aún puedes reproducirlo sin descargarlo."
+  },
+  "membership": {
+    "trial_limitations_missing_content": "Si tienes una membresía de prueba y falta contenido que te gustaría, escribe a {email} para pedir ayuda."
+  },
+  "more_advanced": {
+    "title": "Avanzado"
   }
 }

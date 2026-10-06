@@ -38,7 +38,7 @@
     },
     {
       "name": "Mobile",
-      "description": "One-shots: build:packages; make mobile_e2e_deps; make mobile_e2e_seed; mobile:e2e:api:health; mobile:e2e:test-assets:health; open reports. Not for Metro/API/test-assets (those block).",
+      "description": "One-shots: build:packages; make mobile_e2e_deps; make mobile_e2e_seed; mobile:e2e:api:health; mobile:e2e:test-assets:health; open reports; make mobile_eas_android_build|download|submit|list (Play .aab). Not for Metro/API/test-assets (those block).",
       "cwd": ".",
       "open": true,
       "command": "clear"

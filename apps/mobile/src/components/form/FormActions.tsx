@@ -19,15 +19,21 @@ export type FormAction = {
 export type FormActionsProps = {
   /**
    * Dismiss or secondary actions first, confirm or primary last. The last action renders on the
-   * right when more than one action shares the row.
+   * right when more than one action shares the row. `stacked` puts each action on its own row,
+   * with the first action on top.
    */
   actions: readonly FormAction[];
+  stacked?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 };
 
 const createStyles = ({ tokens }: ThemedStylesTheme) =>
   StyleSheet.create({
+    column: {
+      flexDirection: 'column',
+      gap: tokens.spacing.md,
+    },
     row: {
       flexDirection: 'row',
       gap: tokens.spacing.md,
@@ -55,9 +61,9 @@ function FormActionButton({ action }: { action: FormAction }) {
 
 /**
  * Form decisions. One action stretches across the row. Two or more share the width equally, with
- * the confirm action last.
+ * the confirm action last, unless `stacked` is set.
  */
-export function FormActions({ actions, style, testID }: FormActionsProps) {
+export function FormActions({ actions, stacked = false, style, testID }: FormActionsProps) {
   const styles = useThemedStyles(createStyles);
   const onlyAction = actions.length === 1 ? actions[0] : undefined;
 
@@ -71,6 +77,16 @@ export function FormActions({ actions, style, testID }: FormActionsProps) {
 
   if (actions.length === 0) {
     return null;
+  }
+
+  if (stacked) {
+    return (
+      <View style={[styles.column, style]} testID={testID}>
+        {actions.map((action) => (
+          <FormActionButton action={action} key={action.testID} />
+        ))}
+      </View>
+    );
   }
 
   return (

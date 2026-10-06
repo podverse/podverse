@@ -6,12 +6,9 @@
   "type": "module",
   "scripts": {
     "i18n:compile": "ts-node --project tsconfig.scripts.json scripts/i18n-compile.ts",
-    "i18n:translate": "ts-node --project tsconfig.scripts.json scripts/i18n-translate.ts",
     "i18n:validate": "ts-node --project tsconfig.scripts.json scripts/i18n-validate.ts"
   },
   "devDependencies": {
-    "dotenv": "^18.0.3",
-    "openai": "^6.27.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }

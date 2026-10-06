@@ -58,7 +58,6 @@
       "dismiss": "Fermer",
       "in_progress_count": "{count} en cours",
       "auto_download": "Télécharger automatiquement les nouveaux épisodes",
-      "auto_download_unavailable": "Le téléchargement automatique n'est pas encore disponible.",
       "paused": "En pause",
       "pause_all": "Tout mettre en pause",
       "resume_all": "Tout reprendre",
@@ -66,7 +65,16 @@
       "section_in_progress": "En cours",
       "section_failed": "Échoués",
       "section_completed": "Terminés",
-      "activity_progress": "Téléchargement de {active} sur {total}"
+      "activity_progress": "Téléchargement de {active} sur {total}",
+      "auto_download_help": "Si l'option est activée, les nouveaux épisodes des podcasts avec téléchargement auto se téléchargent en arrière-plan.",
+      "auto_download_cellular": "Télécharger en données cellulaires",
+      "auto_download_cellular_help": "Si l'option est désactivée, le téléchargement auto attend le Wi‑Fi. L'activer utilise votre forfait mobile.",
+      "auto_download_apply_title": "Mettre à jour les podcasts existants ?",
+      "auto_download_apply_body": "Appliquer ceci aux {count} podcasts auxquels vous êtes abonné, ou seulement aux podcasts auxquels vous vous abonnerez plus tard ?",
+      "auto_download_apply_all": "Appliquer à tous",
+      "auto_download_apply_new_only": "Nouveaux abonnements seulement",
+      "auto_download_cellular_apply_title": "Mettre à jour les podcasts en téléchargement auto ?",
+      "auto_download_cellular_apply_body": "Appliquer ce réglage cellulaire aux {count} podcasts avec téléchargement auto, ou seulement à ceux que vous activerez plus tard ?"
     },
     "search": {
       "add_podcast": "Ajouter le podcast",
@@ -74,6 +82,10 @@
       "not_available_yet": "Ce podcast n’est pas encore dans notre annuaire. Ajoutez-le pour le rendre disponible.",
       "add_failed": "Impossible d’ajouter ce podcast. Réessayez plus tard.",
       "add_timed_out": "Traitement toujours en cours après plusieurs minutes. Recherchez à nouveau sous peu pour ouvrir ce podcast — l’ajout ne vous abonne pas automatiquement."
+    },
+    "add_by_rss": {
+      "credentials_mobile_media_note": "Cette app les envoie avec l'audio, la vidéo et les visuels seulement lorsque ces fichiers sont sur le même site que le flux.",
+      "credentials_remove_feed_confirm": "Retirer ce flux ? L'identifiant et le mot de passe sont aussi effacés de cet appareil."
     }
   },
   "notifications": {
@@ -108,10 +120,10 @@
       "cache": "Cache",
       "limit_label": "Limite de téléchargement",
       "unlimited": "Illimité",
+      "auto_free_heading": "Libérer de l'espace automatiquement",
       "auto_download_catch_up_label": "Limite de rattrapage",
       "auto_download_catch_up_description": "Après la fermeture de l'app, le téléchargement automatique ne conserve que les épisodes les plus récents de tous vos podcasts et ignore le reste de ce rattrapage. Les épisodes qui arrivent pendant que l'app est ouverte ne sont pas limités par ce réglage.",
       "auto_download_catch_up_count": "{count} épisodes",
-      "auto_free_heading": "Libérer de l'espace automatiquement",
       "auto_delete_on_limit": "Lorsque ma limite de téléchargement est atteinte",
       "auto_delete_on_limit_description": "Supprime d'abord les téléchargements terminés les plus anciens jusqu'à revenir sous la limite.",
       "auto_delete_on_device_low": "Lorsque le téléphone manque d'espace libre",
@@ -120,7 +132,18 @@
       "delete_all_description": "Supprime définitivement les fichiers multimédias locaux et les entrées d'index de téléchargement sur cet appareil. Cette action est irréversible.",
       "delete_all": "Tout supprimer",
       "delete_all_confirm_title": "Supprimer tous les téléchargements ?",
-      "delete_all_confirm_body": "Cela supprime tous les fichiers de téléchargement locaux et les retire de la liste Téléchargements. Les épisodes devront être téléchargés à nouveau pour une écoute hors ligne."
+      "delete_all_confirm_body": "Cela supprime tous les fichiers de téléchargement locaux et les retire de la liste Téléchargements. Les épisodes devront être téléchargés à nouveau pour une écoute hors ligne.",
+      "auto_download_heading": "Téléchargement automatique",
+      "auto_download_default": "Téléchargement auto pour les nouveaux abonnements",
+      "auto_download_default_description": "Si l'option est activée, les podcasts auxquels vous vous abonnez démarrent avec le téléchargement auto. Vous pouvez encore le changer dans les réglages de chaque podcast.",
+      "auto_download_cellular_default": "Télécharger en données cellulaires par défaut",
+      "auto_download_cellular_default_description": "Si l'option est désactivée, le téléchargement auto attend le Wi‑Fi. Les nouveaux podcasts en téléchargement auto héritent de ce choix.",
+      "auto_download_apply_title": "Mettre à jour les podcasts existants ?",
+      "auto_download_apply_body": "Appliquer ceci aux {count} podcasts auxquels vous êtes abonné, ou seulement aux podcasts auxquels vous vous abonnerez plus tard ?",
+      "auto_download_apply_all": "Appliquer à tous",
+      "auto_download_apply_new_only": "Nouveaux abonnements seulement",
+      "auto_download_cellular_apply_title": "Mettre à jour les podcasts en téléchargement auto ?",
+      "auto_download_cellular_apply_body": "Appliquer ce réglage cellulaire aux {count} podcasts avec téléchargement auto, ou seulement à ceux que vous activerez plus tard ?"
     },
     "notifications": {
       "login_required_title": "Connexion requise",
@@ -171,23 +194,10 @@
       "seen_state": "Mise à jour des nouveautés",
       "live_status": "Vérification des directs",
       "clips": "Mise à jour de vos extraits",
-      "home_feed": "Lecture de l'accueil depuis cet appareil"
+      "home_feed": "Lecture de l'accueil depuis cet appareil",
+      "auto_download": "Téléchargement des nouveaux épisodes"
     },
-    "progress": "{completed} sur {total}",
-    "log": {
-      "title": "Journal de synchronisation",
-      "intro": "Problèmes enregistrés sur cet appareil lors de la synchronisation ou de la lecture de l'accueil depuis le cache. Partagez-le avec l'assistance si vos podcasts, playlists, file d'attente ou liste d'accueil cessent de se mettre à jour.",
-      "empty": "Aucun problème de synchronisation enregistré",
-      "export": "Partager",
-      "clear": "Effacer",
-      "clear_confirm_title": "Effacer le journal de synchronisation ?",
-      "clear_confirm_body": "Cela supprime toutes les entrées enregistrées sur cet appareil.",
-      "outcome_failure": "Échec",
-      "outcome_reconciled": "Retiré",
-      "outcome_skipped": "Ignoré — hors ligne",
-      "outcome_success": "Réussi",
-      "directory_channel_gone": "Retiré {channel} de cet appareil. Il n'est plus dans le répertoire."
-    }
+    "progress": "{completed} sur {total}"
   },
   "error_log": {
     "intro": "Ouvrez une entrée, puis touchez Envoyer les détails par e-mail pour envoyer le rapport à {email}. Copier les détails copie le même rapport.",
@@ -207,7 +217,61 @@
         "runtime": "Environnement",
         "locale": "Paramètres régionaux",
         "screen": "Écran"
+      },
+      "title": "Détails de l'erreur",
+      "not_found": "Cette entrée n'est plus dans le journal d'erreurs",
+      "copied": "Copié",
+      "copy_failed": "Impossible de copier",
+      "time": "Heure (UTC)",
+      "code": "Code",
+      "message": "Message",
+      "hosted_media_note": "Podverse n'héberge pas les médias. Les podcasteurs et artistes hébergent leurs propres fichiers et flux RSS : une erreur de leur serveur peut devoir être corrigée par eux.",
+      "field": {
+        "http_status": "Statut HTTP",
+        "media_url": "URL du média",
+        "engine_url": "URL du lecteur",
+        "feed_url": "URL du flux RSS",
+        "item_title": "Épisode ou piste",
+        "channel_title": "Podcast, album ou artiste",
+        "item_id_text": "ID de l'élément",
+        "channel_id_text": "ID du canal",
+        "clip_id_text": "ID du clip",
+        "soundbite_id_text": "ID de l'extrait",
+        "chapter_id_text": "ID du chapitre",
+        "add_by_rss_id_text": "ID d'élément ajouté par RSS",
+        "item_guid": "GUID de l'élément",
+        "resource_kind": "Type de ressource",
+        "source": "Source",
+        "position_seconds": "Position (secondes)",
+        "error_kind": "Type d'erreur",
+        "native_code": "Code d'erreur du lecteur",
+        "native_detail": "Détail d'erreur du lecteur",
+        "parse_status": "Statut d'analyse",
+        "request_id": "ID de requête",
+        "basic_auth": "Identifiant et mot de passe du flux"
       }
+    },
+    "title": "Journal d'erreurs",
+    "menu_subtitle": "Problèmes de lecture, de flux RSS et de synchro enregistrés sur cet appareil",
+    "empty": "Aucune erreur enregistrée",
+    "export": "Tout partager",
+    "clear": "Effacer",
+    "clear_confirm_title": "Effacer le journal d'erreurs ?",
+    "clear_confirm_body": "Cela supprime toutes les entrées enregistrées sur cet appareil.",
+    "outcome_failure": "Échec",
+    "outcome_reconciled": "Supprimé",
+    "outcome_skipped": "Ignoré — hors ligne",
+    "outcome_success": "Réussi",
+    "directory_channel_gone": "{channel} a été retiré de cet appareil. Il n'est plus dans le répertoire.",
+    "row_a11y_hint": "Ouvre les détails complets",
+    "saved_footnote": "Les détails complets sont enregistrés dans Plus › Avancé › Journal d'erreurs.",
+    "kind": {
+      "playback": "Lecture"
+    },
+    "add_by_rss": {
+      "parse_failed_notice": "Le flux a été enregistré, mais n'a pas pu être lu. Les détails sont dans Plus › Avancé › Journal d'erreurs.",
+      "parse_pending_notice": "Le flux a été enregistré et est encore en cours de lecture. Revenez bientôt.",
+      "add_failed": "Le flux n'a pas pu être ajouté. Les détails sont dans Plus › Avancé › Journal d'erreurs."
     }
   },
   "media_player": {
@@ -232,6 +296,18 @@
     "download_no_storage": "Il n'y a pas assez d'espace libre sur cet appareil. Libérez de l'espace, puis réessayez.",
     "download_transfer_failed": "Le téléchargement ne s'est pas terminé. Vérifiez la connexion, puis réessayez.",
     "download_file_missing": "Le fichier téléchargé est absent de cet appareil.",
-    "download_unknown": "Le téléchargement a échoué. Réessayez."
+    "download_unknown": "Le téléchargement a échoué. Réessayez.",
+    "playback_host_http": "Le serveur qui héberge ce média a renvoyé une erreur. Les podcasteurs et artistes hébergent leurs propres fichiers : ils devront peut-être la corriger.",
+    "playback_credentials_required": "L'hôte de ce flux a demandé un identifiant et un mot de passe. Ajoutez-les au flux sous Ajouter par RSS, puis réessayez.",
+    "playback_credentials_rejected": "L'hôte de ce flux n'a pas accepté l'identifiant et le mot de passe enregistrés. Mettez-les à jour sous Ajouter par RSS, puis réessayez.",
+    "playback_credentials_withheld_other_domain": "Ce média est sur un autre site que le flux, donc l'identifiant et le mot de passe du flux ne lui ont pas été envoyés.",
+    "playback_credentials_withheld_insecure": "Ce média utilise une adresse non chiffrée, donc l'identifiant et le mot de passe du flux ne lui ont pas été envoyés.",
+    "download_credentials_withheld": "Ce fichier a besoin de l'identifiant et du mot de passe du flux, et les téléchargements sur cet appareil ne les envoient pas. Vous pouvez encore le lire sans le télécharger."
+  },
+  "membership": {
+    "trial_limitations_missing_content": "Si vous avez un abonnement d'essai et qu'il manque un contenu que vous aimeriez, contactez {email} pour obtenir de l'aide."
+  },
+  "more_advanced": {
+    "title": "Avancé"
   }
 }

@@ -25,7 +25,6 @@ Analyzes Next.js bundle sizes and generates interactive visualizations.
 
 - Automated Next.js production build analysis
 - Interactive HTML reports for server and client bundles
-- Report comparison with OpenAI-powered insights
 - Historical report tracking
 
 **Run**:
@@ -51,7 +50,6 @@ Automated Lighthouse performance testing with Playwright browser automation.
 - Automated test environment setup (database, API, web app, asset server)
 - Browser automation with Playwright
 - Lighthouse performance testing for multiple scenarios
-- Report comparison with OpenAI-powered insights
 - Test fixture management
 
 **Run**:
@@ -108,5 +106,4 @@ Both tools are standalone and do not require running services during setup. They
 ## Notes
 
 - Reports include timestamps and can be compared between runs
-- Both tools support OpenAI-powered summary generation (requires API key in `.env.openai`)
 - Tools are independent and can be run separately

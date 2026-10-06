@@ -1,8 +1,10 @@
 appId: com.podverse.app.next
 name: Membership Checkout
 ---
-# Signed-in store checkout uses the fake billing client. Auto-renew starts checked.
-# Purchase posts a test-processor payment, then the screen returns to Membership.
+# Signed-in store checkout uses the fake billing client. Stores sell auto-renew only.
+# Purchase posts a test-processor payment, then the screen returns to Membership, which shows
+# the renewal date. Reopening checkout while renewing shows a Current Plan badge, a switch-plan
+# dialog on the other cadence, and Cancel Auto-Renew.
 # API-backed. Re-seed so ios and android expose the test checkout channel.
 
 - runFlow: shared/launch-and-connect.yaml
@@ -37,8 +39,9 @@ name: Membership Checkout
     id: membership-checkout-restore
 - takeScreenshot: membership-checkout-troubleshooting
 - assertVisible:
-    id: membership-checkout-auto-renew
-    checked: true
+    id: membership-checkout-cancel-anytime
+- assertVisible:
+    id: membership-checkout-disclosure
 - tapOn:
     id: membership-extend-purchase
 - extendedWaitUntil:
@@ -47,4 +50,36 @@ name: Membership Checkout
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     id: more-membership-status
+- extendedWaitUntil:
+    visible:
+      id: more-membership-renews
+    timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: membership-checkout-active
+- tapOn:
+    id: more-membership-cta
+- extendedWaitUntil:
+    visible:
+      id: membership-extend-auto-renew-on
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: membership-extend-auto-renew-on
+    enabled: false
+- assertVisible:
+    id: membership-checkout-current-plan
+- tapOn:
+    id: membership-checkout-cadence-annual
+- assertVisible:
+    id: membership-checkout-switch-plan-modal
+- takeScreenshot: membership-checkout-switch-plan
+- tapOn:
+    id: membership-checkout-keep-plan
+- tapOn:
+    id: membership-checkout-cancel-auto-renew
+- assertVisible:
+    id: membership-checkout-cancel-auto-renew-modal
+- takeScreenshot: membership-checkout-cancel-auto-renew
+- tapOn:
+    id: membership-checkout-keep-auto-renew
+- assertVisible:
+    id: membership-extend-auto-renew-on
+    enabled: false

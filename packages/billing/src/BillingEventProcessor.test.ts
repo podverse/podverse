@@ -262,6 +262,18 @@ const PRODUCTS: ProductMapping[] = [
     externalBasePlanId: null,
     product: { id: 201, cadence: 'monthly', purchaseKind: 'auto_renew' },
   },
+  {
+    processorId: 'apple',
+    externalProductId: 'apple-annual',
+    externalBasePlanId: null,
+    product: { id: 202, cadence: 'annual', purchaseKind: 'auto_renew' },
+  },
+  {
+    processorId: 'google_play',
+    externalProductId: 'premium',
+    externalBasePlanId: 'monthly',
+    product: { id: 301, cadence: 'monthly', purchaseKind: 'auto_renew' },
+  },
 ];
 
 function createHarness(options?: { isProduction?: boolean; allowedAccountIds?: string[] }) {
@@ -503,6 +515,115 @@ describe('BillingEventProcessor', () => {
     expect(released?.startsAt.toISOString()).toBe('2026-02-11T00:00:00.000Z');
     expect(released?.endsAt.toISOString()).toBe('2026-03-04T00:00:00.000Z');
     expect(store.state.subscriptions[0]?.bankedSeconds).toBe(0);
+  });
+
+  it('moves banked time onto the subscription that replaced it', async () => {
+    const { store, processor } = createHarness();
+
+    await processor.ingestEvent(oneTimePayment());
+    await processor.ingestEvent({
+      type: 'payment_settled',
+      processor: 'google_play',
+      processorEventId: 'play-start',
+      accountBillingCustomerRef: ALICE.billingCustomerRef,
+      accountId: null,
+      occurredAt: '2026-01-11T00:00:00.000Z',
+      isSandbox: false,
+      purchaseKind: 'auto_renew',
+      externalTransactionId: 'play-txn-1',
+      externalSubscriptionId: 'old-token',
+      externalProductId: 'premium',
+      externalBasePlanId: 'monthly',
+      periodStart: '2026-01-11T00:00:00.000Z',
+      periodEnd: '2026-02-11T00:00:00.000Z',
+      amount: null,
+    });
+    expect(store.state.subscriptions[0]?.bankedSeconds).toBe(21 * 24 * 60 * 60);
+
+    await processor.ingestEvent({
+      type: 'subscription_activated',
+      processor: 'google_play',
+      processorEventId: 'play-replacement',
+      accountBillingCustomerRef: ALICE.billingCustomerRef,
+      accountId: null,
+      occurredAt: '2026-01-20T00:00:00.000Z',
+      isSandbox: false,
+      externalSubscriptionId: 'new-token',
+      externalProductId: 'premium',
+      externalBasePlanId: 'monthly',
+      periodStart: '2026-01-20T00:00:00.000Z',
+      periodEnd: '2026-02-20T00:00:00.000Z',
+    });
+    await processor.ingestEvent({
+      type: 'subscription_expired',
+      processor: 'google_play',
+      processorEventId: 'play-superseded',
+      accountBillingCustomerRef: ALICE.billingCustomerRef,
+      accountId: null,
+      occurredAt: '2026-01-20T00:00:00.000Z',
+      isSandbox: false,
+      externalSubscriptionId: 'old-token',
+      expiredAt: '2026-01-20T00:00:00.000Z',
+      replacedByExternalSubscriptionId: 'new-token',
+    });
+
+    const oldRow = store.state.subscriptions.find(
+      (row) => row.externalSubscriptionId === 'old-token'
+    );
+    const newRow = store.state.subscriptions.find(
+      (row) => row.externalSubscriptionId === 'new-token'
+    );
+    expect(oldRow?.status).toBe('expired');
+    expect(oldRow?.bankedSeconds).toBe(0);
+    expect(newRow?.bankedSeconds).toBe(21 * 24 * 60 * 60);
+    expect(
+      store
+        .grantsFor(ALICE.id)
+        .some((grant) => grant.subscriptionId !== null && grant.transactionId === null)
+    ).toBe(false);
+  });
+
+  it('updates the Apple product when a renewal names a different auto-renew product', async () => {
+    const { store, processor } = createHarness();
+
+    await processor.ingestEvent({
+      type: 'payment_settled',
+      processor: 'apple',
+      processorEventId: 'apple-start',
+      accountBillingCustomerRef: ALICE.billingCustomerRef,
+      accountId: null,
+      occurredAt: '2026-01-11T00:00:00.000Z',
+      isSandbox: false,
+      purchaseKind: 'auto_renew',
+      externalTransactionId: 'apple-txn-1',
+      externalSubscriptionId: 'orig-1',
+      externalProductId: 'apple-monthly',
+      externalBasePlanId: null,
+      periodStart: '2026-01-11T00:00:00.000Z',
+      periodEnd: '2026-02-11T00:00:00.000Z',
+      amount: null,
+    });
+    expect(store.state.subscriptions[0]?.processorProductId).toBe(201);
+
+    await processor.ingestEvent({
+      type: 'subscription_renewed',
+      processor: 'apple',
+      processorEventId: 'apple-renew-annual',
+      accountBillingCustomerRef: ALICE.billingCustomerRef,
+      accountId: null,
+      occurredAt: '2026-02-11T00:00:00.000Z',
+      isSandbox: false,
+      externalTransactionId: 'apple-txn-2',
+      externalSubscriptionId: 'orig-1',
+      externalProductId: 'apple-annual',
+      externalBasePlanId: null,
+      periodStart: '2026-02-11T00:00:00.000Z',
+      periodEnd: '2027-02-11T00:00:00.000Z',
+      amount: null,
+    });
+
+    expect(store.state.subscriptions).toHaveLength(1);
+    expect(store.state.subscriptions[0]?.processorProductId).toBe(202);
   });
 
   it('banks remaining free-trial time when a store subscription starts', async () => {

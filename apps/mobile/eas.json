@@ -46,8 +46,17 @@
   },
   "submit": {
     "beta": {
-      "android": {},
+      "android": {
+        "releaseStatus": "draft",
+        "track": "internal"
+      },
       "ios": {}
+    },
+    "beta-rollout": {
+      "android": {
+        "releaseStatus": "completed",
+        "track": "internal"
+      }
     },
     "production": {
       "android": {},

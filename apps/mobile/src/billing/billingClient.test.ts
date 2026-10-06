@@ -13,7 +13,7 @@ import {
 } from './fakeBillingClient';
 import { listStorePrices, localizedPricesFromStoreProducts } from './localizedPrices';
 import { normalizeStorefrontCode } from './normalizeStorefront';
-import { normalizeStorePurchase } from './normalizeStorePurchase';
+import { isPurchaseFromStore, normalizeStorePurchase } from './normalizeStorePurchase';
 import { mergeCatalogKinds } from './purchaseKinds';
 import { restoreStorePurchases } from './restoreStorePurchases';
 import { selectBillingBackend } from './selectBillingBackend';
@@ -153,6 +153,28 @@ describe('normalizeStorePurchase', () => {
       signedTransaction: 'header.payload.signature',
       transactionId: '2000000000000001',
     });
+  });
+});
+
+describe('isPurchaseFromStore', () => {
+  const playPurchase = {
+    __typename: 'PurchaseAndroid',
+    currentPlanId: 'prepaid-monthly',
+    id: 'GPA.0000-0000-0000-00000',
+    productId: 'premium',
+    purchaseState: 'purchased',
+    purchaseToken: 'token-1',
+    store: 'google',
+  };
+
+  it('accepts a requestPurchase result by its store, which carries no platform field', () => {
+    expect(isPurchaseFromStore(playPurchase, 'google')).toBe(true);
+    expect(isPurchaseFromStore({ ...playPurchase, store: 'apple' }, 'apple')).toBe(true);
+  });
+
+  it('rejects another store and records that only carry a product platform', () => {
+    expect(isPurchaseFromStore(playPurchase, 'apple')).toBe(false);
+    expect(isPurchaseFromStore({ id: 'premium', platform: 'android' }, 'google')).toBe(false);
   });
 });
 

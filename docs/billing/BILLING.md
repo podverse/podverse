@@ -58,6 +58,14 @@ All routes are under `/api/v2/billing`. The API reference is `apps/api/openapi.y
 platform is enabled and the processor is configured on this server. Channel rows are cached for
 up to 60 seconds, so a channel turned off in the database stops being offered within a minute.
 
+Store processors (`apple`, `google_play`, `test`) list only `auto_renew` products. PayPal still
+lists one-time and auto-renew. Prepaid store product rows stay mapped so refunds and voids of
+past purchases can match a product.
+
+On the App Store, put Yearly at a higher subscription level than Monthly in the same group.
+Then a monthly-to-yearly change is an upgrade (it takes effect now) and yearly-to-monthly is a
+downgrade (it waits until the next renewal).
+
 ### Client version floor
 
 A channel's `min_client_version` cuts off an app build with a purchase bug without a server
@@ -158,7 +166,9 @@ One-time purchases stack: the new grant starts where the account's access alread
 (trial, admin, and paid grants all count), or at settlement when nothing is left. Store
 subscriptions (Apple, Google Play) cannot start in the future, so remaining bankable time —
 one-time, admin, claim, trial, legacy, and migration grants — moves into the subscription's
-bank when it starts and is handed back when it ends. PayPal subscriptions start at the current
+bank when it starts and is handed back when it ends. When Play replaces a subscription
+(`linkedPurchaseToken`), that bank moves to the new subscription instead of being handed back
+while the member is still subscribed. PayPal subscriptions start at the current
 `membership_expires_at` instead and never bank.
 
 Access continues past an auto-renew period end for

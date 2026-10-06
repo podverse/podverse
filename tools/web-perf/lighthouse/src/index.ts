@@ -24,7 +24,6 @@ import { ComparisonEngine } from './comparison.js';
 import { DatabaseSetup } from './database-setup.js';
 import type { LighthouseScreenshotOptions } from './lighthouse-runner.js';
 import { LighthouseRunner } from './lighthouse-runner.js';
-import { generateComparisonSummary } from './openai-summary.js';
 import { killProcessOnPort } from './port-killer.js';
 import { ReportManager } from './report-manager.js';
 import { WebAppManager } from './web-app-manager.js';
@@ -405,23 +404,6 @@ async function main() {
         console.log(`  ➡️  Neutral: ${comparison.summary.neutral}`);
         console.log('\n' + comparison.analysis);
         console.log('='.repeat(60));
-
-        try {
-          console.log('\n🧠 Generating OpenAI summary...');
-          const summary = await generateComparisonSummary(
-            baseReportData,
-            newReportData,
-            comparison
-          );
-          const summaryPath = path.join(
-            path.dirname(reportManager.getReportPath(trimmedReportId)),
-            `report-${reportManager.sanitizeReportId(trimmedReportId)}-summary.md`
-          );
-          fs.writeFileSync(summaryPath, summary || 'No summary generated.', 'utf-8');
-          console.log(`✅ Summary saved to ${summaryPath}\n`);
-        } catch (error) {
-          console.error('⚠️  Failed to generate OpenAI summary:', error);
-        }
       }
     } else {
       console.log('📊 No base report to compare against.');

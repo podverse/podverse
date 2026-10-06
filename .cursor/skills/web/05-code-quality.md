@@ -122,9 +122,9 @@ const tInstructions = useTranslations("instructions");
 
 ### Adding New Translation Keys
 
-**CRITICAL**: When adding new translation keys, **only add them to the correct catalog layer** `packages/i18n-catalog/<layer>/originals/en-US.json`:
+**CRITICAL**: When adding new translation keys, add them to the correct catalog layer
+`packages/i18n-catalog/<layer>/originals/` for **en-US, es, fr, and el-GR**:
 
-- Do NOT add translations to override files (e.g., `packages/i18n-catalog/<layer>/overrides/en-US.json`)
-- Do NOT add translations to other language files
-- `npm run i18n:compile` merges layers into `apps/*/i18n/compiled/`; `npm run i18n:translate` generates non-English originals
-- Catalog `*/originals/en-US.json` is the authoring source of truth
+- Do NOT edit override files (operator only)
+- `npm run i18n:compile` merges layers into `apps/*/i18n/compiled/`
+- Catalog `*/originals/en-US.json` is the English source of truth

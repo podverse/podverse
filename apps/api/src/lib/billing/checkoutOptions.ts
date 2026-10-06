@@ -5,7 +5,7 @@ import type {
   DTOBillingCheckoutProduct,
   PaymentProcessorId,
 } from '@podverse/helpers';
-import { isPaymentProcessorId } from '@podverse/helpers';
+import { isOfferedAtCheckout, isPaymentProcessorId } from '@podverse/helpers';
 import type { BillingCheckoutChannel } from '@podverse/orm';
 import { BillingCheckoutChannelService, BillingProcessorProductService } from '@podverse/orm';
 
@@ -81,7 +81,11 @@ export async function getCheckoutOptions(params: {
       processor_id: channel.processor_id,
       min_client_version: channel.min_client_version,
       products: products
-        .filter((product) => product.processor_id === channel.processor_id)
+        .filter(
+          (product) =>
+            product.processor_id === channel.processor_id &&
+            isOfferedAtCheckout(channel.processor_id, product.purchase_kind)
+        )
         .map((product): DTOBillingCheckoutProduct => ({
           id: product.id,
           product_code: product.billing_product.product_code,

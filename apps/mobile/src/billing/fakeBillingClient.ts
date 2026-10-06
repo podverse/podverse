@@ -2,6 +2,7 @@ import type { BillingApi } from './billingApi';
 import type {
   BillingClient,
   BillingLocalizedPrice,
+  BillingPlanChange,
   BillingPurchaseOutcome,
   BillingStoreProduct,
 } from './BillingClient';
@@ -135,6 +136,8 @@ export const createFakeBillingClient = (api: BillingApi): BillingClient => {
         }))
       ),
     purchase,
+    changePlan: (_change: BillingPlanChange, product: BillingStoreProduct) =>
+      purchase({ ...product, purchaseKind: 'auto_renew' }),
     restore,
     syncUnfinishedTransactions: async () => {
       await restore();

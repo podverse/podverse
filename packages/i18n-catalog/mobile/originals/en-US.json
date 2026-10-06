@@ -306,5 +306,8 @@
     "download_transfer_failed": "The download did not finish. Check your connection, then try again.",
     "download_file_missing": "The downloaded file is missing from this device.",
     "download_unknown": "The download failed. Try again."
+  },
+  "membership": {
+    "trial_limitations_missing_content": "If you have a Trial membership and content you would like is missing, contact {email} for help."
   }
 }

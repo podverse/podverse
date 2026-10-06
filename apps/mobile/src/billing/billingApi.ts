@@ -24,10 +24,15 @@ export type BillingCheckoutCatalog = {
 /** Fields the membership screen reads from `GET /billing/status`. */
 export type BillingMembershipStatus = {
   active_auto_renew: boolean;
+  billing_cadence: 'annual' | 'monthly' | null;
   in_grace_period: boolean;
   membership_expires_at: string | null;
   active_subscription: {
+    banked_seconds: number;
+    cadence: 'annual' | 'monthly' | null;
     current_period_end: string | null;
+    external_subscription_id: string;
+    processor_id: string;
   } | null;
 };
 

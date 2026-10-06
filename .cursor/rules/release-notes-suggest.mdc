@@ -1,0 +1,56 @@
+---
+description: Release steps given to the operator always come with suggested release notes
+alwaysApply: true
+---
+
+# Suggest release notes with every release step
+
+Whenever you give the operator steps that ship a version, include **suggested release notes**
+they can paste. Shipping steps include a Play Console or App Store Connect release, an EAS build or
+submit, a Git tag, a GitHub release, an npm publish, and the staging → main promotion.
+
+Agents never run those steps. Write or point to the script, then list the commands for the
+operator in the order they run (**operator-only-git-operations**). The notes travel with that list.
+
+## Where the notes come from
+
+1. `<app>/release-notes/<X.Y.Z>.md` when the app has one. A frozen file is final; quote it.
+2. Otherwise derive them from the changes since the last **formal** tag for that app's paths:
+
+```bash
+LAST_TAG="$(git tag --list --sort=-v:refname | rg '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -1)"
+git log --no-merges --format='%s' "$LAST_TAG"..HEAD -- apps/mobile
+```
+
+Formal tags have no suffix (`5.5.2`, `v5.0.15`). Prerelease tags (`5.5.3-staging.2`) mark
+intermediate builds; compare against the last formal tag so a release's notes cover everything
+since the previous release. Read the diff when a subject line is too vague to describe.
+
+Never describe a change the commits do not show. Leave out refactors, tests, tooling, CI, docs,
+dependency bumps without a visible effect, and anything a user would not notice.
+
+## Tone by audience
+
+- **User-facing apps** (mobile, web, management-web): release notes are partly marketing. Plain
+  words, benefit first, no internals, no ticket numbers. At most six bullets. Lead with the most
+  exciting change.
+- **Developer-facing apps** (api, management-api, workers, libraries such as partytime): technical
+  and precise. Breaking changes first, then added, changed, fixed, and operator notes (env vars,
+  migrations).
+
+## Format by destination
+
+- **Google Play:** one block per language, at most 500 characters inside the tags:
+
+```text
+<en-US>
+- Go Premium with Google Play: monthly or yearly
+- Faster startup and image loading
+</en-US>
+```
+
+- **App Store "What's New":** plain text, no tags, a few short lines.
+- **GitHub release / npm:** Markdown with the sections above.
+
+Put suggested notes in a fenced `text` block so the operator gets a copy button, and say they are
+a suggestion to edit before publishing.

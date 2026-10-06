@@ -261,6 +261,7 @@ function mapSubscriptionSnapshot(
   const currentPeriodEnd =
     toIsoTimestamp(transaction?.expiresDate) ?? toIsoTimestamp(renewalInfo?.renewalDate);
   const accountBillingCustomerRef = transaction?.appAccountToken ?? null;
+  // The next period's product, so a plan change in the same subscription group updates cadence.
   const externalProductId =
     renewalInfo?.autoRenewProductId ?? transaction?.productId ?? renewalInfo?.productId ?? null;
   const rawPayload = toRawPayload({

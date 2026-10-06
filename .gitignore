@@ -21,13 +21,11 @@ temp/
 .env.local
 .env.production.local
 .env.development.local
+.env.openai
 
 # App-specific (backend apps)
 apps/*/.env
 apps/*/.env.local
-
-# OpenAI API key for i18n translations (root level, shared across apps)
-.env.openai
 
 # i18n compiled files (generated at build time from originals + overrides)
 apps/*/i18n/compiled/

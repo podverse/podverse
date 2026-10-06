@@ -148,6 +148,10 @@
     "storage": {
       "title": "Αποθήκευση αντικειμένων",
       "description": "Περιήγηση, λήψη και διαγραφή αντικειμένων στο ρυθμισμένο bucket"
+    },
+    "billing": {
+      "title": "Χρεώσεις",
+      "description": "Κανάλια αγοράς, προϊόντα επεξεργαστή και εισερχόμενα webhook"
     }
   },
   "feedsHub": {
@@ -510,7 +514,11 @@
         "feeds_moderation": "Διαχείριση ροών και λόγοι κατάργησης μόνο.",
         "admins_stats_read": "Διαχείριση διαχειριστών και στατιστικών; ανάγνωση αλλού.",
         "storage_full": "Πλήρης πρόσβαση μόνο σε αποθήκευση αντικειμένων."
-      }
+      },
+      "billingChannels": "Κανάλια αγοράς",
+      "billingProcessorProducts": "Προϊόντα επεξεργαστή",
+      "billingAccount": "Χρεώσεις λογαριασμού",
+      "billingWebhookEvents": "Εισερχόμενα webhook"
     },
     "roleTemplates": {
       "pageTitle": "Δημιουργία προτύπου άδειας",
@@ -646,7 +654,8 @@
       "verified": "Επαληθευμένο",
       "createdAt": "Δημιουργήθηκε",
       "actions": "Ενέργειες"
-    }
+    },
+    "billingLink": "Χρεώσεις"
   },
   "database": {
     "title": "Βάση δεδομένων",
@@ -764,7 +773,47 @@
         "failed": "Αποτυχία ανάκλησης της παραχώρησης."
       },
       "protectedAccess": "Η πρόσβαση που πληρώθηκε μέσω επεξεργαστή ισχύει έως τις {date}. Ακυρώστε την ή ζητήστε επιστροφή χρημάτων από τον επεξεργαστή.",
-      "datePickerAffix": "Άνοιγμα επιλογέα ημερομηνίας και ώρας"
+      "datePickerAffix": "Άνοιγμα επιλογέα ημερομηνίας και ώρας",
+      "title": "Χρεώσεις λογαριασμού",
+      "failedToLoad": "Αποτυχία φόρτωσης χρεώσεων λογαριασμού.",
+      "failedToResync": "Αποτυχία επανασυγχρονισμού λογαριασμού.",
+      "failedToGrant": "Αποτυχία χορήγησης συνδρομής.",
+      "resynced": "Ο λογαριασμός επανασυγχρονίστηκε.",
+      "granted": "Η συνδρομή χορηγήθηκε.",
+      "grantNotApplied": "Η χορήγηση δεν εφαρμόστηκε επειδή ο λογαριασμός έχει ήδη μεταγενέστερο χρόνο συνδρομής.",
+      "resync": "Επανασυγχρονισμός",
+      "grant": "Χορήγηση συνδρομής",
+      "grantCadenceLabel": "Ρυθμός",
+      "expires": "Λήξη συνδρομής",
+      "subscriptions": "Συνδρομές",
+      "transactions": "Συναλλαγές",
+      "grants": "Χορηγήσεις",
+      "events": "Συμβάντα webhook",
+      "empty": "Κανένα.",
+      "table": {
+        "processor": "Επεξεργαστής",
+        "externalId": "Εξωτερικό ID",
+        "status": "Κατάσταση",
+        "periodEnd": "Τέλος περιόδου",
+        "kind": "Είδος",
+        "amount": "Ποσό",
+        "settledAt": "Εξοφλήθηκε",
+        "source": "Πηγή",
+        "starts": "Έναρξη",
+        "ends": "Λήξη",
+        "received": "Ελήφθη",
+        "error": "Σφάλμα"
+      },
+      "result": {
+        "applied": "Εφαρμόστηκε",
+        "ignored_sandbox": "Αγνοήθηκε το sandbox",
+        "skipped": "Παραλείφθηκε",
+        "failed": "Απέτυχε",
+        "not_found": "Δεν βρέθηκε",
+        "processor_not_configured": "Ο επεξεργαστής δεν έχει ρυθμιστεί",
+        "unknown_processor": "Άγνωστος επεξεργαστής",
+        "processor_error": "Σφάλμα επεξεργαστή"
+      }
     },
     "processors": {
       "title": "Επεξεργαστές πληρωμών",
@@ -774,6 +823,94 @@
       "paypal": "PayPal",
       "apple": "Apple App Store",
       "google_play": "Google Play"
+    },
+    "pageTitle": "Χρεώσεις",
+    "checkoutChannelsCardTitle": "Κανάλια αγοράς",
+    "checkoutChannelsCardDescription": "Ενεργοποιήστε ή απενεργοποιήστε έναν επεξεργαστή ανά πλατφόρμα και ορίστε την ελάχιστη έκδοση πελάτη.",
+    "processorProductsCardTitle": "Προϊόντα επεξεργαστή",
+    "processorProductsCardDescription": "Αντιστοιχίστε το id προϊόντος επεξεργαστή σε ρυθμό και είδος αγοράς.",
+    "webhookEventsCardTitle": "Εισερχόμενα webhook",
+    "webhookEventsCardDescription": "Ελέγξτε τις ειδοποιήσεις επεξεργαστή και επαναλάβετε όσες απέτυχαν.",
+    "channels": {
+      "title": "Κανάλια αγοράς",
+      "failedToLoad": "Αποτυχία φόρτωσης καναλιών αγοράς.",
+      "failedToUpdate": "Αποτυχία ενημέρωσης καναλιού αγοράς.",
+      "updated": "Το κανάλι αγοράς ενημερώθηκε.",
+      "cacheNote": "Μια αλλαγή φτάνει στην αγορά μέσα σε ένα λεπτό. Στην ανάπτυξη, επανεκκινήστε το API για να τη δείτε νωρίτερα.",
+      "table": {
+        "processor": "Επεξεργαστής",
+        "platform": "Πλατφόρμα",
+        "storefronts": "Storefronts",
+        "enabled": "Ενεργό",
+        "minVersion": "Ελάχ. έκδοση"
+      },
+      "enabled": "Ενεργό",
+      "disabled": "Ανενεργό",
+      "allStorefronts": "Όλα τα storefronts",
+      "edit": "Επεξεργασία",
+      "editTitle": "Επεξεργασία καναλιού αγοράς",
+      "minVersionLabel": "Ελάχ. έκδοση",
+      "minVersionPlaceholder": "5.5.0",
+      "storefrontsLabel": "Storefronts",
+      "storefrontsPlaceholder": "US, CA",
+      "storefrontsHint": "Κωδικοί χωρών χωρισμένοι με κόμμα. Αφήστε κενό για όλα τα storefronts."
+    },
+    "products": {
+      "title": "Προϊόντα επεξεργαστή",
+      "failedToLoad": "Αποτυχία φόρτωσης προϊόντων επεξεργαστή.",
+      "failedToCreate": "Αποτυχία δημιουργίας προϊόντος επεξεργαστή.",
+      "failedToUpdate": "Αποτυχία ενημέρωσης προϊόντος επεξεργαστή.",
+      "created": "Το προϊόν επεξεργαστή δημιουργήθηκε.",
+      "updated": "Το προϊόν επεξεργαστή ενημερώθηκε.",
+      "empty": "Δεν υπάρχουν ακόμη προϊόντα επεξεργαστή.",
+      "create": "Προσθήκη προϊόντος επεξεργαστή",
+      "table": {
+        "processor": "Επεξεργαστής",
+        "externalId": "Εξωτερικό ID",
+        "basePlan": "Βασικό πλάνο",
+        "cadence": "Ρυθμός",
+        "kind": "Είδος",
+        "active": "Ενεργό"
+      },
+      "active": "Ενεργό",
+      "inactive": "Ανενεργό",
+      "processorLabel": "Επεξεργαστής",
+      "externalIdLabel": "Εξωτερικό ID",
+      "externalIdPlaceholder": "P-123",
+      "basePlanLabel": "Βασικό πλάνο",
+      "basePlanPlaceholder": "monthly-auto",
+      "cadenceLabel": "Ρυθμός",
+      "kindLabel": "Είδος αγοράς",
+      "cadenceMonthly": "Μηνιαίο",
+      "cadenceAnnual": "Ετήσιο",
+      "kindAutoRenew": "Αυτόματη ανανέωση",
+      "kindOneTime": "Εφάπαξ",
+      "edit": "Επεξεργασία",
+      "editTitle": "Επεξεργασία προϊόντος επεξεργαστή",
+      "activeLabel": "Ενεργό"
+    },
+    "events": {
+      "title": "Εισερχόμενα webhook",
+      "failedToLoad": "Αποτυχία φόρτωσης συμβάντων webhook.",
+      "failedToReplay": "Αποτυχία επανάληψης συμβάντος webhook.",
+      "replayed": "Το συμβάν webhook επαναλήφθηκε.",
+      "empty": "Κανένα συμβάν webhook δεν ταιριάζει με αυτά τα φίλτρα.",
+      "statusLabel": "Κατάσταση",
+      "processorLabel": "Επεξεργαστής",
+      "allStatuses": "Όλες οι καταστάσεις",
+      "allProcessors": "Όλοι οι επεξεργαστές",
+      "statusPending": "Σε εκκρεμότητα",
+      "statusProcessed": "Επεξεργάστηκε",
+      "statusFailed": "Απέτυχε",
+      "replay": "Επανάληψη",
+      "table": {
+        "received": "Ελήφθη",
+        "processor": "Επεξεργαστής",
+        "event": "Συμβάν",
+        "status": "Κατάσταση",
+        "attempts": "Προσπάθειες",
+        "error": "Σφάλμα"
+      }
     }
   }
 }

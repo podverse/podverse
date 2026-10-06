@@ -46,5 +46,4 @@ Keys used on mobile must not require next-intl rich tags (`<link>`, etc.). Use p
 ## Related
 
 - [docs/localization/I18N.md](/docs/localization/I18N.md)
-- Master plan Track 17 (steps 17.0, 17.8–17.12)
-- **i18n-management** rule
+- **i18n-management** rule (agents write all locale originals; operators own `overrides/`)

@@ -63,10 +63,11 @@ Base plans must be **Active**. Inactive (draft) plans are not returned to the
 Play Billing client, so checkout cannot load an offer token for them.
 
 Auto-renew base plans (`monthly`, `annual`) renew on their own. Prepaid base
-plans (`prepaid-monthly`, `prepaid-annual`) are the one-time purchase: Play
-does not renew them, and Podverse records one grant for the prepaid period.
-The mobile client selects the offer by `external_base_plan_id` from checkout
-options so all four plans can share the subscription id `premium`.
+plans (`prepaid-monthly`, `prepaid-annual`) stay mapped for refunds and voids of
+past prepaid purchases. Checkout does not offer them: stores sell auto-renew
+subscriptions only. The mobile client selects the offer by
+`external_base_plan_id` from checkout options so the auto-renew plans share the
+subscription id `premium`.
 
 ## Play Console access for the service account
 
@@ -83,10 +84,54 @@ fails even when the device purchase sheet succeeds.
 Upload `com.podverse.app.next` to an internal (or other) testing track at least
 once. License testers must opt into that track. If Play answers "item not
 available", check package name, signing certificate, and `versionCode` against
-the uploaded build. This binary links Billing Library 7; Play rejects new apps
-and updates built with Billing Library 7 or older after 31 Aug 2026 (extension
-through 1 Nov 2026 when requested). See
+the uploaded build. Play rejects bundles built with Billing Library 7 or older;
+builds on Expo SDK 57 with `expo-iap` 5.x meet the requirement. See
 [APPS-MOBILE.md](../../apps/mobile/APPS-MOBILE.md#membership-billing).
+
+EAS builds the `.aab` in the cloud with the upload key it already stores. Run
+from the **Mobile** tab:
+
+```bash
+make mobile_eas_android_list
+make mobile_eas_android_download
+make mobile_eas_android_build
+```
+
+- `list` shows recent builds with versionCode and SDK version. Builds can share
+  a commit hash, because EAS uploads uncommitted changes but records HEAD.
+- `download` saves the newest finished `beta` build to
+  `.artifacts/mobile-builds/`. Pass `BUILD_ID=<id>` for a specific build.
+- `build` starts a new `beta` build, waits for it, then downloads it. The remote
+  versionCode increments on each build. Reuse the existing keystore if asked; a
+  new one would not match the upload key Play has.
+
+Upload the file in **Test and release** → **Testing** → **Internal testing** →
+**Create new release** → **App bundles**, then **Next** → **Save and publish**.
+
+Or send the build from the command line instead of uploading it:
+
+```bash
+make mobile_eas_android_submit
+make mobile_eas_android_submit ROLLOUT=1
+```
+
+- Submit sends the newest finished `beta` build (`BUILD_ID=<id>` for another)
+  to the internal track. It prints the build, track, and release status, then
+  asks before uploading. It needs an interactive terminal.
+- By default the upload is a **draft**: testers get nothing until someone
+  rolls it out in Play Console (**Internal testing** → **Edit release** →
+  **Next** → **Save and publish**).
+- `ROLLOUT=1` publishes to the track and asks you to type the versionCode. Play
+  rejects it with "Only releases with status draft may be created on draft
+  app" until the app has had one release rolled out.
+- The track and release status live in the `beta` and `beta-rollout` submit
+  profiles in `apps/mobile/eas.json`. The script refuses a profile that does
+  not set both, because the eas-cli default is a completed rollout.
+- Use a dedicated publisher service account, not the billing one the API uses.
+  In Play Console → **Users and permissions**, give it only **Release apps to
+  testing tracks** for this app.
+- On the first submit, eas-cli asks for that account's JSON key path and
+  offers to store the key on EAS. Later submits reuse it.
 
 ## Device and emulator
 
@@ -127,7 +172,9 @@ card. A declined test card is how a human exercises billing grace. Podverse
 does not store tester passwords. This path is manual; default CI does not call
 Play. Creating the account and signing the phone into it is
 [BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md). Renewal behavior
-is in [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md).
+is in [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md). License
+testers use billing periods measured in minutes, so the in-app renewal date can
+read today or tomorrow even for a monthly or yearly plan.
 
 ## Seed processor products
 

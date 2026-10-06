@@ -1,23 +1,13 @@
 // Log immediately - before any imports
 console.log('📝 Bundle Analyzer starting - loading modules...\n');
 
-import dotenv from 'dotenv';
-import fs from 'fs';
 import inquirer from 'inquirer';
-import path from 'path';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 import type { AppTarget } from './app-config.js';
 import { getAppConfig } from './app-config.js';
 import { BundleAnalyzer } from './bundle-analyzer.js';
 import { BundleComparisonEngine } from './comparison.js';
-import { generateComparisonSummary } from './openai-summary.js';
 import { BundleReportManager } from './report-manager.js';
-
-// ES modules __dirname equivalent
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // Parse command line arguments
 const appTarget = (process.argv[2] as AppTarget) || 'web';
@@ -32,18 +22,6 @@ if (!validTargets.includes(appTarget)) {
 const appConfig = getAppConfig(appTarget);
 
 console.log('📦 All modules loaded successfully\n');
-
-// Load OpenAI API key from monorepo root
-console.log('🔧 Loading OpenAI API key...');
-const openaiEnvPath = path.join(__dirname, '../../../../.env.openai');
-if (fs.existsSync(openaiEnvPath)) {
-  console.log(`   → Loading from: ${openaiEnvPath}`);
-  dotenv.config({ path: openaiEnvPath });
-} else {
-  console.log(`   ⚠️  No .env.openai file found at: ${openaiEnvPath}`);
-  console.log('   ⚠️  OpenAI summary generation will not be available');
-}
-console.log('✅ Environment variables loaded\n');
 
 // Store analyzer in module scope for cleanup handlers
 let bundleAnalyzer: BundleAnalyzer | null = null;
@@ -238,45 +216,6 @@ async function main() {
         console.log(`  ➡️  Neutral: ${comparison.summary.neutral}`);
         console.log('\n' + comparison.analysis);
         console.log('='.repeat(60));
-
-        try {
-          console.log('\n🧠 Generating OpenAI summary...');
-          const summary = await generateComparisonSummary(
-            baseReportData,
-            newReportData,
-            comparison
-          );
-          if (!summary || summary.trim().length === 0) {
-            console.error('⚠️  OpenAI summary was empty or null');
-          } else {
-            // Use the same reports directory as the report manager (with app subdirectory)
-            const baseReportsDir = path.join(__dirname, '../reports');
-            const reportsDir = appConfig.reportsSubdir
-              ? path.join(baseReportsDir, appConfig.reportsSubdir)
-              : baseReportsDir;
-            // Ensure directory exists
-            if (!fs.existsSync(reportsDir)) {
-              fs.mkdirSync(reportsDir, { recursive: true });
-            }
-            const summaryPath = path.join(
-              reportsDir,
-              `bundle-report-${reportManager.sanitizeReportName(trimmedReportName)}-summary.md`
-            );
-            fs.writeFileSync(summaryPath, summary, 'utf-8');
-            console.log(`✅ Summary saved to ${summaryPath}\n`);
-          }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          const errorStack = error instanceof Error ? error.stack : undefined;
-          console.error('⚠️  Failed to generate OpenAI summary:', errorMessage);
-          if (errorStack) {
-            console.error('   Stack trace:', errorStack);
-          }
-          console.error('   This might be due to missing OPENAI_API_KEY in .env.openai file');
-          console.error(
-            `   Expected location: ${path.resolve(__dirname, '../../../../.env.openai')}\n`
-          );
-        }
       }
     } else if (selectedBaseReport === trimmedReportName) {
       console.log('   → Selected base report matches new report name; skipping comparison.\n');

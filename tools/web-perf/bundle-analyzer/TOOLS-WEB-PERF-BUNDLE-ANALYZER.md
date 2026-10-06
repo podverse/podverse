@@ -154,7 +154,6 @@ The system consists of:
 - `bundle-analyzer.ts`: Core analyzer logic and report generation
 - `report-manager.ts`: Report storage, retrieval, and file management
 - `comparison.ts`: Report comparison engine
-- `openai-summary.ts`: AI summary generation
 - `index.ts`: Main CLI interface
 
 ## Notes

@@ -151,18 +151,42 @@ export const isClientUpdateRequired = (errorCode: string | null): boolean =>
 export const playSubscriptionsUrl = (packageName: string): string =>
   `https://play.google.com/store/account/subscriptions?package=${encodeURIComponent(packageName)}`;
 
-/** Apple and Play subscription management pages. Fake and FOSS builds have none. */
-export const subscriptionManagementUrl = (backend: BillingBackend): string | null => {
-  switch (backend) {
-    case 'storekit':
-      return APPLE_SUBSCRIPTIONS_URL;
-    case 'play':
-      return playSubscriptionsUrl(PLAY_PACKAGE_NAME);
-    case 'fake':
-    case 'unavailable':
-      return null;
+export type AutoRenewManageTarget =
+  | { kind: 'app_store'; url: string }
+  | { kind: 'play'; url: string }
+  | { kind: 'web' };
+
+/**
+ * Where a renewing membership is turned off: the processor that bills it, not the device the
+ * member is holding. Podverse cannot stop store billing, so Apple and Google subscriptions open
+ * the store's subscription page. PayPal, test, and unknown processors open web settings.
+ */
+export const autoRenewManageTarget = (processorId: string | null): AutoRenewManageTarget => {
+  if (processorId === 'apple') {
+    return { kind: 'app_store', url: APPLE_SUBSCRIPTIONS_URL };
   }
+  if (processorId === 'google_play') {
+    return { kind: 'play', url: playSubscriptionsUrl(PLAY_PACKAGE_NAME) };
+  }
+  return { kind: 'web' };
 };
 
 export const storeListingUrl = (platform: 'android' | 'ios'): string =>
   platform === 'ios' ? APP_STORE_LISTING_URL : PLAY_LISTING_URL;
+
+export type PlanSwitchTiming = 'next_renewal' | 'now';
+
+/**
+ * When a plan change takes effect. Play prorates immediately. Apple upgrades (monthly to yearly)
+ * take effect now; downgrades wait until the next renewal.
+ */
+export const planSwitchTiming = (
+  backend: BillingBackend,
+  fromCadence: StoreCheckoutCadence,
+  toCadence: StoreCheckoutCadence
+): PlanSwitchTiming => {
+  if (backend === 'storekit' && fromCadence === 'annual' && toCadence === 'monthly') {
+    return 'next_renewal';
+  }
+  return 'now';
+};

@@ -32,7 +32,7 @@ function processedAndEntitled(body: unknown): boolean {
 }
 
 test.describe('Checkout membership', () => {
-  test('When the test processor is offered, turning auto-renew off and completing the test purchase confirms membership.', async ({
+  test('When the test processor is offered, completing the auto-renew test purchase confirms membership.', async ({
     page,
   }, testInfo) => {
     const loginResponse = await page.request.post(API_LOGIN_URL, {
@@ -48,9 +48,6 @@ test.describe('Checkout membership', () => {
         'Membership renews until you cancel it. You can manage it in Settings. PayPal charges each renewal.'
       )
     ).toBeVisible();
-
-    await autoRenew.uncheck();
-    await expect(autoRenew).not.toBeChecked();
 
     const simulateResponse = page.waitForResponse(
       (response) =>

@@ -13,31 +13,24 @@ import type { BillingApi } from './billingApi';
 import type {
   BillingClient,
   BillingLocalizedPrice,
+  BillingPlanChange,
   BillingPurchaseKind,
   BillingPurchaseOutcome,
   BillingStoreProduct,
 } from './BillingClient';
 import { BillingAccountTokenError, billingPurchaseOutcome } from './BillingClient';
-import {
-  billingErrorCode,
-  isCancelledStoreError,
-  isRecord,
-  isWaitingStoreError,
-} from './billingGuards';
+import { billingErrorCode, isCancelledStoreError, isWaitingStoreError } from './billingGuards';
 import { bindAccountToken } from './bindAccountToken';
 import { createFinishOnce } from './inflight';
 import { listStorePrices } from './localizedPrices';
 import { normalizeStorefrontCode } from './normalizeStorefront';
-import { normalizeStorePurchase } from './normalizeStorePurchase';
+import { isPurchaseFromStore, normalizeStorePurchase } from './normalizeStorePurchase';
 import { mergeCatalogKinds, resolvePurchaseKind } from './purchaseKinds';
 import type { RestoreStoreRecord } from './restoreStorePurchases';
 import { restoreStorePurchases } from './restoreStorePurchases';
 import { settleStorePurchase } from './settleStorePurchase';
 
-const isStorePurchase = (value: unknown): value is Purchase => {
-  const normalized = normalizeStorePurchase(value);
-  return normalized !== null && isRecord(value) && value.platform === 'ios';
-};
+const isStorePurchase = (value: unknown): value is Purchase => isPurchaseFromStore(value, 'apple');
 
 /**
  * StoreKit 2 purchases. Membership products are finished only after the API confirms the
@@ -256,6 +249,8 @@ export const createStorekitBillingClient = (api: BillingApi): BillingClient => {
       return listStorePrices(productIds, fetchProducts);
     },
     purchase,
+    changePlan: (_change: BillingPlanChange, product: BillingStoreProduct) =>
+      purchase({ ...product, purchaseKind: 'auto_renew' }),
     restore,
     syncUnfinishedTransactions: async () => {
       await restore();

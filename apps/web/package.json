@@ -27,8 +27,7 @@
     "clean": "rm -rf .next",
     "type-check": "tsc --noEmit -p .",
     "validate-env": "ts-node --project tsconfig.scripts.json scripts/validate-env.ts",
-    "i18n-compile": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-compile.ts",
-    "i18n-llm-translations": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-translate.ts"
+    "i18n-compile": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-compile.ts"
   },
   "license": "AGPL-3.0",
   "dependencies": {
@@ -78,7 +77,6 @@
     "dotenv": "^18.0.3",
     "jsdom": "^26.1.0",
     "nodemon": "^3.1.14",
-    "openai": "^6.27.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "vitest": "^5.0.1",

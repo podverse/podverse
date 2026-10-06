@@ -148,6 +148,10 @@
     "storage": {
       "title": "",
       "description": ""
+    },
+    "billing": {
+      "title": "",
+      "description": ""
     }
   },
   "feedsHub": {
@@ -510,7 +514,11 @@
         "feeds_moderation": "",
         "admins_stats_read": "",
         "storage_full": ""
-      }
+      },
+      "billingChannels": "",
+      "billingProcessorProducts": "",
+      "billingAccount": "",
+      "billingWebhookEvents": ""
     },
     "roleTemplates": {
       "pageTitle": "",
@@ -646,7 +654,8 @@
       "verified": "",
       "createdAt": "",
       "actions": ""
-    }
+    },
+    "billingLink": ""
   },
   "database": {
     "title": "",
@@ -764,7 +773,47 @@
         "failed": ""
       },
       "protectedAccess": "",
-      "datePickerAffix": ""
+      "datePickerAffix": "",
+      "title": "",
+      "failedToLoad": "",
+      "failedToResync": "",
+      "failedToGrant": "",
+      "resynced": "",
+      "granted": "",
+      "grantNotApplied": "",
+      "resync": "",
+      "grant": "",
+      "grantCadenceLabel": "",
+      "expires": "",
+      "subscriptions": "",
+      "transactions": "",
+      "grants": "",
+      "events": "",
+      "empty": "",
+      "table": {
+        "processor": "",
+        "externalId": "",
+        "status": "",
+        "periodEnd": "",
+        "kind": "",
+        "amount": "",
+        "settledAt": "",
+        "source": "",
+        "starts": "",
+        "ends": "",
+        "received": "",
+        "error": ""
+      },
+      "result": {
+        "applied": "",
+        "ignored_sandbox": "",
+        "skipped": "",
+        "failed": "",
+        "not_found": "",
+        "processor_not_configured": "",
+        "unknown_processor": "",
+        "processor_error": ""
+      }
     },
     "processors": {
       "title": "",
@@ -774,6 +823,94 @@
       "paypal": "",
       "apple": "",
       "google_play": ""
+    },
+    "pageTitle": "",
+    "checkoutChannelsCardTitle": "",
+    "checkoutChannelsCardDescription": "",
+    "processorProductsCardTitle": "",
+    "processorProductsCardDescription": "",
+    "webhookEventsCardTitle": "",
+    "webhookEventsCardDescription": "",
+    "channels": {
+      "title": "",
+      "failedToLoad": "",
+      "failedToUpdate": "",
+      "updated": "",
+      "cacheNote": "",
+      "table": {
+        "processor": "",
+        "platform": "",
+        "storefronts": "",
+        "enabled": "",
+        "minVersion": ""
+      },
+      "enabled": "",
+      "disabled": "",
+      "allStorefronts": "",
+      "edit": "",
+      "editTitle": "",
+      "minVersionLabel": "",
+      "minVersionPlaceholder": "",
+      "storefrontsLabel": "",
+      "storefrontsPlaceholder": "",
+      "storefrontsHint": ""
+    },
+    "products": {
+      "title": "",
+      "failedToLoad": "",
+      "failedToCreate": "",
+      "failedToUpdate": "",
+      "created": "",
+      "updated": "",
+      "empty": "",
+      "create": "",
+      "table": {
+        "processor": "",
+        "externalId": "",
+        "basePlan": "",
+        "cadence": "",
+        "kind": "",
+        "active": ""
+      },
+      "active": "",
+      "inactive": "",
+      "processorLabel": "",
+      "externalIdLabel": "",
+      "externalIdPlaceholder": "",
+      "basePlanLabel": "",
+      "basePlanPlaceholder": "",
+      "cadenceLabel": "",
+      "kindLabel": "",
+      "cadenceMonthly": "",
+      "cadenceAnnual": "",
+      "kindAutoRenew": "",
+      "kindOneTime": "",
+      "edit": "",
+      "editTitle": "",
+      "activeLabel": ""
+    },
+    "events": {
+      "title": "",
+      "failedToLoad": "",
+      "failedToReplay": "",
+      "replayed": "",
+      "empty": "",
+      "statusLabel": "",
+      "processorLabel": "",
+      "allStatuses": "",
+      "allProcessors": "",
+      "statusPending": "",
+      "statusProcessed": "",
+      "statusFailed": "",
+      "replay": "",
+      "table": {
+        "received": "",
+        "processor": "",
+        "event": "",
+        "status": "",
+        "attempts": "",
+        "error": ""
+      }
     }
   }
 }

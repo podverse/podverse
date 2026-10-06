@@ -51,6 +51,15 @@ name: Membership Gate
       text: "• Listen stats are not available on Trial. Contributing to trending requires Premium."
     direction: DOWN
     timeout: ${TIMEOUT_FAST}
+- scrollUntilVisible:
+    element:
+      id: trial-limitations-missing-content
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    text: ".*If you have a Trial membership and content you would like is missing, contact.*"
+- assertVisible:
+    id: trial-limitations-missing-content-email
 - takeScreenshot: membership-gate-signup-cta
 
 - tapOn:

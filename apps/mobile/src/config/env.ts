@@ -103,7 +103,8 @@ const FALLBACK_CONTACT_EMAIL = 'contact@podverse.fm';
 const CONTACT_EMAIL_PATTERN = /^[^\s@/?#&]+@[^\s@/?#&]+$/;
 
 /**
- * Address for the error-log email action. Forks set `EXPO_PUBLIC_CONTACT_EMAIL`.
+ * Contact address for in-app support (the error log and Trial limitations).
+ * Forks set `EXPO_PUBLIC_CONTACT_EMAIL`.
  * Unset or invalid uses the Podverse contact address, same idea as the public web base URL.
  */
 export const getMobileContactEmailFromEnv = (): string => {

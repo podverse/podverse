@@ -336,9 +336,11 @@ describe('Billing routes', () => {
       const testProcessor = web.body.processors.find(
         (p: { processor_id: string }) => p.processor_id === 'test'
       );
-      expect(
-        testProcessor.products.map((p: { external_product_id: string }) => p.external_product_id)
-      ).toEqual(expect.arrayContaining([TEST_ONE_TIME_PRODUCT_ID, TEST_AUTO_RENEW_PRODUCT_ID]));
+      const testProductIds = testProcessor.products.map(
+        (p: { external_product_id: string }) => p.external_product_id
+      );
+      expect(testProductIds).toEqual(expect.arrayContaining([TEST_AUTO_RENEW_PRODUCT_ID]));
+      expect(testProductIds).not.toContain(TEST_ONE_TIME_PRODUCT_ID);
 
       const ios = await request(app)
         .get(`${base}/billing/checkout-options?platform=ios`)

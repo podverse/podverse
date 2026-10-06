@@ -1,16 +1,19 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useAuth } from '../../auth/AuthProvider';
 import { createMobileApiRequestService } from '../../auth/mobileApi';
+import { createBillingApi } from '../../billing/billingApi';
 import { MembershipFeatureTable } from '../../components/membership/MembershipFeatureTable';
 import { TrialLimitationsAccordion } from '../../components/membership/TrialLimitationsAccordion';
 import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { SectionHeading } from '../../components/section/SectionHeading';
 import { openCheckout } from '../../membership/checkoutEntry';
+import { formatMembershipSavedDuration } from '../../membership/savedDurationLabel';
 import { useMembership } from '../../membership/useMembership';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
@@ -19,8 +22,8 @@ import { useTheme } from '../../theme/useTheme';
 
 /**
  * Membership screen. Shows how long access lasts, the feature table, and trial limits.
- * Logged out, the action opens web sign-up. Logged in, Extend My Membership opens the
- * screen where cadence, terms, privacy, and auto-renew are chosen.
+ * Logged out, the action opens web sign-up. Logged in, Extend My Membership opens store
+ * checkout.
  */
 
 /** The pricing fields this screen renders (subset of the API's `MembershipPricingData`). */
@@ -34,8 +37,41 @@ export function MoreMembershipScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { styles: themeStyles, tokens } = useTheme();
-  const { expiresAt, isExpired, isLoggedIn, isMember, tier } = useMembership();
+  const { activeAutoRenew, expiresAt, isExpired, isLoggedIn, isMember, tier } = useMembership();
+  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const [pricing, setPricing] = useState<MembershipPricing | null>(null);
+  const [renewsAt, setRenewsAt] = useState<string | null>(null);
+  const [savedSeconds, setSavedSeconds] = useState(0);
+  const showsRenewal = isMember && tier === 'premium' && activeAutoRenew;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!showsRenewal || accessToken === null) {
+        setRenewsAt(null);
+        setSavedSeconds(0);
+        return undefined;
+      }
+      let isActive = true;
+      void createBillingApi({ accessToken, clearSession, refreshToken, setTokens })
+        .getMembershipStatus()
+        .then((status) => {
+          if (isActive) {
+            setRenewsAt(
+              status.active_auto_renew
+                ? (status.active_subscription?.current_period_end ?? null)
+                : null
+            );
+            setSavedSeconds(status.active_subscription?.banked_seconds ?? 0);
+          }
+        })
+        .catch(() => {
+          // The renewal date is supplementary; the expiry sentence still shows.
+        });
+      return () => {
+        isActive = false;
+      };
+    }, [accessToken, clearSession, refreshToken, setTokens, showsRenewal])
+  );
 
   useEffect(() => {
     let isActive = true;
@@ -90,6 +126,8 @@ export function MoreMembershipScreen() {
     return [];
   }, [expiresAt, isExpired, isLoggedIn, isMember, t, tier]);
 
+  const savedDuration = formatMembershipSavedDuration(savedSeconds, t);
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -115,6 +153,11 @@ export function MoreMembershipScreen() {
         section: {
           marginBottom: tokens.spacing.lg,
         },
+        renews: {
+          ...typography.caption,
+          color: themeStyles.textSecondary.color,
+          marginTop: tokens.spacing.xs,
+        },
         status: {
           ...typography.prose,
           color: themeStyles.textPrimary.color,
@@ -132,6 +175,20 @@ export function MoreMembershipScreen() {
               {line}
             </Text>
           ))}
+          {showsRenewal && !isExpired && renewsAt !== null ? (
+            <>
+              <Text style={styles.renews} testID="more-membership-renews">
+                {t('membership.renews_automatically_on', {
+                  date: new Date(renewsAt).toLocaleDateString(),
+                })}
+              </Text>
+              {savedDuration !== null ? (
+                <Text style={styles.renews} testID="more-membership-saved">
+                  {t('membership.saved_time_caption', { duration: savedDuration })}
+                </Text>
+              ) : null}
+            </>
+          ) : null}
         </View>
       ) : null}
 

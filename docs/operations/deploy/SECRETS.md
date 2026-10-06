@@ -7,9 +7,6 @@ This document describes the GitHub Secrets required for the monorepo's CI/CD wor
 | Secret                | Used By                                   | Purpose                                                                     |
 | --------------------- | ----------------------------------------- | --------------------------------------------------------------------------- |
 | `GHCR_REGISTRY_TOKEN` | `publish-staging.yml`, `publish-main.yml` | Preferred token for querying GHCR tags during staging smart-start / promote |
-| `OPENAI_API_KEY`      | i18n.yml                                  | Auto-generate translations after merge to develop                           |
-| `APP_ID`              | i18n.yml                                  | GitHub App authentication for protected branch pushes                       |
-| `APP_PRIVATE_KEY`     | i18n.yml                                  | GitHub App authentication for protected branch pushes                       |
 
 ## Automatic Secrets
 
@@ -35,60 +32,6 @@ is via the Git ref API, not from GHCR alone.
 7. In GitHub repo: **Settings** → **Secrets and variables** → **Actions**
 8. Click **New repository secret**
 9. Name: `GHCR_REGISTRY_TOKEN`, Value: (paste token)
-
-### OPENAI_API_KEY
-
-Used for automated LLM-powered translations when PRs are merged to `develop`. The `i18n.yml` workflow uses this to generate translations for non-English locales.
-
-**For GitHub Actions:**
-
-1. Log in to [platform.openai.com](https://platform.openai.com)
-2. Go to **API keys** → **Create new secret key**
-3. Copy the key (starts with `sk-`)
-4. In GitHub repo: **Settings** → **Secrets and variables** → **Actions**
-5. Click **New repository secret**
-6. Name: `OPENAI_API_KEY`, Value: (paste key)
-
-**For local development:**
-
-```bash
-cp .env.openai.example .env.openai
-# Edit .env.openai and add your API key
-```
-
-See [i18n documentation](/docs/localization/I18N.md) for full i18n documentation.
-
-### APP_ID and APP_PRIVATE_KEY
-
-Used by GitHub App for pushing to protected branches (e.g., automated commits to `develop`).
-
-**Creating a GitHub App:**
-
-1. Go to GitHub **Settings** → **Developer settings** → **GitHub Apps**
-2. Click **New GitHub App**
-3. Name: `podverse-automation` (or similar)
-4. Homepage URL: Repository URL
-5. Uncheck **Webhook** > **Active** (not needed)
-6. Permissions:
-   - **Repository permissions** → **Contents**: Read and write
-   - **Repository permissions** → **Pull requests**: Read and write
-7. Click **Create GitHub App**
-8. Note the **App ID** (shown on app page)
-9. Scroll to **Private keys** → **Generate a private key**
-10. Download the `.pem` file
-
-**Adding secrets:**
-
-1. In GitHub repo: **Settings** → **Secrets and variables** → **Actions**
-2. Add `APP_ID` with the App ID value
-3. Add `APP_PRIVATE_KEY` with the entire contents of the `.pem` file
-
-**Installing the App:**
-
-1. On the GitHub App page, click **Install App**
-2. Select the podverse organization
-3. Choose **Only select repositories** → select `podverse`
-4. Click **Install**
 
 ## Workflow Reference
 
@@ -126,13 +69,10 @@ Triggers on push to `main` (or `workflow_dispatch`): promotes existing `X.Y.Z-st
 
 ### i18n.yml
 
-**Secrets used**: `OPENAI_API_KEY`, `APP_ID`, `APP_PRIVATE_KEY`, `GITHUB_TOKEN`
+**Secrets used**: none (`GITHUB_TOKEN` for checkout only)
 
-Triggers on push to `develop` when `en-US.json` files change:
-
-1. Runs LLM translations for all non-English locales
-2. Compiles translation files
-3. Commits and pushes generated translations to `develop`
+Triggers on pull requests that touch `packages/i18n-catalog`. Runs `npm run i18n:validate`.
+Does not generate translations or push commits.
 
 ## Security Notes
 
@@ -140,4 +80,3 @@ Triggers on push to `develop` when `en-US.json` files change:
 - Rotate tokens periodically
 - Use fine-grained permissions where possible
 - `GITHUB_TOKEN` is automatically scoped to the repository
-- GitHub App tokens are short-lived and automatically expire

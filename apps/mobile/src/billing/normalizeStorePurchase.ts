@@ -1,3 +1,5 @@
+import type { IapStore, Purchase } from 'expo-iap';
+
 import { isRecord } from './billingGuards';
 
 /** Play Billing `PurchaseState.PENDING`. A pending purchase is not finished and not posted. */
@@ -38,3 +40,10 @@ export const normalizeStorePurchase = (value: unknown): NormalizedStorePurchase 
     transactionId: readString(value, 'transactionId'),
   };
 };
+
+/**
+ * A purchase from the given store. Purchases carry `store` (`google`, `apple`); only products
+ * carry `platform`, so a purchase must never be matched on `platform`.
+ */
+export const isPurchaseFromStore = (value: unknown, store: IapStore): value is Purchase =>
+  normalizeStorePurchase(value) !== null && isRecord(value) && value.store === store;

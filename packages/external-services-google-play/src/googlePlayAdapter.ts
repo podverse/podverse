@@ -356,6 +356,7 @@ async function mapSubscriptionNotificationEvents(
         isSandbox: context.isSandbox,
         externalSubscriptionId: context.linkedPurchaseToken,
         expiredAt: context.periodStart ?? occurredAt,
+        replacedByExternalSubscriptionId: purchaseToken,
       });
     }
     return events;

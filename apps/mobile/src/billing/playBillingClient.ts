@@ -13,6 +13,7 @@ import type { BillingApi } from './billingApi';
 import type {
   BillingClient,
   BillingLocalizedPrice,
+  BillingPlanChange,
   BillingPurchaseKind,
   BillingPurchaseOutcome,
   BillingStoreProduct,
@@ -32,7 +33,7 @@ import { bindAccountToken } from './bindAccountToken';
 import { createFinishOnce } from './inflight';
 import { listStorePrices } from './localizedPrices';
 import { normalizeStorefrontCode } from './normalizeStorefront';
-import { normalizeStorePurchase } from './normalizeStorePurchase';
+import { isPurchaseFromStore, normalizeStorePurchase } from './normalizeStorePurchase';
 import { resolvePurchaseKind } from './purchaseKinds';
 import type { RestoreStoreRecord } from './restoreStorePurchases';
 import { restoreStorePurchases } from './restoreStorePurchases';
@@ -42,10 +43,7 @@ import { settleStorePurchase } from './settleStorePurchase';
 /** Returned when checkout asks for a Google base plan Play does not offer to this client. */
 export const BILLING_PRODUCT_UNAVAILABLE = 'billing.product_unavailable';
 
-const isStorePurchase = (value: unknown): value is Purchase => {
-  const normalized = normalizeStorePurchase(value);
-  return normalized !== null && isRecord(value) && value.platform === 'android';
-};
+const isStorePurchase = (value: unknown): value is Purchase => isPurchaseFromStore(value, 'google');
 
 const isAndroidSubscriptionProduct = (
   value: unknown
@@ -177,7 +175,10 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
     );
   };
 
-  const purchase = async (product: BillingStoreProduct): Promise<BillingPurchaseOutcome> => {
+  const purchaseGoogle = async (
+    product: BillingStoreProduct,
+    replacementToken: string | null
+  ): Promise<BillingPurchaseOutcome> => {
     let obfuscatedAccountId: string;
     try {
       obfuscatedAccountId = await bindAccount();
@@ -207,8 +208,16 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
               request: {
                 google: {
                   obfuscatedAccountId,
+                  purchaseToken: replacementToken,
                   skus: [product.productId],
                   subscriptionOffers: [{ offerToken, sku: product.productId }],
+                  subscriptionProductReplacementParams:
+                    replacementToken === null
+                      ? null
+                      : {
+                          oldProductId: product.productId,
+                          replacementMode: 'with-time-proration',
+                        },
                 },
               },
               type: 'subs',
@@ -246,6 +255,14 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
       return billingPurchaseOutcome('failed', product.productId, null, billingErrorCode(error));
     }
   };
+
+  const purchase = (product: BillingStoreProduct): Promise<BillingPurchaseOutcome> =>
+    purchaseGoogle(product, null);
+
+  const changePlan = (
+    change: BillingPlanChange,
+    product: BillingStoreProduct
+  ): Promise<BillingPurchaseOutcome> => purchaseGoogle(product, change.currentExternalSubscriptionId);
 
   const restore = async (): Promise<BillingPurchaseOutcome> => {
     await start();
@@ -300,6 +317,7 @@ export const createPlayBillingClient = (api: BillingApi): BillingClient => {
       return listStorePrices(productIds, fetchProducts);
     },
     purchase,
+    changePlan,
     restore,
     syncUnfinishedTransactions: async () => {
       await restore();

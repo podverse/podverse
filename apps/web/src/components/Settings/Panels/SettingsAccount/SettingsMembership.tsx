@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 
 import type { DTOBillingStatus } from '@podverse/helpers';
-import { formatDateAbbrev, isPaymentProcessorId } from '@podverse/helpers';
+import { formatDateAbbrev, formatSavedDuration, isPaymentProcessorId } from '@podverse/helpers';
 import { ActionLink, Alert, Button } from '@podverse/ui';
 
 import { ROUTES } from '../../../../constants/routes';
@@ -30,6 +30,7 @@ function billingDate(value: string | null, locale: string): string | null {
 
 export function SettingsMembership({ onStatus }: SettingsMembershipProps) {
   const t = useTranslations('settings.membership');
+  const tMembership = useTranslations('membership');
   const locale = useLocale();
   const [status, setStatus] = useState<DTOBillingStatus | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -83,6 +84,15 @@ export function SettingsMembership({ onStatus }: SettingsMembershipProps) {
   const showStore =
     (status?.active_auto_renew === true || storeManaged) &&
     (processorId === 'apple' || processorId === 'google_play');
+  const savedDuration =
+    subscription === null
+      ? null
+      : formatSavedDuration(subscription.banked_seconds, (segment) =>
+          tMembership(
+            `saved_duration_${segment.unit}_${segment.count === 1 ? 'one' : 'other'}`,
+            { count: segment.count }
+          )
+        );
 
   const cancelAutoRenew = async () => {
     if (subscription === null) {
@@ -151,6 +161,9 @@ export function SettingsMembership({ onStatus }: SettingsMembershipProps) {
               </>
             ) : null}
           </dl>
+        ) : null}
+        {showRenews && savedDuration !== null ? (
+          <p className={styles.notice}>{t('saved_time_caption', { duration: savedDuration })}</p>
         ) : null}
         {subscription?.status === 'cancelled_active' ? <p>{t('auto_renew_off')}</p> : null}
         <div className={styles.actions}>

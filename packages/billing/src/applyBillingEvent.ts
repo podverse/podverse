@@ -208,6 +208,34 @@ async function releaseBank(
   });
 }
 
+/**
+ * Moves banked seconds onto the subscription that replaced this one. If that row is not recorded
+ * yet, the time is handed back as a grant so it is not dropped.
+ */
+async function transferBankToReplacement(
+  unitOfWork: BillingLedgerUnitOfWork,
+  from: LedgerSubscription,
+  replacedByExternalSubscriptionId: string,
+  fallbackStartsAt: Date
+): Promise<void> {
+  if (from.bankedSeconds <= 0) {
+    return;
+  }
+  const target = await unitOfWork.getSubscription(replacedByExternalSubscriptionId);
+  if (target === null || target.id === from.id) {
+    await releaseBank(unitOfWork, from, fallbackStartsAt);
+    return;
+  }
+  await unitOfWork.saveSubscription({
+    ...toSubscriptionWrite(from),
+    bankedSeconds: 0,
+  });
+  await unitOfWork.saveSubscription({
+    ...toSubscriptionWrite(target),
+    bankedSeconds: target.bankedSeconds + from.bankedSeconds,
+  });
+}
+
 async function resolveProduct(
   unitOfWork: BillingLedgerUnitOfWork,
   externalProductId: string | null,
@@ -610,11 +638,13 @@ async function applySubscriptionExpired(
     gracePeriodEndsAt: null,
     rawStatusSnapshot: stampStatusChange(subscription.rawStatusSnapshot, occurredAt),
   });
-  await releaseBank(
-    unitOfWork,
-    expired,
-    latestOf(subscription.currentPeriodEnd, expiredAt) ?? occurredAt
-  );
+  const fallbackStartsAt = latestOf(subscription.currentPeriodEnd, expiredAt) ?? occurredAt;
+  const replacedBy = event.replacedByExternalSubscriptionId;
+  if (replacedBy !== undefined && replacedBy !== null && replacedBy !== '') {
+    await transferBankToReplacement(unitOfWork, expired, replacedBy, fallbackStartsAt);
+    return;
+  }
+  await releaseBank(unitOfWork, expired, fallbackStartsAt);
 }
 
 /**

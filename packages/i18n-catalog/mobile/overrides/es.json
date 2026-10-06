@@ -58,7 +58,6 @@
       "dismiss": "",
       "in_progress_count": "",
       "auto_download": "",
-      "auto_download_unavailable": "",
       "paused": "",
       "pause_all": "",
       "resume_all": "",
@@ -66,7 +65,16 @@
       "section_in_progress": "",
       "section_failed": "",
       "section_completed": "",
-      "activity_progress": ""
+      "activity_progress": "",
+      "auto_download_help": "",
+      "auto_download_cellular": "",
+      "auto_download_cellular_help": "",
+      "auto_download_apply_title": "",
+      "auto_download_apply_body": "",
+      "auto_download_apply_all": "",
+      "auto_download_apply_new_only": "",
+      "auto_download_cellular_apply_title": "",
+      "auto_download_cellular_apply_body": ""
     },
     "search": {
       "add_podcast": "",
@@ -74,6 +82,10 @@
       "not_available_yet": "",
       "add_failed": "",
       "add_timed_out": ""
+    },
+    "add_by_rss": {
+      "credentials_mobile_media_note": "",
+      "credentials_remove_feed_confirm": ""
     }
   },
   "notifications": {
@@ -108,10 +120,10 @@
       "cache": "",
       "limit_label": "",
       "unlimited": "",
+      "auto_free_heading": "",
       "auto_download_catch_up_label": "",
       "auto_download_catch_up_description": "",
       "auto_download_catch_up_count": "",
-      "auto_free_heading": "",
       "auto_delete_on_limit": "",
       "auto_delete_on_limit_description": "",
       "auto_delete_on_device_low": "",
@@ -120,7 +132,18 @@
       "delete_all_description": "",
       "delete_all": "",
       "delete_all_confirm_title": "",
-      "delete_all_confirm_body": ""
+      "delete_all_confirm_body": "",
+      "auto_download_heading": "",
+      "auto_download_default": "",
+      "auto_download_default_description": "",
+      "auto_download_cellular_default": "",
+      "auto_download_cellular_default_description": "",
+      "auto_download_apply_title": "",
+      "auto_download_apply_body": "",
+      "auto_download_apply_all": "",
+      "auto_download_apply_new_only": "",
+      "auto_download_cellular_apply_title": "",
+      "auto_download_cellular_apply_body": ""
     },
     "notifications": {
       "login_required_title": "",
@@ -171,23 +194,10 @@
       "seen_state": "",
       "live_status": "",
       "clips": "",
-      "home_feed": ""
+      "home_feed": "",
+      "auto_download": ""
     },
-    "progress": "",
-    "log": {
-      "title": "",
-      "intro": "",
-      "empty": "",
-      "export": "",
-      "clear": "",
-      "clear_confirm_title": "",
-      "clear_confirm_body": "",
-      "outcome_failure": "",
-      "outcome_reconciled": "",
-      "outcome_skipped": "",
-      "outcome_success": "",
-      "directory_channel_gone": ""
-    }
+    "progress": ""
   },
   "error_log": {
     "intro": "",
@@ -207,7 +217,61 @@
         "runtime": "",
         "locale": "",
         "screen": ""
+      },
+      "title": "",
+      "not_found": "",
+      "copied": "",
+      "copy_failed": "",
+      "time": "",
+      "code": "",
+      "message": "",
+      "hosted_media_note": "",
+      "field": {
+        "http_status": "",
+        "media_url": "",
+        "engine_url": "",
+        "feed_url": "",
+        "item_title": "",
+        "channel_title": "",
+        "item_id_text": "",
+        "channel_id_text": "",
+        "clip_id_text": "",
+        "soundbite_id_text": "",
+        "chapter_id_text": "",
+        "add_by_rss_id_text": "",
+        "item_guid": "",
+        "resource_kind": "",
+        "source": "",
+        "position_seconds": "",
+        "error_kind": "",
+        "native_code": "",
+        "native_detail": "",
+        "parse_status": "",
+        "request_id": "",
+        "basic_auth": ""
       }
+    },
+    "title": "",
+    "menu_subtitle": "",
+    "empty": "",
+    "export": "",
+    "clear": "",
+    "clear_confirm_title": "",
+    "clear_confirm_body": "",
+    "outcome_failure": "",
+    "outcome_reconciled": "",
+    "outcome_skipped": "",
+    "outcome_success": "",
+    "directory_channel_gone": "",
+    "row_a11y_hint": "",
+    "saved_footnote": "",
+    "kind": {
+      "playback": ""
+    },
+    "add_by_rss": {
+      "parse_failed_notice": "",
+      "parse_pending_notice": "",
+      "add_failed": ""
     }
   },
   "media_player": {
@@ -232,6 +296,18 @@
     "download_no_storage": "",
     "download_transfer_failed": "",
     "download_file_missing": "",
-    "download_unknown": ""
+    "download_unknown": "",
+    "playback_host_http": "",
+    "playback_credentials_required": "",
+    "playback_credentials_rejected": "",
+    "playback_credentials_withheld_other_domain": "",
+    "playback_credentials_withheld_insecure": "",
+    "download_credentials_withheld": ""
+  },
+  "membership": {
+    "trial_limitations_missing_content": ""
+  },
+  "more_advanced": {
+    "title": ""
   }
 }

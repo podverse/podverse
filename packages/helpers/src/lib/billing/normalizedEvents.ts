@@ -135,6 +135,11 @@ export interface SubscriptionExpiredEvent
   extends NormalizedBillingEventBase, BillingSubscriptionRef {
   type: 'subscription_expired';
   expiredAt: string | null;
+  /**
+   * The processor's id for the subscription that replaced this one. Play sends a new purchase
+   * token on a plan change; the banked time moves there instead of becoming a grant.
+   */
+  replacedByExternalSubscriptionId?: string | null;
 }
 
 /** A refund or revocation names the transaction, the subscription, or both. */

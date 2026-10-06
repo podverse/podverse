@@ -1,17 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  autoRenewManageTarget,
   availableCadences,
   checkoutProduct,
   isClientUpdateRequired,
   mapCheckoutProcessors,
   offersProcessor,
   PLAY_PACKAGE_NAME,
+  planSwitchTiming,
   resolveStoreCheckoutMode,
   showsStackingNotice,
   storeListingUrl,
   storeProcessorId,
-  subscriptionManagementUrl,
 } from './storeCheckout';
 
 const options = mapCheckoutProcessors({
@@ -123,13 +124,28 @@ describe('store checkout selection', () => {
     expect(isClientUpdateRequired(null)).toBe(false);
   });
 
-  it('points manage and update links at the store for that platform', () => {
-    expect(subscriptionManagementUrl('storekit')).toBe(
-      'https://apps.apple.com/account/subscriptions'
-    );
-    expect(subscriptionManagementUrl('play')).toContain(PLAY_PACKAGE_NAME);
-    expect(subscriptionManagementUrl('fake')).toBeNull();
+  it('sends auto-renew changes to the processor that bills the subscription', () => {
+    expect(autoRenewManageTarget('apple')).toEqual({
+      kind: 'app_store',
+      url: 'https://apps.apple.com/account/subscriptions',
+    });
+    const play = autoRenewManageTarget('google_play');
+    expect(play.kind).toBe('play');
+    expect(play.kind === 'play' ? play.url : '').toContain(PLAY_PACKAGE_NAME);
+    expect(autoRenewManageTarget('paypal')).toEqual({ kind: 'web' });
+    expect(autoRenewManageTarget(null)).toEqual({ kind: 'web' });
+  });
+
+  it('points update links at the store for that platform', () => {
     expect(storeListingUrl('ios')).toContain('apps.apple.com');
     expect(storeListingUrl('android')).toContain(PLAY_PACKAGE_NAME);
+  });
+
+  it('switches Play plans now and Apple yearly-to-monthly at the next renewal', () => {
+    expect(planSwitchTiming('play', 'monthly', 'annual')).toBe('now');
+    expect(planSwitchTiming('play', 'annual', 'monthly')).toBe('now');
+    expect(planSwitchTiming('storekit', 'monthly', 'annual')).toBe('now');
+    expect(planSwitchTiming('storekit', 'annual', 'monthly')).toBe('next_renewal');
+    expect(planSwitchTiming('fake', 'monthly', 'annual')).toBe('now');
   });
 });

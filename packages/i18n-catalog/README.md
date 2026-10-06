@@ -13,8 +13,8 @@ Layered translation **source of truth** for web, management-web, and mobile.
 
 Each layer has:
 
-- `originals/` — committed source (en-US hand-authored; other locales LLM-generated)
-- `overrides/` — committed human corrections (empty string = use originals)
+- `originals/` — committed source for every locale (`en-US` is authored first; other locales are written in the same files by agents or people)
+- `overrides/` — committed **operator-only** corrections (empty string = use originals)
 - `compiled/` — generated per layer (gitignored)
 
 ## Merge order
@@ -42,7 +42,6 @@ Those directories must only contain **compiled** bundles. Do **not** add
 ## Scripts (from monorepo root)
 
 ```bash
-npm run i18n:translate
 npm run i18n:compile
 npm run i18n:validate
 ```
@@ -54,3 +53,5 @@ npm run i18n:validate
 - Key parity and order within each layer
 - No duplicate leaf key paths across `shared`+`consumer`, `shared`+`management`, or
   `consumer`+`mobile`
+
+There is no translate script. Non-English `originals/` are maintained in git like `en-US`.
