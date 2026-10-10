@@ -42,6 +42,8 @@ const TEST_PASSWORD = 'Test!1Aa';
 const E2E_CONFIGURED_TERMS_VERSION = '2026-01-01';
 const E2E_POPULARITY_TRACKING_VERSION = '2026-09-11';
 const E2E_POPULARITY_UNDECIDED_EMAIL = 'e2e-popularity-undecided@example.com';
+/** Sync with apps/web/e2e/helpers/legalConsent.ts */
+const E2E_CONSENT_ORDER_EMAIL = 'e2e-consent-order@example.com';
 /** Sync with apps/mobile/src/lib/e2e/e2eSeedConstants.ts (`E2E_PERF_EMAIL`). */
 const E2E_PERF_EMAIL = 'e2e-perf@example.com';
 /** `e2ePerfUser01` is 13 characters, inside nano_id_v2's 9–15 range. */
@@ -516,8 +518,53 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
     [undecidedAccountId]
   );
 
+  const consentOrderIdText = crypto.randomBytes(8).toString('hex').slice(0, 15);
+  const consentOrderAccountResult = await client.query(
+    `INSERT INTO "account" (id_text, verified, sharable_status_id)
+     VALUES ($1, true, 1)
+     RETURNING id`,
+    [consentOrderIdText]
+  );
+  const consentOrderAccountId = consentOrderAccountResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO "account_credentials" (account_id, email, password)
+     VALUES ($1, $2, $3)`,
+    [consentOrderAccountId, E2E_CONSENT_ORDER_EMAIL, passwordHash]
+  );
+
+  await client.query(
+    `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
+     VALUES ($1, 1, $2)`,
+    [consentOrderAccountId, membershipExpiresAt]
+  );
+  await client.query(
+    `INSERT INTO "billing_membership_grant" (account_id, source, starts_at, ends_at)
+     VALUES ($1, 'trial', $2, $3)`,
+    [consentOrderAccountId, membershipStartsAt, membershipExpiresAt]
+  );
+
+  await client.query(
+    `INSERT INTO "account_terms_acceptance" (account_id, terms_version, accepted_at)
+     VALUES ($1, $2, NOW())`,
+    [consentOrderAccountId, E2E_OUTDATED_TERMS_VERSION]
+  );
+
+  await client.query(
+    `INSERT INTO "account_settings" (
+       account_id,
+       allow_listen_stats,
+       listen_stats_accepted,
+       listen_stats_agreement_version,
+       listen_stats_decided_at
+     )
+     VALUES ($1, false, NULL, NULL, NULL)`,
+    [consentOrderAccountId]
+  );
+
   console.log(`Seeded 1 test user: e2e-user@example.com`);
   console.log(`Seeded popularity-undecided user: ${E2E_POPULARITY_UNDECIDED_EMAIL}`);
+  console.log(`Seeded consent-order user: ${E2E_CONSENT_ORDER_EMAIL}`);
   console.log(`Seeded stale-terms user: ${E2E_STALE_TERMS_EMAIL}`);
   console.log(
     `Seeded invite set-password token for account id ${inviteAccountId} (username e2e_invite_user)`

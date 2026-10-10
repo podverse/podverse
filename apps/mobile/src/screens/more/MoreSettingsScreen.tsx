@@ -3,14 +3,28 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { isPopularityTrackingAllowed } from '@podverse/helpers';
+
+import { useAuth } from '../../auth/AuthProvider';
 import type { MenuListItem } from '../../components/screen/MenuListScreen';
 import { MenuListScreen } from '../../components/screen/MenuListScreen';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
+import { getPopularityTrackingCurrentVersion } from '../../popularityTracking/popularityTrackingGate';
 
 export function MoreSettingsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
+  const { account } = useAuth();
+  const popularityAllowed = isPopularityTrackingAllowed(
+    account?.account_settings,
+    getPopularityTrackingCurrentVersion()
+  );
+  const agreedVersion = account?.account_terms_acceptance?.terms_version;
+  const termsSubtitle =
+    agreedVersion !== undefined && agreedVersion !== ''
+      ? t('terms_acceptance.agreement_date', { agreement_date: agreedVersion })
+      : '';
 
   const items = useMemo<MenuListItem[]>(
     () => [
@@ -56,14 +70,22 @@ export function MoreSettingsScreen() {
       },
       {
         onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreTermsOfService);
+        },
+        subtitle: termsSubtitle,
+        testID: 'more-settings-terms',
+        title: t('terms_acceptance.header'),
+      },
+      {
+        onPress: () => {
           navigation.navigate(MORE_STACK_ROUTES.MoreSettingsPopularityTracking);
         },
-        subtitle: t('popularity_tracking.learn_more'),
+        subtitle: popularityAllowed ? t('misc.on') : t('misc.off'),
         testID: 'more-settings-popularity-tracking',
         title: t('popularity_tracking.title'),
       },
     ],
-    [navigation, t]
+    [navigation, popularityAllowed, t, termsSubtitle]
   );
 
   return (

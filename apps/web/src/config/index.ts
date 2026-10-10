@@ -112,7 +112,6 @@ const buildConfig = () => {
         },
         popularityTracking: {
           version: env.NEXT_PUBLIC_POPULARITY_TRACKING_AGREEMENT_VERSION!,
-          agreementDate: env.NEXT_PUBLIC_POPULARITY_TRACKING_AGREEMENT_DATE!,
         },
       },
       stats: {

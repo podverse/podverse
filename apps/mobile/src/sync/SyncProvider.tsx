@@ -40,6 +40,7 @@ import {
   isSyncNetworkUsable,
   subscribeOfflineMode,
 } from '../prefs/offlineMode';
+import { subscribeTermsBlocksAccountSync, termsBlocksAccountSync } from '../terms/termsSyncGate';
 import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
 import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import { attachSyncEventLogSink } from './syncEventLogSink';
@@ -178,7 +179,7 @@ export function SyncProvider({ children }: PropsWithChildren) {
     }
 
     const planned = planSyncRun({
-      isAuthenticated: isAuthenticatedRef.current,
+      isAuthenticated: isAuthenticatedRef.current && !termsBlocksAccountSync(),
       trigger,
     });
     if (planned.length === 0) {
@@ -241,6 +242,23 @@ export function SyncProvider({ children }: PropsWithChildren) {
       status === 'authenticated' && previousStatus === 'anonymous' ? 'sign-in' : 'app-start'
     );
   }, [requestSync, status]);
+
+  const [termsBlocked, setTermsBlocked] = useState(() => termsBlocksAccountSync());
+  useEffect(() => {
+    setTermsBlocked(termsBlocksAccountSync());
+    return subscribeTermsBlocksAccountSync(() => {
+      setTermsBlocked(termsBlocksAccountSync());
+    });
+  }, []);
+
+  const previousTermsBlockedRef = useRef(termsBlocked);
+  useEffect(() => {
+    const wasBlocked = previousTermsBlockedRef.current;
+    previousTermsBlockedRef.current = termsBlocked;
+    if (wasBlocked && !termsBlocked && status === 'authenticated') {
+      requestSync('sign-in');
+    }
+  }, [requestSync, status, termsBlocked]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {

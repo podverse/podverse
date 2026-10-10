@@ -33,3 +33,21 @@ export function isPopularityTrackingPromptRequired(
   }
   return decision.listen_stats_agreement_version !== currentVersion;
 }
+
+export type PopularityTrackingChoice = 'allowed' | 'opted_out' | 'stale_acceptance' | 'undecided';
+
+export function getPopularityTrackingChoice(
+  decision: PopularityTrackingDecision | null | undefined,
+  currentVersion: string
+): PopularityTrackingChoice {
+  if (isPopularityTrackingAllowed(decision, currentVersion)) {
+    return 'allowed';
+  }
+  if (decision !== null && decision !== undefined && decision.listen_stats_accepted === false) {
+    return 'opted_out';
+  }
+  if (decision !== null && decision !== undefined && decision.listen_stats_accepted === true) {
+    return 'stale_acceptance';
+  }
+  return 'undecided';
+}

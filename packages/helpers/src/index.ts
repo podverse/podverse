@@ -103,6 +103,7 @@ export * from './lib/parseEnvNonNegative.js';
 export * from './lib/rateLimit/parseCountPerWindowEnv.js';
 export * from './lib/pagination.js';
 export * from './lib/popularityTracking.js';
+export * from './lib/termsAcceptance.js';
 export * from './lib/copyMarkdown.js';
 export * from './lib/playlist.js';
 export * from './lib/primitives.js';

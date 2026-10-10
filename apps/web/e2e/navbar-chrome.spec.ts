@@ -23,6 +23,30 @@ test.describe('Main layout navbar chrome', () => {
     );
   });
 
+  test('sidebar sections start expanded on a wide viewport', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await actionAndCapture(
+      page,
+      testInfo,
+      'The wide home page shows each sidebar section expanded.',
+      async () => {
+        await page.goto('/');
+        await expect(page).toHaveURL(/\/$/);
+        const sections = page.locator('#sidebar details');
+        await expect(sections).toHaveCount(4);
+        const count = await sections.count();
+        for (let index = 0; index < count; index += 1) {
+          await expect(sections.nth(index)).toHaveJSProperty('open', true);
+        }
+        await expect(page.locator('#sidebar a[href="/podcasts"]')).toBeVisible();
+        await expect(page.locator('#sidebar a[href="/artists"]')).toBeVisible();
+        await expect(page.locator('#sidebar a[href="/add-by-rss/podcasts"]')).toBeVisible();
+        await expect(page.locator('#sidebar a[href="/playlists"]')).toBeVisible();
+      },
+      page.locator('#sidebar')
+    );
+  });
+
   test('a narrow viewport shows search, the mobile menu toggle in its closed state', async ({
     page,
   }, testInfo) => {

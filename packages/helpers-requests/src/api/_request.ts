@@ -187,6 +187,7 @@ import {
 } from './itemSoundbite/itemSoundbite.js';
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
 import { reqLegalPopularityTracking } from './legal/popularityTracking.js';
+import { reqLegalTerms } from './legal/terms.js';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
 import { reqManagedCopyGet } from './managedCopy/managedCopy.js';
 import { reqMembershipGetPricing, reqProductMembershipGet } from './membership/membership.js';
@@ -866,6 +867,10 @@ export class ApiRequestService {
 
   reqLegalPopularityTracking() {
     return reqLegalPopularityTracking(this);
+  }
+
+  reqLegalTerms(options?: { locale?: string }) {
+    return reqLegalTerms(this, options);
   }
 
   reqManagedCopyGet(slug: ManagedCopySlug, options?: { locale?: string }) {

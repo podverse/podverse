@@ -11,4 +11,9 @@ export const E2E_STALE_TERMS_EMAIL = 'e2e-stale-terms@example.com';
 
 export const E2E_STALE_TERMS_PASSWORD = 'Test!1Aa';
 
+/** Outdated terms and no popularity-tracking decision. Sync with tools/web/seed-e2e.mjs. */
+export const E2E_CONSENT_ORDER_EMAIL = 'e2e-consent-order@example.com';
+
+export const E2E_CONSENT_ORDER_PASSWORD = 'Test!1Aa';
+
 export const E2E_SIGNUP_TEST_PASSWORD = 'Test!1Aa';

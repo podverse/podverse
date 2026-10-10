@@ -12,6 +12,10 @@ export type AuthIntegrationAccountGetResult = {
     membership_expires_at: Date;
     account_membership: { id: AccountMembershipEnum };
   };
+  account_terms_acceptance: {
+    terms_version: string;
+    accepted_at: Date;
+  };
 };
 
 /**
@@ -34,6 +38,10 @@ export function createDefaultAccountGet(
       account_membership_status: {
         membership_expires_at: new Date(Date.now() + 86400000 * 365),
         account_membership: { id: AccountMembershipEnum.Premium },
+      },
+      account_terms_acceptance: {
+        terms_version: '2026-01-01',
+        accepted_at: new Date('2026-01-01T00:00:00.000Z'),
       },
     };
   };

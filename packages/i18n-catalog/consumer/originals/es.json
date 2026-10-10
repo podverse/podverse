@@ -650,10 +650,18 @@
     "yes": "Sí, incluirme",
     "no": "No, gracias",
     "learn_more": "Más información",
+    "full_agreement": "Acuerdo completo",
+    "retry": "Reintentar",
     "already_agreed": "Ya aceptaste esta versión.",
     "agreement_date": "Fecha del acuerdo: {agreement_date}",
     "error": "No se pudo guardar tu elección de seguimiento de popularidad. Inténtalo de nuevo.",
-    "back_to_choice": "Volver"
+    "back_to_choice": "Volver",
+    "change": "Cambiar el seguimiento de popularidad",
+    "dismiss_note": "Cerrar esta ventana no cambia tu elección. Puedes actualizarla más tarde en Configuraciones.",
+    "load_error": "No se pudo cargar el acuerdo de seguimiento de popularidad. Inténtalo de nuevo.",
+    "status_opted_out": "El seguimiento de popularidad está desactivado.",
+    "status_stale": "El acuerdo cambió. El seguimiento de popularidad permanece desactivado hasta que aceptes la nueva versión.",
+    "status_undecided": "Aún no has elegido si permites el seguimiento de popularidad."
   },
   "misc": {
     "more_info": "Más información",
@@ -863,9 +871,15 @@
     "terms_version_invalid": "La versión de los términos de servicio está desactualizada. Actualiza la página e inténtalo de nuevo."
   },
   "terms_acceptance": {
-    "header": "Términos de servicio actualizados",
-    "message": "Nuestros términos de servicio han cambiado. Lee y acepta los términos actualizados para seguir usando tu cuenta.",
-    "checkbox_label": "He leído y acepto los términos de servicio actualizados"
+    "header": "Términos de servicio",
+    "message": "Lee y acepta los términos de servicio para seguir usando tu cuenta.",
+    "checkbox_label": "He leído y acepto los términos de servicio.",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "agreement_date": "Válido desde {agreement_date}",
+    "full_agreement": "Términos completos",
+    "load_error": "No se pudieron cargar los términos de servicio. Inténtalo de nuevo.",
+    "retry": "Reintentar"
   },
   "membership": {
     "membership": "Membresía",
@@ -1208,30 +1222,7 @@
     "none_help": "Sin cookies opcionales del dispositivo; el inicio de sesión sigue funcionando."
   },
   "terms": {
-    "terms": "Términos",
-    "legal_entity_heading": "{legal_name}",
-    "service_intro": "{brand_name} es operado por {legal_name}. Estos términos describen cómo tratamos tus datos y nuestro servicio.",
-    "never_sell_data": "{brand_name} nunca venderá ni compartirá datos privados de los usuarios.",
-    "no_ads_without_permission": "Nunca pondremos anuncios al lado o dentro del contenido de un podcast sin el permiso de ese podcast.",
-    "audio_video_hosting": "Todos los archivos de audio o video encontrados en {brand_domain} se cargan desde el propio servidor público del podcaster. No alojamos archivos de audio o video de podcasts nosotros mismos.",
-    "third_party_feeds": "Alojamos enlaces y contenido de podcasts de fuentes y sitios de terceros. Estos tienen sus propias políticas de privacidad independientes, y no tenemos responsabilidad por su contenido o actividades.",
-    "clips_crowdsourced": "Todos los clips alojados en {brand_domain} son obtenidos de forma colaborativa y no oficiales, a menos que el propio podcaster indique lo contrario.",
-    "clips_load_full_episode": "Los clips se cargan dentro del archivo de medios del episodio completo, por lo que el usuario siempre tiene acceso a la grabación completa.",
-    "reduced_size_images": "También alojamos imágenes de podcasts de tamaño reducido de los feeds de los podcasters, para ahorrar datos de red del usuario y acelerar los tiempos de carga de la página.",
-    "data_service_necessary": "Los datos de cola, inicio de sesión y reproducción de la cuenta son necesarios para ejecutar {brand_name}. No pedimos consentimiento aparte para esta funcionalidad básica. Recordar la reproducción sin iniciar sesión es opcional y se controla en el banner de cookies.",
-    "data_listen_stats_heading": "Estadísticas de escucha",
-    "data_listen_stats_body": "{legal_name} puede registrar eventos de escucha seudónimos para mostrar contenido en tendencia. Los eventos se conservan {retention_days} días. Puedes activar o desactivar esta opción en la configuración de la cuenta.",
-    "data_listen_stats_anonymization": "Las estadísticas usan un identificador interno de cuenta. No se muestra como tu perfil público ni tu nombre de usuario.",
-    "data_web_analytics": "La analítica web anónima (Cloudflare) solo se carga si aceptas cookies de analítica en el banner de consentimiento.",
-    "data_retention": "Los eventos de escucha en bruto se eliminan después de {retention_days} días.",
-    "data_requests": "Para solicitudes de acceso o eliminación, escribe a {contact_email}.",
-    "cookie_choices_heading": "Opciones de cookies",
-    "cookie_choice_all": "Aceptar todo",
-    "cookie_choice_all_help": "Analítica y recordar la reproducción sin iniciar sesión.",
-    "cookie_choice_essential": "Solo esenciales",
-    "cookie_choice_essential_help": "Recordar la reproducción sin iniciar sesión; sin analítica.",
-    "cookie_choice_none": "Ninguna",
-    "cookie_choice_none_help": "Sin cookies opcionales del dispositivo; el inicio de sesión y la reproducción de la cuenta siguen funcionando."
+    "terms": "Términos"
   },
   "socials": {
     "discord": "Discord",

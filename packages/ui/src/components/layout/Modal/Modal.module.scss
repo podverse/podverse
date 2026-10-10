@@ -98,6 +98,16 @@
   @include flexItemAllowShrink;
 }
 
+.modalActionsStack {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.modalActionsStack > * {
+  width: 100%;
+}
+
 .modalContent {
   position: relative;
   box-sizing: border-box;

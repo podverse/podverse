@@ -98,10 +98,12 @@ type Config = {
   };
   terms: {
     version: string;
+    contentDir: string;
+    contactEmail: string;
+    retentionDays: string;
   };
   popularityTracking: {
     version: string;
-    agreementDate: string;
     contentDir: string;
   };
   managedCopy: {
@@ -341,10 +343,12 @@ export const config: Config = {
   },
   terms: {
     version: process.env.TERMS_OF_SERVICE_VERSION ?? '',
+    contentDir: process.env.TERMS_OF_SERVICE_CONTENT_DIR ?? '',
+    contactEmail: process.env.CONTACT_EMAIL ?? '',
+    retentionDays: process.env.STATS_TRACK_EVENT_RETENTION_DAYS ?? '',
   },
   popularityTracking: {
     version: process.env.POPULARITY_TRACKING_AGREEMENT_VERSION!,
-    agreementDate: process.env.POPULARITY_TRACKING_AGREEMENT_DATE!,
     contentDir: process.env.POPULARITY_TRACKING_CONTENT_DIR ?? '',
   },
   managedCopy: {

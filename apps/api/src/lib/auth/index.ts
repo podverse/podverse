@@ -14,8 +14,9 @@ import {
   hasValidMembership,
   isMobileRefreshJwtPayload,
 } from '@podverse/helpers';
-import type { Account, FindOptionsRelations } from '@podverse/orm';
+import type { FindOptionsRelations } from '@podverse/orm';
 import {
+  Account,
   AccountService,
   BillingPriceCatalogService,
   findOptionsRelationsFromPaths,
@@ -36,6 +37,28 @@ import { verifyPassword } from './password.js';
  */
 const isProduction = config.nodeEnv === 'production';
 const MEMBERSHIP_EXPIRED_I18N_KEY = 'membership.membership_expired';
+
+type AuthenticatedRequestOptions = {
+  skipMembershipStatus: boolean;
+  skipTermsAcceptance?: boolean;
+  requiredCapability?: AccountEntitlementCapability;
+};
+
+/**
+ * Repository accounts are entity instances and include the terms relation when this check runs.
+ * A plain object that omits the relation is not a terms decision.
+ */
+function accountNeedsCurrentTerms(account: Account, configuredVersion: string): boolean {
+  const isEntity = account instanceof Account;
+  const includesAcceptance = Object.prototype.hasOwnProperty.call(
+    account,
+    'account_terms_acceptance'
+  );
+  if (!isEntity && !includesAcceptance) {
+    return false;
+  }
+  return account.account_terms_acceptance?.terms_version !== configuredVersion;
+}
 
 const issueMobileTokenPair = (params: {
   accountId: number;
@@ -337,7 +360,7 @@ const verifyTokenAndMembership = (
   res: Response,
   next: NextFunction,
   token: string,
-  options: { skipMembershipStatus: boolean; requiredCapability?: AccountEntitlementCapability }
+  options: AuthenticatedRequestOptions
 ): void => {
   interface DecodedToken {
     id: number;
@@ -385,6 +408,11 @@ const verifyTokenAndMembership = (
           'account_membership_status.account_membership',
         ]);
       }
+      const enforceTerms =
+        options.skipTermsAcceptance !== true && config.terms.version !== '';
+      if (enforceTerms) {
+        relations = mergeFindOptionsRelations<Account>(relations, ['account_terms_acceptance']);
+      }
       const account = await getAccountMatchingJwtIdentity(
         { id: payload.id, id_text: payload.id_text },
         { relations }
@@ -401,6 +429,14 @@ const verifyTokenAndMembership = (
           typeof account.id_text === 'string' && account.id_text !== '' ? account.id_text : '',
         verified: typeof account.verified === 'boolean' ? account.verified : true,
       };
+
+      if (enforceTerms && accountNeedsCurrentTerms(account, config.terms.version)) {
+        res.status(403).json({
+          message: 'Terms of service acceptance is required.',
+          code: 'terms_acceptance_required',
+        });
+        return;
+      }
 
       if (!options.skipMembershipStatus) {
         const membershipStatus = account.account_membership_status;
@@ -447,7 +483,7 @@ export const ensureAuthenticated = (
   req: Request,
   res: Response,
   next: NextFunction,
-  options: { skipMembershipStatus: boolean; requiredCapability?: AccountEntitlementCapability }
+  options: AuthenticatedRequestOptions
 ): void => {
   const token = req.cookies[AuthCookieName] || req.headers.authorization?.split(' ')[1];
   if (!token) {
@@ -461,7 +497,7 @@ export const optionalEnsureAuthenticated = (
   req: Request,
   res: Response,
   next: NextFunction,
-  options: { skipMembershipStatus: boolean; requiredCapability?: AccountEntitlementCapability }
+  options: AuthenticatedRequestOptions
 ): void => {
   const token = req.cookies[AuthCookieName] || req.headers.authorization?.split(' ')[1];
 

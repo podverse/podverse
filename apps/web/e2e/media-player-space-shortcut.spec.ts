@@ -37,7 +37,10 @@ async function expandPodcastsSidebarAccordion(page: Page): Promise<void> {
   const podcastsSection = sidebar.locator('details').filter({
     has: page.locator('a[href="/podcasts"]'),
   });
-  await podcastsSection.locator('summary').click();
+  const isOpen = await podcastsSection.evaluate((el) => el.hasAttribute('open'));
+  if (!isOpen) {
+    await podcastsSection.locator('summary').click();
+  }
   await expect(podcastsLink).toBeVisible();
 }
 

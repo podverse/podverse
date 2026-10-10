@@ -21,7 +21,6 @@ export class PopularityTrackingLegalController {
 
           res.json({
             version: config.popularityTracking.version,
-            agreement_date: config.popularityTracking.agreementDate,
             markdown,
           });
         } catch (error) {

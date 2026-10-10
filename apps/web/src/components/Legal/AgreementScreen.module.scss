@@ -1,0 +1,45 @@
+.screen {
+  align-items: flex-start;
+  background: var(--background-color-primary);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  width: 100%;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  max-width: 40rem;
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+}
+
+.date {
+  color: var(--text-color-secondary);
+  margin: 0;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+.error {
+  display: grid;
+  gap: var(--spacing-md);
+}

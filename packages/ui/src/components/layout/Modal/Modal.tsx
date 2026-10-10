@@ -47,10 +47,22 @@ export function ModalBody({ children, className }: ModalBodyProps) {
 export type ModalActionsProps = {
   children: ReactNode;
   className?: string;
+  /** Full-width column. Omit for the right-aligned wrapping row. */
+  stack?: boolean;
 };
 
-export function ModalActions({ children, className }: ModalActionsProps) {
-  return <div className={classNames(styles.modalActions, className)}>{children}</div>;
+export function ModalActions({ children, className, stack = false }: ModalActionsProps) {
+  return (
+    <div
+      className={classNames(
+        styles.modalActions,
+        stack ? styles.modalActionsStack : undefined,
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 function isDismissible(props: ModalProps): props is ModalPropsWithDismiss {

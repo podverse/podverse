@@ -1,3 +1,4 @@
+import { isCurrentTermsAccepted } from '@podverse/helpers';
 import type { DTOAccount } from '@podverse/helpers';
 
 export function isTermsAcceptanceRequired(
@@ -8,10 +9,5 @@ export function isTermsAcceptanceRequired(
     return false;
   }
 
-  const acceptance = loggedInAccount.account_terms_acceptance;
-  if (acceptance === undefined || acceptance === null) {
-    return true;
-  }
-
-  return acceptance.terms_version !== configuredTermsVersion;
+  return !isCurrentTermsAccepted(loggedInAccount.account_terms_acceptance, configuredTermsVersion);
 }

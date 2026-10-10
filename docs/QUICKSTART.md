@@ -342,7 +342,9 @@ Sandbox Apple Account works only on a physical iPhone, not the simulator
 ([BILLING-APPLE-SANDBOX.md](billing/BILLING-APPLE-SANDBOX.md)). Android
 purchases use a Play license tester signed in on the emulator or phone
 ([BILLING-GOOGLE-PLAY-DEVICE.md](billing/BILLING-GOOGLE-PLAY-DEVICE.md)). Web
-checkout is http://localhost:3002. App logins are in the
+checkout is http://localhost:3002. The PayPal purchase check is
+[BILLING-PAYPAL-SANDBOX-CHECKOUT.md](billing/BILLING-PAYPAL-SANDBOX-CHECKOUT.md).
+App logins are in the
 [seed table](#3-recreate-infra-and-seed-the-database).
 
 ## Optional podcast data

@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Modal, ScrollView, StyleSheet, Text } from 'react-native';
 
 import type { DTOPopularityTrackingAgreement } from '@podverse/helpers';
-import { isPopularityTrackingAllowed, isPopularityTrackingPromptRequired } from '@podverse/helpers';
+import { isPopularityTrackingPromptRequired } from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
 import { requestWithMobileAuthRefresh } from '../auth/authRequestWithRefresh';
+import { useTermsGate } from '../terms/TermsAcceptanceProvider';
 import { syncAllowListenStatsToAccountSettings } from '../auth/syncAccountPrefs';
 import { ModalSafeArea } from '../components/screen/ModalSafeArea';
 import { screenBodyInsets } from '../theme/screenLayout';
@@ -20,6 +21,7 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, account, clearSession, refreshToken, setAccount, setTokens, status } =
     useAuth();
+  const { awaitingDismiss } = useTermsGate();
   const [agreement, setAgreement] = useState<DTOPopularityTrackingAgreement | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -33,6 +35,7 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
   // authenticated the moment tokens are stored, well before the snapshot arrives, and an
   // account that has not loaded is not an account that has declined to decide.
   const promptRequired =
+    !awaitingDismiss &&
     status === 'authenticated' &&
     account !== null &&
     (currentVersion !== ''
@@ -96,8 +99,6 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
     [accessToken, clearSession, refreshToken, setAccount, setTokens]
   );
 
-  const alreadyAgreed = isPopularityTrackingAllowed(account?.account_settings, currentVersion);
-
   return (
     <>
       {children}
@@ -114,11 +115,10 @@ export function PopularityTrackingProvider({ children }: PropsWithChildren) {
               {t('popularity_tracking.title')}
             </Text>
             <PopularityTrackingAgreementBody
-              alreadyAgreed={alreadyAgreed}
+              accordionTestID="popularity-tracking-full-agreement"
               agreement={agreement}
               errorKey={errorKey}
               isLoading={isLoading}
-              learnMoreTestID="popularity-tracking-learn-more"
               noTestID="popularity-tracking-no"
               onDecision={(accepted) => {
                 void handleDecision(accepted);

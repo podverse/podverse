@@ -9,6 +9,9 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 const API_LOGIN_URL = 'http://localhost:4030/api/v2/auth/login';
+const TERMS_SCREEN_NAME = 'Terms of Service';
+const TERMS_CHECKBOX_NAME = 'I have read and agree to the Terms of Service.';
+const TERMS_DATE = `Valid since ${E2E_CONFIGURED_TERMS_VERSION}`;
 
 async function loginStaleTermsUser(page: Page): Promise<void> {
   const loginResponse = await page.request.post(API_LOGIN_URL, {
@@ -18,7 +21,7 @@ async function loginStaleTermsUser(page: Page): Promise<void> {
 }
 
 test.describe('Terms version acceptance', () => {
-  test('When an account has an outdated terms acceptance, login shows a blocking modal until the visitor accepts.', async ({
+  test('When an account has an outdated terms acceptance, the agreement screen blocks the app until the visitor accepts.', async ({
     page,
   }, testInfo) => {
     test.setTimeout(30_000);
@@ -27,39 +30,59 @@ test.describe('Terms version acceptance', () => {
       await loginStaleTermsUser(page);
     });
 
-    await test.step('Open the home page and verify the blocking terms modal is visible', async () => {
+    await test.step('Open the home page and verify the terms screen replaces the app', async () => {
       await page.goto('/');
       await expect(page).toHaveURL('/');
 
-      const termsModal = page.getByRole('dialog', { name: 'Updated Terms of Service' });
-      await expect(termsModal).toBeVisible();
+      const termsScreen = page.getByRole('main', { name: TERMS_SCREEN_NAME });
+      await expect(termsScreen).toBeVisible();
+      await expect(termsScreen.getByText(TERMS_DATE)).toBeVisible();
+      await expect(termsScreen.getByRole('button', { name: 'Accept' })).toBeDisabled();
+
+      await termsScreen.getByText('Full Terms').click();
+      await expect(termsScreen.getByRole('heading', { name: 'The Service' })).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
-        'The updated Terms of Service modal blocks the app until the visitor accepts.',
-        termsModal
+        'The Terms of Service screen blocks the app until the visitor accepts.',
+        termsScreen
       );
     });
 
-    await test.step('Accept the updated terms and confirm the modal closes', async () => {
+    await test.step('Reject the terms and confirm the visitor is logged out', async () => {
       await actionAndCapture(
         page,
         testInfo,
-        'After accepting the updated terms, the modal closes and navigation is available again.',
+        'Rejecting the Terms of Service logs the visitor out.',
         async () => {
-          await page
-            .getByRole('checkbox', {
-              name: 'I have read and agree to the updated Terms of Service',
-            })
-            .check();
-          await page.getByRole('button', { name: 'Continue' }).click();
-          await expect(page.getByRole('dialog', { name: 'Updated Terms of Service' })).toHaveCount(
-            0
-          );
-          await page.goto('/terms');
+          await page.getByRole('button', { name: 'Reject' }).click();
+          await expect(page).toHaveURL('/');
+          await expect(page.getByRole('main', { name: TERMS_SCREEN_NAME })).toHaveCount(0);
+        }
+      );
+    });
+
+    await test.step('Accept the updated terms and confirm the app is available', async () => {
+      await loginStaleTermsUser(page);
+      await page.goto('/');
+      const termsScreen = page.getByRole('main', { name: TERMS_SCREEN_NAME });
+      await expect(termsScreen).toBeVisible();
+
+      await actionAndCapture(
+        page,
+        testInfo,
+        'After accepting the updated terms, the screen closes and the terms page is available.',
+        async () => {
+          await page.getByRole('checkbox', { name: TERMS_CHECKBOX_NAME }).check();
+          await page.getByRole('button', { name: 'Accept' }).click();
+          await expect(page.getByRole('main', { name: TERMS_SCREEN_NAME })).toHaveCount(0);
+          await page.goto('/settings?tab=account');
+          await page.getByRole('link', { name: TERMS_DATE }).click();
           await expect(page).toHaveURL('/terms');
           await expect(page.getByRole('heading', { name: 'Terms', level: 1 })).toBeVisible();
+          await expect(page.getByText(TERMS_DATE)).toBeVisible();
+          await expect(page.getByRole('heading', { name: 'The Service' })).toBeVisible();
         },
         page.getByRole('heading', { name: 'Terms', level: 1 })
       );

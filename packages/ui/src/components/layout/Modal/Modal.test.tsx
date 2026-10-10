@@ -66,6 +66,32 @@ describe('Modal', () => {
     if (actions === null) {
       throw new Error('ModalActions root not found');
     }
+    const stackClass = modalStyles.modalActionsStack;
+    if (stackClass === undefined) {
+      throw new Error('modalActionsStack class missing from CSS module');
+    }
+    expect(actions.classList.contains(modalActionsClass)).toBe(true);
+    expect(actions.classList.contains(stackClass)).toBe(false);
+  });
+
+  it('stacks ModalActions into a full-width column when stack is set', () => {
+    const { container } = render(
+      <Modal ariaLabel="Stacked actions" closeButtonAriaLabel="Close" isOpen onClose={() => {}}>
+        <ModalActions stack>
+          <button type="button">A</button>
+        </ModalActions>
+      </Modal>
+    );
+
+    const modalActionsClass = modalStyles.modalActions;
+    const stackClass = modalStyles.modalActionsStack;
+    if (modalActionsClass === undefined || stackClass === undefined) {
+      throw new Error('modal action classes missing from CSS module');
+    }
+    const actions = container.querySelector(`.${stackClass}`);
+    if (actions === null) {
+      throw new Error('Stacked ModalActions root not found');
+    }
     expect(actions.classList.contains(modalActionsClass)).toBe(true);
   });
 

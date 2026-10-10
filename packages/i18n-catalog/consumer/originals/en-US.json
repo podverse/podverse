@@ -650,10 +650,18 @@
     "yes": "Yes, Track Me",
     "no": "No Thanks",
     "learn_more": "Learn More",
+    "full_agreement": "Full Agreement",
+    "retry": "Try Again",
     "already_agreed": "You already agreed to this version.",
     "agreement_date": "Agreement Date: {agreement_date}",
     "error": "Could not save your popularity tracking choice. Please try again.",
-    "back_to_choice": "Back"
+    "back_to_choice": "Back",
+    "change": "Change Popularity Tracking",
+    "dismiss_note": "Closing this window does not change your choice. You can update it later in Settings.",
+    "load_error": "Could not load the popularity tracking agreement. Please try again.",
+    "status_opted_out": "Popularity tracking is off.",
+    "status_stale": "The agreement changed. Popularity tracking stays off until you accept the new version.",
+    "status_undecided": "You have not chosen whether to allow popularity tracking."
   },
   "misc": {
     "more_info": "More Info",
@@ -863,9 +871,15 @@
     "terms_version_invalid": "The terms of service version is out of date. Please refresh the page and try again."
   },
   "terms_acceptance": {
-    "header": "Updated Terms of Service",
-    "message": "Our Terms of Service have changed. Please read and accept the updated terms to continue using your account.",
-    "checkbox_label": "I have read and agree to the updated Terms of Service"
+    "header": "Terms of Service",
+    "message": "Read and accept the Terms of Service to continue using your account.",
+    "checkbox_label": "I have read and agree to the Terms of Service.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "agreement_date": "Valid since {agreement_date}",
+    "full_agreement": "Full Terms",
+    "load_error": "Could not load the Terms of Service. Please try again.",
+    "retry": "Try Again"
   },
   "membership": {
     "membership": "Membership",
@@ -1208,30 +1222,7 @@
     "none_help": "No optional device cookies; sign-in still works."
   },
   "terms": {
-    "terms": "Terms",
-    "legal_entity_heading": "{legal_name}",
-    "service_intro": "{brand_name} is operated by {legal_name}. These terms describe how we handle your data and our service.",
-    "never_sell_data": "{brand_name} will never sell or share private user data.",
-    "no_ads_without_permission": "We will never put advertisements next to or within a podcast's content without that podcast's permission.",
-    "audio_video_hosting": "All audio or video files found on {brand_domain} load from the podcaster's own public server. We do not host podcast audio or video files ourselves.",
-    "third_party_feeds": "We host podcast links and content from third-party podcast feeds and sites. These have their own independent privacy policies, and we have no responsibility for their content or activities.",
-    "clips_crowdsourced": "All clips hosted on {brand_domain} are crowd-sourced and unofficial, unless otherwise noted by the podcaster themselves.",
-    "clips_load_full_episode": "Clips load within the full episode's media file, so the user always has access to the full recording.",
-    "reduced_size_images": "We also host reduced size podcast images from podcasters' feeds, to save user network data and speed up page loading times.",
-    "data_service_necessary": "Queue, sign-in, and account playback data are required to run {brand_name}. We do not ask for separate consent for this core functionality. Remembering playback while logged out is optional and controlled by the cookie banner.",
-    "data_listen_stats_heading": "Listen Statistics",
-    "data_listen_stats_body": "{legal_name} may record pseudonymous listen events to show trending content. Events are kept for {retention_days} days. You can opt in or out in account settings.",
-    "data_listen_stats_anonymization": "Statistics use an internal account identifier. It is not shown as your public profile or username.",
-    "data_web_analytics": "Anonymous web analytics (Cloudflare) load only if you accept analytics cookies in the consent banner.",
-    "data_retention": "Raw listen-stat events are deleted after {retention_days} days.",
-    "data_requests": "For access or deletion requests, email {contact_email}.",
-    "cookie_choices_heading": "Cookie Choices",
-    "cookie_choice_all": "Accept All",
-    "cookie_choice_all_help": "Analytics and remembering playback while logged out.",
-    "cookie_choice_essential": "Essential Only",
-    "cookie_choice_essential_help": "Remember playback while logged out; no analytics.",
-    "cookie_choice_none": "None",
-    "cookie_choice_none_help": "No optional device cookies; sign-in and account playback still work."
+    "terms": "Terms"
   },
   "socials": {
     "discord": "Discord",

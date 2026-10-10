@@ -650,10 +650,18 @@
     "yes": "Oui, me suivre",
     "no": "Non merci",
     "learn_more": "En savoir plus",
+    "full_agreement": "Accord complet",
+    "retry": "Réessayer",
     "already_agreed": "Vous avez déjà accepté cette version.",
     "agreement_date": "Date de l'accord : {agreement_date}",
     "error": "Impossible d'enregistrer votre choix de suivi de popularité. Veuillez réessayer.",
-    "back_to_choice": "Retour"
+    "back_to_choice": "Retour",
+    "change": "Modifier le suivi de popularité",
+    "dismiss_note": "Fermer cette fenêtre ne change pas votre choix. Vous pourrez le modifier plus tard dans Paramètres.",
+    "load_error": "Impossible de charger l'accord de suivi de popularité. Veuillez réessayer.",
+    "status_opted_out": "Le suivi de popularité est désactivé.",
+    "status_stale": "L'accord a changé. Le suivi de popularité reste désactivé jusqu'à ce que vous acceptiez la nouvelle version.",
+    "status_undecided": "Vous n'avez pas encore choisi d'autoriser le suivi de popularité."
   },
   "misc": {
     "more_info": "Plus d'infos",
@@ -863,9 +871,15 @@
     "terms_version_invalid": "La version des conditions d'utilisation est obsolète. Actualisez la page et réessayez."
   },
   "terms_acceptance": {
-    "header": "Conditions d'utilisation mises à jour",
-    "message": "Nos conditions d'utilisation ont changé. Veuillez lire et accepter les conditions mises à jour pour continuer à utiliser votre compte.",
-    "checkbox_label": "J'ai lu et j'accepte les conditions d'utilisation mises à jour"
+    "header": "Conditions d'utilisation",
+    "message": "Lisez et acceptez les conditions d'utilisation pour continuer à utiliser votre compte.",
+    "checkbox_label": "J'ai lu et j'accepte les conditions d'utilisation.",
+    "accept": "Accepter",
+    "reject": "Refuser",
+    "agreement_date": "Valable depuis {agreement_date}",
+    "full_agreement": "Conditions complètes",
+    "load_error": "Impossible de charger les conditions d'utilisation. Veuillez réessayer.",
+    "retry": "Réessayer"
   },
   "membership": {
     "membership": "Abonnement",
@@ -1208,30 +1222,7 @@
     "none_help": "Aucun cookie optionnel sur l'appareil ; la connexion reste possible."
   },
   "terms": {
-    "terms": "Conditions",
-    "legal_entity_heading": "{legal_name}",
-    "service_intro": "{brand_name} est exploité par {legal_name}. Ces conditions décrivent comment nous traitons vos données et notre service.",
-    "never_sell_data": "{brand_name} ne vendra ni ne partagera jamais les données privées des utilisateurs.",
-    "no_ads_without_permission": "Nous ne mettrons jamais de publicités à côté ou dans le contenu d'un podcast sans la permission de ce podcast.",
-    "audio_video_hosting": "Tous les fichiers audio ou vidéo trouvés sur {brand_domain} proviennent du serveur public du podcasteur. Nous n'hébergeons pas nous-mêmes les fichiers audio ou vidéo de podcast.",
-    "third_party_feeds": "Nous hébergeons des liens et du contenu de podcasts provenant de flux et de sites tiers. Ceux-ci ont leurs propres politiques de confidentialité indépendantes, et nous n'avons aucune responsabilité concernant leur contenu ou leurs activités.",
-    "clips_crowdsourced": "Tous les extraits hébergés sur {brand_domain} sont collectés par la foule et non officiels, sauf indication contraire du podcasteur.",
-    "clips_load_full_episode": "Les extraits se chargent dans le fichier média de l'épisode complet, donc l'utilisateur a toujours accès à l'enregistrement complet.",
-    "reduced_size_images": "Nous hébergeons également des images de podcast réduites provenant des flux de podcasteurs, pour économiser les données du réseau de l'utilisateur et accélérer les temps de chargement des pages.",
-    "data_service_necessary": "Les données de file d'attente, de connexion et de lecture du compte sont nécessaires pour faire fonctionner {brand_name}. Nous ne demandons pas de consentement séparé pour cette fonctionnalité essentielle. La mémorisation de la lecture hors connexion est optionnelle et se règle dans la bannière de cookies.",
-    "data_listen_stats_heading": "Statistiques d'écoute",
-    "data_listen_stats_body": "{legal_name} peut enregistrer des événements d'écoute pseudonymes pour afficher les tendances. Les événements sont conservés {retention_days} jours. Vous pouvez activer ou désactiver cette option dans les paramètres du compte.",
-    "data_listen_stats_anonymization": "Les statistiques utilisent un identifiant interne de compte. Il n'est pas affiché comme votre profil public ou votre nom d'utilisateur.",
-    "data_web_analytics": "L'analytique web anonyme (Cloudflare) ne se charge que si vous acceptez les cookies d'analytique dans la bannière de consentement.",
-    "data_retention": "Les événements d'écoute bruts sont supprimés après {retention_days} jours.",
-    "data_requests": "Pour les demandes d'accès ou de suppression, écrivez à {contact_email}.",
-    "cookie_choices_heading": "Choix de cookies",
-    "cookie_choice_all": "Tout accepter",
-    "cookie_choice_all_help": "Analytique et mémorisation de la lecture hors connexion.",
-    "cookie_choice_essential": "Essentiels uniquement",
-    "cookie_choice_essential_help": "Mémoriser la lecture hors connexion ; pas d'analytique.",
-    "cookie_choice_none": "Aucun",
-    "cookie_choice_none_help": "Aucun cookie optionnel sur l'appareil ; la connexion et la lecture du compte restent possibles."
+    "terms": "Conditions"
   },
   "socials": {
     "discord": "Discord",

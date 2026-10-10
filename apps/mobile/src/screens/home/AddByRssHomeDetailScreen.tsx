@@ -216,16 +216,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     } finally {
       setIsRemoving(false);
     }
-  }, [
-    accessToken,
-    clearSession,
-    detail,
-    isRemoving,
-    navigation,
-    refreshToken,
-    setTokens,
-    status,
-  ]);
+  }, [accessToken, clearSession, detail, isRemoving, navigation, refreshToken, setTokens, status]);
 
   const handlePlay = useCallback(
     (row: HomeFeedRowData) => {

@@ -33,6 +33,7 @@ export * from './account/accountSettings/accountSettingsNotification.js';
 export * from './account/accountSettings/accountSettingsNotificationType.js';
 export * from './account/accountSettings/accountSettingsPlayback.js';
 export * from './legal/popularityTrackingAgreement.js';
+export * from './legal/termsAgreement.js';
 export * from './account/accountUPDevice.js';
 export * from './account/accountVerification.js';
 export * from './account/accountWebPushDevice.js';

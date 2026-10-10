@@ -84,7 +84,6 @@ describe('GET /legal/popularity-tracking', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.version).toBe('2026-09-11');
-    expect(res.body.agreement_date).toBe('2026-09-11');
     expect(res.body.markdown).toContain('unique-listener rankings');
     expect(res.body.markdown).toContain('pseudonymous listen event');
   });

@@ -175,13 +175,42 @@ export interface SidebarAccordionState {
   library: boolean;
 }
 
-/** Sidebar nav sections start collapsed; persisted per device in the local-settings cookie (`sba`). */
+/** Sidebar nav sections start open. A saved close in the local-settings cookie (`sba`) stays closed. */
 export const DEFAULT_SIDEBAR_ACCORDION_STATE: SidebarAccordionState = {
-  podcasts: false,
-  music: false,
-  addByRSS: false,
-  library: false,
+  podcasts: true,
+  music: true,
+  addByRSS: true,
+  library: true,
 };
+
+function isSidebarAccordionState(value: unknown): value is SidebarAccordionState {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  if (
+    !('podcasts' in value) ||
+    !('music' in value) ||
+    !('addByRSS' in value) ||
+    !('library' in value)
+  ) {
+    return false;
+  }
+  return (
+    typeof value.podcasts === 'boolean' &&
+    typeof value.music === 'boolean' &&
+    typeof value.addByRSS === 'boolean' &&
+    typeof value.library === 'boolean'
+  );
+}
+
+/** Saved section flags override the expanded default. A missing accordion stays expanded. */
+function resolveSidebarAccordion(stored: unknown): SidebarAccordionState {
+  const defaults = { ...DEFAULT_SIDEBAR_ACCORDION_STATE };
+  if (!isSidebarAccordionState(stored)) {
+    return defaults;
+  }
+  return { ...defaults, ...stored };
+}
 
 export interface LocalSettingsState {
   uit: UITheme;
@@ -342,10 +371,7 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
     return {
       ...defaults,
       ...parsed,
-      sba: {
-        ...defaults.sba,
-        ...(parsed.sba as Partial<SidebarAccordionState> | undefined),
-      },
+      sba: resolveSidebarAccordion(parsed.sba),
       bfd: parsed.bfd !== undefined ? (parsed.bfd as BoostFormDefaultsByValueKey) : defaults.bfd,
       cc,
       // Sanitized rather than validated: a hand-edited or outdated entry should cost that one

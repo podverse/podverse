@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  getPopularityTrackingChoice,
   isPopularityTrackingAllowed,
   isPopularityTrackingPromptRequired,
 } from './popularityTracking.js';
@@ -83,5 +84,44 @@ describe('isPopularityTrackingPromptRequired', () => {
         current
       )
     ).toBe(false);
+  });
+});
+
+describe('getPopularityTrackingChoice', () => {
+  it('is undecided until the account records yes or no', () => {
+    expect(getPopularityTrackingChoice(null, current)).toBe('undecided');
+    expect(
+      getPopularityTrackingChoice(
+        { listen_stats_accepted: null, listen_stats_agreement_version: null },
+        current
+      )
+    ).toBe('undecided');
+  });
+
+  it('is opted out after a decline', () => {
+    expect(
+      getPopularityTrackingChoice(
+        { listen_stats_accepted: false, listen_stats_agreement_version: '2026-01-01' },
+        current
+      )
+    ).toBe('opted_out');
+  });
+
+  it('is a stale acceptance when yes refers to an older version', () => {
+    expect(
+      getPopularityTrackingChoice(
+        { listen_stats_accepted: true, listen_stats_agreement_version: '2026-01-01' },
+        current
+      )
+    ).toBe('stale_acceptance');
+  });
+
+  it('is allowed only for yes on the current version', () => {
+    expect(
+      getPopularityTrackingChoice(
+        { listen_stats_accepted: true, listen_stats_agreement_version: current },
+        current
+      )
+    ).toBe('allowed');
   });
 });

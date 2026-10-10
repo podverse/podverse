@@ -207,7 +207,7 @@ export class AccountController {
           handleGenericErrorResponse(res, error);
         }
       },
-      { skipMembershipStatus: true }
+      { skipMembershipStatus: true, skipTermsAcceptance: true }
     );
   }
 
@@ -220,7 +220,7 @@ export class AccountController {
           message: 'Valid auth session',
         });
       },
-      { skipMembershipStatus: true }
+      { skipMembershipStatus: true, skipTermsAcceptance: true }
     );
   }
 
@@ -603,7 +603,7 @@ export class AccountController {
             handleGenericErrorResponse(res, error);
           }
         },
-        { skipMembershipStatus: true }
+        { skipMembershipStatus: true, skipTermsAcceptance: true }
       );
     });
   }

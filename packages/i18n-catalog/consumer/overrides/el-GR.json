@@ -650,10 +650,18 @@
     "yes": "",
     "no": "",
     "learn_more": "",
+    "full_agreement": "",
+    "retry": "",
     "already_agreed": "",
     "agreement_date": "",
     "error": "",
-    "back_to_choice": ""
+    "back_to_choice": "",
+    "change": "",
+    "dismiss_note": "",
+    "load_error": "",
+    "status_opted_out": "",
+    "status_stale": "",
+    "status_undecided": ""
   },
   "misc": {
     "more_info": "",
@@ -865,7 +873,13 @@
   "terms_acceptance": {
     "header": "",
     "message": "",
-    "checkbox_label": ""
+    "checkbox_label": "",
+    "accept": "",
+    "reject": "",
+    "agreement_date": "",
+    "full_agreement": "",
+    "load_error": "",
+    "retry": ""
   },
   "membership": {
     "membership": "",
@@ -1208,30 +1222,7 @@
     "none_help": ""
   },
   "terms": {
-    "terms": "",
-    "legal_entity_heading": "",
-    "service_intro": "",
-    "never_sell_data": "",
-    "no_ads_without_permission": "",
-    "audio_video_hosting": "",
-    "third_party_feeds": "",
-    "clips_crowdsourced": "",
-    "clips_load_full_episode": "",
-    "reduced_size_images": "",
-    "data_service_necessary": "",
-    "data_listen_stats_heading": "",
-    "data_listen_stats_body": "",
-    "data_listen_stats_anonymization": "",
-    "data_web_analytics": "",
-    "data_retention": "",
-    "data_requests": "",
-    "cookie_choices_heading": "",
-    "cookie_choice_all": "",
-    "cookie_choice_all_help": "",
-    "cookie_choice_essential": "",
-    "cookie_choice_essential_help": "",
-    "cookie_choice_none": "",
-    "cookie_choice_none_help": ""
+    "terms": ""
   },
   "socials": {
     "discord": "",

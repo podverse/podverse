@@ -388,8 +388,11 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     results.push(validateOptional('TERMS_OF_SERVICE_VERSION', 'Legal'));
   }
 
+  results.push(validateOptional('TERMS_OF_SERVICE_CONTENT_DIR', 'Legal'));
+  results.push(validateOptional('CONTACT_EMAIL', 'Legal'));
+  results.push(validateOptional('STATS_TRACK_EVENT_RETENTION_DAYS', 'Legal'));
+
   results.push(validateRequired('POPULARITY_TRACKING_AGREEMENT_VERSION', 'Legal'));
-  results.push(validateRequired('POPULARITY_TRACKING_AGREEMENT_DATE', 'Legal'));
   results.push(validateOptional('POPULARITY_TRACKING_CONTENT_DIR', 'Legal'));
   results.push(validateOptional('MANAGED_COPY_CONTENT_DIR', 'Legal'));
 

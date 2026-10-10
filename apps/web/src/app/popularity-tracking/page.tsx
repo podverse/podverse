@@ -1,10 +1,18 @@
-import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
-import { PopularityTrackingGateClient } from './PopularityTrackingGateClient';
+'use client';
 
-export async function generateMetadata() {
-  return buildNoindexMetadata();
-}
+import { useRouter } from 'next/navigation';
 
-export default function PopularityTrackingGatePage() {
-  return <PopularityTrackingGateClient />;
+import { PopularityAgreementGate } from '../../components/Legal/PopularityAgreementGate';
+import { ROUTES } from '../../constants/routes';
+
+export default function PopularityTrackingPage() {
+  const router = useRouter();
+
+  return (
+    <PopularityAgreementGate
+      onDecided={() => {
+        router.push(`${ROUTES.SETTINGS}?tab=account`);
+      }}
+    />
+  );
 }

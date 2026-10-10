@@ -82,7 +82,12 @@ describe('Billing routes', () => {
     const accountService = new AccountService();
     accountCount += 1;
     const email = `billing-${runId}-${accountCount}@example.com`;
-    await accountService.create({ email, password: 'IntegrationTest1!', locale: 'en-US' });
+    await accountService.create({
+      email,
+      password: 'IntegrationTest1!',
+      locale: 'en-US',
+      terms_version: '2026-01-01',
+    });
     const account = await accountService.getByEmail(email);
     if (!account) {
       throw new Error('Failed to load account after create');

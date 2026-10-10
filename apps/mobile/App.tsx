@@ -30,6 +30,7 @@ import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
 import { TabLayoutProvider, useTabLayout } from './src/navigation/TabLayoutProvider';
 import { PlaybackProvider } from './src/playback';
 import { PopularityTrackingProvider } from './src/popularityTracking/PopularityTrackingProvider';
+import { TermsAcceptanceProvider } from './src/terms/TermsAcceptanceProvider';
 import {
   getInitialNotificationDeepLinkUrl,
   subscribeToNotificationOpen,
@@ -282,28 +283,30 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
           }}
         >
           <MembershipGateProvider onNavigateToMembership={navigateToMembershipScreen}>
-            <PopularityTrackingProvider>
-              <ForcedLogoutNotice />
-              <OverlayA11yShield>
-                <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
-                <MobileTabNavigator
-                  onConsumePendingDeepLink={onConsumePendingDeepLink}
-                  pendingDeepLinkUrl={pendingDeepLinkUrl}
-                  onRequestLogin={() => {
-                    setAuthMode('login');
-                  }}
-                  onRequestLogout={async () => {
-                    await logout();
-                    setAuthMode('anonymous');
-                  }}
-                  onRequestSignUp={() => {
-                    setAuthMode('signup');
-                  }}
-                />
-              </OverlayA11yShield>
-              {/* After the navigator so overlays cover root-stack cards. */}
-              <OverlayOutlet />
-            </PopularityTrackingProvider>
+            <TermsAcceptanceProvider>
+              <PopularityTrackingProvider>
+                <ForcedLogoutNotice />
+                <OverlayA11yShield>
+                  <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
+                  <MobileTabNavigator
+                    onConsumePendingDeepLink={onConsumePendingDeepLink}
+                    pendingDeepLinkUrl={pendingDeepLinkUrl}
+                    onRequestLogin={() => {
+                      setAuthMode('login');
+                    }}
+                    onRequestLogout={async () => {
+                      await logout();
+                      setAuthMode('anonymous');
+                    }}
+                    onRequestSignUp={() => {
+                      setAuthMode('signup');
+                    }}
+                  />
+                </OverlayA11yShield>
+                {/* After the navigator so overlays cover root-stack cards. */}
+                <OverlayOutlet />
+              </PopularityTrackingProvider>
+            </TermsAcceptanceProvider>
           </MembershipGateProvider>
         </AuthPromptProvider>
       )}

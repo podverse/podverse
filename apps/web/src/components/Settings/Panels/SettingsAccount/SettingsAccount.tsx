@@ -16,6 +16,7 @@ import { ModalChangeEmail } from './ModalChangeEmail';
 import { ModalDeleteAccount } from './ModalDeleteAccount';
 import { SettingsListenStats } from './SettingsListenStats';
 import { SettingsMembership } from './SettingsMembership';
+import { SettingsTerms } from './SettingsTerms';
 
 export function SettingsAccount() {
   const tSettings = useTranslations('settings');
@@ -73,6 +74,8 @@ export function SettingsAccount() {
   return (
     <>
       <SettingsMembership />
+      <Divider withSpacing />
+      <SettingsTerms />
       <Divider withSpacing />
       <SettingsListenStats />
       <Divider withSpacing />

@@ -98,7 +98,12 @@ async function seedPlaybackFixture(ormContext: ORMContext): Promise<PlaybackFixt
 
   const seedAccount = async (label: string): Promise<PlaybackAccount> => {
     const email = `queue-playback-replay-${label}-${runId}@example.com`;
-    await accountService.create({ email, password: 'IntegrationTest1!', locale: 'en-US' });
+    await accountService.create({
+      email,
+      password: 'IntegrationTest1!',
+      locale: 'en-US',
+      terms_version: '2026-01-01',
+    });
     const account = await accountService.getByEmail(email);
     if (!account) {
       throw new Error(`Failed to load account after create: ${label}`);

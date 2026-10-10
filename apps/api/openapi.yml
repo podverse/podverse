@@ -756,18 +756,39 @@ components:
               type: string
               format: date-time
               nullable: true
-    ApiGetLegalPopularityTrackingResponse200:
+    TermsAcceptanceRequiredErrorResponse:
+      type: object
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+          example: Terms of service acceptance is required.
+        code:
+          type: string
+          example: terms_acceptance_required
+    ApiGetLegalTermsResponse200:
       type: object
       required:
         - version
-        - agreement_date
         - markdown
       properties:
         version:
           type: string
-          example: "2026-09-11"
-        agreement_date:
+          description: Date-shaped id stored on accept and shown as the valid-since date.
+          example: "2026-05-28"
+        markdown:
           type: string
+    ApiGetLegalPopularityTrackingResponse200:
+      type: object
+      required:
+        - version
+        - markdown
+      properties:
+        version:
+          type: string
+          description: Date-shaped id. Accounts that already accepted are asked again when this changes. Shown as the agreement date.
           example: "2026-09-11"
         markdown:
           type: string
@@ -3793,13 +3814,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /legal/terms:
+    get:
+      operationId: apiGetLegalTerms
+      tags:
+        - legal
+      summary: GET /legal/terms
+      description: Public localized terms of service Markdown. version is the date-shaped acceptance id and the date the text is valid since.
+      security: []
+      parameters:
+        - in: header
+          name: Accept-Language
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetLegalTermsResponse200"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /legal/popularity-tracking:
     get:
       operationId: apiGetLegalPopularityTracking
       tags:
         - legal
       summary: GET /legal/popularity-tracking
-      description: Localized popularity-tracking agreement Markdown for the authenticated account.
+      description: Localized popularity-tracking agreement Markdown for the authenticated account. Returns 403 terms_acceptance_required when the account has not accepted the current terms of service.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -3816,6 +3864,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Current terms of service have not been accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TermsAcceptanceRequiredErrorResponse"
         "500":
           description: Internal server error
           content:

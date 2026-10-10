@@ -83,13 +83,11 @@ the month and year product ids in code (`podverse_premium_one_time_monthly` and
 Prices match the local membership defaults (`MEMBERSHIP_PREMIUM_COST_MONTHLY` 3 and
 `MEMBERSHIP_PREMIUM_COST_ANNUALLY` 30). A second purchase stacks on time the account already holds.
 
-## Opt-in sandbox purchase
+## Checkout test
 
-`make e2e_test_web_paypal_sandbox` is not part of the default E2E run. When
-`dev/env-overrides/local/billing-e2e.env` exists, that target sources
-`E2E_PAYPAL_SANDBOX_BUYER_EMAIL` and `E2E_PAYPAL_SANDBOX_BUYER_PASSWORD`, then runs
-`apps/web/e2e/checkout-paypal-sandbox.spec.ts` with `E2E_PAYPAL_SANDBOX=1`. Merchant credentials
-come from the home `paypal.env`.
+Buying on local web and confirming the grant is
+[BILLING-PAYPAL-SANDBOX-CHECKOUT.md](BILLING-PAYPAL-SANDBOX-CHECKOUT.md). That page also
+covers `make e2e_test_web_paypal_sandbox`, which only completes a PayPal order.
 
 ## Local env
 
@@ -118,5 +116,6 @@ ID** is the id of the webhook row whose URL is the PayPal URL above.
 
 ## Related
 
+- [BILLING-PAYPAL-SANDBOX-CHECKOUT.md](BILLING-PAYPAL-SANDBOX-CHECKOUT.md)
 - [BILLING.md](BILLING.md)
 - [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md)
