@@ -3,13 +3,6 @@ import { isPaymentProcessorId } from '@podverse/helpers';
 
 const NORMALIZED_BILLING_EVENT_TYPES: readonly NormalizedBillingEventType[] = [
   'payment_settled',
-  'subscription_activated',
-  'subscription_renewed',
-  'subscription_renewal_failed',
-  'grace_entered',
-  'grace_exited',
-  'subscription_cancelled',
-  'subscription_expired',
   'refund_or_revoke',
 ];
 

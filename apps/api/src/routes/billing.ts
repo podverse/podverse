@@ -35,17 +35,6 @@ router.post(
   asyncHandler(BillingController.capturePayPalOrder)
 );
 router.post(
-  '/paypal/subscriptions',
-  purchaseRateLimit,
-  asyncHandler(requireSupportedClientVersion('paypal', 'web')),
-  asyncHandler(BillingController.createPayPalSubscription)
-);
-router.post(
-  '/subscriptions/:id/cancel',
-  purchaseRateLimit,
-  asyncHandler(BillingController.cancelSubscription)
-);
-router.post(
   '/apple/transactions',
   purchaseRateLimit,
   asyncHandler(requireSupportedClientVersion('apple', 'ios')),

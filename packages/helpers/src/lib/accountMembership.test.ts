@@ -5,6 +5,7 @@ import type { MembershipState } from './accountMembership.js';
 import {
   AccountMembershipEnum,
   deriveMembershipState,
+  getMembershipExpiryDismissalKey,
   getMembershipExpiryNotice,
   hasValidMembership,
   isMembershipExpiredAt,
@@ -52,16 +53,8 @@ const makeStatus = (
   account_id: 1,
   account_membership_id: AccountMembershipEnum.Premium,
   membership_expires_at: null,
-  auto_renew: false,
   billing_cadence: null,
-  auto_renew_mode: 'off',
-  next_renewal_attempt_at: null,
-  last_renewal_attempt_at: null,
-  last_renewal_status: 'none',
   last_extension_idempotency_key: null,
-  last_renewal_idempotency_key: null,
-  renewal_retry_count: 0,
-  renewal_retry_backoff_until: null,
   allow_directory_add_by_rss: null,
   max_add_by_rss_feeds: null,
   max_manual_refreshes_per_hour: null,
@@ -85,7 +78,6 @@ describe('deriveMembershipState', () => {
       isExpired: false,
       tier: null,
       expiresAt: null,
-      activeAutoRenew: false,
     });
   });
 
@@ -105,20 +97,7 @@ describe('deriveMembershipState', () => {
       isExpired: false,
       tier: 'premium',
       expiresAt: FUTURE,
-      activeAutoRenew: false,
     });
-  });
-
-  it('reads auto-renew from auto_renew_mode, not the legacy auto_renew flag', () => {
-    const enrolled = deriveMembershipState(
-      makeAccount(makeStatus({ membership_expires_at: FUTURE, auto_renew_mode: 'on' }))
-    );
-    const legacyFlagOnly = deriveMembershipState(
-      makeAccount(makeStatus({ membership_expires_at: FUTURE, auto_renew: true }))
-    );
-
-    expect(enrolled.activeAutoRenew).toBe(true);
-    expect(legacyFlagOnly.activeAutoRenew).toBe(false);
   });
 
   it('reports an expired premium membership', () => {
@@ -178,7 +157,6 @@ describe('deriveMembershipState', () => {
       isExpired: false,
       tier: null,
       expiresAt: null,
-      activeAutoRenew: false,
     });
   });
 
@@ -205,7 +183,6 @@ describe('getMembershipExpiryNotice', () => {
     isExpired: false,
     tier: 'premium',
     expiresAt,
-    activeAutoRenew: false,
   });
 
   it('says nothing for a signed-out user', () => {
@@ -215,7 +192,6 @@ describe('getMembershipExpiryNotice', () => {
       isExpired: false,
       tier: null,
       expiresAt: null,
-      activeAutoRenew: false,
     };
 
     expect(getMembershipExpiryNotice(state, NOW)).toEqual({ status: 'none', daysRemaining: null });
@@ -263,5 +239,43 @@ describe('getMembershipExpiryNotice', () => {
       status: 'none',
       daysRemaining: null,
     });
+  });
+});
+
+describe('getMembershipExpiryDismissalKey', () => {
+  it('returns null for none and expired notices', () => {
+    expect(
+      getMembershipExpiryDismissalKey(
+        { status: 'none', daysRemaining: null },
+        '2026-06-08T00:00:00.000Z'
+      )
+    ).toBeNull();
+    expect(
+      getMembershipExpiryDismissalKey(
+        { status: 'expired', daysRemaining: 0 },
+        '2026-06-08T00:00:00.000Z'
+      )
+    ).toBeNull();
+  });
+
+  it('returns an expiry-scoped key for expiring notices', () => {
+    expect(
+      getMembershipExpiryDismissalKey(
+        { status: 'expiring_soon', daysRemaining: 3 },
+        '2026-06-08T00:00:00.000Z'
+      )
+    ).toBe('expiring_soon:2026-06-08T00:00:00.000Z');
+  });
+
+  it('returns null when the expiring notice has no expiry timestamp', () => {
+    expect(
+      getMembershipExpiryDismissalKey({ status: 'expiring_soon', daysRemaining: 3 }, null)
+    ).toBeNull();
+  });
+
+  it('returns null when the expiring notice has an invalid expiry timestamp', () => {
+    expect(
+      getMembershipExpiryDismissalKey({ status: 'expiring_soon', daysRemaining: 3 }, 'not-a-date')
+    ).toBeNull();
   });
 });

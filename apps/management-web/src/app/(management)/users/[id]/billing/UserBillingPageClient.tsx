@@ -34,7 +34,6 @@ import {
 import type { CurrentUser } from '../../../../../lib/requests/auth';
 import type {
   BillingAccountDetail,
-  BillingResyncResult,
   GrantBillingMembershipBody,
 } from '../../../../../lib/requests/billing';
 import {
@@ -118,7 +117,11 @@ function resolveExtendBody(params: {
 export function UserBillingPageClient({ initialUser, accountId }: UserBillingPageClientProps) {
   const [user] = useState(initialUser);
   const [detail, setDetail] = useState<BillingAccountDetail | null>(null);
-  const [resync, setResync] = useState<BillingResyncResult | null>(null);
+  const [resyncCounts, setResyncCounts] = useState<{
+    retried: number;
+    refetched: number;
+    failed: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [workingKind, setWorkingKind] = useState<WorkingKind | null>(null);
   const workingRef = useRef(false);
@@ -228,7 +231,11 @@ export function UserBillingPageClient({ initialUser, accountId }: UserBillingPag
     setNotice(null);
     try {
       const result = await resyncBillingAccount(accountId);
-      setResync(result.data);
+      setResyncCounts({
+        retried: result.data.retried,
+        refetched: result.data.refetched,
+        failed: result.data.failed,
+      });
       await load();
       setNotice(t('account.resynced'));
     } catch {
@@ -339,7 +346,7 @@ export function UserBillingPageClient({ initialUser, accountId }: UserBillingPag
     }
   };
 
-  const grantColumnCount = canEnd ? 4 : 3;
+  const grantColumnCount = canEnd ? 5 : 4;
 
   return (
     <ManagementPageShell
@@ -507,69 +514,38 @@ export function UserBillingPageClient({ initialUser, accountId }: UserBillingPag
               </Button>
             </FormPrimaryActions>
           ) : null}
-          {resync !== null ? (
-            <ul>
-              {resync.subscriptions.map((result) => (
-                <li key={result.subscription_id}>
-                  {result.processor_id} {result.subscription_id}: {result.status}
-                  {result.reason !== undefined ? ` (${result.reason})` : ''}
-                </li>
-              ))}
-            </ul>
+          {resyncCounts !== null ? (
+            <p id="account-billing-resync-counts">{t('account.resyncCounts', resyncCounts)}</p>
           ) : null}
-          <SectionHeading>{t('account.subscriptions')}</SectionHeading>
-          <Table.ScrollContainer>
-            <Table>
-              <Table.Head>
-                <Table.Row>
-                  <Table.HeaderCell>{t('account.table.processor')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('account.table.externalId')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('account.table.status')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('account.table.periodEnd')}</Table.HeaderCell>
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
-                {detail.subscriptions.map((subscription) => (
-                  <Table.Row key={subscription.id}>
-                    <Table.Cell>{subscription.processor_id}</Table.Cell>
-                    <Table.Cell>{subscription.external_subscription_id}</Table.Cell>
-                    <Table.Cell>{subscription.status}</Table.Cell>
-                    <Table.Cell>{formatTimestamp(subscription.current_period_end)}</Table.Cell>
-                  </Table.Row>
-                ))}
-                {detail.subscriptions.length === 0 ? (
-                  <Table.Row>
-                    <Table.Cell colSpan={4}>{t('account.empty')}</Table.Cell>
-                  </Table.Row>
-                ) : null}
-              </Table.Body>
-            </Table>
-          </Table.ScrollContainer>
           <SectionHeading>{t('account.transactions')}</SectionHeading>
           <Table.ScrollContainer>
             <Table>
               <Table.Head>
                 <Table.Row>
                   <Table.HeaderCell>{t('account.table.processor')}</Table.HeaderCell>
+                  <Table.HeaderCell>{t('account.table.externalId')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('account.table.amount')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('account.table.settledAt')}</Table.HeaderCell>
+                  <Table.HeaderCell>{t('account.table.revoked')}</Table.HeaderCell>
                 </Table.Row>
               </Table.Head>
               <Table.Body>
                 {detail.transactions.map((transaction) => (
                   <Table.Row key={transaction.id}>
                     <Table.Cell>{transaction.processor_id}</Table.Cell>
+                    <Table.Cell>{transaction.external_transaction_id}</Table.Cell>
                     <Table.Cell>
                       {transaction.amount === null
                         ? tc('none')
                         : `${transaction.amount} ${transaction.currency_code ?? ''}`}
                     </Table.Cell>
                     <Table.Cell>{formatTimestamp(transaction.settled_at)}</Table.Cell>
+                    <Table.Cell>{formatTimestamp(transaction.revoked_at)}</Table.Cell>
                   </Table.Row>
                 ))}
                 {detail.transactions.length === 0 ? (
                   <Table.Row>
-                    <Table.Cell colSpan={3}>{t('account.empty')}</Table.Cell>
+                    <Table.Cell colSpan={5}>{t('account.empty')}</Table.Cell>
                   </Table.Row>
                 ) : null}
               </Table.Body>
@@ -583,6 +559,7 @@ export function UserBillingPageClient({ initialUser, accountId }: UserBillingPag
                   <Table.HeaderCell>{t('account.table.source')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('account.table.starts')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('account.table.ends')}</Table.HeaderCell>
+                  <Table.HeaderCell>{t('account.table.revoked')}</Table.HeaderCell>
                   {canEnd ? <Table.HeaderCell>{tc('actions')}</Table.HeaderCell> : null}
                 </Table.Row>
               </Table.Head>
@@ -591,9 +568,8 @@ export function UserBillingPageClient({ initialUser, accountId }: UserBillingPag
                   <Table.Row key={grantRow.id}>
                     <Table.Cell>{grantRow.source}</Table.Cell>
                     <Table.Cell>{formatTimestamp(grantRow.starts_at)}</Table.Cell>
-                    <Table.Cell>
-                      {formatTimestamp(grantRow.revoked_at ?? grantRow.ends_at)}
-                    </Table.Cell>
+                    <Table.Cell>{formatTimestamp(grantRow.ends_at)}</Table.Cell>
+                    <Table.Cell>{formatTimestamp(grantRow.revoked_at)}</Table.Cell>
                     {canEnd ? (
                       <Table.Cell>
                         {grantRow.admin_editable ? (

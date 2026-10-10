@@ -41,7 +41,7 @@ Use this Store block as the starting draft and refine it against the log:
 
 ```text
 Welcome to the first Podverse Next test build!
-- Go Premium with Google Play: monthly or yearly, auto-renewing or prepaid
+- Go Premium with Google Play: buy a month or a year at a time
 - A redesigned player with chapters, clips, and live streams
 - Queue, history, playlists, and automatic downloads
 - Faster startup and image loading

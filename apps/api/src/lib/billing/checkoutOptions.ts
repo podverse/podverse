@@ -53,10 +53,11 @@ export async function getCheckoutOptions(params: {
   registry: BillingAdapterRegistry;
   platform: BillingPlatform;
   storefront: string | null;
+  clientVersion: string | null;
   now?: number;
 }): Promise<DTOBillingCheckoutOptions> {
   const now = params.now ?? Date.now();
-  const cacheKey = `${params.platform}|${params.storefront ?? ''}`;
+  const cacheKey = `${params.platform}|${params.storefront ?? ''}|${params.clientVersion ?? ''}`;
   const cached = readCache(checkoutOptionsCache, cacheKey, now);
   if (cached !== undefined) {
     return cached;
@@ -84,13 +85,21 @@ export async function getCheckoutOptions(params: {
         .filter(
           (product) =>
             product.processor_id === channel.processor_id &&
-            isOfferedAtCheckout(channel.processor_id, product.purchase_kind)
+            isOfferedAtCheckout({
+              channel: {
+                enabled: channel.enabled,
+                minClientVersion: channel.min_client_version,
+                storefrontAllowlist: channel.storefront_allowlist,
+              },
+              product: { isActive: product.is_active },
+              storefront: params.storefront,
+              clientVersion: params.clientVersion,
+            })
         )
         .map((product): DTOBillingCheckoutProduct => ({
           id: product.id,
           product_code: product.billing_product.product_code,
           cadence: product.billing_cadence,
-          purchase_kind: product.purchase_kind,
           external_product_id: product.external_product_id,
           external_base_plan_id: product.external_base_plan_id,
         })),

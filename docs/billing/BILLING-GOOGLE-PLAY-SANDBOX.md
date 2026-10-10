@@ -43,31 +43,24 @@ Do not commit real values.
    - Service account: the same billing RTDN service account email
 6. Save `GOOGLE_PLAY_RTDN_PUSH_AUDIENCE` in `billing-google-play.env`.
 
-## Subscription product and base plans
+## Prepaid base plans
 
 1. Play Console -> **Monetize** -> **Products** -> **Subscriptions**.
-2. Create or reuse subscription id `premium`.
-3. Add base plans:
-   - `monthly` (auto-renew)
-   - `annual` (auto-renew)
-   - `prepaid-monthly` (prepaid)
-   - `prepaid-annual` (prepaid)
+2. Create or reuse product id `premium`.
+3. Add prepaid base plans:
+   - `prepaid-monthly`
+   - `prepaid-annual`
 4. Save these ids in `billing-products.env`:
    - `BILLING_PRODUCT_GOOGLE_SUBSCRIPTION_ID`
-   - `BILLING_PRODUCT_GOOGLE_AUTO_RENEW_MONTHLY_BASE_PLAN_ID`
-   - `BILLING_PRODUCT_GOOGLE_AUTO_RENEW_ANNUAL_BASE_PLAN_ID`
    - `BILLING_PRODUCT_GOOGLE_PREPAID_MONTHLY_BASE_PLAN_ID`
    - `BILLING_PRODUCT_GOOGLE_PREPAID_ANNUAL_BASE_PLAN_ID`
 
 Base plans must be **Active**. Inactive (draft) plans are not returned to the
 Play Billing client, so checkout cannot load an offer token for them.
 
-Auto-renew base plans (`monthly`, `annual`) renew on their own. Prepaid base
-plans (`prepaid-monthly`, `prepaid-annual`) stay mapped for refunds and voids of
-past prepaid purchases. Checkout does not offer them: stores sell auto-renew
-subscriptions only. The mobile client selects the offer by
-`external_base_plan_id` from checkout options so the auto-renew plans share the
-subscription id `premium`.
+Checkout sells those prepaid base plans. The mobile client selects the offer by
+`external_base_plan_id` from checkout options. Renewing base plans already in
+Play Console are unused and need no setup.
 
 ## Play Console access for the service account
 
@@ -162,19 +155,18 @@ Google webhook URL.
 
 RTDN is optional for the first local purchase: the app posts the purchase token
 to the API, which verifies it with the Play Developer API and grants membership.
-RTDN keeps renewals and refunds in sync when the app is not open.
+RTDN keeps refunds and revocations in sync when the app is not open.
 
 ## License testers
 
 Play Console → **Settings** → **License testing**. Add the Google accounts that
 will buy on a device. Those accounts can complete a purchase with a Play test
-card. A declined test card is how a human exercises billing grace. Podverse
-does not store tester passwords. This path is manual; default CI does not call
-Play. Creating the account and signing the phone into it is
-[BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md). Renewal behavior
-is in [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md). License
-testers use billing periods measured in minutes, so the in-app renewal date can
-read today or tomorrow even for a monthly or yearly plan.
+card. A declined test card does not grant membership. Podverse does not store
+tester passwords. This path is manual; default CI does not call Play. Creating
+the account and signing the phone into it is
+[BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md). License testing
+can shorten a prepaid period, so a monthly or yearly purchase can expire within
+minutes.
 
 ## Seed processor products
 
@@ -226,4 +218,3 @@ push subscription.
 - [BILLING-PAYPAL-SANDBOX.md](BILLING-PAYPAL-SANDBOX.md) (shared tunnel)
 - [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md)
 - [BILLING-GOOGLE-PLAY-DEVICE.md](BILLING-GOOGLE-PLAY-DEVICE.md)
-- [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)

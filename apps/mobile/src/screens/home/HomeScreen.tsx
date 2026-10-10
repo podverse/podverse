@@ -64,10 +64,9 @@ import {
   writePreferredMediaType,
 } from '../../prefs/preferredMediaType';
 import { useSync } from '../../sync';
-import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
 import { listFilterFieldBottomMargin, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
-import { useResponsive } from '../../theme/useResponsive';
+import { useFeedListColumns } from '../../theme/useFeedListColumns';
 import { useTheme } from '../../theme/useTheme';
 import type { BrowseMediaType } from '../browse/browseTypes';
 import { HOME_MEDIA_TYPE_ORDER, MEDIA_TYPE_LABEL_KEYS } from '../browse/browseTypes';
@@ -225,7 +224,6 @@ export function HomeScreen() {
   const { onRequestLogin } = useAuthPrompt();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { requestSync, state: syncState } = useSync();
-  const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const [selectedMediaType, setSelectedMediaType] =
     useState<HomeMediaType>(DEFAULT_HOME_MEDIA_TYPE);
@@ -976,16 +974,11 @@ export function HomeScreen() {
   // measured rather than flexed: flex:1 stretches a short last row (or a single subscription) to
   // full width and the grid looks like one column.
   const isGridView = viewModeEligible && resolvedPrefs.viewMode === 'grid';
-  const columns = isGridView ? resolveGridColumns(width) : rowColumns;
-  const horizontalInset = tokens.spacing.lg;
-  const gridGap = tokens.spacing.md;
-  const gridCellWidth = isGridView
-    ? resolveGridCellWidth({
-        columns,
-        contentWidth: width - 2 * horizontalInset,
-        gap: gridGap,
-      })
-    : 0;
+  const { cellWidth, columns, onListLayout } = useFeedListColumns({
+    gap: tokens.spacing.md,
+    horizontalInset: tokens.spacing.lg,
+    isGridView,
+  });
 
   const styles = useMemo(() => {
     const insets = screenBodyInsets(tokens.spacing);
@@ -998,7 +991,7 @@ export function HomeScreen() {
 
     return StyleSheet.create({
       columnCell: {
-        width: gridCellWidth,
+        width: cellWidth,
       },
       columnWrapper: {
         gap: tokens.spacing.md,
@@ -1056,7 +1049,7 @@ export function HomeScreen() {
         marginBottom: tokens.spacing.sm,
       },
     });
-  }, [gridCellWidth, isGridView, themeStyles, tokens]);
+  }, [cellWidth, isGridView, themeStyles, tokens]);
 
   const showFeedRows = feedErrorKey === null;
   const isFeedBusy = !hasCompletedFeedRead;
@@ -1240,7 +1233,7 @@ export function HomeScreen() {
                 {unsubscribedDownloadRows.map((row) => (
                   <View key={row.id} style={styles.columnCell}>
                     <HomeFeedGridCell
-                      artworkEdge={gridCellWidth}
+                      artworkEdge={cellWidth}
                       onPress={handleRowPress}
                       row={row}
                       testID={`home-unsubscribed-download-cell-${row.id}`}
@@ -1314,7 +1307,7 @@ export function HomeScreen() {
     ({ item: row }: { item: HomeFeedRowData }) => (
       <HomeFeedListItem
         addToPlaylistPress={rowAddToPlaylistPress}
-        artworkEdge={gridCellWidth}
+        artworkEdge={cellWidth}
         cellStyle={feedCellStyle}
         goToChannel={rowGoToChannel}
         goToTrack={rowGoToTrack}
@@ -1329,8 +1322,8 @@ export function HomeScreen() {
       />
     ),
     [
+      cellWidth,
       feedCellStyle,
-      gridCellWidth,
       handlePlayPress,
       handleQueuePress,
       handleRowPress,
@@ -1366,6 +1359,7 @@ export function HomeScreen() {
         key={`cols-${columns}`}
         keyExtractor={homeFeedRowKeyExtractor}
         numColumns={columns}
+        onLayout={onListLayout}
         refreshControl={refreshControl}
         renderItem={renderItem}
         testID="home-feed-list"
@@ -1378,6 +1372,7 @@ export function HomeScreen() {
       listEmpty,
       listFooter,
       listHeader,
+      onListLayout,
       refreshControl,
       renderItem,
       styles.columnWrapper,

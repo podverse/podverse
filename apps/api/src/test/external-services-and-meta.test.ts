@@ -67,10 +67,6 @@ const {
           membership_expires_at: Date;
           account_membership: { id: AccountMembershipEnum; tier: 'trial' | 'premium' };
           billing_cadence: BillingCadence;
-          auto_renew_mode: 'off' | 'on';
-          next_renewal_attempt_at: Date | null;
-          last_renewal_attempt_at: Date | null;
-          last_renewal_status: 'none' | 'succeeded' | 'failed';
         };
       } | null> => {
         if (id === uid1) {
@@ -82,10 +78,6 @@ const {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
               account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
               billing_cadence: 'annual',
-              auto_renew_mode: 'on',
-              next_renewal_attempt_at: null,
-              last_renewal_attempt_at: null,
-              last_renewal_status: 'none',
             },
           };
         }
@@ -98,10 +90,6 @@ const {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
               account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
               billing_cadence: 'annual',
-              auto_renew_mode: 'on',
-              next_renewal_attempt_at: null,
-              last_renewal_attempt_at: null,
-              last_renewal_status: 'none',
             },
           };
         }
@@ -228,10 +216,6 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
           membership_expires_at: Date;
           account_membership: { id: AccountMembershipEnum; tier: 'trial' | 'premium' };
           billing_cadence: BillingCadence;
-          auto_renew_mode: 'off' | 'on';
-          next_renewal_attempt_at: Date | null;
-          last_renewal_attempt_at: Date | null;
-          last_renewal_status: 'none' | 'succeeded' | 'failed';
         };
       } | null> => {
         if (id === TEST_USER_ID) {
@@ -243,10 +227,6 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
               account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
               billing_cadence: 'annual',
-              auto_renew_mode: 'on',
-              next_renewal_attempt_at: null,
-              last_renewal_attempt_at: null,
-              last_renewal_status: 'none',
             },
           };
         }
@@ -259,10 +239,6 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
               account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
               billing_cadence: 'annual',
-              auto_renew_mode: 'on',
-              next_renewal_attempt_at: null,
-              last_renewal_attempt_at: null,
-              last_renewal_status: 'none',
             },
           };
         }

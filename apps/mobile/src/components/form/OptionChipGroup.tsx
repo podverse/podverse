@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
+import { chipFacePadding, chipLabelTypography } from './chipChrome';
 
 export type OptionChipOption<T extends string | number> = {
   value: T;
@@ -36,17 +37,15 @@ export function OptionChipGroup<T extends string | number>({
           borderColor: themeStyles.border.borderColor,
           borderRadius: tokens.radii.round,
           borderWidth: 1,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
+          ...chipFacePadding(tokens.spacing),
         },
         optionButtonActive: {
           backgroundColor: themeStyles.buttonPrimary.backgroundColor,
           borderColor: themeStyles.buttonPrimary.backgroundColor,
         },
         optionButtonText: {
+          ...chipLabelTypography,
           color: themeStyles.textPrimary.color,
-          fontSize: 14,
-          fontWeight: '600',
         },
         optionButtonTextActive: {
           color: themeStyles.buttonPrimary.color,

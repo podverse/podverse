@@ -17,8 +17,9 @@ name: Add By RSS Flow
     id: rss-root-screen
 - takeScreenshot: add-by-rss-library-initial
 
+# Empty library: Add Feed runs the same add handler as the header plus.
 - tapOn:
-    id: rss-add-button
+    id: rss-feeds-empty-action
 - assertVisible:
     id: rss-add-screen
 - assertVisible:
@@ -50,11 +51,8 @@ name: Add By RSS Flow
 - assertVisible: E2E Add-by-RSS Channel
 - takeScreenshot: add-by-rss-feed-listed
 
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - hideKeyboard
+# The keyboard is already gone once the form has popped. hideKeyboard on Android sends Back when
+# there is nothing to dismiss, which leaves this screen.
 - tapOn:
     text: E2E Add-by-RSS Channel
 - assertVisible:
@@ -64,13 +62,21 @@ name: Add By RSS Flow
     id: add-by-rss-home-play-first
 - takeScreenshot: add-by-rss-library-detail
 
-# Real media: enclosure localhost:2111 → 127.0.0.1 (iOS) / 10.0.2.2 (Android) in E2E.
+# Real media: enclosure localhost:2111 → 127.0.0.1 (iOS) / 10.0.2.2 (Android) in E2E. Sign-in
+# loads the seeded queue head into the mini player, so the title proves playback switched to this
+# episode rather than resuming that one.
 - tapOn:
     id: add-by-rss-home-play-first
 - extendedWaitUntil:
     visible:
-      id: add-by-rss-home-playback-active
+      id: playback-now-playing-title-e2e
+      text: E2E Add-by-RSS Episode
     timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: playing
+    timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: add-by-rss-playback-active
 
 - tapOn:
@@ -79,4 +85,9 @@ name: Add By RSS Flow
     visible:
       id: rss-root-screen
     timeout: ${TIMEOUT_SLOW}
-- assertNotVisible: E2E Add-by-RSS Channel
+# The mini player keeps playing the episode and still names the channel, so the empty library is
+# what proves the feed is gone.
+- extendedWaitUntil:
+    visible:
+      id: rss-feeds-empty
+    timeout: ${TIMEOUT_SLOW}

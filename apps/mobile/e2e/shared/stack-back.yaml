@@ -1,0 +1,17 @@
+appId: com.podverse.app.next
+---
+# iOS returns with the stack edge swipe. Android uses the header back control.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: "0%,45%"
+          end: "85%,45%"
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: stack-header-back

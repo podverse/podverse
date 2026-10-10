@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { getMembershipExpiryNotice, shouldSuppressExpiryReminder } from '@podverse/helpers';
+import { getMembershipExpiryDismissalKey, getMembershipExpiryNotice } from '@podverse/helpers';
 
 import { useMembership } from '../../membership/useMembership';
 import { getPref, setPref } from '../../prefs/prefsStore';
@@ -10,31 +10,39 @@ import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives';
 
 /**
- * Tells a member their membership is expiring soon, or has expired, and offers a way to renew.
+ * Tells a member their membership is expiring soon, or has expired, and offers a way back to
+ * membership.
  *
- * The state is derived on demand from the account snapshot already in memory, so it is correct
- * whenever the screen renders.
- *
- * Dismissal is remembered against the expiry it was dismissed for, so a later lapse shows the
- * banner again. The More screen keeps a non-dismissible renewal row, so dismissing here never
- * removes the path to renew.
+ * Expiring-soon dismissal is the dismissal key for that expiry, stored in prefs. Expired
+ * dismissal lasts for this launch only and is not written to prefs, so the next launch shows it
+ * again. The More screen keeps a row for a lapsed member.
  */
 export type MembershipExpiredBannerProps = {
   onRenew: () => void;
 };
 
+let expiredDismissedThisLaunch = false;
+
 export function MembershipExpiredBanner({ onRenew }: MembershipExpiredBannerProps) {
   const { t } = useTranslation();
   const membership = useMembership();
   const { styles: themeStyles, tokens } = useTheme();
-  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
-
   const notice = getMembershipExpiryNotice(membership);
-  const dismissalKey = membership.expiresAt ?? 'unknown';
+  const dismissalKey = getMembershipExpiryDismissalKey(notice, membership.expiresAt);
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(notice.status !== 'expiring_soon');
+  const [sessionExpiredDismissed, setSessionExpiredDismissed] = useState(
+    expiredDismissedThisLaunch
+  );
 
   useEffect(() => {
+    if (notice.status !== 'expiring_soon') {
+      setIsHydrated(true);
+      return;
+    }
+
     let isActive = true;
+    setIsHydrated(false);
 
     void getPref('membership.expiry_dismissed_for').then((stored) => {
       if (isActive) {
@@ -46,12 +54,20 @@ export function MembershipExpiredBanner({ onRenew }: MembershipExpiredBannerProp
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [notice.status]);
 
   const onDismiss = useCallback(() => {
+    if (notice.status === 'expired') {
+      expiredDismissedThisLaunch = true;
+      setSessionExpiredDismissed(true);
+      return;
+    }
+    if (dismissalKey === null) {
+      return;
+    }
     setDismissedFor(dismissalKey);
     void setPref('membership.expiry_dismissed_for', dismissalKey);
-  }, [dismissalKey]);
+  }, [dismissalKey, notice.status]);
 
   const styles = useMemo(
     () =>
@@ -81,14 +97,16 @@ export function MembershipExpiredBanner({ onRenew }: MembershipExpiredBannerProp
     [themeStyles, tokens]
   );
 
-  // Wait for the stored dismissal before the first paint, so a dismissed banner never flashes in.
-  if (
-    notice.status === 'none' ||
-    !isHydrated ||
-    dismissedFor === dismissalKey ||
-    shouldSuppressExpiryReminder(membership)
-  ) {
+  if (notice.status === 'none') {
     return null;
+  }
+  if (notice.status === 'expired' && (expiredDismissedThisLaunch || sessionExpiredDismissed)) {
+    return null;
+  }
+  if (notice.status === 'expiring_soon') {
+    if (!isHydrated || (dismissalKey !== null && dismissedFor === dismissalKey)) {
+      return null;
+    }
   }
 
   let message: string;
@@ -101,14 +119,15 @@ export function MembershipExpiredBanner({ onRenew }: MembershipExpiredBannerProp
       if (daysRemaining === null) {
         return null;
       }
-      // Explicit singular/plural keys rather than i18next `count` pluralization: the same catalog
-      // is read by next-intl on web, and the two libraries disambiguate plural suffixes differently.
+      // Singular and plural are separate keys: next-intl on web and i18next disagree on suffixes.
       message =
         daysRemaining === 1
           ? t('membership.gate.banner_message_expiring_tomorrow')
           : t('membership.gate.banner_message_expiring_soon', { days: daysRemaining });
       break;
     }
+    default:
+      return null;
   }
 
   return (

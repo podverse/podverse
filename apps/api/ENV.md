@@ -209,8 +209,6 @@ out of checkout options and its webhook answers 404. Routes and webhook contract
 `billing-google-play.env`; run `make local_env_setup` to apply them to the API and workers.
 
 - **`BILLING_WEBHOOK_PUBLIC_BASE_URL`** (Optional) - Public HTTPS base the processors deliver webhooks to
-- **`BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION`** (Optional, default `172800`) - Seconds access continues past an auto-renew period end
-- **`BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION`** (Optional, default `604800`) - Seconds access continues after a failed renewal charge
 - **`BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`** (Optional) - Comma-separated account ids or `id_text` values whose sandbox purchases count in production
 - **`BILLING_ALLOW_TEST_ADAPTER`** (Optional) - `true` registers the test processor even when `NODE_ENV` is `production`; non-production always registers it
 - **`BILLING_PAYPAL_ENABLED`** (Optional, default off) - `true` turns PayPal on; empty or unset keeps it off. When it is `true`, the PayPal credential keys below are required

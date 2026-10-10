@@ -24,11 +24,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints } from '@podverse/design-tokens';
-import {
-  APP_ROUTES,
-  MOBILE_HOME_TAB_SEGMENT,
-  shouldSuppressExpiryReminder,
-} from '@podverse/helpers';
+import { APP_ROUTES, MOBILE_HOME_TAB_SEGMENT } from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
 import { GlobalActivityBar } from '../components/feedback/GlobalActivityBar';
@@ -1270,21 +1266,20 @@ function MoreRootScreen({
     title: t(tabLabelKey(tabId)),
   }));
 
-  // One of the four renewal reminder surfaces: a persistent row a lapsed member can always find,
-  // as opposed to the dismissible banner and the at-the-feature notice.
-  const renewalItems: MenuListItem[] =
-    membership.isExpired && !shouldSuppressExpiryReminder(membership)
-      ? [
-          {
-            onPress: () => {
-              navigation.navigate(MORE_STACK_ROUTES.MoreMembership);
-            },
-            subtitle: t('membership.gate.settings_row_subtitle'),
-            testID: 'more-nav-membership-renew',
-            title: t('membership.gate.settings_row_title'),
+  // A persistent row a lapsed member can always find, beside the dismissible banner and the
+  // at-the-feature notice.
+  const renewalItems: MenuListItem[] = membership.isExpired
+    ? [
+        {
+          onPress: () => {
+            navigation.navigate(MORE_STACK_ROUTES.MoreMembership);
           },
-        ]
-      : [];
+          subtitle: t('membership.gate.settings_row_subtitle'),
+          testID: 'more-nav-membership-renew',
+          title: t('membership.gate.settings_row_title'),
+        },
+      ]
+    : [];
 
   const authItems: MenuListItem[] = isAuthenticated
     ? [
@@ -1448,7 +1443,14 @@ function TabScaffold({
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: tokens.text.accent,
+        // The tablet rail fills the active item, so its icon and label take the primary button's
+        // foreground, like a selected chip. The phone bar has no fill and tints with the accent.
+        tabBarActiveBackgroundColor: isTabletLayout
+          ? themeStyles.buttonPrimary.backgroundColor
+          : undefined,
+        tabBarActiveTintColor: isTabletLayout
+          ? themeStyles.buttonPrimary.color
+          : tokens.text.accent,
         tabBarBadgeStyle: {
           backgroundColor: tokens.text.accent,
           color: tokens.background.primary,

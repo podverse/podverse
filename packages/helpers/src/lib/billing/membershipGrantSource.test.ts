@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { ADMIN_EDITABLE_GRANT_SOURCES, isAdminEditableGrant } from './membershipGrantSource.js';
 
 const unlinked = {
-  billing_subscription_id: null,
   billing_transaction_id: null,
   membership_claim_token_id: null,
 };
@@ -13,17 +12,11 @@ describe('isAdminEditableGrant', () => {
     expect(isAdminEditableGrant({ source, ...unlinked })).toBe(true);
   });
 
-  it.each(['subscription_period', 'one_time_purchase', 'claim_token'])(
-    'protects a %s grant',
-    (source) => {
-      expect(isAdminEditableGrant({ source, ...unlinked })).toBe(false);
-    }
-  );
+  it.each(['one_time_purchase', 'claim_token'])('protects a %s grant', (source) => {
+    expect(isAdminEditableGrant({ source, ...unlinked })).toBe(false);
+  });
 
-  it('protects an admin-source grant that a subscription, transaction, or claim paid for', () => {
-    expect(isAdminEditableGrant({ source: 'admin', ...unlinked, billing_subscription_id: 4 })).toBe(
-      false
-    );
+  it('protects an admin-source grant that a transaction or claim paid for', () => {
     expect(isAdminEditableGrant({ source: 'admin', ...unlinked, billing_transaction_id: 9 })).toBe(
       false
     );

@@ -1,0 +1,17 @@
+appId: com.podverse.app.next
+---
+# A chip can sit past the leading edge, and off-screen chips are omitted from the hierarchy
+# until the row moves. Swipe the row itself. Once the target is on screen, further swipes
+# are skipped. Caller sets CHIP_ROW_ID and LEADING_ID.
+- repeat:
+    times: 4
+    commands:
+      - runFlow:
+          when:
+            notVisible:
+              id: ${LEADING_ID}
+          commands:
+            - swipe:
+                from:
+                  id: ${CHIP_ROW_ID}
+                direction: RIGHT

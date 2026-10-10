@@ -96,15 +96,12 @@ When **`BUCKET_PROVIDER`** is set, startup validates the same **`BUCKET_*`** con
 
 ### Billing (optional)
 
-Account resync fetches each subscription from its processor, so this deployment reads the same
+Account resync refetches recorded purchases from their processors, so this deployment reads the same
 processor flags and credentials as the API and workers. A processor runs only when its
 `*_ENABLED` flag is `true`; credentials alone never turn it on. With the flag on, every key
 that processor needs is required. A processor that is not enabled is reported as skipped on
-resync rather than failing it. The entitlement buffer and grace windows feed the same ledger
-the API uses.
+resync rather than failing it.
 
-- **`BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION`** (Optional, default `172800`) - Seconds access continues past an auto-renew period end
-- **`BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION`** (Optional, default `604800`) - Seconds access continues after a failed renewal charge
 - **`BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS`** (Optional) - Comma-separated account ids or `id_text` values whose sandbox purchases count in production
 - **`BILLING_ALLOW_TEST_ADAPTER`** (Optional) - `true` registers the test processor even when `NODE_ENV` is `production`; non-production always registers it
 - **`BILLING_PAYPAL_ENABLED`** (Optional, default off) - `true` turns PayPal on; empty or unset keeps it off

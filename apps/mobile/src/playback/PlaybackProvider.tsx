@@ -2065,8 +2065,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const advance = useCallback(
     async (transitionKind: 'complete' | 'skip'): Promise<void> => {
-      // Only advance when this provider owns the current playback. Add-by-RSS uses its own hook and
-      // never sets `activeTarget`; ignoring null avoids hijacking the queue on its `ended` event.
+      // Only advance when this provider owns the current playback. Product playback, add-by-RSS
+      // included, loads through `playTarget`; an engine `ended` with nothing loaded here (the engine
+      // debug panel) has no queue resource to finish.
       if (activeTargetRef.current === null) {
         return;
       }

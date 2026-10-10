@@ -31,6 +31,8 @@ Use this skill for any membership-expired UX/API work.
 ## Shared helpers
 
 - **Expiry moment:** use `isMembershipExpiredAt` from `@podverse/helpers` when you need “this `membership_expires_at` is in the past” (e.g. banner, marketing copy).
+- **Notice:** use `getMembershipExpiryNotice` for `none` / `expiring_soon` / `expired`.
+- **Dismissal:** use `getMembershipExpiryDismissalKey`. Expiring-soon is remembered per expiry (`expiring_soon:${expiresAt}`). Expired returns null, so that dismissal lasts for the session and returns on the next launch.
 - **Valid non-expired membership:** use `hasValidMembership` for the full status object (e.g. API auth gate: reject when `!hasValidMembership(membershipStatus)`).
 
 ## Consistency checks

@@ -71,6 +71,11 @@ export function BillingPageClient({ initialUser }: BillingPageClientProps) {
       description: t('webhookEventsCardDescription'),
     });
   }
+  cards.push({
+    href: ROUTES.BILLING_HELP,
+    title: t('helpCardTitle'),
+    description: t('helpCardDescription'),
+  });
 
   return (
     <ManagementPageShell

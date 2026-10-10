@@ -25,8 +25,8 @@ name: Push Notification Tap Routing
 
 - takeScreenshot: push-tap-podcast-detail
 
-- tapOn:
-    id: stack-header-back
+- runFlow:
+    file: shared/stack-back.yaml
 - extendedWaitUntil:
     visible:
       id: home-screen
@@ -42,16 +42,16 @@ name: Push Notification Tap Routing
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: push-tap-episode-detail
 
-- tapOn:
-    id: stack-header-back
+- runFlow:
+    file: shared/stack-back.yaml
 - extendedWaitUntil:
     visible:
       id: podcast-detail-screen
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: push-tap-episode-back-podcast
 
-- tapOn:
-    id: stack-header-back
+- runFlow:
+    file: shared/stack-back.yaml
 - extendedWaitUntil:
     visible:
       id: home-screen

@@ -1,35 +1,14 @@
 import { getDataSourceReadWrite } from '@orm/context.js';
 import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus.js';
 import { BillingMembershipGrant } from '@orm/entities/billingMembershipGrant.js';
-import { BillingSubscription } from '@orm/entities/billingSubscription.js';
 import type { DataSource, EntityManager } from 'typeorm';
 
 import type { AccountMembershipEnum, BillingCadence, MembershipAccess } from '@podverse/helpers';
-import { computeMembershipAccess, parseExpirationEnvValue } from '@podverse/helpers';
-
-const DEFAULT_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION = 172800;
-const DEFAULT_PAYMENT_FAILURE_GRACE_EXPIRATION = 604800;
+import { computeMembershipAccess } from '@podverse/helpers';
 
 type BillingEntitlementServiceParams = {
   dataSourceReadWrite?: DataSource;
-  renewalEntitlementBufferExpiration?: number;
-  paymentFailureGraceExpiration?: number;
 };
-
-function resolveExpirationSeconds(params: {
-  fromParams: number | undefined;
-  envKey: string;
-  fallback: number;
-}): number {
-  if (params.fromParams !== undefined) {
-    return params.fromParams;
-  }
-  const parsed = parseExpirationEnvValue(process.env[params.envKey]);
-  if (parsed === null) {
-    return params.fallback;
-  }
-  return parsed;
-}
 
 type BillingEntitlementRecomputeResult = MembershipAccess & {
   billingCadence: BillingCadence | null;
@@ -37,23 +16,9 @@ type BillingEntitlementRecomputeResult = MembershipAccess & {
 
 export class BillingEntitlementService {
   private dataSourceReadWrite: DataSource;
-  private renewalEntitlementBufferExpiration: number;
-  private paymentFailureGraceExpiration: number;
 
   constructor(params?: BillingEntitlementServiceParams) {
     this.dataSourceReadWrite = params?.dataSourceReadWrite ?? getDataSourceReadWrite();
-
-    this.renewalEntitlementBufferExpiration = resolveExpirationSeconds({
-      fromParams: params?.renewalEntitlementBufferExpiration,
-      envKey: 'BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION',
-      fallback: DEFAULT_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION,
-    });
-
-    this.paymentFailureGraceExpiration = resolveExpirationSeconds({
-      fromParams: params?.paymentFailureGraceExpiration,
-      envKey: 'BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION',
-      fallback: DEFAULT_PAYMENT_FAILURE_GRACE_EXPIRATION,
-    });
   }
 
   async recompute(accountId: number, now = new Date()): Promise<BillingEntitlementRecomputeResult> {
@@ -79,44 +44,24 @@ export class BillingEntitlementService {
     return lockedStatus;
   }
 
-  private async loadLedgerWithManager(
+  private async loadGrantsWithManager(
     transactionalEntityManager: EntityManager,
     accountId: number
-  ): Promise<{ grants: BillingMembershipGrant[]; subscriptions: BillingSubscription[] }> {
-    const grants = await transactionalEntityManager.getRepository(BillingMembershipGrant).find({
+  ): Promise<BillingMembershipGrant[]> {
+    return transactionalEntityManager.getRepository(BillingMembershipGrant).find({
       where: { account_id: accountId },
     });
-
-    const subscriptions = await transactionalEntityManager.getRepository(BillingSubscription).find({
-      where: { account_id: accountId },
-      relations: { billing_processor_product: true },
-      order: { current_period_end: 'DESC', id: 'DESC' },
-    });
-
-    return { grants, subscriptions };
   }
 
-  private computeAccess(
-    ledger: { grants: BillingMembershipGrant[]; subscriptions: BillingSubscription[] },
-    now: Date
-  ): MembershipAccess {
+  private computeAccess(grants: BillingMembershipGrant[], now: Date): MembershipAccess {
     return computeMembershipAccess({
       now,
-      grants: ledger.grants.map((grant) => ({
+      grants: grants.map((grant) => ({
         source: grant.source,
         startsAt: grant.starts_at,
         endsAt: grant.ends_at,
         revokedAt: grant.revoked_at,
       })),
-      subscriptions: ledger.subscriptions.map((subscription) => ({
-        status: subscription.status,
-        purchaseKind: subscription.purchase_kind,
-        currentPeriodStart: subscription.current_period_start,
-        currentPeriodEnd: subscription.current_period_end,
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-      })),
-      renewalEntitlementBufferExpiration: this.renewalEntitlementBufferExpiration,
-      paymentFailureGraceExpiration: this.paymentFailureGraceExpiration,
     });
   }
 
@@ -130,8 +75,8 @@ export class BillingEntitlementService {
     accountId: number,
     now = new Date()
   ): Promise<MembershipAccess> {
-    const ledger = await this.loadLedgerWithManager(transactionalEntityManager, accountId);
-    return this.computeAccess(ledger, now);
+    const grants = await this.loadGrantsWithManager(transactionalEntityManager, accountId);
+    return this.computeAccess(grants, now);
   }
 
   async recomputeWithManager(
@@ -141,44 +86,19 @@ export class BillingEntitlementService {
   ): Promise<BillingEntitlementRecomputeResult> {
     const statusRepository = transactionalEntityManager.getRepository(AccountMembershipStatus);
     const lockedStatus = await this.lockStatusWithManager(transactionalEntityManager, accountId);
-
-    const ledger = await this.loadLedgerWithManager(transactionalEntityManager, accountId);
-    const { subscriptions } = ledger;
-    const access = this.computeAccess(ledger, now);
-
-    const activeSubscription = subscriptions.find((subscription) => {
-      if (
-        subscription.status !== 'active' &&
-        subscription.status !== 'in_grace_period' &&
-        subscription.status !== 'cancelled_active'
-      ) {
-        return false;
-      }
-      return subscription.billing_processor_product?.billing_cadence !== undefined;
-    });
-
-    const billingCadence =
-      activeSubscription?.billing_processor_product?.billing_cadence ??
-      lockedStatus.billing_cadence ??
-      null;
+    const grants = await this.loadGrantsWithManager(transactionalEntityManager, accountId);
+    const access = this.computeAccess(grants, now);
 
     await statusRepository.update(
       { account: { id: accountId } },
-      {
-        membership_expires_at: access.membershipExpiresAt,
-        auto_renew_mode: access.activeAutoRenew ? 'on' : 'off',
-        billing_cadence: billingCadence,
-      }
+      { membership_expires_at: access.membershipExpiresAt }
     );
 
     return {
-      ...access,
-      billingCadence,
+      membershipExpiresAt: access.membershipExpiresAt,
+      isEntitled: access.isEntitled,
+      billingCadence: lockedStatus.billing_cadence ?? null,
     };
-  }
-
-  getPaymentFailureGraceExpiration(): number {
-    return this.paymentFailureGraceExpiration;
   }
 
   /**

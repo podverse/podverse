@@ -1,9 +1,8 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
-import type { DTOBillingStatus } from '@podverse/helpers';
 import { getAccountSignupModeCapabilities } from '@podverse/helpers';
 import { Button, Divider } from '@podverse/ui';
 
@@ -26,10 +25,6 @@ export function SettingsAccount() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isChangeEmailModalOpen, setIsChangeEmailModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [billingStatus, setBillingStatus] = useState<DTOBillingStatus | null>(null);
-  const handleBillingStatus = useCallback((status: DTOBillingStatus | null) => {
-    setBillingStatus(status);
-  }, []);
 
   const config = getConfig();
   const signupMode = config.public.account.signupMode;
@@ -77,7 +72,7 @@ export function SettingsAccount() {
 
   return (
     <>
-      <SettingsMembership onStatus={handleBillingStatus} />
+      <SettingsMembership />
       <Divider withSpacing />
       <SettingsListenStats />
       <Divider withSpacing />
@@ -129,7 +124,6 @@ export function SettingsAccount() {
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           userEmail={userEmail}
-          warnActiveBilling={billingStatus?.active_auto_renew === true}
         />
       </SettingsSection>
     </>

@@ -67,8 +67,8 @@ name: Library Playlists Authoring
 # Created playlists have no description; the row still shows features.playlist.item_count.
 # The row label is the title plus that count ("E2E Playlist. Items: 0"). Maestro matches the
 # whole label, so the selector is a prefix. Seeded embed playlists use other titles.
-- tapOn:
-    id: stack-header-back
+- runFlow:
+    file: shared/stack-back.yaml
 - extendedWaitUntil:
     visible:
       text: "E2E Playlist.*"

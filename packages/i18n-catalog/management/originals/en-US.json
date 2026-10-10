@@ -619,7 +619,7 @@
       "premiumBillingCadence": "Premium billing period",
       "billingMonthly": "Monthly",
       "billingAnnual": "Annual",
-      "premiumBillingCadenceHint": "Default expiry uses one month ahead for monthly, or one year ahead for annual (aligned with subscription cadence).",
+      "premiumBillingCadenceHint": "Default expiry uses one month ahead for monthly, or one year ahead for annual.",
       "trustTier": "Trust tier",
       "untrusted": "Untrusted",
       "trusted": "Trusted",
@@ -741,9 +741,11 @@
     "checkoutChannelsCardTitle": "Checkout Channels",
     "checkoutChannelsCardDescription": "Enable or disable a processor per platform and set the minimum client version.",
     "processorProductsCardTitle": "Processor Products",
-    "processorProductsCardDescription": "Map a processor product id to a cadence and purchase kind.",
+    "processorProductsCardDescription": "Map a processor product id to a catalog product and a cadence.",
     "webhookEventsCardTitle": "Webhook Inbox",
     "webhookEventsCardDescription": "Review processor notifications and replay the ones that failed.",
+    "helpCardTitle": "Billing Help",
+    "helpCardDescription": "Gifting, Apple refunds, resync, and a purchase on the wrong account.",
     "channels": {
       "title": "Checkout Channels",
       "failedToLoad": "Failed to load checkout channels.",
@@ -782,8 +784,8 @@
         "externalId": "External ID",
         "basePlan": "Base Plan",
         "cadence": "Cadence",
-        "kind": "Kind",
-        "active": "Active"
+        "active": "Active",
+        "catalogProduct": "Catalog Product"
       },
       "active": "Active",
       "inactive": "Inactive",
@@ -791,13 +793,10 @@
       "externalIdLabel": "External ID",
       "externalIdPlaceholder": "P-123",
       "basePlanLabel": "Base Plan",
-      "basePlanPlaceholder": "monthly-auto",
+      "basePlanPlaceholder": "prepaid-monthly",
       "cadenceLabel": "Cadence",
-      "kindLabel": "Purchase Kind",
       "cadenceMonthly": "Monthly",
       "cadenceAnnual": "Annual",
-      "kindAutoRenew": "Auto-Renew",
-      "kindOneTime": "One-Time",
       "edit": "Edit",
       "editTitle": "Edit Processor Product",
       "activeLabel": "Active"
@@ -850,7 +849,6 @@
       "protectedAccess": "Processor-paid access runs until {date}. Cancel or refund it with the processor.",
       "datePickerAffix": "Open Date and Time Picker",
       "expires": "Membership Expires",
-      "subscriptions": "Subscriptions",
       "transactions": "Transactions",
       "grants": "Grants",
       "events": "Webhook Events",
@@ -858,27 +856,16 @@
       "table": {
         "processor": "Processor",
         "externalId": "External ID",
-        "status": "Status",
-        "periodEnd": "Period End",
-        "kind": "Kind",
         "amount": "Amount",
         "settledAt": "Settled",
         "source": "Source",
         "starts": "Starts",
         "ends": "Ends",
         "received": "Received",
-        "error": "Error"
+        "error": "Error",
+        "revoked": "Revoked"
       },
-      "result": {
-        "applied": "Applied",
-        "ignored_sandbox": "Ignored sandbox",
-        "skipped": "Skipped",
-        "failed": "Failed",
-        "not_found": "Not found",
-        "processor_not_configured": "Processor not configured",
-        "unknown_processor": "Unknown processor",
-        "processor_error": "Processor error"
-      }
+      "resyncCounts": "Retried {retried}. Refetched {refetched}. Failed {failed}."
     },
     "events": {
       "title": "Webhook Inbox",
@@ -911,6 +898,18 @@
       "paypal": "PayPal",
       "apple": "Apple App Store",
       "google_play": "Google Play"
+    },
+    "help": {
+      "title": "Billing Help",
+      "indexIntro": "Remediation notes for membership billing. Management never charges a payment method.",
+      "giftingTitle": "Gifting a Member",
+      "giftingBody": "An admin grant adds time after whatever the member already has. Nothing to check first.",
+      "appleRefundsTitle": "Apple Refund",
+      "appleRefundsBody": "Podverse cannot refund an App Store charge. The member requests the refund from Apple. After Apple voids the purchase, resync the account so the ledger matches.",
+      "resyncTitle": "A Purchase Is Missing From the App",
+      "resyncBody": "Use Resync on the account billing page. Resync retries failed notifications, re-fetches the account's transactions, and applies refunds. Use it when a store purchase is missing from the ledger. If the processor is off in this deployment, turn it on or extend access manually.",
+      "wrongAccountTitle": "Purchase Linked to the Wrong Account",
+      "wrongAccountBody": "Store receipts attach to the Podverse account that purchased them. The member must use that account, or Apple/Google support for a transfer. Do not grant time on a second account to paper over a mislinked receipt without confirming the first account is cancelled."
     }
   }
 }

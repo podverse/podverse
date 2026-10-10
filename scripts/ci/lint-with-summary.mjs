@@ -1,8 +1,8 @@
 /**
- * Runs i18n compile, type-check, workspace lint, mobile lint, repo-root script
- * lint, and prettier; streams output and prints a summary of errors/warnings at
- * the end. When Prettier fails, prints a unified diff for each failed file so
- * you can see what would change.
+ * Runs i18n compile, workspace type-check, mobile type-check, workspace lint,
+ * mobile lint, repo-root script lint, and prettier; streams output and prints a
+ * summary of errors/warnings at the end. When Prettier fails, prints a unified
+ * diff for each failed file so you can see what would change.
  *
  * i18n:compile runs first because apps/web and apps/management-web type-check
  * import generated apps/<app>/i18n/compiled/*.json (gitignored).
@@ -12,7 +12,8 @@
  *
  * Mobile: `apps/mobile` is outside npm workspaces, so it is linted here via
  * root `eslint.config.mjs` (Tier D / RN override) — same as tools/scripts paths.
- * Type-check still skips mobile (no Vitest/tsc workspace enrollment yet).
+ * Mobile type-check runs as its own step (`type-check:mobile`) because the app
+ * is not enrolled in workspace `type-check`.
  */
 
 import { spawn, spawnSync } from 'node:child_process';
@@ -55,6 +56,7 @@ const steps = [
   // apps/<app>/i18n/compiled/*.json, so compile before tsc (local + CI).
   { name: 'i18n:compile', cmd: 'npm', args: ['run', 'i18n:compile'] },
   { name: 'type-check', cmd: 'node', args: runWorkspacesArgs('type-check') },
+  { name: 'type-check:mobile', cmd: 'npm', args: ['run', 'type-check:mobile'] },
   { name: 'lint', cmd: 'node', args: runWorkspacesArgs(mode) },
   { name: 'lint:mobile', cmd: 'npx', args: eslintPathArgs(MOBILE_LINT_PATHS) },
   { name: 'lint:repo-scripts', cmd: 'npx', args: eslintPathArgs(REPO_SCRIPT_LINT_PATHS) },
@@ -174,7 +176,8 @@ const resultByName = (name) => results.find((r) => r.step === name);
 const allOutput = results.map((r) => r.output).join('');
 const summary = summarize(allOutput);
 const i18nCompileFailed = resultByName('i18n:compile')?.code !== 0;
-const typeCheckFailed = resultByName('type-check')?.code !== 0;
+const typeCheckFailed =
+  resultByName('type-check')?.code !== 0 || resultByName('type-check:mobile')?.code !== 0;
 const workspaceLintFailed = resultByName('lint')?.code !== 0;
 const mobileLintFailed = resultByName('lint:mobile')?.code !== 0;
 const repoScriptsLintFailed = resultByName('lint:repo-scripts')?.code !== 0;

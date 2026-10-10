@@ -69,9 +69,6 @@ const NO_EXPIRY_NOTICE: MembershipExpiryNotice = { status: 'none', daysRemaining
 /**
  * Classifies a membership as expired, expiring soon, or neither, from the snapshot the caller
  * already holds. Shared so web and mobile use one window rather than each picking a number.
- *
- * Callers layer suppression on top — `shouldSuppressExpiryReminder` for auto-renew, plus any
- * dismissal the user made; this function only answers where the expiry sits relative to now.
  */
 export function getMembershipExpiryNotice(
   membership: MembershipState,
@@ -99,6 +96,29 @@ export function getMembershipExpiryNotice(
   return { status: 'expiring_soon', daysRemaining };
 }
 
+/**
+ * The key under which a dismissal of this notice is persisted, or null when a dismissal must
+ * last only for the current session. Expiring-soon dismissals are remembered against the expiry
+ * they were dismissed for; expired dismissals are never persisted, so the notice returns on the
+ * next launch.
+ */
+export function getMembershipExpiryDismissalKey(
+  notice: MembershipExpiryNotice,
+  expiresAt: string | null
+): string | null {
+  if (notice.status !== 'expiring_soon') {
+    return null;
+  }
+  const normalized = expiresAt?.trim() ?? '';
+  if (normalized === '') {
+    return null;
+  }
+  if (Number.isNaN(new Date(normalized).getTime())) {
+    return null;
+  }
+  return `expiring_soon:${normalized}`;
+}
+
 export type MembershipTier = 'trial' | 'premium';
 
 /** Normalized membership snapshot shared by every JS client surface (web + mobile/tablet RN). */
@@ -108,12 +128,6 @@ export interface MembershipState {
   isExpired: boolean;
   tier: MembershipTier | null;
   expiresAt: string | null;
-  /**
-   * A processor-managed subscription is set to renew and is in good standing. The server recomputes
-   * it together with the expiry, so it is as fresh as the account snapshot; `isMember` still guards
-   * against a snapshot whose expiry has since passed.
-   */
-  activeAutoRenew: boolean;
 }
 
 // Permissive input: the DTO exposes `account_membership_id`; some SSR/populated payloads expose the
@@ -123,7 +137,6 @@ type MembershipStatusInput =
       account_membership_id?: number;
       account_membership?: { id?: number };
       membership_expires_at?: Date | string | null;
-      auto_renew_mode?: 'off' | 'on';
     }
   | null
   | undefined;
@@ -144,8 +157,6 @@ function tierFromMembershipId(membershipId: number | undefined): MembershipTier 
  * Pure derivation of the current user's membership state from the `/auth/me` account snapshot. Shared
  * by web and mobile so the surfaces cannot drift. The renew/sign-up button label at call sites is
  * auth-based (`isLoggedIn`); `isExpired` / `tier` drive banner + message copy only.
- *
- * `auto_renew_mode` is the authoritative auto-renew field on the membership status.
  */
 export function deriveMembershipState(account: AccountLike): MembershipState {
   if (account === null || account === undefined) {
@@ -155,7 +166,6 @@ export function deriveMembershipState(account: AccountLike): MembershipState {
       isExpired: false,
       tier: null,
       expiresAt: null,
-      activeAutoRenew: false,
     };
   }
 
@@ -169,6 +179,5 @@ export function deriveMembershipState(account: AccountLike): MembershipState {
     isExpired: isMembershipExpiredAt(rawExpiresAt),
     tier: tierFromMembershipId(membershipId),
     expiresAt: typeof rawExpiresAt === 'string' ? rawExpiresAt : null,
-    activeAutoRenew: status?.auto_renew_mode === 'on',
   };
 }

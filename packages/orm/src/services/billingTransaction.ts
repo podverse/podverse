@@ -2,7 +2,7 @@ import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 import { BillingTransaction } from '@orm/entities/billingTransaction.js';
 import type { DataSource, EntityManager } from 'typeorm';
 
-import type { BillingRevocationReason, PurchaseKind } from '@podverse/helpers';
+import type { BillingRevocationReason } from '@podverse/helpers';
 
 type BillingTransactionServiceParams = {
   dataSourceRead?: DataSource;
@@ -14,9 +14,7 @@ type BillingTransactionUpsertParams = {
   accountId: number;
   processorId: string;
   externalTransactionId: string;
-  purchaseKind: PurchaseKind;
   settledAt: Date;
-  billingSubscriptionId?: number | null;
   amount?: string | null;
   currencyCode?: string | null;
   revokedAt?: Date | null;
@@ -65,15 +63,6 @@ export class BillingTransactionService {
     });
   }
 
-  async listBySubscriptionIdWithManager(
-    transactionalEntityManager: EntityManager,
-    billingSubscriptionId: number
-  ): Promise<BillingTransaction[]> {
-    return transactionalEntityManager.getRepository(BillingTransaction).find({
-      where: { billing_subscription_id: billingSubscriptionId },
-    });
-  }
-
   async upsertByExternalId(params: BillingTransactionUpsertParams): Promise<BillingTransaction> {
     return this.upsertByExternalIdWithManager(this.dataSourceReadWrite.manager, params);
   }
@@ -95,9 +84,7 @@ export class BillingTransactionService {
         account_id: params.accountId,
         processor_id: params.processorId,
         external_transaction_id: params.externalTransactionId,
-        purchase_kind: params.purchaseKind,
         settled_at: params.settledAt,
-        billing_subscription_id: params.billingSubscriptionId ?? null,
         amount: params.amount ?? null,
         currency_code: params.currencyCode ?? null,
         revoked_at: params.revokedAt ?? null,
@@ -108,9 +95,7 @@ export class BillingTransactionService {
     }
 
     existing.account_id = params.accountId;
-    existing.purchase_kind = params.purchaseKind;
     existing.settled_at = params.settledAt;
-    existing.billing_subscription_id = params.billingSubscriptionId ?? null;
     existing.amount = params.amount ?? null;
     existing.currency_code = params.currencyCode ?? null;
     existing.revoked_at = params.revokedAt ?? null;

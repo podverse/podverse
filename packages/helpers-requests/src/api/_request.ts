@@ -3,6 +3,7 @@ import type { BetweenParams } from '@podverse/helpers';
 import type { AddByRssSeenMarkEntry, ChannelSeenMarkEntry } from '@podverse/helpers';
 import type { MediaTypePreference } from '@podverse/helpers';
 import type { ManagedCopySlug } from '@podverse/helpers';
+import type { BillingPlatform } from '@podverse/helpers';
 import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
 import type {
   CreateAccountFCMDeviceParams,
@@ -137,10 +138,8 @@ import type {
   ReqBillingSimulatePaymentParams,
 } from './billing/billing.js';
 import {
-  reqBillingCancelSubscription,
   reqBillingCapturePayPalOrder,
   reqBillingCreatePayPalOrder,
-  reqBillingCreatePayPalSubscription,
   reqBillingGetCheckoutOptions,
   reqBillingGetStatus,
   reqBillingPostAppleTransaction,
@@ -1086,8 +1085,8 @@ export class ApiRequestService {
     return reqBillingGetCheckoutOptions(this, params);
   }
 
-  reqBillingGetStatus() {
-    return reqBillingGetStatus(this);
+  reqBillingGetStatus(params?: { platform?: BillingPlatform }) {
+    return reqBillingGetStatus(this, params);
   }
 
   reqBillingPostAppleTransaction(params: ReqBillingAppleTransactionParams) {
@@ -1106,16 +1105,8 @@ export class ApiRequestService {
     return reqBillingCreatePayPalOrder(this, params);
   }
 
-  reqBillingCancelSubscription(subscriptionId: number) {
-    return reqBillingCancelSubscription(this, subscriptionId);
-  }
-
   reqBillingCapturePayPalOrder(orderId: string) {
     return reqBillingCapturePayPalOrder(this, orderId);
-  }
-
-  reqBillingCreatePayPalSubscription(params: ReqBillingPayPalCheckoutParams) {
-    return reqBillingCreatePayPalSubscription(this, params);
   }
 
   reqBillingSimulatePayment(params: ReqBillingSimulatePaymentParams) {

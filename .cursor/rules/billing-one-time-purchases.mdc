@@ -1,0 +1,14 @@
+---
+description: Premium is a one-time month or year recorded as a grant
+globs: packages/billing/**,packages/helpers/src/lib/billing/**,packages/external-services-*/**,apps/*/src/**/billing*
+alwaysApply: false
+---
+
+# One-time Premium purchases
+
+Every Premium purchase is a one-time month or a one-time year that adds a grant. Grants stack.
+There is no purchase-kind discriminator.
+
+A new processor implements `PaymentProcessorAdapter` and emits `payment_settled` and
+`refund_or_revoke` only. A product that is not mapped in `billing_processor_product` produces
+no events.

@@ -126,7 +126,7 @@ describe('processor validation', () => {
 
 describe('billing policy validation', () => {
   it('accepts whole seconds and rejects anything else', () => {
-    const key = 'BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION';
+    const key = 'BILLING_WEBHOOK_INBOX_RETRY_DELAY_EXPIRATION';
     expect(validateBillingExpirationEnv({ [key]: '604800' }, key, 604800).isValid).toBe(true);
     expect(validateBillingExpirationEnv({ [key]: '7d' }, key, 604800).isValid).toBe(false);
     expect(validateBillingExpirationEnv({}, key, 604800).isValid).toBe(true);

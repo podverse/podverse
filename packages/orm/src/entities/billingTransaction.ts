@@ -1,7 +1,6 @@
 import type { Account } from '@orm/entities/account/account.js';
 import type { BillingMembershipGrant } from '@orm/entities/billingMembershipGrant.js';
 import type { BillingProcessor } from '@orm/entities/billingProcessor.js';
-import type { BillingSubscription } from '@orm/entities/billingSubscription.js';
 import { ISO_4217_CURRENCY_CODE_CHAR_LENGTH } from '@orm/lib/billingLimits.js';
 import type { Relation } from 'typeorm';
 import {
@@ -14,7 +13,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import type { BillingRevocationReason, PurchaseKind } from '@podverse/helpers';
+import type { BillingRevocationReason } from '@podverse/helpers';
 
 @Entity('billing_transaction')
 export class BillingTransaction {
@@ -40,19 +39,6 @@ export class BillingTransaction {
 
   @Column({ type: 'text' })
   external_transaction_id!: string;
-
-  @Column({ type: 'integer', nullable: true })
-  billing_subscription_id!: number | null;
-
-  @ManyToOne(
-    'BillingSubscription',
-    (billingSubscription: BillingSubscription) => billingSubscription.billing_transactions
-  )
-  @JoinColumn({ name: 'billing_subscription_id' })
-  billing_subscription!: Relation<BillingSubscription | null>;
-
-  @Column({ type: 'text' })
-  purchase_kind!: PurchaseKind;
 
   @Column({ type: 'numeric', precision: 19, scale: 4, nullable: true })
   amount!: string | null;

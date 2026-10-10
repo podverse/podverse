@@ -1,4 +1,4 @@
-import type { BillingPurchaseKind, BillingPurchaseOutcome } from './BillingClient';
+import type { BillingPurchaseOutcome } from './BillingClient';
 import { billingPurchaseOutcome } from './BillingClient';
 import { billingErrorCode } from './billingGuards';
 
@@ -8,7 +8,6 @@ export const BILLING_RESTORE_BATCH_SIZE = 50;
 export type RestoreStoreRecord = {
   externalId: string;
   externalProductId: string;
-  purchaseKind: BillingPurchaseKind;
   signedTransaction?: string | null;
   finish: () => Promise<void>;
 };
@@ -40,7 +39,6 @@ export const restoreStorePurchases = async (params: {
     purchases: Array<{
       externalId: string;
       externalProductId: string;
-      purchaseKind: BillingPurchaseKind;
       signedTransaction?: string | null;
     }>
   ) => Promise<{ confirmed: boolean }>;
@@ -60,7 +58,6 @@ export const restoreStorePurchases = async (params: {
         batch.map((record) => ({
           externalId: record.externalId,
           externalProductId: record.externalProductId,
-          purchaseKind: record.purchaseKind,
           ...(record.signedTransaction !== undefined
             ? { signedTransaction: record.signedTransaction }
             : {}),

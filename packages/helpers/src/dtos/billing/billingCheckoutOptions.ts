@@ -1,5 +1,4 @@
 import type { BillingPlatform } from '../../lib/billing/billingPlatform.js';
-import type { PurchaseKind } from '../../lib/billing/purchaseKind.js';
 import type { BillingCadence } from '../../lib/billingDomain.js';
 
 /** One purchasable product as a processor sells it. */
@@ -9,8 +8,7 @@ export interface DTOBillingCheckoutProduct {
   /** A `BillingProductCode`, left open like `processor_id` so new products do not break clients. */
   product_code: string;
   cadence: BillingCadence;
-  purchase_kind: PurchaseKind;
-  /** The App Store product id, the Play product id, or the PayPal plan id. */
+  /** The App Store product id, the Play product id, or the PayPal checkout product id. */
   external_product_id: string;
   /** Google Play base plan id; null for other processors. */
   external_base_plan_id: string | null;

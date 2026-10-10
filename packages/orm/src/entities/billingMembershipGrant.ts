@@ -1,5 +1,4 @@
 import type { Account } from '@orm/entities/account/account.js';
-import type { BillingSubscription } from '@orm/entities/billingSubscription.js';
 import type { BillingTransaction } from '@orm/entities/billingTransaction.js';
 import type { MembershipClaimToken } from '@orm/entities/membershipClaimToken.js';
 import type { Relation } from 'typeorm';
@@ -38,16 +37,6 @@ export class BillingMembershipGrant {
 
   @Column({ type: 'timestamptz', nullable: true })
   revoked_at!: Date | null;
-
-  @Column({ type: 'integer', nullable: true })
-  billing_subscription_id!: number | null;
-
-  @ManyToOne(
-    'BillingSubscription',
-    (billingSubscription: BillingSubscription) => billingSubscription.billing_membership_grants
-  )
-  @JoinColumn({ name: 'billing_subscription_id' })
-  billing_subscription!: Relation<BillingSubscription | null>;
 
   @Column({ type: 'integer', nullable: true, unique: true })
   billing_transaction_id!: number | null;

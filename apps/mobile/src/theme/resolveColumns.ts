@@ -63,3 +63,29 @@ export function resolveGridCellWidth(options: {
   const totalGap = gap * (columns - 1);
   return Math.max(0, (contentWidth - totalGap) / columns);
 }
+
+/**
+ * Columns and cell width for a feed list that shows rows or artwork tiles.
+ *
+ * `width` is the list's own width. On a tablet the left tab rail takes part of the window, so a
+ * window-based count overfills the list and its cells overflow. Once there is more than one column,
+ * rows get the same fixed cell width tiles do — a multi-column FlatList gives unsized cells no width
+ * of their own. A single column of rows fills the list without one, so `cellWidth` is 0 there.
+ */
+export function resolveFeedListColumns(options: {
+  breakpoints?: Breakpoints;
+  gap: number;
+  horizontalInset: number;
+  isGridView: boolean;
+  width: number;
+}): { cellWidth: number; columns: number } {
+  const { breakpoints = defaultBreakpoints, gap, horizontalInset, isGridView, width } = options;
+  const columns = isGridView
+    ? resolveGridColumns(width, breakpoints)
+    : resolveColumns(width, breakpoints);
+  const cellWidth =
+    columns > 1
+      ? resolveGridCellWidth({ columns, contentWidth: width - 2 * horizontalInset, gap })
+      : 0;
+  return { cellWidth, columns };
+}

@@ -96,6 +96,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
       aqc: lsAutoQueueConfig,
       sba: sidebarAccordion,
       fd: existingSettings.fd,
+      // Dismissal key of the last dismissed expiring-soon notice.
       metd: existingSettings.metd,
       bfd: boostFormDefaults,
       cc: cookieConsent !== undefined ? cookieConsent : existingSettings.cc,

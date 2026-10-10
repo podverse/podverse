@@ -8,6 +8,7 @@ export * from './lib/accessTier.js';
 export {
   AccountMembershipEnum,
   deriveMembershipState,
+  getMembershipExpiryDismissalKey,
   getMembershipExpiryNotice,
   hasValidMembership,
   isMembershipExpiredAt,
@@ -39,7 +40,6 @@ export * from './lib/addByRSS/ids.js';
 export * from './lib/addByRSS/types.js';
 export * from './lib/bitrate.js';
 export * from './lib/boostAction.js';
-export * from './lib/billingEvents.js';
 export * from './lib/billingDomain.js';
 export * from './lib/billing/billingApi.js';
 export * from './lib/billing/billingPlatform.js';
@@ -51,9 +51,6 @@ export * from './lib/billing/normalizedEvents.js';
 export * from './lib/billing/paymentProcessorAdapter.js';
 export * from './lib/billing/paymentProcessorId.js';
 export * from './lib/billing/processorProductEnv.js';
-export * from './lib/billing/purchaseKind.js';
-export * from './lib/billing/savedDuration.js';
-export * from './lib/billing/subscriptionStatus.js';
 export * from './lib/boolean.js';
 export * from './lib/category.js';
 export * from './lib/channelListViewPrefs.js';

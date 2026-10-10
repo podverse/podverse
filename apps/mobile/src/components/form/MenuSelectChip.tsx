@@ -3,11 +3,15 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import type { MoreMenuItem, MoreMenuSection } from '../primitives';
 import { MoreMenu } from '../primitives';
-import { filterChipChrome } from './chipChrome';
+import {
+  CHIP_CARET_SIZE,
+  chipFacePadding,
+  chipLabelTypography,
+  filterChipChrome,
+} from './chipChrome';
 
 export type MenuSelectChipOption<T extends string> = {
   /** Already-localized. */
@@ -77,8 +81,7 @@ export function MenuSelectChip<T extends string>({
         flexDirection: 'row',
         marginRight: tokens.spacing.sm,
         opacity: disabled ? 0.5 : 1,
-        paddingHorizontal: tokens.spacing.md,
-        paddingVertical: tokens.spacing.sm,
+        ...chipFacePadding(tokens.spacing),
         ...chrome.chip,
         ...(disabled
           ? {
@@ -88,7 +91,7 @@ export function MenuSelectChip<T extends string>({
           : null),
       },
       label: {
-        ...typography.label,
+        ...chipLabelTypography,
         color: labelColor,
       },
     });
@@ -127,7 +130,7 @@ export function MenuSelectChip<T extends string>({
           color={disabled ? themeStyles.textSecondary.color : tokens.text.accent}
           importantForAccessibility="no"
           name="chevron-down"
-          size={14}
+          size={CHIP_CARET_SIZE}
           style={styles.caret}
         />
       </Pressable>

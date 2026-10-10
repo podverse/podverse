@@ -309,20 +309,6 @@ make local_env_link
 make local_env_setup
 ```
 
-PayPal auto-renew plans. Skip this command when you are not testing PayPal. It
-reads the home `paypal.env` and prints two `BILLING_PRODUCT_PAYPAL_*` lines:
-
-```bash
-npm run sync-sandbox-plans -w packages/external-services-paypal
-```
-
-Write those lines into `billing-products.env` as the PayPal guide describes, then
-apply them:
-
-```bash
-make local_env_setup
-```
-
 Stop and start **Dev** (`npm run dev:all:watch`) so the API loads the processor
 flags.
 
@@ -345,7 +331,7 @@ cloudflared tunnel run podverse-local
 ```
 
 The StoreKit file `apps/mobile/storekit/PodverseMembership.storekit` sells the
-local products, including a one-time purchase when **Auto-Renew** is off. Open
+local non-renewing month and year. Open
 `apps/mobile/ios/PodverseNext.xcworkspace` with **Mobile Metro** already
 running, set the scheme **Run** → **Options** → **StoreKit Configuration** to
 that file, and press **Run** on **iPhone 17 Pro**. A launch from **Mobile iOS**

@@ -2,10 +2,33 @@ import type { TextStyle, ViewStyle } from 'react-native';
 
 import type { ThemeTokens } from '@podverse/design-tokens';
 
+import { typography } from '../../theme/typography';
+
 export type ChipChrome = {
   chip: ViewStyle;
   label: TextStyle;
 };
+
+/**
+ * Label for section, filter, sort, and settings chips. Body size with the semibold control
+ * weight.
+ */
+export const chipLabelTypography: TextStyle = {
+  fontSize: typography.body.fontSize,
+  fontWeight: typography.label.fontWeight,
+  lineHeight: typography.body.lineHeight,
+};
+
+/** Chevron beside a menu-select chip label. */
+export const CHIP_CARET_SIZE = 16;
+
+/** Padding shared by every chip face so the hit target matches the label. */
+export const chipFacePadding = (
+  spacing: ThemeTokens['spacing']
+): Pick<ViewStyle, 'paddingHorizontal' | 'paddingVertical'> => ({
+  paddingHorizontal: spacing.base,
+  paddingVertical: spacing.md,
+});
 
 /**
  * Chrome for controls that narrow a list (range, category) rather than choose which list to show.

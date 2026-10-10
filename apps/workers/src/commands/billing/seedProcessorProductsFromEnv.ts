@@ -28,7 +28,6 @@ export const billingSeedProcessorProductsFromEnv = async (_args: CommandLineArgs
       externalProductId: product.externalProductId,
       externalBasePlanId: product.externalBasePlanId,
       cadence: product.cadence,
-      purchaseKind: product.purchaseKind,
     });
     if (result.created) {
       created += 1;
@@ -38,7 +37,6 @@ export const billingSeedProcessorProductsFromEnv = async (_args: CommandLineArgs
     logger.info('Billing processor product mapped', {
       processor: product.processor,
       cadence: product.cadence,
-      purchaseKind: product.purchaseKind,
       externalProductId: product.externalProductId,
       externalBasePlanId: product.externalBasePlanId,
       created: result.created,

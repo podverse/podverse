@@ -5,7 +5,7 @@ import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
 import type { MediaTypePreference } from '@podverse/helpers';
 import { DEFAULT_MEDIA_TYPE_PREFERENCE } from '@podverse/helpers';
 
-const HOME_MEDIA_TYPES = ['podcasts', 'episodes', 'artists', 'albums', 'tracks', 'clips'] as const;
+const HOME_MEDIA_TYPES = ['podcasts', 'episodes', 'clips', 'artists', 'albums', 'tracks'] as const;
 const SUBSCRIPTION_FILTERS = ['all', 'addByRss'] as const;
 
 export type HomeMediaType = (typeof HOME_MEDIA_TYPES)[number];
@@ -40,8 +40,7 @@ export type PrefValueMap = {
   'library.subscriptionFilter': SubscriptionListFilter;
   locale: string;
   /**
-   * The `membership_expires_at` the expiry banner was last dismissed for. Storing the timestamp
-   * rather than a boolean means a later expiry re-shows the banner instead of silencing it forever.
+   * Dismissal key of the last dismissed expiring-soon notice.
    */
   'membership.expiry_dismissed_for': string;
   /** Declined remote handoff state (`<item-id>::<timestamp-ms>`) for playback prompt suppression. */

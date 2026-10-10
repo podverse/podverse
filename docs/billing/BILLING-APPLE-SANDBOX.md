@@ -37,27 +37,20 @@ Set these static values in `billing-apple.env`:
 
 Recommended product IDs:
 
-- `com.podverse.app.next.premium.monthly`
-- `com.podverse.app.next.premium.annual`
 - `com.podverse.app.next.premium.onetime.monthly`
 - `com.podverse.app.next.premium.onetime.annual`
 
-Where to create them:
-
-- Auto-renew subscriptions:
-  **Monetization** -> **Subscriptions** (same subscription group)
-- One-time memberships:
-  **Monetization** -> **In-App Purchases** -> **Non-Renewing Subscription**
+Create them under **Monetization** -> **In-App Purchases** -> **Non-Renewing Subscription**.
+Renewing products already in App Store Connect are unused and need no setup.
 
 Persist to `billing-products.env`:
 
-- `BILLING_PRODUCT_APPLE_AUTO_RENEW_MONTHLY_ID`
-- `BILLING_PRODUCT_APPLE_AUTO_RENEW_ANNUAL_ID`
 - `BILLING_PRODUCT_APPLE_ONE_TIME_MONTHLY_ID`
 - `BILLING_PRODUCT_APPLE_ONE_TIME_ANNUAL_ID`
 
-The same four ids are in `apps/mobile/storekit/PodverseMembership.storekit`.
-An empty one-time key stays unmapped, and checkout then offers auto-renew only.
+Those two ids are the non-renewing products in
+`apps/mobile/storekit/PodverseMembership.storekit`. An empty key stays unmapped, and checkout
+does not offer that cadence.
 
 ## Register sandbox ASN URL
 
@@ -97,7 +90,7 @@ sandbox only on a physical device. In the simulator, use StoreKit Testing below.
 | iOS Simulator   | StoreKit Testing in Xcode | `APPLE_IAP_ENVIRONMENT="xcode"`   | Bundle id only        |
 | Physical iPhone | App Store sandbox         | `APPLE_IAP_ENVIRONMENT="sandbox"` | Issuer, key id, `.p8` |
 
-Both paths need the four product ids in `billing-products.env` and seeded, so
+Both paths need the two product ids in `billing-products.env` and seeded, so
 the API can map a purchase to its cadence. From **Root**:
 
 ```bash
@@ -109,13 +102,11 @@ npm run billing_seed_processor_products_from_env -w apps/workers
 ## StoreKit Testing (simulator)
 
 `apps/mobile/storekit/PodverseMembership.storekit` is the local store catalog.
-**Auto-Renew** off buys the non-renewing id for the selected cadence. The file
-is attached only when Xcode runs the scheme. Open
-`apps/mobile/ios/PodverseNext.xcworkspace`, leave **Mobile Metro** running, set
-**Run** → **Options** → **StoreKit Configuration** to that file, and press
-**Run**. A launch from **Mobile iOS** does not attach it. Do not copy the file
-into the generated `apps/mobile/ios` project. Renewal rate and the product
-table are in [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md).
+Checkout sells the non-renewing month and year in that file. The file is attached
+only when Xcode runs the scheme. Open `apps/mobile/ios/PodverseNext.xcworkspace`,
+leave **Mobile Metro** running, set **Run** → **Options** → **StoreKit Configuration**
+to that file, and press **Run**. A launch from **Mobile iOS** does not attach it.
+Do not copy the file into the generated `apps/mobile/ios` project.
 
 These transactions are not on Apple's servers, so the App Store Server API has
 no record of them. With `APPLE_IAP_ENVIRONMENT="xcode"`, the API instead reads
@@ -177,4 +168,3 @@ mounted at `/var/secrets/apple-iap/AuthKey.p8`
 - [BILLING.md](BILLING.md)
 - [BILLING-PAYPAL-SANDBOX.md](BILLING-PAYPAL-SANDBOX.md) (shared tunnel)
 - [BILLING-OPERATIONS.md](BILLING-OPERATIONS.md)
-- [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)

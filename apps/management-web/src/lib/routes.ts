@@ -14,6 +14,7 @@ export const ROUTES = {
   BILLING_CHECKOUT_CHANNELS: '/billing/checkout-channels',
   BILLING_PROCESSOR_PRODUCTS: '/billing/processor-products',
   BILLING_WEBHOOK_EVENTS: '/billing/webhook-events',
+  BILLING_HELP: '/billing/help',
   WEB: '/web',
   WEB_EMBED_DEMO: '/web/embed-demo',
   NOTIFICATIONS: '/notifications',

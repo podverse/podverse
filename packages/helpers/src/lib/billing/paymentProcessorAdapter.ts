@@ -4,8 +4,6 @@ import type {
   NormalizedBillingEvent,
 } from './normalizedEvents.js';
 import type { PaymentProcessorId } from './paymentProcessorId.js';
-import type { PurchaseKind } from './purchaseKind.js';
-import type { BillingSubscriptionStatus } from './subscriptionStatus.js';
 
 /**
  * The contract every payment processor implements. Vendor packages export a factory returning
@@ -49,6 +47,9 @@ export interface BillingWebhookParseResult {
  * so the product id travels with the external id; other processors ignore it.
  */
 export interface BillingProcessorRecordRef {
+  /**
+   * Apple transaction id, Google Play purchase token, or PayPal capture id.
+   */
   externalId: string;
   externalProductId: string | null;
   /**
@@ -57,37 +58,21 @@ export interface BillingProcessorRecordRef {
    * record up by id and ignores this.
    */
   signedTransaction?: string | null;
-}
-
-/** The processor's current view of a subscription, used by reconciliation and restore. */
-export interface NormalizedSubscriptionSnapshot {
-  processor: PaymentProcessorId;
-  externalSubscriptionId: string;
-  accountBillingCustomerRef: string | null;
-  externalProductId: string | null;
-  externalBasePlanId: string | null;
-  status: BillingSubscriptionStatus;
-  purchaseKind: PurchaseKind;
-  currentPeriodStart: string | null;
-  currentPeriodEnd: string | null;
-  cancelAtPeriodEnd: boolean;
-  isSandbox: boolean;
-  /** When the processor was asked. A snapshot overrides any event that occurred before it. */
-  fetchedAt: string;
-  schemaVersion: string;
-  rawPayload: Record<string, unknown>;
+  /**
+   * Google Play order id when the client already has it. The purchase token stays in `externalId`.
+   * The snapshot is keyed by the order id Play reports, which has to match this value when it is
+   * set. Other processors ignore it.
+   */
+  externalTransactionId?: string | null;
 }
 
 /** The processor's current view of one payment, used to verify a purchase a client posts. */
 export interface NormalizedTransactionSnapshot {
   processor: PaymentProcessorId;
   externalTransactionId: string;
-  /** Set when the payment belongs to a subscription. */
-  externalSubscriptionId: string | null;
   accountBillingCustomerRef: string | null;
   externalProductId: string | null;
   externalBasePlanId: string | null;
-  purchaseKind: PurchaseKind;
   settledAt: string;
   periodStart: string | null;
   periodEnd: string | null;
@@ -100,31 +85,19 @@ export interface NormalizedTransactionSnapshot {
   rawPayload: Record<string, unknown>;
 }
 
-/**
- * `manage_in_store`: the processor does not let a server turn off auto-renew, so the client sends
- * the member to the store's subscription settings.
- */
-export type BillingCancelAutoRenewResult =
-  { outcome: 'cancelled' } | { outcome: 'manage_in_store' };
-
 export interface BillingPurchaseAcknowledgement {
   purchaseToken: string;
   externalProductId: string;
-  purchaseKind: PurchaseKind;
 }
 
 export interface PaymentProcessorAdapter {
   readonly id: PaymentProcessorId;
   /** Throws `BillingWebhookVerificationError` when the request is not authentic. */
   verifyAndParseWebhook(request: BillingWebhookRequest): Promise<BillingWebhookParseResult>;
-  /** Throws `BillingProcessorRecordNotFoundError` when the processor has no such subscription. */
-  fetchSubscription(ref: BillingProcessorRecordRef): Promise<NormalizedSubscriptionSnapshot>;
   /** Throws `BillingProcessorRecordNotFoundError` when the processor has no such payment. */
   fetchTransaction(ref: BillingProcessorRecordRef): Promise<NormalizedTransactionSnapshot>;
   /** Processors that refund unacknowledged purchases (Google Play) implement this. */
   acknowledgePurchase?(purchase: BillingPurchaseAcknowledgement): Promise<void>;
-  /** When absent, turning off auto-renew is `manage_in_store`. */
-  cancelAutoRenew?(externalSubscriptionId: string): Promise<BillingCancelAutoRenewResult>;
 }
 
 /** The webhook signature, token, or certificate chain did not verify. Answer 400 and store nothing. */

@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: worker-billing-renewals
+  name: worker-billing-reconcile
 spec:
   schedule: "*/30 * * * *"
   concurrencyPolicy: Forbid
@@ -25,7 +25,7 @@ spec:
               command:
                 - "node"
                 - "apps/workers/dist/index.js"
-                - "billingReconcileSubscriptions"
+                - "billingReconcile"
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

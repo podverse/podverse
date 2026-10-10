@@ -169,14 +169,14 @@ Home appears.
 
 Sign into Podverse with a local seed account. Password for every seed account
 is `Test!1Aa`. `local-premium@example.com` already has membership time, so the
-screen can say the new period is added after the current one. **Complete
-Purchase** stays available until a store subscription is already renewing.
+screen can say the new period is added after the current one.
 
 1. Open **More** → **Membership** → **Extend My Membership**.
-2. Leave **Auto-Renew** on for a renewing base plan, or turn it off for a
-   prepaid plan. Choose **Monthly** or **Annual**.
+2. Choose **Monthly** or **Annual**.
 3. Tap **Complete Purchase**.
 4. On the Play sheet, choose **Test card, always approves** and confirm.
+
+Renewing base plans already in Play Console are unused and need no setup.
 
 The membership screen shows a success message, and the local account's expiry
 moves forward. In Play Console, **Order management** lists the tester's order.
@@ -190,5 +190,4 @@ in the Play Store, and wait for the license list to apply.
 
 - [BILLING-GOOGLE-PLAY-SANDBOX.md](BILLING-GOOGLE-PLAY-SANDBOX.md)
 - [BILLING.md](BILLING.md)
-- [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)
 - [QUICKSTART](/docs/QUICKSTART.md)

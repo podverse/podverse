@@ -99,7 +99,7 @@ export const FULL_PLAYER_ARTWORK_MAX_TABLET = 520;
  * Chip strip at default text size. A floor for the rendered strip and the fallback reserve until
  * the strip reports its measured height.
  */
-export const FULL_PLAYER_CHIP_HEADER_HEIGHT = 52;
+export const FULL_PLAYER_CHIP_HEADER_HEIGHT = 63;
 
 const asNonNegative = (value: number): number => {
   if (!Number.isFinite(value)) {

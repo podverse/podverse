@@ -12,7 +12,6 @@ const rejectUnavailable = async (): Promise<never> => {
 export const createUnavailableBillingClient = (): BillingClient => ({
   backend: 'unavailable',
   bindAccount: rejectUnavailable,
-  changePlan: () => rejectUnavailable(),
   getStorefront: rejectUnavailable,
   listPrices: (_productIds: readonly string[]) => rejectUnavailable(),
   purchase: (_product: BillingStoreProduct): Promise<BillingPurchaseOutcome> => rejectUnavailable(),

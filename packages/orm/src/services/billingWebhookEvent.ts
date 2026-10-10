@@ -124,7 +124,11 @@ export class BillingWebhookEventService {
     return this.dataSourceRead.getRepository(BillingWebhookEvent).findOne({ where: { id } });
   }
 
-  async markProcessed(id: string, processedAt = new Date()): Promise<BillingWebhookEvent> {
+  async markProcessed(
+    id: string,
+    processedAt = new Date(),
+    note: string | null = null
+  ): Promise<BillingWebhookEvent> {
     const repository = this.dataSourceReadWrite.getRepository(BillingWebhookEvent);
     const existing = await repository.findOne({ where: { id } });
     if (existing === null) {
@@ -133,7 +137,7 @@ export class BillingWebhookEventService {
 
     existing.status = 'processed';
     existing.processed_at = processedAt;
-    existing.process_error = null;
+    existing.process_error = note;
     existing.attempts += 1;
     return repository.save(existing);
   }

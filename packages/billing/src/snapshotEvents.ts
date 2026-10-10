@@ -22,9 +22,7 @@ export function transactionSnapshotToEvents(
       type: 'payment_settled',
       processorEventId: `transaction:${snapshot.externalTransactionId}:settled`,
       occurredAt: snapshot.settledAt,
-      purchaseKind: snapshot.purchaseKind,
       externalTransactionId: snapshot.externalTransactionId,
-      externalSubscriptionId: snapshot.externalSubscriptionId,
       externalProductId: snapshot.externalProductId,
       externalBasePlanId: snapshot.externalBasePlanId,
       periodStart: snapshot.periodStart,
@@ -40,7 +38,6 @@ export function transactionSnapshotToEvents(
       processorEventId: `transaction:${snapshot.externalTransactionId}:revoked`,
       occurredAt: snapshot.revokedAt,
       externalTransactionId: snapshot.externalTransactionId,
-      externalSubscriptionId: null,
       reason: snapshot.revocationReason,
       revokedAt: snapshot.revokedAt,
     });

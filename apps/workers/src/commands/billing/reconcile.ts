@@ -3,35 +3,28 @@ import { getLogger } from '@workers/factories/logger.js';
 import { getBillingContext } from '@workers/lib/billing/billingContext.js';
 import { reconcileBilling } from '@workers/lib/billing/reconcileBilling.js';
 
-import {
-  BillingSubscriptionService,
-  BillingTransactionService,
-  BillingWebhookEventService,
-} from '@podverse/orm';
+import { BillingTransactionService, BillingWebhookEventService } from '@podverse/orm';
 
 /**
- * Reads processor state and applies what the ledger missed. Processors run every renewal and
- * charge; this command never charges a payment method.
+ * Retries failed inbox rows and applies Google Play voids the webhook missed.
+ * This command never charges a payment method.
  */
-export const billingReconcileSubscriptions = async (_args: CommandLineArgs) => {
+export const billingReconcile = async (_args: CommandLineArgs) => {
   const logger = getLogger();
-  const { registry, processor, googlePlayClient } = getBillingContext();
-  const subscriptionService = new BillingSubscriptionService();
+  const { processor, googlePlayClient } = getBillingContext();
   const transactionService = new BillingTransactionService();
   const webhookEventService = new BillingWebhookEventService();
 
   logger.info('Reconciling billing with payment processors');
   const summary = await reconcileBilling({
-    registry,
     processor,
     googlePlayClient,
-    listDueSubscriptions: (params) => subscriptionService.listDueForReconcile(params),
     listRetryableInboxEvents: (params) => webhookEventService.listRetryableFailed(params),
-    findRecordedGooglePlayPurchase: async (kind, externalId) => {
-      const recorded =
-        kind === 'transaction'
-          ? await transactionService.getByExternalId('google_play', externalId)
-          : await subscriptionService.getByExternalId('google_play', externalId);
+    findRecordedGooglePlayPurchase: async (externalTransactionId) => {
+      const recorded = await transactionService.getByExternalId(
+        'google_play',
+        externalTransactionId
+      );
       return recorded === null ? null : { isSandbox: recorded.is_sandbox };
     },
     logger,
@@ -39,7 +32,6 @@ export const billingReconcileSubscriptions = async (_args: CommandLineArgs) => {
   });
 
   logger.info('Reconciled billing with payment processors', {
-    subscriptions: summary.subscriptions,
     inbox: summary.inbox,
     googlePlayVoids: summary.googlePlayVoids,
   });

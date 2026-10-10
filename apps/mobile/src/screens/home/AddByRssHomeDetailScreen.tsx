@@ -9,14 +9,18 @@ import {
   primaryChannelLightboxArtworkUrl,
 } from '@podverse/helpers';
 
+import { useAuth } from '../../auth/AuthProvider';
 import { SettingsOptionNavRow, SortSelectRow } from '../../components/form';
 import { MediaRowActions } from '../../components/player/MediaRowActions';
 import { Button, CoverImage, LIST_REMOVE_CLIPPED_SUBVIEWS } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import { isMobileE2eFromEnv } from '../../config/env';
-import { addByRssRepository, channelSeenRepository } from '../../data/repositories';
+import {
+  addByRssRepository,
+  channelSeenRepository,
+  subscriptionsRepository,
+} from '../../data/repositories';
 import { useAddByRssArtworkHeaders } from '../../hooks/useAddByRssArtworkHeaders';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
@@ -99,13 +103,14 @@ function AddByRssEpisodeRow({
 export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDetailScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const [detail, setDetail] = useState<AddByRssHomeDetailData | null>(null);
   const [sort, setSort] = useState<AddByRssEpisodeSort>(DEFAULT_ADD_BY_RSS_EPISODE_SORT);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRemoving, setIsRemoving] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
-  const { playItem, isPlaybackActive } = useAddByRssPlayback({ onNotice: setNoticeKey });
+  const { playItem } = useAddByRssPlayback({ onNotice: setNoticeKey });
 
   const styles = useMemo(
     () =>
@@ -196,7 +201,14 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     setIsRemoving(true);
     setErrorKey(null);
     try {
-      await addByRssRepository.removeFeed(detail.feed.feedUrl);
+      await subscriptionsRepository.unsubscribe({
+        accountSync:
+          status === 'authenticated'
+            ? { accessToken, clearSession, refreshToken, setTokens }
+            : undefined,
+        idText: detail.feed.feedUrl,
+        source: 'addByRss',
+      });
       homeFeedRefresh.notify();
       navigation.goBack();
     } catch {
@@ -204,7 +216,16 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     } finally {
       setIsRemoving(false);
     }
-  }, [detail, isRemoving, navigation]);
+  }, [
+    accessToken,
+    clearSession,
+    detail,
+    isRemoving,
+    navigation,
+    refreshToken,
+    setTokens,
+    status,
+  ]);
 
   const handlePlay = useCallback(
     (row: HomeFeedRowData) => {
@@ -373,7 +394,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
 
   const listFooter = useMemo(
     () =>
-      noticeKey !== null || errorKey !== null || (isMobileE2eFromEnv() && isPlaybackActive) ? (
+      noticeKey !== null || errorKey !== null ? (
         <View>
           {noticeKey !== null ? (
             <Text style={styles.notice} testID="add-by-rss-home-notice">
@@ -387,18 +408,9 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
               testID="add-by-rss-home-error"
             />
           ) : null}
-          {isMobileE2eFromEnv() && isPlaybackActive ? (
-            <Text
-              accessibilityLabel="add-by-rss-home-playback-active"
-              style={styles.notice}
-              testID="add-by-rss-home-playback-active"
-            >
-              {t('media_player.play')}
-            </Text>
-          ) : null}
         </View>
       ) : null,
-    [errorKey, handleRetryDetail, isPlaybackActive, noticeKey, styles.notice, t]
+    [errorKey, handleRetryDetail, noticeKey, styles.notice, t]
   );
 
   const listHeaderComponent = useMemo(

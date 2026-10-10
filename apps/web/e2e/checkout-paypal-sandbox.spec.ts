@@ -3,9 +3,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-
-const HOUR_MS = 60 * 60 * 1000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -86,12 +85,12 @@ function plainRecord(value: unknown): Record<string, unknown> | null {
   return isRecord(parsed) ? parsed : null;
 }
 
-function subscriptionId(value: unknown): string | null {
+function orderId(value: unknown): string | null {
   const record = plainRecord(value);
   return record === null ? null : readString(record, 'id');
 }
 
-function subscriptionStatus(value: unknown): string | null {
+function orderStatus(value: unknown): string | null {
   const record = plainRecord(value);
   return record === null ? null : readString(record, 'status');
 }
@@ -118,22 +117,26 @@ function approveUrl(value: unknown): string | null {
   return null;
 }
 
-function nextBillingTime(value: unknown): string | null {
-  const record = plainRecord(value);
-  if (record === null) {
-    return null;
+async function approveOrder(
+  page: Page,
+  approval: string,
+  buyer: { email: string; password: string }
+): Promise<void> {
+  await page.goto(approval);
+  await page.locator('#email, #login_email').first().fill(buyer.email);
+  const next = page.getByRole('button', { name: /^next$/i });
+  if (await next.isVisible()) {
+    await next.click();
   }
-  const billingInfo = Reflect.get(record, 'billing_info') ?? Reflect.get(record, 'billingInfo');
-  if (!isRecord(billingInfo)) {
-    return null;
-  }
-  return readString(billingInfo, 'next_billing_time') ?? readString(billingInfo, 'nextBillingTime');
+  await page.locator('#password, #login_password').first().fill(buyer.password);
+  await page.getByRole('button', { name: /log in/i }).click();
+  const pay = page.getByRole('button', { name: /pay now|agree|continue|complete purchase/i });
+  await pay.first().click();
+  await page.waitForURL(/example\.com\/billing\/paypal\/return/);
 }
 
-test.describe('PayPal sandbox renewal', () => {
-  test('Approving the daily plan leaves it active with the next charge one day out.', async ({
-    page,
-  }) => {
+test.describe('PayPal sandbox orders', () => {
+  test('Approving a PayPal order captures the one-time purchase.', async ({ page }) => {
     // Buyer approval on the PayPal sandbox site exceeds the 10s Playwright budget.
     test.setTimeout(120_000);
 
@@ -154,14 +157,15 @@ test.describe('PayPal sandbox renewal', () => {
       paypalEnvironment: 'sandbox',
     });
 
-    const { planId } = await service.ensureDailyRenewalPlan();
-    const created = await service.createSubscription({
+    const created = await service.createOrder({
       accountBillingCustomerRef: randomUUID(),
-      planId,
+      cadence: 'monthly',
+      amount: '3.00',
+      currencyCode: 'USD',
       returnUrl: 'https://example.com/billing/paypal/return',
       cancelUrl: 'https://example.com/billing/paypal/cancel',
     });
-    const createdId = subscriptionId(created);
+    const createdId = orderId(created);
     const approval = approveUrl(created);
     expect(createdId).not.toBeNull();
     expect(approval).not.toBeNull();
@@ -169,51 +173,8 @@ test.describe('PayPal sandbox renewal', () => {
       return;
     }
 
-    let active = false;
-    try {
-      await page.goto(approval);
-      await page.locator('#email, #login_email').first().fill(buyer.email);
-      const next = page.getByRole('button', { name: /^next$/i });
-      if (await next.isVisible()) {
-        await next.click();
-      }
-      await page.locator('#password, #login_password').first().fill(buyer.password);
-      await page.getByRole('button', { name: /log in/i }).click();
-      const agree = page.getByRole('button', { name: /agree/i });
-      if ((await agree.count()) > 0) {
-        await agree.first().click();
-      } else {
-        await page.getByRole('button', { name: /subscribe/i }).click();
-      }
-
-      let latest: unknown = null;
-      await expect
-        .poll(
-          async () => {
-            latest = await service.getSubscription(createdId);
-            const status = subscriptionStatus(latest);
-            if (status === 'ACTIVE') {
-              active = true;
-            }
-            return status;
-          },
-          { timeout: 60_000 }
-        )
-        .toBe('ACTIVE');
-
-      const billingAt = nextBillingTime(latest);
-      expect(billingAt).not.toBeNull();
-      if (billingAt === null) {
-        return;
-      }
-      const delta = Date.parse(billingAt) - Date.now();
-      expect(Number.isNaN(delta)).toBe(false);
-      expect(delta).toBeGreaterThan(20 * HOUR_MS);
-      expect(delta).toBeLessThan(28 * HOUR_MS);
-    } finally {
-      if (active) {
-        await service.cancelSubscription(createdId, 'E2E daily renewal smoke');
-      }
-    }
+    await approveOrder(page, approval, buyer);
+    const captured = await service.captureOrder({ orderId: createdId });
+    expect(orderStatus(captured)).toBe('COMPLETED');
   });
 });

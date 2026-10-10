@@ -1,8 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import type {
@@ -10,14 +9,13 @@ import type {
   DTOBillingCheckoutOptions,
   DTOBillingStatus,
 } from '@podverse/helpers';
+import { extendMembershipPeriodByCadence, formatDateAbbrev } from '@podverse/helpers';
 import {
-  ActionLink,
   Alert,
   Button,
   MainColumnStack,
   MainHeader,
   MainSidebarLayout,
-  MembershipAutoRenewConsent,
   MembershipPlanSelector,
   SideContent,
 } from '@podverse/ui';
@@ -49,6 +47,18 @@ type CheckoutPageClientProps = {
   contactEmail: string;
 };
 
+function futureExpiry(status: DTOBillingStatus | null): Date | null {
+  const value = status?.membership_expires_at;
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  const expiry = new Date(value);
+  if (Number.isNaN(expiry.getTime()) || expiry.getTime() <= Date.now()) {
+    return null;
+  }
+  return expiry;
+}
+
 export function CheckoutPageClient({
   pricingData,
   isContactOnlyMode,
@@ -57,13 +67,13 @@ export function CheckoutPageClient({
   const t = useTranslations('checkout');
   const tMembership = useTranslations('membership');
   const tAuth = useTranslations('authentication');
+  const locale = useLocale();
   const { loggedInAccount } = useAccount();
   const config = useConfig();
   const router = useRouter();
   const paypalClientId = config.public.paypal.clientId;
 
   const [cadence, setCadence] = useState<BillingCadence>('monthly');
-  const [autoRenew, setAutoRenew] = useState(true);
   const [options, setOptions] = useState<DTOBillingCheckoutOptions | null>(null);
   const [status, setStatus] = useState<DTOBillingStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,11 +124,8 @@ export function CheckoutPageClient({
     };
   }, [signedIn]);
 
-  const purchaseKind = autoRenew ? 'auto_renew' : 'one_time';
-  const paypalProduct =
-    options === null ? null : checkoutProduct(options, 'paypal', cadence, purchaseKind);
-  const testProduct =
-    options === null ? null : checkoutProduct(options, 'test', cadence, purchaseKind);
+  const paypalProduct = options === null ? null : checkoutProduct(options, 'paypal', cadence);
+  const testProduct = options === null ? null : checkoutProduct(options, 'test', cadence);
   const canPurchase =
     options !== null &&
     hasWebPurchasableProcessor({
@@ -130,12 +137,14 @@ export function CheckoutPageClient({
   const showTestPurchase = options !== null && offersProcessor(options, 'test');
   const cadenceHasProduct =
     (paypalPurchasable && paypalProduct !== null) || (showTestPurchase && testProduct !== null);
-  const alreadyRenewing = status?.active_auto_renew === true;
-  const startsLater =
-    autoRenew &&
-    status?.membership_expires_at !== null &&
-    status?.membership_expires_at !== undefined &&
-    new Date(status.membership_expires_at).getTime() > Date.now();
+  const currentExpiry = futureExpiry(status);
+  const extensionEnd =
+    currentExpiry === null
+      ? null
+      : extendMembershipPeriodByCadence({
+          membershipExpiresAt: currentExpiry,
+          cadence,
+        });
 
   const planPrice = (plan: BillingCadence): string => {
     if (pricingData === null) {
@@ -154,10 +163,8 @@ export function CheckoutPageClient({
     setError(null);
     try {
       const result = await getApiRequestService().reqBillingSimulatePayment({
-        purchaseKind,
         cadence,
         externalProductId: testProduct.external_product_id,
-        externalSubscriptionId: autoRenew ? crypto.randomUUID() : null,
         externalTransactionId: crypto.randomUUID(),
       });
       if (result.outcome.status === 'failed') {
@@ -171,6 +178,14 @@ export function CheckoutPageClient({
       setSubmitting(false);
     }
   };
+
+  const addedTime =
+    currentExpiry === null || extensionEnd === null
+      ? null
+      : t('added_time', {
+          start: formatDateAbbrev(currentExpiry, locale),
+          end: formatDateAbbrev(extensionEnd, locale),
+        });
 
   return (
     <>
@@ -187,26 +202,16 @@ export function CheckoutPageClient({
             ) : null}
             {!isContactOnlyMode && !signedIn ? <Alert>{tAuth('login_required')}</Alert> : null}
             {signedIn && !loading && !canPurchase ? (
-              <>
-                <Alert testId="checkout-contact" variant="default">
-                  {contactEmail !== '' ? (
-                    <>
-                      {tMembership('contact_mode_text_before')}{' '}
-                      <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
-                    </>
-                  ) : (
-                    t('purchase_unavailable')
-                  )}
-                </Alert>
-                {alreadyRenewing ? (
-                  <section className={styles.formSection}>
-                    <p>{t('already_renewing')}</p>
-                    <ActionLink href={`${ROUTES.SETTINGS}?tab=account`} LinkComponent={Link}>
-                      {t('manage_membership')}
-                    </ActionLink>
-                  </section>
-                ) : null}
-              </>
+              <Alert testId="checkout-contact" variant="default">
+                {contactEmail !== '' ? (
+                  <>
+                    {tMembership('contact_mode_text_before')}{' '}
+                    <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+                  </>
+                ) : (
+                  t('purchase_unavailable')
+                )}
+              </Alert>
             ) : null}
             {signedIn && !loading && canPurchase ? (
               <>
@@ -241,58 +246,37 @@ export function CheckoutPageClient({
                   ]}
                 />
                 {error !== null ? <Alert>{error}</Alert> : null}
-                {alreadyRenewing ? (
-                  <section className={styles.formSection}>
-                    <p>{t('already_renewing')}</p>
-                    <ActionLink href={`${ROUTES.SETTINGS}?tab=account`} LinkComponent={Link}>
-                      {t('manage_membership')}
-                    </ActionLink>
-                  </section>
-                ) : (
-                  <section className={styles.formSection}>
-                    {startsLater &&
-                    status?.membership_expires_at !== undefined &&
-                    status.membership_expires_at !== null ? (
-                      <Alert variant="default">
-                        {t('billing_starts_on', {
-                          date: new Date(status.membership_expires_at).toLocaleDateString(),
-                        })}
-                      </Alert>
+                {addedTime !== null ? (
+                  <Alert testId="checkout-added-time" variant="default">
+                    {addedTime}
+                  </Alert>
+                ) : null}
+                <section className={styles.formSection}>
+                  <div className={styles.buttonSection}>
+                    {paypalPurchasable && paypalProduct !== null ? (
+                      <CheckoutPayPalButtons
+                        clientId={paypalClientId}
+                        processorProductId={paypalProduct.id}
+                        onError={() => {
+                          setError(t('purchase_failed'));
+                        }}
+                      />
                     ) : null}
-                    <MembershipAutoRenewConsent
-                      id="auto-renew"
-                      checked={autoRenew}
-                      onChange={setAutoRenew}
-                      label={t('auto_renew')}
-                      disclosure={t('auto_renew_disclosure')}
-                    />
-                    <div className={styles.buttonSection}>
-                      {paypalPurchasable && paypalProduct !== null ? (
-                        <CheckoutPayPalButtons
-                          clientId={paypalClientId}
-                          processorProductId={paypalProduct.id}
-                          autoRenew={autoRenew}
-                          onError={() => {
-                            setError(t('purchase_failed'));
-                          }}
-                        />
-                      ) : null}
-                      {showTestPurchase ? (
-                        <Button
-                          disabled={submitting || testProduct === null}
-                          onClick={() => {
-                            void completeTestPurchase();
-                          }}
-                          type="button"
-                          variant="primary"
-                        >
-                          {t('complete_test_purchase')}
-                        </Button>
-                      ) : null}
-                      {cadenceHasProduct ? null : <p>{t('plan_unavailable')}</p>}
-                    </div>
-                  </section>
-                )}
+                    {showTestPurchase ? (
+                      <Button
+                        disabled={submitting || testProduct === null}
+                        onClick={() => {
+                          void completeTestPurchase();
+                        }}
+                        type="button"
+                        variant="primary"
+                      >
+                        {t('complete_test_purchase')}
+                      </Button>
+                    ) : null}
+                    {!cadenceHasProduct ? <p>{t('plan_unavailable')}</p> : null}
+                  </div>
+                </section>
               </>
             ) : null}
           </MainColumnStack>

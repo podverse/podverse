@@ -11,7 +11,6 @@ export type AccountMembershipStatusDto = {
   account_membership_id: AccountMembershipEnum;
   membership_expires_at?: Date | null;
   billing_cadence?: BillingCadence | null;
-  auto_renew_mode?: 'off' | 'on';
   last_extension_idempotency_key?: string | null;
   allow_directory_add_by_rss?: boolean | null;
   max_add_by_rss_feeds?: number | null;
@@ -49,9 +48,6 @@ export class AccountMembershipStatusService extends BaseOneService<
     }
     if (dto.billing_cadence !== undefined) {
       finalDto.billing_cadence = dto.billing_cadence;
-    }
-    if (dto.auto_renew_mode !== undefined) {
-      finalDto.auto_renew_mode = dto.auto_renew_mode;
     }
     if (dto.last_extension_idempotency_key !== undefined) {
       finalDto.last_extension_idempotency_key = dto.last_extension_idempotency_key;

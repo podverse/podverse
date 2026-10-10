@@ -1,8 +1,19 @@
+import { isEffectivelyOffline } from '../../net/connectivity';
+
 /**
  * Generic read-through / write-behind primitives for repositories. Domain repositories compose
  * these so every domain shares the same offline-first semantics (see
  * DOCS-MOBILE-DATA-LAYER-OFFLINE.md §4).
  */
+
+/**
+ * True when a cache read should not start a network fetch on its own.
+ *
+ * While the app is effectively offline, opportunistic refreshes stay on the local value so
+ * recovery is the health probe. Callers the user is waiting on (mutations, pull-to-refresh) do
+ * not use this gate.
+ */
+export const shouldSkipOpportunisticRemoteFetch = (): boolean => isEffectivelyOffline();
 
 export type ReadThroughOptions<T> = {
   /** Read the current value from the local DB (must be fast; instant UI). */
@@ -23,7 +34,7 @@ export type ReadThroughOptions<T> = {
 export const readThrough = async <T>(options: ReadThroughOptions<T>): Promise<T> => {
   const local = await options.readLocal();
 
-  if (await options.isStale()) {
+  if (!shouldSkipOpportunisticRemoteFetch() && (await options.isStale())) {
     void options.fetchRemote().catch((error) => {
       options.onError?.(error);
       if (__DEV__ && options.onError === undefined) {
@@ -58,6 +69,9 @@ export const readThroughOrFetch = async <T>(
   const local = await options.readLocal();
 
   if (local === null) {
+    if (shouldSkipOpportunisticRemoteFetch()) {
+      return null;
+    }
     try {
       return await options.fetchRemote();
     } catch (error) {
@@ -69,7 +83,7 @@ export const readThroughOrFetch = async <T>(
     }
   }
 
-  if (await options.isStale()) {
+  if (!shouldSkipOpportunisticRemoteFetch() && (await options.isStale())) {
     void options.fetchRemote().catch((error) => {
       options.onError?.(error);
       if (__DEV__ && options.onError === undefined) {

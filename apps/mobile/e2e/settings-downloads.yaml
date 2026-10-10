@@ -48,6 +48,14 @@ name: Settings Downloads Storage
     id: more-settings-downloads-auto-download-default
 - assertVisible:
     id: more-settings-downloads-cellular-default
+# Catch-up sits under the storage card. The mini player can push it below the fold, so scroll
+# it up before asserting rather than assuming the first screenful includes it.
+- scrollUntilVisible:
+    element:
+      id: more-settings-downloads-catch-up-limit
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
 - assertVisible:
     id: more-settings-downloads-catch-up-limit
 # The auto-free rows sit below the fold once the mini player is up.
@@ -62,11 +70,14 @@ name: Settings Downloads Storage
     id: more-settings-downloads-auto-device-low
 - takeScreenshot: settings-downloads-storage
 
+# Delete All sits below this fold. A hierarchy that keeps changing makes Maestro spend the
+# timeout waiting for the screen to go still after one swipe, so it never looks again.
 - scrollUntilVisible:
     element:
       id: more-settings-downloads-delete-all
     direction: DOWN
     timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
 - tapOn:
     id: more-settings-downloads-delete-all
 - assertVisible:
@@ -82,6 +93,7 @@ name: Settings Downloads Storage
       id: more-settings-downloads-limit
     direction: UP
     timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
 - tapOn:
     id: more-settings-downloads-limit
 - assertVisible:
@@ -89,8 +101,7 @@ name: Settings Downloads Storage
 - assertVisible:
     id: more-settings-download-limit-10gb
 - takeScreenshot: settings-downloads-limit
-- tapOn:
-    id: stack-header-back
+- runFlow: shared/stack-back.yaml
 - assertVisible:
     id: more-settings-downloads-screen
 - scrollUntilVisible:
@@ -98,6 +109,7 @@ name: Settings Downloads Storage
       id: more-settings-downloads-catch-up-limit
     direction: DOWN
     timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
 - tapOn:
     id: more-settings-downloads-catch-up-limit
 - assertVisible:
@@ -105,7 +117,6 @@ name: Settings Downloads Storage
 - assertVisible:
     id: more-settings-auto-download-catch-up-20
 - takeScreenshot: settings-downloads-catch-up
-- tapOn:
-    id: stack-header-back
+- runFlow: shared/stack-back.yaml
 - assertVisible:
     id: more-settings-downloads-screen

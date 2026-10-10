@@ -33,7 +33,9 @@ export type ConnectivityInput =
 
 /**
  * What the caller should have running after this transition. Both fields are absolute
- * instructions, not deltas: re-arm each timer to the value given, and cancel it when null.
+ * instructions: cancel the timer when null, replace it when the delay changed (including an
+ * immediate `0`), and leave a matching armed delay running so repeated failures cannot restart
+ * the backoff countdown.
  */
 export type ConnectivityEffects = {
   /** Run a health probe after this delay. */
@@ -128,6 +130,29 @@ export const createConnectivityMachine = (): ConnectivityMachine => ({
 
 export const probeDelayForStep = (step: number): number =>
   Math.min(PROBE_BASE_DELAY_MS * 2 ** step, PROBE_MAX_DELAY_MS);
+
+export type ScheduledTimerDecision =
+  { delayMs: number; kind: 'replace' } | { kind: 'cancel' } | { kind: 'keep' };
+
+/**
+ * Decide whether an already-armed timer should keep counting.
+ *
+ * The machine reports the delay it wants, not a delta. A matching armed delay stays running so
+ * recovery can fire on the backoff ladder. A different delay, an immediate probe, and a cancel
+ * still replace.
+ */
+export const resolveScheduledTimer = (
+  requestedMs: number | null,
+  armedDelayMs: number | null
+): ScheduledTimerDecision => {
+  if (requestedMs === null) {
+    return { kind: 'cancel' };
+  }
+  if (armedDelayMs !== null && armedDelayMs === requestedMs) {
+    return { kind: 'keep' };
+  }
+  return { delayMs: requestedMs, kind: 'replace' };
+};
 
 /** While offline, keep a probe on the ladder so recovery never depends on the user doing anything. */
 const offlineEffects = (
@@ -256,9 +281,10 @@ const toOffline = (
 /**
  * Fold one input into the machine.
  *
- * Returns the next machine plus the timers the caller should be running. The caller must apply
- * `effects` verbatim — a stale probe timer left armed is how a recovered app keeps polling, and a
- * dropped tick is how a pending change never matures.
+ * Returns the next machine plus the timers the caller should be running. A probe delay that
+ * matches a timer already armed stays running so recovery can fire on the backoff ladder. A
+ * changed delay, an immediate probe, and a cancel still replace. A dropped tick is how a pending
+ * change never matures.
  */
 export const reduceConnectivity = (
   machine: ConnectivityMachine,

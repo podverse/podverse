@@ -12,7 +12,7 @@ export interface BillingAdaptersConfig {
 }
 
 export interface RegisteredBillingAdapters {
-  /** Shared with the PayPal adapter; checkout routes create orders and subscriptions through it. */
+  /** Shared with the PayPal adapter; checkout routes create and capture orders through it. */
   paypalService: PayPalService | null;
   /** Null in production unless the test adapter is explicitly allowed. */
   testAdapter: TestPaymentProcessorAdapter | null;

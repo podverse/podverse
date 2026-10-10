@@ -1,5 +1,4 @@
 import type { PaymentProcessorId } from './paymentProcessorId.js';
-import type { PurchaseKind } from './purchaseKind.js';
 
 /**
  * Processor notifications translated into one vocabulary. Each processor adapter maps its own
@@ -46,24 +45,10 @@ interface BillingProductRefs {
   externalBasePlanId: string | null;
 }
 
-/**
- * The processor's subscription id: the PayPal subscription id, the Apple original transaction id,
- * or the Google Play purchase token.
- */
-interface BillingSubscriptionRef {
-  externalSubscriptionId: string;
-}
-
-/**
- * Money arrived for a new purchase: a one-time purchase, or the first charge of a subscription.
- * Later charges on a subscription are `subscription_renewed`.
- */
+/** Money arrived for a purchase. */
 export interface PaymentSettledEvent extends NormalizedBillingEventBase, BillingProductRefs {
   type: 'payment_settled';
-  purchaseKind: PurchaseKind;
   externalTransactionId: string;
-  /** Set when this payment starts a subscription. */
-  externalSubscriptionId: string | null;
   /** The paid period, when the processor reports one; otherwise it follows from the cadence. */
   periodStart: string | null;
   periodEnd: string | null;
@@ -71,102 +56,16 @@ export interface PaymentSettledEvent extends NormalizedBillingEventBase, Billing
 }
 
 /**
- * A subscription entered good standing without a charge in this event: approval of a subscription
- * whose first charge is scheduled later, or auto-renew switched back on.
- */
-export interface SubscriptionActivatedEvent
-  extends NormalizedBillingEventBase, BillingProductRefs, BillingSubscriptionRef {
-  type: 'subscription_activated';
-  periodStart: string | null;
-  periodEnd: string | null;
-}
-
-/** A renewal charge succeeded, including a retry that recovers a failed renewal. */
-export interface SubscriptionRenewedEvent
-  extends NormalizedBillingEventBase, BillingProductRefs, BillingSubscriptionRef {
-  type: 'subscription_renewed';
-  externalTransactionId: string;
-  periodStart: string;
-  periodEnd: string;
-  amount: BillingAmount | null;
-}
-
-/**
- * A renewal charge failed. The subscription moves to `in_grace_period`, and access continues for
- * the payment-failure grace window while the charge is retried.
- */
-export interface SubscriptionRenewalFailedEvent
-  extends NormalizedBillingEventBase, BillingSubscriptionRef {
-  type: 'subscription_renewal_failed';
-  /** End of the period that failed to renew, when the processor reports it. */
-  periodEnd: string | null;
-}
-
-/**
- * The processor put the subscription in its own grace period. Handled like
- * `subscription_renewal_failed`; access follows the Podverse grace window either way.
- */
-export interface GraceEnteredEvent extends NormalizedBillingEventBase, BillingSubscriptionRef {
-  type: 'grace_entered';
-  periodEnd: string | null;
-  /** The processor's grace end, when it reports one. Informational only. */
-  processorGracePeriodEndsAt: string | null;
-}
-
-/**
- * Grace ended. `recovered`: the charge went through, usually alongside `subscription_renewed`.
- * `lapsed`: grace ran out while the processor may keep retrying (`past_due`).
- */
-export interface GraceExitedEvent extends NormalizedBillingEventBase, BillingSubscriptionRef {
-  type: 'grace_exited';
-  outcome: 'recovered' | 'lapsed';
-}
-
-/** Auto-renew was turned off. The paid period still runs to its end (`cancelled_active`). */
-export interface SubscriptionCancelledEvent
-  extends NormalizedBillingEventBase, BillingSubscriptionRef {
-  type: 'subscription_cancelled';
-  /** End of the paid period, when the processor reports it. */
-  periodEnd: string | null;
-}
-
-/** The subscription ended without renewing (`expired`). */
-export interface SubscriptionExpiredEvent
-  extends NormalizedBillingEventBase, BillingSubscriptionRef {
-  type: 'subscription_expired';
-  expiredAt: string | null;
-  /**
-   * The processor's id for the subscription that replaced this one. Play sends a new purchase
-   * token on a plan change; the banked time moves there instead of becoming a grant.
-   */
-  replacedByExternalSubscriptionId?: string | null;
-}
-
-/** A refund or revocation names the transaction, the subscription, or both. */
-type RevocationTarget =
-  | { externalTransactionId: string; externalSubscriptionId: string | null }
-  | { externalTransactionId: null; externalSubscriptionId: string };
-
-/**
  * Money was returned or the store withdrew the purchase. The grants the purchase created are
- * revoked, and a subscription it names moves to `revoked`.
+ * revoked.
  */
-export type RefundOrRevokeEvent = NormalizedBillingEventBase &
-  RevocationTarget & {
-    type: 'refund_or_revoke';
-    reason: BillingRevocationReason;
-    revokedAt: string;
-  };
+export interface RefundOrRevokeEvent extends NormalizedBillingEventBase {
+  type: 'refund_or_revoke';
+  reason: BillingRevocationReason;
+  revokedAt: string;
+  externalTransactionId: string;
+}
 
-export type NormalizedBillingEvent =
-  | PaymentSettledEvent
-  | SubscriptionActivatedEvent
-  | SubscriptionRenewedEvent
-  | SubscriptionRenewalFailedEvent
-  | GraceEnteredEvent
-  | GraceExitedEvent
-  | SubscriptionCancelledEvent
-  | SubscriptionExpiredEvent
-  | RefundOrRevokeEvent;
+export type NormalizedBillingEvent = PaymentSettledEvent | RefundOrRevokeEvent;
 
 export type NormalizedBillingEventType = NormalizedBillingEvent['type'];

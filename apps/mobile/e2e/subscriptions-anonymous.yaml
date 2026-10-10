@@ -191,11 +191,7 @@ name: Anonymous Subscriptions Persist
 
 # Clips are account-backed for the subscribed list. With a local podcast follow and no account,
 # Home → Clips asks to log in rather than showing the global directory (or Browse alone).
-# Swipe the selector row — iOS omits trailing chip testIDs until the row is scrolled.
-- swipe:
-    from:
-      id: home-media-type-selector
-    direction: LEFT
+# Clips sits between Episodes and Artists, on screen from the start of the row.
 - tapOn:
     id: home-media-type-clips
 - assertVisible: Clips
@@ -211,8 +207,7 @@ name: Anonymous Subscriptions Persist
 - takeScreenshot: home-clips-login-required
 
 # Swipe left on the subscribed channel to reveal Unsubscribe. The row is gone when it completes,
-# so Home returns to the empty discovery state this flow opened on. Clips sits at the trailing
-# edge, so the podcasts chip is off the leading edge until the row scrolls back.
+# so Home returns to the empty discovery state this flow opened on.
 - runFlow:
     file: shared/restore-chip-row-start.yaml
     env:

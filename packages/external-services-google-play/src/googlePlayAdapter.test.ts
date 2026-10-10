@@ -38,6 +38,8 @@ class StaticIdTokenVerifier implements GoogleIdTokenVerifier {
   }
 }
 
+const SOLD_PRODUCTS = [{ externalProductId: 'premium', externalBasePlanId: 'prepaid-monthly' }];
+
 function buildWebhookRequest(
   developerNotification: Record<string, unknown>,
   messageId = 'message-1'
@@ -77,48 +79,173 @@ function createClient(overrides: Partial<GooglePlayClient>): GooglePlayClient {
   };
 }
 
-describe('createGooglePlayAdapter', () => {
-  it('maps RTDN subscription purchases and emits linked-token supersede events', async () => {
-    const subscriptionPurchase = {
-      acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING',
-      externalAccountIdentifiers: {
-        obfuscatedExternalAccountId: 'customer-ref-1',
-      },
-      lineItems: [
-        {
-          expiryTime: '2026-10-01T00:00:00.000Z',
-          latestSuccessfulOrderId: 'GPA.1234-5678-9012-34567',
-          offerDetails: {
-            basePlanId: 'prepaid-monthly',
-          },
-          prepaidPlan: {},
-          productId: 'premium',
-          startTime: '2026-09-01T00:00:00.000Z',
-        },
-      ],
-      linkedPurchaseToken: 'old-token-1',
-      testPurchase: {},
-    };
+function adapterConfig(client: GooglePlayClient) {
+  return {
+    packageName: 'com.podverse.app.next',
+    serviceAccountJsonPath: '/tmp/not-used-in-test.json',
+    rtdnPushAudience: 'podverse-local-rtdn',
+    rtdnPushServiceAccountEmail:
+      'podverse-google-play-billing@podverse-app.iam.gserviceaccount.com',
+    client,
+    soldProducts: SOLD_PRODUCTS,
+  };
+}
 
-    const adapter = createGooglePlayAdapter({
-      packageName: 'com.podverse.app.next',
-      serviceAccountJsonPath: '/tmp/not-used-in-test.json',
-      rtdnPushAudience: 'podverse-local-rtdn',
-      rtdnPushServiceAccountEmail:
-        'podverse-google-play-billing@podverse-app.iam.gserviceaccount.com',
-      client: createClient({
-        getSubscriptionPurchase: async (token) =>
-          token === 'new-token-1' ? subscriptionPurchase : null,
-      }),
+function prepaidPurchase(orderId: string) {
+  return {
+    acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING',
+    externalAccountIdentifiers: {
+      obfuscatedExternalAccountId: 'customer-ref-1',
+    },
+    lineItems: [
+      {
+        expiryTime: '2026-10-01T00:00:00.000Z',
+        latestSuccessfulOrderId: orderId,
+        offerDetails: {
+          basePlanId: 'prepaid-monthly',
+        },
+        prepaidPlan: {},
+        productId: 'premium',
+        startTime: '2026-09-01T00:00:00.000Z',
+      },
+    ],
+    testPurchase: {},
+  };
+}
+
+function purchasedNotification(purchaseToken: string) {
+  return {
+    eventTimeMillis: '1790812800000',
+    packageName: 'com.podverse.app.next',
+    subscriptionNotification: {
+      notificationType: 4,
+      purchaseToken,
+      subscriptionId: 'premium',
+      version: '1.0',
+    },
+    version: '1.0',
+  };
+}
+
+describe('createGooglePlayAdapter', () => {
+  it('maps a prepaid purchase to payment_settled keyed by the order id', async () => {
+    const acknowledgeSubscriptionPurchase = vi.fn(
+      async (_subscriptionId: string, _purchaseToken: string) => undefined
+    );
+    const adapter = createGooglePlayAdapter(
+      adapterConfig(
+        createClient({
+          acknowledgeSubscriptionPurchase,
+          getSubscriptionPurchase: async (token) =>
+            token === 'token-1' ? prepaidPurchase('GPA.1234-5678-9012-34567') : null,
+        })
+      )
+    );
+
+    const result = await adapter.verifyAndParseWebhook(
+      buildWebhookRequest(purchasedNotification('token-1'))
+    );
+
+    expect(result.events).toEqual([
+      {
+        type: 'payment_settled',
+        processor: 'google_play',
+        processorEventId: 'message-1:purchased',
+        accountBillingCustomerRef: 'customer-ref-1',
+        accountId: null,
+        occurredAt: '2026-10-01T00:00:00.000Z',
+        isSandbox: true,
+        externalTransactionId: 'GPA.1234-5678-9012-34567',
+        externalProductId: 'premium',
+        externalBasePlanId: 'prepaid-monthly',
+        periodStart: '2026-09-01T00:00:00.000Z',
+        periodEnd: '2026-10-01T00:00:00.000Z',
+        amount: null,
+      },
+    ]);
+    expect(acknowledgeSubscriptionPurchase).toHaveBeenCalledTimes(1);
+    expect(acknowledgeSubscriptionPurchase).toHaveBeenCalledWith('premium', 'token-1');
+  });
+
+  it('emits a second event for a second prepaid purchase on the same account', async () => {
+    const adapter = createGooglePlayAdapter(
+      adapterConfig(
+        createClient({
+          getSubscriptionPurchase: async (token) => {
+            if (token === 'token-1') {
+              return prepaidPurchase('GPA.1234-5678-9012-34567');
+            }
+            if (token === 'token-2') {
+              return prepaidPurchase('GPA.9999-8888-7777-66666');
+            }
+            return null;
+          },
+        })
+      )
+    );
+
+    const first = await adapter.verifyAndParseWebhook(
+      buildWebhookRequest(purchasedNotification('token-1'), 'message-1')
+    );
+    const second = await adapter.verifyAndParseWebhook(
+      buildWebhookRequest(purchasedNotification('token-2'), 'message-2')
+    );
+
+    expect(first.events.map((event) => event.externalTransactionId)).toEqual([
+      'GPA.1234-5678-9012-34567',
+    ]);
+    expect(second.events.map((event) => event.externalTransactionId)).toEqual([
+      'GPA.9999-8888-7777-66666',
+    ]);
+    expect(second.events[0]).toMatchObject({
+      type: 'payment_settled',
+      accountBillingCustomerRef: 'customer-ref-1',
+      processorEventId: 'message-2:purchased',
     });
+  });
+
+  it('returns no events for a line item Play bills on its own', async () => {
+    const renewingPlanKey = 'auto' + 'RenewingPlan';
+    const adapter = createGooglePlayAdapter(
+      adapterConfig(
+        createClient({
+          getSubscriptionPurchase: async () => ({
+            lineItems: [
+              {
+                [renewingPlanKey]: {},
+                offerDetails: { basePlanId: 'monthly' },
+                productId: 'premium',
+                latestSuccessfulOrderId: 'GPA.0000-0000-0000-00000',
+              },
+            ],
+          }),
+        })
+      )
+    );
+
+    const result = await adapter.verifyAndParseWebhook(
+      buildWebhookRequest(purchasedNotification('token-renewing'))
+    );
+
+    expect(result.events).toEqual([]);
+  });
+
+  it('maps REVOKED to refund_or_revoke keyed by the order id', async () => {
+    const adapter = createGooglePlayAdapter(
+      adapterConfig(
+        createClient({
+          getSubscriptionPurchase: async () => prepaidPurchase('GPA.1234-5678-9012-34567'),
+        })
+      )
+    );
 
     const result = await adapter.verifyAndParseWebhook(
       buildWebhookRequest({
         eventTimeMillis: '1790812800000',
         packageName: 'com.podverse.app.next',
         subscriptionNotification: {
-          notificationType: 4,
-          purchaseToken: 'new-token-1',
+          notificationType: 12,
+          purchaseToken: 'token-1',
           subscriptionId: 'premium',
           version: '1.0',
         },
@@ -128,38 +255,21 @@ describe('createGooglePlayAdapter', () => {
 
     expect(result.events).toEqual([
       {
-        type: 'payment_settled',
+        type: 'refund_or_revoke',
         processor: 'google_play',
-        processorEventId: 'message-1:subscription_purchased',
+        processorEventId: 'message-1:revoked',
         accountBillingCustomerRef: 'customer-ref-1',
         accountId: null,
         occurredAt: '2026-10-01T00:00:00.000Z',
         isSandbox: true,
-        purchaseKind: 'one_time',
+        reason: 'store_revoke',
+        revokedAt: '2026-10-01T00:00:00.000Z',
         externalTransactionId: 'GPA.1234-5678-9012-34567',
-        externalSubscriptionId: 'new-token-1',
-        externalProductId: 'premium',
-        externalBasePlanId: 'prepaid-monthly',
-        periodStart: '2026-09-01T00:00:00.000Z',
-        periodEnd: '2026-10-01T00:00:00.000Z',
-        amount: null,
-      },
-      {
-        type: 'subscription_expired',
-        processor: 'google_play',
-        processorEventId: 'message-1:superseded_old-token-1',
-        accountBillingCustomerRef: 'customer-ref-1',
-        accountId: null,
-        occurredAt: '2026-10-01T00:00:00.000Z',
-        isSandbox: true,
-        externalSubscriptionId: 'old-token-1',
-        expiredAt: '2026-09-01T00:00:00.000Z',
-        replacedByExternalSubscriptionId: 'new-token-1',
       },
     ]);
   });
 
-  it('acknowledges subscription purchases exactly once when pending', async () => {
+  it('acknowledges a pending purchase once', async () => {
     const acknowledgeSubscriptionPurchase = vi.fn(
       async (_subscriptionId: string, _purchaseToken: string) => undefined
     );
@@ -167,24 +277,20 @@ describe('createGooglePlayAdapter', () => {
       async (_productId: string, _purchaseToken: string) => undefined
     );
 
-    const adapter = createGooglePlayAdapter({
-      packageName: 'com.podverse.app.next',
-      serviceAccountJsonPath: '/tmp/not-used-in-test.json',
-      rtdnPushAudience: 'podverse-local-rtdn',
-      rtdnPushServiceAccountEmail:
-        'podverse-google-play-billing@podverse-app.iam.gserviceaccount.com',
-      client: createClient({
-        acknowledgeProductPurchase,
-        acknowledgeSubscriptionPurchase,
-        getSubscriptionPurchase: async () => ({
-          acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING',
-          lineItems: [{ productId: 'premium' }],
-        }),
-      }),
-    });
+    const adapter = createGooglePlayAdapter(
+      adapterConfig(
+        createClient({
+          acknowledgeProductPurchase,
+          acknowledgeSubscriptionPurchase,
+          getSubscriptionPurchase: async () => ({
+            acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING',
+            lineItems: [{ productId: 'premium', prepaidPlan: {} }],
+          }),
+        })
+      )
+    );
 
     await adapter.acknowledgePurchase?.({
-      purchaseKind: 'auto_renew',
       purchaseToken: 'token-1',
       externalProductId: 'premium',
     });

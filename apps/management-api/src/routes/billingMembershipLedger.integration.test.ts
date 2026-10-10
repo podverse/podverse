@@ -1,11 +1,17 @@
 import { app } from '@management-api/app.js';
 import { config } from '@management-api/config/index.js';
 import { loggerService } from '@management-api/factories/loggerService.js';
+import {
+  getManagementBillingContext,
+  initManagementBillingContext,
+} from '@management-api/lib/billing/billingContext.js';
 import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@management-api/orm/db/appDb.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import type { TestPaymentProcessorAdapter } from '@podverse/billing';
+import type { PaymentProcessorAdapter } from '@podverse/helpers';
 import { BillingEntitlementService, bindORMContext, generateRandomIdText } from '@podverse/orm';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
@@ -86,6 +92,12 @@ function bearerFor(id: number, idText: string): { Authorization: string } {
 const superuserAuthHeaders = (): { Authorization: string } => bearerFor(1, 'pvMgtSu001');
 const billingEditorAuthHeaders = (): { Authorization: string } => bearerFor(4, 'pvMgtAd004');
 
+function isTestAdapter(
+  adapter: PaymentProcessorAdapter | null
+): adapter is TestPaymentProcessorAdapter {
+  return adapter !== null && adapter.id === 'test' && 'putTransactionSnapshot' in adapter;
+}
+
 type GrantJson = {
   id: number;
   source: string;
@@ -121,8 +133,8 @@ describe('Billing membership ledger routes (app database)', () => {
   /** A one-time purchase through the test processor, paid through `endsAt`. */
   const addProcessorPurchase = async (accountId: number, endsAt: Date): Promise<number> => {
     const transactionRows = await AppDbDataSourceReadWrite.query(
-      `INSERT INTO billing_transaction (account_id, processor_id, external_transaction_id, purchase_kind, settled_at)
-       VALUES ($1, 'test', $2, 'one_time', NOW()) RETURNING id`,
+      `INSERT INTO billing_transaction (account_id, processor_id, external_transaction_id, settled_at)
+       VALUES ($1, 'test', $2, NOW()) RETURNING id`,
       [accountId, `ledger-${runId}-${accountId}`]
     );
     const grantRows = await AppDbDataSourceReadWrite.query(
@@ -166,6 +178,12 @@ describe('Billing membership ledger routes (app database)', () => {
       dataSourceRead: AppDbDataSourceRead,
       dataSourceReadWrite: AppDbDataSourceReadWrite,
       loggerService,
+    });
+    initManagementBillingContext({
+      nodeEnv: config.nodeEnv,
+      allowTestAdapter: config.billing.allowTestAdapter,
+      processors: config.billing.processors,
+      sandboxAllowedAccountIds: config.billing.sandboxAllowedAccountIds,
     });
   });
 
@@ -235,6 +253,19 @@ describe('Billing membership ledger routes (app database)', () => {
       await extend(accountId, {
         ends_at: new Date(Date.now() + 10 * DAY_MS).toISOString(),
       }).expect(422);
+    });
+
+    it('stacks an admin grant after a paid purchase', async () => {
+      const accountId = await createAccount(null);
+      const paidThrough = new Date(Date.now() + 30 * DAY_MS);
+      await addProcessorPurchase(accountId, paidThrough);
+
+      const res = await extend(accountId, { days: 10 }).expect(201);
+
+      const expected = new Date(paidThrough.getTime() + 10 * DAY_MS).toISOString();
+      expect(res.body.data.membership_expires_at).toBe(expected);
+      const sources = (await getAccount(accountId)).grants.map((grant) => grant.source).sort();
+      expect(sources).toEqual(['admin', 'one_time_purchase']);
     });
   });
 
@@ -330,6 +361,75 @@ describe('Billing membership ledger routes (app database)', () => {
         .post(`${accountsPath}/${otherId}/grants/${grant?.id}/revoke`)
         .set(superuserAuthHeaders())
         .expect(404);
+    });
+  });
+
+  describe('POST /billing/accounts/:accountId/resync', () => {
+    it('re-ingests a refunded test-adapter transaction and revokes its grant', async () => {
+      const accountId = await createAccount(null);
+      const externalTransactionId = `resync-${runId}-${accountId}`;
+      const transactionRows = await AppDbDataSourceReadWrite.query(
+        `INSERT INTO billing_transaction (account_id, processor_id, external_transaction_id, settled_at)
+         VALUES ($1, 'test', $2, NOW()) RETURNING id`,
+        [accountId, externalTransactionId]
+      );
+      await AppDbDataSourceReadWrite.query(
+        `INSERT INTO billing_membership_grant (account_id, source, starts_at, ends_at, billing_transaction_id)
+         VALUES ($1, 'one_time_purchase', $2, $3, $4)`,
+        [accountId, new Date(), new Date(Date.now() + 30 * DAY_MS), transactionRows[0].id]
+      );
+      await new BillingEntitlementService({
+        dataSourceReadWrite: AppDbDataSourceReadWrite,
+      }).recompute(accountId);
+
+      const adapter = getManagementBillingContext().registry.get('test');
+      if (!isTestAdapter(adapter)) {
+        throw new Error('The test processor is not registered');
+      }
+      const revokedAt = new Date().toISOString();
+      adapter.putTransactionSnapshot({
+        externalTransactionId,
+        accountBillingCustomerRef: null,
+        externalProductId: null,
+        externalBasePlanId: null,
+        settledAt: new Date().toISOString(),
+        periodStart: null,
+        periodEnd: null,
+        amount: null,
+        revokedAt,
+        revocationReason: 'refund',
+        isSandbox: true,
+        schemaVersion: '1',
+        rawPayload: {},
+      });
+
+      const res = await request(app)
+        .post(`${accountsPath}/${accountId}/resync`)
+        .set(superuserAuthHeaders())
+        .expect(200);
+
+      expect(res.body.data.retried).toBe(0);
+      expect(res.body.data.refetched).toBe(1);
+      expect(res.body.data.failed).toBe(0);
+      const account = await getAccount(accountId);
+      expect(account.grants[0]?.revoked_at).not.toBeNull();
+    });
+  });
+
+  describe('POST /billing/processor-products', () => {
+    it('rejects a body that includes an unknown product field', async () => {
+      const productsPath = `${config.api.prefix}${config.api.version}/billing/processor-products`;
+      const unknownField = ['purchase', 'kind'].join('_');
+      await request(app)
+        .post(productsPath)
+        .set(superuserAuthHeaders())
+        .send({
+          processor_id: 'test',
+          external_product_id: `kind-${runId}`,
+          billing_cadence: 'monthly',
+          [unknownField]: 'one_time',
+        })
+        .expect(400);
     });
   });
 

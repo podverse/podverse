@@ -1,7 +1,9 @@
 import type { PropsWithChildren } from 'react';
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 import type { DTOQueue, DTOQueueResource } from '@podverse/helpers/dto';
+
+import { shouldReplaceCachedValue } from '../lib/cachedValue';
 
 /**
  * Mobile queue store — mirrors web `apps/web/src/contexts/Queue.tsx` boundaries. The provider owns
@@ -22,11 +24,35 @@ type QueuesContextType = {
 const QueuesContext = createContext<QueuesContextType | undefined>(undefined);
 
 export function QueuesProvider({ children }: PropsWithChildren) {
-  const [queues, setQueues] = useState<DTOQueue[]>([]);
-  const [activeQueue, setActiveQueue] = useState<DTOQueue | null>(null);
-  const [activeQueueUpcomingResources, setActiveQueueUpcomingResources] = useState<
+  const [queues, setQueuesState] = useState<DTOQueue[]>([]);
+  const [activeQueue, setActiveQueueState] = useState<DTOQueue | null>(null);
+  const [activeQueueUpcomingResources, setActiveQueueUpcomingResourcesState] = useState<
     DTOQueueResource[]
   >([]);
+
+  // Keep the previous array or row when contents match so a failed or empty reload cannot
+  // retrigger effects that depend on this store.
+  const setQueues = useCallback((next: DTOQueue[]) => {
+    setQueuesState((previous) => (shouldReplaceCachedValue(previous, next) ? next : previous));
+  }, []);
+
+  const setActiveQueue = useCallback((next: DTOQueue | null) => {
+    setActiveQueueState((previous) => {
+      if (previous === next) {
+        return previous;
+      }
+      if (next === null) {
+        return null;
+      }
+      return shouldReplaceCachedValue(previous, next) ? next : previous;
+    });
+  }, []);
+
+  const setActiveQueueUpcomingResources = useCallback((next: DTOQueueResource[]) => {
+    setActiveQueueUpcomingResourcesState((previous) =>
+      shouldReplaceCachedValue(previous, next) ? next : previous
+    );
+  }, []);
 
   const value = useMemo<QueuesContextType>(
     () => ({
@@ -37,7 +63,14 @@ export function QueuesProvider({ children }: PropsWithChildren) {
       setActiveQueueUpcomingResources,
       setQueues,
     }),
-    [activeQueue, activeQueueUpcomingResources, queues]
+    [
+      activeQueue,
+      activeQueueUpcomingResources,
+      queues,
+      setActiveQueue,
+      setActiveQueueUpcomingResources,
+      setQueues,
+    ]
   );
 
   return <QueuesContext.Provider value={value}>{children}</QueuesContext.Provider>;

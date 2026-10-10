@@ -1,11 +1,8 @@
 import { randomUUID } from 'node:crypto';
 
 import type {
-  BillingCancelAutoRenewResult,
-  BillingProcessorRecordRef,
   BillingWebhookParseResult,
   NormalizedBillingEvent,
-  NormalizedSubscriptionSnapshot,
   NormalizedTransactionSnapshot,
   PaymentProcessorAdapter,
 } from '@podverse/helpers';
@@ -34,10 +31,6 @@ export type TestBillingEventSimulation = DistributiveOmit<
 export interface TestPaymentProcessorAdapter extends PaymentProcessorAdapter {
   readonly id: 'test';
   simulateEvent(simulation: TestBillingEventSimulation): NormalizedBillingEvent;
-  /** What `fetchSubscription` returns for this subscription until it is replaced. */
-  putSubscriptionSnapshot(
-    snapshot: Omit<NormalizedSubscriptionSnapshot, 'processor' | 'fetchedAt'>
-  ): void;
   /** What `fetchTransaction` returns for this payment until it is replaced. */
   putTransactionSnapshot(
     snapshot: Omit<NormalizedTransactionSnapshot, 'processor' | 'fetchedAt'>
@@ -66,10 +59,6 @@ export function createTestAdapter(config: TestAdapterConfig): TestPaymentProcess
     throw new BillingTestAdapterRefusedError();
   }
   const now = config.now ?? (() => new Date());
-  const subscriptions = new Map<
-    string,
-    Omit<NormalizedSubscriptionSnapshot, 'processor' | 'fetchedAt'>
-  >();
   const transactions = new Map<
     string,
     Omit<NormalizedTransactionSnapshot, 'processor' | 'fetchedAt'>
@@ -88,10 +77,6 @@ export function createTestAdapter(config: TestAdapterConfig): TestPaymentProcess
       };
     },
 
-    putSubscriptionSnapshot(snapshot) {
-      subscriptions.set(snapshot.externalSubscriptionId, snapshot);
-    },
-
     putTransactionSnapshot(snapshot) {
       transactions.set(snapshot.externalTransactionId, snapshot);
     },
@@ -103,26 +88,12 @@ export function createTestAdapter(config: TestAdapterConfig): TestPaymentProcess
       );
     },
 
-    async fetchSubscription(
-      ref: BillingProcessorRecordRef
-    ): Promise<NormalizedSubscriptionSnapshot> {
-      const snapshot = subscriptions.get(ref.externalId);
-      if (snapshot === undefined) {
-        throw new BillingProcessorRecordNotFoundError('test', ref.externalId);
-      }
-      return { ...snapshot, processor: 'test', fetchedAt: now().toISOString() };
-    },
-
-    async fetchTransaction(ref: BillingProcessorRecordRef): Promise<NormalizedTransactionSnapshot> {
+    async fetchTransaction(ref) {
       const snapshot = transactions.get(ref.externalId);
       if (snapshot === undefined) {
         throw new BillingProcessorRecordNotFoundError('test', ref.externalId);
       }
       return { ...snapshot, processor: 'test', fetchedAt: now().toISOString() };
-    },
-
-    async cancelAutoRenew(): Promise<BillingCancelAutoRenewResult> {
-      return { outcome: 'cancelled' };
     },
   };
 }

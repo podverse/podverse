@@ -8,7 +8,11 @@ import type {
   ConnectivityState,
   RequestOutcome,
 } from './connectivityMachine';
-import { createConnectivityMachine, reduceConnectivity } from './connectivityMachine';
+import {
+  createConnectivityMachine,
+  reduceConnectivity,
+  resolveScheduledTimer,
+} from './connectivityMachine';
 import { probeServerReachable } from './connectivityProbe';
 
 /**
@@ -29,6 +33,7 @@ const listeners = new Set<Listener>();
 
 let machine = createConnectivityMachine();
 let probeTimer: ReturnType<typeof setTimeout> | null = null;
+let probeArmedDelayMs: number | null = null;
 let tickTimer: ReturnType<typeof setTimeout> | null = null;
 let isProbeInFlight = false;
 let unsubscribeNetInfo: (() => void) | null = null;
@@ -44,6 +49,7 @@ const clearProbeTimer = (): void => {
     clearTimeout(probeTimer);
     probeTimer = null;
   }
+  probeArmedDelayMs = null;
 };
 
 const clearTickTimer = (): void => {
@@ -56,6 +62,8 @@ const clearTickTimer = (): void => {
 const runProbe = (): void => {
   // One probe at a time. Overlapping probes would report stale results out of order and inflate
   // the failure count on a single bad network moment.
+  probeTimer = null;
+  probeArmedDelayMs = null;
   if (isProbeInFlight) {
     return;
   }
@@ -71,14 +79,22 @@ const runProbe = (): void => {
     });
 };
 
-/** Timers are re-armed from scratch on every transition, because the machine returns absolutes. */
+/**
+ * Tick timers always restart from the remaining delay the machine just computed. Probe timers
+ * keep counting when the requested delay is unchanged, so a storm of failed product requests
+ * cannot reset the backoff.
+ */
 const applyEffects = (effects: ConnectivityEffects): void => {
-  clearProbeTimer();
-  clearTickTimer();
-
-  if (effects.probeInMs !== null) {
-    probeTimer = setTimeout(runProbe, effects.probeInMs);
+  const probeDecision = resolveScheduledTimer(effects.probeInMs, probeArmedDelayMs);
+  if (probeDecision.kind !== 'keep') {
+    clearProbeTimer();
+    if (probeDecision.kind === 'replace') {
+      probeArmedDelayMs = probeDecision.delayMs;
+      probeTimer = setTimeout(runProbe, probeDecision.delayMs);
+    }
   }
+
+  clearTickTimer();
   if (effects.tickInMs !== null) {
     tickTimer = setTimeout(() => {
       dispatch({ at: Date.now(), kind: 'tick' });

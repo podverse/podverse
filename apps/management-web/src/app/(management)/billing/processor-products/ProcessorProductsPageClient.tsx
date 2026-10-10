@@ -42,14 +42,9 @@ export type ProcessorProductsPageClientProps = {
 const PROCESSORS = ['paypal', 'apple', 'google_play', 'test'] as const;
 
 type Cadence = 'monthly' | 'annual';
-type PurchaseKind = 'auto_renew' | 'one_time';
 
 function isCadence(value: string): value is Cadence {
   return value === 'monthly' || value === 'annual';
-}
-
-function isPurchaseKind(value: string): value is PurchaseKind {
-  return value === 'auto_renew' || value === 'one_time';
 }
 
 export function ProcessorProductsPageClient({ initialUser }: ProcessorProductsPageClientProps) {
@@ -63,7 +58,6 @@ export function ProcessorProductsPageClient({ initialUser }: ProcessorProductsPa
   const [externalId, setExternalId] = useState('');
   const [basePlan, setBasePlan] = useState('');
   const [cadence, setCadence] = useState<Cadence>('monthly');
-  const [kind, setKind] = useState<PurchaseKind>('auto_renew');
   const t = useTranslations('billing');
   const tc = useTranslations('common');
   const tNav = useTranslations('nav');
@@ -78,13 +72,6 @@ export function ProcessorProductsPageClient({ initialUser }: ProcessorProductsPa
     () => [
       { value: 'monthly', label: t('products.cadenceMonthly') },
       { value: 'annual', label: t('products.cadenceAnnual') },
-    ],
-    [t]
-  );
-  const kindOptions = useMemo<FormDropdownOption[]>(
-    () => [
-      { value: 'auto_renew', label: t('products.kindAutoRenew') },
-      { value: 'one_time', label: t('products.kindOneTime') },
     ],
     [t]
   );
@@ -126,7 +113,6 @@ export function ProcessorProductsPageClient({ initialUser }: ProcessorProductsPa
         external_product_id: externalId.trim(),
         external_base_plan_id: basePlan.trim() === '' ? null : basePlan.trim(),
         billing_cadence: cadence,
-        purchase_kind: kind,
       });
       setExternalId('');
       setBasePlan('');
@@ -182,8 +168,8 @@ export function ProcessorProductsPageClient({ initialUser }: ProcessorProductsPa
                   <Table.HeaderCell>{t('products.table.processor')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('products.table.externalId')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('products.table.basePlan')}</Table.HeaderCell>
+                  <Table.HeaderCell>{t('products.table.catalogProduct')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('products.table.cadence')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('products.table.kind')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('products.table.active')}</Table.HeaderCell>
                 </Table.Row>
               </Table.Head>
@@ -193,8 +179,8 @@ export function ProcessorProductsPageClient({ initialUser }: ProcessorProductsPa
                     <Table.Cell>{product.processor_id}</Table.Cell>
                     <Table.Cell>{product.external_product_id}</Table.Cell>
                     <Table.Cell>{product.external_base_plan_id ?? tc('none')}</Table.Cell>
+                    <Table.Cell>{product.billing_product_id}</Table.Cell>
                     <Table.Cell>{product.billing_cadence}</Table.Cell>
-                    <Table.Cell>{product.purchase_kind}</Table.Cell>
                     <Table.Cell>
                       {canUpdate ? (
                         <CheckboxField
@@ -253,17 +239,6 @@ export function ProcessorProductsPageClient({ initialUser }: ProcessorProductsPa
                       onChange={(value) => {
                         if (isCadence(value)) {
                           setCadence(value);
-                        }
-                      }}
-                    />
-                    <FormDropdown
-                      id="processor-product-kind"
-                      eyebrow={t('products.kindLabel')}
-                      options={kindOptions}
-                      value={kind}
-                      onChange={(value) => {
-                        if (isPurchaseKind(value)) {
-                          setKind(value);
                         }
                       }}
                     />

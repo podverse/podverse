@@ -3,17 +3,16 @@ import { AccountMembershipEnum } from '@podverse/helpers';
 import type {
   BillingMembershipGrant,
   BillingProcessorProduct,
-  BillingSubscription,
   BillingTransaction,
   BillingWebhookEvent,
   EntityManager,
 } from '@podverse/orm';
 import {
+  AccountMembershipStatus,
   AccountService,
   BillingEntitlementService,
   BillingMembershipGrantService,
   BillingProcessorProductService,
-  BillingSubscriptionService,
   BillingTransactionService,
   BillingWebhookEventService,
 } from '@podverse/orm';
@@ -25,7 +24,6 @@ import type {
   BillingLedgerUnitOfWork,
   LedgerGrant,
   LedgerProcessorProduct,
-  LedgerSubscription,
   LedgerTransaction,
 } from './ledgerStore.js';
 
@@ -36,24 +34,7 @@ function toInboxEventRecord(row: BillingWebhookEvent): BillingInboxEventRecord {
     schemaVersion: row.schema_version,
     payload: row.payload,
     status: row.status,
-  };
-}
-
-function toLedgerSubscription(row: BillingSubscription): LedgerSubscription {
-  return {
-    id: row.id,
-    accountId: row.account_id,
-    externalSubscriptionId: row.external_subscription_id,
-    processorProductId: row.billing_processor_product_id,
-    status: row.status,
-    purchaseKind: row.purchase_kind,
-    currentPeriodStart: row.current_period_start,
-    currentPeriodEnd: row.current_period_end,
-    gracePeriodEndsAt: row.grace_period_ends_at,
-    cancelAtPeriodEnd: row.cancel_at_period_end,
-    bankedSeconds: row.banked_seconds,
-    isSandbox: row.is_sandbox,
-    rawStatusSnapshot: row.raw_status_snapshot,
+    processError: row.process_error,
   };
 }
 
@@ -62,8 +43,6 @@ function toLedgerTransaction(row: BillingTransaction): LedgerTransaction {
     id: row.id,
     accountId: row.account_id,
     externalTransactionId: row.external_transaction_id,
-    subscriptionId: row.billing_subscription_id,
-    purchaseKind: row.purchase_kind,
     settledAt: row.settled_at,
     amount:
       row.amount === null || row.currency_code === null
@@ -82,7 +61,6 @@ function toLedgerGrant(row: BillingMembershipGrant): LedgerGrant {
     startsAt: row.starts_at,
     endsAt: row.ends_at,
     revokedAt: row.revoked_at,
-    subscriptionId: row.billing_subscription_id,
     transactionId: row.billing_transaction_id,
   };
 }
@@ -91,7 +69,7 @@ function toLedgerProcessorProduct(row: BillingProcessorProduct): LedgerProcessor
   if (!row.is_active) {
     return null;
   }
-  return { id: row.id, cadence: row.billing_cadence, purchaseKind: row.purchase_kind };
+  return { id: row.id, cadence: row.billing_cadence };
 }
 
 function assertOwnedBy(row: { account_id: number } | null, accountId: number, label: string): void {
@@ -108,7 +86,6 @@ export function createOrmBillingLedgerStore(): BillingLedgerStore {
     billingEntitlementService: entitlementService,
   });
   const processorProductService = new BillingProcessorProductService();
-  const subscriptionService = new BillingSubscriptionService();
   const transactionService = new BillingTransactionService();
   const webhookEventService = new BillingWebhookEventService();
 
@@ -120,42 +97,6 @@ export function createOrmBillingLedgerStore(): BillingLedgerStore {
     return {
       accountId,
       processorId,
-      paymentFailureGraceSeconds: entitlementService.getPaymentFailureGraceExpiration(),
-
-      async getSubscription(externalSubscriptionId) {
-        const row = await subscriptionService.getByExternalIdWithManager(
-          manager,
-          processorId,
-          externalSubscriptionId
-        );
-        assertOwnedBy(row, accountId, `Subscription ${externalSubscriptionId}`);
-        return row === null ? null : toLedgerSubscription(row);
-      },
-
-      async saveSubscription(write) {
-        const existing = await subscriptionService.getByExternalIdWithManager(
-          manager,
-          processorId,
-          write.externalSubscriptionId
-        );
-        assertOwnedBy(existing, accountId, `Subscription ${write.externalSubscriptionId}`);
-        const row = await subscriptionService.upsertByExternalIdWithManager(manager, {
-          accountId,
-          processorId,
-          externalSubscriptionId: write.externalSubscriptionId,
-          status: write.status,
-          purchaseKind: write.purchaseKind,
-          billingProcessorProductId: write.processorProductId,
-          currentPeriodStart: write.currentPeriodStart,
-          currentPeriodEnd: write.currentPeriodEnd,
-          gracePeriodEndsAt: write.gracePeriodEndsAt,
-          cancelAtPeriodEnd: write.cancelAtPeriodEnd,
-          bankedSeconds: write.bankedSeconds,
-          isSandbox: write.isSandbox,
-          rawStatusSnapshot: write.rawStatusSnapshot,
-        });
-        return toLedgerSubscription(row);
-      },
 
       async getTransaction(externalTransactionId) {
         const row = await transactionService.getByExternalIdWithManager(
@@ -178,9 +119,7 @@ export function createOrmBillingLedgerStore(): BillingLedgerStore {
           accountId,
           processorId,
           externalTransactionId: write.externalTransactionId,
-          purchaseKind: write.purchaseKind,
           settledAt: write.settledAt,
-          billingSubscriptionId: write.subscriptionId,
           amount: write.amount?.value ?? null,
           currencyCode: write.amount?.currencyCode ?? null,
           revokedAt: write.revokedAt,
@@ -188,14 +127,6 @@ export function createOrmBillingLedgerStore(): BillingLedgerStore {
           isSandbox: write.isSandbox,
         });
         return toLedgerTransaction(row);
-      },
-
-      async listSubscriptionTransactions(subscriptionId) {
-        const rows = await transactionService.listBySubscriptionIdWithManager(
-          manager,
-          subscriptionId
-        );
-        return rows.map(toLedgerTransaction);
       },
 
       async listGrants() {
@@ -209,14 +140,9 @@ export function createOrmBillingLedgerStore(): BillingLedgerStore {
           source: grant.source,
           startsAt: grant.startsAt,
           endsAt: grant.endsAt,
-          billingSubscriptionId: grant.subscriptionId,
           billingTransactionId: grant.transactionId,
         });
         return toLedgerGrant(row);
-      },
-
-      async setGrantEndsAt(grantId, endsAt) {
-        await grantService.updateEndsAtWithManager(manager, grantId, endsAt);
       },
 
       async revokeGrants(grantIds, revokedAt) {
@@ -231,6 +157,12 @@ export function createOrmBillingLedgerStore(): BillingLedgerStore {
           externalBasePlanId
         );
         return row === null ? null : toLedgerProcessorProduct(row);
+      },
+
+      async setBillingCadence(cadence) {
+        await manager
+          .getRepository(AccountMembershipStatus)
+          .update({ account: { id: accountId } }, { billing_cadence: cadence });
       },
 
       async grantPremiumMembership() {
@@ -259,17 +191,12 @@ export function createOrmBillingLedgerStore(): BillingLedgerStore {
       return row === null ? null : toInboxEventRecord(row);
     },
 
-    async markInboxProcessed(id) {
-      await webhookEventService.markProcessed(id);
+    async markInboxProcessed(id, note) {
+      await webhookEventService.markProcessed(id, new Date(), note ?? null);
     },
 
     async markInboxFailed(id, processError) {
       await webhookEventService.markFailed(id, processError);
-    },
-
-    async findSubscriptionAccountId(processorId, externalSubscriptionId) {
-      const row = await subscriptionService.getByExternalId(processorId, externalSubscriptionId);
-      return row?.account_id ?? null;
     },
 
     async findTransactionAccountId(processorId, externalTransactionId) {

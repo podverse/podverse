@@ -2102,12 +2102,10 @@ async function seedBillingTestCheckout(client) {
   );
   await client.query(
     `INSERT INTO billing_processor_product (
-       processor_id, external_product_id, billing_product_id, billing_cadence, purchase_kind, is_active
+       processor_id, external_product_id, billing_product_id, billing_cadence, is_active
      ) VALUES
-       ('test', 'e2e-test-monthly-renew', 1, 'monthly', 'auto_renew', true),
-       ('test', 'e2e-test-annual-renew', 1, 'annual', 'auto_renew', true),
-       ('test', 'e2e-test-monthly-once', 1, 'monthly', 'one_time', true),
-       ('test', 'e2e-test-annual-once', 1, 'annual', 'one_time', true)
+       ('test', 'e2e-test-monthly-once', 1, 'monthly', true),
+       ('test', 'e2e-test-annual-once', 1, 'annual', true)
      ON CONFLICT ON CONSTRAINT billing_processor_product_external_key DO NOTHING`
   );
 }

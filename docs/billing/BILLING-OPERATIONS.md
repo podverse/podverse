@@ -4,35 +4,29 @@ Routes, adapters, and the grant ledger are described in [BILLING.md](BILLING.md)
 
 ## Reconcile
 
-`billingReconcileSubscriptions` brings the ledger in line with what the processors report. It
-**never charges a payment method**: PayPal, the App Store, and Google Play run every renewal and
-charge, and this command only reads their records and applies what the ledger missed.
+`billingReconcile` brings the ledger in line with deliveries the server missed. It **never
+charges a payment method**. PayPal, the App Store, and Google Play take the payment, and this
+command only retries stored rows and applies Google Play voids.
 
-Each run does three things, and a failure in one step does not stop the others:
+Each run does two things, and a failure in one step does not stop the other:
 
-1. **Subscriptions near a boundary.** Subscriptions that are `active`, `in_grace_period`,
-   `past_due`, or `cancelled_active`, with a period end or grace end within 48 hours of now
-   (either side), are fetched from their processor in batches of 200. The processor's view is
-   applied the same way a webhook is, and the account's access is recomputed. A subscription the
-   processor no longer knows about is logged and skipped. Test-processor subscriptions are
-   skipped because their records live only in the process that created them.
-2. **Failed webhook inbox rows.** Up to 100 `billing_webhook_event` rows with status `failed`,
+1. **Failed webhook inbox rows.** Up to 100 `billing_webhook_event` rows with status `failed`,
    received more than 15 minutes ago, are retried, least recently attempted first. Each row is
    retried at most once per run. A row that keeps failing stays `failed` with its
    `process_error`, and `attempts` counts every try.
-3. **Google Play voided purchases.** When Google Play is configured, the last 48 hours of Google's
+2. **Google Play voided purchases.** When Google Play is configured, the last 48 hours of Google's
    voided-purchase list is read and each refund or chargeback revokes the grants of the purchase
    it names. Voids for purchases this server never recorded are skipped. Re-reading the same void
    on a later run is recorded once.
 
-A processor whose enable flag is off is skipped. The job exits non-zero
-when a whole step stops early (for example the database or a processor API is unreachable); a
-single subscription or inbox row that fails is logged and counted without failing the job.
+The job exits non-zero when a whole step stops early (for example the database or a processor
+API is unreachable). A single inbox row or void that fails is logged and counted without failing
+the job.
 
 ### Schedule
 
-The Kubernetes CronJob `worker-billing-renewals`
-(`infra/k8s/base/cron/worker-billing-renewals.cronjob.yaml`) runs the command every 30 minutes
+The Kubernetes CronJob `worker-billing-reconcile`
+(`infra/k8s/base/cron/worker-billing-reconcile.cronjob.yaml`) runs the command every 30 minutes
 with `concurrencyPolicy: Forbid`. The workers environment needs the same processor keys as the
 API (see [apps/workers/ENV.md](/apps/workers/ENV.md)) for the command to read those processors.
 
@@ -43,11 +37,17 @@ configured in `apps/workers/.env`:
 
 ```bash
 npm run build -w apps/workers
-npm run billing_reconcile_subscriptions -w apps/workers
+npm run billing_reconcile -w apps/workers
 ```
 
-The last log line summarizes the run: subscriptions applied, not found, and skipped; inbox rows
-recovered and still failing; and Google Play voids applied and skipped.
+The last log line summarizes the run: inbox rows recovered and still failing, and Google Play
+voids applied and skipped.
+
+### Webhook replay
+
+The management **Billing** section lists the webhook inbox. Replay on a stored row runs that
+payload through the same processor again. A refund or revocation that the first delivery missed
+lands as `refund_or_revoke` and removes the grant for that transaction.
 
 ## Kill switch
 
@@ -59,13 +59,12 @@ it needs no app release.
 The API caches the channel list for at most 60 seconds, so a change reaches checkout within a
 minute. In development, restart the API to see it immediately.
 
-The same **Billing** section maps processor product ids to a cadence and purchase kind, shows one
-account's subscriptions, transactions, grants, and webhook events (linked from the user detail
-page) with resync and [manual membership management](#manual-membership-management), and lists
-the webhook inbox with a replay for a stored event. Resync reads each subscription from its
-processor, so the management API needs the same
-processor credentials as the API and workers. A processor that is not enabled (flag off or
-credentials missing) is reported as skipped rather than failing the resync.
+The same **Billing** section maps processor product ids to a cadence, shows one account's
+transactions, grants, and webhook events (linked from the user detail page) with resync and
+[manual membership management](#manual-membership-management), and lists the webhook inbox with
+a replay for a stored event. Resync refetches recorded purchases, so the management API needs
+the same processor credentials as the API and workers. A purchase whose processor is not
+configured on this server is left uncounted.
 
 ## Enabling a processor
 
@@ -90,40 +89,25 @@ their credentials already match. `make local_env_setup` copies each flag from it
 Checkout channels are the sales kill switch. A flag is the deployment capability: credentials,
 webhooks, and reconcile. An enabled channel offers nothing while its processor's flag is off.
 
-**Do not turn a processor's flag off while it has live subscriptions.** Its webhooks start
-returning 404, and those members lapse at period end. To stop new sales, disable its checkout
-channels instead.
+Leave a processor's flag on while recorded purchases still need refund webhooks. Turning the
+flag off makes those webhooks answer 404. To stop new sales, disable its checkout channels
+instead.
 
 With every flag off, the deployment sells nothing. Extend memberships from each user's Billing
 page. See [Manual membership management](#manual-membership-management).
 
-## Buffer and grace
-
-Both durations are seconds (`_EXPIRATION`). They are read by the API, workers, and the
-management API so a webhook, a reconcile run, and an admin resync compute the same access
-window.
-
-| Key                                             | Default             | Effect                                                                         |
-| ----------------------------------------------- | ------------------- | ------------------------------------------------------------------------------ |
-| `BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION` | `172800` (48 hours) | Access continues past an auto-renew period end while the renewal event arrives |
-| `BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION`      | `604800` (7 days)   | Access continues after a failed renewal charge while the processor retries     |
-
-Local values come from `~/.config/podverse/local-env-overrides/billing.env`. Leave them at the
-defaults unless the policy changes. Enable the same grace in App Store Connect and Play
-Console. After grace, access from that subscription lapses until a later payment writes a new
-grant.
-
 ## Resync one account
 
 On the user's **Billing** page in management web (`/users/<id>/billing`), **Resync** calls
-`POST /api/v2/billing/accounts/<accountId>/resync`. That fetches each subscription from its
-processor, applies it the same way a webhook does, and retries that account's failed inbox
-rows. A processor that is not configured on this server is reported as skipped.
+`POST /api/v2/billing/accounts/<accountId>/resync`. That retries the account's failed inbox rows
+and refetches each recorded purchase from its processor. The response counts `retried`,
+`refetched`, and `failed`.
 
 ## Manual membership management
 
 On that same Billing page, **Extend by** is shown when the admin's `billing_account` permission
-includes create:
+includes create. A gift stacks on time the account already holds. There is no gate that blocks
+a gift because the account already has paid time.
 
 | Mode           | What it sends                                     |
 | -------------- | ------------------------------------------------- |
@@ -136,21 +120,24 @@ includes create:
 holds that time, the response is `applied: false`. An end that is not later than current
 access answers 422: "Use End Access to shorten a membership."
 
+Remediation notes live at `/billing/help` (gifting, Apple refunds, resync, wrong account).
+
 An optional note, at most 500 characters, is stored on the management audit log for the
 extend, the end, and the revoke. It is not stored on the grant.
 
 **End Access** needs the `billing_account` delete bit. **Set End Date** and **End Access Now**
 both confirm, then call `POST .../membership-end` with `ends_at`. That cuts or revokes
 admin-editable grants at that time and recomputes. Admin-editable grants are `admin`, `trial`,
-`legacy_import`, and `migration_baseline` rows with no subscription, transaction, or claim
-token. A date later than current access answers 422: "Use Extend to lengthen a membership."
+`legacy_import`, and `migration_baseline` rows with no transaction or claim token. A date later
+than current access answers 422: "Use Extend to lengthen a membership."
 
 **Revoke** on a grant row with `admin_editable: true` uses the same delete bit.
 `POST .../grants/<grantId>/revoke` removes that grant's remaining time and recomputes.
 
-Processor-paid grants (`subscription_period`, `one_time_purchase`) and `claim_token` grants
-cannot be removed from the portal. End or revoke that would cut that access answers 409 and
-changes nothing. When paid access still runs past the requested end, the message is "Paid
+Processor-paid grants (`one_time_purchase`) and `claim_token` grants cannot be removed from the
+portal. End or revoke that would cut that access answers 409 and changes nothing. Refund or
+revoke that purchase with the processor; the webhook, a replay, or reconcile applies
+`refund_or_revoke`. When paid access still runs past the requested end, the message is "Paid
 access continues past the requested end. Cancel or refund it with the processor." and the body
 includes `access_ends_at`. Revoking the protected grant itself answers "This grant was paid
 through a processor or claim token and cannot be changed here."
@@ -172,7 +159,7 @@ The v4 expiry import is [v4 membership carryover](#v4-membership-carryover).
 
 `billingImportLegacyMembershipExpiry` copies expiry from the previous Podverse app into
 `legacy_import` grants. It reads email and `membership_expires_at` only. It does not import
-payment transactions, create PayPal, Apple, or Google subscriptions, or email anyone.
+payment transactions or email anyone.
 
 Run it only after v5 already has the migrated accounts, with the same emails. Until that
 account migration is underway, leave the v4 database alone. The steps below are the runbook
@@ -248,5 +235,4 @@ npm run billing_import_legacy_membership_expiry -w apps/workers -- \
 ## Related
 
 - [BILLING.md](BILLING.md)
-- [BILLING-AUTO-RENEW-TESTING.md](BILLING-AUTO-RENEW-TESTING.md)
 - [LOCAL-ENV-OVERRIDES.md](/docs/development/env/LOCAL-ENV-OVERRIDES.md)

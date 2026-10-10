@@ -15,50 +15,33 @@ export async function pollGooglePlayVoidedPurchases(
 }
 
 /**
- * A voided purchase as a `refund_or_revoke` event, naming the same ids the purchase was recorded
- * under: a subscription by its purchase token, a payment by its order id (a one-time purchase
- * without an order id falls back to its token). The event id comes from those ids, so a void seen
- * on several polls is recorded once.
+ * A voided purchase as a `refund_or_revoke` event keyed by order id. A one-time purchase without
+ * an order id uses its purchase token. The event id comes from that id, so a void seen on several
+ * polls is recorded once.
  *
  * The voided list does not say whether a purchase was made in the sandbox, so `isSandbox` is
- * false; a caller holding the recorded purchase sets it from that record. Null when the purchase
- * names nothing to revoke.
+ * false. Null when the purchase names nothing to revoke.
  */
 export function voidedPurchaseToRevokeEvent(
   purchase: GooglePlayVoidedPurchase,
   nowIso: string
 ): RefundOrRevokeEvent | null {
-  const externalSubscriptionId =
-    purchase.productType === 'subscription' ? purchase.purchaseToken : null;
   const externalTransactionId =
     purchase.orderId ?? (purchase.productType === 'one_time' ? purchase.purchaseToken : null);
+  if (externalTransactionId === null) {
+    return null;
+  }
   const revokedAt = purchase.voidedAt ?? nowIso;
-  const base = {
-    type: 'refund_or_revoke' as const,
-    processor: 'google_play' as const,
+  return {
+    type: 'refund_or_revoke',
+    processor: 'google_play',
+    processorEventId: `voided:${externalTransactionId}`,
     accountBillingCustomerRef: null,
     accountId: null,
     occurredAt: revokedAt,
     isSandbox: false,
     reason: purchase.reason,
     revokedAt,
+    externalTransactionId,
   };
-
-  if (externalTransactionId !== null) {
-    return {
-      ...base,
-      processorEventId: `voided:${externalTransactionId}`,
-      externalTransactionId,
-      externalSubscriptionId,
-    };
-  }
-  if (externalSubscriptionId !== null) {
-    return {
-      ...base,
-      processorEventId: `voided:${externalSubscriptionId}`,
-      externalTransactionId: null,
-      externalSubscriptionId,
-    };
-  }
-  return null;
 }

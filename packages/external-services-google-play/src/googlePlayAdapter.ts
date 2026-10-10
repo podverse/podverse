@@ -4,31 +4,29 @@ import type {
   BillingWebhookParseResult,
   BillingWebhookRequest,
   NormalizedBillingEvent,
-  NormalizedSubscriptionSnapshot,
   NormalizedTransactionSnapshot,
   PaymentProcessorAdapter,
 } from '@podverse/helpers';
 import {
   BillingProcessorRecordNotFoundError,
   BillingWebhookVerificationError,
+  resolveBillingProcessorProductsFromEnv,
 } from '@podverse/helpers';
 
 import type { GooglePlayClient } from './PlayDeveloperClient.js';
 import { PlayDeveloperClient } from './PlayDeveloperClient.js';
 import { verifyAndParseRtdnPush } from './verifyRtdn.js';
 
-const SUBSCRIPTION_NOTIFICATION_RECOVERED = 1;
-const SUBSCRIPTION_NOTIFICATION_RENEWED = 2;
-const SUBSCRIPTION_NOTIFICATION_CANCELED = 3;
 const SUBSCRIPTION_NOTIFICATION_PURCHASED = 4;
-const SUBSCRIPTION_NOTIFICATION_ON_HOLD = 5;
-const SUBSCRIPTION_NOTIFICATION_IN_GRACE_PERIOD = 6;
-const SUBSCRIPTION_NOTIFICATION_RESTARTED = 7;
 const SUBSCRIPTION_NOTIFICATION_REVOKED = 12;
-const SUBSCRIPTION_NOTIFICATION_EXPIRED = 13;
 
 const ONE_TIME_PRODUCT_NOTIFICATION_PURCHASED = 1;
 const ONE_TIME_PRODUCT_NOTIFICATION_CANCELED = 2;
+
+interface SoldBillingProduct {
+  externalProductId: string;
+  externalBasePlanId: string | null;
+}
 
 interface GooglePlayAdapterConfig {
   packageName: string;
@@ -36,6 +34,49 @@ interface GooglePlayAdapterConfig {
   rtdnPushAudience: string;
   rtdnPushServiceAccountEmail: string;
   client?: GooglePlayClient;
+  /**
+   * Product ids this deployment sells. When omitted, the ids come from the billing product env.
+   * An empty list means no Play product is mapped, so notifications produce no events.
+   */
+  soldProducts?: readonly SoldBillingProduct[];
+}
+
+function loadSoldProducts(
+  override: readonly SoldBillingProduct[] | undefined
+): readonly SoldBillingProduct[] {
+  if (override !== undefined) {
+    return override;
+  }
+  return resolveBillingProcessorProductsFromEnv(process.env).products.filter(
+    (product) => product.processor === 'google_play'
+  );
+}
+
+function isSoldProduct(
+  products: readonly SoldBillingProduct[],
+  externalProductId: string | null,
+  externalBasePlanId: string | null
+): boolean {
+  if (externalProductId === null || externalProductId === '') {
+    return false;
+  }
+  return products.some((product) => {
+    if (product.externalProductId !== externalProductId) {
+      return false;
+    }
+    if (product.externalBasePlanId === null) {
+      return externalBasePlanId === null;
+    }
+    return product.externalBasePlanId === externalBasePlanId;
+  });
+}
+
+function logUnmappedBillingProduct(productId: string | null, notificationType: string): void {
+  // An authentic notification for a product this deployment does not sell is ignored.
+  // eslint-disable-next-line no-console -- info is the level for a skipped notification
+  console.info(
+    `Billing notification ignored for an unmapped product processor=google_play productId=${productId ?? ''} notificationType=${notificationType}`
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -65,11 +106,6 @@ function readNumber(record: Record<string, unknown>, key: string): number | null
     }
   }
   return null;
-}
-
-function readBoolean(record: Record<string, unknown>, key: string): boolean | null {
-  const value = Reflect.get(record, key);
-  return typeof value === 'boolean' ? value : null;
 }
 
 function readRecord(record: Record<string, unknown>, key: string): Record<string, unknown> | null {
@@ -155,28 +191,6 @@ function parseOccurredAt(notification: Record<string, unknown>, fallbackIso: str
   return toIsoFromMillisString(readString(notification, 'eventTimeMillis')) ?? fallbackIso;
 }
 
-function parseSubscriptionStateToStatus(
-  state: string | null,
-  autoRenewEnabled: boolean | null
-): NormalizedSubscriptionSnapshot['status'] {
-  if (state === 'SUBSCRIPTION_STATE_ACTIVE') {
-    return autoRenewEnabled === false ? 'cancelled_active' : 'active';
-  }
-  if (state === 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD') {
-    return 'in_grace_period';
-  }
-  if (state === 'SUBSCRIPTION_STATE_ON_HOLD' || state === 'SUBSCRIPTION_STATE_PAUSED') {
-    return 'past_due';
-  }
-  if (state === 'SUBSCRIPTION_STATE_CANCELED') {
-    return 'cancelled_active';
-  }
-  if (state === 'SUBSCRIPTION_STATE_EXPIRED') {
-    return 'expired';
-  }
-  return 'pending';
-}
-
 function isSandboxSubscriptionPurchase(purchase: Record<string, unknown>): boolean {
   return readRecord(purchase, 'testPurchase') !== null;
 }
@@ -211,16 +225,30 @@ function selectLatestLineItem(purchase: Record<string, unknown>): Record<string,
   );
 }
 
+/**
+ * A line item Play bills again on its own is not sold here. Prepaid line items are.
+ */
+function lineItemIsPrepaid(lineItem: Record<string, unknown> | null): boolean {
+  if (lineItem === null) {
+    return false;
+  }
+  if (
+    readRecord(lineItem, 'autoRenewingPlan') !== null &&
+    readRecord(lineItem, 'prepaidPlan') === null
+  ) {
+    return false;
+  }
+  return readRecord(lineItem, 'prepaidPlan') !== null;
+}
+
 interface SubscriptionContext {
   accountBillingCustomerRef: string | null;
   externalProductId: string | null;
   externalBasePlanId: string | null;
-  purchaseKind: 'one_time' | 'auto_renew';
   periodStart: string | null;
   periodEnd: string | null;
   externalTransactionId: string | null;
-  autoRenewEnabled: boolean | null;
-  linkedPurchaseToken: string | null;
+  isPrepaid: boolean;
   isSandbox: boolean;
   rawLineItem: Record<string, unknown> | null;
 }
@@ -232,8 +260,6 @@ function readSubscriptionContext(
   const lineItem = selectLatestLineItem(purchase);
   const accountIdentifiers = readRecord(purchase, 'externalAccountIdentifiers');
   const offerDetails = lineItem === null ? null : readRecord(lineItem, 'offerDetails');
-  const autoRenewingPlan = lineItem === null ? null : readRecord(lineItem, 'autoRenewingPlan');
-  const prepaidPlan = lineItem === null ? null : readRecord(lineItem, 'prepaidPlan');
   return {
     accountBillingCustomerRef:
       (accountIdentifiers === null
@@ -242,36 +268,26 @@ function readSubscriptionContext(
       readString(purchase, 'obfuscatedExternalAccountId'),
     externalProductId:
       (lineItem === null ? null : readString(lineItem, 'productId')) ?? fallbackProductId,
-    externalBasePlanId:
-      (offerDetails === null ? null : readString(offerDetails, 'basePlanId')) ??
-      (autoRenewingPlan === null ? null : readString(autoRenewingPlan, 'basePlanId')),
-    purchaseKind: prepaidPlan === null ? 'auto_renew' : 'one_time',
+    externalBasePlanId: offerDetails === null ? null : readString(offerDetails, 'basePlanId'),
     periodStart: lineItem === null ? null : readString(lineItem, 'startTime'),
     periodEnd: lineItem === null ? null : readString(lineItem, 'expiryTime'),
     externalTransactionId:
-      (lineItem === null ? null : readString(lineItem, 'latestSuccessfulOrderId')) ??
-      readString(purchase, 'latestOrderId'),
-    autoRenewEnabled:
-      autoRenewingPlan === null ? null : readBoolean(autoRenewingPlan, 'autoRenewEnabled'),
-    linkedPurchaseToken: readString(purchase, 'linkedPurchaseToken'),
+      lineItem === null ? null : readString(lineItem, 'latestSuccessfulOrderId'),
+    isPrepaid: lineItemIsPrepaid(lineItem),
     isSandbox: isSandboxSubscriptionPurchase(purchase),
     rawLineItem: lineItem,
   };
 }
 
-function mapSubscriptionAmount(context: SubscriptionContext): BillingAmount | null {
+function mapPrepaidAmount(context: SubscriptionContext): BillingAmount | null {
   if (context.rawLineItem === null) {
     return null;
   }
-  const autoRenewingPlan = readRecord(context.rawLineItem, 'autoRenewingPlan');
-  if (autoRenewingPlan !== null) {
-    return amountFromPriceRecord(readRecord(autoRenewingPlan, 'recurringPrice'));
-  }
   const prepaidPlan = readRecord(context.rawLineItem, 'prepaidPlan');
-  if (prepaidPlan !== null) {
-    return amountFromPriceRecord(readRecord(prepaidPlan, 'price'));
+  if (prepaidPlan === null) {
+    return null;
   }
-  return null;
+  return amountFromPriceRecord(readRecord(prepaidPlan, 'price'));
 }
 
 function buildEventId(messageId: string, suffix: string): string {
@@ -282,16 +298,41 @@ function parseNotificationType(record: Record<string, unknown>): number | null {
   return readNumber(record, 'notificationType');
 }
 
+function isMappedPrepaid(
+  context: SubscriptionContext,
+  soldProducts: readonly SoldBillingProduct[],
+  notificationType: string
+): boolean {
+  if (!context.isPrepaid) {
+    logUnmappedBillingProduct(context.externalProductId, notificationType);
+    return false;
+  }
+  if (!isSoldProduct(soldProducts, context.externalProductId, context.externalBasePlanId)) {
+    logUnmappedBillingProduct(context.externalProductId, notificationType);
+    return false;
+  }
+  return context.externalTransactionId !== null;
+}
+
 async function mapSubscriptionNotificationEvents(
   messageId: string,
   occurredAt: string,
   subscriptionNotification: Record<string, unknown>,
-  client: GooglePlayClient
+  client: GooglePlayClient,
+  soldProducts: readonly SoldBillingProduct[]
 ): Promise<NormalizedBillingEvent[]> {
   const purchaseToken = readString(subscriptionNotification, 'purchaseToken');
   if (purchaseToken === null) {
     return [];
   }
+  const notificationType = parseNotificationType(subscriptionNotification);
+  if (
+    notificationType !== SUBSCRIPTION_NOTIFICATION_PURCHASED &&
+    notificationType !== SUBSCRIPTION_NOTIFICATION_REVOKED
+  ) {
+    return [];
+  }
+
   const fallbackProductId = readString(subscriptionNotification, 'subscriptionId');
   const purchase = await client.getSubscriptionPurchase(purchaseToken);
   if (purchase === null) {
@@ -299,217 +340,75 @@ async function mapSubscriptionNotificationEvents(
   }
 
   const context = readSubscriptionContext(purchase, fallbackProductId);
-  const notificationType = parseNotificationType(subscriptionNotification);
-  const events: NormalizedBillingEvent[] = [];
+  const notificationLabel = String(notificationType);
+  if (!isMappedPrepaid(context, soldProducts, notificationLabel)) {
+    return [];
+  }
+  const externalTransactionId = context.externalTransactionId;
+  if (externalTransactionId === null) {
+    return [];
+  }
 
   if (notificationType === SUBSCRIPTION_NOTIFICATION_PURCHASED) {
-    if (
-      context.externalTransactionId !== null &&
-      context.periodStart !== null &&
-      context.periodEnd !== null
-    ) {
-      events.push({
+    if (isSubscriptionAcknowledgementPending(purchase)) {
+      const productId = context.externalProductId ?? fallbackProductId;
+      if (productId !== null) {
+        await client.acknowledgeSubscriptionPurchase(productId, purchaseToken);
+      }
+    }
+    return [
+      {
         type: 'payment_settled',
         processor: 'google_play',
-        processorEventId: buildEventId(messageId, 'subscription_purchased'),
+        processorEventId: buildEventId(messageId, 'purchased'),
         accountBillingCustomerRef: context.accountBillingCustomerRef,
         accountId: null,
         occurredAt,
         isSandbox: context.isSandbox,
-        purchaseKind: context.purchaseKind,
-        externalTransactionId: context.externalTransactionId,
-        externalSubscriptionId: purchaseToken,
+        externalTransactionId,
         externalProductId: context.externalProductId,
         externalBasePlanId: context.externalBasePlanId,
         periodStart: context.periodStart,
         periodEnd: context.periodEnd,
-        amount: mapSubscriptionAmount(context),
-      });
-    } else {
-      events.push({
-        type: 'subscription_activated',
-        processor: 'google_play',
-        processorEventId: buildEventId(messageId, 'subscription_activated'),
-        accountBillingCustomerRef: context.accountBillingCustomerRef,
-        accountId: null,
-        occurredAt,
-        isSandbox: context.isSandbox,
-        externalSubscriptionId: purchaseToken,
-        externalProductId: context.externalProductId,
-        externalBasePlanId: context.externalBasePlanId,
-        periodStart: context.periodStart,
-        periodEnd: context.periodEnd,
-      });
-    }
-    if (
-      context.linkedPurchaseToken !== null &&
-      context.linkedPurchaseToken.length > 0 &&
-      context.linkedPurchaseToken !== purchaseToken
-    ) {
-      events.push({
-        type: 'subscription_expired',
-        processor: 'google_play',
-        processorEventId: buildEventId(messageId, `superseded_${context.linkedPurchaseToken}`),
-        accountBillingCustomerRef: context.accountBillingCustomerRef,
-        accountId: null,
-        occurredAt,
-        isSandbox: context.isSandbox,
-        externalSubscriptionId: context.linkedPurchaseToken,
-        expiredAt: context.periodStart ?? occurredAt,
-        replacedByExternalSubscriptionId: purchaseToken,
-      });
-    }
-    return events;
+        amount: mapPrepaidAmount(context),
+      },
+    ];
   }
 
-  if (
-    notificationType === SUBSCRIPTION_NOTIFICATION_RENEWED &&
-    context.externalTransactionId !== null &&
-    context.periodStart !== null &&
-    context.periodEnd !== null
-  ) {
-    events.push({
-      type: 'subscription_renewed',
-      processor: 'google_play',
-      processorEventId: buildEventId(messageId, 'subscription_renewed'),
-      accountBillingCustomerRef: context.accountBillingCustomerRef,
-      accountId: null,
-      occurredAt,
-      isSandbox: context.isSandbox,
-      externalSubscriptionId: purchaseToken,
-      externalProductId: context.externalProductId,
-      externalBasePlanId: context.externalBasePlanId,
-      externalTransactionId: context.externalTransactionId,
-      periodStart: context.periodStart,
-      periodEnd: context.periodEnd,
-      amount: mapSubscriptionAmount(context),
-    });
-    return events;
-  }
-
-  if (notificationType === SUBSCRIPTION_NOTIFICATION_RESTARTED) {
-    events.push({
-      type: 'subscription_activated',
-      processor: 'google_play',
-      processorEventId: buildEventId(messageId, 'subscription_restarted'),
-      accountBillingCustomerRef: context.accountBillingCustomerRef,
-      accountId: null,
-      occurredAt,
-      isSandbox: context.isSandbox,
-      externalSubscriptionId: purchaseToken,
-      externalProductId: context.externalProductId,
-      externalBasePlanId: context.externalBasePlanId,
-      periodStart: context.periodStart,
-      periodEnd: context.periodEnd,
-    });
-    return events;
-  }
-
-  if (notificationType === SUBSCRIPTION_NOTIFICATION_RECOVERED) {
-    events.push({
-      type: 'grace_exited',
-      processor: 'google_play',
-      processorEventId: buildEventId(messageId, 'grace_recovered'),
-      accountBillingCustomerRef: context.accountBillingCustomerRef,
-      accountId: null,
-      occurredAt,
-      isSandbox: context.isSandbox,
-      externalSubscriptionId: purchaseToken,
-      outcome: 'recovered',
-    });
-    return events;
-  }
-
-  if (notificationType === SUBSCRIPTION_NOTIFICATION_IN_GRACE_PERIOD) {
-    events.push({
-      type: 'grace_entered',
-      processor: 'google_play',
-      processorEventId: buildEventId(messageId, 'grace_entered'),
-      accountBillingCustomerRef: context.accountBillingCustomerRef,
-      accountId: null,
-      occurredAt,
-      isSandbox: context.isSandbox,
-      externalSubscriptionId: purchaseToken,
-      periodEnd: context.periodEnd,
-      processorGracePeriodEndsAt: context.periodEnd,
-    });
-    return events;
-  }
-
-  if (notificationType === SUBSCRIPTION_NOTIFICATION_ON_HOLD) {
-    events.push({
-      type: 'grace_exited',
-      processor: 'google_play',
-      processorEventId: buildEventId(messageId, 'grace_lapsed'),
-      accountBillingCustomerRef: context.accountBillingCustomerRef,
-      accountId: null,
-      occurredAt,
-      isSandbox: context.isSandbox,
-      externalSubscriptionId: purchaseToken,
-      outcome: 'lapsed',
-    });
-    return events;
-  }
-
-  if (notificationType === SUBSCRIPTION_NOTIFICATION_CANCELED) {
-    events.push({
-      type: 'subscription_cancelled',
-      processor: 'google_play',
-      processorEventId: buildEventId(messageId, 'subscription_cancelled'),
-      accountBillingCustomerRef: context.accountBillingCustomerRef,
-      accountId: null,
-      occurredAt,
-      isSandbox: context.isSandbox,
-      externalSubscriptionId: purchaseToken,
-      periodEnd: context.periodEnd,
-    });
-    return events;
-  }
-
-  if (notificationType === SUBSCRIPTION_NOTIFICATION_REVOKED) {
-    events.push({
+  return [
+    {
       type: 'refund_or_revoke',
       processor: 'google_play',
-      processorEventId: buildEventId(messageId, 'subscription_revoked'),
+      processorEventId: buildEventId(messageId, 'revoked'),
       accountBillingCustomerRef: context.accountBillingCustomerRef,
       accountId: null,
       occurredAt,
       isSandbox: context.isSandbox,
       reason: 'store_revoke',
       revokedAt: occurredAt,
-      externalTransactionId: context.externalTransactionId,
-      externalSubscriptionId: purchaseToken,
-    });
-    return events;
-  }
-
-  if (notificationType === SUBSCRIPTION_NOTIFICATION_EXPIRED) {
-    events.push({
-      type: 'subscription_expired',
-      processor: 'google_play',
-      processorEventId: buildEventId(messageId, 'subscription_expired'),
-      accountBillingCustomerRef: context.accountBillingCustomerRef,
-      accountId: null,
-      occurredAt,
-      isSandbox: context.isSandbox,
-      externalSubscriptionId: purchaseToken,
-      expiredAt: context.periodEnd ?? occurredAt,
-    });
-    return events;
-  }
-
-  return [];
+      externalTransactionId,
+    },
+  ];
 }
 
 async function mapOneTimeProductNotificationEvents(
   messageId: string,
   occurredAt: string,
   oneTimeNotification: Record<string, unknown>,
-  client: GooglePlayClient
+  client: GooglePlayClient,
+  soldProducts: readonly SoldBillingProduct[]
 ): Promise<NormalizedBillingEvent[]> {
   const sku = readString(oneTimeNotification, 'sku');
   const purchaseToken = readString(oneTimeNotification, 'purchaseToken');
   if (sku === null || purchaseToken === null) {
+    return [];
+  }
+
+  const notificationType = parseNotificationType(oneTimeNotification);
+  const notificationLabel =
+    notificationType === null ? 'one_time' : `one_time:${String(notificationType)}`;
+  if (!isSoldProduct(soldProducts, sku, null)) {
+    logUnmappedBillingProduct(sku, notificationLabel);
     return [];
   }
 
@@ -525,7 +424,6 @@ async function mapOneTimeProductNotificationEvents(
     readString(productPurchase, 'priceCurrencyCode')
   );
   const isSandbox = isSandboxProductPurchase(productPurchase);
-  const notificationType = parseNotificationType(oneTimeNotification);
 
   if (notificationType === ONE_TIME_PRODUCT_NOTIFICATION_PURCHASED) {
     return [
@@ -537,9 +435,7 @@ async function mapOneTimeProductNotificationEvents(
         accountId: null,
         occurredAt,
         isSandbox,
-        purchaseKind: 'one_time',
         externalTransactionId,
-        externalSubscriptionId: null,
         externalProductId: sku,
         externalBasePlanId: null,
         periodStart: null,
@@ -562,7 +458,6 @@ async function mapOneTimeProductNotificationEvents(
         reason: 'refund',
         revokedAt: occurredAt,
         externalTransactionId,
-        externalSubscriptionId: null,
       },
     ];
   }
@@ -581,6 +476,9 @@ async function mapVoidedNotificationEvents(
   const refundType = readNumber(voidedNotification, 'refundType');
   const productType = readNumber(voidedNotification, 'productType');
   const isSubscription = productType === 1;
+  if (isSubscription && orderId === null) {
+    return [];
+  }
 
   let accountBillingCustomerRef: string | null = null;
   let isSandbox = false;
@@ -593,29 +491,8 @@ async function mapVoidedNotificationEvents(
     }
   }
 
-  const externalSubscriptionId = isSubscription ? purchaseToken : null;
-  const externalTransactionId = orderId;
-  if (externalSubscriptionId === null && externalTransactionId === null) {
-    return [];
-  }
-  if (externalTransactionId !== null) {
-    return [
-      {
-        type: 'refund_or_revoke',
-        processor: 'google_play',
-        processorEventId: buildEventId(messageId, 'voided_purchase'),
-        accountBillingCustomerRef,
-        accountId: null,
-        occurredAt,
-        isSandbox,
-        reason: refundType === 2 ? 'chargeback' : 'refund',
-        revokedAt: occurredAt,
-        externalTransactionId,
-        externalSubscriptionId,
-      },
-    ];
-  }
-  if (externalSubscriptionId === null) {
+  const externalTransactionId = orderId ?? purchaseToken;
+  if (externalTransactionId === null) {
     return [];
   }
 
@@ -630,59 +507,30 @@ async function mapVoidedNotificationEvents(
       isSandbox,
       reason: refundType === 2 ? 'chargeback' : 'refund',
       revokedAt: occurredAt,
-      externalTransactionId: null,
-      externalSubscriptionId,
+      externalTransactionId,
     },
   ];
 }
 
-function mapSubscriptionSnapshot(
-  purchaseToken: string,
-  fetchedAt: string,
-  purchase: Record<string, unknown>,
-  fallbackProductId: string | null
-): NormalizedSubscriptionSnapshot {
-  const context = readSubscriptionContext(purchase, fallbackProductId);
-  const state = readString(purchase, 'subscriptionState');
-  const status = parseSubscriptionStateToStatus(state, context.autoRenewEnabled);
-  return {
-    processor: 'google_play',
-    externalSubscriptionId: purchaseToken,
-    accountBillingCustomerRef: context.accountBillingCustomerRef,
-    externalProductId: context.externalProductId,
-    externalBasePlanId: context.externalBasePlanId,
-    status,
-    purchaseKind: context.purchaseKind,
-    currentPeriodStart: context.periodStart,
-    currentPeriodEnd: context.periodEnd,
-    cancelAtPeriodEnd:
-      context.autoRenewEnabled === false || state === 'SUBSCRIPTION_STATE_CANCELED',
-    isSandbox: context.isSandbox,
-    fetchedAt,
-    schemaVersion: 'google-play-subscription-v2',
-    rawPayload: purchase,
-  };
-}
-
 function mapSubscriptionTransactionSnapshot(
-  purchaseToken: string,
   fetchedAt: string,
   purchase: Record<string, unknown>,
   fallbackProductId: string | null
-): NormalizedTransactionSnapshot {
+): NormalizedTransactionSnapshot | null {
   const context = readSubscriptionContext(purchase, fallbackProductId);
+  if (context.externalTransactionId === null) {
+    return null;
+  }
   return {
     processor: 'google_play',
-    externalTransactionId: context.externalTransactionId ?? purchaseToken,
-    externalSubscriptionId: purchaseToken,
+    externalTransactionId: context.externalTransactionId,
     accountBillingCustomerRef: context.accountBillingCustomerRef,
     externalProductId: context.externalProductId,
     externalBasePlanId: context.externalBasePlanId,
-    purchaseKind: context.purchaseKind,
     settledAt: context.periodStart ?? fetchedAt,
     periodStart: context.periodStart,
     periodEnd: context.periodEnd,
-    amount: mapSubscriptionAmount(context),
+    amount: mapPrepaidAmount(context),
     revokedAt: null,
     revocationReason: null,
     isSandbox: context.isSandbox,
@@ -701,11 +549,9 @@ function mapProductTransactionSnapshot(
   return {
     processor: 'google_play',
     externalTransactionId: readString(productPurchase, 'orderId') ?? purchaseToken,
-    externalSubscriptionId: null,
     accountBillingCustomerRef: readString(productPurchase, 'obfuscatedExternalAccountId'),
     externalProductId,
     externalBasePlanId: null,
-    purchaseKind: 'one_time',
     settledAt:
       toIsoFromMillisString(readString(productPurchase, 'purchaseTimeMillis')) ?? fetchedAt,
     periodStart: null,
@@ -737,12 +583,8 @@ function isProductAcknowledgementPending(productPurchase: Record<string, unknown
   return state === 0;
 }
 
-function resolveSubscriptionProductId(
-  purchase: Record<string, unknown>,
-  fallbackProductId: string
-): string {
-  const context = readSubscriptionContext(purchase, fallbackProductId);
-  return context.externalProductId ?? fallbackProductId;
+function orderIdMatchesCaller(callerOrderId: string | null | undefined, orderId: string): boolean {
+  return callerOrderId === undefined || callerOrderId === null || callerOrderId === orderId;
 }
 
 export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): PaymentProcessorAdapter {
@@ -752,6 +594,7 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
       packageName: config.packageName,
       serviceAccountJsonPath: config.serviceAccountJsonPath,
     });
+  const soldProducts = loadSoldProducts(config.soldProducts);
   const nowIso = (): string => new Date().toISOString();
 
   return {
@@ -800,7 +643,8 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
             parsedPush.messageId,
             occurredAt,
             subscriptionNotification,
-            client
+            client,
+            soldProducts
           ))
         );
       }
@@ -810,7 +654,8 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
             parsedPush.messageId,
             occurredAt,
             oneTimeProductNotification,
-            client
+            client,
+            soldProducts
           ))
         );
       }
@@ -836,26 +681,32 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
       };
     },
 
-    async fetchSubscription(ref): Promise<NormalizedSubscriptionSnapshot> {
-      const purchase = await client.getSubscriptionPurchase(ref.externalId);
-      if (purchase === null) {
-        throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
-      }
-      return mapSubscriptionSnapshot(ref.externalId, nowIso(), purchase, ref.externalProductId);
-    },
-
     async fetchTransaction(ref): Promise<NormalizedTransactionSnapshot> {
       const fetchedAt = nowIso();
       const subscriptionPurchase = await client.getSubscriptionPurchase(ref.externalId);
       if (subscriptionPurchase !== null) {
-        return mapSubscriptionTransactionSnapshot(
-          ref.externalId,
+        const context = readSubscriptionContext(subscriptionPurchase, ref.externalProductId);
+        if (!isMappedPrepaid(context, soldProducts, 'fetchTransaction')) {
+          throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
+        }
+        const snapshot = mapSubscriptionTransactionSnapshot(
           fetchedAt,
           subscriptionPurchase,
           ref.externalProductId
         );
+        if (
+          snapshot === null ||
+          !orderIdMatchesCaller(ref.externalTransactionId, snapshot.externalTransactionId)
+        ) {
+          throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
+        }
+        return snapshot;
       }
       if (ref.externalProductId === null) {
+        throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
+      }
+      if (!isSoldProduct(soldProducts, ref.externalProductId, null)) {
+        logUnmappedBillingProduct(ref.externalProductId, 'fetchTransaction');
         throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
       }
       const productPurchase = await client.getProductPurchase(
@@ -865,12 +716,16 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
       if (productPurchase === null) {
         throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
       }
-      return mapProductTransactionSnapshot(
+      const snapshot = mapProductTransactionSnapshot(
         ref.externalId,
         fetchedAt,
         productPurchase,
         ref.externalProductId
       );
+      if (!orderIdMatchesCaller(ref.externalTransactionId, snapshot.externalTransactionId)) {
+        throw new BillingProcessorRecordNotFoundError('google_play', ref.externalId);
+      }
+      return snapshot;
     },
 
     async acknowledgePurchase(acknowledgement: BillingPurchaseAcknowledgement): Promise<void> {
@@ -879,14 +734,12 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
       );
       if (subscriptionPurchase !== null) {
         if (isSubscriptionAcknowledgementPending(subscriptionPurchase)) {
-          const subscriptionId = resolveSubscriptionProductId(
+          const context = readSubscriptionContext(
             subscriptionPurchase,
             acknowledgement.externalProductId
           );
-          await client.acknowledgeSubscriptionPurchase(
-            subscriptionId,
-            acknowledgement.purchaseToken
-          );
+          const productId = context.externalProductId ?? acknowledgement.externalProductId;
+          await client.acknowledgeSubscriptionPurchase(productId, acknowledgement.purchaseToken);
         }
         return;
       }
@@ -904,10 +757,6 @@ export function createGooglePlayAdapter(config: GooglePlayAdapterConfig): Paymen
           acknowledgement.purchaseToken
         );
       }
-    },
-
-    async cancelAutoRenew(_externalSubscriptionId) {
-      return { outcome: 'manage_in_store' };
     },
   };
 }

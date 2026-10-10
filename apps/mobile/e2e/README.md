@@ -59,13 +59,14 @@ Use one flow file per area:
 `SPEC` naming follows the same basename without `.yaml` (for example `hello-world` maps to
 `apps/mobile/e2e/hello-world.yaml`).
 
-## Why we dismiss the dev menu (and the release-build alternative)
+## Dev client launcher (and the release-build alternative)
 
 Local mobile E2E uses an **Expo development client** + Metro (`npm run mobile:dev`). After
-`clearState`, the launcher and the first-run **developer menu** (Continue) show again. Flows do not
-fight that by skipping `clearState`; they go through `shared/connect-dev-client.yaml`, which
-connects to Metro and dismisses the menu before assertions. That is intentional for the fast
-local loop (no full native rebuild on every JS change).
+`clearState`, the launcher shows again, so flows go through `shared/connect-dev-client.yaml`, which
+connects to Metro before assertions. The **developer menu** does not open at launch: the dev client
+is built with `showMenuAtLaunch: false`, `skipOnboarding: true`, and `toolsButton: false` (see
+[HOW-TO-RUN.md § Dev-client developer menu](./HOW-TO-RUN.md#dev-client-developer-menu)). That is
+intentional for the fast local loop (no full native rebuild on every JS change).
 
 **CI-grade / release-path alternative** (not wired yet): run Maestro against a **non-dev-client**
 preview/release binary (no launcher, no developer menu, no Metro). Today

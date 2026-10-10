@@ -21,19 +21,24 @@ describe('createTestAdapter', () => {
     });
 
     const event = adapter.simulateEvent({
-      type: 'subscription_cancelled',
+      type: 'payment_settled',
       accountBillingCustomerRef: null,
       accountId: 7,
-      externalSubscriptionId: 'sub-1',
+      externalTransactionId: 'txn-1',
+      externalProductId: 'monthly',
+      externalBasePlanId: null,
+      periodStart: null,
       periodEnd: null,
+      amount: null,
     });
 
     expect(event).toMatchObject({
-      type: 'subscription_cancelled',
+      type: 'payment_settled',
       processor: 'test',
       occurredAt: '2026-01-01T00:00:00.000Z',
       isSandbox: true,
       accountId: 7,
+      externalTransactionId: 'txn-1',
     });
     expect(event.processorEventId).not.toBe('');
   });

@@ -4,6 +4,7 @@ import { getMobileBillingModeFromEnv } from '../config/billingEnv';
 import type { BillingApi } from './billingApi';
 import type { BillingStoreProduct } from './BillingClient';
 import { billingPurchaseOutcome, BillingUnavailableError } from './BillingClient';
+import { isAlreadyOwnedStoreError } from './billingGuards';
 import { bindAccountToken } from './bindAccountToken';
 import {
   createFakeBillingClient,
@@ -14,11 +15,14 @@ import {
 import { listStorePrices, localizedPricesFromStoreProducts } from './localizedPrices';
 import { normalizeStorefrontCode } from './normalizeStorefront';
 import { isPurchaseFromStore, normalizeStorePurchase } from './normalizeStorePurchase';
-import { mergeCatalogKinds } from './purchaseKinds';
 import { restoreStorePurchases } from './restoreStorePurchases';
 import { selectBillingBackend } from './selectBillingBackend';
-import { selectPlayOfferToken } from './selectPlayOfferToken';
+import { resolvePrepaidPlayOffer, selectPlayOfferToken } from './selectPlayOfferToken';
 import { settleStorePurchase } from './settleStorePurchase';
+import {
+  playSubscriptionPurchaseRequest,
+  storekitInAppPurchaseRequest,
+} from './storePurchaseRequest';
 import { createUnavailableBillingClient } from './unavailableBillingClient';
 
 const ACCOUNT_REF = '00000000-0000-4000-8000-000000000001';
@@ -227,18 +231,62 @@ describe('selectPlayOfferToken', () => {
 
   it('returns null when the base plan is unknown so purchase can fail closed', () => {
     expect(selectPlayOfferToken(offers, 'missing-plan')).toBeNull();
+    expect(resolvePrepaidPlayOffer(offers, 'missing-plan')).toBeNull();
+    expect(resolvePrepaidPlayOffer(offers, null)).toBeNull();
+    expect(resolvePrepaidPlayOffer(offers, '')).toBeNull();
   });
 
   it('falls back to the first token when no base plan is requested', () => {
     expect(selectPlayOfferToken(offers, null)).toBe('token-monthly');
   });
+
+  it('selects the prepaid base-plan offer and ignores a missing plan', () => {
+    expect(resolvePrepaidPlayOffer(offers, 'prepaid-annual')).toBe('token-prepaid-annual');
+  });
+});
+
+describe('store purchase requests', () => {
+  it('buys Apple memberships as in-app products', () => {
+    expect(storekitInAppPurchaseRequest('premium.monthly', ACCOUNT_REF)).toEqual({
+      request: {
+        apple: {
+          andDangerouslyFinishTransactionAutomatically: false,
+          appAccountToken: ACCOUNT_REF,
+          sku: 'premium.monthly',
+        },
+      },
+      type: 'in-app',
+    });
+  });
+
+  it('buys Play memberships as subscriptions with the prepaid offer token', () => {
+    const request = playSubscriptionPurchaseRequest(
+      'premium.monthly',
+      'token-prepaid',
+      ACCOUNT_REF
+    );
+    expect(request.type).toBe('subs');
+    expect(request.request.google.subscriptionOffers).toEqual([
+      { offerToken: 'token-prepaid', sku: 'premium.monthly' },
+    ]);
+    expect(request.request.google).not.toHaveProperty('purchaseToken');
+    expect(request.request.google).not.toHaveProperty('subscriptionProductReplacementParams');
+  });
+});
+
+describe('isAlreadyOwnedStoreError', () => {
+  it('recognizes the Play already-owned codes', () => {
+    expect(isAlreadyOwnedStoreError({ code: 'E_ALREADY_OWNED' })).toBe(true);
+    expect(isAlreadyOwnedStoreError({ code: 'already-owned' })).toBe(true);
+    expect(isAlreadyOwnedStoreError({ code: '7' })).toBe(true);
+    expect(isAlreadyOwnedStoreError({ code: 'E_USER_CANCELLED' })).toBe(false);
+  });
 });
 
 describe('restoreStorePurchases', () => {
   const product: BillingStoreProduct = {
-    basePlanId: null,
+    basePlanId: 'prepaid-monthly',
     productId: 'premium.monthly',
-    purchaseKind: 'auto_renew',
   };
 
   it('finishes a confirmed batch and skips an unconfirmed one', async () => {
@@ -252,13 +300,11 @@ describe('restoreStorePurchases', () => {
           externalId: 'tx-1',
           externalProductId: product.productId,
           finish: finishConfirmed,
-          purchaseKind: product.purchaseKind,
         },
         {
           externalId: 'tx-2',
           externalProductId: product.productId,
           finish: finishUnconfirmed,
-          purchaseKind: product.purchaseKind,
         },
       ],
       restore: (purchases) => Promise.resolve({ confirmed: purchases[0]?.externalId === 'tx-1' }),
@@ -287,7 +333,6 @@ describe('restoreStorePurchases', () => {
           externalId: 'tx-1',
           externalProductId: product.productId,
           finish: () => Promise.resolve(),
-          purchaseKind: product.purchaseKind,
           signedTransaction: 'header.payload.signature',
         },
       ],
@@ -297,56 +342,36 @@ describe('restoreStorePurchases', () => {
       {
         externalId: 'tx-1',
         externalProductId: product.productId,
-        purchaseKind: product.purchaseKind,
         signedTransaction: 'header.payload.signature',
       },
     ]);
   });
 });
 
-describe('mergeCatalogKinds', () => {
-  it('keeps a kind already chosen for the purchase', () => {
-    const kinds = new Map([['premium.monthly', 'auto_renew' as const]]);
-    mergeCatalogKinds(kinds, {
-      processors: [
-        {
-          processor_id: 'test',
-          products: [
-            {
-              cadence: 'monthly',
-              external_product_id: 'premium.monthly',
-              id: 1,
-              purchase_kind: 'one_time',
-            },
-          ],
-        },
-      ],
-    });
-    expect(kinds.get('premium.monthly')).toBe('auto_renew');
-  });
-});
-
 describe('createFakeBillingClient', () => {
   it('confirms a purchase after the test processor records it', async () => {
+    const simulatePayment = vi.fn(() => Promise.resolve({ outcome: { status: 'processed' } }));
     const client = createFakeBillingClient(
       stubBillingApi({
         getStatus: () => Promise.resolve({ billing_customer_ref: ACCOUNT_REF }),
-        simulatePayment: () => Promise.resolve({ outcome: { status: 'processed' } }),
+        simulatePayment,
       })
     );
     await expect(client.getStorefront()).resolves.toBe(FAKE_BILLING_STOREFRONT);
     const outcome = await client.purchase({
       basePlanId: null,
-      productId: 'e2e-test-monthly-renew',
-      purchaseKind: 'auto_renew',
+      productId: 'e2e-test-monthly',
     });
     expect(outcome.phase).toBe('confirmed');
-    expect(outcome.externalId).toBe('fake-e2e-test-monthly-renew-1');
-    await expect(
-      client.listPrices(['e2e-test-monthly-renew', 'e2e-test-annual-renew'])
-    ).resolves.toEqual([
-      { displayPrice: FAKE_BILLING_PRICE_MONTHLY, productId: 'e2e-test-monthly-renew' },
-      { displayPrice: FAKE_BILLING_PRICE_ANNUAL, productId: 'e2e-test-annual-renew' },
+    expect(outcome.externalId).toBe('fake-e2e-test-monthly-1');
+    expect(simulatePayment).toHaveBeenCalledWith({
+      cadence: 'monthly',
+      externalProductId: 'e2e-test-monthly',
+      externalTransactionId: 'fake-e2e-test-monthly-1',
+    });
+    await expect(client.listPrices(['e2e-test-monthly', 'e2e-test-annual'])).resolves.toEqual([
+      { displayPrice: FAKE_BILLING_PRICE_MONTHLY, productId: 'e2e-test-monthly' },
+      { displayPrice: FAKE_BILLING_PRICE_ANNUAL, productId: 'e2e-test-annual' },
     ]);
     await expect(client.restore()).resolves.toMatchObject({ phase: 'confirmed' });
   });
@@ -360,8 +385,7 @@ describe('createFakeBillingClient', () => {
     );
     const outcome = await client.purchase({
       basePlanId: null,
-      productId: 'e2e-test-monthly-once',
-      purchaseKind: 'one_time',
+      productId: 'e2e-test-monthly',
     });
     expect(outcome.phase).toBe('unconfirmed');
     await expect(client.syncUnfinishedTransactions()).resolves.toBeUndefined();
@@ -375,7 +399,6 @@ describe('createUnavailableBillingClient', () => {
       client.purchase({
         basePlanId: null,
         productId: 'premium.monthly',
-        purchaseKind: 'auto_renew',
       })
     ).rejects.toBeInstanceOf(BillingUnavailableError);
     await expect(client.restore()).rejects.toBeInstanceOf(BillingUnavailableError);

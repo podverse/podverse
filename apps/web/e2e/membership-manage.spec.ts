@@ -6,36 +6,44 @@ const LOGIN_EMAIL = 'e2e-user@example.com';
 const LOGIN_PASSWORD = 'Test!1Aa';
 const API_ORIGIN = 'http://localhost:4030/api/v2';
 
-function outcomeProcessed(body: unknown): boolean {
-  if (typeof body !== 'object' || body === null || !('outcome' in body)) {
-    return false;
-  }
-  const outcome = body.outcome;
-  return (
-    typeof outcome === 'object' &&
-    outcome !== null &&
-    'status' in outcome &&
-    outcome.status === 'processed'
-  );
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function cancelledActive(body: unknown): boolean {
-  if (typeof body !== 'object' || body === null || !('status' in body)) {
+function outcomeProcessed(body: unknown): boolean {
+  if (!isRecord(body) || !isRecord(body.outcome)) {
     return false;
   }
-  const status = body.status;
-  if (typeof status !== 'object' || status === null || !('active_subscription' in status)) {
-    return false;
+  return body.outcome.status === 'processed';
+}
+
+function testProductId(body: unknown): string | null {
+  if (!isRecord(body) || !Array.isArray(body.processors)) {
+    return null;
   }
-  const subscription = status.active_subscription;
-  if (typeof subscription !== 'object' || subscription === null || !('status' in subscription)) {
-    return false;
+  for (const processor of body.processors) {
+    if (
+      !isRecord(processor) ||
+      processor.processor_id !== 'test' ||
+      !Array.isArray(processor.products)
+    ) {
+      continue;
+    }
+    for (const product of processor.products) {
+      if (
+        isRecord(product) &&
+        product.cadence === 'monthly' &&
+        typeof product.external_product_id === 'string'
+      ) {
+        return product.external_product_id;
+      }
+    }
   }
-  return subscription.status === 'cancelled_active';
+  return null;
 }
 
 test.describe('Manage membership', () => {
-  test('A premium member can turn off test auto-renew and then sees an expiration date.', async ({
+  test('A member with time sees the expiry date and a link to buy more.', async ({
     page,
   }, testInfo) => {
     const loginResponse = await page.request.post(`${API_ORIGIN}/auth/login`, {
@@ -43,17 +51,23 @@ test.describe('Manage membership', () => {
     });
     expect(loginResponse.ok(), await loginResponse.text()).toBeTruthy();
 
+    const optionsResponse = await page.request.get(
+      `${API_ORIGIN}/billing/checkout-options?platform=web`
+    );
+    expect(optionsResponse.ok(), await optionsResponse.text()).toBeTruthy();
+    const monthlyProductId = testProductId(await optionsResponse.json());
+    expect(monthlyProductId).not.toBeNull();
+
     const periodStart = new Date();
     const periodEnd = new Date(periodStart.getTime());
-    periodEnd.setUTCDate(periodEnd.getUTCDate() + 30);
+    periodEnd.setUTCMonth(periodEnd.getUTCMonth() + 1);
     const activateResponse = await page.request.post(`${API_ORIGIN}/billing/test/simulate`, {
       data: {
         event: {
-          type: 'subscription_renewed',
-          externalProductId: 'e2e-test-monthly-renew',
+          type: 'payment_settled',
+          externalProductId: monthlyProductId,
           externalBasePlanId: null,
-          externalSubscriptionId: 'e2e-manage-monthly',
-          externalTransactionId: 'e2e-manage-monthly-charge',
+          externalTransactionId: `e2e-manage-${periodStart.getTime()}`,
           periodStart: periodStart.toISOString(),
           periodEnd: periodEnd.toISOString(),
           amount: { value: '3.00', currencyCode: 'USD' },
@@ -67,31 +81,13 @@ test.describe('Manage membership', () => {
     await page.goto('/settings?tab=account');
     const membership = page.getByRole('region', { name: 'Membership' });
     await expect(membership.getByText('Premium', { exact: true })).toBeVisible();
-    await expect(membership.getByText('Test', { exact: true })).toBeVisible();
-    await expect(membership.getByText('Renews On', { exact: true })).toBeVisible();
-
-    const cancelResponse = page.waitForResponse(
-      (response) =>
-        response.url().includes('/billing/subscriptions/') &&
-        response.url().includes('/cancel') &&
-        response.request().method() === 'POST'
-    );
-    await membership.getByRole('button', { name: 'Cancel Auto-Renew' }).click();
-    const response = await cancelResponse;
-    expect(response.ok(), await response.text()).toBeTruthy();
-    const body: unknown = await response.json();
-    expect(cancelledActive(body)).toBe(true);
-
     await expect(membership.getByText('Expires On', { exact: true })).toBeVisible();
-    await expect(membership.getByText('Renews On', { exact: true })).toHaveCount(0);
-    await expect(
-      membership.getByText('Auto-renew is off. Access continues until it expires.')
-    ).toBeVisible();
+    await expect(membership.getByRole('link', { name: 'Buy More Time' })).toBeVisible();
 
     await capturePageLoad(
       page,
       testInfo,
-      'Settings shows the membership expires after auto-renew is turned off.',
+      'Settings shows the membership expiry and a link to buy more time.',
       membership.getByText('Expires On', { exact: true })
     );
   });

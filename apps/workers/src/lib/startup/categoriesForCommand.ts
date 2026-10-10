@@ -29,7 +29,6 @@ export type ConfigCategory =
 const BASE_ORM_COMMANDS = [
   'billingImportLegacyMembershipExpiry',
   'billingSeedProcessorProductsFromEnv',
-  'scheduledJobsRunDue',
   'notificationsPlatformPurge',
   'archiveAll',
   'devSeedLocalUserContent',
@@ -38,9 +37,10 @@ const BASE_ORM_COMMANDS = [
   'statsUpdateAggregatedRolling',
   'generateOnDemandParserEventReports',
   'deleteOutdatedOnDemandParserEvent',
+  'scheduledJobsRunDue',
 ] as const;
 
-const BASE_ORM_BILLING_COMMANDS = ['billingReconcileSubscriptions'] as const;
+const BASE_ORM_BILLING_COMMANDS = ['billingReconcile'] as const;
 
 const BASE_ONLY_COMMANDS = ['podcastIndexDeadFeedsDeleteCache'] as const;
 

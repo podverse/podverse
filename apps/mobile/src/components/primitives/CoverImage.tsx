@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import placeholderArtwork from '../../../assets/images/placeholder-image.png';
 import { isMobilePerfNoImagesFromEnv } from '../../config/perfNoImagesEnv';
+import { resolveE2eMediaUrl } from '../../lib/e2e/resolveE2eMediaUrl';
 import { perfCount, perfMark } from '../../lib/perf/perfSpans';
 import { isShareSheetPassthroughWindow } from '../../lib/share/shareSheetPassthrough';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
@@ -82,7 +83,7 @@ export const prefetchCoverImage = (uri: string | null | undefined): void => {
   if (uri === null || uri === undefined || uri.length === 0) {
     return;
   }
-  void Image.prefetch(uri);
+  void Image.prefetch(resolveE2eMediaUrl(uri));
 };
 
 // Only a new largest edge is marked, which keeps the timeline small; the counter counts every load.
@@ -148,12 +149,16 @@ export const CoverImage = memo(function CoverImage({
 
   const resolvedLabel = accessibilityLabel ?? t('media.image');
   const displayUri =
-    skipRemoteImages || uri === null || uri === undefined || uri.length === 0 ? null : uri;
+    skipRemoteImages || uri === null || uri === undefined || uri.length === 0
+      ? null
+      : resolveE2eMediaUrl(uri);
   const thumbnail = useCoverThumbnail(displayUri, decodeEdge);
   const failureKey =
     displayUri !== null && headers !== undefined ? `${displayUri}\u0000auth` : displayUri;
   const resolvedViewerUri =
-    viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : displayUri;
+    viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0
+      ? resolveE2eMediaUrl(viewerUri)
+      : displayUri;
 
   const viewer =
     isViewerMounted && resolvedViewerUri !== null ? (

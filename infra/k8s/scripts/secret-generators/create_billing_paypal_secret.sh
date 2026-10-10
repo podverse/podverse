@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # VERSION: 1
 # SOPS Secret podverse-billing-paypal-opaque: PayPal REST credentials.
-# Mounted with envFrom on the API, management API, and worker-billing-renewals.
+# Mounted with envFrom on the API, management API, and worker-billing-reconcile.
 # Does not support --auto-gen. See docs/billing/BILLING.md.
 
 set -euo pipefail

@@ -2,7 +2,6 @@
  * What created a membership grant. Every way of getting membership time writes a grant, and
  * `computeMembershipAccess` derives access from the grants rather than from any single timestamp.
  *
- * - `subscription_period` — one paid period of a subscription.
  * - `one_time_purchase` — a one-time purchase.
  * - `claim_token` — a redeemed membership claim token.
  * - `admin` — granted by an operator.
@@ -11,7 +10,6 @@
  * - `migration_baseline` — the membership an account already had when grants were introduced.
  */
 export const MEMBERSHIP_GRANT_SOURCES = [
-  'subscription_period',
   'one_time_purchase',
   'claim_token',
   'admin',
@@ -41,11 +39,10 @@ function isAdminEditableGrantSource(source: string): source is AdminEditableGran
 
 /**
  * True when the portal may shorten or revoke this grant: an admin-editable source with no
- * subscription, transaction, or claim token behind it, and not already revoked.
+ * transaction or claim token behind it, and not already revoked.
  */
 export function isAdminEditableGrant(grant: {
   source: string;
-  billing_subscription_id: number | null;
   billing_transaction_id: number | null;
   membership_claim_token_id: string | null;
   revoked_at?: Date | string | null;
@@ -55,7 +52,6 @@ export function isAdminEditableGrant(grant: {
   }
   return (
     isAdminEditableGrantSource(grant.source) &&
-    grant.billing_subscription_id === null &&
     grant.billing_transaction_id === null &&
     grant.membership_claim_token_id === null
   );

@@ -20,7 +20,7 @@ Include at least:
   `mobile-production-submit.yml` (no `--cwd`)
 - `docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md`
 - Google Play docs from the same session (`docs/billing/BILLING-GOOGLE-PLAY-DEVICE.md`
-  and any link edits in BILLING.md / SANDBOX / AUTO-RENEW / QUICKSTART /
+  and any link edits in BILLING.md / SANDBOX / QUICKSTART /
   APPS-MOBILE.md)
 
 Do **not** include `pv-nixos-flake` eas-cli changes in the Podverse commit

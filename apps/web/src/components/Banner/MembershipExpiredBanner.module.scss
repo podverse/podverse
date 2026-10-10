@@ -1,0 +1,15 @@
+.actions {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.dismiss {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0;
+  text-decoration: underline;
+}

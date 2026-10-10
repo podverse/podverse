@@ -23,7 +23,7 @@ Narrative: [00-master-plan.md](./00-master-plan.md). Prompts: [COPY-PASTA.md](./
 4. Do not run the import command. Give the operator the exact command and stop.
 5. Do not print email addresses from the export or the report. Counts only.
 6. Do not persist the file path. Do not commit the export or the report.
-7. Do not create accounts, payment rows, or processor subscriptions. Do not send email.
+7. Do not create accounts, payment rows, or processor records. Do not send email.
 8. No `any`. No `as` except `as const`. `===` / `!==` only. `import type` on its own line.
    Named exports. Comments describe the code as it stands.
 9. Do not run tests, lint, type-check, or builds. Do not run git commands that write.

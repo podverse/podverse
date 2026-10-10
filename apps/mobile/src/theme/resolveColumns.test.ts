@@ -4,6 +4,7 @@ import { breakpoints } from '@podverse/design-tokens';
 
 import {
   resolveColumns,
+  resolveFeedListColumns,
   resolveGridCellWidth,
   resolveGridColumns,
   resolveIsTablet,
@@ -63,6 +64,38 @@ describe('resolveGridCellWidth', () => {
 
   it('does not return a negative width when gaps exceed content width', () => {
     expect(resolveGridCellWidth({ columns: 3, contentWidth: 10, gap: 20 })).toBe(0);
+  });
+});
+
+describe('resolveFeedListColumns', () => {
+  const layout = { gap: 12, horizontalInset: 24 };
+
+  it('gives a single phone column of rows no fixed cell width', () => {
+    expect(resolveFeedListColumns({ ...layout, isGridView: false, width: 402 })).toEqual({
+      cellWidth: 0,
+      columns: 1,
+    });
+  });
+
+  it('sizes rows once a tablet list fits more than one column', () => {
+    // 849 wide (window minus the tab rail): 2 rows, (849 - 48 - 12) / 2 = 394.5
+    expect(resolveFeedListColumns({ ...layout, isGridView: false, width: 849 })).toEqual({
+      cellWidth: 394.5,
+      columns: 2,
+    });
+  });
+
+  it('counts columns from the list width, not the wider window', () => {
+    expect(resolveFeedListColumns({ ...layout, isGridView: false, width: 849 }).columns).toBe(2);
+    expect(resolveColumns(1032)).toBe(3);
+  });
+
+  it('sizes artwork tiles on a phone grid', () => {
+    // 402 wide, 3 tiles: (402 - 48 - 24) / 3 = 110
+    expect(resolveFeedListColumns({ ...layout, isGridView: true, width: 402 })).toEqual({
+      cellWidth: 110,
+      columns: 3,
+    });
   });
 });
 

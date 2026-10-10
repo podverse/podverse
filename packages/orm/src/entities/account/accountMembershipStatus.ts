@@ -25,9 +25,6 @@ export class AccountMembershipStatus {
   @Column({ type: 'text', nullable: true })
   billing_cadence?: BillingCadence | null;
 
-  @Column({ type: 'text', default: 'off' })
-  auto_renew_mode!: 'off' | 'on';
-
   @Column({ type: 'varchar', length: BILLING_IDEMPOTENCY_KEY_MAX_LENGTH, nullable: true })
   last_extension_idempotency_key?: string | null;
 

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import { chipFacePadding, chipLabelTypography } from './chipChrome';
 
 export type SortPillProps = {
   /** Names the control the value belongs to, e.g. "Sort". Paired with the value for the label. */
@@ -45,11 +45,10 @@ export function SortPill({
           borderColor: themeStyles.border.borderColor,
           borderRadius: tokens.radii.round,
           borderWidth: 1,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
+          ...chipFacePadding(tokens.spacing),
         },
         label: {
-          ...typography.label,
+          ...chipLabelTypography,
           color: themeStyles.textPrimary.color,
         },
         row: {

@@ -33,7 +33,7 @@ runs it. It does not rebuild it.
 ## Non-goals
 
 - Do not import PayPal, Apple, or Google purchase rows.
-- Do not create processor subscriptions.
+- Do not create processor records.
 - Do not email anyone.
 - Do not persist the export path.
 - Do not print emails from the file or the report.

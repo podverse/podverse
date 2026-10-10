@@ -85,11 +85,6 @@ surface derives "expiring soon" and "expired" on demand from the account snapsho
 (`getMembershipExpiryNotice` in `@podverse/helpers`), so there is nothing to schedule, nothing to
 deliver, and nothing for the user to unsubscribe from.
 
-**Auto-renew carve-out is deferred.** Users enrolled in auto-renew should not be told they are
-expiring soon, but payment functionality does not exist yet. Build the in-app surfaces so that check
-drops in later without rework — see
-[711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md).
-
 ## Acceptance criteria
 
 - A shared tier resolver in `packages/helpers` reports the active tier and denial reason; mobile and
@@ -102,8 +97,9 @@ drops in later without rework — see
 - Anonymous and account tiers are fully usable with no membership present.
 - A lapsed member can still browse, subscribe, filter, sort, download, and play, and still sees
   previously added add-by-RSS feeds.
-- Renewal reminders render at the three points above and the banner is dismissible; the dismissal is
-  remembered against the expiry it was dismissed for, so a later lapse shows it again.
+- Renewal reminders render at the three points above and the banner is dismissible. An
+  expiring-soon dismissal is remembered against the expiry it was dismissed for. An expired
+  dismissal lasts until the next launch, so the expired banner returns every launch until renewal.
 - No expiry reminder is delivered by push, email, or a scheduled job.
 - All user-facing copy resolves through i18n; no hardcoded strings.
 - Unit tests cover tier resolution including the lapsed case, and E2E covers at least one gated

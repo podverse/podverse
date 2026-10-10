@@ -1,16 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  autoRenewManageTarget,
+  addedMembershipWindow,
   availableCadences,
   checkoutProduct,
   isClientUpdateRequired,
   mapCheckoutProcessors,
   offersProcessor,
   PLAY_PACKAGE_NAME,
-  planSwitchTiming,
   resolveStoreCheckoutMode,
-  showsStackingNotice,
   storeListingUrl,
   storeProcessorId,
 } from './storeCheckout';
@@ -23,37 +21,26 @@ const options = mapCheckoutProcessors({
         {
           cadence: 'monthly',
           external_base_plan_id: null,
-          external_product_id: 'e2e-test-monthly-renew',
+          external_product_id: 'e2e-test-monthly',
           id: 1,
-          purchase_kind: 'auto_renew',
-        },
-        {
-          cadence: 'annual',
-          external_base_plan_id: null,
-          external_product_id: 'e2e-test-annual-renew',
-          id: 2,
-          purchase_kind: 'auto_renew',
         },
         {
           cadence: 'monthly',
-          external_base_plan_id: null,
-          external_product_id: 'e2e-test-monthly-once',
+          external_base_plan_id: 'prepaid-monthly',
+          external_product_id: 'e2e-test-monthly-extra',
           id: 3,
-          purchase_kind: 'one_time',
         },
         {
           cadence: 'weekly',
           external_base_plan_id: null,
           external_product_id: 'ignored',
           id: 4,
-          purchase_kind: 'auto_renew',
         },
         {
           cadence: 'annual',
           external_base_plan_id: 'prepaid-annual',
           external_product_id: 'premium',
           id: 5,
-          purchase_kind: 'one_time',
         },
       ],
     },
@@ -65,24 +52,18 @@ const options = mapCheckoutProcessors({
 });
 
 describe('store checkout selection', () => {
-  it('maps the fake client onto the test processor and ignores an unknown cadence', () => {
+  it('maps the fake client onto the test processor and keeps the first product for a cadence', () => {
     expect(storeProcessorId('fake')).toBe('test');
     expect(storeProcessorId('unavailable')).toBeNull();
-    expect(options[0]?.products).toHaveLength(4);
-    expect(checkoutProduct(options, 'test', 'annual', 'one_time')).toMatchObject({
+    expect(options[0]?.products).toHaveLength(3);
+    expect(checkoutProduct(options, 'test', 'monthly')).toMatchObject({
+      externalProductId: 'e2e-test-monthly',
+    });
+    expect(checkoutProduct(options, 'test', 'annual')).toMatchObject({
       basePlanId: 'prepaid-annual',
       externalProductId: 'premium',
     });
-  });
-
-  it('selects auto-renew when the checkbox is on and one-time when it is off', () => {
-    expect(checkoutProduct(options, 'test', 'monthly', 'auto_renew')?.externalProductId).toBe(
-      'e2e-test-monthly-renew'
-    );
-    expect(checkoutProduct(options, 'test', 'monthly', 'one_time')?.externalProductId).toBe(
-      'e2e-test-monthly-once'
-    );
-    expect(availableCadences(options, 'test', 'one_time')).toEqual(['monthly', 'annual']);
+    expect(availableCadences(options, 'test')).toEqual(['monthly', 'annual']);
   });
 
   it('shows PayPal only when checkout options include that processor', () => {
@@ -111,11 +92,29 @@ describe('store checkout selection', () => {
     expect(resolveStoreCheckoutMode({ backend: 'fake', processors: both })).toBe('purchase');
   });
 
-  it('shows the stacking notice only while membership time is still ahead', () => {
+  it('describes added time only while membership time is still ahead', () => {
     const later = Date.parse('2026-09-01T00:00:00.000Z');
-    expect(showsStackingNotice('2026-10-01T00:00:00.000Z', later)).toBe(true);
-    expect(showsStackingNotice('2026-08-01T00:00:00.000Z', later)).toBe(false);
-    expect(showsStackingNotice(null, later)).toBe(false);
+    const window = addedMembershipWindow({
+      cadence: 'monthly',
+      membershipExpiresAt: '2026-10-01T00:00:00.000Z',
+      nowMs: later,
+    });
+    expect(window?.start.toISOString()).toBe('2026-10-01T00:00:00.000Z');
+    expect(window?.end.toISOString()).toBe('2026-11-01T00:00:00.000Z');
+    expect(
+      addedMembershipWindow({
+        cadence: 'monthly',
+        membershipExpiresAt: '2026-08-01T00:00:00.000Z',
+        nowMs: later,
+      })
+    ).toBeNull();
+    expect(
+      addedMembershipWindow({
+        cadence: 'annual',
+        membershipExpiresAt: null,
+        nowMs: later,
+      })
+    ).toBeNull();
   });
 
   it('treats the update-required code as the store-update prompt', () => {
@@ -124,28 +123,8 @@ describe('store checkout selection', () => {
     expect(isClientUpdateRequired(null)).toBe(false);
   });
 
-  it('sends auto-renew changes to the processor that bills the subscription', () => {
-    expect(autoRenewManageTarget('apple')).toEqual({
-      kind: 'app_store',
-      url: 'https://apps.apple.com/account/subscriptions',
-    });
-    const play = autoRenewManageTarget('google_play');
-    expect(play.kind).toBe('play');
-    expect(play.kind === 'play' ? play.url : '').toContain(PLAY_PACKAGE_NAME);
-    expect(autoRenewManageTarget('paypal')).toEqual({ kind: 'web' });
-    expect(autoRenewManageTarget(null)).toEqual({ kind: 'web' });
-  });
-
   it('points update links at the store for that platform', () => {
     expect(storeListingUrl('ios')).toContain('apps.apple.com');
     expect(storeListingUrl('android')).toContain(PLAY_PACKAGE_NAME);
-  });
-
-  it('switches Play plans now and Apple yearly-to-monthly at the next renewal', () => {
-    expect(planSwitchTiming('play', 'monthly', 'annual')).toBe('now');
-    expect(planSwitchTiming('play', 'annual', 'monthly')).toBe('now');
-    expect(planSwitchTiming('storekit', 'monthly', 'annual')).toBe('now');
-    expect(planSwitchTiming('storekit', 'annual', 'monthly')).toBe('next_renewal');
-    expect(planSwitchTiming('fake', 'monthly', 'annual')).toBe('now');
   });
 });

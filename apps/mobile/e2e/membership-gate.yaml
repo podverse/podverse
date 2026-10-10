@@ -58,8 +58,11 @@ name: Membership Gate
     timeout: ${TIMEOUT_FAST}
 - assertVisible:
     text: ".*If you have a Trial membership and content you would like is missing, contact.*"
+# React Native gives a nested link its own accessibility element, labelled with the address, but
+# never copies the nested testID onto it. Match the element whose whole label is an address; the
+# sentence around it has spaces, so it cannot match.
 - assertVisible:
-    id: trial-limitations-missing-content-email
+    text: "[^ ]+@[^ ]+"
 - takeScreenshot: membership-gate-signup-cta
 
 - tapOn:

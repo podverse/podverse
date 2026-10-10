@@ -1,11 +1,9 @@
 import { readFileSync } from 'node:fs';
 
 import type {
-  JWSRenewalInfoDecodedPayload,
   JWSTransactionDecodedPayload,
   ResponseBodyV2DecodedPayload,
   SendTestNotificationResponse,
-  StatusResponse,
   TransactionInfoResponse,
 } from '@apple/app-store-server-library';
 import {
@@ -29,14 +27,12 @@ export type AppleServerEnvironment = 'sandbox' | 'production';
 export type AppleRuntimeEnvironment = AppleServerEnvironment | 'xcode';
 
 export interface AppleApiClient {
-  getAllSubscriptionStatuses(anyTransactionId: string): Promise<StatusResponse>;
   getTransactionInfo(transactionId: string): Promise<TransactionInfoResponse>;
   requestTestNotification(): Promise<SendTestNotificationResponse>;
 }
 
 export interface AppleSignedPayloadVerifier {
   verifyAndDecodeNotification(signedPayload: string): Promise<ResponseBodyV2DecodedPayload>;
-  verifyAndDecodeRenewalInfo(signedRenewalInfo: string): Promise<JWSRenewalInfoDecodedPayload>;
   verifyAndDecodeTransaction(signedTransactionInfo: string): Promise<JWSTransactionDecodedPayload>;
 }
 
@@ -74,7 +70,6 @@ export interface CreateAppleClientConfig {
 export interface VerifiedNotificationPayload {
   notification: ResponseBodyV2DecodedPayload;
   transaction: JWSTransactionDecodedPayload | null;
-  renewalInfo: JWSRenewalInfoDecodedPayload | null;
   environment: Environment;
 }
 
@@ -298,29 +293,6 @@ export class AppStoreServerClient {
     }
   }
 
-  async getAllSubscriptionStatusesWithFallback(
-    anyTransactionId: string
-  ): Promise<{ response: StatusResponse; environment: Environment }> {
-    try {
-      return {
-        response: await this.primaryApiClient.getAllSubscriptionStatuses(anyTransactionId),
-        environment: this.primaryEnvironment,
-      };
-    } catch (error) {
-      if (
-        this.fallbackApiClient === null ||
-        this.fallbackEnvironment === null ||
-        !isApiNotFoundError(error)
-      ) {
-        throw error;
-      }
-      return {
-        response: await this.fallbackApiClient.getAllSubscriptionStatuses(anyTransactionId),
-        environment: this.fallbackEnvironment,
-      };
-    }
-  }
-
   async requestTestNotification(): Promise<{
     response: SendTestNotificationResponse;
     environment: Environment;
@@ -338,30 +310,17 @@ export class AppStoreServerClient {
     return this.verifyTransaction(signedTransactionInfo, environment);
   }
 
-  async verifyAndDecodeRenewalInfo(
-    signedRenewalInfo: string,
-    environment: Environment
-  ): Promise<JWSRenewalInfoDecodedPayload> {
-    return this.verifyRenewalInfo(signedRenewalInfo, environment);
-  }
-
   async verifyAndDecodeNotification(signedPayload: string): Promise<VerifiedNotificationPayload> {
     const envelope = await this.verifyNotificationWithFallback(signedPayload);
     const signedTransactionInfo = envelope.notification.data?.signedTransactionInfo;
-    const signedRenewalInfo = envelope.notification.data?.signedRenewalInfo;
     const transaction =
       signedTransactionInfo === undefined
         ? null
         : await this.verifyTransaction(signedTransactionInfo, envelope.environment);
-    const renewalInfo =
-      signedRenewalInfo === undefined
-        ? null
-        : await this.verifyRenewalInfo(signedRenewalInfo, envelope.environment);
 
     return {
       notification: envelope.notification,
       transaction,
-      renewalInfo,
       environment: envelope.environment,
     };
   }
@@ -419,12 +378,5 @@ export class AppStoreServerClient {
     return this.verifierForEnvironment(environment).verifyAndDecodeTransaction(
       signedTransactionInfo
     );
-  }
-
-  private async verifyRenewalInfo(
-    signedRenewalInfo: string,
-    environment: Environment
-  ): Promise<JWSRenewalInfoDecodedPayload> {
-    return this.verifierForEnvironment(environment).verifyAndDecodeRenewalInfo(signedRenewalInfo);
   }
 }

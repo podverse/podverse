@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import type {
-  NormalizedBillingEvent,
   PaymentProcessorId,
   PaymentSettledEvent,
+  RefundOrRevokeEvent,
 } from '@podverse/helpers';
 import { computeMembershipAccess } from '@podverse/helpers';
 
@@ -15,18 +15,15 @@ import type {
   BillingLedgerUnitOfWork,
   LedgerGrant,
   LedgerProcessorProduct,
-  LedgerSubscription,
   LedgerTransaction,
 } from './ledgerStore.js';
 
-const GRACE_SECONDS = 604800;
-
 interface LedgerState {
   nextId: number;
-  subscriptions: (LedgerSubscription & { processorId: PaymentProcessorId })[];
   transactions: (LedgerTransaction & { processorId: PaymentProcessorId })[];
   grants: (LedgerGrant & { accountId: number })[];
   premiumAccountIds: number[];
+  cadenceByAccountId: { accountId: number; cadence: LedgerProcessorProduct['cadence'] }[];
 }
 
 interface ProductMapping {
@@ -41,10 +38,10 @@ class InMemoryLedgerStore implements BillingLedgerStore {
   inbox = new Map<string, BillingInboxEventRecord & { externalEventId: string }>();
   state: LedgerState = {
     nextId: 1,
-    subscriptions: [],
     transactions: [],
     grants: [],
     premiumAccountIds: [],
+    cadenceByAccountId: [],
   };
 
   constructor(
@@ -77,6 +74,7 @@ class InMemoryLedgerStore implements BillingLedgerStore {
       schemaVersion: params.schemaVersion,
       payload: params.payload,
       status: 'pending' as const,
+      processError: null,
     };
     this.inbox.set(event.id, event);
     return { event, inserted: true };
@@ -86,27 +84,18 @@ class InMemoryLedgerStore implements BillingLedgerStore {
     return this.inbox.get(id) ?? null;
   }
 
-  async markInboxProcessed(id: string) {
+  async markInboxProcessed(id: string, note?: string | null) {
     const event = this.inbox.get(id);
     if (event !== undefined) {
-      this.inbox.set(id, { ...event, status: 'processed' });
+      this.inbox.set(id, { ...event, status: 'processed', processError: note ?? null });
     }
   }
 
-  async markInboxFailed(id: string) {
+  async markInboxFailed(id: string, processError: string) {
     const event = this.inbox.get(id);
     if (event !== undefined) {
-      this.inbox.set(id, { ...event, status: 'failed' });
+      this.inbox.set(id, { ...event, status: 'failed', processError });
     }
-  }
-
-  async findSubscriptionAccountId(processorId: PaymentProcessorId, externalSubscriptionId: string) {
-    const row = this.state.subscriptions.find(
-      (subscription) =>
-        subscription.processorId === processorId &&
-        subscription.externalSubscriptionId === externalSubscriptionId
-    );
-    return row?.accountId ?? null;
   }
 
   async findTransactionAccountId(processorId: PaymentProcessorId, externalTransactionId: string) {
@@ -141,9 +130,6 @@ class InMemoryLedgerStore implements BillingLedgerStore {
     const access = computeMembershipAccess({
       now,
       grants: draft.grants.filter((grant) => grant.accountId === accountId),
-      subscriptions: draft.subscriptions.filter((row) => row.accountId === accountId),
-      renewalEntitlementBufferExpiration: 172800,
-      paymentFailureGraceExpiration: GRACE_SECONDS,
     });
     return { result, membershipExpiresAt: access.membershipExpiresAt };
   }
@@ -159,31 +145,6 @@ class InMemoryLedgerStore implements BillingLedgerStore {
     return {
       accountId,
       processorId,
-      paymentFailureGraceSeconds: GRACE_SECONDS,
-      async getSubscription(externalSubscriptionId) {
-        return (
-          draft.subscriptions.find(
-            (row) =>
-              row.processorId === processorId &&
-              row.externalSubscriptionId === externalSubscriptionId
-          ) ?? null
-        );
-      },
-      async saveSubscription(write) {
-        const index = draft.subscriptions.findIndex(
-          (row) =>
-            row.processorId === processorId &&
-            row.externalSubscriptionId === write.externalSubscriptionId
-        );
-        const existing = draft.subscriptions[index];
-        const row = { ...write, processorId, accountId, id: existing?.id ?? takeId() };
-        if (existing === undefined) {
-          draft.subscriptions.push(row);
-        } else {
-          draft.subscriptions[index] = row;
-        }
-        return row;
-      },
       async getTransaction(externalTransactionId) {
         return (
           draft.transactions.find(
@@ -207,9 +168,6 @@ class InMemoryLedgerStore implements BillingLedgerStore {
         }
         return row;
       },
-      async listSubscriptionTransactions(subscriptionId) {
-        return draft.transactions.filter((row) => row.subscriptionId === subscriptionId);
-      },
       async listGrants() {
         return draft.grants.filter((grant) => grant.accountId === accountId);
       },
@@ -217,11 +175,6 @@ class InMemoryLedgerStore implements BillingLedgerStore {
         const row = { ...grant, id: takeId(), revokedAt: null, accountId };
         draft.grants.push(row);
         return row;
-      },
-      async setGrantEndsAt(grantId, endsAt) {
-        draft.grants = draft.grants.map((grant) =>
-          grant.id === grantId ? { ...grant, endsAt } : grant
-        );
       },
       async revokeGrants(grantIds, revokedAt) {
         draft.grants = draft.grants.map((grant) =>
@@ -236,6 +189,14 @@ class InMemoryLedgerStore implements BillingLedgerStore {
             entry.externalBasePlanId === externalBasePlanId
         );
         return mapping?.product ?? null;
+      },
+      async setBillingCadence(cadence) {
+        const index = draft.cadenceByAccountId.findIndex((row) => row.accountId === accountId);
+        if (index === -1) {
+          draft.cadenceByAccountId.push({ accountId, cadence });
+        } else {
+          draft.cadenceByAccountId[index] = { accountId, cadence };
+        }
       },
       async grantPremiumMembership() {
         if (!draft.premiumAccountIds.includes(accountId)) {
@@ -254,25 +215,7 @@ const PRODUCTS: ProductMapping[] = [
     processorId: 'test',
     externalProductId: 'monthly-one-time',
     externalBasePlanId: null,
-    product: { id: 101, cadence: 'monthly', purchaseKind: 'one_time' },
-  },
-  {
-    processorId: 'apple',
-    externalProductId: 'apple-monthly',
-    externalBasePlanId: null,
-    product: { id: 201, cadence: 'monthly', purchaseKind: 'auto_renew' },
-  },
-  {
-    processorId: 'apple',
-    externalProductId: 'apple-annual',
-    externalBasePlanId: null,
-    product: { id: 202, cadence: 'annual', purchaseKind: 'auto_renew' },
-  },
-  {
-    processorId: 'google_play',
-    externalProductId: 'premium',
-    externalBasePlanId: 'monthly',
-    product: { id: 301, cadence: 'monthly', purchaseKind: 'auto_renew' },
+    product: { id: 101, cadence: 'monthly' },
   },
 ];
 
@@ -298,14 +241,28 @@ function oneTimePayment(overrides: Partial<PaymentSettledEvent> = {}): PaymentSe
     accountId: null,
     occurredAt: '2026-01-01T00:00:00.000Z',
     isSandbox: false,
-    purchaseKind: 'one_time',
     externalTransactionId: 'txn-1',
-    externalSubscriptionId: null,
     externalProductId: 'monthly-one-time',
     externalBasePlanId: null,
     periodStart: null,
     periodEnd: null,
     amount: { value: '3.00', currencyCode: 'USD' },
+    ...overrides,
+  };
+}
+
+function refund(overrides: Partial<RefundOrRevokeEvent> = {}): RefundOrRevokeEvent {
+  return {
+    type: 'refund_or_revoke',
+    processor: 'test',
+    processorEventId: 'evt-refund',
+    accountBillingCustomerRef: ALICE.billingCustomerRef,
+    accountId: null,
+    occurredAt: '2026-01-15T00:00:00.000Z',
+    isSandbox: false,
+    externalTransactionId: 'txn-1',
+    reason: 'refund',
+    revokedAt: '2026-01-15T00:00:00.000Z',
     ...overrides,
   };
 }
@@ -323,7 +280,7 @@ describe('BillingEventProcessor', () => {
     expect(store.state.premiumAccountIds).toEqual([ALICE.id]);
   });
 
-  it('counts one payment once when it arrives under two event ids', async () => {
+  it('replaying the same payment under another event id adds no time', async () => {
     const { store, processor } = createHarness();
 
     await processor.ingestEvent(oneTimePayment({ processorEventId: 'client-post' }));
@@ -331,9 +288,10 @@ describe('BillingEventProcessor', () => {
 
     expect(webhook.status).toBe('processed');
     expect(store.grantsFor(ALICE.id)).toHaveLength(1);
+    expect(store.grantsFor(ALICE.id)[0]?.endsAt.toISOString()).toBe('2026-02-01T00:00:00.000Z');
   });
 
-  it('stacks a one-time purchase after the paid time the account already holds', async () => {
+  it('stacks a second purchase so its grant starts where the first ends', async () => {
     const { store, processor } = createHarness();
 
     await processor.ingestEvent(oneTimePayment());
@@ -354,16 +312,15 @@ describe('BillingEventProcessor', () => {
     );
   });
 
-  it('stacks a one-time purchase after a free trial that is still running', async () => {
+  it('starts a purchase after an active trial or admin grant', async () => {
     const { store, processor } = createHarness();
     store.state.grants.push({
       id: store.state.nextId++,
       accountId: ALICE.id,
-      source: 'trial',
+      source: 'admin',
       startsAt: new Date('2025-12-01T00:00:00.000Z'),
       endsAt: new Date('2026-02-01T00:00:00.000Z'),
       revokedAt: null,
-      subscriptionId: null,
       transactionId: null,
     });
 
@@ -381,7 +338,7 @@ describe('BillingEventProcessor', () => {
     );
   });
 
-  it('starts a one-time purchase at settlement when the account has already lapsed', async () => {
+  it('starts a lapsed purchase at settlement time', async () => {
     const { store, processor } = createHarness();
     store.state.grants.push({
       id: store.state.nextId++,
@@ -390,7 +347,6 @@ describe('BillingEventProcessor', () => {
       startsAt: new Date('2025-01-01T00:00:00.000Z'),
       endsAt: new Date('2025-02-01T00:00:00.000Z'),
       revokedAt: null,
-      subscriptionId: null,
       transactionId: null,
     });
 
@@ -406,6 +362,45 @@ describe('BillingEventProcessor', () => {
     );
   });
 
+  it('refunding the first of two stacked purchases revokes only that grant', async () => {
+    const { store, processor } = createHarness();
+
+    await processor.ingestEvent(oneTimePayment());
+    const stacked = await processor.ingestEvent(
+      oneTimePayment({
+        processorEventId: 'evt-2',
+        externalTransactionId: 'txn-2',
+        occurredAt: '2026-01-10T00:00:00.000Z',
+      })
+    );
+    const outcome = await processor.ingestEvent(refund());
+
+    const [first, second] = store.grantsFor(ALICE.id);
+    expect(stacked.status === 'processed' && stacked.membershipExpiresAt?.toISOString()).toBe(
+      '2026-03-01T00:00:00.000Z'
+    );
+    expect(first?.revokedAt?.toISOString()).toBe('2026-01-15T00:00:00.000Z');
+    expect(second?.revokedAt).toBeNull();
+    expect(second?.startsAt.toISOString()).toBe('2026-02-01T00:00:00.000Z');
+    expect(second?.endsAt.toISOString()).toBe('2026-03-01T00:00:00.000Z');
+    // The clock is 15 Jan: inside the revoked grant and before the next grant starts.
+    expect(outcome.status === 'processed' && outcome.membershipExpiresAt).toBeNull();
+  });
+
+  it('records a refund for an unknown payment as processed', async () => {
+    const { store, processor } = createHarness();
+
+    const outcome = await processor.ingestEvent(
+      refund({ externalTransactionId: 'missing', processorEventId: 'evt-missing' })
+    );
+
+    expect(outcome.status).toBe('processed');
+    const inbox = [...store.inbox.values()][0];
+    expect(inbox?.status).toBe('processed');
+    expect(inbox?.processError).toContain('missing');
+    expect(store.grantsFor(ALICE.id)).toHaveLength(0);
+  });
+
   it('prefers the account the processor echoed over one the caller supplies', async () => {
     const { store, processor } = createHarness();
 
@@ -413,308 +408,6 @@ describe('BillingEventProcessor', () => {
 
     expect(outcome.status === 'processed' && outcome.accountId).toBe(ALICE.id);
     expect(store.grantsFor(BOB.id)).toHaveLength(0);
-  });
-
-  it('revokes the grant of a refunded payment', async () => {
-    const { store, processor } = createHarness();
-
-    await processor.ingestEvent(oneTimePayment());
-    await processor.ingestEvent({
-      type: 'refund_or_revoke',
-      processor: 'test',
-      processorEventId: 'evt-refund',
-      accountBillingCustomerRef: null,
-      accountId: null,
-      occurredAt: '2026-01-05T00:00:00.000Z',
-      isSandbox: false,
-      externalTransactionId: 'txn-1',
-      externalSubscriptionId: null,
-      reason: 'refund',
-      revokedAt: '2026-01-05T00:00:00.000Z',
-    });
-
-    expect(store.grantsFor(ALICE.id)[0]?.revokedAt?.toISOString()).toBe('2026-01-05T00:00:00.000Z');
-    expect(store.state.transactions[0]?.revocationReason).toBe('refund');
-  });
-
-  it('ignores a status change older than the one already recorded', async () => {
-    const { store, processor } = createHarness();
-    const subscriptionBase = {
-      processor: 'apple' as const,
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      isSandbox: false,
-      externalSubscriptionId: 'orig-1',
-    };
-
-    await processor.ingestEvent({
-      ...subscriptionBase,
-      type: 'subscription_renewed',
-      processorEventId: 'renewed',
-      occurredAt: '2026-01-10T00:00:00.000Z',
-      externalTransactionId: 'apple-txn-2',
-      externalProductId: 'apple-monthly',
-      externalBasePlanId: null,
-      periodStart: '2026-01-10T00:00:00.000Z',
-      periodEnd: '2026-02-10T00:00:00.000Z',
-      amount: null,
-    });
-    await processor.ingestEvent({
-      ...subscriptionBase,
-      type: 'subscription_renewal_failed',
-      processorEventId: 'failed-late',
-      occurredAt: '2026-01-09T00:00:00.000Z',
-      periodEnd: '2026-01-10T00:00:00.000Z',
-    });
-
-    expect(store.state.subscriptions[0]?.status).toBe('active');
-    expect(store.state.subscriptions[0]?.gracePeriodEndsAt).toBeNull();
-  });
-
-  it('banks paid time when a store subscription starts and returns it when it expires', async () => {
-    const { store, processor } = createHarness();
-
-    await processor.ingestEvent(oneTimePayment());
-    await processor.ingestEvent({
-      type: 'payment_settled',
-      processor: 'apple',
-      processorEventId: 'apple-start',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-01-11T00:00:00.000Z',
-      isSandbox: false,
-      purchaseKind: 'auto_renew',
-      externalTransactionId: 'apple-txn-1',
-      externalSubscriptionId: 'orig-1',
-      externalProductId: 'apple-monthly',
-      externalBasePlanId: null,
-      periodStart: '2026-01-11T00:00:00.000Z',
-      periodEnd: '2026-02-11T00:00:00.000Z',
-      amount: null,
-    });
-
-    const oneTimeGrant = store.grantsFor(ALICE.id)[0];
-    expect(oneTimeGrant?.endsAt.toISOString()).toBe('2026-01-11T00:00:00.000Z');
-    expect(store.state.subscriptions[0]?.bankedSeconds).toBe(21 * 24 * 60 * 60);
-
-    await processor.ingestEvent({
-      type: 'subscription_expired',
-      processor: 'apple',
-      processorEventId: 'apple-expired',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-02-11T00:00:00.000Z',
-      isSandbox: false,
-      externalSubscriptionId: 'orig-1',
-      expiredAt: '2026-02-11T00:00:00.000Z',
-    });
-
-    const released = store
-      .grantsFor(ALICE.id)
-      .find((grant) => grant.subscriptionId !== null && grant.transactionId === null);
-    expect(released?.startsAt.toISOString()).toBe('2026-02-11T00:00:00.000Z');
-    expect(released?.endsAt.toISOString()).toBe('2026-03-04T00:00:00.000Z');
-    expect(store.state.subscriptions[0]?.bankedSeconds).toBe(0);
-  });
-
-  it('moves banked time onto the subscription that replaced it', async () => {
-    const { store, processor } = createHarness();
-
-    await processor.ingestEvent(oneTimePayment());
-    await processor.ingestEvent({
-      type: 'payment_settled',
-      processor: 'google_play',
-      processorEventId: 'play-start',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-01-11T00:00:00.000Z',
-      isSandbox: false,
-      purchaseKind: 'auto_renew',
-      externalTransactionId: 'play-txn-1',
-      externalSubscriptionId: 'old-token',
-      externalProductId: 'premium',
-      externalBasePlanId: 'monthly',
-      periodStart: '2026-01-11T00:00:00.000Z',
-      periodEnd: '2026-02-11T00:00:00.000Z',
-      amount: null,
-    });
-    expect(store.state.subscriptions[0]?.bankedSeconds).toBe(21 * 24 * 60 * 60);
-
-    await processor.ingestEvent({
-      type: 'subscription_activated',
-      processor: 'google_play',
-      processorEventId: 'play-replacement',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-01-20T00:00:00.000Z',
-      isSandbox: false,
-      externalSubscriptionId: 'new-token',
-      externalProductId: 'premium',
-      externalBasePlanId: 'monthly',
-      periodStart: '2026-01-20T00:00:00.000Z',
-      periodEnd: '2026-02-20T00:00:00.000Z',
-    });
-    await processor.ingestEvent({
-      type: 'subscription_expired',
-      processor: 'google_play',
-      processorEventId: 'play-superseded',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-01-20T00:00:00.000Z',
-      isSandbox: false,
-      externalSubscriptionId: 'old-token',
-      expiredAt: '2026-01-20T00:00:00.000Z',
-      replacedByExternalSubscriptionId: 'new-token',
-    });
-
-    const oldRow = store.state.subscriptions.find(
-      (row) => row.externalSubscriptionId === 'old-token'
-    );
-    const newRow = store.state.subscriptions.find(
-      (row) => row.externalSubscriptionId === 'new-token'
-    );
-    expect(oldRow?.status).toBe('expired');
-    expect(oldRow?.bankedSeconds).toBe(0);
-    expect(newRow?.bankedSeconds).toBe(21 * 24 * 60 * 60);
-    expect(
-      store
-        .grantsFor(ALICE.id)
-        .some((grant) => grant.subscriptionId !== null && grant.transactionId === null)
-    ).toBe(false);
-  });
-
-  it('updates the Apple product when a renewal names a different auto-renew product', async () => {
-    const { store, processor } = createHarness();
-
-    await processor.ingestEvent({
-      type: 'payment_settled',
-      processor: 'apple',
-      processorEventId: 'apple-start',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-01-11T00:00:00.000Z',
-      isSandbox: false,
-      purchaseKind: 'auto_renew',
-      externalTransactionId: 'apple-txn-1',
-      externalSubscriptionId: 'orig-1',
-      externalProductId: 'apple-monthly',
-      externalBasePlanId: null,
-      periodStart: '2026-01-11T00:00:00.000Z',
-      periodEnd: '2026-02-11T00:00:00.000Z',
-      amount: null,
-    });
-    expect(store.state.subscriptions[0]?.processorProductId).toBe(201);
-
-    await processor.ingestEvent({
-      type: 'subscription_renewed',
-      processor: 'apple',
-      processorEventId: 'apple-renew-annual',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-02-11T00:00:00.000Z',
-      isSandbox: false,
-      externalTransactionId: 'apple-txn-2',
-      externalSubscriptionId: 'orig-1',
-      externalProductId: 'apple-annual',
-      externalBasePlanId: null,
-      periodStart: '2026-02-11T00:00:00.000Z',
-      periodEnd: '2027-02-11T00:00:00.000Z',
-      amount: null,
-    });
-
-    expect(store.state.subscriptions).toHaveLength(1);
-    expect(store.state.subscriptions[0]?.processorProductId).toBe(202);
-  });
-
-  it('banks remaining free-trial time when a store subscription starts', async () => {
-    const { store, processor } = createHarness();
-    store.state.grants.push({
-      id: store.state.nextId++,
-      accountId: ALICE.id,
-      source: 'trial',
-      startsAt: new Date('2025-12-01T00:00:00.000Z'),
-      endsAt: new Date('2026-02-01T00:00:00.000Z'),
-      revokedAt: null,
-      subscriptionId: null,
-      transactionId: null,
-    });
-
-    await processor.ingestEvent({
-      type: 'payment_settled',
-      processor: 'apple',
-      processorEventId: 'apple-start-during-trial',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-01-11T00:00:00.000Z',
-      isSandbox: false,
-      purchaseKind: 'auto_renew',
-      externalTransactionId: 'apple-txn-trial',
-      externalSubscriptionId: 'orig-trial',
-      externalProductId: 'apple-monthly',
-      externalBasePlanId: null,
-      periodStart: '2026-01-11T00:00:00.000Z',
-      periodEnd: '2026-02-11T00:00:00.000Z',
-      amount: null,
-    });
-
-    const trialGrant = store.grantsFor(ALICE.id).find((grant) => grant.source === 'trial');
-    expect(trialGrant?.endsAt.toISOString()).toBe('2026-01-11T00:00:00.000Z');
-    expect(store.state.subscriptions[0]?.bankedSeconds).toBe(21 * 24 * 60 * 60);
-
-    await processor.ingestEvent({
-      type: 'subscription_expired',
-      processor: 'apple',
-      processorEventId: 'apple-trial-expired',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-02-11T00:00:00.000Z',
-      isSandbox: false,
-      externalSubscriptionId: 'orig-trial',
-      expiredAt: '2026-02-11T00:00:00.000Z',
-    });
-
-    const released = store
-      .grantsFor(ALICE.id)
-      .find((grant) => grant.subscriptionId !== null && grant.transactionId === null);
-    expect(released?.startsAt.toISOString()).toBe('2026-02-11T00:00:00.000Z');
-    expect(released?.endsAt.toISOString()).toBe('2026-03-04T00:00:00.000Z');
-  });
-
-  it('keeps an event for a subscription it has not seen retryable', async () => {
-    const { store, processor } = createHarness();
-    const cancelled: NormalizedBillingEvent = {
-      type: 'subscription_cancelled',
-      processor: 'apple',
-      processorEventId: 'cancel-early',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-01-12T00:00:00.000Z',
-      isSandbox: false,
-      externalSubscriptionId: 'orig-1',
-      periodEnd: null,
-    };
-
-    const first = await processor.ingestEvent(cancelled);
-    expect(first.status === 'failed' && first.errorCode).toBe('subscription_not_found');
-
-    await processor.ingestEvent({
-      type: 'subscription_activated',
-      processor: 'apple',
-      processorEventId: 'activated',
-      accountBillingCustomerRef: ALICE.billingCustomerRef,
-      accountId: null,
-      occurredAt: '2026-01-11T00:00:00.000Z',
-      isSandbox: false,
-      externalSubscriptionId: 'orig-1',
-      externalProductId: 'apple-monthly',
-      externalBasePlanId: null,
-      periodStart: '2026-01-11T00:00:00.000Z',
-      periodEnd: '2026-02-11T00:00:00.000Z',
-    });
-    const retried = await processor.retryInboxEvent(first.inboxEventId);
-
-    expect(retried.status).toBe('processed');
-    expect(store.state.subscriptions[0]?.status).toBe('cancelled_active');
   });
 
   it('applies production sandbox purchases only for allowlisted accounts', async () => {

@@ -12,7 +12,9 @@ position, enqueues no outbox row, and never takes part in reconciliation or mult
 `nowPlayingResourceFromTarget` in `apps/mobile/src/playback/playbackEventSource.ts` returns `null`
 for the `add-by-rss` target kind, and `recordPlaybackEvent` in
 `apps/mobile/src/playback/PlaybackProvider.tsx` returns early on that `null` before it reaches the
-outbox. `apps/mobile/src/hooks/useAddByRssPlayback.ts` has no recording path of its own.
+outbox. Add-by-RSS screens play through the provider (`useAddByRssPlayback.ts` calls
+`playAddByRssResourceData`), so that early return is the only thing standing between them and the
+outbox.
 
 **Livestream also returns `null`, and that is correct.** A livestream has no meaningful resume
 position, so it must keep returning `null` when this is picked up.

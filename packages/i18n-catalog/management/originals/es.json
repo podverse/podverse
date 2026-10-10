@@ -619,7 +619,7 @@
       "premiumBillingCadence": "Periodo de facturación Premium",
       "billingMonthly": "Mensual",
       "billingAnnual": "Anual",
-      "premiumBillingCadenceHint": "La caducidad por defecto es un mes adelante para mensual, o un año adelante para anual (alineado con la periodicidad de la suscripción).",
+      "premiumBillingCadenceHint": "La caducidad por defecto es un mes adelante para mensual, o un año adelante para anual.",
       "trustTier": "Nivel de confianza",
       "untrusted": "No confiable",
       "trusted": "Confiable",
@@ -785,7 +785,6 @@
       "grant": "Conceder membresía",
       "grantCadenceLabel": "Cadencia",
       "expires": "La membresía caduca",
-      "subscriptions": "Suscripciones",
       "transactions": "Transacciones",
       "grants": "Concesiones",
       "events": "Eventos webhook",
@@ -793,27 +792,16 @@
       "table": {
         "processor": "Procesador",
         "externalId": "ID externo",
-        "status": "Estado",
-        "periodEnd": "Fin del periodo",
-        "kind": "Tipo",
         "amount": "Importe",
         "settledAt": "Liquidado",
         "source": "Origen",
         "starts": "Inicio",
         "ends": "Fin",
         "received": "Recibido",
-        "error": "Error"
+        "error": "Error",
+        "revoked": "Revocado"
       },
-      "result": {
-        "applied": "Aplicado",
-        "ignored_sandbox": "Sandbox ignorado",
-        "skipped": "Omitido",
-        "failed": "Fallido",
-        "not_found": "No encontrado",
-        "processor_not_configured": "Procesador no configurado",
-        "unknown_processor": "Procesador desconocido",
-        "processor_error": "Error del procesador"
-      }
+      "resyncCounts": "Reintentados {retried}. Recuperados {refetched}. Fallidos {failed}."
     },
     "processors": {
       "title": "Procesadores de pago",
@@ -824,13 +812,27 @@
       "apple": "App Store de Apple",
       "google_play": "Google Play"
     },
+    "help": {
+      "title": "Ayuda de facturación",
+      "indexIntro": "Notas de corrección para la facturación de membresías. La administración nunca cobra un método de pago.",
+      "giftingTitle": "Regalar tiempo a un miembro",
+      "giftingBody": "Una concesión de administrador añade tiempo después del que el miembro ya tiene. No hay nada que comprobar antes.",
+      "appleRefundsTitle": "Reembolso de Apple",
+      "appleRefundsBody": "Podverse no puede reembolsar un cargo de la App Store. El miembro lo pide a Apple. Tras anular la compra, resincroniza la cuenta.",
+      "resyncTitle": "Falta una compra en la app",
+      "resyncBody": "Usa Resincronizar en la página de facturación de la cuenta. Resincronizar reintenta las notificaciones fallidas, vuelve a obtener las transacciones de la cuenta y aplica los reembolsos. Úsalo cuando una compra de la tienda no aparece en el libro. Si el procesador está desactivado en esta instalación, actívalo o amplía el acceso a mano.",
+      "wrongAccountTitle": "Compra vinculada a la cuenta equivocada",
+      "wrongAccountBody": "Los recibos se vinculan a la cuenta de Podverse que compró. El miembro debe usar esa cuenta, o el soporte de Apple/Google para un traslado. No concedas tiempo en una segunda cuenta sin confirmar que la primera está cancelada."
+    },
     "pageTitle": "Facturación",
     "checkoutChannelsCardTitle": "Canales de pago",
     "checkoutChannelsCardDescription": "Activa o desactiva un procesador por plataforma y define la versión mínima del cliente.",
     "processorProductsCardTitle": "Productos del procesador",
-    "processorProductsCardDescription": "Asocia el id de un producto del procesador a una cadencia y un tipo de compra.",
+    "processorProductsCardDescription": "Asocia el id de un producto del procesador a un producto del catálogo y una cadencia.",
     "webhookEventsCardTitle": "Bandeja de webhooks",
     "webhookEventsCardDescription": "Revisa las notificaciones del procesador y reenvía las que fallaron.",
+    "helpCardTitle": "Ayuda de facturación",
+    "helpCardDescription": "Regalos, reembolsos de Apple, resincronización y una compra en la cuenta equivocada.",
     "channels": {
       "title": "Canales de pago",
       "failedToLoad": "No se pudieron cargar los canales de pago.",
@@ -869,8 +871,8 @@
         "externalId": "ID externo",
         "basePlan": "Plan base",
         "cadence": "Cadencia",
-        "kind": "Tipo",
-        "active": "Activo"
+        "active": "Activo",
+        "catalogProduct": "Producto del catálogo"
       },
       "active": "Activo",
       "inactive": "Inactivo",
@@ -878,13 +880,10 @@
       "externalIdLabel": "ID externo",
       "externalIdPlaceholder": "P-123",
       "basePlanLabel": "Plan base",
-      "basePlanPlaceholder": "monthly-auto",
+      "basePlanPlaceholder": "prepaid-monthly",
       "cadenceLabel": "Cadencia",
-      "kindLabel": "Tipo de compra",
       "cadenceMonthly": "Mensual",
       "cadenceAnnual": "Anual",
-      "kindAutoRenew": "Renovación automática",
-      "kindOneTime": "Pago único",
       "edit": "Editar",
       "editTitle": "Editar producto del procesador",
       "activeLabel": "Activo"

@@ -225,6 +225,7 @@ npm run mobile:e2e:test -- --platform ios add-by-rss
 npm run mobile:e2e:test -- --platform ios add-by-rss-credentials
 npm run mobile:e2e:test -- --platform ios about
 npm run mobile:e2e:test -- --platform ios album
+npm run mobile:e2e:test -- --platform ios alternate-enclosure
 npm run mobile:e2e:test -- --platform ios api-health
 npm run mobile:e2e:test -- --platform ios artist
 npm run mobile:e2e:test -- --platform ios auth-login
@@ -278,6 +279,7 @@ npm run mobile:e2e:test -- --platform android add-by-rss
 npm run mobile:e2e:test -- --platform android add-by-rss-credentials
 npm run mobile:e2e:test -- --platform android about
 npm run mobile:e2e:test -- --platform android album
+npm run mobile:e2e:test -- --platform android alternate-enclosure
 npm run mobile:e2e:test -- --platform android api-health
 npm run mobile:e2e:test -- --platform android artist
 npm run mobile:e2e:test -- --platform android auth-login
@@ -484,6 +486,7 @@ files are missing, regenerate E2E media (same command as the video fixture) and 
 ```bash
 npm run mobile:e2e:test -- add-by-rss
 npm run mobile:e2e:test -- add-by-rss-credentials
+npm run mobile:e2e:test -- alternate-enclosure
 npm run mobile:e2e:test -- auto-queue-advance
 npm run mobile:e2e:test -- engine-audio-spike
 npm run mobile:e2e:test -- hls-playback
@@ -579,12 +582,12 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api:bg` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                       |
 | Runner exits: playback flows need tools/test-assets on :2111                               | **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets`; health: `npm run mobile:e2e:test-assets:health`                                                                                                                                            |
 | Empty search / no `search-result-row-0` / no `rss-feed-row-first`                          | Same stale-API issue, or seed missing — runner auto-seeds; restart API if fixtures flag is false                                                                                                                                                         |
-| `add-by-rss-home-playback-active` never appears after Play                                 | Restart **Mobile E2E test-assets** (`npm run mobile:e2e:test-assets` — binds `0.0.0.0` so IPv4/`10.0.2.2` works). Reload app after JS rewrite changes.                                                                                                   |
+| Add-by-RSS Play never shows `E2E Add-by-RSS Episode` in `playback-now-playing-title-e2e`   | Restart **Mobile E2E test-assets** (`npm run mobile:e2e:test-assets` — binds `0.0.0.0` so IPv4/`10.0.2.2` works). Reload app after JS rewrite changes.                                                                                                   |
 | Network Error / “Could not sign in” / `tab-home` not visible in API-backed or `:all` runs  | Metro is UI-only (`mobile:dev` in **Mobile Metro**). Stop it; **Mobile E2E Metro**: `npm run mobile:dev:e2e`; reload/reinstall the E2E app so it targets `:4230`                                                                                         |
 | Runner exits: “Metro on :8081 is UI-only”                                                  | Same as above — API-backed / full-suite flows require **Mobile E2E Metro** (`mobile:dev:e2e`)                                                                                                                                                            |
 | API start says port 4230 already in use                                                    | Free the port or stop managed process: `npm run mobile:e2e:api:stop`                                                                                                                                                                                     |
 | Stuck on Expo “Development Build” launcher                                                 | Flows should run `shared/launch-and-connect.yaml` (retries Dev Client connect)                                                                                                                                                                           |
-| Assertion fails; screenshot shows “developer menu” / Continue                              | Same shared flow dismisses the one-time Expo dev-client menu (see below)                                                                                                                                                                                 |
+| Assertion fails; screenshot shows “developer menu” / Continue                              | The installed binary predates the dev-client launch settings (see below). Rebuild it: `npm run mobile:prebuild`, then **Mobile E2E iOS** / **Mobile E2E Android**                                                                                        |
 | `App crashed or stopped` / fail on “Development servers” mid-suite; SpringBoard screenshot | Dev Client relaunch flake after `clearState` (not a feature bug). `launch-and-connect` retries connect; optionally set `MOBILE_E2E_FLOW_RETRIES` to retry only failed flows after the suite. Focused check: `npm run mobile:e2e:test -- podcast-episode` |
 | Repeated flow starts with prior subscriptions or local rows                                | `clearState` preserves product data by design. Run the affected flow with `--reset-data` from **Mobile Maestro**                                                                                                                                         |
 | Runner exits **78**: “BLOCKED by the test environment”                                     | The environment, not the flow, broke (see [Blocked runs](#blocked-runs-exit-78) below). Read the printed reason, then `bash scripts/mobile/ensure-devices.sh recover-e2e-android` or `recover-e2e-ios`                                                   |
@@ -652,18 +655,21 @@ Knobs (defaults are the supported configuration):
 
 ### Dev-client developer menu
 
-`launchApp` with `clearState: true` resets Expo’s “seen developer menu” flag, so the
-onboarding sheet (“This is the developer menu…” with **Continue**) appears **every** E2E
-launch after the JS bundle loads. It covers app UI and will fail `assertVisible` on
-`testID`s if left up.
+The dev client is built with `showMenuAtLaunch: false`, `skipOnboarding: true`, and
+`toolsButton: false` (`expo-dev-client` plugin in `app.config.ts`). Expo keeps those
+preferences in UserDefaults / SharedPreferences, which `launchApp` with `clearState: true`
+wipes, so they must be build-time defaults (Info.plist and manifest meta-data) rather than a
+runtime setting — Android has no JS module to change them at all. Without them the menu
+sheet and its **Continue** card slide over the app on every E2E launch, cover `testID`s, and
+can invalidate the accessibility tree mid-query, and the floating tools button parks over
+the trailing header control (Home overflow, player actions) and opens the menu instead. The
+menu still opens on demand (shake, Cmd+D / Cmd+M, three-finger long press). A binary built
+before these settings needs `npm run mobile:prebuild` and a reinstall.
 
 Top-level flows use `shared/launch-and-connect.yaml`, which wraps `launchApp` +
 `shared/connect-dev-client.yaml` in a Maestro `retry` (mid-suite iOS relaunches can blank
-out before “Development servers”). That shared connect flow: (1) taps the Metro URL,
-(2) taps **Continue** to dismiss the onboarding card, (3) closes the dev-menu bottom
-sheet it reveals (tapping the dimmed scrim above the sheet), (4) waits for
-`hello-world-screen`. Tapping **Continue** alone is not enough — it only opens the full
-dev menu, which still covers the app. New flows must
+out before “Development servers”). That shared connect flow taps the Metro URL (or types
+it), then waits for `home-screen`. New flows must
 `runFlow: shared/launch-and-connect.yaml` — do not assert app UI before it finishes.
 
 The runner executes each flow once per platform by default. Set `MOBILE_E2E_FLOW_RETRIES`

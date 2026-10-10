@@ -23,7 +23,6 @@ export type BillingProcessorProduct = {
   external_base_plan_id: string | null;
   billing_product_id: number;
   billing_cadence: string;
-  purchase_kind: string;
   is_active: boolean;
   updated_at: string;
 };
@@ -33,7 +32,6 @@ export type CreateBillingProcessorProductParams = {
   external_product_id: string;
   external_base_plan_id?: string | null;
   billing_cadence: 'monthly' | 'annual';
-  purchase_kind: 'auto_renew' | 'one_time';
 };
 
 export type UpdateBillingProcessorProductParams = {
@@ -42,27 +40,10 @@ export type UpdateBillingProcessorProductParams = {
   external_base_plan_id?: string | null;
 };
 
-export type BillingAccountSubscription = {
-  id: number;
-  processor_id: string;
-  external_subscription_id: string;
-  external_product_id: string | null;
-  status: string;
-  purchase_kind: string;
-  current_period_start: string | null;
-  current_period_end: string | null;
-  grace_period_ends_at: string | null;
-  cancel_at_period_end: boolean;
-  banked_seconds: number;
-  is_sandbox: boolean;
-};
-
 export type BillingAccountTransaction = {
   id: number;
   processor_id: string;
   external_transaction_id: string;
-  billing_subscription_id: number | null;
-  purchase_kind: string;
   amount: string | null;
   currency_code: string | null;
   settled_at: string;
@@ -77,7 +58,6 @@ export type BillingAccountGrant = {
   starts_at: string;
   ends_at: string;
   revoked_at: string | null;
-  billing_subscription_id: number | null;
   billing_transaction_id: number | null;
   admin_editable: boolean;
 };
@@ -97,26 +77,17 @@ export type BillingWebhookEvent = {
 export type BillingAccountDetail = {
   account_id: number;
   membership_expires_at: string | null;
-  subscriptions: BillingAccountSubscription[];
   transactions: BillingAccountTransaction[];
   grants: BillingAccountGrant[];
   webhook_events: BillingWebhookEvent[];
 };
 
-export type BillingResyncSubscriptionResult = {
-  subscription_id: number;
-  processor_id: string;
-  status: string;
-  reason?: string;
-  account_id?: number;
-  membership_expires_at?: string | null;
-};
-
 export type BillingResyncResult = {
   account_id: number;
   membership_expires_at: string | null;
-  subscriptions: BillingResyncSubscriptionResult[];
-  inbox_events: BillingWebhookEventReplayResult[];
+  retried: number;
+  refetched: number;
+  failed: number;
 };
 
 export type BillingGrantResult = {

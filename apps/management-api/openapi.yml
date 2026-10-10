@@ -1868,7 +1868,6 @@ components:
           external_base_plan_id,
           billing_product_id,
           billing_cadence,
-          purchase_kind,
           is_active,
           updated_at,
         ]
@@ -1879,18 +1878,16 @@ components:
         external_base_plan_id: { type: string, nullable: true }
         billing_product_id: { type: integer }
         billing_cadence: { type: string, enum: [monthly, annual] }
-        purchase_kind: { type: string, enum: [auto_renew, one_time] }
         is_active: { type: boolean }
         updated_at: { type: string, format: date-time }
     BillingProcessorProductCreateRequest:
       type: object
-      required: [processor_id, external_product_id, billing_cadence, purchase_kind]
+      required: [processor_id, external_product_id, billing_cadence]
       properties:
         processor_id: { type: string, enum: [paypal, apple, google_play, test] }
         external_product_id: { type: string }
         external_base_plan_id: { type: string, nullable: true }
         billing_cadence: { type: string, enum: [monthly, annual] }
-        purchase_kind: { type: string, enum: [auto_renew, one_time] }
     BillingProcessorProductPatchRequest:
       type: object
       minProperties: 1
@@ -1898,41 +1895,13 @@ components:
         is_active: { type: boolean }
         external_product_id: { type: string }
         external_base_plan_id: { type: string, nullable: true }
-    BillingAccountSubscription:
-      type: object
-      required:
-        [
-          id,
-          processor_id,
-          external_subscription_id,
-          status,
-          purchase_kind,
-          cancel_at_period_end,
-          banked_seconds,
-          is_sandbox,
-        ]
-      properties:
-        id: { type: integer }
-        processor_id: { type: string }
-        external_subscription_id: { type: string }
-        external_product_id: { type: string, nullable: true }
-        status: { type: string }
-        purchase_kind: { type: string }
-        current_period_start: { type: string, format: date-time, nullable: true }
-        current_period_end: { type: string, format: date-time, nullable: true }
-        grace_period_ends_at: { type: string, format: date-time, nullable: true }
-        cancel_at_period_end: { type: boolean }
-        banked_seconds: { type: integer }
-        is_sandbox: { type: boolean }
     BillingAccountTransaction:
       type: object
-      required: [id, processor_id, external_transaction_id, purchase_kind, settled_at, is_sandbox]
+      required: [id, processor_id, external_transaction_id, settled_at, is_sandbox]
       properties:
         id: { type: integer }
         processor_id: { type: string }
         external_transaction_id: { type: string }
-        billing_subscription_id: { type: integer, nullable: true }
-        purchase_kind: { type: string }
         amount: { type: string, nullable: true }
         currency_code: { type: string, nullable: true }
         settled_at: { type: string, format: date-time }
@@ -1948,7 +1917,6 @@ components:
         starts_at: { type: string, format: date-time }
         ends_at: { type: string, format: date-time }
         revoked_at: { type: string, format: date-time, nullable: true }
-        billing_subscription_id: { type: integer, nullable: true }
         billing_transaction_id: { type: integer, nullable: true }
         admin_editable:
           type: boolean
@@ -1968,27 +1936,14 @@ components:
         process_error: { type: string, nullable: true }
     BillingAccountDetail:
       type: object
-      required:
-        [account_id, membership_expires_at, subscriptions, transactions, grants, webhook_events]
+      required: [account_id, membership_expires_at, transactions, grants, webhook_events]
       properties:
         account_id: { type: integer }
         membership_expires_at: { type: string, format: date-time, nullable: true }
-        subscriptions:
-          { type: array, items: { $ref: "#/components/schemas/BillingAccountSubscription" } }
         transactions:
           { type: array, items: { $ref: "#/components/schemas/BillingAccountTransaction" } }
         grants: { type: array, items: { $ref: "#/components/schemas/BillingAccountGrant" } }
         webhook_events: { type: array, items: { $ref: "#/components/schemas/BillingWebhookEvent" } }
-    BillingResyncSubscriptionResult:
-      type: object
-      required: [subscription_id, processor_id, status]
-      properties:
-        subscription_id: { type: integer }
-        processor_id: { type: string }
-        status: { type: string }
-        reason: { type: string }
-        account_id: { type: integer }
-        membership_expires_at: { type: string, format: date-time, nullable: true }
     BillingWebhookEventReplayResult:
       type: object
       required: [status, inbox_event_id]
@@ -2001,14 +1956,13 @@ components:
         message: { type: string }
     BillingResyncResult:
       type: object
-      required: [account_id, membership_expires_at, subscriptions, inbox_events]
+      required: [account_id, membership_expires_at, retried, refetched, failed]
       properties:
         account_id: { type: integer }
         membership_expires_at: { type: string, format: date-time, nullable: true }
-        subscriptions:
-          { type: array, items: { $ref: "#/components/schemas/BillingResyncSubscriptionResult" } }
-        inbox_events:
-          { type: array, items: { $ref: "#/components/schemas/BillingWebhookEventReplayResult" } }
+        retried: { type: integer }
+        refetched: { type: integer }
+        failed: { type: integer }
     BillingGrantRequest:
       type: object
       description: "Exactly one of cadence, days, or ends_at."
@@ -2454,7 +2408,7 @@ paths:
       tags:
         - billing
       summary: POST /billing/accounts/{accountId}/resync
-      description: "Fetches each subscription from its processor and retries the account failed webhook events. Permission: billing_account update."
+      description: "Retries the account's failed webhook events, then re-reads each recorded transaction from its processor. Permission: billing_account update."
       security:
         - bearerAuth: []
         - cookieAuth: []

@@ -1,11 +1,6 @@
-import type {
-  BillingWebhookParseResult,
-  NormalizedBillingEvent,
-  NormalizedSubscriptionSnapshot,
-  PaymentProcessorId,
-} from '@podverse/helpers';
+import type { BillingWebhookParseResult, NormalizedBillingEvent } from '@podverse/helpers';
 
-import { applyBillingEvent, applySubscriptionSnapshot } from './applyBillingEvent.js';
+import { applyBillingEvent } from './applyBillingEvent.js';
 import type { BillingEventErrorCode } from './errors.js';
 import { BillingEventError } from './errors.js';
 import { isNormalizedBillingEvent } from './isNormalizedBillingEvent.js';
@@ -35,10 +30,6 @@ export type BillingEventOutcome =
       message: string;
     };
 
-export type BillingSnapshotOutcome =
-  | { status: 'applied'; accountId: number; membershipExpiresAt: Date | null }
-  | { status: 'ignored_sandbox'; accountId: number };
-
 export interface BillingEventSource {
   schemaVersion: string;
   rawPayload: Record<string, unknown> | null;
@@ -51,54 +42,19 @@ export interface BillingEventProcessorOptions {
 }
 
 interface AccountLookup {
-  processor: PaymentProcessorId;
-  externalSubscriptionIds: string[];
+  processor: NormalizedBillingEvent['processor'];
   externalTransactionIds: string[];
   accountBillingCustomerRef: string | null;
   accountId: number | null;
 }
 
-function nonNull(values: (string | null)[]): string[] {
-  return values.filter((value): value is string => value !== null);
-}
-
 function eventAccountLookup(event: NormalizedBillingEvent): AccountLookup {
-  const base = {
+  return {
     processor: event.processor,
+    externalTransactionIds: [event.externalTransactionId],
     accountBillingCustomerRef: event.accountBillingCustomerRef,
     accountId: event.accountId,
   };
-  switch (event.type) {
-    case 'payment_settled':
-      return {
-        ...base,
-        externalSubscriptionIds: nonNull([event.externalSubscriptionId]),
-        externalTransactionIds: [event.externalTransactionId],
-      };
-    case 'subscription_renewed':
-      return {
-        ...base,
-        externalSubscriptionIds: [event.externalSubscriptionId],
-        externalTransactionIds: [event.externalTransactionId],
-      };
-    case 'refund_or_revoke':
-      return {
-        ...base,
-        externalSubscriptionIds: nonNull([event.externalSubscriptionId]),
-        externalTransactionIds: nonNull([event.externalTransactionId]),
-      };
-    case 'subscription_activated':
-    case 'subscription_renewal_failed':
-    case 'grace_entered':
-    case 'grace_exited':
-    case 'subscription_cancelled':
-    case 'subscription_expired':
-      return {
-        ...base,
-        externalSubscriptionIds: [event.externalSubscriptionId],
-        externalTransactionIds: [],
-      };
-  }
 }
 
 function describeError(error: unknown): {
@@ -117,9 +73,9 @@ function describeError(error: unknown): {
 /**
  * Turns normalized processor events into ledger writes. Every event lands in the webhook inbox
  * first, keyed by the processor's event id, so a redelivered notification is a no-op. Applying an
- * event locks the account, writes subscriptions, transactions, and grants, and recomputes the
- * entitlement cache in one transaction; a failure rolls that back, records `process_error` on
- * the inbox row, and leaves the row for a retry.
+ * event locks the account, writes the payment and its grant, and recomputes the entitlement cache
+ * in one transaction; a failure rolls that back, records `process_error` on the inbox row, and
+ * leaves the row for a retry.
  */
 export class BillingEventProcessor {
   private readonly store: BillingLedgerStore;
@@ -186,34 +142,6 @@ export class BillingEventProcessor {
     return this.processInboxEvent(inboxEventId, event);
   }
 
-  /**
-   * Applies the processor's current view of a subscription. Throws `BillingEventError` when the
-   * subscription cannot be tied to an account; there is no inbox row to record that on.
-   */
-  async applySubscriptionSnapshot(
-    snapshot: NormalizedSubscriptionSnapshot,
-    options?: { accountId?: number }
-  ): Promise<BillingSnapshotOutcome> {
-    const account = await this.resolveAccount({
-      processor: snapshot.processor,
-      externalSubscriptionIds: [snapshot.externalSubscriptionId],
-      externalTransactionIds: [],
-      accountBillingCustomerRef: snapshot.accountBillingCustomerRef,
-      accountId: options?.accountId ?? null,
-    });
-    if (snapshot.isSandbox && !isSandboxPurchaseAllowed(this.sandboxPolicy, account)) {
-      return { status: 'ignored_sandbox', accountId: account.id };
-    }
-
-    const { membershipExpiresAt } = await this.store.withAccountLedger(
-      snapshot.processor,
-      account.id,
-      this.now(),
-      (unitOfWork) => applySubscriptionSnapshot(unitOfWork, snapshot)
-    );
-    return { status: 'applied', accountId: account.id, membershipExpiresAt };
-  }
-
   private async processInboxEvent(
     inboxEventId: string,
     event: NormalizedBillingEvent
@@ -225,13 +153,13 @@ export class BillingEventProcessor {
         return { status: 'ignored_sandbox', inboxEventId, accountId: account.id };
       }
 
-      const { membershipExpiresAt } = await this.store.withAccountLedger(
+      const { result, membershipExpiresAt } = await this.store.withAccountLedger(
         event.processor,
         account.id,
         this.now(),
         (unitOfWork) => applyBillingEvent(unitOfWork, event)
       );
-      await this.store.markInboxProcessed(inboxEventId);
+      await this.store.markInboxProcessed(inboxEventId, result.note);
       return { status: 'processed', inboxEventId, accountId: account.id, membershipExpiresAt };
     } catch (error) {
       const { errorCode, message } = describeError(error);
@@ -246,15 +174,6 @@ export class BillingEventProcessor {
    * another account's purchase by posting it.
    */
   private async resolveAccount(lookup: AccountLookup): Promise<BillingAccountIdentity> {
-    for (const externalSubscriptionId of lookup.externalSubscriptionIds) {
-      const ownerId = await this.store.findSubscriptionAccountId(
-        lookup.processor,
-        externalSubscriptionId
-      );
-      if (ownerId !== null) {
-        return this.requireAccountById(ownerId);
-      }
-    }
     for (const externalTransactionId of lookup.externalTransactionIds) {
       const ownerId = await this.store.findTransactionAccountId(
         lookup.processor,

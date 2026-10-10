@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, StyleSheet, Text, View } from 'react-native';
 import type { TextStyle } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { getMobileConfig } from '../../config';
 import { typography } from '../../theme/typography';
@@ -50,7 +50,6 @@ function MissingContentBullet({ emailLinkStyle, textStyle }: MissingContentBulle
           void Linking.openURL(`mailto:${email}`);
         }}
         style={emailLinkStyle}
-        testID="trial-limitations-missing-content-email"
       >
         {email}
       </Text>

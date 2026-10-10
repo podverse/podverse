@@ -545,7 +545,7 @@ components:
           example: new-item
     AccountMembershipStatus:
       type: object
-      description: Current membership subscription status
+      description: Current membership access
       properties:
         id:
           type: integer
@@ -554,17 +554,8 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: When current membership subscription expires
+          description: When current membership access ends
           example: "2024-12-31T23:59:59Z"
-        auto_renew_mode:
-          type: string
-          description: >-
-            Whether a subscription in good standing will charge again on its own. Clients read
-            expiring-soon suppression from this through the shared helper.
-          enum:
-            - "off"
-            - "on"
-          example: "on"
         billing_cadence:
           type: string
           nullable: true
@@ -3193,8 +3184,6 @@ components:
             - billing.processor_unavailable
             - billing.product_unavailable
             - billing.purchase_not_found
-            - billing.subscription_already_active
-            - billing.subscription_not_found
             - billing.test_adapter_unavailable
             - billing.webhook_verification_failed
           example: billing.client_update_required
@@ -3204,83 +3193,11 @@ components:
         min_client_version:
           type: string
           example: 5.2.0
-    BillingSubscription:
-      type: object
-      required:
-        - id
-        - processor_id
-        - status
-        - purchase_kind
-        - external_subscription_id
-        - cancel_at_period_end
-        - banked_seconds
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 12
-        processor_id:
-          type: string
-          description: A payment processor id; clients skip ids they do not know.
-          example: paypal
-        status:
-          type: string
-          enum:
-            - pending
-            - active
-            - in_grace_period
-            - past_due
-            - cancelled_active
-            - expired
-            - revoked
-          example: active
-        purchase_kind:
-          type: string
-          enum:
-            - auto_renew
-            - one_time
-          example: auto_renew
-        cadence:
-          type: string
-          nullable: true
-          enum:
-            - monthly
-            - annual
-          example: monthly
-        external_subscription_id:
-          type: string
-          example: I-BW452GLLEP1G
-        current_period_start:
-          type: string
-          format: date-time
-          nullable: true
-        current_period_end:
-          type: string
-          format: date-time
-          nullable: true
-          description: End of the paid period, shown as "Renews on" or "Expires on".
-        cancel_at_period_end:
-          type: boolean
-        grace_period_ends_at:
-          type: string
-          format: date-time
-          nullable: true
-        banked_seconds:
-          type: integer
-          description: Membership time the account already held when this subscription started.
-          example: 0
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
     BillingStatus:
       type: object
       required:
         - is_entitled
         - in_grace_period
-        - active_auto_renew
         - billing_customer_ref
       properties:
         tier:
@@ -3294,14 +3211,12 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: When access ends, including any renewal buffer or grace.
+          description: When access ends.
           example: "2026-11-01T00:00:00.000Z"
         in_grace_period:
           type: boolean
+          description: False. Access ends at membership_expires_at.
           example: false
-        active_auto_renew:
-          type: boolean
-          example: true
         billing_cadence:
           type: string
           nullable: true
@@ -3313,17 +3228,12 @@ components:
           type: string
           description: Opaque id attached to store purchases so notifications resolve to this account.
           example: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
-        active_subscription:
-          nullable: true
-          allOf:
-            - $ref: "#/components/schemas/BillingSubscription"
     BillingCheckoutProduct:
       type: object
       required:
         - id
         - product_code
         - cadence
-        - purchase_kind
         - external_product_id
       properties:
         id:
@@ -3340,12 +3250,6 @@ components:
             - monthly
             - annual
           example: annual
-        purchase_kind:
-          type: string
-          enum:
-            - auto_renew
-            - one_time
-          example: auto_renew
         external_product_id:
           type: string
           example: P-5ML4271244454362WXNWU5NQ
@@ -3461,43 +3365,6 @@ components:
           type: string
           nullable: true
           example: https://www.sandbox.paypal.com/checkoutnow?token=5O190127TN364715T
-    BillingPayPalSubscription:
-      type: object
-      required:
-        - subscription_id
-      properties:
-        subscription_id:
-          type: string
-          example: I-BW452GLLEP1G
-        status:
-          type: string
-          nullable: true
-          example: APPROVAL_PENDING
-        approve_url:
-          type: string
-          nullable: true
-          example: https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-2M539689T3856352J
-        start_time:
-          type: string
-          format: date-time
-          nullable: true
-          description: First charge, set to the current expiry when the account still has time.
-          example: "2026-11-01T00:00:00.000Z"
-    BillingCancelSubscriptionResult:
-      type: object
-      required:
-        - outcome
-        - status
-      properties:
-        outcome:
-          type: string
-          enum:
-            - cancelled
-            - manage_in_store
-          description: "`manage_in_store`: send the member to the store's subscription settings."
-          example: cancelled
-        status:
-          $ref: "#/components/schemas/BillingStatus"
     BillingAppleTransactionRequest:
       type: object
       required:
@@ -3521,7 +3388,7 @@ components:
       required:
         - purchase_token
         - product_id
-        - purchase_kind
+        - order_id
       properties:
         purchase_token:
           type: string
@@ -3529,12 +3396,10 @@ components:
         product_id:
           type: string
           example: podverse_premium
-        purchase_kind:
+        order_id:
           type: string
-          enum:
-            - auto_renew
-            - one_time
-          example: auto_renew
+          description: Google Play order id. The purchase token stays in purchase_token.
+          example: GPA.1234-5678-9012-34567
     BillingRestoreRequest:
       type: object
       required:
@@ -3555,7 +3420,6 @@ components:
             type: object
             required:
               - external_id
-              - purchase_kind
             properties:
               external_id:
                 type: string
@@ -3563,11 +3427,10 @@ components:
               external_product_id:
                 type: string
                 nullable: true
-              purchase_kind:
+              external_transaction_id:
                 type: string
-                enum:
-                  - auto_renew
-                  - one_time
+                nullable: true
+                description: Google Play order id. Apple ignores it.
               signed_transaction:
                 type: string
                 nullable: true
@@ -3592,13 +3455,6 @@ components:
               type: string
               enum:
                 - payment_settled
-                - subscription_activated
-                - subscription_renewed
-                - subscription_renewal_failed
-                - subscription_cancelled
-                - grace_entered
-                - grace_exited
-                - subscription_expired
                 - refund_or_revoke
           additionalProperties: true
     BillingSimulationResult:
@@ -8004,7 +7860,6 @@ paths:
                       - id: 1
                         product_code: premium
                         cadence: monthly
-                        purchase_kind: one_time
                         external_product_id: podverse_premium_one_time_monthly
                         external_base_plan_id: null
         "400":
@@ -8025,8 +7880,7 @@ paths:
       tags:
         - billing
       summary: GET /billing/status
-      description: >-
-        The signed-in account's membership and billing standing.
+      description: The signed-in account's membership standing.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -8042,10 +7896,8 @@ paths:
                 is_entitled: true
                 membership_expires_at: "2026-11-03T00:00:00.000Z"
                 in_grace_period: false
-                active_auto_renew: false
                 billing_cadence: monthly
                 billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
-                active_subscription: null
         "401":
           description: Unauthorized
           content:
@@ -8064,8 +7916,7 @@ paths:
       tags:
         - billing
       summary: POST /billing/paypal/orders
-      description: >-
-        Creates a PayPal order for a one-time membership product at the catalog price.
+      description: Creates a PayPal order for a membership product at the catalog price.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -8112,7 +7963,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/BillingApiError"
               example:
-                message: This product is not sold through PayPal one-time checkout
+                message: This product is not sold through PayPal
                 code: billing.product_unavailable
                 i18nKey: billing.product_unavailable
         "426":
@@ -8175,10 +8026,8 @@ paths:
                   is_entitled: true
                   membership_expires_at: "2026-11-03T00:00:00.000Z"
                   in_grace_period: false
-                  active_auto_renew: false
                   billing_cadence: monthly
                   billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
-                  active_subscription: null
         "400":
           description: Bad request
           content:
@@ -8234,170 +8083,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
-  /billing/paypal/subscriptions:
-    post:
-      operationId: apiPostBillingPaypalSubscriptions
-      tags:
-        - billing
-      summary: POST /billing/paypal/subscriptions
-      description: >-
-        Creates a PayPal subscription. When the account still has membership time, the first charge
-        starts at the current expiry so no paid day is overlapped.
-      security:
-        - bearerAuth: []
-        - cookieAuth: []
-      parameters:
-        - $ref: "#/components/parameters/BillingClientVersionHeader"
-        - $ref: "#/components/parameters/BillingClientPlatformHeader"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/BillingPayPalCheckoutRequest"
-            example:
-              processor_product_id: 3
-              return_url: https://podverse.fm/membership/paypal/return
-              cancel_url: https://podverse.fm/membership
-      responses:
-        "201":
-          description: Subscription created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BillingPayPalSubscription"
-              example:
-                subscription_id: I-BW452GLLEP1G
-                status: APPROVAL_PENDING
-                approve_url: https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-2M539689T3856352J
-                start_time: "2026-11-01T00:00:00.000Z"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthenticationErrorResponse"
-        "404":
-          description: PayPal or the product is not available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BillingApiError"
-              example:
-                message: This product is not sold as a PayPal subscription
-                code: billing.product_unavailable
-                i18nKey: billing.product_unavailable
-        "409":
-          description: A subscription that renews already covers the account
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BillingApiError"
-              example:
-                message: The account already has a subscription that renews
-                code: billing.subscription_already_active
-                i18nKey: billing.subscription_already_active
-        "426":
-          description: The installed app is below the minimum version for this processor
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BillingApiError"
-              example:
-                message: Update the app to purchase
-                code: billing.client_update_required
-                i18nKey: billing.client_update_required
-                min_client_version: 5.2.0
-        "429":
-          description: Too many requests
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InternalServerErrorResponse"
-  /billing/subscriptions/{id}/cancel:
-    post:
-      operationId: apiPostBillingSubscriptionsIdCancel
-      tags:
-        - billing
-      summary: POST /billing/subscriptions/{id}/cancel
-      description: >-
-        Turns off auto-renew. Access continues to the end of the paid period. Store subscriptions
-        answer `manage_in_store`, and the client opens the store subscription settings.
-      security:
-        - bearerAuth: []
-        - cookieAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 12
-      responses:
-        "200":
-          description: Cancelled, or managed in the store
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BillingCancelSubscriptionResult"
-              example:
-                outcome: cancelled
-                status:
-                  tier: premium
-                  is_entitled: true
-                  membership_expires_at: "2026-11-03T00:00:00.000Z"
-                  in_grace_period: false
-                  active_auto_renew: false
-                  billing_cadence: monthly
-                  billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
-                  active_subscription: null
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthenticationErrorResponse"
-        "404":
-          description: No such subscription on this account
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BillingApiError"
-              example:
-                message: Subscription not found
-                code: billing.subscription_not_found
-                i18nKey: billing.subscription_not_found
-        "429":
-          description: Too many requests
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InternalServerErrorResponse"
   /billing/apple/transactions:
     post:
       operationId: apiPostBillingAppleTransactions
@@ -8438,10 +8123,8 @@ paths:
                   is_entitled: true
                   membership_expires_at: "2026-11-03T00:00:00.000Z"
                   in_grace_period: false
-                  active_auto_renew: false
                   billing_cadence: monthly
                   billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
-                  active_subscription: null
         "400":
           description: Bad request
           content:
@@ -8520,7 +8203,7 @@ paths:
             example:
               purchase_token: opaque-token
               product_id: podverse_premium
-              purchase_kind: auto_renew
+              order_id: GPA.1234-5678-9012-34567
       responses:
         "200":
           description: Purchase recorded
@@ -8538,10 +8221,8 @@ paths:
                   is_entitled: true
                   membership_expires_at: "2026-11-03T00:00:00.000Z"
                   in_grace_period: false
-                  active_auto_renew: false
                   billing_cadence: monthly
                   billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
-                  active_subscription: null
         "400":
           description: Bad request
           content:
@@ -8620,7 +8301,6 @@ paths:
               purchases:
                 - external_id: "2000000456789012"
                   external_product_id: fm.podverse.premium.monthly
-                  purchase_kind: auto_renew
       responses:
         "200":
           description: Restore finished
@@ -8638,10 +8318,8 @@ paths:
                   is_entitled: true
                   membership_expires_at: "2026-11-03T00:00:00.000Z"
                   in_grace_period: false
-                  active_auto_renew: false
                   billing_cadence: monthly
                   billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
-                  active_subscription: null
         "400":
           description: Bad request
           content:
@@ -8880,9 +8558,7 @@ paths:
             example:
               event:
                 type: payment_settled
-                purchaseKind: one_time
                 externalTransactionId: sim-tx-1
-                externalSubscriptionId: null
                 externalProductId: test_premium_one_time_monthly
                 externalBasePlanId: null
                 periodStart: null
@@ -8904,10 +8580,8 @@ paths:
                   is_entitled: true
                   membership_expires_at: "2026-11-03T00:00:00.000Z"
                   in_grace_period: false
-                  active_auto_renew: false
                   billing_cadence: monthly
                   billing_customer_ref: 3f0c1a8e-6d0e-4b8a-9d61-2f6b7f8e2a10
-                  active_subscription: null
         "400":
           description: Bad request
           content:

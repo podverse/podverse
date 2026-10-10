@@ -20,12 +20,13 @@ the sales switch. Leave the two separate.
 ## Do
 
 - Implement `PaymentProcessorAdapter` in the vendor package and register that factory at
-  startup. Do not call a vendor SDK from a route or a worker command.
+  startup. Do not call a vendor SDK from a route or a worker command. Emit `payment_settled`
+  and `refund_or_revoke` only.
 - Treat webhooks as idempotent. The client purchase post is a fast path; the webhook alone
   must be enough to grant access. Both paths key off the processor transaction id.
 - Let workers reconcile. They read the processor and apply what the ledger missed.
 - Turn a checkout channel off to stop new sales. That does not need an app release. Leave the
-  flag on while live subscriptions still need webhooks.
+  flag on while recorded purchases still need refund webhooks.
 - Let `BillingEntitlementService` recompute `membership_expires_at` under a row lock. Trial,
   admin, and import time are grants. Admin shortening goes through `endAccess` or
   `revokeGrant`. Those never change processor or claim grants.
@@ -36,11 +37,10 @@ the sales switch. Leave the two separate.
 
 ## Don't
 
-- Don't charge a card, a PayPal agreement, or a store account from a worker. The processor
-  charges. Reconciliation only reads.
+- Don't charge a card or a store account from a worker. The processor charges. Reconcile only
+  reads.
 - Don't write `membership_expires_at` outside that recompute. Seeds and fixtures that set the
   cache must insert a covering grant in the same step (**membership-expiry-seeds-need-grant**).
-- Don't add a fourth payment processor beside PayPal, Apple, and Google Play.
-- Don't send membership-expiry or renewal-reminder email.
+- Don't send membership-expiry email.
 
 Operator guide: [docs/billing/BILLING.md](/docs/billing/BILLING.md).

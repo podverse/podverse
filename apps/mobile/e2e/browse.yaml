@@ -121,20 +121,8 @@ name: Browse Tab And Tab Bar Pref
     id: "home-feed-row-duration-.*"
 - takeScreenshot: browse-screen-episodes
 
-# Clips mix any podcast and any episode, so each row names that parent context.
-# Three left swipes is what reaches the end of the chip row (Playlists / Users) from Podcasts.
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: LEFT
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: LEFT
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: LEFT
+# Clips sits between Episodes and Artists, still on screen from the start of the row.
+# Each row names the podcast and episode the clip came from.
 - tapOn:
     id: browse-media-type-clips
 - extendedWaitUntil:
@@ -151,18 +139,6 @@ name: Browse Tab And Tab Bar Pref
       - assertVisible:
           id: "home-feed-row-subtitle-.*"
 - takeScreenshot: browse-screen-clips
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: RIGHT
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: RIGHT
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: RIGHT
 - tapOn:
     id: browse-media-type-episodes
 - extendedWaitUntil:
@@ -220,11 +196,12 @@ name: Browse Tab And Tab Bar Pref
 - assertVisible:
     id: browse-sort-button
 
-# Artists sits just off the leading edge once the sort chip is on screen.
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: RIGHT
+# Artists is left of the trailing chips. Swipe until its center is on screen.
+- runFlow:
+    file: shared/reveal-chip-row-leading.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      LEADING_ID: browse-media-type-artists
 - tapOn:
     id: browse-media-type-artists
 - runFlow:
@@ -274,10 +251,12 @@ name: Browse Tab And Tab Bar Pref
     id: "home-feed-row-title-.*"
 - assertNotVisible:
     id: "home-feed-cell-.*"
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: LEFT
+# Artists follows Clips. A fixed swipe count from Podcasts scrolls past it on a phone.
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-media-type-artists
 - tapOn:
     id: browse-media-type-artists
 - swipe:
@@ -355,8 +334,8 @@ name: Browse Tab And Tab Bar Pref
 - assertVisible:
     id: my-profile-playlist-row-e2eEmbPlList01-subtitle
 - takeScreenshot: browse-my-profile-playlist-row
-- tapOn:
-    id: stack-header-back
+- runFlow:
+    file: shared/stack-back.yaml
 - tapOn:
     id: more-settings
 - tapOn:
@@ -366,10 +345,10 @@ name: Browse Tab And Tab Bar Pref
 - takeScreenshot: browse-tab-bar-settings
 - tapOn:
     id: more-settings-tab-bar-add-notifications
-- tapOn:
-    id: stack-header-back
-- tapOn:
-    id: stack-header-back
+- runFlow:
+    file: shared/stack-back.yaml
+- runFlow:
+    file: shared/stack-back.yaml
 # addVisibleTab appends Notifications and drops the last other slot (Browse).
 - assertVisible:
     id: tab-notifications

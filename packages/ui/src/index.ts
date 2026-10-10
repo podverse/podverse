@@ -289,8 +289,6 @@ export type {
 } from './components/stats/StatSummaryGrid/index';
 export { Checkbox } from './components/form/Checkbox/index';
 export type { CheckboxProps } from './components/form/Checkbox/index';
-export { MembershipAutoRenewConsent } from './components/membership/MembershipAutoRenewConsent/MembershipAutoRenewConsent';
-export type { MembershipAutoRenewConsentProps } from './components/membership/MembershipAutoRenewConsent/MembershipAutoRenewConsent';
 export { MembershipPlanSelector } from './components/membership/MembershipPlanSelector/MembershipPlanSelector';
 export type {
   MembershipPlanOption,

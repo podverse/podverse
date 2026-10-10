@@ -13,6 +13,15 @@ const config = getDefaultConfig(projectRoot);
 // Watch shared package dist/ plus the monorepo tsconfig base so export/build can resolve
 // `apps/mobile/tsconfig.json` extends during Metro's TypeScript path setup.
 config.watchFolders = [packagesRoot, monorepoRoot];
+
+// Test runs write screenshots and logs under `.artifacts/`. Metro answers any watched write with an
+// HMR update, and the dev client's "Refreshing..." banner window then swallows taps in the header row.
+const artifactsRoot = path.resolve(monorepoRoot, '.artifacts');
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+config.resolver.blockList = [
+  ...[config.resolver.blockList ?? []].flat(),
+  new RegExp(`^${escapeRegExp(artifactsRoot)}(?:[\\\\/].*)?$`),
+];
 config.resolver.nodeModulesPaths = [path.resolve(projectRoot, 'node_modules')];
 config.resolver.unstable_enableSymlinks = true;
 config.resolver.unstable_enablePackageExports = true;

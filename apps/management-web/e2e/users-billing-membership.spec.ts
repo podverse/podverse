@@ -51,6 +51,24 @@ async function extendByThirtyDays(page: Page) {
   return { beforeIso, submittedAtMs };
 }
 
+function addUtcMonths(iso: string, monthsToAdd: number): number {
+  const baseDate = new Date(iso);
+  const targetMonthIndex = baseDate.getUTCMonth() + monthsToAdd;
+  const targetYear = baseDate.getUTCFullYear() + Math.floor(targetMonthIndex / 12);
+  const targetMonth = ((targetMonthIndex % 12) + 12) % 12;
+  const daysInTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  const clampedDay = Math.min(baseDate.getUTCDate(), daysInTargetMonth);
+  return Date.UTC(
+    targetYear,
+    targetMonth,
+    clampedDay,
+    baseDate.getUTCHours(),
+    baseDate.getUTCMinutes(),
+    baseDate.getUTCSeconds(),
+    baseDate.getUTCMilliseconds()
+  );
+}
+
 function expectMovedOutByThirtyDays(
   beforeIso: string | null,
   afterIso: string | null,
@@ -138,6 +156,51 @@ test.describe('User billing page manual membership', () => {
       testInfo,
       'Revoking the admin grant shows the recalculated expiration.',
       page.locator('#membership-expires-at')
+    );
+  });
+
+  test('an admin monthly grant stacks one month onto a member who already has premium time', async ({
+    page,
+  }, testInfo) => {
+    await openBillingMemberPage(page);
+    await page.locator('#account-billing-grant-cadence').click();
+    await page.getByRole('menuitem', { name: 'Monthly' }).click();
+    await page.getByRole('button', { name: 'Extend Membership' }).click();
+    await expect(page.getByText(/Membership extended to/)).toBeVisible();
+    const paidUntil = await page.locator('#membership-expires-at').getAttribute('datetime');
+    expect(paidUntil).toEqual(expect.any(String));
+
+    await expect(page.getByRole('button', { name: 'Extend Membership' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Extend Membership' }).click();
+    await expect
+      .poll(async () => page.locator('#membership-expires-at').getAttribute('datetime'))
+      .not.toBe(paidUntil);
+    const stackedUntil = await page.locator('#membership-expires-at').getAttribute('datetime');
+    expect(stackedUntil).toEqual(expect.any(String));
+    if (typeof paidUntil === 'string' && typeof stackedUntil === 'string') {
+      expect(Date.parse(stackedUntil)).toBe(addUtcMonths(paidUntil, 1));
+    }
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'A second monthly grant moves the expiration one month past the premium expiry.',
+      page.locator('#membership-expires-at')
+    );
+  });
+
+  test('a superuser resyncs the account and sees the retry counts', async ({ page }, testInfo) => {
+    await openBillingMemberPage(page);
+    await page.getByRole('button', { name: 'Resync' }).click();
+    await expect(page.getByText('Account resynced.')).toBeVisible();
+    const counts = page.locator('#account-billing-resync-counts');
+    await expect(counts).toHaveText('Retried 0. Refetched 0. Failed 0.');
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Resync reports retried, refetched, and failed counts.',
+      counts
     );
   });
 });

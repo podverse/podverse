@@ -619,7 +619,7 @@
       "premiumBillingCadence": "Περίοδος χρέωσης Premium",
       "billingMonthly": "Μηνιαία",
       "billingAnnual": "Ετήσια",
-      "premiumBillingCadenceHint": "Η προεπιλεγμένη λήξη είναι έναν μήνα μπροστά για μηνιαία, ή ένα έτος μπροστά για ετήσια (ευθυγραμμισμένη με τον κύκλο συνδρομής).",
+      "premiumBillingCadenceHint": "Η προεπιλεγμένη λήξη είναι έναν μήνα μπροστά για μηνιαία, ή ένα έτος μπροστά για ετήσια.",
       "trustTier": "Επίπεδο εμπιστοσύνης",
       "untrusted": "Ανεπίσημοι",
       "trusted": "Επίσημοι",
@@ -785,7 +785,6 @@
       "grant": "Χορήγηση συνδρομής",
       "grantCadenceLabel": "Ρυθμός",
       "expires": "Λήξη συνδρομής",
-      "subscriptions": "Συνδρομές",
       "transactions": "Συναλλαγές",
       "grants": "Χορηγήσεις",
       "events": "Συμβάντα webhook",
@@ -793,27 +792,16 @@
       "table": {
         "processor": "Επεξεργαστής",
         "externalId": "Εξωτερικό ID",
-        "status": "Κατάσταση",
-        "periodEnd": "Τέλος περιόδου",
-        "kind": "Είδος",
         "amount": "Ποσό",
         "settledAt": "Εξοφλήθηκε",
         "source": "Πηγή",
         "starts": "Έναρξη",
         "ends": "Λήξη",
         "received": "Ελήφθη",
-        "error": "Σφάλμα"
+        "error": "Σφάλμα",
+        "revoked": "Ανακλήθηκε"
       },
-      "result": {
-        "applied": "Εφαρμόστηκε",
-        "ignored_sandbox": "Αγνοήθηκε το sandbox",
-        "skipped": "Παραλείφθηκε",
-        "failed": "Απέτυχε",
-        "not_found": "Δεν βρέθηκε",
-        "processor_not_configured": "Ο επεξεργαστής δεν έχει ρυθμιστεί",
-        "unknown_processor": "Άγνωστος επεξεργαστής",
-        "processor_error": "Σφάλμα επεξεργαστή"
-      }
+      "resyncCounts": "Επανάληψη {retried}. Επανάκτηση {refetched}. Αποτυχίες {failed}."
     },
     "processors": {
       "title": "Επεξεργαστές πληρωμών",
@@ -824,13 +812,27 @@
       "apple": "Apple App Store",
       "google_play": "Google Play"
     },
+    "help": {
+      "title": "Βοήθεια χρεώσεων",
+      "indexIntro": "Σημειώσεις διόρθωσης για χρέωση συνδρομών. Η διαχείριση δεν χρεώνει ποτέ μέσο πληρωμής.",
+      "giftingTitle": "Δώρο χρόνου σε μέλος",
+      "giftingBody": "Μια παραχώρηση διαχειριστή προσθέτει χρόνο μετά από αυτόν που έχει ήδη το μέλος. Δεν χρειάζεται προηγούμενος έλεγχος.",
+      "appleRefundsTitle": "Επιστροφή Apple",
+      "appleRefundsBody": "Το Podverse δεν μπορεί να επιστρέψει χρέωση App Store. Το μέλος τη ζητά από την Apple. Μετά την ακύρωση, κάντε resync τον λογαριασμό.",
+      "resyncTitle": "Λείπει μια αγορά από την εφαρμογή",
+      "resyncBody": "Χρησιμοποιήστε τον Επανασυγχρονισμό στη σελίδα χρέωσης του λογαριασμού. Ο επανασυγχρονισμός ξαναδοκιμάζει τις αποτυχημένες ειδοποιήσεις, ξαναφέρνει τις συναλλαγές του λογαριασμού και εφαρμόζει τις επιστροφές. Χρησιμοποιήστε τον όταν μια αγορά καταστήματος λείπει από το καθολικό. Αν ο επεξεργαστής είναι απενεργοποιημένος σε αυτή την εγκατάσταση, ενεργοποιήστε τον ή επεκτείνετε την πρόσβαση χειροκίνητα.",
+      "wrongAccountTitle": "Αγορά συνδεδεμένη σε λάθος λογαριασμό",
+      "wrongAccountBody": "Οι αποδείξεις δένονται στον λογαριασμό Podverse που αγόρασε. Το μέλος πρέπει να χρησιμοποιεί εκείνον, ή την υποστήριξη Apple/Google για μεταφορά. Μην δίνετε χρόνο σε δεύτερο λογαριασμό χωρίς να επιβεβαιώσετε ακύρωση του πρώτου."
+    },
     "pageTitle": "Χρεώσεις",
     "checkoutChannelsCardTitle": "Κανάλια αγοράς",
     "checkoutChannelsCardDescription": "Ενεργοποιήστε ή απενεργοποιήστε έναν επεξεργαστή ανά πλατφόρμα και ορίστε την ελάχιστη έκδοση πελάτη.",
     "processorProductsCardTitle": "Προϊόντα επεξεργαστή",
-    "processorProductsCardDescription": "Αντιστοιχίστε το id προϊόντος επεξεργαστή σε ρυθμό και είδος αγοράς.",
+    "processorProductsCardDescription": "Αντιστοιχίζει το id ενός προϊόντος επεξεργαστή σε προϊόν καταλόγου και περιοδικότητα.",
     "webhookEventsCardTitle": "Εισερχόμενα webhook",
     "webhookEventsCardDescription": "Ελέγξτε τις ειδοποιήσεις επεξεργαστή και επαναλάβετε όσες απέτυχαν.",
+    "helpCardTitle": "Βοήθεια χρεώσεων",
+    "helpCardDescription": "Δώρα, επιστροφές Apple, επανασυγχρονισμός και μια αγορά σε λάθος λογαριασμό.",
     "channels": {
       "title": "Κανάλια αγοράς",
       "failedToLoad": "Αποτυχία φόρτωσης καναλιών αγοράς.",
@@ -869,8 +871,8 @@
         "externalId": "Εξωτερικό ID",
         "basePlan": "Βασικό πλάνο",
         "cadence": "Ρυθμός",
-        "kind": "Είδος",
-        "active": "Ενεργό"
+        "active": "Ενεργό",
+        "catalogProduct": "Προϊόν καταλόγου"
       },
       "active": "Ενεργό",
       "inactive": "Ανενεργό",
@@ -878,13 +880,10 @@
       "externalIdLabel": "Εξωτερικό ID",
       "externalIdPlaceholder": "P-123",
       "basePlanLabel": "Βασικό πλάνο",
-      "basePlanPlaceholder": "monthly-auto",
+      "basePlanPlaceholder": "prepaid-monthly",
       "cadenceLabel": "Ρυθμός",
-      "kindLabel": "Είδος αγοράς",
       "cadenceMonthly": "Μηνιαίο",
       "cadenceAnnual": "Ετήσιο",
-      "kindAutoRenew": "Αυτόματη ανανέωση",
-      "kindOneTime": "Εφάπαξ",
       "edit": "Επεξεργασία",
       "editTitle": "Επεξεργασία προϊόντος επεξεργαστή",
       "activeLabel": "Ενεργό"

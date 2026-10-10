@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - worker-billing-renewals.cronjob.yaml
+  - worker-billing-reconcile.cronjob.yaml
   - worker-scheduled-jobs.cronjob.yaml
   - worker-notifications-purge.cronjob.yaml
   - worker-recent-feeds.cronjob.yaml

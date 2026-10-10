@@ -55,10 +55,6 @@ refreshing** until renewal; adding new feeds is blocked behind the renewal promp
 Expiry is surfaced **in-app only**, derived on demand — never push, email, or a scheduled job. See
 [`no-membership-expiry-notifications`](/.cursor/rules/no-membership-expiry-notifications.mdc).
 
-**Do not tell users enrolled in auto-renew that they are expiring soon.** Every reminder surface
-asks `shouldSuppressExpiryReminder(membership)` from `@podverse/helpers`; a member whose renewal
-failed and lapsed still sees the expired messaging.
-
 ## Tier assignments
 
 | Capability                                  | Tier       | Why                                            |

@@ -29,9 +29,8 @@ import {
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE } from '../../prefs/homeListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
-import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
 import { screenBodyInsets } from '../../theme/screenLayout';
-import { useResponsive } from '../../theme/useResponsive';
+import { useFeedListColumns } from '../../theme/useFeedListColumns';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedGridCell } from '../home/HomeFeedGridCell';
@@ -143,9 +142,11 @@ function BrowseCategoryItem({
 }
 
 function BrowsePlaylistItem({
+  cellStyle,
   onPress,
   playlist,
 }: {
+  cellStyle: StyleProp<ViewStyle>;
   onPress: (playlistId: string) => void;
   playlist: DTOPlaylist;
 }) {
@@ -154,20 +155,24 @@ function BrowsePlaylistItem({
   }, [onPress, playlist.id_text]);
 
   return (
-    <PlaylistListRow
-      onPress={handlePress}
-      playlist={playlist}
-      showCreator
-      testID={`browse-playlist-row-${playlist.id_text}`}
-    />
+    <View style={cellStyle}>
+      <PlaylistListRow
+        onPress={handlePress}
+        playlist={playlist}
+        showCreator
+        testID={`browse-playlist-row-${playlist.id_text}`}
+      />
+    </View>
   );
 }
 
 function BrowseUserItem({
   account,
+  cellStyle,
   onPress,
 }: {
   account: DTOAccount;
+  cellStyle: StyleProp<ViewStyle>;
   onPress: (accountId: string) => void;
 }) {
   const handlePress = useCallback(() => {
@@ -175,11 +180,13 @@ function BrowseUserItem({
   }, [account.id_text, onPress]);
 
   return (
-    <ProfileListRow
-      account={account}
-      onPress={handlePress}
-      testID={`browse-user-row-${account.id_text}`}
-    />
+    <View style={cellStyle}>
+      <ProfileListRow
+        account={account}
+        onPress={handlePress}
+        testID={`browse-user-row-${account.id_text}`}
+      />
+    </View>
   );
 }
 
@@ -217,16 +224,18 @@ function BrowseFeedItem({
   }
 
   return (
-    <HomeFeedRow
-      mediaType={mediaType}
-      onAddToPlaylistPress={addToPlaylistPress}
-      onGoToChannelPress={goToChannel}
-      onGoToTrackPress={goToTrack}
-      onPlayPress={onPlay}
-      onPress={onPress}
-      onQueuePress={onQueue}
-      row={row}
-    />
+    <View style={cellStyle}>
+      <HomeFeedRow
+        mediaType={mediaType}
+        onAddToPlaylistPress={addToPlaylistPress}
+        onGoToChannelPress={goToChannel}
+        onGoToTrackPress={goToTrack}
+        onPlayPress={onPlay}
+        onPress={onPress}
+        onQueuePress={onQueue}
+        row={row}
+      />
+    </View>
   );
 }
 
@@ -236,7 +245,6 @@ export function BrowseScreen() {
   const route = useRoute<RouteProp<BrowseStackParamList, typeof BROWSE_STACK_ROUTES.BrowseRoot>>();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const [selectedMediaType, setSelectedMediaType] =
     useState<BrowseMediaType>(DEFAULT_BROWSE_MEDIA_TYPE);
@@ -272,16 +280,13 @@ export function BrowseScreen() {
   const viewMode = activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE;
   const viewModeEligible = !isCategoryView && isBrowseViewModeMediaType(selectedMediaType);
   const isGridView = viewModeEligible && viewMode === 'grid';
-  const columns = isGridView ? resolveGridColumns(width) : rowColumns;
-  const horizontalInset = tokens.spacing.lg;
-  const gridGap = tokens.spacing.md;
-  const gridCellWidth = isGridView
-    ? resolveGridCellWidth({
-        columns,
-        contentWidth: width - 2 * horizontalInset,
-        gap: gridGap,
-      })
-    : 0;
+  const { cellWidth, columns, onListLayout } = useFeedListColumns({
+    gap: tokens.spacing.md,
+    horizontalInset: tokens.spacing.lg,
+    isGridView,
+  });
+  // The category tree is always one column.
+  const listColumns = isCategoryView ? 1 : columns;
 
   const addToPlaylistTarget = useMemo<{
     kind: 'clip' | 'item';
@@ -815,7 +820,7 @@ export function BrowseScreen() {
         borderTopWidth: StyleSheet.hairlineWidth,
       },
       columnCell: {
-        width: gridCellWidth,
+        width: cellWidth,
       },
       columnWrapper: {
         gap: tokens.spacing.md,
@@ -848,7 +853,7 @@ export function BrowseScreen() {
         ...bodyInsets,
       },
     });
-  }, [gridCellWidth, themeStyles, tokens]);
+  }, [cellWidth, themeStyles, tokens]);
 
   const showFeedRows = !isCategoryView && !isFeedLoading && feedErrorKey === null;
   const isFeedBusy = isFeedLoading;
@@ -974,7 +979,7 @@ export function BrowseScreen() {
       : undefined;
   const rowGoToChannel = selectedMediaType === 'tracks' ? handleGoToChannel : undefined;
   const rowGoToTrack = selectedMediaType === 'tracks' ? handleGoToTrack : undefined;
-  const feedCellStyle = columns > 1 ? styles.columnCell : undefined;
+  const feedCellStyle = listColumns > 1 ? styles.columnCell : undefined;
   const categoryRowStyles = useMemo(
     () => ({
       categoryRow: styles.categoryRow,
@@ -1001,17 +1006,29 @@ export function BrowseScreen() {
       }
 
       if (item.kind === 'playlist') {
-        return <BrowsePlaylistItem onPress={handlePlaylistPress} playlist={item.playlist} />;
+        return (
+          <BrowsePlaylistItem
+            cellStyle={feedCellStyle}
+            onPress={handlePlaylistPress}
+            playlist={item.playlist}
+          />
+        );
       }
 
       if (item.kind === 'user') {
-        return <BrowseUserItem account={item.account} onPress={handleUserPress} />;
+        return (
+          <BrowseUserItem
+            account={item.account}
+            cellStyle={feedCellStyle}
+            onPress={handleUserPress}
+          />
+        );
       }
 
       return (
         <BrowseFeedItem
           addToPlaylistPress={rowAddToPlaylistPress}
-          artworkEdge={gridCellWidth}
+          artworkEdge={cellWidth}
           cellStyle={feedCellStyle}
           goToChannel={rowGoToChannel}
           goToTrack={rowGoToTrack}
@@ -1026,8 +1043,8 @@ export function BrowseScreen() {
     },
     [
       categoryRowStyles,
+      cellWidth,
       feedCellStyle,
-      gridCellWidth,
       handleCategoryExpandToggle,
       handleCategorySelect,
       handlePlayPress,
@@ -1064,28 +1081,30 @@ export function BrowseScreen() {
         ListHeaderComponent={listHeader}
         accessibilityLabel={gridViewLabel}
         accessibilityRole="list"
-        columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
+        columnWrapperStyle={listColumns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
         data={listData}
         extraData={listExtraData}
         keyboardShouldPersistTaps="handled"
-        key={`cols-${columns}-${isCategoryView ? 'cat' : 'feed'}`}
+        key={`cols-${listColumns}-${isCategoryView ? 'cat' : 'feed'}`}
         keyExtractor={browseListRowKeyExtractor}
-        numColumns={isCategoryView ? 1 : columns}
+        numColumns={listColumns}
+        onLayout={onListLayout}
         refreshControl={refreshControl}
         renderItem={renderItem}
         testID="browse-feed-list"
       />
     ),
     [
-      columns,
       gridViewLabel,
       isCategoryView,
+      listColumns,
       listData,
       listEmpty,
       listExtraData,
       listFooter,
       listHeader,
+      onListLayout,
       refreshControl,
       renderItem,
       styles.columnWrapper,

@@ -29,7 +29,6 @@ export interface GeneratedAccountMembershipStatus {
   account_id: number;
   account_membership_id: number;
   membership_expires_at: Date | null;
-  auto_renew: boolean;
 }
 
 export class AccountMembershipStatusGenerator {
@@ -38,39 +37,24 @@ export class AccountMembershipStatusGenerator {
   generate(account: GeneratedAccount): GeneratedAccountMembershipStatus {
     let membershipId: number;
     let expiresAt: Date | null;
-    let autoRenew: boolean;
 
     if (account.isSpecial && account.specialConfig) {
-      // Special account configuration
       membershipId =
         account.specialConfig.membershipType === 'basic'
           ? AccountMembershipEnum.Premium
           : AccountMembershipEnum.Trial;
 
-      if (account.specialConfig.isExpired) {
-        // Expired membership
-        expiresAt = faker.date.past({ years: 1 });
-        autoRenew = false;
-      } else {
-        // Valid membership
-        expiresAt = faker.date.future({ years: 1 });
-        autoRenew = account.specialConfig.membershipType === 'basic';
-      }
+      expiresAt = account.specialConfig.isExpired
+        ? faker.date.past({ years: 1 })
+        : faker.date.future({ years: 1 });
     } else {
-      // Random account
       membershipId = faker.helpers.weightedArrayElement([
         { value: AccountMembershipEnum.Trial, weight: 7 },
         { value: AccountMembershipEnum.Premium, weight: 3 },
       ]);
 
-      // 80% have future expiry, 20% expired
       const isActive = faker.datatype.boolean({ probability: 0.8 });
       expiresAt = isActive ? faker.date.future({ years: 1 }) : faker.date.past({ years: 1 });
-
-      autoRenew =
-        isActive && membershipId === AccountMembershipEnum.Premium
-          ? faker.datatype.boolean({ probability: 0.7 })
-          : false;
     }
 
     return {
@@ -78,7 +62,6 @@ export class AccountMembershipStatusGenerator {
       account_id: account.id,
       account_membership_id: membershipId,
       membership_expires_at: expiresAt,
-      auto_renew: autoRenew,
     };
   }
 }

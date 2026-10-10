@@ -34,8 +34,7 @@ These must still hold after the rewrite (do not redesign checkout UX):
 - Server verify / settle payloads produced by `settleStorePurchase.ts` and
   `billingApi.ts`
 - `finishTransaction` only after API confirmation (existing settle path)
-- Prepaid vs auto-renew kind resolution via `purchaseKinds.ts` /
-  `selectPlayOfferToken.ts`
+- Play offer token selection via `selectPlayOfferToken.ts`
 - Error mapping: cancelled / waiting / account-token / product-unavailable
 
 ## Files

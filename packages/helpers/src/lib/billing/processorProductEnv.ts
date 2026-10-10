@@ -1,6 +1,5 @@
 import type { BillingCadence } from '../billingDomain.js';
 import type { PaymentProcessorId } from './paymentProcessorId.js';
-import type { PurchaseKind } from './purchaseKind.js';
 
 /**
  * PayPal Orders v2 has no product catalog, so Podverse names the one-time products itself. The
@@ -19,8 +18,7 @@ export const PAYPAL_ONE_TIME_PRODUCT_IDS = {
 export interface BillingProcessorProductEnvMapping {
   processor: PaymentProcessorId;
   cadence: BillingCadence;
-  purchaseKind: PurchaseKind;
-  /** The store product id, PayPal plan id, or Google Play subscription id. */
+  /** The store product id, or the Google Play product id plus base plan id. */
   productIdEnvKey: string;
   /** Google Play base plan id; null for processors without base plans. */
   basePlanIdEnvKey: string | null;
@@ -31,72 +29,26 @@ const GOOGLE_SUBSCRIPTION_ID_ENV_KEY = 'BILLING_PRODUCT_GOOGLE_SUBSCRIPTION_ID';
 export const BILLING_PROCESSOR_PRODUCT_ENV_MAPPINGS: readonly BillingProcessorProductEnvMapping[] =
   [
     {
-      processor: 'paypal',
-      cadence: 'monthly',
-      purchaseKind: 'auto_renew',
-      productIdEnvKey: 'BILLING_PRODUCT_PAYPAL_AUTO_RENEW_MONTHLY_PLAN_ID',
-      basePlanIdEnvKey: null,
-    },
-    {
-      processor: 'paypal',
-      cadence: 'annual',
-      purchaseKind: 'auto_renew',
-      productIdEnvKey: 'BILLING_PRODUCT_PAYPAL_AUTO_RENEW_ANNUAL_PLAN_ID',
-      basePlanIdEnvKey: null,
-    },
-    {
       processor: 'apple',
       cadence: 'monthly',
-      purchaseKind: 'auto_renew',
-      productIdEnvKey: 'BILLING_PRODUCT_APPLE_AUTO_RENEW_MONTHLY_ID',
-      basePlanIdEnvKey: null,
-    },
-    {
-      processor: 'apple',
-      cadence: 'annual',
-      purchaseKind: 'auto_renew',
-      productIdEnvKey: 'BILLING_PRODUCT_APPLE_AUTO_RENEW_ANNUAL_ID',
-      basePlanIdEnvKey: null,
-    },
-    {
-      processor: 'apple',
-      cadence: 'monthly',
-      purchaseKind: 'one_time',
       productIdEnvKey: 'BILLING_PRODUCT_APPLE_ONE_TIME_MONTHLY_ID',
       basePlanIdEnvKey: null,
     },
     {
       processor: 'apple',
       cadence: 'annual',
-      purchaseKind: 'one_time',
       productIdEnvKey: 'BILLING_PRODUCT_APPLE_ONE_TIME_ANNUAL_ID',
       basePlanIdEnvKey: null,
     },
     {
       processor: 'google_play',
       cadence: 'monthly',
-      purchaseKind: 'auto_renew',
-      productIdEnvKey: GOOGLE_SUBSCRIPTION_ID_ENV_KEY,
-      basePlanIdEnvKey: 'BILLING_PRODUCT_GOOGLE_AUTO_RENEW_MONTHLY_BASE_PLAN_ID',
-    },
-    {
-      processor: 'google_play',
-      cadence: 'annual',
-      purchaseKind: 'auto_renew',
-      productIdEnvKey: GOOGLE_SUBSCRIPTION_ID_ENV_KEY,
-      basePlanIdEnvKey: 'BILLING_PRODUCT_GOOGLE_AUTO_RENEW_ANNUAL_BASE_PLAN_ID',
-    },
-    {
-      processor: 'google_play',
-      cadence: 'monthly',
-      purchaseKind: 'one_time',
       productIdEnvKey: GOOGLE_SUBSCRIPTION_ID_ENV_KEY,
       basePlanIdEnvKey: 'BILLING_PRODUCT_GOOGLE_PREPAID_MONTHLY_BASE_PLAN_ID',
     },
     {
       processor: 'google_play',
       cadence: 'annual',
-      purchaseKind: 'one_time',
       productIdEnvKey: GOOGLE_SUBSCRIPTION_ID_ENV_KEY,
       basePlanIdEnvKey: 'BILLING_PRODUCT_GOOGLE_PREPAID_ANNUAL_BASE_PLAN_ID',
     },
@@ -116,8 +68,9 @@ export const BILLING_PROCESSOR_PRODUCT_ENV_KEYS: readonly string[] = [
 export interface ResolvedBillingProcessorProduct {
   processor: PaymentProcessorId;
   cadence: BillingCadence;
-  purchaseKind: PurchaseKind;
+  /** Store product id, Google Play product id, or PayPal checkout product id. */
   externalProductId: string;
+  /** Google Play base plan id when one is required; null for other processors. */
   externalBasePlanId: string | null;
 }
 
@@ -143,14 +96,12 @@ export function resolveBillingProcessorProductsFromEnv(
     {
       processor: 'paypal',
       cadence: 'monthly',
-      purchaseKind: 'one_time',
       externalProductId: PAYPAL_ONE_TIME_PRODUCT_IDS.monthly,
       externalBasePlanId: null,
     },
     {
       processor: 'paypal',
       cadence: 'annual',
-      purchaseKind: 'one_time',
       externalProductId: PAYPAL_ONE_TIME_PRODUCT_IDS.annual,
       externalBasePlanId: null,
     },
@@ -170,7 +121,6 @@ export function resolveBillingProcessorProductsFromEnv(
     products.push({
       processor: mapping.processor,
       cadence: mapping.cadence,
-      purchaseKind: mapping.purchaseKind,
       externalProductId,
       externalBasePlanId,
     });

@@ -2,21 +2,12 @@ import type { BillingApi } from './billingApi';
 import type {
   BillingClient,
   BillingLocalizedPrice,
-  BillingPlanChange,
   BillingPurchaseOutcome,
   BillingStoreProduct,
 } from './BillingClient';
 import { BillingAccountTokenError, billingPurchaseOutcome } from './BillingClient';
 import { billingErrorCode } from './billingGuards';
 import { bindAccountToken } from './bindAccountToken';
-
-/** Product ids the E2E harness purchases. The fake client also accepts any other id. */
-export const FAKE_BILLING_PRODUCTS: readonly BillingStoreProduct[] = [
-  { basePlanId: null, productId: 'e2e-test-monthly-renew', purchaseKind: 'auto_renew' },
-  { basePlanId: null, productId: 'e2e-test-annual-renew', purchaseKind: 'auto_renew' },
-  { basePlanId: null, productId: 'e2e-test-monthly-once', purchaseKind: 'one_time' },
-  { basePlanId: null, productId: 'e2e-test-annual-once', purchaseKind: 'one_time' },
-];
 
 /** Storefront the fake client reports so checkout-options queries stay deterministic. */
 export const FAKE_BILLING_STOREFRONT = 'US';
@@ -35,7 +26,8 @@ const cadenceForProduct = (productId: string): 'annual' | 'monthly' =>
 
 /**
  * In-memory store for Maestro. A purchase posts a test-processor `payment_settled` event and
- * reports confirmed when that event is recorded. There is no store transaction to finish.
+ * reports confirmed when that event is recorded. Any product id is accepted. There is no store
+ * transaction to finish.
  */
 export const createFakeBillingClient = (api: BillingApi): BillingClient => {
   let accountRef: string | null = null;
@@ -60,12 +52,7 @@ export const createFakeBillingClient = (api: BillingApi): BillingClient => {
       const result = await api.simulatePayment({
         cadence: cadenceForProduct(purchase.product.productId),
         externalProductId: purchase.product.productId,
-        externalSubscriptionId:
-          purchase.product.purchaseKind === 'auto_renew'
-            ? `fake-sub-${purchase.product.productId}`
-            : null,
         externalTransactionId: purchase.externalTransactionId,
-        purchaseKind: purchase.product.purchaseKind,
       });
       if (result.outcome.status === 'failed') {
         return billingPurchaseOutcome(
@@ -136,8 +123,6 @@ export const createFakeBillingClient = (api: BillingApi): BillingClient => {
         }))
       ),
     purchase,
-    changePlan: (_change: BillingPlanChange, product: BillingStoreProduct) =>
-      purchase({ ...product, purchaseKind: 'auto_renew' }),
     restore,
     syncUnfinishedTransactions: async () => {
       await restore();

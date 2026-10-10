@@ -15,8 +15,6 @@ export const BILLING_API_ERROR_CODES = {
   processorUnavailable: 'billing.processor_unavailable',
   productUnavailable: 'billing.product_unavailable',
   purchaseNotFound: 'billing.purchase_not_found',
-  subscriptionAlreadyActive: 'billing.subscription_already_active',
-  subscriptionNotFound: 'billing.subscription_not_found',
   testAdapterUnavailable: 'billing.test_adapter_unavailable',
   webhookVerificationFailed: 'billing.webhook_verification_failed',
 } as const;

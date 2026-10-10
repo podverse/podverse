@@ -19,7 +19,6 @@ type CreateBillingMembershipGrantParams = {
   source: MembershipGrantSource;
   startsAt: Date;
   endsAt: Date;
-  billingSubscriptionId?: number | null;
   billingTransactionId?: number | null;
   membershipClaimTokenId?: string | null;
   revokedAt?: Date | null;
@@ -86,7 +85,6 @@ export class BillingMembershipGrantService {
       starts_at: params.startsAt,
       ends_at: params.endsAt,
       revoked_at: params.revokedAt ?? null,
-      billing_subscription_id: params.billingSubscriptionId ?? null,
       billing_transaction_id: params.billingTransactionId ?? null,
       membership_claim_token_id: params.membershipClaimTokenId ?? null,
     });
@@ -153,7 +151,6 @@ export class BillingMembershipGrantService {
         starts_at: params.startsAt,
         ends_at: params.endsAt,
         revoked_at: params.revokedAt ?? null,
-        billing_subscription_id: params.billingSubscriptionId ?? null,
         billing_transaction_id: params.billingTransactionId ?? null,
         membership_claim_token_id: params.membershipClaimTokenId ?? null,
       })

@@ -46,7 +46,7 @@ LocalSettingsState Legend:
     - rd = random
   - sba = sidebarAccordion (open/closed accordion sections; cookie-backed for SSR on first paint)
   - fd = filterDefaults (per-page filter preferences)
-  - metd = membershipExpirationToastDismissed (ISO date string of last dismissal)
+  - metd = dismissal key of the last dismissed expiring-soon notice
   - bfd = boostFormDefaults (per value type: send to creator, send to app, your name)
   - cc = cookieConsent (device-level cookie banner choice)
   - pmt = preferredMediaType (default media player enclosure preference: 'audio' | 'video')
@@ -193,7 +193,7 @@ export interface LocalSettingsState {
   };
   sba: SidebarAccordionState;
   fd?: Partial<FilterDefaults>;
-  metd?: string; // membershipExpirationToastDismissed (ISO date string of last dismissal)
+  metd?: string; // dismissal key of the last dismissed expiring-soon notice
   bfd?: BoostFormDefaultsByValueKey;
   cc?: CookieConsentState;
   pmt?: MediaTypePreference; // preferredMediaType (default media player enclosure preference)

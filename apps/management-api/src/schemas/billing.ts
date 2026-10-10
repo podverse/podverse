@@ -27,7 +27,6 @@ export const createBillingProcessorProductSchema = Joi.object({
   external_product_id: Joi.string().trim().min(1).max(255).required(),
   external_base_plan_id: Joi.string().trim().min(1).max(255).allow(null),
   billing_cadence: Joi.string().valid('monthly', 'annual').required(),
-  purchase_kind: Joi.string().valid('auto_renew', 'one_time').required(),
 }).required();
 
 export const updateBillingProcessorProductSchema = Joi.object({

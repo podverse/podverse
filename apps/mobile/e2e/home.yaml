@@ -44,6 +44,12 @@ name: Home Media Types
 - assertVisible: "Sort: A-Z"
 - assertNotVisible:
     id: home-category-button
+# The sort chip counts as visible while its center is still past the trailing edge, so a tap
+# there never opens the sheet.
+- swipe:
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 - tapOn:
     id: home-sort-button
 - assertVisible:
@@ -212,6 +218,12 @@ name: Home Media Types
 - assertVisible:
     id: home-sort-button
 - assertVisible: "Sort: A-Z"
+# The sort chip counts as visible while its center is still past the trailing edge, so a tap
+# there never opens the sheet.
+- swipe:
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 - tapOn:
     id: home-sort-button
 - assertVisible:
@@ -224,6 +236,31 @@ name: Home Media Types
     env:
       CHIP_ROW_ID: home-media-type-selector
 
+# Clips sits between Episodes and Artists, so it is on screen from the start of the row.
+# Subscribed clips come from the media-player seed — never the global Dummy directory row.
+- tapOn:
+    id: home-media-type-clips
+- assertVisible: Clips
+- assertNotVisible:
+    id: home-filter-input
+- assertNotVisible: "Dummy clip"
+- assertVisible:
+    id: home-feed-row-e2eClip00000001
+- assertVisible:
+    id: home-feed-row-subtitle-e2eClip00000001
+- assertVisible:
+    id: home-feed-row-e2eClipNav0001
+- assertNotVisible:
+    id: home-list-empty-browse
+- assertNotVisible:
+    id: home-list-empty-search
+- takeScreenshot: home-media-type-clips
+
+# Artists is the next chip and sits just off the trailing edge on a phone.
+- swipe:
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 # Artists — subscribed-only; empty for the seeded account, so Browse (and Search for music) appear.
 - tapOn:
     id: home-media-type-artists
@@ -244,12 +281,14 @@ name: Home Media Types
 - assertVisible:
     id: search-medium-music
 - takeScreenshot: home-artists-empty-to-search-music
+# Search focuses its field on arrival, and the keyboard covers the tab bar.
+- hideKeyboard
 - tapOn:
     id: tab-home
 - assertVisible:
     id: home-screen
 
-# Artists, albums, tracks, and clips share the same trailing sort chip.
+# Artists, albums, and tracks share the same trailing sort chip.
 - runFlow:
     file: shared/reveal-chip-row-trailing.yaml
     env:
@@ -262,9 +301,12 @@ name: Home Media Types
     env:
       CHIP_ROW_ID: home-media-type-selector
 
-# Swipe the selector row itself — a %-of-screen start Y can miss the pills.
-# The selected type moves first, so each pick can push later types off the trailing
-# edge. iOS omits those testIDs until the row is swiped again.
+# Albums is two chips past the leading set. iOS omits an off-screen testID until the
+# row is swiped. A %-of-screen start Y can miss the pills, so swipe the row itself.
+- swipe:
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 - swipe:
     from:
       id: home-media-type-selector
@@ -306,26 +348,3 @@ name: Home Media Types
     id: tab-home
 - assertVisible:
     id: home-screen
-
-# Clips lists subscribed clips from the media-player seed — never the global Dummy directory row.
-- swipe:
-    from:
-      id: home-media-type-selector
-    direction: LEFT
-- tapOn:
-    id: home-media-type-clips
-- assertVisible: Clips
-- assertNotVisible:
-    id: home-filter-input
-- assertNotVisible: "Dummy clip"
-- assertVisible:
-    id: home-feed-row-e2eClip00000001
-- assertVisible:
-    id: home-feed-row-subtitle-e2eClip00000001
-- assertVisible:
-    id: home-feed-row-e2eClipNav0001
-- assertNotVisible:
-    id: home-list-empty-browse
-- assertNotVisible:
-    id: home-list-empty-search
-- takeScreenshot: home-media-type-clips

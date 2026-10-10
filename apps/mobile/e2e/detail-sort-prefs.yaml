@@ -33,6 +33,12 @@ name: Detail Sort Prefs
 - takeScreenshot: detail-sort-podcast-a-default
 
 # The choices open as a sheet over the list, so the rows they reorder stay behind it.
+# The sort chip counts as visible while its center is still past the trailing edge, so a tap
+# there never opens the sheet.
+- swipe:
+    from:
+      id: podcast-detail-sections
+    direction: LEFT
 - tapOn:
     id: podcast-detail-sort-button
 - assertVisible:

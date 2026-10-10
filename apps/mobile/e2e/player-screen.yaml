@@ -47,6 +47,8 @@ name: Player screen flow
     timeout: ${TIMEOUT_SLOWER}
 
 # Outer scroll brings the height-locked sheet on screen (chips at top, bottom radius visible).
+# Android reports bounds clipped to the screen, so a sliver of sheet at the bottom edge already
+# counts as fully visible there; the chapter-row scroll below finishes the outer scroll.
 - scrollUntilVisible:
     element:
       id: full-player-pane-sheet
@@ -59,24 +61,39 @@ name: Player screen flow
 # Chapter rows scroll inside the sheet, not by lengthening the outer column. The id names one
 # row: a shared id matches every row, and the first row's frame is clipped by the top of the
 # screen, so a full-visibility scroll never settles.
+# Playback keeps the clock and scrubber moving, so the screen never goes still. Without a settle
+# bound, Maestro spends about ten seconds after each swipe waiting for it, and the timeout runs
+# out before it looks for the row again.
 - scrollUntilVisible:
     element:
       id: full-player-chapter-row-e2eChapFil02
     direction: DOWN
     timeout: ${TIMEOUT_SLOW}
+    waitToSettleTimeoutMs: 1000
 - assertVisible:
     id: full-player-chapter-row-e2eChapFil02
 - assertVisible:
     id: full-player-pane-sheet
 - takeScreenshot: player-screen-chapters-pane
 
-# Restore the transport by outer scroll from the chip strip — not by assuming one list owns both
-# directions. Swipes on the chips drive the outer scroller; the ink sheet keeps its own inner list.
-- scrollUntilVisible:
-    element:
-      id: full-player-transport-row
-    direction: UP
-    timeout: ${TIMEOUT_SLOW}
+# Restore the player region by outer scroll from the chip strip — not by assuming one list owns
+# both directions. Swipes on the chips drive the outer scroller; the ink sheet keeps its own inner
+# list, and the screen's center (where scrollUntilVisible swipes) can be the scrubber, which takes
+# a drag as a seek. The transport can stay on screen at the outer scroll's end, so it cannot prove
+# the region is back; the title sits above the artwork, so once it shows the artwork is whole.
+- repeat:
+    times: 4
+    while:
+      notVisible:
+        id: full-player-title
+    commands:
+      - swipe:
+          from:
+            id: full-player-sections
+          direction: DOWN
+          waitToSettleTimeoutMs: 1000
+- assertVisible:
+    id: full-player-title
 - assertVisible:
     id: full-player-region
 # The segment row below the artwork is reserved whether or not a chapter or clip is named, so a

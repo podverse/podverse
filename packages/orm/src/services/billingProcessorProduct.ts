@@ -4,7 +4,7 @@ import { BillingProduct } from '@orm/entities/billingProduct.js';
 import type { DataSource, EntityManager } from 'typeorm';
 import { In, IsNull } from 'typeorm';
 
-import type { BillingCadence, PaymentProcessorId, PurchaseKind } from '@podverse/helpers';
+import type { BillingCadence, PaymentProcessorId } from '@podverse/helpers';
 
 import { PREMIUM_BILLING_PRODUCT_CODE } from './billingPriceCatalog.js';
 
@@ -18,7 +18,6 @@ type UpsertPremiumProcessorProductParams = {
   externalProductId: string;
   externalBasePlanId: string | null;
   cadence: BillingCadence;
-  purchaseKind: PurchaseKind;
 };
 
 type UpsertPremiumProcessorProductResult = {
@@ -26,7 +25,7 @@ type UpsertPremiumProcessorProductResult = {
   created: boolean;
 };
 
-/** Maps a processor's store ids to the Premium product, cadence, and purchase kind. */
+/** Maps a processor's store ids to the Premium product and cadence. */
 export class BillingProcessorProductService {
   private dataSourceRead: DataSource;
   private dataSourceReadWrite: DataSource;
@@ -161,7 +160,6 @@ export class BillingProcessorProductService {
             external_base_plan_id: params.externalBasePlanId,
             billing_product_id: premiumProduct.id,
             billing_cadence: params.cadence,
-            purchase_kind: params.purchaseKind,
             is_active: true,
           })
         );
@@ -170,7 +168,6 @@ export class BillingProcessorProductService {
 
       existing.billing_product_id = premiumProduct.id;
       existing.billing_cadence = params.cadence;
-      existing.purchase_kind = params.purchaseKind;
       existing.is_active = true;
       return { processorProduct: await repository.save(existing), created: false };
     });

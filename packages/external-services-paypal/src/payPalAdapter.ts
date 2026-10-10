@@ -3,26 +3,64 @@ import type {
   BillingWebhookParseResult,
   BillingWebhookRequest,
   NormalizedBillingEvent,
-  NormalizedSubscriptionSnapshot,
   NormalizedTransactionSnapshot,
   PaymentProcessorAdapter,
 } from '@podverse/helpers';
 import {
   BillingProcessorRecordNotFoundError,
   BillingWebhookVerificationError,
-  PAYPAL_ONE_TIME_PRODUCT_IDS,
+  resolveBillingProcessorProductsFromEnv,
 } from '@podverse/helpers';
 
 import type { PayPalEnvironment, PayPalServiceParams } from './payPalService.js';
 import { PayPalService } from './payPalService.js';
 
+interface SoldBillingProduct {
+  externalProductId: string;
+  externalBasePlanId: string | null;
+}
+
 interface PayPalAdapterConfig extends PayPalServiceParams {
   webhookId: string;
   service?: PayPalService;
+  /**
+   * Product ids this deployment sells. When omitted, the ids come from the billing product env.
+   * PayPal's one-time product ids are always included there.
+   */
+  soldProducts?: readonly SoldBillingProduct[];
 }
 
-type PayPalSubscriptionStatus =
-  'APPROVAL_PENDING' | 'APPROVED' | 'ACTIVE' | 'SUSPENDED' | 'CANCELLED' | 'EXPIRED';
+function loadSoldProducts(
+  override: readonly SoldBillingProduct[] | undefined
+): readonly SoldBillingProduct[] {
+  if (override !== undefined) {
+    return override;
+  }
+  return resolveBillingProcessorProductsFromEnv(process.env).products.filter(
+    (product) => product.processor === 'paypal'
+  );
+}
+
+function isSoldProduct(
+  products: readonly SoldBillingProduct[],
+  externalProductId: string | null
+): boolean {
+  if (externalProductId === null || externalProductId === '') {
+    return false;
+  }
+  return products.some(
+    (product) =>
+      product.externalProductId === externalProductId && product.externalBasePlanId === null
+  );
+}
+
+function logUnmappedBillingProduct(productId: string | null, notificationType: string): void {
+  // An authentic notification for a product this deployment does not sell is ignored.
+  // eslint-disable-next-line no-console -- info is the level for a skipped notification
+  console.info(
+    `Billing notification ignored for an unmapped product processor=paypal productId=${productId ?? ''} notificationType=${notificationType}`
+  );
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -100,50 +138,6 @@ function readAmount(record: Record<string, unknown>): BillingAmount | null {
   return { value, currencyCode };
 }
 
-function inferPurchaseKind(
-  externalProductId: string | null,
-  subscriptionId: string | null
-): 'one_time' | 'auto_renew' {
-  if (subscriptionId !== null) {
-    return 'auto_renew';
-  }
-  if (
-    externalProductId === PAYPAL_ONE_TIME_PRODUCT_IDS.monthly ||
-    externalProductId === PAYPAL_ONE_TIME_PRODUCT_IDS.annual
-  ) {
-    return 'one_time';
-  }
-  return 'auto_renew';
-}
-
-function mapSubscriptionStatus(status: string | null): NormalizedSubscriptionSnapshot['status'] {
-  const typedStatus: PayPalSubscriptionStatus | null =
-    status === 'APPROVAL_PENDING' ||
-    status === 'APPROVED' ||
-    status === 'ACTIVE' ||
-    status === 'SUSPENDED' ||
-    status === 'CANCELLED' ||
-    status === 'EXPIRED'
-      ? status
-      : null;
-  if (typedStatus === null) {
-    return 'pending';
-  }
-  if (typedStatus === 'APPROVAL_PENDING' || typedStatus === 'APPROVED') {
-    return 'pending';
-  }
-  if (typedStatus === 'ACTIVE') {
-    return 'active';
-  }
-  if (typedStatus === 'SUSPENDED') {
-    return 'in_grace_period';
-  }
-  if (typedStatus === 'CANCELLED') {
-    return 'cancelled_active';
-  }
-  return 'expired';
-}
-
 function readOccurredAt(
   payload: Record<string, unknown>,
   resource: Record<string, unknown>,
@@ -158,56 +152,34 @@ function readOccurredAt(
   );
 }
 
-async function resolvePlanId(
-  service: PayPalService,
-  resource: Record<string, unknown>,
-  subscriptionId: string | null
-): Promise<string | null> {
-  const planId = readString(resource, 'plan_id');
-  if (planId !== null) {
-    return planId;
-  }
-  if (subscriptionId === null) {
-    return null;
-  }
-  const subscription = await service.getSubscription(subscriptionId);
-  return subscription?.planId ?? null;
-}
-
-async function mapCaptureCompletedEvent(
+function mapCaptureCompletedEvent(
   payload: Record<string, unknown>,
   resource: Record<string, unknown>,
-  service: PayPalService,
+  soldProducts: readonly SoldBillingProduct[],
   isSandbox: boolean,
   nowIso: string
-): Promise<NormalizedBillingEvent[]> {
+): NormalizedBillingEvent[] {
   const transactionId = readString(resource, 'id');
   if (transactionId === null) {
     return [];
   }
 
-  const subscriptionId = readString(resource, 'billing_agreement_id');
-  let externalProductId = readString(resource, 'invoice_id');
-  if (externalProductId === null && subscriptionId !== null) {
-    externalProductId = await resolvePlanId(service, resource, subscriptionId);
-  }
-  if (externalProductId === null && subscriptionId === null) {
+  const externalProductId = readString(resource, 'invoice_id');
+  if (!isSoldProduct(soldProducts, externalProductId)) {
+    logUnmappedBillingProduct(externalProductId, 'PAYMENT.CAPTURE.COMPLETED');
     return [];
   }
 
-  const processorEventId = readString(payload, 'id') ?? transactionId;
   return [
     {
       type: 'payment_settled',
       processor: 'paypal',
-      processorEventId,
+      processorEventId: readString(payload, 'id') ?? transactionId,
       accountBillingCustomerRef: readString(resource, 'custom_id'),
       accountId: null,
       occurredAt: readOccurredAt(payload, resource, nowIso),
       isSandbox,
-      purchaseKind: inferPurchaseKind(externalProductId, subscriptionId),
       externalTransactionId: transactionId,
-      externalSubscriptionId: subscriptionId,
       externalProductId,
       externalBasePlanId: null,
       periodStart: null,
@@ -217,218 +189,47 @@ async function mapCaptureCompletedEvent(
   ];
 }
 
-async function mapSubscriptionPaymentCompletedEvent(
-  payload: Record<string, unknown>,
-  resource: Record<string, unknown>,
-  service: PayPalService,
-  isSandbox: boolean,
-  nowIso: string
-): Promise<NormalizedBillingEvent[]> {
-  const subscriptionId = readString(resource, 'billing_agreement_id');
-  if (subscriptionId === null) {
-    return [];
-  }
-  const transactionId = readString(resource, 'id') ?? readString(payload, 'id');
-  if (transactionId === null) {
-    return [];
-  }
-
-  let planId = readString(resource, 'plan_id');
-  let accountBillingCustomerRef = readString(resource, 'custom_id');
-  if (planId === null || accountBillingCustomerRef === null) {
-    const subscription = await service.getSubscription(subscriptionId);
-    if (planId === null) {
-      planId = subscription?.planId ?? null;
-    }
-    if (accountBillingCustomerRef === null) {
-      accountBillingCustomerRef = subscription?.customId ?? null;
-    }
-  }
-  if (planId === null) {
-    return [];
-  }
-
-  return [
-    {
-      type: 'payment_settled',
-      processor: 'paypal',
-      processorEventId: readString(payload, 'id') ?? `${transactionId}:settled`,
-      accountBillingCustomerRef,
-      accountId: null,
-      occurredAt: readOccurredAt(payload, resource, nowIso),
-      isSandbox,
-      purchaseKind: 'auto_renew',
-      externalTransactionId: transactionId,
-      externalSubscriptionId: subscriptionId,
-      externalProductId: planId,
-      externalBasePlanId: null,
-      periodStart: null,
-      periodEnd: null,
-      amount: readAmount(resource),
-    },
-  ];
-}
-
-async function mapSubscriptionActivatedEvent(
-  payload: Record<string, unknown>,
-  resource: Record<string, unknown>,
-  service: PayPalService,
-  isSandbox: boolean,
-  nowIso: string
-): Promise<NormalizedBillingEvent[]> {
-  const subscriptionId = readString(resource, 'id');
-  if (subscriptionId === null) {
-    return [];
-  }
-
-  const planId = await resolvePlanId(service, resource, subscriptionId);
-
-  return [
-    {
-      type: 'subscription_activated',
-      processor: 'paypal',
-      processorEventId: readString(payload, 'id') ?? `${subscriptionId}:activated`,
-      accountBillingCustomerRef: readString(resource, 'custom_id'),
-      accountId: null,
-      occurredAt: readOccurredAt(payload, resource, nowIso),
-      isSandbox,
-      externalSubscriptionId: subscriptionId,
-      externalProductId: planId,
-      externalBasePlanId: null,
-      periodStart: readString(resource, 'start_time'),
-      periodEnd: readString(readRecord(resource, 'billing_info') ?? {}, 'next_billing_time'),
-    },
-  ];
-}
-
-function mapSubscriptionCancelledEvent(
-  payload: Record<string, unknown>,
-  resource: Record<string, unknown>,
-  isSandbox: boolean,
-  nowIso: string
-): NormalizedBillingEvent[] {
-  const subscriptionId = readString(resource, 'id');
-  if (subscriptionId === null) {
-    return [];
-  }
-  return [
-    {
-      type: 'subscription_cancelled',
-      processor: 'paypal',
-      processorEventId: readString(payload, 'id') ?? `${subscriptionId}:cancelled`,
-      accountBillingCustomerRef: readString(resource, 'custom_id'),
-      accountId: null,
-      occurredAt: readOccurredAt(payload, resource, nowIso),
-      isSandbox,
-      externalSubscriptionId: subscriptionId,
-      periodEnd: readString(readRecord(resource, 'billing_info') ?? {}, 'next_billing_time'),
-    },
-  ];
-}
-
-function mapSubscriptionExpiredEvent(
-  payload: Record<string, unknown>,
-  resource: Record<string, unknown>,
-  isSandbox: boolean,
-  nowIso: string
-): NormalizedBillingEvent[] {
-  const subscriptionId = readString(resource, 'id');
-  if (subscriptionId === null) {
-    return [];
-  }
-  return [
-    {
-      type: 'subscription_expired',
-      processor: 'paypal',
-      processorEventId: readString(payload, 'id') ?? `${subscriptionId}:expired`,
-      accountBillingCustomerRef: readString(resource, 'custom_id'),
-      accountId: null,
-      occurredAt: readOccurredAt(payload, resource, nowIso),
-      isSandbox,
-      externalSubscriptionId: subscriptionId,
-      expiredAt:
-        readString(resource, 'status_update_time') ??
-        readString(resource, 'update_time') ??
-        readString(payload, 'event_time'),
-    },
-  ];
-}
-
-function mapSubscriptionRenewalFailedEvent(
-  payload: Record<string, unknown>,
-  resource: Record<string, unknown>,
-  isSandbox: boolean,
-  nowIso: string
-): NormalizedBillingEvent[] {
-  const subscriptionId = readString(resource, 'id') ?? readString(resource, 'billing_agreement_id');
-  if (subscriptionId === null) {
-    return [];
-  }
-  return [
-    {
-      type: 'subscription_renewal_failed',
-      processor: 'paypal',
-      processorEventId: readString(payload, 'id') ?? `${subscriptionId}:payment_failed`,
-      accountBillingCustomerRef: readString(resource, 'custom_id'),
-      accountId: null,
-      occurredAt: readOccurredAt(payload, resource, nowIso),
-      isSandbox,
-      externalSubscriptionId: subscriptionId,
-      periodEnd: readString(readRecord(resource, 'billing_info') ?? {}, 'next_billing_time'),
-    },
-  ];
-}
-
 function mapRefundOrRevokeEvent(
   payload: Record<string, unknown>,
   resource: Record<string, unknown>,
   reason: 'refund' | 'chargeback',
+  eventType: string,
+  soldProducts: readonly SoldBillingProduct[],
   isSandbox: boolean,
   nowIso: string
 ): NormalizedBillingEvent[] {
   const transactionId = readString(resource, 'id');
-  const subscriptionId = readString(resource, 'billing_agreement_id');
+  if (transactionId === null) {
+    return [];
+  }
+  const externalProductId = readString(resource, 'invoice_id');
+  if (externalProductId !== null && !isSoldProduct(soldProducts, externalProductId)) {
+    logUnmappedBillingProduct(externalProductId, eventType);
+    return [];
+  }
   const occurredAt = readOccurredAt(payload, resource, nowIso);
-  const shared = {
-    type: 'refund_or_revoke' as const,
-    processor: 'paypal' as const,
-    accountBillingCustomerRef: readString(resource, 'custom_id'),
-    accountId: null,
-    occurredAt,
-    isSandbox,
-    reason,
-    revokedAt: occurredAt,
-  };
-
-  if (transactionId !== null) {
-    return [
-      {
-        ...shared,
-        processorEventId: readString(payload, 'id') ?? `${transactionId}:${reason}`,
-        externalTransactionId: transactionId,
-        externalSubscriptionId: subscriptionId,
-      },
-    ];
-  }
-  if (subscriptionId !== null) {
-    return [
-      {
-        ...shared,
-        processorEventId: readString(payload, 'id') ?? `${subscriptionId}:${reason}`,
-        externalTransactionId: null,
-        externalSubscriptionId: subscriptionId,
-      },
-    ];
-  }
-  return [];
+  return [
+    {
+      type: 'refund_or_revoke',
+      processor: 'paypal',
+      processorEventId: readString(payload, 'id') ?? `${transactionId}:${reason}`,
+      accountBillingCustomerRef: readString(resource, 'custom_id'),
+      accountId: null,
+      occurredAt,
+      isSandbox,
+      reason,
+      revokedAt: occurredAt,
+      externalTransactionId: transactionId,
+    },
+  ];
 }
 
-async function mapWebhookPayloadToEvents(
+function mapWebhookPayloadToEvents(
   payload: Record<string, unknown>,
-  service: PayPalService,
+  soldProducts: readonly SoldBillingProduct[],
   isSandbox: boolean,
   nowIso: string
-): Promise<NormalizedBillingEvent[]> {
+): NormalizedBillingEvent[] {
   const eventType = readString(payload, 'event_type');
   if (eventType === null) {
     return [];
@@ -439,46 +240,29 @@ async function mapWebhookPayloadToEvents(
   }
 
   if (eventType === 'PAYMENT.CAPTURE.COMPLETED') {
-    return mapCaptureCompletedEvent(payload, resource, service, isSandbox, nowIso);
+    return mapCaptureCompletedEvent(payload, resource, soldProducts, isSandbox, nowIso);
   }
   if (eventType === 'PAYMENT.CAPTURE.REFUNDED') {
-    return mapRefundOrRevokeEvent(payload, resource, 'refund', isSandbox, nowIso);
+    return mapRefundOrRevokeEvent(
+      payload,
+      resource,
+      'refund',
+      eventType,
+      soldProducts,
+      isSandbox,
+      nowIso
+    );
   }
   if (eventType === 'PAYMENT.CAPTURE.REVERSED') {
-    return mapRefundOrRevokeEvent(payload, resource, 'chargeback', isSandbox, nowIso);
-  }
-  if (eventType === 'BILLING.SUBSCRIPTION.ACTIVATED') {
-    return mapSubscriptionActivatedEvent(payload, resource, service, isSandbox, nowIso);
-  }
-  if (eventType === 'BILLING.SUBSCRIPTION.CANCELLED') {
-    return mapSubscriptionCancelledEvent(payload, resource, isSandbox, nowIso);
-  }
-  if (eventType === 'BILLING.SUBSCRIPTION.EXPIRED') {
-    return mapSubscriptionExpiredEvent(payload, resource, isSandbox, nowIso);
-  }
-  if (eventType === 'BILLING.SUBSCRIPTION.PAYMENT.FAILED') {
-    return mapSubscriptionRenewalFailedEvent(payload, resource, isSandbox, nowIso);
-  }
-  if (
-    eventType === 'BILLING.SUBSCRIPTION.PAYMENT.COMPLETED' ||
-    eventType === 'PAYMENT.SALE.COMPLETED'
-  ) {
-    return mapSubscriptionPaymentCompletedEvent(payload, resource, service, isSandbox, nowIso);
-  }
-  if (eventType === 'BILLING.SUBSCRIPTION.UPDATED') {
-    const status = readString(resource, 'status');
-    if (status === 'ACTIVE') {
-      return mapSubscriptionActivatedEvent(payload, resource, service, isSandbox, nowIso);
-    }
-    if (status === 'CANCELLED') {
-      return mapSubscriptionCancelledEvent(payload, resource, isSandbox, nowIso);
-    }
-    if (status === 'EXPIRED') {
-      return mapSubscriptionExpiredEvent(payload, resource, isSandbox, nowIso);
-    }
-    if (status === 'SUSPENDED') {
-      return mapSubscriptionRenewalFailedEvent(payload, resource, isSandbox, nowIso);
-    }
+    return mapRefundOrRevokeEvent(
+      payload,
+      resource,
+      'chargeback',
+      eventType,
+      soldProducts,
+      isSandbox,
+      nowIso
+    );
   }
   return [];
 }
@@ -498,22 +282,24 @@ function readSdkMoney(record: Record<string, unknown>): BillingAmount | null {
 function mapCaptureToSnapshot(
   capture: Record<string, unknown>,
   ref: { externalId: string; externalProductId: string | null },
+  soldProducts: readonly SoldBillingProduct[],
   isSandbox: boolean,
   fetchedAt: string
 ): NormalizedTransactionSnapshot {
   const externalProductId = ref.externalProductId ?? readString(capture, 'invoiceId');
-  const externalSubscriptionId = readString(capture, 'billingAgreementId');
+  if (!isSoldProduct(soldProducts, externalProductId)) {
+    logUnmappedBillingProduct(externalProductId, 'fetchTransaction');
+    throw new BillingProcessorRecordNotFoundError('paypal', ref.externalId);
+  }
   const status = readString(capture, 'status');
   const createTime = readString(capture, 'createTime');
 
   return {
     processor: 'paypal',
     externalTransactionId: readString(capture, 'id') ?? ref.externalId,
-    externalSubscriptionId,
     accountBillingCustomerRef: readString(capture, 'customId'),
     externalProductId,
     externalBasePlanId: null,
-    purchaseKind: inferPurchaseKind(externalProductId, externalSubscriptionId),
     settledAt: createTime ?? fetchedAt,
     periodStart: null,
     periodEnd: null,
@@ -531,37 +317,6 @@ function mapCaptureToSnapshot(
   };
 }
 
-function mapSubscriptionToSnapshot(
-  subscription: Record<string, unknown>,
-  isSandbox: boolean,
-  fetchedAt: string
-): NormalizedSubscriptionSnapshot {
-  const billingInfo = readRecord(subscription, 'billingInfo');
-  const status = readString(subscription, 'status');
-  const currentPeriodEnd =
-    readString(billingInfo ?? {}, 'nextBillingTime') ??
-    readString(billingInfo ?? {}, 'finalPaymentTime');
-
-  return {
-    processor: 'paypal',
-    externalSubscriptionId: readString(subscription, 'id') ?? '',
-    accountBillingCustomerRef: readString(subscription, 'customId'),
-    externalProductId: readString(subscription, 'planId'),
-    externalBasePlanId: null,
-    status: mapSubscriptionStatus(status),
-    purchaseKind: 'auto_renew',
-    currentPeriodStart:
-      readString(readRecord(billingInfo ?? {}, 'lastPayment') ?? {}, 'time') ??
-      readString(subscription, 'startTime'),
-    currentPeriodEnd,
-    cancelAtPeriodEnd: status === 'CANCELLED',
-    isSandbox,
-    fetchedAt,
-    schemaVersion: 'paypal-subscription-v1',
-    rawPayload: subscription,
-  };
-}
-
 export function createPayPalAdapter(config: PayPalAdapterConfig): PaymentProcessorAdapter {
   const service =
     config.service ??
@@ -573,9 +328,9 @@ export function createPayPalAdapter(config: PayPalAdapterConfig): PaymentProcess
       ordersController: config.ordersController,
       paypalEnvironment: config.paypalEnvironment,
       paymentsController: config.paymentsController,
-      subscriptionsController: config.subscriptionsController,
       webhookId: config.webhookId,
     });
+  const soldProducts = loadSoldProducts(config.soldProducts);
 
   const nowIso = (): string => new Date().toISOString();
   const isSandbox = service.isSandboxEnvironment();
@@ -604,7 +359,7 @@ export function createPayPalAdapter(config: PayPalAdapterConfig): PaymentProcess
         );
       }
 
-      const events = await mapWebhookPayloadToEvents(payload, service, isSandbox, nowIso());
+      const events = mapWebhookPayloadToEvents(payload, soldProducts, isSandbox, nowIso());
       return {
         schemaVersion: 'paypal-webhook-v1',
         rawPayload: payload,
@@ -612,25 +367,12 @@ export function createPayPalAdapter(config: PayPalAdapterConfig): PaymentProcess
       };
     },
 
-    async fetchSubscription(ref): Promise<NormalizedSubscriptionSnapshot> {
-      const subscription = await service.getSubscription(ref.externalId);
-      if (subscription === null) {
-        throw new BillingProcessorRecordNotFoundError('paypal', ref.externalId);
-      }
-      return mapSubscriptionToSnapshot(toRawPayload(subscription), isSandbox, nowIso());
-    },
-
     async fetchTransaction(ref): Promise<NormalizedTransactionSnapshot> {
       const capture = await service.getCaptureInfo(ref.externalId);
       if (capture === null) {
         throw new BillingProcessorRecordNotFoundError('paypal', ref.externalId);
       }
-      return mapCaptureToSnapshot(toRawPayload(capture), ref, isSandbox, nowIso());
-    },
-
-    async cancelAutoRenew(externalSubscriptionId) {
-      await service.cancelSubscription(externalSubscriptionId);
-      return { outcome: 'cancelled' };
+      return mapCaptureToSnapshot(toRawPayload(capture), ref, soldProducts, isSandbox, nowIso());
     },
   };
 }

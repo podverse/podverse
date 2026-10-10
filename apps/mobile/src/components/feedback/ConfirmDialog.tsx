@@ -77,33 +77,22 @@ export function ConfirmDialog({
     [themeStyles, tokens]
   );
 
-  const pair: readonly FormAction[] =
+  const cancelAction: FormAction = {
+    label: cancelLabel,
+    onPress: onCancel,
+    testID: cancelTestID,
+    variant: 'secondary',
+  };
+  const confirmAction: FormAction | undefined =
     confirmLabel !== undefined && confirmTestID !== undefined && onConfirm !== undefined
-      ? [
-          {
-            label: cancelLabel,
-            onPress: onCancel,
-            testID: cancelTestID,
-            variant: 'secondary',
-          },
-          {
-            label: confirmLabel,
-            onPress: onConfirm,
-            testID: confirmTestID,
-          },
-        ]
-      : [
-          {
-            label: cancelLabel,
-            onPress: onCancel,
-            testID: cancelTestID,
-            variant: 'secondary',
-          },
-        ];
-  const confirmAction = pair.length === 2 ? pair[1] : undefined;
-  const cancelAction = pair[0];
+      ? { label: confirmLabel, onPress: onConfirm, testID: confirmTestID }
+      : undefined;
   const actions: readonly FormAction[] =
-    stacked && confirmAction !== undefined ? [confirmAction, cancelAction] : pair;
+    confirmAction === undefined
+      ? [cancelAction]
+      : stacked
+        ? [confirmAction, cancelAction]
+        : [cancelAction, confirmAction];
 
   return (
     <AppOverlay animation="fade" onRequestClose={onCancel} visible={visible}>

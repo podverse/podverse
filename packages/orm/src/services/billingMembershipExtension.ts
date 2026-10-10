@@ -17,7 +17,6 @@ import {
 } from '@podverse/helpers';
 
 type GrantReferences = {
-  billingSubscriptionId?: number | null;
   billingTransactionId?: number | null;
   membershipClaimTokenId?: string | null;
 };
@@ -243,7 +242,6 @@ export class BillingMembershipExtensionService {
             source: params.source,
             startsAt,
             endsAt,
-            billingSubscriptionId: params.billingSubscriptionId,
             billingTransactionId: params.billingTransactionId,
             membershipClaimTokenId: params.membershipClaimTokenId,
           });

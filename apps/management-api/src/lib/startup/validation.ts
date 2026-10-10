@@ -15,7 +15,6 @@ import {
   displayValidationResultsSilent,
   isPodverseStartupValidationSilent,
   validateAppleProcessorEnv,
-  validateBillingExpirationEnv,
   validateBillingSandboxAllowlistEnv,
   validateBoolean,
   validateGooglePlayProcessorEnv,
@@ -164,17 +163,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(...validateObjectStorageBucket());
 
   // Billing (optional; each processor runs only when its *_ENABLED flag is "true", and then
-  // every key it needs is required). Account resync fetches live subscription state through these.
-  results.push(
-    validateBillingExpirationEnv(
-      process.env,
-      'BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION',
-      172800
-    )
-  );
-  results.push(
-    validateBillingExpirationEnv(process.env, 'BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 604800)
-  );
+  // every key it needs is required). Account resync re-reads transactions through these.
   results.push(validateBillingSandboxAllowlistEnv(process.env));
   results.push(validateBoolean('BILLING_ALLOW_TEST_ADAPTER', 'Billing'));
   results.push(...validatePayPalProcessorEnv(process.env));

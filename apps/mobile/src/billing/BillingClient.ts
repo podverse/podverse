@@ -14,11 +14,8 @@
 
 export type BillingBackend = 'storekit' | 'play' | 'fake' | 'unavailable';
 
-export type BillingPurchaseKind = 'auto_renew' | 'one_time';
-
 export type BillingStoreProduct = {
   productId: string;
-  purchaseKind: BillingPurchaseKind;
   /** Google Play base plan id; null for Apple, PayPal, and the fake client. */
   basePlanId: string | null;
 };
@@ -39,12 +36,6 @@ export type BillingPurchaseOutcome = {
   errorCode: string | null;
 };
 
-export type BillingPlanChange = {
-  currentExternalSubscriptionId: string;
-  productId: string;
-  basePlanId: string | null;
-};
-
 export interface BillingClient {
   readonly backend: BillingBackend;
   /** Reads `billing_customer_ref` and keeps it for the next store purchase. */
@@ -54,8 +45,6 @@ export interface BillingClient {
   /** Localized price strings from the store. Missing ids are omitted. */
   listPrices(productIds: readonly string[]): Promise<readonly BillingLocalizedPrice[]>;
   purchase(product: BillingStoreProduct): Promise<BillingPurchaseOutcome>;
-  /** Replaces the current store subscription with another plan in the same group. */
-  changePlan(change: BillingPlanChange, product: BillingStoreProduct): Promise<BillingPurchaseOutcome>;
   restore(): Promise<BillingPurchaseOutcome>;
   syncUnfinishedTransactions(): Promise<void>;
 }

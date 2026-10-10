@@ -1,19 +1,18 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { useAuth } from '../../auth/AuthProvider';
+import { formatDateAbbrev } from '@podverse/helpers';
+
 import { createMobileApiRequestService } from '../../auth/mobileApi';
-import { createBillingApi } from '../../billing/billingApi';
 import { MembershipFeatureTable } from '../../components/membership/MembershipFeatureTable';
 import { TrialLimitationsAccordion } from '../../components/membership/TrialLimitationsAccordion';
 import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { SectionHeading } from '../../components/section/SectionHeading';
 import { openCheckout } from '../../membership/checkoutEntry';
-import { formatMembershipSavedDuration } from '../../membership/savedDurationLabel';
 import { useMembership } from '../../membership/useMembership';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
@@ -26,58 +25,26 @@ import { useTheme } from '../../theme/useTheme';
  * checkout.
  */
 
-/** The pricing fields this screen renders (subset of the API's `MembershipPricingData`). */
+/** The pricing fields this screen renders (subset of the API's membership pricing payload). */
 type MembershipPricing = {
-  costMonthly: number;
-  costAnnually: number;
   annuallySavingsPercent: number;
+  costAnnually: number;
+  costMonthly: number;
 };
 
 export function MoreMembershipScreen() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { styles: themeStyles, tokens } = useTheme();
-  const { activeAutoRenew, expiresAt, isExpired, isLoggedIn, isMember, tier } = useMembership();
-  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { expiresAt, isExpired, isLoggedIn, isMember, tier } = useMembership();
   const [pricing, setPricing] = useState<MembershipPricing | null>(null);
-  const [renewsAt, setRenewsAt] = useState<string | null>(null);
-  const [savedSeconds, setSavedSeconds] = useState(0);
-  const showsRenewal = isMember && tier === 'premium' && activeAutoRenew;
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!showsRenewal || accessToken === null) {
-        setRenewsAt(null);
-        setSavedSeconds(0);
-        return undefined;
-      }
-      let isActive = true;
-      void createBillingApi({ accessToken, clearSession, refreshToken, setTokens })
-        .getMembershipStatus()
-        .then((status) => {
-          if (isActive) {
-            setRenewsAt(
-              status.active_auto_renew
-                ? (status.active_subscription?.current_period_end ?? null)
-                : null
-            );
-            setSavedSeconds(status.active_subscription?.banked_seconds ?? 0);
-          }
-        })
-        .catch(() => {
-          // The renewal date is supplementary; the expiry sentence still shows.
-        });
-      return () => {
-        isActive = false;
-      };
-    }, [accessToken, clearSession, refreshToken, setTokens, showsRenewal])
-  );
+  const showsExpiry =
+    isLoggedIn && isMember && !isExpired && tier === 'premium' && expiresAt !== null;
 
   useEffect(() => {
     let isActive = true;
 
     void (async () => {
-      // Pricing is a public endpoint (no auth). Degrade gracefully: any failure just hides prices.
       const api = createMobileApiRequestService();
       if (api === null) {
         return;
@@ -116,17 +83,8 @@ export function MoreMembershipScreen() {
     if (isMember && tier === 'trial') {
       return [t('membership.cta_upgrade_text')];
     }
-    if (isMember && tier === 'premium' && expiresAt !== null) {
-      return [
-        t('membership.your_membership_expires_on', {
-          date: new Date(expiresAt).toLocaleDateString(),
-        }),
-      ];
-    }
     return [];
-  }, [expiresAt, isExpired, isLoggedIn, isMember, t, tier]);
-
-  const savedDuration = formatMembershipSavedDuration(savedSeconds, t);
+  }, [isExpired, isLoggedIn, isMember, t, tier]);
 
   const styles = useMemo(
     () =>
@@ -151,12 +109,8 @@ export function MoreMembershipScreen() {
           color: themeStyles.textSecondary.color,
         },
         section: {
+          gap: tokens.spacing.xs,
           marginBottom: tokens.spacing.lg,
-        },
-        renews: {
-          ...typography.caption,
-          color: themeStyles.textSecondary.color,
-          marginTop: tokens.spacing.xs,
         },
         status: {
           ...typography.prose,
@@ -168,26 +122,19 @@ export function MoreMembershipScreen() {
 
   return (
     <MobileScreenContainer testID="more-membership-screen">
-      {statusLines.length > 0 ? (
+      {statusLines.length > 0 || showsExpiry ? (
         <View style={styles.section} testID="more-membership-status">
           {statusLines.map((line, index) => (
             <Text key={`${index}-${line}`} style={styles.status}>
               {line}
             </Text>
           ))}
-          {showsRenewal && !isExpired && renewsAt !== null ? (
-            <>
-              <Text style={styles.renews} testID="more-membership-renews">
-                {t('membership.renews_automatically_on', {
-                  date: new Date(renewsAt).toLocaleDateString(),
-                })}
-              </Text>
-              {savedDuration !== null ? (
-                <Text style={styles.renews} testID="more-membership-saved">
-                  {t('membership.saved_time_caption', { duration: savedDuration })}
-                </Text>
-              ) : null}
-            </>
+          {showsExpiry && expiresAt !== null ? (
+            <Text style={styles.status} testID="more-membership-expires">
+              {t('membership.your_membership_expires_on', {
+                date: formatDateAbbrev(expiresAt, i18n.language),
+              })}
+            </Text>
           ) : null}
         </View>
       ) : null}

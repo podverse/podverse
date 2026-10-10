@@ -1,6 +1,5 @@
 import type { BillingProcessor } from '@orm/entities/billingProcessor.js';
 import type { BillingProduct } from '@orm/entities/billingProduct.js';
-import type { BillingSubscription } from '@orm/entities/billingSubscription.js';
 import type { Relation } from 'typeorm';
 import {
   Column,
@@ -8,12 +7,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import type { BillingCadence, PurchaseKind } from '@podverse/helpers';
+import type { BillingCadence } from '@podverse/helpers';
 
 @Entity('billing_processor_product')
 export class BillingProcessorProduct {
@@ -46,17 +44,8 @@ export class BillingProcessorProduct {
   @Column({ type: 'text' })
   billing_cadence!: BillingCadence;
 
-  @Column({ type: 'text' })
-  purchase_kind!: PurchaseKind;
-
   @Column({ type: 'boolean', default: true })
   is_active!: boolean;
-
-  @OneToMany(
-    'BillingSubscription',
-    (billingSubscription: BillingSubscription) => billingSubscription.billing_processor_product
-  )
-  billing_subscriptions!: Relation<BillingSubscription[]>;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'NOW()' })
   created_at!: Date;

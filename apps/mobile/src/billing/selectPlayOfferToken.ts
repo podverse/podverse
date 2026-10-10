@@ -54,3 +54,17 @@ export const selectPlayOfferToken = (
   const baseOffer = eligible.find(isBaseOffer);
   return (baseOffer ?? eligible[0])?.offerToken ?? null;
 };
+
+/**
+ * Offer token for a prepaid Play base plan. Null when the base plan id is missing or Play has
+ * no offer for it, so the purchase fails closed instead of charging some other offer.
+ */
+export const resolvePrepaidPlayOffer = (
+  offers: readonly unknown[],
+  basePlanId: string | null
+): string | null => {
+  if (basePlanId === null || basePlanId === '') {
+    return null;
+  }
+  return selectPlayOfferToken(offers, basePlanId);
+};

@@ -15,4 +15,9 @@ describe('shouldReplaceCachedValue', () => {
   it('replaces when the server copy differs', () => {
     expect(shouldReplaceCachedValue({ title: 'Old' }, { title: 'New' })).toBe(true);
   });
+
+  it('keeps an empty list when the next list is also empty', () => {
+    const cached: unknown[] = [];
+    expect(shouldReplaceCachedValue(cached, [])).toBe(false);
+  });
 });

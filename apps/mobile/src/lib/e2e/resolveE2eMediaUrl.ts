@@ -5,7 +5,7 @@ import { isMobileE2eFromEnv } from '../../config/env';
 const TEST_ASSETS_PORT = '2111';
 
 /**
- * Seed / API fixture enclosure URLs use `http://localhost:2111/...` (web parity).
+ * Seed / API fixture enclosure and artwork URLs use `http://localhost:2111/...` (web parity).
  * Under EXPO_PUBLIC_MOBILE_E2E=1, rewrite loopback host so device networking works:
  * - Android emulator: `10.0.2.2` (host loopback)
  * - iOS simulator: `127.0.0.1` (AVPlayer often prefers IPv4; Node `localhost` bind

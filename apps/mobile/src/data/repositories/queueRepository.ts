@@ -15,7 +15,7 @@ import { publishQueueDataChanged } from '../../sync/queueDataRevision';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { NativeCacheQueueEntry } from '../nativeCache';
 import { projectQueueSnapshotToNativeCache } from '../nativeCache';
-import { readThroughOrFetch } from '../sync';
+import { readThroughOrFetch, shouldSkipOpportunisticRemoteFetch } from '../sync';
 import type { MobileAuthRequestContext } from './types';
 
 const QUEUE_TTL_MS = 5 * 60 * 1000;
@@ -387,6 +387,9 @@ export const queueRepository = {
 
     // now-playing can legitimately be null, so this can't use readThroughOrFetch (null = miss).
     if (hit === null) {
+      if (shouldSkipOpportunisticRemoteFetch()) {
+        return null;
+      }
       try {
         return await fetchRemote();
       } catch (error) {
@@ -397,7 +400,7 @@ export const queueRepository = {
       }
     }
 
-    if (isCacheStale(hit)) {
+    if (!shouldSkipOpportunisticRemoteFetch() && isCacheStale(hit)) {
       void fetchRemote().catch((error) => {
         if (__DEV__) {
           console.warn('[queue] now-playing background refresh failed', error);

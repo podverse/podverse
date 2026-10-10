@@ -1,48 +1,20 @@
+import type {
+  BillingPlatform,
+  DTOBillingCheckoutOptions,
+  DTOBillingStatus,
+} from '@podverse/helpers';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
 import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
 import { requestWithMobileAuthRefresh } from '../auth/authRequestWithRefresh';
-import type { BillingPurchaseKind } from './BillingClient';
-
-/**
- * Structural slice of the checkout-options payload. The real DTO is assignable. Checkout needs
- * the processor id, cadence, and product id; purchase settlement only reads the product id and kind.
- */
-export type BillingCheckoutCatalog = {
-  processors: Array<{
-    processor_id: string;
-    products: Array<{
-      id: number;
-      cadence: string;
-      external_product_id: string;
-      external_base_plan_id?: string | null;
-      purchase_kind: BillingPurchaseKind;
-    }>;
-  }>;
-};
-
-/** Fields the membership screen reads from `GET /billing/status`. */
-export type BillingMembershipStatus = {
-  active_auto_renew: boolean;
-  billing_cadence: 'annual' | 'monthly' | null;
-  in_grace_period: boolean;
-  membership_expires_at: string | null;
-  active_subscription: {
-    banked_seconds: number;
-    cadence: 'annual' | 'monthly' | null;
-    current_period_end: string | null;
-    external_subscription_id: string;
-    processor_id: string;
-  } | null;
-};
 
 export type BillingApi = {
-  getStatus: () => Promise<{ billing_customer_ref: string }>;
-  getMembershipStatus: () => Promise<BillingMembershipStatus>;
+  getStatus: (platform?: BillingPlatform) => Promise<{ billing_customer_ref: string }>;
+  getMembershipStatus: (platform?: BillingPlatform) => Promise<DTOBillingStatus>;
   getCheckoutOptions: (params: {
     platform: 'android' | 'ios';
     storefront: string | null;
-  }) => Promise<BillingCheckoutCatalog>;
+  }) => Promise<DTOBillingCheckoutOptions>;
   postAppleTransaction: (params: {
     transactionId: string;
     productId: string;
@@ -51,24 +23,39 @@ export type BillingApi = {
   postGooglePurchase: (params: {
     purchaseToken: string;
     productId: string;
-    purchaseKind: BillingPurchaseKind;
   }) => Promise<{ confirmed: boolean }>;
   restore: (params: {
     processor: 'apple' | 'google_play';
     purchases: Array<{
       externalId: string;
       externalProductId: string;
-      purchaseKind: BillingPurchaseKind;
       signedTransaction?: string | null;
     }>;
   }) => Promise<{ confirmed: boolean }>;
   simulatePayment: (params: {
-    purchaseKind: BillingPurchaseKind;
     cadence: 'annual' | 'monthly';
     externalProductId: string | null;
-    externalSubscriptionId: string | null;
     externalTransactionId: string;
   }) => Promise<{ outcome: { status: string } }>;
+};
+
+/** External product ids offered by one processor in a checkout-options payload. */
+export const externalProductIdsForProcessor = (
+  catalog: DTOBillingCheckoutOptions,
+  processorId: string
+): ReadonlySet<string> => {
+  const ids = new Set<string>();
+  for (const processor of catalog.processors) {
+    if (processor.processor_id !== processorId) {
+      continue;
+    }
+    for (const product of processor.products) {
+      if (product.external_product_id !== '') {
+        ids.add(product.external_product_id);
+      }
+    }
+  }
+  return ids;
 };
 
 /**
@@ -87,8 +74,10 @@ export const createBillingApi = (deps: AuthRequestDeps): BillingApi => {
           storefront: params.storefront,
         })
       ),
-    getMembershipStatus: () => run((api) => api.reqBillingGetStatus()),
-    getStatus: () => run((api) => api.reqBillingGetStatus()),
+    getMembershipStatus: (platform) =>
+      run((api) => api.reqBillingGetStatus(platform === undefined ? undefined : { platform })),
+    getStatus: (platform) =>
+      run((api) => api.reqBillingGetStatus(platform === undefined ? undefined : { platform })),
     postAppleTransaction: (params) =>
       run((api) =>
         api.reqBillingPostAppleTransaction({
@@ -101,7 +90,6 @@ export const createBillingApi = (deps: AuthRequestDeps): BillingApi => {
       run((api) =>
         api.reqBillingPostGooglePurchase({
           productId: params.productId,
-          purchaseKind: params.purchaseKind,
           purchaseToken: params.purchaseToken,
         })
       ),
@@ -112,7 +100,6 @@ export const createBillingApi = (deps: AuthRequestDeps): BillingApi => {
           purchases: params.purchases.map((purchase) => ({
             externalId: purchase.externalId,
             externalProductId: purchase.externalProductId,
-            purchaseKind: purchase.purchaseKind,
             signedTransaction: purchase.signedTransaction,
           })),
         })

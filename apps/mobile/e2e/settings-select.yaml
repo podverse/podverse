@@ -14,8 +14,7 @@ name: Settings Select Pages
 - assertVisible:
     id: more-faq-screen
 - takeScreenshot: more-faq-screen
-- tapOn:
-    id: stack-header-back
+- runFlow: shared/stack-back.yaml
 - assertVisible:
     id: more-screen
 - tapOn:
@@ -67,8 +66,7 @@ name: Settings Select Pages
 - takeScreenshot: settings-locale-es
 
 # Playback: preferred media type defaults to video; tap audio then back to video.
-- tapOn:
-    id: stack-header-back
+- runFlow: shared/stack-back.yaml
 - assertVisible:
     id: more-settings-screen
 - tapOn:

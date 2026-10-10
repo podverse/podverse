@@ -1,6 +1,5 @@
 import type { BillingCheckoutChannel } from '@orm/entities/billingCheckoutChannel.js';
 import type { BillingProcessorProduct } from '@orm/entities/billingProcessorProduct.js';
-import type { BillingSubscription } from '@orm/entities/billingSubscription.js';
 import type { BillingTransaction } from '@orm/entities/billingTransaction.js';
 import type { BillingWebhookEvent } from '@orm/entities/billingWebhookEvent.js';
 import type { Relation } from 'typeorm';
@@ -35,12 +34,6 @@ export class BillingProcessor {
     (billingProcessorProduct: BillingProcessorProduct) => billingProcessorProduct.billing_processor
   )
   billing_processor_products!: Relation<BillingProcessorProduct[]>;
-
-  @OneToMany(
-    'BillingSubscription',
-    (billingSubscription: BillingSubscription) => billingSubscription.billing_processor
-  )
-  billing_subscriptions!: Relation<BillingSubscription[]>;
 
   @OneToMany(
     'BillingTransaction',

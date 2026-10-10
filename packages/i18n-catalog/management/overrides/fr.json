@@ -785,7 +785,6 @@
       "grant": "",
       "grantCadenceLabel": "",
       "expires": "",
-      "subscriptions": "",
       "transactions": "",
       "grants": "",
       "events": "",
@@ -793,27 +792,16 @@
       "table": {
         "processor": "",
         "externalId": "",
-        "status": "",
-        "periodEnd": "",
-        "kind": "",
         "amount": "",
         "settledAt": "",
         "source": "",
         "starts": "",
         "ends": "",
         "received": "",
-        "error": ""
+        "error": "",
+        "revoked": ""
       },
-      "result": {
-        "applied": "",
-        "ignored_sandbox": "",
-        "skipped": "",
-        "failed": "",
-        "not_found": "",
-        "processor_not_configured": "",
-        "unknown_processor": "",
-        "processor_error": ""
-      }
+      "resyncCounts": ""
     },
     "processors": {
       "title": "",
@@ -824,6 +812,18 @@
       "apple": "",
       "google_play": ""
     },
+    "help": {
+      "title": "",
+      "indexIntro": "",
+      "giftingTitle": "",
+      "giftingBody": "",
+      "appleRefundsTitle": "",
+      "appleRefundsBody": "",
+      "resyncTitle": "",
+      "resyncBody": "",
+      "wrongAccountTitle": "",
+      "wrongAccountBody": ""
+    },
     "pageTitle": "",
     "checkoutChannelsCardTitle": "",
     "checkoutChannelsCardDescription": "",
@@ -831,6 +831,8 @@
     "processorProductsCardDescription": "",
     "webhookEventsCardTitle": "",
     "webhookEventsCardDescription": "",
+    "helpCardTitle": "",
+    "helpCardDescription": "",
     "channels": {
       "title": "",
       "failedToLoad": "",
@@ -869,8 +871,8 @@
         "externalId": "",
         "basePlan": "",
         "cadence": "",
-        "kind": "",
-        "active": ""
+        "active": "",
+        "catalogProduct": ""
       },
       "active": "",
       "inactive": "",
@@ -880,11 +882,8 @@
       "basePlanLabel": "",
       "basePlanPlaceholder": "",
       "cadenceLabel": "",
-      "kindLabel": "",
       "cadenceMonthly": "",
       "cadenceAnnual": "",
-      "kindAutoRenew": "",
-      "kindOneTime": "",
       "edit": "",
       "editTitle": "",
       "activeLabel": ""

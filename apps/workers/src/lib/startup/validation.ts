@@ -44,7 +44,6 @@ import type { ValidationResult, ValidationSummary } from '@podverse/helpers-conf
 import {
   displayValidationResults,
   validateAppleProcessorEnv,
-  validateBillingExpirationEnv,
   validateBillingSandboxAllowlistEnv,
   validateBoolean,
   validateGooglePlayProcessorEnv,
@@ -183,16 +182,6 @@ function validateBase(): ValidationResult[] {
     )
   );
   results.push(validateOptional('BILLING_WEBHOOK_PUBLIC_BASE_URL', 'Billing', 'Skipped'));
-  results.push(
-    validateBillingExpirationEnv(
-      process.env,
-      'BILLING_RENEWAL_ENTITLEMENT_BUFFER_EXPIRATION',
-      172800
-    )
-  );
-  results.push(
-    validateBillingExpirationEnv(process.env, 'BILLING_PAYMENT_FAILURE_GRACE_EXPIRATION', 604800)
-  );
   results.push(validateBillingSandboxAllowlistEnv(process.env));
   return results;
 }

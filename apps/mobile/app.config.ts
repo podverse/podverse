@@ -133,11 +133,18 @@ const config: ExpoConfig = {
     // The dev launcher only lists servers it discovers over Bonjour, so a cold launch from the
     // icon falls back to this URL. Android reaches the host's Metro through `adb reverse tcp:8081`
     // (set by `expo run:android` and `ensure-devices.sh`), so localhost works on both platforms.
+    // The dev menu stays closed at launch, skips its onboarding card, and has no floating tools
+    // button (it parks over the trailing header control). These are build-time defaults, so
+    // Maestro's clearState cannot bring any of them back; shake, Cmd+D / Cmd+M, and the
+    // three-finger long press still open the menu.
     [
       'expo-dev-client',
       {
         launchMode: 'most-recent',
         defaultLaunchURL: 'http://localhost:8081',
+        showMenuAtLaunch: false,
+        skipOnboarding: true,
+        toolsButton: false,
       },
     ],
     'expo-localization',

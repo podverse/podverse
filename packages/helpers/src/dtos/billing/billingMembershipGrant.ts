@@ -9,9 +9,7 @@ export interface DTOBillingMembershipGrant {
   ends_at: string;
   /** Revoked grants stay in the ledger as history and grant no access. */
   revoked_at: string | null;
-  /** The subscription whose period this grant covers (`subscription_period`). */
-  billing_subscription_id: number | null;
-  /** The settled payment that created this grant (`subscription_period`, `one_time_purchase`). */
+  /** The settled payment that created this grant (`one_time_purchase`). */
   billing_transaction_id: number | null;
   /** The redeemed claim token (`claim_token`). */
   membership_claim_token_id: string | null;

@@ -14,6 +14,7 @@ import {
   PROBE_MAX_DELAY_MS,
   probeDelayForStep,
   reduceConnectivity,
+  resolveScheduledTimer,
 } from './connectivityMachine';
 
 /** Fold a script of inputs, so a test reads as the sequence of events it is describing. */
@@ -170,6 +171,45 @@ describe('probe backoff', () => {
 
     expect(machine.probeStep).toBe(0);
     expect(probeDelayForStep(machine.probeStep)).toBe(PROBE_BASE_DELAY_MS);
+  });
+
+  it('keeps the same probe delay across failed product requests once already offline', () => {
+    const offline = enterDeviceOffline();
+    const first = run([failedRequest(20000)], offline);
+    const second = run([failedRequest(20500)], first.machine);
+
+    expect(first.effects.probeInMs).toBe(PROBE_BASE_DELAY_MS);
+    expect(second.effects.probeInMs).toBe(PROBE_BASE_DELAY_MS);
+  });
+});
+
+describe('resolveScheduledTimer', () => {
+  it('leaves an armed timer running when the requested delay is unchanged', () => {
+    expect(resolveScheduledTimer(PROBE_BASE_DELAY_MS, PROBE_BASE_DELAY_MS)).toEqual({
+      kind: 'keep',
+    });
+  });
+
+  it('replaces when the delay grows to the next backoff step', () => {
+    expect(resolveScheduledTimer(4000, PROBE_BASE_DELAY_MS)).toEqual({
+      delayMs: 4000,
+      kind: 'replace',
+    });
+  });
+
+  it('replaces with an immediate probe even when a longer delay is already armed', () => {
+    expect(resolveScheduledTimer(0, PROBE_MAX_DELAY_MS)).toEqual({ delayMs: 0, kind: 'replace' });
+  });
+
+  it('cancels when the machine asks for no probe', () => {
+    expect(resolveScheduledTimer(null, PROBE_BASE_DELAY_MS)).toEqual({ kind: 'cancel' });
+  });
+
+  it('arms when nothing is scheduled yet', () => {
+    expect(resolveScheduledTimer(PROBE_BASE_DELAY_MS, null)).toEqual({
+      delayMs: PROBE_BASE_DELAY_MS,
+      kind: 'replace',
+    });
   });
 });
 
