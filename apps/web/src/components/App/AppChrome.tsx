@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 
 import { AppWrapper, PageWrapper, PageWrapperMain } from '@podverse/ui';
 
+import { ROUTES } from '../../constants/routes';
 import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
@@ -36,6 +37,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const showTerms =
     !showDisclaimer &&
     isTermsAcceptanceRequired(loggedInAccount, config.public.legal.terms.version);
+  const onAccountAccess = pathname === ROUTES.ACCOUNT_ACCESS;
   const showPopularity =
     !showDisclaimer &&
     !showTerms &&
@@ -45,6 +47,10 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     );
 
   if (isEmbed) {
+    return children;
+  }
+
+  if (showTerms && onAccountAccess) {
     return children;
   }
 

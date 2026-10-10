@@ -42,7 +42,9 @@ export async function generateMetadata() {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
+  const { isValidAuthSession, termsAcceptanceRequired, ssrApiRequestService } =
+    await getSSRAuthService();
+  const canLoadPrivateSsrData = isValidAuthSession && !termsAcceptanceRequired;
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
@@ -57,7 +59,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   let ssrChannels: DTOChannel[] = [];
   let ssrTotalPages = 1;
 
-  if (isValidAuthSession) {
+  if (canLoadPrivateSsrData) {
     const response = await ssrApiRequestService.reqChannelGetMany({
       page: currentPage,
       sort: currentSort,

@@ -5,26 +5,6 @@
   color: var(--text-color-primary);
 }
 
-.managedCopy p {
-  margin-bottom: var(--spacing-4xl);
-}
-
-.managedCopy h2 {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-light);
-  margin-bottom: var(--spacing-2xl);
-  color: var(--text-color-primary);
-}
-
-.managedCopy ul {
-  margin-bottom: var(--spacing-4xl);
-  padding-left: var(--spacing-2xl);
-}
-
-.managedCopy li {
-  margin-bottom: var(--spacing-sm);
-}
-
 .downloadButtons {
   display: flex;
   gap: var(--spacing-2xl);

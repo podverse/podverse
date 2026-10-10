@@ -12,6 +12,7 @@ import { createMobileApiRequestService } from '../auth/mobileApi';
 import { ModalSafeArea } from '../components/screen/ModalSafeArea';
 import { screenBodyInsets } from '../theme/screenLayout';
 import { useTheme } from '../theme/useTheme';
+import { AccountAccessPanel } from './AccountAccessPanel';
 import { AgreementChoices } from './AgreementChoices';
 import { setTermsBlocksAccountSync } from './termsSyncGate';
 
@@ -32,7 +33,6 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
     accessToken,
     account,
     clearSession,
-    logout,
     refreshToken,
     setAccount,
     setTokens,
@@ -45,6 +45,7 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
   const [reloadKey, setReloadKey] = useState(0);
   const [seen, setSeen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [showAccountAccess, setShowAccountAccess] = useState(false);
 
   const termsCurrent =
     agreement !== null &&
@@ -53,10 +54,12 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
   const loadFailed = errorKey !== null && !isLoading;
   // Stay hidden until the served document says this account is behind. A loading flash would
   // present and dismiss the full-screen modal for accounts that are already current.
-  const visible =
+  const termsOutstanding =
     status === 'authenticated' &&
     account !== null &&
     ((agreement !== null && !termsCurrent) || loadFailed);
+  const visible = termsOutstanding && !showAccountAccess;
+  const accessVisible = termsOutstanding && showAccountAccess;
   const blockSync =
     status === 'authenticated' &&
     (account === null || agreement === null || !termsCurrent || loadFailed);
@@ -75,16 +78,17 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
   }, [visible]);
 
   useEffect(() => {
-    if (Platform.OS !== 'ios' && seen && !visible) {
+    if (Platform.OS !== 'ios' && seen && !visible && !accessVisible) {
       setDismissed(true);
     }
-  }, [seen, visible]);
+  }, [accessVisible, seen, visible]);
 
   useEffect(() => {
     if (status !== 'authenticated') {
       setAgreement(null);
       setIsLoading(false);
       setErrorKey(null);
+      setShowAccountAccess(false);
       return;
     }
 
@@ -123,6 +127,12 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
     };
   }, [i18n.language, reloadKey, status]);
 
+  useEffect(() => {
+    if (termsCurrent) {
+      setShowAccountAccess(false);
+    }
+  }, [termsCurrent]);
+
   const handleAccept = async () => {
     if (agreement === null || !checked) {
       return;
@@ -137,7 +147,7 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
     setAccount(updated);
   };
 
-  const awaitingDismiss = (seen || visible) && !dismissed;
+  const awaitingDismiss = (seen || visible || accessVisible) && !dismissed;
 
   return (
     <TermsGateContext.Provider value={{ awaitingDismiss }}>
@@ -184,7 +194,7 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
               }}
               onCheckboxChange={setChecked}
               onReject={() => {
-                void logout();
+                setShowAccountAccess(true);
               }}
               onRetry={() => {
                 setReloadKey((current) => current + 1);
@@ -193,6 +203,30 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
               rejectTestID="terms-acceptance-reject"
               version={agreement?.version ?? null}
               requireCheckbox
+            />
+          </ScrollView>
+        </ModalSafeArea>
+      </Modal>
+      <Modal
+        animationType="fade"
+        onDismiss={() => {
+          setDismissed(true);
+        }}
+        presentationStyle="fullScreen"
+        visible={accessVisible}
+      >
+        <ModalSafeArea testID="account-access-screen">
+          <ScrollView
+            contentContainerStyle={[
+              styles.body,
+              screenBodyInsets(tokens.spacing),
+              { paddingBottom: tokens.spacing['2xl'] },
+            ]}
+          >
+            <AccountAccessPanel
+              onReviewTerms={() => {
+                setShowAccountAccess(false);
+              }}
             />
           </ScrollView>
         </ModalSafeArea>

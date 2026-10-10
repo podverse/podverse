@@ -40,15 +40,46 @@ vi.mock('@podverse/orm', async (importOriginal) => {
         id: TEST_USER_ID,
         id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: 'terms-gate@example.com' },
+        billing_customer_ref: null,
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
-          account_membership: { id: AccountMembershipEnum.Premium },
+          account_membership: {
+            id: AccountMembershipEnum.Premium,
+            tier: 'premium',
+          },
+          billing_cadence: null,
         },
       };
       if (termsAcceptance.current !== undefined) {
         account.account_terms_acceptance = termsAcceptance.current;
       }
       return account;
+    }
+
+    async getWithMembershipStatusFromPrimary(
+      id: number
+    ): Promise<Record<string, unknown> | null> {
+      return this.get(id);
+    }
+
+    async delete(): Promise<void> {}
+  }
+
+  class MockAccountDataExportService {
+    async exportUserData(): Promise<{ account: { id: number } }> {
+      return { account: { id: TEST_USER_ID } };
+    }
+  }
+
+  class MockAccountFollowingChannelService {
+    async getFollowedChannels(): Promise<unknown[]> {
+      return [];
+    }
+  }
+
+  class MockAccountFollowingAddByRSSChannelService {
+    async getFollowedAddByRSSChannels(): Promise<unknown[]> {
+      return [];
     }
   }
 
@@ -62,6 +93,9 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     ...actual,
     CategoryService: MockCategoryService,
     AccountService: MockAccountService,
+    AccountDataExportService: MockAccountDataExportService,
+    AccountFollowingChannelService: MockAccountFollowingChannelService,
+    AccountFollowingAddByRSSChannelService: MockAccountFollowingAddByRSSChannelService,
     AccountSettingsLocaleService: MockAccountSettingsLocaleService,
   };
 });
@@ -113,6 +147,28 @@ describe('terms acceptance gate', () => {
     const stale = await request(app).get(`${base}/legal/popularity-tracking`).set(authHeaders());
     expect(stale.status).toBe(403);
     expect(stale.body.code).toBe('terms_acceptance_required');
+  });
+
+  it('allows account-access endpoints when terms are missing or stale', async () => {
+    termsAcceptance.current = {
+      terms_version: '2025-01-01',
+      accepted_at: new Date('2025-01-01T00:00:00.000Z'),
+    };
+
+    const billing = await request(app).get(`${base}/billing/status`).set(authHeaders());
+    expect(billing.status).toBe(200);
+    expect(billing.body.tier).toBe('premium');
+
+    const download = await request(app).get(`${base}/account/download-data`).set(authHeaders());
+    expect(download.status).toBe(200);
+    expect(download.headers['content-type']).toContain('application/zip');
+
+    const opml = await request(app).get(`${base}/account/opml/export`).set(authHeaders());
+    expect(opml.status).toBe(200);
+
+    const deleted = await request(app).delete(`${base}/account/delete`).set(authHeaders());
+    expect(deleted.status).toBe(200);
+    expect(deleted.body.message).toBe('Account deleted successfully');
   });
 
   it('allows check-session and the popularity agreement after the current terms are accepted', async () => {

@@ -881,6 +881,23 @@
     "load_error": "",
     "retry": ""
   },
+  "account_access": {
+    "title": "",
+    "message": "",
+    "review_terms": "",
+    "sign_out": "",
+    "membership_heading": "",
+    "download_heading": "",
+    "download_description": "",
+    "download_button": "",
+    "opml_heading": "",
+    "opml_description": "",
+    "opml_button": "",
+    "delete_heading": "",
+    "delete_description": "",
+    "delete_button": "",
+    "delete_error": ""
+  },
   "membership": {
     "membership": "",
     "free": "",

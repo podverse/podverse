@@ -13,13 +13,24 @@ releases.
 
 - FAQ (`faq`)
 - Make Clip how-to (`clip-how-to`)
-- Popularity-tracking agreement (legacy dedicated endpoint)
+
+## Versioned acceptance documents
+
+Terms of Service and popularity tracking are not managed-copy slugs. Each one is versioned, carries
+an agreement date, and is accepted or declined by the account:
+
+- `GET /legal/terms` (public) — short intro plus full markdown for the configured terms version
+- `GET /legal/popularity-tracking` (authenticated) — same shape for the popularity-tracking version
+
+Do not add a `terms` or `popularity-tracking` managed-copy slug, and do not fold either document
+into `GET /managed-copy/:slug`.
 
 ## Rules
 
 - Do not add bundled fallback prose for served documents in app code or locale JSON.
 - Always render loading and retry states while fetching served documents.
-- Add new served docs by adding locale markdown files plus allowlisted slug support, not by creating
-  a new endpoint for each document.
+- Add new managed-copy docs by adding locale markdown files plus allowlisted slug support, not by
+  creating a new endpoint for each document. Versioned acceptance documents are the exception
+  above: they stay on `/legal/*`.
 
 Reference: [754-server-managed-copy-endpoint](/docs/proposals/mobile/_master-plan_/phase-2/details/754-server-managed-copy-endpoint.md)

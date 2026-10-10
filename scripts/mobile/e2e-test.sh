@@ -45,7 +45,7 @@ flow_needs_e2e_api() {
   playback-multi-device-handoff | playback-offline-reconciliation | playback-resume-on-relaunch | \
   player-screen | podcast-episode | track | \
   popularity-tracking | push | queue-add | queue-screen | search | search-unparsed | settings-downloads | \
-  subscriptions-anonymous | tab-switch-playback | tablet | v4v | video-transition)
+  subscriptions-anonymous | tab-switch-playback | tablet | terms-account-access | v4v | video-transition)
     return 0
     ;;
   *)

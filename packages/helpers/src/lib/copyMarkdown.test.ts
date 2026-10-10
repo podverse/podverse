@@ -18,7 +18,7 @@ describe('parseCopyMarkdown', () => {
     );
 
     expect(blocks).toEqual([
-      { type: 'heading', text: 'Popularity Tracking' },
+      { type: 'heading', level: 1, text: 'Popularity Tracking' },
       {
         type: 'paragraph',
         spans: [
@@ -41,6 +41,34 @@ describe('parseCopyMarkdown', () => {
           { type: 'text', text: 'You can change this later in ' },
           { type: 'link', text: 'settings', href: '/settings' },
           { type: 'text', text: '.' },
+        ],
+      },
+    ]);
+  });
+
+  it('parses heading levels and strong spans', () => {
+    const blocks = parseCopyMarkdown(
+      [
+        '# The Service',
+        '',
+        '## Listen Statistics',
+        '',
+        '- **Accept All** — Analytics cookies.',
+        '- Essential only.',
+      ].join('\n')
+    );
+
+    expect(blocks).toEqual([
+      { type: 'heading', level: 1, text: 'The Service' },
+      { type: 'heading', level: 2, text: 'Listen Statistics' },
+      {
+        type: 'list',
+        items: [
+          [
+            { type: 'strong', text: 'Accept All' },
+            { type: 'text', text: ' — Analytics cookies.' },
+          ],
+          [{ type: 'text', text: 'Essential only.' }],
         ],
       },
     ]);

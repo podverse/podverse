@@ -21,7 +21,12 @@ function billingDate(value: string | null, locale: string): string | null {
   return formatDateAbbrev(value, locale);
 }
 
-export function SettingsMembership() {
+type SettingsMembershipProps = {
+  /** When false, only status is shown (Account Access after terms reject). */
+  showCheckoutActions?: boolean;
+};
+
+export function SettingsMembership({ showCheckoutActions = true }: SettingsMembershipProps) {
   const t = useTranslations('settings.membership');
   const tMembership = useTranslations('membership');
   const locale = useLocale();
@@ -76,14 +81,16 @@ export function SettingsMembership() {
                 </>
               ) : null}
             </dl>
-            <div className={styles.actions}>
-              <ActionLink href={ROUTES.CHECKOUT} LinkComponent={Link}>
-                {status.is_entitled ? t('buy_more_time') : tMembership('renew_membership')}
-              </ActionLink>
-              <ActionLink href={ROUTES.MEMBERSHIP} LinkComponent={Link}>
-                {t('compare_plans')}
-              </ActionLink>
-            </div>
+            {showCheckoutActions ? (
+              <div className={styles.actions}>
+                <ActionLink href={ROUTES.CHECKOUT} LinkComponent={Link}>
+                  {status.is_entitled ? t('buy_more_time') : tMembership('renew_membership')}
+                </ActionLink>
+                <ActionLink href={ROUTES.MEMBERSHIP} LinkComponent={Link}>
+                  {t('compare_plans')}
+                </ActionLink>
+              </div>
+            ) : null}
           </>
         ) : null}
       </section>

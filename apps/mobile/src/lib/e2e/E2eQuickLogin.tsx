@@ -15,6 +15,7 @@ import { isE2eQuickLoginEnabled } from './e2eQuickLoginGate';
 import {
   E2E_PERF_EMAIL,
   E2E_POPULARITY_UNDECIDED_EMAIL,
+  E2E_STALE_TERMS_EMAIL,
   E2E_USER_EMAIL,
   E2E_USER_PASSWORD,
 } from './e2eSeedConstants';
@@ -29,7 +30,7 @@ import {
  *
  * The row sits in the header, inset past the back chevron. A column under the header covers
  * the leading play control on list rows, and sharing the chevron's slot makes a back tap
- * sign in again. The session marker stays out of this row: a fourth 44pt box covers Create
+ * sign in again. The session marker stays out of this row: a trailing 44pt box covers Create
  * Clip once the full player shows its trailing actions.
  */
 const E2E_QUICK_LOGIN_HIT_SIZE = 44;
@@ -134,6 +135,16 @@ export function E2eQuickLogin() {
           }}
           style={styles.hit}
           testID="e2e-quick-login-popularity"
+        />
+        <Pressable
+          accessibilityLabel={t('e2e.quick_login_stale_terms')}
+          accessibilityRole="button"
+          accessibilityState={{ busy: isLoading, disabled: busy }}
+          onPress={() => {
+            signIn(E2E_STALE_TERMS_EMAIL);
+          }}
+          style={styles.hit}
+          testID="e2e-quick-login-stale-terms"
         />
         <Pressable
           accessibilityLabel={t('e2e.quick_login_perf')}

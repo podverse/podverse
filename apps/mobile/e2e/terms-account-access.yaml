@@ -1,0 +1,48 @@
+appId: com.podverse.app.next
+name: Terms Account Access
+---
+# Stale-terms seeded account: Reject opens Account Access; Review Terms returns to the gate;
+# Accept unlocks the tab shell.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: e2e-quick-login-stale-terms
+
+- extendedWaitUntil:
+    visible:
+      id: terms-acceptance-reject
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: terms-acceptance-screen
+- takeScreenshot: terms-acceptance-gate
+
+- tapOn:
+    id: terms-acceptance-reject
+- extendedWaitUntil:
+    visible:
+      id: account-access-review-terms
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: account-access-screen
+- takeScreenshot: account-access
+
+- tapOn:
+    id: account-access-review-terms
+- extendedWaitUntil:
+    visible:
+      id: terms-acceptance-checkbox
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: terms-acceptance-screen
+
+- tapOn:
+    id: terms-acceptance-checkbox
+- tapOn:
+    id: terms-acceptance-accept
+
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: terms-accepted-home

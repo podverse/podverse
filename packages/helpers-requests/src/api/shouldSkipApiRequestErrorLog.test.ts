@@ -7,6 +7,7 @@ import { skipApiRequestErrorLogForAccountNotFound } from './skipApiRequestErrorL
 import { skipApiRequestErrorLogForFeedContentNotFound } from './skipApiRequestErrorLogForFeedContentNotFound.js';
 import { skipApiRequestErrorLogForMembershipGate } from './skipApiRequestErrorLogForMembershipGate.js';
 import { skipApiRequestErrorLogForMembershipPricing } from './skipApiRequestErrorLogForMembershipPricing.js';
+import { skipApiRequestErrorLogForTermsAcceptance } from './skipApiRequestErrorLogForTermsAcceptance.js';
 
 vi.mock('../_request.js', () => ({
   request: vi.fn(),
@@ -184,6 +185,42 @@ describe('skipApiRequestErrorLogForMembershipGate', () => {
   });
 });
 
+describe('skipApiRequestErrorLogForTermsAcceptance', () => {
+  it('returns true for 403 with terms_acceptance_required code', () => {
+    expect(
+      skipApiRequestErrorLogForTermsAcceptance({
+        status: 403,
+        responseData: {
+          message: 'Terms of service acceptance is required.',
+          code: 'terms_acceptance_required',
+        },
+      })
+    ).toBe(true);
+  });
+
+  it('returns false for other statuses or payloads', () => {
+    expect(
+      skipApiRequestErrorLogForTermsAcceptance({
+        status: 403,
+        responseData: { message: 'Forbidden' },
+      })
+    ).toBe(false);
+    expect(
+      skipApiRequestErrorLogForTermsAcceptance({
+        status: 403,
+        responseData: { i18nKey: 'membership.membership_expired' },
+      })
+    ).toBe(false);
+    expect(
+      skipApiRequestErrorLogForTermsAcceptance({
+        status: 500,
+        responseData: { code: 'terms_acceptance_required' },
+      })
+    ).toBe(false);
+    expect(skipApiRequestErrorLogForTermsAcceptance({ status: 403 })).toBe(false);
+  });
+});
+
 describe('ApiRequestService apiRequest console logging', () => {
   it('does not console.error on membership-gate 403', async () => {
     const requestMock = vi.mocked(request);
@@ -209,6 +246,36 @@ describe('ApiRequestService apiRequest console logging', () => {
     });
 
     await expect(svc.apiRequest({ path: '/mq/rss/add/on-demand', method: 'POST' })).rejects.toBe(
+      error
+    );
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('does not console.error on terms_acceptance_required 403', async () => {
+    const requestMock = vi.mocked(request);
+    const error = Object.assign(new Error('Request failed'), {
+      response: {
+        status: 403,
+        data: {
+          message: 'Terms of service acceptance is required.',
+          code: 'terms_acceptance_required',
+        },
+      },
+      config: { url: 'http://localhost/v1/x', method: 'get' },
+    });
+    requestMock.mockRejectedValueOnce(error);
+
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const svc = new ApiRequestService({
+      protocol: 'http',
+      host: 'localhost',
+      prefix: '',
+      version: '/v1',
+    });
+
+    await expect(svc.apiRequest({ path: '/channel/subscribed/recent', method: 'GET' })).rejects.toBe(
       error
     );
     expect(spy).not.toHaveBeenCalled();

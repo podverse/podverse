@@ -19,6 +19,9 @@ export const E2E_USER_EMAIL = 'e2e-user@example.com';
 /** Seeded account that has not answered the popularity-tracking prompt. */
 export const E2E_POPULARITY_UNDECIDED_EMAIL = 'e2e-popularity-undecided@example.com';
 
+/** Seeded account with an outdated terms acceptance (must re-accept current version). */
+export const E2E_STALE_TERMS_EMAIL = 'e2e-stale-terms@example.com';
+
 /** Seeded account that owns the perf-volume library. */
 export const E2E_PERF_EMAIL = 'e2e-perf@example.com';
 

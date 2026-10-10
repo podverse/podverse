@@ -3,7 +3,9 @@ import { cookies } from 'next/headers';
 import type { DTOAccount } from '@podverse/helpers';
 import { AuthCookieName } from '@podverse/helpers';
 
+import { getConfig } from '../../config';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
+import { isTermsAcceptanceRequired } from '../../lib/termsAcceptanceRequired';
 
 export async function getSSRJwtFromCookies(): Promise<string | undefined> {
   const cookieStore = await cookies();
@@ -28,18 +30,41 @@ export async function getSSRLoggedInAccount(): Promise<DTOAccount | null> {
 
 export async function getSSRAuthService(): Promise<{
   isValidAuthSession: boolean;
-  ssrApiRequestService: typeof ssrApiRequestService;
+  termsAcceptanceRequired: boolean;
+  ssrApiRequestService: ReturnType<typeof getSSRApiRequestService>;
 }> {
   const jwt = await getSSRJwtFromCookies();
   const ssrApiRequestService = getSSRApiRequestService(jwt);
-  if (jwt) {
-    try {
-      await ssrApiRequestService.reqAuthCheckSession();
-      return { isValidAuthSession: true, ssrApiRequestService };
-    } catch {
-      return { isValidAuthSession: false, ssrApiRequestService };
-    }
-  } else {
-    return { isValidAuthSession: false, ssrApiRequestService };
+  if (!jwt) {
+    return {
+      isValidAuthSession: false,
+      termsAcceptanceRequired: false,
+      ssrApiRequestService,
+    };
   }
+
+  try {
+    await ssrApiRequestService.reqAuthCheckSession();
+  } catch {
+    return {
+      isValidAuthSession: false,
+      termsAcceptanceRequired: false,
+      ssrApiRequestService,
+    };
+  }
+
+  const configuredTermsVersion = getConfig().public.legal.terms.version;
+  let termsAcceptanceRequired = false;
+  try {
+    const account = await ssrApiRequestService.reqAuthMe();
+    termsAcceptanceRequired = isTermsAcceptanceRequired(account, configuredTermsVersion);
+  } catch {
+    termsAcceptanceRequired = false;
+  }
+
+  return {
+    isValidAuthSession: true,
+    termsAcceptanceRequired,
+    ssrApiRequestService,
+  };
 }

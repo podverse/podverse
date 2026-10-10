@@ -61,6 +61,13 @@ function InlineSpans({
             </Text>
           );
         }
+        if (span.type === 'strong') {
+          return (
+            <Text key={`span-${spanIndex}`} style={{ color, fontWeight: '700' }}>
+              {span.text}
+            </Text>
+          );
+        }
         return (
           <Text key={`span-${spanIndex}`} style={{ color }}>
             {span.text}
@@ -92,15 +99,17 @@ export function CopyMarkdown({
     <View>
       {blocks.map((block, blockIndex) => {
         if (block.type === 'heading') {
+          const isSubheading = block.level > 1;
           return (
             <Text
               accessibilityRole="header"
               key={`heading-${blockIndex}`}
               style={{
                 color: textColor,
-                fontSize: 20,
+                fontSize: isSubheading ? 17 : 20,
                 fontWeight: '600',
                 marginBottom: tokens.spacing.md,
+                marginTop: blockIndex === 0 ? 0 : tokens.spacing.xl,
               }}
             >
               {block.text}
@@ -109,7 +118,7 @@ export function CopyMarkdown({
         }
         if (block.type === 'list') {
           return (
-            <View key={`list-${blockIndex}`} style={{ marginBottom: tokens.spacing.md }}>
+            <View key={`list-${blockIndex}`} style={{ marginBottom: tokens.spacing.lg }}>
               {block.items.map((item, itemIndex) => (
                 <Text
                   key={`item-${blockIndex}-${itemIndex}`}
@@ -129,7 +138,7 @@ export function CopyMarkdown({
           return (
             <View
               key={`component-${block.key}-${blockIndex}`}
-              style={{ marginBottom: tokens.spacing.md }}
+              style={{ marginBottom: tokens.spacing.lg }}
             >
               {renderComponent(block.key)}
             </View>
@@ -138,7 +147,7 @@ export function CopyMarkdown({
         return (
           <Text
             key={`paragraph-${blockIndex}`}
-            style={{ color: textColor, marginBottom: tokens.spacing.md }}
+            style={{ color: textColor, marginBottom: tokens.spacing.lg }}
           >
             <InlineSpans color={textColor} onOpenLink={openLink} spans={block.spans} />
           </Text>

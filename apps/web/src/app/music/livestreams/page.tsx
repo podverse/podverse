@@ -49,7 +49,9 @@ export async function generateMetadata() {
 }
 
 export default async function MusicLivestreamsPage({ searchParams }: MusicLivestreamsPageProps) {
-  const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
+  const { isValidAuthSession, termsAcceptanceRequired, ssrApiRequestService } =
+    await getSSRAuthService();
+  const canLoadPrivateSsrData = isValidAuthSession && !termsAcceptanceRequired;
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
@@ -57,7 +59,7 @@ export default async function MusicLivestreamsPage({ searchParams }: MusicLivest
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentPage, currentLiveItemType } =
-    await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
+    await parseSearchParams(queryParams, canLoadPrivateSsrData, ssrFilterDefaults);
 
   const medium: QueryParamsMedium = 'music';
   const response: ApiListResponse<DTOItem> = await safeSsrListRequest(

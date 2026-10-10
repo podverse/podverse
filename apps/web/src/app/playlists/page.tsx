@@ -48,7 +48,9 @@ export async function generateMetadata() {
 }
 
 export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps) {
-  const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
+  const { isValidAuthSession, termsAcceptanceRequired, ssrApiRequestService } =
+    await getSSRAuthService();
+  const canLoadPrivateSsrData = isValidAuthSession && !termsAcceptanceRequired;
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
@@ -56,7 +58,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentMedium, currentPage } =
-    await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
+    await parseSearchParams(queryParams, canLoadPrivateSsrData, ssrFilterDefaults);
 
   const response = await safeSsrListRequest<DTOPlaylist>(
     () =>

@@ -1,11 +1,13 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getCopyMarkdownIntro } from '@podverse/helpers';
 import type { DTOTermsAgreement } from '@podverse/helpers';
 
+import { ROUTES } from '../../constants/routes';
 import { useAccount } from '../../contexts/Account';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { showToast } from '../Toast/Toast';
@@ -14,6 +16,7 @@ import { AgreementScreen } from './AgreementScreen';
 export function TermsAgreementGate() {
   const t = useTranslations('terms_acceptance');
   const locale = useLocale();
+  const router = useRouter();
   const { setLoggedInAccount } = useAccount();
   const [agreement, setAgreement] = useState<DTOTermsAgreement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,17 +76,11 @@ export function TermsAgreementGate() {
     }
   };
 
-  const handleReject = async () => {
+  const handleReject = () => {
     if (pending) {
       return;
     }
-    setPending(true);
-    try {
-      await getApiRequestService().reqAuthLogout();
-    } catch (error) {
-      console.error('[TermsAgreementGate] logout failed', error);
-    }
-    window.location.assign('/');
+    router.push(ROUTES.ACCOUNT_ACCESS);
   };
 
   return (
@@ -106,9 +103,7 @@ export function TermsAgreementGate() {
         void handleAccept();
       }}
       onCheckboxChange={setChecked}
-      onReject={() => {
-        void handleReject();
-      }}
+      onReject={handleReject}
       onRetry={retry}
       pending={pending}
       rejectLabel={t('reject')}

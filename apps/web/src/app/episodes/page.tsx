@@ -49,7 +49,9 @@ export async function generateMetadata() {
 }
 
 export default async function EpisodesPage({ searchParams }: EpisodesPageProps) {
-  const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
+  const { isValidAuthSession, termsAcceptanceRequired, ssrApiRequestService } =
+    await getSSRAuthService();
+  const canLoadPrivateSsrData = isValidAuthSession && !termsAcceptanceRequired;
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
@@ -57,7 +59,7 @@ export default async function EpisodesPage({ searchParams }: EpisodesPageProps) 
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentCategory, currentPage } =
-    await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
+    await parseSearchParams(queryParams, canLoadPrivateSsrData, ssrFilterDefaults);
 
   const medium: QueryParamsMedium = 'av';
   const response: ApiListResponse<DTOItem> = await safeSsrListRequest(

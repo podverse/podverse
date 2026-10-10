@@ -881,6 +881,23 @@
     "load_error": "Could not load the Terms of Service. Please try again.",
     "retry": "Try Again"
   },
+  "account_access": {
+    "title": "Account Access",
+    "message": "You need to accept the Terms of Service to use Podverse with this account. You can review the terms again, manage your data, or sign out.",
+    "review_terms": "Review Terms of Service",
+    "sign_out": "Sign Out",
+    "membership_heading": "Membership",
+    "download_heading": "Download My Data",
+    "download_description": "Download all of your account data as a zip file.",
+    "download_button": "Download My Data",
+    "opml_heading": "Export OPML",
+    "opml_description": "Export your subscribed and Add by RSS channels as an OPML file.",
+    "opml_button": "Export OPML",
+    "delete_heading": "Delete Account",
+    "delete_description": "Permanently delete your account and all associated data. This action cannot be undone.",
+    "delete_button": "Delete Account",
+    "delete_error": "Could not delete your account. Please try again."
+  },
   "membership": {
     "membership": "Membership",
     "free": "Free",

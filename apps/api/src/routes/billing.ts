@@ -12,6 +12,14 @@ const requireAccount = (req: Request, res: Response, next: NextFunction): void =
   ensureAuthenticated(req, res, next, { skipMembershipStatus: true });
 };
 
+/** Status only: reachable while terms acceptance is outstanding (Account Access page). */
+const requireAccountSkipTerms = (req: Request, res: Response, next: NextFunction): void => {
+  ensureAuthenticated(req, res, next, {
+    skipMembershipStatus: true,
+    skipTermsAcceptance: true,
+  });
+};
+
 /** Signs in the caller and limits purchase attempts per account. */
 const purchaseRateLimit = rateLimitAuthEndpoint(config.rateLimits.billingPurchase);
 
@@ -20,7 +28,7 @@ const router = Router();
 router.use(`${config.api.prefix}${config.api.version}/billing`, router);
 
 router.get('/checkout-options', asyncHandler(BillingController.getCheckoutOptions));
-router.get('/status', requireAccount, asyncHandler(BillingController.getStatus));
+router.get('/status', requireAccountSkipTerms, asyncHandler(BillingController.getStatus));
 
 router.post(
   '/paypal/orders',

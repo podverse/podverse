@@ -19,6 +19,8 @@ inside modals in **apps/web**, **apps/management-web**, or **`packages/ui`** she
 - **`Modal.Actions`** — **the** standard footer for cancel/submit (and similar) inside **`Modal`**:
   **`justify-content: flex-end`**, **`flex-wrap: wrap`**, **`gap: var(--spacing-2xl)`**. Use in **both** web and
   management-web so confirm dialogs match the web baseline (right-aligned group).
+- **`stack`** on **`Modal.Actions`** switches that footer to a full-width column (same gap, DOM order
+  top to bottom). Use it when a row of actions is the wrong shape for that dialog. The default stays the row.
 - **Do not** use **`formButtonsWrapper`** / ad hoc **`display: flex; justify-content: flex-end`** rows for modal
   footers — use **`Modal.Actions`** (or **`DeleteConfirmModalShell`** / **`GoToPageModal`** which already compose it).
 - **Do not** add **`overflow-x: hidden`** on the modal to mask overflow — fix the child (`min-width: 0` on flex

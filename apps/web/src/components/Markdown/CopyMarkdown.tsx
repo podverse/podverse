@@ -20,7 +20,8 @@ import { IMAGES } from '../../constants/images';
 import { FeatureComparison } from '../FeatureComparison/FeatureComparison';
 import { Link } from '../Link/Link';
 
-import styles from '../../styles/app/about/About.module.scss';
+import aboutStyles from '../../styles/app/about/About.module.scss';
+import styles from './CopyMarkdown.module.scss';
 
 type CopyMarkdownProps = {
   markdown: string;
@@ -56,7 +57,7 @@ const STORE_BADGE_SRC: Record<
 function defaultRenderComponent(key: CopyMarkdownComponentKey): ReactNode {
   if (key === 'feature_comparison') {
     return (
-      <section className={styles.featuresSection}>
+      <section className={aboutStyles.featuresSection}>
         <FeatureComparison features={MEMBERSHIP_COMPARISON_FEATURES} />
         <TrialLimitationsCollapsible />
       </section>
@@ -88,6 +89,9 @@ function InlineSpans({
             </Link>
           );
         }
+        if (span.type === 'strong') {
+          return <strong key={key}>{span.text}</strong>;
+        }
         return <span key={key}>{span.text}</span>;
       })}
     </>
@@ -111,14 +115,14 @@ export function CopyMarkdown({
     const group = imageGroup;
     imageGroup = [];
     nodes.push(
-      <section className={styles.downloadButtons} key={groupKey}>
+      <section className={aboutStyles.downloadButtons} key={groupKey}>
         {group.map((image, index) => {
           const badge = STORE_BADGE_SRC[image.key];
           const href = getSafeLinkHref(image.href) ?? '#';
           return (
             <a
               aria-label={tAbout(badge.labelKey)}
-              className={styles.downloadButton}
+              className={aboutStyles.downloadButton}
               href={href}
               key={`${image.key}-${index}`}
               rel="noopener noreferrer"
@@ -126,7 +130,7 @@ export function CopyMarkdown({
             >
               <Image
                 alt=""
-                className={styles.downloadButtonImageDesktop}
+                className={aboutStyles.downloadButtonImageDesktop}
                 height={IMAGES.MOBILE.APP_STORES.DESKTOP.HEIGHT}
                 skipProxy
                 src={badge.desktop}
@@ -134,7 +138,7 @@ export function CopyMarkdown({
               />
               <Image
                 alt=""
-                className={styles.downloadButtonImageMobile}
+                className={aboutStyles.downloadButtonImageMobile}
                 height={IMAGES.MOBILE.APP_STORES.MOBILE.HEIGHT}
                 skipProxy
                 src={badge.mobile}
@@ -156,7 +160,11 @@ export function CopyMarkdown({
     flushImages(`images-before-${blockIndex}`);
 
     if (block.type === 'heading') {
-      nodes.push(<h2 key={`heading-${blockIndex}`}>{block.text}</h2>);
+      if (block.level === 1) {
+        nodes.push(<h2 key={`heading-${blockIndex}`}>{block.text}</h2>);
+      } else {
+        nodes.push(<h3 key={`heading-${blockIndex}`}>{block.text}</h3>);
+      }
       return;
     }
 
@@ -189,5 +197,5 @@ export function CopyMarkdown({
 
   flushImages('images-trailing');
 
-  return <div>{nodes}</div>;
+  return <div className={styles.prose}>{nodes}</div>;
 }

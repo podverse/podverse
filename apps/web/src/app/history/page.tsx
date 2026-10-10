@@ -27,14 +27,16 @@ export async function generateMetadata() {
 }
 
 export default async function HistoryPage({ searchParams }: HistoryPageProps) {
-  const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
+  const { isValidAuthSession, termsAcceptanceRequired, ssrApiRequestService } =
+    await getSSRAuthService();
+  const canLoadPrivateSsrData = isValidAuthSession && !termsAcceptanceRequired;
 
   const queryParams = await searchParams;
   const { queryMedium, currentPage } = parseSearchParams(queryParams);
 
   let ssrQueues: DTOQueue[] = [];
 
-  if (isValidAuthSession) {
+  if (canLoadPrivateSsrData) {
     const response = await ssrApiRequestService.reqQueueGetAllForAccountPrivate();
     ssrQueues = response;
   }

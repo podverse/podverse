@@ -881,6 +881,23 @@
     "load_error": "No se pudieron cargar los términos de servicio. Inténtalo de nuevo.",
     "retry": "Reintentar"
   },
+  "account_access": {
+    "title": "Acceso a la cuenta",
+    "message": "Necesitas aceptar los términos de servicio para usar Podverse con esta cuenta. Puedes revisar los términos de nuevo, gestionar tus datos o cerrar sesión.",
+    "review_terms": "Revisar términos de servicio",
+    "sign_out": "Cerrar sesión",
+    "membership_heading": "Membresía",
+    "download_heading": "Descargar mis datos",
+    "download_description": "Descarga todos los datos de tu cuenta como un archivo zip.",
+    "download_button": "Descargar mis datos",
+    "opml_heading": "Exportar OPML",
+    "opml_description": "Exporta tus canales suscritos y de Añadir por RSS como un archivo OPML.",
+    "opml_button": "Exportar OPML",
+    "delete_heading": "Eliminar cuenta",
+    "delete_description": "Elimina permanentemente tu cuenta y todos los datos asociados. Esta acción no se puede deshacer.",
+    "delete_button": "Eliminar cuenta",
+    "delete_error": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+  },
   "membership": {
     "membership": "Membresía",
     "free": "Gratis",

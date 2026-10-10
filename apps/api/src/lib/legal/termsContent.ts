@@ -32,12 +32,21 @@ function retentionDaysLabel(): string {
 }
 
 export function interpolateTermsMarkdown(markdown: string): string {
-  return markdown
+  const contactEmail = config.terms.contactEmail.trim();
+  const withPlaceholders =
+    contactEmail === ''
+      ? markdown
+          .split('\n')
+          .filter((line) => !line.includes('{contact_email}'))
+          .join('\n')
+      : markdown;
+
+  return withPlaceholders
     .replaceAll('{brand_name}', config.brandName)
     .replaceAll('{legal_name}', config.legal.name)
     .replaceAll('{brand_domain}', config.web.domain)
     .replaceAll('{retention_days}', retentionDaysLabel())
-    .replaceAll('{contact_email}', config.terms.contactEmail);
+    .replaceAll('{contact_email}', contactEmail);
 }
 
 function resolveDefaultLocale(): string {

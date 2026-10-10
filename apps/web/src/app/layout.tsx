@@ -16,6 +16,7 @@ import { ASSETS } from '../constants/assets';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { useLocaleDetect } from '../hooks/useLocaleDetect';
 import { setSSRAccountForLocale } from '../i18n/request';
+import { isTermsAcceptanceRequired } from '../lib/termsAcceptanceRequired';
 import Providers from '../providers/Providers';
 import { getSSRJwtFromCookies, getSSRLoggedInAccount } from '../utils/auth/ssrAuth';
 import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
@@ -78,8 +79,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let ssrQueueResourcesAbridgedIndex: QueueResourcesAbridgedIndex | null = null;
 
   const ssrApiRequestService = getSSRApiRequestService(jwt);
+  const termsAcceptanceRequired = isTermsAcceptanceRequired(
+    ssrLoggedInAccount,
+    config.public.legal.terms.version
+  );
 
-  if (jwt) {
+  if (jwt && !termsAcceptanceRequired) {
     try {
       const ssrQueueResourcesAbridgedIndexResponseData =
         await ssrApiRequestService.reqQueueResourcesGetAllByAccountAbridged();

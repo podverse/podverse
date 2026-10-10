@@ -5,6 +5,7 @@ import { MediumEnum } from './medium.js';
  * Surfaces that need only a prefix (push payloads) use these constants directly.
  */
 export const APP_ROUTES = {
+  ACCOUNT_ACCESS: '/account-access',
   ALBUM: '/album',
   ARTIST: '/artist',
   CHANNEL: '/channel',

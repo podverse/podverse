@@ -17,12 +17,23 @@ type NavigationLoadingStore = {
 
 /**
  * External store for the navigation-loading flag. History patches and DOM
- * listeners mutate it directly (no React setter), so notifications are safe even
- * when Next calls `history.pushState` during React's insertion-effect commit.
+ * listeners mutate it directly (no React setter). Listener notifications are
+ * deferred: Next may call `history.pushState` during a `useInsertionEffect`
+ * commit, and scheduling a React update in that phase throws
+ * "useInsertionEffect must not schedule updates".
  */
 function createNavigationLoadingStore(): NavigationLoadingStore {
   let isNavigating = false;
+  let notifyScheduled = false;
   const listeners = new Set<() => void>();
+
+  const notifyListeners = () => {
+    notifyScheduled = false;
+    for (const listener of listeners) {
+      listener();
+    }
+  };
+
   return {
     subscribe: (onChange) => {
       listeners.add(onChange);
@@ -37,9 +48,11 @@ function createNavigationLoadingStore(): NavigationLoadingStore {
         return;
       }
       isNavigating = value;
-      for (const listener of listeners) {
-        listener();
+      if (notifyScheduled) {
+        return;
       }
+      notifyScheduled = true;
+      queueMicrotask(notifyListeners);
     },
   };
 }

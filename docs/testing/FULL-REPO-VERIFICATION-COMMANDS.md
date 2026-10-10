@@ -196,6 +196,7 @@ npm run mobile:e2e:test -- playback-multi-device-handoff
 npm run mobile:e2e:test -- playback-offline-reconciliation
 npm run mobile:e2e:test -- podcast-episode
 npm run mobile:e2e:test -- popularity-tracking
+npm run mobile:e2e:test -- terms-account-access
 npm run mobile:e2e:test -- push
 npm run mobile:e2e:test -- queue-add
 npm run mobile:e2e:test -- queue-screen

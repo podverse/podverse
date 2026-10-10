@@ -50,30 +50,35 @@ test.describe('Terms version acceptance', () => {
       );
     });
 
-    await test.step('Reject the terms and confirm the visitor is logged out', async () => {
+    await test.step('Reject the terms and open Account Access while still signed in', async () => {
       await actionAndCapture(
         page,
         testInfo,
-        'Rejecting the Terms of Service logs the visitor out.',
+        'Rejecting the Terms of Service opens Account Access without signing out.',
         async () => {
           await page.getByRole('button', { name: 'Reject' }).click();
-          await expect(page).toHaveURL('/');
-          await expect(page.getByRole('main', { name: TERMS_SCREEN_NAME })).toHaveCount(0);
-        }
+          await expect(page).toHaveURL('/account-access');
+          const accessScreen = page.getByRole('main', { name: 'Account Access' });
+          await expect(accessScreen).toBeVisible();
+          await expect(accessScreen.getByRole('button', { name: 'Review Terms of Service' })).toBeVisible();
+          await expect(accessScreen.getByRole('button', { name: 'Download My Data' })).toBeVisible();
+          const meResponse = await page.request.get('http://localhost:4030/api/v2/auth/me');
+          expect(meResponse.ok(), await meResponse.text()).toBeTruthy();
+        },
+        page.getByRole('main', { name: 'Account Access' })
       );
     });
 
-    await test.step('Accept the updated terms and confirm the app is available', async () => {
-      await loginStaleTermsUser(page);
-      await page.goto('/');
-      const termsScreen = page.getByRole('main', { name: TERMS_SCREEN_NAME });
-      await expect(termsScreen).toBeVisible();
-
+    await test.step('Review Terms returns to the agreement gate, then accept unlocks the app', async () => {
       await actionAndCapture(
         page,
         testInfo,
-        'After accepting the updated terms, the screen closes and the terms page is available.',
+        'Review Terms of Service returns to the gate; accepting unlocks the app.',
         async () => {
+          await page.getByRole('button', { name: 'Review Terms of Service' }).click();
+          const termsScreen = page.getByRole('main', { name: TERMS_SCREEN_NAME });
+          await expect(termsScreen).toBeVisible();
+
           await page.getByRole('checkbox', { name: TERMS_CHECKBOX_NAME }).check();
           await page.getByRole('button', { name: 'Accept' }).click();
           await expect(page.getByRole('main', { name: TERMS_SCREEN_NAME })).toHaveCount(0);

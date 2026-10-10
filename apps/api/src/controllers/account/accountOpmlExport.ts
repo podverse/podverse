@@ -69,7 +69,7 @@ class AccountOpmlExportController {
           handleGenericErrorResponse(res, error);
         }
       },
-      { skipMembershipStatus: true }
+      { skipMembershipStatus: true, skipTermsAcceptance: true }
     );
   }
 }

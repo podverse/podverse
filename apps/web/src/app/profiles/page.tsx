@@ -44,7 +44,9 @@ export async function generateMetadata() {
 }
 
 export default async function ProfilesPage({ searchParams }: ProfilesPageProps) {
-  const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
+  const { isValidAuthSession, termsAcceptanceRequired, ssrApiRequestService } =
+    await getSSRAuthService();
+  const canLoadPrivateSsrData = isValidAuthSession && !termsAcceptanceRequired;
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
@@ -53,7 +55,7 @@ export default async function ProfilesPage({ searchParams }: ProfilesPageProps) 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(
     queryParams,
-    isValidAuthSession,
+    canLoadPrivateSsrData,
     ssrFilterDefaults
   );
 
