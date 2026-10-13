@@ -40,6 +40,6 @@
   },
   "type": "module",
   "optionalDependencies": {
-    "@rollup/rollup-darwin-arm64": "^4.64.3"
+    "@rollup/rollup-darwin-arm64": "^4.64.4"
   }
 }
