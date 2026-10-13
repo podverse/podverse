@@ -22,7 +22,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@googleapis/androidpublisher": "^14.0.0",
+    "@googleapis/androidpublisher": "^42.2.0",
     "@podverse/helpers": "*",
     "google-auth-library": "^10.9.1"
   },
