@@ -12,6 +12,7 @@ export type {
 } from './src/NativePlaybackBridge';
 
 export type {
+  MediaEngineAudioProfile,
   MediaEngineBasicAuth,
   MediaEngineSource,
   PlaybackStateValue,

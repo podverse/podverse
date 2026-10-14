@@ -28,7 +28,23 @@ export type MediaEngineSource = {
    * or on a request up front, so a redirect to another host cannot carry them.
    */
   basicAuth?: MediaEngineBasicAuth;
+  /**
+   * How the OS should treat this audio when something else needs the speaker. Omitted keeps the
+   * profile the engine last applied.
+   */
+  audioProfile?: MediaEngineAudioProfile;
 };
+
+/**
+ * Audio behavior per medium, applied on every load:
+ *
+ * - `spoken` — podcasts, audiobooks. A navigation prompt or other spoken audio pauses playback,
+ *   which resumes afterwards (iOS `.spokenAudio`, Android `AUDIO_CONTENT_TYPE_SPEECH`).
+ * - `music` — a navigation prompt lowers the volume instead of pausing (iOS `.default`, Android
+ *   `AUDIO_CONTENT_TYPE_MUSIC`).
+ * - `video` — movie playback (iOS `.moviePlayback`, Android `AUDIO_CONTENT_TYPE_MOVIE`).
+ */
+export type MediaEngineAudioProfile = 'spoken' | 'music' | 'video';
 
 /**
  * Credentials plus the hosts they may be answered to.

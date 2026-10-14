@@ -36,6 +36,30 @@ struct PodverseNowPlayingInfo {
   var artist: String?
 }
 
+/// How the system treats this audio when something else needs the speaker. Matches the TS
+/// `MediaEngineAudioProfile`.
+enum PodverseAudioProfile: String {
+  /// Podcasts and other speech. Spoken interruptions (navigation prompts) pause, then resume.
+  case spoken
+  /// Navigation prompts duck the volume instead of pausing.
+  case music
+  case video
+
+  var sessionMode: AVAudioSession.Mode {
+    switch self {
+    case .spoken: return .spokenAudio
+    case .music: return .default
+    case .video: return .moviePlayback
+    }
+  }
+}
+
+/// What the engine last loaded, so it can rebuild the item after the media services reset.
+private struct PodverseLoadedSource {
+  let url: String
+  let basicAuth: ScopedBasicAuth?
+}
+
 /// Process-wide shared audio engine. Access via `PodverseAudioEngine.shared`.
 ///
 /// This singleton is intentionally independent of the Expo module lifecycle: CarPlay can reference
@@ -48,7 +72,8 @@ public final class PodverseAudioEngine: NSObject {
   @objc public static let shared = PodverseAudioEngine()
 
   /// The single shared player. Do not create parallel `AVPlayer` instances anywhere in the app.
-  private let player = AVPlayer()
+  /// Replaced only when the media services reset, which invalidates every existing `AVPlayer`.
+  private var player = AVPlayer()
 
   /// Sink that forwards events to JS. Set by the Expo module while it is alive; `nil` when the JS
   /// runtime is not running (e.g. a CarPlay-only launch). Reads/writes are hopped to main.
@@ -84,7 +109,18 @@ public final class PodverseAudioEngine: NSObject {
   /// audio-only items without the engine importing UIKit.
   var onVideoCapabilityChanged: ((Bool) -> Void)?
 
+  /// Notified on main with the new player after a media services reset, so the surface host can
+  /// bind its one `AVPlayerLayer` to it.
+  var onPlayerReplaced: ((AVPlayer) -> Void)?
+
   private var currentItem: AVPlayerItem?
+  private var loadedSource: PodverseLoadedSource?
+  private var audioProfile: PodverseAudioProfile = .spoken
+  /// Set when an interruption paused audio that was playing. Only then does the end of the
+  /// interruption resume, so a call never starts something the listener had paused.
+  private var resumeAfterInterruption = false
+  /// True between an interruption's `.began` and `.ended`. Main-thread only.
+  private var isInterrupted = false
   private var nowPlaying = PodverseNowPlayingInfo()
   /// `AVAssetResourceLoader` holds its delegate weakly, so the current protected item's delegate is
   /// retained here for as long as that item is loaded. `nil` for items without credentials.
@@ -147,25 +183,32 @@ public final class PodverseAudioEngine: NSObject {
   ///
   /// `basicAuth` (protected add-by-RSS media) is answered only to in-scope 401 challenges through
   /// `PodverseMediaAuthLoaderDelegate`; it is ignored for local files.
-  func load(url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth? = nil) throws {
+  ///
+  /// `audioProfile` sets the session mode for this item; `nil` keeps the last one applied.
+  func load(
+    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth? = nil,
+    audioProfile: PodverseAudioProfile? = nil
+  ) throws {
     try load(
       url: url, initialSeekSeconds: initialSeekSeconds, basicAuth: basicAuth,
-      playWhenPrepared: false)
+      audioProfile: audioProfile, playWhenPrepared: false)
   }
 
   /// Convenience combining `load` + `play`. If `load` throws (invalid URL / missing file), the error
   /// is already emitted and playback does not start. When `initialSeekSeconds` is positive, `play`
   /// waits until that seek completes.
   func loadAndStart(
-    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth? = nil
+    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth? = nil,
+    audioProfile: PodverseAudioProfile? = nil
   ) throws {
     try load(
       url: url, initialSeekSeconds: initialSeekSeconds, basicAuth: basicAuth,
-      playWhenPrepared: true)
+      audioProfile: audioProfile, playWhenPrepared: true)
   }
 
   private func load(
-    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth?, playWhenPrepared: Bool
+    url: String, initialSeekSeconds: Double?, basicAuth: ScopedBasicAuth?,
+    audioProfile: PodverseAudioProfile?, playWhenPrepared: Bool
   ) throws {
     guard let parsed = resolveSourceURL(url) else {
       let payload: [String: Any] = ["code": "invalid_url", "message": "Invalid URL: \(url)"]
@@ -219,13 +262,18 @@ public final class PodverseAudioEngine: NSObject {
     nowPlaying = PodverseNowPlayingInfo(title: parsed.lastPathComponent, artist: nil)
     lastPublishedState = .loading
     currentItem = item
+    loadedSource = PodverseLoadedSource(url: url, basicAuth: basicAuth)
     onMain { [weak self] in
       guard let self = self else { return }
       guard generation == self.loadGeneration else { return }
+      self.resumeAfterInterruption = false
+      if let profile = audioProfile {
+        self.applyAudioProfile(profile)
+      }
       self.player.replaceCurrentItem(with: item)
       self.updateNowPlayingInfo()
       if playWhenPrepared, seek <= 0 {
-        self.play()
+        self.startLoadedItem()
       } else if item.status == .readyToPlay {
         self.completePendingInitialSeek(generation: generation)
       }
@@ -243,7 +291,7 @@ public final class PodverseAudioEngine: NSObject {
       guard let seek = self.pendingInitialSeekSeconds, seek > 0 else {
         if self.playAfterPendingSeek {
           self.playAfterPendingSeek = false
-          self.play()
+          self.startLoadedItem()
         }
         return
       }
@@ -256,7 +304,7 @@ public final class PodverseAudioEngine: NSObject {
         guard generation == self.loadGeneration else { return }
         self.updateNowPlayingElapsed()
         if shouldPlay {
-          self.play()
+          self.onMain { self.startLoadedItem() }
         }
       }
     }
@@ -278,21 +326,44 @@ public final class PodverseAudioEngine: NSObject {
   func play() {
     onMain { [weak self] in
       guard let self = self else { return }
-      self.activateAudioSession()
-      self.player.play()
-      if self.pendingRate > 0, self.pendingRate != 1 {
-        self.player.rate = self.pendingRate
-      }
-      self.updateNowPlayingElapsed()
+      self.resumeAfterInterruption = false
+      self.startPlayer()
     }
   }
 
   func pause() {
     onMain { [weak self] in
       guard let self = self else { return }
-      self.player.pause()
-      self.updateNowPlayingElapsed()
+      self.resumeAfterInterruption = false
+      self.pausePlayer()
     }
+  }
+
+  /// Main-thread only. Shared by `play()` and the interruption resume.
+  private func startPlayer() {
+    activateAudioSession()
+    player.play()
+    if pendingRate > 0, pendingRate != 1 {
+      player.rate = pendingRate
+    }
+    updateNowPlayingElapsed()
+  }
+
+  /// Main-thread only. Starts an item a load asked to autoplay. During an interruption the start
+  /// waits for the interruption to end rather than competing with the call or alarm.
+  private func startLoadedItem() {
+    if isInterrupted {
+      resumeAfterInterruption = true
+      return
+    }
+    resumeAfterInterruption = false
+    startPlayer()
+  }
+
+  /// Main-thread only. Shared by `pause()` and the interruption and route-change handlers.
+  private func pausePlayer() {
+    player.pause()
+    updateNowPlayingElapsed()
   }
 
   /// Absolute seek in seconds; clamps to `[0, duration]` when a finite duration is known.
@@ -344,6 +415,8 @@ public final class PodverseAudioEngine: NSObject {
       self.player.replaceCurrentItem(with: nil)
       self.statusObservation = nil
       self.currentItem = nil
+      self.loadedSource = nil
+      self.resumeAfterInterruption = false
       self.authLoaderDelegate = nil
       self.clearNowPlayingInfo()
       self.deactivateAudioSession()
@@ -379,10 +452,17 @@ public final class PodverseAudioEngine: NSObject {
   private func configureAudioSession() {
     do {
       // `.playback` allows background audio (UIBackgroundModes `audio` declared in app.config.ts).
-      try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio)
+      try AVAudioSession.sharedInstance().setCategory(.playback, mode: audioProfile.sessionMode)
     } catch {
       emit(.error, ["code": "audio_session", "message": error.localizedDescription])
     }
+  }
+
+  /// Main-thread only. Switches the session mode when the next item is a different medium.
+  private func applyAudioProfile(_ profile: PodverseAudioProfile) {
+    guard profile != audioProfile else { return }
+    audioProfile = profile
+    configureAudioSession()
   }
 
   private func activateAudioSession() {
@@ -406,9 +486,14 @@ public final class PodverseAudioEngine: NSObject {
     center.addObserver(
       self, selector: #selector(handleRouteChange(_:)),
       name: AVAudioSession.routeChangeNotification, object: nil)
+    center.addObserver(
+      self, selector: #selector(handleMediaServicesReset(_:)),
+      name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
   }
 
-  /// Interruption policy: pause on `.began`; resume only when the system hints `.shouldResume`.
+  /// Interruption policy (calls, Siri, alarms, another app, spoken navigation prompts): pause on
+  /// `.began`. On `.ended`, resume only when audio was playing when the interruption began AND the
+  /// system hints `.shouldResume`. A listener who paused before the call stays paused.
   @objc private func handleInterruption(_ notification: Notification) {
     guard
       let info = notification.userInfo,
@@ -418,17 +503,92 @@ public final class PodverseAudioEngine: NSObject {
 
     switch type {
     case .began:
-      pause()
+      // Delivered late for a session that was idle while the app was suspended. Nothing was
+      // playing, so there is nothing to pause or resume.
+      if let reasonValue = info[AVAudioSessionInterruptionReasonKey] as? UInt,
+        AVAudioSession.InterruptionReason(rawValue: reasonValue) == .appWasSuspended
+      {
+        return
+      }
+      onMain { [weak self] in
+        guard let self = self else { return }
+        let wasPlaying = self.player.timeControlStatus != .paused || self.playAfterPendingSeek
+        self.playAfterPendingSeek = false
+        self.isInterrupted = true
+        self.resumeAfterInterruption = wasPlaying
+        self.pausePlayer()
+      }
     case .ended:
+      var shouldResume = false
       if let optionsValue = info[AVAudioSessionInterruptionOptionKey] as? UInt {
-        let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-        if options.contains(.shouldResume) {
-          play()
+        shouldResume = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+          .contains(.shouldResume)
+      }
+      onMain { [weak self] in
+        guard let self = self else { return }
+        let resume = self.resumeAfterInterruption && shouldResume
+        self.isInterrupted = false
+        self.resumeAfterInterruption = false
+        if resume {
+          self.startPlayer()
         }
       }
     @unknown default:
       break
     }
+  }
+
+  /// The media server restarted, which invalidates the session configuration and every `AVPlayer`
+  /// and `AVPlayerItem`. Rebuild the player, reapply the session, and reload the last source paused
+  /// at its playhead so the listener can press play instead of force-quitting the app.
+  @objc private func handleMediaServicesReset(_ notification: Notification) {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      let position = self.getPosition()
+      let source = self.loadedSource
+      self.isInterrupted = false
+      self.resumeAfterInterruption = false
+      self.rebuildPlayer()
+      self.configureAudioSession()
+      guard let source = source else {
+        self.currentItem = nil
+        self.clearNowPlayingInfo()
+        self.publish(state: .idle)
+        return
+      }
+      let title = self.nowPlaying.title
+      let artist = self.nowPlaying.artist
+      do {
+        try self.load(
+          url: source.url, initialSeekSeconds: position, basicAuth: source.basicAuth,
+          audioProfile: nil, playWhenPrepared: false)
+        self.setNowPlayingMetadata(title: title, artist: artist)
+      } catch {
+        // `load` already emitted the error for JS.
+      }
+    }
+  }
+
+  /// Main-thread only. Replace the invalidated player and move every player-scoped observer to the
+  /// new one. Remote command handlers read `self.player`, so they follow without re-registering.
+  private func rebuildPlayer() {
+    if let previous = currentItem {
+      NotificationCenter.default.removeObserver(
+        self, name: .AVPlayerItemDidPlayToEndTime, object: previous)
+      NotificationCenter.default.removeObserver(
+        self, name: .AVPlayerItemPlaybackStalled, object: previous)
+    }
+    if let token = timeObserverToken {
+      player.removeTimeObserver(token)
+      timeObserverToken = nil
+    }
+    timeControlObservation = nil
+    statusObservation = nil
+    authLoaderDelegate = nil
+    player = AVPlayer()
+    addTimeControlObservation()
+    addPeriodicTimeObserver()
+    onPlayerReplaced?(player)
   }
 
   /// Route-change policy: pause when the previous output became unavailable (e.g. headphones

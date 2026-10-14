@@ -41,6 +41,18 @@ Read web hooks first for behavior; reuse wrappers and policy — replace only tr
 `NativePlaybackBridge` is the **only** place RN should imperatively drive the engine — parallels ESLint
 guards on web's bridge (see **media-player-architecture**).
 
+### Interruptions and audio profile
+
+- Every engine load carries `audioProfile` from **`resolveEngineAudioProfile(target)`**
+  (`src/lib/playback/engineAudioProfile.ts`). Build reload sources with `playbackReloadSource` so the
+  initial load, the download swap, and retry agree. Spoken audio pauses for a navigation prompt;
+  music and video duck.
+- iOS resumes after an interruption only if audio was playing when it began. Do not auto-resume a
+  user who had paused.
+- Android pauses on becoming noisy and holds a network wake lock (`WAKE_LOCK`). Keep both.
+- iOS video detaches its `AVPlayerLayer` in the background so playback continues as audio.
+- Full policy: `modules/podverse-media-engine/README.md`.
+
 ## Playback policy flow
 
 ```text

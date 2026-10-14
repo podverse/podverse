@@ -30,19 +30,29 @@ public class PodverseMediaEngineModule: Module {
 
     // --- Playback transport ---
 
+    // `audioProfile` is `spoken` / `music` / `video`; an unknown or missing value keeps the
+    // engine's current profile.
     AsyncFunction("load") {
-      (url: String, initialSeekSeconds: Double?, basicAuth: MediaBasicAuthRecord?) in
+      (
+        url: String, initialSeekSeconds: Double?, basicAuth: MediaBasicAuthRecord?,
+        audioProfile: String?
+      ) in
       try PodverseAudioEngine.shared.load(
         url: url, initialSeekSeconds: initialSeekSeconds,
-        basicAuth: basicAuth?.toScopedBasicAuth())
+        basicAuth: basicAuth?.toScopedBasicAuth(),
+        audioProfile: audioProfile.flatMap(PodverseAudioProfile.init(rawValue:)))
     }
 
     // Atomic load + play. Used by the primary autoplay path.
     AsyncFunction("loadAndStart") {
-      (url: String, initialSeekSeconds: Double?, basicAuth: MediaBasicAuthRecord?) in
+      (
+        url: String, initialSeekSeconds: Double?, basicAuth: MediaBasicAuthRecord?,
+        audioProfile: String?
+      ) in
       try PodverseAudioEngine.shared.loadAndStart(
         url: url, initialSeekSeconds: initialSeekSeconds,
-        basicAuth: basicAuth?.toScopedBasicAuth())
+        basicAuth: basicAuth?.toScopedBasicAuth(),
+        audioProfile: audioProfile.flatMap(PodverseAudioProfile.init(rawValue:)))
     }
 
     AsyncFunction("play") {

@@ -71,7 +71,13 @@ public final class PodverseVideoSurfaceHost: NSObject {
 
     // Bind the one `AVPlayerLayer` to the one shared `AVPlayer`. This is the only place a layer is
     // attached to the engine's player.
-    containerView.playerLayer.player = PodverseAudioEngine.shared.sharedPlayer
+    bindPlayerLayer()
+    // `applicationState` is main-thread only, and the host can be created from the JS thread.
+    onMain { [weak self] in
+      guard let self = self else { return }
+      self.isInBackground = UIApplication.shared.applicationState == .background
+      self.bindPlayerLayer()
+    }
 
     // Record video capability so audio-only items keep the surface hidden.
     PodverseAudioEngine.shared.onVideoCapabilityChanged = { [weak self] hasVideo in
@@ -81,6 +87,47 @@ public final class PodverseVideoSurfaceHost: NSObject {
         self.updateVisibility()
       }
     }
+
+    PodverseAudioEngine.shared.onPlayerReplaced = { [weak self] _ in
+      self?.onMain { self?.bindPlayerLayer() }
+    }
+
+    let center = NotificationCenter.default
+    center.addObserver(
+      self, selector: #selector(handleDidEnterBackground),
+      name: UIApplication.didEnterBackgroundNotification, object: nil)
+    center.addObserver(
+      self, selector: #selector(handleWillEnterForeground),
+      name: UIApplication.willEnterForegroundNotification, object: nil)
+  }
+
+  // MARK: - Background playback
+
+  /// iOS pauses an `AVPlayer` that is attached to an `AVPlayerLayer` once the app leaves the
+  /// foreground (including a screen lock). Detaching the layer in the background lets a video
+  /// item keep playing as audio; the layer is rebound when the app returns.
+  private var isInBackground = false
+
+  @objc private func handleDidEnterBackground() {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      self.isInBackground = true
+      self.bindPlayerLayer()
+    }
+  }
+
+  @objc private func handleWillEnterForeground() {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      self.isInBackground = false
+      self.bindPlayerLayer()
+    }
+  }
+
+  /// Main-thread only. Attach the layer to the engine's current player while foregrounded.
+  private func bindPlayerLayer() {
+    containerView.playerLayer.player =
+      isInBackground ? nil : PodverseAudioEngine.shared.sharedPlayer
   }
 
   // MARK: - RN-facing API (called by PodverseVideoSurfaceView + the Expo module)

@@ -8,6 +8,7 @@
  * imports so Vitest can cover the arg order + validation without a device.
  */
 import type {
+  MediaEngineAudioProfile,
   MediaEngineBasicAuth,
   MediaEngineSource,
   VideoSurfaceRect,
@@ -18,7 +19,8 @@ import type {
 export type LoadCommandArgs = readonly [
   url: string,
   initialSeekSeconds?: number | null,
-  basicAuth?: MediaEngineBasicAuth,
+  basicAuth?: MediaEngineBasicAuth | null,
+  audioProfile?: MediaEngineAudioProfile,
 ];
 
 /** Positional args for the native `attachVideoSurface` function (iOS + Android agree on this order). */
@@ -70,7 +72,7 @@ function assertBasicAuth(auth: MediaEngineBasicAuth): MediaEngineBasicAuth {
  * Serialize a {@link MediaEngineSource} into positional `load` / `loadAndStart` args. Throws when
  * `url` is empty/whitespace, `initialSeekSeconds` is not a finite number `>= 0`, or `basicAuth`
  * lacks a scope host or username. Trailing optional args are left off so native sees them unset;
- * with `basicAuth` present an omitted seek travels as `null` to keep the positions aligned.
+ * an omitted arg ahead of a present one travels as `null` to keep the positions aligned.
  */
 export function serializeLoadCommand(source: MediaEngineSource): LoadCommandArgs {
   const url = source.url.trim();
@@ -83,8 +85,12 @@ export function serializeLoadCommand(source: MediaEngineSource): LoadCommandArgs
     assertNonNegativeFiniteNumber(seek, 'serializeLoadCommand: `initialSeekSeconds`');
   }
 
-  if (source.basicAuth !== undefined) {
-    return [url, seek ?? null, assertBasicAuth(source.basicAuth)];
+  const basicAuth = source.basicAuth === undefined ? null : assertBasicAuth(source.basicAuth);
+  if (source.audioProfile !== undefined) {
+    return [url, seek ?? null, basicAuth, source.audioProfile];
+  }
+  if (basicAuth !== null) {
+    return [url, seek ?? null, basicAuth];
   }
   return seek === undefined ? [url] : [url, seek];
 }

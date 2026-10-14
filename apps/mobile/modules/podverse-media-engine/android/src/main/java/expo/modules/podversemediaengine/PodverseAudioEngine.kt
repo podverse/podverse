@@ -105,17 +105,49 @@ object PodverseAudioEngine {
         ?: ExoPlayer.Builder(context.applicationContext).build().also { exo ->
           // Route to the media stream and request audio focus. Without USAGE_MEDIA, progress can
           // advance while the emulator/device produces no audible output (especially vs iOS).
-          val attrs =
-            AudioAttributes.Builder()
-              .setUsage(C.USAGE_MEDIA)
-              .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-              .build()
-          exo.setAudioAttributes(attrs, /* handleAudioFocus= */ true)
+          // Media3 owns focus: a call or alarm pauses and resumes, another media app pauses for
+          // good, and a navigation prompt ducks or pauses depending on the content type.
+          exo.setAudioAttributes(audioAttributesFor(audioProfile), /* handleAudioFocus= */ true)
+          // Headphones unplugged or Bluetooth (including a car) disconnected: pause rather than
+          // continue out of the phone speaker.
+          exo.setHandleAudioBecomingNoisy(true)
+          // Keep the CPU and Wi-Fi awake while streaming with the screen off. Requires WAKE_LOCK.
+          exo.setWakeMode(C.WAKE_MODE_NETWORK)
           exo.volume = 1f
           exo.addListener(playerListener)
           player = exo
         }
     }
+  }
+
+  /**
+   * How the OS treats this audio when something else needs the speaker. Matches the TS
+   * `MediaEngineAudioProfile`. Media3 pauses on a duckable focus loss only for
+   * `AUDIO_CONTENT_TYPE_SPEECH`, so podcasts pause for a navigation prompt while music ducks.
+   */
+  enum class AudioProfile(val wireValue: String, val contentType: Int) {
+    SPOKEN("spoken", C.AUDIO_CONTENT_TYPE_SPEECH),
+    MUSIC("music", C.AUDIO_CONTENT_TYPE_MUSIC),
+    VIDEO("video", C.AUDIO_CONTENT_TYPE_MOVIE);
+
+    companion object {
+      fun fromWireValue(value: String?): AudioProfile? = entries.firstOrNull { it.wireValue == value }
+    }
+  }
+
+  private var audioProfile: AudioProfile = AudioProfile.SPOKEN
+
+  private fun audioAttributesFor(profile: AudioProfile): AudioAttributes =
+    AudioAttributes.Builder()
+      .setUsage(C.USAGE_MEDIA)
+      .setContentType(profile.contentType)
+      .build()
+
+  /** Main-thread only. Switches the attributes when the next item is a different medium. */
+  private fun applyAudioProfile(p: ExoPlayer, profile: AudioProfile) {
+    if (profile == audioProfile) return
+    audioProfile = profile
+    p.setAudioAttributes(audioAttributesFor(profile), /* handleAudioFocus= */ true)
   }
 
   // MARK: - Shared video surface
@@ -155,14 +187,18 @@ object PodverseAudioEngine {
    *
    * [basicAuth] (protected add-by-RSS media) routes the remote load through OkHttp with a
    * [ScopedBasicAuthenticator]; without it the player's default data source is used unchanged.
+   *
+   * [audioProfile] sets the audio attributes for this item; `null` keeps the last one applied.
    */
   fun load(
     context: Context,
     url: String,
     initialSeekSeconds: Double?,
     basicAuth: ScopedBasicAuth? = null,
+    audioProfile: AudioProfile? = null,
   ) {
-    prepareSource(context, url, initialSeekSeconds, basicAuth, playWhenPrepared = false)
+    prepareSource(
+      context, url, initialSeekSeconds, basicAuth, audioProfile, playWhenPrepared = false)
   }
 
   /**
@@ -175,8 +211,10 @@ object PodverseAudioEngine {
     url: String,
     initialSeekSeconds: Double?,
     basicAuth: ScopedBasicAuth? = null,
+    audioProfile: AudioProfile? = null,
   ) {
-    prepareSource(context, url, initialSeekSeconds, basicAuth, playWhenPrepared = true)
+    prepareSource(
+      context, url, initialSeekSeconds, basicAuth, audioProfile, playWhenPrepared = true)
   }
 
   @androidx.annotation.OptIn(UnstableApi::class)
@@ -198,6 +236,7 @@ object PodverseAudioEngine {
     url: String,
     initialSeekSeconds: Double?,
     basicAuth: ScopedBasicAuth?,
+    audioProfile: AudioProfile?,
     playWhenPrepared: Boolean,
   ) {
     onMain {
@@ -212,6 +251,7 @@ object PodverseAudioEngine {
       val hasSeek = seekSeconds > 0
       playWhenReadyGeneration = if (playWhenPrepared && hasSeek) generation else -1
       val p = getOrCreatePlayer(context)
+      audioProfile?.let { applyAudioProfile(p, it) }
       publish(PlaybackState.LOADING)
       val item = MediaItem.fromUri(url)
       val startMs = (seekSeconds * 1000).toLong()

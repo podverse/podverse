@@ -8,7 +8,9 @@ import type {
 import { MediumEnum } from '@podverse/helpers/medium';
 import type { MusicItemPlaybackIntent, PlaybackTarget } from '@podverse/playback-core';
 
+import type { MediaEngineSource } from '../../../modules/podverse-media-engine';
 import type { MoveNowPlayingToHistoryTarget, PlaybackStatsTargets } from '../../data';
+import { resolveEngineAudioProfile } from './engineAudioProfile';
 
 /**
  * Build the `PlaybackTarget` for an item by medium (audio-first). Mirrors playback-core
@@ -72,11 +74,12 @@ export function playbackReloadSource(
   target: PlaybackTarget | null,
   url: string,
   positionSeconds: number
-): { url: string; initialSeekSeconds?: number } {
+): MediaEngineSource {
+  const audioProfile = resolveEngineAudioProfile(target);
   if (target?.kind === 'livestream') {
-    return { url };
+    return { audioProfile, url };
   }
-  return { initialSeekSeconds: positionSeconds, url };
+  return { audioProfile, initialSeekSeconds: positionSeconds, url };
 }
 
 export function buildClipPlaybackTarget(

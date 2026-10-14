@@ -149,6 +149,7 @@ describe('playbackReloadSource', () => {
     });
 
     expect(playbackReloadSource(start.target, 'https://cdn.example/live.m3u8', 40)).toEqual({
+      audioProfile: 'spoken',
       url: 'https://cdn.example/live.m3u8',
     });
   });
@@ -161,6 +162,7 @@ describe('playbackReloadSource', () => {
     });
 
     expect(playbackReloadSource(start.target, 'https://cdn.example/ep.mp3', 40)).toEqual({
+      audioProfile: 'spoken',
       initialSeekSeconds: 40,
       url: 'https://cdn.example/ep.mp3',
     });

@@ -1501,7 +1501,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       lastSourceUrlRef.current = localUrl;
       setPlaybackSourceMarker(localUrl);
       try {
-        const source = { initialSeekSeconds: position, url: localUrl };
+        const source = playbackReloadSource(activeTargetRef.current, localUrl, position);
         if (wasPlaying) {
           armPendingStart();
           await nativePlaybackBridge.loadAndStart(source);

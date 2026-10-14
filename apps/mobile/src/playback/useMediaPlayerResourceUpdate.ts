@@ -9,6 +9,7 @@ import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
 import type { MobileAuthRequestContext } from '../data';
 import { queueRepository } from '../data';
 import { EMPTY_ABRIDGED_INDEX } from '../lib/addByRss/domain';
+import { resolveEngineAudioProfile } from '../lib/playback/engineAudioProfile';
 import { withAddByRssPlaybackAuth } from './addByRssMediaAuth';
 
 /**
@@ -59,6 +60,7 @@ export function useMediaPlayerResourceUpdate() {
         playbackDecisionOverride ?? resolvePlaybackLoadDecision(request, { abridged });
       const shouldAutoPlay = autoPlayOverride ?? decision.shouldAutoPlay;
       const source = await withAddByRssPlaybackAuth(request.target, {
+        audioProfile: resolveEngineAudioProfile(request.target),
         initialSeekSeconds: decision.initialSeekSeconds,
         url,
       });

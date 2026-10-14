@@ -75,6 +75,13 @@ filters) that wraps **that same player** in the one `MediaLibrarySession`.
   shared `PodverseAudioEngine`; queue/auto-queue policy stays in `@podverse/playback-core` (JS).
 - **Foreground/notification:** `play()` starts the service; Media3 promotes it to foreground and posts
   the media notification once playing. App-force-stopped read/browse is proven later (12.6 / 12.17).
+- **Interruptions:** Media3 owns audio focus (`handleAudioFocus = true`). A call or alarm pauses and
+  resumes; another media app taking focus pauses for good. `setHandleAudioBecomingNoisy(true)` pauses
+  when headphones are unplugged or Bluetooth disconnects. `WAKE_MODE_NETWORK` (needs `WAKE_LOCK`)
+  keeps streams alive with the screen off.
+- **Audio profile:** the `audioProfile` load argument maps to the content type — `spoken` → SPEECH,
+  `music` → MUSIC, `video` → MOVIE. Media3 pauses a SPEECH stream for a navigation prompt and ducks
+  the others, which keeps a podcast from talking under directions.
 - **Media3 version:** `androidx.media3:media3-exoplayer` + `media3-session` (see `android/build.gradle`,
   `media3Version`).
 
@@ -90,8 +97,21 @@ The Expo module only sets an `eventSink` to forward events to JS while JS is ali
   same `AVPlayer` via the same command center — never a second registration path.
 - **`destroy()` keeps** the shared player, session config, and command-center registration so car
   surfaces can rebind; it only tears down the current item/observers.
-- **Interruptions:** pause on `.began`; resume only when the system sets `.shouldResume`.
-- **Route changes:** pause when the previous output becomes unavailable (headphones unplugged).
+- **Interruptions:** pause on `.began` (ignoring `.appWasSuspended`, which reports an interruption
+  that already ended while the app was suspended). On `.ended`, resume only when audio was playing
+  when the interruption began **and** the system sets `.shouldResume`. A user who had paused stays
+  paused after a call. A load-and-play that lands mid-interruption waits for `.ended`.
+- **Route changes:** pause when the previous output becomes unavailable (headphones unplugged,
+  Bluetooth or CarPlay disconnected).
+- **Audio profile:** `load` / `loadAndStart` take an optional `audioProfile` (`spoken` / `music` /
+  `video`) that sets the session mode (`.spokenAudio` / `.default` / `.moviePlayback`). JS derives
+  it from the playback target's medium in `resolveEngineAudioProfile`; omitted keeps the last one.
+- **Media services reset:** the engine rebuilds its `AVPlayer`, reconfigures the session, and
+  reloads the last source paused at the same position. This is the only time the player instance
+  changes; `onPlayerReplaced` lets the video surface rebind. It is still one player at a time.
+- **Video in the background:** the video surface detaches its `AVPlayerLayer` when the app enters
+  the background (iOS pauses a layer-bound player otherwise) and reattaches it on foreground, so a
+  video item keeps playing as audio with the screen locked.
 
 ### iOS CarPlay scene (12.7–12.10)
 

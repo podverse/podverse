@@ -55,6 +55,37 @@ describe('serializeLoadCommand', () => {
     ).toEqual(['https://example.com/a.mp3', 30, { ...basicAuth, scopeHost: 'example.com' }]);
   });
 
+  it('appends audioProfile as the fourth arg, holding earlier omitted args as null', () => {
+    expect(
+      serializeLoadCommand({ audioProfile: 'music', url: 'https://example.com/a.mp3' })
+    ).toEqual(['https://example.com/a.mp3', null, null, 'music']);
+    expect(
+      serializeLoadCommand({
+        audioProfile: 'spoken',
+        basicAuth: {
+          allowInsecure: false,
+          password: 'p',
+          scopeHost: 'Example.com',
+          scopeMatch: 'domain',
+          username: 'u',
+        },
+        initialSeekSeconds: 5,
+        url: 'https://example.com/a.mp3',
+      })
+    ).toEqual([
+      'https://example.com/a.mp3',
+      5,
+      {
+        allowInsecure: false,
+        password: 'p',
+        scopeHost: 'example.com',
+        scopeMatch: 'domain',
+        username: 'u',
+      },
+      'spoken',
+    ]);
+  });
+
   it('throws when basicAuth has no scope host or username', () => {
     const base = {
       allowInsecure: false,
