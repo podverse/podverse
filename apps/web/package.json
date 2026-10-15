@@ -61,8 +61,8 @@
     "sharp": "^0.35.5",
     "transcriptator": "^1.1.4",
     "uuid": "^14.0.3",
-    "video.js": "^8.24.1",
-    "zod": "^4.6.5"
+    "video.js": "^8.24.2",
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",

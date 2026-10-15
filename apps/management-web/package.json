@@ -34,7 +34,7 @@
     "@podverse/management-api-requests": "*",
     "@podverse/observability": "*",
     "@podverse/ui": "*",
-    "@tanstack/react-query": "^5.103.2",
+    "@tanstack/react-query": "^5.104.2",
     "@tanstack/react-table": "^9.2.8",
     "axios": "^1.19.0",
     "classnames": "^2.5.1",
@@ -49,8 +49,8 @@
     "sharp": "^0.35.5",
     "transcriptator": "^1.1.4",
     "uuid": "^14.0.3",
-    "video.js": "^8.24.1",
-    "zod": "^4.6.5"
+    "video.js": "^8.24.2",
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
