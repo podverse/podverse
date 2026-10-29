@@ -65,6 +65,7 @@ npm run build -w apps/workers
 | `npm run podcast_index_value_update_all`                  | Update all value blocks                                                              |
 | `npm run scheduled_jobs_run_due`                          | Run due rows from `scheduled_job` (`-dry-run`, `-limit N`)                           |
 | `npm run notifications_platform_purge`                    | Purge expired `account_notification` rows and stale terminal `scheduled_job` rows    |
+| `npm run notifications_test_push`                         | List or send a test push when `NOTIFICATIONS_TEST_PUSH_ENABLED` is true              |
 | `npm run stats_popularity_refresh`                        | Rebuild popularity range totals (`-full` for every entity)                           |
 | `npm run stats_event_partitions_maintain`                 | Create popularity event partitions ahead and drop expired months                     |
 

@@ -26,6 +26,7 @@
     "orm_archived_slim_report": "node ./dist/index.js ormArchivedSlimReport",
     "orm_verified_publisher_links_backfill": "node ./dist/index.js ormVerifiedPublisherLinksBackfill",
     "notifications_platform_purge": "node ./dist/index.js notificationsPlatformPurge",
+    "notifications_test_push": "node ./dist/index.js notificationsTestPush",
     "account_content_log_purge": "node ./dist/index.js accountContentLogPurge",
     "account_session_purge": "node ./dist/index.js accountSessionPurge",
     "dev_pi_bulk_feeds_add_from_file": "node ./dist/index.js devPiBulkFeedsAddFromFile",

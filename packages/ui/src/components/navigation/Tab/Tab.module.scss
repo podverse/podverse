@@ -2,6 +2,8 @@
 
 .tab {
   position: relative;
+  flex: none;
+  white-space: nowrap;
   margin-right: -3px;
   padding: var(--spacing-md) var(--spacing-2xl);
   color: var(--button-secondary-color);

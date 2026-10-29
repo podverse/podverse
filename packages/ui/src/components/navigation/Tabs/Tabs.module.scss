@@ -1,7 +1,8 @@
 .tabs {
   display: flex;
-  overflow-x: auto;
   flex: 1;
+  flex-wrap: nowrap;
+  min-width: 0;
   padding: var(--spacing-sm); // Focus ring space on all 4 sides
   margin: calc(var(--spacing-sm) * -1); // Compensate for padding so layout is unchanged
 }

@@ -5,7 +5,8 @@ description: Give the operator copy-paste resume commands for a plan-runner run 
 
 # `abcresume`
 
-A plan-runner run (abcplan, abctest, or a plain plan set) stops when a step reports
+A plan-runner run (abcplan, abctest, abcbranchesmerge, or a plain plan set) stops when a step
+reports
 `RUNNER-STATUS: BLOCKED`. Nothing else starts until the operator continues that same agent with
 `--resume`. **abcresume** turns the stop into one ready-to-paste resume command per reasonable
 answer. Do not run the commands. The operator picks one.
