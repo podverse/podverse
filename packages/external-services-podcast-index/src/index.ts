@@ -51,7 +51,7 @@ export type PodcastIndexAPIRequestExtraParams = {
   expectedMissStatuses?: readonly number[];
 };
 
-function httpStatusFromUpstreamError(error: unknown): number | null {
+export function httpStatusFromUpstreamError(error: unknown): number | null {
   if (typeof error !== 'object' || error === null) {
     return null;
   }
@@ -767,3 +767,4 @@ export {
   parsePodcastIndexClientOptionsFromEnv,
   type PodcastIndexClientOptions,
 } from './podcastIndexClientOptions.js';
+export * from './podcastIndexProvider.js';

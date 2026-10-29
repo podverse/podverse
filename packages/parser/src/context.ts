@@ -1,5 +1,6 @@
 import type { FirebaseContext } from '@podverse/external-services-firebase';
 import type { PodcastIndexService } from '@podverse/external-services-podcast-index';
+import type { IndexProvider } from '@podverse/helpers';
 import type { ILoggerLike, TimerManager } from '@podverse/helpers-backend';
 import type { NotificationsContext } from '@podverse/notifications';
 
@@ -13,6 +14,7 @@ let _context: {
   config: ParserConfig;
   loggerService: ILoggerLike;
   podcastIndexService?: PodcastIndexService;
+  indexProvider?: IndexProvider;
   timerManager: TimerManager;
   notificationsContext?: NotificationsContext;
   firebaseContext?: FirebaseContext;
@@ -22,6 +24,7 @@ export function setParserContext(context: {
   config: ParserConfig;
   loggerService: ILoggerLike;
   podcastIndexService?: PodcastIndexService;
+  indexProvider?: IndexProvider;
   timerManager: TimerManager;
   notificationsContext?: NotificationsContext;
   firebaseContext?: FirebaseContext;
@@ -51,6 +54,11 @@ export function getPodcastIndexService(): PodcastIndexService {
     throw new Error('Podcast Index service not configured for this parser context.');
   }
   return service;
+}
+
+/** Null in test-assets mode and when the parser has no Podcast Index config. */
+export function getOptionalIndexProvider(): IndexProvider | null {
+  return getParserContext().indexProvider ?? null;
 }
 
 export function getTimerManager(): TimerManager {

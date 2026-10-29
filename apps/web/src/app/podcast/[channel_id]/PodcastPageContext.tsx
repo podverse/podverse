@@ -138,6 +138,7 @@ export const PodcastPageContextProvider = ({
       filterParams.type === 'about' ||
       filterParams.type === 'people' ||
       filterParams.type === 'podroll' ||
+      filterParams.type === 'remote-items' ||
       filterParams.type === 'boosts'
     ) {
       return;

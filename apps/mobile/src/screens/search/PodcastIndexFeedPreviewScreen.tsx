@@ -3,14 +3,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import type { IndexProviderId } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 import { getChannelRouteKind } from '@podverse/helpers/medium';
+import type { ApiRequestService } from '@podverse/helpers-requests';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
-import { HelperNote } from '../../components/feedback/HelperNote';
-import { Button, CoverImage } from '../../components/primitives';
+import { SearchDetailView } from '../../components/searchDetail/SearchDetailView';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListLoading } from '../../components/state/ListLoading';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
@@ -27,16 +28,14 @@ import {
   BottomChromeScrollSpacer,
   useBottomChromeScrollIndicatorInsets,
 } from '../../theme/bottomChromeOverlayInset';
-import {
-  PREVIEW_IDENTITY_ARTWORK_EDGE,
-  previewIdentityArtworkGap,
-  previewIdentityBylineGap,
-  previewIdentityDescriptionGap,
-  screenBodyInsets,
-} from '../../theme/screenLayout';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
-import { isParsedReadyChannel, pollUntilParsedReadyChannel } from './podcastIndexFeedPreview';
+import {
+  isParsedReadyChannel,
+  pollUntilParsedReadyChannel,
+  shouldFetchProviderFeed,
+} from './podcastIndexFeedPreview';
 
 type PodcastIndexFeedPreviewScreenProps = NativeStackScreenProps<
   ChannelBrowseStackParamList,
@@ -52,7 +51,60 @@ type PreviewFeedState = {
   title: string;
 };
 
+type ProviderFeedSnapshot = {
+  author: string;
+  description: string;
+  feedUrl: string;
+  imageUrl: string | null;
+  providerFeedId: string;
+  title: string;
+};
+
 type AddErrorKey = 'features.search.add_failed' | 'features.search.add_timed_out' | null;
+
+/** Feed, add, and parsed-channel calls for the route's index provider. */
+const providerApi = (indexProvider: IndexProviderId) => {
+  switch (indexProvider) {
+    case 'podcast_index':
+      return {
+        fetchFeed: async (
+          api: ApiRequestService,
+          providerFeedId: string
+        ): Promise<ProviderFeedSnapshot> => {
+          const response = await api.reqPodcastIndexFeedById(providerFeedId);
+          const piFeed = response.feed;
+          return {
+            author: piFeed.author,
+            description: piFeed.description,
+            feedUrl: piFeed.url,
+            imageUrl:
+              toNonEmptyTrimmedString(piFeed.image) ?? toNonEmptyTrimmedString(piFeed.artwork),
+            providerFeedId: String(piFeed.id),
+            title: piFeed.title,
+          };
+        },
+        enqueueAdd: async (
+          api: ApiRequestService,
+          feed: { feedUrl: string; providerFeedId: string }
+        ) => {
+          const podcastIndexId = Number.parseInt(feed.providerFeedId, 10);
+          if (Number.isNaN(podcastIndexId)) {
+            throw new Error('Podcast Index feed id is not a number');
+          }
+          return api.reqMQRSSAddOnDemand({
+            podcast_index_id: podcastIndexId,
+            url: feed.feedUrl,
+          });
+        },
+        fetchParsedChannel: (api: ApiRequestService, providerFeedId: string) =>
+          api.reqChannelGetByPodcastIndexId(providerFeedId),
+      };
+    default: {
+      const unhandled: never = indexProvider;
+      return unhandled;
+    }
+  }
+};
 
 /** Replace the stale Add preview with channel detail on the current tab stack. */
 const replaceWithSearchChannelDetail = (
@@ -100,10 +152,16 @@ export function PodcastIndexFeedPreviewScreen({
   const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
   const isMountedRef = useRef(true);
+  /**
+   * The fetch writes `feed`, and `feed` is an effect dependency. This stops that write from
+   * starting another fetch. A run cancelled before it applies may start again.
+   */
+  const hasFetchedRef = useRef(false);
 
   // Membership tier is only the floor: the server also refuses directory adds for Trial accounts,
   // which no client-side check can predict, so `handleGateError` below still matters.
   const addAccess = evaluateFeature('directory_add_by_rss');
+  const indexProvider = route.params.indexProvider ?? 'podcast_index';
 
   const [feed, setFeed] = useState<PreviewFeedState | null>(() => {
     const params = route.params;
@@ -133,6 +191,8 @@ export function PodcastIndexFeedPreviewScreen({
   const [isAdding, setIsAdding] = useState(false);
   const [addErrorKey, setAddErrorKey] = useState<AddErrorKey>(null);
   const [addNoticeKey, setAddNoticeKey] = useState<string | null>(null);
+  const feedRef = useRef(feed);
+  feedRef.current = feed;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -142,55 +202,130 @@ export function PodcastIndexFeedPreviewScreen({
   }, []);
 
   useEffect(() => {
-    if (feed !== null || offlineModeEnabled) {
+    if (offlineModeEnabled || hasFetchedRef.current) {
       return;
     }
 
-    const podcastIndexId = route.params.resultId;
-    if (podcastIndexId.length === 0) {
-      setHydrateErrorKey('errors.generic');
-      setIsHydrating(false);
+    const providerFeedId = route.params.resultId;
+    const hasSeed = feed !== null;
+
+    if (providerFeedId.length === 0) {
+      if (!hasSeed) {
+        setHydrateErrorKey('errors.generic');
+        setIsHydrating(false);
+      }
       return;
     }
 
+    if (
+      !shouldFetchProviderFeed({
+        description: route.params.description,
+        hasSeed,
+      })
+    ) {
+      return;
+    }
+
+    hasFetchedRef.current = true;
+    const reportFailure = !hasSeed;
     let isActive = true;
+    let applied = false;
+
     void (async () => {
-      setIsHydrating(true);
-      setHydrateErrorKey(null);
+      if (reportFailure) {
+        setIsHydrating(true);
+        setHydrateErrorKey(null);
+      }
       try {
-        const response = await requestWithMobileAuthRefresh(
+        const loaded = await requestWithMobileAuthRefresh(
           {
             accessToken,
             clearSession,
             refreshToken,
             setTokens,
           },
-          async (api) => api.reqPodcastIndexFeedById(podcastIndexId)
+          async (api) => providerApi(indexProvider).fetchFeed(api, providerFeedId)
         );
 
         if (!isActive) {
           return;
         }
 
-        const piFeed = response.feed;
+        applied = true;
         setFeed({
-          author: piFeed.author,
-          description: piFeed.description,
-          feedUrl: piFeed.url,
-          imageUrl:
-            toNonEmptyTrimmedString(piFeed.image) ?? toNonEmptyTrimmedString(piFeed.artwork),
-          podcastIndexId: String(piFeed.id),
-          title: piFeed.title,
+          author: loaded.author,
+          description: loaded.description,
+          feedUrl: loaded.feedUrl,
+          imageUrl: loaded.imageUrl,
+          podcastIndexId: loaded.providerFeedId,
+          title: loaded.title,
         });
       } catch {
         if (!isActive) {
           return;
         }
-        setHydrateErrorKey('errors.generic');
+        if (reportFailure) {
+          setHydrateErrorKey('errors.generic');
+        }
       } finally {
-        if (isActive) {
+        if (isActive && reportFailure) {
           setIsHydrating(false);
         }
+      }
+    })();
+
+    return () => {
+      isActive = false;
+      if (!applied) {
+        hasFetchedRef.current = false;
+      }
+    };
+  }, [
+    accessToken,
+    clearSession,
+    feed,
+    indexProvider,
+    offlineModeEnabled,
+    refreshToken,
+    route.params.description,
+    route.params.resultId,
+    setTokens,
+  ]);
+
+  useEffect(() => {
+    if (offlineModeEnabled) {
+      return;
+    }
+
+    const providerFeedId = route.params.resultId;
+    if (providerFeedId.length === 0) {
+      return;
+    }
+
+    let isActive = true;
+    void (async () => {
+      try {
+        const channel = await requestWithMobileAuthRefresh(
+          {
+            accessToken,
+            clearSession,
+            refreshToken,
+            setTokens,
+          },
+          async (api) => providerApi(indexProvider).fetchParsedChannel(api, providerFeedId)
+        );
+
+        if (!isActive || !isParsedReadyChannel(channel)) {
+          return;
+        }
+
+        const currentFeed = feedRef.current;
+        replaceWithSearchChannelDetail(navigation, channel.medium_id, channel.id_text, {
+          imageUrl: currentFeed?.imageUrl ?? null,
+          title: currentFeed?.title ?? '',
+        });
+      } catch {
+        // Leave the preview up when the parsed-channel check fails.
       }
     })();
 
@@ -200,7 +335,8 @@ export function PodcastIndexFeedPreviewScreen({
   }, [
     accessToken,
     clearSession,
-    feed,
+    indexProvider,
+    navigation,
     offlineModeEnabled,
     refreshToken,
     route.params.resultId,
@@ -237,12 +373,6 @@ export function PodcastIndexFeedPreviewScreen({
     setAddNoticeKey(null);
 
     try {
-      const podcastIndexId = Number.parseInt(feed.podcastIndexId, 10);
-      if (Number.isNaN(podcastIndexId)) {
-        setAddErrorKey('features.search.add_failed');
-        return;
-      }
-
       await requestWithMobileAuthRefresh(
         {
           accessToken,
@@ -251,9 +381,9 @@ export function PodcastIndexFeedPreviewScreen({
           setTokens,
         },
         async (api) =>
-          api.reqMQRSSAddOnDemand({
-            podcast_index_id: podcastIndexId,
-            url: feed.feedUrl,
+          providerApi(indexProvider).enqueueAdd(api, {
+            feedUrl: feed.feedUrl,
+            providerFeedId: feed.podcastIndexId,
           })
       );
 
@@ -266,7 +396,7 @@ export function PodcastIndexFeedPreviewScreen({
               refreshToken,
               setTokens,
             },
-            async (api) => api.reqChannelGetByPodcastIndexId(feed.podcastIndexId)
+            async (api) => providerApi(indexProvider).fetchParsedChannel(api, feed.podcastIndexId)
           ),
         shouldContinue: () => isMountedRef.current,
       });
@@ -304,6 +434,7 @@ export function PodcastIndexFeedPreviewScreen({
     clearSession,
     feed,
     handleGateError,
+    indexProvider,
     isAdding,
     navigateToChannelDetail,
     onRequestLogin,
@@ -315,11 +446,6 @@ export function PodcastIndexFeedPreviewScreen({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        author: {
-          ...typography.prose,
-          color: themeStyles.textSecondary.color,
-          marginTop: previewIdentityBylineGap(tokens.spacing),
-        },
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
@@ -329,23 +455,9 @@ export function PodcastIndexFeedPreviewScreen({
           gap: tokens.spacing.lg,
           paddingBottom: tokens.spacing.lg,
         },
-        description: {
-          ...typography.prose,
-          color: themeStyles.textPrimary.color,
-          marginTop: previewIdentityDescriptionGap(tokens.spacing),
-        },
-        image: {
-          height: PREVIEW_IDENTITY_ARTWORK_EDGE,
-          width: PREVIEW_IDENTITY_ARTWORK_EDGE,
-        },
         message: {
           ...typography.body,
           color: themeStyles.textPrimary.color,
-        },
-        title: {
-          ...typography.display,
-          color: themeStyles.textPrimary.color,
-          marginTop: previewIdentityArtworkGap(tokens.spacing),
         },
       }),
     [themeStyles, tokens]
@@ -388,62 +500,32 @@ export function PodcastIndexFeedPreviewScreen({
 
   return (
     <View style={styles.container} testID="pi-feed-preview-screen">
-      <ScrollView
-        contentContainerStyle={styles.content}
-        scrollIndicatorInsets={scrollIndicatorInsets}
-        testID="search-result-detail-screen"
-      >
-        <View>
-          <CoverImage
-            accessibilityLabel={feed.title}
-            decodeEdge={PREVIEW_IDENTITY_ARTWORK_EDGE}
-            style={styles.image}
-            testID="pi-feed-preview-image"
-            uri={feed.imageUrl}
-          />
-          <Text style={styles.title}>{feed.title}</Text>
-          {feed.author.length > 0 ? <Text style={styles.author}>{feed.author}</Text> : null}
-          {feed.description.length > 0 ? (
-            <Text style={styles.description}>{feed.description}</Text>
-          ) : null}
-        </View>
-
-        <HelperNote
-          message={t('features.search.not_available_yet')}
-          scale="reading"
-          testID="pi-feed-preview-helper"
-        />
-
-        <Button
-          fullWidth
-          label={t('features.search.add_podcast')}
-          loading={isAdding}
-          onPress={() => {
+      <SearchDetailView
+        author={feed.author.length > 0 ? feed.author : null}
+        description={feed.description.length > 0 ? feed.description : null}
+        errorMessage={addErrorKey !== null ? t(addErrorKey) : null}
+        helperMessage={t('features.search.not_available_yet')}
+        imageUrl={feed.imageUrl}
+        noticeMessage={addNoticeKey !== null ? t(addNoticeKey) : null}
+        primaryAction={{
+          label: t('features.search.add_podcast'),
+          loading: isAdding,
+          onPress: () => {
             void handleAddPress();
-          }}
-          size="form"
-          testID="pi-feed-add-button"
-        />
-
-        {isAdding ? (
-          <Text style={styles.message} testID="pi-feed-adding">
-            {t('features.search.adding')}
-          </Text>
-        ) : null}
-
-        {addErrorKey !== null ? (
-          <Text style={styles.message} testID="pi-feed-add-error">
-            {t(addErrorKey)}
-          </Text>
-        ) : null}
-
-        {addNoticeKey !== null ? (
-          <Text style={styles.message} testID="pi-feed-add-notice">
-            {t(addNoticeKey)}
-          </Text>
-        ) : null}
-        <BottomChromeScrollSpacer />
-      </ScrollView>
+          },
+        }}
+        progressMessage={isAdding ? t('features.search.adding') : null}
+        testIDs={{
+          actionButton: 'pi-feed-add-button',
+          error: 'pi-feed-add-error',
+          helper: 'pi-feed-preview-helper',
+          image: 'pi-feed-preview-image',
+          notice: 'pi-feed-add-notice',
+          progress: 'pi-feed-adding',
+          scroll: 'search-result-detail-screen',
+        }}
+        title={feed.title}
+      />
     </View>
   );
 }

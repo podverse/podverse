@@ -47,6 +47,7 @@ tags:
   - name: product
   - name: profile
   - name: publisher-feed
+  - name: remote-item
   - name: queue
   - name: stats
   - name: meta
@@ -1461,6 +1462,212 @@ components:
       type: object
       description: Operation-specific response payload for POST /account/add-by-rss/chapters-transcript (200).
       additionalProperties: true
+    AddByRSSRemoteItemRef:
+      type: object
+      description: >-
+        Resolve body. At least one key is required. A feed_url with userinfo (`user:pass@`) is
+        rejected.
+      additionalProperties: false
+      anyOf:
+        - required:
+            - feed_guid
+        - required:
+            - feed_url
+      properties:
+        feed_guid:
+          type: string
+          maxLength: 64
+          nullable: true
+        feed_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL with userinfo (`user:pass@`) is rejected.
+    AddByRSSRemoteItemLookupRef:
+      type: object
+      description: >-
+        Lookup entry for one Add by RSS remote reference. A feed_url with userinfo (`user:pass@`)
+        is rejected.
+      additionalProperties: false
+      anyOf:
+        - required:
+            - feed_guid
+        - required:
+            - feed_url
+      properties:
+        feed_guid:
+          type: string
+          maxLength: 64
+          nullable: true
+        feed_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL with userinfo (`user:pass@`) is rejected.
+        item_guid:
+          type: string
+          nullable: true
+    AddByRSSRemoteItemLookupRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refs
+      properties:
+        refs:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/AddByRSSRemoteItemLookupRef"
+    IndexProviderFeedTarget:
+      type: object
+      required:
+        - index_provider
+        - provider_feed_id
+        - feed_url
+        - title
+        - author
+        - image_url
+      properties:
+        index_provider:
+          type: string
+          enum:
+            - podcast_index
+        provider_feed_id:
+          type: string
+        feed_url:
+          type: string
+          format: uri
+        title:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+    AddByRSSDirectoryItemMatch:
+      type: object
+      required:
+        - id_text
+        - title
+        - channel
+      properties:
+        id_text:
+          type: string
+        title:
+          type: string
+          nullable: true
+        channel:
+          $ref: "#/components/schemas/ApiGetChannelDirectoryMatchResponse200"
+    AddByRSSRemoteItemLookupResult:
+      oneOf:
+        - type: object
+          required:
+            - kind
+            - channel
+          properties:
+            kind:
+              type: string
+              enum:
+                - channel
+            channel:
+              $ref: "#/components/schemas/ApiGetChannelDirectoryMatchResponse200"
+        - type: object
+          required:
+            - kind
+            - item
+          properties:
+            kind:
+              type: string
+              enum:
+                - item
+            item:
+              $ref: "#/components/schemas/AddByRSSDirectoryItemMatch"
+        - type: object
+          required:
+            - kind
+            - provider_feed
+          properties:
+            kind:
+              type: string
+              enum:
+                - provider_feed
+            provider_feed:
+              $ref: "#/components/schemas/IndexProviderFeedTarget"
+        - type: object
+          required:
+            - kind
+            - item_stub
+          properties:
+            kind:
+              type: string
+              enum:
+                - item_stub
+            item_stub:
+              $ref: "#/components/schemas/RemoteItemStub"
+        - type: object
+          required:
+            - kind
+          properties:
+            kind:
+              type: string
+              enum:
+                - none
+      discriminator:
+        propertyName: kind
+    AddByRSSRemoteItemLookupResponse:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddByRSSRemoteItemLookupResult"
+    AddByRSSRemoteItemResolveResult:
+      oneOf:
+        - type: object
+          required:
+            - kind
+            - channel
+          properties:
+            kind:
+              type: string
+              enum:
+                - channel
+            channel:
+              $ref: "#/components/schemas/ApiGetChannelDirectoryMatchResponse200"
+        - type: object
+          required:
+            - kind
+            - provider_feed
+          properties:
+            kind:
+              type: string
+              enum:
+                - provider_feed
+            provider_feed:
+              $ref: "#/components/schemas/IndexProviderFeedTarget"
+        - type: object
+          required:
+            - kind
+          properties:
+            kind:
+              type: string
+              enum:
+                - not_found
+        - type: object
+          required:
+            - kind
+          properties:
+            kind:
+              type: string
+              enum:
+                - directory_unavailable
+      discriminator:
+        propertyName: kind
     ApiPostAccountAddByRssParseRequest:
       type: object
       description: >-
@@ -3847,6 +4054,9 @@ components:
     ApiGetPublisherFeedChannelIdoridtextResponse200:
       allOf:
         - $ref: "#/components/schemas/PublisherFeedRemoteItemsResponse"
+    ApiGetRemoteItemChannelIdoridtextResponse200:
+      allOf:
+        - $ref: "#/components/schemas/RemoteItemsResultResponse"
     ApiPostQueueQueueIdTextClipClipIdTextBetweenRequest:
       allOf:
         - $ref: "#/components/schemas/QueueResourceBetweenRequest"
@@ -5603,10 +5813,94 @@ components:
             monthlyEquivalentAnnually:
               type: number
               example: 36
-    RemoteItemGeneric:
+    RemoteChannelStub:
+      description: >-
+        Minimal placeholder for a remote feed the index provider knows but Podverse has not
+        parsed. Open the provider search detail for the feed.
       type: object
-      additionalProperties: true
+      required:
+        - is_remote_stub
+        - index_provider
+        - provider_feed_id
+        - feed_guid
+        - feed_url
+        - title
+        - author
+        - image_url
+        - medium_id
+      properties:
+        is_remote_stub:
+          type: boolean
+          enum:
+            - true
+        index_provider:
+          type: string
+          enum:
+            - podcast_index
+        provider_feed_id:
+          type: string
+        feed_guid:
+          type: string
+          format: uuid
+          nullable: true
+        feed_url:
+          type: string
+        title:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        medium_id:
+          type: integer
+          nullable: true
+    RemoteItemStub:
+      description: >-
+        Minimal placeholder for a remote item whose feed is known by the index provider but not
+        parsed by Podverse. Open the provider search detail for the channel in `channel_stub`.
+      type: object
+      required:
+        - is_remote_stub
+        - item_guid
+        - provider_item_id
+        - title
+        - image_url
+        - pub_date
+        - duration_seconds
+        - channel_stub
+      properties:
+        is_remote_stub:
+          type: boolean
+          enum:
+            - true
+        item_guid:
+          type: string
+        provider_item_id:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        pub_date:
+          type: string
+          format: date-time
+          nullable: true
+        duration_seconds:
+          type: integer
+          nullable: true
+        channel_stub:
+          allOf:
+            - $ref: "#/components/schemas/RemoteChannelStub"
     RemoteItemsResultResponse:
+      description: >-
+        Parsed channels and items stay in feed order. References with neither a parsed row nor a
+        stored stub are left out.
       type: object
       properties:
         channelsAdded:
@@ -5616,7 +5910,7 @@ components:
         channelsUnadded:
           type: array
           items:
-            $ref: "#/components/schemas/RemoteItemGeneric"
+            $ref: "#/components/schemas/RemoteChannelStub"
         itemsAdded:
           type: array
           items:
@@ -5624,15 +5918,15 @@ components:
         itemsUnadded:
           type: array
           items:
-            $ref: "#/components/schemas/RemoteItemGeneric"
+            $ref: "#/components/schemas/RemoteItemStub"
     PublisherFeedRemoteItemsResponse:
       description: >-
         channelsAdded lists albums verified to this publisher (both feeds reference each other),
         in the publisher feed's order. channelsUnadded lists albums the publisher feed lists that
-        Podverse has not parsed, as Podcast Index feeds. References Podcast Index does not know
-        are left out. itemsAdded lists tracks on the verified albums, plus tracks credited to this
-        publisher alone, newest first. itemsUnadded is always empty. Item references in a
-        publisher feed are not shown; nothing can verify them.
+        Podverse has not parsed, as remote stubs. References with no stub are left out. itemsAdded
+        lists tracks on the verified albums, plus tracks credited to this publisher alone, newest
+        first. itemsUnadded is always empty. Item references in a publisher feed are not shown;
+        nothing can verify them.
       allOf:
         - $ref: "#/components/schemas/RemoteItemsResultResponse"
         - type: object
@@ -6499,6 +6793,125 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/add-by-rss/remote-item/lookup:
+    post:
+      operationId: apiPostAccountAddByRSSRemoteItemLookup
+      tags:
+        - account
+      summary: POST /account/add-by-rss/remote-item/lookup
+      description: >-
+        Resolves up to 100 Add by RSS remote references using only Podverse directory and stub
+        storage. This endpoint does not call the index provider and does not write any rows.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: add_by_rss
+        action: read
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddByRSSRemoteItemLookupRequest"
+      responses:
+        "200":
+          description: Remote reference lookup results aligned with request order.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddByRSSRemoteItemLookupResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/add-by-rss/remote-item/resolve:
+    post:
+      operationId: apiPostAccountAddByRSSRemoteItemResolve
+      tags:
+        - account
+      summary: POST /account/add-by-rss/remote-item/resolve
+      description: >-
+        Resolves one Add by RSS remote feed reference on click. Podverse directory channels win.
+        Otherwise the API may ask the index provider using only the remote feed GUID or URL, and
+        may create or refresh a remote stub.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: add_by_rss
+        action: read
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddByRSSRemoteItemRef"
+      responses:
+        "200":
+          description: Remote reference resolve result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddByRSSRemoteItemResolveResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TooManyRequestsErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+        "503":
+          description: Index provider unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceUnavailableErrorResponse"
   /account/add-by-rss/parse:
     post:
       operationId: apiPostAccountAddByRssParse
@@ -19454,7 +19867,9 @@ paths:
       tags:
         - podroll
       summary: GET /podroll/channel/{id_or_id_text}
-      description: Public endpoint. Returns podroll channels and items partitioned by local availability.
+      description: >-
+        Public endpoint. Returns podroll channels and items: parsed ones, and remote stubs for the
+        rest. References with neither are left out.
       security: []
       parameters:
         - in: path
@@ -20026,7 +20441,10 @@ paths:
       tags:
         - publisher-feed
       summary: GET /publisher-feed/channel/{id_or_id_text}
-      description: Public endpoint. Returns the publisher channel, its verified albums, albums its feed lists that Podverse has not parsed (Podcast Index data), and tracks on the verified albums. An applied merge returns 410 with MergedIntoResponse.
+      description: >-
+        Public endpoint. Returns the publisher channel, its verified albums, albums its feed lists
+        that Podverse has not parsed (remote stubs), and tracks on the verified albums. An applied
+        merge returns 410 with MergedIntoResponse.
       security: []
       parameters:
         - in: path
@@ -20078,6 +20496,60 @@ paths:
                     merged_into:
                       kind: channel
                       id_text: surviving-artist
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /remote-item/channel/{id_or_id_text}:
+    get:
+      operationId: apiGetRemoteItemChannelIdoridtext
+      tags:
+        - remote-item
+      summary: GET /remote-item/channel/{id_or_id_text}
+      description: >-
+        Public endpoint. Returns the channel's own podcast:remoteItem list in feed order: parsed
+        channels and items, and remote stubs for the rest. References with neither are left out.
+        An unknown channel returns empty arrays.
+      security: []
+      parameters:
+        - in: path
+          name: id_or_id_text
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetRemoteItemChannelIdoridtextResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
         "500":
           description: Internal server error
           content:

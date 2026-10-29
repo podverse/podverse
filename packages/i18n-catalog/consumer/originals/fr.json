@@ -126,7 +126,11 @@
       "credentials_check_failed": "Impossible de vérifier ce flux. Réessayez plus tard.",
       "credentials_not_saved_on_device": "Ce navigateur n'a pas pu enregistrer l'identifiant et le mot de passe : ils n'ont servi que pour cette vérification.",
       "media_other_domain": "Ce média est hébergé sur un autre domaine que le flux protégé, ce qui n'est pas pris en charge.",
-      "media_needs_credentials": "Ce média peut exiger un identifiant et un mot de passe, que les navigateurs ne peuvent pas envoyer aux fichiers audio et vidéo. Utilisez plutôt l'app mobile. Le flux continue de se mettre à jour sur le web."
+      "media_needs_credentials": "Ce média peut exiger un identifiant et un mot de passe, que les navigateurs ne peuvent pas envoyer aux fichiers audio et vidéo. Utilisez plutôt l'app mobile. Le flux continue de se mettre à jour sur le web.",
+      "remote_feed_explanation": "Ce flux n'est pas dans notre annuaire ni dans Podcast Index. Ajoutez-le par RSS pour le suivre dans votre bibliothèque Ajouter par RSS.",
+      "remote_item_lookup_failed": "Impossible de consulter ce flux. Veuillez réessayer plus tard.",
+      "remote_item_directory_unavailable": "Ce flux n'est pas disponible pour le moment.",
+      "remote_item_not_found": "Impossible de trouver ce flux."
     },
     "browse": {
       "browse": "Parcourir",
@@ -390,7 +394,9 @@
       "play_from": "Lire à partir de {time}"
     },
     "podroll": "Podroll",
+    "remote_items": "Éléments distants",
     "no_podroll_found": "Aucun podcast recommandé trouvé",
+    "no_remote_items_found": "Aucun élément distant trouvé",
     "show_more": "Afficher plus",
     "show_less": "Afficher moins",
     "truncation": {

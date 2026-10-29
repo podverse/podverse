@@ -33,3 +33,9 @@
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-light);
 }
+
+.subtitle {
+  @include line-clamp(2);
+  font-size: var(--font-size-sm);
+  color: var(--text-color-secondary);
+}

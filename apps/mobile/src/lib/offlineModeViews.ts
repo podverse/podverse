@@ -27,7 +27,8 @@ export type OfflineUnavailableSurface =
   | 'add_by_rss_add'
   | 'podcast_clips'
   | 'podcast_soundbites'
-  | 'podcast_podroll';
+  | 'podcast_podroll'
+  | 'podcast_remote_items';
 
 /** Home media types that keep listing local subscribed channels while Offline Mode is on. */
 const HOME_CHANNEL_MEDIA_TYPES: ReadonlySet<HomeMediaType> = new Set([
@@ -73,7 +74,12 @@ export const resolvePodcastSectionForOfflineMode = (
 
 /** Podcast panes that need the network and cannot render from local storage alone. */
 export const isPodcastSectionUnavailableOffline = (section: PodcastTab): boolean => {
-  return section === 'clips' || section === 'soundbites' || section === 'podroll';
+  return (
+    section === 'clips' ||
+    section === 'soundbites' ||
+    section === 'podroll' ||
+    section === 'remote_items'
+  );
 };
 
 /**

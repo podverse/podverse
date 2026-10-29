@@ -18,6 +18,10 @@ import { handleParsedItems } from '@parser/lib/rss/item/item.js';
 import type { HandleParsedLiveItemsResult } from '@parser/lib/rss/liveItem/liveItem.js';
 import { handleParsedLiveItems } from '@parser/lib/rss/liveItem/liveItem.js';
 import { handleAllRemoteItemsFeedParsing } from '@parser/lib/rss/remoteItemParser.js';
+import {
+  deleteRemoteStubsForParsedFeed,
+  resolveRemoteItemStubsForChannel,
+} from '@parser/lib/rss/remoteItemStubs.js';
 import type { FeedObject } from 'podverse-partytime';
 import { parseFeed } from 'podverse-partytime';
 
@@ -238,6 +242,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
   let descriptionContext: DescriptionIngestContext | null = null;
   const imageHints: ImageShrinkHint[] = [];
   let parseSucceeded = false;
+  let parseSkippedNoChanges = false;
 
   try {
     if (!url || !podcast_index_id) {
@@ -453,6 +458,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
       await handleNewRemoteItemNotifications(channel, newRemoteItems);
     }
 
+    await deleteRemoteStubsForParsedFeed(feed, channel.id);
+
     const feedLogService = new FeedLogService();
     await feedLogService.update(feed, { last_finished_parse_time: new Date() });
     parseSucceeded = true;
@@ -474,6 +481,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
       // return so the is_parsing flag is not reset
       return { remoteItemsToParse: [], imageHints };
     } else if (error instanceof FeedNoChangesSinceLastParsedError) {
+      parseSkippedNoChanges = true;
       loggerService.warn(`Feed ${feed?.id} has no changes since last parsed.`);
     } else {
       const statusCode = getStatusCodeFromError(error);
@@ -547,6 +555,10 @@ export const parseRSSFeedAndSaveToDatabase = async (
       });
       return { remoteItemsToParse: remoteItems, imageHints };
     }
+  } else if (channel && (parseSucceeded || parseSkippedNoChanges)) {
+    // Runs after the feed's parsing lock is released, so a parse that hit "no changes" still
+    // re-asks the index provider about references it did not know last time.
+    await resolveRemoteItemStubsForChannel(channel);
   }
 
   return { remoteItemsToParse: [], imageHints };

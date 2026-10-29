@@ -31,6 +31,8 @@ const {
   accountGetMock,
   warnMock,
   logErrorMock,
+  resolveRemoteItemStubsForChannelMock,
+  deleteRemoteStubsForParsedFeedMock,
 } = vi.hoisted(() => ({
   handleAllRemoteItemsFeedParsingMock: vi.fn(),
   handleGetRSSFeedMock: vi.fn(),
@@ -49,6 +51,8 @@ const {
   accountGetMock: vi.fn(),
   warnMock: vi.fn(),
   logErrorMock: vi.fn(),
+  resolveRemoteItemStubsForChannelMock: vi.fn(),
+  deleteRemoteStubsForParsedFeedMock: vi.fn(),
 }));
 
 vi.mock('@parser/config/index.js', () => ({
@@ -99,6 +103,11 @@ vi.mock('@parser/lib/rss/liveItem/liveItem.js', () => ({
 
 vi.mock('@parser/lib/rss/remoteItemParser.js', () => ({
   handleAllRemoteItemsFeedParsing: handleAllRemoteItemsFeedParsingMock,
+}));
+
+vi.mock('@parser/lib/rss/remoteItemStubs.js', () => ({
+  resolveRemoteItemStubsForChannel: resolveRemoteItemStubsForChannelMock,
+  deleteRemoteStubsForParsedFeed: deleteRemoteStubsForParsedFeedMock,
 }));
 
 vi.mock('../notifications/handleNewItemNotifications.js', () => ({

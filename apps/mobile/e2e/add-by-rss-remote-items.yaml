@@ -1,0 +1,252 @@
+appId: com.podverse.app.next
+name: Add By RSS Remote Items
+---
+# Add by RSS podroll and remote item lists. A directory row opens its screen, a stub opens the
+# provider preview, and a feed the index does not know opens the remote feed screen.
+#
+# Needs flow_needs_e2e_api.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- tapOn:
+    id: rss-add-button
+- assertVisible:
+    id: rss-add-screen
+- tapOn:
+    id: rss-url-input
+- inputText: https://e2e-seed-addbyrss.example/podcast-podroll.xml
+- tapOn:
+    id: rss-add-submit
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+- extendedWaitUntil:
+    visible:
+      text: "E2E Add-by-RSS Podroll Channel"
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    text: "E2E Add-by-RSS Podroll Channel"
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+# Podroll sits after About. Off-screen chips stay out of the hierarchy until the row moves.
+- repeat:
+    times: 4
+    commands:
+      - runFlow:
+          file: shared/reveal-chip-row-trailing.yaml
+          env:
+            CHIP_ROW_ID: add-by-rss-home-sections
+            TRAILING_ID: add-by-rss-home-section-podroll
+      - runFlow:
+          when:
+            notVisible:
+              id: add-by-rss-home-section-podroll
+          commands:
+            - extendedWaitUntil:
+                visible:
+                  id: add-by-rss-home-section-podroll
+                timeout: ${TIMEOUT_FASTEST}
+                optional: true
+- swipe:
+    from:
+      id: add-by-rss-home-sections
+    direction: LEFT
+- tapOn:
+    id: add-by-rss-home-section-podroll
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-podroll-section
+    timeout: ${TIMEOUT_FAST}
+- extendedWaitUntil:
+    visible:
+      text: "E2E Music Album"
+    timeout: ${TIMEOUT_FAST}
+# This podroll reference has no title. The row shows the provider title once lookup returns.
+- extendedWaitUntil:
+    visible:
+      text: "E2E Not Yet Added Album"
+    timeout: ${TIMEOUT_SLOW}
+- scrollUntilVisible:
+    element:
+      text: "E2E Remote Not Found Feed"
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- scrollUntilVisible:
+    element:
+      text: "E2E Music Track One"
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- takeScreenshot: add-by-rss-remote-items-podroll
+
+- scrollUntilVisible:
+    element:
+      text: "E2E Not Yet Added Album"
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: "E2E Not Yet Added Album"
+- extendedWaitUntil:
+    visible:
+      id: pi-feed-preview-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Not Yet Added Album"
+- assertVisible:
+    id: pi-feed-add-button
+- takeScreenshot: add-by-rss-remote-items-stub-preview
+- runFlow: shared/stack-back.yaml
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+
+- scrollUntilVisible:
+    element:
+      text: "E2E Music Track One"
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: "E2E Music Track One"
+- extendedWaitUntil:
+    visible:
+      id: track-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Music Track One"
+- takeScreenshot: add-by-rss-remote-items-track
+- runFlow: shared/stack-back.yaml
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+
+- scrollUntilVisible:
+    element:
+      text: "E2E Remote Not Found Feed"
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: "E2E Remote Not Found Feed"
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-remote-feed-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Remote Not Found Feed"
+- assertVisible:
+    id: add-by-rss-remote-feed-add-button
+- takeScreenshot: add-by-rss-remote-items-remote-feed
+- tapOn:
+    id: add-by-rss-remote-feed-add-button
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    text: "E2E Add-by-RSS Channel"
+- takeScreenshot: add-by-rss-remote-items-added-feed
+- runFlow: shared/stack-back.yaml
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Add-by-RSS Podroll Channel"
+
+- scrollUntilVisible:
+    element:
+      text: "E2E Music Album"
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: "E2E Music Album"
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Music Album"
+- takeScreenshot: add-by-rss-remote-items-album
+- runFlow: shared/stack-back.yaml
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+
+- repeat:
+    times: 4
+    commands:
+      - runFlow:
+          file: shared/reveal-chip-row-trailing.yaml
+          env:
+            CHIP_ROW_ID: add-by-rss-home-sections
+            TRAILING_ID: add-by-rss-home-section-remote_items
+      - runFlow:
+          when:
+            notVisible:
+              id: add-by-rss-home-section-remote_items
+          commands:
+            - extendedWaitUntil:
+                visible:
+                  id: add-by-rss-home-section-remote_items
+                timeout: ${TIMEOUT_FASTEST}
+                optional: true
+- swipe:
+    from:
+      id: add-by-rss-home-sections
+    direction: LEFT
+- tapOn:
+    id: add-by-rss-home-section-remote_items
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-remote-items-section
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    text: "E2E Music Track One"
+- assertVisible:
+    text: "E2E Not Yet Added Track"
+- scrollUntilVisible:
+    element:
+      text: "E2E Remote Not Found Episode"
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- takeScreenshot: add-by-rss-remote-items-list
+- scrollUntilVisible:
+    element:
+      text: "E2E Not Yet Added Track"
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: "E2E Not Yet Added Track"
+- extendedWaitUntil:
+    visible:
+      id: pi-feed-preview-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Not Yet Added Album"
+- takeScreenshot: add-by-rss-remote-items-track-stub-preview
+- runFlow: shared/stack-back.yaml
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOW}

@@ -7,5 +7,7 @@ export type AddByRssDetailStackParamList = {
   AddByRssEpisodeDetail: { feedIdText: string; itemKey: string };
   AddByRssLivestreamDetail: { feedIdText: string; liveItemKey: string };
   AddByRssPodcastDetail: { feedIdText: string };
+  /** A remote feed the index provider does not know. `title` is the reference's own title. */
+  AddByRssRemoteFeedDetail: { feedUrl: string; title?: string };
   AddByRssTrackDetail: { feedIdText: string; itemKey: string };
 };

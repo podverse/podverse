@@ -138,3 +138,4 @@ export * from './queue/queueResource.js';
 export * from './queue/queueResourceAbridged.js';
 
 export * from './remoteItem.js';
+export * from './remoteItemResolve.js';

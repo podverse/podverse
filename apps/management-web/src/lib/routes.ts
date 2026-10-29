@@ -7,6 +7,7 @@ export const ROUTES = {
   FEEDS: '/feeds',
   FEEDS_FLAG_STATUS: '/feeds/flag-status',
   FEEDS_MERGE_REVIEW: '/feeds/merge-review',
+  FEEDS_REMOTE_STUBS: '/feeds/remote-stubs',
   STATS: '/stats',
   STATS_FLAGGED_LISTENERS: '/stats/flagged-listeners',
   DATABASE: '/database',
@@ -43,6 +44,9 @@ export const buildAdminRoleNewPath = (returnUrl: string): string =>
   `${ROUTES.ADMINS_ROLES_NEW}?returnUrl=${encodeURIComponent(returnUrl)}`;
 
 export const buildUserPath = (userId: number | string): string => `${ROUTES.USERS}/${userId}`;
+
+export const buildFeedRemoteStubPath = (id: number | string): string =>
+  `${ROUTES.FEEDS_REMOTE_STUBS}/${id}`;
 
 export const buildUserBillingPath = (userId: number | string): string =>
   `${ROUTES.USERS}/${userId}/billing`;

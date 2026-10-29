@@ -7,12 +7,15 @@ import type { ChipRowItem } from '@podverse/ui';
 
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
-export type AddByRSSPodcastPageTabKey = 'episodes' | 'boosts' | 'about' | 'settings';
+export type AddByRSSPodcastPageTabKey =
+  'episodes' | 'boosts' | 'about' | 'podroll' | 'remote_items' | 'settings';
 
 type AddByRSSPodcastPageListHeaderProps = {
   selectedKey: AddByRSSPodcastPageTabKey;
   onSelect: (key: AddByRSSPodcastPageTabKey) => void;
   canShowBoosts?: boolean;
+  hasPodroll: boolean;
+  hasRemoteItems: boolean;
   trailing?: ReactNode;
 };
 
@@ -20,6 +23,8 @@ export function AddByRSSPodcastPageListHeader({
   selectedKey,
   onSelect,
   canShowBoosts = false,
+  hasPodroll,
+  hasRemoteItems,
   trailing,
 }: AddByRSSPodcastPageListHeaderProps) {
   const tMedia = useTranslations('media');
@@ -42,11 +47,30 @@ export function AddByRSSPodcastPageListHeader({
       hideDesktop: true,
     },
     {
+      key: 'podroll',
+      label: tInfo('podroll'),
+    },
+    {
+      key: 'remote_items',
+      label: tInfo('remote_items'),
+    },
+    {
       key: 'settings',
       label: tSettings('settings'),
     },
   ];
-  const visibleItems = canShowBoosts ? items : items.filter((item) => item.key !== 'boosts');
+  const visibleItems = items.filter((item) => {
+    if (item.key === 'boosts' && !canShowBoosts) {
+      return false;
+    }
+    if (item.key === 'podroll' && !hasPodroll) {
+      return false;
+    }
+    if (item.key === 'remote_items' && !hasRemoteItems) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <CommonDetailListHeader

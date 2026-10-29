@@ -6,7 +6,7 @@ import React from 'react';
 import type {
   DTOChannel,
   DTOItem,
-  PodcastBatchByFeedGuidResponse,
+  DTORemoteChannelStub,
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import { buildArtistPath, buildTrackPath, isDescriptionTruncated } from '@podverse/helpers';
@@ -27,7 +27,7 @@ type ArtistPageListProps = {
   podroll: RemoteItemsResponse | null;
   ssrChannel: DTOChannel;
   ssrChannelsAdded: DTOChannel[];
-  ssrChannelsUnadded: PodcastBatchByFeedGuidResponse['feeds'];
+  ssrChannelsUnadded: DTORemoteChannelStub[];
   ssrItemsAdded: DTOItem[];
   ssrCanShowBoosts: boolean;
 };

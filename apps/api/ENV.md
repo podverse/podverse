@@ -118,6 +118,8 @@ When unset/invalid, each uses its code default listed below.
 - **`ACCOUNT_OPML_IMPORT_ENQUEUE_MAX_PER_HOUR`** (default `10`)
 - **`ACCOUNT_ADD_BY_RSS_PARSE_ENQUEUE_MAX_PER_HOUR`** (default `20`)
 - **`ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE`** (default `30`)
+- **`ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_MAX_PER_MINUTE`** (default `30`) — Add by RSS
+  remote item resolve calls per account per minute; each may ask the index provider
 - **`ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE`** (default `60`) — per account, covers both
   `/account/channel-seen` reads
 - **`STATS_TRACK_MAX_PER_MINUTE`** (default `60`) — per account, one budget shared by

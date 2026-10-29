@@ -5,6 +5,7 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
 import { DirectoryRemovedNotice } from '../../../components/Content/DirectoryRemovedNotice';
+import { remoteItemsResponseHasRows } from '../../../components/Content/remoteItemStubRow';
 import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { DirectoryRemovedProvider } from '../../../contexts/DirectoryRemoved';
@@ -21,6 +22,7 @@ interface AlbumPageClientProps {
   ssrItems: DTOItem[];
   ssrTotalPages: number;
   ssrPodroll: RemoteItemsResponse | null;
+  ssrRemoteItems: RemoteItemsResponse | null;
   directoryRemoved: boolean;
 }
 
@@ -33,6 +35,7 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
     ssrItems,
     ssrTotalPages,
     ssrPodroll,
+    ssrRemoteItems,
     directoryRemoved,
   } = props;
   const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
@@ -55,7 +58,11 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
           <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
           <CoreAlbumHeader channel={ssrChannel} />
           <MainSidebarLayout>
-            <AlbumPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
+            <AlbumPageSideContent
+              channel={ssrChannel}
+              podroll={ssrPodroll}
+              remoteItems={ssrRemoteItems}
+            />
             <MainColumnStack>
               {directoryRemoved ? (
                 <DirectoryRemovedNotice />
@@ -63,12 +70,14 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
                 <>
                   <AlbumPageListHeader
                     ssrHasPeople={(ssrChannel.channel_persons?.length ?? 0) > 0}
-                    ssrHasPodroll={!!ssrPodroll}
+                    ssrHasPodroll={remoteItemsResponseHasRows(ssrPodroll)}
+                    ssrHasRemoteItems={remoteItemsResponseHasRows(ssrRemoteItems)}
                     ssrCanShowBoosts={ssrCanShowBoosts}
                   />
                   <AlbumPageList
                     ssrChannel={ssrChannel}
                     podroll={ssrPodroll}
+                    remoteItems={ssrRemoteItems}
                     ssrCanShowBoosts={ssrCanShowBoosts}
                   />
                 </>

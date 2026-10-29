@@ -3,19 +3,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'reac
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import type {
-  DTOChannel,
-  DTOItem,
-  PodcastBatchByFeedGuidResponse,
-  RemoteItemsResponse,
-} from '@podverse/helpers';
-import {
-  podcastIndexFeedListImageUrl,
-  primaryChannelLightboxArtworkUrl,
-  primaryChannelListArtworkUrl,
-  primaryListArtworkUrl,
-  unparsedPodcastIndexFeedTarget,
-} from '@podverse/helpers';
+import type { DTOChannel, DTOItem, DTORemoteChannelStub } from '@podverse/helpers';
+import { primaryChannelLightboxArtworkUrl, primaryChannelListArtworkUrl } from '@podverse/helpers';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
@@ -26,6 +15,7 @@ import {
   ChannelAboutSection,
   FundingLinksSection,
   PeoplePane,
+  RemoteItemListRow,
   toAboutPersonFromChannel,
 } from '../../components/content';
 import { HelperNote } from '../../components/feedback/HelperNote';
@@ -44,11 +34,18 @@ import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscri
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
 import { useFirstSubscribePushPrompt } from '../../hooks/useFirstSubscribePushPrompt';
+import { useOpenRemoteItemListEntry } from '../../hooks/useOpenRemoteItemListEntry';
 import { resolveSupportedLocale } from '../../i18n/locale';
 import { resolveInitialSubscribed } from '../../lib/channelActionChrome';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { replaceScreenIfMerged } from '../../lib/mergeRedirectNavigation';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
+import type { RemoteItemListEntry } from '../../lib/remoteItems/remoteItemListEntries';
+import {
+  remoteChannelStubKey,
+  toRemoteChannelStubEntry,
+  toRemoteItemListEntries,
+} from '../../lib/remoteItems/remoteItemListEntries';
 import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
@@ -57,7 +54,6 @@ import type { ChannelBrowseStackParamList } from '../../navigation';
 import {
   buildAlbumDetailParams,
   buildArtistDetailParams,
-  buildPodcastDetailParams,
   buildTrackDetailParams,
   CHANNEL_BROWSE_STACK_ROUTES,
 } from '../../navigation';
@@ -104,15 +100,7 @@ const createContentListRowStyles = ({ styles: themeStyles }: ThemedStylesTheme) 
 
 type ArtistDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'ArtistDetail'>;
 
-type ArtistAlbumUnadded = PodcastBatchByFeedGuidResponse['feeds'][number];
-
-type PodrollEntry = {
-  id: string;
-  imageUrl: string | null;
-  subtitle: string | null;
-  target: { idText: string; kind: 'channel' | 'episode' };
-  title: string;
-};
+type ArtistAlbumUnadded = DTORemoteChannelStub;
 
 const SECTION_LABEL_KEYS: Record<ArtistTab, string> = {
   about: 'info.about',
@@ -127,7 +115,7 @@ const artistTracksKeyExtractor = (row: ArtistDetailSectionRow<DTOItem>): string 
 const artistAlbumsKeyExtractor = (
   row: ArtistAlbumSectionRow<DTOChannel, ArtistAlbumUnadded>
 ): string => row.key;
-const artistPodrollKeyExtractor = (row: PodrollEntry): string => row.id;
+const artistPodrollKeyExtractor = (row: RemoteItemListEntry): string => row.key;
 
 function ArtistAddedTrackRow({
   index,
@@ -200,98 +188,6 @@ function ArtistAddedAlbumRow({
   );
 }
 
-function ArtistUnaddedAlbumRow({
-  index,
-  onPress,
-  row,
-}: {
-  index: number;
-  onPress: (row: ArtistAlbumUnadded) => void;
-  row: ArtistAlbumUnadded;
-}) {
-  const styles = useThemedStyles(createContentListRowStyles);
-  const target = unparsedPodcastIndexFeedTarget(row);
-  const handlePress = useCallback(() => {
-    onPress(row);
-  }, [onPress, row]);
-
-  return (
-    <View style={styles.row}>
-      <ListRow
-        leading={
-          <CoverImage
-            decodeEdge={LIST_ROW_ARTWORK_SIZE}
-            opensViewer={false}
-            style={albumCoverStyles.image}
-            uri={podcastIndexFeedListImageUrl(row)}
-          />
-        }
-        onPress={target !== null ? handlePress : undefined}
-        subtitle={row.author ?? undefined}
-        testID={`artist-album-unadded-row-${index}`}
-        title={row.title}
-      />
-    </View>
-  );
-}
-
-function ArtistPodrollRow({
-  index,
-  item,
-  onPress,
-}: {
-  index: number;
-  item: PodrollEntry;
-  onPress: (item: PodrollEntry) => void;
-}) {
-  const styles = useThemedStyles(createContentListRowStyles);
-  const handlePress = useCallback(() => {
-    onPress(item);
-  }, [item, onPress]);
-
-  return (
-    <View style={styles.row}>
-      <ListRow
-        onPress={handlePress}
-        subtitle={item.subtitle ?? undefined}
-        testID={`artist-podroll-row-${index}`}
-        title={item.title}
-      />
-    </View>
-  );
-}
-
-const toPodrollEntries = (response: RemoteItemsResponse): PodrollEntry[] => {
-  const rows: PodrollEntry[] = [];
-  for (const channel of response.channelsAdded) {
-    const idText = channel.id_text.trim();
-    if (idText.length === 0) {
-      continue;
-    }
-    rows.push({
-      id: `channel-${idText}`,
-      imageUrl: primaryChannelListArtworkUrl(channel.channel_images),
-      subtitle: null,
-      target: { idText, kind: 'channel' },
-      title: channel.title ?? idText,
-    });
-  }
-  for (const item of response.itemsAdded) {
-    const idText = item.id_text.trim();
-    if (idText.length === 0) {
-      continue;
-    }
-    rows.push({
-      id: `episode-${idText}`,
-      imageUrl: primaryListArtworkUrl(item.item_images, item.channel?.channel_images),
-      subtitle: item.channel?.title ?? null,
-      target: { idText, kind: 'episode' },
-      title: item.title ?? idText,
-    });
-  }
-  return rows;
-};
-
 export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProps) {
   const { t, i18n } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
@@ -350,7 +246,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const [isRowsLoading, setIsRowsLoading] = useState<boolean>(true);
   const [isRowsRefreshing, setIsRowsRefreshing] = useState<boolean>(false);
   const [rowsErrorKey, setRowsErrorKey] = useState<string | null>(null);
-  const [podrollRows, setPodrollRows] = useState<PodrollEntry[]>([]);
+  const [podrollRows, setPodrollRows] = useState<RemoteItemListEntry[]>([]);
   const [podrollErrorKey, setPodrollErrorKey] = useState<string | null>(null);
   const [isPodrollLoading, setIsPodrollLoading] = useState<boolean>(false);
   const [isPodrollRefreshing, setIsPodrollRefreshing] = useState<boolean>(false);
@@ -536,7 +432,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         const response = await requestWithMobileAuthRefresh(authContext, async (api) =>
           api.reqPodrollGetForChannel(artistId)
         );
-        setPodrollRows(toPodrollEntries(response));
+        setPodrollRows(toRemoteItemListEntries(response));
       } catch {
         setPodrollErrorKey('errors.generic');
         setPodrollRows([]);
@@ -844,43 +740,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     [navigation]
   );
 
-  const handleOpenUnaddedAlbum = useCallback(
-    (row: ArtistAlbumUnadded) => {
-      const target = unparsedPodcastIndexFeedTarget(row);
-      if (target === null) {
-        return;
-      }
-      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.SearchResultDetail, {
-        author: target.author,
-        description: target.description,
-        feedUrl: target.feedUrl,
-        imageUrl: target.imageUrl,
-        resultId: target.podcastIndexId,
-        title: target.title,
-      });
-    },
-    [navigation]
-  );
-
-  const handlePodrollPress = useCallback(
-    (item: PodrollEntry) => {
-      if (item.target.kind === 'channel') {
-        navigation.navigate(
-          CHANNEL_BROWSE_STACK_ROUTES.PodcastDetail,
-          buildPodcastDetailParams({
-            podcastId: item.target.idText,
-            previewImageUrl: item.imageUrl,
-            previewTitle: item.title,
-          })
-        );
-        return;
-      }
-      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
-        episodeId: item.target.idText,
-      });
-    },
-    [navigation]
-  );
+  const handleOpenRemoteEntry = useOpenRemoteItemListEntry();
 
   const handleSubscriptionTogglePress = useCallback(() => {
     void handleSubscriptionToggle();
@@ -946,7 +806,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
       buildArtistAlbumSectionRows({
         includeAddByRssSlot: slotAllowed && !addByRssAlbums.isEmpty,
         notYetAdded: showDirectoryAlbums ? albumsUnadded : [],
-        notYetAddedKey: (row) => `not-yet-added-${row.id}`,
+        notYetAddedKey: (row) => `not-yet-added-${remoteChannelStubKey(row)}`,
         verified: showDirectoryAlbums
           ? albumsAdded.filter((row) => row.id_text.trim().length > 0)
           : [],
@@ -1032,6 +892,8 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     [handleRetryRows, isRowsLoading, offlineModeEnabled, rowsErrorKey]
   );
 
+  const untitledLabel = t('misc.untitled');
+
   const renderAlbumsItem = useCallback(
     ({ item }: { index: number; item: ArtistAlbumSectionRow<DTOChannel, ArtistAlbumUnadded> }) => {
       if (item.kind === 'verified-heading') {
@@ -1075,20 +937,22 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         );
       }
       return (
-        <ArtistUnaddedAlbumRow
-          index={item.sectionIndex}
-          onPress={handleOpenUnaddedAlbum}
-          row={item.row}
+        <RemoteItemListRow
+          entry={toRemoteChannelStubEntry(item.row)}
+          onPress={handleOpenRemoteEntry}
+          testID={`artist-album-unadded-row-${item.sectionIndex}`}
+          untitledLabel={untitledLabel}
         />
       );
     },
     [
       artistId,
       handleOpenAddedAlbum,
-      handleOpenUnaddedAlbum,
+      handleOpenRemoteEntry,
       styles.notYetAddedHeading,
       styles.notYetAddedNote,
       t,
+      untitledLabel,
     ]
   );
 
@@ -1120,10 +984,15 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   );
 
   const renderPodrollItem = useCallback(
-    ({ index, item }: { index: number; item: PodrollEntry }) => (
-      <ArtistPodrollRow index={index} item={item} onPress={handlePodrollPress} />
+    ({ index, item }: { index: number; item: RemoteItemListEntry }) => (
+      <RemoteItemListRow
+        entry={item}
+        onPress={handleOpenRemoteEntry}
+        testID={`artist-podroll-row-${index}`}
+        untitledLabel={untitledLabel}
+      />
     ),
-    [handlePodrollPress]
+    [handleOpenRemoteEntry, untitledLabel]
   );
 
   const tracksBody = (

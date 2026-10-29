@@ -60,6 +60,11 @@ import { AddByRssDownloadedSection } from './addByRss/AddByRssDownloadedSection'
 import { AddByRssEpisodesSection } from './addByRss/AddByRssEpisodesSection';
 import { AddByRssFundingSection } from './addByRss/AddByRssFundingSection';
 import { AddByRssPeopleSection } from './addByRss/AddByRssPeopleSection';
+import {
+  AddByRssPodrollSection,
+  AddByRssRemoteItemsSection,
+} from './addByRss/AddByRssRemoteItemListSection';
+import { getAddByRssRemoteRefsForDetail } from './addByRss/addByRssRemoteItems';
 import type { AddByRssSectionPaneProps } from './addByRss/addByRssSectionPane';
 import { AddByRssSettingsPane } from './addByRss/AddByRssSettingsPane';
 import type { AddByRssDetailStackParamList } from './addByRss/addByRssStackParams';
@@ -92,6 +97,8 @@ const SECTION_COMPONENTS: Record<AddByRssDetailTab, ComponentType<AddByRssSectio
   episodes: AddByRssEpisodesSection,
   funding: AddByRssFundingSection,
   people: AddByRssPeopleSection,
+  podroll: AddByRssPodrollSection,
+  remote_items: AddByRssRemoteItemsSection,
   tracks: AddByRssEpisodesSection,
 };
 
@@ -105,14 +112,17 @@ const isTrackSort = (sort: AddByRssDetailSort): sort is AddByRssTrackSort =>
  * An add-by-RSS feed, as one column at every width.
  *
  * The screen owns identity and controls. Each section owns its list. Podcast feeds offer
- * Episodes, Downloaded, and About, then Funding and People when the parsed feed lists them.
- * Artist feeds offer Albums, Tracks, and About; album and track feeds offer Tracks and About.
- * Music feeds then add Funding and People, and never Downloaded. Clips and
- * Official Clips are server rows keyed to a server item id, so this screen does not offer them.
- * Podroll resolves remote items against server channels, so it is not offered. Boosts is a
- * web-only tab, and the podcast screen has no Boosts chip either. Chips come from the parsed
- * bundle already on the device. Unsubscribe removes a feed that no Add by RSS artist on the
- * device lists. An album an artist lists stays on this screen, and Subscribe follows it.
+ * Episodes, Downloaded, and About. Artist feeds offer Albums, Tracks, and About. Album and
+ * track feeds offer Tracks and About.
+ * Podroll follows About when the bundle lists podroll references, and Remote Items follows
+ * Podroll on a podcast or album feed when the bundle lists channel remote items. Funding and
+ * People follow when the feed lists them. Music feeds never offer Downloaded. Podroll and
+ * Remote Items list the feeds and items this feed points to, from the parsed bundle; entries
+ * the device or the directory does not know are looked up when tapped. Clips and Official
+ * Clips are server rows keyed to a server item id, so this screen does not offer them. Boosts
+ * is a web-only tab, and the podcast screen has no Boosts chip either. Chips come from the
+ * parsed bundle already on the device. Unsubscribe removes a feed that no Add by RSS artist
+ * on the device lists. An album an artist lists stays on this screen, and Subscribe follows it.
  * Signed out, a listed-only album shows neither button. The page is not shareable, and
  * notifications need a server channel, so this screen has neither share nor a
  * bell. Settings holds the feed check and the username and password, which stay on this device.
@@ -302,6 +312,8 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       resolveAddByRssSections({
         hasFunding: (detailForRoute?.fundings.length ?? 0) > 0,
         hasPeople: (detailForRoute?.people.length ?? 0) > 0,
+        hasPodroll: getAddByRssRemoteRefsForDetail(detailForRoute, 'podroll').length > 0,
+        hasRemoteItems: getAddByRssRemoteRefsForDetail(detailForRoute, 'remote_items').length > 0,
         isArtistFeed,
         isMusicFeed,
       }),

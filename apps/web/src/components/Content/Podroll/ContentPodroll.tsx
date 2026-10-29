@@ -1,5 +1,6 @@
 import type { RemoteItemsResponse } from '@podverse/helpers';
 
+import { remoteItemsResponseHasRows } from '../remoteItemStubRow';
 import { ContentPodrollAccordion } from './ContentPodrollAccordion';
 import { ContentPodrollRows } from './ContentPodrollRows';
 
@@ -16,32 +17,24 @@ export const ContentPodroll = ({
   defaultOpen,
   isAccordion,
 }: ContentPodrollProps) => {
-  if (!remoteItemsResponse) {
-    return null;
-  }
-
-  if (
-    remoteItemsResponse.channelsAdded.length === 0 &&
-    remoteItemsResponse.channelsUnadded.length === 0 &&
-    remoteItemsResponse.itemsAdded.length === 0 &&
-    remoteItemsResponse.itemsUnadded &&
-    remoteItemsResponse.itemsUnadded.length === 0
-  ) {
+  if (!remoteItemsResponseHasRows(remoteItemsResponse)) {
     return null;
   }
 
   if (isAccordion) {
     return (
-      <ContentPodrollAccordion
-        remoteItemsResponse={remoteItemsResponse}
-        defaultOpen={defaultOpen}
-      />
-    );
-  } else {
-    return (
-      <div className={styles.listView}>
-        <ContentPodrollRows remoteItemsResponse={remoteItemsResponse} />
+      <div data-testid="channel-podroll">
+        <ContentPodrollAccordion
+          remoteItemsResponse={remoteItemsResponse}
+          defaultOpen={defaultOpen}
+        />
       </div>
     );
   }
+
+  return (
+    <div className={styles.listView} data-testid="channel-podroll">
+      <ContentPodrollRows remoteItemsResponse={remoteItemsResponse} />
+    </div>
+  );
 };

@@ -1,10 +1,6 @@
-import type {
-  PodcastBatchByFeedGuidResponse,
-  PodcastByIdFeed,
-  PodcastIndexPodcastByIdResponse,
-} from '@podverse/helpers';
+import type { PodcastByIdFeed, PodcastIndexPodcastByIdResponse } from '@podverse/helpers';
 
-/** Fixtures-only Not Yet Added album on the seeded E2E artist (`e2eMusicChnl01`). */
+/** Backs the Podcast Index preview for the seeded artist album whose list row comes from a stub. */
 export const E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID = '11111111-2222-4333-8444-555555555504';
 
 /**
@@ -18,22 +14,54 @@ export const E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL =
 
 export const E2E_ARTIST_NOT_YET_ADDED_ALBUM_TITLE = 'E2E Not Yet Added Album';
 
+/** Podcast Index preview for the web podroll stub show. */
+export const E2E_PODROLL_STUB_PODCAST_INDEX_ID = 2147483630;
+
+export const E2E_PODROLL_STUB_FEED_GUID = '11111111-2222-4333-8444-555555555511';
+
+export const E2E_PODROLL_STUB_FEED_URL = 'https://e2e-seed-remote-items.example/podroll-stub.xml';
+
+export const E2E_PODROLL_STUB_TITLE = 'E2E Podroll Stub Show';
+
+/** Podcast Index preview for the web channel remote-item stub show. */
+export const E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID = 2147483629;
+
+export const E2E_CHANNEL_REMOTE_STUB_FEED_GUID = '11111111-2222-4333-8444-555555555512';
+
+export const E2E_CHANNEL_REMOTE_STUB_FEED_URL =
+  'https://e2e-seed-remote-items.example/remote-stub.xml';
+
+export const E2E_CHANNEL_REMOTE_STUB_TITLE = 'E2E Remote Stub Show';
+
+export const E2E_CHANNEL_REMOTE_STUB_AUTHOR = 'E2E Remote Stub Author';
+
 /** Same device-reachable artwork URL as `buildE2eUnparsedSearchFeed`. */
 const E2E_ARTIST_NOT_YET_ADDED_ALBUM_IMAGE_URL =
   'http://localhost:2111/e2e/images/e2e-embed-channel-art-1400.png';
 
-const buildE2eArtistNotYetAddedAlbumBase = (): PodcastByIdFeed => {
-  return {
-    id: E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID,
-    podcastGuid: E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
-    medium: 'music',
-    title: E2E_ARTIST_NOT_YET_ADDED_ALBUM_TITLE,
-    url: E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
-    originalUrl: E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+type E2ePreviewFeedFields = {
+  id: number;
+  podcastGuid: string;
+  medium: string;
+  title: string;
+  url: string;
+  author: string;
+};
+
+const buildE2ePodcastIndexByIdResponse = (
+  fields: E2ePreviewFeedFields
+): PodcastIndexPodcastByIdResponse => {
+  const feed: PodcastByIdFeed = {
+    id: fields.id,
+    podcastGuid: fields.podcastGuid,
+    medium: fields.medium,
+    title: fields.title,
+    url: fields.url,
+    originalUrl: fields.url,
     link: '',
     description: '',
-    author: 'E2E Music Artist',
-    ownerName: 'E2E Music Artist',
+    author: fields.author,
+    ownerName: fields.author,
     image: E2E_ARTIST_NOT_YET_ADDED_ALBUM_IMAGE_URL,
     artwork: E2E_ARTIST_NOT_YET_ADDED_ALBUM_IMAGE_URL,
     lastUpdateTime: 0,
@@ -57,15 +85,6 @@ const buildE2eArtistNotYetAddedAlbumBase = (): PodcastByIdFeed => {
     locked: 0,
     imageUrlHash: 0,
   };
-};
-
-export const buildE2eArtistNotYetAddedAlbumFeed =
-  (): PodcastBatchByFeedGuidResponse['feeds'][number] => {
-    return buildE2eArtistNotYetAddedAlbumBase();
-  };
-
-export const buildE2eArtistNotYetAddedAlbumByIdResponse = (): PodcastIndexPodcastByIdResponse => {
-  const feed = buildE2eArtistNotYetAddedAlbumBase();
   return {
     status: 'true',
     query: { id: String(feed.id) },
@@ -74,26 +93,45 @@ export const buildE2eArtistNotYetAddedAlbumByIdResponse = (): PodcastIndexPodcas
   };
 };
 
-const guidsMatch = (left: string, right: string): boolean => {
-  return left.trim().toLowerCase() === right.trim().toLowerCase();
+export const buildE2eArtistNotYetAddedAlbumByIdResponse = (): PodcastIndexPodcastByIdResponse => {
+  return buildE2ePodcastIndexByIdResponse({
+    id: E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID,
+    podcastGuid: E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
+    medium: 'music',
+    title: E2E_ARTIST_NOT_YET_ADDED_ALBUM_TITLE,
+    url: E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+    author: 'E2E Music Artist',
+  });
 };
 
-/** Feed for this guid, or null when fixtures mode has no album for it. */
-export const findE2eArtistAlbumFeedByGuid = (
-  guid: string
-): PodcastBatchByFeedGuidResponse['feeds'][number] | null => {
-  if (guidsMatch(guid, E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID)) {
-    return buildE2eArtistNotYetAddedAlbumFeed();
+export function buildE2eRemoteStubPreviewByIdResponse(
+  podcastIndexId: number
+): PodcastIndexPodcastByIdResponse | null {
+  if (podcastIndexId === E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID) {
+    return buildE2eArtistNotYetAddedAlbumByIdResponse();
   }
-  return null;
-};
 
-/** Feed for this URL, or null when fixtures mode has no album for it. Comparison is exact after trim. */
-export const findE2eArtistAlbumFeedByUrl = (
-  url: string
-): PodcastBatchByFeedGuidResponse['feeds'][number] | null => {
-  if (url.trim() === E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL) {
-    return buildE2eArtistNotYetAddedAlbumFeed();
+  if (podcastIndexId === E2E_PODROLL_STUB_PODCAST_INDEX_ID) {
+    return buildE2ePodcastIndexByIdResponse({
+      id: E2E_PODROLL_STUB_PODCAST_INDEX_ID,
+      podcastGuid: E2E_PODROLL_STUB_FEED_GUID,
+      medium: 'podcast',
+      title: E2E_PODROLL_STUB_TITLE,
+      url: E2E_PODROLL_STUB_FEED_URL,
+      author: '',
+    });
   }
+
+  if (podcastIndexId === E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID) {
+    return buildE2ePodcastIndexByIdResponse({
+      id: E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID,
+      podcastGuid: E2E_CHANNEL_REMOTE_STUB_FEED_GUID,
+      medium: 'podcast',
+      title: E2E_CHANNEL_REMOTE_STUB_TITLE,
+      url: E2E_CHANNEL_REMOTE_STUB_FEED_URL,
+      author: E2E_CHANNEL_REMOTE_STUB_AUTHOR,
+    });
+  }
+
   return null;
-};
+}

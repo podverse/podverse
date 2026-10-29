@@ -10,7 +10,9 @@ import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import { CallToActionMessage, MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
+import { AddByRSSRemoteItemList } from '../../../components/AddByRSS/RemoteItems/AddByRSSRemoteItemList';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListSortChip } from '../../../components/ListSortChip/ListSortChip';
 import { WebLoadingYourContentSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
@@ -20,6 +22,7 @@ import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { useModals } from '../../../contexts/Modals';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useAddByRSSRemoteItemList } from '../../../hooks/useAddByRSSRemoteItemList';
 import {
   refreshAddByRSSPublisherLinks,
   resumeListedAddByRSSPolls,
@@ -161,7 +164,8 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
       typeParam === 'tracks' ||
       typeParam === 'boosts' ||
       typeParam === 'about' ||
-      typeParam === 'settings'
+      typeParam === 'settings' ||
+      typeParam === 'podroll'
     ) {
       return typeParam;
     }
@@ -451,6 +455,8 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
       },
       resolveItemHref: (itemIdText) => `/add-by-rss/track/${itemIdText}`,
     });
+  const podroll = useAddByRSSRemoteItemList(feed, 'podroll');
+  const hasPodroll = podroll.hasRows;
   const handleTabSelect = React.useCallback(
     (key: AddByRSSArtistPageTabKey) => {
       setActiveTab(key);
@@ -491,6 +497,9 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     if (hasDescription) {
       availableTabs.push('about');
     }
+    if (hasPodroll) {
+      availableTabs.push('podroll');
+    }
     availableTabs.push('settings');
     if (availableTabs.length === 0) {
       return;
@@ -506,6 +515,9 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
       return;
     }
     if (!availableTabs.includes(activeTab)) {
+      if (activeTab === 'podroll') {
+        return;
+      }
       const nextTab = availableTabs[0];
       if (nextTab) {
         fallbackFromTabRef.current ??= activeTab;
@@ -519,9 +531,19 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     hasAlbums,
     hasDescription,
     hasLoadedRelated,
+    hasPodroll,
     hasTracks,
     isLoading,
   ]);
+
+  useEffect(() => {
+    if (isLoading || feed === null) {
+      return;
+    }
+    if (!hasPodroll && activeTab === 'podroll') {
+      handleTabSelect('albums');
+    }
+  }, [activeTab, feed, handleTabSelect, hasPodroll, isLoading]);
 
   if (isLoading) {
     return <WebLoadingYourContentSpinnerOverlay isLoading />;
@@ -565,6 +587,7 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
             hasTracks={hasTracks}
             canShowBoosts={canShowBoostTab}
             hasDescription={hasDescription}
+            hasPodroll={hasPodroll}
             trailing={
               activeTab === 'albums' || activeTab === 'tracks' ? (
                 <ListSortChip
@@ -580,7 +603,16 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
               ) : null
             }
           />
-          {isEmptyActiveTab ? (
+          {activeTab === 'podroll' ? (
+            <DetailListWrapper>
+              <AddByRSSRemoteItemList
+                rows={podroll.rows}
+                openReference={podroll.openReference}
+                openingKey={podroll.openingKey}
+                errorMessage={podroll.errorMessage}
+              />
+            </DetailListWrapper>
+          ) : isEmptyActiveTab ? (
             <NoResults message={tFeatures('add_by_rss.no_feeds_music')} />
           ) : (
             <AddByRSSArtistPageList

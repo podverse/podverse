@@ -16,6 +16,13 @@ import {
 } from './helpers/apiKeyTestAccounts.js';
 import { getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
 
+const providerMocks = vi.hoisted(() => ({
+  resolveFeedsByGuid: vi.fn(async () => ({ status: 'not_found' })),
+  resolveFeed: vi.fn(async () => ({ status: 'not_found' })),
+  getFeedById: vi.fn(async () => ({ status: 'not_found' })),
+  resolveItem: vi.fn(async () => ({ status: 'not_found' })),
+}));
+
 vi.mock('@podverse/orm', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@podverse/orm')>();
 
@@ -28,6 +35,16 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     CategoryService: MockCategoryService,
   };
 });
+
+vi.mock('@api/factories/indexProvider.js', () => ({
+  indexProvider: {
+    id: 'podcast_index',
+    resolveFeedsByGuid: providerMocks.resolveFeedsByGuid,
+    resolveFeed: providerMocks.resolveFeed,
+    getFeedById: providerMocks.getFeedById,
+    resolveItem: providerMocks.resolveItem,
+  },
+}));
 
 const EMAIL_PREFIX = 'api-key-routes-asa-';
 const PLACEHOLDER_ID = 'pvtestid01';
@@ -77,6 +94,13 @@ const PARSE_ALL_BODY = {};
 const CHAPTERS_BODY = {
   itemIdText: PLACEHOLDER_ID,
   chaptersFeedUrl: 'https://example.com/chapters.json',
+};
+const REMOTE_ITEM_LOOKUP_BODY = {
+  refs: [{ feed_guid: PLACEHOLDER_ID, feed_url: null, item_guid: null }],
+};
+const REMOTE_ITEM_RESOLVE_BODY = {
+  feed_guid: PLACEHOLDER_ID,
+  feed_url: null,
 };
 const ON_DEMAND_BODY = { url: FEED_URL, podcast_index_id: 1 };
 
@@ -142,6 +166,12 @@ const ROUTE_CASES: RouteCase[] = [
   }),
   route('post', '/account/add-by-rss/chapters-transcript', 'add_by_rss', 'read', {
     body: CHAPTERS_BODY,
+  }),
+  route('post', '/account/add-by-rss/remote-item/lookup', 'add_by_rss', 'read', {
+    body: REMOTE_ITEM_LOOKUP_BODY,
+  }),
+  route('post', '/account/add-by-rss/remote-item/resolve', 'add_by_rss', 'read', {
+    body: REMOTE_ITEM_RESOLVE_BODY,
   }),
   route('post', '/account/add-by-rss/parse', 'add_by_rss', 'create', { body: FEED_BODY }),
   route('post', '/account/add-by-rss/parse/all', 'add_by_rss', 'create', { body: PARSE_ALL_BODY }),
@@ -320,12 +350,14 @@ describe('API key access for account, subscriptions, and Add by RSS', () => {
   }
 
   it('covers every labeled account, subscription, and Add by RSS route', () => {
-    expect(ROUTE_CASES).toHaveLength(42);
+    expect(ROUTE_CASES).toHaveLength(44);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'account')).toHaveLength(6);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'subscriptions')).toHaveLength(
       27
     );
-    expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'add_by_rss')).toHaveLength(9);
+    expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'add_by_rss')).toHaveLength(
+      11
+    );
     expect(distinctRequirements(ROUTE_CASES)).toHaveLength(9);
   });
 

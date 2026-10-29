@@ -126,7 +126,11 @@
       "credentials_not_saved_on_device": "This browser could not save your username and password, so they were used for this check only.",
       "media_other_domain": "This media is hosted on a different domain than its password-protected feed, which is not supported.",
       "media_needs_credentials": "This media may require a username and password, which browsers cannot send to audio and video files. Try our mobile app instead. The feed itself still updates on the web.",
-      "login_prompt": "Log in to use this feature."
+      "login_prompt": "Log in to use this feature.",
+      "remote_feed_explanation": "This feed is not in our directory or the Podcast Index. Add it by RSS to follow it in your Add by RSS library.",
+      "remote_item_lookup_failed": "Could not look up this feed. Please try again later.",
+      "remote_item_directory_unavailable": "This feed is not available right now.",
+      "remote_item_not_found": "This feed could not be found."
     },
     "browse": {
       "browse": "Browse",
@@ -390,7 +394,9 @@
       "play_from": "Play from {time}"
     },
     "podroll": "Podroll",
+    "remote_items": "Remote Items",
     "no_podroll_found": "No Recommended Podcasts Found",
+    "no_remote_items_found": "No Remote Items Found",
     "show_more": "Show More",
     "show_less": "Show Less",
     "truncation": {
