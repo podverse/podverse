@@ -31,10 +31,6 @@
       "credentials_mobile_media_note": "This app sends them with audio, video, and artwork only when those files are on the same site as the feed.",
       "credentials_remove_feed_confirm": "Remove this feed? Its username and password are deleted from this device too."
     },
-    "opml": {
-      "rate_limited_time_one": "1 minute",
-      "rate_limited_time_other": "{minutes} minutes"
-    },
     "channel": {
       "section_requires_connection": "This section needs a connection. Try again once you are back online."
     },
@@ -86,12 +82,6 @@
       "not_available_yet": "This podcast is not in our directory yet. Add it to make it available.",
       "add_failed": "Could not add this podcast. Please try again later.",
       "add_timed_out": "Still processing after several minutes. Search again shortly to open this podcast — adding does not subscribe you automatically."
-    }
-  },
-  "notifications": {
-    "section": {
-      "earlier": "Earlier",
-      "unread": "Unread"
     }
   },
   "settings": {
@@ -252,10 +242,6 @@
     "taken_down": "{title} was taken down.",
     "moved_to_add_by_rss": "Your follow was moved to Add by RSS.",
     "follow_ended": "Your follow ended.",
-    "clips_one": "{count} of your clips now shows Content Removed.",
-    "clips_other": "{count} of your clips now show Content Removed.",
-    "playlist_entries_one": "{count} of your playlist entries now shows Content Removed.",
-    "playlist_entries_other": "{count} of your playlist entries now show Content Removed.",
     "unknown_show": "A show"
   },
   "error_log": {

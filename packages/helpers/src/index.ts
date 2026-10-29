@@ -37,6 +37,7 @@ export * from './lib/appRoutes.js';
 export * from './lib/notificationDestination.js';
 export * from './lib/accountNotificationLine.js';
 export * from './lib/accountNotificationType.js';
+export * from './lib/accountNotificationVisitUnread.js';
 export * from './lib/array.js';
 export * from './lib/channelItunesType.js';
 export * from './lib/addByRSSHash.js';

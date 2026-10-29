@@ -6,7 +6,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
-import { accountNotificationImageUrl, formatAccountNotificationLine } from '@podverse/helpers';
+import {
+  accountNotificationImageUrl,
+  applyNotificationVisitUnread,
+  formatAccountNotificationLine,
+  formatRelativeTimeLabel,
+} from '@podverse/helpers';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
@@ -30,10 +35,7 @@ import {
 } from '../../lib/pagination/pagedList';
 import type { RootStackParamList } from '../../navigation';
 import { ROOT_STACK_ROUTES } from '../../navigation';
-import {
-  accountNotificationLineLabels,
-  formatNotificationRelativeTime,
-} from '../../notifications/accountNotificationLineLabels';
+import { accountNotificationLineLabels } from '../../notifications/accountNotificationLineLabels';
 import { markNotificationReadById } from '../../notifications/notificationReadActions';
 import {
   getNotificationsInboxCache,
@@ -129,14 +131,14 @@ function InboxNotificationRow({
   item: DTOAccountNotification;
   onPress: (notification: DTOAccountNotification) => void;
 }) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const styles = useThemedStyles(createInboxRowStyles);
   const handlePress = useCallback(() => {
     void onPress(item);
   }, [item, onPress]);
   const line = formatAccountNotificationLine(item, accountNotificationLineLabels(t));
-  const timeLabel = formatNotificationRelativeTime(item.created_at, t);
-  const unreadLabel = item.is_unread ? t('notifications.section.unread') : '';
+  const timeLabel = formatRelativeTimeLabel(item.created_at, i18n.language);
+  const unreadLabel = item.is_unread ? t('notifications_page.unread') : '';
   const accessibilityLabel = [unreadLabel, line, timeLabel]
     .filter((part) => part !== '')
     .join(', ');
@@ -208,6 +210,7 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
   const isFirstPageLoadingRef = useRef(false);
   const liveRowsDuringLoadRef = useRef<DTOAccountNotification[]>([]);
   const inboxGenerationRef = useRef(0);
+  const visitUnreadIdsRef = useRef<ReadonlySet<number>>(new Set<number>());
   statusRef.current = status;
   offlineModeEnabledRef.current = offlineModeEnabled;
   requestContextRef.current = requestContext;
@@ -254,7 +257,9 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
       if (offlineModeEnabled) {
         const cached = getNotificationsInboxCache();
         if (cached !== null) {
-          setNotifications(cached.items);
+          const visit = applyNotificationVisitUnread(visitUnreadIdsRef.current, cached.items);
+          visitUnreadIdsRef.current = visit.visitUnreadIds;
+          setNotifications(visit.rows);
           setPage(cached.page);
           setTotalPages(cached.totalPages);
         }
@@ -282,10 +287,12 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
         if (mode === 'append' && generation !== inboxGenerationRef.current) {
           return;
         }
+        const visit = applyNotificationVisitUnread(visitUnreadIdsRef.current, nextData.items);
+        visitUnreadIdsRef.current = visit.visitUnreadIds;
         setNotifications((previous) =>
           mode === 'replace'
-            ? nextData.items
-            : appendUniqueBy(previous, nextData.items, inboxRowKeyExtractor)
+            ? visit.rows
+            : appendUniqueBy(previous, visit.rows, inboxRowKeyExtractor)
         );
         setPage(nextData.page);
         setTotalPages(nextData.totalPages);
@@ -344,7 +351,9 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
     if (offlineModeEnabled) {
       const cached = getNotificationsInboxCache();
       if (cached !== null) {
-        setNotifications(cached.items);
+        const visit = applyNotificationVisitUnread(visitUnreadIdsRef.current, cached.items);
+        visitUnreadIdsRef.current = visit.visitUnreadIds;
+        setNotifications(visit.rows);
         setPage(cached.page);
         setTotalPages(cached.totalPages);
       }
@@ -368,7 +377,9 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
         return next;
       };
       const items = withHeld(nextData.items);
-      setNotifications(items);
+      const visit = applyNotificationVisitUnread(visitUnreadIdsRef.current, items);
+      visitUnreadIdsRef.current = visit.visitUnreadIds;
+      setNotifications(visit.rows);
       setPage(nextData.page);
       setTotalPages(nextData.totalPages);
       let marked = false;
@@ -403,12 +414,7 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
 
   useFocusEffect(
     useCallback(() => {
-      void loadFirstPageAndMarkRead();
-    }, [loadFirstPageAndMarkRead])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
+      visitUnreadIdsRef.current = new Set<number>();
       const releaseInboxFocus = markNotificationsInboxFocused();
       const unsubscribe = subscribeNotificationStreamEvents((event) => {
         if (event.type === 'created') {
@@ -416,12 +422,17 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
             return;
           }
           const notification = event.notification;
+          const visit = applyNotificationVisitUnread(visitUnreadIdsRef.current, [notification]);
+          visitUnreadIdsRef.current = visit.visitUnreadIds;
           setNotifications((items) => prependLiveNotification(items, notification));
           const cached = getNotificationsInboxCache();
           if (cached !== null) {
             setNotificationsInboxCache({
               ...cached,
-              items: prependLiveNotification(cached.items, notification),
+              items: prependLiveNotification(cached.items, {
+                ...notification,
+                is_unread: false,
+              }),
             });
           }
           if (isFirstPageLoadingRef.current) {
@@ -440,8 +451,15 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
       return () => {
         unsubscribe();
         releaseInboxFocus();
+        visitUnreadIdsRef.current = new Set<number>();
       };
     }, [])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadFirstPageAndMarkRead();
+    }, [loadFirstPageAndMarkRead])
   );
 
   const handleNotificationPress = useCallback((notification: DTOAccountNotification) => {

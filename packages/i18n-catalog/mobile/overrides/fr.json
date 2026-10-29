@@ -27,10 +27,6 @@
     }
   },
   "features": {
-    "opml": {
-      "rate_limited_time_one": "",
-      "rate_limited_time_other": ""
-    },
     "channel": {
       "section_requires_connection": ""
     },
@@ -86,12 +82,6 @@
     "add_by_rss": {
       "credentials_mobile_media_note": "",
       "credentials_remove_feed_confirm": ""
-    }
-  },
-  "notifications": {
-    "section": {
-      "earlier": "",
-      "unread": ""
     }
   },
   "settings": {
@@ -227,10 +217,6 @@
     "taken_down": "",
     "moved_to_add_by_rss": "",
     "follow_ended": "",
-    "clips_one": "",
-    "clips_other": "",
-    "playlist_entries_one": "",
-    "playlist_entries_other": "",
     "unknown_show": ""
   },
   "error_log": {

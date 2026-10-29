@@ -7,13 +7,13 @@ export const getRetryAfterMinutes = (retryAfterSeconds: number): number => {
   return Math.max(1, Math.ceil(retryAfterSeconds / 60));
 };
 
-/** Mobile-friendly time phrase (i18next does not evaluate consumer ICU plural keys). */
+/**
+ * The shared string's argument is `minutes`, and mobile's i18next picks the plural form by
+ * `count`, so both are passed.
+ */
 export const formatOpmlRetryAfterTime = (retryAfterSeconds: number, t: TranslateFn): string => {
   const minutes = getRetryAfterMinutes(retryAfterSeconds);
-  if (minutes === 1) {
-    return t('features.opml.rate_limited_time_one');
-  }
-  return t('features.opml.rate_limited_time_other', { minutes });
+  return t('settings.opml.import_rate_limited_time', { count: minutes, minutes });
 };
 
 export const buildOpmlRateLimitMessage = (

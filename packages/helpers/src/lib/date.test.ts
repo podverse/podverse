@@ -4,6 +4,7 @@ import {
   addUtcMonthsClamped,
   formatDateTimeAbbrev,
   formatDateTimeAbbrevOrFallback,
+  formatRelativeTimeLabel,
   fromDatetimeLocalInputValue,
   getRelativeTimeParts,
   laterOfDates,
@@ -143,6 +144,26 @@ describe('getRelativeTimeParts', () => {
 
   it('returns null for an unparseable date so no caller formats NaN', () => {
     expect(getRelativeTimeParts('not a date', nowMs)).toBeNull();
+  });
+});
+
+describe('formatRelativeTimeLabel', () => {
+  const nowMs = Date.UTC(2026, 0, 15, 12, 0, 0);
+
+  it.each<[number, string, string]>([
+    [-2 * 60 * 60_000, 'en-US', '2 hours ago'],
+    [-2 * 60 * 60_000, 'fr', 'il y a 2 heures'],
+    [-2 * 60 * 60_000, 'el-GR', 'πριν από 2 ώρες'],
+    [0, 'en-US', 'now'],
+    [-24 * 60 * 60_000, 'en-US', 'yesterday'],
+    [5 * 60_000, 'en-US', 'in 5 minutes'],
+  ])('formats offset %s in %s as %s', (offsetMs, locale, expected) => {
+    const iso = new Date(nowMs + offsetMs).toISOString();
+    expect(formatRelativeTimeLabel(iso, locale, nowMs)).toBe(expected);
+  });
+
+  it('returns an empty string for an unusable timestamp', () => {
+    expect(formatRelativeTimeLabel('not a date', 'en-US', nowMs)).toBe('');
   });
 });
 

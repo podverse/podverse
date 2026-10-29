@@ -32,7 +32,10 @@ import { defineConfig } from 'vitest/config';
  * `expo/fetch` client and the RN runtime stay out of this suite), marking one notification read
  * by id or by the push's item and type (`src/notifications/notificationReadActions.ts` — the
  * repository is mocked), the session inbox page used in Offline Mode and the prepend that puts a
- * live row first (`src/notifications/notificationsInboxCache.ts`), share URL mapping
+ * live row first (`src/notifications/notificationsInboxCache.ts`), the Intl polyfills Hermes needs
+ * for plural rules and relative time (`src/shims/intlPolyfills.ts` — Hermes is simulated by
+ * removing the native constructors), the ICU plural expansion that lets i18next render the
+ * catalog's next-intl plural strings (`src/i18n/icuPlurals.ts`), share URL mapping
  * (`src/lib/share/shareUrl.ts`),
  * prefs storage guards/hydration (`src/prefs/prefsStore.ts`), Home's remembered filter, sort, and
  * view-mode selections (`src/prefs/homeListPrefs.ts` — AsyncStorage-backed and mockable in node,
@@ -193,6 +196,7 @@ export default defineConfig({
       'src/downloads/**/*.test.ts',
       'src/feedback/actionErrorCopy.test.ts',
       'src/hooks/useReduceMotion.test.ts',
+      'src/i18n/icuPlurals.test.ts',
       'src/lib/addByRss/addByRssArtistIndex.test.ts',
       'src/lib/addByRss/addByRssErrorLog.test.ts',
       'src/lib/addByRss/credentials.test.ts',
@@ -285,6 +289,7 @@ export default defineConfig({
       'src/screens/more/accountSessionRows.test.ts',
       'src/screens/more/errorLogDeviceContext.test.ts',
       'src/screens/more/errorLogMailto.test.ts',
+      'src/shims/intlPolyfills.test.ts',
       'src/shims/nodeCryptoShim.test.ts',
       'src/sync/syncErrorClassification.test.ts',
       'src/sync/syncQueue.test.ts',
