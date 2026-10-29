@@ -599,23 +599,42 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       expect(res.status).toBe(200);
     });
 
-    it('GET /channel/global/top pads recent rows after a short ranked page', async () => {
+    it('GET /channel/global/top returns only ranked channels and does not pad a short page with recent channels', async () => {
       const res = await request(app).get(`${channelBase}/global/top?${listQueryTop}`);
       expect(res.status).toBe(200);
-      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
-        'st-ch',
-        'ch-1',
-      ]);
-      expect(statsChGetRankedChannelIdsMock).toHaveBeenCalled();
-      expect(channelGetManyMock).toHaveBeenCalled();
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual(['st-ch']);
+      expect(statsChGetManyMock).toHaveBeenCalledWith(
+        expect.anything(),
+        'podcasts',
+        null,
+        expect.objectContaining({ minCountField: 'week_count' })
+      );
+      expect(channelGetManyMock).not.toHaveBeenCalled();
+      expect(statsChCountRankedMock).not.toHaveBeenCalled();
+      expect(statsChGetRankedChannelIdsMock).not.toHaveBeenCalled();
     });
 
-    it('GET /channel/global/top uses recent when no ranked rows exist', async () => {
+    it('GET /channel/global/top returns an empty list when no channel has a count above zero', async () => {
       statsChGetManyMock.mockResolvedValueOnce([]);
       const res = await request(app).get(`${channelBase}/global/top?${listQueryTop}`);
       expect(res.status).toBe(200);
-      expect(res.body.data).toEqual([{ id: 1, id_text: 'ch-1' }]);
-      expect(statsChGetRankedChannelIdsMock).not.toHaveBeenCalled();
+      expect(res.body.data).toEqual([]);
+      expect(channelGetManyMock).not.toHaveBeenCalled();
+    });
+
+    it('GET /channel/category/top returns only ranked channels for the category', async () => {
+      const res = await request(app).get(`${channelBase}/category/top?${categoryQTop}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual(['st-ch']);
+      expect(channelGetManyMock).not.toHaveBeenCalled();
+    });
+
+    it('GET /channel/category/top returns an empty list when no channel has a count above zero', async () => {
+      statsChGetManyMock.mockResolvedValueOnce([]);
+      const res = await request(app).get(`${channelBase}/category/top?${categoryQTop}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+      expect(channelGetManyMock).not.toHaveBeenCalled();
     });
 
     it('GET /channel/category/recent returns 200 with category + medium + page', async () => {
@@ -659,6 +678,19 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       expect(res.status).toBe(200);
     });
 
+    it('GET /channel/subscribed/top still pads a short ranked page with recent followed channels', async () => {
+      const res = await request(app)
+        .get(`${channelBase}/subscribed/top?${listQueryTop}`)
+        .set(auth());
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
+        'st-ch',
+        'ch-1',
+      ]);
+      expect(statsChGetRankedChannelIdsMock).toHaveBeenCalled();
+      expect(channelGetManyMock).toHaveBeenCalled();
+    });
+
     it('GET /channel/subscribed/recent returns 401 without auth', async () => {
       const res = await request(app).get(`${channelBase}/subscribed/recent?${listQuery}`);
       expect(res.status).toBe(401);
@@ -692,15 +724,36 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       expect(res.status).toBe(200);
     });
 
-    it('GET /item/global/top pads recent rows after a short ranked page', async () => {
+    it('GET /item/global/top returns only ranked episodes and does not pad a short page with recent episodes', async () => {
       const res = await request(app).get(`${itemBase}/global/top?${listQueryTop}`);
       expect(res.status).toBe(200);
-      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
-        'st-it',
-        'it-1',
-      ]);
-      expect(statsItGetRankedItemIdsMock).toHaveBeenCalled();
-      expect(itemGetManyMock).toHaveBeenCalled();
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual(['st-it']);
+      expect(statsItGetManyMock).toHaveBeenCalledWith(
+        expect.anything(),
+        'podcasts',
+        null,
+        'normal',
+        null,
+        expect.objectContaining({ minCountField: 'week_count' })
+      );
+      expect(itemGetManyMock).not.toHaveBeenCalled();
+      expect(statsItCountRankedMock).not.toHaveBeenCalled();
+      expect(statsItGetRankedItemIdsMock).not.toHaveBeenCalled();
+    });
+
+    it('GET /item/global/top returns an empty list when no episode has a count above zero', async () => {
+      statsItGetManyMock.mockResolvedValueOnce([]);
+      const res = await request(app).get(`${itemBase}/global/top?${listQueryTop}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+      expect(itemGetManyMock).not.toHaveBeenCalled();
+    });
+
+    it('GET /item/category/top returns only ranked episodes for the category', async () => {
+      const res = await request(app).get(`${itemBase}/category/top?${categoryQTop}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual(['st-it']);
+      expect(itemGetManyMock).not.toHaveBeenCalled();
     });
 
     it('GET /item/category/recent returns 200 with query params', async () => {
@@ -711,6 +764,18 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /item/channel/recent/:channelId returns 200', async () => {
       const res = await request(app).get(`${itemBase}/channel/recent/ch-1`).query({ page: 1 });
       expect(res.status).toBe(200);
+    });
+
+    it('GET /item/channel/top/:channelId still pads a short ranked page with the channel recent episodes', async () => {
+      const res = await request(app)
+        .get(`${itemBase}/channel/top/ch-1`)
+        .query({ page: 1, range: 'week' });
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
+        'st-it',
+        'ch-it',
+      ]);
+      expect(itemGetManyByChannelMock).toHaveBeenCalled();
     });
 
     it('GET /item/channel/recent/:channelId returns 404 when channel is not parsed-ready', async () => {
@@ -753,6 +818,16 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       });
       const res = await request(app).get(`${itemBase}/subscribed/recent?${listQuery}`).set(auth());
       expect(res.status).toBe(200);
+    });
+
+    it('GET /item/subscribed/top still pads a short ranked page with recent episodes from followed channels', async () => {
+      const res = await request(app).get(`${itemBase}/subscribed/top?${listQueryTop}`).set(auth());
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
+        'st-it',
+        'sub-it',
+      ]);
+      expect(itemGetManyByChannelsMock).toHaveBeenCalled();
     });
 
     it('GET /item/subscribed/recent returns 401 without auth', async () => {
@@ -867,6 +942,37 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       expect(res.status).toBe(200);
     });
 
+    it('GET /live-item/global/top still pads a short ranked page with recent live items', async () => {
+      const res = await request(app).get(
+        `${liveItemBase}/global/top?${listQueryTop}&liveItemType=pending`
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
+        'st-it',
+        'it-1',
+      ]);
+      expect(statsItGetManyMock).toHaveBeenCalledWith(
+        expect.anything(),
+        'podcasts',
+        null,
+        'live-item',
+        'pending',
+        expect.objectContaining({ minCountField: 'week_count' })
+      );
+      expect(itemGetManyMock).toHaveBeenCalled();
+      expect(statsItGetRankedItemIdsMock).toHaveBeenCalled();
+    });
+
+    it('GET /live-item/global/top returns recent live items when no live item has a count above zero', async () => {
+      statsItGetManyMock.mockResolvedValueOnce([]);
+      const res = await request(app).get(
+        `${liveItemBase}/global/top?${listQueryTop}&liveItemType=pending`
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual(['it-1']);
+      expect(itemGetManyMock).toHaveBeenCalled();
+    });
+
     it('GET /live-item/category/recent and top return 200', async () => {
       const r1 = await request(app).get(
         `${liveItemBase}/category/recent?${categoryQ}&liveItemType=live`
@@ -876,6 +982,26 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       );
       expect(r1.status).toBe(200);
       expect(r2.status).toBe(200);
+    });
+
+    it('GET /live-item/category/top still pads a short ranked page with recent live items', async () => {
+      const res = await request(app).get(
+        `${liveItemBase}/category/top?${categoryQTop}&liveItemType=ended`
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
+        'st-it',
+        'it-1',
+      ]);
+      expect(statsItGetManyMock).toHaveBeenCalledWith(
+        expect.anything(),
+        'podcasts',
+        expect.any(Number),
+        'live-item',
+        'ended',
+        expect.objectContaining({ minCountField: 'week_count' })
+      );
+      expect(itemGetManyMock).toHaveBeenCalled();
     });
 
     it('GET /live-item/channel/:id returns 200 (grouped by status)', async () => {

@@ -19,6 +19,7 @@ import {
   E2E_LIVESTREAM_ITEM_TITLE,
   E2E_PODCAST_CHANNEL_ID_TEXT,
   E2E_PODCAST_CHANNEL_TITLE,
+  E2E_REMOVED_PLAYLIST_TITLE,
 } from './helpers/seedConstants';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
@@ -529,12 +530,18 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
         chipTrailing(page).getByRole('button', { name: 'Filter: All', exact: true })
       ).toBeVisible();
       await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(page.getByText('No Playlists Found', { exact: true })).toBeVisible();
       await sortChip(page).click();
-      await expect(page.getByRole('menu', { name: 'Range' })).toBeVisible();
-      await expect(page.getByRole('menu', { name: 'Sort' })).toHaveCount(0);
+      const sortMenu = page.getByRole('menu', { name: 'Sort' });
+      await expect(sortMenu).toBeVisible();
+      await expect(page.getByRole('menu', { name: 'Range' })).toHaveCount(0);
+      await expect(
+        sortMenu.getByRole('menuitemradio', { name: 'Recent', exact: true })
+      ).toBeVisible();
+      await expect(sortMenu.getByRole('menuitemradio', { name: 'Top', exact: true })).toBeVisible();
       await expect(page.getByTestId('media-list-chips').getByRole('menu')).toHaveCount(0);
       await page.keyboard.press('Escape');
-      await expect(page.getByRole('menu', { name: 'Range' })).toHaveCount(0);
+      await expect(sortMenu).toHaveCount(0);
 
       await capturePageLoad(
         page,
@@ -544,12 +551,56 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       );
     });
 
+    await test.step('When the listener chooses Recent, Browse Playlists stays on the playlists tab and shows the removed playlist.', async () => {
+      await sortChip(page).click();
+      const sortMenu = page.getByRole('menu', { name: 'Sort' });
+      await expect(sortMenu).toBeVisible();
+      await sortMenu.getByRole('menuitemradio', { name: 'Recent', exact: true }).click();
+
+      await expectAppPath(page, '/browse?tab=playlists');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      const playlistTitle = page.getByText(E2E_REMOVED_PLAYLIST_TITLE, { exact: true });
+      await expect(playlistTitle).toBeVisible();
+      await expect(page.getByText('No Playlists Found', { exact: true })).toHaveCount(0);
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'Choosing Recent on Browse Playlists shows the removed playlist.',
+        playlistTitle
+      );
+    });
+
+    await test.step('When the listener chooses Top and then Week, Browse Playlists says no playlists were found and has no next page.', async () => {
+      await sortChip(page).click();
+      const sortMenu = page.getByRole('menu', { name: 'Sort' });
+      await expect(sortMenu).toBeVisible();
+      await sortMenu.getByRole('menuitemradio', { name: 'Top', exact: true }).click();
+      const rangeMenu = page.getByRole('menu', { name: 'Range' });
+      await expect(rangeMenu).toBeVisible();
+      await rangeMenu.getByRole('menuitemradio', { name: 'Week', exact: true }).click();
+
+      await expectAppPath(page, '/browse?tab=playlists');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(page.getByText(E2E_REMOVED_PLAYLIST_TITLE, { exact: true })).toHaveCount(0);
+      const message = page.getByText('No Playlists Found', { exact: true });
+      await expect(message).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Next Page', exact: true })).toHaveCount(0);
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'Choosing Top and then Week on Browse Playlists says no playlists were found.',
+        message
+      );
+    });
+
     await test.step('Users is pressed and the page header has no Global type label', async () => {
       await page.goto('/browse?tab=users');
       await expectAppPath(page, '/browse?tab=users');
       await expectPressedChip(page, 'Users');
       await expect(page.locator('header').getByText('Global', { exact: true })).toHaveCount(0);
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
 
       await capturePageLoad(
         page,
@@ -723,13 +774,13 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     });
   });
 
-  test('Clip lists sort by Recent or Top, never A-Z, and a saved A-Z for clips opens on Recent', async ({
+  test('Clip lists sort by Recent or Top, never A-Z, and a saved A-Z for Browse Clips opens on Top for the week', async ({
     page,
   }, testInfo) => {
-    await test.step('Browse Clips opens on Recent and its Sort menu offers Recent and Top but not A-Z', async () => {
+    await test.step('Browse Clips opens on Top for the week and its Sort menu offers Recent and Top but not A-Z', async () => {
       await page.goto('/browse?tab=clips');
       await expectAppPath(page, '/browse?tab=clips');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
       await sortChip(page).click();
       const sortMenu = page.getByRole('menu', { name: 'Sort' });
       await expect(sortMenu).toBeVisible();
@@ -769,7 +820,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       await expect(sortMenu).toHaveCount(0);
     });
 
-    await test.step('A saved A-Z for Browse Clips in this browser opens on Recent', async () => {
+    await test.step('A saved A-Z for Browse Clips in this browser opens on Top for the week', async () => {
       const baseURL =
         typeof testInfo.project.use.baseURL === 'string'
           ? testInfo.project.use.baseURL
@@ -792,12 +843,12 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
 
       await page.goto('/browse?tab=clips');
       await expectAppPath(page, '/browse?tab=clips');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
 
       await capturePageLoad(
         page,
         testInfo,
-        'Browse Clips reads Recent even when this browser saved A-Z for clips.',
+        'Browse Clips reads Week even when this browser saved A-Z for clips.',
         sortChip(page)
       );
     });

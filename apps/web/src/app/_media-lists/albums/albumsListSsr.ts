@@ -122,12 +122,12 @@ function parseSearchParams(
     const guarded = guardSubscribedSsrFilter({
       isAuthenticated,
       type: cookieDefaults?.type ?? (isAuthenticated ? 'subscribed' : 'global'),
-      sort: cookieDefaults?.sort ?? 'recent',
+      sort: cookieDefaults?.sort ?? null,
       range: cookieDefaults?.range ?? null,
       page: 1,
       fallback: {
         type: 'global',
-        sort: 'recent',
+        sort: null,
         range: null,
         page: 1,
       },
@@ -137,7 +137,7 @@ function parseSearchParams(
       {
         page: guarded.page,
         type: guarded.type ?? 'global',
-        sort: guarded.sort ?? 'recent',
+        sort: guarded.sort,
         range: guarded.range,
       },
       isAuthenticated,
@@ -160,12 +160,12 @@ function guardedAlbumsParams(
   const guarded = guardSubscribedSsrFilter({
     isAuthenticated,
     type: data.type ?? cookieDefaults?.type ?? (isAuthenticated ? 'subscribed' : 'global'),
-    sort: data.sort ?? cookieDefaults?.sort ?? 'recent',
+    sort: data.sort ?? cookieDefaults?.sort ?? null,
     range: data.range ?? cookieDefaults?.range ?? null,
     page: data.page,
     fallback: {
       type: 'global',
-      sort: 'recent',
+      sort: null,
       range: null,
       page: 1,
     },
@@ -174,7 +174,7 @@ function guardedAlbumsParams(
   return {
     page: guarded.page,
     type: guarded.type ?? 'global',
-    sort: guarded.sort ?? 'recent',
+    sort: guarded.sort,
     range: guarded.range,
   };
 }

@@ -392,6 +392,37 @@ async function insertSeedItemDescription(client, itemId, value) {
   );
 }
 
+/** Counts on every seeded popularity row. Day stays 0, so Top for the day is an empty list. */
+const E2E_POPULARITY_COUNTS = { day: 0, week: 2, month: 3, allTime: 5 };
+
+async function insertSeedChannelPopularity(client, channelId) {
+  await client.query(
+    `INSERT INTO stats_popularity_channel (channel_id, day_count, week_count, month_count, all_time_count)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      channelId,
+      E2E_POPULARITY_COUNTS.day,
+      E2E_POPULARITY_COUNTS.week,
+      E2E_POPULARITY_COUNTS.month,
+      E2E_POPULARITY_COUNTS.allTime,
+    ]
+  );
+}
+
+async function insertSeedItemPopularity(client, itemId) {
+  await client.query(
+    `INSERT INTO stats_popularity_item (item_id, day_count, week_count, month_count, all_time_count)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      itemId,
+      E2E_POPULARITY_COUNTS.day,
+      E2E_POPULARITY_COUNTS.week,
+      E2E_POPULARITY_COUNTS.month,
+      E2E_POPULARITY_COUNTS.allTime,
+    ]
+  );
+}
+
 async function scanKeysByMatch(redis, match) {
   const keys = [];
   let cursor = '0';
@@ -1368,6 +1399,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   const podcastChannelId = podcastChannelResult.rows[0].id;
 
   await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [podcastChannelId]);
+  await insertSeedChannelPopularity(client, podcastChannelId);
   await insertSeedChannelDescription(
     client,
     podcastChannelId,
@@ -1507,6 +1539,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     enclosureUrl: E2E_PODCAST_SHORT_ENCLOSURE_URL,
     pubDateOffsetSeconds: 10800,
   });
+  await insertSeedItemPopularity(client, chapteredItemId);
   // Older than the episodes newest-first lists put in row 0. The marquee episodes are older than
   // this one, so those lists keep their row-0 episode.
   const longNotesItemId = await insertPodcastItem({
@@ -1981,6 +2014,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     enclosureUrl: E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL,
     pubDateOffsetSeconds: 60,
   });
+  await insertSeedItemPopularity(client, musicTrackOneItemId);
 
   // Music queue rows. Track-1 sits upcoming with playback_position=7 so the
   // abridged index surfaces a stored position the music seek-to-0 rule must
@@ -2266,6 +2300,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
      VALUES ($1, $2)`,
     [directoryArtistChannelId, E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO]
   );
+  await insertSeedChannelPopularity(client, directoryArtistChannelId);
   await insertSeedChannelDescription(
     client,
     directoryArtistChannelId,

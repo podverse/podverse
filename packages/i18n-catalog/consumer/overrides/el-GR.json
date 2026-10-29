@@ -31,6 +31,7 @@
       "artist_go_to": "",
       "no_tracks_found": "",
       "no_albums_found": "",
+      "no_artists_found": "",
       "verified_albums": "",
       "your_add_by_rss_albums": "",
       "not_yet_added": "",
@@ -131,7 +132,8 @@
     "browse": {
       "browse": "",
       "category_all": "",
-      "users": ""
+      "users": "",
+      "no_users_found": ""
     },
     "recommendations": {
       "title": "",

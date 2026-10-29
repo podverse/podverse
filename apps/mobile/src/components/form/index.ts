@@ -4,6 +4,12 @@ export { FormField } from './FormField';
 export type { FormFieldProps } from './FormField';
 export { ListFilterField, ListFilterHeader } from './ListFilterField';
 export type { ListFilterFieldProps, ListFilterHeaderProps } from './ListFilterField';
+export { ListSortChip } from './ListSortChip';
+export type {
+  ListSortChipOption,
+  ListSortChipProps,
+  ListSortChipRangeOption,
+} from './ListSortChip';
 export { MenuSelectChip } from './MenuSelectChip';
 export type { MenuSelectChipOption, MenuSelectChipProps } from './MenuSelectChip';
 export { OptionChipGroup } from './OptionChipGroup';

@@ -10,8 +10,8 @@ import {
   normalizeChannelRows,
   normalizeClipRows,
 } from '../home/homeFeedData';
-import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
-import { isBrowseCategoryMediaType } from './browseTypes';
+import type { BrowseMediaType, BrowseRangeOption, BrowseSortOption } from './browseTypes';
+import { browseSortToApiRange, isBrowseCategoryMediaType } from './browseTypes';
 
 type BrowseFeedAuthDeps = MobileAuthRequestContext;
 
@@ -19,6 +19,7 @@ export type BrowseFeedOptions = {
   category: string | null;
   page: number;
   range: BrowseRangeOption;
+  sort: BrowseSortOption;
 };
 
 export type BrowseFeedResult =
@@ -70,7 +71,9 @@ const itemMedium = (mediaType: BrowseMediaType): QueryParamsMedium => {
 
 /**
  * Directory lists are online-only. Home reads subscriptions from the device; Browse asks the
- * global (or category) endpoints instead. Each call reads one page. `hasMore` comes from the raw
+ * global (or category) endpoints instead. Each call reads one page in the chosen order: Recent,
+ * or Top within the range. Top lists only rows counted above zero in that range, so a range with
+ * no listens is an empty page and a short page ends the list. `hasMore` comes from the raw
  * response, before mapping, because livestream mapping drops stale rows from a full page.
  *
  * Playlists and users stay as their DTOs so the catalog rows can show item count, description,
@@ -89,7 +92,8 @@ export const fetchBrowseFeedRows = async (
   const category =
     isBrowseCategoryMediaType(mediaType) && options.category !== null ? options.category : null;
   const type = listType(category);
-  const range = options.range;
+  const sort = options.sort;
+  const range = browseSortToApiRange(sort, options.range);
 
   if (mediaType === 'playlists') {
     const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
@@ -97,7 +101,7 @@ export const fetchBrowseFeedRows = async (
         medium: 'all',
         page: options.page,
         range,
-        sort: 'top',
+        sort,
         type: 'public',
       })
     );
@@ -109,7 +113,7 @@ export const fetchBrowseFeedRows = async (
       api.reqAccountGetMany({
         page: options.page,
         range,
-        sort: 'top',
+        sort,
         type: 'global',
       })
     );
@@ -123,7 +127,7 @@ export const fetchBrowseFeedRows = async (
         medium: 'av',
         page: options.page,
         range,
-        sort: 'top',
+        sort,
         type,
       })
     );
@@ -151,7 +155,7 @@ export const fetchBrowseFeedRows = async (
         medium: itemMedium(mediaType),
         page: options.page,
         range,
-        sort: 'top',
+        sort,
         type,
       })
     );
@@ -173,7 +177,7 @@ export const fetchBrowseFeedRows = async (
       medium: channelMedium(mediaType),
       page: options.page,
       range,
-      sort: 'top',
+      sort,
       type,
     })
   );

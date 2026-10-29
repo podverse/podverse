@@ -500,6 +500,30 @@ describe('clip routes', () => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
     });
+
+    it('passes the week count field when the range is week', async () => {
+      statsPopularityClipGetManyPublicMock.mockResolvedValueOnce([]);
+
+      const res = await request(app).get(`${clipBase}/public/top?medium=all&page=1&range=week`);
+
+      expect(res.status).toBe(200);
+      expect(statsPopularityClipGetManyPublicMock.mock.calls.at(-1)?.[3]).toBe('week_count');
+    });
+  });
+
+  describe('GET /public/category/top', () => {
+    it('passes the month count field when the category range is month', async () => {
+      statsPopularityClipGetManyAndCountPublicMock.mockResolvedValueOnce([[], 0]);
+
+      const res = await request(app).get(
+        `${clipBase}/public/category/top?category=arts&range=month&medium=all&page=1`
+      );
+
+      expect(res.status).toBe(200);
+      expect(statsPopularityClipGetManyAndCountPublicMock.mock.calls.at(-1)?.[3]).toBe(
+        'month_count'
+      );
+    });
   });
 
   describe('GET /public/category/recent', () => {
@@ -611,6 +635,21 @@ describe('clip routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
+    });
+
+    it('does not pass a minimum count to the subscribed clip reader', async () => {
+      followingChannelGetFollowedChannelsWithCountMock.mockResolvedValueOnce({
+        results: [{ channel_id: 1 }],
+      });
+      statsPopularityClipGetManyByChannelsAndCountPublicMock.mockResolvedValueOnce([[], 0]);
+
+      const res = await request(app)
+        .get(`${clipBase}/public/subscribed/top?medium=all&page=1&range=week`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      const lastCall = statsPopularityClipGetManyByChannelsAndCountPublicMock.mock.calls.at(-1);
+      expect(lastCall).toHaveLength(2);
     });
 
     it('returns 401 without auth', async () => {

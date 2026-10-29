@@ -43,7 +43,8 @@ export async function loadProfilesBrowseProps(
       range,
       page,
     },
-    ssr.canLoadPrivateSsrData
+    ssr.canLoadPrivateSsrData,
+    'browse'
   );
 
   const response = await safeSsrListRequest<DTOAccount>(

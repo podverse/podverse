@@ -153,6 +153,54 @@ export class ItemController {
     return channel;
   }
 
+  /**
+   * One page of items whose count for the range is above zero. Directory Top returns this page as
+   * is, so a range with no count above zero is an empty list and a short page stays short.
+   */
+  private static async loadRankedTopItems(args: {
+    category_id: number | null;
+    channelIds?: number[];
+    includeChannel: boolean;
+    itemType: 'normal' | 'live-item';
+    limit: number;
+    liveItemType: 'pending' | 'live' | 'ended' | null;
+    medium: QueryParamsMedium | null;
+    offset: number;
+    orderField: StatsPopularityCountField;
+  }): Promise<Item[]> {
+    const {
+      category_id,
+      channelIds,
+      includeChannel,
+      itemType,
+      limit,
+      liveItemType,
+      medium,
+      offset,
+      orderField,
+    } = args;
+    const config: FindManyOptions<StatsPopularityItem> = {
+      order: { [orderField]: 'DESC', item_id: 'ASC' },
+      skip: offset,
+      take: limit,
+      relations: includeChannel ? subItemGetManyRelationsWithChannel : subItemGetManyRelations,
+    };
+    const statsResults = await ItemController.statsPopularityItemService.getMany(
+      config,
+      medium,
+      category_id,
+      itemType,
+      liveItemType,
+      { channelIds, minCountField: orderField }
+    );
+    return statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
+  }
+
+  /**
+   * Subscribed Top, a channel's episode Top, and live-item global and category Top: the ranked
+   * page, padded with recent items from the same scope when it is short (`fillTopPage`). An empty
+   * ranked page is that recent page, so rows whose count is zero stay in the list.
+   */
   private static async loadFilledTopItems(args: {
     category_id: number | null;
     channelIds?: number[];
@@ -227,23 +275,18 @@ export class ItemController {
           { excludeIds }
         );
       },
-      loadStatsPage: async () => {
-        const config: FindManyOptions<StatsPopularityItem> = {
-          order: { [orderField]: 'DESC', item_id: 'ASC' },
-          skip: offset,
-          take: limit,
-          relations: recentByChannel ? subItemGetManyRelations : subItemGetManyRelationsWithChannel,
-        };
-        const statsResults = await ItemController.statsPopularityItemService.getMany(
-          config,
-          medium,
+      loadStatsPage: () =>
+        ItemController.loadRankedTopItems({
           category_id,
+          channelIds,
+          includeChannel: recentByChannel === undefined,
           itemType,
+          limit,
           liveItemType,
-          { channelIds, minCountField: orderField }
-        );
-        return statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
-      },
+          medium,
+          offset,
+          orderField,
+        }),
       offset,
     });
   }
@@ -401,15 +444,28 @@ export class ItemController {
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
 
-        const items = await ItemController.loadFilledTopItems({
-          category_id,
-          itemType,
-          limit,
-          liveItemType,
-          medium,
-          offset,
-          orderField: getStatsOrder(range),
-        });
+        const orderField = getStatsOrder(range);
+        const items =
+          itemType === 'live-item'
+            ? await ItemController.loadFilledTopItems({
+                category_id,
+                itemType,
+                limit,
+                liveItemType,
+                medium,
+                offset,
+                orderField,
+              })
+            : await ItemController.loadRankedTopItems({
+                category_id,
+                includeChannel: true,
+                itemType,
+                limit,
+                liveItemType,
+                medium,
+                offset,
+                orderField,
+              });
         await attachVerifiedPublishers({ items });
         const response: ApiListResponse<Item> = {
           data: items,
@@ -500,15 +556,28 @@ export class ItemController {
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
 
-        const items = await ItemController.loadFilledTopItems({
-          category_id,
-          itemType,
-          limit,
-          liveItemType,
-          medium,
-          offset,
-          orderField: getStatsOrder(range),
-        });
+        const orderField = getStatsOrder(range);
+        const items =
+          itemType === 'live-item'
+            ? await ItemController.loadFilledTopItems({
+                category_id,
+                itemType,
+                limit,
+                liveItemType,
+                medium,
+                offset,
+                orderField,
+              })
+            : await ItemController.loadRankedTopItems({
+                category_id,
+                includeChannel: true,
+                itemType,
+                limit,
+                liveItemType,
+                medium,
+                offset,
+                orderField,
+              });
         await attachVerifiedPublishers({ items });
         const response: ApiListResponse<Item> = {
           data: items,

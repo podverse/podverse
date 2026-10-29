@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import type { AddByRSSResourceType } from '@podverse/helpers';
@@ -7,9 +8,11 @@ import type { ArtistListItem } from '../../../components/Common/Artist/types';
 import { CoreArtists } from '../../../components/Core/Artist/CoreArtists';
 import { HowToStartInfo } from '../../../components/HowToStartInfo/HowToStartInfo';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
+import { NoResults } from '../../../components/NoResults/NoResults';
 import { useFullSubscribedChannels } from '../../../hooks/useFullSubscribedChannels';
 import { useListViewMode } from '../../../hooks/useListViewMode';
 import { useReadyAddByRSSFeeds } from '../../../hooks/useReadyAddByRSSFeeds';
+import { shouldShowBrowseEmptyMessage } from '../../../utils/mediaListChips';
 import {
   artistListItemFromAddByRSSFeed,
   artistListItemFromChannel,
@@ -37,6 +40,7 @@ export const ArtistsPageList: React.FC = () => {
     showSubscribeMessage,
   } = useArtistsPageContext();
   const { viewSelected } = useListViewMode(artistsListViewModeScope(scope));
+  const tMedia = useTranslations('media');
   const { medium, page, range, sort, type } = filterParams;
 
   const isSubscribedScope = scope === 'subscribed';
@@ -88,6 +92,13 @@ export const ArtistsPageList: React.FC = () => {
 
   const showMergedList = isMerged && fullList.isReady;
 
+  const showEmpty = shouldShowBrowseEmptyMessage({
+    isBrowse: scope === 'browse',
+    isLoading,
+    page,
+    rowCount: channels.length,
+  });
+
   return (
     <>
       {isSubscribedScope && (
@@ -96,20 +107,24 @@ export const ArtistsPageList: React.FC = () => {
           totalPages={showMergedList ? slice.totalPages : totalPages}
         />
       )}
-      <CoreArtists
-        page={showMergedList ? slice.page : page}
-        setPage={
-          showMergedList
-            ? setLocalPage
-            : (nextPage) => setFilterParams({ ...filterParams, page: nextPage })
-        }
-        channels={channels}
-        items={showMergedList ? slice.channels : undefined}
-        totalPages={showMergedList ? slice.totalPages : totalPages}
-        showSubscribeMessage={showSubscribeMessage}
-        type={type}
-        viewSelected={viewSelected}
-      />
+      {showEmpty ? (
+        <NoResults message={tMedia('music.no_artists_found')} />
+      ) : (
+        <CoreArtists
+          page={showMergedList ? slice.page : page}
+          setPage={
+            showMergedList
+              ? setLocalPage
+              : (nextPage) => setFilterParams({ ...filterParams, page: nextPage })
+          }
+          channels={channels}
+          items={showMergedList ? slice.channels : undefined}
+          totalPages={showMergedList ? slice.totalPages : totalPages}
+          showSubscribeMessage={showSubscribeMessage}
+          type={type}
+          viewSelected={viewSelected}
+        />
+      )}
       <WebLoadingSpinnerOverlay
         isLoading={isLoading || fullList.isLoading || (isMerged && !fullList.isReady)}
       />

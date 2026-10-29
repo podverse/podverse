@@ -1,7 +1,7 @@
 import type { Server } from 'http';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
+import { getQueueMediumIdFromType, MediumEnum, SharableStatusEnum } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import { startTestApp, stopTestApp } from './helpers/index.js';
@@ -30,15 +30,40 @@ function ascending(ids: number[]): number[] {
   return [...ids].sort((left, right) => left - right);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function firstRow(value: unknown): Record<string, unknown> {
+  const row = Array.isArray(value) ? value.filter(isRecord)[0] : undefined;
+  if (row === undefined) {
+    throw new Error('expected a row');
+  }
+  return row;
+}
+
+function asId(value: unknown): number {
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && /^[0-9]+$/.test(value)) {
+    return Number(value);
+  }
+  throw new Error('expected an id');
+}
+
 describe('public popularity readers (real database)', () => {
   let server: Server | undefined;
   let ormContext: ORMContext | undefined;
   let manager: EntityManager | undefined;
   const runId = Date.now();
+  const idSuffix = String(runId % 100_000_000).padStart(8, '0');
   const feedIds: number[] = [];
   const channelIds: number[] = [];
   const itemIds: number[] = [];
   const accountIds: number[] = [];
+  const clipIds: number[] = [];
+  const playlistIds: number[] = [];
 
   const highName = `Reader High ${runId}`;
   const lowName = `Reader Low ${runId}`;
@@ -51,12 +76,20 @@ describe('public popularity readers (real database)', () => {
   let itemId = 0;
   let profileHighId = 0;
   let profileLowId = 0;
+  let rankedClipId = 0;
+  let zeroDayClipId = 0;
+  let rankedPlaylistId = 0;
+  let zeroWeekPlaylistId = 0;
 
-  const query = async (sql: string, params: unknown[] = []): Promise<void> => {
+  const query = async (sql: string, params: unknown[] = []): Promise<unknown> => {
     if (!manager) {
       throw new Error('ORM manager required');
     }
-    await manager.query(sql, params);
+    return manager.query(sql, params);
+  };
+
+  const insertReturningId = async (sql: string, params: unknown[]): Promise<number> => {
+    return asId(firstRow(await query(sql, params)).id);
   };
 
   const seedChannel = async (slot: number, withAbout: boolean): Promise<SeededChannel> => {
@@ -183,6 +216,81 @@ describe('public popularity readers (real database)', () => {
        VALUES ($1, 0, 0, 0, $2)`,
       [profileLowId, 2]
     );
+
+    const avMediumId = getQueueMediumIdFromType('av');
+    if (avMediumId === null) {
+      throw new Error('AV queue medium id is required to seed public playlists');
+    }
+
+    rankedClipId = await insertReturningId(
+      `INSERT INTO clip
+         (id_text, account_id, item_id, start_time, end_time, created_at, sharable_status_id)
+       VALUES ($1, $2, $3, 10, 70, now(), $4)
+       RETURNING id`,
+      [`rdclpa${idSuffix}`, profileHighId, itemId, SharableStatusEnum.Public]
+    );
+    clipIds.push(rankedClipId);
+    zeroDayClipId = await insertReturningId(
+      `INSERT INTO clip
+         (id_text, account_id, item_id, start_time, end_time, created_at, sharable_status_id)
+       VALUES ($1, $2, $3, 10, 70, now(), $4)
+       RETURNING id`,
+      [`rdclpb${idSuffix}`, profileHighId, itemId, SharableStatusEnum.Public]
+    );
+    clipIds.push(zeroDayClipId);
+    await query(
+      `INSERT INTO stats_popularity_clip
+         (clip_id, day_count, week_count, month_count, all_time_count)
+       VALUES ($1, 3, 3, 3, 3)`,
+      [rankedClipId]
+    );
+    await query(
+      `INSERT INTO stats_popularity_clip
+         (clip_id, day_count, week_count, month_count, all_time_count)
+       VALUES ($1, 0, 0, 4, 4)`,
+      [zeroDayClipId]
+    );
+
+    rankedPlaylistId = await insertReturningId(
+      `INSERT INTO playlist
+         (id_text, account_id, sharable_status_id, medium_id, title, last_updated)
+       VALUES ($1, $2, $3, $4, $5, now())
+       RETURNING id`,
+      [
+        `rdplpa${idSuffix}`,
+        profileHighId,
+        SharableStatusEnum.Public,
+        avMediumId,
+        `Readers ranked ${runId}`,
+      ]
+    );
+    playlistIds.push(rankedPlaylistId);
+    zeroWeekPlaylistId = await insertReturningId(
+      `INSERT INTO playlist
+         (id_text, account_id, sharable_status_id, medium_id, title, last_updated)
+       VALUES ($1, $2, $3, $4, $5, now())
+       RETURNING id`,
+      [
+        `rdplpb${idSuffix}`,
+        profileHighId,
+        SharableStatusEnum.Public,
+        avMediumId,
+        `Readers zero week ${runId}`,
+      ]
+    );
+    playlistIds.push(zeroWeekPlaylistId);
+    await query(
+      `INSERT INTO stats_popularity_playlist
+         (playlist_id, day_count, week_count, month_count, all_time_count)
+       VALUES ($1, 0, 2, 2, 2)`,
+      [rankedPlaylistId]
+    );
+    await query(
+      `INSERT INTO stats_popularity_playlist
+         (playlist_id, day_count, week_count, month_count, all_time_count)
+       VALUES ($1, 0, 0, 0, 5)`,
+      [zeroWeekPlaylistId]
+    );
   }, 120000);
 
   afterAll(async () => {
@@ -204,6 +312,19 @@ describe('public popularity readers (real database)', () => {
             `DELETE FROM stats_popularity_account WHERE account_id = ANY($1::int[])`,
             [accountIds]
           );
+        }
+        if (clipIds.length > 0) {
+          await manager.query(`DELETE FROM stats_popularity_clip WHERE clip_id = ANY($1::int[])`, [
+            clipIds,
+          ]);
+          await manager.query(`DELETE FROM clip WHERE id = ANY($1::int[])`, [clipIds]);
+        }
+        if (playlistIds.length > 0) {
+          await manager.query(
+            `DELETE FROM stats_popularity_playlist WHERE playlist_id = ANY($1::int[])`,
+            [playlistIds]
+          );
+          await manager.query(`DELETE FROM playlist WHERE id = ANY($1::int[])`, [playlistIds]);
         }
         if (feedIds.length > 0) {
           await manager.query(`DELETE FROM feed WHERE id = ANY($1::int[])`, [feedIds]);
@@ -278,5 +399,102 @@ describe('public popularity readers (real database)', () => {
     expect(rows.map((row) => row.account_id)).toEqual([profileHighId, profileLowId]);
     expect(rows[0]?.account.account_profile.display_name).toBe(highName);
     expect(rows[1]?.account.account_profile.display_name).toBe(lowName);
+  });
+
+  it('leaves out a public clip whose count for the range is zero', async () => {
+    const { StatsPopularityClipService } = await import('@podverse/orm');
+    const service = new StatsPopularityClipService();
+
+    const ranked = await service.getManyPublic(
+      { where: { clip_id: rankedClipId } },
+      null,
+      null,
+      'day_count'
+    );
+    expect(ranked.map((row) => row.clip_id)).toEqual([rankedClipId]);
+
+    const zeroDay = await service.getManyPublic(
+      { where: { clip_id: zeroDayClipId } },
+      null,
+      null,
+      'day_count'
+    );
+    expect(zeroDay).toEqual([]);
+
+    const zeroDayMonth = await service.getManyPublic(
+      { where: { clip_id: zeroDayClipId } },
+      null,
+      null,
+      'month_count'
+    );
+    expect(zeroDayMonth.map((row) => row.clip_id)).toEqual([zeroDayClipId]);
+  });
+
+  it('counts only public clips whose count for the range is above zero', async () => {
+    const { StatsPopularityClipService } = await import('@podverse/orm');
+    const service = new StatsPopularityClipService();
+    const result = await service.getManyAndCountPublic(
+      { where: { clip_id: zeroDayClipId } },
+      null,
+      null,
+      'day_count'
+    );
+    expect(result).toEqual([[], 0]);
+  });
+
+  it('leaves out a public playlist whose count for the range is zero', async () => {
+    const { StatsPopularityPlaylistService } = await import('@podverse/orm');
+    const service = new StatsPopularityPlaylistService();
+
+    const ranked = await service.getManyPublic(
+      { where: { playlist_id: rankedPlaylistId } },
+      'all',
+      'week_count'
+    );
+    expect(ranked.map((row) => row.playlist_id)).toEqual([rankedPlaylistId]);
+
+    const zeroWeek = await service.getManyPublic(
+      { where: { playlist_id: zeroWeekPlaylistId } },
+      'all',
+      'week_count'
+    );
+    expect(zeroWeek).toEqual([]);
+
+    const zeroWeekAllTime = await service.getManyPublic(
+      { where: { playlist_id: zeroWeekPlaylistId } },
+      'all',
+      'all_time_count'
+    );
+    expect(zeroWeekAllTime.map((row) => row.playlist_id)).toEqual([zeroWeekPlaylistId]);
+  });
+
+  it('leaves out a public profile whose count for the range is zero', async () => {
+    const { StatsPopularityAccountService } = await import('@podverse/orm');
+    const service = new StatsPopularityAccountService();
+
+    const zeroWeek = await service.getMany(
+      { where: { account_id: profileHighId } },
+      'global',
+      'week_count'
+    );
+    expect(zeroWeek).toEqual([]);
+
+    const allTime = await service.getMany(
+      { where: { account_id: profileHighId } },
+      'global',
+      'all_time_count'
+    );
+    expect(allTime.map((row) => row.account_id)).toEqual([profileHighId]);
+  });
+
+  it('keeps a subscribed profile whose count for the range is zero', async () => {
+    const { StatsPopularityAccountService } = await import('@podverse/orm');
+    const service = new StatsPopularityAccountService();
+    const [, count] = await service.getManyByAccountsAndCount(
+      [profileHighId, profileLowId],
+      { order: { week_count: 'DESC', account_id: 'ASC' } },
+      'subscribed'
+    );
+    expect(count).toBe(2);
   });
 });
