@@ -178,6 +178,12 @@ const run = async () => {
         );
         firebaseContext = createFirebaseContext(externalServicesConfig);
         notificationsContext = createNotificationsContext(notificationsConfig);
+        const { setNotificationSendContexts } =
+          await import('./lib/notifications/notificationSendContexts.js');
+        setNotificationSendContexts({
+          firebase: firebaseContext,
+          notifications: notificationsContext,
+        });
       }
 
       if (categories.has(CATEGORY_PODCAST_INDEX)) {

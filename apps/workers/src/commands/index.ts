@@ -42,6 +42,7 @@ import { accountContentLogPurge } from './orm/accountContentLog/purge.js';
 import { accountSessionPurge } from './orm/accountSession/purge.js';
 import { ormArchivedSlimReport } from './orm/archivedSlimming/report.js';
 import { notificationsPlatformPurge } from './orm/notifications/platformPurge.js';
+import { notificationsTestPush } from './orm/notifications/notificationsTestPush.js';
 import { deleteOutdatedOnDemandParserEvent } from './orm/onDemandParserEvent/deleteOutdatedOnDemandParserEvent.js';
 import { generateOnDemandParserEventReports } from './orm/onDemandParserEvent/generateOnDemandParserEventReports.js';
 import { scheduledJobsRunDue } from './orm/scheduledJob/runDue.js';
@@ -85,6 +86,7 @@ export default {
   ormArchivedSlimReport,
   ormVerifiedPublisherLinksBackfill,
   notificationsPlatformPurge,
+  notificationsTestPush,
   accountContentLogPurge,
   accountSessionPurge,
   generateOnDemandParserEventReports,

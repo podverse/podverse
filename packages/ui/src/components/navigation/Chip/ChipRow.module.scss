@@ -11,18 +11,9 @@
   flex-wrap: nowrap;
   align-items: center;
   gap: var(--spacing-md);
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
   padding: var(--spacing-sm);
   margin: calc(-1 * var(--spacing-sm));
   scroll-padding-inline: var(--spacing-sm);
-  user-select: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 .items,

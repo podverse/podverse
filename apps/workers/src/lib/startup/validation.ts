@@ -25,6 +25,10 @@
  */
 
 import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
+import {
+  isNotificationsTestPushHelpArgv,
+  notificationsTestPushEnabledResult,
+} from '@workers/commands/orm/notifications/notificationsTestPushLib.js';
 import { hasAnyImageShrinkEnvSet, SUPPORTED_BUCKET_PROVIDERS } from '@workers/config/index.js';
 import { validateSpamFeedItemThresholdEnvVar } from '@workers/lib/parser/spamThresholdEnv.js';
 
@@ -698,6 +702,14 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   }
   if (categories.has(CATEGORY_BILLING)) {
     results.push(...validateBillingProcessors());
+  }
+  if (
+    commandName === 'notificationsTestPush' &&
+    !isNotificationsTestPushHelpArgv(process.argv)
+  ) {
+    results.push(
+      notificationsTestPushEnabledResult(process.env.NOTIFICATIONS_TEST_PUSH_ENABLED)
+    );
   }
 
   results.push(...validateObservability());

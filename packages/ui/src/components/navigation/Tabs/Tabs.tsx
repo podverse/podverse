@@ -1,3 +1,4 @@
+import { HorizontalDragScroller } from '../../layout/HorizontalDragScroller/HorizontalDragScroller';
 import { Tab } from '../Tab/Tab';
 
 import styles from './Tabs.module.scss';
@@ -19,7 +20,7 @@ export type TabsProps = {
 
 export function Tabs({ tabData, selectedKey }: TabsProps) {
   return (
-    <div className={styles.tabs}>
+    <HorizontalDragScroller className={styles.tabs}>
       {tabData.map((tab) => (
         <Tab
           key={tab.key}
@@ -30,6 +31,6 @@ export function Tabs({ tabData, selectedKey }: TabsProps) {
           zIndex={tab.zIndex}
         />
       ))}
-    </div>
+    </HorizontalDragScroller>
   );
 }

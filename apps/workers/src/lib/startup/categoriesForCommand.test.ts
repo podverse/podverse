@@ -77,6 +77,18 @@ describe('getCategoriesForCommand', () => {
     );
   });
 
+  it('maps notificationsPlatformPurge to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('notificationsPlatformPurge'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
+  it('maps notificationsTestPush to Base, ORM, and WebNotifications', () => {
+    expect(sortCategories(getCategoriesForCommand('notificationsTestPush'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM, CATEGORY_WEB_NOTIFICATIONS]))
+    );
+  });
+
   it('maps accountContentLogPurge to Base and ORM', () => {
     expect(sortCategories(getCategoriesForCommand('accountContentLogPurge'))).toEqual(
       sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))

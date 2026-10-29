@@ -80,6 +80,8 @@ export type { CenterContainerProps } from './components/layout/CenterContainer/C
 /** Fills the page column and centers a status message horizontally and vertically. */
 export { CenteredMessage } from './components/layout/CenteredMessage/CenteredMessage';
 export type { CenteredMessageProps } from './components/layout/CenteredMessage/CenteredMessage';
+export { HorizontalDragScroller } from './components/layout/HorizontalDragScroller/HorizontalDragScroller';
+export type { HorizontalDragScrollerProps } from './components/layout/HorizontalDragScroller/HorizontalDragScroller';
 export { Divider } from './components/layout/Divider/Divider';
 export type { DividerProps } from './components/layout/Divider/Divider';
 export { FormInset } from './components/layout/FormInset/index';

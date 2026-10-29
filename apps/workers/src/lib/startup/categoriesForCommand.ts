@@ -46,6 +46,9 @@ const BASE_ORM_COMMANDS = [
 
 const BASE_ORM_BILLING_COMMANDS = ['billingReconcile', 'billingStrikeEnsureWebhook'] as const;
 
+/** Loads Firebase and VAPID with the database. Does not load the parser. */
+const BASE_ORM_WEB_NOTIFICATIONS_COMMANDS = ['notificationsTestPush'] as const;
+
 const BASE_PODCAST_INDEX_COMMANDS = [
   'podcastIndexTrendingPodcastsGet',
   'podcastIndexValueUpdateAll',
@@ -134,6 +137,16 @@ function getBaseCategoriesForCommand(commandName: string): Set<ConfigCategory> {
 
   if (BASE_ORM_COMMANDS.includes(commandName as (typeof BASE_ORM_COMMANDS)[number])) {
     categories.add(CATEGORY_ORM);
+    return categories;
+  }
+
+  if (
+    BASE_ORM_WEB_NOTIFICATIONS_COMMANDS.includes(
+      commandName as (typeof BASE_ORM_WEB_NOTIFICATIONS_COMMANDS)[number]
+    )
+  ) {
+    categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_WEB_NOTIFICATIONS);
     return categories;
   }
 
