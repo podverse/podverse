@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import type { NavCard } from '@podverse/ui';
 import { Breadcrumbs, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
+import { getConfig } from '../../../config';
 import { ROUTES } from '../../../lib/routes';
 
 export function FeedsPageClient() {
@@ -23,6 +24,13 @@ export function FeedsPageClient() {
       href: ROUTES.FEEDS_MERGE_REVIEW,
       title: t('mergeReviewCardTitle'),
       description: t('mergeReviewCardDescription'),
+    },
+    {
+      href: ROUTES.FEEDS_REMOTE_STUBS,
+      title: t('remoteStubsCardTitle'),
+      description: t('remoteStubsCardDescription', {
+        brand_name: getConfig().public.brand.name ?? 'Management',
+      }),
     },
   ];
 

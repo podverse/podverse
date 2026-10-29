@@ -12,6 +12,17 @@ export type {
   ParseRSSFeedAndSaveToDatabaseOptions,
   ParseRSSFeedAndSaveToDatabaseResult,
 } from './lib/rss/parser.js';
+export {
+  REMOTE_STUB_MAX_SINGLE_LOOKUPS_PER_RUN,
+  REMOTE_STUB_REFRESH_AFTER_MS,
+  resolveRemoteStubsForRefs,
+} from './lib/rss/remoteItemStubs.js';
+export type {
+  RemoteStubRef,
+  RemoteStubRefOutcome,
+  ResolveRemoteStubsOptions,
+  ResolveRemoteStubsResult,
+} from './lib/rss/remoteItemStubs.js';
 export { parseRSSFeedForAddByRSS } from './lib/rss/addByRSS.js';
 export type {
   AddByRSSConditionalCache,

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
-import { FaCirclePlus, FaRss } from 'react-icons/fa6';
+import { FaCirclePlus } from 'react-icons/fa6';
 
 import type { PodcastByIdFeed } from '@podverse/helpers';
 import {
@@ -11,9 +11,7 @@ import {
   DIRECTORY_ADD_POLL_TIMEOUT_MS,
   formatDateAbbrev,
 } from '@podverse/helpers';
-import { Button, ImageLightboxModal, SkeletonFlashImage } from '@podverse/ui';
 
-import { IMAGES } from '../../constants/images';
 import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
@@ -21,8 +19,7 @@ import { getApiRequestService } from '../../factories/apiRequestService';
 import { useMembershipGate } from '../../hooks/useMembershipGate';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
-
-import styles from '../../styles/components/PodcastIndex/PodcastIndexFeedInfo.module.scss';
+import { SearchDetail } from '../SearchDetail/SearchDetail';
 
 type PodcastIndexFeedInfoProps = {
   podcastIndexFeed: PodcastByIdFeed;
@@ -37,7 +34,6 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   const tInstructions = useTranslations('instructions');
   const [isLoading, setIsLoading] = useState(false);
   const [pollTimedOut, setPollTimedOut] = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
   const feedImageCandidates = dedupedTrimmedUrlCandidates([
     podcastIndexFeed.image,
     podcastIndexFeed.artwork,
@@ -46,9 +42,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
     podcastIndexFeed.artwork,
     podcastIndexFeed.image,
   ]);
-  const description = podcastIndexFeed.description || '';
   const lastUpdateTime = podcastIndexFeed.lastUpdateTime || null;
-  const author = podcastIndexFeed.author || null;
   const locale = useLocale();
   const router = useRouter();
   const redirectToChannel = redirectToChannelPageByMediumClient(router);
@@ -144,74 +138,28 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   };
 
   return (
-    <div>
-      <div className={styles.header}>
-        <div className={styles.explanation}>{tFeatures('add_feed.add_feed_explanation')}</div>
-        <div className={styles.buttonRow}>
-          <Button
-            variant="primary"
-            onClick={addFeedOnClick}
-            className={styles.addFeedButton}
-            isLoading={isLoading}
-          >
-            <FaCirclePlus className={styles.buttonIcon} />
-            {tFeatures('add_feed.add_feed')}
-          </Button>
-          <Button
-            variant="secondary"
-            href={podcastIndexFeed.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.rssLinkButton}
-          >
-            <FaRss className={styles.buttonIcon} />
-            {tFeatures('add_feed.rss_link')}
-          </Button>
-        </div>
-        {pollTimedOut ? (
-          <p className={styles.pollTimedOut} role="status">
-            {tFeatures('add_feed.add_feed_timed_out')}
-          </p>
-        ) : null}
-      </div>
-      {feedImageCandidates.length > 0 && (
-        <>
-          <button
-            aria-label={tMisc('image_preview_dialog')}
-            className={styles.imageClickable}
-            type="button"
-            onClick={() => setLightboxOpen(true)}
-          >
-            <SkeletonFlashImage
-              candidates={feedImageCandidates}
-              alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
-              width={IMAGES.ADD_FEED.SQUARE.SIZE}
-              height={IMAGES.ADD_FEED.SQUARE.SIZE}
-              className={styles.image}
-            />
-          </button>
-          <ImageLightboxModal
-            alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
-            ariaLabel={tMisc('image_preview_dialog')}
-            candidates={feedImageLightboxCandidates}
-            closeButtonAriaLabel={tMisc('close_modal')}
-            isOpen={lightboxOpen}
-            onClose={() => setLightboxOpen(false)}
-          />
-        </>
-      )}
-      <h2 className={styles.title}>{podcastIndexFeed.title}</h2>
-      <div className={styles.content}>
-        {author && <div className={styles.author}>{podcastIndexFeed.author}</div>}
-        {lastUpdateTime && (
-          <span className={styles.lastUpdateTime}>
-            {tMedia('updated_with_date', {
-              date: formatDateAbbrev(lastUpdateTime, locale),
-            })}
-          </span>
-        )}
-        {description && <div className={styles.description}>{description}</div>}
-      </div>
-    </div>
+    <SearchDetail
+      explanation={tFeatures('add_feed.add_feed_explanation')}
+      primaryAction={{
+        label: tFeatures('add_feed.add_feed'),
+        icon: <FaCirclePlus />,
+        isLoading,
+        onClick: addFeedOnClick,
+      }}
+      rssHref={podcastIndexFeed.url || null}
+      statusMessage={pollTimedOut ? tFeatures('add_feed.add_feed_timed_out') : null}
+      errorMessage={null}
+      imageUrls={feedImageCandidates}
+      imageLightboxUrls={feedImageLightboxCandidates}
+      imageAlt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
+      title={podcastIndexFeed.title}
+      author={podcastIndexFeed.author || null}
+      updatedLabel={
+        lastUpdateTime
+          ? tMedia('updated_with_date', { date: formatDateAbbrev(lastUpdateTime, locale) })
+          : null
+      }
+      description={podcastIndexFeed.description || null}
+    />
   );
 };

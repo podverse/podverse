@@ -6,6 +6,7 @@ export const ROUTES = {
   ADD_BY_RSS: '/add-by-rss',
   ADD_BY_RSS_ADD: '/add-by-rss/add',
   ADD_BY_RSS_CREDENTIALS: '/add-by-rss/credentials',
+  ADD_BY_RSS_REMOTE_FEED: '/add-by-rss/remote-feed',
   BROWSE: '/browse',
   RECOMMENDATIONS: '/recommendations',
   CHANNELS: '/channels',

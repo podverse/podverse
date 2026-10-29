@@ -126,7 +126,11 @@
       "credentials_check_failed": "No pudimos comprobar este feed. Inténtalo más tarde.",
       "credentials_not_saved_on_device": "Este navegador no pudo guardar el usuario y la contraseña, así que solo se usaron para esta comprobación.",
       "media_other_domain": "Este contenido está en un dominio distinto al del feed protegido, y eso no es compatible.",
-      "media_needs_credentials": "Este contenido puede exigir usuario y contraseña, que los navegadores no pueden enviar a archivos de audio y vídeo. Prueba la app móvil. El feed sí se actualiza en la web."
+      "media_needs_credentials": "Este contenido puede exigir usuario y contraseña, que los navegadores no pueden enviar a archivos de audio y vídeo. Prueba la app móvil. El feed sí se actualiza en la web.",
+      "remote_feed_explanation": "Este feed no está en nuestro directorio ni en Podcast Index. Agrégalo por RSS para seguirlo en tu biblioteca de agregar por RSS.",
+      "remote_item_lookup_failed": "No se pudo consultar este feed. Inténtalo de nuevo más tarde.",
+      "remote_item_directory_unavailable": "Este feed no está disponible en este momento.",
+      "remote_item_not_found": "No se pudo encontrar este feed."
     },
     "browse": {
       "browse": "Explorar",
@@ -390,7 +394,9 @@
       "play_from": "Reproducir desde {time}"
     },
     "podroll": "Podroll",
+    "remote_items": "Elementos remotos",
     "no_podroll_found": "No se encontraron podcasts recomendados",
+    "no_remote_items_found": "No se encontraron elementos remotos",
     "show_more": "Mostrar más",
     "show_less": "Mostrar menos",
     "truncation": {

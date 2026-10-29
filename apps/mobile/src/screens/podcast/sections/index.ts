@@ -6,6 +6,8 @@ export { PodcastFundingSection } from './PodcastFundingSection';
 export { PodcastOfficialClipsSection } from './PodcastOfficialClipsSection';
 export { PodcastPeopleSection } from './PodcastPeopleSection';
 export { PodcastPodrollSection } from './PodcastPodrollSection';
+export { PodcastRemoteItemsSection } from './PodcastRemoteItemsSection';
+export { RemoteItemListPane } from './RemoteItemListPane';
 export { PodcastSectionList } from './PodcastSectionList';
 export type { PodcastSectionListProps } from './PodcastSectionList';
 export type { PodcastSectionPaneProps } from './podcastSectionPane';

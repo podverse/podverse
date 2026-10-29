@@ -38,7 +38,7 @@ TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
 # API-backed apps/mobile/e2e/<area>.yaml — full suite (`all`) always requires the API.
 flow_needs_e2e_api() {
   case "$1" in
-  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | about | album | api-health | archived-clip | artist | artist-unsubscribe | auth-change-password | auth-login | auth-logout | auth-sessions | auto-queue-advance | banner-notification | browse | deep-link | \
+  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-remote-items | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | about | album | api-health | archived-clip | artist | artist-unsubscribe | auth-change-password | auth-login | auth-logout | auth-sessions | auto-queue-advance | banner-notification | browse | deep-link | \
   detail-sort-prefs | engine-audio-spike | hls-playback | home | history-screen | identity-remap | library-downloads | library-playlists | \
   make-clip | membership-checkout | membership-gate | notifications-inbox | offline-mode | opml | perf-chip-switch | \
   perf-scroll | play-mini-player | \

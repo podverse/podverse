@@ -17,12 +17,14 @@ import { useAlbumPageContext } from './AlbumPageContext';
 type AlbumPageListHeaderProps = {
   ssrHasPeople: boolean;
   ssrHasPodroll?: boolean;
+  ssrHasRemoteItems?: boolean;
   ssrCanShowBoosts: boolean;
 };
 
 export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({
   ssrHasPeople,
   ssrHasPodroll,
+  ssrHasRemoteItems,
   ssrCanShowBoosts,
 }) => {
   const { filterParams, setFilterParams } = useAlbumPageContext();
@@ -58,6 +60,14 @@ export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({
     items.push({
       key: 'podroll',
       label: tInfo('podroll'),
+      hideDesktop: true,
+    });
+  }
+
+  if (ssrHasRemoteItems) {
+    items.push({
+      key: 'remote-items',
+      label: tInfo('remote_items'),
       hideDesktop: true,
     });
   }

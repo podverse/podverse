@@ -7,12 +7,20 @@ import {
   isParsedReadyChannel,
   PI_FEED_ADD_POLL_TIMEOUT_MS,
   pollUntilParsedReadyChannel,
+  shouldFetchProviderFeed,
 } from './podcastIndexFeedPreview';
 
 describe('podcastIndexFeedPreview helpers', () => {
   it('uses the shared 10-minute directory-add poll timeout', () => {
     expect(PI_FEED_ADD_POLL_TIMEOUT_MS).toBe(DIRECTORY_ADD_POLL_TIMEOUT_MS);
     expect(DIRECTORY_ADD_POLL_TIMEOUT_MS).toBe(10 * 60 * 1000);
+  });
+
+  it('shouldFetchProviderFeed fetches when nothing is seeded or the seed has no description', () => {
+    expect(shouldFetchProviderFeed({ hasSeed: false, description: undefined })).toBe(true);
+    expect(shouldFetchProviderFeed({ hasSeed: true, description: undefined })).toBe(true);
+    expect(shouldFetchProviderFeed({ hasSeed: true, description: '' })).toBe(false);
+    expect(shouldFetchProviderFeed({ hasSeed: true, description: 'A weekly show.' })).toBe(false);
   });
 
   it('isParsedReadyChannel requires id_text and medium_id', () => {

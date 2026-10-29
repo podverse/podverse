@@ -1,5 +1,9 @@
 import type { FirebaseContext } from '@podverse/external-services-firebase';
-import { PodcastIndexService } from '@podverse/external-services-podcast-index';
+import {
+  PodcastIndexProvider,
+  PodcastIndexService,
+} from '@podverse/external-services-podcast-index';
+import type { IndexProvider } from '@podverse/helpers';
 import type { ILoggerLike } from '@podverse/helpers-backend';
 import { LoggerService, TimerManager } from '@podverse/helpers-backend';
 import type { NotificationsContext } from '@podverse/notifications';
@@ -12,6 +16,7 @@ export type ParserContext = {
   config: ParserConfig;
   loggerService: ILoggerLike;
   podcastIndexService?: PodcastIndexService;
+  indexProvider?: IndexProvider;
   timerManager: TimerManager;
   notificationsContext?: NotificationsContext;
   firebaseContext?: FirebaseContext;
@@ -40,9 +45,8 @@ export function createParserContext(params: CreateParserContextParams): ParserCo
     logLevel: config.log.level,
   });
 
-  const podcastIndexService = config.testAssetsMode
-    ? createMockPodcastIndexService()
-    : config.podcastIndex
+  const realPodcastIndexService =
+    !config.testAssetsMode && config.podcastIndex
       ? new PodcastIndexService({
           userAgent: config.userAgent,
           authKey: config.podcastIndex.authKey,
@@ -55,12 +59,22 @@ export function createParserContext(params: CreateParserContextParams): ParserCo
         })
       : undefined;
 
+  const podcastIndexService = config.testAssetsMode
+    ? createMockPodcastIndexService()
+    : realPodcastIndexService;
+
+  // The mock service never backs a provider, so test-assets runs write no remote stubs.
+  const indexProvider = realPodcastIndexService
+    ? new PodcastIndexProvider(realPodcastIndexService)
+    : undefined;
+
   const timerManager = new TimerManager(config.log.timer || false, loggerService);
 
   const context: ParserContext = {
     config,
     loggerService,
     podcastIndexService,
+    indexProvider,
     timerManager,
     notificationsContext,
     firebaseContext,

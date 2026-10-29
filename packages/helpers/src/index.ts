@@ -134,6 +134,7 @@ export * from './lib/playbackOutboxLimits.js';
 export * from './lib/playbackTimestamps.js';
 export * from './lib/queue/queue.js';
 export * from './lib/queue/queueResourceAbridged.js';
+export * from './lib/indexProvider.js';
 export * from './lib/remoteItem.js';
 export * from './lib/verifiedPublishers.js';
 export * from './lib/record.js';

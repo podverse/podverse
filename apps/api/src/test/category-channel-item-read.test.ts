@@ -423,6 +423,7 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
   let liveItemBase: string;
   let podrollBase: string;
   let publisherFeedBase: string;
+  let remoteItemBase: string;
 
   const auth = () => authHeaders(TEST_USER_ID);
 
@@ -441,6 +442,7 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     liveItemBase = `${base}/live-item`;
     podrollBase = `${base}/podroll`;
     publisherFeedBase = `${base}/publisher-feed`;
+    remoteItemBase = `${base}/remote-item`;
   }, 30000);
 
   afterAll(async () => {
@@ -1117,6 +1119,15 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       const res = await request(app).get(`${publisherFeedBase}/channel/pub-1`);
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('channel');
+      expect(res.body.itemsUnadded).toEqual([]);
+    });
+
+    it('GET /remote-item/channel/:idOrIdText returns 200 with four empty arrays', async () => {
+      const res = await request(app).get(`${remoteItemBase}/channel/chan-1`);
+      expect(res.status).toBe(200);
+      expect(res.body.channelsAdded).toEqual([]);
+      expect(res.body.channelsUnadded).toEqual([]);
+      expect(res.body.itemsAdded).toEqual([]);
       expect(res.body.itemsUnadded).toEqual([]);
     });
   });

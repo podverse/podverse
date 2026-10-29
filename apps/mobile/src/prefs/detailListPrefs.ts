@@ -28,10 +28,11 @@ import { readSortPref, writeSortPref } from './sortPrefs';
 /**
  * Which pane of a podcast can show.
  *
- * Always-on panes come first in the available set; evidence panes (Official clips, Podroll) and
- * Funding follow. Channel settings are the gear on the channel header, not a chip. Only the
- * optional trailing sort / category filter chip may sit after the last content chip. A selected
- * evidence pane is still subject to what this channel actually carries — the caller reconciles that.
+ * Always-on panes come first in the available set; evidence panes (Official clips, Podroll,
+ * Remote Items) and Funding follow. Channel settings are the gear on the channel header, not a
+ * chip. Only the optional trailing sort / category filter chip may sit after the last content
+ * chip. A selected evidence pane is still subject to what this channel actually carries — the
+ * caller reconciles that.
  */
 export const PODCAST_TABS = [
   'episodes',
@@ -40,6 +41,7 @@ export const PODCAST_TABS = [
   'clips',
   'soundbites',
   'podroll',
+  'remote_items',
   'funding',
   'people',
 ] as const;
@@ -71,7 +73,9 @@ export const DEFAULT_PODCAST_DETAIL_RANGE: PodcastDetailRange = 'week';
 
 /**
  * Panes an add-by-RSS feed can show. The screen offers the subset this feed can fill; Albums is
- * an artist feed's alone. The selected pane is visit-local and is not stored.
+ * an artist feed's alone. Podroll and Remote Items sit after About. The screen offers Podroll
+ * when the bundle lists podroll references, and Remote Items on a podcast or album feed when the
+ * bundle lists channel remote items. The selected pane is visit-local and is not stored.
  */
 export const ADD_BY_RSS_DETAIL_TABS = [
   'albums',
@@ -79,6 +83,8 @@ export const ADD_BY_RSS_DETAIL_TABS = [
   'tracks',
   'downloaded',
   'about',
+  'podroll',
+  'remote_items',
   'funding',
   'people',
 ] as const;
@@ -108,7 +114,14 @@ export type AddByRssTrackSort = (typeof ADD_BY_RSS_TRACK_SORT_OPTIONS)[number];
 
 export const DEFAULT_ADD_BY_RSS_TRACK_SORT: AddByRssTrackSort = 'forward';
 
-export const ALBUM_TABS = ['tracks', 'about', 'podroll', 'funding', 'people'] as const;
+export const ALBUM_TABS = [
+  'tracks',
+  'about',
+  'podroll',
+  'remote_items',
+  'funding',
+  'people',
+] as const;
 
 export type AlbumTab = (typeof ALBUM_TABS)[number];
 

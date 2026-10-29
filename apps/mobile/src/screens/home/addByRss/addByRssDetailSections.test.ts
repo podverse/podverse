@@ -19,9 +19,24 @@ const RESOURCE_TYPES: readonly AddByRSSResourceType[] = [
   'tracks',
 ];
 
-const podcast = { isArtistFeed: false, isMusicFeed: false };
-const album = { isArtistFeed: false, isMusicFeed: true };
-const artist = { isArtistFeed: true, isMusicFeed: true };
+const podcast = {
+  hasPodroll: false,
+  hasRemoteItems: false,
+  isArtistFeed: false,
+  isMusicFeed: false,
+};
+const album = {
+  hasPodroll: false,
+  hasRemoteItems: false,
+  isArtistFeed: false,
+  isMusicFeed: true,
+};
+const artist = {
+  hasPodroll: false,
+  hasRemoteItems: false,
+  isArtistFeed: true,
+  isMusicFeed: true,
+};
 
 describe('add-by-RSS detail sections', () => {
   it('orders podcast chips and adds funding and people when the feed has them', () => {
@@ -79,6 +94,38 @@ describe('add-by-RSS detail sections', () => {
     ]);
   });
 
+  it('adds podroll after about, then remote items on podcast and album feeds only', () => {
+    expect(
+      resolveAddByRssSections({ ...podcast, hasFunding: true, hasPeople: true, hasPodroll: true })
+    ).toEqual(['episodes', 'downloaded', 'about', 'podroll', 'funding', 'people']);
+    expect(
+      resolveAddByRssSections({
+        ...album,
+        hasFunding: true,
+        hasPeople: true,
+        hasPodroll: true,
+        hasRemoteItems: true,
+      })
+    ).toEqual(['tracks', 'about', 'podroll', 'remote_items', 'funding', 'people']);
+    expect(
+      resolveAddByRssSections({
+        ...podcast,
+        hasFunding: false,
+        hasPeople: false,
+        hasRemoteItems: true,
+      })
+    ).toEqual(['episodes', 'downloaded', 'about', 'remote_items']);
+    expect(
+      resolveAddByRssSections({
+        ...artist,
+        hasFunding: true,
+        hasPeople: true,
+        hasPodroll: true,
+        hasRemoteItems: true,
+      })
+    ).toEqual(['albums', 'tracks', 'about', 'podroll', 'funding', 'people']);
+  });
+
   it('opens a podcast on downloaded while offline and otherwise on the items chip', () => {
     expect(resolveAddByRssInitialSection({ ...podcast, offline: true })).toBe('downloaded');
     expect(resolveAddByRssInitialSection({ ...podcast, offline: false })).toBe('episodes');
@@ -108,7 +155,7 @@ describe('add-by-RSS detail sections', () => {
     expect(isAddByRssSortableSection('downloaded')).toBe(false);
     expect(isAddByRssSortableSection('albums')).toBe(false);
 
-    for (const section of ['about', 'funding', 'people'] as const) {
+    for (const section of ['about', 'funding', 'people', 'podroll', 'remote_items'] as const) {
       expect(isAddByRssSortableSection(section)).toBe(false);
       expect(isAddByRssFilterableSection(section)).toBe(false);
     }

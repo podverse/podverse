@@ -184,6 +184,7 @@ export const QUERY_PARAMS_CHANNEL_TYPE_VALUES = [
   'boosts',
   'about',
   'podroll',
+  'remote-items',
   'people',
   'settings',
 ] as const;
@@ -221,6 +222,7 @@ export const QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES = [
   'boosts',
   'about',
   'podroll',
+  'remote-items',
   'people',
   'settings',
 ] as const;

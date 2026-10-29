@@ -301,6 +301,13 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       'Use Default (30)'
     )
   );
+  results.push(
+    validateOptional(
+      'ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_MAX_PER_MINUTE',
+      'Add-by-RSS',
+      'Use Default (30)'
+    )
+  );
 
   // OPML import (optional; default 50 new feeds/hour)
   results.push(

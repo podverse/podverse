@@ -11,6 +11,7 @@ import { useBoostMessagesView } from '../../../components/Boost/messages/useBoos
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPeopleRows } from '../../../components/Content/About/ContentPeopleRows';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
+import { ContentRemoteItems } from '../../../components/Content/RemoteItems/ContentRemoteItems';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
 import { ListTracks } from '../../../components/List/Music/Albums/Tracks/ListTracks';
@@ -19,12 +20,14 @@ import { useAlbumPageContext } from './AlbumPageContext';
 
 type AlbumPageListProps = {
   podroll: RemoteItemsResponse | null;
+  remoteItems: RemoteItemsResponse | null;
   ssrChannel: DTOChannel;
   ssrCanShowBoosts: boolean;
 };
 
 export const AlbumPageList: React.FC<AlbumPageListProps> = ({
   podroll,
+  remoteItems,
   ssrChannel,
   ssrCanShowBoosts,
 }) => {
@@ -69,6 +72,7 @@ export const AlbumPageList: React.FC<AlbumPageListProps> = ({
         />
       )}
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
+      {type === 'remote-items' && <ContentRemoteItems remoteItemsResponse={remoteItems} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
       <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>

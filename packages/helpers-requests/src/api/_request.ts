@@ -1,4 +1,5 @@
 import type { AccountApiKeyCreateBody, QueueExtraParams } from '@podverse/helpers';
+import type { AddByRSSRemoteItemLookupRef, AddByRSSRemoteItemRef } from '@podverse/helpers';
 import type { BetweenParams } from '@podverse/helpers';
 import type { AddByRssSeenMarkEntry, ChannelSeenMarkEntry } from '@podverse/helpers';
 import type { MediaTypePreference } from '@podverse/helpers';
@@ -49,6 +50,10 @@ import {
   reqAccountAddByRSSChaptersTranscript,
   type ReqAccountAddByRSSChaptersTranscriptParams,
 } from './account/addByRSSChaptersTranscript.js';
+import {
+  reqAccountAddByRSSRemoteItemLookup,
+  reqAccountAddByRSSRemoteItemResolve,
+} from './account/addByRSSRemoteItem.js';
 import {
   type PutAccountAutoDownloadChannelsParams,
   reqAccountAutoDownloadChannelsPut,
@@ -357,6 +362,7 @@ import {
   reqQueueResourceItemSoundbiteAddNowPlaying,
   reqQueueResourceItemSoundbiteDelete,
 } from './queue/queueResource/queueResourceItemSoundbite.js';
+import { reqRemoteItemGetForChannel } from './remoteItem/remoteItem.js';
 import { shouldSkipApiRequestErrorLog } from './shouldSkipApiRequestErrorLog.js';
 import type { StatsListenRequestBody, StatsOpenRequestBody } from './stats/stats.js';
 import { reqStatsListen, reqStatsOpen } from './stats/stats.js';
@@ -365,6 +371,12 @@ export type {
   AddByRSSChapterResponse,
   ReqAccountAddByRSSChaptersTranscriptParams,
 } from './account/addByRSSChaptersTranscript.js';
+export type {
+  AddByRSSRemoteItemLookupRef,
+  AddByRSSRemoteItemRef,
+  DTOAddByRSSRemoteItemLookupResponse,
+  DTOAddByRSSRemoteItemResolveResult,
+} from '@podverse/helpers';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 
@@ -855,6 +867,14 @@ export class ApiRequestService {
 
   reqAccountAddByRSSChaptersTranscript(params: ReqAccountAddByRSSChaptersTranscriptParams) {
     return reqAccountAddByRSSChaptersTranscript(this, params);
+  }
+
+  reqAccountAddByRSSRemoteItemLookup(refs: AddByRSSRemoteItemLookupRef[]) {
+    return reqAccountAddByRSSRemoteItemLookup(this, refs);
+  }
+
+  reqAccountAddByRSSRemoteItemResolve(ref: AddByRSSRemoteItemRef) {
+    return reqAccountAddByRSSRemoteItemResolve(this, ref);
   }
 
   /* ACCOUNT > FOLLOW > ACCOUNT */
@@ -1517,6 +1537,12 @@ export class ApiRequestService {
 
   reqPublisherFeedGetRemoteItemsForChannel(idOrIdText: string) {
     return reqPublisherFeedGetRemoteItemsForChannel(this, idOrIdText);
+  }
+
+  /* REMOTE ITEM */
+
+  reqRemoteItemGetForChannel(idOrIdText: string) {
+    return reqRemoteItemGetForChannel(this, idOrIdText);
   }
 
   /* QUEUE */

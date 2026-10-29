@@ -2004,6 +2004,213 @@ components:
       properties:
         merge:
           $ref: "#/components/schemas/FeedMergeDetail"
+    RemoteStubListRow:
+      type: object
+      required:
+        - id
+        - index_provider
+        - provider_feed_id
+        - title
+        - author
+        - feed_url
+        - feed_guid
+        - medium_value
+        - alias_count
+        - item_stub_count
+        - pending_action
+        - resolved_at
+        - created_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        index_provider:
+          type: string
+          enum:
+            - podcast_index
+        provider_feed_id:
+          type: string
+        title:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        feed_url:
+          type: string
+          nullable: true
+        feed_guid:
+          type: string
+          format: uuid
+          nullable: true
+        medium_value:
+          type: string
+          nullable: true
+        alias_count:
+          type: integer
+          minimum: 0
+        item_stub_count:
+          type: integer
+          minimum: 0
+        pending_action:
+          type: string
+          nullable: true
+          enum:
+            - recheck
+            - repoint
+            - promote
+        resolved_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+    RemoteStubAlias:
+      type: object
+      required:
+        - key_kind
+        - key_value
+      properties:
+        key_kind:
+          type: string
+          enum:
+            - feed_guid
+            - feed_url
+        key_value:
+          type: string
+    RemoteStubItemStub:
+      type: object
+      required:
+        - item_guid
+        - title
+        - pub_date
+        - duration_seconds
+        - resolved_at
+      properties:
+        item_guid:
+          type: string
+        title:
+          type: string
+          nullable: true
+        pub_date:
+          type: string
+          format: date-time
+          nullable: true
+        duration_seconds:
+          type: integer
+          nullable: true
+          minimum: 1
+        resolved_at:
+          type: string
+          format: date-time
+    RemoteStubHistoryJob:
+      type: object
+      required:
+        - job_type
+        - status
+        - attempts
+        - max_attempts
+        - last_error
+        - run_after
+        - updated_at
+      properties:
+        job_type:
+          type: string
+        status:
+          type: string
+        attempts:
+          type: integer
+          minimum: 0
+        max_attempts:
+          type: integer
+          minimum: 1
+        last_error:
+          type: string
+          nullable: true
+        run_after:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    RemoteStubDetail:
+      allOf:
+        - $ref: "#/components/schemas/RemoteStubListRow"
+        - type: object
+          required:
+            - image_url
+            - aliases
+            - item_stubs
+            - jobs
+          properties:
+            image_url:
+              type: string
+              nullable: true
+            aliases:
+              type: array
+              items:
+                $ref: "#/components/schemas/RemoteStubAlias"
+            item_stubs:
+              type: array
+              items:
+                $ref: "#/components/schemas/RemoteStubItemStub"
+            jobs:
+              type: array
+              items:
+                $ref: "#/components/schemas/RemoteStubHistoryJob"
+    RemoteStubListResponse:
+      type: object
+      required:
+        - remote_stubs
+        - pagination
+      properties:
+        remote_stubs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RemoteStubListRow"
+        pagination:
+          $ref: "#/components/schemas/PaginationMeta"
+    RemoteStubDetailResponse:
+      type: object
+      required:
+        - remote_stub
+      properties:
+        remote_stub:
+          $ref: "#/components/schemas/RemoteStubDetail"
+    RemoteStubJob:
+      type: object
+      required:
+        - id
+        - job_type
+        - status
+        - run_after
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        job_type:
+          type: string
+        status:
+          type: string
+        run_after:
+          type: string
+          format: date-time
+    RemoteStubJobResponse:
+      type: object
+      required:
+        - job
+      properties:
+        job:
+          $ref: "#/components/schemas/RemoteStubJob"
+    RemoteStubRepointRequest:
+      type: object
+      required:
+        - provider_feed_id
+      properties:
+        provider_feed_id:
+          type: string
+          pattern: "^[1-9]\\d{0,14}$"
+          description: Podcast Index feed id. 1–15 digits with no leading zero.
     StorageUsageResponse:
       type: object
       required:
@@ -5241,6 +5448,381 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/remote-stubs:
+    get:
+      operationId: managementGetFeedsRemoteStubs
+      tags:
+        - feeds
+      summary: GET /feeds/remote-stubs
+      description: "Paginated remote stubs. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'read'). page defaults to 1, limit to 25 (maximum 100), sort to created_at, and order to desc. q matches title, feed URL, an exact provider feed id, or a feed GUID."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+        - in: query
+          name: q
+          required: false
+          schema:
+            type: string
+            maxLength: 255
+        - in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+            enum:
+              - title
+              - provider_feed_id
+              - item_stub_count
+              - resolved_at
+              - created_at
+            default: created_at
+        - in: query
+          name: order
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteStubListResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/remote-stubs/{id}:
+    get:
+      operationId: managementGetFeedsRemoteStubsId
+      tags:
+        - feeds
+      summary: GET /feeds/remote-stubs/{id}
+      description: "One remote stub, its aliases, the 50 newest item stubs, and up to 10 related jobs. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteStubDetailResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    delete:
+      operationId: managementDeleteFeedsRemoteStubsId
+      tags:
+        - feeds
+      summary: DELETE /feeds/remote-stubs/{id}
+      description: "Deletes a remote stub. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'delete')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "204":
+          description: The stub was deleted
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/remote-stubs/{id}/recheck:
+    post:
+      operationId: managementPostFeedsRemoteStubsIdRecheck
+      tags:
+        - feeds
+      summary: POST /feeds/remote-stubs/{id}/recheck
+      description: "Queues a remote-stub re-check job. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "202":
+          description: The re-check job was queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteStubJobResponse"
+              example:
+                job:
+                  id: 44
+                  job_type: remote-stub-recheck
+                  status: pending
+                  run_after: "2026-03-01T00:00:00.000Z"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/remote-stubs/{id}/repoint:
+    post:
+      operationId: managementPostFeedsRemoteStubsIdRepoint
+      tags:
+        - feeds
+      summary: POST /feeds/remote-stubs/{id}/repoint
+      description: "Queues a remote-stub re-point job. Refuses a target equal to the stub's current provider feed id. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteStubRepointRequest"
+            example:
+              provider_feed_id: "424242"
+      responses:
+        "202":
+          description: The re-point job was queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteStubJobResponse"
+              example:
+                job:
+                  id: 45
+                  job_type: remote-stub-repoint
+                  status: pending
+                  run_after: "2026-03-01T00:00:00.000Z"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/remote-stubs/{id}/promote:
+    post:
+      operationId: managementPostFeedsRemoteStubsIdPromote
+      tags:
+        - feeds
+      summary: POST /feeds/remote-stubs/{id}/promote
+      description: "Queues a remote-stub promote job, which adds a feed. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'create')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "202":
+          description: The promote job was queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteStubJobResponse"
+              example:
+                job:
+                  id: 46
+                  job_type: remote-stub-promote
+                  status: pending
+                  run_after: "2026-03-01T00:00:00.000Z"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
         "500":
           description: Internal server error
           content:

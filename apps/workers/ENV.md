@@ -202,7 +202,9 @@ These variables are required only for commands that include the Podcast Index ca
 - **`PODCAST_INDEX_BASE_URL`** (Required) - Podcast Index API base URL
 - **`PODCAST_INDEX_DUPLICATE_MERGE_MODE`** (Required) - `off`, `dry_run`, or `apply`. `off` skips
   the merge pass. `dry_run` and `apply` record detected duplicate pairs. The job still
-  downloads the CSV when `PODCAST_INDEX_DEAD_FEED_RETIRE_MODE` is not `off`.
+  downloads the CSV when `PODCAST_INDEX_DEAD_FEED_RETIRE_MODE` is not `off`. The same mode
+  governs the remote stub pass: `off` skips it, `dry_run` logs counts, and `apply` re-points
+  stubs for merged feeds and deletes stubs whose feed is retired or whose survivor Podverse parses.
 - **`PODCAST_INDEX_DEAD_FEED_RETIRE_MODE`** (Required) - `off`, `dry_run`, or `apply`. `off` skips
   the retire pass. `dry_run` stores the eligible-count baseline and changes no lifecycle.
   `apply` retires feeds.
@@ -336,8 +338,12 @@ These variables are used to build the Notifications configuration:
 
 These variables are used to build the Parser configuration:
 
-- **`PARSER_ADD_REMOTE_ITEMS_TO_MQ`** (Optional) - Add remote items to message queue (default: `false`)
-  - Set to `"true"` to enable
+- **`PARSER_ADD_REMOTE_ITEMS_TO_MQ`** (Optional) - How the parser handles remote item references
+  (default: `false`)
+  - Empty or `false`: writes remote stubs, minimal placeholder rows for referenced feeds the index
+    provider knows, and parses nothing else
+  - `"true"`: queues a full parse of every referenced feed the provider knows, recursively, and
+    writes no stubs
 
 - **`PARSER_SPAM_FEED_ITEM_THRESHOLD_DEFAULT`** (Optional) - Parsed item/live-item count at or above which a feed is auto-flagged `Spam` for non-`SpamPermitted` statuses (default: `10000`). Must be a positive integer when set.
 

@@ -115,6 +115,7 @@ import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { RecommendationsScreen } from '../screens/recommendations/RecommendationsScreen';
 import { AddByRssAddScreen } from '../screens/rss/AddByRssAddScreen';
 import { AddByRssCredentialsScreen } from '../screens/rss/AddByRssCredentialsScreen';
+import { AddByRssRemoteFeedScreen } from '../screens/rss/AddByRssRemoteFeedScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
@@ -134,6 +135,8 @@ import { resolveMobileDeepLinkAction, resolveMobileDeepLinkState } from './notif
 import { OrderedTabBar } from './OrderedTabBar';
 import type { PodcastDetailRouteParams } from './podcastDetailParams';
 import { buildPodcastDetailParams } from './podcastDetailParams';
+import type { SearchResultDetailParams } from './searchResultDetailParams';
+import { buildSearchResultDetailParams } from './searchResultDetailParams';
 import {
   MAKE_CLIP_SCREEN_OPTIONS,
   ROOT_SEARCH_ROUTE_NAME,
@@ -167,6 +170,7 @@ export const HOME_STACK_ROUTES = {
   AddByRssEpisodeDetail: 'AddByRssEpisodeDetail',
   AddByRssLivestreamDetail: 'AddByRssLivestreamDetail',
   AddByRssPodcastDetail: 'AddByRssPodcastDetail',
+  AddByRssRemoteFeedDetail: 'AddByRssRemoteFeedDetail',
   AddByRssTrackDetail: 'AddByRssTrackDetail',
   AlbumDetail: 'AlbumDetail',
   ArtistDetail: 'ArtistDetail',
@@ -186,7 +190,7 @@ export const CHANNEL_BROWSE_STACK_ROUTES = {
   EpisodeDetail: 'EpisodeDetail',
   PlaylistCreate: 'PlaylistCreate',
   PodcastDetail: 'PodcastDetail',
-  /** Podcast Index feed preview (same screen Search uses for unparsed results). */
+  /** Provider search detail for an unparsed feed (Search results and remote stub rows). */
   SearchResultDetail: 'SearchResultDetail',
   TrackDetail: 'TrackDetail',
 } as const;
@@ -197,6 +201,7 @@ export const SEARCH_STACK_ROUTES = {
   AddByRssEpisodeDetail: 'AddByRssEpisodeDetail',
   AddByRssLivestreamDetail: 'AddByRssLivestreamDetail',
   AddByRssPodcastDetail: 'AddByRssPodcastDetail',
+  AddByRssRemoteFeedDetail: 'AddByRssRemoteFeedDetail',
   AddByRssTrackDetail: 'AddByRssTrackDetail',
   SearchRoot: 'SearchRoot',
 } as const;
@@ -207,6 +212,7 @@ export const LIBRARY_STACK_ROUTES = {
   AddByRssEpisodeDetail: 'AddByRssEpisodeDetail',
   AddByRssLivestreamDetail: 'AddByRssLivestreamDetail',
   AddByRssPodcastDetail: 'AddByRssPodcastDetail',
+  AddByRssRemoteFeedDetail: 'AddByRssRemoteFeedDetail',
   AddByRssTrackDetail: 'AddByRssTrackDetail',
   AddByRssRoot: 'AddByRssRoot',
   AlbumDetail: 'AlbumDetail',
@@ -233,6 +239,7 @@ export const BROWSE_STACK_ROUTES = {
   AddByRssEpisodeDetail: 'AddByRssEpisodeDetail',
   AddByRssLivestreamDetail: 'AddByRssLivestreamDetail',
   AddByRssPodcastDetail: 'AddByRssPodcastDetail',
+  AddByRssRemoteFeedDetail: 'AddByRssRemoteFeedDetail',
   AddByRssTrackDetail: 'AddByRssTrackDetail',
   BrowseRoot: 'BrowseRoot',
   PlaylistDetail: 'PlaylistDetail',
@@ -511,19 +518,10 @@ export type { ArtistDetailRouteParams };
 export { buildArtistDetailParams };
 export type { PodcastDetailRouteParams };
 export { buildPodcastDetailParams };
+export type { SearchResultDetailParams };
+export { buildSearchResultDetailParams };
 export type { TrackDetailRouteParams };
 export { buildTrackDetailParams };
-
-/** Params for the Podcast Index feed preview shared across tab stacks. */
-export type SearchResultDetailParams = {
-  /** Podcast Index feed id (also used by deep link `search/result/:resultId`). */
-  resultId: string;
-  author?: string;
-  description?: string;
-  feedUrl?: string;
-  imageUrl?: string | null;
-  title?: string;
-};
 
 /** Channel/item detail params shared by Home, Browse, Library, and Search stacks (tab isolation). */
 export type ChannelBrowseStackParamList = {
@@ -1103,6 +1101,11 @@ function HomeStackNavigator() {
         options={{ title: t('features.add_by_rss.credentials_page_title') }}
       />
       <HomeStack.Screen
+        component={AddByRssRemoteFeedScreen}
+        name={HOME_STACK_ROUTES.AddByRssRemoteFeedDetail}
+        options={{ title: t('features.add_by_rss.label') }}
+      />
+      <HomeStack.Screen
         component={PodcastDetailScreen}
         name={HOME_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
@@ -1213,6 +1216,11 @@ function SearchStackNavigator() {
         options={{ title: t('features.add_by_rss.credentials_page_title') }}
       />
       <SearchStack.Screen
+        component={AddByRssRemoteFeedScreen}
+        name={SEARCH_STACK_ROUTES.AddByRssRemoteFeedDetail}
+        options={{ title: t('features.add_by_rss.label') }}
+      />
+      <SearchStack.Screen
         component={TrackDetailScreen}
         name={SEARCH_STACK_ROUTES.TrackDetail}
         options={{ title: t('media.music.track') }}
@@ -1271,6 +1279,11 @@ function LibraryStackNavigator() {
         component={AddByRssCredentialsScreen}
         name={LIBRARY_STACK_ROUTES.AddByRssCredentials}
         options={{ title: t('features.add_by_rss.credentials_page_title') }}
+      />
+      <LibraryStack.Screen
+        component={AddByRssRemoteFeedScreen}
+        name={LIBRARY_STACK_ROUTES.AddByRssRemoteFeedDetail}
+        options={{ title: t('features.add_by_rss.label') }}
       />
       <LibraryStack.Screen
         component={PodcastDetailScreen}
@@ -1413,6 +1426,11 @@ function BrowseStackNavigator({ root = 'browse' }: { root?: 'browse' | 'recommen
         component={AddByRssCredentialsScreen}
         name={BROWSE_STACK_ROUTES.AddByRssCredentials}
         options={{ title: t('features.add_by_rss.credentials_page_title') }}
+      />
+      <BrowseStack.Screen
+        component={AddByRssRemoteFeedScreen}
+        name={BROWSE_STACK_ROUTES.AddByRssRemoteFeedDetail}
+        options={{ title: t('features.add_by_rss.label') }}
       />
       <BrowseStack.Screen
         component={PodcastIndexFeedPreviewScreen}

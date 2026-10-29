@@ -283,6 +283,163 @@ export async function revertFeedMerge(
   return postFeedMerge(id, 'revert', body);
 }
 
+export type RemoteStubPendingAction = 'recheck' | 'repoint' | 'promote';
+
+export type RemoteStubListSort =
+  'title' | 'provider_feed_id' | 'item_stub_count' | 'resolved_at' | 'created_at';
+
+export type RemoteStubListOrder = 'asc' | 'desc';
+
+export type RemoteStubListRow = {
+  id: number;
+  index_provider: string;
+  provider_feed_id: string;
+  title: string | null;
+  author: string | null;
+  feed_url: string | null;
+  feed_guid: string | null;
+  medium_value: string | null;
+  alias_count: number;
+  item_stub_count: number;
+  pending_action: RemoteStubPendingAction | null;
+  resolved_at: string;
+  created_at: string;
+};
+
+export type RemoteStubAlias = {
+  key_kind: 'feed_guid' | 'feed_url';
+  key_value: string;
+};
+
+export type RemoteStubItemStub = {
+  item_guid: string;
+  title: string | null;
+  pub_date: string | null;
+  duration_seconds: number | null;
+  resolved_at: string;
+};
+
+export type RemoteStubHistoryJob = {
+  job_type: string;
+  status: string;
+  attempts: number;
+  max_attempts: number;
+  last_error: string | null;
+  run_after: string;
+  updated_at: string;
+};
+
+export type RemoteStubDetail = RemoteStubListRow & {
+  image_url: string | null;
+  aliases: RemoteStubAlias[];
+  item_stubs: RemoteStubItemStub[];
+  jobs: RemoteStubHistoryJob[];
+};
+
+export type RemoteStubListResponse = {
+  remote_stubs: RemoteStubListRow[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type RemoteStubDetailResponse = {
+  remote_stub: RemoteStubDetail;
+};
+
+export type RemoteStubJob = {
+  id: number;
+  job_type: string;
+  status: string;
+  run_after: string;
+};
+
+export type RemoteStubJobResponse = {
+  job: RemoteStubJob;
+};
+
+export type RemoteStubRepointBody = {
+  provider_feed_id: string;
+};
+
+export async function listRemoteStubs(params: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  sort?: RemoteStubListSort;
+  order?: RemoteStubListOrder;
+}): Promise<RemoteStubListResponse> {
+  const service = new ManagementApiRequestService();
+  const q = new URLSearchParams();
+  if (params.page !== undefined) {
+    q.set('page', String(params.page));
+  }
+  if (params.limit !== undefined) {
+    q.set('limit', String(params.limit));
+  }
+  if (params.q !== undefined && params.q !== '') {
+    q.set('q', params.q);
+  }
+  if (params.sort !== undefined) {
+    q.set('sort', params.sort);
+  }
+  if (params.order !== undefined) {
+    q.set('order', params.order);
+  }
+  const qs = q.toString();
+  return service.apiRequest<RemoteStubListResponse>({
+    path: `/feeds/remote-stubs${qs !== '' ? `?${qs}` : ''}`,
+    method: 'GET',
+  });
+}
+
+export async function getRemoteStub(id: number): Promise<RemoteStubDetailResponse> {
+  const service = new ManagementApiRequestService();
+  return service.apiRequest<RemoteStubDetailResponse>({
+    path: `/feeds/remote-stubs/${id}`,
+    method: 'GET',
+  });
+}
+
+export async function recheckRemoteStub(id: number): Promise<RemoteStubJobResponse> {
+  const service = new ManagementApiRequestService();
+  return service.apiRequest<RemoteStubJobResponse>({
+    path: `/feeds/remote-stubs/${id}/recheck`,
+    method: 'POST',
+  });
+}
+
+export async function repointRemoteStub(
+  id: number,
+  body: RemoteStubRepointBody
+): Promise<RemoteStubJobResponse> {
+  const service = new ManagementApiRequestService();
+  return service.apiRequest<RemoteStubJobResponse>({
+    path: `/feeds/remote-stubs/${id}/repoint`,
+    method: 'POST',
+    data: body,
+  });
+}
+
+export async function promoteRemoteStub(id: number): Promise<RemoteStubJobResponse> {
+  const service = new ManagementApiRequestService();
+  return service.apiRequest<RemoteStubJobResponse>({
+    path: `/feeds/remote-stubs/${id}/promote`,
+    method: 'POST',
+  });
+}
+
+export async function deleteRemoteStub(id: number): Promise<void> {
+  const service = new ManagementApiRequestService();
+  await service.apiRequest<void>({
+    path: `/feeds/remote-stubs/${id}`,
+    method: 'DELETE',
+  });
+}
+
 export async function applyFeedPolicyState(
   body: ApplyFeedOperationsPolicyStateBody
 ): Promise<ApplyFeedOperationsPolicyStateResponse> {
