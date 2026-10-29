@@ -21,6 +21,9 @@ function wrapperFor(set) {
   if (set.startsWith('abctest-all-')) return './scripts/abctest/run.sh all';
   if (set.startsWith('abctest-smoke-')) return './scripts/abctest/run.sh smoke';
   if (set.startsWith('abctest-deferred-')) return './scripts/abctest/run.sh deferred';
+  if (set.startsWith('branches-merge-')) {
+    return `./scripts/abcbranchesmerge/run.sh ${set.slice('branches-merge-'.length)}`;
+  }
   if (existsSync(path.join(ACTIVE_DIR, set, '00-REQUEST.md'))) {
     return `./scripts/abcplan/run.sh run ${set}`;
   }

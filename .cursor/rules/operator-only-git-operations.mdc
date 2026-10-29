@@ -33,6 +33,13 @@ Give the operator the commit command and wait for them to run it. Use the merge 
 prepared (`Merge remote-tracking branch 'origin/<branch>' into <branch>`), as a one-line
 `git commit -m '...'`.
 
+## Exception
+
+**abcbranchesmerge** is the explicit request to merge the named branches into a new
+`feature/merge-YYYY-MM-DD` branch, commit on that branch, and push that branch with no force.
+It does not authorize a push to any other branch, or deleting branches or worktrees. See
+[.cursor/skills/abcbranchesmerge/SKILL.md](/.cursor/skills/abcbranchesmerge/SKILL.md).
+
 ## Why
 
 Protected branches and publish pipelines are operator-controlled. Agent-driven pushes and merges bypass review and can trigger unintended releases.

@@ -40,6 +40,9 @@ These hold even before the skill is read:
   staged. Do not commit.
 - **abcagentoptimize** — during normal work, append ideas to its log; ask mid-turn only when the
   answer changes the current turn.
+- **abcbranchesmerge** `<branch>…` — read the skill before acting. The agent names
+  `feature/merge-YYYY-MM-DD` from `develop`. It authorizes merge commits and a non-force push
+  of that branch only, and forbids deleting branches or worktrees.
 
 ## legacy app
 
