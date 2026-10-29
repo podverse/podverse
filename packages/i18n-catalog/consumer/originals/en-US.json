@@ -1363,7 +1363,15 @@
       "first_subscribe_push_title": "Enable Push Notifications?",
       "first_subscribe_push_body": "Get lock-screen alerts for new episodes and livestreams, or keep alerts in the app inbox only.",
       "first_subscribe_enable_push": "Enable Push",
-      "first_subscribe_in_app_only": "In-App Only"
+      "first_subscribe_in_app_only": "In-App Only",
+      "sign_in_push_prompt_title": "Turn On Push Notifications on This Device?",
+      "sign_in_push_prompt_body": "Push notifications are turned on for your account. Allow them on this device to get alerts here too.",
+      "sign_in_push_prompt_enable": "Enable Push",
+      "sign_in_push_prompt_not_now": "Not Now",
+      "device_push_banner_message": "Push notifications are turned on for your account, but this device doesn't have permission to show them.",
+      "device_push_banner_action": "Allow on This Device",
+      "device_push_blocked_title": "Notifications Are Blocked",
+      "device_push_blocked_web_body": "This browser is blocking notifications for this site. Open the site settings from the icon next to the address bar, set Notifications to Allow, then reload this page."
     },
     "opml": {
       "opml": "OPML",

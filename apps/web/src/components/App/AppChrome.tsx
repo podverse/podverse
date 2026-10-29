@@ -12,6 +12,7 @@ import { isEmbedPathname } from '../../lib/embed/isEmbedPathname';
 import { isTasteProfileConsentPromptRequiredForAccount } from '../../lib/tasteProfileConsentRequired';
 import { isTermsAcceptanceRequired } from '../../lib/termsAcceptanceRequired';
 import { SessionEndedNotice } from '../Auth/SessionEndedNotice';
+import { SignInPushPrompt } from '../Auth/SignInPushPrompt';
 import { BackgroundActivityOverlay } from '../BackgroundActivity/BackgroundActivityOverlay';
 import { CookieConsentBanner } from '../Banner/CookieConsentBanner';
 import { MembershipExpiredBanner } from '../Banner/MembershipExpiredBanner';
@@ -81,6 +82,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
         <LazyLoadedComponents />
         <BackgroundActivityOverlay />
         <SessionEndedNotice />
+        <SignInPushPrompt />
       </WindowWrapper>
       <MediaPlayerController />
       <QueueController />

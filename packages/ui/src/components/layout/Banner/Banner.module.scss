@@ -14,6 +14,12 @@
   color: var(--button-danger-color);
 }
 
+.warning {
+  background-color: var(--background-color-warning);
+  border: 1px solid var(--border-color-warning);
+  color: var(--text-color-primary);
+}
+
 .message {
   @include flexItemAllowShrink;
 }

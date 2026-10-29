@@ -25,7 +25,10 @@ import { defineConfig } from 'vitest/config';
  * payload target extraction (`src/push/notificationTarget.ts`), the path an inbox row and a banner
  * open (`src/push/accountNotificationLink.ts`), which notifications may show a
  * banner and the device-local kind switches (`src/notifications/bannerNotificationPolicy.ts`,
- * `src/prefs/bannerNotificationPrefs.ts`), the account event stream's SSE parser, run condition
+ * `src/prefs/bannerNotificationPrefs.ts`), this device's push state (`src/push/devicePushState.ts`
+ * — the reads stay in `devicePushState.read.ts`), the sign-in push dialog's shown flag
+ * (`src/prefs/signInPushPromptPrefs.ts` — AsyncStorage mocked), the push prompt decisions in
+ * `src/lib/notifications/` (reads injected), the account event stream's SSE parser, run condition
  * and failure rules, in-memory notification store, and connection controller
  * (`src/notifications/sseEventParser.ts`, `notificationStreamPolicy.ts`,
  * `notificationStreamStore.ts`, `notificationStreamController.ts` — I/O is injected; the
@@ -165,7 +168,7 @@ export default defineConfig({
       'src/components/player/MediaRowActions.test.ts',
       'src/components/primitives/FillList.test.ts',
       'src/components/primitives/countBadgeFace.test.ts',
-      'src/lib/notifications/notificationsBellPress.test.ts',
+      'src/lib/notifications/*.test.ts',
       'src/components/primitives/coverThumbnailCache.test.ts',
       'src/components/screen/headerBackChoice.test.ts',
       'src/components/player/fullPlayerRows.test.ts',
@@ -262,7 +265,9 @@ export default defineConfig({
       'src/prefs/bannerNotificationPrefs.test.ts',
       'src/prefs/homeListPrefs.test.ts',
       'src/prefs/prefsStore.test.ts',
+      'src/prefs/signInPushPromptPrefs.test.ts',
       'src/push/accountNotificationLink.test.ts',
+      'src/push/devicePushState.test.ts',
       'src/push/notificationTarget.test.ts',
       'src/screens/home/HomeFeedRow.test.ts',
       'src/screens/home/addByRss/addByRssArtistAlbums.test.ts',

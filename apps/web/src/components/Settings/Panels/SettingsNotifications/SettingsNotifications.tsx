@@ -21,6 +21,7 @@ import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useLoadingMap } from '../../../../hooks/useLoadingMap';
 import { useMembershipGate } from '../../../../hooks/useMembershipGate';
 import { SettingsSection } from '../../SettingsSection';
+import { DevicePushBanner } from './DevicePushBanner';
 import { usePushChannelControls } from './usePushChannelControls';
 
 import styles from '../../../../styles/components/Settings/Panels/SettingsNotifications/SettingsNotifications.module.scss';
@@ -383,6 +384,11 @@ export function SettingsNotifications() {
 
   return (
     <>
+      <DevicePushBanner
+        enableWebPush={enableWebPush}
+        loadingWebPush={loadingWebPush}
+        preferences={preferences}
+      />
       <SettingsSection>
         <h3 className={styles.preferencesHeading}>
           {tSettings('notifications.when_i_subscribe_section')}

@@ -138,6 +138,7 @@ export * from './lib/remoteItem.js';
 export * from './lib/verifiedPublishers.js';
 export * from './lib/record.js';
 export * from './lib/notificationCategory.js';
+export * from './lib/notificationPush.js';
 export * from './lib/accountEventStream.js';
 export * from './lib/sharableStatus.js';
 export * from './lib/sleep.js';
