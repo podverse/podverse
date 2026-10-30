@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RemoteItemGeneric } from '@podverse/helpers';
+import { RemoteChannelStubService, RemoteItemStubService } from '@podverse/orm';
 
 type StubChannel = {
   id: number;
@@ -42,47 +43,9 @@ vi.mock('../factories/podcastIndexService.js', () => ({
   podcastIndexService: podcastIndexMocks,
 }));
 
-vi.mock('@podverse/orm', () => ({
-  RemoteChannelStubService: class {
-    getChannelStubsForRefs = channelStubLookupMock;
-  },
-  RemoteItemStubService: class {
-    getItemStubsForRefs = itemStubLookupMock;
-  },
-  toDTORemoteChannelStub: (stub: StubChannel) => ({
-    is_remote_stub: true,
-    index_provider: stub.index_provider,
-    provider_feed_id: stub.provider_feed_id,
-    feed_guid: stub.feed_guid,
-    feed_url: stub.feed_url,
-    title: stub.title,
-    author: stub.author,
-    image_url: stub.image_url,
-    medium_id: stub.medium_id,
-  }),
-  toDTORemoteItemStub: (stub: StubItem, channelStub: StubChannel) => ({
-    is_remote_stub: true,
-    item_guid: stub.item_guid,
-    provider_item_id: stub.provider_item_id,
-    title: stub.title,
-    image_url: stub.image_url,
-    pub_date: stub.pub_date ? stub.pub_date.toISOString() : null,
-    duration_seconds: stub.duration_seconds,
-    channel_stub: {
-      is_remote_stub: true,
-      index_provider: channelStub.index_provider,
-      provider_feed_id: channelStub.provider_feed_id,
-      feed_guid: channelStub.feed_guid,
-      feed_url: channelStub.feed_url,
-      title: channelStub.title,
-      author: channelStub.author,
-      image_url: channelStub.image_url,
-      medium_id: channelStub.medium_id,
-    },
-  }),
-}));
-
 import { buildRemoteItemsFinalResult } from './remoteItems.js';
+
+const lookupSpies: Array<{ mockRestore: () => void }> = [];
 
 function remoteRef(
   feedGuid: string | null,
@@ -126,6 +89,23 @@ describe('buildRemoteItemsFinalResult', () => {
     podcastIndexMocks.podcastsBatchByFeedGuid.mockClear();
     podcastIndexMocks.podcastGetByFeedUrl.mockClear();
     podcastIndexMocks.episodeGetByGuid.mockClear();
+    lookupSpies.push(
+      vi
+        .spyOn(RemoteChannelStubService.prototype, 'getChannelStubsForRefs')
+        .mockImplementation((refs) => channelStubLookupMock(refs))
+    );
+    lookupSpies.push(
+      vi
+        .spyOn(RemoteItemStubService.prototype, 'getItemStubsForRefs')
+        .mockImplementation((refs) => itemStubLookupMock(refs))
+    );
+  });
+
+  afterEach(() => {
+    for (const spy of lookupSpies) {
+      spy.mockRestore();
+    }
+    lookupSpies.length = 0;
   });
 
   it('returns stubs in ref order and drops null lookups', async () => {

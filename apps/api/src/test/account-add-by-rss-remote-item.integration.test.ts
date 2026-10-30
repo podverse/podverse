@@ -118,6 +118,18 @@ function readKind(value: unknown): string | null {
   return value.kind;
 }
 
+/** Fits `feed.podcast_index_id` (32-bit) and stays below the id bands other suites use. */
+function podcastIndexId(runId: string, slot: number): number {
+  const mixed = Number.parseInt(runId.slice(0, 6), 16);
+  return 2_000_000_000 + mixed + slot;
+}
+
+/** Provider feed ids are looked up as `feed.podcast_index_id`, so they must fit in a 32-bit integer. */
+function providerFeedId(runId: string, sliceStart: number, band: number): string {
+  const mixed = Number.parseInt(runId.slice(sliceStart, sliceStart + 4), 16);
+  return String(2_100_000_000 + band + mixed);
+}
+
 async function seedChannel(
   manager: EntityManager,
   role: string,
@@ -130,8 +142,7 @@ async function seedChannel(
   const feed = await feedRepo.save(
     feedRepo.create({
       url: feedUrl,
-      podcast_index_id:
-        Number.parseInt(runId.slice(0, 8), 16) + 2_100_000_000 + seededFeedIds.length,
+      podcast_index_id: podcastIndexId(runId, seededFeedIds.length),
     })
   );
   seededFeedIds.push(feed.id);
@@ -177,7 +188,7 @@ async function seedWorld(manager: EntityManager, seededFeedIds: number[]): Promi
     })
   );
 
-  const stubProviderFeedId = String(2_149_000_000 + Number.parseInt(runId.slice(0, 4), 16));
+  const stubProviderFeedId = providerFeedId(runId, 0, 0);
   const stubFeedGuid = randomUUID();
   const stubFeedUrl = `https://add-by-rss-remote-item-${runId}.example.com/stub.xml`;
   const stubItemGuid = `https://add-by-rss-remote-item-${runId}.example.com/stub-item`;
@@ -210,11 +221,11 @@ async function seedWorld(manager: EntityManager, seededFeedIds: number[]): Promi
   });
 
   const resolveFoundGuid = randomUUID();
-  const resolveFoundProviderFeedId = String(2_149_100_000 + Number.parseInt(runId.slice(4, 8), 16));
+  const resolveFoundProviderFeedId = providerFeedId(runId, 4, 100_000);
   const resolveFoundFeedUrl = `https://add-by-rss-remote-item-${runId}.example.com/found.xml`;
   const resolveNotFoundGuid = randomUUID();
   const resolveDeadGuid = randomUUID();
-  const resolveDeadProviderFeedId = String(2_149_200_000 + Number.parseInt(runId.slice(8, 12), 16));
+  const resolveDeadProviderFeedId = providerFeedId(runId, 8, 200_000);
   const resolveDeadFeedUrl = `https://add-by-rss-remote-item-${runId}.example.com/dead.xml`;
   const resolveUnavailableGuid = randomUUID();
 

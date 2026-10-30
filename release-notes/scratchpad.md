@@ -467,3 +467,28 @@
 - Who notices: mobile listeners on Browse; anyone who had picked a window other than the week
   sees the week after updating
 - Operator steps: none
+
+## Overlapping transcript cues follow the earlier cue
+
+- Surfaces: web, mobile
+- Change: When two transcript cues overlap, follow-along highlights the earlier cue for as long as
+  the playhead is still inside it. A later cue takes over only after the earlier one ends.
+- Who notices: listeners reading a transcript while an episode plays, when cue ranges overlap
+- Operator steps: none
+
+## Public playlist Recent loads
+
+- Surfaces: api
+- Change: The public playlist Recent read was failing on every page request. The paged query now
+  includes the playlist primary key so the join can identify rows, then drops that id. The response
+  still includes only the account handle and display name.
+- Who notices: listeners opening public playlists sorted by Recent, on web and mobile
+- Operator steps: none
+
+## Search closes with the down caret
+
+- Surfaces: mobile
+- Change: The Search card's first screen closes with the down caret (`search-dismiss`). That
+  control stays the dismiss caret when a screen under the card can go back.
+- Who notices: listeners who open Search from Home
+- Operator steps: none

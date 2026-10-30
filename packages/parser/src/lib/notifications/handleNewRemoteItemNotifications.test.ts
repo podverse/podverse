@@ -54,16 +54,20 @@ vi.mock('@podverse/orm', () => ({
   },
 }));
 
-vi.mock('./sharedNotificationHelpers.js', () => ({
-  createInAppNotificationsForAccounts: createInAppMock,
-  getDevicesForNotificationType: getDevicesMock,
-  getInAppNotificationLinkPath: vi.fn(() => '/album/album-local'),
-  getInAppNotificationTitle: vi.fn((_messageType: string, title: string) => title),
-  groupDevicesByLocaleAndPlatform: vi.fn(() => new Map()),
-  loadChannelImages: vi.fn(async () => []),
-  selectBestImage: vi.fn(() => null),
-  sendItemNotifications: sendItemNotificationsMock,
-}));
+vi.mock('./sharedNotificationHelpers.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./sharedNotificationHelpers.js')>();
+  return {
+    buildItemNotificationPayload: actual.buildItemNotificationPayload,
+    createInAppNotificationsForAccounts: createInAppMock,
+    getDevicesForNotificationType: getDevicesMock,
+    getInAppNotificationLinkPath: vi.fn(() => '/album/album-local'),
+    getInAppNotificationTitle: vi.fn((_messageType: string, title: string) => title),
+    groupDevicesByLocaleAndPlatform: vi.fn(() => new Map()),
+    loadChannelImages: vi.fn(async () => []),
+    selectBestImage: vi.fn(() => null),
+    sendItemNotifications: sendItemNotificationsMock,
+  };
+});
 
 import { handleNewRemoteItemNotifications } from './handleNewRemoteItemNotifications.js';
 

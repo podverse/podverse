@@ -16,6 +16,7 @@ import {
 
 import { PlaylistResourceService } from './playlistResource.js';
 import {
+  omitUnlistedPlaylistListFields,
   PUBLIC_PLAYLIST_LIST_RELATIONS,
   PUBLIC_PLAYLIST_LIST_SELECT,
 } from './publicPlaylistListSelect.js';
@@ -142,7 +143,7 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
     options: Pick<FindManyOptions<Playlist>, 'order' | 'skip' | 'take'>
   ): Promise<Playlist[]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
-    return this.repositoryRead.find({
+    const playlists = await this.repositoryRead.find({
       ...options,
       select: PUBLIC_PLAYLIST_LIST_SELECT,
       relations: PUBLIC_PLAYLIST_LIST_RELATIONS,
@@ -151,6 +152,10 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
         ...(medium_id ? { medium_id: Equal(medium_id) } : {}),
       },
     });
+    for (const playlist of playlists) {
+      omitUnlistedPlaylistListFields(playlist);
+    }
+    return playlists;
   }
 
   async getManyPrivate(

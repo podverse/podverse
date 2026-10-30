@@ -1,6 +1,7 @@
 import { AppDataSourceRead } from '@orm/db/index.js';
 import { StatsPopularityPlaylist } from '@orm/entities/stats/statsPopularityPlaylist.js';
 import {
+  omitUnlistedPlaylistListFields,
   PUBLIC_PLAYLIST_LIST_RELATIONS,
   PUBLIC_PLAYLIST_LIST_SELECT,
 } from '@orm/services/playlist/publicPlaylistListSelect.js';
@@ -32,7 +33,7 @@ export class StatsPopularityPlaylistService {
   ): Promise<StatsPopularityPlaylist[]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
 
-    return this.repositoryRead.find({
+    const rows = await this.repositoryRead.find({
       ...config,
       select: {
         ...STATS_POPULARITY_SELECT_ALL,
@@ -50,6 +51,12 @@ export class StatsPopularityPlaylistService {
         playlist: PUBLIC_PLAYLIST_LIST_RELATIONS,
       },
     });
+    for (const row of rows) {
+      if (row.playlist) {
+        omitUnlistedPlaylistListFields(row.playlist);
+      }
+    }
+    return rows;
   }
 
   async getManyPrivate(
@@ -59,7 +66,7 @@ export class StatsPopularityPlaylistService {
   ): Promise<[StatsPopularityPlaylist[], number]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
 
-    return this.repositoryRead.findAndCount({
+    const [rows, count] = await this.repositoryRead.findAndCount({
       ...config,
       select: {
         ...STATS_POPULARITY_SELECT_ALL,
@@ -75,6 +82,12 @@ export class StatsPopularityPlaylistService {
         playlist: PUBLIC_PLAYLIST_LIST_RELATIONS,
       },
     });
+    for (const row of rows) {
+      if (row.playlist) {
+        omitUnlistedPlaylistListFields(row.playlist);
+      }
+    }
+    return [rows, count];
   }
 
   async getManyPrivateByPlaylists(
