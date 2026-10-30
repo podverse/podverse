@@ -1103,6 +1103,17 @@ describe('account follows and notification routes', () => {
       expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('meta');
     });
+
+    it('passes the all-time count field when the range is all-time', async () => {
+      statsPopularityGetManyMock.mockResolvedValueOnce([]);
+
+      const res = await request(app).get(`${accountBase}/top?page=1&range=all-time`);
+
+      expect(res.status).toBe(200);
+      const lastCall = statsPopularityGetManyMock.mock.calls.at(-1);
+      expect(lastCall?.[1]).toBe('global');
+      expect(lastCall?.[2]).toBe('all_time_count');
+    });
   });
 
   // ─── Account Browse (Authenticated) ─────────────────────────────────

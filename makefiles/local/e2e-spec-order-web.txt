@@ -3,6 +3,7 @@ apps/web/e2e/navbar-chrome.spec.ts
 apps/web/e2e/background-activity-overlay.spec.ts
 apps/web/e2e/focus-states.spec.ts
 apps/web/e2e/media-list-chips.spec.ts
+apps/web/e2e/browse-directory-top.spec.ts
 apps/web/e2e/playlists-profiles-chips.spec.ts
 apps/web/e2e/detail-section-chips.spec.ts
 apps/web/e2e/membership-page-trial-limitations.spec.ts

@@ -52,12 +52,12 @@ export const isBrowseCategoryMediaType = (mediaType: BrowseMediaType): boolean =
   return BROWSE_CATEGORY_MEDIA_TYPES.includes(mediaType);
 };
 
-/** Every Browse directory list except Livestreams is popularity-ranked, so the range chip applies. */
+/** Every Browse directory list except Livestreams sorts by Recent or Top, so the sort chip applies. */
 export const isBrowseSortableMediaType = (mediaType: BrowseMediaType): boolean => {
   return mediaType !== 'livestreams';
 };
 
-/** The category picker is not a ranked list, so the range chip stays off while it is open. */
+/** The category picker is not a directory list, so the sort chip stays off while it is open. */
 export const shouldShowBrowseSortChip = (
   mediaType: BrowseMediaType,
   isCategoryView: boolean
@@ -76,6 +76,27 @@ export type BrowseRangeOption = QueryParamsStatsRange;
 export const DEFAULT_BROWSE_RANGE: BrowseRangeOption = 'week';
 
 export const DEFAULT_BROWSE_MEDIA_TYPE: BrowseMediaType = 'podcasts';
+
+/** Directory orders Browse offers, in menu order. The tokens are the API `sort` values. */
+export const BROWSE_SORT_OPTIONS = ['recent', 'top'] as const;
+
+export type BrowseSortOption = (typeof BROWSE_SORT_OPTIONS)[number];
+
+/** Every Browse list opens on Top for the past week until the listener changes that list. */
+export const DEFAULT_BROWSE_SORT: BrowseSortOption = 'top';
+
+export const BROWSE_SORT_LABEL_KEYS: Record<BrowseSortOption, string> = {
+  recent: 'filters.sort.recent',
+  top: 'filters.sort.top',
+};
+
+/** Top is the only Browse order that sends a stats window. */
+export const browseSortToApiRange = (
+  sort: BrowseSortOption,
+  range: BrowseRangeOption
+): BrowseRangeOption | null => {
+  return sort === 'top' ? range : null;
+};
 
 export const BROWSE_RANGE_LABEL_KEYS: Record<BrowseRangeOption, string> = {
   'all-time': 'features.browse.range_all_time',

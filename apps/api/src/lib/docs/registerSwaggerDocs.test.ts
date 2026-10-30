@@ -27,6 +27,7 @@ const pageRequiredPaths = [
   '/playlist/private/followed/oldest',
   '/playlist/private/followed/recent',
   '/playlist/private/followed/top',
+  '/playlist/public/recent',
   '/playlist/public/top',
   '/account/recent',
   '/account/subscribed/az',

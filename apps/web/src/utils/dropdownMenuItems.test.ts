@@ -74,7 +74,7 @@ describe('buildSubscribedListFilterParams', () => {
     });
     expect(guest.currentType).toBe('global');
     expect(guest.currentPage).toBe(1);
-    expect(guest.currentRange).toBe(null);
+    expect(guest.currentRange).toBe('week');
   });
 });
 
@@ -83,6 +83,14 @@ describe('scope', () => {
     page: 2,
     range: 'week' as const,
     sort: 'top' as const,
+  };
+
+  const topWeek = {
+    defaultGlobalSort: 'top' as const,
+    defaultSubscribedSort: 'a_z' as const,
+    globalSortValues: QUERY_PARAMS_GLOBAL_SORT_VALUES,
+    page: 1,
+    subscribedSortValues: QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   };
 
   it('keeps type subscribed when scope is subscribed, even without a session', () => {
@@ -114,5 +122,92 @@ describe('scope', () => {
     });
     expect(out.currentType).toBe('global');
     expect(out.currentSort).toBe('recent');
+  });
+
+  it('opens a signed-out browse list on Top for the week when no sort or range is set', () => {
+    const out = buildSubscribedListFilterParams({
+      ...topWeek,
+      isValidAuthSession: false,
+      range: null,
+      scope: 'browse',
+      sort: null,
+      supportsCategory: false,
+      type: 'global',
+    });
+    expect(out.currentType).toBe('global');
+    expect(out.currentSort).toBe('top');
+    expect(out.currentRange).toBe('week');
+  });
+
+  it('opens a signed-in browse list on Top for the week when the type is subscribed', () => {
+    const out = buildSubscribedListFilterParams({
+      ...topWeek,
+      isValidAuthSession: true,
+      range: null,
+      scope: 'browse',
+      sort: 'a_z',
+      supportsCategory: false,
+      type: 'subscribed',
+    });
+    expect(out.currentType).toBe('global');
+    expect(out.currentSort).toBe('top');
+    expect(out.currentRange).toBe('week');
+  });
+
+  it('opens a browse category list on Top for the week', () => {
+    const out = buildSubscribedListFilterParams({
+      ...topWeek,
+      category: 'technology',
+      isValidAuthSession: false,
+      range: null,
+      scope: 'browse',
+      sort: null,
+      supportsCategory: true,
+      type: 'global',
+    });
+    expect(out.currentType).toBe('category');
+    expect(out.currentSort).toBe('top');
+    expect(out.currentRange).toBe('week');
+  });
+
+  it('keeps a chosen range and a chosen Recent sort on a browse list', () => {
+    const month = buildSubscribedListFilterParams({
+      ...topWeek,
+      isValidAuthSession: false,
+      range: 'month',
+      scope: 'browse',
+      sort: 'top',
+      supportsCategory: false,
+      type: 'global',
+    });
+    expect(month.currentSort).toBe('top');
+    expect(month.currentRange).toBe('month');
+
+    const recent = buildSubscribedListFilterParams({
+      ...topWeek,
+      isValidAuthSession: false,
+      range: null,
+      scope: 'browse',
+      sort: 'recent',
+      supportsCategory: false,
+      type: 'global',
+    });
+    expect(recent.currentSort).toBe('recent');
+    expect(recent.currentRange).toBe(null);
+  });
+
+  it('leaves a subscribed Top list without a range', () => {
+    const out = buildSubscribedListFilterParams({
+      ...topWeek,
+      isValidAuthSession: true,
+      range: null,
+      scope: 'subscribed',
+      sort: 'top',
+      supportsCategory: false,
+      type: 'subscribed',
+    });
+    expect(out.currentType).toBe('subscribed');
+    expect(out.currentSort).toBe('top');
+    expect(out.currentRange).toBe(null);
   });
 });

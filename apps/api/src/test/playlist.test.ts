@@ -2,7 +2,7 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS } from '@podverse/helpers';
+import { PAGINATION, PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -30,6 +30,7 @@ const {
   playlistGetOnePrivateMock,
   playlistGetOnePublicMock,
   playlistGetManyPrivateMock,
+  playlistGetManyPublicForListMock,
   playlistGetAllLikesPrivateMock,
   playlistGetLikesMembershipMock,
   playlistGetOrCreateDefaultLikesPlaylistMock,
@@ -103,6 +104,7 @@ const {
     account: { id: TEST_USER_ID },
   })),
   playlistGetManyPrivateMock: vi.fn(async () => [[{ id: 1 }], 1]),
+  playlistGetManyPublicForListMock: vi.fn(async () => []),
   playlistGetAllLikesPrivateMock: vi.fn(async () => [{ id: 1, title: 'Like' }]),
   playlistGetLikesMembershipMock: vi.fn(async () => ({
     item_id_texts: [],
@@ -200,6 +202,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     getOnePrivate = playlistGetOnePrivateMock;
     getOnePublic = playlistGetOnePublicMock;
     getManyPrivate = playlistGetManyPrivateMock;
+    getManyPublicForList = playlistGetManyPublicForListMock;
     getAllLikesPrivate = playlistGetAllLikesPrivateMock;
     getLikesMembership = playlistGetLikesMembershipMock;
     getOrCreateDefaultLikesPlaylist = playlistGetOrCreateDefaultLikesPlaylistMock;
@@ -808,6 +811,37 @@ describe('playlist routes', () => {
     });
   });
 
+  describe('GET /public/recent', () => {
+    it('returns 200 with public recent playlists and a page meta', async () => {
+      const res = await request(app).get(`${playlistBase}/public/recent?medium=av&page=1`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.meta).toEqual({
+        page: 1,
+        count: null,
+        limit: PAGINATION.DEFAULT_LIMIT,
+      });
+      expect(playlistGetManyPublicForListMock).toHaveBeenCalledWith(
+        'av',
+        expect.objectContaining({
+          order: { last_updated: 'DESC', id_text: 'ASC' },
+        })
+      );
+    });
+
+    it('returns 200 without auth', async () => {
+      const res = await request(app).get(`${playlistBase}/public/recent?medium=av&page=1`);
+
+      expect(res.status).toBe(200);
+    });
+
+    it('returns 400 when page is missing', async () => {
+      const res = await request(app).get(`${playlistBase}/public/recent?medium=av`);
+
+      expect(res.status).toBe(400);
+    });
+  });
+
   describe('GET /public/top', () => {
     it('returns 200 with public top playlists', async () => {
       const res = await request(app).get(
@@ -816,6 +850,9 @@ describe('playlist routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
+      expect(res.body.meta.count).toBeNull();
+      expect(typeof res.body.meta.limit).toBe('number');
+      expect(statsPlGetManyPublicMock.mock.calls.at(-1)?.[2]).toBe('day_count');
     });
   });
 

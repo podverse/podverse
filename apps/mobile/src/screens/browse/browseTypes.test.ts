@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { flattenBrowseCategories, visibleBrowseCategories } from './browseCategories';
 import {
   BROWSE_MEDIA_TYPE_ORDER,
+  BROWSE_SORT_OPTIONS,
+  browseSortToApiRange,
+  DEFAULT_BROWSE_RANGE,
+  DEFAULT_BROWSE_SORT,
   isBrowseCategoryMediaType,
   isBrowseRangeOption,
   isPlayableDirectoryMediaType,
@@ -45,7 +49,18 @@ describe('browseTypes', () => {
     expect(shouldShowBrowseCategoryChip('playlists')).toBe(false);
   });
 
-  it('hides the range chip while the category picker is open', () => {
+  it('offers Recent and Top and opens on Top', () => {
+    expect(BROWSE_SORT_OPTIONS).toEqual(['recent', 'top']);
+    expect(DEFAULT_BROWSE_SORT).toBe('top');
+    expect(DEFAULT_BROWSE_RANGE).toBe('week');
+  });
+
+  it('sends a stats window only for Top', () => {
+    expect(browseSortToApiRange('top', 'month')).toBe('month');
+    expect(browseSortToApiRange('recent', 'month')).toBeNull();
+  });
+
+  it('hides the sort chip while the category picker is open', () => {
     expect(shouldShowBrowseSortChip('podcasts', false)).toBe(true);
     expect(shouldShowBrowseSortChip('artists', false)).toBe(true);
     expect(shouldShowBrowseSortChip('livestreams', false)).toBe(false);

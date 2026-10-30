@@ -31,6 +31,7 @@
       "artist_go_to": "Μετάβαση στον καλλιτέχνη",
       "no_tracks_found": "Δεν βρέθηκαν τραγούδια",
       "no_albums_found": "Δεν βρέθηκαν άλμπουμ",
+      "no_artists_found": "Δεν βρέθηκαν καλλιτέχνες",
       "verified_albums": "Επαληθευμένα άλμπουμ",
       "your_add_by_rss_albums": "Τα άλμπουμ σας από Προσθήκη μέσω RSS",
       "not_yet_added": "Δεν έχουν προστεθεί ακόμα",
@@ -135,7 +136,8 @@
     "browse": {
       "browse": "Περιήγηση",
       "category_all": "Όλες οι κατηγορίες",
-      "users": "Χρήστες"
+      "users": "Χρήστες",
+      "no_users_found": "Δεν βρέθηκαν χρήστες"
     },
     "recommendations": {
       "title": "Προτάσεις",

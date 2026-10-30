@@ -40,6 +40,11 @@ channels and 300 items. Manual runs use `Pixel_6_Pro_API_33` and `"iPhone 17 Pro
 library with a real hand gesture. **Never compare a number from one of those against the other**, or
 a cold pass against a warm one.
 
+Seeded Browse runs open every media type on Top for the past week, and the seed counts listens
+for only a handful of rows. `perf-browse-chip-switch.yaml` therefore switches between lists of at
+most one row and cannot show per-row cost on Browse. Answer a Browse row-cost question with a
+manual capture.
+
 ## Stages
 
 `pending` is the tap to the animation frame after the tapped chip and the loading overlay commit,

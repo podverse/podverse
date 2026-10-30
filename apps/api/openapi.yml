@@ -4032,10 +4032,12 @@ components:
     ApiGetPlaylistPrivateTopResponse200:
       allOf:
         - $ref: "#/components/schemas/PlaylistListResponse"
+    ApiGetPlaylistPublicRecentResponse200:
+      allOf:
+        - $ref: "#/components/schemas/PlaylistListResponse"
     ApiGetPlaylistPublicTopResponse200:
-      type: object
-      description: Operation-specific response payload for GET /playlist/public/top (200).
-      additionalProperties: true
+      allOf:
+        - $ref: "#/components/schemas/PlaylistListResponse"
     ApiGetPodrollChannelIdoridtextResponse200:
       allOf:
         - $ref: "#/components/schemas/RemoteItemsResultResponse"
@@ -10507,7 +10509,7 @@ paths:
       tags:
         - account
       summary: GET /account/top
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
+      description: "Public profiles ranked by the chosen range's count. Profiles with a count of zero for the range are left out, so a range with no activity returns an empty list."
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -13576,7 +13578,7 @@ paths:
       tags:
         - channel
       summary: GET /channel/category/top
-      description: Public endpoint returning top channels for a category, medium, and stats range.
+      description: Public endpoint returning top channels for a category, medium, and stats range. Only rows whose count for the range is above zero are returned, so a range with none returns an empty data array. A short page is not padded with recent rows.
       security: []
       parameters:
         - in: query
@@ -13706,7 +13708,7 @@ paths:
       tags:
         - channel
       summary: GET /channel/global/top
-      description: Public endpoint returning top global channels by medium and stats range.
+      description: Public endpoint returning top global channels by medium and stats range. Only rows whose count for the range is above zero are returned, so a range with none returns an empty data array. A short page is not padded with recent rows.
       security: []
       parameters:
         - in: query
@@ -14483,7 +14485,7 @@ paths:
       tags:
         - clip
       summary: GET /clip/public/category/top
-      description: Auto-generated from route matrix. Public endpoint.
+      description: "Public clips in the category ranked by the chosen range's count. Clips with a count of zero for the range are left out, so a range with no activity returns an empty list."
       security: []
       parameters:
         - in: query
@@ -15024,7 +15026,7 @@ paths:
       tags:
         - clip
       summary: GET /clip/public/top
-      description: Auto-generated from route matrix. Public endpoint.
+      description: "Public clips ranked by the chosen range's count. Clips with a count of zero for the range are left out, so a range with no activity returns an empty list."
       security: []
       parameters:
         - in: query
@@ -15746,7 +15748,7 @@ paths:
       tags:
         - item
       summary: GET /item/category/top
-      description: Public endpoint returning top items for a category, medium, and stats range.
+      description: Public endpoint returning top items for a category, medium, and stats range. Only rows whose count for the range is above zero are returned, so a range with none returns an empty data array. A short page is not padded with recent rows.
       security: []
       parameters:
         - in: query
@@ -16313,7 +16315,7 @@ paths:
       tags:
         - item
       summary: GET /item/global/top
-      description: Public endpoint returning top global items by medium and stats range.
+      description: Public endpoint returning top global items by medium and stats range. Only rows whose count for the range is above zero are returned, so a range with none returns an empty data array. A short page is not padded with recent rows.
       security: []
       parameters:
         - in: query
@@ -19815,13 +19817,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /playlist/public/recent:
+    get:
+      operationId: apiGetPlaylistPublicRecent
+      tags:
+        - playlist
+      summary: GET /playlist/public/recent
+      description: "Public playlists, most recently created or updated first."
+      security: []
+      parameters:
+        - in: query
+          name: medium
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/PageQueryRequired"
+        - $ref: "#/components/parameters/LimitQueryOptional"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetPlaylistPublicRecentResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /playlist/public/top:
     get:
       operationId: apiGetPlaylistPublicTop
       tags:
         - playlist
       summary: GET /playlist/public/top
-      description: Public playlists ranked by stats range.
+      description: "Public playlists ranked by the chosen range's count. Playlists with a count of zero for the range are left out, so a range with no activity returns an empty list."
       security: []
       parameters:
         - in: query

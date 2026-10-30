@@ -2,8 +2,9 @@ import { AppDataSourceRead } from '@orm/db/index.js';
 import { StatsPopularityClip } from '@orm/entities/stats/statsPopularityClip.js';
 import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers.js';
 import type { FindManyOptions } from 'typeorm';
+import { MoreThan } from 'typeorm';
 
-import type { QueryParamsMedium } from '@podverse/helpers';
+import type { QueryParamsMedium, StatsPopularityCountField } from '@podverse/helpers';
 import { SharableStatusEnum } from '@podverse/helpers';
 
 /**
@@ -13,47 +14,57 @@ import { SharableStatusEnum } from '@podverse/helpers';
 export class StatsPopularityClipService {
   private repositoryRead = AppDataSourceRead.getRepository(StatsPopularityClip);
 
+  private mergeWhere(baseWhere: object, configWhere: object | undefined) {
+    return { ...baseWhere, ...(configWhere || {}) };
+  }
+
+  private buildPublicWhere(
+    mediumType: QueryParamsMedium | null,
+    category_id: number | null,
+    minCountField: StatsPopularityCountField
+  ) {
+    return {
+      [minCountField]: MoreThan(0),
+      clip: {
+        sharable_status_id: SharableStatusEnum.Public,
+        item: {
+          ...getActiveFeedWhere({
+            channel_ids: null,
+            mediumType,
+            category_id,
+          }),
+        },
+      },
+    };
+  }
+
   async getManyPublic(
     config: FindManyOptions<StatsPopularityClip>,
     mediumType: QueryParamsMedium | null,
-    category_id: number | null
+    category_id: number | null,
+    minCountField: StatsPopularityCountField
   ): Promise<StatsPopularityClip[]> {
     return this.repositoryRead.find({
-      where: {
-        clip: {
-          sharable_status_id: SharableStatusEnum.Public,
-          item: {
-            ...getActiveFeedWhere({
-              channel_ids: null,
-              mediumType,
-              category_id,
-            }),
-          },
-        },
-      },
       ...config,
+      where: this.mergeWhere(
+        this.buildPublicWhere(mediumType, category_id, minCountField),
+        config.where
+      ),
     });
   }
 
   async getManyAndCountPublic(
     config: FindManyOptions<StatsPopularityClip>,
     mediumType: QueryParamsMedium | null,
-    category_id: number | null
+    category_id: number | null,
+    minCountField: StatsPopularityCountField
   ): Promise<[StatsPopularityClip[], number]> {
     return this.repositoryRead.findAndCount({
-      where: {
-        clip: {
-          sharable_status_id: SharableStatusEnum.Public,
-          item: {
-            ...getActiveFeedWhere({
-              channel_ids: null,
-              mediumType,
-              category_id,
-            }),
-          },
-        },
-      },
       ...config,
+      where: this.mergeWhere(
+        this.buildPublicWhere(mediumType, category_id, minCountField),
+        config.where
+      ),
     });
   }
 

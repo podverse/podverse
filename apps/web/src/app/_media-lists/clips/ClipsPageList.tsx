@@ -1,4 +1,5 @@
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOCategory } from '@podverse/helpers';
@@ -7,8 +8,12 @@ import { CategoriesList } from '../../../components/Category/CategoriesList';
 import { HowToStartInfo } from '../../../components/HowToStartInfo/HowToStartInfo';
 import { ListClips } from '../../../components/List/Clips/ListClips';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
+import { NoResults } from '../../../components/NoResults/NoResults';
 import { onClickAllCategories, onClickCategory } from '../../../utils/categories';
-import { buildMediaListChipPath } from '../../../utils/mediaListChips';
+import {
+  buildMediaListChipPath,
+  shouldShowBrowseEmptyMessage,
+} from '../../../utils/mediaListChips';
 import { useClipsPageContext } from './ClipsPageContext';
 
 export const ClipsPageList: React.FC = () => {
@@ -21,7 +26,9 @@ export const ClipsPageList: React.FC = () => {
     showSubscribeMessage,
     isCategoryListOpen,
     setIsCategoryListOpen,
+    scope,
   } = useClipsPageContext();
+  const tFeatures = useTranslations('features');
   const { page, type, category } = filterParams;
   const router = useRouter();
 
@@ -50,22 +57,33 @@ export const ClipsPageList: React.FC = () => {
     );
   }
 
+  const showEmpty = shouldShowBrowseEmptyMessage({
+    isBrowse: scope === 'browse',
+    isLoading,
+    page,
+    rowCount: clips.length,
+  });
+
   return (
     <>
       {filterParams.type === 'subscribed' && (
         <HowToStartInfo rows={clips} totalPages={totalPages} />
       )}
-      <ListClips
-        page={page}
-        setPage={(page) => setFilterParams({ ...filterParams, page })}
-        clips={clips}
-        totalPages={totalPages}
-        showSubscribeMessage={showSubscribeMessage}
-        type={type}
-        category={category}
-        showChannelInfo
-        showItemInfo
-      />
+      {showEmpty ? (
+        <NoResults message={tFeatures('clip.no_clips_found')} />
+      ) : (
+        <ListClips
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          clips={clips}
+          totalPages={totalPages}
+          showSubscribeMessage={showSubscribeMessage}
+          type={type}
+          category={category}
+          showChannelInfo
+          showItemInfo
+        />
+      )}
       <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );

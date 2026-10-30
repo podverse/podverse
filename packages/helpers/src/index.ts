@@ -64,6 +64,7 @@ export * from './lib/billing/paymentProcessorId.js';
 export * from './lib/billing/processorProductEnv.js';
 export * from './lib/billing/storeLinkNeedsCountry.js';
 export * from './lib/boolean.js';
+export * from './lib/browseListScope.js';
 export * from './lib/category.js';
 export * from './lib/channelListViewPrefs.js';
 export * from './lib/channelSeen.js';

@@ -31,6 +31,7 @@
       "artist_go_to": "Aller à l'artiste",
       "no_tracks_found": "Aucune piste trouvée",
       "no_albums_found": "Aucun album trouvé",
+      "no_artists_found": "Aucun artiste trouvé",
       "verified_albums": "Albums vérifiés",
       "your_add_by_rss_albums": "Vos albums Ajouter par RSS",
       "not_yet_added": "Pas encore ajoutés",
@@ -135,7 +136,8 @@
     "browse": {
       "browse": "Parcourir",
       "category_all": "Toutes les catégories",
-      "users": "Utilisateurs"
+      "users": "Utilisateurs",
+      "no_users_found": "Aucun utilisateur trouvé"
     },
     "recommendations": {
       "title": "Recommandations",

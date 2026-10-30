@@ -471,7 +471,8 @@ export class AccountController {
         };
         const statsResults = await AccountController.statsPopularityAccountService.getMany(
           topConfig,
-          'global'
+          'global',
+          orderField
         );
         const accounts = statsResults.map((s: { account: Account }) => s.account).filter(Boolean);
 
