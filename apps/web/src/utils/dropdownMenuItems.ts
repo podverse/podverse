@@ -19,6 +19,16 @@ export function getRangeDropdownItems(tFilters: (key: string) => string) {
   }));
 }
 
+/** Range a global or category list uses when it is sorted by Top and no range is set. */
+export const DEFAULT_DIRECTORY_TOP_RANGE: QueryParamsStatsRange = 'week';
+
+function directoryRange(
+  sort: string | null,
+  range: QueryParamsStatsRange | null
+): QueryParamsStatsRange | null {
+  return sort === 'top' && range === null ? DEFAULT_DIRECTORY_TOP_RANGE : range;
+}
+
 type BuildSubscribedListFilterParamsBase<TType extends string, TSort extends string> = {
   defaultGlobalSort: TSort;
   defaultSubscribedSort: TSort;
@@ -137,6 +147,7 @@ export function buildSubscribedListFilterParams<
     if (category) {
       currentType = 'category' as TType;
       currentSort = getValidQueryParam(globalSortValues, currentSort, defaultGlobalSort);
+      currentRange = directoryRange(currentSort, currentRange);
       return {
         currentCategory: category,
         currentPage,
@@ -150,6 +161,7 @@ export function buildSubscribedListFilterParams<
   if (type === 'global') {
     currentType = type;
     currentSort = getValidQueryParam(globalSortValues, currentSort, defaultGlobalSort);
+    currentRange = directoryRange(currentSort, currentRange);
     if (args.supportsCategory) {
       const { category: cat } = args;
       return {
@@ -198,7 +210,7 @@ export function buildSubscribedListFilterParams<
 
   currentType = 'global' as TType;
   currentSort = getValidQueryParam(globalSortValues, currentSort, defaultGlobalSort);
-  currentRange = null;
+  currentRange = directoryRange(currentSort, null);
   currentPage = 1;
   if (args.supportsCategory) {
     return {

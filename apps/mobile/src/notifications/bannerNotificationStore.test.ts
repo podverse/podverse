@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DTOAccountNotification } from '@podverse/helpers';
 import { NotificationCategoryEnum } from '@podverse/helpers';
 
-import { DEFAULT_BANNER_NOTIFICATION_ENABLED } from './bannerNotificationPolicy';
+import {
+  applyBannerCategoryEnabled,
+  DEFAULT_BANNER_NOTIFICATION_ENABLED,
+} from './bannerNotificationPolicy';
 import { EMPTY_BANNER_NOTIFICATION_QUEUE } from './bannerNotificationQueue';
 import type { BannerNotificationPresentContext } from './bannerNotificationStore';
 import {
@@ -89,7 +92,11 @@ describe('bannerNotificationStore', () => {
         payload: { type: 'livestream-scheduled' },
         title: 'Live later',
       }),
-      DEFAULT_BANNER_NOTIFICATION_ENABLED,
+      applyBannerCategoryEnabled(
+        NotificationCategoryEnum.Livestream,
+        false,
+        DEFAULT_BANNER_NOTIFICATION_ENABLED
+      ),
       showing
     );
 

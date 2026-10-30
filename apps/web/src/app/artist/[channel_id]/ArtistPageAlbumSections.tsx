@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 
-import type { DTOChannel, PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+import type { DTOChannel, DTORemoteChannelStub } from '@podverse/helpers';
 
 import { ListAlbumRemoteItemNodes } from '../../../components/List/Music/Albums/ListAlbumRemoteItemNodes';
 import { ArtistPageYourAddByRssAlbums } from './ArtistPageAddByRssSections';
@@ -13,7 +13,7 @@ import styles from '../../../styles/components/Artist/ArtistPageAlbumSections.mo
 type ArtistPageAlbumSectionsProps = {
   channel: DTOChannel;
   channelsAdded: DTOChannel[];
-  channelsUnadded: PodcastBatchByFeedGuidResponse['feeds'];
+  channelsUnadded: DTORemoteChannelStub[];
 };
 
 export function ArtistPageAlbumSections({

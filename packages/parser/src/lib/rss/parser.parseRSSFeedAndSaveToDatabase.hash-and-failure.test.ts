@@ -38,6 +38,11 @@ const {
   accountGetMock,
   logErrorMock,
   getOrCreateByFeedMock,
+  resolveRemoteItemStubsForChannelMock,
+  deleteRemoteStubsForParsedFeedMock,
+  compatChannelImageDtosMock,
+  compatItemImageDtosMock,
+  parserSettings,
 } = vi.hoisted(() => ({
   handleAllRemoteItemsFeedParsingMock: vi.fn(),
   handleGetRSSFeedMock: vi.fn(),
@@ -62,14 +67,17 @@ const {
   followChannelMock: vi.fn(),
   accountGetMock: vi.fn(),
   logErrorMock: vi.fn(),
-  getOrCreateByFeedMock: vi.fn(),
+  getOrCreateByFeedMock: vi.fn().mockResolvedValue({ id: 1, id_text: 'c1' }),
+  resolveRemoteItemStubsForChannelMock: vi.fn(),
+  deleteRemoteStubsForParsedFeedMock: vi.fn(),
+  compatChannelImageDtosMock: vi.fn((): { url: string | null }[] => []),
+  compatItemImageDtosMock: vi.fn((): { url: string | null }[] => []),
+  parserSettings: { addRemoteItemsToMQ: false },
 }));
 
 vi.mock('@parser/config/index.js', () => ({
   config: {
-    parser: {
-      addRemoteItemsToMQ: false,
-    },
+    parser: parserSettings,
   },
 }));
 
@@ -122,6 +130,11 @@ vi.mock('@parser/lib/rss/remoteItemParser.js', () => ({
   handleAllRemoteItemsFeedParsing: handleAllRemoteItemsFeedParsingMock,
 }));
 
+vi.mock('@parser/lib/rss/remoteItemStubs.js', () => ({
+  resolveRemoteItemStubsForChannel: resolveRemoteItemStubsForChannelMock,
+  deleteRemoteStubsForParsedFeed: deleteRemoteStubsForParsedFeedMock,
+}));
+
 vi.mock('../notifications/handleNewItemNotifications.js', () => ({
   handleNewItemNotifications: handleNewItemNotificationsMock,
 }));
@@ -165,8 +178,8 @@ vi.mock('@podverse/helpers-requests', () => ({
 }));
 
 vi.mock('@podverse/parser-mapping', () => ({
-  compatChannelImageDtos: vi.fn(() => []),
-  compatItemImageDtos: vi.fn(() => []),
+  compatChannelImageDtos: compatChannelImageDtosMock,
+  compatItemImageDtos: compatItemImageDtosMock,
 }));
 
 vi.mock('@podverse/orm', () => ({
@@ -234,6 +247,7 @@ vi.mock('@podverse/orm', () => ({
 
 import type { DescriptionIngestContext } from './descriptionIngestContext.js';
 import { recordPreparedDescription } from './descriptionIngestContext.js';
+import { FeedNoChangesSinceLastParsedError } from './errors.js';
 import { parseRSSFeedAndSaveToDatabase } from './parser.js';
 
 const baseFeed = {
@@ -669,5 +683,120 @@ describe('parseRSSFeedAndSaveToDatabase description telemetry', () => {
         dto.description_truncated_count !== undefined
     );
     expect(telemetryCall).toBeUndefined();
+  });
+});
+
+describe('parseRSSFeedAndSaveToDatabase remote item handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    parserSettings.addRemoteItemsToMQ = false;
+    conditionMocks.shouldAttemptFeedParseFromLifecycleAndPolicy.mockReturnValue(true);
+    conditionMocks.tryStartParsing.mockResolvedValue(true);
+    conditionMocks.recomputePolicy.mockResolvedValue({ parse_allowed: true });
+    conditionMocks.getActiveConditionKeys.mockResolvedValue([]);
+    feedLogGetMock.mockResolvedValue({ parse_errors: 0 });
+    handleGetRSSFeedMock.mockResolvedValue(baseFeed);
+    handleRequestRSSFeedMock.mockResolvedValue(parsedFeedFixture);
+    handleParsedFeedMock.mockImplementation(async (_parsed: unknown, f: { id: number }) => f);
+    handleParsedChannelSeasonsMock.mockResolvedValue(undefined);
+    handleParsedChannelMock.mockResolvedValue(undefined);
+    handleParsedItemsMock.mockResolvedValue({
+      hadStoredItems: true,
+      newItemGuids: [],
+      newItemGuidEnclosureUrls: [],
+    });
+    handleParsedLiveItemsMock.mockResolvedValue({ pendingItemGuids: [], liveItemGuids: [] });
+    handleAllRemoteItemsFeedParsingMock.mockResolvedValue([]);
+    resolveRemoteItemStubsForChannelMock.mockResolvedValue(undefined);
+    deleteRemoteStubsForParsedFeedMock.mockResolvedValue(undefined);
+    feedServiceUpdateMock.mockImplementation(async (_id: number, dto: unknown) => dto);
+    pendingFollowGetMock.mockResolvedValue([]);
+    compatChannelImageDtosMock.mockReturnValue([]);
+    compatItemImageDtosMock.mockReturnValue([]);
+  });
+
+  it('writes remote stubs and returns only the parsed feed image hints when the flag is off', async () => {
+    compatChannelImageDtosMock.mockReturnValue([{ url: 'https://example.com/channel.jpg' }]);
+    compatItemImageDtosMock.mockReturnValue([{ url: 'https://example.com/item.jpg' }]);
+
+    const result = await parseRSSFeedAndSaveToDatabase(
+      baseFeed.url,
+      baseFeed.podcast_index_id,
+      parseOptions
+    );
+
+    expect(resolveRemoteItemStubsForChannelMock).toHaveBeenCalledTimes(1);
+    expect(resolveRemoteItemStubsForChannelMock).toHaveBeenCalledWith({ id: 1, id_text: 'c1' });
+    expect(handleAllRemoteItemsFeedParsingMock).not.toHaveBeenCalled();
+    expect(result.remoteItemsToParse).toEqual([]);
+    expect(result.imageHints).toEqual([
+      {
+        url: 'https://example.com/channel.jpg',
+        entityType: 'channel',
+        hintCreatedAt: expect.any(String),
+      },
+      {
+        url: 'https://example.com/item.jpg',
+        entityType: 'item',
+        hintCreatedAt: expect.any(String),
+      },
+    ]);
+  });
+
+  it('queues full parses and writes no stubs when the flag is on', async () => {
+    parserSettings.addRemoteItemsToMQ = true;
+    const queued = [
+      {
+        url: 'https://remote.example.com/feed.xml',
+        podcast_index_id: 777,
+        options: parseOptions,
+      },
+    ];
+    handleAllRemoteItemsFeedParsingMock.mockResolvedValueOnce(queued);
+
+    const result = await parseRSSFeedAndSaveToDatabase(
+      baseFeed.url,
+      baseFeed.podcast_index_id,
+      parseOptions
+    );
+
+    expect(handleAllRemoteItemsFeedParsingMock).toHaveBeenCalledTimes(1);
+    expect(resolveRemoteItemStubsForChannelMock).not.toHaveBeenCalled();
+    expect(result.remoteItemsToParse).toEqual(queued);
+  });
+
+  it('writes remote stubs when the feed has no changes since the last parse', async () => {
+    handleRequestRSSFeedMock.mockRejectedValueOnce(
+      new FeedNoChangesSinceLastParsedError(baseFeed.id)
+    );
+
+    await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, parseOptions);
+
+    expect(resolveRemoteItemStubsForChannelMock).toHaveBeenCalledTimes(1);
+    expect(deleteRemoteStubsForParsedFeedMock).not.toHaveBeenCalled();
+  });
+
+  it('writes no remote stubs when the parse fails partway', async () => {
+    handleParsedChannelMock.mockRejectedValueOnce(new Error('channel parse failed'));
+
+    await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, parseOptions);
+
+    expect(resolveRemoteItemStubsForChannelMock).not.toHaveBeenCalled();
+    expect(handleAllRemoteItemsFeedParsingMock).not.toHaveBeenCalled();
+  });
+
+  it('deletes stubs for the feed after a successful parse', async () => {
+    await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, parseOptions);
+
+    expect(deleteRemoteStubsForParsedFeedMock).toHaveBeenCalledTimes(1);
+    expect(deleteRemoteStubsForParsedFeedMock).toHaveBeenCalledWith(baseFeed, 1);
+  });
+
+  it('keeps stubs for the feed when the parse fails', async () => {
+    handleParsedItemsMock.mockRejectedValueOnce(new Error('item parse failed'));
+
+    await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, parseOptions);
+
+    expect(deleteRemoteStubsForParsedFeedMock).not.toHaveBeenCalled();
   });
 });

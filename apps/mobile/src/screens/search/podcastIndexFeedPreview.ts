@@ -8,6 +8,15 @@ export const PI_FEED_ADD_SOFT_NOTICE_MS = 60_000;
 
 export { DIRECTORY_ADD_POLL_TIMEOUT_MS as PI_FEED_ADD_POLL_TIMEOUT_MS };
 
+/**
+ * True when the screen should fetch the provider feed: nothing seeded, or seeded without a
+ * description.
+ */
+export const shouldFetchProviderFeed = (params: {
+  hasSeed: boolean;
+  description: string | undefined;
+}): boolean => !params.hasSeed || params.description === undefined;
+
 type ChannelWithReadyFields = Pick<DTOChannel, 'id_text' | 'medium_id'>;
 
 export const isParsedReadyChannel = <T extends ChannelWithReadyFields>(

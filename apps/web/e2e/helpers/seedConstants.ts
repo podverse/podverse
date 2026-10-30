@@ -107,6 +107,40 @@ export const E2E_MUSIC_ALBUM_UNCLAIMED_ID_TEXT = 'e2eMusicAlbm02';
 export const E2E_MUSIC_ALBUM_UNCLAIMED_TITLE = 'E2E Unclaimed Music Album';
 export const E2E_ARTIST_NOT_YET_ADDED_ALBUM_TITLE = 'E2E Not Yet Added Album';
 export const E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID = 2147483631;
+export const E2E_ARTIST_NOT_YET_ADDED_TRACK_TITLE = 'E2E Not Yet Added Track';
+export const E2E_PODROLL_PODCAST_ID_TEXT = 'e2ePodroll0001';
+export const E2E_PODROLL_PODCAST_TITLE = 'E2E Podroll Podcast';
+export const E2E_REMOTE_LIST_ID_TEXT = 'e2eRemoteList01';
+export const E2E_REMOTE_LIST_TITLE = 'E2E Remote List';
+
+/** Must match tools/web/seed-e2e.mjs */
+export const E2E_REMOTE_ITEM_CHANNEL_ID_TEXT = 'e2eRmtItmCh01';
+export const E2E_REMOTE_ITEM_CHANNEL_TITLE = 'E2E Remote Item Channel';
+export const E2E_REMOTE_ITEM_CHANNEL_FEED_PI_ID = 876543225;
+export const E2E_REMOTE_ITEM_CHANNEL_FEED_URL = 'https://e2e-seed-remote-items.example/podcast.xml';
+export const E2E_REMOTE_ITEM_ALBUM_ID_TEXT = 'e2eRmtItmAl01';
+export const E2E_REMOTE_ITEM_ALBUM_TITLE = 'E2E Remote Item Album';
+export const E2E_REMOTE_ITEM_ALBUM_FEED_PI_ID = 876543226;
+export const E2E_REMOTE_ITEM_ALBUM_FEED_URL = 'https://e2e-seed-remote-items.example/album.xml';
+export const E2E_PODROLL_STUB_PODCAST_INDEX_ID = 2147483630;
+export const E2E_PODROLL_STUB_FEED_GUID = '11111111-2222-4333-8444-555555555511';
+export const E2E_PODROLL_STUB_FEED_URL = 'https://e2e-seed-remote-items.example/podroll-stub.xml';
+export const E2E_PODROLL_STUB_TITLE = 'E2E Podroll Stub Show';
+export const E2E_PODROLL_STUB_ITEM_GUID = 'e2e-podroll-stub-item';
+export const E2E_PODROLL_STUB_ITEM_TITLE = 'E2E Podroll Stub Episode';
+export const E2E_PODROLL_UNKNOWN_TITLE = 'E2E Podroll Unknown Show';
+export const E2E_PODROLL_UNKNOWN_FEED_GUID = '11111111-2222-4333-8444-555555555513';
+export const E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID = 2147483629;
+export const E2E_CHANNEL_REMOTE_STUB_FEED_GUID = '11111111-2222-4333-8444-555555555512';
+export const E2E_CHANNEL_REMOTE_STUB_FEED_URL =
+  'https://e2e-seed-remote-items.example/remote-stub.xml';
+export const E2E_CHANNEL_REMOTE_STUB_TITLE = 'E2E Remote Stub Show';
+export const E2E_CHANNEL_REMOTE_STUB_AUTHOR = 'E2E Remote Stub Author';
+export const E2E_CHANNEL_REMOTE_STUB_ITEM_GUID = 'e2e-remote-stub-item';
+export const E2E_CHANNEL_REMOTE_STUB_ITEM_TITLE = 'E2E Remote Stub Episode';
+export const E2E_CHANNEL_REMOTE_UNKNOWN_TITLE = 'E2E Remote Unknown Show';
+export const E2E_CHANNEL_REMOTE_UNKNOWN_FEED_GUID = '11111111-2222-4333-8444-555555555514';
+
 export const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
 export const E2E_MUSIC_TRACK_TWO_ID_TEXT = 'e2eMusicTrk002';
 export const E2E_MUSIC_QUEUE_ID_TEXT = 'e2eMusicQueue01';

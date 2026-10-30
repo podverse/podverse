@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { SyncedNotificationType } from '../auth';
 import { syncChannelNotificationEnabled, syncChannelNotificationType } from '../auth';
@@ -7,12 +8,17 @@ import {
   rememberChannelIdentity,
   rememberChannelNotifications,
 } from '../data/repositories/channelActionChromeRepository';
+import { resolveSupportedLocale } from '../i18n/locale';
 import {
   getChannelActionChrome,
   resolveChannelNotificationsEnabled,
 } from '../lib/channelActionChrome';
+import { promptPushFromChannelBellIfAllowed } from '../lib/notifications/channelBellPushPrompt';
 import { useMembershipGate } from '../membership/MembershipGateProvider';
 import { useAccessTier } from '../membership/useAccessTier';
+import { hasShownSignInPushPrompt } from '../prefs/signInPushPromptPrefs';
+import { readDevicePushState } from '../push/devicePushState.read';
+import { enablePushOnThisDevice } from '../push/enablePushOnThisDevice';
 
 export type ChannelNotificationsState = {
   /** Already-keyed copy for a failed write; null while nothing has failed. */
@@ -43,6 +49,10 @@ export type ChannelNotificationsState = {
  * `handleGateError` catches a server 403 that the client could not predict. Anything else surfaces
  * as `errorKey` for the caller to render near the control the user touched.
  *
+ * Turning a channel on first shows the system push prompt while this device can still ask and the
+ * sign-in push dialog has not been shown here for this account. The row is created whatever the
+ * answer.
+ *
  * Membership expiry is never described here. A lapsed member sees the gate, which explains renewal
  * in-app; expiry does not travel as a notification.
  */
@@ -59,10 +69,12 @@ export const useChannelNotifications = ({
     useAuth();
   const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
+  const { i18n } = useTranslation();
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const isSignedIn = status === 'authenticated';
+  const accountIdText = account?.id_text ?? null;
   const cachedChrome = getChannelActionChrome(channelIdText);
   const resolvedChannelId = channelId ?? cachedChrome?.channelId ?? null;
 
@@ -164,15 +176,38 @@ export const useChannelNotifications = ({
   const setEnabled = useCallback(
     async (next: boolean): Promise<void> => {
       await runWrite(async () => {
+        const auth = { accessToken, clearSession, refreshToken, setTokens };
+        if (next && accountIdText !== null) {
+          try {
+            await promptPushFromChannelBellIfAllowed({
+              enablePush: () =>
+                enablePushOnThisDevice({ auth, locale: resolveSupportedLocale(i18n.language) }),
+              readDevicePushState,
+              readPromptShown: () => hasShownSignInPushPrompt(accountIdText),
+            });
+          } catch (error) {
+            console.warn('Could not ask for push before turning on channel notifications', error);
+          }
+        }
         await syncChannelNotificationEnabled({
-          auth: { accessToken, clearSession, refreshToken, setTokens },
+          auth,
           channelIdText,
           enabled: next,
           setAccount,
         });
       });
     },
-    [accessToken, channelIdText, clearSession, refreshToken, runWrite, setAccount, setTokens]
+    [
+      accessToken,
+      accountIdText,
+      channelIdText,
+      clearSession,
+      i18n.language,
+      refreshToken,
+      runWrite,
+      setAccount,
+      setTokens,
+    ]
   );
 
   const setTypeEnabled = useCallback(

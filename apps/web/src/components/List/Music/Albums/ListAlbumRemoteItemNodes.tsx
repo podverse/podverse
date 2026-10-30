@@ -2,9 +2,10 @@
 
 import React from 'react';
 
-import type { DTOChannel, PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+import type { DTOChannel, DTORemoteChannelStub } from '@podverse/helpers';
 import { Divider } from '@podverse/ui';
 
+import { remoteChannelStubRowKey } from '../../../Content/remoteItemStubRow';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { ListAlbumGridNode } from './ListAlbumGridNode';
 import { ListAlbumGridNodeUnadded } from './ListAlbumGridNodeUnadded';
@@ -15,7 +16,7 @@ import styles from '../../../../styles/components/Common/List/ListNodes.module.s
 
 interface Params {
   channelsAdded: DTOChannel[];
-  channelsUnadded: PodcastBatchByFeedGuidResponse['feeds'];
+  channelsUnadded: DTORemoteChannelStub[];
   viewSelected: ViewSelectedOption;
 }
 
@@ -34,7 +35,7 @@ export function ListAlbumRemoteItemNodes({
           </React.Fragment>
         ))}
         {channelsUnadded.map((channelUnadded, idx) => (
-          <React.Fragment key={channelUnadded.id}>
+          <React.Fragment key={remoteChannelStubRowKey(channelUnadded)}>
             <ListAlbumRowRemoteItemUnadded channelUnadded={channelUnadded} />
             {idx < channelsUnadded.length - 1 && <Divider />}
           </React.Fragment>
@@ -50,7 +51,10 @@ export function ListAlbumRemoteItemNodes({
           <ListAlbumGridNode key={channelAdded.id} channel={channelAdded} />
         ))}
         {channelsUnadded.map((channelUnadded) => (
-          <ListAlbumGridNodeUnadded key={channelUnadded.id} channelUnadded={channelUnadded} />
+          <ListAlbumGridNodeUnadded
+            key={remoteChannelStubRowKey(channelUnadded)}
+            channelUnadded={channelUnadded}
+          />
         ))}
       </div>
     );

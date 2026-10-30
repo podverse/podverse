@@ -5,6 +5,8 @@ import {
   readBrowseListPrefs,
   subscribeBrowseListPrefs,
   writeBrowseMediaType,
+  writeBrowseRange,
+  writeBrowseSort,
   writeBrowseViewMode,
 } from './browseListPrefs';
 
@@ -101,7 +103,97 @@ describe('browseListPrefs', () => {
     });
   });
 
-  it('notifies a watcher when the root or a view-mode scope changes', async () => {
+  it('opens every media type on Top for the week when nothing has been chosen', async () => {
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      mediaType: 'podcasts',
+      range: 'week',
+      sort: 'top',
+    });
+
+    await writeBrowseMediaType('playlists');
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      mediaType: 'playlists',
+      range: 'week',
+      sort: 'top',
+    });
+  });
+
+  it('keeps a sort per media type', async () => {
+    await writeBrowseSort('episodes', 'recent');
+    await writeBrowseMediaType('episodes');
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({ sort: 'recent' });
+
+    await writeBrowseMediaType('clips');
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      range: 'week',
+      sort: 'top',
+    });
+  });
+
+  it('choosing a window selects Top for that media type only', async () => {
+    await writeBrowseSort('podcasts', 'recent');
+    await writeBrowseRange('podcasts', 'day');
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      range: 'day',
+      sort: 'top',
+    });
+
+    await writeBrowseMediaType('artists');
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      range: 'week',
+      sort: 'top',
+    });
+  });
+
+  it('keeps the window while Recent is selected', async () => {
+    await writeBrowseRange('tracks', 'month');
+    await writeBrowseSort('tracks', 'recent');
+    await writeBrowseMediaType('tracks');
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      range: 'month',
+      sort: 'recent',
+    });
+
+    await writeBrowseSort('tracks', 'top');
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      range: 'month',
+      sort: 'top',
+    });
+  });
+
+  it('opens on the week even when the Browse root entry holds a window', async () => {
+    inMemoryStore.set('sort.browse', JSON.stringify({ range: 'month' }));
+
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      range: 'week',
+      sort: 'top',
+    });
+  });
+
+  it('ignores a stored sort Browse does not offer', async () => {
+    inMemoryStore.set('sort.browse-podcasts', JSON.stringify({ sort: 'a_z' }));
+
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({ sort: 'top' });
+  });
+
+  it('keeps sort and view mode in one entry per channel type', async () => {
+    await writeBrowseViewMode('artists', 'grid');
+    await writeBrowseSort('artists', 'recent');
+
+    expect(JSON.parse(inMemoryStore.get('sort.browse-artists') ?? '{}')).toEqual({
+      sort: 'recent',
+      viewMode: 'grid',
+    });
+  });
+
+  it('stores no sort for Livestreams', async () => {
+    await writeBrowseSort('livestreams', 'recent');
+    await writeBrowseRange('livestreams', 'day');
+
+    expect(inMemoryStore.has('sort.browse-livestreams')).toBe(false);
+  });
+
+  it("notifies a watcher when the root or a media type's entry changes", async () => {
     const listener = vi.fn();
     const unsubscribe = subscribeBrowseListPrefs(listener);
 
@@ -111,8 +203,11 @@ describe('browseListPrefs', () => {
     await writeBrowseViewMode('artists', 'grid');
     expect(listener).toHaveBeenCalledTimes(2);
 
+    await writeBrowseSort('episodes', 'recent');
+    expect(listener).toHaveBeenCalledTimes(3);
+
     unsubscribe();
     await writeBrowseViewMode('podcasts', 'grid');
-    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenCalledTimes(3);
   });
 });

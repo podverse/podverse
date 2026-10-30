@@ -1,180 +1,35 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
 
-import type { RemoteItemsResponse } from '@podverse/helpers';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
-import { CoverImage, ListRow } from '../../../components/primitives';
-import { channelToHomeRow, itemToHomeRow } from '../../../lib/rows/homeRowMappers';
-import type { ChannelBrowseStackParamList } from '../../../navigation';
-import { buildPodcastDetailParams, CHANNEL_BROWSE_STACK_ROUTES } from '../../../navigation';
-import { LIST_ROW_ARTWORK_SIZE } from '../../../theme/screenLayout';
-import type { ThemedStylesTheme } from '../../../theme/useThemedStyles';
-import { useThemedStyles } from '../../../theme/useThemedStyles';
-import { PodcastSectionList } from './PodcastSectionList';
 import type { PodcastSectionPaneProps } from './podcastSectionPane';
-import type { PodcastSectionPage } from './usePodcastSectionRows';
-import { usePodcastSectionRows } from './usePodcastSectionRows';
-
-/** Artwork sizing only, so it does not depend on the theme. Square, matching every other row. */
-const coverStyles = StyleSheet.create({
-  image: {
-    height: LIST_ROW_ARTWORK_SIZE,
-    width: LIST_ROW_ARTWORK_SIZE,
-  },
-});
-
-/** Content rows draw a top hairline, including the first row. */
-const createContentListRowStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
-  row: {
-    borderTopColor: themeStyles.border.borderColor,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-});
-
-type PodrollEntry = {
-  imageUrl: string | null;
-  key: string;
-  subtitle: string | null;
-  target: { idText: string; kind: 'channel' | 'episode' };
-  title: string;
-};
+import { RemoteItemListPane } from './RemoteItemListPane';
 
 /**
- * A podroll names other people's feeds, and the endpoint answers with the ones this install can
- * actually open — a recommendation the directory has never seen has nowhere to go, so it is left out
- * rather than listed as a row that does nothing.
- */
-const toPodrollEntries = (response: RemoteItemsResponse): PodrollEntry[] => {
-  const entries: PodrollEntry[] = [];
-
-  for (const channel of response.channelsAdded) {
-    const row = channelToHomeRow(channel);
-    if (row.id.length === 0) {
-      continue;
-    }
-    entries.push({
-      imageUrl: row.imageUrl,
-      key: `channel-${row.id}`,
-      subtitle: row.subtitle,
-      target: { idText: row.id, kind: 'channel' },
-      title: row.title,
-    });
-  }
-
-  for (const item of response.itemsAdded) {
-    const row = itemToHomeRow(item);
-    if (row.id.length === 0) {
-      continue;
-    }
-    entries.push({
-      imageUrl: row.imageUrl,
-      key: `episode-${row.id}`,
-      subtitle: row.subtitle,
-      target: { idText: row.id, kind: 'episode' },
-      title: row.title,
-    });
-  }
-
-  return entries;
-};
-
-function PodcastPodrollRow({
-  entry,
-  index,
-  onPress,
-}: {
-  entry: PodrollEntry;
-  index: number;
-  onPress: (entry: PodrollEntry) => void;
-}) {
-  const styles = useThemedStyles(createContentListRowStyles);
-  const handlePress = useCallback(() => {
-    onPress(entry);
-  }, [entry, onPress]);
-
-  return (
-    <View style={styles.row}>
-      <ListRow
-        leading={<CoverImage opensViewer={false} style={coverStyles.image} uri={entry.imageUrl} />}
-        onPress={handlePress}
-        subtitle={entry.subtitle ?? undefined}
-        testID={`podcast-podroll-row-${index}`}
-        title={entry.title}
-      />
-    </View>
-  );
-}
-
-/**
- * The podcasts and episodes this podcast recommends.
- *
- * The whole podroll arrives in one response, so there is no second page to reach for. The chip only
- * appears when the feed declared a podroll, which makes an empty list here the narrow case of a
- * declared podroll whose entries are all unknown to the directory.
+ * The podcasts and episodes this podcast recommends: parsed ones open their screen, and remote
+ * stubs open the provider search detail for their feed. References the index provider does not
+ * know are left out by the API. The whole podroll arrives in one response, so there is no second
+ * page. The chip only appears when the feed declared a podroll, which makes an empty list here a
+ * declared podroll none of whose entries the API returned.
  */
 export function PodcastPodrollSection({
   channelIdText,
   listHeader,
   onRefreshChannel,
 }: PodcastSectionPaneProps) {
-  const { t } = useTranslation();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<ChannelBrowseStackParamList, 'PodcastDetail'>>();
-
-  const fetchPage = useCallback(
-    async (api: ApiRequestService): Promise<PodcastSectionPage<PodrollEntry>> => {
-      const response = await api.reqPodrollGetForChannel(channelIdText);
-      return { hasMore: false, rows: toPodrollEntries(response) };
-    },
+  const fetchPodroll = useCallback(
+    (api: ApiRequestService) => api.reqPodrollGetForChannel(channelIdText),
     [channelIdText]
   );
 
-  const { errorKey, isInitialLoading, isRefreshing, refresh, retry, rows } =
-    usePodcastSectionRows(fetchPage);
-
-  const openEntry = useCallback(
-    (entry: PodrollEntry) => {
-      if (entry.target.kind === 'channel') {
-        navigation.navigate(
-          CHANNEL_BROWSE_STACK_ROUTES.PodcastDetail,
-          buildPodcastDetailParams({
-            podcastId: entry.target.idText,
-            previewImageUrl: entry.imageUrl,
-            previewTitle: entry.title,
-          })
-        );
-        return;
-      }
-
-      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
-        episodeId: entry.target.idText,
-      });
-    },
-    [navigation]
-  );
-
   return (
-    <PodcastSectionList
-      accessibilityLabel={t('info.podroll')}
+    <RemoteItemListPane
+      accessibilityLabelKey="info.podroll"
       emptyMessageKey="info.no_podroll_found"
-      errorKey={errorKey}
-      isInitialLoading={isInitialLoading}
-      isRefreshing={isRefreshing}
-      keyExtractor={(entry) => entry.key}
+      fetchResponse={fetchPodroll}
       listHeader={listHeader}
-      onRefresh={() => {
-        void onRefreshChannel();
-        refresh();
-      }}
-      onRetry={retry}
-      renderRow={({ index, row: entry }) => (
-        <PodcastPodrollRow entry={entry} index={index} onPress={openEntry} />
-      )}
-      rows={rows}
+      onRefreshChannel={onRefreshChannel}
+      rowTestIDPrefix="podcast-podroll-row"
       testID="podcast-detail-podroll-list"
     />
   );

@@ -1,7 +1,7 @@
 import type {
   DTOChannel,
   DTOItem,
-  PodcastBatchByFeedGuidResponse,
+  DTORemoteChannelStub,
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
@@ -10,6 +10,7 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
 import { DirectoryRemovedNotice } from '../../../components/Content/DirectoryRemovedNotice';
+import { remoteItemsResponseHasRows } from '../../../components/Content/remoteItemStubRow';
 import { CoreArtistHeader } from '../../../components/Core/Artist/CoreArtistHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { DirectoryRemovedProvider } from '../../../contexts/DirectoryRemoved';
@@ -22,7 +23,7 @@ interface ArtistPageClientProps {
   initialQueryParams: QueryParamsChannelMusicArtist;
   ssrChannel: DTOChannel;
   ssrChannelsAdded: DTOChannel[];
-  ssrChannelsUnadded: PodcastBatchByFeedGuidResponse['feeds'];
+  ssrChannelsUnadded: DTORemoteChannelStub[];
   ssrItemsAdded: DTOItem[];
   ssrPodroll: RemoteItemsResponse | null;
   directoryRemoved: boolean;
@@ -41,7 +42,7 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
   const ssrHasAlbums = ssrChannelsAdded.length > 0 || ssrChannelsUnadded.length > 0;
   const ssrHasTracks = ssrItemsAdded.length > 0;
   const ssrHasDescription = !!ssrChannel.channel_description;
-  const ssrHasPodroll = !!ssrPodroll;
+  const ssrHasPodroll = remoteItemsResponseHasRows(ssrPodroll);
   const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
     channel: ssrChannel,
     item: null,

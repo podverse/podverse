@@ -104,7 +104,8 @@ export const ProfilesPageContextProvider = ({
           sort: filterParams.sort,
           range: filterParams.range,
         },
-        !!loggedInAccount
+        !!loggedInAccount,
+        listScope
       );
 
       const response = await apiRequestService.reqAccountGetMany({

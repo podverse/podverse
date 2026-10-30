@@ -7,6 +7,7 @@ import type {
   DTOClip,
   DTOItem,
   DTOItemSoundbite,
+  RemoteItemsResponse,
   SortPrefScope,
   SortPrefValue,
 } from '@podverse/helpers';
@@ -180,6 +181,11 @@ export default async function PodcastPage({ params, searchParams }: PodcastPageP
     ssrPodroll = await ssrApiRequestService.reqPodrollGetForChannel(ssrChannel.id_text);
   }
 
+  let ssrRemoteItems: RemoteItemsResponse | null = null;
+  if ((ssrChannel.channel_remote_items?.length ?? 0) > 0) {
+    ssrRemoteItems = await ssrApiRequestService.reqRemoteItemGetForChannel(ssrChannel.id_text);
+  }
+
   return (
     <PodcastPageClient
       hasExplicitUrlParams={hasExplicitUrlParams}
@@ -197,6 +203,7 @@ export default async function PodcastPage({ params, searchParams }: PodcastPageP
       ssrHasItemSoundbites={ssrHasItemSoundbites}
       ssrTotalPages={ssrTotalPages}
       ssrPodroll={ssrPodroll}
+      ssrRemoteItems={ssrRemoteItems}
       directoryRemoved={directoryRemoved}
     />
   );

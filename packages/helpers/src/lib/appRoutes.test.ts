@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   APP_ROUTES,
   buildEpisodePath,
+  buildIndexProviderFeedPath,
   buildMobileHomeAlbumTrackPath,
   buildMobileHomePodcastEpisodePath,
   buildMobileHomeScopedPath,
@@ -36,6 +37,12 @@ describe('appRoutes', () => {
   it('builds detail paths from APP_ROUTES prefixes', () => {
     expect(buildEpisodePath('ep-1')).toBe(`${APP_ROUTES.EPISODE}/ep-1`);
     expect(buildPodcastLivestreamPath('ch-1')).toBe(`${APP_ROUTES.PODCAST_LIVESTREAM}/ch-1`);
+  });
+
+  it('builds provider feed paths through the index-provider route helper', () => {
+    expect(buildIndexProviderFeedPath('podcast_index', '920666')).toBe(
+      '/podcast-index/feed/920666'
+    );
   });
 
   it('maps notification message types to path prefixes', () => {

@@ -41,7 +41,7 @@ export function getTracksPageFilterParams(
 ): TracksPageDropdownConfigCurrentParams {
   return buildSubscribedListFilterParams({
     ...params,
-    defaultGlobalSort: 'recent',
+    defaultGlobalSort: 'top',
     defaultSubscribedSort: 'recent',
     globalSortValues: QUERY_PARAMS_GLOBAL_SORT_VALUES,
     isValidAuthSession,

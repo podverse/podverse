@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { Linking, Platform } from 'react-native';
 
@@ -17,6 +18,9 @@ type PushPlatform = Extract<
   AccountFCMDevicePlatformValues,
   AccountFCMDevicePlatformEnum.Android | AccountFCMDevicePlatformEnum.iOS
 >;
+
+const ANDROID_APP_NOTIFICATION_SETTINGS = 'android.settings.APP_NOTIFICATION_SETTINGS';
+const ANDROID_EXTRA_APP_PACKAGE = 'android.provider.extra.APP_PACKAGE';
 
 const isFcmPushEnabled = (): boolean => {
   return getMobileConfig().pushProvider === 'fcm';
@@ -132,6 +136,21 @@ export const onFcmDeviceTokenRefresh = (
   };
 };
 
+/**
+ * Opens Podverse's notification page in system settings on Android, and Podverse's page in
+ * Settings on iOS. Falls back to the app's settings page when Android refuses the intent.
+ */
 export const openSystemNotificationSettings = async (): Promise<void> => {
+  const androidPackage = Constants.expoConfig?.android?.package;
+  if (Platform.OS === 'android' && androidPackage !== undefined) {
+    try {
+      await Linking.sendIntent(ANDROID_APP_NOTIFICATION_SETTINGS, [
+        { key: ANDROID_EXTRA_APP_PACKAGE, value: androidPackage },
+      ]);
+      return;
+    } catch (error) {
+      console.warn('Could not open app notification settings; opening app settings', error);
+    }
+  }
   await Linking.openSettings();
 };

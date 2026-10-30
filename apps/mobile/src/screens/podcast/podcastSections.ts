@@ -9,6 +9,7 @@ export type PodcastSectionChannel = {
   channel_podroll?: {
     channel_podroll_remote_items?: readonly unknown[] | null;
   } | null;
+  channel_remote_items?: readonly unknown[] | null;
 };
 
 export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
@@ -19,6 +20,7 @@ export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
   funding: 'info.funding',
   people: 'info.people.people',
   podroll: 'info.podroll',
+  remote_items: 'info.remote_items',
   soundbites: 'info.soundbite.official_clips',
 };
 
@@ -46,6 +48,10 @@ export const channelHasPodroll = (channel: PodcastSectionChannel | null): boolea
   return (channel?.channel_podroll?.channel_podroll_remote_items?.length ?? 0) > 0;
 };
 
+export const channelHasRemoteItems = (channel: PodcastSectionChannel | null): boolean => {
+  return (channel?.channel_remote_items?.length ?? 0) > 0;
+};
+
 export const channelHasFunding = (channel: PodcastSectionChannel | null): boolean => {
   return (channel?.channel_fundings?.length ?? 0) > 0;
 };
@@ -57,11 +63,12 @@ export const channelHasPeople = (channel: PodcastSectionChannel | null): boolean
 /**
  * Which sections this podcast can offer.
  *
- * Episodes, Downloaded, About, and Clips are always answerable. Official clips and Podroll sit
- * after those and appear from cached evidence, then from the channel DTO / stored episodes once
- * those have been read. Funding appears when this channel has funding rows. People follows
- * Funding when this channel has people. Channel settings are the gear on the channel header,
- * not a chip. The optional sort / category trailing chip may follow the last content chip.
+ * Episodes, Downloaded, About, and Clips are always answerable. Official clips, Podroll, and
+ * Remote Items sit after those and appear from cached evidence, then from the channel DTO /
+ * stored episodes once those have been read. Funding appears when this channel has funding
+ * rows. People follows Funding when this channel has people. Channel settings are the gear on
+ * the channel header, not a chip. The optional sort / category trailing chip may follow the
+ * last content chip.
  */
 export const resolvePodcastSections = ({
   channel,
@@ -69,14 +76,18 @@ export const resolvePodcastSections = ({
   previewHasFunding,
   previewHasPeople,
   previewHasPodroll,
+  previewHasRemoteItems,
 }: {
   channel: PodcastSectionChannel | null;
   hasSoundbites: boolean;
   previewHasFunding?: boolean;
   previewHasPeople?: boolean;
   previewHasPodroll?: boolean;
+  previewHasRemoteItems?: boolean;
 }): PodcastTab[] => {
   const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll === true;
+  const hasRemoteItems =
+    channel !== null ? channelHasRemoteItems(channel) : previewHasRemoteItems === true;
   const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding === true;
   const hasPeople = channel !== null ? channelHasPeople(channel) : previewHasPeople === true;
 
@@ -89,6 +100,9 @@ export const resolvePodcastSections = ({
     }
     if (section === 'podroll') {
       return hasPodroll;
+    }
+    if (section === 'remote_items') {
+      return hasRemoteItems;
     }
     if (section === 'funding') {
       return hasFunding;

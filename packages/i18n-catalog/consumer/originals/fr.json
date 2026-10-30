@@ -31,6 +31,7 @@
       "artist_go_to": "Aller à l'artiste",
       "no_tracks_found": "Aucune piste trouvée",
       "no_albums_found": "Aucun album trouvé",
+      "no_artists_found": "Aucun artiste trouvé",
       "verified_albums": "Albums vérifiés",
       "your_add_by_rss_albums": "Vos albums Ajouter par RSS",
       "not_yet_added": "Pas encore ajoutés",
@@ -126,12 +127,17 @@
       "credentials_check_failed": "Impossible de vérifier ce flux. Réessayez plus tard.",
       "credentials_not_saved_on_device": "Ce navigateur n'a pas pu enregistrer l'identifiant et le mot de passe : ils n'ont servi que pour cette vérification.",
       "media_other_domain": "Ce média est hébergé sur un autre domaine que le flux protégé, ce qui n'est pas pris en charge.",
-      "media_needs_credentials": "Ce média peut exiger un identifiant et un mot de passe, que les navigateurs ne peuvent pas envoyer aux fichiers audio et vidéo. Utilisez plutôt l'app mobile. Le flux continue de se mettre à jour sur le web."
+      "media_needs_credentials": "Ce média peut exiger un identifiant et un mot de passe, que les navigateurs ne peuvent pas envoyer aux fichiers audio et vidéo. Utilisez plutôt l'app mobile. Le flux continue de se mettre à jour sur le web.",
+      "remote_feed_explanation": "Ce flux n'est pas dans notre annuaire ni dans Podcast Index. Ajoutez-le par RSS pour le suivre dans votre bibliothèque Ajouter par RSS.",
+      "remote_item_lookup_failed": "Impossible de consulter ce flux. Veuillez réessayer plus tard.",
+      "remote_item_directory_unavailable": "Ce flux n'est pas disponible pour le moment.",
+      "remote_item_not_found": "Impossible de trouver ce flux."
     },
     "browse": {
       "browse": "Parcourir",
       "category_all": "Toutes les catégories",
-      "users": "Utilisateurs"
+      "users": "Utilisateurs",
+      "no_users_found": "Aucun utilisateur trouvé"
     },
     "recommendations": {
       "title": "Recommandations",
@@ -390,7 +396,9 @@
       "play_from": "Lire à partir de {time}"
     },
     "podroll": "Podroll",
+    "remote_items": "Éléments distants",
     "no_podroll_found": "Aucun podcast recommandé trouvé",
+    "no_remote_items_found": "Aucun élément distant trouvé",
     "show_more": "Afficher plus",
     "show_less": "Afficher moins",
     "truncation": {
@@ -1353,7 +1361,15 @@
       "first_subscribe_push_title": "Activer les notifications push ?",
       "first_subscribe_push_body": "Recevez des alertes sur l'écran de verrouillage pour les nouveaux épisodes et les diffusions en direct, ou gardez les alertes uniquement dans la boîte de réception de l'application.",
       "first_subscribe_enable_push": "Activer le push",
-      "first_subscribe_in_app_only": "Dans l'application seulement"
+      "first_subscribe_in_app_only": "Dans l'application seulement",
+      "sign_in_push_prompt_title": "Activer les notifications push sur cet appareil ?",
+      "sign_in_push_prompt_body": "Les notifications push sont activées pour votre compte. Autorisez-les sur cet appareil pour recevoir aussi les alertes ici.",
+      "sign_in_push_prompt_enable": "Activer le push",
+      "sign_in_push_prompt_not_now": "Plus tard",
+      "device_push_banner_message": "Les notifications push sont activées pour votre compte, mais cet appareil n'a pas l'autorisation de les afficher.",
+      "device_push_banner_action": "Autoriser sur cet appareil",
+      "device_push_blocked_title": "Les notifications sont bloquées",
+      "device_push_blocked_web_body": "Ce navigateur bloque les notifications de ce site. Ouvrez les paramètres du site depuis l'icône à côté de la barre d'adresse, réglez Notifications sur Autoriser, puis rechargez cette page."
     },
     "opml": {
       "opml": "OPML",
@@ -1665,8 +1681,7 @@
     "loading": "Chargement des notifications…",
     "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité.",
     "empty": "Vous êtes à jour. Les alertes de nouveaux épisodes, directs et actualités apparaîtront ici.",
-    "unread_section": "Non lues",
-    "earlier_section": "Plus anciennes",
+    "unread": "Non lues",
     "category_new_content": "Nouveau contenu",
     "category_livestream": "Diffusion en direct",
     "category_product_update": "Mise à jour du produit",
@@ -1685,15 +1700,6 @@
     "line_new_video_channel": "Nouvelle chaîne vidéo",
     "line_podcast_index_feed": "Nouveau podcast",
     "line_system_update": "Mise à jour du système",
-    "relative_time_just_now": "À l'instant",
-    "relative_time_seconds_ago": "Il y a {count, plural, one {# seconde} other {# secondes}}",
-    "relative_time_seconds_from_now": "Dans {count, plural, one {# seconde} other {# secondes}}",
-    "relative_time_minutes_ago": "Il y a {count, plural, one {# minute} other {# minutes}}",
-    "relative_time_minutes_from_now": "Dans {count, plural, one {# minute} other {# minutes}}",
-    "relative_time_hours_ago": "Il y a {count, plural, one {# heure} other {# heures}}",
-    "relative_time_hours_from_now": "Dans {count, plural, one {# heure} other {# heures}}",
-    "relative_time_days_ago": "Il y a {count, plural, one {# jour} other {# jours}}",
-    "relative_time_days_from_now": "Dans {count, plural, one {# jour} other {# jours}}",
     "no_body": "Ouvrir pour voir les détails."
   },
   "action_error": {

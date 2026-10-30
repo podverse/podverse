@@ -11,6 +11,10 @@ import {
   shouldSkipParseAllEnqueue,
 } from '@api/lib/addByRSSCredentials.js';
 import { writeE2eAddByRSSPublisherListedFeeds } from '@api/lib/addByRSSE2ePublisherFixture.js';
+import {
+  E2E_ADD_BY_RSS_REMOTE_ITEM_NOT_FOUND_FEED_GUID,
+  E2E_ADD_BY_RSS_REMOTE_ITEM_NOT_FOUND_FEED_URL,
+} from '@api/lib/addByRSSE2eRemoteItemFixture.js';
 import type { AddByRSSParseCacheEntry } from '@api/lib/addByRSSParseCache.js';
 import {
   getAddByRSSParseCacheEntry,
@@ -21,6 +25,10 @@ import {
   setAddByRSSParseDedupeEntry,
 } from '@api/lib/addByRSSParseDedupeCache.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import {
+  E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+  E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
+} from '@api/lib/e2eArtistAlbumsFixture.js';
 import { getParamRequired } from '@api/lib/params.js';
 import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
 import { joiFeedUrl, validateBodyObject, validateParamsObject } from '@api/lib/validation/index.js';
@@ -78,6 +86,13 @@ type E2eParsedFeedFixture = {
   podcastGuid?: string;
   /** The feed's podcast:publisher pointer. */
   publisher?: { feedGuid: string; feedUrl: string; medium: string };
+  /** Channel-level podcast:podroll remote items. */
+  podroll?: Array<{
+    feedGuid: string;
+    feedUrl?: string;
+    itemGuid?: string;
+    title?: string;
+  }>;
   /** Channel-level podcast:remoteItem elements. */
   remoteItems?: Array<{
     feedGuid: string;
@@ -141,6 +156,12 @@ const E2E_ADD_BY_RSS_MUSIC_PODCAST_GUID = 'e2e0a1b0-0000-4000-8000-0000000000b1'
  */
 const E2E_DIRECTORY_MUSIC_ALBUM_PODCAST_GUID = '11111111-2222-4333-8444-555555555501';
 const E2E_DIRECTORY_MUSIC_FEED_URL = 'https://e2e-seed-music.example/album.xml';
+/**
+ * Sync with tools/web/seed-e2e.mjs: `${E2E_MUSIC_FEED_URL}#track-one`, the seeded track
+ * "E2E Music Track One".
+ */
+const E2E_DIRECTORY_MUSIC_TRACK_ONE_GUID = 'https://e2e-seed-music.example/album.xml#track-one';
+const E2E_ADD_BY_RSS_PODROLL_FEED_URL = 'https://e2e-seed-addbyrss.example/podcast-podroll.xml';
 
 /** A music album whose track links a transcript, for the mobile track flow. */
 const E2E_ADD_BY_RSS_MUSIC_PARSED_FEED: E2eParsedFeedFixture = {
@@ -199,6 +220,57 @@ const E2E_ADD_BY_RSS_ARTIST_PARSED_FEED: E2eParsedFeedFixture = {
   ],
 };
 
+const E2E_ADD_BY_RSS_PODROLL_PARSED_FEED: E2eParsedFeedFixture = {
+  ...E2E_DEFAULT_PARSED_FEED,
+  channelTitle: 'E2E Add-by-RSS Podroll Channel',
+  itemTitle: 'E2E Add-by-RSS Podroll Episode',
+  itemGuid: 'https://e2e-seed-addbyrss.example/item-guid/podroll',
+  podroll: [
+    {
+      feedGuid: E2E_DIRECTORY_MUSIC_ALBUM_PODCAST_GUID,
+      feedUrl: E2E_DIRECTORY_MUSIC_FEED_URL,
+      title: 'E2E Music Album',
+    },
+    {
+      feedGuid: E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
+      feedUrl: E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+    },
+    {
+      feedGuid: E2E_ADD_BY_RSS_REMOTE_ITEM_NOT_FOUND_FEED_GUID,
+      feedUrl: E2E_ADD_BY_RSS_REMOTE_ITEM_NOT_FOUND_FEED_URL,
+      title: 'E2E Remote Not Found Feed',
+    },
+    {
+      feedGuid: E2E_DIRECTORY_MUSIC_ALBUM_PODCAST_GUID,
+      feedUrl: E2E_DIRECTORY_MUSIC_FEED_URL,
+      itemGuid: E2E_DIRECTORY_MUSIC_TRACK_ONE_GUID,
+      title: 'E2E Music Track One',
+    },
+  ],
+  remoteItems: [
+    {
+      feedGuid: E2E_DIRECTORY_MUSIC_ALBUM_PODCAST_GUID,
+      feedUrl: E2E_DIRECTORY_MUSIC_FEED_URL,
+      itemGuid: E2E_DIRECTORY_MUSIC_TRACK_ONE_GUID,
+      medium: 'music',
+      title: 'E2E Music Track One',
+    },
+    {
+      feedGuid: E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
+      feedUrl: E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+      itemGuid: 'https://e2e-seed-addbyrss.example/item-guid/not-yet-added-track',
+      medium: 'music',
+      title: 'E2E Not Yet Added Track',
+    },
+    {
+      feedGuid: E2E_ADD_BY_RSS_REMOTE_ITEM_NOT_FOUND_FEED_GUID,
+      feedUrl: E2E_ADD_BY_RSS_REMOTE_ITEM_NOT_FOUND_FEED_URL,
+      itemGuid: 'https://e2e-seed-addbyrss.example/item-guid/remote-not-found',
+      title: 'E2E Remote Not Found Episode',
+    },
+  ],
+};
+
 const E2E_ADD_BY_RSS_LIVE_FEED_URL = 'https://e2e-seed-addbyrss.example/podcast-live.xml';
 
 /** A feed with one live and one scheduled livestream, for the mobile Add by RSS livestream flow. */
@@ -233,6 +305,7 @@ const E2E_PARSED_FEEDS_BY_URL: Record<string, E2eParsedFeedFixture> = {
   [E2E_ADD_BY_RSS_SECTIONS_FEED_URL]: E2E_ADD_BY_RSS_SECTIONS_PARSED_FEED,
   [E2E_ADD_BY_RSS_MUSIC_FEED_URL]: E2E_ADD_BY_RSS_MUSIC_PARSED_FEED,
   [E2E_ADD_BY_RSS_ARTIST_FEED_URL]: E2E_ADD_BY_RSS_ARTIST_PARSED_FEED,
+  [E2E_ADD_BY_RSS_PODROLL_FEED_URL]: E2E_ADD_BY_RSS_PODROLL_PARSED_FEED,
   [E2E_ADD_BY_RSS_LIVE_FEED_URL]: E2E_ADD_BY_RSS_LIVE_PARSED_FEED,
 };
 
@@ -282,6 +355,7 @@ const buildE2eParsedFeedPayload = (
     ...(source.podcastGuid !== undefined ? { guid: source.podcastGuid } : {}),
     ...(source.medium !== undefined ? { medium: source.medium } : {}),
     ...(source.publisher !== undefined ? { podcastPublisher: source.publisher } : {}),
+    ...(source.podroll !== undefined ? { podroll: source.podroll.map((ref) => ({ ...ref })) } : {}),
     link: source.link,
     description: 'E2E add-by-RSS fixture',
     explicit: false,

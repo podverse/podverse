@@ -297,16 +297,42 @@ class PlaylistController {
 
         const statsResults = await PlaylistController.statsPopularityPlaylistService.getManyPublic(
           config,
-          medium
+          medium,
+          order
         );
         const playlists = preparePlaylistsForJson(
           statsResults.map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean)
         );
 
-        res.status(200).json({
+        const response: ApiListResponse<PlaylistApiJson> = {
           data: playlists,
-          meta: { page },
+          meta: { page, count: null, limit },
+        };
+        res.status(200).json(response);
+      } catch (err) {
+        handleGenericErrorResponse(res, err);
+      }
+    });
+  }
+
+  static async getManyPublicRecent(req: Request, res: Response): Promise<void> {
+    validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
+      try {
+        const { medium } = req.query as {
+          medium: QueryParamsQueueMedium;
+        };
+        const { page, limit, offset } = getPaginationParams(req);
+
+        const playlists = await playlistService.getManyPublicForList(medium, {
+          order: { last_updated: 'DESC', id_text: 'ASC' },
+          skip: offset,
+          take: limit,
         });
+        const response: ApiListResponse<PlaylistApiJson> = {
+          data: preparePlaylistsForJson(playlists),
+          meta: { page, count: null, limit },
+        };
+        res.status(200).json(response);
       } catch (err) {
         handleGenericErrorResponse(res, err);
       }

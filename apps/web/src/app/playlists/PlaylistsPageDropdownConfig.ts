@@ -17,7 +17,10 @@ export function getPlaylistsPageSortOptions({
   tFilters: (key: string) => string;
 }): { label: string; value: QueryParamsSubscribedFullSort }[] {
   if (type === 'public') {
-    return [{ label: tFilters('sort.top'), value: 'top' }];
+    return [
+      { label: tFilters('sort.recent'), value: 'recent' },
+      { label: tFilters('sort.top'), value: 'top' },
+    ];
   }
   return [
     { label: tFilters('sort.top'), value: 'top' },

@@ -95,6 +95,9 @@ export * from './entities/channel/channelTxt.js';
 export * from './entities/channel/channelValue.js';
 export * from './entities/channel/channelMerge.js';
 export * from './entities/channel/channelMergeJournal.js';
+export * from './entities/remoteStub/remoteChannelStub.js';
+export * from './entities/remoteStub/remoteChannelStubAlias.js';
+export * from './entities/remoteStub/remoteItemStub.js';
 export * from './entities/channel/channelMetaBoost.js';
 export * from './entities/channel/channelValueRecipient.js';
 export * from './entities/channel/itemMergeMap.js';
@@ -289,6 +292,9 @@ export * from './services/channel/channelValue.js';
 export * from './services/channel/channelMerge.js';
 export * from './services/channel/channelMergeRedirect.js';
 export * from './services/channel/channelMergeJournal.js';
+export * from './services/remoteStub/remoteChannelStub.js';
+export * from './services/remoteStub/remoteItemStub.js';
+export * from './services/remoteStub/remoteStubDto.js';
 export * from './services/channel/channelMetaBoost.js';
 export * from './services/channel/channelValueRecipient.js';
 export * from './services/channel/itemMergeMap.js';
@@ -302,6 +308,7 @@ export * from './services/imageShrinkSource.js';
 
 export * from './services/feed/feed.js';
 export * from './services/feed/feedForceReparseScheduler.js';
+export * from './services/remoteStub/remoteStubJobScheduler.js';
 export * from './services/feed/feedTakedownReason.js';
 export * from './services/feed/feedLifecycleState.js';
 export * from './services/feed/feedLog.js';
@@ -348,6 +355,7 @@ export * from './services/playlist/playlist.js';
 export * from './services/playlist/playlistResource.js';
 
 export * from './services/publisherFeed.js';
+export * from './services/remoteItemReference/remoteItemReference.js';
 
 export * from './services/queue/queue.js';
 export * from './services/queue/queueResource.js';

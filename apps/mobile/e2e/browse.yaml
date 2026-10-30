@@ -3,8 +3,9 @@ name: Browse Tab And Tab Bar Pref
 ---
 # Default bar is Home / Browse / For Me / My Library / More. Search is the Home header control.
 # Settings does not list Search. For Me is already on the bar.
-# Browse is one chip row: directory types in a stable order, then Categories and the
-# popularity range (filter chrome) only when the current type can use them. The sort chip is last.
+# Browse is one chip row: directory types in a stable order. Categories and the sort chip
+# (filter chrome) appear only when the current type can use them; the sort chip is last.
+# Every type opens on Top for the past week and keeps its own sort.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -30,6 +31,8 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
+# Podcasts opens on Top for the past week.
+- assertVisible: "Sort: Week"
 - assertVisible:
     id: browse-media-type-selector
 - assertVisible:
@@ -67,25 +70,51 @@ name: Browse Tab And Tab Bar Pref
     id: browse-media-type-playlists
 - assertVisible:
     id: browse-media-type-users
-# Playlists and users are text-only catalog rows (no HomeFeedRow artwork). Public top lists
-# are stats-backed and may be empty after seed; prove the chrome, not a required row.
+# Playlists and users are text-only catalog rows (no HomeFeedRow artwork). Both open on Top for
+# the past week, and the seed counts no playlist or profile listens, so each list is empty.
 - tapOn:
     id: browse-media-type-playlists
 - extendedWaitUntil:
     visible:
-      id: browse-feed-list
+      id: browse-list-empty
     timeout: ${TIMEOUT_SLOWER}
 - assertNotVisible:
-    id: "home-feed-row-.*"
+    id: "browse-playlist-row-.*"
 - takeScreenshot: browse-screen-playlists
+# Recent lists the seeded public playlist. Only Playlists changes; Users keeps its own sort.
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: browse-sort-button
+- tapOn:
+    id: browse-sort-recent
+- extendedWaitUntil:
+    visible:
+      id: "browse-playlist-row-.*"
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible: "Sort: Recent"
+- takeScreenshot: browse-screen-playlists-recent
+- runFlow:
+    file: shared/reveal-chip-row-leading.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      LEADING_ID: browse-media-type-users
 - tapOn:
     id: browse-media-type-users
 - extendedWaitUntil:
     visible:
-      id: browse-feed-list
+      id: browse-list-empty
     timeout: ${TIMEOUT_SLOWER}
 - assertNotVisible:
-    id: "home-feed-row-.*"
+    id: "browse-user-row-.*"
+- assertVisible: "Sort: Week"
 - takeScreenshot: browse-screen-users
 # Livestreams is the chip before Playlists. The row is at its trailing edge here.
 - runFlow:
@@ -173,6 +202,13 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
+# Top for the week lists only shows with listens that week.
+- extendedWaitUntil:
+    visible:
+      text: "E2E Podcast Seed Channel"
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    text: "E2E HLS VOD Channel"
 - takeScreenshot: browse-screen-podcasts
 
 - tapOn:
@@ -197,15 +233,13 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
-# Top clips need aggregated stats. The e2e database may have none, so only assert the
-# parent line when a row actually painted.
-- runFlow:
-    when:
-      visible:
-        id: "home-feed-row-.*"
-    commands:
-      - assertVisible:
-          id: "home-feed-row-subtitle-.*"
+# The seed counts no clip listens, so Clips opens on an empty Top week.
+- extendedWaitUntil:
+    visible:
+      id: browse-list-empty
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: "home-feed-row-.*"
 - takeScreenshot: browse-screen-clips
 - tapOn:
     id: browse-media-type-episodes
@@ -224,14 +258,61 @@ name: Browse Tab And Tab Bar Pref
     from:
       id: browse-media-type-selector
     direction: LEFT
+- assertVisible: "Sort: Week"
 - tapOn:
     id: browse-sort-button
 - assertVisible:
     id: browse-sort-menu
 - assertVisible:
-    id: browse-sort-range-week
+    id: browse-sort-recent
+- assertVisible:
+    id: browse-sort-top
+- takeScreenshot: browse-sort-menu
+# Top is a two-step choice: the sort sheet, then the listen-count window.
 - tapOn:
-    id: browse-sort-menu-cancel
+    id: browse-sort-top
+- extendedWaitUntil:
+    visible:
+      id: browse-sort-range-menu
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: browse-sort-range-week
+- assertVisible:
+    id: browse-sort-range-month
+- assertVisible:
+    id: browse-sort-range-all-time
+- tapOn:
+    id: browse-sort-range-day
+# The seed counts no listens for the day. Top lists only rows counted above zero, so the day is
+# an empty list rather than Recent rows under the Top label.
+- extendedWaitUntil:
+    visible:
+      id: browse-list-empty
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: "home-feed-row-.*"
+- assertVisible: "Sort: Day"
+- takeScreenshot: browse-episodes-top-day-empty
+# Recent lists episodes whether or not anyone listened.
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
+- swipe:
+    from:
+      id: browse-media-type-selector
+    direction: LEFT
+- tapOn:
+    id: browse-sort-button
+- tapOn:
+    id: browse-sort-recent
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-subtitle-.*"
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible: "Sort: Recent"
+- takeScreenshot: browse-episodes-recent
 
 - tapOn:
     id: browse-category-button
@@ -281,6 +362,8 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
+# Episodes is on Recent now; Artists keeps its own sort and still opens on Top for the week.
+- assertVisible: "Sort: Week"
 - assertNotVisible:
     id: browse-category-button
 - assertNotVisible:

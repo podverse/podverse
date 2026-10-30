@@ -1,13 +1,15 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountNotificationPreference } from '@podverse/helpers';
 import {
   getDefaultNotificationCategoryPreference,
   NotificationCategoryEnum,
 } from '@podverse/helpers';
+import type { DevicePushState } from '@podverse/helpers/notificationPush';
+import { shouldShowDevicePushBanner } from '@podverse/helpers/notificationPush';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -17,6 +19,7 @@ import {
   syncNotificationTypeToAccountSettings,
 } from '../../auth/syncAccountPrefs';
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
+import { WarningBanner } from '../../components/feedback/WarningBanner';
 import { SettingsRowDescription, SettingsSwitchRow } from '../../components/form';
 import { Card } from '../../components/primitives/Card';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
@@ -24,6 +27,7 @@ import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { resolveSupportedLocale } from '../../i18n/locale';
+import { accountHasAnyPushDevice } from '../../lib/notifications/applyFirstSubscribePushChoice';
 import { NOTIFICATION_TYPE_ROWS } from '../../lib/notifications/notificationTypeRows';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import {
@@ -33,18 +37,9 @@ import {
   setBannerNotificationCategoryEnabled,
   subscribeBannerNotificationPrefs,
 } from '../../prefs/bannerNotificationPrefs';
-import { registerFcmDeviceForAccount } from '../../push/fcmDeviceSync';
-import {
-  getFcmPermissionStatus,
-  openSystemNotificationSettings,
-  requestFcmPermissionAfterUserAction,
-} from '../../push/fcmTransport';
-import {
-  isUnifiedPushRegisteredOnDevice,
-  readUnifiedPushMode,
-  registerUnifiedPushDeviceForAccount,
-  releaseUnifiedPushForPushProvider,
-} from '../../push/unifiedPushDeviceSync';
+import { readDevicePushState } from '../../push/devicePushState.read';
+import { enablePushOnThisDevice } from '../../push/enablePushOnThisDevice';
+import { openSystemNotificationSettings } from '../../push/fcmTransport';
 import { settingsCardGap, settingsCardInnerGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
@@ -109,12 +104,14 @@ export function MoreSettingsNotificationsScreen() {
     DTOAccountNotificationPreference[]
   >([]);
   const [errorMessageKey, setErrorMessageKey] = useState<string | null>(null);
-  const [notificationPermissionBlocked, setNotificationPermissionBlocked] =
-    useState<boolean>(false);
-  const [showNotificationPermissionHint, setShowNotificationPermissionHint] =
-    useState<boolean>(false);
   /** Null until this device's push permission or Unified Push registration has been read. */
-  const [pushDeliveryReady, setPushDeliveryReady] = useState<boolean | null>(null);
+  const [devicePushState, setDevicePushState] = useState<DevicePushState | null>(null);
+  /** Null until the account's push devices have been checked. */
+  const [accountHasPushDevice, setAccountHasPushDevice] = useState<boolean | null>(null);
+  const [blockedGuidanceVisible, setBlockedGuidanceVisible] = useState(false);
+  const [devicePushBannerBusy, setDevicePushBannerBusy] = useState(false);
+  const devicePushStateRef = useRef<DevicePushState | null>(null);
+  devicePushStateRef.current = devicePushState;
   const [applyDialog, setApplyDialog] = useState<null | 'auto_enable' | 'type_default'>(null);
   const [pendingDefault, setPendingDefault] = useState<boolean>(false);
   const [pendingType, setPendingType] = useState<SyncedNotificationType | null>(null);
@@ -123,11 +120,21 @@ export function MoreSettingsNotificationsScreen() {
 
   const selectedLocale = resolveSupportedLocale(i18n.language);
   const pushProvider = getMobileConfig().pushProvider;
+  const pushDeliveryReady = devicePushState === null ? null : devicePushState === 'enabled';
   const showPushRequirement = pushDeliveryReady === false;
   const pushRequirementKey =
     pushProvider === 'fcm'
       ? 'settings.notifications.preference_push_requirement_device'
       : 'settings.notifications.preference_push_requirement_unified_push';
+  const showDevicePushBanner =
+    isAuthenticated &&
+    accountHasPushDevice !== null &&
+    devicePushState !== null &&
+    shouldShowDevicePushBanner({
+      accountHasPushDevice,
+      devicePushState,
+      preferences: notificationPreferences,
+    });
 
   const requestContext = useMemo(
     () => ({
@@ -142,22 +149,52 @@ export function MoreSettingsNotificationsScreen() {
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-      void (async () => {
-        const unifiedPushReady = await isUnifiedPushRegisteredOnDevice();
-        let fcmReady = false;
-        if (pushProvider === 'fcm') {
-          const permission = await getFcmPermissionStatus();
-          fcmReady = permission.granted;
-        }
-        if (!cancelled) {
-          setPushDeliveryReady(unifiedPushReady || fcmReady);
-        }
-      })();
+      void readDevicePushState()
+        .then((next) => {
+          if (!cancelled) {
+            setDevicePushState(next);
+          }
+        })
+        .catch((error: unknown) => {
+          console.warn("Could not read this device's push state", error);
+        });
       return () => {
         cancelled = true;
       };
-    }, [pushProvider])
+    }, [])
   );
+
+  useEffect(() => {
+    let appIsActive = AppState.currentState !== 'background';
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        const returnedFromBackground = !appIsActive;
+        appIsActive = true;
+        if (!returnedFromBackground) {
+          return;
+        }
+        const previous = devicePushStateRef.current;
+        void readDevicePushState()
+          .then(async (next) => {
+            setDevicePushState(next);
+            if (previous === 'blocked' && next === 'enabled') {
+              await enablePushOnThisDevice({ auth: requestContext, locale: selectedLocale });
+            }
+          })
+          .catch((error: unknown) => {
+            console.warn("Could not refresh this device's push state", error);
+          });
+        return;
+      }
+      // `inactive` (Control Center, an incoming-call sheet) keeps the previous value.
+      if (nextAppState === 'background') {
+        appIsActive = false;
+      }
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, [requestContext, selectedLocale]);
 
   useEffect(() => {
     void hydrateBannerNotificationPrefs();
@@ -183,6 +220,33 @@ export function MoreSettingsNotificationsScreen() {
         }
         console.warn('Could not load notification preferences', error);
         setNotificationPreferences([]);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, requestContext]);
+
+  useEffect(() => {
+    let isMounted = true;
+    void (async () => {
+      if (!isAuthenticated) {
+        setAccountHasPushDevice(null);
+        return;
+      }
+
+      try {
+        const hasDevice = await accountHasAnyPushDevice(requestContext);
+        if (isMounted) {
+          setAccountHasPushDevice(hasDevice);
+        }
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+        console.warn('Could not check the account for push devices', error);
+        setAccountHasPushDevice(false);
       }
     })();
 
@@ -321,6 +385,30 @@ export function MoreSettingsNotificationsScreen() {
     }
   }, [applyDialog, handleGateError, pendingDefault, pendingType, requestContext]);
 
+  const handleDevicePushBannerAction = useCallback(async () => {
+    if (devicePushState === 'blocked') {
+      setBlockedGuidanceVisible(true);
+      return;
+    }
+    setDevicePushBannerBusy(true);
+    setErrorMessageKey(null);
+    try {
+      const result = await enablePushOnThisDevice({
+        auth: requestContext,
+        locale: selectedLocale,
+      });
+      setDevicePushState(await readDevicePushState());
+      if (result.outcome === 'not_registered') {
+        setErrorMessageKey('errors.generic');
+      }
+    } catch (error) {
+      console.warn('Could not enable push from the notification settings banner', error);
+      setErrorMessageKey('errors.generic');
+    } finally {
+      setDevicePushBannerBusy(false);
+    }
+  }, [devicePushState, requestContext, selectedLocale]);
+
   const handleNotificationPreferenceToggle = useCallback(
     async (params: {
       category: NotificationCategoryEnum;
@@ -349,38 +437,17 @@ export function MoreSettingsNotificationsScreen() {
       const nextPushEnabled = params.channel === 'push' ? params.enabled : existing.push_enabled;
 
       if (params.channel === 'push' && params.enabled) {
-        if (pushProvider === 'fcm') {
-          const permissionResult = await requestFcmPermissionAfterUserAction();
-          if (!permissionResult.granted) {
-            setShowNotificationPermissionHint(true);
-            setNotificationPermissionBlocked(!permissionResult.canAskAgain);
-            setErrorMessageKey('settings.notifications.permission_required');
-            return;
-          }
-
-          setShowNotificationPermissionHint(false);
-          setPushDeliveryReady(true);
-          try {
-            const releaseUnifiedPush =
-              (await readUnifiedPushMode()) === 'user' || (await isUnifiedPushRegisteredOnDevice());
-            if (releaseUnifiedPush) {
-              await releaseUnifiedPushForPushProvider({ auth: requestContext });
-            }
-            await registerFcmDeviceForAccount({ auth: requestContext, locale: selectedLocale });
-          } catch (error) {
-            console.warn('Failed to register FCM device after permission grant', error);
-          }
-        } else if (pushProvider === 'unifiedpush' || pushProvider === 'none') {
-          setShowNotificationPermissionHint(false);
-          try {
-            await registerUnifiedPushDeviceForAccount({
-              auth: requestContext,
-              locale: selectedLocale,
-            });
-            setPushDeliveryReady(await isUnifiedPushRegisteredOnDevice());
-          } catch (error) {
-            console.warn('Failed to register UnifiedPush device after notification enable', error);
-          }
+        const result = await enablePushOnThisDevice({
+          auth: requestContext,
+          locale: selectedLocale,
+        });
+        setDevicePushState(await readDevicePushState());
+        if (result.outcome === 'denied') {
+          setErrorMessageKey('settings.notifications.permission_required');
+          return;
+        }
+        if (result.outcome === 'enabled') {
+          setAccountHasPushDevice(true);
         }
       }
 
@@ -419,7 +486,6 @@ export function MoreSettingsNotificationsScreen() {
       handleGateError,
       isAuthenticated,
       notificationPreferences,
-      pushProvider,
       requestContext,
       selectedLocale,
       showNotificationLoginAlert,
@@ -443,12 +509,6 @@ export function MoreSettingsNotificationsScreen() {
         optionalPreferenceRows: {
           gap: 0,
           paddingLeft: tokens.spacing.md,
-        },
-        permissionHint: {
-          gap: tokens.spacing.sm,
-          paddingBottom: tokens.spacing.lg,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingTop: tokens.spacing.lg,
         },
         pushRequirement: {
           ...typography.caption,
@@ -496,19 +556,6 @@ export function MoreSettingsNotificationsScreen() {
           paddingHorizontal: tokens.spacing.lg,
           paddingTop: tokens.spacing.lg,
         },
-        warningLinkButton: {
-          alignSelf: 'flex-start',
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.sm,
-          borderWidth: 1,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        warningLinkButtonText: {
-          ...typography.body,
-          color: themeStyles.textPrimary.color,
-          fontWeight: '600',
-        },
         screenError: {
           marginTop: tokens.spacing.sm,
         },
@@ -541,11 +588,7 @@ export function MoreSettingsNotificationsScreen() {
       const showPushAsterisk = showOptionalChannels && showPushRequirement;
       const isFirst = index === 0;
       const isLast = index === rows.length - 1;
-      const showFooter =
-        options.showFooterHints &&
-        isLast &&
-        !showNotificationPermissionHint &&
-        !showPushRequirement;
+      const showFooter = options.showFooterHints && isLast && !showPushRequirement;
 
       return (
         <View
@@ -648,7 +691,38 @@ export function MoreSettingsNotificationsScreen() {
         }
         visible={applyDialog !== null}
       />
+      <ConfirmDialog
+        body={t('settings.notifications.device_push_blocked_mobile_body')}
+        cancelLabel={t('misc.cancel')}
+        cancelTestID="more-settings-device-push-blocked-cancel"
+        confirmLabel={t('settings.notifications.open_system_settings')}
+        confirmTestID="more-settings-device-push-blocked-open-settings"
+        onCancel={() => {
+          setBlockedGuidanceVisible(false);
+        }}
+        onConfirm={() => {
+          setBlockedGuidanceVisible(false);
+          void openSystemNotificationSettings().catch(() => {
+            setErrorMessageKey('errors.generic');
+          });
+        }}
+        testID="more-settings-device-push-blocked-dialog"
+        title={t('settings.notifications.device_push_blocked_title')}
+        visible={blockedGuidanceVisible}
+      />
       <View style={styles.cardStack}>
+        {showDevicePushBanner ? (
+          <WarningBanner
+            actionLabel={t('settings.notifications.device_push_banner_action')}
+            actionLoading={devicePushBannerBusy}
+            actionTestID="more-settings-device-push-banner-action"
+            message={t('settings.notifications.device_push_banner_message')}
+            onAction={() => {
+              void handleDevicePushBannerAction();
+            }}
+            testID="more-settings-device-push-banner"
+          />
+        ) : null}
         <Card padded={false} testID="more-settings-notification-when-subscribe-card">
           <View style={styles.cardIntro}>
             <Text style={styles.sectionHeading}>
@@ -721,29 +795,6 @@ export function MoreSettingsNotificationsScreen() {
             >
               {`* ${t(pushRequirementKey)}`}
             </Text>
-          ) : null}
-          {showNotificationPermissionHint ? (
-            <View style={styles.permissionHint}>
-              <Text style={styles.warningText} testID="more-settings-notification-permission-hint">
-                {t('settings.notifications.permission_required')}
-              </Text>
-              {notificationPermissionBlocked ? (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    void openSystemNotificationSettings().catch(() => {
-                      setErrorMessageKey('errors.generic');
-                    });
-                  }}
-                  style={styles.warningLinkButton}
-                  testID="more-settings-open-notification-settings"
-                >
-                  <Text style={styles.warningLinkButtonText}>
-                    {t('settings.notifications.open_system_settings')}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </View>
           ) : null}
         </Card>
       </View>

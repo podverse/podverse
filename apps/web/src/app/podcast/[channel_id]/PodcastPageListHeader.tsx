@@ -14,6 +14,7 @@ import { usePodcastPageContext } from './PodcastPageContext';
 type PodcastPageListHeaderProps = {
   ssrHasPeople: boolean;
   ssrHasPodroll?: boolean;
+  ssrHasRemoteItems?: boolean;
   ssrHasItemSoundbites?: boolean;
   ssrCanShowBoosts?: boolean;
 };
@@ -21,6 +22,7 @@ type PodcastPageListHeaderProps = {
 export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
   ssrHasPeople,
   ssrHasPodroll,
+  ssrHasRemoteItems,
   ssrHasItemSoundbites,
   ssrCanShowBoosts,
 }) => {
@@ -70,6 +72,14 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
     items.push({
       key: 'podroll',
       label: tInfo('podroll'),
+      hideDesktop: true,
+    });
+  }
+
+  if (ssrHasRemoteItems) {
+    items.push({
+      key: 'remote-items',
+      label: tInfo('remote_items'),
       hideDesktop: true,
     });
   }

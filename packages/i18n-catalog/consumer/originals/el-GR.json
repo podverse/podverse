@@ -31,6 +31,7 @@
       "artist_go_to": "Μετάβαση στον καλλιτέχνη",
       "no_tracks_found": "Δεν βρέθηκαν τραγούδια",
       "no_albums_found": "Δεν βρέθηκαν άλμπουμ",
+      "no_artists_found": "Δεν βρέθηκαν καλλιτέχνες",
       "verified_albums": "Επαληθευμένα άλμπουμ",
       "your_add_by_rss_albums": "Τα άλμπουμ σας από Προσθήκη μέσω RSS",
       "not_yet_added": "Δεν έχουν προστεθεί ακόμα",
@@ -126,12 +127,17 @@
       "credentials_check_failed": "Δεν μπορέσαμε να ελέγξουμε αυτή τη ροή. Δοκιμάστε αργότερα.",
       "credentials_not_saved_on_device": "Αυτό το πρόγραμμα περιήγησης δεν μπόρεσε να αποθηκεύσει το όνομα χρήστη και τον κωδικό, οπότε χρησιμοποιήθηκαν μόνο για αυτόν τον έλεγχο.",
       "media_other_domain": "Αυτό το μέσο φιλοξενείται σε διαφορετικό τομέα από την προστατευμένη ροή και αυτό δεν υποστηρίζεται.",
-      "media_needs_credentials": "Αυτό το μέσο μπορεί να απαιτεί όνομα χρήστη και κωδικό, τα οποία τα προγράμματα περιήγησης δεν μπορούν να στείλουν σε αρχεία ήχου και βίντεο. Δοκιμάστε την εφαρμογή για κινητά. Η ροή συνεχίζει να ενημερώνεται στον ιστό."
+      "media_needs_credentials": "Αυτό το μέσο μπορεί να απαιτεί όνομα χρήστη και κωδικό, τα οποία τα προγράμματα περιήγησης δεν μπορούν να στείλουν σε αρχεία ήχου και βίντεο. Δοκιμάστε την εφαρμογή για κινητά. Η ροή συνεχίζει να ενημερώνεται στον ιστό.",
+      "remote_feed_explanation": "Αυτή η ροή δεν υπάρχει στον κατάλογό μας ούτε στο Podcast Index. Προσθέστε τη μέσω RSS για να την παρακολουθείτε στη βιβλιοθήκη σας Προσθήκη μέσω RSS.",
+      "remote_item_lookup_failed": "Δεν ήταν δυνατή η αναζήτηση αυτής της ροής. Δοκιμάστε ξανά αργότερα.",
+      "remote_item_directory_unavailable": "Αυτή η ροή δεν είναι διαθέσιμη αυτή τη στιγμή.",
+      "remote_item_not_found": "Δεν ήταν δυνατή η εύρεση αυτής της ροής."
     },
     "browse": {
       "browse": "Περιήγηση",
       "category_all": "Όλες οι κατηγορίες",
-      "users": "Χρήστες"
+      "users": "Χρήστες",
+      "no_users_found": "Δεν βρέθηκαν χρήστες"
     },
     "recommendations": {
       "title": "Προτάσεις",
@@ -390,7 +396,9 @@
       "play_from": "Αναπαραγωγή από {time}"
     },
     "podroll": "Podroll",
+    "remote_items": "Απομακρυσμένα στοιχεία",
     "no_podroll_found": "Δεν βρέθηκαν προτεινόμενα podcast",
+    "no_remote_items_found": "Δεν βρέθηκαν απομακρυσμένα στοιχεία",
     "show_more": "Περισσότερα",
     "show_less": "Λιγότερα",
     "truncation": {
@@ -1353,7 +1361,15 @@
       "first_subscribe_push_title": "Ενεργοποίηση push ειδοποιήσεων;",
       "first_subscribe_push_body": "Λάβετε ειδοποιήσεις στην οθόνη κλειδώματος για νέα επεισόδια και ζωντανές μεταδόσεις, ή κρατήστε τις ειδοποιήσεις μόνο στα εισερχόμενα της εφαρμογής.",
       "first_subscribe_enable_push": "Ενεργοποίηση push",
-      "first_subscribe_in_app_only": "Μόνο στην εφαρμογή"
+      "first_subscribe_in_app_only": "Μόνο στην εφαρμογή",
+      "sign_in_push_prompt_title": "Ενεργοποίηση push ειδοποιήσεων σε αυτή τη συσκευή;",
+      "sign_in_push_prompt_body": "Οι push ειδοποιήσεις είναι ενεργές για τον λογαριασμό σας. Επιτρέψτε τες σε αυτή τη συσκευή για να λαμβάνετε ειδοποιήσεις και εδώ.",
+      "sign_in_push_prompt_enable": "Ενεργοποίηση push",
+      "sign_in_push_prompt_not_now": "Όχι τώρα",
+      "device_push_banner_message": "Οι push ειδοποιήσεις είναι ενεργές για τον λογαριασμό σας, αλλά αυτή η συσκευή δεν έχει άδεια να τις εμφανίζει.",
+      "device_push_banner_action": "Επιτρέψτε σε αυτή τη συσκευή",
+      "device_push_blocked_title": "Οι ειδοποιήσεις είναι αποκλεισμένες",
+      "device_push_blocked_web_body": "Αυτό το πρόγραμμα περιήγησης αποκλείει τις ειδοποιήσεις για αυτόν τον ιστότοπο. Ανοίξτε τις ρυθμίσεις ιστότοπου από το εικονίδιο δίπλα στη γραμμή διευθύνσεων, ορίστε τις Ειδοποιήσεις σε Να επιτρέπεται και, στη συνέχεια, φορτώστε ξανά αυτή τη σελίδα."
     },
     "opml": {
       "opml": "OPML",
@@ -1665,8 +1681,7 @@
     "loading": "Φόρτωση ειδοποιήσεων…",
     "login_prompt": "Συνδεθείτε για να χρησιμοποιήσετε αυτή τη λειτουργία.",
     "empty": "Είστε ενήμεροι. Ειδοποιήσεις για νέα επεισόδια, ζωντανές μεταδόσεις και ενημερώσεις θα εμφανίζονται εδώ.",
-    "unread_section": "Μη αναγνωσμένες",
-    "earlier_section": "Παλαιότερες",
+    "unread": "Μη αναγνωσμένες",
     "category_new_content": "Νέο περιεχόμενο",
     "category_livestream": "Ζωντανή μετάδοση",
     "category_product_update": "Ενημέρωση προϊόντος",
@@ -1685,15 +1700,6 @@
     "line_new_video_channel": "Νέο κανάλι βίντεο",
     "line_podcast_index_feed": "Νέο podcast",
     "line_system_update": "Ενημέρωση συστήματος",
-    "relative_time_just_now": "Μόλις τώρα",
-    "relative_time_seconds_ago": "Πριν από {count, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}",
-    "relative_time_seconds_from_now": "Σε {count, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}",
-    "relative_time_minutes_ago": "Πριν από {count, plural, one {# λεπτό} other {# λεπτά}}",
-    "relative_time_minutes_from_now": "Σε {count, plural, one {# λεπτό} other {# λεπτά}}",
-    "relative_time_hours_ago": "Πριν από {count, plural, one {# ώρα} other {# ώρες}}",
-    "relative_time_hours_from_now": "Σε {count, plural, one {# ώρα} other {# ώρες}}",
-    "relative_time_days_ago": "Πριν από {count, plural, one {# ημέρα} other {# ημέρες}}",
-    "relative_time_days_from_now": "Σε {count, plural, one {# ημέρα} other {# ημέρες}}",
     "no_body": "Ανοίξτε για να δείτε λεπτομέρειες."
   },
   "action_error": {

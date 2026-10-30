@@ -59,7 +59,7 @@ export function getAlbumsPageFilterParams(
 ): AlbumsPageDropdownConfigCurrentParams {
   return buildSubscribedListFilterParams({
     ...params,
-    defaultGlobalSort: 'recent',
+    defaultGlobalSort: 'top',
     defaultSubscribedSort: 'a_z',
     globalSortValues: QUERY_PARAMS_GLOBAL_SORT_VALUES,
     isValidAuthSession,

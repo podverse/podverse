@@ -25,6 +25,7 @@ import {
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeNodes } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeNodes';
+import { AddByRSSRemoteItemList } from '../../../components/AddByRSS/RemoteItems/AddByRSSRemoteItemList';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { DescriptionTruncationNotice } from '../../../components/Content/Description/DescriptionTruncationNotice';
@@ -38,6 +39,7 @@ import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { useAddByRSSFeedParseStatusLines } from '../../../hooks/useAddByRSSFeedParseStatusLines';
+import { useAddByRSSRemoteItemList } from '../../../hooks/useAddByRSSRemoteItemList';
 import type { AddByRSSParseOutcome } from '../../../utils/addByRSS/actions';
 import {
   applyAddByRSSParseStatus,
@@ -92,7 +94,13 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   const { setModalAuthLogin } = useModals();
   const initialType = useMemo<AddByRSSPodcastPageTabKey>(() => {
     const typeParam = searchParams.get('type');
-    if (typeParam === 'about' || typeParam === 'settings' || typeParam === 'boosts') {
+    if (
+      typeParam === 'about' ||
+      typeParam === 'settings' ||
+      typeParam === 'boosts' ||
+      typeParam === 'podroll' ||
+      typeParam === 'remote_items'
+    ) {
       return typeParam;
     }
     return 'episodes';
@@ -319,12 +327,26 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
       },
       resolveItemHref: (itemIdText) => `/add-by-rss/episode/${itemIdText}`,
     });
+  const podroll = useAddByRSSRemoteItemList(localFeed, 'podroll');
+  const remoteItems = useAddByRSSRemoteItemList(localFeed, 'remote_items');
 
   useEffect(() => {
     if (!canShowBoostTab && activeTab === 'boosts') {
       handleTabSelect('episodes');
     }
   }, [activeTab, canShowBoostTab, handleTabSelect]);
+
+  useEffect(() => {
+    if (!podroll.hasRows && activeTab === 'podroll') {
+      handleTabSelect('episodes');
+    }
+  }, [activeTab, handleTabSelect, podroll.hasRows]);
+
+  useEffect(() => {
+    if (!remoteItems.hasRows && activeTab === 'remote_items') {
+      handleTabSelect('episodes');
+    }
+  }, [activeTab, handleTabSelect, remoteItems.hasRows]);
 
   return (
     <MainWrapper>
@@ -336,6 +358,8 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
             selectedKey={activeTab}
             onSelect={handleTabSelect}
             canShowBoosts={canShowBoostTab}
+            hasPodroll={podroll.hasRows}
+            hasRemoteItems={remoteItems.hasRows}
             trailing={
               activeTab === 'episodes' ? (
                 <ListSortChip
@@ -395,6 +419,22 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                   />
                 ) : null}
               </>
+            )}
+            {activeTab === 'podroll' && (
+              <AddByRSSRemoteItemList
+                rows={podroll.rows}
+                openReference={podroll.openReference}
+                openingKey={podroll.openingKey}
+                errorMessage={podroll.errorMessage}
+              />
+            )}
+            {activeTab === 'remote_items' && (
+              <AddByRSSRemoteItemList
+                rows={remoteItems.rows}
+                openReference={remoteItems.openReference}
+                openingKey={remoteItems.openingKey}
+                errorMessage={remoteItems.errorMessage}
+              />
             )}
             {activeTab === 'boosts' && boostsPageFetcher !== null && (
               <BoostMessagesSection

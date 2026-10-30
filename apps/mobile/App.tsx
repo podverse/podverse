@@ -34,6 +34,7 @@ import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
 import { TabLayoutProvider, useTabLayout } from './src/navigation/TabLayoutProvider';
 import { BannerNotificationHost } from './src/notifications/BannerNotificationHost';
 import { NotificationsRuntime } from './src/notifications/NotificationsRuntime';
+import { SignInPushPromptHost } from './src/notifications/SignInPushPromptHost';
 import { PlaybackProvider } from './src/playback';
 import {
   getInitialNotificationDeepLinkUrl,
@@ -313,6 +314,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
               <NotificationsRuntime />
               <ForcedLogoutNotice />
               <CrossDevicePlaybackNotice />
+              <SignInPushPromptHost />
               <OverlayA11yShield>
                 <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
                 <MobileTabNavigator

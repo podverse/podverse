@@ -1,153 +1,208 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { PodcastBatchByFeedGuidResponse, RemoteItemGeneric } from '@podverse/helpers';
+import type { RemoteItemGeneric } from '@podverse/helpers';
+import { RemoteChannelStubService, RemoteItemStubService } from '@podverse/orm';
 
-import { enrichMissedChannelsUnaddedByFeedUrl } from './remoteItems.js';
+type StubChannel = {
+  id: number;
+  index_provider: 'podcast_index';
+  provider_feed_id: string;
+  feed_guid: string | null;
+  feed_url: string;
+  title: string | null;
+  author: string | null;
+  image_url: string | null;
+  medium_id: number | null;
+};
 
-type PodcastIndexFeed = PodcastBatchByFeedGuidResponse['feeds'][number];
+type StubItem = {
+  id: number;
+  item_guid: string;
+  provider_item_id: string | null;
+  title: string | null;
+  image_url: string | null;
+  pub_date: Date | null;
+  duration_seconds: number | null;
+  remote_channel_stub: StubChannel;
+};
 
-function feed(partial: Partial<PodcastIndexFeed> & { id: number }): PodcastIndexFeed {
+const channelStubLookupMock = vi.hoisted(() => vi.fn());
+const itemStubLookupMock = vi.hoisted(() => vi.fn());
+const podcastIndexMocks = vi.hoisted(() => {
+  const throwOnCall = async (): Promise<never> => {
+    throw new Error('Podcast Index must not be called by buildRemoteItemsFinalResult');
+  };
   return {
-    artwork: '',
-    author: '',
-    contentType: 'application/rss+xml',
-    crawlErrors: 0,
-    dead: 0,
-    description: '',
-    episodeCount: 0,
-    image: '',
-    itunesId: null,
-    lastCrawlTime: 0,
-    lastGoodHttpStatusTime: 0,
-    lastHttpStatus: 200,
-    lastParseTime: 0,
-    lastUpdateTime: 0,
-    link: '',
-    originalUrl: partial.url ?? '',
-    ownerName: '',
-    parseErrors: 0,
-    podcastGuid: partial.podcastGuid ?? '',
-    title: partial.title ?? '',
-    url: partial.url ?? '',
-    ...partial,
+    podcastsBatchByFeedGuid: vi.fn(throwOnCall),
+    podcastGetByFeedUrl: vi.fn(throwOnCall),
+    episodeGetByGuid: vi.fn(throwOnCall),
+  };
+});
+
+vi.mock('../factories/podcastIndexService.js', () => ({
+  podcastIndexService: podcastIndexMocks,
+}));
+
+import { buildRemoteItemsFinalResult } from './remoteItems.js';
+
+const lookupSpies: Array<{ mockRestore: () => void }> = [];
+
+function remoteRef(
+  feedGuid: string | null,
+  feedUrl: string | null,
+  itemGuid: string | null
+): RemoteItemGeneric {
+  return { feed_guid: feedGuid, feed_url: feedUrl, item_guid: itemGuid };
+}
+
+function channelStub(id: number, providerFeedId: string): StubChannel {
+  return {
+    id,
+    index_provider: 'podcast_index',
+    provider_feed_id: providerFeedId,
+    feed_guid: `11111111-1111-4111-8111-${providerFeedId.padStart(12, '0')}`,
+    feed_url: `https://example.com/feed-${providerFeedId}.xml`,
+    title: `Stub Channel ${providerFeedId}`,
+    author: 'Stub Author',
+    image_url: null,
+    medium_id: 1,
   };
 }
 
-describe('enrichMissedChannelsUnaddedByFeedUrl', () => {
-  it('looks up missed refs by feed_url and skips local urls and already-merged guids', async () => {
-    const lookup = vi.fn(async (feedUrl: string) => {
-      if (feedUrl === 'https://example.com/missed.xml') {
-        return feed({
-          id: 99,
-          podcastGuid: 'missed-guid',
-          title: 'Missed Album',
-          url: feedUrl,
-        });
-      }
-      return null;
+function itemStub(id: number, itemGuid: string, stub: StubChannel): StubItem {
+  return {
+    id,
+    item_guid: itemGuid,
+    provider_item_id: String(10_000 + id),
+    title: `Stub Item ${itemGuid}`,
+    image_url: null,
+    pub_date: new Date('2026-03-01T12:00:00.000Z'),
+    duration_seconds: 3723,
+    remote_channel_stub: stub,
+  };
+}
+
+describe('buildRemoteItemsFinalResult', () => {
+  beforeEach(() => {
+    channelStubLookupMock.mockReset();
+    itemStubLookupMock.mockReset();
+    podcastIndexMocks.podcastsBatchByFeedGuid.mockClear();
+    podcastIndexMocks.podcastGetByFeedUrl.mockClear();
+    podcastIndexMocks.episodeGetByGuid.mockClear();
+    lookupSpies.push(
+      vi
+        .spyOn(RemoteChannelStubService.prototype, 'getChannelStubsForRefs')
+        .mockImplementation((refs) => channelStubLookupMock(refs))
+    );
+    lookupSpies.push(
+      vi
+        .spyOn(RemoteItemStubService.prototype, 'getItemStubsForRefs')
+        .mockImplementation((refs) => itemStubLookupMock(refs))
+    );
+  });
+
+  afterEach(() => {
+    for (const spy of lookupSpies) {
+      spy.mockRestore();
+    }
+    lookupSpies.length = 0;
+  });
+
+  it('returns stubs in ref order and drops null lookups', async () => {
+    const channelA = channelStub(1, '900001');
+    const channelB = channelStub(2, '900002');
+    channelStubLookupMock.mockResolvedValue([channelA, null, channelB]);
+
+    const itemB = itemStub(20, 'item-b', channelB);
+    const itemA = itemStub(10, 'item-a', channelA);
+    itemStubLookupMock.mockResolvedValue([itemB, null, itemA]);
+
+    const result = await buildRemoteItemsFinalResult({
+      channelsAdded: [],
+      channelRefsUnmatched: [
+        remoteRef(channelA.feed_guid, channelA.feed_url, null),
+        remoteRef('missing-guid', 'https://missing.example.com/feed.xml', null),
+        remoteRef(channelB.feed_guid, channelB.feed_url, null),
+      ],
+      itemsAdded: [],
+      itemRefsUnmatched: [
+        remoteRef(channelB.feed_guid, channelB.feed_url, 'item-b'),
+        remoteRef('missing-guid', 'https://missing.example.com/feed.xml', 'item-missing'),
+        remoteRef(channelA.feed_guid, channelA.feed_url, 'item-a'),
+      ],
     });
 
-    const original: RemoteItemGeneric[] = [
-      {
-        feed_guid: 'already-found',
-        feed_url: 'https://example.com/found.xml',
-        item_guid: null,
-      },
-      {
-        feed_guid: 'missing-guid',
-        feed_url: 'https://example.com/missed.xml',
-        item_guid: null,
-      },
-      {
-        feed_guid: 'local-guid',
-        feed_url: 'http://localhost:2111/album.xml',
-        item_guid: null,
-      },
-    ];
-
-    const alreadyMerged = [
-      feed({
-        id: 1,
-        podcastGuid: 'already-found',
-        title: 'Found',
-        url: 'https://example.com/found.xml',
-      }),
-    ];
-
-    const extras = await enrichMissedChannelsUnaddedByFeedUrl(original, alreadyMerged, lookup);
-
-    expect(lookup).toHaveBeenCalledTimes(1);
-    expect(lookup).toHaveBeenCalledWith('https://example.com/missed.xml');
-    expect(extras).toHaveLength(1);
-    expect(extras[0]?.id).toBe(99);
-    expect(extras[0]?.title).toBe('Missed Album');
+    expect(result.channelsUnadded.map((stub) => stub.provider_feed_id)).toEqual([
+      '900001',
+      '900002',
+    ]);
+    expect(result.itemsUnadded.map((stub) => stub.item_guid)).toEqual(['item-b', 'item-a']);
+    expect(podcastIndexMocks.podcastsBatchByFeedGuid).not.toHaveBeenCalled();
+    expect(podcastIndexMocks.podcastGetByFeedUrl).not.toHaveBeenCalled();
+    expect(podcastIndexMocks.episodeGetByGuid).not.toHaveBeenCalled();
   });
 
-  it('dedupes by podcast index id and does not call lookup twice for the same url', async () => {
-    const lookup = vi.fn(async () =>
-      feed({
-        id: 42,
-        podcastGuid: 'g-42',
-        title: 'Album',
-        url: 'https://example.com/album.xml',
-      })
-    );
+  it('dedupes repeated channel and item stubs by id', async () => {
+    const channelA = channelStub(1, '900001');
+    const itemA = itemStub(10, 'item-a', channelA);
+    channelStubLookupMock.mockResolvedValue([channelA, channelA]);
+    itemStubLookupMock.mockResolvedValue([itemA, itemA]);
 
-    const original: RemoteItemGeneric[] = [
-      {
-        feed_guid: 'a',
-        feed_url: 'https://example.com/album.xml',
-        item_guid: null,
-      },
-      {
-        feed_guid: 'b',
-        feed_url: 'https://example.com/album.xml',
-        item_guid: null,
-      },
-    ];
-
-    const extras = await enrichMissedChannelsUnaddedByFeedUrl(original, [], lookup);
-
-    expect(lookup).toHaveBeenCalledTimes(1);
-    expect(extras).toHaveLength(1);
-  });
-
-  it('skips feeds that lack a positive podcast index id', async () => {
-    const lookup = vi.fn(async () =>
-      feed({ id: 0, title: 'Bad', url: 'https://example.com/x.xml' })
-    );
-
-    const extras = await enrichMissedChannelsUnaddedByFeedUrl(
-      [
-        {
-          feed_guid: 'x',
-          feed_url: 'https://example.com/x.xml',
-          item_guid: null,
-        },
+    const result = await buildRemoteItemsFinalResult({
+      channelsAdded: [],
+      channelRefsUnmatched: [
+        remoteRef(channelA.feed_guid, channelA.feed_url, null),
+        remoteRef(channelA.feed_guid, channelA.feed_url, null),
       ],
-      [],
-      lookup
-    );
+      itemsAdded: [],
+      itemRefsUnmatched: [
+        remoteRef(channelA.feed_guid, channelA.feed_url, 'item-a'),
+        remoteRef(channelA.feed_guid, channelA.feed_url, 'item-a'),
+      ],
+    });
 
-    expect(extras).toEqual([]);
+    expect(result.channelsUnadded).toHaveLength(1);
+    expect(result.itemsUnadded).toHaveLength(1);
   });
 
-  it('leaves out a reference Podcast Index knows by neither guid nor URL', async () => {
-    const lookup = vi.fn(async () => null);
-    const extras = await enrichMissedChannelsUnaddedByFeedUrl(
-      [
-        {
-          feed_guid: 'unknown-guid',
-          feed_url: 'https://example.com/unknown.xml',
-          item_guid: null,
-        },
-      ],
-      [],
-      lookup
-    );
+  it('sends only refs with non-empty item_guid to the item stub service', async () => {
+    const channelA = channelStub(1, '900001');
+    channelStubLookupMock.mockResolvedValue([]);
+    itemStubLookupMock.mockResolvedValue([itemStub(10, 'item-a', channelA)]);
 
-    expect(lookup).toHaveBeenCalledTimes(1);
-    expect(lookup).toHaveBeenCalledWith('https://example.com/unknown.xml');
-    expect(extras).toEqual([]);
+    await buildRemoteItemsFinalResult({
+      channelsAdded: [],
+      channelRefsUnmatched: [],
+      itemsAdded: [],
+      itemRefsUnmatched: [
+        remoteRef(channelA.feed_guid, channelA.feed_url, null),
+        remoteRef(channelA.feed_guid, channelA.feed_url, ''),
+        remoteRef(channelA.feed_guid, channelA.feed_url, '   '),
+        remoteRef(channelA.feed_guid, channelA.feed_url, '  item-a  '),
+      ],
+    });
+
+    expect(itemStubLookupMock).toHaveBeenCalledTimes(1);
+    expect(itemStubLookupMock).toHaveBeenCalledWith([
+      {
+        feedGuid: channelA.feed_guid,
+        feedUrl: channelA.feed_url,
+        itemGuid: 'item-a',
+      },
+    ]);
+  });
+
+  it('does not call stub services when unmatched refs are empty', async () => {
+    const result = await buildRemoteItemsFinalResult({
+      channelsAdded: [],
+      channelRefsUnmatched: [],
+      itemsAdded: [],
+      itemRefsUnmatched: [],
+    });
+
+    expect(result.channelsUnadded).toEqual([]);
+    expect(result.itemsUnadded).toEqual([]);
+    expect(channelStubLookupMock).not.toHaveBeenCalled();
+    expect(itemStubLookupMock).not.toHaveBeenCalled();
   });
 });

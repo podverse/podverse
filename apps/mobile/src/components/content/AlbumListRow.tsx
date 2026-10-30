@@ -14,6 +14,8 @@ export type AlbumListRowProps = {
   accessibilityLabel?: string;
   /** Add by RSS albums pass their feed URL so artwork can carry the feed's credentials. */
   addByRssFeedUrl: string | null;
+  /** True while a tap on this row is still opening its screen. */
+  busy?: boolean;
   imageUrl: string | null;
   onPress: () => void;
   subtitle?: string;
@@ -45,6 +47,7 @@ const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
 export const AlbumListRow = memo(function AlbumListRow({
   accessibilityLabel,
   addByRssFeedUrl,
+  busy,
   imageUrl,
   onPress,
   subtitle,
@@ -69,6 +72,7 @@ export const AlbumListRow = memo(function AlbumListRow({
           />
         }
         accessibilityLabel={accessibilityLabel}
+        busy={busy}
         onPress={onPress}
         subtitle={subtitle}
         testID={testID}

@@ -1,3 +1,4 @@
+import type { IndexProviderId } from './indexProvider.js';
 import { MediumEnum } from './medium.js';
 
 /**
@@ -64,6 +65,21 @@ export const buildPodcastPath = (idText: string): string =>
 
 export const buildPodcastIndexFeedPath = (podcastIndexId: string): string =>
   buildAppRoutePath(APP_ROUTES.PODCAST_INDEX_FEED, podcastIndexId);
+
+/** Web path of the provider search detail for one provider feed. */
+export const buildIndexProviderFeedPath = (
+  indexProvider: IndexProviderId,
+  providerFeedId: string
+): string => {
+  switch (indexProvider) {
+    case 'podcast_index':
+      return buildPodcastIndexFeedPath(providerFeedId);
+    default: {
+      const unhandled: never = indexProvider;
+      return unhandled;
+    }
+  }
+};
 
 /** Search-tab preview for a Podcast Index feed (`search/result/:resultId`). */
 export const buildMobileSearchResultPath = (resultId: string): string =>

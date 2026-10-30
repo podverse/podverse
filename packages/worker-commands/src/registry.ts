@@ -336,7 +336,7 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     name: 'podcastIndexDeadFeedsFlagAndMerge',
     label: 'Podcast Index: dead feeds flag and merge',
     description:
-      'Download the Podcast Index dead-feed list, record duplicateOf pairs for feeds we store, and retire feeds that list marks when PODCAST_INDEX_DEAD_FEED_RETIRE_MODE is apply.',
+      'Download the Podcast Index dead-feed list, record duplicateOf pairs for feeds we store, re-point or remove remote stubs for merged feeds, and retire feeds that list marks when PODCAST_INDEX_DEAD_FEED_RETIRE_MODE is apply.',
     category: 'podcast_index',
     risk: 'normal',
     example_cli: 'npm run podcast_index_dead_feeds_flag_and_merge -w apps/workers',

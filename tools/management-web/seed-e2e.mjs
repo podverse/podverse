@@ -16,6 +16,9 @@
  *
  * Two duplicate-feed pairs are seeded in the app database for Merge Review. Both stay
  * needs_review and the old feeds stay active.
+ *
+ * Three remote stubs are seeded for the Remote Stubs pages. Re-running replaces those
+ * Podcast Index ids only.
  */
 
 import crypto from 'node:crypto';
@@ -33,6 +36,7 @@ const APP_DB_PASSWORD = process.env.SEED_APP_DB_PASSWORD ?? 'test';
 const APP_DB_NAME = process.env.DB_APP_NAME ?? 'podverse_app_test';
 
 const MERGE_REVIEW_PI_IDS = [876543240, 876543241, 876543242, 876543243];
+const REMOTE_STUB_PI_IDS = ['876543250', '876543251', '876543252'];
 
 const BILLING_MEMBER_EMAIL = 'e2e-billing-member@example.com';
 const BILLING_MEMBER_TRIAL_DAYS = 3;
@@ -263,6 +267,143 @@ async function seedMergeReview() {
   }
 }
 
+/**
+ * Three remote stubs. The feed_guid column is a uuid, so each row stores a fixed uuid and a
+ * separate feed_guid alias of e2e-remote-stub-<n>. Re-running replaces these Podcast Index ids
+ * only. Aliases and item stubs cascade when the channel stub row is deleted.
+ */
+async function seedRemoteStubs() {
+  const client = new pg.Client({
+    host: DB_HOST,
+    port: DB_PORT,
+    user: APP_DB_USER,
+    password: APP_DB_PASSWORD,
+    database: APP_DB_NAME,
+  });
+  await client.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `DELETE FROM scheduled_job
+       WHERE dedupe_key = ANY($1::text[])
+          OR dedupe_key IN (
+            SELECT 'remote-stub-recheck:' || id::text
+            FROM remote_channel_stub
+            WHERE index_provider = 'podcast_index'
+              AND provider_feed_id = ANY($2::text[])
+            UNION ALL
+            SELECT 'remote-stub-repoint:' || id::text
+            FROM remote_channel_stub
+            WHERE index_provider = 'podcast_index'
+              AND provider_feed_id = ANY($2::text[])
+          )`,
+      [
+        REMOTE_STUB_PI_IDS.map(
+          (providerFeedId) => `remote-stub-promote:podcast_index:${providerFeedId}`
+        ),
+        REMOTE_STUB_PI_IDS,
+      ]
+    );
+    await client.query(
+      `DELETE FROM remote_channel_stub
+       WHERE index_provider = 'podcast_index'
+         AND provider_feed_id = ANY($1::text[])`,
+      [REMOTE_STUB_PI_IDS]
+    );
+
+    const stubs = [
+      {
+        aliasGuid: 'e2e-remote-stub-1',
+        feedGuid: 'e2e00000-0000-4000-8000-000000000250',
+        feedUrl: 'https://example.com/e2e-remote-stub-1.xml',
+        items: [
+          {
+            durationSeconds: 90,
+            guid: 'e2e-remote-stub-1-item-1',
+            title: 'E2E Remote Stub Item One',
+          },
+          {
+            durationSeconds: 125,
+            guid: 'e2e-remote-stub-1-item-2',
+            title: 'E2E Remote Stub Item Two',
+          },
+        ],
+        providerFeedId: REMOTE_STUB_PI_IDS[0],
+        title: 'E2E Remote Stub Recheck',
+      },
+      {
+        aliasGuid: 'e2e-remote-stub-2',
+        feedGuid: 'e2e00000-0000-4000-8000-000000000251',
+        feedUrl: 'https://example.com/e2e-remote-stub-2.xml',
+        items: [],
+        providerFeedId: REMOTE_STUB_PI_IDS[1],
+        title: 'E2E Remote Stub Promote',
+      },
+      {
+        aliasGuid: 'e2e-remote-stub-3',
+        feedGuid: 'e2e00000-0000-4000-8000-000000000252',
+        feedUrl: 'https://example.com/e2e-remote-stub-3.xml',
+        items: [],
+        providerFeedId: REMOTE_STUB_PI_IDS[2],
+        title: 'E2E Remote Stub Delete',
+      },
+    ];
+
+    for (const stub of stubs) {
+      const inserted = await client.query(
+        `INSERT INTO remote_channel_stub (
+           index_provider,
+           provider_feed_id,
+           feed_guid,
+           feed_url,
+           title,
+           author,
+           medium_id
+         )
+         VALUES (
+           'podcast_index',
+           $1,
+           $2::uuid,
+           $3,
+           $4,
+           $5,
+           (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1)
+         )
+         RETURNING id`,
+        [stub.providerFeedId, stub.feedGuid, stub.feedUrl, stub.title, 'E2E Remote Author']
+      );
+      const stubId = inserted.rows[0].id;
+      await client.query(
+        `INSERT INTO remote_channel_stub_alias (remote_channel_stub_id, key_kind, key_value)
+         VALUES ($1, 'feed_guid', $2), ($1, 'feed_url', $3)`,
+        [stubId, stub.aliasGuid, stub.feedUrl]
+      );
+      for (let index = 0; index < stub.items.length; index += 1) {
+        const item = stub.items[index];
+        await client.query(
+          `INSERT INTO remote_item_stub (
+             remote_channel_stub_id,
+             item_guid,
+             title,
+             pub_date,
+             duration_seconds
+           )
+           VALUES ($1, $2, $3, NOW() - make_interval(days => $4), $5)`,
+          [stubId, item.guid, item.title, index + 1, item.durationSeconds]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+    console.log('Seeded remote stubs (recheck, promote, delete).');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    await client.end();
+  }
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash('Test!1Aa', 10);
 
@@ -329,6 +470,7 @@ async function main() {
 
   await seedBillingMember(passwordHash);
   await seedMergeReview();
+  await seedRemoteStubs();
   console.log('Management-web E2E seed complete.');
 }
 

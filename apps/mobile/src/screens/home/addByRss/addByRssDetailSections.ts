@@ -9,6 +9,8 @@ export const ADD_BY_RSS_SECTION_LABEL_KEYS: Record<AddByRssDetailTab, string> = 
   episodes: 'media.podcast.episodes',
   funding: 'info.funding',
   people: 'info.people.people',
+  podroll: 'info.podroll',
+  remote_items: 'info.remote_items',
   tracks: 'media.music.tracks',
 };
 
@@ -28,18 +30,24 @@ export const isAddByRssFilterableSection = (section: AddByRssDetailTab): boolean
   section === 'downloaded';
 
 /**
- * Podcast feeds offer Episodes, Downloaded, and About, then Funding and People when the feed
- * lists them. Artist feeds offer Albums, Tracks, and About; album and track feeds offer Tracks
- * and About. Music feeds then add Funding and People, and never Downloaded.
+ * Podcast feeds offer Episodes, Downloaded, and About. Artist feeds offer Albums, Tracks, and
+ * About. Album and track feeds offer Tracks and About. Podroll follows About on every feed that
+ * lists podroll references. Remote Items follows Podroll on podcast and album feeds that list
+ * channel remote items, and is never offered on an artist feed. Funding and People follow when
+ * the feed lists them. Music feeds never offer Downloaded.
  */
 export const resolveAddByRssSections = ({
   hasFunding,
   hasPeople,
+  hasPodroll,
+  hasRemoteItems,
   isArtistFeed,
   isMusicFeed,
 }: {
   hasFunding: boolean;
   hasPeople: boolean;
+  hasPodroll: boolean;
+  hasRemoteItems: boolean;
   isArtistFeed: boolean;
   isMusicFeed: boolean;
 }): AddByRssDetailTab[] => {
@@ -48,6 +56,12 @@ export const resolveAddByRssSections = ({
     : isMusicFeed
       ? ['tracks', 'about']
       : ['episodes', 'downloaded', 'about'];
+  if (hasPodroll) {
+    sections.push('podroll');
+  }
+  if (hasRemoteItems && !isArtistFeed) {
+    sections.push('remote_items');
+  }
   if (hasFunding) {
     sections.push('funding');
   }

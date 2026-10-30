@@ -46,6 +46,10 @@ type NotificationsContextType = {
   subscribeToPlaybackStream: (
     listener: (event: AccountPlaybackStreamEvent, receivedAtMs: number) => void
   ) => () => void;
+  /** True once this page has checked this browser's permission and registration for the account. */
+  pushStateChecked: boolean;
+  /** Re-reads `Notification.permission` and whether this browser's subscription is registered. */
+  refreshWebPushRegistration: () => Promise<void>;
 };
 
 export const NotificationsContext = createContext<NotificationsContextType>({
@@ -62,6 +66,8 @@ export const NotificationsContext = createContext<NotificationsContextType>({
   notificationStreamIsLeader: false,
   subscribeToNotificationStream: () => () => {},
   subscribeToPlaybackStream: () => () => {},
+  pushStateChecked: false,
+  refreshWebPushRegistration: async () => {},
 });
 
 type NotificationsProviderProps = {
@@ -82,8 +88,10 @@ const toSameOriginPath = (link: string): string | null => {
 
 export const NotificationsProvider = ({ children }: NotificationsProviderProps) => {
   const config = useConfig();
+  const vapidPublicKey = config.public.notifications.webpush.vapidPublicKey;
   const router = useRouter();
   const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [pushStateChecked, setPushStateChecked] = useState(false);
   const [registered, setRegistered] = useState<boolean>(false);
   const [upRegistered, setUPRegistered] = useState<boolean>(false);
   const [upEndpoint, setUPEndpoint] = useState<string | null>(null);
@@ -192,7 +200,35 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     [markPushNotificationRead, router]
   );
 
+  const refreshWebPushRegistration = useCallback(async (): Promise<void> => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return;
+    }
+    const currentPermission = Notification.permission;
+    setPermission(currentPermission);
+    if (currentPermission !== 'granted' || !vapidPublicKey) {
+      setRegistered(false);
+      return;
+    }
+    try {
+      const registration = await navigator.serviceWorker.getRegistration(
+        WEB_PUSH_SERVICE_WORKER_PATH
+      );
+      const subscription = registration ? await registration.pushManager.getSubscription() : null;
+      if (subscription === null) {
+        setRegistered(false);
+        return;
+      }
+      const devices = await getApiRequestService().reqAccountWebPushDeviceGetAllForAccount();
+      setRegistered(devices.some((device) => device.endpoint === subscription.endpoint));
+    } catch (error) {
+      console.warn('Could not check this browser web push registration', error);
+      setRegistered(false);
+    }
+  }, [vapidPublicKey]);
+
   useEffect(() => {
+    setPushStateChecked(false);
     if (!loggedInAccount) {
       return;
     }
@@ -202,7 +238,6 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     }
 
     const apiRequestService = getApiRequestService();
-    const vapidPublicKey = config.public.notifications.webpush.vapidPublicKey;
 
     const init = async () => {
       const p = Notification.permission;
@@ -226,41 +261,8 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
         setUPEndpoint(null);
       }
 
-      // Check Web Push devices
-      if (p === 'granted' && vapidPublicKey) {
-        try {
-          const devices = await apiRequestService.reqAccountWebPushDeviceGetAllForAccount();
-
-          if (devices.length === 0) {
-            setRegistered(false);
-          } else {
-            // Check if we have a current push subscription
-            const registration = await navigator.serviceWorker.getRegistration(
-              WEB_PUSH_SERVICE_WORKER_PATH
-            );
-            if (registration) {
-              const subscription = await registration.pushManager.getSubscription();
-              if (subscription) {
-                const endpoint = subscription.endpoint;
-                // Check if our current subscription endpoint matches any device
-                const match = devices.find((d) => d.endpoint === endpoint);
-                if (match) {
-                  setRegistered(true);
-                } else {
-                  setRegistered(false);
-                }
-              } else {
-                setRegistered(false);
-              }
-            } else {
-              setRegistered(false);
-            }
-          }
-        } catch (e) {
-          console.warn('Could not fetch Web Push devices to determine registration', e);
-          setRegistered(false);
-        }
-      }
+      await refreshWebPushRegistration();
+      setPushStateChecked(true);
     };
 
     init();
@@ -275,7 +277,7 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
         navigator.serviceWorker.removeEventListener('message', handleForegroundPush);
       }
     };
-  }, [loggedInAccount, handleForegroundPush]);
+  }, [loggedInAccount, handleForegroundPush, refreshWebPushRegistration]);
 
   useEffect(() => {
     if (accountId === null) {
@@ -329,6 +331,8 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
         notificationStreamIsLeader,
         subscribeToNotificationStream,
         subscribeToPlaybackStream,
+        pushStateChecked,
+        refreshWebPushRegistration,
       }}
     >
       {children}

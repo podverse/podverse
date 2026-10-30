@@ -124,6 +124,9 @@ import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
 import { ProductMembershipSettings } from '@orm/entities/productMembershipSettings.js';
 import { Queue } from '@orm/entities/queue/queue.js';
 import { QueueResource } from '@orm/entities/queue/queueResource.js';
+import { RemoteChannelStub } from '@orm/entities/remoteStub/remoteChannelStub.js';
+import { RemoteChannelStubAlias } from '@orm/entities/remoteStub/remoteChannelStubAlias.js';
+import { RemoteItemStub } from '@orm/entities/remoteStub/remoteItemStub.js';
 import { SharableStatus } from '@orm/entities/sharableStatus.js';
 import { StatsDailyAccount } from '@orm/entities/stats/statsDailyAccount.js';
 import { StatsDailyChannel } from '@orm/entities/stats/statsDailyChannel.js';
@@ -278,6 +281,9 @@ export const entities = [
   ProductMembershipSettings,
   Queue,
   QueueResource,
+  RemoteChannelStub,
+  RemoteChannelStubAlias,
+  RemoteItemStub,
   ScheduledJob,
   SharableStatus,
   StatsDailyAccount,

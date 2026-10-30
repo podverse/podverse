@@ -31,10 +31,10 @@ const removedContentSentences = (row: DTOAccountContentLog, t: Translate): strin
   }
 
   if (row.clip_count > 0) {
-    sentences.push(t('removed_content.clips', { count: row.clip_count }));
+    sentences.push(t('settings.advanced.clips', { count: row.clip_count }));
   }
   if (row.playlist_entry_count > 0) {
-    sentences.push(t('removed_content.playlist_entries', { count: row.playlist_entry_count }));
+    sentences.push(t('settings.advanced.playlist_entries', { count: row.playlist_entry_count }));
   }
 
   return sentences;

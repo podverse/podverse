@@ -72,13 +72,17 @@ function areStartTimesNonDecreasing(rows: readonly TranscriptRow[]): boolean {
   return true;
 }
 
+function cueContainsPlayhead(row: TranscriptRow, playheadSeconds: number): boolean {
+  return playheadSeconds >= row.startTime && playheadSeconds < row.endTime;
+}
+
 function findActiveIndexLinear(rows: readonly TranscriptRow[], playheadSeconds: number): number {
   for (let i = 0; i < rows.length; i += 1) {
     const row = rows[i];
     if (row === undefined) {
       continue;
     }
-    if (playheadSeconds >= row.startTime && playheadSeconds < row.endTime) {
+    if (cueContainsPlayhead(row, playheadSeconds)) {
       return i;
     }
   }
@@ -86,7 +90,8 @@ function findActiveIndexLinear(rows: readonly TranscriptRow[], playheadSeconds: 
 }
 
 /**
- * Last cue whose startTime is <= playhead, then confirm the playhead is still before endTime.
+ * Rightmost cue that has started, then the earliest cue in that prefix that still contains
+ * the playhead. Later cues that start after the playhead are outside the prefix.
  */
 function findActiveIndexBinary(rows: readonly TranscriptRow[], playheadSeconds: number): number {
   let low = 0;
@@ -111,12 +116,11 @@ function findActiveIndexBinary(rows: readonly TranscriptRow[], playheadSeconds: 
     return -1;
   }
 
-  const row = rows[candidate];
-  if (row === undefined) {
-    return -1;
-  }
-  if (playheadSeconds >= row.startTime && playheadSeconds < row.endTime) {
-    return candidate;
+  for (let i = 0; i <= candidate; i += 1) {
+    const row = rows[i];
+    if (row !== undefined && cueContainsPlayhead(row, playheadSeconds)) {
+      return i;
+    }
   }
   return -1;
 }

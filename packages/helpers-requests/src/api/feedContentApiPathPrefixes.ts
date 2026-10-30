@@ -15,6 +15,7 @@ export const FEED_CONTENT_API_PATH_PREFIXES = [
   '/live-item',
   '/podroll',
   '/publisher-feed',
+  '/remote-item',
 ] as const;
 
 export function isFeedContentApiPath(path: string): boolean {

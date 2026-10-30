@@ -3,7 +3,8 @@ name: Notifications Inbox
 ---
 # Signed out, the Home bell opens the login gate, and a /notifications link still reaches the
 # inbox's login fill. Signed in, the bell opens the inbox, which slides up over Home; the down
-# chevron returns to Home.
+# chevron returns to Home. With notifications denied and a push device registered elsewhere on
+# the account, notification settings opens with the device push banner at the top.
 
 - runFlow: shared/launch-and-connect.yaml
 
@@ -176,3 +177,35 @@ name: Notifications Inbox
 - assertVisible:
     id: more-settings-banner-notification-general-switch
 - takeScreenshot: more-settings-banner-notifications
+
+# Denied notifications on this device, with Push on for the account's media categories by default
+# and a push device registered elsewhere on the account: notification settings opens with the
+# device push banner at the top.
+- runScript:
+    file: scripts/push-device-fixture.js
+    env:
+      E2E_PUSH_DEVICE_ACTION: add
+- launchApp:
+    clearState: false
+    permissions:
+      notifications: deny
+- runFlow: shared/connect-dev-client.yaml
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-settings
+- assertVisible:
+    id: more-settings-screen
+- tapOn:
+    id: more-settings-notifications
+- extendedWaitUntil:
+    visible:
+      id: more-settings-device-push-banner
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: more-settings-device-push-banner-action
+- takeScreenshot: more-settings-device-push-banner
+- runScript:
+    file: scripts/push-device-fixture.js
+    env:
+      E2E_PUSH_DEVICE_ACTION: remove

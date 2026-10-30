@@ -6,6 +6,7 @@ export type ChannelSectionChromeFlags = {
   hasOfficialClips: boolean;
   hasPeople: boolean;
   hasPodroll: boolean;
+  hasRemoteItems: boolean;
 };
 
 export type ItemSectionChromeFlags = {
@@ -22,6 +23,7 @@ export const EMPTY_CHANNEL_SECTION_CHROME_FLAGS: ChannelSectionChromeFlags = {
   hasOfficialClips: false,
   hasPeople: false,
   hasPodroll: false,
+  hasRemoteItems: false,
 };
 
 export const EMPTY_ITEM_SECTION_CHROME_FLAGS: ItemSectionChromeFlags = {
@@ -54,6 +56,7 @@ export const parseChannelSectionChromeFlags = (value: unknown): ChannelSectionCh
     hasOfficialClips: readBooleanFlag(value, 'hasOfficialClips'),
     hasPeople: readBooleanFlag(value, 'hasPeople'),
     hasPodroll: readBooleanFlag(value, 'hasPodroll'),
+    hasRemoteItems: readBooleanFlag(value, 'hasRemoteItems'),
   };
 };
 

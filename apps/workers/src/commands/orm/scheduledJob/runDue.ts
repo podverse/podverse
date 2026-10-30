@@ -1,6 +1,12 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import { parsePodcastIndexFeedDirectly } from '@workers/commands/parser/rss/parseFeed.js';
+import { getPodcastIndexConfig } from '@workers/config/index.js';
+import { getIndexProvider } from '@workers/factories/indexProvider.js';
 import { getLogger } from '@workers/factories/logger.js';
+import {
+  recheckRemoteChannelStub,
+  repointRemoteChannelStub,
+} from '@workers/lib/remoteStubs/remoteStubActions.js';
 
 import {
   computeExponentialBackoffDelayMs,
@@ -17,6 +23,12 @@ import {
   FeedService,
   parseAdminNotificationSendPayload,
   parseFeedForceReparsePayload,
+  parseRemoteStubPromotePayload,
+  parseRemoteStubRecheckPayload,
+  parseRemoteStubRepointPayload,
+  REMOTE_STUB_PROMOTE_JOB_TYPE,
+  REMOTE_STUB_RECHECK_JOB_TYPE,
+  REMOTE_STUB_REPOINT_JOB_TYPE,
   ScheduledJobService,
   shouldAttemptFeedParseFromLifecycleAndPolicy,
 } from '@podverse/orm';
@@ -87,17 +99,14 @@ const handleAdminNotificationSend: JobHandler = async (job) => {
   return { outcome: 'completed' };
 };
 
-const handleFeedForceReparse: JobHandler = async (job) => {
-  const payload = parseFeedForceReparsePayload(job.payload);
-  if (payload === null) {
-    throw new Error('Invalid feed-force-reparse payload');
-  }
+type FeedParseGateInput = {
+  feed_lifecycle_state: {
+    feed_lifecycle_state_type: { state_key: FeedLifecycleStateKeyEnum } | null;
+  } | null;
+  feed_policy: Parameters<typeof shouldAttemptFeedParseFromLifecycleAndPolicy>[0]['feedPolicy'];
+};
 
-  const feed = await new FeedService().get(payload.feedId);
-  if (feed === null) {
-    return { outcome: 'cancelled', reason: 'Feed not found' };
-  }
-
+function cancelledWhenFeedMayNotBeParsed(feed: FeedParseGateInput): JobHandlerResult | null {
   const lifecycleStateKey =
     feed.feed_lifecycle_state?.feed_lifecycle_state_type?.state_key ??
     FeedLifecycleStateKeyEnum.Active;
@@ -112,6 +121,24 @@ const handleFeedForceReparse: JobHandler = async (job) => {
       reason: `Feed may not be parsed (lifecycle=${lifecycleStateKey})`,
     };
   }
+  return null;
+}
+
+const handleFeedForceReparse: JobHandler = async (job) => {
+  const payload = parseFeedForceReparsePayload(job.payload);
+  if (payload === null) {
+    throw new Error('Invalid feed-force-reparse payload');
+  }
+
+  const feed = await new FeedService().get(payload.feedId);
+  if (feed === null) {
+    return { outcome: 'cancelled', reason: 'Feed not found' };
+  }
+
+  const cancelled = cancelledWhenFeedMayNotBeParsed(feed);
+  if (cancelled !== null) {
+    return cancelled;
+  }
 
   await parsePodcastIndexFeedDirectly(feed.podcast_index_id, true, {
     enqueueFollowUpWork: true,
@@ -120,9 +147,95 @@ const handleFeedForceReparse: JobHandler = async (job) => {
   return { outcome: 'completed' };
 };
 
+const handleRemoteStubRecheck: JobHandler = async (job) => {
+  const payload = parseRemoteStubRecheckPayload(job.payload);
+  if (payload === null) {
+    throw new Error('Invalid remote-stub-recheck payload');
+  }
+
+  const result = await recheckRemoteChannelStub(getIndexProvider(), payload.remoteChannelStubId, {
+    rateLimitDelayMs: getPodcastIndexConfig().rateLimitDelay ?? 0,
+  });
+  if (result === 'missing') {
+    return { outcome: 'cancelled', reason: 'Remote stub not found' };
+  }
+  if (result === 'unavailable') {
+    throw new Error('Index provider unavailable');
+  }
+
+  getLogger().info(
+    `scheduledJobsRunDue remote-stub-recheck stub_id=${payload.remoteChannelStubId} result=${result}`
+  );
+  return { outcome: 'completed' };
+};
+
+const handleRemoteStubRepoint: JobHandler = async (job) => {
+  const payload = parseRemoteStubRepointPayload(job.payload);
+  if (payload === null) {
+    throw new Error('Invalid remote-stub-repoint payload');
+  }
+
+  const result = await repointRemoteChannelStub(
+    getIndexProvider(),
+    payload.remoteChannelStubId,
+    payload.targetProviderFeedId
+  );
+  if (result === 'missing') {
+    return { outcome: 'cancelled', reason: 'Remote stub not found' };
+  }
+  if (result === 'target_not_found') {
+    return { outcome: 'cancelled', reason: 'Target provider feed not found' };
+  }
+  if (result === 'unavailable') {
+    throw new Error('Index provider unavailable');
+  }
+
+  getLogger().info(
+    `scheduledJobsRunDue remote-stub-repoint stub_id=${payload.remoteChannelStubId} result=${result}`
+  );
+  return { outcome: 'completed' };
+};
+
+const handleRemoteStubPromote: JobHandler = async (job) => {
+  const payload = parseRemoteStubPromotePayload(job.payload);
+  if (payload === null) {
+    throw new Error('Invalid remote-stub-promote payload');
+  }
+
+  switch (payload.indexProvider) {
+    case 'podcast_index': {
+      const podcastIndexId = Number(payload.providerFeedId);
+      if (!Number.isSafeInteger(podcastIndexId) || podcastIndexId <= 0) {
+        return { outcome: 'cancelled', reason: 'Invalid Podcast Index feed id' };
+      }
+
+      const existing = await new FeedService().getByPodcastIndexId(podcastIndexId);
+      if (existing !== null) {
+        const cancelled = cancelledWhenFeedMayNotBeParsed(existing);
+        if (cancelled !== null) {
+          return cancelled;
+        }
+      }
+
+      await parsePodcastIndexFeedDirectly(podcastIndexId, true, {
+        enqueueFollowUpWork: true,
+        suppressNewItemSideEffectsPublishedBeforeMs: job.created_at.getTime(),
+      });
+      return { outcome: 'completed' };
+    }
+    default: {
+      const unhandledProvider: never = payload.indexProvider;
+      throw new Error(`Unhandled remote-stub-promote provider: ${String(unhandledProvider)}`);
+    }
+  }
+};
+
 const jobHandlers: Record<string, JobHandler> = {
   [ADMIN_NOTIFICATION_SEND_JOB_TYPE]: handleAdminNotificationSend,
   [FEED_FORCE_REPARSE_JOB_TYPE]: handleFeedForceReparse,
+  [REMOTE_STUB_RECHECK_JOB_TYPE]: handleRemoteStubRecheck,
+  [REMOTE_STUB_REPOINT_JOB_TYPE]: handleRemoteStubRepoint,
+  [REMOTE_STUB_PROMOTE_JOB_TYPE]: handleRemoteStubPromote,
 };
 
 export const scheduledJobsRunDue = async (args: CommandLineArgs) => {

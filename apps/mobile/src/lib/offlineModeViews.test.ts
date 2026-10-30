@@ -50,6 +50,7 @@ describe('offlineModeViews', () => {
     expect(isPodcastSectionUnavailableOffline('clips')).toBe(true);
     expect(isPodcastSectionUnavailableOffline('soundbites')).toBe(true);
     expect(isPodcastSectionUnavailableOffline('podroll')).toBe(true);
+    expect(isPodcastSectionUnavailableOffline('remote_items')).toBe(true);
     expect(isPodcastSectionUnavailableOffline('downloaded')).toBe(false);
     expect(isPodcastSectionUnavailableOffline('about')).toBe(false);
     expect(isPodcastSectionUnavailableOffline('episodes')).toBe(false);

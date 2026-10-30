@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 import styles from './Banner.module.scss';
 
-export type BannerVariant = 'danger';
+export type BannerVariant = 'danger' | 'warning';
 
 export type BannerProps = {
   /** Primary message — localize in the app before passing. */
@@ -15,13 +15,21 @@ export type BannerProps = {
   className?: string;
 };
 
-/** Full-width horizontal banner with optional trailing action; no default strings. */
+/**
+ * Full-width horizontal banner with optional trailing action; no default strings. `danger` is a
+ * solid danger fill; `warning` is the theme's warning tint with a warning border.
+ */
 export function Banner({ message, action, variant = 'danger', role, className }: BannerProps) {
   const hasAction = action !== undefined && action !== null;
 
   return (
     <div
-      className={classNames(styles.root, variant === 'danger' && styles.danger, className)}
+      className={classNames(
+        styles.root,
+        variant === 'danger' && styles.danger,
+        variant === 'warning' && styles.warning,
+        className
+      )}
       role={role}
     >
       <div className={styles.message}>{message}</div>

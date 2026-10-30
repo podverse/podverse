@@ -7,6 +7,11 @@ afterEach(() => {
   cleanup();
 });
 
+const TABS = [
+  { key: 'general', label: 'General', onClick: vi.fn(), zIndex: 1 },
+  { key: 'account', label: 'Account', onClick: vi.fn(), zIndex: 2 },
+];
+
 function pointer(
   phase: 'pointerDown' | 'pointerMove' | 'pointerUp',
   target: Element,
@@ -65,12 +70,17 @@ describe('Tabs', () => {
 
   it('still selects a tab on a short press', () => {
     const onAccount = vi.fn();
+    const generalTab = TABS[0];
+    const accountTab = TABS[1];
+    if (generalTab === undefined || accountTab === undefined) {
+      throw new Error('Tab fixtures are missing.');
+    }
     render(
       <Tabs
         selectedKey="general"
         tabData={[
-          { key: 'general', label: 'General', onClick: vi.fn(), zIndex: 1 },
-          { key: 'account', label: 'Account', onClick: onAccount, zIndex: 2 },
+          { ...generalTab, onClick: vi.fn() },
+          { ...accountTab, onClick: onAccount },
         ]}
       />
     );

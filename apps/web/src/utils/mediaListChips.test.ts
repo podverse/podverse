@@ -6,6 +6,7 @@ import {
   buildMediaListChipPath,
   MEDIA_LIST_CHIP_LABEL_KEYS,
   resolveMediaListChip,
+  shouldShowBrowseEmptyMessage,
   SUBSCRIBED_CHIPS,
 } from './mediaListChips';
 
@@ -108,5 +109,53 @@ describe('chip lists', () => {
 
   it('labels Livestreams with the shared catalog key', () => {
     expect(MEDIA_LIST_CHIP_LABEL_KEYS.livestreams).toBe('media.livestream.livestreams');
+  });
+});
+
+describe('shouldShowBrowseEmptyMessage', () => {
+  it('shows the message on an empty first Browse page that has finished loading', () => {
+    expect(
+      shouldShowBrowseEmptyMessage({
+        isBrowse: true,
+        isLoading: false,
+        page: 1,
+        rowCount: 0,
+      })
+    ).toBe(true);
+  });
+
+  it('hides the message while loading, on a later page, when rows exist, or outside Browse', () => {
+    expect(
+      shouldShowBrowseEmptyMessage({
+        isBrowse: true,
+        isLoading: true,
+        page: 1,
+        rowCount: 0,
+      })
+    ).toBe(false);
+    expect(
+      shouldShowBrowseEmptyMessage({
+        isBrowse: true,
+        isLoading: false,
+        page: 2,
+        rowCount: 0,
+      })
+    ).toBe(false);
+    expect(
+      shouldShowBrowseEmptyMessage({
+        isBrowse: true,
+        isLoading: false,
+        page: 1,
+        rowCount: 1,
+      })
+    ).toBe(false);
+    expect(
+      shouldShowBrowseEmptyMessage({
+        isBrowse: false,
+        isLoading: false,
+        page: 1,
+        rowCount: 0,
+      })
+    ).toBe(false);
   });
 });

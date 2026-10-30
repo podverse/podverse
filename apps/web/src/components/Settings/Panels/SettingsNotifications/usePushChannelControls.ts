@@ -16,6 +16,7 @@ import { requestNotificationPermission } from '../../../../lib/notifications/web
 
 export function usePushChannelControls() {
   const {
+    refreshWebPushRegistration,
     setPermission,
     registered,
     setRegistered,
@@ -117,34 +118,7 @@ export function usePushChannelControls() {
         console.warn('Could not enable web push', error);
       }
     } finally {
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        const permission = Notification.permission;
-        setPermission(permission);
-
-        if (permission === 'granted') {
-          try {
-            const registration = await navigator.serviceWorker.getRegistration('/webpush-sw.js');
-            if (registration) {
-              const subscription = await registration.pushManager.getSubscription();
-              if (subscription) {
-                const devices =
-                  await getApiRequestService().reqAccountWebPushDeviceGetAllForAccount();
-                const match = devices.find((device) => device.endpoint === subscription.endpoint);
-                setRegistered(!!match);
-              } else {
-                setRegistered(false);
-              }
-            } else {
-              setRegistered(false);
-            }
-          } catch (error) {
-            console.warn('Could not verify registration after enable', error);
-            setRegistered(false);
-          }
-        } else {
-          setRegistered(false);
-        }
-      }
+      await refreshWebPushRegistration();
     }
   };
 

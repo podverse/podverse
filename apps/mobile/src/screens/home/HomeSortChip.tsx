@@ -1,10 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { MenuSelectChipOption } from '../../components/form';
-import { MenuSelectChip } from '../../components/form';
-import type { MoreMenuItem, MoreMenuSection } from '../../components/primitives';
-import { MoreMenu } from '../../components/primitives';
+import { ListSortChip } from '../../components/form';
 import type { HomeRangeOption, HomeSortOption } from '../../prefs/homeListPrefs';
 import { HOME_RANGE_OPTIONS } from '../../prefs/homeListPrefs';
 import { BROWSE_RANGE_LABEL_KEYS, BROWSE_RANGE_MENU_LABEL_KEYS } from '../browse/browseTypes';
@@ -31,66 +28,43 @@ type HomeSortChipProps = {
 export function HomeSortChip({
   onRangeChange,
   onSortChange,
-  options,
+  options: sortOptions,
   range,
   sort,
 }: HomeSortChipProps) {
   const { t } = useTranslation();
-  const [isRangeOpen, setIsRangeOpen] = useState<boolean>(false);
 
-  const menuOptions = useMemo<MenuSelectChipOption<HomeSortOption>[]>(
+  const options = useMemo(
     () =>
-      options.map((option) => ({
+      sortOptions.map((option) => ({
         label: t(SORT_LABEL_KEYS[option]),
-        shortLabel:
-          option === 'popularity' && sort === 'popularity'
-            ? t(BROWSE_RANGE_LABEL_KEYS[range])
-            : undefined,
-        testID: `home-sort-${option}`,
         value: option,
       })),
-    [options, range, sort, t]
+    [sortOptions, t]
   );
 
-  const rangeSections = useMemo<MoreMenuSection[]>(() => {
-    const items: MoreMenuItem[] = HOME_RANGE_OPTIONS.map((option) => ({
-      key: option,
-      label: t(BROWSE_RANGE_MENU_LABEL_KEYS[option]),
-      onPress: () => {
-        onRangeChange(option);
-      },
-      selected: sort === 'popularity' && option === range,
-      testID: `home-sort-range-${option}`,
-    }));
-
-    return [{ items, key: 'range', title: t('filters.screen.range_heading') }];
-  }, [onRangeChange, range, sort, t]);
+  const rangeOptions = useMemo(
+    () =>
+      HOME_RANGE_OPTIONS.map((option) => ({
+        label: t(BROWSE_RANGE_MENU_LABEL_KEYS[option]),
+        shortLabel: t(BROWSE_RANGE_LABEL_KEYS[option]),
+        value: option,
+      })),
+    [t]
+  );
 
   return (
-    <>
-      <MenuSelectChip
-        heading={t('filters.screen.sort_heading')}
-        menuTitle={t('filters.screen.sort_heading')}
-        onSelect={(nextSort) => {
-          if (nextSort === 'popularity') {
-            setIsRangeOpen(true);
-            return;
-          }
-          onSortChange(nextSort);
-        }}
-        options={menuOptions}
-        testID="home-sort"
-        value={sort}
-      />
-      <MoreMenu
-        cancelLabel={t('misc.cancel')}
-        onCancel={() => {
-          setIsRangeOpen(false);
-        }}
-        sections={rangeSections}
-        testID="home-sort-range-menu"
-        visible={isRangeOpen}
-      />
-    </>
+    <ListSortChip
+      heading={t('filters.screen.sort_heading')}
+      onRangeChange={onRangeChange}
+      onSortChange={onSortChange}
+      options={options}
+      range={range}
+      rangeHeading={t('filters.screen.range_heading')}
+      rangeOptions={rangeOptions}
+      rangeSort="popularity"
+      sort={sort}
+      testID="home-sort"
+    />
   );
 }

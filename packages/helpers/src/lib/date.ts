@@ -206,11 +206,9 @@ export type RelativeTimeParts = {
 /**
  * Choose the unit and amount for "how long ago", leaving the wording to the caller.
  *
- * Only the arithmetic is shared, not the formatting, because the surfaces legitimately differ in
- * how they get a locale: one holds an `Intl.RelativeTimeFormat` it rebuilds when the user changes
- * language, another takes the ambient one. Returning parts lets each keep its own formatter while
- * the bucket boundaries stay one decision — otherwise the same notification reads "1 hour ago" on
- * one device and "60 minutes ago" on another.
+ * The bucket boundaries stay one decision — otherwise the same notification reads "1 hour ago" on
+ * one device and "60 minutes ago" on another. `formatRelativeTimeLabel` renders these parts, and
+ * each caller passes the locale it renders in.
  *
  * A negative value is the past, matching what `Intl.RelativeTimeFormat` expects. `null` means the
  * timestamp was unusable, which callers must render as nothing rather than pass along: that
@@ -241,6 +239,43 @@ export function getRelativeTimeParts(
   }
 
   return { unit: 'day', value: Math.round(hours / 24) };
+}
+
+const relativeTimeFormatters = new Map<string, Intl.RelativeTimeFormat>();
+
+function getRelativeTimeFormatter(locale: string | undefined): Intl.RelativeTimeFormat {
+  const cacheKey = locale ?? '';
+  const cached = relativeTimeFormatters.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const formatter = new Intl.RelativeTimeFormat(locale, {
+    localeMatcher: 'lookup',
+    numeric: 'auto',
+  });
+  relativeTimeFormatters.set(cacheKey, formatter);
+  return formatter;
+}
+
+/**
+ * Render `getRelativeTimeParts` as "2 hours ago", "in 5 minutes", "yesterday", or "now" in
+ * `locale`. `undefined` takes the runtime default. An unusable timestamp gives `''`.
+ *
+ * Formatters are cached per locale because list rows call this once each. Lookup locale matching
+ * never needs `Intl.Locale`, which the mobile polyfill set leaves out.
+ */
+export function formatRelativeTimeLabel(
+  value: string | null | undefined,
+  locale: string | undefined,
+  nowMs: number = Date.now()
+): string {
+  const parts = getRelativeTimeParts(value, nowMs);
+  if (parts === null) {
+    return '';
+  }
+
+  return getRelativeTimeFormatter(locale).format(parts.value, parts.unit);
 }
 
 /**

@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import type { DTOItem, SortPrefScope, SortPrefValue } from '@podverse/helpers';
+import type { DTOItem, RemoteItemsResponse, SortPrefScope, SortPrefValue } from '@podverse/helpers';
 import { buildAlbumPath, getTotalPages } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
@@ -152,6 +152,11 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
     ssrPodroll = await ssrApiRequestService.reqPodrollGetForChannel(ssrChannel.id_text);
   }
 
+  let ssrRemoteItems: RemoteItemsResponse | null = null;
+  if ((ssrChannel.channel_remote_items?.length ?? 0) > 0) {
+    ssrRemoteItems = await ssrApiRequestService.reqRemoteItemGetForChannel(ssrChannel.id_text);
+  }
+
   return (
     <AlbumPageClient
       hasExplicitUrlParams={hasExplicitUrlParams}
@@ -166,6 +171,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
       ssrItems={ssrItems}
       ssrTotalPages={ssrTotalPages}
       ssrPodroll={ssrPodroll}
+      ssrRemoteItems={ssrRemoteItems}
       directoryRemoved={directoryRemoved}
     />
   );

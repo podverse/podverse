@@ -50,6 +50,21 @@ export type MediaListChipsPage = 'subscribed' | 'browse' | 'add-by-rss' | 'recom
 /** Subscribed lists the account. Browse lists the directory. */
 export type MediaListScope = 'subscribed' | 'browse';
 
+/** A Browse list whose first page loaded with no rows shows its empty message. */
+export function shouldShowBrowseEmptyMessage({
+  isBrowse,
+  isLoading,
+  page,
+  rowCount,
+}: {
+  isBrowse: boolean;
+  isLoading: boolean;
+  page: number;
+  rowCount: number;
+}): boolean {
+  return isBrowse && !isLoading && page <= 1 && rowCount === 0;
+}
+
 /** Query parameter that names the selected chip. */
 export const MEDIA_LIST_CHIP_QUERY_PARAM = 'tab';
 

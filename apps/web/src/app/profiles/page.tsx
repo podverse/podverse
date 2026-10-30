@@ -143,6 +143,7 @@ function parseSearchParams(
       sort: guarded.sort ?? 'recent',
       range: guarded.range,
     },
-    isAuthenticated
+    isAuthenticated,
+    'page'
   );
 }

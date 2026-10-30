@@ -9,50 +9,14 @@ import type { ChannelVerifiedPublisherService, ORMContext } from '@podverse/orm'
 
 import { getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
 
-const podcastIndexFixture = vi.hoisted(() => {
-  const state = { knownGuid: '' };
-
-  function knownFeed(guid: string) {
-    return {
-      id: 880001,
-      podcastGuid: guid,
-      title: 'Known unparsed album',
-      url: 'https://publisher-feed-verified.example/known.xml',
-      originalUrl: 'https://publisher-feed-verified.example/known.xml',
-      link: '',
-      description: '',
-      author: '',
-      ownerName: '',
-      image: '',
-      artwork: '',
-      lastUpdateTime: 0,
-      lastCrawlTime: 0,
-      lastParseTime: 0,
-      lastGoodHttpStatusTime: 0,
-      lastHttpStatus: 200,
-      contentType: 'application/rss+xml',
-      itunesId: null,
-    };
-  }
-
+const podcastIndexMocks = vi.hoisted(() => {
+  const throwOnCall = async (): Promise<never> => {
+    throw new Error('Podcast Index must not be called by publisher-feed verified endpoint');
+  };
   return {
-    state,
-    episodeGetByGuid: vi.fn(async (): Promise<never> => {
-      throw new Error('episodeGetByGuid must not be called');
-    }),
-    podcastGetByFeedUrl: vi.fn(async () => null),
-    podcastsBatchByFeedGuid: vi.fn(async (feedGuids: readonly string[]) => {
-      const feeds = feedGuids
-        .filter((guid) => guid.toLowerCase() === state.knownGuid.toLowerCase())
-        .map((guid) => knownFeed(guid));
-      return {
-        status: 'true',
-        allFound: feeds.length === feedGuids.length && feedGuids.length > 0,
-        found: feeds.length,
-        feeds,
-        description: '',
-      };
-    }),
+    episodeGetByGuid: vi.fn(throwOnCall),
+    podcastGetByFeedUrl: vi.fn(throwOnCall),
+    podcastsBatchByFeedGuid: vi.fn(throwOnCall),
   };
 });
 
@@ -71,9 +35,9 @@ vi.mock('@podverse/orm', async (importOriginal) => {
 
 vi.mock('../factories/podcastIndexService.js', () => ({
   podcastIndexService: {
-    podcastsBatchByFeedGuid: podcastIndexFixture.podcastsBatchByFeedGuid,
-    podcastGetByFeedUrl: podcastIndexFixture.podcastGetByFeedUrl,
-    episodeGetByGuid: podcastIndexFixture.episodeGetByGuid,
+    podcastsBatchByFeedGuid: podcastIndexMocks.podcastsBatchByFeedGuid,
+    podcastGetByFeedUrl: podcastIndexMocks.podcastGetByFeedUrl,
+    episodeGetByGuid: podcastIndexMocks.episodeGetByGuid,
   },
 }));
 
@@ -94,6 +58,7 @@ type SeededWorld = {
   newerItemIdText: string;
   olderItemIdText: string;
   knownUnparsedGuid: string;
+  knownUnparsedFeedUrl: string;
   unknownUnparsedGuid: string;
 };
 
@@ -131,11 +96,11 @@ function idTexts(value: unknown): string[] {
   return texts;
 }
 
-function lowerPodcastGuids(value: unknown): string[] {
+function lowerFeedGuids(value: unknown): string[] {
   const guids: string[] = [];
   for (const row of records(value)) {
-    if (typeof row.podcastGuid === 'string') {
-      guids.push(row.podcastGuid.toLowerCase());
+    if (typeof row.feed_guid === 'string') {
+      guids.push(row.feed_guid.toLowerCase());
     }
   }
   return guids;
@@ -152,6 +117,8 @@ function nextRunId(): number {
 function podcastIndexId(runId: number, slot: number): number {
   return 1_500_000_000 + (runId % 10_000_000) * 4 + slot;
 }
+
+const KNOWN_UNPARSED_PROVIDER_FEED_ID = '880001';
 
 describe('publisher feed verified albums and tracks', () => {
   let server: Server | undefined;
@@ -257,6 +224,7 @@ describe('publisher feed verified albums and tracks', () => {
       })
     );
     const knownUnparsedGuid = crypto.randomUUID();
+    const knownUnparsedFeedUrl = `https://publisher-feed-verified-${runId}.example.com/unparsed-c.xml`;
     const unknownUnparsedGuid = crypto.randomUUID();
     await manager.query(
       `WITH publisher AS (
@@ -291,7 +259,7 @@ describe('publisher feed verified albums and tracks', () => {
         albumB.podcastGuid,
         albumB.feedUrl,
         knownUnparsedGuid,
-        `https://publisher-feed-verified-${runId}.example.com/unparsed-c.xml`,
+        knownUnparsedFeedUrl,
         unknownUnparsedGuid,
         `https://publisher-feed-verified-${runId}.example.com/unparsed-d.xml`,
         newerGuid,
@@ -304,6 +272,7 @@ describe('publisher feed verified albums and tracks', () => {
       newerItemIdText: newer.id_text,
       olderItemIdText: older.id_text,
       knownUnparsedGuid,
+      knownUnparsedFeedUrl,
       unknownUnparsedGuid,
     };
   }
@@ -320,14 +289,35 @@ describe('publisher feed verified albums and tracks', () => {
     const orm = await import('@podverse/orm');
     verifiedPublisherService = new orm.ChannelVerifiedPublisherService();
     world = await seedWorld(ormContext.dataSourceReadWrite.manager);
-    podcastIndexFixture.state.knownGuid = world.knownUnparsedGuid;
+    await new orm.RemoteChannelStubService().upsertChannelStub(
+      {
+        indexProvider: 'podcast_index',
+        providerFeedId: KNOWN_UNPARSED_PROVIDER_FEED_ID,
+        feedGuid: world.knownUnparsedGuid,
+        feedUrl: world.knownUnparsedFeedUrl,
+        title: 'Known unparsed album',
+        author: null,
+        description: null,
+        imageUrl: null,
+        medium: 'music',
+        isDead: false,
+      },
+      [{ feedGuid: world.knownUnparsedGuid, feedUrl: world.knownUnparsedFeedUrl }]
+    );
   }, 120000);
 
   afterAll(async () => {
-    if (ormContext && seededFeedIds.length > 0) {
-      await ormContext.dataSourceReadWrite.query(`DELETE FROM feed WHERE id = ANY($1::int[])`, [
-        seededFeedIds,
-      ]);
+    if (ormContext) {
+      await ormContext.dataSourceReadWrite.query(
+        `DELETE FROM remote_channel_stub
+         WHERE index_provider = 'podcast_index' AND provider_feed_id = $1`,
+        [KNOWN_UNPARSED_PROVIDER_FEED_ID]
+      );
+      if (seededFeedIds.length > 0) {
+        await ormContext.dataSourceReadWrite.query(`DELETE FROM feed WHERE id = ANY($1::int[])`, [
+          seededFeedIds,
+        ]);
+      }
     }
     await stopTestApp(server, ormContext);
   });
@@ -350,10 +340,10 @@ describe('publisher feed verified albums and tracks', () => {
     expect(
       bodyField(records(bodyField(listedBody, 'channelsAdded'))[0], 'verified_publishers')
     ).toEqual([artistPublisher]);
-    expect(records(bodyField(listedBody, 'channelsUnadded'))).toHaveLength(1);
-    expect(lowerPodcastGuids(bodyField(listedBody, 'channelsUnadded'))).toEqual([
-      seeded.knownUnparsedGuid.toLowerCase(),
-    ]);
+    const listedUnadded = records(bodyField(listedBody, 'channelsUnadded'));
+    expect(listedUnadded).toHaveLength(1);
+    expect(bodyField(listedUnadded[0], 'is_remote_stub')).toBe(true);
+    expect(lowerFeedGuids(listedUnadded)).toEqual([seeded.knownUnparsedGuid.toLowerCase()]);
     expect(idTexts(bodyField(listedBody, 'itemsAdded'))).toEqual([
       seeded.newerItemIdText,
       seeded.olderItemIdText,
@@ -378,12 +368,14 @@ describe('publisher feed verified albums and tracks', () => {
     expect(dropped.status).toBe(200);
     const droppedBody: unknown = dropped.body;
     expect(idTexts(bodyField(droppedBody, 'channelsAdded'))).toEqual([]);
-    expect(records(bodyField(droppedBody, 'channelsUnadded'))).toHaveLength(1);
-    expect(lowerPodcastGuids(bodyField(droppedBody, 'channelsUnadded'))).toEqual([
-      seeded.knownUnparsedGuid.toLowerCase(),
-    ]);
+    const droppedUnadded = records(bodyField(droppedBody, 'channelsUnadded'));
+    expect(droppedUnadded).toHaveLength(1);
+    expect(bodyField(droppedUnadded[0], 'is_remote_stub')).toBe(true);
+    expect(lowerFeedGuids(droppedUnadded)).toEqual([seeded.knownUnparsedGuid.toLowerCase()]);
     expect(idTexts(bodyField(droppedBody, 'itemsAdded'))).toEqual([]);
     expect(bodyField(droppedBody, 'itemsUnadded')).toEqual([]);
-    expect(podcastIndexFixture.episodeGetByGuid).not.toHaveBeenCalled();
+    expect(podcastIndexMocks.podcastsBatchByFeedGuid).not.toHaveBeenCalled();
+    expect(podcastIndexMocks.podcastGetByFeedUrl).not.toHaveBeenCalled();
+    expect(podcastIndexMocks.episodeGetByGuid).not.toHaveBeenCalled();
   });
 });

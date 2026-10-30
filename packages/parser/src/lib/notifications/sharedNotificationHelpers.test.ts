@@ -386,13 +386,13 @@ describe('sharedNotificationHelpers recipient gating', () => {
     const recipients = await getDevicesForNotificationType(
       'channel-1',
       AccountNotificationTypeEnum.NewItem,
-      NotificationCategoryEnum.ProductUpdate
+      NotificationCategoryEnum.Maintenance
     );
 
     expect(getForAccountsAndCategoryMock).toHaveBeenCalledTimes(1);
     expect(getForAccountsAndCategoryMock).toHaveBeenCalledWith(
       [4],
-      NotificationCategoryEnum.ProductUpdate
+      NotificationCategoryEnum.Maintenance
     );
     expect(recipients?.inAppEnabledAccountIds).toEqual([4]);
     expect(recipients?.pushEnabledAccountIds).toEqual([]);

@@ -40,8 +40,7 @@ looked like scope creep is how a rule ends up implemented three ways and disagre
 Split along the line where the surfaces genuinely differ, and share the rest:
 
 - Share the **arithmetic, parsing, and decision**; leave **presentation and locale wiring** to each
-  surface. Two inboxes can share which unit describes a gap without sharing how they hold an
-  `Intl` formatter.
+  surface. Two inboxes share one relative-time formatter, and each passes the locale it renders in.
 - Share the **shape and the key**; leave **storage** to each surface. Web and mobile can agree on
   what identifies a screen while one writes a cookie and the other writes AsyncStorage.
 
