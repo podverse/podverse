@@ -34,7 +34,11 @@ These hold even before the skill is read:
 - **abcplan** — never implement in that chat. Each set runs in a fresh worktree opened in its own
   Cursor window: lead with **Fresh worktree required**, then the create block, then the run block
   for the worktree's window (**git-worktree-sibling** § Plan sets in a worktree).
-- **abcdeploysteps** `<repo> <env>` — never guess either word.
+- **abcdeploysteps** `<repo> <env>` — never guess either word. It writes a checklist and does
+  not deploy.
+- **abcdeployrun** `<repo> <env>` — never guess either word. It runs the unattended alpha server
+  deploy. Read the skill before acting. Stop before any destructive action the operator did not
+  ask for.
 - **abcresume** — never run the resume commands; the operator picks one.
 - **abccommitmsg** — draft a message for staged files, or for unstaged changes when nothing is
   staged. Do not commit.

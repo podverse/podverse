@@ -40,6 +40,13 @@ prepared (`Merge remote-tracking branch 'origin/<branch>' into <branch>`), as a 
 It does not authorize a push to any other branch, or deleting branches or worktrees. See
 [.cursor/skills/abcbranchesmerge/SKILL.md](/.cursor/skills/abcbranchesmerge/SKILL.md).
 
+**abcdeployrun podverse alpha** is the explicit request to push `develop` when that push is a
+fast-forward, run `./scripts/publish/sync-develop-to-staging.sh` (that script pushes `staging`
+and waits for Publish (staging)), and in `k.podcastdj.com` commit and push `main` with the alpha
+pin only. It does not authorize a force push, `sync-staging-to-main.sh`, a version bump, mobile
+store commands, or any other branch. See
+[.cursor/skills/abcdeployrun/SKILL.md](/.cursor/skills/abcdeployrun/SKILL.md).
+
 ## Why
 
 Protected branches and publish pipelines are operator-controlled. Agent-driven pushes and merges bypass review and can trigger unintended releases.
