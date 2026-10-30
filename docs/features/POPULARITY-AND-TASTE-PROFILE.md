@@ -236,9 +236,18 @@ Top lists for channels, items and live items, clips, playlists, and profiles rea
 `stats_popularity_*` table for their type through `StatsPopularity<Type>Service`.
 
 - `range` maps to a column through `STATS_POPULARITY_COUNT_FIELDS`; ties order by the entity id.
-- Channel and item Top lists include only entities whose count for the chosen range is above zero
-  and pad a short page with recent entities (`fillTopPage` in `@podverse/helpers`). Clip, playlist,
-  and profile Top lists list every row and do not pad.
+- The refresh job resets a window to zero rather than deleting the row, so zero counts are common.
+  Readers that exclude zeros filter them; the table does not.
+- Directory Top lists include only entities whose count for the chosen range is above zero. They
+  are global and category Top for channels, items, and clips, public playlists Top, and public
+  profiles Top. A range with no count above zero returns an empty list, and a short page is not
+  padded. Recent is a separate sort the listener picks; these lists never fall back to it.
+- Global and category live-item Top, subscribed Top for channels, items, and live items, and the
+  Top sort on a channel's episode list pad a short page with recent entities from the same scope
+  (`fillTopPage` in `@podverse/helpers`). They fall back to recent entities when nothing in scope
+  is above zero, so those pages include rows whose count for the range is zero.
+- Subscribed clip and profile Top, the account's own and followed playlists Top, and a channel's or
+  episode's clip Top list every row in scope, zero counts included, and do not pad.
 - Requests never sum daily rows; freshness follows the refresh job's schedule.
 
 ## Channel Merge

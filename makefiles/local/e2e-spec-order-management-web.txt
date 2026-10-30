@@ -2,6 +2,7 @@ apps/management-web/e2e/smoke.spec.ts
 apps/management-web/e2e/auth-session-notice.spec.ts
 apps/management-web/e2e/navbar-chrome.spec.ts
 apps/management-web/e2e/feeds-flag-status.spec.ts
+apps/management-web/e2e/feeds-remote-stubs.spec.ts
 apps/management-web/e2e/workers-page.spec.ts
 apps/management-web/e2e/settings-page.spec.ts
 apps/management-web/e2e/users-new-create-username-only.spec.ts

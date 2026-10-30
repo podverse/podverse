@@ -211,10 +211,59 @@ const E2E_MUSIC_ALBUM_UNCLAIMED_FEED_URL = 'https://e2e-seed-music.example/album
 const E2E_MUSIC_ALBUM_UNCLAIMED_FEED_PI_ID = 876543224;
 /** Must match E2E_ARTIST_NOT_YET_ADDED_ALBUM_* in apps/api/src/lib/e2eArtistAlbumsFixture.ts. */
 const E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID = '11111111-2222-4333-8444-555555555504';
+const E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID = 2147483631;
 const E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL =
   'https://e2e-seed-music.example/album-not-yet-added.xml';
+const E2E_ARTIST_NOT_YET_ADDED_ALBUM_TITLE = 'E2E Not Yet Added Album';
+const E2E_ARTIST_NOT_YET_ADDED_ALBUM_IMAGE_URL =
+  'http://localhost:2111/e2e/images/e2e-embed-channel-art-1400.png';
 /** A reference Podcast Index does not know; hidden on the artist page. */
 const E2E_ARTIST_UNKNOWN_ALBUM_PODCAST_GUID = '11111111-2222-4333-8444-555555555505';
+// Remote stub list fixtures. Must match apps/web/e2e/helpers/seedConstants.ts.
+const E2E_ARTIST_NOT_YET_ADDED_TRACK_GUID = 'e2e-nya-track-01';
+const E2E_ARTIST_NOT_YET_ADDED_TRACK_TITLE = 'E2E Not Yet Added Track';
+const E2E_ARTIST_NOT_YET_ADDED_TRACK_PROVIDER_ITEM_ID = '2147483632';
+const E2E_UNKNOWN_TRACK_GUID = 'e2e-unknown-track-01';
+const E2E_PODROLL_PODCAST_ID_TEXT = 'e2ePodroll0001'; // 14
+const E2E_PODROLL_PODCAST_TITLE = 'E2E Podroll Podcast';
+const E2E_PODROLL_PODCAST_GUID = '11111111-2222-4333-8444-555555555550';
+const E2E_PODROLL_PODCAST_FEED_URL = 'https://e2e-seed-podcast.example/podroll.xml';
+const E2E_PODROLL_PODCAST_FEED_PI_ID = 876543227;
+const E2E_REMOTE_LIST_ID_TEXT = 'e2eRemoteList01'; // 15
+const E2E_REMOTE_LIST_TITLE = 'E2E Remote List';
+const E2E_REMOTE_LIST_PODCAST_GUID = '11111111-2222-4333-8444-555555555551';
+const E2E_REMOTE_LIST_FEED_URL = 'https://e2e-seed-music.example/remote-list.xml';
+const E2E_REMOTE_LIST_FEED_PI_ID = 876543228;
+// Remote item stub podroll fixtures. Must match apps/web/e2e/helpers/seedConstants.ts.
+const E2E_REMOTE_ITEM_CHANNEL_ID_TEXT = 'e2eRmtItmCh01'; // 13
+const E2E_REMOTE_ITEM_CHANNEL_TITLE = 'E2E Remote Item Channel';
+const E2E_REMOTE_ITEM_CHANNEL_FEED_PI_ID = 876543225;
+const E2E_REMOTE_ITEM_CHANNEL_FEED_URL = 'https://e2e-seed-remote-items.example/podcast.xml';
+const E2E_REMOTE_ITEM_ALBUM_ID_TEXT = 'e2eRmtItmAl01'; // 13
+const E2E_REMOTE_ITEM_ALBUM_TITLE = 'E2E Remote Item Album';
+const E2E_REMOTE_ITEM_ALBUM_FEED_PI_ID = 876543226;
+const E2E_REMOTE_ITEM_ALBUM_FEED_URL = 'https://e2e-seed-remote-items.example/album.xml';
+const E2E_PODROLL_STUB_PODCAST_INDEX_ID = 2147483630;
+const E2E_PODROLL_STUB_FEED_GUID = '11111111-2222-4333-8444-555555555511';
+const E2E_PODROLL_STUB_FEED_URL = 'https://e2e-seed-remote-items.example/podroll-stub.xml';
+const E2E_PODROLL_STUB_TITLE = 'E2E Podroll Stub Show';
+const E2E_PODROLL_STUB_ITEM_GUID = 'e2e-podroll-stub-item';
+const E2E_PODROLL_STUB_ITEM_TITLE = 'E2E Podroll Stub Episode';
+const E2E_PODROLL_UNKNOWN_TITLE = 'E2E Podroll Unknown Show';
+const E2E_PODROLL_UNKNOWN_FEED_GUID = '11111111-2222-4333-8444-555555555513';
+const E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID = 2147483629;
+const E2E_CHANNEL_REMOTE_STUB_FEED_GUID = '11111111-2222-4333-8444-555555555512';
+const E2E_CHANNEL_REMOTE_STUB_FEED_URL = 'https://e2e-seed-remote-items.example/remote-stub.xml';
+const E2E_CHANNEL_REMOTE_STUB_TITLE = 'E2E Remote Stub Show';
+const E2E_CHANNEL_REMOTE_STUB_AUTHOR = 'E2E Remote Stub Author';
+const E2E_CHANNEL_REMOTE_STUB_ITEM_GUID = 'e2e-remote-stub-item';
+const E2E_CHANNEL_REMOTE_STUB_ITEM_TITLE = 'E2E Remote Stub Episode';
+const E2E_CHANNEL_REMOTE_UNKNOWN_TITLE = 'E2E Remote Unknown Show';
+const E2E_CHANNEL_REMOTE_UNKNOWN_FEED_GUID = '11111111-2222-4333-8444-555555555514';
+const E2E_REMOTE_ITEM_STUB_IMAGE_URL =
+  'http://localhost:2111/e2e/images/e2e-embed-channel-art-1400.png';
+const E2E_REMOTE_ITEM_STUB_PUB_DATE = '2026-03-01T12:00:00.000Z';
+const E2E_REMOTE_ITEM_STUB_DURATION_SECONDS = 3723;
 const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
 const E2E_MUSIC_TRACK_TWO_ID_TEXT = 'e2eMusicTrk002';
 const E2E_MUSIC_QUEUE_ID_TEXT = 'e2eMusicQueue01';
@@ -389,6 +438,37 @@ async function insertSeedItemDescription(client, itemId, value) {
     `INSERT INTO item_description (item_id, value, preview)
      VALUES ($1, $2, $3)`,
     [itemId, value, toSeedDescriptionPreview(value)]
+  );
+}
+
+/** Counts on every seeded popularity row. Day stays 0, so Top for the day is an empty list. */
+const E2E_POPULARITY_COUNTS = { day: 0, week: 2, month: 3, allTime: 5 };
+
+async function insertSeedChannelPopularity(client, channelId) {
+  await client.query(
+    `INSERT INTO stats_popularity_channel (channel_id, day_count, week_count, month_count, all_time_count)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      channelId,
+      E2E_POPULARITY_COUNTS.day,
+      E2E_POPULARITY_COUNTS.week,
+      E2E_POPULARITY_COUNTS.month,
+      E2E_POPULARITY_COUNTS.allTime,
+    ]
+  );
+}
+
+async function insertSeedItemPopularity(client, itemId) {
+  await client.query(
+    `INSERT INTO stats_popularity_item (item_id, day_count, week_count, month_count, all_time_count)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      itemId,
+      E2E_POPULARITY_COUNTS.day,
+      E2E_POPULARITY_COUNTS.week,
+      E2E_POPULARITY_COUNTS.month,
+      E2E_POPULARITY_COUNTS.allTime,
+    ]
   );
 }
 
@@ -1368,6 +1448,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   const podcastChannelId = podcastChannelResult.rows[0].id;
 
   await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [podcastChannelId]);
+  await insertSeedChannelPopularity(client, podcastChannelId);
   await insertSeedChannelDescription(
     client,
     podcastChannelId,
@@ -1507,6 +1588,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     enclosureUrl: E2E_PODCAST_SHORT_ENCLOSURE_URL,
     pubDateOffsetSeconds: 10800,
   });
+  await insertSeedItemPopularity(client, chapteredItemId);
   // Older than the episodes newest-first lists put in row 0. The marquee episodes are older than
   // this one, so those lists keep their row-0 episode.
   const longNotesItemId = await insertPodcastItem({
@@ -1981,6 +2063,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     enclosureUrl: E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL,
     pubDateOffsetSeconds: 60,
   });
+  await insertSeedItemPopularity(client, musicTrackOneItemId);
 
   // Music queue rows. Track-1 sits upcoming with playback_position=7 so the
   // abridged index surfaces a stored position the music seek-to-0 rule must
@@ -2224,6 +2307,54 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     ]
   );
 
+  await client.query(
+    `DELETE FROM remote_channel_stub
+     WHERE index_provider = 'podcast_index' AND provider_feed_id = $1`,
+    [String(E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID)]
+  );
+  const notYetAddedAlbumStubResult = await client.query(
+    `INSERT INTO remote_channel_stub (
+       index_provider,
+       provider_feed_id,
+       feed_guid,
+       feed_url,
+       title,
+       author,
+       image_url,
+       medium_id
+     )
+     VALUES (
+       'podcast_index',
+       $1,
+       $2,
+       $3,
+       $4,
+       'E2E Music Artist',
+       $5,
+       (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+     )
+     RETURNING id`,
+    [
+      String(E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID),
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID.toLowerCase(),
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_TITLE,
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_IMAGE_URL,
+    ]
+  );
+  const notYetAddedAlbumStubId = notYetAddedAlbumStubResult.rows[0].id;
+  await client.query(
+    `INSERT INTO remote_channel_stub_alias (remote_channel_stub_id, key_kind, key_value)
+     VALUES ($1, 'feed_guid', $2), ($1, 'feed_url', $3)
+     ON CONFLICT (key_kind, key_value)
+     DO UPDATE SET remote_channel_stub_id = EXCLUDED.remote_channel_stub_id`,
+    [
+      notYetAddedAlbumStubId,
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID.toLowerCase(),
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+    ]
+  );
+
   console.log(
     `Seeded music artist E2E channel ${E2E_MUSIC_CHANNEL_ID_TEXT} (verified album link to ${E2E_MUSIC_ALBUM_ID_TEXT}; tracks ${E2E_MUSIC_TRACK_ONE_ID_TEXT}, ${E2E_MUSIC_TRACK_TWO_ID_TEXT}; also lists ${E2E_MUSIC_ALBUM_UNCLAIMED_TITLE}, E2E Not Yet Added Album, E2E Unknown Album)`
   );
@@ -2266,6 +2397,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
      VALUES ($1, $2)`,
     [directoryArtistChannelId, E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO]
   );
+  await insertSeedChannelPopularity(client, directoryArtistChannelId);
   await insertSeedChannelDescription(
     client,
     directoryArtistChannelId,
@@ -2510,6 +2642,223 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   await seedHlsVodFixture(client);
 
   await seedEmbedFixtures(client, { accountId });
+}
+
+/**
+ * Unsubscribed podcast and music list. Their remote rows mix a parsed feed, the Not Yet
+ * Added album stub and its track, and a feed the index does not know.
+ */
+async function seedRemoteStubListFixtures(client) {
+  const notYetAddedStubResult = await client.query(
+    `SELECT id FROM remote_channel_stub
+     WHERE index_provider = 'podcast_index' AND provider_feed_id = $1`,
+    [String(E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID)]
+  );
+  const notYetAddedChannelStub = notYetAddedStubResult.rows[0];
+  if (notYetAddedChannelStub === undefined) {
+    throw new Error('Remote stub list fixtures need the Not Yet Added album stub');
+  }
+
+  await client.query(
+    `INSERT INTO remote_item_stub (
+       remote_channel_stub_id,
+       item_guid,
+       provider_item_id,
+       title,
+       image_url,
+       pub_date,
+       duration_seconds
+     )
+     VALUES ($1, $2, $3, $4, NULL, '2026-01-15T00:00:00Z', 180)`,
+    [
+      notYetAddedChannelStub.id,
+      E2E_ARTIST_NOT_YET_ADDED_TRACK_GUID,
+      E2E_ARTIST_NOT_YET_ADDED_TRACK_PROVIDER_ITEM_ID,
+      E2E_ARTIST_NOT_YET_ADDED_TRACK_TITLE,
+    ]
+  );
+
+  async function insertListedChannel({
+    podcastIndexId,
+    feedUrl,
+    idText,
+    title,
+    podcastGuid,
+    mediumValue,
+    description,
+  }) {
+    await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+      podcastIndexId,
+      feedUrl,
+    ]);
+
+    const feedResult = await client.query(
+      `INSERT INTO feed (url, podcast_index_id)
+       VALUES ($1, $2)
+       RETURNING id`,
+      [feedUrl, podcastIndexId]
+    );
+    const feedId = feedResult.rows[0].id;
+
+    await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [feedId]);
+    await client.query(
+      `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+       VALUES ($1, true, true, true)`,
+      [feedId]
+    );
+
+    const channelResult = await client.query(
+      `INSERT INTO channel (id_text, feed_id, medium_id, title, podcast_guid)
+       VALUES (
+         $1,
+         $2,
+         (SELECT id FROM medium WHERE value = $3 LIMIT 1),
+         $4,
+         $5
+       )
+       RETURNING id`,
+      [idText, feedId, mediumValue, title, podcastGuid]
+    );
+    const channelId = channelResult.rows[0].id;
+
+    await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+    await insertSeedChannelDescription(client, channelId, description);
+    await client.query(
+      `INSERT INTO channel_image (channel_id, url, image_width_size)
+       VALUES ($1, $2, 1400)`,
+      [channelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
+    );
+
+    return channelId;
+  }
+
+  const podrollChannelId = await insertListedChannel({
+    podcastIndexId: E2E_PODROLL_PODCAST_FEED_PI_ID,
+    feedUrl: E2E_PODROLL_PODCAST_FEED_URL,
+    idText: E2E_PODROLL_PODCAST_ID_TEXT,
+    title: E2E_PODROLL_PODCAST_TITLE,
+    podcastGuid: E2E_PODROLL_PODCAST_GUID,
+    mediumValue: 'podcast',
+    description: 'E2E seeded podcast whose podroll lists parsed, stub, and unknown feeds.',
+  });
+
+  const podrollResult = await client.query(
+    `INSERT INTO channel_podroll (channel_id) VALUES ($1) RETURNING id`,
+    [podrollChannelId]
+  );
+  const podrollId = podrollResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO channel_podroll_remote_item (
+       channel_podroll_id,
+       feed_guid,
+       feed_url,
+       item_guid,
+       title,
+       medium_id
+     )
+     VALUES
+       (
+         $1,
+         $2,
+         $3,
+         NULL,
+         'E2E Music Album',
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       ),
+       (
+         $1,
+         $4,
+         $5,
+         NULL,
+         'E2E Not Yet Added Album',
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       ),
+       (
+         $1,
+         $4,
+         $5,
+         $6,
+         $7,
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       ),
+       (
+         $1,
+         $8,
+         NULL,
+         NULL,
+         'E2E Unknown Album',
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       )`,
+    [
+      podrollId,
+      E2E_MUSIC_ALBUM_PODCAST_GUID,
+      E2E_MUSIC_FEED_URL,
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+      E2E_ARTIST_NOT_YET_ADDED_TRACK_GUID,
+      E2E_ARTIST_NOT_YET_ADDED_TRACK_TITLE,
+      E2E_ARTIST_UNKNOWN_ALBUM_PODCAST_GUID,
+    ]
+  );
+
+  const remoteListChannelId = await insertListedChannel({
+    podcastIndexId: E2E_REMOTE_LIST_FEED_PI_ID,
+    feedUrl: E2E_REMOTE_LIST_FEED_URL,
+    idText: E2E_REMOTE_LIST_ID_TEXT,
+    title: E2E_REMOTE_LIST_TITLE,
+    podcastGuid: E2E_REMOTE_LIST_PODCAST_GUID,
+    mediumValue: 'musicL',
+    description:
+      'E2E seeded music list whose remote items point at parsed, stub, and unknown tracks.',
+  });
+
+  const musicTrackOneGuid = `${E2E_MUSIC_FEED_URL}#track-one`;
+
+  await client.query(
+    `INSERT INTO channel_remote_item (channel_id, feed_guid, feed_url, item_guid, title, medium_id)
+     VALUES
+       (
+         $1,
+         $2,
+         $3,
+         $4,
+         'E2E Music Track One',
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       ),
+       (
+         $1,
+         $5,
+         $6,
+         $7,
+         $8,
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       ),
+       (
+         $1,
+         $9,
+         NULL,
+         $10,
+         'E2E Unknown Track',
+         (SELECT id FROM medium WHERE value = 'music' LIMIT 1)
+       )`,
+    [
+      remoteListChannelId,
+      E2E_MUSIC_ALBUM_PODCAST_GUID,
+      E2E_MUSIC_FEED_URL,
+      musicTrackOneGuid,
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
+      E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+      E2E_ARTIST_NOT_YET_ADDED_TRACK_GUID,
+      E2E_ARTIST_NOT_YET_ADDED_TRACK_TITLE,
+      E2E_ARTIST_UNKNOWN_ALBUM_PODCAST_GUID,
+      E2E_UNKNOWN_TRACK_GUID,
+    ]
+  );
+
+  console.log(
+    `Seeded remote stub list E2E channels ${E2E_PODROLL_PODCAST_ID_TEXT} (podroll) and ${E2E_REMOTE_LIST_ID_TEXT} (remote items)`
+  );
 }
 
 /**
@@ -3471,6 +3820,198 @@ async function seedTasteProfileFixtures(client) {
   console.log(`Seeded taste-profile fixtures for ${E2E_TASTE_PROFILE_EMAIL}`);
 }
 
+async function seedRemoteItemStubFixtures(client) {
+  await client.query(
+    `DELETE FROM remote_channel_stub
+     WHERE index_provider = 'podcast_index' AND provider_feed_id = ANY($1::text[])`,
+    [[String(E2E_PODROLL_STUB_PODCAST_INDEX_ID), String(E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID)]]
+  );
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = ANY($1::int[])`, [
+    [E2E_REMOTE_ITEM_CHANNEL_FEED_PI_ID, E2E_REMOTE_ITEM_ALBUM_FEED_PI_ID],
+  ]);
+
+  async function insertSourceChannel({
+    podcastIndexId,
+    feedUrl,
+    idText,
+    title,
+    mediumValue,
+    description,
+  }) {
+    const feedResult = await client.query(
+      `INSERT INTO feed (url, podcast_index_id)
+       VALUES ($1, $2)
+       RETURNING id`,
+      [feedUrl, podcastIndexId]
+    );
+    const feedId = feedResult.rows[0].id;
+
+    await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [feedId]);
+    await client.query(
+      `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+       VALUES ($1, true, true, true)`,
+      [feedId]
+    );
+
+    const channelResult = await client.query(
+      `INSERT INTO channel (id_text, feed_id, medium_id, title)
+       VALUES (
+         $1,
+         $2,
+         (SELECT id FROM medium WHERE value = $3 LIMIT 1),
+         $4
+       )
+       RETURNING id`,
+      [idText, feedId, mediumValue, title]
+    );
+    const channelId = channelResult.rows[0].id;
+
+    await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+    await insertSeedChannelDescription(client, channelId, description);
+    return channelId;
+  }
+
+  async function insertRemoteChannelStub({
+    providerFeedId,
+    feedGuid,
+    feedUrl,
+    title,
+    author,
+    itemGuid,
+    itemTitle,
+  }) {
+    const stubResult = await client.query(
+      `INSERT INTO remote_channel_stub (
+         index_provider, provider_feed_id, feed_guid, feed_url, title, author, image_url, medium_id
+       ) VALUES (
+         'podcast_index', $1, $2, $3, $4, $5, $6,
+         (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1)
+       )
+       RETURNING id`,
+      [providerFeedId, feedGuid, feedUrl, title, author, E2E_REMOTE_ITEM_STUB_IMAGE_URL]
+    );
+    const stubId = stubResult.rows[0].id;
+
+    await client.query(
+      `INSERT INTO remote_channel_stub_alias (remote_channel_stub_id, key_kind, key_value)
+       VALUES ($1, 'feed_guid', $2), ($1, 'feed_url', $3)`,
+      [stubId, feedGuid.toLowerCase(), feedUrl]
+    );
+    await client.query(
+      `INSERT INTO remote_item_stub (
+         remote_channel_stub_id, item_guid, title, image_url, pub_date, duration_seconds
+       )
+       VALUES ($1, $2, $3, NULL, $4, $5)`,
+      [
+        stubId,
+        itemGuid,
+        itemTitle,
+        E2E_REMOTE_ITEM_STUB_PUB_DATE,
+        E2E_REMOTE_ITEM_STUB_DURATION_SECONDS,
+      ]
+    );
+  }
+
+  const podcastChannelId = await insertSourceChannel({
+    podcastIndexId: E2E_REMOTE_ITEM_CHANNEL_FEED_PI_ID,
+    feedUrl: E2E_REMOTE_ITEM_CHANNEL_FEED_URL,
+    idText: E2E_REMOTE_ITEM_CHANNEL_ID_TEXT,
+    title: E2E_REMOTE_ITEM_CHANNEL_TITLE,
+    mediumValue: 'podcast',
+    description:
+      'E2E seeded podcast whose podroll lists a stubbed show, a stubbed episode, and an unknown show.',
+  });
+
+  const albumChannelId = await insertSourceChannel({
+    podcastIndexId: E2E_REMOTE_ITEM_ALBUM_FEED_PI_ID,
+    feedUrl: E2E_REMOTE_ITEM_ALBUM_FEED_URL,
+    idText: E2E_REMOTE_ITEM_ALBUM_ID_TEXT,
+    title: E2E_REMOTE_ITEM_ALBUM_TITLE,
+    mediumValue: 'music',
+    description: 'E2E seeded album whose remote items list a stubbed show.',
+  });
+
+  await insertRemoteChannelStub({
+    providerFeedId: String(E2E_PODROLL_STUB_PODCAST_INDEX_ID),
+    feedGuid: E2E_PODROLL_STUB_FEED_GUID,
+    feedUrl: E2E_PODROLL_STUB_FEED_URL,
+    title: E2E_PODROLL_STUB_TITLE,
+    author: null,
+    itemGuid: E2E_PODROLL_STUB_ITEM_GUID,
+    itemTitle: E2E_PODROLL_STUB_ITEM_TITLE,
+  });
+
+  await insertRemoteChannelStub({
+    providerFeedId: String(E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID),
+    feedGuid: E2E_CHANNEL_REMOTE_STUB_FEED_GUID,
+    feedUrl: E2E_CHANNEL_REMOTE_STUB_FEED_URL,
+    title: E2E_CHANNEL_REMOTE_STUB_TITLE,
+    author: E2E_CHANNEL_REMOTE_STUB_AUTHOR,
+    itemGuid: E2E_CHANNEL_REMOTE_STUB_ITEM_GUID,
+    itemTitle: E2E_CHANNEL_REMOTE_STUB_ITEM_TITLE,
+  });
+
+  const podrollResult = await client.query(
+    `INSERT INTO channel_podroll (channel_id) VALUES ($1) RETURNING id`,
+    [podcastChannelId]
+  );
+  const podrollId = podrollResult.rows[0].id;
+  const podcastMediumId = `(SELECT id FROM medium WHERE value = 'podcast' LIMIT 1)`;
+
+  await client.query(
+    `INSERT INTO channel_podroll_remote_item (
+       channel_podroll_id, feed_guid, feed_url, item_guid, title, medium_id
+     )
+     VALUES
+       ($1, $2, $3, NULL, $4, ${podcastMediumId}),
+       ($1, $2, $3, $5, $6, ${podcastMediumId}),
+       ($1, $7, NULL, NULL, $8, ${podcastMediumId})`,
+    [
+      podrollId,
+      E2E_PODROLL_STUB_FEED_GUID,
+      E2E_PODROLL_STUB_FEED_URL,
+      E2E_PODROLL_STUB_TITLE,
+      E2E_PODROLL_STUB_ITEM_GUID,
+      E2E_PODROLL_STUB_ITEM_TITLE,
+      E2E_PODROLL_UNKNOWN_FEED_GUID,
+      E2E_PODROLL_UNKNOWN_TITLE,
+    ]
+  );
+
+  await client.query(
+    `INSERT INTO channel_remote_item (channel_id, feed_guid, feed_url, item_guid, title, medium_id)
+     VALUES
+       ($1, $2, $3, NULL, $4, ${podcastMediumId}),
+       ($1, $2, $3, $5, $6, ${podcastMediumId}),
+       ($1, $7, NULL, NULL, $8, ${podcastMediumId})`,
+    [
+      podcastChannelId,
+      E2E_CHANNEL_REMOTE_STUB_FEED_GUID,
+      E2E_CHANNEL_REMOTE_STUB_FEED_URL,
+      E2E_CHANNEL_REMOTE_STUB_TITLE,
+      E2E_CHANNEL_REMOTE_STUB_ITEM_GUID,
+      E2E_CHANNEL_REMOTE_STUB_ITEM_TITLE,
+      E2E_CHANNEL_REMOTE_UNKNOWN_FEED_GUID,
+      E2E_CHANNEL_REMOTE_UNKNOWN_TITLE,
+    ]
+  );
+
+  await client.query(
+    `INSERT INTO channel_remote_item (channel_id, feed_guid, feed_url, item_guid, title, medium_id)
+     VALUES ($1, $2, $3, NULL, $4, ${podcastMediumId})`,
+    [
+      albumChannelId,
+      E2E_CHANNEL_REMOTE_STUB_FEED_GUID,
+      E2E_CHANNEL_REMOTE_STUB_FEED_URL,
+      E2E_CHANNEL_REMOTE_STUB_TITLE,
+    ]
+  );
+
+  console.log(
+    `Seeded remote item stub channels ${E2E_REMOTE_ITEM_CHANNEL_ID_TEXT} (podroll) and ${E2E_REMOTE_ITEM_ALBUM_ID_TEXT} (album remote item)`
+  );
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
   const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
@@ -3491,9 +4032,11 @@ async function main() {
   await clearOpmlImportKeyvalState(accountId);
   await clearPlaybackKeyvalState(accountId);
   await seedMediaPlayerAndEmbedFixtures(client, accountId);
+  await seedRemoteStubListFixtures(client);
   await seedMergedChannelRedirect(client);
   await seedRemovedContentFixtures(client, accountId);
   await seedTasteProfileFixtures(client);
+  await seedRemoteItemStubFixtures(client);
   await seedPerfVolumeFixtures(client);
 
   await client.end();

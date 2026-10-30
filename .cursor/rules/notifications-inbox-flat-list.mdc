@@ -1,0 +1,29 @@
+---
+description: The notifications inbox is one flat, newest-first list with a per-row unseen dot, with no Unread or Earlier groups, on web and mobile
+globs:
+  - "apps/web/src/app/notifications/**"
+  - "apps/mobile/src/screens/notifications/**"
+  - "apps/mobile/src/notifications/**"
+alwaysApply: false
+---
+
+# The notifications inbox is one flat list
+
+Web (`NotificationsPageClient`) and mobile (`NotificationsInboxScreen`) show notifications as one
+list, newest first. Each row has an unseen indicator slot. The slot shows a dot while the row is
+unseen and stays empty, keeping the text aligned, once it has been seen.
+
+## Do not
+
+- Add Unread / Earlier headings, sections, or any other grouping of rows.
+- Add catalog keys for inbox groups.
+- Move a row when it is marked seen.
+
+## Seen rule (same on both surfaces)
+
+- Opening the inbox marks every notification seen. Rows that were unseen at any point during that
+  visit keep their dot until the visit ends, including across a reload
+  (`applyNotificationVisitUnread` in `@podverse/helpers`). The next open shows no dot on them.
+- Opening one notification directly (a push tap, a banner tap) marks only that notification seen.
+
+The screen-reader Unread string on a row is `notifications_page.unread`.

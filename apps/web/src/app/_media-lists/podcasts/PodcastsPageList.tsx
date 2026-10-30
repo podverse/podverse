@@ -11,12 +11,14 @@ import type { PodcastListItem } from '../../../components/Common/Podcast/types';
 import { CorePodcasts } from '../../../components/Core/Podcast/CorePodcasts';
 import { HowToStartInfo } from '../../../components/HowToStartInfo/HowToStartInfo';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
+import { NoResults } from '../../../components/NoResults/NoResults';
 import { ROUTES } from '../../../constants/routes';
 import { useChannelUnseenBadges } from '../../../hooks/useChannelUnseenBadges';
 import { useFullSubscribedChannels } from '../../../hooks/useFullSubscribedChannels';
 import { useListViewMode } from '../../../hooks/useListViewMode';
 import { useReadyAddByRSSFeeds } from '../../../hooks/useReadyAddByRSSFeeds';
 import { onClickAllCategories, onClickCategory } from '../../../utils/categories';
+import { shouldShowBrowseEmptyMessage } from '../../../utils/mediaListChips';
 import {
   podcastListItemFromAddByRSSFeed,
   podcastListItemFromChannel,
@@ -54,6 +56,7 @@ export const PodcastsPageList: React.FC = () => {
   const { medium, page, range, sort, type, category } = filterParams;
   const router = useRouter();
   const tSubscriptions = useTranslations('subscriptions');
+  const tMedia = useTranslations('media');
   // Only the subscribed list: unseen is measured against what the account follows, so it says
   // nothing about a category or top-charts list the user is browsing.
   const unseenBadges = useChannelUnseenBadges(type === 'subscribed');
@@ -154,6 +157,13 @@ export const PodcastsPageList: React.FC = () => {
     );
   }
 
+  const showEmpty = shouldShowBrowseEmptyMessage({
+    isBrowse: scope === 'browse',
+    isLoading,
+    page,
+    rowCount: channels.length,
+  });
+
   return (
     <>
       {/* The subscribed list is already in memory, so the field narrows it locally. Global and
@@ -183,28 +193,32 @@ export const PodcastsPageList: React.FC = () => {
           <p>{tSubscriptions('no_filter_matches')}</p>
         </InfoWrapper>
       )}
-      <CorePodcasts
-        page={showMergedList ? mergedSlice.page : showFilteredOnly ? filtered.page : page}
-        setPage={
-          showMergedList || showFilteredOnly
-            ? setLocalPage
-            : (nextPage) => setFilterParams({ ...filterParams, page: nextPage })
-        }
-        channels={showFilteredOnly ? filtered.channels : channels}
-        items={showMergedList ? mergedSlice.channels : undefined}
-        totalPages={
-          showMergedList
-            ? mergedSlice.totalPages
-            : showFilteredOnly
-              ? filtered.totalPages
-              : totalPages
-        }
-        showSubscribeMessage={showSubscribeMessage}
-        type={type}
-        category={category}
-        unseenBadges={unseenBadges}
-        viewSelected={viewSelected}
-      />
+      {showEmpty ? (
+        <NoResults message={tMedia('podcast.no_podcasts_found')} />
+      ) : (
+        <CorePodcasts
+          page={showMergedList ? mergedSlice.page : showFilteredOnly ? filtered.page : page}
+          setPage={
+            showMergedList || showFilteredOnly
+              ? setLocalPage
+              : (nextPage) => setFilterParams({ ...filterParams, page: nextPage })
+          }
+          channels={showFilteredOnly ? filtered.channels : channels}
+          items={showMergedList ? mergedSlice.channels : undefined}
+          totalPages={
+            showMergedList
+              ? mergedSlice.totalPages
+              : showFilteredOnly
+                ? filtered.totalPages
+                : totalPages
+          }
+          showSubscribeMessage={showSubscribeMessage}
+          type={type}
+          category={category}
+          unseenBadges={unseenBadges}
+          viewSelected={viewSelected}
+        />
+      )}
       <WebLoadingSpinnerOverlay
         isLoading={isLoading || fullList.isLoading || (isMerged && !fullList.isReady)}
       />

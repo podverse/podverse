@@ -63,6 +63,38 @@ export class ChannelController {
     return Boolean(channel?.channel_about);
   }
 
+  /**
+   * One page of channels whose count for the range is above zero. Directory Top returns this page
+   * as is, so a range with no count above zero is an empty list and a short page stays short.
+   */
+  private static async loadRankedTopChannels(args: {
+    category_id: number | null;
+    channelIds?: number[];
+    limit: number;
+    medium: QueryParamsMedium;
+    offset: number;
+    orderField: StatsPopularityCountField;
+  }): Promise<Channel[]> {
+    const { category_id, channelIds, limit, medium, offset, orderField } = args;
+    const topConfig: FindManyOptions<StatsPopularityChannel> = {
+      order: { [orderField]: 'DESC', channel_id: 'ASC' },
+      skip: offset,
+      take: limit,
+      relations: subChannelGetManyRelations,
+    };
+    const statsResults = await ChannelController.statsPopularityChannelService.getMany(
+      topConfig,
+      medium,
+      category_id,
+      { channelIds, minCountField: orderField }
+    );
+    return statsResults.map((row: { channel: Channel }) => row.channel).filter(Boolean);
+  }
+
+  /**
+   * Subscribed Top: the ranked page, padded with the account's recent followed channels when it
+   * is short (`fillTopPage`).
+   */
   private static async loadFilledTopChannels(args: {
     category_id: number | null;
     channelIds?: number[];
@@ -102,21 +134,7 @@ export class ChannelController {
           excludeIds,
         });
       },
-      loadStatsPage: async () => {
-        const topConfig: FindManyOptions<StatsPopularityChannel> = {
-          order: { [orderField]: 'DESC', channel_id: 'ASC' },
-          skip: offset,
-          take: limit,
-          relations: subChannelGetManyRelations,
-        };
-        const statsResults = await ChannelController.statsPopularityChannelService.getMany(
-          topConfig,
-          medium,
-          category_id,
-          { channelIds, minCountField: orderField }
-        );
-        return statsResults.map((row: { channel: Channel }) => row.channel).filter(Boolean);
-      },
+      loadStatsPage: () => ChannelController.loadRankedTopChannels(args),
       offset,
     });
   }
@@ -255,7 +273,7 @@ export class ChannelController {
         const category_id = null;
 
         const orderField = getStatsOrder(range);
-        const channels = await ChannelController.loadFilledTopChannels({
+        const channels = await ChannelController.loadRankedTopChannels({
           category_id,
           limit,
           medium,
@@ -320,7 +338,7 @@ export class ChannelController {
         const category_id = getCategoryEnumValue(category);
 
         const orderField = getStatsOrder(range);
-        const channels = await ChannelController.loadFilledTopChannels({
+        const channels = await ChannelController.loadRankedTopChannels({
           category_id,
           limit,
           medium,

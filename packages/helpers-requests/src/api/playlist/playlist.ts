@@ -33,6 +33,19 @@ export async function reqPlaylistGetManyPublicTop(
   });
 }
 
+export async function reqPlaylistGetManyPublicRecent(
+  api: ApiRequestService,
+  params: QueryParamsGlobalRecent
+) {
+  return api.apiRequest<ApiListResponse<DTOPlaylist>>({
+    path: '/playlist/public/recent',
+    method: 'GET',
+    config: {
+      params,
+    },
+  });
+}
+
 export async function reqPlaylistGetManyPrivateTop(
   api: ApiRequestService,
   params: QueryParamsGlobalTop
@@ -147,6 +160,12 @@ export async function reqPlaylistGetManyPrivateFollowedAZ(
 
 export async function reqPlaylistGetMany(api: ApiRequestService, params: QueryParamsPlaylists) {
   if (params.type === 'public') {
+    if (params.sort === 'recent') {
+      return reqPlaylistGetManyPublicRecent(api, {
+        page: params.page,
+        medium: params.medium,
+      });
+    }
     return reqPlaylistGetManyPublicTop(api, {
       page: params.page,
       medium: params.medium,

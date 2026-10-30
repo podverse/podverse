@@ -3,6 +3,8 @@ export { AddByRssRowMarker } from './AddByRssRowMarker';
 export type { AddByRssRowMarkerProps } from './AddByRssRowMarker';
 export { AlbumListRow } from './AlbumListRow';
 export type { AlbumListRowProps } from './AlbumListRow';
+export { RemoteItemListRow } from './RemoteItemListRow';
+export type { RemoteItemListRowProps } from './RemoteItemListRow';
 export { ArtistChooserSheet } from './ArtistChooserSheet';
 export type { ArtistChooserSheetProps } from './ArtistChooserSheet';
 export { ChapterListRow } from './ChapterListRow';

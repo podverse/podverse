@@ -10,7 +10,7 @@ import { HeaderBarChrome } from './HeaderBarChrome';
  * start and finish the same color with no iOS native appearance recolor during push transitions.
  * Native back-swipe still works (this only replaces the header UI, not the native stack).
  */
-export function ThemedStackHeader({ back, navigation, options }: NativeStackHeaderProps) {
+export function ThemedStackHeader({ navigation, options }: NativeStackHeaderProps) {
   const { t } = useTranslation();
   const title = options.title ?? '';
   const parent = navigation.getParent();
@@ -18,7 +18,9 @@ export function ThemedStackHeader({ back, navigation, options }: NativeStackHead
   const state = navigation.getState();
   const choice = headerBackChoice({
     focusedRouteName: state.routes[state.index]?.name,
-    hasStackBack: back !== undefined,
+    // `back` is also set when a parent screen can go back, including on this
+    // stack's first route. Own history is a previous route on this stack.
+    hasStackBack: state.index > 0,
     initialRouteName: state.routeNames[0],
     parentStackCanGoBack:
       parent !== undefined &&

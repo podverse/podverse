@@ -8,13 +8,16 @@ import { In, IsNull, Not } from 'typeorm';
 
 import { channelGetOneRelations, ChannelService } from './channel/channel.js';
 import { ChannelVerifiedPublisherService } from './channel/channelVerifiedPublisher.js';
-import { FeedService } from './feed/feed.js';
 import { itemGetManyRelationsWithChannel } from './item/item.js';
 import {
   feedUrlsForPublisherAlbumUrlLookup,
   isPublisherAlbumRemoteRef,
   partitionPublisherAlbumRefs,
 } from './publisherFeed.helpers.js';
+import {
+  loadParsedChannelIdsByFeedUrls,
+  loadParsedChannelIdsByGuid,
+} from './remoteItemReference/remoteItemReference.js';
 
 /** Newest-first cap for tracks on one publisher feed. */
 export const PUBLISHER_FEED_TRACKS_MAX = 500;
@@ -29,90 +32,7 @@ export type PublisherFeedRemoteItemsResult = {
   tracks: Item[];
 };
 
-function albumGuidKey(ref: ChannelRemoteItem): string {
-  return typeof ref.feed_guid === 'string' ? ref.feed_guid.trim().toLowerCase() : '';
-}
-
 export class PublisherFeedService {
-  /**
-   * Parsed channels (a row in channel_about) for the album references' guids, keyed by
-   * lowercased trimmed podcast_guid.
-   */
-  private async loadParsedChannelIdsByGuid(
-    channelService: ChannelService,
-    albumRefs: readonly ChannelRemoteItem[]
-  ): Promise<Map<string, number>> {
-    const guids: string[] = [];
-    const seen = new Set<string>();
-    for (const ref of albumRefs) {
-      const guid = typeof ref.feed_guid === 'string' ? ref.feed_guid.trim() : '';
-      const key = guid.toLowerCase();
-      if (key.length === 0 || seen.has(key)) {
-        continue;
-      }
-      seen.add(key);
-      guids.push(guid);
-    }
-
-    const parsedChannelIdByGuid = new Map<string, number>();
-    if (guids.length === 0) {
-      return parsedChannelIdByGuid;
-    }
-
-    const channels = await channelService.getAllByPodcastGuids(
-      { relations: { channel_about: true } },
-      guids
-    );
-    for (const matched of channels) {
-      if (!matched.channel_about || !matched.podcast_guid) {
-        continue;
-      }
-      const key = matched.podcast_guid.trim().toLowerCase();
-      if (key.length === 0 || parsedChannelIdByGuid.has(key)) {
-        continue;
-      }
-      parsedChannelIdByGuid.set(key, matched.id);
-    }
-    return parsedChannelIdByGuid;
-  }
-
-  /**
-   * Parsed channels for album references that did not match by guid, keyed by the reference's
-   * trimmed feed URL. The lookup is the stored feed URL, then the channel's channel_about.
-   */
-  private async loadParsedChannelIdsByFeedUrl(
-    channelService: ChannelService,
-    albumRefs: readonly ChannelRemoteItem[],
-    parsedChannelIdByGuid: ReadonlyMap<string, number>
-  ): Promise<Map<string, number>> {
-    const unmatched = albumRefs.filter((ref) => {
-      const guid = albumGuidKey(ref);
-      return guid.length === 0 || !parsedChannelIdByGuid.has(guid);
-    });
-    const feedUrls = feedUrlsForPublisherAlbumUrlLookup(unmatched);
-    const parsedChannelIdByFeedUrl = new Map<string, number>();
-    if (feedUrls.length === 0) {
-      return parsedChannelIdByFeedUrl;
-    }
-
-    const feedService = new FeedService();
-    for (const feedUrl of feedUrls) {
-      const feed = await feedService.getByUrl({ url: feedUrl });
-      const channelId = feed?.channel?.id;
-      if (channelId === undefined || channelId === null) {
-        continue;
-      }
-      const channel = await channelService.get(channelId, {
-        channel_about: true,
-        channel_images: true,
-      });
-      if (channel?.channel_about) {
-        parsedChannelIdByFeedUrl.set(feedUrl, channel.id);
-      }
-    }
-    return parsedChannelIdByFeedUrl;
-  }
-
   private async loadVerifiedAlbums(verifiedChannelIds: readonly number[]): Promise<Channel[]> {
     if (verifiedChannelIds.length === 0) {
       return [];
@@ -195,11 +115,13 @@ export class PublisherFeedService {
       .sort((left, right) => left.id - right.id)
       .filter((ref) => isPublisherAlbumRemoteRef(ref));
     const catalog = await new ChannelVerifiedPublisherService().getCatalogForPublisher(channel.id);
-    const parsedChannelIdByGuid = await this.loadParsedChannelIdsByGuid(channelService, albumRefs);
-    const parsedChannelIdByFeedUrl = await this.loadParsedChannelIdsByFeedUrl(
-      channelService,
-      albumRefs,
-      parsedChannelIdByGuid
+    const parsedChannelIdByGuid = await loadParsedChannelIdsByGuid(albumRefs);
+    const unmatchedByGuid = albumRefs.filter((ref) => {
+      const guidKey = typeof ref.feed_guid === 'string' ? ref.feed_guid.trim().toLowerCase() : '';
+      return guidKey.length === 0 || !parsedChannelIdByGuid.has(guidKey);
+    });
+    const parsedChannelIdByFeedUrl = await loadParsedChannelIdsByFeedUrls(
+      feedUrlsForPublisherAlbumUrlLookup(unmatchedByGuid)
     );
     const partitioned = partitionPublisherAlbumRefs({
       refs: albumRefs,

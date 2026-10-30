@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { memo, useMemo } from 'react';
+import type { AccessibilityState } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listRowArtworkGap, listRowVerticalPadding } from '../../theme/screenLayout';
@@ -26,6 +27,8 @@ export type ListRowProps = {
    * state.
    */
   isHighlighted?: boolean;
+  /** A tap is in flight. The row keeps its name and ignores further presses. */
+  busy?: boolean;
   accessibilityLabel?: string;
   /**
    * Vertical padding for the row. Top and bottom use this same value. Defaults to
@@ -35,6 +38,20 @@ export type ListRowProps = {
   testID?: string;
   subtitleTestID?: string;
   metaTestID?: string;
+};
+
+const rowAccessibilityState = (
+  isHighlighted: boolean | undefined,
+  busy: boolean | undefined
+): AccessibilityState | undefined => {
+  const state: AccessibilityState = {};
+  if (isHighlighted === true) {
+    state.selected = true;
+  }
+  if (busy === true) {
+    state.busy = true;
+  }
+  return state.selected === true || state.busy === true ? state : undefined;
 };
 
 const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
@@ -90,6 +107,7 @@ export const ListRow = memo(function ListRow({
   badgeCount,
   onPress,
   isHighlighted,
+  busy,
   accessibilityLabel,
   paddingVertical,
   testID,
@@ -100,6 +118,7 @@ export const ListRow = memo(function ListRow({
   const styles = useThemedStyles(createStyles);
   const paddingTop = paddingVertical ?? tokens.spacing.base;
   const containerPadding = useMemo(() => listRowVerticalPadding(paddingTop), [paddingTop]);
+  const accessibilityState = rowAccessibilityState(isHighlighted, busy);
 
   const badge =
     badgeCount !== undefined && badgeCount > 0 ? (
@@ -147,7 +166,7 @@ export const ListRow = memo(function ListRow({
   if (onPress === undefined) {
     return (
       <View
-        accessibilityState={isHighlighted === true ? { selected: true } : undefined}
+        accessibilityState={accessibilityState}
         style={[styles.container, containerPadding]}
         testID={testID}
       >
@@ -173,8 +192,13 @@ export const ListRow = memo(function ListRow({
     <Pressable
       accessibilityLabel={accessibilityLabel ?? labelWithBadge}
       accessibilityRole="button"
-      accessibilityState={isHighlighted === true ? { selected: true } : undefined}
-      onPress={onPress}
+      accessibilityState={accessibilityState}
+      onPress={() => {
+        if (busy === true) {
+          return;
+        }
+        onPress();
+      }}
       style={[styles.container, containerPadding]}
       testID={testID}
     >

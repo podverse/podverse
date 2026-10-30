@@ -18,6 +18,8 @@ const {
   onDemandGetCountMock,
   accountGetMock,
   warnMock,
+  resolveRemoteItemStubsForChannelMock,
+  deleteRemoteStubsForParsedFeedMock,
 } = vi.hoisted(() => ({
   handleAllRemoteItemsFeedParsingMock: vi.fn(),
   handleGetRSSFeedMock: vi.fn(),
@@ -36,6 +38,8 @@ const {
   onDemandGetCountMock: vi.fn(),
   accountGetMock: vi.fn(),
   warnMock: vi.fn(),
+  resolveRemoteItemStubsForChannelMock: vi.fn(),
+  deleteRemoteStubsForParsedFeedMock: vi.fn(),
 }));
 
 vi.mock('@parser/config/index.js', () => ({
@@ -86,6 +90,11 @@ vi.mock('@parser/lib/rss/liveItem/liveItem.js', () => ({
 
 vi.mock('@parser/lib/rss/remoteItemParser.js', () => ({
   handleAllRemoteItemsFeedParsing: handleAllRemoteItemsFeedParsingMock,
+}));
+
+vi.mock('@parser/lib/rss/remoteItemStubs.js', () => ({
+  resolveRemoteItemStubsForChannel: resolveRemoteItemStubsForChannelMock,
+  deleteRemoteStubsForParsedFeed: deleteRemoteStubsForParsedFeedMock,
 }));
 
 vi.mock('../notifications/handleNewItemNotifications.js', () => ({
@@ -223,6 +232,8 @@ describe('parseRSSFeedAndSaveToDatabase lock loser no-op', () => {
     expect(handleNewItemNotificationsMock).not.toHaveBeenCalled();
     expect(handleNewLiveItemNotificationsMock).not.toHaveBeenCalled();
     expect(handleAllRemoteItemsFeedParsingMock).not.toHaveBeenCalled();
+    expect(resolveRemoteItemStubsForChannelMock).not.toHaveBeenCalled();
+    expect(deleteRemoteStubsForParsedFeedMock).not.toHaveBeenCalled();
     expect(feedLogUpdateMock).not.toHaveBeenCalled();
     expect(feedServiceUpdateMock).not.toHaveBeenCalled();
     expect(onDemandCreateMock).not.toHaveBeenCalled();

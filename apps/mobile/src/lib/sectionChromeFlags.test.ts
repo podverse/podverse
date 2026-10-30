@@ -36,7 +36,13 @@ describe('parseChannelSectionChromeFlags', () => {
       hasOfficialClips: true,
       hasPeople: false,
       hasPodroll: false,
+      hasRemoteItems: false,
     });
+  });
+
+  it('reads a missing remote-items flag as false and an explicit true as true', () => {
+    expect(parseChannelSectionChromeFlags({ hasPodroll: true }).hasRemoteItems).toBe(false);
+    expect(parseChannelSectionChromeFlags({ hasRemoteItems: true }).hasRemoteItems).toBe(true);
   });
 
   it('reads people only when the flag is explicit true', () => {
@@ -72,6 +78,7 @@ describe('mergeChannelSectionChromeFlags', () => {
           hasOfficialClips: true,
           hasPeople: false,
           hasPodroll: false,
+          hasRemoteItems: false,
         },
         {
           hasPodroll: true,
@@ -83,6 +90,7 @@ describe('mergeChannelSectionChromeFlags', () => {
       hasOfficialClips: true,
       hasPeople: false,
       hasPodroll: true,
+      hasRemoteItems: false,
     });
   });
 });
@@ -103,6 +111,7 @@ describe('section chrome memory', () => {
       hasOfficialClips: true,
       hasPeople: false,
       hasPodroll: true,
+      hasRemoteItems: false,
     });
     expect(getCachedChannelSectionFlags('missing')).toBeNull();
     resetSectionChromeFlagsMemoryForTests();

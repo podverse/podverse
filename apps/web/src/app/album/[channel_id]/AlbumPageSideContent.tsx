@@ -5,13 +5,19 @@ import { SideContent } from '@podverse/ui';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPeopleAccordion } from '../../../components/Content/About/ContentPeopleAccordion';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
+import { ContentRemoteItems } from '../../../components/Content/RemoteItems/ContentRemoteItems';
 
 type AlbumPageSideContentProps = {
   channel: DTOChannel;
   podroll: RemoteItemsResponse | null;
+  remoteItems: RemoteItemsResponse | null;
 };
 
-export const AlbumPageSideContent = ({ channel, podroll }: AlbumPageSideContentProps) => {
+export const AlbumPageSideContent = ({
+  channel,
+  podroll,
+  remoteItems,
+}: AlbumPageSideContentProps) => {
   return (
     <SideContent>
       <ContentAbout
@@ -23,6 +29,7 @@ export const AlbumPageSideContent = ({ channel, podroll }: AlbumPageSideContentP
       />
       <ContentPeopleAccordion channel_persons={channel.channel_persons} defaultOpen={true} />
       <ContentPodroll remoteItemsResponse={podroll} isAccordion={true} defaultOpen={true} />
+      <ContentRemoteItems remoteItemsResponse={remoteItems} isAccordion={true} defaultOpen={true} />
     </SideContent>
   );
 };

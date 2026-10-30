@@ -44,9 +44,7 @@ export function isNotificationsTestPushHelpArgv(argv: readonly string[]): boolea
   return argv.includes('--help') || argv.includes('-h');
 }
 
-export function notificationsTestPushEnabledResult(
-  envValue: string | undefined
-): ValidationResult {
+export function notificationsTestPushEnabledResult(envValue: string | undefined): ValidationResult {
   const enabled = isNotificationsTestPushEnabled(envValue);
   const isSet = envValue !== undefined && envValue !== '';
   return {
@@ -194,8 +192,7 @@ export function formatOutcomeLine(outcome: PushSendOutcome): string {
     return 'accepted';
   }
   const code = outcome.errorCode === null ? '' : ` code=${outcome.errorCode}`;
-  const message =
-    outcome.errorMessage === null ? '' : ` message=${oneLine(outcome.errorMessage)}`;
+  const message = outcome.errorMessage === null ? '' : ` message=${oneLine(outcome.errorMessage)}`;
   return `failed${code}${message}`;
 }
 

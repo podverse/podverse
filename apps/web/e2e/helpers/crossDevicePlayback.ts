@@ -41,12 +41,21 @@ export async function openSignedInDevice(
   return { context, page };
 }
 
+/**
+ * The web E2E API drops a closed browser from playback presence after a short grace. The next
+ * page that signs in as the same account has to open after that, or it follows the closed
+ * browser and a local Play never loads audio.
+ */
+const PLAYBACK_PRESENCE_LEAVE_WAIT_MS = WEB_E2E_PLAYBACK_PRESENCE_LEAVE_GRACE_MS + 1_000;
+
+export async function waitForPlaybackPresenceLeave(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, PLAYBACK_PRESENCE_LEAVE_WAIT_MS));
+}
+
 /** Close the contexts, then wait until their sessions have left playback presence. */
 export async function closeSignedInDevices(devices: readonly SignedInDevice[]): Promise<void> {
   await Promise.all(devices.map((device) => device.context.close()));
-  await new Promise((resolve) =>
-    setTimeout(resolve, WEB_E2E_PLAYBACK_PRESENCE_LEAVE_GRACE_MS + 1_000)
-  );
+  await waitForPlaybackPresenceLeave();
 }
 
 /** Let `play()` succeed again in a context opened with `blockAutoplay`. */

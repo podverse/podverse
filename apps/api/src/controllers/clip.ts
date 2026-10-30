@@ -369,7 +369,8 @@ class ClipController {
         const statsResults = await ClipController.statsPopularityClipService.getManyPublic(
           config,
           medium,
-          category_id
+          category_id,
+          order
         );
         const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
 
@@ -467,7 +468,8 @@ class ClipController {
           await ClipController.statsPopularityClipService.getManyAndCountPublic(
             config,
             medium,
-            category_id
+            category_id,
+            order
           );
         const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
 

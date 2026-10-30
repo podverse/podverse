@@ -1,9 +1,6 @@
 import { config } from '@api/config/index.js';
 import { podcastIndexService } from '@api/factories/podcastIndexService.js';
-import {
-  buildE2eArtistNotYetAddedAlbumByIdResponse,
-  E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID,
-} from '@api/lib/e2eArtistAlbumsFixture.js';
+import { buildE2eRemoteStubPreviewByIdResponse } from '@api/lib/e2eArtistAlbumsFixture.js';
 import { searchFeedDirectory } from '@api/lib/feedDirectories/registry.js';
 import { getParamRequired } from '@api/lib/params.js';
 import {
@@ -25,12 +22,12 @@ export class PodcastIndexController {
     validateParamsObject(paramsSchema, req, res, async () => {
       const podcast_index_id_str = getParamRequired(req, 'podcast_index_id');
       const podcast_index_id = parseInt(podcast_index_id_str, 10);
-      if (
-        config.e2e.fixturesEnabled &&
-        podcast_index_id === E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID
-      ) {
-        res.json(buildE2eArtistNotYetAddedAlbumByIdResponse());
-        return;
+      if (config.e2e.fixturesEnabled) {
+        const fixtureResponse = buildE2eRemoteStubPreviewByIdResponse(podcast_index_id);
+        if (fixtureResponse !== null) {
+          res.json(fixtureResponse);
+          return;
+        }
       }
       const result = await podcastIndexService.podcastGetById(podcast_index_id);
 

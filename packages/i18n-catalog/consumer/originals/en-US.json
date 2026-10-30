@@ -31,6 +31,7 @@
       "artist_go_to": "Go to Artist",
       "no_tracks_found": "No Tracks Found",
       "no_albums_found": "No Albums Found",
+      "no_artists_found": "No Artists Found",
       "verified_albums": "Verified Albums",
       "your_add_by_rss_albums": "Your Add by RSS Albums",
       "not_yet_added": "Not Yet Added",
@@ -126,12 +127,17 @@
       "credentials_not_saved_on_device": "This browser could not save your username and password, so they were used for this check only.",
       "media_other_domain": "This media is hosted on a different domain than its password-protected feed, which is not supported.",
       "media_needs_credentials": "This media may require a username and password, which browsers cannot send to audio and video files. Try our mobile app instead. The feed itself still updates on the web.",
-      "login_prompt": "Log in to use this feature."
+      "login_prompt": "Log in to use this feature.",
+      "remote_feed_explanation": "This feed is not in our directory or the Podcast Index. Add it by RSS to follow it in your Add by RSS library.",
+      "remote_item_lookup_failed": "Could not look up this feed. Please try again later.",
+      "remote_item_directory_unavailable": "This feed is not available right now.",
+      "remote_item_not_found": "This feed could not be found."
     },
     "browse": {
       "browse": "Browse",
       "category_all": "All Categories",
-      "users": "Users"
+      "users": "Users",
+      "no_users_found": "No Users Found"
     },
     "recommendations": {
       "title": "Recommendations",
@@ -390,7 +396,9 @@
       "play_from": "Play from {time}"
     },
     "podroll": "Podroll",
+    "remote_items": "Remote Items",
     "no_podroll_found": "No Recommended Podcasts Found",
+    "no_remote_items_found": "No Remote Items Found",
     "show_more": "Show More",
     "show_less": "Show Less",
     "truncation": {
@@ -1363,7 +1371,15 @@
       "first_subscribe_push_title": "Enable Push Notifications?",
       "first_subscribe_push_body": "Get lock-screen alerts for new episodes and livestreams, or keep alerts in the app inbox only.",
       "first_subscribe_enable_push": "Enable Push",
-      "first_subscribe_in_app_only": "In-App Only"
+      "first_subscribe_in_app_only": "In-App Only",
+      "sign_in_push_prompt_title": "Turn On Push Notifications on This Device?",
+      "sign_in_push_prompt_body": "Push notifications are turned on for your account. Allow them on this device to get alerts here too.",
+      "sign_in_push_prompt_enable": "Enable Push",
+      "sign_in_push_prompt_not_now": "Not Now",
+      "device_push_banner_message": "Push notifications are turned on for your account, but this device doesn't have permission to show them.",
+      "device_push_banner_action": "Allow on This Device",
+      "device_push_blocked_title": "Notifications Are Blocked",
+      "device_push_blocked_web_body": "This browser is blocking notifications for this site. Open the site settings from the icon next to the address bar, set Notifications to Allow, then reload this page."
     },
     "opml": {
       "opml": "OPML",
@@ -1663,8 +1679,7 @@
     "loading": "Loading Notifications…",
     "login_prompt": "Log in to use this feature.",
     "empty": "You're all caught up. Alerts for new episodes, livestreams, and product updates will show up here.",
-    "unread_section": "Unread",
-    "earlier_section": "Earlier",
+    "unread": "Unread",
     "category_new_content": "New Content",
     "category_livestream": "Livestream",
     "category_product_update": "Product Update",
@@ -1683,15 +1698,6 @@
     "line_new_video_channel": "New video channel",
     "line_podcast_index_feed": "New podcast",
     "line_system_update": "System update",
-    "relative_time_just_now": "Just Now",
-    "relative_time_seconds_ago": "{count, plural, one {# second ago} other {# seconds ago}}",
-    "relative_time_seconds_from_now": "in {count, plural, one {# second} other {# seconds}}",
-    "relative_time_minutes_ago": "{count, plural, one {# minute ago} other {# minutes ago}}",
-    "relative_time_minutes_from_now": "in {count, plural, one {# minute} other {# minutes}}",
-    "relative_time_hours_ago": "{count, plural, one {# hour ago} other {# hours ago}}",
-    "relative_time_hours_from_now": "in {count, plural, one {# hour} other {# hours}}",
-    "relative_time_days_ago": "{count, plural, one {# day ago} other {# days ago}}",
-    "relative_time_days_from_now": "in {count, plural, one {# day} other {# days}}",
     "no_body": "Open to view details."
   },
   "action_error": {

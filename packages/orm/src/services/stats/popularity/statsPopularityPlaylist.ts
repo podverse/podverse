@@ -1,9 +1,14 @@
 import { AppDataSourceRead } from '@orm/db/index.js';
 import { StatsPopularityPlaylist } from '@orm/entities/stats/statsPopularityPlaylist.js';
+import {
+  omitUnlistedPlaylistListFields,
+  PUBLIC_PLAYLIST_LIST_RELATIONS,
+  PUBLIC_PLAYLIST_LIST_SELECT,
+} from '@orm/services/playlist/publicPlaylistListSelect.js';
 import type { FindManyOptions } from 'typeorm';
-import { Equal, In } from 'typeorm';
+import { Equal, In, MoreThan } from 'typeorm';
 
-import type { QueryParamsQueueMedium } from '@podverse/helpers';
+import type { QueryParamsQueueMedium, StatsPopularityCountField } from '@podverse/helpers';
 import { getQueueMediumIdFromType, SharableStatusEnum } from '@podverse/helpers';
 
 const STATS_POPULARITY_SELECT_ALL = {
@@ -23,45 +28,35 @@ export class StatsPopularityPlaylistService {
 
   async getManyPublic(
     config: FindManyOptions<StatsPopularityPlaylist>,
-    queueMediumType: QueryParamsQueueMedium | null
+    queueMediumType: QueryParamsQueueMedium | null,
+    minCountField: StatsPopularityCountField
   ): Promise<StatsPopularityPlaylist[]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
 
-    return this.repositoryRead.find({
+    const rows = await this.repositoryRead.find({
       ...config,
       select: {
         ...STATS_POPULARITY_SELECT_ALL,
-        playlist: {
-          id_text: true,
-          title: true,
-          description: true,
-          is_default_likes: true,
-          item_count: true,
-          account: {
-            id_text: true,
-            account_profile: {
-              display_name: true,
-            },
-          },
-        },
+        playlist: PUBLIC_PLAYLIST_LIST_SELECT,
       },
       where: {
+        ...(config.where && !Array.isArray(config.where) ? config.where : {}),
+        [minCountField]: MoreThan(0),
         playlist: {
           sharable_status_id: SharableStatusEnum.Public,
           ...(medium_id ? { medium_id: Equal(medium_id) } : {}),
         },
       },
       relations: {
-        playlist: {
-          account: {
-            account_profile: true,
-          },
-
-          sharable_status: true,
-          medium: true,
-        },
+        playlist: PUBLIC_PLAYLIST_LIST_RELATIONS,
       },
     });
+    for (const row of rows) {
+      if (row.playlist) {
+        omitUnlistedPlaylistListFields(row.playlist);
+      }
+    }
+    return rows;
   }
 
   async getManyPrivate(
@@ -71,23 +66,11 @@ export class StatsPopularityPlaylistService {
   ): Promise<[StatsPopularityPlaylist[], number]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
 
-    return this.repositoryRead.findAndCount({
+    const [rows, count] = await this.repositoryRead.findAndCount({
       ...config,
       select: {
         ...STATS_POPULARITY_SELECT_ALL,
-        playlist: {
-          id_text: true,
-          title: true,
-          description: true,
-          is_default_likes: true,
-          item_count: true,
-          account: {
-            id_text: true,
-            account_profile: {
-              display_name: true,
-            },
-          },
-        },
+        playlist: PUBLIC_PLAYLIST_LIST_SELECT,
       },
       where: {
         playlist: {
@@ -96,16 +79,15 @@ export class StatsPopularityPlaylistService {
         },
       },
       relations: {
-        playlist: {
-          account: {
-            account_profile: true,
-          },
-
-          sharable_status: true,
-          medium: true,
-        },
+        playlist: PUBLIC_PLAYLIST_LIST_RELATIONS,
       },
     });
+    for (const row of rows) {
+      if (row.playlist) {
+        omitUnlistedPlaylistListFields(row.playlist);
+      }
+    }
+    return [rows, count];
   }
 
   async getManyPrivateByPlaylists(

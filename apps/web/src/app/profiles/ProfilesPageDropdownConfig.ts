@@ -42,11 +42,12 @@ export type ProfilesPageDropdownConfigCurrentParams = {
 
 export function getProfilesPageFilterParams(
   params: ProfilesPageDropdownConfigParams,
-  isValidAuthSession: boolean
+  isValidAuthSession: boolean,
+  listScope: 'page' | 'browse'
 ): ProfilesPageDropdownConfigCurrentParams {
   return buildSubscribedListFilterParams({
     ...params,
-    defaultGlobalSort: 'recent',
+    defaultGlobalSort: listScope === 'browse' ? 'top' : 'recent',
     defaultSubscribedSort: 'a_z',
     globalSortValues: QUERY_PARAMS_GLOBAL_SORT_VALUES,
     isValidAuthSession,

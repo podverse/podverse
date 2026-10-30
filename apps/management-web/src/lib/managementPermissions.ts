@@ -32,8 +32,16 @@ export function canReadFeeds(user: CurrentUser): boolean {
   return userHasCrud(user, user.permissions?.feeds_crud, 'read');
 }
 
+export function canCreateFeeds(user: CurrentUser): boolean {
+  return userHasCrud(user, user.permissions?.feeds_crud, 'create');
+}
+
 export function canUpdateFeeds(user: CurrentUser): boolean {
   return userHasCrud(user, user.permissions?.feeds_crud, 'update');
+}
+
+export function canDeleteFeeds(user: CurrentUser): boolean {
+  return userHasCrud(user, user.permissions?.feeds_crud, 'delete');
 }
 
 export function canReadStats(user: CurrentUser): boolean {

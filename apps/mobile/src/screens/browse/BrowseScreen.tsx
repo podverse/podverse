@@ -61,15 +61,17 @@ import {
   writeBrowseCategory,
   writeBrowseMediaType,
   writeBrowseRange,
+  writeBrowseSort,
   writeBrowseViewMode,
 } from './browseListPrefs';
 import { BrowseOverflowMenu } from './BrowseOverflowMenu';
 import { BrowseSortChip } from './BrowseSortChip';
-import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
+import type { BrowseMediaType, BrowseRangeOption, BrowseSortOption } from './browseTypes';
 import {
   BROWSE_MEDIA_TYPE_ORDER,
   DEFAULT_BROWSE_MEDIA_TYPE,
   DEFAULT_BROWSE_RANGE,
+  DEFAULT_BROWSE_SORT,
   isBrowseMediaType,
   MEDIA_TYPE_LABEL_KEYS,
   shouldShowBrowseCategoryChip,
@@ -292,8 +294,13 @@ export function BrowseScreen() {
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
 
-  const activePrefs = isHydrated ? listPrefs : null;
-  const selectedCategory = activePrefs?.category ?? null;
+  // Sort, window, and list or grid belong to one media type. Nothing loads until the read for the
+  // selected chip lands, so a switch never fetches with the previous type's sort.
+  const activePrefs =
+    isHydrated && listPrefs !== null && listPrefs.mediaType === selectedMediaType
+      ? listPrefs
+      : null;
+  const selectedCategory = isHydrated ? (listPrefs?.category ?? null) : null;
   const viewMode = activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE;
   const viewModeEligible = !isCategoryView && isBrowseViewModeMediaType(selectedMediaType);
   const isGridView = viewModeEligible && viewMode === 'grid';
@@ -439,9 +446,19 @@ export function BrowseScreen() {
     });
   }, []);
 
-  const handleRangeChange = useCallback((range: BrowseRangeOption) => {
-    void writeBrowseRange(range);
-  }, []);
+  const handleRangeChange = useCallback(
+    (range: BrowseRangeOption) => {
+      void writeBrowseRange(selectedMediaType, range);
+    },
+    [selectedMediaType]
+  );
+
+  const handleSortChange = useCallback(
+    (sort: BrowseSortOption) => {
+      void writeBrowseSort(selectedMediaType, sort);
+    },
+    [selectedMediaType]
+  );
 
   const handleViewModeChange = useCallback(
     (nextViewMode: HomeViewMode) => {
@@ -550,7 +567,12 @@ export function BrowseScreen() {
             refreshToken,
             setTokens,
           },
-          { category: activePrefs.category, page: 1, range: activePrefs.range }
+          {
+            category: activePrefs.category,
+            page: 1,
+            range: activePrefs.range,
+            sort: activePrefs.sort,
+          }
         );
         perfMark('browse.repo.end', selectedMediaType);
         if (requestId !== feedRequestIdRef.current) {
@@ -610,7 +632,12 @@ export function BrowseScreen() {
           refreshToken,
           setTokens,
         },
-        { category: activePrefs.category, page: nextPage, range: activePrefs.range }
+        {
+          category: activePrefs.category,
+          page: nextPage,
+          range: activePrefs.range,
+          sort: activePrefs.sort,
+        }
       );
       if (requestId !== feedRequestIdRef.current) {
         return;
@@ -720,7 +747,9 @@ export function BrowseScreen() {
     void loadFeedRef.current('initial');
   }, [
     activePrefs?.category,
+    activePrefs?.mediaType,
     activePrefs?.range,
+    activePrefs?.sort,
     isCategoryView,
     offlineModeEnabled,
     selectedMediaType,
@@ -1242,6 +1271,8 @@ export function BrowseScreen() {
   );
 
   const displayedMediaType = pendingMediaType ?? selectedMediaType;
+  const sortChipPrefs =
+    listPrefs !== null && listPrefs.mediaType === displayedMediaType ? listPrefs : null;
   const isSwitchPending = pendingMediaType !== null;
   const showSortChip = shouldShowBrowseSortChip(
     displayedMediaType,
@@ -1293,7 +1324,9 @@ export function BrowseScreen() {
                 {showSortChip ? (
                   <BrowseSortChip
                     onRangeChange={handleRangeChange}
-                    range={activePrefs?.range ?? DEFAULT_BROWSE_RANGE}
+                    onSortChange={handleSortChange}
+                    range={sortChipPrefs?.range ?? DEFAULT_BROWSE_RANGE}
+                    sort={sortChipPrefs?.sort ?? DEFAULT_BROWSE_SORT}
                   />
                 ) : null}
               </>

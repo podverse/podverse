@@ -1,8 +1,9 @@
 import { AppDataSourceRead } from '@orm/db/index.js';
 import { StatsPopularityAccount } from '@orm/entities/stats/statsPopularityAccount.js';
 import type { FindManyOptions } from 'typeorm';
-import { In, IsNull, Not } from 'typeorm';
+import { In, IsNull, MoreThan, Not } from 'typeorm';
 
+import type { StatsPopularityCountField } from '@podverse/helpers';
 import { getSharableStatusIdsForProfileType } from '@podverse/helpers';
 
 /**
@@ -18,10 +19,12 @@ export class StatsPopularityAccountService {
 
   async getMany(
     config: FindManyOptions<StatsPopularityAccount>,
-    profileType: 'global' | 'subscribed'
+    profileType: 'global' | 'subscribed',
+    minCountField: StatsPopularityCountField
   ): Promise<StatsPopularityAccount[]> {
     const sharableStatusIds = getSharableStatusIdsForProfileType(profileType);
     const profileWhere = {
+      [minCountField]: MoreThan(0),
       account: {
         sharable_status: { id: In(sharableStatusIds) },
         account_profile: {

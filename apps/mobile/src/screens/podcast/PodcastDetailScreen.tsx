@@ -67,6 +67,7 @@ import {
   channelHasFunding,
   channelHasPeople,
   channelHasPodroll,
+  channelHasRemoteItems,
   isFilterableSection,
   isSortableSection,
   PODCAST_SECTION_LABEL_KEYS,
@@ -83,6 +84,7 @@ import {
   PodcastOfficialClipsSection,
   PodcastPeopleSection,
   PodcastPodrollSection,
+  PodcastRemoteItemsSection,
 } from './sections';
 
 type PodcastDetailScreenProps = NativeStackScreenProps<
@@ -115,6 +117,7 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
   funding: PodcastFundingSection,
   people: PodcastPeopleSection,
   podroll: PodcastPodrollSection,
+  remote_items: PodcastRemoteItemsSection,
   soundbites: PodcastOfficialClipsSection,
 };
 
@@ -158,6 +161,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   );
   const [previewHasPodroll, setPreviewHasPodroll] = useState<boolean>(
     cachedChrome?.hasPodroll === true
+  );
+  const [previewHasRemoteItems, setPreviewHasRemoteItems] = useState<boolean>(
+    cachedChrome?.hasRemoteItems === true
   );
   const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
     cachedChrome?.hasFunding === true
@@ -216,6 +222,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setIsChannelLoading(true);
     setHasSoundbites(nextChrome?.hasOfficialClips === true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
+    setPreviewHasRemoteItems(nextChrome?.hasRemoteItems === true);
     setPreviewHasFunding(nextChrome?.hasFunding === true);
     setPreviewHasPeople(nextChrome?.hasPeople === true);
     setHasCheckedSoundbites(nextChrome !== null);
@@ -247,6 +254,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         const local = await subscriptionsRepository.getByIdText(podcastId);
         if (local !== null) {
           setPreviewHasPodroll(false);
+          setPreviewHasRemoteItems(false);
         }
         chromeConfirmedRef.current = true;
         return;
@@ -258,9 +266,11 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         );
         setChannel(response);
         const hasPodroll = channelHasPodroll(response);
+        const hasRemoteItems = channelHasRemoteItems(response);
         const hasFunding = channelHasFunding(response);
         const hasPeople = channelHasPeople(response);
         setPreviewHasPodroll(hasPodroll);
+        setPreviewHasRemoteItems(hasRemoteItems);
         setPreviewHasFunding(hasFunding);
         setPreviewHasPeople(hasPeople);
         void sectionChromeFlagsRepository.mergeChannel(podcastId, {
@@ -268,6 +278,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           hasOfficialClips: soundbites,
           hasPeople,
           hasPodroll,
+          hasRemoteItems,
         });
         // This screen is where the show's name is known for a channel the user does not follow, so it
         // is where any download of theirs that has only an id gets one.
@@ -320,6 +331,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       }
       setHasSoundbites(flags.hasOfficialClips);
       setPreviewHasPodroll(flags.hasPodroll);
+      setPreviewHasRemoteItems(flags.hasRemoteItems);
       setPreviewHasFunding(flags.hasFunding);
       setPreviewHasPeople(flags.hasPeople);
       setHasCheckedSoundbites(true);
@@ -597,16 +609,26 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         previewHasFunding,
         previewHasPeople,
         previewHasPodroll,
+        previewHasRemoteItems,
       }),
-    [channel, hasSoundbites, previewHasFunding, previewHasPeople, previewHasPodroll]
+    [
+      channel,
+      hasSoundbites,
+      previewHasFunding,
+      previewHasPeople,
+      previewHasPodroll,
+      previewHasRemoteItems,
+    ]
   );
 
   /**
    * A selected section still has to exist on this podcast — one whose feed has dropped its
-   * podroll cannot stay on it. Falls back to Episodes (or Downloaded while Offline Mode is on).
+   * podroll or remote item list cannot stay on it. Falls back to Episodes (or Downloaded while
+   * Offline Mode is on).
    *
    * Held until the channel and the stored episodes have both been read, because a cache miss must
-   * not be treated as absence or an Official clips / Podroll pane would be thrown away mid-visit.
+   * not be treated as absence or an Official clips, Podroll, or Remote Items pane would be thrown
+   * away mid-visit.
    */
   useEffect(() => {
     if (channel === null || !hasCheckedSoundbites) {

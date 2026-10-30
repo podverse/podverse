@@ -128,13 +128,13 @@ function parseSearchParams(
     const guarded = guardSubscribedSsrFilter({
       isAuthenticated,
       type: cookieDefaults?.type ?? (isAuthenticated ? 'subscribed' : 'global'),
-      sort: cookieDefaults?.sort ?? 'recent',
+      sort: cookieDefaults?.sort ?? null,
       range: cookieDefaults?.range ?? null,
       category: cookieDefaults?.category ?? null,
       page: 1,
       fallback: {
         type: 'global',
-        sort: 'recent',
+        sort: null,
         range: null,
         category: null,
         page: 1,
@@ -145,7 +145,7 @@ function parseSearchParams(
       {
         page: guarded.page,
         type: guarded.type ?? 'global',
-        sort: guarded.sort ?? 'recent',
+        sort: guarded.sort,
         range: guarded.range,
         category: guarded.category,
       },
@@ -169,13 +169,13 @@ function guardedClipsParams(
   const guarded = guardSubscribedSsrFilter({
     isAuthenticated,
     type: data.type ?? cookieDefaults?.type ?? (isAuthenticated ? 'subscribed' : 'global'),
-    sort: data.sort ?? cookieDefaults?.sort ?? 'recent',
+    sort: data.sort ?? cookieDefaults?.sort ?? null,
     range: data.range ?? cookieDefaults?.range ?? null,
     category: data.category ?? cookieDefaults?.category ?? null,
     page: data.page,
     fallback: {
       type: 'global',
-      sort: 'recent',
+      sort: null,
       range: null,
       category: null,
       page: 1,
@@ -185,7 +185,7 @@ function guardedClipsParams(
   return {
     page: guarded.page,
     type: guarded.type ?? 'global',
-    sort: guarded.sort ?? 'recent',
+    sort: guarded.sort,
     range: guarded.range,
     category: guarded.category,
   };

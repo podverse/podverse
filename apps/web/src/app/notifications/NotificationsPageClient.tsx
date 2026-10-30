@@ -8,8 +8,9 @@ import type { AccountNotificationLineLabels, DTOAccountNotification } from '@pod
 import {
   ACCOUNT_NOTIFICATION_STREAM_EVENT,
   accountNotificationImageUrl,
+  applyNotificationVisitUnread,
   formatAccountNotificationLine,
-  getRelativeTimeParts,
+  formatRelativeTimeLabel,
   resolveNotificationDestinationFromPayload,
 } from '@podverse/helpers';
 import { FormMaxWidth, Image, MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
@@ -43,16 +44,6 @@ type NotificationListLoadResult =
 
 /** Source edge requested for the thumbnail. The slot wrapper is what draws the size. */
 const NOTIFICATION_ARTWORK_SOURCE_SIZE = 160;
-
-function getRelativeTimeLabel(isoDate: string): string {
-  const parts = getRelativeTimeParts(isoDate);
-  if (parts === null) {
-    return '';
-  }
-
-  const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
-  return formatter.format(parts.value, parts.unit);
-}
 
 function mergeLiveRows(
   items: DTOAccountNotification[],
@@ -93,6 +84,7 @@ export function NotificationsPageClient() {
   const pageRef = useRef(INITIAL_STATE.page);
   const listRequestIdRef = useRef(0);
   const isPageActiveRef = useRef(true);
+  const visitUnreadIdsRef = useRef<ReadonlySet<number>>(new Set<number>());
 
   const loadPage = useCallback(async (page: number): Promise<NotificationListLoadResult> => {
     const requestId = ++listRequestIdRef.current;
@@ -101,9 +93,11 @@ export function NotificationsPageClient() {
       if (requestId !== listRequestIdRef.current || !isPageActiveRef.current) {
         return { status: 'stale' };
       }
+      const visit = applyNotificationVisitUnread(visitUnreadIdsRef.current, data.items);
+      visitUnreadIdsRef.current = visit.visitUnreadIds;
       pageRef.current = data.pagination.page;
       setState({
-        items: data.items,
+        items: visit.rows,
         page: data.pagination.page,
         totalPages: data.pagination.total_pages,
       });
@@ -144,6 +138,7 @@ export function NotificationsPageClient() {
 
   useEffect(() => {
     isPageActiveRef.current = true;
+    visitUnreadIdsRef.current = new Set<number>();
     let cancelled = false;
 
     const loadFirstPageAndMarkRead = async () => {
@@ -189,6 +184,8 @@ export function NotificationsPageClient() {
     const unsubscribe = subscribeToNotificationStream((event) => {
       if (event.type === ACCOUNT_NOTIFICATION_STREAM_EVENT.created) {
         const row = event.data.notification;
+        const visit = applyNotificationVisitUnread(visitUnreadIdsRef.current, [row]);
+        visitUnreadIdsRef.current = visit.visitUnreadIds;
         liveRowsRef.current = insertLiveNotificationRow(liveRowsRef.current, row);
         if (pageRef.current === 1) {
           setState((current) => ({
@@ -276,12 +273,12 @@ export function NotificationsPageClient() {
     });
     const linkPath = destination.kind === 'home' ? ROUTES.NOTIFICATIONS : destination.webPath;
     const line = formatAccountNotificationLine(row, labels);
-    const timeLabel = getRelativeTimeLabel(row.created_at);
+    const timeLabel = formatRelativeTimeLabel(row.created_at, undefined);
 
     return (
       <Link className={styles.entry} href={linkPath}>
         {row.is_unread ? (
-          <span className={styles.unreadAnnouncer}>{tNotifications('unread_section')}</span>
+          <span className={styles.unreadAnnouncer}>{tNotifications('unread')}</span>
         ) : null}
         <span aria-hidden="true" className={styles.unreadSlot}>
           {row.is_unread ? <span className={styles.unreadDot} data-unread="true" /> : null}

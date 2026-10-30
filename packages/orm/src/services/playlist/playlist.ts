@@ -15,6 +15,11 @@ import {
 } from '@podverse/helpers';
 
 import { PlaylistResourceService } from './playlistResource.js';
+import {
+  omitUnlistedPlaylistListFields,
+  PUBLIC_PLAYLIST_LIST_RELATIONS,
+  PUBLIC_PLAYLIST_LIST_SELECT,
+} from './publicPlaylistListSelect.js';
 
 export type PlaylistDto = {
   title?: string;
@@ -131,6 +136,26 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
       },
       ...options,
     });
+  }
+
+  async getManyPublicForList(
+    queueMediumType: QueryParamsQueueMedium | null,
+    options: Pick<FindManyOptions<Playlist>, 'order' | 'skip' | 'take'>
+  ): Promise<Playlist[]> {
+    const medium_id = getQueueMediumIdFromType(queueMediumType);
+    const playlists = await this.repositoryRead.find({
+      ...options,
+      select: PUBLIC_PLAYLIST_LIST_SELECT,
+      relations: PUBLIC_PLAYLIST_LIST_RELATIONS,
+      where: {
+        sharable_status_id: SharableStatusEnum.Public,
+        ...(medium_id ? { medium_id: Equal(medium_id) } : {}),
+      },
+    });
+    for (const playlist of playlists) {
+      omitUnlistedPlaylistListFields(playlist);
+    }
+    return playlists;
   }
 
   async getManyPrivate(

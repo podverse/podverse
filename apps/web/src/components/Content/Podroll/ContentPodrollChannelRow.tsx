@@ -8,6 +8,7 @@ import { IMAGES } from '../../../constants/images';
 import { WEB } from '../../../constants/web';
 import { getChannelPath } from '../../../utils/redirect/redirectToChannelPageByMedium';
 import { Link } from '../../Link/Link';
+import { nonEmptyTrimmed } from '../remoteItemStubRow';
 
 import styles from '../../../styles/components/Content/Podroll/ContentPodrollChannelRow.module.scss';
 
@@ -26,6 +27,7 @@ export const ContentPodrollChannelRow = ({ channel }: ContentPodrollChannelRowPr
     IMAGES.PODROLL.SQUARE.SIZE_FIND_TARGET,
     'greater'
   );
+  const author = nonEmptyTrimmed(channel.channel_about?.author);
 
   return (
     <div className={styles.row}>
@@ -43,6 +45,7 @@ export const ContentPodrollChannelRow = ({ channel }: ContentPodrollChannelRowPr
         />
         <div className={styles.textWrapper}>
           <div className={styles.title}>{channel.title}</div>
+          {author !== null ? <div className={styles.subtitle}>{author}</div> : null}
         </div>
       </Link>
     </div>

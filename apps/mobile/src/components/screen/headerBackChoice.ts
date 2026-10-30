@@ -6,6 +6,11 @@ export type HeaderBackChoice = 'goBack' | 'parentGoBack' | 'resetToInitial' | 'n
  */
 export const headerBackChoice = (input: {
   focusedRouteName: string | undefined;
+  /**
+   * True when this stack has a route under the focused one (`state.index > 0`).
+   * The header `back` value is also set when a parent screen can go back, so it
+   * is not this flag.
+   */
   hasStackBack: boolean;
   initialRouteName: string | undefined;
   parentStackCanGoBack: boolean;

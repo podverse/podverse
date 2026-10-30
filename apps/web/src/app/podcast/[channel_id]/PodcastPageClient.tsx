@@ -11,6 +11,7 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
 import { DirectoryRemovedNotice } from '../../../components/Content/DirectoryRemovedNotice';
+import { remoteItemsResponseHasRows } from '../../../components/Content/remoteItemStubRow';
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { DirectoryRemovedProvider } from '../../../contexts/DirectoryRemoved';
@@ -30,6 +31,7 @@ interface PodcastPageClientProps {
   ssrClips: DTOClip[];
   ssrTotalPages: number;
   ssrPodroll: RemoteItemsResponse | null;
+  ssrRemoteItems: RemoteItemsResponse | null;
   directoryRemoved: boolean;
 }
 
@@ -45,6 +47,7 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
     ssrHasItemSoundbites,
     ssrTotalPages,
     ssrPodroll,
+    ssrRemoteItems,
     directoryRemoved,
   } = props;
   const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
@@ -69,7 +72,11 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
           <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
           <CorePodcastHeader channel={ssrChannel} />
           <MainSidebarLayout>
-            <PodcastPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
+            <PodcastPageSideContent
+              channel={ssrChannel}
+              podroll={ssrPodroll}
+              remoteItems={ssrRemoteItems}
+            />
             <MainColumnStack>
               {directoryRemoved ? (
                 <DirectoryRemovedNotice />
@@ -77,13 +84,15 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
                 <>
                   <PodcastPageListHeader
                     ssrHasPeople={(ssrChannel.channel_persons?.length ?? 0) > 0}
-                    ssrHasPodroll={!!ssrPodroll}
+                    ssrHasPodroll={remoteItemsResponseHasRows(ssrPodroll)}
+                    ssrHasRemoteItems={remoteItemsResponseHasRows(ssrRemoteItems)}
                     ssrHasItemSoundbites={ssrHasItemSoundbites}
                     ssrCanShowBoosts={ssrCanShowBoosts}
                   />
                   <PodcastPageList
                     ssrChannel={ssrChannel}
                     podroll={ssrPodroll}
+                    remoteItems={ssrRemoteItems}
                     ssrCanShowBoosts={ssrCanShowBoosts}
                   />
                 </>

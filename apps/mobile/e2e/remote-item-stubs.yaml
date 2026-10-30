@@ -1,0 +1,221 @@
+appId: com.podverse.app.next
+name: Remote item stubs
+---
+# Podroll and a channel's remote item list show parsed rows and remote stubs; a
+# stub opens the Podcast Index preview for its feed, and a parsed row opens its own screen.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- openLink: podverse-next://podcast/e2ePodroll0001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+# Podroll appears once the channel loads, after the always-on chips. Off-screen chips are left
+# out of the hierarchy until the row moves, and a trailing chip can count as visible while its
+# center is still past the edge.
+- repeat:
+    times: 4
+    commands:
+      - runFlow:
+          file: shared/reveal-chip-row-trailing.yaml
+          env:
+            CHIP_ROW_ID: podcast-detail-sections
+            TRAILING_ID: podcast-detail-section-podroll
+      - runFlow:
+          when:
+            notVisible:
+              id: podcast-detail-section-podroll
+          commands:
+            - extendedWaitUntil:
+                visible:
+                  id: podcast-detail-section-podroll
+                timeout: ${TIMEOUT_FASTEST}
+                optional: true
+- swipe:
+    from:
+      id: podcast-detail-sections
+    direction: LEFT
+- tapOn:
+    id: podcast-detail-section-podroll
+- extendedWaitUntil:
+    visible:
+      id: podcast-podroll-row-0
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Music Album"
+- assertVisible:
+    text: "E2E Not Yet Added Album"
+# The item stub can sit under the mini player.
+- scrollUntilVisible:
+    element:
+      text: "E2E Not Yet Added Track"
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- assertVisible:
+    text: "E2E Not Yet Added Track"
+- assertNotVisible:
+    text: "E2E Unknown Album"
+- takeScreenshot: remote-item-stubs-podroll
+- scrollUntilVisible:
+    element:
+      id: podcast-podroll-row-2
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    id: podcast-podroll-row-2
+- extendedWaitUntil:
+    visible:
+      id: pi-feed-preview-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Not Yet Added Album"
+- assertVisible:
+    id: pi-feed-add-button
+# Same return as a stack push. Add follows the feed, so the flow does not press it.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: "0%,45%"
+          end: "85%,45%"
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- scrollUntilVisible:
+    element:
+      id: podcast-podroll-row-0
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    id: podcast-podroll-row-0
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: "0%,45%"
+          end: "85%,45%"
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+
+- openLink: podverse-next://album/e2eRemoteList01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+# Remote Items appears once the channel loads. Same trailing-chip reveal as Podroll.
+- repeat:
+    times: 4
+    commands:
+      - runFlow:
+          file: shared/reveal-chip-row-trailing.yaml
+          env:
+            CHIP_ROW_ID: album-detail-sections
+            TRAILING_ID: album-detail-section-remote_items
+      - runFlow:
+          when:
+            notVisible:
+              id: album-detail-section-remote_items
+          commands:
+            - extendedWaitUntil:
+                visible:
+                  id: album-detail-section-remote_items
+                timeout: ${TIMEOUT_FASTEST}
+                optional: true
+- swipe:
+    from:
+      id: album-detail-sections
+    direction: LEFT
+- tapOn:
+    id: album-detail-section-remote_items
+- extendedWaitUntil:
+    visible:
+      id: album-detail-remote-item-row-0
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Music Track One"
+- scrollUntilVisible:
+    element:
+      text: "E2E Not Yet Added Track"
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- assertVisible:
+    text: "E2E Not Yet Added Track"
+- assertNotVisible:
+    text: "E2E Unknown Track"
+- takeScreenshot: remote-item-stubs-list
+- scrollUntilVisible:
+    element:
+      id: album-detail-remote-item-row-1
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    id: album-detail-remote-item-row-1
+- extendedWaitUntil:
+    visible:
+      id: pi-feed-preview-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    text: "E2E Not Yet Added Album"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: "0%,45%"
+          end: "85%,45%"
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- scrollUntilVisible:
+    element:
+      id: album-detail-remote-item-row-0
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    id: album-detail-remote-item-row-0
+- extendedWaitUntil:
+    visible:
+      id: track-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: remote-item-stubs-track

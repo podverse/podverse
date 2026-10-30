@@ -1,4 +1,5 @@
 import { getPodcastIndexConfig, getStatsConfig } from '@workers/config/index.js';
+import { getIndexProvider } from '@workers/factories/indexProvider.js';
 import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
 
 import {
@@ -23,9 +24,10 @@ import {
 } from '@podverse/orm';
 
 import { enqueueRepointParse, fetchSurvivorFeed } from './applyDuplicateMerges.js';
+import { applyRemoteStubMerges } from './remoteStubMerges.js';
 
 const PODCAST_INDEX_DEAD_REASON_KEY = 'podcast_index_dead';
-const STUB_DELETE_MAX_PER_RUN = 200;
+const CHANNELLESS_FEED_DELETE_MAX_PER_RUN = 200;
 
 const MERGE_STATUSES_THAT_WAIT: ReadonlySet<ChannelMergeStatus> = new Set([
   ChannelMergeStatus.Detected,
@@ -36,6 +38,9 @@ const MERGE_STATUSES_THAT_WAIT: ReadonlySet<ChannelMergeStatus> = new Set([
 
 /**
  * Record Podcast Index duplicate pairs for feeds we already store, then assess them.
+ * The same merge mode runs the remote stub pass on a modified download: stubs whose feed was
+ * merged are re-pointed to the survivor, and stubs whose feed is retired, or whose survivor we
+ * parse, are removed.
  * When retire mode is `dry_run` or `apply`, also download the full dead list and retire
  * feeds that list marks, up to 200 per apply run.
  * Both modes `off` returns before any download.
@@ -89,6 +94,17 @@ export const podcastIndexDeadFeedsFlagAndMerge = async () => {
           fromPodcastIndexId: pair.fromPodcastIndexId,
           toPodcastIndexId: pair.toPodcastIndexId,
         });
+      }
+      try {
+        await applyRemoteStubMerges({
+          targets,
+          heldPodcastIndexIds: held,
+          mode: duplicateMergeMode,
+          provider: getIndexProvider(),
+          rateLimitDelayMs: getPodcastIndexConfig().rateLimitDelay ?? 0,
+        });
+      } catch (error) {
+        console.error('Remote stub merge pass failed.', error);
       }
       pairsRecorded = pairs.length;
     }
@@ -210,7 +226,7 @@ async function retireDeadFeeds(params: {
       `Dead-feed retire dry_run: eligible ${eligibleCount}, growth ${growth ?? 'none'}, not yet blocking ${notYetBlocking}.`
     );
     await storeEligibleCount(params.syncService, params.syncRow, eligibleCount);
-    await logOrDeleteStubs(feedService, params.targets, 'dry_run');
+    await logOrDeleteChannellessFeeds(feedService, params.targets, 'dry_run');
     return;
   }
 
@@ -227,7 +243,7 @@ async function retireDeadFeeds(params: {
   console.warn(
     `Dead-feed retire apply: marked ${changed} feeds pending_archive (eligible ${eligibleCount}).`
   );
-  await logOrDeleteStubs(feedService, params.targets, 'apply');
+  await logOrDeleteChannellessFeeds(feedService, params.targets, 'apply');
 }
 
 /**
@@ -287,7 +303,7 @@ async function storeEligibleCount(
   await syncService.save(syncRow);
 }
 
-async function logOrDeleteStubs(
+async function logOrDeleteChannellessFeeds(
   feedService: FeedService,
   targets: ReadonlyMap<number, number | null>,
   mode: 'dry_run' | 'apply'
@@ -296,10 +312,10 @@ async function logOrDeleteStubs(
     PODCAST_INDEX_DEAD_REASON_KEY
   );
   const absent = candidates.filter((row) => !targets.has(row.podcastIndexId));
-  const batch = absent.slice(0, STUB_DELETE_MAX_PER_RUN);
+  const batch = absent.slice(0, CHANNELLESS_FEED_DELETE_MAX_PER_RUN);
   if (mode === 'dry_run') {
     console.warn(
-      `Dead-feed retire dry_run: ${absent.length} stub feeds are absent from this CSV. Deleting none.`
+      `Dead-feed retire dry_run: ${absent.length} feeds without a channel are absent from this CSV. Deleting none.`
     );
     return;
   }
@@ -318,6 +334,6 @@ async function logOrDeleteStubs(
     }
   }
   console.warn(
-    `Dead-feed retire apply: deleted ${deleted} stub feeds absent from this CSV. ${blocked} blocked by a foreign key.`
+    `Dead-feed retire apply: deleted ${deleted} feeds without a channel absent from this CSV. ${blocked} blocked by a foreign key.`
   );
 }

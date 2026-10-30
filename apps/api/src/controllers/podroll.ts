@@ -15,12 +15,13 @@ export class PodrollController {
       const idOrIdText = getParamRequired(req, 'idOrIdText');
       const result = await PodrollController.channelPodrollService.getPodrollForChannel(idOrIdText);
 
-      const finalResult = await buildRemoteItemsFinalResult(
-        result.podrollChannelsAdded as unknown as DTOChannel[],
-        result.podrollChannelsUnadded,
-        result.podrollItemsAdded as unknown as DTOItem[],
-        result.podrollItemsUnadded
-      );
+      // Channel and Item entities are serialized as the shared channel and item DTOs.
+      const finalResult = await buildRemoteItemsFinalResult({
+        channelsAdded: result.podrollChannelsAdded as unknown as DTOChannel[],
+        channelRefsUnmatched: result.podrollChannelsUnadded,
+        itemsAdded: result.podrollItemsAdded as unknown as DTOItem[],
+        itemRefsUnmatched: result.podrollItemsUnadded,
+      });
 
       res.json(finalResult);
     });

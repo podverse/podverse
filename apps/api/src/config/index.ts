@@ -47,6 +47,7 @@ type Config = {
     accountOpmlImportEnqueue: { windowMs: number; max: number };
     accountAddByRssParseEnqueue: { windowMs: number; max: number };
     accountAddByRssChaptersTranscript: { windowMs: number; max: number };
+    accountAddByRssRemoteItemResolve: { windowMs: number; max: number };
     accountChannelSeenRead: { windowMs: number; max: number };
     statsTrack: { windowMs: number; max: number };
     mqRssOnDemand: { windowMs: number; max: number };
@@ -324,6 +325,11 @@ export const config: Config = {
     accountAddByRssChaptersTranscript: parseCountPerWindowEnvFromKey({
       envValue: process.env.ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE,
       key: 'ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE',
+      defaultMax: 30,
+    }),
+    accountAddByRssRemoteItemResolve: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_MAX_PER_MINUTE,
+      key: 'ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_MAX_PER_MINUTE',
       defaultMax: 30,
     }),
     accountChannelSeenRead: parseCountPerWindowEnvFromKey({

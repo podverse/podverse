@@ -3,6 +3,10 @@ import { AccountController } from '@api/controllers/account/account.js';
 import { AccountAddByRSSChaptersTranscriptController } from '@api/controllers/account/accountAddByRSSChaptersTranscript.js';
 import { AccountAddByRSSParseController } from '@api/controllers/account/accountAddByRSSParse.js';
 import {
+  AccountAddByRSSRemoteItemController,
+  addByRssRemoteItemResolveRateLimit,
+} from '@api/controllers/account/accountAddByRSSRemoteItem.js';
+import {
   AccountChannelSeenController,
   channelSeenReadRateLimit,
 } from '@api/controllers/account/accountChannelSeen.js';
@@ -200,6 +204,15 @@ router.post('/add-by-rss/parse/all', asyncHandler(AccountAddByRSSParseController
 router.get(
   '/add-by-rss/parse/status/:request_id',
   asyncHandler(AccountAddByRSSParseController.getParseStatus)
+);
+router.post(
+  '/add-by-rss/remote-item/lookup',
+  asyncHandler(AccountAddByRSSRemoteItemController.lookup)
+);
+router.post(
+  '/add-by-rss/remote-item/resolve',
+  addByRssRemoteItemResolveRateLimit,
+  asyncHandler(AccountAddByRSSRemoteItemController.resolve)
 );
 
 router.post('/follow/channel', asyncHandler(AccountFollowingChannelController.followChannel));

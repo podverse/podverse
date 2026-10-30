@@ -2,17 +2,9 @@ import { NotificationCategoryEnum } from '@podverse/helpers';
 
 import type { AuthRequestDeps } from '../../auth/authRequestWithRefresh';
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
-import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
 import { markFirstSubscribePushPromptAnswered } from '../../prefs/subscribePushPromptPrefs';
-import { registerFcmDeviceForAccount } from '../../push/fcmDeviceSync';
-import { requestFcmPermissionAfterUserAction } from '../../push/fcmTransport';
-import {
-  isUnifiedPushRegisteredOnDevice,
-  readUnifiedPushMode,
-  registerUnifiedPushDeviceForAccount,
-  releaseUnifiedPushForPushProvider,
-} from '../../push/unifiedPushDeviceSync';
+import { enablePushOnThisDevice } from '../../push/enablePushOnThisDevice';
 
 export type FirstSubscribePushChoice = 'enable_push' | 'in_app_only';
 
@@ -21,7 +13,8 @@ const MEDIA_PUSH_CATEGORIES = [
   NotificationCategoryEnum.Livestream,
 ] as const;
 
-const accountHasAnyPushDevice = async (auth: AuthRequestDeps): Promise<boolean> => {
+/** True when the account has an FCM, web push, or Unified Push device on any device. */
+export const accountHasAnyPushDevice = async (auth: AuthRequestDeps): Promise<boolean> => {
   const [fcmDevices, webPushDevices, upDevice] = await Promise.all([
     requestWithMobileAuthRefresh(auth, (api) => api.reqAccountFCMDeviceGetAllForAccount()),
     requestWithMobileAuthRefresh(auth, (api) => api.reqAccountWebPushDeviceGetAllForAccount()),
@@ -73,39 +66,8 @@ export const applyFirstSubscribePushChoice = async (params: {
   await markFirstSubscribePushPromptAnswered(accountIdText);
 
   if (choice === 'enable_push') {
-    const pushProvider = getMobileConfig().pushProvider;
-    let granted = false;
-
-    if (pushProvider === 'fcm') {
-      const permission = await requestFcmPermissionAfterUserAction();
-      granted = permission.granted;
-      if (granted) {
-        try {
-          const releaseUnifiedPush =
-            (await readUnifiedPushMode()) === 'user' || (await isUnifiedPushRegisteredOnDevice());
-          if (releaseUnifiedPush) {
-            await releaseUnifiedPushForPushProvider({ auth });
-          }
-          await registerFcmDeviceForAccount({ auth, locale });
-        } catch (error) {
-          console.warn('Failed to register FCM device after first-subscribe push choice', error);
-          granted = false;
-        }
-      }
-    } else if (pushProvider === 'unifiedpush' || pushProvider === 'none') {
-      try {
-        await registerUnifiedPushDeviceForAccount({ auth, locale });
-        granted = await isUnifiedPushRegisteredOnDevice();
-      } catch (error) {
-        console.warn(
-          'Failed to register Unified Push device after first-subscribe push choice',
-          error
-        );
-        granted = false;
-      }
-    }
-
-    if (granted) {
+    const result = await enablePushOnThisDevice({ auth, locale });
+    if (result.outcome === 'enabled') {
       try {
         await setMediaPushEnabled(auth, true);
       } catch (error) {

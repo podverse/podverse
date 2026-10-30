@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
+import { waitForPlaybackPresenceLeave } from './helpers/crossDevicePlayback';
 import {
   clearSeededPodcastQueueResources,
   waitForAudioReadyAtLeast,
@@ -99,7 +100,7 @@ test.describe('Media player podcast resume position', () => {
   test.beforeEach(async ({ page }) => {
     test.setTimeout(20_000);
     await loginSeedUser(page);
-    await clearSeededPodcastQueueResources(page);
+    await Promise.all([waitForPlaybackPresenceLeave(), clearSeededPodcastQueueResources(page)]);
   });
 
   test('Loading a podcast episode with a stored mid-position seeks the player to that position', async ({

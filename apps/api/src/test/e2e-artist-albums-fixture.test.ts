@@ -2,28 +2,27 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import type { RemoteItemGeneric } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
   buildE2eArtistNotYetAddedAlbumByIdResponse,
-  buildE2eArtistNotYetAddedAlbumFeed,
-  E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
+  buildE2eRemoteStubPreviewByIdResponse,
   E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
   E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_INDEX_ID,
+  E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID,
+  E2E_CHANNEL_REMOTE_STUB_TITLE,
+  E2E_PODROLL_STUB_PODCAST_INDEX_ID,
+  E2E_PODROLL_STUB_TITLE,
 } from '../lib/e2eArtistAlbumsFixture.js';
 import { getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
 
 /**
- * Locks the fixtures contract for the seeded artist page:
- * the Not Yet Added preview id returns the synthetic feed, and remote-item
- * resolution never calls live Podcast Index.
+ * Locks the fixtures contract for the seeded artist page and the remote stub previews:
+ * those Podcast Index ids return a synthetic feed.
  *
  * Sets `PODVERSE_E2E_FIXTURES=1` before `startTestApp` so the re-imported config
  * has `e2e.fixturesEnabled` (see helpers/startTestApp `vi.resetModules`).
  */
-
-const E2E_ARTIST_UNKNOWN_ALBUM_PODCAST_GUID = '11111111-2222-4333-8444-555555555505';
 
 const podcastIndexMocks = vi.hoisted(() => {
   const live = async (): Promise<never> => {
@@ -106,25 +105,31 @@ describe('e2e artist album fixtures', () => {
     }
   });
 
-  it('resolves only the fixture album and never calls live Podcast Index', async () => {
-    const notYetAddedRef: RemoteItemGeneric = {
-      feed_guid: E2E_ARTIST_NOT_YET_ADDED_ALBUM_PODCAST_GUID,
-      feed_url: E2E_ARTIST_NOT_YET_ADDED_ALBUM_FEED_URL,
-      item_guid: null,
-    };
-    const unknownRef: RemoteItemGeneric = {
-      feed_guid: E2E_ARTIST_UNKNOWN_ALBUM_PODCAST_GUID,
-      feed_url: null,
-      item_guid: null,
-    };
+  it('GET /external-services/podcast-index/feed/2147483630 returns the podroll stub preview', async () => {
+    const res = await request(app).get(
+      `${externalServicesBase}/podcast-index/feed/${E2E_PODROLL_STUB_PODCAST_INDEX_ID}`
+    );
 
-    const { buildRemoteItemsFinalResult } = await import('../lib/remoteItems.js');
-    const result = await buildRemoteItemsFinalResult([], [notYetAddedRef, unknownRef], [], [], {
-      enrichUnaddedChannelsByFeedUrl: true,
-    });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(
+      buildE2eRemoteStubPreviewByIdResponse(E2E_PODROLL_STUB_PODCAST_INDEX_ID)
+    );
+    expect(res.body.feed.title).toBe(E2E_PODROLL_STUB_TITLE);
+    for (const mockFn of Object.values(podcastIndexMocks)) {
+      expect(mockFn).not.toHaveBeenCalled();
+    }
+  });
 
-    expect(result.channelsUnadded).toEqual([buildE2eArtistNotYetAddedAlbumFeed()]);
-    expect(result.itemsUnadded).toEqual([]);
+  it('GET /external-services/podcast-index/feed/2147483629 returns the remote stub preview', async () => {
+    const res = await request(app).get(
+      `${externalServicesBase}/podcast-index/feed/${E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID}`
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(
+      buildE2eRemoteStubPreviewByIdResponse(E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID)
+    );
+    expect(res.body.feed.title).toBe(E2E_CHANNEL_REMOTE_STUB_TITLE);
     for (const mockFn of Object.values(podcastIndexMocks)) {
       expect(mockFn).not.toHaveBeenCalled();
     }

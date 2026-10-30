@@ -11,6 +11,7 @@ import { useBoostMessagesView } from '../../../components/Boost/messages/useBoos
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPeopleRows } from '../../../components/Content/About/ContentPeopleRows';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
+import { ContentRemoteItems } from '../../../components/Content/RemoteItems/ContentRemoteItems';
 import { ListClips } from '../../../components/List/Clips/ListClips';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
@@ -21,12 +22,14 @@ import { usePodcastPageContext } from './PodcastPageContext';
 
 type PodcastPageListProps = {
   podroll: RemoteItemsResponse | null;
+  remoteItems: RemoteItemsResponse | null;
   ssrChannel: DTOChannel;
   ssrCanShowBoosts: boolean;
 };
 
 export const PodcastPageList: React.FC<PodcastPageListProps> = ({
   podroll,
+  remoteItems,
   ssrChannel,
   ssrCanShowBoosts,
 }) => {
@@ -93,6 +96,7 @@ export const PodcastPageList: React.FC<PodcastPageListProps> = ({
       )}
       {type === 'people' && <ContentPeopleRows channel_persons={ssrChannel.channel_persons} />}
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
+      {type === 'remote-items' && <ContentRemoteItems remoteItemsResponse={remoteItems} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
       <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>

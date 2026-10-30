@@ -1,7 +1,5 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
-import {
-  getNotificationSendContexts,
-} from '@workers/lib/notifications/notificationSendContexts.js';
+import { getNotificationSendContexts } from '@workers/lib/notifications/notificationSendContexts.js';
 
 import { MediumEnum } from '@podverse/helpers';
 import { notificationOrchestrator } from '@podverse/notifications';
@@ -12,6 +10,7 @@ import {
   AccountWebPushDeviceService,
 } from '@podverse/orm';
 
+import type { PushSendOutcome, TestPushDeviceLine } from './notificationsTestPushLib.js';
 import {
   failedOutcome,
   formatDeviceLine,
@@ -22,7 +21,6 @@ import {
   parseNotificationsTestPushArgs,
   secretSuffix,
 } from './notificationsTestPushLib.js';
-import type { PushSendOutcome, TestPushDeviceLine } from './notificationsTestPushLib.js';
 
 const TEST_TITLE = 'Podverse test push';
 const TEST_BODY = 'Alpha test push. If you can read this, delivery reached this device.';

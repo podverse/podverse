@@ -31,6 +31,7 @@
       "artist_go_to": "Ir al artista",
       "no_tracks_found": "No se encontraron pistas",
       "no_albums_found": "No se encontraron álbumes",
+      "no_artists_found": "No se encontraron artistas",
       "verified_albums": "Álbumes verificados",
       "your_add_by_rss_albums": "Tus álbumes de Añadir por RSS",
       "not_yet_added": "Aún no añadidos",
@@ -126,12 +127,17 @@
       "credentials_check_failed": "No pudimos comprobar este feed. Inténtalo más tarde.",
       "credentials_not_saved_on_device": "Este navegador no pudo guardar el usuario y la contraseña, así que solo se usaron para esta comprobación.",
       "media_other_domain": "Este contenido está en un dominio distinto al del feed protegido, y eso no es compatible.",
-      "media_needs_credentials": "Este contenido puede exigir usuario y contraseña, que los navegadores no pueden enviar a archivos de audio y vídeo. Prueba la app móvil. El feed sí se actualiza en la web."
+      "media_needs_credentials": "Este contenido puede exigir usuario y contraseña, que los navegadores no pueden enviar a archivos de audio y vídeo. Prueba la app móvil. El feed sí se actualiza en la web.",
+      "remote_feed_explanation": "Este feed no está en nuestro directorio ni en Podcast Index. Agrégalo por RSS para seguirlo en tu biblioteca de agregar por RSS.",
+      "remote_item_lookup_failed": "No se pudo consultar este feed. Inténtalo de nuevo más tarde.",
+      "remote_item_directory_unavailable": "Este feed no está disponible en este momento.",
+      "remote_item_not_found": "No se pudo encontrar este feed."
     },
     "browse": {
       "browse": "Explorar",
       "category_all": "Todas las categorías",
-      "users": "Usuarios"
+      "users": "Usuarios",
+      "no_users_found": "No se encontraron usuarios"
     },
     "recommendations": {
       "title": "Recomendaciones",
@@ -390,7 +396,9 @@
       "play_from": "Reproducir desde {time}"
     },
     "podroll": "Podroll",
+    "remote_items": "Elementos remotos",
     "no_podroll_found": "No se encontraron podcasts recomendados",
+    "no_remote_items_found": "No se encontraron elementos remotos",
     "show_more": "Mostrar más",
     "show_less": "Mostrar menos",
     "truncation": {
@@ -1351,7 +1359,15 @@
       "first_subscribe_push_title": "¿Activar notificaciones push?",
       "first_subscribe_push_body": "Recibe alertas en la pantalla de bloqueo para nuevos episodios y transmisiones en vivo, o deja las alertas solo en la bandeja de la aplicación.",
       "first_subscribe_enable_push": "Activar push",
-      "first_subscribe_in_app_only": "Solo en la aplicación"
+      "first_subscribe_in_app_only": "Solo en la aplicación",
+      "sign_in_push_prompt_title": "¿Activar las notificaciones push en este dispositivo?",
+      "sign_in_push_prompt_body": "Las notificaciones push están activadas en tu cuenta. Permítelas en este dispositivo para recibir alertas aquí también.",
+      "sign_in_push_prompt_enable": "Activar push",
+      "sign_in_push_prompt_not_now": "Ahora no",
+      "device_push_banner_message": "Las notificaciones push están activadas en tu cuenta, pero este dispositivo no tiene permiso para mostrarlas.",
+      "device_push_banner_action": "Permitir en este dispositivo",
+      "device_push_blocked_title": "Las notificaciones están bloqueadas",
+      "device_push_blocked_web_body": "Este navegador bloquea las notificaciones de este sitio. Abre la configuración del sitio desde el icono junto a la barra de direcciones, cambia Notificaciones a Permitir y vuelve a cargar esta página."
     },
     "opml": {
       "opml": "OPML",
@@ -1663,8 +1679,7 @@
     "loading": "Cargando notificaciones…",
     "login_prompt": "Inicia sesión para usar esta función.",
     "empty": "Estás al día. Aquí aparecerán avisos de episodios nuevos, directos y novedades.",
-    "unread_section": "Sin leer",
-    "earlier_section": "Anteriores",
+    "unread": "Sin leer",
     "category_new_content": "Contenido nuevo",
     "category_livestream": "Transmisión en vivo",
     "category_product_update": "Novedad del producto",
@@ -1683,15 +1698,6 @@
     "line_new_video_channel": "Canal de video nuevo",
     "line_podcast_index_feed": "Podcast nuevo",
     "line_system_update": "Actualización del sistema",
-    "relative_time_just_now": "Ahora mismo",
-    "relative_time_seconds_ago": "Hace {count, plural, one {# segundo} other {# segundos}}",
-    "relative_time_seconds_from_now": "En {count, plural, one {# segundo} other {# segundos}}",
-    "relative_time_minutes_ago": "Hace {count, plural, one {# minuto} other {# minutos}}",
-    "relative_time_minutes_from_now": "En {count, plural, one {# minuto} other {# minutos}}",
-    "relative_time_hours_ago": "Hace {count, plural, one {# hora} other {# horas}}",
-    "relative_time_hours_from_now": "En {count, plural, one {# hora} other {# horas}}",
-    "relative_time_days_ago": "Hace {count, plural, one {# día} other {# días}}",
-    "relative_time_days_from_now": "En {count, plural, one {# día} other {# días}}",
     "no_body": "Ábrela para ver los detalles."
   },
   "action_error": {

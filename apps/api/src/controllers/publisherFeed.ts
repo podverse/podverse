@@ -32,13 +32,12 @@ export class PublisherFeedController {
       });
 
       // Channel and Item entities are serialized as the shared channel and item DTOs.
-      const finalRemoteItemsResult = await buildRemoteItemsFinalResult(
-        result.verifiedAlbums as unknown as DTOChannel[],
-        result.notYetAddedAlbumRefs,
-        result.tracks as unknown as DTOItem[],
-        [],
-        { enrichUnaddedChannelsByFeedUrl: true }
-      );
+      const finalRemoteItemsResult = await buildRemoteItemsFinalResult({
+        channelsAdded: result.verifiedAlbums as unknown as DTOChannel[],
+        channelRefsUnmatched: result.notYetAddedAlbumRefs,
+        itemsAdded: result.tracks as unknown as DTOItem[],
+        itemRefsUnmatched: [],
+      });
 
       const finalResult = {
         channel: result.channel,

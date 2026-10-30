@@ -25,14 +25,20 @@ import { defineConfig } from 'vitest/config';
  * payload target extraction (`src/push/notificationTarget.ts`), the path an inbox row and a banner
  * open (`src/push/accountNotificationLink.ts`), which notifications may show a
  * banner and the device-local kind switches (`src/notifications/bannerNotificationPolicy.ts`,
- * `src/prefs/bannerNotificationPrefs.ts`), the account event stream's SSE parser, run condition
+ * `src/prefs/bannerNotificationPrefs.ts`), this device's push state (`src/push/devicePushState.ts`
+ * — the reads stay in `devicePushState.read.ts`), the sign-in push dialog's shown flag
+ * (`src/prefs/signInPushPromptPrefs.ts` — AsyncStorage mocked), the push prompt decisions in
+ * `src/lib/notifications/` (reads injected), the account event stream's SSE parser, run condition
  * and failure rules, in-memory notification store, and connection controller
  * (`src/notifications/sseEventParser.ts`, `notificationStreamPolicy.ts`,
  * `notificationStreamStore.ts`, `notificationStreamController.ts` — I/O is injected; the
  * `expo/fetch` client and the RN runtime stay out of this suite), marking one notification read
  * by id or by the push's item and type (`src/notifications/notificationReadActions.ts` — the
  * repository is mocked), the session inbox page used in Offline Mode and the prepend that puts a
- * live row first (`src/notifications/notificationsInboxCache.ts`), share URL mapping
+ * live row first (`src/notifications/notificationsInboxCache.ts`), the Intl polyfills Hermes needs
+ * for plural rules and relative time (`src/shims/intlPolyfills.ts` — Hermes is simulated by
+ * removing the native constructors), the ICU plural expansion that lets i18next render the
+ * catalog's next-intl plural strings (`src/i18n/icuPlurals.ts`), share URL mapping
  * (`src/lib/share/shareUrl.ts`),
  * prefs storage guards/hydration (`src/prefs/prefsStore.ts`), Home's remembered filter, sort, and
  * view-mode selections (`src/prefs/homeListPrefs.ts` — AsyncStorage-backed and mockable in node,
@@ -165,7 +171,7 @@ export default defineConfig({
       'src/components/player/MediaRowActions.test.ts',
       'src/components/primitives/FillList.test.ts',
       'src/components/primitives/countBadgeFace.test.ts',
-      'src/lib/notifications/notificationsBellPress.test.ts',
+      'src/lib/notifications/*.test.ts',
       'src/components/primitives/coverThumbnailCache.test.ts',
       'src/components/screen/headerBackChoice.test.ts',
       'src/components/player/fullPlayerRows.test.ts',
@@ -193,6 +199,7 @@ export default defineConfig({
       'src/downloads/**/*.test.ts',
       'src/feedback/actionErrorCopy.test.ts',
       'src/hooks/useReduceMotion.test.ts',
+      'src/i18n/icuPlurals.test.ts',
       'src/lib/addByRss/addByRssArtistIndex.test.ts',
       'src/lib/addByRss/addByRssErrorLog.test.ts',
       'src/lib/addByRss/credentials.test.ts',
@@ -262,7 +269,9 @@ export default defineConfig({
       'src/prefs/bannerNotificationPrefs.test.ts',
       'src/prefs/homeListPrefs.test.ts',
       'src/prefs/prefsStore.test.ts',
+      'src/prefs/signInPushPromptPrefs.test.ts',
       'src/push/accountNotificationLink.test.ts',
+      'src/push/devicePushState.test.ts',
       'src/push/notificationTarget.test.ts',
       'src/screens/home/HomeFeedRow.test.ts',
       'src/screens/home/addByRss/addByRssArtistAlbums.test.ts',
@@ -285,6 +294,7 @@ export default defineConfig({
       'src/screens/more/accountSessionRows.test.ts',
       'src/screens/more/errorLogDeviceContext.test.ts',
       'src/screens/more/errorLogMailto.test.ts',
+      'src/shims/intlPolyfills.test.ts',
       'src/shims/nodeCryptoShim.test.ts',
       'src/sync/syncErrorClassification.test.ts',
       'src/sync/syncQueue.test.ts',
