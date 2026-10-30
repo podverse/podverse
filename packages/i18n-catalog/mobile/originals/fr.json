@@ -27,10 +27,6 @@
     }
   },
   "features": {
-    "opml": {
-      "rate_limited_time_one": "1 minute",
-      "rate_limited_time_other": "{minutes} minutes"
-    },
     "channel": {
       "section_requires_connection": "Cette section nécessite une connexion. Réessayez une fois de retour en ligne."
     },
@@ -86,12 +82,6 @@
     "add_by_rss": {
       "credentials_mobile_media_note": "Cette app les envoie avec l'audio, la vidéo et les visuels seulement lorsque ces fichiers sont sur le même site que le flux.",
       "credentials_remove_feed_confirm": "Retirer ce flux ? L'identifiant et le mot de passe sont aussi effacés de cet appareil."
-    }
-  },
-  "notifications": {
-    "section": {
-      "earlier": "Plus anciennes",
-      "unread": "Non lues"
     }
   },
   "settings": {
@@ -227,10 +217,6 @@
     "taken_down": "{title} a été retiré.",
     "moved_to_add_by_rss": "Votre abonnement a été déplacé vers Ajouter par RSS.",
     "follow_ended": "Votre abonnement a pris fin.",
-    "clips_one": "{count} de vos clips affiche désormais « Contenu supprimé ».",
-    "clips_other": "{count} de vos clips affichent désormais « Contenu supprimé ».",
-    "playlist_entries_one": "{count} élément de vos playlists affiche désormais « Contenu supprimé ».",
-    "playlist_entries_other": "{count} éléments de vos playlists affichent désormais « Contenu supprimé ».",
     "unknown_show": "Un programme"
   },
   "error_log": {

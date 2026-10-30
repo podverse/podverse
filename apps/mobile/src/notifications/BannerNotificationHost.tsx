@@ -4,7 +4,11 @@ import { AppState, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
-import { accountNotificationImageUrl, formatAccountNotificationLine } from '@podverse/helpers';
+import {
+  accountNotificationImageUrl,
+  formatAccountNotificationLine,
+  formatRelativeTimeLabel,
+} from '@podverse/helpers';
 
 import type { AuthStatus } from '../auth/AuthProvider';
 import { useAuth } from '../auth/AuthProvider';
@@ -19,10 +23,7 @@ import {
 } from '../prefs/bannerNotificationPrefs';
 import { openAccountNotificationLink } from '../push/openAccountNotificationLink';
 import { useTheme } from '../theme/useTheme';
-import {
-  accountNotificationLineLabels,
-  formatNotificationRelativeTime,
-} from './accountNotificationLineLabels';
+import { accountNotificationLineLabels } from './accountNotificationLineLabels';
 import type { BannerNotificationKind } from './bannerNotificationPolicy';
 import {
   clearBannerNotificationQueue,
@@ -64,7 +65,7 @@ const presentHeldBannerNotifications = (
 };
 
 export function BannerNotificationHost() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
@@ -197,7 +198,7 @@ export function BannerNotificationHost() {
       <View pointerEvents="box-none" style={slotStyle}>
         <BannerNotification
           accessibilityHint={t('settings.notifications.banner_open_hint')}
-          body={formatNotificationRelativeTime(visible.notification.created_at, t) || null}
+          body={formatRelativeTimeLabel(visible.notification.created_at, i18n.language) || null}
           dismissLabel={t('settings.notifications.banner_dismiss')}
           imageUrl={accountNotificationImageUrl(visible.notification.payload)}
           notificationId={visible.id}

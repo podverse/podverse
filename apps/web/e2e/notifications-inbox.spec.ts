@@ -25,6 +25,8 @@ const mockNotification = {
 } as const;
 
 const mockNotificationLine = `System update: ${mockNotification.title} – ${mockNotification.body}`;
+const seenNotificationLine =
+  'System update: Clips load faster – Large playlists now load without paging.';
 
 const IDLE_NOTIFICATION_STREAM_BODY = 'retry: 600000\n\n';
 
@@ -162,11 +164,19 @@ test.describe('Notifications inbox', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           data: {
-            items: [{ ...mockNotification, is_unread: true }],
+            items: [
+              { ...mockNotification, is_unread: unreadCount > 0 },
+              {
+                ...mockNotification,
+                id: 903,
+                title: 'Clips load faster',
+                created_at: '2026-08-22T10:00:00.000Z',
+              },
+            ],
             last_read_at: '2026-08-23T11:00:00.000Z',
             pagination: {
               page: 1,
-              total_count: 1,
+              total_count: 2,
               total_pages: 1,
             },
             sections: {
@@ -187,13 +197,16 @@ test.describe('Notifications inbox', () => {
     await page.goto(ROUTES.NOTIFICATIONS);
     await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
     const rowHeading = page.getByRole('link', { name: mockNotificationLine });
+    const seenRowHeading = page.getByRole('link', { name: seenNotificationLine });
     await expect(rowHeading).toBeVisible();
+    await expect(seenRowHeading).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Unread' })).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 2, name: 'Earlier' })).toHaveCount(0);
     await expect(
       page.getByText('Recent activity. Older notifications are cleared automatically.')
     ).toHaveCount(0);
     await expect(rowHeading.locator('[data-unread="true"]')).toBeVisible();
+    await expect(seenRowHeading.locator('[data-unread="true"]')).toHaveCount(0);
 
     await expect(page.getByRole('status', { name: '2 unread notifications' })).toHaveCount(0);
 
@@ -202,6 +215,20 @@ test.describe('Notifications inbox', () => {
       testInfo,
       'Notifications inbox shows items and the unread bell badge clears after mark-read.',
       page.getByRole('heading', { level: 1, name: 'Notifications' })
+    );
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'When the listener opens the inbox again, the notification they already saw has no unread indicator.',
+      async () => {
+        await page.goto(ROUTES.NOTIFICATIONS);
+        await expect(page).toHaveURL(ROUTES.NOTIFICATIONS);
+        await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
+        await expect(rowHeading).toBeVisible();
+        await expect(page.locator('[data-unread="true"]')).toHaveCount(0);
+      },
+      rowHeading
     );
   });
 
@@ -573,6 +600,85 @@ test.describe('Notifications inbox', () => {
       );
 
       await expect.poll(() => markReadOneCalls).toBe(1);
+    });
+
+    test('When the stream resyncs while the inbox is open, a notification that was unread keeps its indicator.', async ({
+      page,
+    }, testInfo) => {
+      let listRequests = 0;
+
+      await mockUnreadCount(page, 0);
+
+      await page.route('**/api/v2/account/notifications/mark-read', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: {
+              last_read_at: '2026-08-23T11:00:00.000Z',
+            },
+          }),
+        });
+      });
+
+      await page.route('**/api/v2/account/notifications*', async (route) => {
+        const url = new URL(route.request().url());
+        if (url.pathname.endsWith('/unread-count') || url.pathname.endsWith('/mark-read')) {
+          await route.fallback();
+          return;
+        }
+        const isFirstList = listRequests === 0;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: {
+              items: [isFirstList ? { ...mockNotification, is_unread: true } : mockNotification],
+              last_read_at: '2026-08-23T11:00:00.000Z',
+              pagination: {
+                page: 1,
+                total_count: 1,
+                total_pages: 1,
+              },
+              sections: {
+                unread_count: isFirstList ? 1 : 0,
+              },
+            },
+          }),
+        });
+        listRequests += 1;
+      });
+
+      const gate = createStreamGate();
+      await mockNotificationStream(page, [
+        notificationStateBody(1, 100),
+        async () => {
+          await gate.opened;
+          return (
+            'retry: 600000\n\n' + sseEvent('notification.resync', { reason: 'replay_limit' })
+          );
+        },
+      ]);
+
+      await loginE2eUser(page);
+      await page.goto(ROUTES.NOTIFICATIONS);
+      await expect(page).toHaveURL(ROUTES.NOTIFICATIONS);
+      await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
+      const rowHeading = page.getByRole('link', { name: mockNotificationLine });
+      await expect(rowHeading).toBeVisible();
+      await expect(rowHeading.locator('[data-unread="true"]')).toBeVisible();
+
+      await actionAndCapture(
+        page,
+        testInfo,
+        'When the stream resyncs while the inbox is open, a notification that was unread keeps its indicator.',
+        async () => {
+          gate.open();
+          await expect.poll(() => listRequests).toBe(2);
+          await expect(rowHeading.locator('[data-unread="true"]')).toBeVisible();
+        },
+        rowHeading
+      );
     });
   });
 });

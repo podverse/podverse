@@ -27,10 +27,6 @@
     }
   },
   "features": {
-    "opml": {
-      "rate_limited_time_one": "1 minuto",
-      "rate_limited_time_other": "{minutes} minutos"
-    },
     "channel": {
       "section_requires_connection": "Esta sección necesita conexión. Inténtalo de nuevo cuando vuelvas a estar en línea."
     },
@@ -86,12 +82,6 @@
     "add_by_rss": {
       "credentials_mobile_media_note": "Esta app los envía con el audio, el vídeo y las portadas solo cuando esos archivos están en el mismo sitio que el feed.",
       "credentials_remove_feed_confirm": "¿Quitar este feed? También se borran de este dispositivo el usuario y la contraseña."
-    }
-  },
-  "notifications": {
-    "section": {
-      "earlier": "Anteriores",
-      "unread": "Sin leer"
     }
   },
   "settings": {
@@ -227,10 +217,6 @@
     "taken_down": "{title} fue retirado.",
     "moved_to_add_by_rss": "Tu suscripción se movió a Añadir por RSS.",
     "follow_ended": "Tu suscripción terminó.",
-    "clips_one": "{count} de tus clips ahora muestra «Contenido eliminado».",
-    "clips_other": "{count} de tus clips ahora muestran «Contenido eliminado».",
-    "playlist_entries_one": "{count} elemento de tus listas de reproducción ahora muestra «Contenido eliminado».",
-    "playlist_entries_other": "{count} elementos de tus listas de reproducción ahora muestran «Contenido eliminado».",
     "unknown_show": "Un programa"
   },
   "error_log": {

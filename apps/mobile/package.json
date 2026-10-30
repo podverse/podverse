@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
+    "@formatjs/intl-pluralrules": "^6.3.16",
+    "@formatjs/intl-relativetimeformat": "^12.3.16",
     "@podverse/design-tokens": "file:../../packages/design-tokens",
     "@podverse/helpers": "file:../../packages/helpers",
     "@podverse/helpers-requests": "file:../../packages/helpers-requests",

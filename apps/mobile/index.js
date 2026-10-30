@@ -1,4 +1,5 @@
 import './src/shims/webCrypto';
+import './src/shims/intlPolyfills';
 import 'react-native-gesture-handler';
 import { registerRootComponent } from 'expo';
 
