@@ -172,11 +172,12 @@ The last step:
 - Tells the operator every named branch is merged and `feature/merge-…` is pushed, or names
   what is still blocked or deferred. A deferred smoke failure means the merge branch is pushed
   and the smoke is not done.
-- Gives cleanup commands for the operator to run later, from the primary checkout. One
-  `git worktree remove` per worktree that exists for a merged source branch, then
-  `git worktree prune`, then `git branch -d` for each merged source branch. Omit `develop`
-  and the merge branch. Omit remote deletes. The commands are fish-safe, in one `bash` fence.
-  Do not run them.
+- Gives cleanup commands for the operator to run later, from the primary checkout on
+  `develop` (**git-worktree-sibling** § Remove a worktree). One paste removes every merged
+  source worktree and the merge worktree. A checkout cannot remove itself, so the paste is
+  not for the merge worktree. Then `git worktree prune`, then `git branch -d` for each of
+  those branches. Omit `develop` and any unrelated worktree. Omit remote deletes. The
+  commands are fish-safe, in one `bash` fence. Do not run them.
 
 ```bash
 git worktree remove ../podverse_feature_example
