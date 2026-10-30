@@ -40,7 +40,9 @@ describe('appRoutes', () => {
   });
 
   it('builds provider feed paths through the index-provider route helper', () => {
-    expect(buildIndexProviderFeedPath('podcast_index', '920666')).toBe('/podcast-index/feed/920666');
+    expect(buildIndexProviderFeedPath('podcast_index', '920666')).toBe(
+      '/podcast-index/feed/920666'
+    );
   });
 
   it('maps notification message types to path prefixes', () => {

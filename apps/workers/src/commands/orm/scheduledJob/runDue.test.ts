@@ -355,11 +355,9 @@ describe('scheduledJobsRunDue', () => {
 
       await scheduledJobsRunDue({ _: [] });
 
-      expect(recheckRemoteChannelStubMock).toHaveBeenCalledWith(
-        { id: 'podcast_index' },
-        77,
-        { rateLimitDelayMs: 333 }
-      );
+      expect(recheckRemoteChannelStubMock).toHaveBeenCalledWith({ id: 'podcast_index' }, 77, {
+        rateLimitDelayMs: 333,
+      });
       expect(repointRemoteChannelStubMock).toHaveBeenCalledWith(
         { id: 'podcast_index' },
         78,

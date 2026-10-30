@@ -654,9 +654,7 @@ test.describe('Notifications inbox', () => {
         notificationStateBody(1, 100),
         async () => {
           await gate.opened;
-          return (
-            'retry: 600000\n\n' + sseEvent('notification.resync', { reason: 'replay_limit' })
-          );
+          return 'retry: 600000\n\n' + sseEvent('notification.resync', { reason: 'replay_limit' });
         },
       ]);
 

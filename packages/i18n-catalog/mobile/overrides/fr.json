@@ -145,6 +145,7 @@
       "login_required_message": "",
       "open_system_settings": "",
       "permission_required": "",
+      "device_push_blocked_mobile_body": "",
       "preference_push_requirement_device": "",
       "preference_push_requirement_unified_push": "",
       "up_endpoint_invalid": "",

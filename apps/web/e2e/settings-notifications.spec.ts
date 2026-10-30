@@ -236,9 +236,7 @@ test.describe('Settings: device push banner', () => {
       async () => {
         await banner.getByRole('button', { name: 'Allow on This Device' }).click();
         await expect(dialog).toBeVisible();
-        await expect(dialog).toContainText(
-          'This browser is blocking notifications for this site.'
-        );
+        await expect(dialog).toContainText('This browser is blocking notifications for this site.');
       },
       dialog
     );

@@ -43,8 +43,9 @@ export class ChannelPodrollService extends BaseOneService<ChannelPodroll, 'chann
       };
     }
 
-    const channel_podroll_remote_items = [...(channel.channel_podroll?.channel_podroll_remote_items ?? [])]
-      .sort((left, right) => left.id - right.id);
+    const channel_podroll_remote_items = [
+      ...(channel.channel_podroll?.channel_podroll_remote_items ?? []),
+    ].sort((left, right) => left.id - right.id);
 
     if (!channel_podroll_remote_items || channel_podroll_remote_items.length === 0) {
       return {

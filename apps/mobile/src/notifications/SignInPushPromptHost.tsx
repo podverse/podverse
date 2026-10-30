@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
 import { useAuth } from '../auth/AuthProvider';
+import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
 import { notificationsRepository } from '../data/repositories';
 import { resolveSupportedLocale } from '../i18n/locale';

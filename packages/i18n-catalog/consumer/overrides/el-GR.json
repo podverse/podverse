@@ -127,7 +127,11 @@
       "credentials_check_failed": "",
       "credentials_not_saved_on_device": "",
       "media_other_domain": "",
-      "media_needs_credentials": ""
+      "media_needs_credentials": "",
+      "remote_feed_explanation": "",
+      "remote_item_lookup_failed": "",
+      "remote_item_directory_unavailable": "",
+      "remote_item_not_found": ""
     },
     "browse": {
       "browse": "",
@@ -392,7 +396,9 @@
       "play_from": ""
     },
     "podroll": "",
+    "remote_items": "",
     "no_podroll_found": "",
+    "no_remote_items_found": "",
     "show_more": "",
     "show_less": "",
     "truncation": {
@@ -1353,7 +1359,15 @@
       "first_subscribe_push_title": "",
       "first_subscribe_push_body": "",
       "first_subscribe_enable_push": "",
-      "first_subscribe_in_app_only": ""
+      "first_subscribe_in_app_only": "",
+      "sign_in_push_prompt_title": "",
+      "sign_in_push_prompt_body": "",
+      "sign_in_push_prompt_enable": "",
+      "sign_in_push_prompt_not_now": "",
+      "device_push_banner_message": "",
+      "device_push_banner_action": "",
+      "device_push_blocked_title": "",
+      "device_push_blocked_web_body": ""
     },
     "opml": {
       "opml": "",

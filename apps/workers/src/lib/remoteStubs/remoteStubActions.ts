@@ -1,7 +1,7 @@
 import type { IndexProvider, IndexProviderFeed } from '@podverse/helpers';
 import { FeedService, RemoteChannelStubService } from '@podverse/orm';
-import { resolveRemoteStubsForRefs } from '@podverse/parser';
 import type { RemoteStubRef } from '@podverse/parser';
+import { resolveRemoteStubsForRefs } from '@podverse/parser';
 
 export const REMOTE_STUB_RECHECK_MAX_SINGLE_LOOKUPS = 25;
 
@@ -51,9 +51,17 @@ function buildRefsForRecheck(stub: {
 
   for (const itemStub of stub.item_stubs) {
     if (firstFeedGuidAlias !== null) {
-      refs.push({ feedGuid: firstFeedGuidAlias.key_value, feedUrl: null, itemGuid: itemStub.item_guid });
+      refs.push({
+        feedGuid: firstFeedGuidAlias.key_value,
+        feedUrl: null,
+        itemGuid: itemStub.item_guid,
+      });
     } else if (firstFeedUrlAlias !== null) {
-      refs.push({ feedGuid: null, feedUrl: firstFeedUrlAlias.key_value, itemGuid: itemStub.item_guid });
+      refs.push({
+        feedGuid: null,
+        feedUrl: firstFeedUrlAlias.key_value,
+        itemGuid: itemStub.item_guid,
+      });
     }
   }
 

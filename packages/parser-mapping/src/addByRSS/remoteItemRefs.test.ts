@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { convertParsedRSSFeedToCompat } from '../compat/partytime/compatFull.js';
 import type { FeedObject } from '../types/partytime.js';
-import type { AddByRSSMappedFeed } from './types.js';
 import {
   getAddByRSSRemoteItemRefs,
   toAddByRSSRemoteItemLookupRef,
   toAddByRSSRemoteItemResolveRef,
 } from './remoteItemRefs.js';
+import type { AddByRSSMappedFeed } from './types.js';
 
 type CompatRemoteRef = AddByRSSMappedFeed['channel']['remoteItems'][number];
 

@@ -15,17 +15,9 @@ export type CatalogTree = { [key: string]: unknown };
 
 export type IcuPluralExpansion = { tree: CatalogTree; unsupportedKeys: string[] };
 
-const PLURAL_CATEGORIES: readonly PluralCategory[] = [
-  'zero',
-  'one',
-  'two',
-  'few',
-  'many',
-  'other',
-];
+const PLURAL_CATEGORIES: readonly PluralCategory[] = ['zero', 'one', 'two', 'few', 'many', 'other'];
 
-const TYPED_ARGUMENT =
-  /\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*,\s*(plural|select|selectordinal)\s*,/;
+const TYPED_ARGUMENT = /\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*,\s*(plural|select|selectordinal)\s*,/;
 
 const NESTED_TYPED_ARGUMENT = /\{\s*[A-Za-z_][A-Za-z0-9_]*\s*,/;
 
@@ -231,9 +223,7 @@ function expandNode(node: CatalogTree, path: string, unsupportedKeys: string[]):
       const parsed = parseIcuPlural(value);
       if (parsed.kind === 'plural') {
         const categories = categoriesIn(parsed.forms);
-        const conflict = categories.some((category) =>
-          Object.hasOwn(node, `${key}_${category}`)
-        );
+        const conflict = categories.some((category) => Object.hasOwn(node, `${key}_${category}`));
         if (conflict) {
           unsupportedKeys.push(childPath);
           result[key] = value;

@@ -4,7 +4,6 @@ import elGR from '../../i18n/compiled/el-GR.json';
 import enUS from '../../i18n/compiled/en-US.json';
 import es from '../../i18n/compiled/es.json';
 import fr from '../../i18n/compiled/fr.json';
-
 import type { CatalogTree } from './icuPlurals';
 import { expandIcuPlurals } from './icuPlurals';
 

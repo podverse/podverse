@@ -343,9 +343,7 @@ describe('publisher feed verified albums and tracks', () => {
     const listedUnadded = records(bodyField(listedBody, 'channelsUnadded'));
     expect(listedUnadded).toHaveLength(1);
     expect(bodyField(listedUnadded[0], 'is_remote_stub')).toBe(true);
-    expect(lowerFeedGuids(listedUnadded)).toEqual([
-      seeded.knownUnparsedGuid.toLowerCase(),
-    ]);
+    expect(lowerFeedGuids(listedUnadded)).toEqual([seeded.knownUnparsedGuid.toLowerCase()]);
     expect(idTexts(bodyField(listedBody, 'itemsAdded'))).toEqual([
       seeded.newerItemIdText,
       seeded.olderItemIdText,
@@ -373,9 +371,7 @@ describe('publisher feed verified albums and tracks', () => {
     const droppedUnadded = records(bodyField(droppedBody, 'channelsUnadded'));
     expect(droppedUnadded).toHaveLength(1);
     expect(bodyField(droppedUnadded[0], 'is_remote_stub')).toBe(true);
-    expect(lowerFeedGuids(droppedUnadded)).toEqual([
-      seeded.knownUnparsedGuid.toLowerCase(),
-    ]);
+    expect(lowerFeedGuids(droppedUnadded)).toEqual([seeded.knownUnparsedGuid.toLowerCase()]);
     expect(idTexts(bodyField(droppedBody, 'itemsAdded'))).toEqual([]);
     expect(bodyField(droppedBody, 'itemsUnadded')).toEqual([]);
     expect(podcastIndexMocks.podcastsBatchByFeedGuid).not.toHaveBeenCalled();

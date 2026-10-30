@@ -30,14 +30,8 @@ const UNSUPPORTED_PLURALS: ReadonlyArray<readonly [string, string]> = [
   ['selectordinal', '{count, selectordinal, one {#st} other {#th}}'],
   ['exact selector', '{count, plural, =0 {none} one {#} other {#}}'],
   ['offset', '{count, plural, offset:1 one {#} other {#}}'],
-  [
-    'two plural blocks',
-    '{count, plural, one {#} other {#}} {count, plural, one {#} other {#}}',
-  ],
-  [
-    'nested plural',
-    '{count, plural, one {# {total, plural, one {#} other {#}}} other {#}}',
-  ],
+  ['two plural blocks', '{count, plural, one {#} other {#}} {count, plural, one {#} other {#}}'],
+  ['nested plural', '{count, plural, one {# {total, plural, one {#} other {#}}} other {#}}'],
   ['no other', '{count, plural, one {#}}'],
   ['unbalanced braces', '{count, plural, one {#} other {#}'],
   ['ICU quoting', "'{count, plural, one {#} other {#}}"],

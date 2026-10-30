@@ -1,4 +1,9 @@
-import type { DTOChannel, DTOItem, RemoteItemGeneric, RemoteItemsResponse } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOItem,
+  RemoteItemGeneric,
+  RemoteItemsResponse,
+} from '@podverse/helpers';
 import {
   RemoteChannelStubService,
   RemoteItemStubService,

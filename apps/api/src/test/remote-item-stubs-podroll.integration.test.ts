@@ -322,9 +322,9 @@ describe('podroll returns remote stubs and hides unknown references', () => {
     const itemsUnadded = records(bodyField(body, 'itemsUnadded'));
     expect(itemsUnadded).toHaveLength(1);
     expect(bodyField(itemsUnadded[0], 'item_guid')).toBe(seeded.knownStubItemGuid);
-    expect(
-      bodyField(bodyField(itemsUnadded[0], 'channel_stub'), 'provider_feed_id')
-    ).toBe(seeded.stubProviderFeedId);
+    expect(bodyField(bodyField(itemsUnadded[0], 'channel_stub'), 'provider_feed_id')).toBe(
+      seeded.stubProviderFeedId
+    );
 
     expect(podcastIndexMocks.podcastsBatchByFeedGuid).not.toHaveBeenCalled();
     expect(podcastIndexMocks.podcastGetByFeedUrl).not.toHaveBeenCalled();

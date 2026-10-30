@@ -51,9 +51,7 @@ export type IndexProviderItem = {
  * `unavailable` means the lookup failed (network, 5xx, auth, retries exhausted).
  */
 export type IndexProviderLookup<T> =
-  | { status: 'found'; value: T }
-  | { status: 'not_found' }
-  | { status: 'unavailable' };
+  { status: 'found'; value: T } | { status: 'not_found' } | { status: 'unavailable' };
 
 export interface IndexProvider {
   readonly id: IndexProviderId;

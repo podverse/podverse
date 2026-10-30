@@ -12,7 +12,7 @@ import {
   DATABASE_CONSTANTS,
   splitFeedUrlUserinfo,
 } from '@podverse/helpers';
-import { REMOTE_STUB_REFRESH_AFTER_MS, resolveRemoteStubsForRefs } from '@podverse/parser';
+import type { AddByRSSDirectoryChannelMatchRow } from '@podverse/orm';
 import {
   ChannelAddByRSSDirectoryMatchService,
   ItemService,
@@ -21,7 +21,7 @@ import {
   toDTORemoteChannelStub,
   toDTORemoteItemStub,
 } from '@podverse/orm';
-import type { AddByRSSDirectoryChannelMatchRow } from '@podverse/orm';
+import { REMOTE_STUB_REFRESH_AFTER_MS, resolveRemoteStubsForRefs } from '@podverse/parser';
 
 const feedUrlSchema = Joi.string()
   .trim()
@@ -194,12 +194,13 @@ export class AccountAddByRSSRemoteItemController {
             .filter(({ ref }) => ref.feedGuid !== null);
 
           if (guidRefs.length > 0) {
-            const directoryMatches = await AccountAddByRSSRemoteItemController.directoryMatchService.getForListedFeeds(
-              guidRefs.map(({ ref }) => ({
-                feedGuid: ref.feedGuid ?? '',
-                feedUrl: ref.feedUrl,
-              }))
-            );
+            const directoryMatches =
+              await AccountAddByRSSRemoteItemController.directoryMatchService.getForListedFeeds(
+                guidRefs.map(({ ref }) => ({
+                  feedGuid: ref.feedGuid ?? '',
+                  feedUrl: ref.feedUrl,
+                }))
+              );
             for (const { ref, index } of guidRefs) {
               const key = ref.feedGuid ?? '';
               const match = directoryMatches.get(key);
@@ -267,10 +268,7 @@ export class AccountAddByRSSRemoteItemController {
                   itemStubRefs
                 )
               : [];
-          const itemStubDtoByIndex = new Map<
-            number,
-            ReturnType<typeof toDTORemoteItemStub>
-          >();
+          const itemStubDtoByIndex = new Map<number, ReturnType<typeof toDTORemoteItemStub>>();
           itemStubCandidates.forEach(({ index }, candidateIndex) => {
             const itemStub = itemStubs[candidateIndex] ?? null;
             if (itemStub?.remote_channel_stub) {
@@ -333,7 +331,9 @@ export class AccountAddByRSSRemoteItemController {
 
             const itemGuid = ref.itemGuid;
             if (itemGuid !== null && directoryMatch) {
-              const directoryItem = directoryItemByKey.get(`${directoryMatch.channelIdText}||${itemGuid}`);
+              const directoryItem = directoryItemByKey.get(
+                `${directoryMatch.channelIdText}||${itemGuid}`
+              );
               if (directoryItem) {
                 return {
                   kind: 'item',
@@ -435,9 +435,7 @@ export class AccountAddByRSSRemoteItemController {
           if (outcome?.status === 'stub') {
             res.status(200).json({
               kind: 'provider_feed',
-              provider_feed: toIndexProviderFeedTarget(
-                toDTORemoteChannelStub(outcome.channelStub)
-              ),
+              provider_feed: toIndexProviderFeedTarget(toDTORemoteChannelStub(outcome.channelStub)),
             });
             return;
           }

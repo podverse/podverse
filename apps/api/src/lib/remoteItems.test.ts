@@ -152,7 +152,10 @@ describe('buildRemoteItemsFinalResult', () => {
       ],
     });
 
-    expect(result.channelsUnadded.map((stub) => stub.provider_feed_id)).toEqual(['900001', '900002']);
+    expect(result.channelsUnadded.map((stub) => stub.provider_feed_id)).toEqual([
+      '900001',
+      '900002',
+    ]);
     expect(result.itemsUnadded.map((stub) => stub.item_guid)).toEqual(['item-b', 'item-a']);
     expect(podcastIndexMocks.podcastsBatchByFeedGuid).not.toHaveBeenCalled();
     expect(podcastIndexMocks.podcastGetByFeedUrl).not.toHaveBeenCalled();

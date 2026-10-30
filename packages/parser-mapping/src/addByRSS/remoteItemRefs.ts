@@ -1,5 +1,5 @@
-import { splitFeedUrlUserinfo } from '@podverse/helpers';
 import type { AddByRSSRemoteItemLookupRef, AddByRSSRemoteItemRef } from '@podverse/helpers';
+import { splitFeedUrlUserinfo } from '@podverse/helpers';
 
 import type { AddByRSSMappedFeed } from './types.js';
 
@@ -87,7 +87,10 @@ export const getAddByRSSRemoteItemRefs = (
       continue;
     }
 
-    if ((ownGuid !== null && ref.feedGuid === ownGuid) || (ownUrl !== null && ref.feedUrl === ownUrl)) {
+    if (
+      (ownGuid !== null && ref.feedGuid === ownGuid) ||
+      (ownUrl !== null && ref.feedUrl === ownUrl)
+    ) {
       continue;
     }
 

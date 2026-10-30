@@ -19,9 +19,7 @@ import {
   toInitialRemoteEntries,
 } from './addByRssRemoteItems';
 
-const channelRef = (
-  overrides: Partial<AddByRSSBundleRemoteRef> = {}
-): AddByRSSBundleRemoteRef => ({
+const channelRef = (overrides: Partial<AddByRSSBundleRemoteRef> = {}): AddByRSSBundleRemoteRef => ({
   feedGuid: 'guid-a',
   feedUrl: 'https://remote.example/feed.xml',
   itemGuid: null,

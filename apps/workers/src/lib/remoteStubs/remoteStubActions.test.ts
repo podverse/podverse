@@ -15,7 +15,21 @@ const {
   getByPodcastIndexIdMock: vi.fn(async (_id: number): Promise<unknown> => null),
   repointToFeedMock: vi.fn(async (_id: number, _feed: unknown): Promise<unknown> => ({})),
   resolveRemoteStubsForRefsMock: vi.fn(
-    async (): Promise<{ outcomes: { status: string }[] }> => ({ outcomes: [] })
+    async (
+      _provider: IndexProvider,
+      _refs: readonly {
+        feedGuid: string | null;
+        feedUrl: string | null;
+        itemGuid: string | null;
+      }[],
+      _options: {
+        rateLimitDelayMs: number;
+        maxSingleLookups: number;
+        refreshAfterMs: number;
+      }
+    ): Promise<{ outcomes: { status: string; channelStub?: { id: number } }[] }> => ({
+      outcomes: [],
+    })
   ),
   upsertChannelStubMock: vi.fn(async (_feed: unknown, _refs: unknown): Promise<unknown> => ({})),
 }));
@@ -145,10 +159,7 @@ describe('recheckRemoteChannelStub', () => {
     const stub = stubWithRelations();
     getByIdWithRelationsMock.mockResolvedValueOnce(stub).mockResolvedValueOnce(stub);
     resolveRemoteStubsForRefsMock.mockResolvedValue({
-      outcomes: [
-        { status: 'stub', channelStub: { id: 999 } },
-        { status: 'unavailable' },
-      ],
+      outcomes: [{ status: 'stub', channelStub: { id: 999 } }, { status: 'unavailable' }],
     });
     const { provider } = createProvider();
 
@@ -248,7 +259,12 @@ describe('recheckRemoteChannelStub', () => {
 
     await recheckRemoteChannelStub(provider, stub.id, { rateLimitDelayMs: 321 });
 
-    const [providerArg, refsArg, optionsArg] = resolveRemoteStubsForRefsMock.mock.calls[0] ?? [];
+    const call = resolveRemoteStubsForRefsMock.mock.calls[0];
+    expect(call).toBeDefined();
+    if (call === undefined) {
+      throw new Error('resolveRemoteStubsForRefs was not called');
+    }
+    const [providerArg, refsArg, optionsArg] = call;
     expect(providerArg).toBe(provider);
     expect(refsArg).toEqual(
       expect.arrayContaining([

@@ -1,11 +1,3 @@
-import {
-  chunkArray,
-  getOwnPropertyValue,
-  hhmmssToSecondsNumber,
-  isObjectLike,
-  podcastIndexFeedListImageUrl,
-  toNonEmptyTrimmedString,
-} from '@podverse/helpers';
 import type {
   IndexProvider,
   IndexProviderFeed,
@@ -14,16 +6,22 @@ import type {
   IndexProviderItemRef,
   IndexProviderLookup,
 } from '@podverse/helpers';
-import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
+import {
+  chunkArray,
+  getOwnPropertyValue,
+  hhmmssToSecondsNumber,
+  isObjectLike,
+  podcastIndexFeedListImageUrl,
+  toNonEmptyTrimmedString,
+} from '@podverse/helpers';
 import type { AxiosRequestConfig } from '@podverse/helpers-requests';
+import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
-import { httpStatusFromUpstreamError } from './index.js';
 import type { PodcastIndexService } from './index.js';
+import { httpStatusFromUpstreamError } from './index.js';
 
 type ProviderRequestResult =
-  | { status: 'found'; data: unknown }
-  | { status: 'not_found' }
-  | { status: 'unavailable' };
+  { status: 'found'; data: unknown } | { status: 'not_found' } | { status: 'unavailable' };
 
 const EXPECTED_MISS_STATUSES = [400, 404];
 
@@ -99,9 +97,7 @@ function toDurationSeconds(value: unknown): number | null {
   return Number.isFinite(fromClock) && fromClock > 0 ? fromClock : null;
 }
 
-function toHttpsAndHttpLookupUrls(
-  inputUrl: string
-): { httpsUrl: string; httpUrl: string } | null {
+function toHttpsAndHttpLookupUrls(inputUrl: string): { httpsUrl: string; httpUrl: string } | null {
   const normalized = canonicalHttpOrHttpsUrl(inputUrl);
   if (normalized === null) {
     return null;
@@ -123,7 +119,9 @@ export function toIndexProviderFeed(raw: unknown): IndexProviderFeed | null {
     return null;
   }
 
-  const feedUrl = canonicalHttpOrHttpsUrl(toNonEmptyTrimmedString(getOwnPropertyValue(raw, 'url')) ?? '');
+  const feedUrl = canonicalHttpOrHttpsUrl(
+    toNonEmptyTrimmedString(getOwnPropertyValue(raw, 'url')) ?? ''
+  );
   if (feedUrl === null) {
     return null;
   }
@@ -145,7 +143,10 @@ export function toIndexProviderFeed(raw: unknown): IndexProviderFeed | null {
   };
 }
 
-export function toIndexProviderItem(raw: unknown, providerFeedId: string): IndexProviderItem | null {
+export function toIndexProviderItem(
+  raw: unknown,
+  providerFeedId: string
+): IndexProviderItem | null {
   if (!isObjectLike(raw)) {
     return null;
   }
@@ -207,13 +208,10 @@ export class PodcastIndexProvider implements IndexProvider {
 
     const feedsByGuid = new Map<string, IndexProviderFeed>();
     for (const feedGuidChunk of chunkArray(normalizedGuids, 100)) {
-      const chunkResult = await this.request(
-        `${this.service.baseUrl}/podcasts/batch/byguid`,
-        {
-          method: 'POST',
-          data: feedGuidChunk,
-        }
-      );
+      const chunkResult = await this.request(`${this.service.baseUrl}/podcasts/batch/byguid`, {
+        method: 'POST',
+        data: feedGuidChunk,
+      });
 
       if (chunkResult.status !== 'found') {
         return { status: 'unavailable' };

@@ -2,8 +2,9 @@ import { AppDataSourceRead } from '@orm/db/index.js';
 import { Channel } from '@orm/entities/channel/channel.js';
 import { Item } from '@orm/entities/item/item.js';
 import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
-import type { RemoteItemGeneric } from '@podverse/helpers';
 import { In, IsNull, Not } from 'typeorm';
+
+import type { RemoteItemGeneric } from '@podverse/helpers';
 
 import { ChannelService } from '../channel/channel.js';
 import { FeedService } from '../feed/feed.js';

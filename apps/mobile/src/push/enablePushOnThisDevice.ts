@@ -10,9 +10,7 @@ import {
 } from './unifiedPushDeviceSync';
 
 export type EnablePushOnThisDeviceResult =
-  | { outcome: 'enabled' }
-  | { outcome: 'denied' }
-  | { outcome: 'not_registered' };
+  { outcome: 'enabled' } | { outcome: 'denied' } | { outcome: 'not_registered' };
 
 /**
  * Turns push on for this device after a person asked for it. An FCM build shows the system

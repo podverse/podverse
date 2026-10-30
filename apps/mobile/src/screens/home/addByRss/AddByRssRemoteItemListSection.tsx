@@ -13,8 +13,8 @@ import {
 } from '@podverse/parser-mapping';
 
 import { requestWithMobileAuthRefresh } from '../../../auth';
-import { useAuth } from '../../../auth/AuthProvider';
 import { useAuthPrompt } from '../../../auth/AuthPromptContext';
+import { useAuth } from '../../../auth/AuthProvider';
 import { AlbumListRow } from '../../../components/content';
 import { HelperNote } from '../../../components/feedback/HelperNote';
 import { addByRssRepository } from '../../../data/repositories';
@@ -450,10 +450,10 @@ export function AddByRssRemoteItemListSection({
   );
 }
 
-export const AddByRssPodrollSection = (
-  props: AddByRssSectionPaneProps
-): ReactElement => <AddByRssRemoteItemListSection {...props} list="podroll" />;
+export const AddByRssPodrollSection = (props: AddByRssSectionPaneProps): ReactElement => (
+  <AddByRssRemoteItemListSection {...props} list="podroll" />
+);
 
-export const AddByRssRemoteItemsSection = (
-  props: AddByRssSectionPaneProps
-): ReactElement => <AddByRssRemoteItemListSection {...props} list="remote_items" />;
+export const AddByRssRemoteItemsSection = (props: AddByRssSectionPaneProps): ReactElement => (
+  <AddByRssRemoteItemListSection {...props} list="remote_items" />
+);

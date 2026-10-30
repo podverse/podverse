@@ -1,8 +1,8 @@
 import type { ScheduledJob } from '@orm/entities/account/scheduledJob.js';
 import { ScheduledJobService } from '@orm/services/account/scheduledJob.js';
 
-import { DATABASE_CONSTANTS, isIndexProviderId } from '@podverse/helpers';
 import type { IndexProviderId } from '@podverse/helpers';
+import { DATABASE_CONSTANTS, isIndexProviderId } from '@podverse/helpers';
 
 export const REMOTE_STUB_RECHECK_JOB_TYPE = 'remote-stub-recheck';
 export const REMOTE_STUB_REPOINT_JOB_TYPE = 'remote-stub-repoint';

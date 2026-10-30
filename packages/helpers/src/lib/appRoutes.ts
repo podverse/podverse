@@ -1,5 +1,5 @@
-import { MediumEnum } from './medium.js';
 import type { IndexProviderId } from './indexProvider.js';
+import { MediumEnum } from './medium.js';
 
 /**
  * Canonical web app path prefixes. Use builders (`buildEpisodePath`, etc.) for detail URLs.

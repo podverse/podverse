@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { memo, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { AccessibilityState } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listRowArtworkGap, listRowVerticalPadding } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';

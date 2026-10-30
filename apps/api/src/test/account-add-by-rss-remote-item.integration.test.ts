@@ -6,8 +6,8 @@ import request from 'supertest';
 import type { EntityManager } from 'typeorm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AccountMembershipEnum, MediumEnum } from '@podverse/helpers';
 import type { IndexProviderFeed } from '@podverse/helpers';
+import { AccountMembershipEnum, MediumEnum } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -21,7 +21,10 @@ import {
 const TEST_USER_ID = 1;
 
 const providerMocks = vi.hoisted(() => ({
-  resolveFeedsByGuid: vi.fn(async () => ({ status: 'found', value: new Map<string, IndexProviderFeed>() })),
+  resolveFeedsByGuid: vi.fn(async () => ({
+    status: 'found',
+    value: new Map<string, IndexProviderFeed>(),
+  })),
   resolveFeed: vi.fn(async () => ({ status: 'not_found' })),
   getFeedById: vi.fn(async () => ({ status: 'not_found' })),
   resolveItem: vi.fn(async () => ({ status: 'not_found' })),
@@ -159,10 +162,7 @@ async function seedChannel(
   };
 }
 
-async function seedWorld(
-  manager: EntityManager,
-  seededFeedIds: number[]
-): Promise<SeededWorld> {
+async function seedWorld(manager: EntityManager, seededFeedIds: number[]): Promise<SeededWorld> {
   const { Item, RemoteChannelStubService, RemoteItemStubService } = await import('@podverse/orm');
   const runId = randomUUID().replaceAll('-', '');
   const directory = await seedChannel(manager, 'directory', runId, seededFeedIds);
@@ -294,7 +294,13 @@ describe('account add-by-rss remote item endpoints', () => {
         `DELETE FROM remote_channel_stub
          WHERE index_provider = 'podcast_index'
            AND provider_feed_id = ANY($1::varchar[])`,
-        [[world.stubProviderFeedId, world.resolveFoundProviderFeedId, world.resolveDeadProviderFeedId]]
+        [
+          [
+            world.stubProviderFeedId,
+            world.resolveFoundProviderFeedId,
+            world.resolveDeadProviderFeedId,
+          ],
+        ]
       );
       if (seededFeedIds.length > 0) {
         await ormContext.dataSourceReadWrite.query(`DELETE FROM feed WHERE id = ANY($1::int[])`, [
@@ -335,9 +341,8 @@ describe('account add-by-rss remote item endpoints', () => {
     providerMocks.getFeedById.mockResolvedValue({ status: 'not_found' });
     providerMocks.resolveItem.mockResolvedValue({ status: 'not_found' });
 
-    const { addByRssRemoteItemResolveRateLimit } = await import(
-      '../controllers/account/accountAddByRSSRemoteItem.js'
-    );
+    const { addByRssRemoteItemResolveRateLimit } =
+      await import('../controllers/account/accountAddByRSSRemoteItem.js');
     addByRssRemoteItemResolveRateLimit.resetForUser(TEST_USER_ID);
   });
 
@@ -348,7 +353,11 @@ describe('account add-by-rss remote item endpoints', () => {
       .set(authHeaders(TEST_USER_ID))
       .send({
         refs: [
-          { feed_guid: seeded.directory.feedGuid, feed_url: seeded.directory.feedUrl, item_guid: null },
+          {
+            feed_guid: seeded.directory.feedGuid,
+            feed_url: seeded.directory.feedUrl,
+            item_guid: null,
+          },
           { feed_guid: seeded.stubFeedGuid, feed_url: seeded.stubFeedUrl, item_guid: null },
           { feed_guid: seeded.unknownFeedGuid, feed_url: null, item_guid: null },
         ],
@@ -440,9 +449,11 @@ describe('account add-by-rss remote item endpoints', () => {
       .send({ refs: tooMany });
     expect(tooManyResponse.status).toBe(400);
 
-    const unauthorized = await request(requireApp()).post(lookupPath()).send({
-      refs: [{ feed_guid: seeded.directory.feedGuid, feed_url: null, item_guid: null }],
-    });
+    const unauthorized = await request(requireApp())
+      .post(lookupPath())
+      .send({
+        refs: [{ feed_guid: seeded.directory.feedGuid, feed_url: null, item_guid: null }],
+      });
     expect(unauthorized.status).toBe(401);
   });
 
@@ -475,7 +486,9 @@ describe('account add-by-rss remote item endpoints', () => {
       seeded.resolveFoundGuid.toLowerCase(),
     ]);
     expect(providerMocks.resolveItem).not.toHaveBeenCalled();
-    expect(await channelStubForRef(seeded.resolveFoundGuid)).toBe(seeded.resolveFoundProviderFeedId);
+    expect(await channelStubForRef(seeded.resolveFoundGuid)).toBe(
+      seeded.resolveFoundProviderFeedId
+    );
 
     providerMocks.resolveFeedsByGuid.mockClear();
     providerMocks.resolveFeed.mockClear();

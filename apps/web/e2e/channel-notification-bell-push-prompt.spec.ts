@@ -2,8 +2,8 @@ import type { Locator, Page, Request } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import {
-  SIGN_IN_PUSH_PROMPT_SHOWN_VALUE,
   getSignInPushPromptShownStorageKey,
+  SIGN_IN_PUSH_PROMPT_SHOWN_VALUE,
 } from '@podverse/helpers';
 
 import { E2E_PODCAST_CHANNEL_ID_TEXT } from './helpers/seedConstants';
@@ -78,7 +78,7 @@ async function openPodcastBell(page: Page, permission: 'default' | 'denied'): Pr
 }
 
 test.describe('Channel notification bell', () => {
-  test('Before the sign-in dialog has been shown in this browser, turning a podcast\'s notifications on asks the browser for permission, and declining still turns the podcast\'s notifications on.', async ({
+  test("Before the sign-in dialog has been shown in this browser, turning a podcast's notifications on asks the browser for permission, and declining still turns the podcast's notifications on.", async ({
     page,
   }, testInfo) => {
     try {
@@ -91,7 +91,7 @@ test.describe('Channel notification bell', () => {
       await actionAndCapture(
         page,
         testInfo,
-        'Declining the browser prompt still turns this podcast\'s notifications on.',
+        "Declining the browser prompt still turns this podcast's notifications on.",
         async () => {
           await bell.click();
           await expect.poll(() => readRequestPermissionCalls(page)).toBe(1);
@@ -105,7 +105,7 @@ test.describe('Channel notification bell', () => {
     }
   });
 
-  test('After the sign-in dialog has been shown in this browser, turning a podcast\'s notifications on does not ask the browser and turns them on.', async ({
+  test("After the sign-in dialog has been shown in this browser, turning a podcast's notifications on does not ask the browser and turns them on.", async ({
     page,
   }, testInfo) => {
     try {
@@ -144,7 +144,7 @@ test.describe('Channel notification bell', () => {
     }
   });
 
-  test('When this browser has blocked notifications, turning a podcast\'s notifications on does not ask and turns them on.', async ({
+  test("When this browser has blocked notifications, turning a podcast's notifications on does not ask and turns them on.", async ({
     page,
   }, testInfo) => {
     try {

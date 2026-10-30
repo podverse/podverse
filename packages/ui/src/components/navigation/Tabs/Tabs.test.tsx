@@ -70,12 +70,17 @@ describe('Tabs', () => {
 
   it('still selects a tab on a short press', () => {
     const onAccount = vi.fn();
+    const generalTab = TABS[0];
+    const accountTab = TABS[1];
+    if (generalTab === undefined || accountTab === undefined) {
+      throw new Error('Tab fixtures are missing.');
+    }
     render(
       <Tabs
         selectedKey="general"
         tabData={[
-          { ...TABS[0], onClick: vi.fn() },
-          { ...TABS[1], onClick: onAccount },
+          { ...generalTab, onClick: vi.fn() },
+          { ...accountTab, onClick: onAccount },
         ]}
       />
     );

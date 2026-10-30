@@ -1,5 +1,5 @@
-import type { IndexProvider } from '@podverse/helpers';
 import { PodcastIndexProvider } from '@podverse/external-services-podcast-index';
+import type { IndexProvider } from '@podverse/helpers';
 
 import { getPodcastIndexService } from './podcastIndexService.js';
 

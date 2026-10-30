@@ -355,9 +355,7 @@ describe('API key access for account, subscriptions, and Add by RSS', () => {
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'subscriptions')).toHaveLength(
       27
     );
-    expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'add_by_rss')).toHaveLength(
-      11
-    );
+    expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'add_by_rss')).toHaveLength(11);
     expect(distinctRequirements(ROUTE_CASES)).toHaveLength(9);
   });
 
