@@ -38,7 +38,7 @@ const MEDIA_PUSH_CATEGORIES = [
   NotificationCategoryEnum.Livestream,
 ] as const;
 
-const accountHasAnyPushDevice = async (): Promise<boolean> => {
+export const accountHasAnyPushDevice = async (): Promise<boolean> => {
   const api = getApiRequestService();
   const [fcmDevices, webPushDevices, upDevice] = await Promise.all([
     api.reqAccountFCMDeviceGetAllForAccount(),

@@ -4,11 +4,15 @@ import { useTranslations } from 'next-intl';
 import { FaBell, FaBellSlash } from 'react-icons/fa6';
 
 import type { DTOChannel } from '@podverse/helpers';
+import { shouldAutoPromptPushFromChannelBell } from '@podverse/helpers';
 
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
+import { useNotifications } from '../../../contexts/Notifications';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMembershipGate } from '../../../hooks/useMembershipGate';
+import { useWebDevicePushState } from '../../../hooks/useWebDevicePushState';
+import { hasShownSignInPushPrompt } from '../../../lib/notifications/signInPushPrompt';
 import { requestNotificationPermission } from '../../../lib/notifications/webpush/requestNotificationPermission';
 import { IconButton } from '../Header/IconButton';
 
@@ -31,6 +35,8 @@ export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
   const { tryHandleMembershipGateError } = useMembershipGate();
+  const { refreshWebPushRegistration } = useNotifications();
+  const { devicePushState } = useWebDevicePushState();
 
   const isSubscribed = loggedInAccount?.account_notification_channels?.some(
     (account_notification_channel) => account_notification_channel.channel_id === channel.id
@@ -52,20 +58,13 @@ export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({
         });
         await setLoggedInAccount(updatedAccount);
       } else {
-        // Read permission into a fresh variable to avoid TypeScript narrowing issues
-        const permissionBefore =
-          typeof Notification !== 'undefined' ? Notification.permission : undefined;
-
-        if (permissionBefore !== 'granted') {
-          // Request permission first
+        const autoPromptPush = shouldAutoPromptPushFromChannelBell({
+          devicePushState,
+          signInPushPromptShown: hasShownSignInPushPrompt(loggedInAccount.id_text),
+        });
+        if (autoPromptPush) {
           await requestNotificationPermission();
-        }
-
-        // Re-read permission after the async call
-        const permissionAfterRequest =
-          typeof Notification !== 'undefined' ? Notification.permission : undefined;
-        if (permissionAfterRequest !== 'granted') {
-          return;
+          await refreshWebPushRegistration();
         }
 
         const updatedAccount = await apiRequestService.reqAccountNotificationChannelCreate({

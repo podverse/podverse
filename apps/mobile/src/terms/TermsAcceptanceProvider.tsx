@@ -20,6 +20,7 @@ import { useTheme } from '../theme/useTheme';
 import { AccountAccessPanel } from './AccountAccessPanel';
 import type { AccountConsentPhase } from './accountConsentPhase';
 import { resolveAccountConsentPhase } from './accountConsentPhase';
+import { setAccountConsentSettled } from './accountConsentSettled';
 import { AgreementChoices } from './AgreementChoices';
 import { setTermsBlocksAccountSync } from './termsSyncGate';
 
@@ -100,6 +101,13 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
   const tasteProfileAgreementBodyLoading =
     tasteProfileAgreementLoading ||
     (tasteProfileAgreement === null && tasteProfileConsentErrorKey === null);
+  // Until the Taste Profile agreement loads or fails, `phase` can still move off 'none'.
+  const consentSettled =
+    status === 'authenticated' &&
+    account !== null &&
+    !blockSync &&
+    phase === 'none' &&
+    (tasteProfileAgreementVersion !== '' || tasteProfileAgreementLoadFailed);
 
   useEffect(() => {
     setTermsBlocksAccountSync(blockSync);
@@ -107,6 +115,13 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
       setTermsBlocksAccountSync(false);
     };
   }, [blockSync]);
+
+  useEffect(() => {
+    setAccountConsentSettled(consentSettled);
+    return () => {
+      setAccountConsentSettled(false);
+    };
+  }, [consentSettled]);
 
   useEffect(() => {
     if (phase === 'terms' || phase === 'account-access') {

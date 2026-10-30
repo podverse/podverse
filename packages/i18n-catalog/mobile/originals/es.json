@@ -145,6 +145,7 @@
       "login_required_message": "Inicia sesión para usar esta función.",
       "open_system_settings": "Abrir los ajustes del sistema",
       "permission_required": "Se necesita permiso de notificaciones para activar este ajuste.",
+      "device_push_blocked_mobile_body": "Las notificaciones de esta aplicación están desactivadas en los ajustes del dispositivo. Toca «Abrir los ajustes del sistema», activa las notificaciones y vuelve a esta pantalla.",
       "preference_push_requirement_device": "Permite las notificaciones en este dispositivo, o activa Unified Push, primero.",
       "preference_push_requirement_unified_push": "Activa primero Unified Push.",
       "up_endpoint_invalid": "Introduce una URL de endpoint HTTPS.",

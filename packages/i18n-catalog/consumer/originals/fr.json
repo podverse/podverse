@@ -1357,7 +1357,15 @@
       "first_subscribe_push_title": "Activer les notifications push ?",
       "first_subscribe_push_body": "Recevez des alertes sur l'écran de verrouillage pour les nouveaux épisodes et les diffusions en direct, ou gardez les alertes uniquement dans la boîte de réception de l'application.",
       "first_subscribe_enable_push": "Activer le push",
-      "first_subscribe_in_app_only": "Dans l'application seulement"
+      "first_subscribe_in_app_only": "Dans l'application seulement",
+      "sign_in_push_prompt_title": "Activer les notifications push sur cet appareil ?",
+      "sign_in_push_prompt_body": "Les notifications push sont activées pour votre compte. Autorisez-les sur cet appareil pour recevoir aussi les alertes ici.",
+      "sign_in_push_prompt_enable": "Activer le push",
+      "sign_in_push_prompt_not_now": "Plus tard",
+      "device_push_banner_message": "Les notifications push sont activées pour votre compte, mais cet appareil n'a pas l'autorisation de les afficher.",
+      "device_push_banner_action": "Autoriser sur cet appareil",
+      "device_push_blocked_title": "Les notifications sont bloquées",
+      "device_push_blocked_web_body": "Ce navigateur bloque les notifications de ce site. Ouvrez les paramètres du site depuis l'icône à côté de la barre d'adresse, réglez Notifications sur Autoriser, puis rechargez cette page."
     },
     "opml": {
       "opml": "OPML",

@@ -1357,7 +1357,15 @@
       "first_subscribe_push_title": "¿Activar notificaciones push?",
       "first_subscribe_push_body": "Recibe alertas en la pantalla de bloqueo para nuevos episodios y transmisiones en vivo, o deja las alertas solo en la bandeja de la aplicación.",
       "first_subscribe_enable_push": "Activar push",
-      "first_subscribe_in_app_only": "Solo en la aplicación"
+      "first_subscribe_in_app_only": "Solo en la aplicación",
+      "sign_in_push_prompt_title": "¿Activar las notificaciones push en este dispositivo?",
+      "sign_in_push_prompt_body": "Las notificaciones push están activadas en tu cuenta. Permítelas en este dispositivo para recibir alertas aquí también.",
+      "sign_in_push_prompt_enable": "Activar push",
+      "sign_in_push_prompt_not_now": "Ahora no",
+      "device_push_banner_message": "Las notificaciones push están activadas en tu cuenta, pero este dispositivo no tiene permiso para mostrarlas.",
+      "device_push_banner_action": "Permitir en este dispositivo",
+      "device_push_blocked_title": "Las notificaciones están bloqueadas",
+      "device_push_blocked_web_body": "Este navegador bloquea las notificaciones de este sitio. Abre la configuración del sitio desde el icono junto a la barra de direcciones, cambia Notificaciones a Permitir y vuelve a cargar esta página."
     },
     "opml": {
       "opml": "OPML",

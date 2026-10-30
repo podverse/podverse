@@ -24,6 +24,7 @@ import {
 import { getConfig } from '../../config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { markSignInPushPromptPending } from '../../lib/notifications/signInPushPrompt';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { VerificationEmailNotSentModal } from '../Auth/VerificationEmailNotSentModal';
 
@@ -57,6 +58,7 @@ export const ModalAuthLogin: React.FC = () => {
       setAccountNotVerified(false);
       setVerificationEmailSent(false);
       await getApiRequestService().reqAuthLogin({ email, password });
+      markSignInPushPromptPending();
       window.location.reload();
     } catch (err: unknown) {
       const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
