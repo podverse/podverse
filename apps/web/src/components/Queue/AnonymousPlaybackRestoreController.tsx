@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 
 import { useAccount } from '../../contexts/Account';
@@ -12,12 +13,14 @@ import { useLocalSettings } from '../../contexts/LocalSettings';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../hooks/useMediaPlayerResourceUpdate';
 import { cookieConsentAllowsAnonymousFeatureStorage } from '../../lib/cookieConsent/cookieConsentPolicy';
-import { playbackTargetFromStandardLoad } from '../../lib/playback';
+import { playbackTargetFromStandardLoad, playbackTargetLivestream } from '../../lib/playback';
+import { fetchFreshRestoredItem } from '../../lib/playback/fetchFreshRestoredItem';
 import { canAttemptAnonymousPlaybackRestore } from '../../utils/anonymousPlaybackRestoreEligibility';
 import {
   clearAnonymousPlaybackSnapshot,
   readAnonymousPlaybackSnapshot,
 } from '../../utils/anonymousPlaybackStorage';
+import { checkIsLiveItem } from '../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 
 let anonymousPlaybackRestoreStarted = false;
 
@@ -161,35 +164,61 @@ export function AnonymousPlaybackRestoreController() {
           return;
         }
 
-        const fullItem = await api.reqItemGetByIdOrIdText(snapshot.id_text);
-        if (!fullItem || loggedInAccountRef.current) {
+        const loadRestoredItem = (item: DTOItem, channel: DTOChannel) => {
+          if (checkIsLiveItem(item)) {
+            mediaPlayerResourceUpdateRef.current({
+              target: playbackTargetLivestream(channel, item),
+              itemChapterShouldSeek: false,
+              enclosureSelectedParams: 'use-active-item-or-default',
+              skipMoveNowPlayingToHistory: false,
+              newAutoQueueConfig,
+              autoQueueShouldClear: true,
+            });
+            return;
+          }
+          const target =
+            channel.medium_id === MediumEnum.Music
+              ? {
+                  kind: 'item-music' as const,
+                  item,
+                  channel,
+                  intent: 'session_restore' as const,
+                }
+              : channel.medium_id === MediumEnum.Video
+                ? { kind: 'item-video' as const, item, channel }
+                : { kind: 'item-podcast' as const, item, channel };
+          mediaPlayerResourceUpdateRef.current({
+            target,
+            explicitPlaybackSeconds: snapshot.playback_position_seconds,
+            mediaFileDurationHintSeconds: snapshot.media_file_duration_seconds,
+            itemChapterShouldSeek: false,
+            enclosureSelectedParams: 'use-active-item-or-default',
+            skipMoveNowPlayingToHistory: false,
+            newAutoQueueConfig,
+            autoQueueShouldClear: true,
+          });
+        };
+
+        const restored = await fetchFreshRestoredItem(snapshot.id_text);
+        if (loggedInAccountRef.current) {
+          return;
+        }
+        if (restored.decision.action === 'retire') {
+          clearAnonymousPlaybackSnapshot();
+          return;
+        }
+        const fullItem = restored.item;
+        if (fullItem === null) {
+          if (snapshot.stored_item !== undefined && snapshot.stored_channel !== undefined) {
+            loadRestoredItem(snapshot.stored_item, snapshot.stored_channel);
+          }
           return;
         }
         const fullChannel = await api.reqChannelGetByIdOrIdText(fullItem.channel_id);
         if (!fullChannel || loggedInAccountRef.current) {
           return;
         }
-        const target =
-          fullChannel.medium_id === MediumEnum.Music
-            ? {
-                kind: 'item-music' as const,
-                item: fullItem,
-                channel: fullChannel,
-                intent: 'session_restore' as const,
-              }
-            : fullChannel.medium_id === MediumEnum.Video
-              ? { kind: 'item-video' as const, item: fullItem, channel: fullChannel }
-              : { kind: 'item-podcast' as const, item: fullItem, channel: fullChannel };
-        mediaPlayerResourceUpdateRef.current({
-          target,
-          explicitPlaybackSeconds: snapshot.playback_position_seconds,
-          mediaFileDurationHintSeconds: snapshot.media_file_duration_seconds,
-          itemChapterShouldSeek: false,
-          enclosureSelectedParams: 'use-active-item-or-default',
-          skipMoveNowPlayingToHistory: false,
-          newAutoQueueConfig,
-          autoQueueShouldClear: true,
-        });
+        loadRestoredItem(fullItem, fullChannel);
       } catch {
         // Best-effort restore
       }

@@ -203,22 +203,23 @@ import { PodverseMediaEngineModule } from 'podverse-media-engine/src/PodverseMed
 
 ## Playback method contract (step 2.3 / detail 082)
 
-Position and duration are **seconds** (`number`), matching the web bridge. `pause`, `seek`, `setRate`,
-and `destroy` are synchronous native functions; `load`, `play`, `getPosition`, and `getDuration` are
-async (resolve on the JS thread after the native call). All methods run against the single shared
-player instance.
+Position, duration, and the live window are **seconds** (`number`), matching the web bridge.
+`pause`, `seek`, `setRate`, and `destroy` are synchronous native functions; `load`, `play`,
+`goToLive`, `getPosition`, and `getDuration` are async (resolve on the JS thread after the native
+call). All methods run against the single shared player instance.
 
-| Method                 | Args                                                       | Returns           | Errors / notes                                                                                                    |
-| ---------------------- | ---------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `load(source)`         | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure. `basicAuth`: see below.        |
-| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Atomic `load` + `play`. Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore). |
-| `play()`               | —                                                          | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.                                  |
-| `pause()`              | —                                                          | `void`            | Keeps current item and position.                                                                                  |
-| `seek(seconds)`        | `number` (seconds)                                         | `void`            | Absolute seek. Clamping owned by native.                                                                          |
-| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                               | `void`            | Sets playback rate. Must not start playback while paused (iOS `AVPlayer.rate` would otherwise auto-play).         |
-| `getPosition()`        | —                                                          | `Promise<number>` | Current playhead in seconds.                                                                                      |
-| `getDuration()`        | —                                                          | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                                                       |
-| `destroy()`            | —                                                          | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native.                           |
+| Method                 | Args                                                       | Returns           | Errors / notes                                                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load(source)`         | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure. `basicAuth`: see below.                                                             |
+| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number; basicAuth? }` | `Promise<void>`   | Atomic `load` + `play`. Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore).                                                      |
+| `play()`               | —                                                          | `Promise<void>`   | Starts playback (audio session on iOS, foreground service on Android). Live: resume in place only at or after the window start plus 6 seconds; otherwise jump to live. |
+| `pause()`              | —                                                          | `void`            | Keeps current item and position.                                                                                                                                       |
+| `seek(seconds)`        | `number` (seconds)                                         | `void`            | Absolute seek. A live source with a window clamps to `[startSeconds, liveEdgeSeconds]`; without a window it is a no-op.                                                |
+| `goToLive()`           | —                                                          | `Promise<void>`   | Jumps to the live point and plays. With a window, seeks to `liveEdgeSeconds`; without one, reconnects. No-op when not live.                                            |
+| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                               | `void`            | Sets playback rate. Must not start playback while paused (iOS `AVPlayer.rate` would otherwise auto-play).                                                              |
+| `getPosition()`        | —                                                          | `Promise<number>` | Current playhead in seconds.                                                                                                                                           |
+| `getDuration()`        | —                                                          | `Promise<number>` | Duration in seconds; `0` when unknown, and always `0` while a live source is loaded.                                                                                   |
+| `destroy()`            | —                                                          | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native.                                                                                |
 
 ### Source URLs (`load` / `loadAndStart`) — remote + local files (step 2.26 / detail 105)
 
@@ -253,14 +254,15 @@ so a redirect to another host gets no credential.
 
 ## Native → JS events (step 2.10 / detail 089)
 
-Event names are stable — they are the input to future RN queue orchestrators. `progress` is throttled
-to ~500 ms (within the 250–1000 ms guidance) on both platforms. Subscribe via the JS adapter
+Event names are stable — they are the input to future RN queue orchestrators. `progress` fires
+once when the item is ready, then about every 500 ms while playing (within the 250–1000 ms
+guidance), and once more right after `goToLive` lands. Subscribe via the JS adapter
 (`useNativePlaybackBridge`), not the native module.
 
 | Event           | Payload                                                                                                          | When                                                                                                                                                                      |
 | --------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `playbackState` | `{ state: PlaybackStateValue }`                                                                                  | Lifecycle transitions (idle…error).                                                                                                                                       |
-| `progress`      | `{ positionSeconds: number; durationSeconds: number }`                                                           | ~500 ms while playing.                                                                                                                                                    |
+| `progress`      | `{ positionSeconds: number; durationSeconds: number; isLive: boolean; liveWindow: MediaEngineLiveWindow          | null }`                                                                                                                                                                   | Once when ready, then ~500 ms while playing, and once right after `goToLive` lands. |
 | `ended`         | `{ positionSeconds: number }`                                                                                    | Item played to natural end.                                                                                                                                               |
 | `error`         | `{ code: string; message: string; kind: PlaybackErrorKind; httpStatus?: number; url?: string; detail?: string }` | Playback/load failure. `kind` is normalized (see taxonomy). `httpStatus` is the media host's response status, `url` the request that failed, `detail` the platform cause. |
 | `stalled`       | `{ positionSeconds: number }`                                                                                    | Buffer underrun / rebuffering.                                                                                                                                            |
@@ -291,11 +293,95 @@ themselves. Mapper is native-free so Vitest covers the table without a device (p
 `apps/mobile/src/bridge/` — `nativePlaybackBridge` implements the high-level `NativePlaybackBridge`
 (object-based `load({ url, initialSeekSeconds })` and `loadAndStart({ … })`) over the raw native
 module, and `useNativePlaybackBridge(handlers?)` returns the bridge and subscribes to events with
-cleanup (normalizing `error` through the taxonomy mapper). This is the ONLY place RN drives the engine
-(parallels web's `useMediaElementBridge` boundary). The primary autoplay path
-(`useMediaPlayerResourceUpdate`) uses `loadAndStart`; session restore stays `load`-only (paused). A temporary
-spike debug panel (`src/debug/PlaybackEngineDebugPanel.tsx`) exercises the bridge from the Hello World
-screen and may be removed once player UI (Tracks 10–11) lands.
+cleanup (normalizing `error` to a stable kind and `progress` to the public live shape). This is the
+ONLY place RN drives the engine (parallels web's `useMediaElementBridge` boundary). The primary
+autoplay path (`useMediaPlayerResourceUpdate`) uses `loadAndStart`; session restore stays
+`load`-only (paused). A temporary spike debug panel (`src/debug/PlaybackEngineDebugPanel.tsx`)
+exercises the bridge from the Hello World screen and may be removed once player UI (Tracks 10–11)
+lands.
+
+## Live streams
+
+A loaded source is live when its load meta has `isLive: true`. The engine does not infer liveness
+from an indefinite duration or a dynamic timeline.
+
+`progress` and `getCurrentSource()` report `isLive` and `liveWindow`. The window is the part of a
+live stream the player can still play, on the same timeline as `positionSeconds`. That timeline is
+the player's own: it can start above zero, and both ends move forward while the stream runs.
+Compare fields only within one event or one snapshot.
+
+| Field             | Meaning                                                   |
+| ----------------- | --------------------------------------------------------- |
+| `startSeconds`    | Earliest position the stream still holds.                 |
+| `liveEdgeSeconds` | Where `goToLive` lands, after the stream's own hold-back. |
+
+A listener at the live point reads `positionSeconds` within a few seconds of `liveEdgeSeconds`.
+Both values are finite, and `startSeconds <= liveEdgeSeconds`. A zero-length window
+(`startSeconds === liveEdgeSeconds`) is valid: the stream is segmented but holds nothing to rewind
+into yet. The engine reports the window at whatever length the player gives. Whether that window
+is long enough to offer rewind is player policy, not this module.
+
+`liveWindow` is `null` when the source is not live, and when a live source holds no history: a
+progressive Icecast or Shoutcast stream, or a segmented stream before the player has a seekable
+range. `durationSeconds` is `0` while a live source is loaded. How far behind live the listener
+is: `max(0, liveWindow.liveEdgeSeconds - positionSeconds)`.
+
+`progress` does not tick while paused. Behind-live grows while paused. A caller that needs the
+current number reads `getCurrentSource()`. The hook normalizes `progress`. The adapter normalizes
+`getCurrentSource()`. When `isLive` is omitted or not `true`, the payload reads as not live and any
+window is dropped.
+
+### Resume on `play()`
+
+The resume rule runs inside native `play()`, so the in-app button, the lock screen, headset
+buttons, the notification, CarPlay, and Android Auto behave the same. It applies only when the
+current item has already played once since it was loaded. A fresh paused load just starts.
+JavaScript calls `play()` and does not pre-seek.
+
+The position and window are sampled when `play()` is called:
+
+- No window (progressive): reconnect, then play.
+- Position not finite: seek to `liveEdgeSeconds`, then play.
+- Position at least `startSeconds` plus 6 seconds: resume in place. The margin covers the window
+  start moving forward while the player is paused or seeking.
+- Otherwise, including a window shorter than the margin: seek to `liveEdgeSeconds`, then play.
+
+Swift and Kotlin each declare that 6-second margin, equal to `LIVE_WINDOW_START_MARGIN_SECONDS`
+in `@podverse/playback-core`. The value is not passed over the bridge. `play()` also runs from the
+lock screen, the notification, CarPlay, and Android Auto, on a source the engine reloaded after a
+media-services reset or kept from an earlier build, so native keeps the value itself.
+
+- iOS: `private static let liveWindowStartMarginSeconds: Double = 6` in
+  `PodverseAudioEngine.swift`.
+- Android: `private const val LIVE_WINDOW_START_MARGIN_MS = 6_000L` in `PodverseAudioEngine.kt`
+  (Media3 positions are milliseconds).
+
+Vitest reads each declaration and fails when it is missing, renamed, or not equal to
+`LIVE_WINDOW_START_MARGIN_SECONDS`. The shipped module does not import `@podverse/playback-core`.
+
+### `goToLive()`
+
+Jumps to the live point and plays, including from paused. With a window, seeks to
+`liveEdgeSeconds`. Without one, reconnects so playback starts at what is live now. Resolves once
+the seek or reconnect is issued. No-op for a non-live source.
+
+Reconnect keeps the same source: same URL, meta, credentials, now-playing info, and artwork. It
+does not emit `sourceChanged` and does not write a `started` journal row. `playbackState` moves
+through `loading`, then `ready`, then `playing`, as with any load.
+
+### Where the window comes from
+
+- **iOS:** the last valid range of `seekableTimeRanges`. `recommendedTimeOffsetFromLive` is pulled
+  back from the end of that range to form the live edge. A progressive stream is excluded when the
+  access log's last event has `playbackType == "FILE"`. When a live source has no window, the lock
+  screen hides skip and scrub.
+- **Android:** the current timeline window. `defaultPositionMs` is the live edge. A position the
+  window has dropped can surface as `ERROR_CODE_BEHIND_LIVE_WINDOW`; the engine seeks to the live
+  edge and does not emit `error`.
+
+DASH is not supported. iOS `AVPlayer` cannot play it, the Android module ships no DASH extractor,
+and nothing in `@podverse/helpers` classifies `.mpd` links. Mobile rewind is HLS only. Progressive
+streams have no app-side buffer.
 
 ## Reserved native-cache write methods (step 2.35 / detail 114)
 

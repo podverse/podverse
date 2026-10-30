@@ -325,6 +325,7 @@ export const E2E_HLS_ASSET_BASE_URL = 'http://localhost:2111/e2e/hls';
 export const E2E_HLS_VOD_ENCLOSURE_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-vod.m3u8?fixture=vod`;
 export const E2E_HLS_EVENT_PLAYLIST_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-event.m3u8`;
 export const E2E_HLS_VIDEO_EVENT_PLAYLIST_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-video-event.m3u8`;
+export const E2E_HLS_REWIND_EVENT_PLAYLIST_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-rewind-event.m3u8`;
 export const E2E_HLS_CHANNEL_ID_TEXT = 'e2eHlsChnl001';
 export const E2E_HLS_VOD_ITEM_ID_TEXT = 'e2eHlsVodIt01';
 export const E2E_HLS_CHANNEL_TITLE = 'E2E HLS VOD Channel';
@@ -335,7 +336,9 @@ export const E2E_HLS_VOD_DURATION_SECONDS = 6;
  * Live items for the live-stream media-player specs, in their own unsubscribed channel so the
  * `v5fCrIj9Io` livestream specs keep their enclosure-free `.first()` link target. The progressive
  * mp3/mp4 items cover enclosure and controller selection plus the floating video portal. The HLS
- * items cover live HLS playback and playlist reload. Sync with `tools/web/seed-e2e.mjs`.
+ * items cover live HLS playback and playlist reload. The rewind item holds a 120-second window.
+ * The ended item started three days ago so livestream lists omit it; item-by-id still returns it.
+ * Sync with `tools/web/seed-e2e.mjs`.
  */
 export const E2E_LIVE_AV_CHANNEL_ID_TEXT = 'e2eLiveAvChn01';
 export const E2E_LIVE_AV_CHANNEL_TITLE = 'E2E Live AV Channel';
@@ -347,12 +350,16 @@ export const E2E_LIVE_AV_HLS_AUDIO_ITEM_ID_TEXT = 'e2eLiveHlsA01';
 export const E2E_LIVE_AV_HLS_AUDIO_ITEM_TITLE = 'E2E Live HLS Audio Stream';
 export const E2E_LIVE_AV_HLS_VIDEO_ITEM_ID_TEXT = 'e2eLiveHlsV01';
 export const E2E_LIVE_AV_HLS_VIDEO_ITEM_TITLE = 'E2E Live HLS Video Stream';
+export const E2E_LIVE_AV_HLS_REWIND_ITEM_ID_TEXT = 'e2eLiveHlsRw01';
+export const E2E_LIVE_AV_HLS_REWIND_ITEM_TITLE = 'E2E Live HLS Rewind Stream';
 export const E2E_LIVE_AV_SCHEDULED_ITEM_ID_TEXT = 'e2eLiveSched01';
 export const E2E_LIVE_AV_SCHEDULED_ITEM_TITLE = 'E2E Scheduled Livestream';
 export const E2E_LIVE_AV_LATER_SCHEDULED_ITEM_ID_TEXT = 'e2eLiveSched02';
 export const E2E_LIVE_AV_LATER_SCHEDULED_ITEM_TITLE = 'E2E Later Scheduled Livestream';
 export const E2E_LIVE_AV_STALE_SCHEDULED_ITEM_ID_TEXT = 'e2eLiveStale01';
 export const E2E_LIVE_AV_STALE_SCHEDULED_ITEM_TITLE = 'E2E Stale Scheduled Livestream';
+export const E2E_LIVE_AV_ENDED_ITEM_ID_TEXT = 'e2eLiveEnded01';
+export const E2E_LIVE_AV_ENDED_ITEM_TITLE = 'E2E Ended Livestream';
 
 /** Embed player E2E fixtures — sync with `tools/web/seed-e2e.mjs`. */
 export const E2E_EMBED_VIDEO_CHANNEL_ID_TEXT = 'e2eEmbedVidCh01';

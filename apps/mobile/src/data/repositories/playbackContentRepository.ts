@@ -1,7 +1,9 @@
 import type { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers/dto';
+import { getErrorResponseStatus } from '@podverse/helpers/error';
 
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { buildChannelFromDownload } from '../../lib/playback/buildChannelFromDownload';
+import type { FreshRestoredItem } from '../../lib/playback/restoredItemLoad';
 import { channelItemsRepository } from './channelItemsRepository';
 import { downloadsRepository } from './downloadsRepository';
 import { playableItemRepository } from './playableItemRepository';
@@ -52,6 +54,26 @@ export const playbackContentRepository = {
         return stored;
       }
       throw error;
+    }
+  },
+
+  /**
+   * The item as the server has it right now, for decisions that must not trust a stored copy (a
+   * restored livestream's status). Never reads or writes the local store.
+   */
+  fetchFreshItemByIdText: async (
+    context: MobileAuthRequestContext,
+    idText: string
+  ): Promise<FreshRestoredItem> => {
+    try {
+      const item = await requestWithMobileAuthRefresh(context, async (api) =>
+        api.reqItemGetByIdOrIdText(idText)
+      );
+      return { item, kind: 'found' };
+    } catch (error) {
+      return getErrorResponseStatus(error) === 404
+        ? { kind: 'not-found' }
+        : { kind: 'unavailable' };
     }
   },
 

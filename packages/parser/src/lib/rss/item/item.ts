@@ -117,6 +117,8 @@ export type HandleParsedItemsResult = {
   hadStoredItems: boolean;
   newItemGuids: string[];
   newItemGuidEnclosureUrls: string[];
+  /** Item ids the regular item pass created or updated in this parse. */
+  updatedItemIds: number[];
 };
 
 export const handleParsedItems = async (
@@ -202,6 +204,7 @@ export const handleParsedItems = async (
     hadStoredItems,
     newItemGuids,
     newItemGuidEnclosureUrls,
+    updatedItemIds,
   };
 };
 

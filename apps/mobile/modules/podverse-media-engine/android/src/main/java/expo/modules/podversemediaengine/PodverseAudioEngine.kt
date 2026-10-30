@@ -12,6 +12,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import org.json.JSONObject
@@ -96,6 +97,12 @@ object PodverseAudioEngine {
   /** Last loaded URL + optional meta for JS adoption. */
   private var loadedUrl: String? = null
   private var loadedMeta: Map<String, Any?>? = null
+  /** Credentials of the loaded source, so a live reconnect answers the same challenge. */
+  private var loadedBasicAuth: ScopedBasicAuth? = null
+  /** True once the loaded item has played; a live `play()` applies the resume rule only then. */
+  private var hasPlayedCurrentItem: Boolean = false
+  /** Reused for main-thread timeline reads. */
+  private val timelineWindow = Timeline.Window()
   /** When true, JS owns queue advance on ended; native must not auto-advance. */
   @Volatile private var jsOwnsAdvance: Boolean = false
   private var clipEndSeconds: Double? = null
@@ -238,16 +245,12 @@ object PodverseAudioEngine {
       context, url, initialSeekSeconds, basicAuth, audioProfile, metaJson, playWhenPrepared = true)
   }
 
-  fun getCurrentSource(): Map<String, Any?>? {
-    val url = loadedUrl ?: return null
-    return mapOf(
-      "url" to url,
-      "meta" to loadedMeta,
-      "positionSeconds" to getPosition(),
-      "durationSeconds" to getDuration(),
+  fun getCurrentSource(): Map<String, Any?>? = onMainSync {
+    val url = loadedUrl ?: return@onMainSync null
+    mapOf("url" to url, "meta" to loadedMeta) +
+      progressPayloadUnsafe() +
       // Play intent, so a source still buffering after a car start reads as playing.
-      "isPlaying" to onMainSync { player?.playWhenReady == true },
-    )
+      mapOf("isPlaying" to (player?.playWhenReady == true))
   }
 
   fun setJsOwnsAdvance(owns: Boolean) {
@@ -256,6 +259,9 @@ object PodverseAudioEngine {
 
   /** Main-thread only. True when the loaded source belongs to the Music queue. */
   fun isMusicSourceLoaded(): Boolean = (loadedMeta?.get("queueMedium") as? String) == "music"
+
+  /** Main-thread only. True when the loaded source's meta marks it live. */
+  fun isLiveSourceLoaded(): Boolean = loadedMeta?.get("isLive") == true
 
   /**
    * Track skip from the car, a headset, or the media notification. Previous restarts a track that
@@ -283,6 +289,13 @@ object PodverseAudioEngine {
   }
 
   private const val PREVIOUS_RESTARTS_AFTER_MS = 3_000L
+
+  /**
+   * A paused live position at least this far after the window start resumes in place; anything
+   * earlier jumps to live. Must equal `LIVE_WINDOW_START_MARGIN_SECONDS` (in seconds) in
+   * `@podverse/playback-core`; `liveWindowStartMargin.android.test.ts` checks it.
+   */
+  private const val LIVE_WINDOW_START_MARGIN_MS = 6_000L
 
   /** Result of looking up the loaded item in `advance-window.json`. */
   private sealed interface AdvanceWindowStep {
@@ -430,11 +443,12 @@ object PodverseAudioEngine {
       val meta = parseSourceMeta(metaJson)
       loadedUrl = url
       loadedMeta = meta
+      loadedBasicAuth = basicAuth
+      hasPlayedCurrentItem = false
       clipEndSeconds = (meta?.get("clipEndSeconds") as? Number)?.toDouble()
       val item = buildMediaItem(url, meta)
       val startMs = (seekSeconds * 1000).toLong()
-      val isRemote = url.startsWith("https://") || url.startsWith("http://")
-      if (basicAuth != null && isRemote) {
+      if (basicAuth != null && isRemoteUrl(url)) {
         val source = authenticatedMediaSource(context, item, basicAuth)
         if (hasSeek) p.setMediaSource(source, startMs) else p.setMediaSource(source)
       } else if (hasSeek) {
@@ -536,9 +550,71 @@ object PodverseAudioEngine {
     app.startService(Intent(app, PodverseMediaLibraryService::class.java))
   }
 
+  /**
+   * Start or resume playback. A live source that has already played resumes where it paused only
+   * when the window still holds that moment with [LIVE_WINDOW_START_MARGIN_MS] to spare; otherwise
+   * it jumps to live, and a stream with no window reconnects. The session player routes
+   * notification, headset, and Android Auto play here for live sources.
+   */
   fun play(context: Context) {
     onMain {
       val p = getOrCreatePlayer(context)
+      if (isLiveSourceLoaded() && hasPlayedCurrentItem && !p.isPlaying) {
+        if (currentLiveWindowUnsafe(p) == null) {
+          reconnectCurrentSource(context, playWhenReady = true)
+          return@onMain
+        }
+        // currentPosition is measured from the window start, so it is negative once the window
+        // has slid past the paused point.
+        if (p.currentPosition < LIVE_WINDOW_START_MARGIN_MS) {
+          p.seekToDefaultPosition()
+        }
+      }
+      startPlayback(context, p)
+    }
+  }
+
+  /**
+   * Jump to the live point of a live source and play. With a window, seeks to the live edge;
+   * without one, reconnects so playback starts at what is live now. No-op when not live.
+   */
+  fun goToLive(context: Context) {
+    onMain {
+      if (!isLiveSourceLoaded()) return@onMain
+      val p = getOrCreatePlayer(context)
+      if (currentLiveWindowUnsafe(p) == null) {
+        reconnectCurrentSource(context, playWhenReady = true)
+        return@onMain
+      }
+      p.seekToDefaultPosition()
+      emit("progress", progressPayloadUnsafe())
+      startPlayback(context, p)
+    }
+  }
+
+  /**
+   * Main-thread only. Re-prepare the loaded source on the same player so a live stream restarts at
+   * what is live now. Keeps the URL, meta, and credentials; emits no `sourceChanged` and writes no
+   * `started` journal row.
+   */
+  @androidx.annotation.OptIn(UnstableApi::class)
+  private fun reconnectCurrentSource(context: Context, playWhenReady: Boolean) {
+    val url = loadedUrl ?: return
+    val p = getOrCreatePlayer(context)
+    loadGeneration += 1
+    playWhenReadyGeneration = -1
+    hasPlayedCurrentItem = false
+    val item = buildMediaItem(url, loadedMeta)
+    val auth = loadedBasicAuth
+    if (auth != null && isRemoteUrl(url)) {
+      p.setMediaSource(authenticatedMediaSource(context, item, auth))
+    } else {
+      p.setMediaItem(item)
+    }
+    p.prepare()
+    // Published after the swap: replacing a playing stream reports `paused` from the listener.
+    publish(PlaybackState.LOADING)
+    if (playWhenReady) {
       startPlayback(context, p)
     }
   }
@@ -553,9 +629,19 @@ object PodverseAudioEngine {
     }
   }
 
+  /**
+   * Absolute seek in seconds. A live source clamps into its window and is a no-op without one;
+   * live seconds are on the stable timeline [progressPayloadUnsafe] reports.
+   */
   fun seek(seconds: Double) {
     onMain {
       val p = player ?: return@onMain
+      if (isLiveSourceLoaded()) {
+        val window = currentLiveWindowUnsafe(p) ?: return@onMain
+        val targetMs = (seconds * 1000).toLong().coerceIn(window.startMs, window.liveEdgeMs)
+        p.seekTo(targetMs - window.startMs)
+        return@onMain
+      }
       p.seekTo((clampToDuration(seconds, p) * 1000).toLong())
     }
   }
@@ -564,17 +650,17 @@ object PodverseAudioEngine {
     onMain { player?.playbackParameters = PlaybackParameters(rate.toFloat()) }
   }
 
-  /** Current playhead in seconds (`0` when unknown). Read on the player's main thread. */
+  /**
+   * Current playhead in seconds (`0` when unknown), on the same timeline as the live window for a
+   * live source. Read on the player's main thread.
+   */
   fun getPosition(): Double = onMainSync {
-    val pos = player?.currentPosition ?: 0L
-    if (pos < 0) 0.0 else pos / 1000.0
+    val p = player ?: return@onMainSync 0.0
+    positionSecondsUnsafe(p, currentLiveWindowUnsafe(p))
   }
 
   /** Current item duration in seconds (`0` when unknown / not yet loaded / live). */
-  fun getDuration(): Double = onMainSync {
-    val d = player?.duration ?: C.TIME_UNSET
-    if (d == C.TIME_UNSET || d < 0) 0.0 else d / 1000.0
-  }
+  fun getDuration(): Double = onMainSync { getDurationUnsafe() }
 
   /** True while ExoPlayer is rendering frames or audio. Main-thread safe. */
   fun isPlaybackActive(): Boolean = onMainSync { player?.isPlaying == true }
@@ -591,6 +677,7 @@ object PodverseAudioEngine {
       }
       player?.clearMediaItems()
       player?.stop()
+      hasPlayedCurrentItem = false
       publish(PlaybackState.IDLE)
       onVideoCapabilityChanged?.invoke(false)
       onVideoSizeChanged?.invoke(0, 0)
@@ -615,12 +702,7 @@ object PodverseAudioEngine {
         Player.STATE_READY -> {
           publish(PlaybackState.READY)
           // One progress sample when the item is prepared so JS gets duration before play starts.
-          emit(
-            "progress",
-            mapOf(
-              "positionSeconds" to getPositionUnsafe(),
-              "durationSeconds" to getDurationUnsafe(),
-            ))
+          emit("progress", progressPayloadUnsafe())
           if (playWhenReadyGeneration == loadGeneration && playWhenReadyGeneration >= 0) {
             playWhenReadyGeneration = -1
             val readyPlayer = player
@@ -650,6 +732,7 @@ object PodverseAudioEngine {
     override fun onIsPlayingChanged(isPlaying: Boolean) {
       onPlaybackPlayingChanged?.invoke(isPlaying)
       if (isPlaying) {
+        hasPlayedCurrentItem = true
         publish(PlaybackState.PLAYING)
         startProgressUpdates()
       } else {
@@ -661,6 +744,16 @@ object PodverseAudioEngine {
     }
 
     override fun onPlayerError(error: PlaybackException) {
+      // The window dropped the playhead (a long pause or stall): recover at live, not as an error.
+      if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW &&
+        isLiveSourceLoaded()) {
+        player?.let {
+          it.seekToDefaultPosition()
+          it.prepare()
+        }
+        publish(PlaybackState.LOADING)
+        return
+      }
       playWhenReadyGeneration = -1
       publish(PlaybackState.ERROR)
       emit("error", playbackErrorPayload(error))
@@ -751,12 +844,7 @@ object PodverseAudioEngine {
         lastJournalProgressAtMs = nowMs
         appendJournal(ctx, "progress", position)
       }
-      emit(
-        "progress",
-        mapOf(
-          "positionSeconds" to position,
-          "durationSeconds" to getDurationUnsafe(),
-        ))
+      emit("progress", progressPayloadUnsafe())
       if (progressPosting) {
         mainHandler.postDelayed(this, 500)
       }
@@ -776,16 +864,72 @@ object PodverseAudioEngine {
 
   // MARK: - Helpers
 
-  /** Position read assuming we are already on the main thread (used inside player callbacks). */
-  private fun getPositionUnsafe(): Double {
-    val pos = player?.currentPosition ?: 0L
+  /**
+   * A live window on the period timeline, in milliseconds. ExoPlayer positions are measured from
+   * the window start, which moves forward as the stream runs; the period timeline does not, so a
+   * paused position keeps its value while both window ends advance. [startMs] is also the offset
+   * from a window-relative position to the period timeline.
+   */
+  private data class LiveWindowMs(val startMs: Long, val liveEdgeMs: Long)
+
+  /**
+   * Main-thread only. The seekable window of a live source, or `null` when the source is not live,
+   * has no timeline yet, or cannot seek (progressive Icecast or Shoutcast streams). The live edge
+   * is Media3's default position, which already applies the target live offset.
+   */
+  private fun currentLiveWindowUnsafe(p: ExoPlayer): LiveWindowMs? {
+    if (!isLiveSourceLoaded()) return null
+    val timeline = p.currentTimeline
+    if (timeline.isEmpty || !p.isCurrentMediaItemSeekable) return null
+    val window = timeline.getWindow(p.currentMediaItemIndex, timelineWindow)
+    val durationMs = window.durationMs
+    if (durationMs == C.TIME_UNSET || durationMs < 0) return null
+    val defaultMs = window.defaultPositionMs
+    val edgeInWindowMs =
+      (if (defaultMs == C.TIME_UNSET) durationMs else defaultMs).coerceIn(0L, durationMs)
+    val startMs = window.positionInFirstPeriodMs
+    return LiveWindowMs(startMs, startMs + edgeInWindowMs)
+  }
+
+  /** Main-thread only. Playhead in seconds, on the period timeline when [window] is set. */
+  private fun positionSecondsUnsafe(p: ExoPlayer, window: LiveWindowMs?): Double {
+    val pos = p.currentPosition + (window?.startMs ?: 0L)
     return if (pos < 0) 0.0 else pos / 1000.0
   }
 
+  /**
+   * Main-thread only. The `progress` payload, also merged into [getCurrentSource]. Position and
+   * window come from one read so they share a timeline.
+   */
+  private fun progressPayloadUnsafe(): Map<String, Any?> {
+    val p = player
+    val window = p?.let { currentLiveWindowUnsafe(it) }
+    return mapOf(
+      "positionSeconds" to (p?.let { positionSecondsUnsafe(it, window) } ?: 0.0),
+      "durationSeconds" to getDurationUnsafe(),
+      "isLive" to isLiveSourceLoaded(),
+      "liveWindow" to
+        window?.let {
+          mapOf("startSeconds" to it.startMs / 1000.0, "liveEdgeSeconds" to it.liveEdgeMs / 1000.0)
+        },
+    )
+  }
+
+  /** Position read assuming we are already on the main thread (used inside player callbacks). */
+  private fun getPositionUnsafe(): Double {
+    val p = player ?: return 0.0
+    return positionSecondsUnsafe(p, currentLiveWindowUnsafe(p))
+  }
+
+  /** A live source reports `0`; its span is the live window. */
   private fun getDurationUnsafe(): Double {
+    if (isLiveSourceLoaded()) return 0.0
     val d = player?.duration ?: C.TIME_UNSET
     return if (d == C.TIME_UNSET || d < 0) 0.0 else d / 1000.0
   }
+
+  private fun isRemoteUrl(url: String): Boolean =
+    url.startsWith("https://") || url.startsWith("http://")
 
   /**
    * True when [url] points to a `file://` target that does not exist. Only `file://` is checked;
@@ -799,6 +943,7 @@ object PodverseAudioEngine {
 
   private fun clampToDuration(seconds: Double, p: ExoPlayer): Double {
     val lower = maxOf(0.0, seconds)
+    if (isLiveSourceLoaded()) return lower
     val d = p.duration
     if (d == C.TIME_UNSET || d < 0) return lower
     return minOf(lower, d / 1000.0)

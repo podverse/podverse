@@ -5,7 +5,7 @@ import type { ItemTimerAccumulator } from '@parser/lib/rss/item/item.js';
 import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item.js';
 import { dedupeByStableKey, getParsedItemStableKey } from '@parser/lib/rss/itemStableKey.js';
 import { markChannelMayHaveLiveItems } from '@parser/lib/rss/liveItem/channelLiveItemFlag.js';
-import { liveItemIdsToArchive } from '@parser/lib/rss/liveItem/liveItemArchive.js';
+import { resolveLiveItemsLeavingFeed } from '@parser/lib/rss/liveItem/liveItemArchive.js';
 import type { Episode } from 'podverse-partytime';
 import type { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4.js';
 
@@ -111,7 +111,8 @@ export const handleParsedLiveItems = async (
   channel: Channel,
   channelSeasonIndex: ChannelSeasonIndex,
   descriptionContext: DescriptionIngestContext,
-  itemKeysToSkip: Set<string> = new Set()
+  itemKeysToSkip: Set<string> = new Set(),
+  regularUpdatedItemIds: readonly number[] = []
 ): Promise<HandleParsedLiveItemsResult> => {
   const itemService = new ItemService();
   const liveItemService = new LiveItemService();
@@ -166,14 +167,17 @@ export const handleParsedLiveItems = async (
     }
   }
 
-  const itemIdsToArchive = liveItemIdsToArchive(
-    existingLiveItems.map((liveItem) => ({
+  const { itemIdsToArchive, itemIdsToMarkEnded } = resolveLiveItemsLeavingFeed({
+    existing: existingLiveItems.map((liveItem) => ({
       guid: liveItem.item.guid ?? null,
       itemId: liveItem.item.id,
+      statusId: liveItem.live_item_status_id,
     })),
-    updatedLiveItemItemIds,
-    skippedGuids
-  );
+    liveUpdatedItemIds: updatedLiveItemItemIds,
+    skippedGuids,
+    regularUpdatedItemIds,
+  });
+  await liveItemService.markEndedByItemIds(itemIdsToMarkEnded);
   const itemsToArchive = existingLiveItems
     .filter((liveItem) => itemIdsToArchive.includes(liveItem.item.id))
     .map((liveItem) => liveItem.item);

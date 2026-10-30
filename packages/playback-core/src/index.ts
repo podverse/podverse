@@ -17,6 +17,27 @@ export {
   type PlaybackLoadDecisionReason,
 } from './resolvePlaybackLoadDecision.js';
 export {
+  resolveRestoredLivestream,
+  type FreshLiveItemStatusLookup,
+  type RestoredLivestreamDecision,
+} from './restoredLivestream.js';
+export {
+  LIVE_EDGE_TOLERANCE_SECONDS,
+  LIVE_MIN_REWIND_WINDOW_SECONDS,
+  LIVE_WINDOW_START_MARGIN_SECONDS,
+  clampLiveSeekSeconds,
+  formatBehindLiveLabel,
+  getBehindLiveSeconds,
+  isRewindableLiveWindow,
+  liveSeekSecondsAtFraction,
+  resolveGoToLive,
+  resolveLivePlaybackDisplay,
+  resolveLiveResume,
+  type LivePlaybackDisplay,
+  type LivePositionAction,
+  type LiveSeekWindow,
+} from './livePlayback.js';
+export {
   createListenSessionTracker,
   LISTEN_SESSION_MAX_SECONDS_HEARD,
   LISTEN_SESSION_TICK_TOLERANCE_SECONDS,

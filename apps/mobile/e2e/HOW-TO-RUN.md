@@ -246,6 +246,7 @@ npm run mobile:e2e:test -- --platform ios home
 npm run mobile:e2e:test -- --platform ios identity-remap
 npm run mobile:e2e:test -- --platform ios library-downloads
 npm run mobile:e2e:test -- --platform ios library-playlists
+npm run mobile:e2e:test -- --platform ios livestream-player-controls
 npm run mobile:e2e:test -- --platform ios locale-switch-home-smoke
 npm run mobile:e2e:test -- --platform ios make-clip
 npm run mobile:e2e:test -- --platform ios membership-checkout
@@ -257,6 +258,7 @@ npm run mobile:e2e:test -- --platform ios perf-chip-switch
 npm run mobile:e2e:test -- --platform ios perf-scroll
 npm run mobile:e2e:test -- --platform ios play-mini-player
 npm run mobile:e2e:test -- --platform ios playback-cross-device
+npm run mobile:e2e:test -- --platform ios playback-ended-livestream-restore
 npm run mobile:e2e:test -- --platform ios playback-multi-device-handoff
 npm run mobile:e2e:test -- --platform ios playback-offline-reconciliation
 npm run mobile:e2e:test -- --platform ios playback-resume-on-relaunch
@@ -310,6 +312,7 @@ npm run mobile:e2e:test -- --platform android home
 npm run mobile:e2e:test -- --platform android identity-remap
 npm run mobile:e2e:test -- --platform android library-downloads
 npm run mobile:e2e:test -- --platform android library-playlists
+npm run mobile:e2e:test -- --platform android livestream-player-controls
 npm run mobile:e2e:test -- --platform android locale-switch-home-smoke
 npm run mobile:e2e:test -- --platform android make-clip
 npm run mobile:e2e:test -- --platform android membership-checkout
@@ -321,6 +324,7 @@ npm run mobile:e2e:test -- --platform android perf-chip-switch
 npm run mobile:e2e:test -- --platform android perf-scroll
 npm run mobile:e2e:test -- --platform android play-mini-player
 npm run mobile:e2e:test -- --platform android playback-cross-device
+npm run mobile:e2e:test -- --platform android playback-ended-livestream-restore
 npm run mobile:e2e:test -- --platform android playback-multi-device-handoff
 npm run mobile:e2e:test -- --platform android playback-offline-reconciliation
 npm run mobile:e2e:test -- --platform android playback-resume-on-relaunch
@@ -458,6 +462,7 @@ npm run mobile:e2e:test -- offline-mode
 npm run mobile:e2e:test -- opml
 npm run mobile:e2e:test -- perf-chip-switch
 npm run mobile:e2e:test -- perf-scroll
+npm run mobile:e2e:test -- playback-ended-livestream-restore
 npm run mobile:e2e:test -- playback-multi-device-handoff
 npm run mobile:e2e:test -- player-screen
 npm run mobile:e2e:test -- podcast-episode
@@ -527,6 +532,7 @@ npm run mobile:e2e:test -- auto-queue-advance
 npm run mobile:e2e:test -- engine-audio-spike
 npm run mobile:e2e:test -- hls-playback
 npm run mobile:e2e:test -- library-downloads
+npm run mobile:e2e:test -- livestream-player-controls
 npm run mobile:e2e:test -- make-clip
 npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- play-mini-player

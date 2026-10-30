@@ -59,14 +59,51 @@ export type MediaEngineSource = {
   meta?: MediaEngineSourceMeta;
 };
 
-/** Snapshot returned by {@link NativePlaybackBridge.getCurrentSource}. */
-export type MediaEngineCurrentSource = {
+/**
+ * The part of a live stream the native player can still play, in the same timeline as
+ * `positionSeconds`. The timeline is the player's own: it can start above zero, and both ends move
+ * forward while the stream runs. Compare fields only within one event or one snapshot.
+ */
+export type MediaEngineLiveWindow = {
+  /** Earliest position the stream still holds. */
+  startSeconds: number;
+  /**
+   * Where `goToLive` lands: the newest position the player will play, after the stream's own
+   * hold-back. A listener at the live point reads `positionSeconds` within a few seconds of this.
+   */
+  liveEdgeSeconds: number;
+};
+
+/**
+ * `getCurrentSource()` exactly as native returns it. Live fields are present only when native
+ * sends them.
+ */
+export type NativeRawCurrentSource = {
   url: string;
   meta: MediaEngineSourceMeta | null;
   positionSeconds: number;
   durationSeconds: number;
   /** Play intent: playing, buffering toward play, or waiting on a start seek. */
   isPlaying?: boolean;
+  isLive?: boolean;
+  liveWindow?: MediaEngineLiveWindow | null;
+};
+
+/** Snapshot returned by {@link NativePlaybackBridge.getCurrentSource}. */
+export type MediaEngineCurrentSource = {
+  url: string;
+  meta: MediaEngineSourceMeta | null;
+  positionSeconds: number;
+  /**
+   * Seconds; `0` when unknown, and always `0` while a live source is loaded.
+   */
+  durationSeconds: number;
+  /** Play intent: playing, buffering toward play, or waiting on a start seek. */
+  isPlaying?: boolean;
+  /** The loaded source's meta marked it live. */
+  isLive: boolean;
+  /** Seekable span of a live source; `null` when not live or the stream holds no history. */
+  liveWindow: MediaEngineLiveWindow | null;
 };
 
 /** Emitted when a load replaces the engine's current source. */
@@ -105,9 +142,23 @@ export type PlaybackStateEvent = {
   state: PlaybackStateValue;
 };
 
-export type ProgressEvent = {
+/** `progress` exactly as native emits it. Live fields are present only when native sends them. */
+export type NativeRawProgressEvent = {
   positionSeconds: number;
   durationSeconds: number;
+  isLive?: boolean;
+  liveWindow?: MediaEngineLiveWindow | null;
+};
+
+/** `progress` as RN consumers receive it from `useNativePlaybackBridge`. */
+export type ProgressEvent = {
+  positionSeconds: number;
+  /** Seconds; `0` when unknown, and always `0` while a live source is loaded. */
+  durationSeconds: number;
+  /** The loaded source's meta marked it live. */
+  isLive: boolean;
+  /** Seekable span of a live source; `null` when not live or the stream holds no history. */
+  liveWindow: MediaEngineLiveWindow | null;
 };
 
 /** Emitted when the current item plays to its natural end. */
@@ -191,13 +242,13 @@ export type VideoSurfaceRect = {
 };
 
 /**
- * Event payloads exactly as the native module emits them. The
- * `error` payload here is the **raw** native shape (no `kind`); the JS layer normalizes it.
- * The native module accessor and the transport adapter are typed with this map.
+ * Event payloads exactly as the native module emits them. `error` is the raw native shape (no
+ * `kind`) and `progress` may omit live fields. The native module accessor and the transport
+ * adapter are typed with this map.
  */
 export type NativeRawPlaybackEvents = {
   playbackState: (event: PlaybackStateEvent) => void;
-  progress: (event: ProgressEvent) => void;
+  progress: (event: NativeRawProgressEvent) => void;
   ended: (event: EndedEvent) => void;
   error: (event: NativePlaybackErrorPayload) => void;
   stalled: (event: StalledEvent) => void;
@@ -227,9 +278,9 @@ export type PictureInPictureEvent = {
 };
 
 /**
- * Public event map consumed by RN via `useNativePlaybackBridge`. Identical to
- * {@link NativeRawPlaybackEvents} except `error` carries the normalized {@link PlaybackErrorKind}
- * (the hook runs raw native errors through `normalizePlaybackError`).
+ * Public event map consumed by RN via `useNativePlaybackBridge`. `error` carries the normalized
+ * {@link PlaybackErrorKind} and `progress` carries the normalized live fields. The hook runs raw
+ * native payloads through `normalizePlaybackError` and `normalizeProgressEvent`.
  */
 export type NativePlaybackEvents = {
   playbackState: (event: PlaybackStateEvent) => void;

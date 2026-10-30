@@ -1,0 +1,76 @@
+appId: com.podverse.app.next
+name: Playback Ended Livestream Restore
+---
+# Sign-in restore reads the queue head's status fresh. An ended livestream goes to History
+# and is not loaded. A still-live one loads paused and does not block playing an episode.
+#
+# Each case seeds the server now-playing row before signing in. Sign-in clears the
+# last-playback snapshot and adopts the queue head, so the queue head is the only thing
+# restore can load. A relaunch would restore the snapshot first and skip the queue head.
+#
+# Needs flow_needs_e2e_api.
+
+# Still live. A paused load of this title is what shows the queue head was adopted.
+- runFlow: shared/launch-and-connect.yaml
+- runScript:
+    file: scripts/seed-playback-now-playing.js
+    env:
+      E2E_ITEM_ID_TEXT: e2eLiveAud001
+      E2E_PLAYBACK_EVENT_KIND: play
+      E2E_PLAYBACK_POSITION: "0"
+- runFlow: shared/login-seeded-user.yaml
+- extendedWaitUntil:
+    visible:
+      id: playback-now-playing-title-e2e
+      text: "E2E Live Audio Stream"
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: playback-active-e2e
+    text: paused
+- takeScreenshot: ended-livestream-restore-live-kept
+
+# A regular episode still starts from that restored livestream.
+- openLink: podverse-next://episode/e2ePodResume01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- assertVisible:
+    id: episode-detail-screen
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-now-playing-title-e2e
+      text: "E2E Podcast Resume P > 0"
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: playback-active-e2e
+    text: playing
+# Pause so the next server write is not racing a playing device.
+- tapOn:
+    id: mini-player-play-pause
+
+# Ended. The queue head is in History and is not the loaded title. Whatever loads after
+# the retire, when the player is not empty, depends on the account's other queue rows.
+- runFlow: shared/launch-and-connect.yaml
+- runScript:
+    file: scripts/seed-playback-now-playing.js
+    env:
+      E2E_ITEM_ID_TEXT: e2eLiveEnded01
+      E2E_PLAYBACK_EVENT_KIND: play
+      E2E_PLAYBACK_POSITION: "0"
+- runFlow: shared/login-seeded-user.yaml
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-history
+- assertVisible:
+    id: library-history-screen
+- extendedWaitUntil:
+    visible:
+      text: "E2E Ended Livestream"
+    timeout: ${TIMEOUT_SLOWEST}
+- assertNotVisible:
+    id: playback-now-playing-title-e2e
+    text: "E2E Ended Livestream"
+- takeScreenshot: ended-livestream-restore-history

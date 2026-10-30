@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LayoutChangeEvent } from 'react-native';
@@ -22,6 +23,11 @@ import {
   getChapterAtPercent,
   getChapterBoundaryRatios,
 } from '@podverse/playback-core/chapterProgressMarkers';
+import {
+  clampLiveSeekSeconds,
+  isRewindableLiveWindow,
+  resolveLivePlaybackDisplay,
+} from '@podverse/playback-core/livePlayback';
 
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import {
@@ -32,6 +38,13 @@ import {
   useCrossDevicePlaybackView,
   useRemotePlaybackPositionSeconds,
 } from '../../playback/crossDevice/useCrossDevicePlayerDisplay';
+import {
+  getLivePlaybackDisplay,
+  getLivePlaybackWindow,
+  subscribeLivePlaybackDisplay,
+  useLivePlaybackDisplay,
+  useLivePlaybackWindow,
+} from '../../playback/livePlaybackStore';
 import {
   getPlaybackProgressRatio,
   subscribePlaybackProgress,
@@ -48,6 +61,7 @@ import {
 import { useActiveNowPlayingChapter } from '../../playback/useNowPlayingChapters';
 import { FULL_PLAYER_PROGRESS_BLOCK_HEIGHT } from '../../screens/player/fullPlayerLayout';
 import { useTheme } from '../../theme/useTheme';
+import { FullPlayerLiveControl } from './FullPlayerLiveControl';
 
 const LONG_PRESS_MS = 500;
 const CHAPTER_TOOLTIP_AUTO_DISMISS_MS = 5000;
@@ -82,6 +96,11 @@ type FullPlayerScrubberProps = {
   chapters: DTOItemChapter[];
 };
 
+type FullPlayerScrubberLive = {
+  /** Rendered in the duration slot. */
+  liveControl: ReactNode;
+};
+
 type FullPlayerScrubberSource = {
   durationSeconds: number;
   /** Whole-second playhead for the clock labels. */
@@ -91,6 +110,11 @@ type FullPlayerScrubberSource = {
   seekTo: (seconds: number) => void;
   clip: DTOClip | null;
   soundbite: DTOItemSoundbite | null;
+  /**
+   * A livestream's window. `durationSeconds` is then the window's length and the clocks are
+   * seconds into it; the left clock shows the behind-live time and the right slot the Live control.
+   */
+  live: FullPlayerScrubberLive | null;
 };
 
 type RemotePendingSeek = {
@@ -157,6 +181,7 @@ const resolveHighlightBounds = ({
 /**
  * Full-player scrubber track. Duration, clocks, fill, and seek come from `source`.
  * `FullPlayerScrubber` is this phone's playback. `FullPlayerRemoteScrubber` is another device's.
+ * `FullPlayerLiveProgress` is this phone's livestream band.
  *
  * The track is a thin bar with a thumb on the playhead, a line at each chapter boundary, a pulsing
  * band behind the current chapter or clip, and a long-press chapter tooltip. The hit target is
@@ -168,6 +193,8 @@ const resolveHighlightBounds = ({
  *
  * Gesture objects are memoized and the worklet-to-JS preview hop only fires when the whole-second
  * label would change — rebuilding a Gesture mid-drag re-attaches the recognizer and floods JS.
+ * Seek and tooltip callbacks read the duration from a ref for the same reason, since a livestream's
+ * window grows while it plays.
  */
 function FullPlayerScrubberTrack({
   chapters,
@@ -194,6 +221,7 @@ function FullPlayerScrubberTrack({
   const scrubRatio = useSharedValue(0);
   const trackWidthShared = useSharedValue(0);
   const durationShared = useSharedValue(durationSeconds);
+  const durationSecondsRef = useRef(durationSeconds);
   const lastPreviewSecondShared = useSharedValue(-1);
   const liveRatioShared = useSharedValue(getRatio());
   const segmentPulse = useSharedValue(0);
@@ -204,6 +232,7 @@ function FullPlayerScrubberTrack({
 
   useEffect(() => {
     durationShared.value = durationSeconds;
+    durationSecondsRef.current = durationSeconds;
   }, [durationSeconds, durationShared]);
 
   useEffect(() => {
@@ -285,7 +314,7 @@ function FullPlayerScrubberTrack({
   const showChapterTooltip = useCallback(
     (percent: number) => {
       clearChapterTooltipTimer();
-      const chapter = getChapterAtPercent(percent, chapters, durationSeconds);
+      const chapter = getChapterAtPercent(percent, chapters, durationSecondsRef.current);
       const title = chapter?.title;
       if (typeof title !== 'string' || title.length === 0) {
         setTooltipTitle(null);
@@ -298,17 +327,18 @@ function FullPlayerScrubberTrack({
         setTooltipTitle(null);
       }, CHAPTER_TOOLTIP_AUTO_DISMISS_MS);
     },
-    [chapters, clearChapterTooltipTimer, durationSeconds]
+    [chapters, clearChapterTooltipTimer]
   );
 
   const commitSeek = useCallback(
     (ratio: number) => {
-      if (durationSeconds <= 0) {
+      const duration = durationSecondsRef.current;
+      if (duration <= 0) {
         return;
       }
-      seekTo(clampRatio(ratio) * durationSeconds);
+      seekTo(clampRatio(ratio) * duration);
     },
-    [durationSeconds, seekTo]
+    [seekTo]
   );
 
   const updateScrubPreviewSeconds = useCallback((seconds: number) => {
@@ -561,6 +591,18 @@ function FullPlayerScrubberTrack({
   const displayPositionSeconds = scrubPreviewSeconds ?? clockSeconds;
   const displayPosition = formatHHMMSS(Math.max(0, displayPositionSeconds));
   const displayDuration = formatHHMMSS(Math.max(0, durationSeconds));
+  const live = source.live;
+  const liveTime =
+    live === null
+      ? null
+      : resolveLivePlaybackDisplay({
+          positionSeconds: displayPositionSeconds,
+          window: { startSeconds: 0, liveEdgeSeconds: durationSeconds },
+        });
+  const behindLiveText =
+    liveTime === null || liveTime.behindLiveLabel === null
+      ? null
+      : t('media_player.behind_live', { time: formatHHMMSS(liveTime.behindLiveSeconds) });
 
   return (
     <View style={styles.block} testID="full-player-progress-block">
@@ -598,10 +640,13 @@ function FullPlayerScrubberTrack({
             max: Math.round(durationSeconds),
             min: 0,
             now: Math.round(scrubPreviewSeconds ?? clockSeconds),
-            text: t('media_player.position_of_duration', {
-              duration: displayDuration,
-              position: displayPosition,
-            }),
+            text:
+              live !== null
+                ? (behindLiveText ?? t('media.livestream.live'))
+                : t('media_player.position_of_duration', {
+                    duration: displayDuration,
+                    position: displayPosition,
+                  }),
           }}
           onLayout={handleTrackLayout}
           style={styles.trackHit}
@@ -643,12 +688,31 @@ function FullPlayerScrubberTrack({
         </View>
       </GestureDetector>
       <View style={styles.timeRow}>
-        <Text style={styles.timeText} testID="full-player-position">
-          {displayPosition}
-        </Text>
-        <Text style={styles.timeText} testID="full-player-duration">
-          {displayDuration}
-        </Text>
+        {live === null ? (
+          <>
+            <Text style={styles.timeText} testID="full-player-position">
+              {displayPosition}
+            </Text>
+            <Text style={styles.timeText} testID="full-player-duration">
+              {displayDuration}
+            </Text>
+          </>
+        ) : (
+          <>
+            {behindLiveText !== null && liveTime !== null ? (
+              <Text
+                accessibilityLabel={behindLiveText}
+                style={styles.timeText}
+                testID="full-player-live-behind"
+              >
+                {liveTime.behindLiveLabel}
+              </Text>
+            ) : (
+              <View />
+            )}
+            {live.liveControl}
+          </>
+        )}
       </View>
     </View>
   );
@@ -670,11 +734,80 @@ export function FullPlayerScrubber({ chapters }: FullPlayerScrubberProps) {
       seekTo,
       clip,
       soundbite,
+      live: null,
     }),
     [clip, clockSeconds, durationSeconds, seekTo, soundbite]
   );
 
   return <FullPlayerScrubberTrack chapters={chapters} source={source} />;
+}
+
+const getLiveWindowRatio = (): number => getLivePlaybackDisplay().windowFraction ?? 1;
+
+/** A livestream's rewindable window on this phone. The Live control sits in the duration slot. */
+function FullPlayerLiveScrubber() {
+  const { seekTo } = usePlaybackSession();
+  const display = useLivePlaybackDisplay();
+  const liveWindow = useLivePlaybackWindow();
+  const windowSeconds =
+    liveWindow === null ? 0 : liveWindow.liveEdgeSeconds - liveWindow.startSeconds;
+  const clockSeconds = Math.floor((display.windowFraction ?? 1) * windowSeconds);
+  const seekIntoWindow = useCallback(
+    (secondsIntoWindow: number) => {
+      const current = getLivePlaybackWindow();
+      if (!isRewindableLiveWindow(current)) {
+        return;
+      }
+      seekTo(clampLiveSeekSeconds(current, current.startSeconds + secondsIntoWindow));
+    },
+    [seekTo]
+  );
+  const live = useMemo(
+    (): FullPlayerScrubberLive => ({ liveControl: <FullPlayerLiveControl /> }),
+    []
+  );
+  const source = useMemo(
+    (): FullPlayerScrubberSource => ({
+      durationSeconds: windowSeconds,
+      clockSeconds,
+      getRatio: getLiveWindowRatio,
+      subscribeRatio: subscribeLivePlaybackDisplay,
+      seekTo: seekIntoWindow,
+      clip: null,
+      soundbite: null,
+      live,
+    }),
+    [clockSeconds, live, seekIntoWindow, windowSeconds]
+  );
+
+  return <FullPlayerScrubberTrack chapters={EMPTY_CHAPTERS} source={source} />;
+}
+
+/**
+ * A livestream's progress band on this phone: the window scrubber when the stream can rewind,
+ * else the Live control alone, centered at the same height.
+ */
+export function FullPlayerLiveProgress({ canRewind }: { canRewind: boolean }) {
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        liveOnlyBand: {
+          alignItems: 'center',
+          height: FULL_PLAYER_PROGRESS_BLOCK_HEIGHT,
+          justifyContent: 'center',
+          width: '100%',
+        },
+      }),
+    []
+  );
+  if (canRewind) {
+    return <FullPlayerLiveScrubber />;
+  }
+  return (
+    <View style={styles.liveOnlyBand} testID="full-player-live-progress-block">
+      <FullPlayerLiveControl />
+    </View>
+  );
 }
 
 /**
@@ -741,6 +874,7 @@ export function FullPlayerRemoteScrubber({ durationSeconds }: { durationSeconds:
       seekTo: seek,
       clip: null,
       soundbite: null,
+      live: null,
     }),
     [clockSeconds, duration, getRatio, seek]
   );

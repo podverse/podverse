@@ -188,6 +188,7 @@ npm run mobile:e2e:test -- home
 npm run mobile:e2e:test -- identity-remap
 npm run mobile:e2e:test -- library-downloads
 npm run mobile:e2e:test -- library-playlists
+npm run mobile:e2e:test -- livestream-player-controls
 npm run mobile:e2e:test -- locale-switch-home-smoke
 npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- notifications-inbox
@@ -196,6 +197,7 @@ npm run mobile:e2e:test -- opml
 npm run mobile:e2e:test -- perf-chip-switch
 npm run mobile:e2e:test -- perf-scroll
 npm run mobile:e2e:test -- play-mini-player
+npm run mobile:e2e:test -- playback-ended-livestream-restore
 npm run mobile:e2e:test -- playback-multi-device-handoff
 npm run mobile:e2e:test -- playback-offline-reconciliation
 npm run mobile:e2e:test -- podcast-episode

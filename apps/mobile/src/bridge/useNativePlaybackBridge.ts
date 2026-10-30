@@ -8,7 +8,10 @@
 import { useEffect, useRef } from 'react';
 
 import type { NativePlaybackEvents } from '../../modules/podverse-media-engine';
-import { normalizePlaybackError } from '../../modules/podverse-media-engine';
+import {
+  normalizePlaybackError,
+  normalizeProgressEvent,
+} from '../../modules/podverse-media-engine';
 import type { PlaybackEventSubscription, PodversePlaybackBridge } from './nativePlaybackBridge';
 import { nativePlaybackBridge } from './nativePlaybackBridge';
 
@@ -24,14 +27,14 @@ export function useNativePlaybackBridge(
       nativePlaybackBridge.addListener('playbackState', (event) => {
         handlersRef.current?.playbackState?.(event);
       }),
+      // Raw `progress` and `error` are normalized here: live fields and a live duration of 0 on
+      // progress, and a stable `kind` on error, so consumers can read the public shapes.
       nativePlaybackBridge.addListener('progress', (event) => {
-        handlersRef.current?.progress?.(event);
+        handlersRef.current?.progress?.(normalizeProgressEvent(event));
       }),
       nativePlaybackBridge.addListener('ended', (event) => {
         handlersRef.current?.ended?.(event);
       }),
-      // The adapter delivers raw native errors; normalize to a stable `kind` here so RN
-      // consumers can pick an i18n message from the enum instead of raw native text.
       nativePlaybackBridge.addListener('error', (payload) => {
         handlersRef.current?.error?.(normalizePlaybackError(payload));
       }),

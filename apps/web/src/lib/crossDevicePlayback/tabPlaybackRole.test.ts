@@ -6,6 +6,7 @@ const READY_THIS_SESSION = {
   availability: 'ready' as const,
   thisSessionIdText: 'session-this',
   thisTabHoldsAudio: false,
+  anotherTabMayHoldAudio: true,
   claimPending: false,
 };
 
@@ -47,6 +48,27 @@ describe('resolveTabPlaybackRole', () => {
     expect(
       resolveTabPlaybackRole({ ...READY_THIS_SESSION, activeSessionIdText: 'session-this' })
     ).toBe('remote');
+  });
+
+  it('is idle when this session is active and no other tab of this browser holds audio', () => {
+    expect(
+      resolveTabPlaybackRole({
+        ...READY_THIS_SESSION,
+        activeSessionIdText: 'session-this',
+        anotherTabMayHoldAudio: false,
+      })
+    ).toBe('idle');
+  });
+
+  it('is active when this tab holds audio even after the search settles with no other tab', () => {
+    expect(
+      resolveTabPlaybackRole({
+        ...READY_THIS_SESSION,
+        activeSessionIdText: 'session-this',
+        thisTabHoldsAudio: true,
+        anotherTabMayHoldAudio: false,
+      })
+    ).toBe('active');
   });
 
   it('is remote when another session is active', () => {

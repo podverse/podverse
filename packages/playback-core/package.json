@@ -19,6 +19,14 @@
       "types": "./dist/resolveQueueAdvance.d.ts",
       "default": "./dist/resolveQueueAdvance.js"
     },
+    "./restoredLivestream": {
+      "types": "./dist/restoredLivestream.d.ts",
+      "default": "./dist/restoredLivestream.js"
+    },
+    "./livePlayback": {
+      "types": "./dist/livePlayback.d.ts",
+      "default": "./dist/livePlayback.js"
+    },
     "./autoQueue": {
       "types": "./dist/autoQueue.d.ts",
       "default": "./dist/autoQueue.js"

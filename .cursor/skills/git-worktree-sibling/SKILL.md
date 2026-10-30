@@ -170,15 +170,23 @@ git worktree list
 
 ## Remove a worktree
 
-After the branch is merged and the directory is no longer needed:
+When the operator asks to remove worktrees, the commands run from the primary checkout
+(`podverse`) on `develop`. That checkout is the repo root, and it can remove every merged
+sibling in one paste, including a merge worktree whose branch is already in `develop`. A
+checkout cannot remove itself, so do not give the paste for a feature or merge worktree.
+
+`git pull` on `develop` first when that checkout is behind `origin/develop`. `git branch -d`
+refuses a branch that is not in the current tip. Omit `develop`, omit any worktree the operator
+did not ask to remove, and omit remote deletes. `git worktree remove` stops when the directory
+still has untracked or modified files; say what `--force` would discard before adding it.
 
 ```bash
 cd /Users/mitcheldowney/repos/pv/podverse
+git pull
 git worktree remove ../podverse_feature_tracking_consent
 git worktree prune
+git branch -d feature/tracking-consent
 ```
-
-Delete the branch separately if desired (`git branch -d feature/tracking-consent`).
 
 ## Agent rules
 
@@ -186,6 +194,7 @@ Delete the branch separately if desired (`git branch -d feature/tracking-consent
 2. Do **not** implement feature work on `podverse` while it is on `develop` if a sibling worktree exists for that branch.
 3. When the user names a branch (e.g. `feature/tracking-consent`), resolve the directory as `podverse_feature_tracking_consent` under `repos/pv/`.
 4. Plans for deferred work live under `.llm/plans/active/` in the **worktree** that owns the feature branch.
+5. Worktree removal commands are for the primary checkout on `develop`. See **Remove a worktree**.
 
 ## Related
 

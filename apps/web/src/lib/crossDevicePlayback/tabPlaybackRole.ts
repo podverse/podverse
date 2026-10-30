@@ -11,14 +11,18 @@ export type CrossDevicePlaybackAvailability = 'off' | 'pending' | 'ready' | 'una
 /**
  * A device is one login session, so every tab of a browser profile shares it. Within the active
  * session only the tab holding audio is `active`; its other tabs are `remote` and send commands to
- * their own session. A claim in flight is `active` at once, so an older state naming another device
- * never stops playback the person just started.
+ * their own session while another tab may hold that audio. Once no tab of this browser holds it, a
+ * tab of the active session is `idle`: it plays locally, and its next play claims. A claim in
+ * flight is `active` at once, so an older state naming another device never stops playback the
+ * person just started.
  */
 export function resolveTabPlaybackRole(params: {
   availability: CrossDevicePlaybackAvailability;
   thisSessionIdText: string | null;
   activeSessionIdText: string | null;
   thisTabHoldsAudio: boolean;
+  /** False only once this tab has asked the other tabs of this browser and none holds audio. */
+  anotherTabMayHoldAudio: boolean;
   claimPending: boolean;
 }): PlaybackRole {
   if (params.availability !== 'ready') {
@@ -32,7 +36,10 @@ export function resolveTabPlaybackRole(params: {
     activeSessionIdText: params.activeSessionIdText,
   });
   if (sessionRole === 'active') {
-    return params.thisTabHoldsAudio ? 'active' : 'remote';
+    if (params.thisTabHoldsAudio) {
+      return 'active';
+    }
+    return params.anotherTabMayHoldAudio ? 'remote' : 'idle';
   }
   return sessionRole;
 }

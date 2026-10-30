@@ -25,6 +25,8 @@ export type LastPlaybackSnapshotV1 = {
   id_text: string;
   playback_position_seconds: number;
   media_file_duration_seconds?: number;
+  /** The item was playing as a livestream. Restore re-checks its status with the server. */
+  is_live?: true;
   updated_at: string;
 };
 
@@ -63,6 +65,9 @@ export function parseLastPlaybackSnapshot(raw: string | null): LastPlaybackSnaps
         return null;
       }
     }
+    if (parsed.is_live !== undefined && parsed.is_live !== true) {
+      return null;
+    }
     if (typeof parsed.updated_at !== 'string' || parsed.updated_at.length === 0) {
       return null;
     }
@@ -75,6 +80,7 @@ export function parseLastPlaybackSnapshot(raw: string | null): LastPlaybackSnaps
       ...(parsed.media_file_duration_seconds !== undefined
         ? { media_file_duration_seconds: parsed.media_file_duration_seconds }
         : {}),
+      ...(parsed.is_live === true ? { is_live: true } : {}),
     };
   } catch {
     return null;
@@ -109,11 +115,11 @@ export async function clearLastPlaybackSnapshot(): Promise<void> {
 /**
  * Resolve the snapshot `kind` + `id_text` for a playback target. Clip and soundbite targets snapshot
  * their own id (so the restore reloads the bounded segment); item/chapter targets snapshot the item.
- * Add-by-RSS and livestream targets are not snapshotted (returns null).
+ * Livestream targets snapshot their item with `is_live`. Add by RSS targets are not snapshotted.
  */
 export function lastPlaybackIdentityFromTarget(
   target: PlaybackTarget
-): { kind: LastPlaybackKind; id_text: string } | null {
+): { kind: LastPlaybackKind; id_text: string; is_live?: true } | null {
   switch (target.kind) {
     case 'clip':
       return { id_text: target.clip.id_text, kind: 'clip' };
@@ -125,15 +131,20 @@ export function lastPlaybackIdentityFromTarget(
     case 'item-music':
       return { id_text: target.item.id_text, kind: 'item' };
     case 'add-by-rss':
-    case 'livestream':
       return null;
+    case 'livestream':
+      if (target.item === null) {
+        return null;
+      }
+      return { id_text: target.item.id_text, is_live: true, kind: 'item' };
   }
 }
 
 /**
  * Build a snapshot from the active target + position. A position inside the near-end window means
  * the item is finished, so there is nothing to resume — callers must clear storage instead of
- * writing a clamped `0` that would reload the finished item on the next cold start.
+ * writing a clamped `0` that would reload the finished item on the next cold start. A livestream
+ * records `is_live` at position 0 with no file duration, and a near-end position does not finish it.
  */
 export function lastPlaybackSnapshotFromTarget(
   target: PlaybackTarget,
@@ -143,6 +154,17 @@ export function lastPlaybackSnapshotFromTarget(
   const identity = lastPlaybackIdentityFromTarget(target);
   if (identity === null) {
     return null;
+  }
+
+  if (identity.is_live === true) {
+    return {
+      id_text: identity.id_text,
+      is_live: true,
+      kind: 'item',
+      playback_position_seconds: 0,
+      updated_at: new Date().toISOString(),
+      v: LAST_PLAYBACK_SNAPSHOT_VERSION,
+    };
   }
 
   const safePosition =

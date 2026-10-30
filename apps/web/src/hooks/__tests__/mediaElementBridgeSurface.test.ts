@@ -3,13 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   applyItemEnclosureSurfaceChangeFromRef,
   attachNonLiveHlsPlayback,
+  detachNonLiveHlsPlayback,
   mediaElementHasPlayableSource,
+  readManagedHlsLiveSyncPosition,
   waitForPlayableMediaSource,
 } from '../mediaElementBridgeSurface';
 
 const hlsJs = vi.hoisted(() => ({
   attachMedia: vi.fn(),
   isSupported: vi.fn(() => true),
+  liveSyncPosition: vi.fn((): number | null => null),
   loadSource: vi.fn(),
 }));
 
@@ -17,6 +20,10 @@ vi.mock('hls.js', () => ({
   default: class Hls {
     static isSupported(): boolean {
       return hlsJs.isSupported();
+    }
+
+    get liveSyncPosition(): number | null {
+      return hlsJs.liveSyncPosition();
     }
 
     loadSource(url: string): void {
@@ -56,6 +63,8 @@ beforeEach(() => {
   hlsJs.attachMedia.mockClear();
   hlsJs.isSupported.mockReset();
   hlsJs.isSupported.mockReturnValue(true);
+  hlsJs.liveSyncPosition.mockReset();
+  hlsJs.liveSyncPosition.mockReturnValue(null);
   hlsJs.loadSource.mockClear();
 });
 
@@ -165,5 +174,30 @@ describe('attachNonLiveHlsPlayback', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('readManagedHlsLiveSyncPosition', () => {
+  it('reports the hls.js live sync position until the element is detached', async () => {
+    hlsJs.liveSyncPosition.mockReturnValue(72);
+    const { media } = hlsPlaylistMedia('');
+    await attachNonLiveHlsPlayback(media, 'https://cdn.example/live.m3u8');
+
+    expect(readManagedHlsLiveSyncPosition(media)).toBe(72);
+
+    hlsJs.liveSyncPosition.mockReturnValue(Number.NaN);
+    expect(readManagedHlsLiveSyncPosition(media)).toBeNull();
+
+    hlsJs.liveSyncPosition.mockReturnValue(72);
+    detachNonLiveHlsPlayback(media);
+    expect(readManagedHlsLiveSyncPosition(media)).toBeNull();
+  });
+
+  it('reports null for an element that plays HLS natively', async () => {
+    hlsJs.liveSyncPosition.mockReturnValue(72);
+    const { media } = hlsPlaylistMedia('maybe');
+    await attachNonLiveHlsPlayback(media, 'https://cdn.example/live.m3u8');
+
+    expect(readManagedHlsLiveSyncPosition(media)).toBeNull();
   });
 });

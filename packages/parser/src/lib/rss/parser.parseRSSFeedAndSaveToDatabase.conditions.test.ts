@@ -243,6 +243,7 @@ describe('parseRSSFeedAndSaveToDatabase condition / policy gate', () => {
     handleParsedItemsMock.mockResolvedValue({
       newItemGuids: [],
       newItemGuidEnclosureUrls: [],
+      updatedItemIds: [],
     });
     handleParsedLiveItemsMock.mockResolvedValue({
       pendingItemGuids: [],

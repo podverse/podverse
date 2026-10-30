@@ -4,9 +4,9 @@ import type { MediaPlayerKeyDownState } from './mediaPlayerWindowKeyDown';
 import { handleMediaPlayerWindowKeyDown } from './mediaPlayerWindowKeyDown';
 
 describe('handleMediaPlayerWindowKeyDown', () => {
-  const loaded: MediaPlayerKeyDownState = { hasResource: true, isLiveItem: false };
-  const live: MediaPlayerKeyDownState = { hasResource: true, isLiveItem: true };
-  const empty: MediaPlayerKeyDownState = { hasResource: false, isLiveItem: false };
+  const loaded: MediaPlayerKeyDownState = { hasResource: true, canJump: true };
+  const blocked: MediaPlayerKeyDownState = { hasResource: true, canJump: false };
+  const empty: MediaPlayerKeyDownState = { hasResource: false, canJump: true };
 
   it('Space toggles play/pause when a resource is loaded and the target is not interactive', () => {
     const preventDefault = vi.fn();
@@ -139,7 +139,7 @@ describe('handleMediaPlayerWindowKeyDown', () => {
     dialog.remove();
   });
 
-  it('ArrowLeft and ArrowRight jump by 10 seconds', () => {
+  it('ArrowLeft and ArrowRight jump by 10 seconds when canJump is true', () => {
     const jumpBy = vi.fn();
     const el = document.createElement('div');
 
@@ -162,21 +162,21 @@ describe('handleMediaPlayerWindowKeyDown', () => {
     expect(jumpBy).toHaveBeenCalledWith(10);
   });
 
-  it('ArrowLeft and ArrowRight do nothing when a live item is active', () => {
+  it('ArrowLeft and ArrowRight do nothing when canJump is false', () => {
     const jumpBy = vi.fn();
     const el = document.createElement('div');
 
     handleMediaPlayerWindowKeyDown(
       { code: 'ArrowLeft', key: 'ArrowLeft', preventDefault: vi.fn(), repeat: false },
       el,
-      live,
+      blocked,
       jumpBy,
       vi.fn()
     );
     handleMediaPlayerWindowKeyDown(
       { code: 'ArrowRight', key: 'ArrowRight', preventDefault: vi.fn(), repeat: false },
       el,
-      live,
+      blocked,
       jumpBy,
       vi.fn()
     );

@@ -468,6 +468,8 @@
     "media_player_image": "Εικόνα μέσου αναπαραγωγής",
     "seek": "Αναζήτηση",
     "position_of_duration": "{position} από {duration}",
+    "go_to_live": "Μετάβαση στο ζωντανό",
+    "behind_live": "{time} πίσω από το ζωντανό",
     "skip_to_next": "Παράλειψη στην επόμενη",
     "skip_to_previous": "Μετάβαση στο προηγούμενο",
     "skip_to_next_hold_hint": "Παράλειψη στην επόμενη. Κρατήστε πατημένο για παράλειψη του επεισοδίου.",

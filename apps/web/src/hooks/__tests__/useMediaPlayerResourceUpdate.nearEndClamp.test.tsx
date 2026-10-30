@@ -80,6 +80,7 @@ vi.mock('../../contexts/MediaPlayer', () => ({
     setMPItemLabeledItemEnclosures: hoisted.setMPItemLabeledItemEnclosures,
     setMPEnclosureSelectedParams: vi.fn(),
     setMPIsPlaying: vi.fn(),
+    setMPDuration: vi.fn(),
     mpEnclosureSelectedParams: null,
     mpItem: null,
   }),

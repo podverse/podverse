@@ -468,6 +468,8 @@
     "media_player_image": "Imagen del reproductor multimedia",
     "seek": "Buscar",
     "position_of_duration": "{position} de {duration}",
+    "go_to_live": "Ir al directo",
+    "behind_live": "{time} por detrás del directo",
     "skip_to_next": "Saltar al siguiente",
     "skip_to_previous": "Ir al anterior",
     "skip_to_next_hold_hint": "Saltar al siguiente. Mantén pulsado para saltar el episodio.",
