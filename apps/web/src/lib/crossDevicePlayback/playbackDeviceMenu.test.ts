@@ -65,6 +65,23 @@ describe('buildPlaybackDeviceMenuEntries', () => {
     });
   });
 
+  it('does not mark this device as playing when this tab is idle and this session is the active one', () => {
+    const menu = buildPlaybackDeviceMenuEntries({
+      entries: [
+        entry({ sessionIdText: THIS_SESSION, isThisDevice: true, isActive: true }),
+        entry({ sessionIdText: OTHER_SESSION }),
+      ],
+      role: 'idle',
+      thisTabHoldsAudio: false,
+      pendingTransferTargetSessionIdText: null,
+    });
+
+    expect(menu[0]).toMatchObject({
+      descriptionParts: ['this_device'],
+      transferTargetSessionIdText: THIS_SESSION,
+    });
+  });
+
   it('does nothing when this tab already holds the audio', () => {
     const menu = buildPlaybackDeviceMenuEntries({
       entries: [entry({ sessionIdText: THIS_SESSION, isThisDevice: true, isActive: true })],

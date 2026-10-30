@@ -67,7 +67,10 @@ import {
   shouldDismissFullPlayerOnEmptySession,
   shouldShowV4vAction,
 } from '../../components/player/fullPlayerRows';
-import { FullPlayerScrubber } from '../../components/player/FullPlayerScrubber';
+import {
+  FullPlayerLiveProgress,
+  FullPlayerScrubber,
+} from '../../components/player/FullPlayerScrubber';
 import { FullPlayerSegmentBand } from '../../components/player/FullPlayerSegmentBand';
 import { FullPlayerTransportRow } from '../../components/player/FullPlayerTransportRow';
 import { FullPlayerUtilityRow } from '../../components/player/FullPlayerUtilityRow';
@@ -124,11 +127,13 @@ import {
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import { ROOT_SLIDE_UP_ANIMATION_MS } from '../../navigation/slideUpScreen';
+import { isLivePlaybackTarget } from '../../playback/crossDevice/crossDevicePlaybackPolicy';
 import {
   useCrossDevicePlayerDisplay,
   usePlayerStatusText,
 } from '../../playback/crossDevice/useCrossDevicePlayerDisplay';
 import { useDisplayedAddByRssResourceData } from '../../playback/crossDevice/useDisplayedAddByRssResourceData';
+import { useLivePlaybackCanRewind } from '../../playback/livePlaybackStore';
 import {
   nowPlayingAddByRssSections,
   useNowPlayingAddByRssSections,
@@ -366,6 +371,8 @@ export function FullPlayerScreen({
     toggleShuffle,
     transportState,
   } = usePlaybackSession();
+  const isLiveNowPlaying = activeTarget !== null && isLivePlaybackTarget(activeTarget);
+  const liveCanRewind = useLivePlaybackCanRewind();
   const display = useCrossDevicePlayerDisplay();
   const remoteDisplay = display.kind === 'remote' ? display : null;
   const isRemoteDisplay = remoteDisplay !== null;
@@ -1821,7 +1828,11 @@ export function FullPlayerScreen({
             ) : null}
 
             <View pointerEvents="auto">
-              <FullPlayerScrubber chapters={chapters} />
+              {isLiveNowPlaying ? (
+                <FullPlayerLiveProgress canRewind={liveCanRewind} />
+              ) : (
+                <FullPlayerScrubber chapters={chapters} />
+              )}
             </View>
           </View>
 
@@ -1829,6 +1840,7 @@ export function FullPlayerScreen({
             <FullPlayerTransportRow
               hasEpisodeChaptersForTrackButtons={episodeHasChaptersForTrackButtons}
               hasNextQueueItem={canSkipToNext}
+              hideJumpButtons={isLiveNowPlaying && !liveCanRewind}
               isMusicNowPlaying={isMusicNowPlaying}
               onJumpBack={() => {
                 jumpBy(-MEDIA_JUMP_BACK_SECONDS);

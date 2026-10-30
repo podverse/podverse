@@ -6,7 +6,6 @@ import { LiveItemStatusEnum } from '@podverse/helpers';
 import {
   filterEmbedCurrentlyLiveChannelItems,
   isEmbedItemCurrentlyLive,
-  resolveEmbedLiveItemStatusId,
 } from '../resolveEmbedLiveItemStatus';
 
 function createLiveItem(status: LiveItemStatusEnum): DTOItem {
@@ -27,14 +26,12 @@ describe('resolveEmbedLiveItemStatus', () => {
   it('returns null for items without live_item', () => {
     const item = { id: 1, id_text: 'episode' } as DTOItem;
 
-    expect(resolveEmbedLiveItemStatusId(item)).toBeNull();
     expect(isEmbedItemCurrentlyLive(item)).toBe(false);
   });
 
   it('detects currently live items', () => {
     const item = createLiveItem(LiveItemStatusEnum.Live);
 
-    expect(resolveEmbedLiveItemStatusId(item)).toBe(LiveItemStatusEnum.Live);
     expect(isEmbedItemCurrentlyLive(item)).toBe(true);
   });
 

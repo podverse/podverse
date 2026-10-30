@@ -7,7 +7,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ACCOUNT_PLAYBACK_STREAM_EVENT, getAddByRSSHashId, MediumEnum } from '@podverse/helpers';
-import type { AddByRSSItemIndexItem } from '@podverse/parser-mapping';
+import type { AddByRSSItemIndexItem, AddByRSSLivestreamIndexItem } from '@podverse/parser-mapping';
 
 import { crossDevicePlaybackStore } from '../../lib/crossDevicePlayback/crossDevicePlaybackStore';
 import {
@@ -28,27 +28,55 @@ const hoisted = vi.hoisted(() => {
   const playbackLoadGenerationRef = { current: 0 };
   return {
     playbackLoadGenerationRef,
-    applyPlaybackLoad: vi.fn(() => {
-      playbackLoadGenerationRef.current += 1;
-      return { initialSeekSeconds: 0 };
-    }),
+    applyPlaybackLoad: vi.fn(
+      (_request: { explicitPlaybackSeconds?: number; mediaFileDurationHintSeconds?: number }) => {
+        playbackLoadGenerationRef.current += 1;
+        return { initialSeekSeconds: 0 };
+      }
+    ),
     reqQueueResourceItemAddByRSSAddNowPlaying: vi.fn(),
     reqAccountPlaybackSendCommand: vi.fn(() => Promise.resolve()),
     queueResourcesLoadActive: vi.fn(),
     setMPAddByRSS: vi.fn(),
     setMPCurrentTime: vi.fn(),
+    setMPDuration: vi.fn(),
     setMPShouldPlay: vi.fn(),
+    reqQueueResourcesGetNowPlayingByQueueIdText: vi.fn(),
+    reqQueueResourcesGetAllUpcomingByQueueIdText: vi.fn(),
+    reqQueueResourcesGetHistoryByQueueIdTextPaginated: vi.fn(),
   };
 });
 
 vi.mock('@podverse/parser-mapping', () => ({
-  buildAddByRSSResourceData: (item: { idText: string; mediumId: number | null }) => ({
-    feed_url: 'https://feeds.example.com/show.xml',
-    guid: 'ep-1',
-    id_text: item.idText,
-    title: 'Add by RSS Episode',
-    medium_id: item.mediumId,
-  }),
+  buildAddByRSSResourceData: (item: {
+    idText: string;
+    mediumId: number | null;
+    liveItem?: unknown;
+    duration?: unknown;
+  }) => {
+    const resourceData: {
+      feed_url: string;
+      guid: string;
+      id_text: string;
+      title: string;
+      medium_id: number | null;
+      liveItem?: unknown;
+      duration?: number;
+    } = {
+      feed_url: 'https://feeds.example.com/show.xml',
+      guid: 'ep-1',
+      id_text: item.idText,
+      title: 'Add by RSS Episode',
+      medium_id: item.mediumId,
+    };
+    if (item.liveItem !== undefined) {
+      resourceData.liveItem = item.liveItem;
+    }
+    if (typeof item.duration === 'number') {
+      resourceData.duration = item.duration;
+    }
+    return resourceData;
+  },
   getAddByRSSHashIds: () => ['abr-hash-1'],
 }));
 
@@ -79,7 +107,7 @@ vi.mock('../../contexts/MediaPlayer', () => ({
     setMPItemLabeledItemEnclosures: vi.fn(),
     setMPEnclosureSelectedParams: vi.fn(),
     setMPShouldPlay: hoisted.setMPShouldPlay,
-    setMPDuration: vi.fn(),
+    setMPDuration: hoisted.setMPDuration,
   }),
 }));
 
@@ -99,6 +127,12 @@ vi.mock('../../contexts/Queue', () => ({
 vi.mock('../../factories/apiRequestService', () => ({
   getApiRequestService: () => ({
     reqQueueResourceItemAddByRSSAddNowPlaying: hoisted.reqQueueResourceItemAddByRSSAddNowPlaying,
+    reqQueueResourcesGetNowPlayingByQueueIdText:
+      hoisted.reqQueueResourcesGetNowPlayingByQueueIdText,
+    reqQueueResourcesGetAllUpcomingByQueueIdText:
+      hoisted.reqQueueResourcesGetAllUpcomingByQueueIdText,
+    reqQueueResourcesGetHistoryByQueueIdTextPaginated:
+      hoisted.reqQueueResourcesGetHistoryByQueueIdTextPaginated,
     reqAccountPlaybackSendCommand: hoisted.reqAccountPlaybackSendCommand,
   }),
 }));
@@ -154,7 +188,13 @@ describe('usePlayAddByRSS', () => {
     hoisted.applyPlaybackLoad.mockClear();
     hoisted.setMPAddByRSS.mockClear();
     hoisted.setMPCurrentTime.mockClear();
+    hoisted.setMPDuration.mockClear();
     hoisted.setMPShouldPlay.mockClear();
+    hoisted.reqQueueResourcesGetNowPlayingByQueueIdText.mockReset().mockResolvedValue(null);
+    hoisted.reqQueueResourcesGetAllUpcomingByQueueIdText.mockReset().mockResolvedValue([]);
+    hoisted.reqQueueResourcesGetHistoryByQueueIdTextPaginated.mockReset().mockResolvedValue({
+      data: [],
+    });
     hoisted.reqAccountPlaybackSendCommand.mockClear();
     hoisted.reqQueueResourceItemAddByRSSAddNowPlaying.mockReset().mockResolvedValue(undefined);
     hoisted.queueResourcesLoadActive.mockReset().mockResolvedValue(undefined);
@@ -271,5 +311,38 @@ describe('usePlayAddByRSS', () => {
     expect(crossDevicePlaybackStore.getSnapshot().displayState).toBe(
       crossDevicePlaybackStore.getSnapshot().state
     );
+  });
+
+  it('starts an Add by RSS livestream at 0 and ignores the enclosure byte length and a stored position', async () => {
+    const livestreamIndexItem = {
+      idText: 'abr-live',
+      mediumId: null,
+      liveItem: { status: 'live' },
+      duration: 48_000_000,
+    } as unknown as AddByRSSLivestreamIndexItem;
+    const { result } = renderHook(() => usePlayAddByRSS());
+
+    result.current(livestreamIndexItem, 120);
+
+    expect(hoisted.setMPDuration).toHaveBeenCalledTimes(1);
+    expect(hoisted.setMPDuration).toHaveBeenCalledWith(0);
+    const [loadRequest] = hoisted.applyPlaybackLoad.mock.calls[0] ?? [];
+    expect(loadRequest).toEqual(
+      expect.objectContaining({
+        explicitPlaybackSeconds: 0,
+      })
+    );
+    expect(loadRequest?.mediaFileDurationHintSeconds).toBeUndefined();
+    expect(hoisted.setMPCurrentTime).toHaveBeenCalledWith(0);
+
+    await waitFor(() => {
+      expect(hoisted.reqQueueResourceItemAddByRSSAddNowPlaying).toHaveBeenCalledWith(
+        'queue-av',
+        expect.objectContaining({ playback_position: '0' })
+      );
+    });
+    expect(hoisted.reqQueueResourcesGetNowPlayingByQueueIdText).not.toHaveBeenCalled();
+    expect(hoisted.reqQueueResourcesGetAllUpcomingByQueueIdText).not.toHaveBeenCalled();
+    expect(hoisted.reqQueueResourcesGetHistoryByQueueIdTextPaginated).not.toHaveBeenCalled();
   });
 });

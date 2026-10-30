@@ -270,16 +270,35 @@ export class AssetGenerator {
   }
 
   /**
-   * Audio-only HLS fixtures under `hls/`. The VOD HLS playlist is a short sine tone.
-   * The EVENT HLS playlist reuses those segments and omits `#EXT-X-ENDLIST`, so a player
-   * can start it without a live encoder. Skip-if-exists. Segment URIs are rewritten to
-   * basenames so they resolve next to the HLS playlist on the asset server.
+   * Audio-only HLS fixtures under `hls/`. Each pair is a VOD HLS playlist of a sine tone and an
+   * EVENT HLS playlist that reuses those segments and omits `#EXT-X-ENDLIST`, so a player can
+   * start it without a live encoder. The second pair is long enough to rewind. Skip-if-exists.
+   * Segment URIs are rewritten to basenames so they resolve next to the HLS playlist on the
+   * asset server.
    */
   async generateHlsAudioFixtures(): Promise<void> {
+    await this.generateHlsAudioEventFixture({
+      baseName: 'e2e-hls',
+      durationSeconds: 6,
+      segmentSeconds: 2,
+    });
+    await this.generateHlsAudioEventFixture({
+      baseName: 'e2e-hls-rewind',
+      durationSeconds: 120,
+      segmentSeconds: 6,
+    });
+  }
+
+  private async generateHlsAudioEventFixture(params: {
+    baseName: string;
+    durationSeconds: number;
+    segmentSeconds: number;
+  }): Promise<void> {
+    const { baseName, durationSeconds, segmentSeconds } = params;
     const dir = path.join(this.assetsDir, 'hls');
     fs.mkdirSync(dir, { recursive: true });
 
-    const vodName = 'e2e-hls-vod.m3u8';
+    const vodName = `${baseName}-vod.m3u8`;
     const vodPath = path.join(dir, vodName);
     if (!fs.existsSync(vodPath)) {
       const ffmpegStatic = await import('ffmpeg-static').catch((err) => {
@@ -292,7 +311,7 @@ export class AssetGenerator {
         throw new Error('ffmpeg-static binary not found. Make sure ffmpeg-static is installed.');
       }
 
-      const command = `cd "${dir}" && "${ffmpegPath}" -hide_banner -loglevel error -y -f lavfi -i sine=frequency=440:sample_rate=22050:duration=6 -c:a aac -b:a 32k -ac 1 -ar 22050 -f hls -hls_time 2 -hls_playlist_type vod -hls_segment_filename "e2e-hls-vod-%03d.ts" "${vodName}"`;
+      const command = `cd "${dir}" && "${ffmpegPath}" -hide_banner -loglevel error -y -f lavfi -i sine=frequency=440:sample_rate=22050:duration=${durationSeconds} -c:a aac -b:a 32k -ac 1 -ar 22050 -f hls -hls_time ${segmentSeconds} -hls_playlist_type vod -hls_segment_filename "${baseName}-vod-%03d.ts" "${vodName}"`;
       try {
         await execAsync(command);
       } catch (error: unknown) {
@@ -302,14 +321,15 @@ export class AssetGenerator {
 
       const raw = fs.readFileSync(vodPath, 'utf8');
       fs.writeFileSync(vodPath, this.rewriteHlsSegmentLinesToBasenames(raw));
-      console.log('   ✅ Generated: e2e-hls-vod.m3u8');
+      console.log(`   ✅ Generated: ${vodName}`);
     }
 
-    const eventPath = path.join(dir, 'e2e-hls-event.m3u8');
+    const eventName = `${baseName}-event.m3u8`;
+    const eventPath = path.join(dir, eventName);
     if (!fs.existsSync(eventPath)) {
       const vod = fs.readFileSync(vodPath, 'utf8');
       fs.writeFileSync(eventPath, this.hlsEventPlaylistFromVod(vod));
-      console.log('   ✅ Generated: e2e-hls-event.m3u8');
+      console.log(`   ✅ Generated: ${eventName}`);
     }
   }
 

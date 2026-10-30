@@ -45,10 +45,15 @@ import { useNotifications } from './Notifications';
 
 /** The audio tab announces itself this often while it holds audio. */
 const AUDIO_TAB_HEARTBEAT_MS = 5_000;
-/** The stream leader checks this often whether the active state still has an audio tab. */
+/**
+ * The stream leader checks this often whether the active state still has an audio tab. Every tab
+ * also drops a silent audio tab on this interval.
+ */
 const LEADER_RECONCILE_INTERVAL_MS = 5_000;
 /** No audio-tab message or state for this long means the audio tab reloaded or crashed. */
 const AUDIO_TAB_SILENCE_MS = 12_000;
+/** How long a new tab waits for the audio tab to answer its query before it plays here. */
+const AUDIO_TAB_QUERY_WAIT_MS = 1_000;
 
 /** `app/embed/layout.tsx` applies the embed guardrails to this path and everything under it. */
 const EMBED_LAYOUT_PATHNAME = '/embed';
@@ -233,6 +238,14 @@ export function CrossDevicePlaybackProvider({ children }: { children: ReactNode 
       },
     });
     setTabChannelAvailable(channel.available);
+    let audioTabSearchId: number | null = null;
+    if (channel.available) {
+      channel.askForAudioTab();
+      audioTabSearchId = window.setTimeout(
+        () => store.settleAudioTabSearch(),
+        AUDIO_TAB_QUERY_WAIT_MS
+      );
+    }
 
     const announceAudioTab = () => {
       if (claimedAtMs !== null && store.getSnapshot().thisTabHoldsAudio) {
@@ -306,6 +319,9 @@ export function CrossDevicePlaybackProvider({ children }: { children: ReactNode 
           if (snapshot.lastFocusedTabId === message.tabId) {
             store.noteFocusedTab(null);
           }
+          return;
+        case 'audio-tab-query':
+          announceAudioTab();
           return;
       }
     }
@@ -385,7 +401,11 @@ export function CrossDevicePlaybackProvider({ children }: { children: ReactNode 
     window.addEventListener('focus', announceFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pagehide', handlePageHide);
-    const reconcileId = window.setInterval(reconcile, LEADER_RECONCILE_INTERVAL_MS);
+    const tick = () => {
+      store.expireSilentAudioTab(Date.now(), AUDIO_TAB_SILENCE_MS);
+      reconcile();
+    };
+    const reconcileId = window.setInterval(tick, LEADER_RECONCILE_INTERVAL_MS);
     if (document.visibilityState === 'visible' && document.hasFocus()) {
       announceFocus();
     }
@@ -393,6 +413,9 @@ export function CrossDevicePlaybackProvider({ children }: { children: ReactNode 
     return () => {
       unsubscribe();
       stopHeartbeat();
+      if (audioTabSearchId !== null) {
+        window.clearTimeout(audioTabSearchId);
+      }
       window.clearInterval(reconcileId);
       window.removeEventListener('focus', announceFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);

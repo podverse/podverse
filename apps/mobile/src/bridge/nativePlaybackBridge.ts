@@ -19,6 +19,7 @@ import type {
   VideoSurfaceTargetId,
 } from '../../modules/podverse-media-engine';
 import {
+  normalizeCurrentSource,
   serializeAnimateVideoSurfaceCommand,
   serializeAttachVideoSurfaceCommand,
   serializeLoadCommand,
@@ -30,9 +31,9 @@ export type PlaybackEventSubscription = { remove: () => void };
 /**
  * High-level bridge = transport (`NativePlaybackBridge`) + reserved cache writes + event subscribe.
  *
- * `addListener` delivers **raw** native events (the `error` payload has no normalized `kind`); the
- * `useNativePlaybackBridge` hook is the sanctioned consumer path and runs errors through
- * `normalizePlaybackError`. Direct `addListener('error', …)` callers can normalize themselves.
+ * `addListener` delivers raw native events (`progress` may omit live fields; `error` has no
+ * `kind`). `useNativePlaybackBridge` normalizes both. `getCurrentSource()` is normalized here.
+ * Direct `addListener` callers can normalize themselves.
  */
 export type PodversePlaybackBridge = NativePlaybackBridge &
   NativeCacheWriteBridge & {
@@ -55,6 +56,10 @@ class NativePlaybackBridgeAdapter implements PodversePlaybackBridge {
     await getPodverseMediaEngineModule().play();
   }
 
+  goToLive(): Promise<void> {
+    return getPodverseMediaEngineModule().goToLive();
+  }
+
   pause(): void {
     getPodverseMediaEngineModule().pause();
   }
@@ -75,8 +80,9 @@ class NativePlaybackBridgeAdapter implements PodversePlaybackBridge {
     return getPodverseMediaEngineModule().getDuration();
   }
 
-  getCurrentSource(): Promise<MediaEngineCurrentSource | null> {
-    return getPodverseMediaEngineModule().getCurrentSource();
+  async getCurrentSource(): Promise<MediaEngineCurrentSource | null> {
+    const raw = await getPodverseMediaEngineModule().getCurrentSource();
+    return normalizeCurrentSource(raw);
   }
 
   destroy(): void {

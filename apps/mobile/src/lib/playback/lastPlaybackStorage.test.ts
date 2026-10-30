@@ -55,6 +55,18 @@ const addByRssTarget = {
   resourceData: { title: 'Local RSS' },
 } as PlaybackTarget;
 
+const livestreamTarget = {
+  channel: { id_text: 'channel-1' },
+  item: { id_text: 'item-live' },
+  kind: 'livestream',
+} as PlaybackTarget;
+
+const livestreamWithoutItemTarget = {
+  channel: { id_text: 'channel-1' },
+  item: null,
+  kind: 'livestream',
+} as PlaybackTarget;
+
 describe('lastPlaybackStorage', () => {
   beforeEach(() => {
     inMemoryStore.clear();
@@ -82,6 +94,15 @@ describe('lastPlaybackStorage', () => {
     it('skips add-by-rss targets', () => {
       expect(lastPlaybackIdentityFromTarget(addByRssTarget)).toBeNull();
     });
+
+    it('snapshots a livestream item and skips a livestream with no item', () => {
+      expect(lastPlaybackIdentityFromTarget(livestreamTarget)).toEqual({
+        id_text: 'item-live',
+        is_live: true,
+        kind: 'item',
+      });
+      expect(lastPlaybackIdentityFromTarget(livestreamWithoutItemTarget)).toBeNull();
+    });
   });
 
   describe('lastPlaybackSnapshotFromTarget', () => {
@@ -103,6 +124,17 @@ describe('lastPlaybackStorage', () => {
 
     it('returns null for unsupported targets', () => {
       expect(lastPlaybackSnapshotFromTarget(addByRssTarget, 10, 100)).toBeNull();
+    });
+
+    it('snapshots a livestream at position 0 without a file duration', () => {
+      expect(lastPlaybackSnapshotFromTarget(livestreamTarget, 1200, 1210)).toEqual({
+        id_text: 'item-live',
+        is_live: true,
+        kind: 'item',
+        playback_position_seconds: 0,
+        updated_at: expect.any(String),
+        v: 1,
+      });
     });
   });
 
@@ -154,6 +186,25 @@ describe('lastPlaybackStorage', () => {
           })
         )
       ).toBeNull();
+    });
+
+    it('round-trips is_live and rejects any other value', () => {
+      const row = {
+        id_text: 'item-live',
+        kind: 'item',
+        playback_position_seconds: 0,
+        updated_at: '2026-01-01T00:00:00.000Z',
+        v: 1,
+      };
+      expect(parseLastPlaybackSnapshot(JSON.stringify({ ...row, is_live: true }))).toEqual({
+        ...row,
+        is_live: true,
+      });
+      const withoutLive = parseLastPlaybackSnapshot(JSON.stringify(row));
+      expect(withoutLive).toEqual(row);
+      expect(withoutLive).not.toHaveProperty('is_live');
+      expect(parseLastPlaybackSnapshot(JSON.stringify({ ...row, is_live: false }))).toBeNull();
+      expect(parseLastPlaybackSnapshot(JSON.stringify({ ...row, is_live: 'yes' }))).toBeNull();
     });
   });
 

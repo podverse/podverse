@@ -14,7 +14,11 @@ import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 
 import type { AddByRSSResourceData } from '@podverse/helpers';
-import { primaryLightboxArtworkUrl, primaryListArtworkUrl } from '@podverse/helpers';
+import {
+  primaryLightboxArtworkUrl,
+  primaryListArtworkUrl,
+  resolveItemLiveStatusId,
+} from '@podverse/helpers';
 import type { DTOPlaybackResourceRef } from '@podverse/helpers/accountPlaybackStream';
 import type {
   DTOChannel,
@@ -25,7 +29,7 @@ import type {
   DTOQueue,
   DTOQueueResource,
 } from '@podverse/helpers/dto';
-import { getErrorCode } from '@podverse/helpers/error';
+import { getErrorCode, getErrorResponseStatus } from '@podverse/helpers/error';
 import type {
   EnclosureSelectedParams,
   LabeledItemEnclosure,
@@ -61,6 +65,7 @@ import {
   clampCommandStartToFileEnd,
   clampPlaybackPositionForStorage,
 } from '@podverse/playback-core/clampNearEndSeconds';
+import { clampLiveSeekSeconds, isRewindableLiveWindow } from '@podverse/playback-core/livePlayback';
 import { resolvePlaybackLoadDecision } from '@podverse/playback-core/resolvePlaybackLoadDecision';
 import { resolveQueueAdvance } from '@podverse/playback-core/resolveQueueAdvance';
 
@@ -144,7 +149,11 @@ import {
   writeLastPlaybackSnapshot,
 } from '../lib/playback/lastPlaybackStorage';
 import { engineSourceMatchesTarget } from '../lib/playback/mediaEngineSourceMeta';
-import { resolveMediaFileDurationHintSeconds } from '../lib/playback/mediaFileDurationHint';
+import {
+  resolveLoadDurationSeconds,
+  resolveMediaFileDurationHintSeconds,
+  resolveSampleDurationSeconds,
+} from '../lib/playback/mediaFileDurationHint';
 import { decideAdoptedContinuation } from '../lib/playback/nativeAdvanceSource';
 import {
   DOWNLOAD_HANDOFF_POSITION_TOLERANCE_SECONDS,
@@ -164,6 +173,7 @@ import {
   resolveLocalDownloadPlaybackUrl,
   resolvePlaybackUrl,
 } from '../lib/playback/resolvePlaybackUrl';
+import { resolveRestoredItemLoad } from '../lib/playback/restoredItemLoad';
 import { shouldPostSeekEventNow } from '../lib/playback/seekEventCoalescing';
 import { isSeekHoldSampleLanded, SEEK_HOLD_MAX_MS } from '../lib/playback/seekPositionHold';
 import { isEffectivelyOffline, subscribeConnectivity } from '../net/connectivity';
@@ -199,8 +209,20 @@ import {
   playbackResourceRefFromTarget,
 } from './crossDevice/crossDevicePlaybackPolicy';
 import type { LocalPlaybackChangeKind } from './crossDevice/crossDevicePlaybackPublisher';
-import { getCrossDevicePlaybackView } from './crossDevice/crossDevicePlaybackStore';
+import type { CrossDevicePlaybackView } from './crossDevice/crossDevicePlaybackStore';
+import {
+  getCrossDevicePlaybackView,
+  subscribeCrossDevicePlaybackView,
+} from './crossDevice/crossDevicePlaybackStore';
 import { useCrossDevicePlayback } from './crossDevice/useCrossDevicePlayback';
+import {
+  getLivePlaybackHasPlayed,
+  getLivePlaybackWindow,
+  markLivePlaybackPlayed,
+  resetLivePlayback,
+  setLivePlaybackSample,
+  setLivePlaybackWindow,
+} from './livePlaybackStore';
 import { resolveNowPlayingAddByRssChapters } from './nowPlayingAddByRssSections';
 import { buildPlaybackErrorLog, playbackErrorLogSignature } from './playbackErrorLog';
 import {
@@ -503,6 +525,26 @@ const resolveQueueResourcePlayItem = (
   }
 };
 
+/**
+ * Whether this session may move an ended livestream at the account's queue head to History. The
+ * active device owns its head, so a session in the `remote` role writes nothing. The role is
+ * unknown until this session's first check-in settles: `pending`, and also `off`, which is the
+ * value before the account and its stream are up. A session that stays `off` writes nothing and
+ * leaves the player empty. While `unavailable`, this device cannot see the others and keeps the
+ * last role it knew.
+ */
+const resolveQueueHeadOwnership = (
+  view: Pick<CrossDevicePlaybackView, 'availability' | 'role'>
+): 'owner' | 'not-owner' | 'unknown' => {
+  if (view.availability === 'pending' || view.availability === 'off') {
+    return 'unknown';
+  }
+  return view.role === 'remote' ? 'not-owner' : 'owner';
+};
+
+/** A cold-start load: the server's copy when it answered, else the copy already in hand. */
+type RestoredItemLoadChoice = { action: 'load'; item: DTOItem } | { action: 'retire' };
+
 export type PlaybackContextValue = {
   activeTarget: PlaybackTarget | null;
   nowPlaying: PlaybackNowPlaying | null;
@@ -555,6 +597,11 @@ export type PlaybackContextValue = {
   retryPlayback: () => Promise<void>;
   seekTo: (seconds: number) => void;
   jumpBy: (deltaSeconds: number) => void;
+  /**
+   * Go to a livestream's live moment and play: a seek to the live edge, or a reconnect when the
+   * stream holds no window. Does nothing for other items or while another device plays.
+   */
+  goToLive: () => Promise<void>;
   /** Tap: chapter-aware previous (or restart / previous queue item). */
   skipToPrevious: () => Promise<void>;
   /** Hold: previous queue item, ignoring chapters. */
@@ -625,8 +672,14 @@ let lastPlaybackRestoreStarted = false;
 /** True after the once-per-process snapshot restore has finished (including a null snapshot). */
 let lastPlaybackRestoreSettled = false;
 
+/** Ended livestream queue heads one adopt moves to History before it stops with an empty player. */
+const RESTORED_QUEUE_HEAD_RETIRE_LIMIT = 3;
+
 /** How long a start-play latch stays up after `playing` so a startup `paused` cannot flash the play icon. */
 const START_PLAY_SETTLE_MS = 300;
+
+/** While a livestream is paused, how often the provider re-reads its window from the engine. */
+const LIVE_PAUSED_WINDOW_REFRESH_MS = 1000;
 
 /**
  * How long a start-play latch can stay up if `playing` never arrives. Past this, a later pause
@@ -1234,6 +1287,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     positionRef.current = 0;
     durationRef.current = 0;
     resetPlaybackProgress();
+    resetLivePlayback();
     setActiveTarget(null);
     setNowPlaying(null);
     setPlaybackPlaying(false);
@@ -1324,6 +1378,21 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         recordPlaybackError(failure, target, params.url);
         setLastPlaybackError(failure);
         setTransportState('error');
+        const failedStartSeconds =
+          params.explicitPlaybackSeconds !== undefined && !isLivePlaybackTarget(target)
+            ? params.explicitPlaybackSeconds
+            : 0;
+        positionRef.current = failedStartSeconds;
+        durationRef.current = resolveLoadDurationSeconds({
+          hintSeconds: params.mediaFileDurationHintSeconds,
+          isLive: isLivePlaybackTarget(target),
+        });
+        clearSeekHold();
+        setPlaybackProgress({
+          durationSeconds: durationRef.current,
+          positionSeconds: failedStartSeconds,
+        });
+        resetLivePlayback();
         activeTargetRef.current = target;
         setActiveTarget(target);
         setNowPlaying(params.summary);
@@ -1353,9 +1422,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         clearAddByRssFeedWalk();
       }
       positionRef.current = decision.initialSeekSeconds;
-      durationRef.current =
-        params.mediaFileDurationHintSeconds !== undefined ? params.mediaFileDurationHintSeconds : 0;
+      durationRef.current = resolveLoadDurationSeconds({
+        hintSeconds: params.mediaFileDurationHintSeconds,
+        isLive: isLivePlaybackTarget(target),
+      });
       const shouldAutoPlay = params.autoPlayOverride ?? decision.shouldAutoPlay;
+      resetLivePlayback();
       setActiveTarget(target);
       setNowPlaying(params.summary);
       setPlaybackProgress({
@@ -2532,6 +2604,58 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     ]
   );
 
+  /**
+   * Whether a restored item loads, and which copy. Only the item read fresh from the server on
+   * this load retires it: ended, or a 404. With no answer (offline, timeout, 5xx) the copy in hand
+   * loads. Start and end times are never read.
+   *
+   * - `snapshot`: the device-local last-playback item, read through `getItemByIdText`. That throws
+   *   a 404 only when nothing is stored, so the item is gone. The fresh read runs only for an item
+   *   known to be live, so an episode already on the device costs no request.
+   * - `queue`: a server queue row. Queue rows carry no `live_item`, so every one is read fresh.
+   */
+  const readRestoredItemLoad = useCallback(
+    async (
+      source:
+        { kind: 'snapshot'; idText: string; isLive: boolean } | { kind: 'queue'; item: DTOItem }
+    ): Promise<RestoredItemLoadChoice> => {
+      const context = buildContext();
+      let copy: DTOItem;
+      let knownLiveBeforeFetch: boolean;
+      if (source.kind === 'snapshot') {
+        try {
+          copy = await playbackContentRepository.getItemByIdText(context, source.idText);
+        } catch (error) {
+          if (getErrorResponseStatus(error) === 404) {
+            return { action: 'retire' };
+          }
+          throw error;
+        }
+        knownLiveBeforeFetch = source.isLive || resolveItemLiveStatusId(copy) !== null;
+        if (!knownLiveBeforeFetch) {
+          return { action: 'load', item: copy };
+        }
+      } else {
+        copy = source.item;
+        knownLiveBeforeFetch = resolveItemLiveStatusId(copy) !== null;
+        if (!knownLiveBeforeFetch) {
+          // The flag never changes the decision, so a failed local read only leaves it false.
+          const stored = await playbackContentRepository
+            .getStoredItemByIdText(copy.id_text)
+            .catch(() => null);
+          knownLiveBeforeFetch = stored !== null && resolveItemLiveStatusId(stored) !== null;
+        }
+      }
+      const fresh = await playbackContentRepository.fetchFreshItemByIdText(context, copy.id_text);
+      const decision = resolveRestoredItemLoad({ fresh, knownLiveBeforeFetch });
+      if (decision.action === 'retire') {
+        return { action: 'retire' };
+      }
+      return { action: 'load', item: decision.action === 'load' ? decision.item : copy };
+    },
+    [buildContext]
+  );
+
   // Universal last-playback restore: every resolved auth status restores the device-local
   // now-playing snapshot once per process, loaded paused so cold start never blasts audio. Sign-in
   // (anonymous → authenticated) clears the snapshot so the account's server queue is authoritative.
@@ -2592,12 +2716,23 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           });
           return;
         }
-        const item = await playbackContentRepository.getItemByIdText(context, snapshot.id_text);
-        const channel = await ensureChannel(item);
+        const restored = await readRestoredItemLoad({
+          idText: snapshot.id_text,
+          isLive: snapshot.is_live === true,
+          kind: 'snapshot',
+        });
+        if (restored.action === 'retire') {
+          // Nothing loads. Signed in, the queue-head adopt that follows loads the next item.
+          if (await snapshotStillCurrent()) {
+            await clearLastPlaybackSnapshot();
+          }
+          return;
+        }
+        const channel = await ensureChannel(restored.item);
         if (channel === null || !(await snapshotStillCurrent())) {
           return;
         }
-        await startItemPlayback(item, channel, {
+        await startItemPlayback(restored.item, channel, {
           autoPlayOverride: false,
           autoQueue: { mode: 'clear' },
           explicitPlaybackSeconds: snapshot.playback_position_seconds,
@@ -2610,7 +2745,14 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
       }
     },
-    [buildContext, ensureChannel, startClipPlayback, startItemPlayback, startSoundbitePlayback]
+    [
+      buildContext,
+      ensureChannel,
+      readRestoredItemLoad,
+      startClipPlayback,
+      startItemPlayback,
+      startSoundbitePlayback,
+    ]
   );
 
   const isAdoptedSourceCurrent = useCallback((idText: string): boolean => {
@@ -2893,6 +3035,10 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         };
       })();
       const { builtFromMeta, channel, item, summary, target } = adopted;
+      const adoptedDurationSeconds = resolveLoadDurationSeconds({
+        hintSeconds: durationSeconds,
+        isLive: isLivePlaybackTarget(target),
+      });
       // A clip, soundbite, or Add by RSS source shown as a whole item from engine metadata.
       const isInterim = !playsWholeItem && adoptedAddByRssData === null && rowTarget === null;
       const restoredAutoQueue = continuation?.autoQueue ?? null;
@@ -2920,15 +3066,19 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         getListenSession().load({
           directive: 'start',
           target: listenSessionTargetFromPlaybackTarget(target),
-          mediaDurationSeconds: durationSeconds > 0 ? durationSeconds : null,
+          mediaDurationSeconds: adoptedDurationSeconds > 0 ? adoptedDurationSeconds : null,
         });
       }
       positionRef.current = positionSeconds;
-      durationRef.current = durationSeconds;
+      durationRef.current = adoptedDurationSeconds;
       setActiveTarget(target);
       setNowPlaying(summary);
       setLastPlaybackError(null);
-      setPlaybackProgress({ durationSeconds, positionSeconds });
+      resetLivePlayback();
+      if (source.isPlaying === true) {
+        markLivePlaybackPlayed();
+      }
+      setPlaybackProgress({ durationSeconds: adoptedDurationSeconds, positionSeconds });
       if (source.isPlaying !== undefined) {
         setPlaybackPlaying(source.isPlaying);
         setTransportState(source.isPlaying ? 'playing' : 'paused');
@@ -3122,33 +3272,85 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      const resourceRef = resolveQueueResourceRef(resourceToLoad);
-      const attemptKey =
-        resourceRef === null
-          ? null
-          : `${queueIdTextForLoad}:${resourceRef.resourceKind}:${resourceRef.resourceIdText}`;
-      if (attemptKey !== null && queueHeadAdoptAttemptedRef.current === attemptKey) {
-        return;
-      }
-      if (attemptKey !== null) {
-        queueHeadAdoptAttemptedRef.current = attemptKey;
-      }
-
-      try {
-        await playQueueResource(resourceToLoad, 'session_restore', {
-          autoPlayOverride: false,
-          autoQueue: { mode: 'clear' },
-          explicitPlaybackSeconds: normalizePlaybackPosition(resourceToLoad.playback_position),
-        });
-      } catch (error) {
-        if (__DEV__) {
-          console.warn('[playback] queue-head adopt load failed', error);
+      // An ended livestream at the head is treated like a finished item: it moves to History,
+      // and the next head is checked the same way. The write is a quiet zone move, not a listen.
+      let retiredCount = 0;
+      while (resourceToLoad !== null) {
+        const resourceRef = resolveQueueResourceRef(resourceToLoad);
+        const attemptKey =
+          resourceRef === null
+            ? null
+            : `${queueIdTextForLoad}:${resourceRef.resourceKind}:${resourceRef.resourceIdText}`;
+        if (attemptKey !== null && queueHeadAdoptAttemptedRef.current === attemptKey) {
+          return;
         }
+        if (attemptKey !== null) {
+          queueHeadAdoptAttemptedRef.current = attemptKey;
+        }
+
+        let headToLoad = resourceToLoad;
+        if (resourceRef?.resourceKind === 'item') {
+          const restored = await readRestoredItemLoad({ item: resourceToLoad.item, kind: 'queue' });
+          if (activeTargetRef.current !== null) {
+            return;
+          }
+          if (restored.action === 'retire') {
+            const ownership = resolveQueueHeadOwnership(getCrossDevicePlaybackView());
+            if (ownership === 'unknown') {
+              // Read this head again once the first check-in settles.
+              queueHeadAdoptAttemptedRef.current = null;
+              return;
+            }
+            if (ownership === 'not-owner') {
+              return;
+            }
+            try {
+              await queueRepository.moveNowPlayingToHistory(context, queueIdTextForLoad, {
+                completed: true,
+                idText: resourceRef.resourceIdText,
+                kind: 'item',
+                playbackPosition: '0',
+              });
+            } catch (error) {
+              if (__DEV__) {
+                console.warn('[playback] ended queue-head retire failed', {
+                  error,
+                  idText: resourceRef.resourceIdText,
+                  queueIdText: queueIdTextForLoad,
+                });
+              }
+              return;
+            }
+            retiredCount += 1;
+            if (retiredCount >= RESTORED_QUEUE_HEAD_RETIRE_LIMIT) {
+              return;
+            }
+            resourceToLoad = await resolveQueueHeadResource(queueIdTextForLoad);
+            if (activeTargetRef.current !== null) {
+              return;
+            }
+            continue;
+          }
+          headToLoad = { ...resourceToLoad, item: restored.item };
+        }
+
+        try {
+          await playQueueResource(headToLoad, 'session_restore', {
+            autoPlayOverride: false,
+            autoQueue: { mode: 'clear' },
+            explicitPlaybackSeconds: normalizePlaybackPosition(headToLoad.playback_position),
+          });
+        } catch (error) {
+          if (__DEV__) {
+            console.warn('[playback] queue-head adopt load failed', error);
+          }
+        }
+        return;
       }
     } finally {
       queueHeadAdoptInFlightRef.current = false;
     }
-  }, [buildContext, loadActive, playQueueResource]);
+  }, [buildContext, loadActive, playQueueResource, readRestoredItemLoad]);
 
   useEffect(() => {
     const previousStatus = previousAuthStatusRef.current;
@@ -3226,6 +3428,20 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     void adoptQueueHeadWhenPlayerEmpty();
   }, [activeQueueUpcomingResources, adoptQueueHeadWhenPlayerEmpty, queueDataRevision, status]);
 
+  // An ended queue head waits for this session's first check-in before it moves to History, so
+  // the adopt runs again once the role is known.
+  useEffect(() => {
+    let previousOwnership = resolveQueueHeadOwnership(getCrossDevicePlaybackView());
+    return subscribeCrossDevicePlaybackView(() => {
+      const ownership = resolveQueueHeadOwnership(getCrossDevicePlaybackView());
+      const settled = previousOwnership === 'unknown' && ownership !== 'unknown';
+      previousOwnership = ownership;
+      if (settled) {
+        void adoptQueueHeadWhenPlayerEmpty();
+      }
+    });
+  }, [adoptQueueHeadWhenPlayerEmpty]);
+
   const reconcileFromNative = useCallback((): void => {
     void (async () => {
       try {
@@ -3240,15 +3456,48 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           positionRef.current = position;
           setPlaybackPositionSeconds(position);
         }
-        if (Number.isFinite(duration) && duration > 0) {
-          durationRef.current = duration;
-          setPlaybackDurationSeconds(duration);
+        const target = activeTargetRef.current;
+        const healedDurationSeconds = resolveSampleDurationSeconds({
+          isLive: target !== null && isLivePlaybackTarget(target),
+          sampleSeconds: duration,
+        });
+        if (healedDurationSeconds !== null) {
+          durationRef.current = healedDurationSeconds;
+          setPlaybackDurationSeconds(healedDurationSeconds);
         }
       } catch {
         // Best-effort heal after a missed native event window (e.g. Fast Refresh).
       }
     })();
   }, [isPositionHeldBySeek]);
+
+  useEffect(() => {
+    if (activeTarget === null || !isLivePlaybackTarget(activeTarget) || isPlaying) {
+      return;
+    }
+    const intervalId = setInterval(() => {
+      if (appStateRef.current !== 'active' || !getLivePlaybackHasPlayed()) {
+        return;
+      }
+      void (async () => {
+        const source = await nativePlaybackBridge.getCurrentSource().catch(() => null);
+        const target = activeTargetRef.current;
+        if (
+          source === null ||
+          !source.isLive ||
+          target === null ||
+          !isLivePlaybackTarget(target) ||
+          !engineSourceMatchesTarget(source.meta?.idText ?? null, target)
+        ) {
+          return;
+        }
+        setLivePlaybackWindow(source.liveWindow);
+      })();
+    }, LIVE_PAUSED_WINDOW_REFRESH_MS);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [activeTarget, isPlaying]);
 
   useNativePlaybackBridge({
     ended: () => {
@@ -3378,14 +3627,27 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
         clearDownloadSourceSwap();
       }
+      const loadedTarget = activeTargetRef.current;
+      if (
+        event.isLive &&
+        loadedTarget !== null &&
+        isLivePlaybackTarget(loadedTarget) &&
+        engineSourceMatchesTarget(engineSourceIdTextRef.current, loadedTarget)
+      ) {
+        setLivePlaybackSample({ engineWindow: event.liveWindow, isPlaying: isPlayingRef.current });
+      }
       if (isPositionHeldBySeek(event.positionSeconds)) {
         return;
       }
       positionRef.current = event.positionSeconds;
       setPlaybackPositionSeconds(event.positionSeconds);
-      if (event.durationSeconds > 0) {
-        durationRef.current = event.durationSeconds;
-        setPlaybackDurationSeconds(event.durationSeconds);
+      const sampleDurationSeconds = resolveSampleDurationSeconds({
+        isLive: loadedTarget !== null && isLivePlaybackTarget(loadedTarget),
+        sampleSeconds: event.durationSeconds,
+      });
+      if (sampleDurationSeconds !== null) {
+        durationRef.current = sampleDurationSeconds;
+        setPlaybackDurationSeconds(sampleDurationSeconds);
       }
 
       const activeTarget = activeTargetRef.current;
@@ -3424,8 +3686,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
       }
 
-      if (event.durationSeconds > 0) {
-        getListenSession().setMediaDuration(event.durationSeconds);
+      if (sampleDurationSeconds !== null && sampleDurationSeconds > 0) {
+        getListenSession().setMediaDuration(sampleDurationSeconds);
       }
       getListenSession().recordPosition({
         positionSeconds: event.positionSeconds,
@@ -3677,6 +3939,37 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   seekToRef.current = seekTo;
 
   /**
+   * Pressing Live. Always plays: the live moment moves on, so landing there paused would be
+   * stale. The engine seeks to the live edge, or reconnects a progressive stream.
+   */
+  const goToLive = useCallback(async (): Promise<void> => {
+    const target = activeTargetRef.current;
+    if (target === null || !isLivePlaybackTarget(target)) {
+      return;
+    }
+    const wasPlaying = isPlayingRef.current;
+    clearSeekHold();
+    getListenSession().recordSeek();
+    const liveWindow = getLivePlaybackWindow();
+    if (liveWindow !== null) {
+      positionRef.current = liveWindow.liveEdgeSeconds;
+      setPlaybackPositionSeconds(liveWindow.liveEdgeSeconds);
+    }
+    markLivePlaybackPlayed();
+    await nativePlaybackBridge.goToLive();
+    setPlaybackPlaying(true);
+    setTransportState('playing');
+    if (!wasPlaying) {
+      await writePlaybackEvent({
+        eventKind: playbackEventFromDiscreteSignal('play'),
+        forceNetwork: true,
+        isPlaying: true,
+        playbackPositionSeconds: positionRef.current,
+      });
+    }
+  }, [clearSeekHold, getListenSession, setPlaybackPlaying, writePlaybackEvent]);
+
+  /**
    * A seek another device asked for. At or past this phone's own file end it lands 5 seconds before
    * the end; while the engine does not know the duration yet, the guard applies that once it does.
    */
@@ -3784,7 +4077,18 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const jumpBy = useCallback(
     (deltaSeconds: number) => {
       const target = activeTargetRef.current;
-      if (target === null || target.kind === 'livestream') {
+      if (target === null) {
+        return;
+      }
+      if (isLivePlaybackTarget(target)) {
+        const liveWindow = getLivePlaybackWindow();
+        if (!isRewindableLiveWindow(liveWindow)) {
+          return;
+        }
+        const fromSeconds = getLivePlaybackHasPlayed()
+          ? Math.min(positionRef.current, liveWindow.liveEdgeSeconds)
+          : liveWindow.liveEdgeSeconds;
+        seekTo(clampLiveSeekSeconds(liveWindow, fromSeconds + deltaSeconds));
         return;
       }
       const bounds = seekBoundsFromTarget(target, durationRef.current, positionRef.current);
@@ -4068,6 +4372,23 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           continue;
         }
 
+        // An ended or missing livestream is never offered. Nothing is written: the device that
+        // owns that row retires it.
+        let promptResource = remoteResource;
+        if (remoteRef.resourceKind === 'item') {
+          const restored = await readRestoredItemLoad({ item: remoteResource.item, kind: 'queue' });
+          if (cancelled) {
+            return;
+          }
+          if (restored.action === 'retire') {
+            rememberPlaybackHandoffDismissal(
+              buildPlaybackHandoffDismissedStateKey(conflict.remote)
+            );
+            continue;
+          }
+          promptResource = { ...remoteResource, item: restored.item };
+        }
+
         const localTitlePromise = resolveConflictStateTitle(conflict.local);
         const serverTitle = queueResourceTitle(remoteResource);
         const resolvedServerTitle =
@@ -4086,7 +4407,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
           conflict,
           dismissedStateKey: buildPlaybackHandoffDismissedStateKey(conflict.remote),
           localTitle,
-          remoteResource,
+          remoteResource: promptResource,
           serverTitle: resolvedServerTitle,
         });
         return;
@@ -4101,6 +4422,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     handoffGate,
     playbackHandoffPrompt,
     playbackReconcileConflicts,
+    readRestoredItemLoad,
+    rememberPlaybackHandoffDismissal,
     resolveConflictStateTitle,
   ]);
 
@@ -4181,6 +4504,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     },
     [crossDevice, jumpBy]
   );
+
+  const routedGoToLive = useCallback<PlaybackContextValue['goToLive']>(async () => {
+    if (crossDevice.isRemote()) {
+      return;
+    }
+    await goToLive();
+  }, [crossDevice, goToLive]);
 
   const routedSetRate = useCallback<PlaybackContextValue['setRate']>(
     (rate) => {
@@ -4413,6 +4743,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       lastPlaybackError,
       completeNowPlaying,
       jumpBy: routedJumpBy,
+      goToLive: routedGoToLive,
       seekTo: routedSeekTo,
       setRate: routedSetRate,
       switchEnclosureSelectedParams,
@@ -4445,6 +4776,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       previewWindow,
       retryPlayback,
       lastPlaybackError,
+      routedGoToLive,
       routedJumpBy,
       routedPause,
       routedPlayAddByRssResourceData,

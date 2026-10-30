@@ -19,6 +19,7 @@ import {
   resolveRemoteJumpTarget,
 } from '../lib/crossDevicePlayback/remotePlaybackRouting';
 import { sendPlaybackCommand } from '../lib/crossDevicePlayback/sendPlaybackCommand';
+import { liveMediaStore } from '../lib/livePlayback/liveMediaStore';
 
 export type PlayerTransport = {
   isRemote: boolean;
@@ -30,6 +31,7 @@ export type PlayerTransport = {
   seekTo: (seconds: number) => void;
   jumpBy: (deltaSeconds: number) => void;
   cyclePlaybackSpeed: () => void;
+  goToLive: () => void;
 };
 
 /**
@@ -97,10 +99,14 @@ export function usePlayerTransport(): PlayerTransport {
         void sendPlaybackCommand({ type: 'seek', position_seconds: positionSeconds });
         return;
       }
+      if (isPlayerResourceLive({ mpItem, mpAddByRSS })) {
+        liveMediaStore.seekTo(seconds);
+        return;
+      }
       seek(seconds);
       setMPCurrentTime(seconds);
     },
-    [seek, setMPCurrentTime]
+    [mpAddByRSS, mpItem, seek, setMPCurrentTime]
   );
 
   const jumpBy = useCallback(
@@ -121,10 +127,26 @@ export function usePlayerTransport(): PlayerTransport {
         void sendPlaybackCommand({ type: 'seek', position_seconds: positionSeconds });
         return;
       }
+      if (isPlayerResourceLive({ mpItem, mpAddByRSS })) {
+        liveMediaStore.jumpBy(deltaSeconds);
+        return;
+      }
       setMPCurrentTime(jumpByOnElement(deltaSeconds));
     },
-    [jumpByOnElement, setMPCurrentTime]
+    [jumpByOnElement, mpAddByRSS, mpItem, setMPCurrentTime]
   );
+
+  const goToLive = useCallback(() => {
+    const remote = readRemoteControlState();
+    if (remote.kind === 'drop' || remote.kind === 'remote') {
+      return;
+    }
+    if (!isPlayerResourceLive({ mpItem, mpAddByRSS })) {
+      return;
+    }
+    liveMediaStore.goToLive();
+    setMPIsPlaying(true);
+  }, [mpAddByRSS, mpItem, setMPIsPlaying]);
 
   const cyclePlaybackSpeed = useCallback(() => {
     const remote = readRemoteControlState();
@@ -164,5 +186,6 @@ export function usePlayerTransport(): PlayerTransport {
     seekTo,
     jumpBy,
     cyclePlaybackSpeed,
+    goToLive,
   };
 }

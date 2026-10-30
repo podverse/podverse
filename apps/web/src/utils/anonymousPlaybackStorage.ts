@@ -1,4 +1,4 @@
-import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import type { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import { isPlainObject } from '@podverse/helpers';
 
 import { LOCAL_STORAGE } from '../constants/localStorage';
@@ -14,6 +14,12 @@ export type AnonymousPlaybackSnapshotV1 = {
   id_text: string;
   playback_position_seconds: number;
   media_file_duration_seconds?: number;
+  /**
+   * The item and channel the player held, kept only for `kind: 'item'`. Restore loads this copy
+   * only when the server gives no answer for the item; the server's answer always wins.
+   */
+  stored_item?: DTOItem;
+  stored_channel?: DTOChannel;
   updated_at: string;
 };
 
@@ -23,9 +29,20 @@ export type AnonymousPlaybackWriteInput = {
   mpClip: DTOClip | null;
   mpItem: DTOItem | null;
   mpItemSoundbite: DTOItemSoundbite | null;
+  mpChannel?: DTOChannel | null;
   mpCurrentTime?: number;
   mpDuration?: number;
 };
+
+/** A stored item copy must name the snapshot's own item; anything else is dropped. */
+function isStoredItemCopy(value: unknown, idText: string): value is DTOItem {
+  return isPlainObject(value) && value.id_text === idText && typeof value.channel_id === 'number';
+}
+
+/** A stored channel copy must be the stored item's channel; anything else is dropped. */
+function isStoredChannelCopy(value: unknown, channelId: number): value is DTOChannel {
+  return isPlainObject(value) && value.id === channelId && typeof value.id_text === 'string';
+}
 
 export function parseAnonymousPlaybackSnapshot(
   raw: string | null
@@ -65,7 +82,17 @@ export function parseAnonymousPlaybackSnapshot(
     if (typeof parsed.updated_at !== 'string' || parsed.updated_at.length === 0) {
       return null;
     }
-    return parsed as AnonymousPlaybackSnapshotV1;
+    const { stored_item: storedItem, stored_channel: storedChannel, ...fields } = parsed;
+    // The checks above validated every field `AnonymousPlaybackSnapshotV1` requires.
+    const snapshot = fields as AnonymousPlaybackSnapshotV1;
+    if (
+      parsed.kind === 'item' &&
+      isStoredItemCopy(storedItem, parsed.id_text) &&
+      isStoredChannelCopy(storedChannel, storedItem.channel_id)
+    ) {
+      return { ...snapshot, stored_item: storedItem, stored_channel: storedChannel };
+    }
+    return snapshot;
   } catch {
     return null;
   }
@@ -145,6 +172,17 @@ export function writeAnonymousPlaybackSnapshotFromPlayerState(
 
   if (durationSeconds !== undefined) {
     snapshot.media_file_duration_seconds = durationSeconds;
+  }
+
+  if (
+    resolved.kind === 'item' &&
+    input.mpItem !== null &&
+    input.mpChannel !== null &&
+    input.mpChannel !== undefined &&
+    input.mpChannel.id === input.mpItem.channel_id
+  ) {
+    snapshot.stored_item = input.mpItem;
+    snapshot.stored_channel = input.mpChannel;
   }
 
   writeAnonymousPlaybackSnapshot(snapshot, storage);

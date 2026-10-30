@@ -1,6 +1,6 @@
 export type MediaPlayerKeyDownState = {
   hasResource: boolean;
-  isLiveItem: boolean;
+  canJump: boolean;
 };
 
 /**
@@ -22,7 +22,7 @@ export function handleMediaPlayerWindowKeyDown(
     if (e.repeat) {
       return;
     }
-    if (state.isLiveItem) {
+    if (!state.canJump) {
       return;
     }
     jumpBy(-10);
@@ -34,7 +34,7 @@ export function handleMediaPlayerWindowKeyDown(
     if (e.repeat) {
       return;
     }
-    if (state.isLiveItem) {
+    if (!state.canJump) {
       return;
     }
     jumpBy(10);

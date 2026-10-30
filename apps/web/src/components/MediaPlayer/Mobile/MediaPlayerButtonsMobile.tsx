@@ -1,6 +1,6 @@
 'use client';
 
-import { useRemotePlayerDisplay } from '../../../hooks/useRemotePlayerDisplay';
+import { useShowJumpButtons } from '../../../hooks/useShowJumpButtons';
 import { JumpBackButtonMobile } from '../Buttons/JumpBackButtonMobile';
 import { JumpForwardButtonMobile } from '../Buttons/JumpForwardButtonMobile';
 import { PlaybackDevicesButton } from '../Buttons/PlaybackDevicesButton';
@@ -13,8 +13,7 @@ import styles from '../../../styles/components/MediaPlayer/Mobile/MediaPlayerBut
  * track skip, and the other secondary controls are on the full-screen player.
  */
 export const MediaPlayerButtonsMobile = () => {
-  const remote = useRemotePlayerDisplay();
-  const showJumpButtons = remote === null || remote.controls.canSkip;
+  const showJumpButtons = useShowJumpButtons();
 
   return (
     <div className={styles.buttons}>

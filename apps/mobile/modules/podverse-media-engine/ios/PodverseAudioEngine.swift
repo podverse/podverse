@@ -209,6 +209,12 @@ public final class PodverseAudioEngine: NSObject {
   private var pendingInitialSeekSeconds: Double?
   /// Start playback only after `pendingInitialSeekSeconds` finishes.
   private var playAfterPendingSeek = false
+  /// True once the current item has played since it was loaded or reconnected. `play()` applies the
+  /// live resume rule only then, so a fresh paused load (cold-start restore) just starts.
+  private var hasPlayedCurrentItem = false
+  /// Live window presence the remote commands were last configured for. A live stream's seekable
+  /// range and access log fill in after the item is ready, so progress samples re-check it.
+  private var lastAppliedLiveWindowPresence: Bool?
   /// Clip end boundary in seconds; when set, playback completes at this position.
   private var clipEndSeconds: Double?
   /// Artwork URL whose async load is in flight (generation-guarded).
@@ -306,27 +312,16 @@ public final class PodverseAudioEngine: NSObject {
     let seek = initialSeekSeconds ?? 0
     pendingInitialSeekSeconds = seek > 0 ? seek : nil
     playAfterPendingSeek = playWhenPrepared && seek > 0
+    hasPlayedCurrentItem = false
+    lastAppliedLiveWindowPresence = nil
 
     // Drop per-item notification observers for the previous item before swapping (single-player,
     // replace-item lifecycle). The status KVO is invalidated by reassigning `statusObservation`.
     if let previous = currentItem {
-      NotificationCenter.default.removeObserver(
-        self, name: .AVPlayerItemDidPlayToEndTime, object: previous)
-      NotificationCenter.default.removeObserver(
-        self, name: .AVPlayerItemPlaybackStalled, object: previous)
+      removeItemNotificationObservers(previous)
     }
 
-    let item: AVPlayerItem
-    if let auth = basicAuth, !parsed.isFileURL {
-      let asset = AVURLAsset(url: parsed)
-      let delegate = PodverseMediaAuthLoaderDelegate(auth: auth)
-      asset.resourceLoader.setDelegate(delegate, queue: authLoaderQueue)
-      authLoaderDelegate = delegate
-      item = AVPlayerItem(asset: asset)
-    } else {
-      authLoaderDelegate = nil
-      item = AVPlayerItem(url: parsed)
-    }
+    let item = makePlayerItem(url: parsed, basicAuth: basicAuth)
     observeItemStatus(item)
     observeItemEnd(item)
     observeItemStalled(item)
@@ -379,6 +374,46 @@ public final class PodverseAudioEngine: NSObject {
     }
   }
 
+  /// Build the item for `url`. A credentialed remote item answers in-scope 401 challenges through
+  /// `PodverseMediaAuthLoaderDelegate`, retained in `authLoaderDelegate` while the item is loaded.
+  private func makePlayerItem(url: URL, basicAuth: ScopedBasicAuth?) -> AVPlayerItem {
+    if let auth = basicAuth, !url.isFileURL {
+      let asset = AVURLAsset(url: url)
+      let delegate = PodverseMediaAuthLoaderDelegate(auth: auth)
+      asset.resourceLoader.setDelegate(delegate, queue: authLoaderQueue)
+      authLoaderDelegate = delegate
+      return AVPlayerItem(asset: asset)
+    }
+    authLoaderDelegate = nil
+    return AVPlayerItem(url: url)
+  }
+
+  /// Main-thread only. Reconnect the loaded source on the same player: a fresh item for the same
+  /// URL and credentials, keeping the source meta and now-playing info. A progressive live stream
+  /// then plays what is live now instead of the buffer it kept while paused. Emits no
+  /// `sourceChanged` and writes no journal row; JS sees `loading` then `ready` as with any load.
+  private func reloadCurrentItem(playWhenReady: Bool) {
+    guard let source = loadedSource, let url = resolveSourceURL(source.url) else { return }
+    if let previous = currentItem {
+      removeItemNotificationObservers(previous)
+    }
+    loadGeneration += 1
+    pendingInitialSeekSeconds = nil
+    playAfterPendingSeek = false
+    hasPlayedCurrentItem = false
+    lastAppliedLiveWindowPresence = nil
+    let item = makePlayerItem(url: url, basicAuth: source.basicAuth)
+    observeItemStatus(item)
+    observeItemEnd(item)
+    observeItemStalled(item)
+    currentItem = item
+    publish(state: .loading)
+    player.replaceCurrentItem(with: item)
+    if playWhenReady {
+      startLoadedItem()
+    }
+  }
+
   private func appendJournal(eventKind: String, positionSeconds: Double) {
     guard let source = loadedSource, let meta = source.meta else { return }
     var entry: [String: Any] = [
@@ -397,8 +432,12 @@ public final class PodverseAudioEngine: NSObject {
     PodverseNativeCache.appendJournalEntry(entry)
   }
 
-  /// Current loaded source for JS adoption / restore. Nil when nothing is loaded.
+  /// Current loaded source for JS adoption / restore. Nil when nothing is loaded. Read on main,
+  /// because the live window comes from the current item.
   func getCurrentSource() -> [String: Any]? {
+    if !Thread.isMainThread {
+      return DispatchQueue.main.sync { self.getCurrentSource() }
+    }
     guard let source = loadedSource else { return nil }
     var payload: [String: Any] = [
       "url": source.url,
@@ -406,6 +445,8 @@ public final class PodverseAudioEngine: NSObject {
       "durationSeconds": getDuration(),
       // Play intent, so a source still buffering after a car start reads as playing.
       "isPlaying": player.timeControlStatus != .paused || playAfterPendingSeek,
+      "isLive": isLiveSourceLoaded,
+      "liveWindow": liveWindowPayload(currentLiveWindow()),
     ]
     if let meta = source.meta {
       payload["meta"] = meta.asDictionary()
@@ -466,7 +507,62 @@ public final class PodverseAudioEngine: NSObject {
       // later start deferred forever.
       self.isInterrupted = false
       self.resumeAfterInterruption = false
+      if self.isLiveSourceLoaded, self.hasPlayedCurrentItem,
+        self.player.timeControlStatus == .paused
+      {
+        self.resumeLiveSource()
+        return
+      }
       self.startPlayer()
+    }
+  }
+
+  /// Main-thread only. Resume a paused live source that has already played. In place while the
+  /// stream still holds the paused moment with `liveWindowStartMarginSeconds` to spare past the
+  /// window start; otherwise jump to the live edge, or reconnect a stream that holds no history.
+  private func resumeLiveSource() {
+    guard let window = currentLiveWindow() else {
+      reloadCurrentItem(playWhenReady: true)
+      return
+    }
+    let position = player.currentTime().seconds
+    if position.isFinite, position >= window.start + Self.liveWindowStartMarginSeconds {
+      startPlayer()
+      return
+    }
+    seekToLiveEdge(window.liveEdge) {
+      self.startPlayer()
+    }
+  }
+
+  /// Jump to the live point of a live source and play: seek to the live edge when the stream holds
+  /// a window, otherwise reconnect. No-op for a non-live source. During an interruption the start
+  /// waits for it to end, like any other start.
+  func goToLive() {
+    onMain { [weak self] in
+      guard let self = self, self.isLiveSourceLoaded else { return }
+      guard let window = self.currentLiveWindow() else {
+        self.reloadCurrentItem(playWhenReady: true)
+        return
+      }
+      self.seekToLiveEdge(window.liveEdge) {
+        self.updateNowPlayingElapsed()
+        self.emitProgress()
+        self.startLoadedItem()
+      }
+    }
+  }
+
+  /// Main-thread only. Seek to `liveEdge`, then run `completion` on main unless a load or reconnect
+  /// replaced the item in the meantime.
+  private func seekToLiveEdge(_ liveEdge: Double, completion: @escaping () -> Void) {
+    let generation = loadGeneration
+    let time = CMTime(seconds: liveEdge, preferredTimescale: 1000)
+    player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+      self?.onMain {
+        guard let self = self, generation == self.loadGeneration else { return }
+        completion()
+      }
     }
   }
 
@@ -513,11 +609,18 @@ public final class PodverseAudioEngine: NSObject {
     appendJournal(eventKind: "paused", positionSeconds: getPosition())
   }
 
-  /// Absolute seek in seconds; clamps to `[0, duration]` when a finite duration is known.
+  /// Absolute seek in seconds; clamps to `[0, duration]` when a finite duration is known. A live
+  /// source clamps into its window instead, and does not seek when it holds no window.
   func seek(seconds: Double) {
     onMain { [weak self] in
       guard let self = self else { return }
-      let clamped = self.clampToDuration(seconds)
+      let clamped: Double
+      if self.isLiveSourceLoaded {
+        guard let window = self.currentLiveWindow() else { return }
+        clamped = min(max(seconds, window.start), window.liveEdge)
+      } else {
+        clamped = self.clampToDuration(seconds)
+      }
       let time = CMTime(seconds: clamped, preferredTimescale: 1000)
       self.player.seek(to: time) { [weak self] _ in
         self?.updateNowPlayingElapsed()
@@ -547,6 +650,7 @@ public final class PodverseAudioEngine: NSObject {
 
   /// Current item duration in seconds (`0` when unknown / not yet loaded / live).
   func getDuration() -> Double {
+    guard !isLiveSourceLoaded else { return 0 }
     guard let duration = player.currentItem?.duration else { return 0 }
     let seconds = duration.seconds
     return seconds.isFinite ? seconds : 0
@@ -692,11 +796,12 @@ public final class PodverseAudioEngine: NSObject {
 
   /// The media server restarted, which invalidates the session configuration and every `AVPlayer`
   /// and `AVPlayerItem`. Rebuild the player, reapply the session, and reload the last source paused
-  /// at its playhead so the listener can press play instead of force-quitting the app.
+  /// at its playhead so the listener can press play instead of force-quitting the app. A live
+  /// source reloads at live, because its saved position does not survive the new item's timeline.
   @objc private func handleMediaServicesReset(_ notification: Notification) {
     onMain { [weak self] in
       guard let self = self else { return }
-      let position = self.getPosition()
+      let position: Double? = self.isLiveSourceLoaded ? nil : self.getPosition()
       let source = self.loadedSource
       self.isInterrupted = false
       self.resumeAfterInterruption = false
@@ -726,10 +831,7 @@ public final class PodverseAudioEngine: NSObject {
   /// new one. Remote command handlers read `self.player`, so they follow without re-registering.
   private func rebuildPlayer() {
     if let previous = currentItem {
-      NotificationCenter.default.removeObserver(
-        self, name: .AVPlayerItemDidPlayToEndTime, object: previous)
-      NotificationCenter.default.removeObserver(
-        self, name: .AVPlayerItemPlaybackStalled, object: previous)
+      removeItemNotificationObservers(previous)
     }
     if let token = timeObserverToken {
       player.removeTimeObserver(token)
@@ -868,14 +970,19 @@ public final class PodverseAudioEngine: NSObject {
   }
 
   /// Music offers track skips; podcasts and everything else offer the time skips. The car and lock
-  /// screen show one pair or the other, so the pair follows the loaded source.
+  /// screen show one pair or the other, so the pair follows the loaded source. A live source with
+  /// no window cannot seek, so it offers neither time skips nor the scrubber. Main-thread only.
   private func applyRemoteCommandAvailability() {
     let center = MPRemoteCommandCenter.shared()
     let isMusic = loadedSource?.meta?.queueMedium == "music"
+    let hasLiveWindow = currentLiveWindow() != nil
+    let isLiveWithoutWindow = isLiveSourceLoaded && !hasLiveWindow
+    lastAppliedLiveWindowPresence = hasLiveWindow
     center.nextTrackCommand.isEnabled = isMusic
     center.previousTrackCommand.isEnabled = isMusic
-    center.skipForwardCommand.isEnabled = !isMusic
-    center.skipBackwardCommand.isEnabled = !isMusic
+    center.skipForwardCommand.isEnabled = !isMusic && !isLiveWithoutWindow
+    center.skipBackwardCommand.isEnabled = !isMusic && !isLiveWithoutWindow
+    center.changePlaybackPositionCommand.isEnabled = !isLiveWithoutWindow
   }
 
   /// Previous restarts a track that is more than a few seconds in. Otherwise the phone's queue
@@ -917,6 +1024,7 @@ public final class PodverseAudioEngine: NSObject {
         self.publish(state: .stalled)
         self.emit(.stalled, ["positionSeconds": self.getPosition()])
       case .playing:
+        self.hasPlayedCurrentItem = true
         self.publish(state: .playing)
       @unknown default:
         break
@@ -946,11 +1054,26 @@ public final class PodverseAudioEngine: NSObject {
         self.lastJournalProgressAtMs = nowMs
         self.appendJournal(eventKind: "progress", positionSeconds: position)
       }
+      self.emitProgress()
+    }
+  }
+
+  /// Emit one `progress` sample. Every sample carries the live fields, and a change in live window
+  /// presence re-applies the remote commands.
+  private func emitProgress() {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      let window = self.currentLiveWindow()
+      if self.lastAppliedLiveWindowPresence != (window != nil) {
+        self.applyRemoteCommandAvailability()
+      }
       self.emit(
         .progress,
         [
-          "positionSeconds": position,
+          "positionSeconds": self.getPosition(),
           "durationSeconds": self.getDuration(),
+          "isLive": self.isLiveSourceLoaded,
+          "liveWindow": self.liveWindowPayload(window),
         ])
     }
   }
@@ -966,12 +1089,7 @@ public final class PodverseAudioEngine: NSObject {
         self.completePendingInitialSeek(generation: self.loadGeneration)
         // One progress sample as soon as the item is prepared so JS gets duration before the
         // periodic observer's next tick (and while paused with no autoplay).
-        self.emit(
-          .progress,
-          [
-            "positionSeconds": self.getPosition(),
-            "durationSeconds": self.getDuration(),
-          ])
+        self.emitProgress()
       case .failed:
         self.pendingInitialSeekSeconds = nil
         self.playAfterPendingSeek = false
@@ -985,6 +1103,12 @@ public final class PodverseAudioEngine: NSObject {
 
   /// Bound on the underlying-error walk, in case a chain is cyclic.
   private static let maxErrorCauseDepth = 8
+
+  /// A paused live source resumes in place only at or past the window start plus this margin,
+  /// which covers the start moving forward while paused or seeking. Must equal
+  /// `LIVE_WINDOW_START_MARGIN_SECONDS` in `@podverse/playback-core`;
+  /// `liveWindowStartMargin.ios.test.ts` checks it.
+  private static let liveWindowStartMarginSeconds: Double = 6
 
   /// `item_failed` plus, when available, the host's HTTP status (`httpStatus`), the URL that
   /// failed (`url`), and the NSError chain and last error-log entry (`detail`). Media is fetched
@@ -1051,6 +1175,13 @@ public final class PodverseAudioEngine: NSObject {
     NotificationCenter.default.addObserver(
       self, selector: #selector(handleItemStalled(_:)),
       name: .AVPlayerItemPlaybackStalled, object: item)
+  }
+
+  private func removeItemNotificationObservers(_ item: AVPlayerItem) {
+    NotificationCenter.default.removeObserver(
+      self, name: .AVPlayerItemDidPlayToEndTime, object: item)
+    NotificationCenter.default.removeObserver(
+      self, name: .AVPlayerItemPlaybackStalled, object: item)
   }
 
   func setJsOwnsAdvance(_ owns: Bool) {
@@ -1190,6 +1321,37 @@ public final class PodverseAudioEngine: NSObject {
       return URL(fileURLWithPath: url)
     }
     return URL(string: url)
+  }
+
+  /// The load meta marked the source live. Liveness is never guessed from the stream.
+  private var isLiveSourceLoaded: Bool {
+    loadedSource?.meta?.isLive == true
+  }
+
+  /// Main-thread only. The part of the live source the player can still play, in the player's
+  /// timeline, with the live edge held back by the stream's recommended offset from live. `nil`
+  /// when not live, before the item has a seekable range, and for progressive streams (access log
+  /// `FILE`), which can report a buffered span but stay live-only.
+  private func currentLiveWindow() -> (start: Double, liveEdge: Double)? {
+    guard isLiveSourceLoaded, let item = player.currentItem else { return nil }
+    if item.accessLog()?.events.last?.playbackType == "FILE" {
+      return nil
+    }
+    for value in item.seekableTimeRanges.reversed() {
+      let range = value.timeRangeValue
+      let start = range.start.seconds
+      let end = CMTimeRangeGetEnd(range).seconds
+      guard start.isFinite, end.isFinite, end > start else { continue }
+      let offsetSeconds = item.recommendedTimeOffsetFromLive.seconds
+      let offset = offsetSeconds.isFinite && offsetSeconds > 0 ? offsetSeconds : 0
+      return (start, max(start, end - offset))
+    }
+    return nil
+  }
+
+  private func liveWindowPayload(_ window: (start: Double, liveEdge: Double)?) -> Any {
+    guard let window = window else { return NSNull() }
+    return ["startSeconds": window.start, "liveEdgeSeconds": window.liveEdge]
   }
 
   private func clampToDuration(_ seconds: Double) -> Double {

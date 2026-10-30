@@ -34,6 +34,8 @@ export type AnonymousSnapshotPayload = {
   id_text: string;
   playback_position_seconds: number;
   media_file_duration_seconds?: number;
+  stored_item?: unknown;
+  stored_channel?: unknown;
   updated_at: string;
 };
 
@@ -42,6 +44,8 @@ export type WriteAnonymousSnapshotArgs = {
   itemIdText: string;
   playbackPositionSeconds: number;
   mediaFileDurationSeconds?: number;
+  storedItem?: unknown;
+  storedChannel?: unknown;
   updatedAtIso?: string;
 };
 
@@ -55,6 +59,12 @@ function buildSnapshotPayload(args: WriteAnonymousSnapshotArgs): AnonymousSnapsh
   };
   if (args.mediaFileDurationSeconds !== undefined) {
     snapshot.media_file_duration_seconds = args.mediaFileDurationSeconds;
+  }
+  if (args.storedItem !== undefined) {
+    snapshot.stored_item = args.storedItem;
+  }
+  if (args.storedChannel !== undefined) {
+    snapshot.stored_channel = args.storedChannel;
   }
   return snapshot;
 }

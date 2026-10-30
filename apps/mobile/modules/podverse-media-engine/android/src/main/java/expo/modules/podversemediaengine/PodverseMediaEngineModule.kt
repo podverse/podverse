@@ -89,6 +89,10 @@ class PodverseMediaEngineModule : Module() {
       PodverseAudioEngine.play(reactContext())
     }
 
+    AsyncFunction("goToLive") {
+      PodverseAudioEngine.goToLive(reactContext())
+    }
+
     Function("pause") {
       PodverseAudioEngine.pause()
     }

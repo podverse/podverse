@@ -87,6 +87,10 @@ public class PodverseMediaEngineModule: Module {
       PodverseAudioEngine.shared.play()
     }
 
+    AsyncFunction("goToLive") {
+      PodverseAudioEngine.shared.goToLive()
+    }
+
     Function("pause") {
       PodverseAudioEngine.shared.pause()
     }

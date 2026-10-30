@@ -17,7 +17,8 @@ export type PlaybackTabMessage =
       lastState: PlaybackStatePublishBody | null;
     }
   | { kind: 'tab-focused'; accountId: number; tabId: string; atMs: number }
-  | { kind: 'tab-gone'; accountId: number; tabId: string };
+  | { kind: 'tab-gone'; accountId: number; tabId: string }
+  | { kind: 'audio-tab-query'; accountId: number; tabId: string };
 
 export type PlaybackTabChannel = {
   /** False when this browser has no `BroadcastChannel`; every method then does nothing. */
@@ -26,6 +27,8 @@ export type PlaybackTabChannel = {
   announceAudioTabGone(lastState: PlaybackStatePublishBody | null): void;
   announceFocused(atMs: number): void;
   announceGone(): void;
+  /** Asks the tab that holds audio to announce itself. */
+  askForAudioTab(): void;
   close(): void;
 };
 
@@ -108,6 +111,8 @@ function readPlaybackTabMessage(value: unknown): PlaybackTabMessage | null {
     }
     case 'tab-gone':
       return { kind: 'tab-gone', accountId, tabId };
+    case 'audio-tab-query':
+      return { kind: 'audio-tab-query', accountId, tabId };
     default:
       return null;
   }
@@ -119,6 +124,7 @@ const UNAVAILABLE_PLAYBACK_TAB_CHANNEL: PlaybackTabChannel = {
   announceAudioTabGone: () => undefined,
   announceFocused: () => undefined,
   announceGone: () => undefined,
+  askForAudioTab: () => undefined,
   close: () => undefined,
 };
 
@@ -170,6 +176,9 @@ export function startPlaybackTabChannel(options: {
     },
     announceGone: () => {
       post({ kind: 'tab-gone', accountId, tabId });
+    },
+    askForAudioTab: () => {
+      post({ kind: 'audio-tab-query', accountId, tabId });
     },
     close: () => {
       if (closed) {

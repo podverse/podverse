@@ -27,6 +27,7 @@ import { resolveRemotePickCommand } from '../lib/crossDevicePlayback/remotePlayb
 import { sendPlaybackCommand } from '../lib/crossDevicePlayback/sendPlaybackCommand';
 import type { PlaybackLoadDecision, PlaybackLoadRequest, PlaybackTarget } from '../lib/playback';
 import { parsePlaybackSeconds } from '../lib/playback';
+import { checkIsLiveItem } from '../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 
 export type MediaPlayerPlaybackLoadInput = PlaybackLoadRequest & {
@@ -43,6 +44,17 @@ export type MediaPlayerPlaybackLoadInput = PlaybackLoadRequest & {
    */
   skipNowPlayingWrite?: boolean;
 };
+
+function isLiveTarget(target: PlaybackTarget): boolean {
+  switch (target.kind) {
+    case 'livestream':
+      return checkIsLiveItem(target.item);
+    case 'add-by-rss':
+      return false;
+    default:
+      return checkIsLiveItem(target.item);
+  }
+}
 
 function durationHintSecondsForTarget(
   target: PlaybackTarget,
@@ -204,6 +216,7 @@ export function useMediaPlayerResourceUpdate() {
     setMPItemLabeledItemEnclosures,
     setMPEnclosureSelectedParams,
     setMPIsPlaying,
+    setMPDuration,
     mpEnclosureSelectedParams,
     mpItem,
   } = useMediaPlayer();
@@ -325,20 +338,23 @@ export function useMediaPlayerResourceUpdate() {
     };
     const decision = applyPlaybackLoad(coreRequest);
 
-    setMPCurrentTime(decision.initialSeekSeconds);
-
+    const isLiveLoad = isLiveTarget(target);
     const rowDuration = durationHintSecondsForTarget(
       target,
       queueResourcesAbridgedIndexRef.current
     );
     const hintedDuration = parsePlaybackSeconds(mediaFileDurationHintSeconds);
     const finalDuration = hintedDuration !== undefined ? hintedDuration : rowDuration;
+    const loadedDuration = isLiveLoad ? 0 : finalDuration;
+    const loadedPosition = isLiveLoad ? 0 : decision.initialSeekSeconds;
+    setMPCurrentTime(loadedPosition);
+    setMPDuration(loadedDuration);
     if (!embedGuardrails.skipAutoQueueMutations && skipNowPlayingWrite !== true) {
       const np = nowPlayingFieldsFromTarget(target);
       void updateNowPlaying({
         ...np,
-        mpDuration: finalDuration,
-        mpCurrentTime: decision.initialSeekSeconds,
+        mpDuration: loadedDuration,
+        mpCurrentTime: loadedPosition,
         eventKind: 'play',
       });
     }

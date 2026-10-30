@@ -122,6 +122,19 @@ describe('startPlaybackTabChannel', () => {
     ]);
   });
 
+  it('delivers an audio-tab query to another tab of the same account and drops a malformed one', async () => {
+    const hub = createChannelHub();
+    const tabA = startTab(hub, { accountId: 1, tabId: 'tab-a' });
+    const tabB = startTab(hub, { accountId: 1, tabId: 'tab-b' });
+
+    tabA.channel.askForAudioTab();
+    hub.inject('podverse:playback-tabs', { kind: 'audio-tab-query', accountId: 1, tabId: '' });
+    await flush();
+
+    expect(tabB.received).toEqual([{ kind: 'audio-tab-query', accountId: 1, tabId: 'tab-a' }]);
+    expect(tabA.received).toEqual([]);
+  });
+
   it('is unavailable without a channel factory', () => {
     const received: PlaybackTabMessage[] = [];
     const channel = startPlaybackTabChannel({

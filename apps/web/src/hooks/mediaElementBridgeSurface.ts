@@ -9,6 +9,7 @@ import { playMediaWhenReady } from '../utils/mediaPlayer/mediaPlayerPlayMediaWhe
 type ManagedHlsPlayback = {
   src: string;
   destroy: () => void;
+  liveSyncPosition: () => number | null;
 };
 
 const managedHlsPlayback = new WeakMap<HTMLMediaElement, ManagedHlsPlayback>();
@@ -22,6 +23,15 @@ export function elementSupportsNativeHls(media: HTMLMediaElement): boolean {
 
 export function hasManagedNonLiveHls(media: HTMLMediaElement): boolean {
   return managedHlsPlayback.has(media);
+}
+
+/**
+ * Where hls.js places the live edge for an element it plays, on the element's timeline. Null for
+ * native HLS, a file, a detached element, or before hls.js has loaded the live playlist.
+ */
+export function readManagedHlsLiveSyncPosition(media: HTMLMediaElement): number | null {
+  const position = managedHlsPlayback.get(media)?.liveSyncPosition() ?? null;
+  return position !== null && Number.isFinite(position) ? position : null;
 }
 
 function destroyManagedHls(media: HTMLMediaElement): void {
@@ -68,6 +78,7 @@ export async function attachNonLiveHlsPlayback(
   let HlsCtor: {
     isSupported: () => boolean;
     new (): {
+      readonly liveSyncPosition: number | null;
       loadSource: (url: string) => void;
       attachMedia: (element: HTMLMediaElement) => void;
       destroy: () => void;
@@ -99,6 +110,7 @@ export async function attachNonLiveHlsPlayback(
     destroy: () => {
       hls.destroy();
     },
+    liveSyncPosition: () => hls.liveSyncPosition,
   });
   hls.loadSource(src);
   hls.attachMedia(media);

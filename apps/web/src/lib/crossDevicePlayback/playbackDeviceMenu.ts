@@ -27,7 +27,7 @@ function descriptionParts(
     parts.push('sending');
     return parts;
   }
-  if (entry.isActive) {
+  if (entry.isActive && !(entry.isThisDevice && role === 'idle')) {
     parts.push(entry.isThisDevice && role === 'remote' ? 'playing_in_another_tab' : 'playing');
   }
   return parts;

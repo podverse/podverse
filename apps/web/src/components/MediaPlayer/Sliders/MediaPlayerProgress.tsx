@@ -14,7 +14,9 @@ import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { useRemotePlayerDisplay } from '../../../hooks/useRemotePlayerDisplay';
+import { isPlayerResourceLive } from '../../../lib/crossDevicePlayback/playbackResource';
 import { ChapterProgressTooltip } from './ChapterProgressTooltip';
+import { LiveMediaPlayerProgress } from './LiveMediaPlayerProgress';
 import { RemoteMediaPlayerProgress } from './RemoteMediaPlayerProgress';
 
 import styles from '../../../styles/components/MediaPlayer/Sliders/MediaPlayerProgress.module.scss';
@@ -207,7 +209,9 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       )}
     >
       {showClock ? (
-        <span className={styles.mediaPlayerProgressTime}>{formatHHMMSS(mpCurrentTime)}</span>
+        <span className={styles.mediaPlayerProgressTime} data-testid="media-player-current-time">
+          {formatHHMMSS(mpCurrentTime)}
+        </span>
       ) : null}
       <div
         className={styles.customProgressBar}
@@ -257,7 +261,9 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
         />
       ) : null}
       {showClock ? (
-        <span className={styles.mediaPlayerProgressDuration}>{formatHHMMSS(mpDuration)}</span>
+        <span className={styles.mediaPlayerProgressDuration} data-testid="media-player-duration">
+          {formatHHMMSS(mpDuration)}
+        </span>
       ) : null}
       {includeMobileTime && (
         <div className={styles.mobileTimeWrapper}>
@@ -275,10 +281,23 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
 
 export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = (props) => {
   const remote = useRemotePlayerDisplay();
+  const { mpItem, mpAddByRSS } = useMediaPlayer();
   if (remote !== null && !props.isClipForm && props.layoutVariant !== 'embed') {
     return (
       <RemoteMediaPlayerProgress
         remote={remote}
+        includeMobileTime={props.includeMobileTime}
+        layoutVariant={props.layoutVariant === 'edge' ? 'edge' : 'default'}
+      />
+    );
+  }
+  if (
+    !props.isClipForm &&
+    props.layoutVariant !== 'embed' &&
+    isPlayerResourceLive({ mpItem, mpAddByRSS })
+  ) {
+    return (
+      <LiveMediaPlayerProgress
         includeMobileTime={props.includeMobileTime}
         layoutVariant={props.layoutVariant === 'edge' ? 'edge' : 'default'}
       />
