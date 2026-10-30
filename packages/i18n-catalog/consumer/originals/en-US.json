@@ -460,6 +460,8 @@
     "media_player_image": "Media Player Image",
     "seek": "Seek",
     "position_of_duration": "{position} of {duration}",
+    "go_to_live": "Go to Live",
+    "behind_live": "{time} Behind Live",
     "skip_to_next": "Skip to Next",
     "skip_to_previous": "Skip to Previous",
     "skip_to_next_hold_hint": "Skip to next. Hold to skip the episode.",

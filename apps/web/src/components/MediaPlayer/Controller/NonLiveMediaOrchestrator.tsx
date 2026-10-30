@@ -33,12 +33,16 @@ import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueReso
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
 import { takeCommandStartSeek } from '../../../lib/crossDevicePlayback/commandStartSeek';
 import { crossDevicePlaybackStore } from '../../../lib/crossDevicePlayback/crossDevicePlaybackStore';
-import { buildPlaybackResourceRefFromPlayer } from '../../../lib/crossDevicePlayback/playbackResource';
+import {
+  buildPlaybackResourceRefFromPlayer,
+  isPlayerResourceLive,
+} from '../../../lib/crossDevicePlayback/playbackResource';
 import { notifyEmbedListItemEnded } from '../../../lib/embed/embedListPlaybackAdvance';
 import {
   resolveEmbedPlaybackPauseAtSeconds,
   resolveEmbedPlaybackResetSeconds,
 } from '../../../lib/embed/resolveEmbedPlaybackResetSeconds';
+import { liveMediaStore } from '../../../lib/livePlayback/liveMediaStore';
 import type {
   ListenSessionDirective,
   ListenSessionTarget,
@@ -527,6 +531,24 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       }
       if (mediaType === 'video' && mediaRef.current instanceof HTMLVideoElement) {
         onVideoAspectRatioChangeRef.current?.(resolveModalVideoAspectRatio(mediaRef.current));
+      }
+      if (isPlayerResourceLive({ mpItem: mpItemRef.current, mpAddByRSS: mpAddByRSSRef.current })) {
+        bridgeRef.current?.pauseAt(-1);
+        setMPDuration(0);
+        if (mpShouldPlayRef.current === true) {
+          updateNowPlaying({
+            mpChannel: mpChannelRef.current,
+            mpClip: mpClipRef.current,
+            mpItem: mpItemRef.current,
+            mpItemSoundbite: mpItemSoundbiteRef.current,
+            mpDuration: 0,
+            mpCurrentTime: 0,
+            eventKind: 'play',
+          });
+        }
+        setPendingPlaybackDecision?.(null);
+        loadListenSession('none', 0);
+        return;
       }
       const commandStartSeconds = takeCommandStartSeek({
         ref: buildPlaybackResourceRefFromPlayer({
@@ -1092,6 +1114,10 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       if (checkIsLiveItem(mpItemRef.current)) {
         return;
       }
+      const media = mediaRef.current;
+      if (media !== null && liveMediaStore.prepareResume(media) === 'reconnecting') {
+        return;
+      }
       await bridge.play();
     })();
 
@@ -1196,8 +1222,29 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     sourceUri !== undefined && sourceUri === selectedUri
       ? selectedItemEnclosureAndSource?.labeledItemEnclosure?.enclosure.type
       : undefined;
+  // Database live items play only in the live controller.
   const elementSource: MediaElementSource | null =
-    sourceUri !== undefined ? toFileMediaElementSource(sourceUri, sourceMime) : null;
+    sourceUri !== undefined && !checkIsLiveItem(mpItem)
+      ? toFileMediaElementSource(sourceUri, sourceMime)
+      : null;
+
+  // An Add by RSS livestream plays on this element, which keeps its credential and blocked-host
+  // handling, and shares the live position store with database livestreams.
+  const isAddByRSSLive = mpAddByRSS !== null && isPlayerResourceLive({ mpItem: null, mpAddByRSS });
+  const elementDelivery = elementSource?.delivery ?? 'file';
+  useEffect(() => {
+    const media = mediaRef.current;
+    if (!isAddByRSSLive || addByRSSEnclosureUrl === undefined || media === null) {
+      return;
+    }
+    return liveMediaStore.register({
+      media,
+      delivery: elementDelivery,
+      reconnect: () => {
+        bridgeRef.current?.reloadAt(0);
+      },
+    });
+  }, [isAddByRSSLive, addByRSSEnclosureUrl, elementDelivery]);
 
   useEffect(() => {
     if (mediaType !== 'video') {

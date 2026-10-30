@@ -2,9 +2,9 @@
  * `NativePlaybackBridge` interface.
  *
  * Mirrors the imperative surface of the web `mediaElementBridgeSurface` / `useMediaElementBridge`
- * (load, play, pause, seek, rate, position, duration, destroy) without DOM types. RN code must not
- * call native player APIs outside the adapter that implements this interface — the same intent as
- * the web ESLint boundary around `useMediaElementBridge`.
+ * (load, play, goToLive, pause, seek, rate, position, duration, destroy) without DOM types. RN
+ * code must not call native player APIs outside the adapter that implements this interface — the
+ * same intent as the web ESLint boundary around `useMediaElementBridge`.
  */
 
 import type {
@@ -26,19 +26,35 @@ export interface NativePlaybackBridge {
    * (e.g. cold-start session restore).
    */
   loadAndStart(source: MediaEngineSource): Promise<void>;
-  /** Start (or resume) playback of the loaded item. */
+  /**
+   * Start or resume playback. A fresh paused load just starts. After the item has played, a live
+   * source resumes in place only at or after the window start plus 6 seconds; otherwise it jumps
+   * to live and plays.
+   */
   play(): Promise<void>;
+  /**
+   * Jump to the live point of a live source and play. With a window, seeks to `liveEdgeSeconds`.
+   * Without one (progressive stream), reconnects the stream so playback starts at what is live
+   * now. Resolves once the seek or reconnect is issued. No-op for a non-live source.
+   */
+  goToLive(): Promise<void>;
   /** Pause playback; keeps the current item and position. */
   pause(): void;
-  /** Seek to an absolute position in seconds. */
+  /**
+   * Seek to an absolute position in seconds. On a live source, clamps into the window, or does
+   * nothing when the stream holds no window.
+   */
   seek(seconds: number): void;
   /** Set the playback rate (e.g. `1.0`, `1.5`). */
   setRate(rate: number): void;
   /** Current playhead position in seconds. */
   getPosition(): Promise<number>;
-  /** Current item duration in seconds (`0` when unknown/live). */
+  /** Duration in seconds. `0` when unknown, and always `0` while a live source is loaded. */
   getDuration(): Promise<number>;
-  /** Loaded source identity + position, or `null` when nothing is loaded. */
+  /**
+   * Loaded source, position, and live window, or `null` when nothing is loaded. `durationSeconds`
+   * is `0` while a live source is loaded. This is the fresh window while paused.
+   */
   getCurrentSource(): Promise<MediaEngineCurrentSource | null>;
   /** Tear down the current item/observers. The shared player/session ownership stays native. */
   destroy(): void;

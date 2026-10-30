@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { DTOClip, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 
 import { LOCAL_STORAGE } from '../constants/localStorage';
 import {
@@ -35,6 +35,33 @@ function createStorageMock(): Storage {
       store[key] = value;
     },
   };
+}
+
+const itemCopy = { id: 1, id_text: 'item-1', channel_id: 5 };
+const channelCopy = { id: 5, id_text: 'channel-5' };
+
+function installWindowStorage(storage: Storage): void {
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: { localStorage: storage },
+    writable: true,
+  });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function readRawSnapshot(storage: Storage): Record<string, unknown> {
+  const raw = storage.getItem(LOCAL_STORAGE.ANONYMOUS_LAST_PLAYBACK_KEY);
+  if (typeof raw !== 'string') {
+    throw new Error('expected a stored snapshot');
+  }
+  const parsed: unknown = JSON.parse(raw);
+  if (!isRecord(parsed)) {
+    throw new Error('expected a stored snapshot object');
+  }
+  return parsed;
 }
 
 describe('anonymousPlaybackStorage', () => {
@@ -349,5 +376,179 @@ describe('anonymousPlaybackStorage', () => {
     );
 
     expect(readAnonymousPlaybackSnapshot(storage)).toBeNull();
+  });
+
+  it('writeAnonymousPlaybackSnapshotFromPlayerState stores the item and channel when the channel id matches', () => {
+    const storage = createStorageMock();
+    installWindowStorage(storage);
+
+    writeAnonymousPlaybackSnapshotFromPlayerState(
+      {
+        mpClip: null,
+        mpItem: itemCopy as DTOItem,
+        mpItemSoundbite: null,
+        mpChannel: channelCopy as DTOChannel,
+        mpCurrentTime: 4,
+        mpDuration: 40,
+      },
+      storage
+    );
+
+    const row = readRawSnapshot(storage);
+    expect(row.stored_item).toEqual(itemCopy);
+    expect(row.stored_channel).toEqual(channelCopy);
+  });
+
+  it('writeAnonymousPlaybackSnapshotFromPlayerState omits the copy when mpChannel is missing', () => {
+    const storage = createStorageMock();
+    installWindowStorage(storage);
+
+    writeAnonymousPlaybackSnapshotFromPlayerState(
+      {
+        mpClip: null,
+        mpItem: itemCopy as DTOItem,
+        mpItemSoundbite: null,
+        mpCurrentTime: 4,
+        mpDuration: 40,
+      },
+      storage
+    );
+
+    const row = readRawSnapshot(storage);
+    expect(row).not.toHaveProperty('stored_item');
+    expect(row).not.toHaveProperty('stored_channel');
+  });
+
+  it('writeAnonymousPlaybackSnapshotFromPlayerState omits the copy when the channel id differs', () => {
+    const storage = createStorageMock();
+    installWindowStorage(storage);
+
+    writeAnonymousPlaybackSnapshotFromPlayerState(
+      {
+        mpClip: null,
+        mpItem: itemCopy as DTOItem,
+        mpItemSoundbite: null,
+        mpChannel: { id: 9, id_text: 'channel-9' } as DTOChannel,
+        mpCurrentTime: 4,
+        mpDuration: 40,
+      },
+      storage
+    );
+
+    const row = readRawSnapshot(storage);
+    expect(row).not.toHaveProperty('stored_item');
+    expect(row).not.toHaveProperty('stored_channel');
+  });
+
+  it('writeAnonymousPlaybackSnapshotFromPlayerState omits the copy for a clip', () => {
+    const storage = createStorageMock();
+    installWindowStorage(storage);
+
+    writeAnonymousPlaybackSnapshotFromPlayerState(
+      {
+        mpClip: { id: 1, id_text: 'c1' } as DTOClip,
+        mpItem: itemCopy as DTOItem,
+        mpItemSoundbite: null,
+        mpChannel: channelCopy as DTOChannel,
+        mpCurrentTime: 1,
+        mpDuration: 10,
+      },
+      storage
+    );
+
+    const row = readRawSnapshot(storage);
+    expect(row.kind).toBe('clip');
+    expect(row).not.toHaveProperty('stored_item');
+    expect(row).not.toHaveProperty('stored_channel');
+  });
+
+  it('parseAnonymousPlaybackSnapshot returns a matching item and channel copy', () => {
+    const parsed = parseAnonymousPlaybackSnapshot(
+      JSON.stringify({
+        v: 1,
+        kind: 'item',
+        id_text: 'item-1',
+        playback_position_seconds: 4,
+        updated_at: 'x',
+        stored_item: itemCopy,
+        stored_channel: channelCopy,
+      })
+    );
+
+    expect(parsed?.stored_item).toEqual(itemCopy);
+    expect(parsed?.stored_channel).toEqual(channelCopy);
+  });
+
+  it('parseAnonymousPlaybackSnapshot drops a copy whose item id_text differs and keeps the row', () => {
+    const parsed = parseAnonymousPlaybackSnapshot(
+      JSON.stringify({
+        v: 1,
+        kind: 'item',
+        id_text: 'item-1',
+        playback_position_seconds: 4,
+        updated_at: 'x',
+        stored_item: { id: 1, id_text: 'other', channel_id: 5 },
+        stored_channel: channelCopy,
+      })
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed).not.toHaveProperty('stored_item');
+    expect(parsed).not.toHaveProperty('stored_channel');
+    expect(parsed?.playback_position_seconds).toBe(4);
+  });
+
+  it('parseAnonymousPlaybackSnapshot drops a copy when the channel is missing and keeps the row', () => {
+    const parsed = parseAnonymousPlaybackSnapshot(
+      JSON.stringify({
+        v: 1,
+        kind: 'item',
+        id_text: 'item-1',
+        playback_position_seconds: 4,
+        updated_at: 'x',
+        stored_item: itemCopy,
+      })
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed).not.toHaveProperty('stored_item');
+    expect(parsed).not.toHaveProperty('stored_channel');
+  });
+
+  it('parseAnonymousPlaybackSnapshot drops a copy when the channel id differs and keeps the row', () => {
+    const parsed = parseAnonymousPlaybackSnapshot(
+      JSON.stringify({
+        v: 1,
+        kind: 'item',
+        id_text: 'item-1',
+        playback_position_seconds: 4,
+        updated_at: 'x',
+        stored_item: itemCopy,
+        stored_channel: { id: 9, id_text: 'channel-9' },
+      })
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed).not.toHaveProperty('stored_item');
+    expect(parsed).not.toHaveProperty('stored_channel');
+  });
+
+  it('parseAnonymousPlaybackSnapshot drops a copy on a clip row', () => {
+    const parsed = parseAnonymousPlaybackSnapshot(
+      JSON.stringify({
+        v: 1,
+        kind: 'clip',
+        id_text: 'item-1',
+        playback_position_seconds: 4,
+        updated_at: 'x',
+        stored_item: itemCopy,
+        stored_channel: channelCopy,
+      })
+    );
+
+    expect(parsed).not.toBeNull();
+    expect(parsed?.kind).toBe('clip');
+    expect(parsed).not.toHaveProperty('stored_item');
+    expect(parsed).not.toHaveProperty('stored_channel');
   });
 });

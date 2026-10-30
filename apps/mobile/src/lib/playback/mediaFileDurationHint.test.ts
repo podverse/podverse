@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { parsePlaybackSeconds, resolveMediaFileDurationHintSeconds } from './mediaFileDurationHint';
+import {
+  parsePlaybackSeconds,
+  resolveLoadDurationSeconds,
+  resolveMediaFileDurationHintSeconds,
+  resolveSampleDurationSeconds,
+} from './mediaFileDurationHint';
 
 describe('parsePlaybackSeconds', () => {
   it('parses positive numbers and numeric strings', () => {
@@ -33,5 +38,35 @@ describe('resolveMediaFileDurationHintSeconds', () => {
     expect(resolveMediaFileDurationHintSeconds(undefined, null)).toBeUndefined();
     expect(resolveMediaFileDurationHintSeconds(0, '')).toBeUndefined();
     expect(resolveMediaFileDurationHintSeconds(undefined, 'nope')).toBeUndefined();
+  });
+});
+
+describe('resolveLoadDurationSeconds', () => {
+  it('returns 0 for a livestream even when a hint is present', () => {
+    expect(resolveLoadDurationSeconds({ hintSeconds: 3600, isLive: true })).toBe(0);
+  });
+
+  it('uses a positive hint for an item that is not live', () => {
+    expect(resolveLoadDurationSeconds({ hintSeconds: 3600, isLive: false })).toBe(3600);
+  });
+
+  it('returns 0 when an item that is not live has no usable hint', () => {
+    expect(resolveLoadDurationSeconds({ hintSeconds: undefined, isLive: false })).toBe(0);
+    expect(resolveLoadDurationSeconds({ hintSeconds: 0, isLive: false })).toBe(0);
+    expect(resolveLoadDurationSeconds({ hintSeconds: -5, isLive: false })).toBe(0);
+    expect(resolveLoadDurationSeconds({ hintSeconds: Number.NaN, isLive: false })).toBe(0);
+  });
+});
+
+describe('resolveSampleDurationSeconds', () => {
+  it('returns 0 for a livestream whatever the engine reports', () => {
+    expect(resolveSampleDurationSeconds({ isLive: true, sampleSeconds: 120 })).toBe(0);
+    expect(resolveSampleDurationSeconds({ isLive: true, sampleSeconds: 0 })).toBe(0);
+  });
+
+  it('keeps a positive sample for an item that is not live and ignores an unknown length', () => {
+    expect(resolveSampleDurationSeconds({ isLive: false, sampleSeconds: 120 })).toBe(120);
+    expect(resolveSampleDurationSeconds({ isLive: false, sampleSeconds: 0 })).toBeNull();
+    expect(resolveSampleDurationSeconds({ isLive: false, sampleSeconds: Number.NaN })).toBeNull();
   });
 });

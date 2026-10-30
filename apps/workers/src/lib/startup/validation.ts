@@ -703,13 +703,8 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   if (categories.has(CATEGORY_BILLING)) {
     results.push(...validateBillingProcessors());
   }
-  if (
-    commandName === 'notificationsTestPush' &&
-    !isNotificationsTestPushHelpArgv(process.argv)
-  ) {
-    results.push(
-      notificationsTestPushEnabledResult(process.env.NOTIFICATIONS_TEST_PUSH_ENABLED)
-    );
+  if (commandName === 'notificationsTestPush' && !isNotificationsTestPushHelpArgv(process.argv)) {
+    results.push(notificationsTestPushEnabledResult(process.env.NOTIFICATIONS_TEST_PUSH_ENABLED));
   }
 
   results.push(...validateObservability());

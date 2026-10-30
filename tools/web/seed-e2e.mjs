@@ -308,6 +308,7 @@ const E2E_HLS_ASSET_BASE_URL = 'http://localhost:2111/e2e/hls';
 const E2E_HLS_VOD_ENCLOSURE_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-vod.m3u8?fixture=vod`;
 const E2E_HLS_EVENT_PLAYLIST_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-event.m3u8`;
 const E2E_HLS_VIDEO_EVENT_PLAYLIST_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-video-event.m3u8`;
+const E2E_HLS_REWIND_EVENT_PLAYLIST_URL = `${E2E_HLS_ASSET_BASE_URL}/e2e-hls-rewind-event.m3u8`;
 const E2E_HLS_CHANNEL_ID_TEXT = 'e2eHlsChnl001';
 const E2E_HLS_VOD_ITEM_ID_TEXT = 'e2eHlsVodIt01';
 const E2E_HLS_CHANNEL_TITLE = 'E2E HLS VOD Channel';
@@ -332,12 +333,16 @@ const E2E_LIVE_AV_HLS_AUDIO_ITEM_ID_TEXT = 'e2eLiveHlsA01';
 const E2E_LIVE_AV_HLS_AUDIO_ITEM_TITLE = 'E2E Live HLS Audio Stream';
 const E2E_LIVE_AV_HLS_VIDEO_ITEM_ID_TEXT = 'e2eLiveHlsV01';
 const E2E_LIVE_AV_HLS_VIDEO_ITEM_TITLE = 'E2E Live HLS Video Stream';
+const E2E_LIVE_AV_HLS_REWIND_ITEM_ID_TEXT = 'e2eLiveHlsRw01';
+const E2E_LIVE_AV_HLS_REWIND_ITEM_TITLE = 'E2E Live HLS Rewind Stream';
 const E2E_LIVE_AV_SCHEDULED_ITEM_ID_TEXT = 'e2eLiveSched01';
 const E2E_LIVE_AV_SCHEDULED_ITEM_TITLE = 'E2E Scheduled Livestream';
 const E2E_LIVE_AV_LATER_SCHEDULED_ITEM_ID_TEXT = 'e2eLiveSched02';
 const E2E_LIVE_AV_LATER_SCHEDULED_ITEM_TITLE = 'E2E Later Scheduled Livestream';
 const E2E_LIVE_AV_STALE_SCHEDULED_ITEM_ID_TEXT = 'e2eLiveStale01';
 const E2E_LIVE_AV_STALE_SCHEDULED_ITEM_TITLE = 'E2E Stale Scheduled Livestream';
+const E2E_LIVE_AV_ENDED_ITEM_ID_TEXT = 'e2eLiveEnded01';
+const E2E_LIVE_AV_ENDED_ITEM_TITLE = 'E2E Ended Livestream';
 
 const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
 
@@ -2753,6 +2758,13 @@ async function seedLiveAvFixtures(client) {
     startsInHours: -2,
   });
   await insertLiveItem({
+    idText: E2E_LIVE_AV_HLS_REWIND_ITEM_ID_TEXT,
+    guidSlug: 'live-hls-rewind',
+    title: E2E_LIVE_AV_HLS_REWIND_ITEM_TITLE,
+    enclosureType: 'audio/mpeg',
+    enclosureUrl: E2E_HLS_REWIND_EVENT_PLAYLIST_URL,
+  });
+  await insertLiveItem({
     idText: E2E_LIVE_AV_SCHEDULED_ITEM_ID_TEXT,
     guidSlug: 'scheduled',
     title: E2E_LIVE_AV_SCHEDULED_ITEM_TITLE,
@@ -2779,11 +2791,21 @@ async function seedLiveAvFixtures(client) {
     statusName: 'pending',
     startsInDays: -3,
   });
+  // Start is three days ago so ended-item list endpoints omit this row. Item-by-id still returns it.
+  await insertLiveItem({
+    idText: E2E_LIVE_AV_ENDED_ITEM_ID_TEXT,
+    guidSlug: 'ended',
+    title: E2E_LIVE_AV_ENDED_ITEM_TITLE,
+    enclosureType: 'audio/mpeg',
+    enclosureUrl: E2E_PODCAST_SHORT_ENCLOSURE_URL,
+    statusName: 'ended',
+    startsInDays: -3,
+  });
 
   await client.query(`UPDATE channel SET may_have_live_items = true WHERE id = $1`, [channelId]);
 
   console.log(
-    `Seeded playable live E2E channel ${E2E_LIVE_AV_CHANNEL_ID_TEXT} (audio ${E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT}, video ${E2E_LIVE_AV_VIDEO_ITEM_ID_TEXT}, hls audio ${E2E_LIVE_AV_HLS_AUDIO_ITEM_ID_TEXT}, hls video ${E2E_LIVE_AV_HLS_VIDEO_ITEM_ID_TEXT}, scheduled ${E2E_LIVE_AV_SCHEDULED_ITEM_ID_TEXT}, later scheduled ${E2E_LIVE_AV_LATER_SCHEDULED_ITEM_ID_TEXT}, stale scheduled ${E2E_LIVE_AV_STALE_SCHEDULED_ITEM_ID_TEXT})`
+    `Seeded playable live E2E channel ${E2E_LIVE_AV_CHANNEL_ID_TEXT} (audio ${E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT}, video ${E2E_LIVE_AV_VIDEO_ITEM_ID_TEXT}, hls audio ${E2E_LIVE_AV_HLS_AUDIO_ITEM_ID_TEXT}, hls video ${E2E_LIVE_AV_HLS_VIDEO_ITEM_ID_TEXT}, hls rewind ${E2E_LIVE_AV_HLS_REWIND_ITEM_ID_TEXT}, scheduled ${E2E_LIVE_AV_SCHEDULED_ITEM_ID_TEXT}, later scheduled ${E2E_LIVE_AV_LATER_SCHEDULED_ITEM_ID_TEXT}, stale scheduled ${E2E_LIVE_AV_STALE_SCHEDULED_ITEM_ID_TEXT}, ended ${E2E_LIVE_AV_ENDED_ITEM_ID_TEXT})`
   );
 }
 

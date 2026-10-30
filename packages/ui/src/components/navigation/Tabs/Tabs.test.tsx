@@ -7,11 +7,6 @@ afterEach(() => {
   cleanup();
 });
 
-const TABS = [
-  { key: 'general', label: 'General', onClick: vi.fn(), zIndex: 1 },
-  { key: 'account', label: 'Account', onClick: vi.fn(), zIndex: 2 },
-];
-
 function pointer(
   phase: 'pointerDown' | 'pointerMove' | 'pointerUp',
   target: Element,
@@ -74,8 +69,8 @@ describe('Tabs', () => {
       <Tabs
         selectedKey="general"
         tabData={[
-          { ...TABS[0], onClick: vi.fn() },
-          { ...TABS[1], onClick: onAccount },
+          { key: 'general', label: 'General', onClick: vi.fn(), zIndex: 1 },
+          { key: 'account', label: 'Account', onClick: onAccount, zIndex: 2 },
         ]}
       />
     );

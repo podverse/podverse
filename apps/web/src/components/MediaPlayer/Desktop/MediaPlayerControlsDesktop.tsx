@@ -1,4 +1,5 @@
 import { useRemotePlayerDisplay } from '../../../hooks/useRemotePlayerDisplay';
+import { useShowJumpButtons } from '../../../hooks/useShowJumpButtons';
 import { JumpBackButton } from '../Buttons/JumpBackButton';
 import { JumpForwardButton } from '../Buttons/JumpForwardButton';
 import { PlayButton } from '../Buttons/PlayButton';
@@ -13,7 +14,7 @@ export const MediaPlayerControlsDesktop = () => {
   const remote = useRemotePlayerDisplay();
   const showTrackPrevious = remote === null || remote.controls.canTrackPrevious;
   const showTrackNext = remote === null || remote.controls.canTrackNext;
-  const showJumpButtons = remote === null || remote.controls.canSkip;
+  const showJumpButtons = useShowJumpButtons();
   const showProgress = remote === null || remote.controls.showsProgress;
 
   return (

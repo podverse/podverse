@@ -1,0 +1,227 @@
+appId: com.podverse.app.next
+name: Livestream Player Controls
+---
+# A livestream shows a Live control where an episode shows its duration. The skip buttons
+# and the scrubber appear only when the stream keeps a rewindable window. Skip back shows
+# the time behind live. Play after a pause resumes in place when the stream still holds
+# that moment. Live returns to the live moment and plays.
+#
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+# Episode first. The duration slot is a length, and there is no Live control.
+- openLink: podverse-next://episode/e2ePodChap0001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+- tapOn:
+    id: home-row-play-e2ePodChap0001
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: playing
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player
+- extendedWaitUntil:
+    visible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: full-player-duration
+    timeout: ${TIMEOUT_SLOW}
+- assertNotVisible:
+    id: full-player-live-control
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+
+# Live, with a window too short to rewind. The band is the Live control alone.
+- openLink: podverse-next://episode/e2eLiveHlsA01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+- tapOn:
+    id: home-row-play-e2eLiveHlsA01
+- extendedWaitUntil:
+    visible:
+      id: playback-now-playing-title-e2e
+      text: "E2E Live HLS Audio Stream"
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player
+- extendedWaitUntil:
+    visible:
+      id: full-player-live-control
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-live-progress-block
+- assertNotVisible:
+    id: full-player-duration
+- assertNotVisible:
+    id: full-player-position
+- assertNotVisible:
+    id: full-player-scrubber
+- assertNotVisible:
+    id: full-player-live-behind
+- assertNotVisible:
+    id: full-player-jump-back
+- assertNotVisible:
+    id: full-player-jump-forward
+- assertVisible:
+    id: full-player-play-pause
+- takeScreenshot: livestream-player-live-only
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+
+# Live, with a rewindable window. Playback starts at the live edge.
+- openLink: podverse-next://episode/e2eLiveHlsRw01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+- tapOn:
+    id: home-row-play-e2eLiveHlsRw01
+- extendedWaitUntil:
+    visible:
+      id: playback-now-playing-title-e2e
+      text: "E2E Live HLS Rewind Stream"
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: playing
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: mini-player
+- extendedWaitUntil:
+    visible:
+      id: full-player-live-control
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: full-player-scrubber
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-jump-back
+- assertVisible:
+    id: full-player-jump-forward
+- assertNotVisible:
+    id: full-player-duration
+- assertNotVisible:
+    id: full-player-live-behind
+- takeScreenshot: livestream-player-rewindable-at-live
+
+# The rewind fixture's live edge stays near 102 seconds. Skip back, pause and resume,
+# and Live run with no extra wait: about 40 seconds behind becomes the live edge after
+# roughly half a minute of play.
+- repeat:
+    times: 4
+    commands:
+      - tapOn:
+          id: full-player-jump-back
+- extendedWaitUntil:
+    visible:
+      id: full-player-live-behind
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: livestream-player-behind-live
+- tapOn:
+    id: full-player-play-pause
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: paused
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: full-player-play-pause
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: playing
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: full-player-live-behind
+- takeScreenshot: livestream-player-resumed-in-place
+- tapOn:
+    id: full-player-live-control
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-live-behind
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: playback-active-e2e
+    text: playing
+- takeScreenshot: livestream-player-back-at-live
+
+# Live plays from paused.
+- tapOn:
+    id: full-player-play-pause
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: paused
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: full-player-live-control
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: playing
+    timeout: ${TIMEOUT_SLOW}
+
+# Leave the seeded account's now-playing state quiet for later flows.
+- tapOn:
+    id: full-player-play-pause
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: paused
+    timeout: ${TIMEOUT_FAST}
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   DTOItem,
@@ -10,6 +10,7 @@ import { getSelectedLabeledItemEnclosureAndSource, isEqual, isHlsSource } from '
 
 import type { MediaElementSource } from '../../../hooks/useMediaElementBridge';
 import { crossDevicePlaybackStore } from '../../../lib/crossDevicePlayback/crossDevicePlaybackStore';
+import { liveMediaStore } from '../../../lib/livePlayback/liveMediaStore';
 import { MediaElement } from '../MediaElement/MediaElement';
 import { resolveLivestreamSourceType } from './livestreamSourceType';
 
@@ -28,13 +29,30 @@ function LivestreamMediaElement({
   source,
   playing,
   style,
+  onReconnect,
 }: {
   mediaType: 'audio' | 'video';
   source: MediaElementSource;
   playing: boolean;
   style?: React.CSSProperties;
+  /** Mount a fresh element for the same source, which plays from live while `playing`. */
+  onReconnect: () => void;
 }) {
   const liveMediaRef = useRef<HTMLMediaElement | null>(null);
+  const onReconnectRef = useRef(onReconnect);
+  onReconnectRef.current = onReconnect;
+
+  useEffect(() => {
+    const media = liveMediaRef.current;
+    if (media === null) {
+      return;
+    }
+    return liveMediaStore.register({
+      media,
+      delivery: source.delivery ?? 'file',
+      reconnect: () => onReconnectRef.current(),
+    });
+  }, [source.delivery]);
 
   useEffect(() => {
     const media = liveMediaRef.current;
@@ -46,6 +64,9 @@ function LivestreamMediaElement({
       return;
     }
     const start = () => {
+      if (liveMediaStore.prepareResume(media) === 'reconnecting') {
+        return;
+      }
       void media.play().catch((error: unknown) => {
         crossDevicePlaybackStore.notifyLocalPlayRejected(error);
       });
@@ -83,6 +104,10 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<
   mpIsPlaying,
 }) => {
   const prevSelectedRef = useRef<SelectedLabeledItemEnclosureAndSource | null>(null);
+  const [connection, setConnection] = useState(0);
+  const handleReconnect = useCallback(() => {
+    setConnection((count) => count + 1);
+  }, []);
 
   const selectedItemEnclosureAndSource = useMemo(() => {
     const next = getSelectedLabeledItemEnclosureAndSource({
@@ -130,11 +155,12 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<
     <div {...{ [`data-livestream-player-${mediaType}`]: true }} hidden={hiddenCommon} style={style}>
       {source === null ? null : (
         <LivestreamMediaElement
-          key={`${source.delivery}:${source.src}`}
+          key={`${source.delivery}:${source.src}:${connection}`}
           mediaType={mediaType}
           source={source}
           playing={mpIsPlaying}
           style={style}
+          onReconnect={handleReconnect}
         />
       )}
     </div>
@@ -142,4 +168,5 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<
 };
 
 // Each source mounts its own media element. Leaving a livestream unmounts that element, so the
-// next livestream always starts from a fresh element.
+// next livestream always starts from a fresh element. A reconnect also mounts a fresh element,
+// which opens a new connection for both progressive and HLS delivery.

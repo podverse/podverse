@@ -41,6 +41,11 @@ export type CrossDevicePlaybackSnapshot = {
   claimPending: boolean;
   thisTabHoldsAudio: boolean;
   audioTab: { tabId: string; lastSeenMs: number } | null;
+  /**
+   * True once this tab asked the other tabs of this browser who holds audio and the wait ended.
+   * Until then a tab of the active session assumes another tab holds audio.
+   */
+  audioTabSearchSettled: boolean;
   lastFocusedTabId: string | null;
   role: PlaybackRole;
   pendingTransfer: { commandIdText: string; targetSessionIdText: string; sentAtMs: number } | null;
@@ -95,6 +100,7 @@ function createInitialCore(params: {
     claimPending: false,
     thisTabHoldsAudio: false,
     audioTab: null,
+    audioTabSearchSettled: false,
     lastFocusedTabId: null,
     pendingTransfer: null,
     transferFailure: null,
@@ -125,12 +131,16 @@ function buildSnapshot(core: StoreCore): CrossDevicePlaybackSnapshot {
     claimPending: core.claimPending,
     thisTabHoldsAudio: core.thisTabHoldsAudio,
     audioTab: core.audioTab,
+    audioTabSearchSettled: core.audioTabSearchSettled,
     lastFocusedTabId: core.lastFocusedTabId,
     role: resolveTabPlaybackRole({
       availability: core.availability,
       thisSessionIdText: core.thisSessionIdText,
       activeSessionIdText: core.state?.active_session_id_text ?? null,
       thisTabHoldsAudio: core.thisTabHoldsAudio,
+      anotherTabMayHoldAudio:
+        !core.audioTabSearchSettled ||
+        (core.audioTab !== null && core.audioTab.tabId !== core.tabId),
       claimPending: core.claimPending,
     }),
     pendingTransfer: core.pendingTransfer,
@@ -434,6 +444,26 @@ export function createCrossDevicePlaybackStore(options?: { now?: () => number; t
 
     noteAudioTabGone(audioTabId: string): void {
       if (core.audioTab?.tabId === audioTabId) {
+        update({ audioTab: null });
+      }
+    },
+
+    /** The wait for an answer to this tab's audio-tab query ended. */
+    settleAudioTabSearch(): void {
+      update({ audioTabSearchSettled: true });
+    },
+
+    /**
+     * Drops another tab's audio entry once it has sent no heartbeat for `silenceMs`, as when that
+     * tab crashed without saying it left. This tab's own entry follows `thisTabHoldsAudio`.
+     */
+    expireSilentAudioTab(nowMs: number, silenceMs: number): void {
+      const { audioTab } = core;
+      if (
+        audioTab !== null &&
+        audioTab.tabId !== tabId &&
+        nowMs - audioTab.lastSeenMs >= silenceMs
+      ) {
         update({ audioTab: null });
       }
     },

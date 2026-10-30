@@ -14,7 +14,7 @@ import { requireNativeModule } from 'expo-modules-core';
 import type {
   MediaEngineAudioProfile,
   MediaEngineBasicAuth,
-  MediaEngineCurrentSource,
+  NativeRawCurrentSource,
   NativeRawPlaybackEvents,
 } from './types';
 
@@ -41,12 +41,18 @@ export type PodverseMediaEngineNativeModule = {
     metaJson?: string | null
   ): Promise<void>;
   play(): Promise<void>;
+  /**
+   * Jump to the live point of a live source and play. With a window, seeks to `liveEdgeSeconds`.
+   * Without one (progressive stream), reconnects the stream so playback starts at what is live
+   * now. Resolves once the seek or reconnect is issued. No-op for a non-live source.
+   */
+  goToLive(): Promise<void>;
   pause(): void;
   seek(seconds: number): void;
   setRate(rate: number): void;
   getPosition(): Promise<number>;
   getDuration(): Promise<number>;
-  getCurrentSource(): Promise<MediaEngineCurrentSource | null>;
+  getCurrentSource(): Promise<NativeRawCurrentSource | null>;
   destroy(): void;
   /**
    * Positional video-surface attach. The object-based `attachVideoSurface(targetId, rect)`

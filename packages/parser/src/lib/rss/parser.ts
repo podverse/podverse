@@ -413,13 +413,16 @@ export const parseRSSFeedAndSaveToDatabase = async (
       liveItemGuids: [],
     };
 
-    if (parsedFeed.podcastLiveItems) {
+    // When the feed has no podcast:liveItem, partytime omits podcastLiveItems. Reconcile stored
+    // live items for a channel that has carried them.
+    if (parsedFeed.podcastLiveItems || channel.may_have_live_items === true) {
       newLiveItemIdentifiers = await handleParsedLiveItems(
-        parsedFeed.podcastLiveItems,
+        parsedFeed.podcastLiveItems ?? [],
         channel,
         channelSeasonIndex,
         descriptionContext,
-        parsedItemStableKeys
+        parsedItemStableKeys,
+        newItemIdentifiers.updatedItemIds
       );
     }
 
@@ -586,6 +589,7 @@ async function filterNewItemSideEffectsPublishedBefore(
         cutoffMs
       )
     ),
+    updatedItemIds: identifiers.updatedItemIds,
   };
 }
 

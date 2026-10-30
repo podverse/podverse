@@ -9,6 +9,7 @@ import { useEmbedPlaybackGuardrails } from '../../../contexts/EmbedPlaybackMode'
 import { useMediaPlayerControllerQueueHeadLoading } from '../../../hooks/useMediaPlayerControllerQueueHeadLoading';
 import { usePlayerTransport } from '../../../hooks/usePlayerTransport';
 import { useMediaPlayerBarVisible } from '../../../hooks/useRemotePlayerDisplay';
+import { liveMediaStore } from '../../../lib/livePlayback/liveMediaStore';
 import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlayerLayout';
 import { CrossDevicePlaybackNotices } from '../CrossDevice/CrossDevicePlaybackNotices';
 import { NonLiveMediaMount } from '../MediaElement/NonLiveMediaMount';
@@ -35,10 +36,16 @@ export const MediaPlayerController: React.FC = () => {
         return;
       }
       const current = transportRef.current;
+      // The window can appear after the listener is attached, so read it at the key press.
       handleMediaPlayerWindowKeyDown(
         event,
         target,
-        { hasResource: current.hasResource, isLiveItem: current.isLive },
+        {
+          hasResource: current.hasResource,
+          canJump:
+            !current.isLive ||
+            (!current.isRemote && liveMediaStore.getSnapshot().display.canRewind),
+        },
         current.jumpBy,
         current.togglePlayPause
       );

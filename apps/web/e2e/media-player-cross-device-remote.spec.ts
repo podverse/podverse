@@ -18,6 +18,7 @@ import {
 } from './helpers/crossDevicePlayback';
 import {
   clearSeededPodcastQueueResources,
+  clickDetailPagePlayButton,
   expectMediaPlayerTitleVisible,
   expectPersistentPlayerPlaying,
   openEpisodeAndPlay,
@@ -359,6 +360,64 @@ test.describe('Media player across two signed-in browsers', () => {
         await expectPersistentPlayerPlaying(pageA2, true);
         await expectAudioPlaying(pageA2);
         await expectAudioNotPlaying(deviceA.page);
+      });
+    } finally {
+      await closeSignedInDevices(devicesToClose);
+    }
+  });
+
+  test('When a browser comes back after its audio tab paused a livestream and left, a new page plays an episode in that browser.', async ({
+    browser,
+  }, testInfo) => {
+    // Two signed-in contexts, plus cross-device presence leave wait, can exceed the default test budget.
+    test.setTimeout(120_000);
+    const devicesToClose: Array<Awaited<ReturnType<typeof openSignedInDevice>>> = [];
+
+    try {
+      const deviceA = await openSignedInDevice(browser);
+      devicesToClose.push(deviceA);
+      await clearSeededPodcastQueueResources(deviceA.page);
+
+      await test.step('When browser A plays the seeded livestream and then pauses it, browser A stops playing.', async () => {
+        await openLivestreamAndPlay(
+          deviceA.page,
+          E2E_LIVE_AV_AUDIO_ITEM_ID_TEXT,
+          E2E_LIVE_AV_AUDIO_ITEM_TITLE
+        );
+        await expectPersistentPlayerPlaying(deviceA.page, true);
+        await playerButton(deviceA.page, 'Pause').click();
+        await expectPersistentPlayerPlaying(deviceA.page, false);
+        await expectAudioPaused(deviceA.page);
+      });
+
+      const deviceB = await openSignedInDevice(browser);
+      devicesToClose.push(deviceB);
+      await deviceB.page.goto('/');
+      await expectHomeLoaded(deviceB.page);
+
+      await test.step('When browser A loads a new page, its player is local and does not say Playing in Another Tab.', async () => {
+        await deviceA.page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT}`);
+        await expectEpisodeLoaded(
+          deviceA.page,
+          E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT,
+          EPISODE_TITLE
+        );
+        await expect(playerDevicesButton(deviceA.page)).toBeVisible({ timeout: 20_000 });
+        await expect(playerDeviceCaption(deviceA.page)).toHaveCount(0);
+        await capturePageLoad(
+          deviceA.page,
+          testInfo,
+          'After coming back, browser A shows its own player with no Playing in Another Tab caption.',
+          deviceA.page.locator('aside#media-player')
+        );
+      });
+
+      await test.step('When browser A presses Play on the episode page, the episode plays in browser A and browser B shows it playing there.', async () => {
+        await clickDetailPagePlayButton(deviceA.page);
+        await expectPersistentPlayerPlaying(deviceA.page, true);
+        await expectAudioPlaying(deviceA.page);
+        await expectMediaPlayerTitleVisible(deviceA.page, EPISODE_TITLE);
+        await expect(playerDeviceCaption(deviceB.page)).toContainText('Playing on');
       });
     } finally {
       await closeSignedInDevices(devicesToClose);

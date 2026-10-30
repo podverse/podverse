@@ -116,7 +116,10 @@ import { defineConfig } from 'vitest/config';
  * transport glyph mapping that keeps the spinner to a
  * source that cannot start yet (`src/playback/playbackTransport.ts`), which clip or chapter the
  * now-playing bar names (`src/playback/nowPlayingSegment.ts`), which chapter row is marked as
- * playing (`src/playback/playingChapter.ts`), the Add by RSS chapters and
+ * playing (`src/playback/playingChapter.ts`), the livestream window and behind-live display
+ * (`src/playback/livePlaybackStore.ts`), the playhead and duration
+ * (`src/playback/playbackProgressStore.ts`), the scrubber preview while a finger is down
+ * (`src/playback/playbackScrubPreviewStore.ts`), the Add by RSS chapters and
  * transcript kept for the item now playing
  * (`src/playback/addByRssNowPlayingSectionsStore.ts` — one item, dropped on reset, nothing on
  * disk), the auto-queue config after an explicit or playlist play
@@ -135,7 +138,9 @@ import { defineConfig } from 'vitest/config';
  * (`src/lib/cachedValue.ts`), the E2E-gated perf mark/counter buffer
  * (`src/lib/perf/perfSpans.ts` — env is mocked so both flag states are reachable in node), the
  * universal last-playback snapshot that restores the mini
- * player on cold start for every auth status (`src/lib/playback/lastPlaybackStorage.ts`), and the
+ * player on cold start for every auth status (`src/lib/playback/lastPlaybackStorage.ts`), the
+ * fresh-read decision that loads, keeps, or retires that item
+ * (`src/lib/playback/restoredItemLoad.ts`), and the
  * decision to swap a live remote stream onto a just-finished download of that same enclosure
  * (`src/lib/playback/planDownloadCompletePlaybackHandoff.ts`). The
  * migration ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
@@ -223,6 +228,7 @@ export default defineConfig({
       'src/lib/playback/nativeAdvanceSource.test.ts',
       'src/lib/playback/planDownloadCompletePlaybackHandoff.test.ts',
       'src/lib/playback/resolvePlaybackUrl.test.ts',
+      'src/lib/playback/restoredItemLoad.test.ts',
       'src/lib/playback/verifiedArtists.test.ts',
       'src/lib/rows/homeRowMappers.test.ts',
       'src/lib/rows/liveItemRows.test.ts',
@@ -243,6 +249,7 @@ export default defineConfig({
       'src/net/connectivityMachine.test.ts',
       'src/playback/addByRssNowPlayingSectionsStore.test.ts',
       'src/playback/autoQueueFillGate.test.ts',
+      'src/playback/livePlaybackStore.test.ts',
       'src/playback/nowPlayingSegment.test.ts',
       'src/playback/playbackErrorLog.test.ts',
       'src/playback/playbackEventSource.test.ts',
@@ -256,6 +263,8 @@ export default defineConfig({
       'src/playback/crossDevice/crossDevicePlayerDisplay.test.ts',
       'src/playback/crossDevice/crossDevicePresenceController.test.ts',
       'src/playback/playbackHandoffTitle.test.ts',
+      'src/playback/playbackProgressStore.test.ts',
+      'src/playback/playbackScrubPreviewStore.test.ts',
       'src/playback/previousAction.test.ts',
       'src/playback/playbackTransport.test.ts',
       'src/playback/playingChapter.test.ts',

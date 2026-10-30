@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import type { DTOQueueResource } from '@podverse/helpers';
+import type { DTOItem, DTOQueueResource } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosures,
   getAddByRSSHashIdsForResourceData,
@@ -21,11 +21,17 @@ import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
 import { crossDevicePlaybackStore } from '../lib/crossDevicePlayback/crossDevicePlaybackStore';
 import type { MusicItemPlaybackIntent } from '../lib/playback';
-import { parsePlaybackSeconds, playbackTargetFromStandardLoad } from '../lib/playback';
+import {
+  parsePlaybackSeconds,
+  playbackTargetFromStandardLoad,
+  playbackTargetLivestream,
+} from '../lib/playback';
+import { fetchFreshRestoredItem } from '../lib/playback/fetchFreshRestoredItem';
 import {
   getAddByRSSResourceDataFeedUrl,
   resolveAddByRSSIndexItemFromResourceData,
 } from '../utils/addByRSS/playFromQueueResource';
+import { checkIsLiveItem } from '../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import {
   buildPlaybackHandoffDismissedStateKey,
   readPlaybackHandoffDismissedStateKey,
@@ -55,6 +61,11 @@ type PlaybackHandoffPromptState = {
   nextResource: DTOQueueResource;
   serverTitle: string | null;
 };
+
+type QueueHeadLoadDecision =
+  | { kind: 'load' }
+  | { kind: 'skip' }
+  | { kind: 'offer-handoff'; prompt: PlaybackHandoffPromptState };
 
 /**
  * Titles are null when neither a title nor an id_text is known. Callers localize that fallback;
@@ -144,6 +155,36 @@ const resolveDisplayTitle = (
 const isRemotePlaybackRole = (): boolean =>
   crossDevicePlaybackStore.getSnapshot().role === 'remote';
 
+/**
+ * Whether this tab moves an ended livestream queue head to History. A `remote` tab never does:
+ * another device, or this browser's audio tab, owns the head. Every other tab owns it, including
+ * an `idle` tab when no session is active. Ownership is unknown until the first check-in settles.
+ */
+const resolveEndedQueueHeadOwnership = (): 'owner' | 'not-owner' | 'unknown' => {
+  const snapshot = crossDevicePlaybackStore.getSnapshot();
+  if (snapshot.availability === 'pending') {
+    return 'unknown';
+  }
+  return snapshot.role === 'remote' ? 'not-owner' : 'owner';
+};
+
+/** The prompt belongs to a settled idle tab; the effect that closes it uses the same test. */
+const canRaisePlaybackHandoffPrompt = (): boolean => {
+  const snapshot = crossDevicePlaybackStore.getSnapshot();
+  return snapshot.role === 'idle' && snapshot.availability !== 'pending';
+};
+
+/**
+ * The item whose live status decides whether a queue head may be offered: the rows that
+ * `switchToServerPlayback` sends to `handleLoadQueueItem`. Add by RSS rows have no server status.
+ */
+const queueHeadItemIdTextForStatusRead = (resource: DTOQueueResource): string | null => {
+  if (resource.add_by_rss_resource_data && !resource.is_add_by_rss_redacted) {
+    return null;
+  }
+  return resource.item?.id_text ?? null;
+};
+
 export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingState {
   const apiRequestService = getApiRequestService();
   const {
@@ -185,6 +226,9 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
   // Automatic queue loads give way to a load applied after they start, and to a newer
   // automatic load from this hook (latest request id wins).
   const queueHeadLoadRequestIdRef = useRef(0);
+  // Each queue-head effect run starts a new prompt check; a status read from an earlier run is
+  // dropped, so a prompt never opens for a decision that no longer holds.
+  const handoffPromptCheckIdRef = useRef(0);
 
   type AutomaticLoadToken = { requestId: number; loadGeneration: number };
 
@@ -393,12 +437,20 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     return typeof title === 'string' ? title : null;
   };
 
-  const shouldLoadQueueResource = (nextResource: DTOQueueResource): boolean => {
+  const rememberPlaybackHandoffDismissal = (dismissedStateKey: string | null): void => {
+    if (dismissedStateKey === null) {
+      return;
+    }
+    playbackHandoffDismissedStateKeyRef.current = dismissedStateKey;
+    writePlaybackHandoffDismissedStateKey(dismissedStateKey);
+  };
+
+  const resolveQueueHeadLoadDecision = (nextResource: DTOQueueResource): QueueHeadLoadDecision => {
     const serverIdentity = queueResourceIdentity(nextResource);
     const hasLoadedLocalTarget =
       mpItem !== null || mpAddByRSS !== null || mpClip !== null || mpItemSoundbite !== null;
     if (!hasLoadedLocalTarget) {
-      return true;
+      return { kind: 'load' };
     }
     const localItemIdText = loadedPlaybackIdentity();
     // A record naming anything other than the loaded item is stale; its timestamp and title
@@ -413,10 +465,10 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     }
 
     if (serverIdentity === null || localItemIdText === null) {
-      return true;
+      return { kind: 'load' };
     }
     if (isLoadedPlaybackIdentity(serverIdentity.itemIdText)) {
-      return true;
+      return { kind: 'load' };
     }
 
     const handoffDecision = resolveHandoffDecision({
@@ -428,7 +480,7 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     });
 
     if (handoffDecision.kind !== 'prompt') {
-      return false;
+      return { kind: 'skip' };
     }
 
     const dismissedStateKey = buildPlaybackHandoffDismissedStateKey({
@@ -439,69 +491,144 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
       dismissedStateKey !== null &&
       dismissedStateKey === playbackHandoffDismissedStateKeyRef.current
     ) {
-      return false;
+      return { kind: 'skip' };
     }
 
     // Live control covers a remote or active tab. Hold the prompt until the first check-in settles.
     if (crossDeviceRole !== 'idle' || crossDeviceAvailability === 'pending') {
-      return false;
+      return { kind: 'skip' };
     }
 
-    setPlaybackHandoffPrompt({
-      dismissedStateKey,
-      localTitle:
-        mpAddByRSS !== null
-          ? resolveDisplayTitle(loadedAddByRSSTitle() ?? localState?.itemTitle, null)
-          : resolveDisplayTitle(localState?.itemTitle, localItemIdText),
-      nextResource,
-      serverTitle: resolveDisplayTitle(serverIdentity.itemTitle, serverIdentity.displayIdText),
-    });
-
-    return false;
+    return {
+      kind: 'offer-handoff',
+      prompt: {
+        dismissedStateKey,
+        localTitle:
+          mpAddByRSS !== null
+            ? resolveDisplayTitle(loadedAddByRSSTitle() ?? localState?.itemTitle, null)
+            : resolveDisplayTitle(localState?.itemTitle, localItemIdText),
+        nextResource,
+        serverTitle: resolveDisplayTitle(serverIdentity.itemTitle, serverIdentity.displayIdText),
+      },
+    };
   };
+
+  /**
+   * Opens the handoff prompt after reading the head's item fresh. An ended or missing livestream
+   * head is never offered: its dismissal is remembered so the same head does not ask again, and
+   * nothing is written, because the tab that owns the head retires it. With no answer, the prompt
+   * names the queue row as it is.
+   */
+  async function offerPlaybackHandoffPrompt(
+    prompt: PlaybackHandoffPromptState,
+    checkId: number
+  ): Promise<void> {
+    const headItemIdText = queueHeadItemIdTextForStatusRead(prompt.nextResource);
+    if (headItemIdText !== null) {
+      const restored = await fetchFreshRestoredItem(headItemIdText);
+      if (checkId !== handoffPromptCheckIdRef.current || !canRaisePlaybackHandoffPrompt()) {
+        return;
+      }
+      if (restored.decision.action === 'retire') {
+        rememberPlaybackHandoffDismissal(prompt.dismissedStateKey);
+        return;
+      }
+    }
+    setPlaybackHandoffPrompt(prompt);
+  }
+
+  /**
+   * An ended livestream at the queue head is treated like a finished item: its row goes to
+   * history and the queue reloads, so the queue-head effect loads the next row paused. An item
+   * the server no longer has writes nothing; the player stays empty.
+   */
+  async function retireEndedQueueHeadItem(endedItem: DTOItem | null): Promise<void> {
+    const queueIdText = activeQueueRef.current?.id_text;
+    if (endedItem === null || !queueIdText) {
+      return;
+    }
+    const ownership = resolveEndedQueueHeadOwnership();
+    if (ownership === 'unknown') {
+      // The queue-head effect runs again when availability settles, and reads the head again.
+      queueHeadAdoptedWithoutListenRef.current = null;
+      return;
+    }
+    if (ownership === 'not-owner') {
+      return;
+    }
+    try {
+      await apiRequestService.reqQueueResourceItemAddHistory(queueIdText, endedItem.id_text, {
+        playback_position: '0',
+        completed: true,
+      });
+      await queueResourcesLoadActiveRef.current(undefined, { queueIdText });
+    } catch (error: unknown) {
+      console.error('Ended livestream could not move to history', {
+        error,
+        itemIdText: endedItem.id_text,
+      });
+    }
+  }
 
   async function handleLoadQueueItem(
     nextResource: DTOQueueResource,
     options?: QueueResourceLoadOptions
   ) {
-    const fullItem = await apiRequestService.reqItemGetByIdOrIdText(nextResource.item.id_text);
-    if (fullItem) {
-      const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
-      if (fullChannel) {
-        if (isStaleAutomaticLoad(options?.automaticLoad) || isRemotePlaybackRole()) {
-          return;
-        }
-        rememberQueueResourceAsLocalState(nextResource);
-        mediaPlayerResourceUpdate({
-          target: playbackTargetFromStandardLoad({
+    const restored = await fetchFreshRestoredItem(nextResource.item.id_text);
+    if (restored.decision.action === 'retire') {
+      if (isStaleAutomaticLoad(options?.automaticLoad)) {
+        return;
+      }
+      await retireEndedQueueHeadItem(restored.item);
+      return;
+    }
+    // No answer from the server: load the queue row's own copy, which carries its channel.
+    const itemToLoad = restored.item ?? nextResource.item;
+    const rowChannel = restored.item === null ? (nextResource.item.channel ?? null) : null;
+    const fullChannel =
+      rowChannel ?? (await apiRequestService.reqChannelGetByIdOrIdText(itemToLoad.channel_id));
+    if (!fullChannel) {
+      return;
+    }
+    if (isStaleAutomaticLoad(options?.automaticLoad) || isRemotePlaybackRole()) {
+      return;
+    }
+    rememberQueueResourceAsLocalState(nextResource);
+    const musicIntent = resolveMusicIntentForQueueHeadLoad();
+    const loadsAsLivestream =
+      checkIsLiveItem(itemToLoad) && !nextResource.clip && !nextResource.item_soundbite;
+    mediaPlayerResourceUpdate({
+      target: loadsAsLivestream
+        ? playbackTargetLivestream(fullChannel, itemToLoad)
+        : playbackTargetFromStandardLoad({
             channel: fullChannel,
             clip: nextResource.clip ?? null,
-            item: fullItem,
+            item: itemToLoad,
             itemChapter: null,
             itemSoundbite: nextResource.item_soundbite ?? null,
-            musicIntent: resolveMusicIntentForQueueHeadLoad(),
+            musicIntent,
           }),
-          explicitPlaybackSeconds: parsePlaybackSeconds(nextResource.playback_position),
-          itemChapterShouldSeek: false,
-          enclosureSelectedParams: 'use-active-item-or-default',
-          skipMoveNowPlayingToHistory: false,
-          newAutoQueueConfig: {
-            playlist_id_text: autoQueueConfigRef.current.playlist_id_text,
-            disabled: false,
-            random: autoQueueConfigRef.current.random,
-            repeat: autoQueueConfigRef.current.repeat,
-            nextPage: autoQueueConfigRef.current.nextPage || 1,
-            shuffleHash: autoQueueConfigRef.current.shuffleHash,
-          },
-          autoQueueShouldClear: true,
-          isPlaying:
-            options?.forcePlay === true ? true : options?.pauseOnLoad === true ? false : undefined,
-          shouldPlay:
-            options?.forcePlay === true ? true : options?.pauseOnLoad === true ? false : undefined,
-          skipNowPlayingWrite: options?.skipNowPlayingWrite === true,
-        });
-      }
-    }
+      explicitPlaybackSeconds: loadsAsLivestream
+        ? undefined
+        : parsePlaybackSeconds(nextResource.playback_position),
+      itemChapterShouldSeek: false,
+      enclosureSelectedParams: 'use-active-item-or-default',
+      skipMoveNowPlayingToHistory: false,
+      newAutoQueueConfig: {
+        playlist_id_text: autoQueueConfigRef.current.playlist_id_text,
+        disabled: false,
+        random: autoQueueConfigRef.current.random,
+        repeat: autoQueueConfigRef.current.repeat,
+        nextPage: autoQueueConfigRef.current.nextPage || 1,
+        shuffleHash: autoQueueConfigRef.current.shuffleHash,
+      },
+      autoQueueShouldClear: true,
+      isPlaying:
+        options?.forcePlay === true ? true : options?.pauseOnLoad === true ? false : undefined,
+      shouldPlay:
+        options?.forcePlay === true ? true : options?.pauseOnLoad === true ? false : undefined,
+      skipNowPlayingWrite: options?.skipNowPlayingWrite === true,
+    });
   }
 
   async function handleLoadQueueClip(
@@ -680,10 +807,7 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
       return;
     }
 
-    if (playbackHandoffPrompt.dismissedStateKey !== null) {
-      playbackHandoffDismissedStateKeyRef.current = playbackHandoffPrompt.dismissedStateKey;
-      writePlaybackHandoffDismissedStateKey(playbackHandoffPrompt.dismissedStateKey);
-    }
+    rememberPlaybackHandoffDismissal(playbackHandoffPrompt.dismissedStateKey);
 
     setPlaybackHandoffPrompt(null);
 
@@ -734,6 +858,8 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
   };
 
   useEffect(() => {
+    handoffPromptCheckIdRef.current += 1;
+    const handoffPromptCheckId = handoffPromptCheckIdRef.current;
     // Another device is playing. This tab does not load a queue item into the local player.
     if (crossDeviceRole === 'remote') {
       return;
@@ -745,7 +871,20 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     if (!nextResource) {
       return;
     }
-    if (!shouldLoadQueueResource(nextResource)) {
+    const loadDecision = resolveQueueHeadLoadDecision(nextResource);
+    if (loadDecision.kind === 'offer-handoff') {
+      if (
+        playbackHandoffPrompt !== null &&
+        playbackHandoffPrompt.nextResource.id === nextResource.id
+      ) {
+        // This head was already read before its prompt opened; refresh the titles only.
+        setPlaybackHandoffPrompt(loadDecision.prompt);
+      } else {
+        void offerPlaybackHandoffPrompt(loadDecision.prompt, handoffPromptCheckId);
+      }
+      return;
+    }
+    if (loadDecision.kind === 'skip') {
       return;
     }
 

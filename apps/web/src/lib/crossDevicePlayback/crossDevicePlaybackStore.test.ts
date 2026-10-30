@@ -163,6 +163,66 @@ describe('createCrossDevicePlaybackStore', () => {
     expect(snapshot.role).toBe('remote');
   });
 
+  it('is remote in the active session until the audio-tab search settles, then idle with no audio tab', () => {
+    const { store } = readyStore();
+    applyState(store, state(5, { active_session_id_text: 'session-this' }));
+    expect(store.getSnapshot().role).toBe('remote');
+
+    store.settleAudioTabSearch();
+
+    const snapshot = store.getSnapshot();
+    expect(snapshot.audioTabSearchSettled).toBe(true);
+    expect(snapshot.audioTab).toBeNull();
+    expect(snapshot.role).toBe('idle');
+  });
+
+  it('turns remote when another tab announces audio after the search settles, and idle once it leaves', () => {
+    const { store, clock } = readyStore();
+    applyState(store, state(5, { active_session_id_text: 'session-this' }));
+    store.settleAudioTabSearch();
+    expect(store.getSnapshot().role).toBe('idle');
+
+    store.noteAudioTab('tab-other', clock.now());
+    expect(store.getSnapshot().role).toBe('remote');
+
+    store.noteAudioTabGone('tab-other');
+    expect(store.getSnapshot().audioTab).toBeNull();
+    expect(store.getSnapshot().role).toBe('idle');
+  });
+
+  it('drops a silent audio tab of another tab only after the silence window and never its own', () => {
+    const { store, clock } = readyStore();
+    applyState(store, state(5, { active_session_id_text: 'session-this' }));
+    store.settleAudioTabSearch();
+    store.noteAudioTab('tab-other', clock.now());
+
+    clock.advance(11_999);
+    store.expireSilentAudioTab(clock.now(), 12_000);
+    expect(store.getSnapshot().audioTab?.tabId).toBe('tab-other');
+    expect(store.getSnapshot().role).toBe('remote');
+
+    clock.advance(1);
+    store.expireSilentAudioTab(clock.now(), 12_000);
+    expect(store.getSnapshot().audioTab).toBeNull();
+    expect(store.getSnapshot().role).toBe('idle');
+
+    store.beginClaim();
+    store.confirmClaim();
+    clock.advance(60_000);
+    store.expireSilentAudioTab(clock.now(), 12_000);
+    expect(store.getSnapshot().audioTab?.tabId).toBe('tab-this');
+    expect(store.getSnapshot().role).toBe('active');
+  });
+
+  it('clears the settled audio-tab search on reset', () => {
+    const { store } = readyStore();
+    store.settleAudioTabSearch();
+    expect(store.getSnapshot().audioTabSearchSettled).toBe(true);
+
+    store.reset({ accountId: 1, enabled: true });
+    expect(store.getSnapshot().audioTabSearchSettled).toBe(false);
+  });
+
   it('emits a command as a signal and leaves state alone', () => {
     const { store } = readyStore();
     applyState(store, state(5));

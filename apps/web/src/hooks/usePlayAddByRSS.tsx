@@ -18,6 +18,7 @@ import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
 import { crossDevicePlaybackStore } from '../lib/crossDevicePlayback/crossDevicePlaybackStore';
+import { isPlayerResourceLive } from '../lib/crossDevicePlayback/playbackResource';
 import { resolveRemotePickCommand } from '../lib/crossDevicePlayback/remotePlaybackRouting';
 import { sendPlaybackCommand } from '../lib/crossDevicePlayback/sendPlaybackCommand';
 import { addByRSSPlaybackIdentity, writePlaybackHandoffLocalState } from './playbackHandoffState';
@@ -106,6 +107,8 @@ export function usePlayAddByRSS() {
 
     const apiRequestService = getApiRequestService();
     const idText = indexItem.idText ?? '';
+    const isLive = isPlayerResourceLive({ mpItem: null, mpAddByRSS: { idText, resourceData } });
+    const startPosition = isLive ? 0 : playbackPosition;
 
     // Feeds without a medium tag are podcasts.
     const mediumId = indexItem.mediumId ?? MediumEnum.Podcast;
@@ -153,13 +156,12 @@ export function usePlayAddByRSS() {
       });
     }
 
-    const duration = typeof resourceData.duration === 'number' ? resourceData.duration : 0;
+    const resourceDuration = typeof resourceData.duration === 'number' ? resourceData.duration : 0;
+    const duration = isLive ? 0 : resourceDuration;
     setMPDuration(duration);
 
     const hasProvidedPosition =
-      typeof playbackPosition === 'number' &&
-      !Number.isNaN(playbackPosition) &&
-      playbackPosition >= 0;
+      typeof startPosition === 'number' && !Number.isNaN(startPosition) && startPosition >= 0;
 
     const syncPlaybackPolicy = (positionSeconds: number, durationSeconds: number) => {
       const decision = applyPlaybackLoad({
@@ -170,8 +172,8 @@ export function usePlayAddByRSS() {
       setMPCurrentTime(decision.initialSeekSeconds);
     };
 
-    if (hasProvidedPosition) {
-      syncPlaybackPolicy(playbackPosition, duration);
+    if (hasProvidedPosition && typeof startPosition === 'number') {
+      syncPlaybackPolicy(startPosition, duration);
     } else {
       syncPlaybackPolicy(0, duration);
     }
@@ -184,9 +186,9 @@ export function usePlayAddByRSS() {
       let ownLoadGeneration = playbackLoadGenerationRef.current;
       const isSuperseded = () => playbackLoadGenerationRef.current !== ownLoadGeneration;
       (async () => {
-        let resolvedPosition = typeof playbackPosition === 'number' ? playbackPosition : 0;
+        let resolvedPosition = typeof startPosition === 'number' ? startPosition : 0;
 
-        if (typeof playbackPosition !== 'number') {
+        if (typeof startPosition !== 'number') {
           const hashIds = getAddByRSSHashIds(indexItem);
           const isThisItem = (hashId: string | null | undefined): boolean =>
             typeof hashId === 'string' && hashIds.includes(hashId);
@@ -247,7 +249,7 @@ export function usePlayAddByRSS() {
         const durationSeconds = getDurationSecondsFromBundle(resourceData.bundle) ?? 0;
 
         // Only update seek state when we resolved position in this async (was not provided).
-        if (typeof playbackPosition !== 'number') {
+        if (typeof startPosition !== 'number') {
           syncPlaybackPolicy(resolvedPosition, durationSeconds);
           ownLoadGeneration = playbackLoadGenerationRef.current;
         }

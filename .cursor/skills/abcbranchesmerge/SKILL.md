@@ -25,7 +25,7 @@ Invoking this command is the explicit request to merge the named branches into t
 Allowed, on the merge branch only, after `git status` shows that branch and no other:
 
 - `git merge --no-ff` of each named branch, then the merge commit Git prepared (`git commit
-  --no-edit` after a conflict resolution)
+--no-edit` after a conflict resolution)
 - A follow-up commit for lint, type-check, or smoke fixes
 - `git push -u origin HEAD` the first time, then `git push` with no refspec. No force.
 
@@ -117,7 +117,7 @@ Under `.llm/plans/active/branches-merge-<slug>/`:
   predicted conflict paths, and "resolve per **abcbranchesmerge** § Conflicts".
 - `COPY-PASTA.md` — one `##` heading per step so the steps cannot run together. Model lines stay
   outside the fence (**copy-pasta-recommend-model**). Each fence starts with `Read and execute
-  .llm/plans/active/branches-merge-<slug>/<NN-plan>.md`.
+.llm/plans/active/branches-merge-<slug>/<NN-plan>.md`.
 
 Steps, in order:
 

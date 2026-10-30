@@ -460,6 +460,8 @@
     "media_player_image": "",
     "seek": "",
     "position_of_duration": "",
+    "go_to_live": "",
+    "behind_live": "",
     "skip_to_next": "",
     "skip_to_previous": "",
     "skip_to_next_hold_hint": "",

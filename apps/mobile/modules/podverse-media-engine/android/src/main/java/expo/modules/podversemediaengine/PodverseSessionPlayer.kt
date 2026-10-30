@@ -33,6 +33,27 @@ class PodverseSessionPlayer(private val context: Context, player: Player) :
 
   override fun isCommandAvailable(command: Int): Boolean = availableCommands.contains(command)
 
+  /**
+   * Play on a live source goes through the engine, which resumes in place or jumps to live by the
+   * live window. Media3 already drops seek commands for an unseekable item and bounds seek back and
+   * forward to the window.
+   */
+  override fun play() {
+    if (PodverseAudioEngine.isLiveSourceLoaded()) {
+      PodverseAudioEngine.play(context)
+    } else {
+      super.play()
+    }
+  }
+
+  override fun setPlayWhenReady(playWhenReady: Boolean) {
+    if (playWhenReady && PodverseAudioEngine.isLiveSourceLoaded()) {
+      PodverseAudioEngine.play(context)
+    } else {
+      super.setPlayWhenReady(playWhenReady)
+    }
+  }
+
   override fun seekToNext() {
     if (PodverseAudioEngine.isMusicSourceLoaded()) {
       PodverseAudioEngine.handleRemoteTrackCommand("next")

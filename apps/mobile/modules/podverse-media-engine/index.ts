@@ -15,12 +15,15 @@ export type {
   MediaEngineAudioProfile,
   MediaEngineBasicAuth,
   MediaEngineCurrentSource,
+  MediaEngineLiveWindow,
   MediaEngineSource,
   MediaEngineSourceMeta,
   MediaEngineSourceOrigin,
   PlaybackStateValue,
   PlaybackStateEvent,
   ProgressEvent,
+  NativeRawCurrentSource,
+  NativeRawProgressEvent,
   EndedEvent,
   PlaybackErrorEvent,
   PlaybackErrorKind,
@@ -35,6 +38,11 @@ export type {
 } from './src/types';
 
 export { mapPlaybackErrorKind, normalizePlaybackError } from './src/playbackErrorTaxonomy';
+export {
+  normalizeCurrentSource,
+  normalizeLiveWindow,
+  normalizeProgressEvent,
+} from './src/liveWindowNormalization';
 
 export {
   serializeAnimateVideoSurfaceCommand,
