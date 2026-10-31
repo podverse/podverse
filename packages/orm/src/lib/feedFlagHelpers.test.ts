@@ -45,4 +45,16 @@ describe('getActiveFeedWhere', () => {
     expect(where.channel.channel_about).toBeDefined();
     expect(where.channel.channel_about.id).toBeDefined();
   });
+
+  it('applies exclude_channel_ids without requiring an include list', () => {
+    const where = getActiveFeedWhere({
+      channel_ids: null,
+      exclude_channel_ids: [9, 10],
+      mediumType: null,
+      category_id: null,
+    });
+
+    expect(where.channel.id).toBeDefined();
+    expect(where.channel.feed.feed_policy.public_visible).toBe(true);
+  });
 });

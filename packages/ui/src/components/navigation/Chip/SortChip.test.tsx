@@ -129,6 +129,27 @@ describe('SortChip', () => {
     ).toBe('false');
   });
 
+  it('closes on Escape from the sort chip after a click', () => {
+    render(
+      <SortChip
+        heading="Sort"
+        options={SORT_OPTIONS}
+        value="recent"
+        onChange={() => {}}
+        range={rangeFor(null)}
+      />
+    );
+
+    const button = screen.getByRole('button', { name: 'Sort: Recent' });
+    fireEvent.click(button);
+    expect(screen.getByRole('menu', { name: 'Sort' })).toBeTruthy();
+
+    fireEvent.keyDown(button, { key: 'Escape' });
+
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(document.activeElement).toBe(button);
+  });
+
   it('closes on Escape at the range step and starts the next open at the sort list', () => {
     const onChange = vi.fn();
     render(

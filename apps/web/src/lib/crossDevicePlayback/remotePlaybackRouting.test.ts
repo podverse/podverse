@@ -7,7 +7,11 @@ import type {
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 
-import { resolveRemoteJumpTarget, resolveRemotePickCommand } from './remotePlaybackRouting';
+import {
+  resolveRemoteJumpTarget,
+  resolveRemotePickCommand,
+  shouldApplyExplicitPlayLocally,
+} from './remotePlaybackRouting';
 
 const itemRef: DTOPlaybackResourceRef = { kind: 'item', item_id_text: 'item-1' };
 
@@ -193,5 +197,31 @@ describe('resolveRemoteJumpTarget', () => {
         deltaSeconds: 30,
       })
     ).toBeNull();
+  });
+});
+
+describe('shouldApplyExplicitPlayLocally', () => {
+  const sameSession = {
+    role: 'remote' as const,
+    thisSessionIdText: 'session-this',
+    activeSessionIdText: 'session-this',
+    thisTabId: 'tab-this',
+    audioTabId: null,
+  };
+
+  it('plays here when this session is active and no other tab has announced', () => {
+    expect(shouldApplyExplicitPlayLocally(sameSession)).toBe(true);
+  });
+
+  it('commands the other tab once that tab has announced', () => {
+    expect(shouldApplyExplicitPlayLocally({ ...sameSession, audioTabId: 'tab-other' })).toBe(
+      false
+    );
+  });
+
+  it('commands another session', () => {
+    expect(
+      shouldApplyExplicitPlayLocally({ ...sameSession, activeSessionIdText: 'session-other' })
+    ).toBe(false);
   });
 });

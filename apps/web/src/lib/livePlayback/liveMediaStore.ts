@@ -79,6 +79,11 @@ type ActiveRegistration = {
   /** Native HLS only: how far before the seekable end playback sat when it first joined live. */
   nativeJoinOffsetSeconds: number | null;
   joinOffsetChecked: boolean;
+  /**
+   * Set on the first `playing` event. A Media Source element can report an empty `played`
+   * range after a seek, and the playhead is still the position to show.
+   */
+  playbackStarted: boolean;
 };
 
 const DETACHED_SNAPSHOT: LiveMediaSnapshot = {
@@ -115,7 +120,8 @@ function isSameSnapshot(a: LiveMediaSnapshot, b: LiveMediaSnapshot): boolean {
  * `useSyncExternalStore`, and the go-to-live, seek, and resume actions on it.
  *
  * The window comes only from what the stream reports: HLS has one, progressive delivery never
- * does. An element that has not played yet reads as at live. Displayed values are whole seconds,
+ * does. An element that has not played yet reads as at live. After it fires `playing`, the
+ * playhead is its `currentTime` even when `played` ranges are empty. Displayed values are whole seconds,
  * so a playing or paused element notifies about once a second.
  */
 export function createLiveMediaStore(options?: {
@@ -161,7 +167,8 @@ export function createLiveMediaStore(options?: {
     return {
       attached: true,
       display: resolveLivePlaybackDisplay({
-        positionSeconds: hasPlayed(media) ? media.currentTime : null,
+        positionSeconds:
+          entry.playbackStarted || hasPlayed(media) ? media.currentTime : null,
         window: readWindowOf(entry),
       }),
     };
@@ -211,14 +218,21 @@ export function createLiveMediaStore(options?: {
       registration,
       nativeJoinOffsetSeconds: null,
       joinOffsetChecked: false,
+      playbackStarted: false,
     };
     const { media } = registration;
     const onMediaEvent = (event: Event) => {
+      if (event.type === 'playing' || (event.type === 'timeupdate' && media.currentTime > 0)) {
+        entry.playbackStarted = true;
+      }
       if (event.type === 'playing') {
         checkNativeJoinOffset(entry);
       }
       refresh();
     };
+    if (!media.paused || hasPlayed(media)) {
+      entry.playbackStarted = true;
+    }
     for (const type of REFRESH_EVENTS) {
       media.addEventListener(type, onMediaEvent);
     }
@@ -318,7 +332,7 @@ export function createLiveMediaStore(options?: {
       if (entry === null || entry.registration.media !== media) {
         return 'play';
       }
-      if (!hasPlayed(media) || !media.paused) {
+      if ((!entry.playbackStarted && !hasPlayed(media)) || !media.paused) {
         return 'play';
       }
       const action = resolveLiveResume({

@@ -27,12 +27,14 @@
   justify-content: center;
 }
 
-.itemTitle > button {
+.itemTitle > button,
+.itemTitle > a {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-light);
   color: var(--text-color-primary) !important;
   max-width: 100%;
   min-width: 0;
+  text-decoration: none;
 }
 
 .channelTitle {
@@ -40,12 +42,14 @@
   justify-content: center;
 }
 
-.channelTitle > button {
+.channelTitle > button,
+.channelTitle > a {
   font-weight: var(--font-weight-light);
   color: var(--text-color-accent) !important;
   max-width: 100%;
   min-width: 0;
   margin-top: var(--spacing-sm);
+  text-decoration: none;
 }
 
 .artistTitle {
@@ -53,12 +57,14 @@
   justify-content: center;
 }
 
-.artistTitle > button {
+.artistTitle > button,
+.artistTitle > a {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-light);
   color: var(--text-color-accent) !important;
   @include line-clamp(1);
   margin-top: var(--spacing-sm);
+  text-decoration: none;
 }
 
 .vtsLike {
@@ -167,12 +173,14 @@
   max-width: 100%;
 }
 
-.subtitle > button {
+.subtitle > button,
+.subtitle > a {
   color: var(--text-color-primary) !important;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-light);
   max-width: 100%;
   min-width: 0;
+  text-decoration: none;
 }
 
 .timeRange {

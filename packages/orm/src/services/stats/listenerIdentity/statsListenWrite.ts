@@ -24,8 +24,11 @@ import {
   POPULARITY_TASTE_COMPLETION_WEIGHT,
   POPULARITY_TASTE_HALF_LIFE_DAYS,
   POPULARITY_TASTE_LISTEN_WEIGHT,
+  recommendationWeightChanged,
   subtractDays,
 } from '@podverse/helpers';
+
+import { refreshRecommendationsForListener } from './recommendationsListenerRefresh.js';
 
 export type StatsListenTarget =
   { kind: 'item'; id_text: string } | { kind: 'clip'; id_text: string };
@@ -590,11 +593,27 @@ async function addListenToTaste(
   target: ResolvedListenTarget,
   completed: boolean,
   at: Date
-): Promise<void> {
+): Promise<{ recommendationWeightChanged: boolean }> {
   const shows = await tasteChannelIds(manager, listenerId, target.channelId, target.mediumId);
   const weight =
     POPULARITY_TASTE_LISTEN_WEIGHT + (completed ? POPULARITY_TASTE_COMPLETION_WEIGHT : 0);
+  let weightChanged = false;
   for (const channelId of shows) {
+    const [existing] = await queryRows(
+      manager,
+      `SELECT listen_count, weight_override
+         FROM stats_taste_profile
+        WHERE listener_id = $1 AND channel_id = $2`,
+      [listenerId, channelId]
+    );
+    const previousListenCount =
+      existing !== undefined && typeof existing.listen_count === 'number'
+        ? existing.listen_count
+        : null;
+    const previousWeightOverride =
+      existing !== undefined && typeof existing.weight_override === 'number'
+        ? existing.weight_override
+        : null;
     await manager.query(TASTE_LISTEN_SQL, [
       listenerId,
       channelId,
@@ -604,7 +623,19 @@ async function addListenToTaste(
       POPULARITY_TASTE_HALF_LIFE_DAYS.recent,
       POPULARITY_TASTE_HALF_LIFE_DAYS.longTerm,
     ]);
+    const nextListenCount = (previousListenCount ?? 0) + 1;
+    if (
+      recommendationWeightChanged({
+        previousListenCount,
+        previousWeightOverride,
+        nextListenCount,
+        nextWeightOverride: previousWeightOverride,
+      })
+    ) {
+      weightChanged = true;
+    }
   }
+  return { recommendationWeightChanged: weightChanged };
 }
 
 /**
@@ -691,7 +722,8 @@ export class StatsListenWriteService {
   private readonly listenerService = new StatsListenerService();
 
   async recordListen(report: StatsListenReport): Promise<PopularityListenResult> {
-    return runListenerWrite(async (manager) => {
+    let listenerIdToRefresh: string | null = null;
+    const result = await runListenerWrite(async (manager) => {
       const consent = await readTrackingConsentForUpdate(
         manager,
         report.account_id,
@@ -811,7 +843,16 @@ export class StatsListenWriteService {
           });
         }
       }
-      await addListenToTaste(manager, listenerId, target, report.completed, now);
+      const tasteUpdate = await addListenToTaste(
+        manager,
+        listenerId,
+        target,
+        report.completed,
+        now
+      );
+      if (tasteUpdate.recommendationWeightChanged) {
+        listenerIdToRefresh = listenerId;
+      }
       if (storedBefore + 1 >= report.stored_daily_cap) {
         await recordStoredCapReached(
           manager,
@@ -824,5 +865,9 @@ export class StatsListenWriteService {
       // A client must not learn when its listens stop counting toward popularity.
       return 'counted';
     });
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return result;
   }
 }

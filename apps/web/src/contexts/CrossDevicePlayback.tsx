@@ -156,6 +156,13 @@ export function CrossDevicePlaybackProvider({ children }: { children: ReactNode 
   );
   const pendingSinceMs = useCrossDevicePlaybackSnapshot((snapshot) => snapshot.pendingSinceMs);
   const role = useCrossDevicePlaybackSnapshot((snapshot) => snapshot.role);
+  const audioTabId = useCrossDevicePlaybackSnapshot((snapshot) => snapshot.audioTab?.tabId ?? null);
+  const audioTabSearchSettled = useCrossDevicePlaybackSnapshot(
+    (snapshot) => snapshot.audioTabSearchSettled
+  );
+  const activeSessionIdText = useCrossDevicePlaybackSnapshot(
+    (snapshot) => snapshot.state?.active_session_id_text ?? null
+  );
 
   const [tabChannelAvailable, setTabChannelAvailable] = useState(false);
   const checkInNowRef = useRef<() => void>(() => undefined);
@@ -434,13 +441,24 @@ export function CrossDevicePlaybackProvider({ children }: { children: ReactNode 
     if (snapshot.role !== 'remote') {
       return;
     }
+    const sameSession =
+      snapshot.thisSessionIdText !== null &&
+      snapshot.state?.active_session_id_text === snapshot.thisSessionIdText;
+    const otherTabAnnounced =
+      snapshot.audioTab !== null && snapshot.audioTab.tabId !== snapshot.tabId;
+    // The audio-tab query is still open and nobody has answered. This tab may already be
+    // playing from before availability was ready. Dropping that item would load the queue
+    // head in its place. A later answer from another tab runs this effect again.
+    if (sameSession && !snapshot.audioTabSearchSettled && !otherTabAnnounced) {
+      return;
+    }
     if (snapshot.thisTabHoldsAudio) {
       crossDevicePlaybackStore.releaseAudio();
     }
     if (playerHoldsResource) {
       clearNowPlayingRef.current();
     }
-  }, [role, playerHoldsResource]);
+  }, [activeSessionIdText, audioTabId, audioTabSearchSettled, playerHoldsResource, role]);
 
   const { confirmTapToPlay, dismissTapToPlay } = useCrossDevicePlaybackCommandExecutor();
 

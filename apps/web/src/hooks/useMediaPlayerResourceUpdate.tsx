@@ -15,6 +15,7 @@ import { useAddByRSSListContext } from '../contexts/AddByRSSListContext';
 import type { AutoQueueConfig } from '../contexts/AutoQueue';
 import { useAutoQueue } from '../contexts/AutoQueue';
 import { useEmbedPlaybackGuardrails } from '../contexts/EmbedPlaybackMode';
+import { useCrossDevicePlaybackSnapshot } from '../contexts/CrossDevicePlayback';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
@@ -23,7 +24,10 @@ import {
   buildPlaybackResourceRefFromTarget,
   playbackStartSecondsFromTarget,
 } from '../lib/crossDevicePlayback/playbackResource';
-import { resolveRemotePickCommand } from '../lib/crossDevicePlayback/remotePlaybackRouting';
+import {
+  resolveRemotePickCommand,
+  shouldApplyExplicitPlayLocally,
+} from '../lib/crossDevicePlayback/remotePlaybackRouting';
 import { sendPlaybackCommand } from '../lib/crossDevicePlayback/sendPlaybackCommand';
 import type { PlaybackLoadDecision, PlaybackLoadRequest, PlaybackTarget } from '../lib/playback';
 import { parsePlaybackSeconds } from '../lib/playback';
@@ -44,6 +48,13 @@ export type MediaPlayerPlaybackLoadInput = PlaybackLoadRequest & {
    */
   skipNowPlayingWrite?: boolean;
 };
+
+let deferredExplicitPlay = false;
+
+/** A play click is waiting until this tab is allowed to play it locally. */
+export function hasDeferredExplicitPlay(): boolean {
+  return deferredExplicitPlay;
+}
 
 function isLiveTarget(target: PlaybackTarget): boolean {
   switch (target.kind) {
@@ -248,21 +259,57 @@ export function useMediaPlayerResourceUpdate() {
     mpItemRef.current = mpItem;
   }, [mpItem]);
 
-  return (input: MediaPlayerPlaybackLoadInput): PlaybackLoadDecision | null => {
-    if (crossDevicePlaybackStore.getSnapshot().role === 'remote') {
-      const command = resolveRemotePickCommand({
-        pickedRef: buildPlaybackResourceRefFromTarget(input.target),
-        addByRSSResourceData: input.target.kind === 'add-by-rss' ? input.target.resourceData : null,
-        startSeconds: playbackStartSecondsFromTarget(input.target, input.explicitPlaybackSeconds),
-        loadsPaused: input.shouldPlay === false || input.skipNowPlayingWrite === true,
-        remoteState: crossDevicePlaybackStore.getSnapshot().displayState,
-      });
-      if (command !== null) {
-        void sendPlaybackCommand(command);
-      }
-      return null;
-    }
+  const pendingLocalPlayRef = useRef<MediaPlayerPlaybackLoadInput | null>(null);
+  const lastExplicitPlayRef = useRef<MediaPlayerPlaybackLoadInput | null>(null);
+  const ownsDeferredPlayRef = useRef(false);
+  const role = useCrossDevicePlaybackSnapshot((snapshot) => snapshot.role);
+  const applyLocalRef = useRef<
+    (input: MediaPlayerPlaybackLoadInput) => PlaybackLoadDecision | null
+  >(() => null);
 
+  useEffect(() => {
+    if (role === 'remote') {
+      const lastExplicitPlay = lastExplicitPlayRef.current;
+      if (
+        lastExplicitPlay !== null &&
+        lastExplicitPlay.shouldPlay !== false &&
+        lastExplicitPlay.skipNowPlayingWrite !== true
+      ) {
+        pendingLocalPlayRef.current = lastExplicitPlay;
+        deferredExplicitPlay = true;
+        ownsDeferredPlayRef.current = true;
+      }
+      return;
+    }
+    const pending = pendingLocalPlayRef.current;
+    if (pending === null) {
+      return;
+    }
+    pendingLocalPlayRef.current = null;
+    // Queue hydration in this commit would otherwise load the previous row. The flag stays
+    // set until this microtask, so that hydration skips, and this pick is the one that loads.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        applyLocalRef.current(pending);
+      }
+    });
+    return () => {
+      cancelled = true;
+      if (ownsDeferredPlayRef.current) {
+        deferredExplicitPlay = false;
+        ownsDeferredPlayRef.current = false;
+      }
+    };
+  }, [role]);
+
+  const applyLocal = (input: MediaPlayerPlaybackLoadInput): PlaybackLoadDecision | null => {
+    pendingLocalPlayRef.current = null;
+    deferredExplicitPlay = false;
+    ownsDeferredPlayRef.current = false;
+    if (input.shouldPlay !== false && input.skipNowPlayingWrite !== true) {
+      lastExplicitPlayRef.current = input;
+    }
     const {
       target,
       explicitPlaybackSeconds,
@@ -360,5 +407,41 @@ export function useMediaPlayerResourceUpdate() {
     }
 
     return decision;
+  };
+  applyLocalRef.current = applyLocal;
+
+  return (input: MediaPlayerPlaybackLoadInput): PlaybackLoadDecision | null => {
+    const playbackSnapshot = crossDevicePlaybackStore.getSnapshot();
+    if (
+      playbackSnapshot.role === 'remote' &&
+      !shouldApplyExplicitPlayLocally({
+        role: playbackSnapshot.role,
+        thisSessionIdText: playbackSnapshot.thisSessionIdText,
+        activeSessionIdText: playbackSnapshot.state?.active_session_id_text ?? null,
+        thisTabId: playbackSnapshot.tabId,
+        audioTabId: playbackSnapshot.audioTab?.tabId ?? null,
+      })
+    ) {
+      const command = resolveRemotePickCommand({
+        pickedRef: buildPlaybackResourceRefFromTarget(input.target),
+        addByRSSResourceData: input.target.kind === 'add-by-rss' ? input.target.resourceData : null,
+        startSeconds: playbackStartSecondsFromTarget(input.target, input.explicitPlaybackSeconds),
+        loadsPaused: input.shouldPlay === false || input.skipNowPlayingWrite === true,
+        remoteState: crossDevicePlaybackStore.getSnapshot().displayState,
+      });
+      if (command !== null) {
+        void sendPlaybackCommand(command);
+      }
+      if (command !== null && (command.type === 'play' || command.type === 'play_item')) {
+        pendingLocalPlayRef.current = input;
+        deferredExplicitPlay = true;
+      } else if (command !== null && command.type === 'pause') {
+        pendingLocalPlayRef.current = null;
+        deferredExplicitPlay = false;
+      }
+      return null;
+    }
+
+    return applyLocal(input);
   };
 }

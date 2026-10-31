@@ -1,8 +1,17 @@
 import type { SortPrefScope } from '@podverse/helpers';
-import { pickSortPrefToken } from '@podverse/helpers';
+import {
+  BROWSE_LIST_VIEW_MODE_SCOPE_ALBUMS,
+  BROWSE_LIST_VIEW_MODE_SCOPE_ARTISTS,
+  BROWSE_LIST_VIEW_MODE_SCOPE_PODCASTS,
+  HOME_LIST_VIEW_MODE_SCOPE_ALBUMS,
+  HOME_LIST_VIEW_MODE_SCOPE_ARTISTS,
+  HOME_LIST_VIEW_MODE_SCOPE_PODCASTS,
+  pickSortPrefToken,
+  recommendationsListViewModeScope,
+} from '@podverse/helpers';
 
 import { ROUTES } from '../constants/routes';
-import type { LocalSettingsState } from './localSettings/localSettings';
+import type { FilterDefaultsPage, LocalSettingsState } from './localSettings/localSettings';
 import { getStoredSortPref, updateStoredSortPref } from './localSettings/localSettings';
 
 /** Subscribed chips, in mobile Home order. The first chip is the page default. */
@@ -139,4 +148,139 @@ export function readStoredMediaListChip(
 export function writeMediaListChip(page: MediaListChipsPage, chip: MediaListChip): void {
   const mediaType = chip === DEFAULT_MEDIA_LIST_CHIP ? undefined : chip;
   updateStoredSortPref(MEDIA_LIST_CHIP_SCOPES[page], { mediaType });
+}
+
+/**
+ * Trailing controls a media-list chip mounts. Known from the page and chip alone, so the row can
+ * show Sort and the gear on the click before the list arrives.
+ */
+export type MediaListChipChrome = {
+  showCategory: boolean;
+  showSort: boolean;
+  showViewSelector: boolean;
+  showPlaylistsMedium: boolean;
+  /** Cookie key for remembered sort, or null when Sort is not stored that way. */
+  filterDefaultsPage: FilterDefaultsPage | null;
+  /** List vs grid for this chip. Null uses the app-wide setting. */
+  viewModeScope: SortPrefScope | null;
+};
+
+const CHANNEL_VIEW_MODE_SCOPES = {
+  subscribed: {
+    podcasts: HOME_LIST_VIEW_MODE_SCOPE_PODCASTS,
+    artists: HOME_LIST_VIEW_MODE_SCOPE_ARTISTS,
+    albums: HOME_LIST_VIEW_MODE_SCOPE_ALBUMS,
+  },
+  browse: {
+    podcasts: BROWSE_LIST_VIEW_MODE_SCOPE_PODCASTS,
+    artists: BROWSE_LIST_VIEW_MODE_SCOPE_ARTISTS,
+    albums: BROWSE_LIST_VIEW_MODE_SCOPE_ALBUMS,
+  },
+} as const;
+
+const emptyChrome = (): MediaListChipChrome => ({
+  showCategory: false,
+  showSort: false,
+  showViewSelector: false,
+  showPlaylistsMedium: false,
+  filterDefaultsPage: null,
+  viewModeScope: null,
+});
+
+/** Trailing chrome for one chip on a chips page. */
+export function mediaListChipChrome(
+  page: MediaListChipsPage,
+  chip: MediaListChip
+): MediaListChipChrome {
+  if (page === 'recommendations') {
+    if (chip !== 'podcasts' && chip !== 'albums' && chip !== 'artists') {
+      return emptyChrome();
+    }
+    return {
+      ...emptyChrome(),
+      showViewSelector: true,
+      viewModeScope: recommendationsListViewModeScope(chip),
+    };
+  }
+
+  if (page === 'add-by-rss') {
+    if (chip === 'livestreams' || chip === 'playlists' || chip === 'users' || chip === 'clips') {
+      return emptyChrome();
+    }
+    return {
+      ...emptyChrome(),
+      showSort: true,
+      showViewSelector: true,
+      viewModeScope: null,
+    };
+  }
+
+  if (chip === 'livestreams') {
+    return emptyChrome();
+  }
+
+  if (page === 'browse' && chip === 'playlists') {
+    return {
+      ...emptyChrome(),
+      showSort: true,
+      showPlaylistsMedium: true,
+      filterDefaultsPage: 'browse-playlists',
+    };
+  }
+
+  if (page === 'browse' && chip === 'users') {
+    return {
+      ...emptyChrome(),
+      showSort: true,
+      filterDefaultsPage: 'browse-users',
+    };
+  }
+
+  const isBrowse = page === 'browse';
+  const showCategory =
+    isBrowse && (chip === 'podcasts' || chip === 'episodes' || chip === 'clips');
+  const showViewSelector =
+    chip === 'podcasts' ||
+    chip === 'episodes' ||
+    chip === 'artists' ||
+    chip === 'albums' ||
+    chip === 'tracks';
+
+  const filterDefaultsPage: FilterDefaultsPage | null = (() => {
+    if (chip === 'podcasts') {
+      return isBrowse ? 'podcasts' : 'subscribed-podcasts';
+    }
+    if (chip === 'episodes') {
+      return isBrowse ? 'episodes' : 'subscribed-episodes';
+    }
+    if (chip === 'clips') {
+      return isBrowse ? 'clips' : 'subscribed-clips';
+    }
+    if (chip === 'artists') {
+      return isBrowse ? 'artists' : 'subscribed-artists';
+    }
+    if (chip === 'albums') {
+      return isBrowse ? 'albums' : 'subscribed-albums';
+    }
+    if (chip === 'tracks') {
+      return isBrowse ? 'tracks' : 'subscribed-tracks';
+    }
+    return null;
+  })();
+
+  const viewModeScope: SortPrefScope | null = (() => {
+    if (chip !== 'podcasts' && chip !== 'artists' && chip !== 'albums') {
+      return null;
+    }
+    return CHANNEL_VIEW_MODE_SCOPES[isBrowse ? 'browse' : 'subscribed'][chip];
+  })();
+
+  return {
+    showCategory,
+    showSort: true,
+    showViewSelector,
+    showPlaylistsMedium: false,
+    filterDefaultsPage,
+    viewModeScope,
+  };
 }

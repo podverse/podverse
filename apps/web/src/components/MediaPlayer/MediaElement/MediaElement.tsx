@@ -23,8 +23,8 @@ export type MediaElementProps = {
 
 /**
  * `<audio>` / `<video>` shell for non-live playback and for livestreams. A progressive file sets
- * `src` here. An HLS playlist omits `src` and is attached after mount: native HLS, or lazy
- * `hls.js` when the browser cannot play an HLS playlist itself.
+ * `src` here. An HLS playlist omits `src` and is attached after mount: `hls.js` where Media
+ * Source exists, and native HLS where the browser reports the playlist MIME and has no Media Source.
  */
 export function MediaElement(props: MediaElementProps): ReactElement {
   const { isVideo, source, mediaRef, preload = 'auto', hidden, playsInline, style } = props;
@@ -45,14 +45,8 @@ export function MediaElement(props: MediaElementProps): ReactElement {
       detachNonLiveHlsPlayback(media);
       return;
     }
-    let cancelled = false;
-    void attachNonLiveHlsPlayback(media, hlsPlaylistSrc).then(() => {
-      if (cancelled) {
-        detachNonLiveHlsPlayback(media);
-      }
-    });
+    void attachNonLiveHlsPlayback(media, hlsPlaylistSrc);
     return () => {
-      cancelled = true;
       detachNonLiveHlsPlayback(media);
     };
   }, [mediaRef, hlsPlaylistSrc]);

@@ -341,6 +341,13 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
               item={item || item_soundbite.item || null}
               onClick={onPlayAndRemove ?? playButtonOnClick}
             />
+            <ItemRowMoreActions
+              enclosures={item?.item_enclosures ?? []}
+              itemTitle={itemTitle}
+              ariaLabel={tMedia('more_options')}
+              moreButtonMenuItems={moreButtonMenuItems}
+              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+            />
             <div className={styles.timeSection}>
               {showItemInfo && (
                 <>
@@ -350,15 +357,6 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
               )}
               <ReadableTimeRange startTime={startTime} endTime={endTime} />
             </div>
-          </div>
-          <div className={styles.bottomSectionEnd}>
-            <ItemRowMoreActions
-              enclosures={item?.item_enclosures ?? []}
-              itemTitle={itemTitle}
-              ariaLabel={tMedia('more_options')}
-              moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
-            />
           </div>
         </div>
       </div>

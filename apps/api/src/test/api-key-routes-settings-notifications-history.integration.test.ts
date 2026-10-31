@@ -144,6 +144,19 @@ const historyRoutes: RouteCase[] = [
     body: UNHIDE_BODY,
   },
   { method: 'get', path: '/account/recommendations', requirement: historyRead },
+  { method: 'get', path: '/account/channel-hidden', requirement: historyRead },
+  {
+    method: 'post',
+    path: '/account/channel-hidden/hide',
+    requirement: historyUpdate,
+    body: HIDE_BODY,
+  },
+  {
+    method: 'post',
+    path: '/account/channel-hidden/unhide',
+    requirement: historyUpdate,
+    body: HIDE_BODY,
+  },
   {
     method: 'post',
     path: '/account/taste-profile/weight',

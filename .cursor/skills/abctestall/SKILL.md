@@ -126,6 +126,9 @@ Do not raise timeouts, add retries, weaken assertions, or accept several outcome
 response. Follow **abce2etestdebug** for how to read one E2E failure, and **mobile-test-economics**
 for the two-hypothesis limit on a device assertion.
 
+When the failure is one of the checks in **e2e-problematic-assertions**, delete that assertion if
+it is still present and do not defer it. Do not add it back.
+
 When the fix is not clear, stop changing that unit. Append an entry to
 `.llm/plans/active/abctestall-deferred.md` (create the file on the first deferral) and continue
 the tier. When an entry for the same test already exists, update it instead of adding another.

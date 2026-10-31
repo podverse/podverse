@@ -7,6 +7,14 @@ import React from 'react';
 import { FormMaxWidth, Tabs } from '@podverse/ui';
 
 import { useAccount } from '../../contexts/Account';
+import {
+  clearSettingsNavigationIfCurrent,
+  rememberSettingsNavigation,
+} from '../../lib/auth/pendingSettingsNavigation';
+import {
+  sessionEndedNoticeHoldsPage,
+  subscribeSessionEndedNoticeHold,
+} from '../../lib/auth/sessionEndedNotice';
 import { ListHeader } from '../List/ListHeader';
 import { SettingsAccount } from './Panels/SettingsAccount/SettingsAccount';
 import { SettingsTasteProfile } from './Panels/SettingsAccount/SettingsTasteProfile';
@@ -76,18 +84,32 @@ export function Settings() {
     }
   }, [tabParam]);
 
-  // Redirect non-logged-in users away from restricted tabs
+  React.useEffect(() => {
+    clearSettingsNavigationIfCurrent(`${window.location.pathname}${window.location.search}`);
+  }, [tabParam]);
+
+  const [sessionEndedHoldVersion, setSessionEndedHoldVersion] = React.useState(0);
+  React.useEffect(() => {
+    return subscribeSessionEndedNoticeHold(() => {
+      setSessionEndedHoldVersion((version) => version + 1);
+    });
+  }, []);
+
+  // A logged-out visit to a restricted tab moves to General. A signed-out notice keeps
+  // that tab until the dialog closes, so the page the session ended on stays in the URL.
   React.useEffect(() => {
     if (loggedInAccount) return;
     if (tabFromQuery === null || tabFromQuery === 'general' || tabFromQuery === 'keyboard') return;
+    if (sessionEndedNoticeHoldsPage()) return;
     setTab('general');
     router.replace('/settings');
-  }, [loggedInAccount, tabFromQuery, router]);
+  }, [loggedInAccount, tabFromQuery, router, sessionEndedHoldVersion]);
 
   const handleTabChange = React.useCallback(
     (newTab: TabKey) => {
-      setTab(newTab);
       const path = newTab === 'general' ? '/settings' : `/settings?tab=${newTab}`;
+      rememberSettingsNavigation(path);
+      setTab(newTab);
       router.replace(path);
     },
     [router]

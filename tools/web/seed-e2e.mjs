@@ -3779,6 +3779,7 @@ async function seedTasteProfileFixtures(client) {
     E2E_PODCAST_CHANNEL_ID_TEXT,
     E2E_VIDEO_CHANNEL_ID_TEXT,
     E2E_DIRECTORY_ARTIST_ID_TEXT,
+    E2E_HLS_CHANNEL_ID_TEXT,
   ];
   const channelResult = await client.query(
     `SELECT id, id_text FROM channel WHERE id_text = ANY($1::text[])`,
@@ -3837,6 +3838,17 @@ async function seedTasteProfileFixtures(client) {
     `INSERT INTO stats_taste_profile_hidden (listener_id, channel_id, hidden_at)
      VALUES ($1, $2, NOW() - INTERVAL '3 days')`,
     [listenerId, channelIdByText.get(E2E_DIRECTORY_ARTIST_ID_TEXT)]
+  );
+
+  await client.query(
+    `INSERT INTO stats_recommendation (listener_id, channel_id, score, strength, computed_at)
+     VALUES ($1, $2, 7.5, 5, NOW() - INTERVAL '1 day')`,
+    [listenerId, channelIdByText.get(E2E_HLS_CHANNEL_ID_TEXT)]
+  );
+  await client.query(
+    `INSERT INTO stats_recommendation_state (listener_id, computed_at)
+     VALUES ($1, NOW() - INTERVAL '1 day')`,
+    [listenerId]
   );
 
   console.log(`Seeded taste-profile fixtures for ${E2E_TASTE_PROFILE_EMAIL}`);

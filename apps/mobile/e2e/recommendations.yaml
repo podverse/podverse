@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Recommendations
 ---
-# Seeded e2e-taste-profile account has Taste Profile on and no recommendation rows until the job runs.
+# Seeded e2e-taste-profile account has Taste Profile on and a seeded HLS recommendation row.
 
 - runFlow: shared/launch-and-connect.yaml
 
@@ -35,6 +35,8 @@ name: Recommendations
     id: tab-recommendations
 - assertVisible:
     id: recommendations-screen
+- assertVisible:
+    id: recommendations-edit
 - assertNotVisible:
     id: browse-sort-button
 - assertVisible:
@@ -49,5 +51,44 @@ name: Recommendations
     id: recommendations-overflow-view-grid
 - tapOn:
     id: recommendations-overflow-menu-cancel
-- assertVisible: "Recommendations appear after you listen, on the next nightly update."
-- takeScreenshot: recommendations-check-back
+- assertVisible: "E2E HLS VOD Channel"
+- takeScreenshot: recommendations-seeded-row
+
+- tapOn:
+    id: recommendations-edit
+- assertVisible:
+    id: more-settings-taste-profile-screen
+- takeScreenshot: recommendations-edit-settings
+
+- tapOn:
+    id: tab-recommendations
+- assertVisible:
+    id: recommendations-screen
+- assertVisible: "E2E HLS VOD Channel"
+- tapOn:
+    id: home-row-more-e2eHlsChnl001
+- extendedWaitUntil:
+    visible:
+      text: "Hide"
+    timeout: ${TIMEOUT_FAST}
+- tapOn: "Hide"
+- assertNotVisible: "E2E HLS VOD Channel"
+- takeScreenshot: recommendations-after-hide
+
+- tapOn:
+    id: recommendations-edit
+- assertVisible:
+    id: more-settings-taste-profile-screen
+- scrollUntilVisible:
+    element:
+      id: channel-hidden-section-toggle
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: channel-hidden-section-toggle
+- assertVisible: "E2E HLS VOD Channel"
+- tapOn:
+    id: channel-hidden-unhide-e2eHlsChnl001
+- assertNotVisible:
+    id: channel-hidden-row-e2eHlsChnl001
+- takeScreenshot: recommendations-after-unhide

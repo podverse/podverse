@@ -24,7 +24,9 @@
 }
 
 .icon {
+  display: inline-block;
   margin-right: var(--spacing-md);
+  vertical-align: middle;
 }
 
 .scrollable {

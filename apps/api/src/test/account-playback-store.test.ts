@@ -46,6 +46,18 @@ const SESSION_B = 'playback-store-session-b';
 const playbackAccountKey = (accountId: number, name: PlaybackAccountKeyName): string =>
   `podverse:playback:${accountId}:${name}`;
 
+const playbackSessionKey = (
+  accountId: number,
+  sessionIdText: string,
+  name: 'presence_gen' | 'presence_leave'
+): string => `podverse:playback:${accountId}:${name}:${sessionIdText}`;
+
+const playbackSessionKeysFor = (accountId: number): string[] =>
+  [SESSION_A, SESSION_B].flatMap((sessionIdText) => [
+    playbackSessionKey(accountId, sessionIdText, 'presence_gen'),
+    playbackSessionKey(accountId, sessionIdText, 'presence_leave'),
+  ]);
+
 const playbackCommandKey = (commandIdText: string): string =>
   `podverse:playback:command:${commandIdText}`;
 
@@ -99,7 +111,10 @@ describe('account playback store against the test Valkey', () => {
   const deleteAccountKeys = async (accountId: number): Promise<void> => {
     await playbackRedis
       .getPlaybackRedis()
-      .del(...PLAYBACK_ACCOUNT_KEY_NAMES.map((name) => playbackAccountKey(accountId, name)));
+      .del(
+        ...PLAYBACK_ACCOUNT_KEY_NAMES.map((name) => playbackAccountKey(accountId, name)),
+        ...playbackSessionKeysFor(accountId)
+      );
   };
 
   const touch = (accountId: number, sessionIdText: string, nowMs: number) =>
@@ -139,9 +154,10 @@ describe('account playback store against the test Valkey', () => {
 
   afterEach(async () => {
     const keys = [
-      ...usedAccountIds.flatMap((accountId) =>
-        PLAYBACK_ACCOUNT_KEY_NAMES.map((name) => playbackAccountKey(accountId, name))
-      ),
+      ...usedAccountIds.flatMap((accountId) => [
+        ...PLAYBACK_ACCOUNT_KEY_NAMES.map((name) => playbackAccountKey(accountId, name)),
+        ...playbackSessionKeysFor(accountId),
+      ]),
       ...usedCommandIds.map(playbackCommandKey),
     ];
     usedAccountIds.length = 0;
@@ -161,6 +177,7 @@ describe('account playback store against the test Valkey', () => {
 
     const joined = await touch(accountId, SESSION_A, nowMs);
     expect(joined).toEqual({
+      extended: true,
       devicesChanged: true,
       devicesRevision: nowMs,
       removedSessionIdTexts: [],
@@ -172,6 +189,7 @@ describe('account playback store against the test Valkey', () => {
 
     const repeated = await touch(accountId, SESSION_A, nowMs + 1_000);
     expect(repeated).toEqual({
+      extended: true,
       devicesChanged: false,
       devicesRevision: nowMs,
       removedSessionIdTexts: [],
@@ -192,6 +210,7 @@ describe('account playback store against the test Valkey', () => {
 
     const touched = await touch(accountId, SESSION_B, laterMs);
     expect(touched).toEqual({
+      extended: true,
       devicesChanged: true,
       devicesRevision: laterMs,
       removedSessionIdTexts: [SESSION_A],
@@ -224,7 +243,7 @@ describe('account playback store against the test Valkey', () => {
     expect(results.filter((result) => result.devicesChanged)).toHaveLength(1);
   });
 
-  it('shortening lowers the expiry, a later touch raises it again, and shortening never raises it or adds a device', async () => {
+  it('a leave hold blocks a later check-in until a new stream begins, and a stale generation does not shorten', async () => {
     const accountId = newAccountId();
     const nowMs = Date.now();
     const redis = playbackRedis.getPlaybackRedis();
@@ -235,14 +254,22 @@ describe('account playback store against the test Valkey', () => {
       );
       return score === null ? null : Number(score);
     };
+    const begin = (sessionIdText: string) =>
+      store.beginPlaybackPresenceSession({
+        accountId,
+        sessionIdText,
+        generationTtlMs: 60_000,
+      });
 
     await touch(accountId, SESSION_A, nowMs);
     expect(await expiryOf(SESSION_A)).toBe(nowMs + PLAYBACK_PRESENCE_TTL_MS);
 
+    const generation = await begin(SESSION_A);
     await store.shortenPlaybackPresence({
       accountId,
       sessionIdText: SESSION_A,
       expiresAtMs: nowMs + 5_000,
+      presenceGeneration: generation,
     });
     expect(await expiryOf(SESSION_A)).toBe(nowMs + 5_000);
     expect(
@@ -260,21 +287,38 @@ describe('account playback store against the test Valkey', () => {
       })
     ).toBe(false);
 
-    await touch(accountId, SESSION_A, nowMs + 1_000);
-    const touchedExpiryMs = nowMs + 1_000 + PLAYBACK_PRESENCE_TTL_MS;
-    expect(await expiryOf(SESSION_A)).toBe(touchedExpiryMs);
+    const held = await touch(accountId, SESSION_A, nowMs + 1_000);
+    expect(held.extended).toBe(false);
+    expect(await expiryOf(SESSION_A)).toBe(nowMs + 5_000);
+
+    const reconnected = await begin(SESSION_A);
+    expect(reconnected).toBe(generation + 1);
+    const resumed = await touch(accountId, SESSION_A, nowMs + 1_000);
+    const resumedExpiryMs = nowMs + 1_000 + PLAYBACK_PRESENCE_TTL_MS;
+    expect(resumed.extended).toBe(true);
+    expect(await expiryOf(SESSION_A)).toBe(resumedExpiryMs);
 
     await store.shortenPlaybackPresence({
       accountId,
       sessionIdText: SESSION_A,
-      expiresAtMs: touchedExpiryMs + 30_000,
+      expiresAtMs: nowMs + 2_000,
+      presenceGeneration: generation,
     });
-    expect(await expiryOf(SESSION_A)).toBe(touchedExpiryMs);
+    expect(await expiryOf(SESSION_A)).toBe(resumedExpiryMs);
+
+    await store.shortenPlaybackPresence({
+      accountId,
+      sessionIdText: SESSION_A,
+      expiresAtMs: resumedExpiryMs + 30_000,
+      presenceGeneration: reconnected,
+    });
+    expect(await expiryOf(SESSION_A)).toBe(resumedExpiryMs);
 
     await store.shortenPlaybackPresence({
       accountId,
       sessionIdText: SESSION_B,
       expiresAtMs: nowMs + 5_000,
+      presenceGeneration: 1,
     });
     expect(await expiryOf(SESSION_B)).toBeNull();
   });

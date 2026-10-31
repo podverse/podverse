@@ -362,13 +362,30 @@ export const ListClipRow: React.FC<Props> = ({
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
             {sourceRemoved ? (
-              <div className={styles.timeSection}>{tInfo('removed.content_removed')}</div>
+              <>
+                <ItemRowMoreActions
+                  enclosures={[]}
+                  itemTitle={clipTitle}
+                  ariaLabel={tMedia('more_options')}
+                  moreButtonMenuItems={moreButtonMenuItems}
+                />
+                <div className={styles.timeSection}>{tInfo('removed.content_removed')}</div>
+              </>
             ) : (
               <>
                 <PlayButtonRow
                   clip={clip}
                   item={item ?? null}
                   onClick={onPlayAndRemove ?? playButtonOnClick}
+                />
+                <ItemRowMoreActions
+                  enclosures={item?.item_enclosures ?? []}
+                  itemTitle={itemTitle}
+                  ariaLabel={tMedia('more_options')}
+                  moreButtonMenuItems={moreButtonMenuItems}
+                  onLoadInPlayerWithSource={
+                    isActiveItem ? undefined : (params) => loadItem(params)
+                  }
                 />
                 <div className={styles.timeSection}>
                   {showItemInfo && (
@@ -381,17 +398,6 @@ export const ListClipRow: React.FC<Props> = ({
                 </div>
               </>
             )}
-          </div>
-          <div className={styles.bottomSectionEnd}>
-            <ItemRowMoreActions
-              enclosures={sourceRemoved ? [] : (item?.item_enclosures ?? [])}
-              itemTitle={sourceRemoved ? clipTitle : itemTitle}
-              ariaLabel={tMedia('more_options')}
-              moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={
-                sourceRemoved || isActiveItem ? undefined : (params) => loadItem(params)
-              }
-            />
           </div>
         </div>
       </div>

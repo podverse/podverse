@@ -1,4 +1,5 @@
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import type { AccountEventStream } from '@api/lib/accountEventStream/accountEventStreamHub.js';
 import {
   closeAccountEventStream,
   getAccountEventStreamAdmission,
@@ -37,6 +38,16 @@ export class AccountEventStreamController {
       req,
       res,
       async () => {
+        let stream: AccountEventStream | null = null;
+        let clientGone = req.closed === true;
+        const onClientClosed = (): void => {
+          clientGone = true;
+          if (stream !== null) {
+            closeAccountEventStream(stream);
+          }
+        };
+        req.on('close', onClientClosed);
+
         try {
           const jwtUser = getAuthenticatedUser(req);
           const account_id = jwtUser.id;
@@ -66,6 +77,10 @@ export class AccountEventStreamController {
             return;
           }
 
+          if (clientGone) {
+            return;
+          }
+
           res.status(200);
           res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
           res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -75,7 +90,7 @@ export class AccountEventStreamController {
           req.socket.setNoDelay(true);
           req.socket.setKeepAlive(true);
 
-          const stream = openAccountEventStream({
+          stream = await openAccountEventStream({
             account_id,
             sessionIdText,
             response: res,
@@ -83,10 +98,14 @@ export class AccountEventStreamController {
             lastEventId,
             tokenExpiresAt: jwtUser.token_expires_at,
           });
-          req.on('close', () => {
+          if (clientGone) {
             closeAccountEventStream(stream);
-          });
+          }
         } catch (error) {
+          if (stream !== null) {
+            closeAccountEventStream(stream);
+            return;
+          }
           if (res.headersSent) {
             res.end();
             return;

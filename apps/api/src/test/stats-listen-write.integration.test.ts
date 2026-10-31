@@ -1750,4 +1750,89 @@ describe('Popularity listen and open write services (real database)', () => {
       expect(flags).toEqual([{ times_flagged: 1 }]);
     });
   });
+
+  describe('live recommendation refresh on weight steps', () => {
+    const recommendationCount = async (listenerId: string, channelId: number): Promise<number> =>
+      asNumber(
+        firstRow(
+          await query(
+            `SELECT count(*)::int AS total FROM stats_recommendation
+              WHERE listener_id = $1::uuid AND channel_id = $2`,
+            [listenerId, channelId]
+          )
+        ).total
+      );
+
+    const seedFillerRecommendation = async (
+      listenerId: string,
+      channelId: number
+    ): Promise<void> => {
+      await query(
+        `INSERT INTO stats_recommendation (listener_id, channel_id, score, strength, computed_at)
+         VALUES ($1::uuid, $2, 4, 3, now())
+         ON CONFLICT (listener_id, channel_id) DO UPDATE
+           SET score = EXCLUDED.score, strength = EXCLUDED.strength,
+               computed_at = EXCLUDED.computed_at`,
+        [listenerId, channelId]
+      );
+    };
+
+    it('does not rebuild recommendations on listens 2–4 inside the same weight band', async () => {
+      const account = await seedAccount('weight-band', true);
+      const item = await seedItem(podcastChannelId, 'weight-band', ITEM_DURATION_SECONDS);
+      expect(
+        await listen({
+          accountId: account.id,
+          target: itemTarget(item),
+          clientListenId: randomUUID(),
+          secondsHeard: 75,
+        })
+      ).toBe('counted');
+      const listenerId = await listenerIdOf(account.id);
+      expect((await requireTasteRow(account.id, podcastChannelId)).listen_count).toBe(1);
+      await seedFillerRecommendation(listenerId, podcastChannelId);
+
+      for (let i = 0; i < 3; i += 1) {
+        expect(
+          await listen({
+            accountId: account.id,
+            target: itemTarget(item),
+            clientListenId: randomUUID(),
+            secondsHeard: 75,
+          })
+        ).toBe('counted');
+      }
+      expect((await requireTasteRow(account.id, podcastChannelId)).listen_count).toBe(4);
+      expect(await recommendationCount(listenerId, podcastChannelId)).toBe(1);
+    });
+
+    it('rebuilds recommendations when listen count steps the 1–5 weight', async () => {
+      const account = await seedAccount('weight-step', true);
+      const item = await seedItem(podcastChannelId, 'weight-step', ITEM_DURATION_SECONDS);
+      for (let i = 0; i < 4; i += 1) {
+        expect(
+          await listen({
+            accountId: account.id,
+            target: itemTarget(item),
+            clientListenId: randomUUID(),
+            secondsHeard: 75,
+          })
+        ).toBe('counted');
+      }
+      const listenerId = await listenerIdOf(account.id);
+      expect((await requireTasteRow(account.id, podcastChannelId)).listen_count).toBe(4);
+      await seedFillerRecommendation(listenerId, podcastChannelId);
+
+      expect(
+        await listen({
+          accountId: account.id,
+          target: itemTarget(item),
+          clientListenId: randomUUID(),
+          secondsHeard: 75,
+        })
+      ).toBe('counted');
+      expect((await requireTasteRow(account.id, podcastChannelId)).listen_count).toBe(5);
+      expect(await recommendationCount(listenerId, podcastChannelId)).toBe(0);
+    });
+  });
 });

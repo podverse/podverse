@@ -25,20 +25,22 @@ export const CommonPodcastListRow: React.FC<CommonPodcastListRowProps> = ({ item
   return (
     <Link href={item.href} className={styles.link}>
       <div className={styles.listItem}>
-        <SkeletonFlashImage
-          candidates={listItemImageCandidates(item)}
-          alt={item.title || tMedia('podcast.podcast_image')}
-          width={IMAGES.LIST.PODCASTS.SIZE}
-          height={IMAGES.LIST.PODCASTS.SIZE}
-          className={styles.image}
-        />
+        <div className={styles.artwork}>
+          <SkeletonFlashImage
+            candidates={listItemImageCandidates(item)}
+            alt={item.title || tMedia('podcast.podcast_image')}
+            width={IMAGES.LIST.PODCASTS.SIZE}
+            height={IMAGES.LIST.PODCASTS.SIZE}
+            className={styles.image}
+          />
+          <ChannelUnseenCountBadge badge={item.unseenBadge} className={styles.unseenBadge} />
+        </div>
         <div className={styles.content}>
           <h3 className={styles.title}>{item.title}</h3>
           {item.lastPubDate && (
             <span className={styles.lastPubDate}>{formatDateAbbrev(item.lastPubDate, locale)}</span>
           )}
         </div>
-        <ChannelUnseenCountBadge badge={item.unseenBadge} className={styles.unseenBadge} />
       </div>
     </Link>
   );

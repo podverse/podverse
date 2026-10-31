@@ -158,6 +158,7 @@ vi.mock('../useAutoQueueLoadResources', () => ({
 }));
 
 vi.mock('../useMediaPlayerResourceUpdate', () => ({
+  hasDeferredExplicitPlay: () => false,
   useMediaPlayerResourceUpdate: () => hoisted.mediaPlayerResourceUpdate,
 }));
 

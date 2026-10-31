@@ -157,6 +157,12 @@ export interface DTOAccountDataExportHiddenFromTasteProfileRow {
   hidden_at: string;
 }
 
+export interface DTOAccountDataExportHiddenChannelRow {
+  channel_id_text: string;
+  channel_title: string | null;
+  hidden_at: string;
+}
+
 export interface DTOAccountDataExportListenEvent {
   created_at: string;
   channel_id_text: string;
@@ -180,6 +186,7 @@ export interface DTOAccountDataExportOpenEvent {
 export interface DTOAccountDataExportListeningData {
   taste_profile: DTOAccountDataExportTasteProfileRow[];
   hidden_from_taste_profile: DTOAccountDataExportHiddenFromTasteProfileRow[];
+  hidden_channels: DTOAccountDataExportHiddenChannelRow[];
   listen_events: DTOAccountDataExportListenEvent[];
   open_events: DTOAccountDataExportOpenEvent[];
 }

@@ -40,6 +40,7 @@ async function openRecommendationsSettings(page: Page, openSections = true): Pro
   if (openSections) {
     await disclosureSummary(page, 'Shows That Affect Recommendations').click();
     await disclosureSummary(page, 'Hidden From Taste Profile').click();
+    await disclosureSummary(page, 'Hidden Channels').click();
   }
 }
 
@@ -60,6 +61,7 @@ test.describe('Settings Taste Profile sections', () => {
 
     await expectDisclosureCollapsed(page, 'Shows That Affect Recommendations');
     await expectDisclosureCollapsed(page, 'Hidden From Taste Profile');
+    await expectDisclosureCollapsed(page, 'Hidden Channels');
   });
 
   test('When the Taste Profile request fails, the section shows an error and Try Again reloads it.', async ({

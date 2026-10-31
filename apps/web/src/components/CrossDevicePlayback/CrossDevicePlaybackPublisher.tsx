@@ -13,7 +13,10 @@ import { getApiRequestService } from '../../factories/apiRequestService';
 import type { CrossDevicePlaybackSnapshot } from '../../lib/crossDevicePlayback/crossDevicePlaybackStore';
 import { crossDevicePlaybackStore } from '../../lib/crossDevicePlayback/crossDevicePlaybackStore';
 import type { PlaybackPublishOutcome } from '../../lib/crossDevicePlayback/playbackClaim';
-import { publishPlaybackState } from '../../lib/crossDevicePlayback/playbackClaim';
+import {
+  publishPlaybackState,
+  shouldClaimActiveDevice,
+} from '../../lib/crossDevicePlayback/playbackClaim';
 import type { PlaybackPublishScheduler } from '../../lib/crossDevicePlayback/playbackPublishScheduler';
 import { createPlaybackPublishScheduler } from '../../lib/crossDevicePlayback/playbackPublishScheduler';
 import type { PlayerResourceInput } from '../../lib/crossDevicePlayback/playbackResource';
@@ -69,6 +72,9 @@ export function CrossDevicePlaybackPublisher({ lastBodyRef }: CrossDevicePlaybac
   const claimPending = useCrossDevicePlaybackSnapshot((snapshot) => snapshot.claimPending);
   const activeSessionIdText = useCrossDevicePlaybackSnapshot(
     (snapshot) => snapshot.state?.active_session_id_text ?? null
+  );
+  const mediaElementPlaying = useCrossDevicePlaybackSnapshot(
+    (snapshot) => snapshot.mediaElementPlaying
   );
 
   const schedulerRef = useRef<PlaybackPublishScheduler | null>(null);
@@ -251,11 +257,15 @@ export function CrossDevicePlaybackPublisher({ lastBodyRef }: CrossDevicePlaybac
     // A tab that holds audio while another session is active has lost; the provider stops it.
     const canPublish = snapshot.availability === 'ready' && snapshot.role !== 'remote';
     const activeSessionIsNull = (snapshot.state?.active_session_id_text ?? null) === null;
-    const claim =
-      canPublish &&
-      mpIsPlaying &&
-      !claimBlockedRef.current &&
-      (!snapshot.thisTabHoldsAudio || activeSessionIsNull || needsReclaimRef.current);
+    const claim = shouldClaimActiveDevice({
+      canPublish,
+      wantsToPlay: mpIsPlaying,
+      mediaElementPlaying: snapshot.mediaElementPlaying,
+      claimBlocked: claimBlockedRef.current,
+      thisTabHoldsAudio: snapshot.thisTabHoldsAudio,
+      activeSessionIsNull,
+      needsReclaim: needsReclaimRef.current,
+    });
     if (!claim && !(canPublish && snapshot.thisTabHoldsAudio)) {
       scheduler.update({ body: null });
       lastBodyRef.current = null;
@@ -299,7 +309,32 @@ export function CrossDevicePlaybackPublisher({ lastBodyRef }: CrossDevicePlaybac
   // `sync` reads the store itself; these only make it run again when the store changes.
   useEffect(() => {
     syncRef.current();
-  }, [availability, role, thisTabHoldsAudio, claimPending, activeSessionIdText]);
+  }, [
+    availability,
+    role,
+    thisTabHoldsAudio,
+    claimPending,
+    activeSessionIdText,
+    mediaElementPlaying,
+  ]);
+
+  useEffect(() => {
+    const syncMediaElementPlaying = () => {
+      const playing = Array.from(document.querySelectorAll('audio, video')).some(
+        (element) => element instanceof HTMLMediaElement && !element.paused && !element.ended
+      );
+      crossDevicePlaybackStore.setMediaElementPlaying(playing);
+    };
+    document.addEventListener('playing', syncMediaElementPlaying, true);
+    document.addEventListener('pause', syncMediaElementPlaying, true);
+    document.addEventListener('ended', syncMediaElementPlaying, true);
+    return () => {
+      document.removeEventListener('playing', syncMediaElementPlaying, true);
+      document.removeEventListener('pause', syncMediaElementPlaying, true);
+      document.removeEventListener('ended', syncMediaElementPlaying, true);
+      crossDevicePlaybackStore.setMediaElementPlaying(false);
+    };
+  }, []);
 
   return null;
 }

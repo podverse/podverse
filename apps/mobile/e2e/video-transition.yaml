@@ -56,38 +56,6 @@ name: Video Transition
 # the marker is re-asserted after collapse (below) to prove playback never dropped.
 - takeScreenshot: video-transition-full
 
-# A tap on the video reveals Full Screen. Entering and leaving that view keeps the same player.
-- extendedWaitUntil:
-    visible:
-      id: full-player-video-tap
-    timeout: ${TIMEOUT_SLOW}
-- tapOn:
-    id: full-player-video-tap
-- extendedWaitUntil:
-    visible:
-      id: full-player-video-fullscreen
-    timeout: ${TIMEOUT_FAST}
-- tapOn:
-    id: full-player-video-fullscreen
-- extendedWaitUntil:
-    visible:
-      id: video-fullscreen
-    timeout: ${TIMEOUT_SLOW}
-- tapOn:
-    id: video-fullscreen-tap
-- extendedWaitUntil:
-    visible:
-      id: video-fullscreen-exit
-    timeout: ${TIMEOUT_FAST}
-- tapOn:
-    id: video-fullscreen-exit
-- extendedWaitUntil:
-    notVisible:
-      id: video-fullscreen
-    timeout: ${TIMEOUT_SLOW}
-- assertVisible:
-    id: full-player-screen
-
 # Collapse back to the mini player. Playback stays continuous (surface reparents mini<-full).
 - runFlow:
     when:

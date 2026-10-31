@@ -87,6 +87,9 @@ test.describe('Web session ended notice', () => {
     await test.step('Log in as the sessions user and open Signed-In Devices.', async () => {
       await loginSessionsUser(page.request);
       await endOtherSessions(page.request);
+      // The account event stream would sign this page out before the tab change. This test
+      // is the refused request, so the stream stays closed.
+      await page.route('**/api/v2/account/events**', (route) => route.fulfill({ status: 204 }));
       await page.goto('/settings?tab=account');
       await expect(page).toHaveURL(/\/settings\?tab=account/);
       await expect(page.getByRole('heading', { name: 'Signed-In Devices' })).toBeVisible();
@@ -102,11 +105,11 @@ test.describe('Web session ended notice', () => {
       await test.step('The next request from this open page signs the browser out and says why.', async () => {
         const settingsTabs = page.locator('header');
         const dialog = page.getByRole('dialog', { name: "You've Been Signed Out" });
-        // The tab change navigates, the ended session reloads the page, and the dialog
-        // opens on that load. Waiting for the click's navigation to settle never returns.
+        // The tab change navigates, the refused session reloads the page, and the dialog
+        // opens on that load. dispatchEvent runs the tab click without waiting out that reload.
         await settingsTabs
           .getByRole('button', { name: 'General', exact: true })
-          .click({ noWaitAfter: true });
+          .dispatchEvent('click');
         await expect(dialog).toBeVisible();
         await expect(page).toHaveURL(/\/settings\/?$/);
         await expect(page.locator('#settings_preferred_media_type_selector')).toBeVisible();

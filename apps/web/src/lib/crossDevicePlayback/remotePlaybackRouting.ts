@@ -3,9 +3,34 @@ import type {
   DTOPlaybackCommand,
   DTOPlaybackResourceRef,
   DTOPlaybackState,
+  PlaybackRole,
 } from '@podverse/helpers';
 
 import { isSamePlaybackResourceRef } from './playbackResource';
+
+/**
+ * An explicit play starts on this tab when no other tab of this session has announced that it
+ * holds the audio. The remote role in that window is only the wait for an answer, and a command
+ * would have nobody to run it. Another session, or a tab that has announced, still gets the command.
+ */
+export function shouldApplyExplicitPlayLocally(params: {
+  role: PlaybackRole;
+  thisSessionIdText: string | null;
+  activeSessionIdText: string | null;
+  thisTabId: string;
+  audioTabId: string | null;
+}): boolean {
+  if (params.role !== 'remote') {
+    return true;
+  }
+  const sameSession =
+    params.thisSessionIdText !== null && params.activeSessionIdText === params.thisSessionIdText;
+  if (!sameSession) {
+    return false;
+  }
+  const otherTabAnnounced = params.audioTabId !== null && params.audioTabId !== params.thisTabId;
+  return !otherTabAnnounced;
+}
 
 /** The command a pick sends in the remote role, or null to send nothing. */
 export function resolveRemotePickCommand(params: {

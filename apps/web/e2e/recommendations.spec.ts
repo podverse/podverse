@@ -2,9 +2,13 @@ import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import { E2E_TASTE_PROFILE_EMAIL, E2E_TASTE_PROFILE_PASSWORD } from './helpers/legalConsent';
-import { capturePageLoad } from './helpers/stepScreenshots';
+import { E2E_HLS_CHANNEL_ID_TEXT, E2E_HLS_CHANNEL_TITLE } from './helpers/seedConstants';
+import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 const API_LOGIN_URL = 'http://localhost:4030/api/v2/auth/login';
+const API_BASE = 'http://localhost:4030/api/v2';
+const CHECK_BACK_TEXT =
+  'Recommendations update as you listen. A show other people have not listened to yet can stay empty until the nightly update.';
 
 async function loginViaApi(page: Page): Promise<void> {
   const loginResponse = await page.request.post(API_LOGIN_URL, {
@@ -46,19 +50,129 @@ test.describe('Recommendations page', () => {
     );
   });
 
-  test('A signed-in listener with Taste Profile on and no computed rows is asked to check back.', async ({
+  test('Edit Recommendations opens Settings, Hide removes a mocked suggestion, and Unhide clears Hidden Channels.', async ({
     page,
   }, testInfo) => {
     await loginViaApi(page);
     await page.goto('/recommendations');
-    const checkBack = page.getByText(
-      'Recommendations appear after you listen, on the next nightly update.'
+
+    const editButton = page.getByRole('button', { name: 'Edit Recommendations' });
+    await expect(editButton).toBeVisible();
+    await actionAndCapture(
+      page,
+      testInfo,
+      'Edit Recommendations opens Taste Profile settings.',
+      async () => {
+        await editButton.click();
+        await expect(page).toHaveURL(/\/settings\?tab=recommendations/);
+      }
     );
+
+    await page.route(
+      (url) =>
+        url.pathname.endsWith('/account/recommendations') &&
+        !url.pathname.includes('/hidden') &&
+        !url.pathname.includes('/hide') &&
+        !url.pathname.includes('/unhide'),
+      async (route) => {
+        if (route.request().method() === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              data: {
+                items: [
+                  {
+                    strength: 5,
+                    channel: {
+                      id_text: E2E_HLS_CHANNEL_ID_TEXT,
+                      title: E2E_HLS_CHANNEL_TITLE,
+                      medium_id: 1,
+                      channel_images: [],
+                    },
+                  },
+                ],
+              },
+            }),
+          });
+          return;
+        }
+        await route.continue();
+      }
+    );
+
+    await page.goto('/recommendations');
+    const suggested = page.getByRole('heading', { name: E2E_HLS_CHANNEL_TITLE });
+    await expect(suggested).toBeVisible();
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Recommendations lists a suggestion the listener can hide.',
+      suggested
+    );
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'Hide removes the suggestion from For You.',
+      async () => {
+        await page.getByRole('button', { name: 'More Options' }).first().click();
+        await page.getByRole('menuitem', { name: 'Hide' }).click();
+        await expect(page.getByRole('heading', { name: E2E_HLS_CHANNEL_TITLE })).toHaveCount(0);
+      }
+    );
+
+    const hideResponse = await page.request.post(`${API_BASE}/account/channel-hidden/hide`, {
+      data: { channel_id_text: E2E_HLS_CHANNEL_ID_TEXT },
+    });
+    expect(hideResponse.ok(), await hideResponse.text()).toBeTruthy();
+
+    await page.goto('/settings?tab=recommendations');
+    await page.locator('summary').filter({ hasText: 'Hidden Channels' }).click();
+    const hiddenRegion = page.getByRole('region', { name: 'Hidden Channels', exact: true });
+    await expect(hiddenRegion.getByText(E2E_HLS_CHANNEL_TITLE)).toBeVisible();
+
+    await actionAndCapture(
+      page,
+      testInfo,
+      'Unhide clears the show from Hidden Channels.',
+      async () => {
+        await hiddenRegion.getByRole('button', { name: `Unhide ${E2E_HLS_CHANNEL_TITLE}` }).click();
+        await expect(hiddenRegion.getByText(E2E_HLS_CHANNEL_TITLE)).toHaveCount(0);
+      },
+      hiddenRegion
+    );
+  });
+
+  test('A signed-in listener with Taste Profile on and no remaining rows sees the live-update empty copy.', async ({
+    page,
+  }, testInfo) => {
+    await loginViaApi(page);
+    await page.route(
+      (url) =>
+        url.pathname.endsWith('/account/recommendations') &&
+        !url.pathname.includes('/hidden') &&
+        !url.pathname.includes('/hide') &&
+        !url.pathname.includes('/unhide'),
+      async (route) => {
+        if (route.request().method() === 'GET') {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ data: { items: [] } }),
+          });
+          return;
+        }
+        await route.continue();
+      }
+    );
+    await page.goto('/recommendations');
+    const checkBack = page.getByText(CHECK_BACK_TEXT);
     await expect(checkBack).toBeVisible();
     await capturePageLoad(
       page,
       testInfo,
-      'Recommendations with nothing computed yet asks the listener to check back.',
+      'Recommendations with nothing computed yet explains live updates.',
       checkBack
     );
   });

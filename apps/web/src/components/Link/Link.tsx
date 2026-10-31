@@ -1,7 +1,7 @@
 'use client';
 
 import NextLink from 'next/link';
-import type { ComponentType, FC, MouseEvent, ReactNode } from 'react';
+import type { ComponentType, FC, MouseEventHandler, ReactNode } from 'react';
 
 import { getSafeLinkHref } from '@podverse/helpers';
 import type { LinkRenderProps } from '@podverse/ui';
@@ -18,6 +18,7 @@ const NextLinkComponent: ComponentType<LinkRenderProps> = ({
   style,
   target,
   rel,
+  onClick,
 }) => (
   <NextLink
     href={href}
@@ -29,6 +30,7 @@ const NextLinkComponent: ComponentType<LinkRenderProps> = ({
     style={style}
     target={target}
     rel={rel}
+    onClick={onClick}
   >
     {children}
   </NextLink>
@@ -36,7 +38,7 @@ const NextLinkComponent: ComponentType<LinkRenderProps> = ({
 
 type LinkProps = {
   href?: string;
-  onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
+  onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
   children: ReactNode;
   className?: string;
   type?: 'button' | 'submit' | 'reset';

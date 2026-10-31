@@ -135,6 +135,29 @@ describe('liveMediaStore', () => {
     });
   });
 
+  it('reads the playhead after playback has started when played ranges are empty', () => {
+    const { store } = createHarness(REWINDABLE_SYNC_POSITION);
+    const { media, state } = createFakeMedia({
+      currentTime: 102,
+      paused: false,
+      seekable: timeRanges([0, 120]),
+    });
+    store.register(registration(media));
+    media.dispatchEvent(new Event('playing'));
+
+    state.currentTime = 60;
+    state.paused = true;
+    state.played = timeRanges();
+    store.refresh();
+
+    expect(store.getSnapshot().display).toMatchObject({
+      isAtLiveEdge: false,
+      behindLiveSeconds: 42,
+      behindLiveLabel: '\u22120:42',
+      canRewind: true,
+    });
+  });
+
   it('reads how far a played element sits behind the live edge', () => {
     const { store } = createHarness(REWINDABLE_SYNC_POSITION);
     const { media } = playedAndPausedAt(60);

@@ -11,6 +11,7 @@ import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import type { AuthRequestDeps } from '../../auth/authRequestWithRefresh';
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import type { MediaRowMoreAction } from '../../components/player/MediaRowActions';
 import { Button, FillList } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -33,6 +34,7 @@ import { typography } from '../../theme/typography';
 import { useFeedListColumns } from '../../theme/useFeedListColumns';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
+import type { HomeFeedGridCellRemoveAction } from '../home/HomeFeedGridCell';
 import { HomeFeedGridCell } from '../home/HomeFeedGridCell';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { MediaTypeSelector } from '../home/MediaTypeSelector';
@@ -179,6 +181,33 @@ export function RecommendationsScreen() {
     ])
   );
 
+  const hideChannelFromLists = useCallback(
+    (channelIdText: string) => {
+      setState((current) => {
+        if (current.status !== 'ready') {
+          return current;
+        }
+        return {
+          ...current,
+          items: current.items.filter((item) => item.channel.id_text !== channelIdText),
+        };
+      });
+      const deps: AuthRequestDeps = {
+        accessToken: auth.accessToken,
+        clearSession: auth.clearSession,
+        refreshToken: auth.refreshToken,
+        setTokens: auth.setTokens,
+      };
+      void requestWithMobileAuthRefresh(deps, (api) =>
+        api.reqAccountChannelHiddenHide({ channel_id_text: channelIdText })
+      ).catch((error) => {
+        console.warn('[RecommendationsScreen] hide failed', error);
+        setRetryCount((count) => count + 1);
+      });
+    },
+    [auth.accessToken, auth.clearSession, auth.refreshToken, auth.setTokens]
+  );
+
   const items = state.status === 'ready' ? state.items : [];
   const isGridView = viewMode === 'grid' && items.length > 0;
   const { cellWidth, columns, onListLayout } = useFeedListColumns({
@@ -201,6 +230,9 @@ export function RecommendationsScreen() {
         flexGrow: 1,
         paddingBottom: tokens.spacing.lg,
         paddingHorizontal: bodyInsets.paddingHorizontal,
+      },
+      editRow: {
+        marginBottom: tokens.spacing.md,
       },
       note: {
         gap: tokens.spacing.md,
@@ -260,6 +292,18 @@ export function RecommendationsScreen() {
     [chip, items, navigation]
   );
 
+  const hideLabel = t('features.recommendations.hide');
+
+  const gridRemoveAction = useMemo<HomeFeedGridCellRemoveAction>(
+    () => ({
+      label: hideLabel,
+      onRemove: (row) => {
+        hideChannelFromLists(row.id);
+      },
+    }),
+    [hideLabel, hideChannelFromLists]
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: HomeFeedRowData }) => {
       if (isGridView) {
@@ -268,6 +312,7 @@ export function RecommendationsScreen() {
             <HomeFeedGridCell
               artworkEdge={cellWidth}
               onPress={openRow}
+              removeAction={gridRemoveAction}
               row={item}
               testID={`recommendations-row-${item.id}`}
             />
@@ -275,8 +320,21 @@ export function RecommendationsScreen() {
         );
       }
 
+      const extraMoreActions: MediaRowMoreAction[] = [
+        {
+          key: `hide-${item.id}`,
+          label: hideLabel,
+          onPress: () => {
+            hideChannelFromLists(item.id);
+          },
+          testID: `recommendations-hide-${item.id}`,
+          tone: 'danger',
+        },
+      ];
+
       return (
         <HomeFeedRow
+          extraMoreActions={extraMoreActions}
           mediaType={chip}
           onPlayPress={openRow}
           onPress={openRow}
@@ -285,7 +343,16 @@ export function RecommendationsScreen() {
         />
       );
     },
-    [cellWidth, chip, isGridView, openRow, styles.columnCell]
+    [
+      cellWidth,
+      chip,
+      gridRemoveAction,
+      hideLabel,
+      hideChannelFromLists,
+      isGridView,
+      openRow,
+      styles.columnCell,
+    ]
   );
 
   const header =
@@ -332,6 +399,16 @@ export function RecommendationsScreen() {
   return (
     <View style={styles.screen} testID="recommendations-screen">
       <View style={styles.selectorSection}>
+        {signedIn ? (
+          <View style={styles.editRow}>
+            <Button
+              label={t('features.recommendations.edit')}
+              onPress={openSettings}
+              testID="recommendations-edit"
+              variant="secondary"
+            />
+          </View>
+        ) : null}
         <MediaTypeSelector
           labelKeys={CHIP_LABEL_KEYS}
           onChange={selectChip}

@@ -8,6 +8,7 @@ import { Button, Modal } from '@podverse/ui';
 
 import { useAccount } from '../../contexts/Account';
 import {
+  releaseSessionEndedNoticeHold,
   sessionEndedNoticeMessageKey,
   setSessionEndedHandler,
   storePendingSessionEndedNotice,
@@ -41,6 +42,7 @@ export function SessionEndedNotice() {
   }
 
   const close = () => {
+    releaseSessionEndedNoticeHold();
     setNotice(null);
   };
   const title = tAuthentication('session_ended.title');

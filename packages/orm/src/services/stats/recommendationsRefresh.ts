@@ -143,6 +143,11 @@ const RECOMMENDATION_INSERT_SQL = `WITH weights AS (
       WHERE hidden.listener_id = seed.listener_id
         AND hidden.channel_id = similarity.other_channel_id
     )
+    AND NOT EXISTS (
+      SELECT 1 FROM stats_channel_hidden channel_hidden
+      WHERE channel_hidden.listener_id = seed.listener_id
+        AND channel_hidden.channel_id = similarity.other_channel_id
+    )
     GROUP BY seed.listener_id, similarity.other_channel_id
   ),
   with_chip AS (
@@ -245,10 +250,22 @@ async function replaceSimilarity(manager: EntityManager, channelIds: number[]): 
   return returnedRows(inserted);
 }
 
-async function replaceRecommendations(
+/**
+ * Replaces stored recommendations for the given listeners. Takes the same per-listener write
+ * lock the taste path uses so an on-demand rebuild cannot interleave with this replace.
+ */
+export async function replaceRecommendationsForListeners(
   manager: EntityManager,
   listenerIds: string[]
 ): Promise<number> {
+  if (listenerIds.length === 0) {
+    return 0;
+  }
+  await manager.query(
+    `SELECT pg_advisory_xact_lock(hashtextextended('popularity_listen:' || listener_id::text, 0))
+       FROM unnest($1::uuid[]) AS listener_id`,
+    [listenerIds]
+  );
   await manager.query(`DELETE FROM stats_recommendation WHERE listener_id = ANY($1::uuid[])`, [
     listenerIds,
   ]);
@@ -308,7 +325,7 @@ export async function refreshRecommendations(options: {
     let recommendationRows = 0;
     for (const listenerChunk of chunks(listenerIds, LISTENER_CHUNK)) {
       recommendationRows += await dataSource.transaction(async (manager) =>
-        replaceRecommendations(manager, listenerChunk)
+        replaceRecommendationsForListeners(manager, listenerChunk)
       );
     }
 

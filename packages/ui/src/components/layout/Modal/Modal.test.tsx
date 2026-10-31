@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Modal, ModalActions } from './Modal';
@@ -18,6 +18,27 @@ describe('Modal', () => {
     );
 
     expect(container.firstChild).toBeNull();
+  });
+
+  it('closes the top dialog on Escape', () => {
+    const outerClose = vi.fn();
+    const innerClose = vi.fn();
+
+    render(
+      <>
+        <Modal ariaLabel="Outer" closeButtonAriaLabel="Close outer" isOpen onClose={outerClose}>
+          <p>Outer</p>
+        </Modal>
+        <Modal ariaLabel="Inner" closeButtonAriaLabel="Close inner" isOpen onClose={innerClose}>
+          <p>Inner</p>
+        </Modal>
+      </>
+    );
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(innerClose).toHaveBeenCalledTimes(1);
+    expect(outerClose).not.toHaveBeenCalled();
   });
 
   it('renders an accessible dialog with a backdrop when open', () => {

@@ -31,20 +31,25 @@ export function SettingsTasteProfile() {
   const [unhideTarget, setUnhideTarget] = useState<UnhideTarget | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [hiddenOpen, setHiddenOpen] = useState(false);
+  const [channelHiddenOpen, setChannelHiddenOpen] = useState(false);
   const [profileActive, setProfileActive] = useState(false);
   const [hiddenActive, setHiddenActive] = useState(false);
+  const [channelHiddenActive, setChannelHiddenActive] = useState(false);
   const {
     profile,
     hidden,
+    channelHidden,
     pendingChannelIds,
     actionFailed,
     retry,
     loadMoreProfile,
     loadMoreHidden,
+    loadMoreChannelHidden,
     hideShow,
     unhideShow,
+    unhideChannelFromLists,
     applyWeight,
-  } = useTasteProfileLists({ hiddenActive, profileActive });
+  } = useTasteProfileLists({ hiddenActive, profileActive, channelHiddenActive });
 
   const titleFor = (channel: DTOAccountTasteProfileChannel): string => {
     const trimmed = channel.title?.trim() ?? '';
@@ -183,6 +188,56 @@ export function SettingsTasteProfile() {
                     disabled={pendingChannelIds.has(idText)}
                     onAction={() => {
                       setUnhideTarget({ idText, title });
+                    }}
+                  />
+                );
+              }}
+            />
+          </Accordion>
+        </section>
+        <section
+          aria-labelledby="settings-channel-hidden-heading"
+          className={styles.hiddenSection}
+        >
+          <Accordion
+            header={
+              <h4 className={styles.subheading} id="settings-channel-hidden-heading">
+                {t('hidden_channels_title')}
+              </h4>
+            }
+            open={channelHiddenOpen}
+            onToggle={(open) => {
+              setChannelHiddenOpen(open);
+              if (open) {
+                setChannelHiddenActive(true);
+              }
+            }}
+          >
+            <p className={styles.description}>{t('hidden_channels_description')}</p>
+            <TasteProfileListBody
+              state={channelHidden}
+              loadingLabel={tMisc('loading')}
+              loadErrorText={t('hidden_channels_load_error')}
+              emptyText={t('hidden_channels_empty')}
+              loadMoreErrorText={t('load_more_error')}
+              loadMoreLabel={t('load_more')}
+              retryLabel={tConsent('retry')}
+              onRetry={retry}
+              onLoadMore={loadMoreChannelHidden}
+              renderRow={(row) => {
+                const idText = row.channel.id_text;
+                const title = titleFor(row.channel);
+                return (
+                  <TasteProfileShowRow
+                    key={idText}
+                    channel={row.channel}
+                    title={title}
+                    subtitle={t('hidden_on', { date: formatDateAbbrev(row.hidden_at, locale) })}
+                    actionLabel={t('unhide')}
+                    actionAccessibleLabel={t('unhide_accessible', { title })}
+                    disabled={pendingChannelIds.has(idText)}
+                    onAction={() => {
+                      void unhideChannelFromLists(idText);
                     }}
                   />
                 );

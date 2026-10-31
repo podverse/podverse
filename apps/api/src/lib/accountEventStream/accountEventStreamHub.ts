@@ -9,6 +9,7 @@ import {
   readPlaybackSnapshot,
 } from '@api/lib/accountPlayback/playbackService.js';
 import {
+  beginPlaybackPresenceSession,
   prunePlaybackPresence,
   removePlaybackPresence,
   shortenPlaybackPresence,
@@ -109,6 +110,11 @@ export type AccountEventStream = {
   readonly account_id: number;
   /** The session the stream's token names; null for an API key, which no session event closes. */
   readonly sessionIdText: string | null;
+  /**
+   * Generation from when this stream opened, or null when it has no session. A leave hold is
+   * stored only while this is still the session's generation, so a later stream is not held.
+   */
+  readonly presenceGeneration: number | null;
   readonly response: AccountEventStreamResponse;
   /** This stream's copy of the account's Mark All as Read cutoff. */
   cutoff: Date | null;
@@ -551,10 +557,19 @@ const prunePlaybackPresenceAndPublish = async (accountId: number): Promise<void>
  * prunes once the grace has passed, so its departure is published even when no sweep covers the
  * account.
  */
-const startPlaybackPresenceLeave = (accountId: number, sessionIdText: string): void => {
+const startPlaybackPresenceLeave = (
+  accountId: number,
+  sessionIdText: string,
+  presenceGeneration: number | null
+): void => {
   const graceMs = config.playback.presenceLeaveGraceMs;
   runPlaybackStoreWork('Failed to shorten playback presence', async () => {
-    await shortenPlaybackPresence({ accountId, sessionIdText, expiresAtMs: Date.now() + graceMs });
+    await shortenPlaybackPresence({
+      accountId,
+      sessionIdText,
+      expiresAtMs: Date.now() + graceMs,
+      presenceGeneration,
+    });
   });
   const timer = setTimeout(() => {
     presenceLeaveTimers.delete(timer);
@@ -582,7 +597,7 @@ const updatePlaybackPresenceAfterEnd = (
     return;
   }
   if (reason === 'client_closed' || reason === 'write_failed') {
-    startPlaybackPresenceLeave(accountId, sessionIdText);
+    startPlaybackPresenceLeave(accountId, sessionIdText, stream.presenceGeneration);
     return;
   }
   if (reason === 'session_ended') {
@@ -881,9 +896,11 @@ export function getAccountEventStreamAdmission(account_id: number): AccountEvent
  * Registers a response whose headers are already sent. Writes the retry line at once, then the
  * state snapshot and any replay on the account's queue, ahead of later live notification events,
  * then `playback.snapshot`; live playback events wait until it is written. A session that ended in
- * the last minute gets only `session.ended`, and the stream ends.
+ * the last minute gets only `session.ended`, and the stream ends. A session stream bumps the
+ * presence generation before any bytes are written, so a leave from an older stream cannot hold
+ * this connection's check-ins.
  */
-export function openAccountEventStream(params: {
+export async function openAccountEventStream(params: {
   account_id: number;
   /** Null for an API key. */
   sessionIdText: string | null;
@@ -892,10 +909,20 @@ export function openAccountEventStream(params: {
   lastEventId: number | null;
   /** Epoch seconds; the stream ends then if that is sooner than the lifetime cap. */
   tokenExpiresAt?: number;
-}): AccountEventStream {
+}): Promise<AccountEventStream> {
+  const sessionIdText = params.sessionIdText;
+  const presenceGeneration =
+    sessionIdText === null || sessionIdText === ''
+      ? null
+      : await beginPlaybackPresenceSession({
+          accountId: params.account_id,
+          sessionIdText,
+          generationTtlMs: ACCOUNT_EVENT_STREAM_MAX_LIFETIME_MS + 60_000,
+        });
   const stream: AccountEventStream = {
     account_id: params.account_id,
-    sessionIdText: params.sessionIdText,
+    sessionIdText,
+    presenceGeneration,
     response: params.response,
     cutoff: params.cutoff,
     highWaterId: params.lastEventId ?? 0,

@@ -64,15 +64,8 @@ test.describe('Focus state consistency', () => {
     });
 
     await test.step('Keyboard Tab from a navigation link shows --box-shadow-focus ring on the next focusable element', async () => {
-      // `Locator.press('Tab')` focuses the element programmatically and then
-      // dispatches a real keyboard Tab keydown/keyup. Tab moves focus to the
-      // next focusable element via a real keyboard event, which is exactly
-      // what engages `:focus-visible` in Chromium — regardless of whether the
-      // previous interaction in this test was a mouse click. This replaces
-      // the previous `goBack() + bringToFront() + window.focus() + bare
-      // page.keyboard.press('Tab')` dance, which depended on the page being
-      // refocused and on Tab from `body`/`html` advancing into the first
-      // tabbable element in headless Chromium — both of which were flaky.
+      // Locator.press('Tab') focuses this link, then sends a real Tab key.
+      // That key moves focus to the next element and matches :focus-visible.
       const firstNavLink = page.getByRole('navigation').getByRole('link').first();
       await expect(firstNavLink).toBeVisible({ timeout: 10_000 });
       await firstNavLink.press('Tab');
@@ -99,44 +92,30 @@ test.describe('Focus state consistency', () => {
       );
     });
 
-    await test.step('Tab-focused button shows --box-shadow-focus ring', async () => {
-      // Episode tab strip buttons use a U-shaped ::after ring (box-shadow none). Assert the global
-      // token ring on the account menu trigger instead of sidebar tab stops.
+    await test.step('Tab-focused account button shows --box-shadow-focus ring', async () => {
+      // The account trigger is the top-bar button. Keyboard focus uses the shared focus ring.
       await page.goto('/');
+      await expect(page).toHaveURL(/\/$/);
       await expect(topChromeNav(page)).toBeVisible({ timeout: 15_000 });
-      await page.evaluate(() => {
-        window.focus();
-      });
 
-      const maxTabPresses = 80;
-      let buttonFocusRing: string | null = null;
-      for (let i = 0; i < maxTabPresses; i += 1) {
-        await page.keyboard.press('Tab');
-        buttonFocusRing = await page.evaluate(() => {
-          const activeElement = document.activeElement;
-          if (!(activeElement instanceof HTMLElement)) {
-            return null;
-          }
-          if (activeElement.closest('nav[data-appearance="web"]') === null) {
-            return null;
-          }
-          if (activeElement.tagName.toLowerCase() !== 'button') {
-            return null;
-          }
-          return getComputedStyle(activeElement).boxShadow;
-        });
-        if (buttonFocusRing !== null && buttonFocusRing !== 'none') {
-          break;
-        }
-      }
-      expect(buttonFocusRing).not.toBeNull();
-      expect(buttonFocusRing).not.toBe('none');
+      const accountButton = topChromeNav(page).getByRole('button', { name: 'Account' });
+      await expect(accountButton).toBeVisible();
+
+      // Shift+Tab leaves the trigger on the previous tab stop. Tab from that stop
+      // returns here with a real keyboard event, which matches :focus-visible.
+      await accountButton.press('Shift+Tab');
+      await page.locator(':focus').press('Tab');
+
+      await expect(accountButton).toBeFocused();
+      const shadow = await accountButton.evaluate((el) => getComputedStyle(el).boxShadow);
+      expect(shadow).not.toBe('none');
+      expect(shadow).not.toBe('');
 
       await capturePageLoad(
         page,
         testInfo,
-        'A top-chrome button shows the keyboard focus ring after Tab navigation.',
-        topChromeNav(page)
+        'The account button shows the keyboard focus ring after Tab navigation.',
+        accountButton
       );
     });
   });

@@ -1113,6 +1113,36 @@ async function mergeTasteRows(
   await manager.query(`UPDATE stats_taste_profile SET channel_id = $2 WHERE channel_id = $1`, ids);
 }
 
+/**
+ * Moves Hidden Channels rows onto the survivor. Not journaled (listener-linked). A show
+ * hidden on either copy stays hidden on the survivor.
+ */
+async function mergeChannelHiddenRows(
+  manager: EntityManager,
+  fromChannelId: number,
+  toChannelId: number
+): Promise<void> {
+  const ids = [fromChannelId, toChannelId];
+  await manager.query(
+    `INSERT INTO stats_channel_hidden (listener_id, channel_id, hidden_at)
+     SELECT listener_id, $2::int, hidden_at FROM stats_channel_hidden WHERE channel_id = $1
+     ON CONFLICT (listener_id, channel_id) DO NOTHING`,
+    ids
+  );
+  await manager.query(`DELETE FROM stats_channel_hidden WHERE channel_id = $1`, [
+    fromChannelId,
+  ]);
+  await manager.query(
+    `DELETE FROM stats_recommendation
+     WHERE channel_id = $2
+       AND EXISTS (
+         SELECT 1 FROM stats_channel_hidden h
+         WHERE h.listener_id = stats_recommendation.listener_id AND h.channel_id = $2
+       )`,
+    ids
+  );
+}
+
 async function listenerKeepsItem(manager: EntityManager, itemId: SqlKey): Promise<boolean> {
   const queue = await selectMergeRows(manager, 'queue_resource', { item_id: itemId });
   if (queue.length > 0) {
@@ -1260,6 +1290,7 @@ async function applyAbsorb(
   }
 
   await mergeTasteRows(manager, from.channelId, to.channelId);
+  await mergeChannelHiddenRows(manager, from.channelId, to.channelId);
 
   await new FeedService().setFeedLifecycleState(
     from.feedId,

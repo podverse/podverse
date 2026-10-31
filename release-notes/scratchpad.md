@@ -74,3 +74,95 @@
   item once the cues have loaded. They were limited to directory items.
 - Who notices: listeners who open Transcript on an Add by RSS item in the full player
 - Operator steps: none
+
+## Unseen counts sit on the artwork in accent blue
+
+- Surfaces: web
+- Change: Subscription unseen counts and the notification bell count use a regular-weight digit
+  on the theme accent, the same blue as the unseen dots in the default theme. On a subscribed
+  podcast list row the count sits on the top-right of the artwork, matching the grid.
+- Who notices: anyone looking at a subscribed podcast with new episodes, or at the bell count
+- Operator steps: none
+
+## Sidebar Search icon lines up with the label
+
+- Surfaces: web
+- Change: The magnifying glass on the sidebar Search row aligns with the middle of the word
+  instead of sitting on the text baseline.
+- Who notices: anyone looking at the sidebar Search row
+- Operator steps: none
+
+## Empty queue shows a centered message
+
+- Surfaces: web
+- Change: When a signed-in listener opens Queues and the podcast or music queue has no items,
+  the page shows a centered status line (“Nothing in Your Podcast Queue Yet” or “Nothing in Your
+  Music Queue Yet”) in the space under the medium chips instead of a blank column.
+- Who notices: anyone who opens Queues with nothing queued
+- Operator steps: none
+
+## Media-list Sort and layout gear stay on chip click
+
+- Surfaces: web (Subscribed, Browse, Add by RSS, Recommendations)
+- Change: Clicking a media chip (Podcasts, Episodes, Clips, and the rest) shows that chip's Sort
+  control and layout gear immediately, while the list area still shows the loading spinner. The
+  controls match what that chip uses once the list arrives, including chips that have neither.
+- Who notices: anyone switching media chips on those pages
+- Operator steps: none
+
+## List more button sits between play and date
+
+- Surfaces: web
+- Change: On episode, clip, soundbite, and add-by-RSS episode list rows, the more control (and
+  source icon when present) sits between the play control and the date with the same gap on both
+  sides, instead of at the far right of the row.
+- Who notices: anyone browsing History, Queues, podcast episodes, clips, or soundbites in a list
+- Operator steps: none
+
+## Live channel recommendations refresh as you listen
+
+- Surfaces: api, workers, web, mobile, k8s (app migration `0003_stats_channel_hidden`)
+- Change: For You rebuilds that listener's stored channel recommendations when a show is added to
+  the Taste Profile, when its 1–5 recommendation weight steps, when Settings applies a different
+  override, or when a show is removed from the Taste Profile. The shared similarity graph still
+  runs on the nightly job. Recommendations and Settings add Edit Recommendations, Hide on
+  suggestion rows, and a Hidden Channels list that keeps a show off Browse and Recommendations
+  without changing Taste Profile influence or subscriptions. Empty-state copy explains live
+  updates and the nightly gap for obscure shows.
+- Who notices: signed-in listeners with Taste Profile on who open Recommendations after listening
+  or after editing weights; anyone who hides a suggestion from Browse or Recommendations
+- Operator steps: apply app linear migration `0003_stats_channel_hidden.sql` (or redeploy
+  with the regenerated `0004_app_linear_baseline`)
+
+## Escape closes a sort menu opened from its chip
+
+- Surfaces: web, management-web
+- Change: Pressing Escape closes an open sort, filter, or other dropdown menu even when focus
+  is still on the chip or button that opened it. A dialog behind that menu stays open.
+- Who notices: anyone who opens Sort or a similar menu with a click and dismisses it with Escape
+- Operator steps: none
+
+## Closed browser leaves playback presence
+
+- Surfaces: api
+- Change: When a signed-in browser's account event stream ends because the client closed or the
+  write failed, that session cannot check back into playback presence until a newer stream of
+  the same session opens. The leave window stays the configured grace (500ms on web end-to-end,
+  5 seconds otherwise). A second signed-in browser stops following the closed one after that
+  grace instead of for the 40 second check-in lifetime. Play on another page still follows the
+  other session until that presence is gone.
+- Who notices: a listener with two signed-in browsers, after closing the one that was playing
+- Operator steps: none
+
+## Signed-out notice keeps the settings tab
+
+- Surfaces: web
+- Change: When another device ends this browser's session while Settings is open on a
+  signed-in tab, the address stays on that tab until the "You've Been Signed Out" dialog
+  is closed. A settings tab click that is refused because the session already ended still
+  opens that tab with the dialog. Closing the dialog moves a logged-out visitor off a
+  signed-in tab to General. Opening a signed-in settings tab while logged out still moves
+  to General immediately.
+- Who notices: someone who was viewing Account or another signed-in Settings tab when
+  they were signed out from another device
+- Operator steps: none

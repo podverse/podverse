@@ -6,10 +6,10 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--button-danger-bg);
-  color: var(--text-color-danger-contrast);
-  font-size: var(--font-size-xxs);
-  font-weight: var(--font-weight-bold);
+  background: var(--text-color-accent);
+  color: var(--button-primary-color);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-normal);
   line-height: 1;
   white-space: nowrap;
 }

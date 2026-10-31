@@ -91,14 +91,18 @@ All time columns are `timestamp with time zone`. Every table is in `public` exce
   one), and `weight_override_at` (set together with the override).
 - **`stats_taste_profile_hidden`** is Hidden From Taste Profile: `listener_id`, `channel_id`,
   `hidden_at`.
+- **`stats_channel_hidden`** is Hidden Channels: `listener_id`, `channel_id`,
+  `hidden_at`. A show stays off Browse and Recommendations while the row exists. Subscriptions
+  stay visible. Listening still updates the Taste Profile.
 - **`stats_show_similarity`** is global, not listener-linked: `channel_id`, `other_channel_id`,
   `score` (0 to 1), `computed_at`. One row per ordered neighbor pair, at most 50 neighbors per
   show.
 - **`stats_show_similarity_state`** stamps `computed_at` per show, including a show with no
   neighbors, so the nightly job does not rebuild it until its taste weights change.
 - **`stats_recommendation`** is one discovered show per listener: `listener_id`, `channel_id`,
-  `score`, `strength` (1 to 5), `computed_at`. Shows already in that listener's Taste Profile or
-  Hidden From Taste Profile are not stored. Subscriptions are left out when the list is read.
+  `score`, `strength` (1 to 5), `computed_at`. Shows already in that listener's Taste Profile,
+  Hidden From Taste Profile, or Hidden Channels are not stored. Subscriptions are left out
+  when the list is read.
 - **`stats_recommendation_state`** stamps `computed_at` per listener, including a listener with
   no discoveries, so the nightly job skips them until their taste rows change.
 - **`stats_daily_{channel,item,clip,playlist,account}`** hold anonymous daily totals:
@@ -619,11 +623,18 @@ already on taste rows.
 
 - **Similarity:** cosine of the 1–5 weights. A missing show for a listener counts as 0. The dot
   product uses listeners who have both shows. A pair needs at least 3 shared listeners. Each
-  show keeps its top 50 neighbors. The score is clamped at 1.
+  show keeps its top 50 neighbors. The score is clamped at 1. Similarity stays on the nightly
+  (and weekly full) job.
 - **Discoveries:** for each other show, sum the seed show's 1–5 weight times that neighbor's
-  similarity. Drop shows already in the Taste Profile or Hidden From Taste Profile. Keep the top
-  50 per medium: podcasts (podcast and podcast live), albums (music and music live), and artists
-  (music publishers).
+  similarity. Drop shows already in the Taste Profile, Hidden From Taste Profile, or Hidden
+  Recommendations. Keep the top 50 per medium: podcasts (podcast and podcast live), albums
+  (music and music live), and artists (music publishers).
+- **On-demand listener refresh:** after a taste write that adds a show, steps the 1–5 weight,
+  changes an override, or removes a show from the Taste Profile, that listener's discoveries are
+  rebuilt from the current similarity graph. Listens that stay in the same weight band, and
+  completions, do not trigger a rebuild. A failure is logged and does not fail the listen or
+  settings save. A show with no neighbors yet (fewer than 3 shared listeners with anything else)
+  stays empty until the nightly similarity job catches up.
 - **Incremental:** daily CronJob `worker-stats-recommendations-refresh` at 02:15 UTC. A show is
   dirty when `GREATEST(scores_updated_at, weight_override_at)` is newer than its similarity
   stamp. A listener is dirty when a taste row changed after their recommendation stamp.
@@ -632,12 +643,18 @@ already on taste rows.
 - **Full:** weekly CronJob `worker-stats-recommendations-refresh-full` on Sunday at 03:15 UTC
   (`-full`). It also deletes similarity, recommendations, and their stamps for shows or listeners
   that no longer have taste rows.
-- **Lock:** session advisory lock `814220261`. A run that cannot take it logs a skip and exits 0.
+- **Lock:** session advisory lock `814220261` for the batch job. A run that cannot take it logs a
+  skip and exits 0. Each listener replace also takes the per-listener write lock
+  (`popularity_listen:<listener_id>`) so an on-demand rebuild cannot interleave with the job.
   `concurrencyPolicy: Forbid`, `backoffLimit: 0`, `activeDeadlineSeconds: 10800`.
 - **Manual run:** `npm run stats_recommendations_refresh -w apps/workers` (append `-- -full`)
   after `npm run build -w apps/workers`. Nothing is scheduled locally.
 - **Reading the list:** `GET /account/recommendations?chip=podcasts|albums|artists` drops shows
-  the account subscribes to. Signed-in, no membership gate.
+  the account subscribes to. Signed-in, no membership gate. Hide and unhide use
+  `POST /account/channel-hidden/hide`, `GET /account/channel-hidden`, and
+  `POST /account/channel-hidden/unhide`. Browse directory lists (`/channel/global/*`,
+  `/channel/category/*`, `/item/global/*`, `/item/category/*`) also omit hidden channels (and
+  their items) when the request has an active session; subscribed lists do not.
 
 ### Opens
 

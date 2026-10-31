@@ -5,6 +5,28 @@ import { parseMembershipGateError, parsePlaybackApiError } from '@podverse/helpe
 import type { CrossDevicePlaybackStore } from './crossDevicePlaybackStore';
 
 /**
+ * This tab claims the active device only after a media element here has started. Wanting to
+ * play is not enough: a rejected `play()` must not publish this tab as the active device.
+ */
+export function shouldClaimActiveDevice(params: {
+  canPublish: boolean;
+  wantsToPlay: boolean;
+  mediaElementPlaying: boolean;
+  claimBlocked: boolean;
+  thisTabHoldsAudio: boolean;
+  activeSessionIsNull: boolean;
+  needsReclaim: boolean;
+}): boolean {
+  return (
+    params.canPublish &&
+    params.wantsToPlay &&
+    params.mediaElementPlaying &&
+    !params.claimBlocked &&
+    (!params.thisTabHoldsAudio || params.activeSessionIsNull || params.needsReclaim)
+  );
+}
+
+/**
  * `published`: the server wrote the state. `lost`: another device is active, so this tab released
  * its audio. `lapsed`: no device is active (this session's claim expired). `retry`: a network
  * error, 503, or other failure. `unavailable`: a membership 403.

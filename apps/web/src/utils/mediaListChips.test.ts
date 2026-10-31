@@ -5,6 +5,7 @@ import {
   BROWSE_CHIPS,
   buildMediaListChipPath,
   MEDIA_LIST_CHIP_LABEL_KEYS,
+  mediaListChipChrome,
   resolveMediaListChip,
   shouldShowBrowseEmptyMessage,
   SUBSCRIBED_CHIPS,
@@ -157,5 +158,77 @@ describe('shouldShowBrowseEmptyMessage', () => {
         rowCount: 0,
       })
     ).toBe(false);
+  });
+});
+
+describe('mediaListChipChrome', () => {
+  it('gives Subscribed Clips Sort and no gear', () => {
+    expect(mediaListChipChrome('subscribed', 'clips')).toEqual({
+      showCategory: false,
+      showSort: true,
+      showViewSelector: false,
+      showPlaylistsMedium: false,
+      filterDefaultsPage: 'subscribed-clips',
+      viewModeScope: null,
+    });
+  });
+
+  it('gives Livestreams no trailing controls on every chips page', () => {
+    expect(mediaListChipChrome('subscribed', 'livestreams')).toEqual({
+      showCategory: false,
+      showSort: false,
+      showViewSelector: false,
+      showPlaylistsMedium: false,
+      filterDefaultsPage: null,
+      viewModeScope: null,
+    });
+    expect(mediaListChipChrome('browse', 'livestreams').showSort).toBe(false);
+    expect(mediaListChipChrome('add-by-rss', 'livestreams').showSort).toBe(false);
+  });
+
+  it('gives Browse Podcasts Categories, Sort, and the gear', () => {
+    const chrome = mediaListChipChrome('browse', 'podcasts');
+    expect(chrome.showCategory).toBe(true);
+    expect(chrome.showSort).toBe(true);
+    expect(chrome.showViewSelector).toBe(true);
+    expect(chrome.filterDefaultsPage).toBe('podcasts');
+    expect(chrome.viewModeScope).toEqual({ kind: 'list', name: 'browse-podcasts' });
+  });
+
+  it('gives Recommendations only the gear, scoped per chip', () => {
+    expect(mediaListChipChrome('recommendations', 'albums')).toEqual({
+      showCategory: false,
+      showSort: false,
+      showViewSelector: true,
+      showPlaylistsMedium: false,
+      filterDefaultsPage: null,
+      viewModeScope: { kind: 'list', name: 'recommendations-albums' },
+    });
+  });
+
+  it('gives Browse Playlists the medium chip and Sort, and Browse Users Sort only', () => {
+    expect(mediaListChipChrome('browse', 'playlists')).toMatchObject({
+      showPlaylistsMedium: true,
+      showSort: true,
+      showViewSelector: false,
+      filterDefaultsPage: 'browse-playlists',
+    });
+    expect(mediaListChipChrome('browse', 'users')).toMatchObject({
+      showPlaylistsMedium: false,
+      showSort: true,
+      showViewSelector: false,
+      filterDefaultsPage: 'browse-users',
+    });
+  });
+
+  it('gives Add by RSS Sort and the gear on every chip but Livestreams', () => {
+    expect(mediaListChipChrome('add-by-rss', 'episodes')).toEqual({
+      showCategory: false,
+      showSort: true,
+      showViewSelector: true,
+      showPlaylistsMedium: false,
+      filterDefaultsPage: null,
+      viewModeScope: null,
+    });
   });
 });

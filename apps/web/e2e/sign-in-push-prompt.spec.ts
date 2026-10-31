@@ -60,7 +60,13 @@ async function readSignInPushPromptShownFlags(page: Page): Promise<string[]> {
   );
 }
 
-async function openPodcastsReadyForSignIn(
+/** Confirms the Subscribed page loaded. The account button is site chrome, not this page. */
+async function expectSubscribedHome(page: Page): Promise<void> {
+  await expect(page).toHaveURL('/');
+  await expect(page.getByRole('heading', { name: 'Subscribed', exact: true })).toBeVisible();
+}
+
+async function openSubscribedReadyForSignIn(
   page: Page,
   params: {
     permission: 'default' | 'denied';
@@ -80,8 +86,8 @@ async function openPodcastsReadyForSignIn(
     otherBrowserWebPushDevices: params.otherBrowserWebPushDevices,
     unifiedPushDevice: false,
   });
-  await page.goto('/podcasts');
-  await expect(page).toHaveURL(/\/podcasts\/?$/);
+  await page.goto('/');
+  await expectSubscribedHome(page);
   await expect(
     page.locator('[data-appearance="web"]').getByRole('button', { name: 'Account' })
   ).toBeVisible();
@@ -103,9 +109,10 @@ async function signInThroughLoginModal(page: Page): Promise<void> {
   const reloaded = page.waitForEvent('load');
   await dialog.getByRole('button', { name: 'Submit' }).click();
   const response = await loginResponse;
-  expect(response.ok(), await response.text()).toBeTruthy();
+  // Login reloads the page as soon as the response arrives, which drops the body.
+  expect(response.ok()).toBeTruthy();
   await reloaded;
-  await expect(page).toHaveURL(/\/podcasts\/?$/);
+  await expectSubscribedHome(page);
   await expect(chrome.getByRole('button', { name: 'Account' })).toBeVisible();
 }
 
@@ -115,15 +122,19 @@ async function signOutThroughAccountMenu(page: Page): Promise<void> {
   const reloaded = page.waitForEvent('load');
   await page.getByRole('menuitem', { name: 'Logout' }).click();
   await reloaded;
-  await expect(page).toHaveURL(/\/podcasts\/?$/);
+  await expectSubscribedHome(page);
   await expect(chrome.getByRole('button', { name: 'Account' })).toBeVisible();
   await chrome.getByRole('button', { name: 'Account' }).click();
-  await expect(page.getByRole('menuitem', { name: 'Login' })).toBeVisible();
+  const loginMenuItem = page.getByRole('menuitem', { name: 'Login' });
+  await expect(loginMenuItem).toBeVisible();
+  // The following sign-in opens this menu from closed.
+  await chrome.getByRole('button', { name: 'Account' }).click();
+  await expect(loginMenuItem).toBeHidden();
 }
 
 async function expectSignInPushDialogAbsent(page: Page): Promise<void> {
   const chrome = page.locator('[data-appearance="web"]');
-  await expect(page).toHaveURL(/\/podcasts\/?$/);
+  await expectSubscribedHome(page);
   await expect(chrome.getByRole('button', { name: 'Account' })).toBeVisible();
   await page.waitForLoadState('networkidle');
   await expect(signInPushDialog(page)).toHaveCount(0);
@@ -133,8 +144,8 @@ test.describe('Sign-in push prompt', () => {
   test('When push is on for the account and another device has push, the first page after signing in asks once, and Enable Push asks the browser for permission.', async ({
     page,
   }, testInfo) => {
-    await test.step('Open Podcasts signed out, with push on and another browser already registered.', async () => {
-      await openPodcastsReadyForSignIn(page, {
+    await test.step('Open the Subscribed page signed out, with push on and another browser already registered.', async () => {
+      await openSubscribedReadyForSignIn(page, {
         permission: 'default',
         pushEnabledCategories: ['new-content'],
         otherBrowserWebPushDevices: 1,
@@ -174,8 +185,8 @@ test.describe('Sign-in push prompt', () => {
   test('Not Now closes the dialog without asking the browser, and signing in again does not ask again.', async ({
     page,
   }) => {
-    await test.step('Open Podcasts signed out, with push on and another browser already registered.', async () => {
-      await openPodcastsReadyForSignIn(page, {
+    await test.step('Open the Subscribed page signed out, with push on and another browser already registered.', async () => {
+      await openSubscribedReadyForSignIn(page, {
         permission: 'default',
         pushEnabledCategories: ['new-content'],
         otherBrowserWebPushDevices: 1,
@@ -204,8 +215,8 @@ test.describe('Sign-in push prompt', () => {
   test('When the account has no push device anywhere, signing in does not ask and records nothing.', async ({
     page,
   }) => {
-    await test.step('Open Podcasts signed out, with push on and no push device on the account.', async () => {
-      await openPodcastsReadyForSignIn(page, {
+    await test.step('Open the Subscribed page signed out, with push on and no push device on the account.', async () => {
+      await openSubscribedReadyForSignIn(page, {
         permission: 'default',
         pushEnabledCategories: ['new-content'],
         otherBrowserWebPushDevices: 0,
@@ -220,8 +231,8 @@ test.describe('Sign-in push prompt', () => {
   });
 
   test('When no notification category has Push on, signing in does not ask.', async ({ page }) => {
-    await test.step('Open Podcasts signed out, with every category Push off and another browser registered.', async () => {
-      await openPodcastsReadyForSignIn(page, {
+    await test.step('Open the Subscribed page signed out, with every category Push off and another browser registered.', async () => {
+      await openSubscribedReadyForSignIn(page, {
         permission: 'default',
         pushEnabledCategories: [],
         otherBrowserWebPushDevices: 1,
@@ -238,8 +249,8 @@ test.describe('Sign-in push prompt', () => {
   test('When this browser has blocked notifications, signing in does not ask.', async ({
     page,
   }) => {
-    await test.step('Open Podcasts signed out, with notifications blocked, push on, and another browser registered.', async () => {
-      await openPodcastsReadyForSignIn(page, {
+    await test.step('Open the Subscribed page signed out, with notifications blocked, push on, and another browser registered.', async () => {
+      await openSubscribedReadyForSignIn(page, {
         permission: 'denied',
         pushEnabledCategories: ['new-content'],
         otherBrowserWebPushDevices: 1,
