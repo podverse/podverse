@@ -72,11 +72,13 @@ export const TranscriptListRow = memo(function TranscriptListRow({
     <View
       accessibilityState={highlighted ? { selected: true } : undefined}
       style={[styles.row, { paddingHorizontal: paddingHorizontal ?? 0 }]}
-      testID={testID}
     >
       {speakerLabel !== null ? <Text style={styles.speaker}>{speakerLabel}</Text> : null}
       <View style={styles.main}>
-        <Text style={[styles.body, highlighted ? styles.bodyHighlighted : null]}>
+        <Text
+          style={[styles.body, highlighted ? styles.bodyHighlighted : null]}
+          testID={testID}
+        >
           {decodedBody}
         </Text>
         {startTimeFormatted !== null && startTimeFormatted.length > 0 ? (

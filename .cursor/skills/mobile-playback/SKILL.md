@@ -48,7 +48,12 @@ guards on web's bridge (see **media-player-architecture**).
   initial load, the download swap, and retry agree. Spoken audio pauses for a navigation prompt;
   music and video duck.
 - iOS resumes after an interruption only if audio was playing when it began. Do not auto-resume a
-  user who had paused.
+  user who had paused. When playback does not resume and no other app is playing, reactivate the
+  session and republish Now Playing at rate 0, including when the app becomes active. An explicit
+  play reloads a failed item once. Any recorded source resumes at the playhead, whatever its
+  medium, including Add by RSS. A clip or soundbite with no playhead starts at its start and still
+  ends at its end. A failed livestream starts at live. A session that will not activate is retried
+  without replacing a healthy item. A second failure is reported and stops.
 - Android pauses on becoming noisy and holds a network wake lock (`WAKE_LOCK`). Keep both.
 - iOS video detaches its `AVPlayerLayer` in the background so playback continues as audio,
   except while fullscreen picture-in-picture is taking the layer.

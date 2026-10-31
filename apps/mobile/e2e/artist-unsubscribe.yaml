@@ -20,7 +20,21 @@ name: Artist Unsubscribe Flow
     commands:
       - tapOn:
           id: album-detail-subscribe-toggle
-# "Unsubscribe" is the whole button label, so it does not match the dialog title.
+# First Subscribe on this device asks once. Either answer continues the follow.
+# In-App Only skips the system permission sheet. "Unsubscribe" is the whole button
+# label, so it does not match the dialog title.
+- extendedWaitUntil:
+    visible:
+      id: first-subscribe-push-dialog
+    timeout: ${TIMEOUT_FAST}
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: first-subscribe-push-dialog
+    commands:
+      - tapOn:
+          id: first-subscribe-push-in-app-only
 - extendedWaitUntil:
     visible: "Unsubscribe"
     timeout: ${TIMEOUT_SLOW}
@@ -41,6 +55,18 @@ name: Artist Unsubscribe Flow
     commands:
       - tapOn:
           id: artist-detail-subscribe-toggle
+- extendedWaitUntil:
+    visible:
+      id: first-subscribe-push-dialog
+    timeout: ${TIMEOUT_FAST}
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: first-subscribe-push-dialog
+    commands:
+      - tapOn:
+          id: first-subscribe-push-in-app-only
 - extendedWaitUntil:
     visible: "Unsubscribe"
     timeout: ${TIMEOUT_SLOW}

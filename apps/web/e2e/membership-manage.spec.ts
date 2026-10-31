@@ -132,7 +132,9 @@ test.describe('Manage membership', () => {
     await page.goto('/membership');
     await expect(page).toHaveURL(/\/membership\/?$/);
     await expect(page.getByTestId('membership-expiry')).toBeVisible();
-    await expect(page.getByText('Premium', { exact: true })).toBeVisible();
+    await expect(
+      page.getByTestId('membership-expiry').getByText('Premium', { exact: true })
+    ).toBeVisible();
 
     const extendMembership = page.getByRole('link', { name: 'Extend Membership' });
     await expect(extendMembership).toBeVisible();

@@ -62,13 +62,13 @@ name: Playback Cross Device
     id: full-player-remote-title
     containsDescendants:
       - text: "E2E Podcast With Chapters"
+# The chapter link is one control. Its name includes the chapter, the remote status, and the
+# link action. The status line is part of that name, not its own element.
 - assertVisible:
     id: full-player-segment-title
     containsDescendants:
-      - text: "Topic A"
-- assertVisible:
-    id: full-player-remote-status
-    text: "Paused on E2E Other Device"
+      - id: full-player-chapter-link
+        text: "Now Playing Chapter: Topic A, Paused on E2E Other Device\\. Open Chapter Link"
 - assertVisible:
     id: full-player-skip-previous
 - assertVisible:

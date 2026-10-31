@@ -269,12 +269,11 @@ public final class PodverseVideoSurfaceHost: NSObject, AVPictureInPictureControl
 
   // MARK: - Helpers
 
-  /// Reparent the single surface into the active target's RN view and fill its bounds. Safe no-op
-  /// (just recomputes visibility) when the active target has no registered view yet — it will
-  /// reparent when that view registers.
+  /// Reparent the single surface into the active target's RN view and fill its bounds. When that
+  /// view is not registered yet, leave the current presented state unchanged. Registration
+  /// reparents once the view is in the window.
   private func reparentIntoActiveTarget(animatedDuration: TimeInterval = 0) {
     guard let target = activeTarget, let host = targetViews[target]?.view else {
-      updateVisibility()
       return
     }
     if containerView.superview !== host {

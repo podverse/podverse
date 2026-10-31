@@ -186,6 +186,9 @@ public final class PodverseAudioEngine: NSObject {
   private var resumeAfterInterruption = false
   /// True between an interruption's `.began` and `.ended`. Main-thread only.
   private var isInterrupted = false
+  /// True while a play is replacing a failed item or retrying after the session refused to
+  /// activate. A second failure stops, so one press cannot reload forever.
+  private var playbackRecoveryInFlight = false
   /// When true, JS owns queue advance on `ended`; native must not auto-advance.
   private var jsOwnsAdvance = false
   private var nowPlaying = PodverseNowPlayingInfo()
@@ -217,6 +220,9 @@ public final class PodverseAudioEngine: NSObject {
   private var lastAppliedLiveWindowPresence: Bool?
   /// Clip end boundary in seconds; when set, playback completes at this position.
   private var clipEndSeconds: Double?
+  /// Last finite playhead above 0 for the loaded source. A failed player often reports 0, and
+  /// recovery uses this so playback does not restart at the file start.
+  private var lastKnownPositionSeconds: Double = 0
   /// Artwork URL whose async load is in flight (generation-guarded).
   private var artworkLoadGeneration: Int = 0
   /// Last wall-clock ms a progress journal row was written.
@@ -313,6 +319,7 @@ public final class PodverseAudioEngine: NSObject {
     pendingInitialSeekSeconds = seek > 0 ? seek : nil
     playAfterPendingSeek = playWhenPrepared && seek > 0
     hasPlayedCurrentItem = false
+    lastKnownPositionSeconds = seek > 0 ? seek : 0
     lastAppliedLiveWindowPresence = nil
 
     // Drop per-item notification observers for the previous item before swapping (single-player,
@@ -390,18 +397,32 @@ public final class PodverseAudioEngine: NSObject {
 
   /// Main-thread only. Reconnect the loaded source on the same player: a fresh item for the same
   /// URL and credentials, keeping the source meta and now-playing info. A progressive live stream
-  /// then plays what is live now instead of the buffer it kept while paused. Emits no
-  /// `sourceChanged` and writes no journal row; JS sees `loading` then `ready` as with any load.
-  private func reloadCurrentItem(playWhenReady: Bool) {
-    guard let source = loadedSource, let url = resolveSourceURL(source.url) else { return }
+  /// then plays what is live now instead of the buffer it kept while paused. A positive
+  /// `initialSeekSeconds` is applied once the new item is ready, and playback waits for that seek.
+  /// Emits no `sourceChanged` and writes no journal row; JS sees `loading` then `ready` as with
+  /// any load.
+  private func reloadCurrentItem(playWhenReady: Bool, initialSeekSeconds: Double? = nil) {
+    guard let source = loadedSource, let url = resolveSourceURL(source.url) else {
+      playbackRecoveryInFlight = false
+      return
+    }
     if let previous = currentItem {
       removeItemNotificationObservers(previous)
     }
     loadGeneration += 1
-    pendingInitialSeekSeconds = nil
-    playAfterPendingSeek = false
+    let generation = loadGeneration
+    let seek = initialSeekSeconds ?? 0
+    pendingInitialSeekSeconds = seek > 0 ? seek : nil
+    playAfterPendingSeek = playWhenReady && seek > 0
     hasPlayedCurrentItem = false
     lastAppliedLiveWindowPresence = nil
+    // A clip or soundbite keeps its end across the new item. Past that end, the range is over.
+    if let end = source.meta?.clipEndSeconds, end > 0, seek < end {
+      clipEndSeconds = end
+    }
+    if seek > 0 {
+      lastKnownPositionSeconds = seek
+    }
     let item = makePlayerItem(url: url, basicAuth: source.basicAuth)
     observeItemStatus(item)
     observeItemEnd(item)
@@ -409,8 +430,10 @@ public final class PodverseAudioEngine: NSObject {
     currentItem = item
     publish(state: .loading)
     player.replaceCurrentItem(with: item)
-    if playWhenReady {
+    if playWhenReady, seek <= 0 {
       startLoadedItem()
+    } else if item.status == .readyToPlay {
+      completePendingInitialSeek(generation: generation)
     }
   }
 
@@ -502,11 +525,16 @@ public final class PodverseAudioEngine: NSObject {
   func play() {
     onMain { [weak self] in
       guard let self = self else { return }
-      // Explicit play (lock screen, CarPlay, JS) clears a stuck interruption flag — another media
-      // app can take the session without delivering `.ended`, which would otherwise leave every
-      // later start deferred forever.
+      // Explicit play (lock screen, CarPlay, headset, JS) clears a stuck interruption flag —
+      // another media app can take the session without delivering `.ended`, which would otherwise
+      // leave every later start deferred forever. A new press may recover once.
       self.isInterrupted = false
       self.resumeAfterInterruption = false
+      self.playbackRecoveryInFlight = false
+      if self.needsItemRecovery() {
+        self.recoverCurrentItem()
+        return
+      }
       if self.isLiveSourceLoaded, self.hasPlayedCurrentItem,
         self.player.timeControlStatus == .paused
       {
@@ -574,14 +602,83 @@ public final class PodverseAudioEngine: NSObject {
     }
   }
 
-  /// Main-thread only. Shared by `play()` and the interruption resume.
+  /// Main-thread only. Shared by `play()` and the interruption resume. A failed item is reloaded
+  /// once at its playhead and this runs again. A session that will not activate is tried once
+  /// more without replacing the item, so the playhead stays where it is.
   private func startPlayer() {
-    activateAudioSession()
+    if !playbackRecoveryInFlight, needsItemRecovery() {
+      recoverCurrentItem()
+      return
+    }
+    // The first refusal is silent. The second is the error the listener sees. A healthy item is
+    // not replaced: that would drop a livestream off its window and rebuild other media.
+    guard activateAudioSession(reportFailure: playbackRecoveryInFlight) else {
+      if playbackRecoveryInFlight {
+        playbackRecoveryInFlight = false
+        return
+      }
+      playbackRecoveryInFlight = true
+      guard activateAudioSession(reportFailure: true) else {
+        playbackRecoveryInFlight = false
+        return
+      }
+    }
+    playbackRecoveryInFlight = false
     player.play()
     if pendingRate > 0, pendingRate != 1 {
       player.rate = pendingRate
     }
     updateNowPlayingElapsed()
+  }
+
+  /// Main-thread only. The loaded item cannot play as it stands: it failed, the player failed, or
+  /// the source is still remembered but no item is attached.
+  private func needsItemRecovery() -> Bool {
+    guard loadedSource != nil else { return false }
+    if player.status == .failed { return true }
+    guard let item = currentItem else { return player.currentItem == nil }
+    return item.status == .failed
+  }
+
+  /// Main-thread only. Replace the current item with the same source and play it. Recorded media
+  /// resumes at the playhead. A livestream starts at live, because a failed item no longer holds
+  /// its window. A failed player is rebuilt first; the item alone is replaced otherwise. One
+  /// recovery per play.
+  private func recoverCurrentItem() {
+    guard loadedSource != nil else { return }
+    playbackRecoveryInFlight = true
+    let seek = isLiveSourceLoaded ? nil : recoverySeekSeconds()
+    if player.status == .failed {
+      // Drop the failed item's status callback before the player is replaced. It belongs to the
+      // generation that just ended.
+      loadGeneration += 1
+      rebuildPlayer()
+      configureAudioSession()
+    }
+    reloadCurrentItem(playWhenReady: true, initialSeekSeconds: seek)
+  }
+
+  /// Main-thread only. Where recorded media should resume. The player's own playhead when it
+  /// still has one, otherwise the last position observed for this source. A clip or soundbite
+  /// with neither starts at its start, not at the start of the file.
+  private func recoverySeekSeconds() -> Double? {
+    let playhead = getPosition()
+    if playhead.isFinite, playhead > 0 {
+      return playhead
+    }
+    if lastKnownPositionSeconds > 0 {
+      return lastKnownPositionSeconds
+    }
+    if let clipStart = loadedSource?.meta?.clipStartSeconds, clipStart.isFinite, clipStart > 0 {
+      return clipStart
+    }
+    return nil
+  }
+
+  /// Main-thread only. Keep a playhead that recovery can trust after the player starts reporting 0.
+  private func rememberPlayhead(_ seconds: Double) {
+    guard seconds.isFinite, seconds > 0 else { return }
+    lastKnownPositionSeconds = seconds
   }
 
   /// Main-thread only. Starts an item a load asked to autoplay. During an interruption the start
@@ -605,6 +702,7 @@ public final class PodverseAudioEngine: NSObject {
   /// Main-thread only. Shared by `pause()` and the interruption and route-change handlers.
   private func pausePlayer() {
     player.pause()
+    rememberPlayhead(getPosition())
     updateNowPlayingElapsed()
     appendJournal(eventKind: "paused", positionSeconds: getPosition())
   }
@@ -623,7 +721,10 @@ public final class PodverseAudioEngine: NSObject {
       }
       let time = CMTime(seconds: clamped, preferredTimescale: 1000)
       self.player.seek(to: time) { [weak self] _ in
-        self?.updateNowPlayingElapsed()
+        self?.onMain {
+          self?.rememberPlayhead(clamped)
+          self?.updateNowPlayingElapsed()
+        }
       }
     }
   }
@@ -668,6 +769,7 @@ public final class PodverseAudioEngine: NSObject {
       self.currentItem = nil
       self.loadedSource = nil
       self.resumeAfterInterruption = false
+      self.playbackRecoveryInFlight = false
       self.authLoaderDelegate = nil
       self.clearNowPlayingInfo()
       self.deactivateAudioSession()
@@ -716,11 +818,16 @@ public final class PodverseAudioEngine: NSObject {
     configureAudioSession()
   }
 
-  private func activateAudioSession() {
+  @discardableResult
+  private func activateAudioSession(reportFailure: Bool = true) -> Bool {
     do {
       try AVAudioSession.sharedInstance().setActive(true)
+      return true
     } catch {
-      emit(.error, ["code": "audio_session_activate", "message": error.localizedDescription])
+      if reportFailure {
+        emit(.error, ["code": "audio_session_activate", "message": error.localizedDescription])
+      }
+      return false
     }
   }
 
@@ -740,11 +847,16 @@ public final class PodverseAudioEngine: NSObject {
     center.addObserver(
       self, selector: #selector(handleMediaServicesReset(_:)),
       name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
+    center.addObserver(
+      self, selector: #selector(handleDidBecomeActive),
+      name: UIApplication.didBecomeActiveNotification, object: nil)
   }
 
   /// Interruption policy (calls, Siri, alarms, another app, spoken navigation prompts): pause on
   /// `.began`. On `.ended`, resume only when audio was playing when the interruption began AND the
-  /// system hints `.shouldResume`. A listener who paused before the call stays paused.
+  /// system hints `.shouldResume`. A listener who paused before the call stays paused. When
+  /// playback does not resume and nothing else is playing, the paused session is activated again
+  /// so a later headset press still reaches this player.
   @objc private func handleInterruption(_ notification: Notification) {
     guard
       let info = notification.userInfo,
@@ -787,6 +899,8 @@ public final class PodverseAudioEngine: NSObject {
         self.resumeAfterInterruption = false
         if resume {
           self.startPlayer()
+        } else {
+          self.reclaimPausedSession()
         }
       }
     @unknown default:
@@ -805,6 +919,7 @@ public final class PodverseAudioEngine: NSObject {
       let source = self.loadedSource
       self.isInterrupted = false
       self.resumeAfterInterruption = false
+      self.playbackRecoveryInFlight = false
       self.rebuildPlayer()
       self.configureAudioSession()
       guard let source = source else {
@@ -844,6 +959,27 @@ public final class PodverseAudioEngine: NSObject {
     addTimeControlObservation()
     addPeriodicTimeObserver()
     onPlayerReplaced?(player)
+  }
+
+  /// Foreground entry. iOS deactivates a paused session while the app is suspended. Activating it
+  /// again, without playing, makes headset and lock-screen play reach this item. Another app that
+  /// is playing keeps the session.
+  @objc private func handleDidBecomeActive() {
+    onMain { [weak self] in
+      self?.reclaimPausedSession()
+    }
+  }
+
+  /// Main-thread only. Activate the session and republish Now Playing at rate 0. Does not play.
+  /// Skipped while interrupted, while this player is already going, and while another app is
+  /// playing, because `.playback` would silence that app.
+  private func reclaimPausedSession() {
+    guard loadedSource != nil else { return }
+    guard !isInterrupted else { return }
+    guard player.timeControlStatus == .paused, !playAfterPendingSeek else { return }
+    guard !AVAudioSession.sharedInstance().isOtherAudioPlaying else { return }
+    guard activateAudioSession(reportFailure: false) else { return }
+    updateNowPlayingInfo()
   }
 
   /// Route-change policy: pause when the previous output became unavailable (e.g. headphones
@@ -1038,6 +1174,7 @@ public final class PodverseAudioEngine: NSObject {
       [weak self] _ in
       guard let self = self else { return }
       let position = self.getPosition()
+      self.rememberPlayhead(position)
       if let clipEnd = self.clipEndSeconds, clipEnd > 0, position >= clipEnd {
         self.clipEndSeconds = nil
         self.pausePlayer()
@@ -1079,8 +1216,9 @@ public final class PodverseAudioEngine: NSObject {
   }
 
   private func observeItemStatus(_ item: AVPlayerItem) {
+    let generation = loadGeneration
     statusObservation = item.observe(\.status, options: [.new]) { [weak self] item, _ in
-      guard let self = self else { return }
+      guard let self = self, generation == self.loadGeneration else { return }
       switch item.status {
       case .readyToPlay:
         self.publish(state: .ready)
@@ -1091,6 +1229,7 @@ public final class PodverseAudioEngine: NSObject {
         // periodic observer's next tick (and while paused with no autoplay).
         self.emitProgress()
       case .failed:
+        self.playbackRecoveryInFlight = false
         self.pendingInitialSeekSeconds = nil
         self.playAfterPendingSeek = false
         self.publish(state: .error)

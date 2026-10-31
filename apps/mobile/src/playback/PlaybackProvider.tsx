@@ -1509,7 +1509,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         item,
         mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
           options.mediaFileDurationHintSeconds,
-          item.item_about.duration
+          item.item_about?.duration
         ),
       });
       return playTarget(start.target, {
@@ -1552,7 +1552,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         explicitPlaybackSeconds: options.explicitPlaybackSeconds,
         mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
           options.mediaFileDurationHintSeconds,
-          item.item_about.duration
+          item.item_about?.duration
         ),
         summary: summaryFromItem(item, channel),
         url,
@@ -1588,7 +1588,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         explicitPlaybackSeconds: options.explicitPlaybackSeconds,
         mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
           options.mediaFileDurationHintSeconds,
-          item.item_about.duration
+          item.item_about?.duration
         ),
         summary: summaryFromItem(item, channel),
         url,
@@ -1621,7 +1621,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         intent: 'explicit_play',
         mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
           undefined,
-          item.item_about.duration
+          item.item_about?.duration
         ),
       });
     },
@@ -1655,7 +1655,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoQueue: { mode: 'clear' },
         mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
           undefined,
-          item.item_about.duration
+          item.item_about?.duration
         ),
         summary: summaryFromItem(item, channel),
         url,
@@ -1730,7 +1730,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         explicitPlaybackSeconds: decision.initialSeekSeconds,
         mediaFileDurationHintSeconds: resolveMediaFileDurationHintSeconds(
           undefined,
-          target.item.item_about.duration
+          target.item.item_about?.duration
         ),
         playbackDecisionOverride: decision,
         shouldSkipPlayEventWrite: true,

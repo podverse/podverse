@@ -20,10 +20,12 @@ name: Banner Notification
     id: banner-notification-title
     text: "New episode: E2E Show – E2E Banner"
 - takeScreenshot: banner-notification-visible
+# The card is shorter than the dismiss distance, so a swipe that stays inside it springs back.
+# This drag starts on the card and finishes above it.
 - swipe:
-    from:
-      id: banner-notification
-    direction: UP
+    start: "40%,16%"
+    end: "40%,6%"
+    duration: 300
 - extendedWaitUntil:
     notVisible:
       id: banner-notification

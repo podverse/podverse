@@ -100,15 +100,25 @@ The Expo module only sets an `eventSink` to forward events to JS while JS is ali
 - **Interruptions:** pause on `.began` (ignoring `.appWasSuspended`, which reports an interruption
   that already ended while the app was suspended). On `.ended`, resume only when audio was playing
   when the interruption began **and** the system sets `.shouldResume`. A user who had paused stays
-  paused after a call. A load-and-play that lands mid-interruption waits for `.ended`.
+  paused after a call. When playback does not resume and no other app is playing, the session is
+  activated again and Now Playing is republished at rate 0, so a later headset press still reaches
+  this player. The same reclaim runs when the app becomes active. A load-and-play that lands
+  mid-interruption waits for `.ended`.
+- **Explicit play:** lock screen, headset, CarPlay, and in-app play reload the current source once
+  when its player item has failed. Any recorded source resumes at that playhead, whatever its
+  medium, including Add by RSS. The last observed position is used when the failed player reports
+  0. A clip or soundbite with no position starts at its start and still ends at its end. A failed
+  livestream starts at live. A session that will not activate is tried once more without replacing
+  the item, so a healthy playhead stays put. A second failure reports the error and stops.
 - **Route changes:** pause when the previous output becomes unavailable (headphones unplugged,
   Bluetooth or CarPlay disconnected).
 - **Audio profile:** `load` / `loadAndStart` take an optional `audioProfile` (`spoken` / `music` /
   `video`) that sets the session mode (`.spokenAudio` / `.default` / `.moviePlayback`). JS derives
   it from the playback target's medium in `resolveEngineAudioProfile`; omitted keeps the last one.
 - **Media services reset:** the engine rebuilds its `AVPlayer`, reconfigures the session, and
-  reloads the last source paused at the same position. This is the only time the player instance
-  changes; `onPlayerReplaced` lets the video surface rebind. It is still one player at a time.
+  reloads the last source paused at the same position. Explicit play rebuilds the player only when
+  `AVPlayer.status` is failed, then reloads and plays. `onPlayerReplaced` lets the video surface
+  rebind. It is still one player at a time.
 - **Video in the background:** the video surface detaches its `AVPlayerLayer` when the app enters
   the background (iOS pauses a layer-bound player otherwise) and reattaches it on foreground, so a
   video item keeps playing as audio with the screen locked. Fullscreen is the exception: the layer

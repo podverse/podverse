@@ -23,13 +23,23 @@ async function loginViaApi(page: Page): Promise<void> {
   expect(loginResponse.ok(), await loginResponse.text()).toBeTruthy();
 }
 
+function disclosureSummary(page: Page, name: string) {
+  return page.locator('summary').filter({ hasText: name });
+}
+
+async function expectDisclosureCollapsed(page: Page, name: string): Promise<void> {
+  const control = disclosureSummary(page, name);
+  await expect(control).toBeVisible();
+  await expect(control.locator('xpath=..')).toHaveJSProperty('open', false);
+}
+
 async function openRecommendationsSettings(page: Page, openSections = true): Promise<void> {
   await page.goto(SETTINGS_RECOMMENDATIONS_URL);
   await expect(page).toHaveURL(SETTINGS_RECOMMENDATIONS_URL_PATTERN);
   await expect(page.getByRole('button', { name: 'Recommendations', exact: true })).toBeVisible();
   if (openSections) {
-    await page.getByRole('button', { name: 'Shows That Affect Recommendations' }).click();
-    await page.getByRole('button', { name: 'Hidden From Taste Profile' }).click();
+    await disclosureSummary(page, 'Shows That Affect Recommendations').click();
+    await disclosureSummary(page, 'Hidden From Taste Profile').click();
   }
 }
 
@@ -48,13 +58,8 @@ test.describe('Settings Taste Profile sections', () => {
     await loginViaApi(page);
     await openRecommendationsSettings(page, false);
 
-    await expect(
-      page.getByRole('button', { name: 'Shows That Affect Recommendations' })
-    ).toHaveAttribute('aria-expanded', 'false');
-    await expect(page.getByRole('button', { name: 'Hidden From Taste Profile' })).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    );
+    await expectDisclosureCollapsed(page, 'Shows That Affect Recommendations');
+    await expectDisclosureCollapsed(page, 'Hidden From Taste Profile');
   });
 
   test('When the Taste Profile request fails, the section shows an error and Try Again reloads it.', async ({

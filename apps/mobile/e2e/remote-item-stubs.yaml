@@ -46,17 +46,18 @@ name: Remote item stubs
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     text: "E2E Music Album"
+# A row's accessible name is the title plus its subtitle.
 - assertVisible:
-    text: "E2E Not Yet Added Album"
+    text: "E2E Not Yet Added Album.*"
 # The item stub can sit under the mini player.
 - scrollUntilVisible:
     element:
-      text: "E2E Not Yet Added Track"
+      text: "E2E Not Yet Added Track.*"
     direction: DOWN
     timeout: ${TIMEOUT_FAST}
     waitToSettleTimeoutMs: 1000
 - assertVisible:
-    text: "E2E Not Yet Added Track"
+    text: "E2E Not Yet Added Track.*"
 - assertNotVisible:
     text: "E2E Unknown Album"
 - takeScreenshot: remote-item-stubs-podroll
@@ -162,15 +163,15 @@ name: Remote item stubs
       id: album-detail-remote-item-row-0
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
-    text: "E2E Music Track One"
+    text: "E2E Music Track One.*"
 - scrollUntilVisible:
     element:
-      text: "E2E Not Yet Added Track"
+      text: "E2E Not Yet Added Track.*"
     direction: DOWN
     timeout: ${TIMEOUT_FAST}
     waitToSettleTimeoutMs: 1000
 - assertVisible:
-    text: "E2E Not Yet Added Track"
+    text: "E2E Not Yet Added Track.*"
 - assertNotVisible:
     text: "E2E Unknown Track"
 - takeScreenshot: remote-item-stubs-list

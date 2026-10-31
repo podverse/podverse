@@ -1,6 +1,6 @@
 ---
 name: abctestall
-description: Run every Podverse monorepo test from lightest to heaviest, fix clear failures, and defer unclear ones. Use when the operator runs /abctestall or says abctestall, and in every step of an abctestall plan-runner run.
+description: Run unit tests, API integration, web Playwright, and iOS Maestro from lightest to heaviest. Do not run Android. Fix clear failures, leave them unstaged, and defer unclear ones. Use when the operator runs /abctestall or says abctestall, and in every step of an abctestall plan-runner run.
 ---
 
 # `abctestall`
@@ -29,8 +29,11 @@ Tell the operator, briefly:
   `.artifacts/plan-runner/<set>/`; the Close step's message is the summary.
 
 The steps are in [all-COPY-PASTA.md](/.cursor/prompts/abctest/all-COPY-PASTA.md). The script copies
-that template into a fresh set under `.llm/plans/active/` and continues an open run instead of
-starting a second one.
+that template into a fresh set under `.llm/plans/active/` in this checkout and continues an open
+run instead of starting a second one.
+
+This sweep stays in the current checkout on the current branch. Do not create a git worktree and
+do not move the plan set.
 
 The rest of this skill is what each runner step follows.
 
@@ -39,6 +42,8 @@ The rest of this skill is what each runner step follows.
 A step runs only the tier or areas its prompt names, from the monorepo root. This step overrides
 the usual "do not run tests during agent work" rule for those commands.
 
+- Stay in this checkout on the current branch. Do not create a git worktree. Do not run `git add`,
+  `git commit`, or `git push`. Leave every product and test fix unstaged.
 - Read the previous step's final message in `.artifacts/plan-runner/<set>/` first, for services
   already started and notes for later steps.
 - A test failure never blocks the run. Fix what is clear, defer the rest as § Failures describes,
@@ -60,23 +65,20 @@ next step starts.
 3. **API and management-api integration**: `npm run build:packages`, `make test_deps`, then
    `npm run test:e2e:api`. Start Postgres and Valkey only when `:5732` and `:6679` are not
    already healthy.
-4. **Workers broker integration**: the OPML import integration file skips unless
-   `PODVERSE_RUN_MQ_INTEGRATION=1`. Start Artemis with `make test_deps_mq` (default host `:61616`,
-   outside Maestro's reserved `5555–5683` range), then run only that file:
-   `PODVERSE_RUN_MQ_INTEGRATION=1 npm run test -w apps/workers -- src/commands/mq/rss/runOpmlImport.integration.test.ts`
-5. **Web and management-web Playwright**: API integration already ran in tier 3, so run the
+4. **Web and management-web Playwright**: API integration already ran in tier 3, so run the
    Playwright variants directly in this order: web, web Cloudflare, web cookie-consent, web
    signup, web custom-themes native, remote, and combo, management-web, management-web
    Cloudflare, management-web storage-enabled. Each variant needs `make test_deps` and the
    matching seed. Build packages before the first variant.
-6. **iOS Maestro**, one flow file at a time (§ iOS Maestro).
+5. **iOS Maestro**, one flow file at a time (§ iOS Maestro). Do not run Android.
 
-Static checks (`lint`, `type-check`, `openapi:check`, `i18n:validate`, `build`) are not part of
-this sweep.
+Static checks (`lint`, `type-check`, `openapi:check`, `i18n:validate`, `build`), workers broker
+integration, and Android are not part of this sweep.
 
 ## iOS Maestro
 
-Do not use `mobile:e2e:test:all`. Do not run Android.
+Do not use `mobile:e2e:test:all`. Do not run Android: never pass `--platform android`, never run
+`mobile:e2e:android`, and never install the Android E2E binary.
 
 Before the first flow of a step:
 

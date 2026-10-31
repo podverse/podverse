@@ -19,6 +19,7 @@ import {
   toAboutPersonFromItem,
   TrackDetailHeader,
   TranscriptFollowBar,
+  TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX,
   TranscriptListRow,
 } from '../../components/content';
 import type { SectionChipItem } from '../../components/form';
@@ -909,15 +910,15 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
           onScrollToIndexFailed={
             activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
           }
-          onViewableItemsChanged={
-            activeTab === 'transcript' ? onTranscriptViewableItemsChanged : undefined
-          }
+          onViewableItemsChanged={onTranscriptViewableItemsChanged}
           ref={listRef}
           refreshControl={refreshControl}
           renderItem={renderTrackTabItem}
-          stickyHeaderIndices={transcriptStickyOffset > 0 ? [0] : undefined}
+          stickyHeaderIndices={
+            transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
+          }
           testID={activeTab === 'transcript' ? 'track-detail-transcript-list' : 'track-detail-list'}
-          viewabilityConfig={activeTab === 'transcript' ? transcriptViewabilityConfig : undefined}
+          viewabilityConfig={transcriptViewabilityConfig}
         />
       ) : null}
       {addToPlaylistSheet}

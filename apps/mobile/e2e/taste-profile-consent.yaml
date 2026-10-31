@@ -45,6 +45,13 @@ name: Taste Profile Consent Gate
     id: tab-more
 - tapOn:
     id: more-settings
+# Recommendations starts below the window. Scroll until it is on screen; centering the
+# row above it cannot finish because this row is the bottom of the list.
+- scrollUntilVisible:
+    element:
+      id: more-settings-taste-profile
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
 - tapOn:
     id: more-settings-taste-profile
 - assertVisible:

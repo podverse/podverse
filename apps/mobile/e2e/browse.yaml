@@ -128,12 +128,26 @@ name: Browse Tab And Tab Bar Pref
     visible:
       text: "E2E Live Audio Stream"
     timeout: ${TIMEOUT_SLOWER}
-- assertVisible:
-    text: "E2E Scheduled Livestream"
+# Live rows fill the first page. The directory live row is further down that group.
+- scrollUntilVisible:
+    element:
+      id: home-feed-row-live-e2eLiveStrm01
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOWER}
+    centerElement: true
 - assertVisible:
     id: home-feed-row-live-e2eLiveStrm01
     rightOf:
       id: home-row-play-e2eLiveStrm01
+# Scheduled rows follow the live group.
+- scrollUntilVisible:
+    element:
+      text: "E2E Scheduled Livestream"
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOWER}
+    centerElement: true
+- assertVisible:
+    text: "E2E Scheduled Livestream"
 - assertVisible:
     id: home-feed-row-live-status-e2eLiveSched01
     text: Scheduled
@@ -146,6 +160,12 @@ name: Browse Tab And Tab Bar Pref
 - assertNotVisible:
     id: browse-category-button
 - takeScreenshot: browse-media-type-livestreams
+- scrollUntilVisible:
+    element:
+      id: home-row-more-e2eLiveStrm01
+    direction: UP
+    timeout: ${TIMEOUT_SLOWER}
+    centerElement: true
 - tapOn:
     id: home-row-more-e2eLiveStrm01
 - extendedWaitUntil:
@@ -469,9 +489,10 @@ name: Browse Tab And Tab Bar Pref
 
 - tapOn:
     id: tab-more
+# A tab on the bar is not a More row. Notifications is not a tab.
 - assertNotVisible:
     id: more-nav-notifications
-- assertVisible:
+- assertNotVisible:
     id: more-nav-recommendations
 - tapOn:
     id: more-nav-profile

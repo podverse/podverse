@@ -34,6 +34,13 @@ name: Signed-In Devices
     id: tab-more
 - tapOn:
     id: more-settings
+# Signed-In Devices sits low on Settings. A tap at the row's bottom edge hits the mini player.
+- scrollUntilVisible:
+    element:
+      id: more-settings-sessions
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+    centerElement: true
 - tapOn:
     id: more-settings-sessions
 - extendedWaitUntil:
@@ -124,18 +131,26 @@ name: Signed-In Devices
             E2E_DEVICE_LABEL_SUFFIX: " · Android"
             E2E_SESSION_ACTION: end-device
 
-- tapOn:
-    id: more-settings-sessions
+# Ending this device's session shows the notice on the screen that is already open.
 - extendedWaitUntil:
     visible:
       id: forced-logout-modal
     timeout: ${TIMEOUT_SLOW}
+# The reason and the signed-out explanation are one label, and the label wraps.
 - assertVisible:
-    text: "You were signed out from another device\\..*"
+    text: "(?s)You were signed out from another device\\..*"
 - takeScreenshot: auth-sessions-forced-logout
 
 - tapOn:
     id: forced-logout-dismiss
+- scrollUntilVisible:
+    element:
+      id: more-settings-sessions
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+    centerElement: true
+- tapOn:
+    id: more-settings-sessions
 - extendedWaitUntil:
     visible:
       id: more-settings-sessions-login-required

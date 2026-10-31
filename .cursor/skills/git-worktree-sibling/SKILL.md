@@ -79,7 +79,8 @@ moment.
 ## Plan sets in a worktree
 
 Every plan set runs in its own worktree on its own branch, one set per worktree and one PR per
-set. The worktree is opened in its own Cursor window, so the chat that answers a stopped run
+set. **abctestall**, **abcsmoketest**, and **abctestdeferred** are the exception: they run in the
+current checkout on the current branch, and their steps leave fixes unstaged. The worktree is opened in its own Cursor window, so the chat that answers a stopped run
 (**abcresume**), and any fix made by hand, works in that worktree. A chat in another window reads
 the other checkout's `.artifacts/plan-runner/` and edits the other checkout's files.
 

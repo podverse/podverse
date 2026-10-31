@@ -36,6 +36,13 @@ name: Taste Profile
     id: tab-more
 - tapOn:
     id: more-settings
+# Recommendations starts below the window. Scroll until it is on screen; centering the
+# row above it cannot finish because this row is the bottom of the list.
+- scrollUntilVisible:
+    element:
+      id: more-settings-taste-profile
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
 - tapOn:
     id: more-settings-taste-profile
 - assertVisible:
@@ -59,6 +66,12 @@ name: Taste Profile
     id: taste-profile-row-e2eVideoChnl01
 - takeScreenshot: taste-profile-list
 
+# The hidden section follows the open shows list, below the window.
+- scrollUntilVisible:
+    element:
+      id: taste-profile-hidden-section-toggle
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
 - tapOn:
     id: taste-profile-hidden-section-toggle
 - scrollUntilVisible:

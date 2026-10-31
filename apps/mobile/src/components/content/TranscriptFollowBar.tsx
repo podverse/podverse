@@ -31,6 +31,12 @@ const createStyles = ({ tokens }: ThemedStylesTheme) =>
   });
 
 /**
+ * FlatList sticky index for the follow bar when the list also has ListHeaderComponent.
+ * Index 0 is that header; the follow bar is the first data row.
+ */
+export const TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX = 1;
+
+/**
  * Sticky transcript toolbar: free-text body filter on the left, Autoscroll On/Off on the right.
  */
 export function TranscriptFollowBar({

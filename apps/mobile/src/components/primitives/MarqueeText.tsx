@@ -220,8 +220,9 @@ export function MarqueeText({
     setViewportWidth((previous) => stabilizeMeasuredWidth(previous, next));
   };
 
+  // The shell stays in the native hierarchy so the label remains inside it.
   return (
-    <View style={styles.root} testID={testID}>
+    <View collapsable={false} style={styles.root} testID={testID}>
       <View collapsable={false} onLayout={handleViewportLayout} style={styles.viewport}>
         {/* Holds the line height while the keyed label remounts. */}
         <Text

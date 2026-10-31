@@ -24,6 +24,7 @@ import {
   PeoplePane,
   toAboutPersonFromItem,
   TranscriptFollowBar,
+  TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX,
   TranscriptListRow,
 } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
@@ -986,12 +987,12 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
           onScrollToIndexFailed={
             activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
           }
-          onViewableItemsChanged={
-            activeTab === 'transcript' ? onTranscriptViewableItemsChanged : undefined
-          }
+          onViewableItemsChanged={onTranscriptViewableItemsChanged}
           ref={listRef}
           renderItem={renderItem}
-          stickyHeaderIndices={transcriptStickyOffset > 0 ? [0] : undefined}
+          stickyHeaderIndices={
+            transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
+          }
           style={styles.list}
           testID={
             activeTab === 'clips'
@@ -1004,7 +1005,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
                     ? 'episode-detail-transcript-list'
                     : 'episode-detail-list'
           }
-          viewabilityConfig={activeTab === 'transcript' ? transcriptViewabilityConfig : undefined}
+          viewabilityConfig={transcriptViewabilityConfig}
         />
       ) : null}
       {addToPlaylistSheet}
