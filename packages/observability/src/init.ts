@@ -1,14 +1,14 @@
-import { propagation } from '@opentelemetry/api';
+import { context, propagation, trace } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
-import type { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
+import type { TracerProvider } from '@opentelemetry/sdk-trace';
 
 import type { ObservabilityConfig } from './config.js';
 import { validateObservabilityConfig } from './config.js';
 import { observabilityRuntimeState, resetObservabilityRuntimeState } from './internalState.js';
 import { createObservabilityTracerProvider } from './otel/tracerProvider.js';
 
-let tracerProvider: NodeTracerProvider | null = null;
+let tracerProvider: TracerProvider | null = null;
 
 export const initObservability = (config: ObservabilityConfig): void => {
   if (observabilityRuntimeState.initialized) {
@@ -20,9 +20,8 @@ export const initObservability = (config: ObservabilityConfig): void => {
   propagation.setGlobalPropagator(new W3CTraceContextPropagator());
 
   tracerProvider = createObservabilityTracerProvider(config);
-  tracerProvider.register({
-    contextManager: new AsyncLocalStorageContextManager().enable(),
-  });
+  trace.setGlobalTracerProvider(tracerProvider);
+  context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable());
 
   observabilityRuntimeState.initialized = true;
   observabilityRuntimeState.config = config;
