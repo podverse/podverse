@@ -11,6 +11,7 @@ import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import type { AuthRequestDeps } from '../../auth/authRequestWithRefresh';
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import { ChipRowWithActions } from '../../components/form';
 import type { MediaRowMoreAction } from '../../components/player/MediaRowActions';
 import { Button, FillList } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
@@ -231,9 +232,6 @@ export function RecommendationsScreen() {
         paddingBottom: tokens.spacing.lg,
         paddingHorizontal: bodyInsets.paddingHorizontal,
       },
-      editRow: {
-        marginBottom: tokens.spacing.md,
-      },
       note: {
         gap: tokens.spacing.md,
         paddingBottom: tokens.spacing.lg,
@@ -251,6 +249,11 @@ export function RecommendationsScreen() {
       },
     });
   }, [cellWidth, themeStyles, tokens]);
+
+  const [chipsContentWidth, setChipsContentWidth] = useState(0);
+  const handleChipsContentWidth = useCallback((width: number) => {
+    setChipsContentWidth((current) => (current === width ? current : width));
+  }, []);
 
   const selectChip = useCallback((next: RecommendationChip) => {
     chipRef.current = next;
@@ -400,22 +403,36 @@ export function RecommendationsScreen() {
     <View style={styles.screen} testID="recommendations-screen">
       <View style={styles.selectorSection}>
         {signedIn ? (
-          <View style={styles.editRow}>
-            <Button
-              label={t('features.recommendations.edit')}
-              onPress={openSettings}
-              testID="recommendations-edit"
-              variant="secondary"
+          <ChipRowWithActions
+            actions={
+              <Button
+                label={t('features.recommendations.edit')}
+                onPress={openSettings}
+                testID="recommendations-edit"
+                variant="secondary"
+              />
+            }
+            actionsTestID="recommendations-edit-actions"
+            chipsContentWidth={chipsContentWidth}
+          >
+            <MediaTypeSelector
+              labelKeys={CHIP_LABEL_KEYS}
+              onChange={selectChip}
+              onContentWidthChange={handleChipsContentWidth}
+              selectedMediaType={chip}
+              testIDPrefix="recommendations"
+              types={CHIPS}
             />
-          </View>
-        ) : null}
-        <MediaTypeSelector
-          labelKeys={CHIP_LABEL_KEYS}
-          onChange={selectChip}
-          selectedMediaType={chip}
-          testIDPrefix="recommendations"
-          types={CHIPS}
-        />
+          </ChipRowWithActions>
+        ) : (
+          <MediaTypeSelector
+            labelKeys={CHIP_LABEL_KEYS}
+            onChange={selectChip}
+            selectedMediaType={chip}
+            testIDPrefix="recommendations"
+            types={CHIPS}
+          />
+        )}
       </View>
       <FillList
         ListEmptyComponent={empty}

@@ -12,6 +12,7 @@ export const HistoryPageList: React.FC = () => {
   return (
     <>
       <ListHistoryResources
+        isLoading={isLoading}
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}
         totalPages={totalPages}

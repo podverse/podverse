@@ -54,21 +54,23 @@ function allowReports(): void {
 }
 
 const itemReport: ListenSessionReport = {
-  target: { kind: 'item', idText: 'item-1' },
+  target: { kind: 'item', idText: 'item-1', mediumId: null },
   clientListenId: 'listen-item',
   secondsHeard: 61,
   completed: false,
   countedAtMs: 1,
   firstReport: true,
+  mediaDurationSeconds: 2_400,
 };
 
 const clipReport: ListenSessionReport = {
-  target: { kind: 'clip', idText: 'clip-1', startSeconds: 12, endSeconds: 40 },
+  target: { kind: 'clip', idText: 'clip-1', startSeconds: 12, endSeconds: 40, mediumId: null },
   clientListenId: 'listen-clip',
   secondsHeard: 30,
   completed: true,
   countedAtMs: 2,
   firstReport: false,
+  mediaDurationSeconds: null,
 };
 
 const V4_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -120,6 +122,7 @@ describe('reportListen', () => {
       client_listen_id: 'listen-item',
       seconds_heard: 61,
       completed: false,
+      media_duration_seconds: 2_400,
     });
   });
 
@@ -135,6 +138,7 @@ describe('reportListen', () => {
       seconds_heard: 30,
       completed: true,
     });
+    expect(reqStatsListen.mock.calls[0]?.[1]).not.toHaveProperty('media_duration_seconds');
   });
 
   it('does not leave a rejected listen request unhandled', async () => {

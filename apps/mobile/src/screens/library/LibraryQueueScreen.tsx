@@ -652,9 +652,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     }
     if (queueFill === 'empty') {
       return (
-        <VerticalCenter>
-          <ListEmpty messageKey={emptyMessageKey} testID="library-queue-empty" />
-        </VerticalCenter>
+        <ListEmpty align="start" messageKey={emptyMessageKey} testID="library-queue-empty" />
       );
     }
     return null;

@@ -280,8 +280,8 @@ function WeightControl({
 }
 
 /**
- * Taste Profile and Hidden From Taste Profile for the signed-in listener. Rows are not links; the
- * listener manages each list here.
+ * Taste Profile, Not Counted in Recommendations, and Hidden Channels for the signed-in listener.
+ * Rows are not links; the listener manages each list here.
  */
 export function TasteProfileSections() {
   const { i18n, t } = useTranslation();
@@ -377,14 +377,14 @@ export function TasteProfileSections() {
       const title = showTitle(row.channel.title);
       return (
         <TasteProfileShowRow
-          actionAccessibilityLabel={t('taste_profile.unhide_accessible', { title })}
-          actionLabel={t('taste_profile.unhide')}
+          actionAccessibilityLabel={t('taste_profile.count_again_accessible', { title })}
+          actionLabel={t('taste_profile.count_again')}
           actionTestID={`taste-profile-unhide-${idText}`}
           idText={idText}
           imageUrl={primaryChannelListArtworkUrl(row.channel.channel_images)}
           onAction={openUnhide}
           pending={pendingChannelIds.has(idText)}
-          subtitle={t('taste_profile.hidden_on', {
+          subtitle={t('taste_profile.not_counted_on', {
             date: formatDateAbbrev(row.hidden_at, i18n.language),
           })}
           testID={`taste-profile-hidden-row-${idText}`}
@@ -408,7 +408,7 @@ export function TasteProfileSections() {
       const title = showTitle(row.channel.title);
       return (
         <TasteProfileShowRow
-          actionAccessibilityLabel={t('taste_profile.unhide_accessible', { title })}
+          actionAccessibilityLabel={t('taste_profile.unhide_channel_accessible', { title })}
           actionLabel={t('taste_profile.unhide')}
           actionTestID={`channel-hidden-unhide-${idText}`}
           idText={idText}

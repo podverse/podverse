@@ -32,7 +32,7 @@ export type DTOAccountRecommendation = {
   strength: number;
 };
 
-/** One show on the signed-in listener's Hidden From Taste Profile list. */
+/** One show on Not Counted in Recommendations or Hidden Channels. */
 export type DTOAccountTasteProfileHiddenRow = {
   channel: DTOAccountTasteProfileChannel;
   hidden_at: string;

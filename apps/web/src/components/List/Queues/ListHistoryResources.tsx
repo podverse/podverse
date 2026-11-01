@@ -16,6 +16,7 @@ import { ListQueueResourceRow } from './ListQueueResourceRow';
 import styles from '../../../styles/components/List/Queues/ListQueueResources.module.scss';
 
 type Props = {
+  isLoading: boolean;
   page: number;
   setPage: (page: number) => void;
   totalPages: number;
@@ -24,6 +25,7 @@ type Props = {
 };
 
 export const ListHistoryResources: React.FC<Props> = ({
+  isLoading,
   queueResources,
   showLoginMessage,
   page,
@@ -32,6 +34,7 @@ export const ListHistoryResources: React.FC<Props> = ({
 }) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
+  const tHistory = useTranslations('features.history');
   const { setModalAuthLogin } = useModals();
 
   // Skip scroll on the first effect run when returning via back navigation.
@@ -47,7 +50,8 @@ export const ListHistoryResources: React.FC<Props> = ({
   }, [queueResources]);
 
   const showCallToAction = showLoginMessage;
-  const showPagination = !showLoginMessage;
+  const showEmptyMessage = !showLoginMessage && !isLoading && queueResources.length === 0;
+  const showHistoryList = !showLoginMessage && queueResources.length > 0;
 
   return (
     <>
@@ -58,7 +62,12 @@ export const ListHistoryResources: React.FC<Props> = ({
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {showPagination && (
+      {showEmptyMessage && (
+        <p className={styles.status} role="status">
+          {tHistory('empty')}
+        </p>
+      )}
+      {showHistoryList && (
         <div className={styles.listWrapper}>
           <Pagination currentPage={page} totalPages={totalPages} setPage={setPage}>
             <div className={styles.list}>

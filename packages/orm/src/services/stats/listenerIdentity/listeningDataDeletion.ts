@@ -33,7 +33,7 @@ function earlierOf(a: Date | null, b: Date | null): Date | null {
 
 /**
  * Deletes an account's stored listening data when the listener turns off Taste Profile consent:
- * listen events, open events, Taste Profile rows, Hidden From Taste Profile rows, Hidden
+ * listen events, open events, Taste Profile rows, Not Counted in Recommendations rows, Hidden
  * Recommendations rows, and recommendation rows. It keeps the listener row, and writes onto it how
  * many listens the deletion removed from the current UTC day, so write limits and flags kept by
  * listener id do not restart when the listener turns Taste Profile on again. Daily and range totals

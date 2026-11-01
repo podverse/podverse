@@ -235,6 +235,7 @@ describe('stats listen and open POST routes', () => {
         client_listen_id: CLIENT_LISTEN_ID,
         seconds_heard: 75,
         completed: true,
+        media_duration_seconds: null,
       });
     });
 

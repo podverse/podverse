@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { MediumEnum } from './medium.js';
 import {
   countsTowardTooSoonSignal,
   fadeTasteScore,
@@ -7,49 +8,142 @@ import {
   isCountedListen,
   isPopularityFlagReason,
   isStoredCapReachedFast,
-  POPULARITY_COUNTED_LISTEN_MIN_SECONDS,
+  POPULARITY_COUNTED_LISTEN_LONG_CAP_SECONDS,
+  POPULARITY_COUNTED_LISTEN_SHORT_CAP_SECONDS,
+  POPULARITY_DEFAULT_LISTEN_MIN_INTERVAL_SECONDS,
   POPULARITY_TASTE_HALF_LIFE_DAYS,
+  resolveCountedListenDurationSeconds,
 } from './popularityListen.js';
 
 const MS_PER_DAY = 86_400_000;
 
 describe('getCountedListenThresholdSeconds', () => {
-  it('uses 60 seconds when the duration is unknown, zero, negative, or non-finite', () => {
-    expect(getCountedListenThresholdSeconds(null)).toBe(POPULARITY_COUNTED_LISTEN_MIN_SECONDS);
-    expect(getCountedListenThresholdSeconds(undefined)).toBe(POPULARITY_COUNTED_LISTEN_MIN_SECONDS);
-    expect(getCountedListenThresholdSeconds(0)).toBe(POPULARITY_COUNTED_LISTEN_MIN_SECONDS);
-    expect(getCountedListenThresholdSeconds(-5)).toBe(POPULARITY_COUNTED_LISTEN_MIN_SECONDS);
-    expect(getCountedListenThresholdSeconds(Number.NaN)).toBe(
-      POPULARITY_COUNTED_LISTEN_MIN_SECONDS
-    );
+  it('uses the medium cap when the duration is unknown, zero, negative, or non-finite', () => {
+    for (const duration of [null, undefined, 0, -5, Number.NaN]) {
+      expect(getCountedListenThresholdSeconds(duration, MediumEnum.Podcast)).toBe(
+        POPULARITY_COUNTED_LISTEN_LONG_CAP_SECONDS
+      );
+      expect(getCountedListenThresholdSeconds(duration, null)).toBe(
+        POPULARITY_COUNTED_LISTEN_LONG_CAP_SECONDS
+      );
+      expect(getCountedListenThresholdSeconds(duration, MediumEnum.Music)).toBe(
+        POPULARITY_COUNTED_LISTEN_SHORT_CAP_SECONDS
+      );
+    }
   });
 
-  it('is 60 seconds or 25% of the item, whichever is smaller', () => {
-    expect(getCountedListenThresholdSeconds(3_600)).toBe(60);
-    expect(getCountedListenThresholdSeconds(200)).toBe(50);
-    expect(getCountedListenThresholdSeconds(20)).toBe(5);
+  it('is the cap or half the length, whichever is smaller', () => {
+    expect(getCountedListenThresholdSeconds(3_600, MediumEnum.Podcast)).toBe(300);
+    expect(getCountedListenThresholdSeconds(480, MediumEnum.Podcast)).toBe(240);
+    expect(getCountedListenThresholdSeconds(200, MediumEnum.Video)).toBe(100);
+    expect(getCountedListenThresholdSeconds(20, null)).toBe(10);
+    expect(getCountedListenThresholdSeconds(3_600, MediumEnum.Music)).toBe(60);
+    expect(getCountedListenThresholdSeconds(90, MediumEnum.MusicL)).toBe(45);
+    expect(getCountedListenThresholdSeconds(200, MediumEnum.PublisherMusic)).toBe(60);
   });
 });
 
 describe('isCountedListen', () => {
-  it('counts a 3,600-second item at 60 seconds and not at 59', () => {
-    expect(isCountedListen({ secondsHeard: 60, durationSeconds: 3_600 })).toBe(true);
-    expect(isCountedListen({ secondsHeard: 59, durationSeconds: 3_600 })).toBe(false);
+  it('counts a long episode at 5 minutes and not a second earlier', () => {
+    expect(
+      isCountedListen({ secondsHeard: 300, durationSeconds: 3_600, mediumId: MediumEnum.Podcast })
+    ).toBe(true);
+    expect(
+      isCountedListen({ secondsHeard: 299, durationSeconds: 3_600, mediumId: MediumEnum.Podcast })
+    ).toBe(false);
   });
 
-  it('counts a 200-second item at 50 seconds and not at 49', () => {
-    expect(isCountedListen({ secondsHeard: 50, durationSeconds: 200 })).toBe(true);
-    expect(isCountedListen({ secondsHeard: 49, durationSeconds: 200 })).toBe(false);
+  it('counts an 8-minute episode at half its length', () => {
+    expect(
+      isCountedListen({ secondsHeard: 240, durationSeconds: 480, mediumId: MediumEnum.Podcast })
+    ).toBe(true);
+    expect(
+      isCountedListen({ secondsHeard: 239, durationSeconds: 480, mediumId: MediumEnum.Podcast })
+    ).toBe(false);
   });
 
-  it('counts an unknown duration at 60 seconds and not at 59', () => {
-    expect(isCountedListen({ secondsHeard: 60, durationSeconds: null })).toBe(true);
-    expect(isCountedListen({ secondsHeard: 59, durationSeconds: undefined })).toBe(false);
+  it('counts a long track at 60 seconds and a 90-second track at 45', () => {
+    expect(
+      isCountedListen({ secondsHeard: 60, durationSeconds: 3_600, mediumId: MediumEnum.Music })
+    ).toBe(true);
+    expect(
+      isCountedListen({ secondsHeard: 59, durationSeconds: 3_600, mediumId: MediumEnum.Music })
+    ).toBe(false);
+    expect(
+      isCountedListen({ secondsHeard: 45, durationSeconds: 90, mediumId: MediumEnum.Music })
+    ).toBe(true);
+    expect(
+      isCountedListen({ secondsHeard: 44, durationSeconds: 90, mediumId: MediumEnum.Music })
+    ).toBe(false);
+  });
+
+  it('counts an unknown duration at the medium cap', () => {
+    expect(isCountedListen({ secondsHeard: 300, durationSeconds: null, mediumId: null })).toBe(
+      true
+    );
+    expect(
+      isCountedListen({ secondsHeard: 299, durationSeconds: undefined, mediumId: MediumEnum.Film })
+    ).toBe(false);
+    expect(
+      isCountedListen({ secondsHeard: 60, durationSeconds: null, mediumId: MediumEnum.Music })
+    ).toBe(true);
   });
 
   it('never counts zero or non-finite seconds heard', () => {
-    expect(isCountedListen({ secondsHeard: 0, durationSeconds: 3_600 })).toBe(false);
-    expect(isCountedListen({ secondsHeard: Number.NaN, durationSeconds: 20 })).toBe(false);
+    expect(
+      isCountedListen({ secondsHeard: 0, durationSeconds: 3_600, mediumId: MediumEnum.Podcast })
+    ).toBe(false);
+    expect(
+      isCountedListen({
+        secondsHeard: Number.NaN,
+        durationSeconds: 20,
+        mediumId: MediumEnum.Music,
+      })
+    ).toBe(false);
+  });
+});
+
+describe('resolveCountedListenDurationSeconds', () => {
+  it('uses the player length inside half to double of the rss duration, including the edges', () => {
+    expect(
+      resolveCountedListenDurationSeconds({ playerDurationSeconds: 150, rssDurationSeconds: 200 })
+    ).toBe(150);
+    expect(
+      resolveCountedListenDurationSeconds({ playerDurationSeconds: 100, rssDurationSeconds: 200 })
+    ).toBe(100);
+    expect(
+      resolveCountedListenDurationSeconds({ playerDurationSeconds: 400, rssDurationSeconds: 200 })
+    ).toBe(400);
+  });
+
+  it('keeps the rss duration outside that band', () => {
+    expect(
+      resolveCountedListenDurationSeconds({ playerDurationSeconds: 99, rssDurationSeconds: 200 })
+    ).toBe(200);
+    expect(
+      resolveCountedListenDurationSeconds({ playerDurationSeconds: 401, rssDurationSeconds: 200 })
+    ).toBe(200);
+  });
+
+  it('uses whichever length is present, and null when neither is', () => {
+    expect(
+      resolveCountedListenDurationSeconds({ playerDurationSeconds: 80, rssDurationSeconds: null })
+    ).toBe(80);
+    expect(
+      resolveCountedListenDurationSeconds({
+        playerDurationSeconds: null,
+        rssDurationSeconds: 200,
+      })
+    ).toBe(200);
+    expect(
+      resolveCountedListenDurationSeconds({ playerDurationSeconds: 0, rssDurationSeconds: null })
+    ).toBeNull();
+    expect(
+      resolveCountedListenDurationSeconds({
+        playerDurationSeconds: Number.NaN,
+        rssDurationSeconds: undefined,
+      })
+    ).toBeNull();
   });
 });
 
@@ -92,12 +186,47 @@ describe('isPopularityFlagReason', () => {
 });
 
 describe('countsTowardTooSoonSignal', () => {
-  it('leaves out items and clips under 60 seconds and counts longer or unknown durations', () => {
-    expect(countsTowardTooSoonSignal(30)).toBe(false);
-    expect(countsTowardTooSoonSignal(59.9)).toBe(false);
-    expect(countsTowardTooSoonSignal(60)).toBe(true);
-    expect(countsTowardTooSoonSignal(3_600)).toBe(true);
-    expect(countsTowardTooSoonSignal(null)).toBe(true);
+  const interval = POPULARITY_DEFAULT_LISTEN_MIN_INTERVAL_SECONDS;
+
+  it('leaves out a listen whose rss threshold is shorter than the interval', () => {
+    expect(
+      countsTowardTooSoonSignal({
+        rssDurationSeconds: 30,
+        mediumId: MediumEnum.Podcast,
+        minIntervalSeconds: interval,
+      })
+    ).toBe(false);
+    expect(
+      countsTowardTooSoonSignal({
+        rssDurationSeconds: 50,
+        mediumId: MediumEnum.Podcast,
+        minIntervalSeconds: interval,
+      })
+    ).toBe(true);
+    expect(
+      countsTowardTooSoonSignal({
+        rssDurationSeconds: null,
+        mediumId: MediumEnum.Podcast,
+        minIntervalSeconds: interval,
+      })
+    ).toBe(true);
+    expect(
+      countsTowardTooSoonSignal({
+        rssDurationSeconds: 90,
+        mediumId: MediumEnum.Music,
+        minIntervalSeconds: interval,
+      })
+    ).toBe(true);
+  });
+
+  it('counts nothing when the interval is off', () => {
+    expect(
+      countsTowardTooSoonSignal({
+        rssDurationSeconds: 3_600,
+        mediumId: MediumEnum.Podcast,
+        minIntervalSeconds: 0,
+      })
+    ).toBe(false);
   });
 });
 

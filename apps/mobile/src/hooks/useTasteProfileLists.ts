@@ -167,7 +167,7 @@ function useReloadWhenActive(
 }
 
 /**
- * The signed-in listener's Taste Profile, Hidden From Taste Profile, and Hidden Channels lists.
+ * The signed-in listener's Taste Profile, Not Counted in Recommendations, and Hidden Channels lists.
  * State lives only in this hook. Each list loads when it is opened, and again when the account
  * or its Taste Profile consent changes, so a sign-out or account switch never shows the previous
  * account's rows. Try Again reloads every open list. A token refresh does not reload: requests

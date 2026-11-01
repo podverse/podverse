@@ -8,7 +8,7 @@ import React from 'react';
 import type { DTOQueueResource, QueryParamsQueueMedium } from '@podverse/helpers';
 import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import { CallToActionMessage, CenteredMessage } from '@podverse/ui';
+import { CallToActionMessage } from '@podverse/ui';
 
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useModals } from '../../../contexts/Modals';
@@ -402,7 +402,9 @@ export const ListQueueResources: React.FC<Props> = ({
         />
       )}
       {showEmptyMessage && (
-        <CenteredMessage live="status">{emptyMessage}</CenteredMessage>
+        <p className={styles.status} role="status">
+          {emptyMessage}
+        </p>
       )}
       {showQueueList && (
         <div className={styles.listWrapper}>

@@ -26,6 +26,8 @@
 .icon {
   display: inline-block;
   margin-right: var(--spacing-md);
+  /* The handle sits in the lower-right of the icon box, so the box is shifted up to meet the label. */
+  transform: translateY(-0.125em);
   vertical-align: middle;
 }
 
@@ -38,7 +40,7 @@
 }
 
 .accordianHeader {
-  padding: 0 var(--spacing-base);
+  padding: var(--spacing-md) var(--spacing-base);
   margin: 0 var(--spacing-md);
 }
 

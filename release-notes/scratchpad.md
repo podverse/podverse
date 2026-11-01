@@ -92,13 +92,23 @@
 - Who notices: anyone looking at the sidebar Search row
 - Operator steps: none
 
-## Empty queue shows a centered message
+## Empty queue shows a message under the chips
 
-- Surfaces: web
+- Surfaces: web, mobile
 - Change: When a signed-in listener opens Queues and the podcast or music queue has no items,
-  the page shows a centered status line (“Nothing in Your Podcast Queue Yet” or “Nothing in Your
-  Music Queue Yet”) in the space under the medium chips instead of a blank column.
+  the page shows “Nothing in Your Podcast Queue Yet” or “Nothing in Your Music Queue Yet” under
+  the medium chips at the start of the column (same placement as Recommendations empty copy),
+  instead of a blank column.
 - Who notices: anyone who opens Queues with nothing queued
+- Operator steps: none
+
+## Empty history shows a message under the chips
+
+- Surfaces: web, mobile
+- Change: When a signed-in listener opens History and there are no items, the page shows
+  “Nothing in Your History Yet” under the medium chips at the start of the column (same
+  placement as Recommendations empty copy), instead of a blank column.
+- Who notices: anyone who opens History with nothing played yet
 - Operator steps: none
 
 ## Media-list Sort and layout gear stay on chip click
@@ -165,4 +175,47 @@
   to General immediately.
 - Who notices: someone who was viewing Account or another signed-in Settings tab when
   they were signed out from another device
+- Operator steps: none
+
+## Recommendations edit sits with the chips
+
+- Surfaces: web, mobile
+- Change: Edit Recommendations shares the media-type chip row when the line is wide enough, and
+  sits above that row, aligned to the start, when it is not. Same arrangement as Add Feed and
+  Check for Updates on Add by RSS.
+- Who notices: signed-in listeners on the Recommendations page
+- Operator steps: none
+
+## Listen counts take longer on podcasts
+
+- Surfaces: api, web, mobile
+- Change: A podcast, video, or other non-music listen counts at 5 minutes, or at half the length
+  when that is shorter. Music stays at 1 minute, or half the length of a track under 2 minutes.
+  The length is the file the player loaded for this play when it is close to the RSS duration
+  (half to double); otherwise the RSS duration stands. Listens already stored are unchanged, so
+  recent charts sit below a count that treated one minute of a podcast as a listen.
+- Who notices: signed-in listeners whose Taste Profile and popularity counts come from listening
+- Operator steps: none
+
+## Accordion labels line up with the caret
+
+- Surfaces: web
+- Change: Expandable accordion rows center the label with the caret. A heading's extra space
+  under the title no longer sits inside the row and pushes the words above the caret. A row that
+  should stay top-aligned can pass headerAlign="start". Sidebar section headers keep the same
+  vertical padding.
+- Who notices: listeners on Settings Taste Profile, and other web pages that use the same
+  accordion
+- Operator steps: none
+
+## Not counted is separate from hidden
+
+- Surfaces: web, mobile, api (Taste Profile agreement and terms)
+- Change: The list of shows left out of recommendation scoring is named Not Counted in
+  Recommendations. Those shows stay visible. Hidden stays the word for shows the listener does
+  not see (Hidden Channels). Counting a show again, and the date it was left out, use that
+  wording on web and mobile. The agreement and terms use the same name. Hiding a channel still
+  leaves it off Browse and Recommendations, and listening to it still updates the Taste Profile.
+- Who notices: signed-in listeners in Settings on Recommendations, and anyone reading how Taste
+  Profile works
 - Operator steps: none

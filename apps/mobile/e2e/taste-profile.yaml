@@ -2,7 +2,8 @@ appId: com.podverse.app.next
 name: Taste Profile
 ---
 # Seeded e2e-taste-profile account: two Taste Profile shows (the podcast is newest) and one
-# hidden artist. Read-only on the server, because parallel slots share one database.
+# artist left out of recommendations. Read-only on the server, because parallel slots share one
+# database.
 
 - runFlow: shared/launch-and-connect.yaml
 

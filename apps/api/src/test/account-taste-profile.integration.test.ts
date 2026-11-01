@@ -451,7 +451,7 @@ describe('Account Taste Profile routes (real database)', () => {
     });
   });
 
-  it('lists Hidden From Taste Profile', async () => {
+  it('lists shows left out of recommendations', async () => {
     const res = await request(app).get(`${accountBase}/taste-profile/hidden`).set(authed(owner));
 
     expect(res.status).toBe(200);

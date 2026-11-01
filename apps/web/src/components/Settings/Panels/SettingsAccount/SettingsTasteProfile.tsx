@@ -182,9 +182,11 @@ export function SettingsTasteProfile() {
                     key={idText}
                     channel={row.channel}
                     title={title}
-                    subtitle={t('hidden_on', { date: formatDateAbbrev(row.hidden_at, locale) })}
-                    actionLabel={t('unhide')}
-                    actionAccessibleLabel={t('unhide_accessible', { title })}
+                    subtitle={t('not_counted_on', {
+                      date: formatDateAbbrev(row.hidden_at, locale),
+                    })}
+                    actionLabel={t('count_again')}
+                    actionAccessibleLabel={t('count_again_accessible', { title })}
                     disabled={pendingChannelIds.has(idText)}
                     onAction={() => {
                       setUnhideTarget({ idText, title });
@@ -234,7 +236,7 @@ export function SettingsTasteProfile() {
                     title={title}
                     subtitle={t('hidden_on', { date: formatDateAbbrev(row.hidden_at, locale) })}
                     actionLabel={t('unhide')}
-                    actionAccessibleLabel={t('unhide_accessible', { title })}
+                    actionAccessibleLabel={t('unhide_channel_accessible', { title })}
                     disabled={pendingChannelIds.has(idText)}
                     onAction={() => {
                       void unhideChannelFromLists(idText);

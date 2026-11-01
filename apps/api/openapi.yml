@@ -5267,11 +5267,21 @@ components:
           type: boolean
           default: false
           description: The session reached the end of the item or clip.
+        media_duration_seconds:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          maximum: 86400
+          description: >-
+            Length, in seconds, of the file the player loaded for this play. The server uses it
+            when it is the only length, or when it sits between half and double the RSS duration.
+            Outside that band the RSS duration stands. Omitted when the player has no length.
       example:
         item_id_text: "kM7T2xYqLp"
         client_listen_id: "3f6c2a9e-8d41-4b7a-9c35-1e2f4a6b8c0d"
-        seconds_heard: 75
+        seconds_heard: 300
         completed: false
+        media_duration_seconds: 2400
     StatsListenResponse:
       type: object
       required:

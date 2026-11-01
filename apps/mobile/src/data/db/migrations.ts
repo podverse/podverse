@@ -330,6 +330,12 @@ export const MIGRATIONS: Migration[] = [
         ON stats_listen_outbox (account_id_text, counted_at);`,
     ],
   },
+  {
+    version: 2,
+    statements: [
+      `ALTER TABLE stats_listen_outbox ADD COLUMN media_duration_seconds REAL;`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

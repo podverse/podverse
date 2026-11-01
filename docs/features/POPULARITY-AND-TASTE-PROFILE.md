@@ -89,8 +89,8 @@ All time columns are `timestamp with time zone`. Every table is in `public` exce
   `long_term_score`, `scores_updated_at` (the time both scores were last faded to),
   `weight_override` (a manual recommendation weight from 1 to 5, null until the listener applies
   one), and `weight_override_at` (set together with the override).
-- **`stats_taste_profile_hidden`** is Hidden From Taste Profile: `listener_id`, `channel_id`,
-  `hidden_at`.
+- **`stats_taste_profile_hidden`** is Not Counted in Recommendations. The listener can still see
+  the show. Columns: `listener_id`, `channel_id`, `hidden_at`.
 - **`stats_channel_hidden`** is Hidden Channels: `listener_id`, `channel_id`,
   `hidden_at`. A show stays off Browse and Recommendations while the row exists. Subscriptions
   stay visible. Listening still updates the Taste Profile.
@@ -101,7 +101,7 @@ All time columns are `timestamp with time zone`. Every table is in `public` exce
   neighbors, so the nightly job does not rebuild it until its taste weights change.
 - **`stats_recommendation`** is one discovered show per listener: `listener_id`, `channel_id`,
   `score`, `strength` (1 to 5), `computed_at`. Shows already in that listener's Taste Profile,
-  Hidden From Taste Profile, or Hidden Channels are not stored. Subscriptions are left out
+  Not Counted in Recommendations, or Hidden Channels are not stored. Subscriptions are left out
   when the list is read.
 - **`stats_recommendation_state`** stamps `computed_at` per listener, including a listener with
   no discoveries, so the nightly job skips them until their taste rows change.
@@ -202,11 +202,13 @@ and needs `CREATE` on the app database. DB bootstrap grants it.
 - The API does not start when `STATS_ALL_TIME_RECOUNT_DAYS` is greater than
   `STATS_TRACK_EVENT_RETENTION_DAYS`: the period is read from marks on stored events, so the mark
   that started it must still be stored when the period ends.
-- Totals only go up, with one exception. Opt-out, hiding a show, retention drops, and event
-  updates never subtract. Deleting an item, clip, channel, playlist, or account removes its own
+- Totals only go up, with one exception. Opt-out, leaving a show out of recommendations,
+  retention drops, and event updates never subtract. Deleting an item, clip, channel, playlist,
+  or account removes its own
   daily rows by cascade.
 - The exception is the channel merge; see [Channel Merge](#channel-merge).
-- Listens to a hidden show still count; hiding affects only taste rows.
+- Listens to a show left out of recommendations still count toward public totals. Leaving it
+  out affects only taste rows.
 
 ## Range Totals Are Rebuilt by a Job
 
@@ -411,12 +413,17 @@ that started before an opt-out cannot keep data afterwards.
 
 ### What Counts as a Listen
 
-- A listen counts once 60 seconds or 25% of it has been heard, whichever comes first. Seconds are
-  media seconds actually played, not wall-clock time or seek distance. An unknown duration uses
-  the 60-second rule. Every surface uses the same rule: `popularityListen` in `@podverse/helpers`.
-- A clip listen measures against the clip's span, or from its start to the end of the episode
-  when it has no end time. A clip whose episode was removed is not counted.
-- `seconds_heard` is stored in whole seconds, at most the duration rounded up.
+- A podcast, video, or other non-music listen counts at 5 minutes or half its length, whichever
+  is smaller. Music counts at 1 minute or half its length, whichever is smaller. Seconds are
+  media seconds actually played, not wall-clock time or seek distance. An unknown length uses
+  that medium's cap. A missing medium uses the 5-minute cap. Every surface uses the same rule:
+  `popularityListen` in `@podverse/helpers`.
+- The length is the file the player loaded for this play when that length is the only one, or
+  when it sits between half and double the RSS duration. Outside that band the RSS duration
+  stands. A clip with an end time uses its span. A clip with no end runs from its start to that
+  same length. Finishing the file does not count by itself.
+- A clip whose episode was removed is not counted. `seconds_heard` is stored in whole seconds,
+  at most the duration rounded up.
 
 ### One Report per Listening Session
 
@@ -451,8 +458,8 @@ the UTC day of the event it completes.
   a transaction that held the lock still blocks one whose `now()` is a moment earlier.
 - `0` turns it off (local development and tests).
 - A `too_soon` session has no stored event, so a later report of the same `client_listen_id` (at
-  60 seconds, on completion, or on pause or end) is a new listen and is stored once the interval
-  has passed. That is how a real listen that arrived too soon still counts.
+  the medium's cap, on completion, or on pause or end) is a new listen and is stored once the
+  interval has passed. That is how a real listen that arrived too soon still counts.
 - `too_soon` is a 200, and clients treat it as done: they do not retry it.
 
 ### Daily Caps
@@ -512,9 +519,10 @@ and under the same listener lock that sees the signal. Two signals flag a listen
 - **Too-soon run** (`too_soon_minutes`): a new listen answers `too_soon`, and the minutes in one
   unbroken run of such answers reach `STATS_FLAG_TOO_SOON_MINUTES` (default 30). A too-soon minute
   more than 2 minutes after the run's last one starts a new run at 1; UTC midnight does not reset
-  it. A `too_soon` for an item or clip whose server-side duration is under 60 seconds does not
-  count and writes nothing (an unknown duration counts). A `too_soon` answered before the account
-  has a listener id writes nothing either.
+  it. A `too_soon` whose counted-listen threshold is shorter than
+  `STATS_LISTEN_MIN_INTERVAL_SECONDS` does not count and writes nothing. That threshold uses the
+  RSS duration, never a length claimed on the request. An unknown duration uses the cap and
+  counts. A `too_soon` answered before the account has a listener id writes nothing either.
 
 `0` turns either signal off. The web and mobile E2E API profiles
 (`packages/helpers-config/src/podverseTestEnv.ts`) set both to `0`, so seeded accounts that
@@ -527,8 +535,9 @@ The too-soon signal counts a run of minutes rather than reports or minutes per d
   2 minutes restart the run.
 - Several devices on one account start new sessions close together only now and then, and those
   minutes never form a long run.
-- Items and clips under 60 seconds count after 25% of their length, so honest listening to them
-  meets the minimum interval; they are left out of the run.
+- Items and clips whose threshold is shorter than the minimum interval meet that floor inside one
+  interval, so honest listening to them is left out of the run. At the default 20-second interval
+  a 30-second episode (15 seconds) stays out and a 50-second episode (25 seconds) counts.
 - A script sending new sessions faster than the minimum interval for half an hour reaches 30.
 
 Not signals: reaching the daily popularity cap (a day of music can pass it honestly, and the cap
@@ -626,8 +635,8 @@ already on taste rows.
   show keeps its top 50 neighbors. The score is clamped at 1. Similarity stays on the nightly
   (and weekly full) job.
 - **Discoveries:** for each other show, sum the seed show's 1–5 weight times that neighbor's
-  similarity. Drop shows already in the Taste Profile, Hidden From Taste Profile, or Hidden
-  Recommendations. Keep the top 50 per medium: podcasts (podcast and podcast live), albums
+  similarity. Drop shows already in the Taste Profile, Not Counted in Recommendations, or Hidden
+  Channels. Keep the top 50 per medium: podcasts (podcast and podcast live), albums
   (music and music live), and artists (music publishers).
 - **On-demand listener refresh:** after a taste write that adds a show, steps the 1–5 weight,
   changes an override, or removes a show from the Taste Profile, that listener's discoveries are
@@ -680,8 +689,10 @@ moved to another file), or tracks nothing (Add by RSS, livestreams). A soundbite
 counts toward its item; a clip counts toward the clip and closes when playback reaches its end.
 
 A session sends its first report once `isCountedListen` holds for whole seconds heard, again on
-first reaching 60 seconds when the first report was below 60, on completion, and on pause or end
-after 60 more seconds. Every report repeats the session's `client_listen_id`.
+first reaching that medium's cap when the first report was below the cap, on completion, and on
+pause or end after 60 more seconds. The report includes the loaded file length as
+`media_duration_seconds` when the player has one. Every report repeats the session's
+`client_listen_id`.
 
 Web sends reports directly from `apps/web/src/utils/statsTracking/statsTracking.ts` without
 retry. The request body has no `listened_at`; the server stamps the time it receives the
@@ -808,9 +819,9 @@ carry. After an opt-out the `listening_data` section is empty.
 - `PATCH /account-settings/listen-stats` with `accepted: false` records the No. A No that follows
   a Yes also records `listen_stats_opted_out_at`, which starts the popularity cooldown.
 - In the same transaction, `ListeningDataDeletionService` deletes that listener's listen events,
-  open events, Taste Profile rows, Hidden From Taste Profile rows, recommendation rows, and the
-  recommendation stamp right away, table by table, and keeps the `listener_identity.stats_listener`
-  row. Show similarity is global and stays.
+  open events, Taste Profile rows, Not Counted in Recommendations rows, recommendation rows, and
+  the recommendation stamp right away, table by table. It keeps the
+  `listener_identity.stats_listener` row. Show similarity is global and stays.
 - Before deleting, it writes how many listens were stored that UTC day, and when the first was,
   onto the listener row (the opt-out-day carry), adding to a carry from an earlier opt-out that
   day.
@@ -827,7 +838,8 @@ carry. After an opt-out the `listening_data` section is empty.
 ### Pausing Without the Listener Choosing It
 
 - A membership lapse, a removed `trackStats` override, or a new explanation version waiting for a
-  Yes deletes nothing. Writes stop; the Taste Profile and hidden list stay; stored events still age
+  Yes deletes nothing. Writes stop; the Taste Profile and the Not Counted in Recommendations list
+  stay; stored events still age
   out on retention.
 - A later Yes resumes with the same listener id, and the next counted listen fades each taste
   score across the gap. A Yes never deletes.
@@ -858,27 +870,29 @@ carry. After an opt-out the `listening_data` section is empty.
   the No after it commits and writes nothing. A report that locked first makes the opt-out wait,
   and the deletion then removes what it wrote.
 
-### Taste Profile and Hidden From Taste Profile
+### Taste Profile and Not Counted in Recommendations
 
 Signed-in accounts read and edit their own Taste Profile here. A paused listener, including one
-whose membership has lapsed or whose explanation version is still waiting, can list shows and hide
-them. An opt-out deletes every taste and hidden row, so both lists are empty. Responses carry channel
-data and counts only.
+whose membership has lapsed or whose explanation version is still waiting, can list shows and
+leave them out of recommendations. An opt-out deletes every taste row and every Not Counted in
+Recommendations row, so both lists are empty. Responses carry channel data and counts only.
 
 - `GET /account/taste-profile` returns the Taste Profile, newest `last_listened_at` first, then
   `channel_id` descending. `page` starts at 1. `limit` defaults to 20 and stops at 50.
-- `GET /account/taste-profile/hidden` returns Hidden From Taste Profile, newest `hidden_at` first,
-  then `channel_id` descending, with the same paging.
-- `POST /account/taste-profile/hide` deletes the show's taste row and inserts a hidden row. Both
-  writes run under the listener lock (`lockListener`). A show that is already hidden succeeds and
-  stays as it is. Hide answers not found when the account has no listener row, when the show is in
-  neither list, or when the channel is unknown. Daily and range totals stay as they are.
-- Listening to a hidden show still counts in public totals. The listen write path skips that show,
-  so the listen leaves its taste rows unchanged.
-- `POST /account/taste-profile/unhide` takes the show off the hidden list. The body includes
-  `add_to_taste_profile`. When that is true, unhide also inserts a fresh Taste Profile row with
-  listen count 0, completion count 0, and both scores 0. When it is false, unhide only removes the
-  hidden row, and a later listen can add the show again. Unhide of a show that is not hidden
-  changes nothing, including when `add_to_taste_profile` is true. An unknown channel is not found.
+- `GET /account/taste-profile/hidden` returns Not Counted in Recommendations, newest `hidden_at`
+  first, then `channel_id` descending, with the same paging.
+- `POST /account/taste-profile/hide` deletes the show's taste row and inserts a Not Counted in
+  Recommendations row. Both writes run under the listener lock (`lockListener`). A show already
+  on the list succeeds and stays as it is. Hide answers not found when the account has no
+  listener row, when the show is in neither list, or when the channel is unknown. Daily and range
+  totals stay as they are.
+- Listening to a show on that list still counts in public totals. The listen write path skips
+  that show, so the listen leaves its taste rows unchanged.
+- `POST /account/taste-profile/unhide` takes the show off Not Counted in Recommendations. The body
+  includes `add_to_taste_profile`. When that is true, unhide also inserts a fresh Taste Profile
+  row with listen count 0, completion count 0, and both scores 0. When it is false, unhide only
+  removes the row, and a later listen can add the show again. Taking a show off the list when it
+  is not on the list changes nothing, including when `add_to_taste_profile` is true. An unknown
+  channel is not found.
 - An added-back row stores the add-back time in `first_listened_at`, `last_listened_at`, and
   `scores_updated_at`. The list reports both listen times as null while `listen_count` is 0.

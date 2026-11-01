@@ -58,6 +58,43 @@ test.describe('Recommendations page', () => {
 
     const editButton = page.getByRole('button', { name: 'Edit Recommendations' });
     await expect(editButton).toBeVisible();
+    const actions = page.getByTestId('recommendations-list-actions');
+    const chips = page.getByTestId('media-list-chips');
+
+    await page.setViewportSize({ width: 1600, height: 900 });
+    const wideActionsBox = await actions.boundingBox();
+    const wideChipsBox = await chips.boundingBox();
+    const wideEditBox = await editButton.boundingBox();
+    expect(wideActionsBox, 'actions row is in the layout').not.toBeNull();
+    expect(wideChipsBox, 'chip row is in the layout').not.toBeNull();
+    expect(wideEditBox, 'Edit Recommendations is in the layout').not.toBeNull();
+    if (wideActionsBox !== null && wideChipsBox !== null && wideEditBox !== null) {
+      expect(wideActionsBox.x).toBeGreaterThanOrEqual(wideChipsBox.x + wideChipsBox.width - 1);
+      expect(wideActionsBox.y).toBeLessThan(wideChipsBox.y + wideChipsBox.height);
+      expect(wideChipsBox.y).toBeLessThan(wideActionsBox.y + wideActionsBox.height);
+      const wideChipFace = await chips
+        .getByRole('button', { name: 'Podcasts', exact: true })
+        .boundingBox();
+      expect(wideChipFace, 'Podcasts chip is in the layout').not.toBeNull();
+      if (wideChipFace !== null) {
+        const editMid = wideEditBox.y + wideEditBox.height / 2;
+        const chipMid = wideChipFace.y + wideChipFace.height / 2;
+        expect(Math.abs(editMid - chipMid)).toBeLessThanOrEqual(1);
+      }
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const narrowActionsBox = await actions.boundingBox();
+    const narrowChipsBox = await chips.boundingBox();
+    expect(narrowActionsBox, 'actions row is in the layout').not.toBeNull();
+    expect(narrowChipsBox, 'chip row is in the layout').not.toBeNull();
+    if (narrowActionsBox !== null && narrowChipsBox !== null) {
+      expect(narrowActionsBox.y + narrowActionsBox.height).toBeLessThanOrEqual(narrowChipsBox.y);
+      expect(Math.abs(narrowActionsBox.x - narrowChipsBox.x)).toBeLessThanOrEqual(4);
+    }
+
+    await page.setViewportSize({ width: 1280, height: 720 });
+
     await actionAndCapture(
       page,
       testInfo,

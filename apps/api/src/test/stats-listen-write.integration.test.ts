@@ -45,6 +45,7 @@ type ListenInput = {
   target: StatsListenTarget;
   clientListenId: string;
   secondsHeard: number;
+  mediaDurationSeconds?: number | null;
   completed?: boolean;
   storedDailyCap?: number;
   popularityDailyCap?: number;
@@ -256,6 +257,7 @@ describe('Popularity listen and open write services (real database)', () => {
       client_listen_id: input.clientListenId,
       seconds_heard: input.secondsHeard,
       completed: input.completed ?? false,
+      media_duration_seconds: input.mediaDurationSeconds ?? null,
     });
   };
 
@@ -547,7 +549,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: listener.id,
         target: itemTarget(podcastItem),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
       })
     ).toBe('counted');
 
@@ -558,7 +560,7 @@ describe('Popularity listen and open write services (real database)', () => {
       item_id: podcastItem.id,
       channel_id: podcastChannelId,
       clip_id: null,
-      seconds_heard: 75,
+      seconds_heard: 100,
       completed: false,
     });
     expect(await dailyCounts('item', podcastItem.id, todayUtc())).toEqual({
@@ -583,7 +585,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: listener.id,
         target: itemTarget(podcastItem),
         clientListenId: secondSession,
-        secondsHeard: 90,
+        secondsHeard: 100,
       })
     ).toBe('counted');
 
@@ -604,7 +606,7 @@ describe('Popularity listen and open write services (real database)', () => {
       accountId: listener.id,
       target: itemTarget(podcastItem),
       clientListenId: secondSession,
-      secondsHeard: 90,
+      secondsHeard: 100,
     };
 
     expect(await listen(repeat)).toBe('unchanged');
@@ -673,7 +675,7 @@ describe('Popularity listen and open write services (real database)', () => {
       accountId: capped.id,
       target: itemTarget(podcastItem),
       clientListenId,
-      secondsHeard: 70,
+      secondsHeard: 100,
       completed,
       storedDailyCap: 2,
       popularityDailyCap: 2,
@@ -696,7 +698,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: tasteOnly.id,
         target: itemTarget(freshItem),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
         countsTowardPopularity: false,
       })
     ).toBe('counted');
@@ -721,7 +723,7 @@ describe('Popularity listen and open write services (real database)', () => {
       accountId: heavy.id,
       target: itemTarget(item),
       clientListenId,
-      secondsHeard: 75,
+      secondsHeard: 100,
       completed,
       storedDailyCap: 3,
       popularityDailyCap: 1,
@@ -768,14 +770,14 @@ describe('Popularity listen and open write services (real database)', () => {
       accountId: quick.id,
       target: itemTarget(podcastItem),
       clientListenId: randomUUID(),
-      secondsHeard: 75,
+      secondsHeard: 100,
       minIntervalSeconds: 20,
     };
     const sessionB: ListenInput = {
       accountId: quick.id,
       target: itemTarget(minIntervalItem),
       clientListenId: randomUUID(),
-      secondsHeard: 75,
+      secondsHeard: 100,
       minIntervalSeconds: 20,
     };
 
@@ -813,7 +815,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: returning.id,
         target: itemTarget(coolingItem),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
       })
     ).toBe('counted');
     expect((await listenEvents(returning.id)).map((event) => event.popularity_counted)).toEqual([
@@ -828,7 +830,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: returning.id,
         target: itemTarget(recountedItem),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
       })
     ).toBe('counted');
     expect((await listenEvents(returning.id)).map((event) => event.popularity_counted)).toEqual([
@@ -846,7 +848,7 @@ describe('Popularity listen and open write services (real database)', () => {
       accountId: returning.id,
       target: itemTarget(podcastItem),
       clientListenId: randomUUID(),
-      secondsHeard: 75,
+      secondsHeard: 100,
       minIntervalSeconds: 20,
     };
 
@@ -864,7 +866,7 @@ describe('Popularity listen and open write services (real database)', () => {
       accountId: returning.id,
       target: itemTarget(podcastItem),
       clientListenId: randomUUID(),
-      secondsHeard: 75,
+      secondsHeard: 100,
       storedDailyCap: 3,
     });
 
@@ -917,7 +919,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: hider.id,
         target: itemTarget(podcastItem),
         clientListenId: randomUUID(),
-        secondsHeard: 80,
+        secondsHeard: 100,
       })
     ).toBe('counted');
     await query(
@@ -931,7 +933,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: hider.id,
         target: itemTarget(hiddenShowItem),
         clientListenId: randomUUID(),
-        secondsHeard: 80,
+        secondsHeard: 100,
         completed: true,
       })
     ).toBe('counted');
@@ -950,7 +952,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: listener.id,
         target: itemTarget(track),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
       })
     ).toBe('counted');
 
@@ -1017,7 +1019,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: listener.id,
         target: itemTarget(podcastItem),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
       })
     ).toBe('counted');
 
@@ -1041,7 +1043,7 @@ describe('Popularity listen and open write services (real database)', () => {
       accountId: late.id,
       target: itemTarget(podcastItem),
       clientListenId: session,
-      secondsHeard: 75,
+      secondsHeard: 100,
     };
     expect(await listen(report)).toBe('counted');
 
@@ -1186,7 +1188,7 @@ describe('Popularity listen and open write services (real database)', () => {
           accountId: racer.id,
           target: itemTarget(concurrencyItem),
           clientListenId: randomUUID(),
-          secondsHeard: 75,
+          secondsHeard: 100,
         })
       )
     );
@@ -1208,7 +1210,7 @@ describe('Popularity listen and open write services (real database)', () => {
           accountId: burst.id,
           target: itemTarget(concurrencyItem),
           clientListenId: randomUUID(),
-          secondsHeard: 75,
+          secondsHeard: 100,
           minIntervalSeconds: 20,
         })
       )
@@ -1247,7 +1249,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: regular.id,
         target: itemTarget(item),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
         allTimeRecountDays,
       });
 
@@ -1293,7 +1295,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: returning.id,
         target: itemTarget(item),
         clientListenId,
-        secondsHeard: 75,
+        secondsHeard: 100,
         allTimeRecountDays: 3,
       });
       const firstSession = randomUUID();
@@ -1322,7 +1324,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: heavy.id,
         target: itemTarget(item),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
         storedDailyCap: 3,
         popularityDailyCap: 1,
       });
@@ -1341,7 +1343,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: fast.id,
         target: itemTarget(podcastItem),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
         storedDailyCap: 2,
         popularityDailyCap: 2,
         flagStoredCapWithinHours: 3,
@@ -1354,7 +1356,7 @@ describe('Popularity listen and open write services (real database)', () => {
           accountId: fast.id,
           target: itemTarget(flaggedItem),
           clientListenId: randomUUID(),
-          secondsHeard: 75,
+          secondsHeard: 100,
           storedDailyCap: 10,
           popularityDailyCap: 10,
         })
@@ -1374,7 +1376,7 @@ describe('Popularity listen and open write services (real database)', () => {
           accountId: cooling.id,
           target: itemTarget(coolingItem),
           clientListenId: randomUUID(),
-          secondsHeard: 75,
+          secondsHeard: 100,
         })
       ).toBe('counted');
       expect(await lastEvent(cooling.id)).toMatchObject({ popularity_counted: false, ...noMarks });
@@ -1388,7 +1390,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: returning.id,
         target: itemTarget(item),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
       });
 
       expect(await listen(session())).toBe('counted');
@@ -1446,6 +1448,65 @@ describe('Popularity listen and open write services (real database)', () => {
     });
   });
 
+  it('uses a player duration inside half to double of the rss duration and ignores one outside it', async () => {
+    const inside = await seedAccount('player-duration-inside', true);
+    const item = await seedItem(podcastChannelId, 'player-band', ITEM_DURATION_SECONDS);
+
+    expect(
+      await listen({
+        accountId: inside.id,
+        target: itemTarget(item),
+        clientListenId: randomUUID(),
+        secondsHeard: 149,
+        mediaDurationSeconds: 300,
+      })
+    ).toBe('below_threshold');
+    expect(
+      await listen({
+        accountId: inside.id,
+        target: itemTarget(item),
+        clientListenId: randomUUID(),
+        secondsHeard: 150,
+        mediaDurationSeconds: 300,
+      })
+    ).toBe('counted');
+
+    const outside = await seedAccount('player-duration-outside', true);
+    expect(
+      await listen({
+        accountId: outside.id,
+        target: itemTarget(item),
+        clientListenId: randomUUID(),
+        secondsHeard: 90,
+        mediaDurationSeconds: 40,
+      })
+    ).toBe('below_threshold');
+  });
+
+  it('uses a player duration when the rss duration is missing', async () => {
+    const account = await seedAccount('player-duration-only', true);
+    const item = await seedItem(podcastChannelId, 'no-rss-duration', null);
+
+    expect(
+      await listen({
+        accountId: account.id,
+        target: itemTarget(item),
+        clientListenId: randomUUID(),
+        secondsHeard: 39,
+        mediaDurationSeconds: 80,
+      })
+    ).toBe('below_threshold');
+    expect(
+      await listen({
+        accountId: account.id,
+        target: itemTarget(item),
+        clientListenId: randomUUID(),
+        secondsHeard: 40,
+        mediaDurationSeconds: 80,
+      })
+    ).toBe('counted');
+  });
+
   describe('flagged listeners', () => {
     const tooSoonSession = (
       accountId: number,
@@ -1455,7 +1516,7 @@ describe('Popularity listen and open write services (real database)', () => {
       accountId,
       target: itemTarget(item),
       clientListenId: randomUUID(),
-      secondsHeard: 75,
+      secondsHeard: 100,
       minIntervalSeconds: 20,
       flagTooSoonMinutes,
     });
@@ -1466,7 +1527,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: fast.id,
         target: itemTarget(podcastItem),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
         storedDailyCap: 2,
         popularityDailyCap: 2,
         flagStoredCapWithinHours: 3,
@@ -1495,7 +1556,7 @@ describe('Popularity listen and open write services (real database)', () => {
           accountId: fast.id,
           target: itemTarget(freshItem),
           clientListenId: randomUUID(),
-          secondsHeard: 75,
+          secondsHeard: 100,
           storedDailyCap: 10,
           popularityDailyCap: 10,
         })
@@ -1536,7 +1597,7 @@ describe('Popularity listen and open write services (real database)', () => {
           accountId: account.id,
           target: itemTarget(podcastItem),
           clientListenId: randomUUID(),
-          secondsHeard: 75,
+          secondsHeard: 100,
           storedDailyCap: 3,
           flagStoredCapWithinHours: 1,
         });
@@ -1570,7 +1631,7 @@ describe('Popularity listen and open write services (real database)', () => {
         accountId: capped.id,
         target: itemTarget(podcastItem),
         clientListenId: randomUUID(),
-        secondsHeard: 75,
+        secondsHeard: 100,
         storedDailyCap: 1,
       });
 
@@ -1618,7 +1679,7 @@ describe('Popularity listen and open write services (real database)', () => {
       expect(await flagRow(listenerId)).toBeNull();
     });
 
-    it('does not count too-soon listens of items under 60 seconds toward the run', async () => {
+    it('does not count a too-soon listen whose threshold is shorter than the minimum interval', async () => {
       const shortListener = await seedAccount('flag-too-soon-short', true);
       const shortItem = await seedItem(podcastChannelId, 'short-flag', 30);
       const longItem = await seedItem(podcastChannelId, 'long-flag', ITEM_DURATION_SECONDS);
@@ -1635,6 +1696,42 @@ describe('Popularity listen and open write services (real database)', () => {
       expect(await listen(tooSoonSession(shortListener.id, longItem, 1))).toBe('too_soon');
       expect((await signalRow(listenerId))?.too_soon_minutes).toBe(1);
       expect(await flagRow(listenerId)).not.toBeNull();
+    });
+
+    it('counts a too-soon listen of a 50 second item toward the run', async () => {
+      const midListener = await seedAccount('flag-too-soon-mid', true);
+      const midItem = await seedItem(podcastChannelId, 'mid-flag', 50);
+
+      expect(await listen(tooSoonSession(midListener.id, podcastItem, 1))).toBe('counted');
+      const listenerId = await listenerIdOf(midListener.id);
+
+      expect(
+        await listen({ ...tooSoonSession(midListener.id, midItem, 1), secondsHeard: 25 })
+      ).toBe('too_soon');
+      expect((await signalRow(listenerId))?.too_soon_minutes).toBe(1);
+    });
+
+    it('does not let a short claimed duration exempt a too-soon listen when rss duration is missing', async () => {
+      const claimListener = await seedAccount('flag-too-soon-claim', true);
+      const item = await seedItem(podcastChannelId, 'claim-flag', null);
+
+      expect(
+        await listen({
+          ...tooSoonSession(claimListener.id, item, 1),
+          secondsHeard: 40,
+          mediaDurationSeconds: 80,
+        })
+      ).toBe('counted');
+      const listenerId = await listenerIdOf(claimListener.id);
+
+      expect(
+        await listen({
+          ...tooSoonSession(claimListener.id, item, 1),
+          secondsHeard: 10,
+          mediaDurationSeconds: 10,
+        })
+      ).toBe('too_soon');
+      expect((await signalRow(listenerId))?.too_soon_minutes).toBe(1);
     });
 
     it('writes no signal when the too-soon minutes threshold is 0', async () => {
@@ -1785,7 +1882,7 @@ describe('Popularity listen and open write services (real database)', () => {
           accountId: account.id,
           target: itemTarget(item),
           clientListenId: randomUUID(),
-          secondsHeard: 75,
+          secondsHeard: 100,
         })
       ).toBe('counted');
       const listenerId = await listenerIdOf(account.id);
@@ -1798,7 +1895,7 @@ describe('Popularity listen and open write services (real database)', () => {
             accountId: account.id,
             target: itemTarget(item),
             clientListenId: randomUUID(),
-            secondsHeard: 75,
+            secondsHeard: 100,
           })
         ).toBe('counted');
       }
@@ -1815,7 +1912,7 @@ describe('Popularity listen and open write services (real database)', () => {
             accountId: account.id,
             target: itemTarget(item),
             clientListenId: randomUUID(),
-            secondsHeard: 75,
+            secondsHeard: 100,
           })
         ).toBe('counted');
       }
@@ -1828,7 +1925,7 @@ describe('Popularity listen and open write services (real database)', () => {
           accountId: account.id,
           target: itemTarget(item),
           clientListenId: randomUUID(),
-          secondsHeard: 75,
+          secondsHeard: 100,
         })
       ).toBe('counted');
       expect((await requireTasteRow(account.id, podcastChannelId)).listen_count).toBe(5);

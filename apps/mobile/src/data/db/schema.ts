@@ -103,6 +103,7 @@ export const statsListenOutbox = sqliteTable('stats_listen_outbox', {
   firstReport: integer('first_report').notNull().default(1),
   countedAt: integer('counted_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
+  mediaDurationSeconds: real('media_duration_seconds'),
 });
 
 export type StatsListenOutboxRow = typeof statsListenOutbox.$inferSelect;

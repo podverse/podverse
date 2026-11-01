@@ -180,14 +180,15 @@ export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPage
       <MainWrapper>
         <MainSidebarLayout>
           <MainColumnStack>
-            {signedIn ? (
-              <div className={styles.editRow}>
-                <Button type="button" variant="secondary" onClick={openSettings}>
-                  {t('edit')}
-                </Button>
-              </div>
-            ) : null}
             <MediaListChips
+              actions={
+                signedIn ? (
+                  <Button onClick={openSettings} type="button" variant="mini">
+                    {t('edit')}
+                  </Button>
+                ) : undefined
+              }
+              actionsTestId="recommendations-list-actions"
               chips={RECOMMENDATION_CHIPS}
               page="recommendations"
               selected={chip}

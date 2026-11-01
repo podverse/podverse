@@ -1034,11 +1034,11 @@ function elapsedDaysSql(interval: string): string {
 }
 
 /**
- * Merges the old channel's taste and Hidden From Taste Profile rows into the survivor. Not
- * journaled (listener-linked rows stay within retention and opt-out). A show hidden on either copy
- * stays hidden on the survivor and loses both taste rows. Two taste rows for one listener become
- * one: counts add, listen times widen, and each score fades to the later `scores_updated_at` and
- * adds.
+ * Merges the old channel's taste and Not Counted in Recommendations rows into the survivor. Not
+ * journaled (listener-linked rows stay within retention and opt-out). A show left out of
+ * recommendations on either copy stays left out on the survivor and loses both taste rows. Two
+ * taste rows for one listener become one: counts add, listen times widen, and each score fades
+ * to the later `scores_updated_at` and adds.
  */
 async function mergeTasteRows(
   manager: EntityManager,

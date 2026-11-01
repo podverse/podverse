@@ -42,6 +42,7 @@ const toRecord = (row: StatsListenOutboxRow): StatsListenOutboxRecord => ({
   firstReport: row.firstReport === 1,
   countedAtMs: row.countedAt,
   updatedAtMs: row.updatedAt,
+  mediaDurationSeconds: row.mediaDurationSeconds,
 });
 
 const toRow = (record: StatsListenOutboxRecord): StatsListenOutboxRow => ({
@@ -54,6 +55,7 @@ const toRow = (record: StatsListenOutboxRecord): StatsListenOutboxRow => ({
   firstReport: record.firstReport ? 1 : 0,
   countedAt: record.countedAtMs,
   updatedAt: record.updatedAtMs,
+  mediaDurationSeconds: record.mediaDurationSeconds,
 });
 
 const deleteByIds = async (clientListenIds: readonly string[]): Promise<void> => {
@@ -199,6 +201,7 @@ export const statsRepository = {
             firstReport: row.firstReport,
             countedAt: row.countedAt,
             updatedAt: row.updatedAt,
+            mediaDurationSeconds: row.mediaDurationSeconds,
           },
         });
       await evictOverflow(accountIdText);

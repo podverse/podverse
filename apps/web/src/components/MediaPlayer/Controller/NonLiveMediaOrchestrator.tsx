@@ -111,15 +111,17 @@ function listenSessionTargetFromPlayerState(state: {
   clip: DTOClip | null;
   item: DTOItem | null;
   soundbite: DTOItemSoundbite | null;
+  channel: DTOChannel | null;
 }): ListenSessionTarget | null {
   if (state.isAddByRSS) {
     return null;
   }
+  const mediumId = state.channel?.medium_id ?? null;
   if (state.clip !== null) {
-    return listenSessionTargetForClip(state.clip);
+    return listenSessionTargetForClip(state.clip, mediumId);
   }
   const itemIdText = state.item?.id_text ?? state.soundbite?.item?.id_text ?? null;
-  return itemIdText ? { kind: 'item', idText: itemIdText } : null;
+  return itemIdText ? { kind: 'item', idText: itemIdText, mediumId } : null;
 }
 
 export interface NonLiveMediaOrchestratorProps {
@@ -456,6 +458,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         clip: mpClipRef.current ?? null,
         item: mpItemRef.current ?? null,
         soundbite: mpItemSoundbiteRef.current ?? null,
+        channel: mpChannelRef.current ?? null,
       }),
       mediaDurationSeconds: Number.isFinite(newDuration) && newDuration > 0 ? newDuration : null,
     });

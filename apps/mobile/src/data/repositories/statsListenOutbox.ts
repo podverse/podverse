@@ -23,6 +23,8 @@ export type StatsListenOutboxRecord = {
   firstReport: boolean;
   countedAtMs: number;
   updatedAtMs: number;
+  /** Length of the file the player loaded, or null when that report had none. */
+  mediaDurationSeconds: number | null;
 };
 
 export function statsListenOutboxRecordFromReport(input: {
@@ -41,7 +43,12 @@ export function statsListenOutboxRecordFromReport(input: {
     firstReport: report.firstReport,
     countedAtMs: report.countedAtMs,
     updatedAtMs: nowMs,
+    mediaDurationSeconds: positiveFileDuration(report.mediaDurationSeconds),
   };
+}
+
+function positiveFileDuration(value: number | null): number | null {
+  return value !== null && Number.isFinite(value) && value > 0 ? value : null;
 }
 
 /** Same session: larger seconds heard, completion sticks, earliest counted time, latest update. */
@@ -62,6 +69,9 @@ export function mergeStatsListenOutboxRecord(
     firstReport: existing.firstReport || incoming.firstReport,
     countedAtMs: Math.min(existing.countedAtMs, incoming.countedAtMs),
     updatedAtMs: incoming.updatedAtMs,
+    mediaDurationSeconds:
+      positiveFileDuration(incoming.mediaDurationSeconds) ??
+      positiveFileDuration(existing.mediaDurationSeconds),
   };
 }
 
@@ -88,10 +98,12 @@ export function toStatsListenRequestBody(record: StatsListenOutboxRecord): Stats
   const secondsHeard = Number.isFinite(record.secondsHeard)
     ? Math.min(MAX_SECONDS_HEARD, Math.max(0, Math.floor(record.secondsHeard)))
     : 0;
+  const fileDuration = positiveFileDuration(record.mediaDurationSeconds);
   const base = {
     client_listen_id: record.clientListenId,
     seconds_heard: secondsHeard,
     completed: record.completed,
+    ...(fileDuration === null ? {} : { media_duration_seconds: fileDuration }),
   };
   return record.targetKind === 'clip'
     ? { ...base, clip_id_text: record.targetIdText }

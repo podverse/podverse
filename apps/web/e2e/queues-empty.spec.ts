@@ -27,35 +27,31 @@ async function stubEmptyQueueResources(page: Page) {
   });
 }
 
-async function expectMessageVerticallyCenteredInMain(message: Locator) {
+/** Empty copy sits under the chips at the start of the column, like Recommendations. */
+async function expectMessageUnderChips(page: Page, message: Locator) {
   await expect(message).toBeVisible();
 
-  const alignment = await message.evaluate((node) => {
-    const main = document.querySelector('#mainOuterWrapper main');
-    if (!main) {
-      return null;
-    }
-    const messageBox = node.getBoundingClientRect();
-    const mainBox = main.getBoundingClientRect();
-    return {
-      mainMidY: mainBox.top + mainBox.height / 2,
-      messageMidY: messageBox.top + messageBox.height / 2,
-      mainHeight: mainBox.height,
-    };
-  });
+  const podcastsChip = page.getByRole('button', { name: 'Podcasts', exact: true });
+  await expect(podcastsChip).toBeVisible();
 
-  expect(alignment).not.toBeNull();
-  if (!alignment) {
+  const messageBox = await message.boundingBox();
+  const chipBox = await podcastsChip.boundingBox();
+  const mainBox = await page.locator('#mainOuterWrapper main').boundingBox();
+
+  expect(messageBox).not.toBeNull();
+  expect(chipBox).not.toBeNull();
+  expect(mainBox).not.toBeNull();
+  if (!messageBox || !chipBox || !mainBox) {
     return;
   }
-  // CenteredMessage fills the column under the chips, so the copy sits near the middle of main.
-  expect(Math.abs(alignment.messageMidY - alignment.mainMidY)).toBeLessThan(
-    alignment.mainHeight * 0.2
-  );
+
+  expect(messageBox.y).toBeGreaterThan(chipBox.y + chipBox.height);
+  expect(messageBox.y).toBeLessThan(mainBox.y + mainBox.height / 2);
+  expect(messageBox.x).toBeGreaterThanOrEqual(mainBox.x - 1);
 }
 
 test.describe('Queues empty state', () => {
-  test('When a signed-in listener opens an empty podcast or music queue, a centered message says so.', async ({
+  test('When a signed-in listener opens an empty podcast or music queue, a message under the chips says so.', async ({
     page,
   }, testInfo) => {
     await stubEmptyQueueResources(page);
@@ -69,22 +65,22 @@ test.describe('Queues empty state', () => {
     await expect(heading).toBeVisible();
 
     const podcastEmpty = page.getByRole('status').getByText('Nothing in Your Podcast Queue Yet');
-    await expectMessageVerticallyCenteredInMain(podcastEmpty);
+    await expectMessageUnderChips(page, podcastEmpty);
     await capturePageLoad(
       page,
       testInfo,
-      'An empty podcast queue shows a centered message under the medium chips.',
+      'An empty podcast queue shows a message under the medium chips.',
       podcastEmpty
     );
 
     await page.getByRole('button', { name: 'Music', exact: true }).click();
     await expect(page).toHaveURL(/\/queues/);
     const musicEmpty = page.getByRole('status').getByText('Nothing in Your Music Queue Yet');
-    await expectMessageVerticallyCenteredInMain(musicEmpty);
+    await expectMessageUnderChips(page, musicEmpty);
     await capturePageLoad(
       page,
       testInfo,
-      'An empty music queue shows a centered message under the medium chips.',
+      'An empty music queue shows a message under the medium chips.',
       musicEmpty
     );
   });
