@@ -1,0 +1,209 @@
+# Copy-and-adapt example for a GitOps repo. Namespace is monitoring.
+# Alertmanager stays cluster-internal; use kubectl port-forward to open the silences UI.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+data:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      receiver: ntfy-podverse-alpha
+      group_by:
+        - alertname
+        - namespace
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+        # Watchdog is an always-firing dead-man heartbeat. Keep this null route until
+        # watchdog-url exists in the ntfy-alerts Secret and you switch receiver below.
+        - receiver: watchdog-null
+          matchers:
+            - alertname="Watchdog"
+          repeat_interval: 5m
+
+        # namespace=metaboost-alpha routes to the metaboost topic.
+        - receiver: ntfy-metaboost-alpha
+          matchers:
+            - namespace="metaboost-alpha"
+          routes:
+            - receiver: ntfy-metaboost-alpha
+              matchers:
+                - severity="critical"
+              repeat_interval: 1h
+
+        # Everything outside metaboost-alpha routes to podverse-alpha.
+        - receiver: ntfy-podverse-alpha
+          matchers:
+            - namespace!="metaboost-alpha"
+            - severity="critical"
+          repeat_interval: 1h
+
+        # Add another environment by adding a namespace route and a critical child route.
+
+    receivers:
+      - name: watchdog-null
+
+      # Enable this once ntfy-alerts Secret has key watchdog-url.
+      # - name: watchdog-deadman
+      #   webhook_configs:
+      #     - url_file: /etc/alertmanager/secrets/watchdog-url
+      #       send_resolved: true
+
+      - name: ntfy-podverse-alpha
+        webhook_configs:
+          - url_file: /etc/alertmanager/secrets/podverse-alpha-url
+            send_resolved: true
+            # This URL uses ?template=yes with inline title/message/priority templates.
+            # Priority lives in the URL template so firing/resolved events map by severity.
+            # Optional bearer token for ntfy auth. Free-tier random topic names can omit this.
+            # http_config:
+            #   authorization:
+            #     type: Bearer
+            #     credentials_file: /etc/alertmanager/secrets/token
+
+      - name: ntfy-metaboost-alpha
+        webhook_configs:
+          - url_file: /etc/alertmanager/secrets/metaboost-alpha-url
+            send_resolved: true
+            # This URL uses ?template=yes with inline title/message/priority templates.
+            # Priority lives in the URL template so firing/resolved events map by severity.
+            # Optional bearer token for ntfy auth. Free-tier random topic names can omit this.
+            # http_config:
+            #   authorization:
+            #     type: Bearer
+            #     credentials_file: /etc/alertmanager/secrets/token
+
+    inhibit_rules:
+      - source_matchers:
+          - severity="critical"
+        target_matchers:
+          - severity="warning"
+        equal:
+          - alertname
+          - namespace
+      - source_matchers:
+          - alertname="KubeStateMetricsDown"
+        target_matchers:
+          - alertname=~"PodverseScheduledCronJobSuspended|PodverseRecentFeedsPollerStale|PodverseScheduledCronJobNeverSucceeds|PodverseStartupConfigInvalid|CronJobLastRunFailed|JobDeadlineExceeded|JobRunningTooLong|DeploymentUnavailable|DeploymentScaledToZero|ContainerRestarting"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alertmanager-data
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: alertmanager
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.34.2
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--config.file=/etc/alertmanager/alertmanager.yaml"
+            - "--storage.path=/alertmanager"
+            - "--web.listen-address=:9093"
+          ports:
+            - name: web
+              containerPort: 9093
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: web
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: web
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+              readOnly: true
+            - name: data
+              mountPath: /alertmanager
+            - name: ntfy-alerts
+              mountPath: /etc/alertmanager/secrets
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: alertmanager-data
+        - name: ntfy-alerts
+          secret:
+            secretName: ntfy-alerts
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: alertmanager
+spec:
+  selector:
+    app.kubernetes.io/name: alertmanager
+  ports:
+    - name: web
+      port: 9093
+      targetPort: web
+      protocol: TCP

@@ -19,3 +19,67 @@
 - Who notices: someone who turns on Taste Profile and subscribes before listening; Recommendations
   and Taste Profile Settings
 - Operator steps: none
+
+## CronJob deadlines and schedule labels
+
+- Surfaces: k8s, ops
+- Change: Every CronJob has `activeDeadlineSeconds`, so a hung run is stopped instead of blocking
+  later runs, and a `podverse-schedule: scheduled | manual` label for alert rules. Worker and
+  management-api CronJobs fail immediately, without retries, when the container exits 78 (startup
+  config missing). CI rejects a CronJob without the label, deadline, or concurrency policy.
+- Who notices: operators watching CronJobs; a Job that stays Running is stopped at its deadline
+- Operator steps: delete any Job that has been Running for days before syncing
+
+## Base Prometheus Cron and Workload Alerts
+
+- Surfaces: k8s, ops
+- Change: Added `infra/k8s/base/monitoring` with a `podverse-prometheus-rules` ConfigMap generator
+  and two rule files: `podverse.rules.yaml` (scheduled/suspended CronJobs, stale recent-feeds
+  poller, no-success window, startup config exit code 78) and `workloads.rules.yaml` (last CronJob
+  run failed with auto-resolve on later success, deadline exceeded, long-running jobs, deployment
+  availability/scale-to-zero, restart bursts). Added `rules.test.yaml` for `promtool test rules`
+  synthetic coverage.
+- Who notices: operators running Prometheus with kube-state-metrics; on-call responders receive
+  namespace-routable alerts with first-step `kubectl` guidance.
+- Operator steps: deploy kube-state-metrics with
+  `--metric-labels-allowlist=cronjobs=[podverse-schedule]`; mount/load the
+  `podverse-prometheus-rules` ConfigMap files in Prometheus `rule_files`; run `promtool test rules`
+  against `infra/k8s/base/monitoring/rules.test.yaml`.
+
+## Example kube-state-metrics and cluster alert rules
+
+- Surfaces: k8s, ops
+- Change: New copy-and-adapt example `infra/k8s/alpha/examples/optional-alerting/` with
+  kube-state-metrics v2.20.0 (list and watch on cronjobs, jobs, deployments, statefulsets,
+  daemonsets, pods, nodes, namespaces, and persistentvolumeclaims; no access to Secrets or
+  ConfigMaps), a Prometheus scrape and rule-loading snippet, and cluster alerts for disk, memory,
+  node-exporter, kube-state-metrics, and Argo CD application health and sync.
+- Who notices: operators who copy the example into a GitOps repo. Nothing in a cluster changes
+  until that copy is applied.
+- Operator steps: apply the example in namespace `monitoring` and merge
+  `prometheus-alerting.snippet.yaml` into the existing Prometheus config. Prometheus itself stays
+  in the GitOps repo.
+
+## Optional alerting now delivers through ntfy only
+
+- Surfaces: k8s, ops
+- Change: Updated optional alerting examples so every Alertmanager alert (firing and resolved) and
+  every Argo CD deploy/sync/degraded event routes to per-environment ntfy topics on hosted ntfy.sh.
+  Priority is set by severity/status (critical urgent, warning default, resolved/deploy low) via
+  inline ntfy templating on topic URLs. Secret generators use ntfy-only keys with placeholder
+  random topic URLs.
+- Who notices: operators using the optional alerting examples in GitOps environments
+- Operator steps: regenerate and apply `ntfy-alerts` and `argocd-notifications-secret`, confirm
+  device subscriptions to each topic, and verify delivery and priority with alert and deploy test
+  events
+
+## Optional ntfy alerting checklist
+
+- Surfaces: k8s, ops
+- Change: Documented how to adopt optional alerting. The checklist covers random ntfy topics,
+  kube-state-metrics, Prometheus rules, Alertmanager, and Argo CD notifications. Deployments stay
+  in GitOps. The monorepo ships the rules and the copy-and-adapt example.
+- Who notices: operators setting up cluster alerts
+- Operator steps: follow `infra/k8s/alpha/examples/optional-alerting/README.md` and the Optional
+  alerting section in `docs/development/k8s/REMOTE-K8S-GITOPS.md`. Generate each topic with
+  `openssl rand -hex 16` and store it only in SOPS.

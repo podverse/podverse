@@ -2,6 +2,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: worker-stats-recommendations-refresh-full
+  labels:
+    podverse-schedule: scheduled
 spec:
   schedule: "15 3 * * 0"
   concurrencyPolicy: Forbid
@@ -11,6 +13,15 @@ spec:
     spec:
       backoffLimit: 0
       activeDeadlineSeconds: 10800
+      # Exit 78 is missing startup config: fail the Job without retry.
+      podFailurePolicy:
+        rules:
+          - action: FailJob
+            onExitCodes:
+              containerName: worker
+              operator: In
+              values:
+                - 78
       template:
         metadata:
           annotations:

@@ -2,6 +2,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: management-api-admin-session-purge
+  labels:
+    podverse-schedule: scheduled
 spec:
   schedule: "45 4 * * *"
   concurrencyPolicy: Forbid
@@ -10,6 +12,16 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      # Exit 78 is missing startup config: fail the Job without retry.
+      podFailurePolicy:
+        rules:
+          - action: FailJob
+            onExitCodes:
+              containerName: management-api
+              operator: In
+              values:
+                - 78
       template:
         metadata:
           annotations:

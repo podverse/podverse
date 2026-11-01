@@ -2,6 +2,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: ops-management-superuser-create
+  labels:
+    podverse-schedule: manual
 spec:
   schedule: "* * * * *"
   suspend: true
@@ -12,6 +14,7 @@ spec:
     spec:
       # Single attempt: Job default backoffLimit is 6 (creates new pods on failure).
       backoffLimit: 0
+      activeDeadlineSeconds: 900
       ttlSecondsAfterFinished: 300
       template:
         metadata:

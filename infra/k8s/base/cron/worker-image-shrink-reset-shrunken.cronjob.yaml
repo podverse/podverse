@@ -2,6 +2,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: worker-image-shrink-reset-shrunken
+  labels:
+    podverse-schedule: manual
 spec:
   # Manual ops only: suspended until an operator triggers a one-off Job after running the dry-run job.
   schedule: "0 0 1 1 *"
@@ -12,6 +14,16 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 0
+      activeDeadlineSeconds: 14400
+      # Exit 78 is missing startup config: fail the Job without retry.
+      podFailurePolicy:
+        rules:
+          - action: FailJob
+            onExitCodes:
+              containerName: worker
+              operator: In
+              values:
+                - 78
       template:
         metadata:
           annotations:

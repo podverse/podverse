@@ -1,0 +1,119 @@
+rule_files:
+  - podverse.rules.yaml
+  - workloads.rules.yaml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'kube_cronjob_spec_suspend{namespace="podverse-alpha",cronjob="worker-generate-reports"}'
+        values: "1x181"
+      - series: 'kube_cronjob_labels{namespace="podverse-alpha",cronjob="worker-generate-reports",label_podverse_schedule="scheduled"}'
+        values: "1x181"
+      - series: 'kube_cronjob_spec_suspend{namespace="podverse-alpha",cronjob="ops-db-verify-account"}'
+        values: "1x181"
+      - series: 'kube_cronjob_labels{namespace="podverse-alpha",cronjob="ops-db-verify-account",label_podverse_schedule="manual"}'
+        values: "1x181"
+    alert_rule_test:
+      - eval_time: 180m
+        alertname: PodverseScheduledCronJobSuspended
+        exp_alerts:
+          - exp_labels:
+              alertname: PodverseScheduledCronJobSuspended
+              severity: warning
+              namespace: podverse-alpha
+              cronjob: worker-generate-reports
+            exp_annotations:
+              summary: Scheduled CronJob Is Suspended
+              description: "CronJob podverse-alpha/worker-generate-reports is labeled scheduled and has spec.suspend=true for more than 2 hours, so new runs are paused. Start with: kubectl -n podverse-alpha get cronjob worker-generate-reports -o yaml"
+  - interval: 1m
+    input_series:
+      - series: 'kube_cronjob_status_last_successful_time{namespace="podverse-alpha",cronjob="worker-recent-feeds"}'
+        values: "0x31"
+      - series: 'kube_cronjob_spec_suspend{namespace="podverse-alpha",cronjob="worker-recent-feeds"}'
+        values: "0x31"
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: PodverseRecentFeedsPollerStale
+        exp_alerts:
+          - exp_labels:
+              alertname: PodverseRecentFeedsPollerStale
+              severity: critical
+              namespace: podverse-alpha
+              cronjob: worker-recent-feeds
+            exp_annotations:
+              summary: Recent Feeds Poller Is Stale
+              description: "CronJob podverse-alpha/worker-recent-feeds has no successful run for more than 20 minutes while unsuspended (held for 5 minutes). Start with: kubectl -n podverse-alpha get cronjob worker-recent-feeds -o yaml"
+  - interval: 1m
+    input_series:
+      - series: 'kube_pod_container_status_last_terminated_exitcode{namespace="podverse-alpha",pod="podverse-api-abc",container="api"}'
+        values: "78x11"
+      - series: 'kube_pod_owner{namespace="podverse-alpha",pod="podverse-api-abc",owner_kind="ReplicaSet"}'
+        values: "1x11"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: PodverseStartupConfigInvalid
+        exp_alerts:
+          - exp_labels:
+              alertname: PodverseStartupConfigInvalid
+              severity: critical
+              namespace: podverse-alpha
+              pod: podverse-api-abc
+              container: api
+            exp_annotations:
+              summary: Deployment Container Exited With Startup Config Error
+              description: "A deployment pod container in podverse-alpha last terminated with exit code 78, which indicates startup config validation failure. Start with: kubectl -n podverse-alpha logs pod/podverse-api-abc -c api --previous"
+  - interval: 1m
+    input_series:
+      - series: 'kube_job_status_start_time{namespace="podverse-alpha",job_name="nightly-100"}'
+        values: "1000x11"
+      - series: 'kube_job_owner{namespace="podverse-alpha",job_name="nightly-100",owner_kind="CronJob",owner_name="nightly"}'
+        values: "1x11"
+      - series: 'kube_job_status_failed{namespace="podverse-alpha",job_name="nightly-100"}'
+        values: "1x11"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CronJobLastRunFailed
+        exp_alerts:
+          - exp_labels:
+              alertname: CronJobLastRunFailed
+              severity: warning
+              namespace: podverse-alpha
+              owner_name: nightly
+            exp_annotations:
+              summary: CronJob Last Run Failed
+              description: "CronJob podverse-alpha/nightly has a newer failed Job than its newest successful Job. Start with: kubectl -n podverse-alpha describe cronjob nightly. If this is a startup config error, check the failed pod logs for exit code 78 details."
+  - interval: 1m
+    input_series:
+      - series: 'kube_job_status_start_time{namespace="podverse-alpha",job_name="nightly-100"}'
+        values: "1000x11"
+      - series: 'kube_job_owner{namespace="podverse-alpha",job_name="nightly-100",owner_kind="CronJob",owner_name="nightly"}'
+        values: "1x11"
+      - series: 'kube_job_status_failed{namespace="podverse-alpha",job_name="nightly-100"}'
+        values: "1x11"
+      - series: 'kube_job_status_start_time{namespace="podverse-alpha",job_name="nightly-101"}'
+        values: "2000x11"
+      - series: 'kube_job_owner{namespace="podverse-alpha",job_name="nightly-101",owner_kind="CronJob",owner_name="nightly"}'
+        values: "1x11"
+      - series: 'kube_job_status_succeeded{namespace="podverse-alpha",job_name="nightly-101"}'
+        values: "1x11"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CronJobLastRunFailed
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'kube_job_status_failed{namespace="podverse-alpha",job_name="nightly-200",reason="DeadlineExceeded"}'
+        values: "1x11"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: JobDeadlineExceeded
+        exp_alerts:
+          - exp_labels:
+              alertname: JobDeadlineExceeded
+              severity: warning
+              namespace: podverse-alpha
+              job_name: nightly-200
+              reason: DeadlineExceeded
+            exp_annotations:
+              summary: Job Deadline Exceeded
+              description: "Job podverse-alpha/nightly-200 hit its active deadline and was stopped. Start with: kubectl -n podverse-alpha get job nightly-200 -o yaml"

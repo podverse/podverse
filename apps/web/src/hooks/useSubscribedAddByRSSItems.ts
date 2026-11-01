@@ -55,9 +55,7 @@ export function useSubscribedAddByRSSItems(resourceTypes: readonly AddByRSSResou
         if (cancelled) {
           return;
         }
-        const existingIdTextByCompositeId = new Map(
-          indexed.map((item) => [item.id, item.idText])
-        );
+        const existingIdTextByCompositeId = new Map(indexed.map((item) => [item.id, item.idText]));
         const items = selectNewestAddByRSSItemsFromFeeds({
           feeds,
           limit: NEWEST_ITEM_LIMIT,

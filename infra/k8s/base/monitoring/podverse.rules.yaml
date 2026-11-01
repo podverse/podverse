@@ -1,0 +1,70 @@
+groups:
+  - name: podverse.cron-health
+    rules:
+      - alert: PodverseScheduledCronJobSuspended
+        expr: |
+          (
+            kube_cronjob_spec_suspend == 1
+          )
+          and on (namespace, cronjob)
+          (
+            kube_cronjob_labels{label_podverse_schedule="scheduled"} == 1
+          )
+        for: 2h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Scheduled CronJob Is Suspended"
+          description: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} is labeled scheduled and has spec.suspend=true for more than 2 hours, so new runs are paused. Start with: kubectl -n {{ $labels.namespace }} get cronjob {{ $labels.cronjob }} -o yaml"
+      - alert: PodverseRecentFeedsPollerStale
+        expr: |
+          (
+            time() - kube_cronjob_status_last_successful_time{cronjob="worker-recent-feeds"} > 20 * 60
+          )
+          and on (namespace, cronjob)
+          (
+            kube_cronjob_spec_suspend{cronjob="worker-recent-feeds"} == 0
+          )
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Recent Feeds Poller Is Stale"
+          description: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} has no successful run for more than 20 minutes while unsuspended (held for 5 minutes). Start with: kubectl -n {{ $labels.namespace }} get cronjob {{ $labels.cronjob }} -o yaml"
+      - alert: PodverseScheduledCronJobNeverSucceeds
+        expr: |
+          (
+            time() - kube_cronjob_status_last_schedule_time < 26 * 60 * 60
+          )
+          and on (namespace, cronjob)
+          (
+            kube_cronjob_labels{label_podverse_schedule="scheduled"} == 1
+          )
+          and on (namespace, cronjob)
+          (
+            kube_cronjob_spec_suspend == 0
+          )
+          unless on (namespace, cronjob)
+          (
+            time() - kube_cronjob_status_last_successful_time < 26 * 60 * 60
+          )
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Scheduled CronJob Has No Recent Success"
+          description: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} has scheduled at least once in the last 26 hours but has no success in that window (held for 15 minutes). Start with: kubectl -n {{ $labels.namespace }} get jobs --sort-by=.metadata.creationTimestamp"
+      - alert: PodverseStartupConfigInvalid
+        expr: |
+          (
+            kube_pod_container_status_last_terminated_exitcode == 78
+          )
+          and on (namespace, pod)
+          (
+            kube_pod_owner{owner_kind="ReplicaSet"} == 1
+          )
+        labels:
+          severity: critical
+        annotations:
+          summary: "Deployment Container Exited With Startup Config Error"
+          description: "A deployment pod container in {{ $labels.namespace }} last terminated with exit code 78, which indicates startup config validation failure. Start with: kubectl -n {{ $labels.namespace }} logs pod/{{ $labels.pod }} -c {{ $labels.container }} --previous"

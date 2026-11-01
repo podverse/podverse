@@ -1,10 +1,11 @@
-# Version: 1
 # Pattern: Suspended CronJob (Manual Trigger Only)
 # Verifies extension/baseline/grant bootstrap contract for app and management databases.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: ops-db-verify-bootstrap-contract
+  labels:
+    podverse-schedule: manual
 spec:
   schedule: "* * * * *"
   suspend: true
@@ -15,6 +16,7 @@ spec:
     spec:
       # Single attempt: Job default backoffLimit is 6 (creates new pods on failure).
       backoffLimit: 0
+      activeDeadlineSeconds: 3600
       ttlSecondsAfterFinished: 300
       template:
         metadata:

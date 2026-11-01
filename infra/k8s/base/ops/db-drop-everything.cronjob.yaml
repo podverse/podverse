@@ -1,4 +1,3 @@
-# Version: 4
 # Pattern: Suspended CronJob (Manual Trigger Only)
 # DANGER: Drops every schema the linear chains create (app: listener_identity and public; management: public). Only runs when explicitly triggered.
 # A migration that creates a new schema must add a DROP SCHEMA for it here, in local_db_reset, and in alpha_db_reset.
@@ -6,6 +5,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: ops-db-drop-everything
+  labels:
+    podverse-schedule: manual
 spec:
   schedule: "* * * * *"
   suspend: true # <--- PREVENTS AUTOMATIC EXECUTION
@@ -16,6 +17,7 @@ spec:
     spec:
       # Single attempt: Job default backoffLimit is 6 (creates new pods on failure).
       backoffLimit: 0
+      activeDeadlineSeconds: 3600
       ttlSecondsAfterFinished: 60
       template:
         spec:
