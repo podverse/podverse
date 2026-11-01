@@ -11,7 +11,7 @@
     "bundle": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/server.js"
   },
   "dependencies": {
-    "@paypal/react-paypal-js": "^10.6.0",
+    "@paypal/react-paypal-js": "^10.6.1",
     "@podverse/helpers": "*",
     "@podverse/helpers-config": "*",
     "@podverse/integrations-web": "*",
