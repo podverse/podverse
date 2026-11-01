@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { paginationQueryKey, settlePaginationTotalPages } from './settledTotalPages';
 import type { PaginationSettleSnapshot } from './settledTotalPages';
+import { paginationQueryKey, settlePaginationTotalPages } from './settledTotalPages';
 
 const episodes = { type: 'episodes', sort: 'recent', page: 3 };
 const clips = { type: 'clips', sort: 'recent', page: 1 };
@@ -23,12 +23,7 @@ describe('settlePaginationTotalPages', () => {
   };
 
   it('shows the committed page count for the current filters', () => {
-    const settled = settlePaginationTotalPages(
-      settledEpisodes,
-      paginationQueryKey(episodes),
-      2,
-      8
-    );
+    const settled = settlePaginationTotalPages(settledEpisodes, paginationQueryKey(episodes), 2, 8);
     expect(settled.totalPages).toBe(8);
   });
 
@@ -40,12 +35,7 @@ describe('settlePaginationTotalPages', () => {
 
   it('shows the controls again when that query commits a page count, even if the count matches', () => {
     const hidden = settlePaginationTotalPages(settledEpisodes, paginationQueryKey(clips), 2, 8);
-    const committed = settlePaginationTotalPages(
-      hidden.snapshot,
-      paginationQueryKey(clips),
-      3,
-      8
-    );
+    const committed = settlePaginationTotalPages(hidden.snapshot, paginationQueryKey(clips), 3, 8);
     expect(committed.totalPages).toBe(8);
     expect(committed.snapshot.key).toBe(paginationQueryKey(clips));
   });

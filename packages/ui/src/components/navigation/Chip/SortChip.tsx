@@ -187,11 +187,7 @@ export function SortChip<TSort extends string, TRange extends string>({
 
   if (isStaticFace) {
     return (
-      <SortChipStaticFace
-        accessibleName={accessibleName}
-        faceLabel={faceLabel}
-        testId={testId}
-      />
+      <SortChipStaticFace accessibleName={accessibleName} faceLabel={faceLabel} testId={testId} />
     );
   }
 

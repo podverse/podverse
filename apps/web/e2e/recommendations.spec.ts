@@ -95,15 +95,10 @@ test.describe('Recommendations page', () => {
 
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    await actionAndCapture(
-      page,
-      testInfo,
-      'Edit opens Taste Profile settings.',
-      async () => {
-        await editButton.click();
-        await expect(page).toHaveURL(/\/settings\?tab=recommendations/);
-      }
-    );
+    await actionAndCapture(page, testInfo, 'Edit opens Taste Profile settings.', async () => {
+      await editButton.click();
+      await expect(page).toHaveURL(/\/settings\?tab=recommendations/);
+    });
 
     await page.route(
       (url) =>

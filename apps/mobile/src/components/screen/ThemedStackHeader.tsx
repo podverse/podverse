@@ -58,8 +58,7 @@ export function ThemedStackHeader({ navigation, options }: NativeStackHeaderProp
   // Search and the inbox bell belong only on the Home tab root. Compare the route name as a
   // string so this header does not import navigation route constants (that module loads these
   // screen options).
-  const isHomeRoot =
-    choice === 'none' && state.routes[state.index]?.name === 'HomeRoot';
+  const isHomeRoot = choice === 'none' && state.routes[state.index]?.name === 'HomeRoot';
   const screenRight =
     options.headerRight === undefined
       ? undefined

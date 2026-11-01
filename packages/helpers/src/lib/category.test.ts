@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { CategoryEnum, categoryChipPressAction, expandCategoryFilterIds } from './category.js';
+import { categoryChipPressAction, CategoryEnum, expandCategoryFilterIds } from './category.js';
 
 describe('expandCategoryFilterIds', () => {
   it('includes the parent and every Arts child', () => {

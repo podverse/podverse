@@ -5,10 +5,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useReduceMotion } from '../hooks/useReduceMotion';
-import {
-  shouldDismissSlideUpSwipe,
-  slideUpDismissDragOffset,
-} from './slideUpDismissSwipe';
+import { shouldDismissSlideUpSwipe, slideUpDismissDragOffset } from './slideUpDismissSwipe';
 import { slideUpDismissHeaderBandHeight } from './slideUpScreen';
 
 const SLIDE_UP_DISMISS_LEAVE_MS = 200;
@@ -121,10 +118,7 @@ export function SlideUpDismissGesture({
 
   return (
     <GestureDetector gesture={pan}>
-      <Animated.View
-        collapsable={false}
-        style={[styles.root, { transform: [{ translateY }] }]}
-      >
+      <Animated.View collapsable={false} style={[styles.root, { transform: [{ translateY }] }]}>
         {children}
       </Animated.View>
     </GestureDetector>

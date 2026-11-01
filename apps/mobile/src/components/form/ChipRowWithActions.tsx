@@ -17,11 +17,7 @@ export type ChipRowWithActionsProps = {
  * Page actions sit above the chips, aligned to the start. The action group wraps on its own
  * line so two labels stay together when they fit and drop under each other when they do not.
  */
-export function ChipRowWithActions({
-  actions,
-  actionsTestID,
-  children,
-}: ChipRowWithActionsProps) {
+export function ChipRowWithActions({ actions, actionsTestID, children }: ChipRowWithActionsProps) {
   const { tokens } = useTheme();
   const gap = tokens.spacing.lg;
 

@@ -39,8 +39,8 @@ import type {
 } from '../../prefs/addByRssListPrefs';
 import {
   ADD_BY_RSS_LIBRARY_MEDIA_TYPES,
-  addByRssLibraryEmptyMessageKey,
   ADD_BY_RSS_LIBRARY_SORT_OPTIONS,
+  addByRssLibraryEmptyMessageKey,
   DEFAULT_ADD_BY_RSS_LIBRARY_MEDIA_TYPE,
   DEFAULT_ADD_BY_RSS_LIBRARY_SORT,
   DEFAULT_ADD_BY_RSS_LIBRARY_VIEW_MODE,

@@ -17,8 +17,8 @@ import { subscriptionsRepository } from '../../data/repositories';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
-import type { ChannelBrowseStackParamList } from '../../navigation';
-import { CHANNEL_BROWSE_STACK_ROUTES, openParsedSearchChannel } from '../../navigation';
+import type { CHANNEL_BROWSE_STACK_ROUTES, ChannelBrowseStackParamList } from '../../navigation';
+import { openParsedSearchChannel } from '../../navigation';
 import { useTabLayout } from '../../navigation/TabLayoutProvider';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import {
@@ -102,7 +102,6 @@ const providerApi = (indexProvider: IndexProviderId) => {
     }
   }
 };
-
 
 export function PodcastIndexFeedPreviewScreen({
   navigation,
@@ -259,7 +258,11 @@ export function PodcastIndexFeedPreviewScreen({
   ]);
 
   const leaveForParsedChannel = useCallback(
-    async (mediumId: number, idText: string, preview: { imageUrl: string | null; title: string }) => {
+    async (
+      mediumId: number,
+      idText: string,
+      preview: { imageUrl: string | null; title: string }
+    ) => {
       if (!navigation.isFocused()) {
         return;
       }

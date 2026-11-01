@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { categoryChipPressAction } from '@podverse/helpers';
 import type { DTOAccount, DTOPlaylist } from '@podverse/helpers';
+import { categoryChipPressAction } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { PlaylistListRow, ProfileListRow } from '../../components/content';

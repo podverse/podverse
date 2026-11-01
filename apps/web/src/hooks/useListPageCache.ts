@@ -4,8 +4,8 @@ import { useCallback, useRef, useState } from 'react';
 
 import { checkBackNavFlag } from '../contexts/Navigation';
 import { definedProps, getPageState } from '../utils/pageStateCache';
-import { usePageStateCache } from './usePageStateCache';
 import { useSettledTotalPages } from './settledTotalPages';
+import { usePageStateCache } from './usePageStateCache';
 
 /**
  * Cached data structure for list pages with pagination

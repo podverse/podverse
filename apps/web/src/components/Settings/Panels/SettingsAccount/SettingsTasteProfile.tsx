@@ -366,7 +366,9 @@ function TasteProfileShowRow({
         {subtitle !== undefined ? <div className={styles.subtitle}>{subtitle}</div> : null}
         {extra}
       </div>
-      {actionLabel !== undefined && actionAccessibleLabel !== undefined && onAction !== undefined ? (
+      {actionLabel !== undefined &&
+      actionAccessibleLabel !== undefined &&
+      onAction !== undefined ? (
         <Button
           type="button"
           variant="secondary"

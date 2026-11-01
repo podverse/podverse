@@ -157,9 +157,7 @@ test.describe('Settings Taste Profile sections', () => {
     );
   });
 
-  test('Removing a show moves it to Removed from Recommendations.', async ({
-    page,
-  }, testInfo) => {
+  test('Removing a show moves it to Removed from Recommendations.', async ({ page }, testInfo) => {
     await loginViaApi(page);
     await openRecommendationsSettings(page);
 

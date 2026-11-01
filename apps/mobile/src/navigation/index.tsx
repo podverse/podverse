@@ -760,7 +760,9 @@ export function openParsedSearchChannel(
 
 function isRootStackNavigation(
   navigation: NavigationProp<ParamListBase>
-): navigation is { navigate: NavigationProp<RootStackParamList>['navigate'] } {
+): navigation is NavigationProp<ParamListBase> & {
+  navigate: NavigationProp<RootStackParamList>['navigate'];
+} {
   return navigation.getState().type === 'stack';
 }
 

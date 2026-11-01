@@ -196,12 +196,14 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
         return tMedia('podcast.episodes');
     }
   })();
-  const emptyItemsMessage =
-    resourceType === 'tracks' || resourceType === 'albums'
-      ? tMedia('music.no_tracks_found')
-      : resourceType === 'artists'
-        ? tMedia('music.no_artists_found')
-        : tMedia('podcast.no_episodes_found');
+  const emptyItemsMessage = (() => {
+    switch (resourceType) {
+      case 'artists':
+        return tMedia('music.no_artists_found');
+      case 'tracks':
+        return tMedia('music.no_tracks_found');
+    }
+  })();
   const statusLabel = feed.status ? tFeatures(`add_by_rss.status_${feed.status}`) : undefined;
   const isAwaitingFirstItems =
     mappedFeed === undefined && (feed.status === 'queued' || feed.status === 'processing');

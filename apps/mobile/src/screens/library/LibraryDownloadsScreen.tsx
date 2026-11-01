@@ -1,10 +1,11 @@
-import type { DTOItem } from '@podverse/helpers/dto';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
+
+import type { DTOItem } from '@podverse/helpers/dto';
 
 import { Button } from '../../components/primitives/Button';
 import { CoverImage } from '../../components/primitives/CoverImage';
@@ -16,8 +17,8 @@ import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import { playableItemRepository } from '../../data/repositories/playableItemRepository';
 import { downloadManager } from '../../downloads/downloadManager';
-import { downloadRowIdentity } from '../../downloads/downloadRowIdentity';
 import type { DownloadRowIdentity } from '../../downloads/downloadRowIdentity';
+import { downloadRowIdentity } from '../../downloads/downloadRowIdentity';
 import type { DownloadRecord } from '../../downloads/downloadTypes';
 import { formatDownloadByteProgress } from '../../downloads/formatDownloadByteProgress';
 import { useDownloadsList, useItemDownload } from '../../downloads/useDownloads';
@@ -459,14 +460,7 @@ export function LibraryDownloadsScreen() {
         styles={downloadRowStyles}
       />
     ),
-    [
-      downloadItemsById,
-      downloadRowStyles,
-      handleRemove,
-      handleRowPress,
-      i18n.language,
-      removeLabel,
-    ]
+    [downloadItemsById, downloadRowStyles, handleRemove, handleRowPress, i18n.language, removeLabel]
   );
 
   const listHeader = useMemo(() => {

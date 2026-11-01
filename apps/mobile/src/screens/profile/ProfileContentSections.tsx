@@ -206,8 +206,7 @@ export function ProfileContentSections({
   const sortOptions = useMemo<MenuSelectChipOption<'a_z' | 'recent'>[]>(
     () => [
       {
-        label:
-          selectedChip === 'clips' ? t('filters.sort.recent') : t('filters.sort.a_z'),
+        label: selectedChip === 'clips' ? t('filters.sort.recent') : t('filters.sort.a_z'),
         value: sortValue,
       },
     ],

@@ -35,8 +35,7 @@ export function ProfileContentChipRow({ selected, onSelect, testId }: ProfileCon
   ];
 
   const sortValue = selected === 'clips' ? 'recent' : 'a_z';
-  const sortLabel =
-    selected === 'clips' ? tFilters('sort.recent') : tFilters('sort.a_z');
+  const sortLabel = selected === 'clips' ? tFilters('sort.recent') : tFilters('sort.a_z');
 
   return (
     <ChipRow

@@ -149,7 +149,9 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
 
   return (
     <div
-      className={progress !== null ? styles.playButtonRowClusterActive : styles.playButtonRowCluster}
+      className={
+        progress !== null ? styles.playButtonRowClusterActive : styles.playButtonRowCluster
+      }
     >
       <button
         className={styles.playButtonRow}

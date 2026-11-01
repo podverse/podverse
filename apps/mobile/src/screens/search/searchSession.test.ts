@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { clearSearchSession, readSearchSession, searchFetchKey, writeSearchSession } from './searchSession';
+import {
+  clearSearchSession,
+  readSearchSession,
+  searchFetchKey,
+  writeSearchSession,
+} from './searchSession';
 
 describe('searchSession', () => {
   it('keeps the query, chip, and rows until the query is cleared', () => {

@@ -8,8 +8,10 @@ export type SearchSession = {
 
 let session: SearchSession | null = null;
 
-export const searchFetchKey = (medium: QueryParamsPodcastIndexSearchMedium, query: string): string =>
-  `${medium}\0${query}`;
+export const searchFetchKey = (
+  medium: QueryParamsPodcastIndexSearchMedium,
+  query: string
+): string => `${medium}\0${query}`;
 
 export const readSearchSession = (): SearchSession | null => session;
 

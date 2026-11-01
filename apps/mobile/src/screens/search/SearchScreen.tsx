@@ -23,16 +23,16 @@ import { openParsedSearchChannel, SEARCH_STACK_ROUTES } from '../../navigation';
 import { useTabLayout } from '../../navigation/TabLayoutProvider';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
+import { listChipRowBottomGap, screenBodyInsets } from '../../theme/screenLayout';
+import { useTheme } from '../../theme/useTheme';
+import type { HomeFeedRowData } from '../home/homeFeedData';
+import { HomeFeedRow } from '../home/HomeFeedRow';
 import {
   clearSearchSession,
   readSearchSession,
   searchFetchKey,
   writeSearchSession,
 } from './searchSession';
-import { listChipRowBottomGap, screenBodyInsets } from '../../theme/screenLayout';
-import { useTheme } from '../../theme/useTheme';
-import type { HomeFeedRowData } from '../home/homeFeedData';
-import { HomeFeedRow } from '../home/HomeFeedRow';
 
 type SearchScreenProps = NativeStackScreenProps<
   SearchStackParamList,
@@ -384,15 +384,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
         setResolvingFeedId(null);
       }
     },
-    [
-      accessToken,
-      clearSession,
-      navigation,
-      refreshToken,
-      resolvingFeedId,
-      setTokens,
-      visibleTabIds,
-    ]
+    [accessToken, clearSession, navigation, refreshToken, resolvingFeedId, setTokens, visibleTabIds]
   );
 
   const handleResultPress = useCallback(

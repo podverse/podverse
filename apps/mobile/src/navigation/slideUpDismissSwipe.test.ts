@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   shouldDismissSlideUpSwipe,
-  slideUpDismissDragOffset,
   SLIDE_UP_DISMISS_DISTANCE,
   SLIDE_UP_DISMISS_VELOCITY,
+  slideUpDismissDragOffset,
 } from './slideUpDismissSwipe';
 
 describe('shouldDismissSlideUpSwipe', () => {
@@ -57,9 +57,9 @@ describe('shouldDismissSlideUpSwipe', () => {
 
   it('does not dismiss a non-finite translation or velocity', () => {
     expect(shouldDismissSlideUpSwipe({ translationY: Number.NaN, velocityY: 0 })).toBe(false);
-    expect(shouldDismissSlideUpSwipe({ translationY: 200, velocityY: Number.POSITIVE_INFINITY })).toBe(
-      false
-    );
+    expect(
+      shouldDismissSlideUpSwipe({ translationY: 200, velocityY: Number.POSITIVE_INFINITY })
+    ).toBe(false);
   });
 });
 

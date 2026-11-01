@@ -19,8 +19,7 @@ export function shouldDismissSlideUpSwipe(input: {
     return false;
   }
   return (
-    input.translationY >= SLIDE_UP_DISMISS_DISTANCE ||
-    input.velocityY >= SLIDE_UP_DISMISS_VELOCITY
+    input.translationY >= SLIDE_UP_DISMISS_DISTANCE || input.velocityY >= SLIDE_UP_DISMISS_VELOCITY
   );
 }
 

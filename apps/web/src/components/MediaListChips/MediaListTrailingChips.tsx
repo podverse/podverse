@@ -1,7 +1,7 @@
 'use client';
 
-import { categoryChipPressAction } from '@podverse/helpers';
 import type { SortPrefScope } from '@podverse/helpers';
+import { categoryChipPressAction } from '@podverse/helpers';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
 import { useListViewMode } from '../../hooks/useListViewMode';

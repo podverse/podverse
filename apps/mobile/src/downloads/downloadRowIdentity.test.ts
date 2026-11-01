@@ -94,11 +94,7 @@ describe('downloadRowIdentity', () => {
     expect(identity.title).toBe('Item Title');
     expect(identity.dateLabel).not.toBeNull();
     expect(identity.secondaryTitle).toBeNull();
-    expect(identity.accessibilityParts).toEqual([
-      'Show Title',
-      'Item Title',
-      identity.dateLabel,
-    ]);
+    expect(identity.accessibilityParts).toEqual(['Show Title', 'Item Title', identity.dateLabel]);
   });
 
   it('falls back to channel and title when the stored item is missing', () => {
