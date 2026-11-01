@@ -612,13 +612,15 @@ public final class PodverseAudioEngine: NSObject {
     }
     // The first refusal is silent. The second is the error the listener sees. A healthy item is
     // not replaced: that would drop a livestream off its window and rebuild other media.
-    guard activateAudioSession(reportFailure: playbackRecoveryInFlight) else {
+    // A successful retry continues into play(); a `guard` else cannot do that, because every
+    // path through the else must leave the function.
+    if !activateAudioSession(reportFailure: playbackRecoveryInFlight) {
       if playbackRecoveryInFlight {
         playbackRecoveryInFlight = false
         return
       }
       playbackRecoveryInFlight = true
-      guard activateAudioSession(reportFailure: true) else {
+      if !activateAudioSession(reportFailure: true) {
         playbackRecoveryInFlight = false
         return
       }
