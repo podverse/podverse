@@ -1,6 +1,10 @@
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import type { AuthenticatedRequestOptions } from '@api/lib/auth/index.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import {
+  resolveAccountStoresListens,
+  seedTasteFromSubscriptions,
+} from '@api/lib/tasteSubscribeSeed.js';
 import { validateBodyObject, validateQueryObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
@@ -297,6 +301,8 @@ export class AccountTasteProfileController {
               return;
             }
             const jwtUser = getAuthenticatedUser(req);
+            const storesListens = await resolveAccountStoresListens(jwtUser.id);
+            await seedTasteFromSubscriptions(jwtUser.id, storesListens);
             const items =
               await AccountTasteProfileController.tasteProfileAccountService.listRecommendationsForAccount(
                 jwtUser.id,

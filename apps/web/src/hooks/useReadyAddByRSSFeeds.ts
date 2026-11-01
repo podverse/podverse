@@ -25,6 +25,38 @@ export type ReadyAddByRSSFeeds = {
 const INACTIVE_RESULT: ReadyAddByRSSFeeds = { feeds: EMPTY_FEEDS, isReady: true };
 const LOADING_RESULT: ReadyAddByRSSFeeds = { feeds: EMPTY_FEEDS, isReady: false };
 
+/**
+ * Identity of the ready set a list would paint.
+ * `updatedAt` is left out so a sync that rewrites the same rows does not count.
+ */
+const feedListSignature = (feed: AddByRSSFeedRecord): string => {
+  const items = feed.mappedFeed?.items ?? [];
+  let newestPubDateMs = 0;
+  let pubDateSum = 0;
+  for (const bundle of items) {
+    const pubDateMs = bundle.item.pub_date ? new Date(bundle.item.pub_date).getTime() : 0;
+    pubDateSum += pubDateMs;
+    if (pubDateMs > newestPubDateMs) {
+      newestPubDateMs = pubDateMs;
+    }
+  }
+  const liveItemCount = feed.mappedFeed?.liveItems?.length ?? 0;
+  return [
+    feed.idText,
+    feed.resourceType,
+    feed.title ?? '',
+    feed.imageUrl ?? '',
+    feed.mayHaveLivestreams === true ? '1' : '0',
+    String(items.length),
+    String(newestPubDateMs),
+    String(pubDateSum),
+    String(liveItemCount),
+  ].join('|');
+};
+
+const readyFeedsSignature = (feeds: readonly AddByRSSFeedRecord[]): string =>
+  feeds.map(feedListSignature).sort().join('\n');
+
 type ReadyState = {
   key: string;
   value: ReadyAddByRSSFeeds;
@@ -36,6 +68,9 @@ type ReadyState = {
  * Inactive — signed out, an account with no Add by RSS follows, or no resource types — it
  * returns no feeds and does not read storage or send a request. Callers pass module-level arrays
  * so the effect key stays stable.
+ *
+ * The first result is the local store. The follow-stub sync runs after that, and a second result
+ * is published only when the ready set changed.
  */
 export function useReadyAddByRSSFeeds(
   resourceTypes: readonly AddByRSSResourceType[]
@@ -65,6 +100,7 @@ export function useReadyAddByRSSFeeds(
     let sawChangeDuringLoad = false;
     let refreshGeneration = 0;
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    let publishedSignature: string | null = null;
 
     const readCredentialUrls = async (): Promise<ReadonlySet<string>> => {
       try {
@@ -89,9 +125,15 @@ export function useReadyAddByRSSFeeds(
       if (cancelled) {
         return;
       }
+      const next = feeds.length === 0 ? EMPTY_FEEDS : feeds;
+      const signature = readyFeedsSignature(next);
+      if (publishedSignature === signature) {
+        return;
+      }
+      publishedSignature = signature;
       setState({
         key: activeKey,
-        value: { feeds: feeds.length === 0 ? EMPTY_FEEDS : feeds, isReady: true },
+        value: { feeds: next, isReady: true },
       });
     };
 
@@ -137,14 +179,6 @@ export function useReadyAddByRSSFeeds(
         return;
       }
       try {
-        await syncAddByRSSFollowStubs(accountId);
-      } catch (error) {
-        console.error(error);
-      }
-      if (cancelled) {
-        return;
-      }
-      try {
         publish(await readReadyFeeds(credentialUrls));
       } catch (error) {
         console.error(error);
@@ -156,6 +190,22 @@ export function useReadyAddByRSSFeeds(
       initialFinished = true;
       if (sawChangeDuringLoad) {
         scheduleRefresh();
+      }
+      try {
+        await syncAddByRSSFollowStubs(accountId);
+      } catch (error) {
+        console.error(error);
+      }
+      if (cancelled) {
+        return;
+      }
+      try {
+        publish(await readReadyFeeds(credentialUrls));
+      } catch (error) {
+        console.error(error);
+      }
+      if (cancelled) {
+        return;
       }
       void enqueueAddByRSSFirstParses({ accountId });
     })();

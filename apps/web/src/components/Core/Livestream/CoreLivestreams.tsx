@@ -29,8 +29,6 @@ type Props = {
   showChannelInfo?: boolean;
   showLiveItemStatus?: boolean;
   entries?: readonly SubscribedLivestreamEntry[];
-  /** While true, an empty page does not show the no-livestreams message. */
-  deferEmpty?: boolean;
 };
 
 export const CoreLivestreams: React.FC<Props> = ({
@@ -43,7 +41,6 @@ export const CoreLivestreams: React.FC<Props> = ({
   showChannelInfo,
   showLiveItemStatus,
   entries,
-  deferEmpty = false,
 }) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
@@ -66,7 +63,7 @@ export const CoreLivestreams: React.FC<Props> = ({
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
-  const showNoContentFound = page <= 1 && listed.length === 0 && !deferEmpty;
+  const showNoContentFound = page <= 1 && listed.length === 0;
 
   // A signed-out subscribed list explains itself with the login message. An empty
   // directory or signed-in list says there are no livestreams.

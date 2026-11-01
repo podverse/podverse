@@ -17,7 +17,6 @@ export const LivestreamsPageList: React.FC = () => {
     scope === 'subscribed' &&
     !!loggedInAccount &&
     !addByRSS.isReady &&
-    items.length === 0 &&
     filterParams.page === 1;
   const entries = useMemo(
     () =>
@@ -36,18 +35,19 @@ export const LivestreamsPageList: React.FC = () => {
       {scope === 'subscribed' && !loggedInAccount && (
         <HowToStartInfo rows={entries ?? items} totalPages={totalPages} />
       )}
-      <CoreLivestreams
-        page={filterParams.page}
-        setPage={(page) => setFilterParams({ page })}
-        items={items}
-        totalPages={totalPages}
-        showSubscribeMessage={scope === 'subscribed' && !loggedInAccount}
-        viewSelected="rows"
-        showChannelInfo
-        showLiveItemStatus
-        entries={entries}
-        deferEmpty={awaitingAddByRSS}
-      />
+      {awaitingAddByRSS ? null : (
+        <CoreLivestreams
+          page={filterParams.page}
+          setPage={(page) => setFilterParams({ page })}
+          items={items}
+          totalPages={totalPages}
+          showSubscribeMessage={scope === 'subscribed' && !loggedInAccount}
+          viewSelected="rows"
+          showChannelInfo
+          showLiveItemStatus
+          entries={entries}
+        />
+      )}
       <WebLoadingSpinnerOverlay isLoading={isLoading || awaitingAddByRSS} />
     </>
   );

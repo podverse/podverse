@@ -1,6 +1,10 @@
 import { config } from '@api/config/index.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import {
+  resolveAccountStoresListens,
+  seedTasteFromSubscriptions,
+} from '@api/lib/tasteSubscribeSeed.js';
 import { validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
@@ -28,6 +32,12 @@ export class AccountSettingsListenStatsController {
               accepted,
               agreement_version: config.tasteProfileAgreement.version,
             });
+
+            if (accepted) {
+              const storesListens = await resolveAccountStoresListens(account_id);
+              await seedTasteFromSubscriptions(account_id, storesListens);
+            }
+
             res.json({
               data: {
                 allow_listen_stats: updated.allow_listen_stats,

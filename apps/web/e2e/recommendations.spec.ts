@@ -8,7 +8,7 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 const API_LOGIN_URL = 'http://localhost:4030/api/v2/auth/login';
 const API_BASE = 'http://localhost:4030/api/v2';
 const CHECK_BACK_TEXT =
-  'Recommendations update as you listen. A show other people have not listened to yet can stay empty until the nightly update.';
+  'Recommendations update as you subscribe to content and as you listen. A show other people have not listened to yet can stay empty until the nightly update.';
 
 async function loginViaApi(page: Page): Promise<void> {
   const loginResponse = await page.request.post(API_LOGIN_URL, {

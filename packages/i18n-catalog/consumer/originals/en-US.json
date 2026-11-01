@@ -144,7 +144,7 @@
       "empty": "No recommendations yet.",
       "need_taste_profile": "Recommendations use your Taste Profile. Turn it on to start building them.",
       "enable": "Taste Profile Settings",
-      "check_back": "Recommendations update as you listen. A show other people have not listened to yet can stay empty until the nightly update.",
+      "check_back": "Recommendations update as you subscribe to content and as you listen. A show other people have not listened to yet can stay empty until the nightly update.",
       "paused": "Taste Profile is off, so these recommendations will not update. Turn it on to keep them current.",
       "strength": "Recommendation weight {level} of 5",
       "hide": "Hide",

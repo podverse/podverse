@@ -6,6 +6,12 @@ import {
 } from '@api/lib/auth/index.js';
 import { getParamRequired } from '@api/lib/params.js';
 import {
+  dropUnusedSubscribeSeedsForChannels,
+  resolveChannelIdsFromIdTexts,
+  seedTasteFromSubscriptions,
+  storesListensFromAuthenticatedUser,
+} from '@api/lib/tasteSubscribeSeed.js';
+import {
   accountIdTextParamSchema,
   channelIdTextParamSchema,
   validateBodyObject,
@@ -155,9 +161,16 @@ class AccountFollowingChannelController {
           const { channel_id_text } = req.body;
 
           try {
-            await AccountFollowingChannelController.accountFollowingChannelService.followChannel(
+            const follow =
+              await AccountFollowingChannelController.accountFollowingChannelService.followChannel(
+                account.id,
+                channel_id_text
+              );
+
+            await seedTasteFromSubscriptions(
               account.id,
-              channel_id_text
+              storesListensFromAuthenticatedUser(account),
+              [follow.channel_id]
             );
 
             if (
@@ -215,6 +228,16 @@ class AccountFollowingChannelController {
                 channel_id_texts
               );
 
+            const followedIdTexts = results
+              .filter((result) => result.outcome === 'followed')
+              .map((result) => result.channel_id_text);
+            const followedChannelIds = await resolveChannelIdsFromIdTexts(followedIdTexts);
+            await seedTasteFromSubscriptions(
+              account.id,
+              storesListensFromAuthenticatedUser(account),
+              followedChannelIds
+            );
+
             if (
               await AccountFollowingChannelController.isAutoEnableOnSubscribeEnabled(account.id)
             ) {
@@ -264,6 +287,7 @@ class AccountFollowingChannelController {
               account.id,
               channel_id_text
             );
+            await dropUnusedSubscribeSeedsForChannels(account.id, [channel_id_text]);
             res.status(204).end();
           } catch (err) {
             handleGenericErrorResponse(res, err);

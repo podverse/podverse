@@ -144,7 +144,7 @@
       "empty": "Aún no hay recomendaciones.",
       "need_taste_profile": "Las recomendaciones usan tu perfil de gustos. Actívalo para empezar a crearlas.",
       "enable": "Ajustes del perfil de gustos",
-      "check_back": "Las recomendaciones se actualizan mientras escuchas. Un programa que otras personas aún no han escuchado puede quedarse vacío hasta la actualización nocturna.",
+      "check_back": "Las recomendaciones se actualizan cuando te suscribes a contenido y mientras escuchas. Un programa que otras personas aún no han escuchado puede quedarse vacío hasta la actualización nocturna.",
       "paused": "El perfil de gustos está desactivado, así que estas recomendaciones no se actualizarán. Actívalo para mantenerlas al día.",
       "strength": "Peso de la recomendación {level} de 5",
       "hide": "Ocultar",

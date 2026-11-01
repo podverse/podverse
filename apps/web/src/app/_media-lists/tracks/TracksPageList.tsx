@@ -46,6 +46,11 @@ export const TracksPageList: React.FC = () => {
       totalPages,
     });
   }, [addByRSS.items, items, page, sort, totalPages]);
+  // Recent page 1 and the last Top page mix in local tracks. Hold those rows until that read settles.
+  const awaitingAddByRSS =
+    sort !== null &&
+    ((sort === 'recent' && page === 1) || (sort === 'top' && page === totalPages)) &&
+    !addByRSS.isReady;
 
   const showEmpty = shouldShowBrowseEmptyMessage({
     isBrowse: scope === 'browse',
@@ -62,7 +67,7 @@ export const TracksPageList: React.FC = () => {
       )}
       {showEmpty ? (
         <NoResults message={tMedia('music.no_tracks_found')} />
-      ) : (
+      ) : awaitingAddByRSS ? null : (
         <CoreTracks
           page={page}
           setPage={(nextPage) => setFilterParams({ ...filterParams, page: nextPage })}
@@ -75,7 +80,7 @@ export const TracksPageList: React.FC = () => {
           entries={entries}
         />
       )}
-      <WebLoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading || awaitingAddByRSS} />
     </>
   );
 };

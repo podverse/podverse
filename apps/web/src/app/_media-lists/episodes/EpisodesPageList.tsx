@@ -55,6 +55,11 @@ export const EpisodesPageList: React.FC = () => {
       totalPages,
     });
   }, [addByRSS.items, items, page, sort, totalPages]);
+  // Recent page 1 and the last Top page mix in local episodes. Hold those rows until that read settles.
+  const awaitingAddByRSS =
+    sort !== null &&
+    ((sort === 'recent' && page === 1) || (sort === 'top' && page === totalPages)) &&
+    !addByRSS.isReady;
 
   const handleOnClickCategory = (category: DTOCategory) => {
     onClickCategory({
@@ -96,7 +101,7 @@ export const EpisodesPageList: React.FC = () => {
       )}
       {showEmpty ? (
         <NoResults message={tMedia('podcast.no_episodes_found')} />
-      ) : (
+      ) : awaitingAddByRSS ? null : (
         <CoreEpisodes
           page={page}
           setPage={(nextPage) => setFilterParams({ ...filterParams, page: nextPage })}
@@ -109,7 +114,7 @@ export const EpisodesPageList: React.FC = () => {
           entries={entries}
         />
       )}
-      <WebLoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading || awaitingAddByRSS} />
     </>
   );
 };

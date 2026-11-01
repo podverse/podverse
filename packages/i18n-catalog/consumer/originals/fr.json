@@ -144,7 +144,7 @@
       "empty": "Pas encore de recommandations.",
       "need_taste_profile": "Les recommandations utilisent votre profil de goûts. Activez-le pour commencer à les créer.",
       "enable": "Réglages du profil de goûts",
-      "check_back": "Les recommandations se mettent à jour pendant que vous écoutez. Une émission que d'autres personnes n'ont pas encore écoutée peut rester vide jusqu'à la mise à jour nocturne.",
+      "check_back": "Les recommandations se mettent à jour quand vous vous abonnez à du contenu et pendant que vous écoutez. Une émission que d'autres personnes n'ont pas encore écoutée peut rester vide jusqu'à la mise à jour nocturne.",
       "paused": "Le profil de goûts est désactivé, donc ces recommandations ne seront pas mises à jour. Activez-le pour les garder à jour.",
       "strength": "Poids de la recommandation {level} sur 5",
       "hide": "Masquer",

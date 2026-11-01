@@ -91,6 +91,9 @@ export const ArtistsPageList: React.FC = () => {
   );
 
   const showMergedList = isMerged && fullList.isReady;
+  // Hold the server page until local feeds are known, and until the full list is ready when those feeds mix in.
+  const awaitingSubscribedRows =
+    isSubscribedScope && (!addByRSS.isReady || (isMerged && !fullList.isReady));
 
   const showEmpty = shouldShowBrowseEmptyMessage({
     isBrowse: scope === 'browse',
@@ -101,7 +104,7 @@ export const ArtistsPageList: React.FC = () => {
 
   return (
     <>
-      {isSubscribedScope && (
+      {isSubscribedScope && addByRSS.isReady && (
         <HowToStartInfo
           rows={showMergedList ? merged : isMerged ? addByRSS.feeds : channels}
           totalPages={showMergedList ? slice.totalPages : totalPages}
@@ -109,7 +112,7 @@ export const ArtistsPageList: React.FC = () => {
       )}
       {showEmpty ? (
         <NoResults message={tMedia('music.no_artists_found')} />
-      ) : (
+      ) : awaitingSubscribedRows ? null : (
         <CoreArtists
           page={showMergedList ? slice.page : page}
           setPage={
@@ -126,7 +129,7 @@ export const ArtistsPageList: React.FC = () => {
         />
       )}
       <WebLoadingSpinnerOverlay
-        isLoading={isLoading || fullList.isLoading || (isMerged && !fullList.isReady)}
+        isLoading={isLoading || fullList.isLoading || awaitingSubscribedRows}
       />
     </>
   );

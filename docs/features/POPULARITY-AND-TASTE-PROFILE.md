@@ -38,7 +38,7 @@ rules every writer and reader follows. Code comments point here.
 | Store                  | Linked to a listener?              | Kept for                             | Grows with                         |
 | ---------------------- | ---------------------------------- | ------------------------------------ | ---------------------------------- |
 | Listen and open events | Yes, by a pseudonymous listener id | The retention setting                | Time; old data dropped by month    |
-| Taste profile          | Yes                                | Until opt-out or account deletion    | Listeners × shows they played      |
+| Taste profile          | Yes                                | Until opt-out or account deletion    | Listeners × shows they played or subscribed |
 | Recommendations        | Yes                                | Until opt-out or account deletion    | Listeners × discovered shows       |
 | Show similarity        | No                                 | Rebuilt by the recommendations job   | Shows × their nearest neighbors    |
 | Daily totals           | No                                 | Forever                              | Active entities × days             |
@@ -617,6 +617,14 @@ The 1–5 weight a show has in recommendations is separate from `recent_score` a
   5–9 is 2, 10–14 is 3, 15–19 is 4, and 20 or more is 5. A show added back with no listens since
   is 1. Distinct episodes are not counted; each counted listen, including a replay, increments
   `listen_count`.
+- **From subscriptions:** following a directory channel with Taste Profile tracking allowed and
+  membership that stores listens inserts a Taste Profile row with `listen_count` 0 (effective
+  weight 1). That is not a listen: no `stats_listen_event` and no popularity daily row. Shows
+  already in the Taste Profile, Not Counted in Recommendations, or Hidden Channels are skipped.
+  Unfollowing drops that seed only while `listen_count` is still 0 and there is no weight
+  override. A later listen still raises the weight as usual. Existing follows are seeded when
+  the account answers Yes on Taste Profile, and again when recommendations are loaded if a
+  follow still lacks a row (OPML import and pending-follow resolution included).
 - **Manual apply:** `POST /account/taste-profile/weight` writes `weight_override` (1–5) and
   `weight_override_at`. After that, later listens do not move the weight. Another apply replaces
   it. The job and Settings use the override when it is set, otherwise the listen-count level.
@@ -812,7 +820,8 @@ carry. After an opt-out the `listening_data` section is empty.
   version).
 - Writes need a Yes on the current version. A valid trial may store listens for the Taste
   Profile. Popularity counts and opens need paid premium with the `trackStats` capability. The
-  listener id is created at the first stored listen or open, not at the Yes.
+  listener id is created at the first stored listen, open, or subscribe seed (when tracking is
+  allowed), not at the Yes alone.
 
 ### Opting Out Deletes Listening Data
 

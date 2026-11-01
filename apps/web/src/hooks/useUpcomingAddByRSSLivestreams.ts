@@ -7,8 +7,14 @@ import {
   addByRSSFeedMayHaveLivestreams,
 } from '@podverse/parser-mapping';
 
-import { buildAddByRSSLivestreamIndex } from '../utils/addByRSS/itemIndex';
-import { getAllAddByRSSFeeds } from '../utils/addByRSS/storage';
+import {
+  buildAddByRSSLivestreamIndex,
+  livestreamIndexItemsFromFeeds,
+} from '../utils/addByRSS/itemIndex';
+import {
+  getAllAddByRSSFeeds,
+  getAllAddByRSSLivestreamItems,
+} from '../utils/addByRSS/storage';
 import type {
   AddByRSSFeedRecord,
   AddByRSSLivestreamIndexItem,
@@ -42,9 +48,10 @@ const flaggedFeedIdTexts = (feeds: readonly AddByRSSFeedRecord[]): ReadonlySet<s
 /**
  * Upcoming Add by RSS livestreams from ready feeds of every resource type.
  *
- * A feed is included when it may have livestreams. The livestream index is rebuilt from every
- * stored feed, then limited to those feeds. `isReady` is true at once when inactive, and stays
- * false until the read for the current feeds finishes.
+ * A feed is included when it may have livestreams. Rows come from that feed's parsed live
+ * items. The livestream index is read for stored ids, then rebuilt in the background.
+ * `isReady` is true at once when inactive, and stays false until the read for the current
+ * feeds finishes.
  */
 export function useUpcomingAddByRSSLivestreams(active: boolean): {
   items: AddByRSSLivestreamIndexItem[];
@@ -66,21 +73,35 @@ export function useUpcomingAddByRSSLivestreams(active: boolean): {
     }
 
     let cancelled = false;
+    const flaggedFeeds = feeds.filter((feed) => flaggedIds.has(feed.idText));
 
     void (async () => {
       try {
-        const storedFeeds = await getAllAddByRSSFeeds();
+        const indexed = await getAllAddByRSSLivestreamItems();
         if (cancelled) {
           return;
         }
-        const indexed = await buildAddByRSSLivestreamIndex(storedFeeds);
+        const existingIdTextByCompositeId = new Map(
+          indexed.map((item) => [item.id, item.idText])
+        );
+        const built = livestreamIndexItemsFromFeeds(flaggedFeeds, existingIdTextByCompositeId);
         if (cancelled) {
           return;
         }
         setState({
           feeds,
-          items: selectUpcomingAddByRSSLivestreams(indexed, flaggedIds),
+          items: selectUpcomingAddByRSSLivestreams(built, flaggedIds),
         });
+        const seedIdTextByCompositeId = new Map(built.map((item) => [item.id, item.idText]));
+        try {
+          const storedFeeds = await getAllAddByRSSFeeds();
+          if (cancelled) {
+            return;
+          }
+          await buildAddByRSSLivestreamIndex(storedFeeds, seedIdTextByCompositeId);
+        } catch (error) {
+          console.error(error);
+        }
       } catch (error) {
         console.error(error);
         if (!cancelled) {
