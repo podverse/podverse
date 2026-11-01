@@ -56,14 +56,15 @@ These depend on already-built package outputs and should not run before packages
 Workspace type-check resolves `@podverse/*` to each package's `dist/`. `npm run lint` and
 `npm run lint:fix` first check every `build:packages` package: `tsc --build --dry` for
 composite or incremental builds, and file times for the rest. When one is out of date they
-skip type-check, list the packages, and ask for `npm run build:packages`. CI runs
-`build:packages` before lint.
+skip type-check, list the packages, and ask for `npm run build:packages`.
+`npm run lint:build:fix` runs that build, then `lint:fix`. CI runs `build:packages` before lint.
 
 ## Commands
 
 ```bash
 npm run build
 npm run build:packages
+npm run lint:build:fix
 npm run build:apps
 npm run build:tools
 ```

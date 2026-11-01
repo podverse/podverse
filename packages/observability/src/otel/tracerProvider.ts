@@ -1,10 +1,6 @@
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import type { SpanExporter } from '@opentelemetry/sdk-trace';
-import {
-  BatchSpanProcessor,
-  SimpleSpanProcessor,
-  TracerProvider,
-} from '@opentelemetry/sdk-trace';
+import { BatchSpanProcessor, SimpleSpanProcessor, TracerProvider } from '@opentelemetry/sdk-trace';
 
 import type { ObservabilityConfig } from '../config.js';
 import { NoopSpanExporter } from './noopSpanExporter.js';
