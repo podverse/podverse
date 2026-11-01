@@ -167,8 +167,7 @@ export function createLiveMediaStore(options?: {
     return {
       attached: true,
       display: resolveLivePlaybackDisplay({
-        positionSeconds:
-          entry.playbackStarted || hasPlayed(media) ? media.currentTime : null,
+        positionSeconds: entry.playbackStarted || hasPlayed(media) ? media.currentTime : null,
         window: readWindowOf(entry),
       }),
     };

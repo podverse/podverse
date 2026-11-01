@@ -14,11 +14,19 @@ import {
 
 const AGREEMENT_VERSION = '2026-10-22';
 
+type StatsListenMock = (
+  api: unknown,
+  body: { media_duration_seconds?: number }
+) => Promise<{ status: number; data: { result: string } }>;
+
 const mocks = vi.hoisted(() => {
   const api = { name: 'api-request-service' };
   return {
     api,
-    reqStatsListen: vi.fn(async () => ({ status: 201, data: { result: 'counted' } })),
+    reqStatsListen: vi.fn<StatsListenMock>(async () => ({
+      status: 201,
+      data: { result: 'counted' },
+    })),
     reqStatsOpen: vi.fn(async () => ({ status: 201, data: { result: 'counted' } })),
     getApiRequestService: vi.fn(() => api),
   };

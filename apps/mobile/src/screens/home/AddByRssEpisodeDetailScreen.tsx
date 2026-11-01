@@ -14,8 +14,8 @@ import {
   DescriptionText,
   ItemChapterRow,
   PeoplePane,
-  TranscriptFollowBar,
   TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX,
+  TranscriptFollowBar,
   TranscriptListRow,
 } from '../../components/content';
 import type { SectionChipItem } from '../../components/form';

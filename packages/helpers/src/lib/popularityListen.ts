@@ -192,8 +192,7 @@ export function isCountedListen(input: {
     return false;
   }
   return (
-    input.secondsHeard >=
-    getCountedListenThresholdSeconds(input.durationSeconds, input.mediumId)
+    input.secondsHeard >= getCountedListenThresholdSeconds(input.durationSeconds, input.mediumId)
   );
 }
 

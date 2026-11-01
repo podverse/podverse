@@ -197,10 +197,7 @@ export function SettingsTasteProfile() {
             />
           </Accordion>
         </section>
-        <section
-          aria-labelledby="settings-channel-hidden-heading"
-          className={styles.hiddenSection}
-        >
+        <section aria-labelledby="settings-channel-hidden-heading" className={styles.hiddenSection}>
           <Accordion
             header={
               <h4 className={styles.subheading} id="settings-channel-hidden-heading">

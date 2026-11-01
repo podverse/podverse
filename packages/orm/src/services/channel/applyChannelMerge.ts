@@ -1129,9 +1129,7 @@ async function mergeChannelHiddenRows(
      ON CONFLICT (listener_id, channel_id) DO NOTHING`,
     ids
   );
-  await manager.query(`DELETE FROM stats_channel_hidden WHERE channel_id = $1`, [
-    fromChannelId,
-  ]);
+  await manager.query(`DELETE FROM stats_channel_hidden WHERE channel_id = $1`, [fromChannelId]);
   await manager.query(
     `DELETE FROM stats_recommendation
      WHERE channel_id = $2

@@ -399,7 +399,11 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     }
     if (historyFill === 'empty') {
       return (
-        <ListEmpty align="start" messageKey="features.history.empty" testID="library-history-empty" />
+        <ListEmpty
+          align="start"
+          messageKey="features.history.empty"
+          testID="library-history-empty"
+        />
       );
     }
     return null;

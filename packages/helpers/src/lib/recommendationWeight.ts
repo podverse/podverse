@@ -61,8 +61,7 @@ export function recommendationWeightChanged(params: {
     recommendationWeightFromListenCount(
       params.previousListenCount,
       params.previousWeightOverride
-    ) !==
-    recommendationWeightFromListenCount(params.nextListenCount, params.nextWeightOverride)
+    ) !== recommendationWeightFromListenCount(params.nextListenCount, params.nextWeightOverride)
   );
 }
 

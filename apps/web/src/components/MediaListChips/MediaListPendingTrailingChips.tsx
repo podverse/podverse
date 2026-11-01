@@ -70,7 +70,11 @@ export function MediaListPendingTrailingChips({ page, chip }: MediaListPendingTr
   return (
     <>
       {chrome.showCategory ? (
-        <CategoriesChip category={resolved.category} isListOpen={false} onToggle={() => undefined} />
+        <CategoriesChip
+          category={resolved.category}
+          isListOpen={false}
+          onToggle={() => undefined}
+        />
       ) : null}
       {chrome.showPlaylistsMedium && resolved.medium !== null ? (
         <MenuChip

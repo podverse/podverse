@@ -106,9 +106,8 @@ export class ItemController {
     if (accountId === null) {
       return undefined;
     }
-    const ids = await ItemController.tasteProfileAccountService.listHiddenChannelIdsForAccount(
-      accountId
-    );
+    const ids =
+      await ItemController.tasteProfileAccountService.listHiddenChannelIdsForAccount(accountId);
     return ids.length > 0 ? ids : undefined;
   }
 

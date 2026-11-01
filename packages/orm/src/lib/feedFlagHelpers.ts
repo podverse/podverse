@@ -25,31 +25,14 @@ export function getActiveFeedWhere({
   category_id,
 }: ActiveFeedWhere) {
   const medium_ids = getMediumIdArrayFromType(mediumType);
-  const idFilter = resolveIdListFilter(
-    channel_ids ?? undefined,
-    exclude_channel_ids ?? undefined
-  );
-  if (idFilter.empty) {
-    return {
-      channel: {
-        id: In([]),
-        channel_about: {
-          id: Not(IsNull()),
-        },
-        feed: {
-          feed_policy: {
-            public_visible: true,
-          },
-        },
-      },
-    };
-  }
+  const idFilter = resolveIdListFilter(channel_ids ?? undefined, exclude_channel_ids ?? undefined);
+  const id = idFilter.empty ? In([]) : idFilter.id;
 
   return {
     channel: {
-      ...(idFilter.id ? { id: idFilter.id } : {}),
-      ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
-      ...getChannelCategoryWhere(category_id),
+      ...(id ? { id } : {}),
+      ...(!idFilter.empty && medium_ids ? { medium_id: In(medium_ids) } : {}),
+      ...(!idFilter.empty ? getChannelCategoryWhere(category_id) : {}),
       channel_about: {
         id: Not(IsNull()),
       },

@@ -740,9 +740,7 @@ describe('Account Taste Profile routes (real database)', () => {
       : [];
     expect(browseIds).not.toContain(suggested.idText);
 
-    const hiddenList = await request(app)
-      .get(`${accountBase}/channel-hidden`)
-      .set(authed(owner));
+    const hiddenList = await request(app).get(`${accountBase}/channel-hidden`).set(authed(owner));
     expect(hiddenList.status).toBe(200);
     expect(hiddenList.text).not.toContain(ownerListenerId);
     expect(listItems(hiddenList.body).map(channelIdText)).toContain(suggested.idText);

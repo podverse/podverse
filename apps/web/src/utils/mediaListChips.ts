@@ -237,8 +237,7 @@ export function mediaListChipChrome(
   }
 
   const isBrowse = page === 'browse';
-  const showCategory =
-    isBrowse && (chip === 'podcasts' || chip === 'episodes' || chip === 'clips');
+  const showCategory = isBrowse && (chip === 'podcasts' || chip === 'episodes' || chip === 'clips');
   const showViewSelector =
     chip === 'podcasts' ||
     chip === 'episodes' ||

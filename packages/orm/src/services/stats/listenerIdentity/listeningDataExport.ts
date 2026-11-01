@@ -99,9 +99,7 @@ function toHiddenRow(row: StatsTasteProfileHidden): DTOAccountDataExportHiddenFr
   };
 }
 
-function toChannelHiddenRow(
-  row: StatsChannelHidden
-): DTOAccountDataExportHiddenChannelRow {
+function toChannelHiddenRow(row: StatsChannelHidden): DTOAccountDataExportHiddenChannelRow {
   return {
     channel_id_text: row.channel.id_text,
     channel_title: row.channel.title,

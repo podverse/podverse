@@ -70,11 +70,7 @@ type ResolveArgs = {
 };
 
 type PodcastsFilterPage = 'podcasts' | 'subscribed-podcasts';
-type EpisodesFilterPage =
-  | 'episodes'
-  | 'subscribed-episodes'
-  | 'clips'
-  | 'subscribed-clips';
+type EpisodesFilterPage = 'episodes' | 'subscribed-episodes' | 'clips' | 'subscribed-clips';
 type ArtistsFilterPage = 'artists' | 'subscribed-artists';
 type AlbumsFilterPage = 'albums' | 'subscribed-albums';
 type TracksFilterPage = 'tracks' | 'subscribed-tracks';
@@ -94,9 +90,7 @@ function rangeSortOf(options: readonly { value: string }[]): string | undefined 
   return options.find((option) => option.value === 'top')?.value;
 }
 
-function isFullSort(
-  sort: string
-): sort is 'a_z' | 'recent' | 'oldest' | 'top' {
+function isFullSort(sort: string): sort is 'a_z' | 'recent' | 'oldest' | 'top' {
   return sort === 'a_z' || sort === 'recent' || sort === 'oldest' || sort === 'top';
 }
 

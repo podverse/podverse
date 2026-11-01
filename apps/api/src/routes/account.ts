@@ -261,7 +261,10 @@ router.post('/taste-profile/hide', asyncHandler(AccountTasteProfileController.hi
 router.post('/taste-profile/unhide', asyncHandler(AccountTasteProfileController.unhide));
 router.get('/recommendations', asyncHandler(AccountTasteProfileController.listRecommendations));
 router.get('/channel-hidden', asyncHandler(AccountTasteProfileController.listChannelHidden));
-router.post('/channel-hidden/hide', asyncHandler(AccountTasteProfileController.hideChannelFromLists));
+router.post(
+  '/channel-hidden/hide',
+  asyncHandler(AccountTasteProfileController.hideChannelFromLists)
+);
 router.post(
   '/channel-hidden/unhide',
   asyncHandler(AccountTasteProfileController.unhideChannelFromLists)

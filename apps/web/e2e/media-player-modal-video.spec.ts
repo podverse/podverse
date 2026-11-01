@@ -98,9 +98,7 @@ test.describe('Modal video desktop', () => {
     await expect(videoTarget.locator('video')).toBeVisible();
     await expect(modal.getByRole('img', { name: 'Media Player Image' })).toHaveCount(0);
     await expect(floatingVideoPortalLocator(page)).toHaveCount(0);
-    await expect(
-      modal.getByRole('link', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE })
-    ).toBeVisible();
+    await expect(modal.getByRole('link', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE })).toBeVisible();
 
     await captureVerifiedElement(
       page,

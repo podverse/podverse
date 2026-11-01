@@ -106,8 +106,7 @@ The Expo module only sets an `eventSink` to forward events to JS while JS is ali
   mid-interruption waits for `.ended`.
 - **Explicit play:** lock screen, headset, CarPlay, and in-app play reload the current source once
   when its player item has failed. Any recorded source resumes at that playhead, whatever its
-  medium, including Add by RSS. The last observed position is used when the failed player reports
-  0. A clip or soundbite with no position starts at its start and still ends at its end. A failed
+  medium, including Add by RSS. The last observed position is used when the failed player reports 0. A clip or soundbite with no position starts at its start and still ends at its end. A failed
   livestream starts at live. A session that will not activate is tried once more without replacing
   the item, so a healthy playhead stays put. A second failure reports the error and stops.
 - **Route changes:** pause when the previous output becomes unavailable (headphones unplugged,

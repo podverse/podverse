@@ -78,9 +78,8 @@ export class ChannelController {
     if (accountId === null) {
       return undefined;
     }
-    const ids = await ChannelController.tasteProfileAccountService.listHiddenChannelIdsForAccount(
-      accountId
-    );
+    const ids =
+      await ChannelController.tasteProfileAccountService.listHiddenChannelIdsForAccount(accountId);
     return ids.length > 0 ? ids : undefined;
   }
 

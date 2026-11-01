@@ -489,9 +489,7 @@ export function TasteProfileSections() {
           testID="channel-hidden-section"
           title={t('taste_profile.hidden_channels_title')}
         >
-          <Text style={styles.description}>
-            {t('taste_profile.hidden_channels_description')}
-          </Text>
+          <Text style={styles.description}>{t('taste_profile.hidden_channels_description')}</Text>
           <TasteProfileListBody
             emptyKey="taste_profile.hidden_channels_empty"
             errorKey="taste_profile.hidden_channels_load_error"

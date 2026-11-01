@@ -332,9 +332,7 @@ export const MIGRATIONS: Migration[] = [
   },
   {
     version: 2,
-    statements: [
-      `ALTER TABLE stats_listen_outbox ADD COLUMN media_duration_seconds REAL;`,
-    ],
+    statements: [`ALTER TABLE stats_listen_outbox ADD COLUMN media_duration_seconds REAL;`],
   },
 ];
 

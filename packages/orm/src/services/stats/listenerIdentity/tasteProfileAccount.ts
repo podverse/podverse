@@ -96,9 +96,7 @@ function toHiddenRow(row: StatsTasteProfileHidden): DTOAccountTasteProfileHidden
   };
 }
 
-function toChannelHiddenRow(
-  row: StatsChannelHidden
-): DTOAccountTasteProfileHiddenRow {
+function toChannelHiddenRow(row: StatsChannelHidden): DTOAccountTasteProfileHiddenRow {
   return {
     channel: toChannelDto(row.channel),
     hidden_at: row.hidden_at.toISOString(),
@@ -164,15 +162,13 @@ export class TasteProfileAccountService {
         return { rows: [], total_count: 0 };
       }
 
-      const [entities, total_count] = await manager
-        .getRepository(StatsChannelHidden)
-        .findAndCount({
-          where: { listener_id },
-          relations: { channel: { channel_images: true } },
-          order: { hidden_at: 'DESC', channel_id: 'DESC' },
-          skip: params.offset,
-          take: params.limit,
-        });
+      const [entities, total_count] = await manager.getRepository(StatsChannelHidden).findAndCount({
+        where: { listener_id },
+        relations: { channel: { channel_images: true } },
+        order: { hidden_at: 'DESC', channel_id: 'DESC' },
+        skip: params.offset,
+        take: params.limit,
+      });
 
       return { rows: entities.map(toChannelHiddenRow), total_count };
     });

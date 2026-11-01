@@ -214,9 +214,7 @@ describe('shouldApplyExplicitPlayLocally', () => {
   });
 
   it('commands the other tab once that tab has announced', () => {
-    expect(shouldApplyExplicitPlayLocally({ ...sameSession, audioTabId: 'tab-other' })).toBe(
-      false
-    );
+    expect(shouldApplyExplicitPlayLocally({ ...sameSession, audioTabId: 'tab-other' })).toBe(false);
   });
 
   it('commands another session', () => {
