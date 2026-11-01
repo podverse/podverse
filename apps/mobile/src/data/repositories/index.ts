@@ -15,7 +15,10 @@ export {
 } from './channelItemWindow';
 export type { ChannelItemRecord, ChannelItemWindow } from './channelItemWindow';
 export { channelItemsRepository } from './channelItemsRepository';
-export type { ChannelWindowSyncResult } from './channelItemsRepository';
+export type {
+  ChannelWindowSyncResult,
+  SubscribedChannelItem,
+} from './channelItemsRepository';
 export {
   DIRECTORY_CHANNEL_CONVERTED_CODE,
   DIRECTORY_CHANNEL_GONE_CODE,

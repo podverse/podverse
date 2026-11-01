@@ -418,12 +418,15 @@ touch target because it is the one a listener reaches for without looking.
 - **Chips share the screen background.** The chip strip is opaque in the screen's own background
   color, never a tinted band, and a selected chip is the label for the pane below it — panes do not
   repeat it as a heading.
-- **Flush slide-up.** Root slide-up screens (`FullPlayer`, `V4vInfo`) import
-  `ROOT_SLIDE_UP_SCREEN_OPTIONS` from `apps/mobile/src/navigation/slideUpScreen.ts` (`card` +
-  `slide_from_bottom` + vertical **edge** gesture). Duration is `ROOT_SLIDE_UP_ANIMATION_MS` —
-  the same number the mini↔full video surface reparent uses. Do not use `presentation: 'modal'`
-  (iOS page sheet) and do not invent a second duration. Set `fullScreenGestureEnabled: false` so
-  pull-to-dismiss starts only from the top edge — a full-screen swipe fights the player's scroll.
+- **Flush slide-up.** V4V uses `ROOT_SLIDE_UP_SCREEN_OPTIONS` from
+  `apps/mobile/src/navigation/slideUpScreen.ts` (`card` + `slide_from_bottom`). Full player (and
+  other down-caret roots) uses `buildRootSlideUpDismissOptions`: iOS vertical pop with
+  `fullScreenGestureEnabled: true` limited by `gestureResponseDistance` to the header band
+  (status inset + 44pt); Android uses `SlideUpDismissGesture` for the same band. Duration is
+  `ROOT_SLIDE_UP_ANIMATION_MS` — the same number the mini↔full video surface reparent uses. Do
+  not use `presentation: 'modal'` (iOS page sheet) and do not invent a second duration. Do not
+  open a full-screen vertical swipe — that fights the player's scroll. See
+  **mobile-screen-layout** for the caret-plus-drag dismiss contract.
 - **No list bounce.** The full player's `FlatList` keeps `bounces` / `alwaysBounceVertical` off
   and `overScrollMode="never"`. There is no pull-to-refresh on that screen, so rubber-banding at
   the top must not steal the dismiss gesture.

@@ -26,8 +26,7 @@ const createStyles = (_theme: ThemedStylesTheme) =>
 
 /**
  * Home title-bar bell. The unread count is read here so a count change re-renders only this
- * control. Home is the only screen with this bell. The badge face stops at 99+ and the accessible
- * name uses the real count.
+ * control. The badge face stops at 99+ and the accessible name uses the real count.
  */
 export function HomeNotificationsBell() {
   const { t } = useTranslation();

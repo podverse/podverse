@@ -144,7 +144,6 @@
       "empty": "",
       "need_taste_profile": "",
       "enable": "",
-      "edit": "",
       "check_back": "",
       "paused": "",
       "strength": "",
@@ -779,6 +778,7 @@
     "hidden_channels_load_error": "",
     "remove": "",
     "remove_accessible": "",
+    "hide_accessible": "",
     "unhide": "",
     "unhide_accessible": "",
     "unhide_channel_accessible": "",
@@ -803,6 +803,7 @@
     "weight_apply_accessible": "",
     "weight_automatic": "",
     "weight_accessible": "",
+    "moved_to_hidden": "",
     "action_error": ""
   },
   "misc": {

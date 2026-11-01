@@ -11,6 +11,7 @@ import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useCommittedPaginationTotalPages } from '../../../hooks/settledTotalPages';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { useSortPref } from '../../../hooks/useSortPref';
@@ -79,8 +80,13 @@ export const AlbumPageContextProvider = ({
     cachedState?.filterParams ?? initialQueryParams
   );
   const [items, setItems] = useState<DTOItem[]>(cachedState?.data?.items ?? ssrItems ?? []);
-  const [totalPages, setTotalPages] = useState<number>(
+  const [totalPagesState, setTotalPagesState] = useState<number>(
     cachedState?.data?.totalPages ?? ssrTotalPages ?? 1
+  );
+  const { totalPages, setTotalPages } = useCommittedPaginationTotalPages(
+    filterParams,
+    totalPagesState,
+    setTotalPagesState
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
@@ -99,7 +105,7 @@ export const AlbumPageContextProvider = ({
     routeKey,
     filterParams,
     setFilterParams,
-    data: { items, totalPages },
+    data: { items, totalPages: totalPagesState },
     setData: (cached) => {
       setItems(cached.items);
       setTotalPages(cached.totalPages);

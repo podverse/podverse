@@ -16,12 +16,7 @@ test.describe('About and Summary people', () => {
       new RegExp(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}.*type=people`)
     );
 
-    // The channel side column and the People tab both render the host. The tab copy is the one
-    // outside the side column.
-    const hostName = page
-      .getByRole('main')
-      .locator('xpath=.//*[normalize-space(.)="E2E Channel Host" and not(ancestor::aside)]')
-      .last();
+    const hostName = page.getByText('E2E Channel Host', { exact: true });
     await expect(hostName).toBeVisible();
     await captureVerifiedElement(page, testInfo, hostName, 'Channel People shows the seeded host');
     await capturePageLoad(page, testInfo, 'Channel People with people');

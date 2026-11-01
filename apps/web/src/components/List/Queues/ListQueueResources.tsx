@@ -20,6 +20,7 @@ import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
 import { parsePlaybackSeconds, playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
+import { NoResults } from '../../NoResults/NoResults';
 import { ListQueueResourceRow } from './ListQueueResourceRow';
 
 import styles from '../../../styles/components/List/Queues/ListQueueResources.module.scss';
@@ -401,11 +402,7 @@ export const ListQueueResources: React.FC<Props> = ({
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {showEmptyMessage && (
-        <p className={styles.status} role="status">
-          {emptyMessage}
-        </p>
-      )}
+      {showEmptyMessage && <NoResults message={emptyMessage} role="status" />}
       {showQueueList && (
         <div className={styles.listWrapper}>
           <div className={listWrapperClassName}>

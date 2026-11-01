@@ -15,8 +15,8 @@ This is the same first-paint habit as **mobile-image-loading** (artwork) and
 **mobile-section-chrome-cache** (section chips), applied to controls that flip meaning when they
 are wrong: Subscribe vs Unsubscribe, the notification bell, download vs delete. That bell is
 the channel on/off control, the `notifications` prop on `ChannelHeader` for podcast, album, and
-artist detail. `HomeNotificationsBell` shows the unread count on Home and does not read this
-cache.
+artist detail. `HomeNotificationsBell` shows the unread count on the Home tab root and does not
+read this cache.
 
 ## Do
 

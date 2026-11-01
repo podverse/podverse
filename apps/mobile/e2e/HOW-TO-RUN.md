@@ -274,6 +274,7 @@ npm run mobile:e2e:test -- --platform ios settings-developer
 npm run mobile:e2e:test -- --platform ios settings-downloads
 npm run mobile:e2e:test -- --platform ios settings-select
 npm run mobile:e2e:test -- --platform ios subscriptions-anonymous
+npm run mobile:e2e:test -- --platform ios tab-root-header
 npm run mobile:e2e:test -- --platform ios tab-switch-playback
 npm run mobile:e2e:test -- --platform ios taste-profile
 npm run mobile:e2e:test -- --platform ios taste-profile-consent
@@ -340,6 +341,7 @@ npm run mobile:e2e:test -- --platform android settings-developer
 npm run mobile:e2e:test -- --platform android settings-downloads
 npm run mobile:e2e:test -- --platform android settings-select
 npm run mobile:e2e:test -- --platform android subscriptions-anonymous
+npm run mobile:e2e:test -- --platform android tab-root-header
 npm run mobile:e2e:test -- --platform android tab-switch-playback
 npm run mobile:e2e:test -- --platform android taste-profile
 npm run mobile:e2e:test -- --platform android taste-profile-consent
@@ -418,6 +420,7 @@ areas. API and test-assets are optional. Still install from **Mobile E2E iOS** /
 ```bash
 npm run mobile:e2e:test -- hello-world
 npm run mobile:e2e:test -- locale-switch-home-smoke
+npm run mobile:e2e:test -- tab-root-header
 npm run mobile:e2e:test -- settings-select
 npm run mobile:e2e:test -- error-log
 npm run mobile:e2e:test -- custom-api

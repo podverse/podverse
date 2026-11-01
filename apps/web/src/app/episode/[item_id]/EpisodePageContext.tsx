@@ -11,6 +11,7 @@ import type { QueryParamsItem } from '@podverse/helpers-requests';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useCommittedPaginationTotalPages } from '../../../hooks/settledTotalPages';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { useSortPref } from '../../../hooks/useSortPref';
@@ -88,7 +89,14 @@ export const EpisodePageContextProvider = ({
     cachedState?.data?.itemSoundbites ?? []
   );
   const [clips, setClips] = useState<DTOClip[]>(cachedState?.data?.clips ?? []);
-  const [totalPages, setTotalPages] = useState<number>(cachedState?.data?.totalPages ?? 1);
+  const [totalPagesState, setTotalPagesState] = useState<number>(
+    cachedState?.data?.totalPages ?? 1
+  );
+  const { totalPages, setTotalPages } = useCommittedPaginationTotalPages(
+    filterParams,
+    totalPagesState,
+    setTotalPagesState
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [transcriptRows, setTranscriptRows] = useState<TranscriptRow[]>(
     cachedState?.data?.transcriptRows ?? []
@@ -109,7 +117,7 @@ export const EpisodePageContextProvider = ({
     routeKey,
     filterParams,
     setFilterParams,
-    data: { itemChapters, itemSoundbites, clips, totalPages, transcriptRows },
+    data: { itemChapters, itemSoundbites, clips, totalPages: totalPagesState, transcriptRows },
     setData: (cached) => {
       setItemChapters(cached.itemChapters);
       setItemSoundbites(cached.itemSoundbites);

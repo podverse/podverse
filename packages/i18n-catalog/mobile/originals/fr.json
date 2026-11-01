@@ -33,7 +33,6 @@
     "browse": {
       "collapse_category": "Masquer les sous-catégories de {name}",
       "expand_category": "Afficher les sous-catégories de {name}",
-      "empty": "Rien à afficher pour le moment",
       "range_all_time": "Tout le temps",
       "sort_popularity": "Popularité"
     },

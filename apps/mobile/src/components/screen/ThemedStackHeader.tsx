@@ -2,7 +2,10 @@ import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
 import { ROOT_SEARCH_ROUTE_NAME } from '../../navigation/slideUpScreen';
+import { HomeNotificationsBell } from '../../screens/home/HomeNotificationsBell';
+import { HomeSearchButton } from '../../screens/home/HomeSearchButton';
 import { headerBackChoice } from './headerBackChoice';
+import { HeaderBarActions } from './HeaderBarActions';
 import { HeaderBarChrome } from './HeaderBarChrome';
 
 /**
@@ -52,6 +55,18 @@ export function ThemedStackHeader({ navigation, options }: NativeStackHeaderProp
   const parentRouteName = parentState?.routes[parentState.index]?.name;
   const dismissesSearchSheet =
     choice === 'parentGoBack' && parentRouteName === ROOT_SEARCH_ROUTE_NAME;
+  // Search and the inbox bell belong only on the Home tab root. Compare the route name as a
+  // string so this header does not import navigation route constants (that module loads these
+  // screen options).
+  const isHomeRoot =
+    choice === 'none' && state.routes[state.index]?.name === 'HomeRoot';
+  const screenRight =
+    options.headerRight === undefined
+      ? undefined
+      : options.headerRight({
+          canGoBack: onBack !== undefined,
+          tintColor: options.headerTintColor,
+        });
 
   return (
     <HeaderBarChrome
@@ -59,21 +74,25 @@ export function ThemedStackHeader({ navigation, options }: NativeStackHeaderProp
       backIcon={dismissesSearchSheet ? 'chevron-down' : 'chevron-back'}
       backTestID={dismissesSearchSheet ? 'search-dismiss' : 'stack-header-back'}
       left={
-        onBack === undefined && options.headerLeft !== undefined
-          ? options.headerLeft({
-              canGoBack: false,
-              tintColor: options.headerTintColor,
-            })
-          : undefined
+        isHomeRoot ? (
+          <HomeSearchButton />
+        ) : onBack === undefined && options.headerLeft !== undefined ? (
+          options.headerLeft({
+            canGoBack: false,
+            tintColor: options.headerTintColor,
+          })
+        ) : undefined
       }
       onBack={onBack}
       right={
-        options.headerRight === undefined
-          ? undefined
-          : options.headerRight({
-              canGoBack: onBack !== undefined,
-              tintColor: options.headerTintColor,
-            })
+        isHomeRoot ? (
+          <HeaderBarActions>
+            <HomeNotificationsBell />
+            {screenRight}
+          </HeaderBarActions>
+        ) : (
+          screenRight
+        )
       }
       title={title}
     />

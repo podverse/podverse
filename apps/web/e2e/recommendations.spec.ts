@@ -50,13 +50,13 @@ test.describe('Recommendations page', () => {
     );
   });
 
-  test('Edit Recommendations opens Settings, Hide removes a mocked suggestion, and Unhide clears Hidden Channels.', async ({
+  test('Edit opens Settings, Hide removes a mocked suggestion, and Unhide clears Hidden Channels.', async ({
     page,
   }, testInfo) => {
     await loginViaApi(page);
     await page.goto('/recommendations');
 
-    const editButton = page.getByRole('button', { name: 'Edit Recommendations' });
+    const editButton = page.getByRole('button', { name: 'Edit', exact: true });
     await expect(editButton).toBeVisible();
     const actions = page.getByTestId('recommendations-list-actions');
     const chips = page.getByTestId('media-list-chips');
@@ -67,7 +67,7 @@ test.describe('Recommendations page', () => {
     const wideEditBox = await editButton.boundingBox();
     expect(wideActionsBox, 'actions row is in the layout').not.toBeNull();
     expect(wideChipsBox, 'chip row is in the layout').not.toBeNull();
-    expect(wideEditBox, 'Edit Recommendations is in the layout').not.toBeNull();
+    expect(wideEditBox, 'Edit is in the layout').not.toBeNull();
     if (wideActionsBox !== null && wideChipsBox !== null && wideEditBox !== null) {
       expect(wideActionsBox.x).toBeGreaterThanOrEqual(wideChipsBox.x + wideChipsBox.width - 1);
       expect(wideActionsBox.y).toBeLessThan(wideChipsBox.y + wideChipsBox.height);
@@ -98,7 +98,7 @@ test.describe('Recommendations page', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'Edit Recommendations opens Taste Profile settings.',
+      'Edit opens Taste Profile settings.',
       async () => {
         await editButton.click();
         await expect(page).toHaveURL(/\/settings\?tab=recommendations/);

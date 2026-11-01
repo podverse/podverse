@@ -51,9 +51,7 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
   const mediumSlug = mediumParam === 'music' ? 'music' : 'podcast';
   const url = getAddByRSSLivestreamPath(item.idText, mediumSlug);
   const title = item.item.title ?? tMedia('livestream.livestream');
-  const description = showChannelInfo
-    ? item.channelTitle
-    : getDescriptionPreviewText({ value: item.item.description });
+  const description = getDescriptionPreviewText({ value: item.item.description });
   const imageCandidates = dedupedTrimmedUrlCandidates([item.item.image, item.channelImageUrl]);
   const liveStatusId = item.liveItem.live_item_status ?? LiveItemStatusEnum.Pending;
   const startTimeRaw = item.liveItem.start_time;
@@ -98,8 +96,13 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>
+            {showChannelInfo ? (
+              <div className={styles.channelTitle}>{item.channelTitle}</div>
+            ) : null}
             <h3>{title}</h3>
-            <div className={styles.subtitle}>{description}</div>
+            {!showChannelInfo && description ? (
+              <div className={styles.subtitle}>{description}</div>
+            ) : null}
           </div>
         </Link>
         <div className={styles.bottomSection}>

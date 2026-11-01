@@ -26,8 +26,9 @@ type AddByRssLivestreamHeaderProps = {
 /**
  * Identity and play control for one Add by RSS livestream.
  *
- * Artwork is the live item's own image, or the feed's artwork when the item has none.
- * Play is passed in only while the livestream is on the air. There are no More actions.
+ * Artwork is the full-width header square from the live item's own image, or the feed's artwork
+ * when the item has none. Play is passed in only while the livestream is on the air. There are no
+ * More actions.
  */
 export function AddByRssLivestreamHeader({
   feed,
@@ -42,7 +43,9 @@ export function AddByRssLivestreamHeader({
     () => addByRssFeedHeaderArtwork(feed, mappedFeed),
     [feed, mappedFeed]
   );
-  const artworkUri = itemImage ?? headerArtwork.listUrl;
+  // Prefer the largest known feed URL on a full-width square; the live item image has no size
+  // metadata to hero-select against.
+  const artworkUri = itemImage ?? headerArtwork.viewerUrl ?? headerArtwork.listUrl;
   const artworkHeaders = useAddByRssArtworkHeaders(feed.feedUrl, artworkUri);
   const playbackMediaId = useMemo(
     () =>

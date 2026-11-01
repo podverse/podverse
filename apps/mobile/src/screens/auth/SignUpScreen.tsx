@@ -18,18 +18,21 @@ import { MobileScreenContainer } from '../../components/screen/MobileScreenConta
 import { RetryableError } from '../../components/state/RetryableError';
 import { getMobileConfig } from '../../config';
 import { writeSignupMergeEmail } from '../../data/repositories/subscriptionsSignupMarker';
+import { SlideUpDismissGesture } from '../../navigation/SlideUpDismissGesture';
 import { formActionsTopGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
 type SignUpScreenProps = {
   onDismiss: () => void;
+  /** Downward drag from the header band. Skips the Modal slide so the drag is the only motion. */
+  onDragDismiss: () => void;
   onSwitchToLogin: () => void;
 };
 
 const AUTHENTICATION_VALIDATION_KEY_PREFIX = 'authentication.';
 
-export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) {
+export function SignUpScreen({ onDismiss, onDragDismiss, onSwitchToLogin }: SignUpScreenProps) {
   const { i18n, t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -183,138 +186,142 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
       ? t('authentication.verification_email_not_sent_title')
       : t('authentication.account_created_title');
     return (
+      <SlideUpDismissGesture enabled onDismiss={onDragDismiss}>
+        <View style={styles.root} testID="signup-screen">
+          <HeaderBarChrome
+            backAccessibilityLabel={t('misc.dismiss')}
+            backIcon="chevron-down"
+            backTestID="auth-dismiss"
+            onBack={onDismiss}
+            title={title}
+          />
+          <MobileScreenContainer testID="signup-success">
+            {verificationEmailNotSent ? (
+              <VerificationEmailNotSentMessage
+                contactTestID="signup-verification-email-not-sent-contact"
+                testID="signup-verification-email-not-sent"
+              />
+            ) : (
+              <Text
+                accessibilityLiveRegion="polite"
+                style={styles.successBody}
+                testID="signup-success-message"
+              >
+                {t('authentication.account_created_body')}
+              </Text>
+            )}
+            <FormActions
+              actions={[
+                {
+                  label: t('authentication.login'),
+                  onPress: onSwitchToLogin,
+                  testID: 'signup-success-login',
+                },
+              ]}
+              style={styles.submit}
+            />
+          </MobileScreenContainer>
+        </View>
+      </SlideUpDismissGesture>
+    );
+  }
+
+  return (
+    <SlideUpDismissGesture enabled onDismiss={onDragDismiss}>
       <View style={styles.root} testID="signup-screen">
         <HeaderBarChrome
           backAccessibilityLabel={t('misc.dismiss')}
           backIcon="chevron-down"
           backTestID="auth-dismiss"
           onBack={onDismiss}
-          title={title}
+          title={t('authentication.sign_up')}
         />
-        <MobileScreenContainer testID="signup-success">
-          {verificationEmailNotSent ? (
-            <VerificationEmailNotSentMessage
-              contactTestID="signup-verification-email-not-sent-contact"
-              testID="signup-verification-email-not-sent"
+        <MobileScreenContainer testID="signup-form">
+          <CustomApiNotice />
+          <View style={styles.fields}>
+            <TextField
+              accessibilityLabel={t('authentication.email')}
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect={false}
+              eyebrow={t('authentication.email')}
+              keyboardType="email-address"
+              onChangeText={setEmail}
+              placeholder={t('authentication.email_example')}
+              testID="signup-email"
+              textContentType="emailAddress"
+              value={email}
             />
-          ) : (
-            <Text
-              accessibilityLiveRegion="polite"
-              style={styles.successBody}
-              testID="signup-success-message"
-            >
-              {t('authentication.account_created_body')}
-            </Text>
-          )}
+            <TextField
+              accessibilityLabel={t('authentication.password')}
+              autoCapitalize="none"
+              autoComplete={isE2e ? 'off' : 'new-password'}
+              autoCorrect={false}
+              eyebrow={t('authentication.password')}
+              onChangeText={setPassword}
+              placeholder={t('authentication.password_hint')}
+              secureTextEntry={!isE2e}
+              testID="signup-password"
+              textContentType={isE2e ? 'none' : 'newPassword'}
+              value={password}
+            />
+          </View>
+          {termsError ? (
+            <RetryableError
+              errorKey="terms_acceptance.load_error"
+              onRetry={loadTerms}
+              testID="signup-terms-error"
+            />
+          ) : null}
+          {agreement !== null ? (
+            <View style={styles.termsAccordion}>
+              <Accordion
+                subtitle={t('terms_acceptance.agreement_date', {
+                  agreement_date: agreement.version,
+                })}
+                testID="signup-terms-full"
+                title={t('terms_acceptance.full_agreement')}
+              >
+                <CopyMarkdown markdown={agreement.markdown} />
+              </Accordion>
+            </View>
+          ) : null}
+          <CheckboxRow
+            checked={agreed}
+            label={t('terms_acceptance.checkbox_label')}
+            onPress={() => {
+              setAgreed((current) => !current);
+            }}
+            style={styles.agreeRow}
+            testID="signup-agree-terms"
+          />
           <FormActions
             actions={[
               {
-                label: t('authentication.login'),
-                onPress: onSwitchToLogin,
-                testID: 'signup-success-login',
+                disabled: isLoading || !agreed || agreement === null,
+                label: t('authentication.create_account'),
+                loading: isLoading,
+                onPress: () => {
+                  void handleSubmit();
+                },
+                testID: 'signup-submit',
               },
             ]}
             style={styles.submit}
           />
+          {error !== null ? (
+            <Text style={styles.error} testID="signup-error">
+              {error}
+            </Text>
+          ) : null}
+          <View style={styles.promptBlock}>
+            <Text style={styles.prompt}>{t('authentication.already_have_an_account')}</Text>
+            <Pressable accessibilityRole="link" onPress={onSwitchToLogin} testID="auth-switch-login">
+              <Text style={styles.link}>{t('authentication.login')}</Text>
+            </Pressable>
+          </View>
         </MobileScreenContainer>
       </View>
-    );
-  }
-
-  return (
-    <View style={styles.root} testID="signup-screen">
-      <HeaderBarChrome
-        backAccessibilityLabel={t('misc.dismiss')}
-        backIcon="chevron-down"
-        backTestID="auth-dismiss"
-        onBack={onDismiss}
-        title={t('authentication.sign_up')}
-      />
-      <MobileScreenContainer testID="signup-form">
-        <CustomApiNotice />
-        <View style={styles.fields}>
-          <TextField
-            accessibilityLabel={t('authentication.email')}
-            autoCapitalize="none"
-            autoComplete="email"
-            autoCorrect={false}
-            eyebrow={t('authentication.email')}
-            keyboardType="email-address"
-            onChangeText={setEmail}
-            placeholder={t('authentication.email_example')}
-            testID="signup-email"
-            textContentType="emailAddress"
-            value={email}
-          />
-          <TextField
-            accessibilityLabel={t('authentication.password')}
-            autoCapitalize="none"
-            autoComplete={isE2e ? 'off' : 'new-password'}
-            autoCorrect={false}
-            eyebrow={t('authentication.password')}
-            onChangeText={setPassword}
-            placeholder={t('authentication.password_hint')}
-            secureTextEntry={!isE2e}
-            testID="signup-password"
-            textContentType={isE2e ? 'none' : 'newPassword'}
-            value={password}
-          />
-        </View>
-        {termsError ? (
-          <RetryableError
-            errorKey="terms_acceptance.load_error"
-            onRetry={loadTerms}
-            testID="signup-terms-error"
-          />
-        ) : null}
-        {agreement !== null ? (
-          <View style={styles.termsAccordion}>
-            <Accordion
-              subtitle={t('terms_acceptance.agreement_date', {
-                agreement_date: agreement.version,
-              })}
-              testID="signup-terms-full"
-              title={t('terms_acceptance.full_agreement')}
-            >
-              <CopyMarkdown markdown={agreement.markdown} />
-            </Accordion>
-          </View>
-        ) : null}
-        <CheckboxRow
-          checked={agreed}
-          label={t('terms_acceptance.checkbox_label')}
-          onPress={() => {
-            setAgreed((current) => !current);
-          }}
-          style={styles.agreeRow}
-          testID="signup-agree-terms"
-        />
-        <FormActions
-          actions={[
-            {
-              disabled: isLoading || !agreed || agreement === null,
-              label: t('authentication.create_account'),
-              loading: isLoading,
-              onPress: () => {
-                void handleSubmit();
-              },
-              testID: 'signup-submit',
-            },
-          ]}
-          style={styles.submit}
-        />
-        {error !== null ? (
-          <Text style={styles.error} testID="signup-error">
-            {error}
-          </Text>
-        ) : null}
-        <View style={styles.promptBlock}>
-          <Text style={styles.prompt}>{t('authentication.already_have_an_account')}</Text>
-          <Pressable accessibilityRole="link" onPress={onSwitchToLogin} testID="auth-switch-login">
-            <Text style={styles.link}>{t('authentication.login')}</Text>
-          </Pressable>
-        </View>
-      </MobileScreenContainer>
-    </View>
+    </SlideUpDismissGesture>
   );
 }

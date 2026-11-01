@@ -4,6 +4,7 @@ import type { DTOChannel, DTOClip, DTOPlaylist } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
+import { profileBio } from '../lib/rows/catalogRowCopy';
 
 const FIRST_PAGE = 1;
 
@@ -29,6 +30,7 @@ const EMPTY_CONTENT: ProfileContentBundle = {
 
 export function usePublicProfileContentLoad(accountIdText: string) {
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const [bio, setBio] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [state, setState] = useState<ProfileContentLoadState>({
     content: EMPTY_CONTENT,
@@ -37,6 +39,7 @@ export function usePublicProfileContentLoad(accountIdText: string) {
   });
 
   const reload = useCallback(async () => {
+    setBio(null);
     setState((prev) => ({ ...prev, errorKey: null, isLoading: true }));
     try {
       const account = await requestWithMobileAuthRefresh(
@@ -48,7 +51,8 @@ export function usePublicProfileContentLoad(accountIdText: string) {
         },
         async (api) => api.reqAccountGetByIdText({ id_text: accountIdText })
       );
-      setDisplayName(account.account_profile?.display_name ?? accountIdText);
+      setBio(profileBio(account));
+      setDisplayName(account.account_profile?.display_name ?? null);
 
       const [podcastsResponse, albumsResponse, playlistsResponse, clipsResponse] =
         await Promise.all([
@@ -117,6 +121,7 @@ export function usePublicProfileContentLoad(accountIdText: string) {
         isLoading: false,
       });
     } catch {
+      setBio(null);
       setDisplayName(accountIdText);
       setState({
         content: EMPTY_CONTENT,
@@ -131,6 +136,7 @@ export function usePublicProfileContentLoad(accountIdText: string) {
   }, [reload]);
 
   return {
+    bio,
     content: state.content,
     displayName,
     errorKey: state.errorKey,

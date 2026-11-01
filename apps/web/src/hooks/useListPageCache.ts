@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { checkBackNavFlag } from '../contexts/Navigation';
 import { definedProps, getPageState } from '../utils/pageStateCache';
 import { usePageStateCache } from './usePageStateCache';
+import { useSettledTotalPages } from './settledTotalPages';
 
 /**
  * Cached data structure for list pages with pagination
@@ -65,7 +66,7 @@ interface UseListPageCacheResult<TParams, TData> {
  * }, [filterParams, loggedInAccount]);
  * ```
  */
-export function useListPageCache<TParams, TData>({
+export function useListPageCache<TParams extends object, TData>({
   routeKey,
   initialParams,
   ssrData,
@@ -89,16 +90,22 @@ export function useListPageCache<TParams, TData>({
     cachedState?.filterParams ?? initialParams
   );
   const [data, setData] = useState<TData>(cachedState?.data?.data ?? ssrData);
-  const [totalPages, setTotalPages] = useState<number>(
+  const [totalPagesState, setTotalPagesState] = useState<number>(
     cachedState?.data?.totalPages ?? ssrTotalPages ?? 1
   );
+  const [paginationSerial, setPaginationSerial] = useState(0);
+  const setTotalPages = useCallback((next: number) => {
+    setTotalPagesState(next);
+    setPaginationSerial((current) => current + 1);
+  }, []);
+  const totalPages = useSettledTotalPages(filterParams, totalPagesState, paginationSerial);
 
   // Set up caching for saves and scroll restoration
   usePageStateCache<TParams, ListPageCachedData<TData>>({
     routeKey,
     filterParams,
     setFilterParams,
-    data: { data, totalPages },
+    data: { data, totalPages: totalPagesState },
     setData: (cached) => {
       setData(cached.data);
       setTotalPages(cached.totalPages);

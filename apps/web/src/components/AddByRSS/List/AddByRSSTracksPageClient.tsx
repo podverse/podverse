@@ -11,7 +11,6 @@ import { AddByRSSTrackNodes } from '../../../components/AddByRSS/Artist/Album/Tr
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import type { MediaListChipsConfig } from '../../../components/MediaListChips/MediaListChips';
-import { MediaListLoadingSpinner } from '../../../components/MediaListChips/MediaListLoadingSpinner';
 import { NoResults } from '../../../components/NoResults/NoResults';
 import { Pagination } from '../../../components/Pagination/Pagination';
 import { dismissToast, showToast, showToastLoading } from '../../../components/Toast/Toast';
@@ -19,6 +18,7 @@ import { useAccount } from '../../../contexts/Account';
 import type { AddByRSSListSortOrder } from '../../../contexts/AddByRSSListContext';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { useModals } from '../../../contexts/Modals';
+import { useCommittedPaginationTotalPages } from '../../../hooks/settledTotalPages';
 import type { AddByRSSParseOutcome } from '../../../utils/addByRSS/actions';
 import { applyAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import {
@@ -50,6 +50,7 @@ export const AddByRSSTracksPageClient: React.FC<AddByRSSTracksPageClientProps> =
   chipsConfig,
 }) => {
   const tFeatures = useTranslations('features');
+  const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
   const { loggedInAccount } = useAccount();
   const { setModalAuthLogin } = useModals();
@@ -67,7 +68,12 @@ export const AddByRSSTracksPageClient: React.FC<AddByRSSTracksPageClientProps> =
   const [sort, setSort] = useState<AddByRSSListSortOrder>(initialSort);
 
   const [items, setItems] = useState<AddByRSSItemIndexItem[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPagesState, setTotalPagesState] = useState(1);
+  const { totalPages, setTotalPages } = useCommittedPaginationTotalPages(
+    { sort },
+    totalPagesState,
+    setTotalPagesState
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isIndexBuilding, setIsIndexBuilding] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -308,10 +314,9 @@ export const AddByRSSTracksPageClient: React.FC<AddByRSSTracksPageClientProps> =
             ) : items.length > 0 ? (
               <AddByRSSTrackNodes items={items} viewSelected={viewSelected} sortOrder={sort} />
             ) : isLoading || !loggedInAccount ? null : (
-              <NoResults message={tFeatures('add_by_rss.no_feeds_music')} />
+              <NoResults message={tMedia('music.no_tracks_found')} />
             )}
-            {isLoading && items.length === 0 ? <MediaListLoadingSpinner /> : null}
-            <WebLoadingSpinnerOverlay isLoading={isLoading && items.length > 0} />
+            <WebLoadingSpinnerOverlay isLoading={isLoading} />
           </MainColumnStack>
         </MainSidebarLayout>
       </MainWrapper>

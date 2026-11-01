@@ -1,3 +1,8 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
+
+import { NoResults } from '../../NoResults/NoResults';
 import { ContentAboutAccordion } from './ContentAboutAccordion';
 import { ContentAboutDescription } from './ContentAboutDescription';
 
@@ -12,7 +17,7 @@ type ContentAbout = {
 };
 
 /**
- * Channel About: description prose. People are a separate chip and side-column block.
+ * Channel About: description prose. People are a separate chip.
  */
 export const ContentAbout = ({
   description,
@@ -21,9 +26,13 @@ export const ContentAbout = ({
   isTruncated,
   fullDescriptionUrl,
 }: ContentAbout) => {
+  const tInfo = useTranslations('info');
   const hasDescription = description !== undefined && description.length > 0;
   if (!hasDescription) {
-    return null;
+    if (isAccordion) {
+      return null;
+    }
+    return <NoResults message={tInfo('summary.no_summary')} role="status" />;
   }
 
   if (isAccordion) {

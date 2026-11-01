@@ -12,19 +12,26 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Channel remote item list', () => {
-  // The sidebar section is the desktop layout. The Remote Items chip is hidden at 1200px and up.
   test.use({ viewport: { width: 1280, height: 720 } });
 
   const stubFeedHref = new RegExp(
     `/podcast-index/feed/${E2E_CHANNEL_REMOTE_STUB_PODCAST_INDEX_ID}$`
   );
 
-  test("When a visitor opens the remote-item seed podcast, the Remote Items section lists the stubbed show and the stubbed episode, hides the unknown reference, and the episode opens the show's Podcast Index page.", async ({
+  test("When a visitor opens the remote-item seed podcast and chooses Remote Items, the list shows the stubbed show and the stubbed episode, hides the unknown reference, and the episode opens the show's Podcast Index page.", async ({
     page,
   }, testInfo) => {
     const response = await page.goto(`/podcast/${E2E_REMOTE_ITEM_CHANNEL_ID_TEXT}`);
     expect(response?.status()).toBe(200);
     await expect(page).toHaveURL(new RegExp(`/podcast/${E2E_REMOTE_ITEM_CHANNEL_ID_TEXT}$`));
+
+    const remoteItemsChip = page.getByRole('button', { name: 'Remote Items', exact: true });
+    await expect(remoteItemsChip).toBeVisible();
+    await remoteItemsChip.click();
+    await expect(page).toHaveURL(
+      new RegExp(`/podcast/${E2E_REMOTE_ITEM_CHANNEL_ID_TEXT}\\?type=remote-items`)
+    );
+    await expect(remoteItemsChip).toHaveAttribute('aria-pressed', 'true');
 
     const remoteItems = page.getByTestId('channel-remote-items');
     // The episode link's text includes the show title, so the show link is the one without it.
@@ -73,12 +80,20 @@ test.describe('Channel remote item list', () => {
     );
   });
 
-  test('When a visitor opens the remote-item seed album, the Remote Items section lists that show and its author, and does not list the episode.', async ({
+  test('When a visitor opens the remote-item seed album and chooses Remote Items, the list shows that show and its author, and does not list the episode.', async ({
     page,
   }, testInfo) => {
     const response = await page.goto(`/album/${E2E_REMOTE_ITEM_ALBUM_ID_TEXT}`);
     expect(response?.status()).toBe(200);
     await expect(page).toHaveURL(new RegExp(`/album/${E2E_REMOTE_ITEM_ALBUM_ID_TEXT}$`));
+
+    const remoteItemsChip = page.getByRole('button', { name: 'Remote Items', exact: true });
+    await expect(remoteItemsChip).toBeVisible();
+    await remoteItemsChip.click();
+    await expect(page).toHaveURL(
+      new RegExp(`/album/${E2E_REMOTE_ITEM_ALBUM_ID_TEXT}\\?type=remote-items`)
+    );
+    await expect(remoteItemsChip).toHaveAttribute('aria-pressed', 'true');
 
     const remoteItems = page.getByTestId('channel-remote-items');
     const showLink = remoteItems.getByRole('link', { name: E2E_CHANNEL_REMOTE_STUB_TITLE });

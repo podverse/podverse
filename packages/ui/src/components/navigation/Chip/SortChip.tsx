@@ -1,5 +1,6 @@
 'use client';
 
+import classNames from 'classnames';
 import { useEffect, useRef, useState } from 'react';
 
 import { useDropdownKeyboardNavigation } from '../../../hooks/useDropdownKeyboardNavigation';
@@ -40,12 +41,35 @@ export type SortChipProps<TSort extends string, TRange extends string> = {
 
 type SortChipStep = 'sort' | 'range';
 
+function SortChipStaticFace({
+  accessibleName,
+  faceLabel,
+  testId,
+}: {
+  accessibleName: string;
+  faceLabel: string;
+  testId?: string;
+}) {
+  return (
+    <div className={styles.menuWrapper}>
+      <span
+        aria-label={accessibleName}
+        className={classNames(styles.chip, styles.filter, styles.selected, styles.staticFace)}
+        data-testid={testId !== undefined ? `${testId}-button` : undefined}
+      >
+        {faceLabel}
+      </span>
+    </div>
+  );
+}
+
 /**
  * One chip for the list order. The face is the current sort, or the range while the
  * range-bearing sort is selected and a range is set. When that sort is selected and
  * `range.value` is null, the face stays the sort label. Choosing that sort swaps the open menu
  * to the range options, and `onChange` fires only once a range is chosen. When `options` is
- * exactly the range sort, every open starts on the range list.
+ * exactly the range sort, every open starts on the range list. A single non-range option keeps
+ * the face with no caret and no menu, so the current order stays visible.
  */
 export function SortChip<TSort extends string, TRange extends string>({
   heading,
@@ -63,6 +87,8 @@ export function SortChip<TSort extends string, TRange extends string>({
 
   const isRangeOnly =
     range !== undefined && options.length === 1 && options[0]?.value === range.sort;
+  /** One fixed order with no menu: show the label so the sort is visible, without a caret. */
+  const isStaticFace = options.length === 1 && !isRangeOnly;
   const step: SortChipStep = isRangeOnly ? 'range' : sortStep;
 
   const currentOption = options.find((option) => option.value === value) ?? options[0];
@@ -74,33 +100,37 @@ export function SortChip<TSort extends string, TRange extends string>({
     currentRangeOption !== undefined
       ? (currentRangeOption.shortLabel ?? currentRangeOption.label)
       : (currentOption?.label ?? '');
+  const accessibleName = `${heading}: ${faceLabel}`;
 
-  const sortItems: DropdownMenuPanelItem[] = options.map((option) => {
-    const optionRange = range !== undefined && option.value === range.sort ? range : undefined;
-    return {
-      label: option.label,
-      checked: option.value === value,
-      ...(optionRange !== undefined ? { dismissOnSelect: false } : {}),
-      onClick: () => {
-        if (optionRange !== undefined) {
-          const checkedIndex = optionRange.options.findIndex(
-            (rangeOption) => value === optionRange.sort && rangeOption.value === optionRange.value
-          );
-          const focusIndex = checkedIndex >= 0 ? checkedIndex : 0;
-          pendingFocusIndexRef.current = focusIndex;
-          setFocusedIndex(focusIndex);
-          setSortStep('range');
-          return;
-        }
-        if (option.value !== value) {
-          onChange(option.value, null);
-        }
-      },
-    };
-  });
+  const sortItems: DropdownMenuPanelItem[] = isStaticFace
+    ? []
+    : options.map((option) => {
+        const optionRange = range !== undefined && option.value === range.sort ? range : undefined;
+        return {
+          label: option.label,
+          checked: option.value === value,
+          ...(optionRange !== undefined ? { dismissOnSelect: false } : {}),
+          onClick: () => {
+            if (optionRange !== undefined) {
+              const checkedIndex = optionRange.options.findIndex(
+                (rangeOption) =>
+                  value === optionRange.sort && rangeOption.value === optionRange.value
+              );
+              const focusIndex = checkedIndex >= 0 ? checkedIndex : 0;
+              pendingFocusIndexRef.current = focusIndex;
+              setFocusedIndex(focusIndex);
+              setSortStep('range');
+              return;
+            }
+            if (option.value !== value) {
+              onChange(option.value, null);
+            }
+          },
+        };
+      });
 
   const rangeItems: DropdownMenuPanelItem[] = [];
-  if (range !== undefined) {
+  if (!isStaticFace && range !== undefined) {
     const { sort: rangeSort, value: rangeValue } = range;
     for (const option of range.options) {
       rangeItems.push({
@@ -155,6 +185,16 @@ export function SortChip<TSort extends string, TRange extends string>({
     }
   }, [open, step]);
 
+  if (isStaticFace) {
+    return (
+      <SortChipStaticFace
+        accessibleName={accessibleName}
+        faceLabel={faceLabel}
+        testId={testId}
+      />
+    );
+  }
+
   return (
     <div className={styles.menuWrapper}>
       <Chip
@@ -162,7 +202,7 @@ export function SortChip<TSort extends string, TRange extends string>({
         variant="filter"
         selected
         menuExpanded={open}
-        aria-label={`${heading}: ${faceLabel}`}
+        aria-label={accessibleName}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={handleButtonKeyDown}
         data-testid={testId !== undefined ? `${testId}-button` : undefined}

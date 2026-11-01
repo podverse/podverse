@@ -459,6 +459,24 @@ export const mapItemToHomeFeedRow = (
   };
 };
 
+/**
+ * Home's per-channel item store often omits nested `channel.title`. When the follow list already
+ * names that show, use it for the row overline.
+ */
+export const withChannelTitleFallback = (
+  row: HomeFeedRowData,
+  channelTitle: string | null | undefined
+): HomeFeedRowData => {
+  if (row.subtitle !== null && row.subtitle.trim().length > 0) {
+    return row;
+  }
+  const trimmed = channelTitle?.trim() ?? '';
+  if (trimmed.length === 0) {
+    return row;
+  }
+  return { ...row, subtitle: trimmed };
+};
+
 export const mapItemsToHomeFeedRows = (
   items: readonly DTOItem[],
   options: MapItemToHomeFeedRowOptions = {}
@@ -717,14 +735,21 @@ export const fetchHomeFeed = async (
     const items = await listAddByRssItemRows(mediaType, ready);
     ensureCurrent();
 
+    const titleByChannelId = new Map(
+      subscribed.map((channel) => [channel.idText, channel.title] as const)
+    );
     const directoryItemsById = new Map<string, DTOItem>();
     const directory: HomeItemMergeEntry[] = [];
-    for (const item of stored) {
+    for (const entry of stored) {
+      const { channelIdText, item } = entry;
       if (item.id_text.length === 0) {
         continue;
       }
       directoryItemsById.set(item.id_text, item);
-      const row = mapItemToHomeFeedRow(item, { compact });
+      const row = withChannelTitleFallback(
+        mapItemToHomeFeedRow(item, { compact }),
+        titleByChannelId.get(channelIdText)
+      );
       if (row.id.length === 0) {
         continue;
       }

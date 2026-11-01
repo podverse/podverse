@@ -7,7 +7,7 @@ import React from 'react';
 import {
   appendDistinctImageCandidate,
   buildDTOItemImageLoadCandidates,
-  formatDateTimeAbbrev,
+  formatDateAbbrev,
 } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
@@ -49,10 +49,10 @@ export const AddByRSSEpisodeGridCard: React.FC<AddByRSSEpisodeGridCardProps> = (
           height={IMAGES.LIST.GRID.SIZE}
           className={styles.image}
         />
-        <div className={styles.title}>{title}</div>
         {showChannelInfo && <div className={styles.channelTitle}>{item.channelTitle}</div>}
+        <div className={styles.title}>{title}</div>
         {lastPubDate ? (
-          <span className={styles.lastPubDate}>{formatDateTimeAbbrev(lastPubDate, locale)}</span>
+          <span className={styles.lastPubDate}>{formatDateAbbrev(lastPubDate, locale)}</span>
         ) : null}
       </div>
     </Link>

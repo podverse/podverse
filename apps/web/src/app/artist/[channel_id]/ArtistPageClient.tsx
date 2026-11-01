@@ -5,7 +5,7 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
@@ -17,7 +17,6 @@ import { DirectoryRemovedProvider } from '../../../contexts/DirectoryRemoved';
 import { ArtistPageContextProvider } from './ArtistPageContext';
 import { ArtistPageList } from './ArtistPageList';
 import { ArtistPageListHeader } from './ArtistPageListHeader';
-import { ArtistPageSideContent } from './ArtistPageSideContent';
 
 interface ArtistPageClientProps {
   initialQueryParams: QueryParamsChannelMusicArtist;
@@ -55,7 +54,7 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
           <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
           <CoreArtistHeader channel={ssrChannel} artistAlbums={ssrChannelsAdded} />
           <MainSidebarLayout>
-            <ArtistPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
+            <SideContent />
             <MainColumnStack>
               {directoryRemoved ? (
                 <DirectoryRemovedNotice />

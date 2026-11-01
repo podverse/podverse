@@ -7,6 +7,7 @@ import { useMemo, useRef } from 'react';
 import { formatDateTimeAbbrev } from '@podverse/helpers';
 
 import { WebLoadingSpinnerDecorativeSmall } from '../../LoadingSpinner/WebLoadingSpinnerDecorative';
+import { NoResults } from '../../NoResults/NoResults';
 import { Pagination } from '../../Pagination/Pagination';
 import { formatPublicBoostAmountLine } from './formatPublicBoostAmountLine';
 import { getPublicBoostMessageLinkKey } from './getPublicBoostMessageLinkKey';
@@ -96,7 +97,7 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
       )}
 
       {status === 'success' && data.messages.length === 0 && (
-        <p className={styles.statusMessage}>{tBoost('public_messages_empty')}</p>
+        <NoResults message={tBoost('public_messages_empty')} role="status" />
       )}
 
       {status === 'success' && data.messages.length > 0 && (

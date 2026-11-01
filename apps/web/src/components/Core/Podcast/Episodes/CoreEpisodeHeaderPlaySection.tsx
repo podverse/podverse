@@ -233,7 +233,7 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
       <div className={styles.sectionStart}>
         <PlayButtonLarge item={item} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
-          <ReadableDate date={item.pub_date} />
+          <ReadableDate date={item.pub_date} includeTime />
           {item.item_about?.duration ? ' • ' : null}
           <ReadableDuration durationStr={durationStr} positionStr={positionStr} />
         </div>

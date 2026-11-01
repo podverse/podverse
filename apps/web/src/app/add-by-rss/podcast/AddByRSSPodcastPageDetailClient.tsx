@@ -32,6 +32,7 @@ import { DescriptionTruncationNotice } from '../../../components/Content/Descrip
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListSortChip } from '../../../components/ListSortChip/ListSortChip';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { NoResults } from '../../../components/NoResults/NoResults';
 import { Pagination } from '../../../components/Pagination/Pagination';
 import { AddByRSSCredentialsSettingsSection } from '../../../components/Settings/AddByRSSCredentialsSettingsSection';
 import { RSSFeedSettingsSection } from '../../../components/Settings/RSSFeedSettingsSection';
@@ -80,6 +81,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   feed,
 }) => {
   const tFeatures = useTranslations('features');
+  const tMedia = useTranslations('media');
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const tInfo = useTranslations('info');
@@ -398,18 +400,25 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                         {line}
                       </p>
                     ))}
-                  <AddByRSSEpisodeNodes
-                    channelIdText={localFeed.idText}
-                    channelTitle={channelTitle}
-                    channelImageUrl={channelImageUrl}
-                    items={pagedItems}
-                    itemIdTextMap={itemIdTextMap}
-                    sortOrder={sort}
-                  />
+                  {mappedFeed !== undefined &&
+                  pagedItems.length === 0 &&
+                  !showLiveItems &&
+                  !isAwaitingFirstEpisodes ? (
+                    <NoResults message={tMedia('podcast.no_episodes_found')} />
+                  ) : (
+                    <AddByRSSEpisodeNodes
+                      channelIdText={localFeed.idText}
+                      channelTitle={channelTitle}
+                      channelImageUrl={channelImageUrl}
+                      items={pagedItems}
+                      itemIdTextMap={itemIdTextMap}
+                      sortOrder={sort}
+                    />
+                  )}
                 </div>
               </Pagination>
             )}
-            {activeTab === 'about' && channelDescription && (
+            {activeTab === 'about' && channelDescription ? (
               <>
                 <DescriptionRenderer description={channelDescription} />
                 {isDescriptionTruncated(mappedChannel?.description) ? (
@@ -419,7 +428,9 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                   />
                 ) : null}
               </>
-            )}
+            ) : activeTab === 'about' ? (
+              <NoResults message={tInfo('summary.no_summary')} />
+            ) : null}
             {activeTab === 'podroll' && (
               <AddByRSSRemoteItemList
                 rows={podroll.rows}

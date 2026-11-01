@@ -23,16 +23,24 @@ import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
 import { handleRateLimitMessage } from '../../lib/rateLimit/handleRateLimitMessage';
+import { SlideUpDismissGesture } from '../../navigation/SlideUpDismissGesture';
 import { formActionsTopGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
   onDismiss: () => void;
+  /** Downward drag from the header band. Skips the Modal slide so the drag is the only motion. */
+  onDragDismiss: () => void;
   onForgotPassword: () => void;
   onSwitchToSignUp: () => void;
 };
 
-export function LoginScreen({ onDismiss, onForgotPassword, onSwitchToSignUp }: LoginScreenProps) {
+export function LoginScreen({
+  onDismiss,
+  onDragDismiss,
+  onForgotPassword,
+  onSwitchToSignUp,
+}: LoginScreenProps) {
   const { t } = useTranslation();
   const { accountSignupMode, isE2e } = getMobileConfig();
   const showForgotPassword =
@@ -164,124 +172,126 @@ export function LoginScreen({ onDismiss, onForgotPassword, onSwitchToSignUp }: L
   };
 
   return (
-    <View style={styles.root} testID="login-screen">
-      <HeaderBarChrome
-        backAccessibilityLabel={t('misc.dismiss')}
-        backIcon="chevron-down"
-        backTestID="auth-dismiss"
-        onBack={onDismiss}
-        title={t('authentication.login')}
-      />
-      <MobileScreenContainer testID="login-form">
-        <CustomApiNotice />
-        <View style={styles.fields}>
-          <TextField
-            accessibilityLabel={t('authentication.email_or_username')}
-            autoCapitalize="none"
-            autoComplete="username"
-            autoCorrect={false}
-            eyebrow={t('authentication.email_or_username')}
-            keyboardType="email-address"
-            onChangeText={(value) => {
-              setEmail(value);
-              hideUnverifiedNotice();
-            }}
-            placeholder={t('authentication.email_example')}
-            testID="login-email"
-            textContentType="username"
-            value={email}
-          />
-          <TextField
-            accessibilityLabel={t('authentication.password')}
-            autoCapitalize="none"
-            autoComplete={isE2e ? 'off' : 'current-password'}
-            autoCorrect={false}
-            eyebrow={t('authentication.password')}
-            onChangeText={(value) => {
-              setPassword(value);
-              hideUnverifiedNotice();
-            }}
-            placeholder={t('authentication.password_hint')}
-            // E2E: iOS Autofill + secureTextEntry blocks Maestro inputText; plaintext when isE2e.
-            secureTextEntry={!isE2e}
-            testID="login-password"
-            textContentType={isE2e ? 'none' : 'password'}
-            value={password}
-          />
-          {showForgotPassword ? (
-            <Pressable
-              accessibilityLabel={t('authentication.forgot_password')}
-              accessibilityRole="link"
-              onPress={onForgotPassword}
-              testID="login-forgot-password"
-            >
-              <Text style={styles.link}>{t('authentication.forgot_password')}</Text>
-            </Pressable>
-          ) : null}
-        </View>
-        {accountNotVerified ? (
-          <View style={styles.noticeBlock} testID="login-account-not-verified">
-            {verificationEmailSent ? (
-              <Text accessibilityLiveRegion="polite" style={styles.notice}>
-                {t('authentication.verification_email_sent')}
-              </Text>
-            ) : (
-              <>
-                <Text accessibilityLiveRegion="polite" style={styles.notice}>
-                  {t('authentication.account_not_verified')}
-                </Text>
-                {verificationEmailNotSent ? (
-                  <VerificationEmailNotSentMessage
-                    contactTestID="login-verification-email-not-sent-contact"
-                    showTitle
-                    testID="login-verification-email-not-sent"
-                  />
-                ) : null}
-                <Pressable
-                  accessibilityLabel={t('authentication.resend_verification_email')}
-                  accessibilityRole="link"
-                  accessibilityState={{ busy: isResending }}
-                  onPress={() => {
-                    void handleResendVerificationEmail();
-                  }}
-                  testID="login-resend-verification"
-                >
-                  <Text style={styles.link}>{t('authentication.resend_verification_email')}</Text>
-                </Pressable>
-              </>
-            )}
-          </View>
-        ) : null}
-        <FormActions
-          actions={[
-            {
-              disabled: isLoading,
-              label: t('misc.submit'),
-              loading: isLoading,
-              onPress: () => {
-                void handleSubmit();
-              },
-              testID: 'login-submit',
-            },
-          ]}
-          style={styles.submit}
+    <SlideUpDismissGesture enabled onDismiss={onDragDismiss}>
+      <View style={styles.root} testID="login-screen">
+        <HeaderBarChrome
+          backAccessibilityLabel={t('misc.dismiss')}
+          backIcon="chevron-down"
+          backTestID="auth-dismiss"
+          onBack={onDismiss}
+          title={t('authentication.login')}
         />
-        {error !== null ? (
-          <Text accessibilityLiveRegion="polite" style={styles.error} testID="login-error">
-            {error}
-          </Text>
-        ) : null}
-        <View style={styles.promptBlock}>
-          <Text style={styles.prompt}>{t('authentication.need_an_account')}</Text>
-          <Pressable
-            accessibilityRole="link"
-            onPress={onSwitchToSignUp}
-            testID="auth-switch-signup"
-          >
-            <Text style={styles.link}>{t('authentication.sign_up')}</Text>
-          </Pressable>
-        </View>
-      </MobileScreenContainer>
-    </View>
+        <MobileScreenContainer testID="login-form">
+          <CustomApiNotice />
+          <View style={styles.fields}>
+            <TextField
+              accessibilityLabel={t('authentication.email_or_username')}
+              autoCapitalize="none"
+              autoComplete="username"
+              autoCorrect={false}
+              eyebrow={t('authentication.email_or_username')}
+              keyboardType="email-address"
+              onChangeText={(value) => {
+                setEmail(value);
+                hideUnverifiedNotice();
+              }}
+              placeholder={t('authentication.email_example')}
+              testID="login-email"
+              textContentType="username"
+              value={email}
+            />
+            <TextField
+              accessibilityLabel={t('authentication.password')}
+              autoCapitalize="none"
+              autoComplete={isE2e ? 'off' : 'current-password'}
+              autoCorrect={false}
+              eyebrow={t('authentication.password')}
+              onChangeText={(value) => {
+                setPassword(value);
+                hideUnverifiedNotice();
+              }}
+              placeholder={t('authentication.password_hint')}
+              // E2E: iOS Autofill + secureTextEntry blocks Maestro inputText; plaintext when isE2e.
+              secureTextEntry={!isE2e}
+              testID="login-password"
+              textContentType={isE2e ? 'none' : 'password'}
+              value={password}
+            />
+            {showForgotPassword ? (
+              <Pressable
+                accessibilityLabel={t('authentication.forgot_password')}
+                accessibilityRole="link"
+                onPress={onForgotPassword}
+                testID="login-forgot-password"
+              >
+                <Text style={styles.link}>{t('authentication.forgot_password')}</Text>
+              </Pressable>
+            ) : null}
+          </View>
+          {accountNotVerified ? (
+            <View style={styles.noticeBlock} testID="login-account-not-verified">
+              {verificationEmailSent ? (
+                <Text accessibilityLiveRegion="polite" style={styles.notice}>
+                  {t('authentication.verification_email_sent')}
+                </Text>
+              ) : (
+                <>
+                  <Text accessibilityLiveRegion="polite" style={styles.notice}>
+                    {t('authentication.account_not_verified')}
+                  </Text>
+                  {verificationEmailNotSent ? (
+                    <VerificationEmailNotSentMessage
+                      contactTestID="login-verification-email-not-sent-contact"
+                      showTitle
+                      testID="login-verification-email-not-sent"
+                    />
+                  ) : null}
+                  <Pressable
+                    accessibilityLabel={t('authentication.resend_verification_email')}
+                    accessibilityRole="link"
+                    accessibilityState={{ busy: isResending }}
+                    onPress={() => {
+                      void handleResendVerificationEmail();
+                    }}
+                    testID="login-resend-verification"
+                  >
+                    <Text style={styles.link}>{t('authentication.resend_verification_email')}</Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+          ) : null}
+          <FormActions
+            actions={[
+              {
+                disabled: isLoading,
+                label: t('misc.submit'),
+                loading: isLoading,
+                onPress: () => {
+                  void handleSubmit();
+                },
+                testID: 'login-submit',
+              },
+            ]}
+            style={styles.submit}
+          />
+          {error !== null ? (
+            <Text accessibilityLiveRegion="polite" style={styles.error} testID="login-error">
+              {error}
+            </Text>
+          ) : null}
+          <View style={styles.promptBlock}>
+            <Text style={styles.prompt}>{t('authentication.need_an_account')}</Text>
+            <Pressable
+              accessibilityRole="link"
+              onPress={onSwitchToSignUp}
+              testID="auth-switch-signup"
+            >
+              <Text style={styles.link}>{t('authentication.sign_up')}</Text>
+            </Pressable>
+          </View>
+        </MobileScreenContainer>
+      </View>
+    </SlideUpDismissGesture>
   );
 }

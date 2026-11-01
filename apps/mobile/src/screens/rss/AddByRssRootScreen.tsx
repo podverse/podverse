@@ -7,16 +7,21 @@ import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { matchesTitleFilter } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { AddByRssNeedsCredentialsSection } from '../../components/content/AddByRssNeedsCredentialsSection';
 import type { MenuSelectChipOption } from '../../components/form';
-import { ListFilterField, ListFilterHeader, MenuSelectChip } from '../../components/form';
-import { FillList, SwipeActionRow, VerticalCenter } from '../../components/primitives';
-import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
-import { HeaderBarActions } from '../../components/screen/HeaderBarActions';
+import {
+  ChipAction,
+  ChipRowWithActions,
+  ListFilterField,
+  ListFilterHeader,
+  MenuSelectChip,
+} from '../../components/form';
+import { FillList, SwipeActionRow } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
-import { ListLoading } from '../../components/state/ListLoading';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { subscriptionsRepository } from '../../data/repositories';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { addByRssLiveItemKey } from '../../lib/addByRss/liveItemDetail';
@@ -34,6 +39,7 @@ import type {
 } from '../../prefs/addByRssListPrefs';
 import {
   ADD_BY_RSS_LIBRARY_MEDIA_TYPES,
+  addByRssLibraryEmptyMessageKey,
   ADD_BY_RSS_LIBRARY_SORT_OPTIONS,
   DEFAULT_ADD_BY_RSS_LIBRARY_MEDIA_TYPE,
   DEFAULT_ADD_BY_RSS_LIBRARY_SORT,
@@ -167,12 +173,13 @@ function LibraryFeedListItem({
 }
 
 /**
- * Add by RSS library: Home-style chips for followed feeds only. Adding a feed is a circled plus
- * in the title bar. Pull-to-refresh refreshes these feeds alone; Home pull still refreshes
+ * Add by RSS library: Home-style chips for followed feeds only. Add Feed and Check for Updates
+ * sit with those chips. Pull-to-refresh refreshes these feeds alone; Home pull still refreshes
  * everything.
  */
 export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const { t } = useTranslation();
+  const { onRequestLogin } = useAuthPrompt();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { artistUnsubscribeDialog, unsubscribeArtist } = useArtistUnsubscribe();
   const { columns: rowColumns, width } = useResponsive();
@@ -286,6 +293,14 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
     [requestSync, resolvedPrefs.sort, selectedMediaType]
   );
 
+  const handleCheckUpdates = useCallback(() => {
+    if (status !== 'authenticated') {
+      onRequestLogin();
+      return;
+    }
+    void loadFeed('refresh');
+  }, [loadFeed, onRequestLogin, status]);
+
   useEffect(() => {
     if (!arePrefsHydrated) {
       return;
@@ -364,15 +379,8 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <HeaderBarActions>
-          <HeaderBarAction
-            accessibilityLabel={t('features.add_feed.add_feed')}
-            icon="add-circle-outline"
-            onPress={handleAddPress}
-            testID="rss-add-button"
-          />
-          {viewModeEligible ? (
+      headerRight: viewModeEligible
+        ? () => (
             <HomeOverflowMenu
               canMarkAllSeen={false}
               onMarkAllSeen={() => undefined}
@@ -380,18 +388,10 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
               showMarkAllSeen={false}
               viewMode={resolvedPrefs.viewMode}
             />
-          ) : null}
-        </HeaderBarActions>
-      ),
+          )
+        : undefined,
     });
-  }, [
-    handleAddPress,
-    handleViewModeChange,
-    navigation,
-    resolvedPrefs.viewMode,
-    t,
-    viewModeEligible,
-  ]);
+  }, [handleViewModeChange, navigation, resolvedPrefs.viewMode, viewModeEligible]);
 
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
@@ -643,6 +643,7 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
         marginTop: tokens.spacing.sm,
       },
       selectorSection: {
+        paddingHorizontal: insets.paddingHorizontal,
         paddingTop: insets.paddingTop,
       },
     });
@@ -786,45 +787,61 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   return (
     <View style={styles.container} testID="rss-root-screen">
       <View style={styles.selectorSection}>
-        <MediaTypeSelector
-          labelKeys={MEDIA_TYPE_LABEL_KEYS}
-          onChange={handleMediaTypeChange}
-          selectedMediaType={selectedMediaType}
-          testIDPrefix="rss"
-          trailing={
-            isAddByRssLibrarySortableMediaType(selectedMediaType) ? (
-              <MenuSelectChip
-                heading={t('filters.screen.sort_heading')}
-                menuTitle={t('filters.screen.sort_heading')}
-                onSelect={handleSortChange}
-                options={sortOptions}
-                testID="rss-sort"
-                value={resolvedPrefs.sort}
+        <ChipRowWithActions
+          actions={
+            <>
+              <ChipAction
+                label={t('features.add_feed.add_feed')}
+                onPress={handleAddPress}
+                testID="rss-add-button"
               />
-            ) : undefined
+              <ChipAction
+                label={t('features.add_by_rss.check_updates')}
+                loading={isFeedRefreshing}
+                onPress={handleCheckUpdates}
+                testID="rss-check-updates"
+              />
+            </>
           }
-          types={ADD_BY_RSS_LIBRARY_MEDIA_TYPES}
-        />
+          actionsTestID="rss-list-actions"
+        >
+          <MediaTypeSelector
+            labelKeys={MEDIA_TYPE_LABEL_KEYS}
+            onChange={handleMediaTypeChange}
+            selectedMediaType={selectedMediaType}
+            testIDPrefix="rss"
+            trailing={
+              isAddByRssLibrarySortableMediaType(selectedMediaType) ? (
+                <MenuSelectChip
+                  heading={t('filters.screen.sort_heading')}
+                  menuTitle={t('filters.screen.sort_heading')}
+                  onSelect={handleSortChange}
+                  options={sortOptions}
+                  testID="rss-sort"
+                  value={resolvedPrefs.sort}
+                />
+              ) : undefined
+            }
+            types={ADD_BY_RSS_LIBRARY_MEDIA_TYPES}
+          />
+        </ChipRowWithActions>
       </View>
       <FillList
         ListEmptyComponent={
           isFeedBusy ? (
-            <VerticalCenter>
-              <ListLoading testID="rss-feeds-loading" />
-            </VerticalCenter>
+            <LoadingSection testID="rss-feeds-loading" />
           ) : showNoFilterMatches ? (
             <ListEmpty messageKey="subscriptions.filter.no_matches" testID="rss-filter-empty" />
-          ) : showEmpty && selectedMediaType === 'livestreams' ? (
-            <ListEmpty
-              messageKey="media.livestream.no_livestreams_found"
-              testID="rss-livestreams-empty"
-            />
           ) : showEmpty ? (
             <ListEmpty
-              actionLabelKey="features.add_feed.add_feed"
-              messageKey="features.add_by_rss.no_feeds"
-              onAction={handleAddPress}
-              testID="rss-feeds-empty"
+              actionLabelKey={
+                selectedMediaType === 'livestreams' ? undefined : 'features.add_feed.add_feed'
+              }
+              messageKey={addByRssLibraryEmptyMessageKey(selectedMediaType)}
+              onAction={selectedMediaType === 'livestreams' ? undefined : handleAddPress}
+              testID={
+                selectedMediaType === 'livestreams' ? 'rss-livestreams-empty' : 'rss-feeds-empty'
+              }
             />
           ) : null
         }

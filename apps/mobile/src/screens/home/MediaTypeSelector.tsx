@@ -14,8 +14,6 @@ export type MediaTypeSelectorProps<T extends string> = {
   selectedMediaType: T | null;
   testIDPrefix: string;
   types: readonly T[];
-  /** Intrinsic width of the chips and trailing controls. */
-  onContentWidthChange?: (width: number) => void;
 };
 
 /**
@@ -24,7 +22,6 @@ export type MediaTypeSelectorProps<T extends string> = {
 export function MediaTypeSelector<T extends string>({
   labelKeys,
   onChange,
-  onContentWidthChange,
   selectedMediaType,
   testIDPrefix,
   trailing,
@@ -45,7 +42,6 @@ export function MediaTypeSelector<T extends string>({
   return (
     <SectionChipRow
       items={items}
-      onContentWidthChange={onContentWidthChange}
       onSelect={onChange}
       selectedKey={selectedMediaType}
       testID={`${testIDPrefix}-media-type-selector`}

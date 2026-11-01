@@ -6,7 +6,6 @@ import React from 'react';
 
 import type { EnclosureSelectedParams } from '@podverse/helpers';
 import { addByRSSBundleEnclosuresToDTO, getQueueForMedium } from '@podverse/helpers';
-import { getDescriptionPreviewText } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 
 import { useAccount } from '../../../../../contexts/Account';
@@ -44,6 +43,8 @@ type AddByRSSTrackRowProps = {
   listContext?: AddByRSSListContextState | null;
   /** Shows the Add by RSS marker after the title. */
   showAddByRssMarker?: boolean;
+  /** Mixed lists show the album title above the track; a single-album page omits it. */
+  showChannelInfo?: boolean;
 };
 
 export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
@@ -54,6 +55,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
   indexItem,
   listContext: listContextProp,
   showAddByRssMarker,
+  showChannelInfo = true,
 }) => {
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -68,7 +70,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
   const apiRequestService = getApiRequestService();
   const { runQueueAdd } = useQueueAddWithGate();
   const title = bundle.item.title ?? tMedia('music.track_image');
-  const description = getDescriptionPreviewText(bundle.description) || channelTitle;
+  const channelLine = showChannelInfo ? channelTitle : null;
   const imageUrl = bundle.images?.[0]?.url ?? channelImageUrl;
   const url = getAddByRSSItemPath(itemIdText, 'tracks');
 
@@ -230,7 +232,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
     <CommonTrackRow
       onClick={playButtonOnClick}
       title={title}
-      subtitle={description}
+      subtitle={channelLine}
       imageUrl={imageUrl}
       titleMarker={showAddByRssMarker ? <AddByRSSRowMarker /> : undefined}
       rightMetaNode={

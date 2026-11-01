@@ -35,7 +35,7 @@ export function ListError({
         label: {
           ...typography.subheading,
           color: themeStyles.textSecondary.color,
-          textAlign: 'center',
+          textAlign: 'left',
         },
       }),
     [themeStyles, tokens]

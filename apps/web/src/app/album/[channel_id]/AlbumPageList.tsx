@@ -31,6 +31,7 @@ export const AlbumPageList: React.FC<AlbumPageListProps> = ({
   ssrChannel,
   ssrCanShowBoosts,
 }) => {
+  const tMedia = useTranslations('media');
   const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const { filterParams, setFilterParams, items, totalPages, isLoading } = useAlbumPageContext();
   const { page, type } = filterParams;
@@ -53,6 +54,8 @@ export const AlbumPageList: React.FC<AlbumPageListProps> = ({
           items={items}
           totalPages={totalPages}
           viewSelected="rows"
+          emptyMessage={tMedia('music.no_tracks_found')}
+          isLoading={isLoading}
         />
       )}
       {type === 'about' && (

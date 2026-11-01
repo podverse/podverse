@@ -1,20 +1,3 @@
 .chipRow {
   margin-bottom: var(--spacing-2xl);
 }
-
-// Everything after the chip row in its column is the list area. While a chip's list loads, the
-// pending spinner is the only part of it that shows.
-.chipRowPending ~ :not(.pendingLoading) {
-  display: none;
-}
-
-// The page stays at least a screen taller than the row, so hiding the rows cannot clamp the
-// vertical scroll while the row is on screen.
-.listLoading,
-.pendingLoading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  min-height: 100vh;
-  padding-top: var(--spacing-4xl);
-}

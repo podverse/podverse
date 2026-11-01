@@ -4,13 +4,14 @@ import { useTranslations } from 'next-intl';
 import React, { useRef } from 'react';
 
 import type { DTOItem } from '@podverse/helpers';
-import { CallToActionMessage, InfoWrapper } from '@podverse/ui';
+import { CallToActionMessage } from '@podverse/ui';
 
 import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
 import type { SubscribedLivestreamEntry } from '../../../utils/subscribed/mergeSubscribedLivestreams';
+import { NoResults } from '../../NoResults/NoResults';
 import { Pagination } from '../../Pagination/Pagination';
 import { SubscribedLivestreamNodes } from '../../Subscribed/SubscribedLivestreamNodes';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
@@ -70,11 +71,7 @@ export const CoreLivestreams: React.FC<Props> = ({
   // A signed-out subscribed list explains itself with the login message. An empty
   // directory or signed-in list says there are no livestreams.
   if (showNoContentFound && !showSubscribeMessage) {
-    return (
-      <InfoWrapper>
-        <p>{tMedia('livestream.no_livestreams_found')}</p>
-      </InfoWrapper>
-    );
+    return <NoResults message={tMedia('livestream.no_livestreams_found')} role="status" />;
   }
 
   return (

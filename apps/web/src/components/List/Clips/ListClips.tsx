@@ -13,6 +13,7 @@ import { useLikesClipBatch } from '../../../hooks/useLikesClipBatch';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { buildListLikeRow } from '../../../utils/likes/buildListLikeRow';
 import { scrollMainToTop } from '../../../utils/scroll';
+import { NoResults } from '../../NoResults/NoResults';
 import { Pagination } from '../../Pagination/Pagination';
 import { ListClipRow } from './ListClipRow';
 
@@ -28,6 +29,9 @@ type Props = {
   category?: CategoryMappingKeys | null;
   showChannelInfo?: boolean;
   showItemInfo?: boolean;
+  /** Shown in the shared empty banner once the list has settled with no rows. */
+  emptyMessage?: string;
+  isLoading?: boolean;
 };
 
 export const ListClips: React.FC<Props> = ({
@@ -40,6 +44,8 @@ export const ListClips: React.FC<Props> = ({
   showSubscribeMessage,
   showChannelInfo,
   showItemInfo,
+  emptyMessage,
+  isLoading = false,
 }) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
@@ -62,6 +68,16 @@ export const ListClips: React.FC<Props> = ({
 
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
+  const showEmpty =
+    emptyMessage !== undefined &&
+    !isLoading &&
+    !showCallToAction &&
+    page <= 1 &&
+    clips.length === 0;
+
+  if (showEmpty) {
+    return <NoResults message={emptyMessage} role="status" />;
+  }
 
   return (
     <>

@@ -2,7 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
@@ -17,7 +17,6 @@ import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { CoverImage } from '../../components/primitives/CoverImage';
 import { FillList } from '../../components/primitives/FillList';
-import { VerticalCenter } from '../../components/primitives/VerticalCenter';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -35,6 +34,7 @@ import {
 } from '../../lib/pagination/pagedList';
 import type { RootStackParamList } from '../../navigation';
 import { ROOT_STACK_ROUTES } from '../../navigation';
+import { SlideUpDismissGesture } from '../../navigation/SlideUpDismissGesture';
 import { accountNotificationLineLabels } from '../../notifications/accountNotificationLineLabels';
 import { markNotificationReadById } from '../../notifications/notificationReadActions';
 import {
@@ -79,7 +79,7 @@ const createInboxRowStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme
       alignItems: 'center',
       borderRadius: 0,
       flexDirection: 'row',
-      gap: tokens.spacing.md,
+      position: 'relative',
     },
     copy: {
       flex: 1,
@@ -95,6 +95,7 @@ const createInboxRowStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme
       flex: 1,
       flexDirection: 'row',
       gap: listRowArtworkGap(tokens.spacing),
+      position: 'relative',
     },
     separator: {
       borderRadius: 0,
@@ -115,7 +116,13 @@ const createInboxRowStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme
     },
     unreadSlot: {
       height: tokens.spacing.md,
+      left: 0,
+      pointerEvents: 'none',
+      position: 'absolute',
+      top: '50%',
+      transform: [{ translateY: -tokens.spacing.md / 2 }],
       width: tokens.spacing.md,
+      zIndex: 1,
     },
   });
 
@@ -151,10 +158,10 @@ function InboxNotificationRow({
       style={styles.entry}
       testID={`notifications-inbox-row-${item.id}`}
     >
-      <View style={styles.unreadSlot}>
-        {item.is_unread ? <View style={styles.unreadDot} /> : null}
-      </View>
       <View style={styles.row}>
+        <View style={styles.unreadSlot}>
+          {item.is_unread ? <View style={styles.unreadDot} /> : null}
+        </View>
         <CoverImage
           decodeEdge={NOTIFICATION_INBOX_ARTWORK_SIZE}
           opensViewer={false}
@@ -507,17 +514,13 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
           testID="notifications-inbox-offline-unavailable"
         />
       ) : errorKey !== null ? (
-        <VerticalCenter>
-          <RetryableError
-            errorKey={errorKey}
-            onRetry={handleRetryInbox}
-            testID="notifications-inbox-error"
-          />
-        </VerticalCenter>
+        <RetryableError
+          errorKey={errorKey}
+          onRetry={handleRetryInbox}
+          testID="notifications-inbox-error"
+        />
       ) : (
-        <VerticalCenter>
-          <ListEmpty messageKey="notifications_page.empty" testID="notifications-inbox-empty" />
-        </VerticalCenter>
+        <ListEmpty messageKey="notifications_page.empty" testID="notifications-inbox-empty" />
       ),
     [errorKey, handleRetryInbox, isLoading, offlineModeEnabled, onRequestLogin, status]
   );
@@ -561,25 +564,27 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
   );
 
   return (
-    <View style={styles.container} testID="notifications-inbox-screen">
-      <HeaderBarChrome
-        backAccessibilityLabel={t('misc.dismiss')}
-        backIcon="chevron-down"
-        backTestID="notifications-inbox-dismiss"
-        onBack={handleDismiss}
-        title={t('nav.tab.notifications')}
-      />
-      <FillList
-        ItemSeparatorComponent={InboxNotificationSeparator}
-        ListEmptyComponent={listEmpty}
-        ListFooterComponent={listFooter}
-        contentContainerStyle={styles.content}
-        data={notifications}
-        keyExtractor={inboxRowKeyExtractor}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={LIST_END_REACHED_THRESHOLD}
-        renderItem={renderItem}
-      />
-    </View>
+    <SlideUpDismissGesture enabled={Platform.OS === 'android'} onDismiss={handleDismiss}>
+      <View style={styles.container} testID="notifications-inbox-screen">
+        <HeaderBarChrome
+          backAccessibilityLabel={t('misc.dismiss')}
+          backIcon="chevron-down"
+          backTestID="notifications-inbox-dismiss"
+          onBack={handleDismiss}
+          title={t('nav.tab.notifications')}
+        />
+        <FillList
+          ItemSeparatorComponent={InboxNotificationSeparator}
+          ListEmptyComponent={listEmpty}
+          ListFooterComponent={listFooter}
+          contentContainerStyle={styles.content}
+          data={notifications}
+          keyExtractor={inboxRowKeyExtractor}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={LIST_END_REACHED_THRESHOLD}
+          renderItem={renderItem}
+        />
+      </View>
+    </SlideUpDismissGesture>
   );
 }

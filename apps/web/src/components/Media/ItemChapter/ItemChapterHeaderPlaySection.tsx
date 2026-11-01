@@ -128,7 +128,7 @@ export const ItemChapterHeaderPlaySection: React.FC<ItemChapterHeaderPlaySection
       <div className={styles.sectionStart}>
         <PlayButtonLarge item_chapter={item_chapter} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
-          <ReadableDate date={item.pub_date} />
+          <ReadableDate date={item.pub_date} includeTime />
           {item.item_about?.duration ? ' • ' : null}
           <ReadableTimeRange startTime={item_chapter.start_time} endTime={item_chapter.end_time} />
         </div>

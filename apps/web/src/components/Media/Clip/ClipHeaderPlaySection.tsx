@@ -232,7 +232,7 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
       <div className={styles.sectionStart}>
         <PlayButtonLarge clip={clip} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
-          <ReadableDate date={item.pub_date} />
+          <ReadableDate date={item.pub_date} includeTime />
           {item.item_about?.duration ? ' • ' : null}
           <ReadableTimeRange startTime={clip.start_time} endTime={clip.end_time} />
         </div>

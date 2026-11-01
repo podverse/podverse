@@ -41,6 +41,14 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
       key: 'episodes',
       label: tMedia('podcast.episodes'),
     },
+    {
+      key: 'about',
+      label: tInfo('about'),
+    },
+    {
+      key: 'clips',
+      label: tFeatures('clip.clips'),
+    },
   ];
 
   if (ssrHasItemSoundbites) {
@@ -50,10 +58,19 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
     });
   }
 
-  items.push({
-    key: 'clips',
-    label: tFeatures('clip.clips'),
-  });
+  if (ssrHasPodroll) {
+    items.push({
+      key: 'podroll',
+      label: tInfo('podroll'),
+    });
+  }
+
+  if (ssrHasRemoteItems) {
+    items.push({
+      key: 'remote-items',
+      label: tInfo('remote_items'),
+    });
+  }
 
   if (ssrCanShowBoosts) {
     items.push({
@@ -62,33 +79,10 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
     });
   }
 
-  items.push({
-    key: 'about',
-    label: tInfo('about'),
-    hideDesktop: true,
-  });
-
-  if (ssrHasPodroll) {
-    items.push({
-      key: 'podroll',
-      label: tInfo('podroll'),
-      hideDesktop: true,
-    });
-  }
-
-  if (ssrHasRemoteItems) {
-    items.push({
-      key: 'remote-items',
-      label: tInfo('remote_items'),
-      hideDesktop: true,
-    });
-  }
-
   if (ssrHasPeople) {
     items.push({
       key: 'people',
       label: tInfo('people.people'),
-      hideDesktop: true,
     });
   }
 

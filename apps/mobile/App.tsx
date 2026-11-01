@@ -272,6 +272,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
   const [authMode, setAuthMode] = useState<'anonymous' | 'forgot-password' | 'login' | 'signup'>(
     'anonymous'
   );
+  const [authModalAnimation, setAuthModalAnimation] = useState<'none' | 'slide'>('slide');
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -287,26 +288,44 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
       return;
     }
     if (isAuthGatedDeepLink(pendingDeepLinkUrl)) {
+      setAuthModalAnimation('slide');
       setAuthMode('login');
     }
   }, [authMode, pendingDeepLinkUrl, status]);
 
+  const openAuthSheet = (mode: 'forgot-password' | 'login' | 'signup') => {
+    setAuthModalAnimation('slide');
+    setAuthMode(mode);
+  };
+
   const dismissAuthSheet = () => {
     setAuthMode('anonymous');
   };
+
+  const dismissAuthSheetByDrag = () => {
+    setAuthModalAnimation('none');
+    setAuthMode('anonymous');
+  };
+
   const showAuthSheet =
     status === 'anonymous' &&
     (authMode === 'login' || authMode === 'signup' || authMode === 'forgot-password');
+
+  useEffect(() => {
+    if (!showAuthSheet) {
+      setAuthModalAnimation('slide');
+    }
+  }, [showAuthSheet]);
 
   return (
     <View style={styles.appRoot}>
       {status === 'unknown' ? null : (
         <AuthPromptProvider
           onRequestLogin={() => {
-            setAuthMode('login');
+            openAuthSheet('login');
           }}
           onRequestSignUp={() => {
-            setAuthMode('signup');
+            openAuthSheet('signup');
           }}
         >
           <MembershipGateProvider onNavigateToMembership={navigateToMembershipScreen}>
@@ -321,14 +340,14 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
                   onConsumePendingDeepLink={onConsumePendingDeepLink}
                   pendingDeepLinkUrl={pendingDeepLinkUrl}
                   onRequestLogin={() => {
-                    setAuthMode('login');
+                    openAuthSheet('login');
                   }}
                   onRequestLogout={async () => {
                     await logout();
                     setAuthMode('anonymous');
                   }}
                   onRequestSignUp={() => {
-                    setAuthMode('signup');
+                    openAuthSheet('signup');
                   }}
                 />
               </OverlayA11yShield>
@@ -345,7 +364,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
         full-screen modal skips the iOS dismissal and leaves an empty window over the tab shell.
       */}
       <Modal
-        animationType="slide"
+        animationType={authModalAnimation}
         onRequestClose={dismissAuthSheet}
         presentationStyle="fullScreen"
         visible={showAuthSheet}
@@ -355,24 +374,26 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
             {authMode === 'signup' ? (
               <SignUpScreen
                 onDismiss={dismissAuthSheet}
+                onDragDismiss={dismissAuthSheetByDrag}
                 onSwitchToLogin={() => {
-                  setAuthMode('login');
+                  openAuthSheet('login');
                 }}
               />
             ) : authMode === 'forgot-password' ? (
               <ForgotPasswordScreen
                 onBackToLogin={() => {
-                  setAuthMode('login');
+                  openAuthSheet('login');
                 }}
               />
             ) : (
               <LoginScreen
                 onDismiss={dismissAuthSheet}
+                onDragDismiss={dismissAuthSheetByDrag}
                 onForgotPassword={() => {
-                  setAuthMode('forgot-password');
+                  openAuthSheet('forgot-password');
                 }}
                 onSwitchToSignUp={() => {
-                  setAuthMode('signup');
+                  openAuthSheet('signup');
                 }}
               />
             )}

@@ -11,6 +11,7 @@ import type { QueryParamsChannel } from '@podverse/helpers-requests';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useCommittedPaginationTotalPages } from '../../../hooks/settledTotalPages';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { useSortPref } from '../../../hooks/useSortPref';
@@ -93,8 +94,13 @@ export const PodcastPageContextProvider = ({
     cachedState?.data?.itemSoundbites ?? ssrItemSoundbites ?? []
   );
   const [clips, setClips] = useState<DTOClip[]>(cachedState?.data?.clips ?? ssrClips ?? []);
-  const [totalPages, setTotalPages] = useState<number>(
+  const [totalPagesState, setTotalPagesState] = useState<number>(
     cachedState?.data?.totalPages ?? ssrTotalPages ?? 1
+  );
+  const { totalPages, setTotalPages } = useCommittedPaginationTotalPages(
+    filterParams,
+    totalPagesState,
+    setTotalPagesState
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
@@ -113,7 +119,7 @@ export const PodcastPageContextProvider = ({
     routeKey,
     filterParams,
     setFilterParams,
-    data: { items, itemSoundbites, clips, totalPages },
+    data: { items, itemSoundbites, clips, totalPages: totalPagesState },
     setData: (cached) => {
       setItems(cached.items);
       setItemSoundbites(cached.itemSoundbites);

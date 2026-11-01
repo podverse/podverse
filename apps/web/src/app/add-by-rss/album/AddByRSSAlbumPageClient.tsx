@@ -32,6 +32,7 @@ import { DescriptionTruncationNotice } from '../../../components/Content/Descrip
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListSortChip } from '../../../components/ListSortChip/ListSortChip';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { NoResults } from '../../../components/NoResults/NoResults';
 import { Pagination } from '../../../components/Pagination/Pagination';
 import type { AddByRSSCredentialsApplyStatus } from '../../../components/Settings/AddByRSSCredentialsSettingsSection';
 import { AddByRSSCredentialsSettingsSection } from '../../../components/Settings/AddByRSSCredentialsSettingsSection';
@@ -100,6 +101,7 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
   followed,
 }) => {
   const tFeatures = useTranslations('features');
+  const tMedia = useTranslations('media');
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const tInfo = useTranslations('info');
@@ -489,17 +491,21 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
                     />
                   )}
                   {showLiveItems && sortedLiveItems.length > 0 && <Divider />}
-                  <AddByRSSAlbumTrackNodes
-                    channelIdText={localFeed.idText}
-                    channelTitle={channelTitle}
-                    channelImageUrl={channelImageUrl}
-                    items={pagedItems}
-                    itemIdTextMap={itemIdTextMap}
-                  />
+                  {mappedFeed !== undefined && pagedItems.length === 0 && !showLiveItems ? (
+                    <NoResults message={tMedia('music.no_tracks_found')} />
+                  ) : (
+                    <AddByRSSAlbumTrackNodes
+                      channelIdText={localFeed.idText}
+                      channelTitle={channelTitle}
+                      channelImageUrl={channelImageUrl}
+                      items={pagedItems}
+                      itemIdTextMap={itemIdTextMap}
+                    />
+                  )}
                 </div>
               </Pagination>
             )}
-            {activeTab === 'about' && channelDescription && (
+            {activeTab === 'about' && channelDescription ? (
               <>
                 <DescriptionRenderer description={channelDescription} />
                 {isDescriptionTruncated(mappedChannel?.description) ? (
@@ -509,7 +515,9 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
                   />
                 ) : null}
               </>
-            )}
+            ) : activeTab === 'about' ? (
+              <NoResults message={tInfo('summary.no_summary')} />
+            ) : null}
             {activeTab === 'podroll' && (
               <AddByRSSRemoteItemList
                 rows={podroll.rows}

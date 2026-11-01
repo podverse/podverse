@@ -14,7 +14,7 @@ import styles from './ChipRow.module.scss';
 export type ChipRowItem<T extends string> = {
   key: T;
   label: string;
-  /** Hidden from 1200px up. The side column shows this section there. */
+  /** Hidden from 1200px up. */
   hideDesktop?: boolean;
 };
 

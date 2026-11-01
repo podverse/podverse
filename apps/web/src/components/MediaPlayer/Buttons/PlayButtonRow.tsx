@@ -1,7 +1,14 @@
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa6';
 
-import type { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  AddByRSSResourceData,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+} from '@podverse/helpers';
 import { clampRatio } from '@podverse/helpers/math';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -9,6 +16,7 @@ import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentT
 import { useRemotePlaybackPositionSeconds } from '../../../hooks/useRemotePlaybackPositionSeconds';
 import { useRemotePlayerDisplay } from '../../../hooks/useRemotePlayerDisplay';
 import { useRemoteRowPlayback } from '../../../hooks/useRemoteRowPlayback';
+import { checkIsLiveItem } from '../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 
 import styles from '../../../styles/components/MediaPlayer/Buttons/PlayButtonRow.module.scss';
 
@@ -22,7 +30,19 @@ type PlayButtonRowProps = {
   /** Add by RSS hash ids for this row (getAddByRSSHashIds), to match playback on another device. */
   addByRSSHashIds?: readonly string[];
   onClick: () => void;
+  /**
+   * Rendered after the play button and before the progress bar (e.g. More actions), so More
+   * stays next to Play while the bar grows.
+   */
+  afterPlay?: ReactNode;
 };
+
+function isAddByRSSLivestreamResource(resourceData: AddByRSSResourceData): boolean {
+  return (
+    (resourceData.liveItem !== null && resourceData.liveItem !== undefined) ||
+    (resourceData.livestream_item !== null && resourceData.livestream_item !== undefined)
+  );
+}
 
 /**
  * Playhead for the active list row only. Reads current time from the dedicated context so sibling
@@ -76,6 +96,7 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
   addByRSSIdText,
   addByRSSHashIds,
   onClick,
+  afterPlay,
 }) => {
   const { mpIsPlaying, mpItem, mpItemChapter, mpItemSoundbite, mpClip, mpAddByRSS } =
     useMediaPlayer();
@@ -105,21 +126,30 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
     isLocalMatch = mpItem.id_text === item.id_text;
   }
 
-  const isCurrentlyInPlayer = isLocalMatch || remoteRow.isCurrent;
   const isPlaying = (isLocalMatch && mpIsPlaying) || remoteRow.isPlaying;
   const label = isPlaying ? tMediaPlayer('pause') : tMediaPlayer('play');
   const icon = isPlaying ? <FaPause /> : <FaPlay />;
-  const progress = isLocalMatch ? (
-    <PlayButtonRowProgress />
-  ) : remoteRow.showsProgress ? (
-    <RemotePlayButtonRowProgress />
-  ) : null;
+
+  const isClipChapterOrSoundbite = Boolean(clip || item_chapter || item_soundbite);
+  const isLocalLivestream =
+    isLocalMatch &&
+    !isClipChapterOrSoundbite &&
+    ((item !== null && checkIsLiveItem(item)) ||
+      (addByRSSIdText !== undefined &&
+        mpAddByRSS !== null &&
+        mpAddByRSS.idText === addByRSSIdText &&
+        isAddByRSSLivestreamResource(mpAddByRSS.resourceData)));
+
+  const progress =
+    isLocalMatch && !isLocalLivestream ? (
+      <PlayButtonRowProgress />
+    ) : remoteRow.showsProgress ? (
+      <RemotePlayButtonRowProgress />
+    ) : null;
 
   return (
     <div
-      className={
-        isCurrentlyInPlayer ? styles.playButtonRowClusterActive : styles.playButtonRowCluster
-      }
+      className={progress !== null ? styles.playButtonRowClusterActive : styles.playButtonRowCluster}
     >
       <button
         className={styles.playButtonRow}
@@ -130,6 +160,7 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
       >
         {icon}
       </button>
+      {afterPlay}
       {progress}
     </div>
   );

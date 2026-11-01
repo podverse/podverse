@@ -13,6 +13,7 @@ import { ContentPeopleRows } from '../../../components/Content/About/ContentPeop
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
+import { NoResults } from '../../../components/NoResults/NoResults';
 import { useDescriptionClockPlayback } from '../../../hooks/useDescriptionClockPlayback';
 import { useTrackPageContext } from './TrackPageContext';
 
@@ -38,6 +39,7 @@ export const TrackPageList: React.FC<TrackPageListProps> = ({
   ssrItem,
   ssrCanShowBoosts,
 }) => {
+  const tInfo = useTranslations('info');
   const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const { filterParams, isLoading, transcriptRows } = useTrackPageContext();
   const { type } = filterParams;
@@ -76,7 +78,12 @@ export const TrackPageList: React.FC<TrackPageListProps> = ({
           refreshTrigger={refreshTrigger}
         />
       )}
-      {type === 'transcript' && <ItemTranscript rows={transcriptRows} />}
+      {type === 'transcript' && !isLoading && transcriptRows.length === 0 ? (
+        <NoResults message={tInfo('transcript.no_transcript')} role="status" />
+      ) : null}
+      {type === 'transcript' && (isLoading || transcriptRows.length > 0) ? (
+        <ItemTranscript rows={transcriptRows} />
+      ) : null}
       <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>
   );

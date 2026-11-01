@@ -10,6 +10,7 @@ import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
+import { NoResults } from '../../NoResults/NoResults';
 import { Pagination } from '../../Pagination/Pagination';
 import { ListQueueResourceRow } from './ListQueueResourceRow';
 
@@ -62,11 +63,7 @@ export const ListHistoryResources: React.FC<Props> = ({
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {showEmptyMessage && (
-        <p className={styles.status} role="status">
-          {tHistory('empty')}
-        </p>
-      )}
+      {showEmptyMessage && <NoResults message={tHistory('empty')} role="status" />}
       {showHistoryList && (
         <div className={styles.listWrapper}>
           <Pagination currentPage={page} totalPages={totalPages} setPage={setPage}>

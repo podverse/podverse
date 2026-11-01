@@ -151,7 +151,7 @@ export class AccountFCMDeviceService extends BaseManyService<AccountFCMDevice, '
 
     const { locale } = params;
 
-    await this.repositoryRead
+    await this.repositoryReadWrite
       .createQueryBuilder()
       .update(AccountFCMDevice)
       .set({ locale })

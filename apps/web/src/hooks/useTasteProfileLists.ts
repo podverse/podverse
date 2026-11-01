@@ -34,10 +34,10 @@ export type UseTasteProfileListsResult = {
   loadMoreProfile: () => void;
   loadMoreHidden: () => void;
   loadMoreChannelHidden: () => void;
-  hideShow: (channelIdText: string) => Promise<void>;
-  unhideShow: (channelIdText: string, addToTasteProfile: boolean) => Promise<void>;
-  unhideChannelFromLists: (channelIdText: string) => Promise<void>;
-  applyWeight: (channelIdText: string, weight: number) => Promise<void>;
+  hideShow: (channelIdText: string) => Promise<boolean>;
+  unhideShow: (channelIdText: string, addToTasteProfile: boolean) => Promise<boolean>;
+  unhideChannelFromLists: (channelIdText: string) => Promise<boolean>;
+  applyWeight: (channelIdText: string, weight: number) => Promise<boolean>;
 };
 
 type KeyedRow = { channel: { id_text: string } };
@@ -283,15 +283,17 @@ export function useTasteProfileLists(options: {
   }, []);
 
   const runAction = useCallback(
-    async (channelIdText: string, request: () => Promise<unknown>) => {
+    async (channelIdText: string, request: () => Promise<unknown>): Promise<boolean> => {
       if (pendingRef.current.has(channelIdText)) {
-        return;
+        return false;
       }
       const generation = actionGenerationRef.current;
       updatePending((current) => new Set([...current, channelIdText]));
       setActionFailed(false);
+      let succeeded = false;
       try {
         await request();
+        succeeded = true;
       } catch (error) {
         console.error('[useTasteProfileLists] action failed', error);
         if (generation === actionGenerationRef.current) {
@@ -315,6 +317,7 @@ export function useTasteProfileLists(options: {
           }
         }
       }
+      return succeeded && generation === actionGenerationRef.current;
     },
     [refetchHidden, refetchProfile, refetchChannelHidden, updatePending]
   );

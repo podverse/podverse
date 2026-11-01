@@ -138,11 +138,11 @@ name: Anonymous Subscriptions Persist
     id: podcast-detail-settings
 - takeScreenshot: subscriptions-anonymous-detail-after
 
-# Home now has the subscription, so the empty state is gone and the filter has something to narrow.
-# Search covers the tab bar until the card is dismissed. This screen is one push above Search root.
+# The channel opened on Browse because this device was not following it. One back returns
+# to Browse root. Home now has the subscription, so the empty state is gone.
 - runFlow: shared/stack-back.yaml
 - tapOn:
-    id: search-dismiss
+    id: tab-home
 - assertVisible:
     id: home-screen
 - assertNotVisible:

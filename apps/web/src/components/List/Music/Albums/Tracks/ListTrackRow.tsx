@@ -313,8 +313,8 @@ export const ListTrackRow: React.FC<Props> = ({
         <div className={styles.trackWrapper}>
           <div className={styles.trackContent}>
             <div className={styles.trackTextWrapper}>
-              <h3 className={styles.trackTitle}>{item.title}</h3>
               {showChannelInfo && <div className={styles.trackArtist}>{channel.title}</div>}
+              <h3 className={styles.trackTitle}>{item.title}</h3>
             </div>
           </div>
         </div>

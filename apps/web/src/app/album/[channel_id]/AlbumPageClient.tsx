@@ -1,6 +1,6 @@
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
@@ -12,7 +12,6 @@ import { DirectoryRemovedProvider } from '../../../contexts/DirectoryRemoved';
 import { AlbumPageContextProvider } from './AlbumPageContext';
 import { AlbumPageList } from './AlbumPageList';
 import { AlbumPageListHeader } from './AlbumPageListHeader';
-import { AlbumPageSideContent } from './AlbumPageSideContent';
 
 interface AlbumPageClientProps {
   hasExplicitUrlParams: boolean;
@@ -58,11 +57,7 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
           <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
           <CoreAlbumHeader channel={ssrChannel} />
           <MainSidebarLayout>
-            <AlbumPageSideContent
-              channel={ssrChannel}
-              podroll={ssrPodroll}
-              remoteItems={ssrRemoteItems}
-            />
+            <SideContent />
             <MainColumnStack>
               {directoryRemoved ? (
                 <DirectoryRemovedNotice />

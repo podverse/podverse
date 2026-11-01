@@ -16,6 +16,7 @@ import {
 import { FormMaxWidth, Image, MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
+import { NoResults } from '../../components/NoResults/NoResults';
 import { Pagination } from '../../components/Pagination/Pagination';
 import { ROUTES } from '../../constants/routes';
 import { useNotifications } from '../../contexts/Notifications';
@@ -236,7 +237,7 @@ export function NotificationsPageClient() {
               <div className={styles.listWrapper}>
                 {isLoading ? <p className={styles.empty}>{tNotifications('loading')}</p> : null}
                 {!isLoading && state.items.length === 0 ? (
-                  <p className={styles.empty}>{tNotifications('empty')}</p>
+                  <NoResults message={tNotifications('empty')} role="status" />
                 ) : null}
 
                 {!isLoading && state.items.length > 0 ? (
@@ -280,10 +281,10 @@ export function NotificationsPageClient() {
         {row.is_unread ? (
           <span className={styles.unreadAnnouncer}>{tNotifications('unread')}</span>
         ) : null}
-        <span aria-hidden="true" className={styles.unreadSlot}>
-          {row.is_unread ? <span className={styles.unreadDot} data-unread="true" /> : null}
-        </span>
         <span className={styles.row}>
+          <span aria-hidden="true" className={styles.unreadSlot}>
+            {row.is_unread ? <span className={styles.unreadDot} data-unread="true" /> : null}
+          </span>
           <span className={styles.artwork}>
             <Image
               alt=""

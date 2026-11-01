@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import type { MediaListChipsConfig } from '../../../components/MediaListChips/MediaListChips';
 import { MediaListChips } from '../../../components/MediaListChips/MediaListChips';
 import { MediaListTrailingChips } from '../../../components/MediaListChips/MediaListTrailingChips';
+import { onClickAllCategories } from '../../../utils/categories';
 import { getEpisodesPageSortOptions } from '../episodes/EpisodesPageDropdownConfig';
 import { useClipsPageContext } from './ClipsPageContext';
 
@@ -26,6 +27,13 @@ export function ClipsPageChipRow({ chipsConfig }: ClipsPageChipRowProps) {
                   value: filterParams.category,
                   isListOpen: isCategoryListOpen,
                   setIsListOpen: setIsCategoryListOpen,
+                  onClear: () => {
+                    onClickAllCategories({
+                      filterParams,
+                      setFilterParams,
+                      setIsCategoryListOpen,
+                    });
+                  },
                 }
               : undefined
           }

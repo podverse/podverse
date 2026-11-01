@@ -69,6 +69,7 @@ export const SubscribedEpisodeNodes: React.FC<SubscribedEpisodeNodesProps> = ({
                   currentIndex: addByRSSIndexById.get(entry.item.id) ?? 0,
                   sortOrder: 'recent',
                 }}
+                showChannelInfo={showChannelInfo}
               />
             )}
             {idx < visibleEntries.length - 1 && <Divider />}

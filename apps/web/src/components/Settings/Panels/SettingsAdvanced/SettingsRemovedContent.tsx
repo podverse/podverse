@@ -7,6 +7,7 @@ import type { DTOAccountContentLog } from '@podverse/helpers';
 import { LoadingSpinner } from '@podverse/ui';
 
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { NoResults } from '../../../NoResults/NoResults';
 import { SettingsSection } from '../../SettingsSection';
 
 import styles from '../../../../styles/components/Settings/Panels/SettingsAdvanced/SettingsRemovedContent.module.scss';
@@ -55,7 +56,7 @@ export function SettingsRemovedContent() {
           </p>
         ) : null}
         {state.status === 'ready' && state.rows.length === 0 ? (
-          <p className={styles.copy}>{t('empty')}</p>
+          <NoResults message={t('empty')} role="status" />
         ) : null}
         {state.status === 'ready' && state.rows.length > 0 ? (
           <ul className={styles.rows}>

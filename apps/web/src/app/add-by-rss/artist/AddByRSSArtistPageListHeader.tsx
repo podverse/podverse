@@ -52,18 +52,10 @@ export function AddByRSSArtistPageListHeader({
     });
   }
 
-  if (canShowBoosts) {
-    items.push({
-      key: 'boosts',
-      label: tValue('boost'),
-    });
-  }
-
   if (hasDescription) {
     items.push({
       key: 'about',
       label: tInfo('about'),
-      hideDesktop: true,
     });
   }
 
@@ -71,6 +63,13 @@ export function AddByRSSArtistPageListHeader({
     items.push({
       key: 'podroll',
       label: tInfo('podroll'),
+    });
+  }
+
+  if (canShowBoosts) {
+    items.push({
+      key: 'boosts',
+      label: tValue('boost'),
     });
   }
 

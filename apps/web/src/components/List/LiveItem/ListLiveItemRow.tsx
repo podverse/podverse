@@ -98,11 +98,13 @@ export const ListLiveItemRow: React.FC<Props> = ({
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>
+            {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
             <h3>{item.title}</h3>
-            <div className={styles.subtitle}>
-              {!showChannelInfo && getDescriptionPreviewText(item.item_description)}
-              {showChannelInfo && channel.title}
-            </div>
+            {!showChannelInfo && (
+              <div className={styles.subtitle}>
+                {getDescriptionPreviewText(item.item_description)}
+              </div>
+            )}
           </div>
         </Link>
         <div className={styles.bottomSection}>

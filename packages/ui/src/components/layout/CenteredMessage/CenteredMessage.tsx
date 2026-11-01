@@ -12,8 +12,8 @@ export type CenteredMessageProps = {
 };
 
 /**
- * Fills the page column and centers its contents on both axes. Use when the screen is only a
- * message (and, optionally, a spinner or one action).
+ * Sits at the start of the page column. Use when the screen is only a message (and, optionally,
+ * a spinner or one action).
  */
 export function CenteredMessage({
   children,

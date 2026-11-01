@@ -32,6 +32,14 @@
   color: var(--text-color-secondary);
 }
 
+.channelTitle {
+  @include line-clamp(1);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-sm);
+  margin: var(--spacing-sm) var(--spacing-none);
+}
+
 .subtitle {
   @include line-clamp(1);
   color: var(--text-color-secondary);

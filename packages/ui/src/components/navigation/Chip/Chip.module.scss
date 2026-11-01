@@ -76,6 +76,16 @@
   font-size: var(--font-size-xs);
 }
 
+.staticFace {
+  cursor: default;
+
+  &:hover {
+    color: var(--text-color-accent);
+    background: var(--background-color-tertiary);
+    border-color: var(--text-color-accent);
+  }
+}
+
 .menuWrapper {
   display: inline-flex;
   flex: none;

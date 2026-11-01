@@ -21,9 +21,10 @@ import {
   MainSidebarLayout,
 } from '@podverse/ui';
 
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MediaListChips } from '../../components/MediaListChips/MediaListChips';
-import { MediaListLoadingSpinner } from '../../components/MediaListChips/MediaListLoadingSpinner';
+import { NoResults } from '../../components/NoResults/NoResults';
 import { RecommendationChannelNodes } from '../../components/Recommendations/RecommendationChannelNodes';
 import type { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
@@ -184,7 +185,7 @@ export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPage
               actions={
                 signedIn ? (
                   <Button onClick={openSettings} type="button" variant="mini">
-                    {t('edit')}
+                    {tMisc('edit')}
                   </Button>
                 ) : undefined
               }
@@ -222,14 +223,14 @@ export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPage
               </div>
             ) : null}
             {signedIn && trackingAllowed && shown.status === 'ready' && items.length === 0 ? (
-              <p className={styles.status}>{t('check_back')}</p>
+              <NoResults message={t('check_back')} role="status" />
             ) : null}
             {signedIn && shown.status === 'error' ? (
               <p className={styles.status} role="alert">
                 {t('load_error')}
               </p>
             ) : null}
-            {signedIn && shown.status === 'loading' ? <MediaListLoadingSpinner /> : null}
+            <WebLoadingSpinnerOverlay isLoading={signedIn && shown.status === 'loading'} />
             {items.length > 0 ? (
               <RecommendationNodes
                 chip={chip}

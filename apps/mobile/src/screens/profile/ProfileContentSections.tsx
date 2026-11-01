@@ -1,75 +1,48 @@
 import type { ReactNode } from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SectionList, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { DTOChannel, DTOClip, DTOPlaylist } from '@podverse/helpers';
 
 import { PlaylistListRow } from '../../components/content';
-import {
-  applyFillListRenderWindow,
-  LIST_REMOVE_CLIPPED_SUBVIEWS,
-} from '../../components/primitives/listVirtualization';
-import { SectionHeading } from '../../components/section/SectionHeading';
+import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
+import { MenuSelectChip, SectionChipRow } from '../../components/form';
+import { FillList } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import {
   channelToHomeRow,
   clipToHomeRow,
   MIXED_SOURCE_CLIP_ROW_OPTIONS,
 } from '../../lib/rows/homeRowMappers';
-import {
-  BottomChromeScrollSpacer,
-  useBottomChromeScrollIndicatorInsets,
-} from '../../theme/bottomChromeOverlayInset';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { QueueActionPosition } from '../home/useHomeRowPlayback';
+import type { ProfileStackContentRequest } from './openProfileStackContent';
 
 type ProfileContentSectionsProps = {
   albums: DTOChannel[];
   clips: DTOClip[];
   emptyTestIdPrefix: 'my-profile' | 'profile';
   header?: ReactNode;
-  onPlaylistPress: (playlistId: string) => void;
+  onContentPress: (request: ProfileStackContentRequest) => void;
   playlists: DTOPlaylist[];
   podcasts: DTOChannel[];
 };
 
-type ProfileSectionKey = 'albums' | 'clips' | 'playlists' | 'podcasts';
+export type ProfileContentChip = 'albums' | 'clips' | 'playlists' | 'podcasts';
 
-type ProfileSectionItem =
+type ProfileListItem =
   | { channel: DTOChannel; kind: 'album' }
   | { clip: DTOClip; kind: 'clip' }
-  | { emptyTestID: string; kind: 'empty'; messageKey: string }
   | { kind: 'playlist'; playlist: DTOPlaylist }
   | { channel: DTOChannel; kind: 'podcast' };
 
-type ProfileSection = {
-  data: ProfileSectionItem[];
-  key: ProfileSectionKey;
-  title: string;
-};
-
 const noopPlayPress = (_row: HomeFeedRowData): void => undefined;
-const noopPress = (_row: HomeFeedRowData): void => undefined;
 const noopQueuePress = (_row: HomeFeedRowData, _position: QueueActionPosition): void => undefined;
 
-function withEmptyFallback(
-  items: ProfileSectionItem[],
-  emptyTestID: string,
-  messageKey: string
-): ProfileSectionItem[] {
-  if (items.length === 0) {
-    return [{ emptyTestID, kind: 'empty', messageKey }];
-  }
-  return items;
-}
-
-function profileSectionItemKeyExtractor(item: ProfileSectionItem): string {
-  if (item.kind === 'empty') {
-    return item.emptyTestID;
-  }
+function profileListItemKeyExtractor(item: ProfileListItem): string {
   if (item.kind === 'podcast' || item.kind === 'album') {
     return `${item.kind}:${item.channel.id_text}`;
   }
@@ -82,17 +55,29 @@ function profileSectionItemKeyExtractor(item: ProfileSectionItem): string {
 function ProfileChannelRow({
   channel,
   mediaType,
+  onContentPress,
 }: {
   channel: DTOChannel;
   mediaType: 'albums' | 'podcasts';
+  onContentPress: (request: ProfileStackContentRequest) => void;
 }) {
   const row = useMemo(() => channelToHomeRow(channel), [channel]);
+
+  const handlePress = useCallback(
+    (pressed: HomeFeedRowData) => {
+      onContentPress({
+        kind: mediaType === 'albums' ? 'album' : 'podcast',
+        row: pressed,
+      });
+    },
+    [mediaType, onContentPress]
+  );
 
   return (
     <HomeFeedRow
       mediaType={mediaType}
       onPlayPress={noopPlayPress}
-      onPress={noopPress}
+      onPress={handlePress}
       onQueuePress={noopQueuePress}
       row={row}
     />
@@ -101,16 +86,16 @@ function ProfileChannelRow({
 
 function ProfilePlaylistRow({
   emptyTestIdPrefix,
-  onPlaylistPress,
+  onContentPress,
   playlist,
 }: {
   emptyTestIdPrefix: 'my-profile' | 'profile';
-  onPlaylistPress: (playlistId: string) => void;
+  onContentPress: (request: ProfileStackContentRequest) => void;
   playlist: DTOPlaylist;
 }) {
   const handlePress = useCallback(() => {
-    onPlaylistPress(playlist.id_text);
-  }, [onPlaylistPress, playlist.id_text]);
+    onContentPress({ id: playlist.id_text, kind: 'playlist' });
+  }, [onContentPress, playlist.id_text]);
 
   return (
     <PlaylistListRow
@@ -122,18 +107,44 @@ function ProfilePlaylistRow({
   );
 }
 
-function ProfileClipRow({ clip }: { clip: DTOClip }) {
+function ProfileClipRow({
+  clip,
+  onContentPress,
+}: {
+  clip: DTOClip;
+  onContentPress: (request: ProfileStackContentRequest) => void;
+}) {
   const row = useMemo(() => clipToHomeRow(clip, MIXED_SOURCE_CLIP_ROW_OPTIONS), [clip]);
+
+  const handlePress = useCallback(
+    (pressed: HomeFeedRowData) => {
+      onContentPress({ id: pressed.id, kind: 'clip' });
+    },
+    [onContentPress]
+  );
 
   return (
     <HomeFeedRow
       mediaType="clips"
       onPlayPress={noopPlayPress}
-      onPress={noopPress}
+      onPress={handlePress}
       onQueuePress={noopQueuePress}
       row={row}
     />
   );
+}
+
+function emptyMessageKeyForChip(chip: ProfileContentChip): string {
+  if (chip === 'podcasts') {
+    return 'media.podcast.no_podcasts_found';
+  }
+  if (chip === 'albums') {
+    return 'media.music.no_albums_found';
+  }
+  if (chip === 'playlists') {
+    return 'features.playlist.no_playlists_found';
+  }
+  return 'features.clip.no_clips_found';
 }
 
 export function ProfileContentSections({
@@ -141,141 +152,164 @@ export function ProfileContentSections({
   clips,
   emptyTestIdPrefix,
   header,
-  onPlaylistPress,
+  onContentPress,
   playlists,
   podcasts,
 }: ProfileContentSectionsProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
-  const scrollIndicatorInsets = useBottomChromeScrollIndicatorInsets();
+  const { tokens } = useTheme();
+  const [selectedChip, setSelectedChip] = useState<ProfileContentChip>('podcasts');
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
         headerSlot: {
-          marginBottom: tokens.spacing.md,
+          marginBottom: tokens.spacing.base,
         },
         list: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
           flex: 1,
         },
         listContent: {
           flexGrow: 1,
-          padding: tokens.spacing.lg,
-        },
-        sectionHeading: {
-          marginBottom: tokens.spacing.sm,
-          marginTop: tokens.spacing.md,
-        },
-        sectionHeadingFirst: {
-          marginBottom: tokens.spacing.sm,
         },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
-  const sections = useMemo(
-    (): ProfileSection[] => [
+  const chipItems = useMemo<SectionChipItem<ProfileContentChip>[]>(
+    () => [
       {
-        data: withEmptyFallback(
-          podcasts.map((channel) => ({ channel, kind: 'podcast' })),
-          `${emptyTestIdPrefix}-podcasts-empty`,
-          'media.podcast.no_podcasts_found'
-        ),
         key: 'podcasts',
-        title: t('media.podcast.podcasts'),
+        label: t('media.podcast.podcasts'),
+        testID: `${emptyTestIdPrefix}-chip-podcasts`,
       },
       {
-        data: withEmptyFallback(
-          albums.map((channel) => ({ channel, kind: 'album' })),
-          `${emptyTestIdPrefix}-albums-empty`,
-          'media.music.no_albums_found'
-        ),
         key: 'albums',
-        title: t('media.music.albums'),
+        label: t('media.music.albums'),
+        testID: `${emptyTestIdPrefix}-chip-albums`,
       },
       {
-        data: withEmptyFallback(
-          playlists.map((playlist) => ({ kind: 'playlist', playlist })),
-          `${emptyTestIdPrefix}-playlists-empty`,
-          'features.playlist.no_playlists_found'
-        ),
         key: 'playlists',
-        title: t('features.playlist.playlists'),
+        label: t('features.playlist.playlists'),
+        testID: `${emptyTestIdPrefix}-chip-playlists`,
       },
       {
-        data: withEmptyFallback(
-          clips.map((clip) => ({ clip, kind: 'clip' })),
-          `${emptyTestIdPrefix}-clips-empty`,
-          'features.clip.no_clips_found'
-        ),
         key: 'clips',
-        title: t('features.clip.clips'),
+        label: t('features.clip.clips'),
+        testID: `${emptyTestIdPrefix}-chip-clips`,
       },
     ],
-    [albums, clips, emptyTestIdPrefix, playlists, podcasts, t]
+    [emptyTestIdPrefix, t]
   );
 
-  const listHeader = useMemo(() => {
-    if (header === undefined || header === null) {
-      return undefined;
-    }
-    return <View style={styles.headerSlot}>{header}</View>;
-  }, [header, styles.headerSlot]);
+  const sortValue = selectedChip === 'clips' ? 'recent' : 'a_z';
+  const sortOptions = useMemo<MenuSelectChipOption<'a_z' | 'recent'>[]>(
+    () => [
+      {
+        label:
+          selectedChip === 'clips' ? t('filters.sort.recent') : t('filters.sort.a_z'),
+        value: sortValue,
+      },
+    ],
+    [selectedChip, sortValue, t]
+  );
 
-  const renderSectionHeader = useCallback(
-    ({ section }: { section: ProfileSection }) => (
-      <SectionHeading
-        style={section.key === 'podcasts' ? styles.sectionHeadingFirst : styles.sectionHeading}
-      >
-        {section.title}
-      </SectionHeading>
+  const listItems = useMemo((): ProfileListItem[] => {
+    if (selectedChip === 'podcasts') {
+      return podcasts.map((channel) => ({ channel, kind: 'podcast' }));
+    }
+    if (selectedChip === 'albums') {
+      return albums.map((channel) => ({ channel, kind: 'album' }));
+    }
+    if (selectedChip === 'playlists') {
+      return playlists.map((playlist) => ({ kind: 'playlist', playlist }));
+    }
+    return clips.map((clip) => ({ clip, kind: 'clip' }));
+  }, [albums, clips, playlists, podcasts, selectedChip]);
+
+  const listHeader = useMemo(
+    () => (
+      <>
+        {header !== undefined && header !== null ? (
+          <View style={styles.headerSlot}>{header}</View>
+        ) : null}
+        <SectionChipRow
+          items={chipItems}
+          onSelect={setSelectedChip}
+          selectedKey={selectedChip}
+          testID={`${emptyTestIdPrefix}-content-chips`}
+          trailing={
+            <MenuSelectChip
+              heading={t('filters.screen.sort_heading')}
+              onSelect={() => undefined}
+              options={sortOptions}
+              testID={`${emptyTestIdPrefix}-sort`}
+              value={sortValue}
+            />
+          }
+        />
+      </>
     ),
-    [styles.sectionHeading, styles.sectionHeadingFirst]
+    [
+      chipItems,
+      emptyTestIdPrefix,
+      header,
+      selectedChip,
+      sortOptions,
+      sortValue,
+      styles.headerSlot,
+      t,
+    ]
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: ProfileSectionItem }) => {
-      if (item.kind === 'empty') {
-        return <ListEmpty messageKey={item.messageKey} testID={item.emptyTestID} />;
-      }
+    ({ item }: { item: ProfileListItem }) => {
       if (item.kind === 'podcast') {
-        return <ProfileChannelRow channel={item.channel} mediaType="podcasts" />;
+        return (
+          <ProfileChannelRow
+            channel={item.channel}
+            mediaType="podcasts"
+            onContentPress={onContentPress}
+          />
+        );
       }
       if (item.kind === 'album') {
-        return <ProfileChannelRow channel={item.channel} mediaType="albums" />;
+        return (
+          <ProfileChannelRow
+            channel={item.channel}
+            mediaType="albums"
+            onContentPress={onContentPress}
+          />
+        );
       }
       if (item.kind === 'playlist') {
         return (
           <ProfilePlaylistRow
             emptyTestIdPrefix={emptyTestIdPrefix}
-            onPlaylistPress={onPlaylistPress}
+            onContentPress={onContentPress}
             playlist={item.playlist}
           />
         );
       }
-      return <ProfileClipRow clip={item.clip} />;
+      return <ProfileClipRow clip={item.clip} onContentPress={onContentPress} />;
     },
-    [emptyTestIdPrefix, onPlaylistPress]
+    [emptyTestIdPrefix, onContentPress]
   );
 
   return (
-    <SectionList
-      {...applyFillListRenderWindow({})}
-      ListFooterComponent={<BottomChromeScrollSpacer />}
+    <FillList
+      ListEmptyComponent={
+        <ListEmpty
+          messageKey={emptyMessageKeyForChip(selectedChip)}
+          testID={`${emptyTestIdPrefix}-${selectedChip}-empty`}
+        />
+      }
       ListHeaderComponent={listHeader}
       contentContainerStyle={styles.listContent}
-      scrollIndicatorInsets={scrollIndicatorInsets}
-      keyExtractor={profileSectionItemKeyExtractor}
+      data={listItems}
+      keyExtractor={profileListItemKeyExtractor}
       keyboardShouldPersistTaps="handled"
-      removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
       renderItem={renderItem}
-      renderSectionHeader={renderSectionHeader}
-      sections={sections}
-      stickySectionHeadersEnabled={false}
       style={styles.list}
     />
   );

@@ -14,7 +14,7 @@ import {
   MEDIA_LIST_CHIP_LABEL_KEYS,
   writeMediaListChip,
 } from '../../utils/mediaListChips';
-import { MediaListLoadingSpinner } from './MediaListLoadingSpinner';
+import { WebLoadingSpinnerOverlay } from '../LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MediaListPendingTrailingChips } from './MediaListPendingTrailingChips';
 
 import styles from '../../styles/components/MediaListChips/MediaListChips.module.scss';
@@ -44,10 +44,10 @@ type MediaListChipsProps = MediaListChipsConfig & {
 
 /**
  * Media chips for Subscribed, Browse, Add by RSS, and Recommendations. The pressed chip follows
- * the click at once. Everything after the row in its column is the list area, hidden behind one
- * spinner until the new chip's render commits. While that spinner is up, the trailing slot shows
- * Sort and the gear for the pressed chip. The row keeps its horizontal offset and focus across
- * that render. The last chip clicked wins.
+ * the click at once. A full-viewport loading overlay covers the page until the new chip's render
+ * commits. While that overlay is up, the trailing slot shows Sort and the gear for the pressed
+ * chip. The row keeps its horizontal offset and focus across that render. The last chip clicked
+ * wins.
  */
 export function MediaListChips({
   page,
@@ -100,10 +100,7 @@ export function MediaListChips({
   const hasActions = typeof actions !== 'boolean' && actions !== undefined && actions !== null;
   const chipRow = (
     <ChipRow
-      className={classNames(
-        !hasActions && styles.chipRow,
-        !hasActions && isPending && styles.chipRowPending
-      )}
+      className={classNames(!hasActions && styles.chipRow)}
       items={chips.map((chip) => ({ key: chip, label: t(MEDIA_LIST_CHIP_LABEL_KEYS[chip]) }))}
       memoryKey={`media-list-chips-${page}`}
       onSelect={onSelect}
@@ -119,14 +116,14 @@ export function MediaListChips({
         <ChipRowWithActions
           actions={actions}
           actionsTestId={actionsTestId}
-          className={classNames(styles.chipRow, isPending && styles.chipRowPending)}
+          className={styles.chipRow}
         >
           {chipRow}
         </ChipRowWithActions>
       ) : (
         chipRow
       )}
-      {isPending ? <MediaListLoadingSpinner className={styles.pendingLoading} /> : null}
+      <WebLoadingSpinnerOverlay isLoading={isPending} />
     </>
   );
 }

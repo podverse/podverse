@@ -1,9 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { DescriptionTruncationNotice } from '../../../Content/Description/DescriptionTruncationNotice';
+import { NoResults } from '../../../NoResults/NoResults';
 
 const DescriptionRenderer = dynamic(
   () =>
@@ -32,9 +34,10 @@ export const CoreEpisodeSummary: React.FC<CoreEpisodeSummaryProps> = ({
   isTruncated,
   fullNotesUrl,
 }) => {
+  const tInfo = useTranslations('info');
   const hasDescription = description !== undefined && description.length > 0;
   if (!hasDescription) {
-    return null;
+    return <NoResults message={tInfo('summary.no_summary')} role="status" />;
   }
 
   return (

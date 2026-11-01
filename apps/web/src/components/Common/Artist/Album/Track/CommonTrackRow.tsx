@@ -43,11 +43,11 @@ const trackContent = (
     <div className={styles.trackWrapper}>
       <div className={styles.trackContent}>
         <div className={styles.trackTextWrapper}>
+          {subtitle ? <div className={styles.trackArtist}>{subtitle}</div> : null}
           <h3 className={styles.trackTitle}>
             {title}
             {titleMarker}
           </h3>
-          {subtitle ? <div className={styles.trackArtist}>{subtitle}</div> : null}
         </div>
       </div>
     </div>

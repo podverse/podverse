@@ -35,7 +35,7 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 | Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                                                                                             |
 | Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `HeaderBarActions`, `OfflineModeBanner`, `MobileScreenContainer`, `ModalSafeArea`, `ThemedStackHeader`)                             |
 | Section / list grouping                     | `components/section/` (`SectionHeading`, `SectionCard`)                                                                                                                                                      |
-| Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                                               |
+| Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `EmptyStateText`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                             |
 | Playback row actions / mini player          | `components/player/`                                                                                                                                                                                         |
 | Membership / gate feedback                  | `components/feedback/` (`ConfirmDialog` via `openGate`, `HelperNote`, `GatedFeatureNotice` only when there is no action to attach)                                                                           |
 | Form / settings selects                     | `components/form/` (`TextField`, `FormField`, `FormActions`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsSwitchRow`, `SettingsDependentGroup`, `SettingsOptionNavRow`, `OptionListScreen`) |
@@ -148,10 +148,12 @@ same type: 14pt, weight 700, line height 20, `tokens.text.link`. An item descrip
 weight 400, line height 20, in secondary color, and it shares that `spacing.xs` gap with the
 identity row. The play band stays on the wider gap below the text. Track rows
 (`mediaType="tracks"`) omit the list play/pause band and put More in `identityRow`, vertically
-centered with the artwork and text; the row press still starts playback. `ListRow` is the
-title/subtitle primitive. Its title-to-subtitle gap stays `spacing.sm`, and its default vertical
-padding is `spacing.base`. A numeric `badgeCount` renders `CountBadge` left of `trailing`
-(chevron) and hides at 0; do not invent a second count chip. See **mobile-screen-layout**.
+centered with the artwork and text; the row press still starts playback. A podcast, album, or
+artist row never mounts More — channel actions stay on swipe-left / grid long-press
+(**mobile-screen-layout**). `ListRow` is the title/subtitle primitive. Its title-to-subtitle
+gap stays `spacing.sm`, and its default vertical padding is `spacing.base`. A numeric
+`badgeCount` renders `CountBadge` left of `trailing` (chevron) and hides at 0; do not invent a
+second count chip. See **mobile-screen-layout**.
 
 **Home subscription markers:** live, unseen, and downloaded each have one home. Do not reuse the
 count chip for unseen presence.
@@ -199,8 +201,8 @@ title (`CHANNEL_HEADER_SETTINGS_ICON_SIZE`). Do not
 add a second inner `Card` inset on top of that gutter. Do not wrap a scrolling result list in a
 perimeter `Card`. Screen lists that show a `VerticalCenter` fill empty use **`FillList`** (scroll
 locked when `data` is empty and `ListEmptyComponent` is set). Login and Sign up overlay the tabs
-in a full-screen slide `Modal` with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text +
-link switch under Submit. See **mobile-screen-layout**.
+in a full-screen slide `Modal` with `HeaderBarChrome` (`chevron-down`, no Cancel), header-band
+drag dismiss, and a text + link switch under Submit. See **mobile-screen-layout**.
 
 ## Checklist before finishing a screen
 

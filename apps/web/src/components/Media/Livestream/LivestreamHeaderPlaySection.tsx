@@ -63,7 +63,7 @@ export const LivestreamHeaderPlaySection: React.FC<LivestreamHeaderPlaySectionPr
           <>
             <LiveItemStatus live_item={item.live_item} />
             <div className={styles.timeSection}>
-              <ReadableDate date={item.live_item.start_time} />
+              <ReadableDate date={item.live_item.start_time} includeTime />
               {' • '}
               <ReadableTime
                 start={item.live_item.start_time}

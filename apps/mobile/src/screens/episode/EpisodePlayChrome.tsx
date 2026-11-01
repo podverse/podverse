@@ -10,9 +10,12 @@ import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindo
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { useActionError } from '../../feedback/ActionErrorProvider';
+import { itemDetailArtworkUri } from '../../lib/content/itemDetailArtworkUri';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
 import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { itemDetailArtworkEdge } from '../../theme/screenLayout';
+import { useResponsive } from '../../theme/useResponsive';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import type { EpisodePlaybackProgress } from './episodePlaybackProgress';
@@ -65,10 +68,9 @@ const formatProgressTimeLabel = (
 /**
  * Episode identity and the same play / duration / more bar a podcast episode row uses.
  *
- * Artwork sits at the top with the same download/delete icon a list episode row uses, far right
- * of the image. Podcast name, episode title, and pub date stack under that row so a long title
- * grows the header instead of covering the chips below. The play bar is `MediaRowActions` in the
- * icon appearance the list rows use.
+ * Artwork is the full-width header square. Podcast name, episode title, and pub date stack under
+ * it so a long title grows the header instead of covering the chips below. The play bar is
+ * `MediaRowActions` in the icon appearance the list rows use, with download left of More.
  */
 export function EpisodePlayChrome({
   episode,
@@ -82,6 +84,7 @@ export function EpisodePlayChrome({
   podcastTitle,
 }: EpisodePlayChromeProps) {
   const { t, i18n } = useTranslation();
+  const { isTablet, width } = useResponsive();
   const { stored } = useEpisodeStoredProgress(episode);
   const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
   const activeMediaId = activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
@@ -95,7 +98,14 @@ export function EpisodePlayChrome({
     status: downloadStatus,
   } = useDownloadAction(episode, false, { explicitSelectedParams });
   const { openDownloadError } = useActionError();
-  const artworkUri = getItemPrimaryImageUrl(episode);
+  const artworkEdge = itemDetailArtworkEdge(width, isTablet);
+  const listArtworkUri = getItemPrimaryImageUrl(episode);
+  const artworkUri = itemDetailArtworkUri(
+    episode.item_images,
+    episode.channel?.channel_images,
+    artworkEdge,
+    listArtworkUri
+  );
   const viewerUri = itemHeaderLightboxArtworkCandidates(episode.item_images)[0] ?? artworkUri;
   const episodeTitle = episode.title ?? episode.id_text;
 

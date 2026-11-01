@@ -2,13 +2,14 @@
 
 .root {
   @include flexColumn(var(--spacing-lg));
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  margin: var(--spacing-4xl) var(--spacing-none);
+  align-items: flex-start;
+  margin: var(--spacing-xl) 0 0;
 }
 
 .rootModal {
+  align-items: center;
+  flex: 1;
+  justify-content: center;
   margin: var(--spacing-none);
   gap: var(--spacing-2xl);
 }

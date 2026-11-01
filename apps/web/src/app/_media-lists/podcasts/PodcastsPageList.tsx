@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import type { AddByRSSResourceType, DTOCategory } from '@podverse/helpers';
 import { PAGINATION } from '@podverse/helpers';
-import { InfoWrapper } from '@podverse/ui';
 
 import { CategoriesList } from '../../../components/Category/CategoriesList';
 import type { PodcastListItem } from '../../../components/Common/Podcast/types';
@@ -189,9 +188,7 @@ export const PodcastsPageList: React.FC = () => {
         </p>
       )}
       {showNoFilterMatches && (
-        <InfoWrapper>
-          <p>{tSubscriptions('no_filter_matches')}</p>
-        </InfoWrapper>
+        <NoResults message={tSubscriptions('no_filter_matches')} role="status" />
       )}
       {showEmpty ? (
         <NoResults message={tMedia('podcast.no_podcasts_found')} />

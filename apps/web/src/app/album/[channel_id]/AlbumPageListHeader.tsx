@@ -41,13 +41,25 @@ export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({
       key: 'tracks',
       label: tMedia('music.tracks'),
     },
+    {
+      key: 'about',
+      label: tInfo('about'),
+    },
   ];
 
-  items.push({
-    key: 'about',
-    label: tInfo('about'),
-    hideDesktop: true,
-  });
+  if (ssrHasPodroll) {
+    items.push({
+      key: 'podroll',
+      label: tInfo('podroll'),
+    });
+  }
+
+  if (ssrHasRemoteItems) {
+    items.push({
+      key: 'remote-items',
+      label: tInfo('remote_items'),
+    });
+  }
 
   if (ssrCanShowBoosts) {
     items.push({
@@ -56,27 +68,10 @@ export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({
     });
   }
 
-  if (ssrHasPodroll) {
-    items.push({
-      key: 'podroll',
-      label: tInfo('podroll'),
-      hideDesktop: true,
-    });
-  }
-
-  if (ssrHasRemoteItems) {
-    items.push({
-      key: 'remote-items',
-      label: tInfo('remote_items'),
-      hideDesktop: true,
-    });
-  }
-
   if (ssrHasPeople) {
     items.push({
       key: 'people',
       label: tInfo('people.people'),
-      hideDesktop: true,
     });
   }
 

@@ -1,9 +1,9 @@
 .root {
   box-sizing: border-box;
   display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   min-width: 0;
   width: 100%;
   padding: var(--spacing-xl) var(--spacing-2xl);
@@ -13,12 +13,12 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-lg);
   max-width: 36rem;
   min-width: 0;
   overflow-wrap: break-word;
-  text-align: center;
+  text-align: start;
   width: 100%;
   color: var(--text-color-primary);
 }

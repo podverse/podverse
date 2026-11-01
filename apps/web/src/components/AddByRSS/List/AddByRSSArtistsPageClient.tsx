@@ -13,7 +13,6 @@ import { AddByRSSArtistNodes } from '../../../components/AddByRSS/Artist/AddByRS
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import type { MediaListChipsConfig } from '../../../components/MediaListChips/MediaListChips';
-import { MediaListLoadingSpinner } from '../../../components/MediaListChips/MediaListLoadingSpinner';
 import { NoResults } from '../../../components/NoResults/NoResults';
 import { Pagination } from '../../../components/Pagination/Pagination';
 import { dismissToast, showToast, showToastLoading } from '../../../components/Toast/Toast';
@@ -56,6 +55,7 @@ export const AddByRSSArtistsPageClient: React.FC<AddByRSSArtistsPageClientProps>
   chipsConfig,
 }) => {
   const tFeatures = useTranslations('features');
+  const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
   const { loggedInAccount } = useAccount();
   const { setModalAuthLogin } = useModals();
@@ -255,10 +255,9 @@ export const AddByRSSArtistsPageClient: React.FC<AddByRSSArtistsPageClientProps>
             ) : pagedFeeds.length > 0 ? (
               <AddByRSSArtistNodes feeds={pagedFeeds} viewSelected={viewSelected} />
             ) : isLoading || !loggedInAccount ? null : (
-              <NoResults message={tFeatures('add_by_rss.no_feeds_music')} />
+              <NoResults message={tMedia('music.no_artists_found')} />
             )}
-            {isLoading && pagedFeeds.length === 0 ? <MediaListLoadingSpinner /> : null}
-            <WebLoadingSpinnerOverlay isLoading={isLoading && pagedFeeds.length > 0} />
+            <WebLoadingSpinnerOverlay isLoading={isLoading} />
           </MainColumnStack>
         </MainSidebarLayout>
       </MainWrapper>

@@ -125,6 +125,7 @@ fi
 cd "$REPO_ROOT"
 if [[ "$PLATFORM" == "ios" ]]; then
   bash "$SCRIPT_DIR/ensure-expo-sqlite-vendored-sources.sh" "$REPO_ROOT/apps/mobile"
+  bash "$SCRIPT_DIR/ensure-expo-modules-core-swift.sh" "$REPO_ROOT/apps/mobile"
   bash "$SCRIPT_DIR/ensure-ios-pod-build-settings.sh" "$REPO_ROOT/apps/mobile/ios"
 fi
 

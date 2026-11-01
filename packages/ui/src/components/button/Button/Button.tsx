@@ -25,6 +25,9 @@ export type ButtonVariant =
   | 'miniGlowDanger'
   | 'unstyled';
 
+/** Which side of the label a button icon sits on. */
+export type ButtonIconPosition = 'start' | 'end';
+
 type ButtonProps = {
   block?: boolean;
   children: React.ReactNode;
@@ -52,6 +55,10 @@ type ButtonProps = {
   role?: string;
   isDropdownButton?: boolean;
   isLoading?: boolean;
+  /** Glyph rendered beside the label. The slot centers it with the text. */
+  icon?: React.ReactNode;
+  /** Which side of the label `icon` sits on. Defaults to the start. */
+  iconPosition?: ButtonIconPosition;
   description?: string;
   errorMessage?: string;
   /** Renders an `<a>` with the same button chrome (do not wrap `<Button>` in `<a>`). */
@@ -85,6 +92,8 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
       role = 'button',
       isDropdownButton = false,
       isLoading = false,
+      icon,
+      iconPosition = 'start',
       description,
       errorMessage,
       href,
@@ -103,16 +112,33 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
     );
 
     const inactive = disabled || isLoading;
+    const hasIcon = icon !== undefined && icon !== null;
+    const hasGlyph = hasIcon || isDropdownButton;
 
     const inner = (
       <>
         <span
           className={classNames(styles.buttonContent, {
+            [cssClass(styles, 'withIcon')]: hasGlyph,
             [cssClass(styles, 'invisible')]: isLoading,
           })}
         >
-          {children}
-          {isDropdownButton && <FaChevronDown className={styles.chevronIcon} />}
+          {hasIcon && iconPosition === 'start' ? (
+            <span className={styles.buttonIcon} aria-hidden="true">
+              {icon}
+            </span>
+          ) : null}
+          {hasGlyph ? <span className={styles.buttonLabel}>{children}</span> : children}
+          {hasIcon && iconPosition === 'end' ? (
+            <span className={styles.buttonIcon} aria-hidden="true">
+              {icon}
+            </span>
+          ) : null}
+          {isDropdownButton ? (
+            <span className={styles.buttonIcon} aria-hidden="true">
+              <FaChevronDown />
+            </span>
+          ) : null}
         </span>
         {isLoading && (
           <span className={styles.spinnerWrapper}>

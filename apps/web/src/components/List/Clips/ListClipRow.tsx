@@ -315,7 +315,6 @@ export const ListClipRow: React.FC<Props> = ({
 
   const titleBlock = (
     <div className={styles.topSection}>
-      <h3 className={styles.clipTitle}>{clipTitle}</h3>
       {sourceRemoved ? (
         snapshotTitles.length > 0 ? (
           <div className={styles.subtitle}>{snapshotTitles.join(' • ')}</div>
@@ -329,6 +328,7 @@ export const ListClipRow: React.FC<Props> = ({
           </div>
         )
       )}
+      <h3 className={styles.clipTitle}>{clipTitle}</h3>
     </div>
   );
 
@@ -377,13 +377,17 @@ export const ListClipRow: React.FC<Props> = ({
                   clip={clip}
                   item={item ?? null}
                   onClick={onPlayAndRemove ?? playButtonOnClick}
-                />
-                <ItemRowMoreActions
-                  enclosures={item?.item_enclosures ?? []}
-                  itemTitle={itemTitle}
-                  ariaLabel={tMedia('more_options')}
-                  moreButtonMenuItems={moreButtonMenuItems}
-                  onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+                  afterPlay={
+                    <ItemRowMoreActions
+                      enclosures={item?.item_enclosures ?? []}
+                      itemTitle={itemTitle}
+                      ariaLabel={tMedia('more_options')}
+                      moreButtonMenuItems={moreButtonMenuItems}
+                      onLoadInPlayerWithSource={
+                        isActiveItem ? undefined : (params) => loadItem(params)
+                      }
+                    />
+                  }
                 />
                 <div className={styles.timeSection}>
                   {showItemInfo && (

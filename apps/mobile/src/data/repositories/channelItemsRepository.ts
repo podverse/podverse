@@ -56,7 +56,14 @@ let appliedPopularityRange: QueryParamsStatsRange | null = null;
 /** How a stored episode list is ordered. Matches the sorts Home and podcast detail offer. */
 export type ChannelItemSort = 'alphabetical' | 'oldest' | 'popularity' | 'recent';
 
+/** One stored item for Home's cross-channel list, with the channel id the row belongs to. */
+export type SubscribedChannelItem = {
+  channelIdText: string;
+  item: DTOItem;
+};
+
 type ItemWithPopularity = {
+  channelIdText: string;
   item: DTOItem;
   popularityRank: number | null;
 };
@@ -69,15 +76,29 @@ type ItemWithPopularity = {
  * leading article, which SQLite cannot express without storing a second copy of every title.
  * Popularity uses the stored listen-count rank the same way, with unknown ranks after known ones.
  */
+const toSubscribedChannelItem = (row: ItemWithPopularity): SubscribedChannelItem => ({
+  channelIdText: row.channelIdText,
+  item: row.item,
+});
+
 const sortItems = (items: readonly ItemWithPopularity[], sort: ChannelItemSort): DTOItem[] => {
+  return sortSubscribedItems(items, sort).map((row) => row.item);
+};
+
+const sortSubscribedItems = (
+  items: readonly ItemWithPopularity[],
+  sort: ChannelItemSort
+): SubscribedChannelItem[] => {
   if (sort === 'alphabetical') {
-    return [...items].sort((a, b) => compareItemsByTitle(a.item, b.item)).map((row) => row.item);
+    return [...items]
+      .sort((a, b) => compareItemsByTitle(a.item, b.item))
+      .map(toSubscribedChannelItem);
   }
   if (sort === 'popularity') {
-    return [...items].sort(compareItemsByPopularity).map((row) => row.item);
+    return [...items].sort(compareItemsByPopularity).map(toSubscribedChannelItem);
   }
-  const payloads = items.map((row) => row.item);
-  return sort === 'oldest' ? payloads.reverse() : payloads;
+  const ordered = sort === 'oldest' ? [...items].reverse() : items;
+  return ordered.map(toSubscribedChannelItem);
 };
 
 const compareItemsByPopularity = (a: ItemWithPopularity, b: ItemWithPopularity): number => {
@@ -117,13 +138,17 @@ const rowToItem = (row: Pick<ChannelItemRow, 'payloadJson'>): DTOItem | null => 
 };
 
 const rowsToRankedItems = (
-  rows: readonly Pick<ChannelItemRow, 'payloadJson' | 'popularityRank'>[]
+  rows: readonly Pick<ChannelItemRow, 'channelIdText' | 'payloadJson' | 'popularityRank'>[]
 ): ItemWithPopularity[] => {
   const items: ItemWithPopularity[] = [];
   for (const row of rows) {
     const item = rowToItem(row);
     if (item !== null) {
-      items.push({ item, popularityRank: row.popularityRank });
+      items.push({
+        channelIdText: row.channelIdText,
+        item,
+        popularityRank: row.popularityRank,
+      });
     }
   }
   return items;
@@ -327,6 +352,7 @@ export const channelItemsRepository = {
     await initializeDatabase();
     const rows = await getDb()
       .select({
+        channelIdText: schema.channelItem.channelIdText,
         payloadJson: schema.channelItem.payloadJson,
         popularityRank: schema.channelItem.popularityRank,
       })
@@ -354,7 +380,7 @@ export const channelItemsRepository = {
       limit?: number;
       sort?: ChannelItemSort;
     } = {}
-  ): Promise<DTOItem[]> => {
+  ): Promise<SubscribedChannelItem[]> => {
     await initializeDatabase();
     const { channelIdTexts, limit = RECENT_ITEM_LIMIT, sort = 'recent' } = options;
 
@@ -364,6 +390,7 @@ export const channelItemsRepository = {
 
     const baseQuery = getDb()
       .select({
+        channelIdText: schema.channelItem.channelIdText,
         payloadJson: schema.channelItem.payloadJson,
         popularityRank: schema.channelItem.popularityRank,
       })
@@ -377,7 +404,7 @@ export const channelItemsRepository = {
             .orderBy(desc(schema.channelItem.pubDateMs))
             .limit(limit);
 
-    return sortItems(rowsToRankedItems(rows), sort);
+    return sortSubscribedItems(rowsToRankedItems(rows), sort);
   },
 
   /**

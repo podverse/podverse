@@ -8,15 +8,19 @@ import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 
 type RecommendationsOverflowMenuProps = {
+  /** Signed-in Taste Profile settings. Omitted when signed out. */
+  onEdit?: () => void;
   onViewModeChange: (viewMode: HomeViewMode) => void;
   viewMode: HomeViewMode;
 };
 
 /**
- * Recommendations title-bar overflow for list vs grid. The choice is per chip (podcasts, albums,
- * artists) and is drawn on every chip, since each one is a show list.
+ * Recommendations title-bar overflow. List and grid set the view for the current chip (podcasts,
+ * albums, artists). Edit follows them when the listener is signed in and opens Taste Profile
+ * settings.
  */
 export function RecommendationsOverflowMenu({
+  onEdit,
   onViewModeChange,
   viewMode,
 }: RecommendationsOverflowMenuProps) {
@@ -44,9 +48,18 @@ export function RecommendationsOverflowMenu({
           selected: viewMode === 'grid',
           testID: 'recommendations-overflow-view-grid',
         },
+        ...(onEdit !== undefined
+          ? [
+              {
+                key: 'edit',
+                label: t('misc.edit'),
+                onPress: onEdit,
+                testID: 'recommendations-edit',
+              },
+            ]
+          : []),
       ],
       key: 'view',
-      title: t('layouts.change_layout_view'),
     },
   ];
 

@@ -35,26 +35,26 @@ per-screen inset under the title bar.
   them in **`HeaderBarActions`**, which spaces siblings by `spacing.md`.
   **Share**, and **Boost** on screens that offer it, on podcast, album, artist, episode, and
   track detail, belong in the stack title-bar slot (`HeaderBarAction` in `headerRight`, wrapped
-  in `HeaderBarActions` when there is more than one). **Checking all notifications** is Home
-  only. `HomeNotificationsBell` is the first control in Home's `headerRight`
-  (`HeaderBarActions`), to the left of `HomeOverflowMenu`. testIDs `home-notifications-bell` and
-  `home-notifications-bell-badge`. The same `HomeScreen` mounts under `MoreOverflowHome`, so the
-  bell is there too. No other screen gets this bell. The bell stays visible signed out and without
-  notifications access. Press goes through `resolveNotificationsBellPress`, then
+  in `HeaderBarActions` when there is more than one). **Checking all notifications** is the Home
+  tab root only (`HomeRoot` with `headerBackChoice` `none`). `ThemedStackHeader` puts
+  `HomeNotificationsBell` first in `headerRight` (`HeaderBarActions`), to the left of Home's
+  overflow menu. testIDs `home-notifications-bell` and `home-notifications-bell-badge`. Browse,
+  For Me, My Library, and More roots do not get this bell. A tab opened from More shows Back,
+  so it does not get this bell. Pushed screens do not get it. The bell stays visible signed out
+  and without notifications access. Press goes through `resolveNotificationsBellPress`, then
   `navigateToNotificationsInboxScreen()` or `openGate`. Signed out, that press calls
   `openGate('needs_account')`. Signed in with notifications access denied, it calls `openGate`
   with that reason. While `isTierKnown === false`, press opens the inbox. The inbox is root
   route `NotificationsInbox` with `ROOT_SLIDE_UP_SCREEN_OPTIONS`. The leading control is a down
   caret (testID `notifications-inbox-dismiss`, catalog `misc.dismiss`). Link path `notifications`
   (a link, push tap, or banner tap opens this route; signed out, that path opens the inbox login
-  fill). The unread count is this bell's badge. The More tab does not show it. **Search** is Home
-  only, in `headerLeft` (`HomeSearchButton`, testID `home-search`), the far side from the bell
-  and the overflow menu. `navigateToSearchScreen()` raises root route `Search` with
-  `ROOT_SLIDE_UP_SCREEN_OPTIONS`. The Search root leading control is a down caret (testID
-  `search-dismiss`). Pages pushed on that stack keep a back chevron. No other screen gets this
-  control, and it is not a bottom tab or a Tab Bar settings row. It stays visible signed out.
-  When that Home root shows a back control (Home opened from More), back occupies the leading
-  slot. **Turning notifications on or off for a channel**
+  fill). The unread count is this bell's badge. **Search** is the Home tab root only, in
+  `headerLeft` (`HomeSearchButton`, testID `home-search`). `navigateToSearchScreen()` raises
+  root route `Search` with `ROOT_SLIDE_UP_SCREEN_OPTIONS`. The Search root leading control is a
+  down caret (testID `search-dismiss`). Pages pushed on that stack keep a back chevron. It is
+  not a bottom tab or a Tab Bar settings row. It stays visible signed out. Browse, For Me,
+  My Library, and More roots do not show this control. When Home is opened from More, back
+  occupies the leading slot. **Turning notifications on or off for a channel**
   is podcast, album, and artist detail only. Prop `notifications` on `ChannelHeader`, trailing
   on the action row, `layout="inline"`, `CHANNEL_HEADER_SETTINGS_ICON_SIZE`. testIDs
   `podcast-detail-notifications-toggle`, `album-detail-notifications-toggle`, and
@@ -72,9 +72,10 @@ per-screen inset under the title bar.
   the action row still lands on the artwork edge. The gear stays visible when signed out. It is
   not a section chip and not a stack-title control. Pressing it shows the settings pane;
   pressing it again, or choosing a section chip, returns to that section. Do not place share in
-  `ChannelHeader`. Do not add the Home inbox bell anywhere but Home. Web keeps its header row;
-  see **about-summary-web-mobile-alignment**. Do not restyle that row, and do not remove
-  `NotificationIconButton` from a page that mounts the parent channel header.
+  `ChannelHeader`. Do not add the inbox bell on a non-Home tab root, a pushed screen, or a tab
+  opened from More. Web keeps its header row; see **about-summary-web-mobile-alignment**. Do not
+  restyle that row, and do not remove `NotificationIconButton` from a page that mounts the
+  parent channel header.
   `ChannelHeader` `actions` is the leading cluster of that bottom row. RSS and website stay on
   About. **Header icons and header action labels use `tokens.text.primary`** (same as the title) —
   never `tokens.text.accent` / link blue. That color lives in **`HeaderBarAction`**; do not
@@ -86,8 +87,12 @@ per-screen inset under the title bar.
   fade, do not use a translucent Cancel fill, do not use a centered card, and do not style Cancel
   as a pill.
 - Tab roots use the same title slot (Home, For Me, …). For Me is the Recommendations tab: the
-  bar says For Me and the screen title says Recommendations. Search is not a tab. Its field and
-  chips sit in the body under the Search title, opened from Home's leading header control.
+  bar says For Me and the screen title says Recommendations. Signed in, Edit is a row in that
+  screen's overflow menu, under List and Grid (testID `recommendations-edit`). It opens Taste
+  Profile settings. Signed out, the row is omitted. A long title ellipsizes in the
+  center column, with padding on both sides, so it does not cover the leading or trailing icons.
+  Search is not a tab. Its field and chips sit in the body under the Search title, opened from
+  the Home title bar's leading control.
   Page controls such as Home's media-type pills sit in the body under that bar, not inside it.
 
 ## Page body under the bar
@@ -107,9 +112,10 @@ is a surface for grouped settings or section chrome, not for a scrolling result 
 
 Internal gaps stay on the screen. Prefer one column **`gap`** for a stack of related controls so
 spaces stay equal by construction (Search: field → chips → list rule all share `spacing.base`).
-Gaps that belong together follow **even-content-spacing**. Centered empty / loading
-(`VerticalCenter`, `CallToActionSection`, `LoadingSection`) fills leftover height; it does not
-replace the page gutter.
+Gaps that belong together follow **even-content-spacing**. Loading
+(`VerticalCenter`, `LoadingSection`) fills leftover height and stays centered. Empty and error
+copy (`CallToActionSection`, `ListEmpty`, `ListError`) sits at the start of the content column,
+under the chips, using the page gutter. It does not replace that gutter.
 
 ## Search field and chips
 
@@ -138,19 +144,21 @@ Two or three filters under a field use **`OptionChipGroup`**. Selected chip = `b
 Settings density (2–3 chips vs option-list screen) is **mobile-settings-option-density**.
 
 Standalone cover art uses **`CoverImage`** (`expo-image`, memory+disk cache). A stationary tap
-opens the **`ImageViewer`** root screen (`ROOT_SLIDE_UP_SCREEN_OPTIONS`): it slides up and
-dismisses from the top edge. The header control is a down chevron
+opens the **`ImageViewer`** root screen (`buildRootSlideUpDismissOptions`): it slides up and
+dismisses from a down chevron or a downward drag that starts in the header band (status inset +
+44pt title row), on iOS and Android. The header control is a down chevron
 (`HeaderBarChrome` `backIcon="chevron-down"`, `misc.dismiss`). `NotificationsInbox` is a root
-screen on `ROOT_SLIDE_UP_SCREEN_OPTIONS`, with the same down-chevron dismiss
-(`notifications-inbox-dismiss`). Pass **`viewerUri`** from **`primaryLightboxArtworkUrl`** (or the
-channel variant) so the screen loads the largest original, not the list thumb. Pass
-**`addByRssFeedUrl`** when the artwork belongs to an Add by RSS feed. The route never carries
-an `Authorization` value; the screen resolves those headers from the feed URL. Do not add a
-nested image tap when the parent row, cell, or header is already the pressable control
-(`opensViewer={false}`). Resolve display `uri` with **`primaryListArtworkUrl`** — see
-**header-hero-image-sources**. When navigating from a painted row into a detail header, pass
-preview params so the same list URL paints on the first frame — see **mobile-image-loading**. The
-app stays portrait; the viewer does not unlock landscape.
+screen on the same dismiss options, with the same down-chevron and header-band drag
+(`notifications-inbox-dismiss`). Full player and Search root share that contract; Search pages
+after the first route keep a back chevron and do not dismiss the card by drag. Pass
+**`viewerUri`** from **`primaryLightboxArtworkUrl`** (or the channel variant) so the screen loads
+the largest original, not the list thumb. Pass **`addByRssFeedUrl`** when the artwork belongs to
+an Add by RSS feed. The route never carries an `Authorization` value; the screen resolves those
+headers from the feed URL. Do not add a nested image tap when the parent row, cell, or header is
+already the pressable control (`opensViewer={false}`). Resolve display `uri` with
+**`primaryListArtworkUrl`** — see **header-hero-image-sources**. When navigating from a painted
+row into a detail header, pass preview params so the same list URL paints on the first frame —
+see **mobile-image-loading**. The app stays portrait; the viewer does not unlock landscape.
 
 ## Hub menus
 
@@ -208,8 +216,10 @@ title is regular weight (`400`) at 19pt. A Browse podcast or album row is the da
 title, then the author. Episode, clip, and track rows stay show name, title, then date. Item
 and channel pub dates use the same type: 14pt, weight 700, line height 20,
 **`tokens.text.link`**. An item description under that identity is 14pt, weight 400, line
-height 20, in secondary color, and it shares a **`spacing.xs`** gap with the identity row. The
-play, duration, and progress band keeps the wider gap below that text. An Add by RSS show row
+height 20, in secondary color. It sits **`listRowDescriptionGap`** (`spacing.base`) under the
+identity block, the same width as the gap beside the artwork, so the paragraph keeps that
+clearance when it wraps under the image. The play, duration, and progress band keeps its own
+gap below that text. An Add by RSS show row
 has the date and the title and no download count, and it does not reserve that line.
 
 Home subscription markers stay on those shared row/cell components: list live is centered on
@@ -225,6 +235,15 @@ starts the band and More sits at the far end. Pressing any livestream row opens 
 page. The date stays on the date line under the title, and the context line carries only the
 show name. A livestream inside an album uses this same episode row, never the compact track
 row. Channel rows keep Live on the artwork. See **mobile-reusable-components**.
+
+A podcast, album, or artist row **never** shows the More ellipsis. Channel-level actions use
+swipe-left (`SwipeActionRow`) and the matching grid long-press when that list has a remove
+action. Search results are channel rows too on **mobile and web**: tap (or click) opens the
+feed; no More menu. Mobile Search also has no swipe remove. The More ellipsis is for
+playable content: episodes, clips, tracks, and livestreams. On an episode or clip row the
+one-tap download sits in the action band, immediately left of More, and the title uses the
+header width. On a track row, which has no play band, that control stays immediately left of
+More in the identity row.
 
 Icon-only controls share **`LIST_ROW_ACTION_SIZE`** (44) and bare glyphs use
 **`LIST_ROW_ACTION_ICON_SIZE`** (26); Play’s triangle uses **`LIST_ROW_PLAY_ICON_SIZE`** (16)
@@ -265,6 +284,12 @@ spacing and type.
 Space **between** chips in a row is **`chipRowGap()`** (6).
 **`SectionChip`** and **`MenuSelectChip`** apply it as `marginRight`. **`OptionChipGroup`**
 applies it as the row `gap`.
+
+A page action that shares a chip row (`ChipAction` inside **`ChipRowWithActions`**) is always a
+band above the chips on mobile — Add Feed and Check for Updates on Add by RSS. The action group
+wraps on its own line (`chipRowGap()`), start-aligned. Web keeps the wrap-to-the-right behavior
+in `@podverse/ui` `ChipRowWithActions`. Recommendations Edit is an overflow-menu row, not a
+chip-row action.
 
 Space **below** chips that sit above a list is **`listChipRowBottomGap(tokens.spacing)`**
 (`spacing.base`, the same value as `listFilterContentGap`). **`SectionChipRow`** applies it as
@@ -318,16 +343,18 @@ is the edge.
 
 ## Fill empty lists do not scroll
 
-When a list's only body is a fill info state (`VerticalCenter` / `LoadingSection` /
-`CallToActionSection` / **`ListEmpty`** as `ListEmptyComponent`), there is nothing to scroll. Use
-**`FillList`** instead of raw `FlatList` — it locks bounce, over-scroll, pull-to-refresh, and
-`scrollEnabled` whenever `data` is empty and `ListEmptyComponent` is set.
+When a list's only body is a fill info state (`LoadingSection` / `CallToActionSection` /
+**`ListEmpty`** as `ListEmptyComponent`), there is nothing to scroll. Use **`FillList`** instead
+of raw `FlatList` — it locks bounce, over-scroll, pull-to-refresh, and `scrollEnabled` whenever
+`data` is empty and `ListEmptyComponent` is set.
 
-**`ListEmpty`** wraps **`VerticalCenter`** and uses **`typography.subheading`** (same scale as
-`CallToActionSection` message copy) so "no results" / "nothing here" lines up across screens.
+**`ListEmpty`** sits at the start of the list body. Its sentence is **`EmptyStateText`**: 24pt
+light type on the glow fill, the same banner as a web empty list. **`CallToActionSection`** uses
+that banner for its message, with the actions under it. The chip row's bottom gap is the space
+above the banner. Do not center it in the leftover height.
 
-Buttons in that centered fill (`CallToActionSection`, a `ListEmpty` action, `ListError` retry)
-are **full width** of the fill column. Do not hug the label.
+Buttons in that fill (`CallToActionSection`, a `ListEmpty` action, `ListError` retry) are **full
+width** of the fill column. Do not hug the label. Loading stays centered in `VerticalCenter`.
 
 Podcast section lists use **`PodcastSectionList`**, which already composes **`FillList`** +
 **`ListEmpty`**.
@@ -395,7 +422,7 @@ scale is `compact` (caption type, `HELPER_NOTE_ICON_SIZE`). A stacked preview pa
 ## Login-gated fill states
 
 When a screen's body is empty because the feature requires an account, use **`CallToActionSection`**
-(it already wraps `VerticalCenter`) plus a Login action — not a bare `ListEmpty`. Prefer
+plus a Login action — not a bare `ListEmpty`. Prefer
 **`AuthAwareLoadState`** with `showAuthRequired` (it defaults to `authentication.login_required`);
 otherwise wire `CallToActionSection` as the `FillList` empty (or the only `MobileScreenContainer`
 child).
@@ -462,12 +489,14 @@ with no checkbox uses that same seam from the accordion to the action column.
 
 Login and Sign up slide up as a full-screen `Modal` over the tab shell — they must not replace
 the navigator. Dismiss with a down chevron (`HeaderBarChrome` `backIcon="chevron-down"`,
-`testID="auth-dismiss"`). Do not add a Cancel button. The account switch is body text plus a
-link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`). Fields use
-**`TextField`** with an inset **`eyebrow`** and a **distinct** **`placeholder`** (example or
-hint — never the same string as the eyebrow; see **form-eyebrow-placeholder**). Confirm-password
-keeps a password-hint placeholder while its eyebrow stays `Confirm password`. Submit uses
-**`FormActions`**.
+`testID="auth-dismiss"`) or a downward drag that starts in the header band, on iOS and Android.
+A drag close skips the Modal's slide so the finger motion is the only exit. Forgot Password keeps
+a back chevron and does not dismiss by drag. Do not add a Cancel button. The account switch is
+body text plus a link-style `Pressable` under Submit (`auth-switch-signup` /
+`auth-switch-login`). Fields use **`TextField`** with an inset **`eyebrow`** and a **distinct**
+**`placeholder`** (example or hint — never the same string as the eyebrow; see
+**form-eyebrow-placeholder**). Confirm-password keeps a password-hint placeholder while its
+eyebrow stays `Confirm password`. Submit uses **`FormActions`**.
 
 A successful sign-up replaces the form with its own screen: header title, one sentence to check
 email (`signup-success-message`), and a Login button (`signup-success-login`) so someone who
@@ -489,14 +518,14 @@ the same reason. Do not rely on the root provider alone for full-screen Modals.
 - Rebuild the title-bar height or type in a screen-local `StyleSheet`.
 - Add a divider, hairline, or shadow under `HeaderBar`.
 - Put a second in-body display heading on a screen that already has a `HeaderBar` title.
-- Use raw `FlatList` for a screen list that shows a `VerticalCenter` fill empty, then hand-toggle
-  `scrollEnabled` / `bounces` at the screen.
+- Use raw `FlatList` for a screen list that shows a fill empty or a centered loading state, then
+  hand-toggle `scrollEnabled` / `bounces` at the screen.
 - Add a standalone divider under chips or a filter. A podcast, album, or artist row uses
   `LIST_ROW_SHOW_VERTICAL_INSET`, not `spacing.lg` or `spacing.md`.
-- Do not add a Notifications tab, a More row that opens the inbox, or an inbox bell on any
-  screen but Home.
-- Do not add a Search tab, a More row that opens Search, or a search control on any screen but
-  Home.
+- Do not add a Notifications tab, a More row that opens the inbox, or an inbox bell on a
+  non-Home tab root, a pushed screen, or a tab opened from More.
+- Do not add a Search tab, a More row that opens Search, or a search control on a non-Home tab
+  root, a pushed screen, or a tab opened from More.
 - Do not put the channel on/off bell in a stack title bar, on an item screen, or inside
   `ChannelHeader` `actions`.
 

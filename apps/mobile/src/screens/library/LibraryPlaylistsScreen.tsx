@@ -15,7 +15,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { PlaylistListRow } from '../../components/content';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { MenuSelectChip, SectionChipRow } from '../../components/form';
-import { FillList, VerticalCenter } from '../../components/primitives';
+import { FillList } from '../../components/primitives';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -446,13 +446,11 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
     }
     if (showError) {
       return (
-        <VerticalCenter>
-          <ListError
-            messageKey={errorKey ?? 'errors.generic'}
-            onRetry={handleRetry}
-            testID="library-playlists-error"
-          />
-        </VerticalCenter>
+        <ListError
+          messageKey={errorKey ?? 'errors.generic'}
+          onRetry={handleRetry}
+          testID="library-playlists-error"
+        />
       );
     }
     if (showSignedOut) {

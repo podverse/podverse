@@ -212,6 +212,9 @@ name: Home Media Types
 - assertNotVisible:
     id: home-filter-input
 - takeScreenshot: home-media-type-episodes
+# Mixed episode lists name the show above the episode title.
+- assertVisible:
+    id: "home-feed-row-subtitle-.*"
 
 # Episodes sorts too, and keeps its own choice — ordering podcasts by title says nothing about how
 # episodes should be ordered. Filter stays off: the episode list is a recency window, not a complete

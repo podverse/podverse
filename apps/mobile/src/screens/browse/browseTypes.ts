@@ -41,6 +41,29 @@ export const MEDIA_TYPE_LABEL_KEYS: Record<BrowseMediaType, string> = {
   users: 'features.browse.users',
 };
 
+export const browseEmptyMessageKey = (mediaType: BrowseMediaType): string => {
+  switch (mediaType) {
+    case 'podcasts':
+      return 'media.podcast.no_podcasts_found';
+    case 'episodes':
+      return 'media.podcast.no_episodes_found';
+    case 'clips':
+      return 'features.clip.no_clips_found';
+    case 'artists':
+      return 'media.music.no_artists_found';
+    case 'albums':
+      return 'media.music.no_albums_found';
+    case 'tracks':
+      return 'media.music.no_tracks_found';
+    case 'livestreams':
+      return 'media.livestream.no_livestreams_found';
+    case 'playlists':
+      return 'features.playlist.no_playlists_found';
+    case 'users':
+      return 'features.browse.no_users_found';
+  }
+};
+
 /** Podcasts, episodes, and clips carry directory categories. Music does not. */
 export const BROWSE_CATEGORY_MEDIA_TYPES: readonly BrowseMediaType[] = [
   'podcasts',

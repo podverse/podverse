@@ -35,7 +35,7 @@ name: Recommendations
     id: tab-recommendations
 - assertVisible:
     id: recommendations-screen
-- assertVisible:
+- assertNotVisible:
     id: recommendations-edit
 - assertNotVisible:
     id: browse-sort-button
@@ -49,11 +49,19 @@ name: Recommendations
     timeout: ${TIMEOUT_FAST}
 - assertVisible:
     id: recommendations-overflow-view-grid
+- assertVisible:
+    id: recommendations-edit
 - tapOn:
     id: recommendations-overflow-menu-cancel
 - assertVisible: "E2E HLS VOD Channel"
 - takeScreenshot: recommendations-seeded-row
 
+- tapOn:
+    id: recommendations-overflow-trigger
+- extendedWaitUntil:
+    visible:
+      id: recommendations-edit
+    timeout: ${TIMEOUT_FAST}
 - tapOn:
     id: recommendations-edit
 - assertVisible:
@@ -65,16 +73,27 @@ name: Recommendations
 - assertVisible:
     id: recommendations-screen
 - assertVisible: "E2E HLS VOD Channel"
-- tapOn:
-    id: home-row-more-e2eHlsChnl001
+- assertVisible:
+    id: recommendations-row-e2eHlsChnl001-swipe
+- swipe:
+    from:
+      id: recommendations-row-e2eHlsChnl001-swipe
+    direction: LEFT
 - extendedWaitUntil:
     visible:
-      text: "Hide"
+      id: recommendations-hide-e2eHlsChnl001
     timeout: ${TIMEOUT_FAST}
-- tapOn: "Hide"
+- tapOn:
+    id: recommendations-hide-e2eHlsChnl001
 - assertNotVisible: "E2E HLS VOD Channel"
 - takeScreenshot: recommendations-after-hide
 
+- tapOn:
+    id: recommendations-overflow-trigger
+- extendedWaitUntil:
+    visible:
+      id: recommendations-edit
+    timeout: ${TIMEOUT_FAST}
 - tapOn:
     id: recommendations-edit
 - assertVisible:

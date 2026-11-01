@@ -34,6 +34,24 @@ export const LIST_ROW_SHOW_VERTICAL_INSET = 10;
 export const PREVIEW_IDENTITY_ARTWORK_EDGE = 160;
 
 /**
+ * Caps the item-detail (episode / track / livestream) header square on tablet. Phone uses the
+ * full window width. Same number as the full-player tablet artwork cap so the two large squares
+ * stay aligned without the header importing the player layout module.
+ */
+export const ITEM_DETAIL_ARTWORK_MAX_TABLET = 520;
+
+/**
+ * Painted edge of the item-detail header square. Phone is edge-to-edge; tablet is capped and
+ * centered in the page column.
+ */
+export function itemDetailArtworkEdge(windowWidth: number, isTablet: boolean): number {
+  if (isTablet) {
+    return Math.min(ITEM_DETAIL_ARTWORK_MAX_TABLET, windowWidth);
+  }
+  return windowWidth;
+}
+
+/**
  * Hit target for icon-only row controls (Play circle, More, Download / trash). Matches legacy
  * TimeRemainingWidget / MoreButton (44) so bordered and bare faces share one finger target.
  */
@@ -101,6 +119,15 @@ export function listRowVerticalPadding(
  * Prefer this helper over a raw `tokens.spacing.*` pick at each callsite.
  */
 export function listRowArtworkGap(spacing: ThemeTokens['spacing']): number {
+  return spacing.base;
+}
+
+/**
+ * Space from the identity block down to an item description. The description is full width, so
+ * this is the minimum clearance under the artwork when the paragraph wraps beneath it. Same
+ * width as the gap beside the artwork.
+ */
+export function listRowDescriptionGap(spacing: ThemeTokens['spacing']): number {
   return spacing.base;
 }
 

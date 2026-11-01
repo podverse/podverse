@@ -6,7 +6,7 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
@@ -18,7 +18,6 @@ import { DirectoryRemovedProvider } from '../../../contexts/DirectoryRemoved';
 import { PodcastPageContextProvider } from './PodcastPageContext';
 import { PodcastPageList } from './PodcastPageList';
 import { PodcastPageListHeader } from './PodcastPageListHeader';
-import { PodcastPageSideContent } from './PodcastPageSideContent';
 
 interface PodcastPageClientProps {
   hasExplicitUrlParams: boolean;
@@ -72,11 +71,7 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
           <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
           <CorePodcastHeader channel={ssrChannel} />
           <MainSidebarLayout>
-            <PodcastPageSideContent
-              channel={ssrChannel}
-              podroll={ssrPodroll}
-              remoteItems={ssrRemoteItems}
-            />
+            <SideContent />
             <MainColumnStack>
               {directoryRemoved ? (
                 <DirectoryRemovedNotice />

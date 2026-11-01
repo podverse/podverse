@@ -49,6 +49,35 @@ a.button {
   flex-shrink: 0;
 }
 
+// Icon and label share one em box. An inline SVG sits on the text baseline and
+// leaves a gap under the glyph, so the icon reads high. A block glyph the same
+// size as the label's em box lets flex centering line them up.
+.withIcon {
+  column-gap: var(--spacing-md);
+  line-height: 1;
+}
+
+.buttonIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+
+  svg {
+    display: block;
+    flex: none;
+    width: 1em;
+    height: 1em;
+  }
+}
+
+.buttonLabel {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
 .invisible {
   color: transparent !important;
 }
@@ -64,11 +93,6 @@ a.button {
   font-size: var(--font-size-lg);
   color: inherit;
   animation: spin 1s linear infinite;
-}
-
-.chevronIcon {
-  margin-left: var(--spacing-md);
-  padding-top: 1px;
 }
 
 .primary {

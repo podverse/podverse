@@ -5,7 +5,7 @@ export type {
   BreadcrumbsProps,
 } from './components/navigation/Breadcrumbs/Breadcrumbs';
 export { Button } from './components/button/Button/Button';
-export type { ButtonVariant } from './components/button/Button/Button';
+export type { ButtonIconPosition, ButtonVariant } from './components/button/Button/Button';
 export { IconButton } from './components/button/IconButton/index';
 export type {
   IconButtonAppearance,

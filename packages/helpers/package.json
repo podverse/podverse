@@ -79,6 +79,10 @@
       "types": "./dist/lib/time.d.ts",
       "default": "./dist/lib/time.js"
     },
+    "./fileSize": {
+      "types": "./dist/lib/fileSize.d.ts",
+      "default": "./dist/lib/fileSize.js"
+    },
     "./dto": {
       "types": "./dist/dtos/index.d.ts",
       "default": "./dist/dtos/index.js"

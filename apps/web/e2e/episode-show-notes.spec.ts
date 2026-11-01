@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import {
   E2E_PODCAST_CHANNEL_ID_TEXT,
+  E2E_PODCAST_CHANNEL_TITLE,
   E2E_PODCAST_ITEM_LONG_NOTES_ID_TEXT,
   E2E_PODCAST_ITEM_LONG_NOTES_LINK_URL,
   E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
@@ -61,6 +62,17 @@ test.describe('Episode show notes', () => {
 
     const rowPreview = page.getByRole('main').getByText(LONG_NOTES_PREVIEW_START).first();
     await expect(rowPreview).toBeVisible();
+    const episodeLink = page
+      .getByRole('main')
+      .locator(`a[href*="/episode/${E2E_PODCAST_ITEM_LONG_NOTES_ID_TEXT}"]`)
+      .first();
+    const episodeHeading = episodeLink.getByRole('heading').first();
+    await expect(episodeHeading).toBeVisible();
+    await expect(
+      episodeHeading
+        .locator('xpath=preceding-sibling::*')
+        .filter({ hasText: E2E_PODCAST_CHANNEL_TITLE })
+    ).toHaveCount(0);
     await captureVerifiedElement(
       page,
       testInfo,
