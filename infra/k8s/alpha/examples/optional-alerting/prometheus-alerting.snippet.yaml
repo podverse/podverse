@@ -1,0 +1,63 @@
+# Merge into the Prometheus config your GitOps repo already runs.
+# This is not a full prometheus.yml and not a Prometheus Deployment.
+# Keep the job name kube-state-metrics: cluster.rules.yaml matches up{job="kube-state-metrics"}.
+# honor_labels keeps each series' namespace label as the object's namespace.
+# With Kubernetes service discovery, Prometheus would otherwise replace it with
+# the scrape target's namespace (monitoring).
+
+scrape_configs:
+  - job_name: "kube-state-metrics"
+    honor_labels: true
+    metrics_path: "/metrics"
+    static_configs:
+      - targets:
+          - "kube-state-metrics.monitoring.svc.cluster.local:8080"
+
+# Optional. Append this job under scrape_configs when Argo CD is installed.
+# A standard install exposes application-controller metrics on Service
+# argocd-metrics, namespace argocd, port 8082 (argocd_app_info).
+# ArgoAppDegraded and ArgoAppOutOfSync stay quiet until this job exists.
+# - job_name: "argocd-metrics"
+#   metrics_path: "/metrics"
+#   static_configs:
+#     - targets:
+#         - "argocd-metrics.argocd.svc.cluster.local:8082"
+
+# Append to rule_files. Paths match the Deployment mounts below.
+# podverse-prometheus-rules comes from infra/k8s/base/monitoring (no namespace
+# in that base; create it in namespace monitoring). cluster-prometheus-rules
+# is the ConfigMap in cluster.rules.yaml.
+rule_files:
+  - "/etc/prometheus/rules/podverse-prometheus-rules/*.yaml"
+  - "/etc/prometheus/rules/cluster-prometheus-rules/*.yaml"
+
+# Deployment patch for the existing Prometheus Deployment. Merge volumes under
+# spec.template.spec, and volumeMounts under the Prometheus container. Rename
+# the container if it is not called prometheus.
+# spec:
+#   template:
+#     spec:
+#       volumes:
+#         - name: podverse-prometheus-rules
+#           configMap:
+#             name: podverse-prometheus-rules
+#         - name: cluster-prometheus-rules
+#           configMap:
+#             name: cluster-prometheus-rules
+#       containers:
+#         - name: prometheus
+#           volumeMounts:
+#             - name: podverse-prometheus-rules
+#               mountPath: /etc/prometheus/rules/podverse-prometheus-rules
+#               readOnly: true
+#             - name: cluster-prometheus-rules
+#               mountPath: /etc/prometheus/rules/cluster-prometheus-rules
+#               readOnly: true
+
+# Append this top-level block so Prometheus sends alerts to Alertmanager.
+# Service is cluster-internal in namespace monitoring.
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "alertmanager.monitoring.svc.cluster.local:9093"

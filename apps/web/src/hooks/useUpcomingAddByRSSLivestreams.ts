@@ -11,10 +11,7 @@ import {
   buildAddByRSSLivestreamIndex,
   livestreamIndexItemsFromFeeds,
 } from '../utils/addByRSS/itemIndex';
-import {
-  getAllAddByRSSFeeds,
-  getAllAddByRSSLivestreamItems,
-} from '../utils/addByRSS/storage';
+import { getAllAddByRSSFeeds, getAllAddByRSSLivestreamItems } from '../utils/addByRSS/storage';
 import type {
   AddByRSSFeedRecord,
   AddByRSSLivestreamIndexItem,
@@ -81,9 +78,7 @@ export function useUpcomingAddByRSSLivestreams(active: boolean): {
         if (cancelled) {
           return;
         }
-        const existingIdTextByCompositeId = new Map(
-          indexed.map((item) => [item.id, item.idText])
-        );
+        const existingIdTextByCompositeId = new Map(indexed.map((item) => [item.id, item.idText]));
         const built = livestreamIndexItemsFromFeeds(flaggedFeeds, existingIdTextByCompositeId);
         if (cancelled) {
           return;

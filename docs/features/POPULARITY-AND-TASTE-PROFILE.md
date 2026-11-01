@@ -35,14 +35,14 @@ rules every writer and reader follows. Code comments point here.
 
 ## Stores and Lifetimes
 
-| Store                  | Linked to a listener?              | Kept for                             | Grows with                         |
-| ---------------------- | ---------------------------------- | ------------------------------------ | ---------------------------------- |
-| Listen and open events | Yes, by a pseudonymous listener id | The retention setting                | Time; old data dropped by month    |
+| Store                  | Linked to a listener?              | Kept for                             | Grows with                                  |
+| ---------------------- | ---------------------------------- | ------------------------------------ | ------------------------------------------- |
+| Listen and open events | Yes, by a pseudonymous listener id | The retention setting                | Time; old data dropped by month             |
 | Taste profile          | Yes                                | Until opt-out or account deletion    | Listeners × shows they played or subscribed |
-| Recommendations        | Yes                                | Until opt-out or account deletion    | Listeners × discovered shows       |
-| Show similarity        | No                                 | Rebuilt by the recommendations job   | Shows × their nearest neighbors    |
-| Daily totals           | No                                 | Forever                              | Active entities × days             |
-| Range totals           | No                                 | Rebuilt from events and daily totals | Entities with any counted activity |
+| Recommendations        | Yes                                | Until opt-out or account deletion    | Listeners × discovered shows                |
+| Show similarity        | No                                 | Rebuilt by the recommendations job   | Shows × their nearest neighbors             |
+| Daily totals           | No                                 | Forever                              | Active entities × days                      |
+| Range totals           | No                                 | Rebuilt from events and daily totals | Entities with any counted activity          |
 
 ## Tables
 

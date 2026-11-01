@@ -1,0 +1,96 @@
+groups:
+  - name: workloads.health
+    rules:
+      - alert: CronJobLastRunFailed
+        expr: |
+          (
+            max by (namespace, owner_name) (
+              kube_job_status_start_time
+              * on (namespace, job_name) group_left (owner_name)
+                (kube_job_owner{owner_kind="CronJob"} == 1)
+              and on (namespace, job_name)
+                (kube_job_status_failed > 0)
+            )
+            > on (namespace, owner_name)
+            max by (namespace, owner_name) (
+              kube_job_status_start_time
+              * on (namespace, job_name) group_left (owner_name)
+                (kube_job_owner{owner_kind="CronJob"} == 1)
+              and on (namespace, job_name)
+                (kube_job_status_succeeded > 0)
+            )
+          )
+          or
+          (
+            max by (namespace, owner_name) (
+              kube_job_status_start_time
+              * on (namespace, job_name) group_left (owner_name)
+                (kube_job_owner{owner_kind="CronJob"} == 1)
+              and on (namespace, job_name)
+                (kube_job_status_failed > 0)
+            )
+            unless on (namespace, owner_name)
+            max by (namespace, owner_name) (
+              kube_job_status_start_time
+              * on (namespace, job_name) group_left (owner_name)
+                (kube_job_owner{owner_kind="CronJob"} == 1)
+              and on (namespace, job_name)
+                (kube_job_status_succeeded > 0)
+            )
+          )
+        labels:
+          severity: warning
+        annotations:
+          summary: "CronJob Last Run Failed"
+          description: "CronJob {{ $labels.namespace }}/{{ $labels.owner_name }} has a newer failed Job than its newest successful Job. Start with: kubectl -n {{ $labels.namespace }} describe cronjob {{ $labels.owner_name }}. If this is a startup config error, check the failed pod logs for exit code 78 details."
+      - alert: JobDeadlineExceeded
+        expr: kube_job_status_failed{reason="DeadlineExceeded"} > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Job Deadline Exceeded"
+          description: "Job {{ $labels.namespace }}/{{ $labels.job_name }} hit its active deadline and was stopped. Start with: kubectl -n {{ $labels.namespace }} get job {{ $labels.job_name }} -o yaml"
+      - alert: JobRunningTooLong
+        expr: |
+          (
+            time() - kube_job_status_start_time > 6 * 60 * 60
+          )
+          and on (namespace, job_name)
+          (
+            kube_job_status_active > 0
+          )
+        labels:
+          severity: warning
+        annotations:
+          summary: "Job Running Too Long"
+          description: "Job {{ $labels.namespace }}/{{ $labels.job_name }} has stayed active for more than 6 hours. Start with: kubectl -n {{ $labels.namespace }} get job {{ $labels.job_name }} -o yaml"
+      - alert: DeploymentUnavailable
+        expr: |
+          (
+            kube_deployment_spec_replicas > 0
+          )
+          and on (namespace, deployment)
+          (
+            kube_deployment_status_replicas_available < kube_deployment_spec_replicas
+          )
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Deployment Unavailable"
+          description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has available replicas below desired for more than 15 minutes. Start with: kubectl -n {{ $labels.namespace }} get deployment {{ $labels.deployment }} -o yaml"
+      - alert: DeploymentScaledToZero
+        expr: kube_deployment_spec_replicas == 0
+        for: 2h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Deployment Scaled To Zero"
+          description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has desired replicas set to zero for more than 2 hours. Start with: kubectl -n {{ $labels.namespace }} get deployment {{ $labels.deployment }} -o yaml"
+      - alert: ContainerRestarting
+        expr: increase(kube_pod_container_status_restarts_total[30m]) > 3
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container Restarting Frequently"
+          description: "Container {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} restarted more than 3 times in 30 minutes. Start with: kubectl -n {{ $labels.namespace }} describe pod {{ $labels.pod }}"

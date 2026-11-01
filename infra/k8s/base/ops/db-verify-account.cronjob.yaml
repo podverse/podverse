@@ -1,9 +1,10 @@
-# Version: 3
 # Pattern: Suspended CronJob (Manual Trigger Only)
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: ops-db-verify-account
+  labels:
+    podverse-schedule: manual
 spec:
   schedule: "* * * * *"
   suspend: true
@@ -14,6 +15,7 @@ spec:
     spec:
       # Single attempt: Job default backoffLimit is 6 (creates new pods on failure).
       backoffLimit: 0
+      activeDeadlineSeconds: 3600
       ttlSecondsAfterFinished: 60
       template:
         spec:
@@ -27,12 +29,12 @@ spec:
                   psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$DB_APP_READ_WRITE_USER" -d "$DB_APP_NAME" -c
                   "UPDATE account SET verified = true where id = 1;"
 
-              # Load all vars (optional, but good for debugging)
+              # Secret env for the psql session.
               envFrom:
                 - secretRef:
                     name: podverse-db-opaque
 
-              # CRITICAL FIX: Map the secret key to PGPASSWORD for psql
+              # psql reads PGPASSWORD; the secret stores DB_APP_READ_WRITE_PASSWORD.
               env:
                 - name: PGPASSWORD
                   valueFrom:

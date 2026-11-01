@@ -152,6 +152,10 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
    - `./scripts/secret-generators/create_mailer_secret.sh`
    - `./scripts/secret-generators/create_metaboost_secret.sh`
    - `./scripts/secret-generators/create_workers_storage_bucket_secret.sh`
+   - `./scripts/secret-generators/create_ntfy_alerts_secret.sh` (optional alerting; not in the bulk
+     runner)
+   - `./scripts/secret-generators/create_argocd_notifications_secret.sh` (optional alerting; not in
+     the bulk runner)
 
 5. **Cloudflare API token for cert-manager DNS01** (optional; when ACME uses Cloudflare-managed zones):
 
@@ -169,7 +173,11 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
 
 6. **Grafana admin** (optional; when your GitOps repo deploys Grafana for cluster/Podverse metrics):
 
-   Prometheus and Grafana manifests live in **GitOps** (not in the Podverse monorepo). The Grafana Deployment expects Secret **`grafana-admin`** in namespace **`grafana`**. Generate from your GitOps repo root (after copying generators from Podverse):
+   Prometheus and Grafana **deployments** live in **GitOps**. The monorepo ships Prometheus rules
+   (`infra/k8s/base/monitoring`) and copy-and-adapt examples
+   (`infra/k8s/alpha/examples/optional-alerting/`). The Grafana Deployment expects Secret
+   **`grafana-admin`** in namespace **`grafana`**. Generate from your GitOps repo root (after copying
+   generators from Podverse):
 
    ```fish
    ./scripts/secret-generators/create_grafana_admin_secret.sh
@@ -186,12 +194,29 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
 
    #### Optional cluster metrics (extension sidecar + Prometheus + Grafana)
 
-   Podverse emits metrics via the **extension-prometheus** sidecar; Prometheus and Grafana live in **your GitOps repository** (not the monorepo). Committed `infra/k8s/alpha/` overlays keep extensions **disabled by default** — enable in GitOps when you are ready.
+   Podverse emits metrics via the **extension-prometheus** sidecar. Prometheus and Grafana
+   **deployments** live in **your GitOps repository**. The monorepo ships rules and copy-and-adapt
+   examples. Committed `infra/k8s/alpha/` overlays keep extensions **disabled by default** — enable
+   in GitOps when you are ready.
    1. **GitOps — common:** merge `extensions.env` with `PROMETHEUS_ENABLED=true` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318`. Include sidecar env files (`extension-prometheus.env`, `extension-sidecar-otel.env`) from [`infra/k8s/base/extensions/source/`](/infra/k8s/base/extensions/source/) in `podverse-extensions-config` (see alpha [`extension-prometheus.env.example`](/infra/k8s/alpha/common/source/extension-prometheus.env.example) stubs).
    2. **GitOps — workloads:** on api, web, management-api, management-web, and workers: add the `prometheus-sidecar` Kustomize component and `extension-prometheus` image pin (see commented blocks in [`infra/k8s/alpha/*/kustomization.yaml`](/infra/k8s/alpha)).
    3. **GitOps — Prometheus:** deploy Prometheus; scrape port **9464**, path `/extensions/prometheus/metrics`, relabel pod label `app` → `podverse_app` (see [PROMETHEUS-METRICS-ENDPOINTS.md](/docs/operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md)).
    4. **GitOps — Grafana (optional):** point a datasource at in-cluster Prometheus; provision dashboards charting `podverse_extension_prometheus_*` (overview, HTTP, workers) plus optional **node-exporter** host metrics. Dashboard JSON belongs in GitOps, not the Podverse monorepo.
    5. **Reference layout:** mirror paths such as `apps/<namespace>/common/`, `apps/prometheus/manifests/`, `apps/grafana/manifests/`, and a runbook like `docs/k8s/podverse/PODVERSE-ALPHA.md` in your GitOps repo. See also [`infra/k8s/alpha/examples/optional-extension-metrics/README.md`](/infra/k8s/alpha/examples/optional-extension-metrics/README.md).
+
+   #### Optional alerting (ntfy)
+
+   Cron and cluster alerts are optional. The monorepo ships Prometheus rules in
+   [`infra/k8s/base/monitoring`](/infra/k8s/base/monitoring) and a copy-and-adapt example in
+   [`infra/k8s/alpha/examples/optional-alerting/`](/infra/k8s/alpha/examples/optional-alerting/README.md).
+   Prometheus and Alertmanager deployments stay in GitOps.
+
+   Follow that README: one random ntfy topic per environment (Podverse alpha, Metaboost alpha),
+   stored only in SOPS; kube-state-metrics; the rules ConfigMap and Prometheus snippet;
+   Alertmanager; Argo CD notifications; then the external Watchdog check. Topic URLs come from
+   `create_ntfy_alerts_secret.sh` and `create_argocd_notifications_secret.sh` (both optional, and
+   neither is in `create_all_secrets_auto_gen.sh`). Pin the monitoring base `?ref=` with the other
+   remote bases.
 
 ### 4. Validate secrets, then apply (cluster)
 

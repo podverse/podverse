@@ -234,6 +234,46 @@ kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/workers/
 
 Other overlays render the same way (e.g., `infra/k8s/alpha/api`, `infra/k8s/alpha/web`, `infra/k8s/alpha/db`). Add `| kubectl apply -f - --dry-run=client` to validate locally before pushing to Git.
 
+## CronJob contract
+
+Every CronJob under `infra/k8s/base/` has `metadata.labels.podverse-schedule`: `manual` when that
+manifest sets `spec.suspend: true`, and `scheduled` otherwise.
+`spec.jobTemplate.spec.activeDeadlineSeconds` is required so a run that never exits is stopped
+instead of blocking the next one under `concurrencyPolicy: Forbid`. Worker and management-api Job
+pods (`restartPolicy: Never`) set `podFailurePolicy` so exit 78 (startup config missing) fails the
+Job immediately, without retries. Postgres and `node:24-slim` ops CronJobs do not exit 78, so they
+do not set that policy.
+
+`bash infra/k8s/scripts/check_cronjob_contract.sh` fails when a CronJob is missing the label, the
+deadline, or `spec.concurrencyPolicy`, or when the label does not match `spec.suspend`. CI runs
+that script before Node setup.
+
+## Prometheus rules (`base/monitoring`)
+
+`infra/k8s/base/monitoring` is a reusable Prometheus rule bundle. Kustomize generates ConfigMap
+`podverse-prometheus-rules` (`disableNameSuffixHash: true`, no base namespace; the consumer overlay
+sets the namespace). The bundle contains:
+
+- `podverse.rules.yaml`: Podverse contract alerts using `podverse-schedule`, `worker-recent-feeds`,
+  and startup-config exit code 78.
+- `workloads.rules.yaml`: generic namespace workload alerts (CronJobs, Jobs, Deployments, and
+  container restarts) for Podverse and other workloads in the same cluster.
+
+These rules need kube-state-metrics started with:
+
+```text
+--metric-labels-allowlist=cronjobs=[podverse-schedule]
+```
+
+Mount `podverse-prometheus-rules` and include both files in Prometheus `rule_files`. The
+copy-and-adapt scrape, Alertmanager, and ntfy wiring is in
+[optional-alerting/README.md](alpha/examples/optional-alerting/README.md).
+
+```bash
+nix shell nixpkgs#prometheus.cli -c promtool check rules infra/k8s/base/monitoring/podverse.rules.yaml infra/k8s/base/monitoring/workloads.rules.yaml
+nix shell nixpkgs#prometheus.cli -c promtool test rules infra/k8s/base/monitoring/rules.test.yaml
+```
+
 ## ArgoCD bootstrap (App of Apps)
 
 - Update `repoURL` and `targetRevision` in [infra/k8s/alpha-application.yaml](alpha-application.yaml) if deploying from a fork or different branch.

@@ -75,10 +75,7 @@ describe('Subscribe taste seed (real database)', () => {
   const query = async (sql: string, params: unknown[] = []): Promise<unknown> =>
     manager.query(sql, params);
 
-  const seedAccount = async (
-    label: string,
-    accepted: boolean | null
-  ): Promise<SeededAccount> => {
+  const seedAccount = async (label: string, accepted: boolean | null): Promise<SeededAccount> => {
     const { AccountService } = await import('@podverse/orm');
     const accountService = new AccountService();
     const email = `subscribe-taste-seed-${label}-${runId}@example.com`;

@@ -88,6 +88,10 @@ jobs:
         id: db-runtime-extension-guard
         run: bash scripts/database/check-no-runtime-create-extension.sh
 
+      - name: Check CronJob contract
+        id: cronjob-contract
+        run: bash infra/k8s/scripts/check_cronjob_contract.sh
+
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -173,6 +177,7 @@ jobs:
               '| Linear baselines 0004/0005 (vs generator) | ✅ |',
               '| Bootstrap init contract (0001–0005) | ✅ |',
               '| Runtime CREATE EXTENSION guard | ✅ |',
+              '| CronJob contract | ✅ |',
               '| Dependencies installed | ✅ |',
               '| Build packages | ✅ |',
               '| Mobile dependencies installed | ✅ |',
@@ -256,6 +261,7 @@ jobs:
           DB_LINEAR_BASELINES: ${{ steps.db-linear-baselines.outcome }}
           DB_BOOTSTRAP_CONTRACT: ${{ steps.db-bootstrap-contract.outcome }}
           DB_RUNTIME_EXTENSION_GUARD: ${{ steps.db-runtime-extension-guard.outcome }}
+          CRONJOB_CONTRACT: ${{ steps.cronjob-contract.outcome }}
           INSTALL: ${{ steps.install.outcome }}
           INSTALL_MOBILE: ${{ steps.install-mobile.outcome }}
           MOBILE_UNIT: ${{ steps.mobile-unit.outcome }}
@@ -296,6 +302,7 @@ jobs:
               `| Linear baselines 0004/0005 (vs generator) | ${status(process.env.DB_LINEAR_BASELINES)} |`,
               `| Bootstrap init contract (0001–0005) | ${status(process.env.DB_BOOTSTRAP_CONTRACT)} |`,
               `| Runtime CREATE EXTENSION guard | ${status(process.env.DB_RUNTIME_EXTENSION_GUARD)} |`,
+              `| CronJob contract | ${status(process.env.CRONJOB_CONTRACT)} |`,
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
               `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
               `| Mobile dependencies installed | ${status(process.env.INSTALL_MOBILE)} |`,

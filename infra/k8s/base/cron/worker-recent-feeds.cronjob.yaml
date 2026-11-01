@@ -2,10 +2,12 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: worker-recent-feeds
+  labels:
+    podverse-schedule: scheduled
 spec:
   schedule: "*/5 * * * *"
   # Forbid: skip a tick while the prior Job is Active. activeDeadlineSeconds caps hung runs so the
-  # schedule recovers; prompts 2–3 target routine completion under 5 minutes (Replace not needed).
+  # schedule recovers. A routine run finishes in under 5 minutes.
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 30
   failedJobsHistoryLimit: 5
@@ -16,8 +18,17 @@ spec:
       # Single attempt per cron tick: the cron schedule is the retry
       # mechanism. In-place container restarts (restartPolicy: OnFailure
       # + default backoffLimit: 6) turn a transient upstream 5xx into
-      # CrashLoopBackOff alerts. See <link-to-be-filed>.
+      # CrashLoopBackOff alerts.
       backoffLimit: 0
+      # Exit 78 is missing startup config: fail the Job without retry.
+      podFailurePolicy:
+        rules:
+          - action: FailJob
+            onExitCodes:
+              containerName: worker
+              operator: In
+              values:
+                - 78
       template:
         metadata:
           annotations:

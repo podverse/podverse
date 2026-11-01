@@ -1,0 +1,15 @@
+# Example overlay for namespace monitoring.
+# The Podverse rules base is commented so this build stays offline.
+# In GitOps, uncomment it and bump ?ref= with the other remote bases.
+# argocd-notifications-cm.yaml belongs in namespace argocd. Apply that file on its own.
+# prometheus-alerting.snippet.yaml is a merge snippet, not a Kustomize resource.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: monitoring
+
+resources:
+  - kube-state-metrics.yaml
+  - cluster.rules.yaml
+  - alertmanager.yaml
+  # - https://github.com/podverse/podverse//infra/k8s/base/monitoring?ref=X.Y.Z-staging.N
