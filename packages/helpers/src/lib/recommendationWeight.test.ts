@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   recommendationStrength,
+  recommendationWeightChanged,
   recommendationWeightFromListenCount,
 } from './recommendationWeight.js';
 
@@ -22,6 +23,60 @@ describe('recommendationWeightFromListenCount', () => {
   it('keeps an applied override in place of the listen level', () => {
     expect(recommendationWeightFromListenCount(100, 1)).toBe(1);
     expect(recommendationWeightFromListenCount(0, 5)).toBe(5);
+  });
+});
+
+describe('recommendationWeightChanged', () => {
+  it('treats a new show as a change', () => {
+    expect(
+      recommendationWeightChanged({
+        previousListenCount: null,
+        previousWeightOverride: null,
+        nextListenCount: 1,
+        nextWeightOverride: null,
+      })
+    ).toBe(true);
+  });
+
+  it('ignores listens that stay in the same 1–5 band', () => {
+    expect(
+      recommendationWeightChanged({
+        previousListenCount: 1,
+        previousWeightOverride: null,
+        nextListenCount: 2,
+        nextWeightOverride: null,
+      })
+    ).toBe(false);
+    expect(
+      recommendationWeightChanged({
+        previousListenCount: 4,
+        previousWeightOverride: null,
+        nextListenCount: 5,
+        nextWeightOverride: null,
+      })
+    ).toBe(true);
+  });
+
+  it('ignores listens while an override is set', () => {
+    expect(
+      recommendationWeightChanged({
+        previousListenCount: 4,
+        previousWeightOverride: 3,
+        nextListenCount: 5,
+        nextWeightOverride: 3,
+      })
+    ).toBe(false);
+  });
+
+  it('treats a different applied override as a change', () => {
+    expect(
+      recommendationWeightChanged({
+        previousListenCount: 10,
+        previousWeightOverride: 2,
+        nextListenCount: 10,
+        nextWeightOverride: 5,
+      })
+    ).toBe(true);
   });
 });
 

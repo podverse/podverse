@@ -140,6 +140,11 @@ describe('account data export includes listening data (real database)', () => {
        VALUES ($1::uuid, $2, $3::timestamptz)`,
       [listenerId, show.channelId, HIDDEN_AT]
     );
+    await query(
+      `INSERT INTO stats_channel_hidden (listener_id, channel_id, hidden_at)
+       VALUES ($1::uuid, $2, $3::timestamptz)`,
+      [listenerId, show.channelId, HIDDEN_AT]
+    );
     const listenCreatedAt = asIsoTimestamp(
       firstRow(
         await query(
@@ -289,6 +294,13 @@ describe('account data export includes listening data (real database)', () => {
         hidden_at: HIDDEN_AT,
       },
     ]);
+    expect(result.listening_data.hidden_channels).toEqual([
+      {
+        channel_id_text: show.channelIdText,
+        channel_title: show.channelTitle,
+        hidden_at: HIDDEN_AT,
+      },
+    ]);
     expect(listen).toEqual({
       created_at: LISTEN_CREATED_AT,
       channel_id_text: show.channelIdText,
@@ -320,6 +332,7 @@ describe('account data export includes listening data (real database)', () => {
     expect(result.listening_data).toEqual({
       taste_profile: [],
       hidden_from_taste_profile: [],
+      hidden_channels: [],
       listen_events: [],
       open_events: [],
     });

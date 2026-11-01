@@ -130,12 +130,34 @@ describe('applyItemEnclosureSurfaceChangeFromRef', () => {
 });
 
 describe('attachNonLiveHlsPlayback', () => {
-  it('sets the HLS playlist URL when the element can play HLS', async () => {
+  it('sets the HLS playlist URL when the element can play HLS and has no Media Source', async () => {
     const { media } = hlsPlaylistMedia('maybe');
     await attachNonLiveHlsPlayback(media, 'https://cdn.example/live.m3u8?token=1');
 
     expect(media.src).toBe('https://cdn.example/live.m3u8?token=1');
     expect(hlsJs.loadSource).not.toHaveBeenCalled();
+  });
+
+  it('attaches hls.js when Media Source exists even if the element reports the playlist MIME', async () => {
+    const previous = Object.getOwnPropertyDescriptor(globalThis, 'MediaSource');
+    Object.defineProperty(globalThis, 'MediaSource', {
+      configurable: true,
+      value: class MediaSource {},
+    });
+    try {
+      const { media } = hlsPlaylistMedia('maybe');
+      await attachNonLiveHlsPlayback(media, 'https://cdn.example/live.m3u8?token=1');
+
+      expect(media.src).toBe('');
+      expect(hlsJs.loadSource).toHaveBeenCalledWith('https://cdn.example/live.m3u8?token=1');
+      expect(hlsJs.attachMedia).toHaveBeenCalledWith(media);
+    } finally {
+      if (previous === undefined) {
+        Reflect.deleteProperty(globalThis, 'MediaSource');
+      } else {
+        Object.defineProperty(globalThis, 'MediaSource', previous);
+      }
+    }
   });
 
   it('attaches hls.js and leaves src unset when the element cannot play an HLS playlist', async () => {

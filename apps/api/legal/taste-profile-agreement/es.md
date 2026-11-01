@@ -20,9 +20,9 @@ Aun así podemos conectar el id con tu cuenta. Así es como desactivar esto, y e
 
 Tu Perfil de gustos es una fila por cada programa que escuchas: un pódcast, un álbum o un artista. Los episodios y las pistas no tienen su propia fila. Una escucha de un episodio, una pista o un clip actualiza el programa al que pertenece. La fila guarda cuántas veces has escuchado, cuántas terminaste, y cuándo escuchaste por primera y por última vez. También guarda una imagen de lo que has estado escuchando últimamente y de lo que has escuchado durante más tiempo.
 
-Puedes ver tu Perfil de gustos en Configuraciones. Puedes quitar un programa. Ese programa pasa a Oculto del perfil de gustos, y sus datos de gustos se eliminan. Las escuchas posteriores de un programa oculto siguen contando en las listas públicas, y no vuelven a añadir el programa.
+Puedes ver tu Perfil de gustos en Configuraciones. Puedes quitar un programa. Ese programa pasa a No contados en recomendaciones, y sus datos de gustos se eliminan. Las escuchas posteriores de un programa de esa lista siguen contando en las listas públicas, y no vuelven a añadir el programa.
 
-Puedes ver Oculto del perfil de gustos. Quitar un programa de esa lista te pregunta qué quieres: volver a añadirlo a tu Perfil de gustos, empezando de cero, o solo quitarlo de la lista. Si solo lo quitas de la lista, una escucha posterior puede añadirlo de nuevo.
+Puedes ver No contados en recomendaciones. Quitar un programa de esa lista te pregunta qué quieres: volver a añadirlo a tu Perfil de gustos, empezando de cero, o solo quitarlo de la lista. Si solo lo quitas de la lista, una escucha posterior puede añadirlo de nuevo.
 
 Abrir un perfil o una lista de reproducción no actualiza tu Perfil de gustos.
 
@@ -42,12 +42,12 @@ Los registros de escucha se conservan durante {retention_days} días. Después e
 
 Los recuentos de todo el tiempo ya añadidos a las listas públicas permanecen después de que se elimine un registro. Esos recuentos son números, no una lista de oyentes.
 
-Eliminar tu cuenta elimina el id aleatorio, tus registros de escucha, tu Perfil de gustos y tu lista Oculto del perfil de gustos. Los recuentos públicos de todo el tiempo permanecen.
+Eliminar tu cuenta elimina el id aleatorio, tus registros de escucha, tu Perfil de gustos y tu lista No contados en recomendaciones. Los recuentos públicos de todo el tiempo permanecen.
 
 # Si cambias de opinión
 
-Actívalo o desactívalo en Configuraciones. Desactivarlo te pide confirmación, porque entonces eliminamos de inmediato tu Perfil de gustos, tu lista Oculto del perfil de gustos y tus registros de escucha guardados. Los recuentos de todo el tiempo que ya están en las listas públicas permanecen. Si lo activas más adelante, las recomendaciones empiezan de cero. Si lo vuelves a activar, los límites diarios no se reinician, y durante un periodo fijo después de desactivarlo, tus escuchas nuevas actualizan tu Perfil de gustos pero no cuentan para las listas públicas, y abrir un perfil o una lista de reproducción no se registra.
+Actívalo o desactívalo en Configuraciones. Desactivarlo te pide confirmación, porque entonces eliminamos de inmediato tu Perfil de gustos, tu lista No contados en recomendaciones y tus registros de escucha guardados. Los recuentos de todo el tiempo que ya están en las listas públicas permanecen. Si lo activas más adelante, las recomendaciones empiezan de cero. Si lo vuelves a activar, los límites diarios no se reinician, y durante un periodo fijo después de desactivarlo, tus escuchas nuevas actualizan tu Perfil de gustos pero no cuentan para las listas públicas, y abrir un perfil o una lista de reproducción no se registra.
 
-Si tu membresía termina, o si esta explicación cambia y aún no la has confirmado, dejamos de crear registros nuevos y mantenemos tu Perfil de gustos en pausa. Tu lista Oculto del perfil de gustos permanece. Los registros de escucha ya guardados siguen caducando según el calendario de arriba. El Perfil de gustos vuelve a actualizarse cuando el seguimiento está activado. No lo eliminamos en esos casos.
+Si tu membresía termina, o si esta explicación cambia y aún no la has confirmado, dejamos de crear registros nuevos y mantenemos tu Perfil de gustos en pausa. Tu lista No contados en recomendaciones permanece. Los registros de escucha ya guardados siguen caducando según el calendario de arriba. El Perfil de gustos vuelve a actualizarse cuando el seguimiento está activado. No lo eliminamos en esos casos.
 
 Si lo desactivas, no volveremos a preguntar cuando cambie esta explicación. Si lo activas, y más adelante cambiamos qué registramos o cuánto tiempo lo conservamos, volveremos a preguntar. Hasta que aceptes esa actualización, el seguimiento permanece desactivado.

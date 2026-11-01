@@ -26,7 +26,7 @@ configMapGenerator:
   - name: podverse-ops-migration-scripts
     literals:
       - MIGRATION_BUNDLE_SHA=linear-migrations-v1
-      - API_EXPECTED_MIGRATION_FILENAME=0002_remote_stubs.sql
+      - API_EXPECTED_MIGRATION_FILENAME=0003_stats_channel_hidden.sql
       - MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME=0001_management_schema.sql
     files:
       - source/database/runner/run-linear-migrations.sh
@@ -43,6 +43,7 @@ configMapGenerator:
       - source/database/linear-migrations/app/0000_init_helpers.sql
       - source/database/linear-migrations/app/0001_app_schema.sql
       - source/database/linear-migrations/app/0002_remote_stubs.sql
+      - source/database/linear-migrations/app/0003_stats_channel_hidden.sql
   - name: podverse-ops-management-linear-migrations
     options:
       annotations:

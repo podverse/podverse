@@ -14,6 +14,7 @@ import type { QueryParamsMedium, StatsPopularityCountField } from '@podverse/hel
 
 export type StatsPopularityItemListOptions = {
   channelIds?: number[] | null;
+  excludeChannelIds?: number[] | null;
   minCountField?: StatsPopularityCountField;
 };
 
@@ -35,6 +36,7 @@ export class StatsPopularityItemService {
 
     const activeFeedWhere = getActiveFeedWhere({
       channel_ids: options?.channelIds ?? null,
+      exclude_channel_ids: options?.excludeChannelIds ?? null,
       mediumType,
       category_id,
     });
@@ -86,11 +88,13 @@ export class StatsPopularityItemService {
     itemType: 'normal' | 'live-item',
     liveItemType: 'pending' | 'live' | 'ended' | null,
     minCountField: StatsPopularityCountField,
-    channelIds?: number[] | null
+    channelIds?: number[] | null,
+    excludeChannelIds?: number[] | null
   ): Promise<number> {
     return this.repositoryRead.count({
       where: this.buildListWhere(mediumType, category_id, itemType, liveItemType, {
         channelIds,
+        excludeChannelIds,
         minCountField,
       }),
     });
@@ -103,13 +107,15 @@ export class StatsPopularityItemService {
     liveItemType: 'pending' | 'live' | 'ended' | null,
     minCountField: StatsPopularityCountField,
     take: number,
-    channelIds?: number[] | null
+    channelIds?: number[] | null,
+    excludeChannelIds?: number[] | null
   ): Promise<number[]> {
     const rows = await this.repositoryRead.find({
       select: { item_id: true },
       take,
       where: this.buildListWhere(mediumType, category_id, itemType, liveItemType, {
         channelIds,
+        excludeChannelIds,
         minCountField,
       }),
     });

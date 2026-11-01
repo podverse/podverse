@@ -34,6 +34,7 @@ type ListeningRowCounts = {
   listens: number;
   opens: number;
   recommendations: number;
+  recommendationHidden: number;
   recommendationState: number;
 };
 
@@ -166,6 +167,10 @@ describe('Taste Profile consent opt-out deletes listening data (real database)',
       [listenerId, channelId]
     );
     await query(
+      'INSERT INTO stats_channel_hidden (listener_id, channel_id) VALUES ($1::uuid, $2)',
+      [listenerId, channelId]
+    );
+    await query(
       `INSERT INTO stats_recommendation_state (listener_id, computed_at) VALUES ($1::uuid, now())`,
       [listenerId]
     );
@@ -210,6 +215,12 @@ describe('Taste Profile consent opt-out deletes listening data (real database)',
         WHERE l.account_id = $1`,
       accountId
     ),
+    recommendationHidden: await countFor(
+      `SELECT count(*)::int AS total FROM stats_channel_hidden h
+         JOIN listener_identity.stats_listener l ON l.listener_id = h.listener_id
+        WHERE l.account_id = $1`,
+      accountId
+    ),
     recommendationState: await countFor(
       `SELECT count(*)::int AS total FROM stats_recommendation_state s
          JOIN listener_identity.stats_listener l ON l.listener_id = s.listener_id
@@ -227,6 +238,7 @@ describe('Taste Profile consent opt-out deletes listening data (real database)',
                 + (SELECT count(*) FROM stats_listen_event WHERE listener_id = $1::uuid)
                 + (SELECT count(*) FROM stats_open_event WHERE listener_id = $1::uuid)
                 + (SELECT count(*) FROM stats_recommendation WHERE listener_id = $1::uuid)
+                + (SELECT count(*) FROM stats_channel_hidden WHERE listener_id = $1::uuid)
                 + (SELECT count(*) FROM stats_recommendation_state WHERE listener_id = $1::uuid))::int AS total`,
           [listenerId]
         )
@@ -388,6 +400,7 @@ describe('Taste Profile consent opt-out deletes listening data (real database)',
       listens: 0,
       opens: 0,
       recommendations: 0,
+      recommendationHidden: 0,
       recommendationState: 0,
     });
     expect(await optedOutAt(listenerA.id)).not.toBeNull();
@@ -399,6 +412,7 @@ describe('Taste Profile consent opt-out deletes listening data (real database)',
       listens: 1,
       opens: 1,
       recommendations: 1,
+      recommendationHidden: 1,
       recommendationState: 1,
     });
     expect(await dailyListenerCounts()).toEqual({
@@ -426,6 +440,7 @@ describe('Taste Profile consent opt-out deletes listening data (real database)',
       listens: 0,
       opens: 0,
       recommendations: 0,
+      recommendationHidden: 0,
       recommendationState: 0,
     });
     expect(await optedOutAt(newcomer.id)).toBeNull();

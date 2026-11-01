@@ -24,8 +24,12 @@ import {
   POPULARITY_TASTE_COMPLETION_WEIGHT,
   POPULARITY_TASTE_HALF_LIFE_DAYS,
   POPULARITY_TASTE_LISTEN_WEIGHT,
+  recommendationWeightChanged,
+  resolveCountedListenDurationSeconds,
   subtractDays,
 } from '@podverse/helpers';
+
+import { refreshRecommendationsForListener } from './recommendationsListenerRefresh.js';
 
 export type StatsListenTarget =
   { kind: 'item'; id_text: string } | { kind: 'clip'; id_text: string };
@@ -70,6 +74,11 @@ export type StatsListenReport = {
   /** Media seconds heard in the session so far. */
   seconds_heard: number;
   completed: boolean;
+  /**
+   * Length of the file the player loaded for this play. Used when it is the only length, or when
+   * it sits between half and double the RSS duration.
+   */
+  media_duration_seconds: number | null;
 };
 
 /** A report whose session was first stored more than this many days ago is a new listen. */
@@ -90,8 +99,10 @@ type ListenEntities = { itemId: number; channelId: number; clipId: number | null
 
 type ResolvedListenTarget = ListenEntities & {
   mediumId: number;
-  /** Seconds of media the listen covers: the clip's span or the item's duration. */
+  /** Length the counted-listen rule uses for this play. */
   durationSeconds: number | null;
+  /** RSS length of the same span. The too-soon exemption uses this, never a claimed file length. */
+  rssDurationSeconds: number | null;
 };
 
 type SessionEvent = ListenEntities & {
@@ -308,7 +319,8 @@ function clipDurationSeconds(
 
 async function resolveListenTarget(
   manager: EntityManager,
-  target: StatsListenTarget
+  target: StatsListenTarget,
+  playerDurationSeconds: number | null
 ): Promise<ResolvedListenTarget | 'not_found' | 'clip_source_removed'> {
   if (target.kind === 'item') {
     const item = await readItem(manager, ITEM_BY_ID_TEXT_SQL, target.id_text);
@@ -320,7 +332,11 @@ async function resolveListenTarget(
       channelId: item.channelId,
       clipId: null,
       mediumId: item.mediumId,
-      durationSeconds: item.durationSeconds,
+      durationSeconds: resolveCountedListenDurationSeconds({
+        playerDurationSeconds,
+        rssDurationSeconds: item.durationSeconds,
+      }),
+      rssDurationSeconds: item.durationSeconds,
     };
   }
 
@@ -337,12 +353,25 @@ async function resolveListenTarget(
   if (item === null) {
     return 'clip_source_removed';
   }
+  const rssDurationSeconds = clipDurationSeconds(
+    clip.start_time,
+    clip.end_time,
+    item.durationSeconds
+  );
+  const barItemDuration =
+    finiteNumber(clip.end_time) !== null
+      ? item.durationSeconds
+      : resolveCountedListenDurationSeconds({
+          playerDurationSeconds,
+          rssDurationSeconds: item.durationSeconds,
+        });
   return {
     itemId: item.id,
     channelId: item.channelId,
     clipId,
     mediumId: item.mediumId,
-    durationSeconds: clipDurationSeconds(clip.start_time, clip.end_time, item.durationSeconds),
+    durationSeconds: clipDurationSeconds(clip.start_time, clip.end_time, barItemDuration),
+    rssDurationSeconds,
   };
 }
 
@@ -547,8 +576,7 @@ async function addCompletionToDailyRow(
 
 /**
  * The shows a listen to `channelId` feeds: that channel and, for music, each artist channel its
- * publisher remote items point to. Shows on the listener's Hidden From Taste Profile list are left
- * out.
+ * publisher remote items point to. Shows on Not Counted in Recommendations are left out.
  */
 async function tasteChannelIds(
   manager: EntityManager,
@@ -590,11 +618,27 @@ async function addListenToTaste(
   target: ResolvedListenTarget,
   completed: boolean,
   at: Date
-): Promise<void> {
+): Promise<{ recommendationWeightChanged: boolean }> {
   const shows = await tasteChannelIds(manager, listenerId, target.channelId, target.mediumId);
   const weight =
     POPULARITY_TASTE_LISTEN_WEIGHT + (completed ? POPULARITY_TASTE_COMPLETION_WEIGHT : 0);
+  let weightChanged = false;
   for (const channelId of shows) {
+    const [existing] = await queryRows(
+      manager,
+      `SELECT listen_count, weight_override
+         FROM stats_taste_profile
+        WHERE listener_id = $1 AND channel_id = $2`,
+      [listenerId, channelId]
+    );
+    const previousListenCount =
+      existing !== undefined && typeof existing.listen_count === 'number'
+        ? existing.listen_count
+        : null;
+    const previousWeightOverride =
+      existing !== undefined && typeof existing.weight_override === 'number'
+        ? existing.weight_override
+        : null;
     await manager.query(TASTE_LISTEN_SQL, [
       listenerId,
       channelId,
@@ -604,7 +648,19 @@ async function addListenToTaste(
       POPULARITY_TASTE_HALF_LIFE_DAYS.recent,
       POPULARITY_TASTE_HALF_LIFE_DAYS.longTerm,
     ]);
+    const nextListenCount = (previousListenCount ?? 0) + 1;
+    if (
+      recommendationWeightChanged({
+        previousListenCount,
+        previousWeightOverride,
+        nextListenCount,
+        nextWeightOverride: previousWeightOverride,
+      })
+    ) {
+      weightChanged = true;
+    }
   }
+  return { recommendationWeightChanged: weightChanged };
 }
 
 /**
@@ -691,7 +747,8 @@ export class StatsListenWriteService {
   private readonly listenerService = new StatsListenerService();
 
   async recordListen(report: StatsListenReport): Promise<PopularityListenResult> {
-    return runListenerWrite(async (manager) => {
+    let listenerIdToRefresh: string | null = null;
+    const result = await runListenerWrite(async (manager) => {
       const consent = await readTrackingConsentForUpdate(
         manager,
         report.account_id,
@@ -708,13 +765,21 @@ export class StatsListenWriteService {
         consent.optedOutAt !== null &&
         consent.optedOutAt.getTime() > now.getTime() - report.min_interval_seconds * 1000;
 
-      const target = await resolveListenTarget(manager, report.target);
+      const target = await resolveListenTarget(
+        manager,
+        report.target,
+        report.media_duration_seconds
+      );
       if (typeof target === 'string') {
         return target;
       }
 
       const secondsHeard = storedSecondsHeard(report.seconds_heard, target.durationSeconds);
-      const meetsRule = isCountedListen({ secondsHeard, durationSeconds: target.durationSeconds });
+      const meetsRule = isCountedListen({
+        secondsHeard,
+        durationSeconds: target.durationSeconds,
+        mediumId: target.mediumId,
+      });
 
       let listenerId = await this.listenerService.findListenerId(report.account_id, manager);
       if (listenerId === null) {
@@ -755,7 +820,13 @@ export class StatsListenWriteService {
         optOutTooSoon ||
         (await hasRecentListen(manager, listenerId, now, report.min_interval_seconds));
       if (tooSoon) {
-        if (countsTowardTooSoonSignal(target.durationSeconds)) {
+        if (
+          countsTowardTooSoonSignal({
+            rssDurationSeconds: target.rssDurationSeconds,
+            mediumId: target.mediumId,
+            minIntervalSeconds: report.min_interval_seconds,
+          })
+        ) {
           await recordTooSoonMinute(manager, listenerId, now, report.flag_too_soon_minutes);
         }
         return 'too_soon';
@@ -811,7 +882,16 @@ export class StatsListenWriteService {
           });
         }
       }
-      await addListenToTaste(manager, listenerId, target, report.completed, now);
+      const tasteUpdate = await addListenToTaste(
+        manager,
+        listenerId,
+        target,
+        report.completed,
+        now
+      );
+      if (tasteUpdate.recommendationWeightChanged) {
+        listenerIdToRefresh = listenerId;
+      }
       if (storedBefore + 1 >= report.stored_daily_cap) {
         await recordStoredCapReached(
           manager,
@@ -824,5 +904,9 @@ export class StatsListenWriteService {
       // A client must not learn when its listens stop counting toward popularity.
       return 'counted';
     });
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return result;
   }
 }

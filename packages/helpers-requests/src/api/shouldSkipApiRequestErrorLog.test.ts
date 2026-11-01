@@ -8,6 +8,7 @@ import { skipApiRequestErrorLogForDirectoryChannelGone } from './skipApiRequestE
 import { skipApiRequestErrorLogForFeedContentNotFound } from './skipApiRequestErrorLogForFeedContentNotFound.js';
 import { skipApiRequestErrorLogForMembershipGate } from './skipApiRequestErrorLogForMembershipGate.js';
 import { skipApiRequestErrorLogForMembershipPricing } from './skipApiRequestErrorLogForMembershipPricing.js';
+import { skipApiRequestErrorLogForMobileRefresh } from './skipApiRequestErrorLogForMobileRefresh.js';
 import { skipApiRequestErrorLogForTermsAcceptance } from './skipApiRequestErrorLogForTermsAcceptance.js';
 
 vi.mock('../_request.js', () => ({
@@ -168,6 +169,26 @@ describe('skipApiRequestErrorLogForMembershipPricing', () => {
   });
 });
 
+describe('skipApiRequestErrorLogForMobileRefresh', () => {
+  it('returns true for a 401 on the mobile refresh route', () => {
+    expect(
+      skipApiRequestErrorLogForMobileRefresh(
+        { status: 401, responseData: { message: 'Invalid refresh token' } },
+        '/auth/mobile/refresh'
+      )
+    ).toBe(true);
+  });
+
+  it('returns false for other statuses and routes', () => {
+    expect(skipApiRequestErrorLogForMobileRefresh({ status: 500 }, '/auth/mobile/refresh')).toBe(
+      false
+    );
+    expect(skipApiRequestErrorLogForMobileRefresh({ status: 401 }, '/auth/mobile/token')).toBe(
+      false
+    );
+  });
+});
+
 describe('shouldSkipApiRequestErrorLog', () => {
   it('combines membership gate, feed content, account not-found, and pricing skips', () => {
     expect(
@@ -207,8 +228,15 @@ describe('shouldSkipApiRequestErrorLog', () => {
         '/product/membership/pricing'
       )
     ).toBe(true);
+    expect(
+      shouldSkipApiRequestErrorLog(
+        { status: 401, responseData: { message: 'Invalid refresh token' } },
+        '/auth/mobile/refresh'
+      )
+    ).toBe(true);
     expect(shouldSkipApiRequestErrorLog({ status: 404 }, '/account/me')).toBe(false);
     expect(shouldSkipApiRequestErrorLog({ status: 500 }, '/item/foo')).toBe(false);
+    expect(shouldSkipApiRequestErrorLog({ status: 401 }, '/auth/mobile/token')).toBe(false);
   });
 });
 

@@ -59,6 +59,9 @@ with the entry whose evidence is clearest.
 
 ## Resolve
 
+If an entry is one of the checks in **e2e-problematic-assertions**, delete that assertion if it is
+still present, delete the entry, and do not investigate it.
+
 Work one group at a time. Read that entry's command, assertion, what was already tried, and the
 competing explanations before changing anything. Rerun the command recorded on the entry — the
 narrowest one that covers it. The agent runs that command and starts any required services in

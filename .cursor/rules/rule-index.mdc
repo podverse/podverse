@@ -32,3 +32,5 @@ file of theirs is in context.
 - Stacked headings, paragraphs, buttons, dividers, or other block copy → `even-content-spacing`
 - A new dynamic detail page in `apps/web`, or a server fetch for the entity a page renders →
   `web-detail-route-not-found`
+- Notification `Last-Event-ID` replay, the iOS livestream rewind scrubber, landscape video Exit,
+  or the cross-device "Sending to…" status → `e2e-problematic-assertions`

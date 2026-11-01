@@ -208,17 +208,17 @@ test.describe('Add by RSS artist albums', () => {
       await page.locator('#media-player').getByRole('button').first().click();
       const dialog = page.getByRole('dialog', { name: 'Fullscreen Media Player' });
       await expect(dialog).toBeVisible();
-      const artistButton = dialog.getByRole('button', { name: ARTIST_TITLE, exact: true });
-      await expect(artistButton).toBeVisible();
+      const artistLink = dialog.getByRole('link', { name: ARTIST_TITLE, exact: true });
+      await expect(artistLink).toBeVisible();
 
       await captureVerifiedElement(
         page,
         testInfo,
-        artistButton,
+        artistLink,
         'The full-size player names the Add by RSS artist above the album.'
       );
 
-      await artistButton.click();
+      await artistLink.click();
       await expect(page).toHaveURL((url) => url.pathname === artistPath);
       await expect(dialog).toHaveCount(0);
     });

@@ -388,7 +388,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       );
     });
 
-    await test.step('While the Tracks list is held, Tracks is pressed, the artist is hidden, a spinner shows, and the row has not moved', async () => {
+    await test.step('While the Tracks list is held, Tracks is pressed, Sort and the gear stay, a spinner shows, and the row has not moved', async () => {
       releaseTracks = await holdChipRender(page, '/browse', 'tracks');
       await chipButton(page, 'Tracks').click();
       await expect(chipButton(page, 'Tracks')).toHaveAttribute('aria-pressed', 'true');
@@ -396,13 +396,14 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       await expectAppPath(page, '/browse?tab=artists');
       await expect(artistTitle).toBeHidden();
       await expect(listLoading(page)).toBeVisible();
-      await expect(sortChip(page)).toBeHidden();
+      await expect(sortChip(page)).toBeVisible();
+      await expect(layoutChip(page)).toBeVisible();
       await expectChipStill(page, 'Tracks', tracksBefore);
 
       await capturePageLoadKeepingScroll(
         page,
         testInfo,
-        'While the Tracks list is held, Tracks is pressed, the artist is hidden, a spinner shows, and the row has not moved.',
+        'While the Tracks list is held, Tracks is pressed, Sort and the gear stay, a spinner shows, and the row has not moved.',
         listLoading(page)
       );
     });

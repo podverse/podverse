@@ -13,6 +13,13 @@ name: Developer API Keys
     id: tab-more
 - tapOn:
     id: more-settings
+# Developer sits below the first page of Settings. A tap at the row's bottom edge hits the tab bar.
+- scrollUntilVisible:
+    element:
+      id: more-settings-developer
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+    centerElement: true
 - tapOn:
     id: more-settings-developer
 - extendedWaitUntil:
@@ -100,7 +107,7 @@ name: Developer API Keys
       - assertVisible:
           text: "E2E Agent iOS"
       - assertVisible:
-          text: "Read Only"
+          text: ".*Read Only.*"
       - tapOn:
           text: "Revoke E2E Agent iOS"
 - runFlow:

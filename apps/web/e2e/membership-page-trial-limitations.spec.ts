@@ -47,7 +47,7 @@ test.describe('Web membership page trial limitations and renew route', () => {
     await expect(page.getByText('Notifications', { exact: true })).toBeVisible();
     await expect(page.getByText('Playback Handoff', { exact: true })).toBeVisible();
     await expect(page.getByText('Queue and History', { exact: true })).toBeVisible();
-    await expect(page.getByText('Recommendations', { exact: true })).toBeVisible();
+    await expect(page.getByRole('cell', { name: 'Recommendations', exact: true })).toBeVisible();
     await expect(page.getByText('Developer API Keys', { exact: true })).toBeVisible();
     await expect(page.getByText('Coming Soon')).toHaveCount(0);
     await expect(

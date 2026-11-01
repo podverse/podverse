@@ -51,19 +51,26 @@ const firstMigrationSql = (): string =>
     .toLowerCase();
 
 describe('mobile SQLite migrations', () => {
-  it('holds exactly one migration, version 1, which is the latest version', () => {
-    expect(MIGRATIONS).toHaveLength(1);
+  it('holds version 1 and version 2, and version 2 is the latest', () => {
+    expect(MIGRATIONS).toHaveLength(2);
     expect(MIGRATIONS[0]?.version).toBe(1);
-    expect(LATEST_MIGRATION_VERSION).toBe(1);
+    expect(MIGRATIONS[1]?.version).toBe(2);
+    expect(LATEST_MIGRATION_VERSION).toBe(2);
   });
 
-  it('runs every version 1 statement on a new database and then records version 1', async () => {
+  it('runs every pending statement on a new database and records version 2', async () => {
     const { database, executed } = createRecordingDatabase(0);
 
     await runMigrations(database);
 
-    const statements = MIGRATIONS[0]?.statements ?? [];
-    expect(executed).toEqual([...statements, 'PRAGMA user_version = 1;']);
+    const version1 = MIGRATIONS[0]?.statements ?? [];
+    const version2 = MIGRATIONS[1]?.statements ?? [];
+    expect(executed).toEqual([
+      ...version1,
+      'PRAGMA user_version = 1;',
+      ...version2,
+      'PRAGMA user_version = 2;',
+    ]);
   });
 
   it('creates every table the schema declares', () => {
@@ -108,19 +115,20 @@ describe('mobile SQLite migrations', () => {
     expect(sql.includes('username')).toBe(false);
   });
 
-  it('runs nothing on a database already at version 1', async () => {
+  it('runs version 2 on a database already at version 1', async () => {
     const { database, executed } = createRecordingDatabase(1);
 
     await runMigrations(database);
 
-    expect(executed).toEqual([]);
+    const version2 = MIGRATIONS[1]?.statements ?? [];
+    expect(executed).toEqual([...version2, 'PRAGMA user_version = 2;']);
   });
 
   it('rejects a database above the latest version without running anything', async () => {
     const { database, executed } = createRecordingDatabase(26);
 
     await expect(runMigrations(database)).rejects.toThrow(
-      "SQLite user_version 26 is newer than this build's latest migration 1"
+      "SQLite user_version 26 is newer than this build's latest migration 2"
     );
     expect(executed).toEqual([]);
   });

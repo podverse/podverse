@@ -14,6 +14,7 @@ import {
   ArtistChooserSheet,
   DescriptionText,
   PeoplePane,
+  TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX,
   TranscriptFollowBar,
   TranscriptListRow,
 } from '../../components/content';
@@ -506,18 +507,18 @@ export function AddByRssTrackDetailScreen({ navigation, route }: AddByRssTrackDe
           onScrollToIndexFailed={
             activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
           }
-          onViewableItemsChanged={
-            activeTab === 'transcript' ? onTranscriptViewableItemsChanged : undefined
-          }
+          onViewableItemsChanged={onTranscriptViewableItemsChanged}
           ref={listRef}
           renderItem={renderPaneRow}
-          stickyHeaderIndices={transcriptStickyOffset > 0 ? [0] : undefined}
+          stickyHeaderIndices={
+            transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
+          }
           testID={
             activeTab === 'transcript'
               ? 'add-by-rss-track-detail-transcript-list'
               : 'add-by-rss-track-detail-list'
           }
-          viewabilityConfig={activeTab === 'transcript' ? transcriptViewabilityConfig : undefined}
+          viewabilityConfig={transcriptViewabilityConfig}
         />
       ) : null}
       {addToPlaylistSheet}

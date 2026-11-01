@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { MediumEnum } from '@podverse/helpers';
+
 import type {
   ListenSessionReport,
   ListenSessionTarget,
@@ -13,7 +15,17 @@ import {
 } from '../listenSession.js';
 import type { PlaybackTarget } from '../playbackTarget.js';
 
-const itemTarget: ListenSessionTarget = { kind: 'item', idText: 'item-1' };
+const itemTarget: ListenSessionTarget = {
+  kind: 'item',
+  idText: 'item-1',
+  mediumId: MediumEnum.Music,
+};
+
+const podcastTarget: ListenSessionTarget = {
+  kind: 'item',
+  idText: 'item-podcast',
+  mediumId: MediumEnum.Podcast,
+};
 
 function createHarness(onReportImpl?: (report: ListenSessionReport) => void) {
   let nowMs = 0;
@@ -55,7 +67,7 @@ function playEachSecond(
 }
 
 describe('createListenSessionTracker', () => {
-  it('reports a long item at 60 seconds and again on pause after 60 more', () => {
+  it('reports a long music item at 60 seconds and again on pause after 60 more', () => {
     const harness = createHarness();
     harness.tracker.load({
       directive: 'start',
@@ -72,6 +84,7 @@ describe('createListenSessionTracker', () => {
       completed: false,
       countedAtMs: 60_000,
       firstReport: true,
+      mediaDurationSeconds: 3_600,
     });
 
     for (let second = 120; second <= 125; second += 1) {
@@ -92,39 +105,83 @@ describe('createListenSessionTracker', () => {
       completed: false,
       countedAtMs: 60_000,
       firstReport: false,
+      mediaDurationSeconds: 3_600,
     });
   });
 
-  it('reports a 200-second item at 50 seconds and again at 60', () => {
+  it('reports a 90-second music track at 45 seconds and again at the 60-second cap', () => {
     const harness = createHarness();
     harness.tracker.load({
       directive: 'start',
       target: itemTarget,
-      mediaDurationSeconds: 200,
+      mediaDurationSeconds: 90,
     });
-    playEachSecond(harness.tracker, harness.advance, 0, 49);
+    playEachSecond(harness.tracker, harness.advance, 0, 44);
     expect(harness.onReport).not.toHaveBeenCalled();
 
     harness.advance(1000);
-    harness.tracker.recordPosition({ positionSeconds: 50, isPlaying: true, playbackRate: 1 });
+    harness.tracker.recordPosition({ positionSeconds: 45, isPlaying: true, playbackRate: 1 });
     expect(harness.onReport).toHaveBeenCalledTimes(1);
     expect(harness.onReport).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ secondsHeard: 50, countedAtMs: 50_000, firstReport: true })
+      expect.objectContaining({ secondsHeard: 45, countedAtMs: 45_000, firstReport: true })
     );
 
-    playEachSecond(harness.tracker, harness.advance, 51, 59);
+    playEachSecond(harness.tracker, harness.advance, 46, 59);
     expect(harness.onReport).toHaveBeenCalledTimes(1);
 
     harness.advance(1000);
     harness.tracker.recordPosition({ positionSeconds: 60, isPlaying: true, playbackRate: 1 });
     expect(harness.onReport).toHaveBeenCalledTimes(2);
     expect(harness.onReport).toHaveBeenLastCalledWith(
-      expect.objectContaining({ secondsHeard: 60, firstReport: false, countedAtMs: 50_000 })
+      expect.objectContaining({ secondsHeard: 60, firstReport: false, countedAtMs: 45_000 })
     );
 
     playEachSecond(harness.tracker, harness.advance, 61, 80);
     expect(harness.onReport).toHaveBeenCalledTimes(2);
+  });
+
+  it('reports a long episode at 5 minutes and again at the cap when the first report was earlier', () => {
+    const harness = createHarness();
+    harness.tracker.load({
+      directive: 'start',
+      target: podcastTarget,
+      mediaDurationSeconds: 3_600,
+    });
+    playEachSecond(harness.tracker, harness.advance, 0, 299);
+    expect(harness.onReport).not.toHaveBeenCalled();
+
+    harness.advance(1000);
+    harness.tracker.recordPosition({ positionSeconds: 300, isPlaying: true, playbackRate: 1 });
+    expect(harness.onReport).toHaveBeenCalledTimes(1);
+    expect(harness.onReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        secondsHeard: 300,
+        mediaDurationSeconds: 3_600,
+        firstReport: true,
+      })
+    );
+
+    const shorter = createHarness();
+    shorter.tracker.load({
+      directive: 'start',
+      target: podcastTarget,
+      mediaDurationSeconds: 480,
+    });
+    playEachSecond(shorter.tracker, shorter.advance, 0, 239);
+    expect(shorter.onReport).not.toHaveBeenCalled();
+    shorter.advance(1000);
+    shorter.tracker.recordPosition({ positionSeconds: 240, isPlaying: true, playbackRate: 1 });
+    expect(shorter.onReport).toHaveBeenCalledTimes(1);
+
+    playEachSecond(shorter.tracker, shorter.advance, 241, 299);
+    expect(shorter.onReport).toHaveBeenCalledTimes(1);
+    shorter.advance(1000);
+    shorter.tracker.recordPosition({ positionSeconds: 300, isPlaying: true, playbackRate: 1 });
+    expect(shorter.onReport).toHaveBeenCalledTimes(2);
+    expect(shorter.onReport).toHaveBeenLastCalledWith(
+      expect.objectContaining({ secondsHeard: 300, firstReport: false, countedAtMs: 240_000 })
+    );
   });
 
   it('ignores a forward jump and the sample after a seek, and counts a throttled sample', () => {
@@ -314,7 +371,7 @@ describe('createListenSessionTracker', () => {
     playEachSecond(mismatched.tracker, mismatched.advance, 0, 30);
     mismatched.tracker.load({
       directive: 'continue',
-      target: { kind: 'item', idText: 'item-2' },
+      target: { kind: 'item', idText: 'item-2', mediumId: MediumEnum.Music },
       mediaDurationSeconds: 3_600,
     });
     expect(mismatched.idsCreated()).toBe(2);
@@ -364,20 +421,21 @@ describe('createListenSessionTracker', () => {
     harness.tracker.load({ directive: 'start', target, mediaDurationSeconds: 3_600 });
     playEachSecond(harness.tracker, harness.advance, 0, 200);
 
-    expect(harness.onReport).toHaveBeenCalledTimes(3);
+    expect(harness.onReport).toHaveBeenCalledTimes(2);
     expect(harness.onReport).toHaveBeenLastCalledWith({
       target,
       clientListenId: 'listen-1',
       secondsHeard: 200,
       completed: true,
-      countedAtMs: 50_000,
+      countedAtMs: 100_000,
       firstReport: false,
+      mediaDurationSeconds: 3_600,
     });
 
     harness.advance(1000);
     harness.tracker.recordPosition({ positionSeconds: 250, isPlaying: true, playbackRate: 1 });
     harness.tracker.recordCompleted();
-    expect(harness.onReport).toHaveBeenCalledTimes(3);
+    expect(harness.onReport).toHaveBeenCalledTimes(2);
   });
 
   it('reports item completion after the listen counted, and nothing before that', () => {
@@ -463,7 +521,7 @@ describe('createListenSessionTracker', () => {
     harness.tracker.load({ directive: 'start', target: itemTarget, mediaDurationSeconds: null });
     playEachSecond(harness.tracker, harness.advance, 0, 50);
     expect(harness.onReport).not.toHaveBeenCalled();
-    harness.tracker.setMediaDuration(200);
+    harness.tracker.setMediaDuration(90);
     harness.advance(1000);
     harness.tracker.recordPosition({ positionSeconds: 51, isPlaying: true, playbackRate: 1 });
     expect(harness.onReport).toHaveBeenCalledTimes(1);
@@ -481,12 +539,14 @@ describe('listenSessionTargetFromPlaybackTarget', () => {
       idText: 'clip-9',
       startSeconds: 12,
       endSeconds: 40,
+      mediumId: null,
     });
     expect(listenSessionTargetForClip({ id_text: 'clip-9', start_time: '4' })).toEqual({
       kind: 'clip',
       idText: 'clip-9',
       startSeconds: 4,
       endSeconds: null,
+      mediumId: null,
     });
 
     // These objects carry only the fields the helper reads.
@@ -502,6 +562,7 @@ describe('listenSessionTargetFromPlaybackTarget', () => {
       idText: 'clip-9',
       startSeconds: 12,
       endSeconds: 40,
+      mediumId: null,
     });
 
     expect(
@@ -511,7 +572,7 @@ describe('listenSessionTargetFromPlaybackTarget', () => {
         item: { id_text: 'item-sb' },
         channel: { id_text: 'channel-1' },
       } as PlaybackTarget)
-    ).toEqual({ kind: 'item', idText: 'item-sb' });
+    ).toEqual({ kind: 'item', idText: 'item-sb', mediumId: null });
 
     expect(
       listenSessionTargetFromPlaybackTarget({
@@ -527,7 +588,7 @@ describe('listenSessionTargetFromPlaybackTarget', () => {
         item: { id_text: 'item-ch' },
         channel: { id_text: 'channel-1' },
       } as PlaybackTarget)
-    ).toEqual({ kind: 'item', idText: 'item-ch' });
+    ).toEqual({ kind: 'item', idText: 'item-ch', mediumId: null });
 
     for (const kind of ['item-podcast', 'item-video'] as const) {
       expect(
@@ -536,7 +597,7 @@ describe('listenSessionTargetFromPlaybackTarget', () => {
           item: { id_text: 'item-1' },
           channel: { id_text: 'channel-1' },
         } as PlaybackTarget)
-      ).toEqual({ kind: 'item', idText: 'item-1' });
+      ).toEqual({ kind: 'item', idText: 'item-1', mediumId: null });
     }
 
     expect(
@@ -544,9 +605,9 @@ describe('listenSessionTargetFromPlaybackTarget', () => {
         kind: 'item-music',
         intent: 'session_restore',
         item: { id_text: 'item-1' },
-        channel: { id_text: 'channel-1' },
+        channel: { id_text: 'channel-1', medium_id: MediumEnum.Music },
       } as PlaybackTarget)
-    ).toEqual({ kind: 'item', idText: 'item-1' });
+    ).toEqual({ kind: 'item', idText: 'item-1', mediumId: MediumEnum.Music });
 
     expect(
       listenSessionTargetFromPlaybackTarget({

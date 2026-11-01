@@ -33,7 +33,8 @@ test.describe('Management-web flagged listeners page', () => {
     let cleared = false;
     let clearCalls = 0;
 
-    await page.route(/\/stats\/flagged-listeners(?:\?.*)?$/, async (route) => {
+    // The page lives at /stats/flagged-listeners. Only the API path includes /api/v2.
+    await page.route(/\/api\/v2\/stats\/flagged-listeners(?:\?.*)?$/, async (route) => {
       if (route.request().method() !== 'GET') {
         await route.continue();
         return;
@@ -48,7 +49,7 @@ test.describe('Management-web flagged listeners page', () => {
       });
     });
 
-    await page.route(/\/stats\/flagged-listeners\/4343\/clear$/, async (route) => {
+    await page.route(/\/api\/v2\/stats\/flagged-listeners\/4343\/clear$/, async (route) => {
       if (route.request().method() !== 'POST') {
         await route.continue();
         return;

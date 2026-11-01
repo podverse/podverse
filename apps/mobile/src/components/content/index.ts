@@ -11,7 +11,7 @@ export { ChapterListRow } from './ChapterListRow';
 export type { ChapterListRowProps } from './ChapterListRow';
 export { ItemChapterRow } from './ItemChapterRow';
 export type { ItemChapterRowProps } from './ItemChapterRow';
-export { TranscriptFollowBar } from './TranscriptFollowBar';
+export { TranscriptFollowBar, TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX } from './TranscriptFollowBar';
 export type { TranscriptFollowBarProps } from './TranscriptFollowBar';
 export { TranscriptListRow } from './TranscriptListRow';
 export type { TranscriptListRowProps } from './TranscriptListRow';

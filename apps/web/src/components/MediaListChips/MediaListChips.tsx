@@ -15,6 +15,7 @@ import {
   writeMediaListChip,
 } from '../../utils/mediaListChips';
 import { MediaListLoadingSpinner } from './MediaListLoadingSpinner';
+import { MediaListPendingTrailingChips } from './MediaListPendingTrailingChips';
 
 import styles from '../../styles/components/MediaListChips/MediaListChips.module.scss';
 
@@ -44,9 +45,9 @@ type MediaListChipsProps = MediaListChipsConfig & {
 /**
  * Media chips for Subscribed, Browse, Add by RSS, and Recommendations. The pressed chip follows
  * the click at once. Everything after the row in its column is the list area, hidden behind one
- * spinner until the new chip's render commits. The old trailing controls keep their space but
- * stay hidden. The row keeps its horizontal offset and focus across that render. The last chip
- * clicked wins.
+ * spinner until the new chip's render commits. While that spinner is up, the trailing slot shows
+ * Sort and the gear for the pressed chip. The row keeps its horizontal offset and focus across
+ * that render. The last chip clicked wins.
  */
 export function MediaListChips({
   page,
@@ -89,6 +90,13 @@ export function MediaListChips({
     });
   };
 
+  const showPendingTrailing = isPending && shownChip !== selected;
+  const rowTrailing = showPendingTrailing ? (
+    <MediaListPendingTrailingChips chip={shownChip} page={page} />
+  ) : (
+    trailing
+  );
+
   const hasActions = typeof actions !== 'boolean' && actions !== undefined && actions !== null;
   const chipRow = (
     <ChipRow
@@ -101,8 +109,7 @@ export function MediaListChips({
       onSelect={onSelect}
       selectedKey={shownChip}
       testId="media-list-chips"
-      trailing={trailing}
-      trailingHidden={isPending}
+      trailing={rowTrailing}
     />
   );
 

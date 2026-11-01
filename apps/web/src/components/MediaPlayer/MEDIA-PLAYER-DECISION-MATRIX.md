@@ -300,8 +300,9 @@ Once chapters and the 3-second restart are handled in `useTrackPreviousButtonAct
 
 Livestreams render the shared `MediaElement` from
 `MediaPlayerControllerLiveStreamAV.tsx`. A progressive file sets `src`. An HLS
-playlist is attached after mount, natively or with lazy `hls.js` when the
-browser cannot play it. Each source mounts its own element, keyed by delivery
+playlist is attached after mount. A browser with Media Source uses lazy `hls.js`
+and leaves `src` unset. A browser that reports the playlist MIME and has no
+Media Source sets `src`. Each source mounts its own element, keyed by delivery
 and URL (`LivestreamMediaElement`). Leaving a livestream unmounts that element,
 so the next livestream starts from a fresh element. The source is the selected
 labeled enclosure (`getSelectedLabeledItemEnclosureAndSource`). When

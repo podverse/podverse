@@ -42,20 +42,18 @@ test.describe('Player artist line', () => {
     const dialog = page.getByRole('dialog', { name: 'Fullscreen Media Player' });
     await expect(dialog).toBeVisible();
 
-    const artistButton = dialog.getByRole('button', { name: 'E2E Music Artist', exact: true });
-    await expect(artistButton).toBeVisible();
-    await expect(
-      dialog.getByRole('button', { name: 'E2E Music Album', exact: true })
-    ).toBeVisible();
+    const artistLink = dialog.getByRole('link', { name: 'E2E Music Artist', exact: true });
+    await expect(artistLink).toBeVisible();
+    await expect(dialog.getByRole('link', { name: 'E2E Music Album', exact: true })).toBeVisible();
 
     await captureVerifiedElement(
       page,
       testInfo,
-      artistButton,
+      artistLink,
       'The full-size player shows the verified artist between the track and the album.'
     );
 
-    await artistButton.click();
+    await artistLink.click();
     await expect(page).toHaveURL(new RegExp(`/artist/${E2E_MUSIC_CHANNEL_ID_TEXT}$`));
     const artistHeading = page.getByRole('heading', { name: 'E2E Music Artist', exact: true });
     await expect(artistHeading).toBeVisible();

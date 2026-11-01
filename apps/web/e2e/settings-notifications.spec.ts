@@ -85,7 +85,7 @@ test.describe('Settings: notification subscribe defaults', () => {
       await expect(livestreamStarted).toBeVisible();
       await expect(page.getByRole('switch', { name: 'Unified Push' })).toHaveCount(0);
       await expect(page.getByRole('switch', { name: 'New Content' })).toBeVisible();
-      await expect(page.getByRole('switch', { name: 'Livestream' })).toBeVisible();
+      await expect(page.getByRole('switch', { name: 'Livestream', exact: true })).toBeVisible();
       await expect(page.getByRole('switch', { name: 'Product Updates' })).toBeVisible();
       const pushPreferences = page.getByRole('switch', { name: /Push/ });
       await expect(pushPreferences.first()).toBeVisible();

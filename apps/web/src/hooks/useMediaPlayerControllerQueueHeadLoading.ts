@@ -45,7 +45,10 @@ import {
 } from './playbackHandoffState';
 import { useAddByRSSMetadataUpgrade } from './useAddByRSSMetadataUpgrade';
 import { useAutoQueueLoadResources } from './useAutoQueueLoadResources';
-import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
+import {
+  hasDeferredExplicitPlay,
+  useMediaPlayerResourceUpdate,
+} from './useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from './usePlayAddByRSS';
 import { useQueueResourcesLoadActive } from './useQueueResourcesLoadActive';
 import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
@@ -226,6 +229,7 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
   // Automatic queue loads give way to a load applied after they start, and to a newer
   // automatic load from this hook (latest request id wins).
   const queueHeadLoadRequestIdRef = useRef(0);
+  const autoQueueLoadRequestIdRef = useRef(0);
   // Each queue-head effect run starts a new prompt check; a status read from an earlier run is
   // dropped, so a prompt never opens for a decision that no longer holds.
   const handoffPromptCheckIdRef = useRef(0);
@@ -336,10 +340,23 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     void fetchItemLabeledItemEnclosures();
   }, [mpItem]);
 
-  async function handleLoadAutoQueueItem(nextResource: AutoQueueResourcesMapRow) {
+  async function handleLoadAutoQueueItem(
+    nextResource: AutoQueueResourcesMapRow,
+    load: { requestId: number; loadGeneration: number }
+  ) {
+    const superseded = (): boolean =>
+      load.requestId !== autoQueueLoadRequestIdRef.current ||
+      load.loadGeneration !== playbackLoadGenerationRef.current ||
+      isRemotePlaybackRole();
     const fullItem = await apiRequestService.reqItemGetByIdOrIdText(nextResource.item.id_text);
+    if (superseded()) {
+      return;
+    }
     if (fullItem) {
       const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
+      if (superseded()) {
+        return;
+      }
       if (fullChannel) {
         if (isRemotePlaybackRole()) {
           return;
@@ -864,6 +881,9 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     if (crossDeviceRole === 'remote') {
       return;
     }
+    if (hasDeferredExplicitPlay()) {
+      return;
+    }
     if (!activeQueueUpcomingResources || activeQueueUpcomingResources.length === 0) {
       return;
     }
@@ -993,7 +1013,11 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
     if (autoQueueActiveRow || autoQueueActiveRow === 0) {
       const newResource = autoQueueResourcesRef.current[autoQueueActiveRow];
       if (newResource) {
-        void handleLoadAutoQueueItem(newResource);
+        autoQueueLoadRequestIdRef.current += 1;
+        void handleLoadAutoQueueItem(newResource, {
+          requestId: autoQueueLoadRequestIdRef.current,
+          loadGeneration: playbackLoadGenerationRef.current,
+        });
       }
     }
   }, [autoQueueActiveRow]);

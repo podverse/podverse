@@ -53,6 +53,8 @@ export type CrossDevicePlaybackSnapshot = {
   /** Set while a start this tab was asked to make is waiting for a tap. Null command id: local take-over. */
   tapToPlay: { commandIdText: string | null } | null;
   pendingCommandStart: { commandIdText: string; atMs: number } | null;
+  /** A media element on this tab has reached `playing`. Intent to play is not enough to claim. */
+  mediaElementPlaying: boolean;
 };
 
 export type CrossDevicePlaybackSignal =
@@ -106,6 +108,7 @@ function createInitialCore(params: {
     transferFailure: null,
     tapToPlay: null,
     pendingCommandStart: null,
+    mediaElementPlaying: false,
     revisionFloor: null,
     optimisticPatch: null,
   };
@@ -147,6 +150,7 @@ function buildSnapshot(core: StoreCore): CrossDevicePlaybackSnapshot {
     transferFailure: core.transferFailure,
     tapToPlay: core.tapToPlay,
     pendingCommandStart: core.pendingCommandStart,
+    mediaElementPlaying: core.mediaElementPlaying,
   };
 }
 
@@ -226,12 +230,15 @@ export function createCrossDevicePlaybackStore(options?: { now?: () => number; t
     };
   };
 
-  /** Clears the pending transfer and its failure once a state names the transfer target. */
+  /**
+   * A playing state that names the transfer target finishes the transfer. A paused or loading
+   * state does not: the target can become the named session before its audio has started.
+   */
   const transferChangesForState = (
     state: DTOPlaybackState | null
   ): Partial<Pick<StoreCore, 'pendingTransfer' | 'transferFailure'>> => {
     const activeSessionIdText = state?.active_session_id_text ?? null;
-    if (activeSessionIdText === null) {
+    if (activeSessionIdText === null || state?.status !== 'playing') {
       return {};
     }
     const changes: Partial<Pick<StoreCore, 'pendingTransfer' | 'transferFailure'>> = {};
@@ -514,6 +521,10 @@ export function createCrossDevicePlaybackStore(options?: { now?: () => number; t
       update({ tapToPlay: value });
     },
 
+    setMediaElementPlaying(playing: boolean): void {
+      update({ mediaElementPlaying: playing });
+    },
+
     setPendingCommandStart(commandIdText: string | null): void {
       update({
         pendingCommandStart: commandIdText === null ? null : { commandIdText, atMs: now() },
@@ -522,9 +533,11 @@ export function createCrossDevicePlaybackStore(options?: { now?: () => number; t
 
     /** Called by media controllers on any rejected `play()`; emits `local_play_blocked` for `NotAllowedError`. */
     notifyLocalPlayRejected(error: unknown): void {
-      if (isNotAllowedError(error)) {
-        emitSignal({ kind: 'local_play_blocked' });
+      if (!isNotAllowedError(error)) {
+        return;
       }
+      update({ mediaElementPlaying: false });
+      emitSignal({ kind: 'local_play_blocked' });
     },
 
     /** True unless this tab's role is `remote`. Save hooks call it synchronously. */

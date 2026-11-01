@@ -3,8 +3,8 @@ import type { Relation } from 'typeorm';
 import { CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 /**
- * A show the listener removed from their taste profile. Listening never adds it back while the row
- * exists.
+ * A show the listener left out of recommendations. The show stays visible. Listening never adds
+ * it back to the Taste Profile while the row exists.
  */
 @Entity('stats_taste_profile_hidden')
 export class StatsTasteProfileHidden {

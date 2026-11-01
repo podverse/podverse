@@ -6,6 +6,7 @@ import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type {
+  DTOChannel,
   DTOClip,
   DTOItem,
   DTOItemSoundbite,
@@ -78,6 +79,7 @@ function loadDecision(listenSession: ListenSessionDirective): PlaybackLoadDecisi
 
 type RenderOverrides = Partial<{
   mpAddByRSS: MediaPlayerAddByRSSState;
+  mpChannel: DTOChannel | null;
   mpClip: DTOClip | null;
   mpItem: DTOItem | null;
   mpItemSoundbite: DTOItemSoundbite | null;
@@ -108,7 +110,7 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
         mediaType="audio"
         hidden
         mpAddByRSS={overrides.mpAddByRSS ?? null}
-        mpChannel={null}
+        mpChannel={overrides.mpChannel ?? null}
         mpClip={overrides.mpClip ?? null}
         setMPClip={() => undefined}
         mpItem={overrides.mpItem ?? null}
@@ -183,6 +185,7 @@ describe('NonLiveMediaOrchestrator listen session', () => {
   it('starts an item session with the media duration on loadedmetadata', async () => {
     const { fake } = await renderAV({
       mpItem: item,
+      mpChannel: { id_text: 'channel-1', medium_id: MediumEnum.Podcast } as unknown as DTOChannel,
       pendingPlaybackDecision: loadDecision('start'),
     });
 
@@ -192,7 +195,7 @@ describe('NonLiveMediaOrchestrator listen session', () => {
 
     expect(session.load).toHaveBeenCalledWith({
       directive: 'start',
-      target: { kind: 'item', idText: 'item-1' },
+      target: { kind: 'item', idText: 'item-1', mediumId: MediumEnum.Podcast },
       mediaDurationSeconds: 240,
     });
   });
@@ -209,7 +212,13 @@ describe('NonLiveMediaOrchestrator listen session', () => {
 
     expect(session.load).toHaveBeenCalledWith({
       directive: 'start',
-      target: { kind: 'clip', idText: 'clip-1', startSeconds: 12, endSeconds: 40 },
+      target: {
+        kind: 'clip',
+        idText: 'clip-1',
+        startSeconds: 12,
+        endSeconds: 40,
+        mediumId: null,
+      },
       mediaDurationSeconds: 180,
     });
   });
@@ -226,7 +235,7 @@ describe('NonLiveMediaOrchestrator listen session', () => {
 
     expect(session.load).toHaveBeenCalledWith({
       directive: 'start',
-      target: { kind: 'item', idText: 'item-1' },
+      target: { kind: 'item', idText: 'item-1', mediumId: null },
       mediaDurationSeconds: 180,
     });
   });
@@ -243,7 +252,7 @@ describe('NonLiveMediaOrchestrator listen session', () => {
 
     expect(session.load).toHaveBeenCalledWith({
       directive: 'continue',
-      target: { kind: 'item', idText: 'item-1' },
+      target: { kind: 'item', idText: 'item-1', mediumId: null },
       mediaDurationSeconds: 180,
     });
   });

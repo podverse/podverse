@@ -383,13 +383,6 @@ export const ListEpisodeRow: React.FC<Props> = ({
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
             <PlayButtonRow item={item} onClick={onPlayAndRemove ?? playButtonOnClick} />
-            <div className={styles.timeSection}>
-              <ReadableDate date={item.pub_date} />
-              {durationStr ? ' • ' : null}
-              <ReadableDuration durationStr={durationStr} positionStr={positionStr} />
-            </div>
-          </div>
-          <div className={styles.bottomSectionEnd}>
             <ItemRowMoreActions
               enclosures={item.item_enclosures}
               itemTitle={item.title}
@@ -397,6 +390,11 @@ export const ListEpisodeRow: React.FC<Props> = ({
               moreButtonMenuItems={moreButtonMenuItems}
               onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
             />
+            <div className={styles.timeSection}>
+              <ReadableDate date={item.pub_date} />
+              {durationStr ? ' • ' : null}
+              <ReadableDuration durationStr={durationStr} positionStr={positionStr} />
+            </div>
           </div>
         </div>
       </div>

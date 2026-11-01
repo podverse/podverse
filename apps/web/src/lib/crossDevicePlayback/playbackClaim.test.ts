@@ -4,7 +4,7 @@ import type { PlaybackStatePublishBody, PlaybackStatePublishResponse } from '@po
 import { MediumEnum } from '@podverse/helpers';
 
 import { createCrossDevicePlaybackStore } from './crossDevicePlaybackStore';
-import { publishPlaybackState } from './playbackClaim';
+import { publishPlaybackState, shouldClaimActiveDevice } from './playbackClaim';
 
 const CLAIM_BODY: PlaybackStatePublishBody = {
   claim: true,
@@ -37,6 +37,26 @@ function claimingStore() {
   store.beginClaim();
   return store;
 }
+
+describe('shouldClaimActiveDevice', () => {
+  const readyToClaim = {
+    canPublish: true,
+    wantsToPlay: true,
+    mediaElementPlaying: true,
+    claimBlocked: false,
+    thisTabHoldsAudio: false,
+    activeSessionIsNull: false,
+    needsReclaim: false,
+  };
+
+  it('claims when this tab is allowed to publish and a media element is playing', () => {
+    expect(shouldClaimActiveDevice(readyToClaim)).toBe(true);
+  });
+
+  it('does not claim from the intent to play before a media element has started', () => {
+    expect(shouldClaimActiveDevice({ ...readyToClaim, mediaElementPlaying: false })).toBe(false);
+  });
+});
 
 describe('publishPlaybackState', () => {
   it('keeps the published state and confirms the claim on success', async () => {

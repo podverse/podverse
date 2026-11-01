@@ -44,7 +44,18 @@
     "sharp": "$sharp",
     "fast-xml-parser": "5.11.2",
     "brace-expansion": "5.0.12",
-    "glob": "^13.0.1",
+    "follow-redirects": "$follow-redirects",
+    "glob": "$glob",
+    "minimatch": "$minimatch",
+    "axios": {
+      "follow-redirects": "$follow-redirects"
+    },
+    "rimraf": {
+      "glob": "$glob"
+    },
+    "readdir-glob": {
+      "minimatch": "$minimatch"
+    },
     "esbuild": "0.28.1",
     "uuid": "$uuid",
     "@google-cloud/storage": {
@@ -57,6 +68,9 @@
     }
   },
   "dependencies": {
+    "follow-redirects": "1.16.2",
+    "glob": "14.0.3",
+    "minimatch": "11.0.3",
     "postcss": "8.5.32",
     "sharp": "0.35.5",
     "uuid": "14.0.3"
@@ -176,6 +190,7 @@
     "test": "npm run test:unit && npm run test:e2e:api && npm run test:e2e:web",
     "lint": "node scripts/ci/lint-with-summary.mjs lint",
     "lint:fix": "node scripts/ci/lint-with-summary.mjs lint:fix",
+    "lint:build:fix": "npm run build:packages && npm run lint:fix",
     "lint:changed": "node scripts/ci/lint-changed.mjs",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",

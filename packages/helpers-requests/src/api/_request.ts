@@ -121,6 +121,9 @@ import {
   reqAccountPlaybackSendCommand,
 } from './account/playback.js';
 import {
+  reqAccountChannelHidden,
+  reqAccountChannelHiddenHide,
+  reqAccountChannelHiddenUnhide,
   reqAccountRecommendations,
   reqAccountTasteProfile,
   reqAccountTasteProfileHidden,
@@ -944,6 +947,18 @@ export class ApiRequestService {
 
   reqAccountRecommendations(params: { chip: 'podcasts' | 'albums' | 'artists' }) {
     return reqAccountRecommendations(this, params);
+  }
+
+  reqAccountChannelHidden(params: { page?: number; limit?: number }) {
+    return reqAccountChannelHidden(this, params);
+  }
+
+  reqAccountChannelHiddenHide(params: { channel_id_text: string }) {
+    return reqAccountChannelHiddenHide(this, params);
+  }
+
+  reqAccountChannelHiddenUnhide(params: { channel_id_text: string }) {
+    return reqAccountChannelHiddenUnhide(this, params);
   }
 
   reqAccountTasteProfileSetWeight(params: { channel_id_text: string; weight: number }) {

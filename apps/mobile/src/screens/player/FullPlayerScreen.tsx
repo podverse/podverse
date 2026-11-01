@@ -735,7 +735,9 @@ export function FullPlayerScreen({
     playingChapterIdText ?? 'none'
   }-${playingTranscriptIndex}-${autoScrollOn}-${filterTerm}`;
   const showTranscriptFollowBar =
-    activeTab === 'transcript' && paneTranscriptRows.length > 0 && addByRssPaneState === null;
+    activeTab === 'transcript' &&
+    paneTranscriptRows.length > 0 &&
+    (addByRssPaneState === null || addByRssPaneState === 'content');
   const paneResetKey = addByRssSections.key ?? currentItemIdText;
 
   useEffect(() => {
@@ -1972,9 +1974,7 @@ export function FullPlayerScreen({
                   onScrollToIndexFailed={
                     activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
                   }
-                  onViewableItemsChanged={
-                    activeTab === 'transcript' ? onTranscriptViewableItemsChanged : undefined
-                  }
+                  onViewableItemsChanged={onTranscriptViewableItemsChanged}
                   overScrollMode="never"
                   ref={paneListRef}
                   removeClippedSubviews={LIST_REMOVE_CLIPPED_SUBVIEWS}
@@ -2077,9 +2077,7 @@ export function FullPlayerScreen({
                   showsVerticalScrollIndicator
                   style={styles.list}
                   testID="full-player-section-list"
-                  viewabilityConfig={
-                    activeTab === 'transcript' ? transcriptViewabilityConfig : undefined
-                  }
+                  viewabilityConfig={transcriptViewabilityConfig}
                 />
               </View>
             </FullPlayerPaneSheet>

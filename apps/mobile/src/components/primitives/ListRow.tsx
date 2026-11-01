@@ -163,10 +163,12 @@ export const ListRow = memo(function ListRow({
     </>
   );
 
+  // The row stays in the native hierarchy so the title remains inside it.
   if (onPress === undefined) {
     return (
       <View
         accessibilityState={accessibilityState}
+        collapsable={false}
         style={[styles.container, containerPadding]}
         testID={testID}
       >
@@ -193,6 +195,7 @@ export const ListRow = memo(function ListRow({
       accessibilityLabel={accessibilityLabel ?? labelWithBadge}
       accessibilityRole="button"
       accessibilityState={accessibilityState}
+      collapsable={false}
       onPress={() => {
         if (busy === true) {
           return;

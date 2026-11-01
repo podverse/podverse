@@ -2,7 +2,11 @@ import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { sendMergedInto } from '@api/controllers/helpers/mergedInto.js';
 import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import {
+  ensureAuthenticated,
+  getActiveSessionAccountId,
+  getAuthenticatedUser,
+} from '@api/lib/auth/index.js';
 import { getFollowedChannelIds } from '@api/lib/followed.js';
 import { getParamRequired } from '@api/lib/params.js';
 import { getStatsOrder } from '@api/lib/stats.js';
@@ -42,6 +46,7 @@ import {
   ChannelService,
   StatsPopularityChannelService,
   subChannelGetManyRelations,
+  TasteProfileAccountService,
 } from '@podverse/orm';
 
 const directoryMatchQuerySchema = {
@@ -58,9 +63,24 @@ export class ChannelController {
   private static directoryMatchService = new ChannelAddByRSSDirectoryMatchService();
   private static mergeRedirects = new ChannelMergeRedirectService();
   private static statsPopularityChannelService = new StatsPopularityChannelService();
+  private static tasteProfileAccountService = new TasteProfileAccountService();
 
   private static isParsedReadyChannel(channel: Channel | null): channel is Channel {
     return Boolean(channel?.channel_about);
+  }
+
+  /**
+   * Channel ids the active session hid from Browse and Recommendations. Undefined when anonymous
+   * or when the account has none, so callers can omit the exclude filter.
+   */
+  private static async browseExcludeIds(req: Request): Promise<number[] | undefined> {
+    const accountId = await getActiveSessionAccountId(req);
+    if (accountId === null) {
+      return undefined;
+    }
+    const ids =
+      await ChannelController.tasteProfileAccountService.listHiddenChannelIdsForAccount(accountId);
+    return ids.length > 0 ? ids : undefined;
   }
 
   /**
@@ -70,12 +90,13 @@ export class ChannelController {
   private static async loadRankedTopChannels(args: {
     category_id: number | null;
     channelIds?: number[];
+    excludeIds?: number[];
     limit: number;
     medium: QueryParamsMedium;
     offset: number;
     orderField: StatsPopularityCountField;
   }): Promise<Channel[]> {
-    const { category_id, channelIds, limit, medium, offset, orderField } = args;
+    const { category_id, channelIds, excludeIds, limit, medium, offset, orderField } = args;
     const topConfig: FindManyOptions<StatsPopularityChannel> = {
       order: { [orderField]: 'DESC', channel_id: 'ASC' },
       skip: offset,
@@ -86,11 +107,10 @@ export class ChannelController {
       topConfig,
       medium,
       category_id,
-      { channelIds, minCountField: orderField }
+      { channelIds, excludeIds, minCountField: orderField }
     );
     return statsResults.map((row: { channel: Channel }) => row.channel).filter(Boolean);
   }
-
   /**
    * Subscribed Top: the ranked page, padded with the account's recent followed channels when it
    * is short (`fillTopPage`).
@@ -238,6 +258,7 @@ export class ChannelController {
           medium: QueryParamsMedium;
         };
         const category_id = null;
+        const excludeIds = await ChannelController.browseExcludeIds(req);
 
         const recentConfig: FindManyOptions<Channel> = {
           order: { channel_about: { last_pub_date: 'DESC' } },
@@ -248,7 +269,8 @@ export class ChannelController {
         const channels = await ChannelController.channelService.getMany(
           recentConfig,
           medium,
-          category_id
+          category_id,
+          excludeIds ? { excludeIds } : undefined
         );
 
         const response: ApiListResponse<Channel> = {
@@ -271,10 +293,12 @@ export class ChannelController {
           medium: QueryParamsMedium;
         };
         const category_id = null;
+        const excludeIds = await ChannelController.browseExcludeIds(req);
 
         const orderField = getStatsOrder(range);
         const channels = await ChannelController.loadRankedTopChannels({
           category_id,
+          excludeIds,
           limit,
           medium,
           offset,
@@ -301,6 +325,7 @@ export class ChannelController {
           medium: QueryParamsMedium;
         };
         const category_id = getCategoryEnumValue(category);
+        const excludeIds = await ChannelController.browseExcludeIds(req);
 
         const recentConfig: FindManyOptions<Channel> = {
           order: { channel_about: { last_pub_date: 'DESC' } },
@@ -311,7 +336,8 @@ export class ChannelController {
         const recentResults = await ChannelController.channelService.getMany(
           recentConfig,
           medium,
-          category_id
+          category_id,
+          excludeIds ? { excludeIds } : undefined
         );
         const channels = recentResults.filter(Boolean);
 
@@ -336,10 +362,12 @@ export class ChannelController {
           medium: QueryParamsMedium;
         };
         const category_id = getCategoryEnumValue(category);
+        const excludeIds = await ChannelController.browseExcludeIds(req);
 
         const orderField = getStatsOrder(range);
         const channels = await ChannelController.loadRankedTopChannels({
           category_id,
+          excludeIds,
           limit,
           medium,
           offset,

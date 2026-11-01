@@ -2,6 +2,7 @@
 
 import classNames from 'classnames';
 import type { CSSProperties, ReactNode } from 'react';
+import { useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
 import styles from './Modal.module.scss';
@@ -65,6 +66,8 @@ export function ModalActions({ children, className, stack = false }: ModalAction
   );
 }
 
+const modalDismissStack: Array<() => void> = [];
+
 function isDismissible(props: ModalProps): props is ModalPropsWithDismiss {
   if (!('onClose' in props)) {
     return false;
@@ -84,13 +87,42 @@ function ModalImpl(props: ModalProps) {
     modalContentMaxWidth,
   } = props;
 
-  if (!isOpen) {
-    return null;
-  }
-
   const dismiss = isDismissible(props);
   const onClose = dismiss ? props.onClose : undefined;
   const closeButtonAriaLabel = dismiss ? props.closeButtonAriaLabel : undefined;
+
+  useEffect(() => {
+    if (!isOpen || onClose === undefined) {
+      return;
+    }
+    modalDismissStack.push(onClose);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) {
+        return;
+      }
+      if (modalDismissStack[modalDismissStack.length - 1] !== onClose) {
+        return;
+      }
+      const target = event.target;
+      if (target instanceof Element && target.closest('[role="menu"], [role="listbox"]')) {
+        return;
+      }
+      event.preventDefault();
+      onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      const index = modalDismissStack.lastIndexOf(onClose);
+      if (index !== -1) {
+        modalDismissStack.splice(index, 1);
+      }
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) {
+    return null;
+  }
 
   const resolvedMaxWidth = modalContentMaxWidth ?? MODAL_CONTENT_MAX_WIDTH;
   const modalContentStyle: ModalContentInlineStyle = {

@@ -261,7 +261,7 @@ test.describe('Media player marquee', () => {
         const modal = await openFullscreenMediaPlayerModal(page);
         await expectShownMarquee(modalTitle, 'scroll', E2E_PODCAST_ITEM_MARQUEE_TITLE);
         await expect(
-          modal.getByRole('button', { name: E2E_PODCAST_ITEM_MARQUEE_TITLE, exact: true })
+          modal.getByRole('link', { name: E2E_PODCAST_ITEM_MARQUEE_TITLE, exact: true })
         ).toBeVisible();
         await expectShownMarquee(
           page.getByTestId('media-player-modal-channel-title'),
@@ -444,10 +444,10 @@ test.describe('Media player marquee', () => {
 
     const mobileStripTitle = stripTitle(page, 'mobile');
     await expect(mobileStripTitle).toContainText(E2E_PODCAST_ITEM_MARQUEE_CHAPTER_TITLE);
-    // The narrow bar's title line is narrower than the 27-character episode title.
+    // 27 characters fit this bar. The chapter line above it is the one that scrolls.
     await expectShownMarquee(
       barTitle(page, 'mobile'),
-      'scroll',
+      'fit',
       E2E_PODCAST_ITEM_MARQUEE_CHAPTER_EPISODE_TITLE
     );
     await expectVisibleBarButtonTitle(

@@ -30,6 +30,7 @@ const {
   countUnreadMock,
   getManyByIdsForAccountMock,
   getMaxIdForAccountMock,
+  beginPlaybackPresenceSessionMock,
   handlePlaybackPresenceChangeMock,
   listForAccountAfterIdMock,
   loggerService,
@@ -57,6 +58,7 @@ const {
       async (_account_id: number, _ids: number[]): Promise<NotificationRow[]> => []
     ),
     getMaxIdForAccountMock: vi.fn(async (_account_id: number): Promise<number | null> => 10),
+    beginPlaybackPresenceSessionMock: vi.fn(async (): Promise<number> => 1),
     handlePlaybackPresenceChangeMock: vi.fn(
       async (_params: {
         accountId: number;
@@ -106,6 +108,7 @@ const {
         accountId: number;
         sessionIdText: string;
         expiresAtMs: number;
+        presenceGeneration: number | null;
       }): Promise<void> => undefined
     ),
     subscriptionCloseMock: vi.fn(async () => undefined),
@@ -120,6 +123,7 @@ vi.mock('@api/lib/accountPlayback/playbackService.js', () => ({
 }));
 
 vi.mock('@api/lib/accountPlayback/playbackStore.js', () => ({
+  beginPlaybackPresenceSession: beginPlaybackPresenceSessionMock,
   prunePlaybackPresence: prunePlaybackPresenceMock,
   removePlaybackPresence: removePlaybackPresenceMock,
   shortenPlaybackPresence: shortenPlaybackPresenceMock,
@@ -308,7 +312,7 @@ const openStream = async (
   } = {}
 ): Promise<FakeResponse> => {
   const response = createResponse();
-  hub.openAccountEventStream({
+  await hub.openAccountEventStream({
     account_id,
     sessionIdText:
       options.sessionIdText === undefined ? DEFAULT_SESSION_ID_TEXT : options.sessionIdText,
@@ -324,7 +328,7 @@ const openStream = async (
 /** For a test that ends the stream itself, as the controller does when the client closes. */
 const openClosableStream = async (hub: Hub, account_id: number, sessionIdText: string) => {
   const response = createResponse();
-  const stream = hub.openAccountEventStream({
+  const stream = await hub.openAccountEventStream({
     account_id,
     sessionIdText,
     response,
@@ -685,7 +689,7 @@ describe('account event stream hub', () => {
 
     const sessionEnd = await openStream(hub, 1, { sessionIdText: 'sessaaaaa1' });
     const clientClose = createResponse();
-    const clientCloseStream = hub.openAccountEventStream({
+    const clientCloseStream = await hub.openAccountEventStream({
       account_id: 2,
       sessionIdText: 'sessbbbbb2',
       response: clientClose,
@@ -910,6 +914,7 @@ describe('account event stream hub', () => {
       accountId: 1,
       sessionIdText: 'sessaaaaa1',
       expiresAtMs: Date.now() + graceMs,
+      presenceGeneration: 1,
     });
 
     vi.advanceTimersByTime(graceMs + 249);

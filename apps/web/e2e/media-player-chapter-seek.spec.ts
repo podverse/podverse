@@ -1,13 +1,13 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
+import { waitForPlaybackPresenceLeave } from './helpers/crossDevicePlayback';
 import {
   clearSeededPodcastQueueResources,
   expectMediaPlayerTitleVisible,
   waitForAudioReadyAtLeast,
 } from './helpers/mediaPlayerAssertions';
 import {
-  E2E_CHAPTER_ONE_END_SECONDS,
   E2E_CHAPTER_ONE_START_SECONDS,
   E2E_CHAPTER_ONE_WEB_URL,
   E2E_CHAPTER_TWO_START_SECONDS,
@@ -90,11 +90,12 @@ test.describe('Media player chapter seek', () => {
     test.setTimeout(20_000);
     await loginSeedUser(page);
     /**
-     * Clear the seeded podcast queue resources so the QueueController's
-     * auto-load effect does not race with this spec's chapter Play
-     * click.
+     * A closed browser stays in playback presence for a short grace. Opening the next
+     * test inside that window makes this page follow that session, and a local Play
+     * never sets the audio src. The queue clear keeps QueueController from auto-loading
+     * a seeded row over the chapter click.
      */
-    await clearSeededPodcastQueueResources(page);
+    await Promise.all([waitForPlaybackPresenceLeave(), clearSeededPodcastQueueResources(page)]);
   });
 
   test('Clicking a chapter row on an episode page seeks the player to chapter.start_time on next loadedmetadata', async ({
@@ -136,7 +137,8 @@ test.describe('Media player chapter seek', () => {
     await expectAudioCurrentTimeNear(page, E2E_CHAPTER_ONE_START_SECONDS);
     await expectMediaPlayerTitleVisible(page, 'Intro');
 
-    await fastForwardAudioTo(page, E2E_CHAPTER_ONE_END_SECONDS + 0.5);
+    // Intro ends at 20s and Topic A starts at 21s. 20.5s is outside both ranges.
+    await fastForwardAudioTo(page, E2E_CHAPTER_TWO_START_SECONDS);
 
     await expectMediaPlayerTitleVisible(page, 'Topic A');
   });

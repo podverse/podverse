@@ -50,6 +50,30 @@ export function useDropdownKeyboardNavigation({
   }, [open, buttonRef, menuRef]);
 
   useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    // A click leaves focus on the trigger, so Escape has to close the menu before it reaches
+    // the row handler. preventDefault keeps a dialog behind the menu from dismissing too.
+    function handleEscape(event: globalThis.KeyboardEvent) {
+      if (event.key !== 'Escape') {
+        return;
+      }
+      setOpen(false);
+      setFocusedIndex(-1);
+      buttonRef.current?.focus();
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    document.addEventListener('keydown', handleEscape, true);
+    return () => {
+      document.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [open, buttonRef, setFocusedIndex, setOpen]);
+
+  useEffect(() => {
     if (open && menuRef.current !== null && focusedIndex >= 0) {
       const child = menuRef.current.children.item(focusedIndex);
       if (child instanceof HTMLElement) {

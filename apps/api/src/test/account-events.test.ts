@@ -422,12 +422,23 @@ describe('account event stream route', () => {
   it('sends playback.snapshot after notification.state, lists a device that checked in, and relays playback.devices', async () => {
     const { getPlaybackRedis } = await import('@api/lib/accountPlayback/playbackRedis.js');
     const { touchPlaybackPresence } = await import('@api/lib/accountPlayback/playbackStore.js');
-    const playbackKeys = ['presence', 'devices', 'devices_rev', 'state', 'state_rev', 'active'].map(
-      (name) => `podverse:playback:${TEST_USER_ID}:${name}`
-    );
+    const playbackKeys = [
+      ...['presence', 'devices', 'devices_rev', 'state', 'state_rev', 'active'].map(
+        (name) => `podverse:playback:${TEST_USER_ID}:${name}`
+      ),
+      `podverse:playback:${TEST_USER_ID}:presence_gen:${TEST_ACCOUNT_SESSION_ID_TEXT}`,
+      `podverse:playback:${TEST_USER_ID}:presence_leave:${TEST_ACCOUNT_SESSION_ID_TEXT}`,
+    ];
     await getPlaybackRedis().del(...playbackKeys);
     try {
       const first = await openStream(authHeaders(TEST_USER_ID));
+      const device: DTOPlaybackDevice = {
+        session_id_text: TEST_ACCOUNT_SESSION_ID_TEXT,
+        client_type: 'mobile',
+        device_label: 'iPhone · iOS',
+        session_created_at: '2026-10-20T00:00:00.000Z',
+      };
+      let touchedRevision = 0;
       try {
         const empty = await first.nextEvent('playback.snapshot');
         expect(empty).toEqual({
@@ -438,32 +449,28 @@ describe('account event stream route', () => {
           'notification.state',
           'playback.snapshot',
         ]);
+
+        const touched = await touchPlaybackPresence({
+          accountId: TEST_USER_ID,
+          device,
+          nowMs: Date.now(),
+        });
+        expect(touched.extended).toBe(true);
+        touchedRevision = touched.devicesRevision;
       } finally {
         first.close();
       }
-
-      const device: DTOPlaybackDevice = {
-        session_id_text: TEST_ACCOUNT_SESSION_ID_TEXT,
-        client_type: 'mobile',
-        device_label: 'iPhone · iOS',
-        session_created_at: '2026-10-20T00:00:00.000Z',
-      };
-      const touched = await touchPlaybackPresence({
-        accountId: TEST_USER_ID,
-        device,
-        nowMs: Date.now(),
-      });
 
       const second = await openStream(authHeaders(TEST_USER_ID));
       try {
         const listed = await second.nextEvent('playback.snapshot');
         expect(listed.data).toEqual({
-          devices: { revision: touched.devicesRevision, devices: [device] },
+          devices: { revision: touchedRevision, devices: [device] },
           state: null,
         });
 
         const devices: DTOPlaybackDevices = {
-          revision: touched.devicesRevision + 1,
+          revision: touchedRevision + 1,
           devices: [
             device,
             {
