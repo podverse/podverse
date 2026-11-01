@@ -8,6 +8,7 @@ import type { QueryParamsMedium, StatsPopularityCountField } from '@podverse/hel
 
 export type StatsPopularityListOptions = {
   channelIds?: number[] | null;
+  excludeIds?: number[] | null;
   minCountField?: StatsPopularityCountField;
 };
 
@@ -29,6 +30,7 @@ export class StatsPopularityChannelService {
   ) {
     const feedWhere = getActiveFeedWhere({
       channel_ids: options?.channelIds ?? null,
+      exclude_channel_ids: options?.excludeIds ?? null,
       mediumType,
       category_id,
     });
@@ -52,10 +54,11 @@ export class StatsPopularityChannelService {
     mediumType: QueryParamsMedium | null,
     category_id: number | null,
     minCountField: StatsPopularityCountField,
-    channelIds?: number[] | null
+    channelIds?: number[] | null,
+    excludeIds?: number[] | null
   ): Promise<number> {
     return this.repositoryRead.count({
-      where: this.buildWhere(mediumType, category_id, { channelIds, minCountField }),
+      where: this.buildWhere(mediumType, category_id, { channelIds, excludeIds, minCountField }),
     });
   }
 
@@ -64,12 +67,13 @@ export class StatsPopularityChannelService {
     category_id: number | null,
     minCountField: StatsPopularityCountField,
     take: number,
-    channelIds?: number[] | null
+    channelIds?: number[] | null,
+    excludeIds?: number[] | null
   ): Promise<number[]> {
     const rows = await this.repositoryRead.find({
       select: { channel_id: true },
       take,
-      where: this.buildWhere(mediumType, category_id, { channelIds, minCountField }),
+      where: this.buildWhere(mediumType, category_id, { channelIds, excludeIds, minCountField }),
     });
     return rows.map((row) => row.channel_id);
   }

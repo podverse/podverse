@@ -1,5 +1,10 @@
 @use '../../../mixins/flexbox' as *;
 
+// Same placement as Recommendations empty copy: under the chips, start of the column.
+.status {
+  margin: var(--spacing-xl) 0 0;
+}
+
 .listWrapper {
   margin: var(--spacing-section-y);
 }

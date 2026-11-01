@@ -67,7 +67,7 @@ const createSectionStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme)
     },
   });
 
-type ListTestIdPrefix = 'taste-profile' | 'taste-profile-hidden';
+type ListTestIdPrefix = 'taste-profile' | 'taste-profile-hidden' | 'channel-hidden';
 
 type ShowRowProps = {
   actionAccessibilityLabel: string;
@@ -280,26 +280,30 @@ function WeightControl({
 }
 
 /**
- * Taste Profile and Hidden From Taste Profile for the signed-in listener. Rows are not links; the
- * listener manages each list here.
+ * Taste Profile, Not Counted in Recommendations, and Hidden Channels for the signed-in listener.
+ * Rows are not links; the listener manages each list here.
  */
 export function TasteProfileSections() {
   const { i18n, t } = useTranslation();
   const styles = useThemedStyles(createSectionStyles);
   const [profileActive, setProfileActive] = useState(false);
   const [hiddenActive, setHiddenActive] = useState(false);
+  const [channelHiddenActive, setChannelHiddenActive] = useState(false);
   const {
     actionFailed,
     hidden,
     hideShow,
     loadMoreHidden,
     loadMoreProfile,
+    loadMoreChannelHidden,
     pendingChannelIds,
     profile,
+    channelHidden,
     retry,
+    unhideChannelFromLists,
     unhideShow,
     applyWeight,
-  } = useTasteProfileLists({ hiddenActive, profileActive });
+  } = useTasteProfileLists({ hiddenActive, profileActive, channelHiddenActive });
   const [unhideTarget, setUnhideTarget] = useState<UnhideTarget | null>(null);
   const [unhideVisible, setUnhideVisible] = useState(false);
 
@@ -373,14 +377,14 @@ export function TasteProfileSections() {
       const title = showTitle(row.channel.title);
       return (
         <TasteProfileShowRow
-          actionAccessibilityLabel={t('taste_profile.unhide_accessible', { title })}
-          actionLabel={t('taste_profile.unhide')}
+          actionAccessibilityLabel={t('taste_profile.count_again_accessible', { title })}
+          actionLabel={t('taste_profile.count_again')}
           actionTestID={`taste-profile-unhide-${idText}`}
           idText={idText}
           imageUrl={primaryChannelListArtworkUrl(row.channel.channel_images)}
           onAction={openUnhide}
           pending={pendingChannelIds.has(idText)}
-          subtitle={t('taste_profile.hidden_on', {
+          subtitle={t('taste_profile.not_counted_on', {
             date: formatDateAbbrev(row.hidden_at, i18n.language),
           })}
           testID={`taste-profile-hidden-row-${idText}`}
@@ -389,6 +393,37 @@ export function TasteProfileSections() {
       );
     },
     [i18n.language, openUnhide, pendingChannelIds, showTitle, t]
+  );
+
+  const handleUnhideChannelFromLists = useCallback(
+    (idText: string) => {
+      void unhideChannelFromLists(idText);
+    },
+    [unhideChannelFromLists]
+  );
+
+  const renderChannelHiddenRow = useCallback(
+    (row: DTOAccountTasteProfileHiddenRow) => {
+      const idText = row.channel.id_text;
+      const title = showTitle(row.channel.title);
+      return (
+        <TasteProfileShowRow
+          actionAccessibilityLabel={t('taste_profile.unhide_channel_accessible', { title })}
+          actionLabel={t('taste_profile.unhide')}
+          actionTestID={`channel-hidden-unhide-${idText}`}
+          idText={idText}
+          imageUrl={primaryChannelListArtworkUrl(row.channel.channel_images)}
+          onAction={handleUnhideChannelFromLists}
+          pending={pendingChannelIds.has(idText)}
+          subtitle={t('taste_profile.hidden_on', {
+            date: formatDateAbbrev(row.hidden_at, i18n.language),
+          })}
+          testID={`channel-hidden-row-${idText}`}
+          title={title}
+        />
+      );
+    },
+    [handleUnhideChannelFromLists, i18n.language, pendingChannelIds, showTitle, t]
   );
 
   return (
@@ -441,6 +476,28 @@ export function TasteProfileSections() {
             prefix="taste-profile-hidden"
             renderRow={renderHiddenRow}
             state={hidden}
+          />
+        </Accordion>
+      </View>
+      <View style={styles.section}>
+        <Accordion
+          onToggle={(open) => {
+            if (open) {
+              setChannelHiddenActive(true);
+            }
+          }}
+          testID="channel-hidden-section"
+          title={t('taste_profile.hidden_channels_title')}
+        >
+          <Text style={styles.description}>{t('taste_profile.hidden_channels_description')}</Text>
+          <TasteProfileListBody
+            emptyKey="taste_profile.hidden_channels_empty"
+            errorKey="taste_profile.hidden_channels_load_error"
+            onLoadMore={loadMoreChannelHidden}
+            onRetry={retry}
+            prefix="channel-hidden"
+            renderRow={renderChannelHiddenRow}
+            state={channelHidden}
           />
         </Accordion>
       </View>

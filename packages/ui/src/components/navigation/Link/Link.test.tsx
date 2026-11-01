@@ -21,6 +21,18 @@ describe('Link', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onClick when an anchor with href is clicked', () => {
+    const onClick = vi.fn();
+    render(
+      <Link href="/about" onClick={onClick}>
+        About
+      </Link>
+    );
+
+    fireEvent.click(screen.getByRole('link', { name: 'About' }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
   it('renders the default anchor when href is set and forwards href and merged classes', () => {
     const { container } = render(
       <Link href="/about" className="extra">

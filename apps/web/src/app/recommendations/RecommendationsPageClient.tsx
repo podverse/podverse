@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type { DTOAccountRecommendation, RecommendationChip } from '@podverse/helpers';
 import {
@@ -21,12 +21,10 @@ import {
   MainSidebarLayout,
 } from '@podverse/ui';
 
-import { CommonAlbumListNodes } from '../../components/Common/Artist/Album/CommonAlbumNodes';
-import { CommonArtistListNodes } from '../../components/Common/Artist/CommonArtistNodes';
-import { CommonPodcastListNodes } from '../../components/Common/Podcast/CommonPodcastNodes';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MediaListChips } from '../../components/MediaListChips/MediaListChips';
 import { MediaListLoadingSpinner } from '../../components/MediaListChips/MediaListLoadingSpinner';
+import { RecommendationChannelNodes } from '../../components/Recommendations/RecommendationChannelNodes';
 import type { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { IMAGES } from '../../constants/images';
@@ -72,52 +70,25 @@ function listImageCandidates(item: DTOAccountRecommendation): string[] {
 function RecommendationNodes({
   chip,
   items,
+  onHide,
   untitled,
   viewSelected,
 }: {
   chip: RecommendationChip;
   items: DTOAccountRecommendation[];
+  onHide: (channelIdText: string) => void;
   untitled: string;
   viewSelected: ViewSelectedOption;
 }) {
-  if (chip === 'albums') {
-    return (
-      <CommonAlbumListNodes
-        items={items.map((item) => ({
-          href: showPath(chip, item.channel.id_text),
-          id: item.channel.id_text,
-          imageCandidates: listImageCandidates(item),
-          subtitle: null,
-          title: item.channel.title?.trim() || untitled,
-        }))}
-        viewSelected={viewSelected}
-      />
-    );
-  }
-
-  if (chip === 'artists') {
-    return (
-      <CommonArtistListNodes
-        items={items.map((item) => ({
-          href: showPath(chip, item.channel.id_text),
-          id: item.channel.id_text,
-          imageCandidates: listImageCandidates(item),
-          showSubtitle: false,
-          title: item.channel.title?.trim() || untitled,
-        }))}
-        viewSelected={viewSelected}
-      />
-    );
-  }
-
   return (
-    <CommonPodcastListNodes
+    <RecommendationChannelNodes
       items={items.map((item) => ({
         href: showPath(chip, item.channel.id_text),
         id: item.channel.id_text,
         imageCandidates: listImageCandidates(item),
         title: item.channel.title?.trim() || untitled,
       }))}
+      onHide={onHide}
       viewSelected={viewSelected}
     />
   );
@@ -133,11 +104,24 @@ export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPage
   const { setModalAuthLogin } = useModals();
   const { setViewSelected, viewSelected } = useListViewMode(recommendationsListViewModeScope(chip));
   const [state, setState] = useState<LoadState>({ status: 'idle' });
+  const [refreshKey, setRefreshKey] = useState(0);
   const signedIn = loggedInAccount !== null && loggedInAccount !== undefined;
   const trackingAllowed = isTasteProfileTrackingAllowed(
     loggedInAccount?.account_settings,
     config.public.legal.tasteProfileAgreement.version
   );
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setRefreshKey((key) => key + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     if (!signedIn) {
@@ -161,7 +145,25 @@ export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPage
     return () => {
       cancelled = true;
     };
-  }, [chip, signedIn, loggedInAccount?.id_text]);
+  }, [chip, loggedInAccount?.id_text, refreshKey, signedIn]);
+
+  const hideChannelFromLists = useCallback((channelIdText: string) => {
+    setState((current) => {
+      if (current.status !== 'ready') {
+        return current;
+      }
+      return {
+        ...current,
+        items: current.items.filter((item) => item.channel.id_text !== channelIdText),
+      };
+    });
+    void getApiRequestService()
+      .reqAccountChannelHiddenHide({ channel_id_text: channelIdText })
+      .catch((error) => {
+        console.error('[RecommendationsPageClient] hide failed', error);
+        setRefreshKey((key) => key + 1);
+      });
+  }, []);
 
   const shown: LoadState =
     signedIn && (state.status === 'idle' || state.chip !== chip)
@@ -179,6 +181,14 @@ export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPage
         <MainSidebarLayout>
           <MainColumnStack>
             <MediaListChips
+              actions={
+                signedIn ? (
+                  <Button onClick={openSettings} type="button" variant="mini">
+                    {t('edit')}
+                  </Button>
+                ) : undefined
+              }
+              actionsTestId="recommendations-list-actions"
               chips={RECOMMENDATION_CHIPS}
               page="recommendations"
               selected={chip}
@@ -224,6 +234,7 @@ export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPage
               <RecommendationNodes
                 chip={chip}
                 items={items}
+                onHide={hideChannelFromLists}
                 untitled={tMisc('untitled')}
                 viewSelected={viewSelected}
               />

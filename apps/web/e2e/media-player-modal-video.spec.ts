@@ -98,9 +98,7 @@ test.describe('Modal video desktop', () => {
     await expect(videoTarget.locator('video')).toBeVisible();
     await expect(modal.getByRole('img', { name: 'Media Player Image' })).toHaveCount(0);
     await expect(floatingVideoPortalLocator(page)).toHaveCount(0);
-    await expect(
-      modal.getByRole('button', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE })
-    ).toBeVisible();
+    await expect(modal.getByRole('link', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE })).toBeVisible();
 
     await captureVerifiedElement(
       page,
@@ -320,7 +318,7 @@ test.describe('Modal video audio regression', () => {
     const modal = await openFullscreenMediaPlayerModal(page);
     await expect(modal.getByTestId('modal-video-target')).toHaveCount(0);
     await expect(modal.getByRole('img', { name: 'Media Player Image' })).toBeVisible();
-    await expect(modal.getByRole('button', { name: PODCAST_AUDIO_EPISODE_TITLE })).toBeVisible();
+    await expect(modal.getByRole('link', { name: PODCAST_AUDIO_EPISODE_TITLE })).toBeVisible();
 
     // The subtitle band reserves constant space even when there is no chapter/clip,
     // so autoplaying between items with and without chapters does not shift the layout.

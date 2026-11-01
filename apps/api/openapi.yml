@@ -1284,6 +1284,23 @@ components:
             in_taste_profile:
               type: boolean
               example: false
+    ApiPostAccountRecommendationsHideResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - channel_id_text
+            - hidden
+          properties:
+            channel_id_text:
+              type: string
+              example: kM7T2xYqLp
+            hidden:
+              type: boolean
+              example: true
     TermsAcceptanceRequiredErrorResponse:
       type: object
       required:
@@ -5250,11 +5267,21 @@ components:
           type: boolean
           default: false
           description: The session reached the end of the item or clip.
+        media_duration_seconds:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          maximum: 86400
+          description: >-
+            Length, in seconds, of the file the player loaded for this play. The server uses it
+            when it is the only length, or when it sits between half and double the RSS duration.
+            Outside that band the RSS duration stands. Omitted when the player has no length.
       example:
         item_id_text: "kM7T2xYqLp"
         client_listen_id: "3f6c2a9e-8d41-4b7a-9c35-1e2f4a6b8c0d"
-        seconds_heard: 75
+        seconds_heard: 300
         completed: false
+        media_duration_seconds: 2400
     StatsListenResponse:
       type: object
       required:
@@ -9156,6 +9183,167 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/channel-hidden:
+    get:
+      operationId: apiGetAccountChannelHidden
+      tags:
+        - account
+      summary: GET /account/channel-hidden
+      description: Returns shows the signed-in account hid from Browse and Recommendations, newest first. An API key needs history read.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: history
+        action: read
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountTasteProfileHiddenResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/channel-hidden/hide:
+    post:
+      operationId: apiPostAccountRecommendationsHide
+      tags:
+        - account
+      summary: POST /account/channel-hidden/hide
+      description: Hides a show from Browse and Recommendations without removing it from the Taste Profile or subscriptions. An API key needs history update.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: history
+        action: update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostAccountTasteProfileHideRequest"
+            example:
+              channel_id_text: abc123XYZ0
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountRecommendationsHideResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/channel-hidden/unhide:
+    post:
+      operationId: apiPostAccountRecommendationsUnhide
+      tags:
+        - account
+      summary: POST /account/channel-hidden/unhide
+      description: Removes a show from Hidden Channels and rebuilds that listener's Recommendations list. An API key needs history update.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: history
+        action: update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostAccountTasteProfileHideRequest"
+            example:
+              channel_id_text: abc123XYZ0
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountRecommendationsHideResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
         "500":
           description: Internal server error
           content:

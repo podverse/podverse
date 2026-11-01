@@ -707,7 +707,10 @@ export const HomeFeedRow = memo(function HomeFeedRow({
 
         {customActions !== undefined ? (
           customActions
-        ) : showPlayBand || showScheduledLivestreamMore || showLiveStatusBand ? (
+        ) : showPlayBand ||
+          showScheduledLivestreamMore ||
+          showLiveStatusBand ||
+          moreActions.length > 0 ? (
           <View
             style={[
               styles.rowActions,

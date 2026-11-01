@@ -1,5 +1,6 @@
 @use '../../../styles/mixins/flexbox' as *;
 @use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/focus';
 @use '../../../styles/mixins/lineClamp' as *;
 @use '../../../styles/mixins/media-queries' as *;
 @use '../../../styles/variables' as *;
@@ -156,11 +157,13 @@ button.accountTrigger {
   cursor: pointer;
 
   &:hover,
-  &:focus,
-  &:focus-visible {
+  &:focus {
     border: none;
-    box-shadow: none;
     outline: none;
+  }
+
+  &:focus-visible {
+    @include focus.focus-ring;
   }
 }
 

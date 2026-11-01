@@ -26,9 +26,27 @@ export function VideoFullscreenOverlay() {
   const landscapeLockApplied = useRef(false);
   const rotationFree = useRef(false);
   const pipWasActive = useRef(false);
+  const alive = useRef(true);
+  const surfaceMoved = useRef(false);
+
+  // The fullscreen host registers when its view joins the window. Move the surface on the
+  // following frame so that handoff does not report the video as not presented.
+  const onSurfaceLayout = (): void => {
+    if (surfaceMoved.current) {
+      return;
+    }
+    surfaceMoved.current = true;
+    requestAnimationFrame(() => {
+      if (!alive.current) {
+        return;
+      }
+      nativePlaybackBridge.animateVideoSurface('fullscreen', 0);
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
+    alive.current = true;
 
     const releaseRotation = (): void => {
       if (rotationFree.current) {
@@ -47,7 +65,6 @@ export function VideoFullscreenOverlay() {
     };
 
     nativePlaybackBridge.setVideoFullscreen(true);
-    nativePlaybackBridge.animateVideoSurface('fullscreen', 0);
 
     const orientationSubscription = nativePlaybackBridge.addListener(
       'deviceOrientation',
@@ -112,6 +129,7 @@ export function VideoFullscreenOverlay() {
 
     return () => {
       cancelled = true;
+      alive.current = false;
       orientationSubscription.remove();
       pipSubscription.remove();
       backSubscription.remove();
@@ -122,9 +140,11 @@ export function VideoFullscreenOverlay() {
   }, []);
 
   return (
-    <View style={styles.fill} testID="video-fullscreen">
+    <View onLayout={onSurfaceLayout} style={styles.fill} testID="video-fullscreen">
       <StatusBar hidden />
-      <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="fullscreen" />
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="fullscreen" />
+      </View>
       {pictureInPicture ? null : (
         <VideoCornerChrome
           actionTestID="video-fullscreen-exit"

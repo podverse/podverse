@@ -107,6 +107,7 @@ export const LiveMediaPlayerProgress: React.FC<LiveMediaPlayerProgressProps> = (
       return;
     }
     assignDragFraction(fraction);
+    liveMediaStore.seekToFraction(fraction);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (barRef.current === null) {

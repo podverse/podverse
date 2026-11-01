@@ -18,15 +18,21 @@ type ListEmptyProps = {
   onAction?: () => void;
   /** Defaults to `${testID}-action`. */
   actionTestID?: string;
+  /**
+   * `center` fills the list body and centers the copy (default).
+   * `start` sits under the list header, left-aligned — same placement as web Recommendations empty.
+   */
+  align?: 'center' | 'start';
 };
 
 /**
- * Localized empty-list copy centered in the available space via VerticalCenter.
- * Pair with FillList when the empty state is the list body; typography matches CallToActionSection.
+ * Localized empty-list copy. Pair with FillList when the empty state is the list body;
+ * typography matches CallToActionSection.
  */
 export function ListEmpty({
   actionLabelKey,
   actionTestID,
+  align = 'center',
   messageKey,
   onAction,
   testID = 'list-empty',
@@ -50,29 +56,45 @@ export function ListEmpty({
           color: themeStyles.textSecondary.color,
           textAlign: 'center',
         },
+        messageStart: {
+          ...typography.subheading,
+          color: themeStyles.textSecondary.color,
+          textAlign: 'left',
+        },
+        startRoot: {
+          alignSelf: 'stretch',
+          width: '100%',
+        },
       }),
     [themeStyles, tokens]
   );
 
   const showAction = actionLabelKey !== undefined && onAction !== undefined;
-
-  return (
-    <VerticalCenter testID={testID}>
-      <View style={styles.content}>
-        <Text style={styles.message}>{t(messageKey)}</Text>
-        {showAction ? (
-          <View style={styles.action}>
-            <Button
-              fullWidth
-              label={t(actionLabelKey)}
-              onPress={onAction}
-              size="lg"
-              testID={actionTestID ?? `${testID}-action`}
-              variant="primary"
-            />
-          </View>
-        ) : null}
-      </View>
-    </VerticalCenter>
+  const body = (
+    <View style={styles.content}>
+      <Text style={align === 'start' ? styles.messageStart : styles.message}>{t(messageKey)}</Text>
+      {showAction ? (
+        <View style={styles.action}>
+          <Button
+            fullWidth
+            label={t(actionLabelKey)}
+            onPress={onAction}
+            size="lg"
+            testID={actionTestID ?? `${testID}-action`}
+            variant="primary"
+          />
+        </View>
+      ) : null}
+    </View>
   );
+
+  if (align === 'start') {
+    return (
+      <View style={styles.startRoot} testID={testID}>
+        {body}
+      </View>
+    );
+  }
+
+  return <VerticalCenter testID={testID}>{body}</VerticalCenter>;
 }

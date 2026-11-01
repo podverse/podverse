@@ -24,18 +24,20 @@ const record = (overrides: Partial<StatsListenOutboxRecord> = {}): StatsListenOu
   firstReport: true,
   countedAtMs: 1_000,
   updatedAtMs: 2_000,
+  mediaDurationSeconds: null,
   ...overrides,
 });
 
 describe('statsListenOutboxRecordFromReport', () => {
   it('copies the report and stamps the update time', () => {
     const report: ListenSessionReport = {
-      target: { kind: 'clip', idText: 'clip-1', startSeconds: 10, endSeconds: 70 },
+      target: { kind: 'clip', idText: 'clip-1', startSeconds: 10, endSeconds: 70, mediumId: null },
       clientListenId: 'listen-9',
       secondsHeard: 60,
       completed: true,
       countedAtMs: 5_000,
       firstReport: true,
+      mediaDurationSeconds: 1_800,
     };
 
     expect(
@@ -50,6 +52,7 @@ describe('statsListenOutboxRecordFromReport', () => {
       firstReport: true,
       countedAtMs: 5_000,
       updatedAtMs: 9_000,
+      mediaDurationSeconds: 1_800,
     });
   });
 });
@@ -78,6 +81,17 @@ describe('mergeStatsListenOutboxRecord', () => {
       countedAtMs: 1_000,
       updatedAtMs: 8_000,
     });
+  });
+
+  it('keeps a positive loaded length and leaves a missing one in place', () => {
+    const kept = mergeStatsListenOutboxRecord(record(), record({ mediaDurationSeconds: 240 }));
+    expect(kept.mediaDurationSeconds).toBe(240);
+    expect(
+      mergeStatsListenOutboxRecord(
+        record({ mediaDurationSeconds: 240 }),
+        record({ mediaDurationSeconds: null })
+      ).mediaDurationSeconds
+    ).toBe(240);
   });
 
   it('clears the first-report flag only when both sides already reached the server', () => {
@@ -117,13 +131,16 @@ describe('classifyStatsListenSendFailure', () => {
 
 describe('toStatsListenRequestBody', () => {
   it('sends an item report by item id with no listen time', () => {
-    const body = toStatsListenRequestBody(record({ secondsHeard: 75.9, completed: true }));
+    const body = toStatsListenRequestBody(
+      record({ secondsHeard: 75.9, completed: true, mediaDurationSeconds: 2_400 })
+    );
 
     expect(body).toEqual({
       client_listen_id: 'listen-1',
       item_id_text: 'item-1',
       seconds_heard: 75,
       completed: true,
+      media_duration_seconds: 2_400,
     });
     expect('clip_id_text' in body).toBe(false);
     expect('listened_at' in body).toBe(false);

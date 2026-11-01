@@ -35,6 +35,14 @@ const headerButton = (page: Page, name: string) =>
 const dialog = (page: Page, artistTitle: string) =>
   page.getByRole('dialog', { name: `Unsubscribe from ${artistTitle}?` });
 
+/** The first Subscribe on this browser asks before the follow is saved. */
+const chooseInAppOnlyOnFirstSubscribe = async (page: Page): Promise<void> => {
+  const pushPrompt = page.getByRole('dialog', { name: 'Enable Push Notifications?' });
+  await expect(pushPrompt).toBeVisible();
+  await pushPrompt.getByRole('button', { name: 'In-App Only', exact: true }).click();
+  await expect(pushPrompt).toHaveCount(0);
+};
+
 const openDirectoryArtist = async (page: Page): Promise<void> => {
   await page.goto(`/artist/${E2E_MUSIC_CHANNEL_ID_TEXT}`);
   await expect(page).toHaveURL(new RegExp(`/artist/${E2E_MUSIC_CHANNEL_ID_TEXT}$`));
@@ -108,6 +116,7 @@ test.describe('Unsubscribe from an artist that has followed albums', () => {
     await test.step('Artist and Albums ends both follows', async () => {
       await openDirectoryArtist(page);
       await headerButton(page, 'Subscribe').click();
+      await chooseInAppOnlyOnFirstSubscribe(page);
       await expect(headerButton(page, 'Unsubscribe')).toBeVisible();
       await headerButton(page, 'Unsubscribe').click();
       await dialog(page, DIRECTORY_ARTIST_TITLE)

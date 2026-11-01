@@ -15,10 +15,17 @@ type ManagedHlsPlayback = {
 const managedHlsPlayback = new WeakMap<HTMLMediaElement, ManagedHlsPlayback>();
 const hlsAttachGeneration = new WeakMap<HTMLMediaElement, number>();
 
-/** Safari reports `maybe` or `probably` for an HLS playlist MIME. Other browsers report an empty string. */
+/**
+ * Native HLS is a browser that reports the playlist MIME and has no Media Source.
+ * Chromium reports `maybe` for that MIME and still leaves `seekable` empty; Media Source
+ * is present there, and `hls.js` plays the playlist.
+ */
 export function elementSupportsNativeHls(media: HTMLMediaElement): boolean {
   const result = media.canPlayType(HLS_PLAYLIST_MIME_TYPE);
-  return result === 'probably' || result === 'maybe';
+  if (result !== 'probably' && result !== 'maybe') {
+    return false;
+  }
+  return typeof MediaSource === 'undefined';
 }
 
 export function hasManagedNonLiveHls(media: HTMLMediaElement): boolean {
@@ -50,8 +57,8 @@ export function detachNonLiveHlsPlayback(media: HTMLMediaElement): void {
 }
 
 /**
- * Play an HLS playlist on this element. Native HLS sets `src`. Other browsers lazy-load `hls.js`
- * and leave `src` unset so the browser does not try to decode the HLS playlist itself.
+ * Play an HLS playlist on this element. A browser with Media Source lazy-loads `hls.js` and
+ * leaves `src` unset. A browser that reports the playlist MIME and has no Media Source sets `src`.
  */
 export async function attachNonLiveHlsPlayback(
   media: HTMLMediaElement,

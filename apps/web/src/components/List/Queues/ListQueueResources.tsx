@@ -25,12 +25,14 @@ import { ListQueueResourceRow } from './ListQueueResourceRow';
 import styles from '../../../styles/components/List/Queues/ListQueueResources.module.scss';
 
 type Props = {
+  isLoading: boolean;
   queueMedium: QueryParamsQueueMedium;
   queueResources: DTOQueueResource[];
   showLoginMessage: boolean;
 };
 
 export const ListQueueResources: React.FC<Props> = ({
+  isLoading,
   queueMedium,
   queueResources,
   showLoginMessage,
@@ -38,6 +40,7 @@ export const ListQueueResources: React.FC<Props> = ({
   const apiRequestService = getApiRequestService();
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
+  const tQueue = useTranslations('features.queue');
   const { setModalAuthLogin } = useModals();
   const { tryHandleMembershipGateError } = useMembershipGate();
   const { activeQueue } = useQueues();
@@ -174,7 +177,8 @@ export const ListQueueResources: React.FC<Props> = ({
   };
 
   const showCallToAction = showLoginMessage;
-  const showPagination = !showLoginMessage;
+  const showEmptyMessage = !showLoginMessage && !isLoading && resources.length === 0;
+  const showQueueList = !showLoginMessage && resources.length > 0;
 
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) {
@@ -386,6 +390,7 @@ export const ListQueueResources: React.FC<Props> = ({
   const isMusic = getQueueMediumIdFromType(queueMedium) === MediumEnum.Music;
   const listWrapperClassName = isMusic ? styles.listTracks : styles.list;
   const queueListClassName = isMusic ? styles.queueListMusic : styles.queueListAV;
+  const emptyMessage = isMusic ? tQueue('empty_music') : tQueue('empty_podcasts');
 
   return (
     <>
@@ -396,7 +401,12 @@ export const ListQueueResources: React.FC<Props> = ({
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {showPagination && (
+      {showEmptyMessage && (
+        <p className={styles.status} role="status">
+          {emptyMessage}
+        </p>
+      )}
+      {showQueueList && (
         <div className={styles.listWrapper}>
           <div className={listWrapperClassName}>
             <DragDropContext onDragEnd={handleDragEnd}>

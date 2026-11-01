@@ -322,6 +322,10 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
           </button>
           <div className={styles.bottomSection}>
             <div className={styles.bottomSectionStart}>
+              <MoreButton
+                ariaLabel={tMedia('more_options')}
+                moreButtonMenuItems={moreButtonMenuItems}
+              />
               <div className={styles.timeSection}>
                 {pubDate && <ReadableDate date={pubDate} />}
                 {pubDate && duration ? ' • ' : null}
@@ -329,12 +333,6 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
                   <ReadableDuration durationStr={duration.toString()} positionStr={null} />
                 ) : null}
               </div>
-            </div>
-            <div className={styles.bottomSectionEnd}>
-              <MoreButton
-                ariaLabel={tMedia('more_options')}
-                moreButtonMenuItems={moreButtonMenuItems}
-              />
             </div>
           </div>
         </div>

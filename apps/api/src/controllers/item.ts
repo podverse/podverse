@@ -72,6 +72,7 @@ import {
   StatsPopularityItemService,
   subItemGetManyRelations,
   subItemGetManyRelationsWithChannel,
+  TasteProfileAccountService,
 } from '@podverse/orm';
 import { parseChapters } from '@podverse/parser';
 
@@ -89,9 +90,25 @@ export class ItemController {
   private static mergeRedirects = new ChannelMergeRedirectService();
   private static statsPopularityItemService: StatsPopularityItemService =
     new StatsPopularityItemService();
+  private static tasteProfileAccountService = new TasteProfileAccountService();
 
   private static isParsedReadyChannel(channel: { channel_about?: unknown } | null): boolean {
     return Boolean(channel?.channel_about);
+  }
+
+  /**
+   * Channel ids the active session hid from Browse and Recommendations. Undefined when anonymous
+   * or when the account has none, so callers can omit the exclude filter. Subscriptions stay
+   * unfiltered.
+   */
+  private static async browseExcludeChannelIds(req: Request): Promise<number[] | undefined> {
+    const accountId = await getActiveSessionAccountId(req);
+    if (accountId === null) {
+      return undefined;
+    }
+    const ids =
+      await ItemController.tasteProfileAccountService.listHiddenChannelIdsForAccount(accountId);
+    return ids.length > 0 ? ids : undefined;
   }
 
   /**
@@ -160,6 +177,7 @@ export class ItemController {
   private static async loadRankedTopItems(args: {
     category_id: number | null;
     channelIds?: number[];
+    excludeChannelIds?: number[];
     includeChannel: boolean;
     itemType: 'normal' | 'live-item';
     limit: number;
@@ -171,6 +189,7 @@ export class ItemController {
     const {
       category_id,
       channelIds,
+      excludeChannelIds,
       includeChannel,
       itemType,
       limit,
@@ -191,7 +210,7 @@ export class ItemController {
       category_id,
       itemType,
       liveItemType,
-      { channelIds, minCountField: orderField }
+      { channelIds, excludeChannelIds, minCountField: orderField }
     );
     return statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
   }
@@ -204,6 +223,7 @@ export class ItemController {
   private static async loadFilledTopItems(args: {
     category_id: number | null;
     channelIds?: number[];
+    excludeChannelIds?: number[];
     itemType: 'normal' | 'live-item';
     limit: number;
     liveItemType: 'pending' | 'live' | 'ended' | null;
@@ -215,6 +235,7 @@ export class ItemController {
     const {
       category_id,
       channelIds,
+      excludeChannelIds,
       itemType,
       limit,
       liveItemType,
@@ -232,7 +253,8 @@ export class ItemController {
           itemType,
           liveItemType,
           orderField,
-          channelIds
+          channelIds,
+          excludeChannelIds
         ),
       limit,
       loadRankedIds: () =>
@@ -243,7 +265,8 @@ export class ItemController {
           liveItemType,
           orderField,
           TOP_STATS_PAD_MAX_RANKED,
-          channelIds
+          channelIds,
+          excludeChannelIds
         ),
       loadRecent: (skip, take, excludeIds) => {
         const recentConfig: FindManyOptions<Item> = {
@@ -272,13 +295,14 @@ export class ItemController {
           category_id,
           itemType,
           liveItemType,
-          { excludeIds }
+          { excludeChannelIds, excludeIds }
         );
       },
       loadStatsPage: () =>
         ItemController.loadRankedTopItems({
           category_id,
           channelIds,
+          excludeChannelIds,
           includeChannel: recentByChannel === undefined,
           itemType,
           limit,
@@ -391,6 +415,7 @@ export class ItemController {
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
         const order = getRecentOrder(itemType);
+        const excludeChannelIds = await ItemController.browseExcludeChannelIds(req);
 
         const recentConfig: FindManyOptions<Item> = {
           order,
@@ -404,7 +429,8 @@ export class ItemController {
           medium,
           category_id,
           itemType,
-          liveItemType
+          liveItemType,
+          excludeChannelIds ? { excludeChannelIds } : undefined
         );
         const data = items.filter(Boolean);
         await attachVerifiedPublishers({ items: data });
@@ -443,12 +469,14 @@ export class ItemController {
         const category_id = null;
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
+        const excludeChannelIds = await ItemController.browseExcludeChannelIds(req);
 
         const orderField = getStatsOrder(range);
         const items =
           itemType === 'live-item'
             ? await ItemController.loadFilledTopItems({
                 category_id,
+                excludeChannelIds,
                 itemType,
                 limit,
                 liveItemType,
@@ -458,6 +486,7 @@ export class ItemController {
               })
             : await ItemController.loadRankedTopItems({
                 category_id,
+                excludeChannelIds,
                 includeChannel: true,
                 itemType,
                 limit,
@@ -502,6 +531,7 @@ export class ItemController {
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
         const order = getRecentOrder(itemType);
+        const excludeChannelIds = await ItemController.browseExcludeChannelIds(req);
 
         const recentConfig: FindManyOptions<Item> = {
           order,
@@ -514,7 +544,8 @@ export class ItemController {
           medium,
           category_id,
           itemType,
-          liveItemType
+          liveItemType,
+          excludeChannelIds ? { excludeChannelIds } : undefined
         );
         const items = recentResults.filter(Boolean);
         await attachVerifiedPublishers({ items });
@@ -555,12 +586,14 @@ export class ItemController {
         const category_id = getCategoryEnumValue(category);
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
+        const excludeChannelIds = await ItemController.browseExcludeChannelIds(req);
 
         const orderField = getStatsOrder(range);
         const items =
           itemType === 'live-item'
             ? await ItemController.loadFilledTopItems({
                 category_id,
+                excludeChannelIds,
                 itemType,
                 limit,
                 liveItemType,
@@ -570,6 +603,7 @@ export class ItemController {
               })
             : await ItemController.loadRankedTopItems({
                 category_id,
+                excludeChannelIds,
                 includeChannel: true,
                 itemType,
                 limit,

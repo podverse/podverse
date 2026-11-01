@@ -716,4 +716,31 @@ describe('refreshAccessTokenSingleFlight', () => {
     ).resolves.toBeNull();
     expect(reqAuthMobileRefresh).toHaveBeenCalledTimes(1);
   });
+
+  it('does not clear the session when a refresh that started earlier is refused after sign-out', async () => {
+    let rejectRefresh: (error: Error) => void = () => undefined;
+
+    const reqAuthMobileRefresh = vi.fn(
+      () =>
+        new Promise<RefreshResponse>((_resolve, reject) => {
+          rejectRefresh = reject;
+        })
+    );
+
+    createMobileApiRequestService.mockReturnValue({ reqAuthMobileRefresh });
+    rememberSavedCredentials(accessTokenExpiringIn(-120), 'R1');
+
+    const refreshPromise = refreshAccessTokenSingleFlight({
+      clearSession,
+      refreshToken: 'R1',
+      setTokens,
+    });
+
+    advanceAuthSessionGeneration();
+    rejectRefresh(httpError(401));
+
+    await expect(refreshPromise).resolves.toBeNull();
+    expect(clearSession).not.toHaveBeenCalled();
+    expect(setTokens).not.toHaveBeenCalled();
+  });
 });

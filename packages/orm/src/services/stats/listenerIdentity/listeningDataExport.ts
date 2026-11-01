@@ -1,10 +1,12 @@
 import { AppDataSourceReadWrite } from '@orm/db/index.js';
+import { StatsChannelHidden } from '@orm/entities/stats/statsChannelHidden.js';
 import { StatsListenEvent } from '@orm/entities/stats/statsListenEvent.js';
 import { StatsOpenEvent } from '@orm/entities/stats/statsOpenEvent.js';
 import { StatsTasteProfile } from '@orm/entities/stats/statsTasteProfile.js';
 import { StatsTasteProfileHidden } from '@orm/entities/stats/statsTasteProfileHidden.js';
 
 import type {
+  DTOAccountDataExportHiddenChannelRow,
   DTOAccountDataExportHiddenFromTasteProfileRow,
   DTOAccountDataExportListenEvent,
   DTOAccountDataExportListeningData,
@@ -37,6 +39,11 @@ export class ListeningDataExportService {
       relations: { channel: true },
       order: { hidden_at: 'DESC' },
     });
+    const channelHiddenRows = await manager.getRepository(StatsChannelHidden).find({
+      where: { listener_id },
+      relations: { channel: true },
+      order: { hidden_at: 'DESC' },
+    });
     const listenRows = await manager.getRepository(StatsListenEvent).find({
       where: { listener_id },
       relations: { channel: true, item: true, clip: true },
@@ -51,6 +58,7 @@ export class ListeningDataExportService {
     return {
       taste_profile: tasteRows.map(toTasteProfileRow),
       hidden_from_taste_profile: hiddenRows.map(toHiddenRow),
+      hidden_channels: channelHiddenRows.map(toChannelHiddenRow),
       listen_events: listenRows.map(toListenEvent),
       open_events: openRows.map(toOpenEvent),
     };
@@ -61,6 +69,7 @@ function emptyListeningData(): DTOAccountDataExportListeningData {
   return {
     taste_profile: [],
     hidden_from_taste_profile: [],
+    hidden_channels: [],
     listen_events: [],
     open_events: [],
   };
@@ -83,6 +92,14 @@ function toTasteProfileRow(row: StatsTasteProfile): DTOAccountDataExportTastePro
 }
 
 function toHiddenRow(row: StatsTasteProfileHidden): DTOAccountDataExportHiddenFromTasteProfileRow {
+  return {
+    channel_id_text: row.channel.id_text,
+    channel_title: row.channel.title,
+    hidden_at: row.hidden_at.toISOString(),
+  };
+}
+
+function toChannelHiddenRow(row: StatsChannelHidden): DTOAccountDataExportHiddenChannelRow {
   return {
     channel_id_text: row.channel.id_text,
     channel_title: row.channel.title,

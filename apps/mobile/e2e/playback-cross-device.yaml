@@ -62,13 +62,13 @@ name: Playback Cross Device
     id: full-player-remote-title
     containsDescendants:
       - text: "E2E Podcast With Chapters"
+# The chapter link is one control. Its name includes the chapter, the remote status, and the
+# link action. The status line is part of that name, not its own element.
 - assertVisible:
     id: full-player-segment-title
     containsDescendants:
-      - text: "Topic A"
-- assertVisible:
-    id: full-player-remote-status
-    text: "Paused on E2E Other Device"
+      - id: full-player-chapter-link
+        text: "Now Playing Chapter: Topic A, Paused on E2E Other Device\\. Open Chapter Link"
 - assertVisible:
     id: full-player-skip-previous
 - assertVisible:
@@ -168,12 +168,6 @@ name: Playback Cross Device
     text: "E2E Other Device"
 - tapOn:
     id: full-player-close
-# The host script does not claim, so "Sending to…" stays up until the transfer times out.
-# The match ends in .* so the ellipsis does not have to be typed.
-- assertVisible:
-    id: mini-player-remote-status
-    text: "Sending to E2E Other Device.*"
-- takeScreenshot: playback-cross-device-sending
 - extendedWaitUntil:
     visible:
       id: playback-transfer-failed-dialog

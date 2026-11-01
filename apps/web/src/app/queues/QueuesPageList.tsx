@@ -23,6 +23,7 @@ export const QueuesPageList: React.FC = () => {
   return (
     <>
       <ListQueueResources
+        isLoading={isLoading}
         queueMedium={medium}
         queueResources={queueResources}
         showLoginMessage={showLoginMessage}

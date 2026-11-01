@@ -20,9 +20,9 @@ Nous pouvons tout de même relier l'id à votre compte. C'est ainsi que désacti
 
 Votre Profil de goûts est une ligne pour chaque émission que vous écoutez : un podcast, un album ou un artiste. Les épisodes et les pistes n'ont pas leur propre ligne. Une écoute d'un épisode, d'une piste ou d'un clip met à jour l'émission à laquelle cela appartient. La ligne conserve combien de fois vous avez écouté, combien vous avez terminées, et quand vous avez écouté pour la première et la dernière fois. Elle conserve aussi une image de ce que vous avez écouté dernièrement et de ce que vous avez écouté sur une plus longue durée.
 
-Vous pouvez voir votre Profil de goûts dans Paramètres. Vous pouvez retirer une émission. Cette émission passe dans Masqué du profil de goûts, et ses données de goût sont supprimées. Les écoutes ultérieures d'une émission masquée comptent encore sur les listes publiques, et elles ne rajoutent pas l'émission.
+Vous pouvez voir votre Profil de goûts dans Paramètres. Vous pouvez retirer une émission. Cette émission passe dans Non comptées dans les recommandations, et ses données de goût sont supprimées. Les écoutes ultérieures d'une émission de cette liste comptent encore sur les listes publiques, et elles ne rajoutent pas l'émission.
 
-Vous pouvez voir Masqué du profil de goûts. Retirer une émission de cette liste vous demande de choisir : la remettre dans votre Profil de goûts, en repartant de zéro, ou seulement la retirer de la liste. Si vous la retirez seulement de la liste, une écoute ultérieure peut l'ajouter de nouveau.
+Vous pouvez voir Non comptées dans les recommandations. Retirer une émission de cette liste vous demande de choisir : la remettre dans votre Profil de goûts, en repartant de zéro, ou seulement la retirer de la liste. Si vous la retirez seulement de la liste, une écoute ultérieure peut l'ajouter de nouveau.
 
 Ouvrir un profil ou une playlist ne met pas à jour votre Profil de goûts.
 
@@ -42,12 +42,12 @@ Les enregistrements d'écoute sont conservés pendant {retention_days} jours. No
 
 Les décomptes de tout le temps déjà ajoutés aux listes publiques restent après la suppression d'un enregistrement. Ces décomptes sont des nombres, pas une liste d'auditeurs.
 
-Supprimer votre compte supprime l'id aléatoire, vos enregistrements d'écoute, votre Profil de goûts et votre liste Masqué du profil de goûts. Les décomptes publics de tout le temps restent.
+Supprimer votre compte supprime l'id aléatoire, vos enregistrements d'écoute, votre Profil de goûts et votre liste Non comptées dans les recommandations. Les décomptes publics de tout le temps restent.
 
 # Si vous changez d'avis
 
-Activez ou désactivez ceci dans Paramètres. Le désactiver vous demande de confirmer, parce que nous supprimons alors tout de suite votre Profil de goûts, votre liste Masqué du profil de goûts et vos enregistrements d'écoute conservés. Les décomptes de tout le temps déjà présents sur les listes publiques restent. Si vous l'activez plus tard, les recommandations repartent de zéro. Si vous le réactivez, les limites quotidiennes ne sont pas remises à zéro, et pendant une période fixe après sa désactivation, vos nouvelles écoutes mettent à jour votre Profil de goûts mais ne comptent pas pour les listes publiques, et l'ouverture d'un profil ou d'une playlist n'est pas enregistrée.
+Activez ou désactivez ceci dans Paramètres. Le désactiver vous demande de confirmer, parce que nous supprimons alors tout de suite votre Profil de goûts, votre liste Non comptées dans les recommandations et vos enregistrements d'écoute conservés. Les décomptes de tout le temps déjà présents sur les listes publiques restent. Si vous l'activez plus tard, les recommandations repartent de zéro. Si vous le réactivez, les limites quotidiennes ne sont pas remises à zéro, et pendant une période fixe après sa désactivation, vos nouvelles écoutes mettent à jour votre Profil de goûts mais ne comptent pas pour les listes publiques, et l'ouverture d'un profil ou d'une playlist n'est pas enregistrée.
 
-Si votre abonnement se termine, ou si cette explication change et que vous ne l'avez pas encore confirmée, nous arrêtons les nouveaux enregistrements et nous gardons votre Profil de goûts en pause. Votre liste Masqué du profil de goûts reste. Les enregistrements d'écoute déjà conservés continuent d'expirer selon le calendrier ci-dessus. Le Profil de goûts recommence à se mettre à jour lorsque le suivi est activé. Nous ne le supprimons pas dans ces cas.
+Si votre abonnement se termine, ou si cette explication change et que vous ne l'avez pas encore confirmée, nous arrêtons les nouveaux enregistrements et nous gardons votre Profil de goûts en pause. Votre liste Non comptées dans les recommandations reste. Les enregistrements d'écoute déjà conservés continuent d'expirer selon le calendrier ci-dessus. Le Profil de goûts recommence à se mettre à jour lorsque le suivi est activé. Nous ne le supprimons pas dans ces cas.
 
 Si vous le désactivez, nous ne demanderons plus lorsque cette explication change. Si vous l'activez, et que nous changeons plus tard ce que nous enregistrons ou combien de temps nous le conservons, nous demanderons à nouveau. Tant que vous n'avez pas dit oui à cette mise à jour, le suivi reste désactivé.

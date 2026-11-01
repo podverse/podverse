@@ -1,8 +1,5 @@
 import type { DTOClip } from '@podverse/helpers';
-import {
-  isCountedListen,
-  POPULARITY_COUNTED_LISTEN_MIN_SECONDS,
-} from '@podverse/helpers/popularityListen';
+import { countedListenCapSeconds, isCountedListen } from '@podverse/helpers/popularityListen';
 
 import { parsePlaybackSeconds } from './parsePlaybackSeconds.js';
 import type { PlaybackTarget } from './playbackTarget.js';
@@ -15,8 +12,14 @@ export type ListenSessionDirective = 'start' | 'continue' | 'none';
 
 /** What a session counts toward. A soundbite or chapter counts toward its item. */
 export type ListenSessionTarget =
-  | { kind: 'item'; idText: string }
-  | { kind: 'clip'; idText: string; startSeconds: number; endSeconds: number | null };
+  | { kind: 'item'; idText: string; mediumId: number | null }
+  | {
+      kind: 'clip';
+      idText: string;
+      startSeconds: number;
+      endSeconds: number | null;
+      mediumId: number | null;
+    };
 
 /** One report for `POST /stats/listen`. */
 export type ListenSessionReport = {
@@ -30,6 +33,8 @@ export type ListenSessionReport = {
   countedAtMs: number;
   /** True for the session's first report. */
   firstReport: boolean;
+  /** Length of the file the player loaded, or null when it has none yet. */
+  mediaDurationSeconds: number | null;
 };
 
 export type ListenSessionTracker = {
@@ -81,8 +86,13 @@ type ListenSessionState = {
   reportedCompleted: boolean;
 };
 
+function channelMediumId(channel: { medium_id?: number | null }): number | null {
+  return typeof channel.medium_id === 'number' ? channel.medium_id : null;
+}
+
 export function listenSessionTargetForClip(
-  clip: Pick<DTOClip, 'id_text' | 'start_time' | 'end_time'>
+  clip: Pick<DTOClip, 'id_text' | 'start_time' | 'end_time'>,
+  mediumId: number | null = null
 ): ListenSessionTarget {
   const startSeconds = parsePlaybackSeconds(clip.start_time) ?? 0;
   const endSeconds = parsePlaybackSeconds(clip.end_time);
@@ -91,6 +101,7 @@ export function listenSessionTargetForClip(
     idText: clip.id_text,
     startSeconds,
     endSeconds: endSeconds !== undefined && endSeconds > startSeconds ? endSeconds : null,
+    mediumId,
   };
 }
 
@@ -100,13 +111,17 @@ export function listenSessionTargetFromPlaybackTarget(
 ): ListenSessionTarget | null {
   switch (target.kind) {
     case 'clip':
-      return listenSessionTargetForClip(target.clip);
+      return listenSessionTargetForClip(target.clip, channelMediumId(target.channel));
     case 'soundbite':
     case 'chapter':
     case 'item-podcast':
     case 'item-video':
     case 'item-music':
-      return { kind: 'item', idText: target.item.id_text };
+      return {
+        kind: 'item',
+        idText: target.item.id_text,
+        mediumId: channelMediumId(target.channel),
+      };
     case 'add-by-rss':
     case 'livestream':
       return null;
@@ -144,9 +159,9 @@ function isSameTarget(left: ListenSessionTarget, right: ListenSessionTarget): bo
  * its forward position change only while playing, and only when the change fits in the wall-clock
  * time since the previous sample at the playback rate, so seeks and source jumps add nothing.
  *
- * Reports go out when the session first meets the counted-listen rule, when it first reaches 60
- * seconds after an earlier report below 60 (the server may know a different duration), on
- * completion, and on pause or end once 60 more seconds were heard since the last report. The
+ * Reports go out when the session first meets the counted-listen rule, when it first reaches the
+ * medium's cap after an earlier report below that cap (the server may know a different duration),
+ * on completion, and on pause or end once 60 more seconds were heard since the last report. The
  * threshold is checked against whole seconds, the value the server receives.
  */
 export function createListenSessionTracker(deps: {
@@ -169,6 +184,7 @@ export function createListenSessionTracker(deps: {
         completed: state.completed,
         countedAtMs: state.countedAtMs ?? deps.now(),
         firstReport,
+        mediaDurationSeconds: state.mediaDurationSeconds,
       });
     } catch {
       // A failing reporter never interrupts playback.
@@ -178,7 +194,13 @@ export function createListenSessionTracker(deps: {
   const maybeReport = (state: ListenSessionState, reason: 'progress' | 'pause' | 'end'): void => {
     const secondsHeard = wholeSecondsHeard(state);
     if (state.countedAtMs === null) {
-      if (!isCountedListen({ secondsHeard, durationSeconds: sessionDurationSeconds(state) })) {
+      if (
+        !isCountedListen({
+          secondsHeard,
+          durationSeconds: sessionDurationSeconds(state),
+          mediumId: state.target.mediumId,
+        })
+      ) {
         return;
       }
       state.countedAtMs = deps.now();
@@ -190,10 +212,8 @@ export function createListenSessionTracker(deps: {
       emit(state);
       return;
     }
-    if (
-      lastReported < POPULARITY_COUNTED_LISTEN_MIN_SECONDS &&
-      secondsHeard >= POPULARITY_COUNTED_LISTEN_MIN_SECONDS
-    ) {
+    const cap = countedListenCapSeconds(state.target.mediumId);
+    if (lastReported < cap && secondsHeard >= cap) {
       emit(state);
       return;
     }

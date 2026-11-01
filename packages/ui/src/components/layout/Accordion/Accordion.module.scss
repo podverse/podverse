@@ -5,15 +5,42 @@
 
 .accordionHeader {
   display: flex;
+  align-items: center;
   cursor: pointer;
   border-radius: var(--border-radius);
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.headerLabel {
+  min-width: 0;
+}
+
+// A heading's section margin lives in the summary and shifts the label off the caret.
+// Callers that need that margin use headerAlign="start".
+.alignCenter .headerLabel,
+.alignCenter .headerLabel > * {
+  margin-block: 0;
+}
+
+.alignStart > .accordionHeader {
+  align-items: flex-start;
 }
 
 .headerIcon {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   font-size: var(--font-size-xs);
+  line-height: 1;
   margin-right: var(--spacing-lg);
+
+  svg {
+    display: block;
+  }
 }
 
 // The sidebar nav uses a tight caret gap. Other accordions use the standard gap.

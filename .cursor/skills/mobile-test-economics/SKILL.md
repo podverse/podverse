@@ -69,7 +69,8 @@ complete — a new flow belongs in the area it actually exercises.
 A dead end should cost one hypothesis, not an evening.
 
 - **Two failed hypotheses on the same assertion is the limit.** Write the deferred problem with the
-  evidence already in context and move on; do not keep the loop alive hoping.
+  evidence already in context and move on; do not keep the loop alive hoping. A check named in
+  **e2e-problematic-assertions** is already past that limit: leave it out and do not defer it.
 - **Re-run a flow to test flakiness once.** A third run is not new evidence.
 - **A green run does not need a confirming run** unless you just tightened a timeout.
 - **If the stack is the suspect, triage in this order:** is Metro serving, is the E2E API healthy,

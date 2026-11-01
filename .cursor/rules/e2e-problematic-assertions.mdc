@@ -1,0 +1,56 @@
+---
+description: Four E2E assertions are problematic and must not be added back
+globs:
+  - "apps/web/e2e/notifications-inbox.spec.ts"
+  - "apps/mobile/e2e/livestream-player-controls.yaml"
+  - "apps/mobile/e2e/video-transition.yaml"
+  - "apps/mobile/e2e/playback-cross-device.yaml"
+alwaysApply: false
+---
+
+# Problematic E2E assertions
+
+These four checks fail for a harness or platform reason. The product behavior around them can
+stay. Do not add the assertion back, do not defer it, and do not spend another run trying to make
+it pass.
+
+## Web notification stream replay header
+
+Do not assert `Last-Event-ID` / `last-event-id` on a Playwright-routed `EventSource` reconnect in
+`apps/web/e2e/notifications-inbox.spec.ts`. The route runs before Chromium attaches that header, so
+`request.headers()` is `undefined` even when the browser sent it. Do not restore the test titled
+"When the stream reconnects after a new notification, it asks the server to replay from that
+notification."
+
+The rest of that spec still covers the inbox and the bell.
+
+## iOS livestream rewind scrubber
+
+Do not assert that `full-player-scrubber` becomes visible for `e2eLiveHlsRw01` in
+`apps/mobile/e2e/livestream-player-controls.yaml`. AVPlayer reports that static EVENT playlist as a
+file, so the rewind window stays empty for the whole wait. Do not add the skip-back, behind-live,
+or resume-in-place steps that depend on that scrubber.
+
+The flow still checks that an episode shows its duration and that a window too short to rewind
+hides the scrubber.
+
+## iOS landscape fullscreen Exit
+
+Do not assert `video-fullscreen-exit` in `apps/mobile/e2e/video-transition.yaml`. The landscape
+control stays at opacity 0, and iOS omits it from the accessibility tree. Do not tap
+`video-fullscreen-tap` or `video-fullscreen` to reveal it.
+
+The flow still checks the mini-player and full-player video surfaces and the collapse back to the
+mini player.
+
+## iOS cross-device "Sending to…" status
+
+Do not assert `mini-player-remote-status` text `Sending to…` in
+`apps/mobile/e2e/playback-cross-device.yaml`. That status is gone before Maestro samples the
+screen. Assert `playback-transfer-failed-dialog` ("didn't respond"), which is the result that
+stays on screen.
+
+## What a later run does instead
+
+When one of these fails, or when a plan asks for the same check: leave the assertion out. Say that
+this rule retired it. Do not weaken it with a longer timeout, a retry, or a looser matcher.

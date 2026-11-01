@@ -451,7 +451,7 @@ describe('Account Taste Profile routes (real database)', () => {
     });
   });
 
-  it('lists Hidden From Taste Profile', async () => {
+  it('lists shows left out of recommendations', async () => {
     const res = await request(app).get(`${accountBase}/taste-profile/hidden`).set(authed(owner));
 
     expect(res.status).toBe(200);
@@ -696,5 +696,109 @@ describe('Account Taste Profile routes (real database)', () => {
       .set(authed(owner))
       .send({ channel_id_text: channels.c4.idText, weight: 2 });
     expect(hidden.status).toBe(404);
+  });
+
+  it('hides a channel from lists immediately and lists it under Hidden Channels', async () => {
+    const suggested = await seedChannel('suggested', 30);
+    await query(
+      `INSERT INTO stats_recommendation (listener_id, channel_id, score, strength, computed_at)
+       VALUES ($1::uuid, $2, 6, 4, now())`,
+      [ownerListenerId, suggested.id]
+    );
+
+    const hide = await request(app)
+      .post(`${accountBase}/channel-hidden/hide`)
+      .set(authed(owner))
+      .send({ channel_id_text: suggested.idText });
+    expect(hide.status).toBe(200);
+    expect(hide.body).toEqual({
+      data: { channel_id_text: suggested.idText, hidden: true },
+    });
+    expect(hide.text).not.toContain(ownerListenerId);
+    expect(hide.text).not.toContain('listener_id');
+
+    const remaining = await request(app)
+      .get(`${accountBase}/recommendations?chip=podcasts`)
+      .set(authed(owner));
+    expect(listItems(remaining.body).map(channelIdText)).not.toContain(suggested.idText);
+
+    const browseBase = await getBaseApiUrl();
+    const browse = await request(app)
+      .get(`${browseBase}/channel/global/recent?medium=podcasts&page=1`)
+      .set(authed(owner));
+    expect(browse.status).toBe(200);
+    const browseData: unknown = browse.body?.data;
+    const browseIds = Array.isArray(browseData)
+      ? browseData
+          .filter((row): row is { id_text: string } => {
+            if (typeof row !== 'object' || row === null || !('id_text' in row)) {
+              return false;
+            }
+            return typeof row.id_text === 'string';
+          })
+          .map((row) => row.id_text)
+      : [];
+    expect(browseIds).not.toContain(suggested.idText);
+
+    const hiddenList = await request(app).get(`${accountBase}/channel-hidden`).set(authed(owner));
+    expect(hiddenList.status).toBe(200);
+    expect(hiddenList.text).not.toContain(ownerListenerId);
+    expect(listItems(hiddenList.body).map(channelIdText)).toContain(suggested.idText);
+
+    const unhide = await request(app)
+      .post(`${accountBase}/channel-hidden/unhide`)
+      .set(authed(owner))
+      .send({ channel_id_text: suggested.idText });
+    expect(unhide.status).toBe(200);
+    expect(unhide.body).toEqual({
+      data: { channel_id_text: suggested.idText, hidden: false },
+    });
+
+    const afterUnhide = await request(app).get(`${accountBase}/channel-hidden`).set(authed(owner));
+    expect(listItems(afterUnhide.body).map(channelIdText)).not.toContain(suggested.idText);
+  });
+
+  it('rebuilds recommendations when the applied weight changes and skips the same weight', async () => {
+    const filler = await seedChannel('weight-refresh', 31);
+    const seedRecommendation = async () => {
+      await query(
+        `INSERT INTO stats_recommendation (listener_id, channel_id, score, strength, computed_at)
+         VALUES ($1::uuid, $2, 3, 2, now())
+         ON CONFLICT (listener_id, channel_id) DO UPDATE
+           SET score = EXCLUDED.score, strength = EXCLUDED.strength,
+               computed_at = EXCLUDED.computed_at`,
+        [ownerListenerId, filler.id]
+      );
+    };
+    const recommendationCount = async () =>
+      asFiniteNumber(
+        firstRow(
+          await query(
+            `SELECT count(*)::int AS total FROM stats_recommendation
+              WHERE listener_id = $1::uuid AND channel_id = $2`,
+            [ownerListenerId, filler.id]
+          )
+        ).total
+      );
+
+    await request(app)
+      .post(`${accountBase}/taste-profile/weight`)
+      .set(authed(owner))
+      .send({ channel_id_text: channels.c2.idText, weight: 3 });
+    await seedRecommendation();
+
+    const sameWeight = await request(app)
+      .post(`${accountBase}/taste-profile/weight`)
+      .set(authed(owner))
+      .send({ channel_id_text: channels.c2.idText, weight: 3 });
+    expect(sameWeight.status).toBe(200);
+    expect(await recommendationCount()).toBe(1);
+
+    const changedWeight = await request(app)
+      .post(`${accountBase}/taste-profile/weight`)
+      .set(authed(owner))
+      .send({ channel_id_text: channels.c2.idText, weight: 5 });
+    expect(changedWeight.status).toBe(200);
+    expect(await recommendationCount()).toBe(0);
   });
 });

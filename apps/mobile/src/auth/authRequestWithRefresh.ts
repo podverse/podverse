@@ -323,6 +323,12 @@ export const refreshAccessTokenSingleFlight = async ({
       return refreshedTokens.access_token;
     } catch (error) {
       if (getErrorResponseStatus(error) === 401) {
+        // The refusal belongs to the session that sent the token. Sign-out or a newer sign-in
+        // already advanced the generation, and clearing again would end that newer session.
+        if (generationAtStart !== authSessionGeneration) {
+          return null;
+        }
+
         // The server refused the refresh token and may say why. Every other failure rethrows
         // below, which is what keeps an offline device signed in.
         await clearSession('session_expired', parseAuthSessionEndedError(error));

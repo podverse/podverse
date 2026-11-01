@@ -4,8 +4,11 @@ import type { AuthSessionEndedNotice } from '@podverse/helpers';
 import { AUTH_SESSION_ENDED_NOTICES } from '@podverse/helpers';
 
 import {
+  releaseSessionEndedNoticeHold,
+  sessionEndedNoticeHoldsPage,
   sessionEndedNoticeMessageKey,
   storePendingSessionEndedNotice,
+  subscribeSessionEndedNoticeHold,
   takePendingSessionEndedNotice,
 } from './sessionEndedNotice';
 
@@ -28,6 +31,7 @@ describe('sessionEndedNoticeMessageKey', () => {
 
 describe('pending session ended notice', () => {
   afterEach(() => {
+    releaseSessionEndedNoticeHold();
     vi.restoreAllMocks();
     sessionStorage.clear();
   });
@@ -51,6 +55,27 @@ describe('pending session ended notice', () => {
       throw new Error('sessionStorage is disabled');
     });
     expect(() => storePendingSessionEndedNotice('security')).not.toThrow();
+  });
+
+  it('holds the page from the stored notice until the dialog is released', () => {
+    const seen: boolean[] = [];
+    const unsubscribe = subscribeSessionEndedNoticeHold(() => {
+      seen.push(sessionEndedNoticeHoldsPage());
+    });
+
+    expect(sessionEndedNoticeHoldsPage()).toBe(false);
+    storePendingSessionEndedNotice('signed_out_elsewhere');
+    expect(sessionEndedNoticeHoldsPage()).toBe(true);
+
+    expect(takePendingSessionEndedNotice()).toBe('signed_out_elsewhere');
+    expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(sessionEndedNoticeHoldsPage()).toBe(true);
+    expect(seen).toEqual([true]);
+
+    releaseSessionEndedNoticeHold();
+    expect(sessionEndedNoticeHoldsPage()).toBe(false);
+    expect(seen).toEqual([true, false]);
+    unsubscribe();
   });
 });
 

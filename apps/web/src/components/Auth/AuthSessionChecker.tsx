@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import type { AuthSessionEndedNotice } from '@podverse/helpers';
 
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { moveBrowserAfterSignOut } from '../../lib/auth/pendingSettingsNavigation';
 import { storePendingSessionEndedNotice } from '../../lib/auth/sessionEndedNotice';
 import { clearAddByRSSCredentialsForSignOut } from '../../utils/addByRSS/credentialStore';
 
@@ -31,8 +32,8 @@ export const AuthSessionChecker = ({
         } catch {
           // Logout clears the cookie even when the session is already ended.
         }
-        // The reload renders the signed-out page.
-        window.location.reload();
+        // The next load renders the signed-out page, on the settings tab a click already chose.
+        moveBrowserAfterSignOut();
       })();
     }
   }, [accountIdText, sessionEndedNotice, ssrShouldLogout]);

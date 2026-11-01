@@ -1,5 +1,6 @@
 import { AppDataSourceReadWrite } from '@orm/db/index.js';
 import { Channel } from '@orm/entities/channel/channel.js';
+import { StatsChannelHidden } from '@orm/entities/stats/statsChannelHidden.js';
 import { StatsRecommendation } from '@orm/entities/stats/statsRecommendation.js';
 import { StatsTasteProfile } from '@orm/entities/stats/statsTasteProfile.js';
 import { StatsTasteProfileHidden } from '@orm/entities/stats/statsTasteProfileHidden.js';
@@ -12,8 +13,13 @@ import type {
   DTOAccountTasteProfileRow,
   RecommendationChip,
 } from '@podverse/helpers';
-import { RECOMMENDATION_MEDIUM_IDS, recommendationWeightFromListenCount } from '@podverse/helpers';
+import {
+  RECOMMENDATION_MEDIUM_IDS,
+  recommendationWeightChanged,
+  recommendationWeightFromListenCount,
+} from '@podverse/helpers';
 
+import { refreshRecommendationsForListener } from './recommendationsListenerRefresh.js';
 import { StatsListenerService } from './statsListener.js';
 import { lockListener, runListenerWrite } from './statsWriteGuard.js';
 
@@ -47,6 +53,12 @@ export type TasteProfileWeightResult =
   | { status: 'channel_not_found' }
   | { status: 'not_in_taste_profile' };
 
+export type ChannelListHideResult =
+  { status: 'hidden' } | { status: 'channel_not_found' } | { status: 'no_listener' };
+
+export type ChannelListUnhideResult =
+  { status: 'ok' } | { status: 'channel_not_found' } | { status: 'no_listener' };
+
 function toChannelDto(channel: ChannelFields): DTOAccountTasteProfileChannel {
   return {
     id_text: channel.id_text,
@@ -78,6 +90,13 @@ function toTasteRow(row: StatsTasteProfile): DTOAccountTasteProfileRow {
 }
 
 function toHiddenRow(row: StatsTasteProfileHidden): DTOAccountTasteProfileHiddenRow {
+  return {
+    channel: toChannelDto(row.channel),
+    hidden_at: row.hidden_at.toISOString(),
+  };
+}
+
+function toChannelHiddenRow(row: StatsChannelHidden): DTOAccountTasteProfileHiddenRow {
   return {
     channel: toChannelDto(row.channel),
     hidden_at: row.hidden_at.toISOString(),
@@ -133,6 +152,43 @@ export class TasteProfileAccountService {
     });
   }
 
+  async listChannelHiddenForAccount(
+    account_id: number,
+    params: TasteProfilePageParams
+  ): Promise<{ rows: DTOAccountTasteProfileHiddenRow[]; total_count: number }> {
+    return runListenerWrite(async (manager) => {
+      const listener_id = await this.listeners.findListenerId(account_id, manager);
+      if (listener_id === null) {
+        return { rows: [], total_count: 0 };
+      }
+
+      const [entities, total_count] = await manager.getRepository(StatsChannelHidden).findAndCount({
+        where: { listener_id },
+        relations: { channel: { channel_images: true } },
+        order: { hidden_at: 'DESC', channel_id: 'DESC' },
+        skip: params.offset,
+        take: params.limit,
+      });
+
+      return { rows: entities.map(toChannelHiddenRow), total_count };
+    });
+  }
+
+  /** Channel ids this account hid from Browse and Recommendations. Empty when there is no listener. */
+  async listHiddenChannelIdsForAccount(account_id: number): Promise<number[]> {
+    return runListenerWrite(async (manager) => {
+      const listener_id = await this.listeners.findListenerId(account_id, manager);
+      if (listener_id === null) {
+        return [];
+      }
+      const rows = await manager.getRepository(StatsChannelHidden).find({
+        where: { listener_id },
+        select: { channel_id: true },
+      });
+      return rows.map((row) => row.channel_id);
+    });
+  }
+
   async hideForAccount(
     account_id: number,
     channel_id_text: string
@@ -142,7 +198,18 @@ export class TasteProfileAccountService {
       return { status: 'channel_not_found' };
     }
 
-    return runListenerWrite((manager) => this.hideLocked(account_id, channel_id, manager));
+    let listenerIdToRefresh: string | null = null;
+    const result = await runListenerWrite(async (manager) => {
+      const outcome = await this.hideLocked(account_id, channel_id, manager);
+      if (outcome.status === 'hidden') {
+        listenerIdToRefresh = await this.listeners.findListenerId(account_id, manager);
+      }
+      return outcome;
+    });
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return result;
   }
 
   async unhideForAccount(
@@ -155,9 +222,78 @@ export class TasteProfileAccountService {
       return { status: 'channel_not_found' };
     }
 
-    return runListenerWrite((manager) =>
-      this.unhideLocked(account_id, channel_id, add_to_taste_profile, manager)
-    );
+    let listenerIdToRefresh: string | null = null;
+    const result = await runListenerWrite(async (manager) => {
+      const outcome = await this.unhideLocked(
+        account_id,
+        channel_id,
+        add_to_taste_profile,
+        manager
+      );
+      if (outcome.status === 'ok' && outcome.in_taste_profile && add_to_taste_profile) {
+        listenerIdToRefresh = await this.listeners.findListenerId(account_id, manager);
+      }
+      return outcome;
+    });
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return result;
+  }
+
+  async hideChannelFromListsForAccount(
+    account_id: number,
+    channel_id_text: string
+  ): Promise<ChannelListHideResult> {
+    const channel_id = await this.findChannelId(channel_id_text);
+    if (channel_id === null) {
+      return { status: 'channel_not_found' };
+    }
+
+    return runListenerWrite(async (manager) => {
+      const listener_id = await this.listeners.findListenerId(account_id, manager);
+      if (listener_id === null) {
+        return { status: 'no_listener' };
+      }
+
+      await lockListener(manager, listener_id);
+      await manager
+        .createQueryBuilder()
+        .insert()
+        .into(StatsChannelHidden)
+        .values({ listener_id, channel_id })
+        .orIgnore()
+        .execute();
+      await manager.getRepository(StatsRecommendation).delete({ listener_id, channel_id });
+      return { status: 'hidden' };
+    });
+  }
+
+  async unhideChannelFromListsForAccount(
+    account_id: number,
+    channel_id_text: string
+  ): Promise<ChannelListUnhideResult> {
+    const channel_id = await this.findChannelId(channel_id_text);
+    if (channel_id === null) {
+      return { status: 'channel_not_found' };
+    }
+
+    let listenerIdToRefresh: string | null = null;
+    const result = await runListenerWrite(async (manager) => {
+      const listener_id = await this.listeners.findListenerId(account_id, manager);
+      if (listener_id === null) {
+        return { status: 'no_listener' as const };
+      }
+
+      await lockListener(manager, listener_id);
+      await manager.getRepository(StatsChannelHidden).delete({ listener_id, channel_id });
+      listenerIdToRefresh = listener_id;
+      return { status: 'ok' as const };
+    });
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return result;
   }
 
   async listRecommendationsForAccount(
@@ -207,13 +343,27 @@ export class TasteProfileAccountService {
       return { status: 'channel_not_found' };
     }
 
-    return runListenerWrite(async (manager) => {
+    let listenerIdToRefresh: string | null = null;
+    const result = await runListenerWrite(async (manager) => {
       const listener_id = await this.listeners.findListenerId(account_id, manager);
       if (listener_id === null) {
-        return { status: 'not_in_taste_profile' };
+        return { status: 'not_in_taste_profile' as const };
       }
 
       await lockListener(manager, listener_id);
+      const existing = await manager.getRepository(StatsTasteProfile).findOne({
+        where: { listener_id, channel_id },
+      });
+      if (existing === null) {
+        return { status: 'not_in_taste_profile' as const };
+      }
+
+      const changed = recommendationWeightChanged({
+        previousListenCount: existing.listen_count,
+        previousWeightOverride: existing.weight_override,
+        nextListenCount: existing.listen_count,
+        nextWeightOverride: weight,
+      });
       const updated = await manager
         .getRepository(StatsTasteProfile)
         .update(
@@ -221,10 +371,17 @@ export class TasteProfileAccountService {
           { weight_override: weight, weight_override_at: new Date() }
         );
       if ((updated.affected ?? 0) === 0) {
-        return { status: 'not_in_taste_profile' };
+        return { status: 'not_in_taste_profile' as const };
       }
-      return { status: 'updated', weight };
+      if (changed) {
+        listenerIdToRefresh = listener_id;
+      }
+      return { status: 'updated' as const, weight };
     });
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return result;
   }
 
   private async findChannelId(channel_id_text: string): Promise<number | null> {

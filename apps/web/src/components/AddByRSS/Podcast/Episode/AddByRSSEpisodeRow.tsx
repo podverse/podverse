@@ -281,6 +281,13 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
               addByRSSHashIds={addByRSSHashIds}
               onClick={playButtonOnClick}
             />
+            <ItemRowMoreActions
+              enclosures={bundle.enclosures ? addByRSSBundleEnclosuresToDTO(bundle.enclosures) : []}
+              itemTitle={title}
+              ariaLabel={tMedia('more_options')}
+              moreButtonMenuItems={moreButtonMenuItems}
+              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+            />
             <div className={styles.timeSection}>
               {bundle.item.pub_date ? (
                 <ReadableDate
@@ -292,15 +299,6 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
                 />
               ) : null}
             </div>
-          </div>
-          <div className={styles.bottomSectionEnd}>
-            <ItemRowMoreActions
-              enclosures={bundle.enclosures ? addByRSSBundleEnclosuresToDTO(bundle.enclosures) : []}
-              itemTitle={title}
-              ariaLabel={tMedia('more_options')}
-              moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
-            />
           </div>
         </div>
       </div>

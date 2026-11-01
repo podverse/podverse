@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
+import { waitForPlaybackPresenceLeave } from './helpers/crossDevicePlayback';
 import {
   clearSeededPodcastQueueResources,
   expectMediaPlayerTitleAbsent,
@@ -106,13 +107,12 @@ test.describe('Media player time-bounded playback (clip and soundbite)', () => {
     test.setTimeout(20_000);
     await loginSeedUser(page);
     /**
-     * Clear the seeded podcast queue resources so the QueueController's
-     * auto-load effect (which treats the first upcoming resource like a
-     * now-playing item when no resource is at the now-playing position)
-     * does not race with this spec's user-initiated Play click and
-     * clobber `mpClip` / `mpItem` with `e2ePodResume01`.
+     * A closed browser stays in playback presence for a short grace. Opening the next
+     * test inside that window makes this page follow that session, and a local Play
+     * never sets the audio src. The queue clear keeps QueueController from auto-loading
+     * a seeded row over this spec's Play click.
      */
-    await clearSeededPodcastQueueResources(page);
+    await Promise.all([waitForPlaybackPresenceLeave(), clearSeededPodcastQueueResources(page)]);
   });
 
   test('Loading a clip from the clips list page seeks the player to clip.start_time on loadedmetadata', async ({

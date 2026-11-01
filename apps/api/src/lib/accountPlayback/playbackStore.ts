@@ -11,6 +11,7 @@ import {
   PRESENCE_PRUNE,
   PRESENCE_REMOVE,
   PRESENCE_SHORTEN,
+  PRESENCE_STREAM_BEGIN,
   PRESENCE_TOUCH,
   STATE_COMPARE_AND_SET,
 } from './playbackStoreScripts.js';
@@ -40,6 +41,11 @@ export interface PlaybackPresenceResult {
   devicesRevision: number;
   /** Members this call removed. Each removal is reported to exactly one caller. */
   removedSessionIdTexts: string[];
+  /**
+   * False when this check-in did not extend presence because the session's stream had already
+   * ended. Absent on prune and remove.
+   */
+  extended?: boolean;
 }
 
 export interface PlaybackStateRead {
@@ -67,6 +73,15 @@ const playbackAccountKeys = (accountId: number) => {
 
 const playbackCommandKey = (commandIdText: string): string =>
   `podverse:playback:command:${commandIdText}`;
+
+/** Per session, beside the account keys. The generation outlives one stream; the leave key does not. */
+const playbackSessionKeys = (accountId: number, sessionIdText: string) => {
+  const prefix = `podverse:playback:${accountId}:`;
+  return {
+    generation: `${prefix}presence_gen:${sessionIdText}`,
+    leave: `${prefix}presence_leave:${sessionIdText}`,
+  };
+};
 
 const unexpectedReply = (source: string): Error =>
   new Error(`Unexpected ${source} reply from the playback store`);
@@ -183,7 +198,8 @@ const toExpectedActiveArg = (
 
 /**
  * Checks the device in until `nowMs + PLAYBACK_PRESENCE_TTL_MS` and prunes members whose check-in
- * expired. A check-in by the active device also extends the state keys.
+ * expired. A check-in by the active device also extends the state keys. While the session's leave
+ * key is set, the check-in does not extend presence (`extended: false`).
  */
 export async function touchPlaybackPresence(params: {
   accountId: number;
@@ -191,15 +207,17 @@ export async function touchPlaybackPresence(params: {
   nowMs: number;
 }): Promise<PlaybackPresenceResult> {
   const keys = playbackAccountKeys(params.accountId);
+  const sessionKeys = playbackSessionKeys(params.accountId, params.device.session_id_text);
   const reply = await getPlaybackRedis().eval(
     PRESENCE_TOUCH,
-    6,
+    7,
     keys.presence,
     keys.devices,
     keys.devicesRev,
     keys.state,
     keys.stateRev,
     keys.active,
+    sessionKeys.leave,
     params.device.session_id_text,
     JSON.stringify(toStoredPlaybackDevice(params.device)),
     params.nowMs + PLAYBACK_PRESENCE_TTL_MS,
@@ -207,8 +225,9 @@ export async function touchPlaybackPresence(params: {
     PLAYBACK_PRESENCE_KEY_TTL_MS,
     PLAYBACK_STATE_TTL_MS
   );
-  const [changed, revision, ...removed] = readReplyArray(reply, 'PRESENCE_TOUCH');
+  const [extended, changed, revision, ...removed] = readReplyArray(reply, 'PRESENCE_TOUCH');
   return {
+    extended: readReplyFlag(extended, 'PRESENCE_TOUCH'),
     devicesChanged: readReplyFlag(changed, 'PRESENCE_TOUCH'),
     devicesRevision: readReplyInteger(revision, 'PRESENCE_TOUCH'),
     removedSessionIdTexts: readReplyStrings(removed, 'PRESENCE_TOUCH'),
@@ -238,20 +257,51 @@ export async function prunePlaybackPresence(params: {
   };
 }
 
-/** Lowers the device's expiry to `expiresAtMs`; never raises it and never adds a member. */
+/**
+ * Lowers the device's expiry to `expiresAtMs`; never raises it and never adds a member.
+ * When `presenceGeneration` is the generation from this stream's open, also holds the session
+ * so a later check-in does not extend it. A newer stream's generation makes this a no-op.
+ */
 export async function shortenPlaybackPresence(params: {
   accountId: number;
   sessionIdText: string;
   expiresAtMs: number;
+  presenceGeneration: number | null;
 }): Promise<void> {
   const keys = playbackAccountKeys(params.accountId);
+  const sessionKeys = playbackSessionKeys(params.accountId, params.sessionIdText);
   await getPlaybackRedis().eval(
     PRESENCE_SHORTEN,
-    1,
+    3,
     keys.presence,
+    sessionKeys.generation,
+    sessionKeys.leave,
     params.sessionIdText,
-    params.expiresAtMs
+    params.expiresAtMs,
+    params.presenceGeneration === null ? '' : String(params.presenceGeneration),
+    PLAYBACK_PRESENCE_TTL_MS
   );
+}
+
+/**
+ * Records that a stream for this session is open. Returns the generation that stream must pass
+ * when it leaves, and clears any leave hold so the session's check-ins extend presence again.
+ * `generationTtlMs` has to outlive the stream.
+ */
+export async function beginPlaybackPresenceSession(params: {
+  accountId: number;
+  sessionIdText: string;
+  generationTtlMs: number;
+}): Promise<number> {
+  const sessionKeys = playbackSessionKeys(params.accountId, params.sessionIdText);
+  const reply: unknown = await getPlaybackRedis().eval(
+    PRESENCE_STREAM_BEGIN,
+    2,
+    sessionKeys.generation,
+    sessionKeys.leave,
+    params.generationTtlMs
+  );
+  return readReplyInteger(reply, 'PRESENCE_STREAM_BEGIN');
 }
 
 export async function removePlaybackPresence(params: {

@@ -15,6 +15,11 @@ export type StatsListenRequestBody = {
   /** Media seconds actually played in this session so far. */
   seconds_heard: number;
   completed?: boolean;
+  /**
+   * Length of the file the player loaded for this play. The server uses it when it is the only
+   * length, or when it sits between half and double the RSS duration.
+   */
+  media_duration_seconds?: number;
 };
 
 export type StatsOpenRequestBody = { account_id_text: string } | { playlist_id_text: string };

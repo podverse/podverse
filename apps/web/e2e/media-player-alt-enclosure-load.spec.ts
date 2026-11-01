@@ -109,7 +109,7 @@ test.describe('Alt-enclosure icon loads the row item', () => {
         await rowOne.getByRole('button', { name: 'Play' }).click();
         const modal = await openFullscreenMediaPlayerModal(page);
         await expect(
-          modal.getByRole('button', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE, exact: true })
+          modal.getByRole('link', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE, exact: true })
         ).toBeVisible();
         await modal.getByRole('button', { name: 'Close Modal' }).click();
         await expect(fullscreenModalLocator(page)).toHaveCount(0);
@@ -138,10 +138,10 @@ test.describe('Alt-enclosure icon loads the row item', () => {
     // would have been mutated by the old behavior.
     const modal = await openFullscreenMediaPlayerModal(page);
     await expect(
-      modal.getByRole('button', { name: EMBED_SAMPLE_EPISODE_VIDEO_TWO_TITLE })
+      modal.getByRole('link', { name: EMBED_SAMPLE_EPISODE_VIDEO_TWO_TITLE })
     ).toBeVisible();
     await expect(
-      modal.getByRole('button', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE, exact: true })
+      modal.getByRole('link', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE, exact: true })
     ).toHaveCount(0);
 
     await captureVerifiedElement(

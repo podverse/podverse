@@ -3,6 +3,7 @@ import { skipApiRequestErrorLogForDirectoryChannelGone } from './skipApiRequestE
 import { skipApiRequestErrorLogForFeedContentNotFound } from './skipApiRequestErrorLogForFeedContentNotFound.js';
 import { skipApiRequestErrorLogForMembershipGate } from './skipApiRequestErrorLogForMembershipGate.js';
 import { skipApiRequestErrorLogForMembershipPricing } from './skipApiRequestErrorLogForMembershipPricing.js';
+import { skipApiRequestErrorLogForMobileRefresh } from './skipApiRequestErrorLogForMobileRefresh.js';
 import { skipApiRequestErrorLogForTermsAcceptance } from './skipApiRequestErrorLogForTermsAcceptance.js';
 
 export function shouldSkipApiRequestErrorLog(
@@ -15,6 +16,7 @@ export function shouldSkipApiRequestErrorLog(
     skipApiRequestErrorLogForFeedContentNotFound(errorInfo, requestPath) ||
     skipApiRequestErrorLogForDirectoryChannelGone(errorInfo, requestPath) ||
     skipApiRequestErrorLogForAccountNotFound(errorInfo, requestPath) ||
-    skipApiRequestErrorLogForMembershipPricing(errorInfo, requestPath)
+    skipApiRequestErrorLogForMembershipPricing(errorInfo, requestPath) ||
+    skipApiRequestErrorLogForMobileRefresh(errorInfo, requestPath)
   );
 }

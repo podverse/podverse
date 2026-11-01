@@ -188,6 +188,7 @@ export * from './entities/stats/statsPopularityClip.js';
 export * from './entities/stats/statsPopularityItem.js';
 export * from './entities/stats/statsPopularityPlaylist.js';
 export * from './entities/stats/statsRecommendation.js';
+export * from './entities/stats/statsChannelHidden.js';
 export * from './entities/stats/statsRecommendationState.js';
 export * from './entities/stats/statsShowSimilarity.js';
 export * from './entities/stats/statsShowSimilarityState.js';

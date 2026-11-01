@@ -34,14 +34,14 @@ import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerInfo
 
 function ClickableTitle({
   title,
-  onClick,
+  href,
   className,
   testId,
   turnOrder,
   setPlayerModalIsOpen,
 }: {
   title?: string | null;
-  onClick: () => void;
+  href?: string;
   className?: string;
   testId: string;
   turnOrder: number;
@@ -49,23 +49,30 @@ function ClickableTitle({
 }) {
   const tMisc = useTranslations('misc');
 
-  const handleOnClick = () => {
+  const closePlayerModal = () => {
     setPlayerModalIsOpen(false);
-    onClick();
   };
+
+  const label = (
+    <MarqueeText
+      align="center"
+      data-testid={testId}
+      turnGroup={MEDIA_PLAYER_MARQUEE_TURN_GROUP.fullPlayer}
+      turnOrder={turnOrder}
+    >
+      {title || tMisc('untitled')}
+    </MarqueeText>
+  );
 
   return (
     <div className={className || ''}>
-      <Link onClick={handleOnClick}>
-        <MarqueeText
-          align="center"
-          data-testid={testId}
-          turnGroup={MEDIA_PLAYER_MARQUEE_TURN_GROUP.fullPlayer}
-          turnOrder={turnOrder}
-        >
-          {title || tMisc('untitled')}
-        </MarqueeText>
-      </Link>
+      {href ? (
+        <Link href={href} onClick={closePlayerModal}>
+          {label}
+        </Link>
+      ) : (
+        <Link onClick={closePlayerModal}>{label}</Link>
+      )}
     </div>
   );
 }
@@ -171,10 +178,10 @@ export const MediaPlayerInfoModal: React.FC = () => {
         return (
           <ClickableTitle
             title={artistLine.link.title}
+            href={artistLine.link.href}
             className={styles.artistTitle}
             testId="media-player-modal-artist-title"
             turnOrder={MEDIA_PLAYER_MARQUEE_TURN_ORDER.fullPlayer.artist}
-            onClick={() => router.push(artistLine.link.href)}
             setPlayerModalIsOpen={setPlayerModalIsOpen}
           />
         );
@@ -206,20 +213,20 @@ export const MediaPlayerInfoModal: React.FC = () => {
     <div className={styles.titleSection} ref={titleRef}>
       <ClickableTitle
         title={infoResolution.itemTitle ?? undefined}
+        href={infoResolution.itemLinkUrl || undefined}
         className={styles.itemTitle}
         testId="media-player-modal-title"
         turnOrder={MEDIA_PLAYER_MARQUEE_TURN_ORDER.fullPlayer.title}
-        onClick={() => infoResolution.itemLinkUrl && router.push(infoResolution.itemLinkUrl)}
         setPlayerModalIsOpen={setPlayerModalIsOpen}
       />
       {artistRow}
       {infoResolution.channelLinkUrl ? (
         <ClickableTitle
           title={infoResolution.channelTitle ?? undefined}
+          href={infoResolution.channelLinkUrl}
           className={styles.channelTitle}
           testId="media-player-modal-channel-title"
           turnOrder={MEDIA_PLAYER_MARQUEE_TURN_ORDER.fullPlayer.channel}
-          onClick={() => router.push(infoResolution.channelLinkUrl)}
           setPlayerModalIsOpen={setPlayerModalIsOpen}
         />
       ) : infoResolution.channelTitle ? (
@@ -250,10 +257,10 @@ export const MediaPlayerInfoModal: React.FC = () => {
           <div className={styles.subtitleCopy}>
             <ClickableTitle
               title={infoResolution.subsectionTitle}
+              href={infoResolution.subsectionUrl}
               className={styles.subtitle}
               testId="media-player-modal-subsection-title"
               turnOrder={MEDIA_PLAYER_MARQUEE_TURN_ORDER.fullPlayer.subsection}
-              onClick={() => router.push(infoResolution.subsectionUrl)}
               setPlayerModalIsOpen={setPlayerModalIsOpen}
             />
             {infoResolution.subsectionStartTime && infoResolution.subsectionEndTime && (

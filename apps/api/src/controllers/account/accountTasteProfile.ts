@@ -312,6 +312,126 @@ export class AccountTasteProfileController {
     });
   }
 
+  static async listChannelHidden(req: Request, res: Response): Promise<void> {
+    validateQueryObject(pageQuerySchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const pageQuery = readTasteProfilePage(req.query);
+            if (pageQuery === null) {
+              res.status(400).json({ message: 'Validation error' });
+              return;
+            }
+            const jwtUser = getAuthenticatedUser(req);
+            const { page, limit } = pageQuery;
+            const { rows, total_count } =
+              await AccountTasteProfileController.tasteProfileAccountService.listChannelHiddenForAccount(
+                jwtUser.id,
+                { limit, offset: (page - 1) * limit }
+              );
+            res.json({
+              data: {
+                items: rows,
+                pagination: {
+                  page,
+                  total_count,
+                  total_pages: totalPages(total_count, limit),
+                },
+              },
+            });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        tasteProfileReadAuthOptions
+      );
+    });
+  }
+
+  static async hideChannelFromLists(req: Request, res: Response): Promise<void> {
+    validateBodyObject(hideBodySchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const body: unknown = req.body;
+            if (!isHideShowBody(body)) {
+              res.status(400).json({ message: 'Validation error' });
+              return;
+            }
+            const jwtUser = getAuthenticatedUser(req);
+            const result =
+              await AccountTasteProfileController.tasteProfileAccountService.hideChannelFromListsForAccount(
+                jwtUser.id,
+                body.channel_id_text
+              );
+            if (result.status === 'channel_not_found') {
+              res.status(404).json({ message: 'Channel not found' });
+              return;
+            }
+            if (result.status === 'no_listener') {
+              res.status(404).json({ message: 'No Taste Profile listener' });
+              return;
+            }
+            res.json({
+              data: {
+                channel_id_text: body.channel_id_text,
+                hidden: true,
+              },
+            });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        tasteProfileUpdateAuthOptions
+      );
+    });
+  }
+
+  static async unhideChannelFromLists(req: Request, res: Response): Promise<void> {
+    validateBodyObject(hideBodySchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const body: unknown = req.body;
+            if (!isHideShowBody(body)) {
+              res.status(400).json({ message: 'Validation error' });
+              return;
+            }
+            const jwtUser = getAuthenticatedUser(req);
+            const result =
+              await AccountTasteProfileController.tasteProfileAccountService.unhideChannelFromListsForAccount(
+                jwtUser.id,
+                body.channel_id_text
+              );
+            if (result.status === 'channel_not_found') {
+              res.status(404).json({ message: 'Channel not found' });
+              return;
+            }
+            if (result.status === 'no_listener') {
+              res.status(404).json({ message: 'No Taste Profile listener' });
+              return;
+            }
+            res.json({
+              data: {
+                channel_id_text: body.channel_id_text,
+                hidden: false,
+              },
+            });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        tasteProfileUpdateAuthOptions
+      );
+    });
+  }
+
   static async setWeight(req: Request, res: Response): Promise<void> {
     validateBodyObject(weightBodySchema, req, res, async () => {
       ensureAuthenticated(

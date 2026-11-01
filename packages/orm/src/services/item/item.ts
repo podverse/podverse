@@ -325,7 +325,7 @@ export class ItemService {
     category_id: number | null,
     itemType: 'normal' | 'live-item',
     liveItemType: 'pending' | 'live' | 'ended' | null,
-    listOptions?: { excludeIds?: number[] }
+    listOptions?: { excludeChannelIds?: number[]; excludeIds?: number[] }
   ): Promise<Item[]> {
     const idFilter = resolveIdListFilter(undefined, listOptions?.excludeIds);
     if (idFilter.empty) {
@@ -334,8 +334,14 @@ export class ItemService {
 
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
+    const excludeChannelIds = listOptions?.excludeChannelIds;
+    const channelIdFilter =
+      excludeChannelIds !== undefined && excludeChannelIds.length > 0
+        ? { id: Not(In(excludeChannelIds)) }
+        : {};
 
     const channelWhere: FindOptionsWhere<Channel> = {
+      ...channelIdFilter,
       channel_about: {
         id: Not(IsNull()),
       },

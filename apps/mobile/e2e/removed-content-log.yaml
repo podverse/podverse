@@ -12,11 +12,13 @@ name: Removed Content
     id: tab-more
 - assertVisible:
     id: more-screen
+# Advanced sits on the bottom edge. A tap there hits the mini player when one is showing.
 - scrollUntilVisible:
     element:
       id: more-nav-advanced
     direction: DOWN
     timeout: ${TIMEOUT_FAST}
+    centerElement: true
 - tapOn:
     id: more-nav-advanced
 - assertVisible:

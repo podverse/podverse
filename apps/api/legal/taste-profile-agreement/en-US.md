@@ -20,9 +20,9 @@ We can still connect the id back to your account. That is how turning this off, 
 
 Your Taste Profile is a row for each show you listen to: a podcast, an album, or an artist. Episodes and tracks are not their own rows. A listen to an episode, a track, or a clip updates the show it belongs to. The row keeps how many times you have listened, how many you finished, and when you first and last listened. It also keeps a picture of what you have been listening to lately and what you have listened to over a longer time.
 
-You can see your Taste Profile in Settings. You can remove a show from it. That show moves to Hidden From Taste Profile, and its taste data is deleted. Later listens to a hidden show still count on the public lists, and they do not add the show back.
+You can see your Taste Profile in Settings. You can remove a show from it. That show moves to Not Counted in Recommendations, and its taste data is deleted. Later listens to a show on that list still count on the public lists, and they do not add the show back.
 
-You can see Hidden From Taste Profile. Taking a show off that list asks you to choose: add it back to your Taste Profile, starting over, or only take it off the list. If you only take it off the list, a later listen can add it again.
+You can see Not Counted in Recommendations. Taking a show off that list asks you to choose: add it back to your Taste Profile, starting over, or only take it off the list. If you only take it off the list, a later listen can add it again.
 
 Opening a profile or a playlist does not update your Taste Profile.
 
@@ -42,12 +42,12 @@ Listen records are kept for {retention_days} days. We then delete a whole month 
 
 All-time counts already added to the public lists stay after a record is deleted. Those counts are numbers, not a list of listeners.
 
-Deleting your account deletes the random id, your listen records, your Taste Profile, and your Hidden From Taste Profile list. The public all-time counts stay.
+Deleting your account deletes the random id, your listen records, your Taste Profile, and your Not Counted in Recommendations list. The public all-time counts stay.
 
 # Changing Your Mind
 
-Turn this on or off in Settings. Turning it off asks you to confirm, because we then delete your Taste Profile, your Hidden From Taste Profile list, and your stored listen records right away. All-time counts already on the public lists stay. If you turn it on later, recommendations start from scratch. If you turn it on again, the daily limits do not start over, and for a set period after you turned it off, your new listens update your Taste Profile but do not count toward the public lists, and opening a profile or a playlist is not recorded.
+Turn this on or off in Settings. Turning it off asks you to confirm, because we then delete your Taste Profile, your Not Counted in Recommendations list, and your stored listen records right away. All-time counts already on the public lists stay. If you turn it on later, recommendations start from scratch. If you turn it on again, the daily limits do not start over, and for a set period after you turned it off, your new listens update your Taste Profile but do not count toward the public lists, and opening a profile or a playlist is not recorded.
 
-If your membership ends, or if this explanation changes and you have not confirmed it yet, we stop new records and keep your Taste Profile paused. Your Hidden From Taste Profile list stays. Listen records already stored still age out on the schedule above. The Taste Profile starts updating again when tracking is on. We do not delete it in those cases.
+If your membership ends, or if this explanation changes and you have not confirmed it yet, we stop new records and keep your Taste Profile paused. Your Not Counted in Recommendations list stays. Listen records already stored still age out on the schedule above. The Taste Profile starts updating again when tracking is on. We do not delete it in those cases.
 
 If you turn it off, we will not ask again when this explanation changes. If you turn it on, and we later change what we record or how long we keep it, we will ask again. Until you say yes to that update, tracking stays off.

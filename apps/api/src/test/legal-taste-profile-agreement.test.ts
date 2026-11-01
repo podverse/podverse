@@ -88,7 +88,7 @@ describe('GET /legal/taste-profile-agreement', () => {
     expect(res.body.markdown).toContain('count toward public popularity rankings');
     expect(res.body.markdown).toContain('not anonymous');
     expect(res.body.markdown).toContain('Taste Profile');
-    expect(res.body.markdown).toContain('Hidden From Taste Profile');
+    expect(res.body.markdown).toContain('Not Counted in Recommendations');
   });
 
   it('returns Spanish markdown when the account locale is es', async () => {

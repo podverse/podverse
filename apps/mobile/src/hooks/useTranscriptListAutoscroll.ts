@@ -27,6 +27,9 @@ export type TranscriptListAutoscrollParams<ItemT> = {
  * Scrolls the active transcript cue into view when Autoscroll is on and the cue is off screen.
  * Uses viewability to decide above vs below; retries after an approximate offset when the row is
  * not yet mounted.
+ *
+ * Pass `onViewableItemsChanged` and `viewabilityConfig` on every render of the list that owns
+ * them. FlatList rejects a later change from a missing callback to a present one.
  */
 export function useTranscriptListAutoscroll<ItemT>(params: TranscriptListAutoscrollParams<ItemT>): {
   onScrollToIndexFailed: (info: { averageItemLength: number; index: number }) => void;

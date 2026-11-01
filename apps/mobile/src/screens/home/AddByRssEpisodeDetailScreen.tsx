@@ -14,6 +14,7 @@ import {
   DescriptionText,
   ItemChapterRow,
   PeoplePane,
+  TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX,
   TranscriptFollowBar,
   TranscriptListRow,
 } from '../../components/content';
@@ -482,12 +483,12 @@ export function AddByRssEpisodeDetailScreen({
           onScrollToIndexFailed={
             activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
           }
-          onViewableItemsChanged={
-            activeTab === 'transcript' ? onTranscriptViewableItemsChanged : undefined
-          }
+          onViewableItemsChanged={onTranscriptViewableItemsChanged}
           ref={listRef}
           renderItem={renderPaneRow}
-          stickyHeaderIndices={transcriptStickyOffset > 0 ? [0] : undefined}
+          stickyHeaderIndices={
+            transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
+          }
           style={styles.list}
           testID={
             activeTab === 'chapters'
@@ -496,7 +497,7 @@ export function AddByRssEpisodeDetailScreen({
                 ? 'add-by-rss-episode-detail-transcript-list'
                 : 'add-by-rss-episode-detail-list'
           }
-          viewabilityConfig={activeTab === 'transcript' ? transcriptViewabilityConfig : undefined}
+          viewabilityConfig={transcriptViewabilityConfig}
         />
       ) : null}
       {addToPlaylistSheet}

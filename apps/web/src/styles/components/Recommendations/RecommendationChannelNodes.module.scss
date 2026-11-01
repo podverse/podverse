@@ -1,0 +1,21 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.row > a {
+  flex: 1;
+  min-width: 0;
+}
+
+.gridNode {
+  position: relative;
+}
+
+.gridMore {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  z-index: 1;
+}

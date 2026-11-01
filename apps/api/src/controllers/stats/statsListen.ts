@@ -32,6 +32,7 @@ type StatsListenBody = (
   client_listen_id: string;
   seconds_heard: number;
   completed: boolean;
+  media_duration_seconds?: number;
 };
 
 const bodySchema = Joi.object({
@@ -40,6 +41,7 @@ const bodySchema = Joi.object({
   client_listen_id: Joi.string().uuid().required(),
   seconds_heard: Joi.number().integer().min(0).max(MAX_SECONDS_HEARD).required(),
   completed: Joi.boolean().default(false),
+  media_duration_seconds: Joi.number().positive().max(MAX_SECONDS_HEARD),
 }).xor('item_id_text', 'clip_id_text');
 
 function listenTarget(body: StatsListenBody): StatsListenTarget {
@@ -114,6 +116,7 @@ export class StatsListenController {
               client_listen_id: body.client_listen_id,
               seconds_heard: body.seconds_heard,
               completed: body.completed,
+              media_duration_seconds: body.media_duration_seconds ?? null,
             });
             const response = listenResponse(result);
             res.status(response.status).json(response.body);

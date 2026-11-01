@@ -99,6 +99,53 @@ export const reqAccountRecommendations = (
     .then((response) => response.data.items);
 };
 
+export const reqAccountChannelHidden = (
+  api: ApiRequestService,
+  params: { page?: number; limit?: number }
+): Promise<DTOAccountTasteProfileHiddenList> => {
+  return api
+    .apiRequest<{ data: DTOAccountTasteProfileHiddenList }>({
+      path: `/account/channel-hidden${tasteProfileQuery(params)}`,
+      method: 'GET',
+      config: {
+        withCredentials: true,
+      },
+    })
+    .then((response) => response.data);
+};
+
+export const reqAccountChannelHiddenHide = (
+  api: ApiRequestService,
+  params: { channel_id_text: string }
+): Promise<{ channel_id_text: string; hidden: boolean }> => {
+  return api
+    .apiRequest<{ data: { channel_id_text: string; hidden: boolean } }>({
+      path: '/account/channel-hidden/hide',
+      method: 'POST',
+      data: params,
+      config: {
+        withCredentials: true,
+      },
+    })
+    .then((response) => response.data);
+};
+
+export const reqAccountChannelHiddenUnhide = (
+  api: ApiRequestService,
+  params: { channel_id_text: string }
+): Promise<{ channel_id_text: string; hidden: boolean }> => {
+  return api
+    .apiRequest<{ data: { channel_id_text: string; hidden: boolean } }>({
+      path: '/account/channel-hidden/unhide',
+      method: 'POST',
+      data: params,
+      config: {
+        withCredentials: true,
+      },
+    })
+    .then((response) => response.data);
+};
+
 export const reqAccountTasteProfileSetWeight = (
   api: ApiRequestService,
   params: { channel_id_text: string; weight: number }

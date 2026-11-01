@@ -17,10 +17,21 @@
   }
 }
 
+.artwork {
+  position: relative;
+  flex-shrink: 0;
+  margin-right: var(--spacing-xl);
+}
+
 .image {
   object-fit: cover;
   margin-right: var(--spacing-xl);
   border-radius: var(--border-radius-artwork);
+}
+
+.artwork .image {
+  display: block;
+  margin-right: 0;
 }
 
 .content {
@@ -41,8 +52,7 @@
 }
 
 .unseenBadge {
-  display: inline-flex;
-  margin-left: auto;
-  padding-left: var(--spacing-lg);
-  flex-shrink: 0;
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
 }

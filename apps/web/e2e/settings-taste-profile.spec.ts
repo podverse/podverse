@@ -14,7 +14,7 @@ const SETTINGS_RECOMMENDATIONS_URL = '/settings?tab=recommendations';
 const SETTINGS_RECOMMENDATIONS_URL_PATTERN = /\/settings\?tab=recommendations/;
 const PROFILE_EMPTY_TEXT =
   'No shows yet. Shows appear here after you listen with Taste Profile on.';
-const HIDDEN_EMPTY_TEXT = 'No hidden shows.';
+const NOT_COUNTED_EMPTY_TEXT = 'No shows left out of recommendations.';
 
 async function loginViaApi(page: Page): Promise<void> {
   const loginResponse = await page.request.post(API_LOGIN_URL, {
@@ -23,13 +23,24 @@ async function loginViaApi(page: Page): Promise<void> {
   expect(loginResponse.ok(), await loginResponse.text()).toBeTruthy();
 }
 
+function disclosureSummary(page: Page, name: string) {
+  return page.locator('summary').filter({ hasText: name });
+}
+
+async function expectDisclosureCollapsed(page: Page, name: string): Promise<void> {
+  const control = disclosureSummary(page, name);
+  await expect(control).toBeVisible();
+  await expect(control.locator('xpath=..')).toHaveJSProperty('open', false);
+}
+
 async function openRecommendationsSettings(page: Page, openSections = true): Promise<void> {
   await page.goto(SETTINGS_RECOMMENDATIONS_URL);
   await expect(page).toHaveURL(SETTINGS_RECOMMENDATIONS_URL_PATTERN);
   await expect(page.getByRole('button', { name: 'Recommendations', exact: true })).toBeVisible();
   if (openSections) {
-    await page.getByRole('button', { name: 'Shows That Affect Recommendations' }).click();
-    await page.getByRole('button', { name: 'Hidden From Taste Profile' }).click();
+    await disclosureSummary(page, 'Shows That Affect Recommendations').click();
+    await disclosureSummary(page, 'Not Counted in Recommendations').click();
+    await disclosureSummary(page, 'Hidden Channels').click();
   }
 }
 
@@ -38,7 +49,7 @@ function profileRegion(page: Page) {
 }
 
 function hiddenRegion(page: Page) {
-  return page.getByRole('region', { name: 'Hidden From Taste Profile', exact: true });
+  return page.getByRole('region', { name: 'Not Counted in Recommendations', exact: true });
 }
 
 test.describe('Settings Taste Profile sections', () => {
@@ -48,13 +59,9 @@ test.describe('Settings Taste Profile sections', () => {
     await loginViaApi(page);
     await openRecommendationsSettings(page, false);
 
-    await expect(
-      page.getByRole('button', { name: 'Shows That Affect Recommendations' })
-    ).toHaveAttribute('aria-expanded', 'false');
-    await expect(page.getByRole('button', { name: 'Hidden From Taste Profile' })).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    );
+    await expectDisclosureCollapsed(page, 'Shows That Affect Recommendations');
+    await expectDisclosureCollapsed(page, 'Not Counted in Recommendations');
+    await expectDisclosureCollapsed(page, 'Hidden Channels');
   });
 
   test('When the Taste Profile request fails, the section shows an error and Try Again reloads it.', async ({
@@ -92,7 +99,7 @@ test.describe('Settings Taste Profile sections', () => {
     );
   });
 
-  test('When an account has a Taste Profile, Settings lists its shows newest first and its hidden shows.', async ({
+  test('When an account has a Taste Profile, Settings lists its shows newest first and the shows left out of recommendations.', async ({
     page,
   }, testInfo) => {
     await loginViaApi(page);
@@ -106,7 +113,7 @@ test.describe('Settings Taste Profile sections', () => {
     await expect(profileRows.nth(0)).toContainText('Last Listened:');
     await expect(profileRows.nth(1)).toContainText(E2E_VIDEO_CHANNEL_TITLE);
     await expect(hidden.getByRole('listitem').nth(0)).toContainText(E2E_DIRECTORY_ARTIST_TITLE);
-    await expect(hidden.getByRole('listitem').nth(0)).toContainText('Hidden:');
+    await expect(hidden.getByRole('listitem').nth(0)).toContainText('Not Counted:');
     await expect(profile.getByRole('button', { name: 'Load More' })).toHaveCount(0);
     await expect(hidden.getByRole('button', { name: 'Load More' })).toHaveCount(0);
 
@@ -119,7 +126,7 @@ test.describe('Settings Taste Profile sections', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'Hidden From Taste Profile lists the hidden show with the date it was hidden.',
+      'Not Counted in Recommendations lists the show with the date it was left out.',
       hidden
     );
   });
@@ -147,7 +154,9 @@ test.describe('Settings Taste Profile sections', () => {
     );
   });
 
-  test('Removing a show moves it to Hidden From Taste Profile.', async ({ page }, testInfo) => {
+  test('Removing a show moves it to Not Counted in Recommendations.', async ({
+    page,
+  }, testInfo) => {
     await loginViaApi(page);
     await openRecommendationsSettings(page);
 
@@ -158,7 +167,7 @@ test.describe('Settings Taste Profile sections', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'Remove takes the show off the Taste Profile and adds it to the hidden list.',
+      'Remove takes the show off the Taste Profile and leaves it out of recommendations.',
       async () => {
         await profile
           .getByRole('button', {
@@ -172,7 +181,7 @@ test.describe('Settings Taste Profile sections', () => {
     );
   });
 
-  test('Unhide asks first, and Only Remove From Hidden List takes the show off both lists.', async ({
+  test('Count Again asks first, and Only Remove from This List takes the show off both lists.', async ({
     page,
   }, testInfo) => {
     await loginViaApi(page);
@@ -180,18 +189,20 @@ test.describe('Settings Taste Profile sections', () => {
 
     const profile = profileRegion(page);
     const hidden = hiddenRegion(page);
-    const dialog = page.getByRole('dialog', { name: 'Unhide Show' });
+    const dialog = page.getByRole('dialog', { name: 'Count This Show Again' });
 
     await actionAndCapture(
       page,
       testInfo,
-      'Unhide opens a dialog that asks whether to add the show back.',
+      'Count Again opens a dialog that asks whether to add the show back.',
       async () => {
-        await hidden.getByRole('button', { name: `Unhide ${E2E_DIRECTORY_ARTIST_TITLE}` }).click();
+        await hidden
+          .getByRole('button', { name: `Count ${E2E_DIRECTORY_ARTIST_TITLE} in Recommendations` })
+          .click();
         await expect(dialog).toBeVisible();
         await expect(dialog.getByRole('button', { name: 'Cancel', exact: true })).toBeVisible();
         await expect(
-          dialog.getByRole('button', { name: 'Only Remove From Hidden List', exact: true })
+          dialog.getByRole('button', { name: 'Only Remove from This List', exact: true })
         ).toBeVisible();
         await expect(
           dialog.getByRole('button', { name: 'Add to Taste Profile', exact: true })
@@ -203,10 +214,10 @@ test.describe('Settings Taste Profile sections', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'Only Remove From Hidden List leaves the show on neither list.',
+      'Only Remove from This List leaves the show on neither list.',
       async () => {
         await dialog
-          .getByRole('button', { name: 'Only Remove From Hidden List', exact: true })
+          .getByRole('button', { name: 'Only Remove from This List', exact: true })
           .click();
         await expect(dialog).toBeHidden();
         await expect(hidden.getByText(E2E_DIRECTORY_ARTIST_TITLE)).toHaveCount(0);
@@ -224,21 +235,23 @@ test.describe('Settings Taste Profile sections', () => {
 
     const profile = profileRegion(page);
     const hidden = hiddenRegion(page);
-    const dialog = page.getByRole('dialog', { name: 'Unhide Show' });
+    const dialog = page.getByRole('dialog', { name: 'Count This Show Again' });
 
     await actionAndCapture(
       page,
       testInfo,
       'Add to Taste Profile moves the show to the top of the Taste Profile.',
       async () => {
-        await hidden.getByRole('button', { name: `Unhide ${E2E_PODCAST_CHANNEL_TITLE}` }).click();
+        await hidden
+          .getByRole('button', { name: `Count ${E2E_PODCAST_CHANNEL_TITLE} in Recommendations` })
+          .click();
         await expect(dialog).toBeVisible();
         await dialog.getByRole('button', { name: 'Add to Taste Profile', exact: true }).click();
         await expect(dialog).toBeHidden();
         const firstRow = profile.getByRole('listitem').nth(0);
         await expect(firstRow).toContainText(E2E_PODCAST_CHANNEL_TITLE);
         await expect(firstRow).toContainText('Added back. No listens since.');
-        await expect(hidden.getByText(HIDDEN_EMPTY_TEXT)).toBeVisible();
+        await expect(hidden.getByText(NOT_COUNTED_EMPTY_TEXT)).toBeVisible();
       },
       profile
     );
@@ -270,12 +283,12 @@ test.describe('Settings Taste Profile sections', () => {
     await actionAndCapture(
       page,
       testInfo,
-      'Turn Off and Delete empties the Taste Profile and the hidden list.',
+      'Turn Off and Delete empties the Taste Profile and Not Counted in Recommendations.',
       async () => {
         await optOutDialog.getByRole('button', { name: 'Turn Off and Delete' }).click();
         await expect(tasteProfileSwitch).not.toBeChecked();
         await expect(profile.getByText(PROFILE_EMPTY_TEXT)).toBeVisible();
-        await expect(hidden.getByText(HIDDEN_EMPTY_TEXT)).toBeVisible();
+        await expect(hidden.getByText(NOT_COUNTED_EMPTY_TEXT)).toBeVisible();
       },
       profile
     );

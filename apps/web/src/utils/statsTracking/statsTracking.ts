@@ -43,10 +43,16 @@ export function reportListen(report: ListenSessionReport): void {
   if (!canSendStatsReports()) {
     return;
   }
+  const mediaDurationSeconds = report.mediaDurationSeconds;
   const body: StatsListenRequestBody = {
     client_listen_id: report.clientListenId,
     seconds_heard: report.secondsHeard,
     completed: report.completed,
+    ...(mediaDurationSeconds !== null &&
+    Number.isFinite(mediaDurationSeconds) &&
+    mediaDurationSeconds > 0
+      ? { media_duration_seconds: mediaDurationSeconds }
+      : {}),
     ...(report.target.kind === 'clip'
       ? { clip_id_text: report.target.idText }
       : { item_id_text: report.target.idText }),

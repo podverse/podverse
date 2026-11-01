@@ -44,6 +44,28 @@ export function recommendationWeightFromListenCount(
 }
 
 /**
+ * Whether a taste change should rebuild that listener's recommendations.
+ * A new show (`previousListenCount` null) always does. An override keeps the weight
+ * fixed across later listens. Completions never change `listen_count`, so they stay out.
+ */
+export function recommendationWeightChanged(params: {
+  previousListenCount: number | null;
+  previousWeightOverride: number | null;
+  nextListenCount: number;
+  nextWeightOverride: number | null;
+}): boolean {
+  if (params.previousListenCount === null) {
+    return true;
+  }
+  return (
+    recommendationWeightFromListenCount(
+      params.previousListenCount,
+      params.previousWeightOverride
+    ) !== recommendationWeightFromListenCount(params.nextListenCount, params.nextWeightOverride)
+  );
+}
+
+/**
  * Display mark for one recommendation. The listener's top score in that chip is 5.
  * The rest scale down in even steps and never fall below 1.
  */

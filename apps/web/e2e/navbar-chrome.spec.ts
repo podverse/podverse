@@ -55,7 +55,7 @@ test.describe('Main layout navbar chrome', () => {
     page,
   }, testInfo) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    const subscribed = page.locator('#sidebar a[href="/"]');
+    const subscribed = page.locator('#sidebar a[href="/"]').filter({ hasText: 'Subscribed' });
     const browse = page.locator('#sidebar a[href="/browse"]');
 
     await test.step('The home page marks Subscribed as the current page.', async () => {

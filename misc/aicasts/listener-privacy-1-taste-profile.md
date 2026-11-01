@@ -104,7 +104,7 @@ CLAIRE: A short summary above two buttons, Yes, Build My Taste Profile, and No T
 
 TOM: And after they say yes?
 
-CLAIRE: Settings lists their Taste Profile, show by show. Removing a show moves it to Hidden From Taste Profile and deletes its taste data. Listening to a hidden show still counts publicly; it just doesn't come back. Taking it off the hidden list asks whether to add it back now, starting over, or let the next listen do it.
+CLAIRE: Settings lists their Taste Profile, show by show. Removing a show moves it to Not Counted in Recommendations and deletes its taste data. Listening to a show on that list still counts publicly; it just doesn't come back. Taking it off the list asks whether to add it back now, starting over, or let the next listen do it.
 
 TOM: Anything only one surface does?
 

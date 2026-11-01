@@ -1,4 +1,3 @@
-import type { MutableRefObject } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type {
@@ -26,28 +25,31 @@ export type TasteProfileListState<Row> =
 export type UseTasteProfileListsResult = {
   profile: TasteProfileListState<DTOAccountTasteProfileRow>;
   hidden: TasteProfileListState<DTOAccountTasteProfileHiddenRow>;
+  channelHidden: TasteProfileListState<DTOAccountTasteProfileHiddenRow>;
   /** `channel.id_text` values with a hide, unhide, or weight apply in flight. */
   pendingChannelIds: ReadonlySet<string>;
   actionFailed: boolean;
   retry: () => void;
   loadMoreProfile: () => void;
   loadMoreHidden: () => void;
+  loadMoreChannelHidden: () => void;
   hideShow: (channelIdText: string) => Promise<void>;
   unhideShow: (channelIdText: string, addToTasteProfile: boolean) => Promise<void>;
+  unhideChannelFromLists: (channelIdText: string) => Promise<void>;
   applyWeight: (channelIdText: string, weight: number) => Promise<void>;
 };
 
 type KeyedRow = { channel: { id_text: string } };
 
 /**
- * One paged list. A response applies only while both the shared generation and this list's
- * request sequence still match the values taken when the request started, so a slow response
- * never overwrites a newer one.
+ * One paged list. A response applies only while this list's generation and request sequence
+ * still match the values taken when the request started, so a slow response never overwrites
+ * a newer one.
  */
 function useTasteProfileList<Row extends KeyedRow>(
-  fetchPage: (page: number) => Promise<TasteProfilePage<Row>>,
-  generationRef: MutableRefObject<number>
+  fetchPage: (page: number) => Promise<TasteProfilePage<Row>>
 ) {
+  const generationRef = useRef(0);
   const [state, setState] = useState<TasteProfileListState<Row>>({ status: 'idle' });
   const stateRef = useRef<TasteProfileListState<Row>>(state);
   const requestSeqRef = useRef(0);
@@ -62,7 +64,11 @@ function useTasteProfileList<Row extends KeyedRow>(
     const generation = generationRef.current;
     const seq = requestSeqRef.current;
     return () => generation === generationRef.current && seq === requestSeqRef.current;
-  }, [generationRef]);
+  }, []);
+
+  const invalidate = useCallback(() => {
+    generationRef.current += 1;
+  }, []);
 
   const fetchPages = useCallback(
     async (pageCount: number) => {
@@ -133,30 +139,58 @@ function useTasteProfileList<Row extends KeyedRow>(
     })();
   }, [applyState, fetchPage, startRequest]);
 
-  return { state, reset, idle, reload, refetch, loadMore };
+  return { state, reset, idle, reload, refetch, loadMore, invalidate };
 }
 
 /**
- * The signed-in listener's Taste Profile and Hidden From Taste Profile lists. State lives only in
- * this hook and reloads whenever the account or its Taste Profile consent changes, so a
- * sign-out or account switch never shows the previous account's rows. A token refresh does not
- * reload: requests read the latest auth values through a ref.
+ * Loads one list when it is opened, when the account or Taste Profile consent changes, and
+ * when the listener presses Try Again. A failed load stays on screen until one of those.
+ */
+function useReloadWhenActive(
+  active: boolean,
+  reloadKey: string | null,
+  retryCount: number,
+  idle: () => void,
+  reload: () => void,
+  invalidate: () => void
+): void {
+  useEffect(() => {
+    if (reloadKey === null || !active) {
+      idle();
+    } else {
+      reload();
+    }
+    return () => {
+      invalidate();
+    };
+  }, [active, idle, invalidate, reload, reloadKey, retryCount]);
+}
+
+/**
+ * The signed-in listener's Taste Profile, Not Counted in Recommendations, and Hidden Channels lists.
+ * State lives only in this hook. Each list loads when it is opened, and again when the account
+ * or its Taste Profile consent changes, so a sign-out or account switch never shows the previous
+ * account's rows. Try Again reloads every open list. A token refresh does not reload: requests
+ * read the latest auth values through a ref.
  */
 export function useTasteProfileLists(options: {
   hiddenActive: boolean;
   profileActive: boolean;
+  channelHiddenActive: boolean;
 }): UseTasteProfileListsResult {
   const { accessToken, account, clearSession, refreshToken, setTokens } = useAuth();
   const authRef = useRef<AuthRequestDeps>({ accessToken, clearSession, refreshToken, setTokens });
   const profileActiveRef = useRef(options.profileActive);
   const hiddenActiveRef = useRef(options.hiddenActive);
+  const channelHiddenActiveRef = useRef(options.channelHiddenActive);
   profileActiveRef.current = options.profileActive;
   hiddenActiveRef.current = options.hiddenActive;
+  channelHiddenActiveRef.current = options.channelHiddenActive;
   // Declared before the reload effect so a reload in the same commit sends the new token.
   useEffect(() => {
     authRef.current = { accessToken, clearSession, refreshToken, setTokens };
   }, [accessToken, clearSession, refreshToken, setTokens]);
-  const generationRef = useRef(0);
+  const actionGenerationRef = useRef(0);
 
   const fetchProfilePage = useCallback(
     (page: number): Promise<TasteProfilePage<DTOAccountTasteProfileRow>> =>
@@ -174,20 +208,38 @@ export function useTasteProfileLists(options: {
     []
   );
 
+  const fetchChannelHiddenPage = useCallback(
+    (page: number): Promise<TasteProfilePage<DTOAccountTasteProfileHiddenRow>> =>
+      requestWithMobileAuthRefresh(authRef.current, (api) =>
+        api.reqAccountChannelHidden({ page, limit: TASTE_PROFILE_PAGE_LIMIT })
+      ),
+    []
+  );
+
   const {
     state: profile,
     idle: idleProfile,
     reload: reloadProfile,
     refetch: refetchProfile,
     loadMore: loadMoreProfile,
-  } = useTasteProfileList(fetchProfilePage, generationRef);
+    invalidate: invalidateProfile,
+  } = useTasteProfileList(fetchProfilePage);
   const {
     state: hidden,
     idle: idleHidden,
     reload: reloadHidden,
     refetch: refetchHidden,
     loadMore: loadMoreHidden,
-  } = useTasteProfileList(fetchHiddenPage, generationRef);
+    invalidate: invalidateHidden,
+  } = useTasteProfileList(fetchHiddenPage);
+  const {
+    state: channelHidden,
+    idle: idleChannelHidden,
+    reload: reloadChannelHidden,
+    refetch: refetchChannelHidden,
+    loadMore: loadMoreChannelHidden,
+    invalidate: invalidateChannelHidden,
+  } = useTasteProfileList(fetchChannelHiddenPage);
   const [pendingChannelIds, setPendingChannelIds] = useState<ReadonlySet<string>>(
     () => new Set<string>()
   );
@@ -213,35 +265,38 @@ export function useTasteProfileLists(options: {
   useEffect(() => {
     updatePending(() => new Set<string>());
     setActionFailed(false);
-    if (reloadKey === null) {
-      idleProfile();
-      idleHidden();
-    } else {
-      if (options.profileActive) {
-        reloadProfile();
-      } else {
-        idleProfile();
-      }
-      if (options.hiddenActive) {
-        reloadHidden();
-      } else {
-        idleHidden();
-      }
-    }
+  }, [reloadKey, retryCount, updatePending]);
+
+  useEffect(() => {
     return () => {
-      generationRef.current += 1;
+      actionGenerationRef.current += 1;
     };
-  }, [
-    idleHidden,
-    idleProfile,
-    options.hiddenActive,
+  }, [reloadKey]);
+
+  useReloadWhenActive(
     options.profileActive,
-    reloadHidden,
     reloadKey,
-    reloadProfile,
     retryCount,
-    updatePending,
-  ]);
+    idleProfile,
+    reloadProfile,
+    invalidateProfile
+  );
+  useReloadWhenActive(
+    options.hiddenActive,
+    reloadKey,
+    retryCount,
+    idleHidden,
+    reloadHidden,
+    invalidateHidden
+  );
+  useReloadWhenActive(
+    options.channelHiddenActive,
+    reloadKey,
+    retryCount,
+    idleChannelHidden,
+    reloadChannelHidden,
+    invalidateChannelHidden
+  );
 
   const retry = useCallback(() => {
     setRetryCount((count) => count + 1);
@@ -252,18 +307,18 @@ export function useTasteProfileLists(options: {
       if (pendingRef.current.has(channelIdText)) {
         return;
       }
-      const generation = generationRef.current;
+      const generation = actionGenerationRef.current;
       updatePending((current) => new Set([...current, channelIdText]));
       setActionFailed(false);
       try {
         await request();
       } catch (error) {
         console.warn('[useTasteProfileLists] action failed', error);
-        if (generation === generationRef.current) {
+        if (generation === actionGenerationRef.current) {
           setActionFailed(true);
         }
       } finally {
-        if (generation === generationRef.current) {
+        if (generation === actionGenerationRef.current) {
           updatePending((current) => {
             const next = new Set(current);
             next.delete(channelIdText);
@@ -275,10 +330,13 @@ export function useTasteProfileLists(options: {
           if (hiddenActiveRef.current) {
             refetchHidden();
           }
+          if (channelHiddenActiveRef.current) {
+            refetchChannelHidden();
+          }
         }
       }
     },
-    [refetchHidden, refetchProfile, updatePending]
+    [refetchHidden, refetchProfile, refetchChannelHidden, updatePending]
   );
 
   const hideShow = useCallback(
@@ -304,6 +362,16 @@ export function useTasteProfileLists(options: {
     [runAction]
   );
 
+  const unhideChannelFromLists = useCallback(
+    (channelIdText: string) =>
+      runAction(channelIdText, () =>
+        requestWithMobileAuthRefresh(authRef.current, (api) =>
+          api.reqAccountChannelHiddenUnhide({ channel_id_text: channelIdText })
+        )
+      ),
+    [runAction]
+  );
+
   const applyWeight = useCallback(
     (channelIdText: string, weight: number) =>
       runAction(channelIdText, () =>
@@ -317,13 +385,16 @@ export function useTasteProfileLists(options: {
   return {
     profile,
     hidden,
+    channelHidden,
     pendingChannelIds,
     actionFailed,
     retry,
     loadMoreProfile,
     loadMoreHidden,
+    loadMoreChannelHidden,
     hideShow,
     unhideShow,
+    unhideChannelFromLists,
     applyWeight,
   };
 }

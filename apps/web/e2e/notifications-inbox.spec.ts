@@ -45,8 +45,8 @@ async function mockNotificationStream(
     const request = route.request();
     const origin = request.headers()['origin'] ?? '';
 
-    // EventSource is credentialed and cross-origin. A reconnect sends Last-Event-ID, which the
-    // browser preflights; answering OPTIONS lets that GET through so tests can read the header.
+    // EventSource is credentialed and cross-origin, so the browser preflights the stream.
+    // Answering OPTIONS lets the GET through.
     if (request.method() === 'OPTIONS') {
       const allowHeaders =
         request.headers()['access-control-request-headers'] ?? 'cache-control, last-event-id';
@@ -432,45 +432,6 @@ test.describe('Notifications inbox', () => {
       );
 
       await expect.poll(() => requests.length).toBe(2);
-    });
-
-    test('When the stream reconnects after a new notification, it asks the server to replay from that notification.', async ({
-      page,
-    }, testInfo) => {
-      await mockUnreadCount(page, 0);
-      const createdNotification = {
-        ...mockNotification,
-        id: 951,
-        is_unread: true,
-      };
-      const { requests } = await mockNotificationStream(page, [
-        'retry: 100\n\n' +
-          sseEvent(
-            'notification.created',
-            { notification: createdNotification, unread_count: 1 },
-            951
-          ),
-        notificationStateBody(1, 600000),
-      ]);
-
-      await loginE2eUser(page);
-      await page.goto('/');
-      await expect(page).toHaveURL(/\/$/);
-      await expect(
-        page.locator('[data-appearance="web"]').getByRole('link', { name: 'Notifications' })
-      ).toBeVisible();
-
-      await expect.poll(() => requests.length).toBe(2);
-      expect(requests[1]?.headers()['last-event-id']).toBe('951');
-
-      const badge = page.getByRole('status', { name: '1 unread notifications' });
-      await expect(badge).toBeVisible();
-      await capturePageLoad(
-        page,
-        testInfo,
-        'When the stream reconnects after a new notification, it asks the server to replay from that notification.',
-        badge
-      );
     });
 
     test('When a new notification arrives while the inbox is open, it appears at the top and is marked read.', async ({

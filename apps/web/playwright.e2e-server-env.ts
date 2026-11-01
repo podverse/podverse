@@ -28,6 +28,13 @@ export type E2eWebSidecarEnvOptions = {
 /** Matches `TERMS_OF_SERVICE_VERSION` / `NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION` in E2E env. */
 export const E2E_TERMS_OF_SERVICE_VERSION = '2026-10-15';
 
+/**
+ * Public key only. Push specs stub `Notification` and never create a subscription, so the
+ * matching private key is not part of the E2E env.
+ */
+const E2E_WEBPUSH_VAPID_PUBLIC_KEY =
+  'BER17z1zCUu6JYYReKCZzNn5TrdOo_FjuSvOphTq17gZoOwWWQL8_OvYWsSFQ8o8LbL0HL8IM2mWzYDN9QJxrJg';
+
 const WEB_E2E_NEXT_PUBLIC_ENV_BASE: Record<string, string> = {
   NEXT_PUBLIC_SSR_API_PROTOCOL: 'http',
   NEXT_PUBLIC_SSR_API_HOST: 'localhost',
@@ -52,6 +59,7 @@ const WEB_E2E_NEXT_PUBLIC_ENV_BASE: Record<string, string> = {
   NEXT_PUBLIC_SUPPORTED_THEMES: 'all-available',
   NEXT_PUBLIC_DEFAULT_THEME: 'dark',
   NEXT_PUBLIC_SERVER_ENV: 'local',
+  NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY: E2E_WEBPUSH_VAPID_PUBLIC_KEY,
   NEXT_PUBLIC_IMAGE_PROXY_ENABLED: 'false',
   NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED: 'false',
   NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: '86400',

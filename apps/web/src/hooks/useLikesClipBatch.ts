@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useAccount } from '../contexts/Account';
 import { getApiRequestService } from '../factories/apiRequestService';
@@ -9,22 +9,23 @@ export function useLikesClipBatch(clipIdTexts: string[]) {
   const { loggedInAccount } = useAccount();
   const [likedSet, setLikedSet] = useState<Set<string>>(new Set());
   const [isBatchLoading, setIsBatchLoading] = useState(false);
-  const sortedKey = useMemo(
-    () => (clipIdTexts.length > 0 ? [...clipIdTexts].sort().join('\u0001') : ''),
-    [clipIdTexts]
-  );
+  // Primitive key so the batch effect can depend on stable values (avoids re-running when
+  // the parent passes a new `clipIdTexts` array ref each render for the same ids).
+  const clipIdBatchKey = clipIdTexts.length > 0 ? [...clipIdTexts].sort().join('\u0001') : '';
 
   useEffect(() => {
-    if (!loggedInAccount || clipIdTexts.length === 0) {
-      setLikedSet(new Set());
+    if (!loggedInAccount || clipIdBatchKey === '') {
+      setLikedSet((prev) => (prev.size === 0 ? prev : new Set()));
+      setIsBatchLoading(false);
       return;
     }
 
+    const clipIdTextsForRequest = clipIdBatchKey.split('\u0001');
     let cancelled = false;
     setIsBatchLoading(true);
     (async () => {
       const res = await getApiRequestService().reqPlaylistLikesMembership({
-        clip_id_texts: clipIdTexts,
+        clip_id_texts: clipIdTextsForRequest,
       });
       if (cancelled) {
         return;
@@ -35,7 +36,7 @@ export function useLikesClipBatch(clipIdTexts: string[]) {
     return () => {
       cancelled = true;
     };
-  }, [clipIdTexts, loggedInAccount, sortedKey]);
+  }, [clipIdBatchKey, loggedInAccount]);
 
   const isLiked = useCallback(
     (idText: string) => !isBatchLoading && likedSet.has(idText),

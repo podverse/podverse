@@ -39,12 +39,56 @@ export function storePendingSessionEndedNotice(notice: AuthSessionEndedNotice): 
   }
 }
 
+let sessionEndedNoticeHeld = false;
+const sessionEndedNoticeHoldListeners = new Set<() => void>();
+
+function setSessionEndedNoticeHeld(held: boolean): void {
+  if (sessionEndedNoticeHeld === held) {
+    return;
+  }
+  sessionEndedNoticeHeld = held;
+  for (const listener of sessionEndedNoticeHoldListeners) {
+    listener();
+  }
+}
+
+function peekPendingSessionEndedNotice(): boolean {
+  try {
+    const stored = window.sessionStorage.getItem(SESSION_ENDED_NOTICE_STORAGE_KEY);
+    return stored !== null && isAuthSessionEndedNotice(stored);
+  } catch {
+    // sessionStorage can be disabled; a failure leaves no notice.
+    return false;
+  }
+}
+
+/**
+ * True while a signed-out notice is saved for the next load or still on screen.
+ * Settings keeps the current tab until this is false.
+ */
+export function sessionEndedNoticeHoldsPage(): boolean {
+  return sessionEndedNoticeHeld || peekPendingSessionEndedNotice();
+}
+
+export function subscribeSessionEndedNoticeHold(listener: () => void): () => void {
+  sessionEndedNoticeHoldListeners.add(listener);
+  return () => {
+    sessionEndedNoticeHoldListeners.delete(listener);
+  };
+}
+
+/** The notice dialog closed, so a logged-out settings page may leave a restricted tab. */
+export function releaseSessionEndedNoticeHold(): void {
+  setSessionEndedNoticeHeld(false);
+}
+
 /** Returns the saved notice and removes it, so it shows once. Null when none or invalid. */
 export function takePendingSessionEndedNotice(): AuthSessionEndedNotice | null {
   try {
     const stored = window.sessionStorage.getItem(SESSION_ENDED_NOTICE_STORAGE_KEY);
     window.sessionStorage.removeItem(SESSION_ENDED_NOTICE_STORAGE_KEY);
     if (stored !== null && isAuthSessionEndedNotice(stored)) {
+      setSessionEndedNoticeHeld(true);
       return stored;
     }
     return null;

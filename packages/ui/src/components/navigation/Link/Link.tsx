@@ -1,7 +1,13 @@
 'use client';
 
 import classNames from 'classnames';
-import type { ComponentType, CSSProperties, MouseEvent, ReactElement, ReactNode } from 'react';
+import type {
+  ComponentType,
+  CSSProperties,
+  MouseEventHandler,
+  ReactElement,
+  ReactNode,
+} from 'react';
 
 import styles from './Link.module.scss';
 
@@ -16,11 +22,12 @@ export type LinkRenderProps = {
   style?: CSSProperties;
   target?: '_blank';
   rel?: string;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
 };
 
 export type LinkProps = {
   href?: string;
-  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
   children: ReactNode;
   className?: string;
   type?: 'button' | 'submit' | 'reset';
@@ -49,6 +56,7 @@ function DefaultPlainAnchor({
   style,
   target,
   rel,
+  onClick,
 }: LinkRenderProps): ReactElement {
   return (
     <a
@@ -56,6 +64,7 @@ function DefaultPlainAnchor({
       aria-label={ariaLabel}
       className={className}
       href={href}
+      onClick={onClick}
       rel={rel}
       style={style}
       tabIndex={tabIndex}
@@ -111,6 +120,7 @@ export function Link({
       className: mergedLinkClasses,
       href,
       rel,
+      onClick,
       style,
       tabIndex,
       target,

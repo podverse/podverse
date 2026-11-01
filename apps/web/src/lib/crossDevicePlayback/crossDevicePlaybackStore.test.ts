@@ -260,19 +260,25 @@ describe('createCrossDevicePlaybackStore', () => {
     expect(store.getSnapshot().displayState?.status).toBe('playing');
   });
 
-  it('clears a pending transfer once a state names its target', () => {
+  it('clears a pending transfer once a playing state names its target', () => {
     const { store, clock } = readyStore();
     store.setPendingTransfer({
       commandIdText: 'command-1',
       targetSessionIdText: 'session-target',
       sentAtMs: clock.now(),
     });
+    store.setTransferFailure({ targetSessionIdText: 'session-target', reason: 'autoplay_blocked' });
 
     applyState(store, state(5, { active_session_id_text: 'session-elsewhere' }));
     expect(store.getSnapshot().pendingTransfer).not.toBeNull();
 
-    applyState(store, state(6, { active_session_id_text: 'session-target' }));
+    applyState(store, state(6, { active_session_id_text: 'session-target', status: 'paused' }));
+    expect(store.getSnapshot().pendingTransfer).not.toBeNull();
+    expect(store.getSnapshot().transferFailure).not.toBeNull();
+
+    applyState(store, state(7, { active_session_id_text: 'session-target', status: 'playing' }));
     expect(store.getSnapshot().pendingTransfer).toBeNull();
+    expect(store.getSnapshot().transferFailure).toBeNull();
   });
 
   it('allows local playback writes exactly when the role is not remote', () => {

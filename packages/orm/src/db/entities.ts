@@ -128,6 +128,7 @@ import { RemoteChannelStub } from '@orm/entities/remoteStub/remoteChannelStub.js
 import { RemoteChannelStubAlias } from '@orm/entities/remoteStub/remoteChannelStubAlias.js';
 import { RemoteItemStub } from '@orm/entities/remoteStub/remoteItemStub.js';
 import { SharableStatus } from '@orm/entities/sharableStatus.js';
+import { StatsChannelHidden } from '@orm/entities/stats/statsChannelHidden.js';
 import { StatsDailyAccount } from '@orm/entities/stats/statsDailyAccount.js';
 import { StatsDailyChannel } from '@orm/entities/stats/statsDailyChannel.js';
 import { StatsDailyClip } from '@orm/entities/stats/statsDailyClip.js';
@@ -300,6 +301,7 @@ export const entities = [
   StatsPopularityItem,
   StatsPopularityPlaylist,
   StatsRecommendation,
+  StatsChannelHidden,
   StatsRecommendationState,
   StatsShowSimilarity,
   StatsShowSimilarityState,
