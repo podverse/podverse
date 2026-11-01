@@ -8,6 +8,9 @@ description: When the operator runs /abcdeploysteps or says abcdeploysteps, plus
 The operator is asking for a deploy checklist, not for the agent to deploy. Investigate, warn,
 and write the steps. Do not run publish, push, EAS, Argo, or kubectl apply.
 
+`abcdeployrun` is a different command. It runs the alpha server deploy. The refusals in this
+skill apply only when the operator said `abcdeploysteps`.
+
 ## The repo and the environment are required
 
 `abcdeploysteps` is three words. The second word is the repo. The third word is the environment.
@@ -481,4 +484,5 @@ the checklist path in `apps/mobile/modules/podverse-media-engine/`. Do not paste
 
 Do not run the steps. If the operator later says to run one, still refuse push, EAS build or
 submit, Argo, secret generation, and anything that deletes cluster data. Repeat the warning
-before any step in the inadvisable list.
+before any step in the inadvisable list. That refusal is for this command. `abcdeployrun` is
+allowed to run the server and GitOps steps; follow that skill for what it may run.

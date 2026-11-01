@@ -16,6 +16,11 @@ submit, a Git tag, a GitHub release, an npm publish, and the staging → main pr
 Agents never run those steps. Write or point to the script, then list the commands for the
 operator in the order they run (**operator-only-git-operations**). The notes travel with that list.
 
+**abcdeployrun podverse alpha** is the exception that runs
+`./scripts/publish/sync-develop-to-staging.sh` and the alpha GitOps pin. It does not draft notes,
+promote `main`, or run store steps. If the notes file or the scratchpad would make the sync
+refuse, it stops. See **abcdeployrun**.
+
 ## Where the notes come from
 
 Agents log each shipped change to `release-notes/scratchpad.md` during normal work
