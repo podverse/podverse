@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { DTOItem } from '@podverse/helpers';
-import { formatDateTimeAbbrev, LiveItemStatusEnum } from '@podverse/helpers';
+import { formatDateAbbrev, LiveItemStatusEnum } from '@podverse/helpers';
 
 import type { EmbedListRow as EmbedListRowData } from '../../../lib/embed/embedListTypes';
 import { EmbedListRow } from '../EmbedListRow';
@@ -96,7 +96,7 @@ describe('EmbedListRow', () => {
 
     expect(meta.contains(badge)).toBe(true);
     expect(meta.firstElementChild).toBe(badge);
-    expect(dateText?.textContent).toContain(formatDateTimeAbbrev(PUBLISH_DATE, 'en-US'));
+    expect(dateText?.textContent).toContain(formatDateAbbrev(PUBLISH_DATE, 'en-US'));
     expect(dateText?.textContent).not.toContain('time.hr');
     expect(title.parentElement?.querySelector('[data-testid="embed-live-item-status"]')).toBeNull();
   });

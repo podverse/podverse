@@ -75,7 +75,8 @@ its last deploy. Otherwise say why and stop. Do not write a partial file that sk
 - `staging` is not a fast-forward ancestor of `develop`. Do not suggest a force push.
 - The commits need a database wipe, a migration squash reload, a PVC delete, or a namespace
   teardown. Say so and wait. Do not put those commands in the file unless the operator confirms
-  that wipe in this conversation.
+  that wipe in this conversation. A new `NNNN_*.sql` under `linear-migrations/` is not a wipe.
+  It is a migrate job in the checklist (**Pending migrations**).
 - `gh auth status` is not logged in. The sync script needs it.
 - The checklist would change the bundle id, ship EAS Update, or point a binary at the old Podverse
   store listing.
@@ -126,6 +127,42 @@ Split that log:
   ship.
 
 Omit a lane whose paths did not change. Say that in the reply.
+
+### Pending migrations
+
+Run this before the checklist file exists. A server checklist with no `Migrations:` line is
+incomplete. Do not guess `none`.
+
+From the Podverse repo, files added since the pin:
+
+```bash
+git diff --name-only <pinned-tag>..origin/develop -- infra/k8s/base/ops/source/database/linear-migrations/app infra/k8s/base/ops/source/database/linear-migrations/management
+```
+
+That diff is not the whole check. `ops-db-migrate-app` and `ops-db-migrate-management` are
+suspended CronJobs. Syncing ops does not apply SQL to a database that already exists.
+`ops-db-bootstrap-migrations` runs once, on a fresh database. A file that landed in an earlier
+pin and was never applied is absent from the next range, and the new API still waits forever
+in `wait-app-migrations`. Web then waits in `wait-api-version-contract`. Argo shows api and web
+Degraded, and the previous pods keep serving.
+
+When `kubectl get namespace podverse-alpha` succeeds, also read what is already applied. Do
+not print secret values. App database is `$POSTGRES_DB` on `podverse-db-0`:
+
+```bash
+kubectl -n podverse-alpha exec podverse-db-0 -- bash -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT migration_filename FROM linear_migration_history ORDER BY 1;"'
+```
+
+Management database name is `DB_MANAGEMENT_NAME` in Secret `podverse-db-opaque`. Decode that
+one key, then run the same query against that database. Pending means a `*.sql` basename at
+`origin/develop` under `linear-migrations/app` or `linear-migrations/management` that is missing
+from that database's history.
+
+If the cluster cannot be read, say so. Pending is then the git diff only. Do not write `none`
+for that case; write `unconfirmed` plus the diff result.
+
+One manual job per database applies every pending file for that database, in order. Name each
+filename in the checklist. Do not create a second job for a second file.
 
 ## Where the checklist file goes
 
@@ -191,6 +228,7 @@ Clear to deploy.
 Server: <pinned tag> -> next staging tag of <X.Y.Z>
 Mobile: <include, or "no mobile changes">
 Commits: <range>
+Migrations: <none, or "app 0003_stats_channel_hidden.sql" and the same for management. "unconfirmed" when the cluster was not read.>
 
 ## Do not
 <the inadvisable list that applies this time, one line each>
@@ -343,24 +381,16 @@ means stop. Read the log and do not create the Job again.
 Expect `Bootstrap contract verification passed for app and management databases.` If it fails,
 the deploy is not done. Do not delete the PVC as the next step.
 
-#### App and management migrations (when the range adds them)
+#### App and management migrations
 
-Syncing ops does not apply new linear migrations to an existing database. PostSync
-`ops-db-bootstrap-migrations` runs once per fresh database. After that, `ops-db-migrate-app` and
-`ops-db-migrate-management` are suspended CronJobs that run only when triggered. Without them, the
-new API pod waits forever in init container `wait-app-migrations`
-(`waiting for app migration <file>`). Web then waits in `wait-api-version-contract`, and Argo
-shows api and web Degraded while the old pods keep serving.
+These steps are required on every server deploy, after the bootstrap check and before the
+public app waits. Use the pending list from **Pending migrations**. These are forward schema
+updates, not a wipe. Do not re-run one after a failure; stop and read the log.
 
-Check the range while writing the checklist:
+When that list is `none`, the step is one line: `No pending linear migrations.` Do not create
+a migrate job.
 
-```bash
-git diff --name-only <pinned-tag>..origin/develop -- infra/k8s/base/ops/source/database/linear-migrations/app infra/k8s/base/ops/source/database/linear-migrations/management
-```
-
-For each directory with new files, add its step after the bootstrap check and before the public
-app waits. Name the migration files that will apply. These are forward schema updates, not a
-wipe. Do not re-run one after a failure; stop and read the log.
+When the app database has pending files, name them, then:
 
 ```bash
 kubectl -n podverse-alpha create job --from=cronjob/ops-db-migrate-app ops-db-migrate-app-manual
@@ -373,6 +403,8 @@ kubectl wait -n podverse-alpha --for=condition=complete job/ops-db-migrate-app-m
 ```bash
 kubectl -n podverse-alpha logs job/ops-db-migrate-app-manual
 ```
+
+When the management database has pending files, name them, then:
 
 ```bash
 kubectl -n podverse-alpha create job --from=cronjob/ops-db-migrate-management ops-db-migrate-management-manual
@@ -478,9 +510,10 @@ the checklist path in `apps/mobile/modules/podverse-media-engine/`. Do not paste
 
 1. Clear, or the blockers. Blockers end the reply.
 2. Which surfaces changed, from which tag or build, in a few commit subjects.
-3. The lanes that run together.
-4. The steps (same text as the file).
-5. The temp file path.
+3. The `Migrations:` line. A server deploy that omits it is not done.
+4. The lanes that run together.
+5. The steps (same text as the file).
+6. The temp file path.
 
 Do not run the steps. If the operator later says to run one, still refuse push, EAS build or
 submit, Argo, secret generation, and anything that deletes cluster data. Repeat the warning

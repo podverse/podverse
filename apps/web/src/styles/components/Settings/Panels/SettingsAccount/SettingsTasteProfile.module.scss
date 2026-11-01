@@ -73,7 +73,16 @@
 }
 
 .weightLabel {
+  color: var(--text-color-secondary);
+}
+
+.weightLevels {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-base);
+  gap: var(--spacing-sm);
+}
+
+.weightHide {
+  margin-left: auto;
 }

@@ -12,29 +12,35 @@ components on more than one stack (duplicative route registration is intentional
 
 ## Do
 
-- Keep Search → preview/add → channel/episode detail **inside the Search stack**. That stack is
-  root route `Search`, raised from the Home search control. It is not a bottom tab. Dismissing
-  the card closes the stack. Reopening Search starts a new card.
+- Keep an unparsed Search result on the Search stack: the add page stays on root route `Search`
+  (a slide-up card, not a bottom tab). Episode detail opened from that add page stays on the
+  Search stack. A parsed-ready channel leaves the card. `openParsedSearchChannel` pops Search
+  and opens that channel from the root of Home when this device follows it, otherwise from the
+  root of Browse. A hidden Home or Browse tab opens through More overflow. That replaces whatever
+  that tab already had open. Back returns to that tab's first screen. The same leave runs when
+  Add finishes only while the add page is still focused. Reopening Search restores the query,
+  the All/Music chip, and the rows for this session.
 - Keep Home feed → channel/episode detail **inside the Home stack**.
-- Prefer `navigation.replace(...)` when leaving a stale intermediate screen (e.g. Podcast Index
-  “Add podcast” preview after the feed is parsed-ready) so Back does not reopen an invalid state,
-  while still leaving the user on the **same stack’s** detail screen.
-- Preserve stack state when the user switches tabs. Do not move a Search result onto another
-  tab's detail routes. Search is not on a tab stack, so switching tabs is unavailable until the
-  card is dismissed.
+- Prefer `navigation.replace(...)` when leaving a stale intermediate screen on the same stack
+  so Back does not reopen an invalid state.
+- Preserve stack state when the user switches tabs. Search is not on a tab stack, so switching
+  tabs is unavailable until the card is dismissed.
 
 ## Don't
 
 - Do **not** `parentNavigation.navigate('Home', { screen: 'PodcastDetail', ... })` (or similar
-  cross-tab jumps) merely to reuse Home’s detail routes when the user is mid-flow in Search,
-  Library, RSS, or More.
-- Do **not** clear or reset another tab’s stack as a shortcut for “show this entity.”
+  cross-tab jumps) merely to reuse Home’s detail routes when the user is mid-flow in Library,
+  RSS, or More. A parsed Search channel is the exception: it leaves the card for Home or Browse
+  as above.
+- Do **not** clear or reset another tab’s stack as a shortcut for “show this entity,” except
+  that parsed Search open, which replaces the Home or Browse stack with that tab's root plus the
+  channel.
 
 ## Why
 
-Users expect tab bars to remember where they left off in that tab. Cross-tab navigation makes
-Back and tab-return feel broken (e.g. a Search add completes on a Home feed detail; returning to
-Search lands on Search root instead of the channel they just opened).
+Users expect tab bars to remember where they left off in that tab. A parsed Search channel is
+opened from that tab's root on purpose, so Back returns there. Other flows stay on the stack
+they started on.
 
 ## Related
 

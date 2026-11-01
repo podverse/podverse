@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { itemDetailDateLabel, ItemDetailHeader } from '../../../components/content';
 import { useAddByRssArtworkHeaders } from '../../../hooks/useAddByRssArtworkHeaders';
+import { itemDetailArtworkUri } from '../../../lib/content/itemDetailArtworkUri';
 import { formatPlaybackDurationLabel } from '../../../lib/formatPlaybackDurationLabel';
+import { itemDetailArtworkEdge } from '../../../theme/screenLayout';
+import { useResponsive } from '../../../theme/useResponsive';
 import type { AddByRssHomeEpisode } from '../addByRssHomeDetailData';
 import type { QueueActionPosition } from '../useHomeRowPlayback';
 import { useAddByRssDetailMoreActions } from './useAddByRssDetailMoreActions';
@@ -22,8 +25,9 @@ type AddByRssEpisodeHeaderProps = {
 /**
  * Identity and play bar for one Add by RSS episode.
  *
- * Artwork is the list-row image. The More menu is Queue Next, Queue Last, Add to Playlist,
- * Mark as Played, and Download. Add by RSS pages are not shareable, so Share is not offered.
+ * Artwork is the full-width header square. The More menu is Queue Next, Queue Last, Add to
+ * Playlist, Mark as Played, and Download. Add by RSS pages are not shareable, so Share is not
+ * offered.
  */
 export function AddByRssEpisodeHeader({
   channelTitle,
@@ -36,7 +40,15 @@ export function AddByRssEpisodeHeader({
   onQueuePress,
 }: AddByRssEpisodeHeaderProps) {
   const { t, i18n } = useTranslation();
-  const artworkHeaders = useAddByRssArtworkHeaders(feedUrl, episode.imageUrl);
+  const { isTablet, width } = useResponsive();
+  const artworkEdge = itemDetailArtworkEdge(width, isTablet);
+  const artworkUri = itemDetailArtworkUri(
+    episode.itemBundle.images,
+    null,
+    artworkEdge,
+    episode.imageUrl
+  );
+  const artworkHeaders = useAddByRssArtworkHeaders(feedUrl, artworkUri);
 
   const dateLabel = useMemo(
     () => itemDetailDateLabel(episode.itemBundle.item.pub_date, i18n.language),
@@ -60,7 +72,7 @@ export function AddByRssEpisodeHeader({
     <ItemDetailHeader
       artworkAddByRssFeedUrl={feedUrl}
       artworkHeaders={artworkHeaders}
-      artworkUri={episode.imageUrl}
+      artworkUri={artworkUri}
       channelTitle={channelTitle}
       dateLabel={dateLabel}
       downloadItem={episode.downloadItem}
@@ -72,7 +84,7 @@ export function AddByRssEpisodeHeader({
       onPlayPress={onPlayPress}
       testIDPrefix="add-by-rss-episode-detail"
       title={episode.title}
-      viewerUri={episode.imageUrl}
+      viewerUri={artworkUri}
     />
   );
 }

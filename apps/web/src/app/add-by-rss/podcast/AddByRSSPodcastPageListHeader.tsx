@@ -38,13 +38,8 @@ export function AddByRSSPodcastPageListHeader({
       label: tMedia('podcast.episodes'),
     },
     {
-      key: 'boosts',
-      label: tValue('boost'),
-    },
-    {
       key: 'about',
       label: tInfo('about'),
-      hideDesktop: true,
     },
     {
       key: 'podroll',
@@ -53,6 +48,10 @@ export function AddByRSSPodcastPageListHeader({
     {
       key: 'remote_items',
       label: tInfo('remote_items'),
+    },
+    {
+      key: 'boosts',
+      label: tValue('boost'),
     },
     {
       key: 'settings',

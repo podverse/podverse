@@ -193,6 +193,27 @@ describe('SortChip', () => {
     expect(screen.getAllByRole('menuitemradio')).toHaveLength(RANGE_OPTIONS.length);
   });
 
+  it('shows a single non-range option as a static face with no caret or menu', () => {
+    render(
+      <SortChip
+        heading="Sort"
+        options={[{ value: 'a_z', label: 'A-Z' }]}
+        value="a_z"
+        onChange={() => {}}
+        testId="sort"
+      />
+    );
+
+    const face = screen.getByTestId('sort-button');
+    expect(face.textContent).toBe('A-Z');
+    expect(face.getAttribute('aria-label')).toBe('Sort: A-Z');
+    expect(face.querySelector('svg')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Sort: A-Z' })).toBeNull();
+
+    fireEvent.click(face);
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
   it('reaches the range list from the keyboard', () => {
     render(
       <SortChip

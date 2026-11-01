@@ -54,6 +54,8 @@ type AddByRSSEpisodeRowProps = {
   /** When set, play will set this list context for autoplay-next from list. */
   listContext?: AddByRSSListContextState | null;
   likeRow?: ListEpisodeRowLike;
+  /** Mixed lists show the feed title above the episode; a single-feed page omits it. */
+  showChannelInfo?: boolean;
 };
 
 export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
@@ -64,6 +66,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   indexItem,
   listContext: listContextProp,
   likeRow,
+  showChannelInfo = true,
 }) => {
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -82,7 +85,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     [indexItem]
   );
   const title = bundle.item.title ?? tMedia('podcast.episode_image');
-  const description = getDescriptionPreviewText(bundle.description) || channelTitle;
+  const description = getDescriptionPreviewText(bundle.description);
   const itemImageCandidates = buildDTOItemImageLoadCandidates(
     bundle.images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
@@ -269,8 +272,9 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>
+            {showChannelInfo ? <div className={styles.channelTitle}>{channelTitle}</div> : null}
             <h3>{title}</h3>
-            <div className={styles.subtitle}>{description}</div>
+            {description ? <div className={styles.subtitle}>{description}</div> : null}
           </div>
         </Link>
         <div className={styles.bottomSection}>
@@ -280,13 +284,17 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
               addByRSSIdText={indexItem?.idText ?? undefined}
               addByRSSHashIds={addByRSSHashIds}
               onClick={playButtonOnClick}
-            />
-            <ItemRowMoreActions
-              enclosures={bundle.enclosures ? addByRSSBundleEnclosuresToDTO(bundle.enclosures) : []}
-              itemTitle={title}
-              ariaLabel={tMedia('more_options')}
-              moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+              afterPlay={
+                <ItemRowMoreActions
+                  enclosures={
+                    bundle.enclosures ? addByRSSBundleEnclosuresToDTO(bundle.enclosures) : []
+                  }
+                  itemTitle={title}
+                  ariaLabel={tMedia('more_options')}
+                  moreButtonMenuItems={moreButtonMenuItems}
+                  onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+                />
+              }
             />
             <div className={styles.timeSection}>
               {bundle.item.pub_date ? (

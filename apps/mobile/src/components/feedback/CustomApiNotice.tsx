@@ -38,6 +38,7 @@ export function CustomApiNotice() {
         url: {
           ...typography.subheading,
           color: themeStyles.textPrimary.color,
+          fontWeight: '400',
         },
       }),
     [themeStyles, tokens]

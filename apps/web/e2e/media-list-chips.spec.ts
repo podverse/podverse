@@ -207,7 +207,8 @@ const holdChipRender = async (page: Page, pathname: string, tab: string): Promis
   return release;
 };
 
-const listLoading = (page: Page) => page.getByTestId('media-list-loading');
+/** Full-viewport loading overlay shown while a chip transition is pending. */
+const listLoading = (page: Page) => page.getByLabel('Loading…');
 
 /** Scrolls the chip row so the chip sits in the middle of it. */
 const centerChipInRow = async (page: Page, chipKey: string): Promise<void> => {
@@ -394,7 +395,6 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       await expect(chipButton(page, 'Tracks')).toHaveAttribute('aria-pressed', 'true');
       await expect(chipButton(page, 'Artists')).toHaveAttribute('aria-pressed', 'false');
       await expectAppPath(page, '/browse?tab=artists');
-      await expect(artistTitle).toBeHidden();
       await expect(listLoading(page)).toBeVisible();
       await expect(sortChip(page)).toBeVisible();
       await expect(layoutChip(page)).toBeVisible();
@@ -453,7 +453,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       const releaseEpisodes = await holdChipRender(page, '/browse', 'episodes');
       await chipButton(page, 'Episodes').click();
       await expect(chipButton(page, 'Episodes')).toHaveAttribute('aria-pressed', 'true');
-      await expect(artistTitle).toBeHidden();
+      await expect(listLoading(page)).toBeVisible();
       await chipButton(page, 'Artists').click();
       await expectPressedChip(page, 'Artists');
       releaseEpisodes();
@@ -472,14 +472,14 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     });
   });
 
-  test('On signed-out Subscribed, a clicked chip hides the getting-started message behind a spinner until its list arrives', async ({
+  test('On signed-out Subscribed, a clicked chip shows a loading spinner until its list arrives', async ({
     page,
   }, testInfo) => {
     const gettingStarted = page.getByText('Your subscriptions will appear here.');
     let podcastsBefore: { x: number; y: number } = { x: 0, y: 0 };
     let releaseEpisodes: () => void = () => undefined;
 
-    await test.step('While the Episodes list is held, Episodes is pressed and a spinner replaces the getting-started message', async () => {
+    await test.step('While the Episodes list is held, Episodes is pressed and a spinner covers the page', async () => {
       await page.goto('/');
       await expectAppPath(page, '/');
       await expect(gettingStarted).toBeVisible();
@@ -488,14 +488,13 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       releaseEpisodes = await holdChipRender(page, '/', 'episodes');
       await chipButton(page, 'Episodes').click();
       await expectPressedChip(page, 'Episodes');
-      await expect(gettingStarted).toBeHidden();
       await expect(listLoading(page)).toBeVisible();
       await expectChipStill(page, 'Podcasts', podcastsBefore);
 
       await capturePageLoadKeepingScroll(
         page,
         testInfo,
-        'While the Episodes list is held, Episodes is pressed and a spinner replaces the getting-started message.',
+        'While the Episodes list is held, Episodes is pressed and a spinner covers the page.',
         listLoading(page)
       );
     });
@@ -696,23 +695,35 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       );
     });
 
-    await test.step('Reopening the list marks Arts as current, and All Categories clears the category', async () => {
+    await test.step('Pressing the named category chip clears it, and the next press opens the list', async () => {
       await categoryChip(page).click();
+
+      await expectAppPath(page, '/browse?tab=episodes');
+      await expect(categoryChip(page)).toHaveAccessibleName('Categories');
+      await expect(categoryChip(page)).toHaveAttribute('aria-expanded', 'false');
+      await expect(categoriesList).toHaveCount(0);
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'Pressing Arts clears the category and the chip reads Categories again.',
+        categoryChip(page)
+      );
+
+      await categoryChip(page).click();
+      await expect(categoryChip(page)).toHaveAttribute('aria-expanded', 'true');
+      await expect(categoriesList).toBeVisible();
+      await expect(
+        categoriesList.getByRole('button', { name: 'All Categories', exact: true })
+      ).toHaveAttribute('aria-current', 'true');
       await expect(
         categoriesList.getByRole('button', { name: 'Arts', exact: true })
-      ).toHaveAttribute('aria-current', 'true');
+      ).not.toHaveAttribute('aria-current', 'true');
 
       await categoriesList.getByRole('button', { name: 'All Categories', exact: true }).click();
 
       await expectAppPath(page, '/browse?tab=episodes');
       await expect(categoryChip(page)).toHaveAccessibleName('Categories');
-
-      await capturePageLoad(
-        page,
-        testInfo,
-        'All Categories clears the category and the chip reads Categories again.',
-        categoryChip(page)
-      );
     });
   });
 
@@ -1013,14 +1024,19 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
         await chipButton(page, 'Episodes').click();
         await expectAppPath(page, '/?tab=episodes');
         await expectPressedChip(page, 'Episodes');
-        const episode = page.getByText(EPISODE_TITLE).first();
-        await expect(episode).toBeVisible({ timeout: 15_000 });
+        const episodeHeading = page.getByRole('heading', { name: EPISODE_TITLE }).first();
+        await expect(episodeHeading).toBeVisible({ timeout: 15_000 });
+        await expect(
+          episodeHeading
+            .locator('xpath=preceding-sibling::*')
+            .filter({ hasText: E2E_ADD_BY_RSS_TEST_ASSETS_FEED_TITLE })
+        ).toBeVisible();
 
         await capturePageLoad(
           page,
           testInfo,
-          'Subscribed Episodes lists the parsed Add by RSS episode.',
-          episode
+          'Subscribed Episodes lists the parsed Add by RSS episode under its feed title.',
+          episodeHeading
         );
       });
 

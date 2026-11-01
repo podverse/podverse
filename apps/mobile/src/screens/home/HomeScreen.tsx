@@ -11,12 +11,12 @@ import type { DTOItem } from '@podverse/helpers/dto';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { ListFilterField, ListFilterHeader } from '../../components/form';
-import { FillList, SwipeActionRow, VerticalCenter } from '../../components/primitives';
-import { HeaderBarActions } from '../../components/screen/HeaderBarActions';
+import { FillList, SwipeActionRow } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import {
   channelSeenRepository,
   downloadsRepository,
@@ -117,10 +117,8 @@ import {
 import { HomeFeedRow } from './HomeFeedRow';
 import { readHomeFilterTerm, writeHomeFilterTerm } from './homeFilterSession';
 import { homeItemDownloadItem, homeItemShareResource } from './homeItemRowActions';
-import { HomeNotificationsBell } from './HomeNotificationsBell';
 import { HomeOverflowMenu } from './HomeOverflowMenu';
 import { mergeDownloadedCountsIntoHomeRows } from './homeRowMetadata';
-import { HomeSearchButton } from './HomeSearchButton';
 import { HomeSortChip } from './HomeSortChip';
 import { MediaTypeSelector } from './MediaTypeSelector';
 import type { QueueActionPosition } from './useHomeRowPlayback';
@@ -625,10 +623,6 @@ export function HomeScreen() {
     writeHomeFilterTerm(term);
   }, []);
 
-  const openSearch = useCallback(() => {
-    navigateToSearchScreen({ autoFocus: true });
-  }, []);
-
   const handleSearchPress = useCallback((medium: 'all' | 'music' = 'all') => {
     navigateToSearchScreen({ autoFocus: true, medium });
   }, []);
@@ -1088,18 +1082,14 @@ export function HomeScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerLeft: () => <HomeSearchButton onPress={openSearch} />,
       headerRight: () => (
-        <HeaderBarActions>
-          <HomeNotificationsBell />
-          <HomeOverflowMenu
-            canMarkAllSeen={canMarkAllSeen}
-            onMarkAllSeen={handleMarkAllSeen}
-            onViewModeChange={handleViewModeChange}
-            showMarkAllSeen={showMarkAllSeen}
-            viewMode={resolvedPrefs.viewMode}
-          />
-        </HeaderBarActions>
+        <HomeOverflowMenu
+          canMarkAllSeen={canMarkAllSeen}
+          onMarkAllSeen={handleMarkAllSeen}
+          onViewModeChange={handleViewModeChange}
+          showMarkAllSeen={showMarkAllSeen}
+          viewMode={resolvedPrefs.viewMode}
+        />
       ),
     });
   }, [
@@ -1108,7 +1098,6 @@ export function HomeScreen() {
     handleMarkAllSeen,
     handleViewModeChange,
     navigation,
-    openSearch,
     showMarkAllSeen,
   ]);
 
@@ -1518,6 +1507,7 @@ export function HomeScreen() {
       unsubscribedSectionTitle: {
         ...typography.heading,
         color: themeStyles.textPrimary.color,
+        fontWeight: '400',
         marginBottom: tokens.spacing.sm,
       },
     });
@@ -1626,11 +1616,8 @@ export function HomeScreen() {
 
   const listEmpty = useMemo(
     () =>
-      isFeedBusy ? (
-        <VerticalCenter testID="home-feed-loading">
-          <ListLoading testID="home-feed-loading-indicator" />
-        </VerticalCenter>
-      ) : showNetworkListOfflineUnavailable ? (
+      // Centered loading lives in the list-area overlay for the whole showsLoading interval.
+      isFeedBusy ? null : showNetworkListOfflineUnavailable ? (
         <ListEmpty
           messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
           testID={
@@ -1946,17 +1933,15 @@ export function HomeScreen() {
       </View>
       <View style={styles.listArea}>
         <View
-          importantForAccessibility={isSwitchPending ? 'no-hide-descendants' : 'auto'}
-          pointerEvents={isSwitchPending ? 'none' : 'auto'}
-          style={[styles.listArea, isSwitchPending ? styles.listAreaHidden : null]}
+          importantForAccessibility={showsLoading ? 'no-hide-descendants' : 'auto'}
+          pointerEvents={showsLoading ? 'none' : 'auto'}
+          style={[styles.listArea, showsLoading ? styles.listAreaHidden : null]}
         >
           {feedList}
         </View>
-        {isSwitchPending ? (
+        {showsLoading ? (
           <View style={styles.pendingOverlay}>
-            <VerticalCenter testID="home-feed-loading">
-              <ListLoading testID="home-feed-loading-indicator" />
-            </VerticalCenter>
+            <LoadingSection testID="home-feed-loading" />
           </View>
         ) : null}
       </View>

@@ -10,6 +10,7 @@ import { useModals } from '../../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../../utils/scroll';
+import { NoResults } from '../../../NoResults/NoResults';
 import { Pagination } from '../../../Pagination/Pagination';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { ListEpisodeNodes } from './ListEpisodeNodes';
@@ -25,6 +26,9 @@ type Props = {
   showSubscribeMessage?: boolean;
   viewSelected: ViewSelectedOption;
   showChannelInfo?: boolean;
+  /** Shown in the shared empty banner once the list has settled with no rows. */
+  emptyMessage?: string;
+  isLoading?: boolean;
 };
 
 export const ListEpisodes: React.FC<Props> = ({
@@ -36,6 +40,8 @@ export const ListEpisodes: React.FC<Props> = ({
   showSubscribeMessage,
   viewSelected,
   showChannelInfo,
+  emptyMessage,
+  isLoading = false,
 }) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
@@ -55,6 +61,16 @@ export const ListEpisodes: React.FC<Props> = ({
 
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
+  const showEmpty =
+    emptyMessage !== undefined &&
+    !isLoading &&
+    !showCallToAction &&
+    page <= 1 &&
+    items.length === 0;
+
+  if (showEmpty) {
+    return <NoResults message={emptyMessage} role="status" />;
+  }
 
   const listNodes = ListEpisodeNodes({ channel, items, viewSelected, showChannelInfo });
 

@@ -33,10 +33,10 @@ export type UseTasteProfileListsResult = {
   loadMoreProfile: () => void;
   loadMoreHidden: () => void;
   loadMoreChannelHidden: () => void;
-  hideShow: (channelIdText: string) => Promise<void>;
-  unhideShow: (channelIdText: string, addToTasteProfile: boolean) => Promise<void>;
-  unhideChannelFromLists: (channelIdText: string) => Promise<void>;
-  applyWeight: (channelIdText: string, weight: number) => Promise<void>;
+  hideShow: (channelIdText: string) => Promise<boolean>;
+  unhideShow: (channelIdText: string, addToTasteProfile: boolean) => Promise<boolean>;
+  unhideChannelFromLists: (channelIdText: string) => Promise<boolean>;
+  applyWeight: (channelIdText: string, weight: number) => Promise<boolean>;
 };
 
 type KeyedRow = { channel: { id_text: string } };
@@ -167,7 +167,7 @@ function useReloadWhenActive(
 }
 
 /**
- * The signed-in listener's Taste Profile, Not Counted in Recommendations, and Hidden Channels lists.
+ * The signed-in listener's Taste Profile, Removed from Recommendations, and Hidden Channels lists.
  * State lives only in this hook. Each list loads when it is opened, and again when the account
  * or its Taste Profile consent changes, so a sign-out or account switch never shows the previous
  * account's rows. Try Again reloads every open list. A token refresh does not reload: requests
@@ -303,15 +303,17 @@ export function useTasteProfileLists(options: {
   }, []);
 
   const runAction = useCallback(
-    async (channelIdText: string, request: () => Promise<unknown>) => {
+    async (channelIdText: string, request: () => Promise<unknown>): Promise<boolean> => {
       if (pendingRef.current.has(channelIdText)) {
-        return;
+        return false;
       }
       const generation = actionGenerationRef.current;
       updatePending((current) => new Set([...current, channelIdText]));
       setActionFailed(false);
+      let succeeded = false;
       try {
         await request();
+        succeeded = true;
       } catch (error) {
         console.warn('[useTasteProfileLists] action failed', error);
         if (generation === actionGenerationRef.current) {
@@ -335,6 +337,7 @@ export function useTasteProfileLists(options: {
           }
         }
       }
+      return succeeded && generation === actionGenerationRef.current;
     },
     [refetchHidden, refetchProfile, refetchChannelHidden, updatePending]
   );

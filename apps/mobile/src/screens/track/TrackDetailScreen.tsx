@@ -5,7 +5,11 @@ import type { FlatList } from 'react-native';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOItem, DTOVerifiedPublisher, TranscriptRow } from '@podverse/helpers';
-import { joinVerifiedPublisherTitles, primaryChannelListArtworkUrl } from '@podverse/helpers';
+import {
+  itemHeaderLightboxArtworkCandidates,
+  joinVerifiedPublisherTitles,
+  primaryChannelListArtworkUrl,
+} from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -43,6 +47,7 @@ import { useTranscriptFollowControls } from '../../hooks/useTranscriptFollowCont
 import { useTranscriptListAutoscroll } from '../../hooks/useTranscriptListAutoscroll';
 import { shouldReplaceCachedValue } from '../../lib/cachedValue';
 import { cacheItemDescriptionFromDetail } from '../../lib/content/itemDescriptionAccess';
+import { itemDetailArtworkUri } from '../../lib/content/itemDetailArtworkUri';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
 import { replaceScreenIfMerged } from '../../lib/mergeRedirectNavigation';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
@@ -63,8 +68,13 @@ import { usePlayingTranscriptIndex } from '../../playback/usePlayingTranscriptIn
 import type { TrackTab } from '../../prefs/detailListPrefs';
 import { DEFAULT_TRACK_TAB } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
-import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
+import {
+  itemDetailArtworkEdge,
+  listHeaderStackGap,
+  screenBodyInsets,
+} from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import type { EpisodePlaybackProgress } from '../episode/episodePlaybackProgress';
 import { episodeProgressTimeKind, parsePlaybackSeconds } from '../episode/episodePlaybackProgress';
@@ -137,6 +147,7 @@ function TrackPlayChrome({
   onSharePress: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const { isTablet, width } = useResponsive();
   const { activeTarget, enclosureSelectedParams } = usePlaybackSession();
   const { stored } = useEpisodeStoredProgress(item);
 
@@ -158,7 +169,15 @@ function TrackPlayChrome({
   } = useDownloadAction(item, false, { explicitSelectedParams });
   const { openDownloadError } = useActionError();
 
-  const artworkUri = getItemPrimaryImageUrl(item);
+  const artworkEdge = itemDetailArtworkEdge(width, isTablet);
+  const listArtworkUri = getItemPrimaryImageUrl(item);
+  const artworkUri = itemDetailArtworkUri(
+    item.item_images,
+    item.channel?.channel_images ?? channel?.channel_images,
+    artworkEdge,
+    listArtworkUri
+  );
+  const viewerUri = itemHeaderLightboxArtworkCandidates(item.item_images)[0] ?? artworkUri;
   const trackTitle = item.title ?? item.id_text;
   const dateLabel = useMemo(
     () => itemDetailDateLabel(item.pub_date, i18n.language),
@@ -231,6 +250,7 @@ function TrackPlayChrome({
       onPlayPress={onPlayPress}
       testIDPrefix="track-detail"
       title={trackTitle}
+      viewerUri={viewerUri}
     />
   );
 }

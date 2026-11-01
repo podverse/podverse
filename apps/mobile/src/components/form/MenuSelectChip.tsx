@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { chipRowGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
@@ -46,7 +46,8 @@ export type MenuSelectChipProps<T extends string> = {
  * usable for four or more choices without leaving the screen the list is on.
  *
  * Unmount this chip when the current filter cannot sort or pick a range. A disabled face is only
- * for a control that must stay in the row while it has nothing to do.
+ * for a control that must stay in the row while it has nothing to do. A single option keeps the
+ * face so the current order is visible, without a caret or a sheet.
  */
 export function MenuSelectChip<T extends string>({
   disabled = false,
@@ -63,6 +64,8 @@ export function MenuSelectChip<T extends string>({
 
   const selected = options.find((option) => option.value === value);
   const faceLabel = selected?.shortLabel ?? selected?.label ?? value;
+  const isStaticFace = options.length === 1 && !disabled;
+  const accessibleName = `${heading}: ${faceLabel}`;
 
   const styles = useMemo(() => {
     const chrome = filterChipChrome(
@@ -112,10 +115,23 @@ export function MenuSelectChip<T extends string>({
     return [{ items, key: 'options', title: menuTitle ?? heading }];
   }, [heading, menuTitle, onSelect, options, testID, value]);
 
+  if (isStaticFace) {
+    return (
+      <View
+        accessibilityLabel={accessibleName}
+        accessibilityRole="text"
+        style={styles.chip}
+        testID={`${testID}-button`}
+      >
+        <Text style={styles.label}>{faceLabel}</Text>
+      </View>
+    );
+  }
+
   return (
     <>
       <Pressable
-        accessibilityLabel={`${heading}: ${faceLabel}`}
+        accessibilityLabel={accessibleName}
         accessibilityRole="button"
         accessibilityState={{ disabled, expanded: isOpen }}
         disabled={disabled}

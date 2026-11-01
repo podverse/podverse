@@ -118,6 +118,7 @@ if [[ "$SKIP_MOBILE" -eq 0 ]]; then
   echo "Installing standalone mobile dependencies (apps/mobile)..."
   mobile_npm
   bash "$REPO_ROOT/scripts/mobile/ensure-expo-sqlite-vendored-sources.sh" "$REPO_ROOT/apps/mobile"
+  bash "$REPO_ROOT/scripts/mobile/ensure-expo-modules-core-swift.sh" "$REPO_ROOT/apps/mobile"
 
   if [[ "$WITH_NATIVE" -eq 1 ]]; then
     echo ""

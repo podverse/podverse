@@ -4,14 +4,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOItem } from '@podverse/helpers';
 
+import { itemDetailArtworkEdge, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { DownloadRowControl } from '../download/DownloadRowControl';
 import type { MediaRowMoreAction } from '../player/MediaRowActions';
 import { MediaRowActions } from '../player/MediaRowActions';
 import { CoverImage } from '../primitives';
-
-const TRACK_ARTWORK_SIZE = 96;
 
 export type TrackDetailHeaderProps = {
   /** Album or feed name; a link when `onAlbumPress` is set. */
@@ -21,7 +21,7 @@ export type TrackDetailHeaderProps = {
   artworkHeaders?: Record<string, string>;
   artworkUri: string | null;
   dateLabel: string | null;
-  /** Drives the one-tap download control beside the artwork; null hides it. */
+  /** Drives the one-tap download control left of More; null hides it. */
   downloadItem: DTOItem | null;
   durationLabel: string | null;
   /** Suffix for the play bar ids and the playback match. */
@@ -31,11 +31,14 @@ export type TrackDetailHeaderProps = {
   onPlayPress: () => void;
   testIDPrefix: string;
   title: string;
+  /** Largest original for the image viewer; defaults to `artworkUri` when omitted. */
+  viewerUri?: string | null;
 };
 
 /**
- * The track page header: artwork with a download control, an album link, the title, the date,
- * and the play bar. Shared by the track page and the Add by RSS track page.
+ * The track page header: full-width artwork, an album link, the title, the date, and the play
+ * bar with download immediately left of More. Shared by the track page and the Add by RSS track
+ * page.
  */
 export function TrackDetailHeader({
   albumTitle,
@@ -51,26 +54,31 @@ export function TrackDetailHeader({
   onPlayPress,
   testIDPrefix,
   title,
+  viewerUri,
 }: TrackDetailHeaderProps) {
   const { t } = useTranslation();
+  const { isTablet, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
+  const pageGutter = Number(screenBodyInsets(tokens.spacing).paddingHorizontal ?? 0);
+  const artworkEdge = itemDetailArtworkEdge(width, isTablet);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
         artwork: {
-          height: TRACK_ARTWORK_SIZE,
-          width: TRACK_ARTWORK_SIZE,
+          height: artworkEdge,
+          width: artworkEdge,
         },
         artworkRow: {
-          alignItems: 'flex-start',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          width: '100%',
+          alignItems: 'center',
+          marginHorizontal: isTablet ? 0 : -pageGutter,
+          width: isTablet ? '100%' : width,
         },
         date: {
-          ...typography.caption,
-          color: tokens.text.accent,
+          color: tokens.text.link,
+          fontSize: 14,
+          fontWeight: '700',
+          lineHeight: 20,
         },
         playChrome: {
           marginTop: tokens.spacing.sm,
@@ -80,12 +88,12 @@ export function TrackDetailHeader({
           marginTop: tokens.spacing.md,
         },
         subtitleLink: {
-          ...typography.label,
-          color: tokens.text.accent,
+          ...typography.heading,
+          color: tokens.text.link,
         },
         subtitleMuted: {
-          ...typography.label,
-          color: themeStyles.textSecondary.color,
+          ...typography.heading,
+          color: themeStyles.textPrimary.color,
         },
         title: {
           ...typography.title,
@@ -95,8 +103,17 @@ export function TrackDetailHeader({
           gap: tokens.spacing.xs,
         },
       }),
-    [themeStyles, tokens]
+    [artworkEdge, isTablet, pageGutter, themeStyles, tokens, width]
   );
+
+  const downloadControl =
+    downloadItem !== null ? (
+      <DownloadRowControl
+        completeTestID={`${testIDPrefix}-download-complete`}
+        item={downloadItem}
+        testID={`${testIDPrefix}-download`}
+      />
+    ) : null;
 
   return (
     <View accessible={false} style={styles.root} testID={`${testIDPrefix}-playback-chrome`}>
@@ -108,14 +125,8 @@ export function TrackDetailHeader({
           style={styles.artwork}
           testID={`${testIDPrefix}-artwork`}
           uri={artworkUri}
+          viewerUri={viewerUri}
         />
-        {downloadItem !== null ? (
-          <DownloadRowControl
-            completeTestID={`${testIDPrefix}-download-complete`}
-            item={downloadItem}
-            testID={`${testIDPrefix}-download`}
-          />
-        ) : null}
       </View>
       <View style={styles.titles}>
         {onAlbumPress !== undefined ? (
@@ -144,6 +155,7 @@ export function TrackDetailHeader({
       <View style={styles.playChrome}>
         <MediaRowActions
           appearance="icons"
+          beforeMore={downloadControl}
           durationLabel={durationLabel}
           durationTestID={`${testIDPrefix}-duration-${mediaIdText}`}
           idSuffix={`-${mediaIdText}`}

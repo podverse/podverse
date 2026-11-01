@@ -38,13 +38,8 @@ export function AddByRSSAlbumPageListHeader({
       label: tMedia('music.tracks'),
     },
     {
-      key: 'boosts',
-      label: tValue('boost'),
-    },
-    {
       key: 'about',
       label: tInfo('about'),
-      hideDesktop: true,
     },
     {
       key: 'podroll',
@@ -53,6 +48,10 @@ export function AddByRSSAlbumPageListHeader({
     {
       key: 'remote_items',
       label: tInfo('remote_items'),
+    },
+    {
+      key: 'boosts',
+      label: tValue('boost'),
     },
     {
       key: 'settings',

@@ -59,7 +59,6 @@ export function HomeOverflowMenu({
         },
       ],
       key: 'view',
-      title: t('layouts.change_layout_view'),
     },
   ];
 

@@ -101,8 +101,7 @@ An icon-only chip throws without `aria-label`, the same contract as `IconButton`
   (animated, or instant under reduced motion). A swipe afterwards is left alone. The offset comes
   from `getChipRevealOffset` in `@podverse/helpers/chipRowReveal`, shared with mobile.
 - The row has no outer margin; the caller's `className` sets outer spacing.
-- A `ChipRow` item may set `hideDesktop`, which hides that chip from 1200px up. Channel detail
-  pages use it for About, Podroll, and People.
+- A `ChipRow` item may set `hideDesktop`, which hides that chip from 1200px up.
 
 ### `MenuChip` and `SortChip`
 

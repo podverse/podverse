@@ -122,6 +122,7 @@ function ChannelHeaderTitleRow({
         title: {
           ...typography.heading,
           color: themeStyles.textPrimary.color,
+          fontWeight: '400',
           includeFontPadding: false,
           lineHeight: CHANNEL_HEADER_TITLE_LINE_HEIGHT,
         },

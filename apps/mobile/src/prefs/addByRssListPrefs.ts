@@ -19,6 +19,23 @@ export const ADD_BY_RSS_LIBRARY_MEDIA_TYPES = [
 
 export type AddByRssLibraryMediaType = (typeof ADD_BY_RSS_LIBRARY_MEDIA_TYPES)[number];
 
+export const addByRssLibraryEmptyMessageKey = (mediaType: AddByRssLibraryMediaType): string => {
+  switch (mediaType) {
+    case 'podcasts':
+      return 'media.podcast.no_podcasts_found';
+    case 'episodes':
+      return 'media.podcast.no_episodes_found';
+    case 'artists':
+      return 'media.music.no_artists_found';
+    case 'albums':
+      return 'media.music.no_albums_found';
+    case 'tracks':
+      return 'media.music.no_tracks_found';
+    case 'livestreams':
+      return 'media.livestream.no_livestreams_found';
+  }
+};
+
 export const DEFAULT_ADD_BY_RSS_LIBRARY_MEDIA_TYPE: AddByRssLibraryMediaType = 'podcasts';
 
 export const ADD_BY_RSS_LIBRARY_SORT_OPTIONS = ['alphabetical', 'recent'] as const;

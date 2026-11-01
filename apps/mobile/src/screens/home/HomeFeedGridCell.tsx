@@ -44,7 +44,10 @@ const createStyles = ({ tokens }: ThemedStylesTheme) =>
       left: tokens.spacing.xs,
       position: 'absolute',
     },
+    // Solid fill: this pill sits on cover art; the translucent danger tone washes out on bright images.
     liveBadge: {
+      backgroundColor: tokens.button.dangerBg,
+      borderColor: tokens.button.dangerBg,
       position: 'absolute',
       right: tokens.spacing.xs,
       top: tokens.spacing.xs,

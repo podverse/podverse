@@ -905,6 +905,26 @@ bash scripts/mobile/ensure-ios-pod-build-settings.sh
 npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
 
+### `Command SwiftCompile failed` / `swift-frontend` crash in ExpoModulesCore
+
+The log asks for a bug report and dumps a SILGen stack through `AsyncFunctionDefinition.build`,
+ending in `xcodebuild` exit 65. There is no source diagnostic. Apple Swift 6.4.2 (Xcode 27.2)
+crashes on `switch consume result` with `case .failure(let error as any Error):` in
+`expo-modules-core` when Expo modules compile from source (`usePrecompiledModules: false` — the
+shipped xcframework is still Swift 6.3.1). Upstream: [expo/expo#52231](https://github.com/expo/expo/issues/52231).
+
+[`ensure-expo-modules-core-swift.sh`](/scripts/mobile/ensure-expo-modules-core-swift.sh) drops the
+redundant cast (`Exception` already conforms to `Error`). It runs from `mobile:install`,
+`mobile:ios`, `mobile:pod-install`, reset / deps-init, and EAS `eas-build-post-install`. To apply
+it to an existing `node_modules` tree without a reinstall, from **repo root**:
+
+```bash
+bash scripts/mobile/ensure-expo-modules-core-swift.sh
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
+
+Remove the script once the installed `expo-modules-core` no longer contains that pattern.
+
 ### `No development build (com.podverse.app.next) is installed` (Metro **`i`** / **`a`**)
 
 `npm run mobile:dev` starts Metro only. The dev-client native app is not Expo Go — it must be built

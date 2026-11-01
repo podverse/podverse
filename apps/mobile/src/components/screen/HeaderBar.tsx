@@ -10,7 +10,7 @@ export const HEADER_BAR_HEIGHT = 44;
 
 export const headerBarTypography: TypographyStyle = {
   fontSize: 17,
-  fontWeight: '600',
+  fontWeight: '400',
   lineHeight: 22,
 };
 

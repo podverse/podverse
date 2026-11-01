@@ -63,6 +63,7 @@ export function OptionListGroup<T extends string>({
           color: themeStyles.textPrimary.color,
           flex: 1,
           fontSize: 19,
+          fontWeight: '400',
           lineHeight: 26,
         },
         optionLabelSelected: {

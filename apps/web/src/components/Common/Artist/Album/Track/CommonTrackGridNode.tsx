@@ -44,12 +44,12 @@ export const CommonTrackListGridNode: React.FC<CommonTrackListGridNodeProps> = (
           height={IMAGES.LIST.GRID.SIZE}
           className={styles.image}
         />
-        <div className={styles.title}>{item.title}</div>
         {showChannelInfo && (
-          <span className={styles.lastPubDate}>
+          <div className={styles.channelTitle}>
             {channel?.channel_about?.author || tMisc('untitled')}
-          </span>
+          </div>
         )}
+        <div className={styles.title}>{item.title}</div>
       </div>
     </Link>
   );

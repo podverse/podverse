@@ -149,6 +149,13 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>
+            {(showChannelInfo || showItemInfo) && (
+              <div className={styles.subtitle}>
+                {showChannelInfo && channelTitle}
+                {showChannelInfo && showItemInfo && ' • '}
+                {showItemInfo && itemTitle}
+              </div>
+            )}
             <h3
               className={
                 styles.clipTitle +
@@ -157,13 +164,6 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
             >
               {itemChapterTitle}
             </h3>
-            {(showChannelInfo || showItemInfo) && (
-              <div className={styles.subtitle}>
-                {showChannelInfo && channelTitle}
-                {showChannelInfo && showItemInfo && ' • '}
-                {showItemInfo && itemTitle}
-              </div>
-            )}
           </div>
         </Link>
         <div className={styles.bottomSection}>

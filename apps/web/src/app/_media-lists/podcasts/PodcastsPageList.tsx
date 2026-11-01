@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import type { AddByRSSResourceType, DTOCategory } from '@podverse/helpers';
 import { PAGINATION } from '@podverse/helpers';
-import { InfoWrapper } from '@podverse/ui';
 
 import { CategoriesList } from '../../../components/Category/CategoriesList';
 import type { PodcastListItem } from '../../../components/Common/Podcast/types';
@@ -128,6 +127,9 @@ export const PodcastsPageList: React.FC = () => {
   );
 
   const showMergedList = isMerged && fullList.isReady;
+  // Hold the server page until local feeds are known, and until the full list is ready when those feeds mix in.
+  const awaitingSubscribedRows =
+    isSubscribedScope && (!addByRSS.isReady || (isMerged && !fullList.isReady));
   const showFilteredOnly = isFiltering && !isMerged;
   const matchCount = showMergedList ? mergedSlice.matchCount : filtered.matchCount;
   const showNoFilterMatches = isFiltering && fullList.isReady && matchCount === 0;
@@ -173,7 +175,7 @@ export const PodcastsPageList: React.FC = () => {
           <PodcastsFilterInput value={filterTerm} onChange={setFilterTerm} />
         </div>
       ) : null}
-      {isSubscribedScope && (
+      {isSubscribedScope && addByRSS.isReady && (
         <HowToStartInfo
           rows={showMergedList ? merged : isMerged ? addByRSS.feeds : channels}
           totalPages={showMergedList ? mergedSlice.totalPages : totalPages}
@@ -185,17 +187,17 @@ export const PodcastsPageList: React.FC = () => {
           data-testid="podcasts-filter-results-count"
           role="status"
         >
-          {isFiltering ? tSubscriptions('filter.results_count', { count: matchCount }) : ''}
+          {isFiltering && !awaitingSubscribedRows
+            ? tSubscriptions('filter.results_count', { count: matchCount })
+            : ''}
         </p>
       )}
       {showNoFilterMatches && (
-        <InfoWrapper>
-          <p>{tSubscriptions('no_filter_matches')}</p>
-        </InfoWrapper>
+        <NoResults message={tSubscriptions('no_filter_matches')} role="status" />
       )}
       {showEmpty ? (
         <NoResults message={tMedia('podcast.no_podcasts_found')} />
-      ) : (
+      ) : awaitingSubscribedRows ? null : (
         <CorePodcasts
           page={showMergedList ? mergedSlice.page : showFilteredOnly ? filtered.page : page}
           setPage={
@@ -220,7 +222,7 @@ export const PodcastsPageList: React.FC = () => {
         />
       )}
       <WebLoadingSpinnerOverlay
-        isLoading={isLoading || fullList.isLoading || (isMerged && !fullList.isReady)}
+        isLoading={isLoading || fullList.isLoading || awaitingSubscribedRows}
       />
     </>
   );

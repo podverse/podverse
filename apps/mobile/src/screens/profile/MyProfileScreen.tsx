@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useLayoutEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
@@ -9,12 +9,15 @@ import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { useMyProfileContentLoad } from '../../hooks/useProfileContentLoad';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
+import { profileBio } from '../../lib/rows/catalogRowCopy';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
+import { openProfileStackContent } from './openProfileStackContent';
 import { ProfileContentSections } from './ProfileContentSections';
+import { ProfileIdentity } from './ProfileIdentity';
 
 type MyProfileScreenProps = NativeStackScreenProps<MoreStackParamList, 'MoreProfile'>;
 
@@ -28,26 +31,6 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        profileButton: {
-          alignSelf: 'flex-start',
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          marginTop: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.xs,
-        },
-        profileButtonLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 13,
-          fontWeight: '600',
-        },
-        profileHeading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 20,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.sm,
-        },
         screen: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
@@ -58,8 +41,10 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
     [themeStyles, tokens]
   );
 
-  const profileTitle =
-    account?.account_profile?.display_name ?? account?.id_text ?? t('features.my_profile');
+  const displayName = account?.account_profile?.display_name?.trim();
+  const profileHeading =
+    displayName !== undefined && displayName.length > 0 ? displayName : t('misc.anonymous');
+  const bio = account === null ? null : profileBio(account);
   const canEdit = status === 'authenticated' && account !== null && !offlineModeEnabled;
 
   useLayoutEffect(() => {
@@ -75,48 +60,17 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
             testID="my-profile-edit"
           />
         ) : null,
-      title: profileTitle,
+      title: t('features.my_profile'),
     });
-  }, [canEdit, navigation, profileTitle, t]);
+  }, [canEdit, navigation, t]);
 
   const handleRetry = useCallback(() => {
     void reload();
   }, [reload]);
 
-  const handleOpenPublicProfile = useCallback(() => {
-    if (account?.id_text === undefined) {
-      return;
-    }
-    navigation.navigate(MORE_STACK_ROUTES.MorePublicProfile, {
-      accountIdText: account.id_text,
-    });
-  }, [account?.id_text, navigation]);
-
   const listHeader = useMemo(
-    () => (
-      <>
-        <Text accessibilityRole="header" style={styles.profileHeading}>
-          {t('features.my_profile')}
-        </Text>
-        {account?.id_text ? (
-          <Pressable
-            onPress={handleOpenPublicProfile}
-            style={styles.profileButton}
-            testID="my-profile-open-public"
-          >
-            <Text style={styles.profileButtonLabel}>{t('features.profile')}</Text>
-          </Pressable>
-        ) : null}
-      </>
-    ),
-    [
-      account?.id_text,
-      handleOpenPublicProfile,
-      styles.profileButton,
-      styles.profileButtonLabel,
-      styles.profileHeading,
-      t,
-    ]
+    () => <ProfileIdentity bio={bio} name={profileHeading} testID="my-profile-bio" />,
+    [bio, profileHeading]
   );
 
   if (offlineModeEnabled) {
@@ -146,8 +100,8 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
           clips={content.clips}
           emptyTestIdPrefix="my-profile"
           header={listHeader}
-          onPlaylistPress={(playlistId) => {
-            navigation.navigate(MORE_STACK_ROUTES.PlaylistDetail, { playlistId });
+          onContentPress={(request) => {
+            openProfileStackContent(navigation, request);
           }}
           playlists={content.playlists}
           podcasts={content.podcasts}

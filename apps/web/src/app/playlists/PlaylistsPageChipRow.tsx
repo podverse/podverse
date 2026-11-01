@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { FaCirclePlus } from 'react-icons/fa6';
 
 import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import type { ChipRowItem, MenuChipOption } from '@podverse/ui';
@@ -14,7 +13,6 @@ import { MediaListTrailingChips } from '../../components/MediaListChips/MediaLis
 import { usePlaylistsPageContext } from './PlaylistsPageContext';
 import { getPlaylistsPageSortOptions } from './PlaylistsPageDropdownConfig';
 
-import styles from '../../styles/app/playlists/PlaylistsHeader.module.scss';
 import chipRowStyles from '../../styles/components/MediaListChips/MediaListChips.module.scss';
 
 type PlaylistsTypeKey = 'private' | 'private_followed' | 'public';
@@ -80,7 +78,6 @@ export function PlaylistsPageChipRow({ chipsConfig }: { chipsConfig?: MediaListC
     listScope === 'browse' ? undefined : (
       <Button variant="mini" onClick={() => router.push('/playlist/create')}>
         {tFeatures('playlist.create_playlist')}
-        <FaCirclePlus className={styles.icon} />
       </Button>
     );
 

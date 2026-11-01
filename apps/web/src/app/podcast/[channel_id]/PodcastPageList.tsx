@@ -33,6 +33,9 @@ export const PodcastPageList: React.FC<PodcastPageListProps> = ({
   ssrChannel,
   ssrCanShowBoosts,
 }) => {
+  const tFeatures = useTranslations('features');
+  const tInfo = useTranslations('info');
+  const tMedia = useTranslations('media');
   const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const { filterParams, setFilterParams, items, itemSoundbites, clips, totalPages, isLoading } =
     usePodcastPageContext();
@@ -56,6 +59,8 @@ export const PodcastPageList: React.FC<PodcastPageListProps> = ({
           items={items}
           totalPages={totalPages}
           viewSelected="rows"
+          emptyMessage={tMedia('podcast.no_episodes_found')}
+          isLoading={isLoading}
         />
       )}
       {type === 'soundbites' && (
@@ -67,6 +72,8 @@ export const PodcastPageList: React.FC<PodcastPageListProps> = ({
           itemSoundbites={itemSoundbites}
           totalPages={totalPages}
           showItemInfo
+          emptyMessage={tInfo('soundbite.no_official_clips_found')}
+          isLoading={isLoading}
         />
       )}
       {type === 'clips' && (
@@ -77,6 +84,8 @@ export const PodcastPageList: React.FC<PodcastPageListProps> = ({
           channel={ssrChannel}
           totalPages={totalPages}
           showItemInfo
+          emptyMessage={tFeatures('clip.no_clips_found')}
+          isLoading={isLoading}
         />
       )}
       {type === 'boosts' && boostsPageFetcher !== null && (

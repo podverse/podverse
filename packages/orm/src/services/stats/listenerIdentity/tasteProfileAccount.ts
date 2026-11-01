@@ -1,10 +1,12 @@
 import { AppDataSourceReadWrite } from '@orm/db/index.js';
+import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel.js';
 import { Channel } from '@orm/entities/channel/channel.js';
 import { StatsChannelHidden } from '@orm/entities/stats/statsChannelHidden.js';
 import { StatsRecommendation } from '@orm/entities/stats/statsRecommendation.js';
 import { StatsTasteProfile } from '@orm/entities/stats/statsTasteProfile.js';
 import { StatsTasteProfileHidden } from '@orm/entities/stats/statsTasteProfileHidden.js';
 import type { EntityManager } from 'typeorm';
+import { In, IsNull } from 'typeorm';
 
 import type {
   DTOAccountRecommendation,
@@ -21,7 +23,11 @@ import {
 
 import { refreshRecommendationsForListener } from './recommendationsListenerRefresh.js';
 import { StatsListenerService } from './statsListener.js';
-import { lockListener, runListenerWrite } from './statsWriteGuard.js';
+import {
+  lockListener,
+  readTrackingConsentForUpdate,
+  runListenerWrite,
+} from './statsWriteGuard.js';
 
 /**
  * Account-facing Taste Profile reads and edits; every method takes an `account_id` and never
@@ -333,6 +339,280 @@ export class TasteProfileAccountService {
     });
   }
 
+  /**
+   * Seeds Taste Profile rows at listen_count 0 (effective weight 1) for subscribed directory
+   * shows. A subscribe is a taste signal, not a listen: no listen event and no popularity row.
+   * When `channel_ids` is omitted, every current follow is considered. Skips shows that already
+   * have a taste row, Not Counted in Recommendations, or Hidden Channels. Writes nothing unless
+   * Taste Profile tracking is allowed and `stores_listens` is true.
+   */
+  async seedSubscribedShows(
+    account_id: number,
+    agreement_version: string,
+    stores_listens: boolean,
+    channel_ids?: readonly number[]
+  ): Promise<{ seeded_count: number }> {
+    if (!stores_listens) {
+      return { seeded_count: 0 };
+    }
+    if (channel_ids !== undefined && channel_ids.length === 0) {
+      return { seeded_count: 0 };
+    }
+
+    let listenerIdToRefresh: string | null = null;
+    let seeded_count = 0;
+
+    await runListenerWrite(async (manager) => {
+      const consent = await readTrackingConsentForUpdate(manager, account_id, agreement_version);
+      if (!consent.allowed) {
+        return;
+      }
+
+      const candidateIds = await this.resolveSubscribeSeedChannelIds(
+        manager,
+        account_id,
+        channel_ids
+      );
+      if (candidateIds.length === 0) {
+        return;
+      }
+
+      const listener_id = await this.listeners.getOrCreateListenerId(account_id, manager);
+      await lockListener(manager, listener_id);
+
+      const existingTaste = await manager.getRepository(StatsTasteProfile).find({
+        where: { listener_id, channel_id: In(candidateIds) },
+        select: { channel_id: true },
+      });
+      const existingHidden = await manager.getRepository(StatsTasteProfileHidden).find({
+        where: { listener_id, channel_id: In(candidateIds) },
+        select: { channel_id: true },
+      });
+      const existingChannelHidden = await manager.getRepository(StatsChannelHidden).find({
+        where: { listener_id, channel_id: In(candidateIds) },
+        select: { channel_id: true },
+      });
+
+      const skipIds = new Set<number>([
+        ...existingTaste.map((row) => row.channel_id),
+        ...existingHidden.map((row) => row.channel_id),
+        ...existingChannelHidden.map((row) => row.channel_id),
+      ]);
+
+      const toInsert = candidateIds.filter((channel_id) => !skipIds.has(channel_id));
+      if (toInsert.length === 0) {
+        return;
+      }
+
+      const addedAt = new Date();
+      await manager
+        .createQueryBuilder()
+        .insert()
+        .into(StatsTasteProfile)
+        .values(
+          toInsert.map((channel_id) => ({
+            listener_id,
+            channel_id,
+            listen_count: 0,
+            completion_count: 0,
+            recent_score: 0,
+            long_term_score: 0,
+            first_listened_at: addedAt,
+            last_listened_at: addedAt,
+            scores_updated_at: addedAt,
+          }))
+        )
+        .orIgnore()
+        .execute();
+
+      seeded_count = toInsert.length;
+      listenerIdToRefresh = listener_id;
+    });
+
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return { seeded_count };
+  }
+
+  /**
+   * Removes Taste Profile rows that exist only as unused subscribe seeds (`listen_count` 0 and
+   * no weight override). A listen or a manual weight is a separate signal and stays. Hidden rows
+   * are untouched.
+   */
+  async dropUnusedSubscribeSeeds(
+    account_id: number,
+    channel_ids: readonly number[]
+  ): Promise<{ dropped_count: number }> {
+    if (channel_ids.length === 0) {
+      return { dropped_count: 0 };
+    }
+
+    let listenerIdToRefresh: string | null = null;
+    let dropped_count = 0;
+
+    await runListenerWrite(async (manager) => {
+      const listener_id = await this.listeners.findListenerId(account_id, manager);
+      if (listener_id === null) {
+        return;
+      }
+
+      await lockListener(manager, listener_id);
+      const deleted = await manager.getRepository(StatsTasteProfile).delete({
+        listener_id,
+        channel_id: In([...channel_ids]),
+        listen_count: 0,
+        weight_override: IsNull(),
+      });
+      dropped_count = deleted.affected ?? 0;
+      if (dropped_count > 0) {
+        listenerIdToRefresh = listener_id;
+      }
+    });
+
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return { dropped_count };
+  }
+
+  /**
+   * Seeds Taste Profile rows at listen_count 0 (effective weight 1) for subscribed directory
+   * shows. A subscribe is a taste signal, not a listen: no listen event and no popularity row.
+   * When `channel_ids` is omitted, every current follow is considered. Skips shows that already
+   * have a taste row, Not Counted in Recommendations, or Hidden Channels. Writes nothing unless
+   * Taste Profile tracking is allowed and `stores_listens` is true.
+   */
+  async seedSubscribedShows(
+    account_id: number,
+    agreement_version: string,
+    stores_listens: boolean,
+    channel_ids?: readonly number[]
+  ): Promise<{ seeded_count: number }> {
+    if (!stores_listens) {
+      return { seeded_count: 0 };
+    }
+    if (channel_ids !== undefined && channel_ids.length === 0) {
+      return { seeded_count: 0 };
+    }
+
+    let listenerIdToRefresh: string | null = null;
+    let seeded_count = 0;
+
+    await runListenerWrite(async (manager) => {
+      const consent = await readTrackingConsentForUpdate(manager, account_id, agreement_version);
+      if (!consent.allowed) {
+        return;
+      }
+
+      const candidateIds = await this.resolveSubscribeSeedChannelIds(
+        manager,
+        account_id,
+        channel_ids
+      );
+      if (candidateIds.length === 0) {
+        return;
+      }
+
+      const listener_id = await this.listeners.getOrCreateListenerId(account_id, manager);
+      await lockListener(manager, listener_id);
+
+      const existingTaste = await manager.getRepository(StatsTasteProfile).find({
+        where: { listener_id, channel_id: In(candidateIds) },
+        select: { channel_id: true },
+      });
+      const existingHidden = await manager.getRepository(StatsTasteProfileHidden).find({
+        where: { listener_id, channel_id: In(candidateIds) },
+        select: { channel_id: true },
+      });
+      const existingChannelHidden = await manager.getRepository(StatsChannelHidden).find({
+        where: { listener_id, channel_id: In(candidateIds) },
+        select: { channel_id: true },
+      });
+
+      const skipIds = new Set<number>([
+        ...existingTaste.map((row) => row.channel_id),
+        ...existingHidden.map((row) => row.channel_id),
+        ...existingChannelHidden.map((row) => row.channel_id),
+      ]);
+
+      const toInsert = candidateIds.filter((channel_id) => !skipIds.has(channel_id));
+      if (toInsert.length === 0) {
+        return;
+      }
+
+      const addedAt = new Date();
+      await manager
+        .createQueryBuilder()
+        .insert()
+        .into(StatsTasteProfile)
+        .values(
+          toInsert.map((channel_id) => ({
+            listener_id,
+            channel_id,
+            listen_count: 0,
+            completion_count: 0,
+            recent_score: 0,
+            long_term_score: 0,
+            first_listened_at: addedAt,
+            last_listened_at: addedAt,
+            scores_updated_at: addedAt,
+          }))
+        )
+        .orIgnore()
+        .execute();
+
+      seeded_count = toInsert.length;
+      listenerIdToRefresh = listener_id;
+    });
+
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return { seeded_count };
+  }
+
+  /**
+   * Removes Taste Profile rows that exist only as unused subscribe seeds (`listen_count` 0 and
+   * no weight override). A listen or a manual weight is a separate signal and stays. Hidden rows
+   * are untouched.
+   */
+  async dropUnusedSubscribeSeeds(
+    account_id: number,
+    channel_ids: readonly number[]
+  ): Promise<{ dropped_count: number }> {
+    if (channel_ids.length === 0) {
+      return { dropped_count: 0 };
+    }
+
+    let listenerIdToRefresh: string | null = null;
+    let dropped_count = 0;
+
+    await runListenerWrite(async (manager) => {
+      const listener_id = await this.listeners.findListenerId(account_id, manager);
+      if (listener_id === null) {
+        return;
+      }
+
+      await lockListener(manager, listener_id);
+      const deleted = await manager.getRepository(StatsTasteProfile).delete({
+        listener_id,
+        channel_id: In([...channel_ids]),
+        listen_count: 0,
+        weight_override: IsNull(),
+      });
+      dropped_count = deleted.affected ?? 0;
+      if (dropped_count > 0) {
+        listenerIdToRefresh = listener_id;
+      }
+    });
+
+    if (listenerIdToRefresh !== null) {
+      await refreshRecommendationsForListener(listenerIdToRefresh);
+    }
+    return { dropped_count };
+  }
+
   async setWeightForAccount(
     account_id: number,
     channel_id_text: string,
@@ -382,6 +662,21 @@ export class TasteProfileAccountService {
       await refreshRecommendationsForListener(listenerIdToRefresh);
     }
     return result;
+  }
+
+  private async resolveSubscribeSeedChannelIds(
+    manager: EntityManager,
+    account_id: number,
+    channel_ids: readonly number[] | undefined
+  ): Promise<number[]> {
+    if (channel_ids !== undefined) {
+      return [...new Set(channel_ids)];
+    }
+    const follows = await manager.getRepository(AccountFollowingChannel).find({
+      where: { account_id },
+      select: { channel_id: true },
+    });
+    return follows.map((row) => row.channel_id);
   }
 
   private async findChannelId(channel_id_text: string): Promise<number | null> {

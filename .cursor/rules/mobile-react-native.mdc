@@ -110,7 +110,7 @@ alwaysApply: false
   `ThemedStackHeader`,
   `SectionCard`, `ListSection`, `ReorderableSections` / `ReorderableList` (`dragActivation` supports
   row-long-press and `showHandle` toggles handle-only vs body drag),
-  `ListLoading` / `ListEmpty` / `ListError`, `CallToActionSection`, `LoadingSection`,
+  `ListLoading` / `EmptyStateText` / `ListEmpty` / `ListError`, `CallToActionSection`, `LoadingSection`,
   `AuthAwareLoadState`, `RetryableError`, `MediaRowActions`, `MiniPlayer`, gate/banner feedback.
   The full-size image viewer is the `ImageViewer` root screen, not a primitive modal.
   Do **not** use `@podverse/ui` (web/SCSS). Details: **mobile-reusable-components** skill.

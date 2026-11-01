@@ -362,8 +362,8 @@ export const ListEpisodeRow: React.FC<Props> = ({
         {onPlayAndRemove ? (
           <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
             <div className={styles.topSection}>
-              <h3>{item.title}</h3>
               {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
+              <h3>{item.title}</h3>
               <div className={styles.subtitle}>
                 {getDescriptionPreviewText(item.item_description)}
               </div>
@@ -372,8 +372,8 @@ export const ListEpisodeRow: React.FC<Props> = ({
         ) : (
           <Link href={url}>
             <div className={styles.topSection}>
-              <h3>{item.title}</h3>
               {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
+              <h3>{item.title}</h3>
               <div className={styles.subtitle}>
                 {getDescriptionPreviewText(item.item_description)}
               </div>
@@ -382,13 +382,18 @@ export const ListEpisodeRow: React.FC<Props> = ({
         )}
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
-            <PlayButtonRow item={item} onClick={onPlayAndRemove ?? playButtonOnClick} />
-            <ItemRowMoreActions
-              enclosures={item.item_enclosures}
-              itemTitle={item.title}
-              ariaLabel={tMedia('more_options')}
-              moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+            <PlayButtonRow
+              item={item}
+              onClick={onPlayAndRemove ?? playButtonOnClick}
+              afterPlay={
+                <ItemRowMoreActions
+                  enclosures={item.item_enclosures}
+                  itemTitle={item.title}
+                  ariaLabel={tMedia('more_options')}
+                  moreButtonMenuItems={moreButtonMenuItems}
+                  onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+                />
+              }
             />
             <div className={styles.timeSection}>
               <ReadableDate date={item.pub_date} />

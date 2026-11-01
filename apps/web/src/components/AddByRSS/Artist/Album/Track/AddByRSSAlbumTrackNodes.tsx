@@ -69,6 +69,7 @@ export const AddByRSSAlbumTrackNodes: React.FC<AddByRSSAlbumTrackNodesProps> = (
                 channelImageUrl={channelImageUrl}
                 bundle={bundle}
                 indexItem={indexItem}
+                showChannelInfo={false}
               />
               {idx < items.length - 1 && <Divider />}
             </React.Fragment>

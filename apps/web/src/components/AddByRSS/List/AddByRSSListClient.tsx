@@ -35,9 +35,9 @@ import type {
   AddByRSSParsedFeed,
   AddByRSSResourceType,
 } from '../../../utils/addByRSS/types';
+import { WebLoadingSpinnerOverlay } from '../../LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../Main/MainWrapper';
 import type { MediaListChipsConfig } from '../../MediaListChips/MediaListChips';
-import { MediaListLoadingSpinner } from '../../MediaListChips/MediaListLoadingSpinner';
 import { NoResults } from '../../NoResults/NoResults';
 import { dismissToast, showToast, showToastLoading } from '../../Toast/Toast';
 import { AddByRSSArtistNodes } from '../Artist/AddByRSSArtistNodes';
@@ -73,6 +73,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({
   resourceType,
 }) => {
   const tFeatures = useTranslations('features');
+  const tMedia = useTranslations('media');
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
@@ -381,28 +382,32 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({
               />
             )}
 
-            {isLoading && !isUpdating ? (
-              <MediaListLoadingSpinner />
-            ) : loggedInAccount &&
-              readyFeeds.length === 0 &&
-              (!showsNeedsCredentialsSection || needsCredentials.length === 0) ? (
+            {!(isLoading && !isUpdating) &&
+            loggedInAccount &&
+            readyFeeds.length === 0 &&
+            (!showsNeedsCredentialsSection || needsCredentials.length === 0) ? (
               <NoResults
-                message={tFeatures(
-                  resourceType === 'artists' ||
-                    resourceType === 'albums' ||
-                    resourceType === 'tracks'
-                    ? 'add_by_rss.no_feeds_music'
-                    : 'add_by_rss.no_feeds_podcast'
+                message={tMedia(
+                  resourceType === 'artists'
+                    ? 'music.no_artists_found'
+                    : resourceType === 'albums'
+                      ? 'music.no_albums_found'
+                      : resourceType === 'tracks'
+                        ? 'music.no_tracks_found'
+                        : resourceType === 'episodes'
+                          ? 'podcast.no_episodes_found'
+                          : 'podcast.no_podcasts_found'
                 )}
               />
-            ) : (
+            ) : !(isLoading && !isUpdating) ? (
               <>
                 {readyFeeds.length > 0 && renderFeeds()}
                 {showsNeedsCredentialsSection && (
                   <AddByRSSNeedsCredentialsSection feeds={needsCredentials} />
                 )}
               </>
-            )}
+            ) : null}
+            <WebLoadingSpinnerOverlay isLoading={isLoading && !isUpdating} />
           </MainColumnStack>
         </MainSidebarLayout>
       </MainWrapper>

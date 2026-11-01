@@ -10,6 +10,7 @@
   border-radius: var(--border-radius);
   list-style: none;
 
+  &::marker,
   &::-webkit-details-marker {
     display: none;
   }
@@ -17,22 +18,20 @@
 
 .headerLabel {
   min-width: 0;
-}
-
-// A heading's section margin lives in the summary and shifts the label off the caret.
-// Callers that need that margin use headerAlign="start".
-.alignCenter .headerLabel,
-.alignCenter .headerLabel > * {
   margin-block: 0;
-}
+  line-height: 1;
 
-.alignStart > .accordionHeader {
-  align-items: flex-start;
+  // A heading's section margin lives in the summary and shifts the label off the caret.
+  > * {
+    margin-block: 0;
+    line-height: 1;
+  }
 }
 
 .headerIcon {
   display: flex;
   align-items: center;
+  align-self: center;
   flex-shrink: 0;
   font-size: var(--font-size-xs);
   line-height: 1;

@@ -58,6 +58,7 @@ export function BrowseCategoryRow({
           ...typography.subheading,
           color: themeStyles.textPrimary.color,
           flex: 1,
+          fontWeight: '400',
         },
         toggle: {
           alignItems: 'center',

@@ -233,7 +233,7 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
       <div className={styles.sectionStart}>
         <PlayButtonLarge item_soundbite={item_soundbite} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
-          <ReadableDate date={item.pub_date} />
+          <ReadableDate date={item.pub_date} includeTime />
           {item.item_about?.duration ? ' • ' : null}
           <ReadableTimeRange startTime={startTime} endTime={endTime} />
         </div>

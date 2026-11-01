@@ -21,18 +21,20 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  // The unread column plus this gap is the left inset. The end padding matches it.
-  padding-inline-end: var(--spacing-lg);
   color: inherit;
   text-decoration: none;
   border-radius: 0;
 }
 
 .unreadSlot {
-  flex-shrink: 0;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 1;
   width: var(--spacing-md);
   height: var(--spacing-md);
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .unreadDot {
@@ -62,6 +64,7 @@
       var(--text-line-height) + var(--spacing-sm)
   );
 
+  position: relative;
   display: flex;
   flex: 1;
   align-items: center;

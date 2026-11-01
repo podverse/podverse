@@ -52,8 +52,6 @@ export type SectionChipRowProps<T extends string> = {
    * section chips so those pills keep a stable order.
    */
   trailing?: ReactNode;
-  /** Intrinsic width of the chips and trailing controls, for a sibling that shares the row. */
-  onContentWidthChange?: (width: number) => void;
 };
 
 /**
@@ -151,7 +149,6 @@ export function SectionChip({
 export function SectionChipRow<T extends string>({
   items,
   onSelect,
-  onContentWidthChange,
   selectedKey,
   testID,
   trailing,
@@ -230,7 +227,6 @@ export function SectionChipRow<T extends string>({
         horizontal
         onContentSizeChange={(width) => {
           contentWidthRef.current = width;
-          onContentWidthChange?.(width);
           revealPendingChip();
         }}
         onLayout={(event) => {

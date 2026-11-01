@@ -41,8 +41,8 @@ export const AddByRSSLivestreamGridNode: React.FC<AddByRSSLivestreamGridNodeProp
           height={IMAGES.LIST.GRID.SIZE}
           className={styles.image}
         />
-        <div className={styles.title}>{title}</div>
         {showChannelInfo && <div className={styles.channelTitle}>{item.channelTitle}</div>}
+        <div className={styles.title}>{title}</div>
         <div className={styles.lastPubDate}>
           <ReadableDate date={item.liveItem.start_time?.toISOString?.() ?? ''} />
           {' • '}

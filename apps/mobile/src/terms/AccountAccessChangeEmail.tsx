@@ -59,7 +59,7 @@ export function AccountAccessChangeEmail() {
         sectionTitle: {
           color: themeStyles.textPrimary.color,
           fontSize: 18,
-          fontWeight: '600',
+          fontWeight: '400',
           marginBottom: tokens.spacing.sm,
         },
       }),

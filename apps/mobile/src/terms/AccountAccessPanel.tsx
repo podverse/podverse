@@ -96,7 +96,7 @@ export function AccountAccessPanel({ onReviewTerms }: AccountAccessPanelProps) {
         title: {
           color: themeStyles.textPrimary.color,
           fontSize: 24,
-          fontWeight: '600',
+          fontWeight: '400',
           marginBottom: tokens.spacing.md,
         },
       }),

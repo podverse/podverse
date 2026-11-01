@@ -7,6 +7,7 @@ import type { QueryParamsItemsType } from '@podverse/helpers-requests';
 
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
+import { NoResults } from '../../NoResults/NoResults';
 import { Pagination } from '../../Pagination/Pagination';
 import { ListItemSoundbiteRow } from './ListItemSoundbiteRow';
 
@@ -21,6 +22,9 @@ type Props = {
   type?: QueryParamsItemsType;
   category?: CategoryMappingKeys | null;
   showItemInfo?: boolean;
+  /** Shown in the shared empty banner once the list has settled with no rows. */
+  emptyMessage?: string;
+  isLoading?: boolean;
 };
 
 export const ListItemSoundbites: React.FC<Props> = ({
@@ -32,12 +36,24 @@ export const ListItemSoundbites: React.FC<Props> = ({
   totalPages,
   showSubscribeMessage,
   showItemInfo,
+  emptyMessage,
+  isLoading = false,
 }) => {
   useSkipInitialEffect(() => {
     scrollMainToTop();
   }, [itemSoundbites]);
 
   const showPagination = !showSubscribeMessage;
+  const showEmpty =
+    emptyMessage !== undefined &&
+    !isLoading &&
+    !showSubscribeMessage &&
+    page <= 1 &&
+    itemSoundbites.length === 0;
+
+  if (showEmpty) {
+    return <NoResults message={emptyMessage} role="status" />;
+  }
 
   return (
     <>

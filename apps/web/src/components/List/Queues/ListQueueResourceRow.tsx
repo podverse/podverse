@@ -126,8 +126,8 @@ export const ListQueueResourceRow: React.FC<Props> = ({
             <div className={styles.trackWrapper}>
               <div className={styles.trackContent}>
                 <div className={styles.trackTextWrapper}>
-                  <h3 className={styles.trackTitle}>{addByRSSTitle}</h3>
                   {channelTitle && <div className={styles.trackArtist}>{channelTitle}</div>}
+                  <h3 className={styles.trackTitle}>{addByRSSTitle}</h3>
                 </div>
               </div>
             </div>
@@ -160,8 +160,8 @@ export const ListQueueResourceRow: React.FC<Props> = ({
         <div className={styles.content}>
           <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
             <div className={styles.topSection}>
-              <h3>{addByRSSTitle}</h3>
               {channelTitle && <div className={styles.channelTitle}>{channelTitle}</div>}
+              <h3>{addByRSSTitle}</h3>
             </div>
           </button>
           <div className={styles.bottomSection}>

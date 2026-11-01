@@ -10,6 +10,7 @@ import type { QueryParamsHistory } from '@podverse/helpers-requests';
 import { useAccount } from '../../contexts/Account';
 import { checkBackNavFlag } from '../../contexts/Navigation';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { useCommittedPaginationTotalPages } from '../../hooks/settledTotalPages';
 import { usePageStateCache } from '../../hooks/usePageStateCache';
 import {
   QUEUE_DATA_CHANGED_EVENT,
@@ -67,7 +68,14 @@ export const HistoryPageContextProvider = ({
     cachedState?.data?.queueResources ?? ssrQueueResources ?? []
   );
   const [isLoading, setIsLoading] = useState<boolean>(!cachedState?.data); // Not loading if restored from cache
-  const [totalPages, setTotalPages] = useState<number>(cachedState?.data?.totalPages ?? 1);
+  const [totalPagesState, setTotalPagesState] = useState<number>(
+    cachedState?.data?.totalPages ?? 1
+  );
+  const { totalPages, setTotalPages } = useCommittedPaginationTotalPages(
+    filterParams,
+    totalPagesState,
+    setTotalPagesState
+  );
   const [showLoginMessage, setShowLoginMessage] = useState<boolean>(false);
   const [queueDataRevision, setQueueDataRevision] = useState(0);
   const hasCompletedLoadRef = useRef(cachedState?.data !== undefined);
@@ -79,7 +87,7 @@ export const HistoryPageContextProvider = ({
     routeKey: 'history',
     filterParams,
     setFilterParams,
-    data: { queueResources, totalPages },
+    data: { queueResources, totalPages: totalPagesState },
     setData: (cached) => {
       setQueueResources(cached.queueResources);
       setTotalPages(cached.totalPages);

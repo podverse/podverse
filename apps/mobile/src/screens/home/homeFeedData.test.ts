@@ -20,6 +20,7 @@ import {
   normalizeItemRows,
   readChannelUpdatedAt,
   readUpdatedAt,
+  withChannelTitleFallback,
 } from './homeFeedData';
 
 vi.mock('../../data/repositories', async (importOriginal) => {
@@ -275,7 +276,7 @@ describe('normalizeItemRows', () => {
 });
 
 type ItemFixture = {
-  channel: { id_text?: string; medium_id?: MediumEnum; title: string };
+  channel?: { id_text?: string; medium_id?: MediumEnum; title: string };
   description?: string;
   duration?: string;
   id_text: string;
@@ -284,18 +285,21 @@ type ItemFixture = {
 };
 
 const itemFixture = (fixture: ItemFixture): DTOItem => ({
-  channel: {
-    feed_id: 1,
-    has_podcast_index_value: false,
-    has_value_time_splits: false,
-    id: 1,
-    id_text: fixture.channel.id_text ?? '',
-    medium_id: fixture.channel.medium_id ?? MediumEnum.Podcast,
-    podcast_guid: null,
-    slug: null,
-    sortable_title: null,
-    title: fixture.channel.title,
-  },
+  channel:
+    fixture.channel === undefined
+      ? undefined
+      : {
+          feed_id: 1,
+          has_podcast_index_value: false,
+          has_value_time_splits: false,
+          id: 1,
+          id_text: fixture.channel.id_text ?? '',
+          medium_id: fixture.channel.medium_id ?? MediumEnum.Podcast,
+          podcast_guid: null,
+          slug: null,
+          sortable_title: null,
+          title: fixture.channel.title,
+        },
   channel_id: 1,
   id: 1,
   id_text: fixture.id_text,
@@ -321,6 +325,34 @@ const itemFixture = (fixture: ItemFixture): DTOItem => ({
   item_values: [],
   pub_date: fixture.pub_date,
   title: fixture.title,
+});
+
+describe('withChannelTitleFallback', () => {
+  it('keeps an existing subtitle and fills a blank one from the follow title', () => {
+    expect(
+      withChannelTitleFallback(
+        {
+          id: 'ep-1',
+          imageUrl: null,
+          subtitle: 'Payload Show',
+          title: 'Episode',
+        },
+        'Follow Show'
+      ).subtitle
+    ).toBe('Payload Show');
+
+    expect(
+      withChannelTitleFallback(
+        {
+          id: 'ep-2',
+          imageUrl: null,
+          subtitle: null,
+          title: 'Episode',
+        },
+        'Follow Show'
+      ).subtitle
+    ).toBe('Follow Show');
+  });
 });
 
 describe('mapItemToHomeFeedRow', () => {
@@ -486,7 +518,9 @@ describe('fetchHomeFeed isCurrent', () => {
     vi.mocked(channelItemsRepository.listSubscribed).mockReset();
     vi.mocked(addByRssRepository.listFeedsByCredentials).mockReset();
     vi.mocked(subscriptionsRepository.list).mockResolvedValue([followedPodcast()]);
-    vi.mocked(channelItemsRepository.listSubscribed).mockResolvedValue([storedEpisode]);
+    vi.mocked(channelItemsRepository.listSubscribed).mockResolvedValue([
+      { channelIdText: 'show-1', item: storedEpisode },
+    ]);
     vi.mocked(addByRssRepository.listFeedsByCredentials).mockResolvedValue({
       needsCredentials: [],
       ready: [],
@@ -512,6 +546,27 @@ describe('fetchHomeFeed isCurrent', () => {
 
     expect(withCurrent).toEqual(withoutOption);
     expect(withCurrent.rows).toEqual(mapItemsToHomeFeedRows([storedEpisode]));
+  });
+
+  it('fills the overline from the follow title when the stored item omits channel.title', async () => {
+    const withoutChannel = itemFixture({
+      id_text: 'ep-no-channel',
+      pub_date: '2026-03-04T12:00:00.000Z',
+      title: 'Episode Without Nested Channel',
+    });
+    vi.mocked(channelItemsRepository.listSubscribed).mockResolvedValue([
+      { channelIdText: 'show-1', item: withoutChannel },
+    ]);
+
+    const read = await fetchHomeFeed('episodes');
+
+    expect(read.rows).toEqual([
+      expect.objectContaining({
+        id: 'ep-no-channel',
+        subtitle: 'Example Show',
+        title: 'Episode Without Nested Channel',
+      }),
+    ]);
   });
 
   it('requests every ready follow for channel chips and directory follows for item channel ids', async () => {

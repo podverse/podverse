@@ -121,7 +121,7 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
 
     const { locale } = params;
 
-    await this.repositoryRead
+    await this.repositoryReadWrite
       .createQueryBuilder()
       .update(AccountUPDevice)
       .set({ locale })
@@ -135,7 +135,7 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
       throw new Error('Account not found.');
     }
 
-    await this.repositoryRead
+    await this.repositoryReadWrite
       .createQueryBuilder()
       .delete()
       .from(AccountUPDevice)

@@ -19,11 +19,6 @@ export type AccordionProps = {
    * `nav` is the tight gap for the sidebar. Every other accordion uses `standard`.
    */
   caretSpacing?: 'standard' | 'nav';
-  /**
-   * Vertical alignment of the header with the caret. `center` is the default.
-   * `start` keeps a header that is intentionally top-aligned, such as a multi-line label.
-   */
-  headerAlign?: 'center' | 'start';
   /** Initial open state when uncontrolled. */
   defaultOpen?: boolean;
   /** When set, the accordion is controlled. */
@@ -40,7 +35,6 @@ export function Accordion({
   color = 'primary',
   size = 'large',
   caretSpacing = 'standard',
-  headerAlign = 'center',
   defaultOpen = false,
   open,
   onToggle,
@@ -61,7 +55,6 @@ export function Accordion({
         styles[color],
         styles[size],
         caretSpacing === 'nav' && styles.caretNav,
-        headerAlign === 'center' ? styles.alignCenter : styles.alignStart,
         className
       )}
       {...(controlled

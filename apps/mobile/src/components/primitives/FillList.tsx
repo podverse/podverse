@@ -29,7 +29,7 @@ export type FillListProps<ItemT> = Omit<
 };
 
 /**
- * True when the list is showing a fill empty (VerticalCenter, LoadingSection, CallToActionSection)
+ * True when the list is showing a fill empty (loading, an empty message, or a call to action)
  * rather than rows. Those states have nothing to scroll, so bounce and pull stay off.
  */
 export function isFillListScrollLocked(
@@ -157,7 +157,7 @@ function FillListInner<ItemT>(
       ListHeaderComponent={ListHeaderComponent === null ? undefined : ListHeaderComponent}
       alwaysBounceVertical={!lockScroll}
       bounces={!lockScroll}
-      contentContainerStyle={[fillContent.grow, contentContainerStyle]}
+      contentContainerStyle={[lockScroll ? fillContent.grow : null, contentContainerStyle]}
       data={data}
       onMomentumScrollBegin={handleMomentumScrollBegin}
       onMomentumScrollEnd={handleMomentumScrollEnd}
@@ -176,7 +176,9 @@ function FillListInner<ItemT>(
 /**
  * FlatList that locks scroll when `data` is empty and `ListEmptyComponent` is a fill state.
  * Pass `ListEmptyComponent={null}` when the empty UI lives in the header or footer and the list
- * should still scroll (filter-no-matches, detail screens whose chrome is the header).
+ * should still scroll (filter-no-matches, detail screens whose chrome is the header). In that
+ * case the content container does not grow, so a footer empty message sits under the chips
+ * instead of centering over them.
  *
  * Supplies render-window defaults (`windowSize`, `initialNumToRender`, `maxToRenderPerBatch`,
  * `updateCellsBatchingPeriod`) that a caller may override.

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { CorePodcasts } from '../../../components/Core/Podcast/CorePodcasts';
@@ -37,6 +38,8 @@ export const ProfilePageContentList: React.FC = () => {
     clipsLoaded,
     isLoading,
   } = useProfilePageContentContext();
+  const tFeatures = useTranslations('features');
+  const tMedia = useTranslations('media');
 
   if (selectedTab === 'podcasts') {
     // Show the loading spinner when data has not loaded yet.
@@ -49,7 +52,7 @@ export const ProfilePageContentList: React.FC = () => {
       podcastsLoaded && !isLoading && podcastsPage <= 1 && podcasts.length === 0;
 
     if (showNoResults) {
-      return <NoResults />;
+      return <NoResults message={tMedia('podcast.no_podcasts_found')} />;
     }
 
     return (
@@ -79,7 +82,7 @@ export const ProfilePageContentList: React.FC = () => {
     const showNoResults = albumsLoaded && !isLoading && albumsPage <= 1 && albums.length === 0;
 
     if (showNoResults) {
-      return <NoResults />;
+      return <NoResults message={tMedia('music.no_albums_found')} />;
     }
 
     return (
@@ -109,7 +112,7 @@ export const ProfilePageContentList: React.FC = () => {
       playlistsLoaded && !isLoading && playlistsPage <= 1 && playlists.length === 0;
 
     if (showNoResults) {
-      return <NoResults />;
+      return <NoResults message={tFeatures('playlist.no_playlists_found')} />;
     }
 
     return (
@@ -137,7 +140,7 @@ export const ProfilePageContentList: React.FC = () => {
     const showNoResults = clipsLoaded && !isLoading && clipsPage <= 1 && clips.length === 0;
 
     if (showNoResults) {
-      return <NoResults />;
+      return <NoResults message={tFeatures('clip.no_clips_found')} />;
     }
 
     return (

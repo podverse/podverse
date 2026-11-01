@@ -21,6 +21,7 @@ import { useModals } from '../../../../contexts/Modals';
 import { getApiRequestService, getClientApiBaseUrl } from '../../../../factories/apiRequestService';
 import { useMembershipGate } from '../../../../hooks/useMembershipGate';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
+import { NoResults } from '../../../NoResults/NoResults';
 import { showToast } from '../../../Toast/Toast';
 import { SettingsSection } from '../../SettingsSection';
 import type {
@@ -255,7 +256,9 @@ export function SettingsDeveloper() {
             </Button>
           </>
         ) : null}
-        {state.status === 'ready' && state.rows.length === 0 ? <p>{t('empty')}</p> : null}
+        {state.status === 'ready' && state.rows.length === 0 ? (
+          <NoResults message={t('empty')} role="status" />
+        ) : null}
         {state.status === 'ready' && state.rows.length > 0 ? (
           <ul className={styles.rows} aria-labelledby="settings-api-keys-heading">
             {state.rows.map((row) => {

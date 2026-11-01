@@ -6,7 +6,7 @@ import React from 'react';
 
 import {
   buildDTOChannelImageLoadCandidates,
-  formatDateTimeAbbrev,
+  formatDateAbbrev,
   isDescriptionTruncated,
   prependDistinctImageCandidate,
 } from '@podverse/helpers';
@@ -196,6 +196,14 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
         return tMedia('podcast.episodes');
     }
   })();
+  const emptyItemsMessage = (() => {
+    switch (resourceType) {
+      case 'artists':
+        return tMedia('music.no_artists_found');
+      case 'tracks':
+        return tMedia('music.no_tracks_found');
+    }
+  })();
   const statusLabel = feed.status ? tFeatures(`add_by_rss.status_${feed.status}`) : undefined;
   const isAwaitingFirstItems =
     mappedFeed === undefined && (feed.status === 'queued' || feed.status === 'processing');
@@ -251,11 +259,13 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
             <section className={styles.items}>
               <h3 className={styles.itemsHeader}>{itemsLabel}</h3>
               {items.length === 0 ? (
-                <p className={styles.emptyItems} role={isAwaitingFirstItems ? 'status' : undefined}>
-                  {isAwaitingFirstItems
-                    ? `${tFeatures('add_by_rss.status')}: ${statusLabel ?? feed.status}`
-                    : tFeatures('add_by_rss.no_feeds')}
-                </p>
+                isAwaitingFirstItems ? (
+                  <p className={styles.emptyItems} role="status">
+                    {`${tFeatures('add_by_rss.status')}: ${statusLabel ?? feed.status}`}
+                  </p>
+                ) : (
+                  <NoResults message={emptyItemsMessage} role="status" />
+                )
               ) : (
                 <ul className={styles.itemsList}>
                   {items.map((bundle, index) => (
@@ -263,7 +273,7 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
                       <div className={styles.itemTitle}>{bundle.item.title}</div>
                       {bundle.item.pub_date && (
                         <div className={styles.itemDate}>
-                          {formatDateTimeAbbrev(bundle.item.pub_date, locale)}
+                          {formatDateAbbrev(bundle.item.pub_date, locale)}
                         </div>
                       )}
                     </li>

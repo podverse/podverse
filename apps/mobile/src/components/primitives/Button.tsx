@@ -34,6 +34,8 @@ export type ButtonProps = {
   loading?: boolean;
   fullWidth?: boolean;
   accessibilityLabel?: string;
+  /** Marks a choice in a set, such as the selected weight. */
+  selected?: boolean;
   testID?: string;
 };
 
@@ -139,6 +141,7 @@ export const Button = memo(function Button({
   loading = false,
   fullWidth = false,
   accessibilityLabel,
+  selected = false,
   testID,
 }: ButtonProps) {
   const { styles: themeStyles, tokens } = useTheme();
@@ -241,7 +244,7 @@ export const Button = memo(function Button({
     <Pressable
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole="button"
-      accessibilityState={{ busy: loading, disabled: isDisabled }}
+      accessibilityState={{ busy: loading, disabled: isDisabled, selected }}
       delayLongPress={delayLongPress}
       disabled={isDisabled}
       onLongPress={onLongPress}

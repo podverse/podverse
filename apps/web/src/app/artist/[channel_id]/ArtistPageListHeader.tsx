@@ -58,18 +58,10 @@ export const ArtistPageListHeader: React.FC<ArtistPageListHeaderProps> = ({
     });
   }
 
-  if (ssrCanShowBoosts) {
-    items.push({
-      key: 'boosts',
-      label: tValue('boost'),
-    });
-  }
-
   if (ssrHasDescription) {
     items.push({
       key: 'about',
       label: tInfo('about'),
-      hideDesktop: true,
     });
   }
 
@@ -77,7 +69,13 @@ export const ArtistPageListHeader: React.FC<ArtistPageListHeaderProps> = ({
     items.push({
       key: 'podroll',
       label: tInfo('podroll'),
-      hideDesktop: true,
+    });
+  }
+
+  if (ssrCanShowBoosts) {
+    items.push({
+      key: 'boosts',
+      label: tValue('boost'),
     });
   }
 
@@ -85,7 +83,6 @@ export const ArtistPageListHeader: React.FC<ArtistPageListHeaderProps> = ({
     items.push({
       key: 'people',
       label: tInfo('people.people'),
-      hideDesktop: true,
     });
   }
 

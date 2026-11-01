@@ -129,7 +129,7 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
 
     const { locale } = params;
 
-    await this.repositoryRead
+    await this.repositoryReadWrite
       .createQueryBuilder()
       .update(AccountWebPushDevice)
       .set({ locale })

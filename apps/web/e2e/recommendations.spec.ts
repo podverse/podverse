@@ -8,7 +8,7 @@ import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 const API_LOGIN_URL = 'http://localhost:4030/api/v2/auth/login';
 const API_BASE = 'http://localhost:4030/api/v2';
 const CHECK_BACK_TEXT =
-  'Recommendations update as you listen. A show other people have not listened to yet can stay empty until the nightly update.';
+  'Recommendations update as you subscribe to content and as you listen. A show other people have not listened to yet can stay empty until the nightly update.';
 
 async function loginViaApi(page: Page): Promise<void> {
   const loginResponse = await page.request.post(API_LOGIN_URL, {
@@ -50,13 +50,13 @@ test.describe('Recommendations page', () => {
     );
   });
 
-  test('Edit Recommendations opens Settings, Hide removes a mocked suggestion, and Unhide clears Hidden Channels.', async ({
+  test('Edit opens Settings, Hide removes a mocked suggestion, and Unhide clears Hidden Channels.', async ({
     page,
   }, testInfo) => {
     await loginViaApi(page);
     await page.goto('/recommendations');
 
-    const editButton = page.getByRole('button', { name: 'Edit Recommendations' });
+    const editButton = page.getByRole('button', { name: 'Edit', exact: true });
     await expect(editButton).toBeVisible();
     const actions = page.getByTestId('recommendations-list-actions');
     const chips = page.getByTestId('media-list-chips');
@@ -67,7 +67,7 @@ test.describe('Recommendations page', () => {
     const wideEditBox = await editButton.boundingBox();
     expect(wideActionsBox, 'actions row is in the layout').not.toBeNull();
     expect(wideChipsBox, 'chip row is in the layout').not.toBeNull();
-    expect(wideEditBox, 'Edit Recommendations is in the layout').not.toBeNull();
+    expect(wideEditBox, 'Edit is in the layout').not.toBeNull();
     if (wideActionsBox !== null && wideChipsBox !== null && wideEditBox !== null) {
       expect(wideActionsBox.x).toBeGreaterThanOrEqual(wideChipsBox.x + wideChipsBox.width - 1);
       expect(wideActionsBox.y).toBeLessThan(wideChipsBox.y + wideChipsBox.height);
@@ -95,15 +95,10 @@ test.describe('Recommendations page', () => {
 
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    await actionAndCapture(
-      page,
-      testInfo,
-      'Edit Recommendations opens Taste Profile settings.',
-      async () => {
-        await editButton.click();
-        await expect(page).toHaveURL(/\/settings\?tab=recommendations/);
-      }
-    );
+    await actionAndCapture(page, testInfo, 'Edit opens Taste Profile settings.', async () => {
+      await editButton.click();
+      await expect(page).toHaveURL(/\/settings\?tab=recommendations/);
+    });
 
     await page.route(
       (url) =>

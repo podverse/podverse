@@ -16,16 +16,18 @@ import {
   getPathFromState as getDefaultPathFromState,
   NavigationContainer,
   StackActions,
+  useNavigation,
 } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints } from '@podverse/design-tokens';
 import { APP_ROUTES, MOBILE_HOME_TAB_SEGMENT } from '@podverse/helpers';
+import { getChannelRouteKind } from '@podverse/helpers/medium';
 
 import { useAuth } from '../auth/AuthProvider';
 import { GlobalActivityBar } from '../components/feedback/GlobalActivityBar';
@@ -137,7 +139,9 @@ import type { PodcastDetailRouteParams } from './podcastDetailParams';
 import { buildPodcastDetailParams } from './podcastDetailParams';
 import type { SearchResultDetailParams } from './searchResultDetailParams';
 import { buildSearchResultDetailParams } from './searchResultDetailParams';
+import { SlideUpDismissGesture } from './SlideUpDismissGesture';
 import {
+  buildRootSlideUpDismissOptions,
   MAKE_CLIP_SCREEN_OPTIONS,
   ROOT_SEARCH_ROUTE_NAME,
   ROOT_SLIDE_UP_SCREEN_OPTIONS,
@@ -261,7 +265,10 @@ export const MORE_STACK_ROUTES = {
   MorePublicProfile: 'MorePublicProfile',
   MoreProfile: 'MoreProfile',
   MoreProfileEdit: 'MoreProfileEdit',
+  AlbumDetail: 'AlbumDetail',
+  ClipDetail: 'ClipDetail',
   PlaylistDetail: 'PlaylistDetail',
+  PodcastDetail: 'PodcastDetail',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
   MoreSettingsAppearance: 'MoreSettingsAppearance',
@@ -543,9 +550,10 @@ export type HomeStackParamList = ChannelBrowseStackParamList &
 export type SearchStackParamList = ChannelBrowseStackParamList &
   AddByRssDetailStackParamList & {
     /**
-     * `autoFocus` clears the field and focuses it. Home's search control and empty-state button
-     * send it. `medium` optionally selects the All / Music chip (and persists it) before the field
-     * focuses. Both are consumed on focus so returning from a result keeps the query.
+     * `autoFocus` focuses the field. The field is cleared only when Search has no saved query.
+     * The Home search control and the empty-state button send it. `medium` optionally selects
+     * the All / Music chip (and persists it) before the field focuses. Both are consumed on focus
+     * so a saved query stays when Search opens again.
      */
     SearchRoot: { autoFocus?: boolean; medium?: 'all' | 'music' } | undefined;
   };
@@ -598,7 +606,10 @@ export type MoreStackParamList = {
   MorePublicProfile: { accountIdText: string };
   MoreProfile: undefined;
   MoreProfileEdit: undefined;
+  AlbumDetail: AlbumDetailRouteParams;
+  ClipDetail: { clipId: string };
   PlaylistDetail: { playlistId: string };
+  PodcastDetail: PodcastDetailRouteParams;
   MoreRoot: undefined;
   MoreSettings: undefined;
   MoreSettingsAppearance: undefined;
@@ -664,6 +675,96 @@ const returnToMainTabs = (
 ): void => {
   navigation.navigate(ROOT_STACK_ROUTES.MainTabs, params, { pop: true });
 };
+
+export type ParsedSearchChannelInput = {
+  idText: string;
+  imageUrl: string | null;
+  isSubscribed: boolean;
+  mediumId: number;
+  title: string;
+  visibleTabIds: readonly ContentTabId[];
+};
+
+/**
+ * Close the Search card and open this channel from the root of Home (followed) or Browse
+ * (not followed). Back returns to that tab's first screen.
+ */
+export function openParsedSearchChannel(
+  navigation: NavigationProp<ParamListBase>,
+  input: ParsedSearchChannelInput
+): void {
+  const parent = navigation.getParent();
+  if (parent === undefined || !isRootStackNavigation(parent)) {
+    return;
+  }
+
+  const kind = getChannelRouteKind(input.mediumId);
+  const preview = {
+    previewImageUrl: input.imageUrl,
+    previewIsSubscribed: input.isSubscribed,
+    previewTitle: input.title,
+  };
+  const detail =
+    kind === 'artist'
+      ? {
+          name: HOME_STACK_ROUTES.ArtistDetail,
+          params: buildArtistDetailParams({ artistId: input.idText, ...preview }),
+        }
+      : kind === 'album'
+        ? {
+            name: HOME_STACK_ROUTES.AlbumDetail,
+            params: buildAlbumDetailParams({ albumId: input.idText, ...preview }),
+          }
+        : {
+            name: HOME_STACK_ROUTES.PodcastDetail,
+            params: buildPodcastDetailParams({ podcastId: input.idText, ...preview }),
+          };
+
+  const rootName = input.isSubscribed ? HOME_STACK_ROUTES.HomeRoot : BROWSE_STACK_ROUTES.BrowseRoot;
+  const stackParams = {
+    state: {
+      index: 1,
+      routes: [{ name: rootName }, detail],
+    },
+  };
+
+  if (input.isSubscribed) {
+    if (input.visibleTabIds.includes('Home')) {
+      returnToMainTabs(parent, { params: stackParams, screen: 'Home' });
+      return;
+    }
+    returnToMainTabs(parent, {
+      params: {
+        initial: false,
+        params: stackParams,
+        screen: MORE_STACK_ROUTES.MoreOverflowHome,
+      },
+      screen: 'More',
+    });
+    return;
+  }
+
+  if (input.visibleTabIds.includes('Browse')) {
+    returnToMainTabs(parent, { params: stackParams, screen: 'Browse' });
+    return;
+  }
+  returnToMainTabs(parent, {
+    params: {
+      initial: false,
+      params: stackParams,
+      screen: MORE_STACK_ROUTES.MoreOverflowBrowse,
+    },
+    screen: 'More',
+  });
+}
+
+function isRootStackNavigation(
+  navigation: NavigationProp<ParamListBase>
+): navigation is NavigationProp<ParamListBase> & {
+  navigate: NavigationProp<RootStackParamList>['navigate'];
+} {
+  return navigation.getState().type === 'stack';
+}
 
 const openFullPlayerContent = (
   navigation: NavigationProp<RootStackParamList>,
@@ -1152,85 +1253,117 @@ function HomeStackNavigator() {
 function SearchStackNavigator() {
   const { t } = useTranslation();
   const screenOptions = useThemedNativeStackScreenOptions();
+  // Outside the inner navigator this is the root Search card.
+  const rootNavigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const [dismissFromRoot, setDismissFromRoot] = useState(true);
+
+  const syncRootDismissGesture = useCallback(
+    (isRootRoute: boolean) => {
+      setDismissFromRoot(isRootRoute);
+      rootNavigation.setOptions({ gestureEnabled: isRootRoute });
+    },
+    [rootNavigation]
+  );
+
+  const dismissSearchCard = useCallback(() => {
+    if (rootNavigation.canGoBack()) {
+      rootNavigation.goBack();
+      return;
+    }
+    rootNavigation.navigate(ROOT_STACK_ROUTES.MainTabs);
+  }, [rootNavigation]);
 
   return (
-    <SearchStack.Navigator screenOptions={screenOptions}>
-      <SearchStack.Screen
-        component={SearchScreen}
-        name={SEARCH_STACK_ROUTES.SearchRoot}
-        options={{ title: t('features.search.search') }}
-      />
-      <SearchStack.Screen
-        component={PodcastIndexFeedPreviewScreen}
-        name={SEARCH_STACK_ROUTES.SearchResultDetail}
-        options={{ title: t('nav.stack.search_result') }}
-      />
-      <SearchStack.Screen
-        component={PodcastDetailScreen}
-        name={SEARCH_STACK_ROUTES.PodcastDetail}
-        options={{ title: t('media.podcast.podcast') }}
-      />
-      <SearchStack.Screen
-        component={EpisodeDetailScreen}
-        name={SEARCH_STACK_ROUTES.EpisodeDetail}
-        options={{ title: t('media.podcast.episode') }}
-      />
-      <SearchStack.Screen
-        component={ClipDetailScreen}
-        name={SEARCH_STACK_ROUTES.ClipDetail}
-        options={{ title: t('features.clip.clip') }}
-      />
-      <SearchStack.Screen
-        component={ArtistDetailScreen}
-        name={SEARCH_STACK_ROUTES.ArtistDetail}
-        options={{ title: t('media.music.artist') }}
-      />
-      <SearchStack.Screen
-        component={AlbumDetailScreen}
-        name={SEARCH_STACK_ROUTES.AlbumDetail}
-        options={{ title: t('media.music.album') }}
-      />
-      <SearchStack.Screen
-        component={AddByRssHomeDetailScreen}
-        name={SEARCH_STACK_ROUTES.AddByRssPodcastDetail}
-        options={{ title: t('media.podcast.podcast') }}
-      />
-      <SearchStack.Screen
-        component={AddByRssEpisodeDetailScreen}
-        name={SEARCH_STACK_ROUTES.AddByRssEpisodeDetail}
-        options={{ title: t('media.podcast.episode') }}
-      />
-      <SearchStack.Screen
-        component={AddByRssLivestreamDetailScreen}
-        name={SEARCH_STACK_ROUTES.AddByRssLivestreamDetail}
-        options={{ title: t('media.livestream.livestream') }}
-      />
-      <SearchStack.Screen
-        component={AddByRssTrackDetailScreen}
-        name={SEARCH_STACK_ROUTES.AddByRssTrackDetail}
-        options={{ title: t('media.music.track') }}
-      />
-      <SearchStack.Screen
-        component={AddByRssCredentialsScreen}
-        name={SEARCH_STACK_ROUTES.AddByRssCredentials}
-        options={{ title: t('features.add_by_rss.credentials_page_title') }}
-      />
-      <SearchStack.Screen
-        component={AddByRssRemoteFeedScreen}
-        name={SEARCH_STACK_ROUTES.AddByRssRemoteFeedDetail}
-        options={{ title: t('features.add_by_rss.label') }}
-      />
-      <SearchStack.Screen
-        component={TrackDetailScreen}
-        name={SEARCH_STACK_ROUTES.TrackDetail}
-        options={{ title: t('media.music.track') }}
-      />
-      <SearchStack.Screen
-        component={PlaylistFormScreen}
-        name={SEARCH_STACK_ROUTES.PlaylistCreate}
-        options={{ title: t('features.playlist.create_playlist') }}
-      />
-    </SearchStack.Navigator>
+    <SlideUpDismissGesture
+      enabled={Platform.OS === 'android' && dismissFromRoot}
+      onDismiss={dismissSearchCard}
+    >
+      <SearchStack.Navigator
+        screenListeners={{
+          state: (event) => {
+            const index = event.data.state?.index ?? 0;
+            syncRootDismissGesture(index === 0);
+          },
+        }}
+        screenOptions={screenOptions}
+      >
+        <SearchStack.Screen
+          component={SearchScreen}
+          name={SEARCH_STACK_ROUTES.SearchRoot}
+          options={{ title: t('features.search.search') }}
+        />
+        <SearchStack.Screen
+          component={PodcastIndexFeedPreviewScreen}
+          name={SEARCH_STACK_ROUTES.SearchResultDetail}
+          options={{ title: t('nav.stack.search_result') }}
+        />
+        <SearchStack.Screen
+          component={PodcastDetailScreen}
+          name={SEARCH_STACK_ROUTES.PodcastDetail}
+          options={{ title: t('media.podcast.podcast') }}
+        />
+        <SearchStack.Screen
+          component={EpisodeDetailScreen}
+          name={SEARCH_STACK_ROUTES.EpisodeDetail}
+          options={{ title: t('media.podcast.episode') }}
+        />
+        <SearchStack.Screen
+          component={ClipDetailScreen}
+          name={SEARCH_STACK_ROUTES.ClipDetail}
+          options={{ title: t('features.clip.clip') }}
+        />
+        <SearchStack.Screen
+          component={ArtistDetailScreen}
+          name={SEARCH_STACK_ROUTES.ArtistDetail}
+          options={{ title: t('media.music.artist') }}
+        />
+        <SearchStack.Screen
+          component={AlbumDetailScreen}
+          name={SEARCH_STACK_ROUTES.AlbumDetail}
+          options={{ title: t('media.music.album') }}
+        />
+        <SearchStack.Screen
+          component={AddByRssHomeDetailScreen}
+          name={SEARCH_STACK_ROUTES.AddByRssPodcastDetail}
+          options={{ title: t('media.podcast.podcast') }}
+        />
+        <SearchStack.Screen
+          component={AddByRssEpisodeDetailScreen}
+          name={SEARCH_STACK_ROUTES.AddByRssEpisodeDetail}
+          options={{ title: t('media.podcast.episode') }}
+        />
+        <SearchStack.Screen
+          component={AddByRssLivestreamDetailScreen}
+          name={SEARCH_STACK_ROUTES.AddByRssLivestreamDetail}
+          options={{ title: t('media.livestream.livestream') }}
+        />
+        <SearchStack.Screen
+          component={AddByRssTrackDetailScreen}
+          name={SEARCH_STACK_ROUTES.AddByRssTrackDetail}
+          options={{ title: t('media.music.track') }}
+        />
+        <SearchStack.Screen
+          component={AddByRssCredentialsScreen}
+          name={SEARCH_STACK_ROUTES.AddByRssCredentials}
+          options={{ title: t('features.add_by_rss.credentials_page_title') }}
+        />
+        <SearchStack.Screen
+          component={AddByRssRemoteFeedScreen}
+          name={SEARCH_STACK_ROUTES.AddByRssRemoteFeedDetail}
+          options={{ title: t('features.add_by_rss.label') }}
+        />
+        <SearchStack.Screen
+          component={TrackDetailScreen}
+          name={SEARCH_STACK_ROUTES.TrackDetail}
+          options={{ title: t('media.music.track') }}
+        />
+        <SearchStack.Screen
+          component={PlaylistFormScreen}
+          name={SEARCH_STACK_ROUTES.PlaylistCreate}
+          options={{ title: t('features.playlist.create_playlist') }}
+        />
+      </SearchStack.Navigator>
+    </SlideUpDismissGesture>
   );
 }
 
@@ -1624,6 +1757,21 @@ function MoreStackNavigator({
         component={MyProfileEditScreen}
         name={MORE_STACK_ROUTES.MoreProfileEdit}
         options={{ title: t('settings.profile.profile') }}
+      />
+      <MoreStack.Screen
+        component={PodcastDetailScreen}
+        name={MORE_STACK_ROUTES.PodcastDetail}
+        options={{ title: t('media.podcast.podcast') }}
+      />
+      <MoreStack.Screen
+        component={AlbumDetailScreen}
+        name={MORE_STACK_ROUTES.AlbumDetail}
+        options={{ title: t('media.music.album') }}
+      />
+      <MoreStack.Screen
+        component={ClipDetailScreen}
+        name={MORE_STACK_ROUTES.ClipDetail}
+        options={{ title: t('features.clip.clip') }}
       />
       <MoreStack.Screen
         component={PlaylistDetailScreen}
@@ -2232,6 +2380,11 @@ export function MobileTabNavigator({
 }: MobileTabNavigatorProps) {
   const navigationTheme = useNavigationTheme();
   const { visibleTabIds } = useTabLayout();
+  const insets = useSafeAreaInsets();
+  const slideUpDismissOptions = useMemo(
+    () => buildRootSlideUpDismissOptions(insets.top),
+    [insets.top]
+  );
 
   useEffect(() => {
     if (pendingDeepLinkUrl === null || !rootNavigationRef.isReady()) {
@@ -2267,39 +2420,44 @@ export function MobileTabNavigator({
               />
             )}
           </RootStack.Screen>
-          <RootStack.Screen
-            name={ROOT_STACK_ROUTES.FullPlayer}
-            options={ROOT_SLIDE_UP_SCREEN_OPTIONS}
-          >
-            {(props) => (
-              <FullPlayerScreen
-                onOpenContent={(request) => {
-                  openFullPlayerContent(props.navigation, request, visibleTabIds);
-                }}
-                onOpenItem={(request) => {
-                  openFullPlayerItem(props.navigation, request, visibleTabIds);
-                }}
-                onClose={() => {
-                  if (props.navigation.canGoBack()) {
-                    props.navigation.goBack();
-                    return;
-                  }
-                  props.navigation.navigate(ROOT_STACK_ROUTES.MainTabs);
-                }}
-                onOpenMakeClip={(params) => {
-                  props.navigation.navigate(ROOT_STACK_ROUTES.MakeClip, params);
-                }}
-                onOpenQueue={() => {
-                  returnToMainTabs(props.navigation, {
-                    params: { screen: LIBRARY_STACK_ROUTES.LibraryQueue },
-                    screen: 'My Library',
-                  });
-                }}
-                onOpenV4v={() => {
-                  props.navigation.navigate(ROOT_STACK_ROUTES.V4vInfo);
-                }}
-              />
-            )}
+          <RootStack.Screen name={ROOT_STACK_ROUTES.FullPlayer} options={slideUpDismissOptions}>
+            {(props) => {
+              const closeFullPlayer = () => {
+                if (props.navigation.canGoBack()) {
+                  props.navigation.goBack();
+                  return;
+                }
+                props.navigation.navigate(ROOT_STACK_ROUTES.MainTabs);
+              };
+              return (
+                <SlideUpDismissGesture
+                  enabled={Platform.OS === 'android'}
+                  onDismiss={closeFullPlayer}
+                >
+                  <FullPlayerScreen
+                    onOpenContent={(request) => {
+                      openFullPlayerContent(props.navigation, request, visibleTabIds);
+                    }}
+                    onOpenItem={(request) => {
+                      openFullPlayerItem(props.navigation, request, visibleTabIds);
+                    }}
+                    onClose={closeFullPlayer}
+                    onOpenMakeClip={(params) => {
+                      props.navigation.navigate(ROOT_STACK_ROUTES.MakeClip, params);
+                    }}
+                    onOpenQueue={() => {
+                      returnToMainTabs(props.navigation, {
+                        params: { screen: LIBRARY_STACK_ROUTES.LibraryQueue },
+                        screen: 'My Library',
+                      });
+                    }}
+                    onOpenV4v={() => {
+                      props.navigation.navigate(ROOT_STACK_ROUTES.V4vInfo);
+                    }}
+                  />
+                </SlideUpDismissGesture>
+              );
+            }}
           </RootStack.Screen>
           <RootStack.Screen
             component={MakeClipScreen}
@@ -2314,17 +2472,17 @@ export function MobileTabNavigator({
           <RootStack.Screen
             component={ImageViewerScreen}
             name={ROOT_STACK_ROUTES.ImageViewer}
-            options={ROOT_SLIDE_UP_SCREEN_OPTIONS}
+            options={slideUpDismissOptions}
           />
           <RootStack.Screen
             component={NotificationsInboxScreen}
             name={ROOT_STACK_ROUTES.NotificationsInbox}
-            options={ROOT_SLIDE_UP_SCREEN_OPTIONS}
+            options={slideUpDismissOptions}
           />
           <RootStack.Screen
             component={SearchStackNavigator}
             name={ROOT_STACK_ROUTES.Search}
-            options={ROOT_SLIDE_UP_SCREEN_OPTIONS}
+            options={slideUpDismissOptions}
           />
         </RootStack.Navigator>
         <PlaybackE2eStatus />

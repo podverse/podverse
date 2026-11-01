@@ -11,12 +11,7 @@ import { DEFAULT_QUEUE_LIST_MEDIUM, getQueueMediumIdFromType } from '@podverse/h
 import { useAuth } from '../../auth/AuthProvider';
 import type { OptionChipOption } from '../../components/form/OptionChipGroup';
 import { OptionChipGroup } from '../../components/form/OptionChipGroup';
-import {
-  FillList,
-  ReorderHandle,
-  SwipeActionRow,
-  VerticalCenter,
-} from '../../components/primitives';
+import { FillList, ReorderHandle, SwipeActionRow } from '../../components/primitives';
 import type { ReorderDropEvent } from '../../components/reorder/ReorderableSections';
 import { ReorderableSections } from '../../components/reorder/ReorderableSections';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
@@ -644,14 +639,10 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       return <LoadingSection testID="library-queue-loading" />;
     }
     if (queueFill === 'error' && errorKey !== null) {
-      return (
-        <VerticalCenter>
-          <ListError messageKey={errorKey} onRetry={handleRetry} testID="library-queue-error" />
-        </VerticalCenter>
-      );
+      return <ListError messageKey={errorKey} onRetry={handleRetry} testID="library-queue-error" />;
     }
     if (queueFill === 'empty') {
-      return <ListEmpty align="start" messageKey={emptyMessageKey} testID="library-queue-empty" />;
+      return <ListEmpty messageKey={emptyMessageKey} testID="library-queue-empty" />;
     }
     return null;
   }, [emptyMessageKey, errorKey, handleRetry, queueFill]);

@@ -1,3 +1,5 @@
+export { ChipAction } from './ChipAction';
+export type { ChipActionProps } from './ChipAction';
 export { ChipRowWithActions } from './ChipRowWithActions';
 export type { ChipRowWithActionsProps } from './ChipRowWithActions';
 export { FormActions } from './FormActions';

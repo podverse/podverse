@@ -12,6 +12,7 @@ import { Button, SearchInput, VirtualizedList } from '@podverse/ui';
 
 import { useMediaPlayerControls } from '../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
+import { NoResults } from '../NoResults/NoResults';
 import { ItemTranscriptRow } from './ItemTranscriptRow';
 
 import styles from '../../styles/components/ItemTranscript/ItemTranscript.module.scss';
@@ -66,6 +67,7 @@ export const ItemTranscript = ({ rows }: ItemTranscriptProps) => {
   );
 
   const highlightedIndex = findActiveTranscriptRowIndex(filteredRows, mpCurrentTime);
+  const showFilterEmpty = searchTerm.trim() !== '' && filteredRows.length === 0;
 
   return (
     <div className={styles.transcriptWrapper}>
@@ -83,20 +85,24 @@ export const ItemTranscript = ({ rows }: ItemTranscriptProps) => {
         </Button>
       </div>
       <div className={styles.transcriptListSlot} ref={listSlotRef}>
-        <VirtualizedList
-          items={filteredRows}
-          height={listHeight}
-          highlightedIndex={highlightedIndex}
-          autoScrollOn={autoScrollOn}
-          renderItem={(row, idx) => (
-            <ItemTranscriptRow
-              key={row.line ?? idx}
-              row={row}
-              highlight={highlightedIndex === idx}
-              onClick={() => handleRowClick(row.startTime)}
-            />
-          )}
-        />
+        {showFilterEmpty ? (
+          <NoResults role="status" />
+        ) : (
+          <VirtualizedList
+            items={filteredRows}
+            height={listHeight}
+            highlightedIndex={highlightedIndex}
+            autoScrollOn={autoScrollOn}
+            renderItem={(row, idx) => (
+              <ItemTranscriptRow
+                key={row.line ?? idx}
+                row={row}
+                highlight={highlightedIndex === idx}
+                onClick={() => handleRowClick(row.startTime)}
+              />
+            )}
+          />
+        )}
       </div>
     </div>
   );

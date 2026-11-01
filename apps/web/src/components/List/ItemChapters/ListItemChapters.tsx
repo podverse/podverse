@@ -6,6 +6,7 @@ import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
+import { NoResults } from '../../NoResults/NoResults';
 import { Pagination } from '../../Pagination/Pagination';
 import { ListItemChapterRow } from './ListItemChapterRow';
 
@@ -18,6 +19,9 @@ type ListItemChaptersProps = {
   totalPages: number;
   onPlayChapter?: (chapter: DTOItemChapter) => void;
   getChapterHref?: (chapter: DTOItemChapter) => string;
+  /** Shown in the shared empty banner once the list has settled with no rows. */
+  emptyMessage?: string;
+  isLoading?: boolean;
 };
 
 export const ListItemChapters: React.FC<ListItemChaptersProps> = ({
@@ -29,10 +33,16 @@ export const ListItemChapters: React.FC<ListItemChaptersProps> = ({
   totalPages,
   onPlayChapter,
   getChapterHref,
+  emptyMessage,
+  isLoading = false,
 }) => {
   useSkipInitialEffect(() => {
     scrollMainToTop();
   }, [item_chapters]);
+
+  if (emptyMessage !== undefined && !isLoading && page <= 1 && item_chapters.length === 0) {
+    return <NoResults message={emptyMessage} role="status" />;
+  }
 
   return (
     <Pagination currentPage={page} totalPages={totalPages} setPage={setPage}>

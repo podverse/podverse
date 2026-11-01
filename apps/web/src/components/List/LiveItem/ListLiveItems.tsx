@@ -4,12 +4,13 @@ import { useTranslations } from 'next-intl';
 import React, { useRef } from 'react';
 
 import type { DTOItem } from '@podverse/helpers';
-import { CallToActionMessage, InfoWrapper } from '@podverse/ui';
+import { CallToActionMessage } from '@podverse/ui';
 
 import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
+import { NoResults } from '../../NoResults/NoResults';
 import { Pagination } from '../../Pagination/Pagination';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { ListLiveItemNodes } from './ListLiveItemNodes';
@@ -60,11 +61,7 @@ export const ListLiveItems: React.FC<Props> = ({
   const showNoContentFound = page <= 1 && items.length === 0;
 
   if (showNoContentFound) {
-    return (
-      <InfoWrapper>
-        <p>{tMedia('livestream.no_livestreams_found')}</p>
-      </InfoWrapper>
-    );
+    return <NoResults message={tMedia('livestream.no_livestreams_found')} role="status" />;
   }
 
   return (

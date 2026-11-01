@@ -1,6 +1,7 @@
 'use client';
 
 import type { SortPrefScope } from '@podverse/helpers';
+import { categoryChipPressAction } from '@podverse/helpers';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
 import { useListViewMode } from '../../hooks/useListViewMode';
@@ -27,6 +28,8 @@ type MediaListTrailingChipsProps<
     value: string | null;
     isListOpen: boolean;
     setIsListOpen: (open: boolean) => void;
+    /** Drops the chosen category and returns the list to the unfiltered directory. */
+    onClear: () => void;
   };
   /** Lists that render one layout leave the gear out. */
   showViewSelector: boolean;
@@ -56,7 +59,17 @@ export function MediaListTrailingChips<
         <CategoriesChip
           category={category.value}
           isListOpen={category.isListOpen}
-          onToggle={() => category.setIsListOpen(!category.isListOpen)}
+          onToggle={() => {
+            const action = categoryChipPressAction({
+              category: category.value,
+              isListOpen: category.isListOpen,
+            });
+            if (action === 'clear') {
+              category.onClear();
+              return;
+            }
+            category.setIsListOpen(action === 'open');
+          }}
         />
       ) : null}
       {isCategoryListOpen ? null : (

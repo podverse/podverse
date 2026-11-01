@@ -123,7 +123,7 @@ describe('MediaListTrailingChips', () => {
   it('renders Categories, then Sort, then the gear while the category list is closed', () => {
     const { container } = render(
       <MediaListTrailingChips
-        category={{ value: null, isListOpen: false, setIsListOpen: vi.fn() }}
+        category={{ value: null, isListOpen: false, onClear: vi.fn(), setIsListOpen: vi.fn() }}
         filterParams={GLOBAL_RECENT}
         setFilterParams={vi.fn()}
         showViewSelector
@@ -138,11 +138,12 @@ describe('MediaListTrailingChips', () => {
   });
 
   it('shows only Categories while the category list is open, and pressing it closes the list', () => {
+    const onClear = vi.fn();
     const setIsListOpen = vi.fn<(open: boolean) => void>();
 
     render(
       <MediaListTrailingChips
-        category={{ value: 'arts', isListOpen: true, setIsListOpen }}
+        category={{ value: 'arts', isListOpen: true, onClear, setIsListOpen }}
         filterParams={CATEGORY_TOP_WEEK}
         setFilterParams={vi.fn()}
         showViewSelector
@@ -156,6 +157,43 @@ describe('MediaListTrailingChips', () => {
 
     fireEvent.click(screen.getByTestId('categories-stub'));
     expect(setIsListOpen).toHaveBeenCalledWith(false);
+    expect(onClear).not.toHaveBeenCalled();
+  });
+
+  it('pressing a chosen category clears it instead of opening the list', () => {
+    const onClear = vi.fn();
+    const setIsListOpen = vi.fn<(open: boolean) => void>();
+
+    render(
+      <MediaListTrailingChips
+        category={{ value: 'arts', isListOpen: false, onClear, setIsListOpen }}
+        filterParams={CATEGORY_TOP_WEEK}
+        setFilterParams={vi.fn()}
+        showViewSelector
+        sortOptions={SORT_OPTIONS}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('categories-stub'));
+    expect(onClear).toHaveBeenCalledOnce();
+    expect(setIsListOpen).not.toHaveBeenCalled();
+  });
+
+  it('pressing Categories with nothing chosen opens the list', () => {
+    const setIsListOpen = vi.fn<(open: boolean) => void>();
+
+    render(
+      <MediaListTrailingChips
+        category={{ value: null, isListOpen: false, onClear: vi.fn(), setIsListOpen }}
+        filterParams={GLOBAL_RECENT}
+        setFilterParams={vi.fn()}
+        showViewSelector
+        sortOptions={SORT_OPTIONS}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('categories-stub'));
+    expect(setIsListOpen).toHaveBeenCalledWith(true);
   });
 
   it('leaves the gear out when the list has one layout', () => {

@@ -43,7 +43,6 @@ export function BrowseOverflowMenu({ onViewModeChange, viewMode }: BrowseOverflo
         },
       ],
       key: 'view',
-      title: t('layouts.change_layout_view'),
     },
   ];
 

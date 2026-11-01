@@ -3,15 +3,18 @@
 import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { FaXmark } from 'react-icons/fa6';
 
 import type { DTOAccountTasteProfileChannel } from '@podverse/helpers';
 import { buildDTOChannelImageLoadCandidates, formatDateAbbrev } from '@podverse/helpers';
-import { Accordion, Button, LoadingSpinner, SkeletonFlashImage } from '@podverse/ui';
+import { Accordion, Button, IconButton, LoadingSpinner, SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { useConfig } from '../../../../contexts/Config';
 import type { TasteProfileListState } from '../../../../hooks/useTasteProfileLists';
 import { useTasteProfileLists } from '../../../../hooks/useTasteProfileLists';
+import { NoResults } from '../../../NoResults/NoResults';
+import { showToast } from '../../../Toast/Toast';
 import { SettingsSection } from '../../SettingsSection';
 import { ModalTasteProfileUnhide } from './ModalTasteProfileUnhide';
 import { SettingsTasteProfileConsentSwitch } from './SettingsTasteProfileConsentSwitch';
@@ -115,27 +118,20 @@ export function SettingsTasteProfile() {
                       key={`${idText}-${row.recommendation_weight}-${row.recommendation_weight_override ?? 'auto'}`}
                       channel={row.channel}
                       title={title}
-                      subtitle={
-                        row.last_listened_at === null
-                          ? t('added_back')
-                          : t('last_listened', {
-                              date: formatDateAbbrev(row.last_listened_at, locale),
-                            })
-                      }
-                      actionLabel={t('remove')}
-                      actionAccessibleLabel={t('remove_accessible', { title })}
                       disabled={pendingChannelIds.has(idText)}
-                      onAction={() => {
-                        void hideShow(idText);
-                      }}
                       extra={
                         <WeightControl
                           channelIdText={idText}
                           disabled={pendingChannelIds.has(idText)}
                           title={title}
                           weight={row.recommendation_weight}
-                          weightOverride={row.recommendation_weight_override}
                           onApply={applyWeight}
+                          onHide={async () => {
+                            const moved = await hideShow(idText);
+                            if (moved) {
+                              showToast(t('moved_to_hidden'), 'success');
+                            }
+                          }}
                         />
                       }
                     />
@@ -305,7 +301,7 @@ function TasteProfileListBody<Row extends ShowRow>({
     );
   }
   if (state.data.rows.length === 0) {
-    return <p className={styles.status}>{emptyText}</p>;
+    return <NoResults message={emptyText} role="status" />;
   }
   return (
     <>
@@ -332,11 +328,11 @@ function TasteProfileListBody<Row extends ShowRow>({
 type TasteProfileShowRowProps = {
   channel: DTOAccountTasteProfileChannel;
   title: string;
-  subtitle: string;
-  actionLabel: string;
-  actionAccessibleLabel: string;
+  subtitle?: string;
+  actionLabel?: string;
+  actionAccessibleLabel?: string;
   disabled: boolean;
-  onAction: () => void;
+  onAction?: () => void;
   extra?: ReactNode;
 };
 
@@ -367,18 +363,22 @@ function TasteProfileShowRow({
       />
       <div className={styles.text}>
         <div className={styles.title}>{title}</div>
-        <div className={styles.subtitle}>{subtitle}</div>
+        {subtitle !== undefined ? <div className={styles.subtitle}>{subtitle}</div> : null}
         {extra}
       </div>
-      <Button
-        type="button"
-        variant="secondary"
-        aria-label={actionAccessibleLabel}
-        disabled={disabled}
-        onClick={onAction}
-      >
-        {actionLabel}
-      </Button>
+      {actionLabel !== undefined &&
+      actionAccessibleLabel !== undefined &&
+      onAction !== undefined ? (
+        <Button
+          type="button"
+          variant="secondary"
+          aria-label={actionAccessibleLabel}
+          disabled={disabled}
+          onClick={onAction}
+        >
+          {actionLabel}
+        </Button>
+      ) : null}
     </li>
   );
 }
@@ -389,53 +389,61 @@ function WeightControl({
   channelIdText,
   disabled,
   onApply,
+  onHide,
   title,
   weight,
-  weightOverride,
 }: {
   channelIdText: string;
   disabled: boolean;
-  onApply: (channelIdText: string, weight: number) => Promise<void>;
+  onApply: (channelIdText: string, weight: number) => Promise<boolean>;
+  onHide: () => Promise<void>;
   title: string;
   weight: number;
-  weightOverride: number | null;
 }) {
   const t = useTranslations('taste_profile');
   const [selected, setSelected] = useState(weight);
 
   return (
     <div className={styles.weight}>
-      <label className={styles.weightLabel}>
-        {t('weight_label')}
-        <select
-          aria-label={t('weight_accessible', { level: selected, title })}
-          disabled={disabled}
-          value={selected}
-          onChange={(event) => {
-            setSelected(Number(event.target.value));
-          }}
-        >
-          {WEIGHT_LEVELS.map((level) => (
-            <option key={level} value={level}>
+      <span className={styles.weightLabel}>{t('weight_label')}</span>
+      <div className={styles.weightLevels}>
+        {WEIGHT_LEVELS.map((level) => {
+          const chosen = selected === level;
+          return (
+            <Button
+              key={level}
+              type="button"
+              variant={chosen ? 'primary' : 'secondary'}
+              aria-label={t('weight_accessible', { level, title })}
+              aria-pressed={chosen}
+              disabled={disabled}
+              onClick={() => {
+                if (chosen || disabled) {
+                  return;
+                }
+                setSelected(level);
+                void onApply(channelIdText, level).then((applied) => {
+                  if (!applied) {
+                    setSelected(weight);
+                  }
+                });
+              }}
+            >
               {level}
-            </option>
-          ))}
-        </select>
-      </label>
-      {weightOverride === null ? (
-        <span className={styles.subtitle}>{t('weight_automatic')}</span>
-      ) : null}
-      <Button
-        type="button"
-        variant="secondary"
-        aria-label={t('weight_apply_accessible', { title })}
+            </Button>
+          );
+        })}
+      </div>
+      <IconButton
+        className={styles.weightHide}
+        aria-label={t('hide_accessible', { title })}
         disabled={disabled}
         onClick={() => {
-          void onApply(channelIdText, selected);
+          void onHide();
         }}
       >
-        {t('weight_apply')}
-      </Button>
+        <FaXmark aria-hidden />
+      </IconButton>
     </div>
   );
 }

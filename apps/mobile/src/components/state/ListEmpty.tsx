@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
-import { Button, VerticalCenter } from '../primitives';
+import { Button } from '../primitives';
+import { EmptyStateText } from './EmptyStateText';
 
 type ListEmptyProps = {
   messageKey: string;
@@ -18,27 +18,21 @@ type ListEmptyProps = {
   onAction?: () => void;
   /** Defaults to `${testID}-action`. */
   actionTestID?: string;
-  /**
-   * `center` fills the list body and centers the copy (default).
-   * `start` sits under the list header, left-aligned — same placement as web Recommendations empty.
-   */
-  align?: 'center' | 'start';
 };
 
 /**
- * Localized empty-list copy. Pair with FillList when the empty state is the list body;
- * typography matches CallToActionSection.
+ * Localized empty-list copy at the start of the content column. The sentence is
+ * EmptyStateText. The parent supplies the page inset and the gap under the chips.
  */
 export function ListEmpty({
   actionLabelKey,
   actionTestID,
-  align = 'center',
   messageKey,
   onAction,
   testID = 'list-empty',
 }: ListEmptyProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
 
   const styles = useMemo(
     () =>
@@ -47,32 +41,19 @@ export function ListEmpty({
           marginTop: tokens.spacing.lg,
           width: '100%',
         },
-        content: {
-          alignSelf: 'stretch',
-          width: '100%',
-        },
-        message: {
-          ...typography.subheading,
-          color: themeStyles.textSecondary.color,
-          textAlign: 'center',
-        },
-        messageStart: {
-          ...typography.subheading,
-          color: themeStyles.textSecondary.color,
-          textAlign: 'left',
-        },
-        startRoot: {
+        root: {
           alignSelf: 'stretch',
           width: '100%',
         },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   const showAction = actionLabelKey !== undefined && onAction !== undefined;
-  const body = (
-    <View style={styles.content}>
-      <Text style={align === 'start' ? styles.messageStart : styles.message}>{t(messageKey)}</Text>
+
+  return (
+    <View style={styles.root} testID={testID}>
+      <EmptyStateText message={t(messageKey)} />
       {showAction ? (
         <View style={styles.action}>
           <Button
@@ -87,14 +68,4 @@ export function ListEmpty({
       ) : null}
     </View>
   );
-
-  if (align === 'start') {
-    return (
-      <View style={styles.startRoot} testID={testID}>
-        {body}
-      </View>
-    );
-  }
-
-  return <VerticalCenter testID={testID}>{body}</VerticalCenter>;
 }

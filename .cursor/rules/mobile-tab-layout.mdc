@@ -20,14 +20,15 @@ title stays `nav.tab.recommendations` ("Recommendations").
 Search is not a content tab. It is not in `CONTENT_TAB_IDS`, not a More overflow row, and not a
 row on Settings > Tab Bar. A stored bar that still lists Search is read as Recommendations in
 that slot, and an earlier factory order that included Search is read as the current default.
-The Home search control (`home-search`) raises root route `Search` with
+The Home title-bar search control (`home-search`) raises root route `Search` with
 `ROOT_SLIDE_UP_SCREEN_OPTIONS`. A down caret on Search root dismisses it (testID
-`search-dismiss`). A link whose path is `search` opens that route.
+`search-dismiss`). A link whose path is `search` opens that route. Other tab roots, a pushed
+screen, and a tab opened from More do not show this control.
 
 Notifications is not a content tab. It is not in `CONTENT_TAB_IDS`, not a More overflow row,
-and not a row on Settings > Tab Bar. The Home bell is the in-app control that opens the inbox.
-A link or push whose path is `notifications` opens root route `NotificationsInbox`. The unread
-count is that bell's badge, not a tab badge.
+and not a row on Settings > Tab Bar. The Home title-bar bell is the in-app control that opens
+the inbox. A link or push whose path is `notifications` opens root route `NotificationsInbox`.
+The unread count is that bell's badge, not a tab badge.
 
 English bottom-tab labels follow **ui-copy-casing** (`nav.tab.my_library` → `My Library`), the
 same title case as other chrome. Stack body copy stays sentence case.

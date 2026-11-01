@@ -99,6 +99,7 @@ name: Library Downloads Offline Play
     id: library-downloads-clear-finished
 - assertNotVisible:
     id: library-downloads-usage
+# Resting screenshot: Remove stays under the opaque row until a left swipe.
 - takeScreenshot: library-downloads-list
 
 # Cosmos Classroom is not a follow, so the completed file is only on Home under Downloaded only.

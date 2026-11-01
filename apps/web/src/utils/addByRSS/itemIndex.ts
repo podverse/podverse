@@ -156,12 +156,98 @@ export const getAddByRSSItemsIndexPageOrEmpty = async (params: {
   return result;
 };
 
-export const buildAddByRSSItemsIndex = async (feeds: AddByRSSFeedRecord[]) => {
-  const existingItems = await getAllAddByRSSItems();
-  const existingIdTextMap = new Map<string, string>();
-  for (const item of existingItems) {
-    existingIdTextMap.set(item.id, item.idText);
+/** Newest first. An item with no publish date (`pubDateMs` 0) sorts after dated items. */
+const compareNewestPubDate = (a: AddByRSSItemIndexItem, b: AddByRSSItemIndexItem): number => {
+  const aUndated = a.pubDateMs === 0;
+  const bUndated = b.pubDateMs === 0;
+  if (aUndated && bUndated) {
+    return 0;
   }
+  if (aUndated) {
+    return 1;
+  }
+  if (bUndated) {
+    return -1;
+  }
+  return b.pubDateMs - a.pubDateMs;
+};
+
+const mergeIdTextMaps = (
+  existing: ReadonlyMap<string, string>,
+  seed: ReadonlyMap<string, string> | undefined
+): Map<string, string> => {
+  const merged = new Map(existing);
+  if (seed === undefined) {
+    return merged;
+  }
+  for (const [id, idText] of seed) {
+    if (!merged.has(id)) {
+      merged.set(id, idText);
+    }
+  }
+  return merged;
+};
+
+/**
+ * Newest parsed items across these feeds, capped at `limit`.
+ *
+ * Every feed is read before the cap is applied, so a newer item on a later feed is kept.
+ * `existingIdTextByCompositeId` reuses an id the items index already stored for that episode.
+ */
+export const selectNewestAddByRSSItemsFromFeeds = (params: {
+  feeds: readonly AddByRSSFeedRecord[];
+  limit: number;
+  existingIdTextByCompositeId?: ReadonlyMap<string, string>;
+}): AddByRSSItemIndexItem[] => {
+  const items: AddByRSSItemIndexItem[] = [];
+  for (const feed of params.feeds) {
+    const feedItems = feed.mappedFeed?.items ?? [];
+    feedItems.forEach((bundle, index) => {
+      const itemGuid = bundle.item.guid ?? `${feed.idText}-${index}`;
+      const compositeId = `${feed.idText}-${itemGuid}`;
+      const existingIdText = params.existingIdTextByCompositeId?.get(compositeId);
+      items.push(toAddByRSSItemIndexItem(feed, bundle, index, existingIdText));
+    });
+  }
+  items.sort(compareNewestPubDate);
+  if (items.length <= params.limit) {
+    return items;
+  }
+  return items.slice(0, params.limit);
+};
+
+/**
+ * Livestream index rows from these feeds' parsed live items.
+ *
+ * `existingIdTextByCompositeId` reuses an id the livestream index already stored.
+ */
+export const livestreamIndexItemsFromFeeds = (
+  feeds: readonly AddByRSSFeedRecord[],
+  existingIdTextByCompositeId?: ReadonlyMap<string, string>
+): AddByRSSLivestreamIndexItem[] => {
+  const items: AddByRSSLivestreamIndexItem[] = [];
+  for (const feed of feeds) {
+    const liveItems = feed.mappedFeed?.liveItems ?? [];
+    liveItems.forEach((bundle, index) => {
+      const itemGuid = getLiveItemGuid(feed, bundle, index);
+      const compositeId = `${feed.idText}-${itemGuid}`;
+      const existingIdText = existingIdTextByCompositeId?.get(compositeId);
+      items.push(toAddByRSSLivestreamIndexItem(feed, bundle, index, existingIdText));
+    });
+  }
+  return items;
+};
+
+export const buildAddByRSSItemsIndex = async (
+  feeds: AddByRSSFeedRecord[],
+  seedIdTextByCompositeId?: ReadonlyMap<string, string>
+) => {
+  const existingItems = await getAllAddByRSSItems();
+  const storedIdTextMap = new Map<string, string>();
+  for (const item of existingItems) {
+    storedIdTextMap.set(item.id, item.idText);
+  }
+  const existingIdTextMap = mergeIdTextMaps(storedIdTextMap, seedIdTextByCompositeId);
 
   await clearAddByRSSItemsIndex();
 
@@ -198,13 +284,15 @@ export const buildAddByRSSItemsIndex = async (feeds: AddByRSSFeedRecord[]) => {
 };
 
 export const buildAddByRSSLivestreamIndex = async (
-  feeds: AddByRSSFeedRecord[]
+  feeds: AddByRSSFeedRecord[],
+  seedIdTextByCompositeId?: ReadonlyMap<string, string>
 ): Promise<AddByRSSLivestreamIndexItem[]> => {
   const existingItems = await getAllAddByRSSLivestreamItems();
-  const existingIdTextMap = new Map<string, string>();
+  const storedIdTextMap = new Map<string, string>();
   for (const item of existingItems) {
-    existingIdTextMap.set(item.id, item.idText);
+    storedIdTextMap.set(item.id, item.idText);
   }
+  const existingIdTextMap = mergeIdTextMaps(storedIdTextMap, seedIdTextByCompositeId);
 
   await clearAddByRSSLivestreamIndex();
 

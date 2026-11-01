@@ -7,29 +7,32 @@ import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 
 import type { QueryParamsPodcastIndexSearchMedium, SearchPodcastsFeed } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
-import { getChannelRouteKind } from '@podverse/helpers/medium';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { OptionChipGroup } from '../../components/form/OptionChipGroup';
 import { SearchField } from '../../components/form/SearchField';
-import { FillList, VerticalCenter } from '../../components/primitives';
+import { FillList } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
+import { subscriptionsRepository } from '../../data/repositories';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { SearchStackParamList } from '../../navigation';
-import {
-  buildAlbumDetailParams,
-  buildPodcastDetailParams,
-  SEARCH_STACK_ROUTES,
-} from '../../navigation';
+import { openParsedSearchChannel, SEARCH_STACK_ROUTES } from '../../navigation';
+import { useTabLayout } from '../../navigation/TabLayoutProvider';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
 import { listChipRowBottomGap, screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
+import {
+  clearSearchSession,
+  readSearchSession,
+  searchFetchKey,
+  writeSearchSession,
+} from './searchSession';
 
 type SearchScreenProps = NativeStackScreenProps<
   SearchStackParamList,
@@ -49,7 +52,6 @@ const feedToRow = (feed: SearchPodcastsFeed): HomeFeedRowData => ({
 });
 
 const noopPlayPress = (_row: HomeFeedRowData): void => undefined;
-const noopQueuePress = (_row: HomeFeedRowData): void => undefined;
 
 type SearchResultRowProps = {
   feed: SearchPodcastsFeed;
@@ -63,12 +65,12 @@ function SearchResultRow({ feed, onPress, testID }: SearchResultRowProps) {
     onPress(feed);
   }, [feed, onPress]);
 
+  // Channel-level search results: tap opens the feed. No More menu and no queue actions.
   return (
     <HomeFeedRow
       mediaType="podcasts"
       onPlayPress={noopPlayPress}
       onPress={handlePress}
-      onQueuePress={noopQueuePress}
       row={row}
       testID={testID}
     />
@@ -82,13 +84,23 @@ function SearchResultRow({ feed, onPress, testID }: SearchResultRowProps) {
 export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const { t } = useTranslation();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { visibleTabIds } = useTabLayout();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { styles: themeStyles, tokens } = useTheme();
-  const [query, setQuery] = useState<string>('');
-  const [debouncedQuery, setDebouncedQuery] = useState<string>('');
-  const [medium, setMedium] = useState<QueryParamsPodcastIndexSearchMedium>('all');
-  const [isMediumReady, setIsMediumReady] = useState<boolean>(false);
-  const [feeds, setFeeds] = useState<SearchPodcastsFeed[]>([]);
+  const restoredSessionRef = useRef(readSearchSession());
+  const restoredSession = restoredSessionRef.current;
+  const skipFetchKeyRef = useRef<string | null>(
+    restoredSession !== null && restoredSession.query.length > 0
+      ? searchFetchKey(restoredSession.medium, restoredSession.query)
+      : null
+  );
+  const [query, setQuery] = useState<string>(restoredSession?.query ?? '');
+  const [debouncedQuery, setDebouncedQuery] = useState<string>(restoredSession?.query ?? '');
+  const [medium, setMedium] = useState<QueryParamsPodcastIndexSearchMedium>(
+    restoredSession?.medium ?? 'all'
+  );
+  const [isMediumReady, setIsMediumReady] = useState<boolean>(restoredSession !== null);
+  const [feeds, setFeeds] = useState<SearchPodcastsFeed[]>(restoredSession?.feeds ?? []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [resolvingFeedId, setResolvingFeedId] = useState<string | null>(null);
@@ -99,6 +111,10 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const requestedMedium = route.params?.medium;
 
   useEffect(() => {
+    if (restoredSessionRef.current !== null) {
+      return;
+    }
+
     let isMounted = true;
     void (async () => {
       const stored = await readSearchListMedium();
@@ -115,9 +131,9 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     };
   }, []);
 
-  // Home's search control and empty-state button send the user here to type something, so the field
-  // starts empty and focused. An optional medium selects All / Music first. The request is consumed
-  // immediately, otherwise coming back from a result would wipe the query the user just ran.
+  // The Home search control and the Home empty-state button send the listener here to type.
+  // With nothing saved, the field starts empty and focused. An optional medium selects All / Music
+  // first. Both params are consumed on focus. A saved query and its rows stay on screen.
   useFocusEffect(
     useCallback(() => {
       if (requestedMedium === 'all' || requestedMedium === 'music') {
@@ -131,15 +147,24 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
       }
 
       navigation.setParams({ autoFocus: undefined });
+      if (readSearchSession() !== null) {
+        return;
+      }
       setQuery('');
       setDebouncedQuery('');
       inputRef.current?.focus();
     }, [navigation, requestedMedium, wantsAutoFocus])
   );
 
+  const debouncedQueryRef = useRef(debouncedQuery);
+  debouncedQueryRef.current = debouncedQuery;
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const nextQuery = query.trim();
+      if (nextQuery === debouncedQueryRef.current) {
+        return;
+      }
       setDebouncedQuery(nextQuery);
       // Loading in the same turn as the query that triggers the fetch, so the next paint cannot
       // show the previous empty result under the new term.
@@ -163,6 +188,13 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
       setFeeds([]);
       setErrorKey(null);
       setIsLoading(false);
+      clearSearchSession();
+      return;
+    }
+
+    const fetchKey = searchFetchKey(medium, debouncedQuery);
+    if (skipFetchKeyRef.current === fetchKey) {
+      skipFetchKeyRef.current = null;
       return;
     }
 
@@ -194,6 +226,11 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
         }
 
         setFeeds(response.feeds);
+        writeSearchSession({
+          feeds: response.feeds,
+          medium,
+          query: debouncedQuery,
+        });
       } catch {
         if (!isMounted || requestId !== searchRequestIdRef.current) {
           return;
@@ -307,8 +344,8 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           async (api) => api.reqChannelGetByPodcastIndexId(feedId)
         );
 
-        // Endpoint returns null when the channel is not parsed-ready. Mirror web: open the
-        // Podcast Index preview/add screen instead of a generic "Try again" dead-end.
+        // Endpoint returns null when the channel is not parsed-ready. Open the add page on this
+        // stack so the listener can add it. A parsed channel leaves Search for Home or Browse.
         if (channel === null || channel.id_text.length === 0 || !channel.medium_id) {
           const imageUrl =
             feed.image.length > 0 ? feed.image : feed.artwork.length > 0 ? feed.artwork : null;
@@ -323,40 +360,31 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           return;
         }
 
-        const kind = getChannelRouteKind(channel.medium_id);
-        // Stay on the Search stack (tab isolation) — do not jump to Home for detail.
-        if (kind === 'artist') {
-          navigation.navigate(SEARCH_STACK_ROUTES.ArtistDetail, {
-            artistId: channel.id_text,
-          });
-        } else if (kind === 'album') {
-          navigation.navigate(
-            SEARCH_STACK_ROUTES.AlbumDetail,
-            buildAlbumDetailParams({
-              albumId: channel.id_text,
-              previewImageUrl:
-                toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
-              previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
-            })
-          );
-        } else {
-          navigation.navigate(
-            SEARCH_STACK_ROUTES.PodcastDetail,
-            buildPodcastDetailParams({
-              podcastId: channel.id_text,
-              previewImageUrl:
-                toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
-              previewTitle: toNonEmptyTrimmedString(channel.title) ?? feed.title,
-            })
-          );
+        if (!navigation.isFocused()) {
+          return;
         }
+
+        const isSubscribed = await subscriptionsRepository.isSubscribed(channel.id_text);
+        if (!navigation.isFocused()) {
+          return;
+        }
+
+        openParsedSearchChannel(navigation, {
+          idText: channel.id_text,
+          imageUrl:
+            toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork) ?? null,
+          isSubscribed,
+          mediumId: channel.medium_id,
+          title: toNonEmptyTrimmedString(channel.title) ?? feed.title,
+          visibleTabIds,
+        });
       } catch {
         setErrorKey('errors.generic');
       } finally {
         setResolvingFeedId(null);
       }
     },
-    [accessToken, clearSession, navigation, refreshToken, resolvingFeedId, setTokens]
+    [accessToken, clearSession, navigation, refreshToken, resolvingFeedId, setTokens, visibleTabIds]
   );
 
   const handleResultPress = useCallback(
@@ -375,20 +403,12 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
       return <LoadingSection testID="search-loading" />;
     }
     if (errorKey !== null) {
-      return (
-        <VerticalCenter>
-          <ListError messageKey={errorKey} onRetry={handleRetrySearch} testID="search-error" />
-        </VerticalCenter>
-      );
+      return <ListError messageKey={errorKey} onRetry={handleRetrySearch} testID="search-error" />;
     }
     if (debouncedQuery.length === 0) {
       return null;
     }
-    return (
-      <VerticalCenter>
-        <ListEmpty messageKey="features.search.no_results" testID="search-empty-results" />
-      </VerticalCenter>
-    );
+    return <ListEmpty messageKey="features.search.no_results" testID="search-empty-results" />;
   }, [debouncedQuery.length, errorKey, handleRetrySearch, isLoading]);
 
   const listFooter = useMemo(

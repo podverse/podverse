@@ -286,7 +286,7 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
   );
 
   const listEmpty = useMemo(
-    () => <ListEmpty messageKey="features.clip.empty" testID="library-my-clips-empty" />,
+    () => <ListEmpty messageKey="features.clip.no_clips_found" testID="library-my-clips-empty" />,
     []
   );
   const listFooter = useMemo(() => {

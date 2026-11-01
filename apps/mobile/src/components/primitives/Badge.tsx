@@ -2,10 +2,14 @@ import { memo } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { typography } from '../../theme/typography';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
 
 export type BadgeTone = 'accent' | 'danger' | 'neutral' | 'muted';
+
+/** `sm` is the compact overlay and inline chip; `md` matches list duration type beside Play. */
+export type BadgeSize = 'sm' | 'md';
 
 export type BadgeProps = {
   label: string;
@@ -16,6 +20,7 @@ export type BadgeProps = {
    * downloads).
    */
   tone?: BadgeTone;
+  size?: BadgeSize;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 };
@@ -32,6 +37,22 @@ const labelChrome = {
   fontSize: 11,
   fontWeight: '600' as const,
 };
+
+const createSmSizeStyles = (_theme: ThemedStylesTheme) => ({
+  badge: {},
+  label: {},
+});
+
+const createMdSizeStyles = ({ tokens }: ThemedStylesTheme) => ({
+  badge: {
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
+  },
+  label: {
+    fontSize: typography.body.fontSize,
+    lineHeight: typography.body.lineHeight,
+  },
+});
 
 const createAccentStyles = (theme: ThemedStylesTheme) => ({
   badge: badgeChrome(theme),
@@ -93,7 +114,13 @@ const createNeutralStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme)
  * separately wrap it and say so there. The test id sits on an overlay the screen reader skips, so
  * UI tests can still find the pill.
  */
-export const Badge = memo(function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
+export const Badge = memo(function Badge({
+  label,
+  size = 'sm',
+  style,
+  testID,
+  tone = 'neutral',
+}: BadgeProps) {
   const styles = useThemedStyles(
     tone === 'accent'
       ? createAccentStyles
@@ -103,13 +130,14 @@ export const Badge = memo(function Badge({ label, style, testID, tone = 'neutral
           ? createMutedStyles
           : createNeutralStyles
   );
+  const sizeStyles = useThemedStyles(size === 'md' ? createMdSizeStyles : createSmSizeStyles);
 
   return (
-    <View style={[styles.badge, styles.tone, style]}>
+    <View style={[styles.badge, styles.tone, sizeStyles.badge, style]}>
       <Text
         accessibilityElementsHidden
         importantForAccessibility="no"
-        style={[styles.label, styles.toneLabel]}
+        style={[styles.label, styles.toneLabel, sizeStyles.label]}
       >
         {label}
       </Text>

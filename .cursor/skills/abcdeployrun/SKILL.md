@@ -132,9 +132,12 @@ Do not change kubectl context. Before the first kubectl write, record the contex
 server, and run `kubectl get namespace podverse-alpha`. Stop if that namespace is not found.
 
 Then follow the GitOps waits in `abcdeploysteps`: `db` and `ops` synced and Healthy, the
-bootstrap job, app and management migrations only when the commit range adds files under
-`infra/k8s/base/ops/source/database/linear-migrations/`, then the public apps synced and
-Healthy, then the four smoke curls.
+bootstrap job, then **Pending migrations** from that skill. Run that check before the public
+app waits. A file missing from `linear_migration_history` is pending even when
+`<pinned-tag>..origin/develop` does not add it. Create the matching migrate job once, wait
+for it, and read the log for an `APPLY` line for each pending filename. `Migrations: none`
+means skip the job. `unconfirmed` means stop. Then the public apps synced and Healthy, then
+the four smoke curls.
 
 A timeout, a failed job, or a pod stuck in `Init:` is a stop. Read the log the skill names.
 Do not create the job again. One web or management-web restart from the sidecar race is

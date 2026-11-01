@@ -357,6 +357,29 @@ name: Browse Tab And Tab Bar Pref
 - takeScreenshot: browse-screen-categories
 
 - tapOn:
+    id: browse-category-arts
+- extendedWaitUntil:
+    notVisible:
+      id: browse-category-all
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: browse-category-button
+    text: Arts
+- tapOn:
+    id: browse-category-button
+- assertVisible:
+    id: browse-category-button
+    text: Categories
+- assertNotVisible:
+    id: browse-category-all
+- tapOn:
+    id: browse-category-button
+- extendedWaitUntil:
+    visible:
+      id: browse-category-all
+    timeout: ${TIMEOUT_SLOWER}
+
+- tapOn:
     id: browse-category-all
 - extendedWaitUntil:
     notVisible:
@@ -500,10 +523,11 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: my-profile-screen
     timeout: ${TIMEOUT_SLOWER}
-- scrollUntilVisible:
-    element:
+- tapOn:
+    id: my-profile-chip-playlists
+- extendedWaitUntil:
+    visible:
       id: my-profile-playlist-row-e2eEmbPlList01
-    direction: DOWN
     timeout: ${TIMEOUT_SLOWER}
 - assertVisible:
     id: my-profile-playlist-row-e2eEmbPlList01-subtitle

@@ -14,7 +14,7 @@ export type CallToActionMessageProps = {
   layout?: 'default' | 'modal';
 };
 
-/** Centered message with a single primary button; no default strings — apps pass localized content. */
+/** Message with a single primary button at the start of the column. Modal layout centers it in the dialog. No default strings — apps pass localized content. */
 export function CallToActionMessage({
   message,
   buttonLabel,

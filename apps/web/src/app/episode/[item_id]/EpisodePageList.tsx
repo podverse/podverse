@@ -16,6 +16,7 @@ import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListItemChapters } from '../../../components/List/ItemChapters/ListItemChapters';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
+import { NoResults } from '../../../components/NoResults/NoResults';
 import { useDescriptionClockPlayback } from '../../../hooks/useDescriptionClockPlayback';
 import { useEpisodePageContext } from './EpisodePageContext';
 
@@ -41,6 +42,8 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({
   ssrItem,
   ssrCanShowBoosts,
 }) => {
+  const tFeatures = useTranslations('features');
+  const tInfo = useTranslations('info');
   const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const {
     filterParams,
@@ -86,6 +89,8 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({
           channel={ssrChannel}
           item={ssrItem}
           totalPages={totalPages}
+          emptyMessage={tInfo('chapter.no_chapters')}
+          isLoading={isLoading}
         />
       )}
       {type === 'soundbites' && (
@@ -97,6 +102,8 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({
           item={ssrItem}
           totalPages={totalPages}
           showSubscribeMessage={false}
+          emptyMessage={tInfo('soundbite.no_official_clips_found')}
+          isLoading={isLoading}
         />
       )}
       {type === 'clips' && (
@@ -108,6 +115,8 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({
           item={ssrItem}
           totalPages={totalPages}
           showSubscribeMessage={false}
+          emptyMessage={tFeatures('clip.no_clips_found')}
+          isLoading={isLoading}
         />
       )}
       {type === 'boosts' && boostsPageFetcher !== null && (
@@ -118,7 +127,12 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({
           refreshTrigger={refreshTrigger}
         />
       )}
-      {type === 'transcript' && <ItemTranscript rows={transcriptRows} />}
+      {type === 'transcript' && !isLoading && transcriptRows.length === 0 ? (
+        <NoResults message={tInfo('transcript.no_transcript')} role="status" />
+      ) : null}
+      {type === 'transcript' && (isLoading || transcriptRows.length > 0) ? (
+        <ItemTranscript rows={transcriptRows} />
+      ) : null}
       <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>
   );

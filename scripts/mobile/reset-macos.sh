@@ -51,6 +51,7 @@ if [[ "$SKIP_INSTALL" -eq 0 ]]; then
   echo "Reinstalling standalone mobile dependencies (apps/mobile)..."
   npm install --prefix apps/mobile
   bash "$SCRIPT_DIR/ensure-expo-sqlite-vendored-sources.sh" "$REPO_ROOT/apps/mobile"
+  bash "$SCRIPT_DIR/ensure-expo-modules-core-swift.sh" "$REPO_ROOT/apps/mobile"
 else
   echo "Skipping mobile JS reinstall (--skip-install)."
 fi

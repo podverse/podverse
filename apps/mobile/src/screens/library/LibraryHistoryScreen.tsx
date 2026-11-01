@@ -11,7 +11,7 @@ import { DEFAULT_QUEUE_LIST_MEDIUM, getQueueMediumIdFromType } from '@podverse/h
 import { useAuth } from '../../auth/AuthProvider';
 import type { OptionChipOption } from '../../components/form/OptionChipGroup';
 import { OptionChipGroup } from '../../components/form/OptionChipGroup';
-import { FillList, VerticalCenter } from '../../components/primitives';
+import { FillList } from '../../components/primitives';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -392,19 +392,11 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     }
     if (historyFill === 'error' && errorKey !== null) {
       return (
-        <VerticalCenter>
-          <ListError messageKey={errorKey} onRetry={handleRetry} testID="library-history-error" />
-        </VerticalCenter>
+        <ListError messageKey={errorKey} onRetry={handleRetry} testID="library-history-error" />
       );
     }
     if (historyFill === 'empty') {
-      return (
-        <ListEmpty
-          align="start"
-          messageKey="features.history.empty"
-          testID="library-history-empty"
-        />
-      );
+      return <ListEmpty messageKey="features.history.empty" testID="library-history-empty" />;
     }
     return null;
   }, [errorKey, handleRetry, historyFill]);

@@ -368,3 +368,22 @@ export function expandCategoryFilterIds(categoryId: number): number[] {
   }
   return [categoryId, ...children];
 }
+
+export type CategoryChipPressAction = 'clear' | 'open' | 'close';
+
+/**
+ * What the Categories chip does on one press.
+ *
+ * A chosen category clears on the first press, and the list stays on the unfiltered directory.
+ * The next press opens the picker. A press while the picker is open closes it.
+ */
+export function categoryChipPressAction(input: {
+  category: string | null;
+  isListOpen: boolean;
+}): CategoryChipPressAction {
+  const hasCategory = input.category !== null && input.category !== '';
+  if (hasCategory && !input.isListOpen) {
+    return 'clear';
+  }
+  return input.isListOpen ? 'close' : 'open';
+}

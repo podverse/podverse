@@ -1,7 +1,7 @@
 export { Accordion } from './Accordion';
 export type { AccordionProps } from './Accordion';
 export { Badge } from './Badge';
-export type { BadgeProps, BadgeTone } from './Badge';
+export type { BadgeProps, BadgeSize, BadgeTone } from './Badge';
 export { CountBadge } from './CountBadge';
 export type { CountBadgeProps, CountBadgeTone } from './CountBadge';
 export { Button } from './Button';

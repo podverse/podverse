@@ -10,15 +10,22 @@ import {
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Podroll stub rows', () => {
-  // The sidebar podroll is the desktop layout. The Podroll chip is hidden at 1200px and up.
   test.use({ viewport: { width: 1280, height: 720 } });
 
-  test('When a visitor opens the seeded podcast, the podroll lists the stubbed show above its episode, omits the unknown show, and the episode opens the show page on Podcast Index.', async ({
+  test('When a visitor opens the seeded podcast and chooses Podroll, the list shows the stubbed show above its episode, omits the unknown show, and the episode opens the show page on Podcast Index.', async ({
     page,
   }, testInfo) => {
     const response = await page.goto(`/podcast/${E2E_REMOTE_ITEM_CHANNEL_ID_TEXT}`);
     expect(response?.status()).toBe(200);
     await expect(page).toHaveURL(new RegExp(`/podcast/${E2E_REMOTE_ITEM_CHANNEL_ID_TEXT}$`));
+
+    const podrollChip = page.getByRole('button', { name: 'Podroll', exact: true });
+    await expect(podrollChip).toBeVisible();
+    await podrollChip.click();
+    await expect(page).toHaveURL(
+      new RegExp(`/podcast/${E2E_REMOTE_ITEM_CHANNEL_ID_TEXT}\\?type=podroll`)
+    );
+    await expect(podrollChip).toHaveAttribute('aria-pressed', 'true');
 
     const podroll = page.getByTestId('channel-podroll');
     // The episode link's text includes the show title, so the show link is the one without it.

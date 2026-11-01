@@ -11,9 +11,7 @@ import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import type { AuthRequestDeps } from '../../auth/authRequestWithRefresh';
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
-import { ChipRowWithActions } from '../../components/form';
-import type { MediaRowMoreAction } from '../../components/player/MediaRowActions';
-import { Button, FillList } from '../../components/primitives';
+import { Button, FillList, SwipeActionRow } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { LoadingSection } from '../../components/state/LoadingSection';
@@ -250,11 +248,6 @@ export function RecommendationsScreen() {
     });
   }, [cellWidth, themeStyles, tokens]);
 
-  const [chipsContentWidth, setChipsContentWidth] = useState(0);
-  const handleChipsContentWidth = useCallback((width: number) => {
-    setChipsContentWidth((current) => (current === width ? current : width));
-  }, []);
-
   const selectChip = useCallback((next: RecommendationChip) => {
     chipRef.current = next;
     setChip(next);
@@ -274,10 +267,14 @@ export function RecommendationsScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <RecommendationsOverflowMenu onViewModeChange={handleViewModeChange} viewMode={viewMode} />
+        <RecommendationsOverflowMenu
+          onEdit={signedIn ? openSettings : undefined}
+          onViewModeChange={handleViewModeChange}
+          viewMode={viewMode}
+        />
       ),
     });
-  }, [handleViewModeChange, navigation, viewMode]);
+  }, [handleViewModeChange, navigation, openSettings, signedIn, viewMode]);
 
   const rows = useMemo(
     () => items.map((item) => recommendationRow(item, t('misc.untitled'))),
@@ -323,27 +320,23 @@ export function RecommendationsScreen() {
         );
       }
 
-      const extraMoreActions: MediaRowMoreAction[] = [
-        {
-          key: `hide-${item.id}`,
-          label: hideLabel,
-          onPress: () => {
-            hideChannelFromLists(item.id);
-          },
-          testID: `recommendations-hide-${item.id}`,
-          tone: 'danger',
-        },
-      ];
-
       return (
-        <HomeFeedRow
-          extraMoreActions={extraMoreActions}
-          mediaType={chip}
-          onPlayPress={openRow}
-          onPress={openRow}
-          row={item}
-          testID={`recommendations-row-${item.id}`}
-        />
+        <SwipeActionRow
+          actionTestID={`recommendations-hide-${item.id}`}
+          onRemove={() => {
+            hideChannelFromLists(item.id);
+          }}
+          removeLabel={hideLabel}
+          testID={`recommendations-row-${item.id}-swipe`}
+        >
+          <HomeFeedRow
+            mediaType={chip}
+            onPlayPress={openRow}
+            onPress={openRow}
+            row={item}
+            testID={`recommendations-row-${item.id}`}
+          />
+        </SwipeActionRow>
       );
     },
     [
@@ -402,37 +395,13 @@ export function RecommendationsScreen() {
   return (
     <View style={styles.screen} testID="recommendations-screen">
       <View style={styles.selectorSection}>
-        {signedIn ? (
-          <ChipRowWithActions
-            actions={
-              <Button
-                label={t('features.recommendations.edit')}
-                onPress={openSettings}
-                testID="recommendations-edit"
-                variant="secondary"
-              />
-            }
-            actionsTestID="recommendations-edit-actions"
-            chipsContentWidth={chipsContentWidth}
-          >
-            <MediaTypeSelector
-              labelKeys={CHIP_LABEL_KEYS}
-              onChange={selectChip}
-              onContentWidthChange={handleChipsContentWidth}
-              selectedMediaType={chip}
-              testIDPrefix="recommendations"
-              types={CHIPS}
-            />
-          </ChipRowWithActions>
-        ) : (
-          <MediaTypeSelector
-            labelKeys={CHIP_LABEL_KEYS}
-            onChange={selectChip}
-            selectedMediaType={chip}
-            testIDPrefix="recommendations"
-            types={CHIPS}
-          />
-        )}
+        <MediaTypeSelector
+          labelKeys={CHIP_LABEL_KEYS}
+          onChange={selectChip}
+          selectedMediaType={chip}
+          testIDPrefix="recommendations"
+          types={CHIPS}
+        />
       </View>
       <FillList
         ListEmptyComponent={empty}

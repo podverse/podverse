@@ -37,7 +37,6 @@
     "browse": {
       "collapse_category": "Hide {name} Subcategories",
       "expand_category": "Show {name} Subcategories",
-      "empty": "Nothing to Show Yet",
       "range_all_time": "All-Time",
       "sort_popularity": "Popularity"
     },

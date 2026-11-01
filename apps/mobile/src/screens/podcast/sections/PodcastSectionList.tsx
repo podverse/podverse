@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, StyleSheet, Text } from 'react-native';
 
 import { ListFilterHeader } from '../../../components/form';
-import { FillList, VerticalCenter } from '../../../components/primitives';
+import { FillList } from '../../../components/primitives';
 import { ListEmpty } from '../../../components/state/ListEmpty';
 import { ListError } from '../../../components/state/ListError';
 import { ListLoading } from '../../../components/state/ListLoading';
@@ -155,9 +155,7 @@ export function PodcastSectionList<TRow>({
     <>
       {isInitialLoading ? <LoadingSection testID={`${prefix}-loading`} /> : null}
       {showBlockingError && !isInitialLoading ? (
-        <VerticalCenter>
-          <ListError messageKey={errorKey} onRetry={onRetry} testID={`${prefix}-error`} />
-        </VerticalCenter>
+        <ListError messageKey={errorKey} onRetry={onRetry} testID={`${prefix}-error`} />
       ) : null}
       {showNoFilterMatches ? (
         <ListEmpty messageKey="filters.list.no_matches" testID={`${prefix}-no-filter-matches`} />

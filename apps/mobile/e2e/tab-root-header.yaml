@@ -1,0 +1,51 @@
+appId: com.podverse.app.next
+name: Tab Root Header
+---
+# Search and the notifications bell sit on the Home tab root only. Other tab roots and a
+# pushed screen keep their own header buttons.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-search
+- assertVisible:
+    id: home-notifications-bell
+
+- tapOn:
+    id: tab-browse
+- assertNotVisible:
+    id: home-search
+- assertNotVisible:
+    id: home-notifications-bell
+
+- tapOn:
+    id: tab-recommendations
+- assertNotVisible:
+    id: home-search
+- assertNotVisible:
+    id: home-notifications-bell
+
+- tapOn:
+    id: tab-my-library
+- assertNotVisible:
+    id: home-search
+- assertNotVisible:
+    id: home-notifications-bell
+
+- tapOn:
+    id: tab-more
+- assertNotVisible:
+    id: home-search
+- assertNotVisible:
+    id: home-notifications-bell
+
+- tapOn:
+    id: more-settings
+- assertNotVisible:
+    id: home-search
+- assertNotVisible:
+    id: home-notifications-bell
+- assertVisible:
+    id: stack-header-back

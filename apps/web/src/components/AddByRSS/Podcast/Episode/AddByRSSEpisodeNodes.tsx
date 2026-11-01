@@ -121,6 +121,7 @@ const AddByRSSEpisodeItemsListView: React.FC<AddByRSSEpisodeItemsRowsProps> = ({
                 sortOrder,
               }}
               likeRow={buildListLikeRow(hashId, { isLiked, toggle })}
+              showChannelInfo={false}
             />
             {idx < items.length - 1 && <Divider />}
           </React.Fragment>

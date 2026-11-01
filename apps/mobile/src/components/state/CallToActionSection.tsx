@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
-import { Button, VerticalCenter } from '../primitives';
+import { Button } from '../primitives';
+import { EmptyStateText } from './EmptyStateText';
 
 type CallToActionSectionProps = {
   actionLabelKey: string;
@@ -19,9 +19,10 @@ type CallToActionSectionProps = {
 };
 
 /**
- * Localized message plus its primary action, centered in the parent via VerticalCenter.
- * Actions stretch to the fill column width. An optional secondary action sits under the primary
- * for discovery fills that offer two paths.
+ * Localized message plus its primary action, at the start of the parent.
+ * The sentence is EmptyStateText. Actions stretch to the fill column width and sit under the
+ * banner. An optional secondary action sits under the primary for discovery fills that offer
+ * two paths.
  */
 export function CallToActionSection({
   actionLabelKey,
@@ -34,7 +35,7 @@ export function CallToActionSection({
   testID = 'call-to-action-section',
 }: CallToActionSectionProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
 
   const styles = useMemo(
     () =>
@@ -45,45 +46,38 @@ export function CallToActionSection({
           marginTop: tokens.spacing.lg,
           width: '100%',
         },
-        content: {
+        root: {
           alignSelf: 'stretch',
           width: '100%',
         },
-        message: {
-          ...typography.subheading,
-          color: themeStyles.textSecondary.color,
-          textAlign: 'center',
-        },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   const hasSecondary = secondaryActionLabelKey !== undefined && onSecondaryAction !== undefined;
 
   return (
-    <VerticalCenter testID={testID}>
-      <View style={styles.content}>
-        <Text style={styles.message}>{t(messageKey)}</Text>
-        <View style={styles.actions}>
+    <View style={styles.root} testID={testID}>
+      <EmptyStateText message={t(messageKey)} />
+      <View style={styles.actions}>
+        <Button
+          fullWidth
+          label={t(actionLabelKey)}
+          onPress={onAction}
+          size="lg"
+          testID={actionTestID ?? `${testID}-action`}
+        />
+        {hasSecondary ? (
           <Button
             fullWidth
-            label={t(actionLabelKey)}
-            onPress={onAction}
+            label={t(secondaryActionLabelKey)}
+            onPress={onSecondaryAction}
             size="lg"
-            testID={actionTestID ?? `${testID}-action`}
+            testID={secondaryActionTestID ?? `${testID}-secondary-action`}
+            variant="outline"
           />
-          {hasSecondary ? (
-            <Button
-              fullWidth
-              label={t(secondaryActionLabelKey)}
-              onPress={onSecondaryAction}
-              size="lg"
-              testID={secondaryActionTestID ?? `${testID}-secondary-action`}
-              variant="outline"
-            />
-          ) : null}
-        </View>
+        ) : null}
       </View>
-    </VerticalCenter>
+    </View>
   );
 }

@@ -5,7 +5,6 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { IndexProviderId } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
-import { getChannelRouteKind } from '@podverse/helpers/medium';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
@@ -14,15 +13,13 @@ import { useAuth } from '../../auth/AuthProvider';
 import { SearchDetailView } from '../../components/searchDetail/SearchDetailView';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListLoading } from '../../components/state/ListLoading';
+import { subscriptionsRepository } from '../../data/repositories';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
-import type { ChannelBrowseStackParamList } from '../../navigation';
-import {
-  buildAlbumDetailParams,
-  buildPodcastDetailParams,
-  CHANNEL_BROWSE_STACK_ROUTES,
-} from '../../navigation';
+import type { CHANNEL_BROWSE_STACK_ROUTES, ChannelBrowseStackParamList } from '../../navigation';
+import { openParsedSearchChannel } from '../../navigation';
+import { useTabLayout } from '../../navigation/TabLayoutProvider';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import {
   BottomChromeScrollSpacer,
@@ -106,39 +103,6 @@ const providerApi = (indexProvider: IndexProviderId) => {
   }
 };
 
-/** Replace the stale Add preview with channel detail on the current tab stack. */
-const replaceWithSearchChannelDetail = (
-  navigation: PodcastIndexFeedPreviewScreenProps['navigation'],
-  mediumId: number,
-  idText: string,
-  preview: { imageUrl: string | null; title: string }
-) => {
-  const kind = getChannelRouteKind(mediumId);
-  if (kind === 'artist') {
-    navigation.replace(CHANNEL_BROWSE_STACK_ROUTES.ArtistDetail, { artistId: idText });
-    return;
-  }
-  if (kind === 'album') {
-    navigation.replace(
-      CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail,
-      buildAlbumDetailParams({
-        albumId: idText,
-        previewImageUrl: preview.imageUrl,
-        previewTitle: preview.title,
-      })
-    );
-    return;
-  }
-  navigation.replace(
-    CHANNEL_BROWSE_STACK_ROUTES.PodcastDetail,
-    buildPodcastDetailParams({
-      podcastId: idText,
-      previewImageUrl: preview.imageUrl,
-      previewTitle: preview.title,
-    })
-  );
-};
-
 export function PodcastIndexFeedPreviewScreen({
   navigation,
   route,
@@ -151,6 +115,7 @@ export function PodcastIndexFeedPreviewScreen({
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
+  const { visibleTabIds } = useTabLayout();
   const isMountedRef = useRef(true);
   /**
    * The fetch writes `feed`, and `feed` is an effect dependency. This stops that write from
@@ -292,6 +257,31 @@ export function PodcastIndexFeedPreviewScreen({
     setTokens,
   ]);
 
+  const leaveForParsedChannel = useCallback(
+    async (
+      mediumId: number,
+      idText: string,
+      preview: { imageUrl: string | null; title: string }
+    ) => {
+      if (!navigation.isFocused()) {
+        return;
+      }
+      const isSubscribed = await subscriptionsRepository.isSubscribed(idText);
+      if (!navigation.isFocused()) {
+        return;
+      }
+      openParsedSearchChannel(navigation, {
+        idText,
+        imageUrl: preview.imageUrl,
+        isSubscribed,
+        mediumId,
+        title: preview.title,
+        visibleTabIds,
+      });
+    },
+    [navigation, visibleTabIds]
+  );
+
   useEffect(() => {
     if (offlineModeEnabled) {
       return;
@@ -315,12 +305,12 @@ export function PodcastIndexFeedPreviewScreen({
           async (api) => providerApi(indexProvider).fetchParsedChannel(api, providerFeedId)
         );
 
-        if (!isActive || !isParsedReadyChannel(channel)) {
+        if (!isActive || !isParsedReadyChannel(channel) || !navigation.isFocused()) {
           return;
         }
 
         const currentFeed = feedRef.current;
-        replaceWithSearchChannelDetail(navigation, channel.medium_id, channel.id_text, {
+        await leaveForParsedChannel(channel.medium_id, channel.id_text, {
           imageUrl: currentFeed?.imageUrl ?? null,
           title: currentFeed?.title ?? '',
         });
@@ -336,6 +326,7 @@ export function PodcastIndexFeedPreviewScreen({
     accessToken,
     clearSession,
     indexProvider,
+    leaveForParsedChannel,
     navigation,
     offlineModeEnabled,
     refreshToken,
@@ -345,12 +336,12 @@ export function PodcastIndexFeedPreviewScreen({
 
   const navigateToChannelDetail = useCallback(
     (mediumId: number, idText: string) => {
-      replaceWithSearchChannelDetail(navigation, mediumId, idText, {
+      void leaveForParsedChannel(mediumId, idText, {
         imageUrl: feed?.imageUrl ?? null,
         title: feed?.title ?? '',
       });
     },
-    [feed?.imageUrl, feed?.title, navigation]
+    [feed?.imageUrl, feed?.title, leaveForParsedChannel]
   );
 
   const handleAddPress = useCallback(async () => {

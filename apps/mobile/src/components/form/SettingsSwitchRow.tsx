@@ -83,6 +83,7 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       color: themeStyles.textPrimary.color,
       flex: 1,
       fontSize: 19,
+      fontWeight: '400',
       lineHeight: 26,
     },
     titleColumn: {

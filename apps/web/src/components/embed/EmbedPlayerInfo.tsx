@@ -244,7 +244,7 @@ export function EmbedPlayerInfo({
               }
               data-testid="embed-publish-date"
             >
-              {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
+              {hasPublishDate ? <ReadableDate date={publishDate} includeTime /> : null}
             </span>
           </button>
         ) : (
@@ -287,7 +287,7 @@ export function EmbedPlayerInfo({
               }
               data-testid="embed-publish-date"
             >
-              {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
+              {hasPublishDate ? <ReadableDate date={publishDate} includeTime /> : null}
             </span>
           </div>
         )}

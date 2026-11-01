@@ -19,7 +19,7 @@ export type SwipeActionRowProps = {
   testID?: string;
 };
 
-const createStyles = ({ tokens }: ThemedStylesTheme) =>
+const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
   StyleSheet.create({
     action: {
       alignItems: 'center',
@@ -34,6 +34,15 @@ const createStyles = ({ tokens }: ThemedStylesTheme) =>
     },
     actionLabelHidden: {
       opacity: 0,
+    },
+    /**
+     * Opaque full-width face over the revealed action. Without a fill, rows that do not paint
+     * their own background leave Remove visible at rest.
+     */
+    content: {
+      alignSelf: 'stretch',
+      backgroundColor: themeStyles.screen.backgroundColor,
+      width: '100%',
     },
     spinnerOverlay: {
       ...StyleSheet.absoluteFill,
@@ -151,6 +160,7 @@ export function SwipeActionRow({
             handleRemove();
           }
         }}
+        style={styles.content}
       >
         {children}
       </View>

@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
-import { Fragment, memo, useCallback, useState } from 'react';
+import { Fragment, memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountTasteProfileHiddenRow, DTOAccountTasteProfileRow } from '@podverse/helpers';
 import { formatDateAbbrev, primaryChannelListArtworkUrl } from '@podverse/helpers';
@@ -19,6 +20,7 @@ import {
   settingsCardInnerGap,
 } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
+import { useTheme } from '../../theme/useTheme';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
 
@@ -60,9 +62,18 @@ const createSectionStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme)
       paddingHorizontal: tokens.spacing.lg,
       paddingBottom: tokens.spacing.lg,
     },
+    weightHide: {
+      marginLeft: 'auto',
+    },
     weightLevels: {
       flexDirection: 'row',
+      flexShrink: 1,
       flexWrap: 'wrap',
+      gap: tokens.spacing.sm,
+    },
+    weightRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
       gap: tokens.spacing.sm,
     },
   });
@@ -70,14 +81,14 @@ const createSectionStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme)
 type ListTestIdPrefix = 'taste-profile' | 'taste-profile-hidden' | 'channel-hidden';
 
 type ShowRowProps = {
-  actionAccessibilityLabel: string;
-  actionLabel: string;
-  actionTestID: string;
+  actionAccessibilityLabel?: string;
+  actionLabel?: string;
+  actionTestID?: string;
   idText: string;
   imageUrl: string | null;
-  onAction: (idText: string, title: string) => void;
+  onAction?: (idText: string, title: string) => void;
   pending: boolean;
-  subtitle: string;
+  subtitle?: string;
   testID: string;
   title: string;
 };
@@ -96,7 +107,7 @@ const TasteProfileShowRow = memo(function TasteProfileShowRow({
 }: ShowRowProps) {
   const styles = useThemedStyles(createContentListRowStyles);
   const handlePress = useCallback(() => {
-    onAction(idText, title);
+    onAction?.(idText, title);
   }, [idText, onAction, title]);
 
   return (
@@ -114,15 +125,20 @@ const TasteProfileShowRow = memo(function TasteProfileShowRow({
         testID={testID}
         title={title}
         trailing={
-          <Button
-            accessibilityLabel={actionAccessibilityLabel}
-            disabled={pending}
-            label={actionLabel}
-            onPress={handlePress}
-            size="sm"
-            testID={actionTestID}
-            variant="secondary"
-          />
+          actionLabel !== undefined &&
+          actionAccessibilityLabel !== undefined &&
+          actionTestID !== undefined &&
+          onAction !== undefined ? (
+            <Button
+              accessibilityLabel={actionAccessibilityLabel}
+              disabled={pending}
+              label={actionLabel}
+              onPress={handlePress}
+              size="sm"
+              testID={actionTestID}
+              variant="secondary"
+            />
+          ) : undefined
         }
       />
     </View>
@@ -220,67 +236,80 @@ function toWeightLevel(weight: number): WeightLevel {
   return '1';
 }
 
+const MOVED_NOTICE_MS = 4000;
+
 function WeightControl({
   channelIdText,
   disabled,
   onApply,
+  onHide,
   title,
   weight,
-  weightOverride,
 }: {
   channelIdText: string;
   disabled: boolean;
-  onApply: (channelIdText: string, weight: number) => Promise<void>;
+  onApply: (channelIdText: string, weight: number) => Promise<boolean>;
+  onHide: () => void;
   title: string;
   weight: number;
-  weightOverride: number | null;
 }) {
   const { t } = useTranslation();
+  const { tokens } = useTheme();
   const styles = useThemedStyles(createSectionStyles);
   const [selected, setSelected] = useState<WeightLevel>(toWeightLevel(weight));
 
   return (
     <View style={styles.weight}>
-      <Text style={styles.description}>{t('taste_profile.weight_label')}</Text>
-      <View style={styles.weightLevels}>
-        {WEIGHT_LEVELS.map((level) => {
-          const chosen = selected === level;
-          return (
-            <Button
-              accessibilityLabel={t('taste_profile.weight_accessible', { level, title })}
-              disabled={disabled}
-              key={level}
-              label={level}
-              onPress={() => {
-                setSelected(level);
-              }}
-              size="sm"
-              testID={`taste-profile-weight-${channelIdText}-${level}`}
-              variant={chosen ? 'primary' : 'secondary'}
-            />
-          );
-        })}
+      <View style={styles.weightRow}>
+        <Text style={styles.description}>{t('taste_profile.weight_label')}</Text>
+        <View style={styles.weightLevels}>
+          {WEIGHT_LEVELS.map((level) => {
+            const chosen = selected === level;
+            return (
+              <Button
+                accessibilityLabel={t('taste_profile.weight_accessible', { level, title })}
+                disabled={disabled}
+                key={level}
+                label={level}
+                onPress={() => {
+                  if (chosen || disabled) {
+                    return;
+                  }
+                  setSelected(level);
+                  void onApply(channelIdText, Number(level)).then((applied) => {
+                    if (!applied) {
+                      setSelected(toWeightLevel(weight));
+                    }
+                  });
+                }}
+                selected={chosen}
+                size="sm"
+                testID={`taste-profile-weight-${channelIdText}-${level}`}
+                variant={chosen ? 'primary' : 'secondary'}
+              />
+            );
+          })}
+        </View>
+        <View style={styles.weightHide}>
+          <Button
+            accessibilityLabel={t('taste_profile.hide_accessible', { title })}
+            disabled={disabled}
+            icon={<Ionicons color={tokens.text.primary} name="close" size={22} />}
+            iconOnly
+            label={t('taste_profile.hide_accessible', { title })}
+            onPress={onHide}
+            size="sm"
+            testID={`taste-profile-hide-${channelIdText}`}
+            variant="ghost"
+          />
+        </View>
       </View>
-      {weightOverride === null ? (
-        <Text style={styles.status}>{t('taste_profile.weight_automatic')}</Text>
-      ) : null}
-      <Button
-        accessibilityLabel={t('taste_profile.weight_apply_accessible', { title })}
-        disabled={disabled}
-        label={t('taste_profile.weight_apply')}
-        onPress={() => {
-          void onApply(channelIdText, Number(selected));
-        }}
-        size="sm"
-        testID={`taste-profile-weight-apply-${channelIdText}`}
-        variant="secondary"
-      />
     </View>
   );
 }
 
 /**
- * Taste Profile, Not Counted in Recommendations, and Hidden Channels for the signed-in listener.
+ * Taste Profile, Removed from Recommendations, and Hidden Channels for the signed-in listener.
  * Rows are not links; the listener manages each list here.
  */
 export function TasteProfileSections() {
@@ -306,6 +335,20 @@ export function TasteProfileSections() {
   } = useTasteProfileLists({ hiddenActive, profileActive, channelHiddenActive });
   const [unhideTarget, setUnhideTarget] = useState<UnhideTarget | null>(null);
   const [unhideVisible, setUnhideVisible] = useState(false);
+  const [movedNotice, setMovedNotice] = useState<{ id: number; message: string } | null>(null);
+
+  useEffect(() => {
+    if (movedNotice === null) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(movedNotice.message);
+    const timer = setTimeout(() => {
+      setMovedNotice(null);
+    }, MOVED_NOTICE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [movedNotice]);
 
   const showTitle = useCallback(
     (title: string | null) => {
@@ -315,11 +358,15 @@ export function TasteProfileSections() {
     [t]
   );
 
-  const handleRemove = useCallback(
+  const handleHide = useCallback(
     (idText: string) => {
-      void hideShow(idText);
+      void hideShow(idText).then((moved) => {
+        if (moved) {
+          setMovedNotice({ id: Date.now(), message: t('taste_profile.moved_to_hidden') });
+        }
+      });
     },
-    [hideShow]
+    [hideShow, t]
   );
 
   const openUnhide = useCallback((idText: string, title: string) => {
@@ -339,20 +386,9 @@ export function TasteProfileSections() {
       return (
         <View>
           <TasteProfileShowRow
-            actionAccessibilityLabel={t('taste_profile.remove_accessible', { title })}
-            actionLabel={t('taste_profile.remove')}
-            actionTestID={`taste-profile-remove-${idText}`}
             idText={idText}
             imageUrl={primaryChannelListArtworkUrl(row.channel.channel_images)}
-            onAction={handleRemove}
             pending={pendingChannelIds.has(idText)}
-            subtitle={
-              row.last_listened_at === null
-                ? t('taste_profile.added_back')
-                : t('taste_profile.last_listened', {
-                    date: formatDateAbbrev(row.last_listened_at, i18n.language),
-                  })
-            }
             testID={`taste-profile-row-${idText}`}
             title={title}
           />
@@ -361,14 +397,16 @@ export function TasteProfileSections() {
             channelIdText={idText}
             disabled={pendingChannelIds.has(idText)}
             onApply={applyWeight}
+            onHide={() => {
+              handleHide(idText);
+            }}
             title={title}
             weight={row.recommendation_weight}
-            weightOverride={row.recommendation_weight_override}
           />
         </View>
       );
     },
-    [applyWeight, handleRemove, i18n.language, pendingChannelIds, showTitle, t]
+    [applyWeight, handleHide, pendingChannelIds, showTitle]
   );
 
   const renderHiddenRow = useCallback(
@@ -428,6 +466,15 @@ export function TasteProfileSections() {
 
   return (
     <View>
+      {movedNotice !== null ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={styles.status}
+          testID="taste-profile-moved-notice"
+        >
+          {movedNotice.message}
+        </Text>
+      ) : null}
       {actionFailed ? (
         <Text
           accessibilityLiveRegion="polite"

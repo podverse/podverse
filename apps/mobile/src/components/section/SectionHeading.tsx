@@ -17,6 +17,7 @@ const createStyles = ({ tokens }: ThemedStylesTheme) =>
     heading: {
       ...typography.heading,
       color: tokens.text.accent,
+      fontWeight: '400',
     },
   });
 

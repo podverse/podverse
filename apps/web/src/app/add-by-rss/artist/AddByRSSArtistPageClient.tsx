@@ -137,6 +137,8 @@ type AddByRSSArtistPageClientProps = {
 export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> = ({ idText }) => {
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
+  const tInfo = useTranslations('info');
+  const tMedia = useTranslations('media');
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const tV4VBoostMessages = useTranslations('v4v.boost_messages');
@@ -491,14 +493,14 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     if (hasTracks) {
       availableTabs.push('tracks');
     }
-    if (canShowBoostTab) {
-      availableTabs.push('boosts');
-    }
     if (hasDescription) {
       availableTabs.push('about');
     }
     if (hasPodroll) {
       availableTabs.push('podroll');
+    }
+    if (canShowBoostTab) {
+      availableTabs.push('boosts');
     }
     availableTabs.push('settings');
     if (availableTabs.length === 0) {
@@ -567,12 +569,16 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     { value: 'oldest', label: tFilters('sort.oldest') },
   ];
 
-  const isEmptyActiveTab =
-    activeTab !== 'settings' &&
-    ((activeTab === 'albums' && !hasAlbums) ||
-      (activeTab === 'tracks' && !hasTracks) ||
-      (activeTab === 'boosts' && boostsPageFetcher === null) ||
-      (activeTab === 'about' && !hasDescription));
+  const emptyActiveTabMessage =
+    activeTab === 'albums' && !hasAlbums
+      ? tMedia('music.no_albums_found')
+      : activeTab === 'tracks' && !hasTracks
+        ? tMedia('music.no_tracks_found')
+        : activeTab === 'about' && !hasDescription
+          ? tInfo('summary.no_summary')
+          : activeTab === 'boosts' && boostsPageFetcher === null
+            ? tV4VBoostMessages('public_messages_empty')
+            : null;
 
   return (
     <MainWrapper>
@@ -612,8 +618,8 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
                 errorMessage={podroll.errorMessage}
               />
             </DetailListWrapper>
-          ) : isEmptyActiveTab ? (
-            <NoResults message={tFeatures('add_by_rss.no_feeds_music')} />
+          ) : emptyActiveTabMessage !== null ? (
+            <NoResults message={emptyActiveTabMessage} />
           ) : (
             <AddByRSSArtistPageList
               activeTab={activeTab}

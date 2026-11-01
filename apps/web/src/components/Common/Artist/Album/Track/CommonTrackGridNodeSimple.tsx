@@ -41,8 +41,8 @@ export const CommonTrackGridNodeSimple: React.FC<CommonTrackGridNodeSimpleProps>
           height={IMAGES.LIST.GRID.SIZE}
           className={styles.image}
         />
+        {subtitle ? <div className={styles.channelTitle}>{subtitle}</div> : null}
         <div className={styles.title}>{title}</div>
-        {subtitle ? <span className={styles.lastPubDate}>{subtitle}</span> : null}
       </div>
     </Link>
   );

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { formatDateAbbrev, formatDateTimeAbbrev } from '@podverse/helpers';
+import { formatDateAbbrev } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
@@ -30,6 +30,7 @@ import {
   LIST_ROW_ARTWORK_SIZE,
   LIST_ROW_SHOW_VERTICAL_INSET,
   listRowArtworkGap,
+  listRowDescriptionGap,
   listRowVerticalPadding,
 } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
@@ -145,8 +146,11 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       justifyContent: 'flex-start',
       width: UNSEEN_INDICATOR_SIZE,
     },
+    // Solid fill: this pill sits on cover art; the translucent danger tone washes out on bright images.
     liveBadge: {
       alignSelf: 'center',
+      backgroundColor: tokens.button.dangerBg,
+      borderColor: tokens.button.dangerBg,
     },
     liveOnArtwork: {
       ...StyleSheet.absoluteFill,
@@ -196,16 +200,14 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
     showFooterReserve: {
       height: 20,
     },
-    showTitle: {
-      fontWeight: '400',
-    },
     textGroup: {
-      gap: tokens.spacing.xs,
+      gap: listRowDescriptionGap(tokens.spacing),
     },
     title: {
       ...typography.subheading,
       color: themeStyles.textPrimary.color,
       fontSize: 19,
+      fontWeight: '400',
       lineHeight: TITLE_LINE_HEIGHT,
     },
     titleFlex: {
@@ -291,8 +293,7 @@ const useMetadataAnnouncements = (
 
 const useUpdatedLabel = (
   updatedAt: string | number | null | undefined,
-  fallbackMs: number | null | undefined,
-  includeTime: boolean
+  fallbackMs: number | null | undefined
 ): string | null => {
   const { i18n } = useTranslation();
 
@@ -304,11 +305,8 @@ const useUpdatedLabel = (
       return null;
     }
 
-    const instant = new Date(epochMs);
-    return includeTime
-      ? formatDateTimeAbbrev(instant, i18n.language)
-      : formatDateAbbrev(instant, i18n.language);
-  }, [fallbackMs, i18n.language, includeTime, updatedAt]);
+    return formatDateAbbrev(new Date(epochMs), i18n.language);
+  }, [fallbackMs, i18n.language, updatedAt]);
 };
 
 const useDurationLabel = (duration: string | null | undefined, hidden: boolean): string | null => {
@@ -345,16 +343,21 @@ const useClipRangeLabel = (row: HomeFeedRowData): string | null => {
 /**
  * Shared list row for channels and playable items.
  *
- * Episode and clip rows use three bands (identity + download, description, play/duration/more) so a
+ * Episode and clip rows use three bands (identity, description, play/duration/download/more) so a
  * Home Episodes list can show channel context without stacking every control in one column, and an
- * in-channel list can drop artwork without inventing a second row component. The identity row and
- * the description share `textGroup` (`spacing.xs`). The play, duration, and progress band stays
- * under that group. `showContextLine` keeps a parent title when that artwork stays hidden.
- * Track rows omit the play band: More sits in the identity row, vertically centered with the
- * artwork and text. The row press still starts playback. A livestream item row states Live,
- * Scheduled, or Ended in the play band where an episode row shows its duration: beside Play, or
- * at the band's leading edge when the row has no Play. Channel rows keep Live on the artwork. A
- * livestream row's More menu is Share only.
+ * in-channel list can drop artwork without inventing a second row component. The one-tap download
+ * sits in the play band, immediately left of More, so the title uses the header width. The
+ * description sits under the identity block with `listRowDescriptionGap` (`spacing.base`), the
+ * same width as the gap beside the artwork, so the paragraph keeps that clearance under the image.
+ * The play, duration, and progress band stays under that group. `showContextLine` keeps a parent
+ * title when that artwork stays hidden.
+ * Track rows omit the play band: download and More sit in the identity row, vertically centered
+ * with the artwork and text, download immediately left of More. The row press still starts
+ * playback. A livestream item row states Live, Scheduled, or Ended in the play band where an
+ * episode row shows its duration: beside Play, or
+ * at the band's leading edge when the row has no Play. Channel rows keep Live on the artwork and
+ * never mount a More ellipsis; their actions stay on swipe-left (and the matching grid long-press).
+ * A livestream row's More menu is Share only.
  */
 export const HomeFeedRow = memo(function HomeFeedRow({
   mediaType,
@@ -392,11 +395,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   const { liveLabel, unseenSpoken } = useMetadataAnnouncements(row.metadata);
   const unseenBadge = row.metadata?.unseenBadge ?? null;
   const isChannelList = isChannelListMediaType(mediaType);
-  const updatedLabel = useUpdatedLabel(
-    row.updatedAt,
-    row.metadata?.latestItemPubDateMs,
-    !isChannelList
-  );
+  const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
   const isLive = row.metadata?.isLive === true;
   const showItemDot = itemRowShowsUnseenDot(isChannelList, row.updatedAt, itemLastSeenAtMs);
   const showArtwork = showChannelContext && row.removed !== true;
@@ -444,6 +443,10 @@ export const HomeFeedRow = memo(function HomeFeedRow({
       : null;
 
   const moreActions = useMemo(() => {
+    // Podcast, album, and artist rows use swipe-left (and grid long-press), never More.
+    if (isChannelList) {
+      return [];
+    }
     // A livestream has no fixed length to queue behind or finish. Share is the only more action.
     const isLivestreamRow = isShareOnlyLivestreamRow(mediaType, row.liveStatusId);
     const standardActions = buildMediaRowMoreActions(
@@ -529,6 +532,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   }, [
     downloadStatus,
     extraMoreActions,
+    isChannelList,
     isDownloadable,
     mediaType,
     onGoToChannelPress,
@@ -546,6 +550,11 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   const showScheduledLivestreamMore =
     mediaType === 'livestreams' && !isPlayable && moreActions.length > 0;
   const showLiveStatusBand = itemLiveStatus !== null && mediaType !== 'tracks';
+
+  const downloadControl =
+    download !== undefined && mediaType !== 'livestreams' ? (
+      <DownloadRowControl item={download.item} testID={download.testID} />
+    ) : undefined;
 
   const dateLine = (dateStyle: TextStyle) =>
     updatedLabel !== null || dateLineLiveLabel !== null ? (
@@ -631,11 +640,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
                 <View style={styles.titleLine}>
                   <Text
                     numberOfLines={2}
-                    style={[
-                      styles.title,
-                      isChannelList ? styles.showTitle : null,
-                      styles.titleFlex,
-                    ]}
+                    style={[styles.title, styles.titleFlex]}
                     testID={`home-feed-row-title-${row.id}`}
                   >
                     {row.title}
@@ -647,7 +652,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
               ) : (
                 <Text
                   numberOfLines={2}
-                  style={[styles.title, isChannelList ? styles.showTitle : null]}
+                  style={styles.title}
                   testID={`home-feed-row-title-${row.id}`}
                 >
                   {row.title}
@@ -680,12 +685,10 @@ export const HomeFeedRow = memo(function HomeFeedRow({
                 />
               ) : null}
             </View>
-            {download !== undefined && mediaType !== 'livestreams' ? (
-              <DownloadRowControl item={download.item} testID={download.testID} />
-            ) : null}
             {showInlineTrackMore ? (
               <MediaRowActions
                 appearance="icons"
+                beforeMore={downloadControl}
                 idSuffix={`-${row.id}`}
                 moreActions={moreActions}
                 moreTestID={`home-row-more-${row.id}`}
@@ -710,7 +713,8 @@ export const HomeFeedRow = memo(function HomeFeedRow({
         ) : showPlayBand ||
           showScheduledLivestreamMore ||
           showLiveStatusBand ||
-          moreActions.length > 0 ? (
+          moreActions.length > 0 ||
+          (downloadControl !== undefined && !showInlineTrackMore) ? (
           <View
             style={[
               styles.rowActions,
@@ -719,6 +723,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
           >
             <MediaRowActions
               appearance="icons"
+              beforeMore={showInlineTrackMore ? undefined : downloadControl}
               durationLabel={durationLabel}
               durationTestID={`home-feed-row-duration-${row.id}`}
               idSuffix={`-${row.id}`}

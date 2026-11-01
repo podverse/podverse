@@ -53,6 +53,11 @@ export type MediaRowActionsProps = {
   /** More-menu entries. When empty/undefined the More trigger is not rendered. */
   moreActions?: MediaRowMoreAction[];
   moreTestID?: string;
+  /**
+   * Sits in the trailing cluster, immediately left of More. List rows pass the one-tap download
+   * control here so the title row can use the full header width.
+   */
+  beforeMore?: ReactNode;
   /** Optional heading shown at the top of the more menu. */
   sheetTitle?: string;
   size?: ButtonSize;
@@ -200,6 +205,12 @@ type MediaRowActionStyles = {
   container: ViewStyle;
   duration: TextStyle;
   leading: ViewStyle;
+  statusBadge: ViewStyle;
+  trailing: ViewStyle;
+};
+
+const statusBadgeStyle: ViewStyle = {
+  alignSelf: 'center',
 };
 
 const createLabelStyles = (theme: ThemedStylesTheme): MediaRowActionStyles =>
@@ -216,6 +227,12 @@ const createLabelStyles = (theme: ThemedStylesTheme): MediaRowActionStyles =>
       flexDirection: 'row' as const,
       gap: theme.tokens.spacing.base,
       minWidth: 0,
+    },
+    statusBadge: statusBadgeStyle,
+    trailing: {
+      alignItems: 'center',
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.sm,
     },
   });
 
@@ -236,6 +253,12 @@ const createIconPlayStyles = (theme: ThemedStylesTheme): MediaRowActionStyles =>
       gap: theme.tokens.spacing.base,
       minWidth: 0,
     },
+    statusBadge: statusBadgeStyle,
+    trailing: {
+      alignItems: 'center',
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.sm,
+    },
   });
 
 const createIconMoreOnlyStyles = (theme: ThemedStylesTheme): MediaRowActionStyles =>
@@ -252,6 +275,12 @@ const createIconMoreOnlyStyles = (theme: ThemedStylesTheme): MediaRowActionStyle
       flexDirection: 'row' as const,
       gap: theme.tokens.spacing.base,
       minWidth: 0,
+    },
+    statusBadge: statusBadgeStyle,
+    trailing: {
+      alignItems: 'center',
+      flexDirection: 'row' as const,
+      gap: theme.tokens.spacing.sm,
     },
   });
 
@@ -274,6 +303,7 @@ export const MediaRowActions = memo(function MediaRowActions({
   playVariant = 'secondary',
   moreActions,
   moreTestID,
+  beforeMore,
   sheetTitle,
   size = 'sm',
   idSuffix = '',
@@ -353,7 +383,13 @@ export const MediaRowActions = memo(function MediaRowActions({
   const moreIconColor = tokens.button.secondaryColor;
   const statusBadge =
     statusText === null ? null : (
-      <Badge label={statusText} testID={statusTestID} tone={statusTone} />
+      <Badge
+        label={statusText}
+        size="md"
+        style={styles.statusBadge}
+        testID={statusTestID}
+        tone={statusTone}
+      />
     );
 
   const moreButton = hasMoreActions ? (
@@ -438,10 +474,20 @@ export const MediaRowActions = memo(function MediaRowActions({
   const leadingControl =
     playControl ?? (hasStatus ? <View style={styles.leading}>{statusBadge}</View> : null);
 
+  const trailingControl =
+    beforeMore !== undefined && beforeMore !== null ? (
+      <View style={styles.trailing}>
+        {beforeMore}
+        {moreButton}
+      </View>
+    ) : (
+      moreButton
+    );
+
   return (
     <View style={styles.container}>
       {leadingControl}
-      {moreButton}
+      {trailingControl}
 
       {shouldMountRowMoreMenu(hasMoreActions, hasOpenedSheet) ? (
         <MoreMenu

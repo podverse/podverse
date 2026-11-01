@@ -1,4 +1,5 @@
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { dropUnusedSubscribeSeedsForChannels } from '@api/lib/tasteSubscribeSeed.js';
 import { joiFeedUrl, validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
@@ -64,6 +65,7 @@ class AccountUnfollowBulkController {
                 account.id,
                 channel_id_texts
               );
+              await dropUnusedSubscribeSeedsForChannels(account.id, channel_id_texts);
             }
             if (feedUrls.length > 0) {
               await AccountUnfollowBulkController.accountFollowingAddByRSSChannelService.removeRSSChannelsBulk(

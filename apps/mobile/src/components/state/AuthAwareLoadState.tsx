@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react';
+import { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
-import { VerticalCenter } from '../primitives';
+import { screenBodyInsets } from '../../theme/screenLayout';
+import { useTheme } from '../../theme/useTheme';
 import { CallToActionSection } from './CallToActionSection';
 import { ListEmpty } from './ListEmpty';
 import { LoadingSection } from './LoadingSection';
@@ -24,6 +27,22 @@ type AuthAwareLoadStateProps = {
   showEmpty?: boolean;
 };
 
+function TopFill({ children }: { children: ReactNode }) {
+  const { tokens } = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        root: {
+          ...screenBodyInsets(tokens.spacing),
+          alignSelf: 'stretch',
+        },
+      }),
+    [tokens]
+  );
+
+  return <View style={styles.root}>{children}</View>;
+}
+
 export function AuthAwareLoadState({
   authMessageKey = 'authentication.login_required',
   children,
@@ -45,28 +64,30 @@ export function AuthAwareLoadState({
 
   if (errorKey !== null) {
     return (
-      <VerticalCenter>
+      <TopFill>
         <RetryableError errorKey={errorKey} onRetry={onRetry} testID={errorTestID} />
-      </VerticalCenter>
+      </TopFill>
     );
   }
 
   if (showAuthRequired) {
     return (
-      <CallToActionSection
-        actionLabelKey="authentication.login"
-        messageKey={authMessageKey}
-        onAction={onRequestLogin}
-        testID={emptyTestID}
-      />
+      <TopFill>
+        <CallToActionSection
+          actionLabelKey="authentication.login"
+          messageKey={authMessageKey}
+          onAction={onRequestLogin}
+          testID={emptyTestID}
+        />
+      </TopFill>
     );
   }
 
   if (showEmpty && emptyMessageKey !== undefined) {
     return (
-      <VerticalCenter>
+      <TopFill>
         <ListEmpty messageKey={emptyMessageKey} testID={emptyTestID} />
-      </VerticalCenter>
+      </TopFill>
     );
   }
 

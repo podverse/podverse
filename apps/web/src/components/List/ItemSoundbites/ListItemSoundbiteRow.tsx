@@ -310,7 +310,6 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
         {onPlayAndRemove ? (
           <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
             <div className={styles.topSection}>
-              <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
               {(showChannelInfo || showItemInfo) && (
                 <div className={styles.subtitle}>
                   {showChannelInfo && channelTitle}
@@ -318,12 +317,12 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
                   {showItemInfo && itemTitle}
                 </div>
               )}
+              <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
             </div>
           </button>
         ) : (
           <Link href={url}>
             <div className={styles.topSection}>
-              <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
               {(showChannelInfo || showItemInfo) && (
                 <div className={styles.subtitle}>
                   {showChannelInfo && channelTitle}
@@ -331,6 +330,7 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
                   {showItemInfo && itemTitle}
                 </div>
               )}
+              <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
             </div>
           </Link>
         )}
@@ -340,13 +340,15 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
               item_soundbite={item_soundbite}
               item={item || item_soundbite.item || null}
               onClick={onPlayAndRemove ?? playButtonOnClick}
-            />
-            <ItemRowMoreActions
-              enclosures={item?.item_enclosures ?? []}
-              itemTitle={itemTitle}
-              ariaLabel={tMedia('more_options')}
-              moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+              afterPlay={
+                <ItemRowMoreActions
+                  enclosures={item?.item_enclosures ?? []}
+                  itemTitle={itemTitle}
+                  ariaLabel={tMedia('more_options')}
+                  moreButtonMenuItems={moreButtonMenuItems}
+                  onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+                />
+              }
             />
             <div className={styles.timeSection}>
               {showItemInfo && (

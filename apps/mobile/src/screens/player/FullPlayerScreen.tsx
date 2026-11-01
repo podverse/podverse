@@ -1057,7 +1057,7 @@ export function FullPlayerScreen({
         title: {
           color: themeStyles.textPrimary.color,
           fontSize: 24,
-          fontWeight: '600',
+          fontWeight: '400',
           lineHeight: 30,
           minWidth: 0,
         },

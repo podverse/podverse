@@ -7,6 +7,7 @@ import type { StyleProp, ViewStyle } from 'react-native';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccount, DTOPlaylist } from '@podverse/helpers';
+import { categoryChipPressAction } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { PlaylistListRow, ProfileListRow } from '../../components/content';
@@ -69,6 +70,7 @@ import { BrowseSortChip } from './BrowseSortChip';
 import type { BrowseMediaType, BrowseRangeOption, BrowseSortOption } from './browseTypes';
 import {
   BROWSE_MEDIA_TYPE_ORDER,
+  browseEmptyMessageKey,
   DEFAULT_BROWSE_MEDIA_TYPE,
   DEFAULT_BROWSE_RANGE,
   DEFAULT_BROWSE_SORT,
@@ -426,8 +428,17 @@ export function BrowseScreen() {
   );
 
   const handleCategoriesPress = useCallback(() => {
-    setIsCategoryView(true);
-  }, []);
+    const action = categoryChipPressAction({
+      category: selectedCategory,
+      isListOpen: isCategoryView,
+    });
+    if (action === 'clear') {
+      setListPrefs((current) => (current === null ? current : { ...current, category: null }));
+      void writeBrowseCategory(null);
+      return;
+    }
+    setIsCategoryView(action === 'open');
+  }, [isCategoryView, selectedCategory]);
 
   const handleCategorySelect = useCallback((mappingKey: string | null) => {
     setIsCategoryView(false);
@@ -1064,21 +1075,16 @@ export function BrowseScreen() {
 
   const listEmpty = useMemo(
     () =>
+      // Feed loading lives in the list-area overlay for the whole showsLoading interval.
       showCategoryLoading ? (
         <LoadingSection testID="browse-category-loading" />
-      ) : isFeedLoading && !isCategoryView ? (
-        <LoadingSection testID="browse-list-loading" />
       ) : showEmptyDirectory ? (
         <ListEmpty
-          messageKey={
-            selectedMediaType === 'livestreams'
-              ? 'media.livestream.no_livestreams_found'
-              : 'features.browse.empty'
-          }
+          messageKey={browseEmptyMessageKey(selectedMediaType)}
           testID="browse-list-empty"
         />
       ) : null,
-    [isCategoryView, isFeedLoading, selectedMediaType, showCategoryLoading, showEmptyDirectory]
+    [selectedMediaType, showCategoryLoading, showEmptyDirectory]
   );
 
   const listFooter = useMemo(
@@ -1340,13 +1346,13 @@ export function BrowseScreen() {
       </View>
       <View style={styles.listArea}>
         <View
-          importantForAccessibility={isSwitchPending ? 'no-hide-descendants' : 'auto'}
-          pointerEvents={isSwitchPending ? 'none' : 'auto'}
-          style={[styles.listArea, isSwitchPending ? styles.listAreaHidden : null]}
+          importantForAccessibility={showsLoading ? 'no-hide-descendants' : 'auto'}
+          pointerEvents={showsLoading ? 'none' : 'auto'}
+          style={[styles.listArea, showsLoading ? styles.listAreaHidden : null]}
         >
           {feedList}
         </View>
-        {isSwitchPending ? (
+        {showsLoading ? (
           <View style={styles.pendingOverlay}>
             <LoadingSection testID="browse-list-loading" />
           </View>

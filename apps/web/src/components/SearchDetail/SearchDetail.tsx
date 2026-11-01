@@ -71,10 +71,8 @@ export function SearchDetail({
             onClick={primaryAction.onClick}
             className={styles.primaryActionButton}
             isLoading={primaryAction.isLoading}
+            icon={primaryAction.icon}
           >
-            <span className={styles.buttonIcon} aria-hidden="true">
-              {primaryAction.icon}
-            </span>
             {primaryAction.label}
           </Button>
           {hasDisplayText(rssHref) ? (
@@ -84,10 +82,8 @@ export function SearchDetail({
               target="_blank"
               rel="noopener noreferrer"
               className={styles.rssLinkButton}
+              icon={<FaRss />}
             >
-              <span className={styles.buttonIcon} aria-hidden="true">
-                <FaRss />
-              </span>
               {tFeatures('add_feed.rss_link')}
             </Button>
           ) : null}

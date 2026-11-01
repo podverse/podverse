@@ -1,7 +1,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import type { DTORemoteItemStub } from '@podverse/helpers';
-import { buildIndexProviderFeedPath, formatDateTimeAbbrev, formatHHMMSS } from '@podverse/helpers';
+import { buildIndexProviderFeedPath, formatDateAbbrev, formatHHMMSS } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
@@ -29,7 +29,7 @@ export const ContentPodrollItemUnaddedRow = ({
   const imageCandidates = artworkUrl === null ? [] : [artworkUrl];
   const metaParts: string[] = [];
   if (itemUnadded.pub_date !== null) {
-    metaParts.push(formatDateTimeAbbrev(itemUnadded.pub_date, locale));
+    metaParts.push(formatDateAbbrev(itemUnadded.pub_date, locale));
   }
   if (typeof itemUnadded.duration_seconds === 'number' && itemUnadded.duration_seconds > 0) {
     metaParts.push(formatHHMMSS(itemUnadded.duration_seconds));
