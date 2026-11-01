@@ -60,7 +60,7 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
         feedTitle: {
           color: themeStyles.textPrimary.color,
           fontSize: 16,
-          fontWeight: '600',
+          fontWeight: '400',
         },
         feedUrl: {
           ...typography.body,

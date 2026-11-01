@@ -211,7 +211,7 @@ export function MoreErrorLogDetailScreen() {
         category: {
           color: themeStyles.textPrimary.color,
           fontSize: 17,
-          fontWeight: '600',
+          fontWeight: '400',
         },
         content: {
           padding: tokens.spacing.lg,

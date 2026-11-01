@@ -86,7 +86,7 @@ export function MoreOpmlScreen() {
           ...typography.body,
           color: themeStyles.textPrimary.color,
           flex: 1,
-          fontWeight: '600',
+          fontWeight: '400',
         },
         feedUrl: {
           ...typography.body,

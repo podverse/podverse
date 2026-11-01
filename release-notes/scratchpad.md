@@ -363,3 +363,13 @@
   body.
 - Who notices: anyone signed in on the Recommendations tab
 - Operator steps: none
+
+## Largest titles use regular weight
+
+- Surfaces: mobile
+- Change: The largest text in a content component is regular weight (`400`) instead of
+  semibold. That covers list and settings row titles, the header-bar title, channel names,
+  section headings, the full-player episode title, and matching screen titles. Smaller
+  secondary lines, buttons, chips, and badges stay semibold.
+- Who notices: anyone reading a title, a screen header, or the episode name on the player
+- Operator steps: none

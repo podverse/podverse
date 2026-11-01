@@ -53,7 +53,7 @@ export function MoreSettingsTabBarScreen() {
         title: {
           color: themeStyles.textPrimary.color,
           fontSize: 16,
-          fontWeight: '600',
+          fontWeight: '400',
         },
       }),
     [themeStyles, tokens]

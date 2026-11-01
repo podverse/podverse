@@ -28,7 +28,7 @@ per-screen inset under the title bar.
 ## Top chrome
 
 - Use **`HeaderBar`** for the slot under the status bar: safe-area inset and a 44pt row. No
-  divider, hairline, or shadow under the title.
+  divider, hairline, or shadow under the title. The title is regular weight (`400`) at 17pt.
 - Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar` via
   **`HeaderBarChrome`**). Trailing header actions use **`HeaderBarAction`** in `headerRight` —
   do not invent a one-off top-right `Pressable`. When that slot has more than one action, wrap
@@ -212,8 +212,9 @@ channel header mark is also 78. Its art→title gap stays **`spacing.lg`**, the 
 seam. The title row and the action row share that 78pt height.
 
 A Home show row is the date, then the title, then "{count} downloaded", including zero. That
-title is regular weight (`400`) at 19pt. A Browse podcast or album row is the date, then the
-title, then the author. Episode, clip, and track rows stay show name, title, then date. Item
+title is regular weight (`400`) at 19pt. Episode, clip, and track titles use the same weight
+and size. A Browse podcast or album row is the date, then the title, then the author. Episode,
+clip, and track rows stay show name, title, then date. Item
 and channel pub dates use the same type: 14pt, weight 700, line height 20,
 **`tokens.text.link`**. An item description under that identity is 14pt, weight 400, line
 height 20, in secondary color. It sits **`listRowDescriptionGap`** (`spacing.base`) under the

@@ -79,6 +79,7 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       ...typography.subheading,
       color: themeStyles.textPrimary.color,
       fontSize: 19,
+      fontWeight: '400',
       lineHeight: 26,
     },
     titleHighlighted: {

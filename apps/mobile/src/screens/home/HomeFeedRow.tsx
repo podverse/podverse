@@ -200,9 +200,6 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
     showFooterReserve: {
       height: 20,
     },
-    showTitle: {
-      fontWeight: '400',
-    },
     textGroup: {
       gap: listRowDescriptionGap(tokens.spacing),
     },
@@ -210,6 +207,7 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       ...typography.subheading,
       color: themeStyles.textPrimary.color,
       fontSize: 19,
+      fontWeight: '400',
       lineHeight: TITLE_LINE_HEIGHT,
     },
     titleFlex: {
@@ -642,11 +640,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
                 <View style={styles.titleLine}>
                   <Text
                     numberOfLines={2}
-                    style={[
-                      styles.title,
-                      isChannelList ? styles.showTitle : null,
-                      styles.titleFlex,
-                    ]}
+                    style={[styles.title, styles.titleFlex]}
                     testID={`home-feed-row-title-${row.id}`}
                   >
                     {row.title}
@@ -658,7 +652,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
               ) : (
                 <Text
                   numberOfLines={2}
-                  style={[styles.title, isChannelList ? styles.showTitle : null]}
+                  style={styles.title}
                   testID={`home-feed-row-title-${row.id}`}
                 >
                   {row.title}

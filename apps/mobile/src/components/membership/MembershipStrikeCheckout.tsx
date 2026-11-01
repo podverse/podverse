@@ -152,6 +152,7 @@ export function MembershipStrikeCheckout({
         title: {
           ...typography.subheading,
           color: themeStyles.textPrimary.color,
+          fontWeight: '400',
           textAlign: 'center',
         },
       }),

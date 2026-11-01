@@ -35,6 +35,7 @@ export function ListError({
         label: {
           ...typography.subheading,
           color: themeStyles.textSecondary.color,
+          fontWeight: '400',
           textAlign: 'left',
         },
       }),

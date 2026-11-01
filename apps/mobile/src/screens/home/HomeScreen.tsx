@@ -1507,6 +1507,7 @@ export function HomeScreen() {
       unsubscribedSectionTitle: {
         ...typography.heading,
         color: themeStyles.textPrimary.color,
+        fontWeight: '400',
         marginBottom: tokens.spacing.sm,
       },
     });

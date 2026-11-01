@@ -332,6 +332,7 @@ export function LibraryDownloadsScreen() {
           ...typography.subheading,
           color: themeStyles.textPrimary.color,
           fontSize: 19,
+          fontWeight: '400',
           lineHeight: TITLE_LINE_HEIGHT,
         },
         screen: {

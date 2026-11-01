@@ -61,6 +61,7 @@ export function Accordion({
         title: {
           ...typography.heading,
           color: themeStyles.textPrimary.color,
+          fontWeight: '400',
         },
         titleBlock: {
           flex: 1,

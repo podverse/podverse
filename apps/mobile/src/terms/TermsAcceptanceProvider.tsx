@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '400',
     marginBottom: 16,
   },
 });
