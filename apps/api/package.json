@@ -50,7 +50,7 @@
     "express-rate-limit": "^8.6.2",
     "fast-xml-parser": "^5.11.2",
     "ioredis": "^6.0.0",
-    "joi": "^18.3.0",
+    "joi": "^18.3.1",
     "jsonwebtoken": "^9.0.2",
     "metaboost-signing": "^0.2.1",
     "nodemailer": "^10.1.7",
