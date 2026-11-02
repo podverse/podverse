@@ -199,6 +199,7 @@ const mediaRowProgressTrackStyle = { flex: 1, minWidth: 32 };
 const durationStyle = ({ tokens }: ThemedStylesTheme) => ({
   ...typography.body,
   color: tokens.text.accent,
+  flexShrink: 0,
 });
 
 type MediaRowActionStyles = {
@@ -638,17 +639,17 @@ function MediaRowIconsLeading({
         size={size}
         useIcons
       />
-      {isActiveRow && !isRemote && showActiveProgress && hasDuration ? (
-        <MediaRowActiveProgress
-          testID={durationTestID !== undefined ? `${durationTestID}-progress` : undefined}
-        />
-      ) : null}
       {statusBadge ??
         (hasDuration ? (
           <Text style={durationStyle} testID={durationTestID}>
             {durationLabel}
           </Text>
         ) : null)}
+      {isActiveRow && !isRemote && showActiveProgress && hasDuration ? (
+        <MediaRowActiveProgress
+          testID={durationTestID !== undefined ? `${durationTestID}-progress` : undefined}
+        />
+      ) : null}
     </View>
   );
 }

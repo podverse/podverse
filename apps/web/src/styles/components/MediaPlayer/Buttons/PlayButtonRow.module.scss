@@ -30,6 +30,10 @@
   @include mediaPlayerPlayPauseIconCentering;
 }
 
+.playButtonRowMeta {
+  flex-shrink: 0;
+}
+
 .playButtonRowProgress {
   flex: 1;
   min-width: 2rem;

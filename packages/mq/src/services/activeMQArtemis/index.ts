@@ -13,6 +13,7 @@ import { getContainerIpPart, redactForLog } from '@podverse/helpers-backend';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
 import { computeMqDuplicateId } from '../../lib/computeMqDuplicateId.js';
+import { writeInFlightFile } from '../../lib/inFlightFile.js';
 import { attachMqTraceContext, withMqConsumerSpan } from '../../lib/traceEnvelope.js';
 
 export type MQQueueName =
@@ -46,6 +47,29 @@ type SendMessageParams = {
   ttlMs?: number;
 };
 
+export type ConsumeMessagesOptions = {
+  /** Budget for one message's handler. On expiry the message is rejected and the process exits. */
+  handlerTimeoutMs?: number;
+  /** File holding the running handler's start time in epoch seconds, empty while idle. */
+  inFlightFilePath?: string;
+};
+
+const getFeedIdentity = (
+  parsedBody: unknown
+): { url?: string; podcast_index_id?: number | string } => {
+  if (typeof parsedBody !== 'object' || parsedBody === null) {
+    return {};
+  }
+  const url = Reflect.get(parsedBody, 'url');
+  const podcastIndexId = Reflect.get(parsedBody, 'podcast_index_id');
+  return {
+    ...(typeof url === 'string' ? { url } : {}),
+    ...(typeof podcastIndexId === 'number' || typeof podcastIndexId === 'string'
+      ? { podcast_index_id: podcastIndexId }
+      : {}),
+  };
+};
+
 export interface ActiveMQArtemisServiceParams {
   // Keeping same name for external compatibility
   protocol: string;
@@ -70,6 +94,7 @@ export class ActiveMQArtemisService {
   private readonly enableAmqpPing: boolean = process.env.ARTEMIS_DISABLE_AMQP_PING !== '1';
   private heartbeatSender: Sender | null = null;
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+  private exitingAfterHandlerTimeout = false;
 
   constructor(params: ActiveMQArtemisServiceParams, logger: ILoggerLike) {
     this.params = params;
@@ -456,8 +481,16 @@ export class ActiveMQArtemisService {
 
   async consumeMessages(
     queueName: MQQueueName,
-    processMessage: (context: EventContext, receiver: Receiver) => Promise<void> | void
+    processMessage: (context: EventContext, receiver: Receiver) => Promise<void> | void,
+    options: ConsumeMessagesOptions = {}
   ) {
+    const { handlerTimeoutMs, inFlightFilePath } = options;
+
+    // A file left by the previous container in this pod would read as a stuck handler.
+    if (inFlightFilePath !== undefined) {
+      writeInFlightFile(inFlightFilePath, null);
+    }
+
     try {
       const receiver = await this.ensureReceiver(queueName);
 
@@ -475,19 +508,51 @@ export class ActiveMQArtemisService {
             // Non-JSON payloads still get a consumer span without trace link.
           }
         }
+
+        const startedAtMs = Date.now();
+        this.recordInFlight(inFlightFilePath, startedAtMs);
+        let abandoned = false;
+        let timer: ReturnType<typeof setTimeout> | undefined;
         try {
-          await withMqConsumerSpan(`mq ${queueName}`, parsedBody, async () => {
+          const handled = withMqConsumerSpan(`mq ${queueName}`, parsedBody, async () => {
             await processMessage(context, receiver);
           });
+          if (handlerTimeoutMs === undefined) {
+            await handled;
+          } else {
+            // The losing handler cannot be cancelled and may still hold a database connection or
+            // grant credit later, so a timeout ends the process instead of taking the next message.
+            const timedOut = await new Promise<boolean>((resolve, reject) => {
+              timer = setTimeout(() => resolve(true), handlerTimeoutMs);
+              handled.then(() => resolve(false), reject);
+            });
+            if (timedOut) {
+              abandoned = true;
+              await this.exitAfterHandlerTimeout({
+                queueName,
+                context,
+                parsedBody,
+                elapsedMs: Date.now() - startedAtMs,
+              });
+            }
+          }
         } catch (err) {
           const error = err as Error;
           this.logger.logError('Error processing message', error);
+          if (abandoned) {
+            return;
+          }
           // If the processor throws, reject the message as a fallback and add credit.
           context.delivery?.reject({
             condition: 'podverse:processing-error',
             description: error.message,
           });
           receiver.add_credit(1);
+        } finally {
+          clearTimeout(timer);
+          if (!abandoned) {
+            this.recordInFlight(inFlightFilePath, null);
+          }
         }
       });
 
@@ -495,6 +560,48 @@ export class ActiveMQArtemisService {
     } catch (error) {
       this.logger.logError('consumeMessages: Failed to set consumer', error as Error);
     }
+  }
+
+  private recordInFlight(inFlightFilePath: string | undefined, startedAtMs: number | null): void {
+    if (inFlightFilePath === undefined) {
+      return;
+    }
+    try {
+      writeInFlightFile(inFlightFilePath, startedAtMs);
+    } catch (error) {
+      this.logger.logError('consumeMessages: failed to write in-flight file', error as Error);
+    }
+  }
+
+  private async exitAfterHandlerTimeout({
+    queueName,
+    context,
+    parsedBody,
+    elapsedMs,
+  }: {
+    queueName: MQQueueName;
+    context: EventContext;
+    parsedBody: unknown;
+    elapsedMs: number;
+  }): Promise<void> {
+    if (this.exitingAfterHandlerTimeout) {
+      return;
+    }
+    this.exitingAfterHandlerTimeout = true;
+
+    const messageId = context.message?.message_id;
+    this.logger.error('consumeMessages: handler timed out; rejecting the message and exiting', {
+      queueName,
+      elapsedMs,
+      ...(typeof messageId === 'string' || typeof messageId === 'number' ? { messageId } : {}),
+      ...getFeedIdentity(parsedBody),
+    });
+    context.delivery?.reject({
+      condition: 'podverse:handler-timeout',
+      description: `Handler ran ${elapsedMs}ms on ${queueName}`,
+    });
+    await this.close();
+    process.exit(1);
   }
 
   getIsShuttingDown(): boolean {

@@ -1,8 +1,15 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getParserConsumerConfig } from '@workers/config/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 
 import type { MQQueueNameParamKey } from '@podverse/helpers';
-import { MQ_QUEUES, sleep, validMQQueueNamesParamKeys } from '@podverse/helpers';
+import {
+  FEED_PARSE_MAX_MINUTES,
+  MQ_QUEUES,
+  ONE_MINUTE_MS,
+  sleep,
+  validMQQueueNamesParamKeys,
+} from '@podverse/helpers';
 import { createActiveMQShutdown, mqRSSRunParser as mqRSSRunParserFunction } from '@podverse/mq';
 
 export const mqRSSRunParser = async (args: CommandLineArgs) => {
@@ -19,9 +26,15 @@ export const mqRSSRunParser = async (args: CommandLineArgs) => {
   }
 
   const mqConstantMessageOptions = MQ_QUEUES[mqQueueNameParamKey];
+  const { inFlightFilePath } = getParserConsumerConfig();
 
   const activeMQArtemisService = getActiveMQArtemisService();
-  await mqRSSRunParserFunction(activeMQArtemisService, mqConstantMessageOptions.queueName);
+  await mqRSSRunParserFunction(activeMQArtemisService, mqConstantMessageOptions.queueName, {
+    handlerTimeoutMs: FEED_PARSE_MAX_MINUTES * ONE_MINUTE_MS,
+    ...(inFlightFilePath !== undefined && inFlightFilePath.trim() !== ''
+      ? { inFlightFilePath }
+      : {}),
+  });
 
   let keepRunning = true;
 

@@ -168,16 +168,22 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
         </Link>
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
-            <PlayButtonRow item_chapter={item_chapter} item={item} onClick={playButtonOnClick} />
-            <div className={styles.timeSection}>
-              {showItemInfo && (
-                <>
-                  <ReadableDate date={itemPubDate} />
-                  {' • '}
-                </>
-              )}
-              <ReadableTimeRange startTime={startTime} endTime={endTime} />
-            </div>
+            <PlayButtonRow
+              item_chapter={item_chapter}
+              item={item}
+              onClick={playButtonOnClick}
+              beforeProgress={
+                <div className={styles.timeSection}>
+                  {showItemInfo && (
+                    <>
+                      <ReadableDate date={itemPubDate} />
+                      {' • '}
+                    </>
+                  )}
+                  <ReadableTimeRange startTime={startTime} endTime={endTime} />
+                </div>
+              }
+            />
           </div>
         </div>
       </div>

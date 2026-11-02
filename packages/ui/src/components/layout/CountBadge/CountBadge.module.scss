@@ -1,15 +1,32 @@
 .badge {
+  box-sizing: border-box;
   display: inline-flex;
   min-width: 1.125rem;
   height: 1.125rem;
   padding: 0 var(--spacing-xs);
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: var(--border-radius-round);
   background: var(--text-color-accent);
   color: var(--button-primary-color);
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-normal);
   line-height: 1;
   white-space: nowrap;
+}
+
+// One character has no side padding, so width equals height and the round radius is a circle.
+.single {
+  width: 1.125rem;
+  padding: 0;
+}
+
+// Sits on an icon corner. Smaller than the default list face so it cannot cover the glyph.
+.corner {
+  height: 1rem;
+  min-width: 1rem;
+}
+
+.corner.single {
+  width: 1rem;
 }

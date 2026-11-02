@@ -1,0 +1,90 @@
+# Manual only: suspended CronJob. Never unsuspend this onto a schedule.
+# The only run is a one-off Job:
+# kubectl create job --from=cronjob/mq-rss-add-all mq-rss-add-all-$(date +%s) -n <ns>
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mq-rss-add-all
+  labels:
+    podverse-schedule: manual
+spec:
+  schedule: "* * * * *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      # Single attempt: Job default backoffLimit is 6 (creates new pods on failure).
+      backoffLimit: 0
+      # Loads every feed into memory, then sends one message per feed. 2Gi and 6 hours cover a
+      # large catalog.
+      activeDeadlineSeconds: 21600
+      ttlSecondsAfterFinished: 600
+      # Exit 78 is missing startup config: fail the Job without retry.
+      podFailurePolicy:
+        rules:
+          - action: FailJob
+            onExitCodes:
+              containerName: worker
+              operator: In
+              values:
+                - 78
+      template:
+        metadata:
+          labels:
+            app: podverse-ops
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: worker
+              image: ghcr.io/podverse/podverse/workers
+              # -f force-parses every feed. Add it only on a one-off Job for that recovery, never here.
+              command:
+                - "node"
+                - "apps/workers/dist/index.js"
+                - "mqRSSAddAll"
+                - "-q"
+                - "rss-normal"
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "2Gi"
+                  cpu: "500m"
+              envFrom:
+                - configMapRef:
+                    name: podverse-workers-config
+                - secretRef:
+                    name: podverse-db-opaque
+                - secretRef:
+                    name: podverse-mq-opaque
+                - secretRef:
+                    name: podverse-api.podcastindex.org-opaque
+                - secretRef:
+                    name: podverse-workers-add-by-rss-opaque
+                - secretRef:
+                    name: podverse-workers-webpush-opaque
+                    optional: true
+              volumeMounts:
+                - name: logs-volume
+                  mountPath: /logs
+                - name: logs-volume
+                  mountPath: /opt/logs
+                - name: firebase-key
+                  mountPath: /var/secrets/firebase
+                  readOnly: true
+          volumes:
+            - name: logs-volume
+              emptyDir: {}
+            - name: firebase-key
+              secret:
+                secretName: podverse-workers-firebase-opaque
+                optional: true

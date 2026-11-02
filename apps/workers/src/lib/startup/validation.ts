@@ -685,6 +685,11 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   if (categories.has(CATEGORY_MQ)) {
     results.push(...validateMQ());
   }
+  if (commandName === 'mqRSSRunParser') {
+    results.push(
+      validateOptional('MQ_CONSUMER_IN_FLIGHT_FILE', 'Message Queue', 'Skipped - no in-flight file')
+    );
+  }
   if (categories.has(CATEGORY_PARSER)) {
     results.push(...validateParser());
   }

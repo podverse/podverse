@@ -316,12 +316,14 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
                   onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
                 />
               }
+              beforeProgress={
+                <div className={styles.timeSection}>
+                  <ReadableDate date={item.pub_date} />
+                  {durationStr ? ' • ' : null}
+                  <ReadableDuration durationStr={durationStr} positionStr={positionStr} />
+                </div>
+              }
             />
-            <div className={styles.timeSection}>
-              <ReadableDate date={item.pub_date} />
-              {durationStr ? ' • ' : null}
-              <ReadableDuration durationStr={durationStr} positionStr={positionStr} />
-            </div>
           </div>
         </div>
       </div>

@@ -388,16 +388,18 @@ export const ListClipRow: React.FC<Props> = ({
                       }
                     />
                   }
+                  beforeProgress={
+                    <div className={styles.timeSection}>
+                      {showItemInfo && (
+                        <>
+                          <ReadableDate date={itemPubDate} />
+                          {' • '}
+                        </>
+                      )}
+                      <ReadableTimeRange startTime={clip.start_time} endTime={clip.end_time} />
+                    </div>
+                  }
                 />
-                <div className={styles.timeSection}>
-                  {showItemInfo && (
-                    <>
-                      <ReadableDate date={itemPubDate} />
-                      {' • '}
-                    </>
-                  )}
-                  <ReadableTimeRange startTime={clip.start_time} endTime={clip.end_time} />
-                </div>
               </>
             )}
           </div>
