@@ -128,6 +128,11 @@ git log --all --oneline --grep="chore(deps)"
 git branch -vv
 ```
 
+## Planning from an issue
+
+A pasted issue that should be planned follows **abcissue**. This skill does not plan or implement
+it, and it does not post the reply.
+
 ## Related Documentation
 
 - [GitHub Labels](/docs/repo-management/GITHUB-LABELS.md) - Complete label documentation

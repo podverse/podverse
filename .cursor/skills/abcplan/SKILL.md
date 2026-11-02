@@ -94,6 +94,8 @@ the invoking chat reaches it otherwise.
   RSS).
 - **Orientation**: files you already found that a planner should start from, with one line each.
   Only facts you checked.
+- **Ticket reply**: only when **abcissue** wrote the file. An operator deliverable for the last
+  implementation step, not a product change. Keep it as a ledger row the last plan covers.
 
 ## Planning steps
 
@@ -236,6 +238,9 @@ the set, per **parallel-plan-execution** and **copy-pasta-recommend-model**:
 - The last prompt archives the set and carries the cumulative verification for the whole set
   (**response-ending-make-verify** § Plan sets). Add the optional abcaicast checkbox when the set
   is heavy.
+- When the request has a Ticket reply section, that last prompt also writes `proposed-reply.md`
+  in the set and repeats it in a fenced `text` block. It does not post the comment. The operator
+  pastes it after the change is on `develop`. See **abcissue**.
 
 The final message lists, in this order: the phases with their prompts and models, the open
 questions, and the command `./scripts/abcplan/run.sh run <slug>`.

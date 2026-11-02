@@ -34,6 +34,9 @@ These hold even before the skill is read:
 - **abcplan** — never implement in that chat. Each set runs in a fresh worktree opened in its own
   Cursor window: lead with **Fresh worktree required**, then the create block, then the run block
   for the worktree's window (**git-worktree-sibling** § Plan sets in a worktree).
+- **abcissue** — a pasted issue URL or path, or the word abcissue. Read the skill before
+  planning. Do not implement in that chat, and do not post the tracker comment. A small set is a
+  chat in the new worktree. A large set is **abcplan**.
 - **abcdeploysteps** `<repo> <env>` — never guess either word. It writes a checklist and does
   not deploy.
 - **abcdeployrun** `<repo> <env>` — never guess either word. It runs the unattended alpha server
