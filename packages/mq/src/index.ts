@@ -12,7 +12,10 @@ export { mqRSSRunLiveItemListener } from './functions/mq/rss/runLiveItemListener
 export type { LiveItemListenerHandle } from './functions/mq/rss/runLiveItemListener.js';
 
 export { ActiveMQArtemisService } from './services/activeMQArtemis/index.js';
-export type { ActiveMQArtemisServiceParams } from './services/activeMQArtemis/index.js';
+export type {
+  ActiveMQArtemisServiceParams,
+  ConsumeMessagesOptions,
+} from './services/activeMQArtemis/index.js';
 export {
   attachMqTraceContext,
   getMqTraceContextFromMessage,

@@ -67,6 +67,17 @@ export function getMQConfig(): MQConfig {
   };
 }
 
+export type ParserConsumerConfig = {
+  /** Unset or blank writes no in-flight file. */
+  inFlightFilePath: string | undefined;
+};
+
+export function getParserConsumerConfig(): ParserConsumerConfig {
+  return {
+    inFlightFilePath: process.env.MQ_CONSUMER_IN_FLIGHT_FILE,
+  };
+}
+
 /** Allowed `BUCKET_PROVIDER` values for image shrink (single source of truth with validation). */
 export {
   BUCKET_PROVIDERS,

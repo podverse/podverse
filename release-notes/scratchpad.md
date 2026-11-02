@@ -113,3 +113,21 @@
   publish date stays on its own line, and the duration in the play band stays left of the bar.
 - Who notices: anyone looking at a list while something is playing
 - Operator steps: none
+
+## A stuck feed parse no longer stops a parser silently (#318)
+
+- Surfaces: workers, k8s
+- Change: Each feed message gets 15 minutes (`FEED_PARSE_MAX_MINUTES`, the same window after
+  which a feed's parsing lock goes stale). The budget starts fresh for every message. When one
+  message runs past it, `mqRSSRunParser` logs the queue, message id, feed URL, and Podcast Index
+  id, rejects the message with `podverse:handler-timeout`, closes the broker connection, and exits
+  with code 1 so the container restarts clean. New optional env `MQ_CONSUMER_IN_FLIGHT_FILE` makes
+  the parser write the current message's start time to a file, cleared at startup and between
+  messages. The `parser-normal`, `parser-live`, and `parser-ondemand` deployments set it to
+  `/logs/mq-consumer-in-flight`, and their liveness probe fails once one message has been in
+  flight for 960 seconds, which also catches a worker whose event loop is stuck. Readiness is
+  unchanged. OPML import, Add by RSS, image shrink, and DLQ consumers are unchanged.
+- Who notices: operators. A parser that used to sit `Ready` and silent on one feed now logs an
+  error naming the feed and restarts within about 16 minutes.
+- Operator steps: anyone running their own manifests should copy the `MQ_CONSUMER_IN_FLIGHT_FILE`
+  env and the liveness command from the base parser deployments.

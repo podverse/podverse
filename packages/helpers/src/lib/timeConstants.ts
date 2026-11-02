@@ -108,6 +108,12 @@ export const CLIP_END_PREVIEW_LEAD_SECONDS = 3;
 /** Live item listener poll interval in ms. */
 export const LIVE_ITEM_POLL_INTERVAL_MS = 5000;
 
+/**
+ * Longest one feed parse may run. A feed's parsing lock goes stale after this, and the parser
+ * consumer stops a handler that has run this long.
+ */
+export const FEED_PARSE_MAX_MINUTES = 15;
+
 /** Max attempts when waiting for web app server ready (2 min at 1s interval). */
 export const SERVER_READY_WAIT_MAX_ATTEMPTS_WEB = 120;
 
