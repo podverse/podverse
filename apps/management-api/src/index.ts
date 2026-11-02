@@ -17,9 +17,12 @@ const run = async () => {
     await import('@management-api/orm/db/index.js');
   const { AppDbDataSourceRead, AppDbDataSourceReadWrite } =
     await import('@management-api/orm/db/appDb.js');
-  const { validateStartupRequirements } = await import('./lib/startup/validation.js');
+  const { ADMIN_SESSION_PURGE_COMMAND, validateStartupRequirements } =
+    await import('./lib/startup/validation.js');
+  const { exitOnStartupConfigInvalid } = await import('./lib/startup/exitCodes.js');
+  const command = process.argv[2];
 
-  validateStartupRequirements();
+  exitOnStartupConfigInvalid(() => validateStartupRequirements(command));
 
   const { config } = await import('./config/index.js');
   const { initObservability, shutdownObservability } = await import('@podverse/observability');
@@ -88,7 +91,7 @@ const run = async () => {
     await AppDataSourceReadWrite.initialize();
     loggerService.warn('Connected to the management database');
 
-    if (process.argv[2] === 'adminSessionPurge') {
+    if (command === ADMIN_SESSION_PURGE_COMMAND) {
       try {
         const { adminSessionPurge } = await import('./lib/auth/adminSessionPurge.js');
         await adminSessionPurge();
@@ -155,19 +158,8 @@ const run = async () => {
       serverInstance = maybeServer;
     }
   } catch (error) {
-    // For validation errors, log just the message without stack trace
-    if (
-      error instanceof Error &&
-      error.message.includes('FATAL:') &&
-      error.message.includes('required environment variable')
-    ) {
-      // Validation error - message already logged in validation.ts, just exit
-      process.exit(1);
-    } else {
-      // Other errors - log with full details
-      loggerService.logError('Error during application startup', error);
-      process.exit(1);
-    }
+    loggerService.logError('Error during application startup', error);
+    process.exit(1);
   }
 };
 

@@ -5,6 +5,18 @@ import type { EntityManager } from 'typeorm';
 /** Listens stored on the listener's last opt-out day, which the opt-out deleted. */
 export type OptOutDayCarry = { storedCount: number; firstStoredAt: Date | null };
 
+/**
+ * Serializes every popularity write for one account until the transaction ends. Taken before any
+ * row lock in that write, including the share lock on `account_settings`, so waiters do not hold
+ * a row lock the holder still needs.
+ */
+export async function lockListenAccount(manager: EntityManager, accountId: number): Promise<void> {
+  await manager.query(
+    `SELECT pg_advisory_xact_lock(hashtextextended('popularity_listen_account:' || $1::text, 0))`,
+    [accountId]
+  );
+}
+
 const EMPTY_OPT_OUT_DAY_CARRY: OptOutDayCarry = { storedCount: 0, firstStoredAt: null };
 
 /**
@@ -16,12 +28,9 @@ export class StatsListenerService {
   async getOrCreateListenerId(account_id: number, manager?: EntityManager): Promise<string> {
     const db = this.entityManager(manager);
     // Concurrent first writes of one account insert the same unique key. Postgres can deadlock
-    // those inserts. This lock is held until the caller's transaction ends, and it is taken
-    // before the per-listener lock.
-    await db.query(
-      `SELECT pg_advisory_xact_lock(hashtextextended('popularity_listen_account:' || $1::text, 0))`,
-      [account_id]
-    );
+    // those inserts. The same lock is taken before the settings share lock; taking it again here
+    // covers a caller that creates the listener without that read.
+    await lockListenAccount(db, account_id);
     const result = await db
       .createQueryBuilder()
       .insert()

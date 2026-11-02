@@ -59,6 +59,11 @@ composite or incremental builds, and file times for the rest. When one is out of
 skip type-check, list the packages, and ask for `npm run build:packages`.
 `npm run lint:build:fix` runs that build, then `lint:fix`. CI runs `build:packages` before lint.
 
+Composite package `build` and `build:prod` scripts run `tsc --build`, then `tsc-alias` when
+that package rewrites path aliases (`orm`, `parser`, `mq`). That records referenced project
+versions in the build info the dry check reads. A package whose build tsconfig is not
+composite stays on plain `tsc`; the lint check compares file times for those.
+
 ## Commands
 
 ```bash

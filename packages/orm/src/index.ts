@@ -114,6 +114,7 @@ export * from './entities/feed/feedLifecycleUpdateSource.js';
 export * from './entities/feed/feedLog.js';
 export * from './entities/feed/feedPolicy.js';
 export * from './entities/feed/feedPolicyOverride.js';
+export * from './entities/feed/podcastIndexStreamCursor.js';
 
 export * from './entities/item/item.js';
 export * from './entities/item/itemAbout.js';
@@ -314,6 +315,7 @@ export * from './services/feed/feedTakedownReason.js';
 export * from './services/feed/feedLifecycleState.js';
 export * from './services/feed/feedLog.js';
 export * from './services/feed/feedPolicy.js';
+export * from './services/feed/podcastIndexStreamCursor.js';
 
 export * from './services/item/item.js';
 export * from './services/item/itemAbout.js';

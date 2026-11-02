@@ -6,6 +6,7 @@ import { mqRSSAddAll } from '@workers/commands/mq/rss/addAll.js';
 import { devPiBulkFeedsAddFromFile } from '@workers/commands/mq/rss/devPiBulkFeedsAddFromFile.js';
 import { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex.js';
 import { mqRSSAddTrendingPodcastsFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSAddTrendingPodcastsFromPodcastIndex.js';
+import { mqRSSCatchUpFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSCatchUpFromPodcastIndex.js';
 import { mqAddByRSSRunParser } from '@workers/commands/mq/rss/runAddByRSSParser.js';
 import { mqOpmlImportRun } from '@workers/commands/mq/rss/runOpmlImport.js';
 import { mqRSSRunParser } from '@workers/commands/mq/rss/runParser.js';
@@ -72,6 +73,7 @@ export default {
   devPiBulkFeedsAddFromFile,
   mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex,
   mqRSSAddTrendingPodcastsFromPodcastIndex,
+  mqRSSCatchUpFromPodcastIndex,
   devSeedLocalUserContent,
   devStatsSeedSimulatedPopularity,
   statsEventPartitionsMaintain,

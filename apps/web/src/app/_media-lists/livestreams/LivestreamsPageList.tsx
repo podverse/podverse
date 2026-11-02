@@ -14,10 +14,7 @@ export const LivestreamsPageList: React.FC = () => {
   const { loggedInAccount } = useAccount();
   const addByRSS = useUpcomingAddByRSSLivestreams(scope === 'subscribed' && !!loggedInAccount);
   const awaitingAddByRSS =
-    scope === 'subscribed' &&
-    !!loggedInAccount &&
-    !addByRSS.isReady &&
-    filterParams.page === 1;
+    scope === 'subscribed' && !!loggedInAccount && !addByRSS.isReady && filterParams.page === 1;
   const entries = useMemo(
     () =>
       addByRSS.items.length === 0

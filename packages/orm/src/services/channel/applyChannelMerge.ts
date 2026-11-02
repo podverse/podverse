@@ -1132,12 +1132,12 @@ async function mergeChannelHiddenRows(
   await manager.query(`DELETE FROM stats_channel_hidden WHERE channel_id = $1`, [fromChannelId]);
   await manager.query(
     `DELETE FROM stats_recommendation
-     WHERE channel_id = $2
+     WHERE channel_id = $1
        AND EXISTS (
          SELECT 1 FROM stats_channel_hidden h
-         WHERE h.listener_id = stats_recommendation.listener_id AND h.channel_id = $2
+         WHERE h.listener_id = stats_recommendation.listener_id AND h.channel_id = $1
        )`,
-    ids
+    [toChannelId]
   );
 }
 

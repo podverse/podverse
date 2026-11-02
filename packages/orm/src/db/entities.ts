@@ -83,6 +83,7 @@ import { FeedLog } from '@orm/entities/feed/feedLog.js';
 import { FeedPolicy } from '@orm/entities/feed/feedPolicy.js';
 import { FeedPolicyOverride } from '@orm/entities/feed/feedPolicyOverride.js';
 import { FeedTakedownReason } from '@orm/entities/feed/feedTakedownReason.js';
+import { PodcastIndexStreamCursor } from '@orm/entities/feed/podcastIndexStreamCursor.js';
 import { Item } from '@orm/entities/item/item.js';
 import { ItemAbout } from '@orm/entities/item/itemAbout.js';
 import { ItemChapter } from '@orm/entities/item/itemChapter.js';
@@ -239,6 +240,7 @@ export const entities = [
   FeedLog,
   FeedPolicy,
   FeedPolicyOverride,
+  PodcastIndexStreamCursor,
   EmbedDemoShowcase,
   ImageShrinkSource,
   Item,

@@ -15,8 +15,14 @@ const run = async () => {
 
   const { loggerService } = await import('./factories/loggerService.js');
   const { validateStartupRequirements } = await import('./lib/startup/validation.js');
+  const {
+    assertStartupConfig,
+    EXIT_CODE_CONFIG_INVALID,
+    exitOnStartupConfigInvalid,
+    StartupConfigInvalidError,
+  } = await import('./lib/startup/exitCodes.js');
 
-  validateStartupRequirements();
+  exitOnStartupConfigInvalid(() => validateStartupRequirements());
 
   const { config } = await import('./config/index.js');
   const { initObservability, shutdownObservability } = await import('@podverse/observability');
@@ -209,13 +215,15 @@ const run = async () => {
     };
 
     // Validate all module configs
-    assertConfigValid(validateORMConfig(ormConfig), 'podverse-orm');
-    assertConfigValid(
-      validateExternalServicesConfig(externalServicesConfig),
-      'podverse-external-services'
-    );
-    assertConfigValid(validateNotificationsConfig(notificationsConfig), 'podverse-notifications');
-    assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser');
+    assertStartupConfig(() => {
+      assertConfigValid(validateORMConfig(ormConfig), 'podverse-orm');
+      assertConfigValid(
+        validateExternalServicesConfig(externalServicesConfig),
+        'podverse-external-services'
+      );
+      assertConfigValid(validateNotificationsConfig(notificationsConfig), 'podverse-notifications');
+      assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser');
+    });
 
     // Create module contexts
     const ormContext = createORMContext(ormConfig);
@@ -254,8 +262,11 @@ const run = async () => {
       serverInstance = server;
     }
   } catch (error) {
-    // For validation errors, log just the message without stack trace
-    if (error instanceof Error && error.message.includes('FATAL:')) {
+    // For config and fatal startup errors, log just the message without stack trace
+    if (error instanceof StartupConfigInvalidError) {
+      console.error(error.message);
+      process.exit(EXIT_CODE_CONFIG_INVALID);
+    } else if (error instanceof Error && error.message.includes('FATAL:')) {
       console.error(error.message);
       process.exit(1);
     } else {

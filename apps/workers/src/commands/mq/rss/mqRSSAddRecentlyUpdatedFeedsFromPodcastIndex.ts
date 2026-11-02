@@ -36,7 +36,7 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (args: Command
 
   const mqConstantMessageOptions = MQ_QUEUES[mqQueueNameParamKey];
 
-  await mqRSSAddRecentlyUpdatedFeedsFromPodcastIndexFunction(
+  const result = await mqRSSAddRecentlyUpdatedFeedsFromPodcastIndexFunction(
     getActiveMQArtemisService(),
     getPodcastIndexService(),
     {
@@ -54,4 +54,12 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (args: Command
       },
     }
   );
+
+  // A non-zero exit marks the Job Failed so repeated send failures reach alerting.
+  if (result.outcome === 'send_failed') {
+    throw new Error(
+      `mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex: ${result.failed} feed message(s) were not ` +
+        `sent; the recent_data cursor stays at next_since=${result.cursorNextSince ?? 'none'}`
+    );
+  }
 };

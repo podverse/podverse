@@ -35,14 +35,14 @@ rules every writer and reader follows. Code comments point here.
 
 ## Stores and Lifetimes
 
-| Store                  | Linked to a listener?              | Kept for                             | Grows with                         |
-| ---------------------- | ---------------------------------- | ------------------------------------ | ---------------------------------- |
-| Listen and open events | Yes, by a pseudonymous listener id | The retention setting                | Time; old data dropped by month    |
+| Store                  | Linked to a listener?              | Kept for                             | Grows with                                  |
+| ---------------------- | ---------------------------------- | ------------------------------------ | ------------------------------------------- |
+| Listen and open events | Yes, by a pseudonymous listener id | The retention setting                | Time; old data dropped by month             |
 | Taste profile          | Yes                                | Until opt-out or account deletion    | Listeners × shows they played or subscribed |
-| Recommendations        | Yes                                | Until opt-out or account deletion    | Listeners × discovered shows       |
-| Show similarity        | No                                 | Rebuilt by the recommendations job   | Shows × their nearest neighbors    |
-| Daily totals           | No                                 | Forever                              | Active entities × days             |
-| Range totals           | No                                 | Rebuilt from events and daily totals | Entities with any counted activity |
+| Recommendations        | Yes                                | Until opt-out or account deletion    | Listeners × discovered shows                |
+| Show similarity        | No                                 | Rebuilt by the recommendations job   | Shows × their nearest neighbors             |
+| Daily totals           | No                                 | Forever                              | Active entities × days                      |
+| Range totals           | No                                 | Rebuilt from events and daily totals | Entities with any counted activity          |
 
 ## Tables
 
@@ -159,8 +159,9 @@ and needs `CREATE` on the app database. DB bootstrap grants it.
 - Creating the listener row takes
   `SELECT pg_advisory_xact_lock(hashtextextended('popularity_listen_account:' || $account_id::text, 0))`
   first. Concurrent first writes of one account insert the same unique key, and Postgres can
-  deadlock those inserts. The lock is held until the transaction ends and is taken before the
-  per-listener lock. `getOrCreateListenerId` runs it.
+  deadlock those inserts. The lock is held until the transaction ends. The consent read takes it
+  before the share lock on `account_settings`, and `getOrCreateListenerId` takes it again before
+  the per-listener lock.
 - Once the listener id is known, and before it reads any of the listener's events, the
   transaction takes
   `SELECT pg_advisory_xact_lock(hashtextextended('popularity_listen:' || $listener_id::text, 0))`,
