@@ -22,6 +22,7 @@ import type { AccountConsentPhase } from './accountConsentPhase';
 import { resolveAccountConsentPhase } from './accountConsentPhase';
 import { setAccountConsentSettled } from './accountConsentSettled';
 import { AgreementChoices } from './AgreementChoices';
+import { shouldBlockAccountSync } from './shouldBlockAccountSync';
 import { setTermsBlocksAccountSync } from './termsSyncGate';
 
 type ShownConsentPhase = Exclude<AccountConsentPhase, 'none'>;
@@ -76,9 +77,13 @@ export function TermsAcceptanceProvider({ children }: PropsWithChildren) {
     account !== null &&
     ((agreement !== null && !termsCurrent) || loadFailed);
   const termsStatusKnown = agreement !== null || loadFailed;
-  const blockSync =
-    status === 'authenticated' &&
-    (account === null || agreement === null || !termsCurrent || loadFailed);
+  const blockSync = shouldBlockAccountSync({
+    accountPresent: account !== null,
+    agreementLoaded: agreement !== null,
+    loadFailed,
+    status,
+    termsCurrent,
+  });
   const tasteProfileAgreementVersion = tasteProfileAgreement?.version ?? '';
   const tasteProfileAgreementLoadFailed =
     tasteProfileConsentErrorKey !== null && !tasteProfileAgreementLoading;

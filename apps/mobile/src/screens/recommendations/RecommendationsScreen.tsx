@@ -109,7 +109,10 @@ export function RecommendationsScreen() {
   const [viewMode, setViewMode] = useState<HomeViewMode>(DEFAULT_HOME_VIEW_MODE);
   const [retryCount, setRetryCount] = useState(0);
   const [state, setState] = useState<LoadState>({ status: 'idle' });
-  const signedIn = auth.status === 'authenticated' && auth.account !== null;
+  // Tokens make the session; the account snapshot arrives behind sync. Do not treat a missing
+  // snapshot as signed-out — that shows a Login button that cannot open the auth sheet.
+  const isAuthenticated = auth.status === 'authenticated';
+  const hasAccount = auth.account !== null;
   const trackingAllowed = isTasteProfileTrackingAllowed(
     auth.account?.account_settings,
     getTasteProfileAgreementCurrentVersion()
@@ -142,8 +145,12 @@ export function RecommendationsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!signedIn || !chipReady) {
+      if (!isAuthenticated || !chipReady) {
         setState({ status: 'idle' });
+        return;
+      }
+      if (!hasAccount) {
+        setState({ status: 'loading' });
         return;
       }
       let cancelled = false;
@@ -175,8 +182,9 @@ export function RecommendationsScreen() {
       auth.setTokens,
       chip,
       chipReady,
+      hasAccount,
+      isAuthenticated,
       retryCount,
-      signedIn,
     ])
   );
 
@@ -268,13 +276,13 @@ export function RecommendationsScreen() {
     navigation.setOptions({
       headerRight: () => (
         <RecommendationsOverflowMenu
-          onEdit={signedIn ? openSettings : undefined}
+          onEdit={isAuthenticated ? openSettings : undefined}
           onViewModeChange={handleViewModeChange}
           viewMode={viewMode}
         />
       ),
     });
-  }, [handleViewModeChange, navigation, openSettings, signedIn, viewMode]);
+  }, [handleViewModeChange, isAuthenticated, navigation, openSettings, viewMode]);
 
   const rows = useMemo(
     () => items.map((item) => recommendationRow(item, t('misc.untitled'))),
@@ -352,7 +360,7 @@ export function RecommendationsScreen() {
   );
 
   const header =
-    signedIn && !trackingAllowed && items.length > 0 ? (
+    isAuthenticated && hasAccount && !trackingAllowed && items.length > 0 ? (
       <View style={styles.note}>
         <Text style={styles.noteText}>{t('features.recommendations.paused')}</Text>
         <Button
@@ -364,14 +372,14 @@ export function RecommendationsScreen() {
       </View>
     ) : null;
 
-  const empty = !signedIn ? (
+  const empty = !isAuthenticated ? (
     <CallToActionSection
       actionLabelKey="authentication.login"
       messageKey="authentication.login_required"
       onAction={onRequestLogin}
       testID="recommendations-auth-required"
     />
-  ) : state.status === 'loading' || state.status === 'idle' ? (
+  ) : !hasAccount || state.status === 'loading' || state.status === 'idle' ? (
     <LoadingSection testID="recommendations-loading" />
   ) : state.status === 'error' ? (
     <RetryableError

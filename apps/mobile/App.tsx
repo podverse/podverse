@@ -322,9 +322,18 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
       {status === 'unknown' ? null : (
         <AuthPromptProvider
           onRequestLogin={() => {
+            // The sheet only presents for anonymous sessions. Calling it while authenticated
+            // would set authMode and leave visible=false — a Login button that appears to do
+            // nothing.
+            if (status !== 'anonymous') {
+              return;
+            }
             openAuthSheet('login');
           }}
           onRequestSignUp={() => {
+            if (status !== 'anonymous') {
+              return;
+            }
             openAuthSheet('signup');
           }}
         >
@@ -340,6 +349,9 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
                   onConsumePendingDeepLink={onConsumePendingDeepLink}
                   pendingDeepLinkUrl={pendingDeepLinkUrl}
                   onRequestLogin={() => {
+                    if (status !== 'anonymous') {
+                      return;
+                    }
                     openAuthSheet('login');
                   }}
                   onRequestLogout={async () => {
@@ -347,6 +359,9 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
                     setAuthMode('anonymous');
                   }}
                   onRequestSignUp={() => {
+                    if (status !== 'anonymous') {
+                      return;
+                    }
                     openAuthSheet('signup');
                   }}
                 />
