@@ -7,9 +7,9 @@
  * Before type-check, every package named by `build:packages` is checked for a
  * build at least as new as its source. When any package build is older than its
  * source, both type-check steps are skipped, the packages are named, and the
- * run asks for `npm run build:packages`. `npm run lint:build:fix` runs that
- * build first, then this script in fix mode. ESLint and Prettier still run, and
- * the run exits 1.
+ * run asks for `npm run build:packages`. `npm run lint:build:fix` installs any
+ * missing or stale root and mobile deps, runs that build, then this script in fix
+ * mode. ESLint and Prettier still run, and the run exits 1.
  *
  * i18n:compile runs first because apps/web and apps/management-web type-check
  * import generated apps/<app>/i18n/compiled/*.json (gitignored).
