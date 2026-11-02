@@ -131,3 +131,17 @@
   error naming the feed and restarts within about 16 minutes.
 - Operator steps: anyone running their own manifests should copy the `MQ_CONSUMER_IN_FLIGHT_FILE`
   env and the liveness command from the base parser deployments.
+
+## The live item listener reconnects a silent Podping socket (#319)
+
+- Surfaces: workers
+- Change: `mqRSSRunLiveItemListener` no longer waits for a `close` or `error` event to recover.
+  A socket that has not opened or sent a frame for 5 minutes is terminated and replaced, which
+  covers a peer that vanished without closing. The handshake times out after 10 seconds, only
+  one socket or connect attempt exists at a time, and events from a replaced socket are ignored.
+  Each connect attempt logs a line with an attempt counter, and open, close, and error lines name
+  the attempt. The heartbeat moved from about every 28 hours to hourly and reports the age of
+  the last frame, the socket state, and the attempt count.
+- Who notices: operators reading the listener logs. Live items keep flowing after the Podping
+  connection silently drops, instead of stopping until the pod restarts.
+- Operator steps: none
