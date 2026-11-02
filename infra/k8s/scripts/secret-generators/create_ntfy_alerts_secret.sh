@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# VERSION: 2
+# VERSION: 4
 # Encrypted Secret for Alertmanager ntfy webhook URLs and optional credentials.
 # Keys:
 # - podverse-alpha-url (required)
 # - metaboost-alpha-url (required)
 # - token (optional)
 # - watchdog-url (optional)
+#
+# Use ntfy ?template=alertmanager so the URL has no {{ }} for Alertmanager to
+# expand. Alertmanager POSTs its JSON body; ntfy formats title/message.
 
 set -euo pipefail
 
@@ -50,15 +53,14 @@ require_cmd() {
 require_cmd kubectl
 require_cmd sops
 
-echo "Running create_ntfy_alerts_secret.sh - Version: 2"
+echo "Running create_ntfy_alerts_secret.sh - Version: 4"
 
 SECRET_NAME="ntfy-alerts"
 NAMESPACE="monitoring"
 OUTPUT_FILE="./secrets/ntfy-alerts.enc.yaml"
-# Inline templates map Alertmanager payloads to message title/text and priority.
-DEFAULT_NTFY_QUERY='template=yes&title={{if+eq+.status+"resolved"}}Resolved:+{{(first+.alerts).labels.alertname}}{{else}}Firing:+{{(first+.alerts).labels.alertname}}{{end}}&message={{if+eq+.status+"resolved"}}{{(first+.alerts).labels.alertname}}+resolved{{else}}{{(first+.alerts).labels.alertname}}+firing+(severity={{(first+.alerts).labels.severity}}){{end}}&priority={{if+eq+.status+"resolved"}}2{{else+if+eq+(first+.alerts).labels.severity+"critical"}}5{{else+if+eq+(first+.alerts).labels.severity+"warning"}}3{{else}}3{{end}}'
-DEFAULT_PODVERSE_ALPHA_URL="https://ntfy.sh/REPLACE_WITH_PODVERSE_ALPHA_RANDOM_TOPIC?${DEFAULT_NTFY_QUERY}"
-DEFAULT_METABOOST_ALPHA_URL="https://ntfy.sh/REPLACE_WITH_METABOOST_ALPHA_RANDOM_TOPIC?${DEFAULT_NTFY_QUERY}"
+# No Go templates in the URL (Alertmanager would try to expand them and break).
+DEFAULT_PODVERSE_ALPHA_URL="https://ntfy.sh/REPLACE_WITH_PODVERSE_ALPHA_RANDOM_TOPIC?template=alertmanager"
+DEFAULT_METABOOST_ALPHA_URL="https://ntfy.sh/REPLACE_WITH_METABOOST_ALPHA_RANDOM_TOPIC?template=alertmanager"
 
 if [[ -n "${NAMESPACE_OVERRIDE}" ]]; then
   NAMESPACE="${NAMESPACE_OVERRIDE}"

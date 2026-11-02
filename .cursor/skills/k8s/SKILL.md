@@ -213,6 +213,19 @@ Child applications in `alpha/apps/<component>.yaml` define:
 - `spec.destination.namespace`: `podverse-alpha`
 - `spec.syncPolicy.automated`: `prune: true`, `selfHeal: true`
 
+When `automated.selfHeal` is on, do **not** rely on `kubectl apply` alone for manifests that
+Application tracks — self-heal reverts to the last synced git revision. Pause automated sync,
+apply, commit/push, confirm `status.sync.revision`, then re-enable.
+
+### Optional operator alerting (ntfy)
+
+Hosted ntfy for CronJob / node / Argo operator alerts is optional and separate from product Web
+Push / FCM. Checklist:
+[`infra/k8s/alpha/examples/optional-alerting/README.md`](/infra/k8s/alpha/examples/optional-alerting/README.md).
+Alertmanager `url_file` topic URLs must stay free of Go `{{ }}` (use ntfy
+`?template=alertmanager`). Argo notification subscriptions select Applications by label
+`podverse.fm/notify-env=<env>`.
+
 ## CronJobs
 
 Scheduled worker tasks live in `base/cron/`; manual ops jobs (migrations, verify, MQ enqueue) live in

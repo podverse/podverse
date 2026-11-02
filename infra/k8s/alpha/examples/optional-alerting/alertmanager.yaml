@@ -61,8 +61,7 @@ data:
         webhook_configs:
           - url_file: /etc/alertmanager/secrets/podverse-alpha-url
             send_resolved: true
-            # This URL uses ?template=yes with inline title/message/priority templates.
-            # Priority lives in the URL template so firing/resolved events map by severity.
+            # Topic URL should be https://ntfy.sh/<topic>?template=alertmanager (no {{ }}).
             # Optional bearer token for ntfy auth. Free-tier random topic names can omit this.
             # http_config:
             #   authorization:
@@ -73,8 +72,7 @@ data:
         webhook_configs:
           - url_file: /etc/alertmanager/secrets/metaboost-alpha-url
             send_resolved: true
-            # This URL uses ?template=yes with inline title/message/priority templates.
-            # Priority lives in the URL template so firing/resolved events map by severity.
+            # Topic URL should be https://ntfy.sh/<topic>?template=alertmanager (no {{ }}).
             # Optional bearer token for ntfy auth. Free-tier random topic names can omit this.
             # http_config:
             #   authorization:

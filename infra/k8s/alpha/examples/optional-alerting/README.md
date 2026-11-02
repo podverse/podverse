@@ -42,8 +42,17 @@ openssl rand -hex 16
 The topic name is the secret. Anyone who has it can read and post, so it lives only in the SOPS
 Secrets, never in git. The bearer token is optional on the free tier.
 
-Subscribe each topic on a phone through the ntfy iPhone app, and on a Mac through the ntfy.sh web
-app with browser notifications granted.
+### Client subscribe
+
+Prefer the free tier with **no account**. An ntfy account does **not** reliably sync topic
+subscriptions between the website and the native iOS/Android apps (sync is effectively web↔web /
+PWA). Subscribe each topic by name on every client you care about.
+
+- **Mac / desktop:** ntfy.sh web app with browser notifications granted.
+- **iOS:** prefer the Home Screen PWA — Safari → `https://ntfy.sh/app` → Share → Add to Home
+  Screen — then open from the icon and allow notifications. Or add both topics by name in the
+  App Store ntfy app.
+- Confirm with a manual Publish from the web UI before wiring the cluster.
 
 ## Free-tier daily limit
 
@@ -71,10 +80,11 @@ topic.
 | Argo CD app Degraded              | 4             |
 | Argo CD deploy live               | 2             |
 
-Priority for alerts is inline ntfy templating: `?template=yes` with `title`, `message`, and
-`priority` on each environment topic URL (`podverse-alpha-url`, `metaboost-alpha-url` in Secret
-`ntfy-alerts`). To change a priority, edit the `priority=` expression in those URL values
-(`create_ntfy_alerts_secret.sh`) and re-apply the Secret.
+Each environment topic URL (`podverse-alpha-url`, `metaboost-alpha-url` in Secret `ntfy-alerts`)
+uses ntfy `?template=alertmanager`. Alertmanager POSTs its JSON webhook body; ntfy formats the
+notification. Keep those URLs free of `{{ }}` — Alertmanager templates `url_file` before POST and
+breaks on inline Go templates. Severity-based ntfy priority (5 / 3 / 2) is not set by this
+template; phone importance still follows the app’s defaults unless you add a later mechanism.
 
 ## Why ntfy is hosted
 
@@ -82,6 +92,11 @@ An outage alert cannot come from the cluster it is about. Self-hosting is fine w
 outside that cluster.
 
 ## Checklist
+
+When a GitOps Argo CD Application uses `automated.selfHeal`, **pause automated sync** before
+`kubectl apply` of tracked manifests, **commit and push**, confirm
+`status.sync.revision` matches the commit, then **re-enable** automated sync. Otherwise self-heal
+reverts the cluster to the last synced git revision.
 
 ### 1. Secrets
 
@@ -197,6 +212,10 @@ Apply [`argocd-notifications-cm.yaml`](argocd-notifications-cm.yaml) in namespac
 apply `argocd-notifications-secret`. Keep a single owner for `argocd-notifications-cm`. Set
 `argocdUrl` in that ConfigMap to the external Argo CD URL.
 
+Subscriptions in that ConfigMap select Applications by label
+`podverse.fm/notify-env=<env>` (for example `podverse-alpha` or `metaboost-alpha`). Put that label
+on each Argo CD `Application` in GitOps; in-cluster-only labels do not survive recreate.
+
 Triggers:
 
 - sync failed, priority **5**, title `Argo CD Sync Failed`
@@ -215,16 +234,20 @@ webhook receiver.
 ### 7. Test delivery
 
 With the port-forward from step 4 still up, add one alert per severity and confirm it on the phone
-and on the Mac. A resolved notification (priority 2) arrives when the alert ends.
+and on the Mac. Restart the port-forward after any Alertmanager pod restart (rollout kills it).
+
+Routing uses labels only (`alertname`, `severity`, `namespace`). Put human text in
+`--annotation=` if you want it; spaced values as bare labels confuse amtool's matcher parser.
 
 ```bash
-amtool --alertmanager.url=http://127.0.0.1:9093 alert add alertname=ManualDeliveryTest severity=critical namespace=podverse-alpha summary="Manual test alert" description="Verify ntfy delivery"
-amtool --alertmanager.url=http://127.0.0.1:9093 alert add alertname=ManualDeliveryTest severity=warning namespace=podverse-alpha summary="Manual test alert" description="Verify ntfy delivery"
-amtool --alertmanager.url=http://127.0.0.1:9093 alert add alertname=ManualDeliveryTest severity=critical namespace=metaboost-alpha summary="Manual test alert" description="Verify ntfy delivery"
+amtool --alertmanager.url=http://127.0.0.1:9093 --no-version-check alert add alertname=ManualDeliveryTest severity=critical namespace=podverse-alpha
+amtool --alertmanager.url=http://127.0.0.1:9093 --no-version-check alert add alertname=ManualDeliveryTest severity=warning namespace=podverse-alpha
+amtool --alertmanager.url=http://127.0.0.1:9093 --no-version-check alert add alertname=ManualDeliveryTest severity=critical namespace=metaboost-alpha
 ```
 
-The Metaboost alert should land on the Metaboost topic. The other two should land on the Podverse
-alpha topic, at priorities 5 and 3.
+Wait about 30s for `group_wait`. The Metaboost alert should land on the Metaboost topic. The other
+two should land on the Podverse alpha topic. With `?template=alertmanager`, ntfy formats the body;
+Alertmanager severity does not set ntfy priority numbers in that mode.
 
 ## Pausing a job on purpose
 
