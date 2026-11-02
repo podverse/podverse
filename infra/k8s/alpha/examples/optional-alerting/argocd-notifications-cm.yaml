@@ -1,0 +1,183 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+# Keep a single owner for this ConfigMap in GitOps. Do not let two sources manage the same
+# argocd-notifications-cm (for example, Argo CD install manifests and this file at the same time).
+data:
+  context: |
+    # Replace with your external Argo CD URL.
+    argocdUrl: https://REPLACE_WITH_ARGOCD_HOST
+  service.webhook.ntfy-podverse-alpha-sync-failed: |
+    url: $ntfy-podverse-alpha-url
+    headers:
+      # Optional for ntfy tiers that require auth:
+      # - name: Authorization
+      #   value: Bearer $ntfy-token
+      - name: Title
+        value: Argo CD Sync Failed
+      - name: Priority
+        value: "5"
+      - name: Tags
+        value: warning,argo
+      - name: Click
+        value: '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}'
+  service.webhook.ntfy-podverse-alpha-health-degraded: |
+    url: $ntfy-podverse-alpha-url
+    headers:
+      # Optional for ntfy tiers that require auth:
+      # - name: Authorization
+      #   value: Bearer $ntfy-token
+      - name: Title
+        value: Argo CD Health Degraded
+      - name: Priority
+        value: "4"
+      - name: Tags
+        value: warning,argo
+      - name: Click
+        value: '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}'
+  service.webhook.ntfy-podverse-alpha-deployed: |
+    url: $ntfy-podverse-alpha-url
+    headers:
+      # Optional for ntfy tiers that require auth:
+      # - name: Authorization
+      #   value: Bearer $ntfy-token
+      - name: Title
+        value: Argo CD Deploy Live
+      - name: Priority
+        value: "2"
+      - name: Tags
+        value: rocket
+      - name: Click
+        value: '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}'
+  service.webhook.ntfy-metaboost-alpha-sync-failed: |
+    url: $ntfy-metaboost-alpha-url
+    headers:
+      # Optional for ntfy tiers that require auth:
+      # - name: Authorization
+      #   value: Bearer $ntfy-token
+      - name: Title
+        value: Argo CD Sync Failed
+      - name: Priority
+        value: "5"
+      - name: Tags
+        value: warning,argo
+      - name: Click
+        value: '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}'
+  service.webhook.ntfy-metaboost-alpha-health-degraded: |
+    url: $ntfy-metaboost-alpha-url
+    headers:
+      # Optional for ntfy tiers that require auth:
+      # - name: Authorization
+      #   value: Bearer $ntfy-token
+      - name: Title
+        value: Argo CD Health Degraded
+      - name: Priority
+        value: "4"
+      - name: Tags
+        value: warning,argo
+      - name: Click
+        value: '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}'
+  service.webhook.ntfy-metaboost-alpha-deployed: |
+    url: $ntfy-metaboost-alpha-url
+    headers:
+      # Optional for ntfy tiers that require auth:
+      # - name: Authorization
+      #   value: Bearer $ntfy-token
+      - name: Title
+        value: Argo CD Deploy Live
+      - name: Priority
+        value: "2"
+      - name: Tags
+        value: rocket
+      - name: Click
+        value: '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}'
+  template.argocd-deployed: |
+    webhook:
+      ntfy-podverse-alpha-deployed:
+        method: POST
+        body: |
+          Argo CD deploy live for {{.app.metadata.name}}.
+          Revision: {{if ge (len .app.status.sync.revision) 7}}{{slice .app.status.sync.revision 0 7}}{{else}}{{.app.status.sync.revision}}{{end}}
+          {{if gt (len .app.status.summary.images) 0}}Image: {{index .app.status.summary.images 0}}
+          {{end}}{{.context.argocdUrl}}/applications/{{.app.metadata.name}}
+      ntfy-metaboost-alpha-deployed:
+        method: POST
+        body: |
+          Argo CD deploy live for {{.app.metadata.name}}.
+          Revision: {{if ge (len .app.status.sync.revision) 7}}{{slice .app.status.sync.revision 0 7}}{{else}}{{.app.status.sync.revision}}{{end}}
+          {{if gt (len .app.status.summary.images) 0}}Image: {{index .app.status.summary.images 0}}
+          {{end}}{{.context.argocdUrl}}/applications/{{.app.metadata.name}}
+  template.argocd-sync-failed: |
+    webhook:
+      ntfy-podverse-alpha-sync-failed:
+        method: POST
+        body: |
+          Argo CD sync failed for {{.app.metadata.name}}.
+          {{.app.status.operationState.message}}
+          {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
+      ntfy-metaboost-alpha-sync-failed:
+        method: POST
+        body: |
+          Argo CD sync failed for {{.app.metadata.name}}.
+          {{.app.status.operationState.message}}
+          {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
+  template.argocd-health-degraded: |
+    webhook:
+      ntfy-podverse-alpha-health-degraded:
+        method: POST
+        body: |
+          Argo CD health degraded for {{.app.metadata.name}}.
+          {{.app.status.health.message}}
+          {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
+      ntfy-metaboost-alpha-health-degraded:
+        method: POST
+        body: |
+          Argo CD health degraded for {{.app.metadata.name}}.
+          {{.app.status.health.message}}
+          {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
+  trigger.on-deployed: |
+    - when: app.status?.operationState.phase in ['Succeeded'] && app.status.health.status == 'Healthy'
+      oncePer: app.status.sync.revision
+      send:
+        - argocd-deployed
+  trigger.on-sync-failed: |
+    - when: app.status?.operationState.phase in ['Error', 'Failed']
+      send:
+        - argocd-sync-failed
+  trigger.on-health-degraded: |
+    - when: app.status.health.status == 'Degraded'
+      send:
+        - argocd-health-degraded
+  subscriptions: |
+    - recipients:
+        - ntfy-podverse-alpha-sync-failed
+      selector: podverse.fm/notify-env=podverse-alpha
+      triggers:
+        - on-sync-failed
+    - recipients:
+        - ntfy-podverse-alpha-health-degraded
+      selector: podverse.fm/notify-env=podverse-alpha
+      triggers:
+        - on-health-degraded
+    - recipients:
+        - ntfy-podverse-alpha-deployed
+      selector: podverse.fm/notify-env=podverse-alpha
+      triggers:
+        - on-deployed
+    - recipients:
+        - ntfy-metaboost-alpha-sync-failed
+      selector: podverse.fm/notify-env=metaboost-alpha
+      triggers:
+        - on-sync-failed
+    - recipients:
+        - ntfy-metaboost-alpha-health-degraded
+      selector: podverse.fm/notify-env=metaboost-alpha
+      triggers:
+        - on-health-degraded
+    - recipients:
+        - ntfy-metaboost-alpha-deployed
+      selector: podverse.fm/notify-env=metaboost-alpha
+      triggers:
+        - on-deployed

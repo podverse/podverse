@@ -5,7 +5,7 @@ import type { LivePlaybackDisplay } from '@podverse/playback-core';
 
 import { LiveMediaPlayerProgress } from './LiveMediaPlayerProgress';
 
-const { displayRef, goToLive } = vi.hoisted(() => {
+const { displayRef, goToLive, seekToFraction } = vi.hoisted(() => {
   const atLiveEdge: LivePlaybackDisplay = {
     isAtLiveEdge: true,
     behindLiveSeconds: 0,
@@ -16,6 +16,7 @@ const { displayRef, goToLive } = vi.hoisted(() => {
   return {
     displayRef: { current: atLiveEdge },
     goToLive: vi.fn(),
+    seekToFraction: vi.fn(),
   };
 });
 
@@ -51,6 +52,12 @@ vi.mock('../../../hooks/usePlayerTransport', () => ({
   }),
 }));
 
+vi.mock('../../../lib/livePlayback/liveMediaStore', () => ({
+  liveMediaStore: {
+    seekToFraction,
+  },
+}));
+
 const atLiveEdge: LivePlaybackDisplay = {
   isAtLiveEdge: true,
   behindLiveSeconds: 0,
@@ -59,10 +66,25 @@ const atLiveEdge: LivePlaybackDisplay = {
   windowFraction: null,
 };
 
+function mockBarRect(el: HTMLElement): void {
+  vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    bottom: 20,
+    right: 200,
+    width: 200,
+    height: 20,
+    toJSON: () => ({}),
+  });
+}
+
 describe('LiveMediaPlayerProgress', () => {
   beforeEach(() => {
     displayRef.current = { ...atLiveEdge };
     goToLive.mockClear();
+    seekToFraction.mockClear();
   });
 
   afterEach(() => {
@@ -97,6 +119,32 @@ describe('LiveMediaPlayerProgress', () => {
     expect(screen.getByTestId('media-player-live-scrubber').getAttribute('aria-valuenow')).toBe(
       '42'
     );
+  });
+
+  it('seeks once on mouseup after a press-plus-move', () => {
+    displayRef.current = {
+      isAtLiveEdge: false,
+      behindLiveSeconds: 65,
+      behindLiveLabel: '\u22121:05',
+      canRewind: true,
+      windowFraction: 0.42,
+    };
+
+    render(<LiveMediaPlayerProgress layoutVariant="default" />);
+
+    const scrubber = screen.getByTestId('media-player-live-scrubber');
+    mockBarRect(scrubber);
+
+    fireEvent.mouseDown(scrubber, { clientX: 40 });
+    fireEvent.mouseMove(window, { clientX: 100 });
+    fireEvent.mouseMove(window, { clientX: 160 });
+
+    expect(seekToFraction).not.toHaveBeenCalled();
+
+    fireEvent.mouseUp(window);
+
+    expect(seekToFraction).toHaveBeenCalledTimes(1);
+    expect(seekToFraction).toHaveBeenCalledWith(0.8);
   });
 
   it('goes to live when the Live control is pressed', () => {

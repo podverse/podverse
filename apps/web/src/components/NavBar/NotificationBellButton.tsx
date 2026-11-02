@@ -50,6 +50,7 @@ export function NotificationBellButton() {
         <CountBadge
           ariaLabel={tSettings('notifications.unread_count_aria', { count: unreadCount })}
           count={unreadCount}
+          size="corner"
         />
       </span>
     </span>

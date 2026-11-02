@@ -4,13 +4,14 @@ Utility shell scripts for Kubernetes and local workflows (SOPS secret generation
 
 **Layout:**
 
-| Subdirectory or file     | Role                                                     |
-| ------------------------ | -------------------------------------------------------- |
-| **`secret-generators/`** | SOPS-encrypted `create_*` and bulk runners               |
-| **`db/`**                | `db-connect.sh` — port-forward to Postgres + `psql`      |
-| **`mq/`**                | `mq-connect.sh` — port-forward to the message queue      |
-| **`keyvaldb/`**          | `keyvaldb-gui-connect.sh` — port-forward to RedisInsight |
-| **`list_images.sh`**     | List image references (see script)                       |
+| Subdirectory or file            | Role                                                                               |
+| ------------------------------- | ---------------------------------------------------------------------------------- |
+| **`secret-generators/`**        | SOPS-encrypted `create_*` and bulk runners                                         |
+| **`db/`**                       | `db-connect.sh` — port-forward to Postgres + `psql`                                |
+| **`mq/`**                       | `mq-connect.sh` — port-forward to the message queue                                |
+| **`keyvaldb/`**                 | `keyvaldb-gui-connect.sh` — port-forward to RedisInsight                           |
+| **`list_images.sh`**            | List image references (see script)                                                 |
+| **`check_cronjob_contract.sh`** | Fail when a base CronJob lacks its schedule label, deadline, or concurrency policy |
 
 ## Secret generators
 

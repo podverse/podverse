@@ -247,6 +247,19 @@ These variables are required only for commands that include the Podcast Index ca
 - **`MESSAGE_QUEUE_USERNAME`** (Required) - Message queue username
 - **`MESSAGE_QUEUE_PASSWORD`** (Required) - Message queue password
 - **`MESSAGE_QUEUE_PORT`** (Required) - Message queue port
+- **`MQ_CONSUMER_IN_FLIGHT_FILE`** (Optional, `mqRSSRunParser` only) - Path the parser writes for
+  its liveness probe. It holds the current message's start time in epoch seconds, and is empty
+  while no message is in flight. The file is cleared at startup. Unset or empty writes no file.
+  The base parser deployments set `/logs/mq-consumer-in-flight`, and their liveness fails once a
+  message has been in flight for 960 seconds.
+
+### Parser handler budget
+
+`mqRSSRunParser` gives each message `FEED_PARSE_MAX_MINUTES` (15 minutes, `@podverse/helpers`),
+the same window after which a feed's parsing lock goes stale. The budget starts fresh for every
+message. When one message runs past it, the worker logs the queue and feed, rejects the message
+with `podverse:handler-timeout`, closes the broker connection, and exits with code 1 so the
+container restarts. The budget is a constant, not an env var.
 
 ## Image Shrink
 

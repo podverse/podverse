@@ -417,8 +417,9 @@ test.describe('Media player marquee', () => {
     );
     await closeFullscreenMediaPlayerModal(page);
 
-    // The playhead updates on mousedown and on each mousemove, before the pointer goes up.
+    // The playhead seeks once when the pointer is released, not while dragging.
     await dragVisibleProgressBar(page, 0.1, 0.75);
+    await page.mouse.up();
     await expect(desktopStripTitle).toContainText(E2E_PODCAST_ITEM_MARQUEE_CHAPTER_TWO_TITLE);
     await expectShownMarquee(desktopStripTitle, 'fit', E2E_PODCAST_ITEM_MARQUEE_CHAPTER_TWO_TITLE);
     await expect(stripLabel(page, 'desktop')).toHaveText(
@@ -428,7 +429,6 @@ test.describe('Media player marquee', () => {
     await expect(barTitle(page, 'desktop')).toContainText(
       E2E_PODCAST_ITEM_MARQUEE_CHAPTER_EPISODE_TITLE
     );
-    await page.mouse.up();
   });
 
   test('When the window is narrow, the mobile segment strip scrolls a long chapter title and the bar title stays the episode title.', async ({

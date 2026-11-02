@@ -4,6 +4,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: mq-rss-add-trending-podcast-index-1000
+  labels:
+    podverse-schedule: manual
 spec:
   schedule: "* * * * *"
   suspend: true
@@ -14,7 +16,17 @@ spec:
     spec:
       # Single attempt: Job default backoffLimit is 6 (creates new pods on failure).
       backoffLimit: 0
+      activeDeadlineSeconds: 3600
       ttlSecondsAfterFinished: 600
+      # Exit 78 is missing startup config: fail the Job without retry.
+      podFailurePolicy:
+        rules:
+          - action: FailJob
+            onExitCodes:
+              containerName: worker
+              operator: In
+              values:
+                - 78
       template:
         metadata:
           labels:

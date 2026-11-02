@@ -1,0 +1,113 @@
+# Example cluster alerts. Apply in namespace monitoring, then mount this
+# ConfigMap into Prometheus (see prometheus-alerting.snippet.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-prometheus-rules
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: cluster-prometheus-rules
+data:
+  cluster.rules.yaml: |
+    # Node disk and memory expect a scrape job named node-exporter.
+    # Ephemeral fstypes are left out so a full tmpfs or overlay does not page.
+    groups:
+      - name: cluster.node
+        rules:
+          - alert: NodeFilesystemAlmostFull
+            expr: |
+              (
+                1
+                -
+                (
+                  node_filesystem_avail_bytes{job="node-exporter",fstype!="",fstype!~"tmpfs|devtmpfs|overlay|squashfs|aufs|ramfs|iso9660"}
+                  /
+                  node_filesystem_size_bytes{job="node-exporter",fstype!="",fstype!~"tmpfs|devtmpfs|overlay|squashfs|aufs|ramfs|iso9660"}
+                )
+              ) > 0.85
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is over 85% full"
+              description: "Mount {{ $labels.mountpoint }} ({{ $labels.device }}) on {{ $labels.instance }} has been more than 85% full for 15 minutes. kubectl get nodes -o wide"
+          - alert: NodeFilesystemAlmostFull
+            expr: |
+              (
+                1
+                -
+                (
+                  node_filesystem_avail_bytes{job="node-exporter",fstype!="",fstype!~"tmpfs|devtmpfs|overlay|squashfs|aufs|ramfs|iso9660"}
+                  /
+                  node_filesystem_size_bytes{job="node-exporter",fstype!="",fstype!~"tmpfs|devtmpfs|overlay|squashfs|aufs|ramfs|iso9660"}
+                )
+              ) > 0.95
+            for: 15m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is over 95% full"
+              description: "Mount {{ $labels.mountpoint }} ({{ $labels.device }}) on {{ $labels.instance }} has been more than 95% full for 15 minutes. kubectl get nodes -o wide"
+          - alert: NodeMemoryLow
+            expr: |
+              (
+                node_memory_MemAvailable_bytes{job="node-exporter"}
+                /
+                node_memory_MemTotal_bytes{job="node-exporter"}
+              ) < 0.10
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Node {{ $labels.instance }} has under 10% memory available"
+              description: "Node {{ $labels.instance }} has had under 10% memory available for 15 minutes. kubectl get nodes -o wide"
+      - name: cluster.exporters
+        rules:
+          - alert: NodeExporterDown
+            expr: 'up{job="node-exporter"} == 0'
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "node-exporter on {{ $labels.instance }} is down"
+              description: "The node-exporter scrape on {{ $labels.instance }} has been down for 5 minutes, so disk and memory alerts for that node stay quiet. kubectl get nodes -o wide"
+          - alert: KubeStateMetricsDown
+            expr: 'up{job="kube-state-metrics"} == 0'
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "kube-state-metrics is down"
+              description: "kube-state-metrics has been down for 5 minutes. Workload alerts that read its metrics stay quiet until it returns. kubectl -n monitoring get pods -l app.kubernetes.io/name=kube-state-metrics"
+      - name: cluster.argocd
+        rules:
+          # health_status and sync_status are labels on argocd_app_info (gauge 1).
+          # namespace is rewritten from dest_namespace so routing follows the
+          # namespace the Application deploys into. Needs the argocd-metrics scrape.
+          - alert: ArgoAppDegraded
+            expr: 'argocd_app_info{health_status="Degraded"} == 1'
+            for: 15m
+            labels:
+              severity: critical
+              namespace: "{{ $labels.dest_namespace }}"
+            annotations:
+              summary: "Argo CD application {{ $labels.name }} is Degraded"
+              description: "Application {{ $labels.name }} (destination namespace {{ $labels.dest_namespace }}) has been Degraded for 15 minutes. This alert needs the optional argocd-metrics scrape (Service argocd-metrics, port 8082). kubectl -n argocd get applications.argoproj.io {{ $labels.name }}"
+          - alert: ArgoAppOutOfSync
+            expr: 'argocd_app_info{sync_status="OutOfSync"} == 1'
+            for: 30m
+            labels:
+              severity: warning
+              namespace: "{{ $labels.dest_namespace }}"
+            annotations:
+              summary: "Argo CD application {{ $labels.name }} is OutOfSync"
+              description: "Application {{ $labels.name }} (destination namespace {{ $labels.dest_namespace }}) has been OutOfSync for 30 minutes. This alert needs the optional argocd-metrics scrape (Service argocd-metrics, port 8082). kubectl -n argocd get applications.argoproj.io {{ $labels.name }}"
+      - name: cluster.watchdog
+        rules:
+          - alert: Watchdog
+            expr: "vector(1)"
+            labels:
+              severity: none
+            annotations:
+              summary: "Watchdog heartbeat for the alerting pipeline"
+              description: "This alert always fires so Alertmanager can ping an external dead-man check every 5 minutes."

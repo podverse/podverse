@@ -2,6 +2,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: worker-notifications-purge
+  labels:
+    podverse-schedule: scheduled
 spec:
   schedule: "0 4 * * *"
   concurrencyPolicy: Forbid
@@ -12,8 +14,18 @@ spec:
       # Single attempt per cron tick: the cron schedule is the retry
       # mechanism. In-place container restarts (restartPolicy: OnFailure
       # + default backoffLimit: 6) turn a transient upstream 5xx into
-      # CrashLoopBackOff alerts. See <link-to-be-filed>.
+      # CrashLoopBackOff alerts.
       backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      # Exit 78 is missing startup config: fail the Job without retry.
+      podFailurePolicy:
+        rules:
+          - action: FailJob
+            onExitCodes:
+              containerName: worker
+              operator: In
+              values:
+                - 78
       template:
         metadata:
           annotations:

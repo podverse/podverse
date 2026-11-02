@@ -82,6 +82,7 @@ export function CountBadge({ count, max, style, testID, tone = 'accent' }: Count
     <View
       accessibilityElementsHidden
       importantForAccessibility="no"
+      pointerEvents="none"
       style={[styles.badge, stretches ? styles.badgeStretch : null, toneStyle, style]}
       testID={testID}
     >

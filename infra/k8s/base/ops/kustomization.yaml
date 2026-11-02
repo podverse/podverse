@@ -16,6 +16,7 @@ resources:
   - management-superuser-update.cronjob.yaml
   - mq-rss-add-trending-podcast-index-50.cronjob.yaml
   - mq-rss-add-trending-podcast-index-1000.cronjob.yaml
+  - mq-rss-add-all.cronjob.yaml
   - billing-setup.cronjob.yaml
   - notifications-test-push.cronjob.yaml
   - seed-embed-demo-showcase-feeds.cronjob.yaml

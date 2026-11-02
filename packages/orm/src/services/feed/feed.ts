@@ -10,6 +10,7 @@ import { readQueryResultRows } from '@orm/lib/queryResultRows.js';
 import type { EntityManager, FindOptionsRelations } from 'typeorm';
 import { QueryFailedError } from 'typeorm';
 
+import { FEED_PARSE_MAX_MINUTES } from '@podverse/helpers';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 import { computeParsingStaleBefore, deriveHttpsAndHttpUrlsFromInput } from './feed.helpers.js';
@@ -226,7 +227,10 @@ export class FeedService {
     return this.repositoryReadWrite.save(feed);
   }
 
-  async tryStartParsing(id: number, maxParsingAgeMinutes = 15): Promise<boolean> {
+  async tryStartParsing(
+    id: number,
+    maxParsingAgeMinutes = FEED_PARSE_MAX_MINUTES
+  ): Promise<boolean> {
     const parsingStaleBefore = computeParsingStaleBefore(Date.now(), maxParsingAgeMinutes);
     const now = new Date();
     const result = await this.repositoryReadWrite

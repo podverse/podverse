@@ -20,14 +20,15 @@ test.describe('List row more button placement', () => {
       if (actions === null) {
         return null;
       }
-      const playCluster = actions.previousElementSibling;
+      const playCandidate = actions.previousElementSibling;
       const timeSection = actions.nextElementSibling;
-      if (playCluster === null || timeSection === null) {
+      if (playCandidate === null || timeSection === null) {
         return null;
       }
-      const play = playCluster.querySelector(
-        'button[aria-label="Play"], button[aria-label="Pause"]'
-      );
+      const play =
+        playCandidate instanceof HTMLButtonElement
+          ? playCandidate
+          : playCandidate.querySelector('button[aria-label="Play"], button[aria-label="Pause"]');
       if (play === null) {
         return null;
       }
@@ -59,6 +60,53 @@ test.describe('List row more button placement', () => {
       testInfo,
       'More Options sits between Play and the date on an episode list row.',
       moreButton
+    );
+  });
+
+  test('When an episode row is playing, the date stays to the left of the progress bar.', async ({
+    page,
+  }, testInfo) => {
+    await page.goto(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`);
+    await expect(page).toHaveURL(new RegExp(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`));
+
+    const moreButton = page.getByRole('button', { name: 'More Options' }).first();
+    await expect(moreButton).toBeVisible();
+    await moreButton.evaluate((moreEl) => {
+      const actions = moreEl.parentElement?.parentElement ?? null;
+      const play = actions?.previousElementSibling;
+      if (play instanceof HTMLButtonElement) {
+        play.click();
+      }
+    });
+
+    const progress = page.getByTestId('play-button-row-progress').first();
+    await expect(progress).toBeVisible();
+
+    const order = await progress.evaluate((bar) => {
+      const meta = bar.previousElementSibling;
+      if (meta === null || meta.getAttribute('data-testid') !== 'play-button-row-meta') {
+        return null;
+      }
+      const metaBox = meta.getBoundingClientRect();
+      const barBox = bar.getBoundingClientRect();
+      return {
+        metaRight: metaBox.right,
+        barLeft: barBox.left,
+      };
+    });
+
+    expect(order, 'the progress bar follows the date on the playing row').not.toBeNull();
+    if (order === null) {
+      return;
+    }
+
+    expect(order.barLeft).toBeGreaterThanOrEqual(order.metaRight - 1);
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The date stays to the left of the progress bar on a playing episode row.',
+      progress
     );
   });
 });

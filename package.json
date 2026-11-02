@@ -190,7 +190,7 @@
     "test": "npm run test:unit && npm run test:e2e:api && npm run test:e2e:web",
     "lint": "node scripts/ci/lint-with-summary.mjs lint",
     "lint:fix": "node scripts/ci/lint-with-summary.mjs lint:fix",
-    "lint:build:fix": "npm run build:packages && npm run lint:fix",
+    "lint:build:fix": "bash scripts/dev/deps-ensure.sh root && npm run build:packages && bash scripts/dev/deps-ensure.sh mobile && npm run lint:fix",
     "lint:changed": "node scripts/ci/lint-changed.mjs",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",

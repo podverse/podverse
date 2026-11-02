@@ -57,7 +57,11 @@ Workspace type-check resolves `@podverse/*` to each package's `dist/`. `npm run 
 `npm run lint:fix` first check every `build:packages` package: `tsc --build --dry` for
 composite or incremental builds, and file times for the rest. When one is out of date they
 skip type-check, list the packages, and ask for `npm run build:packages`.
-`npm run lint:build:fix` runs that build, then `lint:fix`. CI runs `build:packages` before lint.
+`npm run lint:build:fix` is the one-command path. It installs root deps when they are missing or
+older than `package-lock.json`, runs that build, installs `apps/mobile` deps the same way (root
+installs never reach mobile), then runs `lint:fix`. The install checks live in
+`scripts/dev/deps-ensure.sh` and use `npm ci`, so lockfiles are not rewritten. CI runs
+`build:packages` before lint.
 
 Composite package `build` and `build:prod` scripts run `tsc --build`, then `tsc-alias` when
 that package rewrites path aliases (`orm`, `parser`, `mq`). That records referenced project
