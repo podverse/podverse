@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  isSeekDisplayHoldLanded,
-  SEEK_DISPLAY_HOLD_TOLERANCE_SECONDS,
-} from './seekDisplayHold';
+import { isSeekDisplayHoldLanded, SEEK_DISPLAY_HOLD_TOLERANCE_SECONDS } from './seekDisplayHold';
 
 describe('isSeekDisplayHoldLanded', () => {
   it('rejects a sample far from the seek', () => {

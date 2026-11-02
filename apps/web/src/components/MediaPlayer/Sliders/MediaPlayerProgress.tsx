@@ -106,21 +106,18 @@ export const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
     setDragSeconds(value);
   };
 
-  const armSeekHold = useCallback(
-    (seconds: number) => {
-      if (holdClearTimerRef.current !== null) {
-        clearTimeout(holdClearTimerRef.current);
-      }
-      heldSecondsRef.current = seconds;
-      setHeldSeconds(seconds);
-      holdClearTimerRef.current = setTimeout(() => {
-        holdClearTimerRef.current = null;
-        heldSecondsRef.current = null;
-        setHeldSeconds(null);
-      }, SEEK_DISPLAY_HOLD_MAX_MS);
-    },
-    []
-  );
+  const armSeekHold = useCallback((seconds: number) => {
+    if (holdClearTimerRef.current !== null) {
+      clearTimeout(holdClearTimerRef.current);
+    }
+    heldSecondsRef.current = seconds;
+    setHeldSeconds(seconds);
+    holdClearTimerRef.current = setTimeout(() => {
+      holdClearTimerRef.current = null;
+      heldSecondsRef.current = null;
+      setHeldSeconds(null);
+    }, SEEK_DISPLAY_HOLD_MAX_MS);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -162,18 +159,15 @@ export const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
     [mpDuration]
   );
 
-  const secondsFromClientX = useCallback(
-    (clientX: number): number | null => {
-      const currentDuration = durationRef.current;
-      if (barRef.current === null || currentDuration === 0) {
-        return null;
-      }
-      const x = clientX - barRef.current.getBoundingClientRect().left;
-      const percent = Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
-      return Math.round(percent * currentDuration);
-    },
-    []
-  );
+  const secondsFromClientX = useCallback((clientX: number): number | null => {
+    const currentDuration = durationRef.current;
+    if (barRef.current === null || currentDuration === 0) {
+      return null;
+    }
+    const x = clientX - barRef.current.getBoundingClientRect().left;
+    const percent = Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
+    return Math.round(percent * currentDuration);
+  }, []);
 
   const showTooltipForPercent = useCallback(
     (percent: number, autoDismiss: boolean = false) => {
