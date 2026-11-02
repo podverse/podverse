@@ -6,6 +6,7 @@ export { mqAddByRSSAddAll } from './functions/mq/rss/addByRSSAll.js';
 export { mqOpmlImportAdd } from './functions/mq/rss/opmlImport.js';
 export { processOpmlImportJob } from './functions/mq/rss/processOpmlImport.js';
 export { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex } from './functions/mq/rss/addRecentlyUpdatedFeedsFromPodcastIndex.js';
+export { mqRSSCatchUpFromPodcastIndex } from './functions/mq/rss/catchUpFeedsFromPodcastIndex.js';
 export { mqRSSSetupDlqConsumers } from './functions/mq/rss/dlqHandling.js';
 export { mqRSSRunParser } from './functions/mq/rss/runParser.js';
 export { mqRSSRunLiveItemListener } from './functions/mq/rss/runLiveItemListener.js';

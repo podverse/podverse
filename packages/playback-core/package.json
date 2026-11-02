@@ -56,8 +56,8 @@
     "dist/**/*"
   ],
   "scripts": {
-    "build": "npm run lint && tsc",
-    "build:prod": "tsc",
+    "build": "npm run lint && tsc --build",
+    "build:prod": "tsc --build",
     "build:watch": "tsc --build --watch --preserveWatchOutput",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",

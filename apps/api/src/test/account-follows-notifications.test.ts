@@ -63,7 +63,7 @@ const {
 } = vi.hoisted(() => ({
   followAccountMock: vi.fn(async () => {}),
   unfollowAccountMock: vi.fn(async () => {}),
-  followChannelMock: vi.fn(async () => {}),
+  followChannelMock: vi.fn(async () => ({ channel_id: 1 })),
   // Stateful on purpose: idempotency is the point of the bulk endpoint, so the mock has to remember
   // what it already followed for a repeat submission to be a meaningful assertion.
   followChannelsBulkMock: vi.fn(async (_accountId: number, channelIdTexts: string[]) => {

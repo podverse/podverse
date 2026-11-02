@@ -6,6 +6,7 @@ import { FeedLifecycleStateKeyEnum } from '@orm/entities/feed/feedLifecycleState
 import type { FeedPolicy } from '@orm/entities/feed/feedPolicy.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { isPostgresUniqueViolation } from '@orm/lib/postgresUniqueViolation.js';
+import { readQueryResultRows } from '@orm/lib/queryResultRows.js';
 import type { EntityManager, FindOptionsRelations } from 'typeorm';
 import { QueryFailedError } from 'typeorm';
 
@@ -373,6 +374,93 @@ export class FeedService {
     return rows;
   }
 
+  /**
+   * Up to `limit` feeds with `feed.id` above `afterFeedId`, in `feed.id` order, with what a sweep
+   * against Podcast Index needs. `stateKey` and `lastFinishedParseTime` are null without a
+   * lifecycle or feed log row.
+   */
+  async listForGapSweep(params: {
+    afterFeedId: number;
+    limit: number;
+  }): Promise<FeedGapSweepRow[]> {
+    const found = await this.repositoryRead
+      .createQueryBuilder('feed')
+      .leftJoin('feed.feed_lifecycle_state', 'lifecycle')
+      .leftJoin('lifecycle.feed_lifecycle_state_type', 'lifecycle_type')
+      .leftJoin('feed.feed_log', 'feed_log')
+      .select('feed.id', 'feed_id')
+      .addSelect('feed.url', 'url')
+      .addSelect('feed.podcast_index_id', 'podcast_index_id')
+      .addSelect('lifecycle_type.state_key', 'state_key')
+      .addSelect('feed_log.last_finished_parse_time', 'last_finished_parse_time')
+      .where('feed.id > :afterFeedId', { afterFeedId: params.afterFeedId })
+      .orderBy('feed.id', 'ASC')
+      .limit(params.limit)
+      .getRawMany<{
+        feed_id: number | string;
+        url: string;
+        podcast_index_id: number | string;
+        state_key: string | null;
+        last_finished_parse_time: Date | string | null;
+      }>();
+    const rows: FeedGapSweepRow[] = [];
+    for (const row of found) {
+      const feedId = finiteInteger(row.feed_id);
+      const podcastIndexId = finiteInteger(row.podcast_index_id);
+      if (feedId === null || podcastIndexId === null) {
+        continue;
+      }
+      rows.push({
+        feedId,
+        url: row.url,
+        podcastIndexId,
+        stateKey: feedLifecycleStateKey(row.state_key),
+        lastFinishedParseTime: dateOrNull(row.last_finished_parse_time),
+      });
+    }
+    return rows;
+  }
+
+  /**
+   * The item with the latest `pub_date` in each feed's channel. Feeds without a channel or without
+   * a dated item are absent from the result.
+   */
+  async listNewestItemByFeedIds(feedIds: readonly number[]): Promise<FeedNewestItem[]> {
+    if (feedIds.length === 0) {
+      return [];
+    }
+    const result: unknown = await this.repositoryRead.query(
+      `SELECT channel.feed_id, newest.guid, newest.guid_enclosure_url, newest.pub_date
+       FROM public.channel AS channel
+       CROSS JOIN LATERAL (
+         SELECT item.guid, item.guid_enclosure_url, item.pub_date
+         FROM public.item AS item
+         WHERE item.channel_id = channel.id AND item.pub_date IS NOT NULL
+         ORDER BY item.pub_date DESC
+         LIMIT 1
+       ) AS newest
+       WHERE channel.feed_id = ANY($1::int[])`,
+      [[...feedIds]]
+    );
+    const rows: FeedNewestItem[] = [];
+    for (const row of readQueryResultRows(result) ?? []) {
+      if (typeof row !== 'object' || row === null) {
+        continue;
+      }
+      const feedId = finiteInteger(numberOrStringField(row, 'feed_id'));
+      if (feedId === null) {
+        continue;
+      }
+      rows.push({
+        feedId,
+        guid: stringOrNullField(row, 'guid'),
+        enclosureUrl: stringOrNullField(row, 'guid_enclosure_url'),
+        pubDate: dateOrNull(Reflect.get(row, 'pub_date')),
+      });
+    }
+    return rows;
+  }
+
   /** Feeds with this lifecycle reason and no channel row. Ordered by Podcast Index id. */
   async listByLifecycleReasonWithoutChannel(reasonKey: string): Promise<FeedIdAndPodcastIndexId[]> {
     const found = await this.repositoryRead
@@ -433,6 +521,43 @@ export type FeedIdAndPodcastIndexId = {
 };
 
 export type FeedDeleteWithoutChannelResult = 'deleted' | 'skipped' | 'blocked';
+
+export type FeedGapSweepRow = {
+  feedId: number;
+  url: string;
+  podcastIndexId: number;
+  stateKey: FeedLifecycleStateKeyEnum | null;
+  lastFinishedParseTime: Date | null;
+};
+
+/** `enclosureUrl` is the stored `item.guid_enclosure_url`. */
+export type FeedNewestItem = {
+  feedId: number;
+  guid: string | null;
+  enclosureUrl: string | null;
+  pubDate: Date | null;
+};
+
+function dateOrNull(value: unknown): Date | null {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
+function numberOrStringField(row: object, key: string): number | string | null {
+  const value: unknown = Reflect.get(row, key);
+  return typeof value === 'number' || typeof value === 'string' ? value : null;
+}
+
+function stringOrNullField(row: object, key: string): string | null {
+  const value: unknown = Reflect.get(row, key);
+  return typeof value === 'string' ? value : null;
+}
 
 function finiteInteger(value: number | string | null | undefined): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) {

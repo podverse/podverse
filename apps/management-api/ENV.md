@@ -9,7 +9,7 @@ Validation occurs in `src/lib/startup/validation.ts` during application startup.
 1. Checks if each variable is set
 2. Validates format/type where applicable (e.g., UUID for JWT secret, numeric for ports)
 3. Displays a categorized status for each variable
-4. Aborts startup if any required variables are missing or invalid
+4. Aborts startup if any required variables are missing or invalid, exiting with code **78** (`EX_CONFIG`); every other startup failure exits 1
 
 ## Required Variables
 

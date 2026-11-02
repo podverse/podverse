@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ACCOUNT_NOTIFICATION_WRITER_COMMANDS,
+  CATEGORY_ADD_BY_RSS,
   CATEGORY_BASE,
   CATEGORY_BILLING,
   CATEGORY_KEYVALDB,
@@ -169,7 +170,7 @@ describe('getCategoriesForCommand', () => {
     );
   });
 
-  it('maps mqAddByRSSRunParser to Base, ORM, MQ, Parser, KeyValDB, and Podcast Index', () => {
+  it('maps mqAddByRSSRunParser to the parser stack plus Add by RSS', () => {
     expect(sortCategories(getCategoriesForCommand('mqAddByRSSRunParser'))).toEqual(
       sortCategories(
         new Set([
@@ -179,6 +180,7 @@ describe('getCategoriesForCommand', () => {
           CATEGORY_PARSER,
           CATEGORY_KEYVALDB,
           CATEGORY_PODCAST_INDEX,
+          CATEGORY_ADD_BY_RSS,
         ])
       )
     );

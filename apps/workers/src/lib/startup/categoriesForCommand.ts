@@ -14,6 +14,8 @@ export const CATEGORY_KEYVALDB = 'KeyValDB';
 export const CATEGORY_IMAGE_SHRINK = 'ImageShrink';
 /** Payment processor adapters, registered once at startup. */
 export const CATEGORY_BILLING = 'Billing';
+/** Commands that open or seal Add by RSS credential envelopes. */
+export const CATEGORY_ADD_BY_RSS = 'AddByRSS';
 
 export type ConfigCategory =
   | typeof CATEGORY_BASE
@@ -24,7 +26,8 @@ export type ConfigCategory =
   | typeof CATEGORY_WEB_NOTIFICATIONS
   | typeof CATEGORY_KEYVALDB
   | typeof CATEGORY_IMAGE_SHRINK
-  | typeof CATEGORY_BILLING;
+  | typeof CATEGORY_BILLING
+  | typeof CATEGORY_ADD_BY_RSS;
 
 const BASE_ORM_COMMANDS = [
   'billingCheckoutChannelEnable',
@@ -94,6 +97,7 @@ const FULL_STACK_COMMANDS = [
   'mqRSSRunParser',
   'mqRSSRunLiveItemListener',
   'mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex',
+  'mqRSSCatchUpFromPodcastIndex',
 ] as const;
 
 /** `mqAddByRSSRunParser` looks up feed URLs an Add by RSS artist feed lists without one. */
@@ -117,11 +121,21 @@ export const ACCOUNT_NOTIFICATION_WRITER_COMMANDS = [
 /** Commands that read and write the KeyValDB cache and need it reachable at startup. */
 export const KEYVALDB_CACHE_COMMANDS = ['mqAddByRSSRunParser', 'mqOpmlImportRun'] as const;
 
+/**
+ * Commands that open an Add by RSS credential envelope or seal one for a listed album.
+ * Artist-album re-sealing runs inside `mqAddByRSSRunParser`.
+ */
+export const ADD_BY_RSS_CREDENTIAL_COMMANDS = ['mqAddByRSSRunParser'] as const;
+
 const accountNotificationWriterCommands: ReadonlySet<string> = new Set<string>(
   ACCOUNT_NOTIFICATION_WRITER_COMMANDS
 );
 
 const keyvaldbCacheCommands: ReadonlySet<string> = new Set<string>(KEYVALDB_CACHE_COMMANDS);
+
+const addByRssCredentialCommands: ReadonlySet<string> = new Set<string>(
+  ADD_BY_RSS_CREDENTIAL_COMMANDS
+);
 
 export function writesAccountNotifications(commandName: string): boolean {
   return accountNotificationWriterCommands.has(commandName);
@@ -279,6 +293,9 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
   const categories = getBaseCategoriesForCommand(commandName);
   if (writesAccountNotifications(commandName)) {
     categories.add(CATEGORY_KEYVALDB);
+  }
+  if (addByRssCredentialCommands.has(commandName)) {
+    categories.add(CATEGORY_ADD_BY_RSS);
   }
   return categories;
 }

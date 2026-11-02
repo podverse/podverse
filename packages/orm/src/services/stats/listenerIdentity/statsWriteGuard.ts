@@ -1,4 +1,5 @@
 import { AppDataSourceReadWrite } from '@orm/db/index.js';
+import { lockListenAccount } from '@orm/services/stats/listenerIdentity/statsListener.js';
 import type { EntityManager } from 'typeorm';
 import { QueryFailedError } from 'typeorm';
 
@@ -61,8 +62,9 @@ export type TrackingConsent = {
 };
 
 /**
- * Reads the account's Taste Profile consent decision and last opt-out time `FOR SHARE` and checks
- * the decision against `agreementVersion`. Opting out updates this row and deletes the listener's
+ * Takes the per-account popularity lock, then reads the Taste Profile consent decision and last
+ * opt-out time `FOR SHARE` and checks the decision against `agreementVersion`. Opting out updates
+ * this row and deletes the listener's
  * listening data in one transaction, so a report holding the share lock cannot keep data that an
  * opt-out removed. A missing settings row does not allow tracking.
  */
@@ -71,6 +73,7 @@ export async function readTrackingConsentForUpdate(
   accountId: number,
   agreementVersion: string
 ): Promise<TrackingConsent> {
+  await lockListenAccount(manager, accountId);
   const [row] = await queryRows(
     manager,
     `SELECT listen_stats_accepted, listen_stats_agreement_version, listen_stats_opted_out_at

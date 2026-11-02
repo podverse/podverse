@@ -375,8 +375,8 @@ describe('API key access on settings, notification, and history routes', () => {
   it('labels every settings, notification, and history route', () => {
     expect(settingsRoutes).toHaveLength(6);
     expect(notificationRoutes).toHaveLength(33);
-    expect(historyRoutes).toHaveLength(7);
-    expect(LABELED_ROUTES).toHaveLength(46);
+    expect(historyRoutes).toHaveLength(10);
+    expect(LABELED_ROUTES).toHaveLength(49);
     expect(deniedTokens.size).toBe(7);
     const identities = LABELED_ROUTES.map((route) => `${route.method} ${route.path}`);
     expect(new Set(identities).size).toBe(LABELED_ROUTES.length);

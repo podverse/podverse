@@ -4,12 +4,22 @@ import { DEFAULT_HTTP_TIMEOUT_MS } from '@podverse/helpers';
 import type { ILoggerLike } from '@podverse/helpers-backend';
 
 import { PodcastIndexService } from './index.js';
+import type { RecentDataPage, RecentGetDataStopReason } from './recentDataPage.js';
 
 const requestWithUserAgent = vi.fn();
 
 vi.mock('@podverse/helpers-requests', () => ({
   requestWithUserAgent: (...args: unknown[]) => requestWithUserAgent(...args),
 }));
+
+async function drain(pages: AsyncGenerator<RecentDataPage, RecentGetDataStopReason>) {
+  while (true) {
+    const step = await pages.next();
+    if (step.done === true) {
+      return step.value;
+    }
+  }
+}
 
 function createLogger(): ILoggerLike {
   return {
@@ -54,7 +64,7 @@ describe('PodcastIndexService.recentGetData HTTP timeout', () => {
       },
     });
 
-    await service.recentGetData(900);
+    await drain(service.recentGetData(Math.floor(Date.now() / 1000) - 900));
 
     expect(requestWithUserAgent).toHaveBeenCalledTimes(1);
     const abortArg = requestWithUserAgent.mock.calls[0]?.[3] as
@@ -85,7 +95,9 @@ describe('PodcastIndexService.recentGetData HTTP timeout', () => {
       name: 'AxiosError',
     });
 
-    await expect(service.recentGetData(900)).rejects.toMatchObject({ code: 'ECONNABORTED' });
+    await expect(
+      drain(service.recentGetData(Math.floor(Date.now() / 1000) - 900))
+    ).rejects.toMatchObject({ code: 'ECONNABORTED' });
 
     expect(requestWithUserAgent).toHaveBeenCalledTimes(1);
     expect(loggerService.warn).not.toHaveBeenCalled();

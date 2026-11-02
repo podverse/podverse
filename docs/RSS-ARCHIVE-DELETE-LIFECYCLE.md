@@ -162,7 +162,32 @@ Source:
 
 ### Scheduled CronJobs
 
-- `worker-recent-feeds` every 5 minutes enqueues recently updated feeds to `rss-normal`.
+- `worker-recent-feeds` every 5 minutes enqueues recently updated feeds to `rss-normal`. It reads
+  the Podcast Index `/recent/data` stream from a cursor saved in `podcast_index_stream_cursor`
+  (`stream_key = 'recent_data'`), starting 60 seconds before the saved `next_since`. It processes
+  one page at a time and saves the page's `nextSince` only after every feed on the page was
+  queued, so a skipped tick, a run stopped by the 240-second cap, or a crash resumes where it left
+  off. A failed send leaves the cursor in place and exits non-zero, so the Job is marked Failed.
+  A Postgres advisory lock keeps a second run (for example a manual Job) from reading the stream
+  at the same time; that run exits 0.
+- Gap catch-up: when the `recent_data` cursor is missing or more than 23 hours old (Podcast Index
+  keeps `/recent/data` for 24 hours), the run checks every feed we store against Podcast Index
+  instead. The gap starts at the stale cursor's `next_since`; with no cursor, `-sr` seconds ago.
+  Feeds whose lifecycle state blocks parsing are skipped. The rest go 200 at a time to
+  `/episodes/byfeedid?newest`. A feed is queued when Podcast Index's newest episode is not our
+  newest item, matched on guid and then on enclosure URL, or when we have no item. A feed Podcast
+  Index lists no episode for is queued only when it has not finished a parse since the gap
+  started. The run logs one error line with the gap length and the sweep's counts. Starting a sweep
+  saves the `recent_data` cursor at the sweep's start time. Progress goes in a `gap_sweep` row (gap
+  start in `next_since`, last swept `feed.id` in `position`) after each chunk is fully queued. A
+  sweep has an 8-minute cap; while the `gap_sweep` row exists, each run continues the sweep instead
+  of reading `/recent/data`. When the last chunk is done the row is deleted. A sweep that finished
+  in the run that started it is followed by a `/recent/data` pass from the saved start time. A
+  sweep finished in a later run leaves that pass to the next run.
+- Manual catch-up: `mqRSSCatchUpFromPodcastIndex -q rss-normal -since <epoch seconds>` runs only the
+  sweep, for a gap starting at `-since`, under the same lock. Rerunning with the same `-since`
+  continues an unfinished sweep, and a different value starts over from the first feed. A sweep
+  stopped by the cap is continued by the poller's next run. A failed send exits non-zero.
 - `worker-archive-all` at `0 6,18 * * *` runs `archiveAll`.
 - `worker-dead-feeds-merge` runs hourly at minute 15. With `PODCAST_INDEX_DUPLICATE_MERGE_MODE=off` it exits before downloading the CSV.
 

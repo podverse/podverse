@@ -67,6 +67,7 @@ npm run build -w apps/workers
 | `npm run notifications_platform_purge`                    | Purge expired `account_notification` rows and stale terminal `scheduled_job` rows    |
 | `npm run notifications_test_push`                         | List or send a test push when `NOTIFICATIONS_TEST_PUSH_ENABLED` is true              |
 | `npm run stats_popularity_refresh`                        | Rebuild popularity range totals (`-full` for every entity)                           |
+| `npm run stats_recommendations_refresh`                   | Rebuild recommendations from Taste Profile weights (`-full` for every show)          |
 | `npm run stats_event_partitions_maintain`                 | Create popularity event partitions ahead and drop expired months                     |
 
 Run commands from the monorepo root with workspace flag:

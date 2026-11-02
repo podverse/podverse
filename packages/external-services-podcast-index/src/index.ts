@@ -27,11 +27,18 @@ import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 import type { DeadFeedCsvRow } from './deadFeedDuplicateChains.js';
 import { extractDeadFeedCsvRow, forEachDeadFeedCsvRow } from './deadFeedDuplicateChains.js';
 import { shouldRetryPodcastIndexRequest } from './isRetryablePodcastIndexError.js';
+import type { PodcastIndexNewestEpisode } from './newestEpisodesByFeedId.js';
+import {
+  parseNewestEpisodesResponse,
+  PODCAST_INDEX_EPISODES_BY_FEED_ID_MAX_IDS,
+} from './newestEpisodesByFeedId.js';
 import {
   PODCAST_INDEX_DEFAULT_MAX_RETRIES,
   PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
   type PodcastIndexClientOptions,
 } from './podcastIndexClientOptions.js';
+import type { RecentDataPage, RecentGetDataStopReason } from './recentDataPage.js';
+import { parseRecentDataPage } from './recentDataPage.js';
 import { RECENT_GET_DATA_MAX_FETCH_MS } from './recentGetDataLimits.js';
 import {
   type PodcastIndexSearchByTermOptions,
@@ -539,58 +546,94 @@ export class PodcastIndexService {
 
   // Recent
 
-  recentGetData = async (sinceRange: number) => {
-    this.loggerService.info('recentGetData beginning...');
-    const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-    const sinceTimeInSeconds = currentTimeInSeconds - sinceRange;
-    const paginationStartedAtMs = Date.now();
+  /**
+   * Pages `/recent/data` forward from `since` (Unix seconds), yielding each page before the next
+   * request so the caller can finish and record it first. Stops once `nextSince` passes the time
+   * the run started or stops advancing (`caught_up`), or when `RECENT_GET_DATA_MAX_FETCH_MS` has
+   * elapsed before the next request (`time_cap`). A failed request throws.
+   */
+  async *recentGetData(since: number): AsyncGenerator<RecentDataPage, RecentGetDataStopReason> {
+    const startedAtMs = Date.now();
+    const startedAtSeconds = Math.floor(startedAtMs / 1000);
+    let pageSince = since;
+    let isFirstPage = true;
 
-    /* eslint-disable @typescript-eslint/no-explicit-any -- PI /recent/data feed shape is untyped */
-    const fetchData = async (
-      since: number,
-      allData: any[] = [],
-      isFirstPage = true
-    ): Promise<any[]> => {
-      const elapsedMs = Date.now() - paginationStartedAtMs;
+    while (true) {
+      const elapsedMs = Date.now() - startedAtMs;
       if (elapsedMs > RECENT_GET_DATA_MAX_FETCH_MS) {
         this.loggerService.warn(
-          `[recentGetData] Stopping pagination after ${elapsedMs}ms (cap ${RECENT_GET_DATA_MAX_FETCH_MS}ms). Returning ${allData.length} feeds collected so far.`
+          `[recentGetData] Stopping pagination after ${elapsedMs}ms (cap ${RECENT_GET_DATA_MAX_FETCH_MS}ms) before since=${pageSince}.`
         );
-        return allData;
+        return 'time_cap';
       }
 
-      this.loggerService.info(`fetchData since: ${since}, allData.length: ${allData.length}`);
-      const url = `${this.baseUrl}/recent/data?max=5000&since=${since}`;
-      const abortController = new AbortController();
-      const response = await this.podcastIndexAPIRequest(url, undefined, {
+      const url = `${this.baseUrl}/recent/data?max=5000&since=${pageSince}`;
+      const response: unknown = await this.podcastIndexAPIRequest(url, undefined, {
         ...this.paginatedRequestExtraParams(isFirstPage),
         abort: {
-          controller: abortController,
+          controller: new AbortController(),
           timeoutMs: DEFAULT_HTTP_TIMEOUT_MS,
         },
       });
-      const updatedFeeds = response.data.feeds;
-      const nextSince = response.nextSince;
+      isFirstPage = false;
 
-      allData = allData.concat(updatedFeeds);
-
-      if (nextSince && nextSince <= currentTimeInSeconds) {
-        if (nextSince <= since) {
-          this.loggerService.info(
-            `nextSince (${nextSince}) is not greater than since (${since}). Exiting to avoid infinite loop.`
-          );
-          return allData;
-        }
-        const timeLeft = currentTimeInSeconds - nextSince;
-        this.loggerService.info(`Time remaining: ${timeLeft} seconds`);
-        return fetchData(nextSince, allData, false);
+      const page = parseRecentDataPage(response, pageSince);
+      if (page === null) {
+        this.loggerService.warn(
+          `[recentGetData] Response for since=${pageSince} has no data.feeds array; stopping.`
+        );
+        return 'caught_up';
       }
 
-      return allData;
-    };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
+      this.loggerService.info(
+        `[recentGetData] since=${pageSince} feeds=${page.feeds.length} nextSince=${page.nextSince ?? 'none'}`
+      );
+      yield page;
 
-    return fetchData(sinceTimeInSeconds);
+      const { nextSince } = page;
+      if (nextSince === null || nextSince <= pageSince || nextSince > startedAtSeconds) {
+        return 'caught_up';
+      }
+      pageSince = nextSince;
+    }
+  }
+
+  /**
+   * The newest episode Podcast Index lists for each of up to
+   * `PODCAST_INDEX_EPISODES_BY_FEED_ID_MAX_IDS` feeds. Feeds with no episode there are absent from
+   * the result. Pass `isFirstRequest: false` on later requests of a run so they wait
+   * `PODCAST_INDEX_API_RATE_LIMIT_DELAY` first. A failed request or an unreadable body throws.
+   */
+  episodesGetNewestByFeedIds = async (
+    podcastIndexIds: readonly number[],
+    isFirstRequest = true
+  ): Promise<PodcastIndexNewestEpisode[]> => {
+    if (podcastIndexIds.length === 0) {
+      return [];
+    }
+    if (podcastIndexIds.length > PODCAST_INDEX_EPISODES_BY_FEED_ID_MAX_IDS) {
+      throw new Error(
+        `[PodcastIndex] episodesGetNewestByFeedIds takes at most ${PODCAST_INDEX_EPISODES_BY_FEED_ID_MAX_IDS} ids; got ${podcastIndexIds.length}`
+      );
+    }
+
+    // `max` is set so the response is never cut below one episode per requested feed.
+    const url =
+      `${this.baseUrl}/episodes/byfeedid?id=${podcastIndexIds.join(',')}` +
+      `&newest&max=${podcastIndexIds.length}`;
+    const response: unknown = await this.podcastIndexAPIRequest(url, undefined, {
+      ...this.paginatedRequestExtraParams(isFirstRequest),
+      abort: {
+        controller: new AbortController(),
+        timeoutMs: DEFAULT_HTTP_TIMEOUT_MS,
+      },
+    });
+
+    const episodes = parseNewestEpisodesResponse(response);
+    if (episodes === null) {
+      throw new Error('[PodcastIndex] /episodes/byfeedid returned a body that is not an object');
+    }
+    return episodes;
   };
 
   // Search
@@ -768,3 +811,12 @@ export {
   type PodcastIndexClientOptions,
 } from './podcastIndexClientOptions.js';
 export * from './podcastIndexProvider.js';
+export type { PodcastIndexNewestEpisode } from './newestEpisodesByFeedId.js';
+export { PODCAST_INDEX_EPISODES_BY_FEED_ID_MAX_IDS } from './newestEpisodesByFeedId.js';
+export type { RecentDataFeed, RecentDataPage, RecentGetDataStopReason } from './recentDataPage.js';
+export {
+  PODCAST_INDEX_GAP_SWEEP_MAX_RUN_MS,
+  PODCAST_INDEX_RECENT_DATA_MAX_LOOKBACK_SECONDS,
+  RECENT_DATA_CURSOR_OVERLAP_SECONDS,
+  RECENT_GET_DATA_MAX_FETCH_MS,
+} from './recentGetDataLimits.js';

@@ -222,6 +222,16 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run mq_rss_add_recently_updated_feeds_from_podcast_index -w apps/workers',
   },
   {
+    name: 'mqRSSCatchUpFromPodcastIndex',
+    label: 'MQ: catch up feeds after a Podcast Index gap',
+    description:
+      'Check every feed against its newest Podcast Index episode and queue the ones that changed since -since (Unix seconds). Stops after 8 minutes; the recent-feeds poller continues an unfinished sweep.',
+    category: 'mq',
+    risk: 'normal',
+    example_cli:
+      'node apps/workers/dist/index.js mqRSSCatchUpFromPodcastIndex -q rss-normal -since <epoch seconds>',
+  },
+  {
     name: 'mqRSSAddTrendingPodcastsFromPodcastIndex',
     label: 'MQ: add trending PI feeds to parse queue',
     description:
@@ -383,6 +393,15 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     category: 'stats',
     risk: 'normal',
     example_cli: 'npm run stats_popularity_refresh -w apps/workers -- -full',
+  },
+  {
+    name: 'statsRecommendationsRefresh',
+    label: 'Stats: refresh recommendations',
+    description:
+      'Rebuild show similarity and per-listener recommendations from Taste Profile weights. The daily run refreshes shows and listeners that changed; -full rebuilds every show that still has a taste row.',
+    category: 'stats',
+    risk: 'normal',
+    example_cli: 'npm run stats_recommendations_refresh -w apps/workers -- -full',
   },
   {
     name: 'statsEventPartitionsMaintain',

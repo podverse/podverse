@@ -38,7 +38,13 @@ const run = async () => {
 
   // Validate environment variables for this command BEFORE importing config
   const { validateStartupRequirements } = await import('./lib/startup/validation.js');
-  validateStartupRequirements(commandName);
+  const {
+    assertStartupConfig,
+    EXIT_CODE_CONFIG_INVALID,
+    exitOnStartupConfigInvalid,
+    StartupConfigInvalidError,
+  } = await import('./lib/startup/exitCodes.js');
+  exitOnStartupConfigInvalid(() => validateStartupRequirements(commandName));
 
   const { getObservabilityConfig } = await import('./config/index.js');
   const { initObservability, withWorkerSpan } = await import('@podverse/observability');
@@ -162,7 +168,7 @@ const run = async () => {
           addByRssCredentialsEncryptionKeyOld:
             process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD ?? undefined,
         };
-        assertConfigValid(validateORMConfig(ormConfig), 'podverse-orm');
+        assertStartupConfig(() => assertConfigValid(validateORMConfig(ormConfig), 'podverse-orm'));
         ormContext = createORMContext(ormConfig);
       }
 
@@ -172,9 +178,11 @@ const run = async () => {
       if (categories.has(CATEGORY_WEB_NOTIFICATIONS)) {
         const externalServicesConfig = getExternalServicesConfig();
         const notificationsConfig = getNotificationsConfig();
-        assertConfigValid(
-          validateExternalServicesConfig(externalServicesConfig),
-          'podverse-external-services'
+        assertStartupConfig(() =>
+          assertConfigValid(
+            validateExternalServicesConfig(externalServicesConfig),
+            'podverse-external-services'
+          )
         );
         firebaseContext = createFirebaseContext(externalServicesConfig);
         notificationsContext = createNotificationsContext(notificationsConfig);
@@ -288,7 +296,9 @@ const run = async () => {
           podcastIndexConfig,
           spamThresholdDefaults: DEFAULT_SPAM_FEED_ITEM_THRESHOLDS,
         });
-        assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser');
+        assertStartupConfig(() =>
+          assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser')
+        );
         createParserContext({
           config: parserConfig,
           notificationsContext,
@@ -345,7 +355,7 @@ const run = async () => {
         exitCode = 1;
       }
     } catch (error) {
-      exitCode = 1;
+      exitCode = error instanceof StartupConfigInvalidError ? EXIT_CODE_CONFIG_INVALID : 1;
       if (error instanceof Error && error.message.includes('FATAL:')) {
         console.error(error.message);
       } else {
@@ -357,6 +367,10 @@ const run = async () => {
         }
       }
     } finally {
+      // Long-running Deployment commands exit too, so a pod with bad config reports 78.
+      if (exitCode === EXIT_CODE_CONFIG_INVALID) {
+        process.exit(exitCode);
+      }
       finalizeOneShotWorkerProcess(commandName, exitCode);
     }
   };
