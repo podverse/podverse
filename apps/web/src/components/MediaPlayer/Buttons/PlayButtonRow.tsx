@@ -31,10 +31,13 @@ type PlayButtonRowProps = {
   addByRSSHashIds?: readonly string[];
   onClick: () => void;
   /**
-   * Rendered after the play button and before the progress bar (e.g. More actions), so More
-   * stays next to Play while the bar grows.
+   * Rendered after the play button and before the date or remaining time (for example More).
    */
   afterPlay?: ReactNode;
+  /**
+   * Date, duration, or time range for this row. It stays left of the in-row progress bar.
+   */
+  beforeProgress?: ReactNode;
 };
 
 function isAddByRSSLivestreamResource(resourceData: AddByRSSResourceData): boolean {
@@ -97,6 +100,7 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
   addByRSSHashIds,
   onClick,
   afterPlay,
+  beforeProgress,
 }) => {
   const { mpIsPlaying, mpItem, mpItemChapter, mpItemSoundbite, mpClip, mpAddByRSS } =
     useMediaPlayer();
@@ -163,6 +167,11 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
         {icon}
       </button>
       {afterPlay}
+      {beforeProgress !== undefined && beforeProgress !== null ? (
+        <div className={styles.playButtonRowMeta} data-testid="play-button-row-meta">
+          {beforeProgress}
+        </div>
+      ) : null}
       {progress}
     </div>
   );

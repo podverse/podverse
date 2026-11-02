@@ -1,7 +1,7 @@
 'use client';
 
 import classNames from 'classnames';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { DTOClip, DTOItemChapter } from '@podverse/helpers';
 import { formatHHMMSS } from '@podverse/helpers';
@@ -15,6 +15,10 @@ import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { useRemotePlayerDisplay } from '../../../hooks/useRemotePlayerDisplay';
 import { isPlayerResourceLive } from '../../../lib/crossDevicePlayback/playbackResource';
+import {
+  isSeekDisplayHoldLanded,
+  SEEK_DISPLAY_HOLD_MAX_MS,
+} from '../../../lib/playback/seekDisplayHold';
 import { ChapterProgressTooltip } from './ChapterProgressTooltip';
 import { LiveMediaPlayerProgress } from './LiveMediaPlayerProgress';
 import { RemoteMediaPlayerProgress } from './RemoteMediaPlayerProgress';
@@ -34,7 +38,11 @@ type MediaPlayerProgressProps = {
   showChapterHoverTooltip?: boolean;
 };
 
-const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
+/**
+ * Local file progress. A drag updates the fill and clocks only; one seek runs when the pointer
+ * is released, matching the remote bar and the mobile scrubber.
+ */
+export const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   isClipForm,
   overrideHighlightStartTime,
   overrideHighlightEndTime,
@@ -47,14 +55,18 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   const { seek } = useMediaPlayerControls();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
   const barRef = useRef<HTMLDivElement>(null);
-  const progress = mpDuration > 0 ? mpCurrentTime / mpDuration : 0;
+  const [dragSeconds, setDragSeconds] = useState<number | null>(null);
+  const dragSecondsRef = useRef<number | null>(null);
+  const [heldSeconds, setHeldSeconds] = useState<number | null>(null);
+  const heldSecondsRef = useRef<number | null>(null);
+  const removeWindowListenersRef = useRef<(() => void) | null>(null);
+  const holdClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [tooltipChapter, setTooltipChapter] = useState<DTOItemChapter | null>(null);
   const [tooltipPercent, setTooltipPercent] = useState(0);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchClientXRef = useRef<number | null>(null);
   const tooltipDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ignoreNextClickRef = useRef(false);
 
   const chapters = Array.isArray(mpItemChapters) ? mpItemChapters : [];
   const effectiveShowChapterMarkers = showChapterMarkers && !isClipForm;
@@ -77,6 +89,68 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
     mpItemChapter,
   });
 
+  const durationRef = useRef(mpDuration);
+  durationRef.current = mpDuration;
+
+  const clearHold = useCallback(() => {
+    if (holdClearTimerRef.current !== null) {
+      clearTimeout(holdClearTimerRef.current);
+      holdClearTimerRef.current = null;
+    }
+    heldSecondsRef.current = null;
+    setHeldSeconds(null);
+  }, []);
+
+  const assignDragSeconds = (value: number | null) => {
+    dragSecondsRef.current = value;
+    setDragSeconds(value);
+  };
+
+  const armSeekHold = useCallback(
+    (seconds: number) => {
+      if (holdClearTimerRef.current !== null) {
+        clearTimeout(holdClearTimerRef.current);
+      }
+      heldSecondsRef.current = seconds;
+      setHeldSeconds(seconds);
+      holdClearTimerRef.current = setTimeout(() => {
+        holdClearTimerRef.current = null;
+        heldSecondsRef.current = null;
+        setHeldSeconds(null);
+      }, SEEK_DISPLAY_HOLD_MAX_MS);
+    },
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      removeWindowListenersRef.current?.();
+      removeWindowListenersRef.current = null;
+      if (holdClearTimerRef.current !== null) {
+        clearTimeout(holdClearTimerRef.current);
+        holdClearTimerRef.current = null;
+      }
+      if (longPressTimerRef.current !== null) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+      if (tooltipDismissTimerRef.current !== null) {
+        clearTimeout(tooltipDismissTimerRef.current);
+        tooltipDismissTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const held = heldSecondsRef.current;
+    if (held === null) {
+      return;
+    }
+    if (isSeekDisplayHoldLanded({ positionSeconds: mpCurrentTime, seekSeconds: held })) {
+      clearHold();
+    }
+  }, [mpCurrentTime, clearHold]);
+
   const getPercentFromClientX = useCallback(
     (clientX: number): number | null => {
       if (!barRef.current || mpDuration === 0) {
@@ -86,6 +160,19 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       return Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
     },
     [mpDuration]
+  );
+
+  const secondsFromClientX = useCallback(
+    (clientX: number): number | null => {
+      const currentDuration = durationRef.current;
+      if (barRef.current === null || currentDuration === 0) {
+        return null;
+      }
+      const x = clientX - barRef.current.getBoundingClientRect().left;
+      const percent = Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
+      return Math.round(percent * currentDuration);
+    },
+    []
   );
 
   const showTooltipForPercent = useCallback(
@@ -109,45 +196,48 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
     [chapters, mpDuration]
   );
 
-  const setProgressFromEvent = (e: MouseEvent | React.MouseEvent<HTMLDivElement>) => {
-    if (!barRef.current || mpDuration === 0) {
-      return;
-    }
-    const x =
-      (e instanceof MouseEvent ? e.clientX : e.nativeEvent.clientX) -
-      barRef.current.getBoundingClientRect().left;
-    const percent = Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
-    const newTime = Math.round(percent * mpDuration);
-    seek(newTime);
-    setMPCurrentTime(newTime);
-  };
-
-  const handleBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (ignoreNextClickRef.current) {
-      ignoreNextClickRef.current = false;
-      return;
-    }
-    setProgressFromEvent(e);
-  };
-
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    setProgressFromEvent(e);
+    const seconds = secondsFromClientX(e.clientX);
+    if (seconds === null) {
+      return;
+    }
+    assignDragSeconds(seconds);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      setProgressFromEvent(moveEvent);
+      const next = secondsFromClientX(moveEvent.clientX);
+      if (next === null || next === dragSecondsRef.current) {
+        return;
+      }
+      assignDragSeconds(next);
     };
 
     const handleMouseUp = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      removeWindowListenersRef.current = null;
+      const released = dragSecondsRef.current;
+      if (typeof released === 'number' && durationRef.current > 0) {
+        seek(released);
+        setMPCurrentTime(released);
+        armSeekHold(released);
+      }
+      assignDragSeconds(null);
     };
 
+    removeWindowListenersRef.current?.();
+    removeWindowListenersRef.current = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!enableChapterHoverTooltip) {
+      return;
+    }
+    if (dragSecondsRef.current !== null) {
       return;
     }
     const percent = getPercentFromClientX(e.clientX);
@@ -179,7 +269,6 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
           const percent = getPercentFromClientX(touchClientXRef.current);
           if (percent !== null) {
             showTooltipForPercent(percent, true);
-            ignoreNextClickRef.current = true;
           }
         }
       }, LONG_PRESS_MS);
@@ -198,6 +287,11 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
     handleBarTouchEnd();
   };
 
+  const shown = Math.min(
+    dragSeconds ?? heldSeconds ?? mpCurrentTime,
+    mpDuration > 0 ? mpDuration : Number.POSITIVE_INFINITY
+  );
+  const progress = mpDuration > 0 ? shown / mpDuration : 0;
   const showClock = layoutVariant === 'default';
 
   return (
@@ -210,13 +304,12 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
     >
       {showClock ? (
         <span className={styles.mediaPlayerProgressTime} data-testid="media-player-current-time">
-          {formatHHMMSS(mpCurrentTime)}
+          {formatHHMMSS(shown)}
         </span>
       ) : null}
       <div
         className={styles.customProgressBar}
         ref={barRef}
-        onClick={handleBarClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleBarMouseMove}
         onMouseLeave={handleBarMouseLeave}
@@ -224,11 +317,12 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
         onTouchEnd={handleBarTouchEnd}
         onTouchCancel={handleBarTouchCancel}
         role="slider"
-        aria-valuenow={mpCurrentTime}
+        aria-valuenow={shown}
         aria-valuemin={0}
         aria-valuemax={mpDuration}
-        aria-valuetext={`${formatHHMMSS(mpCurrentTime)} of ${formatHHMMSS(mpDuration)}`}
+        aria-valuetext={`${formatHHMMSS(shown)} of ${formatHHMMSS(mpDuration)}`}
         tabIndex={0}
+        data-testid="media-player-local-progress"
       >
         <div className={styles.customProgressBarInner}>
           <div className={styles.progressLevel} style={{ width: `${progress * 100}%` }} />
@@ -267,9 +361,7 @@ const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       ) : null}
       {includeMobileTime && (
         <div className={styles.mobileTimeWrapper}>
-          <span className={styles.mediaPlayerProgressTimeMobile}>
-            {formatHHMMSS(mpCurrentTime)}
-          </span>
+          <span className={styles.mediaPlayerProgressTimeMobile}>{formatHHMMSS(shown)}</span>
           <span className={styles.mediaPlayerProgressDurationMobile}>
             {formatHHMMSS(mpDuration)}
           </span>

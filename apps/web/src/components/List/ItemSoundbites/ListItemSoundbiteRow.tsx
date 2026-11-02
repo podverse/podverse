@@ -349,16 +349,18 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
                   onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
                 />
               }
+              beforeProgress={
+                <div className={styles.timeSection}>
+                  {showItemInfo && (
+                    <>
+                      <ReadableDate date={itemPubDate} />
+                      {' • '}
+                    </>
+                  )}
+                  <ReadableTimeRange startTime={startTime} endTime={endTime} />
+                </div>
+              }
             />
-            <div className={styles.timeSection}>
-              {showItemInfo && (
-                <>
-                  <ReadableDate date={itemPubDate} />
-                  {' • '}
-                </>
-              )}
-              <ReadableTimeRange startTime={startTime} endTime={endTime} />
-            </div>
           </div>
         </div>
       </div>

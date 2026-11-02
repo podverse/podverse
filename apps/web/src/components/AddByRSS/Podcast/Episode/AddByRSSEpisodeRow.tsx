@@ -295,18 +295,20 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
                   onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
                 />
               }
+              beforeProgress={
+                <div className={styles.timeSection}>
+                  {bundle.item.pub_date ? (
+                    <ReadableDate
+                      date={
+                        typeof bundle.item.pub_date === 'string'
+                          ? bundle.item.pub_date
+                          : bundle.item.pub_date.toISOString()
+                      }
+                    />
+                  ) : null}
+                </div>
+              }
             />
-            <div className={styles.timeSection}>
-              {bundle.item.pub_date ? (
-                <ReadableDate
-                  date={
-                    typeof bundle.item.pub_date === 'string'
-                      ? bundle.item.pub_date
-                      : bundle.item.pub_date.toISOString()
-                  }
-                />
-              ) : null}
-            </div>
           </div>
         </div>
       </div>

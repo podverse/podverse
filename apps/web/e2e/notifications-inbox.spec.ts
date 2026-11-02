@@ -1,4 +1,4 @@
-import type { Page, Request } from '@playwright/test';
+import type { Locator, Page, Request } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import { buildEpisodePath } from '@podverse/helpers';
@@ -113,6 +113,33 @@ async function mockUnreadCount(page: Page, unreadCount: number): Promise<void> {
       }),
     });
   });
+}
+
+/** A one-digit count is a circle whose center is the bell glyph's top-trailing corner. */
+async function expectSingleDigitBadgeOnBellCorner(bell: Locator, badge: Locator): Promise<void> {
+  const iconBox = await bell.locator('svg').boundingBox();
+  const badgeBox = await badge.boundingBox();
+  expect(iconBox).not.toBeNull();
+  expect(badgeBox).not.toBeNull();
+  if (iconBox === null || badgeBox === null) {
+    return;
+  }
+
+  expect(Math.abs(badgeBox.width - badgeBox.height)).toBeLessThan(1.5);
+
+  const badgeCenterX = badgeBox.x + badgeBox.width / 2;
+  const badgeCenterY = badgeBox.y + badgeBox.height / 2;
+  expect(Math.abs(badgeCenterX - (iconBox.x + iconBox.width))).toBeLessThan(2);
+  expect(Math.abs(badgeCenterY - iconBox.y)).toBeLessThan(2);
+
+  const bellCenterX = iconBox.x + iconBox.width / 2;
+  const bellCenterY = iconBox.y + iconBox.height / 2;
+  const coversBellCenter =
+    bellCenterX >= badgeBox.x &&
+    bellCenterX <= badgeBox.x + badgeBox.width &&
+    bellCenterY >= badgeBox.y &&
+    bellCenterY <= badgeBox.y + badgeBox.height;
+  expect(coversBellCenter).toBe(false);
 }
 
 function notificationStateBody(unreadCount: number, retryMs: number): string {
@@ -374,6 +401,7 @@ test.describe('Notifications inbox', () => {
         async () => {
           gate.open();
           await expect(badge).toBeVisible();
+          await expectSingleDigitBadgeOnBellCorner(bell, badge);
         },
         badge
       );
@@ -406,7 +434,9 @@ test.describe('Notifications inbox', () => {
         .locator('[data-appearance="web"]')
         .getByRole('link', { name: 'Notifications' });
       await expect(bell).toBeVisible();
-      await expect(page.getByRole('status', { name: '1 unread notifications' })).toBeVisible();
+      const badge = page.getByRole('status', { name: '1 unread notifications' });
+      await expect(badge).toBeVisible();
+      await expectSingleDigitBadgeOnBellCorner(bell, badge);
 
       const page2 = await page.context().newPage();
       await mockUnreadCount(page2, 1);

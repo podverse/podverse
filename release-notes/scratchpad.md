@@ -83,3 +83,33 @@
 - Operator steps: follow `infra/k8s/alpha/examples/optional-alerting/README.md` and the Optional
   alerting section in `docs/development/k8s/REMOTE-K8S-GITOPS.md`. Generate each topic with
   `openssl rand -hex 16` and store it only in SOPS.
+
+## Notification count sits on the bell corner
+
+- Surfaces: web, mobile
+- Change: The unread count on the notifications bell sits with its center on the bell's
+  top-right corner, on the web navbar and the mobile Home title bar. A single digit is a circle.
+  A longer count stays that height and widens into a pill, still centered on the same corner, so
+  the bell stays visible. One-digit counts elsewhere that use the same web badge are circles too.
+- Who notices: anyone with unread notifications, on web and on the mobile Home bell
+- Operator steps: none
+
+## Web player scrub seeks once on release
+
+- Surfaces: web
+- Change: Dragging the local or live progress bar updates the fill and clocks only. Seeking the
+  media element happens once when the pointer is released, so scrubbing no longer briefly repeats
+  the landing audio. After that seek, the bar keeps the committed second until the playhead
+  catches up, so a stale timeupdate cannot snap the clock back.
+- Who notices: anyone scrubbing the web player while audio or video is playing
+- Operator steps: none
+
+## List row progress sits to the right of the date
+
+- Surfaces: web, mobile
+- Change: On a playing list row, the date and remaining time stay next to Play and More.
+  The progress bar fills the space to their right. Directory rows and Add by RSS episode rows
+  share that order, including episodes, clips, chapters, and official clips. On mobile the
+  publish date stays on its own line, and the duration in the play band stays left of the bar.
+- Who notices: anyone looking at a list while something is playing
+- Operator steps: none

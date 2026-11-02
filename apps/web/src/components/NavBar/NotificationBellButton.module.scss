@@ -1,15 +1,24 @@
 .bellLinkWrap {
   position: relative;
   display: inline-flex;
+  line-height: 0;
 }
 
 .bellIcon {
+  display: block;
+  width: var(--font-size-lg);
+  height: var(--font-size-lg);
   font-size: var(--font-size-lg);
 }
 
+// The badge center is the glyph's top-trailing corner, on web and on the mobile Home bell.
+// A one-digit circle overlaps only that corner. A longer count keeps the corner size's height
+// and grows into a pill that stays centered on the same point, so the bell stays visible.
 .badgeWrap {
   position: absolute;
-  top: calc(var(--spacing-xs) * -1);
-  right: calc(var(--spacing-xs) * -1);
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
   pointer-events: none;
+  line-height: 0;
 }

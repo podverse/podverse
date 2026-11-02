@@ -107,7 +107,6 @@ export const LiveMediaPlayerProgress: React.FC<LiveMediaPlayerProgressProps> = (
       return;
     }
     assignDragFraction(fraction);
-    liveMediaStore.seekToFraction(fraction);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (barRef.current === null) {
@@ -140,18 +139,6 @@ export const LiveMediaPlayerProgress: React.FC<LiveMediaPlayerProgressProps> = (
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
-    const touch = event.changedTouches.item(event.changedTouches.length - 1);
-    if (touch === null || barRef.current === null) {
-      return;
-    }
-    const fraction = fractionFromClientX(touch.clientX, barRef.current);
-    if (fraction === null) {
-      return;
-    }
-    liveMediaStore.seekToFraction(fraction);
-  };
-
   const liveLabel = tMedia('livestream.live');
   const goToLiveName = tMediaPlayer('go_to_live');
   const behindLiveText = tMediaPlayer('behind_live', {
@@ -174,12 +161,12 @@ export const LiveMediaPlayerProgress: React.FC<LiveMediaPlayerProgressProps> = (
   );
 
   // Window ArrowLeft and ArrowRight jump 10 seconds when the window can rewind.
+  // One seek on mouseup; mouse compatibility events cover a touch tap.
   const scrubber = (
     <div
       className={styles.customProgressBar}
       ref={barRef}
       onMouseDown={handleMouseDown}
-      onTouchEnd={handleTouchEnd}
       role="slider"
       aria-label={tMediaPlayer('seek')}
       aria-valuemin={0}
