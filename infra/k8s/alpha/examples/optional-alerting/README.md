@@ -8,6 +8,27 @@ live in [`infra/k8s/base/monitoring`](/infra/k8s/base/monitoring) and ship as Co
 Remote deploy checklist:
 [REMOTE-K8S-GITOPS.md](/docs/development/k8s/REMOTE-K8S-GITOPS.md).
 
+This path is **optional**. Api, web, workers, and a metrics-only Prometheus can run without
+Alertmanager or ntfy. Skip this folder when you are only pinning app images. Enable it when you
+want CronJob, node, and Argo CD events on a phone or Mac.
+
+## Not product push
+
+Operator alerts use **hosted ntfy.sh topic URLs** in Alertmanager and Argo CD Secrets. That is
+unrelated to end-user notification delivery:
+
+| Concern                                                | Configure                                                            |
+| ------------------------------------------------------ | -------------------------------------------------------------------- |
+| Operator alerts (CronJob / node / Argo)                | This README                                                          |
+| Browser Web Push                                       | VAPID secret + matching public keys on api, workers, and web sidecar |
+| Mobile FCM                                             | Firebase admin secret + `GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED=true` |
+| FOSS UnifiedPush (a distributor app may be named ntfy) | Device registration in the app; not Alertmanager                     |
+
+Copy `create_ntfy_alerts_secret.sh` and `create_argocd_notifications_secret.sh` from
+[`infra/k8s/scripts/secret-generators/`](/infra/k8s/scripts/secret-generators/) into the GitOps
+repo (next to `.sops.yaml`). See
+[INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md).
+
 ## Prerequisites
 
 Use hosted [ntfy.sh](https://ntfy.sh) on the **free tier, with no account**.

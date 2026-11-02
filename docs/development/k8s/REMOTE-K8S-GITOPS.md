@@ -206,10 +206,13 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
 
    #### Optional alerting (ntfy)
 
-   Cron and cluster alerts are optional. The monorepo ships Prometheus rules in
-   [`infra/k8s/base/monitoring`](/infra/k8s/base/monitoring) and a copy-and-adapt example in
-   [`infra/k8s/alpha/examples/optional-alerting/`](/infra/k8s/alpha/examples/optional-alerting/README.md).
-   Prometheus and Alertmanager deployments stay in GitOps.
+   Cron and cluster alerts are optional and are **not** required to run api/web/workers or to pin
+   a release. Operator phone/Mac alerts are also **not** Web Push, FCM, or UnifiedPush product
+   delivery. The monorepo ships Prometheus rules in
+   [`infra/k8s/base/monitoring`](/infra/k8s/base/monitoring) and a copy-and-adapt checklist in
+   [`infra/k8s/alpha/examples/optional-alerting/`](/infra/k8s/alpha/examples/optional-alerting/README.md)
+   (that README is the canonical procedure for any GitOps deploy). Prometheus and Alertmanager
+   deployments stay in GitOps.
 
    Follow that README: one random ntfy topic per environment (Podverse alpha, Metaboost alpha),
    stored only in SOPS; kube-state-metrics; the rules ConfigMap and Prometheus snippet;
