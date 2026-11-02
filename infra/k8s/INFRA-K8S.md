@@ -188,6 +188,19 @@ make local_seed_embed_demo_feeds_k8s
 Requires workers image, DB/MQ secrets, and Podcast Index credentials (`podverse-api.podcastindex.org-opaque`).
 This is the K8s equivalent of `make local_seed_embed_demo_feeds` only (not deterministic E2E embed fixtures).
 
+### Ops: enqueue every feed (`mqRSSAddAll`)
+
+[`mq-rss-add-all.cronjob.yaml`](base/ops/mq-rss-add-all.cronjob.yaml) runs `mqRSSAddAll -q rss-normal`,
+which loads every feed and sends one parse message per feed to `rss-normal`. Suspended CronJob only
+(`suspend: true`); never unsuspend it onto a schedule. The only run is a one-off Job:
+
+```bash
+kubectl create job --from=cronjob/mq-rss-add-all mq-rss-add-all-$(date +%s) -n <ns>
+```
+
+`-f` force-parses every feed. Add it on that one-off Job only, never in the manifest. The Job
+allows 2Gi of memory and 6 hours because it holds the full feed list.
+
 **Apply**
 
 ```bash

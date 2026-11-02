@@ -145,3 +145,15 @@
 - Who notices: operators reading the listener logs. Live items keep flowing after the Podping
   connection silently drops, instead of stopping until the pod restarts.
 - Operator steps: none
+
+## Suspended job to enqueue every feed after an ingestion stall (#320)
+
+- Surfaces: k8s, ops
+- Change: A suspended `mq-rss-add-all` CronJob runs `mqRSSAddAll -q rss-normal`, which loads every
+  feed and sends one parse message per feed to `rss-normal`. It is never scheduled. The only run
+  is `kubectl create job --from=cronjob/mq-rss-add-all`. The Job allows 2Gi and 6 hours because it
+  holds the full feed list. `-f` force-parses every feed and is not in the manifest; add it only
+  on a one-off Job for that recovery.
+- Who notices: operators recovering from a parser stall
+- Operator steps: create the Job in the target namespace after the GitOps branch that contains the
+  CronJob is pushed. Do not unsuspend the CronJob.
