@@ -5,7 +5,7 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
@@ -54,7 +54,6 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
           <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
           <CoreArtistHeader channel={ssrChannel} artistAlbums={ssrChannelsAdded} />
           <MainSidebarLayout>
-            <SideContent />
             <MainColumnStack>
               {directoryRemoved ? (
                 <DirectoryRemovedNotice />

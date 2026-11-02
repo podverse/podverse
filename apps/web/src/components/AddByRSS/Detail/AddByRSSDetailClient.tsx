@@ -15,7 +15,6 @@ import {
   MainColumnStack,
   MainHeader,
   MainSidebarLayout,
-  SideContent,
   SkeletonFlashImage,
 } from '@podverse/ui';
 
@@ -152,7 +151,6 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
         <MainHeader title={tFeatures('add_by_rss.label')} />
         <MainWrapper>
           <MainSidebarLayout>
-            <SideContent />
             <MainColumnStack>
               <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
             </MainColumnStack>
@@ -217,7 +215,6 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   return (
     <MainWrapper>
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           {headerNode ?? (
             <section className={styles.feedHeader}>

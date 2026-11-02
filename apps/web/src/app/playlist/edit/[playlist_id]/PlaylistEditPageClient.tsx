@@ -1,7 +1,7 @@
 'use client';
 
 import type { DTOPlaylist } from '@podverse/helpers';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { PlaylistEditPageButtonTabs } from './PlaylistEditPageButtonTabs';
@@ -20,7 +20,6 @@ export function PlaylistEditPageClient({ ssrPlaylist }: PlaylistEditPageClientPr
       <PlaylistEditPageHeader />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <PlaylistEditPageButtonTabs />
             <PlaylistEditPageForm ssrPlaylist={ssrPlaylist} />

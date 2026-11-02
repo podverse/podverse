@@ -1,5 +1,9 @@
 @use '../../../mixins/buttons.scss' as *;
 
+.playbackSpeedDropdownWrapper {
+  position: relative;
+}
+
 .playbackSpeedButton {
   @include mediaPlayerButton;
 }

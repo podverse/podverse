@@ -1,6 +1,6 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItem } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
@@ -44,7 +44,6 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
       <MainWrapper>
         <CorePodcastHeader channel={ssrChannel} item={ssrItem} />
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <CoreEpisodeHeader channel={ssrChannel} item={ssrItem} />
             <EpisodePageListHeader

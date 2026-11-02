@@ -1,5 +1,5 @@
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
@@ -18,7 +18,6 @@ export function ChapterClient(props: ChapterClientProps) {
     <MainWrapper>
       <CorePodcastHeader channel={ssrChannel} item={ssrItem} item_chapter={ssrItemChapter} />
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           <ItemChapterHeader channel={ssrChannel} item={ssrItem} item_chapter={ssrItemChapter} />
         </MainColumnStack>

@@ -4,7 +4,11 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { FaEllipsis } from 'react-icons/fa6';
 
-import { getPlaybackTranslationKey } from '@podverse/helpers';
+import {
+  getPlaybackTranslationKey,
+  PLAYBACK_SPEED_VALUES,
+} from '@podverse/helpers';
+import type { PlaybackSpeedValue } from '@podverse/helpers';
 import type { DropdownMenuPanelItem } from '@podverse/ui';
 import { DropdownMenuPanel, useDropdownKeyboardNavigation } from '@podverse/ui';
 
@@ -19,10 +23,12 @@ import { usePlayerShareAction } from './usePlayerShareAction';
 
 import styles from '../../../styles/components/MediaPlayer/Buttons/SettingsButton.module.scss';
 
+type MenuPage = 'root' | 'sleep' | 'speed';
+
 export const SettingsButton = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
-  const { playbackSpeed, cyclePlaybackSpeed } = usePlayerTransport();
+  const { playbackSpeed, setPlaybackSpeed } = usePlayerTransport();
   const remote = useRemotePlayerDisplay();
   const { canShare, openShare } = usePlayerShareAction();
   const tMedia = useTranslations('media');
@@ -34,7 +40,7 @@ export const SettingsButton = () => {
     getSleepTimerMinutes,
     getSleepTimerMinutes
   );
-  const [menuPage, setMenuPage] = useState<'root' | 'sleep'>('root');
+  const [menuPage, setMenuPage] = useState<MenuPage>('root');
   const selectItemRef = useRef<(idx: number) => void>(() => {});
 
   const sleepValueLabel =
@@ -47,7 +53,12 @@ export const SettingsButton = () => {
           : tMediaPlayer('sleep_timer.off');
 
   const rootItemCount = (showRateAndSleep ? 2 : 0) + (canShare ? 1 : 0);
-  const itemCount = menuPage === 'sleep' ? 4 : rootItemCount;
+  const itemCount =
+    menuPage === 'sleep'
+      ? 4
+      : menuPage === 'speed'
+        ? PLAYBACK_SPEED_VALUES.length
+        : rootItemCount;
 
   const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
     useDropdownKeyboardNavigation({
@@ -75,18 +86,24 @@ export const SettingsButton = () => {
     closeMenu();
   };
 
+  const selectSpeed = (rate: PlaybackSpeedValue) => {
+    setPlaybackSpeed(rate);
+    closeMenu();
+  };
+
   const rootItems: DropdownMenuPanelItem[] = [
     ...(showRateAndSleep
       ? [
           {
+            dismissOnSelect: false,
             label: tMediaPlayer('playback_speed.playback_speed_with_value', {
               speed: tMediaPlayer(
                 `playback_speed.speeds.${getPlaybackTranslationKey(playbackSpeed)}`
               ),
             }),
             onClick: () => {
-              cyclePlaybackSpeed();
-              closeMenu();
+              setMenuPage('speed');
+              setFocusedIndexRef.current(0);
             },
           },
           {
@@ -139,7 +156,15 @@ export const SettingsButton = () => {
     },
   ];
 
-  const menuItems = menuPage === 'sleep' ? sleepItems : rootItems;
+  const speedItems: DropdownMenuPanelItem[] = PLAYBACK_SPEED_VALUES.map((rate) => ({
+    label: tMediaPlayer(`playback_speed.speeds.${getPlaybackTranslationKey(rate)}`),
+    onClick: () => {
+      selectSpeed(rate);
+    },
+  }));
+
+  const menuItems =
+    menuPage === 'sleep' ? sleepItems : menuPage === 'speed' ? speedItems : rootItems;
   selectItemRef.current = (idx) => {
     menuItems[idx]?.onClick();
   };

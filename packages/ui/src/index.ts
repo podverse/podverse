@@ -570,8 +570,6 @@ export type {
   SectionBlockProps,
   SectionHeadingProps,
 } from './components/layout/SectionHeading/index';
-export { SideContent } from './components/layout/SideContent/SideContent';
-export type { SideContentProps } from './components/layout/SideContent/SideContent';
 export { StickyBulkActionBar } from './components/layout/StickyBulkActionBar/index';
 export type { StickyBulkActionBarProps } from './components/layout/StickyBulkActionBar/index';
 export { ToolbarCluster } from './components/layout/ToolbarCluster/index';

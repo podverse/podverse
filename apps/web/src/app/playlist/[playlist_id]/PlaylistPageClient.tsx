@@ -1,7 +1,7 @@
 'use client';
 
 import type { DTOPlaylist } from '@podverse/helpers';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { StatsPlaylistPageView } from '../../../components/StatsTracking/StatsPageViewTrackers';
@@ -20,7 +20,6 @@ export function PlaylistPageClient({ ssrPlaylist }: PlaylistPageClientProps) {
       <PlaylistPageHeader playlist={ssrPlaylist} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <PlaylistPageList ssrPlaylist={ssrPlaylist} />
           </MainColumnStack>

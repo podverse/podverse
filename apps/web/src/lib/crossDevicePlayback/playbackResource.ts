@@ -17,6 +17,7 @@ import {
   PLAYBACK_IMAGE_URL_MAX_LENGTH,
   PLAYBACK_RATE_MAX,
   PLAYBACK_RATE_MIN,
+  PLAYBACK_SPEED_VALUES,
   PLAYBACK_TEXT_FIELD_MAX_LENGTH,
   shouldUseChapterArtwork,
 } from '@podverse/helpers';
@@ -39,11 +40,6 @@ export type PlayerResourceInput = {
   mpItemChapter: DTOItemChapter | null;
   mpItemChapters: DTOItemChapter[] | null;
 };
-
-/** The web playback speed list, ascending. */
-const PLAYBACK_SPEED_VALUES: readonly PlaybackSpeedValue[] = [
-  0.5, 0.75, 0.87, 1, 1.12, 1.25, 1.5, 1.75, 2, 2.5, 3,
-];
 
 /** Distances closer than this count as a tie, so float noise cannot pick the higher speed. */
 const PLAYBACK_SPEED_TIE_EPSILON = 1e-9;

@@ -7,7 +7,6 @@ import {
   MainColumnStack,
   MainHeader,
   MainSidebarLayout,
-  SideContent,
 } from '@podverse/ui';
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
@@ -58,7 +57,6 @@ export default async function MembershipRenewPage() {
       <MainHeader title={t(tier === 'premium' ? 'extend_my_membership' : 'buy_membership')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <FormStack>
               {inGrace ? (

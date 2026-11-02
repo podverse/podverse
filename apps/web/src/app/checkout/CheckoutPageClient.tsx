@@ -12,7 +12,6 @@ import {
   MainHeader,
   MainSidebarLayout,
   MembershipPlanSelector,
-  SideContent,
 } from '@podverse/ui';
 
 import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
@@ -194,7 +193,6 @@ export function CheckoutPageClient({
       <MainHeader title={t('checkout')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <WebLoadingSpinnerOverlay isLoading={loading} />
             {isContactOnlyMode && !signedIn ? (

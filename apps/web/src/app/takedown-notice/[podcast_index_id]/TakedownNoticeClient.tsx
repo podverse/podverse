@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo } from 'react';
 
 import type { DTOFeed } from '@podverse/helpers';
-import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import {
@@ -53,7 +53,6 @@ export function TakedownNoticeClient({ ssrFeed }: TakedownNoticeClientProps) {
       <MainHeader title={tLegal('takedown_notice')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <h3 className={styles.heading}>{tLegal(policyKey)}</h3>
             <p>{tLegal(explanationKey)}</p>

@@ -19,7 +19,6 @@ import {
   Divider,
   MainColumnStack,
   MainSidebarLayout,
-  SideContent,
 } from '@podverse/ui';
 
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
@@ -452,7 +451,6 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
     <MainWrapper>
       <AddByRSSAlbumHeader feed={localFeed} />
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           <AddByRSSAlbumPageListHeader
             selectedKey={activeTab}

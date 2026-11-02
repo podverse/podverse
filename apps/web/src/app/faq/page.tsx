@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
-import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
@@ -18,7 +18,6 @@ export default async function FaqPage() {
       <MainHeader title={t('faq')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <FaqPageClient />
           </MainColumnStack>

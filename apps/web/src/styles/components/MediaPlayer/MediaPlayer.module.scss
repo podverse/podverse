@@ -1,5 +1,6 @@
 .player {
   display: none;
+  position: relative;
   background-color: black;
   border-top: 1px solid var(--border-color-opaque);
 }

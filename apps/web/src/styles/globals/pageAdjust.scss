@@ -1,30 +1,14 @@
 @use '../variables/breakpoints';
 
-// Viewport: use 100vh first (fallback), then 100dvh (matches visible viewport on mobile).
-// Bottom inset: reserve space for home indicator; pad #media-player so controls clear it.
+// Bottom inset: pad #media-player so controls clear the home indicator.
+// Vertical split is owned by WindowWrapper flex (AppWrapper flex:1 + #media-player natural height).
+// Do not re-apply 100dvh calcs on #page-wrapper / #sidebar — that double-subtracts the bar.
 
-#sidebar.media-player-active {
-  min-height: calc(100vh - var(--media-player-height-mobile) - var(--navbar-mobile-height));
-  height: calc(100vh - var(--media-player-height-mobile) - var(--navbar-mobile-height));
-  min-height: calc(
-    100dvh - var(--media-player-height-mobile) - var(--navbar-mobile-height) - env(
-        safe-area-inset-bottom,
-        0px
-      )
-  );
-  height: calc(
-    100dvh - var(--media-player-height-mobile) - var(--navbar-mobile-height) - env(
-        safe-area-inset-bottom,
-        0px
-      )
-  );
-}
-
-#page-wrapper.media-player-active {
-  min-height: calc(100vh - var(--media-player-height-mobile));
-  height: calc(100vh - var(--media-player-height-mobile));
-  min-height: calc(100dvh - var(--media-player-height-mobile) - env(safe-area-inset-bottom, 0px));
-  height: calc(100dvh - var(--media-player-height-mobile) - env(safe-area-inset-bottom, 0px));
+#media-player.media-player-active {
+  display: flex;
+  flex-shrink: 0;
+  min-height: var(--media-player-height-mobile);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 // The segment strip overlaps the bottom of the page; this spacer lets the last row scroll clear.
@@ -33,32 +17,12 @@
   flex: 0 0 var(--media-player-height-top-section);
 }
 
-#media-player.media-player-active {
-  display: flex;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-@media (min-width: breakpoints.$breakpoint-md-min) {
-  #sidebar.media-player-active {
-    min-height: calc(100vh - var(--media-player-height-mobile));
-    height: calc(100vh - var(--media-player-height-mobile));
-    min-height: calc(100dvh - var(--media-player-height-mobile) - env(safe-area-inset-bottom, 0px));
-    height: calc(100dvh - var(--media-player-height-mobile) - env(safe-area-inset-bottom, 0px));
-  }
+#page-wrapper.media-player-segment-strip-active #media-player.media-player-active {
+  margin-top: var(--media-player-height-top-section);
 }
 
 @media (min-width: breakpoints.$breakpoint-lg-min) {
-  #sidebar.media-player-active {
-    min-height: calc(100vh - var(--media-player-height));
-    height: calc(100vh - var(--media-player-height));
-    min-height: calc(100dvh - var(--media-player-height) - env(safe-area-inset-bottom, 0px));
-    height: calc(100dvh - var(--media-player-height) - env(safe-area-inset-bottom, 0px));
-  }
-
-  #page-wrapper.media-player-active {
-    min-height: calc(100vh - var(--media-player-height));
-    height: calc(100vh - var(--media-player-height));
-    min-height: calc(100dvh - var(--media-player-height) - env(safe-area-inset-bottom, 0px));
-    height: calc(100dvh - var(--media-player-height) - env(safe-area-inset-bottom, 0px));
+  #media-player.media-player-active {
+    min-height: var(--media-player-height);
   }
 }

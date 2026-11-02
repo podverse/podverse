@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
-import { Divider, MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { Divider, MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { Link } from '../../components/Link/Link';
 import { MainWrapper } from '../../components/Main/MainWrapper';
@@ -19,7 +19,6 @@ export const ContactPageClient = () => {
       <MainHeader title={tContact('contact')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <section className={styles.section}>
               <h2>{tContact('email')}</h2>

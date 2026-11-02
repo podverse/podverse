@@ -1,6 +1,6 @@
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
@@ -57,7 +57,6 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
           <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
           <CoreAlbumHeader channel={ssrChannel} />
           <MainSidebarLayout>
-            <SideContent />
             <MainColumnStack>
               {directoryRemoved ? (
                 <DirectoryRemovedNotice />

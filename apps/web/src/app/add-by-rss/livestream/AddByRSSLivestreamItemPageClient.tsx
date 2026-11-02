@@ -6,7 +6,7 @@ import React from 'react';
 
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import type { ChipRowItem } from '@podverse/ui';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
@@ -192,7 +192,6 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
     return (
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
           </MainColumnStack>
@@ -230,7 +229,6 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
     <MainWrapper>
       {headerNode}
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           <AddByRSSLivestreamDetailHeader
             itemIdText={livestream.idText}

@@ -4,11 +4,18 @@ import dynamic from 'next/dynamic';
 
 import { ErrorBoundaryWrapper } from '../ErrorBoundary/ErrorBoundaryWrapper';
 
+import playerStyles from '../../styles/components/MediaPlayer/MediaPlayer.module.scss';
+
+/** Reserves `#media-player` so layout classes can apply before the dynamic chunk mounts. */
+function MediaPlayerMountPlaceholder() {
+  return <aside id="media-player" className={playerStyles.player} aria-hidden="true" />;
+}
+
 const LazyMediaPlayer = dynamic(
   () => import('../MediaPlayer/MediaPlayer').then((mod) => ({ default: mod.MediaPlayer })),
   {
     ssr: false,
-    loading: () => <div aria-label="Loading media player" style={{ display: 'none' }} />,
+    loading: () => <MediaPlayerMountPlaceholder />,
   }
 );
 

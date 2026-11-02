@@ -15,7 +15,6 @@ import {
   MainColumnStack,
   MainHeader,
   MainSidebarLayout,
-  SideContent,
   StackForm,
   TextInput,
 } from '@podverse/ui';
@@ -128,7 +127,6 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
       <MainHeader title={tFeatures('add_by_rss.label')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <div className={styles.content}>
               <p className={styles.instructions}>{tFeatures('add_by_rss.add_feed_instructions')}</p>

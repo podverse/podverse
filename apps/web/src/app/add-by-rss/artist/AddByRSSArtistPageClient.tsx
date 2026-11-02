@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { AddByRSSParseStatus, DTOChannel } from '@podverse/helpers';
 import { isDescriptionTruncated } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { CallToActionMessage, MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { CallToActionMessage, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
 import { AddByRSSRemoteItemList } from '../../../components/AddByRSS/RemoteItems/AddByRSSRemoteItemList';
@@ -555,7 +555,6 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     return (
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
           </MainColumnStack>
@@ -584,7 +583,6 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     <MainWrapper>
       <AddByRSSArtistHeader feed={feed} />
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           <AddByRSSArtistPageListHeader
             selectedKey={activeTab}

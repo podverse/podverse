@@ -9,7 +9,7 @@ import type { TranscriptRow } from '@podverse/helpers';
 import { isDescriptionTruncated } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import type { ChipRowItem } from '@podverse/ui';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSTrackDetailHeader } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackDetailHeader';
@@ -351,7 +351,6 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     return (
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
           </MainColumnStack>
@@ -367,7 +366,6 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     <MainWrapper>
       <AddByRSSAlbumHeader feed={feed} />
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           <AddByRSSTrackDetailHeader
             itemIdText={track.idText}

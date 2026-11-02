@@ -1,7 +1,7 @@
 'use client';
 
 import type { DTOAccount } from '@podverse/helpers';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import type { MediaListChipsConfig } from '../../components/MediaListChips/MediaListChips';
@@ -34,7 +34,6 @@ export function ProfilesPageClient(props: ProfilesPageClientProps) {
       <ProfilesPageHeader />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <ProfilesPageChipRow chipsConfig={chipsConfig} />
             <ProfilesPageList />

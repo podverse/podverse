@@ -231,6 +231,7 @@ test.describe('Media player across two signed-in browsers', () => {
         const speedItem = deviceB.page.getByRole('menuitem', { name: /^Playback Speed:/ });
         await expect(speedItem).toBeVisible();
         await speedItem.click();
+        await deviceB.page.getByRole('menuitem', { name: '1.25x' }).click();
         await expect
           .poll(
             async () => {
@@ -239,7 +240,7 @@ test.describe('Media player across two signed-in browsers', () => {
             },
             { timeout: 20_000 }
           )
-          .toBeGreaterThan(1);
+          .toBe(1.25);
       });
     } finally {
       await closeSignedInDevices(devicesToClose);

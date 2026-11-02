@@ -3,7 +3,6 @@
 import { useCallback } from 'react';
 
 import type { DTOPlaybackState, PlaybackSpeedValue } from '@podverse/helpers';
-import { getNextPlaybackSpeed } from '@podverse/helpers';
 
 import { useCrossDevicePlaybackSnapshot } from '../contexts/CrossDevicePlayback';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
@@ -30,7 +29,7 @@ export type PlayerTransport = {
   togglePlayPause: () => void;
   seekTo: (seconds: number) => void;
   jumpBy: (deltaSeconds: number) => void;
-  cyclePlaybackSpeed: () => void;
+  setPlaybackSpeed: (rate: PlaybackSpeedValue) => void;
   goToLive: () => void;
 };
 
@@ -148,20 +147,23 @@ export function usePlayerTransport(): PlayerTransport {
     setMPIsPlaying(true);
   }, [mpAddByRSS, mpItem, setMPIsPlaying]);
 
-  const cyclePlaybackSpeed = useCallback(() => {
-    const remote = readRemoteControlState();
-    if (remote.kind === 'drop') {
-      return;
-    }
-    if (remote.kind === 'remote') {
-      void sendPlaybackCommand({
-        type: 'set_rate',
-        rate: getNextPlaybackSpeed(nearestPlaybackSpeedValue(remote.state.rate)),
-      });
-      return;
-    }
-    setMPPlaybackSpeed(getNextPlaybackSpeed(mpPlaybackSpeed));
-  }, [mpPlaybackSpeed, setMPPlaybackSpeed]);
+  const setPlaybackSpeed = useCallback(
+    (rate: PlaybackSpeedValue) => {
+      const remote = readRemoteControlState();
+      if (remote.kind === 'drop') {
+        return;
+      }
+      if (remote.kind === 'remote') {
+        void sendPlaybackCommand({
+          type: 'set_rate',
+          rate,
+        });
+        return;
+      }
+      setMPPlaybackSpeed(rate);
+    },
+    [setMPPlaybackSpeed]
+  );
 
   const isPlaying = isRemote
     ? displayState !== null && displayState.status !== 'paused'
@@ -185,7 +187,7 @@ export function usePlayerTransport(): PlayerTransport {
     togglePlayPause,
     seekTo,
     jumpBy,
-    cyclePlaybackSpeed,
+    setPlaybackSpeed,
     goToLive,
   };
 }

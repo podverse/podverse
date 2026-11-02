@@ -19,7 +19,6 @@ import {
   Divider,
   MainColumnStack,
   MainSidebarLayout,
-  SideContent,
 } from '@podverse/ui';
 
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
@@ -354,7 +353,6 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
     <MainWrapper>
       <AddByRSSPodcastHeader feed={localFeed} />
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           <AddByRSSPodcastPageListHeader
             selectedKey={activeTab}

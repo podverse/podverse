@@ -1,6 +1,6 @@
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import { isDescriptionTruncated } from '@podverse/helpers';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
@@ -32,7 +32,6 @@ export function ClipPageClient(props: ClipPageClientProps) {
     <MainWrapper>
       <CorePodcastHeader channel={ssrChannel} item={ssrItem} clip={headerShareClip} />
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           <ClipHeader channel={ssrChannel} item={ssrItem} clip={ssrClip} />
           <CoreEpisodeSummary

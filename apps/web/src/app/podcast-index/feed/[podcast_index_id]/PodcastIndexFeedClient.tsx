@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import type { FeedPolicyPrimaryBlockReasonForUi, PodcastByIdFeed } from '@podverse/helpers';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { PodcastIndexFeedInfo } from '../../../../components/PodcastIndex/PodcastIndexFeedInfo';
@@ -48,7 +48,6 @@ export function PodcastIndexFeedClient({
     <MainWrapper>
       <PodcastIndexFeedHeader />
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           {showBlockedBanner ? (
             <p>

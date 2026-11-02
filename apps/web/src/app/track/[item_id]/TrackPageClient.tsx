@@ -1,6 +1,6 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItemMusic } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
@@ -29,7 +29,6 @@ export function TrackPageClient(props: TrackPageClientProps) {
       <MainWrapper>
         <CoreAlbumHeader channel={ssrChannel} item={ssrItem} />
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <CoreTrackHeader channel={ssrChannel} item={ssrItem} />
             <TrackPageListHeader

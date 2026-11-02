@@ -10,7 +10,7 @@ import {
   getAddByRSSDetailRouteSegment,
   getAddByRSSResourceTypeFromMappedFeed,
 } from '@podverse/parser-mapping';
-import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { SearchDetail } from '../../../components/SearchDetail/SearchDetail';
@@ -65,7 +65,6 @@ export function AddByRSSRemoteFeedPageClient({
       <MainHeader title={tFeatures('add_by_rss.label')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <SearchDetail
               explanation={tFeatures('add_by_rss.remote_feed_explanation')}

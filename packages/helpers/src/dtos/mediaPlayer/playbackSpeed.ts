@@ -4,10 +4,13 @@ export type PlaybackSpeedValue =
 export type PlaybackSpeedTranslationKey =
   '0-5' | '0-75' | '0-87' | '1-0' | '1-12' | '1-25' | '1-5' | '1-75' | '2-0' | '2-5' | '3-0';
 
+export const PLAYBACK_SPEED_VALUES: readonly PlaybackSpeedValue[] = [
+  0.5, 0.75, 0.87, 1.0, 1.12, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0,
+];
+
 export function getNextPlaybackSpeed(current: PlaybackSpeedValue): PlaybackSpeedValue {
-  const speeds: PlaybackSpeedValue[] = [0.5, 0.75, 0.87, 1.0, 1.12, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
-  const idx = speeds.indexOf(current);
-  return speeds[(idx + 1) % speeds.length] ?? 1.0;
+  const idx = PLAYBACK_SPEED_VALUES.indexOf(current);
+  return PLAYBACK_SPEED_VALUES[(idx + 1) % PLAYBACK_SPEED_VALUES.length] ?? 1.0;
 }
 
 export function getPlaybackTranslationKey(speed: PlaybackSpeedValue): PlaybackSpeedTranslationKey {

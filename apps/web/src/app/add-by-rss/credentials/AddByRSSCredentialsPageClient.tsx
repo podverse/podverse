@@ -22,7 +22,6 @@ import {
   MainColumnStack,
   MainHeader,
   MainSidebarLayout,
-  SideContent,
   StackForm,
   TextInput,
 } from '@podverse/ui';
@@ -376,7 +375,6 @@ export const AddByRSSCredentialsPageClient: React.FC<AddByRSSCredentialsPageClie
       <MainHeader title={tFeatures('add_by_rss.credentials_page_title')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>{renderBody()}</MainColumnStack>
         </MainSidebarLayout>
       </MainWrapper>

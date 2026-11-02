@@ -5,9 +5,8 @@ export type UpdateLayoutForMediaPlayerOptions = {
 /**
  * Applies or removes the media-player-active class on sidebar, page-wrapper, and media-player
  * so the layout reserves space at the bottom for the player.
- * Only applies the "active" layout when the #media-player element exists (i.e. the lazy-loaded
- * MediaPlayer component has mounted). This prevents a blank rectangle from appearing when
- * something is playing but the player UI has not yet loaded.
+ * `#media-player` may be the lazy-load placeholder or the mounted MediaPlayer; both share the id
+ * so the bar height can reserve before the chunk finishes loading.
  */
 export function updateLayoutForMediaPlayer(
   nowPlayingItem: unknown,
@@ -25,8 +24,6 @@ export function updateLayoutForMediaPlayer(
   const shouldBeActive = !!nowPlayingItem;
 
   if (shouldBeActive) {
-    // Only reserve space when the media player element exists (lazy component has mounted).
-    // Otherwise we would show a blank gap before the player renders.
     if (!mediaPlayer) {
       return;
     }

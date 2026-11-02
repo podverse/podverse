@@ -10,7 +10,7 @@ import type { TranscriptRow } from '@podverse/helpers';
 import { isDescriptionTruncated } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import type { ChipRowItem } from '@podverse/ui';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader';
@@ -370,7 +370,6 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     return (
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
           </MainColumnStack>
@@ -387,7 +386,6 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     <MainWrapper>
       <AddByRSSPodcastHeader feed={feed} />
       <MainSidebarLayout>
-        <SideContent />
         <MainColumnStack>
           <AddByRSSEpisodeDetailHeader
             itemIdText={episode.idText}

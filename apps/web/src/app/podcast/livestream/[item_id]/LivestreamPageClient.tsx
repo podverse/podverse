@@ -1,6 +1,6 @@
 import type { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
 import type { QueryParamsLiveItem } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { CorePodcastHeader } from '../../../../components/Core/Podcast/CorePodcastHeader';
@@ -29,7 +29,6 @@ export function LivestreamPageClient(props: LivestreamPageClientProps) {
       <MainWrapper>
         <CorePodcastHeader channel={ssrChannel} item={ssrItem} />
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <LivestreamHeader channel={ssrChannel} item={ssrItem} medium={medium} />
             <LivestreamPageListHeader

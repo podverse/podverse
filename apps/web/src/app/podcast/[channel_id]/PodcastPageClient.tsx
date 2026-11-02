@@ -6,7 +6,7 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
-import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
@@ -71,7 +71,6 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
           <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
           <CorePodcastHeader channel={ssrChannel} />
           <MainSidebarLayout>
-            <SideContent />
             <MainColumnStack>
               {directoryRemoved ? (
                 <DirectoryRemovedNotice />

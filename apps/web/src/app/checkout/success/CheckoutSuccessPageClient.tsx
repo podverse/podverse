@@ -12,7 +12,6 @@ import {
   MainColumnStack,
   MainHeader,
   MainSidebarLayout,
-  SideContent,
 } from '@podverse/ui';
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
@@ -112,7 +111,6 @@ export function CheckoutSuccessPageClient() {
       <MainHeader title={t('checkout')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <CenteredMessage live={phase === 'timeout' ? 'alert' : 'status'}>
               {phase === 'waiting' ? <span>{t('success_waiting')}</span> : null}

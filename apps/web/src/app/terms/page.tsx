@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
-import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { TermsDocument } from '../../components/Legal/TermsDocument';
 import { MainWrapper } from '../../components/Main/MainWrapper';
@@ -18,7 +18,6 @@ export default async function TermsPage() {
       <MainHeader title={t('terms')} />
       <MainWrapper>
         <MainSidebarLayout>
-          <SideContent />
           <MainColumnStack>
             <TermsDocument />
           </MainColumnStack>
