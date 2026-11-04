@@ -39,12 +39,15 @@ test.describe('Media player playback speed', () => {
 
     await expect
       .poll(async () => {
-        return page.locator('audio').first().evaluate((el) => {
-          if (!(el instanceof HTMLAudioElement)) {
-            return Number.NaN;
-          }
-          return el.playbackRate;
-        });
+        return page
+          .locator('audio')
+          .first()
+          .evaluate((el) => {
+            if (!(el instanceof HTMLAudioElement)) {
+              return Number.NaN;
+            }
+            return el.playbackRate;
+          });
       })
       .toBe(1.25);
 

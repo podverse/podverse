@@ -4,11 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { FaEllipsis } from 'react-icons/fa6';
 
-import {
-  getPlaybackTranslationKey,
-  PLAYBACK_SPEED_VALUES,
-} from '@podverse/helpers';
 import type { PlaybackSpeedValue } from '@podverse/helpers';
+import { getPlaybackTranslationKey, PLAYBACK_SPEED_VALUES } from '@podverse/helpers';
 import type { DropdownMenuPanelItem } from '@podverse/ui';
 import { DropdownMenuPanel, useDropdownKeyboardNavigation } from '@podverse/ui';
 
@@ -54,11 +51,7 @@ export const SettingsButton = () => {
 
   const rootItemCount = (showRateAndSleep ? 2 : 0) + (canShare ? 1 : 0);
   const itemCount =
-    menuPage === 'sleep'
-      ? 4
-      : menuPage === 'speed'
-        ? PLAYBACK_SPEED_VALUES.length
-        : rootItemCount;
+    menuPage === 'sleep' ? 4 : menuPage === 'speed' ? PLAYBACK_SPEED_VALUES.length : rootItemCount;
 
   const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
     useDropdownKeyboardNavigation({

@@ -32,9 +32,7 @@ function createLogger(): ILoggerLike {
   };
 }
 
-function isAbortConfig(
-  value: unknown
-): value is {
+function isAbortConfig(value: unknown): value is {
   controller: AbortController;
   timeoutMs: number;
 } {
@@ -140,9 +138,9 @@ describe('PodcastIndexService.recentGetData HTTP timeout', () => {
 
     requestWithUserAgent.mockRejectedValue(new Error('boom'));
 
-    await expect(
-      drain(service.recentGetData(Math.floor(Date.now() / 1000) - 900))
-    ).rejects.toThrow('boom');
+    await expect(drain(service.recentGetData(Math.floor(Date.now() / 1000) - 900))).rejects.toThrow(
+      'boom'
+    );
     expect(loggerService.warn).not.toHaveBeenCalledWith(
       expect.stringContaining('Timed out after retries')
     );

@@ -4,11 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { FaEllipsis } from 'react-icons/fa6';
 
-import {
-  getPlaybackTranslationKey,
-  PLAYBACK_SPEED_VALUES,
-} from '@podverse/helpers';
 import type { PlaybackSpeedValue } from '@podverse/helpers';
+import { getPlaybackTranslationKey, PLAYBACK_SPEED_VALUES } from '@podverse/helpers';
 import type { DropdownMenuPanelItem } from '@podverse/ui';
 import { DropdownMenuPanel, useDropdownKeyboardNavigation } from '@podverse/ui';
 

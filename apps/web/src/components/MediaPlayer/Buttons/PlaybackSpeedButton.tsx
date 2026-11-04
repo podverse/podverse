@@ -3,11 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useRef } from 'react';
 
-import {
-  getPlaybackTranslationKey,
-  PLAYBACK_SPEED_VALUES,
-} from '@podverse/helpers';
 import type { PlaybackSpeedValue } from '@podverse/helpers';
+import { getPlaybackTranslationKey, PLAYBACK_SPEED_VALUES } from '@podverse/helpers';
 import type { DropdownMenuPanelItem } from '@podverse/ui';
 import { DropdownMenuPanel, useDropdownKeyboardNavigation } from '@podverse/ui';
 

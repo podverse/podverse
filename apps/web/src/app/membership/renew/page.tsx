@@ -2,12 +2,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
 import type { MembershipTier } from '@podverse/helpers';
-import {
-  FormStack,
-  MainColumnStack,
-  MainHeader,
-  MainSidebarLayout,
-} from '@podverse/ui';
+import { FormStack, MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getConfig } from '../../../config';
