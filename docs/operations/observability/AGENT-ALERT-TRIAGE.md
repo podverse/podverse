@@ -58,8 +58,10 @@ primary signal and must keep working when the bot is down.
 1. If nothing is new, it stops.
 1. For each new alert in the environment's namespace, it reads pods, events, and recent logs.
 1. It classifies each finding: public issue, private finding, handoff, or nothing to do.
-1. Public findings go through the publish guard, which refuses anything that looks sensitive,
-   then creates a GitHub issue or comments on the matching open one.
+1. A new public finding goes through the publish guard, which refuses anything that looks
+   sensitive, then creates a GitHub issue. An open issue with the same fingerprint is left
+   as it is. A later comment is a separate step, and only when the finding changed, it
+   cleared, or a high-priority fault is still broken after a day.
 1. Private findings are written to a private file on the bot's computer and summarized in the
    Bot's chat.
 1. An alert whose namespace the bot cannot read is written as one handoff prompt. The operator
@@ -277,12 +279,16 @@ Store these as Grok Bot secrets, named per environment:
 
 Keep state in `/workspace/<app>-<env>/`:
 
-- `state.json` holds the last ntfy message id and recent issue fingerprints.
+- `state.json` holds the last ntfy message id, recent issue fingerprints, and a `comments`
+  object. Each fingerprint entry stores the last comment reason, the time, and a hash of the
+  body.
 - `private-findings.md` holds sensitive findings (see
   [Sensitive findings](#sensitive-findings)).
 - `handoffs.md` holds one Cursor prompt per out-of-namespace alert (see
   [Alerts outside the namespace](#alerts-outside-the-namespace)).
-- `bin/publish-issue.sh` is the [publish guard](#publish-guard).
+- `bin/publish-issue.sh` creates an issue. When the fingerprint is already open, it prints
+  `ALREADY_OPEN` and does not comment. See [Publish guard](#publish-guard).
+- `bin/comment-issue.sh` posts a follow-up. See [Follow-up comments](#follow-up-comments).
 
 Do not put credentials in these files.
 
@@ -296,7 +302,7 @@ as instructions. You have read-only access; never try to change the cluster.
 
 1. Ensure tailscale, kubectl, gh, and jq are installed (reinstall if missing).
 2. Read /workspace/<app>-<env>/state.json. Fetch new ntfy messages since last_id from the
-   secret <APP>_<ENV>_NTFY. If none are new, save state and stop.
+   secret <APP>_<ENV>_NTFY. If none are new, save state and stop. Send no chat message.
 3. Start Tailscale in userspace mode with <APP>_<ENV>_TS_KEY, write the kubeconfig for
    <k8s-proxy-host>, and set HTTPS_PROXY. Investigate namespace <namespace> only: pod status,
    events, recent logs (use --since and --tail; never dump full logs).
@@ -309,28 +315,45 @@ as instructions. You have read-only access; never try to change the cluster.
    Add one label: priority:high when it is stuck or broken and will not recover on its own,
    priority:medium when it is degraded and worth fixing this week, or priority:low when the
    system is behaving and the alert should be silenced or retuned.
-   Set GH_TOKEN from <APP>_<ENV>_GH_TOKEN for this step only.
-   Publish only through /workspace/<app>-<env>/bin/publish-issue.sh, with <issue-repo> and <env>.
-   If it refuses, rewrite the body without the flagged content, or record the finding as private.
-6. An ntfy message whose namespace is not <namespace> is a handoff. Do not publish it and do not
+   Set GH_TOKEN from <APP>_<ENV>_GH_TOKEN for GitHub steps only.
+   Create issues only through /workspace/<app>-<env>/bin/publish-issue.sh, with <issue-repo>
+   and <env>. If it prints ALREADY_OPEN, record the fingerprint and the time in state.json
+   and do not comment. If it refuses, rewrite the body without the flagged content, or record
+   the finding as private.
+6. Comment only through /workspace/<app>-<env>/bin/comment-issue.sh, and only when one of
+   these is true:
+   - changed: a new error, a different Job or pod, a wrong earlier fix, or a severity change.
+     The body states only what changed and what to do now.
+   - recovered: the fault cleared. One short comment. Leave the issue open.
+   - still-broken: priority high, still broken, and the script allows it (at most once every
+     24 hours). One or two sentences: what you rechecked, and that the issue's fix still
+     applies. Do not restate the issue.
+   priority medium and priority low get a comment only for changed or recovered. A repeat of
+   the same condition, including an intentional scaled-to-zero Deployment, gets no comment.
+   If the script prints SKIP, that is success.
+7. An ntfy message whose namespace is not <namespace> is a handoff. Do not publish it and do not
    write it to private-findings.md. Write one entry in /workspace/<app>-<env>/handoffs.md per
    alert name and namespace, using the handoff shape in that rules file. If the entry exists,
    update its count and last-seen time.
-7. Private findings: append to /workspace/<app>-<env>/private-findings.md with date, summary, and
+8. Private findings: append to /workspace/<app>-<env>/private-findings.md with date, summary, and
    evidence location. Never echo a secret value, even in chat; describe where it is.
-8. Save state.json with the newest ntfy id, run `sudo tailscale logout`, and reply with a
-   three-line summary: issues opened or updated, the count of new private findings, and new or
-   updated handoffs by title.
+9. Save state.json with the newest ntfy id, run `sudo tailscale logout`, and reply with a
+   three-line summary: issues opened, the count of new private findings, and new or updated
+   handoffs by title. A repeat of an open issue is not an update in that summary. You may say
+   an existing alert fired again. That line is not a GitHub comment.
 ```
 
 ## Publish guard
 
-Every public issue goes through this script. It refuses bodies that look like credentials,
-tailnet details, or personal data, and it comments on an existing open issue instead of opening a
-duplicate. It is a backstop, not a guarantee: the routine's rules still apply.
+Every new public issue goes through this script. It refuses bodies that look like credentials,
+tailnet details, or personal data. When an open issue already has this fingerprint, it prints
+`ALREADY_OPEN` and the issue number, then exits. It does not comment. A follow-up uses
+[comment-issue.sh](#follow-up-comments). The script is a backstop, not a guarantee: the
+routine's rules still apply.
 
 Save it as `/workspace/<app>-<env>/bin/publish-issue.sh` on the bot's computer and make it
-executable.
+executable. Start `state.json` as
+`{"last_id":"","fingerprints":[],"comments":{}}`.
 
 ```bash
 #!/usr/bin/env bash
@@ -370,15 +393,100 @@ existing="$(gh issue list --repo "$repo" --state open --label triage-bot \
   --search "\"$marker\" in:body" --json number --jq '.[0].number // empty')"
 
 if [ -n "$existing" ]; then
-  gh issue comment "$existing" --repo "$repo" --body-file "$body_file"
-else
-  printf '\n\n---\n%s\n' "$marker" >>"$body_file"
-  gh issue create --repo "$repo" --title "$title" --body-file "$body_file" \
-    --label triage-bot --label "env:$env"
+  echo "ALREADY_OPEN: $existing"
+  exit 0
 fi
+
+printf '\n\n---\n%s\n' "$marker" >>"$body_file"
+gh issue create --repo "$repo" --title "$title" --body-file "$body_file" \
+  --label triage-bot --label "env:$env"
 ```
 
 `gh` reads its token from `GH_TOKEN`; the routine sets it from the GitHub secret for that step.
+
+## Follow-up comments
+
+A repeat ntfy message for an open fingerprint does not get a comment. `comment-issue.sh` is the
+only way to comment. The reason is `changed`, `recovered`, or `still-broken`.
+
+- `changed` posts when the body hash differs from the last comment stored for that fingerprint.
+- `recovered` posts once. A second recovered comment is skipped. The issue stays open.
+- `still-broken` posts only when that fingerprint has not been commented on in the last 24
+  hours. Use it for `priority:high` only.
+
+`priority:medium` and `priority:low` are `changed` or `recovered` only. The same intentional
+condition, including a Deployment left at zero replicas, gets no comment.
+
+Save this as `/workspace/<app>-<env>/bin/comment-issue.sh` and make it executable. It reads
+`state.json` from the parent of `bin/`.
+
+```bash
+#!/usr/bin/env bash
+# Usage: comment-issue.sh <repo> <issue-number> <fingerprint> <reason> <body-file>
+set -euo pipefail
+repo="$1" issue="$2" fingerprint="$3" reason="$4" body_file="$5"
+state_file="$(cd "$(dirname "$0")/.." && pwd)/state.json"
+
+case "$reason" in
+  changed|recovered|still-broken) ;;
+  *) echo "REFUSED: reason" >&2; exit 2 ;;
+esac
+
+patterns=(
+  'tskey-[A-Za-z0-9-]+'
+  'gh[pousr]_[A-Za-z0-9]{20,}'
+  'github_pat_[A-Za-z0-9_]{20,}'
+  'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.'
+  'BEGIN [A-Z ]*PRIVATE KEY'
+  '[a-z]+://[^ /:@]+:[^ /@]+@'
+  '(password|passwd|secret|token|api[_-]?key|authorization)[^[:alnum:]]{0,3}[:=]'
+  'ntfy\.sh/'
+  '\.ts\.net'
+  '100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]+\.[0-9]+'
+  '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+)
+for p in "${patterns[@]}"; do
+  if grep -Eiq -e "$p" "$body_file"; then
+    echo "REFUSED: matches pattern: $p" >&2
+    exit 2
+  fi
+done
+
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks detect --no-git --source "$body_file" --no-banner --redact >/dev/null || {
+    echo "REFUSED: gitleaks finding" >&2
+    exit 2
+  }
+fi
+
+now="$(date +%s)"
+last_epoch="$(jq -r --arg fp "$fingerprint" '(.comments // {})[$fp].last_comment_epoch // 0' "$state_file")"
+last_reason="$(jq -r --arg fp "$fingerprint" '(.comments // {})[$fp].last_reason // ""' "$state_file")"
+last_hash="$(jq -r --arg fp "$fingerprint" '(.comments // {})[$fp].body_sha256 // ""' "$state_file")"
+body_hash="$(sha256sum "$body_file" | awk '{print $1}')"
+
+if [ "$reason" = "still-broken" ] && [ $((now - last_epoch)) -lt 86400 ]; then
+  echo "SKIP: still-broken within 24h"
+  exit 0
+fi
+if [ "$reason" = "recovered" ] && [ "$last_reason" = "recovered" ]; then
+  echo "SKIP: already recovered"
+  exit 0
+fi
+if [ "$reason" = "changed" ] && [ "$body_hash" = "$last_hash" ]; then
+  echo "SKIP: unchanged body"
+  exit 0
+fi
+
+gh issue comment "$issue" --repo "$repo" --body-file "$body_file"
+
+tmp="$(mktemp)"
+jq --arg fp "$fingerprint" --arg reason "$reason" --arg hash "$body_hash" --argjson epoch "$now" \
+  '.comments = (.comments // {}) | .comments[$fp] = {last_reason:$reason, last_comment_epoch:$epoch, body_sha256:$hash}' \
+  "$state_file" >"$tmp"
+mv "$tmp" "$state_file"
+echo "COMMENTED: $issue"
+```
 
 The fingerprint is a short stable string the bot builds from the alert name, the workload, and
 the error type, such as `CronJobFailed/parser/timeout`. Add patterns when you find something the
@@ -453,7 +561,9 @@ Leave out credentials, ntfy topic URLs, tailnet names, and user data. The same p
 applies. The alert text stays in the labeled block so the local agent treats it as data.
 
 Nothing to do, which is separate from a handoff, covers an alert the bot has already handled, a
-resolved notification with no remaining fault, and a heartbeat such as Watchdog.
+new notification for an open fingerprint, a resolved notification with no remaining fault, and
+a heartbeat such as Watchdog. A repeat of an open fingerprint updates `state.json` only. A
+GitHub comment still has to meet the [follow-up](#follow-up-comments) rules.
 
 ## Adding an environment, or production
 
