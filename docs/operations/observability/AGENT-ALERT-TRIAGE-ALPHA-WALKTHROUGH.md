@@ -400,3 +400,5 @@ Read /workspace/podverse-alpha/private-findings.md. For every finding whose name
 
 Reply with the full text of each handoff prompt, and confirm the no-action sentence is gone and the routine is still paused.
 ```
+
+After those updates were pushed to `develop`, the `podverse-alpha-triage` switch was turned on. Details shows **Every hour**.
