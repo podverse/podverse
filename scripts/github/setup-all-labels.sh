@@ -98,6 +98,13 @@ LABELS=(
   "priority:high|eb6420|High priority issues"
   "priority:medium|d4c5f9|Medium priority issues"
   "priority:low|1f8b84|Low priority issues"
+
+  # === ALERT TRIAGE ===
+  # One hue for environment. Darker means closer to users.
+  "triage-bot|57534E|Opened or updated by the alert triage app."
+  "env:alpha|818CF8|Affects the alpha environment."
+  "env:beta|4338CA|Affects the beta environment."
+  "env:prod|1E1B4B|Affects the production environment."
 )
 
 echo "Creating/updating labels (${#LABELS[@]} total)..."

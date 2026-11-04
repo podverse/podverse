@@ -20,9 +20,10 @@ Operator and platform runbooks for Podverse deployments, data stores, and platfo
 
 ### Observability
 
-| Doc                                    | Purpose                                    |
-| -------------------------------------- | ------------------------------------------ |
-| [TRACING.md](observability/TRACING.md) | Always-on tracing and optional OTLP export |
+| Doc                                                          | Purpose                                                  |
+| ------------------------------------------------------------ | -------------------------------------------------------- |
+| [TRACING.md](observability/TRACING.md)                       | Always-on tracing and optional OTLP export               |
+| [AGENT-ALERT-TRIAGE.md](observability/AGENT-ALERT-TRIAGE.md) | Grok Bot triage of ntfy alerts into GitHub issues (opt.) |
 
 ### Integrations
 

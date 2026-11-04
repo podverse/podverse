@@ -1,0 +1,33 @@
+# Copy into the environment's GitOps manifests. Replace <namespace> and <bot-group>.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: triage-read
+  namespace: <namespace>
+rules:
+  - apiGroups: [""]
+    resources: [pods, pods/log, events, services, endpoints, persistentvolumeclaims]
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [deployments, replicasets, statefulsets, daemonsets]
+    verbs: [get, list, watch]
+  - apiGroups: [batch]
+    resources: [jobs, cronjobs]
+    verbs: [get, list, watch]
+  - apiGroups: [events.k8s.io]
+    resources: [events]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: triage-read
+  namespace: <namespace>
+subjects:
+  - kind: Group
+    name: <bot-group>
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: triage-read
+  apiGroup: rbac.authorization.k8s.io

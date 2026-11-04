@@ -49,6 +49,17 @@ This document lists all 28 labels in the Podverse repository for consistent issu
 | --------- | ---------------------------------------------------------------------- | -------------------------------------------------- | ------ |
 | `blocked` | ![#990099](https://via.placeholder.com/15/990099/990099.png) `#990099` | The work on this issue is blocked by another issue | Custom |
 
+## Category: Alert triage
+
+Environment labels share one indigo hue. A darker shade is closer to users. `triage-bot` is a separate warm gray so it stays distinct beside the environment label.
+
+| Label        | Color                                                                  | Description                          | Origin |
+| ------------ | ---------------------------------------------------------------------- | ------------------------------------ | ------ |
+| `triage-bot` | ![#57534E](https://via.placeholder.com/15/57534E/57534E.png) `#57534E` | Opened or updated by the alert triage app. | Custom |
+| `env:alpha`  | ![#818CF8](https://via.placeholder.com/15/818CF8/818CF8.png) `#818CF8` | Affects the alpha environment.             | Custom |
+| `env:beta`   | ![#4338CA](https://via.placeholder.com/15/4338CA/4338CA.png) `#4338CA` | Affects the beta environment.              | Custom |
+| `env:prod`   | ![#1E1B4B](https://via.placeholder.com/15/1E1B4B/1E1B4B.png) `#1E1B4B` | Affects the production environment.        | Custom |
+
 ## Category: Code Area (Monorepo Structure)
 
 | Label      | Color                                                                  | Description                           | Origin              |
