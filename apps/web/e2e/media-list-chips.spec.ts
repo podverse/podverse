@@ -941,21 +941,87 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     });
   });
 
-  test('Signed-out Subscribed points to Browse', async ({ page }, testInfo) => {
-    await test.step('Subscribed shows seven chips and a Browse link in the getting-started message', async () => {
+  test('When a signed-out visitor opens Subscribed, the empty home offers Login, Search, and Browse.', async ({
+    page,
+  }, testInfo) => {
+    const message = page.getByText('Your subscriptions will appear here.');
+    const login = page.getByRole('main').getByRole('button', { name: 'Login', exact: true });
+    const search = page.getByRole('main').getByRole('link', { name: 'Search', exact: true });
+    const browse = page.getByRole('main').getByRole('link', { name: 'Browse', exact: true });
+
+    await test.step('The subscriptions sentence ends with Login, and Search sits above Browse', async () => {
       await page.goto('/');
       await expectAppPath(page, '/');
       await expect(page.getByRole('heading', { name: 'Subscribed', exact: true })).toBeVisible();
       await expectChipOrder(page, SUBSCRIBED_CHIP_LABELS);
-      const browseLink = page.locator('a[href="/browse"]').filter({ hasText: 'podcasts' });
-      await expect(page.getByText('Your subscriptions will appear here.')).toBeVisible();
-      await expect(browseLink).toBeVisible();
+      await expect(message).toBeVisible();
+      await expect(page.getByText('Try searching')).toHaveCount(0);
+      await expect(page.getByRole('main').getByText('Log in to use this feature.')).toHaveCount(0);
+      await expect(login).toBeVisible();
+      await expect(search).toHaveAttribute('href', '/search');
+      await expect(browse).toHaveAttribute('href', '/browse');
+
+      const messageBox = await message.boundingBox();
+      const loginBox = await login.boundingBox();
+      const searchBox = await search.boundingBox();
+      const browseBox = await browse.boundingBox();
+      if (messageBox === null || loginBox === null || searchBox === null || browseBox === null) {
+        throw new Error('Expected the signed-out home message and actions to have layout boxes.');
+      }
+      expect(loginBox.y).toBeLessThan(messageBox.y + messageBox.height);
+      expect(loginBox.x).toBeGreaterThan(messageBox.x);
+      expect(messageBox.y).toBeLessThan(searchBox.y);
+      expect(searchBox.y).toBeLessThan(browseBox.y);
 
       await capturePageLoad(
         page,
         testInfo,
-        'Signed-out Subscribed links to Browse from the getting-started message.',
-        browseLink
+        'Signed-out Subscribed shows Login on the subscriptions sentence, then Search and Browse.',
+        search
+      );
+    });
+
+    await test.step('Login opens the login dialog', async () => {
+      await login.click();
+      const dialog = page.getByRole('dialog', { name: 'Login' });
+      await expect(dialog).toBeVisible();
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'Login on the signed-out home opens the login dialog.',
+        dialog
+      );
+
+      await page.getByRole('button', { name: 'Close Modal' }).click();
+      await expect(dialog).toHaveCount(0);
+    });
+
+    await test.step('Search opens the search page', async () => {
+      await search.click();
+      await expect(page).toHaveURL(/\/search\/?$/);
+      await expect(page.getByRole('heading', { name: 'Search' })).toBeVisible();
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'Search on the signed-out home opens the search page.',
+        page.getByRole('heading', { name: 'Search' })
+      );
+    });
+
+    await test.step('Browse opens the browse page', async () => {
+      await page.goto('/');
+      await expect(browse).toBeVisible();
+      await browse.click();
+      await expect(page).toHaveURL(/\/browse\/?$/);
+      await expect(page.getByRole('heading', { name: 'Browse', exact: true })).toBeVisible();
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'Browse on the signed-out home opens the browse page.',
+        page.getByRole('heading', { name: 'Browse', exact: true })
       );
     });
   });

@@ -930,6 +930,7 @@
     "subscriptions": "Abonnements",
     "subscribed": "Abonnements",
     "how_to_start_message": "Essayez <searchLink>de rechercher</searchLink> votre contenu préféré, ou parcourez <podcastsLink>les podcasts</podcastsLink>, <videosLink>les vidéos</videosLink> ou <musicLink>la musique</musicLink>. Vos abonnements apparaîtront ici.",
+    "signed_out_home_message": "Vos abonnements apparaîtront ici. <loginLink>Connexion</loginLink>",
     "empty_message": "Vous n'avez encore aucun abonnement.",
     "no_filter_matches": "Aucun abonnement ne correspond à votre filtre.",
     "filter": {

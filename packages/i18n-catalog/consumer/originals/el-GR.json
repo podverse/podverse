@@ -930,6 +930,7 @@
     "subscriptions": "Συνδρομές",
     "subscribed": "Συνδρομές",
     "how_to_start_message": "Δοκιμάστε <searchLink>αναζητώντας</searchLink> το αγαπημένο σας περιεχόμενο, ή περιηγηθείτε σε <podcastsLink>podcasts</podcastsLink>, <videosLink>βίντεο</videosLink>, ή <musicLink>μουσική</musicLink>. Οι συνδρομές σας θα εμφανιστούν εδώ.",
+    "signed_out_home_message": "Οι συνδρομές σας θα εμφανιστούν εδώ. <loginLink>Σύνδεση</loginLink>",
     "empty_message": "Δεν έχετε ακόμη συνδρομές.",
     "no_filter_matches": "Καμία συνδρομή δεν ταιριάζει με το φίλτρο σας.",
     "filter": {

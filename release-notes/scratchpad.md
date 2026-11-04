@@ -10,6 +10,17 @@
   made the main column look detached or jumping under the player bar
 - Operator steps: none
 
+## Signed-out homepage subscriptions empty state
+
+- Surfaces: web
+- Change: A signed-out visit to Subscribed home shows "Your subscriptions will appear here."
+  with Login on that line, which opens the login dialog. Search and Browse buttons sit under
+  the sentence, Search first. The longer getting-started paragraph and the separate "Log in to
+  use this feature." prompt are gone from that landing view. Other signed-out lists keep their
+  existing login prompt.
+- Who notices: visitors who open the site without an account
+- Operator steps: none
+
 ## Mobile Recommendations login CTA when already signed in
 
 - Surfaces: mobile

@@ -9,6 +9,7 @@ import { CategoriesList } from '../../../components/Category/CategoriesList';
 import type { PodcastListItem } from '../../../components/Common/Podcast/types';
 import { CorePodcasts } from '../../../components/Core/Podcast/CorePodcasts';
 import { HowToStartInfo } from '../../../components/HowToStartInfo/HowToStartInfo';
+import { SignedOutHomeEmpty } from '../../../components/HowToStartInfo/SignedOutHomeEmpty';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { NoResults } from '../../../components/NoResults/NoResults';
 import { ROUTES } from '../../../constants/routes';
@@ -175,12 +176,13 @@ export const PodcastsPageList: React.FC = () => {
           <PodcastsFilterInput value={filterTerm} onChange={setFilterTerm} />
         </div>
       ) : null}
-      {isSubscribedScope && addByRSS.isReady && (
+      {isSubscribedScope && addByRSS.isReady && !showSubscribeMessage && (
         <HowToStartInfo
           rows={showMergedList ? merged : isMerged ? addByRSS.feeds : channels}
           totalPages={showMergedList ? mergedSlice.totalPages : totalPages}
         />
       )}
+      {showSubscribeMessage && !awaitingSubscribedRows ? <SignedOutHomeEmpty /> : null}
       {isSubscribedScope && (
         <p
           className={isFiltering ? styles.resultsCount : styles.resultsCountIdle}
@@ -197,7 +199,7 @@ export const PodcastsPageList: React.FC = () => {
       )}
       {showEmpty ? (
         <NoResults message={tMedia('podcast.no_podcasts_found')} />
-      ) : awaitingSubscribedRows ? null : (
+      ) : showSubscribeMessage || awaitingSubscribedRows ? null : (
         <CorePodcasts
           page={showMergedList ? mergedSlice.page : showFilteredOnly ? filtered.page : page}
           setPage={
