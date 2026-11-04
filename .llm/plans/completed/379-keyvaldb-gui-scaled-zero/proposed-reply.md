@@ -1,1 +1,0 @@
-The keyvaldb GUI is meant to sit at zero replicas until someone scales it up, so that state no longer raises DeploymentScaledToZero. Other Deployments that stay at zero without the expected-replicas label still warn after two hours.
