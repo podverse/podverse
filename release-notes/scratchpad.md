@@ -42,3 +42,13 @@
   the rule, allowlist, and label sync
 - Operator steps: push monorepo and k.podcastdj.com changes; after Argo syncs prometheus,
   kube-state-metrics, and podverse-alpha-ops, wait for the next rule evaluation
+
+## Recent-feeds survives a Podcast Index page timeout
+
+- Surfaces: workers
+- Change: `/recent/data` and `/episodes/byfeedid` wait 30 seconds and retry a deadline abort. If
+  the page still times out, `worker-recent-feeds` stops cleanly and the next run resumes from the
+  last finished page or gap-sweep chunk.
+- Who notices: alpha operators watching `podverse-alpha-cron` and the recent-feeds CronJob
+- Operator steps: after the new workers image is on alpha, delete the old Failed Jobs in
+  `podverse-alpha` so Argo CD drops Degraded. `failedJobsHistoryLimit` stays 5.

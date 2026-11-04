@@ -16,7 +16,6 @@ import type {
 } from '@podverse/helpers';
 import {
   computeExponentialBackoffDelayMs,
-  DEFAULT_HTTP_TIMEOUT_MS,
   sleep,
 } from '@podverse/helpers';
 import { type ILoggerLike, summarizeUpstreamHttpErrorForLog } from '@podverse/helpers-backend';
@@ -26,7 +25,10 @@ import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 import type { DeadFeedCsvRow } from './deadFeedDuplicateChains.js';
 import { extractDeadFeedCsvRow, forEachDeadFeedCsvRow } from './deadFeedDuplicateChains.js';
-import { shouldRetryPodcastIndexRequest } from './isRetryablePodcastIndexError.js';
+import {
+  isPodcastIndexClientAbortError,
+  shouldRetryPodcastIndexRequest,
+} from './isRetryablePodcastIndexError.js';
 import type { PodcastIndexNewestEpisode } from './newestEpisodesByFeedId.js';
 import {
   parseNewestEpisodesResponse,
@@ -39,7 +41,10 @@ import {
 } from './podcastIndexClientOptions.js';
 import type { RecentDataPage, RecentGetDataStopReason } from './recentDataPage.js';
 import { parseRecentDataPage } from './recentDataPage.js';
-import { RECENT_GET_DATA_MAX_FETCH_MS } from './recentGetDataLimits.js';
+import {
+  PODCAST_INDEX_PAGE_REQUEST_TIMEOUT_MS,
+  RECENT_GET_DATA_MAX_FETCH_MS,
+} from './recentGetDataLimits.js';
 import {
   type PodcastIndexSearchByTermOptions,
   podcastIndexSearchByTermPath,
@@ -51,6 +56,7 @@ export type PodcastIndexAPIRequestExtraParams = {
     controller: AbortController;
     timeoutMs: number;
   };
+  retryDeadlineAbort?: boolean;
   /**
    * HTTP statuses the caller treats as a normal miss (e.g. byfeedurl 400/404).
    * Rethrown without `logError`; other failures still log.
@@ -215,8 +221,14 @@ export class PodcastIndexService {
 
     const maxAttempts = this.maxRetries + 1;
     let lastError: unknown;
+    const timeoutMs = extraParams?.abort?.timeoutMs;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const abortForAttempt =
+        timeoutMs !== undefined
+          ? { controller: new AbortController(), timeoutMs }
+          : extraParams?.abort;
+
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const response = await requestWithUserAgent<any>(
@@ -226,24 +238,30 @@ export class PodcastIndexService {
             ...config,
           },
           this.userAgent,
-          extraParams?.abort
+          abortForAttempt
         );
 
         return response?.data;
       } catch (error: unknown) {
         lastError = error;
         const summary = summarizeUpstreamHttpErrorForLog(error, { requestUrl: url });
+        const isDeadlineAbortRetry =
+          extraParams?.retryDeadlineAbort === true && isPodcastIndexClientAbortError(error);
         const canRetry =
           attempt < maxAttempts - 1 &&
           shouldRetryPodcastIndexRequest(error, {
-            clientAbortRequested: extraParams?.abort !== undefined,
+            clientAbortRequested:
+              extraParams?.abort !== undefined && extraParams?.retryDeadlineAbort !== true,
+            retryDeadlineAbort: extraParams?.retryDeadlineAbort,
           });
 
         if (canRetry) {
           const delayMs = computeExponentialBackoffDelayMs(attempt, this.retryBaseDelayMs);
-          this.loggerService.warn(
-            `[PodcastIndex] Request failed (attempt ${attempt + 1}/${maxAttempts}), retrying in ${delayMs}ms: ${JSON.stringify(summary)}`
-          );
+          if (!isDeadlineAbortRetry) {
+            this.loggerService.warn(
+              `[PodcastIndex] Request failed (attempt ${attempt + 1}/${maxAttempts}), retrying in ${delayMs}ms: ${JSON.stringify(summary)}`
+            );
+          }
           await sleep(delayMs);
           continue;
         }
@@ -550,7 +568,8 @@ export class PodcastIndexService {
    * Pages `/recent/data` forward from `since` (Unix seconds), yielding each page before the next
    * request so the caller can finish and record it first. Stops once `nextSince` passes the time
    * the run started or stops advancing (`caught_up`), or when `RECENT_GET_DATA_MAX_FETCH_MS` has
-   * elapsed before the next request (`time_cap`). A failed request throws.
+   * elapsed before the next request (`time_cap`). A deadline abort after retries also returns
+   * `time_cap`; other failures throw.
    */
   async *recentGetData(since: number): AsyncGenerator<RecentDataPage, RecentGetDataStopReason> {
     const startedAtMs = Date.now();
@@ -568,13 +587,25 @@ export class PodcastIndexService {
       }
 
       const url = `${this.baseUrl}/recent/data?max=5000&since=${pageSince}`;
-      const response: unknown = await this.podcastIndexAPIRequest(url, undefined, {
-        ...this.paginatedRequestExtraParams(isFirstPage),
-        abort: {
-          controller: new AbortController(),
-          timeoutMs: DEFAULT_HTTP_TIMEOUT_MS,
-        },
-      });
+      let response: unknown;
+      try {
+        response = await this.podcastIndexAPIRequest(url, undefined, {
+          ...this.paginatedRequestExtraParams(isFirstPage),
+          abort: {
+            controller: new AbortController(),
+            timeoutMs: PODCAST_INDEX_PAGE_REQUEST_TIMEOUT_MS,
+          },
+          retryDeadlineAbort: true,
+        });
+      } catch (error: unknown) {
+        if (isPodcastIndexClientAbortError(error)) {
+          this.loggerService.warn(
+            `[recentGetData] Timed out after retries for since=${pageSince}; stopping and resuming next run from the last completed page.`
+          );
+          return 'time_cap';
+        }
+        throw error;
+      }
       isFirstPage = false;
 
       const page = parseRecentDataPage(response, pageSince);
@@ -625,8 +656,9 @@ export class PodcastIndexService {
       ...this.paginatedRequestExtraParams(isFirstRequest),
       abort: {
         controller: new AbortController(),
-        timeoutMs: DEFAULT_HTTP_TIMEOUT_MS,
+        timeoutMs: PODCAST_INDEX_PAGE_REQUEST_TIMEOUT_MS,
       },
+      retryDeadlineAbort: true,
     });
 
     const episodes = parseNewestEpisodesResponse(response);
@@ -803,7 +835,10 @@ export {
 } from './deadFeedDuplicateChains.js';
 export type { DeadFeedCsvRow, DeadFeedDuplicatePair } from './deadFeedDuplicateChains.js';
 export { iterateFeedsFromDb, type FeedRow } from './publicFeedsDb.js';
-export { isRetryablePodcastIndexError } from './isRetryablePodcastIndexError.js';
+export {
+  isPodcastIndexClientAbortError,
+  isRetryablePodcastIndexError,
+} from './isRetryablePodcastIndexError.js';
 export {
   PODCAST_INDEX_DEFAULT_MAX_RETRIES,
   PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
@@ -815,6 +850,7 @@ export type { PodcastIndexNewestEpisode } from './newestEpisodesByFeedId.js';
 export { PODCAST_INDEX_EPISODES_BY_FEED_ID_MAX_IDS } from './newestEpisodesByFeedId.js';
 export type { RecentDataFeed, RecentDataPage, RecentGetDataStopReason } from './recentDataPage.js';
 export {
+  PODCAST_INDEX_PAGE_REQUEST_TIMEOUT_MS,
   PODCAST_INDEX_GAP_SWEEP_MAX_RUN_MS,
   PODCAST_INDEX_RECENT_DATA_MAX_LOOKBACK_SECONDS,
   RECENT_DATA_CURSOR_OVERLAP_SECONDS,

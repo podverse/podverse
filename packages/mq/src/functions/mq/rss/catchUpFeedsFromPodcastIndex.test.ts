@@ -291,6 +291,31 @@ describe('mqRSSCatchUpFromPodcastIndex', () => {
     expect(result).toMatchObject({ resumed: false, gapStartSeconds: GAP_START_SECONDS });
   });
 
+  it('stops with time_cap and does not move gap-sweep progress past the chunk on deadline abort', async () => {
+    podcastIndex.episodesGetNewestByFeedIds.mockRejectedValueOnce({
+      name: 'CanceledError',
+      code: 'ERR_CANCELED',
+    });
+    const artemis = createArtemis();
+
+    const result = await run(artemis);
+
+    expect(result).toMatchObject({ outcome: 'time_cap', resumed: false, lastFeedId: null });
+    expect(orm.replace).toHaveBeenCalledTimes(1);
+    expect(orm.replace).toHaveBeenCalledWith({
+      streamKey: 'gap_sweep',
+      nextSince: GAP_START_SECONDS,
+      position: null,
+    });
+    expect(orm.clear).not.toHaveBeenCalled();
+    expect(orm.state.gapSweep).toMatchObject({
+      streamKey: 'gap_sweep',
+      nextSince: GAP_START_SECONDS,
+      position: null,
+    });
+    expect(artemis.sentPodcastIndexIds).toEqual([]);
+  });
+
   it('sweeps nothing when another run holds the lock', async () => {
     orm.state.lockAvailable = false;
     const artemis = createArtemis();

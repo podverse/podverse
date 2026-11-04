@@ -6,6 +6,7 @@ import type {
   PodcastIndexService,
 } from '@podverse/external-services-podcast-index';
 import {
+  isPodcastIndexClientAbortError,
   PODCAST_INDEX_EPISODES_BY_FEED_ID_MAX_IDS,
   PODCAST_INDEX_GAP_SWEEP_MAX_RUN_MS,
 } from '@podverse/external-services-podcast-index';
@@ -171,7 +172,21 @@ export async function sweepFeedsAgainstPodcastIndex(
       break;
     }
 
-    const { counts, requested } = await sweepChunk(params, rows, isFirstRequest);
+    let chunk;
+    try {
+      chunk = await sweepChunk(params, rows, isFirstRequest);
+    } catch (error: unknown) {
+      if (isPodcastIndexClientAbortError(error)) {
+        result.outcome = 'time_cap';
+        loggerService.warn(
+          `${LOG_PREFIX} Podcast Index newest-episode request timed out after retries in the chunk ` +
+            `after feed.id=${afterFeedId}; stopping and resuming next run from the last completed chunk.`
+        );
+        break;
+      }
+      throw error;
+    }
+    const { counts, requested } = chunk;
     isFirstRequest = isFirstRequest && !requested;
     result.chunks += 1;
     result.feedsChecked += rows.length;

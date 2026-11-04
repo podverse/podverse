@@ -57,6 +57,15 @@ describe('shouldRetryPodcastIndexRequest', () => {
     ).toBe(false);
   });
 
+  it('retries deadline aborts when retryDeadlineAbort is enabled', () => {
+    expect(
+      shouldRetryPodcastIndexRequest(
+        { name: 'CanceledError', code: 'ERR_CANCELED' },
+        { clientAbortRequested: true, retryDeadlineAbort: true }
+      )
+    ).toBe(true);
+  });
+
   it('still retries ECONNABORTED when no client abort was requested', () => {
     expect(
       shouldRetryPodcastIndexRequest({ code: 'ECONNABORTED' }, { clientAbortRequested: false })

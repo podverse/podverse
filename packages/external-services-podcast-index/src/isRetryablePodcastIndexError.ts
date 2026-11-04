@@ -65,6 +65,7 @@ export function isRetryablePodcastIndexError(error: unknown): boolean {
 
 export type ShouldRetryPodcastIndexRequestOptions = {
   clientAbortRequested: boolean;
+  retryDeadlineAbort?: boolean;
 };
 
 /**
@@ -74,8 +75,13 @@ export function shouldRetryPodcastIndexRequest(
   error: unknown,
   options: ShouldRetryPodcastIndexRequestOptions
 ): boolean {
-  if (options.clientAbortRequested && isPodcastIndexClientAbortError(error)) {
-    return false;
+  if (isPodcastIndexClientAbortError(error)) {
+    if (options.retryDeadlineAbort === true) {
+      return true;
+    }
+    if (options.clientAbortRequested) {
+      return false;
+    }
   }
 
   return isRetryablePodcastIndexError(error);

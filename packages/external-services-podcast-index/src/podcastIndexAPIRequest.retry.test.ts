@@ -127,7 +127,7 @@ describe('PodcastIndexService.podcastIndexAPIRequest retries', () => {
     expect(loggerService.logError).toHaveBeenCalledTimes(1);
   });
 
-  it('passes abort options to requestWithUserAgent when provided', async () => {
+  it('passes timeout abort options to requestWithUserAgent when provided', async () => {
     const loggerService = createLogger();
     const service = new PodcastIndexService({
       userAgent: 'test-agent',
@@ -161,10 +161,22 @@ describe('PodcastIndexService.podcastIndexAPIRequest retries', () => {
         }),
       }),
       'test-agent',
-      {
-        controller: abortController,
+      expect.objectContaining({
+        controller: expect.any(AbortController),
         timeoutMs: 5000,
-      }
+      })
+    );
+    const passedAbort = requestWithUserAgent.mock.calls[0]?.[3];
+    expect(passedAbort).toEqual(
+      expect.objectContaining({
+        controller: expect.any(AbortController),
+        timeoutMs: 5000,
+      })
+    );
+    expect(passedAbort).not.toEqual(
+      expect.objectContaining({
+        controller: abortController,
+      })
     );
   });
 
