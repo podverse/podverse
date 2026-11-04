@@ -200,11 +200,6 @@ Close only when the last phase runs prompts at the same time. A set of only Curs
 prompts with no hand steps also gets the optional orchestrate line. Both:
 **copy-pasta-recommend-model**.
 
-**Optional last checkbox.** After the last prompt (or Close), a heavy set asks one question and
-nothing else: an unchecked `- [ ] **abcaicast** (optional)` plus the line `After this set, do you want
-an abcaicast for this work?` No fence. Leave it off when the work is a style or copy tweak a
-training episode would not be about. Wording and when to include it: **copy-pasta-recommend-model**.
-
 Example per prompt (model/reasoning **outside** the fence):
 
 ```markdown
@@ -451,7 +446,6 @@ Before finalizing plans:
 - [ ] Each plan names the tests it adds or updates; the last prompt or Close has the cumulative
       verification list
 - [ ] Copy-pasta references plans (doesn't duplicate)
-- [ ] Heavy sets end with the optional abcaicast question; trivial sets leave it off
 - [ ] Every COPY-PASTA prompt has **Cursor model:** and **Reasoning:** outside the paste fence
 - [ ] Operator actions are above the fence; a wait inside it is an explicit stop-this-turn
 - [ ] Execution order is clear

@@ -236,8 +236,7 @@ the set, per **parallel-plan-execution** and **copy-pasta-recommend-model**:
   model line copies the plan's.
 - Include the plan-runner line under "How to use", naming `./scripts/abcplan/run.sh run <slug>`.
 - The last prompt archives the set and carries the cumulative verification for the whole set
-  (**response-ending-make-verify** § Plan sets). Add the optional abcaicast checkbox when the set
-  is heavy.
+  (**response-ending-make-verify** § Plan sets).
 - When the request has a Ticket reply section, that last prompt also writes `proposed-reply.md`
   in the set and repeats it in a fenced `text` block. It does not post the comment. The operator
   pastes it after the change is on `develop`. See **abcissue**.

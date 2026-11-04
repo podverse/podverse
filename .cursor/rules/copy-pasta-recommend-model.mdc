@@ -96,25 +96,6 @@ once. This applies to every set, not only abcplan.
 - A wait for a person is a stop-this-turn instruction (above). Under the runner, the agent reports
   that stop as blocked, and the operator resumes the same agent after doing the step.
 
-## Optional last checkbox — abcaicast
-
-The final section of a COPY-PASTA page may end with one more checkbox, after the last prompt
-(or Close). It is a question for the operator, not a prompt:
-
-```markdown
-- [ ] **abcaicast** (optional)
-
-After this set, do you want an abcaicast for this work?
-```
-
-No fence, no model line. Checking it does not write a cast. The operator says **abcaicast** in
-a later message when they want one.
-
-Include it when the set is heavy enough that a training episode might be worth asking about:
-behavior other surfaces depend on, data that stays on devices, or a lifecycle a new contributor
-would otherwise have to reconstruct. Leave it off when a cast would be obvious waste, such as a
-spacing or color change.
-
 ## Operator steps stay outside the fence
 
 A fenced block is pasted into chat and executed. It may contain only work the agent can finish in
