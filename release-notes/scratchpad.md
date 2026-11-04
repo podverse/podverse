@@ -52,3 +52,16 @@
 - Who notices: alpha operators watching `podverse-alpha-cron` and the recent-feeds CronJob
 - Operator steps: after the new workers image is on alpha, delete the old Failed Jobs in
   `podverse-alpha` so Argo CD drops Degraded. `failedJobsHistoryLimit` stays 5.
+
+## Cron overlay pins management-api for admin session purge
+
+- Surfaces: k8s, ops
+- Change: The alpha cron Kustomize overlay sets `newTag` for
+  `ghcr.io/podverse/podverse/management-api` as well as workers, so the
+  `management-api-admin-session-purge` CronJob no longer pulls an untagged image. The CronJob
+  contract check fails when a Podverse image under `infra/k8s/base/cron/` is missing from that
+  overlay's `images:` list.
+- Who notices: alpha operators after the GitOps pin syncs; daily admin session purge can run again
+  once the stuck Job is deleted
+- Operator steps: push the k.podcastdj.com cron overlay change; after Argo syncs, delete Job
+  `management-api-admin-session-purge-29892165` in `podverse-alpha`

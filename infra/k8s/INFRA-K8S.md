@@ -258,8 +258,10 @@ Job immediately, without retries. Postgres and `node:24-slim` ops CronJobs do no
 do not set that policy.
 
 `bash infra/k8s/scripts/check_cronjob_contract.sh` fails when a CronJob is missing the label, the
-deadline, or `spec.concurrencyPolicy`, or when the label does not match `spec.suspend`. CI runs
-that script before Node setup.
+deadline, or `spec.concurrencyPolicy`, or when the label does not match `spec.suspend`. It also
+fails when a `ghcr.io/podverse/podverse/` image under `infra/k8s/base/cron/` is missing from
+`images:` in the alpha cron overlay, so every Podverse image that base uses is pinned there. CI
+runs that script before Node setup.
 
 ## Prometheus rules (`base/monitoring`)
 

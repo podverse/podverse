@@ -1,6 +1,6 @@
 # Version: 1
 # Filename: kustomization.yaml
-# Description: Bundles the cron jobs and exposes the worker image tag via kustomize.
+# Description: Bundles the cron jobs and pins worker and management-api image tags.
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -11,6 +11,8 @@ namespace: podverse-alpha
 
 images:
   - name: ghcr.io/podverse/podverse/workers
+    newTag: "X.Y.Z-staging.N"
+  - name: ghcr.io/podverse/podverse/management-api
     newTag: "X.Y.Z-staging.N"
 
 labels:

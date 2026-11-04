@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Every base CronJob has a podverse-schedule label, an active deadline, and a concurrency policy.
+# Every Podverse image under base/cron is named in the alpha cron overlay images list.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -116,6 +117,51 @@ if [[ "$count" -eq 0 ]]; then
   echo "ERROR: no CronJob manifests found under $TARGET_DIR" >&2
   exit 1
 fi
+
+# Podverse images in base/cron must be pinned by the alpha cron overlay. Checked against the
+# repo overlay even when TARGET_DIR is narrowed, so a missing pin still fails CI.
+CRON_DIR="$ROOT/infra/k8s/base/cron"
+OVERLAY="$ROOT/infra/k8s/alpha/cron/kustomization.yaml"
+
+if [[ ! -d "$CRON_DIR" ]]; then
+  echo "ERROR: cron directory not found: $CRON_DIR" >&2
+  exit 1
+fi
+if [[ ! -f "$OVERLAY" ]]; then
+  echo "ERROR: alpha cron overlay not found: $OVERLAY" >&2
+  exit 1
+fi
+
+read_overlay_image_names() {
+  if [[ "$YQ_FLAVOR" == "mikefarah" ]]; then
+    yq -o=json -I=0 '.images[].name' "$OVERLAY"
+  else
+    yq -r '.images[].name' "$OVERLAY"
+  fi
+}
+
+if ! overlay_names="$(read_overlay_image_names)"; then
+  echo "ERROR: failed to read images from $OVERLAY" >&2
+  exit 1
+fi
+
+base_images=()
+while IFS= read -r image; do
+  [[ -z "$image" ]] && continue
+  base_images+=("$image")
+done < <(grep -h -oE 'ghcr\.io/podverse/podverse/[A-Za-z0-9_.-]+' "$CRON_DIR"/*.yaml "$CRON_DIR"/*.yml 2>/dev/null | sort -u)
+
+if [[ "${#base_images[@]}" -eq 0 ]]; then
+  echo "ERROR: no ghcr.io/podverse/podverse images found under $CRON_DIR" >&2
+  exit 1
+fi
+
+for image in "${base_images[@]}"; do
+  if ! grep -Fxq "$image" <<<"$overlay_names" && ! grep -Fxq "\"$image\"" <<<"$overlay_names"; then
+    echo "ERROR: $OVERLAY images: is missing $image (used under infra/k8s/base/cron)" >&2
+    errors=$((errors + 1))
+  fi
+done
 
 if [[ "$errors" -ne 0 ]]; then
   echo "ERROR: CronJob contract check failed ($errors problem(s) in $count CronJob(s))" >&2
