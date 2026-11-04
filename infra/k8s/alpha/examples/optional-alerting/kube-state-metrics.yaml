@@ -98,7 +98,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - "--resources=cronjobs,jobs,deployments,statefulsets,daemonsets,pods,nodes,namespaces,persistentvolumeclaims"
-            - "--metric-labels-allowlist=cronjobs=[podverse-schedule]"
+            - "--metric-labels-allowlist=cronjobs=[podverse-schedule],deployments=[podverse.fm/expected-replicas]"
           securityContext:
             runAsNonRoot: true
             runAsUser: 65534

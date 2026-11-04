@@ -8,6 +8,7 @@ metadata:
   labels:
     app: podverse-ops
     component: keyvaldb-gui
+    podverse.fm/expected-replicas: "0"
 spec:
   replicas: 0
   selector:

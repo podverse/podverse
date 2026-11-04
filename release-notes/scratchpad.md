@@ -31,3 +31,14 @@
 - Who notices: signed-in listeners who opened Recommendations / For Me before the account
   snapshot was ready, or after a cold start with tokens but no local account cache
 - Operator steps: none
+
+## DeploymentScaledToZero ignores expected zero replicas
+
+- Surfaces: k8s, ops
+- Change: Deployments labeled `podverse.fm/expected-replicas: "0"` no longer raise
+  `DeploymentScaledToZero`. The keyvaldb GUI Deployment carries that label. kube-state-metrics
+  allowlists the label on Deployments so the PromQL `unless` can see it.
+- Who notices: alpha operators; the repeating keyvaldb-gui scaled-to-zero warning stops after
+  the rule, allowlist, and label sync
+- Operator steps: push monorepo and k.podcastdj.com changes; after Argo syncs prometheus,
+  kube-state-metrics, and podverse-alpha-ops, wait for the next rule evaluation

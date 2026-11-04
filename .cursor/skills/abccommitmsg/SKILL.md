@@ -34,6 +34,14 @@ Match this repo's history: a sentence-case imperative subject, with no `feat:` /
 - Skip process notes, plan names, and "this commit".
 - Look at `git log -15 --format='%s'` when the tone of nearby history would change the wording.
 
+## GitHub issue reference
+
+When a known GitHub issue corresponds to the pending work (from the conversation, a plan
+summary, a branch name like `fix/379-…`, or an issue URL), put `#<number>` in the commit
+message so GitHub links the commit to that issue. Prefer the end of the subject
+(`… (#379).`) when it still reads cleanly; otherwise put `#379` on its own line at the end of
+the body. Do not invent an issue number. Leave `#N` out when no issue is known.
+
 ## What to show
 
 Lead with which set the message is for: staged, or unstaged because nothing is staged.

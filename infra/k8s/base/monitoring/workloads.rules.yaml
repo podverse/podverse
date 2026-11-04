@@ -80,7 +80,10 @@ groups:
           summary: "Deployment Unavailable"
           description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has available replicas below desired for more than 15 minutes. Start with: kubectl -n {{ $labels.namespace }} get deployment {{ $labels.deployment }} -o yaml"
       - alert: DeploymentScaledToZero
-        expr: kube_deployment_spec_replicas == 0
+        expr: |
+          kube_deployment_spec_replicas == 0
+          unless on (namespace, deployment)
+          kube_deployment_labels{label_podverse_fm_expected_replicas="0"} == 1
         for: 2h
         labels:
           severity: warning
