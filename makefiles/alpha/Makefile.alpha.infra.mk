@@ -53,7 +53,6 @@ alpha_mq_down:
 
 alpha_keyvaldb_up: infra/config/alpha/keyvaldb.env
 	docker compose -f infra/docker/alpha/keyvaldb/docker-compose.yml up podverse_alpha_keyvaldb -d
-	docker compose -f infra/docker/alpha/keyvaldb/docker-compose.yml up podverse_alpha_keyvaldb_gui -d
 
 alpha_keyvaldb_down:
 	docker compose -f infra/docker/alpha/keyvaldb/docker-compose.yml down --remove-orphans --rmi all

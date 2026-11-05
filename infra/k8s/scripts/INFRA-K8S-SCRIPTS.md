@@ -9,7 +9,6 @@ Utility shell scripts for Kubernetes and local workflows (SOPS secret generation
 | **`secret-generators/`**        | SOPS-encrypted `create_*` and bulk runners                                         |
 | **`db/`**                       | `db-connect.sh` — port-forward to Postgres + `psql`                                |
 | **`mq/`**                       | `mq-connect.sh` — port-forward to the message queue                                |
-| **`keyvaldb/`**                 | `keyvaldb-gui-connect.sh` — port-forward to RedisInsight                           |
 | **`list_images.sh`**            | List image references (see script)                                                 |
 | **`check_cronjob_contract.sh`** | Fail when a base CronJob lacks its schedule label, deadline, or concurrency policy |
 
@@ -100,32 +99,6 @@ Enter the Nix development environment which includes PostgreSQL client:
 ```bash
 nix develop
 ```
-
-## RedisInsight GUI (`keyvaldb-gui-connect.sh`)
-
-The RedisInsight deployment (`podverse-keyvaldb-gui`) is an **optional** workload: it is defined in the **ops** Kustomize bundle (Argo CD application `podverse-alpha-ops`), not the keyvaldb app, and it defaults to **0 replicas** so the cluster is not always running a GUI. Scale it when you need it, for example:
-
-`kubectl -n podverse-alpha scale deploy podverse-keyvaldb-gui --replicas=1`
-
-(Argo CD is configured to ignore `spec.replicas` for that Deployment so a manual scale is not reverted on sync.) After at least one replica is ready, use the script to reach the dashboard. The script:
-
-1. Decrypts the Valkey secret to expose `VALKEY_PASSWORD`.
-2. Creates a port-forward from `localhost` to the `podverse-keyvaldb-gui` service.
-3. Prints the local URL and password so you can log into RedisInsight.
-
-### Default usage
-
-```bash
-bash ./infra/k8s/scripts/keyvaldb/keyvaldb-gui-connect.sh
-```
-
-### Connect to another environment or port
-
-```bash
-bash ./infra/k8s/scripts/keyvaldb/keyvaldb-gui-connect.sh sandbox 9001
-```
-
-Once the script is running open `http://localhost:<PORT>` in your browser. You can use the displayed password when the dashboard asks for the Valkey credentials. Ctrl+C stops the port-forward and exits the script.
 
 ## ENV to YAML conversion
 

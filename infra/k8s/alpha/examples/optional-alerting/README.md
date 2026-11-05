@@ -135,9 +135,8 @@ The ClusterRole grants `list` and `watch` on those resources only. It does not g
 ConfigMaps. A cluster that already runs kube-state-metrics should add the allowlist flag to that
 process instead of replacing a broader ClusterRole with this one.
 
-`--metric-labels-allowlist=cronjobs=[podverse-schedule],deployments=[podverse.fm/expected-replicas]`
-publishes that CronJob label on `kube_cronjob_labels` as `label_podverse_schedule`, and the
-Deployment label on `kube_deployment_labels` as `label_podverse_fm_expected_replicas`.
+`--metric-labels-allowlist=cronjobs=[podverse-schedule]` publishes that CronJob label on
+`kube_cronjob_labels` as `label_podverse_schedule`.
 
 ### 3. Rules and the Prometheus snippet
 

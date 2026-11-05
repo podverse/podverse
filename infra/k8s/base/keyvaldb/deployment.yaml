@@ -1,6 +1,6 @@
 # Version: 5
 # Filename: deployment.yaml
-# Description: Valkey DB deployment. RedisInsight GUI is under infra/k8s/base/ops.
+# Description: Valkey DB deployment.
 # UPDATE: Using configMapGenerator to mount entrypoint and healthcheck scripts.
 
 apiVersion: apps/v1

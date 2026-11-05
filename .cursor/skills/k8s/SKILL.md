@@ -60,7 +60,6 @@ infra/k8s/
     ├── secret-generators/   # SOPS: create_*_secret.sh, create_all_*.sh
     ├── db/                 # db-connect.sh
     ├── mq/                 # mq-connect.sh
-    ├── keyvaldb/            # keyvaldb-gui-connect.sh
     └── list_images.sh      # list cluster image refs (monorepo root)
 ```
 
@@ -422,12 +421,11 @@ ArgoCD will detect the change and sync automatically.
 
 **Other** scripts (DB/MQ/Valkey connect, image listing) under `infra/k8s/scripts/<topic>/` and `list_images.sh` at `scripts/`:
 
-| Path / script                      | Purpose                                                                                                             |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `db/db-connect.sh`                 | Port-forward and connect to PostgreSQL                                                                              |
-| `keyvaldb/keyvaldb-gui-connect.sh` | Port-forward to RedisInsight GUI (GUI workload is in the ops app; scale `podverse-keyvaldb-gui` if `replicas` is 0) |
-| `mq/mq-connect.sh`                 | Port-forward to message queue                                                                                       |
-| `list_images.sh`                   | List image references in use (see script)                                                                           |
+| Path / script      | Purpose                                               |
+| ------------------ | ----------------------------------------------------- |
+| `db/db-connect.sh` | Port-forward and connect to PostgreSQL                |
+| `mq/mq-connect.sh` | Port-forward to message queue                         |
+| `list_images.sh`   | List image references in use (see script)             |
 
 See [infra/k8s/scripts/README.md](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) for details.
 

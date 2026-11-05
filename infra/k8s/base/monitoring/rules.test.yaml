@@ -133,13 +133,3 @@ tests:
             exp_annotations:
               summary: Deployment Scaled To Zero
               description: "Deployment podverse-alpha/podverse-api has desired replicas set to zero for more than 2 hours. Start with: kubectl -n podverse-alpha get deployment podverse-api -o yaml"
-  - interval: 1m
-    input_series:
-      - series: 'kube_deployment_spec_replicas{namespace="podverse-alpha",deployment="podverse-keyvaldb-gui"}'
-        values: "0x181"
-      - series: 'kube_deployment_labels{namespace="podverse-alpha",deployment="podverse-keyvaldb-gui",label_podverse_fm_expected_replicas="0"}'
-        values: "1x181"
-    alert_rule_test:
-      - eval_time: 180m
-        alertname: DeploymentScaledToZero
-        exp_alerts: []

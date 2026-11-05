@@ -1,5 +1,5 @@
 # Version: 4
-# Description: Bundles ops CronJobs, keyvaldb-gui (optional), and shared label/image control.
+# Description: Bundles ops CronJobs and shared label/image control.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -21,18 +21,3 @@ images:
     newTag: "X.Y.Z-staging.N"
   - name: postgres
     newTag: "18.3"
-  - name: redislabs/redisinsight
-    newTag: "latest"
-
-# Base keyvaldb GUI `Service` is LoadBalancer; for alpha, use ClusterIP to avoid Argo/LoadBalancer progress hangs.
-patches:
-  - target:
-      kind: Service
-      name: podverse-keyvaldb-gui
-    patch: |-
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: podverse-keyvaldb-gui
-      spec:
-        type: ClusterIP

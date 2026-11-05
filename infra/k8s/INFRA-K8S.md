@@ -277,11 +277,8 @@ sets the namespace). The bundle contains:
 These rules need kube-state-metrics started with:
 
 ```text
---metric-labels-allowlist=cronjobs=[podverse-schedule],deployments=[podverse.fm/expected-replicas]
+--metric-labels-allowlist=cronjobs=[podverse-schedule]
 ```
-
-A Deployment labeled `podverse.fm/expected-replicas: "0"` is excluded from
-`DeploymentScaledToZero`.
 
 Mount `podverse-prometheus-rules` and include both files in Prometheus `rule_files`. The
 copy-and-adapt scrape, Alertmanager, and ntfy wiring is in

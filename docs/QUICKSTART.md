@@ -527,7 +527,6 @@ simulator login in place.
 | Database      | `docker ps \| grep podverse_local_db` | Container running                                                          |
 | pgAdmin       | http://localhost:3050                 | Local Main (`podverse_app`), Local Management (`podverse_management`)      |
 | Message Queue | http://localhost:8161                 | Artemis console                                                            |
-| Cache         | http://localhost:8001                 | RedisInsight GUI                                                           |
 | Metro         | **Mobile Metro** `:8081`              | Bundler banner; `iOS Bundled` / `Android Bundled` after each attach        |
 | Mobile app    | Dev client on sim/emulator            | Home (not Expo launcher). Android: `adb reverse` + `http://localhost:8081` |
 | Parsers       | Add a PI feed or add-by-RSS URL       | Channel becomes parsed-ready                                               |

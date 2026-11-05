@@ -1,5 +1,5 @@
 # Version: 3
-# Description: Valkey service. RedisInsight (podverse-keyvaldb-gui) is in base/ops.
+# Description: Valkey service.
 
 apiVersion: v1
 kind: Service

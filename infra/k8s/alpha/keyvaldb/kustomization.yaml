@@ -1,7 +1,6 @@
 # Version: 4
 # Filename: kustomization.yaml
 # Description: Bundles resources and acts as the "Variable" manager for images.
-# RedisInsight (podverse-keyvaldb-gui) is in infra/k8s/alpha/ops.
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
