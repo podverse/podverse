@@ -44,6 +44,11 @@ the file is unset. If the process environment is empty, read this file only. Do 
 the machine for another URL.
 
 - Queries are read-only (`SELECT`, counts, null rates). No `INSERT`, `UPDATE`, `DELETE`, or DDL.
+- A connection error of "Operation not permitted" means this shell has no network
+  (Ask mode, or a read-only sandbox whose allowlist does not include the Tailscale
+  host). The URL file is still valid. Tailscale on the Mac does not reach through
+  that sandbox. Retry in Agent mode. Do not look for another database URL, and do
+  not treat an earlier successful read as proof that this shell can connect.
 - If the variable is unset, leave the SQL in the doc and write "not run" in
   `docs/proposals/v4-to-v5-migration/_WAKE-UP.md`.
 - Reports are counts, timings, and id-shaped keys only. No emails, names, tokens, or raw rows.

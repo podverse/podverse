@@ -176,6 +176,30 @@ About 64,000 distinct subscribed podcasts, against 7.7 million podcasts and
 196 million episodes, is the selective-seed set. Copying the catalog is the
 expensive path.
 
+### Crosswalk gaps on this snapshot
+
+v4-side only. No v5 database was queried. A subscribed podcast id counts as
+ready for the Podcast Index hop when its `podcastIndexId` is numeric.
+
+| Check                                                                      | Count  |
+| -------------------------------------------------------------------------- | ------ |
+| Distinct subscribed podcast ids                                            | 63,786 |
+| Subscribed ids with no `podcasts` row                                      | 42     |
+| Subscribed ids with a null or non-numeric `podcastIndexId`                 | 0      |
+| History rows whose `episodeId` has no episode                              | 0      |
+| History rows whose episode `guid` is null or blank                         | 2,707  |
+| Queue rows whose `episodeId` has no episode                                | 0      |
+| Queue rows whose episode `guid` is null or blank                           | 59     |
+| Playlist episode links with no episode                                     | 0      |
+| `mediaRefs` that are neither an official chapter nor an official soundbite | 12,381 |
+
+42 subscribed ids cannot crosswalk because the podcast row is gone. Every
+subscribed podcast that still exists has a numeric Podcast Index id. History
+and queue rows point at episodes that still exist. 2,707 history rows and 59
+queue rows will need the enclosure URL, because the episode guid is blank.
+The 12,381 mediaRefs are the user-clip pool if the two official flags do not
+overlap. Overlap was not counted.
+
 ### Rehearsal phases
 
 1. **Inventory counts** — row counts for every table in

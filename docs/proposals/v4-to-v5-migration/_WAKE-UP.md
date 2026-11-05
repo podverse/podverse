@@ -17,6 +17,11 @@ were written into git.
   [BILLING-OPERATIONS.md](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover)
   now reads `users.email` and `users.membershipExpiration`.
 - `V4_DATABASE_URL` is documented as `~/.config/podverse/v4-database-url` only.
+- v4-side crosswalk gaps are in
+  [06](06-database-migration-rehearsal.md#crosswalk-gaps-on-this-snapshot).
+  42 subscribed podcast ids have no podcast row. Every remaining subscribed
+  podcast has a numeric Podcast Index id. 2,707 history rows have a blank
+  episode guid.
 
 ## Counts
 
@@ -45,7 +50,7 @@ relational tables.
 
 - No migration workers and no account import.
 - No membership CSV export (that file would contain email addresses).
-- No crosswalk dry run against v5.
+- No crosswalk against a v5 database. The v4-side gap counts are done.
 - Episode-only playlist rows still need a `playlist_resource` shape.
 - `freeTrialExpiration` (set on 19,678 users) is not in the expiry CSV.
 
