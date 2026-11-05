@@ -421,11 +421,11 @@ ArgoCD will detect the change and sync automatically.
 
 **Other** scripts (DB/MQ/Valkey connect, image listing) under `infra/k8s/scripts/<topic>/` and `list_images.sh` at `scripts/`:
 
-| Path / script      | Purpose                                               |
-| ------------------ | ----------------------------------------------------- |
-| `db/db-connect.sh` | Port-forward and connect to PostgreSQL                |
-| `mq/mq-connect.sh` | Port-forward to message queue                         |
-| `list_images.sh`   | List image references in use (see script)             |
+| Path / script      | Purpose                                   |
+| ------------------ | ----------------------------------------- |
+| `db/db-connect.sh` | Port-forward and connect to PostgreSQL    |
+| `mq/mq-connect.sh` | Port-forward to message queue             |
+| `list_images.sh`   | List image references in use (see script) |
 
 See [infra/k8s/scripts/README.md](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) for details.
 

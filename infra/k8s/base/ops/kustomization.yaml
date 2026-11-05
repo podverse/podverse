@@ -56,4 +56,3 @@ configMapGenerator:
       - source/database/management-superuser/package.json
       - source/database/management-superuser/create-superuser.mjs
       - source/database/management-superuser/update-superuser.mjs
-
