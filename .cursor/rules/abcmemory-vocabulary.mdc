@@ -50,6 +50,9 @@ These hold even before the skill is read:
 - **abcbranchesmerge** `<branch>…` — read the skill before acting. The agent names
   `feature/merge-YYYY-MM-DD` from `develop`. It authorizes merge commits and a non-force push
   of that branch only, and forbids deleting branches or worktrees.
+- **abctriagereply** — read the skill before acting. The operator pasted a triage-bot handoff,
+  or just finished checking one. Reply with the text they paste back into the triage bot.
+  Do not change the cluster unless that same message asked for a change.
 
 ## legacy app
 
