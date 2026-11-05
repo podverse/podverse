@@ -9,15 +9,17 @@ alwaysApply: false
 
 ## Vocabulary
 
-- **legacy app** / **podverse-rn** / **v4 mobile** = sibling checkout at `../podverse-rn`
-  (absolute typical path: `/Users/mitcheldowney/repos/pv/podverse-rn`).
-- **Nextgen** = this monorepo (`podverse`), including `apps/mobile`.
+- **v4 / OGen / Legacy** = current production. **legacy app** / **podverse-rn** / **v4 mobile**
+  = sibling checkout at `../podverse-rn` (absolute typical path:
+  `/Users/mitcheldowney/repos/pv/podverse-rn`).
+- **v5 / NextGen** = this monorepo (`podverse`), including `apps/mobile`.
 
 ## When to look
 
 **Only** open, search, or cite `podverse-rn` when the operator **explicitly** asks for legacy /
 podverse-rn / “look at the legacy app” (or equivalent). Do not browse it for ordinary nextgen
-tasks.
+tasks. A v4-to-v5 migration inventory pass is that explicit request; follow
+**v4-backend-reference** for the API and the other v4 checkouts.
 
 **Mobile master plan Phase 2 carve-out:** when the operator pastes **legacy app screenshots** to
 drive Phase 2 planning, that counts as an explicit request — reading
@@ -38,3 +40,4 @@ to written notes and plan text.
 ## Related
 
 - Vocabulary: [abcmemory-vocabulary](/.cursor/rules/abcmemory-vocabulary.mdc)
+- v4 API and database: [v4-backend-reference](/.cursor/rules/v4-backend-reference.mdc)

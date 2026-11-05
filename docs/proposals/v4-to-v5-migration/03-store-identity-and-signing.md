@@ -77,7 +77,7 @@ production cutover. See
 ## Future plan sets
 
 - EAS profile and credentials inventory (operator-only secrets).
-- Update
-  [mobile-deep-links-and-prod-cutover](/.cursor/rules/mobile-deep-links-and-prod-cutover.mdc)
-  to record that Option A (in-place) is decided and link here.
 - Store submission checklist tied to [12](12-production-launch-and-grace-period.md).
+
+In-place ids are recorded in
+[mobile-deep-links-and-prod-cutover](/.cursor/rules/mobile-deep-links-and-prod-cutover.mdc).

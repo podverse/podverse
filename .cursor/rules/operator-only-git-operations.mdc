@@ -47,6 +47,15 @@ pin only. It does not authorize a force push, `sync-staging-to-main.sh`, a versi
 store commands, or any other branch. See
 [.cursor/skills/abcdeployrun/SKILL.md](/.cursor/skills/abcdeployrun/SKILL.md).
 
+**v4-to-v5 migration inventory overnight** is the explicit request to commit and push when the
+operator says to run that pass, or to follow
+[.cursor/prompts/v4-to-v5-migration-inventory-overnight.md](/.cursor/prompts/v4-to-v5-migration-inventory-overnight.md).
+`git add`, `git commit`, and `git push` (no force, no other refspec) are allowed only while
+`HEAD` is `docs/v4-to-v5-migration-inventory` in the
+`podverse_docs_v4_to_v5_migration_inventory` worktree. If `HEAD` is any other branch, do not
+commit or push; write that to `docs/proposals/v4-to-v5-migration/_WAKE-UP.md`. No pull requests.
+"Do not push" elsewhere in that prompt does not cancel this exception.
+
 ## Why
 
 Protected branches and publish pipelines are operator-controlled. Agent-driven pushes and merges bypass review and can trigger unintended releases.

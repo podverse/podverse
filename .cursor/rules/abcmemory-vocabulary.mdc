@@ -56,9 +56,11 @@ These hold even before the skill is read:
 
 ## legacy app
 
+**v4 / OGen / Legacy** is current production: `podverse-api`, `podverse-rn`, and the other v4
+checkouts in [01](/docs/proposals/v4-to-v5-migration/01-legacy-repos-and-reference-setup.md).
 **legacy app** (also **podverse-rn**, **v4 mobile**) is the sibling checkout `../podverse-rn`.
-**Nextgen** / **this monorepo** is the current product, including `apps/mobile`. See
-**legacy-app-reference**.
+**v5 / NextGen** (also written Nextgen) is this monorepo, including `apps/mobile`. See
+**legacy-app-reference** and **v4-backend-reference**.
 
 ## livestreams
 

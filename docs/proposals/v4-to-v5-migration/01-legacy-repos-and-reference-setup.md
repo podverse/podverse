@@ -23,15 +23,15 @@ the working tree without checking the branch will give the wrong code.
 
 ### v4-relevant repos and branches
 
-| Checkout path                         | Use for v4                          | Branch to read   |
-| ------------------------------------- | ----------------------------------- | ---------------- |
-| `~/repos/podverse-api`                | API, entities, parser/queue scripts | `develop` / `master` |
-| `~/repos/podverse-web`                | Consumer web                        | `develop` / `master` |
-| `~/repos/podverse-rn`                 | Mobile (also `~/repos/pv/podverse-rn`) | `develop`     |
-| `~/repos/podverse-fdroid`             | F-Droid flavor                      | `develop`        |
-| `~/repos/podverse-shared`             | Shared types                        | `develop` / `v4.16.x` |
-| `~/repos/podverse-ops`                | Prod docker compose and env layout  | `master`         |
-| `~/repos/pv/podverse-ansible`         | Prod/sandbox/alpha Ansible          | `master`         |
+| Checkout path                 | Use for v4                             | Branch to read        |
+| ----------------------------- | -------------------------------------- | --------------------- |
+| `~/repos/podverse-api`        | API, entities, parser/queue scripts    | `develop` / `master`  |
+| `~/repos/podverse-web`        | Consumer web                           | `develop` / `master`  |
+| `~/repos/podverse-rn`         | Mobile (also `~/repos/pv/podverse-rn`) | `develop`             |
+| `~/repos/podverse-fdroid`     | F-Droid flavor                         | `develop`             |
+| `~/repos/podverse-shared`     | Shared types                           | `develop` / `v4.16.x` |
+| `~/repos/podverse-ops`        | Prod docker compose and env layout     | `master`              |
+| `~/repos/pv/podverse-ansible` | Prod/sandbox/alpha Ansible             | `master`              |
 
 In v4, `podverse-api` `scripts:*` jobs are the workers. The separate
 `podverse-workers` checkout looks like a 2023 stub and is not the production
@@ -47,10 +47,20 @@ workspace. Use sibling worktrees or `git show <branch>:<path>` instead.
 ### Prod-copy test database
 
 A copy of the production v4 database already runs on a test server for migration
-rehearsal. Its host URL must **never** be committed. Operators and agents refer
-to it only as `V4_DATABASE_URL` from home config (for example under
-`~/.config/podverse/`). Reports from rehearsal runs must not contain emails or
-raw row dumps. See [06](06-database-migration-rehearsal.md).
+rehearsal. It is a snapshot from a point in time, not live production. Its host
+URL must **never** be committed. Operators and agents refer to it only as
+`V4_DATABASE_URL`.
+
+The value lives in one home file, outside this repo:
+
+`~/.config/podverse/v4-database-url`
+
+The file is `KEY=value` with `#` comments. Replace every `REPLACE_WITH_*` token
+before rehearsal. A file that still contains `REPLACE_WITH_` is unset. Do not
+look for another URL. Load it only into the process that runs `psql`. See
+[06](06-database-migration-rehearsal.md).
+
+Reports from rehearsal runs must not contain emails or raw row dumps.
 
 ### Infra split
 
@@ -100,10 +110,10 @@ git -C ~/repos/podverse-api show develop:src/entities/user.ts
 ## Open questions
 
 - Confirm which branch each prod VM actually runs (`master` vs `develop`).
-- Confirm where `V4_DATABASE_URL` should live in home config.
 - Do you want the `~/repos/pv/v4/` worktrees created now?
 
 ## Future plan sets
 
 - Operator checklist to create and verify the worktrees.
-- Optional abcmemory rule: when agents may open v4 repos (see overview).
+- Agents read v4 checkouts under **v4-backend-reference**
+  ([rule](/.cursor/rules/v4-backend-reference.mdc)).
