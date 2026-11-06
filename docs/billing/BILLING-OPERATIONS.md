@@ -215,7 +215,15 @@ The v4 expiry import is [v4 membership carryover](#v4-membership-carryover).
 
 `billingImportLegacyMembershipExpiry` copies expiry from the previous Podverse app into
 `legacy_import` grants. It reads email and `membership_expires_at` only. It does not import
-payment transactions or email anyone.
+payment transactions, `freeTrialExpiration`, or email anyone. v4 purchase receipts stay
+out of v5. Archive `paypalOrders`, `appStorePurchase`, `googlePlayPurchase`, and
+`bitpayInvoices` outside the git repo before the import. That archive can hold payment
+tokens, so it is not committed. A future v4 trial that ends
+within 90 days is a separate Trial grant. A trial end more than 90 days ahead is not
+imported. Paid expiry is kept as stored, including dates more than 90 days ahead,
+except an account with an App Store purchase on 2023-12-27 through 2024-01-31
+whose expiry is more than five years ahead. That expiry is imported as five
+years from the import time.
 
 Run it only after v5 already has the migrated accounts, with the same emails. Until that
 account migration is underway, leave the v4 database alone. The steps below are the runbook

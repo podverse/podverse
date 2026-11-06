@@ -147,12 +147,14 @@ Episode, mediaRef, and episode-category join tables in that run were 0 rows:
 | Users with a future `membershipExpiration`      | 1,390     |
 | Users with `membershipExpiration` null          | 19,573    |
 | Users with `freeTrialExpiration` set            | 19,678    |
+| Users with a future `freeTrialExpiration`       | 410       |
 | Users with `emailVerified`                      | 20,520    |
 | Users with podcast subscriptions                | 15,166    |
 | Distinct subscribed podcast ids                 | 63,786    |
 | Users with add-by-RSS URLs                      | 3,274     |
 | Distinct add-by-RSS URLs                        | 21,228    |
 | Users with playlist subscriptions               | 32        |
+| Playlists with `isDefault`                      | 34        |
 | Users with user follows                         | 13        |
 | Users with `subscribedPodcastListIds` non-empty | 0         |
 | Users with non-empty `historyItems` JSON        | 241       |
@@ -171,6 +173,13 @@ Episode, mediaRef, and episode-category join tables in that run were 0 rows:
 | History or queue rows with both targets null    | 0         |
 | Now-playing rows with null `episodeId`          | 258       |
 | Unclaimed `accountClaimToken` rows              | 1         |
+
+410 of the 19,678 free-trial timestamps are still in the future. None of
+those 410 users also have a future `membershipExpiration`. 406 of them end
+within 90 days and are the trial carryover. 4 end after 2120 (one each in
+2121, 2123, 3019, and 3022) and are not imported. Paid expiries are not
+capped: 1,235 future `membershipExpiration` values are more than 90 days
+out, 848 are more than a year out, and the latest is `9000-01-01`.
 
 About 64,000 distinct subscribed podcasts, against 7.7 million podcasts and
 196 million episodes, is the selective-seed set. Copying the catalog is the
@@ -199,6 +208,70 @@ and queue rows point at episodes that still exist. 2,707 history rows and 59
 queue rows will need the enclosure URL, because the episode guid is blank.
 The 12,381 mediaRefs are the user-clip pool if the two official flags do not
 overlap. Overlap was not counted.
+
+Public shortid lengths are in
+[05](05-id-mapping-and-catalog-seeding.md#retained-public-ids). None are
+longer than 15. The floor is 7. Rows shorter than 9: 410 users, 12 playlists,
+222 podcasts, 295 mediaRefs, and 21,099 episodes.
+
+### App Store rows that are not purchases
+
+`appStorePurchase` has 10,650 rows, one per Apple transaction id. Rows whose
+`purchase_date_ms` falls on 2023-12-27 through 2024-01-31 are not purchases.
+That window is 8,671 rows from 607 accounts, including accounts with dozens of
+rows each, saved on the same day as the Apple purchase date. Treat them as
+simulated. Do not import them and do not count them as revenue.
+
+For a revenue estimate, replace those 36 days with the average of the nearby
+months where each account bought about once (May 2022–July 2023 and October–
+November 2023): about 37 purchases a month, which is 44 purchases for that
+window, at the $18 list price. Real paid rows outside the window stay. Three
+rows with a cancellation date are refunds and stay out as well. PayPal
+`completed` or `approved`, Google Play `purchaseState` 0, and BitPay
+`confirmed` or `complete` are the other incoming payments. List-price total
+after that replacement is about $64,218. Store commissions are not in this
+database.
+
+Decided: do not import these receipt tables into v5. Membership access comes
+from the expiry date. Before that import, write an operator-held archive
+outside the git repo, one file per table. The archive may contain payment
+tokens, so it is not committed. App Store rows in the 2023-12-27 through
+2024-01-31 window stay in the archive and stay marked as not real purchases.
+
+### Memberships more than five years out
+
+Of 848 future `membershipExpiration` values more than one year out, 717 are
+more than five years out. 97 of those end within ten years. 619 end after ten
+years and before year 8000. One is `9000-01-01`.
+
+"Activity" here means a history, queue, or now-playing row, an owned playlist,
+a user clip, a podcast subscription, an add-by-RSS URL, or a followed playlist.
+233 of the 717 have at least one of those. 484 do not.
+
+| Group                                       | Accounts | No activity | Some activity |
+| ------------------------------------------- | -------- | ----------- | ------------- |
+| App Store purchase in the 2023-12-27 window | 297      | 130         | 167           |
+| App Store purchase only outside that window | 8        | 1           | 7             |
+| PayPal or Google Play, no App Store row     | 4        | 0           | 4             |
+| No payment row                              | 408      | 353         | 55            |
+
+The 297 window accounts have a median of 19 App Store rows in that window
+(minimum 3, maximum 198). 269 of them have 10 or more. 203 of the 297 expire
+more than ten years out.
+
+Of the 408 with no payment row, 277 were created between `2019-09-04 23:13`
+and `2019-09-05 00:00` and expire on `2119-09-04`. 268 of those 277 have no
+activity. 7 expire in 3022, and 1 expires in year 9000. The other 123 unpaid
+expiries were created from 2019 through 2024. 80 of those 123 have no
+activity, and 43 have some. Those 43, plus the active remainder of the
+one-hour batch, are the 55 unpaid accounts with activity.
+
+Decided: cap only accounts that have an App Store purchase in the
+2023-12-27 through 2024-01-31 window. 607 accounts have such a row. 297 of
+them expire more than five years out and are imported as five years from
+the import time. 154 already end within five years and stay as stored. 156
+are not a future membership. Unpaid long expiries, including the 2019-09-04
+batch and the active gift accounts, are not capped.
 
 ### Rehearsal phases
 

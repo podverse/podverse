@@ -3,6 +3,13 @@
 Overnight pass finished. Counts ran. No emails, raw rows, or connection string
 were written into git.
 
+Resume from a new agent window with the guided prompt:
+[.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md).
+One chunk, then stop and ask. Do not commit or push. The review questions in
+[04](04-v4-data-inventory-and-scope.md) are decided. Next is the account model
+in [07](07-account-and-data-migration-model.md), or mobile local storage in
+[08](08-mobile-first-launch-migration.md).
+
 ## Done
 
 - Column inventory for v4 app tables in
@@ -50,17 +57,34 @@ relational tables.
 
 - No migration workers and no account import.
 - No membership CSV export (that file would contain email addresses).
+- v4 purchase receipts are not imported. An operator-held archive of those
+  tables, outside git, is part of the later import. Not written in this pass.
 - No crosswalk against a v5 database. The v4-side gap counts are done.
 - Episode-only playlist rows still need a `playlist_resource` shape.
-- `freeTrialExpiration` (set on 19,678 users) is not in the expiry CSV.
+- `freeTrialExpiration` is not in the expiry CSV. Decided. 406 future trials
+  end within 90 days and become Trial grants. 4 later than that are not
+  imported. Paid `membershipExpiration` keeps its date, with no 90-day cap.
+  App Store window accounts whose membership is longer than 5 years are
+  capped at 5 years. Other long memberships are not capped.
 
 ## Review
 
-- Confirm `subscribedPodcastListIds` can be ignored. It is not on the `User`
-  entity, and no user has a value.
-- Confirm official chapters and soundbites stay out of `clip`.
-- Confirm user-follow stays (`subscribedUserIds` is non-empty for 13 users).
-- `accountClaimToken`: 4 rows, 1 unclaimed. v5 tokens are months and require a
-  membership id.
-- Django `auth_*` / `django_*` tables share this database. Left out of scope.
-  `auth_user` has 6 rows.
+- `subscribedPodcastListIds` is a drop. It is not on the `User` entity, and no
+  user has a value.
+- Official chapters and soundbites stay out of `clip`. Decided. A user clip is
+  `isOfficialChapter` IS NOT TRUE and `isOfficialSoundBite` IS NOT TRUE
+  (12,381 rows). Chapter and soundbite `mediaRefs.id` values stay in the
+  legacy map so `/clip/:id` can redirect.
+- User-follow stays. Decided. `subscribedUserIds` copies into
+  `account_following_account`. 13 users have a non-empty list. 3 of those
+  users have an id shorter than 9 characters. `nano_id_v2` will accept 7–15.
+  New ids stay 10 characters. The schema check is still 9 until that edit.
+- `accountClaimToken` is a drop. Decided. 4 rows, 1 unclaimed.
+  `/account-claim-token/:id` is not reserved.
+- `playlists.isDefault` becomes the v5 Likes playlist. Decided. 34 playlists,
+  32 owners. 32 are music and 2 are mixed. All private. 29 have items. Import
+  sets `is_default_likes` and does not create a second Likes playlist for that
+  account and medium. `/playlist/:id` stays the same id.
+- Django `auth_*` / `django_*` tables stay out. Decided. They are the old
+  admin schema, not Podverse accounts. `auth_user` has 6 rows.
+  `django_session` has 485.

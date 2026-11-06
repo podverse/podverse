@@ -6,5 +6,7 @@ Reusable agent-facing prompt snippets (abcmemory). One topic per kebab-case `.md
 - Do not put human plan/history templates here — use `.llm/templates/` instead.
 - When the user says **abcremember** with prompt-shaped guidance, prefer this directory.
 - See **abcmemory** skill and [LLM-TEMPLATES.md](/.llm/templates/LLM-TEMPLATES.md).
+- [v4-to-v5-migration-guided.md](v4-to-v5-migration-guided.md) —
+  current way to resume. One chunk, then stop and ask. Do not commit or push.
 - [v4-to-v5-migration-inventory-overnight.md](v4-to-v5-migration-inventory-overnight.md) —
-  unattended inventory pass. Commit and push only `docs/v4-to-v5-migration-inventory`.
+  finished inventory pass. Do not run it for new work.

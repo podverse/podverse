@@ -29,7 +29,8 @@ are in [06](06-database-migration-rehearsal.md).
   Index feeds is `feed.podcast_index_id` (integer). v4 stores `podcastIndexId`
   as `varchar`. See [05](05-id-mapping-and-catalog-seeding.md).
 - The same database holds a Django admin schema (`auth_*`, `django_*`). Those
-  tables are not the Podverse app. Leave them behind.
+  tables are not the Podverse app. Decided: do not import them. On this
+  snapshot `auth_user` has 6 rows and `django_session` has 485.
 - `recentEpisodesByPodcastTemp*` and `recentEpisodesByCategoryTemp*` (0–30) are
   swap tables for list rebuilds. Leave them behind.
 - `episodes_most_recent` and `mediaRefs_videos` are materialized views. Leave
@@ -41,24 +42,24 @@ are in [06](06-database-migration-rehearsal.md).
 | ----------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `users` identity (`id`, `email`, `password`, `name`, `emailVerified`)         | **migrate**                  | `account` + `account_credentials` + `account_profile`. Keep the bcrypt hash.                                                              |
 | `users.membershipExpiration`                                                  | **migrate**                  | `legacy_import` grant after the account exists. CSV in [BILLING-OPERATIONS](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover). |
-| `users.freeTrialExpiration`                                                   | **map**                      | Not the same column as membership expiry. Decide before import.                                                                           |
+| `users.freeTrialExpiration`                                                   | **migrate**                  | Trial grant when the end is within 90 days. Later trial dates are not imported. No second signup trial.                                   |
 | `users.subscribedPodcastIds`                                                  | **migrate**                  | `account_following_channel` through the podcast crosswalk.                                                                                |
 | `users.subscribedPlaylistIds`                                                 | **migrate**                  | `account_following_playlist`. Owned playlists come from `playlists.ownerId`.                                                              |
 | `users.subscribedUserIds`                                                     | **migrate**                  | `account_following_account` exists in v5.                                                                                                 |
-| `users.subscribedPodcastListIds`                                              | **map**                      | On the snapshot only. Absent from the `User` entity.                                                                                      |
+| `users.subscribedPodcastListIds`                                              | **drop**                     | Absent from the `User` entity. Empty for every user on the snapshot.                                                                      |
 | `users.addByRSSPodcastFeedUrls`                                               | **migrate**                  | `account_following_add_by_rss_channel.feed_url`. No item rows.                                                                            |
 | `users.historyItems` / `users.queueItems`                                     | **drop**                     | Legacy JSON. Prefer `userHistoryItems` and `userQueueItems` when those tables have rows.                                                  |
 | `users` tokens, `roles`, `isDevAdmin`, `isPodpingAdmin`                       | **drop**                     | Do not copy reset tokens or bulk-copy admin flags.                                                                                        |
 | `playlists` + join tables + `itemsOrder`                                      | **migrate**                  | `playlist` + `playlist_resource.list_position`.                                                                                           |
-| `mediaRefs` user clips                                                        | **migrate**                  | `clip`, when `isOfficialChapter` and `isOfficialSoundBite` are not true.                                                                  |
-| `mediaRefs` official chapters / soundbites                                    | **re-derive**                | `item_chapter` / `item_soundbite` from the feed.                                                                                          |
+| `mediaRefs` user clips                                                        | **migrate**                  | `clip` when `isOfficialChapter` IS NOT TRUE and `isOfficialSoundBite` IS NOT TRUE.                                                        |
+| `mediaRefs` official chapters / soundbites                                    | **re-derive**                | `item_chapter` / `item_soundbite` from the feed. Keep `mediaRefs.id` for the `/clip/:id` redirect.                                        |
 | `userQueueItems`                                                              | **migrate**                  | Upcoming `queue_resource` (`list_position`).                                                                                              |
 | `userHistoryItems`                                                            | **migrate**                  | History `queue_resource` (`playback_position`, `completed`, `media_file_duration`).                                                       |
 | `userNowPlayingItems`                                                         | **migrate**                  | Now-playing `queue_resource`.                                                                                                             |
 | `notifications`                                                               | **migrate**                  | Podcast-notify preference, remapped podcast → channel.                                                                                    |
 | `fcmDevices` / `upDevices`                                                    | **map**                      | Re-register. v5 FCM also requires `installation_id`, `platform`, and `locale`. v5 `account_up_device` is one row per account.             |
-| `paypalOrders` / `appStorePurchase` / `googlePlayPurchase` / `bitpayInvoices` | **map**                      | Expiry CSV first. Ledger import is a separate design.                                                                                     |
-| `accountClaimToken`                                                           | **drop** unless product asks | v5 `membership_claim_token` is months, not years, and requires `account_membership_id`. v4 rows have no user id.                          |
+| `paypalOrders` / `appStorePurchase` / `googlePlayPurchase` / `bitpayInvoices` | **drop**                     | Not imported. Archive outside git. App Store window rows stay marked simulated.                                                           |
+| `accountClaimToken`                                                           | **drop**                     | Left behind. `/account-claim-token/:id` is not reserved.                                                                                  |
 | `podcasts` / `episodes` / `feedUrls` / `authors` / `categories`               | **re-derive**                | Parse into v5. Keep ids only for the legacy map.                                                                                          |
 | `liveItems`                                                                   | **re-derive**                | From feeds.                                                                                                                               |
 | `stats_podcast` / `stats_episode` / `stats_media_ref`                         | **map**                      | Popularity seed. Not user-owned.                                                                                                          |
@@ -74,7 +75,7 @@ Types are the snapshot types. "Null" is `information_schema.is_nullable`.
 
 | Column                             | Type               | Null | Notes                                                    |
 | ---------------------------------- | ------------------ | ---- | -------------------------------------------------------- |
-| `id`                               | varchar(14)        | no   | Legacy map key. v5 `account.id_text` is a new id.        |
+| `id`                               | varchar(14)        | no   | Kept as `account.id_text`.                               |
 | `int_id`                           | integer            | no   | Drop.                                                    |
 | `email`                            | varchar, unique    | no   | `account_credentials.email`. Writes lowercase the value. |
 | `password`                         | varchar            | no   | Copy the hash. Do not rehash.                            |
@@ -85,7 +86,7 @@ Types are the snapshot types. "Null" is `information_schema.is_nullable`.
 | `resetPasswordToken`               | varchar, unique    | yes  | Drop.                                                    |
 | `resetPasswordTokenExpiration`     | timestamp          | yes  | Drop.                                                    |
 | `membershipExpiration`             | timestamp          | yes  | CSV column `membership_expires_at`.                      |
-| `freeTrialExpiration`              | timestamp          | yes  | Separate from membership expiry.                         |
+| `freeTrialExpiration`              | timestamp          | yes  | Trial grant if the end is within 90 days.                |
 | `isPublic`                         | boolean            | no   | Public profile flag.                                     |
 | `isDevAdmin`                       | boolean            | no   | Do not bulk-copy.                                        |
 | `isPodpingAdmin`                   | boolean            | no   | Do not bulk-copy.                                        |
@@ -105,7 +106,7 @@ Types are the snapshot types. "Null" is `information_schema.is_nullable`.
 
 | Table                             | Columns that move                                                                                                  | Columns to drop                                                       |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| `playlists`                       | `id`, `title`, `description`, `isPublic`, `medium`, `itemsOrder`, `ownerId`                                        | `int_id`, `itemCount` (recompute), `isDefault` (not v5 likes)         |
+| `playlists`                       | `id`, `title`, `description`, `isPublic`, `medium`, `itemsOrder`, `ownerId`, `isDefault`                           | `int_id`, `itemCount` (recompute)                                     |
 | `playlists_episodes_episodes`     | `playlistsId`, `episodesId`                                                                                        |                                                                       |
 | `playlists_media_refs_media_refs` | `playlistsId`, `mediaRefsId`                                                                                       |                                                                       |
 | `mediaRefs`                       | `id`, `startTime`, `endTime`, `title`, `ownerId`, `episodeId`, `isPublic`                                          | `int_id`, `chapterHash`, `imageUrl`, `linkUrl`, author/category joins |
@@ -116,9 +117,26 @@ Types are the snapshot types. "Null" is `information_schema.is_nullable`.
 | `fcmDevices`                      | `fcmToken`, `userId`                                                                                               | Not enough for `account_fcm_device`                                   |
 | `upDevices`                       | `upEndpoint`, `upPublicKey`, `upAuthKey`, `userId`                                                                 | v5 has no public-key column and one row per account                   |
 
+`playlists.isDefault` becomes `playlist.is_default_likes` for that account
+and medium. v4 creates one private Favorites playlist per owner per medium.
+On this snapshot that is 34 playlists and 32 owners: 32 medium `music`
+(`Favorite Music`) and 2 medium `mixed` (`Favorites`, where v4 stores podcast
+favorites). All 34 still use those titles, all are private, 29 have items, and
+5 are empty. Import each as that account and medium's Likes playlist, with its
+items. Do not also create an empty Likes playlist for the same account and
+medium. Other playlists stay ordinary playlists. `playlists.id` stays
+`playlist.id_text`, so `/playlist/:id` is unchanged.
+
 `mediaRefs.ownerId` is `varchar(14)` NOT NULL. `mediaRefs.episodeId` is nullable
 on the snapshot. Official chapters and soundbites are flags on the same table,
 not a separate table.
+
+User clips store `isOfficialChapter` as null and `isOfficialSoundBite` as
+false. The import predicate is both flags IS NOT TRUE. On this snapshot that
+is 12,381 rows, and the two official flags do not overlap. Those official rows
+are not clips. Their public v4 URL is still `/clip/:mediaRefs.id`, so the
+legacy map keeps that id and [11](11-web-api-and-url-cutover.md) redirects it
+to `/chapter/` or `/official-clip/`.
 
 `userHistoryItems` is unique on (`episode`, `owner`) and on (`mediaRef`, `owner`).
 A row may have either target null. Rows with both null cannot remap.
@@ -197,26 +215,22 @@ those counts:
 - `podcastIndexId` is text. v5 `feed.podcast_index_id` is an integer. Only
   all-digit values can crosswalk. See [05](05-id-mapping-and-catalog-seeding.md).
 - Billing purchase rows are more sensitive than expiry dates. The membership
-  plan covers expiry CSV import after accounts exist.
+  plan covers expiry CSV import after accounts exist. App Store rows whose
+  purchase date is 2023-12-27 through 2024-01-31 are simulated and stay out of
+  any ledger import or revenue count. An account with a purchase in that
+  window whose `membershipExpiration` is more than five years ahead is
+  imported as five years from the import time. Other paid expiries stay as
+  stored. Replace that window with the normal
+  monthly rate from the surrounding one-purchase-per-account months (about 44
+  purchases at $18), not with the 8,671 stored rows.
 - `bitpayInvoices.token` and device keys are secrets. Counts only. No exports
   of those columns.
 - v5 `playlist_resource` requires a `clip_id` column on every row in the entity
   definition. Episode-only playlist items need a mapping design before import,
   because v4 stores episodes and mediaRefs as two join tables.
 
-## Open questions
-
-- Is `subscribedPodcastListIds` still written in production, and does it differ
-  from `subscribedPlaylistIds`?
-- Import `freeTrialExpiration` as its own grant, or ignore it when
-  `membershipExpiration` is set?
-- Keep user-follow (`subscribedUserIds`) for launch?
-- Import unclaimed `accountClaimToken` rows, given years versus months?
-- How much purchase-ledger fidelity is required versus expiry-only for launch?
-- Should `playlists.isDefault` become anything other than a normal playlist?
-
 ## Future plan sets
 
 - Per-entity import commands once [06](06-database-migration-rehearsal.md)
   sizes are accepted.
-- A decision on `subscribedPodcastListIds` and on episode-only playlist rows.
+- A decision on episode-only playlist rows.

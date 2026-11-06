@@ -1,13 +1,18 @@
 # v4-to-v5 migration inventory overnight
 
-Unattended pass. One agent. Do not ask the operator questions. If blocked or unsure, append
-to `docs/proposals/v4-to-v5-migration/_WAKE-UP.md` and continue with other work in this prompt.
+This pass is finished. Do not run it again. New work follows
+[v4-to-v5-migration-guided.md](v4-to-v5-migration-guided.md): one chunk, then stop
+and ask. Do not use this file as a license to commit or push.
+
+Later v4-to-v5 work stays in the working tree. Do not `git commit` or `git push` unless the
+operator's current message explicitly asks for that command. The old exception in
+**operator-only-git-operations** is closed.
+
+The steps below are the finished pass. Do not repeat them. If someone opens this
+file anyway, stop and follow the guided prompt instead of working unattended.
 
 The operator message "Run the v4-to-v5 migration inventory overnight prompt" is the request to
-follow this file. Git: **operator-only-git-operations** exception for this pass. Commit and
-`git push` (no force) only while `HEAD` is `docs/v4-to-v5-migration-inventory` in the
-`podverse_docs_v4_to_v5_migration_inventory` worktree. If `HEAD` is anything else, do not
-commit or push; record that in `_WAKE-UP.md` and stop. No pull requests. No other branches.
+follow this file. It is not a request to commit or push. No pull requests. No other branches.
 
 Do not edit `release-notes/scratchpad.md`.
 
@@ -45,7 +50,6 @@ Use these. Do not revert them. Extend them only when the inventory proves a corr
 ## Finish
 
 Append a short status to `_WAKE-UP.md`: done, deferred, and what the operator should review.
-Then commit the doc and abcmemory changes and push this branch only.
+Do not commit or push. Leave the working tree for the operator.
 
-Cross-surface "when unsure, ask" does not apply during this pass. Log the uncertainty and
-keep going.
+That unattended rule no longer applies. Later work asks the operator and waits.

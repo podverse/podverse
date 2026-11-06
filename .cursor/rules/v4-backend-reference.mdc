@@ -55,6 +55,23 @@ the machine for another URL.
 - Count output goes in `_WAKE-UP.md` (counts only) or under `.artifacts/v4-rehearsal-counts/`
   (already gitignored). Never commit a CSV of people.
 
+## Git
+
+The overnight inventory pass is finished. Further v4-to-v5 migration work follows
+[.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md):
+one chunk, then stop and ask. Do not continue into the next chunk in the same turn.
+Do not commit or push. Leave edits in the working tree. Do not run `git commit` or
+`git push` unless the operator's current message explicitly asks for that command.
+
+## Public web URLs
+
+v4 pages on `podverse.fm` keep working after cutover. Migrated public entities
+keep their v4 shortid as `id_text`, so a matching path is the same URL. A
+changed path stays reserved: the old URL redirects to the v5 page. Before a
+migration chunk mints a new public id or assigns a new path, warn with both
+URLs. The table is in
+[11](/docs/proposals/v4-to-v5-migration/11-web-api-and-url-cutover.md).
+
 ## Out of scope here
 
 Do not add migration workers, billing importers, or production writes from this reference.
