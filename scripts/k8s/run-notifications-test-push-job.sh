@@ -6,11 +6,11 @@ CRONJOB_NAME="ops-notifications-test-push"
 
 if [ "$#" -lt 1 ]; then
   echo "Usage: bash scripts/k8s/run-notifications-test-push-job.sh [flags...]"
-  echo "Example: bash scripts/k8s/run-notifications-test-push-job.sh --username example --list"
+  echo "Example: bash scripts/k8s/run-notifications-test-push-job.sh --email name@example.com --list"
   exit 1
 fi
 
-safe='^[A-Za-z0-9._:=-]+$'
+safe='^[A-Za-z0-9._:=@+-]+$'
 for arg in "$@"; do
   if ! printf '%s' "$arg" | grep -Eq "$safe"; then
     echo "Refusing argument that is not a plain flag or id: ${arg}"

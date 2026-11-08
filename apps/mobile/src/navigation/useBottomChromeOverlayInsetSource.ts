@@ -5,7 +5,7 @@ import { useMiniPlayerVisible } from '../components/player/useMiniPlayerVisible'
 import { countInProgressDownloads } from '../downloads/inProgressDownloadCount';
 import { useDownloadsList } from '../downloads/useDownloads';
 import { useOfflineStatus } from '../prefs/offlineStatus';
-import { useSync } from '../sync';
+import { useSyncIndicatorPresentation } from '../sync/syncIndicatorPresentation';
 import {
   bottomChromeStripOverlayHeight,
   globalActivityBarLayout,
@@ -20,13 +20,12 @@ import { useTheme } from '../theme/useTheme';
  */
 export function useBottomChromeOverlayInsetSource(): number {
   const { tokens } = useTheme();
-  const { state } = useSync();
+  const syncVisible = useSyncIndicatorPresentation().visible;
   const { downloads } = useDownloadsList();
   const { cause } = useOfflineStatus();
   const miniPlayerVisible = useMiniPlayerVisible();
   const segmentVisible = useNowPlayingSegmentStripVisible();
 
-  const syncVisible = state.status === 'running' && state.activeLabelKey !== null;
   const downloadsVisible = countInProgressDownloads(downloads) > 0;
   const activityHeight = globalActivityBarLayout({
     borderTopWidth: StyleSheet.hairlineWidth,

@@ -2,10 +2,14 @@ import type { ValidationResult } from '@podverse/helpers';
 
 export type TestPushArgMap = { [key: string]: string | string[] };
 
+export type TestPushAccount =
+  | { by: 'username'; username: string }
+  | { by: 'email'; email: string };
+
 export type TestPushRequest =
   | { kind: 'help' }
   | { kind: 'invalid'; message: string }
-  | { kind: 'list' | 'send'; username: string; installationId: string | null };
+  | { kind: 'list' | 'send'; account: TestPushAccount; installationId: string | null };
 
 export type PushSendOutcome = {
   success: boolean;
@@ -28,13 +32,16 @@ devices without sending. Refuses unless NOTIFICATIONS_TEST_PUSH_ENABLED is true.
 Does not read push preferences and does not write an inbox row.
 
 Flags:
-  --username name           Account username (required except for --help)
+  --username name           Account username
+  --email address           Account email
   --list                    Print registered devices and send nothing
   --installation-id id      Limit to one FCM installation
   --help                    Show this text
+
+Pass --username or --email, not both. One of them is required except for --help.
 `;
 
-const KNOWN_FLAGS = new Set(['help', 'h', 'username', 'list', 'installation-id', '_']);
+const KNOWN_FLAGS = new Set(['help', 'h', 'username', 'email', 'list', 'installation-id', '_']);
 
 export function isNotificationsTestPushEnabled(envValue: string | undefined): boolean {
   return envValue === 'true';
@@ -89,10 +96,31 @@ export function parseNotificationsTestPushArgs(args: TestPushArgMap): TestPushRe
       message: `Username must be a single value.\n\n${NOTIFICATIONS_TEST_PUSH_HELP}`,
     };
   }
-  if (username === null) {
+
+  const email = readFlag(args, 'email');
+  if (email === 'invalid') {
     return {
       kind: 'invalid',
-      message: `Username is required.\n\n${NOTIFICATIONS_TEST_PUSH_HELP}`,
+      message: `Email must be a single value.\n\n${NOTIFICATIONS_TEST_PUSH_HELP}`,
+    };
+  }
+  if (email !== null && !email.includes('@')) {
+    return {
+      kind: 'invalid',
+      message: `Email must contain @.\n\n${NOTIFICATIONS_TEST_PUSH_HELP}`,
+    };
+  }
+
+  if (username !== null && email !== null) {
+    return {
+      kind: 'invalid',
+      message: `Pass either --username or --email, not both.\n\n${NOTIFICATIONS_TEST_PUSH_HELP}`,
+    };
+  }
+  if (username === null && email === null) {
+    return {
+      kind: 'invalid',
+      message: `Username or email is required.\n\n${NOTIFICATIONS_TEST_PUSH_HELP}`,
     };
   }
 
@@ -104,9 +132,23 @@ export function parseNotificationsTestPushArgs(args: TestPushArgMap): TestPushRe
     };
   }
 
+  if (username !== null) {
+    return {
+      kind: args.list !== undefined ? 'list' : 'send',
+      account: { by: 'username', username },
+      installationId,
+    };
+  }
+  if (email === null) {
+    return {
+      kind: 'invalid',
+      message: `Username or email is required.\n\n${NOTIFICATIONS_TEST_PUSH_HELP}`,
+    };
+  }
+
   return {
     kind: args.list !== undefined ? 'list' : 'send',
-    username,
+    account: { by: 'email', email },
     installationId,
   };
 }
