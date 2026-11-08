@@ -1,3 +1,11 @@
+import { getApps } from '@react-native-firebase/app';
+import {
+  getMessaging,
+  getToken,
+  isDeviceRegisteredForRemoteMessages,
+  onTokenRefresh,
+  registerDeviceForRemoteMessages,
+} from '@react-native-firebase/messaging';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { Linking, Platform } from 'react-native';
@@ -100,6 +108,24 @@ export const requestFcmPermissionAfterUserAction =
     };
   };
 
+const readFcmRegistrationToken = async (): Promise<string | null> => {
+  if (getApps().length === 0) {
+    return null;
+  }
+
+  const messaging = getMessaging();
+  if (Platform.OS === 'ios' && !isDeviceRegisteredForRemoteMessages(messaging)) {
+    await registerDeviceForRemoteMessages(messaging);
+  }
+
+  const token = (await getToken(messaging)).trim();
+  return token.length > 0 ? token : null;
+};
+
+/**
+ * FCM registration token for this install. On iOS this is the Firebase token, which is
+ * what workers send. Returns null when this build has no Firebase app, so registration stays quiet.
+ */
 export const getFcmDeviceToken = async (): Promise<string | null> => {
   if (!isFcmPushEnabled()) {
     return null;
@@ -112,9 +138,12 @@ export const getFcmDeviceToken = async (): Promise<string | null> => {
     return null;
   }
 
-  const pushToken = await Notifications.getDevicePushTokenAsync();
-  const token = pushToken.data?.trim();
-  return token ? token : null;
+  try {
+    return await readFcmRegistrationToken();
+  } catch (error) {
+    console.warn('Could not read the FCM registration token', error);
+    return null;
+  }
 };
 
 export const onFcmDeviceTokenRefresh = (
@@ -124,16 +153,20 @@ export const onFcmDeviceTokenRefresh = (
     return () => {};
   }
 
-  const subscription = Notifications.addPushTokenListener((nextToken) => {
-    const token = nextToken.data?.trim();
-    if (token) {
-      onRefresh(token);
+  try {
+    if (getApps().length === 0) {
+      return () => {};
     }
-  });
-
-  return () => {
-    subscription.remove();
-  };
+    return onTokenRefresh(getMessaging(), (nextToken) => {
+      const token = nextToken.trim();
+      if (token.length > 0) {
+        onRefresh(token);
+      }
+    });
+  } catch (error) {
+    console.warn('Could not subscribe to FCM token refresh', error);
+    return () => {};
+  }
 };
 
 /**

@@ -29,6 +29,11 @@ policy captured in the **mobile-fdroid-flavors** skill as the Track 20 baseline.
   dependency register (572, `446-fdroid-register`).
 - The first-party `podverse-media-engine` (Media3 ExoPlayer / AVFoundation) is FOSS-clean and ships
   in **both** flavors with no gating.
+- Store builds register an FCM token through `@react-native-firebase/messaging` (`getToken()`).
+  `apps/mobile/fossNativeModules.js` unlinks that SDK, and `expo-iap`, when the push provider is
+  `unifiedpush`. `expo-notifications` still pulls `com.google.firebase:firebase-messaging` into
+  every Android build. An F-Droid submission waits on removing or replacing that dependency.
+  The check is in the **mobile-fdroid-flavors** skill under "F-Droid build gate".
 
 ## Acceptance criteria
 

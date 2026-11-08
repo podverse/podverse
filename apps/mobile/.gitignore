@@ -26,6 +26,10 @@ modules/*/ios/build/
 *.key
 *.mobileprovision
 
+# Firebase client config. EAS file env vars or a local path; never the git tree.
+GoogleService-Info.plist
+google-services.json
+
 # Debug
 npm-debug.*
 yarn-debug.*

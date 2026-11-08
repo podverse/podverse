@@ -5,6 +5,7 @@
 #     versionCode. iOS submit always requires typing the build number (no draft state).
 #     mobile_eas_env_set writes one variable on the EAS environment for PROFILE
 #     (beta → preview). NAME and VALUE are required. VISIBILITY defaults to plaintext.
+#     TYPE is string (default) or file. A file VALUE is a local path.
 
 .PHONY: mobile_eas_android_build mobile_eas_android_download mobile_eas_android_submit \
 	mobile_eas_android_list mobile_eas_android_version mobile_eas_android_credentials \
@@ -51,7 +52,7 @@ mobile_eas_android_credentials:
 	@npm run mobile:eas:android:credentials
 
 mobile_eas_env_set:
-	@npm run mobile:eas:env:set -- --profile $(PROFILE) $(if $(EAS_ENV),--environment $(EAS_ENV)) --name "$(NAME)" --value "$(VALUE)" $(if $(VISIBILITY),--visibility $(VISIBILITY))
+	@npm run mobile:eas:env:set -- --profile $(PROFILE) $(if $(EAS_ENV),--environment $(EAS_ENV)) --name "$(NAME)" --value "$(VALUE)" $(if $(VISIBILITY),--visibility $(VISIBILITY)) $(if $(TYPE),--type $(TYPE))
 
 mobile_eas_login:
 	@npm run mobile:eas:login

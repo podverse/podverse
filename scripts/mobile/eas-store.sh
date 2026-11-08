@@ -17,10 +17,12 @@
 #   make mobile_eas_env_set NAME=EXPO_PUBLIC_FOO VALUE=bar
 #                                              # create or update one variable on the profile's
 #                                              # EAS environment (beta → preview)
+#   make mobile_eas_env_set NAME=GOOGLE_SERVICES_JSON VALUE=/path/google-services.json \
+#     TYPE=file VISIBILITY=secret
 #   bash scripts/mobile/eas-store.sh <build|download|submit|list|version|credentials|login> \
 #     --platform <ios|android> [--profile beta] [--build-id <id>] [--rollout]
 #   bash scripts/mobile/eas-store.sh env-set --name <NAME> --value <VALUE> \
-#     [--profile beta] [--environment preview] [--visibility plaintext]
+#     [--profile beta] [--environment preview] [--visibility plaintext] [--type string|file]
 #
 # Profiles come from apps/mobile/eas.json. `beta` and `production` produce store binaries;
 # `internal` produces a dev-client build. Build numbers are stored remotely and auto-increment.
@@ -63,6 +65,7 @@ ROLLOUT=0
 ENV_NAME=''
 ENV_VALUE=''
 ENV_VISIBILITY='plaintext'
+ENV_TYPE='string'
 EAS_ENVIRONMENT=''
 
 usage() {
@@ -112,11 +115,16 @@ while [[ $# -gt 0 ]]; do
       EAS_ENVIRONMENT="$2"
       shift
       ;;
+    --type)
+      [[ $# -ge 2 && -n "$2" ]] || die '--type needs a value (string or file)'
+      ENV_TYPE="$2"
+      shift
+      ;;
     -h | --help)
       usage
       exit 0
       ;;
-    *) die "unknown flag: $1 (supported: --platform, --profile, --build-id, --rollout, --name, --value, --visibility, --environment)" ;;
+    *) die "unknown flag: $1 (supported: --platform, --profile, --build-id, --rollout, --name, --value, --visibility, --environment, --type)" ;;
   esac
   shift
 done
@@ -463,6 +471,13 @@ env_set() {
     plaintext | sensitive | secret) ;;
     *) die "--visibility must be plaintext, sensitive, or secret (got '$ENV_VISIBILITY')" ;;
   esac
+  case "$ENV_TYPE" in
+    string | file) ;;
+    *) die "--type must be string or file (got '$ENV_TYPE')" ;;
+  esac
+  if [[ "$ENV_TYPE" == 'file' && ! -f "$ENV_VALUE" ]]; then
+    die "--value must be a file that exists when --type is file (got '$ENV_VALUE')"
+  fi
   if [[ -n "$EAS_ENVIRONMENT" ]]; then
     eas_env="$EAS_ENVIRONMENT"
   else
@@ -483,7 +498,7 @@ env_set() {
   fi
 
   eas env:set --name "$ENV_NAME" --value "$ENV_VALUE" \
-    --environment "$eas_env" --visibility "$ENV_VISIBILITY" --type string \
+    --environment "$eas_env" --visibility "$ENV_VISIBILITY" --type "$ENV_TYPE" \
     --non-interactive
   echo "Set $ENV_NAME on the $eas_env environment."
 }
