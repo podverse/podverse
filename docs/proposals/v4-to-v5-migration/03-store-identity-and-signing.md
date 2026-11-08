@@ -16,8 +16,8 @@ Draft. Needs operator review. Decision to use v4 store ids is **made**.
 
 | Platform | Id |
 | -------- | -- |
-| iOS      | `com.podverse.fm` (notification extension `com.podverse.fm.ImageNotification`) |
-| Android Play | `com.podverse` |
+| iOS      | `com.podverse.fm` (notification extension `com.podverse.fm.ImageNotification`). App Store Connect Apple ID `1390888454`. SKU `podverse.fm`. Team `DF9KG8H54B`. |
+| Android Play | `com.podverse`. Play App Signing is on. Google signs the releases people install. The whole install base uses that key. |
 | F-Droid  | `com.podverse.fdroid` (separate; see [14](14-fdroid.md)) |
 | Version  | App `4.16.4`; Android `versionCode` **5280** |
 
@@ -40,8 +40,9 @@ production cutover. See
 - **Deep links:** keep `podverse://` and `podverse.fm` AASA / assetlinks. During
   transition, list both `com.podverse.fm` / `com.podverse` and
   `com.podverse.app.next` where needed so beta and prod both verify.
-- **Push:** decide whether v5 reuses the v4 Firebase / APNs project so existing
-  device tokens remain useful for migration notices.
+- **Push:** v5 uses its own Firebase project. v4 tokens are not imported.
+  The new app registers a token after the device prompt in
+  [08](08-mobile-first-launch-migration.md).
 
 ## Proposed approach
 
@@ -66,13 +67,9 @@ production cutover. See
 - Store review timing is outside our control. Grace period planning must assume
   uncertainty ([12](12-production-launch-and-grace-period.md)).
 
-## Open questions
-
-- Confirm Apple Team ID and App Store Connect app id for `com.podverse.fm`.
-- Confirm Play Console app and whether Play App Signing is already enrolled.
-- Reuse v4 Firebase project for push, or migrate tokens later?
-- Exact first production `versionName` / `versionCode` policy relative to 4.16.4
-  / 5280.
+The first store build uses the app version as its version name. That version
+is already above `4.16.4`. The Android build number is greater than `5280`
+and only increases. It does not start over at `1`.
 
 ## Future plan sets
 

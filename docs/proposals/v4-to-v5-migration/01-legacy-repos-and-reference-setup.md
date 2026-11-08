@@ -100,17 +100,15 @@ git -C ~/repos/podverse-api show develop:src/entities/user.ts
 
 ## Honest limits and risks
 
-- Working trees on `v5-develop` will keep confusing people. The worktree step is
-  the mitigation.
-- `podverse-api@master` and `develop` may differ. Confirm production branch
-  before writing irreversible migration SQL.
+- Working trees on `v5-develop` will keep confusing people. Extra worktrees
+  wait until someone starts the migration code. The checkouts already under
+  `~/repos/pv/v4/` stay as they are.
+- Production v4 is believed to run `master`. The inventory was read from a
+  local `develop` checkout. Local `master` and `develop` have the same files
+  under `src/entities`, `src/migrations`, and `src/routes`. Confirm the
+  running process before the identity seed.
 - The prod-copy DB may lag production. Rehearsal timing is directional, not
   exact for launch day.
-
-## Open questions
-
-- Confirm which branch each prod VM actually runs (`master` vs `develop`).
-- Do you want the `~/repos/pv/v4/` worktrees created now?
 
 ## Future plan sets
 

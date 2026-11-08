@@ -223,7 +223,10 @@ within 90 days is a separate Trial grant. A trial end more than 90 days ahead is
 imported. Paid expiry is kept as stored, including dates more than 90 days ahead,
 except an account with an App Store purchase on 2023-12-27 through 2024-01-31
 whose expiry is more than five years ahead. That expiry is imported as five
-years from the import time.
+years from the import time. The account copy sets Premium when access comes
+from a future paid `membershipExpiration`, and Trial when it comes from a
+carried trial. This command writes the grant and the expiry only. It does
+not change the tier.
 
 Run it only after v5 already has the migrated accounts, with the same emails. Until that
 account migration is underway, leave the v4 database alone. The steps below are the runbook

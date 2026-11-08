@@ -7,8 +7,9 @@ in batch, or both.
 
 ## Status
 
-Draft. Needs operator review. **Recommended: hybrid** (lazy on first v5 login +
-forced batch at grace-period end).
+Hybrid is the model. Seed each v4 identity into v5 before public signup, copy
+the library on first v5 login, then batch anyone still left at grace-period
+end. A future paid v4 expiry sets Premium. A carried v4 trial stays Trial.
 
 ## What we know
 
@@ -16,7 +17,8 @@ forced batch at grace-period end).
   starts migration immediately, with a loading screen that explains the wait.
 - At grace-period end, remaining accounts are migrated without waiting for
   login, and the v4 app becomes unusable ([13](13-forced-migration-and-v4-shutdown.md)).
-- Beta is a standalone database that becomes prod ([09](09-beta-environment.md)).
+- After launch, beta and production share the production database
+  ([09](09-beta-environment.md)).
 - Membership expiry import already assumes v5 accounts exist first
   ([BILLING-OPERATIONS](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover)).
 - Alpha (and later beta) may already have accounts with the same emails as v4
@@ -26,61 +28,117 @@ forced batch at grace-period end).
 
 ```mermaid
 flowchart TD
-  login["User signs into v5 with v4 email and password"] --> check{"Already migrated?"}
+  seed["Seed v4 identity rows before public signup"] --> login["User signs in with that email and password"]
+  login --> check{"Library already copied?"}
   check -->|yes| normal["Normal session"]
-  check -->|no| lock["Claim migration lock for this email"]
-  lock --> copy["Copy account graph from live v4 DB"]
-  copy --> grant["Apply membership legacy_import if needed"]
-  grant --> mark["Mark migrated in v5; optional v4 marker"]
+  check -->|no| lock["Claim copy lock for this email"]
+  lock --> copy["Copy the library"]
+  copy --> grant["Apply the v4 membership grants"]
+  grant --> mark["Set v4_library_copied_at; v4 API rejects the account"]
   mark --> normal
-  batch["End-of-grace batch job"] --> copy
+  batch["End-of-grace batch"] --> copy
 ```
+
+### Identity seed
+
+Before a new person can sign up on the v5 database that will become prod, seed
+one account per v4 user. v5 already keeps `account_credentials.email` unique,
+so the row reserves the address. The placeholder is that account row. There is
+no side table to drop. The seed copies `users.email`, the bcrypt
+hash, `users.name`, `users.emailVerified`, and `users.id` as `account.id_text`.
+It does not copy subscriptions, playlists, clips, queue, history, or follows,
+and it does not start the 31-day signup trial.
+
+`account.v4_library_copied_at` is a nullable timestamp. Null means the identity
+is reserved and the library is not copied. The copy sets it. The time is the
+record that the copy finished. Once every copy has finished, a later migration
+may drop this column. The account rows stay.
+
+An email that already exists in v5 is skipped. Do not change that account's
+password and do not attach the v4 library. Report the v4 user id for an
+operator. Counts only in automated logs.
+
+The v4 API keeps serving that person until the library copy finishes. The
+rejection from the earlier decision happens at copy, not at seed.
 
 ### Lazy path (grace period)
 
-1. Authenticate against v5. If no v5 account, verify password against the v4
-   hash (imported or read live once), then create the v5 account with that hash.
-2. If a v5 account already exists for that email (alpha/beta tester), verify
-   ownership carefully (same password, or explicit merge rules) before attaching
-   v4 graph data.
-3. Copy subscriptions, add-by-RSS URLs, playlists, clips, queue, history, now
-   playing, and notification prefs through the legacy map
-   ([05](05-id-mapping-and-catalog-seeding.md)).
-4. Show a blocking loading UI with honest time expectations from rehearsal.
-5. After success, **v5 is source of truth** for that user. Further v4 writes
-   for that account should not win (prefer a v4-side migrated marker if a small
-   API deploy is acceptable; otherwise rely on "stop using v4" messaging).
+1. Sign-in finds the seeded account and checks the password against the copied
+   hash. Do not use the public signup path. Signup sets Trial and inserts a
+   new 31-day trial from now.
+2. If `v4_library_copied_at` is already set, continue as a normal session. If
+   it is null, a v5 worker copies that one library. It reads that account's
+   rows from v4 at this moment, over a read-only connection. The v4 app does
+   not run the job. No other accounts are copied during the grace period. A
+   retried copy uses `users.id` and the email together, and it runs only while
+   the timestamp is null.
+3. Copy subscriptions, add-by-RSS URLs, user follows, playlists, user clips,
+   queue, history, and now playing through the legacy map
+   ([05](05-id-mapping-and-catalog-seeding.md)). `playlists.isDefault` becomes
+   that account and medium's Likes playlist. Official chapters and soundbites
+   are not clips. Purchase receipts and Django tables are not copied.
+4. Apply membership from the rules below.
+5. Show the copy as a list of groups, in order: subscriptions, Add by RSS,
+   follows, playlists, clips, queue, history, now playing, and membership.
+   A group with nothing to copy is left off the
+   list. The worker records which group it is on, and how many rows of that
+   group are copied once the group's total is known. The screen reads that
+   record. Closing the app does not stop the worker. Opening the app again
+   reads the same record and does not start a second copy. The list does not
+   sit in front of the first screen. The person can use the app while the
+   copy runs, and the list stays visible until `v4_library_copied_at` is set.
+6. After success, v5 is the source of truth for that user. Record the copy on
+   the v4 account. The v4 API then rejects that account. The legacy app and
+   website may not show the reason. Support guides those people to v5. This
+   needs a v4 API deploy.
+
+### Membership on the copied account
+
+- A v4 trial that ends within 90 days becomes a Trial grant ending on that
+  timestamp, and the account stays Trial. No second signup trial. A trial
+  date more than 90 days ahead is not imported. A past trial timestamp grants
+  nothing.
+- A future paid `membershipExpiration` is kept as stored, and the account is
+  Premium. An account with an App Store purchase on 2023-12-27 through
+  2024-01-31 whose expiry is more than five years ahead is imported as five
+  years from the import time, still Premium.
+- Receipts stay out of v5. The operator-held archive is a separate step.
+- Today's `legacy_import` command writes the grant and the expiry only. The
+  account copy has to set Premium or Trial itself. Do not rely on that
+  command to change the tier.
 
 ### Forced path (grace end)
 
-- Same copy pipeline, driven by a worker over all not-yet-migrated users.
+- Same copy pipeline, for accounts whose `v4_library_copied_at` is still null.
+  This is the only bulk pass. A v5 worker reads v4 slowly, over a read-only
+  connection. The v4 app does not run it.
 - Then raise min mobile version and retire v4 ([13](13-forced-migration-and-v4-shutdown.md)).
 
-### Email and conflict rules (to finalize)
+### Email and conflict rules
 
-- Match email case-insensitively.
-- Unverified v4 emails: still migrate, but keep v5 verification policy explicit.
-- Duplicate v5 accounts for one email: fail closed and page an operator report
-  (counts only in automated logs).
+- Match email case-insensitively. The unique email column is what stops a new
+  signup from taking a v4 address.
+- The 1,990 unverified accounts are seeded with the rest. `users.emailVerified`
+  is copied onto `account.verified`. Leaving them out would let a new signup
+  take the address, and it would drop the 571 signup subscription lists and
+  the 4 future memberships. They are not emailed
+  ([10](10-user-communication.md)). A later sign-in, or the end-of-grace
+  batch, can still copy the library.
+- An email already in v5 is left as it is. The v4 library is not attached
+  automatically.
 
 ## Honest limits and risks
 
-- Live reads against production v4 during lazy migration add load. Rate-limit
-  and cache the legacy map.
-- Dual-write races: user keeps using v4 after migrating on another device.
-  Without a v4 migrated marker, last-write-wins is undefined — **this is the
-  strongest case for a small v4 API change**.
-- Long migrations hurt mobile UX; rehearsal must set a timeout and resume story.
-- Alpha data that was never in v4 must not be deleted when attaching v4 graph
-  data to the same email.
-
-## Open questions
-
-- Implement the optional v4 `migratedAt` (or equivalent) marker?
-- On email collision with different passwords, which wins?
-- Migrate while calling live v4 Postgres from v5 workers, or ETL into a staging
-  extract first?
-- Idempotency key: v4 user id, email, or both?
+- Each grace-period copy is one account, and the end-of-grace batch is
+  throttled. Both use a read-only v4 connection from a v5 worker. Cache the
+  legacy map. The v4 app does not do this work.
+- A person who already migrated can still open the legacy app. The v4 API
+  rejects that account. The screen may not explain the failure. Support tells
+  them to use v5.
+- A long history group can take a while. The person can leave. The worker
+  finishes, and the next open shows the same group and row count.
+- An alpha or beta account with the same email is not overwritten. That v4
+  library waits for an operator.
 
 ## Future plan sets
 

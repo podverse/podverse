@@ -6,9 +6,88 @@ were written into git.
 Resume from a new agent window with the guided prompt:
 [.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md).
 One chunk, then stop and ask. Do not commit or push. The review questions in
-[04](04-v4-data-inventory-and-scope.md) are decided. Next is the account model
-in [07](07-account-and-data-migration-model.md), or mobile local storage in
-[08](08-mobile-first-launch-migration.md).
+[04](04-v4-data-inventory-and-scope.md) are decided. The account model in
+[07](07-account-and-data-migration-model.md) is hybrid. A future paid v4
+expiry sets Premium. A carried v4 trial stays Trial. Once v5 is live in one
+place, v4 Apple, Google Play, and PayPal subscription products are turned
+off. After an account is copied, the v4 API rejects that account. v4
+identities are seeded before public signup, and the library is copied later.
+An email that already exists in v5 is left alone. During the grace period one
+library is read from v4 at sign-in. The bulk copy waits for grace end. The
+v4 app does not run either job. The questions in 07 are decided. The grace
+period is 30 days from the day v5 is installable, and the end can move. The
+announcement uses an earlier date, calls the app NextGen, asks people to back
+up, and says we keep a backup. On-device files stay in
+[08](08-mobile-first-launch-migration.md) and get a close review before
+implementation. The announcement list is the 20,520 verified accounts. The 1,990 unverified
+accounts are seeded and are not emailed. The announcement is from
+`contact@podverse.fm`. The send method is later. The English draft is in
+[10](10-user-communication.md). The email stays English because v4 stores no
+user locale. The questions in 10 are decided. During the grace period the
+operator reviews copied, remaining, and failed accounts once a day. The rest
+of the store rollout opens after a calm day of sign-in copies.
+When migration finishes, public requests to the v4 API are blocked. The
+private process stops once the final database archive is checked. The
+archive is kept after the grace window. The operations engineer chooses how
+long. The minimum version number waits for the first live store build, and
+that build's version is the value. The NextGen check is specified in
+[13](13-forced-migration-and-v4-shutdown.md): a public semver compare after
+first paint, blank minimum does not block, and this pass does not build it.
+The questions in 13 are decided. The per-channel purchase floor stays on
+checkout options and is blank at go-live. The after-charge 426 on the Apple
+and Google purchase routes is removed later. NextGen sign-in uses the
+copied password. A v4 session is not exchanged for a v5 session. The
+announcement is the email. There is no public migration page. A longer
+reply is sent when someone contacts us. The installed app has no free-text
+one-time screen. There is no mass notification. The questions in 02 are
+decided. Beta hosts follow the alpha shape on `podverse.fm`: `beta`,
+`api-beta`, `management.beta`, and `management-api.beta`. Beta cookies stay
+on each API host. They are not set on `.podverse.fm`. After launch, beta
+and production share the production database. A beta build cannot start a
+purchase. Buying is on `podverse.fm` or by writing to `contact@podverse.fm`.
+Sandbox purchases stay on alpha. Alpha is internal testing. Beta is public
+pre-release testing. Store submission does not wait for a tester count. The
+questions in 09 are decided. During grace the v5 API is
+`api-prod.podverse.fm`. After the public v4 block, `api.podverse.fm` points
+at v5. The v5 website goes live at the operator's discretion, likely when
+the first store approves the mobile app. The questions in 11 are decided.
+The legacy id map lives in the application database. Workers write it. The
+website reads it from that same database. An unmatched id stays unresolved
+until a finished parse still cannot match it, and only then is it dropped.
+v4 stats tables are not imported. v5 popularity starts empty. Listening
+history, queue, and playback position still move. The questions in 05 are
+decided. The practice-run database is refreshed when a run starts, and once
+more immediately before the identity seed. A library copy shows its groups
+and row counts. Closing the app does not stop the worker. Opening the app
+again shows the same progress and does not start a second copy. Only
+operators run commands against the practice-run database copy. The
+questions in 06 are decided. Old ids found on the phone are saved first
+and matched when the network is available. The first screen does not wait
+for that match. Signed-out phone carryover is good enough when
+subscriptions and Add by RSS addresses from the phone are present. Queue,
+history, and downloads may be missing. The first store build uses the app
+version as its version name. The Android build number stays above `5280`
+and only increases. v5 uses its own Firebase project. v4 tokens and
+notification settings are not copied. The account uses v5 defaults. A device
+asks once to allow notifications when the signed-in account had a v4 podcast
+notification and the phone has not already been asked. If permission is
+already granted, the app registers a token and does not ask. The live v4
+iOS app is App Store Connect `1390888454`, bundle `com.podverse.fm`, SKU
+`podverse.fm`. The NextGen submit profile's `6823398032` is not that app.
+Apple Team ID `DF9KG8H54B` signs both that app and Podverse Next. Both apps
+are in the Podverse LLC account. Play App Signing is on for `com.podverse`.
+Google signs the releases people install. The questions in 03 are decided.
+Production v4 is believed to run `master`. The local `master` and `develop`
+copies of the API have the same entity, migration, and route files. Confirm
+the running process before the identity seed. Extra v4 worktrees wait until
+someone starts the migration code. The questions in 01 are decided. An
+episode in a v4 playlist becomes a playlist row that points at the episode.
+The clip stays empty. Do not invent a clip for that episode. The
+phone-storage spike is written in
+[08](08-mobile-first-launch-migration.md#storage-spike) and has not been run.
+It reads two keys on a private in-place install and leaves the app code
+alone. Doc 12 does not freeze or promote a beta database. Beta and
+production already share the production database.
 
 ## Done
 
@@ -60,7 +139,6 @@ relational tables.
 - v4 purchase receipts are not imported. An operator-held archive of those
   tables, outside git, is part of the later import. Not written in this pass.
 - No crosswalk against a v5 database. The v4-side gap counts are done.
-- Episode-only playlist rows still need a `playlist_resource` shape.
 - `freeTrialExpiration` is not in the expiry CSV. Decided. 406 future trials
   end within 90 days and become Trial grants. 4 later than that are not
   imported. Paid `membershipExpiration` keeps its date, with no 90-day cap.

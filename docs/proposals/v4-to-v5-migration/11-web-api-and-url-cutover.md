@@ -29,11 +29,12 @@ Draft. Needs operator review.
 | Host                                    | Role                                                                 |
 | --------------------------------------- | -------------------------------------------------------------------- |
 | `api.podverse.fm` (or current prod API) | **Stay on v4** so un-upgraded apps keep working                      |
-| Public web (`podverse.fm`)              | Flip to **v5 web** when ready. Old URLs stay reserved and redirect   |
-| Beta hosts                              | Separate hostnames until promotion ([09](09-beta-environment.md))    |
+| `api-prod.podverse.fm`                  | v5 API during grace. After the block, `api.podverse.fm` points here  |
+| Public web (`podverse.fm`)              | Operator chooses. Likely the first store approval. Redirects stay    |
+| Beta hosts                              | Separate hostnames. After launch, the production database            |
 
-v5 mobile / web talk to the **v5 API** on its own hostname (or path) during
-grace, not to the v4 API.
+v5 mobile and web talk to `api-prod.podverse.fm` during grace, not to the
+v4 API. When public v4 requests are blocked, `api.podverse.fm` points at v5.
 
 ### Redirects
 
@@ -79,8 +80,11 @@ canonical page moves, `/episode/:v4Id` still redirects there.
 
 ### After grace / v4 shutdown
 
-- Point API hostname at v5 (or retire the old hostname after clients are gone).
-- Keep the web redirects. Shutting down v4 does not release the old paths.
+- Block public requests to the v4 API. Point `api.podverse.fm` at v5.
+  The v4 process may keep running on the server with no public route until the
+  final database archive is checked, and then it stops
+  ([13](13-forced-migration-and-v4-shutdown.md)).
+- Keep the web redirects. Shutting down public v4 does not release the old paths.
 
 ### AASA and assetlinks
 
@@ -97,10 +101,11 @@ them. Include transition entries for `.next` while alpha still exists.
 - Custom API domain overrides in the v4 app (advanced settings) may bypass your
   cutover — rare, but support should know.
 
-## Open questions
+## Website flip
 
-- Exact production hostnames for v5 API during grace?
-- Flip web on the same day as store launch, or earlier?
+The v5 website goes live when the operators say so. The likely moment is
+the first store approval of the mobile app, whichever store that is. The
+redirects for old addresses have to be in place before that flip.
 
 ## Future plan sets
 

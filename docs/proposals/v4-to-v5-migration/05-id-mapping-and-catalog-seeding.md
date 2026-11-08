@@ -35,8 +35,9 @@ Draft. Needs operator review. Match keys are the snapshot columns in
 - Add-by-RSS in v4 is `users.addByRSSPodcastFeedUrls` (varchar array of URLs).
   v5 stores the URL on `account_following_add_by_rss_channel` and does not
   store parsed items for those feeds.
-- Matomo is not wired in the v5 monorepo. v4 already stores aggregated
-  `stats_podcast`, `stats_episode`, and `stats_media_ref`.
+- v4 `stats_podcast`, `stats_episode`, and `stats_media_ref` are Matomo
+  visitor counts. v5 popularity is rebuilt from listen events. Those tables
+  are not imported. Listening history, queue, and playback position still move.
 
 ## Proposed approach
 
@@ -161,11 +162,10 @@ Do not create a second Likes playlist for the same pair. Other playlists keep
 `is_default_likes` false. On this snapshot that is 34 playlists (32 music, 2
 mixed).
 
-v5 `playlist_resource` columns include `clip_id`, `item_id`,
-`item_soundbite_id`, and `add_by_rss_hash_id` as required fields on the entity.
-Episode-only v4 rows have no mediaRef. The import design has to say which of
-those columns an episode row fills. Do not invent a clip per episode in this
-inventory.
+v5 `playlist_resource` stores exactly one of `item_id`, `clip_id`,
+`item_soundbite_id`, or `add_by_rss_hash_id`. An episode from
+`playlists_episodes_episodes` fills `item_id` and leaves `clip_id` empty. A
+mediaRef fills `clip_id`. Do not invent a clip for an episode.
 
 ### Crosswalk chain (account)
 
@@ -224,6 +224,10 @@ Uses: login migration, web redirects ([11](11-web-api-and-url-cutover.md)),
 mobile first-launch remap ([08](08-mobile-first-launch-migration.md)), and
 support lookups. Store ids only. Do not store email in this table.
 
+The table lives in the application database. Workers write the rows. The
+website reads them from the same database it serves. There is no side
+database and no map file.
+
 ### Catalog seeding order
 
 1. Collect podcast ids from `subscribedPodcastIds`, `playlists` joins,
@@ -234,11 +238,12 @@ support lookups. Store ids only. Do not store email in this table.
    `addByRSSPodcastFeedUrls` entry (URL only, no catalog row required).
 3. Ensure those feeds exist in v5 and queue parse jobs. Do not bulk-copy the
    catalog unless rehearsal shows that is cheaper.
-4. Optionally seed popularity from `stats_podcast.play_count` for one
-   `timeframe`, keyed by `podcast_id` through the same crosswalk. No live
-   Matomo query.
+4. Do not copy v4 popularity. v5 range totals start empty and fill from v5
+   listen events.
 5. Build the legacy map as feeds and items become available. Retry
-   `unresolved` rows.
+   `unresolved` rows. A row stays `unresolved` until a finished parse still
+   cannot match it. Only then is it marked `dropped`. There is no calendar
+   cutoff. A dropped id keeps the friendly not-found page.
 
 ## Honest limits and risks
 
@@ -255,17 +260,8 @@ support lookups. Store ids only. Do not store email in this table.
   legacy map. Without that row, `/clip/:id` cannot redirect to `/chapter/`
   or `/official-clip/`. See [11](11-web-api-and-url-cutover.md).
 
-## Open questions
-
-- Persist the legacy map in the app database, a side database, or a file the
-  workers read?
-- How long to keep `unresolved` rows before marking `dropped`?
-- Seed global trending from `stats_podcast`, or only feeds needed for user data?
-- Which `stats_*.timeframe` value is the one to seed?
-
 ## Future plan sets
 
 - Schema and worker commands for the legacy map.
 - Parse-queue sizing for the selective seed.
 - Redirect handler design for [11](11-web-api-and-url-cutover.md).
-- Episode-only `playlist_resource` shape.

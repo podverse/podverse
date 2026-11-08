@@ -149,6 +149,7 @@ Episode, mediaRef, and episode-category join tables in that run were 0 rows:
 | Users with `freeTrialExpiration` set            | 19,678    |
 | Users with a future `freeTrialExpiration`       | 410       |
 | Users with `emailVerified`                      | 20,520    |
+| Users with an email and `emailVerified` false   | 1,990     |
 | Users with podcast subscriptions                | 15,166    |
 | Distinct subscribed podcast ids                 | 63,786    |
 | Users with add-by-RSS URLs                      | 3,274     |
@@ -298,19 +299,15 @@ source of truth; check commands into the monorepo when ready.
 
 ## Honest limits and risks
 
-- The copy may be stale relative to live prod. Treat timings as lower bounds
-  with headroom.
+- Refresh the copy when a practice run starts, and once more immediately
+  before the identity seed. There is no schedule between those points. Treat
+  timings as lower bounds with headroom.
 - Accidental writes to the copy are still bad (destroys a clean rehearsal
-  baseline). Prefer a role that cannot write.
+  baseline). Prefer a role that cannot write. Only operators run commands
+  against this copy. There is no shared jump-host login.
 - Large history tables may dominate runtime; plan pagination early.
 - The membership export SQL reads `users`. A CSV dry run has not been
   executed, because that file would contain email addresses.
-
-## Open questions
-
-- How often is the copy refreshed from prod?
-- Target max seconds for a single-user lazy migration under load?
-- Who may run rehearsal commands (operator only vs shared jump host)?
 
 ## Future plan sets
 

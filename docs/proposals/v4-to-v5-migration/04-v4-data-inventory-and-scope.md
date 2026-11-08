@@ -41,7 +41,7 @@ are in [06](06-database-migration-rehearsal.md).
 | v4 surface                                                                    | Action                       | v5 landing                                                                                                                                |
 | ----------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `users` identity (`id`, `email`, `password`, `name`, `emailVerified`)         | **migrate**                  | `account` + `account_credentials` + `account_profile`. Keep the bcrypt hash.                                                              |
-| `users.membershipExpiration`                                                  | **migrate**                  | `legacy_import` grant after the account exists. CSV in [BILLING-OPERATIONS](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover). |
+| `users.membershipExpiration`                                                  | **migrate**                  | `legacy_import` grant, account is Premium. [BILLING-OPERATIONS](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover).             |
 | `users.freeTrialExpiration`                                                   | **migrate**                  | Trial grant when the end is within 90 days. Later trial dates are not imported. No second signup trial.                                   |
 | `users.subscribedPodcastIds`                                                  | **migrate**                  | `account_following_channel` through the podcast crosswalk.                                                                                |
 | `users.subscribedPlaylistIds`                                                 | **migrate**                  | `account_following_playlist`. Owned playlists come from `playlists.ownerId`.                                                              |
@@ -50,19 +50,19 @@ are in [06](06-database-migration-rehearsal.md).
 | `users.addByRSSPodcastFeedUrls`                                               | **migrate**                  | `account_following_add_by_rss_channel.feed_url`. No item rows.                                                                            |
 | `users.historyItems` / `users.queueItems`                                     | **drop**                     | Legacy JSON. Prefer `userHistoryItems` and `userQueueItems` when those tables have rows.                                                  |
 | `users` tokens, `roles`, `isDevAdmin`, `isPodpingAdmin`                       | **drop**                     | Do not copy reset tokens or bulk-copy admin flags.                                                                                        |
-| `playlists` + join tables + `itemsOrder`                                      | **migrate**                  | `playlist` + `playlist_resource.list_position`.                                                                                           |
+| `playlists` + join tables + `itemsOrder`                                      | **migrate**                  | Episode rows set `item_id` only. Clip rows set `clip_id` only. Do not invent a clip.                                                      |
 | `mediaRefs` user clips                                                        | **migrate**                  | `clip` when `isOfficialChapter` IS NOT TRUE and `isOfficialSoundBite` IS NOT TRUE.                                                        |
 | `mediaRefs` official chapters / soundbites                                    | **re-derive**                | `item_chapter` / `item_soundbite` from the feed. Keep `mediaRefs.id` for the `/clip/:id` redirect.                                        |
 | `userQueueItems`                                                              | **migrate**                  | Upcoming `queue_resource` (`list_position`).                                                                                              |
 | `userHistoryItems`                                                            | **migrate**                  | History `queue_resource` (`playback_position`, `completed`, `media_file_duration`).                                                       |
 | `userNowPlayingItems`                                                         | **migrate**                  | Now-playing `queue_resource`.                                                                                                             |
-| `notifications`                                                               | **migrate**                  | Podcast-notify preference, remapped podcast → channel.                                                                                    |
-| `fcmDevices` / `upDevices`                                                    | **map**                      | Re-register. v5 FCM also requires `installation_id`, `platform`, and `locale`. v5 `account_up_device` is one row per account.             |
+| `notifications`                                                               | **drop**                     | Not settings. One row means this account had a podcast notification. v5 uses its defaults.                                                |
+| `fcmDevices` / `upDevices`                                                    | **drop**                     | Not imported. The new app registers with its own Firebase project.                                                                        |
 | `paypalOrders` / `appStorePurchase` / `googlePlayPurchase` / `bitpayInvoices` | **drop**                     | Not imported. Archive outside git. App Store window rows stay marked simulated.                                                           |
 | `accountClaimToken`                                                           | **drop**                     | Left behind. `/account-claim-token/:id` is not reserved.                                                                                  |
 | `podcasts` / `episodes` / `feedUrls` / `authors` / `categories`               | **re-derive**                | Parse into v5. Keep ids only for the legacy map.                                                                                          |
 | `liveItems`                                                                   | **re-derive**                | From feeds.                                                                                                                               |
-| `stats_podcast` / `stats_episode` / `stats_media_ref`                         | **map**                      | Popularity seed. Not user-owned.                                                                                                          |
+| `stats_podcast` / `stats_episode` / `stats_media_ref`                         | **drop**                     | Not imported. v5 popularity starts empty. History and queue still move.                                                                   |
 | `episodes_most_recent`, `mediaRefs_videos`                                    | **drop**                     | Materialized views.                                                                                                                       |
 | `recentEpisodesBy*Temp*`                                                      | **drop**                     | Rebuild scratch tables.                                                                                                                   |
 | `auth_*`, `django_*`                                                          | **drop**                     | Separate admin app in the same database.                                                                                                  |
@@ -163,9 +163,6 @@ These rows are re-derived. The columns are match keys, not copy sources.
 | `liveItems`       | `episodeId`, `status`, `start`, `end`                             | `id` uuid, `chatIRCURL`                                                                                   |
 | `authors`         | `id`, `name`, `slug`                                              | Join `podcasts_authors_authors`                                                                           |
 | `categories`      | `id`, `fullPath`, `title`, `categoryId`                           | Self-FK for parent category                                                                               |
-| `stats_podcast`   | `podcast_id`, `timeframe`, `play_count`                           | `id` integer                                                                                              |
-| `stats_episode`   | `episode_id`, `timeframe`, `play_count`                           |                                                                                                           |
-| `stats_media_ref` | `media_ref_id`, `timeframe`, `play_count`                         |                                                                                                           |
 
 Join tables confirmed on the snapshot: `podcasts_authors_authors`,
 `podcasts_categories_categories`, `episodes_authors_authors`,
@@ -225,12 +222,12 @@ those counts:
   purchases at $18), not with the 8,671 stored rows.
 - `bitpayInvoices.token` and device keys are secrets. Counts only. No exports
   of those columns.
-- v5 `playlist_resource` requires a `clip_id` column on every row in the entity
-  definition. Episode-only playlist items need a mapping design before import,
-  because v4 stores episodes and mediaRefs as two join tables.
+- An episode in a v4 playlist becomes a `playlist_resource` row with `item_id`
+  set and `clip_id` empty. A mediaRef becomes a row with `clip_id` set. The
+  database already allows exactly one of those. Do not invent a clip for an
+  episode.
 
 ## Future plan sets
 
 - Per-entity import commands once [06](06-database-migration-rehearsal.md)
   sizes are accepted.
-- A decision on episode-only playlist rows.
