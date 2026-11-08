@@ -66,8 +66,7 @@ export const notificationsTestPush = async (args: CommandLineArgs): Promise<void
 
   const account = await findAccount(parsed.account);
   if (account === null) {
-    const label =
-      parsed.account.by === 'email' ? parsed.account.email : parsed.account.username;
+    const label = parsed.account.by === 'email' ? parsed.account.email : parsed.account.username;
     throw new Error(`notificationsTestPush: no account for ${parsed.account.by} ${label}`);
   }
 

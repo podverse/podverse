@@ -5,5 +5,7 @@
  * still in the foreground, so a sync there only flashes the progress row. Android does not report
  * `inactive`; a pause is `background`, and that still syncs.
  */
-export const shouldRequestForegroundSync = (previous: string | null, next: string): boolean =>
-  previous === 'background' && next === 'active';
+export const shouldRequestForegroundSync = (
+  previous: string | null | undefined,
+  next: string
+): boolean => previous === 'background' && next === 'active';

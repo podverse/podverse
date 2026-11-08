@@ -2,9 +2,7 @@ import type { ValidationResult } from '@podverse/helpers';
 
 export type TestPushArgMap = { [key: string]: string | string[] };
 
-export type TestPushAccount =
-  | { by: 'username'; username: string }
-  | { by: 'email'; email: string };
+export type TestPushAccount = { by: 'username'; username: string } | { by: 'email'; email: string };
 
 export type TestPushRequest =
   | { kind: 'help' }

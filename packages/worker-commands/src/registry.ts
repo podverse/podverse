@@ -103,7 +103,8 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
       'List devices for one account, matched by --username or --email, or send a visible test push to those devices and print each provider result. Refuses unless NOTIFICATIONS_TEST_PUSH_ENABLED is true. Does not write an inbox row.',
     category: 'orm',
     risk: 'normal',
-    example_cli: 'npm run notifications_test_push -w apps/workers -- --email name@example.com --list',
+    example_cli:
+      'npm run notifications_test_push -w apps/workers -- --email name@example.com --list',
   },
   {
     name: 'accountContentLogPurge',

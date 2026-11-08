@@ -12,6 +12,7 @@ describe('shouldRequestForegroundSync', () => {
     expect(shouldRequestForegroundSync('active', 'active')).toBe(false);
     expect(shouldRequestForegroundSync('unknown', 'active')).toBe(false);
     expect(shouldRequestForegroundSync(null, 'active')).toBe(false);
+    expect(shouldRequestForegroundSync(undefined, 'active')).toBe(false);
   });
 
   it('does not sync on the way out', () => {
