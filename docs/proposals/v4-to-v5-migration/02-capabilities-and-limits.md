@@ -26,7 +26,11 @@ Sources: `podverse-api@develop` `src/routes/meta.ts`; `podverse-rn` `src/service
 ### Other channels (no v4 app release)
 
 - Mass email to accounts on record.
-- FCM push (v4 Firebase project / key already used in prod ops).
+- FCM push (Firebase project `podverse-app`). v4 production keeps Admin
+  account `firebase-adminsdk-aqund`. Next alpha, beta, and prod send with
+  service account `podverse-next-fcm` in that same project. Do not rotate
+  the v4 account, and do not send Next pushes with `podcastdj-alpha` or
+  `podverse-2`.
 - Google Play / App Store listing text (editable anytime).
 - Banner or page on v4 web (needs a v4 web deploy).
 

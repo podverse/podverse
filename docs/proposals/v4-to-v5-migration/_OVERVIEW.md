@@ -44,7 +44,8 @@ commits them.
 | On-device ids are saved first and matched when the network is available  | Decided |
 | Signed-out phone carryover bar is subscriptions and Add by RSS           | Decided |
 | First store version is the app version; Android code stays above 5280    | Decided |
-| v5 uses a new Firebase project; v4 tokens and notify rows stay out       | Decided |
+| v5 reuses Firebase project podverse-app; v4 tokens stay out              | Decided |
+| Next alpha, beta, and prod send with podverse-next-fcm; v4 admin stays  | Decided |
 | Ask once per device if the account had a v4 podcast notification         | Decided |
 | Live v4 iOS app is App Store Connect 1390888454, not 6823398032          | Decided |
 | Apple Team ID DF9KG8H54B signs the live v4 app and Podverse Next         | Decided |

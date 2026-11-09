@@ -67,8 +67,11 @@ for that match. Signed-out phone carryover is good enough when
 subscriptions and Add by RSS addresses from the phone are present. Queue,
 history, and downloads may be missing. The first store build uses the app
 version as its version name. The Android build number stays above `5280`
-and only increases. v5 uses its own Firebase project. v4 tokens and
-notification settings are not copied. The account uses v5 defaults. A device
+and only increases. v5 reuses Firebase project podverse-app. It adds apps
+for the v5 ids and does not edit the v4 apps, their config, or the v4 admin
+account firebase-adminsdk-aqund. Next alpha, beta, and prod send with
+service account podverse-next-fcm in that project, not with podcastdj-alpha
+or podverse-2. v4 tokens and notification settings are not copied. The account uses v5 defaults. A device
 asks once to allow notifications when the signed-in account had a v4 podcast
 notification and the phone has not already been asked. If permission is
 already granted, the app registers a token and does not ask. The live v4

@@ -61,7 +61,9 @@ users who have no server graph.
 5. Notification settings are not copied. The account uses v5's own defaults.
    The person changes them later if they want. v4 `notifications` rows are
    only a signal: one row means that account had a podcast notification.
-   v4 device tokens are not imported. v5 uses its own Firebase project.
+   v4 device tokens are not imported. v5 registers new tokens in Firebase
+   project `podverse-app`, the project v4 already uses. Next workers send
+   those tokens with service account `podverse-next-fcm`.
    After sign-in, ask this device to allow notifications only when the
    account had at least one of those rows and this device has not already
    asked. The asked flag stays on the device. If the phone already granted
