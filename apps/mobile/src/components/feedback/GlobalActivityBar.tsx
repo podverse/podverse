@@ -7,7 +7,7 @@ import {
   countInProgressDownloads,
 } from '../../downloads/inProgressDownloadCount';
 import { useDownloadsList } from '../../downloads/useDownloads';
-import { useSync } from '../../sync';
+import { useSyncIndicatorPresentation } from '../../sync/syncIndicatorPresentation';
 import { globalActivityBarLayout } from '../../theme/bottomChromeOverlay';
 import { bottomChromeStripTextStyle } from '../../theme/bottomChromeStrip';
 import { useTheme } from '../../theme/useTheme';
@@ -29,13 +29,12 @@ export type GlobalActivityBarProps = {
  */
 export function GlobalActivityBar({ bottomInset = 0 }: GlobalActivityBarProps) {
   const { t } = useTranslation();
-  const { state } = useSync();
+  const syncPresentation = useSyncIndicatorPresentation();
   const { downloads } = useDownloadsList();
   const { styles: themeStyles, tokens } = useTheme();
 
-  const { activeLabelKey, completedCount, status, totalCount } = state;
-  const syncLabel = activeLabelKey === null ? null : t(activeLabelKey);
-  const syncVisible = status === 'running' && syncLabel !== null;
+  const { completedCount, labelKey, totalCount, visible: syncVisible } = syncPresentation;
+  const syncLabel = !syncVisible || labelKey === null ? null : t(labelKey);
 
   const inProgressCount = countInProgressDownloads(downloads);
   const activeCount = countActiveDownloading(downloads);

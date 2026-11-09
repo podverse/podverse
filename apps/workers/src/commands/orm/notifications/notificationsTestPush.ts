@@ -10,7 +10,11 @@ import {
   AccountWebPushDeviceService,
 } from '@podverse/orm';
 
-import type { PushSendOutcome, TestPushDeviceLine } from './notificationsTestPushLib.js';
+import type {
+  PushSendOutcome,
+  TestPushAccount,
+  TestPushDeviceLine,
+} from './notificationsTestPushLib.js';
 import {
   failedOutcome,
   formatDeviceLine,
@@ -60,9 +64,10 @@ export const notificationsTestPush = async (args: CommandLineArgs): Promise<void
     throw new Error('NOTIFICATIONS_TEST_PUSH_ENABLED must be the string true');
   }
 
-  const account = await new AccountService().getByUsername(parsed.username);
+  const account = await findAccount(parsed.account);
   if (account === null) {
-    throw new Error(`notificationsTestPush: no account for username ${parsed.username}`);
+    const label = parsed.account.by === 'email' ? parsed.account.email : parsed.account.username;
+    throw new Error(`notificationsTestPush: no account for ${parsed.account.by} ${label}`);
   }
 
   const targets = await loadTargets(account.id, parsed.installationId);
@@ -97,6 +102,14 @@ export const notificationsTestPush = async (args: CommandLineArgs): Promise<void
     throw new Error(`notificationsTestPush: ${failed} of ${targets.length} sends failed`);
   }
 };
+
+async function findAccount(match: TestPushAccount) {
+  const accounts = new AccountService();
+  if (match.by === 'email') {
+    return accounts.getByEmail(match.email);
+  }
+  return accounts.getByUsername(match.username);
+}
 
 async function loadTargets(
   accountId: number,

@@ -1,5 +1,5 @@
 # Manual only: suspended CronJob. Trigger from monorepo root:
-#   npm run notifications:test-push:k8s -- --username example --list
+#   npm run notifications:test-push:k8s -- --email name@example.com --list
 apiVersion: batch/v1
 kind: CronJob
 metadata:

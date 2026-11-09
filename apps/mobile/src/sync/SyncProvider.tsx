@@ -46,6 +46,7 @@ import {
   subscribeOfflineMode,
 } from '../prefs/offlineMode';
 import { subscribeTermsBlocksAccountSync, termsBlocksAccountSync } from '../terms/termsSyncGate';
+import { shouldRequestForegroundSync } from './foregroundAppSync';
 import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
 import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import {
@@ -53,6 +54,7 @@ import {
   registerAddByRssRefreshRequest,
 } from './requestAddByRssRefresh';
 import { attachSyncEventLogSink } from './syncEventLogSink';
+import { publishSyncIndicatorQueueState } from './syncIndicatorPresentation';
 import type { SyncTrigger } from './syncJobPlan';
 import { planSyncRun } from './syncJobPlan';
 import { buildSyncJobs } from './syncJobs';
@@ -149,8 +151,10 @@ export function SyncProvider({ children }: PropsWithChildren) {
   }, [status]);
 
   useEffect(() => {
+    publishSyncIndicatorQueueState(syncQueue.getState());
     return syncQueue.subscribe((next) => {
       setState(next);
+      publishSyncIndicatorQueueState(next);
       if (next.status === 'running') {
         noteAutoDownloadSyncRunning();
       }
@@ -292,9 +296,12 @@ export function SyncProvider({ children }: PropsWithChildren) {
     }
   }, [requestSync, status, termsBlocked]);
 
+  const appStateRef = useRef(AppState.currentState);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active') {
+      const previous = appStateRef.current;
+      appStateRef.current = nextState;
+      if (shouldRequestForegroundSync(previous, nextState)) {
         requestSync('app-foreground');
       }
     });

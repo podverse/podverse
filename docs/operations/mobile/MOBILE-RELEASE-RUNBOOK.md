@@ -69,6 +69,22 @@ Set one variable from the repo root (`PROFILE=production` selects that profile's
 make mobile_eas_env_set NAME=EXPO_PUBLIC_MOBILE_WEB_BASE_URL VALUE=https://example.com
 ```
 
+Firebase client config is a file variable, not a string. Download `GoogleService-Info.plist` and
+`google-services.json` for `com.podverse.app.next` into a directory outside the repo. The Firebase
+project is the one alpha workers already use, and Cloud Messaging needs an APNs auth key for team
+`DF9KG8H54B`. Set both files on each environment you build (`PROFILE=internal`, `PROFILE=beta`,
+`PROFILE=production`). Run one command at a time from the **Mobile** tab:
+
+```bash
+make mobile_eas_env_set NAME=GOOGLE_SERVICES_INFO_PLIST VALUE=$HOME/path/GoogleService-Info.plist TYPE=file VISIBILITY=secret
+```
+
+```bash
+make mobile_eas_env_set NAME=GOOGLE_SERVICES_JSON VALUE=$HOME/path/google-services.json TYPE=file VISIBILITY=secret
+```
+
+A build without those files still compiles. It does not register an FCM token. Do not commit the files.
+
 Which `EXPO_PUBLIC_*` values belong on that environment:
 [DOCS-MOBILE-VERSIONING-RELEASE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-VERSIONING-RELEASE.md).
 

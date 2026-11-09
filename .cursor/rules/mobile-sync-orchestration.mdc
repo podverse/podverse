@@ -64,7 +64,9 @@ their episodes from `channelItemsRepository`, and add-by-RSS feeds from `addByRs
 While the queue is non-empty, a sync indicator bar reports **what** is syncing and **how many steps
 remain**, and it disappears when the queue drains. Sync the user cannot see is sync the user
 experiences as an unexplained slowdown. The indicator is the job label, the step count, and a
-spinner; it does not draw a determinate fill.
+spinner; it does not draw a determinate fill. The sync row waits briefly before it appears and,
+once shown, stays up briefly after the queue drains, so a run that finishes immediately does not
+flash. Do not paint it on the first frame of a run.
 
 - The bar sits directly above the mini player, and directly above the tab bar when the mini player
   is hidden. That stack (the indicator, the offline strip, the current clip/chapter strip, and the

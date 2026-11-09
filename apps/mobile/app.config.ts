@@ -1,5 +1,6 @@
 import type { ExpoConfig } from 'expo/config';
 
+import { googleServicesPaths, wantsFcmNativeModules } from './fossNativeModules';
 import packageJson from './package.json';
 import {
   MOBILE_UNIVERSAL_LINK_PATH_PREFIXES,
@@ -55,6 +56,15 @@ const associatedDomainsPlugins: NonNullable<ExpoConfig['plugins']> =
 const storeBillingPlugins: NonNullable<ExpoConfig['plugins']> =
   getMobileBillingModeFromEnv() === 'store' ? ['expo-iap'] : [];
 
+const googleServices = googleServicesPaths(process.env);
+const linkFirebase =
+  wantsFcmNativeModules(process.env) &&
+  (googleServices.ios !== null || googleServices.android !== null);
+
+const firebasePlugins: NonNullable<ExpoConfig['plugins']> = linkFirebase
+  ? ['@react-native-firebase/app', '@react-native-firebase/messaging']
+  : [];
+
 const config: ExpoConfig = {
   name: 'Podverse Next',
   slug: 'podverse-next',
@@ -75,6 +85,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.podverse.app.next',
+    ...(googleServices.ios === null ? {} : { googleServicesFile: googleServices.ios }),
     // CarPlay audio entitlement + App Group (12.7 / 12.16). The App ID `com.podverse.app.next`
     // has both provisioned in the Apple portal; these keys make `expo prebuild` emit a matching
     // .entitlements file so the gitignored ios/ project regenerates correctly (no Xcode-only edits).
@@ -97,6 +108,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.podverse.app.next',
+    ...(googleServices.android === null ? {} : { googleServicesFile: googleServices.android }),
     permissions: [
       'android.permission.FOREGROUND_SERVICE',
       'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
@@ -167,6 +179,13 @@ const config: ExpoConfig = {
           // Swift 6.4 compiler in Xcode 27 refuses to import it. Compile Expo modules from
           // source until the shipped swiftinterface reports Swift 6.4 or newer.
           usePrecompiledModules: false,
+          // React Native Firebase resolves the iOS SDK through Swift packages. Those
+          // packages collide under static linkage, so a build that links Firebase uses
+          // dynamic frameworks. Builds without the iOS Google services file leave the
+          // default linking so local and E2E builds stay unchanged.
+          ...(linkFirebase && googleServices.ios !== null
+            ? { useFrameworks: 'dynamic' as const }
+            : {}),
         },
         // ExoPlayer needs cleartext for E2E test-assets at http://10.0.2.2:2111 (and local API).
         android: {
@@ -178,9 +197,10 @@ const config: ExpoConfig = {
     './plugins/withPodverseCarPlay',
     ...associatedDomainsPlugins,
     // Adds the Play Billing permission and billing-ktx. Omitted when this build's billing mode is
-    // unavailable. A FOSS prebuild must also exclude `expo-iap` from autolinking so the native
-    // module is not compiled into the binary.
+    // unavailable. `react-native.config.js` also drops `expo-iap` and React Native Firebase from
+    // autolinking on a UnifiedPush build, and drops Firebase when no Google services file exists.
     ...storeBillingPlugins,
+    ...firebasePlugins,
     ['expo-screen-orientation', { initialOrientation: 'PORTRAIT_UP' }],
     './plugins/withPodverseVideoPlayback',
   ],

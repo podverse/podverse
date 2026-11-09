@@ -30,21 +30,25 @@ describe('notificationsTestPushLib', () => {
     expect(parseNotificationsTestPushArgs({ _: [], help: '' }).kind).toBe('help');
     expect(parseNotificationsTestPushArgs({ _: [], username: 'ada', list: '' })).toEqual({
       kind: 'list',
-      username: 'ada',
+      account: { by: 'username', username: 'ada' },
       installationId: null,
     });
     expect(
       parseNotificationsTestPushArgs({
         _: [],
-        username: 'ada',
+        email: 'ada@example.com',
         'installation-id': 'install-1',
       })
     ).toEqual({
       kind: 'send',
-      username: 'ada',
+      account: { by: 'email', email: 'ada@example.com' },
       installationId: 'install-1',
     });
     expect(parseNotificationsTestPushArgs({ _: [] }).kind).toBe('invalid');
+    expect(
+      parseNotificationsTestPushArgs({ _: [], username: 'ada', email: 'ada@example.com' }).kind
+    ).toBe('invalid');
+    expect(parseNotificationsTestPushArgs({ _: [], email: 'not-an-email' }).kind).toBe('invalid');
   });
 
   it('keeps only a short suffix of a token', () => {
