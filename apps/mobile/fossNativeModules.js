@@ -42,7 +42,9 @@ const existingFile = (value, label) => {
     return null;
   }
   if (!fs.existsSync(path)) {
-    console.warn(`${label} is set but the file is missing (${path}). Firebase stays out of this build.`);
+    console.warn(
+      `${label} is set but the file is missing (${path}). Firebase stays out of this build.`
+    );
     return null;
   }
   return path;
@@ -74,7 +76,8 @@ const reactNativeDependencyOverrides = (env) => {
   }
 
   const services = googleServicesPaths(env);
-  const linkFirebase = wantsFcmNativeModules(env) && (services.ios !== null || services.android !== null);
+  const linkFirebase =
+    wantsFcmNativeModules(env) && (services.ios !== null || services.android !== null);
   for (const name of FIREBASE_NATIVE_MODULES) {
     if (!linkFirebase) {
       dependencies[name] = { platforms: { ios: null, android: null } };

@@ -523,6 +523,9 @@ EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID="${LOCAL_API_PROTOCOL_EFFECTIVE}://${LOC
 for v in EXPO_PUBLIC_MOBILE_API_BASE_URL_IOS EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID; do
 	apply_override "$v" "${MOBILE_ENV_FILES[@]}"
 done
+# From mobile-firebase.env. Empty values are left alone, so a file-less build stays file-less.
+apply_override "GOOGLE_SERVICES_INFO_PLIST" "${MOBILE_ENV_FILES[@]}"
+apply_override "GOOGLE_SERVICES_JSON" "${MOBILE_ENV_FILES[@]}"
 
 # From app.env (LOG_DIR, ACCOUNT_SIGNUP_MODE)
 apply_override "LOG_DIR" "${API_ENV_FILES[@]}" "${WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"

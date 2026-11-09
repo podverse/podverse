@@ -1,36 +1,36 @@
+import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type PushProvider = 'fcm' | 'none' | 'unifiedpush';
+type GetToken = () => Promise<string>;
+type RegisterDevice = () => Promise<void>;
+type OnTokenRefresh = (messaging: unknown, listener: (token: string) => void) => () => void;
 
 type NativeDouble = {
   apps: string[];
   os: 'ios' | 'android';
   registered: boolean;
   token: string;
-  getToken: ReturnType<typeof vi.fn>;
-  register: ReturnType<typeof vi.fn>;
-  onTokenRefresh: ReturnType<typeof vi.fn>;
+  getToken: Mock<GetToken>;
+  register: Mock<RegisterDevice>;
+  onTokenRefresh: Mock<OnTokenRefresh>;
 };
 
-const native = vi.hoisted(
-  (): NativeDouble => ({
-    apps: ['default'],
-    os: 'ios',
-    registered: false,
-    token: 'fcm-registration-token',
-    getToken: vi.fn(async () => native.token),
-    register: vi.fn(async () => {
-      native.registered = true;
-    }),
-    onTokenRefresh: vi.fn(() => vi.fn()),
-  })
-);
+const native = vi.hoisted((): NativeDouble => ({
+  apps: ['default'],
+  os: 'ios',
+  registered: false,
+  token: 'fcm-registration-token',
+  getToken: vi.fn<GetToken>(async () => native.token),
+  register: vi.fn<RegisterDevice>(async () => {
+    native.registered = true;
+  }),
+  onTokenRefresh: vi.fn<OnTokenRefresh>(() => () => undefined),
+}));
 
-const configState = vi.hoisted(
-  (): { pushProvider: PushProvider } => ({
-    pushProvider: 'fcm',
-  })
-);
+const configState = vi.hoisted((): { pushProvider: PushProvider } => ({
+  pushProvider: 'fcm',
+}));
 
 vi.mock('@react-native-firebase/app', () => ({
   getApps: () => native.apps,

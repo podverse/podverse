@@ -179,10 +179,12 @@ const config: ExpoConfig = {
           // Swift 6.4 compiler in Xcode 27 refuses to import it. Compile Expo modules from
           // source until the shipped swiftinterface reports Swift 6.4 or newer.
           usePrecompiledModules: false,
-          // React Native Firebase links as a static iOS framework. Builds without the iOS
-          // Google services file leave the default linking so local and E2E builds stay unchanged.
+          // React Native Firebase resolves the iOS SDK through Swift packages. Those
+          // packages collide under static linkage, so a build that links Firebase uses
+          // dynamic frameworks. Builds without the iOS Google services file leave the
+          // default linking so local and E2E builds stay unchanged.
           ...(linkFirebase && googleServices.ios !== null
-            ? { useFrameworks: 'static' as const }
+            ? { useFrameworks: 'dynamic' as const }
             : {}),
         },
         // ExoPlayer needs cleartext for E2E test-assets at http://10.0.2.2:2111 (and local API).
