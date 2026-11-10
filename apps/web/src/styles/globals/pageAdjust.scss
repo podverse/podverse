@@ -7,6 +7,8 @@
 #media-player.media-player-active {
   display: flex;
   flex-shrink: 0;
+  min-width: 0;
+  max-width: 100%;
   min-height: var(--media-player-height-mobile);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
