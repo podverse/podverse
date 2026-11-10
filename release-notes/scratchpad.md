@@ -85,3 +85,12 @@
 - Who notices: listeners on podcast detail Downloaded / Funding, and on Home or Add by RSS when
   a title filter matches nothing
 - Operator steps: none
+
+## Download icon sits higher on list rows
+
+- Surfaces: mobile
+- Change: The download tray glyph on episode and track rows paints 2px higher inside the same
+  44pt button so it lines up optically with the More ellipsis. Hit target and row layout are
+  unchanged. Trash, alert, and in-progress spinner states are unchanged.
+- Who notices: listeners looking at download vs more on a media list row
+- Operator steps: none
