@@ -52,3 +52,13 @@
   for that prose. The shortened-notes link still appears when Podverse cut the stored text.
 - Who notices: listeners reading About or Summary on mobile
 - Operator steps: none
+
+## Large play buttons center the play triangle
+
+- Surfaces: web, mobile
+- Change: The play triangle inside large circular player buttons (desktop and mobile player
+  bars, detail-header play, full player, make-clip transport) shifts one pixel to the right so
+  it reads centered. Pause is unchanged. List-row play circles are unchanged. Named
+  `play-icon-optical-nudge` / `PLAY_ICON_OPTICAL_NUDGE` so the shift can be set to zero later.
+- Who notices: listeners looking at the main play control while paused
+- Operator steps: none

@@ -19,6 +19,8 @@
   --media-player-height: 100px;
   --media-player-height-mobile: 76px;
   --media-player-play-button-size: 3rem;
+  // Extra right shift for the play triangle in large circular player buttons. Set to 0 to undo.
+  --play-icon-optical-nudge: 1px;
   --media-player-height-top-section: 28px;
   --media-player-height-top-section-negative: -28px;
   --form-max-width: 560px;

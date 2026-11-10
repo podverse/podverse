@@ -12,4 +12,5 @@
   width: var(--media-player-play-button-size) !important;
   font-size: var(--font-size-base);
   @include mediaPlayerPlayPauseIconCentering;
+  @include mediaPlayerLargePlayIconOpticalNudge;
 }
