@@ -78,10 +78,8 @@ with scroll. The mini player on other screens is a separate surface.
   behavior; RN's "VirtualizedLists should never be nested" yellow box is structural and expected —
   silence it only via `ignoreFullPlayerBoundedNestedListWarning()` from
   `listVirtualization.ts` (called from `FullPlayerScreen`). Do not de-virtualize chapters/clips into
-  `ScrollView` + `.map()`, and do not broaden that ignore to unrelated nesting. Summary prose still
-  uses **Show more** / **Show less** (**about-summary-web-mobile-alignment**). The collapsed preview
-  fills the sheet and runs a little past it, so Show more is reached by a short scroll. Do not mount
-  the full description until the listener expands it.
+  `ScrollView` + `.map()`, and do not broaden that ignore to unrelated nesting. Summary prose shows
+  the full stored notes in the sheet (**about-summary-web-mobile-alignment**).
 - The pane sits in a rounded, inset sheet (`themeStyles.paneSheet`) so the fold reads as a distinct
   surface. Dark uses page ink (`background.primary`); other themes use the card surface. Chips stay
   outside that sheet. Round all four corners on the single wrapper (`FullPlayerPaneSheet`). The

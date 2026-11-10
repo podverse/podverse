@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StyleProp, TextStyle } from 'react-native';
 import { Linking, Pressable, Text, View } from 'react-native';
@@ -13,6 +13,7 @@ import { useTheme } from '../../theme/useTheme';
 
 /**
  * Collapsed plain-text length for channel About and for item Summary outside the full player.
+ * Callers still pass this; the component shows the full notes and leaves Show more commented out.
  * The full-player sheet sizes its own preview from the sheet height.
  */
 export const DESCRIPTION_PROSE_COLLAPSE_LENGTH = 720;
@@ -21,24 +22,26 @@ export type DescriptionTextProps = {
   html: string | null | undefined;
   /**
    * When this changes, the expanded state resets. Pass the channel or item id so a new entity
-   * starts collapsed.
+   * starts collapsed. Kept for a later Show more restore; full notes show on every paint today.
    */
   resetKey?: string | number | null;
   /**
    * Character limit for the collapsed plain-text preview. `null` always shows the full
-   * description (clip Summary).
+   * description (clip Summary). Kept for a later Show more restore; full notes show on every
+   * paint today.
    */
   collapseLength?: number | null;
   /**
    * When collapsed, clamp the preview to this many lines. `collapseLength` still bounds how
-   * much plain text is mounted. The full-player sheet uses this so the preview fills the card
-   * and Show more sits just past the fold.
+   * much plain text is mounted. Kept for a later Show more restore; full notes show on every
+   * paint today.
    */
   collapsedMaxLines?: number;
   textStyle?: StyleProp<TextStyle>;
   showMoreStyle?: StyleProp<TextStyle>;
   linkStyle?: StyleProp<TextStyle>;
   testID?: string;
+  /** Kept for a later Show more restore; the toggle is commented out today. */
   toggleTestID?: string;
   /** Shown when the description is empty after stripping. */
   emptyLabel?: string;
@@ -260,8 +263,8 @@ const renderBlockNodes = (
 };
 
 /**
- * Channel About and item Summary prose: plain text when collapsed or when markup does not parse;
- * rich text (links, emphasis, breaks) when the full description is on screen.
+ * Channel About and item Summary prose: rich text (links, emphasis, breaks) when markup parses;
+ * plain text when it does not. Full stored notes paint on every open.
  */
 export function DescriptionText({
   html,
@@ -279,36 +282,15 @@ export function DescriptionText({
 }: DescriptionTextProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
-  const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    setExpanded(false);
-  }, [resetKey]);
+  // Collapse props stay on the API for a later Show more restore. Full notes show today.
+  void resetKey;
+  void collapseLength;
+  void collapsedMaxLines;
+  void toggleTestID;
 
   const document = useMemo(() => readDescriptionDocument(html), [html]);
   const plain = document.plain;
-  const canCollapse = collapseLength !== null && plain.length > collapseLength;
-  const showRich = !canCollapse || expanded;
-
-  const displayPlain = useMemo(() => {
-    if (!canCollapse || expanded || collapseLength === null) {
-      return plain;
-    }
-    return `${plain.slice(0, collapseLength)}…`;
-  }, [canCollapse, collapseLength, expanded, plain]);
-
-  const previewLineLimit =
-    canCollapse &&
-    !expanded &&
-    collapsedMaxLines !== undefined &&
-    Number.isFinite(collapsedMaxLines) &&
-    collapsedMaxLines > 0
-      ? Math.floor(collapsedMaxLines)
-      : undefined;
-
-  const handleToggle = useCallback(() => {
-    setExpanded((current) => !current);
-  }, []);
 
   if (plain.length === 0) {
     if (emptyLabel === undefined || emptyLabel.length === 0) {
@@ -330,38 +312,24 @@ export function DescriptionText({
   };
 
   let body: ReactNode;
-  if (showRich && document.rich !== null) {
+  if (document.rich !== null) {
     body = <View testID={testID}>{renderBlockNodes(document.rich, clockOptions)}</View>;
   } else if (onDescriptionClock !== undefined) {
-    const preview =
-      !canCollapse || expanded || collapseLength === null ? plain : plain.slice(0, collapseLength);
-    const showEllipsis = canCollapse && !expanded && collapseLength !== null;
     body = (
-      <Text
-        ellipsizeMode={previewLineLimit === undefined ? undefined : 'tail'}
-        numberOfLines={previewLineLimit}
-        style={textStyle}
-        testID={testID}
-      >
-        {renderClockText(preview, 'plain', clockOptions)}
-        {showEllipsis ? '…' : null}
+      <Text style={textStyle} testID={testID}>
+        {renderClockText(plain, 'plain', clockOptions)}
       </Text>
     );
   } else {
     body = (
-      <Text
-        ellipsizeMode={previewLineLimit === undefined ? undefined : 'tail'}
-        numberOfLines={previewLineLimit}
-        style={textStyle}
-        testID={testID}
-      >
-        {displayPlain}
+      <Text style={textStyle} testID={testID}>
+        {plain}
       </Text>
     );
   }
 
   let truncationNotice: ReactNode = null;
-  if (truncation !== undefined && (!canCollapse || expanded)) {
+  if (truncation !== undefined) {
     const linkUrl =
       truncation.kind === 'item' &&
       truncation.linkUrl !== null &&
@@ -402,6 +370,8 @@ export function DescriptionText({
     <View>
       {body}
       {truncationNotice}
+      {/*
+      Show more / Show less — restore with collapseLength / collapsedMaxLines / toggleTestID.
       {canCollapse ? (
         <Pressable
           accessibilityRole="button"
@@ -412,6 +382,7 @@ export function DescriptionText({
           <Text style={showMoreStyle}>{t(expanded ? 'info.show_less' : 'info.show_more')}</Text>
         </Pressable>
       ) : null}
+      */}
     </View>
   );
 }

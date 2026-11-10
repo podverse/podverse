@@ -43,3 +43,12 @@
 - Who notices: operators debugging push delivery
 - Operator steps: deploy a workers image with this change, then look for `Push send result`
   in the parser log on the next episode
+
+## About and Summary show the full notes
+
+- Surfaces: mobile
+- Change: Channel About and item Summary (episode, track, livestream, full player, Add by RSS)
+  show the full stored description on first paint. Show more / Show less is no longer offered
+  for that prose. The shortened-notes link still appears when Podverse cut the stored text.
+- Who notices: listeners reading About or Summary on mobile
+- Operator steps: none

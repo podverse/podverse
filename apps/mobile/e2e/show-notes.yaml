@@ -30,15 +30,7 @@ name: Show Notes Flow
     text: ".*About This Episode.*"
 - takeScreenshot: show-notes-episode-summary
 
-# Show More appears only when the prose is longer than the collapsed preview. The link sits after
-# the fully shown prose, never inside the collapsed preview.
-- runFlow:
-    when:
-      visible:
-        id: episode-detail-description-toggle
-    commands:
-      - tapOn:
-          id: episode-detail-description-toggle
+# Full notes paint on first open. The shortened-notes link sits after the prose.
 - scrollUntilVisible:
     element:
       id: episode-detail-description-truncation-link
