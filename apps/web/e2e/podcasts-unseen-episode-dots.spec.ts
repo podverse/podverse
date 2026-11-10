@@ -96,10 +96,7 @@ test.describe('Podcast episode unseen dots', () => {
       await expect(page).toHaveURL(new RegExp(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`));
       await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
 
-      await page
-        .locator(`a[href="${CHANNEL_URL}"]`)
-        .first()
-        .click();
+      await page.locator(`a[href="${CHANNEL_URL}"]`).first().click();
       await expect(page).toHaveURL(new RegExp(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`));
       await expect(page.getByText(E2E_PODCAST_CHANNEL_TITLE).first()).toBeVisible();
       await expect.poll(() => mark.markCount()).toBe(1);

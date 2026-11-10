@@ -418,9 +418,8 @@ export class AccountFollowingChannelService extends BaseManyService<
           : { channelId: channel.id, channelIdText: channel.id_text, seenAt };
       })
       .filter(
-        (
-          update
-        ): update is { channelId: number; channelIdText: string; seenAt: Date } => update !== null
+        (update): update is { channelId: number; channelIdText: string; seenAt: Date } =>
+          update !== null
       );
 
     if (updates.length === 0) {

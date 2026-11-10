@@ -7,8 +7,8 @@ import { itemShowsUnseenDot } from '@podverse/helpers';
 import type { ChannelVisitKey, ChannelVisitState } from '../lib/channelVisit/channelVisitStore';
 import {
   beginChannelVisit,
-  engageChannelVisitItem,
   endChannelVisit,
+  engageChannelVisitItem,
   getChannelVisitSnapshot,
   hasActiveChannelVisit,
   subscribeChannelVisit,
@@ -74,8 +74,7 @@ export function useItemUnseenDot(params: {
     params.pubDate === null || params.pubDate === undefined || params.pubDate === ''
       ? null
       : Date.parse(params.pubDate);
-  const resolvedPubDateMs =
-    pubDateMs === null || Number.isNaN(pubDateMs) ? null : pubDateMs;
+  const resolvedPubDateMs = pubDateMs === null || Number.isNaN(pubDateMs) ? null : pubDateMs;
 
   return itemShowsUnseenDot({
     engagedItemIds: visit.engagedItemIds,

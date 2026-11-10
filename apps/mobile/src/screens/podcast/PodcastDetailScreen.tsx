@@ -45,8 +45,8 @@ import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
-import { usePlaybackRow } from '../../playback/PlaybackProvider';
 import type { ChannelBrowseStackParamList } from '../../navigation';
+import { usePlaybackRow } from '../../playback/PlaybackProvider';
 import type {
   PodcastDetailRange,
   PodcastDetailSort,

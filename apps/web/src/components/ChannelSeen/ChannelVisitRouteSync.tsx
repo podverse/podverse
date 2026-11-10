@@ -29,9 +29,7 @@ const isChannelVisitPath = (pathname: string | null): boolean => {
   if (pathname === null || pathname === '') {
     return false;
   }
-  return DETAIL_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
+  return DETAIL_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 };
 
 /**

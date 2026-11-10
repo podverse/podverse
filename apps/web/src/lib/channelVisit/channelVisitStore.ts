@@ -10,8 +10,7 @@
  */
 
 export type ChannelVisitKey =
-  | { kind: 'channel'; channelIdText: string }
-  | { kind: 'add-by-rss'; feedUrl: string };
+  { kind: 'channel'; channelIdText: string } | { kind: 'add-by-rss'; feedUrl: string };
 
 export type ChannelVisitState = {
   engagedItemIds: ReadonlySet<string>;

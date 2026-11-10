@@ -1087,9 +1087,7 @@ export function BrowseScreen() {
         <LoadingSection testID="browse-category-loading" />
       ) : showEmptyDirectory ? (
         <ListEmpty
-          actionLabelKey={
-            showBrowseByRecent ? 'features.browse.browse_by_most_recent' : undefined
-          }
+          actionLabelKey={showBrowseByRecent ? 'features.browse.browse_by_most_recent' : undefined}
           messageKey={browseEmptyMessageKey(selectedMediaType)}
           onAction={showBrowseByRecent ? handleBrowseByRecent : undefined}
           testID="browse-list-empty"

@@ -104,3 +104,11 @@
   without opening the sort menu. The button stays off for Recent and for non-Browse lists.
 - Who notices: listeners on Browse when the chosen popularity window has no counted listens
 - Operator steps: none
+
+## Add-by-RSS seen list returns timestamps
+
+- Surfaces: api
+- Change: `GET /account/channel-seen/add-by-rss` returns each followed feed as `feed_url` and
+  `last_seen_at` (ISO timestamp, or null when the feed has never been opened).
+- Who notices: signed-in clients syncing add-by-RSS seen timestamps
+- Operator steps: none

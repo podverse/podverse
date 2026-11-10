@@ -121,7 +121,9 @@ export function PlayerTransportButton({
         name={glyph}
         size={iconSize}
         style={
-          needsPlayOpticalNudge ? { transform: [{ translateX: PLAY_ICON_OPTICAL_NUDGE }] } : undefined
+          needsPlayOpticalNudge
+            ? { transform: [{ translateX: PLAY_ICON_OPTICAL_NUDGE }] }
+            : undefined
         }
       />
     ) : undefined;

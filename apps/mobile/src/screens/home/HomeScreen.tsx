@@ -1574,9 +1574,7 @@ export function HomeScreen() {
       <>
         {showFilterField ? (
           <ListFilterHeader
-            hasItemsBelow={
-              !isGridView && (visibleRows.length > 0 || showNoFilterMatches)
-            }
+            hasItemsBelow={!isGridView && (visibleRows.length > 0 || showNoFilterMatches)}
             style={styles.filterRow}
           >
             <ListFilterField

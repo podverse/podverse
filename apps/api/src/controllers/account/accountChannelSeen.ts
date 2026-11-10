@@ -8,6 +8,7 @@ import Joi from 'joi';
 
 import type {
   AddByRssSeenMarkResult,
+  AddByRssSeenState,
   ChannelSeenMarkEntry,
   ChannelSeenMarkResult,
   ChannelSeenState,
@@ -299,14 +300,23 @@ const toChannelSeenMarkResult = (row: ChannelSeenMarkRow): ChannelSeenMarkResult
   };
 };
 
+const toAddByRssSeenState = (row: {
+  feed_url: string;
+  last_seen_at: Date | null;
+}): AddByRssSeenState => {
+  return {
+    feed_url: row.feed_url,
+    last_seen_at: row.last_seen_at?.toISOString() ?? null,
+  };
+};
+
 const toAddByRssSeenMarkResult = (row: {
   feed_url: string;
   last_seen_at: Date | null;
   previous_last_seen_at: Date | null;
 }): AddByRssSeenMarkResult => {
   return {
-    feed_url: row.feed_url,
-    last_seen_at: row.last_seen_at?.toISOString() ?? null,
+    ...toAddByRssSeenState(row),
     previous_last_seen_at: row.previous_last_seen_at?.toISOString() ?? null,
   };
 };

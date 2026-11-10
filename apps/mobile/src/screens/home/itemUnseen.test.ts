@@ -54,25 +54,13 @@ describe('itemRowShowsUnseenDot', () => {
 
   it('hides the dot when the item was engaged during the visit', () => {
     expect(
-      itemRowShowsUnseenDot(
-        false,
-        '2026-08-21T00:00:00.000Z',
-        threshold,
-        'ep-1',
-        new Set(['ep-1'])
-      )
+      itemRowShowsUnseenDot(false, '2026-08-21T00:00:00.000Z', threshold, 'ep-1', new Set(['ep-1']))
     ).toBe(false);
   });
 
   it('keeps a sibling row dotted when a different item was engaged', () => {
     expect(
-      itemRowShowsUnseenDot(
-        false,
-        '2026-08-21T00:00:00.000Z',
-        threshold,
-        'ep-2',
-        new Set(['ep-1'])
-      )
+      itemRowShowsUnseenDot(false, '2026-08-21T00:00:00.000Z', threshold, 'ep-2', new Set(['ep-1']))
     ).toBe(true);
   });
 });
