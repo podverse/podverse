@@ -24,7 +24,7 @@
   "dependencies": {
     "@podverse/external-services-firebase": "*",
     "@podverse/helpers": "*",
-    "web-push": "^3.6.7",
+    "web-push": "^4.0.0",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-validation": "*"
   },
