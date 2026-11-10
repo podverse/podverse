@@ -60,7 +60,8 @@ export function SignUpScreen({ onDismiss, onDragDismiss, onSwitchToLogin }: Sign
       marginTop: formActionsTopGap(tokens.spacing),
     },
     error: {
-      color: themeStyles.textSecondary.color,
+      color: tokens.text.danger,
+      fontWeight: '700',
       marginTop: tokens.spacing.md,
     },
     fields: {
