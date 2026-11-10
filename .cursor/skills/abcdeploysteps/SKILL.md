@@ -164,6 +164,63 @@ for that case; write `unconfirmed` plus the diff result.
 One manual job per database applies every pending file for that database, in order. Name each
 filename in the checklist. Do not create a second job for a second file.
 
+### Env since the last pin
+
+Run this before the checklist file exists. A checklist with no `Env:` line is incomplete. Do not
+guess `none`.
+
+The range is the same pin as **What changed**. For mobile keys, use the git commit on the newest
+finished EAS `beta` build when that commit is known. Otherwise use the cluster pin and say the
+mobile baseline is the pin.
+
+Diff that range for:
+
+- `apps/*/.env.example`, `apps/*/sidecar/.env.example`, and `extensions/*/.env.example`
+- `infra/k8s/base/**/source/*.env`
+- `apps/api`, `apps/management-api`, and `apps/workers` `src/lib/startup/validation.ts`
+- `apps/web/scripts/validate-env.ts` and `apps/management-web/scripts/validate-env.ts`
+- `apps/mobile/.env.example` when the mobile lane is included
+
+A key is in play when that diff adds it, removes it, or changes a `KEY=` value, or when it adds or
+drops `validateRequired('KEY'` or another validator called with required true. Ignore comment-only
+edits. Ignore `API_RELEASE` and `READINESS_API_EXPECTED_RELEASE`; the pin step already sets those.
+
+Alpha pods receive the base env from the pinned tag, then `configMapGenerator` `behavior: merge`
+from `k.podcastdj.com` `apps/podverse-alpha/**/source/*.env`. The overlay wins on the same key.
+Match a base file to the overlay file with the same basename (`api.env` to
+`apps/podverse-alpha/api/source/api.env`, and the same for workers, web, management-api, and
+management-web). `product-membership-settings.env` and the extension env files live under
+`apps/podverse-alpha/common/source/`.
+
+A required key is one that `origin/develop` rejects at startup when unset. It is **missing** when
+it is absent from the base env at `origin/develop`, absent from the alpha overlay, and absent from
+secret key names, or when the overlay sets it to an empty value. Secret key names come from
+comments in the alpha env files and from `scripts/secret-generators/`. A SOPS file that lists the
+key next to `ENC[` counts as present. Do not decrypt, and do not copy a value or an `ENC[` blob
+into the checklist or the reply.
+
+An overlay key is **stale** when the overlay sets it and the base `source/*.env` value changed in
+the range (or `.env.example`, when the base file has no line). The new base value will not apply.
+Do not print either value. Do not replace the overlay with the base file. Alpha hosts and flags
+differ from base on purpose; the operator confirms the alpha value before the pin commit.
+
+A new key that is already in the base env and not overridden ships with the pin. Leave it off the
+`Env:` line. A new optional key that is in neither the base env nor the overlay is a confirm line
+under `Env:`, not a commit requirement, unless startup requires it.
+
+Mobile keys added in that range are not in git on the cluster. Name each one as `mobile KEY — set
+on the EAS preview environment before the build` (profile `beta` uses `preview`). Do not put
+`make mobile_eas_env_set` in the file until the operator gives the value in this conversation.
+Never write that value into the file.
+
+`Env:` is `none` when nothing is missing or stale and no mobile key was added. Otherwise one
+clause per key, with the overlay path or the secret name. When the GitOps checkout cannot be
+read, write `unconfirmed` plus which keys the diff added. Do not write `none` for that case.
+
+The pin commit includes every missing or stale edit whose value the operator has already chosen.
+Skip secret generators unless a new secret is required for startup. Never commit decrypted
+secrets.
+
 ## Where the checklist file goes
 
 When alpha is clear and a lane has changes, write one markdown file locally. Do not put it in the
@@ -229,6 +286,7 @@ Server: <pinned tag> -> next staging tag of <X.Y.Z>
 Mobile: <include, or "no mobile changes">
 Commits: <range>
 Migrations: <none, or "app 0003_stats_channel_hidden.sql" and the same for management. "unconfirmed" when the cluster was not read.>
+Env: <none, or each missing or stale key with its overlay path. "unconfirmed" when the GitOps checkout was not read.>
 
 ## Do not
 <the inadvisable list that applies this time, one line each>
@@ -317,9 +375,10 @@ git grep -nE 'staging\.N|REPLACE_WITH|X\.Y\.Z' -- apps/podverse-alpha
 git grep -n 'OLD_PIN' -- apps/podverse-alpha
 ```
 
-Leave Postgres, Valkey, and ActiveMQ tags as they are. If this release changes env or overlays
-beyond the pin, include those file edits in the same commit. Skip secret generators unless a new
-secret is required for startup. Never commit decrypted secrets.
+Leave Postgres, Valkey, and ActiveMQ tags as they are. The `Env:` line is the list of overlay
+edits for this release. Include each one whose value the operator has already chosen in this
+same commit, before the contract checks. A missing or stale key with no chosen value stops the
+commit. Do not invent a value and do not copy an example file over the overlay.
 
 **k.podcastdj.com repo root:**
 
@@ -511,9 +570,10 @@ the checklist path in `apps/mobile/modules/podverse-media-engine/`. Do not paste
 1. Clear, or the blockers. Blockers end the reply.
 2. Which surfaces changed, from which tag or build, in a few commit subjects.
 3. The `Migrations:` line. A server deploy that omits it is not done.
-4. The lanes that run together.
-5. The steps (same text as the file).
-6. The temp file path.
+4. The `Env:` line. A checklist that omits it is not done.
+5. The lanes that run together.
+6. The steps (same text as the file).
+7. The temp file path.
 
 Do not run the steps. If the operator later says to run one, still refuse push, EAS build or
 submit, Argo, secret generation, and anything that deletes cluster data. Repeat the warning

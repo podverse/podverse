@@ -110,6 +110,12 @@ Read-only `git`, `gh run list`, `gh run view`, and `kubectl get` / `kubectl logs
 Wait until the sync script exits 0 and prints one tag matching `X.Y.Z-staging.N`. Stop if that
 line is missing, appears more than once, or ends in `.N`.
 
+Run **Env since the last pin** from `abcdeploysteps` against this tag and the previous pin
+before editing GitOps. `Env: none` continues. `missing`, `stale`, or `unconfirmed` stops the
+run. Name each key in the log. Do not add a value, do not copy an example file over the alpha
+overlay, and do not run a secret generator. Mobile keys are named in the log only. This command
+does not set EAS env.
+
 Then, in `k.podcastdj.com`, replace the old pin with that tag everywhere `abcdeploysteps` lists
 (`?ref=`, `newTag` for `ghcr.io/podverse/podverse/`, `API_RELEASE`,
 `READINESS_API_EXPECTED_RELEASE`).
@@ -118,13 +124,6 @@ with fish command substitution.
 
 Run the two `git grep` checks and both contract scripts from that skill. A hit or a failing
 script stops the run before the commit.
-
-Other env values stay as they are. Compare required keys at the new tag
-(`apps/*/src/lib/startup/validation.ts` and the web `validate-env` scripts) with the previous
-pin. A key that is newly required must already have a non-empty value in the alpha
-`source/*.env` for that workload, in the base `source/*.env` at the new tag, or in an existing
-secret mount. If it does not, stop and name the key. Do not add a value. Do not copy an example
-file over the alpha overlay.
 
 ## Cluster
 
