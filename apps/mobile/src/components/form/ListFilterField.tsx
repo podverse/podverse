@@ -11,8 +11,10 @@ import { TextField } from './TextField';
 export type ListFilterHeaderProps = {
   children: ReactNode;
   /**
-   * Extra space under the field only when a row or tile follows. The first list row draws its own
-   * top hairline; this header does not.
+   * Extra space under the field when a row, tile, empty banner, spinner, or error follows. List
+   * mode uses this padding for that seam; grid mode often uses `listFilterFieldBottomMargin`
+   * instead and leaves this false so the two do not stack. The first list row draws its own top
+   * hairline; this header does not.
    */
   hasItemsBelow: boolean;
   /**
@@ -24,9 +26,10 @@ export type ListFilterHeaderProps = {
 };
 
 /**
- * Wraps a `ListFilterField` so `listFilterContentGap` of space sits under the input when a row or
- * tile follows. The line, when there is one, is that first row's top border — not a rule on this
- * header. Omit the extra gap when the list is empty or the term hid every row.
+ * Wraps a `ListFilterField` so `listFilterContentGap` of space sits under the input when content
+ * follows — a row, tile, empty banner, spinner, or error. The line, when there is one, is that
+ * first row's top border — not a rule on this header. On a grid that already spaces via
+ * `listFilterFieldBottomMargin`, leave `hasItemsBelow` false so the gaps do not stack.
  */
 export function ListFilterHeader({ children, hasItemsBelow, style }: ListFilterHeaderProps) {
   const { tokens } = useTheme();

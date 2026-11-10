@@ -75,3 +75,13 @@
 - Who notices: listeners returning from the player or an episode page to a channel’s episode
   list; operators of clients that mark channels seen
 - Operator steps: none
+
+## Filter empty states keep spacing; Funding matches About type
+
+- Surfaces: mobile
+- Change: Title filters keep the same gap above empty, no-match, loading, and error bodies as
+  above list rows (podcast Downloaded “No downloads yet”, Home and Add by RSS list-mode
+  no-match). Funding chip prose and links use the same reading size as About and Summary.
+- Who notices: listeners on podcast detail Downloaded / Funding, and on Home or Add by RSS when
+  a title filter matches nothing
+- Operator steps: none

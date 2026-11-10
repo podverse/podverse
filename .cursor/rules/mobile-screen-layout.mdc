@@ -316,9 +316,11 @@ on that wrapper's `style` (`marginBottom`):
 - **Grid** tiles with no top padding: pass `0`.
 
 `ListFilterHeader` does not paint a line. When **`hasItemsBelow`** is true, its `paddingBottom`
-is `listFilterContentGap` so the field does not sit on the first row. Pass that when the list
-has at least one row or tile after the field. Omit it when the list is empty or the term hid
-every row. Do not put that padding on the field itself.
+is `listFilterContentGap` so the field does not sit on whatever follows — a row, tile, empty
+banner, spinner, or error. On list mode (where `listFilterFieldBottomMargin` is `0` because rows
+already pad their top), pass `hasItemsBelow` whenever any of those follow. On grid mode (where
+`listFilterFieldBottomMargin` already supplies the full gap), leave `hasItemsBelow` false so the
+padding and margin do not stack. Do not put that padding on the field itself.
 
 Do not use a raw `marginBottom: spacing.md` on the filter (too tight on grid once list padding is
 added elsewhere, too loose on list when stacked with row padding). Home switches the second
