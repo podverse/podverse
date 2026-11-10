@@ -343,9 +343,11 @@ export const ListEpisodeRow: React.FC<Props> = ({
 
   return (
     <div className={styles.row}>
-      {(isEditModeQueue || isEditModePlaylist) && dragHandleProps != null && (
-        <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
-      )}
+      {(isEditModeQueue || isEditModePlaylist) &&
+        dragHandleProps !== null &&
+        dragHandleProps !== undefined && (
+          <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
+        )}
       <ImagesPerView
         candidates={episodeArtworkCandidates}
         alt={item.title || tMedia('podcast.episode_image')}

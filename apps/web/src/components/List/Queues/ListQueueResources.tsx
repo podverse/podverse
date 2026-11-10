@@ -78,13 +78,7 @@ export const ListQueueResources: React.FC<Props> = ({
   const { activeQueue } = useQueues();
   const queueResourcesLoadActive = useQueueResourcesLoadActive();
   const mediaPlayer = useMediaPlayer();
-  const {
-    mpAddByRSS,
-    mpChannel,
-    mpClip,
-    mpItem,
-    mpItemSoundbite,
-  } = mediaPlayer;
+  const { mpAddByRSS, mpChannel, mpClip, mpItem, mpItemSoundbite } = mediaPlayer;
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const playAddByRSS = usePlayAddByRSS();
   const { autoQueueConfig } = useAutoQueue();
@@ -247,9 +241,7 @@ export const ListQueueResources: React.FC<Props> = ({
   };
 
   const showPlayerOnlyNowPlaying =
-    nowPlayingQueueResource === null &&
-    viewedQueueMatchesPlayerMedium &&
-    playingContentId !== null;
+    nowPlayingQueueResource === null && viewedQueueMatchesPlayerMedium && playingContentId !== null;
 
   const showNowPlayingSection = nowPlayingQueueResource !== null || showPlayerOnlyNowPlaying;
   const showCallToAction = showLoginMessage;
@@ -280,12 +272,7 @@ export const ListQueueResources: React.FC<Props> = ({
         playback_position: '0',
         playlist_id: 0,
       } as unknown as DTOQueueResource;
-      return (
-        <ListQueueResourceRow
-          isEditModeQueue={false}
-          queueResource={syntheticResource}
-        />
-      );
+      return <ListQueueResourceRow isEditModeQueue={false} queueResource={syntheticResource} />;
     }
     if (mpClip && mpItem && mpChannel) {
       return (

@@ -7,7 +7,7 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 import type { HomeFeedRowData } from '../../screens/home/homeFeedData';
 import { addByRssPlaybackMediaId } from '../addByRss/resourceData';
 import { isMusicPlaybackTarget } from '../playback/engineAudioProfile';
-import { clipToHomeRow, itemToHomeRow, type ItemHomeRow } from '../rows/homeRowMappers';
+import { clipToHomeRow, type ItemHomeRow, itemToHomeRow } from '../rows/homeRowMappers';
 
 export type PlaybackTargetQueueRow = HomeFeedRowData & {
   mediaType: 'clips' | 'episodes' | 'tracks';
@@ -41,9 +41,7 @@ const toImages = (value: unknown): DTOItemImage[] => {
   return value.filter((entry): entry is DTOItemImage => isObjectLike(entry));
 };
 
-const addByRssResourceToQueueRow = (
-  resourceData: AddByRSSResourceData
-): PlaybackTargetQueueRow => {
+const addByRssResourceToQueueRow = (resourceData: AddByRSSResourceData): PlaybackTargetQueueRow => {
   const mediaId = addByRssPlaybackMediaId(resourceData);
   const title =
     getNonEmptyTrimmedStringProperty(resourceData, 'title') ??

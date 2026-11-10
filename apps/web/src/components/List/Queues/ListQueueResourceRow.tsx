@@ -51,7 +51,8 @@ export const ListQueueResourceRow: React.FC<Props> = ({
   const item_soundbite = queueResource.item_soundbite;
   const add_by_rss_hash_id = queueResource.add_by_rss_hash_id;
   const is_add_by_rss_redacted = queueResource.is_add_by_rss_redacted === true;
-  const showReorderHandle = isEditModeQueue && dragHandleProps != null;
+  const showReorderHandle =
+    isEditModeQueue && dragHandleProps !== null && dragHandleProps !== undefined;
 
   if (add_by_rss_hash_id) {
     const resourceData = queueResource.add_by_rss_resource_data;
@@ -134,7 +135,11 @@ export const ListQueueResourceRow: React.FC<Props> = ({
               dragHandleProps={dragHandleProps}
             />
           )}
-          <Button variant="unstyled" className={styles.trackClickable} onClick={playAddByRssFromQueue}>
+          <Button
+            variant="unstyled"
+            className={styles.trackClickable}
+            onClick={playAddByRssFromQueue}
+          >
             <ImagesPerView
               candidates={imageCandidates}
               alt={addByRSSTitle}

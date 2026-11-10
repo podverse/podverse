@@ -26,9 +26,9 @@ import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueResourcesLoadActive } from '../../hooks/useQueueResourcesLoadActive';
 import { resolveListFill } from '../../lib/listFill';
 import {
+  type PlaybackTargetQueueRow,
   playbackTargetToQueueHomeRow,
   queueMediumIdForPlaybackTarget,
-  type PlaybackTargetQueueRow,
 } from '../../lib/queue/playbackTargetQueueRow';
 import { splitQueueScreenResources } from '../../lib/queue/queueScreenResources';
 import type { QueueReorderMutation } from '../../lib/reorder/resolveQueueDrop';
@@ -129,9 +129,7 @@ function LibraryNowPlayingQueueRow({
       onQueuePress={noopQueuePress}
       row={row}
       testID={
-        resource !== null
-          ? `queue-now-playing-row-${resource.id}`
-          : 'queue-now-playing-row-player'
+        resource !== null ? `queue-now-playing-row-${resource.id}` : 'queue-now-playing-row-player'
       }
     />
   );
@@ -713,7 +711,11 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   }, [loadQueue]);
 
   const playerOnlyNowPlayingRow = useMemo(() => {
-    if (nowPlayingQueueResource !== null || !viewedQueueMatchesPlayerMedium || activeTarget === null) {
+    if (
+      nowPlayingQueueResource !== null ||
+      !viewedQueueMatchesPlayerMedium ||
+      activeTarget === null
+    ) {
       return null;
     }
     return playbackTargetToQueueHomeRow(activeTarget);
@@ -728,8 +730,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     });
   }, [nowPlayingQueueResource, t]);
 
-  const showNowPlayingSection =
-    nowPlayingHomeRow !== null || playerOnlyNowPlayingRow !== null;
+  const showNowPlayingSection = nowPlayingHomeRow !== null || playerOnlyNowPlayingRow !== null;
 
   const emptyMessageKey =
     selectedMedium === 'music' ? 'features.queue.empty_music' : 'features.queue.empty_podcasts';

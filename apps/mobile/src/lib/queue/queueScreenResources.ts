@@ -1,8 +1,8 @@
 import {
   isNowPlayingListPosition,
   queueResourceContentId,
-  splitQueueScreenResources,
   type QueueScreenResource,
+  splitQueueScreenResources,
   type SplitQueueScreenResourcesResult,
 } from '@podverse/playback-core';
 
