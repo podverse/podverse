@@ -291,7 +291,7 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
 
   return (
     <div className={styles.row}>
-      {(isEditModeQueue || isEditModePlaylist) && (
+      {(isEditModeQueue || isEditModePlaylist) && dragHandleProps != null && (
         <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
       )}
       <ImagesPerView

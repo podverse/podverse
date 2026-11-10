@@ -25,3 +25,10 @@
 - Change: On podcast channel detail, the episode list waits for the live-item request and publishes that result with the stored episodes in one update, so a live or scheduled row no longer inserts above the list after first paint
 - Who notices: listeners opening a podcast that has a live or scheduled livestream
 - Operator steps: none
+
+## Queue shows Now Playing at the top
+
+- Surfaces: web, mobile
+- Change: The podcast and music queue lists show the item currently loaded in the player in a Now Playing section at the top of the matching medium’s queue, including when that item was never added to the queue
+- Who notices: listeners opening Queue / Queues while something is playing or paused
+- Operator steps: none

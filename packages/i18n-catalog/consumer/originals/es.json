@@ -164,6 +164,7 @@
       "removed_from_queue": "Eliminado de la cola",
       "empty_podcasts": "Todavía no hay nada en tu cola de podcasts",
       "empty_music": "Todavía no hay nada en tu cola de música",
+      "now_playing": "Reproduciendo ahora",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "history": {

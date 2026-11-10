@@ -343,7 +343,7 @@ export const ListEpisodeRow: React.FC<Props> = ({
 
   return (
     <div className={styles.row}>
-      {(isEditModeQueue || isEditModePlaylist) && (
+      {(isEditModeQueue || isEditModePlaylist) && dragHandleProps != null && (
         <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
       )}
       <ImagesPerView

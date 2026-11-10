@@ -334,7 +334,7 @@ export const ListClipRow: React.FC<Props> = ({
 
   return (
     <div className={styles.row} data-removed-source={sourceRemoved ? 'true' : undefined}>
-      {(isEditModeQueue || isEditModePlaylist) && (
+      {(isEditModeQueue || isEditModePlaylist) && dragHandleProps != null && (
         <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
       )}
       <ImagesPerView

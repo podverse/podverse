@@ -12,6 +12,18 @@
   @include flexColumn(var(--spacing-xl));
 }
 
+.nowPlayingSection {
+  @include flexColumn(var(--spacing-base));
+  margin-bottom: var(--spacing-xl);
+}
+
+.nowPlayingHeading {
+  margin: var(--spacing-none);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-color-accent);
+}
+
 .queueListAV {
   @include flexColumn(1.25rem);
 }
