@@ -6,6 +6,7 @@ import {
   isNotificationsTestPushEnabled,
   isNotificationsTestPushHelpArgv,
   notificationsTestPushEnabledResult,
+  outcomeFromPushOutcome,
   outcomeFromSendResult,
   parseNotificationsTestPushArgs,
   secretSuffix,
@@ -78,6 +79,26 @@ describe('notificationsTestPushLib', () => {
     expect(formatOutcomeLine(outcome)).toBe(
       'failed code=messaging/registration-token-not-registered message=token is not registered'
     );
+  });
+
+  it('reads a summarized push outcome without the token', () => {
+    const outcome = outcomeFromPushOutcome({
+      service: 'firebase',
+      platform: 'android',
+      accepted: 0,
+      failed: 1,
+      byCode: { 'messaging/registration-token-not-registered': 1 },
+      sampleMessageByCode: {
+        'messaging/registration-token-not-registered': 'not registered',
+      },
+      deadTargets: ['secret-token'],
+    });
+    expect(outcome).toEqual({
+      success: false,
+      errorCode: 'messaging/registration-token-not-registered',
+      errorMessage: 'not registered',
+    });
+    expect(formatOutcomeLine(outcome)).not.toContain('secret-token');
   });
 
   it('reads a web push success', () => {

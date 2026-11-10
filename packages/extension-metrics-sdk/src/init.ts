@@ -10,6 +10,8 @@ import {
   createWorkerCommandInstruments,
   recordWorkerCommandMetric,
 } from './worker/commandTiming.js';
+import type { PushSendRecord } from './worker/pushSend.js';
+import { createPushSendInstruments, recordPushSendMetric } from './worker/pushSend.js';
 
 const METER_NAME = 'podverse.extensions';
 
@@ -67,11 +69,13 @@ export const initExtensions = (config: ExtensionInitConfig): void => {
   const meter = meterProvider.getMeter(METER_NAME);
   const httpInstruments = createHttpMetricInstruments(meter);
   const workerInstruments = createWorkerCommandInstruments(meter);
+  const pushInstruments = createPushSendInstruments(meter);
 
   extensionRuntimeState.enabled = true;
   extensionRuntimeState.meterProvider = meterProvider;
   extensionRuntimeState.httpInstruments = httpInstruments;
   extensionRuntimeState.workerInstruments = workerInstruments;
+  extensionRuntimeState.pushInstruments = pushInstruments;
 };
 
 export const shutdownExtensions = async (): Promise<void> => {
@@ -97,4 +101,11 @@ export const recordWorkerCommand = (
     return;
   }
   recordWorkerCommandMetric(extensionRuntimeState.workerInstruments, command, status, durationMs);
+};
+
+export const recordPushSend = (input: PushSendRecord): void => {
+  if (!extensionRuntimeState.enabled || extensionRuntimeState.pushInstruments === null) {
+    return;
+  }
+  recordPushSendMetric(extensionRuntimeState.pushInstruments, input);
 };

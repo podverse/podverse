@@ -25,9 +25,5 @@ export async function unifiedpushNotificationBatchOrchestrator(
     ...(data !== undefined ? { data } : {}),
   };
 
-  console.warn(
-    `[unifiedpushNotificationBatchOrchestrator] Sending to ${subscriptions.length} subscriptions`
-  );
-
   return await sendUPNotificationBatch(ctx, subscriptions, payload);
 }

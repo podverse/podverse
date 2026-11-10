@@ -38,13 +38,8 @@ export async function sendFirebaseNotificationBatchAndroid(
       data: stringifyData(payload.data),
     };
 
-    try {
-      const resp = await ctx.firebaseMessaging.sendEachForMulticast(multicastMessage);
-      results.push(resp);
-    } catch (err) {
-      console.error('sendFirebaseNotificationBatchAndroid chunk error:', err);
-      throw err;
-    }
+    const resp = await ctx.firebaseMessaging.sendEachForMulticast(multicastMessage);
+    results.push(resp);
   }
 
   return results;

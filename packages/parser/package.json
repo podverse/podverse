@@ -22,12 +22,14 @@
     "access": "public"
   },
   "dependencies": {
+    "@podverse/extension-metrics-sdk": "*",
     "@podverse/external-services-firebase": "*",
     "@podverse/external-services-podcast-index": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-requests": "*",
     "@podverse/helpers-validation": "*",
+    "@podverse/notifications": "*",
     "@podverse/orm": "*",
     "@podverse/parser-mapping": "*",
     "module-alias": "^2.3.3",

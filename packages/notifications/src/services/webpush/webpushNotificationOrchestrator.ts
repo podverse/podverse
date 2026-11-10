@@ -25,9 +25,5 @@ export async function webpushNotificationBatchOrchestrator(
     ...(data !== undefined ? { data } : {}),
   };
 
-  console.warn(
-    `[webpushNotificationBatchOrchestrator] Sending to ${subscriptions.length} subscriptions`
-  );
-
   return await sendWebPushNotificationBatch(ctx, subscriptions, payload);
 }

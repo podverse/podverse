@@ -32,3 +32,14 @@
 - Change: The podcast and music queue lists show the item currently loaded in the player in a Now Playing section at the top of the matching medium’s queue, including when that item was never added to the queue
 - Who notices: listeners opening Queue / Queues while something is playing or paused
 - Operator steps: none
+
+## Push sends log accepted and failed counts
+
+- Surfaces: workers, parser
+- Change: Each push leg now logs how many Firebase, Web Push, and UnifiedPush sends were
+  accepted or failed, grouped by error code, and whether the artwork was a shrunk WebP, an
+  original, or none. Dead tokens and gone endpoints are removed after the send. A
+  `podverse_push_send_total` counter records the same outcome. Stored images stay WebP.
+- Who notices: operators debugging push delivery
+- Operator steps: deploy a workers image with this change, then look for `Push send result`
+  in the parser log on the next episode

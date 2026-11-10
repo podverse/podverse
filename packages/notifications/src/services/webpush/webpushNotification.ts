@@ -1,8 +1,8 @@
-import type webpush from 'web-push';
-
 import { chunkArray, ONE_DAY_SECONDS } from '@podverse/helpers';
 
 import type { NotificationsContext } from '../../factory.js';
+import type { ProviderSendRow } from '../notifications/pushOutcome.js';
+import { providerFailure, providerSuccess } from '../notifications/pushOutcome.js';
 import type { WebPushSubscription } from './webpushHelpers.js';
 
 type WebPushPayload = {
@@ -13,11 +13,22 @@ type WebPushPayload = {
   data?: Record<string, unknown>;
 };
 
-type WebPushResult = {
-  success: boolean;
-  endpoint: string;
-  error?: string;
-};
+type WebPushResult = ProviderSendRow;
+
+function readStatusCode(error: unknown): number | null {
+  if (typeof error !== 'object' || error === null || !('statusCode' in error)) {
+    return null;
+  }
+  const statusCode = error.statusCode;
+  return typeof statusCode === 'number' ? statusCode : null;
+}
+
+function readErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+  return 'Unknown error';
+}
 
 export async function sendWebPushNotificationBatch(
   ctx: NotificationsContext,
@@ -28,7 +39,7 @@ export async function sendWebPushNotificationBatch(
     throw new Error('Web Push Admin is not initialized');
   }
 
-  const webpushInstance = ctx.webpushAdmin as typeof webpush;
+  const webpushInstance = ctx.webpushAdmin;
   const chunks = chunkArray(subscriptions, 100);
   const allResults: WebPushResult[] = [];
 
@@ -56,15 +67,13 @@ export async function sendWebPushNotificationBatch(
               urgency: 'normal',
             }
           );
-          return { success: true, endpoint: subscription.endpoint };
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-          console.error(`Web Push send failed for ${subscription.endpoint}:`, error.message);
-          return {
-            success: false,
-            endpoint: subscription.endpoint,
-            error: error.message || 'Unknown error',
-          };
+          return providerSuccess(subscription.endpoint);
+        } catch (error: unknown) {
+          return providerFailure(
+            subscription.endpoint,
+            readStatusCode(error),
+            readErrorMessage(error)
+          );
         }
       })
     );
@@ -75,8 +84,9 @@ export async function sendWebPushNotificationBatch(
       } else {
         allResults.push({
           success: false,
-          endpoint: 'unknown',
-          error: result.reason?.message || 'Promise rejected',
+          endpoint: '',
+          errorCode: 'send_failed',
+          errorMessage: readErrorMessage(result.reason),
         });
       }
     }
