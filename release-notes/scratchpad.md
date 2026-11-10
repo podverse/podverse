@@ -94,3 +94,13 @@
   unchanged. Trash, alert, and in-progress spinner states are unchanged.
 - Who notices: listeners looking at download vs more on a media list row
 - Operator steps: none
+
+## Empty Browse Top lists offer Browse by Most Recent
+
+- Surfaces: web, mobile
+- Change: When a Browse directory list is sorted by Top and the first page has no rows, the
+  empty message includes a Browse by Most Recent button. Pressing it selects Recent for that
+  list (and clears the popularity range on web), so listeners can reach directory content
+  without opening the sort menu. The button stays off for Recent and for non-Browse lists.
+- Who notices: listeners on Browse when the chosen popularity window has no counted listens
+- Operator steps: none

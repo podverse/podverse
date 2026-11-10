@@ -137,7 +137,8 @@
       "browse": "Explorar",
       "category_all": "Todas las categorías",
       "users": "Usuarios",
-      "no_users_found": "No se encontraron usuarios"
+      "no_users_found": "No se encontraron usuarios",
+      "browse_by_most_recent": "Explorar por más recientes"
     },
     "recommendations": {
       "title": "Recomendaciones",

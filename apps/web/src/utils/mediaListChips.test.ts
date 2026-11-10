@@ -7,6 +7,7 @@ import {
   MEDIA_LIST_CHIP_LABEL_KEYS,
   mediaListChipChrome,
   resolveMediaListChip,
+  shouldShowBrowseByRecentAction,
   shouldShowBrowseEmptyMessage,
   SUBSCRIBED_CHIPS,
 } from './mediaListChips';
@@ -110,6 +111,14 @@ describe('chip lists', () => {
 
   it('labels Livestreams with the shared catalog key', () => {
     expect(MEDIA_LIST_CHIP_LABEL_KEYS.livestreams).toBe('media.livestream.livestreams');
+  });
+});
+
+describe('shouldShowBrowseByRecentAction', () => {
+  it('offers Recent only on an empty Browse Top list', () => {
+    expect(shouldShowBrowseByRecentAction({ showEmpty: true, sort: 'top' })).toBe(true);
+    expect(shouldShowBrowseByRecentAction({ showEmpty: true, sort: 'recent' })).toBe(false);
+    expect(shouldShowBrowseByRecentAction({ showEmpty: false, sort: 'top' })).toBe(false);
   });
 });
 

@@ -135,6 +135,7 @@
     },
     "browse": {
       "browse": "Browse",
+      "browse_by_most_recent": "Browse by Most Recent",
       "category_all": "All Categories",
       "users": "Users",
       "no_users_found": "No Users Found"

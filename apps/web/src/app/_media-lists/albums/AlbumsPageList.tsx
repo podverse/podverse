@@ -4,15 +4,18 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type { AddByRSSResourceType } from '@podverse/helpers';
 import { PAGINATION } from '@podverse/helpers';
 
+import { BrowseEmptyResults } from '../../../components/Browse/BrowseEmptyResults';
 import type { AlbumListItem } from '../../../components/Common/Artist/Album/types';
 import { CoreAlbums } from '../../../components/Core/Artist/Album/CoreAlbums';
 import { HowToStartInfo } from '../../../components/HowToStartInfo/HowToStartInfo';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
-import { NoResults } from '../../../components/NoResults/NoResults';
 import { useFullSubscribedChannels } from '../../../hooks/useFullSubscribedChannels';
 import { useListViewMode } from '../../../hooks/useListViewMode';
 import { useReadyAddByRSSFeeds } from '../../../hooks/useReadyAddByRSSFeeds';
-import { shouldShowBrowseEmptyMessage } from '../../../utils/mediaListChips';
+import {
+  shouldShowBrowseByRecentAction,
+  shouldShowBrowseEmptyMessage,
+} from '../../../utils/mediaListChips';
 import {
   albumListItemFromAddByRSSFeed,
   albumListItemFromChannel,
@@ -101,6 +104,13 @@ export const AlbumsPageList: React.FC = () => {
     page,
     rowCount: channels.length,
   });
+  const showBrowseByRecent = shouldShowBrowseByRecentAction({
+    showEmpty,
+    sort: filterParams.sort,
+  });
+  const handleBrowseByRecent = () => {
+    setFilterParams({ ...filterParams, page: 1, sort: 'recent', range: null });
+  };
 
   return (
     <>
@@ -111,7 +121,10 @@ export const AlbumsPageList: React.FC = () => {
         />
       )}
       {showEmpty ? (
-        <NoResults message={tMedia('music.no_albums_found')} />
+        <BrowseEmptyResults
+          message={tMedia('music.no_albums_found')}
+          onBrowseByRecent={showBrowseByRecent ? handleBrowseByRecent : undefined}
+        />
       ) : awaitingSubscribedRows ? null : (
         <CoreAlbums
           page={showMergedList ? slice.page : page}

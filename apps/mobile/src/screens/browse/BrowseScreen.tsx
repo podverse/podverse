@@ -1073,6 +1073,13 @@ export function BrowseScreen() {
     ]
   );
 
+  const showBrowseByRecent =
+    showEmptyDirectory && (activePrefs?.sort ?? DEFAULT_BROWSE_SORT) === 'top';
+
+  const handleBrowseByRecent = useCallback(() => {
+    handleSortChange('recent');
+  }, [handleSortChange]);
+
   const listEmpty = useMemo(
     () =>
       // Feed loading lives in the list-area overlay for the whole showsLoading interval.
@@ -1080,11 +1087,21 @@ export function BrowseScreen() {
         <LoadingSection testID="browse-category-loading" />
       ) : showEmptyDirectory ? (
         <ListEmpty
+          actionLabelKey={
+            showBrowseByRecent ? 'features.browse.browse_by_most_recent' : undefined
+          }
           messageKey={browseEmptyMessageKey(selectedMediaType)}
+          onAction={showBrowseByRecent ? handleBrowseByRecent : undefined}
           testID="browse-list-empty"
         />
       ) : null,
-    [selectedMediaType, showCategoryLoading, showEmptyDirectory]
+    [
+      handleBrowseByRecent,
+      selectedMediaType,
+      showBrowseByRecent,
+      showCategoryLoading,
+      showEmptyDirectory,
+    ]
   );
 
   const listFooter = useMemo(

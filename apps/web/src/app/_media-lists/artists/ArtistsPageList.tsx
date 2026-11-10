@@ -4,15 +4,18 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type { AddByRSSResourceType } from '@podverse/helpers';
 import { PAGINATION } from '@podverse/helpers';
 
+import { BrowseEmptyResults } from '../../../components/Browse/BrowseEmptyResults';
 import type { ArtistListItem } from '../../../components/Common/Artist/types';
 import { CoreArtists } from '../../../components/Core/Artist/CoreArtists';
 import { HowToStartInfo } from '../../../components/HowToStartInfo/HowToStartInfo';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
-import { NoResults } from '../../../components/NoResults/NoResults';
 import { useFullSubscribedChannels } from '../../../hooks/useFullSubscribedChannels';
 import { useListViewMode } from '../../../hooks/useListViewMode';
 import { useReadyAddByRSSFeeds } from '../../../hooks/useReadyAddByRSSFeeds';
-import { shouldShowBrowseEmptyMessage } from '../../../utils/mediaListChips';
+import {
+  shouldShowBrowseByRecentAction,
+  shouldShowBrowseEmptyMessage,
+} from '../../../utils/mediaListChips';
 import {
   artistListItemFromAddByRSSFeed,
   artistListItemFromChannel,
@@ -101,6 +104,13 @@ export const ArtistsPageList: React.FC = () => {
     page,
     rowCount: channels.length,
   });
+  const showBrowseByRecent = shouldShowBrowseByRecentAction({
+    showEmpty,
+    sort: filterParams.sort,
+  });
+  const handleBrowseByRecent = () => {
+    setFilterParams({ ...filterParams, page: 1, sort: 'recent', range: null });
+  };
 
   return (
     <>
@@ -111,7 +121,10 @@ export const ArtistsPageList: React.FC = () => {
         />
       )}
       {showEmpty ? (
-        <NoResults message={tMedia('music.no_artists_found')} />
+        <BrowseEmptyResults
+          message={tMedia('music.no_artists_found')}
+          onBrowseByRecent={showBrowseByRecent ? handleBrowseByRecent : undefined}
+        />
       ) : awaitingSubscribedRows ? null : (
         <CoreArtists
           page={showMergedList ? slice.page : page}

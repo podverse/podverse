@@ -3,13 +3,16 @@ import React, { useMemo } from 'react';
 
 import type { AddByRSSResourceType } from '@podverse/helpers';
 
+import { BrowseEmptyResults } from '../../../components/Browse/BrowseEmptyResults';
 import { CoreTracks } from '../../../components/Core/Artist/Album/Track/CoreTracks';
 import { HowToStartInfo } from '../../../components/HowToStartInfo/HowToStartInfo';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
-import { NoResults } from '../../../components/NoResults/NoResults';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { useSubscribedAddByRSSItems } from '../../../hooks/useSubscribedAddByRSSItems';
-import { shouldShowBrowseEmptyMessage } from '../../../utils/mediaListChips';
+import {
+  shouldShowBrowseByRecentAction,
+  shouldShowBrowseEmptyMessage,
+} from '../../../utils/mediaListChips';
 import { mergeSubscribedItemEntries } from '../../../utils/subscribed/mergeSubscribedItems';
 import { useTracksPageContext } from './TracksPageContext';
 
@@ -58,6 +61,13 @@ export const TracksPageList: React.FC = () => {
     page,
     rowCount: items.length,
   });
+  const showBrowseByRecent = shouldShowBrowseByRecentAction({
+    showEmpty,
+    sort: filterParams.sort,
+  });
+  const handleBrowseByRecent = () => {
+    setFilterParams({ ...filterParams, page: 1, sort: 'recent', range: null });
+  };
 
   return (
     <>
@@ -66,7 +76,10 @@ export const TracksPageList: React.FC = () => {
         <HowToStartInfo rows={entries ?? items} totalPages={totalPages} />
       )}
       {showEmpty ? (
-        <NoResults message={tMedia('music.no_tracks_found')} />
+        <BrowseEmptyResults
+          message={tMedia('music.no_tracks_found')}
+          onBrowseByRecent={showBrowseByRecent ? handleBrowseByRecent : undefined}
+        />
       ) : awaitingAddByRSS ? null : (
         <CoreTracks
           page={page}

@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type { AddByRSSResourceType, DTOCategory } from '@podverse/helpers';
 import { PAGINATION } from '@podverse/helpers';
 
+import { BrowseEmptyResults } from '../../../components/Browse/BrowseEmptyResults';
 import { CategoriesList } from '../../../components/Category/CategoriesList';
 import type { PodcastListItem } from '../../../components/Common/Podcast/types';
 import { CorePodcasts } from '../../../components/Core/Podcast/CorePodcasts';
@@ -18,7 +19,10 @@ import { useFullSubscribedChannels } from '../../../hooks/useFullSubscribedChann
 import { useListViewMode } from '../../../hooks/useListViewMode';
 import { useReadyAddByRSSFeeds } from '../../../hooks/useReadyAddByRSSFeeds';
 import { onClickAllCategories, onClickCategory } from '../../../utils/categories';
-import { shouldShowBrowseEmptyMessage } from '../../../utils/mediaListChips';
+import {
+  shouldShowBrowseByRecentAction,
+  shouldShowBrowseEmptyMessage,
+} from '../../../utils/mediaListChips';
 import {
   podcastListItemFromAddByRSSFeed,
   podcastListItemFromChannel,
@@ -166,6 +170,13 @@ export const PodcastsPageList: React.FC = () => {
     page,
     rowCount: channels.length,
   });
+  const showBrowseByRecent = shouldShowBrowseByRecentAction({
+    showEmpty,
+    sort: filterParams.sort,
+  });
+  const handleBrowseByRecent = () => {
+    setFilterParams({ ...filterParams, page: 1, sort: 'recent', range: null });
+  };
 
   return (
     <>
@@ -198,7 +209,10 @@ export const PodcastsPageList: React.FC = () => {
         <NoResults message={tSubscriptions('no_filter_matches')} role="status" />
       )}
       {showEmpty ? (
-        <NoResults message={tMedia('podcast.no_podcasts_found')} />
+        <BrowseEmptyResults
+          message={tMedia('podcast.no_podcasts_found')}
+          onBrowseByRecent={showBrowseByRecent ? handleBrowseByRecent : undefined}
+        />
       ) : showSubscribeMessage || awaitingSubscribedRows ? null : (
         <CorePodcasts
           page={showMergedList ? mergedSlice.page : showFilteredOnly ? filtered.page : page}

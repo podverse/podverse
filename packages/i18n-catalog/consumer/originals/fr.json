@@ -137,7 +137,8 @@
       "browse": "Parcourir",
       "category_all": "Toutes les catégories",
       "users": "Utilisateurs",
-      "no_users_found": "Aucun utilisateur trouvé"
+      "no_users_found": "Aucun utilisateur trouvé",
+      "browse_by_most_recent": "Parcourir par plus récents"
     },
     "recommendations": {
       "title": "Recommandations",

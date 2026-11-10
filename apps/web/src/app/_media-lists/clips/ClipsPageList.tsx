@@ -4,14 +4,15 @@ import React from 'react';
 
 import type { DTOCategory } from '@podverse/helpers';
 
+import { BrowseEmptyResults } from '../../../components/Browse/BrowseEmptyResults';
 import { CategoriesList } from '../../../components/Category/CategoriesList';
 import { HowToStartInfo } from '../../../components/HowToStartInfo/HowToStartInfo';
 import { ListClips } from '../../../components/List/Clips/ListClips';
 import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
-import { NoResults } from '../../../components/NoResults/NoResults';
 import { onClickAllCategories, onClickCategory } from '../../../utils/categories';
 import {
   buildMediaListChipPath,
+  shouldShowBrowseByRecentAction,
   shouldShowBrowseEmptyMessage,
 } from '../../../utils/mediaListChips';
 import { useClipsPageContext } from './ClipsPageContext';
@@ -63,6 +64,13 @@ export const ClipsPageList: React.FC = () => {
     page,
     rowCount: clips.length,
   });
+  const showBrowseByRecent = shouldShowBrowseByRecentAction({
+    showEmpty,
+    sort: filterParams.sort,
+  });
+  const handleBrowseByRecent = () => {
+    setFilterParams({ ...filterParams, page: 1, sort: 'recent', range: null });
+  };
 
   return (
     <>
@@ -70,7 +78,10 @@ export const ClipsPageList: React.FC = () => {
         <HowToStartInfo rows={clips} totalPages={totalPages} />
       )}
       {showEmpty ? (
-        <NoResults message={tFeatures('clip.no_clips_found')} />
+        <BrowseEmptyResults
+          message={tFeatures('clip.no_clips_found')}
+          onBrowseByRecent={showBrowseByRecent ? handleBrowseByRecent : undefined}
+        />
       ) : (
         <ListClips
           page={page}
