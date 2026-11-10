@@ -155,13 +155,17 @@ export function PodcastEpisodesSection({
    * Re-reading rather than re-sorting in place keeps one source for the order: what is on screen is
    * always what the query returned, so the control and the list cannot drift apart.
    */
-  const readStoredEpisodes = useCallback(async () => {
-    const stored = await channelItemsRepository.listByChannel(channelIdText, {
+  const fetchStoredEpisodes = useCallback(async (): Promise<DTOItem[]> => {
+    return channelItemsRepository.listByChannel(channelIdText, {
       sort: toStoredItemSort(sort),
     });
+  }, [channelIdText, sort]);
+
+  const readStoredEpisodes = useCallback(async () => {
+    const stored = await fetchStoredEpisodes();
     setStoredItems(stored);
     return stored.length;
-  }, [channelIdText, sort]);
+  }, [fetchStoredEpisodes]);
 
   /**
    * Rows are derived from the items rather than stored beside them, because the row actions need the
@@ -180,15 +184,17 @@ export function PodcastEpisodesSection({
   );
 
   /**
-   * Paint from the device, then reconcile.
+   * Publish the stored episode window and live items together, then drop the spinner.
    *
-   * The stored window renders immediately and is the whole answer offline. The refresh that follows
-   * runs directly rather than through the sync queue: somebody opened this screen and is waiting on
-   * it, and queued work is for passes nobody asked for (`mobile-sync-orchestration`).
+   * Live items sit at the top of the same list. Publishing them a frame later would push every
+   * episode down after first paint. The refresh that follows runs directly rather than through the
+   * sync queue: somebody opened this screen and is waiting on it, and queued work is for passes
+   * nobody asked for (`mobile-sync-orchestration`).
    *
    * A refresh that fails is only surfaced when the user asked for one. On open it is silent,
    * because what is stored is still worth reading and an error over the top of a working list would
-   * say nothing useful.
+   * say nothing useful. Live items are a real-time surface with nothing to store, so they stay empty
+   * when there is no connection.
    */
   const loadEpisodes = useCallback(
     async ({ source }: { source: 'initial' | 'refresh' | 'retry' }) => {
@@ -200,37 +206,51 @@ export function PodcastEpisodesSection({
       setErrorKey(null);
 
       try {
-        const storedCount = await readStoredEpisodes();
-
-        if (storedCount > 0) {
-          setIsInitialLoading(false);
-        }
+        const storedBefore = await fetchStoredEpisodes();
+        const storedCount = storedBefore.length;
 
         try {
+          const livePromise = requestWithMobileAuthRefresh(authContext, async (api) =>
+            api.reqLiveItemGetManyByChannel(channelIdText)
+          );
           const outcome = await syncDirectoryChannelOrDropGone(authContext, channelIdText, {
             channelTitle: channelTitleRef.current,
           });
           if (outcome.kind === 'gone' || outcome.kind === 'remapped') {
+            void livePromise.then(
+              () => undefined,
+              () => undefined
+            );
             setHasMorePages(false);
+            const stored = await fetchStoredEpisodes();
+            setStoredItems(stored);
             setLiveItems([]);
-            await readStoredEpisodes();
             failedLoadRef.current = null;
             return;
           }
           setHasMorePages(outcome.result.hasMore);
-          await readStoredEpisodes();
+          const stored = await fetchStoredEpisodes();
 
-          // Live items are a real-time surface with nothing to store, so they simply stay empty
-          // when there is no connection.
-          const liveResponse = await requestWithMobileAuthRefresh(authContext, async (api) =>
-            api.reqLiveItemGetManyByChannel(channelIdText)
-          );
+          let liveResponse: DTOItem[] = [];
+          try {
+            liveResponse = await livePromise;
+          } catch (liveError) {
+            if (source === 'initial' && stored.length > 0) {
+              liveResponse = [];
+            } else {
+              throw liveError;
+            }
+          }
+
+          setStoredItems(stored);
           setLiveItems(liveResponse);
           failedLoadRef.current = null;
         } catch (error) {
           if (storedCount === 0 || source !== 'initial') {
             throw error;
           }
+          setStoredItems(storedBefore);
+          setLiveItems([]);
           failedLoadRef.current = null;
         }
       } catch {
@@ -241,7 +261,7 @@ export function PodcastEpisodesSection({
         setIsInitialLoading(false);
       }
     },
-    [authContext, channelIdText, readStoredEpisodes]
+    [authContext, channelIdText, fetchStoredEpisodes]
   );
 
   /**

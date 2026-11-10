@@ -18,3 +18,10 @@
 - Change: The desktop mini-player bottom bar is a three-column grid that keeps the right button column on screen when another device has the audio, and podcast episode/live list rows plus the main scrollport shrink so long titles and descriptions ellipsize instead of widening the page
 - Who notices: listeners on podcast pages with the mini-player open, especially with cross-device playback
 - Operator steps: none
+
+## Podcast episode list no longer jumps for live items
+
+- Surfaces: mobile
+- Change: On podcast channel detail, the episode list waits for the live-item request and publishes that result with the stored episodes in one update, so a live or scheduled row no longer inserts above the list after first paint
+- Who notices: listeners opening a podcast that has a live or scheduled livestream
+- Operator steps: none
