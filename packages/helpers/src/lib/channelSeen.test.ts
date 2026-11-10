@@ -7,6 +7,7 @@ import {
   describeUnseenBadge,
   isLaterLastSeenAt,
   isUnseenPubDate,
+  itemShowsUnseenDot,
   mergeLastSeenAt,
 } from './channelSeen.js';
 
@@ -58,6 +59,63 @@ describe('isUnseenPubDate', () => {
 
   it('treats a null publish instant as not unseen', () => {
     expect(isUnseenPubDate(null, seenAt)).toBe(false);
+  });
+});
+
+describe('itemShowsUnseenDot', () => {
+  const seenAt = at('2026-08-20T00:00:00.000Z');
+  const newer = at('2026-08-21T00:00:00.000Z');
+
+  it('shows the dot for an unseen publish instant', () => {
+    expect(
+      itemShowsUnseenDot({
+        itemId: 'ep-1',
+        lastSeenAtMs: seenAt,
+        pubDateMs: newer,
+      })
+    ).toBe(true);
+  });
+
+  it('hides the dot when that item was played or opened during the visit', () => {
+    expect(
+      itemShowsUnseenDot({
+        engagedItemIds: new Set(['ep-1']),
+        itemId: 'ep-1',
+        lastSeenAtMs: seenAt,
+        pubDateMs: newer,
+      })
+    ).toBe(false);
+  });
+
+  it('keeps a sibling row dotted when a different item was engaged', () => {
+    expect(
+      itemShowsUnseenDot({
+        engagedItemIds: new Set(['ep-1']),
+        itemId: 'ep-2',
+        lastSeenAtMs: seenAt,
+        pubDateMs: newer,
+      })
+    ).toBe(true);
+  });
+
+  it('hides the dot when the publish instant is already seen', () => {
+    expect(
+      itemShowsUnseenDot({
+        itemId: 'ep-1',
+        lastSeenAtMs: seenAt,
+        pubDateMs: seenAt,
+      })
+    ).toBe(false);
+  });
+
+  it('hides the dot when last seen is null', () => {
+    expect(
+      itemShowsUnseenDot({
+        itemId: 'ep-1',
+        lastSeenAtMs: null,
+        pubDateMs: newer,
+      })
+    ).toBe(false);
   });
 });
 

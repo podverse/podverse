@@ -16,6 +16,8 @@ import { SignInPushPrompt } from '../Auth/SignInPushPrompt';
 import { BackgroundActivityOverlay } from '../BackgroundActivity/BackgroundActivityOverlay';
 import { CookieConsentBanner } from '../Banner/CookieConsentBanner';
 import { MembershipExpiredBanner } from '../Banner/MembershipExpiredBanner';
+import { ChannelVisitEngagePlayback } from '../ChannelSeen/ChannelVisitEngagePlayback';
+import { ChannelVisitRouteSync } from '../ChannelSeen/ChannelVisitRouteSync';
 import { LazyLoadedComponents } from '../LazyLoadedComponents/LazyLoadedComponents';
 import { TasteProfileAgreementGate } from '../Legal/TasteProfileAgreementGate';
 import { TermsAgreementGate } from '../Legal/TermsAgreementGate';
@@ -88,6 +90,8 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       <QueueController />
       <AnonymousPlaybackRestoreController />
       <QueueResourcesAbridgedController />
+      <ChannelVisitRouteSync />
+      <ChannelVisitEngagePlayback />
     </>
   );
 }

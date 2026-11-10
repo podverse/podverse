@@ -45,6 +45,7 @@ import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
+import { usePlaybackRow } from '../../playback/PlaybackProvider';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import type {
   PodcastDetailRange,
@@ -436,11 +437,26 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [visitSeen, setVisitSeen] = useState<
     { lastSeenAtMs: number | null; podcastId: string } | undefined
   >(undefined);
+  const [engagedItemIds, setEngagedItemIds] = useState<ReadonlySet<string>>(new Set());
   const visitLastSeenAtMs =
     visitSeen !== undefined && visitSeen.podcastId === podcastId
       ? visitSeen.lastSeenAtMs
       : undefined;
+  const onEngageItem = useCallback((itemId: string) => {
+    if (itemId.length === 0) {
+      return;
+    }
+    setEngagedItemIds((previous) => {
+      if (previous.has(itemId)) {
+        return previous;
+      }
+      const next = new Set(previous);
+      next.add(itemId);
+      return next;
+    });
+  }, []);
   useEffect(() => {
+    setEngagedItemIds(new Set());
     let cancelled = false;
     void (async () => {
       const previous = await channelSeenRepository.markSeen(podcastId, 'channel');
@@ -452,6 +468,21 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       cancelled = true;
     };
   }, [podcastId]);
+
+  const { activeTarget } = usePlaybackRow();
+  useEffect(() => {
+    if (activeTarget === null || activeTarget.kind === 'add-by-rss') {
+      return;
+    }
+    if (activeTarget.channel.id_text !== podcastId) {
+      return;
+    }
+    const itemId = activeTarget.item?.id_text;
+    if (itemId === undefined || itemId === null || itemId.length === 0) {
+      return;
+    }
+    onEngageItem(itemId);
+  }, [activeTarget, onEngageItem, podcastId]);
 
   const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
@@ -783,10 +814,12 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     <SectionPane
       channel={channel}
       channelIdText={podcastId}
+      engagedItemIds={engagedItemIds}
       filterTerm={filterTerm}
       isChannelLoading={isChannelLoading || isSectionPending}
       listHeader={listHeader}
       notifications={notifications}
+      onEngageItem={onEngageItem}
       onRefreshChannel={loadChannel}
       range={range}
       sort={sort}

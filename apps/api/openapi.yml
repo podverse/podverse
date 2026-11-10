@@ -3126,6 +3126,20 @@ components:
         has_more_unseen:
           type: boolean
           description: True when the real count exceeds the cap, so clients can render "20+".
+    ChannelSeenMarkResult:
+      allOf:
+        - $ref: "#/components/schemas/ChannelSeenState"
+        - type: object
+          required:
+            - previous_last_seen_at
+          properties:
+            previous_last_seen_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: >-
+                The last_seen_at stored before this write. Opening a channel freezes it for the
+                visit so item dots can still show while the subscription badge clears.
     ApiGetAccountChannelSeenResponse200:
       type: object
       required:
@@ -3146,7 +3160,7 @@ components:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/ChannelSeenState"
+            $ref: "#/components/schemas/ChannelSeenMarkResult"
     ApiPostAccountChannelSeenMarkAllResponse200:
       type: object
       required:
@@ -3179,6 +3193,20 @@ components:
       description: >-
         Seen state for an add-by-RSS feed. Carries no unseen count because the server stores no
         add-by-RSS items; the device holding the parsed feed derives that itself.
+    AddByRssSeenMarkResult:
+      allOf:
+        - $ref: "#/components/schemas/AddByRssSeenState"
+        - type: object
+          required:
+            - previous_last_seen_at
+          properties:
+            previous_last_seen_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: >-
+                The last_seen_at stored before this write. Opening a feed freezes it for the visit
+                so item dots can still show while the subscription badge clears.
     ApiGetAccountChannelSeenAddByRssResponse200:
       type: object
       required:
@@ -3199,7 +3227,7 @@ components:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/AddByRssSeenState"
+            $ref: "#/components/schemas/AddByRssSeenMarkResult"
     ApiGetAccountNotificationPreferencesResponse200:
       type: object
       properties:

@@ -3,6 +3,7 @@ import type { QueryParamsItem } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
+import { ChannelVisitEngageItemOnMount } from '../../../components/ChannelSeen/ChannelVisitEngageItemOnMount';
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { CoreEpisodeHeader } from '../../../components/Core/Podcast/Episodes/CoreEpisodeHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
@@ -42,6 +43,7 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
       ssrItemIdText={ssrItem.id_text}
     >
       <MainWrapper>
+        <ChannelVisitEngageItemOnMount itemIdText={ssrItem.id_text} />
         <CorePodcastHeader channel={ssrChannel} item={ssrItem} />
         <MainSidebarLayout>
           <MainColumnStack>

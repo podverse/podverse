@@ -27,6 +27,7 @@ import { AddByRSSEpisodeNodes } from '../../../components/AddByRSS/Podcast/Episo
 import { AddByRSSRemoteItemList } from '../../../components/AddByRSS/RemoteItems/AddByRSSRemoteItemList';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
+import { AddByRssSeenPageView } from '../../../components/ChannelSeen/AddByRssSeenPageView';
 import { DescriptionTruncationNotice } from '../../../components/Content/Description/DescriptionTruncationNotice';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListSortChip } from '../../../components/ListSortChip/ListSortChip';
@@ -351,6 +352,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
 
   return (
     <MainWrapper>
+      <AddByRssSeenPageView feedUrl={localFeed.feedUrl} />
       <AddByRSSPodcastHeader feed={localFeed} />
       <MainSidebarLayout>
         <MainColumnStack>
@@ -408,6 +410,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                       channelIdText={localFeed.idText}
                       channelTitle={channelTitle}
                       channelImageUrl={channelImageUrl}
+                      feedUrl={localFeed.feedUrl}
                       items={pagedItems}
                       itemIdTextMap={itemIdTextMap}
                       sortOrder={sort}

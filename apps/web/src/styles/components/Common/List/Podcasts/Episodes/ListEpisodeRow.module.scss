@@ -1,7 +1,6 @@
 @use '../../../../../mixins/lineClamp' as *;
 @use '../../../../../mixins/timeText' as *;
 @use '../../../../../mixins/listRow' as *;
-@use '../../../../../mixins/flexbox' as *;
 @use '../../../../../mixins/media-queries' as *;
 @use '../../../../../variables/breakpoints';
 
@@ -41,8 +40,21 @@
   color: var(--text-color-secondary);
 }
 
-.topSection h3 {
+.titleLine {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+
+.titleLine h3 {
   @include line-clamp(1);
+  flex: 1;
+  min-width: 0;
+}
+
+.unseenDot {
+  margin-inline-start: auto;
 }
 
 .clickableTopSection {

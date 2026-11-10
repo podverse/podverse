@@ -1,10 +1,10 @@
 import type {
   AddByRssSeenListResponse,
   AddByRssSeenMarkEntry,
-  AddByRssSeenState,
+  AddByRssSeenMarkResult,
   ChannelSeenListResponse,
   ChannelSeenMarkEntry,
-  ChannelSeenState,
+  ChannelSeenMarkResult,
 } from '@podverse/helpers';
 
 import type { ApiRequestService } from '../_request.js';
@@ -59,8 +59,8 @@ export const reqAccountChannelSeenListAddByRss = (
 export const reqAccountChannelSeenMark = async (
   api: ApiRequestService,
   params: { entries: ChannelSeenMarkEntry[] }
-): Promise<ChannelSeenState[]> => {
-  const response = await api.apiRequest<{ data: ChannelSeenState[] }>({
+): Promise<ChannelSeenMarkResult[]> => {
+  const response = await api.apiRequest<{ data: ChannelSeenMarkResult[] }>({
     path: '/account/channel-seen/mark',
     method: 'POST',
     data: { entries: params.entries },
@@ -83,12 +83,15 @@ export const reqAccountChannelSeenMarkAll = async (
   return response.data;
 };
 
-/** Mark add-by-RSS feeds seen. Returns timestamps only, for the same reason the list does. */
+/**
+ * Mark add-by-RSS feeds seen. Returns timestamps plus the previous value, so a client can freeze
+ * item dots for the visit the same way directory channels do.
+ */
 export const reqAccountChannelSeenMarkAddByRss = async (
   api: ApiRequestService,
   params: { entries: AddByRssSeenMarkEntry[] }
-): Promise<AddByRssSeenState[]> => {
-  const response = await api.apiRequest<{ data: AddByRssSeenState[] }>({
+): Promise<AddByRssSeenMarkResult[]> => {
+  const response = await api.apiRequest<{ data: AddByRssSeenMarkResult[] }>({
     path: '/account/channel-seen/mark-add-by-rss',
     method: 'POST',
     data: { entries: params.entries },

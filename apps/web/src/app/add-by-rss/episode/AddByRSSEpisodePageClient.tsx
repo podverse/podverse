@@ -16,6 +16,7 @@ import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddB
 import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
+import { ChannelVisitEngageItemOnMount } from '../../../components/ChannelSeen/ChannelVisitEngageItemOnMount';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
@@ -384,6 +385,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
 
   return (
     <MainWrapper>
+      <ChannelVisitEngageItemOnMount itemIdText={episode.idText} />
       <AddByRSSPodcastHeader feed={feed} />
       <MainSidebarLayout>
         <MainColumnStack>

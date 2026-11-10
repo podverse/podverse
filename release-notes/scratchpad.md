@@ -62,3 +62,16 @@
   `play-icon-optical-nudge` / `PLAY_ICON_OPTICAL_NUDGE` so the shift can be set to zero later.
 - Who notices: listeners looking at the main play control while paused
 - Operator steps: none
+
+## Episode list clears an unseen dot on play or open
+
+- Surfaces: web, mobile, api
+- Change: On a podcast or add-by-RSS channel visit, newer episode rows still show an unseen
+  accent dot until you leave and open the channel again. Playing a row, or opening its detail,
+  clears only that row’s dot for the rest of the visit. Web now shows the same dots on channel
+  and add-by-RSS episode lists (signed-in follows only). Mark-seen responses include
+  `previous_last_seen_at` so the client can freeze the visit timestamp. Add-by-RSS feeds mark
+  seen when opened on web so phone badges clear after sync.
+- Who notices: listeners returning from the player or an episode page to a channel’s episode
+  list; operators of clients that mark channels seen
+- Operator steps: none

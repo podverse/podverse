@@ -24,12 +24,14 @@ import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useChannelVisitActions, useItemUnseenDot } from '../../../../hooks/useChannelVisit';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueAddWithGate } from '../../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
 import { buildPlaylistItemShareModalState } from '../../../../lib/share/openPlaylistItemShareModal';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { ItemUnseenIndicator } from '../../../ChannelSeen/ItemUnseenIndicator';
 import { ItemRowMoreActions } from '../../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../../Time/ReadableDate';
@@ -94,12 +96,20 @@ export const ListEpisodeRow: React.FC<Props> = ({
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
   const { durationStr, positionStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const { autoQueueConfig } = useAutoQueue();
+  const { engageItem } = useChannelVisitActions();
+  const showUnseenDot = useItemUnseenDot({
+    channelIdText: channel.id_text,
+    isLive: item.live_item !== null && item.live_item !== undefined,
+    itemIdText: item.id_text,
+    pubDate: item.pub_date,
+  });
 
   const isActiveItem = item.id === mpItem?.id;
 
   const loadItem = (
     enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default'
   ) => {
+    engageItem(item.id_text);
     mediaPlayerResourceUpdate({
       target: playbackTargetFromStandardLoad({
         channel,
@@ -132,6 +142,10 @@ export const ListEpisodeRow: React.FC<Props> = ({
     } else {
       loadItem('use-active-item-or-default');
     }
+  };
+
+  const handleOpenDetail = () => {
+    engageItem(item.id_text);
   };
 
   const addToQueueNextOnClick = async () => {
@@ -348,34 +362,55 @@ export const ListEpisodeRow: React.FC<Props> = ({
         dragHandleProps !== undefined && (
           <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
         )}
-      <ImagesPerView
-        candidates={episodeArtworkCandidates}
-        alt={item.title || tMedia('podcast.episode_image')}
-        widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-        heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-        widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-        heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-        classNameDesktop={styles.image}
-        classNameMobile={styles.imageMobile}
-        href={onPlayAndRemove ? undefined : url}
-        onClick={onPlayAndRemove}
-      />
+      <div
+        onClickCapture={onPlayAndRemove ? undefined : handleOpenDetail}
+        style={{ display: 'contents' }}
+      >
+        <ImagesPerView
+          candidates={episodeArtworkCandidates}
+          alt={item.title || tMedia('podcast.episode_image')}
+          widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+          heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+          widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+          heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+          classNameDesktop={styles.image}
+          classNameMobile={styles.imageMobile}
+          href={onPlayAndRemove ? undefined : url}
+          onClick={onPlayAndRemove}
+        />
+      </div>
       <div className={styles.content}>
         {onPlayAndRemove ? (
           <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
             <div className={styles.topSection}>
               {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
-              <h3>{item.title}</h3>
+              <div className={styles.titleLine}>
+                <h3>{item.title}</h3>
+                {showUnseenDot ? (
+                  <ItemUnseenIndicator
+                    className={styles.unseenDot}
+                    testId={`episode-row-unseen-${item.id_text}`}
+                  />
+                ) : null}
+              </div>
               <div className={styles.subtitle}>
                 {getDescriptionPreviewText(item.item_description)}
               </div>
             </div>
           </button>
         ) : (
-          <Link href={url}>
+          <Link href={url} onClick={handleOpenDetail}>
             <div className={styles.topSection}>
               {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
-              <h3>{item.title}</h3>
+              <div className={styles.titleLine}>
+                <h3>{item.title}</h3>
+                {showUnseenDot ? (
+                  <ItemUnseenIndicator
+                    className={styles.unseenDot}
+                    testId={`episode-row-unseen-${item.id_text}`}
+                  />
+                ) : null}
+              </div>
               <div className={styles.subtitle}>
                 {getDescriptionPreviewText(item.item_description)}
               </div>

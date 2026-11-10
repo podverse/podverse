@@ -27,4 +27,11 @@ export type AddByRssSectionPaneProps = {
   sort: AddByRssEpisodeSort | AddByRssTrackSort;
   /** Previous last-seen instant for this visit; undefined until read. */
   visitLastSeenAtMs: number | null | undefined;
+  /**
+   * Item row ids played or opened during this feed visit. Episode and track rows drop those
+   * dots immediately.
+   */
+  engagedItemIds?: ReadonlySet<string>;
+  /** Record that a row was played or opened so its visit dot clears. */
+  onEngageItem?: (itemId: string) => void;
 };

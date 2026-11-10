@@ -6,13 +6,18 @@ import { validateBodyObject, validateQueryObject } from '@api/lib/validation/ind
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import type { AddByRssSeenState, ChannelSeenMarkEntry, ChannelSeenState } from '@podverse/helpers';
+import type {
+  AddByRssSeenMarkResult,
+  ChannelSeenMarkEntry,
+  ChannelSeenMarkResult,
+  ChannelSeenState,
+} from '@podverse/helpers';
 import {
   capUnseenCount,
   CHANNEL_SEEN_MARK_BATCH_LIMIT,
   CHANNEL_SEEN_READ_PAGE_LIMIT,
 } from '@podverse/helpers';
-import type { ChannelSeenRow } from '@podverse/orm';
+import type { ChannelSeenMarkRow, ChannelSeenRow } from '@podverse/orm';
 import {
   AccountFollowingAddByRSSChannelService,
   AccountFollowingChannelService,
@@ -171,7 +176,7 @@ export class AccountChannelSeenController {
                 new Date()
               );
 
-            res.json({ data: marked.map(toChannelSeenState) });
+            res.json({ data: marked.map(toChannelSeenMarkResult) });
           } catch (error) {
             handleGenericErrorResponse(res, error);
           }
@@ -263,7 +268,7 @@ export class AccountChannelSeenController {
                 new Date()
               );
 
-            res.json({ data: marked.map(toAddByRssSeenState) });
+            res.json({ data: marked.map(toAddByRssSeenMarkResult) });
           } catch (error) {
             handleGenericErrorResponse(res, error);
           }
@@ -287,12 +292,21 @@ const toChannelSeenState = (row: ChannelSeenRow): ChannelSeenState => {
   };
 };
 
-const toAddByRssSeenState = (row: {
+const toChannelSeenMarkResult = (row: ChannelSeenMarkRow): ChannelSeenMarkResult => {
+  return {
+    ...toChannelSeenState(row),
+    previous_last_seen_at: row.previous_last_seen_at?.toISOString() ?? null,
+  };
+};
+
+const toAddByRssSeenMarkResult = (row: {
   feed_url: string;
   last_seen_at: Date | null;
-}): AddByRssSeenState => {
+  previous_last_seen_at: Date | null;
+}): AddByRssSeenMarkResult => {
   return {
     feed_url: row.feed_url,
     last_seen_at: row.last_seen_at?.toISOString() ?? null,
+    previous_last_seen_at: row.previous_last_seen_at?.toISOString() ?? null,
   };
 };

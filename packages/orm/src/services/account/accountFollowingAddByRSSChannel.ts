@@ -34,6 +34,13 @@ export type MarkAddByRSSChannelSeenEntry = {
   last_seen_at?: Date;
 };
 
+/** Mark result: the new timestamp and the value that was stored before this write. */
+export type AddByRssSeenMarkRow = {
+  feed_url: string;
+  last_seen_at: Date | null;
+  previous_last_seen_at: Date | null;
+};
+
 export class AccountFollowingAddByRSSChannelService extends BaseManyService<
   AccountFollowingAddByRSSChannel,
   'account'
@@ -221,7 +228,7 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
     account_id: number,
     entries: readonly MarkAddByRSSChannelSeenEntry[],
     defaultSeenAt: Date
-  ): Promise<{ feed_url: string; last_seen_at: Date | null }[]> {
+  ): Promise<AddByRssSeenMarkRow[]> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -241,6 +248,19 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
     }
 
     const updates = [...seenAtByFeedUrl.entries()];
+    const feedUrls = updates.map(([feedUrl]) => feedUrl);
+    const previousRows: { feed_url: string; last_seen_at: Date | null }[] =
+      await this.repositoryReadWrite.query(
+        `SELECT follow.feed_url AS feed_url, follow.last_seen_at AS last_seen_at
+         FROM account_following_add_by_rss_channel AS follow
+         WHERE follow.account_id = $1
+           AND follow.feed_url::text = ANY($2::text[])`,
+        [account.id, feedUrls]
+      );
+    const previousByFeedUrl = new Map(
+      previousRows.map((row) => [row.feed_url, row.last_seen_at] as const)
+    );
+
     const values = updates
       .map((_entry, index) => `($${index * 2 + 2}::text, $${index * 2 + 3}::timestamptz)`)
       .join(', ');
@@ -249,15 +269,22 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
       parameters.push(feedUrl, seenAt);
     }
 
-    return this.repositoryReadWrite.query(
-      `UPDATE account_following_add_by_rss_channel AS follow
-       SET last_seen_at = GREATEST(follow.last_seen_at, incoming.last_seen_at)
-       FROM (VALUES ${values}) AS incoming(feed_url, last_seen_at)
-       WHERE follow.account_id = $1
-         AND follow.feed_url::text = incoming.feed_url
-       RETURNING follow.feed_url AS feed_url, follow.last_seen_at AS last_seen_at`,
-      parameters
-    );
+    const rows: { feed_url: string; last_seen_at: Date | null }[] =
+      await this.repositoryReadWrite.query(
+        `UPDATE account_following_add_by_rss_channel AS follow
+         SET last_seen_at = GREATEST(follow.last_seen_at, incoming.last_seen_at)
+         FROM (VALUES ${values}) AS incoming(feed_url, last_seen_at)
+         WHERE follow.account_id = $1
+           AND follow.feed_url::text = incoming.feed_url
+         RETURNING follow.feed_url AS feed_url, follow.last_seen_at AS last_seen_at`,
+        parameters
+      );
+
+    return rows.map((row) => ({
+      feed_url: row.feed_url,
+      last_seen_at: row.last_seen_at,
+      previous_last_seen_at: previousByFeedUrl.get(row.feed_url) ?? null,
+    }));
   }
 
   /** Mark every followed feed seen in one statement, and report how many rows moved. */

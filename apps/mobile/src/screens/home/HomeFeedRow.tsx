@@ -79,6 +79,11 @@ type HomeFeedRowProps = {
    * ignore it; their dot stays in the side rail.
    */
   itemLastSeenAtMs?: number | null;
+  /**
+   * Item ids played or opened during this channel visit. Those rows drop their dot immediately
+   * while sibling unseen rows stay dotted until the visit ends.
+   */
+  engagedItemIds?: ReadonlySet<string> | null;
   testID?: string;
   /** Play button testID in the default action band; defaults to `home-row-play-${row.id}`. */
   playTestID?: string;
@@ -375,6 +380,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   downloadTestID,
   row,
   itemLastSeenAtMs,
+  engagedItemIds,
   testID,
   playTestID,
   showChannelContext = true,
@@ -397,7 +403,13 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   const isChannelList = isChannelListMediaType(mediaType);
   const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
   const isLive = row.metadata?.isLive === true;
-  const showItemDot = itemRowShowsUnseenDot(isChannelList, row.updatedAt, itemLastSeenAtMs);
+  const showItemDot = itemRowShowsUnseenDot(
+    isChannelList,
+    row.updatedAt,
+    itemLastSeenAtMs,
+    row.id,
+    engagedItemIds
+  );
   const showArtwork = showChannelContext && row.removed !== true;
   const contextLineVisible = showContextLine ?? showChannelContext;
   const itemLiveStatus = useMemo(

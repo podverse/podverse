@@ -18,8 +18,10 @@ const trackKeyExtractor = (row: AddByRssHomeEpisode): string => row.id;
  */
 export function AddByRssArtistTracksSection({
   detail,
+  engagedItemIds,
   filterTerm,
   listHeader,
+  onEngageItem,
   onRefresh,
   refreshNoticeKey,
   sort,
@@ -35,7 +37,9 @@ export function AddByRssArtistTracksSection({
     renderRow,
   } = useAddByRssEpisodeRowRenderer({
     details: trackDetails,
+    engagedItemIds,
     isMusicFeed: true,
+    onEngageItem,
     visitLastSeenAtMs,
   });
 

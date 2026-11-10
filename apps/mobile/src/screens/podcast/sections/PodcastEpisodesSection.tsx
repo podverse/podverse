@@ -36,6 +36,7 @@ const episodeRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
 
 type PodcastEpisodeRowProps = {
   channel: PodcastSectionPaneProps['channel'];
+  engagedItemIds: ReadonlySet<string> | undefined;
   index: number;
   item: DTOItem | undefined;
   itemLastSeenAtMs: number | null | undefined;
@@ -50,6 +51,7 @@ type PodcastEpisodeRowProps = {
 
 function PodcastEpisodeRow({
   channel,
+  engagedItemIds,
   index,
   item,
   itemLastSeenAtMs,
@@ -75,6 +77,7 @@ function PodcastEpisodeRow({
     <HomeFeedRow
       downloadItem={downloadItem}
       downloadTestID={`podcast-episode-download-${index}`}
+      engagedItemIds={engagedItemIds}
       itemLastSeenAtMs={itemLastSeenAtMs}
       mediaType="episodes"
       onAddToPlaylistPress={onAddToPlaylist}
@@ -113,8 +116,10 @@ const toLiveRows = (items: DTOItem[]): PodcastLiveRow[] => {
 export function PodcastEpisodesSection({
   channel,
   channelIdText,
+  engagedItemIds,
   filterTerm,
   listHeader,
+  onEngageItem,
   onRefreshChannel,
   sort,
   visitLastSeenAtMs,
@@ -305,9 +310,10 @@ export function PodcastEpisodesSection({
 
   const handleEpisodePress = useCallback(
     (row: HomeFeedRowData) => {
+      onEngageItem?.(row.id);
       navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, { episodeId: row.id });
     },
-    [navigation]
+    [navigation, onEngageItem]
   );
 
   const handleShare = useCallback((row: HomeFeedRowData) => {
@@ -339,9 +345,10 @@ export function PodcastEpisodesSection({
 
   const handlePlayPress = useCallback(
     (episodeRow: HomeFeedRowData) => {
+      onEngageItem?.(episodeRow.id);
       runPlayAction(episodeRow, 'episodes');
     },
-    [runPlayAction]
+    [onEngageItem, runPlayAction]
   );
 
   const handleQueuePress = useCallback(
@@ -371,6 +378,7 @@ export function PodcastEpisodesSection({
     ({ index, row }: { index: number; row: HomeFeedRowData }) => (
       <PodcastEpisodeRow
         channel={channel}
+        engagedItemIds={engagedItemIds}
         index={index}
         item={itemsById.get(row.id)}
         itemLastSeenAtMs={row.liveStatusId === undefined ? visitLastSeenAtMs : null}
@@ -385,6 +393,7 @@ export function PodcastEpisodesSection({
     ),
     [
       channel,
+      engagedItemIds,
       handleAddToPlaylist,
       handleEpisodePress,
       handleMarkAsPlayed,
