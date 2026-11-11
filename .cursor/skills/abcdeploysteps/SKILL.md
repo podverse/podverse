@@ -308,14 +308,14 @@ Env: <none, or each missing or stale key with its overlay path. "unconfirmed" wh
 
 Put this table in the file, dropping rows for lanes you omitted.
 
-| Lane              | Starts when                                    | Terminal                     |
-| ----------------- | ---------------------------------------------- | ---------------------------- |
-| Publish (staging) | `develop` is clean, pushed, notes committed    | **Root**                     |
-| iOS build         | Any time, including during Publish (staging)   | **Mobile**                   |
-| Android build     | Same moment as the iOS build                   | Second **Mobile**            |
-| GitOps pin        | Publish letter exited 0 and printed the tag    | `k.podcastdj.com` repo root (last letter of series 1) |
-| iOS submit        | That iOS build finished                        | **Mobile** (after the build) |
-| Android submit    | That Android build finished                    | Second **Mobile**            |
+| Lane              | Starts when                                  | Terminal                                              |
+| ----------------- | -------------------------------------------- | ----------------------------------------------------- |
+| Publish (staging) | `develop` is clean, pushed, notes committed  | **Root**                                              |
+| iOS build         | Any time, including during Publish (staging) | **Mobile**                                            |
+| Android build     | Same moment as the iOS build                 | Second **Mobile**                                     |
+| GitOps pin        | Publish letter exited 0 and printed the tag  | `k.podcastdj.com` repo root (last letter of series 1) |
+| iOS submit        | That iOS build finished                      | **Mobile** (after the build)                          |
+| Android submit    | That Android build finished                  | Second **Mobile**                                     |
 
 GitOps push and the two store submits may overlap. Do not start GitOps before the tag exists.
 Do not sync Argo by hand while auto-sync is rolling out a later wave ahead of ops.

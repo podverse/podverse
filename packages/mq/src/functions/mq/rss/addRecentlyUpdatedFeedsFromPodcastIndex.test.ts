@@ -552,8 +552,7 @@ describe('mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex', () => {
     expect(result).toMatchObject({ outcome: 'upstream_error', cursorNextSince: start + 300 });
     expect(loggerService.warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        'upstream error after retries; the next run resumes from next_since=' +
-          `${start + 300}`
+        'upstream error after retries; the next run resumes from next_since=' + `${start + 300}`
       )
     );
   });
