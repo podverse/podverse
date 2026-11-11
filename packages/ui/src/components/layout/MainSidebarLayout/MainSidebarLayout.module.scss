@@ -5,9 +5,10 @@
   /* Short pages fill the space under the header so a centered message can sit in the middle. */
   flex: 1 1 auto;
   flex-direction: column;
-  /* Horizontal inset matches the web NavBar title inset (`--spacing-2xl`). */
+  /* Horizontal inset matches the web NavBar title inset (`--spacing-2xl`).
+     Cross size stays auto so the stretched column includes these margins
+     and remains inside the page scrollport. */
   margin: var(--spacing-xl) var(--spacing-2xl) var(--spacing-4xl) var(--spacing-2xl);
   min-width: 0;
-  width: 100%;
   @include flexItemAllowShrink;
 }
