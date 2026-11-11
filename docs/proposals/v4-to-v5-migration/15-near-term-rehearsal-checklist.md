@@ -124,7 +124,15 @@ The account copy sets Premium or Trial, and it writes a carried trial grant.
       bcrypt hash and name are stored. `v4_library_copied_at` is null. No
       membership row, no grant, and no signup trial. Repeat runs use
       `v4SeedAccountIdentity` with `--v4-id` and `--dry-run`.
-- [ ] Library copy for that one account, through the legacy map.
+- [ ] Library copy for that one account, through the legacy map. The dry run
+      `v4CopyAccountLibrary --v4-id eFv5NFx --dry-run` wrote nothing.
+      Subscriptions 173 (resolved 4, unresolved 169). The unresolved 169 are
+      the 14 non-public, the 6 missing podcasts, and the 149 with no local
+      feed. Add by RSS 11, all unresolved. Follows: 0 playlists, 2 users, both
+      unresolved. Playlists 5, all resolved because the account is local.
+      Playlist members 19 (resolved 1, unresolved 18). Order ids dropped: 2.
+      Clips 925 (resolved 16, unresolved 909), official skipped 0. Queue 0.
+      History 710 (resolved 59, unresolved 651). Now playing 1, unresolved.
 - [ ] Sign in on local web and mobile with the v4 password.
 - [ ] Copied group counts match the step 2 trace.
 - [ ] `billingImportLegacyMembershipExpiry` dry run against the seeded account.

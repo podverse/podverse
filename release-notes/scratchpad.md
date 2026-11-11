@@ -39,3 +39,10 @@
 - Change: the notifications package loads `web-push` with `createRequire`. A named ESM import of `sendNotification` threw at startup, so every worker command failed while loading notifications.
 - Who notices: operators running any worker command on Node 24
 - Operator steps: rebuild `@podverse/notifications` before starting workers
+
+## v4 library dry run
+
+- Surfaces: workers
+- Change: `v4CopyAccountLibrary` counts one v4 library against the local v5 catalog. `--dry-run` is required. It does not write library rows or set `v4_library_copied_at`.
+- Who notices: operators rehearsing the v4 account migration
+- Operator steps: set `V4_DATABASE_URL`, build workers, then run `npm run v4_copy_account_library -w apps/workers -- --v4-id <id> --dry-run`

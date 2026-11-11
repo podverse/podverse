@@ -58,7 +58,10 @@ An email that already exists in v5 is skipped. Do not change that account's
 password and do not attach the v4 library. Report the v4 user id for an
 operator. Counts only in automated logs. The worker command is
 `v4SeedAccountIdentity` (`--v4-id`, `--dry-run`). It reads `V4_DATABASE_URL`
-and writes the v5 identity rows. It does not copy a library.
+and writes the v5 identity rows. It does not copy a library. The library dry
+run is `v4CopyAccountLibrary` (`--v4-id`, `--dry-run`). It counts each group
+against rows already in v5 and writes nothing, including
+`v4_library_copied_at`.
 
 The v4 API keeps serving that person until the library copy finishes. The
 rejection from the earlier decision happens at copy, not at seed.

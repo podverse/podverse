@@ -48,6 +48,7 @@ import { deleteOutdatedOnDemandParserEvent } from './orm/onDemandParserEvent/del
 import { generateOnDemandParserEventReports } from './orm/onDemandParserEvent/generateOnDemandParserEventReports.js';
 import { scheduledJobsRunDue } from './orm/scheduledJob/runDue.js';
 import { v4SeedAccountIdentity } from './orm/v4Identity/seedAccountIdentity.js';
+import { v4CopyAccountLibrary } from './orm/v4Library/copyAccountLibrary.js';
 import { ormVerifiedPublisherLinksBackfill } from './orm/verifiedPublisherLinks/backfill.js';
 
 export type CommandLineArgs = { [key: string]: string | string[] };
@@ -83,6 +84,7 @@ export default {
   billingCheckoutChannelEnable,
   billingImportLegacyMembershipExpiry,
   v4SeedAccountIdentity,
+  v4CopyAccountLibrary,
   billingProcessorProductAdd,
   billingReconcile,
   billingStrikeEnsureWebhook,

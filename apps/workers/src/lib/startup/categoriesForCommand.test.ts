@@ -60,6 +60,12 @@ describe('getCategoriesForCommand', () => {
     );
   });
 
+  it('maps v4CopyAccountLibrary to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('v4CopyAccountLibrary'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
   it('maps v4SeedAccountIdentity to Base and ORM', () => {
     expect(sortCategories(getCategoriesForCommand('v4SeedAccountIdentity'))).toEqual(
       sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
