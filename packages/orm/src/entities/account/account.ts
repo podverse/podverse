@@ -1,6 +1,6 @@
 import type { AccountCredentials } from '@orm/entities/account/accountCredentials.js';
 import type { SharableStatus } from '@orm/entities/sharableStatus.js';
-import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
+import { assignIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
 import type { Relation } from 'typeorm';
 import {
   BeforeInsert,
@@ -49,6 +49,10 @@ export class Account {
 
   @Column({ type: 'timestamptz', nullable: true })
   notifications_last_read_at?: Date | null;
+
+  /** Null means the library has not been copied. */
+  @Column({ type: 'timestamptz', nullable: true })
+  v4_library_copied_at?: Date | null;
 
   @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })
@@ -170,6 +174,6 @@ export class Account {
 
   @BeforeInsert()
   generateIdText() {
-    this.id_text = generateRandomIdText();
+    this.id_text = assignIdText(this.id_text);
   }
 }

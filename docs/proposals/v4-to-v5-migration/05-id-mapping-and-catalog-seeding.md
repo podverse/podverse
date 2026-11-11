@@ -57,7 +57,7 @@ new. Playback UUIDs (`userHistoryItems`, `userQueueItems`,
 | chapter `mediaRefs.id`   | `item_chapter.id_text`   |
 | soundbite `mediaRefs.id` | `item_soundbite.id_text` |
 
-`nano_id_v2` today accepts 9–15 characters. On this snapshot every one of
+`nano_id_v2` accepts 7–15 characters. On this snapshot every one of
 these ids is 7–12 characters, and none are longer than 15. Ids shorter than 9:
 
 | Entity      | Shorter than 9 |
@@ -69,11 +69,10 @@ these ids is 7–12 characters, and none are longer than 15. Ids shorter than 9:
 | `episodes`  | 21,099         |
 
 The shortest id in each of those tables is 7, except playlists, where it is
-8. Decided: `nano_id_v2` will accept 7–15 characters, and
-`generateRandomIdText` stays at 10. The domain check and
-`NANO_ID_V2_MIN_LENGTH` change together, in the app database and the
-management database. That schema edit is later. Do not mint a replacement id
-for a short row.
+8. `nano_id_v2` accepts 7–15 characters, and `generateRandomIdText` stays at
+10. The app migration is `0005_v4_rehearsal_schema.sql`. The management
+migration is `0002_nano_id_v2_min_7.sql`. Do not mint a replacement id for a
+short row.
 
 `BeforeInsert` on `account`, `channel`, `item`, `clip`, `playlist`,
 `item_chapter`, and `item_soundbite` assigns a new `id_text`. Import has to
@@ -149,14 +148,23 @@ are decimals. Copy the integer as a whole number of seconds.
 v4 playlists.id
   → ownerId → v5 account
   → playlist.id_text = playlists.id
-  → itemsOrder shortids, in array order
-      → playlists_episodes_episodes.episodesId → v5 item
-      → playlists_media_refs_media_refs.mediaRefsId → v5 clip
-      → playlist_resource.list_position
+  → members = join-table episode ids and mediaRef ids
+  → sort members by their index in itemsOrder
+  → members absent from itemsOrder go last
+  → an itemsOrder id with no join row is dropped
+  → playlist_resource.list_position = 1, then + 0.00000001 each row
 ```
 
-`itemsOrder` is the order. The two join tables are membership, not order.
-`itemCount` is derived in v4 `BeforeInsert` and should be recomputed in v5.
+The two join tables are the playlist. `itemsOrder` only sorts those members.
+An order id with no join row is dropped and counted. A join member the array
+does not mention stays, after the ordered members. That is what v4
+`combineAndSortPlaylistItems` already shows. `itemCount` is derived in v4
+`BeforeInsert` and is recomputed from the rows copied.
+
+On this snapshot, 1,182 of 10,351 `itemsOrder` ids have no episode and no
+mediaRef, across 267 playlists. 2,672 join members are absent from the array,
+across 647 playlists. One order id names an episode or mediaRef outside that
+playlist's joins, and that id is dropped with the rest.
 `isDefault` becomes `playlist.is_default_likes` for that account and medium.
 Do not create a second Likes playlist for the same pair. Other playlists keep
 `is_default_likes` false. On this snapshot that is 34 playlists (32 music, 2
@@ -166,6 +174,22 @@ v5 `playlist_resource` stores exactly one of `item_id`, `clip_id`,
 `item_soundbite_id`, or `add_by_rss_hash_id`. An episode from
 `playlists_episodes_episodes` fills `item_id` and leaves `clip_id` empty. A
 mediaRef fills `clip_id`. Do not invent a clip for an episode.
+
+`list_position` on `playlist_resource` and `queue_resource` is a `numeric`
+string. The app sorts ascending. The ORM step is `0.00000001`.
+
+- An empty playlist or an empty upcoming queue starts at `1`. Each row added
+  at the end is the previous position plus `0.00000001`.
+- A row placed between two neighbors is their average.
+- Now playing is `0`.
+- The first history row is `-1`. Each newer history row is the previous
+  history position plus `0.00000001`, so the newest sits closest to `0`.
+
+The copy uses that same step. Playlist members, in the sort above, start at
+`1` and add `0.00000001` per row. Upcoming queue rows do the same in
+`queuePosition` order. The now-playing row is `0`. History starts at `-1` for
+the oldest `orderChangedDate` and adds `0.00000001` for each newer row. The
+pair `(playlist, list_position)` is unique.
 
 ### Crosswalk chain (account)
 
@@ -202,10 +226,12 @@ Leave it out of the chain until an operator says what it means.
 | `userNowPlayingItems.userPlaybackPosition` | Now-playing `queue_resource`                  |
 
 `users.userNowPlayingItemId` is null for every user on this snapshot. Link
-now-playing through `userNowPlayingItems.ownerId`.
+now-playing through `userNowPlayingItems.ownerId`. Order for these rows is the
+`list_position` rule in the playlist section above.
 
-Positions are integers in v4 and numeric in v5. Copy them as whole seconds.
-Rows with both `episodeId` and `mediaRefId` null are **dropped**.
+`queue_resource.playback_position` is the playhead, separate from list order.
+v4 playback positions are integers. Copy them as whole seconds. Rows with both
+`episodeId` and `mediaRefId` null are **dropped**.
 
 ### Durable legacy map
 

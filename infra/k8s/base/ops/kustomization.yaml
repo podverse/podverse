@@ -25,8 +25,8 @@ configMapGenerator:
   - name: podverse-ops-migration-scripts
     literals:
       - MIGRATION_BUNDLE_SHA=linear-migrations-v1
-      - API_EXPECTED_MIGRATION_FILENAME=0004_podcast_index_stream_cursor.sql
-      - MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME=0001_management_schema.sql
+      - API_EXPECTED_MIGRATION_FILENAME=0005_v4_rehearsal_schema.sql
+      - MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME=0002_nano_id_v2_min_7.sql
     files:
       - source/database/runner/run-linear-migrations.sh
       - source/database/runner/run-linear-migrations-k8s.sh
@@ -44,6 +44,7 @@ configMapGenerator:
       - source/database/linear-migrations/app/0002_remote_stubs.sql
       - source/database/linear-migrations/app/0003_stats_channel_hidden.sql
       - source/database/linear-migrations/app/0004_podcast_index_stream_cursor.sql
+      - source/database/linear-migrations/app/0005_v4_rehearsal_schema.sql
   - name: podverse-ops-management-linear-migrations
     options:
       annotations:
@@ -51,6 +52,7 @@ configMapGenerator:
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql
       - source/database/linear-migrations/management/0001_management_schema.sql
+      - source/database/linear-migrations/management/0002_nano_id_v2_min_7.sql
   - name: podverse-ops-management-superuser-scripts
     files:
       - source/database/management-superuser/package.json

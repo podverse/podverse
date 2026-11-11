@@ -53,6 +53,8 @@ commits them.
 | Production v4 is believed to run master; entity code matches develop     | Decided |
 | Extra v4 worktrees wait until someone starts the migration code          | Decided |
 | Episode playlist rows point at the episode and do not invent a clip      | Decided |
+| Playlist members come from the joins; `itemsOrder` only sorts            | Decided |
+| Copied list order uses the ORM step of `0.00000001`                      | Decided |
 | Phone-storage spike is written in doc 08 and has not been run            | Decided |
 | F-Droid is a placeholder until later                                     | Decided |
 | Do not import `subscribedPodcastListIds`                                 | Decided |
@@ -131,6 +133,7 @@ flowchart LR
 | [12](12-production-launch-and-grace-period.md) | Store rollout and the rolling upgrade window              |
 | [13](13-forced-migration-and-v4-shutdown.md)   | Batch remaining users and retire v4                       |
 | [14](14-fdroid.md)                             | F-Droid placeholder                                       |
+| [15](15-near-term-rehearsal-checklist.md)      | Ordered rehearsal steps before migration code             |
 
 ## Can and cannot (honest summary)
 

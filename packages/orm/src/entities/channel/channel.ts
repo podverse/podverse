@@ -20,7 +20,7 @@ import type { ChannelValue } from '@orm/entities/channel/channelValue.js';
 import type { ChannelVerifiedPublisher } from '@orm/entities/channel/channelVerifiedPublisher.js';
 import type { Feed } from '@orm/entities/feed/feed.js';
 import type { Medium } from '@orm/entities/medium.js';
-import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
+import { assignIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -193,7 +193,7 @@ export class Channel {
 
   @BeforeInsert()
   generateIdText() {
-    this.id_text = generateRandomIdText();
+    this.id_text = assignIdText(this.id_text);
   }
 
   @BeforeInsert()

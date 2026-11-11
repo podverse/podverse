@@ -115,6 +115,7 @@ import { ItemValueRecipient } from '@orm/entities/item/itemValueRecipient.js';
 import { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
 import { ItemValueTimeSplitRecipient } from '@orm/entities/item/itemValueTimeSplitRecipient.js';
 import { ItemValueTimeSplitRemoteItem } from '@orm/entities/item/itemValueTimeSplitRemoteItem.js';
+import { LegacyIdMap } from '@orm/entities/legacyIdMap.js';
 import { LiveItem } from '@orm/entities/liveItem/liveItem.js';
 import { LiveItemStatus } from '@orm/entities/liveItem/liveItemStatus.js';
 import { Medium } from '@orm/entities/medium.js';
@@ -274,6 +275,7 @@ export const entities = [
   ItemValueTimeSplit,
   ItemValueTimeSplitRecipient,
   ItemValueTimeSplitRemoteItem,
+  LegacyIdMap,
   LiveItem,
   LiveItemStatus,
   MembershipClaimToken,

@@ -1,6 +1,6 @@
 ---
 name: e2e-seed-nano-id-limits
-description: E2E seed and fixture id_text values must fit nano_id_v2 (9–15 chars). Use when adding or renaming IDs in seed scripts, seedConstants, demo links, or E2E fixtures that insert into id_text columns.
+description: E2E seed and fixture id_text values must fit nano_id_v2 (7–15 chars). Use when adding or renaming IDs in seed scripts, seedConstants, demo links, or E2E fixtures that insert into id_text columns.
 ---
 
 # E2E seed `id_text` limits (`nano_id_v2`)
@@ -13,7 +13,7 @@ When adding deterministic E2E fixtures (seed SQL, `tools/**/seed-e2e.mjs`, demo 
 
 | Source     | Rule                                                                                  |
 | ---------- | ------------------------------------------------------------------------------------- |
-| DB domain  | `VARCHAR(15)` with `char_length` **9–15** (`0000_init_helpers.sql`)                   |
+| DB domain  | `VARCHAR(15)` with `char_length` **7–15** (`0005_v4_rehearsal_schema.sql`)            |
 | TypeScript | `NANO_ID_V2_MIN_LENGTH` / `NANO_ID_V2_MAX_LENGTH` in `packages/orm/src/lib/nanoid.ts` |
 
 **Do not** assume descriptive strings are valid just because they look like other E2E IDs.

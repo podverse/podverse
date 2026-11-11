@@ -169,6 +169,7 @@ export * from './entities/billingProduct.js';
 export * from './entities/billingTransaction.js';
 export * from './entities/billingWebhookEvent.js';
 export * from './entities/clip.js';
+export * from './entities/legacyIdMap.js';
 export * from './entities/medium.js';
 export * from './entities/embedDemoShowcase.js';
 export * from './entities/imageShrinkSource.js';

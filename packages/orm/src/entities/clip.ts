@@ -1,7 +1,7 @@
 import type { Account } from '@orm/entities/account/account.js';
 import type { Item } from '@orm/entities/item/item.js';
 import type { SharableStatus } from '@orm/entities/sharableStatus.js';
-import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
+import { assignIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
 import type { Relation } from 'typeorm';
 import {
   BeforeInsert,
@@ -68,6 +68,6 @@ export class Clip {
 
   @BeforeInsert()
   generateIdText() {
-    this.id_text = generateRandomIdText();
+    this.id_text = assignIdText(this.id_text);
   }
 }
