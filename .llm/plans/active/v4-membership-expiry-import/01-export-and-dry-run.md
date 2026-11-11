@@ -4,62 +4,50 @@
 
 ## Goal
 
-Produce a v4 expiry file and dry-run `billingImportLegacyMembershipExpiry` against v5.
-No grant writes in this prompt.
+Build a paid-expiry file and dry-run `billingImportLegacyMembershipExpiry`
+against the local v5 database. No grant writes in this prompt.
 
 ## Gate
 
-Ask whether the v4 to v5 account migration is underway and v5 already has the migrated
-emails. If the answer is no, stop. Do not offer the export steps.
+Ask whether the local v5 accounts this file should match already exist. For
+the rehearsal, that is the one seeded account. If the answer is no, stop.
+Do not offer the export. Do not point the dry-run at alpha.
 
-Confirm `billingImportLegacyMembershipExpiry` exists under `apps/workers`. If it does
-not, stop.
+Confirm `billingImportLegacyMembershipExpiry` exists under `apps/workers`. If it
+does not, stop.
 
 ## Export (operator, read-only)
 
 The file holds email addresses. Save it outside the repo. Do not commit it.
+Build it in this sitting. An older file is not reused.
 
-v4 columns: `account_credentials.email` joined to
-`account_membership_status.membership_expires_at` on `account_id`. Drop null emails and
-null expirations. Format the timestamp as ISO-8601 UTC.
+Start from the `users` export in
+[v4 membership carryover](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover).
+v4 stores the address on `users.email` and the expiry on
+`users.membershipExpiration`. Drop null emails and null expirations.
 
-```sql
-SELECT c.email,
-  to_char(
-    s.membership_expires_at AT TIME ZONE 'UTC',
-    'YYYY-MM-DD"T"HH24:MI:SS"Z"'
-  ) AS membership_expires_at
-FROM account_credentials AS c
-INNER JOIN account_membership_status AS s ON s.account_id = c.account_id
-WHERE c.email IS NOT NULL
-  AND s.membership_expires_at IS NOT NULL
-ORDER BY c.email;
-```
+Before the file is written, replace the timestamp for each account that has
+an `appStorePurchase` with `purchase_date_ms` on 2023-12-27 through
+2024-01-31 and a paid expiry more than five years ahead. That timestamp is
+five years after the moment the file is built. Every other future expiry
+stays as stored. On the 2026-10-30 snapshot the replaced set is 297 accounts.
+If a count of that set is not 297, stop and report the count. Do not print
+emails.
 
-`psql` `\copy` writes the file on the client. Use a real absolute path.
+The operator command is fish-safe. The heredoc in the billing doc is not.
+Replace the placeholder path. From the **Root** tab:
 
 ```bash
-psql "$V4_DATABASE_URL" <<'SQL'
-\copy (
-  SELECT c.email,
-    to_char(
-      s.membership_expires_at AT TIME ZONE 'UTC',
-      'YYYY-MM-DD"T"HH24:MI:SS"Z"'
-    ) AS membership_expires_at
-  FROM account_credentials AS c
-  INNER JOIN account_membership_status AS s ON s.account_id = c.account_id
-  WHERE c.email IS NOT NULL
-    AND s.membership_expires_at IS NOT NULL
-  ORDER BY c.email
-) TO '/absolute/path/outside/the/repo/v4-membership-expiry.csv' WITH (FORMAT csv, HEADER true)
-SQL
+psql "$V4_DATABASE_URL" -c "COPY (SELECT email, to_char(\"membershipExpiration\", 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS membership_expires_at FROM users WHERE email IS NOT NULL AND \"membershipExpiration\" IS NOT NULL ORDER BY email) TO STDOUT WITH (FORMAT csv, HEADER true)" > /absolute/path/outside/the/repo/v4-membership-expiry.csv
 ```
 
-Explain those steps, ask for the absolute path, and stop the turn. Do not persist the
-path. The operator's reply continues this prompt.
+That command is the base export. The capped timestamps are applied to that
+file in the same sitting, before the dry-run. Explain the cap, ask for the
+absolute path, and stop the turn. Do not persist the path. The operator's
+reply continues this prompt.
 
-On `skip`, give the dry-run command with a placeholder path and stop. Do not invent a
-file.
+On `skip`, give the dry-run command with a placeholder path and stop. Do not
+invent a file.
 
 ## After the path arrives
 
@@ -72,6 +60,8 @@ The same rules as
 [v4 membership carryover](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover):
 case-insensitive email, skip past and null expirations, skip unknown and ambiguous
 emails, upsert the later `ends_at`, leave a revoked `legacy_import` grant revoked.
+A full file against the local database matches only the seeded accounts. The
+rest are unmatched. That is the expected rehearsal result.
 
 ## Operator commands
 

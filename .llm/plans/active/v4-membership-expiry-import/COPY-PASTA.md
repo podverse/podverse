@@ -1,9 +1,11 @@
 # v4 membership expiry import — COPY-PASTA
 
-**Parked.** Do not paste these prompts until the v4 to v5 account migration is underway
-and v5 already has the migrated emails. This set loads membership expiry only.
+Do not paste these prompts until the v5 accounts this file should match already
+exist. The rehearsal target is the local database, after that one account is
+seeded. Do not point it at alpha. This set loads paid expiry only. The account
+copy sets the tier and writes a carried trial.
 
-How to use, once that migration has started:
+How to use, once those accounts exist:
 
 1. Select **Cursor model** and **Reasoning** in the Cursor UI (line above each fence).
 2. Copy the fenced block only → paste → agent executes.
@@ -11,6 +13,10 @@ How to use, once that migration has started:
 4. Prompt 01 pauses for the export path. Reply with the path (or `skip`). The same prompt
    continues. The path is not saved.
 5. Prompt 02 starts only after you accept the dry-run report.
+
+**Optional — run the set unattended (Root tab):**
+`node ../plan-runner/run-plan-set.mjs v4-membership-expiry-import`. It stops at the first blocker; see the
+plan-runner README to resume.
 
 Locked decisions: [00-master-plan.md](./00-master-plan.md). Order:
 [00-EXECUTION-ORDER.md](./00-EXECUTION-ORDER.md).
@@ -33,8 +39,10 @@ If a **Cursor Grok 4.7** prompt stalls or makes the same mistake twice, rerun it
 
 ```
 Read and execute .llm/plans/active/v4-membership-expiry-import/01-export-and-dry-run.md
-Follow 00-EXECUTION-ORDER.md. If the v4 to v5 account migration is not underway, stop.
-Explain the export, ask for the file path, and stop that turn. Do not persist the path.
+Follow 00-EXECUTION-ORDER.md. If the target v5 accounts do not exist yet, stop.
+Do not point the dry-run at alpha.
+Explain the export and the five-year cap, ask for the file path, and stop that turn.
+Do not persist the path.
 Do not run the import. Do not print emails.
 Do not run tests during agent work; end with the plan's operator commands.
 ```

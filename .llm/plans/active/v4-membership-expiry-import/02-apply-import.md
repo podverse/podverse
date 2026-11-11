@@ -4,15 +4,17 @@
 
 ## Goal
 
-Write `legacy_import` grants from the file already dry-run in 01.
+Write `legacy_import` grants from a file built in this sitting, after the 01 report is accepted.
 
 ## Gate
 
 Start only after the operator accepts the 01 dry-run report. If they have not, stop and
 point them back at 01.
 
-Use the same absolute file path from 01. If it was not kept in the conversation, ask for
-it again and stop the turn. Do not persist it.
+Rebuild the file in this sitting, with the five-year cap taken from now. Do not
+reuse the 01 file. If the path was not kept in the conversation, ask for it
+again and stop the turn. Do not persist it. The target stays the database
+from 01. Do not point the apply at alpha.
 
 Confirm the command is still `billingImportLegacyMembershipExpiry`. If it is missing,
 stop.

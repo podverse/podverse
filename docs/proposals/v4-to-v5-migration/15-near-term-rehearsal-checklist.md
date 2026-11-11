@@ -112,12 +112,12 @@ Every subscribed podcast, 63,786 distinct ids:
 Worker commands with `--dry-run` and a single-account target. Run them against
 the local v5 database from step 1.
 
-Before this step, rework
-[`.llm/plans/active/v4-membership-expiry-import/`](/.llm/plans/active/v4-membership-expiry-import/)
-or fold it in. It predates the [07](07-account-and-data-migration-model.md)
-rules: trials that end within 90 days become Trial grants, App Store window
-accounts cap at 5 years, and the account copy sets Premium or Trial itself.
+The membership plan matches
+[07](07-account-and-data-migration-model.md). The paid-expiry file is built in
+the same sitting as the dry-run or the apply, and an App Store window expiry
+more than five years ahead is already capped in that file.
 `billingImportLegacyMembershipExpiry` writes the grant and the expiry only.
+The account copy sets Premium or Trial, and it writes a carried trial grant.
 
 - [ ] Identity seed for the rehearsal account: email, bcrypt hash, name,
       verified flag, and the v4 id as `account.id_text`. No library rows and
