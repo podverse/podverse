@@ -32,13 +32,13 @@
     "@podverse/notifications": "*",
     "@podverse/orm": "*",
     "@podverse/parser-mapping": "*",
-    "module-alias": "^2.3.3",
+    "module-alias": "^2.3.5",
     "podverse-partytime": "^5.1.0"
   },
   "devDependencies": {
     "@types/module-alias": "^2.0.4",
     "tsc-alias": "^1.8.16",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   },
   "type": "module"
 }
