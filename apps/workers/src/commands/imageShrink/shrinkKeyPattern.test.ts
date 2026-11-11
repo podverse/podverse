@@ -14,9 +14,19 @@ describe('isShrinkGeneratedObjectKey', () => {
         'images/channel/7/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w320-c0123456789abcdef.webp'
       )
     ).toBe(true);
+    expect(
+      isShrinkGeneratedObjectKey(
+        'images/item/42/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w400-cabcdef0123456789.jpg'
+      )
+    ).toBe(true);
   });
 
   it('rejects non-shrink keys under images/', () => {
+    expect(
+      isShrinkGeneratedObjectKey(
+        'images/item/42/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w400-cabcdef0123456789.png'
+      )
+    ).toBe(false);
     expect(isShrinkGeneratedObjectKey('images/item/42/original.webp')).toBe(false);
     expect(isShrinkGeneratedObjectKey('images/other/1/foo.webp')).toBe(false);
     expect(isShrinkGeneratedObjectKey('uploads/images/item/1/x.webp')).toBe(false);

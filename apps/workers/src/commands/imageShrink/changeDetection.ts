@@ -1,3 +1,5 @@
+import type { ImageShrinkFormat } from '@workers/config/index.js';
+
 import type { HttpCacheMetadata } from '@podverse/helpers-backend';
 
 export type ShrinkSourceCacheSnapshot = {
@@ -48,13 +50,29 @@ export const bytesMatchStoredChecksum = (
   return source.checksumSha256 === checksumOf(originalBuffer);
 };
 
+export const shrinkFileExtension = (format: ImageShrinkFormat): 'jpg' | 'webp' => {
+  return format === 'jpeg' ? 'jpg' : 'webp';
+};
+
+export const shrinkContentType = (format: ImageShrinkFormat): 'image/jpeg' | 'image/webp' => {
+  return format === 'jpeg' ? 'image/jpeg' : 'image/webp';
+};
+
+/** True when a resized row's URL was encoded in a format other than `format`. */
+export const isResizedUrlInOtherFormat = (url: string, format: ImageShrinkFormat): boolean => {
+  const path = url.split(/[?#]/)[0] ?? url;
+  return !path.toLowerCase().endsWith(`.${shrinkFileExtension(format)}`);
+};
+
 export const buildShrinkImageKey = (params: {
   entityType: 'channel' | 'item';
   entityId: number;
   widthPx: number;
   contentChecksumSha256Hex: string;
   urlHash: string;
+  format: ImageShrinkFormat;
 }): string => {
   const suffix = params.contentChecksumSha256Hex.slice(0, 16);
-  return `images/${params.entityType}/${params.entityId}/${params.urlHash}-w${params.widthPx}-c${suffix}.webp`;
+  const extension = shrinkFileExtension(params.format);
+  return `images/${params.entityType}/${params.entityId}/${params.urlHash}-w${params.widthPx}-c${suffix}.${extension}`;
 };

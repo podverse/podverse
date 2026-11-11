@@ -263,7 +263,7 @@ container restarts. The budget is a constant, not an env var.
 
 ## Image Shrink
 
-Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shrink is disabled and these variables are not used. If **`BUCKET_PROVIDER`** is set to a supported value (`digitalocean`, `aws-s3`, `backblaze-b2`, `garage`, `s3-compatible`), image shrink is enabled and the bucket plus throughput variables below are required for commands that use image shrink (`imageShrinkRunConsumer`, `imageShrinkBackfill`, `imageShrinkCleanupOrphans`, …). **`IMAGE_SHRINK_WIDTH_PX`** and **`IMAGE_SHRINK_WEBP_QUALITY`** are optional and default to **400** and **92** when unset. See **`docs/image-shrinking/BUCKET-PROVIDERS.md`** for provider-specific setup.
+Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shrink is disabled and these variables are not used. If **`BUCKET_PROVIDER`** is set to a supported value (`digitalocean`, `aws-s3`, `backblaze-b2`, `garage`, `s3-compatible`), image shrink is enabled and the bucket plus throughput variables below are required for commands that use image shrink (`imageShrinkRunConsumer`, `imageShrinkBackfill`, `imageShrinkCleanupOrphans`, …). **`IMAGE_SHRINK_WIDTH_PX`**, **`IMAGE_SHRINK_FORMAT`**, **`IMAGE_SHRINK_JPEG_QUALITY`**, and **`IMAGE_SHRINK_WEBP_QUALITY`** are optional and default to **400**, **jpeg**, **82**, and **92** when unset. See **`docs/image-shrinking/BUCKET-PROVIDERS.md`** for provider-specific setup.
 
 - **`BUCKET_PROVIDER`** (Required when image shrink enabled) - S3-compatible backend selector
 - **`BUCKET_ACCESS_KEY`** (Required when image shrink enabled) - Bucket access key (provider-specific; not necessarily an API “personal access token”)
@@ -274,7 +274,9 @@ Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shri
 - **`BUCKET_ENDPOINT`** (Required for `garage` and `s3-compatible`; optional otherwise) - S3 API base URL
 - **`BUCKET_FORCE_PATH_STYLE`** (Optional) - `true`, `false`, or unset for provider default path-style vs virtual-hosted addressing
 - **`IMAGE_SHRINK_WIDTH_PX`** (Optional) - Target width in pixels for resized images (default: **400**; must be a positive integer if set)
-- **`IMAGE_SHRINK_WEBP_QUALITY`** (Optional) - WebP lossy quality **1–100** (default: **92**)
+- **`IMAGE_SHRINK_FORMAT`** (Optional) - Encoding for shrunk images: `jpeg` or `webp` (default: **jpeg**). Push notifications send the shrunk image, and **iOS notification attachments do not support WebP**: with `webp`, iOS pushes show no artwork. Android and in-app artwork work with either format. Existing shrunk images are re-encoded in the new format the next time the worker processes them.
+- **`IMAGE_SHRINK_JPEG_QUALITY`** (Optional) - JPEG quality **1–100** (default: **82**; mozjpeg encoder; transparency is flattened onto white). Used when the format is `jpeg`
+- **`IMAGE_SHRINK_WEBP_QUALITY`** (Optional) - WebP lossy quality **1–100** (default: **92**). Used when the format is `webp`
 - **`IMAGE_SHRINK_BATCH_SIZE`** (Required when image shrink enabled) - Max images processed per batch run
 - **`IMAGE_SHRINK_CONCURRENCY`** (Required when image shrink enabled) - Parallel image processing count
 - **`IMAGE_SHRINK_RPS`** (Required when image shrink enabled) - Rate limit for image fetches (requests/second)

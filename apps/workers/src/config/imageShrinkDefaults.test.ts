@@ -4,6 +4,8 @@ import { getImageShrinkConfig } from './index.js';
 
 const ENV_KEYS = [
   'IMAGE_SHRINK_WIDTH_PX',
+  'IMAGE_SHRINK_FORMAT',
+  'IMAGE_SHRINK_JPEG_QUALITY',
   'IMAGE_SHRINK_WEBP_QUALITY',
   'IMAGE_SHRINK_BATCH_SIZE',
   'IMAGE_SHRINK_CONCURRENCY',
@@ -35,18 +37,30 @@ describe('getImageShrinkConfig', () => {
     }
   });
 
-  it('uses default width 400 and WebP quality 92 when unset', () => {
+  it('uses default width 400, JPEG format, JPEG quality 82, and WebP quality 92 when unset', () => {
     const c = getImageShrinkConfig();
     expect(c.widthPx).toBe(400);
+    expect(c.format).toBe('jpeg');
+    expect(c.jpegQuality).toBe(82);
     expect(c.webpQuality).toBe(92);
   });
 
-  it('parses explicit width and quality', () => {
+  it('parses explicit width, format, and qualities', () => {
     process.env.IMAGE_SHRINK_WIDTH_PX = '320';
+    process.env.IMAGE_SHRINK_FORMAT = ' WebP ';
+    process.env.IMAGE_SHRINK_JPEG_QUALITY = '75';
     process.env.IMAGE_SHRINK_WEBP_QUALITY = '85';
     const c = getImageShrinkConfig();
     expect(c.widthPx).toBe(320);
+    expect(c.format).toBe('webp');
+    expect(c.jpegQuality).toBe(75);
     expect(c.webpQuality).toBe(85);
+  });
+
+  it('returns null format for an unsupported value', () => {
+    process.env.IMAGE_SHRINK_FORMAT = 'png';
+    const c = getImageShrinkConfig();
+    expect(c.format).toBeNull();
   });
 
   it('returns NaN width when set to a non-integer', () => {
@@ -56,8 +70,10 @@ describe('getImageShrinkConfig', () => {
   });
 
   it('returns NaN quality when out of range', () => {
+    process.env.IMAGE_SHRINK_JPEG_QUALITY = '0';
     process.env.IMAGE_SHRINK_WEBP_QUALITY = '101';
     const c = getImageShrinkConfig();
+    expect(Number.isNaN(c.jpegQuality)).toBe(true);
     expect(Number.isNaN(c.webpQuality)).toBe(true);
   });
 });

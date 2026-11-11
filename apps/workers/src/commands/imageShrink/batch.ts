@@ -1,6 +1,8 @@
 import {
   buildShrinkImageKey,
   bytesMatchStoredChecksum,
+  isResizedUrlInOtherFormat,
+  shrinkContentType,
   trustHeadUnchanged,
 } from '@workers/commands/imageShrink/changeDetection.js';
 import { existingEntityForResizedSave } from '@workers/commands/imageShrink/existingEntityForResizedSave.js';
@@ -194,8 +196,8 @@ export type ImageShrinkProcessor = {
 };
 
 type PersistedImage =
-  | { entityType: 'channel'; row: ChannelImage; parent: Channel }
-  | { entityType: 'item'; row: ItemImage; parent: Item };
+  | { entityType: 'channel'; row: ChannelImage; parent: Channel; resized: ChannelImage | null }
+  | { entityType: 'item'; row: ItemImage; parent: Item; resized: ItemImage | null };
 
 export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
   const logger = getLoggerService();
@@ -214,6 +216,20 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
     imageShrinkConfig.widthPx <= 0
   ) {
     throw new Error('IMAGE_SHRINK_WIDTH_PX must be a positive integer (or unset for default 400)');
+  }
+  const shrinkFormat = imageShrinkConfig.format;
+  if (shrinkFormat === null) {
+    throw new Error('IMAGE_SHRINK_FORMAT must be jpeg or webp (or unset for default jpeg)');
+  }
+  if (
+    Number.isNaN(imageShrinkConfig.jpegQuality) ||
+    !Number.isInteger(imageShrinkConfig.jpegQuality) ||
+    imageShrinkConfig.jpegQuality < 1 ||
+    imageShrinkConfig.jpegQuality > 100
+  ) {
+    throw new Error(
+      'IMAGE_SHRINK_JPEG_QUALITY must be an integer from 1 to 100 (or unset for default 82)'
+    );
   }
   if (
     Number.isNaN(imageShrinkConfig.webpQuality) ||
@@ -256,32 +272,32 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
       const parent = new Channel();
       parent.id = target.entityId;
       const nonResized = await channelImageService._get(parent, { url: target.url });
-      if (nonResized && nonResized.is_resized === false) {
-        return { entityType: 'channel', row: nonResized, parent };
-      }
       const resized = await channelImageService.findResizedByShrinkKeyPrefix(parent, {
         cdnBaseUrl: storageConfig.cdnBaseUrl,
         sourceUrl: target.url,
         widthPx: imageShrinkConfig.widthPx,
       });
+      if (nonResized && nonResized.is_resized === false) {
+        return { entityType: 'channel', row: nonResized, parent, resized };
+      }
       if (resized) {
-        return { entityType: 'channel', row: resized, parent };
+        return { entityType: 'channel', row: resized, parent, resized };
       }
       return null;
     }
     const parent = new Item();
     parent.id = target.entityId;
     const nonResized = await itemImageService._get(parent, { url: target.url });
-    if (nonResized && nonResized.is_resized === false) {
-      return { entityType: 'item', row: nonResized, parent };
-    }
     const resized = await itemImageService.findResizedByShrinkKeyPrefix(parent, {
       cdnBaseUrl: storageConfig.cdnBaseUrl,
       sourceUrl: target.url,
       widthPx: imageShrinkConfig.widthPx,
     });
+    if (nonResized && nonResized.is_resized === false) {
+      return { entityType: 'item', row: nonResized, parent, resized };
+    }
     if (resized) {
-      return { entityType: 'item', row: resized, parent };
+      return { entityType: 'item', row: resized, parent, resized };
     }
     return null;
   };
@@ -296,11 +312,13 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
       image_width_size: resizedWidth,
       is_resized: true,
     };
+    // Rotating the existing resized row in place keeps one resized row per source, including when
+    // IMAGE_SHRINK_FORMAT changes and the new URL has a different extension.
     if (persisted.entityType === 'channel') {
-      const existingResized = existingEntityForResizedSave(persisted.row);
+      const existingResized = persisted.resized ?? existingEntityForResizedSave(persisted.row);
       await channelImageService._update(persisted.parent, ['url'], dto, undefined, existingResized);
     } else {
-      const existingResized = existingEntityForResizedSave(persisted.row);
+      const existingResized = persisted.resized ?? existingEntityForResizedSave(persisted.row);
       await itemImageService._update(persisted.parent, ['url'], dto, undefined, existingResized);
     }
   };
@@ -342,10 +360,12 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
         return;
       }
 
-      const deepDue = await imageShrinkSourceService.shouldDeepRecheck(
-        target.url,
-        deepRecheckIntervalSec
-      );
+      const resizedInOtherFormat =
+        persisted.resized !== null &&
+        isResizedUrlInOtherFormat(persisted.resized.url, shrinkFormat);
+      const deepDue =
+        resizedInOtherFormat ||
+        (await imageShrinkSourceService.shouldDeepRecheck(target.url, deepRecheckIntervalSec));
 
       const finishAfterBytes = async (params: {
         originalBuffer: Uint8Array;
@@ -355,11 +375,9 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
         const { originalBuffer, responseMeta, markDeepCheckComplete } = params;
         const checksum = sha256Hex(originalBuffer);
         const sourceSnapshot = source ?? undefined;
-        const unchanged = bytesMatchStoredChecksum(
-          sourceSnapshot ?? null,
-          originalBuffer,
-          sha256Hex
-        );
+        const unchanged =
+          !resizedInOtherFormat &&
+          bytesMatchStoredChecksum(sourceSnapshot ?? null, originalBuffer, sha256Hex);
 
         if (unchanged) {
           await imageShrinkSourceService.upsert(
@@ -399,6 +417,7 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
           widthPx: imageShrinkConfig.widthPx,
           contentChecksumSha256Hex: checksum,
           urlHash,
+          format: shrinkFormat,
         });
         const cdnUrl = imageStorageService.getPublicUrl({
           cdnBaseUrl: storageConfig.cdnBaseUrl,
@@ -409,16 +428,23 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
           width: imageShrinkConfig.widthPx,
           withoutEnlargement: true,
         });
-        const { data: resizedBuffer, info: resizedInfo } = await resizedImage
-          .webp({ quality: imageShrinkConfig.webpQuality })
-          .toBuffer({ resolveWithObject: true });
+        // JPEG has no alpha channel; transparent artwork is flattened onto white.
+        const encodedImage =
+          shrinkFormat === 'jpeg'
+            ? resizedImage
+                .flatten({ background: '#ffffff' })
+                .jpeg({ quality: imageShrinkConfig.jpegQuality, mozjpeg: true })
+            : resizedImage.webp({ quality: imageShrinkConfig.webpQuality });
+        const { data: resizedBuffer, info: resizedInfo } = await encodedImage.toBuffer({
+          resolveWithObject: true,
+        });
         const resizedWidth = resizedInfo.width ?? imageShrinkConfig.widthPx;
 
         await imageStorageService.uploadResizedImage({
           bucket: storageConfig.bucket,
           key,
           body: resizedBuffer,
-          contentType: 'image/webp',
+          contentType: shrinkContentType(shrinkFormat),
           cacheControl: 'public, max-age=31536000, immutable',
         });
 

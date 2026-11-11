@@ -77,7 +77,7 @@ flowchart TD
 
 Filters applied before DB checks:
 
-- `.webp` suffix only
+- `.jpg` or `.webp` suffix only
 - `lastModified` must exist
 - Object age in storage must be >= `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION` (seconds)
 - Optional `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` cap

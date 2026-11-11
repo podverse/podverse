@@ -2,7 +2,7 @@
 
 ## Overview
 
-The image shrinking service produces resized WebP images for list views and stores them on an
+The image shrinking service produces resized JPEG images (or WebP, see Output format) for list views and push notifications and stores them on an
 image CDN. It runs as a long-running MQ consumer plus a periodic backfill cron job and never
 blocks RSS parsing.
 
@@ -17,7 +17,7 @@ Key points:
 - Parser emits MQ hints so the consumer revisits origin URLs on each parse; the consumer also
   resolves already-resized rows when `image_shrink_source` has metadata for that URL.
 - A periodic backfill cron enqueues unresized images for full coverage.
-- A periodic orphan cleanup deletes unreferenced WebP objects from storage.
+- A periodic orphan cleanup deletes unreferenced shrunk objects from storage.
 - Resized images are stored in `channel_image` and `item_image` with `is_resized = true`.
 - List views prefer resized images; headers and full-size views continue using original URLs.
 - Shrink processing is static-only by source type: URL whitelist allows `png` / `jpg` / `jpeg` /
@@ -41,7 +41,7 @@ Further reading:
 2. Parser emits MQ hints (channel + item image URLs) for recently parsed feeds.
 3. `imageShrinkRunConsumer` consumes hints (fresh within 24 hours).
 4. Periodic backfill enqueues any remaining unresized images.
-5. Worker downloads, resizes to the configured width (`IMAGE_SHRINK_WIDTH_PX`, default **400**), encodes WebP at `IMAGE_SHRINK_WEBP_QUALITY` (default **92**), and uploads to image CDN.
+5. Worker downloads, resizes to the configured width (`IMAGE_SHRINK_WIDTH_PX`, default **400**), encodes in `IMAGE_SHRINK_FORMAT` (default **jpeg**, at `IMAGE_SHRINK_JPEG_QUALITY` **82**; `webp` uses `IMAGE_SHRINK_WEBP_QUALITY` **92**), and uploads to image CDN.
 6. Worker writes `is_resized = true` rows pointing at CDN URLs.
 
 ## Origin size, decode errors, and logs
@@ -66,7 +66,7 @@ message context)` includes `hintUrl`, `hintEntityType`, and `hintCreatedAt` befo
 Each resized image uses a deterministic key for easy lookup and deletion:
 
 ```
-images/{entity_type}/{entity_id}/{sha256(url)}-w{width}-c{sha256_prefix16}.webp
+images/{entity_type}/{entity_id}/{sha256(url)}-w{width}-c{sha256_prefix16}.{jpg|webp}
 ```
 
 The `c{sha256_prefix16}` segment is the first 16 hex characters of the SHA-256 digest of the
@@ -74,9 +74,20 @@ The `c{sha256_prefix16}` segment is the first 16 hex characters of the SHA-256 d
 DB row is updated; the previous CDN object becomes an orphan and is removed by the orphan cleanup
 job after `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION`.
 
-Changing **`IMAGE_SHRINK_WIDTH_PX`** or **`IMAGE_SHRINK_WEBP_QUALITY`** changes the encoded bytes and therefore the content checksum and object key; existing CDN objects are not updated until origins are reprocessed.
+Changing **`IMAGE_SHRINK_WIDTH_PX`** or a quality setting changes the encoded bytes; existing CDN objects are not updated until origins are reprocessed.
 
-Output is WebP for smaller file size at similar quality. WebP is well supported in current browsers and on Android and iOS 14+. On iOS 13 and earlier, the system Photos app may not display saved WebP images correctly when the user saves an image to their device.
+### Output format
+
+`IMAGE_SHRINK_FORMAT` is `jpeg` (default) or `webp`. Push notifications send the shrunk image, and
+**iOS notification attachments accept JPEG, PNG, and GIF but not WebP**, so with `webp` iOS pushes
+show no artwork. Android notifications and in-app artwork work with either format. WebP files are
+roughly 20–30% smaller at similar quality.
+
+JPEG has no alpha channel; transparent artwork is flattened onto white.
+
+When the format changes, a resized row whose URL has the other extension is re-encoded the next time
+the worker processes that source (hint or backfill), even when the origin bytes are unchanged. The
+existing resized row is updated in place, and the old object becomes an orphan for the cleanup job.
 
 ## Worker Commands
 
@@ -132,7 +143,7 @@ bucket-only orphans and DB-only stale references.
 Scope is strict so other bucket assets are never touched:
 
 - **Bucket:** only keys matching
-  `images/{channel|item}/{id}/{urlHash}-w{width}-c{checksumPrefix}.webp`.
+  `images/{channel|item}/{id}/{urlHash}-w{width}-c{checksumPrefix}.{jpg|webp}`.
 - **Database:** only `channel_image` / `item_image` rows with `is_resized = true` whose CDN URL
   matches the same shrink key pattern for `BUCKET_CDN_BASE_URL`.
 
@@ -147,7 +158,7 @@ when ready.
 The orphan cleanup job (`imageShrinkCleanupOrphans`) lists objects directly from the configured
 bucket (S3-compatible API) and applies the following filters before deleting:
 
-- Only objects under the `images/` prefix with a `.webp` suffix.
+- Only objects under the `images/` prefix with a `.jpg` or `.webp` suffix.
 - Only objects with a `lastModified` timestamp (missing timestamps are skipped).
 - Only objects older than `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION` in seconds (default: `604800`, 7 days).
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` can cap deletions per run (default: no cap).
@@ -215,6 +226,8 @@ Provider-specific setup: [Bucket providers](BUCKET-PROVIDERS.md).
 ### Image Shrink
 
 - `IMAGE_SHRINK_WIDTH_PX` (Optional; default **400**)
+- `IMAGE_SHRINK_FORMAT` (Optional; default **jpeg**; `jpeg` or `webp`. iOS push notifications cannot attach WebP)
+- `IMAGE_SHRINK_JPEG_QUALITY` (Optional; default **82**; integers **1–100**)
 - `IMAGE_SHRINK_WEBP_QUALITY` (Optional; default **92**; integers **1–100**)
 - `IMAGE_SHRINK_BATCH_SIZE`
 - `IMAGE_SHRINK_CONCURRENCY`
@@ -234,7 +247,7 @@ Provider-specific setup: [Bucket providers](BUCKET-PROVIDERS.md).
 Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the same section structure as `apps/workers/.env.example` (Image Shrink storage; Image Shrink):
 
 - **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`, `BUCKET_ENDPOINT` (when required), `BUCKET_FORCE_PATH_STYLE`
-- **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX` (Optional; default 400), `IMAGE_SHRINK_WEBP_QUALITY` (Optional; default 92), `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
+- **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX` (Optional; default 400), `IMAGE_SHRINK_FORMAT` (Optional; default jpeg), `IMAGE_SHRINK_JPEG_QUALITY` (Optional; default 82), `IMAGE_SHRINK_WEBP_QUALITY` (Optional; default 92), `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
 
 ### Secret
 
