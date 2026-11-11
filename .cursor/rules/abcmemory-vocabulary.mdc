@@ -35,8 +35,9 @@ These hold even before the skill is read:
   Cursor window: lead with **Fresh worktree required**, then the create block, then the run block
   for the worktree's window (**git-worktree-sibling** § Plan sets in a worktree).
 - **abcissue** — a pasted issue URL or path, or the word abcissue. Read the skill before
-  planning. Do not implement in that chat, and do not post the tracker comment. A small set is a
-  chat in the new worktree. A large set is **abcplan**.
+  planning. Do not implement in that chat, and do not post the tracker comment. Stay on the
+  current branch. A worktree only when the operator asks for one in that message. A small set
+  is a chat on this branch. A large set is **abcplan** in this checkout.
 - **abcdeploysteps** `<repo> <env>` — never guess either word. It writes a checklist and does
   not deploy.
 - **abcdeployrun** `<repo> <env>` — never guess either word. It runs the unattended alpha server

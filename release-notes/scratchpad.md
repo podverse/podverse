@@ -36,3 +36,13 @@
   requests. The previous 5.11.2 pin left a second nested copy in place.
 - Who notices: nobody
 - Operator steps: none
+
+## Manual notification test Jobs keep their logs
+
+- Surfaces: k8s
+- Change: `ops-notifications-test-push` no longer deletes a finished Job after 10
+  minutes. The last 5 successes and last 5 failures stay, including container logs,
+  until a newer Job of that result replaces them. `CronJobLastRunFailed` stays until
+  a later success.
+- Who notices: operators triaging alpha alerts for the manual notifications test push
+- Operator steps: alpha picks this up when the ops base ref includes the commit
