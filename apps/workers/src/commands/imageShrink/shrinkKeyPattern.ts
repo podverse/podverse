@@ -1,9 +1,10 @@
 const SHRINK_OBJECT_KEY_PATTERN =
-  /^images\/(channel|item)\/\d+\/[a-f0-9]{64}-w\d+-c[a-f0-9]{16}\.webp$/;
+  /^images\/(channel|item)\/\d+\/[a-f0-9]{64}-w\d+-c[a-f0-9]{16}\.(jpg|webp)$/;
 
 /**
  * Object key produced by the image-shrink upload pipeline
- * (`images/{entity}/{id}/{urlHash}-w{width}-c{checksumPrefix}.webp`).
+ * (`images/{entity}/{id}/{urlHash}-w{width}-c{checksumPrefix}.{jpg|webp}`).
+ * Both extensions match so objects written under either IMAGE_SHRINK_FORMAT stay recognized.
  */
 export const isShrinkGeneratedObjectKey = (key: string): boolean => {
   return SHRINK_OBJECT_KEY_PATTERN.test(key);

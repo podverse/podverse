@@ -14,6 +14,7 @@ import { OptionChipGroup } from '../../components/form/OptionChipGroup';
 import { FillList, ReorderHandle, SwipeActionRow } from '../../components/primitives';
 import type { ReorderDropEvent } from '../../components/reorder/ReorderableSections';
 import { ReorderableSections } from '../../components/reorder/ReorderableSections';
+import { SectionHeading } from '../../components/section/SectionHeading';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -24,7 +25,12 @@ import { queueRepository } from '../../data';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueResourcesLoadActive } from '../../hooks/useQueueResourcesLoadActive';
 import { resolveListFill } from '../../lib/listFill';
-import { queueResourcesForQueueScreen } from '../../lib/queue/queueScreenResources';
+import {
+  type PlaybackTargetQueueRow,
+  playbackTargetToQueueHomeRow,
+  queueMediumIdForPlaybackTarget,
+} from '../../lib/queue/playbackTargetQueueRow';
+import { splitQueueScreenResources } from '../../lib/queue/queueScreenResources';
 import type { QueueReorderMutation } from '../../lib/reorder/resolveQueueDrop';
 import { resolveQueueDrop } from '../../lib/reorder/resolveQueueDrop';
 import type { QueueResourceHomeRow } from '../../lib/rows/homeRowMappers';
@@ -32,7 +38,7 @@ import { queueResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { usePlaybackRowDisplay } from '../../playback/crossDevice/useCrossDevicePlayerDisplay';
-import { usePlaybackSession } from '../../playback/PlaybackProvider';
+import { usePlaybackRow, usePlaybackSession } from '../../playback/PlaybackProvider';
 import { listChipRowBottomGap, screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -92,6 +98,57 @@ function LibraryQueueRow({
   );
 }
 
+type LibraryNowPlayingQueueRowProps = {
+  onPlayToggle: () => void;
+  onSwipeRemove?: (resource: DTOQueueResource) => Promise<void>;
+  removeLabel: string;
+  resource: DTOQueueResource | null;
+  row: QueueRow | PlaybackTargetQueueRow;
+};
+
+function LibraryNowPlayingQueueRow({
+  onPlayToggle,
+  onSwipeRemove,
+  removeLabel,
+  resource,
+  row,
+}: LibraryNowPlayingQueueRowProps) {
+  const handleRemove = useCallback(() => {
+    if (resource === null || onSwipeRemove === undefined) {
+      return Promise.resolve();
+    }
+    return onSwipeRemove(resource);
+  }, [onSwipeRemove, resource]);
+
+  const feedRow = (
+    <HomeFeedRow
+      customActions={null}
+      mediaType={row.mediaType}
+      onPlayPress={onPlayToggle}
+      onPress={onPlayToggle}
+      onQueuePress={noopQueuePress}
+      row={row}
+      testID={
+        resource !== null ? `queue-now-playing-row-${resource.id}` : 'queue-now-playing-row-player'
+      }
+    />
+  );
+
+  if (resource === null || onSwipeRemove === undefined) {
+    return feedRow;
+  }
+
+  return (
+    <SwipeActionRow
+      onRemove={handleRemove}
+      removeLabel={removeLabel}
+      testID={`queue-now-playing-row-${resource.id}-swipe`}
+    >
+      {feedRow}
+    </SwipeActionRow>
+  );
+}
+
 export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
@@ -99,8 +156,9 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const { activeQueue, activeQueueUpcomingResources } = useQueues();
   const { fetchActiveQueueListMedium } = usePrimaryQueue();
   const { handleGateError } = useMembershipGate();
-  const { playQueueResourceFromQueue } = usePlaybackSession();
-  const { activeMediaId: playingContentId } = usePlaybackRowDisplay();
+  const { pause, playQueueResourceFromQueue, resume } = usePlaybackSession();
+  const { activeTarget } = usePlaybackRow();
+  const { activeMediaId: playingContentId, isPlaying } = usePlaybackRowDisplay();
   const loadActiveQueueResources = useQueueResourcesLoadActive();
   const dragTapBlockUntilRef = useRef<number>(0);
   const queueResourcesRef = useRef<readonly DTOQueueResource[]>([]);
@@ -109,6 +167,9 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   /** Medium whose rows are already in `queueResources`. Stays stale across a chip tap until load settles. */
   const [settledMedium, setSettledMedium] = useState<QueueListMedium | null>(null);
   const [queueResources, setQueueResources] = useState<readonly DTOQueueResource[]>([]);
+  const [nowPlayingQueueResource, setNowPlayingQueueResource] = useState<DTOQueueResource | null>(
+    null
+  );
   const [isMediumReady, setIsMediumReady] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -116,6 +177,12 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const [isSavingOrder, setIsSavingOrder] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [actionNoticeKey, setActionNoticeKey] = useState<QueueActionNoticeKey | null>(null);
+
+  const selectedMediumId = getQueueMediumIdFromType(selectedMedium);
+  const playerMediumId =
+    activeTarget === null ? null : queueMediumIdForPlaybackTarget(activeTarget);
+  const viewedQueueMatchesPlayerMedium =
+    selectedMediumId !== null && playerMediumId !== null && selectedMediumId === playerMediumId;
 
   useEffect(() => {
     const expectedMediumId = getQueueMediumIdFromType(selectedMedium);
@@ -127,13 +194,20 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       return;
     }
 
-    const visibleResources = queueResourcesForQueueScreen(activeQueueUpcomingResources, {
+    const split = splitQueueScreenResources(activeQueueUpcomingResources, {
       playingContentId,
-      viewedQueueIsActive: activeQueue.is_active_queue === true,
+      viewedQueueMatchesPlayerMedium,
     });
-    queueResourcesRef.current = visibleResources;
-    setQueueResources(visibleResources);
-  }, [activeQueue, activeQueueUpcomingResources, playingContentId, selectedMedium]);
+    queueResourcesRef.current = split.upcoming;
+    setQueueResources(split.upcoming);
+    setNowPlayingQueueResource(split.nowPlaying);
+  }, [
+    activeQueue,
+    activeQueueUpcomingResources,
+    playingContentId,
+    selectedMedium,
+    viewedQueueMatchesPlayerMedium,
+  ]);
 
   // Open on the account active-queue medium (even with no now-playing row); else podcasts.
   useFocusEffect(
@@ -149,6 +223,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
             loadRequestIdRef.current += 1;
             queueResourcesRef.current = [];
             setQueueResources([]);
+            setNowPlayingQueueResource(null);
             setIsInitialLoading(true);
             setErrorKey(null);
           }
@@ -240,12 +315,13 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
 
         // Commit filtered rows in the same turn as clearing the spinner so ListEmpty cannot paint
         // an empty frame while the context→local effect has not run yet.
-        const visibleResources = queueResourcesForQueueScreen(result.upcomingResources, {
+        const split = splitQueueScreenResources(result.upcomingResources, {
           playingContentId,
-          viewedQueueIsActive: result.activeQueue?.is_active_queue === true,
+          viewedQueueMatchesPlayerMedium,
         });
-        queueResourcesRef.current = visibleResources;
-        setQueueResources(visibleResources);
+        queueResourcesRef.current = split.upcoming;
+        setQueueResources(split.upcoming);
+        setNowPlayingQueueResource(split.nowPlaying);
         setSettledMedium(selectedMedium);
       } catch {
         if (!isCurrent()) {
@@ -260,7 +336,13 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
         }
       }
     },
-    [isMediumReady, loadActiveQueueResources, playingContentId, selectedMedium]
+    [
+      isMediumReady,
+      loadActiveQueueResources,
+      playingContentId,
+      selectedMedium,
+      viewedQueueMatchesPlayerMedium,
+    ]
   );
 
   const buildAuthContext = useCallback(
@@ -613,6 +695,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       setSelectedMedium(nextMedium);
       queueResourcesRef.current = [];
       setQueueResources([]);
+      setNowPlayingQueueResource(null);
       setIsInitialLoading(true);
       setErrorKey(null);
     },
@@ -627,12 +710,34 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     void loadQueue({ refresh: true });
   }, [loadQueue]);
 
+  const playerOnlyNowPlayingRow = useMemo(() => {
+    if (
+      nowPlayingQueueResource !== null ||
+      !viewedQueueMatchesPlayerMedium ||
+      activeTarget === null
+    ) {
+      return null;
+    }
+    return playbackTargetToQueueHomeRow(activeTarget);
+  }, [activeTarget, nowPlayingQueueResource, viewedQueueMatchesPlayerMedium]);
+
+  const nowPlayingHomeRow = useMemo(() => {
+    if (nowPlayingQueueResource === null) {
+      return null;
+    }
+    return queueResourceToHomeRow(nowPlayingQueueResource, 'queue', {
+      addByRssPrivateTitle: t('features.add_by_rss.private_item_placeholder'),
+    });
+  }, [nowPlayingQueueResource, t]);
+
+  const showNowPlayingSection = nowPlayingHomeRow !== null || playerOnlyNowPlayingRow !== null;
+
   const emptyMessageKey =
     selectedMedium === 'music' ? 'features.queue.empty_music' : 'features.queue.empty_podcasts';
   const queueFill = resolveListFill({
     errorKey,
     isSettled: !isInitialLoading && settledMedium === selectedMedium,
-    rowCount: queueRows.length,
+    rowCount: showNowPlayingSection ? queueRows.length + 1 : queueRows.length,
   });
   const listEmpty = useMemo(() => {
     if (queueFill === 'loading') {
@@ -653,6 +758,16 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
     [actionNoticeKey, styles.notice, t]
   );
 
+  const removeLabel = t('features.queue.remove_from_queue');
+
+  const handleNowPlayingPlayToggle = useCallback(() => {
+    if (isPlaying) {
+      pause();
+      return;
+    }
+    void resume();
+  }, [isPlaying, pause, resume]);
+
   const listHeader = useMemo(
     () => (
       <View style={styles.headerSection}>
@@ -662,12 +777,47 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
           testID="library-queue-medium-chips"
           value={selectedMedium}
         />
+        {showNowPlayingSection ? (
+          <View>
+            <SectionHeading testID="library-queue-now-playing">
+              {t('features.queue.now_playing')}
+            </SectionHeading>
+            {nowPlayingHomeRow !== null && nowPlayingQueueResource !== null ? (
+              <LibraryNowPlayingQueueRow
+                onPlayToggle={handleNowPlayingPlayToggle}
+                onSwipeRemove={handleSwipeRemove}
+                removeLabel={removeLabel}
+                resource={nowPlayingQueueResource}
+                row={nowPlayingHomeRow}
+              />
+            ) : playerOnlyNowPlayingRow !== null ? (
+              <LibraryNowPlayingQueueRow
+                onPlayToggle={handleNowPlayingPlayToggle}
+                removeLabel={removeLabel}
+                resource={null}
+                row={playerOnlyNowPlayingRow}
+              />
+            ) : null}
+          </View>
+        ) : null}
       </View>
     ),
-    [handleMediumChange, mediumOptions, selectedMedium, styles.headerSection]
+    [
+      handleMediumChange,
+      handleNowPlayingPlayToggle,
+      handleSwipeRemove,
+      mediumOptions,
+      nowPlayingHomeRow,
+      nowPlayingQueueResource,
+      playerOnlyNowPlayingRow,
+      removeLabel,
+      selectedMedium,
+      showNowPlayingSection,
+      styles.headerSection,
+      t,
+    ]
   );
 
-  const removeLabel = t('features.queue.remove_from_queue');
   const renderQueueRow = useCallback(
     (row: QueueRow) => {
       const resource = queueResourcesById.get(row.queueResourceId);

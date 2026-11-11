@@ -27,27 +27,39 @@ async function stubEmptyQueueResources(page: Page) {
   });
 }
 
-/** Empty copy sits under the chips at the start of the column, like Recommendations. */
+/** Empty banner sits under the chips with the standard chip-to-content gap. */
 async function expectMessageUnderChips(page: Page, message: Locator) {
   await expect(message).toBeVisible();
 
   const podcastsChip = page.getByRole('button', { name: 'Podcasts', exact: true });
   await expect(podcastsChip).toBeVisible();
 
-  const messageBox = await message.boundingBox();
+  const banner = message.locator('xpath=..');
+  const bannerBox = await banner.boundingBox();
   const chipBox = await podcastsChip.boundingBox();
   const mainBox = await page.locator('#mainOuterWrapper main').boundingBox();
+  const spacing2xlPx = await page.evaluate(() => {
+    const root = document.documentElement;
+    const raw = getComputedStyle(root).getPropertyValue('--spacing-2xl').trim();
+    const value = Number.parseFloat(raw);
+    if (raw.endsWith('rem')) {
+      return value * Number.parseFloat(getComputedStyle(root).fontSize);
+    }
+    return value;
+  });
 
-  expect(messageBox).not.toBeNull();
+  expect(bannerBox).not.toBeNull();
   expect(chipBox).not.toBeNull();
   expect(mainBox).not.toBeNull();
-  if (!messageBox || !chipBox || !mainBox) {
+  if (!bannerBox || !chipBox || !mainBox) {
     return;
   }
 
-  expect(messageBox.y).toBeGreaterThan(chipBox.y + chipBox.height);
-  expect(messageBox.y).toBeLessThan(mainBox.y + mainBox.height / 2);
-  expect(messageBox.x).toBeGreaterThanOrEqual(mainBox.x - 1);
+  const gap = bannerBox.y - (chipBox.y + chipBox.height);
+  expect(gap).toBeGreaterThanOrEqual(spacing2xlPx - 1);
+  expect(gap).toBeLessThanOrEqual(spacing2xlPx + 1);
+  expect(bannerBox.y).toBeLessThan(mainBox.y + mainBox.height / 2);
+  expect(bannerBox.x).toBeGreaterThanOrEqual(mainBox.x - 1);
 }
 
 test.describe('Queues empty state', () => {

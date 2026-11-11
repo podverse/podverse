@@ -11,6 +11,9 @@ import { Button, ImagesPerView, MoreButton } from '@podverse/ui';
 import { IMAGES } from '../../../constants/images';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
+import { parsePlaybackSeconds } from '../../../lib/playback';
+import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { addByRSSResourceMergedArtworkCandidates } from '../../../utils/image/addByRSSResourceArtworkCandidates';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableDuration } from '../../Time/ReadableDuration';
@@ -42,11 +45,14 @@ export const ListQueueResourceRow: React.FC<Props> = ({
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const { activeQueue } = useQueues();
+  const playAddByRSS = usePlayAddByRSS();
   const item = queueResource.item;
   const clip = queueResource.clip;
   const item_soundbite = queueResource.item_soundbite;
   const add_by_rss_hash_id = queueResource.add_by_rss_hash_id;
   const is_add_by_rss_redacted = queueResource.is_add_by_rss_redacted === true;
+  const showReorderHandle =
+    isEditModeQueue && dragHandleProps !== null && dragHandleProps !== undefined;
 
   if (add_by_rss_hash_id) {
     const resourceData = queueResource.add_by_rss_resource_data;
@@ -102,17 +108,38 @@ export const ListQueueResourceRow: React.FC<Props> = ({
           ]
         : [];
 
+    const playAddByRssFromQueue = () => {
+      if (onPlayAndRemove) {
+        onPlayAndRemove();
+        return;
+      }
+      void (async () => {
+        const indexItem = await loadAddByRSSIndexItemFromResourceData(resourceData);
+        if (!indexItem) {
+          return;
+        }
+        const playbackPosition = queueResource.playback_position
+          ? parsePlaybackSeconds(queueResource.playback_position)
+          : undefined;
+        playAddByRSS(indexItem, playbackPosition);
+      })();
+    };
+
     // Render music track style (compact row with play-on-click)
     if (isMusic) {
       return (
         <div className={styles.trackRow}>
-          {isEditModeQueue && (
+          {showReorderHandle && (
             <ListReorderHandle
               className={styles.editingButtons}
               dragHandleProps={dragHandleProps}
             />
           )}
-          <Button variant="unstyled" className={styles.trackClickable} onClick={onPlayAndRemove}>
+          <Button
+            variant="unstyled"
+            className={styles.trackClickable}
+            onClick={playAddByRssFromQueue}
+          >
             <ImagesPerView
               candidates={imageCandidates}
               alt={addByRSSTitle}
@@ -143,7 +170,7 @@ export const ListQueueResourceRow: React.FC<Props> = ({
     // Render episode style (full row with date, duration)
     return (
       <div className={styles.row}>
-        {isEditModeQueue && (
+        {showReorderHandle && (
           <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
         )}
         <ImagesPerView
@@ -155,10 +182,14 @@ export const ListQueueResourceRow: React.FC<Props> = ({
           heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
           classNameDesktop={styles.image}
           classNameMobile={styles.imageMobile}
-          onClick={onPlayAndRemove}
+          onClick={playAddByRssFromQueue}
         />
         <div className={styles.content}>
-          <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
+          <button
+            type="button"
+            className={styles.clickableTopSection}
+            onClick={playAddByRssFromQueue}
+          >
             <div className={styles.topSection}>
               {channelTitle && <div className={styles.channelTitle}>{channelTitle}</div>}
               <h3>{addByRSSTitle}</h3>

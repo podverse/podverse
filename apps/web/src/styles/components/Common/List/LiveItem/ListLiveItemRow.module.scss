@@ -5,6 +5,7 @@
 
 .row {
   display: flex;
+  min-width: 0;
 }
 
 .image {
@@ -23,13 +24,25 @@
   flex-direction: column;
   padding: 0 0 0 var(--spacing-xl);
   flex: 1;
+  min-width: 0;
   justify-content: space-around;
+}
+
+.content > a {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .topSection {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   color: var(--text-color-secondary);
+}
+
+.topSection h3 {
+  @include line-clamp(1);
 }
 
 .channelTitle {
@@ -50,6 +63,7 @@
 .bottomSection {
   display: flex;
   flex: 0;
+  min-width: 0;
   margin-top: var(--spacing-md);
 }
 
@@ -58,6 +72,7 @@
   align-items: center;
   gap: var(--spacing-base);
   flex: 1;
+  min-width: 0;
 }
 
 .bottomSectionEnd {

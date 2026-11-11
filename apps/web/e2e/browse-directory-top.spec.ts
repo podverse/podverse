@@ -161,6 +161,7 @@ test.describe('Browse directory Top', () => {
       await expectNoNextPage(page);
       const message = emptyMessage(page, 'No Podcasts Found');
       await expect(message).toBeVisible();
+      await expect(page.getByTestId('browse-by-recent')).toBeVisible();
       await expect(page.getByText(E2E_PODCAST_CHANNEL_TITLE, { exact: true })).toHaveCount(0);
 
       await capturePageLoad(
@@ -171,23 +172,21 @@ test.describe('Browse directory Top', () => {
       );
     });
 
-    await test.step('Choosing Recent on Browse Podcasts lists the seeded podcast and hides the empty message', async () => {
-      await sortChip(page).click();
-      const sortMenu = page.getByRole('menu', { name: 'Sort' });
-      await expect(sortMenu).toBeVisible();
-      await sortMenu.getByRole('menuitemradio', { name: 'Recent', exact: true }).click();
+    await test.step('Browse by Most Recent on Browse Podcasts lists the seeded podcast and hides the empty message', async () => {
+      await page.getByTestId('browse-by-recent').getByRole('button').click();
 
       await expectAppPath(page, '/browse');
       await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
       await expectNoNextPage(page);
       await expect(emptyMessage(page, 'No Podcasts Found')).toHaveCount(0);
+      await expect(page.getByTestId('browse-by-recent')).toHaveCount(0);
       const podcastTitle = visibleTitle(page, E2E_PODCAST_CHANNEL_TITLE);
       await expect(podcastTitle).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
-        'Recent on Browse Podcasts lists the seeded podcast.',
+        'Browse by Most Recent on Browse Podcasts lists the seeded podcast.',
         podcastTitle
       );
     });

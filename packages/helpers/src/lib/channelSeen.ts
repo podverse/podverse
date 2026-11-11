@@ -92,8 +92,16 @@ export type AddByRssSeenMarkRequest = {
   entries: AddByRssSeenMarkEntry[];
 };
 
+/**
+ * Mark response for one add-by-RSS feed: the new timestamp plus the value stored before this write.
+ * Opening a feed freezes `previous_last_seen_at` for the visit so item dots can still show.
+ */
+export type AddByRssSeenMarkResult = AddByRssSeenState & {
+  previous_last_seen_at: string | null;
+};
+
 export type AddByRssSeenMarkResponse = {
-  data: AddByRssSeenState[];
+  data: AddByRssSeenMarkResult[];
 };
 
 /** One channel to mark, optionally at a specific moment rather than now. */
@@ -110,8 +118,16 @@ export type ChannelSeenMarkRequest = {
   entries: ChannelSeenMarkEntry[];
 };
 
+/**
+ * Mark response for one channel: the new timestamp plus the value stored before this write.
+ * Opening a channel freezes `previous_last_seen_at` for the visit so item dots can still show.
+ */
+export type ChannelSeenMarkResult = ChannelSeenState & {
+  previous_last_seen_at: string | null;
+};
+
 export type ChannelSeenMarkResponse = {
-  data: ChannelSeenState[];
+  data: ChannelSeenMarkResult[];
 };
 
 export type ChannelSeenMarkAllResponse = {
@@ -153,6 +169,39 @@ export const isUnseenPubDate = (pubDateMs: number | null, lastSeenAtMs: number |
     return false;
   }
   return pubDateMs > lastSeenAtMs;
+};
+
+/**
+ * Whether an item row shows the new-content dot for this channel visit.
+ *
+ * Opening the channel freezes the previous `last_seen_at` for the visit. Rows newer than that
+ * stay dotted until the user leaves and opens the channel again. Playing a row, or opening its
+ * detail, records that item id for the visit so only that row drops its dot immediately.
+ */
+export const itemShowsUnseenDot = ({
+  engagedItemIds,
+  itemId,
+  lastSeenAtMs,
+  pubDateMs,
+}: {
+  engagedItemIds?: ReadonlySet<string> | null;
+  itemId: string | null | undefined;
+  lastSeenAtMs: number | null;
+  pubDateMs: number | null;
+}): boolean => {
+  if (!isUnseenPubDate(pubDateMs, lastSeenAtMs)) {
+    return false;
+  }
+  if (
+    itemId !== null &&
+    itemId !== undefined &&
+    engagedItemIds !== null &&
+    engagedItemIds !== undefined &&
+    engagedItemIds.has(itemId)
+  ) {
+    return false;
+  }
+  return true;
 };
 
 /**

@@ -137,7 +137,8 @@
       "browse": "Parcourir",
       "category_all": "Toutes les catégories",
       "users": "Utilisateurs",
-      "no_users_found": "Aucun utilisateur trouvé"
+      "no_users_found": "Aucun utilisateur trouvé",
+      "browse_by_most_recent": "Parcourir par plus récents"
     },
     "recommendations": {
       "title": "Recommandations",
@@ -164,6 +165,7 @@
       "removed_from_queue": "Retiré de la file d'attente",
       "empty_podcasts": "Rien dans votre file de podcasts pour le moment",
       "empty_music": "Rien dans votre file de musique pour le moment",
+      "now_playing": "Lecture en cours",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "history": {

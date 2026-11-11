@@ -31,7 +31,7 @@ Ensure the database has some channel and/or item images (from normal RSS parsing
    - `BUCKET_ACCESS_KEY`, `BUCKET_SECRET_KEY`
    - `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
    - `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`
-   - Optional tuning: `IMAGE_SHRINK_WIDTH_PX` (default **400**), `IMAGE_SHRINK_WEBP_QUALITY` (default **92**)
+   - Optional tuning: `IMAGE_SHRINK_WIDTH_PX` (default **400**), `IMAGE_SHRINK_FORMAT` (default **jpeg**; `webp` leaves iOS push notifications without artwork), `IMAGE_SHRINK_JPEG_QUALITY` (default **82**), `IMAGE_SHRINK_WEBP_QUALITY` (default **92**)
 
    If `BUCKET_PROVIDER` is set, the bucket variables and throughput settings above are required. Optional: `IMAGE_SHRINK_RECHECK_EXPIRATION`, `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION`.
 
@@ -93,7 +93,7 @@ node ./dist/index.js imageShrinkRunConsumer
 Leave it running. It will:
 
 - Consume messages from the image-shrinking-hints queue
-- For each hint: check change detection (ETag/Last-Modified/etc.), skip if unchanged; otherwise download, resize to the configured width (default **400** px), encode WebP at the configured quality (default **92**), upload to the CDN, and update `channel_image` or `item_image` with the CDN URL and `is_resized = true`
+- For each hint: check change detection (ETag/Last-Modified/etc.), skip if unchanged; otherwise download, resize to the configured width (default **400** px), encode in the configured format (default JPEG at quality **82**), upload to the CDN, and update `channel_image` or `item_image` with the CDN URL and `is_resized = true`
 
 Use a small batch for local testing (e.g. `IMAGE_SHRINK_BATCH_SIZE=10`) so the backfill does not enqueue too many messages. Stop the consumer with Ctrl+C when done.
 
@@ -115,8 +115,8 @@ LIMIT 5;
 
 ### On the CDN
 
-- For Digital Ocean: open the Space in the control panel and look under the `images/` prefix. You should see paths like `images/channel/<id>/<sha256>-w300.webp` or `images/item/<id>/<sha256>-w300.webp`.
-- Open one of the CDN URLs in a browser to confirm the WebP image loads.
+- For Digital Ocean: open the Space in the control panel and look under the `images/` prefix. You should see paths like `images/channel/<id>/<sha256>-w400-c<checksum>.jpg` or `images/item/<id>/<sha256>-w400-c<checksum>.jpg` (`.webp` when `IMAGE_SHRINK_FORMAT=webp`).
+- Open one of the CDN URLs in a browser to confirm the shrunk image loads.
 
 ### In the app (optional)
 
@@ -135,7 +135,7 @@ npm run image_shrink_cleanup_orphans -w apps/workers
 
 Notes:
 
-- Only `.webp` objects under `images/` older than `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION` (seconds) are eligible.
+- Only `.jpg` and `.webp` objects under `images/` older than `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION` (seconds) are eligible.
 - Objects without `lastModified` are skipped.
 - Use `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` to cap deletions per run.
 

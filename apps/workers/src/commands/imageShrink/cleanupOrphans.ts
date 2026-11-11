@@ -16,10 +16,10 @@ type CandidateObject = {
 };
 
 const IMAGE_KEY_PREFIX = 'images/';
-const WEBP_SUFFIX = '.webp';
+const SHRINK_SUFFIXES = ['.jpg', '.webp'];
 
-const isWebpKey = (key: string): boolean => {
-  return key.endsWith(WEBP_SUFFIX);
+const isShrinkSuffixKey = (key: string): boolean => {
+  return SHRINK_SUFFIXES.some((suffix) => key.endsWith(suffix));
 };
 
 const isOlderThanMinAge = (lastModified: Date | undefined, minAgeMs: number): boolean => {
@@ -47,7 +47,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
   let continuationToken: string | undefined;
   let totalListed = 0;
   let pageCount = 0;
-  let skippedNonWebp = 0;
+  let skippedOtherSuffix = 0;
   let skippedTooNew = 0;
   let totalCandidates = 0;
   let referenced = 0;
@@ -77,8 +77,8 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
 
     const candidates: CandidateObject[] = [];
     for (const object of listResult.objects) {
-      if (!isWebpKey(object.key)) {
-        skippedNonWebp += 1;
+      if (!isShrinkSuffixKey(object.key)) {
+        skippedOtherSuffix += 1;
         continue;
       }
       if (!object.lastModified) {
@@ -183,7 +183,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
   const summaryMessage =
     `imageShrinkCleanupOrphans: completed ` +
     `(pages=${pageCount}, listed=${totalListed}, candidates=${totalCandidates}, ` +
-    `skippedNonWebp=${skippedNonWebp}, skippedTooNew=${skippedTooNew}, ` +
+    `skippedOtherSuffix=${skippedOtherSuffix}, skippedTooNew=${skippedTooNew}, ` +
     `missingLastModified=${missingLastModified}, referenced=${referenced}, ` +
     `orphans=${orphaned}, wouldDelete=${wouldDelete}, deleted=${deleted}, ` +
     `dryRun=${cleanupConfig.dryRun}, maxDelete=${cleanupConfig.maxDelete ?? 'none'})`;
@@ -192,7 +192,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
     pages: pageCount,
     totalListed,
     totalCandidates,
-    skippedNonWebp,
+    skippedOtherSuffix,
     skippedTooNew,
     referenced,
     orphaned,
@@ -207,7 +207,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
     logger.info('imageShrinkCleanupOrphans: no images qualified for removal', {
       totalListed,
       totalCandidates,
-      skippedNonWebp,
+      skippedOtherSuffix,
       skippedTooNew,
       missingLastModified,
       referenced,

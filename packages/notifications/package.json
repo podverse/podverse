@@ -13,6 +13,7 @@
     "build:watch": "tsc --build --watch --preserveWatchOutput",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
   },
@@ -23,12 +24,13 @@
   "dependencies": {
     "@podverse/external-services-firebase": "*",
     "@podverse/helpers": "*",
-    "web-push": "^3.6.7",
     "@podverse/helpers-backend": "*",
-    "@podverse/helpers-validation": "*"
+    "@podverse/helpers-validation": "*",
+    "web-push": "^4.0.0"
   },
   "devDependencies": {
-    "@types/web-push": "^3.6.4"
+    "@types/web-push": "^3.6.4",
+    "vitest": "^5.1.0"
   },
   "type": "module"
 }

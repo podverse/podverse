@@ -347,15 +347,20 @@ describe('account channel seen routes', () => {
           entries: { channel_id_text: string; last_seen_at?: Date }[],
           defaultSeenAt: Date
         ) =>
-          entries.map((entry) => ({
-            channel_id_text: entry.channel_id_text,
-            last_seen_at: applyMonotonic(
+          entries.map((entry) => {
+            const previous = channelLastSeenAt.get(entry.channel_id_text) ?? null;
+            const next = applyMonotonic(
               channelLastSeenAt,
               entry.channel_id_text,
               entry.last_seen_at ?? defaultSeenAt
-            ),
-            raw_unseen_count: 0,
-          }))
+            );
+            return {
+              channel_id_text: entry.channel_id_text,
+              last_seen_at: next,
+              previous_last_seen_at: previous,
+              raw_unseen_count: 0,
+            };
+          })
       );
 
       const later = '2026-05-01T00:00:00.000Z';
@@ -368,6 +373,7 @@ describe('account channel seen routes', () => {
 
       expect(first.status).toBe(200);
       expect(first.body.data[0].last_seen_at).toBe(later);
+      expect(first.body.data[0].previous_last_seen_at).toBeNull();
 
       const replay = await request(app)
         .post(`${seenBase}/mark`)
@@ -376,6 +382,7 @@ describe('account channel seen routes', () => {
 
       expect(replay.status).toBe(200);
       expect(replay.body.data[0].last_seen_at).toBe(later);
+      expect(replay.body.data[0].previous_last_seen_at).toBe(later);
     });
 
     it('records now when no timestamp is supplied, which is what opening a channel does', async () => {
@@ -388,6 +395,7 @@ describe('account channel seen routes', () => {
           entries.map((entry) => ({
             channel_id_text: entry.channel_id_text,
             last_seen_at: entry.last_seen_at ?? defaultSeenAt,
+            previous_last_seen_at: null,
             raw_unseen_count: 0,
           }))
       );
@@ -402,6 +410,51 @@ describe('account channel seen routes', () => {
       const recorded = Date.parse(res.body.data[0].last_seen_at);
       expect(recorded).toBeGreaterThanOrEqual(before);
       expect(recorded).toBeLessThanOrEqual(Date.now());
+      expect(res.body.data[0].previous_last_seen_at).toBeNull();
+    });
+
+    it('returns the timestamp stored before this write so a visit can freeze item dots', async () => {
+      const earlier = '2026-01-01T00:00:00.000Z';
+      const later = '2026-05-01T00:00:00.000Z';
+      markChannelsSeenMock.mockImplementation(
+        async (
+          _accountId: number,
+          entries: { channel_id_text: string; last_seen_at?: Date }[],
+          defaultSeenAt: Date
+        ) =>
+          entries.map((entry) => {
+            const previous = channelLastSeenAt.get(entry.channel_id_text) ?? null;
+            const next = applyMonotonic(
+              channelLastSeenAt,
+              entry.channel_id_text,
+              entry.last_seen_at ?? defaultSeenAt
+            );
+            return {
+              channel_id_text: entry.channel_id_text,
+              last_seen_at: next,
+              previous_last_seen_at: previous,
+              raw_unseen_count: 0,
+            };
+          })
+      );
+
+      const first = await request(app)
+        .post(`${seenBase}/mark`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ entries: [{ channel_id_text: 'show', last_seen_at: earlier }] });
+
+      expect(first.status).toBe(200);
+      expect(first.body.data[0].previous_last_seen_at).toBeNull();
+      expect(first.body.data[0].last_seen_at).toBe(earlier);
+
+      const second = await request(app)
+        .post(`${seenBase}/mark`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ entries: [{ channel_id_text: 'show', last_seen_at: later }] });
+
+      expect(second.status).toBe(200);
+      expect(second.body.data[0].previous_last_seen_at).toBe(earlier);
+      expect(second.body.data[0].last_seen_at).toBe(later);
     });
 
     it('rejects a batch larger than the write cap rather than accepting an unbounded write', async () => {

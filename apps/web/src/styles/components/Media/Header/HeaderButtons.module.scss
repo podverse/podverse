@@ -1,9 +1,10 @@
 .buttons {
   margin-top: 0.625rem; // 0.875rem - 0.25rem (compensate for top padding)
   display: flex;
+  flex-wrap: wrap;
   gap: 1.125rem; // Keep specific value for header button spacing
-  overflow-x: auto;
   width: 100%;
+  min-width: 0;
   padding: 0.25rem; // Focus ring space on all 4 sides
   margin: -0.25rem; // Compensate for padding on all sides
   margin-top: 0.625rem; // 0.875rem original - 0.25rem padding compensation

@@ -10,9 +10,16 @@ alwaysApply: false
 # The notifications inbox is one flat list
 
 Web (`NotificationsPageClient`) and mobile (`NotificationsInboxScreen`) show notifications as one
-list, newest first. Each row spans the same width as the divider between rows. An unseen indicator
-slot is painted on the artwork's leading edge: it shows a dot while the row is unseen and stays
-empty, keeping the text aligned, once it has been seen. The slot does not inset the row.
+list, newest first. Each row spans the same width as the divider between rows.
+
+Unread presence differs by surface:
+
+- **Web** paints an unseen indicator slot on the artwork's leading edge. It shows a dot while the
+  row is unseen and stays empty, keeping the text aligned, once it has been seen. The slot does not
+  inset the row.
+- **Mobile** uses the shared `UnseenIndicator` in a trailing rail on the far right of the row, the
+  same placement as a podcast channel row. The rail mounts only while the row is unread for this
+  visit; a seen row does not reserve that width.
 
 ## Do not
 

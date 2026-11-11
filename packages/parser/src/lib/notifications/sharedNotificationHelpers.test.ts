@@ -52,8 +52,10 @@ vi.mock('@parser/context.js', () => ({
 
 vi.mock('@parser/factories/loggerService.js', () => ({
   loggerService: {
+    error: vi.fn(),
     info: loggerInfoMock,
     logError: logErrorMock,
+    warn: vi.fn(),
   },
 }));
 
@@ -69,6 +71,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@podverse/orm')>();
 
   class MockAccountFCMDeviceService {
+    deleteByTokens = vi.fn().mockResolvedValue(0);
     getAllForAccountIds = getAllFcmDevicesMock;
   }
 
@@ -85,10 +88,12 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   }
 
   class MockAccountUPDeviceService {
+    deleteByEndpoints = vi.fn().mockResolvedValue(0);
     getAllForAccountIds = getAllUpDevicesMock;
   }
 
   class MockAccountWebPushDeviceService {
+    deleteByEndpoints = vi.fn().mockResolvedValue(0);
     getAllForAccountIds = getAllWebPushDevicesMock;
   }
 
@@ -457,11 +462,21 @@ const isWebPushParams = (params: unknown): boolean => {
   );
 };
 
+const acceptedPushOutcome = {
+  service: 'firebase' as const,
+  platform: 'ios' as const,
+  accepted: 1,
+  failed: 0,
+  byCode: {},
+  sampleMessageByCode: {},
+  deadTargets: [] as string[],
+};
+
 describe('sendItemNotifications fanout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     notificationOrchestratorMock.mockReset();
-    notificationOrchestratorMock.mockResolvedValue(undefined);
+    notificationOrchestratorMock.mockResolvedValue(acceptedPushOutcome);
   });
 
   it('sends each locale, platform, and service once and overlaps those legs', async () => {
@@ -472,6 +487,7 @@ describe('sendItemNotifications fanout', () => {
       maxInFlight = Math.max(maxInFlight, inFlight);
       await Promise.resolve();
       inFlight -= 1;
+      return acceptedPushOutcome;
     });
 
     await sendItemNotifications([liveItem], groupedDevices, webPushSubscriptions, upSubscriptions);
@@ -547,6 +563,15 @@ describe('sendItemNotifications fanout', () => {
     );
     expect(logErrorMock).not.toHaveBeenCalled();
     expect(loggerInfoMock).toHaveBeenCalledTimes(5);
+    expect(loggerInfoMock).toHaveBeenCalledWith(
+      'Push send result',
+      expect.objectContaining({
+        accepted: 1,
+        failed: 0,
+        image: 'original-jpg',
+        itemIdText: 'item-1',
+      })
+    );
   });
 
   it('finishes the other send legs when one service rejects', async () => {
@@ -555,6 +580,7 @@ describe('sendItemNotifications fanout', () => {
       if (isWebPushParams(params)) {
         throw webPushFailure;
       }
+      return acceptedPushOutcome;
     });
 
     const itemWithoutImage = { ...liveItem, imageUrl: null };

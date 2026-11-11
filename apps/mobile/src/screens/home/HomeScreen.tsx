@@ -1573,7 +1573,10 @@ export function HomeScreen() {
     () => (
       <>
         {showFilterField ? (
-          <ListFilterHeader hasItemsBelow={visibleRows.length > 0} style={styles.filterRow}>
+          <ListFilterHeader
+            hasItemsBelow={!isGridView && (visibleRows.length > 0 || showNoFilterMatches)}
+            style={styles.filterRow}
+          >
             <ListFilterField
               label={t('subscriptions.filter.placeholder')}
               onChangeTerm={handleFilterTermChange}
@@ -1604,6 +1607,7 @@ export function HomeScreen() {
       filterTerm,
       handleFilterTermChange,
       handleRetryFeed,
+      isGridView,
       showActionError,
       showFilterField,
       showNoFilterMatches,

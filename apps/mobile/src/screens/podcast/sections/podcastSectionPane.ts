@@ -45,4 +45,11 @@ export type PodcastSectionPaneProps = {
    * previous open. Episode rows pass it through; other sections ignore it.
    */
   visitLastSeenAtMs?: number | null;
+  /**
+   * Item ids played or opened during this channel visit. Episode rows drop those dots
+   * immediately; other sections ignore it.
+   */
+  engagedItemIds?: ReadonlySet<string>;
+  /** Record that an item was played or opened so its visit dot clears. */
+  onEngageItem?: (itemId: string) => void;
 };

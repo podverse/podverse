@@ -38,6 +38,7 @@ type MQRSSAddAllRecentlyUpdatedFeedsOptions = MQQueueConfigFunctionParams & {
 /**
  * - `caught_up`: every page up to now was sent and recorded.
  * - `time_cap`: the run stopped at the time cap; the cursor points at the last finished page.
+ * - `upstream_error`: `/recent/data` failed after retries; the cursor stays at the last finished page.
  * - `send_failed`: a page or sweep chunk had a failed send; the cursor stays before it.
  * - `lock_held`: another run holds the stream; nothing was read.
  * - `gap_sweep_time_cap`: the gap sweep stopped at its cap; the next run continues it.
@@ -303,6 +304,14 @@ async function pollRecentlyUpdatedFeeds(
     loggerService.warn(
       `${LOG_PREFIX} Stopped at the time cap; the next run resumes from next_since=` +
         `${cursorNextSince ?? 'none'}, ${behindSeconds ?? 'unknown'}s behind the start of this run.`
+    );
+  }
+
+  if (result.outcome === 'upstream_error') {
+    const { cursorNextSince } = result;
+    loggerService.warn(
+      `${LOG_PREFIX} Podcast Index stopped this run with an upstream error after retries; ` +
+        `the next run resumes from next_since=${cursorNextSince ?? 'none'}.`
     );
   }
 

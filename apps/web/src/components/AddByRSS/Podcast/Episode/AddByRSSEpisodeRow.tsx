@@ -27,12 +27,14 @@ import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useChannelVisitActions, useItemUnseenDot } from '../../../../hooks/useChannelVisit';
 import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
 import { useQueueAddWithGate } from '../../../../hooks/useQueueAddWithGate';
 import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem, AddByRSSMappedFeed } from '../../../../utils/addByRSS/types';
 import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { ItemUnseenIndicator } from '../../../ChannelSeen/ItemUnseenIndicator';
 import type { ListEpisodeRowLike } from '../../../List/Podcasts/Episodes/ListEpisodeRow';
 import { ItemRowMoreActions } from '../../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
@@ -49,6 +51,7 @@ type AddByRSSEpisodeRowProps = {
   itemIdText: string;
   channelTitle: string;
   channelImageUrl?: string;
+  feedUrl?: string;
   bundle: AddByRSSMappedFeed['items'][number];
   indexItem?: AddByRSSItemIndexItem | null;
   /** When set, play will set this list context for autoplay-next from list. */
@@ -62,6 +65,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   itemIdText,
   channelTitle,
   channelImageUrl,
+  feedUrl: feedUrlProp,
   bundle,
   indexItem,
   listContext: listContextProp,
@@ -80,6 +84,21 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const playAddByRSS = usePlayAddByRSS();
   const apiRequestService = getApiRequestService();
   const { runQueueAdd } = useQueueAddWithGate();
+  const { engageItem } = useChannelVisitActions();
+  const feedUrl = feedUrlProp ?? indexItem?.feedUrl;
+  const pubDate =
+    typeof bundle.item.pub_date === 'string'
+      ? bundle.item.pub_date
+      : bundle.item.pub_date !== null && bundle.item.pub_date !== undefined
+        ? bundle.item.pub_date.toISOString()
+        : null;
+  const showUnseenDot = useItemUnseenDot({
+    channelIdText: null,
+    feedUrl,
+    isLive: false,
+    itemIdText,
+    pubDate,
+  });
   const addByRSSHashIds = useMemo(
     () => (indexItem ? getAddByRSSHashIds(indexItem) : undefined),
     [indexItem]
@@ -93,6 +112,10 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   );
   const imageCandidates = appendDistinctImageCandidate(channelImageUrl, itemImageCandidates);
   const url = getAddByRSSItemPath(itemIdText);
+
+  const handleOpenDetail = () => {
+    engageItem(itemIdText);
+  };
 
   const queue =
     indexItem?.mediumId !== null && indexItem?.mediumId !== undefined
@@ -170,6 +193,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     if (!indexItem) {
       return;
     }
+    engageItem(itemIdText);
     if (listContextProp) {
       setAddByRSSListContext(listContextProp);
     }
@@ -258,22 +282,32 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
 
   return (
     <div className={styles.row}>
-      <ImagesPerView
-        candidates={imageCandidates}
-        alt={title || tMedia('podcast.episode_image')}
-        widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-        heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-        widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-        heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-        classNameDesktop={styles.image}
-        classNameMobile={styles.imageMobile}
-        href={url}
-      />
+      <div onClickCapture={handleOpenDetail} style={{ display: 'contents' }}>
+        <ImagesPerView
+          candidates={imageCandidates}
+          alt={title || tMedia('podcast.episode_image')}
+          widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+          heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+          widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+          heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+          classNameDesktop={styles.image}
+          classNameMobile={styles.imageMobile}
+          href={url}
+        />
+      </div>
       <div className={styles.content}>
-        <Link href={url}>
+        <Link href={url} onClick={handleOpenDetail}>
           <div className={styles.topSection}>
             {showChannelInfo ? <div className={styles.channelTitle}>{channelTitle}</div> : null}
-            <h3>{title}</h3>
+            <div className={styles.titleLine}>
+              <h3>{title}</h3>
+              {showUnseenDot ? (
+                <ItemUnseenIndicator
+                  className={styles.unseenDot}
+                  testId={`add-by-rss-episode-row-unseen-${itemIdText}`}
+                />
+              ) : null}
+            </div>
             {description ? <div className={styles.subtitle}>{description}</div> : null}
           </div>
         </Link>

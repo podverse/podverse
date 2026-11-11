@@ -19,6 +19,11 @@ export default defineConfig({
         '../helpers-requests/src/_requestOutbound.ts'
       ),
       '@podverse/helpers-requests': path.resolve(__dirname, '../helpers-requests/src/index.ts'),
+      '@podverse/extension-metrics-sdk': path.resolve(
+        __dirname,
+        '../extension-metrics-sdk/src/index.ts'
+      ),
+      '@podverse/notifications': path.resolve(__dirname, '../notifications/src/index.ts'),
     },
   },
   test: {

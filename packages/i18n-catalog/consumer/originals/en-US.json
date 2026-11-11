@@ -135,6 +135,7 @@
     },
     "browse": {
       "browse": "Browse",
+      "browse_by_most_recent": "Browse by Most Recent",
       "category_all": "All Categories",
       "users": "Users",
       "no_users_found": "No Users Found"
@@ -164,6 +165,7 @@
       "removed_from_queue": "Removed from Queue",
       "empty_podcasts": "Nothing in Your Podcast Queue Yet",
       "empty_music": "Nothing in Your Music Queue Yet",
+      "now_playing": "Now Playing",
       "login_prompt": "Log in to use this feature."
     },
     "history": {

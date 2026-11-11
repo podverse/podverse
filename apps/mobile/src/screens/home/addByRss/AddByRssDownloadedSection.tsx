@@ -29,9 +29,11 @@ const downloadedRowKeyExtractor = (row: AddByRssHomeEpisode): string => row.id;
 
 export function AddByRssDownloadedSection({
   detail,
+  engagedItemIds,
   filterTerm,
   isMusicFeed,
   listHeader,
+  onEngageItem,
   onRefresh,
   refreshNoticeKey,
   visitLastSeenAtMs,
@@ -47,7 +49,9 @@ export function AddByRssDownloadedSection({
     renderRow,
   } = useAddByRssEpisodeRowRenderer({
     details,
+    engagedItemIds,
     isMusicFeed,
+    onEngageItem,
     visitLastSeenAtMs,
   });
 

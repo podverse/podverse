@@ -8,5 +8,9 @@ export type FormErrorMessageTextProps = {
 };
 
 export function FormErrorMessageText({ message, className }: FormErrorMessageTextProps) {
-  return <div className={classNames(styles.errorMessage, className)}>{message}</div>;
+  return (
+    <div className={classNames(styles.errorMessage, className)} role="alert">
+      {message}
+    </div>
+  );
 }

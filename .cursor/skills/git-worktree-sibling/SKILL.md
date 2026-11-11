@@ -200,8 +200,9 @@ git branch -d feature/tracking-consent
 ## Related
 
 - **abcplan** and **abcresume** — plan sets and stopped runs, both from the worktree's window
-- **abcissue** — a pasted issue. A small set is a chat in the worktree window. A large set uses
-  the abcplan blocks
+- **abcissue** — a pasted issue stays on the current branch. Give the worktree blocks only
+  when the operator asked for a worktree. A small set is then a chat in that window. A large
+  set uses the abcplan blocks
 - **abcbranchesmerge** — a new `feature/merge-YYYY-MM-DD` worktree off `develop`; the run
   pushes only that branch, and the agent does not remove the worktree
 - **mobile-worktree-scope** — which mobile tracks can run in parallel worktrees

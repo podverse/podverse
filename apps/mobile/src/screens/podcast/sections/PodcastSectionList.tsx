@@ -201,7 +201,7 @@ export function PodcastSectionList<TRow>({
       }
       ListHeaderComponent={
         listHeader !== null && listHeader !== undefined ? (
-          <ListFilterHeader hasItemsBelow={listData.length > 0} style={styles.filterHeader}>
+          <ListFilterHeader hasItemsBelow style={styles.filterHeader}>
             {listHeader}
           </ListFilterHeader>
         ) : null

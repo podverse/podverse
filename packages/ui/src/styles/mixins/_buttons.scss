@@ -30,3 +30,13 @@
     padding-left: 1px;
   }
 }
+
+// Extra optical nudge for large circular play buttons only (player bar, detail header).
+// Search: play-icon-optical-nudge. Pause is unchanged. Set the token to 0 to undo.
+@mixin mediaPlayerLargePlayIconOpticalNudge {
+  &:not([data-media-player-playing='true']) {
+    svg {
+      transform: translateX(var(--play-icon-optical-nudge));
+    }
+  }
+}

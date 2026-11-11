@@ -1,10 +1,13 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { BrowseEmptyResults } from '../../components/Browse/BrowseEmptyResults';
 import { ListPlaylists } from '../../components/List/Playlists/ListPlaylists';
 import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
-import { NoResults } from '../../components/NoResults/NoResults';
-import { shouldShowBrowseEmptyMessage } from '../../utils/mediaListChips';
+import {
+  shouldShowBrowseByRecentAction,
+  shouldShowBrowseEmptyMessage,
+} from '../../utils/mediaListChips';
 import { usePlaylistsPageContext } from './PlaylistsPageContext';
 
 export const PlaylistsPageList: React.FC = () => {
@@ -28,11 +31,21 @@ export const PlaylistsPageList: React.FC = () => {
     page,
     rowCount: playlists.length,
   });
+  const showBrowseByRecent = shouldShowBrowseByRecentAction({
+    showEmpty,
+    sort: filterParams.sort,
+  });
+  const handleBrowseByRecent = () => {
+    setFilterParams({ ...filterParams, page: 1, sort: 'recent', range: null });
+  };
 
   return (
     <>
       {showEmpty ? (
-        <NoResults message={tFeatures('playlist.no_playlists_found')} />
+        <BrowseEmptyResults
+          message={tFeatures('playlist.no_playlists_found')}
+          onBrowseByRecent={showBrowseByRecent ? handleBrowseByRecent : undefined}
+        />
       ) : (
         <ListPlaylists
           page={page}

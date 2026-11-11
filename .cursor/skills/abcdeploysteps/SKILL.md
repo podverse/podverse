@@ -164,6 +164,63 @@ for that case; write `unconfirmed` plus the diff result.
 One manual job per database applies every pending file for that database, in order. Name each
 filename in the checklist. Do not create a second job for a second file.
 
+### Env since the last pin
+
+Run this before the checklist file exists. A checklist with no `Env:` line is incomplete. Do not
+guess `none`.
+
+The range is the same pin as **What changed**. For mobile keys, use the git commit on the newest
+finished EAS `beta` build when that commit is known. Otherwise use the cluster pin and say the
+mobile baseline is the pin.
+
+Diff that range for:
+
+- `apps/*/.env.example`, `apps/*/sidecar/.env.example`, and `extensions/*/.env.example`
+- `infra/k8s/base/**/source/*.env`
+- `apps/api`, `apps/management-api`, and `apps/workers` `src/lib/startup/validation.ts`
+- `apps/web/scripts/validate-env.ts` and `apps/management-web/scripts/validate-env.ts`
+- `apps/mobile/.env.example` when the mobile lane is included
+
+A key is in play when that diff adds it, removes it, or changes a `KEY=` value, or when it adds or
+drops `validateRequired('KEY'` or another validator called with required true. Ignore comment-only
+edits. Ignore `API_RELEASE` and `READINESS_API_EXPECTED_RELEASE`; the pin step already sets those.
+
+Alpha pods receive the base env from the pinned tag, then `configMapGenerator` `behavior: merge`
+from `k.podcastdj.com` `apps/podverse-alpha/**/source/*.env`. The overlay wins on the same key.
+Match a base file to the overlay file with the same basename (`api.env` to
+`apps/podverse-alpha/api/source/api.env`, and the same for workers, web, management-api, and
+management-web). `product-membership-settings.env` and the extension env files live under
+`apps/podverse-alpha/common/source/`.
+
+A required key is one that `origin/develop` rejects at startup when unset. It is **missing** when
+it is absent from the base env at `origin/develop`, absent from the alpha overlay, and absent from
+secret key names, or when the overlay sets it to an empty value. Secret key names come from
+comments in the alpha env files and from `scripts/secret-generators/`. A SOPS file that lists the
+key next to `ENC[` counts as present. Do not decrypt, and do not copy a value or an `ENC[` blob
+into the checklist or the reply.
+
+An overlay key is **stale** when the overlay sets it and the base `source/*.env` value changed in
+the range (or `.env.example`, when the base file has no line). The new base value will not apply.
+Do not print either value. Do not replace the overlay with the base file. Alpha hosts and flags
+differ from base on purpose; the operator confirms the alpha value before the pin commit.
+
+A new key that is already in the base env and not overridden ships with the pin. Leave it off the
+`Env:` line. A new optional key that is in neither the base env nor the overlay is a confirm line
+under `Env:`, not a commit requirement, unless startup requires it.
+
+Mobile keys added in that range are not in git on the cluster. Name each one as `mobile KEY — set
+on the EAS preview environment before the build` (profile `beta` uses `preview`). Do not put
+`make mobile_eas_env_set` in the file until the operator gives the value in this conversation.
+Never write that value into the file.
+
+`Env:` is `none` when nothing is missing or stale and no mobile key was added. Otherwise one
+clause per key, with the overlay path or the secret name. When the GitOps checkout cannot be
+read, write `unconfirmed` plus which keys the diff added. Do not write `none` for that case.
+
+The pin commit includes every missing or stale edit whose value the operator has already chosen.
+Skip secret generators unless a new secret is required for startup. Never commit decrypted
+secrets.
+
 ## Where the checklist file goes
 
 When alpha is clear and a lane has changes, write one markdown file locally. Do not put it in the
@@ -178,9 +235,9 @@ The chat reply is the same checklist, with the blockers (or "clear") first.
 
 Short headings, ordered steps, copy-paste commands. Almost no explanation. Fill in the real pin,
 version, and commit range. The new staging number does not exist until **Publish (staging)**
-finishes, so the file stops after the step that prints the tag and lists the GitOps steps with
-`<tag from the previous step>` in prose only. Once the tag is known, the agent gives those steps
-with the real value written into every command and commit message.
+finishes. The checklist still includes the GitOps pin as the last letter of series 1. That letter
+reads the tag from the Podverse remote. It does not contain `NEW_TAG`, `staging.N`, or `X.Y.Z`.
+When the tag is already known, write that literal into the pin commands instead of the lookup.
 
 Operator commands are fish-safe (**fish-operator-commands**): fence labeled `bash`, no heredoc,
 no `VAR=value command`, no `[[ ]]`. One command per fence when the command prompts (every
@@ -199,7 +256,13 @@ different terminal, and do not paste it until `1a` in that terminal has finished
 
 A different number is a different terminal. It can run beside the others when the start condition
 on its first letter says so. Put that start condition on the first letter (`2a` starts with `1a`
-when its lane allows it). GitOps starts when the sync script has printed the staging tag.
+when its lane allows it).
+
+Series 1 is the server lane. Its early letters run in **Root**. Its last letter is the GitOps pin.
+That letter runs in the `k.podcastdj.com` repo root, and only after the publish letter has exited 0
+and printed the staging tag. Say that directory change on the letter. Cluster waits, migrations,
+and smoke are the next number, in that same GitOps checkout, and they start only after the pin
+push.
 
 The recipes below use `1.` `2.` `3.` as content order. Those are not the labels in the file or the
 reply. Translate them into `1a`, `1b`, `2a`, and so on when writing the checklist.
@@ -229,6 +292,7 @@ Server: <pinned tag> -> next staging tag of <X.Y.Z>
 Mobile: <include, or "no mobile changes">
 Commits: <range>
 Migrations: <none, or "app 0003_stats_channel_hidden.sql" and the same for management. "unconfirmed" when the cluster was not read.>
+Env: <none, or each missing or stale key with its overlay path. "unconfirmed" when the GitOps checkout was not read.>
 
 ## Do not
 <the inadvisable list that applies this time, one line each>
@@ -237,21 +301,21 @@ Migrations: <none, or "app 0003_stats_channel_hidden.sql" and the same for manag
 <which terminals run at the same time>
 
 ## Steps
-<1a, 1b, 2a, 3a, 3b. Same number is one terminal, in letter order. A different number is a separate terminal.>
+<1a, 1b, 1c, 2a, 3a, 3b. 1c is the GitOps pin, last letter of series 1. A different number is a separate terminal.>
 ```
 
 ### Lanes that may run at the same time
 
 Put this table in the file, dropping rows for lanes you omitted.
 
-| Lane              | Starts when                                    | Terminal                     |
-| ----------------- | ---------------------------------------------- | ---------------------------- |
-| Publish (staging) | `develop` is clean, pushed, notes committed    | **Root**                     |
-| iOS build         | Any time, including during Publish (staging)   | **Mobile**                   |
-| Android build     | Same moment as the iOS build                   | Second **Mobile**            |
-| GitOps pin        | Publish (staging) succeeded and the tag exists | `k.podcastdj.com` repo root  |
-| iOS submit        | That iOS build finished                        | **Mobile** (after the build) |
-| Android submit    | That Android build finished                    | Second **Mobile**            |
+| Lane              | Starts when                                  | Terminal                                              |
+| ----------------- | -------------------------------------------- | ----------------------------------------------------- |
+| Publish (staging) | `develop` is clean, pushed, notes committed  | **Root**                                              |
+| iOS build         | Any time, including during Publish (staging) | **Mobile**                                            |
+| Android build     | Same moment as the iOS build                 | Second **Mobile**                                     |
+| GitOps pin        | Publish letter exited 0 and printed the tag  | `k.podcastdj.com` repo root (last letter of series 1) |
+| iOS submit        | That iOS build finished                      | **Mobile** (after the build)                          |
+| Android submit    | That Android build finished                  | Second **Mobile**                                     |
 
 GitOps push and the two store submits may overlap. Do not start GitOps before the tag exists.
 Do not sync Argo by hand while auto-sync is rolling out a later wave ahead of ops.
@@ -280,12 +344,17 @@ git push origin develop
 ./scripts/publish/sync-develop-to-staging.sh
 ```
 
-The checklist is a stop point here. The operator reports that tag, or the agent reads it from the
-terminal, and the agent then gives the GitOps commands with the real tag written in. Never ask
-the operator to edit a placeholder inside a command. A pasted placeholder lands in the files, and
-a committed placeholder passes the version contract check because every file agrees.
+The next letter is the GitOps pin. It is the last letter of series 1 (`1c` when publish is `1b`).
+Do not end the checklist before it.
 
-### GitOps steps (only after that tag exists)
+The tag is the single line under `Tags at <sha>:` that matches `X.Y.Z-staging.N` and does not end
+in `.N`. The pin commands below read that tag from the Podverse remote. They use the real old pin
+and the real `X.Y.Z`. They do not ask the operator to type the new tag. A pasted `NEW_TAG`,
+`staging.N`, or `X.Y.Z` lands in the files, and a committed placeholder passes the version
+contract check because every file agrees. When the tag is already known, replace the lookup with
+that literal in the `perl` command and the commit message.
+
+### GitOps pin (last letter of series 1)
 
 Repo is the local `k.podcastdj.com` checkout. Argo applications under `argocd/podverse-alpha/`
 use `targetRevision: main` and automated sync. Pushing `main` is what rolls the cluster.
@@ -302,24 +371,36 @@ In one commit, set all of these to the new tag:
 - `API_RELEASE` in `apps/podverse-alpha/api/source/api.env` and
   `apps/podverse-alpha/management-api/source/management-api.env`
 
-Every one of those holds the same old tag, so one replace of the old pin with the new tag covers
-them all. Write both literal values into the command:
+Every one of those holds the same old tag, so one replace of the old pin covers them all.
+**k.podcastdj.com repo root.** In the checklist, write the real old pin and the real base version
+where this recipe says `OLD_PIN` and `X.Y.Z`. The lookup prints the new tag, refuses an empty
+result or a tag that ends in `.N`, and checks that the tag exists. `sort -t. -k4n` picks the
+highest staging number for that base version, which is the tag **Publish (staging)** just created.
 
 ```bash
-perl -pi -e 's/OLD_PIN/NEW_TAG/g' (git grep -l 'OLD_PIN' -- apps/podverse-alpha)
+set new_tag (git -C /Users/mitcheldowney/repos/pv/podverse ls-remote --tags origin 'refs/tags/X.Y.Z-staging.*' | string match -ar 'X\.Y\.Z-staging\.[0-9]+' | sort -t. -k4n | tail -1)
+if test -z "$new_tag"; or string match -q -- '*.N' $new_tag
+  echo 'Stop: no staging tag, or the tag is still a placeholder.'
+  exit 1
+end
+echo $new_tag
+git -C /Users/mitcheldowney/repos/pv/podverse fetch origin tag $new_tag
+git -C /Users/mitcheldowney/repos/pv/podverse rev-parse --verify "$new_tag^{commit}"
+perl -pi -e "s/OLD_PIN/$new_tag/g" (git grep -l 'OLD_PIN' -- apps/podverse-alpha)
 ```
 
 Before the contract checks, both of these must print nothing. A hit means a placeholder or the old
-pin survived. Stop and fix it.
+pin survived. Stop and fix it. In the checklist, the second pattern is the real old pin.
 
 ```bash
 git grep -nE 'staging\.N|REPLACE_WITH|X\.Y\.Z' -- apps/podverse-alpha
 git grep -n 'OLD_PIN' -- apps/podverse-alpha
 ```
 
-Leave Postgres, Valkey, and ActiveMQ tags as they are. If this release changes env or overlays
-beyond the pin, include those file edits in the same commit. Skip secret generators unless a new
-secret is required for startup. Never commit decrypted secrets.
+Leave Postgres, Valkey, and ActiveMQ tags as they are. The `Env:` line is the list of overlay
+edits for this release. Include each one whose value the operator has already chosen in this
+same commit, before the contract checks. A missing or stale key with no chosen value stops the
+commit. Do not invent a value and do not copy an example file over the overlay.
 
 **k.podcastdj.com repo root:**
 
@@ -328,11 +409,12 @@ bash ./scripts/check_podverse_alpha_version_contract.sh
 bash ./scripts/secret-generators/check_db_secret_contract.sh alpha
 ```
 
-Then the operator commits and pushes `main`. Fish-safe message, with the real tag filled in:
+Then the operator commits and pushes `main`. The same terminal still has `new_tag` from the pin
+letter. When the tag was written as a literal, use that literal inside single quotes instead.
 
 ```bash
 git add apps/podverse-alpha
-git commit -m 'Pin podverse-alpha to NEW_TAG.'
+git commit -m "Pin podverse-alpha to $new_tag."
 git push
 ```
 
@@ -511,9 +593,10 @@ the checklist path in `apps/mobile/modules/podverse-media-engine/`. Do not paste
 1. Clear, or the blockers. Blockers end the reply.
 2. Which surfaces changed, from which tag or build, in a few commit subjects.
 3. The `Migrations:` line. A server deploy that omits it is not done.
-4. The lanes that run together.
-5. The steps (same text as the file).
-6. The temp file path.
+4. The `Env:` line. A checklist that omits it is not done.
+5. The lanes that run together.
+6. The steps (same text as the file).
+7. The temp file path.
 
 Do not run the steps. If the operator later says to run one, still refuse push, EAS build or
 submit, Argo, secret generation, and anything that deletes cluster data. Repeat the warning

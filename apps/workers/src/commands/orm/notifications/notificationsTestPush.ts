@@ -21,7 +21,7 @@ import {
   formatOutcomeLine,
   isNotificationsTestPushEnabled,
   NOTIFICATIONS_TEST_PUSH_HELP,
-  outcomeFromSendResult,
+  outcomeFromPushOutcome,
   parseNotificationsTestPushArgs,
   secretSuffix,
 } from './notificationsTestPushLib.js';
@@ -193,7 +193,7 @@ async function sendOne(
         mediumId: MediumEnum.Podcast,
         data: { testPush: 'true' },
       });
-      return outcomeFromSendResult('firebase', result);
+      return outcomeFromPushOutcome(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Send failed';
       return failedOutcome('send_threw', message);
@@ -220,7 +220,7 @@ async function sendOne(
         mediumId: MediumEnum.Podcast,
         data: { testPush: 'true' },
       });
-      return outcomeFromSendResult('webpush', result);
+      return outcomeFromPushOutcome(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Send failed';
       return failedOutcome('send_threw', message);
@@ -242,7 +242,7 @@ async function sendOne(
       mediumId: MediumEnum.Podcast,
       data: { testPush: 'true' },
     });
-    return outcomeFromSendResult('unifiedpush', result);
+    return outcomeFromPushOutcome(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Send failed';
     return failedOutcome('send_threw', message);

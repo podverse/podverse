@@ -445,7 +445,8 @@ function validateImageShrink(env: StartupEnv): ValidationResult[] {
     }
   }
   {
-    const varName = 'IMAGE_SHRINK_WEBP_QUALITY';
+    // iOS push notifications cannot attach WebP; `webp` leaves iOS pushes without artwork.
+    const varName = 'IMAGE_SHRINK_FORMAT';
     const category = 'Image Shrink';
     const raw = env[varName];
     if (raw === undefined || raw.trim() === '') {
@@ -454,7 +455,41 @@ function validateImageShrink(env: StartupEnv): ValidationResult[] {
         isSet: false,
         isValid: true,
         isRequired: false,
-        message: 'Use Default (92)',
+        message: 'Use Default (jpeg)',
+        category,
+      });
+    } else {
+      const value = raw.trim().toLowerCase();
+      const ok = value === 'jpeg' || value === 'webp';
+      let message = 'Must be jpeg or webp';
+      if (value === 'jpeg') {
+        message = 'Set';
+      } else if (value === 'webp') {
+        message = 'Set (webp: iOS push notifications will show no artwork)';
+      }
+      results.push({
+        name: varName,
+        isSet: true,
+        isValid: ok,
+        isRequired: false,
+        message,
+        category,
+      });
+    }
+  }
+  for (const [varName, defaultQuality] of [
+    ['IMAGE_SHRINK_JPEG_QUALITY', 82],
+    ['IMAGE_SHRINK_WEBP_QUALITY', 92],
+  ] as const) {
+    const category = 'Image Shrink';
+    const raw = env[varName];
+    if (raw === undefined || raw.trim() === '') {
+      results.push({
+        name: varName,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: `Use Default (${defaultQuality})`,
         category,
       });
     } else {

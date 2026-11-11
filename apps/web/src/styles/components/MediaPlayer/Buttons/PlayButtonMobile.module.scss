@@ -3,4 +3,5 @@
 .playButtonMobile {
   @include mediaPlayerButtonMobile;
   @include mediaPlayerPlayPauseIconCentering;
+  @include mediaPlayerLargePlayIconOpticalNudge;
 }

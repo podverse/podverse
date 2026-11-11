@@ -113,6 +113,14 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
     return this.repositoryRead.find({ where: { account_id: In(account_ids) } });
   }
 
+  async deleteByEndpoints(endpoints: string[]): Promise<number> {
+    if (endpoints.length === 0) {
+      return 0;
+    }
+    const result = await this.repositoryReadWrite.delete({ up_endpoint: In(endpoints) });
+    return result.affected ?? 0;
+  }
+
   async updateLocaleForAccount(account_id: number, params: { locale: string }): Promise<void> {
     const account = await this.accountService.get(account_id);
     if (!account) {

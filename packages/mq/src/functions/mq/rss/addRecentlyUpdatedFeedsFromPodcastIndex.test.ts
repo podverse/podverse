@@ -536,6 +536,27 @@ describe('mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex', () => {
     );
   });
 
+  it('leaves the cursor at the last finished page when Podcast Index returns an upstream error', async () => {
+    knownFeeds([1]);
+    const start = NOW_SECONDS - SINCE_RANGE;
+    savedCursor(start + RECENT_DATA_CURSOR_OVERLAP_SECONDS);
+    const loggerService = createLogger();
+
+    const result = await run(
+      createArtemis(),
+      createPodcastIndex([page(start, [1], start + 300)], 'upstream_error'),
+      loggerService
+    );
+
+    expect(orm.state.cursor?.nextSince).toBe(start + 300);
+    expect(result).toMatchObject({ outcome: 'upstream_error', cursorNextSince: start + 300 });
+    expect(loggerService.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'upstream error after retries; the next run resumes from next_since=' + `${start + 300}`
+      )
+    );
+  });
+
   it('never moves the cursor backwards when a page reports an older nextSince', async () => {
     knownFeeds([1]);
     const cursorNextSince = NOW_SECONDS - 100;

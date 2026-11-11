@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { QueueScreenResource } from './queueScreenResources';
-import { queueResourcesForQueueScreen } from './queueScreenResources';
+import { splitQueueScreenResources } from './queueScreenResources';
 
 const row = (listPosition: string, itemIdText: string): QueueScreenResource => {
   return {
@@ -10,33 +10,42 @@ const row = (listPosition: string, itemIdText: string): QueueScreenResource => {
   };
 };
 
-describe('queueResourcesForQueueScreen', () => {
+describe('splitQueueScreenResources', () => {
   const resources = [row('0', 'now-playing'), row('1', 'upcoming')];
 
-  it('hides now-playing when the viewed queue is the active queue', () => {
+  it('moves a matching queue head into nowPlaying when the chip matches the player medium', () => {
     expect(
-      queueResourcesForQueueScreen(resources, {
-        playingContentId: null,
-        viewedQueueIsActive: true,
-      })
-    ).toEqual([row('1', 'upcoming')]);
-  });
-
-  it('keeps now-playing on a queue the player is not using', () => {
-    expect(
-      queueResourcesForQueueScreen(resources, {
-        playingContentId: 'something-else',
-        viewedQueueIsActive: false,
-      })
-    ).toEqual(resources);
-  });
-
-  it('hides now-playing when that row is the item in the player', () => {
-    expect(
-      queueResourcesForQueueScreen(resources, {
+      splitQueueScreenResources(resources, {
         playingContentId: 'now-playing',
-        viewedQueueIsActive: false,
+        viewedQueueMatchesPlayerMedium: true,
       })
-    ).toEqual([row('1', 'upcoming')]);
+    ).toEqual({
+      nowPlaying: row('0', 'now-playing'),
+      upcoming: [row('1', 'upcoming')],
+    });
+  });
+
+  it('omits the queue head when the chip does not match the player medium', () => {
+    expect(
+      splitQueueScreenResources(resources, {
+        playingContentId: 'now-playing',
+        viewedQueueMatchesPlayerMedium: false,
+      })
+    ).toEqual({
+      nowPlaying: null,
+      upcoming: [row('1', 'upcoming')],
+    });
+  });
+
+  it('returns null nowPlaying when no queue row matches the playing item', () => {
+    expect(
+      splitQueueScreenResources(resources, {
+        playingContentId: 'player-only',
+        viewedQueueMatchesPlayerMedium: true,
+      })
+    ).toEqual({
+      nowPlaying: null,
+      upcoming: [row('1', 'upcoming')],
+    });
   });
 });

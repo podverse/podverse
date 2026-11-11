@@ -1,10 +1,14 @@
-import webpush from 'web-push';
+import { sendNotification, setVapidDetails } from 'web-push';
 
 import type { NotificationsConfig } from './config/types.js';
 
+type WebPushAdmin = {
+  sendNotification: typeof sendNotification;
+};
+
 export type NotificationsContext = {
   config: NotificationsConfig;
-  webpushAdmin: typeof webpush | null;
+  webpushAdmin: WebPushAdmin | null;
   isWebPushEnabled: boolean;
   getWebBaseUrl: () => string;
   getWebBaseUrlWithPath: (path: string) => string;
@@ -19,7 +23,7 @@ export type NotificationsContext = {
  * @returns NotificationsContext with initialized services and helper functions
  */
 export function createNotificationsContext(config: NotificationsConfig): NotificationsContext {
-  let webpushAdmin: typeof webpush | null = null;
+  let webpushAdmin: WebPushAdmin | null = null;
   let isWebPushEnabled = false;
   const shouldLogConfigNotice =
     process.env.NODE_ENV !== 'production' || process.env.LOG_LEVEL === 'debug';
@@ -53,8 +57,8 @@ export function createNotificationsContext(config: NotificationsConfig): Notific
         const vapidSubject = config.webpush.vapid_subject;
         const vapidPublicKey = config.webpush.vapid_public_key;
         const vapidPrivateKey = config.webpush.vapid_private_key;
-        webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
-        webpushAdmin = webpush;
+        setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+        webpushAdmin = { sendNotification };
         isWebPushEnabled = true;
         console.warn('Web Push Admin Initialized Successfully');
       } catch (error) {

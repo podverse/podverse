@@ -11,6 +11,12 @@ import type { WebPushSubscription } from '../webpush/index.js';
 import { webpushNotificationBatchOrchestrator } from '../webpush/index.js';
 import type { NotificationMessageType } from './i18nNotifications.js';
 import { i18nNotifications } from './i18nNotifications.js';
+import type { PushOutcome } from './pushOutcome.js';
+import {
+  pushAttemptFromProviderRow,
+  pushAttemptsFromFirebaseBatches,
+  summarizePushAttempts,
+} from './pushOutcome.js';
 
 export type NotificationPlatform = 'web' | 'android' | 'ios';
 export type NotificationService = 'firebase' | 'webpush' | 'unifiedpush';
@@ -69,7 +75,7 @@ function getFinalText(messageText: string, messageType: NotificationMessageType,
 export async function notificationOrchestrator(
   ctx: NotificationsContext,
   params: NotificationOrchestratorParams
-) {
+): Promise<PushOutcome> {
   const {
     service,
     messageText,
@@ -104,7 +110,7 @@ export async function notificationOrchestrator(
   switch (service) {
     case 'firebase': {
       const firebaseParams = params as FirebaseNotificationOrchestratorParams;
-      return await firebaseNotificationBatchOrchestrator(firebaseParams.firebaseCtx, {
+      const batches = await firebaseNotificationBatchOrchestrator(firebaseParams.firebaseCtx, {
         tokens: firebaseParams.tokens,
         platform: firebaseParams.platform,
         finalText,
@@ -116,11 +122,16 @@ export async function notificationOrchestrator(
         ...(firebaseParams.sound !== undefined ? { sound: firebaseParams.sound } : {}),
         data: payloadData,
       });
+      return summarizePushAttempts(
+        'firebase',
+        firebaseParams.platform,
+        pushAttemptsFromFirebaseBatches(firebaseParams.tokens, batches)
+      );
     }
 
     case 'webpush': {
       const webpushParams = params as WebPushNotificationOrchestratorParams;
-      return await webpushNotificationBatchOrchestrator(ctx, {
+      const results = await webpushNotificationBatchOrchestrator(ctx, {
         subscriptions: webpushParams.subscriptions,
         finalText,
         ...(body !== undefined ? { body } : {}),
@@ -128,11 +139,16 @@ export async function notificationOrchestrator(
         ...(image !== undefined ? { image } : {}),
         data: payloadData,
       });
+      return summarizePushAttempts(
+        'webpush',
+        null,
+        results.map((row) => pushAttemptFromProviderRow(row))
+      );
     }
 
     case 'unifiedpush': {
       const upParams = params as UnifiedPushNotificationOrchestratorParams;
-      return await unifiedpushNotificationBatchOrchestrator(ctx, {
+      const results = await unifiedpushNotificationBatchOrchestrator(ctx, {
         subscriptions: upParams.subscriptions,
         finalText,
         ...(body !== undefined ? { body } : {}),
@@ -140,6 +156,11 @@ export async function notificationOrchestrator(
         ...(image !== undefined ? { image } : {}),
         data: payloadData,
       });
+      return summarizePushAttempts(
+        'unifiedpush',
+        null,
+        results.map((row) => pushAttemptFromProviderRow(row))
+      );
     }
 
     default:

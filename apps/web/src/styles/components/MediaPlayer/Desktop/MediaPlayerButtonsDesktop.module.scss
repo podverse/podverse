@@ -3,8 +3,9 @@
 
 .buttons {
   display: flex;
-  flex: 0 0 28%;
   flex-direction: row;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .startSection {

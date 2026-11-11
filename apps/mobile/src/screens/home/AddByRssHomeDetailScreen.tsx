@@ -24,9 +24,11 @@ import {
   subscriptionsRepository,
 } from '../../data/repositories';
 import { useAddByRssArtworkHeaders } from '../../hooks/useAddByRssArtworkHeaders';
+import { addByRssPlaybackMediaId } from '../../lib/addByRss/resourceData';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
+import { usePlaybackRow } from '../../playback/PlaybackProvider';
 import type {
   AddByRssDetailTab,
   AddByRssEpisodeSort,
@@ -150,6 +152,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   const [isSortHydrated, setIsSortHydrated] = useState<boolean>(false);
   const [filterTerm, setFilterTerm] = useState<string>('');
   const [visitLastSeenAtMs, setVisitLastSeenAtMs] = useState<number | null | undefined>(undefined);
+  const [engagedItemIds, setEngagedItemIds] = useState<ReadonlySet<string>>(new Set());
   const loadGenerationRef = useRef(0);
   const feedIdTextRef = useRef(feedIdText);
   /** The feed-change effect just chose the section; the fallback must not overwrite it. */
@@ -166,6 +169,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     setFilterTerm('');
     setIsSortHydrated(false);
     setVisitLastSeenAtMs(undefined);
+    setEngagedItemIds(new Set());
   }
 
   const screenStyle = useMemo(
@@ -283,11 +287,25 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
    */
   const seenFeedUrl =
     detail !== null && detail.feed.idText === feedIdText ? detail.feed.feedUrl : null;
+  const onEngageItem = useCallback((itemId: string) => {
+    if (itemId.length === 0) {
+      return;
+    }
+    setEngagedItemIds((previous) => {
+      if (previous.has(itemId)) {
+        return previous;
+      }
+      const next = new Set(previous);
+      next.add(itemId);
+      return next;
+    });
+  }, []);
   useEffect(() => {
     if (seenFeedUrl === null) {
       return;
     }
 
+    setEngagedItemIds(new Set());
     let cancelled = false;
     void (async () => {
       const previous = await channelSeenRepository.markSeen(seenFeedUrl, 'add-by-rss');
@@ -302,6 +320,22 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   }, [seenFeedUrl]);
 
   const detailForRoute = detail !== null && detail.feed.idText === feedIdText ? detail : null;
+  const { activeTarget } = usePlaybackRow();
+  useEffect(() => {
+    if (activeTarget === null || activeTarget.kind !== 'add-by-rss' || detailForRoute === null) {
+      return;
+    }
+    const feedUrl = activeTarget.resourceData.feed_url;
+    if (typeof feedUrl !== 'string' || feedUrl !== detailForRoute.feed.feedUrl) {
+      return;
+    }
+    const mediaId = addByRssPlaybackMediaId(activeTarget.resourceData);
+    const matched = detailForRoute.episodeRows.find((row) => row.playbackMediaId === mediaId);
+    if (matched === undefined) {
+      return;
+    }
+    onEngageItem(matched.id);
+  }, [activeTarget, detailForRoute, onEngageItem]);
   const isListedOnly = detailForRoute?.feed.followed === false;
   const isMusicFeed =
     detailForRoute !== null && isAddByRssMusicFeed(detailForRoute.feed.resourceType);
@@ -664,9 +698,11 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   ) : (
     <SectionPane
       detail={detailForRoute}
+      engagedItemIds={engagedItemIds}
       filterTerm={filterTerm}
       isMusicFeed={isMusicFeed}
       listHeader={listHeader}
+      onEngageItem={onEngageItem}
       onRefresh={() => feedCheck.checkFeed('pull')}
       refreshNoticeKey={feedCheck.noticeKey}
       sort={sort}

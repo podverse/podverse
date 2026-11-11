@@ -40,6 +40,12 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
   }
 };
 
+/**
+ * The tray's floor sits below the glyph box center, so a centered `download-outline` reads low
+ * beside the More ellipsis. Paint-only shift; the 44x44 pressable layout stays put.
+ */
+const DOWNLOAD_OUTLINE_OPTICAL_NUDGE_Y = -2;
+
 const createStyles = (_theme: ThemedStylesTheme) =>
   StyleSheet.create({
     control: {
@@ -90,6 +96,7 @@ export const DownloadRowControl = memo(function DownloadRowControl({
 
   const isInProgress = status === 'queued' || status === 'downloading' || status === 'paused';
   const iconColor = status === 'failed' ? tokens.text.danger : tokens.button.secondaryColor;
+  const iconName = statusIconName(status);
 
   return (
     <Pressable
@@ -114,8 +121,13 @@ export const DownloadRowControl = memo(function DownloadRowControl({
       ) : (
         <Ionicons
           color={iconColor}
-          name={statusIconName(status)}
+          name={iconName}
           size={LIST_ROW_ACTION_ICON_SIZE}
+          style={
+            iconName === 'download-outline'
+              ? { transform: [{ translateY: DOWNLOAD_OUTLINE_OPTICAL_NUDGE_Y }] }
+              : undefined
+          }
         />
       )}
     </Pressable>

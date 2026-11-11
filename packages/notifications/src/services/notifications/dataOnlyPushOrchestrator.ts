@@ -6,6 +6,12 @@ import {
 import type { NotificationsContext } from '../../factory.js';
 import type { UPSubscription } from '../unifiedpush/index.js';
 import { sendUPDataOnlyBatch } from '../unifiedpush/unifiedpushDataOnly.js';
+import type { PushOutcome } from './pushOutcome.js';
+import {
+  pushAttemptFromProviderRow,
+  pushAttemptsFromFirebaseBatches,
+  summarizePushAttempts,
+} from './pushOutcome.js';
 
 export type DataOnlyPlatform = 'android' | 'ios';
 
@@ -32,16 +38,28 @@ export type DataOnlyOrchestratorParams = FirebaseDataOnlyParams | UnifiedPushDat
 export async function dataOnlyPushOrchestrator(
   ctx: NotificationsContext,
   params: DataOnlyOrchestratorParams
-) {
+): Promise<PushOutcome> {
   switch (params.service) {
-    case 'firebase':
-      return await firebaseDataOnlyBatchOrchestrator(params.firebaseCtx, {
+    case 'firebase': {
+      const batches = await firebaseDataOnlyBatchOrchestrator(params.firebaseCtx, {
         tokens: params.tokens,
         platform: params.platform,
         data: params.data,
       });
-    case 'unifiedpush':
-      return await sendUPDataOnlyBatch(ctx, params.subscriptions, params.data);
+      return summarizePushAttempts(
+        'firebase',
+        params.platform,
+        pushAttemptsFromFirebaseBatches(params.tokens, batches)
+      );
+    }
+    case 'unifiedpush': {
+      const results = await sendUPDataOnlyBatch(ctx, params.subscriptions, params.data);
+      return summarizePushAttempts(
+        'unifiedpush',
+        null,
+        results.map((row) => pushAttemptFromProviderRow(row))
+      );
+    }
     default:
       throw new Error('Unsupported data-only push service');
   }

@@ -36,10 +36,10 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "joi": "^18.3.1"
+    "joi": "^18.3.2"
   },
   "devDependencies": {
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   },
   "type": "module"
 }

@@ -5,6 +5,13 @@ export {
   COMMAND_START_FILE_END_BACKOFF_SECONDS,
 } from './clampNearEndSeconds.js';
 export { combineQueueNowPlayingAndUpcoming } from './combineQueueNowPlayingAndUpcoming.js';
+export {
+  isNowPlayingListPosition,
+  queueResourceContentId,
+  splitQueueScreenResources,
+  type QueueScreenResource,
+  type SplitQueueScreenResourcesResult,
+} from './splitQueueScreenResources.js';
 export { parsePlaybackSeconds } from './parsePlaybackSeconds.js';
 export {
   resumeSeekFromAbridged,

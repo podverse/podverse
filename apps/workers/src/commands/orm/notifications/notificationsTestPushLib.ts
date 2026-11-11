@@ -1,4 +1,5 @@
 import type { ValidationResult } from '@podverse/helpers';
+import type { PushOutcome } from '@podverse/notifications';
 
 export type TestPushArgMap = { [key: string]: string | string[] };
 
@@ -197,6 +198,21 @@ function flattenFirebaseResponses(result: unknown): unknown[] {
     responses.push(batch);
   }
   return responses;
+}
+
+export function outcomeFromPushOutcome(outcome: PushOutcome): PushSendOutcome {
+  if (outcome.failed === 0 && outcome.accepted > 0) {
+    return { success: true, errorCode: null, errorMessage: null };
+  }
+  const errorCode = Object.keys(outcome.byCode)[0] ?? null;
+  if (errorCode === null) {
+    return { success: false, errorCode: null, errorMessage: 'No provider response' };
+  }
+  return {
+    success: false,
+    errorCode,
+    errorMessage: outcome.sampleMessageByCode[errorCode] ?? 'Send failed',
+  };
 }
 
 export function outcomeFromSendResult(

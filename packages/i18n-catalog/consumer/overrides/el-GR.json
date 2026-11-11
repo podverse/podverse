@@ -137,7 +137,8 @@
       "browse": "",
       "category_all": "",
       "users": "",
-      "no_users_found": ""
+      "no_users_found": "",
+      "browse_by_most_recent": ""
     },
     "recommendations": {
       "title": "",
@@ -164,6 +165,7 @@
       "removed_from_queue": "",
       "empty_podcasts": "",
       "empty_music": "",
+      "now_playing": "",
       "login_prompt": ""
     },
     "history": {

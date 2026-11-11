@@ -18,6 +18,7 @@ vi.mock('./otel/meterProvider.js', () => ({
     getMeter: () => ({
       createHistogram: () => ({ record: recordMock }),
       createUpDownCounter: () => ({ add: addMock }),
+      createCounter: () => ({ add: addMock }),
     }),
     shutdown: shutdownMock,
   })),

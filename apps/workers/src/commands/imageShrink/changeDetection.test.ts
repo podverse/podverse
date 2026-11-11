@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildShrinkImageKey,
   bytesMatchStoredChecksum,
+  isResizedUrlInOtherFormat,
   trustHeadUnchanged,
 } from './changeDetection.js';
 
@@ -62,14 +63,30 @@ describe('bytesMatchStoredChecksum', () => {
 });
 
 describe('buildShrinkImageKey', () => {
-  it('embeds url hash, width, and content checksum prefix', () => {
-    const key = buildShrinkImageKey({
-      entityType: 'item',
+  it('embeds url hash, width, checksum prefix, and the format extension', () => {
+    const base = {
+      entityType: 'item' as const,
       entityId: 42,
       widthPx: 400,
       contentChecksumSha256Hex: 'abcdef0123456789',
       urlHash: 'urlhash',
-    });
-    expect(key).toBe('images/item/42/urlhash-w400-cabcdef0123456789.webp');
+    };
+    expect(buildShrinkImageKey({ ...base, format: 'jpeg' })).toBe(
+      'images/item/42/urlhash-w400-cabcdef0123456789.jpg'
+    );
+    expect(buildShrinkImageKey({ ...base, format: 'webp' })).toBe(
+      'images/item/42/urlhash-w400-cabcdef0123456789.webp'
+    );
+  });
+});
+
+describe('isResizedUrlInOtherFormat', () => {
+  it('flags a WebP row when the configured format is JPEG, and the reverse', () => {
+    const webpUrl = 'https://cdn.example.com/images/item/42/h-w400-cabc.webp';
+    const jpgUrl = 'https://cdn.example.com/images/item/42/h-w400-cabc.jpg?v=1';
+    expect(isResizedUrlInOtherFormat(webpUrl, 'jpeg')).toBe(true);
+    expect(isResizedUrlInOtherFormat(jpgUrl, 'jpeg')).toBe(false);
+    expect(isResizedUrlInOtherFormat(jpgUrl, 'webp')).toBe(true);
+    expect(isResizedUrlInOtherFormat(webpUrl, 'webp')).toBe(false);
   });
 });

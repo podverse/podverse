@@ -10,6 +10,9 @@ spec:
   schedule: "* * * * *"
   suspend: true
   concurrencyPolicy: Forbid
+  # Finished Jobs stay until these limits replace them. CronJobLastRunFailed
+  # reads those Job objects, so a failed run stays visible, with its logs,
+  # until a later success or a newer failure takes its place.
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5
   jobTemplate:
@@ -17,7 +20,6 @@ spec:
       # Single attempt: Job default backoffLimit is 6 (creates new pods on failure).
       backoffLimit: 0
       activeDeadlineSeconds: 900
-      ttlSecondsAfterFinished: 600
       # Exit 78 is missing startup config: fail the Job without retry.
       podFailurePolicy:
         rules:

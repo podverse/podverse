@@ -36,6 +36,7 @@ const episodeRowKeyExtractor = (row: HomeFeedRowData): string => row.id;
 
 type PodcastEpisodeRowProps = {
   channel: PodcastSectionPaneProps['channel'];
+  engagedItemIds: ReadonlySet<string> | undefined;
   index: number;
   item: DTOItem | undefined;
   itemLastSeenAtMs: number | null | undefined;
@@ -50,6 +51,7 @@ type PodcastEpisodeRowProps = {
 
 function PodcastEpisodeRow({
   channel,
+  engagedItemIds,
   index,
   item,
   itemLastSeenAtMs,
@@ -75,6 +77,7 @@ function PodcastEpisodeRow({
     <HomeFeedRow
       downloadItem={downloadItem}
       downloadTestID={`podcast-episode-download-${index}`}
+      engagedItemIds={engagedItemIds}
       itemLastSeenAtMs={itemLastSeenAtMs}
       mediaType="episodes"
       onAddToPlaylistPress={onAddToPlaylist}
@@ -113,8 +116,10 @@ const toLiveRows = (items: DTOItem[]): PodcastLiveRow[] => {
 export function PodcastEpisodesSection({
   channel,
   channelIdText,
+  engagedItemIds,
   filterTerm,
   listHeader,
+  onEngageItem,
   onRefreshChannel,
   sort,
   visitLastSeenAtMs,
@@ -155,13 +160,17 @@ export function PodcastEpisodesSection({
    * Re-reading rather than re-sorting in place keeps one source for the order: what is on screen is
    * always what the query returned, so the control and the list cannot drift apart.
    */
-  const readStoredEpisodes = useCallback(async () => {
-    const stored = await channelItemsRepository.listByChannel(channelIdText, {
+  const fetchStoredEpisodes = useCallback(async (): Promise<DTOItem[]> => {
+    return channelItemsRepository.listByChannel(channelIdText, {
       sort: toStoredItemSort(sort),
     });
+  }, [channelIdText, sort]);
+
+  const readStoredEpisodes = useCallback(async () => {
+    const stored = await fetchStoredEpisodes();
     setStoredItems(stored);
     return stored.length;
-  }, [channelIdText, sort]);
+  }, [fetchStoredEpisodes]);
 
   /**
    * Rows are derived from the items rather than stored beside them, because the row actions need the
@@ -180,15 +189,17 @@ export function PodcastEpisodesSection({
   );
 
   /**
-   * Paint from the device, then reconcile.
+   * Publish the stored episode window and live items together, then drop the spinner.
    *
-   * The stored window renders immediately and is the whole answer offline. The refresh that follows
-   * runs directly rather than through the sync queue: somebody opened this screen and is waiting on
-   * it, and queued work is for passes nobody asked for (`mobile-sync-orchestration`).
+   * Live items sit at the top of the same list. Publishing them a frame later would push every
+   * episode down after first paint. The refresh that follows runs directly rather than through the
+   * sync queue: somebody opened this screen and is waiting on it, and queued work is for passes
+   * nobody asked for (`mobile-sync-orchestration`).
    *
    * A refresh that fails is only surfaced when the user asked for one. On open it is silent,
    * because what is stored is still worth reading and an error over the top of a working list would
-   * say nothing useful.
+   * say nothing useful. Live items are a real-time surface with nothing to store, so they stay empty
+   * when there is no connection.
    */
   const loadEpisodes = useCallback(
     async ({ source }: { source: 'initial' | 'refresh' | 'retry' }) => {
@@ -200,37 +211,51 @@ export function PodcastEpisodesSection({
       setErrorKey(null);
 
       try {
-        const storedCount = await readStoredEpisodes();
-
-        if (storedCount > 0) {
-          setIsInitialLoading(false);
-        }
+        const storedBefore = await fetchStoredEpisodes();
+        const storedCount = storedBefore.length;
 
         try {
+          const livePromise = requestWithMobileAuthRefresh(authContext, async (api) =>
+            api.reqLiveItemGetManyByChannel(channelIdText)
+          );
           const outcome = await syncDirectoryChannelOrDropGone(authContext, channelIdText, {
             channelTitle: channelTitleRef.current,
           });
           if (outcome.kind === 'gone' || outcome.kind === 'remapped') {
+            void livePromise.then(
+              () => undefined,
+              () => undefined
+            );
             setHasMorePages(false);
+            const stored = await fetchStoredEpisodes();
+            setStoredItems(stored);
             setLiveItems([]);
-            await readStoredEpisodes();
             failedLoadRef.current = null;
             return;
           }
           setHasMorePages(outcome.result.hasMore);
-          await readStoredEpisodes();
+          const stored = await fetchStoredEpisodes();
 
-          // Live items are a real-time surface with nothing to store, so they simply stay empty
-          // when there is no connection.
-          const liveResponse = await requestWithMobileAuthRefresh(authContext, async (api) =>
-            api.reqLiveItemGetManyByChannel(channelIdText)
-          );
+          let liveResponse: DTOItem[] = [];
+          try {
+            liveResponse = await livePromise;
+          } catch (liveError) {
+            if (source === 'initial' && stored.length > 0) {
+              liveResponse = [];
+            } else {
+              throw liveError;
+            }
+          }
+
+          setStoredItems(stored);
           setLiveItems(liveResponse);
           failedLoadRef.current = null;
         } catch (error) {
           if (storedCount === 0 || source !== 'initial') {
             throw error;
           }
+          setStoredItems(storedBefore);
+          setLiveItems([]);
           failedLoadRef.current = null;
         }
       } catch {
@@ -241,7 +266,7 @@ export function PodcastEpisodesSection({
         setIsInitialLoading(false);
       }
     },
-    [authContext, channelIdText, readStoredEpisodes]
+    [authContext, channelIdText, fetchStoredEpisodes]
   );
 
   /**
@@ -285,9 +310,10 @@ export function PodcastEpisodesSection({
 
   const handleEpisodePress = useCallback(
     (row: HomeFeedRowData) => {
+      onEngageItem?.(row.id);
       navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, { episodeId: row.id });
     },
-    [navigation]
+    [navigation, onEngageItem]
   );
 
   const handleShare = useCallback((row: HomeFeedRowData) => {
@@ -319,9 +345,10 @@ export function PodcastEpisodesSection({
 
   const handlePlayPress = useCallback(
     (episodeRow: HomeFeedRowData) => {
+      onEngageItem?.(episodeRow.id);
       runPlayAction(episodeRow, 'episodes');
     },
-    [runPlayAction]
+    [onEngageItem, runPlayAction]
   );
 
   const handleQueuePress = useCallback(
@@ -351,6 +378,7 @@ export function PodcastEpisodesSection({
     ({ index, row }: { index: number; row: HomeFeedRowData }) => (
       <PodcastEpisodeRow
         channel={channel}
+        engagedItemIds={engagedItemIds}
         index={index}
         item={itemsById.get(row.id)}
         itemLastSeenAtMs={row.liveStatusId === undefined ? visitLastSeenAtMs : null}
@@ -365,6 +393,7 @@ export function PodcastEpisodesSection({
     ),
     [
       channel,
+      engagedItemIds,
       handleAddToPlaylist,
       handleEpisodePress,
       handleMarkAsPlayed,

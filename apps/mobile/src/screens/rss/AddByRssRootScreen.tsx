@@ -666,7 +666,10 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
     return (
       <>
         {showFilterField ? (
-          <ListFilterHeader hasItemsBelow={visibleRows.length > 0} style={styles.filterRow}>
+          <ListFilterHeader
+            hasItemsBelow={!isGridView && (visibleRows.length > 0 || showNoFilterMatches)}
+            style={styles.filterRow}
+          >
             <ListFilterField
               label={t('subscriptions.filter.placeholder')}
               onChangeTerm={setFilterTerm}
@@ -696,9 +699,11 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
     actionNoticeKey,
     feedErrorKey,
     filterTerm,
+    isGridView,
     loadFeed,
     playbackNoticeKey,
     showFilterField,
+    showNoFilterMatches,
     styles.filterRow,
     styles.notice,
     t,

@@ -53,13 +53,8 @@ export async function sendFirebaseNotificationBatchWeb(
       },
     };
 
-    try {
-      const resp = await ctx.firebaseMessaging.sendEachForMulticast(multicastMessage);
-      results.push(resp);
-    } catch (err) {
-      console.error('sendFirebaseNotificationBatchWeb chunk error:', err);
-      throw err;
-    }
+    const resp = await ctx.firebaseMessaging.sendEachForMulticast(multicastMessage);
+    results.push(resp);
   }
 
   return results;

@@ -1,4 +1,4 @@
-import { isUnseenPubDate } from '@podverse/helpers';
+import { itemShowsUnseenDot } from '@podverse/helpers';
 
 /**
  * Numbers below this are seconds. `1e12` milliseconds is 2001-09-09, and every publish instant
@@ -30,14 +30,22 @@ export const epochMsFromRowUpdatedAt = (
  *
  * Channel rows never do: their dot is the side rail. Undefined or null last-seen means this
  * visit has not read a timestamp, or the subscription was never opened, and neither case is new.
+ * An item id in `engagedItemIds` was played or opened during this visit and drops its dot.
  */
 export const itemRowShowsUnseenDot = (
   isChannelList: boolean,
   updatedAt: string | number | null | undefined,
-  lastSeenAtMs: number | null | undefined
+  lastSeenAtMs: number | null | undefined,
+  itemId?: string | null,
+  engagedItemIds?: ReadonlySet<string> | null
 ): boolean => {
   if (isChannelList || lastSeenAtMs === undefined || lastSeenAtMs === null) {
     return false;
   }
-  return isUnseenPubDate(epochMsFromRowUpdatedAt(updatedAt), lastSeenAtMs);
+  return itemShowsUnseenDot({
+    engagedItemIds,
+    itemId,
+    lastSeenAtMs,
+    pubDateMs: epochMsFromRowUpdatedAt(updatedAt),
+  });
 };

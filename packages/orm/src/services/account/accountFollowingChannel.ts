@@ -22,6 +22,11 @@ export type ChannelSeenRow = {
   raw_unseen_count: number;
 };
 
+/** Mark result: the new timestamp and the value that was stored before this write. */
+export type ChannelSeenMarkRow = ChannelSeenRow & {
+  previous_last_seen_at: Date | null;
+};
+
 export type MarkChannelSeenEntry = {
   channel_id_text: string;
   /** Moment to record. Omitted means the sweep's own timestamp. */
@@ -379,7 +384,7 @@ export class AccountFollowingChannelService extends BaseManyService<
     account_id: number,
     entries: readonly MarkChannelSeenEntry[],
     defaultSeenAt: Date
-  ): Promise<ChannelSeenRow[]> {
+  ): Promise<ChannelSeenMarkRow[]> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -408,13 +413,31 @@ export class AccountFollowingChannelService extends BaseManyService<
     const updates = channels
       .map((channel) => {
         const seenAt = seenAtByIdText.get(channel.id_text);
-        return seenAt === undefined ? null : { channelId: channel.id, seenAt };
+        return seenAt === undefined
+          ? null
+          : { channelId: channel.id, channelIdText: channel.id_text, seenAt };
       })
-      .filter((update): update is { channelId: number; seenAt: Date } => update !== null);
+      .filter(
+        (update): update is { channelId: number; channelIdText: string; seenAt: Date } =>
+          update !== null
+      );
 
     if (updates.length === 0) {
       return [];
     }
+
+    const channelIds = updates.map((update) => update.channelId);
+    const previousRows: { channel_id: number; last_seen_at: Date | null }[] =
+      await this.repositoryReadWrite.query(
+        `SELECT follow.channel_id AS channel_id, follow.last_seen_at AS last_seen_at
+         FROM account_following_channel AS follow
+         WHERE follow.account_id = $1
+           AND follow.channel_id = ANY($2::integer[])`,
+        [account.id, channelIds]
+      );
+    const previousByChannelId = new Map(
+      previousRows.map((row) => [row.channel_id, row.last_seen_at] as const)
+    );
 
     // One statement for the batch: a merge can carry hundreds of channels, and a round trip each
     // would make sign-in the slowest thing the app does.
@@ -426,7 +449,7 @@ export class AccountFollowingChannelService extends BaseManyService<
       parameters.push(update.channelId, update.seenAt);
     }
 
-    const rows: { channel_id_text: string; last_seen_at: Date | null }[] =
+    const rows: { channel_id: number; channel_id_text: string; last_seen_at: Date | null }[] =
       await this.repositoryReadWrite.query(
         `UPDATE account_following_channel AS follow
          SET last_seen_at = GREATEST(follow.last_seen_at, incoming.last_seen_at)
@@ -434,6 +457,7 @@ export class AccountFollowingChannelService extends BaseManyService<
          WHERE follow.account_id = $1
            AND follow.channel_id = incoming.channel_id
          RETURNING
+           follow.channel_id AS channel_id,
            (SELECT channel.id_text FROM channel WHERE channel.id = follow.channel_id)
              AS channel_id_text,
            follow.last_seen_at AS last_seen_at`,
@@ -444,6 +468,7 @@ export class AccountFollowingChannelService extends BaseManyService<
     return rows.map((row) => ({
       channel_id_text: row.channel_id_text,
       last_seen_at: row.last_seen_at,
+      previous_last_seen_at: previousByChannelId.get(row.channel_id) ?? null,
       raw_unseen_count: 0,
     }));
   }

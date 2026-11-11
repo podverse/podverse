@@ -24,6 +24,7 @@ import type { DeadFeedCsvRow } from './deadFeedDuplicateChains.js';
 import { extractDeadFeedCsvRow, forEachDeadFeedCsvRow } from './deadFeedDuplicateChains.js';
 import {
   isPodcastIndexClientAbortError,
+  isRetryablePodcastIndexError,
   shouldRetryPodcastIndexRequest,
 } from './isRetryablePodcastIndexError.js';
 import type { PodcastIndexNewestEpisode } from './newestEpisodesByFeedId.js';
@@ -566,7 +567,8 @@ export class PodcastIndexService {
    * request so the caller can finish and record it first. Stops once `nextSince` passes the time
    * the run started or stops advancing (`caught_up`), or when `RECENT_GET_DATA_MAX_FETCH_MS` has
    * elapsed before the next request (`time_cap`). A deadline abort after retries also returns
-   * `time_cap`; other failures throw.
+   * `time_cap`. A retryable upstream error after retries returns `upstream_error`. Other failures
+   * throw.
    */
   async *recentGetData(since: number): AsyncGenerator<RecentDataPage, RecentGetDataStopReason> {
     const startedAtMs = Date.now();
@@ -600,6 +602,12 @@ export class PodcastIndexService {
             `[recentGetData] Timed out after retries for since=${pageSince}; stopping and resuming next run from the last completed page.`
           );
           return 'time_cap';
+        }
+        if (isRetryablePodcastIndexError(error)) {
+          this.loggerService.warn(
+            `[recentGetData] Upstream error after retries for since=${pageSince}; stopping and resuming next run from the last completed page.`
+          );
+          return 'upstream_error';
         }
         throw error;
       }

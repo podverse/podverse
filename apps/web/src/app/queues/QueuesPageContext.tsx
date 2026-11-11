@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
 import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
 import type { QueryParamsQueues } from '@podverse/helpers-requests';
+import { combineQueueNowPlayingAndUpcoming } from '@podverse/playback-core';
 
 import { useAccount } from '../../contexts/Account';
 import { getApiRequestService } from '../../factories/apiRequestService';
@@ -57,30 +58,18 @@ export const QueuesPageContextProvider = ({
       const currentMediumId = getQueueMediumIdFromType(filterParams.medium) || MediumEnum.AV;
       const currentQueue = ssrQueues.find((q) => q.medium_id === currentMediumId);
 
-      const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
-      const activeQueue = queueData.find((queue) => queue.is_active_queue);
-
       if (currentQueue) {
-        const combinedQueueResources: DTOQueueResource[] = [];
-
-        if (activeQueue?.id_text !== currentQueue.id_text) {
-          const nowPlayingResource =
-            await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
-              currentQueue.id_text
-            );
-
-          if (nowPlayingResource) {
-            combinedQueueResources.push(nowPlayingResource);
-          }
-        }
-
+        const nowPlayingResource =
+          await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(currentQueue.id_text);
         const upcomingQueueResources =
           await apiRequestService.reqQueueResourcesGetAllUpcomingByQueueIdText(
             currentQueue.id_text
           );
-        combinedQueueResources.push(...upcomingQueueResources);
-
-        setQueueResources(combinedQueueResources);
+        setQueueResources(
+          combineQueueNowPlayingAndUpcoming(nowPlayingResource, upcomingQueueResources)
+        );
+      } else {
+        setQueueResources([]);
       }
 
       setShowLoginMessage(false);

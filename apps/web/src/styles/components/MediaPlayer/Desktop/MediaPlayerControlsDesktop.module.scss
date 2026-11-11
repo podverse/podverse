@@ -6,7 +6,8 @@
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  flex: 0 0 44%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .topSection {

@@ -2,14 +2,12 @@ import { chunkArray } from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
 
 import type { NotificationsContext } from '../../factory.js';
+import type { ProviderSendRow } from '../notifications/pushOutcome.js';
+import { providerFailure, providerSuccess } from '../notifications/pushOutcome.js';
 import type { UPSubscription } from './unifiedpushHelpers.js';
 import { UNIFIED_PUSH_SEND_TIMEOUT_MS } from './unifiedpushHelpers.js';
 
-type UPDataOnlyResult = {
-  success: boolean;
-  endpoint: string;
-  error?: string;
-};
+type UPDataOnlyResult = ProviderSendRow;
 
 /**
  * Sends a UnifiedPush data-only message (X-UnifiedPush: 1) so the distributor delivers to the app
@@ -45,21 +43,17 @@ export async function sendUPDataOnlyBatch(
           });
 
           if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            return {
-              success: false,
-              endpoint: subscription.up_endpoint,
-              error: `HTTP ${response.status}: ${errorText}`,
-            };
+            return providerFailure(
+              subscription.up_endpoint,
+              response.status,
+              `HTTP ${response.status}`
+            );
           }
 
-          return { success: true, endpoint: subscription.up_endpoint };
+          return providerSuccess(subscription.up_endpoint);
         } catch (error) {
-          return {
-            success: false,
-            endpoint: subscription.up_endpoint,
-            error: error instanceof Error ? error.message : String(error),
-          };
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          return providerFailure(subscription.up_endpoint, null, errorMessage);
         }
       })
     );
@@ -68,11 +62,7 @@ export async function sendUPDataOnlyBatch(
       if (result.status === 'fulfilled') {
         allResults.push(result.value);
       } else {
-        allResults.push({
-          success: false,
-          endpoint: 'unknown',
-          error: String(result.reason),
-        });
+        allResults.push(providerFailure('', null, 'Promise rejected'));
       }
     }
   }

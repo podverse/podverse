@@ -292,9 +292,11 @@ export const ListTrackRow: React.FC<Props> = ({
 
   return (
     <div className={styles.trackRow}>
-      {(isEditModeQueue || isEditModePlaylist) && (
-        <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
-      )}
+      {(isEditModeQueue || isEditModePlaylist) &&
+        dragHandleProps !== null &&
+        dragHandleProps !== undefined && (
+          <ListReorderHandle className={styles.editingButtons} dragHandleProps={dragHandleProps} />
+        )}
       <Button
         variant="unstyled"
         onClick={onPlayAndRemove ?? playButtonOnClick}

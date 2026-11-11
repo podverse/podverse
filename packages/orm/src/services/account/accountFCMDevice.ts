@@ -143,6 +143,14 @@ export class AccountFCMDeviceService extends BaseManyService<AccountFCMDevice, '
     return this.repositoryRead.find({ where: { account_id: In(account_ids) } });
   }
 
+  async deleteByTokens(tokens: string[]): Promise<number> {
+    if (tokens.length === 0) {
+      return 0;
+    }
+    const result = await this.repositoryReadWrite.delete({ fcm_token: In(tokens) });
+    return result.affected ?? 0;
+  }
+
   async updateLocaleForAccount(account_id: number, params: { locale: string }): Promise<void> {
     const account = await this.accountService.get(account_id);
     if (!account) {

@@ -78,23 +78,14 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-list-empty
     timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: browse-list-empty-action
 - assertNotVisible:
     id: "browse-playlist-row-.*"
 - takeScreenshot: browse-screen-playlists
-# Recent lists the seeded public playlist. Only Playlists changes; Users keeps its own sort.
-- runFlow:
-    file: shared/reveal-chip-row-trailing.yaml
-    env:
-      CHIP_ROW_ID: browse-media-type-selector
-      TRAILING_ID: browse-sort-button
-- swipe:
-    from:
-      id: browse-media-type-selector
-    direction: LEFT
+# Browse by Most Recent lists the seeded public playlist. Only Playlists changes; Users keeps its own sort.
 - tapOn:
-    id: browse-sort-button
-- tapOn:
-    id: browse-sort-recent
+    id: browse-list-empty-action
 - extendedWaitUntil:
     visible:
       id: "browse-playlist-row-.*"
@@ -112,6 +103,8 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-list-empty
     timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: browse-list-empty-action
 - assertNotVisible:
     id: "browse-user-row-.*"
 - assertVisible: "Sort: Week"

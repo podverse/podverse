@@ -6,11 +6,17 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOQueueResource, QueryParamsQueueMedium } from '@podverse/helpers';
-import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
+import {
+  getQueueMediumIdForChannelMediumId,
+  getQueueMediumIdFromType,
+  MediumEnum,
+} from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
+import { splitQueueScreenResources } from '@podverse/playback-core';
 import { CallToActionMessage } from '@podverse/ui';
 
 import { useAutoQueue } from '../../../contexts/AutoQueue';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
@@ -21,6 +27,10 @@ import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoa
 import { parsePlaybackSeconds, playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { NoResults } from '../../NoResults/NoResults';
+import { ListClipRow } from '../Clips/ListClipRow';
+import { ListItemSoundbiteRow } from '../ItemSoundbites/ListItemSoundbiteRow';
+import { ListTrackRow } from '../Music/Albums/Tracks/ListTrackRow';
+import { ListEpisodeRow } from '../Podcasts/Episodes/ListEpisodeRow';
 import { ListQueueResourceRow } from './ListQueueResourceRow';
 
 import styles from '../../../styles/components/List/Queues/ListQueueResources.module.scss';
@@ -31,6 +41,27 @@ type Props = {
   queueResources: DTOQueueResource[];
   showLoginMessage: boolean;
 };
+
+function playerPlayingContentId(player: {
+  mpAddByRSS: { idText: string } | null;
+  mpClip: { id_text: string } | null;
+  mpItem: { id_text: string } | null;
+  mpItemSoundbite: { id_text: string } | null;
+}): string | null {
+  if (player.mpAddByRSS?.idText) {
+    return player.mpAddByRSS.idText;
+  }
+  if (player.mpClip?.id_text) {
+    return player.mpClip.id_text;
+  }
+  if (player.mpItemSoundbite?.id_text) {
+    return player.mpItemSoundbite.id_text;
+  }
+  if (player.mpItem?.id_text) {
+    return player.mpItem.id_text;
+  }
+  return null;
+}
 
 export const ListQueueResources: React.FC<Props> = ({
   isLoading,
@@ -46,14 +77,46 @@ export const ListQueueResources: React.FC<Props> = ({
   const { tryHandleMembershipGateError } = useMembershipGate();
   const { activeQueue } = useQueues();
   const queueResourcesLoadActive = useQueueResourcesLoadActive();
-  const [resources, setResources] = React.useState(queueResources);
+  const mediaPlayer = useMediaPlayer();
+  const { mpAddByRSS, mpChannel, mpClip, mpItem, mpItemSoundbite } = mediaPlayer;
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const playAddByRSS = usePlayAddByRSS();
   const { autoQueueConfig } = useAutoQueue();
 
+  const viewedMediumId = getQueueMediumIdFromType(queueMedium);
+  const playingContentId = playerPlayingContentId({
+    mpAddByRSS,
+    mpClip,
+    mpItem,
+    mpItemSoundbite,
+  });
+  const playerMediumId = (() => {
+    if (mpAddByRSS !== null) {
+      const mediumId = mpAddByRSS.resourceData.medium_id;
+      return getQueueMediumIdForChannelMediumId(
+        typeof mediumId === 'number' ? mediumId : undefined
+      );
+    }
+    return getQueueMediumIdForChannelMediumId(mpChannel?.medium_id ?? undefined);
+  })();
+  const viewedQueueMatchesPlayerMedium =
+    viewedMediumId !== null && playerMediumId !== null && viewedMediumId === playerMediumId;
+
+  const split = React.useMemo(
+    () =>
+      splitQueueScreenResources(queueResources, {
+        playingContentId,
+        viewedQueueMatchesPlayerMedium,
+      }),
+    [playingContentId, queueResources, viewedQueueMatchesPlayerMedium]
+  );
+
+  const [resources, setResources] = React.useState(split.upcoming);
+  const nowPlayingQueueResource = split.nowPlaying;
+
   React.useEffect(() => {
-    setResources(queueResources);
-  }, [queueResources]);
+    setResources(split.upcoming);
+  }, [split.upcoming]);
 
   const createPlayAndRemoveHandler = (queueResource: DTOQueueResource) => {
     return async () => {
@@ -177,9 +240,90 @@ export const ListQueueResources: React.FC<Props> = ({
     };
   };
 
+  const showPlayerOnlyNowPlaying =
+    nowPlayingQueueResource === null && viewedQueueMatchesPlayerMedium && playingContentId !== null;
+
+  const showNowPlayingSection = nowPlayingQueueResource !== null || showPlayerOnlyNowPlaying;
   const showCallToAction = showLoginMessage;
-  const showEmptyMessage = !showLoginMessage && !isLoading && resources.length === 0;
-  const showQueueList = !showLoginMessage && resources.length > 0;
+  const showEmptyMessage =
+    !showLoginMessage && !isLoading && !showNowPlayingSection && resources.length === 0;
+  const showQueueList = !showLoginMessage && (showNowPlayingSection || resources.length > 0);
+
+  const removeNowPlayingFromQueue = () => {
+    void queueResourcesLoadActive();
+  };
+
+  const playerOnlyNowPlayingRow = (() => {
+    if (!showPlayerOnlyNowPlaying) {
+      return null;
+    }
+    if (mpAddByRSS) {
+      const syntheticResource = {
+        add_by_rss_hash_id: mpAddByRSS.idText,
+        add_by_rss_resource_data: mpAddByRSS.resourceData,
+        clip_id: null,
+        completed: false,
+        id: 0,
+        item: undefined,
+        item_id: null,
+        item_soundbite_id: null,
+        list_position: '0',
+        media_file_duration: '0',
+        playback_position: '0',
+        playlist_id: 0,
+      } as unknown as DTOQueueResource;
+      return <ListQueueResourceRow isEditModeQueue={false} queueResource={syntheticResource} />;
+    }
+    if (mpClip && mpItem && mpChannel) {
+      return (
+        <ListClipRow
+          channel={mpChannel}
+          clip={mpClip}
+          isEditModeQueue={false}
+          item={mpItem}
+          playlist_id_text={null}
+          showChannelInfo
+          showItemInfo
+        />
+      );
+    }
+    if (mpItemSoundbite && mpItem && mpChannel) {
+      return (
+        <ListItemSoundbiteRow
+          channel={mpChannel}
+          isEditModeQueue={false}
+          item={mpItem}
+          item_soundbite={mpItemSoundbite}
+          playlist_id_text={null}
+          showChannelInfo
+          showItemInfo
+        />
+      );
+    }
+    if (mpItem && mpChannel) {
+      if (mpChannel.medium_id === MediumEnum.Music) {
+        return (
+          <ListTrackRow
+            channel={mpChannel}
+            isEditModeQueue={false}
+            item={mpItem}
+            playlist_id_text={null}
+            showChannelInfo
+          />
+        );
+      }
+      return (
+        <ListEpisodeRow
+          channel={mpChannel}
+          isEditModeQueue={false}
+          item={mpItem}
+          playlist_id_text={null}
+          showChannelInfo
+        />
+      );
+    }
+    return null;
+  })();
 
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) {
@@ -406,46 +550,64 @@ export const ListQueueResources: React.FC<Props> = ({
       {showQueueList && (
         <div className={styles.listWrapper}>
           <div className={listWrapperClassName}>
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="queue-list">
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    className={queueListClassName}
-                    {...provided.droppableProps}
-                  >
-                    {resources.map((queueResource, idx) => (
-                      <Draggable
-                        key={queueResource.id}
-                        draggableId={String(queueResource.id)}
-                        index={idx}
-                      >
-                        {(providedDraggable) => (
-                          <div
-                            ref={providedDraggable.innerRef}
-                            {...providedDraggable.draggableProps}
-                          >
-                            <ListQueueResourceRow
-                              queueResource={queueResource}
-                              removeFromQueue={() => {
-                                const updatedResources = resources.filter(
-                                  (res) => res.id !== queueResource.id
-                                );
-                                setResources(updatedResources);
-                              }}
-                              isEditModeQueue={true}
-                              dragHandleProps={providedDraggable.dragHandleProps}
-                              onPlayAndRemove={createPlayAndRemoveHandler(queueResource)}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
+            {showNowPlayingSection && (
+              <section className={styles.nowPlayingSection} aria-labelledby="queue-now-playing">
+                <h2 className={styles.nowPlayingHeading} id="queue-now-playing">
+                  {tQueue('now_playing')}
+                </h2>
+                {nowPlayingQueueResource !== null ? (
+                  <ListQueueResourceRow
+                    isEditModeQueue={true}
+                    queueResource={nowPlayingQueueResource}
+                    removeFromQueue={removeNowPlayingFromQueue}
+                  />
+                ) : (
+                  playerOnlyNowPlayingRow
                 )}
-              </Droppable>
-            </DragDropContext>
+              </section>
+            )}
+            {resources.length > 0 && (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="queue-list">
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      className={queueListClassName}
+                      {...provided.droppableProps}
+                    >
+                      {resources.map((queueResource, idx) => (
+                        <Draggable
+                          key={queueResource.id}
+                          draggableId={String(queueResource.id)}
+                          index={idx}
+                        >
+                          {(providedDraggable) => (
+                            <div
+                              ref={providedDraggable.innerRef}
+                              {...providedDraggable.draggableProps}
+                            >
+                              <ListQueueResourceRow
+                                queueResource={queueResource}
+                                removeFromQueue={() => {
+                                  const updatedResources = resources.filter(
+                                    (res) => res.id !== queueResource.id
+                                  );
+                                  setResources(updatedResources);
+                                }}
+                                isEditModeQueue={true}
+                                dragHandleProps={providedDraggable.dragHandleProps}
+                                onPlayAndRemove={createPlayAndRemoveHandler(queueResource)}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
           </div>
         </div>
       )}

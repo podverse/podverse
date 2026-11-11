@@ -35,6 +35,11 @@ const PLAYER_CIRCLE_ICON_SIZE = 30;
 const LARGE_CIRCLE_ICON_SIZE = 22;
 /** The ring's border sits outside the content box; a sized circle subtracts it from the slot. */
 const RING_BORDER_WIDTH = 1;
+/**
+ * Extra right shift for the play triangle in large circular player buttons.
+ * Search: play-icon-optical-nudge. Pause is unchanged. Set to 0 to undo.
+ */
+const PLAY_ICON_OPTICAL_NUDGE = 1;
 
 const iconName = (
   state: PlaybackTransportState
@@ -108,8 +113,20 @@ export function PlayerTransportButton({
     }
   };
 
+  const needsPlayOpticalNudge = appearance === 'ring' && glyph === 'play';
   const glyphNode =
-    glyph !== null ? <Ionicons color={iconColor} name={glyph} size={iconSize} /> : undefined;
+    glyph !== null ? (
+      <Ionicons
+        color={iconColor}
+        name={glyph}
+        size={iconSize}
+        style={
+          needsPlayOpticalNudge
+            ? { transform: [{ translateX: PLAY_ICON_OPTICAL_NUDGE }] }
+            : undefined
+        }
+      />
+    ) : undefined;
   const slotSize =
     circleSize === undefined
       ? null

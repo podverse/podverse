@@ -225,6 +225,7 @@ export default defineConfig({
       'src/lib/cachedValue.test.ts',
       'src/lib/device/deviceModel.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
+      'src/lib/queue/queueScreenResources.test.ts',
       'src/lib/perf/frameStats.test.ts',
       'src/lib/perf/perfSpans.test.ts',
       'src/lib/playback/addByRssPlaybackIdentity.test.ts',

@@ -48,21 +48,21 @@ export function FundingLinksSection({
           paddingHorizontal: screenBodyInsets(tokens.spacing).paddingHorizontal,
         },
         intro: {
-          ...typography.body,
+          ...typography.prose,
           color: themeStyles.textPrimary.color,
           marginBottom: tokens.spacing.lg,
         },
         linkLabel: {
-          ...typography.body,
+          ...typography.prose,
           color: themeStyles.textPrimary.color,
           fontWeight: '600',
         },
         linkLine: {
-          ...typography.body,
+          ...typography.prose,
           color: themeStyles.textPrimary.color,
         },
         linkUrl: {
-          ...typography.body,
+          ...typography.prose,
           color: tokens.text.accent,
         },
         links: {

@@ -74,6 +74,20 @@ export function shouldShowBrowseEmptyMessage({
   return isBrowse && !isLoading && page <= 1 && rowCount === 0;
 }
 
+/**
+ * Empty Browse Top lists offer a shortcut to Recent. Other sorts already show whatever the
+ * directory has, so the button stays off.
+ */
+export function shouldShowBrowseByRecentAction({
+  showEmpty,
+  sort,
+}: {
+  showEmpty: boolean;
+  sort: string;
+}): boolean {
+  return showEmpty && sort === 'top';
+}
+
 /** Query parameter that names the selected chip. */
 export const MEDIA_LIST_CHIP_QUERY_PARAM = 'tab';
 

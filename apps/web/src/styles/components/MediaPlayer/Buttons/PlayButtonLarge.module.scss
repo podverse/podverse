@@ -12,4 +12,5 @@
   width: var(--large-item-size) !important;
   font-size: var(--font-size-lg);
   @include mediaPlayerPlayPauseIconCentering;
+  @include mediaPlayerLargePlayIconOpticalNudge;
 }

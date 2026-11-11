@@ -17,6 +17,10 @@ import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { CoverImage } from '../../components/primitives/CoverImage';
 import { FillList } from '../../components/primitives/FillList';
+import {
+  UNSEEN_INDICATOR_SIZE,
+  UnseenIndicator,
+} from '../../components/primitives/UnseenIndicator';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -79,7 +83,7 @@ const createInboxRowStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme
       alignItems: 'center',
       borderRadius: 0,
       flexDirection: 'row',
-      position: 'relative',
+      gap: tokens.spacing.sm,
     },
     copy: {
       flex: 1,
@@ -95,7 +99,7 @@ const createInboxRowStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme
       flex: 1,
       flexDirection: 'row',
       gap: listRowArtworkGap(tokens.spacing),
-      position: 'relative',
+      minWidth: 0,
     },
     separator: {
       borderRadius: 0,
@@ -108,21 +112,10 @@ const createInboxRowStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme
       ...typography.caption,
       color: themeStyles.textSecondary.color,
     },
-    unreadDot: {
-      backgroundColor: tokens.text.accent,
-      borderRadius: tokens.radii.round,
-      height: tokens.spacing.md,
-      width: tokens.spacing.md,
-    },
-    unreadSlot: {
-      height: tokens.spacing.md,
-      left: 0,
-      pointerEvents: 'none',
-      position: 'absolute',
-      top: '50%',
-      transform: [{ translateY: -tokens.spacing.md / 2 }],
-      width: tokens.spacing.md,
-      zIndex: 1,
+    unreadRail: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: UNSEEN_INDICATOR_SIZE,
     },
   });
 
@@ -159,9 +152,6 @@ function InboxNotificationRow({
       testID={`notifications-inbox-row-${item.id}`}
     >
       <View style={styles.row}>
-        <View style={styles.unreadSlot}>
-          {item.is_unread ? <View style={styles.unreadDot} /> : null}
-        </View>
         <CoverImage
           decodeEdge={NOTIFICATION_INBOX_ARTWORK_SIZE}
           opensViewer={false}
@@ -179,6 +169,11 @@ function InboxNotificationRow({
           ) : null}
         </View>
       </View>
+      {item.is_unread ? (
+        <View pointerEvents="none" style={styles.unreadRail}>
+          <UnseenIndicator testID={`notifications-inbox-unread-${item.id}`} />
+        </View>
+      ) : null}
     </Pressable>
   );
 }

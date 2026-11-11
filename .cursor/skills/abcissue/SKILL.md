@@ -1,12 +1,12 @@
 ---
 name: abcissue
-description: Plan work from a pasted issue URL or path (GitHub or another tracker). Use when the operator runs /abcissue, says abcissue, or pastes an issue to be planned. Asks before guessing, then writes a small plan set or an abcplan request and the worktree commands.
+description: Plan work from a pasted issue URL or path (GitHub or another tracker). Use when the operator runs /abcissue, says abcissue, or pastes an issue to be planned. Asks before guessing, then writes a small plan set or an abcplan request on the current branch.
 ---
 
 # `abcissue`
 
-An issue paste becomes a plan, a worktree, and a short reply for the thread. This chat does not
-implement the issue and does not post the reply.
+An issue paste becomes a plan and a short reply for the thread. This chat does not implement
+the issue and does not post the reply.
 
 ## When it applies
 
@@ -20,12 +20,8 @@ Read the issue before asking or planning. For GitHub, `gh issue view <number> --
 file path, read the file. For another tracker, fetch the page. Read the comments. They are who
 the reply is for.
 
-If a worktree or branch for that issue number already exists (`git worktree list`), say so and
-do not open a second one. The number is the first segment after the branch prefix
-(`feature/318-parser-consumer-timeout`, `fix/322-firefox-playback`), whatever the prefix is.
-
-Write the set in the checkout this chat is editing. Do not add it to a worktree that belongs to
-another issue.
+Write the set in the checkout this chat is editing, on the current branch. Do not add it to a
+worktree that belongs to another issue.
 
 ## Ask first
 
@@ -34,7 +30,7 @@ about anything else the operator should weigh. Use `AskQuestion` for a choice. A
 in the message, in a sentence or two.
 
 Lead with a recommendation when you have one, including "do not build this" and why. A decline
-gets a drafted reply and no worktree until the operator says to build it.
+gets a drafted reply and no plan set until the operator says to build it.
 
 Do not ask what the code already answers. When a question is open, stop the turn. Write the
 plans after the answers, or in the same turn when nothing is open.
@@ -44,33 +40,38 @@ plans after the answers, or in the same turn when nothing is open.
 Same split as **abcplan**.
 
 - **Small** — one or two plans you can write from the issue and a short look at the code. Write
-  the set here. The operator implements it in a chat in the worktree window. Do not give
+  the set here. The operator implements it in a chat on this branch. Do not give
   `./scripts/abcplan/run.sh`.
 - **Large** — several surfaces, several unrelated asks, or a research pass. Write only
-  `00-REQUEST.md` and give the plan command. Planning and implementation then run as
-  **abcplan**, which can run several agents.
+  `00-REQUEST.md` and give the plan command for this checkout. Planning and implementation then
+  run as **abcplan** in this checkout. **abcplan**'s fresh-worktree step does not apply.
 
-Issues that could ship separately get separate slugs and worktrees. Give every block 1 before
-any block 2.
+Issues that could ship separately get separate slugs. Give the plan command for each slug. Do
+not open a worktree per slug unless the operator asked for worktrees.
 
 ## Names
 
-New branches use a prefix the pre-push hook allows: `feature/` for new behavior, `fix/` for a
-defect, `chore/` for internal work. The issue number is the first segment after that prefix.
 Plan folder: `.llm/plans/active/<number>-<short-slug>/`.
+
+A branch, only when the operator asked for a worktree, uses a prefix the pre-push hook allows:
+`feature/` for new behavior, `fix/` for a defect, `chore/` for internal work. The issue number
+is the first segment after that prefix.
 
 ## Small set
 
 - One numbered plan per change. One change per plan. Use the **abcplan** § Area plan headings
   (model line, `## Files`, `## Tests`) plus `## Ticket reply` as specified below.
-- `COPY-PASTA.md`, one prompt per plan, for pasting into a chat. Each prompt starts with
-  `Read and execute .llm/plans/active/<slug>/<plan>.md`, then: if a product choice is still
-  open, stop and ask; draft the ticket reply; do not post it; do not run tests. The prompt ends
-  with the operator verify commands (**response-ending-make-verify**). The plan's `## Tests`
-  names the specs and has no command block.
+- `COPY-PASTA.md`, one prompt per plan, for pasting into a chat on this branch. Each prompt
+  starts with `Read and execute .llm/plans/active/<slug>/<plan>.md`, then: if a product choice
+  is still open, stop and ask; draft the ticket reply; do not post it; do not run tests. The
+  prompt ends with the operator verify commands (**response-ending-make-verify**). The plan's
+  `## Tests` names the specs and has no command block.
 
 Follow **copy-pasta-recommend-model**, **llm-safe-plan-vocabulary**, and
 **feature-implementation-testing**.
+
+Tell the operator to paste the first prompt into a chat on this branch. One agent per prompt.
+Paste the next after any prompt it shares files with has finished.
 
 ## Large set
 
@@ -79,6 +80,15 @@ Follow **copy-pasta-recommend-model**, **llm-safe-plan-vocabulary**, and
 last implementation step writes `proposed-reply.md` in the set and repeats it in a fenced `text`
 block; the operator pastes it after the pull request is on `develop`; do not post it; a few
 sentences for the people in the thread, with no file names or plan names.
+
+Give this command for the **Root** tab of this window. Do not create a worktree first.
+
+```bash
+./scripts/abcplan/run.sh plan <number>-<slug>
+```
+
+After that planning run, the operator reviews the set, then runs `run` the way **abcplan**
+describes, still in this checkout.
 
 ## Ticket reply
 
@@ -96,8 +106,12 @@ A decline, with no plan set, is the reply in the chat only.
 
 ## Worktree
 
-Read **git-worktree-sibling** § Plan sets in a worktree and give those two blocks. Lead with
-**Fresh worktree required**.
+Stay on the current branch. Do not create a worktree, and do not give the worktree command
+blocks, unless the operator asks for a worktree in that message.
+
+When they do, read **git-worktree-sibling** § Plan sets in a worktree and give those two blocks.
+Lead with **Fresh worktree required**. If a worktree or branch for that issue number already
+exists (`git worktree list`), say so and do not open a second one.
 
 ```bash
 git worktree add -b feature/<number>-<slug> ../podverse_feature_<number>_<slug_underscored> develop
@@ -121,6 +135,7 @@ describes.
 
 ## Related
 
-- **abcplan** — large issues, and the plan headings a small set still uses
-- **git-worktree-sibling** — the two command blocks
+- **abcplan** — large issues, and the plan headings a small set still uses. Its worktree step
+  applies only when the operator asked for a worktree.
+- **git-worktree-sibling** — the two command blocks, only after the operator asks for a worktree
 - **github** — read-only `gh`. The operator posts the reply

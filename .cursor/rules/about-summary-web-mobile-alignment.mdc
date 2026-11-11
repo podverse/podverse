@@ -42,20 +42,16 @@ payload carrying the whole description.
 
 ## Length (mobile)
 
-Feed authors can paste unbounded HTML into channel description and item summary. On mobile,
-**About** and **Summary** prose (podcast / album / artist About; episode / track / livestream /
-full-player Summary) must **truncate by default** with **Show more** / **Show less**
-(`info.show_more` / `info.show_less`). Do not render the full string until the user expands it.
-Reset expanded state when the entity changes.
-
-Episode, track, livestream, and channel About use a **720**-character collapsed preview.
+Feed authors can paste unbounded HTML into channel description and item summary. Ingest caps
+stored length (`descriptionLimits`). On mobile, **About** and **Summary** prose (podcast /
+album / artist About; episode / track / livestream / full-player Summary) shows the **full**
+stored notes on first paint. `DescriptionText` still accepts `collapseLength`,
+`collapsedMaxLines`, and `toggleTestID`; the Show more / Show less control stays commented out
+while full notes are the product default.
 
 The full-player Summary sits in a height-locked sheet. The card keeps `spacing.base` above and
-below the scrolling text, and that inset stays while the text moves. Its collapsed preview is
-plain text long enough to fill the area inside that inset and continue a little past it, so the
-card reads as full and **Show more** sits just below the fold. A short scroll reaches the
-control. The cut still exists so a very long description is not mounted until the listener
-expands it. The sheet scrolling does not replace that truncate.
+below the scrolling text, and that inset stays while the text moves. The sheet scrolls the full
+notes inside that inset.
 
 ## Placement divergence (intentional)
 

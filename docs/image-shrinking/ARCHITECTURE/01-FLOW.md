@@ -21,7 +21,7 @@ flowchart TD
   consumer -->|fetch channel/item images by URL| imageRows[DB: channel_image/item_image]
   consumer -->|processTarget| resize[createImageShrinkProcessor]
 
-  resize -->|fetch + resize| webp[WebP output]
+  resize -->|fetch + resize| webp[JPEG or WebP output]
   resize -->|uploadResizedImage| storage["S3-compatible bucket"]
   resize -->|update url + is_resized| dbResized[DB: channel_image/item_image]
 
@@ -34,13 +34,13 @@ flowchart TD
 Resized images are stored deterministically using a URL hash:
 
 ```
-images/{entityType}/{entityId}/{sha256(url)}-w{width}-c{sha256_prefix16}.webp
+images/{entityType}/{entityId}/{sha256(url)}-w{width}-c{sha256_prefix16}.{jpg|webp}
 ```
 
 Example:
 
 ```
-images/item/10/5ae702a12c0ed2d27f3bb4797040aa9bbe0638174d28785-w300-c1a2b3c4d5e6f7a8.webp
+images/item/10/5ae702a12c0ed2d27f3bb4797040aa9bbe0638174d28785-w300-c1a2b3c4d5e6f7a8.jpg
 ```
 
 ### What Triggers Shrinking

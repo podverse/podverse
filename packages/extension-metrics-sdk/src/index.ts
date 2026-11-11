@@ -3,6 +3,7 @@ export {
   getExtensionHttpMiddleware,
   initExtensions,
   isExtensionsEnabled,
+  recordPushSend,
   recordWorkerCommand,
   shutdownExtensions,
 } from './init.js';

@@ -2,6 +2,8 @@ import { chunkArray } from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
 
 import type { NotificationsContext } from '../../factory.js';
+import type { ProviderSendRow } from '../notifications/pushOutcome.js';
+import { providerFailure, providerSuccess } from '../notifications/pushOutcome.js';
 import type { UPSubscription } from './unifiedpushHelpers.js';
 import { UNIFIED_PUSH_SEND_TIMEOUT_MS } from './unifiedpushHelpers.js';
 
@@ -13,11 +15,7 @@ type UPPayload = {
   data?: Record<string, unknown>;
 };
 
-type UPResult = {
-  success: boolean;
-  endpoint: string;
-  error?: string;
-};
+type UPResult = ProviderSendRow;
 
 /**
  * Sends a notification to a Unified Push endpoint.
@@ -70,26 +68,17 @@ export async function sendUPNotificationBatch(
           });
 
           if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            console.error(
-              `UP send failed for ${subscription.up_endpoint}: ${response.status} - ${errorText}`
+            return providerFailure(
+              subscription.up_endpoint,
+              response.status,
+              `HTTP ${response.status}`
             );
-            return {
-              success: false,
-              endpoint: subscription.up_endpoint,
-              error: `HTTP ${response.status}: ${errorText}`,
-            };
           }
 
-          return { success: true, endpoint: subscription.up_endpoint };
+          return providerSuccess(subscription.up_endpoint);
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          console.error(`UP send failed for ${subscription.up_endpoint}:`, errorMessage);
-          return {
-            success: false,
-            endpoint: subscription.up_endpoint,
-            error: errorMessage,
-          };
+          return providerFailure(subscription.up_endpoint, null, errorMessage);
         }
       })
     );
@@ -98,11 +87,7 @@ export async function sendUPNotificationBatch(
       if (result.status === 'fulfilled') {
         allResults.push(result.value);
       } else {
-        allResults.push({
-          success: false,
-          endpoint: 'unknown',
-          error: result.reason?.message || 'Promise rejected',
-        });
+        allResults.push(providerFailure('', null, 'Promise rejected'));
       }
     }
   }

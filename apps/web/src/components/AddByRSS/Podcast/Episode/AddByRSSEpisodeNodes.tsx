@@ -30,6 +30,7 @@ type AddByRSSEpisodeNodesItemsProps = {
   channelIdText: string;
   channelTitle: string;
   channelImageUrl?: string;
+  feedUrl?: string;
   items: AddByRSSMappedFeed['items'];
   viewSelected?: ViewSelectedOption;
   itemIdTextMap: Map<string, string>;
@@ -47,6 +48,7 @@ type AddByRSSEpisodeItemsRowsProps = {
   channelIdText: string;
   channelTitle: string;
   channelImageUrl?: string;
+  feedUrl?: string;
   items: AddByRSSMappedFeed['items'];
   itemIdTextMap: Map<string, string>;
   mediumId: number;
@@ -57,6 +59,7 @@ const AddByRSSEpisodeItemsListView: React.FC<AddByRSSEpisodeItemsRowsProps> = ({
   channelIdText,
   channelTitle,
   channelImageUrl,
+  feedUrl,
   items,
   itemIdTextMap,
   mediumId,
@@ -72,6 +75,7 @@ const AddByRSSEpisodeItemsListView: React.FC<AddByRSSEpisodeItemsRowsProps> = ({
         idText: itemIdText,
         itemGuid,
         channelIdText,
+        ...(feedUrl !== undefined && feedUrl !== '' ? { feedUrl } : {}),
         channelTitle,
         channelImageUrl,
         mediumId: getItemMediumIdFromBundle(bundle, mediumId),
@@ -80,7 +84,7 @@ const AddByRSSEpisodeItemsListView: React.FC<AddByRSSEpisodeItemsRowsProps> = ({
       };
       return { hashId: getAddByRSSHashId(indexItem), indexItem };
     });
-  }, [channelIdText, channelImageUrl, channelTitle, itemIdTextMap, items, mediumId]);
+  }, [channelIdText, channelImageUrl, channelTitle, feedUrl, itemIdTextMap, items, mediumId]);
 
   const { isLiked, toggle } = useLikesAddByRssBatch(addByRssLikeRows);
   const itemIdTexts = items.map((bundle, i) => {
@@ -99,6 +103,7 @@ const AddByRSSEpisodeItemsListView: React.FC<AddByRSSEpisodeItemsRowsProps> = ({
           idText: itemIdText,
           itemGuid,
           channelIdText,
+          ...(feedUrl !== undefined && feedUrl !== '' ? { feedUrl } : {}),
           channelTitle,
           channelImageUrl,
           mediumId: getItemMediumIdFromBundle(bundle, mediumId),
@@ -112,6 +117,7 @@ const AddByRSSEpisodeItemsListView: React.FC<AddByRSSEpisodeItemsRowsProps> = ({
               itemIdText={itemIdText}
               channelTitle={channelTitle}
               channelImageUrl={channelImageUrl}
+              feedUrl={feedUrl}
               bundle={bundle}
               indexItem={indexItem}
               listContext={{
@@ -184,6 +190,7 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
     channelIdText,
     channelTitle,
     channelImageUrl,
+    feedUrl,
     items,
     viewSelected = 'rows',
     itemIdTextMap,
@@ -196,6 +203,7 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
         channelIdText={channelIdText}
         channelTitle={channelTitle}
         channelImageUrl={channelImageUrl}
+        feedUrl={feedUrl}
         items={items}
         itemIdTextMap={itemIdTextMap}
         mediumId={mediumId ?? MediumEnum.Podcast}

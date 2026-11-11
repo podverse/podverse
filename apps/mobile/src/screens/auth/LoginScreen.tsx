@@ -59,7 +59,8 @@ export function LoginScreen({
 
   const styles = StyleSheet.create({
     error: {
-      color: themeStyles.textSecondary.color,
+      color: tokens.text.danger,
+      fontWeight: '700',
       marginTop: tokens.spacing.md,
     },
     fields: {

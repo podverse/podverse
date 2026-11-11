@@ -1,5 +1,6 @@
 import { getFirebaseContext, getNotificationsContext } from '@parser/context.js';
 import { loggerService } from '@parser/factories/loggerService.js';
+import { reportPushOutcome } from '@parser/lib/notifications/reportPushOutcome.js';
 import type { HandleParsedItemsResult } from '@parser/lib/rss/item/item.js';
 
 import { AccountFCMDevicePlatformEnum } from '@podverse/helpers';
@@ -70,36 +71,60 @@ export async function handleNewItemAutoDownloadPushes(
     if (iosTokens.length > 0) {
       const notificationsCtx = getNotificationsContext();
       const firebaseCtx = getFirebaseContext();
-      await dataOnlyPushOrchestrator(notificationsCtx, {
+      const outcome = await dataOnlyPushOrchestrator(notificationsCtx, {
         service: 'firebase',
         firebaseCtx,
         tokens: iosTokens,
         platform: 'ios',
         data,
       });
+      await reportPushOutcome({
+        outcome,
+        locale: null,
+        itemIdText: null,
+        channelIdText: channel.id_text,
+        messageType: 'auto-download',
+        imageUrl: null,
+      });
     }
 
     if (androidTokens.length > 0) {
       const notificationsCtx = getNotificationsContext();
       const firebaseCtx = getFirebaseContext();
-      await dataOnlyPushOrchestrator(notificationsCtx, {
+      const outcome = await dataOnlyPushOrchestrator(notificationsCtx, {
         service: 'firebase',
         firebaseCtx,
         tokens: androidTokens,
         platform: 'android',
         data,
       });
+      await reportPushOutcome({
+        outcome,
+        locale: null,
+        itemIdText: null,
+        channelIdText: channel.id_text,
+        messageType: 'auto-download',
+        imageUrl: null,
+      });
     }
 
     if (upDevices.length > 0) {
       const notificationsCtx = getNotificationsContext();
-      await dataOnlyPushOrchestrator(notificationsCtx, {
+      const outcome = await dataOnlyPushOrchestrator(notificationsCtx, {
         service: 'unifiedpush',
         subscriptions: upDevices.map((device) => ({
           up_endpoint: device.up_endpoint,
           up_auth_key: device.up_auth_key,
         })),
         data,
+      });
+      await reportPushOutcome({
+        outcome,
+        locale: null,
+        itemIdText: null,
+        channelIdText: channel.id_text,
+        messageType: 'auto-download',
+        imageUrl: null,
       });
     }
   } catch (error) {

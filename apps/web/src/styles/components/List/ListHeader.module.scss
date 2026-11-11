@@ -19,6 +19,7 @@
 
 .listHeaderBottom {
   display: flex;
+  margin-bottom: var(--spacing-2xl);
 }
 
 @media (max-width: breakpoints.$breakpoint-md-max) {

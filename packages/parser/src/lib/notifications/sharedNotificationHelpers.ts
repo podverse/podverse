@@ -1,6 +1,7 @@
 import { config as projectConfig } from '@parser/config/index.js';
 import { getFirebaseContext, getNotificationsContext } from '@parser/context.js';
 import { loggerService } from '@parser/factories/loggerService.js';
+import { reportPushOutcome } from '@parser/lib/notifications/reportPushOutcome.js';
 
 import type { AccountNotificationTypeEnum, NotificationCategoryValues } from '@podverse/helpers';
 import {
@@ -12,6 +13,7 @@ import {
 import type {
   NotificationMessageType,
   NotificationPlatform,
+  PushOutcome,
   UPSubscription,
   WebPushSubscription,
 } from '@podverse/notifications';
@@ -427,9 +429,13 @@ export async function createInAppNotificationsForAccounts(params: {
 }
 
 type ItemSendLeg = {
-  run: () => Promise<void>;
-  successMessage: string;
+  run: () => Promise<PushOutcome>;
   failureMessage: string;
+  locale: string;
+  itemIdText: string;
+  channelIdText: string;
+  messageType: string;
+  imageUrl: string | null;
 };
 
 const toError = (reason: unknown): Error => {
@@ -440,8 +446,8 @@ const toError = (reason: unknown): Error => {
 };
 
 /**
- * Locale, platform, and service legs for one item do not depend on each other. A failure is
- * logged on that leg and the other legs still finish.
+ * Locale, platform, and service legs for one item do not depend on each other. A thrown leg is
+ * logged and the other legs still finish. A fulfilled leg records accepted and failed counts.
  */
 const runItemSendLegs = async (legs: ItemSendLeg[]): Promise<void> => {
   const results = await Promise.allSettled(legs.map((leg) => leg.run()));
@@ -451,7 +457,14 @@ const runItemSendLegs = async (legs: ItemSendLeg[]): Promise<void> => {
       continue;
     }
     if (result.status === 'fulfilled') {
-      loggerService.info(leg.successMessage);
+      await reportPushOutcome({
+        outcome: result.value,
+        locale: leg.locale,
+        itemIdText: leg.itemIdText,
+        channelIdText: leg.channelIdText,
+        messageType: leg.messageType,
+        imageUrl: leg.imageUrl,
+      });
       continue;
     }
     loggerService.logError(leg.failureMessage, toError(result.reason));
@@ -486,8 +499,8 @@ export async function sendItemNotifications(
     for (const [locale, platformMap] of groupedDevices) {
       for (const [platform, tokens] of platformMap) {
         legs.push({
-          run: async () => {
-            await notificationOrchestrator(notificationsCtx, {
+          run: () =>
+            notificationOrchestrator(notificationsCtx, {
               service: 'firebase',
               firebaseCtx,
               tokens,
@@ -501,10 +514,13 @@ export async function sendItemNotifications(
               linkIdText: itemNotification.itemIdText,
               mediumId: itemNotification.mediumId,
               data: { ...notificationData },
-            });
-          },
-          successMessage: `Sent ${itemNotification.messageType} notification to ${tokens.length} ${platform} devices (${locale}) for item: ${itemNotification.itemIdText}`,
+            }),
           failureMessage: `Failed to send notification for item ${itemNotification.itemIdText} to ${platform} devices (${locale})`,
+          locale,
+          itemIdText: itemNotification.itemIdText,
+          channelIdText: itemNotification.channelIdText,
+          messageType: itemNotification.messageType,
+          imageUrl: itemNotification.imageUrl,
         });
       }
     }
@@ -514,8 +530,8 @@ export async function sendItemNotifications(
         continue;
       }
       legs.push({
-        run: async () => {
-          await notificationOrchestrator(notificationsCtx, {
+        run: () =>
+          notificationOrchestrator(notificationsCtx, {
             service: 'webpush',
             subscriptions,
             messageText,
@@ -527,10 +543,13 @@ export async function sendItemNotifications(
             linkIdText: itemNotification.itemIdText,
             mediumId: itemNotification.mediumId,
             data: { ...notificationData },
-          });
-        },
-        successMessage: `Sent ${itemNotification.messageType} Web Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`,
+          }),
         failureMessage: `Failed to send Web Push notification for item ${itemNotification.itemIdText} to ${subscriptions.length} subscription(s) (${locale})`,
+        locale,
+        itemIdText: itemNotification.itemIdText,
+        channelIdText: itemNotification.channelIdText,
+        messageType: itemNotification.messageType,
+        imageUrl: itemNotification.imageUrl,
       });
     }
 
@@ -539,8 +558,8 @@ export async function sendItemNotifications(
         continue;
       }
       legs.push({
-        run: async () => {
-          await notificationOrchestrator(notificationsCtx, {
+        run: () =>
+          notificationOrchestrator(notificationsCtx, {
             service: 'unifiedpush',
             subscriptions,
             messageText,
@@ -552,10 +571,13 @@ export async function sendItemNotifications(
             linkIdText: itemNotification.itemIdText,
             mediumId: itemNotification.mediumId,
             data: { ...notificationData },
-          });
-        },
-        successMessage: `Sent ${itemNotification.messageType} Unified Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`,
+          }),
         failureMessage: `Failed to send Unified Push notification for item ${itemNotification.itemIdText} to ${subscriptions.length} subscription(s) (${locale})`,
+        locale,
+        itemIdText: itemNotification.itemIdText,
+        channelIdText: itemNotification.channelIdText,
+        messageType: itemNotification.messageType,
+        imageUrl: itemNotification.imageUrl,
       });
     }
 

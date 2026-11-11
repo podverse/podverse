@@ -100,8 +100,18 @@ export function getImageShrinkStorageConfig(): ImageShrinkStorageConfig {
   return readBucketStorageConfig();
 }
 
+/**
+ * Encoding for shrunk artwork. Push notifications send the shrunk image, and iOS notification
+ * attachments accept JPEG, PNG, and GIF but not WebP. With `webp`, iOS push notifications show
+ * no artwork; Android and in-app artwork still work.
+ */
+export type ImageShrinkFormat = 'jpeg' | 'webp';
+
 export type ImageShrinkConfig = {
   widthPx: number;
+  /** Null when IMAGE_SHRINK_FORMAT is set to an unsupported value. */
+  format: ImageShrinkFormat | null;
+  jpegQuality: number;
   webpQuality: number;
   batchSize: number;
   concurrency: number;
@@ -139,6 +149,8 @@ export function isImageShrinkEnabled(): boolean {
 
 const DEFAULT_IMAGE_SHRINK_MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const DEFAULT_IMAGE_SHRINK_WIDTH_PX = 400;
+const DEFAULT_IMAGE_SHRINK_FORMAT: ImageShrinkFormat = 'jpeg';
+const DEFAULT_IMAGE_SHRINK_JPEG_QUALITY = 82;
 const DEFAULT_IMAGE_SHRINK_WEBP_QUALITY = 92;
 
 const parseOptionalNumber = (value: string | undefined): number | null => {
@@ -163,10 +175,22 @@ const resolveImageShrinkWidthPx = (): number => {
   return Number.NaN;
 };
 
-const resolveImageShrinkWebpQuality = (): number => {
-  const parsed = parseOptionalNumber(process.env.IMAGE_SHRINK_WEBP_QUALITY);
+const resolveImageShrinkFormat = (): ImageShrinkFormat | null => {
+  const raw = process.env.IMAGE_SHRINK_FORMAT;
+  if (raw === undefined || raw.trim() === '') {
+    return DEFAULT_IMAGE_SHRINK_FORMAT;
+  }
+  const value = raw.trim().toLowerCase();
+  if (value === 'jpeg' || value === 'webp') {
+    return value;
+  }
+  return null;
+};
+
+const resolveImageShrinkQuality = (raw: string | undefined, fallback: number): number => {
+  const parsed = parseOptionalNumber(raw);
   if (parsed === null) {
-    return DEFAULT_IMAGE_SHRINK_WEBP_QUALITY;
+    return fallback;
   }
   if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 100) {
     return parsed;
@@ -184,7 +208,15 @@ export function getImageShrinkConfig(): ImageShrinkConfig {
       : DEFAULT_IMAGE_SHRINK_MAX_SOURCE_BYTES;
   return {
     widthPx: resolveImageShrinkWidthPx(),
-    webpQuality: resolveImageShrinkWebpQuality(),
+    format: resolveImageShrinkFormat(),
+    jpegQuality: resolveImageShrinkQuality(
+      process.env.IMAGE_SHRINK_JPEG_QUALITY,
+      DEFAULT_IMAGE_SHRINK_JPEG_QUALITY
+    ),
+    webpQuality: resolveImageShrinkQuality(
+      process.env.IMAGE_SHRINK_WEBP_QUALITY,
+      DEFAULT_IMAGE_SHRINK_WEBP_QUALITY
+    ),
     batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
     concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
     rps: Number(process.env.IMAGE_SHRINK_RPS!),
