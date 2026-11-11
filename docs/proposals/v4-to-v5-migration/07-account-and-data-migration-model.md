@@ -56,7 +56,9 @@ may drop this column. The account rows stay.
 
 An email that already exists in v5 is skipped. Do not change that account's
 password and do not attach the v4 library. Report the v4 user id for an
-operator. Counts only in automated logs.
+operator. Counts only in automated logs. The worker command is
+`v4SeedAccountIdentity` (`--v4-id`, `--dry-run`). It reads `V4_DATABASE_URL`
+and writes the v5 identity rows. It does not copy a library.
 
 The v4 API keeps serving that person until the library copy finishes. The
 rejection from the earlier decision happens at copy, not at seed.

@@ -22,7 +22,7 @@ A failed env or module-config check at startup exits with code **78** (`EX_CONFI
 
 | Command group                                         | Categories validated                                    | Commands (examples)                                                                                                                                                                                                                                                                                                                    |
 | ----------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Base + ORM only                                       | Base, ORM                                               | archiveAll, statsPopularityRefresh, statsRecommendationsRefresh, statsEventPartitionsMaintain, devStatsSeedSimulatedPopularity, devSeedLocalUserContent, notificationsPlatformPurge, accountContentLogPurge, accountSessionPurge, billingImportLegacyMembershipExpiry, billingProcessorProductAdd, billingCheckoutChannelEnable, orm\* |
+| Base + ORM only                                       | Base, ORM                                               | archiveAll, statsPopularityRefresh, statsRecommendationsRefresh, statsEventPartitionsMaintain, devStatsSeedSimulatedPopularity, devSeedLocalUserContent, notificationsPlatformPurge, accountContentLogPurge, accountSessionPurge, billingImportLegacyMembershipExpiry, v4SeedAccountIdentity, billingProcessorProductAdd, billingCheckoutChannelEnable, orm\* |
 | Base + ORM + Web notifications                        | Base, ORM, WebNotifications                             | notificationsTestPush                                                                                                                                                                                                                                                                                                                  |
 | Base + ORM + Billing                                  | Base, ORM, Billing                                      | billingReconcile, billingStrikeEnsureWebhook                                                                                                                                                                                                                                                                                           |
 | Base + Podcast Index                                  | Base, PodcastIndex                                      | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                                                                                                                                                                                                                                            |
@@ -199,6 +199,14 @@ CronJob `worker-billing-reconcile` mounts **`podverse-billing-apple-iap-opaque`*
 **`podverse-billing-strike-opaque`**. Leave each `_PATH` empty until that secret is applied, and
 set the matching `*_ENABLED` flag to `true` before that processor registers.
 See [docs/billing/BILLING.md](/docs/billing/BILLING.md).
+
+### v4 identity seed (`v4SeedAccountIdentity`)
+
+Base + ORM, plus `V4_DATABASE_URL` read by this command only. Other commands do not
+require it. The value is the operator's v4 connection string and is not committed.
+`--v4-id` copies that one account's email, bcrypt hash, name, verified flag, and id.
+`--dry-run` writes nothing. An existing email is left unchanged. The log line is the
+id and the action.
 
 ### v4 membership expiry (`billingImportLegacyMembershipExpiry`)
 

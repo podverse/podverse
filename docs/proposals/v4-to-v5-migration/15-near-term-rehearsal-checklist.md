@@ -122,7 +122,8 @@ The account copy sets Premium or Trial, and it writes a carried trial grant.
 - [x] Identity seed for the rehearsal account on the local database. The v4
       id is `account.id_text` (`eFv5NFx`), the verified flag is true, and the
       bcrypt hash and name are stored. `v4_library_copied_at` is null. No
-      membership row, no grant, and no signup trial.
+      membership row, no grant, and no signup trial. Repeat runs use
+      `v4SeedAccountIdentity` with `--v4-id` and `--dry-run`.
 - [ ] Library copy for that one account, through the legacy map.
 - [ ] Sign in on local web and mobile with the v4 password.
 - [ ] Copied group counts match the step 2 trace.

@@ -25,3 +25,17 @@
 - Change: pod install and Gradle load `apps/mobile/.env`, so a local iOS or Android build links Firebase when those paths are set. `make local_env_setup` copies the paths from `mobile-firebase.env` in the home overrides.
 - Who notices: operators building the mobile app on a machine that has the Firebase client files
 - Operator steps: put the two paths in `~/.config/podverse/local-env-overrides/mobile-firebase.env`, run `make local_env_link` and `make local_env_setup`, then prebuild as usual
+
+## v4 identity seed command
+
+- Surfaces: workers
+- Change: `v4SeedAccountIdentity` copies one v4 account's email, bcrypt hash, name, verified flag, and id into v5. `--dry-run` writes nothing. An email that already exists is left unchanged. It does not copy a library or start a trial.
+- Who notices: operators rehearsing the v4 account migration
+- Operator steps: set `V4_DATABASE_URL`, build workers, then run `npm run v4_seed_account_identity -w apps/workers -- --v4-id <id> --dry-run`
+
+## Notifications load web-push under Node ESM
+
+- Surfaces: notifications, workers
+- Change: the notifications package loads `web-push` with `createRequire`. A named ESM import of `sendNotification` threw at startup, so every worker command failed while loading notifications.
+- Who notices: operators running any worker command on Node 24
+- Operator steps: rebuild `@podverse/notifications` before starting workers

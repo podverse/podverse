@@ -1,6 +1,23 @@
-import { sendNotification, setVapidDetails } from 'web-push';
+import { createRequire } from 'node:module';
+
+import type { PushSubscription, RequestOptions, SendResult } from 'web-push';
 
 import type { NotificationsConfig } from './config/types.js';
+
+const require = createRequire(import.meta.url);
+
+type WebPushModule = {
+  sendNotification: (
+    subscription: PushSubscription,
+    payload?: string | Buffer | null,
+    options?: RequestOptions
+  ) => Promise<SendResult>;
+  setVapidDetails: (subject: string, publicKey: string, privateKey: string) => void;
+};
+
+// web-push publishes a CommonJS module, so it is loaded with createRequire.
+const webPush: WebPushModule = require('web-push');
+const { sendNotification, setVapidDetails } = webPush;
 
 type WebPushAdmin = {
   sendNotification: typeof sendNotification;

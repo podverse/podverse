@@ -47,6 +47,7 @@ import { notificationsPlatformPurge } from './orm/notifications/platformPurge.js
 import { deleteOutdatedOnDemandParserEvent } from './orm/onDemandParserEvent/deleteOutdatedOnDemandParserEvent.js';
 import { generateOnDemandParserEventReports } from './orm/onDemandParserEvent/generateOnDemandParserEventReports.js';
 import { scheduledJobsRunDue } from './orm/scheduledJob/runDue.js';
+import { v4SeedAccountIdentity } from './orm/v4Identity/seedAccountIdentity.js';
 import { ormVerifiedPublisherLinksBackfill } from './orm/verifiedPublisherLinks/backfill.js';
 
 export type CommandLineArgs = { [key: string]: string | string[] };
@@ -81,6 +82,7 @@ export default {
   statsRecommendationsRefresh,
   billingCheckoutChannelEnable,
   billingImportLegacyMembershipExpiry,
+  v4SeedAccountIdentity,
   billingProcessorProductAdd,
   billingReconcile,
   billingStrikeEnsureWebhook,

@@ -31,6 +31,16 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run billing_strike_ensure_webhook -w apps/workers',
   },
   {
+    name: 'v4SeedAccountIdentity',
+    label: 'v4: seed one account identity',
+    description:
+      'Copy one v4 account email, bcrypt hash, name, verified flag, and id into v5. A dry run prints the action and writes nothing. Does not copy a library or start a trial.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli:
+      'npm run v4_seed_account_identity -w apps/workers -- --v4-id abcd123 --dry-run',
+  },
+  {
     name: 'billingImportLegacyMembershipExpiry',
     label: 'Billing: import legacy membership expiry',
     description:
