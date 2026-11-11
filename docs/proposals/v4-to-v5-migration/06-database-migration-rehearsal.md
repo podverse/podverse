@@ -279,8 +279,10 @@ batch and the active gift accounts, are not capped.
 1. **Inventory counts** — row counts for every table in
    [04](04-v4-data-inventory-and-scope.md); null rates for `podcastIndexId`,
    email, membership expiry.
-2. **Crosswalk dry run** — resolve podcasts → PI id / URL; report mapped vs
-   unresolved percentages (no v5 writes required for the first pass).
+2. **Crosswalk dry run** — drop spam and takedown, split non-public podcasts
+   out of the seed, resolve the rest by Podcast Index id, then follow an
+   applied absorb merge to the surviving channel. Report those counts and
+   the unresolved seed size. No v5 writes.
 3. **Account import dry run** — create accounts in an isolated v5 DB from a
    subset; verify bcrypt login; measure per-thousand-user time.
 4. **Graph import dry run** — subscriptions, playlists, clips, queue/history for

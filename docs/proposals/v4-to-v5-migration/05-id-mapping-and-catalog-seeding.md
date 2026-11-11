@@ -97,6 +97,25 @@ v4 podcasts.id (varchar 14)
 Skip blank `podcastIndexId`. Do not cast non-numeric text into an integer.
 `podcasts.guid` (varchar) is not this chain.
 
+After that match, a follow uses the surviving channel when v5 already has an
+applied absorb merge for the Podcast Index id
+(`channel_merge.from_podcast_index_id`, `status = applied`, `mode = absorb`).
+The old public id stays a redirect. A follow written onto the merged-away
+channel would stay there, because follows move only while the merge is
+applied. A re-point merge leaves the channel id in place, so there is no
+second hop.
+
+The selective seed is the subscribed podcasts that are still public and are
+not flagged `spam` or `takedown`. `isPublic = false` is how v4 hides a feed
+on the Podcast Index dead-feed list, and it is also used for other
+non-public podcasts. Those rows stay in the crosswalk report and stay off
+the parse queue. A personal subscription to one of them is counted, not
+seeded as catalog.
+
+v4 already has one podcast per Podcast Index id and one authority feed URL.
+The migration does not run a second duplicate match. After the seed exists,
+the normal channel merge moves follows onto a survivor it finds later.
+
 ### Crosswalk chain (episode / item)
 
 ```text
@@ -262,8 +281,10 @@ database and no map file.
    `mediaRefs.episodeId`. Hop episode ids through `episodes.podcastId`.
 2. Add `feedUrls.url` for those podcasts, plus every
    `addByRSSPodcastFeedUrls` entry (URL only, no catalog row required).
-3. Ensure those feeds exist in v5 and queue parse jobs. Do not bulk-copy the
-   catalog unless rehearsal shows that is cheaper.
+3. Ensure the public, non-spam, non-takedown feeds exist in v5 and queue parse
+   jobs for the ones that are still unresolved. Attach a follow to the
+   surviving channel when an absorb merge is already applied. Do not
+   bulk-copy the catalog unless rehearsal shows that is cheaper.
 4. Do not copy v4 popularity. v5 range totals start empty and fill from v5
    listen events.
 5. Build the legacy map as feeds and items become available. Retry

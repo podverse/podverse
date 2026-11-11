@@ -98,7 +98,9 @@ production already share the production database.
   [04](04-v4-data-inventory-and-scope.md), from `podverse-api@develop` entities
   and the snapshot `information_schema`.
 - Id-mapping notes in [05](05-id-mapping-and-catalog-seeding.md), including the
-  integer cast from `podcasts.podcastIndexId` to `feed.podcast_index_id`.
+  integer cast from `podcasts.podcastIndexId` to `feed.podcast_index_id`, the
+  hop to an already-merged survivor, and the seed filter that skips spam,
+  takedown, and non-public podcasts.
 - Read-only count SQL and this snapshot's counts in
   [06](06-database-migration-rehearsal.md). Same files, gitignored, under
   `.artifacts/v4-rehearsal-counts/`.

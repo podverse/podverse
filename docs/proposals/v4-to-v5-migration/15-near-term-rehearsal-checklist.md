@@ -81,14 +81,31 @@ migrations and a regenerated baseline. The plan is
 
 ## 4. Crosswalk dry run
 
-No v5 writes. Report mapped and unresolved counts only
-([06](06-database-migration-rehearsal.md), phase 2).
+No v5 writes. Report counts only
+([06](06-database-migration-rehearsal.md), phase 2). The order is in
+[05](05-id-mapping-and-catalog-seeding.md#crosswalk-chain-podcast--channel).
 
-- [ ] For the rehearsal account, hop each subscribed podcast to its Podcast
-      Index id and check whether that feed exists in the local v5 database.
-- [ ] Repeat for every subscribed podcast. This snapshot has 63,786 distinct
-      subscribed podcast ids. The result sizes the selective feed seed and
-      the parse queue.
+Ran read-only against the 2026-10-30 snapshot and the local `podverse_app`
+database. Counts only. The local database has 8 feeds and no `channel_merge`
+rows, so this seed size is against an almost empty catalog.
+
+Rehearsal account, 173 subscribed ids:
+
+- [x] Spam or takedown: 0.
+- [x] Non-public, kept out of the seed: 14. Missing podcast row: 6.
+- [x] Seed candidates: 153, each with a numeric Podcast Index id.
+- [x] Applied absorb survivor: 0.
+- [x] Already a local feed: 4. No local feed: 149.
+
+Every subscribed podcast, 63,786 distinct ids:
+
+- [x] Spam: 14, all still `isPublic`. Takedown: 0.
+- [x] Non-public, `flag_status` `none`: 6,557. Missing podcast row: 42.
+- [x] Seed candidates: 57,173. Every one has its own numeric Podcast Index id.
+- [x] Applied absorb survivor: 0.
+- [x] Already a local feed: 5. No local feed: 57,168. That is the selective
+      seed against this local database. Duplicate detection stays the normal
+      channel merge after those feeds exist.
 
 ## 5. One-account copy on local v5
 

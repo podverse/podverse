@@ -54,6 +54,8 @@ commits them.
 | Extra v4 worktrees wait until someone starts the migration code          | Decided |
 | Episode playlist rows point at the episode and do not invent a clip      | Decided |
 | Playlist members come from the joins; `itemsOrder` only sorts            | Decided |
+| A follow uses the survivor when an absorb merge is already applied       | Decided |
+| The selective seed skips spam, takedown, and non-public podcasts         | Decided |
 | Copied list order uses the ORM step of `0.00000001`                      | Decided |
 | Phone-storage spike is written in doc 08 and has not been run            | Decided |
 | F-Droid is a placeholder until later                                     | Decided |
