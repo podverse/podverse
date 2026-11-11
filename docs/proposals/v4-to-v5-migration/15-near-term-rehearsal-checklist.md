@@ -119,9 +119,10 @@ more than five years ahead is already capped in that file.
 `billingImportLegacyMembershipExpiry` writes the grant and the expiry only.
 The account copy sets Premium or Trial, and it writes a carried trial grant.
 
-- [ ] Identity seed for the rehearsal account: email, bcrypt hash, name,
-      verified flag, and the v4 id as `account.id_text`. No library rows and
-      no signup trial.
+- [x] Identity seed for the rehearsal account on the local database. The v4
+      id is `account.id_text` (`eFv5NFx`), the verified flag is true, and the
+      bcrypt hash and name are stored. `v4_library_copied_at` is null. No
+      membership row, no grant, and no signup trial.
 - [ ] Library copy for that one account, through the legacy map.
 - [ ] Sign in on local web and mobile with the v4 password.
 - [ ] Copied group counts match the step 2 trace.
