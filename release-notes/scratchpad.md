@@ -46,3 +46,10 @@
   a later success.
 - Who notices: operators triaging alpha alerts for the manual notifications test push
 - Operator steps: alpha picks this up when the ops base ref includes the commit
+
+## Recent-feeds job stays up through a Podcast Index outage
+
+- Surfaces: workers
+- Change: After retries, HTTP 429, HTTP 5xx, or a network error from `/recent/data` stops the recent-feeds run with outcome `upstream_error` and exit 0. The cursor stays at the last finished page, and the next run continues from there. A deadline abort still stops as `time_cap`. Database, queue, and cursor errors still fail the Job, and `send_failed` still exits non-zero. No new alert.
+- Who notices: operators of alpha and later production; one Podcast Index 502 no longer marks `worker-recent-feeds` Failed or the cron Application Degraded
+- Operator steps: after this is on alpha, delete the old Failed Job for `worker-recent-feeds` if it is still listed, so Argo CD can drop Degraded

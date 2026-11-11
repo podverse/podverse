@@ -29,7 +29,7 @@ level higher. If it already ran at extra high, rerun it on **Codex 5.3**.
 
 ## Phase 1
 
-- [ ] **01 — Upstream error exits 0**
+- [x] **01 — Upstream error exits 0**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 

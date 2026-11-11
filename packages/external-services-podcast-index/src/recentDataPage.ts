@@ -16,7 +16,7 @@ export type RecentDataPage = {
 };
 
 /** Why `recentGetData` stopped yielding pages. */
-export type RecentGetDataStopReason = 'caught_up' | 'time_cap';
+export type RecentGetDataStopReason = 'caught_up' | 'time_cap' | 'upstream_error';
 
 export function parseRecentDataPage(response: unknown, since: number): RecentDataPage | null {
   if (!isRecord(response) || !isRecord(response.data) || !Array.isArray(response.data.feeds)) {

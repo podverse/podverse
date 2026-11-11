@@ -21,6 +21,17 @@ async function drain(pages: AsyncGenerator<RecentDataPage, RecentGetDataStopReas
   }
 }
 
+async function drainPages(pages: AsyncGenerator<RecentDataPage, RecentGetDataStopReason>) {
+  const yielded: RecentDataPage[] = [];
+  while (true) {
+    const step = await pages.next();
+    if (step.done === true) {
+      return { yielded, stopReason: step.value };
+    }
+    yielded.push(step.value);
+  }
+}
+
 function createLogger(): ILoggerLike {
   return {
     addRemoteTransport: vi.fn(),
@@ -122,6 +133,123 @@ describe('PodcastIndexService.recentGetData HTTP timeout', () => {
     expect(new Set(abortControllers).size).toBe(4);
     expect(loggerService.warn).toHaveBeenCalledTimes(1);
     expect(loggerService.logError).toHaveBeenCalledTimes(1);
+  });
+
+  it('resolves as upstream_error when a 502 survives retries', async () => {
+    const loggerService = createLogger();
+    const service = new PodcastIndexService({
+      userAgent: 'test-agent',
+      authKey: 'auth-key',
+      baseUrl: 'https://api.podcastindex.org/api/1.0',
+      secretKey: 'secret-key',
+      loggerService,
+      maxRetries: 3,
+      retryBaseDelayMs: 1000,
+    });
+
+    requestWithUserAgent.mockRejectedValue({
+      message: 'Request failed with status code 502',
+      response: { status: 502 },
+    });
+
+    const run = drain(service.recentGetData(Math.floor(Date.now() / 1000) - 900));
+    await vi.runAllTimersAsync();
+    await expect(run).resolves.toBe('upstream_error');
+
+    expect(requestWithUserAgent).toHaveBeenCalledTimes(4);
+    expect(loggerService.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Upstream error after retries')
+    );
+  });
+
+  it('resolves as upstream_error when a network error survives retries', async () => {
+    const loggerService = createLogger();
+    const service = new PodcastIndexService({
+      userAgent: 'test-agent',
+      authKey: 'auth-key',
+      baseUrl: 'https://api.podcastindex.org/api/1.0',
+      secretKey: 'secret-key',
+      loggerService,
+      maxRetries: 3,
+      retryBaseDelayMs: 1000,
+    });
+
+    requestWithUserAgent.mockRejectedValue({
+      message: 'socket hang up',
+      code: 'ECONNRESET',
+    });
+
+    const run = drain(service.recentGetData(Math.floor(Date.now() / 1000) - 900));
+    await vi.runAllTimersAsync();
+    await expect(run).resolves.toBe('upstream_error');
+
+    expect(requestWithUserAgent).toHaveBeenCalledTimes(4);
+    expect(loggerService.warn).toHaveBeenCalledWith(
+      expect.stringContaining('stopping and resuming next run from the last completed page')
+    );
+  });
+
+  it('still rejects HTTP 404', async () => {
+    const loggerService = createLogger();
+    const service = new PodcastIndexService({
+      userAgent: 'test-agent',
+      authKey: 'auth-key',
+      baseUrl: 'https://api.podcastindex.org/api/1.0',
+      secretKey: 'secret-key',
+      loggerService,
+      maxRetries: 3,
+      retryBaseDelayMs: 1000,
+    });
+
+    requestWithUserAgent.mockRejectedValue({
+      message: 'Request failed with status code 404',
+      response: { status: 404 },
+    });
+
+    await expect(drain(service.recentGetData(Math.floor(Date.now() / 1000) - 900))).rejects.toEqual(
+      expect.objectContaining({ message: 'Request failed with status code 404' })
+    );
+    expect(loggerService.warn).not.toHaveBeenCalledWith(
+      expect.stringContaining('Upstream error after retries')
+    );
+  });
+
+  it('yields finished pages and then stops with upstream_error', async () => {
+    const loggerService = createLogger();
+    const service = new PodcastIndexService({
+      userAgent: 'test-agent',
+      authKey: 'auth-key',
+      baseUrl: 'https://api.podcastindex.org/api/1.0',
+      secretKey: 'secret-key',
+      loggerService,
+      maxRetries: 3,
+      retryBaseDelayMs: 1000,
+    });
+    const startedAtSeconds = Math.floor(Date.now() / 1000);
+
+    requestWithUserAgent.mockResolvedValueOnce({
+      data: {
+        data: {
+          feeds: [{ feedId: 1, feedUrl: 'https://example.com/feed.xml' }],
+        },
+        nextSince: startedAtSeconds,
+      },
+    });
+    requestWithUserAgent.mockRejectedValue({
+      message: 'Request failed with status code 502',
+      response: { status: 502 },
+    });
+
+    const run = drainPages(service.recentGetData(startedAtSeconds - 900));
+    await vi.runAllTimersAsync();
+    const result = await run;
+
+    expect(result.stopReason).toBe('upstream_error');
+    expect(result.yielded).toHaveLength(1);
+    expect(result.yielded[0]?.feeds).toEqual([
+      { feedId: 1, feedUrl: 'https://example.com/feed.xml' },
+    ]);
+    expect(requestWithUserAgent).toHaveBeenCalledTimes(5);
   });
 
   it('still rejects non-abort failures', async () => {
